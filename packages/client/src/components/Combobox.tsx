@@ -19,6 +19,8 @@ export interface ComboboxOption {
   value: string;
   label: string;
   depth?: number;
+  /** Optional element rendered at the inline-start of the option (and the trigger when selected). */
+  icon?: React.ReactNode;
 }
 
 interface ComboboxProps {
@@ -29,6 +31,8 @@ interface ComboboxProps {
   "searchPlaceholder"?: string;
   "emptyText"?: string;
   "className"?: string;
+  /** Id applied to the trigger button so an external `<Label htmlFor>` can target it. */
+  "id"?: string;
   "aria-label"?: string;
 }
 
@@ -44,6 +48,7 @@ export function Combobox({
   searchPlaceholder = "Search…",
   emptyText = "No matches.",
   className,
+  id,
   "aria-label": ariaLabel,
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false);
@@ -59,13 +64,19 @@ export function Combobox({
           type="button"
           variant="outline"
           role="combobox"
+          id={id}
           aria-expanded={open}
           aria-label={ariaLabel}
           data-slot="combobox"
           className={cn("w-full justify-between font-normal", className)}
         >
-          <span className={cn("truncate", !selected && "text-muted-foreground")}>
-            {selected?.label ?? placeholder}
+          <span
+            className={cn("flex min-w-0 items-center gap-2", !selected && `
+              text-muted-foreground
+            `)}
+          >
+            {selected?.icon}
+            <span className="truncate">{selected?.label ?? placeholder}</span>
           </span>
           <ChevronsUpDown className="opacity-50" />
         </Button>
@@ -91,6 +102,7 @@ export function Combobox({
                     paddingLeft: `${0.5 + (option.depth ?? 0) * 1}rem`,
                   }}
                 >
+                  {option.icon}
                   {option.label}
                   <Check
                     className={cn(

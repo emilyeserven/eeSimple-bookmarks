@@ -53,6 +53,33 @@ describe("Combobox", () => {
     expect(onValueChange).toHaveBeenCalledWith("frontend");
   });
 
+  it("renders an option's icon in the list and the trigger", () => {
+    const iconOptions: ComboboxOption[] = [
+      {
+        value: "web",
+        label: "web",
+        icon: <span data-testid="web-icon" />,
+      },
+    ];
+    render(
+      <Combobox
+        options={iconOptions}
+        value="web"
+        onValueChange={vi.fn()}
+        aria-label="Topic"
+      />,
+    );
+
+    // The selected option's icon shows in the trigger.
+    expect(screen.getByTestId("web-icon")).toBeInTheDocument();
+
+    // …and again inside the open list.
+    fireEvent.click(screen.getByRole("combobox", {
+      name: "Topic",
+    }));
+    expect(screen.getAllByTestId("web-icon").length).toBeGreaterThan(1);
+  });
+
   it("clears the selection when the active option is chosen again", () => {
     const onValueChange = vi.fn();
     render(
