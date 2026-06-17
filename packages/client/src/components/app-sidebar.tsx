@@ -4,6 +4,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { Bookmark, Globe, Home, Settings, Tags } from "lucide-react";
 
 import { useCategories } from "../hooks/useCategories";
+import { useResizeHandle } from "../hooks/useResizeHandle";
 import { useUiStore } from "../stores/uiStore";
 
 import {
@@ -18,6 +19,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { CategoryIcon } from "@/lib/icons";
 
@@ -221,7 +223,38 @@ export function AppSidebar({
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
+      <SidebarResizeHandle />
       <SidebarRail />
     </Sidebar>
+  );
+}
+
+function SidebarResizeHandle() {
+  const {
+    state,
+  } = useSidebar();
+  const sidebarWidth = useUiStore(s => s.sidebarWidth);
+  const setSidebarWidth = useUiStore(s => s.setSidebarWidth);
+  const {
+    onPointerDown,
+  } = useResizeHandle({
+    direction: "right",
+    currentWidth: sidebarWidth,
+    onChange: setSidebarWidth,
+    min: 10,
+    max: 28,
+  });
+
+  if (state === "collapsed") return null;
+
+  return (
+    <div
+      className="
+        absolute inset-y-0 -right-0.5 z-30 w-1 cursor-col-resize
+        transition-colors
+        hover:bg-sidebar-border/60
+      "
+      onPointerDown={onPointerDown}
+    />
   );
 }

@@ -100,7 +100,7 @@ function TextField({
           </div>
         )
         : input}
-      <FieldErrors errors={field.state.meta.errors} />
+      {field.state.meta.isTouched && <FieldErrors errors={field.state.meta.errors} />}
     </div>
   );
 }
@@ -110,28 +110,49 @@ interface TextareaFieldProps {
   placeholder?: string;
   rows?: number;
   disabled?: boolean;
+  /** Class applied to the textarea itself (e.g. a tighter min-height to start at one row). */
+  inputClassName?: string;
+  /** Extra blur handler (runs after the field's own blur), e.g. autofill-on-blur. */
+  onBlur?: () => void;
+  /** Optional control rendered at the inline-end of the textarea (input-group pattern). */
+  action?: ReactNode;
 }
 
 /** Labelled multi-line text input bound to the surrounding field. */
 function TextareaField({
-  label, placeholder, rows = 2, disabled,
+  label, placeholder, rows = 2, disabled, inputClassName, onBlur, action,
 }: TextareaFieldProps) {
   const field = useFieldContext<string>();
   const id = useId();
 
+  const textarea = (
+    <Textarea
+      id={id}
+      rows={rows}
+      placeholder={placeholder}
+      disabled={disabled}
+      className={inputClassName}
+      value={field.state.value}
+      onBlur={() => {
+        field.handleBlur();
+        onBlur?.();
+      }}
+      onChange={event => field.handleChange(event.target.value)}
+    />
+  );
+
   return (
     <div className="space-y-1">
       <Label htmlFor={id}>{label}</Label>
-      <Textarea
-        id={id}
-        rows={rows}
-        placeholder={placeholder}
-        disabled={disabled}
-        value={field.state.value}
-        onBlur={field.handleBlur}
-        onChange={event => field.handleChange(event.target.value)}
-      />
-      <FieldErrors errors={field.state.meta.errors} />
+      {action
+        ? (
+          <div className="flex items-start gap-2">
+            <div className="flex-1">{textarea}</div>
+            {action}
+          </div>
+        )
+        : textarea}
+      {field.state.meta.isTouched && <FieldErrors errors={field.state.meta.errors} />}
     </div>
   );
 }
@@ -168,7 +189,7 @@ function NumberField({
         }}
       />
       {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
-      <FieldErrors errors={field.state.meta.errors} />
+      {field.state.meta.isTouched && <FieldErrors errors={field.state.meta.errors} />}
     </div>
   );
 }
@@ -195,7 +216,10 @@ function SelectField({
       <Label htmlFor={id}>{label}</Label>
       <Select
         value={field.state.value || undefined}
-        onValueChange={value => field.handleChange(value)}
+        onValueChange={(value) => {
+          field.handleChange(value);
+          field.handleBlur();
+        }}
       >
         <SelectTrigger
           id={id}
@@ -214,7 +238,7 @@ function SelectField({
           ))}
         </SelectContent>
       </Select>
-      <FieldErrors errors={field.state.meta.errors} />
+      {field.state.meta.isTouched && <FieldErrors errors={field.state.meta.errors} />}
     </div>
   );
 }
@@ -246,12 +270,15 @@ function ComboboxField({
         aria-label={label}
         options={options}
         value={field.state.value || undefined}
-        onValueChange={value => field.handleChange(value ?? "")}
+        onValueChange={(value) => {
+          field.handleChange(value ?? "");
+          field.handleBlur();
+        }}
         placeholder={placeholder}
         searchPlaceholder={searchPlaceholder}
         emptyText={emptyText}
       />
-      <FieldErrors errors={field.state.meta.errors} />
+      {field.state.meta.isTouched && <FieldErrors errors={field.state.meta.errors} />}
     </div>
   );
 }

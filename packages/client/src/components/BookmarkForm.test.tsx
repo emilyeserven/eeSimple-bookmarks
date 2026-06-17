@@ -9,6 +9,11 @@ import { BookmarkForm } from "./BookmarkForm";
 // test can focus on the title-fetch behavior without a live API or QueryClient.
 const mutateAsync = vi.fn<(url: string) => Promise<{ title: string }>>();
 let autoFetchTitle = true;
+let websiteLookupData:
+  | { exists: boolean;
+    domain: string | null;
+    siteName: string | null; }
+    | undefined;
 
 const updateMutateAsync = vi.fn<(args: unknown) => Promise<unknown>>();
 
@@ -60,7 +65,7 @@ vi.mock("../hooks/useFetchTitle", () => ({
 }));
 vi.mock("../hooks/useWebsites", () => ({
   useWebsiteLookup: () => ({
-    data: undefined,
+    data: websiteLookupData,
     mutate: vi.fn(),
     reset: vi.fn(),
   }),
@@ -77,6 +82,7 @@ describe("BookmarkForm title fetching", () => {
     mutateAsync.mockReset();
     updateMutateAsync.mockReset();
     autoFetchTitle = true;
+    websiteLookupData = undefined;
   });
 
   it("fills the Name field when the fetch button is clicked", async () => {
@@ -187,5 +193,38 @@ describe("BookmarkForm title fetching", () => {
       }),
     );
     await waitFor(() => expect(onDone).toHaveBeenCalled());
+  });
+
+  it("re-fetches the Name with the edited site name when Site name is blurred", async () => {
+    websiteLookupData = {
+      exists: false,
+      domain: "allrecipes.com",
+      siteName: null,
+    };
+    mutateAsync.mockResolvedValue({
+      title: "Best Pancakes",
+    });
+    render(<BookmarkForm />);
+
+    fireEvent.change(screen.getByLabelText("URL"), {
+      target: {
+        value: "https://allrecipes.com/recipe/123",
+      },
+    });
+
+    const siteNameInput = screen.getByLabelText("Site name");
+    fireEvent.change(siteNameInput, {
+      target: {
+        value: "Allrecipes",
+      },
+    });
+    fireEvent.blur(siteNameInput);
+
+    await waitFor(() =>
+      expect(screen.getByLabelText("Name")).toHaveValue("Best Pancakes"));
+    expect(mutateAsync).toHaveBeenCalledWith({
+      url: "https://allrecipes.com/recipe/123",
+      siteName: "Allrecipes",
+    });
   });
 });
