@@ -96,7 +96,10 @@ describe("BookmarkForm title fetching", () => {
 
     await waitFor(() =>
       expect(screen.getByLabelText("Name")).toHaveValue("Example Domain"));
-    expect(mutateAsync).toHaveBeenCalledWith("https://example.com");
+    expect(mutateAsync).toHaveBeenCalledWith({
+      url: "https://example.com",
+      siteName: undefined,
+    });
   });
 
   it("auto-fills an empty Name when the URL field is blurred", async () => {
