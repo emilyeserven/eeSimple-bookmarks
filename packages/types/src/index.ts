@@ -51,6 +51,8 @@ export interface Website {
   slug: string;
   /** ISO-8601 timestamp of when the website was first seen. */
   createdAt: string;
+  /** Number of bookmarks associated with this website (populated by list endpoints). */
+  bookmarkCount?: number;
 }
 
 /** Lightweight website shape carried on a bookmark. */

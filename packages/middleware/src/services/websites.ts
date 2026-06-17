@@ -1,7 +1,7 @@
-import { asc, eq, isNull, ne } from "drizzle-orm";
+import { asc, eq, isNull, ne, sql } from "drizzle-orm";
 import type { CreateWebsiteInput, UpdateWebsiteInput, Website } from "@eesimple/types";
 import { db } from "@/db";
-import { websites, type WebsiteRow } from "@/db/schema";
+import { bookmarks, websites, type WebsiteRow } from "@/db/schema";
 import { slugify } from "@/utils/slug";
 
 /** Transaction handle type, matching the callback arg of `db.transaction`. */
@@ -48,7 +48,7 @@ async function takenWebsiteSlugs(excludeId?: string): Promise<Set<string>> {
 }
 
 /** Map a DB row to the shared `Website` wire type. */
-function toWebsite(row: WebsiteRow): Website {
+function toWebsite(row: WebsiteRow & { bookmarkCount?: number }): Website {
   return {
     id: row.id,
     domain: row.domain,
@@ -56,6 +56,7 @@ function toWebsite(row: WebsiteRow): Website {
     slug: row.slug ?? slugFromDomain(row.domain),
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
+    bookmarkCount: row.bookmarkCount,
   };
 }
 
@@ -120,7 +121,17 @@ export function stripSiteNameSuffix(
 
 /** List all websites, ordered by site name. */
 export async function listWebsites(): Promise<Website[]> {
-  const rows = await db.select().from(websites).orderBy(asc(websites.siteName));
+  const rows = await db
+    .select({
+      id: websites.id,
+      domain: websites.domain,
+      siteName: websites.siteName,
+      slug: websites.slug,
+      createdAt: websites.createdAt,
+      bookmarkCount: sql<number>`(select count(*)::int from ${bookmarks} where ${bookmarks.websiteId} = ${websites.id})`.mapWith(Number),
+    })
+    .from(websites)
+    .orderBy(asc(websites.siteName));
   return rows.map(toWebsite);
 }
 
