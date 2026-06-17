@@ -1,13 +1,15 @@
 import * as React from "react";
 
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Bookmark, Home, Settings } from "lucide-react";
+import { Bookmark, Globe, Home, Settings, Tags } from "lucide-react";
 
 import { useCategories } from "../hooks/useCategories";
+import { useUiStore } from "../stores/uiStore";
 
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -30,10 +32,18 @@ const navItems = [
     to: "/bookmarks",
     icon: Bookmark,
   },
+] as const;
+
+const taxonomyItems = [
   {
-    title: "Settings",
-    to: "/settings",
-    icon: Settings,
+    title: "Tags",
+    to: "/settings/tags",
+    icon: Tags,
+  },
+  {
+    title: "Websites",
+    to: "/settings/websites",
+    icon: Globe,
   },
 ] as const;
 
@@ -46,6 +56,8 @@ export function AppSidebar({
   const {
     data: categories,
   } = useCategories();
+  const showCategoriesInSidebar = useUiStore(state => state.showCategoriesInSidebar);
+  const showTaxonomiesInSidebar = useUiStore(state => state.showTaxonomiesInSidebar);
 
   return (
     <Sidebar
@@ -106,7 +118,7 @@ export function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {categories && categories.length > 0
+        {showCategoriesInSidebar && categories && categories.length > 0
           ? (
             <SidebarGroup>
               <SidebarGroupLabel>Categories</SidebarGroupLabel>
@@ -139,7 +151,64 @@ export function AppSidebar({
             </SidebarGroup>
           )
           : null}
+
+        {showTaxonomiesInSidebar
+          ? (
+            <SidebarGroup>
+              <SidebarGroupLabel>Taxonomies</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {taxonomyItems.map((item) => {
+                    const isActive = pathname.startsWith(item.to);
+                    return (
+                      <SidebarMenuItem key={item.to}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={isActive}
+                          tooltip={item.title}
+                        >
+                          <Link to={item.to}>
+                            <item.icon />
+                            <span>{item.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          )
+          : null}
       </SidebarContent>
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              size="lg"
+              asChild
+              isActive={pathname.startsWith("/settings")}
+              tooltip="Settings"
+            >
+              <Link to="/settings">
+                <div
+                  className="
+                    flex aspect-square size-8 items-center justify-center
+                    rounded-lg bg-sidebar-primary
+                    text-sidebar-primary-foreground
+                  "
+                >
+                  <Settings className="size-4" />
+                </div>
+                <div className="grid flex-1 text-left text-sm/tight">
+                  <span className="truncate font-semibold">Settings</span>
+                  <span className="truncate text-xs">Manage preferences</span>
+                </div>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   );
