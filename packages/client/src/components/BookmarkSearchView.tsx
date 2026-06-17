@@ -1,5 +1,5 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
-import type { Bookmark, CustomProperty, TagNode } from "@eesimple/types";
+import type { Bookmark, Category, CustomProperty, TagNode } from "@eesimple/types";
 import type { ReactNode } from "react";
 
 import { BookmarkCard } from "./BookmarkCard";
@@ -20,6 +20,8 @@ interface BookmarkSearchViewProps {
   tree: TagNode[];
   /** Properties offered as filters and used to render bookmark cards. */
   properties: CustomProperty[];
+  /** When provided, groups category-specific property filters under collapsible sections. */
+  categories?: Category[];
   /** Bookmarks already narrowed by tag (and category, on category pages). */
   bookmarks: Bookmark[];
   search: BookmarkSearch;
@@ -47,6 +49,7 @@ export function BookmarkSearchView({
   pageKey,
   tree,
   properties,
+  categories,
   bookmarks,
   search,
   onSearchChange,
@@ -77,6 +80,7 @@ export function BookmarkSearchView({
         <FilterSidebar
           tree={tree}
           properties={properties}
+          categories={categories}
           bookmarks={bookmarks}
           search={search}
           onSearchChange={onSearchChange}

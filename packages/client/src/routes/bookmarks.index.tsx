@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
 import { useBookmarks } from "../hooks/useBookmarks";
+import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useTagTree } from "../hooks/useTags";
 import { validateBookmarkSearch } from "../lib/bookmarkSearch";
@@ -23,6 +24,9 @@ function BookmarksPage() {
   const {
     data: customProperties,
   } = useCustomProperties();
+  const {
+    data: categories,
+  } = useCategories();
 
   return (
     <BookmarkSearchView
@@ -30,6 +34,7 @@ function BookmarksPage() {
       pageKey="bookmarks"
       tree={tagTree ?? []}
       properties={customProperties ?? []}
+      categories={categories ?? []}
       bookmarks={bookmarks ?? []}
       search={search}
       onSearchChange={next => navigate({
