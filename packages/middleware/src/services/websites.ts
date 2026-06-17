@@ -148,10 +148,11 @@ export async function getWebsiteByDomain(domain: string): Promise<Website | null
 }
 
 /**
- * Resolve the website for a URL inside a transaction, creating it (with `siteName` defaulting to
- * the domain) when none exists yet. Returns the website id, or `null` when the URL has no host.
+ * Resolve the website for a URL inside a transaction, creating it when none exists yet.
+ * `siteName` sets the friendly name for the new site; defaults to the domain when omitted.
+ * Returns the website id, or `null` when the URL has no host.
  */
-export async function ensureWebsiteForUrl(tx: Tx, url: string): Promise<string | null> {
+export async function ensureWebsiteForUrl(tx: Tx, url: string, siteName?: string): Promise<string | null> {
   const domain = normalizeDomain(url);
   if (!domain) return null;
 
@@ -171,7 +172,7 @@ export async function ensureWebsiteForUrl(tx: Tx, url: string): Promise<string |
     .insert(websites)
     .values({
       domain,
-      siteName: domain,
+      siteName: siteName?.trim() || domain,
       slug,
     })
     .onConflictDoNothing({

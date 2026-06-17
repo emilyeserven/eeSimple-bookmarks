@@ -1,6 +1,6 @@
 import type { Bookmark, CustomProperty } from "@eesimple/types";
 
-import { screen } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { BookmarkCard } from "./BookmarkCard";
@@ -147,9 +147,20 @@ describe("BookmarkCard", () => {
         paths: [DETAIL_PATH],
       },
     );
-    screen.getByRole("button", {
+    // Radix DropdownMenuTrigger opens on keyboard (Enter/Space) in jsdom because
+    // jsdom 26 doesn't implement PointerEvent, making fireEvent.pointerDown useless.
+    fireEvent.keyDown(screen.getByRole("button", {
+      name: "More options",
+    }), {
+      key: " ",
+    });
+    await waitFor(() =>
+      screen.getByRole("menuitem", {
+        name: "Delete",
+      }));
+    fireEvent.click(screen.getByRole("menuitem", {
       name: "Delete",
-    }).click();
+    }));
     expect(onDelete).toHaveBeenCalledWith(bookmark.id);
   });
 });
