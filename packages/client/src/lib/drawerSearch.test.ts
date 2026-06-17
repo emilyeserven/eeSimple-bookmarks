@@ -3,41 +3,81 @@ import { describe, expect, it } from "vitest";
 import { validateDrawerSearch } from "./drawerSearch";
 
 describe("validateDrawerSearch", () => {
-  it("keeps a valid type/id pair", () => {
+  it("returns an item state for a valid open type/id pair, defaulting the mode to view", () => {
     expect(validateDrawerSearch({
+      dOpen: true,
       dCT: "autofill",
       dCId: "rule-1",
     })).toEqual({
+      dOpen: true,
       dCT: "autofill",
       dCId: "rule-1",
-    });
-    expect(validateDrawerSearch({
-      dCT: "tag",
-      dCId: "tag-1",
-    })).toEqual({
-      dCT: "tag",
-      dCId: "tag-1",
+      dMode: "view",
     });
   });
 
-  it("drops the pair when either param is missing", () => {
+  it("keeps an explicit edit mode", () => {
     expect(validateDrawerSearch({
+      dOpen: true,
       dCT: "tag",
-    })).toEqual({});
-    expect(validateDrawerSearch({
       dCId: "tag-1",
-    })).toEqual({});
+      dMode: "edit",
+    })).toEqual({
+      dOpen: true,
+      dCT: "tag",
+      dCId: "tag-1",
+      dMode: "edit",
+    });
+  });
+
+  it("treats a content type as open even without the open flag (deep links)", () => {
+    expect(validateDrawerSearch({
+      dCT: "bookmark",
+    })).toEqual({
+      dOpen: true,
+      dCT: "bookmark",
+    });
+  });
+
+  it("collapses to the tiles state when open with no content type", () => {
+    expect(validateDrawerSearch({
+      dOpen: true,
+    })).toEqual({
+      dOpen: true,
+    });
+  });
+
+  it("drops the id when no content type is present", () => {
+    expect(validateDrawerSearch({
+      dOpen: true,
+      dCId: "tag-1",
+    })).toEqual({
+      dOpen: true,
+    });
+  });
+
+  it("is closed when neither the open flag nor a content type is present", () => {
     expect(validateDrawerSearch({})).toEqual({});
+    expect(validateDrawerSearch({
+      dMode: "edit",
+    })).toEqual({});
   });
 
   it("rejects an unknown content type or empty id", () => {
     expect(validateDrawerSearch({
+      dOpen: true,
       dCT: "bogus",
       dCId: "x",
-    })).toEqual({});
+    })).toEqual({
+      dOpen: true,
+    });
     expect(validateDrawerSearch({
+      dOpen: true,
       dCT: "tag",
       dCId: "",
-    })).toEqual({});
+    })).toEqual({
+      dOpen: true,
+      dCT: "tag",
+    });
   });
 });

@@ -189,7 +189,7 @@ interface CategoryCardProps {
 }
 
 /** A category row with quick edit (name, icon, description) and a link to its full edit page. */
-function CategoryCard({
+export function CategoryCard({
   category,
 }: CategoryCardProps) {
   const deleteCategory = useDeleteCategory();

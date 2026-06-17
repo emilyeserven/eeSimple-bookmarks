@@ -56,6 +56,13 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
   to a valid prefix before expecting `lint-title` to pass.
 - **Git hooks** (Husky): pre-commit runs `lint-staged`; commit-msg runs commitlint.
 - **Path alias:** the middleware uses `@/*` → `src/*` (resolved at build time by `tsc-alias`).
+- **Right-panel parity:** the shared right-hand panel (`packages/client/src/components/panel/`) is
+  URL-driven (`dOpen`/`dCT`/`dCId`/`dMode`) and must achieve **feature and component parity** with
+  the main app. A single item viewed/edited in the panel reuses the **same** components the main app
+  renders for that entity (e.g. `BookmarkCard`/`BookmarkForm`, `CategoryCard`, `PropertyCard`,
+  `WebsiteRow`), shown in their narrow/mobile layout — never a panel-only variant. Build entity
+  views/forms as responsive, reusable components so both surfaces share them, and register each
+  content type in `panel/contentTypes.tsx`.
 
 ## Generated files (do not edit)
 

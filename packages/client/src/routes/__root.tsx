@@ -7,15 +7,18 @@ import {
   useRouterState,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+import { PanelRight } from "lucide-react";
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { RightPanel } from "@/components/panel/RightPanel";
+import { usePanelControls } from "@/components/panel/usePanelControls";
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbList,
   BreadcrumbPage,
 } from "@/components/ui/breadcrumb";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
   SidebarInset,
@@ -32,7 +35,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
   validateSearch: validateDrawerSearch,
   search: {
     // Carry the panel's drawer params across every navigation so it survives route changes.
-    middlewares: [retainSearchParams(["dCT", "dCId"])],
+    middlewares: [retainSearchParams(["dOpen", "dCT", "dCId", "dMode"])],
   },
   component: RootComponent,
 });
@@ -55,6 +58,9 @@ function RootComponent() {
     select: state => state.location.pathname,
   });
   const title = titleForPath(pathname);
+  const {
+    open,
+  } = usePanelControls();
 
   return (
     <SidebarProvider>
@@ -75,6 +81,16 @@ function RootComponent() {
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="-mr-1 ml-auto"
+            aria-label="Open panel"
+            onClick={open}
+          >
+            <PanelRight className="size-4" />
+          </Button>
         </header>
         <main className="mx-auto w-full max-w-6xl px-4 py-8">
           <Outlet />

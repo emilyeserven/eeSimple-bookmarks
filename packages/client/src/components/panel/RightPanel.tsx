@@ -63,7 +63,7 @@ export function RightPanel() {
       >
         <SheetHeader className="sr-only">
           <SheetTitle>Panel</SheetTitle>
-          <SheetDescription>Edit the selected tag or autofill rule.</SheetDescription>
+          <SheetDescription>Browse, view, and edit your content.</SheetDescription>
         </SheetHeader>
         <PanelChrome docked={false} />
         <div className="flex-1 overflow-y-auto px-4 pb-6">
@@ -90,7 +90,7 @@ function PanelChrome({
   const setPanelPinned = useUiStore(state => state.setPanelPinned);
 
   return (
-    <div className="flex items-center justify-end gap-1 px-4 pt-4">
+    <div className="flex items-center justify-between gap-1 px-4 pt-4">
       <Button
         type="button"
         variant="ghost"

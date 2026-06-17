@@ -55,7 +55,7 @@ function renderRouter(initialEntry: string) {
   const rootRoute = createRootRoute({
     validateSearch: validateDrawerSearch,
     search: {
-      middlewares: [retainSearchParams(["dCT", "dCId"])],
+      middlewares: [retainSearchParams(["dOpen", "dCT", "dCId", "dMode"])],
     },
     component: () => <Outlet />,
   });

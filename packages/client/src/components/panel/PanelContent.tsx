@@ -1,31 +1,39 @@
-import { AutofillRulePanel } from "./AutofillRulePanel";
-import { TagPanel } from "./TagPanel";
+import { getContentType } from "./contentTypes";
+import { PanelList } from "./PanelList";
+import { PanelTypeTiles } from "./PanelTypeTiles";
 import { usePanelControls } from "./usePanelControls";
 
+import { NEW_SENTINEL } from "@/lib/drawerSearch";
+
 /**
- * Dispatches the right-hand panel's body based on the `dCT`/`dCId` search params. Keyed by the
- * target so switching rule/tag remounts the editor with fresh form defaults.
+ * Routes the right-hand panel's body through its three nested states:
+ * no type → content-type tiles; type only → that type's searchable list; type + id → a single item
+ * shown in `view` or `edit` mode. Lists and items are keyed so changing the target remounts them
+ * with fresh state.
  */
 export function PanelContent() {
   const {
-    dCT, dCId,
+    dCT, dCId, dMode,
   } = usePanelControls();
 
-  if (!dCT || !dCId) return null;
-
-  if (dCT === "autofill") {
+  if (!dCT) return <PanelTypeTiles />;
+  if (!dCId) {
     return (
-      <AutofillRulePanel
-        key={`autofill:${dCId}`}
-        ruleId={dCId}
+      <PanelList
+        key={dCT}
+        type={dCT}
       />
     );
   }
 
+  const def = getContentType(dCT);
+  // Creating an item is always an edit; otherwise honor the URL mode, defaulting to view.
+  const mode = dCId === NEW_SENTINEL ? "edit" : (dMode ?? "view");
+  const Body = mode === "edit" ? def.Edit : def.View;
   return (
-    <TagPanel
-      key={`tag:${dCId}`}
-      tagId={dCId}
+    <Body
+      key={`${dCT}:${dCId}:${mode}`}
+      id={dCId}
     />
   );
 }
