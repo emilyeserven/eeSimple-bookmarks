@@ -83,7 +83,9 @@ export function FilterSidebar({
               )
               : null}
 
-            {categoryGroups.map(({ category, props }) => (
+            {categoryGroups.map(({
+              category, props,
+            }) => (
               <Collapsible
                 key={category.id}
                 className="group/cat space-y-2"
@@ -91,8 +93,8 @@ export function FilterSidebar({
               >
                 <CollapsibleTrigger
                   className="
-                    flex w-full items-center gap-1.5
-                    text-xs font-medium text-muted-foreground
+                    flex w-full items-center gap-1.5 text-xs font-medium
+                    text-muted-foreground
                     hover:text-foreground
                   "
                 >
