@@ -1,6 +1,7 @@
 import type { CreateAutofillRuleInput } from "@eesimple/types";
 
 import { usePanelControls } from "./usePanelControls";
+import { usePanelDismissAfterDelete } from "./usePanelDismissAfterDelete";
 import {
   useAutofillRuleById,
   useCreateAutofillRule,
@@ -81,9 +82,7 @@ interface EditAutofillRuleProps {
 function EditAutofillRule({
   ruleId,
 }: EditAutofillRuleProps) {
-  const {
-    close,
-  } = usePanelControls();
+  const dismiss = usePanelDismissAfterDelete();
   const {
     rule, isLoading, error,
   } = useAutofillRuleById(ruleId);
@@ -114,7 +113,7 @@ function EditAutofillRule({
           className="text-destructive"
           onClick={() =>
             deleteRule.mutate(rule.id, {
-              onSuccess: close,
+              onSuccess: dismiss,
             })}
         >
           Delete

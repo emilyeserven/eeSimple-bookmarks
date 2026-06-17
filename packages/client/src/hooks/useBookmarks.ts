@@ -1,6 +1,7 @@
 import type { CreateBookmarkInput, UpdateBookmarkInput } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 import { bookmarksApi } from "../lib/api";
 
@@ -57,8 +58,11 @@ export function useDeleteBookmark() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => bookmarksApi.remove(id),
-    onSuccess: () => queryClient.invalidateQueries({
-      queryKey: BOOKMARKS_KEY,
-    }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: BOOKMARKS_KEY,
+      });
+      toast.success("Bookmark deleted");
+    },
   });
 }

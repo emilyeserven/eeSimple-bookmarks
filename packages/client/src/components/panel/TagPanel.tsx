@@ -7,6 +7,7 @@ import { Pencil } from "lucide-react";
 import { z } from "zod";
 
 import { usePanelControls } from "./usePanelControls";
+import { usePanelDismissAfterDelete } from "./usePanelDismissAfterDelete";
 import { useCreateTag, useDeleteTag, useTagTree, useUpdateTag } from "../../hooks/useTags";
 import { useAppForm } from "../../lib/form";
 import { flattenTree, subtreeIds } from "../../lib/tagTree";
@@ -73,9 +74,7 @@ interface TagEditorProps {
 function TagEditor({
   node, allTags, initialMode,
 }: TagEditorProps) {
-  const {
-    close,
-  } = usePanelControls();
+  const dismiss = usePanelDismissAfterDelete();
   const [mode, setMode] = useState<"view" | "edit">(initialMode);
 
   return (
@@ -129,7 +128,7 @@ function TagEditor({
         <AddChildForm node={node} />
         <DeleteTagButton
           node={node}
-          onDeleted={close}
+          onDeleted={dismiss}
         />
       </div>
     </div>

@@ -4,6 +4,7 @@ import type {
 } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 import { autofillApi } from "../lib/api";
 
@@ -52,8 +53,11 @@ export function useDeleteAutofillRule() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => autofillApi.remove(id),
-    onSuccess: () => queryClient.invalidateQueries({
-      queryKey: AUTOFILL_KEY,
-    }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: AUTOFILL_KEY,
+      });
+      toast.success("Autofill rule deleted");
+    },
   });
 }

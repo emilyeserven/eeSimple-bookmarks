@@ -188,11 +188,13 @@ function HomepageTagsCard({
 
 interface CategoryCardProps {
   category: Category;
+  /** Called after a successful delete — e.g. the panel uses it to dismiss itself. */
+  onDeleted?: () => void;
 }
 
 /** A category row with quick edit (name, icon, description) and a link to its full edit page. */
 export function CategoryCard({
-  category,
+  category, onDeleted,
 }: CategoryCardProps) {
   const deleteCategory = useDeleteCategory();
 
@@ -230,7 +232,9 @@ export function CategoryCard({
                 variant="ghost"
                 size="sm"
                 className="text-destructive"
-                onClick={() => deleteCategory.mutate(category.id)}
+                onClick={() => deleteCategory.mutate(category.id, {
+                  onSuccess: onDeleted,
+                })}
               >
                 Delete
               </Button>
