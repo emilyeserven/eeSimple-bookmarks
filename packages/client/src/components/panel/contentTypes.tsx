@@ -19,7 +19,7 @@ import { useCustomProperties } from "../../hooks/useCustomProperties";
 import { useTagTree } from "../../hooks/useTags";
 import { useWebsites } from "../../hooks/useWebsites";
 import { flattenTree } from "../../lib/tagTree";
-import { BookmarkCard } from "../BookmarkCard";
+import { BookmarkDetail } from "../BookmarkDetail";
 import { BookmarkForm } from "../BookmarkForm";
 import { CategoryCard } from "../CategoryManager";
 import { PropertyCard } from "../CustomPropertyManager";
@@ -83,7 +83,7 @@ function useBookmarkList() {
   };
 }
 
-/** Read-only bookmark, reusing the same `BookmarkCard` the main lists render. */
+/** Read-only bookmark, reusing the same `BookmarkDetail` the full detail page renders. */
 function BookmarkView({
   id,
 }: {
@@ -96,6 +96,9 @@ function BookmarkView({
     data: properties,
   } = useCustomProperties();
   const {
+    data: categories,
+  } = useCategories();
+  const {
     openItem, close,
   } = usePanelControls();
   const deleteBookmark = useDeleteBookmark();
@@ -106,8 +109,9 @@ function BookmarkView({
   if (!bookmark) return <Problem>Bookmark not found.</Problem>;
 
   return (
-    <BookmarkCard
+    <BookmarkDetail
       bookmark={bookmark}
+      categories={categories ?? []}
       properties={properties ?? []}
       onEdit={() => openItem("bookmark", id, "edit")}
       onDelete={() => deleteBookmark.mutate(id, {

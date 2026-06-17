@@ -1,9 +1,12 @@
 import type { Bookmark, CustomProperty } from "@eesimple/types";
 
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { BookmarkCard } from "./BookmarkCard";
+import { renderWithRouter } from "../test-utils/router";
+
+const DETAIL_PATH = "/bookmarks/$bookmarkId";
 
 const bookmark: Bookmark = {
   id: "11111111-1111-1111-1111-111111111111",
@@ -59,20 +62,33 @@ const reviewedProperty: CustomProperty = {
 };
 
 describe("BookmarkCard", () => {
-  it("renders the bookmark title and description", () => {
-    render(<BookmarkCard bookmark={bookmark} />);
+  it("renders the bookmark title and description", async () => {
+    await renderWithRouter(<BookmarkCard bookmark={bookmark} />, {
+      paths: [DETAIL_PATH],
+    });
     expect(screen.getByText("GitHub")).toBeInTheDocument();
     expect(screen.getByText("Where the code lives.")).toBeInTheDocument();
   });
 
-  it("renders each assigned tag name", () => {
-    render(<BookmarkCard bookmark={bookmark} />);
+  it("links the title to the bookmark's detail page", async () => {
+    await renderWithRouter(<BookmarkCard bookmark={bookmark} />, {
+      paths: [DETAIL_PATH],
+    });
+    expect(screen.getByRole("link", {
+      name: "GitHub",
+    })).toHaveAttribute("href", `/bookmarks/${bookmark.id}`);
+  });
+
+  it("renders each assigned tag name", async () => {
+    await renderWithRouter(<BookmarkCard bookmark={bookmark} />, {
+      paths: [DETAIL_PATH],
+    });
     expect(screen.getByText("dev")).toBeInTheDocument();
     expect(screen.getByText("tools")).toBeInTheDocument();
   });
 
-  it("pluralizes a number value's unit and renders boolean values", () => {
-    render(
+  it("pluralizes a number value's unit and renders boolean values", async () => {
+    await renderWithRouter(
       <BookmarkCard
         bookmark={{
           ...bookmark,
@@ -91,13 +107,16 @@ describe("BookmarkCard", () => {
         }}
         properties={[starsProperty, reviewedProperty]}
       />,
+      {
+        paths: [DETAIL_PATH],
+      },
     );
     expect(screen.getByText("Stars: 1 star")).toBeInTheDocument();
     expect(screen.getByText("Reviewed: Yes")).toBeInTheDocument();
   });
 
-  it("uses the plural unit for a value other than one", () => {
-    render(
+  it("uses the plural unit for a value other than one", async () => {
+    await renderWithRouter(
       <BookmarkCard
         bookmark={{
           ...bookmark,
@@ -110,17 +129,23 @@ describe("BookmarkCard", () => {
         }}
         properties={[starsProperty]}
       />,
+      {
+        paths: [DETAIL_PATH],
+      },
     );
     expect(screen.getByText("Stars: 3 stars")).toBeInTheDocument();
   });
 
-  it("calls onDelete with the bookmark id when the delete button is clicked", () => {
+  it("calls onDelete with the bookmark id when the delete button is clicked", async () => {
     const onDelete = vi.fn();
-    render(
+    await renderWithRouter(
       <BookmarkCard
         bookmark={bookmark}
         onDelete={onDelete}
       />,
+      {
+        paths: [DETAIL_PATH],
+      },
     );
     screen.getByRole("button", {
       name: "Delete",

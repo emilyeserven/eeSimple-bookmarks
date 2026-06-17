@@ -2,8 +2,6 @@ import type { BookmarkSearch } from "../lib/bookmarkSearch";
 import type { Bookmark, CustomProperty, TagNode } from "@eesimple/types";
 import type { ReactNode } from "react";
 
-import { useState } from "react";
-
 import { BookmarkCard } from "./BookmarkCard";
 import { BookmarkForm } from "./BookmarkForm";
 import { ColumnsSwitcher } from "./ColumnsSwitcher";
@@ -51,7 +49,6 @@ export function BookmarkSearchView({
   noMatchMessage,
 }: BookmarkSearchViewProps) {
   const deleteBookmark = useDeleteBookmark();
-  const [editingId, setEditingId] = useState<string | null>(null);
   const columns = useBookmarkColumns(pageKey);
 
   const visibleBookmarks = bookmarks.filter(bookmark => bookmarkMatchesSearch(bookmark, search));
@@ -99,24 +96,14 @@ export function BookmarkSearchView({
                 </p>
               )
               : null}
-            {visibleBookmarks.map(bookmark =>
-              editingId === bookmark.id
-                ? (
-                  <BookmarkForm
-                    key={bookmark.id}
-                    bookmark={bookmark}
-                    onDone={() => setEditingId(null)}
-                  />
-                )
-                : (
-                  <BookmarkCard
-                    key={bookmark.id}
-                    bookmark={bookmark}
-                    properties={properties}
-                    onEdit={id => setEditingId(id)}
-                    onDelete={id => deleteBookmark.mutate(id)}
-                  />
-                ))}
+            {visibleBookmarks.map(bookmark => (
+              <BookmarkCard
+                key={bookmark.id}
+                bookmark={bookmark}
+                properties={properties}
+                onDelete={id => deleteBookmark.mutate(id)}
+              />
+            ))}
           </div>
         </div>
       </div>
