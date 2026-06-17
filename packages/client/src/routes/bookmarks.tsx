@@ -27,6 +27,7 @@ function BookmarksPage() {
   return (
     <BookmarkSearchView
       header={<h1 className="text-2xl font-bold">Bookmarks</h1>}
+      pageKey="bookmarks"
       tree={tagTree ?? []}
       properties={customProperties ?? []}
       bookmarks={bookmarks ?? []}

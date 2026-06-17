@@ -1,12 +1,16 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 
 import { BookmarkCard } from "../components/BookmarkCard";
+import { ColumnsSwitcher } from "../components/ColumnsSwitcher";
 import { useHomepageBookmarks } from "../hooks/useBookmarks";
 import { useCustomProperties } from "../hooks/useCustomProperties";
+import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
 
 export const Route = createFileRoute("/")({
   component: HomePage,
 });
+
+const HOME_PAGE_KEY = "home";
 
 function HomePage() {
   const {
@@ -15,16 +19,20 @@ function HomePage() {
   const {
     data: customProperties,
   } = useCustomProperties();
+  const columns = useBookmarkColumns(HOME_PAGE_KEY);
 
   const homepage = bookmarks ?? [];
 
   return (
     <section className="space-y-6">
-      <div className="space-y-1">
-        <h1 className="text-2xl font-bold">Homepage</h1>
-        <p className="text-muted-foreground">
-          Bookmarks from your homepage categories and tags, ordered by priority.
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-bold">Homepage</h1>
+          <p className="text-muted-foreground">
+            Bookmarks from your homepage categories and tags, ordered by priority.
+          </p>
+        </div>
+        <ColumnsSwitcher pageKey={HOME_PAGE_KEY} />
       </div>
 
       {isLoading ? <p className="text-muted-foreground">Loading bookmarks…</p> : null}
@@ -51,10 +59,10 @@ function HomePage() {
         : null}
 
       <div
-        className="
+        className={`
           grid gap-3
-          sm:grid-cols-2
-        "
+          ${COLUMN_CLASS[columns]}
+        `}
       >
         {homepage.map(bookmark => (
           <BookmarkCard

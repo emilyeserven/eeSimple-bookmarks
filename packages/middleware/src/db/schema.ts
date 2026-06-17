@@ -97,6 +97,8 @@ export const customProperties = pgTable("custom_properties", {
   // Optional unit labels for a `number`/`calculate` value (e.g. "star"/"stars").
   unitSingular: text("unit_singular"),
   unitPlural: text("unit_plural"),
+  // When true, the property's field shows in the main bookmark form; otherwise it lives in Advanced.
+  showInForm: boolean("show_in_form").notNull().default(false),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),

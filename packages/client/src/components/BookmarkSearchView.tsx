@@ -6,13 +6,17 @@ import { useState } from "react";
 
 import { BookmarkCard } from "./BookmarkCard";
 import { BookmarkForm } from "./BookmarkForm";
+import { ColumnsSwitcher } from "./ColumnsSwitcher";
 import { FilterSidebar } from "./FilterSidebar";
 import { useDeleteBookmark } from "../hooks/useBookmarks";
+import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
 import { bookmarkMatchesSearch } from "../lib/bookmarkSearch";
 
 interface BookmarkSearchViewProps {
   /** Page heading area rendered above the two-column body. */
   header: ReactNode;
+  /** Stable key identifying the page, so each listing remembers its own column count. */
+  pageKey: string;
   tree: TagNode[];
   /** Properties offered as filters and used to render bookmark cards. */
   properties: CustomProperty[];
@@ -35,6 +39,7 @@ interface BookmarkSearchViewProps {
  */
 export function BookmarkSearchView({
   header,
+  pageKey,
   tree,
   properties,
   bookmarks,
@@ -47,6 +52,7 @@ export function BookmarkSearchView({
 }: BookmarkSearchViewProps) {
   const deleteBookmark = useDeleteBookmark();
   const [editingId, setEditingId] = useState<string | null>(null);
+  const columns = useBookmarkColumns(pageKey);
 
   const visibleBookmarks = bookmarks.filter(bookmark => bookmarkMatchesSearch(bookmark, search));
   const hasActiveFilters = search.tag !== undefined
@@ -74,7 +80,16 @@ export function BookmarkSearchView({
         <div className="space-y-6">
           <BookmarkForm />
 
-          <div className="space-y-3">
+          <div className="flex justify-end">
+            <ColumnsSwitcher pageKey={pageKey} />
+          </div>
+
+          <div
+            className={`
+              grid gap-3
+              ${COLUMN_CLASS[columns]}
+            `}
+          >
             {isLoading ? <p className="text-muted-foreground">Loading bookmarks…</p> : null}
             {error ? <p className="text-destructive">{error.message}</p> : null}
             {!isLoading && visibleBookmarks.length === 0

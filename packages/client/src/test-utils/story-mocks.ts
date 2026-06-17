@@ -79,6 +79,7 @@ export const sampleProperties: CustomProperty[] = [
     unitPlural: null,
     operandPropertyIds: [],
     categoryIds: ["cat-workflow"],
+    showInForm: false,
     createdAt: NOW,
   },
   {
@@ -91,6 +92,7 @@ export const sampleProperties: CustomProperty[] = [
     unitPlural: "points",
     operandPropertyIds: [],
     categoryIds: ["cat-workflow"],
+    showInForm: false,
     createdAt: NOW,
   },
   {
@@ -103,6 +105,7 @@ export const sampleProperties: CustomProperty[] = [
     unitPlural: null,
     operandPropertyIds: ["prop-priority", "prop-effort"],
     categoryIds: ["cat-workflow"],
+    showInForm: false,
     createdAt: NOW,
   },
   {
@@ -115,6 +118,7 @@ export const sampleProperties: CustomProperty[] = [
     unitPlural: null,
     operandPropertyIds: [],
     categoryIds: ["cat-content"],
+    showInForm: true,
     createdAt: NOW,
   },
 ];

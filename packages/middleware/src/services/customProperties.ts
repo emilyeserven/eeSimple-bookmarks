@@ -38,6 +38,7 @@ function toCustomProperty(
     unitPlural: row.unitPlural,
     operandPropertyIds,
     categoryIds,
+    showInForm: row.showInForm,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
   };
@@ -167,6 +168,7 @@ export async function createCustomProperty(
         numberMax: input.numberMax ?? null,
         unitSingular: input.unitSingular ?? null,
         unitPlural: input.unitPlural ?? null,
+        showInForm: input.showInForm ?? false,
       })
       .returning({
         id: customProperties.id,
@@ -198,13 +200,17 @@ export async function updateCustomProperty(
     if (!existing) return false;
 
     const patch: Partial<
-      Pick<CustomPropertyRow, "name" | "numberMin" | "numberMax" | "unitSingular" | "unitPlural">
+      Pick<
+        CustomPropertyRow,
+        "name" | "numberMin" | "numberMax" | "unitSingular" | "unitPlural" | "showInForm"
+      >
     > = {};
     if (input.name !== undefined) patch.name = input.name;
     if (input.numberMin !== undefined) patch.numberMin = input.numberMin;
     if (input.numberMax !== undefined) patch.numberMax = input.numberMax;
     if (input.unitSingular !== undefined) patch.unitSingular = input.unitSingular ?? null;
     if (input.unitPlural !== undefined) patch.unitPlural = input.unitPlural ?? null;
+    if (input.showInForm !== undefined) patch.showInForm = input.showInForm;
 
     if (Object.keys(patch).length > 0) {
       await tx.update(customProperties).set(patch).where(eq(customProperties.id, id));
