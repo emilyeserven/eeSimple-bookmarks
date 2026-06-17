@@ -33,11 +33,15 @@ export const websites = pgTable("websites", {
   domain: text("domain").notNull(),
   // Human-friendly name; defaults to the domain on creation and is renamable.
   siteName: text("site_name").notNull(),
+  // URL-friendly identifier derived from the domain (e.g. "github" from "github.com"). Nullable at
+  // the DB level so `drizzle-kit push` applies cleanly to existing rows; backfilled at boot.
+  slug: text("slug"),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
 }, table => [
   unique("websites_domain_unique").on(table.domain),
+  unique("websites_slug_unique").on(table.slug),
 ]);
 
 /** `tags` table — a self-referencing tree. `parentId` NULL means a root tag. */

@@ -50,6 +50,7 @@ function titleForPath(pathname: string): string {
   if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname];
   if (pathname.startsWith("/settings")) return "Settings";
   if (pathname.startsWith("/categories")) return "Category";
+  if (pathname.startsWith("/taxonomies/websites")) return "Websites";
   return "eeSimple Bookmarks";
 }
 

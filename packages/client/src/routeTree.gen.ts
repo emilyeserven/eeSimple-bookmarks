@@ -28,10 +28,13 @@ import { Route as BookmarksBookmarkIdRouteImport } from './routes/bookmarks.$boo
 import { Route as SettingsAutofillIndexRouteImport } from './routes/settings.autofill.index'
 import { Route as CategoriesCategorySlugIndexRouteImport } from './routes/categories.$categorySlug.index'
 import { Route as BookmarksBookmarkIdIndexRouteImport } from './routes/bookmarks.$bookmarkId.index'
+import { Route as TaxonomiesWebsitesWebsiteSlugRouteImport } from './routes/taxonomies.websites.$websiteSlug'
 import { Route as SettingsAutofillRuleIdRouteImport } from './routes/settings.autofill.$ruleId'
 import { Route as CategoriesCategorySlugEditRouteImport } from './routes/categories.$categorySlug.edit'
 import { Route as BookmarksBookmarkIdEditRouteImport } from './routes/bookmarks.$bookmarkId.edit'
+import { Route as TaxonomiesWebsitesWebsiteSlugIndexRouteImport } from './routes/taxonomies.websites.$websiteSlug.index'
 import { Route as CategoriesCategorySlugEditIndexRouteImport } from './routes/categories.$categorySlug.edit.index'
+import { Route as TaxonomiesWebsitesWebsiteSlugEditRouteImport } from './routes/taxonomies.websites.$websiteSlug.edit'
 import { Route as CategoriesCategorySlugEditTieredTagsRouteImport } from './routes/categories.$categorySlug.edit.tiered-tags'
 import { Route as CategoriesCategorySlugEditGeneralRouteImport } from './routes/categories.$categorySlug.edit.general'
 import { Route as CategoriesCategorySlugEditCustomPropertiesRouteImport } from './routes/categories.$categorySlug.edit.custom-properties'
@@ -135,6 +138,12 @@ const BookmarksBookmarkIdIndexRoute =
     path: '/',
     getParentRoute: () => BookmarksBookmarkIdRoute,
   } as any)
+const TaxonomiesWebsitesWebsiteSlugRoute =
+  TaxonomiesWebsitesWebsiteSlugRouteImport.update({
+    id: '/$websiteSlug',
+    path: '/$websiteSlug',
+    getParentRoute: () => TaxonomiesWebsitesRoute,
+  } as any)
 const SettingsAutofillRuleIdRoute = SettingsAutofillRuleIdRouteImport.update({
   id: '/$ruleId',
   path: '/$ruleId',
@@ -151,11 +160,23 @@ const BookmarksBookmarkIdEditRoute = BookmarksBookmarkIdEditRouteImport.update({
   path: '/edit',
   getParentRoute: () => BookmarksBookmarkIdRoute,
 } as any)
+const TaxonomiesWebsitesWebsiteSlugIndexRoute =
+  TaxonomiesWebsitesWebsiteSlugIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => TaxonomiesWebsitesWebsiteSlugRoute,
+  } as any)
 const CategoriesCategorySlugEditIndexRoute =
   CategoriesCategorySlugEditIndexRouteImport.update({
     id: '/',
     path: '/',
     getParentRoute: () => CategoriesCategorySlugEditRoute,
+  } as any)
+const TaxonomiesWebsitesWebsiteSlugEditRoute =
+  TaxonomiesWebsitesWebsiteSlugEditRouteImport.update({
+    id: '/edit',
+    path: '/edit',
+    getParentRoute: () => TaxonomiesWebsitesWebsiteSlugRoute,
   } as any)
 const CategoriesCategorySlugEditTieredTagsRoute =
   CategoriesCategorySlugEditTieredTagsRouteImport.update({
@@ -196,12 +217,13 @@ export interface FileRoutesByFullPath {
   '/settings/tags': typeof SettingsTagsRoute
   '/settings/websites': typeof SettingsWebsitesRoute
   '/taxonomies/tags': typeof TaxonomiesTagsRoute
-  '/taxonomies/websites': typeof TaxonomiesWebsitesRoute
+  '/taxonomies/websites': typeof TaxonomiesWebsitesRouteWithChildren
   '/bookmarks/': typeof BookmarksIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/bookmarks/$bookmarkId/edit': typeof BookmarksBookmarkIdEditRoute
   '/categories/$categorySlug/edit': typeof CategoriesCategorySlugEditRouteWithChildren
   '/settings/autofill/$ruleId': typeof SettingsAutofillRuleIdRoute
+  '/taxonomies/websites/$websiteSlug': typeof TaxonomiesWebsitesWebsiteSlugRouteWithChildren
   '/bookmarks/$bookmarkId/': typeof BookmarksBookmarkIdIndexRoute
   '/categories/$categorySlug/': typeof CategoriesCategorySlugIndexRoute
   '/settings/autofill/': typeof SettingsAutofillIndexRoute
@@ -209,7 +231,9 @@ export interface FileRoutesByFullPath {
   '/categories/$categorySlug/edit/custom-properties': typeof CategoriesCategorySlugEditCustomPropertiesRoute
   '/categories/$categorySlug/edit/general': typeof CategoriesCategorySlugEditGeneralRoute
   '/categories/$categorySlug/edit/tiered-tags': typeof CategoriesCategorySlugEditTieredTagsRoute
+  '/taxonomies/websites/$websiteSlug/edit': typeof TaxonomiesWebsitesWebsiteSlugEditRoute
   '/categories/$categorySlug/edit/': typeof CategoriesCategorySlugEditIndexRoute
+  '/taxonomies/websites/$websiteSlug/': typeof TaxonomiesWebsitesWebsiteSlugIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -220,7 +244,7 @@ export interface FileRoutesByTo {
   '/settings/tags': typeof SettingsTagsRoute
   '/settings/websites': typeof SettingsWebsitesRoute
   '/taxonomies/tags': typeof TaxonomiesTagsRoute
-  '/taxonomies/websites': typeof TaxonomiesWebsitesRoute
+  '/taxonomies/websites': typeof TaxonomiesWebsitesRouteWithChildren
   '/bookmarks': typeof BookmarksIndexRoute
   '/settings': typeof SettingsIndexRoute
   '/bookmarks/$bookmarkId/edit': typeof BookmarksBookmarkIdEditRoute
@@ -232,7 +256,9 @@ export interface FileRoutesByTo {
   '/categories/$categorySlug/edit/custom-properties': typeof CategoriesCategorySlugEditCustomPropertiesRoute
   '/categories/$categorySlug/edit/general': typeof CategoriesCategorySlugEditGeneralRoute
   '/categories/$categorySlug/edit/tiered-tags': typeof CategoriesCategorySlugEditTieredTagsRoute
+  '/taxonomies/websites/$websiteSlug/edit': typeof TaxonomiesWebsitesWebsiteSlugEditRoute
   '/categories/$categorySlug/edit': typeof CategoriesCategorySlugEditIndexRoute
+  '/taxonomies/websites/$websiteSlug': typeof TaxonomiesWebsitesWebsiteSlugIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -249,12 +275,13 @@ export interface FileRoutesById {
   '/settings/tags': typeof SettingsTagsRoute
   '/settings/websites': typeof SettingsWebsitesRoute
   '/taxonomies/tags': typeof TaxonomiesTagsRoute
-  '/taxonomies/websites': typeof TaxonomiesWebsitesRoute
+  '/taxonomies/websites': typeof TaxonomiesWebsitesRouteWithChildren
   '/bookmarks/': typeof BookmarksIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/bookmarks/$bookmarkId/edit': typeof BookmarksBookmarkIdEditRoute
   '/categories/$categorySlug/edit': typeof CategoriesCategorySlugEditRouteWithChildren
   '/settings/autofill/$ruleId': typeof SettingsAutofillRuleIdRoute
+  '/taxonomies/websites/$websiteSlug': typeof TaxonomiesWebsitesWebsiteSlugRouteWithChildren
   '/bookmarks/$bookmarkId/': typeof BookmarksBookmarkIdIndexRoute
   '/categories/$categorySlug/': typeof CategoriesCategorySlugIndexRoute
   '/settings/autofill/': typeof SettingsAutofillIndexRoute
@@ -262,7 +289,9 @@ export interface FileRoutesById {
   '/categories/$categorySlug/edit/custom-properties': typeof CategoriesCategorySlugEditCustomPropertiesRoute
   '/categories/$categorySlug/edit/general': typeof CategoriesCategorySlugEditGeneralRoute
   '/categories/$categorySlug/edit/tiered-tags': typeof CategoriesCategorySlugEditTieredTagsRoute
+  '/taxonomies/websites/$websiteSlug/edit': typeof TaxonomiesWebsitesWebsiteSlugEditRoute
   '/categories/$categorySlug/edit/': typeof CategoriesCategorySlugEditIndexRoute
+  '/taxonomies/websites/$websiteSlug/': typeof TaxonomiesWebsitesWebsiteSlugIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -286,6 +315,7 @@ export interface FileRouteTypes {
     | '/bookmarks/$bookmarkId/edit'
     | '/categories/$categorySlug/edit'
     | '/settings/autofill/$ruleId'
+    | '/taxonomies/websites/$websiteSlug'
     | '/bookmarks/$bookmarkId/'
     | '/categories/$categorySlug/'
     | '/settings/autofill/'
@@ -293,7 +323,9 @@ export interface FileRouteTypes {
     | '/categories/$categorySlug/edit/custom-properties'
     | '/categories/$categorySlug/edit/general'
     | '/categories/$categorySlug/edit/tiered-tags'
+    | '/taxonomies/websites/$websiteSlug/edit'
     | '/categories/$categorySlug/edit/'
+    | '/taxonomies/websites/$websiteSlug/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -316,7 +348,9 @@ export interface FileRouteTypes {
     | '/categories/$categorySlug/edit/custom-properties'
     | '/categories/$categorySlug/edit/general'
     | '/categories/$categorySlug/edit/tiered-tags'
+    | '/taxonomies/websites/$websiteSlug/edit'
     | '/categories/$categorySlug/edit'
+    | '/taxonomies/websites/$websiteSlug'
   id:
     | '__root__'
     | '/'
@@ -338,6 +372,7 @@ export interface FileRouteTypes {
     | '/bookmarks/$bookmarkId/edit'
     | '/categories/$categorySlug/edit'
     | '/settings/autofill/$ruleId'
+    | '/taxonomies/websites/$websiteSlug'
     | '/bookmarks/$bookmarkId/'
     | '/categories/$categorySlug/'
     | '/settings/autofill/'
@@ -345,7 +380,9 @@ export interface FileRouteTypes {
     | '/categories/$categorySlug/edit/custom-properties'
     | '/categories/$categorySlug/edit/general'
     | '/categories/$categorySlug/edit/tiered-tags'
+    | '/taxonomies/websites/$websiteSlug/edit'
     | '/categories/$categorySlug/edit/'
+    | '/taxonomies/websites/$websiteSlug/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -354,7 +391,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRouteWithChildren
   CategoriesCategorySlugRoute: typeof CategoriesCategorySlugRouteWithChildren
   TaxonomiesTagsRoute: typeof TaxonomiesTagsRoute
-  TaxonomiesWebsitesRoute: typeof TaxonomiesWebsitesRoute
+  TaxonomiesWebsitesRoute: typeof TaxonomiesWebsitesRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -492,6 +529,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BookmarksBookmarkIdIndexRouteImport
       parentRoute: typeof BookmarksBookmarkIdRoute
     }
+    '/taxonomies/websites/$websiteSlug': {
+      id: '/taxonomies/websites/$websiteSlug'
+      path: '/$websiteSlug'
+      fullPath: '/taxonomies/websites/$websiteSlug'
+      preLoaderRoute: typeof TaxonomiesWebsitesWebsiteSlugRouteImport
+      parentRoute: typeof TaxonomiesWebsitesRoute
+    }
     '/settings/autofill/$ruleId': {
       id: '/settings/autofill/$ruleId'
       path: '/$ruleId'
@@ -513,12 +557,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BookmarksBookmarkIdEditRouteImport
       parentRoute: typeof BookmarksBookmarkIdRoute
     }
+    '/taxonomies/websites/$websiteSlug/': {
+      id: '/taxonomies/websites/$websiteSlug/'
+      path: '/'
+      fullPath: '/taxonomies/websites/$websiteSlug/'
+      preLoaderRoute: typeof TaxonomiesWebsitesWebsiteSlugIndexRouteImport
+      parentRoute: typeof TaxonomiesWebsitesWebsiteSlugRoute
+    }
     '/categories/$categorySlug/edit/': {
       id: '/categories/$categorySlug/edit/'
       path: '/'
       fullPath: '/categories/$categorySlug/edit/'
       preLoaderRoute: typeof CategoriesCategorySlugEditIndexRouteImport
       parentRoute: typeof CategoriesCategorySlugEditRoute
+    }
+    '/taxonomies/websites/$websiteSlug/edit': {
+      id: '/taxonomies/websites/$websiteSlug/edit'
+      path: '/edit'
+      fullPath: '/taxonomies/websites/$websiteSlug/edit'
+      preLoaderRoute: typeof TaxonomiesWebsitesWebsiteSlugEditRouteImport
+      parentRoute: typeof TaxonomiesWebsitesWebsiteSlugRoute
     }
     '/categories/$categorySlug/edit/tiered-tags': {
       id: '/categories/$categorySlug/edit/tiered-tags'
@@ -660,13 +718,43 @@ const CategoriesCategorySlugRouteWithChildren =
     CategoriesCategorySlugRouteChildren,
   )
 
+interface TaxonomiesWebsitesWebsiteSlugRouteChildren {
+  TaxonomiesWebsitesWebsiteSlugEditRoute: typeof TaxonomiesWebsitesWebsiteSlugEditRoute
+  TaxonomiesWebsitesWebsiteSlugIndexRoute: typeof TaxonomiesWebsitesWebsiteSlugIndexRoute
+}
+
+const TaxonomiesWebsitesWebsiteSlugRouteChildren: TaxonomiesWebsitesWebsiteSlugRouteChildren =
+  {
+    TaxonomiesWebsitesWebsiteSlugEditRoute:
+      TaxonomiesWebsitesWebsiteSlugEditRoute,
+    TaxonomiesWebsitesWebsiteSlugIndexRoute:
+      TaxonomiesWebsitesWebsiteSlugIndexRoute,
+  }
+
+const TaxonomiesWebsitesWebsiteSlugRouteWithChildren =
+  TaxonomiesWebsitesWebsiteSlugRoute._addFileChildren(
+    TaxonomiesWebsitesWebsiteSlugRouteChildren,
+  )
+
+interface TaxonomiesWebsitesRouteChildren {
+  TaxonomiesWebsitesWebsiteSlugRoute: typeof TaxonomiesWebsitesWebsiteSlugRouteWithChildren
+}
+
+const TaxonomiesWebsitesRouteChildren: TaxonomiesWebsitesRouteChildren = {
+  TaxonomiesWebsitesWebsiteSlugRoute:
+    TaxonomiesWebsitesWebsiteSlugRouteWithChildren,
+}
+
+const TaxonomiesWebsitesRouteWithChildren =
+  TaxonomiesWebsitesRoute._addFileChildren(TaxonomiesWebsitesRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BookmarksRoute: BookmarksRouteWithChildren,
   SettingsRoute: SettingsRouteWithChildren,
   CategoriesCategorySlugRoute: CategoriesCategorySlugRouteWithChildren,
   TaxonomiesTagsRoute: TaxonomiesTagsRoute,
-  TaxonomiesWebsitesRoute: TaxonomiesWebsitesRoute,
+  TaxonomiesWebsitesRoute: TaxonomiesWebsitesRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
