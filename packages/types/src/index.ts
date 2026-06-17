@@ -5,6 +5,10 @@
  * (`@eesimple/client`) so the wire contract stays in one place.
  */
 
+import type { ConditionMatchField, ConditionMatchOperator, ConditionTree } from "./conditions";
+
+export * from "./conditions";
+
 /** A tag node in the hierarchical taxonomy. `parentId === null` marks a root tag. */
 export interface Tag {
   id: string;
@@ -101,8 +105,10 @@ export interface BookmarkImage {
 /** A single saved bookmark. */
 export interface Bookmark {
   id: string;
-  /** The bookmarked URL (http/https). */
+  /** The bookmarked URL (http/https), possibly cleaned of tracking/query params. */
   url: string;
+  /** Original URL before any cleanup was applied, or `null` when no cleanup was performed. */
+  originalUrl: string | null;
   /** Human-friendly title, e.g. "GitHub". */
   title: string;
   /** Optional free-form description. */
@@ -128,6 +134,8 @@ export interface Bookmark {
 /** Payload for creating a bookmark. */
 export interface CreateBookmarkInput {
   url: string;
+  /** Original URL before cleanup; omit when no cleanup was applied. */
+  originalUrl?: string | null;
   title: string;
   description?: string | null;
   /** Id of the category to assign; omit to fall back to the built-in "Default" category. */
@@ -257,31 +265,22 @@ export interface CategoryPropertyDefaults {
 /** Payload for replacing a category's default custom-property values. */
 export type UpdateCategoryDefaultsInput = CategoryPropertyDefaults;
 
-/** Which bookmark field an autofill rule tests its pattern against. */
-export type AutofillField = "url" | "title";
+/** @deprecated Use {@link ConditionMatchField}. Retained for existing references. */
+export type AutofillField = ConditionMatchField;
+
+/** @deprecated Use {@link ConditionMatchOperator}. Retained for existing references. */
+export type AutofillOperator = ConditionMatchOperator;
 
 /**
- * How an autofill rule's `pattern` is matched against the chosen field:
- * - `contains` — the field contains the pattern (case-insensitive substring).
- * - `starts_with` — the field starts with the pattern (case-insensitive).
- * - `regex` — the pattern is a JavaScript regular expression (case-insensitive); invalid
- *   patterns never match.
- * - `domain` — the URL's host (with a leading `www.` stripped) equals the pattern; implies the
- *   `url` field.
- */
-export type AutofillOperator = "contains" | "starts_with" | "regex" | "domain";
-
-/**
- * A rule that prefills the Add-Bookmark form: when a bookmark's URL/Title matches, the rule's
- * category, tags, and custom-property values are suggested in the form.
+ * A rule that prefills the Add-Bookmark form: when a bookmark matches the rule's `conditions`,
+ * the rule's category, tags, and custom-property values are suggested in the form.
  */
 export interface AutofillRule {
   id: string;
   /** Friendly label shown in the settings list. */
   name: string;
-  field: AutofillField;
-  operator: AutofillOperator;
-  pattern: string;
+  /** The match predicate tree describing when this rule applies. */
+  conditions: ConditionTree;
   /** Category to assign, or `null` to leave the category unchanged. */
   setCategoryId: string | null;
   /** Tag ids to apply, drawn from the taxonomy. */
@@ -298,9 +297,7 @@ export interface AutofillRule {
 /** Payload for creating an autofill rule. */
 export interface CreateAutofillRuleInput {
   name: string;
-  field: AutofillField;
-  operator: AutofillOperator;
-  pattern: string;
+  conditions: ConditionTree;
   setCategoryId?: string | null;
   tagIds?: string[];
   numberValues?: BookmarkNumberValue[];
@@ -310,6 +307,17 @@ export interface CreateAutofillRuleInput {
 
 /** Payload for partially updating an autofill rule. */
 export type UpdateAutofillRuleInput = Partial<CreateAutofillRuleInput>;
+
+/**
+ * The single, global Homepage filter: the condition tree that decides which bookmarks appear on
+ * the homepage. An empty tree selects no bookmarks.
+ */
+export interface HomepageFilter {
+  conditions: ConditionTree;
+}
+
+/** Payload for replacing the homepage filter. */
+export type UpdateHomepageFilterInput = HomepageFilter;
 
 /** Standard error shape returned by the API. */
 export interface ApiError {

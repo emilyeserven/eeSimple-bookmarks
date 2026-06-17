@@ -7,6 +7,16 @@ const FETCH_TIMEOUT_MS = 5000;
 /** Cap the body we read so a huge response can't exhaust memory. */
 const MAX_BYTES = 512 * 1024;
 
+export type FetchTitleResult
+  = | { kind: "ok";
+    title: string; }
+    | { kind: "timeout" }
+    | { kind: "http_error";
+      status: number; }
+      | { kind: "no_body" }
+      | { kind: "no_title" }
+      | { kind: "network_error" };
+
 const NAMED_ENTITIES: Record<string, string> = {
   "amp": "&",
   "lt": "<",
@@ -40,12 +50,22 @@ export function extractTitle(html: string): string | null {
   return title.length > 0 ? title : null;
 }
 
+/** A low-level fetch result: the page HTML, or a typed reason it couldn't be read. */
+type FetchHtmlResult
+  = | { kind: "ok";
+    html: string; }
+    | { kind: "timeout" }
+    | { kind: "http_error";
+      status: number; }
+      | { kind: "no_body" }
+      | { kind: "network_error" };
+
 /**
  * Fetch `url` and return its leading HTML, stopping as soon as `stopAt` matches (or the body cap is
- * hit), or null on any network failure. Reading incrementally lets the title/`<head>` parsers stop
- * early instead of downloading the whole page. Guarded by a timeout and a body cap.
+ * hit). Reading incrementally lets the title/`<head>` parsers stop early instead of downloading the
+ * whole page. Guarded by a timeout and a body cap; failures come back as typed kinds.
  */
-async function fetchHtml(url: string, stopAt: RegExp): Promise<string | null> {
+async function fetchHtml(url: string, stopAt: RegExp): Promise<FetchHtmlResult> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
@@ -58,7 +78,13 @@ async function fetchHtml(url: string, stopAt: RegExp): Promise<string | null> {
         "Accept": "text/html,application/xhtml+xml",
       },
     });
-    if (!res.ok || !res.body) return null;
+    if (!res.ok) return {
+      kind: "http_error",
+      status: res.status,
+    };
+    if (!res.body) return {
+      kind: "no_body",
+    };
 
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
@@ -78,10 +104,20 @@ async function fetchHtml(url: string, stopAt: RegExp): Promise<string | null> {
         break;
       }
     }
-    return html;
+    return {
+      kind: "ok",
+      html,
+    };
   }
-  catch {
-    return null;
+  catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") {
+      return {
+        kind: "timeout",
+      };
+    }
+    return {
+      kind: "network_error",
+    };
   }
   finally {
     clearTimeout(timeout);
@@ -89,12 +125,20 @@ async function fetchHtml(url: string, stopAt: RegExp): Promise<string | null> {
 }
 
 /**
- * Fetch `url` and return its page title, or null on any network/parse failure
- * or when the document has no usable title. Guarded by a timeout and a body cap.
+ * Fetch `url` and return a typed result describing why the title could not be
+ * obtained, or the title itself. Guarded by a timeout and a body cap.
  */
-export async function fetchPageTitle(url: string): Promise<string | null> {
-  const html = await fetchHtml(url, /<\/title>/i);
-  return html === null ? null : extractTitle(html);
+export async function fetchPageTitle(url: string): Promise<FetchTitleResult> {
+  const result = await fetchHtml(url, /<\/title>/i);
+  if (result.kind !== "ok") return result;
+  const title = extractTitle(result.html);
+  if (title === null) return {
+    kind: "no_title",
+  };
+  return {
+    kind: "ok",
+    title,
+  };
 }
 
 /** Cap on the image bytes we'll download (an image is stored, not streamed, so memory matters). */
@@ -160,7 +204,8 @@ export function isPublicHttpUrl(value: string): boolean {
   }
   if (url.protocol !== "http:" && url.protocol !== "https:") return false;
 
-  const host = url.hostname.toLowerCase();
+  // `url.hostname` returns IPv6 literals bracketed (e.g. "[::1]"); strip them for comparison.
+  const host = url.hostname.toLowerCase().replace(/^\[|\]$/g, "");
   if (host === "localhost" || host.endsWith(".localhost") || host.endsWith(".local")) return false;
 
   // IPv6 literals contain a colon — block loopback (::1) and unique-local/link-local ranges.
@@ -228,9 +273,9 @@ async function downloadImage(url: string): Promise<Buffer | null> {
  * it, and return the raw bytes — or null when there's no usable, fetchable image.
  */
 export async function fetchOgImage(pageUrl: string): Promise<Buffer | null> {
-  const html = await fetchHtml(pageUrl, /<\/head>/i);
-  if (html === null) return null;
-  const imageUrl = extractImageUrl(html, pageUrl);
+  const result = await fetchHtml(pageUrl, /<\/head>/i);
+  if (result.kind !== "ok") return null;
+  const imageUrl = extractImageUrl(result.html, pageUrl);
   if (!imageUrl || !isPublicHttpUrl(imageUrl)) return null;
   return downloadImage(imageUrl);
 }

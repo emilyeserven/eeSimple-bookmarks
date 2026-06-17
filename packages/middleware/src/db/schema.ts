@@ -1,10 +1,14 @@
 import { relations } from "drizzle-orm";
-import { type AnyPgColumn, boolean, integer, pgTable, primaryKey, real, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
+import { type AnyPgColumn, boolean, integer, jsonb, pgTable, primaryKey, real, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
+import type { ConditionTree } from "@eesimple/types";
 
 /** `bookmarks` table — one row per saved bookmark. Tags now live in `bookmark_tags`. */
 export const bookmarks = pgTable("bookmarks", {
   id: uuid("id").primaryKey().defaultRandom(),
   url: text("url").notNull(),
+  // Original URL before any cleanup was applied; NULL when no cleanup was performed.
+  // Nullable so `drizzle-kit push` applies cleanly to existing rows.
+  originalUrl: text("original_url"),
   title: text("title").notNull(),
   description: text("description"),
   // Owning category. Nullable at the DB level so `drizzle-kit push` applies cleanly to
@@ -21,7 +25,9 @@ export const bookmarks = pgTable("bookmarks", {
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
-});
+}, table => [
+  unique("bookmarks_url_unique").on(table.url),
+]);
 
 /**
  * `bookmark_images` — 0..1 image per bookmark. The image bytes live in object storage (Garage/S3);
@@ -272,6 +278,16 @@ export const homepageTags = pgTable("homepage_tags", {
   }),
 });
 
+/**
+ * `homepage_filter` — the single global condition tree that decides which bookmarks appear on
+ * the homepage. Exactly one row (id = 1). This supersedes the older `homepage_tags` +
+ * `categories.is_homepage` mechanism, which is now read only to seed this row on first boot.
+ */
+export const homepageFilter = pgTable("homepage_filter", {
+  id: integer("id").primaryKey().default(1),
+  conditions: jsonb("conditions").$type<ConditionTree>().notNull(),
+});
+
 /** `property_categories` join — many-to-many between custom properties and categories. */
 export const propertyCategories = pgTable("property_categories", {
   propertyId: uuid("property_id").notNull().references(() => customProperties.id, {
@@ -288,17 +304,21 @@ export const propertyCategories = pgTable("property_categories", {
 
 /**
  * `autofill_rules` — user-defined rules that prefill the Add-Bookmark form. A rule matches a
- * bookmark's `field` (`url` or `title`) with `operator` against `pattern`, then applies a
- * category, tags, and custom-property values (stored in the child tables below).
+ * bookmark against its `conditions` tree, then applies a category, tags, and custom-property
+ * values (stored in the child tables below).
  */
 export const autofillRules = pgTable("autofill_rules", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
-  // "url" | "title" — which bookmark field the pattern is tested against.
-  field: text("field").notNull(),
-  // "contains" | "starts_with" | "regex" | "domain" — kept as text so new kinds can be added.
-  operator: text("operator").notNull(),
-  pattern: text("pattern").notNull(),
+  // The match predicate tree describing when this rule applies. Nullable only during rollout:
+  // existing rows are backfilled from the legacy columns below at boot, then the service always
+  // writes it.
+  conditions: jsonb("conditions").$type<ConditionTree>(),
+  // @deprecated Superseded by `conditions`. Kept (nullable) so existing rows can be backfilled
+  // before a follow-up migration drops them.
+  field: text("field"),
+  operator: text("operator"),
+  pattern: text("pattern"),
   // The category this rule assigns; NULL means the rule leaves the category alone.
   setCategoryId: uuid("set_category_id").references((): AnyPgColumn => categories.id, {
     onDelete: "set null",
@@ -498,6 +518,7 @@ export type NewCategoryRow = typeof categories.$inferInsert;
 export type PropertyCategoryRow = typeof propertyCategories.$inferSelect;
 export type CategoryRootTagRow = typeof categoryRootTags.$inferSelect;
 export type HomepageTagRow = typeof homepageTags.$inferSelect;
+export type HomepageFilterRow = typeof homepageFilter.$inferSelect;
 export type AutofillRuleRow = typeof autofillRules.$inferSelect;
 export type NewAutofillRuleRow = typeof autofillRules.$inferInsert;
 export type AutofillRuleTagRow = typeof autofillRuleTags.$inferSelect;

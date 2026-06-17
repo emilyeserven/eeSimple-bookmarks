@@ -12,6 +12,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useResizeHandle } from "@/hooks/useResizeHandle";
 import { useUiStore } from "@/stores/uiStore";
 
 /**
@@ -25,6 +26,17 @@ export function RightPanel() {
   } = usePanelControls();
   const isMobile = useIsMobile();
   const pinned = useUiStore(state => state.panelPinned);
+  const panelWidth = useUiStore(state => state.panelWidth);
+  const setPanelWidth = useUiStore(state => state.setPanelWidth);
+  const {
+    onPointerDown: onPanelResizePointerDown,
+  } = useResizeHandle({
+    direction: "left",
+    currentWidth: panelWidth,
+    onChange: setPanelWidth,
+    min: 18,
+    max: 40,
+  });
 
   const docked = pinned && !isMobile;
 
@@ -34,10 +46,21 @@ export function RightPanel() {
     return (
       <aside
         className="
-          hidden w-full max-w-md shrink-0 flex-col border-l bg-background
+          relative hidden shrink-0 flex-col border-l bg-background
           md:flex
         "
+        style={{
+          width: `${panelWidth}rem`,
+        }}
       >
+        <div
+          className="
+            absolute inset-y-0 left-0 z-10 w-1 cursor-col-resize
+            transition-colors
+            hover:bg-border/60
+          "
+          onPointerDown={onPanelResizePointerDown}
+        />
         <PanelChrome docked />
         <div className="flex-1 overflow-y-auto px-4 pb-6">
           <PanelContent />

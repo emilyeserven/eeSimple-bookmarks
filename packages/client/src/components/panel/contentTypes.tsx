@@ -19,6 +19,7 @@ import { useCategories } from "../../hooks/useCategories";
 import { useCustomProperties } from "../../hooks/useCustomProperties";
 import { useTagTree } from "../../hooks/useTags";
 import { useWebsites } from "../../hooks/useWebsites";
+import { summarizeConditions } from "../../lib/conditionsSummary";
 import { flattenTree } from "../../lib/tagTree";
 import { BookmarkDetail } from "../BookmarkDetail";
 import { BookmarkForm } from "../BookmarkForm";
@@ -346,7 +347,7 @@ function useAutofillList() {
     () => (data ?? []).map(rule => ({
       id: rule.id,
       label: rule.name,
-      sublabel: `${rule.field} ${rule.operator} ${rule.pattern}`,
+      sublabel: summarizeConditions(rule.conditions),
     })),
     [data],
   );

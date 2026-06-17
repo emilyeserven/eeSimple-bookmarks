@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, ne } from "drizzle-orm";
 import type {
   Bookmark,
   BookmarkBooleanValue,
@@ -6,9 +6,11 @@ import type {
   BookmarkNumberValue,
   BookmarkTag,
   BookmarkWebsite,
+  ConditionInput,
   CreateBookmarkInput,
   UpdateBookmarkInput,
 } from "@eesimple/types";
+import { buildTagDescendants, evaluateConditions } from "@eesimple/types";
 import { db } from "@/db";
 import {
   bookmarkBooleanValues,
@@ -18,18 +20,25 @@ import {
   type BookmarkRow,
   bookmarkTags,
   calculatePropertyOperands,
-  categories,
   customProperties,
-  homepageTags,
   tags,
   websites,
 } from "@/db/schema";
 import { bookmarkImageFromRow } from "@/services/bookmarkImages";
 import { ensureDefaultCategory } from "@/services/categories";
-import { getDescendantIds } from "@/services/tags";
+import { getHomepageFilter } from "@/services/homepageFilter";
+import { getDescendantIds, listTags } from "@/services/tags";
 import { ensureWebsiteForUrl } from "@/services/websites";
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+/** Thrown when a create/update would collide with an existing bookmark's URL. */
+export class DuplicateUrlError extends Error {
+  constructor(url: string) {
+    super(`A bookmark with this URL already exists: ${url}`);
+    this.name = "DuplicateUrlError";
+  }
+}
 
 /** The hydrated relations that accompany a bookmark row. */
 interface BookmarkExtras {
@@ -53,6 +62,7 @@ function toBookmark(row: BookmarkRow, extras: BookmarkExtras, defaultCategoryId:
   return {
     id: row.id,
     url: row.url,
+    originalUrl: row.originalUrl,
     title: row.title,
     description: row.description,
     categoryId: row.categoryId ?? defaultCategoryId,
@@ -253,51 +263,45 @@ export async function listBookmarks(filterTagId?: string): Promise<Bookmark[]> {
 }
 
 /**
- * List the homepage bookmarks: the union of bookmarks in any homepage category and
- * bookmarks carrying a homepage tag (or one of its descendants), ordered by `priority`
- * (highest first), ties broken by most-recently created.
+ * List the homepage bookmarks: every bookmark matching the global homepage condition filter,
+ * ordered by `priority` (highest first), ties broken by most-recently created. An empty filter
+ * matches nothing.
  */
 export async function listHomepageBookmarks(): Promise<Bookmark[]> {
+  const {
+    conditions,
+  } = await getHomepageFilter();
   const defaultCategoryId = await ensureDefaultCategory();
-
-  const homepageCategories = await db
-    .select({
-      id: categories.id,
-    })
-    .from(categories)
-    .where(eq(categories.isHomepage, true));
-  const homepageCategoryIds = new Set(homepageCategories.map(row => row.id));
-
-  const homepageTagRows = await db.select({
-    tagId: homepageTags.tagId,
-  }).from(homepageTags);
-  const allowedTagIds = new Set<string>();
-  for (const {
-    tagId,
-  } of homepageTagRows) {
-    for (const id of await getDescendantIds(tagId)) allowedTagIds.add(id);
-  }
-
-  let taggedBookmarkIds = new Set<string>();
-  if (allowedTagIds.size > 0) {
-    const links = await db
-      .select({
-        bookmarkId: bookmarkTags.bookmarkId,
-      })
-      .from(bookmarkTags)
-      .where(inArray(bookmarkTags.tagId, [...allowedTagIds]));
-    taggedBookmarkIds = new Set(links.map(link => link.bookmarkId));
-  }
+  const tagDescendants = buildTagDescendants(await listTags());
 
   const baseRows = await db.select().from(bookmarks);
-  const rows = baseRows.filter((row) => {
-    const categoryId = row.categoryId ?? defaultCategoryId;
-    return homepageCategoryIds.has(categoryId) || taggedBookmarkIds.has(row.id);
+  if (baseRows.length === 0) return [];
+
+  const ids = baseRows.map(row => row.id);
+  const [tagsMap, numberMap, booleanMap] = await Promise.all([
+    tagsByBookmarkId(ids),
+    numberValuesByBookmarkId(ids),
+    booleanValuesByBookmarkId(ids),
+  ]);
+
+  const matched = baseRows.filter((row) => {
+    const input: ConditionInput = {
+      url: row.url,
+      title: row.title,
+      categoryId: row.categoryId ?? defaultCategoryId,
+      tagIds: new Set((tagsMap.get(row.id) ?? []).map(tag => tag.id)),
+      numberValues: new Map((numberMap.get(row.id) ?? []).map(value => [value.propertyId, value.value])),
+      booleanValues: new Map((booleanMap.get(row.id) ?? []).map(value => [value.propertyId, value.value])),
+    };
+    return evaluateConditions(conditions, input, {
+      tagDescendants,
+    });
   });
-  rows.sort((a, b) =>
+
+  matched.sort((a, b) =>
     b.priority - a.priority
     || (a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0));
-  return hydrate(rows);
+  return hydrate(matched);
 }
 
 export async function getBookmark(id: string): Promise<Bookmark | null> {
@@ -308,6 +312,11 @@ export async function getBookmark(id: string): Promise<Bookmark | null> {
 }
 
 export async function createBookmark(input: CreateBookmarkInput): Promise<Bookmark> {
+  const existing = await db.select({
+    id: bookmarks.id,
+  }).from(bookmarks).where(eq(bookmarks.url, input.url));
+  if (existing.length > 0) throw new DuplicateUrlError(input.url);
+
   const categoryId = input.categoryId ?? await ensureDefaultCategory();
   const id = await db.transaction(async (tx) => {
     const websiteId = await ensureWebsiteForUrl(tx, input.url, input.websiteSiteName);
@@ -315,6 +324,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
       .insert(bookmarks)
       .values({
         url: input.url,
+        originalUrl: input.originalUrl ?? null,
         title: input.title,
         description: input.description ?? null,
         categoryId,
@@ -338,15 +348,26 @@ export async function updateBookmark(
   id: string,
   input: UpdateBookmarkInput,
 ): Promise<Bookmark | null> {
+  if (input.url !== undefined) {
+    const clash = await db
+      .select({
+        id: bookmarks.id,
+      })
+      .from(bookmarks)
+      .where(and(eq(bookmarks.url, input.url), ne(bookmarks.id, id)));
+    if (clash.length > 0) throw new DuplicateUrlError(input.url);
+  }
+
   const found = await db.transaction(async (tx) => {
     const patch: Partial<
-      Pick<BookmarkRow, "url" | "title" | "description" | "categoryId" | "websiteId" | "priority">
+      Pick<BookmarkRow, "url" | "originalUrl" | "title" | "description" | "categoryId" | "websiteId" | "priority">
     > = {};
     if (input.url !== undefined) {
       patch.url = input.url;
       // Re-derive the website whenever the URL changes.
       patch.websiteId = await ensureWebsiteForUrl(tx, input.url);
     }
+    if (input.originalUrl !== undefined) patch.originalUrl = input.originalUrl ?? null;
     if (input.title !== undefined) patch.title = input.title;
     if (input.description !== undefined) patch.description = input.description ?? null;
     if (input.categoryId !== undefined) patch.categoryId = input.categoryId;

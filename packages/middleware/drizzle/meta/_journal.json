@@ -8,6 +8,20 @@
       "when": 1781726247554,
       "tag": "0000_public_firedrake",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1781737452197,
+      "tag": "0001_aromatic_metal_master",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1781739202535,
+      "tag": "0002_late_freak",
+      "breakpoints": true
     }
   ]
 }
