@@ -8,6 +8,9 @@ interface UiState {
   /** The selected theme; persisted to localStorage so it survives reloads. */
   theme: Theme;
   setTheme: (theme: Theme) => void;
+  /** When on, blurring the bookmark URL field auto-fetches the page title. */
+  autoFetchTitle: boolean;
+  setAutoFetchTitle: (value: boolean) => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -17,11 +20,16 @@ export const useUiStore = create<UiState>()(
       setTheme: theme => set({
         theme,
       }),
+      autoFetchTitle: true,
+      setAutoFetchTitle: value => set({
+        autoFetchTitle: value,
+      }),
     }),
     {
       name: "eesimple-ui",
       partialize: state => ({
         theme: state.theme,
+        autoFetchTitle: state.autoFetchTitle,
       }),
     },
   ),

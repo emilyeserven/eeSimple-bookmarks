@@ -7,16 +7,19 @@ import type {
 
 import { useEffect, useRef, useState } from "react";
 
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Loader2, Sparkles } from "lucide-react";
 import { z } from "zod";
 
 import { TagPicker } from "./TagPicker";
 import { useCreateBookmark } from "../hooks/useBookmarks";
 import { useCategories, useCategoryRootTags } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
+import { useFetchTitle } from "../hooks/useFetchTitle";
 import { useTagTree } from "../hooks/useTags";
 import { useAppForm } from "../lib/form";
+import { useUiStore } from "../stores/uiStore";
 
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Collapsible,
@@ -35,9 +38,22 @@ const bookmarkSchema = z.object({
   priority: z.number().int(),
 });
 
+/** True when `value` parses as an http(s) URL — mirrors the middleware's guard. */
+function isFetchableUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  }
+  catch {
+    return false;
+  }
+}
+
 /** Create-bookmark form. Owns its own mutation so the page stays focused on the list. */
 export function BookmarkForm() {
   const createBookmark = useCreateBookmark();
+  const fetchTitle = useFetchTitle();
+  const autoFetchTitle = useUiStore(state => state.autoFetchTitle);
   const {
     data: tagTree,
   } = useTagTree();
@@ -123,6 +139,26 @@ export function BookmarkForm() {
     },
   });
 
+  // Fetch the page title for the current URL and write it into the Title field.
+  // `force` (manual button) always overwrites; the on-blur path only fills a blank title.
+  async function runFetchTitle(url: string, {
+    force,
+  }: { force: boolean }): Promise<void> {
+    if (!isFetchableUrl(url)) return;
+    if (!force && form.getFieldValue("title").trim() !== "") return;
+    try {
+      const {
+        title,
+      } = await fetchTitle.mutateAsync(url);
+      if (force || form.getFieldValue("title").trim() === "") {
+        form.setFieldValue("title", title);
+      }
+    }
+    catch {
+      // Surfaced via fetchTitle.isError below; nothing else to do here.
+    }
+  }
+
   // Default the category to the built-in "Default" once categories load.
   useEffect(() => {
     if (!categories || categories.length === 0) return;
@@ -143,18 +179,63 @@ export function BookmarkForm() {
         void form.handleSubmit();
       }}
     >
-      <form.AppField name="title">
-        {field => <field.TextField label="Name" />}
-      </form.AppField>
+      <form.Subscribe selector={state => state.values.url}>
+        {url => (
+          <form.AppField name="title">
+            {field => (
+              <field.TextField
+                label="Name"
+                action={(
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    title="Fetch title from URL"
+                    aria-label="Fetch title from URL"
+                    disabled={!isFetchableUrl(url) || fetchTitle.isPending}
+                    onClick={() => void runFetchTitle(url, {
+                      force: true,
+                    })}
+                  >
+                    {fetchTitle.isPending
+                      ? <Loader2 className="size-4 animate-spin" />
+                      : <Sparkles className="size-4" />}
+                  </Button>
+                )}
+              />
+            )}
+          </form.AppField>
+        )}
+      </form.Subscribe>
 
       <form.AppField name="url">
         {field => (
           <field.TextField
             label="URL"
             type="url"
+            onBlur={() => {
+              if (autoFetchTitle) {
+                void runFetchTitle(field.state.value, {
+                  force: false,
+                });
+              }
+            }}
           />
         )}
       </form.AppField>
+
+      {fetchTitle.isError
+        ? (
+          <p
+            className="
+              text-sm text-destructive
+              sm:col-span-2
+            "
+          >
+            {fetchTitle.error?.message ?? "Could not fetch a title for that URL."}
+          </p>
+        )
+        : null}
 
       <form.AppField name="categoryId">
         {field => (
