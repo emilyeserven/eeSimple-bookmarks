@@ -63,6 +63,19 @@ test("GET /api/websites/lookup requires a url query param", async () => {
   await app.close();
 });
 
+test("POST /api/websites requires a domain", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "POST",
+    url: "/api/websites",
+    payload: {
+      siteName: "Example",
+    },
+  });
+  assert.equal(res.statusCode, 400);
+  await app.close();
+});
+
 test("PATCH /api/websites/:id rejects a non-uuid id", async () => {
   const app = await buildApp();
   const res = await app.inject({

@@ -37,12 +37,12 @@ const navItems = [
 const taxonomyItems = [
   {
     title: "Tags",
-    to: "/settings/tags",
+    to: "/taxonomies/tags",
     icon: Tags,
   },
   {
     title: "Websites",
-    to: "/settings/websites",
+    to: "/taxonomies/websites",
     icon: Globe,
   },
 ] as const;
