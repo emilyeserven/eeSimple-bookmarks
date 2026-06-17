@@ -14,6 +14,8 @@ import { Route as BookmarksRouteImport } from './routes/bookmarks'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsIndexRouteImport } from './routes/settings.index'
 import { Route as BookmarksIndexRouteImport } from './routes/bookmarks.index'
+import { Route as TaxonomiesWebsitesRouteImport } from './routes/taxonomies.websites'
+import { Route as TaxonomiesTagsRouteImport } from './routes/taxonomies.tags'
 import { Route as SettingsWebsitesRouteImport } from './routes/settings.websites'
 import { Route as SettingsTagsRouteImport } from './routes/settings.tags'
 import { Route as SettingsDisplayRouteImport } from './routes/settings.display'
@@ -59,6 +61,16 @@ const BookmarksIndexRoute = BookmarksIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => BookmarksRoute,
+} as any)
+const TaxonomiesWebsitesRoute = TaxonomiesWebsitesRouteImport.update({
+  id: '/taxonomies/websites',
+  path: '/taxonomies/websites',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TaxonomiesTagsRoute = TaxonomiesTagsRouteImport.update({
+  id: '/taxonomies/tags',
+  path: '/taxonomies/tags',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsWebsitesRoute = SettingsWebsitesRouteImport.update({
   id: '/websites',
@@ -183,6 +195,8 @@ export interface FileRoutesByFullPath {
   '/settings/display': typeof SettingsDisplayRoute
   '/settings/tags': typeof SettingsTagsRoute
   '/settings/websites': typeof SettingsWebsitesRoute
+  '/taxonomies/tags': typeof TaxonomiesTagsRoute
+  '/taxonomies/websites': typeof TaxonomiesWebsitesRoute
   '/bookmarks/': typeof BookmarksIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/bookmarks/$bookmarkId/edit': typeof BookmarksBookmarkIdEditRoute
@@ -205,6 +219,8 @@ export interface FileRoutesByTo {
   '/settings/display': typeof SettingsDisplayRoute
   '/settings/tags': typeof SettingsTagsRoute
   '/settings/websites': typeof SettingsWebsitesRoute
+  '/taxonomies/tags': typeof TaxonomiesTagsRoute
+  '/taxonomies/websites': typeof TaxonomiesWebsitesRoute
   '/bookmarks': typeof BookmarksIndexRoute
   '/settings': typeof SettingsIndexRoute
   '/bookmarks/$bookmarkId/edit': typeof BookmarksBookmarkIdEditRoute
@@ -232,6 +248,8 @@ export interface FileRoutesById {
   '/settings/display': typeof SettingsDisplayRoute
   '/settings/tags': typeof SettingsTagsRoute
   '/settings/websites': typeof SettingsWebsitesRoute
+  '/taxonomies/tags': typeof TaxonomiesTagsRoute
+  '/taxonomies/websites': typeof TaxonomiesWebsitesRoute
   '/bookmarks/': typeof BookmarksIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/bookmarks/$bookmarkId/edit': typeof BookmarksBookmarkIdEditRoute
@@ -261,6 +279,8 @@ export interface FileRouteTypes {
     | '/settings/display'
     | '/settings/tags'
     | '/settings/websites'
+    | '/taxonomies/tags'
+    | '/taxonomies/websites'
     | '/bookmarks/'
     | '/settings/'
     | '/bookmarks/$bookmarkId/edit'
@@ -283,6 +303,8 @@ export interface FileRouteTypes {
     | '/settings/display'
     | '/settings/tags'
     | '/settings/websites'
+    | '/taxonomies/tags'
+    | '/taxonomies/websites'
     | '/bookmarks'
     | '/settings'
     | '/bookmarks/$bookmarkId/edit'
@@ -309,6 +331,8 @@ export interface FileRouteTypes {
     | '/settings/display'
     | '/settings/tags'
     | '/settings/websites'
+    | '/taxonomies/tags'
+    | '/taxonomies/websites'
     | '/bookmarks/'
     | '/settings/'
     | '/bookmarks/$bookmarkId/edit'
@@ -329,6 +353,8 @@ export interface RootRouteChildren {
   BookmarksRoute: typeof BookmarksRouteWithChildren
   SettingsRoute: typeof SettingsRouteWithChildren
   CategoriesCategorySlugRoute: typeof CategoriesCategorySlugRouteWithChildren
+  TaxonomiesTagsRoute: typeof TaxonomiesTagsRoute
+  TaxonomiesWebsitesRoute: typeof TaxonomiesWebsitesRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -367,6 +393,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/bookmarks/'
       preLoaderRoute: typeof BookmarksIndexRouteImport
       parentRoute: typeof BookmarksRoute
+    }
+    '/taxonomies/websites': {
+      id: '/taxonomies/websites'
+      path: '/taxonomies/websites'
+      fullPath: '/taxonomies/websites'
+      preLoaderRoute: typeof TaxonomiesWebsitesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/taxonomies/tags': {
+      id: '/taxonomies/tags'
+      path: '/taxonomies/tags'
+      fullPath: '/taxonomies/tags'
+      preLoaderRoute: typeof TaxonomiesTagsRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/settings/websites': {
       id: '/settings/websites'
@@ -625,6 +665,8 @@ const rootRouteChildren: RootRouteChildren = {
   BookmarksRoute: BookmarksRouteWithChildren,
   SettingsRoute: SettingsRouteWithChildren,
   CategoriesCategorySlugRoute: CategoriesCategorySlugRouteWithChildren,
+  TaxonomiesTagsRoute: TaxonomiesTagsRoute,
+  TaxonomiesWebsitesRoute: TaxonomiesWebsitesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

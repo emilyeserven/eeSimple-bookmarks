@@ -8,6 +8,7 @@ import type {
   CreateCategoryInput,
   CreateCustomPropertyInput,
   CreateTagInput,
+  CreateWebsiteInput,
   CustomProperty,
   Tag,
   TagNode,
@@ -86,6 +87,11 @@ export const tagsApi = {
 
 export const websitesApi = {
   list: () => request<Website[]>("/websites"),
+  create: (input: CreateWebsiteInput) =>
+    request<Website>("/websites", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
   lookup: (url: string) =>
     request<WebsiteLookup>(`/websites/lookup?url=${encodeURIComponent(url)}`),
   update: (id: string, input: UpdateWebsiteInput) =>

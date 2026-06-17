@@ -61,6 +61,11 @@ interface BookmarkFormProps {
   bookmark?: Bookmark;
   /** Called after a successful edit (or on cancel) so the parent can close the form. */
   onDone?: () => void;
+  /**
+   * When set, the new bookmark is locked to this category and the Category picker is hidden —
+   * used on category pages, where the category is implied by the route.
+   */
+  lockedCategoryId?: string;
 }
 
 /**
@@ -68,7 +73,7 @@ interface BookmarkFormProps {
  * Owns its own mutation so the page stays focused on the list.
  */
 export function BookmarkForm({
-  bookmark, onDone,
+  bookmark, onDone, lockedCategoryId,
 }: BookmarkFormProps = {}) {
   const isEdit = Boolean(bookmark);
   const createBookmark = useCreateBookmark();
@@ -214,7 +219,7 @@ export function BookmarkForm({
     defaultValues: {
       url: bookmark?.url ?? "",
       title: bookmark?.title ?? "",
-      categoryId: bookmark?.categoryId ?? "",
+      categoryId: bookmark?.categoryId ?? lockedCategoryId ?? "",
       description: bookmark?.description ?? "",
       tagIds: (bookmark?.tags.map(tag => tag.id) ?? []) as string[],
       priority: bookmark?.priority ?? 0,
@@ -447,27 +452,31 @@ export function BookmarkForm({
         )
         : null}
 
-      <form.AppField name="categoryId">
-        {field => (
-          <field.ComboboxField
-            label="Category"
-            className="sm:col-span-2"
-            placeholder="Select a category"
-            searchPlaceholder="Search categories…"
-            emptyText="No categories found."
-            options={(categories ?? []).map(category => ({
-              value: category.id,
-              label: category.name,
-              icon: (
-                <CategoryIcon
-                  name={category.icon}
-                  className="size-4 shrink-0"
-                />
-              ),
-            }))}
-          />
+      {lockedCategoryId
+        ? null
+        : (
+          <form.AppField name="categoryId">
+            {field => (
+              <field.ComboboxField
+                label="Category"
+                className="sm:col-span-2"
+                placeholder="Select a category"
+                searchPlaceholder="Search categories…"
+                emptyText="No categories found."
+                options={(categories ?? []).map(category => ({
+                  value: category.id,
+                  label: category.name,
+                  icon: (
+                    <CategoryIcon
+                      name={category.icon}
+                      className="size-4 shrink-0"
+                    />
+                  ),
+                }))}
+              />
+            )}
+          </form.AppField>
         )}
-      </form.AppField>
 
       <form.Subscribe selector={state => state.values.categoryId}>
         {categoryId => (

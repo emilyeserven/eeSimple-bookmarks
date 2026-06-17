@@ -60,7 +60,7 @@ export function BookmarkCard({
                   bookmarkId: bookmark.id,
                 }}
                 className="
-                  truncate text-primary
+                  wrap-break-word text-primary
                   hover:underline
                 "
               >

@@ -1,4 +1,4 @@
-import type { UpdateWebsiteInput } from "@eesimple/types";
+import type { CreateWebsiteInput, UpdateWebsiteInput } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -11,6 +11,19 @@ export function useWebsites() {
   return useQuery({
     queryKey: WEBSITES_KEY,
     queryFn: websitesApi.list,
+  });
+}
+
+/** Manually add a website to the taxonomy (domain + optional friendly name). */
+export function useCreateWebsite() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: CreateWebsiteInput) => websitesApi.create(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: WEBSITES_KEY,
+      });
+    },
   });
 }
 
