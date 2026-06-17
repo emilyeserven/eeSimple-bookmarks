@@ -5,7 +5,19 @@ import { buildApp } from "@/app";
 // Schema-validation tests via `inject` (no database needed), matching the
 // `categories` / `customProperties` test style.
 
-test("POST /api/autofill-rules rejects a payload missing required fields", async () => {
+/** A minimal valid condition tree: one URL-domain match leaf in an AND group. */
+const validConditions = {
+  type: "group",
+  combinator: "and",
+  children: [{
+    type: "match",
+    field: "url",
+    operator: "domain",
+    pattern: "101cookbooks.com",
+  }],
+};
+
+test("POST /api/autofill-rules rejects a payload missing conditions", async () => {
   const app = await buildApp();
   const res = await app.inject({
     method: "POST",
@@ -18,32 +30,84 @@ test("POST /api/autofill-rules rejects a payload missing required fields", async
   await app.close();
 });
 
-test("POST /api/autofill-rules rejects an unknown operator", async () => {
+test("POST /api/autofill-rules rejects an unknown leaf type", async () => {
   const app = await buildApp();
   const res = await app.inject({
     method: "POST",
     url: "/api/autofill-rules",
     payload: {
       name: "Recipes",
-      field: "url",
-      operator: "matches-somehow",
-      pattern: "101cookbooks.com",
+      conditions: {
+        type: "group",
+        combinator: "and",
+        children: [{
+          type: "nonsense",
+          pattern: "x",
+        }],
+      },
     },
   });
   assert.equal(res.statusCode, 400);
   await app.close();
 });
 
-test("POST /api/autofill-rules rejects an unknown field", async () => {
+test("POST /api/autofill-rules rejects an unknown match operator", async () => {
   const app = await buildApp();
   const res = await app.inject({
     method: "POST",
     url: "/api/autofill-rules",
     payload: {
       name: "Recipes",
-      field: "description",
-      operator: "contains",
-      pattern: "pasta",
+      conditions: {
+        type: "group",
+        combinator: "and",
+        children: [{
+          type: "match",
+          field: "url",
+          operator: "matches-somehow",
+          pattern: "101cookbooks.com",
+        }],
+      },
+    },
+  });
+  assert.equal(res.statusCode, 400);
+  await app.close();
+});
+
+test("POST /api/autofill-rules rejects a non-group root", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "POST",
+    url: "/api/autofill-rules",
+    payload: {
+      name: "Recipes",
+      conditions: {
+        type: "match",
+        field: "url",
+        operator: "domain",
+        pattern: "101cookbooks.com",
+      },
+    },
+  });
+  assert.equal(res.statusCode, 400);
+  await app.close();
+});
+
+test("POST /api/autofill-rules rejects a non-uuid category condition id", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "POST",
+    url: "/api/autofill-rules",
+    payload: {
+      name: "Recipes",
+      conditions: {
+        type: "group",
+        combinator: "and",
+        children: [{
+          type: "category",
+          categoryIds: ["not-a-uuid"],
+        }],
+      },
     },
   });
   assert.equal(res.statusCode, 400);
@@ -57,9 +121,7 @@ test("POST /api/autofill-rules rejects a non-uuid setCategoryId", async () => {
     url: "/api/autofill-rules",
     payload: {
       name: "Recipes",
-      field: "url",
-      operator: "domain",
-      pattern: "101cookbooks.com",
+      conditions: validConditions,
       setCategoryId: "not-a-uuid",
     },
   });

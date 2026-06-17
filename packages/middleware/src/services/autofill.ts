@@ -1,11 +1,15 @@
-import { asc, eq, inArray } from "drizzle-orm";
+import { asc, eq, inArray, isNull } from "drizzle-orm";
 import type {
   AutofillRule,
   BookmarkBooleanValue,
   BookmarkNumberValue,
+  ConditionMatchField,
+  ConditionMatchOperator,
+  ConditionTree,
   CreateAutofillRuleInput,
   UpdateAutofillRuleInput,
 } from "@eesimple/types";
+import { emptyConditionTree } from "@eesimple/types";
 import { db } from "@/db";
 import {
   autofillRuleBooleanValues,
@@ -27,9 +31,7 @@ function toAutofillRule(
   return {
     id: row.id,
     name: row.name,
-    field: row.field as AutofillRule["field"],
-    operator: row.operator as AutofillRule["operator"],
-    pattern: row.pattern,
+    conditions: row.conditions ?? emptyConditionTree(),
     setCategoryId: row.setCategoryId,
     tagIds,
     numberValues,
@@ -193,9 +195,7 @@ export async function createAutofillRule(input: CreateAutofillRuleInput): Promis
       .insert(autofillRules)
       .values({
         name: input.name,
-        field: input.field,
-        operator: input.operator,
-        pattern: input.pattern,
+        conditions: input.conditions,
         setCategoryId: input.setCategoryId ?? null,
         sortOrder: input.sortOrder ?? 0,
       })
@@ -225,12 +225,10 @@ export async function updateAutofillRule(
     if (!existing) return false;
 
     const patch: Partial<
-      Pick<AutofillRuleRow, "name" | "field" | "operator" | "pattern" | "setCategoryId" | "sortOrder">
+      Pick<AutofillRuleRow, "name" | "conditions" | "setCategoryId" | "sortOrder">
     > = {};
     if (input.name !== undefined) patch.name = input.name;
-    if (input.field !== undefined) patch.field = input.field;
-    if (input.operator !== undefined) patch.operator = input.operator;
-    if (input.pattern !== undefined) patch.pattern = input.pattern;
+    if (input.conditions !== undefined) patch.conditions = input.conditions;
     if (input.setCategoryId !== undefined) patch.setCategoryId = input.setCategoryId ?? null;
     if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder;
 
@@ -253,4 +251,36 @@ export async function deleteAutofillRule(id: string): Promise<boolean> {
     id: autofillRules.id,
   });
   return rows.length > 0;
+}
+
+/**
+ * Backfill `conditions` for rules created before the condition tree existed, wrapping each rule's
+ * legacy `field`/`operator`/`pattern` in a single-leaf AND group. Runs at boot; idempotent.
+ */
+export async function ensureAutofillConditions(): Promise<void> {
+  const rows = await db
+    .select({
+      id: autofillRules.id,
+      field: autofillRules.field,
+      operator: autofillRules.operator,
+      pattern: autofillRules.pattern,
+    })
+    .from(autofillRules)
+    .where(isNull(autofillRules.conditions));
+
+  for (const row of rows) {
+    const conditions: ConditionTree = {
+      type: "group",
+      combinator: "and",
+      children: [{
+        type: "match",
+        field: (row.field as ConditionMatchField | null) ?? "url",
+        operator: (row.operator as ConditionMatchOperator | null) ?? "contains",
+        pattern: row.pattern ?? "",
+      }],
+    };
+    await db.update(autofillRules).set({
+      conditions,
+    }).where(eq(autofillRules.id, row.id));
+  }
 }
