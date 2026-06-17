@@ -138,10 +138,12 @@ export function CategoryManager() {
 
       <div className="space-y-4">
         {(categories ?? []).map(category => (
-          <CategoryCard
+          <Card
             key={category.id}
-            category={category}
-          />
+            className="p-6"
+          >
+            <CategoryCard category={category} />
+          </Card>
         ))}
       </div>
     </section>
@@ -195,10 +197,8 @@ export function CategoryCard({
   const deleteCategory = useDeleteCategory();
 
   return (
-    <Card>
-      <CardHeader
-        className="flex-row items-center justify-between gap-2 space-y-0"
-      >
+    <div className="space-y-6">
+      <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <CategoryIcon
             name={category.icon}
@@ -236,10 +236,8 @@ export function CategoryCard({
               </Button>
             )}
         </div>
-      </CardHeader>
-      <CardContent>
-        <CategoryGeneralForm category={category} />
-      </CardContent>
-    </Card>
+      </div>
+      <CategoryGeneralForm category={category} />
+    </div>
   );
 }
