@@ -89,6 +89,7 @@ describe("with* helpers", () => {
 
 describe("bookmarkMatchesSearch", () => {
   const bookmark = {
+    tags: [],
     numberValues: [{
       propertyId: "p1",
       value: 2,

@@ -64,8 +64,10 @@ export function BookmarkSearchView({
 
   const visibleBookmarks = bookmarks.filter(bookmark => bookmarkMatchesSearch(bookmark, search));
   const hasActiveFilters = search.tag !== undefined
+    || search.tagPresence !== undefined
     || Object.keys(search.num ?? {}).length > 0
-    || Object.keys(search.bool ?? {}).length > 0;
+    || Object.keys(search.bool ?? {}).length > 0
+    || Object.keys(search.presence ?? {}).length > 0;
 
   return (
     <section className="space-y-8">

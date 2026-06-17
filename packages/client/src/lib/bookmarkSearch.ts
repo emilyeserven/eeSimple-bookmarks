@@ -10,8 +10,12 @@ import { bookmarkMatchesFilters } from "./customPropertyFilter";
  */
 export interface BookmarkSearch {
   tag?: string;
+  /** Filter bookmarks by whether they have any tag ("has") or no tags ("missing"). */
+  tagPresence?: "has" | "missing";
   num?: Record<string, [number, number]>;
   bool?: Record<string, boolean>;
+  /** Filter bookmarks by whether a property value is present or absent, keyed by property id. */
+  presence?: Record<string, "has" | "missing">;
 }
 
 /** Narrow an unknown search record into a `BookmarkSearch`, dropping anything malformed. */
@@ -19,6 +23,10 @@ export function validateBookmarkSearch(search: Record<string, unknown>): Bookmar
   const result: BookmarkSearch = {};
 
   if (typeof search.tag === "string") result.tag = search.tag;
+
+  if (search.tagPresence === "has" || search.tagPresence === "missing") {
+    result.tagPresence = search.tagPresence;
+  }
 
   if (search.num !== null && typeof search.num === "object") {
     const num: Record<string, [number, number]> = {};
@@ -43,14 +51,33 @@ export function validateBookmarkSearch(search: Record<string, unknown>): Bookmar
     if (Object.keys(bool).length > 0) result.bool = bool;
   }
 
+  if (search.presence !== null && typeof search.presence === "object") {
+    const presence: Record<string, "has" | "missing"> = {};
+    for (const [key, value] of Object.entries(search.presence as Record<string, unknown>)) {
+      if (value === "has" || value === "missing") presence[key] = value;
+    }
+    if (Object.keys(presence).length > 0) result.presence = presence;
+  }
+
   return result;
 }
 
-/** Whether a bookmark satisfies every active custom-property filter in `search`. */
+/** Whether a bookmark satisfies every active filter in `search`. */
 export function bookmarkMatchesSearch(
-  bookmark: Pick<Bookmark, "numberValues" | "booleanValues">,
+  bookmark: Pick<Bookmark, "tags" | "numberValues" | "booleanValues">,
   search: BookmarkSearch,
 ): boolean {
+  if (search.tagPresence === "has" && bookmark.tags.length === 0) return false;
+  if (search.tagPresence === "missing" && bookmark.tags.length > 0) return false;
+
+  for (const [propertyId, mode] of Object.entries(search.presence ?? {})) {
+    const hasNum = bookmark.numberValues.some(v => v.propertyId === propertyId);
+    const hasBool = bookmark.booleanValues.some(v => v.propertyId === propertyId);
+    const hasValue = hasNum || hasBool;
+    if (mode === "has" && !hasValue) return false;
+    if (mode === "missing" && hasValue) return false;
+  }
+
   const numberFilters = Object.entries(search.num ?? {}).map(([propertyId, [lo, hi]]) => ({
     propertyId,
     lo,
@@ -89,6 +116,39 @@ export function withTag(search: BookmarkSearch, tag: string | undefined): Bookma
   if (tag === undefined) delete next.tag;
   else next.tag = tag;
   return next;
+}
+
+/**
+ * Return a copy of `search` with the tag-presence filter set or cleared.
+ * Setting `"missing"` also clears any specific tag selection (selecting a tag contradicts "no tags").
+ */
+export function withTagPresence(
+  search: BookmarkSearch,
+  mode: "has" | "missing" | undefined,
+): BookmarkSearch {
+  const next = {
+    ...search,
+  };
+  if (mode === undefined) {
+    delete next.tagPresence;
+  }
+  else {
+    next.tagPresence = mode;
+    if (mode === "missing") delete next.tag;
+  }
+  return next;
+}
+
+/** Return a copy of `search` with a property-presence filter set or cleared. */
+export function withPresenceFilter(
+  search: BookmarkSearch,
+  propertyId: string,
+  mode: "has" | "missing" | undefined,
+): BookmarkSearch {
+  return {
+    ...search,
+    presence: patchRecord(search.presence, propertyId, mode),
+  };
 }
 
 /** Return a copy of `search` with a number-range filter set or cleared. */

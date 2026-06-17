@@ -5,6 +5,7 @@ import { Combobox } from "./Combobox";
 import { RangeSlider } from "./RangeSlider";
 
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 interface CustomPropertyFiltersProps {
   properties: CustomProperty[];
@@ -14,10 +15,14 @@ interface CustomPropertyFiltersProps {
   numberValues: Record<string, [number, number]>;
   /** Active boolean filters keyed by property id (absent = no filter). */
   booleanValues: Record<string, boolean>;
+  /** Active presence filters keyed by property id (absent = no filter). */
+  presenceValues: Record<string, "has" | "missing">;
   /** Report a number filter (or `undefined` to clear it when back at full range). */
   onNumberFilterChange: (propertyId: string, range: [number, number] | undefined) => void;
   /** Report a boolean filter (`true`/`false`, or `undefined` to clear it). */
   onBooleanFilterChange: (propertyId: string, value: boolean | undefined) => void;
+  /** Report a presence filter (`"has"`/`"missing"`, or `undefined` to clear it). */
+  onPresenceFilterChange: (propertyId: string, mode: "has" | "missing" | undefined) => void;
 }
 
 /** Number and calculate properties share the range-slider control; both live in numberValues. */
@@ -42,47 +47,126 @@ function effectiveBounds(
   return [min, max > min ? max : min + 1];
 }
 
+const presenceButton = "rounded-md px-2 py-0.5 text-xs transition-colors";
+const presenceActive = "bg-primary text-primary-foreground";
+const presenceInactive = "text-foreground hover:bg-accent hover:text-accent-foreground";
+
+interface PresenceControlProps {
+  propertyId: string;
+  value: "has" | "missing" | undefined;
+  onChange: (propertyId: string, mode: "has" | "missing" | undefined) => void;
+}
+
+function PresenceFilterControl({
+  propertyId, value, onChange,
+}: PresenceControlProps) {
+  return (
+    <div className="flex gap-1">
+      <button
+        type="button"
+        onClick={() => onChange(propertyId, undefined)}
+        className={cn(presenceButton, value === undefined ? presenceActive : presenceInactive)}
+      >
+        Any
+      </button>
+      <button
+        type="button"
+        onClick={() => onChange(propertyId, "has")}
+        className={cn(presenceButton, value === "has" ? presenceActive : presenceInactive)}
+      >
+        Has value
+      </button>
+      <button
+        type="button"
+        onClick={() => onChange(propertyId, "missing")}
+        className={cn(presenceButton, value === "missing" ? presenceActive : presenceInactive)}
+      >
+        No value
+      </button>
+    </div>
+  );
+}
+
 /** Renders one dynamic filter control per custom property in the filter sidebar. */
 export function CustomPropertyFilters({
   properties,
   bookmarks,
   numberValues,
   booleanValues,
+  presenceValues,
   onNumberFilterChange,
   onBooleanFilterChange,
+  onPresenceFilterChange,
 }: CustomPropertyFiltersProps) {
   if (properties.length === 0) return null;
 
   return (
-    <div className="space-y-4">
-      {properties.map(property => (
-        <div
-          key={property.id}
-          className="space-y-1"
-        >
-          {/* Range controls show the property name in their own readout, so only the boolean
-              control (a label-less combobox) needs an outer label — avoids a doubled label. */}
-          {isRangeProperty(property)
-            ? (
-              <NumberFilterControl
-                property={property}
-                bounds={effectiveBounds(property, bookmarks)}
-                value={numberValues[property.id]}
-                onChange={onNumberFilterChange}
-              />
-            )
-            : (
-              <>
-                <Label className="text-xs text-muted-foreground">{property.name}</Label>
+    <div className="space-y-6">
+      {properties.map((property) => {
+        const presenceValue = presenceValues[property.id];
+        const isFilterActive
+          = numberValues[property.id] !== undefined
+            || booleanValues[property.id] !== undefined
+            || presenceValue !== undefined;
+
+        function handleReset() {
+          onNumberFilterChange(property.id, undefined);
+          onBooleanFilterChange(property.id, undefined);
+          onPresenceFilterChange(property.id, undefined);
+        }
+
+        return (
+          <div
+            key={property.id}
+            className="space-y-2"
+          >
+            <div className="flex items-center justify-between">
+              <Label className="text-xs text-muted-foreground">{property.name}</Label>
+              {isFilterActive
+                ? (
+                  <button
+                    type="button"
+                    onClick={handleReset}
+                    className="
+                      text-xs text-primary
+                      hover:underline
+                    "
+                  >
+                    Reset
+                  </button>
+                )
+                : null}
+            </div>
+
+            <PresenceFilterControl
+              propertyId={property.id}
+              value={presenceValue}
+              onChange={onPresenceFilterChange}
+            />
+
+            {presenceValue !== "missing" && isRangeProperty(property)
+              ? (
+                <NumberFilterControl
+                  property={property}
+                  bounds={effectiveBounds(property, bookmarks)}
+                  value={numberValues[property.id]}
+                  onChange={onNumberFilterChange}
+                />
+              )
+              : null}
+
+            {presenceValue !== "missing" && !isRangeProperty(property)
+              ? (
                 <BooleanFilterControl
                   property={property}
                   value={booleanValues[property.id]}
                   onChange={onBooleanFilterChange}
                 />
-              </>
-            )}
-        </div>
-      ))}
+              )
+              : null}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -106,7 +190,6 @@ function NumberFilterControl({
       min={min}
       max={max}
       value={range}
-      label={property.name}
       onValueChange={(next) => {
         // Only an actually-narrowed range counts as an active filter.
         const active = next[0] > min || next[1] < max;

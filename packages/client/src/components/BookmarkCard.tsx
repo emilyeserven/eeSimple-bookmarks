@@ -1,6 +1,9 @@
-import type { Bookmark, CustomProperty } from "@eesimple/types";
+import type { Bookmark, BookmarkTag, CustomProperty } from "@eesimple/types";
+
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Link } from "@tanstack/react-router";
+import { Globe } from "lucide-react";
 
 import { formatNumber } from "../lib/bookmarkFormat";
 
@@ -12,6 +15,67 @@ interface BookmarkCardProps {
   /** Custom property definitions, used to label and unit-format the bookmark's values. */
   properties?: CustomProperty[];
   onDelete?: (id: string) => void;
+}
+
+interface TagsBoxProps {
+  tags: BookmarkTag[];
+}
+
+function TagsBox({
+  tags,
+}: TagsBoxProps) {
+  const ref = useRef<HTMLUListElement>(null);
+  const [showTop, setShowTop] = useState(false);
+  const [showBottom, setShowBottom] = useState(false);
+
+  const sync = useCallback(() => {
+    const el = ref.current;
+    if (!el) return;
+    setShowTop(el.scrollTop > 0);
+    setShowBottom(el.scrollTop + el.clientHeight < el.scrollHeight - 1);
+  }, []);
+
+  useEffect(() => {
+    sync();
+  }, [tags.length, sync]);
+
+  return (
+    <div className="relative mt-2">
+      <ul
+        ref={ref}
+        onScroll={sync}
+        className="
+          flex max-h-20 flex-wrap gap-1 overflow-y-auto rounded-md border p-1
+        "
+      >
+        {tags.map(tag => (
+          <li key={tag.id}>
+            <Badge variant="secondary">{tag.name}</Badge>
+          </li>
+        ))}
+      </ul>
+      {showTop
+        ? (
+          <div
+            className="
+              pointer-events-none absolute inset-x-0 top-0 h-5 rounded-t-md
+              bg-linear-to-b from-card to-transparent
+            "
+          />
+        )
+        : null}
+      {showBottom
+        ? (
+          <div
+            className="
+              pointer-events-none absolute inset-x-0 bottom-0 h-5 rounded-b-md
+              bg-linear-to-t from-card to-transparent
+            "
+          />
+        )
+        : null}
+    </div>
+  );
 }
 
 export function BookmarkCard({
@@ -76,6 +140,19 @@ export function BookmarkCard({
           >
             {bookmark.url}
           </a>
+          {bookmark.website
+            ? (
+              <div className="mt-1">
+                <Badge
+                  variant="secondary"
+                  className="gap-1"
+                >
+                  <Globe className="size-3" />
+                  {bookmark.website.siteName}
+                </Badge>
+              </div>
+            )
+            : null}
         </div>
         {onDelete
           ? (
@@ -97,17 +174,7 @@ export function BookmarkCard({
           : null}
       </div>
       {bookmark.description ? <p className="mt-2 text-sm text-foreground">{bookmark.description}</p> : null}
-      {bookmark.tags.length > 0
-        ? (
-          <ul className="mt-2 flex flex-wrap gap-1">
-            {bookmark.tags.map(tag => (
-              <li key={tag.id}>
-                <Badge variant="secondary">{tag.name}</Badge>
-              </li>
-            ))}
-          </ul>
-        )
-        : null}
+      {bookmark.tags.length > 0 ? <TagsBox tags={bookmark.tags} /> : null}
       {valueBadges.length > 0
         ? (
           <ul className="mt-2 flex flex-wrap gap-1">

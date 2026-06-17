@@ -16,8 +16,10 @@ const meta = {
     bookmarks: [sampleBookmark],
     numberValues: {},
     booleanValues: {},
+    presenceValues: {},
     onNumberFilterChange: () => {},
     onBooleanFilterChange: () => {},
+    onPresenceFilterChange: () => {},
   },
 } satisfies Meta<typeof CustomPropertyFilters>;
 
