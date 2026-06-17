@@ -65,8 +65,13 @@ export const bookmarksApi = {
 };
 
 export const metadataApi = {
-  fetchTitle: ({ url, siteName }: { url: string; siteName?: string }) => {
-    const params = new URLSearchParams({ url });
+  fetchTitle: ({
+    url, siteName,
+  }: { url: string;
+    siteName?: string; }) => {
+    const params = new URLSearchParams({
+      url,
+    });
     if (siteName) params.set("siteName", siteName);
     return request<{ title: string }>(`/fetch-title?${params.toString()}`);
   },

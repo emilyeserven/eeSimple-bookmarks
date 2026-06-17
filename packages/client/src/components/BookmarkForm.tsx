@@ -287,7 +287,9 @@ export function BookmarkForm({
       const trimmedSiteName = websiteSiteName.trim();
       await createBookmark.mutateAsync({
         ...input,
-        ...(trimmedSiteName && { websiteSiteName: trimmedSiteName }),
+        ...(trimmedSiteName && {
+          websiteSiteName: trimmedSiteName,
+        }),
       });
       form.reset();
       setNumberInputs({});
@@ -329,7 +331,10 @@ export function BookmarkForm({
     try {
       const {
         title,
-      } = await fetchTitle.mutateAsync({ url, siteName: websiteSiteName.trim() || undefined });
+      } = await fetchTitle.mutateAsync({
+        url,
+        siteName: websiteSiteName.trim() || undefined,
+      });
       if (force || form.getFieldValue("title").trim() === "") {
         form.setFieldValue("title", title);
       }
@@ -553,7 +558,10 @@ export function BookmarkForm({
             {!websiteLookup.data.exists
               ? (
                 <div className="mt-2">
-                  <Label htmlFor="website-site-name" className="mb-1 block text-sm">
+                  <Label
+                    htmlFor="website-site-name"
+                    className="mb-1 block text-sm"
+                  >
                     Site name
                   </Label>
                   <Input

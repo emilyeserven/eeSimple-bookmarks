@@ -29,7 +29,8 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
   }, async (req, reply) => {
     const {
       url, siteName: siteNameHint,
-    } = req.query as { url: string; siteName?: string };
+    } = req.query as { url: string;
+      siteName?: string; };
     if (!isValidUrl(url)) {
       return reply.code(400).send({
         message: "url must be a valid http(s) URL",

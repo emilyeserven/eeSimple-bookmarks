@@ -7,6 +7,8 @@ import { ExternalLink, MoreVertical } from "lucide-react";
 
 import { formatNumber } from "../lib/bookmarkFormat";
 
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,8 +16,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 
 interface BookmarkCardProps {
   bookmark: Bookmark;
@@ -168,7 +168,9 @@ export function BookmarkCard({
               <DropdownMenuItem asChild>
                 <Link
                   to="/bookmarks/$bookmarkId/edit"
-                  params={{ bookmarkId: bookmark.id }}
+                  params={{
+                    bookmarkId: bookmark.id,
+                  }}
                 >
                   Edit
                 </Link>
@@ -178,7 +180,10 @@ export function BookmarkCard({
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
-                      className="text-destructive focus:text-destructive"
+                      className="
+                        text-destructive
+                        focus:text-destructive
+                      "
                       onClick={() => onDelete(bookmark.id)}
                     >
                       Delete
@@ -196,7 +201,9 @@ export function BookmarkCard({
           <div className="mt-2">
             <Link
               to="/taxonomies/websites/$websiteSlug"
-              params={{ websiteSlug: bookmark.website.slug }}
+              params={{
+                websiteSlug: bookmark.website.slug,
+              }}
             >
               <Badge variant="secondary">{bookmark.website.siteName}</Badge>
             </Link>
