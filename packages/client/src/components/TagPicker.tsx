@@ -17,7 +17,7 @@ export function TagPicker({
 
   if (flat.length === 0) {
     return (
-      <p className="text-xs text-slate-500">
+      <p className="text-xs text-muted-foreground">
         No tags yet. Create some on the Tags page.
       </p>
     );
@@ -30,7 +30,7 @@ export function TagPicker({
       }) => (
         <li key={node.id}>
           <label
-            className="flex items-center gap-2 text-sm text-slate-700"
+            className="flex items-center gap-2 text-sm text-foreground"
             style={{
               paddingLeft: `${depth * 1.25}rem`,
             }}

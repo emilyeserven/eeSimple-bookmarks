@@ -34,6 +34,8 @@ export async function maybeSeed(): Promise<void> {
     title: "GitHub",
     description: "Where the code lives.",
     favorite: true,
+    pinned: true,
+    priority: 10,
   }).returning();
 
   await db.insert(bookmarkTags).values([

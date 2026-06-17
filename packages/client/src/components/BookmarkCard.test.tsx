@@ -23,6 +23,8 @@ const bookmark: Bookmark = {
     },
   ],
   favorite: true,
+  pinned: false,
+  priority: 0,
   createdAt: "2026-06-01T00:00:00.000Z",
 };
 

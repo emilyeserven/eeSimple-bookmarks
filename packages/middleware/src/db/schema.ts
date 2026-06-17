@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { type AnyPgColumn, boolean, pgTable, primaryKey, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
+import { type AnyPgColumn, boolean, integer, pgTable, primaryKey, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
 
 /** `bookmarks` table — one row per saved bookmark. Tags now live in `bookmark_tags`. */
 export const bookmarks = pgTable("bookmarks", {
@@ -8,6 +8,8 @@ export const bookmarks = pgTable("bookmarks", {
   title: text("title").notNull(),
   description: text("description"),
   favorite: boolean("favorite").notNull().default(false),
+  pinned: boolean("pinned").notNull().default(false),
+  priority: integer("priority").notNull().default(0),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),

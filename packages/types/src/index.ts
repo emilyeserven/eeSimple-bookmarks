@@ -50,6 +50,10 @@ export interface Bookmark {
   tags: BookmarkTag[];
   /** Whether the bookmark is marked as a favorite. */
   favorite: boolean;
+  /** Whether the bookmark is pinned to the homepage. */
+  pinned: boolean;
+  /** Homepage ordering weight; higher values appear first. */
+  priority: number;
   /** ISO-8601 timestamp of when the bookmark was created. */
   createdAt: string;
 }
@@ -62,6 +66,10 @@ export interface CreateBookmarkInput {
   /** Ids of tags to assign, drawn from the taxonomy. */
   tagIds?: string[];
   favorite?: boolean;
+  /** Pin this bookmark to the homepage. */
+  pinned?: boolean;
+  /** Homepage ordering weight; higher values appear first. */
+  priority?: number;
 }
 
 /** Payload for partially updating a bookmark. */

@@ -13,6 +13,8 @@ function toBookmark(row: BookmarkRow, tagList: BookmarkTag[]): Bookmark {
     description: row.description,
     tags: tagList,
     favorite: row.favorite,
+    pinned: row.pinned,
+    priority: row.priority,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
   };
@@ -86,6 +88,8 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
         title: input.title,
         description: input.description ?? null,
         favorite: input.favorite ?? false,
+        pinned: input.pinned ?? false,
+        priority: input.priority ?? 0,
       })
       .returning({
         id: bookmarks.id,
@@ -102,11 +106,15 @@ export async function updateBookmark(
   input: UpdateBookmarkInput,
 ): Promise<Bookmark | null> {
   const found = await db.transaction(async (tx) => {
-    const patch: Partial<Pick<BookmarkRow, "url" | "title" | "description" | "favorite">> = {};
+    const patch: Partial<
+      Pick<BookmarkRow, "url" | "title" | "description" | "favorite" | "pinned" | "priority">
+    > = {};
     if (input.url !== undefined) patch.url = input.url;
     if (input.title !== undefined) patch.title = input.title;
     if (input.description !== undefined) patch.description = input.description ?? null;
     if (input.favorite !== undefined) patch.favorite = input.favorite;
+    if (input.pinned !== undefined) patch.pinned = input.pinned;
+    if (input.priority !== undefined) patch.priority = input.priority;
 
     if (Object.keys(patch).length > 0) {
       const [row] = await tx.update(bookmarks).set(patch).where(eq(bookmarks.id, id)).returning({
