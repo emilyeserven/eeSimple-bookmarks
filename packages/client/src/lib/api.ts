@@ -17,6 +17,9 @@ import type {
   UpdateCategoryInput,
   UpdateCustomPropertyInput,
   UpdateTagInput,
+  UpdateWebsiteInput,
+  Website,
+  WebsiteLookup,
 } from "@eesimple/types";
 
 const BASE = "/api";
@@ -76,6 +79,20 @@ export const tagsApi = {
       body: JSON.stringify(input),
     }),
   remove: (id: string) => request<undefined>(`/tags/${id}`, {
+    method: "DELETE",
+  }),
+};
+
+export const websitesApi = {
+  list: () => request<Website[]>("/websites"),
+  lookup: (url: string) =>
+    request<WebsiteLookup>(`/websites/lookup?url=${encodeURIComponent(url)}`),
+  update: (id: string, input: UpdateWebsiteInput) =>
+    request<Website>(`/websites/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  remove: (id: string) => request<undefined>(`/websites/${id}`, {
     method: "DELETE",
   }),
 };

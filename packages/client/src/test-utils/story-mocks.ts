@@ -129,6 +129,11 @@ export const sampleBookmark: Bookmark = {
   title: "GitHub",
   description: "Where the code lives.",
   categoryId: "cat-workflow",
+  website: {
+    id: "site-github",
+    domain: "github.com",
+    siteName: "GitHub",
+  },
   tags: [
     {
       id: "tag-cli",
@@ -171,6 +176,17 @@ export const apiHandlers = [
   })),
   http.get("/api/homepage-tags", () => HttpResponse.json({
     tagIds: [],
+  })),
+  http.get("/api/websites", () => HttpResponse.json(sampleBookmark.website
+    ? [{
+      ...sampleBookmark.website,
+      createdAt: NOW,
+    }]
+    : [])),
+  http.get("/api/websites/lookup", () => HttpResponse.json({
+    domain: "github.com",
+    exists: true,
+    siteName: "GitHub",
   })),
   http.get("/api/bookmarks/homepage", () => HttpResponse.json([sampleBookmark])),
   http.post("/api/bookmarks", () => HttpResponse.json(sampleBookmark, {

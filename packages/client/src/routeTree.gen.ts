@@ -13,6 +13,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as BookmarksRouteImport } from './routes/bookmarks'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsIndexRouteImport } from './routes/settings.index'
+import { Route as SettingsWebsitesRouteImport } from './routes/settings.websites'
 import { Route as SettingsTagsRouteImport } from './routes/settings.tags'
 import { Route as SettingsDisplayRouteImport } from './routes/settings.display'
 import { Route as SettingsCustomPropertiesRouteImport } from './routes/settings.custom-properties'
@@ -48,6 +49,11 @@ const IndexRoute = IndexRouteImport.update({
 const SettingsIndexRoute = SettingsIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsWebsitesRoute = SettingsWebsitesRouteImport.update({
+  id: '/websites',
+  path: '/websites',
   getParentRoute: () => SettingsRoute,
 } as any)
 const SettingsTagsRoute = SettingsTagsRouteImport.update({
@@ -150,6 +156,7 @@ export interface FileRoutesByFullPath {
   '/settings/custom-properties': typeof SettingsCustomPropertiesRoute
   '/settings/display': typeof SettingsDisplayRoute
   '/settings/tags': typeof SettingsTagsRoute
+  '/settings/websites': typeof SettingsWebsitesRoute
   '/settings/': typeof SettingsIndexRoute
   '/categories/$categorySlug/edit': typeof CategoriesCategorySlugEditRouteWithChildren
   '/settings/autofill/$ruleId': typeof SettingsAutofillRuleIdRoute
@@ -169,6 +176,7 @@ export interface FileRoutesByTo {
   '/settings/custom-properties': typeof SettingsCustomPropertiesRoute
   '/settings/display': typeof SettingsDisplayRoute
   '/settings/tags': typeof SettingsTagsRoute
+  '/settings/websites': typeof SettingsWebsitesRoute
   '/settings': typeof SettingsIndexRoute
   '/settings/autofill/$ruleId': typeof SettingsAutofillRuleIdRoute
   '/categories/$categorySlug': typeof CategoriesCategorySlugIndexRoute
@@ -191,6 +199,7 @@ export interface FileRoutesById {
   '/settings/custom-properties': typeof SettingsCustomPropertiesRoute
   '/settings/display': typeof SettingsDisplayRoute
   '/settings/tags': typeof SettingsTagsRoute
+  '/settings/websites': typeof SettingsWebsitesRoute
   '/settings/': typeof SettingsIndexRoute
   '/categories/$categorySlug/edit': typeof CategoriesCategorySlugEditRouteWithChildren
   '/settings/autofill/$ruleId': typeof SettingsAutofillRuleIdRoute
@@ -215,6 +224,7 @@ export interface FileRouteTypes {
     | '/settings/custom-properties'
     | '/settings/display'
     | '/settings/tags'
+    | '/settings/websites'
     | '/settings/'
     | '/categories/$categorySlug/edit'
     | '/settings/autofill/$ruleId'
@@ -234,6 +244,7 @@ export interface FileRouteTypes {
     | '/settings/custom-properties'
     | '/settings/display'
     | '/settings/tags'
+    | '/settings/websites'
     | '/settings'
     | '/settings/autofill/$ruleId'
     | '/categories/$categorySlug'
@@ -255,6 +266,7 @@ export interface FileRouteTypes {
     | '/settings/custom-properties'
     | '/settings/display'
     | '/settings/tags'
+    | '/settings/websites'
     | '/settings/'
     | '/categories/$categorySlug/edit'
     | '/settings/autofill/$ruleId'
@@ -302,6 +314,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/settings/'
       preLoaderRoute: typeof SettingsIndexRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/websites': {
+      id: '/settings/websites'
+      path: '/websites'
+      fullPath: '/settings/websites'
+      preLoaderRoute: typeof SettingsWebsitesRouteImport
       parentRoute: typeof SettingsRoute
     }
     '/settings/tags': {
@@ -439,6 +458,7 @@ interface SettingsRouteChildren {
   SettingsCustomPropertiesRoute: typeof SettingsCustomPropertiesRoute
   SettingsDisplayRoute: typeof SettingsDisplayRoute
   SettingsTagsRoute: typeof SettingsTagsRoute
+  SettingsWebsitesRoute: typeof SettingsWebsitesRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
 }
 
@@ -449,6 +469,7 @@ const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsCustomPropertiesRoute: SettingsCustomPropertiesRoute,
   SettingsDisplayRoute: SettingsDisplayRoute,
   SettingsTagsRoute: SettingsTagsRoute,
+  SettingsWebsitesRoute: SettingsWebsitesRoute,
   SettingsIndexRoute: SettingsIndexRoute,
 }
 

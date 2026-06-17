@@ -12,11 +12,33 @@ export const bookmarks = pgTable("bookmarks", {
   categoryId: uuid("category_id").references((): AnyPgColumn => categories.id, {
     onDelete: "set null",
   }),
+  // The website (built-in taxonomy) this bookmark belongs to, derived from the URL host on save.
+  // Nullable so `drizzle-kit push` applies cleanly to existing rows and URLs without a host.
+  websiteId: uuid("website_id").references((): AnyPgColumn => websites.id, {
+    onDelete: "set null",
+  }),
   priority: integer("priority").notNull().default(0),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
 });
+
+/**
+ * `websites` table — the built-in "Websites" taxonomy. One row per distinct host; bookmarks are
+ * auto-linked to a website by the host of their URL.
+ */
+export const websites = pgTable("websites", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  // Normalized host (lower-cased, leading `www.` stripped), e.g. "github.com".
+  domain: text("domain").notNull(),
+  // Human-friendly name; defaults to the domain on creation and is renamable.
+  siteName: text("site_name").notNull(),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+}, table => [
+  unique("websites_domain_unique").on(table.domain),
+]);
 
 /** `tags` table — a self-referencing tree. `parentId` NULL means a root tag. */
 export const tags = pgTable("tags", {
@@ -69,7 +91,17 @@ export const bookmarksRelations = relations(bookmarks, ({
     fields: [bookmarks.categoryId],
     references: [categories.id],
   }),
+  website: one(websites, {
+    fields: [bookmarks.websiteId],
+    references: [websites.id],
+  }),
   bookmarkTags: many(bookmarkTags),
+}));
+
+export const websitesRelations = relations(websites, ({
+  many,
+}) => ({
+  bookmarks: many(bookmarks),
 }));
 
 export const bookmarkTagsRelations = relations(bookmarkTags, ({
@@ -412,6 +444,8 @@ export const calculatePropertyOperandsRelations = relations(calculatePropertyOpe
 
 export type BookmarkRow = typeof bookmarks.$inferSelect;
 export type NewBookmarkRow = typeof bookmarks.$inferInsert;
+export type WebsiteRow = typeof websites.$inferSelect;
+export type NewWebsiteRow = typeof websites.$inferInsert;
 export type TagRow = typeof tags.$inferSelect;
 export type NewTagRow = typeof tags.$inferInsert;
 export type BookmarkTagRow = typeof bookmarkTags.$inferSelect;

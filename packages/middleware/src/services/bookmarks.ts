@@ -4,6 +4,7 @@ import type {
   BookmarkBooleanValue,
   BookmarkNumberValue,
   BookmarkTag,
+  BookmarkWebsite,
   CreateBookmarkInput,
   UpdateBookmarkInput,
 } from "@eesimple/types";
@@ -19,20 +20,24 @@ import {
   customProperties,
   homepageTags,
   tags,
+  websites,
 } from "@/db/schema";
 import { ensureDefaultCategory } from "@/services/categories";
 import { getDescendantIds } from "@/services/tags";
+import { ensureWebsiteForUrl } from "@/services/websites";
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
-/** The hydrated custom-property values that accompany a bookmark row. */
+/** The hydrated relations that accompany a bookmark row. */
 interface BookmarkExtras {
+  website: BookmarkWebsite | null;
   tags: BookmarkTag[];
   numberValues: BookmarkNumberValue[];
   booleanValues: BookmarkBooleanValue[];
 }
 
 const EMPTY_EXTRAS: BookmarkExtras = {
+  website: null,
   tags: [],
   numberValues: [],
   booleanValues: [],
@@ -46,6 +51,7 @@ function toBookmark(row: BookmarkRow, extras: BookmarkExtras, defaultCategoryId:
     title: row.title,
     description: row.description,
     categoryId: row.categoryId ?? defaultCategoryId,
+    website: extras.website,
     tags: extras.tags,
     numberValues: extras.numberValues,
     booleanValues: extras.booleanValues,
@@ -53,6 +59,30 @@ function toBookmark(row: BookmarkRow, extras: BookmarkExtras, defaultCategoryId:
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
   };
+}
+
+/** Load websites for a set of website ids in a single query, keyed by website id. */
+async function websitesById(websiteIds: string[]): Promise<Map<string, BookmarkWebsite>> {
+  const byId = new Map<string, BookmarkWebsite>();
+  if (websiteIds.length === 0) return byId;
+
+  const rows = await db
+    .select({
+      id: websites.id,
+      domain: websites.domain,
+      siteName: websites.siteName,
+    })
+    .from(websites)
+    .where(inArray(websites.id, websiteIds));
+
+  for (const row of rows) {
+    byId.set(row.id, {
+      id: row.id,
+      domain: row.domain,
+      siteName: row.siteName,
+    });
+  }
+  return byId;
 }
 
 /** Load tags for a set of bookmark ids in a single query, grouped by bookmark id. */
@@ -147,6 +177,7 @@ async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
   const grouped = new Map<string, BookmarkExtras>();
   for (const id of bookmarkIds) {
     grouped.set(id, {
+      website: null,
       tags: tagsMap.get(id) ?? [],
       numberValues: numberMap.get(id) ?? [],
       booleanValues: booleanMap.get(id) ?? [],
@@ -159,8 +190,19 @@ async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
 async function hydrate(rows: BookmarkRow[]): Promise<Bookmark[]> {
   if (rows.length === 0) return [];
   const defaultCategoryId = await ensureDefaultCategory();
-  const grouped = await extrasByBookmarkId(rows.map(row => row.id));
-  return rows.map(row => toBookmark(row, grouped.get(row.id) ?? EMPTY_EXTRAS, defaultCategoryId));
+  const websiteIds = [...new Set(rows.map(row => row.websiteId).filter((id): id is string => id !== null))];
+  const [grouped, websiteMap] = await Promise.all([
+    extrasByBookmarkId(rows.map(row => row.id)),
+    websitesById(websiteIds),
+  ]);
+  return rows.map((row) => {
+    const extras = grouped.get(row.id) ?? EMPTY_EXTRAS;
+    const website = row.websiteId ? websiteMap.get(row.websiteId) ?? null : null;
+    return toBookmark(row, {
+      ...extras,
+      website,
+    }, defaultCategoryId);
+  });
 }
 
 /** List bookmarks, optionally filtered to a tag and its entire subtree. */
@@ -242,6 +284,7 @@ export async function getBookmark(id: string): Promise<Bookmark | null> {
 export async function createBookmark(input: CreateBookmarkInput): Promise<Bookmark> {
   const categoryId = input.categoryId ?? await ensureDefaultCategory();
   const id = await db.transaction(async (tx) => {
+    const websiteId = await ensureWebsiteForUrl(tx, input.url);
     const [row] = await tx
       .insert(bookmarks)
       .values({
@@ -249,6 +292,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
         title: input.title,
         description: input.description ?? null,
         categoryId,
+        websiteId,
         priority: input.priority ?? 0,
       })
       .returning({
@@ -270,9 +314,13 @@ export async function updateBookmark(
 ): Promise<Bookmark | null> {
   const found = await db.transaction(async (tx) => {
     const patch: Partial<
-      Pick<BookmarkRow, "url" | "title" | "description" | "categoryId" | "priority">
+      Pick<BookmarkRow, "url" | "title" | "description" | "categoryId" | "websiteId" | "priority">
     > = {};
-    if (input.url !== undefined) patch.url = input.url;
+    if (input.url !== undefined) {
+      patch.url = input.url;
+      // Re-derive the website whenever the URL changes.
+      patch.websiteId = await ensureWebsiteForUrl(tx, input.url);
+    }
     if (input.title !== undefined) patch.title = input.title;
     if (input.description !== undefined) patch.description = input.description ?? null;
     if (input.categoryId !== undefined) patch.categoryId = input.categoryId;

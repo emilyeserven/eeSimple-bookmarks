@@ -28,6 +28,10 @@ const settingsNav = [
     label: "Tags",
   },
   {
+    to: "/settings/websites",
+    label: "Websites",
+  },
+  {
     to: "/settings/automations",
     label: "Automations",
   },

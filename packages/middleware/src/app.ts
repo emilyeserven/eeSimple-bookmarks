@@ -9,6 +9,7 @@ import { customPropertyRoutes } from "@/routes/customProperties";
 import { healthRoutes } from "@/routes/health";
 import { metadataRoutes } from "@/routes/metadata";
 import { tagRoutes } from "@/routes/tags";
+import { websiteRoutes } from "@/routes/websites";
 
 /** Build and configure the Fastify application (without starting it). */
 export async function buildApp(): Promise<FastifyInstance> {
@@ -36,6 +37,10 @@ export async function buildApp(): Promise<FastifyInstance> {
         {
           name: "tags",
           description: "Tag taxonomy endpoints",
+        },
+        {
+          name: "websites",
+          description: "Built-in Websites taxonomy endpoints",
         },
         {
           name: "custom-properties",
@@ -68,6 +73,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(metadataRoutes);
   await app.register(bookmarkRoutes);
   await app.register(tagRoutes);
+  await app.register(websiteRoutes);
   await app.register(customPropertyRoutes);
   await app.register(categoryRoutes);
   await app.register(autofillRoutes);
