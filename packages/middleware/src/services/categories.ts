@@ -1,4 +1,4 @@
-import { asc, eq, inArray, isNull } from "drizzle-orm";
+import { asc, eq, inArray, isNull, ne } from "drizzle-orm";
 import type {
   Category,
   CategoryPropertyDefaults,
@@ -17,6 +17,7 @@ import {
   homepageTags,
   tags,
 } from "@/db/schema";
+import { slugify, uniqueSlug } from "@/utils/slug";
 
 /** Thrown when an update or delete targets a built-in category in a disallowed way. */
 export class BuiltInCategoryError extends Error {
@@ -42,6 +43,8 @@ function toCategory(row: CategoryRow): Category {
   return {
     id: row.id,
     name: row.name,
+    // Backfill runs at boot, but fall back to a derived slug so the wire type is never null.
+    slug: row.slug ?? slugify(row.name),
     description: row.description,
     icon: row.icon,
     builtIn: row.builtIn,
@@ -49,6 +52,17 @@ function toCategory(row: CategoryRow): Category {
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
   };
+}
+
+/** Existing category slugs, optionally excluding one category id (when renaming). */
+async function takenSlugs(excludeId?: string): Promise<string[]> {
+  const rows = await db
+    .select({
+      slug: categories.slug,
+    })
+    .from(categories)
+    .where(excludeId ? ne(categories.id, excludeId) : undefined);
+  return rows.map(row => row.slug).filter((slug): slug is string => slug !== null);
 }
 
 export async function listCategories(): Promise<Category[]> {
@@ -62,10 +76,12 @@ export async function getCategory(id: string): Promise<Category | null> {
 }
 
 export async function createCategory(input: CreateCategoryInput): Promise<Category> {
+  const slug = uniqueSlug(input.name, await takenSlugs());
   const [row] = await db
     .insert(categories)
     .values({
       name: input.name,
+      slug,
       description: input.description ?? null,
       icon: input.icon ?? null,
       isHomepage: input.isHomepage ?? false,
@@ -84,8 +100,13 @@ export async function updateCategory(
     throw new BuiltInCategoryError("The built-in category cannot be renamed");
   }
 
-  const patch: Partial<Pick<CategoryRow, "name" | "description" | "icon" | "isHomepage">> = {};
+  const patch: Partial<Pick<CategoryRow, "name" | "slug" | "description" | "icon" | "isHomepage">>
+    = {};
   if (input.name !== undefined) patch.name = input.name;
+  // Keep the slug in sync when the name changes (built-ins can't be renamed, so "default" sticks).
+  if (input.name !== undefined && input.name !== existing.name) {
+    patch.slug = uniqueSlug(input.name, await takenSlugs(id));
+  }
   if (input.description !== undefined) patch.description = input.description ?? null;
   if (input.icon !== undefined) patch.icon = input.icon ?? null;
   if (input.isHomepage !== undefined) patch.isHomepage = input.isHomepage;
@@ -133,6 +154,7 @@ export async function ensureDefaultCategory(): Promise<string> {
           .insert(categories)
           .values({
             name: DEFAULT_CATEGORY_NAME,
+            slug: slugify(DEFAULT_CATEGORY_NAME),
             description: "The category bookmarks use when none is chosen.",
             builtIn: true,
             isHomepage: true,
@@ -147,7 +169,29 @@ export async function ensureDefaultCategory(): Promise<string> {
       categoryId: row.id,
     })
     .where(isNull(bookmarks.categoryId));
+  await backfillSlugs();
   return row.id;
+}
+
+/** Fill in slugs for any categories missing one (e.g. rows that predate the `slug` column). */
+async function backfillSlugs(): Promise<void> {
+  const missing = await db
+    .select({
+      id: categories.id,
+      name: categories.name,
+    })
+    .from(categories)
+    .where(isNull(categories.slug));
+  if (missing.length === 0) return;
+
+  const taken = await takenSlugs();
+  for (const category of missing) {
+    const slug = uniqueSlug(category.name, taken);
+    taken.push(slug);
+    await db.update(categories).set({
+      slug,
+    }).where(eq(categories.id, category.id));
+  }
 }
 
 /** The enabled root-tag ids for a category (empty = all root tags enabled). */

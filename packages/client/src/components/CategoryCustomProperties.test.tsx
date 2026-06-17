@@ -12,6 +12,7 @@ const updateMutate = vi.fn<(args: unknown) => void>();
 const category: Category = {
   id: "cat-1",
   name: "Workflow",
+  slug: "workflow",
   description: null,
   icon: null,
   builtIn: false,

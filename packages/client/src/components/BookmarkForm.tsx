@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { CategoryIcon } from "@/lib/icons";
 
 const bookmarkSchema = z.object({
   url: z.string().url("Enter a valid URL"),
@@ -388,13 +389,21 @@ export function BookmarkForm({
 
       <form.AppField name="categoryId">
         {field => (
-          <field.SelectField
+          <field.ComboboxField
             label="Category"
             className="sm:col-span-2"
             placeholder="Select a category"
+            searchPlaceholder="Search categories…"
+            emptyText="No categories found."
             options={(categories ?? []).map(category => ({
               value: category.id,
               label: category.name,
+              icon: (
+                <CategoryIcon
+                  name={category.icon}
+                  className="size-4 shrink-0"
+                />
+              ),
             }))}
           />
         )}

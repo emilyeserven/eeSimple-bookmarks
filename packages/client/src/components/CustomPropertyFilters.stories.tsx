@@ -14,6 +14,8 @@ const meta = {
   args: {
     properties: sampleProperties,
     bookmarks: [sampleBookmark],
+    numberValues: {},
+    booleanValues: {},
     onNumberFilterChange: () => {},
     onBooleanFilterChange: () => {},
   },

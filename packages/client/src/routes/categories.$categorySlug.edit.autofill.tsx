@@ -1,15 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { AutofillRulesManager } from "../components/AutofillRulesManager";
+import { useCategoryBySlug } from "../hooks/useCategories";
 
-export const Route = createFileRoute("/categories/$categoryId/edit/autofill")({
+export const Route = createFileRoute("/categories/$categorySlug/edit/autofill")({
   component: AutofillTab,
 });
 
 function AutofillTab() {
   const {
-    categoryId,
+    categorySlug,
   } = Route.useParams();
+  const {
+    category, isLoading,
+  } = useCategoryBySlug(categorySlug);
+
+  if (isLoading) return <p className="text-muted-foreground">Loading…</p>;
+  if (!category) return <p className="text-destructive">Category not found.</p>;
 
   return (
     <section className="space-y-4">
@@ -20,7 +27,7 @@ function AutofillTab() {
           target this category by default.
         </p>
       </div>
-      <AutofillRulesManager categoryId={categoryId} />
+      <AutofillRulesManager categoryId={category.id} />
     </section>
   );
 }

@@ -1,19 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { CategoryGeneralForm } from "../components/CategoryGeneralForm";
-import { useCategory } from "../hooks/useCategories";
+import { useCategoryBySlug } from "../hooks/useCategories";
 
-export const Route = createFileRoute("/categories/$categoryId/edit/general")({
+export const Route = createFileRoute("/categories/$categorySlug/edit/general")({
   component: GeneralTab,
 });
 
 function GeneralTab() {
   const {
-    categoryId,
+    categorySlug,
   } = Route.useParams();
   const {
     category, isLoading,
-  } = useCategory(categoryId);
+  } = useCategoryBySlug(categorySlug);
 
   if (isLoading) return <p className="text-muted-foreground">Loading…</p>;
   if (!category) return <p className="text-destructive">Category not found.</p>;

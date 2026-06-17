@@ -20,12 +20,12 @@ export function useCategories() {
   });
 }
 
-/** A single category looked up from the categories list, plus the list's load state. */
-export function useCategory(categoryId: string) {
+/** A single category looked up by slug from the categories list, plus the list's load state. */
+export function useCategoryBySlug(slug: string) {
   const query = useCategories();
   return {
     ...query,
-    category: (query.data ?? []).find(item => item.id === categoryId),
+    category: (query.data ?? []).find(item => item.slug === slug),
   };
 }
 

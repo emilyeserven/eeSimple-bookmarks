@@ -1,29 +1,29 @@
 import { Link, Outlet, createFileRoute } from "@tanstack/react-router";
 
-import { useCategory } from "../hooks/useCategories";
+import { useCategoryBySlug } from "../hooks/useCategories";
 
 import { CategoryIcon } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/categories/$categoryId/edit")({
+export const Route = createFileRoute("/categories/$categorySlug/edit")({
   component: CategoryEditLayout,
 });
 
 const editNav = [
   {
-    to: "/categories/$categoryId/edit/general",
+    to: "/categories/$categorySlug/edit/general",
     label: "General",
   },
   {
-    to: "/categories/$categoryId/edit/tiered-tags",
+    to: "/categories/$categorySlug/edit/tiered-tags",
     label: "Tiered Tags",
   },
   {
-    to: "/categories/$categoryId/edit/custom-properties",
+    to: "/categories/$categorySlug/edit/custom-properties",
     label: "Custom Properties",
   },
   {
-    to: "/categories/$categoryId/edit/autofill",
+    to: "/categories/$categorySlug/edit/autofill",
     label: "Autofill",
   },
 ] as const;
@@ -35,19 +35,19 @@ const navLinkClass = `
 
 function CategoryEditLayout() {
   const {
-    categoryId,
+    categorySlug,
   } = Route.useParams();
   const {
     category, isLoading,
-  } = useCategory(categoryId);
+  } = useCategoryBySlug(categorySlug);
 
   return (
     <section className="space-y-6">
       <div className="space-y-1">
         <Link
-          to="/categories/$categoryId"
+          to="/categories/$categorySlug"
           params={{
-            categoryId,
+            categorySlug,
           }}
           className="
             text-sm text-muted-foreground
@@ -86,7 +86,7 @@ function CategoryEditLayout() {
               key={item.to}
               to={item.to}
               params={{
-                categoryId,
+                categorySlug,
               }}
               className={cn(navLinkClass)}
               activeProps={{

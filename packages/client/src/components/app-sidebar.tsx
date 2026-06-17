@@ -118,7 +118,7 @@ export function AppSidebar({
               <SidebarGroupContent>
                 <SidebarMenu>
                   {categories.map((category) => {
-                    const isActive = pathname === `/categories/${category.id}`;
+                    const isActive = pathname === `/categories/${category.slug}`;
                     return (
                       <SidebarMenuItem key={category.id}>
                         <SidebarMenuButton
@@ -127,9 +127,9 @@ export function AppSidebar({
                           tooltip={category.name}
                         >
                           <Link
-                            to="/categories/$categoryId"
+                            to="/categories/$categorySlug"
                             params={{
-                              categoryId: category.id,
+                              categorySlug: category.slug,
                             }}
                           >
                             <CategoryIcon name={category.icon} />

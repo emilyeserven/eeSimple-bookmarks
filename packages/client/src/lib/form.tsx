@@ -1,12 +1,14 @@
 // This module pairs reusable field/form components with the TanStack `useAppForm`
 // hook they're wired into, so it intentionally exports a hook alongside components.
 /* eslint-disable react-refresh/only-export-components */
+import type { ComboboxOption } from "@/components/Combobox";
 import type { ReactNode } from "react";
 
 import { useId } from "react";
 
 import { createFormHook, createFormHookContexts } from "@tanstack/react-form";
 
+import { Combobox } from "@/components/Combobox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -217,6 +219,43 @@ function SelectField({
   );
 }
 
+interface ComboboxFieldProps {
+  label: string;
+  options: ComboboxOption[];
+  placeholder?: string;
+  searchPlaceholder?: string;
+  emptyText?: string;
+  className?: string;
+}
+
+/**
+ * Labelled searchable single-select (type-to-filter) bound to the surrounding field.
+ * Like `SelectField` but built on `Combobox`, and options may carry a left-aligned `icon`.
+ */
+function ComboboxField({
+  label, options, placeholder, searchPlaceholder, emptyText, className,
+}: ComboboxFieldProps) {
+  const field = useFieldContext<string>();
+  const id = useId();
+
+  return (
+    <div className={`space-y-1 ${className ?? ""}`.trim()}>
+      <Label htmlFor={id}>{label}</Label>
+      <Combobox
+        id={id}
+        aria-label={label}
+        options={options}
+        value={field.state.value || undefined}
+        onValueChange={value => field.handleChange(value ?? "")}
+        placeholder={placeholder}
+        searchPlaceholder={searchPlaceholder}
+        emptyText={emptyText}
+      />
+      <FieldErrors errors={field.state.meta.errors} />
+    </div>
+  );
+}
+
 interface SubmitButtonProps {
   /** Label shown when idle. */
   label: string;
@@ -258,6 +297,7 @@ export const {
     TextareaField,
     NumberField,
     SelectField,
+    ComboboxField,
   },
   formComponents: {
     SubmitButton,

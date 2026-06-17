@@ -214,9 +214,9 @@ function CategoryCard({
             size="sm"
           >
             <Link
-              to="/categories/$categoryId/edit/general"
+              to="/categories/$categorySlug/edit/general"
               params={{
-                categoryId: category.id,
+                categorySlug: category.slug,
               }}
             >
               Edit

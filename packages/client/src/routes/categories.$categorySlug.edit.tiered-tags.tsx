@@ -1,15 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { CategoryTieredTags } from "../components/CategoryTieredTags";
+import { useCategoryBySlug } from "../hooks/useCategories";
 
-export const Route = createFileRoute("/categories/$categoryId/edit/tiered-tags")({
+export const Route = createFileRoute("/categories/$categorySlug/edit/tiered-tags")({
   component: TieredTagsTab,
 });
 
 function TieredTagsTab() {
   const {
-    categoryId,
+    categorySlug,
   } = Route.useParams();
+  const {
+    category, isLoading,
+  } = useCategoryBySlug(categorySlug);
+
+  if (isLoading) return <p className="text-muted-foreground">Loading…</p>;
+  if (!category) return <p className="text-destructive">Category not found.</p>;
 
   return (
     <section className="space-y-4">
@@ -19,7 +26,7 @@ function TieredTagsTab() {
           Tiered (parent) tags scoped to this category.
         </p>
       </div>
-      <CategoryTieredTags categoryId={categoryId} />
+      <CategoryTieredTags categoryId={category.id} />
     </section>
   );
 }
