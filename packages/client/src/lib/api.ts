@@ -1,10 +1,17 @@
 import type {
   Bookmark,
   CreateBookmarkInput,
+  CreateCustomPropertyInput,
+  CreateCustomPropertyTagInput,
   CreateTagInput,
+  CustomProperty,
+  CustomPropertyTag,
+  CustomPropertyTagNode,
   Tag,
   TagNode,
   UpdateBookmarkInput,
+  UpdateCustomPropertyInput,
+  UpdateCustomPropertyTagInput,
   UpdateTagInput,
 } from "@eesimple/types";
 
@@ -61,4 +68,37 @@ export const tagsApi = {
   remove: (id: string) => request<undefined>(`/tags/${id}`, {
     method: "DELETE",
   }),
+};
+
+export const customPropertiesApi = {
+  list: () => request<CustomProperty[]>("/custom-properties"),
+  create: (input: CreateCustomPropertyInput) =>
+    request<CustomProperty>("/custom-properties", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  update: (id: string, input: UpdateCustomPropertyInput) =>
+    request<CustomProperty>(`/custom-properties/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  remove: (id: string) => request<undefined>(`/custom-properties/${id}`, {
+    method: "DELETE",
+  }),
+  tagTree: (propertyId: string) =>
+    request<CustomPropertyTagNode[]>(`/custom-properties/${propertyId}/tags`),
+  createTag: (propertyId: string, input: CreateCustomPropertyTagInput) =>
+    request<CustomPropertyTag>(`/custom-properties/${propertyId}/tags`, {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  updateTag: (propertyId: string, tagId: string, input: UpdateCustomPropertyTagInput) =>
+    request<CustomPropertyTag>(`/custom-properties/${propertyId}/tags/${tagId}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  removeTag: (propertyId: string, tagId: string) =>
+    request<undefined>(`/custom-properties/${propertyId}/tags/${tagId}`, {
+      method: "DELETE",
+    }),
 };

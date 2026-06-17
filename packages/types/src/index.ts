@@ -48,6 +48,10 @@ export interface Bookmark {
   description: string | null;
   /** Tags assigned to this bookmark, drawn from the taxonomy. */
   tags: BookmarkTag[];
+  /** Number-typed custom property values assigned to this bookmark. */
+  numberValues: BookmarkNumberValue[];
+  /** Tiered-tags custom property selections assigned to this bookmark. */
+  propertyTags: BookmarkPropertyTag[];
   /** Whether the bookmark is marked as a favorite. */
   favorite: boolean;
   /** Whether the bookmark is pinned to the homepage. */
@@ -65,6 +69,10 @@ export interface CreateBookmarkInput {
   description?: string | null;
   /** Ids of tags to assign, drawn from the taxonomy. */
   tagIds?: string[];
+  /** Number custom property values to assign. */
+  numberValues?: BookmarkNumberValue[];
+  /** Ids of tiered-tags custom property tags to assign. */
+  propertyTagIds?: string[];
   favorite?: boolean;
   /** Pin this bookmark to the homepage. */
   pinned?: boolean;
@@ -74,6 +82,78 @@ export interface CreateBookmarkInput {
 
 /** Payload for partially updating a bookmark. */
 export type UpdateBookmarkInput = Partial<CreateBookmarkInput>;
+
+/**
+ * The kind of a user-defined custom property:
+ * - `tiered_tags` — a hierarchical tag set, independent per property.
+ * - `number` — a single numeric value per bookmark, filtered via a range slider.
+ */
+export type CustomPropertyType = "tiered_tags" | "number";
+
+/** A user-defined custom property that becomes a dynamic bookmark filter. */
+export interface CustomProperty {
+  id: string;
+  name: string;
+  type: CustomPropertyType;
+  /** Lower bound of a `number` property's range slider (`null` = derive from data). */
+  numberMin: number | null;
+  /** Upper bound of a `number` property's range slider (`null` = derive from data). */
+  numberMax: number | null;
+  createdAt: string;
+}
+
+/** Payload for creating a custom property. */
+export interface CreateCustomPropertyInput {
+  name: string;
+  type: CustomPropertyType;
+  numberMin?: number | null;
+  numberMax?: number | null;
+}
+
+/** Payload for updating a custom property. Its `type` is immutable. */
+export type UpdateCustomPropertyInput = Partial<Omit<CreateCustomPropertyInput, "type">>;
+
+/** A tag within a tiered-tags custom property's own hierarchy. */
+export interface CustomPropertyTag {
+  id: string;
+  /** Owning custom property id. */
+  propertyId: string;
+  name: string;
+  /** Parent tag id, or `null` for a root-level tag within this property. */
+  parentId: string | null;
+  createdAt: string;
+}
+
+/** A property tag with its children populated — used to render the tier tree. */
+export interface CustomPropertyTagNode extends CustomPropertyTag {
+  children: CustomPropertyTagNode[];
+}
+
+/** Payload for creating a tag within a tiered-tags custom property. */
+export interface CreateCustomPropertyTagInput {
+  name: string;
+  parentId?: string | null;
+}
+
+/** Payload for renaming and/or reparenting a custom property tag. */
+export interface UpdateCustomPropertyTagInput {
+  name?: string;
+  parentId?: string | null;
+}
+
+/** A number custom property value carried on a bookmark. */
+export interface BookmarkNumberValue {
+  propertyId: string;
+  value: number;
+}
+
+/** A tiered-tags custom property selection carried on a bookmark. */
+export interface BookmarkPropertyTag {
+  propertyId: string;
+  id: string;
+  name: string;
+  parentId: string | null;
+}
 
 /** Standard error shape returned by the API. */
 export interface ApiError {

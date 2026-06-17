@@ -22,6 +22,8 @@ const bookmark: Bookmark = {
       parentId: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
     },
   ],
+  numberValues: [],
+  propertyTags: [],
   favorite: true,
   pinned: false,
   priority: 0,
