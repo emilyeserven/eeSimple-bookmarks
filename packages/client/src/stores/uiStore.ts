@@ -22,12 +22,12 @@ interface UiState {
   /** When pinned, the right-hand panel docks as a persistent column instead of a floating drawer. */
   panelPinned: boolean;
   setPanelPinned: (value: boolean) => void;
-  /** When on, the Categories group is shown in the left sidebar. */
-  showCategoriesInSidebar: boolean;
-  setShowCategoriesInSidebar: (value: boolean) => void;
-  /** When on, the Taxonomies group is shown in the left sidebar. */
-  showTaxonomiesInSidebar: boolean;
-  setShowTaxonomiesInSidebar: (value: boolean) => void;
+  /** Category IDs hidden in the left sidebar. Empty = all visible. */
+  hiddenCategoryIds: string[];
+  toggleCategoryVisibility: (id: string) => void;
+  /** Taxonomy item keys hidden in the left sidebar ("tags" | "websites"). Empty = all visible. */
+  hiddenTaxonomyItems: string[];
+  toggleTaxonomyItem: (key: string) => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -52,14 +52,18 @@ export const useUiStore = create<UiState>()(
       setPanelPinned: value => set({
         panelPinned: value,
       }),
-      showCategoriesInSidebar: true,
-      setShowCategoriesInSidebar: value => set({
-        showCategoriesInSidebar: value,
-      }),
-      showTaxonomiesInSidebar: true,
-      setShowTaxonomiesInSidebar: value => set({
-        showTaxonomiesInSidebar: value,
-      }),
+      hiddenCategoryIds: [],
+      toggleCategoryVisibility: id => set(state => ({
+        hiddenCategoryIds: state.hiddenCategoryIds.includes(id)
+          ? state.hiddenCategoryIds.filter(x => x !== id)
+          : [...state.hiddenCategoryIds, id],
+      })),
+      hiddenTaxonomyItems: [],
+      toggleTaxonomyItem: key => set(state => ({
+        hiddenTaxonomyItems: state.hiddenTaxonomyItems.includes(key)
+          ? state.hiddenTaxonomyItems.filter(x => x !== key)
+          : [...state.hiddenTaxonomyItems, key],
+      })),
     }),
     {
       name: "eesimple-ui",
@@ -68,8 +72,8 @@ export const useUiStore = create<UiState>()(
         autoFetchTitle: state.autoFetchTitle,
         bookmarkColumns: state.bookmarkColumns,
         panelPinned: state.panelPinned,
-        showCategoriesInSidebar: state.showCategoriesInSidebar,
-        showTaxonomiesInSidebar: state.showTaxonomiesInSidebar,
+        hiddenCategoryIds: state.hiddenCategoryIds,
+        hiddenTaxonomyItems: state.hiddenTaxonomyItems,
       }),
     },
   ),
