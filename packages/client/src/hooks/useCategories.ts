@@ -20,6 +20,15 @@ export function useCategories() {
   });
 }
 
+/** A single category looked up from the categories list, plus the list's load state. */
+export function useCategory(categoryId: string) {
+  const query = useCategories();
+  return {
+    ...query,
+    category: (query.data ?? []).find(item => item.id === categoryId),
+  };
+}
+
 /**
  * Invalidate categories, properties (a property card shows category names), and the
  * homepage bookmarks (homepage flags decide which bookmarks appear there).
