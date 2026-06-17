@@ -434,7 +434,10 @@ export function BookmarkForm({
                   {" "}
                   <button
                     type="button"
-                    className="underline hover:text-foreground"
+                    className="
+                      underline
+                      hover:text-foreground
+                    "
                     onClick={() => setIsReportingTitle(true)}
                   >
                     Report it
@@ -443,7 +446,12 @@ export function BookmarkForm({
               )
               : (
                 <div className="flex items-center gap-2">
-                  <Label htmlFor="expected-title" className="shrink-0">Expected title</Label>
+                  <Label
+                    htmlFor="expected-title"
+                    className="shrink-0"
+                  >
+                    Expected title
+                  </Label>
                   <Input
                     id="expected-title"
                     value={expectedTitle}
@@ -459,16 +467,16 @@ export function BookmarkForm({
                     onClick={() => {
                       const actualTitle = fetchTitle.data?.title ?? form.getFieldValue("title");
                       const url = form.getFieldValue("url");
-                      const body
-                        = `**URL:** ${url}\n\n`
-                        + `**Actual title parsed:** ${actualTitle}\n\n`
-                        + `**Expected title:** ${expectedTitle}`;
-                      const issueUrl
-                        = "https://github.com/emilyeserven/eesimple-bookmarks/issues/new"
-                        + `?title=${encodeURIComponent("Incorrect page title parsed")}`
-                        + `&body=${encodeURIComponent(body)}`
-                        + `&labels=bug`;
-                      window.open(issueUrl, "_blank", "noopener,noreferrer");
+                      const body = [
+                        `**URL:** ${url}`,
+                        `**Actual title parsed:** ${actualTitle}`,
+                        `**Expected title:** ${expectedTitle}`,
+                      ].join("\n\n");
+                      const issueUrl = new URL("https://github.com/emilyeserven/eesimple-bookmarks/issues/new");
+                      issueUrl.searchParams.set("title", "Incorrect page title parsed");
+                      issueUrl.searchParams.set("body", body);
+                      issueUrl.searchParams.set("labels", "bug");
+                      window.open(issueUrl.toString(), "_blank", "noopener,noreferrer");
                     }}
                   >
                     Open GitHub issue
