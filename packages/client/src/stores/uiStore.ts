@@ -28,6 +28,9 @@ interface UiState {
   /** Taxonomy item keys hidden in the left sidebar ("tags" | "websites"). Empty = all visible. */
   hiddenTaxonomyItems: string[];
   toggleTaxonomyItem: (key: string) => void;
+  /** Whether the Add Bookmark accordion is expanded on Listings pages. Shared across all listing pages. */
+  addBookmarkFormOpen: boolean;
+  setAddBookmarkFormOpen: (open: boolean) => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -64,6 +67,10 @@ export const useUiStore = create<UiState>()(
           ? state.hiddenTaxonomyItems.filter(x => x !== key)
           : [...state.hiddenTaxonomyItems, key],
       })),
+      addBookmarkFormOpen: true,
+      setAddBookmarkFormOpen: open => set({
+        addBookmarkFormOpen: open,
+      }),
     }),
     {
       name: "eesimple-ui",
@@ -74,6 +81,7 @@ export const useUiStore = create<UiState>()(
         panelPinned: state.panelPinned,
         hiddenCategoryIds: state.hiddenCategoryIds,
         hiddenTaxonomyItems: state.hiddenTaxonomyItems,
+        addBookmarkFormOpen: state.addBookmarkFormOpen,
       }),
     },
   ),
