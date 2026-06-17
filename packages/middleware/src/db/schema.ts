@@ -153,6 +153,10 @@ export const calculatePropertyOperands = pgTable("calculate_property_operands", 
 export const categories = pgTable("categories", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
+  // URL-friendly identifier derived from the name. Nullable at the DB level so
+  // `drizzle-kit push` applies cleanly to existing rows; the service layer
+  // backfills it at boot and always returns a slug on the wire type.
+  slug: text("slug"),
   description: text("description"),
   // Lucide icon name (e.g. "Star"); NULL falls back to a default icon in the UI.
   icon: text("icon"),
@@ -165,6 +169,7 @@ export const categories = pgTable("categories", {
   }).notNull().defaultNow(),
 }, table => [
   unique("categories_name_unique").on(table.name),
+  unique("categories_slug_unique").on(table.slug),
 ]);
 
 /**

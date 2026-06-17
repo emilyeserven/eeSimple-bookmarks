@@ -130,12 +130,14 @@ export async function maybeSeed(): Promise<void> {
   // property/category assignment UI have something to show on a fresh `pnpm dev`.
   const [workflow] = await db.insert(categories).values({
     name: "Workflow",
+    slug: "workflow",
     description: "Properties that drive triage and ordering.",
     icon: "Workflow",
     isHomepage: true,
   }).returning();
   await db.insert(categories).values({
     name: "Content",
+    slug: "content",
     description: "Properties that describe what a bookmark is about.",
     icon: "BookOpen",
   }).returning();

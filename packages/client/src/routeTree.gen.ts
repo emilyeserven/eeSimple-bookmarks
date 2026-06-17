@@ -19,7 +19,7 @@ import { Route as SettingsCustomPropertiesRouteImport } from './routes/settings.
 import { Route as SettingsCategoriesRouteImport } from './routes/settings.categories'
 import { Route as SettingsAutomationsRouteImport } from './routes/settings.automations'
 import { Route as SettingsAutofillRouteImport } from './routes/settings.autofill'
-import { Route as CategoriesCategoryIdRouteImport } from './routes/categories.$categoryId'
+import { Route as CategoriesCategorySlugRouteImport } from './routes/categories.$categorySlug'
 
 const TagsRoute = TagsRouteImport.update({
   id: '/tags',
@@ -72,9 +72,9 @@ const SettingsAutofillRoute = SettingsAutofillRouteImport.update({
   path: '/autofill',
   getParentRoute: () => SettingsRoute,
 } as any)
-const CategoriesCategoryIdRoute = CategoriesCategoryIdRouteImport.update({
-  id: '/categories/$categoryId',
-  path: '/categories/$categoryId',
+const CategoriesCategorySlugRoute = CategoriesCategorySlugRouteImport.update({
+  id: '/categories/$categorySlug',
+  path: '/categories/$categorySlug',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -83,7 +83,7 @@ export interface FileRoutesByFullPath {
   '/bookmarks': typeof BookmarksRoute
   '/settings': typeof SettingsRouteWithChildren
   '/tags': typeof TagsRoute
-  '/categories/$categoryId': typeof CategoriesCategoryIdRoute
+  '/categories/$categorySlug': typeof CategoriesCategorySlugRoute
   '/settings/autofill': typeof SettingsAutofillRoute
   '/settings/automations': typeof SettingsAutomationsRoute
   '/settings/categories': typeof SettingsCategoriesRoute
@@ -95,7 +95,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/bookmarks': typeof BookmarksRoute
   '/tags': typeof TagsRoute
-  '/categories/$categoryId': typeof CategoriesCategoryIdRoute
+  '/categories/$categorySlug': typeof CategoriesCategorySlugRoute
   '/settings/autofill': typeof SettingsAutofillRoute
   '/settings/automations': typeof SettingsAutomationsRoute
   '/settings/categories': typeof SettingsCategoriesRoute
@@ -109,7 +109,7 @@ export interface FileRoutesById {
   '/bookmarks': typeof BookmarksRoute
   '/settings': typeof SettingsRouteWithChildren
   '/tags': typeof TagsRoute
-  '/categories/$categoryId': typeof CategoriesCategoryIdRoute
+  '/categories/$categorySlug': typeof CategoriesCategorySlugRoute
   '/settings/autofill': typeof SettingsAutofillRoute
   '/settings/automations': typeof SettingsAutomationsRoute
   '/settings/categories': typeof SettingsCategoriesRoute
@@ -124,7 +124,7 @@ export interface FileRouteTypes {
     | '/bookmarks'
     | '/settings'
     | '/tags'
-    | '/categories/$categoryId'
+    | '/categories/$categorySlug'
     | '/settings/autofill'
     | '/settings/automations'
     | '/settings/categories'
@@ -136,7 +136,7 @@ export interface FileRouteTypes {
     | '/'
     | '/bookmarks'
     | '/tags'
-    | '/categories/$categoryId'
+    | '/categories/$categorySlug'
     | '/settings/autofill'
     | '/settings/automations'
     | '/settings/categories'
@@ -149,7 +149,7 @@ export interface FileRouteTypes {
     | '/bookmarks'
     | '/settings'
     | '/tags'
-    | '/categories/$categoryId'
+    | '/categories/$categorySlug'
     | '/settings/autofill'
     | '/settings/automations'
     | '/settings/categories'
@@ -163,7 +163,7 @@ export interface RootRouteChildren {
   BookmarksRoute: typeof BookmarksRoute
   SettingsRoute: typeof SettingsRouteWithChildren
   TagsRoute: typeof TagsRoute
-  CategoriesCategoryIdRoute: typeof CategoriesCategoryIdRoute
+  CategoriesCategorySlugRoute: typeof CategoriesCategorySlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -238,11 +238,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsAutofillRouteImport
       parentRoute: typeof SettingsRoute
     }
-    '/categories/$categoryId': {
-      id: '/categories/$categoryId'
-      path: '/categories/$categoryId'
-      fullPath: '/categories/$categoryId'
-      preLoaderRoute: typeof CategoriesCategoryIdRouteImport
+    '/categories/$categorySlug': {
+      id: '/categories/$categorySlug'
+      path: '/categories/$categorySlug'
+      fullPath: '/categories/$categorySlug'
+      preLoaderRoute: typeof CategoriesCategorySlugRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -275,7 +275,7 @@ const rootRouteChildren: RootRouteChildren = {
   BookmarksRoute: BookmarksRoute,
   SettingsRoute: SettingsRouteWithChildren,
   TagsRoute: TagsRoute,
-  CategoriesCategoryIdRoute: CategoriesCategoryIdRoute,
+  CategoriesCategorySlugRoute: CategoriesCategorySlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

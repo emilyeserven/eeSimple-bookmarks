@@ -9,8 +9,9 @@ interface TagTreeFilterProps {
 }
 
 /**
- * Tag filter for the bookmarks list. Selecting a parent tag filters the list to
- * that tag and its entire subtree (the server expands it).
+ * Tiered-tag filter for a search page's sidebar. Renders the tag tree as a vertical,
+ * indented list; selecting a parent tag filters the list to that tag and its entire
+ * subtree (the server expands it).
  */
 export function TagTreeFilter({
   tree, activeId, onSelect,
@@ -18,22 +19,21 @@ export function TagTreeFilter({
   const flat = flattenTree(tree);
   if (flat.length === 0) return null;
 
-  const chip = "rounded-full px-3 py-1 text-xs font-medium transition-colors";
+  const item = "w-full rounded-md px-2 py-1 text-left text-sm transition-colors";
   const active = "bg-primary text-primary-foreground";
-  const inactive = "bg-secondary text-secondary-foreground hover:bg-secondary/80";
+  const inactive = "text-foreground hover:bg-accent hover:text-accent-foreground";
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <span className="text-xs font-medium text-muted-foreground">Filter by tag:</span>
+    <div className="space-y-1">
       <button
         type="button"
         onClick={() => onSelect(undefined)}
         className={`
-          ${chip}
+          ${item}
           ${activeId === undefined ? active : inactive}
         `}
       >
-        All
+        All tags
       </button>
       {flat.map(({
         node, depth,
@@ -42,12 +42,14 @@ export function TagTreeFilter({
           key={node.id}
           type="button"
           onClick={() => onSelect(node.id)}
+          style={{
+            paddingLeft: `${depth * 0.75 + 0.5}rem`,
+          }}
           className={`
-            ${chip}
+            ${item}
             ${activeId === node.id ? active : inactive}
           `}
         >
-          {depth > 0 ? `${"– ".repeat(depth)}` : ""}
           {node.name}
         </button>
       ))}

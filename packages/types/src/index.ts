@@ -146,6 +146,8 @@ export interface BookmarkBooleanValue {
 export interface Category {
   id: string;
   name: string;
+  /** URL-friendly identifier derived from the name (e.g. `"recipes"`); unique across categories. */
+  slug: string;
   /** Optional free-form description. */
   description: string | null;
   /** Name of a Lucide icon (e.g. `"Star"`), or `null` for the default icon. */
