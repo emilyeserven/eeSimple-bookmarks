@@ -36,11 +36,13 @@ const navItems = [
 
 const taxonomyItems = [
   {
+    key: "tags",
     title: "Tags",
     to: "/taxonomies/tags",
     icon: Tags,
   },
   {
+    key: "websites",
     title: "Websites",
     to: "/taxonomies/websites",
     icon: Globe,
@@ -56,8 +58,8 @@ export function AppSidebar({
   const {
     data: categories,
   } = useCategories();
-  const showCategoriesInSidebar = useUiStore(state => state.showCategoriesInSidebar);
-  const showTaxonomiesInSidebar = useUiStore(state => state.showTaxonomiesInSidebar);
+  const hiddenCategoryIds = useUiStore(state => state.hiddenCategoryIds);
+  const hiddenTaxonomyItems = useUiStore(state => state.hiddenTaxonomyItems);
 
   return (
     <Sidebar
@@ -118,68 +120,78 @@ export function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {showCategoriesInSidebar && categories && categories.length > 0
-          ? (
-            <SidebarGroup>
-              <SidebarGroupLabel>Categories</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {categories.map((category) => {
-                    const isActive = pathname === `/categories/${category.slug}`;
-                    return (
-                      <SidebarMenuItem key={category.id}>
-                        <SidebarMenuButton
-                          asChild
-                          isActive={isActive}
-                          tooltip={category.name}
-                        >
-                          <Link
-                            to="/categories/$categorySlug"
-                            params={{
-                              categorySlug: category.slug,
-                            }}
+        {(() => {
+          const visibleCategories = (categories ?? []).filter(
+            c => !hiddenCategoryIds.includes(c.id),
+          );
+          return visibleCategories.length > 0
+            ? (
+              <SidebarGroup>
+                <SidebarGroupLabel>Categories</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {visibleCategories.map((category) => {
+                      const isActive = pathname === `/categories/${category.slug}`;
+                      return (
+                        <SidebarMenuItem key={category.id}>
+                          <SidebarMenuButton
+                            asChild
+                            isActive={isActive}
+                            tooltip={category.name}
                           >
-                            <CategoryIcon name={category.icon} />
-                            <span>{category.name}</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    );
-                  })}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          )
-          : null}
+                            <Link
+                              to="/categories/$categorySlug"
+                              params={{
+                                categorySlug: category.slug,
+                              }}
+                            >
+                              <CategoryIcon name={category.icon} />
+                              <span>{category.name}</span>
+                            </Link>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      );
+                    })}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            )
+            : null;
+        })()}
 
-        {showTaxonomiesInSidebar
-          ? (
-            <SidebarGroup>
-              <SidebarGroupLabel>Taxonomies</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {taxonomyItems.map((item) => {
-                    const isActive = pathname.startsWith(item.to);
-                    return (
-                      <SidebarMenuItem key={item.to}>
-                        <SidebarMenuButton
-                          asChild
-                          isActive={isActive}
-                          tooltip={item.title}
-                        >
-                          <Link to={item.to}>
-                            <item.icon />
-                            <span>{item.title}</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    );
-                  })}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          )
-          : null}
+        {(() => {
+          const visibleTaxonomyItems = taxonomyItems.filter(
+            item => !hiddenTaxonomyItems.includes(item.key),
+          );
+          return visibleTaxonomyItems.length > 0
+            ? (
+              <SidebarGroup>
+                <SidebarGroupLabel>Taxonomies</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {visibleTaxonomyItems.map((item) => {
+                      const isActive = pathname.startsWith(item.to);
+                      return (
+                        <SidebarMenuItem key={item.to}>
+                          <SidebarMenuButton
+                            asChild
+                            isActive={isActive}
+                            tooltip={item.title}
+                          >
+                            <Link to={item.to}>
+                              <item.icon />
+                              <span>{item.title}</span>
+                            </Link>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      );
+                    })}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            )
+            : null;
+        })()}
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>

@@ -1,5 +1,6 @@
 import type { Theme } from "../stores/uiStore";
 
+import { useCategories } from "../hooks/useCategories";
 import { useUiStore } from "../stores/uiStore";
 
 import {
@@ -18,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { CategoryIcon } from "@/lib/icons";
 
 const THEME_LABELS: Record<Theme, string> = {
   light: "Light",
@@ -25,14 +27,29 @@ const THEME_LABELS: Record<Theme, string> = {
   system: "System",
 };
 
+const TAXONOMY_ITEMS = [
+  {
+    key: "tags",
+    label: "Tags",
+  },
+  {
+    key: "websites",
+    label: "Websites",
+  },
+] as const;
+
 /** Display preferences — a theme switcher (light / dark / system) and sidebar section toggles. */
 export function DisplaySettings() {
   const theme = useUiStore(state => state.theme);
   const setTheme = useUiStore(state => state.setTheme);
-  const showCategoriesInSidebar = useUiStore(state => state.showCategoriesInSidebar);
-  const setShowCategoriesInSidebar = useUiStore(state => state.setShowCategoriesInSidebar);
-  const showTaxonomiesInSidebar = useUiStore(state => state.showTaxonomiesInSidebar);
-  const setShowTaxonomiesInSidebar = useUiStore(state => state.setShowTaxonomiesInSidebar);
+  const hiddenCategoryIds = useUiStore(state => state.hiddenCategoryIds);
+  const toggleCategoryVisibility = useUiStore(state => state.toggleCategoryVisibility);
+  const hiddenTaxonomyItems = useUiStore(state => state.hiddenTaxonomyItems);
+  const toggleTaxonomyItem = useUiStore(state => state.toggleTaxonomyItem);
+
+  const {
+    data: categories,
+  } = useCategories();
 
   return (
     <div className="space-y-6">
@@ -40,7 +57,7 @@ export function DisplaySettings() {
         <CardHeader>
           <CardTitle>Theme</CardTitle>
           <CardDescription>
-            Choose a color theme. “System” follows your operating system setting.
+            Choose a color theme. &ldquo;System&rdquo; follows your operating system setting.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-1">
@@ -76,25 +93,56 @@ export function DisplaySettings() {
         <CardHeader>
           <CardTitle>Sidebar</CardTitle>
           <CardDescription>
-            Choose which sections appear in the left sidebar.
+            Choose which items appear in the left sidebar.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="show-categories"
-              checked={showCategoriesInSidebar}
-              onCheckedChange={checked => setShowCategoriesInSidebar(checked === true)}
-            />
-            <Label htmlFor="show-categories">Show Categories</Label>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Categories</p>
+            {categories && categories.length > 0
+              ? (
+                <div className="space-y-2">
+                  {categories.map(category => (
+                    <div
+                      key={category.id}
+                      className="flex items-center gap-2"
+                    >
+                      <Checkbox
+                        id={`show-category-${category.id}`}
+                        checked={!hiddenCategoryIds.includes(category.id)}
+                        onCheckedChange={() => toggleCategoryVisibility(category.id)}
+                      />
+                      <Label
+                        htmlFor={`show-category-${category.id}`}
+                        className="flex items-center gap-1.5"
+                      >
+                        <CategoryIcon name={category.icon} />
+                        {category.name}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              )
+              : (
+                <p className="text-sm text-muted-foreground">No categories yet.</p>
+              )}
           </div>
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="show-taxonomies"
-              checked={showTaxonomiesInSidebar}
-              onCheckedChange={checked => setShowTaxonomiesInSidebar(checked === true)}
-            />
-            <Label htmlFor="show-taxonomies">Show Taxonomies</Label>
+
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Taxonomies</p>
+            {TAXONOMY_ITEMS.map(item => (
+              <div
+                key={item.key}
+                className="flex items-center gap-2"
+              >
+                <Checkbox
+                  id={`show-taxonomy-${item.key}`}
+                  checked={!hiddenTaxonomyItems.includes(item.key)}
+                  onCheckedChange={() => toggleTaxonomyItem(item.key)}
+                />
+                <Label htmlFor={`show-taxonomy-${item.key}`}>{item.label}</Label>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
