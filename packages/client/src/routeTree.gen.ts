@@ -20,6 +20,13 @@ import { Route as SettingsCategoriesRouteImport } from './routes/settings.catego
 import { Route as SettingsAutomationsRouteImport } from './routes/settings.automations'
 import { Route as SettingsAutofillRouteImport } from './routes/settings.autofill'
 import { Route as CategoriesCategorySlugRouteImport } from './routes/categories.$categorySlug'
+import { Route as CategoriesCategorySlugIndexRouteImport } from './routes/categories.$categorySlug.index'
+import { Route as CategoriesCategorySlugEditRouteImport } from './routes/categories.$categorySlug.edit'
+import { Route as CategoriesCategorySlugEditIndexRouteImport } from './routes/categories.$categorySlug.edit.index'
+import { Route as CategoriesCategorySlugEditTieredTagsRouteImport } from './routes/categories.$categorySlug.edit.tiered-tags'
+import { Route as CategoriesCategorySlugEditGeneralRouteImport } from './routes/categories.$categorySlug.edit.general'
+import { Route as CategoriesCategorySlugEditCustomPropertiesRouteImport } from './routes/categories.$categorySlug.edit.custom-properties'
+import { Route as CategoriesCategorySlugEditAutofillRouteImport } from './routes/categories.$categorySlug.edit.autofill'
 
 const TagsRoute = TagsRouteImport.update({
   id: '/tags',
@@ -77,31 +84,85 @@ const CategoriesCategorySlugRoute = CategoriesCategorySlugRouteImport.update({
   path: '/categories/$categorySlug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CategoriesCategorySlugIndexRoute =
+  CategoriesCategorySlugIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => CategoriesCategorySlugRoute,
+  } as any)
+const CategoriesCategorySlugEditRoute =
+  CategoriesCategorySlugEditRouteImport.update({
+    id: '/edit',
+    path: '/edit',
+    getParentRoute: () => CategoriesCategorySlugRoute,
+  } as any)
+const CategoriesCategorySlugEditIndexRoute =
+  CategoriesCategorySlugEditIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => CategoriesCategorySlugEditRoute,
+  } as any)
+const CategoriesCategorySlugEditTieredTagsRoute =
+  CategoriesCategorySlugEditTieredTagsRouteImport.update({
+    id: '/tiered-tags',
+    path: '/tiered-tags',
+    getParentRoute: () => CategoriesCategorySlugEditRoute,
+  } as any)
+const CategoriesCategorySlugEditGeneralRoute =
+  CategoriesCategorySlugEditGeneralRouteImport.update({
+    id: '/general',
+    path: '/general',
+    getParentRoute: () => CategoriesCategorySlugEditRoute,
+  } as any)
+const CategoriesCategorySlugEditCustomPropertiesRoute =
+  CategoriesCategorySlugEditCustomPropertiesRouteImport.update({
+    id: '/custom-properties',
+    path: '/custom-properties',
+    getParentRoute: () => CategoriesCategorySlugEditRoute,
+  } as any)
+const CategoriesCategorySlugEditAutofillRoute =
+  CategoriesCategorySlugEditAutofillRouteImport.update({
+    id: '/autofill',
+    path: '/autofill',
+    getParentRoute: () => CategoriesCategorySlugEditRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/bookmarks': typeof BookmarksRoute
   '/settings': typeof SettingsRouteWithChildren
   '/tags': typeof TagsRoute
-  '/categories/$categorySlug': typeof CategoriesCategorySlugRoute
+  '/categories/$categorySlug': typeof CategoriesCategorySlugRouteWithChildren
   '/settings/autofill': typeof SettingsAutofillRoute
   '/settings/automations': typeof SettingsAutomationsRoute
   '/settings/categories': typeof SettingsCategoriesRoute
   '/settings/custom-properties': typeof SettingsCustomPropertiesRoute
   '/settings/display': typeof SettingsDisplayRoute
   '/settings/': typeof SettingsIndexRoute
+  '/categories/$categorySlug/edit': typeof CategoriesCategorySlugEditRouteWithChildren
+  '/categories/$categorySlug/': typeof CategoriesCategorySlugIndexRoute
+  '/categories/$categorySlug/edit/autofill': typeof CategoriesCategorySlugEditAutofillRoute
+  '/categories/$categorySlug/edit/custom-properties': typeof CategoriesCategorySlugEditCustomPropertiesRoute
+  '/categories/$categorySlug/edit/general': typeof CategoriesCategorySlugEditGeneralRoute
+  '/categories/$categorySlug/edit/tiered-tags': typeof CategoriesCategorySlugEditTieredTagsRoute
+  '/categories/$categorySlug/edit/': typeof CategoriesCategorySlugEditIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/bookmarks': typeof BookmarksRoute
   '/tags': typeof TagsRoute
-  '/categories/$categorySlug': typeof CategoriesCategorySlugRoute
   '/settings/autofill': typeof SettingsAutofillRoute
   '/settings/automations': typeof SettingsAutomationsRoute
   '/settings/categories': typeof SettingsCategoriesRoute
   '/settings/custom-properties': typeof SettingsCustomPropertiesRoute
   '/settings/display': typeof SettingsDisplayRoute
   '/settings': typeof SettingsIndexRoute
+  '/categories/$categorySlug': typeof CategoriesCategorySlugIndexRoute
+  '/categories/$categorySlug/edit/autofill': typeof CategoriesCategorySlugEditAutofillRoute
+  '/categories/$categorySlug/edit/custom-properties': typeof CategoriesCategorySlugEditCustomPropertiesRoute
+  '/categories/$categorySlug/edit/general': typeof CategoriesCategorySlugEditGeneralRoute
+  '/categories/$categorySlug/edit/tiered-tags': typeof CategoriesCategorySlugEditTieredTagsRoute
+  '/categories/$categorySlug/edit': typeof CategoriesCategorySlugEditIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -109,13 +170,20 @@ export interface FileRoutesById {
   '/bookmarks': typeof BookmarksRoute
   '/settings': typeof SettingsRouteWithChildren
   '/tags': typeof TagsRoute
-  '/categories/$categorySlug': typeof CategoriesCategorySlugRoute
+  '/categories/$categorySlug': typeof CategoriesCategorySlugRouteWithChildren
   '/settings/autofill': typeof SettingsAutofillRoute
   '/settings/automations': typeof SettingsAutomationsRoute
   '/settings/categories': typeof SettingsCategoriesRoute
   '/settings/custom-properties': typeof SettingsCustomPropertiesRoute
   '/settings/display': typeof SettingsDisplayRoute
   '/settings/': typeof SettingsIndexRoute
+  '/categories/$categorySlug/edit': typeof CategoriesCategorySlugEditRouteWithChildren
+  '/categories/$categorySlug/': typeof CategoriesCategorySlugIndexRoute
+  '/categories/$categorySlug/edit/autofill': typeof CategoriesCategorySlugEditAutofillRoute
+  '/categories/$categorySlug/edit/custom-properties': typeof CategoriesCategorySlugEditCustomPropertiesRoute
+  '/categories/$categorySlug/edit/general': typeof CategoriesCategorySlugEditGeneralRoute
+  '/categories/$categorySlug/edit/tiered-tags': typeof CategoriesCategorySlugEditTieredTagsRoute
+  '/categories/$categorySlug/edit/': typeof CategoriesCategorySlugEditIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -131,18 +199,30 @@ export interface FileRouteTypes {
     | '/settings/custom-properties'
     | '/settings/display'
     | '/settings/'
+    | '/categories/$categorySlug/edit'
+    | '/categories/$categorySlug/'
+    | '/categories/$categorySlug/edit/autofill'
+    | '/categories/$categorySlug/edit/custom-properties'
+    | '/categories/$categorySlug/edit/general'
+    | '/categories/$categorySlug/edit/tiered-tags'
+    | '/categories/$categorySlug/edit/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/bookmarks'
     | '/tags'
-    | '/categories/$categorySlug'
     | '/settings/autofill'
     | '/settings/automations'
     | '/settings/categories'
     | '/settings/custom-properties'
     | '/settings/display'
     | '/settings'
+    | '/categories/$categorySlug'
+    | '/categories/$categorySlug/edit/autofill'
+    | '/categories/$categorySlug/edit/custom-properties'
+    | '/categories/$categorySlug/edit/general'
+    | '/categories/$categorySlug/edit/tiered-tags'
+    | '/categories/$categorySlug/edit'
   id:
     | '__root__'
     | '/'
@@ -156,6 +236,13 @@ export interface FileRouteTypes {
     | '/settings/custom-properties'
     | '/settings/display'
     | '/settings/'
+    | '/categories/$categorySlug/edit'
+    | '/categories/$categorySlug/'
+    | '/categories/$categorySlug/edit/autofill'
+    | '/categories/$categorySlug/edit/custom-properties'
+    | '/categories/$categorySlug/edit/general'
+    | '/categories/$categorySlug/edit/tiered-tags'
+    | '/categories/$categorySlug/edit/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -163,7 +250,7 @@ export interface RootRouteChildren {
   BookmarksRoute: typeof BookmarksRoute
   SettingsRoute: typeof SettingsRouteWithChildren
   TagsRoute: typeof TagsRoute
-  CategoriesCategorySlugRoute: typeof CategoriesCategorySlugRoute
+  CategoriesCategorySlugRoute: typeof CategoriesCategorySlugRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -245,6 +332,55 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CategoriesCategorySlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/categories/$categorySlug/': {
+      id: '/categories/$categorySlug/'
+      path: '/'
+      fullPath: '/categories/$categorySlug/'
+      preLoaderRoute: typeof CategoriesCategorySlugIndexRouteImport
+      parentRoute: typeof CategoriesCategorySlugRoute
+    }
+    '/categories/$categorySlug/edit': {
+      id: '/categories/$categorySlug/edit'
+      path: '/edit'
+      fullPath: '/categories/$categorySlug/edit'
+      preLoaderRoute: typeof CategoriesCategorySlugEditRouteImport
+      parentRoute: typeof CategoriesCategorySlugRoute
+    }
+    '/categories/$categorySlug/edit/': {
+      id: '/categories/$categorySlug/edit/'
+      path: '/'
+      fullPath: '/categories/$categorySlug/edit/'
+      preLoaderRoute: typeof CategoriesCategorySlugEditIndexRouteImport
+      parentRoute: typeof CategoriesCategorySlugEditRoute
+    }
+    '/categories/$categorySlug/edit/tiered-tags': {
+      id: '/categories/$categorySlug/edit/tiered-tags'
+      path: '/tiered-tags'
+      fullPath: '/categories/$categorySlug/edit/tiered-tags'
+      preLoaderRoute: typeof CategoriesCategorySlugEditTieredTagsRouteImport
+      parentRoute: typeof CategoriesCategorySlugEditRoute
+    }
+    '/categories/$categorySlug/edit/general': {
+      id: '/categories/$categorySlug/edit/general'
+      path: '/general'
+      fullPath: '/categories/$categorySlug/edit/general'
+      preLoaderRoute: typeof CategoriesCategorySlugEditGeneralRouteImport
+      parentRoute: typeof CategoriesCategorySlugEditRoute
+    }
+    '/categories/$categorySlug/edit/custom-properties': {
+      id: '/categories/$categorySlug/edit/custom-properties'
+      path: '/custom-properties'
+      fullPath: '/categories/$categorySlug/edit/custom-properties'
+      preLoaderRoute: typeof CategoriesCategorySlugEditCustomPropertiesRouteImport
+      parentRoute: typeof CategoriesCategorySlugEditRoute
+    }
+    '/categories/$categorySlug/edit/autofill': {
+      id: '/categories/$categorySlug/edit/autofill'
+      path: '/autofill'
+      fullPath: '/categories/$categorySlug/edit/autofill'
+      preLoaderRoute: typeof CategoriesCategorySlugEditAutofillRouteImport
+      parentRoute: typeof CategoriesCategorySlugEditRoute
+    }
   }
 }
 
@@ -270,12 +406,55 @@ const SettingsRouteWithChildren = SettingsRoute._addFileChildren(
   SettingsRouteChildren,
 )
 
+interface CategoriesCategorySlugEditRouteChildren {
+  CategoriesCategorySlugEditAutofillRoute: typeof CategoriesCategorySlugEditAutofillRoute
+  CategoriesCategorySlugEditCustomPropertiesRoute: typeof CategoriesCategorySlugEditCustomPropertiesRoute
+  CategoriesCategorySlugEditGeneralRoute: typeof CategoriesCategorySlugEditGeneralRoute
+  CategoriesCategorySlugEditTieredTagsRoute: typeof CategoriesCategorySlugEditTieredTagsRoute
+  CategoriesCategorySlugEditIndexRoute: typeof CategoriesCategorySlugEditIndexRoute
+}
+
+const CategoriesCategorySlugEditRouteChildren: CategoriesCategorySlugEditRouteChildren =
+  {
+    CategoriesCategorySlugEditAutofillRoute:
+      CategoriesCategorySlugEditAutofillRoute,
+    CategoriesCategorySlugEditCustomPropertiesRoute:
+      CategoriesCategorySlugEditCustomPropertiesRoute,
+    CategoriesCategorySlugEditGeneralRoute:
+      CategoriesCategorySlugEditGeneralRoute,
+    CategoriesCategorySlugEditTieredTagsRoute:
+      CategoriesCategorySlugEditTieredTagsRoute,
+    CategoriesCategorySlugEditIndexRoute: CategoriesCategorySlugEditIndexRoute,
+  }
+
+const CategoriesCategorySlugEditRouteWithChildren =
+  CategoriesCategorySlugEditRoute._addFileChildren(
+    CategoriesCategorySlugEditRouteChildren,
+  )
+
+interface CategoriesCategorySlugRouteChildren {
+  CategoriesCategorySlugEditRoute: typeof CategoriesCategorySlugEditRouteWithChildren
+  CategoriesCategorySlugIndexRoute: typeof CategoriesCategorySlugIndexRoute
+}
+
+const CategoriesCategorySlugRouteChildren: CategoriesCategorySlugRouteChildren =
+  {
+    CategoriesCategorySlugEditRoute:
+      CategoriesCategorySlugEditRouteWithChildren,
+    CategoriesCategorySlugIndexRoute: CategoriesCategorySlugIndexRoute,
+  }
+
+const CategoriesCategorySlugRouteWithChildren =
+  CategoriesCategorySlugRoute._addFileChildren(
+    CategoriesCategorySlugRouteChildren,
+  )
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BookmarksRoute: BookmarksRoute,
   SettingsRoute: SettingsRouteWithChildren,
   TagsRoute: TagsRoute,
-  CategoriesCategorySlugRoute: CategoriesCategorySlugRoute,
+  CategoriesCategorySlugRoute: CategoriesCategorySlugRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
