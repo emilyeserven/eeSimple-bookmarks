@@ -60,9 +60,17 @@ function runOnce(command, args, cwd) {
 
 async function applySchema() {
   console.log("[gateway] applying database schema (drizzle-kit push)…");
-  const code = await runOnce("drizzle-kit", ["push"], middlewareDir);
+  // `--force` is required in production: there is no TTY here, so any change
+  // drizzle-kit flags as data-loss would otherwise stop on an interactive
+  // confirmation prompt — apply nothing, yet still exit 0 — leaving the API to
+  // boot against a stale schema and fail every query touching the new columns.
+  // Auto-approving keeps the schema in sync on each deploy.
+  const code = await runOnce("drizzle-kit", ["push", "--force"], middlewareDir);
   if (code !== 0) {
-    console.error(`[gateway] drizzle-kit push exited with ${code}; continuing anyway.`);
+    // A broken schema apply only surfaces later as confusing per-query failures,
+    // so fail fast and let the orchestrator restart (and retry) the container.
+    console.error(`[gateway] drizzle-kit push exited with ${code}; aborting boot.`);
+    process.exit(1);
   }
 }
 

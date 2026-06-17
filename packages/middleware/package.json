@@ -13,8 +13,8 @@
     "test": "node --test --import tsx \"./src/tests/**/*.test.ts\"",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "push:dev": "dotenv -e .env -- drizzle-kit push",
-    "push:prod": "drizzle-kit push",
-    "push": "drizzle-kit push",
+    "push:prod": "drizzle-kit push --force",
+    "push": "drizzle-kit push --force",
     "studio": "dotenv -e .env -- drizzle-kit studio"
   },
   "dependencies": {
