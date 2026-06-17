@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Bookmark, Home, Settings, Tags } from "lucide-react";
+import { Bookmark, Home, Settings } from "lucide-react";
 
 import { useCategories } from "../hooks/useCategories";
 
@@ -29,11 +29,6 @@ const navItems = [
     title: "Bookmarks",
     to: "/bookmarks",
     icon: Bookmark,
-  },
-  {
-    title: "Tags",
-    to: "/tags",
-    icon: Tags,
   },
   {
     title: "Settings",

@@ -24,6 +24,10 @@ const settingsNav = [
     label: "Categories",
   },
   {
+    to: "/settings/tags",
+    label: "Tags",
+  },
+  {
     to: "/settings/automations",
     label: "Automations",
   },

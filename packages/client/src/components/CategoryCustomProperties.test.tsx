@@ -31,6 +31,7 @@ const properties: CustomProperty[] = [
     unitPlural: null,
     operandPropertyIds: [],
     categoryIds: ["cat-1"],
+    showInForm: false,
     createdAt: "2026-06-01T00:00:00.000Z",
   },
   {
@@ -43,6 +44,7 @@ const properties: CustomProperty[] = [
     unitPlural: null,
     operandPropertyIds: [],
     categoryIds: [],
+    showInForm: false,
     createdAt: "2026-06-01T00:00:00.000Z",
   },
 ];
