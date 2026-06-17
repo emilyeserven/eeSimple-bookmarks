@@ -3,17 +3,21 @@ import * as React from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Bookmark, Home, Settings, Tags } from "lucide-react";
 
+import { useCategories } from "../hooks/useCategories";
+
 import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
+import { CategoryIcon } from "@/lib/icons";
 
 const navItems = [
   {
@@ -44,6 +48,9 @@ export function AppSidebar({
   const pathname = useRouterState({
     select: state => state.location.pathname,
   });
+  const {
+    data: categories,
+  } = useCategories();
 
   return (
     <Sidebar
@@ -103,6 +110,40 @@ export function AppSidebar({
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {categories && categories.length > 0
+          ? (
+            <SidebarGroup>
+              <SidebarGroupLabel>Categories</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {categories.map((category) => {
+                    const isActive = pathname === `/categories/${category.id}`;
+                    return (
+                      <SidebarMenuItem key={category.id}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={isActive}
+                          tooltip={category.name}
+                        >
+                          <Link
+                            to="/categories/$categoryId"
+                            params={{
+                              categoryId: category.id,
+                            }}
+                          >
+                            <CategoryIcon name={category.icon} />
+                            <span>{category.name}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          )
+          : null}
       </SidebarContent>
       <SidebarRail />
     </Sidebar>

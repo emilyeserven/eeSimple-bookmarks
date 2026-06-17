@@ -62,6 +62,13 @@ const createPropertyBody = {
     numberMax: {
       type: ["number", "null"],
     },
+    categoryIds: {
+      type: "array",
+      items: {
+        type: "string",
+        format: "uuid",
+      },
+    },
   },
 } as const;
 
@@ -72,6 +79,7 @@ const updatePropertyBody = {
     name: createPropertyBody.properties.name,
     numberMin: createPropertyBody.properties.numberMin,
     numberMax: createPropertyBody.properties.numberMax,
+    categoryIds: createPropertyBody.properties.categoryIds,
   },
 } as const;
 

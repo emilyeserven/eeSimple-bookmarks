@@ -13,6 +13,11 @@ import { Route as TagsRouteImport } from './routes/tags'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as BookmarksRouteImport } from './routes/bookmarks'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SettingsIndexRouteImport } from './routes/settings.index'
+import { Route as SettingsDisplayRouteImport } from './routes/settings.display'
+import { Route as SettingsCustomPropertiesRouteImport } from './routes/settings.custom-properties'
+import { Route as SettingsCategoriesRouteImport } from './routes/settings.categories'
+import { Route as CategoriesCategoryIdRouteImport } from './routes/categories.$categoryId'
 
 const TagsRoute = TagsRouteImport.update({
   id: '/tags',
@@ -34,39 +39,107 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsIndexRoute = SettingsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsDisplayRoute = SettingsDisplayRouteImport.update({
+  id: '/display',
+  path: '/display',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsCustomPropertiesRoute =
+  SettingsCustomPropertiesRouteImport.update({
+    id: '/custom-properties',
+    path: '/custom-properties',
+    getParentRoute: () => SettingsRoute,
+  } as any)
+const SettingsCategoriesRoute = SettingsCategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const CategoriesCategoryIdRoute = CategoriesCategoryIdRouteImport.update({
+  id: '/categories/$categoryId',
+  path: '/categories/$categoryId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/bookmarks': typeof BookmarksRoute
-  '/settings': typeof SettingsRoute
+  '/settings': typeof SettingsRouteWithChildren
   '/tags': typeof TagsRoute
+  '/categories/$categoryId': typeof CategoriesCategoryIdRoute
+  '/settings/categories': typeof SettingsCategoriesRoute
+  '/settings/custom-properties': typeof SettingsCustomPropertiesRoute
+  '/settings/display': typeof SettingsDisplayRoute
+  '/settings/': typeof SettingsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/bookmarks': typeof BookmarksRoute
-  '/settings': typeof SettingsRoute
   '/tags': typeof TagsRoute
+  '/categories/$categoryId': typeof CategoriesCategoryIdRoute
+  '/settings/categories': typeof SettingsCategoriesRoute
+  '/settings/custom-properties': typeof SettingsCustomPropertiesRoute
+  '/settings/display': typeof SettingsDisplayRoute
+  '/settings': typeof SettingsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/bookmarks': typeof BookmarksRoute
-  '/settings': typeof SettingsRoute
+  '/settings': typeof SettingsRouteWithChildren
   '/tags': typeof TagsRoute
+  '/categories/$categoryId': typeof CategoriesCategoryIdRoute
+  '/settings/categories': typeof SettingsCategoriesRoute
+  '/settings/custom-properties': typeof SettingsCustomPropertiesRoute
+  '/settings/display': typeof SettingsDisplayRoute
+  '/settings/': typeof SettingsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/bookmarks' | '/settings' | '/tags'
+  fullPaths:
+    | '/'
+    | '/bookmarks'
+    | '/settings'
+    | '/tags'
+    | '/categories/$categoryId'
+    | '/settings/categories'
+    | '/settings/custom-properties'
+    | '/settings/display'
+    | '/settings/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/bookmarks' | '/settings' | '/tags'
-  id: '__root__' | '/' | '/bookmarks' | '/settings' | '/tags'
+  to:
+    | '/'
+    | '/bookmarks'
+    | '/tags'
+    | '/categories/$categoryId'
+    | '/settings/categories'
+    | '/settings/custom-properties'
+    | '/settings/display'
+    | '/settings'
+  id:
+    | '__root__'
+    | '/'
+    | '/bookmarks'
+    | '/settings'
+    | '/tags'
+    | '/categories/$categoryId'
+    | '/settings/categories'
+    | '/settings/custom-properties'
+    | '/settings/display'
+    | '/settings/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BookmarksRoute: typeof BookmarksRoute
-  SettingsRoute: typeof SettingsRoute
+  SettingsRoute: typeof SettingsRouteWithChildren
   TagsRoute: typeof TagsRoute
+  CategoriesCategoryIdRoute: typeof CategoriesCategoryIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -99,14 +172,68 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings/': {
+      id: '/settings/'
+      path: '/'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof SettingsIndexRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/display': {
+      id: '/settings/display'
+      path: '/display'
+      fullPath: '/settings/display'
+      preLoaderRoute: typeof SettingsDisplayRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/custom-properties': {
+      id: '/settings/custom-properties'
+      path: '/custom-properties'
+      fullPath: '/settings/custom-properties'
+      preLoaderRoute: typeof SettingsCustomPropertiesRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/categories': {
+      id: '/settings/categories'
+      path: '/categories'
+      fullPath: '/settings/categories'
+      preLoaderRoute: typeof SettingsCategoriesRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/categories/$categoryId': {
+      id: '/categories/$categoryId'
+      path: '/categories/$categoryId'
+      fullPath: '/categories/$categoryId'
+      preLoaderRoute: typeof CategoriesCategoryIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
+
+interface SettingsRouteChildren {
+  SettingsCategoriesRoute: typeof SettingsCategoriesRoute
+  SettingsCustomPropertiesRoute: typeof SettingsCustomPropertiesRoute
+  SettingsDisplayRoute: typeof SettingsDisplayRoute
+  SettingsIndexRoute: typeof SettingsIndexRoute
+}
+
+const SettingsRouteChildren: SettingsRouteChildren = {
+  SettingsCategoriesRoute: SettingsCategoriesRoute,
+  SettingsCustomPropertiesRoute: SettingsCustomPropertiesRoute,
+  SettingsDisplayRoute: SettingsDisplayRoute,
+  SettingsIndexRoute: SettingsIndexRoute,
+}
+
+const SettingsRouteWithChildren = SettingsRoute._addFileChildren(
+  SettingsRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BookmarksRoute: BookmarksRoute,
-  SettingsRoute: SettingsRoute,
+  SettingsRoute: SettingsRouteWithChildren,
   TagsRoute: TagsRoute,
+  CategoriesCategoryIdRoute: CategoriesCategoryIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

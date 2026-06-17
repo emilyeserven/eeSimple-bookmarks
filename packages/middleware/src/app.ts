@@ -3,6 +3,7 @@ import swagger from "@fastify/swagger";
 import swaggerUi from "@fastify/swagger-ui";
 import Fastify, { type FastifyInstance } from "fastify";
 import { bookmarkRoutes } from "@/routes/bookmarks";
+import { categoryRoutes } from "@/routes/categories";
 import { customPropertyRoutes } from "@/routes/customProperties";
 import { healthRoutes } from "@/routes/health";
 import { tagRoutes } from "@/routes/tags";
@@ -39,6 +40,10 @@ export async function buildApp(): Promise<FastifyInstance> {
           description: "User-defined custom property endpoints",
         },
         {
+          name: "categories",
+          description: "Category endpoints for grouping custom properties",
+        },
+        {
           name: "health",
           description: "Service health",
         },
@@ -53,6 +58,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(bookmarkRoutes);
   await app.register(tagRoutes);
   await app.register(customPropertyRoutes);
+  await app.register(categoryRoutes);
 
   return app;
 }

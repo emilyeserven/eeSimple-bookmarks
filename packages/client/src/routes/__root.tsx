@@ -29,14 +29,21 @@ const PAGE_TITLES: Record<string, string> = {
   "/": "Home",
   "/bookmarks": "Bookmarks",
   "/tags": "Tags",
-  "/settings": "Settings",
 };
+
+/** Resolve the breadcrumb title for a path, handling nested settings/category routes. */
+function titleForPath(pathname: string): string {
+  if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname];
+  if (pathname.startsWith("/settings")) return "Settings";
+  if (pathname.startsWith("/categories")) return "Category";
+  return "eeSimple Bookmarks";
+}
 
 function RootComponent() {
   const pathname = useRouterState({
     select: state => state.location.pathname,
   });
-  const title = PAGE_TITLES[pathname] ?? "eeSimple Bookmarks";
+  const title = titleForPath(pathname);
 
   return (
     <SidebarProvider>

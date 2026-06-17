@@ -4,8 +4,10 @@ import {
   bookmarkPropertyTags,
   bookmarks,
   bookmarkTags,
+  categories,
   customProperties,
   customPropertyTags,
+  propertyCategories,
   tags,
 } from "@/db/schema";
 
@@ -89,6 +91,26 @@ export async function maybeSeed(): Promise<void> {
     {
       bookmarkId: bookmark.id,
       propertyTagId: frontend.id,
+    },
+  ]);
+
+  // A couple of categories (with Lucide icons) so the sidebar group and the
+  // property/category assignment UI have something to show on a fresh `pnpm dev`.
+  const [workflow] = await db.insert(categories).values({
+    name: "Workflow",
+    description: "Properties that drive triage and ordering.",
+    icon: "Workflow",
+  }).returning();
+  await db.insert(categories).values({
+    name: "Content",
+    description: "Properties that describe what a bookmark is about.",
+    icon: "BookOpen",
+  }).returning();
+
+  await db.insert(propertyCategories).values([
+    {
+      propertyId: priority.id,
+      categoryId: workflow.id,
     },
   ]);
 }
