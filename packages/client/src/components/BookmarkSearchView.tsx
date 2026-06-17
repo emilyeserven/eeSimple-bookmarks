@@ -2,6 +2,8 @@ import type { BookmarkSearch } from "../lib/bookmarkSearch";
 import type { Bookmark, Category, CustomProperty, TagNode } from "@eesimple/types";
 import type { ReactNode } from "react";
 
+import { ChevronDown } from "lucide-react";
+
 import { BookmarkCard } from "./BookmarkCard";
 import { BookmarkForm } from "./BookmarkForm";
 import { ColumnsSwitcher } from "./ColumnsSwitcher";
@@ -9,11 +11,10 @@ import { FilterSidebar } from "./FilterSidebar";
 import { useDeleteBookmark } from "../hooks/useBookmarks";
 import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
 import { bookmarkMatchesSearch } from "../lib/bookmarkSearch";
+import { useUiStore } from "../stores/uiStore";
 
 import { Card } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown } from "lucide-react";
-import { useUiStore } from "../stores/uiStore";
 
 interface BookmarkSearchViewProps {
   /** Page heading area rendered above the two-column body. */
@@ -99,9 +100,19 @@ export function BookmarkSearchView({
             onOpenChange={setAddBookmarkFormOpen}
             className="group/add-bookmark rounded-lg border bg-card"
           >
-            <CollapsibleTrigger className="flex w-full items-center justify-between p-4 text-sm font-medium hover:text-foreground">
+            <CollapsibleTrigger
+              className="
+                flex w-full items-center justify-between p-4 text-sm font-medium
+                hover:text-foreground
+              "
+            >
               Add Bookmark
-              <ChevronDown className="size-4 transition-transform group-data-[state=open]/add-bookmark:rotate-180" />
+              <ChevronDown
+                className="
+                  size-4 transition-transform
+                  group-data-[state=open]/add-bookmark:rotate-180
+                "
+              />
             </CollapsibleTrigger>
             <CollapsibleContent className="px-4 pb-4">
               <BookmarkForm lockedCategoryId={addFormCategoryId} />
