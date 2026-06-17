@@ -85,8 +85,10 @@ export interface WebsiteLookup {
 /** A single saved bookmark. */
 export interface Bookmark {
   id: string;
-  /** The bookmarked URL (http/https). */
+  /** The bookmarked URL (http/https), possibly cleaned of tracking/query params. */
   url: string;
+  /** Original URL before any cleanup was applied, or `null` when no cleanup was performed. */
+  originalUrl: string | null;
   /** Human-friendly title, e.g. "GitHub". */
   title: string;
   /** Optional free-form description. */
@@ -110,6 +112,8 @@ export interface Bookmark {
 /** Payload for creating a bookmark. */
 export interface CreateBookmarkInput {
   url: string;
+  /** Original URL before cleanup; omit when no cleanup was applied. */
+  originalUrl?: string | null;
   title: string;
   description?: string | null;
   /** Id of the category to assign; omit to fall back to the built-in "Default" category. */

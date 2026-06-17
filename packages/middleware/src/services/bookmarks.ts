@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, ne } from "drizzle-orm";
 import type {
   Bookmark,
   BookmarkBooleanValue,
@@ -28,6 +28,14 @@ import { ensureWebsiteForUrl } from "@/services/websites";
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
+/** Thrown when a create/update would collide with an existing bookmark's URL. */
+export class DuplicateUrlError extends Error {
+  constructor(url: string) {
+    super(`A bookmark with this URL already exists: ${url}`);
+    this.name = "DuplicateUrlError";
+  }
+}
+
 /** The hydrated relations that accompany a bookmark row. */
 interface BookmarkExtras {
   website: BookmarkWebsite | null;
@@ -48,6 +56,7 @@ function toBookmark(row: BookmarkRow, extras: BookmarkExtras, defaultCategoryId:
   return {
     id: row.id,
     url: row.url,
+    originalUrl: row.originalUrl,
     title: row.title,
     description: row.description,
     categoryId: row.categoryId ?? defaultCategoryId,
@@ -284,6 +293,11 @@ export async function getBookmark(id: string): Promise<Bookmark | null> {
 }
 
 export async function createBookmark(input: CreateBookmarkInput): Promise<Bookmark> {
+  const existing = await db.select({
+    id: bookmarks.id,
+  }).from(bookmarks).where(eq(bookmarks.url, input.url));
+  if (existing.length > 0) throw new DuplicateUrlError(input.url);
+
   const categoryId = input.categoryId ?? await ensureDefaultCategory();
   const id = await db.transaction(async (tx) => {
     const websiteId = await ensureWebsiteForUrl(tx, input.url, input.websiteSiteName);
@@ -291,6 +305,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
       .insert(bookmarks)
       .values({
         url: input.url,
+        originalUrl: input.originalUrl ?? null,
         title: input.title,
         description: input.description ?? null,
         categoryId,
@@ -314,15 +329,26 @@ export async function updateBookmark(
   id: string,
   input: UpdateBookmarkInput,
 ): Promise<Bookmark | null> {
+  if (input.url !== undefined) {
+    const clash = await db
+      .select({
+        id: bookmarks.id,
+      })
+      .from(bookmarks)
+      .where(and(eq(bookmarks.url, input.url), ne(bookmarks.id, id)));
+    if (clash.length > 0) throw new DuplicateUrlError(input.url);
+  }
+
   const found = await db.transaction(async (tx) => {
     const patch: Partial<
-      Pick<BookmarkRow, "url" | "title" | "description" | "categoryId" | "websiteId" | "priority">
+      Pick<BookmarkRow, "url" | "originalUrl" | "title" | "description" | "categoryId" | "websiteId" | "priority">
     > = {};
     if (input.url !== undefined) {
       patch.url = input.url;
       // Re-derive the website whenever the URL changes.
       patch.websiteId = await ensureWebsiteForUrl(tx, input.url);
     }
+    if (input.originalUrl !== undefined) patch.originalUrl = input.originalUrl ?? null;
     if (input.title !== undefined) patch.title = input.title;
     if (input.description !== undefined) patch.description = input.description ?? null;
     if (input.categoryId !== undefined) patch.categoryId = input.categoryId;

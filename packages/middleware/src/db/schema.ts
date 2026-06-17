@@ -5,6 +5,9 @@ import { type AnyPgColumn, boolean, integer, pgTable, primaryKey, real, text, ti
 export const bookmarks = pgTable("bookmarks", {
   id: uuid("id").primaryKey().defaultRandom(),
   url: text("url").notNull(),
+  // Original URL before any cleanup was applied; NULL when no cleanup was performed.
+  // Nullable so `drizzle-kit push` applies cleanly to existing rows.
+  originalUrl: text("original_url"),
   title: text("title").notNull(),
   description: text("description"),
   // Owning category. Nullable at the DB level so `drizzle-kit push` applies cleanly to
@@ -21,7 +24,9 @@ export const bookmarks = pgTable("bookmarks", {
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
-});
+}, table => [
+  unique("bookmarks_url_unique").on(table.url),
+]);
 
 /**
  * `websites` table — the built-in "Websites" taxonomy. One row per distinct host; bookmarks are

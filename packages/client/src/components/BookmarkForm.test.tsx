@@ -146,6 +146,7 @@ describe("BookmarkForm title fetching", () => {
     const bookmark: Bookmark = {
       id: "11111111-1111-1111-1111-111111111111",
       url: "https://github.com",
+      originalUrl: null,
       title: "GitHub",
       description: "Code host",
       categoryId: "22222222-2222-2222-2222-222222222222",
