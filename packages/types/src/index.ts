@@ -54,6 +54,14 @@ export interface Website {
 /** Lightweight website shape carried on a bookmark. */
 export type BookmarkWebsite = Pick<Website, "id" | "domain" | "siteName">;
 
+/** Payload for manually creating a website in the taxonomy (normally auto-created from URLs). */
+export interface CreateWebsiteInput {
+  /** Host to register (normalized server-side: lower-cased, leading `www.` stripped). */
+  domain: string;
+  /** Optional friendly name; defaults to the normalized domain when omitted. */
+  siteName?: string;
+}
+
 /** Payload for updating a website (rename its site name and/or change its domain). */
 export interface UpdateWebsiteInput {
   siteName?: string;

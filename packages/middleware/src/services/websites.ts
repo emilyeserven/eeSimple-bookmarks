@@ -1,5 +1,5 @@
 import { asc, eq } from "drizzle-orm";
-import type { UpdateWebsiteInput, Website } from "@eesimple/types";
+import type { CreateWebsiteInput, UpdateWebsiteInput, Website } from "@eesimple/types";
 import { db } from "@/db";
 import { websites, type WebsiteRow } from "@/db/schema";
 
@@ -159,6 +159,34 @@ export async function lookupWebsiteByUrl(
     domain,
     website: await getWebsiteByDomain(domain),
   };
+}
+
+/** Thrown when a manual create is given a domain that normalizes to an empty host. */
+export class InvalidDomainError extends Error {
+  constructor() {
+    super("A non-empty domain is required");
+    this.name = "InvalidDomainError";
+  }
+}
+
+/**
+ * Manually add a website to the taxonomy. The `domain` is treated as a raw host (not a full URL),
+ * normalized the same way `updateWebsite` does. Throws `InvalidDomainError` for an empty host and
+ * `DuplicateDomainError` when the domain already exists.
+ */
+export async function createWebsite(input: CreateWebsiteInput): Promise<Website> {
+  const domain = input.domain.trim().replace(/^www\./i, "").toLowerCase();
+  if (domain.length === 0) throw new InvalidDomainError();
+
+  const existing = await getWebsiteByDomain(domain);
+  if (existing) throw new DuplicateDomainError(domain);
+
+  const siteName = input.siteName?.trim() ? input.siteName.trim() : domain;
+  const [row] = await db.insert(websites).values({
+    domain,
+    siteName,
+  }).returning();
+  return toWebsite(row);
 }
 
 /** Rename a website's site name and/or change its domain. Returns the updated row, or `null`. */

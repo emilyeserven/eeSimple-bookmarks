@@ -65,7 +65,7 @@ export function BookmarkCard({
                 target="_blank"
                 rel="noreferrer"
                 className="
-                  truncate text-primary
+                  wrap-break-word text-primary
                   hover:underline
                 "
               >
