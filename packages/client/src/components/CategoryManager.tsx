@@ -1,6 +1,6 @@
 import type { Category, TagNode } from "@eesimple/types";
 
-import { useState } from "react";
+import { z } from "zod";
 
 import { TagPicker } from "./TagPicker";
 import {
@@ -14,6 +14,7 @@ import {
   useUpdateCategory,
 } from "../hooks/useCategories";
 import { useTagTree } from "../hooks/useTags";
+import { useAppForm } from "../lib/form";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,9 +26,13 @@ import {
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { IconPicker } from "@/components/ui/icon-picker";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+
+const categorySchema = z.object({
+  name: z.string().trim().min(1, "Name is required"),
+  description: z.string(),
+  icon: z.string().nullable(),
+});
 
 /** Strip children so a TagPicker shows only root ("parent") tags. */
 function rootOnly(tree: TagNode[]): TagNode[] {
@@ -52,24 +57,28 @@ export function CategoryManager() {
   } = useTagTree();
   const createCategory = useCreateCategory();
 
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [icon, setIcon] = useState<string | null>(null);
-
   const roots = rootOnly(tagTree ?? []);
 
-  function create() {
-    const trimmed = name.trim();
-    if (!trimmed) return;
-    createCategory.mutate({
-      name: trimmed,
-      description: description.trim() || null,
-      icon,
-    });
-    setName("");
-    setDescription("");
-    setIcon(null);
-  }
+  const form = useAppForm({
+    defaultValues: {
+      name: "",
+      description: "",
+      icon: null as string | null,
+    },
+    validators: {
+      onChange: categorySchema,
+    },
+    onSubmit: ({
+      value,
+    }) => {
+      createCategory.mutate({
+        name: value.name.trim(),
+        description: value.description.trim() || null,
+        icon: value.icon,
+      });
+      form.reset();
+    },
+  });
 
   return (
     <section className="space-y-6">
@@ -78,56 +87,57 @@ export function CategoryManager() {
           <CardTitle>New category</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div
-            className="
-              grid gap-3
-              sm:grid-cols-2
-            "
+          <form
+            className="space-y-4"
+            onSubmit={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              void form.handleSubmit();
+            }}
           >
-            <div className="space-y-1">
-              <Label htmlFor="category-name">Name</Label>
-              <Input
-                id="category-name"
-                placeholder="e.g. Workflow"
-                value={name}
-                onChange={event => setName(event.target.value)}
-                onKeyDown={event => event.key === "Enter" && create()}
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="category-icon">Icon</Label>
-              <IconPicker
-                aria-label="Category icon"
-                value={icon}
-                onChange={setIcon}
-              />
-            </div>
             <div
               className="
-                space-y-1
-                sm:col-span-2
+                grid gap-3
+                sm:grid-cols-2
               "
             >
-              <Label htmlFor="category-description">Description</Label>
-              <Textarea
-                id="category-description"
-                placeholder="What kind of bookmarks belong here?"
-                value={description}
-                onChange={event => setDescription(event.target.value)}
-              />
+              <form.AppField name="name">
+                {field => (
+                  <field.TextField
+                    label="Name"
+                    placeholder="e.g. Workflow"
+                  />
+                )}
+              </form.AppField>
+              <form.AppField name="icon">
+                {field => (
+                  <div className="space-y-1">
+                    <Label htmlFor="category-icon">Icon</Label>
+                    <IconPicker
+                      aria-label="Category icon"
+                      value={field.state.value}
+                      onChange={field.handleChange}
+                    />
+                  </div>
+                )}
+              </form.AppField>
+              <form.AppField name="description">
+                {field => (
+                  <field.TextareaField
+                    label="Description"
+                    placeholder="What kind of bookmarks belong here?"
+                  />
+                )}
+              </form.AppField>
             </div>
-          </div>
 
-          <Button
-            type="button"
-            onClick={create}
-            disabled={!name.trim() || createCategory.isPending}
-          >
-            Add category
-          </Button>
-          {createCategory.isError
-            ? <p className="text-sm text-destructive">{createCategory.error.message}</p>
-            : null}
+            <form.AppForm>
+              <form.SubmitButton label="Add category" />
+            </form.AppForm>
+            {createCategory.isError
+              ? <p className="text-sm text-destructive">{createCategory.error.message}</p>
+              : null}
+          </form>
         </CardContent>
       </Card>
 
@@ -204,29 +214,30 @@ function CategoryCard({
   } = useCategoryRootTags(category.id);
   const setRootTags = useSetCategoryRootTags(category.id);
 
-  const [name, setName] = useState(category.name);
-  const [description, setDescription] = useState(category.description ?? "");
-  const [icon, setIcon] = useState<string | null>(category.icon);
-
   const enabledRootTags = rootTagIds ?? [];
 
-  const dirty
-    = name.trim() !== category.name
-      || (description.trim() || null) !== (category.description ?? null)
-      || icon !== category.icon;
-
-  function save() {
-    const trimmed = name.trim();
-    if (!trimmed) return;
-    updateCategory.mutate({
-      id: category.id,
-      input: {
-        name: trimmed,
-        description: description.trim() || null,
-        icon,
-      },
-    });
-  }
+  const form = useAppForm({
+    defaultValues: {
+      name: category.name,
+      description: category.description ?? "",
+      icon: category.icon,
+    },
+    validators: {
+      onChange: categorySchema,
+    },
+    onSubmit: ({
+      value,
+    }) => {
+      updateCategory.mutate({
+        id: category.id,
+        input: {
+          name: value.name.trim(),
+          description: value.description.trim() || null,
+          icon: value.icon,
+        },
+      });
+    },
+  });
 
   return (
     <Card>
@@ -252,43 +263,65 @@ function CategoryCard({
           )}
       </CardHeader>
       <CardContent className="space-y-4">
-        <div
-          className="
-            grid gap-3
-            sm:grid-cols-2
-          "
+        <form
+          className="space-y-4"
+          onSubmit={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            void form.handleSubmit();
+          }}
         >
-          <div className="space-y-1">
-            <Label htmlFor={`category-name-${category.id}`}>Name</Label>
-            <Input
-              id={`category-name-${category.id}`}
-              value={name}
-              disabled={category.builtIn}
-              onChange={event => setName(event.target.value)}
-            />
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor={`category-icon-${category.id}`}>Icon</Label>
-            <IconPicker
-              aria-label={`Icon for ${category.name}`}
-              value={icon}
-              onChange={setIcon}
-            />
-          </div>
           <div
             className="
-              space-y-1
-              sm:col-span-2
+              grid gap-3
+              sm:grid-cols-2
             "
           >
-            <Label htmlFor={`category-description-${category.id}`}>Description</Label>
-            <Textarea
-              id={`category-description-${category.id}`}
-              value={description}
-              onChange={event => setDescription(event.target.value)}
-            />
+            <form.AppField name="name">
+              {field => (
+                <field.TextField
+                  label="Name"
+                  disabled={category.builtIn}
+                />
+              )}
+            </form.AppField>
+            <form.AppField name="icon">
+              {field => (
+                <div className="space-y-1">
+                  <Label htmlFor={`category-icon-${category.id}`}>Icon</Label>
+                  <IconPicker
+                    aria-label={`Icon for ${category.name}`}
+                    value={field.state.value}
+                    onChange={field.handleChange}
+                  />
+                </div>
+              )}
+            </form.AppField>
+            <form.AppField name="description">
+              {field => (
+                <field.TextareaField label="Description" />
+              )}
+            </form.AppField>
           </div>
-        </div>
+
+          <form.AppForm>
+            <form.Subscribe selector={state => state.values}>
+              {(values) => {
+                const dirty
+                  = values.name.trim() !== category.name
+                    || (values.description.trim() || null) !== (category.description ?? null)
+                    || values.icon !== category.icon;
+                return (
+                  <form.SubmitButton
+                    label="Save changes"
+                    size="sm"
+                    disabledWhen={!dirty}
+                  />
+                );
+              }}
+            </form.Subscribe>
+          </form.AppForm>
+        </form>
 
         <div className="flex items-center gap-2">
           <Checkbox
@@ -319,15 +352,6 @@ function CategoryCard({
             />
           </div>
         </div>
-
-        <Button
-          type="button"
-          size="sm"
-          onClick={save}
-          disabled={!dirty || !name.trim() || updateCategory.isPending}
-        >
-          Save changes
-        </Button>
       </CardContent>
     </Card>
   );

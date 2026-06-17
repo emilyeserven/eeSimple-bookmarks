@@ -1,12 +1,20 @@
 import type { FlatTag } from "../lib/tagTree";
 
-import { useState } from "react";
+import { z } from "zod";
 
 import { useCreateTag, useDeleteTag, useTagTree, useUpdateTag } from "../hooks/useTags";
+import { useAppForm } from "../lib/form";
 import { flattenTree, subtreeIds } from "../lib/tagTree";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+
+const nameSchema = z.object({
+  name: z.string().trim().min(1, "Name is required"),
+});
+
+const childSchema = z.object({
+  childName: z.string().trim().min(1, "Name is required"),
+});
 
 /** Full tag-taxonomy management: create, rename, reparent, and delete tags. */
 export function TagManager() {
@@ -14,37 +22,50 @@ export function TagManager() {
     data: tree, isLoading, error,
   } = useTagTree();
   const createTag = useCreateTag();
-  const [newRootName, setNewRootName] = useState("");
 
   const flat = tree ? flattenTree(tree) : [];
 
-  function addRoot() {
-    const name = newRootName.trim();
-    if (!name) return;
-    createTag.mutate({
-      name,
-      parentId: null,
-    });
-    setNewRootName("");
-  }
+  const form = useAppForm({
+    defaultValues: {
+      name: "",
+    },
+    validators: {
+      onChange: nameSchema,
+    },
+    onSubmit: ({
+      value,
+    }) => {
+      createTag.mutate({
+        name: value.name.trim(),
+        parentId: null,
+      });
+      form.reset();
+    },
+  });
 
   return (
     <section className="space-y-4">
-      <div className="flex items-center gap-2">
-        <Input
-          placeholder="New root tag name"
-          value={newRootName}
-          onChange={event => setNewRootName(event.target.value)}
-          onKeyDown={event => event.key === "Enter" && addRoot()}
-        />
-        <Button
-          type="button"
-          onClick={addRoot}
-          disabled={!newRootName.trim()}
-        >
-          Add tag
-        </Button>
-      </div>
+      <form
+        className="flex items-center gap-2"
+        onSubmit={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          void form.handleSubmit();
+        }}
+      >
+        <form.AppField name="name">
+          {field => (
+            <field.TextField
+              label="New root tag"
+              placeholder="New root tag name"
+              className="flex-1"
+            />
+          )}
+        </form.AppField>
+        <form.AppForm>
+          <form.SubmitButton label="Add tag" />
+        </form.AppForm>
+      </form>
 
       {isLoading ? <p className="text-muted-foreground">Loading tags…</p> : null}
       {error ? <p className="text-destructive">{error.message}</p> : null}
@@ -81,23 +102,49 @@ function TagRow({
   const updateTag = useUpdateTag();
   const deleteTag = useDeleteTag();
   const createTag = useCreateTag();
-  const [name, setName] = useState(node.name);
-  const [childName, setChildName] = useState("");
 
   // A tag cannot be reparented under itself or any of its descendants.
   const forbidden = new Set(subtreeIds(node));
   const parentChoices = allTags.filter(other => !forbidden.has(other.node.id));
 
-  function rename() {
-    const next = name.trim();
-    if (!next || next === node.name) return;
-    updateTag.mutate({
-      id: node.id,
-      input: {
-        name: next,
-      },
-    });
-  }
+  const renameForm = useAppForm({
+    defaultValues: {
+      name: node.name,
+    },
+    validators: {
+      onChange: nameSchema,
+    },
+    onSubmit: ({
+      value,
+    }) => {
+      const next = value.name.trim();
+      if (!next || next === node.name) return;
+      updateTag.mutate({
+        id: node.id,
+        input: {
+          name: next,
+        },
+      });
+    },
+  });
+
+  const childForm = useAppForm({
+    defaultValues: {
+      childName: "",
+    },
+    validators: {
+      onChange: childSchema,
+    },
+    onSubmit: ({
+      value,
+    }) => {
+      createTag.mutate({
+        name: value.childName.trim(),
+        parentId: node.id,
+      });
+      childForm.reset();
+    },
+  });
 
   function reparent(value: string) {
     updateTag.mutate({
@@ -108,16 +155,6 @@ function TagRow({
     });
   }
 
-  function addChild() {
-    const child = childName.trim();
-    if (!child) return;
-    createTag.mutate({
-      name: child,
-      parentId: node.id,
-    });
-    setChildName("");
-  }
-
   return (
     <li
       className="flex flex-wrap items-center gap-2 px-3 py-2"
@@ -125,14 +162,25 @@ function TagRow({
         paddingLeft: `${0.75 + depth * 1.25}rem`,
       }}
     >
-      <Input
-        className="h-8 w-auto"
-        value={name}
-        onChange={event => setName(event.target.value)}
-        onBlur={rename}
-        onKeyDown={event => event.key === "Enter" && rename()}
-        aria-label={`Rename ${node.name}`}
-      />
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          void renameForm.handleSubmit();
+        }}
+      >
+        <renameForm.AppField name="name">
+          {field => (
+            <field.TextField
+              label={`Rename ${node.name}`}
+              hideLabel
+              className="w-auto"
+              inputClassName="h-8 w-auto"
+              onBlur={() => void renameForm.handleSubmit()}
+            />
+          )}
+        </renameForm.AppField>
+      </form>
 
       <select
         className="
@@ -155,14 +203,25 @@ function TagRow({
         ))}
       </select>
 
-      <Input
-        className="h-8 w-auto"
-        placeholder="Add child…"
-        value={childName}
-        onChange={event => setChildName(event.target.value)}
-        onKeyDown={event => event.key === "Enter" && addChild()}
-        aria-label={`Add child tag under ${node.name}`}
-      />
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          void childForm.handleSubmit();
+        }}
+      >
+        <childForm.AppField name="childName">
+          {field => (
+            <field.TextField
+              label={`Add child tag under ${node.name}`}
+              hideLabel
+              placeholder="Add child…"
+              className="w-auto"
+              inputClassName="h-8 w-auto"
+            />
+          )}
+        </childForm.AppField>
+      </form>
 
       <Button
         type="button"

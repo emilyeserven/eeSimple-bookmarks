@@ -1,6 +1,6 @@
 import type { Category, CustomProperty, CustomPropertyType } from "@eesimple/types";
 
-import { useState } from "react";
+import { z } from "zod";
 
 import { useCategories } from "../hooks/useCategories";
 import {
@@ -9,6 +9,7 @@ import {
   useDeleteCustomProperty,
   useUpdateCustomProperty,
 } from "../hooks/useCustomProperties";
+import { useAppForm } from "../lib/form";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,15 +20,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { CategoryIcon } from "@/lib/icons";
 
 const TYPE_LABELS: Record<CustomPropertyType, string> = {
@@ -35,6 +28,44 @@ const TYPE_LABELS: Record<CustomPropertyType, string> = {
   boolean: "Boolean",
   calculate: "Calculate (Sum)",
 };
+
+const TYPE_OPTIONS = [
+  {
+    value: "number",
+    label: "Number",
+  },
+  {
+    value: "boolean",
+    label: "Boolean",
+  },
+  {
+    value: "calculate",
+    label: "Calculate (Sum)",
+  },
+];
+
+const propertySchema = z
+  .object({
+    name: z.string().trim().min(1, "Name is required"),
+    type: z.enum(["number", "boolean", "calculate"]),
+    numberMin: z.string(),
+    numberMax: z.string(),
+    disableMin: z.boolean(),
+    disableMax: z.boolean(),
+    unitSingular: z.string(),
+    unitPlural: z.string(),
+    operandIds: z.array(z.string()),
+    categoryIds: z.array(z.string()),
+  })
+  .superRefine((value, ctx) => {
+    if (value.type === "calculate" && value.operandIds.length < 2) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Select at least two Number properties.",
+        path: ["operandIds"],
+      });
+    }
+  });
 
 /** Add or remove `id` from `ids`, returning a new array. */
 function toggleId(ids: string[], id: string): string[] {
@@ -152,47 +183,41 @@ export function CustomPropertyManager() {
   } = useCategories();
   const createProperty = useCreateCustomProperty();
 
-  const [name, setName] = useState("");
-  const [type, setType] = useState<CustomPropertyType>("number");
-  const [numberMin, setNumberMin] = useState("0");
-  const [numberMax, setNumberMax] = useState("100");
-  const [disableMin, setDisableMin] = useState(false);
-  const [disableMax, setDisableMax] = useState(false);
-  const [unitSingular, setUnitSingular] = useState("");
-  const [unitPlural, setUnitPlural] = useState("");
-  const [operandIds, setOperandIds] = useState<string[]>([]);
-  const [categoryIds, setCategoryIds] = useState<string[]>([]);
-
   const numberProperties = (properties ?? []).filter(property => property.type === "number");
-  const calculateInvalid = type === "calculate" && operandIds.length < 2;
 
-  function reset() {
-    setName("");
-    setNumberMin("0");
-    setNumberMax("100");
-    setDisableMin(false);
-    setDisableMax(false);
-    setUnitSingular("");
-    setUnitPlural("");
-    setOperandIds([]);
-    setCategoryIds([]);
-  }
-
-  function create() {
-    const trimmed = name.trim();
-    if (!trimmed || calculateInvalid) return;
-    createProperty.mutate({
-      name: trimmed,
-      type,
-      numberMin: type === "number" && !disableMin ? Number(numberMin) : null,
-      numberMax: type === "number" && !disableMax ? Number(numberMax) : null,
-      unitSingular: type === "number" ? (unitSingular.trim() || null) : null,
-      unitPlural: type === "number" ? (unitPlural.trim() || null) : null,
-      operandPropertyIds: type === "calculate" ? operandIds : undefined,
-      categoryIds,
-    });
-    reset();
-  }
+  const form = useAppForm({
+    defaultValues: {
+      name: "",
+      type: "number" as CustomPropertyType,
+      numberMin: "0",
+      numberMax: "100",
+      disableMin: false,
+      disableMax: false,
+      unitSingular: "",
+      unitPlural: "",
+      operandIds: [] as string[],
+      categoryIds: [] as string[],
+    },
+    validators: {
+      onChange: propertySchema,
+    },
+    onSubmit: ({
+      value,
+    }) => {
+      const isNumber = value.type === "number";
+      createProperty.mutate({
+        name: value.name.trim(),
+        type: value.type,
+        numberMin: isNumber && !value.disableMin ? Number(value.numberMin) : null,
+        numberMax: isNumber && !value.disableMax ? Number(value.numberMax) : null,
+        unitSingular: isNumber ? (value.unitSingular.trim() || null) : null,
+        unitPlural: isNumber ? (value.unitPlural.trim() || null) : null,
+        operandPropertyIds: value.type === "calculate" ? value.operandIds : undefined,
+        categoryIds: value.categoryIds,
+      });
+      form.reset();
+    },
+  });
 
   return (
     <section className="space-y-6">
@@ -201,151 +226,177 @@ export function CustomPropertyManager() {
           <CardTitle>New custom property</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div
-            className="
-              grid gap-3
-              sm:grid-cols-2
-            "
+          <form
+            className="space-y-4"
+            onSubmit={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              void form.handleSubmit();
+            }}
           >
-            <div className="space-y-1">
-              <Label htmlFor="property-name">Name</Label>
-              <Input
-                id="property-name"
-                placeholder="e.g. Priority"
-                value={name}
-                onChange={event => setName(event.target.value)}
-                onKeyDown={event => event.key === "Enter" && create()}
-              />
+            <div
+              className="
+                grid gap-3
+                sm:grid-cols-2
+              "
+            >
+              <form.AppField name="name">
+                {field => (
+                  <field.TextField
+                    label="Name"
+                    placeholder="e.g. Priority"
+                  />
+                )}
+              </form.AppField>
+
+              <form.AppField name="type">
+                {field => (
+                  <field.SelectField
+                    label="Type"
+                    options={TYPE_OPTIONS}
+                  />
+                )}
+              </form.AppField>
+
+              <form.Subscribe selector={state => state.values.type}>
+                {type =>
+                  type === "number"
+                    ? (
+                      <>
+                        <div className="space-y-1">
+                          <form.Subscribe selector={state => state.values.disableMin}>
+                            {disableMin => (
+                              <form.AppField name="numberMin">
+                                {field => (
+                                  <field.TextField
+                                    label="Slider minimum"
+                                    type="number"
+                                    disabled={disableMin}
+                                  />
+                                )}
+                              </form.AppField>
+                            )}
+                          </form.Subscribe>
+                          <form.AppField name="disableMin">
+                            {field => (
+                              <div className="flex items-center gap-2">
+                                <Checkbox
+                                  id="property-disable-min"
+                                  checked={field.state.value}
+                                  onCheckedChange={checked => field.handleChange(checked === true)}
+                                />
+                                <Label
+                                  htmlFor="property-disable-min"
+                                  className="text-xs text-muted-foreground"
+                                >
+                                  No minimum
+                                </Label>
+                              </div>
+                            )}
+                          </form.AppField>
+                        </div>
+                        <div className="space-y-1">
+                          <form.Subscribe selector={state => state.values.disableMax}>
+                            {disableMax => (
+                              <form.AppField name="numberMax">
+                                {field => (
+                                  <field.TextField
+                                    label="Slider maximum"
+                                    type="number"
+                                    disabled={disableMax}
+                                  />
+                                )}
+                              </form.AppField>
+                            )}
+                          </form.Subscribe>
+                          <form.AppField name="disableMax">
+                            {field => (
+                              <div className="flex items-center gap-2">
+                                <Checkbox
+                                  id="property-disable-max"
+                                  checked={field.state.value}
+                                  onCheckedChange={checked => field.handleChange(checked === true)}
+                                />
+                                <Label
+                                  htmlFor="property-disable-max"
+                                  className="text-xs text-muted-foreground"
+                                >
+                                  No maximum
+                                </Label>
+                              </div>
+                            )}
+                          </form.AppField>
+                        </div>
+                        <form.AppField name="unitSingular">
+                          {field => (
+                            <field.TextField
+                              label="Unit (singular)"
+                              placeholder="e.g. star"
+                            />
+                          )}
+                        </form.AppField>
+                        <form.AppField name="unitPlural">
+                          {field => (
+                            <field.TextField
+                              label="Unit (plural)"
+                              placeholder="e.g. stars"
+                            />
+                          )}
+                        </form.AppField>
+                      </>
+                    )
+                    : null}
+              </form.Subscribe>
             </div>
 
-            <div className="space-y-1">
-              <Label htmlFor="property-type">Type</Label>
-              <Select
-                value={type}
-                onValueChange={value => setType(value as CustomPropertyType)}
-              >
-                <SelectTrigger
-                  id="property-type"
-                  className="w-full"
-                >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="number">Number</SelectItem>
-                  <SelectItem value="boolean">Boolean</SelectItem>
-                  <SelectItem value="calculate">Calculate (Sum)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {type === "number"
-              ? (
-                <>
-                  <div className="space-y-1">
-                    <Label htmlFor="property-min">Slider minimum</Label>
-                    <Input
-                      id="property-min"
-                      type="number"
-                      disabled={disableMin}
-                      value={disableMin ? "" : numberMin}
-                      onChange={event => setNumberMin(event.target.value)}
-                    />
-                    <div className="flex items-center gap-2">
-                      <Checkbox
-                        id="property-disable-min"
-                        checked={disableMin}
-                        onCheckedChange={checked => setDisableMin(checked === true)}
-                      />
-                      <Label
-                        htmlFor="property-disable-min"
-                        className="text-xs text-muted-foreground"
-                      >
-                        No minimum
-                      </Label>
-                    </div>
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="property-max">Slider maximum</Label>
-                    <Input
-                      id="property-max"
-                      type="number"
-                      disabled={disableMax}
-                      value={disableMax ? "" : numberMax}
-                      onChange={event => setNumberMax(event.target.value)}
-                    />
-                    <div className="flex items-center gap-2">
-                      <Checkbox
-                        id="property-disable-max"
-                        checked={disableMax}
-                        onCheckedChange={checked => setDisableMax(checked === true)}
-                      />
-                      <Label
-                        htmlFor="property-disable-max"
-                        className="text-xs text-muted-foreground"
-                      >
-                        No maximum
-                      </Label>
-                    </div>
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="property-unit-singular">Unit (singular)</Label>
-                    <Input
-                      id="property-unit-singular"
-                      placeholder="e.g. star"
-                      value={unitSingular}
-                      onChange={event => setUnitSingular(event.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="property-unit-plural">Unit (plural)</Label>
-                    <Input
-                      id="property-unit-plural"
-                      placeholder="e.g. stars"
-                      value={unitPlural}
-                      onChange={event => setUnitPlural(event.target.value)}
-                    />
-                  </div>
-                </>
-              )
-              : null}
-          </div>
-
-          {type === "calculate"
-            ? (
-              <div className="space-y-2">
-                <Label>Operands (summed)</Label>
-                <OperandCheckboxList
-                  numberProperties={numberProperties}
-                  selectedIds={operandIds}
-                  onToggle={id => setOperandIds(current => toggleId(current, id))}
-                />
-                {calculateInvalid
-                  ? <p className="text-xs text-destructive">Select at least two Number properties.</p>
+            <form.Subscribe selector={state => state.values.type}>
+              {type =>
+                type === "calculate"
+                  ? (
+                    <form.AppField name="operandIds">
+                      {field => (
+                        <div className="space-y-2">
+                          <Label>Operands (summed)</Label>
+                          <OperandCheckboxList
+                            numberProperties={numberProperties}
+                            selectedIds={field.state.value}
+                            onToggle={id => field.handleChange(toggleId(field.state.value, id))}
+                          />
+                          {field.state.meta.errors.length > 0
+                            ? (
+                              <p className="text-xs text-destructive">
+                                Select at least two Number properties.
+                              </p>
+                            )
+                            : null}
+                        </div>
+                      )}
+                    </form.AppField>
+                  )
                   : null}
-              </div>
-            )
-            : null}
+            </form.Subscribe>
 
-          <div className="space-y-2">
-            <Label>Categories</Label>
-            <CategoryCheckboxList
-              categories={categories ?? []}
-              selectedIds={categoryIds}
-              onToggle={id => setCategoryIds(current => toggleId(current, id))}
-              idPrefix="new-property-category"
-            />
-          </div>
+            <form.AppField name="categoryIds">
+              {field => (
+                <div className="space-y-2">
+                  <Label>Categories</Label>
+                  <CategoryCheckboxList
+                    categories={categories ?? []}
+                    selectedIds={field.state.value}
+                    onToggle={id => field.handleChange(toggleId(field.state.value, id))}
+                    idPrefix="new-property-category"
+                  />
+                </div>
+              )}
+            </form.AppField>
 
-          <Button
-            type="button"
-            onClick={create}
-            disabled={!name.trim() || calculateInvalid || createProperty.isPending}
-          >
-            Add property
-          </Button>
-          {createProperty.isError
-            ? <p className="text-sm text-destructive">{createProperty.error.message}</p>
-            : null}
+            <form.AppForm>
+              <form.SubmitButton label="Add property" />
+            </form.AppForm>
+            {createProperty.isError
+              ? <p className="text-sm text-destructive">{createProperty.error.message}</p>
+              : null}
+          </form>
         </CardContent>
       </Card>
 
