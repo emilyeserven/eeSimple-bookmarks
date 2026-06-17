@@ -96,6 +96,10 @@ const createBookmarkBody = {
     priority: {
       type: "integer",
     },
+    websiteSiteName: {
+      type: "string",
+      minLength: 1,
+    },
   },
 } as const;
 

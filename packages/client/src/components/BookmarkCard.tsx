@@ -3,10 +3,17 @@ import type { Bookmark, BookmarkTag, CustomProperty } from "@eesimple/types";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Link } from "@tanstack/react-router";
-import { Globe } from "lucide-react";
+import { ExternalLink, MoreVertical } from "lucide-react";
 
 import { formatNumber } from "../lib/bookmarkFormat";
 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -129,51 +136,73 @@ export function BookmarkCard({
               {bookmark.title}
             </Link>
           </h3>
-          <a
-            href={bookmark.url}
-            target="_blank"
-            rel="noreferrer"
-            className="
-              block truncate text-sm text-muted-foreground
-              hover:underline
-            "
-          >
-            {bookmark.url}
-          </a>
-          {bookmark.website
-            ? (
-              <div className="mt-1">
-                <Badge
-                  variant="secondary"
-                  className="gap-1"
-                >
-                  <Globe className="size-3" />
-                  {bookmark.website.siteName}
-                </Badge>
-              </div>
-            )
-            : null}
         </div>
-        {onDelete
-          ? (
-            <div className="flex shrink-0 items-center gap-1">
+        <div className="flex shrink-0 items-center gap-1">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            asChild
+          >
+            <a
+              href={bookmark.url}
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Open URL in new tab"
+            >
+              <ExternalLink className="size-4" />
+            </a>
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
               <Button
                 type="button"
                 variant="ghost"
-                size="sm"
-                onClick={() => onDelete(bookmark.id)}
-                className="
-                  text-destructive
-                  hover:text-destructive
-                "
+                size="icon"
+                aria-label="More options"
               >
-                Delete
+                <MoreVertical className="size-4" />
               </Button>
-            </div>
-          )
-          : null}
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem asChild>
+                <Link
+                  to="/bookmarks/$bookmarkId/edit"
+                  params={{ bookmarkId: bookmark.id }}
+                >
+                  Edit
+                </Link>
+              </DropdownMenuItem>
+              {onDelete
+                ? (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="text-destructive focus:text-destructive"
+                      onClick={() => onDelete(bookmark.id)}
+                    >
+                      Delete
+                    </DropdownMenuItem>
+                  </>
+                )
+                : null}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
       {bookmark.description ? <p className="mt-2 text-sm text-foreground">{bookmark.description}</p> : null}
+      {bookmark.website
+        ? (
+          <div className="mt-2">
+            <Link
+              to="/taxonomies/websites/$websiteSlug"
+              params={{ websiteSlug: bookmark.website.slug }}
+            >
+              <Badge variant="secondary">{bookmark.website.siteName}</Badge>
+            </Link>
+          </div>
+        )
+        : null}
       {bookmark.tags.length > 0 ? <TagsBox tags={bookmark.tags} /> : null}
       {valueBadges.length > 0
         ? (

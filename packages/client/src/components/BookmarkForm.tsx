@@ -104,6 +104,7 @@ export function BookmarkForm({
     Object.fromEntries((bookmark?.booleanValues ?? []).map(entry => [entry.propertyId, entry.value])));
   const [isReportingTitle, setIsReportingTitle] = useState(false);
   const [expectedTitle, setExpectedTitle] = useState("");
+  const [websiteSiteName, setWebsiteSiteName] = useState("");
   const customRef = useRef({
     numberInputs,
     booleanInputs,
@@ -283,10 +284,15 @@ export function BookmarkForm({
         return;
       }
 
-      await createBookmark.mutateAsync(input);
+      const trimmedSiteName = websiteSiteName.trim();
+      await createBookmark.mutateAsync({
+        ...input,
+        ...(trimmedSiteName && { websiteSiteName: trimmedSiteName }),
+      });
       form.reset();
       setNumberInputs({});
       setBooleanInputs({});
+      setWebsiteSiteName("");
       touchedRef.current = new Set();
       ruleSetRef.current = {
         numbers: new Set(),
@@ -323,7 +329,7 @@ export function BookmarkForm({
     try {
       const {
         title,
-      } = await fetchTitle.mutateAsync(url);
+      } = await fetchTitle.mutateAsync({ url, siteName: websiteSiteName.trim() || undefined });
       if (force || form.getFieldValue("title").trim() === "") {
         form.setFieldValue("title", title);
       }
@@ -338,9 +344,20 @@ export function BookmarkForm({
   function runWebsiteLookup(url: string): void {
     if (!isFetchableUrl(url)) {
       websiteLookup.reset();
+      setWebsiteSiteName("");
       return;
     }
-    websiteLookup.mutate(url);
+    websiteLookup.mutate(url, {
+      onSuccess: (data) => {
+        // Pre-fill the site name input with the domain when it's a new site.
+        if (!data.exists && data.domain) {
+          setWebsiteSiteName(data.domain);
+        }
+        else {
+          setWebsiteSiteName("");
+        }
+      },
+    });
   }
 
   // Default the category to the built-in "Default" once categories load.
@@ -513,30 +530,42 @@ export function BookmarkForm({
 
       {websiteLookup.data && websiteLookup.data.domain
         ? (
-          <p
-            className="
-              flex items-center gap-2 text-sm text-muted-foreground
-              sm:col-span-2
-            "
-          >
-            {websiteLookup.data.exists
+          <div className="sm:col-span-2">
+            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+              {websiteLookup.data.exists
+                ? (
+                  <>
+                    <Badge variant="secondary">Existing site</Badge>
+                    <span>{websiteLookup.data.siteName}</span>
+                  </>
+                )
+                : (
+                  <>
+                    <Badge variant="outline">New site</Badge>
+                    <span>
+                      {websiteLookup.data.domain}
+                      {" "}
+                      will be added
+                    </span>
+                  </>
+                )}
+            </p>
+            {!websiteLookup.data.exists
               ? (
-                <>
-                  <Badge variant="secondary">Existing site</Badge>
-                  <span>{websiteLookup.data.siteName}</span>
-                </>
+                <div className="mt-2">
+                  <Label htmlFor="website-site-name" className="mb-1 block text-sm">
+                    Site name
+                  </Label>
+                  <Input
+                    id="website-site-name"
+                    value={websiteSiteName}
+                    onChange={e => setWebsiteSiteName(e.target.value)}
+                    placeholder={websiteLookup.data.domain ?? ""}
+                  />
+                </div>
               )
-              : (
-                <>
-                  <Badge variant="outline">New site</Badge>
-                  <span>
-                    {websiteLookup.data.domain}
-                    {" "}
-                    will be added
-                  </span>
-                </>
-              )}
-          </p>
+              : null}
+          </div>
         )
         : null}
 

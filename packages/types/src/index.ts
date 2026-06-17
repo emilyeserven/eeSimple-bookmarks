@@ -56,7 +56,7 @@ export interface Website {
 }
 
 /** Lightweight website shape carried on a bookmark. */
-export type BookmarkWebsite = Pick<Website, "id" | "domain" | "siteName">;
+export type BookmarkWebsite = Pick<Website, "id" | "domain" | "siteName" | "slug">;
 
 /** Payload for manually creating a website in the taxonomy (normally auto-created from URLs). */
 export interface CreateWebsiteInput {
@@ -122,6 +122,8 @@ export interface CreateBookmarkInput {
   booleanValues?: BookmarkBooleanValue[];
   /** Homepage ordering weight; higher values appear first. */
   priority?: number;
+  /** Friendly name for the website when it doesn't exist yet; ignored for existing sites. */
+  websiteSiteName?: string;
 }
 
 /** Payload for partially updating a bookmark. */

@@ -71,6 +71,7 @@ async function websitesById(websiteIds: string[]): Promise<Map<string, BookmarkW
       id: websites.id,
       domain: websites.domain,
       siteName: websites.siteName,
+      slug: websites.slug,
     })
     .from(websites)
     .where(inArray(websites.id, websiteIds));
@@ -80,6 +81,7 @@ async function websitesById(websiteIds: string[]): Promise<Map<string, BookmarkW
       id: row.id,
       domain: row.domain,
       siteName: row.siteName,
+      slug: row.slug ?? row.domain.replace(/\.[^.]+$/, "").replace(/[^a-z0-9]+/gi, "-") || "website",
     });
   }
   return byId;
@@ -284,7 +286,7 @@ export async function getBookmark(id: string): Promise<Bookmark | null> {
 export async function createBookmark(input: CreateBookmarkInput): Promise<Bookmark> {
   const categoryId = input.categoryId ?? await ensureDefaultCategory();
   const id = await db.transaction(async (tx) => {
-    const websiteId = await ensureWebsiteForUrl(tx, input.url);
+    const websiteId = await ensureWebsiteForUrl(tx, input.url, input.websiteSiteName);
     const [row] = await tx
       .insert(bookmarks)
       .values({
