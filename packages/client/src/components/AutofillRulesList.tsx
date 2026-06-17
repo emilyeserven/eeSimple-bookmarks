@@ -26,13 +26,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -41,6 +34,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 /** Select sentinel for "show rules for every category". */
 const ALL_CATEGORIES = "all";
@@ -53,7 +54,7 @@ interface AutofillRulesListProps {
   categoryId?: string;
 }
 
-/** Read-only, searchable/filterable list of autofill rules with a "new rule" modal. */
+/** Read-only, searchable/filterable list of autofill rules with a "new rule" drawer. */
 export function AutofillRulesList({
   categoryId,
 }: AutofillRulesListProps = {}) {
@@ -140,7 +141,7 @@ export function AutofillRulesList({
             )}
         </div>
 
-        <NewAutofillRuleDialog
+        <NewAutofillRuleDrawer
           categories={categories ?? []}
           properties={properties ?? []}
           tagTree={tagTree ?? []}
@@ -218,17 +219,17 @@ function RuleListItem({
   );
 }
 
-interface NewAutofillRuleDialogProps {
+interface NewAutofillRuleDrawerProps {
   categories: Category[];
   properties: CustomProperty[];
   tagTree: TagNode[];
   defaultCategoryId?: string;
 }
 
-/** "New Autofill Rule" button that opens a modal with the create form. */
-function NewAutofillRuleDialog({
+/** "New Autofill Rule" button that opens a right-side drawer with the create form. */
+function NewAutofillRuleDrawer({
   categories, properties, tagTree, defaultCategoryId,
-}: NewAutofillRuleDialogProps) {
+}: NewAutofillRuleDrawerProps) {
   const navigate = useNavigate();
   const createRule = useCreateAutofillRule();
   const [open, setOpen] = useState(false);
@@ -245,36 +246,41 @@ function NewAutofillRuleDialog({
   }
 
   return (
-    <Dialog
+    <Sheet
       open={open}
       onOpenChange={setOpen}
     >
-      <Button
-        type="button"
-        onClick={() => setOpen(true)}
+      <SheetTrigger asChild>
+        <Button type="button">New Autofill Rule</Button>
+      </SheetTrigger>
+      <SheetContent
+        side="right"
+        className="
+          w-full
+          sm:max-w-md
+        "
       >
-        New Autofill Rule
-      </Button>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>New Autofill Rule</DialogTitle>
-          <DialogDescription>
+        <SheetHeader>
+          <SheetTitle>New Autofill Rule</SheetTitle>
+          <SheetDescription>
             Match a bookmark’s URL or title to prefill its category, tags, and custom properties.
-          </DialogDescription>
-        </DialogHeader>
-        <AutofillRuleForm
-          categories={categories}
-          properties={properties}
-          tagTree={tagTree}
-          defaultCategoryId={defaultCategoryId}
-          submitLabel="Add rule"
-          isError={createRule.isError}
-          errorMessage={createRule.error?.message}
-          onSubmit={(input) => {
-            void handleCreate(input);
-          }}
-        />
-      </DialogContent>
-    </Dialog>
+          </SheetDescription>
+        </SheetHeader>
+        <div className="flex-1 overflow-y-auto px-4 pb-4">
+          <AutofillRuleForm
+            categories={categories}
+            properties={properties}
+            tagTree={tagTree}
+            defaultCategoryId={defaultCategoryId}
+            submitLabel="Add rule"
+            isError={createRule.isError}
+            errorMessage={createRule.error?.message}
+            onSubmit={(input) => {
+              void handleCreate(input);
+            }}
+          />
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 }
