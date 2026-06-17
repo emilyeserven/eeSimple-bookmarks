@@ -3,6 +3,7 @@ import type {
   Bookmark,
   Category,
   CategoryPropertyDefaults,
+  ConditionTree,
   CreateAutofillRuleInput,
   CreateBookmarkInput,
   CreateCategoryInput,
@@ -10,6 +11,7 @@ import type {
   CreateTagInput,
   CreateWebsiteInput,
   CustomProperty,
+  HomepageFilter,
   Tag,
   TagNode,
   UpdateAutofillRuleInput,
@@ -169,6 +171,17 @@ export const categoriesApi = {
     request<CategoryPropertyDefaults>(`/categories/${id}/defaults`, {
       method: "PUT",
       body: JSON.stringify(input),
+    }),
+};
+
+export const homepageFilterApi = {
+  get: () => request<HomepageFilter>("/homepage-filter"),
+  set: (conditions: ConditionTree) =>
+    request<HomepageFilter>("/homepage-filter", {
+      method: "PUT",
+      body: JSON.stringify({
+        conditions,
+      }),
     }),
 };
 

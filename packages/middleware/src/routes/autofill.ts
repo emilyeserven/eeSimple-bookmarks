@@ -59,24 +59,15 @@ const booleanValues = {
 
 const createRuleBody = {
   type: "object",
-  required: ["name", "field", "operator", "pattern"],
+  required: ["name", "conditions"],
   additionalProperties: false,
   properties: {
     name: {
       type: "string",
       minLength: 1,
     },
-    field: {
-      type: "string",
-      enum: ["url", "title"],
-    },
-    operator: {
-      type: "string",
-      enum: ["contains", "starts_with", "regex", "domain"],
-    },
-    pattern: {
-      type: "string",
-      minLength: 1,
+    conditions: {
+      $ref: "conditionTree#",
     },
     setCategoryId: {
       type: ["string", "null"],

@@ -31,7 +31,7 @@ function HomePage() {
         <div className="space-y-1">
           <h1 className="text-2xl font-bold">Homepage</h1>
           <p className="text-muted-foreground">
-            Bookmarks from your homepage categories and tags, ordered by priority.
+            Bookmarks matching your homepage filter, ordered by priority.
           </p>
         </div>
         <ColumnsSwitcher pageKey={HOME_PAGE_KEY} />
@@ -43,16 +43,16 @@ function HomePage() {
       {!isLoading && homepage.length === 0
         ? (
           <p className="text-muted-foreground">
-            Nothing here yet. Choose homepage categories or tags in
+            Nothing here yet. Build a homepage filter in
             {" "}
             <Link
-              to="/settings/categories"
+              to="/settings/display"
               className="
                 font-medium text-foreground
                 hover:underline
               "
             >
-              Settings → Categories
+              Settings → Display → Homepage
             </Link>
             {" "}
             to surface bookmarks here.

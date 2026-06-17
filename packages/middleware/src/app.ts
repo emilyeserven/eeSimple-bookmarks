@@ -5,8 +5,10 @@ import Fastify, { type FastifyInstance } from "fastify";
 import { autofillRoutes } from "@/routes/autofill";
 import { bookmarkRoutes } from "@/routes/bookmarks";
 import { categoryRoutes } from "@/routes/categories";
+import { conditionNodeSchema, conditionTreeSchema } from "@/routes/conditionSchema";
 import { customPropertyRoutes } from "@/routes/customProperties";
 import { healthRoutes } from "@/routes/health";
+import { homepageFilterRoutes } from "@/routes/homepageFilter";
 import { metadataRoutes } from "@/routes/metadata";
 import { tagRoutes } from "@/routes/tags";
 import { websiteRoutes } from "@/routes/websites";
@@ -55,6 +57,10 @@ export async function buildApp(): Promise<FastifyInstance> {
           description: "Autofill rules that prefill the bookmark form",
         },
         {
+          name: "homepage",
+          description: "The condition filter that selects homepage bookmarks",
+        },
+        {
           name: "health",
           description: "Service health",
         },
@@ -69,6 +75,10 @@ export async function buildApp(): Promise<FastifyInstance> {
     routePrefix: "/docs",
   });
 
+  // Shared recursive condition-tree schema, referenced by autofill + homepage-filter bodies.
+  app.addSchema(conditionNodeSchema);
+  app.addSchema(conditionTreeSchema);
+
   await app.register(healthRoutes);
   await app.register(metadataRoutes);
   await app.register(bookmarkRoutes);
@@ -77,6 +87,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(customPropertyRoutes);
   await app.register(categoryRoutes);
   await app.register(autofillRoutes);
+  await app.register(homepageFilterRoutes);
 
   return app;
 }
