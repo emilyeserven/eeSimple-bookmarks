@@ -1,25 +1,17 @@
 import type { TagNode } from "@eesimple/types";
-import type { ReactNode } from "react";
 
 import { useState } from "react";
 
 import { Pencil } from "lucide-react";
 import { z } from "zod";
 
-import { useCreateTag, useDeleteTag, useUpdateTag } from "../hooks/useTags";
-import { useAppForm } from "../lib/form";
-import { flattenTree, subtreeIds } from "../lib/tagTree";
+import { usePanelControls } from "./usePanelControls";
+import { useCreateTag, useDeleteTag, useTagTree, useUpdateTag } from "../../hooks/useTags";
+import { useAppForm } from "../../lib/form";
+import { flattenTree, subtreeIds } from "../../lib/tagTree";
 
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { NEW_SENTINEL } from "@/lib/drawerSearch";
 
 /** Sentinel for the "(root)" option, since Radix Select forbids an empty-string value. */
 const ROOT = "__root__";
@@ -37,106 +29,105 @@ const childSchema = z.object({
   childName: z.string().trim().min(1, "Name is required"),
 });
 
-interface TagDrawerProps {
-  /** The tag this drawer describes. */
-  node: TagNode;
-  /** The full root tree, used to build reparent options and resolve the parent name. */
-  allTags: TagNode[];
-  /** The trigger element (e.g. a pencil button or a table row). */
-  children: ReactNode;
+interface TagPanelProps {
+  /** The tag id to view/edit, or `NEW_SENTINEL` to create a new root tag. */
+  tagId: string;
 }
 
-/**
- * Right-side drawer for a single tag: read-only info by default, toggles into an edit form,
- * lists children in a table, and lets you add a child or delete the tag. Opening a child row
- * spawns another (stacked) drawer.
- */
-export function TagDrawer({
-  node, allTags, children,
-}: TagDrawerProps) {
-  const [open, setOpen] = useState(false);
+/** Tag create/view/edit body for the shared panel (was `TagDrawer` / `TagCreateDrawer`). */
+export function TagPanel({
+  tagId,
+}: TagPanelProps) {
+  const {
+    data: tree, isLoading, error,
+  } = useTagTree();
+
+  if (tagId === NEW_SENTINEL) return <TagCreateForm />;
+
+  if (isLoading) return <p className="text-muted-foreground">Loading…</p>;
+  if (error) return <p className="text-destructive">{error.message}</p>;
+
+  const allTags = tree ?? [];
+  const node = flattenTree(allTags).find(item => item.node.id === tagId)?.node;
+  if (!node) return <p className="text-destructive">Tag not found.</p>;
+
+  return (
+    <TagEditor
+      node={node}
+      allTags={allTags}
+    />
+  );
+}
+
+interface TagEditorProps {
+  node: TagNode;
+  allTags: TagNode[];
+}
+
+/** View/edit a tag: read-only info by default, an edit form, children navigation, add/delete. */
+function TagEditor({
+  node, allTags,
+}: TagEditorProps) {
+  const {
+    close,
+  } = usePanelControls();
   const [mode, setMode] = useState<"view" | "edit">("view");
 
   return (
-    <Sheet
-      open={open}
-      onOpenChange={(next) => {
-        setOpen(next);
-        if (!next) setMode("view");
-      }}
-    >
-      {/* The trigger is supplied by the caller (pencil button or child row). */}
-      <SheetTrigger asChild>{children}</SheetTrigger>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="truncate text-xl font-semibold">{node.name}</h2>
+        {mode === "view"
+          ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setMode("edit")}
+            >
+              <Pencil className="size-4" />
+              Edit
+            </Button>
+          )
+          : (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setMode("view")}
+            >
+              Cancel
+            </Button>
+          )}
+      </div>
 
-      <SheetContent
-        side="right"
-        className="overflow-hidden"
-      >
-        <SheetHeader
-          className="
-            flex-row items-center justify-between gap-2 space-y-0 pr-12
-          "
-        >
-          <SheetTitle className="truncate">{node.name}</SheetTitle>
-          {mode === "view"
-            ? (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setMode("edit")}
-              >
-                <Pencil className="size-4" />
-                Edit
-              </Button>
-            )
-            : (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => setMode("view")}
-              >
-                Cancel
-              </Button>
-            )}
-        </SheetHeader>
-
-        <div className="flex-1 space-y-6 overflow-y-auto px-4">
-          {mode === "view"
-            ? (
-              <TagViewInfo
-                node={node}
-                allTags={allTags}
-              />
-            )
-            : (
-              <TagEditForm
-                node={node}
-                allTags={allTags}
-                onDone={() => setMode("view")}
-              />
-            )}
-
-          {node.children.length > 0
-            ? (
-              <TagChildrenTable
-                node={node}
-                allTags={allTags}
-              />
-            )
-            : null}
-        </div>
-
-        <SheetFooter className="gap-4">
-          <AddChildForm node={node} />
-          <DeleteTagButton
+      {mode === "view"
+        ? (
+          <TagViewInfo
             node={node}
-            onDeleted={() => setOpen(false)}
+            allTags={allTags}
           />
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
+        )
+        : (
+          <TagEditForm
+            node={node}
+            allTags={allTags}
+            onDone={() => setMode("view")}
+          />
+        )}
+
+      {node.children.length > 0
+        ? <TagChildrenTable node={node} />
+        : null}
+
+      <div className="flex flex-col gap-4 border-t pt-4">
+        <AddChildForm node={node} />
+        <DeleteTagButton
+          node={node}
+          onDeleted={close}
+        />
+      </div>
+    </div>
   );
 }
 
@@ -168,7 +159,7 @@ function TagViewInfo({
   );
 }
 
-/** Rename + reparent form, shown when the drawer is in edit mode. */
+/** Rename + reparent form, shown when the editor is in edit mode. */
 function TagEditForm({
   node, allTags, onDone,
 }: {
@@ -261,13 +252,16 @@ function TagEditForm({
   );
 }
 
-/** Table of a tag's direct children; each row opens a nested drawer for that child. */
+/** Table of a tag's direct children; each row re-targets the panel at that child. */
 function TagChildrenTable({
-  node, allTags,
+  node,
 }: {
   node: TagNode;
-  allTags: TagNode[];
 }) {
+  const {
+    openTag,
+  } = usePanelControls();
+
   return (
     <div className="space-y-2">
       <h3 className="text-sm font-medium">Children</h3>
@@ -280,21 +274,17 @@ function TagChildrenTable({
         </thead>
         <tbody>
           {node.children.map(child => (
-            <TagDrawer
+            <tr
               key={child.id}
-              node={child}
-              allTags={allTags}
+              className="
+                cursor-pointer border-b
+                hover:bg-accent
+              "
+              onClick={() => openTag(child.id)}
             >
-              <tr
-                className="
-                  cursor-pointer border-b
-                  hover:bg-accent
-                "
-              >
-                <td className="py-2">{child.name}</td>
-                <td className="py-2">{child.children.length}</td>
-              </tr>
-            </TagDrawer>
+              <td className="py-2">{child.name}</td>
+              <td className="py-2">{child.children.length}</td>
+            </tr>
           ))}
         </tbody>
       </table>
@@ -353,7 +343,7 @@ function AddChildForm({
   );
 }
 
-/** Destructive button that deletes the tag (cascades to children) and closes the drawer. */
+/** Destructive button that deletes the tag (cascades to children) and closes the panel. */
 function DeleteTagButton({
   node, onDeleted,
 }: {
@@ -380,16 +370,11 @@ function DeleteTagButton({
   );
 }
 
-interface TagCreateDrawerProps {
-  /** The trigger element (e.g. a "New tag" button). */
-  children: ReactNode;
-}
-
-/** Right-side drawer for creating a new root tag. */
-export function TagCreateDrawer({
-  children,
-}: TagCreateDrawerProps) {
-  const [open, setOpen] = useState(false);
+/** Create a new root tag, then close the panel. */
+function TagCreateForm() {
+  const {
+    close,
+  } = usePanelControls();
   const createTag = useCreateTag();
 
   const form = useAppForm({
@@ -410,7 +395,7 @@ export function TagCreateDrawer({
         {
           onSuccess: () => {
             form.reset();
-            setOpen(false);
+            close();
           },
         },
       );
@@ -418,54 +403,34 @@ export function TagCreateDrawer({
   });
 
   return (
-    <Sheet
-      open={open}
-      onOpenChange={setOpen}
-    >
-      <SheetTrigger asChild>{children}</SheetTrigger>
-      <SheetContent side="right">
-        <SheetHeader>
-          <SheetTitle>New tag</SheetTitle>
-        </SheetHeader>
-
-        <form
-          className="space-y-4 px-4"
-          onSubmit={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            void form.handleSubmit();
-          }}
-        >
-          <form.AppField name="name">
-            {field => (
-              <field.TextField
-                label="Name"
-                placeholder="New root tag name"
-              />
-            )}
-          </form.AppField>
-          <form.AppForm>
-            <form.SubmitButton
-              label="Add tag"
-              pendingLabel="Adding…"
+    <div className="space-y-6">
+      <h2 className="text-xl font-semibold">New tag</h2>
+      <form
+        className="space-y-4"
+        onSubmit={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          void form.handleSubmit();
+        }}
+      >
+        <form.AppField name="name">
+          {field => (
+            <field.TextField
+              label="Name"
+              placeholder="New root tag name"
             />
-          </form.AppForm>
-          {createTag.isError
-            ? <p className="text-xs text-destructive">{createTag.error.message}</p>
-            : null}
-        </form>
-
-        <SheetFooter>
-          <SheetClose asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-            >Cancel
-            </Button>
-          </SheetClose>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
+          )}
+        </form.AppField>
+        <form.AppForm>
+          <form.SubmitButton
+            label="Add tag"
+            pendingLabel="Adding…"
+          />
+        </form.AppForm>
+        {createTag.isError
+          ? <p className="text-xs text-destructive">{createTag.error.message}</p>
+          : null}
+      </form>
+    </div>
   );
 }

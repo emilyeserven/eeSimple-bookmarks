@@ -1,9 +1,15 @@
 import type { QueryClient } from "@tanstack/react-query";
 
-import { Outlet, createRootRouteWithContext, useRouterState } from "@tanstack/react-router";
+import {
+  Outlet,
+  createRootRouteWithContext,
+  retainSearchParams,
+  useRouterState,
+} from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
 import { AppSidebar } from "@/components/app-sidebar";
+import { RightPanel } from "@/components/panel/RightPanel";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -16,12 +22,18 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { validateDrawerSearch } from "@/lib/drawerSearch";
 
 export interface RouterContext {
   queryClient: QueryClient;
 }
 
 export const Route = createRootRouteWithContext<RouterContext>()({
+  validateSearch: validateDrawerSearch,
+  search: {
+    // Carry the panel's drawer params across every navigation so it survives route changes.
+    middlewares: [retainSearchParams(["dCT", "dCId"])],
+  },
   component: RootComponent,
 });
 
@@ -68,6 +80,7 @@ function RootComponent() {
           <Outlet />
         </main>
       </SidebarInset>
+      <RightPanel />
       {import.meta.env.DEV ? <TanStackRouterDevtools /> : null}
     </SidebarProvider>
   );

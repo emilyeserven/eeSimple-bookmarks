@@ -20,6 +20,11 @@ if (!Element.prototype.releasePointerCapture) {
     // no-op: pointer capture is unsupported in jsdom
   };
 }
+// jsdom defines window.scrollTo but it throws "Not implemented"; TanStack Router's scroll
+// restoration calls it on navigation, so replace it with a no-op.
+window.scrollTo = () => {
+  // no-op: scrolling is irrelevant under jsdom
+};
 if (!globalThis.ResizeObserver) {
   globalThis.ResizeObserver = class {
     observe() {
