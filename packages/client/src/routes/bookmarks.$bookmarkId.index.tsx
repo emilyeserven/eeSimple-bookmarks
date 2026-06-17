@@ -5,6 +5,8 @@ import { useBookmark, useDeleteBookmark } from "../hooks/useBookmarks";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 
+import { Card } from "@/components/ui/card";
+
 export const Route = createFileRoute("/bookmarks/$bookmarkId/")({
   component: BookmarkDetailPage,
 });
@@ -57,22 +59,24 @@ function BookmarkDetailPage() {
       >
         ← Back to bookmarks
       </Link>
-      <BookmarkDetail
-        bookmark={bookmark}
-        categories={categories ?? []}
-        properties={properties ?? []}
-        onEdit={() => navigate({
-          to: "/bookmarks/$bookmarkId/edit",
-          params: {
-            bookmarkId,
-          },
-        })}
-        onDelete={() => deleteBookmark.mutate(bookmarkId, {
-          onSuccess: () => navigate({
-            to: "/bookmarks",
-          }),
-        })}
-      />
+      <Card className="p-4">
+        <BookmarkDetail
+          bookmark={bookmark}
+          categories={categories ?? []}
+          properties={properties ?? []}
+          onEdit={() => navigate({
+            to: "/bookmarks/$bookmarkId/edit",
+            params: {
+              bookmarkId,
+            },
+          })}
+          onDelete={() => deleteBookmark.mutate(bookmarkId, {
+            onSuccess: () => navigate({
+              to: "/bookmarks",
+            }),
+          })}
+        />
+      </Card>
     </section>
   );
 }

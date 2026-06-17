@@ -6,6 +6,8 @@ import { useHomepageBookmarks } from "../hooks/useBookmarks";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
 
+import { Card } from "@/components/ui/card";
+
 export const Route = createFileRoute("/")({
   component: HomePage,
 });
@@ -65,11 +67,15 @@ function HomePage() {
         `}
       >
         {homepage.map(bookmark => (
-          <BookmarkCard
+          <Card
             key={bookmark.id}
-            bookmark={bookmark}
-            properties={customProperties ?? []}
-          />
+            className="p-4"
+          >
+            <BookmarkCard
+              bookmark={bookmark}
+              properties={customProperties ?? []}
+            />
+          </Card>
         ))}
       </div>
     </section>

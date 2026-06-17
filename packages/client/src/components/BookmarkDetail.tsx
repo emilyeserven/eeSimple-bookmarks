@@ -7,7 +7,6 @@ import { formatNumber } from "../lib/bookmarkFormat";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { CategoryIcon } from "@/lib/icons";
 
 interface BookmarkDetailProps {
@@ -87,166 +86,164 @@ export function BookmarkDetail({
   const hasProperties = numberRows.length > 0 || booleanRows.length > 0;
 
   return (
-    <Card className="gap-0 py-4">
-      <CardContent className="space-y-6 px-4">
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0 space-y-1">
-            <h1 className="text-xl font-bold">
-              <a
-                href={bookmark.url}
-                target="_blank"
-                rel="noreferrer"
-                className="
-                  text-primary
-                  hover:underline
-                "
-              >
-                {bookmark.title}
-              </a>
-            </h1>
+    <div className="space-y-6">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0 space-y-1">
+          <h1 className="text-xl font-bold">
             <a
               href={bookmark.url}
               target="_blank"
               rel="noreferrer"
               className="
-                block truncate text-sm text-muted-foreground
+                text-primary
                 hover:underline
               "
             >
-              {bookmark.url}
+              {bookmark.title}
             </a>
-          </div>
-          {onEdit || onDelete
+          </h1>
+          <a
+            href={bookmark.url}
+            target="_blank"
+            rel="noreferrer"
+            className="
+              block truncate text-sm text-muted-foreground
+              hover:underline
+            "
+          >
+            {bookmark.url}
+          </a>
+        </div>
+        {onEdit || onDelete
+          ? (
+            <div className="flex shrink-0 items-center gap-1">
+              {onEdit
+                ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={onEdit}
+                  >
+                    Edit
+                  </Button>
+                )
+                : null}
+              {onDelete
+                ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={onDelete}
+                    className="
+                      text-destructive
+                      hover:text-destructive
+                    "
+                  >
+                    Delete
+                  </Button>
+                )
+                : null}
+            </div>
+          )
+          : null}
+      </div>
+
+      <dl className="space-y-3">
+        <Field label="Description">
+          {bookmark.description
+            ? <p className="whitespace-pre-wrap">{bookmark.description}</p>
+            : null}
+        </Field>
+
+        <Field label="Category">
+          {category
             ? (
-              <div className="flex shrink-0 items-center gap-1">
-                {onEdit
-                  ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={onEdit}
-                    >
-                      Edit
-                    </Button>
-                  )
-                  : null}
-                {onDelete
-                  ? (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={onDelete}
-                      className="
-                        text-destructive
-                        hover:text-destructive
-                      "
-                    >
-                      Delete
-                    </Button>
-                  )
-                  : null}
-              </div>
+              <Link
+                to="/categories/$categorySlug"
+                params={{
+                  categorySlug: category.slug,
+                }}
+                className="
+                  inline-flex items-center gap-1.5 text-primary
+                  hover:underline
+                "
+              >
+                <CategoryIcon
+                  name={category.icon}
+                  className="size-4 shrink-0"
+                />
+                {category.name}
+              </Link>
             )
             : null}
-        </div>
+        </Field>
 
-        <dl className="space-y-3">
-          <Field label="Description">
-            {bookmark.description
-              ? <p className="whitespace-pre-wrap">{bookmark.description}</p>
-              : null}
-          </Field>
+        <Field label="Website">
+          {bookmark.website
+            ? `${bookmark.website.siteName} (${bookmark.website.domain})`
+            : null}
+        </Field>
 
-          <Field label="Category">
-            {category
-              ? (
-                <Link
-                  to="/categories/$categorySlug"
-                  params={{
-                    categorySlug: category.slug,
-                  }}
-                  className="
-                    inline-flex items-center gap-1.5 text-primary
-                    hover:underline
-                  "
-                >
-                  <CategoryIcon
-                    name={category.icon}
-                    className="size-4 shrink-0"
-                  />
-                  {category.name}
-                </Link>
-              )
-              : null}
-          </Field>
+        <Field label="Tags">
+          {bookmark.tags.length > 0
+            ? (
+              <ul className="flex flex-wrap gap-1">
+                {bookmark.tags.map(tag => (
+                  <li key={tag.id}>
+                    <Badge variant="secondary">{tag.name}</Badge>
+                  </li>
+                ))}
+              </ul>
+            )
+            : null}
+        </Field>
 
-          <Field label="Website">
-            {bookmark.website
-              ? `${bookmark.website.siteName} (${bookmark.website.domain})`
-              : null}
-          </Field>
+        <Field label="Properties">
+          {hasProperties
+            ? (
+              <dl className="space-y-1">
+                {numberRows.map(row => (
+                  <div
+                    key={row.id}
+                    className="flex items-baseline gap-2"
+                  >
+                    <dt className="text-muted-foreground">
+                      {row.name}
+                      {row.isCalculated
+                        ? <span className="text-xs"> (calculated)</span>
+                        : null}
+                      :
+                    </dt>
+                    <dd>{row.value}</dd>
+                  </div>
+                ))}
+                {booleanRows.map(row => (
+                  <div
+                    key={row.id}
+                    className="flex items-baseline gap-2"
+                  >
+                    <dt className="text-muted-foreground">
+                      {row.name}
+                      :
+                    </dt>
+                    <dd>{row.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            )
+            : null}
+        </Field>
 
-          <Field label="Tags">
-            {bookmark.tags.length > 0
-              ? (
-                <ul className="flex flex-wrap gap-1">
-                  {bookmark.tags.map(tag => (
-                    <li key={tag.id}>
-                      <Badge variant="secondary">{tag.name}</Badge>
-                    </li>
-                  ))}
-                </ul>
-              )
-              : null}
-          </Field>
+        <Field label="Priority">
+          <span>{bookmark.priority}</span>
+        </Field>
 
-          <Field label="Properties">
-            {hasProperties
-              ? (
-                <dl className="space-y-1">
-                  {numberRows.map(row => (
-                    <div
-                      key={row.id}
-                      className="flex items-baseline gap-2"
-                    >
-                      <dt className="text-muted-foreground">
-                        {row.name}
-                        {row.isCalculated
-                          ? <span className="text-xs"> (calculated)</span>
-                          : null}
-                        :
-                      </dt>
-                      <dd>{row.value}</dd>
-                    </div>
-                  ))}
-                  {booleanRows.map(row => (
-                    <div
-                      key={row.id}
-                      className="flex items-baseline gap-2"
-                    >
-                      <dt className="text-muted-foreground">
-                        {row.name}
-                        :
-                      </dt>
-                      <dd>{row.value}</dd>
-                    </div>
-                  ))}
-                </dl>
-              )
-              : null}
-          </Field>
-
-          <Field label="Priority">
-            <span>{bookmark.priority}</span>
-          </Field>
-
-          <Field label="Created">
-            <span>{new Date(bookmark.createdAt).toLocaleString()}</span>
-          </Field>
-        </dl>
-      </CardContent>
-    </Card>
+        <Field label="Created">
+          <span>{new Date(bookmark.createdAt).toLocaleString()}</span>
+        </Field>
+      </dl>
+    </div>
   );
 }

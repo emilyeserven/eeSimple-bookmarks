@@ -47,10 +47,12 @@ function BookmarkEditPage() {
         : null}
       {bookmark
         ? (
-          <BookmarkForm
-            bookmark={bookmark}
-            onDone={backToDetail}
-          />
+          <div className="rounded-lg border bg-card p-4">
+            <BookmarkForm
+              bookmark={bookmark}
+              onDone={backToDetail}
+            />
+          </div>
         )
         : null}
     </section>
