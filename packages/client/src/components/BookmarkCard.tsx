@@ -8,6 +8,7 @@ interface BookmarkCardProps {
   bookmark: Bookmark;
   /** Custom property definitions, used to label and unit-format the bookmark's values. */
   properties?: CustomProperty[];
+  onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
 }
 
@@ -21,7 +22,7 @@ function formatNumber(value: number, property: CustomProperty): string {
 }
 
 export function BookmarkCard({
-  bookmark, properties = [], onDelete,
+  bookmark, properties = [], onEdit, onDelete,
 }: BookmarkCardProps) {
   const byId = new Map(properties.map(property => [property.id, property]));
 
@@ -73,22 +74,36 @@ export function BookmarkCard({
             </h3>
             <p className="truncate text-sm text-muted-foreground">{bookmark.url}</p>
           </div>
-          {onDelete
-            ? (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => onDelete(bookmark.id)}
-                className="
-                  text-destructive
-                  hover:text-destructive
-                "
-              >
-                Delete
-              </Button>
-            )
-            : null}
+          <div className="flex shrink-0 items-center gap-1">
+            {onEdit
+              ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onEdit(bookmark.id)}
+                >
+                  Edit
+                </Button>
+              )
+              : null}
+            {onDelete
+              ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onDelete(bookmark.id)}
+                  className="
+                    text-destructive
+                    hover:text-destructive
+                  "
+                >
+                  Delete
+                </Button>
+              )
+              : null}
+          </div>
         </div>
         {bookmark.description ? <p className="mt-2 text-sm text-foreground">{bookmark.description}</p> : null}
         {bookmark.tags.length > 0

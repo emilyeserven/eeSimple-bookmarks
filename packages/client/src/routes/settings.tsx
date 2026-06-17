@@ -23,6 +23,10 @@ const settingsNav = [
     to: "/settings/categories",
     label: "Categories",
   },
+  {
+    to: "/settings/automations",
+    label: "Automations",
+  },
 ] as const;
 
 const navLinkClass = `
@@ -36,7 +40,7 @@ function SettingsLayout() {
       <div>
         <h1 className="text-2xl font-bold">Settings</h1>
         <p className="text-sm text-muted-foreground">
-          Manage custom properties, display preferences, and categories.
+          Manage custom properties, display preferences, categories, and automations.
         </p>
       </div>
 

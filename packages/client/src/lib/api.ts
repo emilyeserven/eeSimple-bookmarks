@@ -57,6 +57,11 @@ export const bookmarksApi = {
   }),
 };
 
+export const metadataApi = {
+  fetchTitle: (url: string) =>
+    request<{ title: string }>(`/fetch-title?url=${encodeURIComponent(url)}`),
+};
+
 export const tagsApi = {
   list: () => request<Tag[]>("/tags"),
   tree: () => request<TagNode[]>("/tags/tree"),

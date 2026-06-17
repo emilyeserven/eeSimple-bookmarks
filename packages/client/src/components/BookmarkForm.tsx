@@ -1,24 +1,29 @@
 import type {
+  Bookmark,
   BookmarkBooleanValue,
   BookmarkNumberValue,
+  CreateBookmarkInput,
   CustomProperty,
   TagNode,
 } from "@eesimple/types";
 
 import { useEffect, useRef, useState } from "react";
 
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Loader2, Sparkles } from "lucide-react";
 import { z } from "zod";
 
 import { TagPicker } from "./TagPicker";
 import { useAutofillRules } from "../hooks/useAutofill";
-import { useCreateBookmark } from "../hooks/useBookmarks";
+import { useCreateBookmark, useUpdateBookmark } from "../hooks/useBookmarks";
 import { useCategories, useCategoryDefaults, useCategoryRootTags } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
+import { useFetchTitle } from "../hooks/useFetchTitle";
 import { useTagTree } from "../hooks/useTags";
 import { applyAutofill } from "../lib/autofill";
 import { useAppForm } from "../lib/form";
+import { useUiStore } from "../stores/uiStore";
 
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Collapsible,
@@ -37,9 +42,37 @@ const bookmarkSchema = z.object({
   priority: z.number().int(),
 });
 
-/** Create-bookmark form. Owns its own mutation so the page stays focused on the list. */
-export function BookmarkForm() {
+/** True when `value` parses as an http(s) URL — mirrors the middleware's guard. */
+function isFetchableUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  }
+  catch {
+    return false;
+  }
+}
+
+interface BookmarkFormProps {
+  /** When provided, the form edits this bookmark instead of creating a new one. */
+  bookmark?: Bookmark;
+  /** Called after a successful edit (or on cancel) so the parent can close the form. */
+  onDone?: () => void;
+}
+
+/**
+ * Bookmark form. Creates a new bookmark by default, or edits `bookmark` when given.
+ * Owns its own mutation so the page stays focused on the list.
+ */
+export function BookmarkForm({
+  bookmark, onDone,
+}: BookmarkFormProps = {}) {
+  const isEdit = Boolean(bookmark);
   const createBookmark = useCreateBookmark();
+  const updateBookmark = useUpdateBookmark();
+  const saveBookmark = isEdit ? updateBookmark : createBookmark;
+  const fetchTitle = useFetchTitle();
+  const autoFetchTitle = useUiStore(state => state.autoFetchTitle);
   const {
     data: tagTree,
   } = useTagTree();
@@ -54,9 +87,12 @@ export function BookmarkForm() {
   } = useAutofillRules();
 
   // Custom-property values live outside the typed form (they're dynamic). A ref
-  // mirrors them so the submit handler always reads the latest entries.
-  const [numberInputs, setNumberInputs] = useState<Record<string, string>>({});
-  const [booleanInputs, setBooleanInputs] = useState<Record<string, boolean>>({});
+  // mirrors them so the submit handler always reads the latest entries. When editing,
+  // seed them from the bookmark's existing values (calculate results are ignored on submit).
+  const [numberInputs, setNumberInputs] = useState<Record<string, string>>(() =>
+    Object.fromEntries((bookmark?.numberValues ?? []).map(entry => [entry.propertyId, String(entry.value)])));
+  const [booleanInputs, setBooleanInputs] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries((bookmark?.booleanValues ?? []).map(entry => [entry.propertyId, entry.value])));
   const customRef = useRef({
     numberInputs,
     booleanInputs,
@@ -172,12 +208,12 @@ export function BookmarkForm() {
 
   const form = useAppForm({
     defaultValues: {
-      url: "",
-      title: "",
-      categoryId: "",
-      description: "",
-      tagIds: [] as string[],
-      priority: 0,
+      url: bookmark?.url ?? "",
+      title: bookmark?.title ?? "",
+      categoryId: bookmark?.categoryId ?? "",
+      description: bookmark?.description ?? "",
+      tagIds: (bookmark?.tags.map(tag => tag.id) ?? []) as string[],
+      priority: bookmark?.priority ?? 0,
     },
     validators: {
       onChange: bookmarkSchema,
@@ -216,7 +252,7 @@ export function BookmarkForm() {
           value: booleans[property.id] ?? false,
         }));
 
-      await createBookmark.mutateAsync({
+      const input: CreateBookmarkInput = {
         url: value.url,
         title: value.title,
         categoryId: value.categoryId,
@@ -225,7 +261,18 @@ export function BookmarkForm() {
         numberValues,
         booleanValues,
         priority: value.priority,
-      });
+      };
+
+      if (bookmark) {
+        await updateBookmark.mutateAsync({
+          id: bookmark.id,
+          input,
+        });
+        onDone?.();
+        return;
+      }
+
+      await createBookmark.mutateAsync(input);
       form.reset();
       setNumberInputs({});
       setBooleanInputs({});
@@ -237,6 +284,26 @@ export function BookmarkForm() {
       lastAutoCategoryRef.current = "";
     },
   });
+
+  // Fetch the page title for the current URL and write it into the Title field.
+  // `force` (manual button) always overwrites; the on-blur path only fills a blank title.
+  async function runFetchTitle(url: string, {
+    force,
+  }: { force: boolean }): Promise<void> {
+    if (!isFetchableUrl(url)) return;
+    if (!force && form.getFieldValue("title").trim() !== "") return;
+    try {
+      const {
+        title,
+      } = await fetchTitle.mutateAsync(url);
+      if (force || form.getFieldValue("title").trim() === "") {
+        form.setFieldValue("title", title);
+      }
+    }
+    catch {
+      // Surfaced via fetchTitle.isError below; nothing else to do here.
+    }
+  }
 
   // Default the category to the built-in "Default" once categories load.
   useEffect(() => {
@@ -259,24 +326,65 @@ export function BookmarkForm() {
         void form.handleSubmit();
       }}
     >
-      <form.AppField name="title">
-        {field => (
-          <field.TextField
-            label="Name"
-            onBlur={runAutofill}
-          />
+      <form.Subscribe selector={state => state.values.url}>
+        {url => (
+          <form.AppField name="title">
+            {field => (
+              <field.TextField
+                label="Name"
+                onBlur={runAutofill}
+                action={(
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    title="Fetch title from URL"
+                    aria-label="Fetch title from URL"
+                    disabled={!isFetchableUrl(url) || fetchTitle.isPending}
+                    onClick={() => void runFetchTitle(url, {
+                      force: true,
+                    })}
+                  >
+                    {fetchTitle.isPending
+                      ? <Loader2 className="size-4 animate-spin" />
+                      : <Sparkles className="size-4" />}
+                  </Button>
+                )}
+              />
+            )}
+          </form.AppField>
         )}
-      </form.AppField>
+      </form.Subscribe>
 
       <form.AppField name="url">
         {field => (
           <field.TextField
             label="URL"
             type="url"
-            onBlur={runAutofill}
+            onBlur={() => {
+              runAutofill();
+              if (autoFetchTitle) {
+                void runFetchTitle(field.state.value, {
+                  force: false,
+                });
+              }
+            }}
           />
         )}
       </form.AppField>
+
+      {fetchTitle.isError
+        ? (
+          <p
+            className="
+              text-sm text-destructive
+              sm:col-span-2
+            "
+          >
+            {fetchTitle.error?.message ?? "Could not fetch a title for that URL."}
+          </p>
+        )
+        : null}
 
       <form.AppField name="categoryId">
         {field => (
@@ -387,13 +495,26 @@ export function BookmarkForm() {
       </Collapsible>
 
       <div className="sm:col-span-2">
-        <form.AppForm>
-          <form.SubmitButton
-            label="Add bookmark"
-            pendingLabel="Saving…"
-          />
-        </form.AppForm>
-        {createBookmark.isError ? <p className="mt-2 text-sm text-destructive">{createBookmark.error?.message}</p> : null}
+        <div className="flex items-center gap-2">
+          <form.AppForm>
+            <form.SubmitButton
+              label={isEdit ? "Save changes" : "Add bookmark"}
+              pendingLabel="Saving…"
+            />
+          </form.AppForm>
+          {isEdit && onDone
+            ? (
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={onDone}
+              >
+                Cancel
+              </Button>
+            )
+            : null}
+        </div>
+        {saveBookmark.isError ? <p className="mt-2 text-sm text-destructive">{saveBookmark.error?.message}</p> : null}
       </div>
     </form>
   );

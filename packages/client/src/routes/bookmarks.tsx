@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import { createFileRoute } from "@tanstack/react-router";
 
 import { BookmarkCard } from "../components/BookmarkCard";
@@ -38,6 +40,7 @@ function BookmarksPage() {
     data: customProperties,
   } = useCustomProperties();
   const deleteBookmark = useDeleteBookmark();
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const {
     onNumberFilterChange, onBooleanFilterChange, matches,
@@ -84,14 +87,24 @@ function BookmarksPage() {
             </p>
           )
           : null}
-        {visibleBookmarks.map(bookmark => (
-          <BookmarkCard
-            key={bookmark.id}
-            bookmark={bookmark}
-            properties={customProperties ?? []}
-            onDelete={id => deleteBookmark.mutate(id)}
-          />
-        ))}
+        {visibleBookmarks.map(bookmark =>
+          editingId === bookmark.id
+            ? (
+              <BookmarkForm
+                key={bookmark.id}
+                bookmark={bookmark}
+                onDone={() => setEditingId(null)}
+              />
+            )
+            : (
+              <BookmarkCard
+                key={bookmark.id}
+                bookmark={bookmark}
+                properties={customProperties ?? []}
+                onEdit={id => setEditingId(id)}
+                onDelete={id => deleteBookmark.mutate(id)}
+              />
+            ))}
       </div>
     </section>
   );
