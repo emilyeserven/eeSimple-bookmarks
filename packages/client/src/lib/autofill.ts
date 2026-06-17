@@ -2,7 +2,10 @@ import type {
   AutofillRule,
   BookmarkBooleanValue,
   BookmarkNumberValue,
+  ConditionInput,
 } from "@eesimple/types";
+
+import { evaluateConditions } from "@eesimple/types";
 
 /** The bookmark fields an autofill rule is matched against. */
 export interface AutofillInput {
@@ -19,45 +22,22 @@ export interface AutofillResult {
   booleanValues: BookmarkBooleanValue[];
 }
 
-/** Extract the host of a URL with a leading `www.` removed, or `null` if it can't be parsed. */
-function hostOf(url: string): string | null {
-  try {
-    return new URL(url).hostname.replace(/^www\./i, "").toLowerCase();
-  }
-  catch {
-    return null;
-  }
-}
-
-/** Whether a single rule matches the given URL/Title. Invalid regex patterns never match. */
+/**
+ * Whether a rule's conditions are satisfied by what's known when adding a bookmark. Only the
+ * URL/title are available at this point, so the bookmark's category, tags, and property values are
+ * projected as empty — i.e. category/tag/property condition leaves can't fire yet and a rule
+ * effectively triggers on the URL/title-satisfiable part of its tree.
+ */
 export function matchesRule(rule: AutofillRule, input: AutofillInput): boolean {
-  const pattern = rule.pattern.trim();
-  if (pattern === "") return false;
-
-  // The `domain` operator always inspects the URL's host regardless of `field`.
-  if (rule.operator === "domain") {
-    const host = hostOf(input.url);
-    return host !== null && host === pattern.replace(/^www\./i, "").toLowerCase();
-  }
-
-  const haystack = rule.field === "url" ? input.url : input.title;
-  if (haystack === "") return false;
-
-  switch (rule.operator) {
-    case "contains":
-      return haystack.toLowerCase().includes(pattern.toLowerCase());
-    case "starts_with":
-      return haystack.toLowerCase().startsWith(pattern.toLowerCase());
-    case "regex":
-      try {
-        return new RegExp(pattern, "i").test(haystack);
-      }
-      catch {
-        return false;
-      }
-    default:
-      return false;
-  }
+  const projection: ConditionInput = {
+    url: input.url,
+    title: input.title,
+    categoryId: "",
+    tagIds: new Set(),
+    numberValues: new Map(),
+    booleanValues: new Map(),
+  };
+  return evaluateConditions(rule.conditions, projection);
 }
 
 /**

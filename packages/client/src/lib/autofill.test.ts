@@ -1,17 +1,33 @@
-import type { AutofillRule } from "@eesimple/types";
+import type { AutofillRule, ConditionMatchField, ConditionMatchOperator, ConditionTree } from "@eesimple/types";
 
 import { describe, expect, it } from "vitest";
 
 import { applyAutofill, matchesRule } from "./autofill";
+
+/** A single-match AND tree, the common case. */
+function match(
+  pattern: string,
+  options?: { field?: ConditionMatchField;
+    operator?: ConditionMatchOperator; },
+): ConditionTree {
+  return {
+    type: "group",
+    combinator: "and",
+    children: [{
+      type: "match",
+      field: options?.field ?? "title",
+      operator: options?.operator ?? "contains",
+      pattern,
+    }],
+  };
+}
 
 /** Build an AutofillRule with sensible defaults so tests only specify what matters. */
 function rule(overrides: Partial<AutofillRule>): AutofillRule {
   return {
     id: overrides.id ?? "rule",
     name: overrides.name ?? "Rule",
-    field: overrides.field ?? "title",
-    operator: overrides.operator ?? "contains",
-    pattern: overrides.pattern ?? "",
+    conditions: overrides.conditions ?? match(""),
     setCategoryId: overrides.setCategoryId ?? null,
     tagIds: overrides.tagIds ?? [],
     numberValues: overrides.numberValues ?? [],
@@ -27,63 +43,79 @@ const input = {
 };
 
 describe("matchesRule", () => {
-  it("matches contains case-insensitively", () => {
+  it("matches contains and starts_with case-insensitively", () => {
     expect(matchesRule(rule({
-      field: "title",
-      operator: "contains",
-      pattern: "ponzu",
-    }), input)).toBe(true);
-  });
-
-  it("matches starts_with case-insensitively", () => {
-    expect(matchesRule(rule({
-      field: "title",
-      operator: "starts_with",
-      pattern: "weeknight",
+      conditions: match("ponzu"),
     }), input)).toBe(true);
     expect(matchesRule(rule({
-      field: "title",
-      operator: "starts_with",
-      pattern: "pasta",
+      conditions: match("weeknight", {
+        operator: "starts_with",
+      }),
+    }), input)).toBe(true);
+    expect(matchesRule(rule({
+      conditions: match("pasta", {
+        operator: "starts_with",
+      }),
     }), input)).toBe(false);
   });
 
   it("matches a valid regex and ignores an invalid one", () => {
     expect(matchesRule(rule({
-      field: "title",
-      operator: "regex",
-      pattern: "p(asta|izza)",
+      conditions: match("p(asta|izza)", {
+        operator: "regex",
+      }),
     }), input)).toBe(true);
     expect(matchesRule(rule({
-      field: "title",
-      operator: "regex",
-      pattern: "(unclosed",
+      conditions: match("(unclosed", {
+        operator: "regex",
+      }),
     }), input)).toBe(false);
   });
 
   it("matches a domain with the www. prefix stripped", () => {
     expect(matchesRule(rule({
-      operator: "domain",
-      pattern: "101cookbooks.com",
+      conditions: match("101cookbooks.com", {
+        operator: "domain",
+      }),
     }), input)).toBe(true);
     expect(matchesRule(rule({
-      operator: "domain",
-      pattern: "example.com",
+      conditions: match("example.com", {
+        operator: "domain",
+      }),
     }), input)).toBe(false);
   });
 
-  it("never matches an empty pattern or an unparseable URL for domain", () => {
+  it("does not fire category/tag/property leaves at add-time, but an OR match leaf still can", () => {
+    // Category leaf alone can't match (no category is known yet).
     expect(matchesRule(rule({
-      operator: "contains",
-      pattern: "   ",
+      conditions: {
+        type: "group",
+        combinator: "and",
+        children: [{
+          type: "category",
+          categoryIds: ["cat-a"],
+        }],
+      },
     }), input)).toBe(false);
+    // An OR group still fires through its satisfiable match leaf.
     expect(matchesRule(rule({
-      operator: "domain",
-      pattern: "101cookbooks.com",
-    }), {
-      url: "not a url",
-      title: "x",
-    })).toBe(false);
+      conditions: {
+        type: "group",
+        combinator: "or",
+        children: [
+          {
+            type: "category",
+            categoryIds: ["cat-a"],
+          },
+          {
+            type: "match",
+            field: "title",
+            operator: "contains",
+            pattern: "ponzu",
+          },
+        ],
+      },
+    }), input)).toBe(true);
   });
 });
 
@@ -92,8 +124,9 @@ describe("applyAutofill", () => {
     const result = applyAutofill(input, [
       rule({
         id: "a",
-        operator: "domain",
-        pattern: "101cookbooks.com",
+        conditions: match("101cookbooks.com", {
+          operator: "domain",
+        }),
         tagIds: ["recipe"],
         booleanValues: [{
           propertyId: "tried",
@@ -102,14 +135,12 @@ describe("applyAutofill", () => {
       }),
       rule({
         id: "b",
-        operator: "contains",
-        pattern: "ponzu",
+        conditions: match("ponzu"),
         tagIds: ["japanese", "citrus"],
       }),
       rule({
         id: "c",
-        operator: "contains",
-        pattern: "pasta",
+        conditions: match("pasta"),
         tagIds: ["carb-pasta"],
       }),
     ]);
@@ -125,8 +156,7 @@ describe("applyAutofill", () => {
       rule({
         id: "low",
         sortOrder: 0,
-        operator: "contains",
-        pattern: "ponzu",
+        conditions: match("ponzu"),
         setCategoryId: "cat-a",
         numberValues: [{
           propertyId: "score",
@@ -136,8 +166,7 @@ describe("applyAutofill", () => {
       rule({
         id: "high",
         sortOrder: 10,
-        operator: "contains",
-        pattern: "pasta",
+        conditions: match("pasta"),
         setCategoryId: "cat-b",
         numberValues: [{
           propertyId: "score",
@@ -155,8 +184,7 @@ describe("applyAutofill", () => {
   it("returns empty results when nothing matches", () => {
     const result = applyAutofill(input, [
       rule({
-        operator: "contains",
-        pattern: "nonsense",
+        conditions: match("nonsense"),
         setCategoryId: "cat-a",
       }),
     ]);

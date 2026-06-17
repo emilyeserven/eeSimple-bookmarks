@@ -5,10 +5,11 @@ import type {
 
 import { useMemo, useState } from "react";
 
-import { NO_CATEGORY, OPERATOR_LABELS } from "./AutofillRuleForm";
+import { NO_CATEGORY } from "./AutofillRuleForm";
 import { usePanelControls } from "./panel/usePanelControls";
 import { useAutofillRules } from "../hooks/useAutofill";
 import { useCategories } from "../hooks/useCategories";
+import { summarizeConditions } from "../lib/conditionsSummary";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -68,7 +69,7 @@ export function AutofillRulesList({
     return scopedRules.filter((rule) => {
       const matchesSearch = query === ""
         || rule.name.toLowerCase().includes(query)
-        || rule.pattern.toLowerCase().includes(query);
+        || summarizeConditions(rule.conditions).toLowerCase().includes(query);
       const matchesCategory = categoryFilter === ALL_CATEGORIES
         || (categoryFilter === NO_CATEGORY
           ? rule.setCategoryId === null
@@ -173,7 +174,6 @@ function RuleListItem({
   const categoryName = rule.setCategoryId
     ? categories.find(category => category.id === rule.setCategoryId)?.name
     : null;
-  const fieldLabel = rule.operator === "domain" ? "URL" : rule.field === "url" ? "URL" : "Title";
 
   return (
     <button
@@ -192,7 +192,7 @@ function RuleListItem({
         >
           <CardTitle>{rule.name}</CardTitle>
           <span className="text-xs text-muted-foreground">
-            {`${fieldLabel} ${OPERATOR_LABELS[rule.operator]} “${rule.pattern}”`}
+            {summarizeConditions(rule.conditions)}
           </span>
           {categoryName ? <Badge variant="secondary">{categoryName}</Badge> : null}
         </CardHeader>

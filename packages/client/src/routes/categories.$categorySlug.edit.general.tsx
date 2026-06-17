@@ -23,13 +23,10 @@ function GeneralTab() {
       <div>
         <h2 className="text-xl font-semibold">General</h2>
         <p className="text-sm text-muted-foreground">
-          Name, icon, description, and homepage visibility.
+          Name, icon, and description.
         </p>
       </div>
-      <CategoryGeneralForm
-        category={category}
-        showHomepageToggle
-      />
+      <CategoryGeneralForm category={category} />
     </section>
   );
 }
