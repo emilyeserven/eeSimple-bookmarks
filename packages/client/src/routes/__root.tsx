@@ -28,7 +28,6 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 const PAGE_TITLES: Record<string, string> = {
   "/": "Home",
   "/bookmarks": "Bookmarks",
-  "/tags": "Tags",
 };
 
 /** Resolve the breadcrumb title for a path, handling nested settings/category routes. */

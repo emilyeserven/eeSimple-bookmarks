@@ -9,11 +9,11 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TagsRouteImport } from './routes/tags'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as BookmarksRouteImport } from './routes/bookmarks'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsIndexRouteImport } from './routes/settings.index'
+import { Route as SettingsTagsRouteImport } from './routes/settings.tags'
 import { Route as SettingsDisplayRouteImport } from './routes/settings.display'
 import { Route as SettingsCustomPropertiesRouteImport } from './routes/settings.custom-properties'
 import { Route as SettingsCategoriesRouteImport } from './routes/settings.categories'
@@ -28,11 +28,6 @@ import { Route as CategoriesCategorySlugEditGeneralRouteImport } from './routes/
 import { Route as CategoriesCategorySlugEditCustomPropertiesRouteImport } from './routes/categories.$categorySlug.edit.custom-properties'
 import { Route as CategoriesCategorySlugEditAutofillRouteImport } from './routes/categories.$categorySlug.edit.autofill'
 
-const TagsRoute = TagsRouteImport.update({
-  id: '/tags',
-  path: '/tags',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -51,6 +46,11 @@ const IndexRoute = IndexRouteImport.update({
 const SettingsIndexRoute = SettingsIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsTagsRoute = SettingsTagsRouteImport.update({
+  id: '/tags',
+  path: '/tags',
   getParentRoute: () => SettingsRoute,
 } as any)
 const SettingsDisplayRoute = SettingsDisplayRouteImport.update({
@@ -131,13 +131,13 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/bookmarks': typeof BookmarksRoute
   '/settings': typeof SettingsRouteWithChildren
-  '/tags': typeof TagsRoute
   '/categories/$categorySlug': typeof CategoriesCategorySlugRouteWithChildren
   '/settings/autofill': typeof SettingsAutofillRoute
   '/settings/automations': typeof SettingsAutomationsRoute
   '/settings/categories': typeof SettingsCategoriesRoute
   '/settings/custom-properties': typeof SettingsCustomPropertiesRoute
   '/settings/display': typeof SettingsDisplayRoute
+  '/settings/tags': typeof SettingsTagsRoute
   '/settings/': typeof SettingsIndexRoute
   '/categories/$categorySlug/edit': typeof CategoriesCategorySlugEditRouteWithChildren
   '/categories/$categorySlug/': typeof CategoriesCategorySlugIndexRoute
@@ -150,12 +150,12 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/bookmarks': typeof BookmarksRoute
-  '/tags': typeof TagsRoute
   '/settings/autofill': typeof SettingsAutofillRoute
   '/settings/automations': typeof SettingsAutomationsRoute
   '/settings/categories': typeof SettingsCategoriesRoute
   '/settings/custom-properties': typeof SettingsCustomPropertiesRoute
   '/settings/display': typeof SettingsDisplayRoute
+  '/settings/tags': typeof SettingsTagsRoute
   '/settings': typeof SettingsIndexRoute
   '/categories/$categorySlug': typeof CategoriesCategorySlugIndexRoute
   '/categories/$categorySlug/edit/autofill': typeof CategoriesCategorySlugEditAutofillRoute
@@ -169,13 +169,13 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/bookmarks': typeof BookmarksRoute
   '/settings': typeof SettingsRouteWithChildren
-  '/tags': typeof TagsRoute
   '/categories/$categorySlug': typeof CategoriesCategorySlugRouteWithChildren
   '/settings/autofill': typeof SettingsAutofillRoute
   '/settings/automations': typeof SettingsAutomationsRoute
   '/settings/categories': typeof SettingsCategoriesRoute
   '/settings/custom-properties': typeof SettingsCustomPropertiesRoute
   '/settings/display': typeof SettingsDisplayRoute
+  '/settings/tags': typeof SettingsTagsRoute
   '/settings/': typeof SettingsIndexRoute
   '/categories/$categorySlug/edit': typeof CategoriesCategorySlugEditRouteWithChildren
   '/categories/$categorySlug/': typeof CategoriesCategorySlugIndexRoute
@@ -191,13 +191,13 @@ export interface FileRouteTypes {
     | '/'
     | '/bookmarks'
     | '/settings'
-    | '/tags'
     | '/categories/$categorySlug'
     | '/settings/autofill'
     | '/settings/automations'
     | '/settings/categories'
     | '/settings/custom-properties'
     | '/settings/display'
+    | '/settings/tags'
     | '/settings/'
     | '/categories/$categorySlug/edit'
     | '/categories/$categorySlug/'
@@ -210,12 +210,12 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/bookmarks'
-    | '/tags'
     | '/settings/autofill'
     | '/settings/automations'
     | '/settings/categories'
     | '/settings/custom-properties'
     | '/settings/display'
+    | '/settings/tags'
     | '/settings'
     | '/categories/$categorySlug'
     | '/categories/$categorySlug/edit/autofill'
@@ -228,13 +228,13 @@ export interface FileRouteTypes {
     | '/'
     | '/bookmarks'
     | '/settings'
-    | '/tags'
     | '/categories/$categorySlug'
     | '/settings/autofill'
     | '/settings/automations'
     | '/settings/categories'
     | '/settings/custom-properties'
     | '/settings/display'
+    | '/settings/tags'
     | '/settings/'
     | '/categories/$categorySlug/edit'
     | '/categories/$categorySlug/'
@@ -249,19 +249,11 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BookmarksRoute: typeof BookmarksRoute
   SettingsRoute: typeof SettingsRouteWithChildren
-  TagsRoute: typeof TagsRoute
   CategoriesCategorySlugRoute: typeof CategoriesCategorySlugRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/tags': {
-      id: '/tags'
-      path: '/tags'
-      fullPath: '/tags'
-      preLoaderRoute: typeof TagsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -288,6 +280,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/settings/'
       preLoaderRoute: typeof SettingsIndexRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/tags': {
+      id: '/settings/tags'
+      path: '/tags'
+      fullPath: '/settings/tags'
+      preLoaderRoute: typeof SettingsTagsRouteImport
       parentRoute: typeof SettingsRoute
     }
     '/settings/display': {
@@ -390,6 +389,7 @@ interface SettingsRouteChildren {
   SettingsCategoriesRoute: typeof SettingsCategoriesRoute
   SettingsCustomPropertiesRoute: typeof SettingsCustomPropertiesRoute
   SettingsDisplayRoute: typeof SettingsDisplayRoute
+  SettingsTagsRoute: typeof SettingsTagsRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
 }
 
@@ -399,6 +399,7 @@ const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsCategoriesRoute: SettingsCategoriesRoute,
   SettingsCustomPropertiesRoute: SettingsCustomPropertiesRoute,
   SettingsDisplayRoute: SettingsDisplayRoute,
+  SettingsTagsRoute: SettingsTagsRoute,
   SettingsIndexRoute: SettingsIndexRoute,
 }
 
@@ -453,7 +454,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BookmarksRoute: BookmarksRoute,
   SettingsRoute: SettingsRouteWithChildren,
-  TagsRoute: TagsRoute,
   CategoriesCategorySlugRoute: CategoriesCategorySlugRouteWithChildren,
 }
 export const routeTree = rootRouteImport
