@@ -82,6 +82,22 @@ export interface WebsiteLookup {
   siteName: string | null;
 }
 
+/**
+ * The image attached to a bookmark. The bytes live in object storage; this carries only what the
+ * UI needs to render it. `url` points at the API serving endpoint (it embeds a `?v=` version param
+ * so a replaced image busts the browser cache).
+ */
+export interface BookmarkImage {
+  /** Serving URL on the API, e.g. `/api/bookmarks/<id>/image?v=<version>`. */
+  url: string;
+  /** Pixel width of the stored (already-resized) image. */
+  width: number;
+  /** Pixel height of the stored (already-resized) image. */
+  height: number;
+  /** How the image was obtained: a manual upload or the page's auto-fetched `og:image`. */
+  source: "upload" | "og";
+}
+
 /** A single saved bookmark. */
 export interface Bookmark {
   id: string;
@@ -91,6 +107,8 @@ export interface Bookmark {
   title: string;
   /** Optional free-form description. */
   description: string | null;
+  /** The image attached to this bookmark, or `null` when none has been set. */
+  image: BookmarkImage | null;
   /** Id of the category this bookmark belongs to (always set; the built-in "Default" when unassigned). */
   categoryId: string;
   /** The website this bookmark belongs to (auto-linked by URL host), or `null` when the URL has no host. */

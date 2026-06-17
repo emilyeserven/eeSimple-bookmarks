@@ -24,6 +24,29 @@ export const bookmarks = pgTable("bookmarks", {
 });
 
 /**
+ * `bookmark_images` — 0..1 image per bookmark. The image bytes live in object storage (Garage/S3);
+ * this table holds only metadata. `bookmarkId` is the primary key, so a replace is an upsert and the
+ * row cascades away with its bookmark.
+ */
+export const bookmarkImages = pgTable("bookmark_images", {
+  bookmarkId: uuid("bookmark_id").primaryKey().references(() => bookmarks.id, {
+    onDelete: "cascade",
+  }),
+  // Object-storage key the bytes are stored under, e.g. "bookmarks/<id>.webp".
+  objectKey: text("object_key").notNull(),
+  // Always "image/webp" after the resize/encode pipeline.
+  contentType: text("content_type").notNull(),
+  width: integer("width").notNull(),
+  height: integer("height").notNull(),
+  byteSize: integer("byte_size").notNull(),
+  // "upload" | "og" — kept as text so new sources can be added without a migration.
+  source: text("source").notNull(),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+});
+
+/**
  * `websites` table — the built-in "Websites" taxonomy. One row per distinct host; bookmarks are
  * auto-linked to a website by the host of their URL.
  */
@@ -100,6 +123,16 @@ export const bookmarksRelations = relations(bookmarks, ({
     references: [websites.id],
   }),
   bookmarkTags: many(bookmarkTags),
+  image: one(bookmarkImages),
+}));
+
+export const bookmarkImagesRelations = relations(bookmarkImages, ({
+  one,
+}) => ({
+  bookmark: one(bookmarks, {
+    fields: [bookmarkImages.bookmarkId],
+    references: [bookmarks.id],
+  }),
 }));
 
 export const websitesRelations = relations(websites, ({
@@ -448,6 +481,8 @@ export const calculatePropertyOperandsRelations = relations(calculatePropertyOpe
 
 export type BookmarkRow = typeof bookmarks.$inferSelect;
 export type NewBookmarkRow = typeof bookmarks.$inferInsert;
+export type BookmarkImageRow = typeof bookmarkImages.$inferSelect;
+export type NewBookmarkImageRow = typeof bookmarkImages.$inferInsert;
 export type WebsiteRow = typeof websites.$inferSelect;
 export type NewWebsiteRow = typeof websites.$inferInsert;
 export type TagRow = typeof tags.$inferSelect;

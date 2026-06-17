@@ -1,6 +1,7 @@
 import type {
   AutofillRule,
   Bookmark,
+  BookmarkImage,
   Category,
   CategoryPropertyDefaults,
   CreateAutofillRuleInput,
@@ -62,6 +63,29 @@ export const bookmarksApi = {
   remove: (id: string) => request<undefined>(`/bookmarks/${id}`, {
     method: "DELETE",
   }),
+  // Image upload goes through FormData, not the JSON `request` helper, so the browser sets the
+  // multipart boundary itself.
+  uploadImage: async (id: string, file: File): Promise<BookmarkImage> => {
+    const form = new FormData();
+    form.append("file", file);
+    const res = await fetch(`${BASE}/bookmarks/${id}/image`, {
+      method: "POST",
+      body: form,
+    });
+    if (!res.ok) {
+      const body = (await res.json().catch(() => ({}))) as { message?: string };
+      throw new Error(body.message ?? `Upload failed with ${res.status}`);
+    }
+    return (await res.json()) as BookmarkImage;
+  },
+  autoImage: (id: string) =>
+    request<BookmarkImage>(`/bookmarks/${id}/image/auto`, {
+      method: "POST",
+    }),
+  deleteImage: (id: string) =>
+    request<undefined>(`/bookmarks/${id}/image`, {
+      method: "DELETE",
+    }),
 };
 
 export const metadataApi = {

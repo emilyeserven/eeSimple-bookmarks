@@ -195,6 +195,18 @@ export function BookmarkCard({
           </DropdownMenu>
         </div>
       </div>
+      {bookmark.image
+        ? (
+          <img
+            src={bookmark.image.url}
+            alt=""
+            loading="lazy"
+            width={bookmark.image.width}
+            height={bookmark.image.height}
+            className="mt-2 max-h-40 w-full rounded-md border object-cover"
+          />
+        )
+        : null}
       {bookmark.description ? <p className="mt-2 text-sm text-foreground">{bookmark.description}</p> : null}
       {bookmark.website
         ? (

@@ -148,6 +148,7 @@ describe("BookmarkForm title fetching", () => {
       url: "https://github.com",
       title: "GitHub",
       description: "Code host",
+      image: null,
       categoryId: "22222222-2222-2222-2222-222222222222",
       website: null,
       tags: [],

@@ -3,6 +3,7 @@ import { buildApp } from "@/app";
 import { maybeSeed } from "@/db/seed";
 import { ensureDefaultCategory } from "@/services/categories";
 import { backfillWebsiteSlugs } from "@/services/websites";
+import { ensureBucket, isObjectStoreConfigured } from "@/utils/objectStore";
 
 const port = Number(process.env.PORT ?? 3001);
 const host = process.env.HOST ?? "0.0.0.0";
@@ -15,6 +16,8 @@ try {
   await ensureDefaultCategory();
   await backfillWebsiteSlugs();
   await maybeSeed();
+  // Create the image bucket if storage is configured; harmless when it already exists.
+  if (isObjectStoreConfigured()) await ensureBucket();
 }
 catch (err) {
   app.log.warn({
