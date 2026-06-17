@@ -326,6 +326,23 @@ export function BookmarkForm({
         void form.handleSubmit();
       }}
     >
+      <form.AppField name="url">
+        {field => (
+          <field.TextField
+            label="URL"
+            type="url"
+            onBlur={() => {
+              runAutofill();
+              if (autoFetchTitle) {
+                void runFetchTitle(field.state.value, {
+                  force: false,
+                });
+              }
+            }}
+          />
+        )}
+      </form.AppField>
+
       <form.Subscribe selector={state => state.values.url}>
         {url => (
           <form.AppField name="title">
@@ -355,23 +372,6 @@ export function BookmarkForm({
           </form.AppField>
         )}
       </form.Subscribe>
-
-      <form.AppField name="url">
-        {field => (
-          <field.TextField
-            label="URL"
-            type="url"
-            onBlur={() => {
-              runAutofill();
-              if (autoFetchTitle) {
-                void runFetchTitle(field.state.value, {
-                  force: false,
-                });
-              }
-            }}
-          />
-        )}
-      </form.AppField>
 
       {fetchTitle.isError
         ? (
