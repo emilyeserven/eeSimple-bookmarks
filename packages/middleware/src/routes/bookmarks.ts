@@ -3,6 +3,7 @@ import type { CreateBookmarkInput, UpdateBookmarkInput } from "@eesimple/types";
 import {
   createBookmark,
   deleteBookmark,
+  DuplicateUrlError,
   getBookmark,
   listBookmarks,
   listHomepageBookmarks,
@@ -100,6 +101,9 @@ const createBookmarkBody = {
       type: "string",
       minLength: 1,
     },
+    originalUrl: {
+      type: ["string", "null"],
+    },
   },
 } as const;
 
@@ -157,8 +161,18 @@ export async function bookmarkRoutes(app: FastifyInstance): Promise<void> {
         message: "url must be a valid http(s) URL",
       });
     }
-    const bookmark = await createBookmark(input);
-    return reply.code(201).send(bookmark);
+    try {
+      const bookmark = await createBookmark(input);
+      return reply.code(201).send(bookmark);
+    }
+    catch (err) {
+      if (err instanceof DuplicateUrlError) {
+        return reply.code(409).send({
+          message: err.message,
+        });
+      }
+      throw err;
+    }
   });
 
   app.patch(
@@ -180,11 +194,21 @@ export async function bookmarkRoutes(app: FastifyInstance): Promise<void> {
           message: "url must be a valid http(s) URL",
         });
       }
-      const bookmark = await updateBookmark(id, input);
-      if (!bookmark) return reply.code(404).send({
-        message: "Bookmark not found",
-      });
-      return bookmark;
+      try {
+        const bookmark = await updateBookmark(id, input);
+        if (!bookmark) return reply.code(404).send({
+          message: "Bookmark not found",
+        });
+        return bookmark;
+      }
+      catch (err) {
+        if (err instanceof DuplicateUrlError) {
+          return reply.code(409).send({
+            message: err.message,
+          });
+        }
+        throw err;
+      }
     },
   );
 

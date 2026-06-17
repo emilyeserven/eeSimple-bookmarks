@@ -126,6 +126,7 @@ export const sampleProperties: CustomProperty[] = [
 export const sampleBookmark: Bookmark = {
   id: "bookmark-github",
   url: "https://github.com",
+  originalUrl: null,
   title: "GitHub",
   description: "Where the code lives.",
   categoryId: "cat-workflow",

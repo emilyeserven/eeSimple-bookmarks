@@ -1,3 +1,4 @@
+import type { UrlCleanupMode } from "../lib/urlCleanup";
 import type {
   Bookmark,
   BookmarkBooleanValue,
@@ -7,9 +8,9 @@ import type {
   TagNode,
 } from "@eesimple/types";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
-import { ChevronDown, Loader2, Sparkles } from "lucide-react";
+import { Brush, ChevronDown, ExternalLink, Loader2, Sparkles } from "lucide-react";
 import { z } from "zod";
 
 import { TagPicker } from "./TagPicker";
@@ -22,6 +23,7 @@ import { useTagTree } from "../hooks/useTags";
 import { useWebsiteLookup } from "../hooks/useWebsites";
 import { applyAutofill } from "../lib/autofill";
 import { useAppForm } from "../lib/form";
+import { cleanUrl } from "../lib/urlCleanup";
 import { useUiStore } from "../stores/uiStore";
 
 import { Badge } from "@/components/ui/badge";
@@ -105,6 +107,11 @@ export function BookmarkForm({
   const [isReportingTitle, setIsReportingTitle] = useState(false);
   const [expectedTitle, setExpectedTitle] = useState("");
   const [websiteSiteName, setWebsiteSiteName] = useState("");
+  const [showUrlCleanup, setShowUrlCleanup] = useState(false);
+  const [urlCleanupMode, setUrlCleanupMode] = useState<UrlCleanupMode>("none");
+  const urlCleanupModeRef = useRef<UrlCleanupMode>("none");
+  urlCleanupModeRef.current = urlCleanupMode;
+  const cleanupId = useId();
   const customRef = useRef({
     numberInputs,
     booleanInputs,
@@ -220,7 +227,7 @@ export function BookmarkForm({
 
   const form = useAppForm({
     defaultValues: {
-      url: bookmark?.url ?? "",
+      url: bookmark?.originalUrl ?? bookmark?.url ?? "",
       title: bookmark?.title ?? "",
       categoryId: bookmark?.categoryId ?? lockedCategoryId ?? "",
       description: bookmark?.description ?? "",
@@ -264,8 +271,13 @@ export function BookmarkForm({
           value: booleans[property.id] ?? false,
         }));
 
+      const rawUrl = value.url;
+      const finalUrl = cleanUrl(rawUrl, urlCleanupModeRef.current);
+      const isModified = finalUrl !== rawUrl;
+
       const input: CreateBookmarkInput = {
-        url: value.url,
+        url: finalUrl,
+        originalUrl: isModified ? rawUrl : null,
         title: value.title,
         categoryId: value.categoryId,
         description: value.description || null,
@@ -295,6 +307,8 @@ export function BookmarkForm({
       setNumberInputs({});
       setBooleanInputs({});
       setWebsiteSiteName("");
+      setShowUrlCleanup(false);
+      setUrlCleanupMode("none");
       touchedRef.current = new Set();
       ruleSetRef.current = {
         numbers: new Set(),
@@ -409,6 +423,19 @@ export function BookmarkForm({
                   });
                 }
               }}
+              action={(
+                <Button
+                  type="button"
+                  variant={showUrlCleanup ? "secondary" : "outline"}
+                  size="icon"
+                  title="URL cleanup"
+                  aria-label="Toggle URL cleanup"
+                  aria-expanded={showUrlCleanup}
+                  onClick={() => setShowUrlCleanup(prev => !prev)}
+                >
+                  <Brush className="size-4" />
+                </Button>
+              )}
             />
           )}
         </form.AppField>
@@ -602,6 +629,102 @@ export function BookmarkForm({
           )
           : null}
       </div>
+
+      {showUrlCleanup && (
+        <div
+          className="
+            space-y-4 rounded-lg border bg-muted/50 p-4
+            sm:col-span-2
+          "
+        >
+          <p className="text-sm font-medium">URL Cleanup</p>
+
+          <div className="space-y-2">
+            {(
+              [
+                {
+                  value: "none" as UrlCleanupMode,
+                  label: "No modification",
+                },
+                {
+                  value: "trackers" as UrlCleanupMode,
+                  label: "Just trackers",
+                },
+                {
+                  value: "all" as UrlCleanupMode,
+                  label: "All params",
+                },
+              ]
+            ).map(({
+              value, label,
+            }) => (
+              <div
+                key={value}
+                className="flex items-center gap-2"
+              >
+                <input
+                  type="radio"
+                  id={`${cleanupId}-${value}`}
+                  name={`${cleanupId}-mode`}
+                  value={value}
+                  checked={urlCleanupMode === value}
+                  onChange={() => setUrlCleanupMode(value)}
+                  className="accent-primary"
+                />
+                <Label htmlFor={`${cleanupId}-${value}`}>{label}</Label>
+              </div>
+            ))}
+          </div>
+
+          <form.Subscribe selector={state => state.values.url}>
+            {(url) => {
+              const preview = cleanUrl(url, urlCleanupMode);
+              return (
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">Preview</p>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={preview}
+                      readOnly
+                      className="font-mono text-sm"
+                      aria-label="Cleaned URL preview"
+                    />
+                    {isFetchableUrl(preview)
+                      ? (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          asChild
+                        >
+                          <a
+                            href={preview}
+                            target="_blank"
+                            rel="noreferrer"
+                            aria-label="Open cleaned URL in new tab"
+                          >
+                            <ExternalLink className="size-4" />
+                          </a>
+                        </Button>
+                      )
+                      : (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          disabled
+                          aria-label="Open cleaned URL in new tab"
+                        >
+                          <ExternalLink className="size-4" />
+                        </Button>
+                      )}
+                  </div>
+                </div>
+              );
+            }}
+          </form.Subscribe>
+        </div>
+      )}
 
       {lockedCategoryId
         ? null
