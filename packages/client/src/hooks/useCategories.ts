@@ -5,6 +5,7 @@ import type {
 } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 import { categoriesApi } from "../lib/api";
 
@@ -71,7 +72,10 @@ export function useDeleteCategory() {
   const invalidate = useCategoryInvalidation();
   return useMutation({
     mutationFn: (id: string) => categoriesApi.remove(id),
-    onSuccess: invalidate,
+    onSuccess: () => {
+      invalidate();
+      toast.success("Category deleted");
+    },
   });
 }
 

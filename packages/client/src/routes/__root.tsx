@@ -8,6 +8,7 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { PanelRight } from "lucide-react";
+import { Toaster } from "sonner";
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { RightPanel } from "@/components/panel/RightPanel";
@@ -26,6 +27,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { validateDrawerSearch } from "@/lib/drawerSearch";
+import { useUiStore } from "@/stores/uiStore";
 
 export interface RouterContext {
   queryClient: QueryClient;
@@ -61,6 +63,7 @@ function RootComponent() {
   const {
     open,
   } = usePanelControls();
+  const theme = useUiStore(state => state.theme);
 
   return (
     <SidebarProvider>
@@ -97,6 +100,10 @@ function RootComponent() {
         </main>
       </SidebarInset>
       <RightPanel />
+      <Toaster
+        richColors
+        theme={theme}
+      />
       {import.meta.env.DEV ? <TanStackRouterDevtools /> : null}
     </SidebarProvider>
   );

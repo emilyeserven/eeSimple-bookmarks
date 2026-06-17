@@ -71,9 +71,21 @@ function BookmarkDetailPage() {
             },
           })}
           onDelete={() => deleteBookmark.mutate(bookmarkId, {
-            onSuccess: () => navigate({
-              to: "/bookmarks",
-            }),
+            onSuccess: () => {
+              // Return to the bookmark's category listing, or all bookmarks if it has none.
+              const slug = (categories ?? [])
+                .find(item => item.id === bookmark.categoryId)?.slug;
+              void (slug
+                ? navigate({
+                  to: "/categories/$categorySlug",
+                  params: {
+                    categorySlug: slug,
+                  },
+                })
+                : navigate({
+                  to: "/bookmarks",
+                }));
+            },
           })}
         />
       </Card>

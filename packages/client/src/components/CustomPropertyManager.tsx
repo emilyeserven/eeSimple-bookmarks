@@ -449,6 +449,8 @@ interface PropertyCardProps {
   property: CustomProperty;
   categories: Category[];
   allProperties: CustomProperty[];
+  /** Called after a successful delete — e.g. the panel uses it to dismiss itself. */
+  onDeleted?: () => void;
 }
 
 /** A property row: read its name/type/units and inline-edit its categories and form visibility. */
@@ -456,6 +458,7 @@ export function PropertyCard({
   property,
   categories,
   allProperties,
+  onDeleted,
 }: PropertyCardProps) {
   const deleteProperty = useDeleteCustomProperty();
   const updateProperty = useUpdateCustomProperty();
@@ -505,7 +508,9 @@ export function PropertyCard({
           variant="ghost"
           size="sm"
           className="text-destructive"
-          onClick={() => deleteProperty.mutate(property.id)}
+          onClick={() => deleteProperty.mutate(property.id, {
+            onSuccess: onDeleted,
+          })}
         >
           Delete
         </Button>

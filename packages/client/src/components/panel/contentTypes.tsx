@@ -12,6 +12,7 @@ import { Bookmark, Folder, Globe, SlidersHorizontal, Sparkles, Tags } from "luci
 import { AutofillRulePanel } from "./AutofillRulePanel";
 import { TagPanel } from "./TagPanel";
 import { usePanelControls } from "./usePanelControls";
+import { usePanelDismissAfterDelete } from "./usePanelDismissAfterDelete";
 import { useAutofillRules } from "../../hooks/useAutofill";
 import { useBookmarks, useDeleteBookmark } from "../../hooks/useBookmarks";
 import { useCategories } from "../../hooks/useCategories";
@@ -99,8 +100,9 @@ function BookmarkView({
     data: categories,
   } = useCategories();
   const {
-    openItem, close,
+    openItem,
   } = usePanelControls();
+  const dismiss = usePanelDismissAfterDelete();
   const deleteBookmark = useDeleteBookmark();
 
   if (isLoading) return <Loading />;
@@ -115,7 +117,7 @@ function BookmarkView({
       properties={properties ?? []}
       onEdit={() => openItem("bookmark", id, "edit")}
       onDelete={() => deleteBookmark.mutate(id, {
-        onSuccess: close,
+        onSuccess: dismiss,
       })}
     />
   );
@@ -220,11 +222,17 @@ function CategoryItem({
   const {
     data, isLoading, error,
   } = useCategories();
+  const dismiss = usePanelDismissAfterDelete();
   if (isLoading) return <Loading />;
   if (error) return <Problem>{error.message}</Problem>;
   const category = (data ?? []).find(item => item.id === id);
   if (!category) return <Problem>Category not found.</Problem>;
-  return <CategoryCard category={category} />;
+  return (
+    <CategoryCard
+      category={category}
+      onDeleted={dismiss}
+    />
+  );
 }
 
 // --- Custom property ----------------------------------------------------------------------------
@@ -260,6 +268,7 @@ function PropertyItem({
   const {
     data: categories,
   } = useCategories();
+  const dismiss = usePanelDismissAfterDelete();
   if (isLoading) return <Loading />;
   if (error) return <Problem>{error.message}</Problem>;
   const property = (properties ?? []).find(item => item.id === id);
@@ -269,6 +278,7 @@ function PropertyItem({
       property={property}
       categories={categories ?? []}
       allProperties={properties ?? []}
+      onDeleted={dismiss}
     />
   );
 }
