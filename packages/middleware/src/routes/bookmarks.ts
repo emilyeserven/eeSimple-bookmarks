@@ -5,6 +5,7 @@ import {
   deleteBookmark,
   getBookmark,
   listBookmarks,
+  listHomepageBookmarks,
   updateBookmark,
 } from "@/services/bookmarks";
 import { isValidUrl } from "@/utils/url";
@@ -47,14 +48,11 @@ const createBookmarkBody = {
     description: {
       type: ["string", "null"],
     },
-    tagIds: {
-      type: "array",
-      items: {
-        type: "string",
-        format: "uuid",
-      },
+    categoryId: {
+      type: ["string", "null"],
+      format: "uuid",
     },
-    propertyTagIds: {
+    tagIds: {
       type: "array",
       items: {
         type: "string",
@@ -78,11 +76,22 @@ const createBookmarkBody = {
         },
       },
     },
-    favorite: {
-      type: "boolean",
-    },
-    pinned: {
-      type: "boolean",
+    booleanValues: {
+      type: "array",
+      items: {
+        type: "object",
+        required: ["propertyId", "value"],
+        additionalProperties: false,
+        properties: {
+          propertyId: {
+            type: "string",
+            format: "uuid",
+          },
+          value: {
+            type: "boolean",
+          },
+        },
+      },
     },
     priority: {
       type: "integer",
@@ -109,6 +118,12 @@ export async function bookmarkRoutes(app: FastifyInstance): Promise<void> {
     } = req.query as { tag?: string };
     return listBookmarks(tag);
   });
+
+  app.get("/api/bookmarks/homepage", {
+    schema: {
+      tags: ["bookmarks"],
+    },
+  }, async () => listHomepageBookmarks());
 
   app.get("/api/bookmarks/:id", {
     schema: {

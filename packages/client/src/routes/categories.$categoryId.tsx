@@ -19,8 +19,9 @@ export const Route = createFileRoute("/categories/$categoryId")({
 });
 
 const TYPE_LABELS: Record<CustomPropertyType, string> = {
-  tiered_tags: "Tiered Tags",
   number: "Number",
+  boolean: "Boolean",
+  calculate: "Calculate (Sum)",
 };
 
 function CategoryPage() {

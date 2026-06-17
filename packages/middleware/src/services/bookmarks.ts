@@ -1,49 +1,54 @@
-import { desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import type {
   Bookmark,
+  BookmarkBooleanValue,
   BookmarkNumberValue,
-  BookmarkPropertyTag,
   BookmarkTag,
   CreateBookmarkInput,
   UpdateBookmarkInput,
 } from "@eesimple/types";
 import { db } from "@/db";
 import {
+  bookmarkBooleanValues,
   bookmarkNumberValues,
-  bookmarkPropertyTags,
   bookmarks,
-  bookmarkTags,
   type BookmarkRow,
-  customPropertyTags,
+  bookmarkTags,
+  calculatePropertyOperands,
+  categories,
+  customProperties,
+  homepageTags,
   tags,
 } from "@/db/schema";
+import { ensureDefaultCategory } from "@/services/categories";
 import { getDescendantIds } from "@/services/tags";
+
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 /** The hydrated custom-property values that accompany a bookmark row. */
 interface BookmarkExtras {
   tags: BookmarkTag[];
   numberValues: BookmarkNumberValue[];
-  propertyTags: BookmarkPropertyTag[];
+  booleanValues: BookmarkBooleanValue[];
 }
 
 const EMPTY_EXTRAS: BookmarkExtras = {
   tags: [],
   numberValues: [],
-  propertyTags: [],
+  booleanValues: [],
 };
 
 /** Map a DB row plus its hydrated relations to the shared `Bookmark` wire type. */
-function toBookmark(row: BookmarkRow, extras: BookmarkExtras): Bookmark {
+function toBookmark(row: BookmarkRow, extras: BookmarkExtras, defaultCategoryId: string): Bookmark {
   return {
     id: row.id,
     url: row.url,
     title: row.title,
     description: row.description,
+    categoryId: row.categoryId ?? defaultCategoryId,
     tags: extras.tags,
     numberValues: extras.numberValues,
-    propertyTags: extras.propertyTags,
-    favorite: row.favorite,
-    pinned: row.pinned,
+    booleanValues: extras.booleanValues,
     priority: row.priority,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
@@ -105,32 +110,27 @@ async function numberValuesByBookmarkId(
   return grouped;
 }
 
-/** Load tiered-tags custom-property selections for a set of bookmarks, grouped by bookmark id. */
-async function propertyTagsByBookmarkId(
+/** Load boolean custom-property values for a set of bookmarks, grouped by bookmark id. */
+async function booleanValuesByBookmarkId(
   bookmarkIds: string[],
-): Promise<Map<string, BookmarkPropertyTag[]>> {
-  const grouped = new Map<string, BookmarkPropertyTag[]>();
+): Promise<Map<string, BookmarkBooleanValue[]>> {
+  const grouped = new Map<string, BookmarkBooleanValue[]>();
   if (bookmarkIds.length === 0) return grouped;
 
   const rows = await db
     .select({
-      bookmarkId: bookmarkPropertyTags.bookmarkId,
-      id: customPropertyTags.id,
-      propertyId: customPropertyTags.propertyId,
-      name: customPropertyTags.name,
-      parentId: customPropertyTags.parentId,
+      bookmarkId: bookmarkBooleanValues.bookmarkId,
+      propertyId: bookmarkBooleanValues.propertyId,
+      value: bookmarkBooleanValues.value,
     })
-    .from(bookmarkPropertyTags)
-    .innerJoin(customPropertyTags, eq(bookmarkPropertyTags.propertyTagId, customPropertyTags.id))
-    .where(inArray(bookmarkPropertyTags.bookmarkId, bookmarkIds));
+    .from(bookmarkBooleanValues)
+    .where(inArray(bookmarkBooleanValues.bookmarkId, bookmarkIds));
 
   for (const row of rows) {
     const list = grouped.get(row.bookmarkId) ?? [];
     list.push({
       propertyId: row.propertyId,
-      id: row.id,
-      name: row.name,
-      parentId: row.parentId,
+      value: row.value,
     });
     grouped.set(row.bookmarkId, list);
   }
@@ -139,20 +139,28 @@ async function propertyTagsByBookmarkId(
 
 /** Hydrate all custom-property relations for a set of bookmark rows in batched queries. */
 async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, BookmarkExtras>> {
-  const [tagsMap, numberMap, propertyTagMap] = await Promise.all([
+  const [tagsMap, numberMap, booleanMap] = await Promise.all([
     tagsByBookmarkId(bookmarkIds),
     numberValuesByBookmarkId(bookmarkIds),
-    propertyTagsByBookmarkId(bookmarkIds),
+    booleanValuesByBookmarkId(bookmarkIds),
   ]);
   const grouped = new Map<string, BookmarkExtras>();
   for (const id of bookmarkIds) {
     grouped.set(id, {
       tags: tagsMap.get(id) ?? [],
       numberValues: numberMap.get(id) ?? [],
-      propertyTags: propertyTagMap.get(id) ?? [],
+      booleanValues: booleanMap.get(id) ?? [],
     });
   }
   return grouped;
+}
+
+/** Hydrate a list of bookmark rows into wire types (shared by list/get/homepage). */
+async function hydrate(rows: BookmarkRow[]): Promise<Bookmark[]> {
+  if (rows.length === 0) return [];
+  const defaultCategoryId = await ensureDefaultCategory();
+  const grouped = await extrasByBookmarkId(rows.map(row => row.id));
+  return rows.map(row => toBookmark(row, grouped.get(row.id) ?? EMPTY_EXTRAS, defaultCategoryId));
 }
 
 /** List bookmarks, optionally filtered to a tag and its entire subtree. */
@@ -173,20 +181,66 @@ export async function listBookmarks(filterTagId?: string): Promise<Bookmark[]> {
 
   const baseRows = await db.select().from(bookmarks).orderBy(desc(bookmarks.createdAt));
   const rows = allowedIds ? baseRows.filter(row => allowedIds.has(row.id)) : baseRows;
-  if (rows.length === 0) return [];
+  return hydrate(rows);
+}
 
-  const grouped = await extrasByBookmarkId(rows.map(row => row.id));
-  return rows.map(row => toBookmark(row, grouped.get(row.id) ?? EMPTY_EXTRAS));
+/**
+ * List the homepage bookmarks: the union of bookmarks in any homepage category and
+ * bookmarks carrying a homepage tag (or one of its descendants), ordered by `priority`
+ * (highest first), ties broken by most-recently created.
+ */
+export async function listHomepageBookmarks(): Promise<Bookmark[]> {
+  const defaultCategoryId = await ensureDefaultCategory();
+
+  const homepageCategories = await db
+    .select({
+      id: categories.id,
+    })
+    .from(categories)
+    .where(eq(categories.isHomepage, true));
+  const homepageCategoryIds = new Set(homepageCategories.map(row => row.id));
+
+  const homepageTagRows = await db.select({
+    tagId: homepageTags.tagId,
+  }).from(homepageTags);
+  const allowedTagIds = new Set<string>();
+  for (const {
+    tagId,
+  } of homepageTagRows) {
+    for (const id of await getDescendantIds(tagId)) allowedTagIds.add(id);
+  }
+
+  let taggedBookmarkIds = new Set<string>();
+  if (allowedTagIds.size > 0) {
+    const links = await db
+      .select({
+        bookmarkId: bookmarkTags.bookmarkId,
+      })
+      .from(bookmarkTags)
+      .where(inArray(bookmarkTags.tagId, [...allowedTagIds]));
+    taggedBookmarkIds = new Set(links.map(link => link.bookmarkId));
+  }
+
+  const baseRows = await db.select().from(bookmarks);
+  const rows = baseRows.filter((row) => {
+    const categoryId = row.categoryId ?? defaultCategoryId;
+    return homepageCategoryIds.has(categoryId) || taggedBookmarkIds.has(row.id);
+  });
+  rows.sort((a, b) =>
+    b.priority - a.priority
+    || (a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0));
+  return hydrate(rows);
 }
 
 export async function getBookmark(id: string): Promise<Bookmark | null> {
   const [row] = await db.select().from(bookmarks).where(eq(bookmarks.id, id));
   if (!row) return null;
-  const grouped = await extrasByBookmarkId([row.id]);
-  return toBookmark(row, grouped.get(row.id) ?? EMPTY_EXTRAS);
+  const [hydrated] = await hydrate([row]);
+  return hydrated ?? null;
 }
 
 export async function createBookmark(input: CreateBookmarkInput): Promise<Bookmark> {
+  const categoryId = input.categoryId ?? await ensureDefaultCategory();
   const id = await db.transaction(async (tx) => {
     const [row] = await tx
       .insert(bookmarks)
@@ -194,16 +248,16 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
         url: input.url,
         title: input.title,
         description: input.description ?? null,
-        favorite: input.favorite ?? false,
-        pinned: input.pinned ?? false,
+        categoryId,
         priority: input.priority ?? 0,
       })
       .returning({
         id: bookmarks.id,
       });
     await linkTags(tx, row.id, input.tagIds);
-    await linkPropertyTags(tx, row.id, input.propertyTagIds);
     await setNumberValues(tx, row.id, input.numberValues);
+    await setBooleanValues(tx, row.id, input.booleanValues);
+    await recomputeCalculatedValues(tx, row.id);
     return row.id;
   });
   // Re-read so callers always get the hydrated shape.
@@ -216,13 +270,12 @@ export async function updateBookmark(
 ): Promise<Bookmark | null> {
   const found = await db.transaction(async (tx) => {
     const patch: Partial<
-      Pick<BookmarkRow, "url" | "title" | "description" | "favorite" | "pinned" | "priority">
+      Pick<BookmarkRow, "url" | "title" | "description" | "categoryId" | "priority">
     > = {};
     if (input.url !== undefined) patch.url = input.url;
     if (input.title !== undefined) patch.title = input.title;
     if (input.description !== undefined) patch.description = input.description ?? null;
-    if (input.favorite !== undefined) patch.favorite = input.favorite;
-    if (input.pinned !== undefined) patch.pinned = input.pinned;
+    if (input.categoryId !== undefined) patch.categoryId = input.categoryId;
     if (input.priority !== undefined) patch.priority = input.priority;
 
     if (Object.keys(patch).length > 0) {
@@ -242,14 +295,16 @@ export async function updateBookmark(
       await tx.delete(bookmarkTags).where(eq(bookmarkTags.bookmarkId, id));
       await linkTags(tx, id, input.tagIds);
     }
-    if (input.propertyTagIds !== undefined) {
-      await tx.delete(bookmarkPropertyTags).where(eq(bookmarkPropertyTags.bookmarkId, id));
-      await linkPropertyTags(tx, id, input.propertyTagIds);
-    }
     if (input.numberValues !== undefined) {
       await tx.delete(bookmarkNumberValues).where(eq(bookmarkNumberValues.bookmarkId, id));
       await setNumberValues(tx, id, input.numberValues);
     }
+    if (input.booleanValues !== undefined) {
+      await tx.delete(bookmarkBooleanValues).where(eq(bookmarkBooleanValues.bookmarkId, id));
+      await setBooleanValues(tx, id, input.booleanValues);
+    }
+    // Always recompute last: number-value edits ripple into calculate results.
+    await recomputeCalculatedValues(tx, id);
     return true;
   });
 
@@ -264,11 +319,7 @@ export async function deleteBookmark(id: string): Promise<boolean> {
 }
 
 /** Insert join rows linking a bookmark to the given tag ids (no-op when empty). */
-async function linkTags(
-  tx: Parameters<Parameters<typeof db.transaction>[0]>[0],
-  bookmarkId: string,
-  tagIds: string[] | undefined,
-): Promise<void> {
+async function linkTags(tx: Tx, bookmarkId: string, tagIds: string[] | undefined): Promise<void> {
   if (!tagIds || tagIds.length === 0) return;
   await tx.insert(bookmarkTags).values(tagIds.map(tagId => ({
     bookmarkId,
@@ -276,22 +327,9 @@ async function linkTags(
   })));
 }
 
-/** Insert join rows linking a bookmark to the given property-tag ids (no-op when empty). */
-async function linkPropertyTags(
-  tx: Parameters<Parameters<typeof db.transaction>[0]>[0],
-  bookmarkId: string,
-  propertyTagIds: string[] | undefined,
-): Promise<void> {
-  if (!propertyTagIds || propertyTagIds.length === 0) return;
-  await tx.insert(bookmarkPropertyTags).values(propertyTagIds.map(propertyTagId => ({
-    bookmarkId,
-    propertyTagId,
-  })));
-}
-
 /** Insert number custom-property values for a bookmark (no-op when empty). */
 async function setNumberValues(
-  tx: Parameters<Parameters<typeof db.transaction>[0]>[0],
+  tx: Tx,
   bookmarkId: string,
   numberValues: BookmarkNumberValue[] | undefined,
 ): Promise<void> {
@@ -301,4 +339,77 @@ async function setNumberValues(
     propertyId: entry.propertyId,
     value: entry.value,
   })));
+}
+
+/** Insert boolean custom-property values for a bookmark (no-op when empty). */
+async function setBooleanValues(
+  tx: Tx,
+  bookmarkId: string,
+  booleanValues: BookmarkBooleanValue[] | undefined,
+): Promise<void> {
+  if (!booleanValues || booleanValues.length === 0) return;
+  await tx.insert(bookmarkBooleanValues).values(booleanValues.map(entry => ({
+    bookmarkId,
+    propertyId: entry.propertyId,
+    value: entry.value,
+  })));
+}
+
+/**
+ * Sum the stored values of the given operand properties for a bookmark, treating a missing
+ * value as 0. Pure — kept separate from DB access so it can be unit-tested.
+ */
+export function sumOperands(valueById: Map<string, number>, operandIds: string[]): number {
+  return operandIds.reduce((total, id) => total + (valueById.get(id) ?? 0), 0);
+}
+
+/**
+ * Recompute and persist every calculate property's value for a bookmark, storing the result
+ * in `bookmark_number_values` so it filters and sorts like a real number. Must run after the
+ * bookmark's number values are written, since calculate results derive from them.
+ */
+async function recomputeCalculatedValues(tx: Tx, bookmarkId: string): Promise<void> {
+  const calcProps = await tx
+    .select({
+      id: customProperties.id,
+    })
+    .from(customProperties)
+    .where(eq(customProperties.type, "calculate"));
+  if (calcProps.length === 0) return;
+  const calcIds = calcProps.map(prop => prop.id);
+
+  // Clear stale calculate results so they don't pollute the operand sums below.
+  await tx
+    .delete(bookmarkNumberValues)
+    .where(and(eq(bookmarkNumberValues.bookmarkId, bookmarkId), inArray(bookmarkNumberValues.propertyId, calcIds)));
+
+  const operandRows = await tx
+    .select({
+      propertyId: calculatePropertyOperands.propertyId,
+      operandPropertyId: calculatePropertyOperands.operandPropertyId,
+    })
+    .from(calculatePropertyOperands)
+    .where(inArray(calculatePropertyOperands.propertyId, calcIds));
+  const operandsByCalc = new Map<string, string[]>();
+  for (const row of operandRows) {
+    const list = operandsByCalc.get(row.propertyId) ?? [];
+    list.push(row.operandPropertyId);
+    operandsByCalc.set(row.propertyId, list);
+  }
+
+  const valueRows = await tx
+    .select({
+      propertyId: bookmarkNumberValues.propertyId,
+      value: bookmarkNumberValues.value,
+    })
+    .from(bookmarkNumberValues)
+    .where(eq(bookmarkNumberValues.bookmarkId, bookmarkId));
+  const valueById = new Map(valueRows.map(row => [row.propertyId, row.value]));
+
+  const inserts = calcProps.map(prop => ({
+    bookmarkId,
+    propertyId: prop.id,
+    value: sumOperands(valueById, operandsByCalc.get(prop.id) ?? []),
+  }));
+  if (inserts.length > 0) await tx.insert(bookmarkNumberValues).values(inserts);
 }

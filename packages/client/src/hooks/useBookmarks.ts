@@ -1,4 +1,4 @@
-import type { CreateBookmarkInput } from "@eesimple/types";
+import type { CreateBookmarkInput, UpdateBookmarkInput } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -13,10 +13,31 @@ export function useBookmarks(tagId?: string) {
   });
 }
 
+/** The homepage bookmarks: bookmarks in homepage categories or carrying a homepage tag. */
+export function useHomepageBookmarks() {
+  return useQuery({
+    queryKey: [...BOOKMARKS_KEY, "homepage"],
+    queryFn: () => bookmarksApi.homepage(),
+  });
+}
+
 export function useCreateBookmark() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: CreateBookmarkInput) => bookmarksApi.create(input),
+    onSuccess: () => queryClient.invalidateQueries({
+      queryKey: BOOKMARKS_KEY,
+    }),
+  });
+}
+
+export function useUpdateBookmark() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id, input,
+    }: { id: string;
+      input: UpdateBookmarkInput; }) => bookmarksApi.update(id, input),
     onSuccess: () => queryClient.invalidateQueries({
       queryKey: BOOKMARKS_KEY,
     }),

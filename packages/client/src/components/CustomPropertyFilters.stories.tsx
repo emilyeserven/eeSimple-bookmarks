@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { CustomPropertyFilters } from "./CustomPropertyFilters";
-import { apiHandlers, sampleProperties } from "../test-utils/story-mocks";
+import { apiHandlers, sampleBookmark, sampleProperties } from "../test-utils/story-mocks";
 
 const meta = {
   title: "Settings/CustomPropertyFilters",
@@ -13,8 +13,9 @@ const meta = {
   },
   args: {
     properties: sampleProperties,
+    bookmarks: [sampleBookmark],
     onNumberFilterChange: () => {},
-    onTagFilterChange: () => {},
+    onBooleanFilterChange: () => {},
   },
 } satisfies Meta<typeof CustomPropertyFilters>;
 

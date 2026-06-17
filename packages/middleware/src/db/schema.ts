@@ -7,8 +7,11 @@ export const bookmarks = pgTable("bookmarks", {
   url: text("url").notNull(),
   title: text("title").notNull(),
   description: text("description"),
-  favorite: boolean("favorite").notNull().default(false),
-  pinned: boolean("pinned").notNull().default(false),
+  // Owning category. Nullable at the DB level so `drizzle-kit push` applies cleanly to
+  // existing rows; the service layer resolves NULL to the built-in "Default" category.
+  categoryId: uuid("category_id").references((): AnyPgColumn => categories.id, {
+    onDelete: "set null",
+  }),
   priority: integer("priority").notNull().default(0),
   createdAt: timestamp("created_at", {
     withTimezone: true,
@@ -60,8 +63,12 @@ export const tagsRelations = relations(tags, ({
 }));
 
 export const bookmarksRelations = relations(bookmarks, ({
-  many,
+  one, many,
 }) => ({
+  category: one(categories, {
+    fields: [bookmarks.categoryId],
+    references: [categories.id],
+  }),
   bookmarkTags: many(bookmarkTags),
 }));
 
@@ -82,53 +89,20 @@ export const bookmarkTagsRelations = relations(bookmarkTags, ({
 export const customProperties = pgTable("custom_properties", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
-  // "tiered_tags" | "number" — kept as text so new kinds can be added later.
+  // "number" | "boolean" | "calculate" — kept as text so new kinds can be added later.
   type: text("type").notNull(),
-  // Range-slider bounds for a `number` property; NULL means derive from data.
+  // Range-slider bounds for a `number`/`calculate` property; NULL means no bound / derive from data.
   numberMin: real("number_min"),
   numberMax: real("number_max"),
+  // Optional unit labels for a `number`/`calculate` value (e.g. "star"/"stars").
+  unitSingular: text("unit_singular"),
+  unitPlural: text("unit_plural"),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
 });
 
-/**
- * `custom_property_tags` — each tiered-tags property's own self-referencing tree,
- * scoped by `propertyId`. `parentId` NULL means a root tag within that property.
- */
-export const customPropertyTags = pgTable("custom_property_tags", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  propertyId: uuid("property_id").notNull().references(() => customProperties.id, {
-    onDelete: "cascade",
-  }),
-  name: text("name").notNull(),
-  parentId: uuid("parent_id").references((): AnyPgColumn => customPropertyTags.id, {
-    onDelete: "cascade",
-  }),
-  createdAt: timestamp("created_at", {
-    withTimezone: true,
-  }).notNull().defaultNow(),
-}, table => [
-  // Sibling names are unique within a parent (per property). NULL parents are
-  // distinct in Postgres, so root-level uniqueness is enforced in the service.
-  unique("custom_property_tags_parent_name_unique").on(table.propertyId, table.parentId, table.name),
-]);
-
-/** `bookmark_property_tags` join — many-to-many between bookmarks and property tags. */
-export const bookmarkPropertyTags = pgTable("bookmark_property_tags", {
-  bookmarkId: uuid("bookmark_id").notNull().references(() => bookmarks.id, {
-    onDelete: "cascade",
-  }),
-  propertyTagId: uuid("property_tag_id").notNull().references(() => customPropertyTags.id, {
-    onDelete: "cascade",
-  }),
-}, table => [
-  primaryKey({
-    columns: [table.bookmarkId, table.propertyTagId],
-  }),
-]);
-
-/** `bookmark_number_values` — one numeric value per (bookmark, number property). */
+/** `bookmark_number_values` — one numeric value per (bookmark, number/calculate property). */
 export const bookmarkNumberValues = pgTable("bookmark_number_values", {
   bookmarkId: uuid("bookmark_id").notNull().references(() => bookmarks.id, {
     onDelete: "cascade",
@@ -143,19 +117,84 @@ export const bookmarkNumberValues = pgTable("bookmark_number_values", {
   }),
 ]);
 
-/** `categories` table — named groups (with an optional Lucide icon) for custom properties. */
+/** `bookmark_boolean_values` — one true/false value per (bookmark, boolean property). */
+export const bookmarkBooleanValues = pgTable("bookmark_boolean_values", {
+  bookmarkId: uuid("bookmark_id").notNull().references(() => bookmarks.id, {
+    onDelete: "cascade",
+  }),
+  propertyId: uuid("property_id").notNull().references(() => customProperties.id, {
+    onDelete: "cascade",
+  }),
+  value: boolean("value").notNull(),
+}, table => [
+  primaryKey({
+    columns: [table.bookmarkId, table.propertyId],
+  }),
+]);
+
+/**
+ * `calculate_property_operands` — for a `calculate` property, the `number` properties
+ * whose values are summed to produce it. `propertyId` is the calculate property.
+ */
+export const calculatePropertyOperands = pgTable("calculate_property_operands", {
+  propertyId: uuid("property_id").notNull().references(() => customProperties.id, {
+    onDelete: "cascade",
+  }),
+  operandPropertyId: uuid("operand_property_id").notNull().references(() => customProperties.id, {
+    onDelete: "cascade",
+  }),
+}, table => [
+  primaryKey({
+    columns: [table.propertyId, table.operandPropertyId],
+  }),
+]);
+
+/** `categories` table — named groups that own bookmarks and group custom properties. */
 export const categories = pgTable("categories", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   description: text("description"),
   // Lucide icon name (e.g. "Star"); NULL falls back to a default icon in the UI.
   icon: text("icon"),
+  // The built-in "Default" category; built-ins cannot be renamed or deleted.
+  builtIn: boolean("built_in").notNull().default(false),
+  // Whether bookmarks in this category appear on the homepage.
+  isHomepage: boolean("is_homepage").notNull().default(false),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
 }, table => [
   unique("categories_name_unique").on(table.name),
 ]);
+
+/**
+ * `category_root_tags` — per-category allowlist of enabled root tags. A category with no
+ * rows enables all root tags; otherwise only the listed root tags (and their subtrees)
+ * are offered when tagging a bookmark in that category.
+ */
+export const categoryRootTags = pgTable("category_root_tags", {
+  categoryId: uuid("category_id").notNull().references(() => categories.id, {
+    onDelete: "cascade",
+  }),
+  tagId: uuid("tag_id").notNull().references(() => tags.id, {
+    onDelete: "cascade",
+  }),
+}, table => [
+  primaryKey({
+    columns: [table.categoryId, table.tagId],
+  }),
+]);
+
+/**
+ * `homepage_tags` — tags selected (in Settings → Categories) to surface their bookmarks on
+ * the homepage. A bookmark appears on the homepage if it carries one of these tags (or a
+ * descendant), unioned with bookmarks in homepage categories.
+ */
+export const homepageTags = pgTable("homepage_tags", {
+  tagId: uuid("tag_id").primaryKey().references(() => tags.id, {
+    onDelete: "cascade",
+  }),
+});
 
 /** `property_categories` join — many-to-many between custom properties and categories. */
 export const propertyCategories = pgTable("property_categories", {
@@ -174,15 +213,17 @@ export const propertyCategories = pgTable("property_categories", {
 export const customPropertiesRelations = relations(customProperties, ({
   many,
 }) => ({
-  tags: many(customPropertyTags),
   numberValues: many(bookmarkNumberValues),
+  booleanValues: many(bookmarkBooleanValues),
   propertyCategories: many(propertyCategories),
 }));
 
 export const categoriesRelations = relations(categories, ({
   many,
 }) => ({
+  bookmarks: many(bookmarks),
   propertyCategories: many(propertyCategories),
+  categoryRootTags: many(categoryRootTags),
 }));
 
 export const propertyCategoriesRelations = relations(propertyCategories, ({
@@ -198,34 +239,16 @@ export const propertyCategoriesRelations = relations(propertyCategories, ({
   }),
 }));
 
-export const customPropertyTagsRelations = relations(customPropertyTags, ({
-  one, many,
-}) => ({
-  property: one(customProperties, {
-    fields: [customPropertyTags.propertyId],
-    references: [customProperties.id],
-  }),
-  parent: one(customPropertyTags, {
-    fields: [customPropertyTags.parentId],
-    references: [customPropertyTags.id],
-    relationName: "property_tag_parent",
-  }),
-  children: many(customPropertyTags, {
-    relationName: "property_tag_parent",
-  }),
-  bookmarkPropertyTags: many(bookmarkPropertyTags),
-}));
-
-export const bookmarkPropertyTagsRelations = relations(bookmarkPropertyTags, ({
+export const categoryRootTagsRelations = relations(categoryRootTags, ({
   one,
 }) => ({
-  bookmark: one(bookmarks, {
-    fields: [bookmarkPropertyTags.bookmarkId],
-    references: [bookmarks.id],
+  category: one(categories, {
+    fields: [categoryRootTags.categoryId],
+    references: [categories.id],
   }),
-  propertyTag: one(customPropertyTags, {
-    fields: [bookmarkPropertyTags.propertyTagId],
-    references: [customPropertyTags.id],
+  tag: one(tags, {
+    fields: [categoryRootTags.tagId],
+    references: [tags.id],
   }),
 }));
 
@@ -242,6 +265,34 @@ export const bookmarkNumberValuesRelations = relations(bookmarkNumberValues, ({
   }),
 }));
 
+export const bookmarkBooleanValuesRelations = relations(bookmarkBooleanValues, ({
+  one,
+}) => ({
+  bookmark: one(bookmarks, {
+    fields: [bookmarkBooleanValues.bookmarkId],
+    references: [bookmarks.id],
+  }),
+  property: one(customProperties, {
+    fields: [bookmarkBooleanValues.propertyId],
+    references: [customProperties.id],
+  }),
+}));
+
+export const calculatePropertyOperandsRelations = relations(calculatePropertyOperands, ({
+  one,
+}) => ({
+  property: one(customProperties, {
+    fields: [calculatePropertyOperands.propertyId],
+    references: [customProperties.id],
+    relationName: "calculate_property",
+  }),
+  operand: one(customProperties, {
+    fields: [calculatePropertyOperands.operandPropertyId],
+    references: [customProperties.id],
+    relationName: "operand_property",
+  }),
+}));
+
 export type BookmarkRow = typeof bookmarks.$inferSelect;
 export type NewBookmarkRow = typeof bookmarks.$inferInsert;
 export type TagRow = typeof tags.$inferSelect;
@@ -249,10 +300,11 @@ export type NewTagRow = typeof tags.$inferInsert;
 export type BookmarkTagRow = typeof bookmarkTags.$inferSelect;
 export type CustomPropertyRow = typeof customProperties.$inferSelect;
 export type NewCustomPropertyRow = typeof customProperties.$inferInsert;
-export type CustomPropertyTagRow = typeof customPropertyTags.$inferSelect;
-export type NewCustomPropertyTagRow = typeof customPropertyTags.$inferInsert;
-export type BookmarkPropertyTagRow = typeof bookmarkPropertyTags.$inferSelect;
 export type BookmarkNumberValueRow = typeof bookmarkNumberValues.$inferSelect;
+export type BookmarkBooleanValueRow = typeof bookmarkBooleanValues.$inferSelect;
+export type CalculatePropertyOperandRow = typeof calculatePropertyOperands.$inferSelect;
 export type CategoryRow = typeof categories.$inferSelect;
 export type NewCategoryRow = typeof categories.$inferInsert;
 export type PropertyCategoryRow = typeof propertyCategories.$inferSelect;
+export type CategoryRootTagRow = typeof categoryRootTags.$inferSelect;
+export type HomepageTagRow = typeof homepageTags.$inferSelect;

@@ -45,6 +45,39 @@ test("POST /api/bookmarks rejects an invalid url", async () => {
   await app.close();
 });
 
+test("POST /api/bookmarks rejects a booleanValue with a non-uuid propertyId", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "POST",
+    url: "/api/bookmarks",
+    payload: {
+      url: "https://example.com",
+      title: "Example",
+      booleanValues: [{
+        propertyId: "not-a-uuid",
+        value: true,
+      }],
+    },
+  });
+  assert.equal(res.statusCode, 400);
+  await app.close();
+});
+
+test("POST /api/bookmarks rejects a non-uuid categoryId", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "POST",
+    url: "/api/bookmarks",
+    payload: {
+      url: "https://example.com",
+      title: "Example",
+      categoryId: "not-a-uuid",
+    },
+  });
+  assert.equal(res.statusCode, 400);
+  await app.close();
+});
+
 test("isValidUrl accepts http(s) URLs and rejects everything else", () => {
   assert.equal(isValidUrl("https://example.com"), true);
   assert.equal(isValidUrl("http://example.com/path?q=1"), true);

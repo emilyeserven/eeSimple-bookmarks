@@ -1,6 +1,11 @@
-import type { CustomProperty } from "@eesimple/types";
+import type {
+  BookmarkBooleanValue,
+  BookmarkNumberValue,
+  CustomProperty,
+  TagNode,
+} from "@eesimple/types";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useForm } from "@tanstack/react-form";
 import { ChevronDown } from "lucide-react";
@@ -8,7 +13,8 @@ import { z } from "zod";
 
 import { TagPicker } from "./TagPicker";
 import { useCreateBookmark } from "../hooks/useBookmarks";
-import { useCustomProperties, usePropertyTagTree } from "../hooks/useCustomProperties";
+import { useCategories, useCategoryRootTags } from "../hooks/useCategories";
+import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useTagTree } from "../hooks/useTags";
 
 import { Button } from "@/components/ui/button";
@@ -20,15 +26,21 @@ import {
 } from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
 const bookmarkSchema = z.object({
   url: z.string().url("Enter a valid URL"),
   title: z.string().min(1, "Title is required"),
+  categoryId: z.string().min(1, "Category is required"),
   description: z.string(),
   tagIds: z.array(z.string()),
-  favorite: z.boolean(),
-  pinned: z.boolean(),
   priority: z.number().int(),
 });
 
@@ -41,33 +53,30 @@ export function BookmarkForm() {
   const {
     data: customProperties,
   } = useCustomProperties();
+  const {
+    data: categories,
+  } = useCategories();
 
   // Custom-property values live outside the typed form (they're dynamic). A ref
   // mirrors them so the submit handler always reads the latest entries.
   const [numberInputs, setNumberInputs] = useState<Record<string, string>>({});
-  const [propertyTagIds, setPropertyTagIds] = useState<string[]>([]);
+  const [booleanInputs, setBooleanInputs] = useState<Record<string, boolean>>({});
   const customRef = useRef({
     numberInputs,
-    propertyTagIds,
+    booleanInputs,
   });
   customRef.current = {
     numberInputs,
-    propertyTagIds,
+    booleanInputs,
   };
-
-  function togglePropertyTag(id: string) {
-    setPropertyTagIds(current =>
-      (current.includes(id) ? current.filter(tagId => tagId !== id) : [...current, id]));
-  }
 
   const form = useForm({
     defaultValues: {
       url: "",
       title: "",
+      categoryId: "",
       description: "",
       tagIds: [] as string[],
-      favorite: false,
-      pinned: false,
       priority: 0,
     },
     validators: {
@@ -77,31 +86,59 @@ export function BookmarkForm() {
       value,
     }) => {
       const {
-        numberInputs: numbers, propertyTagIds: tagIds,
+        numberInputs: numbers, booleanInputs: booleans,
       } = customRef.current;
-      const numberValues = Object.entries(numbers)
-        .filter(([, raw]) => raw.trim() !== "" && !Number.isNaN(Number(raw)))
-        .map(([propertyId, raw]) => ({
-          propertyId,
+      // Only persist values for properties that belong to the chosen category.
+      const categoryProps = (customProperties ?? []).filter(property =>
+        property.categoryIds.includes(value.categoryId));
+      const numberValues: BookmarkNumberValue[] = categoryProps
+        .filter(property => property.type === "number")
+        .map((property) => {
+          const raw = numbers[property.id] ?? "";
+          return {
+            property,
+            raw,
+          };
+        })
+        .filter(({
+          raw,
+        }) => raw.trim() !== "" && !Number.isNaN(Number(raw)))
+        .map(({
+          property, raw,
+        }) => ({
+          propertyId: property.id,
           value: Number(raw),
+        }));
+      const booleanValues: BookmarkBooleanValue[] = categoryProps
+        .filter(property => property.type === "boolean")
+        .map(property => ({
+          propertyId: property.id,
+          value: booleans[property.id] ?? false,
         }));
 
       await createBookmark.mutateAsync({
         url: value.url,
         title: value.title,
+        categoryId: value.categoryId,
         description: value.description || null,
         tagIds: value.tagIds,
-        propertyTagIds: tagIds,
         numberValues,
-        favorite: value.favorite,
-        pinned: value.pinned,
+        booleanValues,
         priority: value.priority,
       });
       form.reset();
       setNumberInputs({});
-      setPropertyTagIds([]);
+      setBooleanInputs({});
     },
   });
+
+  // Default the category to the built-in "Default" once categories load.
+  useEffect(() => {
+    if (!categories || categories.length === 0) return;
+    if (form.getFieldValue("categoryId")) return;
+    const fallback = categories.find(category => category.builtIn) ?? categories[0];
+    form.setFieldValue("categoryId", fallback.id);
+  }, [categories, form]);
 
   return (
     <form
@@ -115,6 +152,18 @@ export function BookmarkForm() {
         void form.handleSubmit();
       }}
     >
+      <form.Field name="title">
+        {field => (
+          <TextField
+            label="Name"
+            value={field.state.value}
+            errors={field.state.meta.errors}
+            onBlur={field.handleBlur}
+            onChange={field.handleChange}
+          />
+        )}
+      </form.Field>
+
       <form.Field name="url">
         {field => (
           <TextField
@@ -128,102 +177,7 @@ export function BookmarkForm() {
         )}
       </form.Field>
 
-      <form.Field name="title">
-        {field => (
-          <TextField
-            label="Title"
-            value={field.state.value}
-            errors={field.state.meta.errors}
-            onBlur={field.handleBlur}
-            onChange={field.handleChange}
-          />
-        )}
-      </form.Field>
-
-      <form.Field name="tagIds">
-        {field => (
-          <div className="space-y-1">
-            <Label>Tags</Label>
-            <div className="rounded-md border p-2">
-              <TagPicker
-                tree={tagTree ?? []}
-                selectedIds={field.state.value}
-                onToggle={(id) => {
-                  const current = field.state.value;
-                  field.handleChange(
-                    current.includes(id)
-                      ? current.filter(tagId => tagId !== id)
-                      : [...current, id],
-                  );
-                }}
-              />
-            </div>
-          </div>
-        )}
-      </form.Field>
-
-      {(customProperties ?? []).length > 0
-        ? (
-          <div
-            className="
-              space-y-3
-              sm:col-span-2
-            "
-          >
-            <span className="text-sm font-medium">Custom properties</span>
-            <div
-              className="
-                grid gap-3
-                sm:grid-cols-2
-              "
-            >
-              {(customProperties ?? []).map(property =>
-                (property.type === "number"
-                  ? (
-                    <div
-                      key={property.id}
-                      className="space-y-1"
-                    >
-                      <Label htmlFor={`property-${property.id}`}>{property.name}</Label>
-                      <Input
-                        id={`property-${property.id}`}
-                        type="number"
-                        value={numberInputs[property.id] ?? ""}
-                        onChange={event => setNumberInputs(current => ({
-                          ...current,
-                          [property.id]: event.target.value,
-                        }))}
-                      />
-                    </div>
-                  )
-                  : (
-                    <PropertyTagField
-                      key={property.id}
-                      property={property}
-                      selectedIds={propertyTagIds}
-                      onToggle={togglePropertyTag}
-                    />
-                  )))}
-            </div>
-          </div>
-        )
-        : null}
-
-      <form.Field name="favorite">
-        {field => (
-          <div className="flex items-center gap-2 self-end">
-            <Checkbox
-              id="bookmark-favorite"
-              checked={field.state.value}
-              onBlur={field.handleBlur}
-              onCheckedChange={checked => field.handleChange(checked === true)}
-            />
-            <Label htmlFor="bookmark-favorite">Favorite</Label>
-          </div>
-        )}
-      </form.Field>
-
-      <form.Field name="description">
+      <form.Field name="categoryId">
         {field => (
           <div
             className="
@@ -231,14 +185,28 @@ export function BookmarkForm() {
               sm:col-span-2
             "
           >
-            <Label htmlFor="bookmark-description">Description</Label>
-            <Textarea
-              id="bookmark-description"
-              rows={2}
-              value={field.state.value}
-              onBlur={field.handleBlur}
-              onChange={event => field.handleChange(event.target.value)}
-            />
+            <Label htmlFor="bookmark-category">Category</Label>
+            <Select
+              value={field.state.value || undefined}
+              onValueChange={value => field.handleChange(value)}
+            >
+              <SelectTrigger
+                id="bookmark-category"
+                className="w-full"
+              >
+                <SelectValue placeholder="Select a category" />
+              </SelectTrigger>
+              <SelectContent>
+                {(categories ?? []).map(category => (
+                  <SelectItem
+                    key={category.id}
+                    value={category.id}
+                  >
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         )}
       </form.Field>
@@ -263,48 +231,88 @@ export function BookmarkForm() {
           />
           Advanced
         </CollapsibleTrigger>
-        <CollapsibleContent className="space-y-3">
-          <form.Field name="pinned">
+        <CollapsibleContent className="space-y-4">
+          <form.Field name="description">
             {field => (
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="bookmark-pinned"
-                  checked={field.state.value}
+              <div className="space-y-1">
+                <Label htmlFor="bookmark-description">Description</Label>
+                <Textarea
+                  id="bookmark-description"
+                  rows={2}
+                  value={field.state.value}
                   onBlur={field.handleBlur}
-                  onCheckedChange={checked => field.handleChange(checked === true)}
+                  onChange={event => field.handleChange(event.target.value)}
                 />
-                <Label htmlFor="bookmark-pinned">Pin to Homepage</Label>
               </div>
             )}
           </form.Field>
 
-          <form.Subscribe selector={state => state.values.pinned}>
-            {pinned =>
-              pinned
-                ? (
-                  <form.Field name="priority">
-                    {field => (
-                      <div className="space-y-1">
-                        <Label htmlFor="bookmark-priority">Priority</Label>
-                        <Input
-                          id="bookmark-priority"
-                          type="number"
-                          className="max-w-32"
-                          value={Number.isNaN(field.state.value) ? "" : field.state.value}
-                          onBlur={field.handleBlur}
-                          onChange={(event) => {
-                            const next = event.target.valueAsNumber;
-                            field.handleChange(Number.isNaN(next) ? 0 : next);
-                          }}
-                        />
-                        <p className="text-xs text-muted-foreground">
-                          Higher numbers appear first on the homepage.
-                        </p>
-                      </div>
-                    )}
-                  </form.Field>
-                )
-                : null}
+          <form.Subscribe selector={state => state.values.categoryId}>
+            {categoryId => (
+              <form.Field name="tagIds">
+                {field => (
+                  <div className="space-y-1">
+                    <Label>Tags</Label>
+                    <GatedTagPicker
+                      categoryId={categoryId}
+                      tree={tagTree ?? []}
+                      selectedIds={field.state.value}
+                      onToggle={(id) => {
+                        const current = field.state.value;
+                        field.handleChange(
+                          current.includes(id)
+                            ? current.filter(tagId => tagId !== id)
+                            : [...current, id],
+                        );
+                      }}
+                    />
+                  </div>
+                )}
+              </form.Field>
+            )}
+          </form.Subscribe>
+
+          <form.Field name="priority">
+            {field => (
+              <div className="space-y-1">
+                <Label htmlFor="bookmark-priority">Priority</Label>
+                <Input
+                  id="bookmark-priority"
+                  type="number"
+                  className="max-w-32"
+                  value={Number.isNaN(field.state.value) ? "" : field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(event) => {
+                    const next = event.target.valueAsNumber;
+                    field.handleChange(Number.isNaN(next) ? 0 : next);
+                  }}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Higher numbers appear first on the homepage.
+                </p>
+              </div>
+            )}
+          </form.Field>
+
+          <form.Subscribe selector={state => state.values.categoryId}>
+            {categoryId => (
+              <CategoryCustomFields
+                categoryId={categoryId}
+                properties={customProperties ?? []}
+                numberInputs={numberInputs}
+                booleanInputs={booleanInputs}
+                onNumberChange={(id, value) =>
+                  setNumberInputs(current => ({
+                    ...current,
+                    [id]: value,
+                  }))}
+                onBooleanChange={(id, value) =>
+                  setBooleanInputs(current => ({
+                    ...current,
+                    [id]: value,
+                  }))}
+              />
+            )}
           </form.Subscribe>
         </CollapsibleContent>
       </Collapsible>
@@ -326,33 +334,107 @@ export function BookmarkForm() {
   );
 }
 
-interface PropertyTagFieldProps {
-  property: CustomProperty;
+interface GatedTagPickerProps {
+  categoryId: string;
+  tree: TagNode[];
   selectedIds: string[];
   onToggle: (id: string) => void;
 }
 
-/** Multi-select picker for one tiered-tags property's tiers, fetching its own tree. */
-function PropertyTagField({
-  property, selectedIds, onToggle,
-}: PropertyTagFieldProps) {
+/** TagPicker limited to the selected category's enabled root tags (empty allowlist = all). */
+function GatedTagPicker({
+  categoryId, tree, selectedIds, onToggle,
+}: GatedTagPickerProps) {
   const {
-    data: tree,
-  } = usePropertyTagTree(property.id);
+    data: allowedRootIds,
+  } = useCategoryRootTags(categoryId);
+
+  const gated = allowedRootIds && allowedRootIds.length > 0
+    ? tree.filter(root => allowedRootIds.includes(root.id))
+    : tree;
 
   return (
-    <div className="space-y-1">
-      <Label>{property.name}</Label>
-      <div className="rounded-md border p-2">
-        {(tree ?? []).length === 0
-          ? <p className="text-xs text-muted-foreground">No tiers yet. Add some in Settings.</p>
-          : (
-            <TagPicker
-              tree={tree ?? []}
-              selectedIds={selectedIds}
-              onToggle={onToggle}
-            />
-          )}
+    <div className="rounded-md border p-2">
+      <TagPicker
+        tree={gated}
+        selectedIds={selectedIds}
+        onToggle={onToggle}
+      />
+    </div>
+  );
+}
+
+interface CategoryCustomFieldsProps {
+  categoryId: string;
+  properties: CustomProperty[];
+  numberInputs: Record<string, string>;
+  booleanInputs: Record<string, boolean>;
+  onNumberChange: (propertyId: string, value: string) => void;
+  onBooleanChange: (propertyId: string, value: boolean) => void;
+}
+
+/** Renders the custom-property inputs for the properties assigned to the chosen category. */
+function CategoryCustomFields({
+  categoryId, properties, numberInputs, booleanInputs, onNumberChange, onBooleanChange,
+}: CategoryCustomFieldsProps) {
+  const categoryProps = properties.filter(property => property.categoryIds.includes(categoryId));
+  if (categoryProps.length === 0) return null;
+
+  return (
+    <div className="space-y-3">
+      <span className="text-sm font-medium">Properties</span>
+      <div
+        className="
+          grid gap-3
+          sm:grid-cols-2
+        "
+      >
+        {categoryProps.map((property) => {
+          if (property.type === "number") {
+            return (
+              <div
+                key={property.id}
+                className="space-y-1"
+              >
+                <Label htmlFor={`property-${property.id}`}>
+                  {property.name}
+                  {property.unitPlural ? ` (${property.unitPlural})` : ""}
+                </Label>
+                <Input
+                  id={`property-${property.id}`}
+                  type="number"
+                  value={numberInputs[property.id] ?? ""}
+                  onChange={event => onNumberChange(property.id, event.target.value)}
+                />
+              </div>
+            );
+          }
+          if (property.type === "boolean") {
+            return (
+              <div
+                key={property.id}
+                className="flex items-center gap-2 self-end"
+              >
+                <Checkbox
+                  id={`property-${property.id}`}
+                  checked={booleanInputs[property.id] ?? false}
+                  onCheckedChange={checked => onBooleanChange(property.id, checked === true)}
+                />
+                <Label htmlFor={`property-${property.id}`}>{property.name}</Label>
+              </div>
+            );
+          }
+          // calculate: computed server-side; shown read-only so the user knows it exists.
+          return (
+            <div
+              key={property.id}
+              className="space-y-1"
+            >
+              <Label>{property.name}</Label>
+              <p className="text-xs text-muted-foreground">Calculated automatically when saved.</p>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

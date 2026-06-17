@@ -8,10 +8,6 @@ import { useBookmarks, useDeleteBookmark } from "../hooks/useBookmarks";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useCustomPropertyFilters } from "../hooks/useCustomPropertyFilters";
 import { useTagTree } from "../hooks/useTags";
-import { useUiStore } from "../stores/uiStore";
-
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 
 interface BookmarksSearch {
   tag?: string;
@@ -42,34 +38,18 @@ function BookmarksPage() {
     data: customProperties,
   } = useCustomProperties();
   const deleteBookmark = useDeleteBookmark();
-  const showFavoritesOnly = useUiStore(state => state.showFavoritesOnly);
-  const toggleShowFavoritesOnly = useUiStore(state => state.toggleShowFavoritesOnly);
 
   const {
-    onNumberFilterChange, onTagFilterChange, matches,
+    onNumberFilterChange, onBooleanFilterChange, matches,
   } = useCustomPropertyFilters();
 
-  const visibleBookmarks = (bookmarks ?? [])
-    .filter(bookmark => !showFavoritesOnly || bookmark.favorite)
-    .filter(matches);
+  const allBookmarks = bookmarks ?? [];
+  const visibleBookmarks = allBookmarks.filter(matches);
 
   return (
     <section className="space-y-8">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Bookmarks</h1>
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id="favorites-only"
-            checked={showFavoritesOnly}
-            onCheckedChange={toggleShowFavoritesOnly}
-          />
-          <Label
-            htmlFor="favorites-only"
-            className="text-muted-foreground"
-          >
-            Show favorites only
-          </Label>
-        </div>
       </div>
 
       <TagTreeFilter
@@ -86,8 +66,9 @@ function BookmarksPage() {
 
       <CustomPropertyFilters
         properties={customProperties ?? []}
+        bookmarks={allBookmarks}
         onNumberFilterChange={onNumberFilterChange}
-        onTagFilterChange={onTagFilterChange}
+        onBooleanFilterChange={onBooleanFilterChange}
       />
 
       <BookmarkForm />
@@ -107,6 +88,7 @@ function BookmarksPage() {
           <BookmarkCard
             key={bookmark.id}
             bookmark={bookmark}
+            properties={customProperties ?? []}
             onDelete={id => deleteBookmark.mutate(id)}
           />
         ))}

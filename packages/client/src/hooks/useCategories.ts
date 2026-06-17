@@ -9,6 +9,8 @@ import { categoriesApi } from "../lib/api";
 
 const CATEGORIES_KEY = ["categories"] as const;
 const PROPERTIES_KEY = ["custom-properties"] as const;
+const BOOKMARKS_KEY = ["bookmarks"] as const;
+const HOMEPAGE_TAGS_KEY = ["homepage-tags"] as const;
 
 export function useCategories() {
   return useQuery({
@@ -17,7 +19,10 @@ export function useCategories() {
   });
 }
 
-/** Invalidate categories and properties, since a property card shows category names. */
+/**
+ * Invalidate categories, properties (a property card shows category names), and the
+ * homepage bookmarks (homepage flags decide which bookmarks appear there).
+ */
 function useCategoryInvalidation() {
   const queryClient = useQueryClient();
   return () => {
@@ -26,6 +31,9 @@ function useCategoryInvalidation() {
     });
     void queryClient.invalidateQueries({
       queryKey: PROPERTIES_KEY,
+    });
+    void queryClient.invalidateQueries({
+      queryKey: BOOKMARKS_KEY,
     });
   };
 }
@@ -54,5 +62,48 @@ export function useDeleteCategory() {
   return useMutation({
     mutationFn: (id: string) => categoriesApi.remove(id),
     onSuccess: invalidate,
+  });
+}
+
+/** The enabled root-tag allowlist for a category (empty = all root tags enabled). */
+export function useCategoryRootTags(categoryId: string) {
+  return useQuery({
+    queryKey: [...CATEGORIES_KEY, categoryId, "root-tags"],
+    queryFn: () => categoriesApi.rootTags(categoryId).then(result => result.tagIds),
+  });
+}
+
+export function useSetCategoryRootTags(categoryId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (tagIds: string[]) => categoriesApi.setRootTags(categoryId, tagIds),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: [...CATEGORIES_KEY, categoryId, "root-tags"],
+      });
+    },
+  });
+}
+
+/** The tags selected to surface their bookmarks on the homepage. */
+export function useHomepageTags() {
+  return useQuery({
+    queryKey: HOMEPAGE_TAGS_KEY,
+    queryFn: () => categoriesApi.homepageTags().then(result => result.tagIds),
+  });
+}
+
+export function useSetHomepageTags() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (tagIds: string[]) => categoriesApi.setHomepageTags(tagIds),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: HOMEPAGE_TAGS_KEY,
+      });
+      void queryClient.invalidateQueries({
+        queryKey: BOOKMARKS_KEY,
+      });
+    },
   });
 }
