@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { AutofillRulesManager } from "../components/AutofillRulesManager";
+import { AutofillRulesList } from "../components/AutofillRulesList";
 import { useCategoryBySlug } from "../hooks/useCategories";
 
 export const Route = createFileRoute("/categories/$categorySlug/edit/autofill")({
@@ -27,7 +27,7 @@ function AutofillTab() {
           target this category by default.
         </p>
       </div>
-      <AutofillRulesManager categoryId={category.id} />
+      <AutofillRulesList categoryId={category.id} />
     </section>
   );
 }
