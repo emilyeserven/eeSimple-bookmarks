@@ -1,3 +1,6 @@
+// This module pairs the autofill rule form component with the matcher constants
+// (labels/options) its consumers reuse to render rule summaries and filters.
+/* eslint-disable react-refresh/only-export-components */
 import type {
   AutofillRule,
   Category,
@@ -11,31 +14,14 @@ import { useState } from "react";
 import { z } from "zod";
 
 import { TagPicker } from "./TagPicker";
-import {
-  useAutofillRules,
-  useCreateAutofillRule,
-  useDeleteAutofillRule,
-  useUpdateAutofillRule,
-} from "../hooks/useAutofill";
-import { useCategories } from "../hooks/useCategories";
-import { useCustomProperties } from "../hooks/useCustomProperties";
-import { useTagTree } from "../hooks/useTags";
 import { useAppForm } from "../lib/form";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 /** Sentinel select value standing in for "no category" (Radix selects can't hold an empty value). */
-const NO_CATEGORY = "none";
+export const NO_CATEGORY = "none";
 
 const FIELD_OPTIONS = [
   {
@@ -67,7 +53,7 @@ const OPERATOR_OPTIONS = [
   },
 ];
 
-const OPERATOR_LABELS: Record<string, string> = {
+export const OPERATOR_LABELS: Record<string, string> = {
   contains: "contains",
   starts_with: "starts with",
   regex: "matches",
@@ -99,145 +85,7 @@ const ruleSchema = z
     }
   });
 
-interface AutofillRulesManagerProps {
-  /**
-   * When set, scopes the manager to a single category: only rules that set this category are
-   * listed, and the "New rule" form defaults its target category to it.
-   */
-  categoryId?: string;
-}
-
-/** Create, list, edit, and delete autofill rules (optionally scoped to one category). */
-export function AutofillRulesManager({
-  categoryId,
-}: AutofillRulesManagerProps = {}) {
-  const {
-    data: rules, isLoading, error,
-  } = useAutofillRules();
-  const {
-    data: categories,
-  } = useCategories();
-  const {
-    data: properties,
-  } = useCustomProperties();
-  const {
-    data: tagTree,
-  } = useTagTree();
-  const createRule = useCreateAutofillRule();
-
-  const visibleRules = categoryId
-    ? (rules ?? []).filter(rule => rule.setCategoryId === categoryId)
-    : (rules ?? []);
-
-  return (
-    <section className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>New rule</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <RuleForm
-            categories={categories ?? []}
-            properties={properties ?? []}
-            tagTree={tagTree ?? []}
-            defaultCategoryId={categoryId}
-            submitLabel="Add rule"
-            resetOnSubmit
-            isError={createRule.isError}
-            errorMessage={createRule.error?.message}
-            onSubmit={input => createRule.mutate(input)}
-          />
-        </CardContent>
-      </Card>
-
-      {isLoading ? <p className="text-muted-foreground">Loading rules…</p> : null}
-      {error ? <p className="text-destructive">{error.message}</p> : null}
-      {!isLoading && visibleRules.length === 0
-        ? (
-          <p className="text-muted-foreground">
-            {categoryId
-              ? "No autofill rules add bookmarks to this category yet. Create one above."
-              : "No autofill rules yet. Create one above."}
-          </p>
-        )
-        : null}
-
-      <div className="space-y-4">
-        {visibleRules.map(rule => (
-          <RuleCard
-            key={rule.id}
-            rule={rule}
-            categories={categories ?? []}
-            properties={properties ?? []}
-            tagTree={tagTree ?? []}
-          />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-interface RuleCardProps {
-  rule: AutofillRule;
-  categories: Category[];
-  properties: CustomProperty[];
-  tagTree: TagNode[];
-}
-
-function RuleCard({
-  rule, categories, properties, tagTree,
-}: RuleCardProps) {
-  const updateRule = useUpdateAutofillRule();
-  const deleteRule = useDeleteAutofillRule();
-
-  const categoryName = rule.setCategoryId
-    ? categories.find(category => category.id === rule.setCategoryId)?.name
-    : null;
-  const fieldLabel = rule.operator === "domain" ? "URL" : rule.field === "url" ? "URL" : "Title";
-
-  return (
-    <Card>
-      <CardHeader
-        className="flex-row items-center justify-between gap-2 space-y-0"
-      >
-        <div className="flex flex-wrap items-center gap-2">
-          <CardTitle>{rule.name}</CardTitle>
-          <span className="text-xs text-muted-foreground">
-            {`${fieldLabel} ${OPERATOR_LABELS[rule.operator]} “${rule.pattern}”`}
-          </span>
-          {categoryName ? <Badge variant="secondary">{categoryName}</Badge> : null}
-        </div>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="text-destructive"
-          onClick={() => deleteRule.mutate(rule.id)}
-        >
-          Delete
-        </Button>
-      </CardHeader>
-      <CardContent>
-        <RuleForm
-          rule={rule}
-          categories={categories}
-          properties={properties}
-          tagTree={tagTree}
-          submitLabel="Save changes"
-          isError={updateRule.isError}
-          errorMessage={updateRule.error?.message}
-          onSubmit={input =>
-            updateRule.mutate({
-              id: rule.id,
-              input,
-            })}
-        />
-      </CardContent>
-    </Card>
-  );
-}
-
-interface RuleFormProps {
+interface AutofillRuleFormProps {
   rule?: AutofillRule;
   categories: Category[];
   properties: CustomProperty[];
@@ -252,9 +100,9 @@ interface RuleFormProps {
 }
 
 /** Shared create/edit form for an autofill rule (matcher + category/tags/property actions). */
-function RuleForm({
+export function AutofillRuleForm({
   rule, categories, properties, tagTree, defaultCategoryId, submitLabel, resetOnSubmit, isError, errorMessage, onSubmit,
-}: RuleFormProps) {
+}: AutofillRuleFormProps) {
   // Custom-property values live outside the typed form (they're dynamic), like the bookmark form.
   const [numberInputs, setNumberInputs] = useState<Record<string, string>>(() =>
     Object.fromEntries((rule?.numberValues ?? []).map(entry => [entry.propertyId, String(entry.value)])));

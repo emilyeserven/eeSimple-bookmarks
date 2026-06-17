@@ -16,6 +16,15 @@ export function useAutofillRules() {
   });
 }
 
+/** A single autofill rule looked up by id from the rules list, plus the list's load state. */
+export function useAutofillRuleById(id: string) {
+  const query = useAutofillRules();
+  return {
+    ...query,
+    rule: (query.data ?? []).find(item => item.id === id),
+  };
+}
+
 export function useCreateAutofillRule() {
   const queryClient = useQueryClient();
   return useMutation({
