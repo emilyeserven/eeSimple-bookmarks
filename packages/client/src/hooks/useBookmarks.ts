@@ -13,6 +13,15 @@ export function useBookmarks(tagId?: string) {
   });
 }
 
+/** A single bookmark fetched by id; nested under the bookmarks key so edits invalidate it. */
+export function useBookmark(id: string) {
+  return useQuery({
+    queryKey: [...BOOKMARKS_KEY, "detail", id],
+    queryFn: () => bookmarksApi.get(id),
+    enabled: Boolean(id),
+  });
+}
+
 /** The homepage bookmarks: bookmarks in homepage categories or carrying a homepage tag. */
 export function useHomepageBookmarks() {
   return useQuery({

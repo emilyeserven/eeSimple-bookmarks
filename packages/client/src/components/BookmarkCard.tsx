@@ -1,5 +1,9 @@
 import type { Bookmark, CustomProperty } from "@eesimple/types";
 
+import { Link } from "@tanstack/react-router";
+
+import { formatNumber } from "../lib/bookmarkFormat";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -7,21 +11,11 @@ interface BookmarkCardProps {
   bookmark: Bookmark;
   /** Custom property definitions, used to label and unit-format the bookmark's values. */
   properties?: CustomProperty[];
-  onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
 }
 
-/** Format a numeric value with its property's unit, pluralizing on a value of 1. */
-function formatNumber(value: number, property: CustomProperty): string {
-  if (!property.unitSingular && !property.unitPlural) return String(value);
-  const unit = value === 1
-    ? (property.unitSingular ?? property.unitPlural)
-    : (property.unitPlural ?? property.unitSingular);
-  return unit ? `${value} ${unit}` : String(value);
-}
-
 export function BookmarkCard({
-  bookmark, properties = [], onEdit, onDelete,
+  bookmark, properties = [], onDelete,
 }: BookmarkCardProps) {
   const byId = new Map(properties.map(property => [property.id, property]));
 
@@ -58,35 +52,34 @@ export function BookmarkCard({
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <h3 className="font-semibold">
-            <a
-              href={bookmark.url}
-              target="_blank"
-              rel="noreferrer"
+            <Link
+              to="/bookmarks/$bookmarkId"
+              params={{
+                bookmarkId: bookmark.id,
+              }}
               className="
                 wrap-break-word text-primary
                 hover:underline
               "
             >
               {bookmark.title}
-            </a>
+            </Link>
           </h3>
-          <p className="truncate text-sm text-muted-foreground">{bookmark.url}</p>
+          <a
+            href={bookmark.url}
+            target="_blank"
+            rel="noreferrer"
+            className="
+              block truncate text-sm text-muted-foreground
+              hover:underline
+            "
+          >
+            {bookmark.url}
+          </a>
         </div>
-        <div className="flex shrink-0 items-center gap-1">
-          {onEdit
-            ? (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => onEdit(bookmark.id)}
-              >
-                Edit
-              </Button>
-            )
-            : null}
-          {onDelete
-            ? (
+        {onDelete
+          ? (
+            <div className="flex shrink-0 items-center gap-1">
               <Button
                 type="button"
                 variant="ghost"
@@ -99,9 +92,9 @@ export function BookmarkCard({
               >
                 Delete
               </Button>
-            )
-            : null}
-        </div>
+            </div>
+          )
+          : null}
       </div>
       {bookmark.description ? <p className="mt-2 text-sm text-foreground">{bookmark.description}</p> : null}
       {bookmark.tags.length > 0

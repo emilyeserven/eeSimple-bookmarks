@@ -2,8 +2,6 @@ import type { BookmarkSearch } from "../lib/bookmarkSearch";
 import type { Bookmark, CustomProperty, TagNode } from "@eesimple/types";
 import type { ReactNode } from "react";
 
-import { useState } from "react";
-
 import { BookmarkCard } from "./BookmarkCard";
 import { BookmarkForm } from "./BookmarkForm";
 import { ColumnsSwitcher } from "./ColumnsSwitcher";
@@ -59,7 +57,6 @@ export function BookmarkSearchView({
   addFormCategoryId,
 }: BookmarkSearchViewProps) {
   const deleteBookmark = useDeleteBookmark();
-  const [editingId, setEditingId] = useState<string | null>(null);
   const columns = useBookmarkColumns(pageKey);
 
   const visibleBookmarks = bookmarks.filter(bookmark => bookmarkMatchesSearch(bookmark, search));
@@ -109,32 +106,18 @@ export function BookmarkSearchView({
                 </p>
               )
               : null}
-            {visibleBookmarks.map(bookmark =>
-              editingId === bookmark.id
-                ? (
-                  <div
-                    key={bookmark.id}
-                    className="rounded-lg border bg-card p-4"
-                  >
-                    <BookmarkForm
-                      bookmark={bookmark}
-                      onDone={() => setEditingId(null)}
-                    />
-                  </div>
-                )
-                : (
-                  <Card
-                    key={bookmark.id}
-                    className="p-4"
-                  >
-                    <BookmarkCard
-                      bookmark={bookmark}
-                      properties={properties}
-                      onEdit={id => setEditingId(id)}
-                      onDelete={id => deleteBookmark.mutate(id)}
-                    />
-                  </Card>
-                ))}
+            {visibleBookmarks.map(bookmark => (
+              <Card
+                key={bookmark.id}
+                className="p-4"
+              >
+                <BookmarkCard
+                  bookmark={bookmark}
+                  properties={properties}
+                  onDelete={id => deleteBookmark.mutate(id)}
+                />
+              </Card>
+            ))}
           </div>
         </div>
       </div>

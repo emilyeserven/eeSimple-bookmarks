@@ -1,0 +1,96 @@
+import { screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+
+import { BookmarkDetail } from "./BookmarkDetail";
+import { renderWithRouter } from "../test-utils/router";
+import {
+  sampleBookmark,
+  sampleCategories,
+  sampleProperties,
+} from "../test-utils/story-mocks";
+
+const CATEGORY_PATH = "/categories/$categorySlug";
+
+function renderDetail(ui: Parameters<typeof renderWithRouter>[0]) {
+  return renderWithRouter(ui, {
+    paths: [CATEGORY_PATH],
+  });
+}
+
+describe("BookmarkDetail", () => {
+  it("shows the title linking to the bookmark url", async () => {
+    await renderDetail(
+      <BookmarkDetail
+        bookmark={sampleBookmark}
+        categories={sampleCategories}
+        properties={sampleProperties}
+      />,
+    );
+    expect(screen.getByRole("link", {
+      name: "GitHub",
+    })).toHaveAttribute("href", sampleBookmark.url);
+  });
+
+  it("shows the description, website, tags, and priority", async () => {
+    await renderDetail(
+      <BookmarkDetail
+        bookmark={sampleBookmark}
+        categories={sampleCategories}
+        properties={sampleProperties}
+      />,
+    );
+    expect(screen.getByText("Where the code lives.")).toBeInTheDocument();
+    expect(screen.getByText("GitHub (github.com)")).toBeInTheDocument();
+    expect(screen.getByText("cli")).toBeInTheDocument();
+    expect(screen.getByText("Priority")).toBeInTheDocument();
+  });
+
+  it("links the category to its page", async () => {
+    await renderDetail(
+      <BookmarkDetail
+        bookmark={sampleBookmark}
+        categories={sampleCategories}
+        properties={sampleProperties}
+      />,
+    );
+    expect(screen.getByRole("link", {
+      name: "Workflow",
+    })).toHaveAttribute("href", "/categories/workflow");
+  });
+
+  it("formats number, calculate, and boolean property values", async () => {
+    await renderDetail(
+      <BookmarkDetail
+        bookmark={sampleBookmark}
+        categories={sampleCategories}
+        properties={sampleProperties}
+      />,
+    );
+    // Effort carries a unit and pluralizes; Reviewed renders as Yes/No.
+    expect(screen.getByText("3 points")).toBeInTheDocument();
+    expect(screen.getByText("Yes")).toBeInTheDocument();
+    expect(screen.getByText(/calculated/)).toBeInTheDocument();
+  });
+
+  it("invokes the edit and delete callbacks", async () => {
+    const onEdit = vi.fn();
+    const onDelete = vi.fn();
+    await renderDetail(
+      <BookmarkDetail
+        bookmark={sampleBookmark}
+        categories={sampleCategories}
+        properties={sampleProperties}
+        onEdit={onEdit}
+        onDelete={onDelete}
+      />,
+    );
+    screen.getByRole("button", {
+      name: "Edit",
+    }).click();
+    screen.getByRole("button", {
+      name: "Delete",
+    }).click();
+    expect(onEdit).toHaveBeenCalledOnce();
+    expect(onDelete).toHaveBeenCalledOnce();
+  });
+});

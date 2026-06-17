@@ -46,6 +46,7 @@ export const bookmarksApi = {
   list: (tagId?: string) =>
     request<Bookmark[]>(`/bookmarks${tagId ? `?tag=${encodeURIComponent(tagId)}` : ""}`),
   homepage: () => request<Bookmark[]>("/bookmarks/homepage"),
+  get: (id: string) => request<Bookmark>(`/bookmarks/${id}`),
   create: (input: CreateBookmarkInput) =>
     request<Bookmark>("/bookmarks", {
       method: "POST",
