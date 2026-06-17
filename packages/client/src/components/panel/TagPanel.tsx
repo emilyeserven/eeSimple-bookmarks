@@ -1,3 +1,4 @@
+import type { DrawerMode } from "@/lib/drawerSearch";
 import type { TagNode } from "@eesimple/types";
 
 import { useState } from "react";
@@ -32,11 +33,13 @@ const childSchema = z.object({
 interface TagPanelProps {
   /** The tag id to view/edit, or `NEW_SENTINEL` to create a new root tag. */
   tagId: string;
+  /** Mode the editor opens in (from the panel's `dMode`); defaults to read-only `view`. */
+  initialMode?: DrawerMode;
 }
 
 /** Tag create/view/edit body for the shared panel (was `TagDrawer` / `TagCreateDrawer`). */
 export function TagPanel({
-  tagId,
+  tagId, initialMode = "view",
 }: TagPanelProps) {
   const {
     data: tree, isLoading, error,
@@ -55,6 +58,7 @@ export function TagPanel({
     <TagEditor
       node={node}
       allTags={allTags}
+      initialMode={initialMode}
     />
   );
 }
@@ -62,16 +66,17 @@ export function TagPanel({
 interface TagEditorProps {
   node: TagNode;
   allTags: TagNode[];
+  initialMode: DrawerMode;
 }
 
 /** View/edit a tag: read-only info by default, an edit form, children navigation, add/delete. */
 function TagEditor({
-  node, allTags,
+  node, allTags, initialMode,
 }: TagEditorProps) {
   const {
     close,
   } = usePanelControls();
-  const [mode, setMode] = useState<"view" | "edit">("view");
+  const [mode, setMode] = useState<"view" | "edit">(initialMode);
 
   return (
     <div className="space-y-6">

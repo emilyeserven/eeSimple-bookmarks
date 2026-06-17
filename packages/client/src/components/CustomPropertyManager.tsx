@@ -447,7 +447,8 @@ interface PropertyCardProps {
   allProperties: CustomProperty[];
 }
 
-function PropertyCard({
+/** A property row: read its name/type/units and inline-edit its categories and form visibility. */
+export function PropertyCard({
   property,
   categories,
   allProperties,

@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 /** A single editable website row: rename the site name and/or fix up its domain. */
-function WebsiteRow({
+export function WebsiteRow({
   website,
 }: { website: Website }) {
   const updateWebsite = useUpdateWebsite();
