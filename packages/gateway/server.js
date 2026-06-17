@@ -131,25 +131,33 @@ async function applySchema() {
     process.exit(1);
   }
 
-  console.log("[gateway] applying database schema (drizzle-kit push)…");
-  // `--force` is required in production: there is no TTY here, so any change
-  // drizzle-kit flags as data-loss would otherwise stop on an interactive
-  // confirmation prompt — apply nothing, yet still exit 0 — leaving the API to
-  // boot against a stale schema and fail every query touching the new columns.
-  // Auto-approving keeps the schema in sync on each deploy.
+  // Apply the schema in two phases, mirroring the middleware's `push:prod` script:
+  //   1. Run versioned migrations (`dist/db/migrate.js`) — the authoritative, deterministic
+  //      step that brings the schema up to date the same way on every database.
+  //   2. `drizzle-kit push --force` to reconcile any residual drift. `--force` is required
+  //      because there is no TTY here: a change drizzle-kit flags as data-loss would otherwise
+  //      block on an interactive prompt, apply nothing, yet exit 0 — leaving the API to boot
+  //      against a stale schema and fail every query touching the new columns.
+  // Relying on `push` alone (the previous behavior) was the source of flaky redeploys; the
+  // migrations now do the work and push is only a safety net.
+  const migrateJs = join(middlewareDir, "dist", "db", "migrate.js");
   let delay = 1_000;
   for (let attempt = 1; ; attempt++) {
-    const code = await runOnce("drizzle-kit", ["push", "--force"], middlewareDir);
+    console.log("[gateway] running database migrations…");
+    let code = await runOnce(process.execPath, [migrateJs], middlewareDir);
+    if (code === 0) {
+      console.log("[gateway] reconciling schema (drizzle-kit push)…");
+      code = await runOnce("drizzle-kit", ["push", "--force"], middlewareDir);
+    }
     if (code === 0) return;
-    // A broken schema apply only surfaces later as confusing per-query failures,
-    // so fail fast and let the orchestrator restart the container — but retry a
-    // few times first to ride out a database that accepted the TCP connection
-    // just before it was ready to serve queries.
+    // A broken schema apply only surfaces later as confusing per-query failures, so fail fast
+    // and let the orchestrator restart the container — but retry a few times first to ride out
+    // a database that accepted the TCP connection just before it was ready to serve queries.
     if (attempt >= SCHEMA_PUSH_ATTEMPTS) {
-      console.error(`[gateway] drizzle-kit push exited with ${code} after ${attempt} attempts; aborting boot.`);
+      console.error(`[gateway] schema apply failed (exit ${code}) after ${attempt} attempts; aborting boot.`);
       process.exit(1);
     }
-    console.error(`[gateway] drizzle-kit push exited with ${code}; retrying (attempt ${attempt + 1}/${SCHEMA_PUSH_ATTEMPTS}) in ${delay}ms…`);
+    console.error(`[gateway] schema apply exited with ${code}; retrying (attempt ${attempt + 1}/${SCHEMA_PUSH_ATTEMPTS}) in ${delay}ms…`);
     await new Promise(resolve => setTimeout(resolve, delay));
     delay = Math.min(delay * 2, 8_000);
   }

@@ -31,9 +31,20 @@ cp packages/middleware/.env.example packages/middleware/.env
 pnpm dev                                  # starts Postgres, pushes the schema, runs all packages
 ```
 
-`pnpm dev` brings up the database via Docker Compose, applies the Drizzle schema, then runs the
-types watcher, the API (http://localhost:3001, docs at `/docs`), and the client
-(http://localhost:5173) concurrently. The API auto-seeds a sample bookmark on first run.
+`pnpm dev` brings up the database via Docker Compose, applies the schema (runtime migrations then a
+reconciling `drizzle-kit push`), then runs the types watcher, the API (http://localhost:3001, docs
+at `/docs`), and the client (http://localhost:5173) concurrently. The API auto-seeds a sample
+bookmark on first run.
+
+The schema is managed with **Drizzle migrations**. After changing `packages/middleware/src/db/schema.ts`,
+generate a migration and commit the result:
+
+```bash
+pnpm --filter=@eesimple/middleware generate   # writes a new SQL file under packages/middleware/drizzle/
+```
+
+Migrations are applied automatically on `pnpm dev` and on every deploy; `drizzle-kit push` runs
+afterward only to reconcile any residual drift.
 
 ### Useful commands
 
@@ -45,7 +56,7 @@ pnpm lint / lint:fix  # ESLint (run from the repo root)
 pnpm verify:changed   # lint + typecheck + test only the changed packages
 pnpm fallow           # dead-code / duplication / complexity audit
 pnpm studio           # Drizzle Studio (database GUI)
-pnpm push:dev         # push the Drizzle schema to the local database
+pnpm push:dev         # run migrations + push the Drizzle schema to the local database
 ```
 
 To reset the database: `docker compose down -v && docker compose up --wait db && pnpm push:dev`.
@@ -54,8 +65,9 @@ To reset the database: `docker compose down -v && docker compose up --wait db &&
 
 eeSimple Bookmarks is built to self-deploy. In production a single Docker image (the repo-root `Dockerfile`)
 runs the **gateway** on port **3000**: it serves the client's static build, proxies `/api/*` to the
-middleware (spawned as a child process), and on boot applies the database schema
-(`drizzle-kit push`) against `DATABASE_URL`. The only configuration it needs is `DATABASE_URL`.
+middleware (spawned as a child process), and on boot brings the database schema up to date — it runs
+the versioned migrations (`dist/db/migrate.js`) and then a reconciling `drizzle-kit push` — against
+`DATABASE_URL`. The only configuration it needs is `DATABASE_URL`.
 
 1. **Provision PostgreSQL.** In your Coolify project, add a PostgreSQL database (or use any external
    Postgres) and copy its connection string.
@@ -74,17 +86,17 @@ middleware (spawned as a child process), and on boot applies the database schema
 5. **Deploy.** Coolify builds the multi-stage image and starts the gateway. The schema is applied
    automatically on first boot. Visit the app URL and check `GET /healthz` returns `{"status":"ok"}`.
 
-> **If the schema didn't apply automatically.** The gateway runs the Drizzle schema push on boot.
-> If a deploy logged a `drizzle-kit push` error and the app is failing against a stale schema, you
-> can apply it by hand from the container terminal (Coolify → the app → **Terminal**). Run it from
-> the middleware package, not the gateway working directory:
+> **If the schema didn't apply automatically.** The gateway applies migrations and then a
+> reconciling push on boot. If a deploy logged a schema error and the app is failing against a
+> stale schema, you can apply it by hand from the container terminal (Coolify → the app →
+> **Terminal**). Run it from the middleware package, not the gateway working directory:
 >
 > ```bash
-> cd /app/packages/middleware && pnpm exec drizzle-kit push --force
+> cd /app/packages/middleware && node dist/db/migrate.js && pnpm exec drizzle-kit push --force
 > ```
 >
-> Running `drizzle-kit push` from `/app/packages/gateway` (the default directory) fails — the
-> gateway package has no `drizzle-kit` dependency and no `drizzle.config.*` there.
+> Running these from `/app/packages/gateway` (the default directory) fails — the gateway package
+> has no `drizzle-kit` dependency, no `drizzle.config.*`, and no migrations folder there.
 
 ### How it works in production
 
