@@ -1,11 +1,14 @@
 import type { ComboboxOption } from "./Combobox";
 import type { Bookmark, CustomProperty } from "@eesimple/types";
 
+import { Ban, Circle, CircleDot } from "lucide-react";
+
 import { Combobox } from "./Combobox";
 import { RangeSlider } from "./RangeSlider";
 
 import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface CustomPropertyFiltersProps {
   properties: CustomProperty[];
@@ -47,10 +50,6 @@ function effectiveBounds(
   return [min, max > min ? max : min + 1];
 }
 
-const presenceButton = "rounded-md px-2 py-0.5 text-xs transition-colors";
-const presenceActive = "bg-primary text-primary-foreground";
-const presenceInactive = "text-foreground hover:bg-accent hover:text-accent-foreground";
-
 interface PresenceControlProps {
   propertyId: string;
   value: "has" | "missing" | undefined;
@@ -60,30 +59,58 @@ interface PresenceControlProps {
 function PresenceFilterControl({
   propertyId, value, onChange,
 }: PresenceControlProps) {
+  const toggleValue = value ?? "any";
+
+  function handleChange(next: string) {
+    if (next === "any" || next === "") {
+      onChange(propertyId, undefined);
+    }
+    else {
+      onChange(propertyId, next as "has" | "missing");
+    }
+  }
+
   return (
-    <div className="flex gap-1">
-      <button
-        type="button"
-        onClick={() => onChange(propertyId, undefined)}
-        className={cn(presenceButton, value === undefined ? presenceActive : presenceInactive)}
-      >
-        Any
-      </button>
-      <button
-        type="button"
-        onClick={() => onChange(propertyId, "has")}
-        className={cn(presenceButton, value === "has" ? presenceActive : presenceInactive)}
-      >
-        Has value
-      </button>
-      <button
-        type="button"
-        onClick={() => onChange(propertyId, "missing")}
-        className={cn(presenceButton, value === "missing" ? presenceActive : presenceInactive)}
-      >
-        No value
-      </button>
-    </div>
+    <ToggleGroup
+      type="single"
+      size="sm"
+      value={toggleValue}
+      onValueChange={handleChange}
+    >
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <ToggleGroupItem
+            value="any"
+            aria-label="Any"
+          >
+            <Circle className="size-3.5" />
+          </ToggleGroupItem>
+        </TooltipTrigger>
+        <TooltipContent>Any</TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <ToggleGroupItem
+            value="has"
+            aria-label="Has value"
+          >
+            <CircleDot className="size-3.5" />
+          </ToggleGroupItem>
+        </TooltipTrigger>
+        <TooltipContent>Has value</TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <ToggleGroupItem
+            value="missing"
+            aria-label="No value"
+          >
+            <Ban className="size-3.5" />
+          </ToggleGroupItem>
+        </TooltipTrigger>
+        <TooltipContent>No value</TooltipContent>
+      </Tooltip>
+    </ToggleGroup>
   );
 }
 
@@ -122,27 +149,12 @@ export function CustomPropertyFilters({
           >
             <div className="flex items-center justify-between">
               <Label className="text-xs text-muted-foreground">{property.name}</Label>
-              {isFilterActive
-                ? (
-                  <button
-                    type="button"
-                    onClick={handleReset}
-                    className="
-                      text-xs text-primary
-                      hover:underline
-                    "
-                  >
-                    Reset
-                  </button>
-                )
-                : null}
+              <PresenceFilterControl
+                propertyId={property.id}
+                value={presenceValue}
+                onChange={onPresenceFilterChange}
+              />
             </div>
-
-            <PresenceFilterControl
-              propertyId={property.id}
-              value={presenceValue}
-              onChange={onPresenceFilterChange}
-            />
 
             {presenceValue !== "missing" && isRangeProperty(property)
               ? (
@@ -162,6 +174,21 @@ export function CustomPropertyFilters({
                   value={booleanValues[property.id]}
                   onChange={onBooleanFilterChange}
                 />
+              )
+              : null}
+
+            {isFilterActive
+              ? (
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="
+                    text-xs text-primary
+                    hover:underline
+                  "
+                >
+                  Reset
+                </button>
               )
               : null}
           </div>
