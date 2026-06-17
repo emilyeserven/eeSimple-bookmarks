@@ -6,10 +6,10 @@ import { bookmarksApi } from "../lib/api";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
 
-export function useBookmarks() {
+export function useBookmarks(tagId?: string) {
   return useQuery({
-    queryKey: BOOKMARKS_KEY,
-    queryFn: bookmarksApi.list,
+    queryKey: [...BOOKMARKS_KEY, tagId ?? null],
+    queryFn: () => bookmarksApi.list(tagId),
   });
 }
 

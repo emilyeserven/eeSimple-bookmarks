@@ -2,17 +2,36 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { BookmarkCard } from "../components/BookmarkCard";
 import { BookmarkForm } from "../components/BookmarkForm";
+import { TagTreeFilter } from "../components/TagTreeFilter";
 import { useBookmarks, useDeleteBookmark } from "../hooks/useBookmarks";
+import { useTagTree } from "../hooks/useTags";
 import { useUiStore } from "../stores/uiStore";
 
+interface BookmarksSearch {
+  tag?: string;
+}
+
 export const Route = createFileRoute("/bookmarks")({
+  validateSearch: (search: Record<string, unknown>): BookmarksSearch =>
+    (typeof search.tag === "string"
+      ? {
+        tag: search.tag,
+      }
+      : {}),
   component: BookmarksPage,
 });
 
 function BookmarksPage() {
   const {
+    tag,
+  } = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const {
     data: bookmarks, isLoading, error,
-  } = useBookmarks();
+  } = useBookmarks(tag);
+  const {
+    data: tagTree,
+  } = useTagTree();
   const deleteBookmark = useDeleteBookmark();
   const showFavoritesOnly = useUiStore(state => state.showFavoritesOnly);
   const toggleShowFavoritesOnly = useUiStore(state => state.toggleShowFavoritesOnly);
@@ -32,6 +51,18 @@ function BookmarksPage() {
           Show favorites only
         </label>
       </div>
+
+      <TagTreeFilter
+        tree={tagTree ?? []}
+        activeId={tag}
+        onSelect={nextTag => navigate({
+          search: nextTag
+            ? {
+              tag: nextTag,
+            }
+            : {},
+        })}
+      />
 
       <BookmarkForm />
 

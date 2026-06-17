@@ -1,4 +1,12 @@
-import type { Bookmark, CreateBookmarkInput, UpdateBookmarkInput } from "@eesimple/types";
+import type {
+  Bookmark,
+  CreateBookmarkInput,
+  CreateTagInput,
+  Tag,
+  TagNode,
+  UpdateBookmarkInput,
+  UpdateTagInput,
+} from "@eesimple/types";
 
 const BASE = "/api";
 
@@ -20,7 +28,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const bookmarksApi = {
-  list: () => request<Bookmark[]>("/bookmarks"),
+  list: (tagId?: string) =>
+    request<Bookmark[]>(`/bookmarks${tagId ? `?tag=${encodeURIComponent(tagId)}` : ""}`),
   create: (input: CreateBookmarkInput) =>
     request<Bookmark>("/bookmarks", {
       method: "POST",
@@ -32,6 +41,24 @@ export const bookmarksApi = {
       body: JSON.stringify(input),
     }),
   remove: (id: string) => request<undefined>(`/bookmarks/${id}`, {
+    method: "DELETE",
+  }),
+};
+
+export const tagsApi = {
+  list: () => request<Tag[]>("/tags"),
+  tree: () => request<TagNode[]>("/tags/tree"),
+  create: (input: CreateTagInput) =>
+    request<Tag>("/tags", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  update: (id: string, input: UpdateTagInput) =>
+    request<Tag>(`/tags/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  remove: (id: string) => request<undefined>(`/tags/${id}`, {
     method: "DELETE",
   }),
 };

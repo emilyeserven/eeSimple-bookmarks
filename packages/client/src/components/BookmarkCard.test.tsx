@@ -10,7 +10,18 @@ const bookmark: Bookmark = {
   url: "https://github.com",
   title: "GitHub",
   description: "Where the code lives.",
-  tags: ["dev", "tools"],
+  tags: [
+    {
+      id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+      name: "dev",
+      parentId: null,
+    },
+    {
+      id: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+      name: "tools",
+      parentId: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+    },
+  ],
   favorite: true,
   createdAt: "2026-06-01T00:00:00.000Z",
 };
@@ -20,6 +31,12 @@ describe("BookmarkCard", () => {
     render(<BookmarkCard bookmark={bookmark} />);
     expect(screen.getByText("GitHub")).toBeInTheDocument();
     expect(screen.getByText("Where the code lives.")).toBeInTheDocument();
+  });
+
+  it("renders each assigned tag name", () => {
+    render(<BookmarkCard bookmark={bookmark} />);
+    expect(screen.getByText("dev")).toBeInTheDocument();
+    expect(screen.getByText("tools")).toBeInTheDocument();
   });
 
   it("calls onDelete with the bookmark id when the delete button is clicked", () => {

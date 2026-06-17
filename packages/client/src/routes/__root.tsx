@@ -41,6 +41,18 @@ function RootComponent() {
           >
             Bookmarks
           </Link>
+          <Link
+            to="/tags"
+            className="
+              text-sm text-slate-600
+              hover:underline
+            "
+            activeProps={{
+              className: "text-sm font-medium text-slate-900 underline",
+            }}
+          >
+            Tags
+          </Link>
         </nav>
       </header>
       <main className="mx-auto max-w-3xl px-4 py-8">
