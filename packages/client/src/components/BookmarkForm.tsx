@@ -1,37 +1,34 @@
 import { useForm } from "@tanstack/react-form";
 import { z } from "zod";
 
+import { TagPicker } from "./TagPicker";
 import { useCreateBookmark } from "../hooks/useBookmarks";
+import { useTagTree } from "../hooks/useTags";
 
 const bookmarkSchema = z.object({
   url: z.string().url("Enter a valid URL"),
   title: z.string().min(1, "Title is required"),
   description: z.string(),
-  tags: z.string(),
+  tagIds: z.array(z.string()),
   favorite: z.boolean(),
 });
 
 const fieldClass
   = "mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none";
 
-/** Parse a comma-separated tag string into a clean list. */
-function parseTags(value: string): string[] {
-  return value
-    .split(",")
-    .map(tag => tag.trim())
-    .filter(Boolean);
-}
-
 /** Create-bookmark form. Owns its own mutation so the page stays focused on the list. */
 export function BookmarkForm() {
   const createBookmark = useCreateBookmark();
+  const {
+    data: tagTree,
+  } = useTagTree();
 
   const form = useForm({
     defaultValues: {
       url: "",
       title: "",
       description: "",
-      tags: "",
+      tagIds: [] as string[],
       favorite: false,
     },
     validators: {
@@ -44,7 +41,7 @@ export function BookmarkForm() {
         url: value.url,
         title: value.title,
         description: value.description || null,
-        tags: parseTags(value.tags),
+        tagIds: value.tagIds,
         favorite: value.favorite,
       });
       form.reset();
@@ -88,15 +85,25 @@ export function BookmarkForm() {
         )}
       </form.Field>
 
-      <form.Field name="tags">
+      <form.Field name="tagIds">
         {field => (
-          <TextField
-            label="Tags (comma-separated)"
-            value={field.state.value}
-            errors={field.state.meta.errors}
-            onBlur={field.handleBlur}
-            onChange={field.handleChange}
-          />
+          <div className="block text-sm font-medium text-slate-700">
+            Tags
+            <div className="mt-1 rounded-md border border-slate-300 p-2">
+              <TagPicker
+                tree={tagTree ?? []}
+                selectedIds={field.state.value}
+                onToggle={(id) => {
+                  const current = field.state.value;
+                  field.handleChange(
+                    current.includes(id)
+                      ? current.filter(tagId => tagId !== id)
+                      : [...current, id],
+                  );
+                }}
+              />
+            </div>
+          </div>
         )}
       </form.Field>
 

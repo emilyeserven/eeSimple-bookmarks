@@ -59,12 +59,12 @@ export function BookmarkCard({
           <ul className="mt-2 flex flex-wrap gap-1">
             {bookmark.tags.map(tag => (
               <li
-                key={tag}
+                key={tag.id}
                 className="
                   rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600
                 "
               >
-                {tag}
+                {tag.name}
               </li>
             ))}
           </ul>

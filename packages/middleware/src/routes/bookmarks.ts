@@ -20,6 +20,17 @@ const bookmarkParams = {
   },
 } as const;
 
+const listQuery = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    tag: {
+      type: "string",
+      format: "uuid",
+    },
+  },
+} as const;
+
 const createBookmarkBody = {
   type: "object",
   required: ["url", "title"],
@@ -36,10 +47,11 @@ const createBookmarkBody = {
     description: {
       type: ["string", "null"],
     },
-    tags: {
+    tagIds: {
       type: "array",
       items: {
         type: "string",
+        format: "uuid",
       },
     },
     favorite: {
@@ -59,8 +71,14 @@ export async function bookmarkRoutes(app: FastifyInstance): Promise<void> {
   app.get("/api/bookmarks", {
     schema: {
       tags: ["bookmarks"],
+      querystring: listQuery,
     },
-  }, async () => listBookmarks());
+  }, async (req) => {
+    const {
+      tag,
+    } = req.query as { tag?: string };
+    return listBookmarks(tag);
+  });
 
   app.get("/api/bookmarks/:id", {
     schema: {

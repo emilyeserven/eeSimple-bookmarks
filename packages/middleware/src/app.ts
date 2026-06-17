@@ -4,6 +4,7 @@ import swaggerUi from "@fastify/swagger-ui";
 import Fastify, { type FastifyInstance } from "fastify";
 import { bookmarkRoutes } from "@/routes/bookmarks";
 import { healthRoutes } from "@/routes/health";
+import { tagRoutes } from "@/routes/tags";
 
 /** Build and configure the Fastify application (without starting it). */
 export async function buildApp(): Promise<FastifyInstance> {
@@ -29,6 +30,10 @@ export async function buildApp(): Promise<FastifyInstance> {
           description: "Bookmark management endpoints",
         },
         {
+          name: "tags",
+          description: "Tag taxonomy endpoints",
+        },
+        {
           name: "health",
           description: "Service health",
         },
@@ -41,6 +46,7 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   await app.register(healthRoutes);
   await app.register(bookmarkRoutes);
+  await app.register(tagRoutes);
 
   return app;
 }
