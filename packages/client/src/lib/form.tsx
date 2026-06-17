@@ -100,7 +100,7 @@ function TextField({
           </div>
         )
         : input}
-      <FieldErrors errors={field.state.meta.errors} />
+      {field.state.meta.isTouched && <FieldErrors errors={field.state.meta.errors} />}
     </div>
   );
 }
@@ -131,7 +131,7 @@ function TextareaField({
         onBlur={field.handleBlur}
         onChange={event => field.handleChange(event.target.value)}
       />
-      <FieldErrors errors={field.state.meta.errors} />
+      {field.state.meta.isTouched && <FieldErrors errors={field.state.meta.errors} />}
     </div>
   );
 }
@@ -168,7 +168,7 @@ function NumberField({
         }}
       />
       {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
-      <FieldErrors errors={field.state.meta.errors} />
+      {field.state.meta.isTouched && <FieldErrors errors={field.state.meta.errors} />}
     </div>
   );
 }
@@ -195,7 +195,10 @@ function SelectField({
       <Label htmlFor={id}>{label}</Label>
       <Select
         value={field.state.value || undefined}
-        onValueChange={value => field.handleChange(value)}
+        onValueChange={(value) => {
+          field.handleChange(value);
+          field.handleBlur();
+        }}
       >
         <SelectTrigger
           id={id}
@@ -214,7 +217,7 @@ function SelectField({
           ))}
         </SelectContent>
       </Select>
-      <FieldErrors errors={field.state.meta.errors} />
+      {field.state.meta.isTouched && <FieldErrors errors={field.state.meta.errors} />}
     </div>
   );
 }
@@ -246,12 +249,15 @@ function ComboboxField({
         aria-label={label}
         options={options}
         value={field.state.value || undefined}
-        onValueChange={value => field.handleChange(value ?? "")}
+        onValueChange={(value) => {
+          field.handleChange(value ?? "");
+          field.handleBlur();
+        }}
         placeholder={placeholder}
         searchPlaceholder={searchPlaceholder}
         emptyText={emptyText}
       />
-      <FieldErrors errors={field.state.meta.errors} />
+      {field.state.meta.isTouched && <FieldErrors errors={field.state.meta.errors} />}
     </div>
   );
 }
