@@ -81,7 +81,7 @@ async function websitesById(websiteIds: string[]): Promise<Map<string, BookmarkW
       id: row.id,
       domain: row.domain,
       siteName: row.siteName,
-      slug: row.slug ?? row.domain.replace(/\.[^.]+$/, "").replace(/[^a-z0-9]+/gi, "-") || "website",
+      slug: row.slug ?? (row.domain.replace(/\.[^.]+$/, "").replace(/[^a-z0-9]+/gi, "-") || "website"),
     });
   }
   return byId;
