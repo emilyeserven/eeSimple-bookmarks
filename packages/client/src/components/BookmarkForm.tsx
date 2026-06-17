@@ -19,10 +19,12 @@ import { useCategories, useCategoryDefaults, useCategoryRootTags } from "../hook
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useFetchTitle } from "../hooks/useFetchTitle";
 import { useTagTree } from "../hooks/useTags";
+import { useWebsiteLookup } from "../hooks/useWebsites";
 import { applyAutofill } from "../lib/autofill";
 import { useAppForm } from "../lib/form";
 import { useUiStore } from "../stores/uiStore";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -73,6 +75,7 @@ export function BookmarkForm({
   const updateBookmark = useUpdateBookmark();
   const saveBookmark = isEdit ? updateBookmark : createBookmark;
   const fetchTitle = useFetchTitle();
+  const websiteLookup = useWebsiteLookup();
   const autoFetchTitle = useUiStore(state => state.autoFetchTitle);
   const {
     data: tagTree,
@@ -323,6 +326,16 @@ export function BookmarkForm({
     }
   }
 
+  // Check whether the URL's site is already on record so the banner can say whether a new
+  // website will be created. Read-only — the site is created only when the bookmark is saved.
+  function runWebsiteLookup(url: string): void {
+    if (!isFetchableUrl(url)) {
+      websiteLookup.reset();
+      return;
+    }
+    websiteLookup.mutate(url);
+  }
+
   // Default the category to the built-in "Default" once categories load.
   useEffect(() => {
     if (!categories || categories.length === 0) return;
@@ -351,6 +364,7 @@ export function BookmarkForm({
             type="url"
             onBlur={() => {
               runAutofill();
+              runWebsiteLookup(field.state.value);
               if (autoFetchTitle) {
                 void runFetchTitle(field.state.value, {
                   force: false,
@@ -360,6 +374,35 @@ export function BookmarkForm({
           />
         )}
       </form.AppField>
+
+      {websiteLookup.data && websiteLookup.data.domain
+        ? (
+          <p
+            className="
+              flex items-center gap-2 text-sm text-muted-foreground
+              sm:col-span-2
+            "
+          >
+            {websiteLookup.data.exists
+              ? (
+                <>
+                  <Badge variant="secondary">Existing site</Badge>
+                  <span>{websiteLookup.data.siteName}</span>
+                </>
+              )
+              : (
+                <>
+                  <Badge variant="outline">New site</Badge>
+                  <span>
+                    {websiteLookup.data.domain}
+                    {" "}
+                    will be added
+                  </span>
+                </>
+              )}
+          </p>
+        )
+        : null}
 
       <form.Subscribe selector={state => state.values.url}>
         {url => (

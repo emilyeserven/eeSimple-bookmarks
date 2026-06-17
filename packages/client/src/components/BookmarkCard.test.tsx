@@ -11,6 +11,7 @@ const bookmark: Bookmark = {
   title: "GitHub",
   description: "Where the code lives.",
   categoryId: "22222222-2222-2222-2222-222222222222",
+  website: null,
   tags: [
     {
       id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",

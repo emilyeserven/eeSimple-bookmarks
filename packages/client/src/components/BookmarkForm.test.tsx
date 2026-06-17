@@ -58,6 +58,13 @@ vi.mock("../hooks/useFetchTitle", () => ({
     error: null,
   }),
 }));
+vi.mock("../hooks/useWebsites", () => ({
+  useWebsiteLookup: () => ({
+    data: undefined,
+    mutate: vi.fn(),
+    reset: vi.fn(),
+  }),
+}));
 vi.mock("../stores/uiStore", () => ({
   useUiStore: (selector: (state: { autoFetchTitle: boolean }) => unknown) =>
     selector({
@@ -139,6 +146,7 @@ describe("BookmarkForm title fetching", () => {
       title: "GitHub",
       description: "Code host",
       categoryId: "22222222-2222-2222-2222-222222222222",
+      website: null,
       tags: [],
       numberValues: [],
       booleanValues: [],

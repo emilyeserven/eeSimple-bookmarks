@@ -37,6 +37,39 @@ export interface UpdateTagInput {
   parentId?: string | null;
 }
 
+/**
+ * A site in the built-in "Websites" taxonomy. Every bookmark is auto-linked to one of these by
+ * the host of its URL, so bookmarks can be grouped and browsed per site.
+ */
+export interface Website {
+  id: string;
+  /** Normalized host (lower-cased, leading `www.` stripped), e.g. `"github.com"`. Unique. */
+  domain: string;
+  /** Human-friendly site name (defaults to the domain on creation; renamable). */
+  siteName: string;
+  /** ISO-8601 timestamp of when the website was first seen. */
+  createdAt: string;
+}
+
+/** Lightweight website shape carried on a bookmark. */
+export type BookmarkWebsite = Pick<Website, "id" | "domain" | "siteName">;
+
+/** Payload for updating a website (rename its site name and/or change its domain). */
+export interface UpdateWebsiteInput {
+  siteName?: string;
+  domain?: string;
+}
+
+/** Result of looking up the website for a URL without creating one — powers the form banner. */
+export interface WebsiteLookup {
+  /** Normalized host of the URL, or `null` when the URL has no usable host. */
+  domain: string | null;
+  /** Whether a website already exists for that domain. */
+  exists: boolean;
+  /** The existing website's site name when `exists`, otherwise `null`. */
+  siteName: string | null;
+}
+
 /** A single saved bookmark. */
 export interface Bookmark {
   id: string;
@@ -48,6 +81,8 @@ export interface Bookmark {
   description: string | null;
   /** Id of the category this bookmark belongs to (always set; the built-in "Default" when unassigned). */
   categoryId: string;
+  /** The website this bookmark belongs to (auto-linked by URL host), or `null` when the URL has no host. */
+  website: BookmarkWebsite | null;
   /** Tags assigned to this bookmark, drawn from the taxonomy. */
   tags: BookmarkTag[];
   /** Number-typed custom property values (includes computed `calculate` results) assigned to this bookmark. */

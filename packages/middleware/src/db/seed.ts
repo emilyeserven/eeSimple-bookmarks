@@ -12,6 +12,7 @@ import {
   homepageTags,
   propertyCategories,
   tags,
+  websites,
 } from "@/db/schema";
 
 /**
@@ -47,11 +48,17 @@ export async function maybeSeed(): Promise<void> {
     parentId: tools.id,
   }).returning();
 
+  const [github] = await db.insert(websites).values({
+    domain: "github.com",
+    siteName: "GitHub",
+  }).returning();
+
   const [bookmark] = await db.insert(bookmarks).values({
     url: "https://github.com",
     title: "GitHub",
     description: "Where the code lives.",
     categoryId: defaultCategory?.id ?? null,
+    websiteId: github.id,
     priority: 10,
   }).returning();
 
