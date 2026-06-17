@@ -37,7 +37,8 @@ function BookmarksPage() {
       })}
       isLoading={isLoading}
       error={error}
-      emptyMessage="No bookmarks match these filters."
+      emptyMessage="No bookmarks yet."
+      noMatchMessage="No bookmarks match these filters."
     />
   );
 }

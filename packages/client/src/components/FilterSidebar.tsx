@@ -24,10 +24,13 @@ export function FilterSidebar({
 }: FilterSidebarProps) {
   const hasTags = tree.length > 0;
   const hasProperties = properties.length > 0;
-  if (!hasTags && !hasProperties) return null;
 
   return (
     <aside className="space-y-6">
+      {!hasTags && !hasProperties
+        ? <p className="text-sm text-muted-foreground">No filters available yet.</p>
+        : null}
+
       {hasTags
         ? (
           <div className="space-y-2">
