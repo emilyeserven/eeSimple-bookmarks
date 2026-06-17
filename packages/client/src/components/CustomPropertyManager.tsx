@@ -429,12 +429,16 @@ export function CustomPropertyManager() {
 
       <div className="space-y-4">
         {(properties ?? []).map(property => (
-          <PropertyCard
+          <Card
             key={property.id}
-            property={property}
-            categories={categories ?? []}
-            allProperties={properties ?? []}
-          />
+            className="p-6"
+          >
+            <PropertyCard
+              property={property}
+              categories={categories ?? []}
+              allProperties={properties ?? []}
+            />
+          </Card>
         ))}
       </div>
     </section>
@@ -479,10 +483,8 @@ export function PropertyCard({
   }
 
   return (
-    <Card>
-      <CardHeader
-        className="flex-row items-center justify-between gap-2 space-y-0"
-      >
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2">
           <CardTitle>{property.name}</CardTitle>
           <Badge variant="secondary">{TYPE_LABELS[property.type]}</Badge>
@@ -507,9 +509,9 @@ export function PropertyCard({
         >
           Delete
         </Button>
-      </CardHeader>
+      </div>
 
-      <CardContent className="space-y-4">
+      <div className="space-y-4">
         <div className="space-y-2">
           <Label>Categories</Label>
           <CategoryCheckboxList
@@ -529,7 +531,7 @@ export function PropertyCard({
             Show in the main bookmark form
           </Label>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

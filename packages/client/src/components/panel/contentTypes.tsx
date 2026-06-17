@@ -303,11 +303,7 @@ function WebsiteItem({
   if (error) return <Problem>{error.message}</Problem>;
   const website = (data ?? []).find(item => item.id === id);
   if (!website) return <Problem>Website not found.</Problem>;
-  return (
-    <ul>
-      <WebsiteRow website={website} />
-    </ul>
-  );
+  return <WebsiteRow website={website} />;
 }
 
 // --- Autofill rule ------------------------------------------------------------------------------

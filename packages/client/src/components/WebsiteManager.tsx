@@ -31,7 +31,7 @@ export function WebsiteRow({
   }
 
   return (
-    <li className="rounded-lg border bg-card p-4">
+    <div>
       <div
         className="
           grid gap-3
@@ -66,7 +66,7 @@ export function WebsiteRow({
       {updateWebsite.isError
         ? <p className="mt-2 text-sm text-destructive">{updateWebsite.error.message}</p>
         : null}
-    </li>
+    </div>
   );
 }
 
@@ -92,10 +92,12 @@ export function WebsiteManager() {
         ? (
           <ul className="space-y-3">
             {websites.map(website => (
-              <WebsiteRow
+              <li
                 key={website.id}
-                website={website}
-              />
+                className="rounded-lg border bg-card p-4"
+              >
+                <WebsiteRow website={website} />
+              </li>
             ))}
           </ul>
         )

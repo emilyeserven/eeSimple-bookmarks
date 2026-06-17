@@ -353,7 +353,7 @@ export function BookmarkForm({
   return (
     <form
       className="
-        grid gap-4 rounded-lg border bg-card p-4
+        grid gap-4
         sm:grid-cols-2
       "
       onSubmit={(event) => {

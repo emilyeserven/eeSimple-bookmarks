@@ -12,6 +12,8 @@ import { useDeleteBookmark } from "../hooks/useBookmarks";
 import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
 import { bookmarkMatchesSearch } from "../lib/bookmarkSearch";
 
+import { Card } from "@/components/ui/card";
+
 interface BookmarkSearchViewProps {
   /** Page heading area rendered above the two-column body. */
   header: ReactNode;
@@ -84,7 +86,9 @@ export function BookmarkSearchView({
         />
 
         <div className="space-y-6">
-          <BookmarkForm lockedCategoryId={addFormCategoryId} />
+          <div className="rounded-lg border bg-card p-4">
+            <BookmarkForm lockedCategoryId={addFormCategoryId} />
+          </div>
 
           <div className="flex justify-end">
             <ColumnsSwitcher pageKey={pageKey} />
@@ -108,20 +112,28 @@ export function BookmarkSearchView({
             {visibleBookmarks.map(bookmark =>
               editingId === bookmark.id
                 ? (
-                  <BookmarkForm
+                  <div
                     key={bookmark.id}
-                    bookmark={bookmark}
-                    onDone={() => setEditingId(null)}
-                  />
+                    className="rounded-lg border bg-card p-4"
+                  >
+                    <BookmarkForm
+                      bookmark={bookmark}
+                      onDone={() => setEditingId(null)}
+                    />
+                  </div>
                 )
                 : (
-                  <BookmarkCard
+                  <Card
                     key={bookmark.id}
-                    bookmark={bookmark}
-                    properties={properties}
-                    onEdit={id => setEditingId(id)}
-                    onDelete={id => deleteBookmark.mutate(id)}
-                  />
+                    className="p-4"
+                  >
+                    <BookmarkCard
+                      bookmark={bookmark}
+                      properties={properties}
+                      onEdit={id => setEditingId(id)}
+                      onDelete={id => deleteBookmark.mutate(id)}
+                    />
+                  </Card>
                 ))}
           </div>
         </div>
