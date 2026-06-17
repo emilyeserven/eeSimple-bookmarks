@@ -9,9 +9,15 @@ import {
 import { useCustomProperties } from "../hooks/useCustomProperties";
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface CategoryDefaultsSectionProps {
   category: Category;
@@ -33,7 +39,8 @@ export function CategoryDefaultsSection({
   const setDefaults = useSetCategoryDefaults(category.id);
 
   const [numberInputs, setNumberInputs] = useState<Record<string, string>>({});
-  const [booleanInputs, setBooleanInputs] = useState<Record<string, boolean>>({});
+  // `undefined` means "no default" — kept distinct from an explicit `false` so a false default saves.
+  const [booleanInputs, setBooleanInputs] = useState<Record<string, boolean | undefined>>({});
 
   // Seed the inputs from the saved defaults once they load (or change).
   useEffect(() => {
@@ -70,8 +77,11 @@ export function CategoryDefaultsSection({
       .filter(property => property.type === "boolean")
       .map(property => ({
         propertyId: property.id,
-        value: booleanInputs[property.id] ?? false,
-      }));
+        value: booleanInputs[property.id],
+      }))
+      // Only persist properties given an explicit Yes/No; "No default" is left unset.
+      .filter((entry): entry is { propertyId: string;
+        value: boolean; } => entry.value !== undefined);
     setDefaults.mutate({
       numberValues,
       booleanValues,
@@ -114,21 +124,31 @@ export function CategoryDefaultsSection({
               </div>
             );
           }
+          const current = booleanInputs[property.id];
+          const selectValue = current === undefined ? "unset" : String(current);
           return (
             <div
               key={property.id}
-              className="flex items-center gap-2 self-end"
+              className="space-y-1"
             >
-              <Checkbox
-                id={`default-${category.id}-${property.id}`}
-                checked={booleanInputs[property.id] ?? false}
-                onCheckedChange={checked =>
-                  setBooleanInputs(current => ({
-                    ...current,
-                    [property.id]: checked === true,
-                  }))}
-              />
               <Label htmlFor={`default-${category.id}-${property.id}`}>{property.name}</Label>
+              <Select
+                value={selectValue}
+                onValueChange={value =>
+                  setBooleanInputs(currentInputs => ({
+                    ...currentInputs,
+                    [property.id]: value === "unset" ? undefined : value === "true",
+                  }))}
+              >
+                <SelectTrigger id={`default-${category.id}-${property.id}`}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="unset">No default</SelectItem>
+                  <SelectItem value="true">Yes</SelectItem>
+                  <SelectItem value="false">No</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           );
         })}

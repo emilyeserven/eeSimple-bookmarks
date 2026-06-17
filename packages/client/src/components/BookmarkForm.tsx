@@ -286,6 +286,23 @@ export function BookmarkForm({
     },
   });
 
+  // Custom-property change handlers, shared by the main-form and Advanced field groups. Marking the
+  // field touched stops autofill/category-defaults from later overwriting the user's entry.
+  function handleNumberChange(id: string, value: string): void {
+    touchedRef.current.add(`number:${id}`);
+    setNumberInputs(current => ({
+      ...current,
+      [id]: value,
+    }));
+  }
+  function handleBooleanChange(id: string, value: boolean): void {
+    touchedRef.current.add(`boolean:${id}`);
+    setBooleanInputs(current => ({
+      ...current,
+      [id]: value,
+    }));
+  }
+
   // Fetch the page title for the current URL and write it into the Title field.
   // `force` (manual button) always overwrites; the on-blur path only fills a blank title.
   async function runFetchTitle(url: string, {
@@ -409,6 +426,21 @@ export function BookmarkForm({
         )}
       </form.AppField>
 
+      <form.Subscribe selector={state => state.values.categoryId}>
+        {categoryId => (
+          <CategoryCustomFields
+            placement="default"
+            className="sm:col-span-2"
+            categoryId={categoryId}
+            properties={customProperties ?? []}
+            numberInputs={numberInputs}
+            booleanInputs={booleanInputs}
+            onNumberChange={handleNumberChange}
+            onBooleanChange={handleBooleanChange}
+          />
+        )}
+      </form.Subscribe>
+
       <Collapsible
         className="
           group/advanced space-y-3
@@ -478,24 +510,13 @@ export function BookmarkForm({
                   onApply={applyCategoryDefaults}
                 />
                 <CategoryCustomFields
+                  placement="advanced"
                   categoryId={categoryId}
                   properties={customProperties ?? []}
                   numberInputs={numberInputs}
                   booleanInputs={booleanInputs}
-                  onNumberChange={(id, value) => {
-                    touchedRef.current.add(`number:${id}`);
-                    setNumberInputs(current => ({
-                      ...current,
-                      [id]: value,
-                    }));
-                  }}
-                  onBooleanChange={(id, value) => {
-                    touchedRef.current.add(`boolean:${id}`);
-                    setBooleanInputs(current => ({
-                      ...current,
-                      [id]: value,
-                    }));
-                  }}
+                  onNumberChange={handleNumberChange}
+                  onBooleanChange={handleBooleanChange}
                 />
               </>
             )}
@@ -562,6 +583,10 @@ function GatedTagPicker({
 interface CategoryCustomFieldsProps {
   categoryId: string;
   properties: CustomProperty[];
+  /** `default` shows properties flagged to appear in the main form; `advanced` shows the rest. */
+  placement: "default" | "advanced";
+  /** Extra classes for the root (e.g. a grid `col-span` when rendered in the main form). */
+  className?: string;
   numberInputs: Record<string, string>;
   booleanInputs: Record<string, boolean>;
   onNumberChange: (propertyId: string, value: string) => void;
@@ -570,13 +595,20 @@ interface CategoryCustomFieldsProps {
 
 /** Renders the custom-property inputs for the properties assigned to the chosen category. */
 function CategoryCustomFields({
-  categoryId, properties, numberInputs, booleanInputs, onNumberChange, onBooleanChange,
+  categoryId, properties, placement, className, numberInputs, booleanInputs, onNumberChange, onBooleanChange,
 }: CategoryCustomFieldsProps) {
-  const categoryProps = properties.filter(property => property.categoryIds.includes(categoryId));
+  const categoryProps = properties.filter(property =>
+    property.categoryIds.includes(categoryId)
+    && (placement === "default" ? property.showInForm : !property.showInForm));
   if (categoryProps.length === 0) return null;
 
   return (
-    <div className="space-y-3">
+    <div
+      className={`
+        space-y-3
+        ${className ?? ""}
+      `}
+    >
       <span className="text-sm font-medium">Properties</span>
       <div
         className="

@@ -56,6 +56,7 @@ const propertySchema = z
     unitPlural: z.string(),
     operandIds: z.array(z.string()),
     categoryIds: z.array(z.string()),
+    showInForm: z.boolean(),
   })
   .superRefine((value, ctx) => {
     if (value.type === "calculate" && value.operandIds.length < 2) {
@@ -197,6 +198,7 @@ export function CustomPropertyManager() {
       unitPlural: "",
       operandIds: [] as string[],
       categoryIds: [] as string[],
+      showInForm: false,
     },
     validators: {
       onChange: propertySchema,
@@ -214,6 +216,7 @@ export function CustomPropertyManager() {
         unitPlural: isNumber ? (value.unitPlural.trim() || null) : null,
         operandPropertyIds: value.type === "calculate" ? value.operandIds : undefined,
         categoryIds: value.categoryIds,
+        showInForm: value.showInForm,
       });
       form.reset();
     },
@@ -390,6 +393,24 @@ export function CustomPropertyManager() {
               )}
             </form.AppField>
 
+            <form.AppField name="showInForm">
+              {field => (
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="property-show-in-form"
+                    checked={field.state.value}
+                    onCheckedChange={checked => field.handleChange(checked === true)}
+                  />
+                  <Label htmlFor="property-show-in-form">
+                    Show in the main bookmark form
+                    <span className="ml-1 text-xs text-muted-foreground">
+                      (otherwise it appears under Advanced)
+                    </span>
+                  </Label>
+                </div>
+              )}
+            </form.AppField>
+
             <form.AppForm>
               <form.SubmitButton label="Add property" />
             </form.AppForm>
@@ -447,6 +468,15 @@ function PropertyCard({
     });
   }
 
+  function toggleShowInForm(showInForm: boolean) {
+    updateProperty.mutate({
+      id: property.id,
+      input: {
+        showInForm,
+      },
+    });
+  }
+
   return (
     <Card>
       <CardHeader
@@ -487,6 +517,16 @@ function PropertyCard({
             onToggle={toggleCategory}
             idPrefix={`property-category-${property.id}`}
           />
+        </div>
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id={`property-show-in-form-${property.id}`}
+            checked={property.showInForm}
+            onCheckedChange={checked => toggleShowInForm(checked === true)}
+          />
+          <Label htmlFor={`property-show-in-form-${property.id}`}>
+            Show in the main bookmark form
+          </Label>
         </div>
       </CardContent>
     </Card>

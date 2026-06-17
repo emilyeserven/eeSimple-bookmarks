@@ -57,6 +57,9 @@ const createPropertyBody = {
     },
     operandPropertyIds: uuidArray,
     categoryIds: uuidArray,
+    showInForm: {
+      type: "boolean",
+    },
   },
 } as const;
 
@@ -71,6 +74,7 @@ const updatePropertyBody = {
     unitPlural: createPropertyBody.properties.unitPlural,
     operandPropertyIds: uuidArray,
     categoryIds: uuidArray,
+    showInForm: createPropertyBody.properties.showInForm,
   },
 } as const;
 

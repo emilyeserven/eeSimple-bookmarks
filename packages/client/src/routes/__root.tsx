@@ -39,11 +39,6 @@ function titleForPath(pathname: string): string {
   return "eeSimple Bookmarks";
 }
 
-/** The search pages (Bookmarks + categories) use a wider column for their filter sidebar. */
-function isWidePath(pathname: string): boolean {
-  return pathname === "/bookmarks" || pathname.startsWith("/categories");
-}
-
 function RootComponent() {
   const pathname = useRouterState({
     select: state => state.location.pathname,
@@ -70,12 +65,7 @@ function RootComponent() {
             </BreadcrumbList>
           </Breadcrumb>
         </header>
-        <main
-          className={`
-            mx-auto w-full px-4 py-8
-            ${isWidePath(pathname) ? "max-w-6xl" : "max-w-3xl"}
-          `}
-        >
+        <main className="mx-auto w-full max-w-6xl px-4 py-8">
           <Outlet />
         </main>
       </SidebarInset>

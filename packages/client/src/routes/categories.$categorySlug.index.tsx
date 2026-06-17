@@ -82,6 +82,7 @@ function CategoryPage() {
           </Button>
         </div>
       )}
+      pageKey={`category:${categorySlug}`}
       tree={tagTree ?? []}
       properties={assignedProperties}
       bookmarks={categoryBookmarks}

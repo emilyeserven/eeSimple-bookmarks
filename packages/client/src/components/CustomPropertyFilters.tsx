@@ -60,7 +60,8 @@ export function CustomPropertyFilters({
           key={property.id}
           className="space-y-1"
         >
-          <Label className="text-xs text-muted-foreground">{property.name}</Label>
+          {/* Range controls show the property name in their own readout, so only the boolean
+              control (a label-less combobox) needs an outer label — avoids a doubled label. */}
           {isRangeProperty(property)
             ? (
               <NumberFilterControl
@@ -71,11 +72,14 @@ export function CustomPropertyFilters({
               />
             )
             : (
-              <BooleanFilterControl
-                property={property}
-                value={booleanValues[property.id]}
-                onChange={onBooleanFilterChange}
-              />
+              <>
+                <Label className="text-xs text-muted-foreground">{property.name}</Label>
+                <BooleanFilterControl
+                  property={property}
+                  value={booleanValues[property.id]}
+                  onChange={onBooleanFilterChange}
+                />
+              </>
             )}
         </div>
       ))}

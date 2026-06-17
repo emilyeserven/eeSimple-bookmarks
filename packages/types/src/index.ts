@@ -106,6 +106,8 @@ export interface CustomProperty {
   operandPropertyIds: string[];
   /** Ids of the categories this property is assigned to (zero, one, or many). */
   categoryIds: string[];
+  /** When true, the property's field shows in the main bookmark form; otherwise it lives in Advanced. */
+  showInForm: boolean;
   createdAt: string;
 }
 
@@ -121,6 +123,8 @@ export interface CreateCustomPropertyInput {
   operandPropertyIds?: string[];
   /** Ids of categories to assign this property to. Omit to leave unassigned. */
   categoryIds?: string[];
+  /** When true, the property's field shows in the main bookmark form; otherwise it lives in Advanced. */
+  showInForm?: boolean;
 }
 
 /** Payload for updating a custom property. Its `type` is immutable. */
