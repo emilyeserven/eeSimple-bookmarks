@@ -133,6 +133,7 @@ export const sampleBookmark: Bookmark = {
     id: "site-github",
     domain: "github.com",
     siteName: "GitHub",
+    slug: "github",
   },
   tags: [
     {
