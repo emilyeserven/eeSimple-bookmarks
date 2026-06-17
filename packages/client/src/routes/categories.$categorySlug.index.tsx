@@ -82,6 +82,7 @@ function CategoryPage() {
           </Button>
         </div>
       )}
+      addFormCategoryId={category.id}
       pageKey={`category:${categorySlug}`}
       tree={tagTree ?? []}
       properties={assignedProperties}

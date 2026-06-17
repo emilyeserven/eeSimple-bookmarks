@@ -32,6 +32,11 @@ interface BookmarkSearchViewProps {
   emptyMessage: string;
   /** Message shown when a filter is active but nothing matches it. */
   noMatchMessage: string;
+  /**
+   * When set, the add form is locked to this category and hides its Category picker — used on
+   * category pages, where new bookmarks belong to the current category.
+   */
+  addFormCategoryId?: string;
 }
 
 /**
@@ -51,6 +56,7 @@ export function BookmarkSearchView({
   error,
   emptyMessage,
   noMatchMessage,
+  addFormCategoryId,
 }: BookmarkSearchViewProps) {
   const deleteBookmark = useDeleteBookmark();
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -81,7 +87,7 @@ export function BookmarkSearchView({
 
         <div className="space-y-6">
           <div className="rounded-lg border bg-card p-4">
-            <BookmarkForm />
+            <BookmarkForm lockedCategoryId={addFormCategoryId} />
           </div>
 
           <div className="flex justify-end">

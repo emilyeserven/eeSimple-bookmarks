@@ -1,8 +1,10 @@
 import type { FastifyInstance } from "fastify";
-import type { UpdateWebsiteInput, WebsiteLookup } from "@eesimple/types";
+import type { CreateWebsiteInput, UpdateWebsiteInput, WebsiteLookup } from "@eesimple/types";
 import {
+  createWebsite,
   deleteWebsite,
   DuplicateDomainError,
+  InvalidDomainError,
   listWebsites,
   lookupWebsiteByUrl,
   updateWebsite,
@@ -25,6 +27,22 @@ const lookupQuery = {
   additionalProperties: false,
   properties: {
     url: {
+      type: "string",
+      minLength: 1,
+    },
+  },
+} as const;
+
+const createWebsiteBody = {
+  type: "object",
+  required: ["domain"],
+  additionalProperties: false,
+  properties: {
+    domain: {
+      type: "string",
+      minLength: 1,
+    },
+    siteName: {
       type: "string",
       minLength: 1,
     },
@@ -72,6 +90,31 @@ export async function websiteRoutes(app: FastifyInstance): Promise<void> {
       siteName: website?.siteName ?? null,
     };
     return result;
+  });
+
+  app.post("/api/websites", {
+    schema: {
+      tags: ["websites"],
+      body: createWebsiteBody,
+    },
+  }, async (req, reply) => {
+    try {
+      const website = await createWebsite(req.body as CreateWebsiteInput);
+      return reply.code(201).send(website);
+    }
+    catch (err) {
+      if (err instanceof DuplicateDomainError) {
+        return reply.code(409).send({
+          message: err.message,
+        });
+      }
+      if (err instanceof InvalidDomainError) {
+        return reply.code(400).send({
+          message: err.message,
+        });
+      }
+      throw err;
+    }
   });
 
   app.patch("/api/websites/:id", {
