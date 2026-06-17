@@ -2,6 +2,7 @@ import "dotenv/config";
 import { buildApp } from "@/app";
 import { maybeSeed } from "@/db/seed";
 import { ensureDefaultCategory } from "@/services/categories";
+import { backfillWebsiteSlugs } from "@/services/websites";
 
 const port = Number(process.env.PORT ?? 3001);
 const host = process.env.HOST ?? "0.0.0.0";
@@ -12,6 +13,7 @@ try {
   // Runs in every environment: guarantees the built-in "Default" category and
   // backfills any bookmarks left without a category.
   await ensureDefaultCategory();
+  await backfillWebsiteSlugs();
   await maybeSeed();
 }
 catch (err) {

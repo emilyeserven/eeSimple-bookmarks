@@ -24,7 +24,7 @@ import { BookmarkDetail } from "../BookmarkDetail";
 import { BookmarkForm } from "../BookmarkForm";
 import { CategoryCard } from "../CategoryManager";
 import { PropertyCard } from "../CustomPropertyManager";
-import { WebsiteRow } from "../WebsiteManager";
+import { WebsiteCard, WebsiteRow } from "../WebsiteManager";
 
 /** A single row in a content type's searchable list. */
 export interface PanelListItem {
@@ -304,8 +304,24 @@ function useWebsiteList() {
   };
 }
 
-/** A website, reusing the settings page's inline-editable `WebsiteRow` (a list item). */
-function WebsiteItem({
+/** Read-only website view, reusing the same `WebsiteCard` the view page renders. */
+function WebsiteView({
+  id,
+}: {
+  id: string;
+}) {
+  const {
+    data, isLoading, error,
+  } = useWebsites();
+  if (isLoading) return <Loading />;
+  if (error) return <Problem>{error.message}</Problem>;
+  const website = (data ?? []).find(item => item.id === id);
+  if (!website) return <Problem>Website not found.</Problem>;
+  return <WebsiteCard website={website} />;
+}
+
+/** Inline website editor, reusing the same `WebsiteRow` the settings and edit pages use. */
+function WebsiteEdit({
   id,
 }: {
   id: string;
@@ -391,8 +407,8 @@ export const PANEL_CONTENT_TYPES: PanelContentTypeDef[] = [
     singular: "Website",
     icon: Globe,
     useList: useWebsiteList,
-    View: WebsiteItem,
-    Edit: WebsiteItem,
+    View: WebsiteView,
+    Edit: WebsiteEdit,
   },
   {
     type: "autofill",

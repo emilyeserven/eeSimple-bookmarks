@@ -1,11 +1,14 @@
+import { useState } from "react";
+
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 
-import { WebsiteManager } from "../components/WebsiteManager";
-import { useCreateWebsite } from "../hooks/useWebsites";
+import { useCreateWebsite, useWebsites } from "../hooks/useWebsites";
 import { useAppForm } from "../lib/form";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export const Route = createFileRoute("/taxonomies/websites")({
   component: WebsitesTaxonomyPage,
@@ -88,28 +91,96 @@ function AddWebsiteForm() {
   );
 }
 
-/** Browse view for the Websites taxonomy: every known site, plus links to add one and to Settings. */
+/** Browse view for the Websites taxonomy: every known site with search filtering. */
 function WebsitesTaxonomyPage() {
+  const {
+    data: allWebsites, isLoading, error,
+  } = useWebsites();
+  const [search, setSearch] = useState("");
+
+  const filtered = (allWebsites ?? []).filter((w) => {
+    const q = search.trim().toLowerCase();
+    if (!q) return true;
+    return w.siteName.toLowerCase().includes(q) || w.domain.toLowerCase().includes(q);
+  });
+
   return (
     <section className="space-y-6">
-      <div className="flex items-start justify-between gap-2">
-        <div className="space-y-1">
+      <div className="space-y-1">
+        <div className="flex items-center gap-2">
           <h1 className="text-2xl font-bold">Websites</h1>
-          <p className="text-sm text-muted-foreground">
-            Browse the Websites taxonomy. Add a site below, or open Settings to rename existing ones.
-          </p>
+          {allWebsites
+            ? (
+              <Badge variant="secondary">
+                {allWebsites.length}
+              </Badge>
+            )
+            : null}
         </div>
-        <Button
-          asChild
-          variant="outline"
-          size="sm"
-        >
-          <Link to="/settings/websites">Settings</Link>
-        </Button>
+        <p className="text-sm text-muted-foreground">
+          Browse the Websites taxonomy. Sites are created automatically when you add bookmarks. Click
+          a site to view or edit it.
+        </p>
       </div>
 
       <AddWebsiteForm />
-      <WebsiteManager />
+
+      <div className="space-y-4">
+        <Input
+          placeholder="Search by name or domain…"
+          value={search}
+          onChange={event => setSearch(event.target.value)}
+          className="max-w-sm"
+        />
+
+        {isLoading ? <p className="text-muted-foreground">Loading websites…</p> : null}
+        {error ? <p className="text-destructive">{error.message}</p> : null}
+        {!isLoading && (allWebsites?.length ?? 0) === 0
+          ? (
+            <p className="text-muted-foreground">
+              No websites yet. They&apos;re created automatically when you add bookmarks.
+            </p>
+          )
+          : null}
+        {!isLoading && (allWebsites?.length ?? 0) > 0 && filtered.length === 0
+          ? (
+            <p className="text-muted-foreground">
+              No websites match &ldquo;{search}&rdquo;.
+            </p>
+          )
+          : null}
+
+        {filtered.length > 0
+          ? (
+            <ul className="space-y-2">
+              {filtered.map(website => (
+                <li
+                  key={website.id}
+                  className="rounded-lg border bg-card"
+                >
+                  <Button
+                    asChild
+                    variant="ghost"
+                    className="h-auto w-full justify-start p-4"
+                  >
+                    <Link
+                      to="/taxonomies/websites/$websiteSlug"
+                      params={{
+                        websiteSlug: website.slug,
+                      }}
+                    >
+                      <div className="min-w-0 text-left">
+                        <p className="font-medium">{website.siteName}</p>
+                        <p className="truncate text-sm text-muted-foreground">{website.domain}</p>
+                      </div>
+                    </Link>
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )
+          : null}
+      </div>
     </section>
   );
 }

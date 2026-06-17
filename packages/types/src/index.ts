@@ -47,6 +47,8 @@ export interface Website {
   domain: string;
   /** Human-friendly site name (defaults to the domain on creation; renamable). */
   siteName: string;
+  /** URL-friendly identifier derived from the domain (e.g. `"github"` from `"github.com"`). Unique. */
+  slug: string;
   /** ISO-8601 timestamp of when the website was first seen. */
   createdAt: string;
 }

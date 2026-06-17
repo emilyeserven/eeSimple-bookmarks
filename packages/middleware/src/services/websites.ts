@@ -1,7 +1,8 @@
-import { asc, eq } from "drizzle-orm";
+import { asc, eq, isNull, ne } from "drizzle-orm";
 import type { CreateWebsiteInput, UpdateWebsiteInput, Website } from "@eesimple/types";
 import { db } from "@/db";
 import { websites, type WebsiteRow } from "@/db/schema";
+import { slugify } from "@/utils/slug";
 
 /** Transaction handle type, matching the callback arg of `db.transaction`. */
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
@@ -14,12 +15,45 @@ export class DuplicateDomainError extends Error {
   }
 }
 
+/**
+ * Derive a URL-safe slug base from a domain by stripping the TLD (last dot-segment) and
+ * slugifying. `"github.com"` → `"github"`, `"news.ycombinator.com"` → `"news-ycombinator"`.
+ */
+function slugFromDomain(domain: string): string {
+  const withoutTld = domain.replace(/\.[^.]+$/, "");
+  return slugify(withoutTld) || slugify(domain) || "website";
+}
+
+/**
+ * Pick a website slug for `base` that does not collide with `taken`. Appends `-2`, `-3`, …
+ * until unique.
+ */
+function uniqueWebsiteSlug(base: string, taken: Set<string>): string {
+  if (!taken.has(base)) return base;
+  for (let n = 2; ; n += 1) {
+    const candidate = `${base}-${n}`;
+    if (!taken.has(candidate)) return candidate;
+  }
+}
+
+/** Fetch the set of all existing website slugs, optionally excluding one row. */
+async function takenWebsiteSlugs(excludeId?: string): Promise<Set<string>> {
+  const rows = await db
+    .select({
+      slug: websites.slug,
+    })
+    .from(websites)
+    .where(excludeId ? ne(websites.id, excludeId) : undefined);
+  return new Set(rows.map(r => r.slug).filter((s): s is string => s !== null));
+}
+
 /** Map a DB row to the shared `Website` wire type. */
 function toWebsite(row: WebsiteRow): Website {
   return {
     id: row.id,
     domain: row.domain,
     siteName: row.siteName,
+    slug: row.slug ?? slugFromDomain(row.domain),
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
   };
@@ -118,11 +152,16 @@ export async function ensureWebsiteForUrl(tx: Tx, url: string): Promise<string |
     .where(eq(websites.domain, domain));
   if (existing) return existing.id;
 
+  // Generate a slug before inserting (read outside tx is safe — backfill covers edge cases).
+  const taken = await takenWebsiteSlugs();
+  const slug = uniqueWebsiteSlug(slugFromDomain(domain), taken);
+
   const inserted = await tx
     .insert(websites)
     .values({
       domain,
       siteName: domain,
+      slug,
     })
     .onConflictDoNothing({
       target: websites.domain,
@@ -182,9 +221,13 @@ export async function createWebsite(input: CreateWebsiteInput): Promise<Website>
   if (existing) throw new DuplicateDomainError(domain);
 
   const siteName = input.siteName?.trim() ? input.siteName.trim() : domain;
+  const taken = await takenWebsiteSlugs();
+  const slug = uniqueWebsiteSlug(slugFromDomain(domain), taken);
+
   const [row] = await db.insert(websites).values({
     domain,
     siteName,
+    slug,
   }).returning();
   return toWebsite(row);
 }
@@ -194,13 +237,16 @@ export async function updateWebsite(
   id: string,
   input: UpdateWebsiteInput,
 ): Promise<Website | null> {
-  const patch: Partial<Pick<WebsiteRow, "domain" | "siteName">> = {};
+  const patch: Partial<Pick<WebsiteRow, "domain" | "siteName" | "slug">> = {};
   if (input.siteName !== undefined) patch.siteName = input.siteName;
   if (input.domain !== undefined) {
     const domain = input.domain.replace(/^www\./i, "").toLowerCase();
     const clash = await getWebsiteByDomain(domain);
     if (clash && clash.id !== id) throw new DuplicateDomainError(domain);
     patch.domain = domain;
+    // Regenerate the slug when the domain changes since it derives from the domain.
+    const taken = await takenWebsiteSlugs(id);
+    patch.slug = uniqueWebsiteSlug(slugFromDomain(domain), taken);
   }
   if (Object.keys(patch).length === 0) return getWebsite(id);
 
@@ -214,4 +260,25 @@ export async function deleteWebsite(id: string): Promise<boolean> {
     id: websites.id,
   });
   return rows.length > 0;
+}
+
+/** Fill in slugs for any websites missing one (e.g. rows that predate the `slug` column). */
+export async function backfillWebsiteSlugs(): Promise<void> {
+  const missing = await db
+    .select({
+      id: websites.id,
+      domain: websites.domain,
+    })
+    .from(websites)
+    .where(isNull(websites.slug));
+  if (missing.length === 0) return;
+
+  const taken = await takenWebsiteSlugs();
+  for (const site of missing) {
+    const slug = uniqueWebsiteSlug(slugFromDomain(site.domain), taken);
+    taken.add(slug);
+    await db.update(websites).set({
+      slug,
+    }).where(eq(websites.id, site.id));
+  }
 }

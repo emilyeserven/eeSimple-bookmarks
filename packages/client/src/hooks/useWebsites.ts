@@ -14,6 +14,15 @@ export function useWebsites() {
   });
 }
 
+/** Look up a single website by its slug from the cached list. */
+export function useWebsiteBySlug(slug: string) {
+  const query = useWebsites();
+  return {
+    ...query,
+    website: (query.data ?? []).find(item => item.slug === slug),
+  };
+}
+
 /** Manually add a website to the taxonomy (domain + optional friendly name). */
 export function useCreateWebsite() {
   const queryClient = useQueryClient();
@@ -43,6 +52,21 @@ export function useUpdateWebsite() {
       input: UpdateWebsiteInput; }) => websitesApi.update(id, input),
     onSuccess: () => {
       // A rename ripples into bookmark reads (each carries its website).
+      void queryClient.invalidateQueries({
+        queryKey: WEBSITES_KEY,
+      });
+      void queryClient.invalidateQueries({
+        queryKey: BOOKMARKS_KEY,
+      });
+    },
+  });
+}
+
+export function useDeleteWebsite() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => websitesApi.remove(id),
+    onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: WEBSITES_KEY,
       });
