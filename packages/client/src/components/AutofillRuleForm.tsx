@@ -1,9 +1,9 @@
-// This module pairs the autofill rule form component with the matcher constants
-// (labels/options) its consumers reuse to render rule summaries and filters.
-/* eslint-disable react-refresh/only-export-components */
+// This module pairs the autofill rule form with the `NO_CATEGORY` sentinel its consumers reuse.
+
 import type {
   AutofillRule,
   Category,
+  ConditionTree,
   CreateAutofillRuleInput,
   CustomProperty,
   TagNode,
@@ -11,10 +11,13 @@ import type {
 
 import { useState } from "react";
 
+import { emptyConditionTree } from "@eesimple/types";
 import { z } from "zod";
 
-import { TagPicker } from "./TagPicker";
+import { autofillConditionsValidator } from "../lib/conditionsSchema";
 import { useAppForm } from "../lib/form";
+import { ConditionsField } from "./conditions/ConditionsField";
+import { TagPicker } from "./TagPicker";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -23,67 +26,12 @@ import { Label } from "@/components/ui/label";
 /** Sentinel select value standing in for "no category" (Radix selects can't hold an empty value). */
 export const NO_CATEGORY = "none";
 
-const FIELD_OPTIONS = [
-  {
-    value: "url",
-    label: "URL",
-  },
-  {
-    value: "title",
-    label: "Title",
-  },
-];
-
-const OPERATOR_OPTIONS = [
-  {
-    value: "contains",
-    label: "Contains",
-  },
-  {
-    value: "starts_with",
-    label: "Starts with",
-  },
-  {
-    value: "regex",
-    label: "Regex",
-  },
-  {
-    value: "domain",
-    label: "Domain is",
-  },
-];
-
-export const OPERATOR_LABELS: Record<string, string> = {
-  contains: "contains",
-  starts_with: "starts with",
-  regex: "matches",
-  domain: "domain is",
-};
-
-const ruleSchema = z
-  .object({
-    name: z.string().trim().min(1, "Name is required"),
-    field: z.enum(["url", "title"]),
-    operator: z.enum(["contains", "starts_with", "regex", "domain"]),
-    pattern: z.string().trim().min(1, "Pattern is required"),
-    setCategoryId: z.string(),
-    tagIds: z.array(z.string()),
-    sortOrder: z.number().int(),
-  })
-  .superRefine((value, ctx) => {
-    if (value.operator === "regex") {
-      try {
-        new RegExp(value.pattern);
-      }
-      catch {
-        ctx.addIssue({
-          code: "custom",
-          message: "Enter a valid regular expression.",
-          path: ["pattern"],
-        });
-      }
-    }
-  });
+const ruleSchema = z.object({
+  name: z.string().trim().min(1, "Name is required"),
+  setCategoryId: z.string(),
+  tagIds: z.array(z.string()),
+  sortOrder: z.number().int(),
+});
 
 interface AutofillRuleFormProps {
   rule?: AutofillRule;
@@ -99,11 +47,14 @@ interface AutofillRuleFormProps {
   onSubmit: (input: CreateAutofillRuleInput) => void;
 }
 
-/** Shared create/edit form for an autofill rule (matcher + category/tags/property actions). */
+/** Shared create/edit form for an autofill rule: a "when" condition tree plus "then" actions. */
 export function AutofillRuleForm({
   rule, categories, properties, tagTree, defaultCategoryId, submitLabel, resetOnSubmit, isError, errorMessage, onSubmit,
 }: AutofillRuleFormProps) {
-  // Custom-property values live outside the typed form (they're dynamic), like the bookmark form.
+  // The condition tree and custom-property values live outside the typed form (they're dynamic and,
+  // for the recursive tree, would blow up TanStack Form's deep type inference).
+  const [conditions, setConditions] = useState<ConditionTree>(rule?.conditions ?? emptyConditionTree());
+  const [conditionsError, setConditionsError] = useState<string | null>(null);
   const [numberInputs, setNumberInputs] = useState<Record<string, string>>(() =>
     Object.fromEntries((rule?.numberValues ?? []).map(entry => [entry.propertyId, String(entry.value)])));
   const [booleanInputs, setBooleanInputs] = useState<Record<string, boolean>>(() =>
@@ -112,9 +63,6 @@ export function AutofillRuleForm({
   const form = useAppForm({
     defaultValues: {
       name: rule?.name ?? "",
-      field: rule?.field ?? ("url" as AutofillRule["field"]),
-      operator: rule?.operator ?? ("contains" as AutofillRule["operator"]),
-      pattern: rule?.pattern ?? "",
       setCategoryId: rule?.setCategoryId ?? defaultCategoryId ?? NO_CATEGORY,
       tagIds: rule?.tagIds ?? ([] as string[]),
       sortOrder: rule?.sortOrder ?? 0,
@@ -125,6 +73,13 @@ export function AutofillRuleForm({
     onSubmit: ({
       value,
     }) => {
+      const parsedConditions = autofillConditionsValidator.safeParse(conditions);
+      if (!parsedConditions.success) {
+        setConditionsError(parsedConditions.error.issues.map(issue => issue.message).join(" "));
+        return;
+      }
+      setConditionsError(null);
+
       const categoryId = value.setCategoryId === NO_CATEGORY ? null : value.setCategoryId;
       // Only persist property values for properties assigned to the rule's category.
       const categoryProps = categoryId
@@ -154,10 +109,7 @@ export function AutofillRuleForm({
 
       onSubmit({
         name: value.name.trim(),
-        // `domain` always inspects the URL, so pin the stored field to keep the data coherent.
-        field: value.operator === "domain" ? "url" : value.field,
-        operator: value.operator,
-        pattern: value.pattern.trim(),
+        conditions,
         setCategoryId: categoryId,
         tagIds: value.tagIds,
         numberValues,
@@ -167,6 +119,8 @@ export function AutofillRuleForm({
 
       if (resetOnSubmit) {
         form.reset();
+        setConditions(emptyConditionTree());
+        setConditionsError(null);
         setNumberInputs({});
         setBooleanInputs({});
       }
@@ -175,7 +129,7 @@ export function AutofillRuleForm({
 
   return (
     <form
-      className="space-y-4"
+      className="space-y-6"
       onSubmit={(event) => {
         event.preventDefault();
         event.stopPropagation();
@@ -206,57 +160,42 @@ export function AutofillRuleForm({
             />
           )}
         </form.AppField>
+      </div>
 
-        <form.AppField name="operator">
-          {field => (
-            <field.SelectField
-              label="Match"
-              options={OPERATOR_OPTIONS}
-            />
-          )}
-        </form.AppField>
+      <section className="space-y-2">
+        <div>
+          <h3 className="text-sm font-semibold">When a bookmark matches</h3>
+          <p className="text-xs text-muted-foreground">
+            Conditions that decide whether this rule applies.
+          </p>
+        </div>
+        <div className="space-y-1">
+          <ConditionsField
+            value={conditions}
+            onChange={(next) => {
+              setConditions(next);
+              setConditionsError(null);
+            }}
+            categories={categories}
+            properties={properties}
+            tagTree={tagTree}
+          />
+          {conditionsError ? <p className="text-sm text-destructive">{conditionsError}</p> : null}
+        </div>
+      </section>
 
-        <form.Subscribe selector={state => state.values.operator}>
-          {operator =>
-            operator === "domain"
-              ? (
-                <div className="space-y-1 self-end">
-                  <p className="text-xs text-muted-foreground">
-                    Matches the bookmark URL’s domain (a leading “www.” is ignored).
-                  </p>
-                </div>
-              )
-              : (
-                <form.AppField name="field">
-                  {field => (
-                    <field.SelectField
-                      label="Field"
-                      options={FIELD_OPTIONS}
-                    />
-                  )}
-                </form.AppField>
-              )}
-        </form.Subscribe>
-
-        <form.Subscribe selector={state => state.values.operator}>
-          {operator => (
-            <form.AppField name="pattern">
-              {field => (
-                <field.TextField
-                  className="sm:col-span-2"
-                  label={operator === "domain" ? "Domain" : "Pattern"}
-                  placeholder={operator === "domain" ? "e.g. 101cookbooks.com" : "e.g. Ponzu"}
-                />
-              )}
-            </form.AppField>
-          )}
-        </form.Subscribe>
+      <section className="space-y-3">
+        <div>
+          <h3 className="text-sm font-semibold">Then apply</h3>
+          <p className="text-xs text-muted-foreground">
+            What to prefill on the bookmark when this rule matches.
+          </p>
+        </div>
 
         <form.AppField name="setCategoryId">
           {field => (
             <field.SelectField
               label="Set category"
-              className="sm:col-span-2"
               options={[
                 {
                   value: NO_CATEGORY,
@@ -270,50 +209,50 @@ export function AutofillRuleForm({
             />
           )}
         </form.AppField>
-      </div>
 
-      <form.Field name="tagIds">
-        {field => (
-          <div className="space-y-1">
-            <Label>Apply tags</Label>
-            <div className="rounded-md border p-2">
-              <TagPicker
-                tree={tagTree}
-                selectedIds={field.state.value}
-                onToggle={(id) => {
-                  const current = field.state.value;
-                  field.handleChange(
-                    current.includes(id)
-                      ? current.filter(tagId => tagId !== id)
-                      : [...current, id],
-                  );
-                }}
-              />
+        <form.Field name="tagIds">
+          {field => (
+            <div className="space-y-1">
+              <Label>Apply tags</Label>
+              <div className="rounded-md border p-2">
+                <TagPicker
+                  tree={tagTree}
+                  selectedIds={field.state.value}
+                  onToggle={(id) => {
+                    const current = field.state.value;
+                    field.handleChange(
+                      current.includes(id)
+                        ? current.filter(tagId => tagId !== id)
+                        : [...current, id],
+                    );
+                  }}
+                />
+              </div>
             </div>
-          </div>
-        )}
-      </form.Field>
+          )}
+        </form.Field>
 
-      <form.Subscribe selector={state => state.values.setCategoryId}>
-        {setCategoryId => (
-          <RulePropertyFields
-            categoryId={setCategoryId === NO_CATEGORY ? "" : setCategoryId}
-            properties={properties}
-            numberInputs={numberInputs}
-            booleanInputs={booleanInputs}
-            onNumberChange={(id, value) =>
-              setNumberInputs(current => ({
-                ...current,
-                [id]: value,
-              }))}
-            onBooleanChange={(id, value) =>
-              setBooleanInputs(current => ({
-                ...current,
-                [id]: value,
-              }))}
-          />
-        )}
-      </form.Subscribe>
+        <form.Subscribe selector={state => state.values.setCategoryId}>
+          {setCategoryId => (
+            <RulePropertyFields
+              categoryId={setCategoryId === NO_CATEGORY ? "" : setCategoryId}
+              properties={properties}
+              numberInputs={numberInputs}
+              booleanInputs={booleanInputs}
+              onNumberChange={(id, value) =>
+                setNumberInputs(current => ({
+                  ...current,
+                  [id]: value,
+                }))}
+              onBooleanChange={(id, value) =>
+                setBooleanInputs(current => ({
+                  ...current,
+                  [id]: value,
+                }))}
+            />
+          )}
+        </form.Subscribe>
+      </section>
 
       <form.AppForm>
         <form.SubmitButton label={submitLabel} />

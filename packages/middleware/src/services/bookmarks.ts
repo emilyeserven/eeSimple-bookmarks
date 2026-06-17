@@ -5,9 +5,11 @@ import type {
   BookmarkNumberValue,
   BookmarkTag,
   BookmarkWebsite,
+  ConditionInput,
   CreateBookmarkInput,
   UpdateBookmarkInput,
 } from "@eesimple/types";
+import { buildTagDescendants, evaluateConditions } from "@eesimple/types";
 import { db } from "@/db";
 import {
   bookmarkBooleanValues,
@@ -16,14 +18,13 @@ import {
   type BookmarkRow,
   bookmarkTags,
   calculatePropertyOperands,
-  categories,
   customProperties,
-  homepageTags,
   tags,
   websites,
 } from "@/db/schema";
 import { ensureDefaultCategory } from "@/services/categories";
-import { getDescendantIds } from "@/services/tags";
+import { getHomepageFilter } from "@/services/homepageFilter";
+import { getDescendantIds, listTags } from "@/services/tags";
 import { ensureWebsiteForUrl } from "@/services/websites";
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
@@ -229,51 +230,45 @@ export async function listBookmarks(filterTagId?: string): Promise<Bookmark[]> {
 }
 
 /**
- * List the homepage bookmarks: the union of bookmarks in any homepage category and
- * bookmarks carrying a homepage tag (or one of its descendants), ordered by `priority`
- * (highest first), ties broken by most-recently created.
+ * List the homepage bookmarks: every bookmark matching the global homepage condition filter,
+ * ordered by `priority` (highest first), ties broken by most-recently created. An empty filter
+ * matches nothing.
  */
 export async function listHomepageBookmarks(): Promise<Bookmark[]> {
+  const {
+    conditions,
+  } = await getHomepageFilter();
   const defaultCategoryId = await ensureDefaultCategory();
-
-  const homepageCategories = await db
-    .select({
-      id: categories.id,
-    })
-    .from(categories)
-    .where(eq(categories.isHomepage, true));
-  const homepageCategoryIds = new Set(homepageCategories.map(row => row.id));
-
-  const homepageTagRows = await db.select({
-    tagId: homepageTags.tagId,
-  }).from(homepageTags);
-  const allowedTagIds = new Set<string>();
-  for (const {
-    tagId,
-  } of homepageTagRows) {
-    for (const id of await getDescendantIds(tagId)) allowedTagIds.add(id);
-  }
-
-  let taggedBookmarkIds = new Set<string>();
-  if (allowedTagIds.size > 0) {
-    const links = await db
-      .select({
-        bookmarkId: bookmarkTags.bookmarkId,
-      })
-      .from(bookmarkTags)
-      .where(inArray(bookmarkTags.tagId, [...allowedTagIds]));
-    taggedBookmarkIds = new Set(links.map(link => link.bookmarkId));
-  }
+  const tagDescendants = buildTagDescendants(await listTags());
 
   const baseRows = await db.select().from(bookmarks);
-  const rows = baseRows.filter((row) => {
-    const categoryId = row.categoryId ?? defaultCategoryId;
-    return homepageCategoryIds.has(categoryId) || taggedBookmarkIds.has(row.id);
+  if (baseRows.length === 0) return [];
+
+  const ids = baseRows.map(row => row.id);
+  const [tagsMap, numberMap, booleanMap] = await Promise.all([
+    tagsByBookmarkId(ids),
+    numberValuesByBookmarkId(ids),
+    booleanValuesByBookmarkId(ids),
+  ]);
+
+  const matched = baseRows.filter((row) => {
+    const input: ConditionInput = {
+      url: row.url,
+      title: row.title,
+      categoryId: row.categoryId ?? defaultCategoryId,
+      tagIds: new Set((tagsMap.get(row.id) ?? []).map(tag => tag.id)),
+      numberValues: new Map((numberMap.get(row.id) ?? []).map(value => [value.propertyId, value.value])),
+      booleanValues: new Map((booleanMap.get(row.id) ?? []).map(value => [value.propertyId, value.value])),
+    };
+    return evaluateConditions(conditions, input, {
+      tagDescendants,
+    });
   });
-  rows.sort((a, b) =>
+
+  matched.sort((a, b) =>
     b.priority - a.priority
     || (a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0));
-  return hydrate(rows);
+  return hydrate(matched);
 }
 
 export async function getBookmark(id: string): Promise<Bookmark | null> {

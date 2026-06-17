@@ -1,20 +1,15 @@
-import type { Category, TagNode } from "@eesimple/types";
+import type { Category } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
 import { z } from "zod";
 
 import { CategoryGeneralForm } from "./CategoryGeneralForm";
-import { TagPicker } from "./TagPicker";
 import {
   useCategories,
   useCreateCategory,
   useDeleteCategory,
-  useHomepageTags,
-  useSetHomepageTags,
 } from "../hooks/useCategories";
-import { useTagTree } from "../hooks/useTags";
 import { useAppForm } from "../lib/form";
-import { rootOnly, toggleId } from "../lib/tag-utils";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -39,12 +34,7 @@ export function CategoryManager() {
   const {
     data: categories, isLoading, error,
   } = useCategories();
-  const {
-    data: tagTree,
-  } = useTagTree();
   const createCategory = useCreateCategory();
-
-  const roots = rootOnly(tagTree ?? []);
 
   const form = useAppForm({
     defaultValues: {
@@ -128,8 +118,6 @@ export function CategoryManager() {
         </CardContent>
       </Card>
 
-      <HomepageTagsCard roots={roots} />
-
       {isLoading ? <p className="text-muted-foreground">Loading categories…</p> : null}
       {error ? <p className="text-destructive">{error.message}</p> : null}
       {!isLoading && (categories?.length ?? 0) === 0
@@ -147,42 +135,6 @@ export function CategoryManager() {
         ))}
       </div>
     </section>
-  );
-}
-
-interface HomepageTagsCardProps {
-  roots: TagNode[];
-}
-
-/** Global selector for which tags surface their bookmarks on the homepage. */
-function HomepageTagsCard({
-  roots,
-}: HomepageTagsCardProps) {
-  const {
-    data: homepageTagIds,
-  } = useHomepageTags();
-  const setHomepageTags = useSetHomepageTags();
-  const selected = homepageTagIds ?? [];
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Homepage tags</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-2">
-        <p className="text-sm text-muted-foreground">
-          Bookmarks carrying one of these tags appear on the homepage, alongside bookmarks in
-          homepage categories.
-        </p>
-        <div className="rounded-md border p-2">
-          <TagPicker
-            tree={roots}
-            selectedIds={selected}
-            onToggle={id => setHomepageTags.mutate(toggleId(selected, id))}
-          />
-        </div>
-      </CardContent>
-    </Card>
   );
 }
 

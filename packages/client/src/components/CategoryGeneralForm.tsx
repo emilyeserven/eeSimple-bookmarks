@@ -5,7 +5,6 @@ import { z } from "zod";
 import { useUpdateCategory } from "../hooks/useCategories";
 import { useAppForm } from "../lib/form";
 
-import { Checkbox } from "@/components/ui/checkbox";
 import { IconPicker } from "@/components/ui/icon-picker";
 import { Label } from "@/components/ui/label";
 
@@ -17,14 +16,11 @@ const categorySchema = z.object({
 
 interface CategoryGeneralFormProps {
   category: Category;
-  /** Render the "show on homepage" toggle beneath the form (edit page only). */
-  showHomepageToggle?: boolean;
 }
 
-/** Edit a category's name, icon, and description (and optionally its homepage flag). */
+/** Edit a category's name, icon, and description. */
 export function CategoryGeneralForm({
   category,
-  showHomepageToggle = false,
 }: CategoryGeneralFormProps) {
   const updateCategory = useUpdateCategory();
 
@@ -112,27 +108,6 @@ export function CategoryGeneralForm({
           </form.Subscribe>
         </form.AppForm>
       </form>
-
-      {showHomepageToggle
-        ? (
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id={`category-homepage-${category.id}`}
-              checked={category.isHomepage}
-              onCheckedChange={checked =>
-                updateCategory.mutate({
-                  id: category.id,
-                  input: {
-                    isHomepage: checked === true,
-                  },
-                })}
-            />
-            <Label htmlFor={`category-homepage-${category.id}`}>
-              Show this category on the homepage
-            </Label>
-          </div>
-        )
-        : null}
     </div>
   );
 }

@@ -1,7 +1,9 @@
 import "dotenv/config";
 import { buildApp } from "@/app";
 import { maybeSeed } from "@/db/seed";
+import { ensureAutofillConditions } from "@/services/autofill";
 import { ensureDefaultCategory } from "@/services/categories";
+import { ensureHomepageFilter } from "@/services/homepageFilter";
 import { backfillWebsiteSlugs } from "@/services/websites";
 
 const port = Number(process.env.PORT ?? 3001);
@@ -15,6 +17,10 @@ try {
   await ensureDefaultCategory();
   await backfillWebsiteSlugs();
   await maybeSeed();
+  // Backfill condition trees for legacy autofill rules and seed the homepage filter from the
+  // previous is-homepage / homepage-tags mechanism on first boot.
+  await ensureAutofillConditions();
+  await ensureHomepageFilter();
 }
 catch (err) {
   app.log.warn({
