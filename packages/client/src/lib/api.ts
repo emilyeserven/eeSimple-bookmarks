@@ -1,6 +1,9 @@
 import type {
+  AutofillRule,
   Bookmark,
   Category,
+  CategoryPropertyDefaults,
+  CreateAutofillRuleInput,
   CreateBookmarkInput,
   CreateCategoryInput,
   CreateCustomPropertyInput,
@@ -8,7 +11,9 @@ import type {
   CustomProperty,
   Tag,
   TagNode,
+  UpdateAutofillRuleInput,
   UpdateBookmarkInput,
+  UpdateCategoryDefaultsInput,
   UpdateCategoryInput,
   UpdateCustomPropertyInput,
   UpdateTagInput,
@@ -119,4 +124,28 @@ export const categoriesApi = {
         tagIds,
       }),
     }),
+  defaults: (id: string) =>
+    request<CategoryPropertyDefaults>(`/categories/${id}/defaults`),
+  setDefaults: (id: string, input: UpdateCategoryDefaultsInput) =>
+    request<CategoryPropertyDefaults>(`/categories/${id}/defaults`, {
+      method: "PUT",
+      body: JSON.stringify(input),
+    }),
+};
+
+export const autofillApi = {
+  list: () => request<AutofillRule[]>("/autofill-rules"),
+  create: (input: CreateAutofillRuleInput) =>
+    request<AutofillRule>("/autofill-rules", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  update: (id: string, input: UpdateAutofillRuleInput) =>
+    request<AutofillRule>(`/autofill-rules/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  remove: (id: string) => request<undefined>(`/autofill-rules/${id}`, {
+    method: "DELETE",
+  }),
 };

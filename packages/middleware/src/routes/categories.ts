@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import type {
   CreateCategoryInput,
+  UpdateCategoryDefaultsInput,
   UpdateCategoryInput,
   UpdateCategoryRootTagsInput,
 } from "@eesimple/types";
@@ -8,10 +9,12 @@ import {
   BuiltInCategoryError,
   createCategory,
   deleteCategory,
+  getCategoryDefaults,
   getCategoryRootTags,
   getHomepageTagIds,
   InvalidRootTagError,
   listCategories,
+  setCategoryDefaults,
   setCategoryRootTags,
   setHomepageTagIds,
   updateCategory,
@@ -65,6 +68,48 @@ const tagIdsBody = {
       items: {
         type: "string",
         format: "uuid",
+      },
+    },
+  },
+} as const;
+
+const defaultsBody = {
+  type: "object",
+  required: ["numberValues", "booleanValues"],
+  additionalProperties: false,
+  properties: {
+    numberValues: {
+      type: "array",
+      items: {
+        type: "object",
+        required: ["propertyId", "value"],
+        additionalProperties: false,
+        properties: {
+          propertyId: {
+            type: "string",
+            format: "uuid",
+          },
+          value: {
+            type: "number",
+          },
+        },
+      },
+    },
+    booleanValues: {
+      type: "array",
+      items: {
+        type: "object",
+        required: ["propertyId", "value"],
+        additionalProperties: false,
+        properties: {
+          propertyId: {
+            type: "string",
+            format: "uuid",
+          },
+          value: {
+            type: "boolean",
+          },
+        },
       },
     },
   },
@@ -208,5 +253,34 @@ export async function categoryRoutes(app: FastifyInstance): Promise<void> {
       }
       throw err;
     }
+  });
+
+  app.get("/api/categories/:id/defaults", {
+    schema: {
+      tags: ["categories"],
+      params: categoryParams,
+    },
+  }, async (req) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    return getCategoryDefaults(id);
+  });
+
+  app.put("/api/categories/:id/defaults", {
+    schema: {
+      tags: ["categories"],
+      params: categoryParams,
+      body: defaultsBody,
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    const result = await setCategoryDefaults(id, req.body as UpdateCategoryDefaultsInput);
+    if (result === null) return reply.code(404).send({
+      message: "Category not found",
+    });
+    return result;
   });
 }

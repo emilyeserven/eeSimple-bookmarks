@@ -173,6 +173,71 @@ export interface UpdateCategoryRootTagsInput {
   tagIds: string[];
 }
 
+/** A category's default custom-property values, applied to new bookmarks added to it. */
+export interface CategoryPropertyDefaults {
+  /** Default number/calculate property values (calculate defaults are ignored on save). */
+  numberValues: BookmarkNumberValue[];
+  /** Default boolean property values. */
+  booleanValues: BookmarkBooleanValue[];
+}
+
+/** Payload for replacing a category's default custom-property values. */
+export type UpdateCategoryDefaultsInput = CategoryPropertyDefaults;
+
+/** Which bookmark field an autofill rule tests its pattern against. */
+export type AutofillField = "url" | "title";
+
+/**
+ * How an autofill rule's `pattern` is matched against the chosen field:
+ * - `contains` — the field contains the pattern (case-insensitive substring).
+ * - `starts_with` — the field starts with the pattern (case-insensitive).
+ * - `regex` — the pattern is a JavaScript regular expression (case-insensitive); invalid
+ *   patterns never match.
+ * - `domain` — the URL's host (with a leading `www.` stripped) equals the pattern; implies the
+ *   `url` field.
+ */
+export type AutofillOperator = "contains" | "starts_with" | "regex" | "domain";
+
+/**
+ * A rule that prefills the Add-Bookmark form: when a bookmark's URL/Title matches, the rule's
+ * category, tags, and custom-property values are suggested in the form.
+ */
+export interface AutofillRule {
+  id: string;
+  /** Friendly label shown in the settings list. */
+  name: string;
+  field: AutofillField;
+  operator: AutofillOperator;
+  pattern: string;
+  /** Category to assign, or `null` to leave the category unchanged. */
+  setCategoryId: string | null;
+  /** Tag ids to apply, drawn from the taxonomy. */
+  tagIds: string[];
+  /** Number custom-property values to apply. */
+  numberValues: BookmarkNumberValue[];
+  /** Boolean custom-property values to apply. */
+  booleanValues: BookmarkBooleanValue[];
+  /** Lower sorts first; later (higher) rules win for single-valued targets when several match. */
+  sortOrder: number;
+  createdAt: string;
+}
+
+/** Payload for creating an autofill rule. */
+export interface CreateAutofillRuleInput {
+  name: string;
+  field: AutofillField;
+  operator: AutofillOperator;
+  pattern: string;
+  setCategoryId?: string | null;
+  tagIds?: string[];
+  numberValues?: BookmarkNumberValue[];
+  booleanValues?: BookmarkBooleanValue[];
+  sortOrder?: number;
+}
+
+/** Payload for partially updating an autofill rule. */
+export type UpdateAutofillRuleInput = Partial<CreateAutofillRuleInput>;
+
 /** Standard error shape returned by the API. */
 export interface ApiError {
   error: string;

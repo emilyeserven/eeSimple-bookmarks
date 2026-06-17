@@ -210,6 +210,116 @@ export const propertyCategories = pgTable("property_categories", {
   }),
 ]);
 
+/**
+ * `autofill_rules` — user-defined rules that prefill the Add-Bookmark form. A rule matches a
+ * bookmark's `field` (`url` or `title`) with `operator` against `pattern`, then applies a
+ * category, tags, and custom-property values (stored in the child tables below).
+ */
+export const autofillRules = pgTable("autofill_rules", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  // "url" | "title" — which bookmark field the pattern is tested against.
+  field: text("field").notNull(),
+  // "contains" | "starts_with" | "regex" | "domain" — kept as text so new kinds can be added.
+  operator: text("operator").notNull(),
+  pattern: text("pattern").notNull(),
+  // The category this rule assigns; NULL means the rule leaves the category alone.
+  setCategoryId: uuid("set_category_id").references((): AnyPgColumn => categories.id, {
+    onDelete: "set null",
+  }),
+  // Lower sorts first; later (higher) rules win for single-valued targets when several match.
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+});
+
+/** `autofill_rule_tags` — tiered tags a rule applies to a matching bookmark. */
+export const autofillRuleTags = pgTable("autofill_rule_tags", {
+  ruleId: uuid("rule_id").notNull().references(() => autofillRules.id, {
+    onDelete: "cascade",
+  }),
+  tagId: uuid("tag_id").notNull().references(() => tags.id, {
+    onDelete: "cascade",
+  }),
+}, table => [
+  primaryKey({
+    columns: [table.ruleId, table.tagId],
+  }),
+]);
+
+/** `autofill_rule_number_values` — number custom-property values a rule applies. */
+export const autofillRuleNumberValues = pgTable("autofill_rule_number_values", {
+  ruleId: uuid("rule_id").notNull().references(() => autofillRules.id, {
+    onDelete: "cascade",
+  }),
+  propertyId: uuid("property_id").notNull().references(() => customProperties.id, {
+    onDelete: "cascade",
+  }),
+  value: real("value").notNull(),
+}, table => [
+  primaryKey({
+    columns: [table.ruleId, table.propertyId],
+  }),
+]);
+
+/** `autofill_rule_boolean_values` — boolean custom-property values a rule applies. */
+export const autofillRuleBooleanValues = pgTable("autofill_rule_boolean_values", {
+  ruleId: uuid("rule_id").notNull().references(() => autofillRules.id, {
+    onDelete: "cascade",
+  }),
+  propertyId: uuid("property_id").notNull().references(() => customProperties.id, {
+    onDelete: "cascade",
+  }),
+  value: boolean("value").notNull(),
+}, table => [
+  primaryKey({
+    columns: [table.ruleId, table.propertyId],
+  }),
+]);
+
+/** `category_number_defaults` — default number property values for new bookmarks in a category. */
+export const categoryNumberDefaults = pgTable("category_number_defaults", {
+  categoryId: uuid("category_id").notNull().references(() => categories.id, {
+    onDelete: "cascade",
+  }),
+  propertyId: uuid("property_id").notNull().references(() => customProperties.id, {
+    onDelete: "cascade",
+  }),
+  value: real("value").notNull(),
+}, table => [
+  primaryKey({
+    columns: [table.categoryId, table.propertyId],
+  }),
+]);
+
+/** `category_boolean_defaults` — default boolean property values for new bookmarks in a category. */
+export const categoryBooleanDefaults = pgTable("category_boolean_defaults", {
+  categoryId: uuid("category_id").notNull().references(() => categories.id, {
+    onDelete: "cascade",
+  }),
+  propertyId: uuid("property_id").notNull().references(() => customProperties.id, {
+    onDelete: "cascade",
+  }),
+  value: boolean("value").notNull(),
+}, table => [
+  primaryKey({
+    columns: [table.categoryId, table.propertyId],
+  }),
+]);
+
+export const autofillRulesRelations = relations(autofillRules, ({
+  one, many,
+}) => ({
+  category: one(categories, {
+    fields: [autofillRules.setCategoryId],
+    references: [categories.id],
+  }),
+  tags: many(autofillRuleTags),
+  numberValues: many(autofillRuleNumberValues),
+  booleanValues: many(autofillRuleBooleanValues),
+}));
+
 export const customPropertiesRelations = relations(customProperties, ({
   many,
 }) => ({
@@ -308,3 +418,10 @@ export type NewCategoryRow = typeof categories.$inferInsert;
 export type PropertyCategoryRow = typeof propertyCategories.$inferSelect;
 export type CategoryRootTagRow = typeof categoryRootTags.$inferSelect;
 export type HomepageTagRow = typeof homepageTags.$inferSelect;
+export type AutofillRuleRow = typeof autofillRules.$inferSelect;
+export type NewAutofillRuleRow = typeof autofillRules.$inferInsert;
+export type AutofillRuleTagRow = typeof autofillRuleTags.$inferSelect;
+export type AutofillRuleNumberValueRow = typeof autofillRuleNumberValues.$inferSelect;
+export type AutofillRuleBooleanValueRow = typeof autofillRuleBooleanValues.$inferSelect;
+export type CategoryNumberDefaultRow = typeof categoryNumberDefaults.$inferSelect;
+export type CategoryBooleanDefaultRow = typeof categoryBooleanDefaults.$inferSelect;

@@ -1,5 +1,6 @@
 import type {
   CreateCategoryInput,
+  UpdateCategoryDefaultsInput,
   UpdateCategoryInput,
 } from "@eesimple/types";
 
@@ -103,6 +104,28 @@ export function useSetHomepageTags() {
       });
       void queryClient.invalidateQueries({
         queryKey: BOOKMARKS_KEY,
+      });
+    },
+  });
+}
+
+/** A category's default custom-property values, applied to new bookmarks added to it. */
+export function useCategoryDefaults(categoryId: string) {
+  return useQuery({
+    queryKey: [...CATEGORIES_KEY, categoryId, "defaults"],
+    queryFn: () => categoriesApi.defaults(categoryId),
+    enabled: Boolean(categoryId),
+  });
+}
+
+export function useSetCategoryDefaults(categoryId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: UpdateCategoryDefaultsInput) =>
+      categoriesApi.setDefaults(categoryId, input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: [...CATEGORIES_KEY, categoryId, "defaults"],
       });
     },
   });

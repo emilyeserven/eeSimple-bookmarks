@@ -11,10 +11,12 @@ import { ChevronDown } from "lucide-react";
 import { z } from "zod";
 
 import { TagPicker } from "./TagPicker";
+import { useAutofillRules } from "../hooks/useAutofill";
 import { useCreateBookmark } from "../hooks/useBookmarks";
-import { useCategories, useCategoryRootTags } from "../hooks/useCategories";
+import { useCategories, useCategoryDefaults, useCategoryRootTags } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useTagTree } from "../hooks/useTags";
+import { applyAutofill } from "../lib/autofill";
 import { useAppForm } from "../lib/form";
 
 import { Checkbox } from "@/components/ui/checkbox";
@@ -47,6 +49,9 @@ export function BookmarkForm() {
   const {
     data: categories,
   } = useCategories();
+  const {
+    data: autofillRules,
+  } = useAutofillRules();
 
   // Custom-property values live outside the typed form (they're dynamic). A ref
   // mirrors them so the submit handler always reads the latest entries.
@@ -60,6 +65,110 @@ export function BookmarkForm() {
     numberInputs,
     booleanInputs,
   };
+
+  // Precedence when prefilling: user input > autofill rule > category default.
+  // `touchedRef` tracks fields the user edited; `ruleSetRef` tracks property ids an autofill rule
+  // most recently set (so category defaults don't clobber them); `lastAutoCategoryRef` holds the
+  // category we set programmatically so a user's manual pick is never overwritten.
+  const touchedRef = useRef<Set<string>>(new Set());
+  const ruleSetRef = useRef<{ numbers: Set<string>;
+    booleans: Set<string>; }>({
+    numbers: new Set(),
+    booleans: new Set(),
+  });
+  const lastAutoCategoryRef = useRef<string>("");
+
+  // Run the autofill rules against the current URL/Title and prefill the form, never overwriting
+  // a value the user has already touched. Called when the URL or Title field loses focus.
+  function runAutofill(): void {
+    const url = form.getFieldValue("url");
+    const title = form.getFieldValue("title");
+    if (!url && !title) return;
+
+    const result = applyAutofill({
+      url,
+      title,
+    }, autofillRules ?? []);
+
+    if (result.categoryId) {
+      const current = form.getFieldValue("categoryId");
+      if (current === "" || current === lastAutoCategoryRef.current) {
+        lastAutoCategoryRef.current = result.categoryId;
+        form.setFieldValue("categoryId", result.categoryId);
+      }
+    }
+
+    if (result.tagIds.length > 0 && !touchedRef.current.has("tags")) {
+      const current = form.getFieldValue("tagIds");
+      form.setFieldValue("tagIds", [...new Set([...current, ...result.tagIds])]);
+    }
+
+    ruleSetRef.current = {
+      numbers: new Set(result.numberValues.map(entry => entry.propertyId)),
+      booleans: new Set(result.booleanValues.map(entry => entry.propertyId)),
+    };
+    if (result.numberValues.length > 0) {
+      setNumberInputs((current) => {
+        const next = {
+          ...current,
+        };
+        for (const entry of result.numberValues) {
+          if (!touchedRef.current.has(`number:${entry.propertyId}`)) {
+            next[entry.propertyId] = String(entry.value);
+          }
+        }
+        return next;
+      });
+    }
+    if (result.booleanValues.length > 0) {
+      setBooleanInputs((current) => {
+        const next = {
+          ...current,
+        };
+        for (const entry of result.booleanValues) {
+          if (!touchedRef.current.has(`boolean:${entry.propertyId}`)) {
+            next[entry.propertyId] = entry.value;
+          }
+        }
+        return next;
+      });
+    }
+  }
+
+  // Apply a category's default property values, skipping anything the user touched or an autofill
+  // rule already set (rules win over defaults), and never overwriting a non-empty number input.
+  function applyCategoryDefaults(numberValues: BookmarkNumberValue[], booleanValues: BookmarkBooleanValue[]): void {
+    setNumberInputs((current) => {
+      const next = {
+        ...current,
+      };
+      for (const entry of numberValues) {
+        const existing = next[entry.propertyId];
+        if (
+          !touchedRef.current.has(`number:${entry.propertyId}`)
+          && !ruleSetRef.current.numbers.has(entry.propertyId)
+          && (existing === undefined || existing === "")
+        ) {
+          next[entry.propertyId] = String(entry.value);
+        }
+      }
+      return next;
+    });
+    setBooleanInputs((current) => {
+      const next = {
+        ...current,
+      };
+      for (const entry of booleanValues) {
+        if (
+          !touchedRef.current.has(`boolean:${entry.propertyId}`)
+          && !ruleSetRef.current.booleans.has(entry.propertyId)
+        ) {
+          next[entry.propertyId] = entry.value;
+        }
+      }
+      return next;
+    });
+  }
 
   const form = useAppForm({
     defaultValues: {
@@ -120,6 +229,12 @@ export function BookmarkForm() {
       form.reset();
       setNumberInputs({});
       setBooleanInputs({});
+      touchedRef.current = new Set();
+      ruleSetRef.current = {
+        numbers: new Set(),
+        booleans: new Set(),
+      };
+      lastAutoCategoryRef.current = "";
     },
   });
 
@@ -128,6 +243,7 @@ export function BookmarkForm() {
     if (!categories || categories.length === 0) return;
     if (form.getFieldValue("categoryId")) return;
     const fallback = categories.find(category => category.builtIn) ?? categories[0];
+    lastAutoCategoryRef.current = fallback.id;
     form.setFieldValue("categoryId", fallback.id);
   }, [categories, form]);
 
@@ -144,7 +260,12 @@ export function BookmarkForm() {
       }}
     >
       <form.AppField name="title">
-        {field => <field.TextField label="Name" />}
+        {field => (
+          <field.TextField
+            label="Name"
+            onBlur={runAutofill}
+          />
+        )}
       </form.AppField>
 
       <form.AppField name="url">
@@ -152,6 +273,7 @@ export function BookmarkForm() {
           <field.TextField
             label="URL"
             type="url"
+            onBlur={runAutofill}
           />
         )}
       </form.AppField>
@@ -206,6 +328,7 @@ export function BookmarkForm() {
                       tree={tagTree ?? []}
                       selectedIds={field.state.value}
                       onToggle={(id) => {
+                        touchedRef.current.add("tags");
                         const current = field.state.value;
                         field.handleChange(
                           current.includes(id)
@@ -232,22 +355,32 @@ export function BookmarkForm() {
 
           <form.Subscribe selector={state => state.values.categoryId}>
             {categoryId => (
-              <CategoryCustomFields
-                categoryId={categoryId}
-                properties={customProperties ?? []}
-                numberInputs={numberInputs}
-                booleanInputs={booleanInputs}
-                onNumberChange={(id, value) =>
-                  setNumberInputs(current => ({
-                    ...current,
-                    [id]: value,
-                  }))}
-                onBooleanChange={(id, value) =>
-                  setBooleanInputs(current => ({
-                    ...current,
-                    [id]: value,
-                  }))}
-              />
+              <>
+                <CategoryDefaultsApplier
+                  categoryId={categoryId}
+                  onApply={applyCategoryDefaults}
+                />
+                <CategoryCustomFields
+                  categoryId={categoryId}
+                  properties={customProperties ?? []}
+                  numberInputs={numberInputs}
+                  booleanInputs={booleanInputs}
+                  onNumberChange={(id, value) => {
+                    touchedRef.current.add(`number:${id}`);
+                    setNumberInputs(current => ({
+                      ...current,
+                      [id]: value,
+                    }));
+                  }}
+                  onBooleanChange={(id, value) => {
+                    touchedRef.current.add(`boolean:${id}`);
+                    setBooleanInputs(current => ({
+                      ...current,
+                      [id]: value,
+                    }));
+                  }}
+                />
+              </>
             )}
           </form.Subscribe>
         </CollapsibleContent>
@@ -370,4 +503,30 @@ function CategoryCustomFields({
       </div>
     </div>
   );
+}
+
+interface CategoryDefaultsApplierProps {
+  categoryId: string;
+  onApply: (numberValues: BookmarkNumberValue[], booleanValues: BookmarkBooleanValue[]) => void;
+}
+
+/**
+ * Headless helper that loads the chosen category's default property values and applies them to the
+ * form whenever the category changes. Renders nothing — the parent owns the property inputs.
+ */
+function CategoryDefaultsApplier({
+  categoryId, onApply,
+}: CategoryDefaultsApplierProps) {
+  const {
+    data: defaults,
+  } = useCategoryDefaults(categoryId);
+
+  useEffect(() => {
+    if (!categoryId || !defaults) return;
+    onApply(defaults.numberValues, defaults.booleanValues);
+    // Re-apply only when the category or its loaded defaults change; `onApply` is stable enough.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categoryId, defaults]);
+
+  return null;
 }

@@ -1,13 +1,17 @@
 import { asc, eq, inArray, isNull } from "drizzle-orm";
 import type {
   Category,
+  CategoryPropertyDefaults,
   CreateCategoryInput,
+  UpdateCategoryDefaultsInput,
   UpdateCategoryInput,
 } from "@eesimple/types";
 import { db } from "@/db";
 import {
   bookmarks,
   categories,
+  categoryBooleanDefaults,
+  categoryNumberDefaults,
   type CategoryRow,
   categoryRootTags,
   homepageTags,
@@ -216,4 +220,65 @@ export async function setHomepageTagIds(tagIds: string[]): Promise<string[]> {
     }
   });
   return tagIds;
+}
+
+/** A category's default custom-property values, applied to new bookmarks added to it. */
+export async function getCategoryDefaults(categoryId: string): Promise<CategoryPropertyDefaults> {
+  const [numberRows, booleanRows] = await Promise.all([
+    db
+      .select({
+        propertyId: categoryNumberDefaults.propertyId,
+        value: categoryNumberDefaults.value,
+      })
+      .from(categoryNumberDefaults)
+      .where(eq(categoryNumberDefaults.categoryId, categoryId)),
+    db
+      .select({
+        propertyId: categoryBooleanDefaults.propertyId,
+        value: categoryBooleanDefaults.value,
+      })
+      .from(categoryBooleanDefaults)
+      .where(eq(categoryBooleanDefaults.categoryId, categoryId)),
+  ]);
+  return {
+    numberValues: numberRows.map(row => ({
+      propertyId: row.propertyId,
+      value: row.value,
+    })),
+    booleanValues: booleanRows.map(row => ({
+      propertyId: row.propertyId,
+      value: row.value,
+    })),
+  };
+}
+
+/** Replace a category's default custom-property values. Returns null if the category is missing. */
+export async function setCategoryDefaults(
+  categoryId: string,
+  input: UpdateCategoryDefaultsInput,
+): Promise<CategoryPropertyDefaults | null> {
+  const [category] = await db.select({
+    id: categories.id,
+  }).from(categories).where(eq(categories.id, categoryId));
+  if (!category) return null;
+
+  await db.transaction(async (tx) => {
+    await tx.delete(categoryNumberDefaults).where(eq(categoryNumberDefaults.categoryId, categoryId));
+    await tx.delete(categoryBooleanDefaults).where(eq(categoryBooleanDefaults.categoryId, categoryId));
+    if (input.numberValues.length > 0) {
+      await tx.insert(categoryNumberDefaults).values(input.numberValues.map(entry => ({
+        categoryId,
+        propertyId: entry.propertyId,
+        value: entry.value,
+      })));
+    }
+    if (input.booleanValues.length > 0) {
+      await tx.insert(categoryBooleanDefaults).values(input.booleanValues.map(entry => ({
+        categoryId,
+        propertyId: entry.propertyId,
+        value: entry.value,
+      })));
+    }
+  });
+  return getCategoryDefaults(categoryId);
 }
