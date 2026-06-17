@@ -7,6 +7,16 @@ const FETCH_TIMEOUT_MS = 5000;
 /** Cap the body we read so a huge response can't exhaust memory. */
 const MAX_BYTES = 512 * 1024;
 
+export type FetchTitleResult
+  = | { kind: "ok";
+    title: string; }
+    | { kind: "timeout" }
+    | { kind: "http_error";
+      status: number; }
+      | { kind: "no_body" }
+      | { kind: "no_title" }
+      | { kind: "network_error" };
+
 const NAMED_ENTITIES: Record<string, string> = {
   "amp": "&",
   "lt": "<",
@@ -41,10 +51,10 @@ export function extractTitle(html: string): string | null {
 }
 
 /**
- * Fetch `url` and return its page title, or null on any network/parse failure
- * or when the document has no usable title. Guarded by a timeout and a body cap.
+ * Fetch `url` and return a typed result describing why the title could not be
+ * obtained, or the title itself. Guarded by a timeout and a body cap.
  */
-export async function fetchPageTitle(url: string): Promise<string | null> {
+export async function fetchPageTitle(url: string): Promise<FetchTitleResult> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
@@ -57,7 +67,13 @@ export async function fetchPageTitle(url: string): Promise<string | null> {
         "Accept": "text/html,application/xhtml+xml",
       },
     });
-    if (!res.ok || !res.body) return null;
+    if (!res.ok) return {
+      kind: "http_error",
+      status: res.status,
+    };
+    if (!res.body) return {
+      kind: "no_body",
+    };
 
     // Read incrementally so we can stop once we have enough bytes for the title.
     const reader = res.body.getReader();
@@ -78,10 +94,24 @@ export async function fetchPageTitle(url: string): Promise<string | null> {
         break;
       }
     }
-    return extractTitle(html);
+    const title = extractTitle(html);
+    if (title === null) return {
+      kind: "no_title",
+    };
+    return {
+      kind: "ok",
+      title,
+    };
   }
-  catch {
-    return null;
+  catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") {
+      return {
+        kind: "timeout",
+      };
+    }
+    return {
+      kind: "network_error",
+    };
   }
   finally {
     clearTimeout(timeout);
