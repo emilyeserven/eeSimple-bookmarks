@@ -1,6 +1,8 @@
 import type {
+  Bookmark,
   BookmarkBooleanValue,
   BookmarkNumberValue,
+  CreateBookmarkInput,
   CustomProperty,
   TagNode,
 } from "@eesimple/types";
@@ -11,7 +13,7 @@ import { ChevronDown, Loader2, Sparkles } from "lucide-react";
 import { z } from "zod";
 
 import { TagPicker } from "./TagPicker";
-import { useCreateBookmark } from "../hooks/useBookmarks";
+import { useCreateBookmark, useUpdateBookmark } from "../hooks/useBookmarks";
 import { useCategories, useCategoryRootTags } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useFetchTitle } from "../hooks/useFetchTitle";
@@ -49,9 +51,24 @@ function isFetchableUrl(value: string): boolean {
   }
 }
 
-/** Create-bookmark form. Owns its own mutation so the page stays focused on the list. */
-export function BookmarkForm() {
+interface BookmarkFormProps {
+  /** When provided, the form edits this bookmark instead of creating a new one. */
+  bookmark?: Bookmark;
+  /** Called after a successful edit (or on cancel) so the parent can close the form. */
+  onDone?: () => void;
+}
+
+/**
+ * Bookmark form. Creates a new bookmark by default, or edits `bookmark` when given.
+ * Owns its own mutation so the page stays focused on the list.
+ */
+export function BookmarkForm({
+  bookmark, onDone,
+}: BookmarkFormProps = {}) {
+  const isEdit = Boolean(bookmark);
   const createBookmark = useCreateBookmark();
+  const updateBookmark = useUpdateBookmark();
+  const saveBookmark = isEdit ? updateBookmark : createBookmark;
   const fetchTitle = useFetchTitle();
   const autoFetchTitle = useUiStore(state => state.autoFetchTitle);
   const {
@@ -65,9 +82,12 @@ export function BookmarkForm() {
   } = useCategories();
 
   // Custom-property values live outside the typed form (they're dynamic). A ref
-  // mirrors them so the submit handler always reads the latest entries.
-  const [numberInputs, setNumberInputs] = useState<Record<string, string>>({});
-  const [booleanInputs, setBooleanInputs] = useState<Record<string, boolean>>({});
+  // mirrors them so the submit handler always reads the latest entries. When editing,
+  // seed them from the bookmark's existing values (calculate results are ignored on submit).
+  const [numberInputs, setNumberInputs] = useState<Record<string, string>>(() =>
+    Object.fromEntries((bookmark?.numberValues ?? []).map(entry => [entry.propertyId, String(entry.value)])));
+  const [booleanInputs, setBooleanInputs] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries((bookmark?.booleanValues ?? []).map(entry => [entry.propertyId, entry.value])));
   const customRef = useRef({
     numberInputs,
     booleanInputs,
@@ -79,12 +99,12 @@ export function BookmarkForm() {
 
   const form = useAppForm({
     defaultValues: {
-      url: "",
-      title: "",
-      categoryId: "",
-      description: "",
-      tagIds: [] as string[],
-      priority: 0,
+      url: bookmark?.url ?? "",
+      title: bookmark?.title ?? "",
+      categoryId: bookmark?.categoryId ?? "",
+      description: bookmark?.description ?? "",
+      tagIds: (bookmark?.tags.map(tag => tag.id) ?? []) as string[],
+      priority: bookmark?.priority ?? 0,
     },
     validators: {
       onChange: bookmarkSchema,
@@ -123,7 +143,7 @@ export function BookmarkForm() {
           value: booleans[property.id] ?? false,
         }));
 
-      await createBookmark.mutateAsync({
+      const input: CreateBookmarkInput = {
         url: value.url,
         title: value.title,
         categoryId: value.categoryId,
@@ -132,7 +152,18 @@ export function BookmarkForm() {
         numberValues,
         booleanValues,
         priority: value.priority,
-      });
+      };
+
+      if (bookmark) {
+        await updateBookmark.mutateAsync({
+          id: bookmark.id,
+          input,
+        });
+        onDone?.();
+        return;
+      }
+
+      await createBookmark.mutateAsync(input);
       form.reset();
       setNumberInputs({});
       setBooleanInputs({});
@@ -335,13 +366,26 @@ export function BookmarkForm() {
       </Collapsible>
 
       <div className="sm:col-span-2">
-        <form.AppForm>
-          <form.SubmitButton
-            label="Add bookmark"
-            pendingLabel="Saving…"
-          />
-        </form.AppForm>
-        {createBookmark.isError ? <p className="mt-2 text-sm text-destructive">{createBookmark.error?.message}</p> : null}
+        <div className="flex items-center gap-2">
+          <form.AppForm>
+            <form.SubmitButton
+              label={isEdit ? "Save changes" : "Add bookmark"}
+              pendingLabel="Saving…"
+            />
+          </form.AppForm>
+          {isEdit && onDone
+            ? (
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={onDone}
+              >
+                Cancel
+              </Button>
+            )
+            : null}
+        </div>
+        {saveBookmark.isError ? <p className="mt-2 text-sm text-destructive">{saveBookmark.error?.message}</p> : null}
       </div>
     </form>
   );

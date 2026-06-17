@@ -1,3 +1,5 @@
+import type { Bookmark } from "@eesimple/types";
+
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -8,9 +10,16 @@ import { BookmarkForm } from "./BookmarkForm";
 const mutateAsync = vi.fn<(url: string) => Promise<{ title: string }>>();
 let autoFetchTitle = true;
 
+const updateMutateAsync = vi.fn<(args: unknown) => Promise<unknown>>();
+
 vi.mock("../hooks/useBookmarks", () => ({
   useCreateBookmark: () => ({
     mutateAsync: vi.fn(),
+    isError: false,
+    error: null,
+  }),
+  useUpdateBookmark: () => ({
+    mutateAsync: updateMutateAsync,
     isError: false,
     error: null,
   }),
@@ -51,6 +60,7 @@ vi.mock("../stores/uiStore", () => ({
 describe("BookmarkForm title fetching", () => {
   beforeEach(() => {
     mutateAsync.mockReset();
+    updateMutateAsync.mockReset();
     autoFetchTitle = true;
   });
 
@@ -110,5 +120,53 @@ describe("BookmarkForm title fetching", () => {
 
     await waitFor(() => expect(mutateAsync).not.toHaveBeenCalled());
     expect(screen.getByLabelText("Name")).toHaveValue("My title");
+  });
+
+  it("prefills fields and updates the bookmark when editing", async () => {
+    updateMutateAsync.mockResolvedValue(undefined);
+    const onDone = vi.fn();
+    const bookmark: Bookmark = {
+      id: "11111111-1111-1111-1111-111111111111",
+      url: "https://github.com",
+      title: "GitHub",
+      description: "Code host",
+      categoryId: "22222222-2222-2222-2222-222222222222",
+      tags: [],
+      numberValues: [],
+      booleanValues: [],
+      priority: 0,
+      createdAt: "2026-06-01T00:00:00.000Z",
+    };
+
+    render(
+      <BookmarkForm
+        bookmark={bookmark}
+        onDone={onDone}
+      />,
+    );
+
+    expect(screen.getByLabelText("Name")).toHaveValue("GitHub");
+    expect(screen.getByLabelText("URL")).toHaveValue("https://github.com");
+
+    fireEvent.change(screen.getByLabelText("Name"), {
+      target: {
+        value: "GitHub Home",
+      },
+    });
+    fireEvent.click(screen.getByRole("button", {
+      name: "Save changes",
+    }));
+
+    await waitFor(() => expect(updateMutateAsync).toHaveBeenCalledTimes(1));
+    expect(updateMutateAsync).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: bookmark.id,
+        input: expect.objectContaining({
+          title: "GitHub Home",
+          url: "https://github.com",
+        }),
+      }),
+    );
+    await waitFor(() => expect(onDone).toHaveBeenCalled());
   });
 });
