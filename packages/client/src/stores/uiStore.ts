@@ -19,6 +19,9 @@ interface UiState {
   /** Bookmark grid column count (1–4) per listing page, keyed by a stable page key. */
   bookmarkColumns: Record<string, number>;
   setBookmarkColumns: (pageKey: string, columns: number) => void;
+  /** When pinned, the right-hand panel docks as a persistent column instead of a floating drawer. */
+  panelPinned: boolean;
+  setPanelPinned: (value: boolean) => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -39,6 +42,10 @@ export const useUiStore = create<UiState>()(
           [pageKey]: clampColumns(columns),
         },
       })),
+      panelPinned: false,
+      setPanelPinned: value => set({
+        panelPinned: value,
+      }),
     }),
     {
       name: "eesimple-ui",
@@ -46,6 +53,7 @@ export const useUiStore = create<UiState>()(
         theme: state.theme,
         autoFetchTitle: state.autoFetchTitle,
         bookmarkColumns: state.bookmarkColumns,
+        panelPinned: state.panelPinned,
       }),
     },
   ),

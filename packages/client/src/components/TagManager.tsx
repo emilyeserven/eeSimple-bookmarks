@@ -2,17 +2,21 @@ import { useState } from "react";
 
 import { Plus } from "lucide-react";
 
-import { TagCreateDrawer } from "./TagDrawer";
+import { usePanelControls } from "./panel/usePanelControls";
 import { TagTreeList } from "./TagTreeList";
 import { useTagTree } from "../hooks/useTags";
 
 import { Button } from "@/components/ui/button";
+import { NEW_SENTINEL } from "@/lib/drawerSearch";
 
 /** Read-only tag taxonomy with a collapsible tree; editing happens inside per-tag drawers. */
 export function TagManager() {
   const {
     data: tree, isLoading, error,
   } = useTagTree();
+  const {
+    openTag,
+  } = usePanelControls();
 
   // Empty set means every parent is collapsed by default.
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -29,15 +33,14 @@ export function TagManager() {
   return (
     <section className="space-y-4">
       <div className="flex justify-end">
-        <TagCreateDrawer>
-          <Button
-            type="button"
-            size="sm"
-          >
-            <Plus className="size-4" />
-            New tag
-          </Button>
-        </TagCreateDrawer>
+        <Button
+          type="button"
+          size="sm"
+          onClick={() => openTag(NEW_SENTINEL)}
+        >
+          <Plus className="size-4" />
+          New tag
+        </Button>
       </div>
 
       {isLoading ? <p className="text-muted-foreground">Loading tags…</p> : null}

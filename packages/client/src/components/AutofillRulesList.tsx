@@ -1,23 +1,14 @@
 import type {
   AutofillRule,
   Category,
-  CreateAutofillRuleInput,
-  CustomProperty,
-  TagNode,
 } from "@eesimple/types";
 
 import { useMemo, useState } from "react";
 
-import { Link, useNavigate } from "@tanstack/react-router";
-
-import { AutofillRuleForm, NO_CATEGORY, OPERATOR_LABELS } from "./AutofillRuleForm";
-import {
-  useAutofillRules,
-  useCreateAutofillRule,
-} from "../hooks/useAutofill";
+import { NO_CATEGORY, OPERATOR_LABELS } from "./AutofillRuleForm";
+import { usePanelControls } from "./panel/usePanelControls";
+import { useAutofillRules } from "../hooks/useAutofill";
 import { useCategories } from "../hooks/useCategories";
-import { useCustomProperties } from "../hooks/useCustomProperties";
-import { useTagTree } from "../hooks/useTags";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -34,14 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { NEW_SENTINEL } from "@/lib/drawerSearch";
 
 /** Select sentinel for "show rules for every category". */
 const ALL_CATEGORIES = "all";
@@ -49,12 +33,12 @@ const ALL_CATEGORIES = "all";
 interface AutofillRulesListProps {
   /**
    * When set, scopes the list to a single category: only rules that set this category are
-   * shown, the category filter is hidden, and new rules default their target category to it.
+   * shown and the category filter is hidden.
    */
   categoryId?: string;
 }
 
-/** Read-only, searchable/filterable list of autofill rules with a "new rule" drawer. */
+/** Read-only, searchable/filterable list of autofill rules; selecting one opens it in the panel. */
 export function AutofillRulesList({
   categoryId,
 }: AutofillRulesListProps = {}) {
@@ -65,11 +49,8 @@ export function AutofillRulesList({
     data: categories,
   } = useCategories();
   const {
-    data: properties,
-  } = useCustomProperties();
-  const {
-    data: tagTree,
-  } = useTagTree();
+    openAutofill,
+  } = usePanelControls();
 
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState(ALL_CATEGORIES);
@@ -141,12 +122,12 @@ export function AutofillRulesList({
             )}
         </div>
 
-        <NewAutofillRuleDrawer
-          categories={categories ?? []}
-          properties={properties ?? []}
-          tagTree={tagTree ?? []}
-          defaultCategoryId={categoryId}
-        />
+        <Button
+          type="button"
+          onClick={() => openAutofill(NEW_SENTINEL)}
+        >
+          New Autofill Rule
+        </Button>
       </div>
 
       {isLoading ? <p className="text-muted-foreground">Loading rules…</p> : null}
@@ -182,22 +163,23 @@ interface RuleListItemProps {
   categories: Category[];
 }
 
-/** A single read-only rule card linking to its own edit page. */
+/** A single read-only rule card that opens the rule in the shared panel. */
 function RuleListItem({
   rule, categories,
 }: RuleListItemProps) {
+  const {
+    openAutofill,
+  } = usePanelControls();
   const categoryName = rule.setCategoryId
     ? categories.find(category => category.id === rule.setCategoryId)?.name
     : null;
   const fieldLabel = rule.operator === "domain" ? "URL" : rule.field === "url" ? "URL" : "Title";
 
   return (
-    <Link
-      to="/settings/autofill/$ruleId"
-      params={{
-        ruleId: rule.id,
-      }}
-      className="block"
+    <button
+      type="button"
+      onClick={() => openAutofill(rule.id)}
+      className="block w-full text-left"
     >
       <Card
         className="
@@ -215,72 +197,6 @@ function RuleListItem({
           {categoryName ? <Badge variant="secondary">{categoryName}</Badge> : null}
         </CardHeader>
       </Card>
-    </Link>
-  );
-}
-
-interface NewAutofillRuleDrawerProps {
-  categories: Category[];
-  properties: CustomProperty[];
-  tagTree: TagNode[];
-  defaultCategoryId?: string;
-}
-
-/** "New Autofill Rule" button that opens a right-side drawer with the create form. */
-function NewAutofillRuleDrawer({
-  categories, properties, tagTree, defaultCategoryId,
-}: NewAutofillRuleDrawerProps) {
-  const navigate = useNavigate();
-  const createRule = useCreateAutofillRule();
-  const [open, setOpen] = useState(false);
-
-  async function handleCreate(input: CreateAutofillRuleInput) {
-    const created = await createRule.mutateAsync(input);
-    setOpen(false);
-    await navigate({
-      to: "/settings/autofill/$ruleId",
-      params: {
-        ruleId: created.id,
-      },
-    });
-  }
-
-  return (
-    <Sheet
-      open={open}
-      onOpenChange={setOpen}
-    >
-      <SheetTrigger asChild>
-        <Button type="button">New Autofill Rule</Button>
-      </SheetTrigger>
-      <SheetContent
-        side="right"
-        className="
-          w-full
-          sm:max-w-md
-        "
-      >
-        <SheetHeader>
-          <SheetTitle>New Autofill Rule</SheetTitle>
-          <SheetDescription>
-            Match a bookmark’s URL or title to prefill its category, tags, and custom properties.
-          </SheetDescription>
-        </SheetHeader>
-        <div className="flex-1 overflow-y-auto px-4 pb-4">
-          <AutofillRuleForm
-            categories={categories}
-            properties={properties}
-            tagTree={tagTree}
-            defaultCategoryId={defaultCategoryId}
-            submitLabel="Add rule"
-            isError={createRule.isError}
-            errorMessage={createRule.error?.message}
-            onSubmit={(input) => {
-              void handleCreate(input);
-            }}
-          />
-        </div>
-      </SheetContent>
-    </Sheet>
+    </button>
   );
 }

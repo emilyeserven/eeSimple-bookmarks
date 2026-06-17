@@ -2,7 +2,7 @@ import type { TagNode } from "@eesimple/types";
 
 import { ChevronDown, ChevronRight, Pencil } from "lucide-react";
 
-import { TagDrawer } from "./TagDrawer";
+import { usePanelControls } from "./panel/usePanelControls";
 
 import { Button } from "@/components/ui/button";
 
@@ -15,7 +15,7 @@ interface TagTreeListProps {
   onToggle: (id: string) => void;
 }
 
-/** Read-only, collapsible tag tree. Each row reveals a pencil button that opens a drawer. */
+/** Read-only, collapsible tag tree. Each row reveals a pencil button that opens the panel. */
 export function TagTreeList({
   tree, expanded, onToggle,
 }: TagTreeListProps) {
@@ -28,7 +28,6 @@ export function TagTreeList({
           depth={0}
           expanded={expanded}
           onToggle={onToggle}
-          allTags={tree}
         />
       ))}
     </ul>
@@ -40,13 +39,14 @@ interface TagTreeRowProps {
   depth: number;
   expanded: Set<string>;
   onToggle: (id: string) => void;
-  /** The full root tree, passed down for the drawer's reparent options. */
-  allTags: TagNode[];
 }
 
 function TagTreeRow({
-  node, depth, expanded, onToggle, allTags,
+  node, depth, expanded, onToggle,
 }: TagTreeRowProps) {
+  const {
+    openTag,
+  } = usePanelControls();
   const hasChildren = node.children.length > 0;
   const isOpen = expanded.has(node.id);
 
@@ -88,24 +88,20 @@ function TagTreeRow({
 
         <span className="flex-1 truncate">{node.name}</span>
 
-        <TagDrawer
-          node={node}
-          allTags={allTags}
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          aria-label={`View ${node.name}`}
+          className="
+            opacity-0 transition-opacity
+            group-hover:opacity-100
+            focus-visible:opacity-100
+          "
+          onClick={() => openTag(node.id)}
         >
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            aria-label={`View ${node.name}`}
-            className="
-              opacity-0 transition-opacity
-              group-hover:opacity-100
-              focus-visible:opacity-100
-            "
-          >
-            <Pencil className="size-4" />
-          </Button>
-        </TagDrawer>
+          <Pencil className="size-4" />
+        </Button>
       </li>
 
       {hasChildren && isOpen
@@ -116,7 +112,6 @@ function TagTreeRow({
             depth={depth + 1}
             expanded={expanded}
             onToggle={onToggle}
-            allTags={allTags}
           />
         ))
         : null}

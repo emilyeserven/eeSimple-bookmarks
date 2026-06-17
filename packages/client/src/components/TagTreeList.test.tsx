@@ -5,6 +5,14 @@ import { describe, expect, it, vi } from "vitest";
 
 import { TagTreeList } from "./TagTreeList";
 
+const openTag = vi.fn();
+
+vi.mock("./panel/usePanelControls", () => ({
+  usePanelControls: () => ({
+    openTag,
+  }),
+}));
+
 const tree: TagNode[] = [
   {
     id: "dev",
@@ -73,5 +81,17 @@ describe("TagTreeList", () => {
     // The leaf tag "tools" has no expand/collapse control.
     expect(screen.queryByLabelText("Expand tools")).not.toBeInTheDocument();
     expect(screen.queryByLabelText("Collapse tools")).not.toBeInTheDocument();
+  });
+
+  it("opens the panel at a tag when its View button is clicked", () => {
+    render(
+      <TagTreeList
+        tree={tree}
+        expanded={new Set()}
+        onToggle={vi.fn()}
+      />,
+    );
+    screen.getByLabelText("View dev").click();
+    expect(openTag).toHaveBeenCalledWith("dev");
   });
 });
