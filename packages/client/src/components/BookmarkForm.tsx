@@ -407,66 +407,204 @@ export function BookmarkForm({
         void form.handleSubmit();
       }}
     >
-      <form.AppField name="url">
-        {field => (
-          <field.TextField
-            label="URL"
-            type="url"
-            onBlur={() => {
-              runAutofill();
-              runWebsiteLookup(field.state.value);
-              if (autoFetchTitle) {
-                void runFetchTitle(field.state.value, {
-                  force: false,
-                });
-              }
-            }}
-            action={(
-              <Button
-                type="button"
-                variant={showUrlCleanup ? "secondary" : "outline"}
-                size="icon"
-                title="URL cleanup"
-                aria-label="Toggle URL cleanup"
-                aria-expanded={showUrlCleanup}
-                onClick={() => setShowUrlCleanup(prev => !prev)}
-              >
-                <Brush className="size-4" />
-              </Button>
-            )}
-          />
-        )}
-      </form.AppField>
+      {/* Column 1: URL, then the New-site banner + Site name (new sites only). */}
+      <div className="flex flex-col gap-4">
+        <form.AppField name="url">
+          {field => (
+            <field.TextField
+              label="URL"
+              type="url"
+              onBlur={() => {
+                runAutofill();
+                runWebsiteLookup(field.state.value);
+                if (autoFetchTitle) {
+                  void runFetchTitle(field.state.value, {
+                    force: false,
+                  });
+                }
+              }}
+              action={(
+                <Button
+                  type="button"
+                  variant={showUrlCleanup ? "secondary" : "outline"}
+                  size="icon"
+                  title="URL cleanup"
+                  aria-label="Toggle URL cleanup"
+                  aria-expanded={showUrlCleanup}
+                  onClick={() => setShowUrlCleanup(prev => !prev)}
+                >
+                  <Brush className="size-4" />
+                </Button>
+              )}
+            />
+          )}
+        </form.AppField>
 
-      <form.Subscribe selector={state => state.values.url}>
-        {url => (
-          <form.AppField name="title">
-            {field => (
-              <field.TextField
-                label="Name"
-                onBlur={runAutofill}
-                action={(
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    title="Fetch title from URL"
-                    aria-label="Fetch title from URL"
-                    disabled={!isFetchableUrl(url) || fetchTitle.isPending}
-                    onClick={() => void runFetchTitle(url, {
-                      force: true,
-                    })}
-                  >
-                    {fetchTitle.isPending
-                      ? <Loader2 className="size-4 animate-spin" />
-                      : <Sparkles className="size-4" />}
-                  </Button>
+        {websiteLookup.data && websiteLookup.data.domain
+          ? (
+            <div>
+              <p
+                className="
+                  flex items-center gap-2 text-sm text-muted-foreground
+                "
+              >
+                {websiteLookup.data.exists
+                  ? (
+                    <>
+                      <Badge variant="secondary">Existing site</Badge>
+                      <span>{websiteLookup.data.siteName}</span>
+                    </>
+                  )
+                  : (
+                    <>
+                      <Badge variant="outline">New site</Badge>
+                      <span>
+                        {websiteLookup.data.domain}
+                        {" "}
+                        will be added
+                      </span>
+                    </>
+                  )}
+              </p>
+              {!websiteLookup.data.exists
+                ? (
+                  <div className="mt-2">
+                    <Label
+                      htmlFor="website-site-name"
+                      className="mb-1 block text-sm"
+                    >
+                      Site name
+                    </Label>
+                    <Input
+                      id="website-site-name"
+                      value={websiteSiteName}
+                      onChange={e => setWebsiteSiteName(e.target.value)}
+                      onBlur={() => void runFetchTitle(form.getFieldValue("url"), {
+                        force: true,
+                      })}
+                      placeholder={websiteLookup.data.domain ?? ""}
+                    />
+                  </div>
+                )
+                : null}
+            </div>
+          )
+          : null}
+      </div>
+
+      {/* Column 2: Name (auto-growing), then the incorrect-title prompt / fetch error. */}
+      <div className="flex flex-col gap-4">
+        <form.Subscribe selector={state => state.values.url}>
+          {url => (
+            <form.AppField name="title">
+              {field => (
+                <field.TextareaField
+                  label="Name"
+                  rows={1}
+                  inputClassName="min-h-9"
+                  onBlur={runAutofill}
+                  action={(
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      title="Fetch title from URL"
+                      aria-label="Fetch title from URL"
+                      disabled={!isFetchableUrl(url) || fetchTitle.isPending}
+                      onClick={() => void runFetchTitle(url, {
+                        force: true,
+                      })}
+                    >
+                      {fetchTitle.isPending
+                        ? <Loader2 className="size-4 animate-spin" />
+                        : <Sparkles className="size-4" />}
+                    </Button>
+                  )}
+                />
+              )}
+            </form.AppField>
+          )}
+        </form.Subscribe>
+
+        {fetchTitle.isSuccess
+          ? (
+            <div className="flex flex-col gap-2 text-sm text-muted-foreground">
+              {!isReportingTitle
+                ? (
+                  <p>
+                    Incorrect title?
+                    {" "}
+                    <button
+                      type="button"
+                      className="
+                        underline
+                        hover:text-foreground
+                      "
+                      onClick={() => setIsReportingTitle(true)}
+                    >
+                      Report it
+                    </button>
+                  </p>
+                )
+                : (
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="expected-title">Expected title</Label>
+                    <Input
+                      id="expected-title"
+                      value={expectedTitle}
+                      onChange={e => setExpectedTitle(e.target.value)}
+                      placeholder="Enter the correct title"
+                      className="h-8"
+                    />
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={!expectedTitle.trim()}
+                        onClick={() => {
+                          const actualTitle = fetchTitle.data?.title ?? form.getFieldValue("title");
+                          const url = form.getFieldValue("url");
+                          const body = [
+                            `**URL:** ${url}`,
+                            `**Actual title parsed:** ${actualTitle}`,
+                            `**Expected title:** ${expectedTitle}`,
+                          ].join("\n\n");
+                          const issueUrl = new URL("https://github.com/emilyeserven/eesimple-bookmarks/issues/new");
+                          issueUrl.searchParams.set("title", "Incorrect page title parsed");
+                          issueUrl.searchParams.set("body", body);
+                          issueUrl.searchParams.set("labels", "bug");
+                          window.open(issueUrl.toString(), "_blank", "noopener,noreferrer");
+                        }}
+                      >
+                        Open GitHub issue
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setIsReportingTitle(false);
+                          setExpectedTitle("");
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
                 )}
-              />
-            )}
-          </form.AppField>
-        )}
-      </form.Subscribe>
+            </div>
+          )
+          : null}
+
+        {fetchTitle.isError
+          ? (
+            <p className="text-sm text-destructive">
+              {fetchTitle.error?.message ?? "Could not fetch a title for that URL."}
+            </p>
+          )
+          : null}
+      </div>
 
       {showUrlCleanup && (
         <div
@@ -563,142 +701,6 @@ export function BookmarkForm({
           </form.Subscribe>
         </div>
       )}
-
-      {fetchTitle.isSuccess
-        ? (
-          <div
-            className="
-              flex flex-col gap-2 text-sm text-muted-foreground
-              sm:col-span-2
-            "
-          >
-            {!isReportingTitle
-              ? (
-                <p>
-                  Incorrect title?
-                  {" "}
-                  <button
-                    type="button"
-                    className="
-                      underline
-                      hover:text-foreground
-                    "
-                    onClick={() => setIsReportingTitle(true)}
-                  >
-                    Report it
-                  </button>
-                </p>
-              )
-              : (
-                <div className="flex items-center gap-2">
-                  <Label
-                    htmlFor="expected-title"
-                    className="shrink-0"
-                  >
-                    Expected title
-                  </Label>
-                  <Input
-                    id="expected-title"
-                    value={expectedTitle}
-                    onChange={e => setExpectedTitle(e.target.value)}
-                    placeholder="Enter the correct title"
-                    className="h-8"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    disabled={!expectedTitle.trim()}
-                    onClick={() => {
-                      const actualTitle = fetchTitle.data?.title ?? form.getFieldValue("title");
-                      const url = form.getFieldValue("url");
-                      const body = [
-                        `**URL:** ${url}`,
-                        `**Actual title parsed:** ${actualTitle}`,
-                        `**Expected title:** ${expectedTitle}`,
-                      ].join("\n\n");
-                      const issueUrl = new URL("https://github.com/emilyeserven/eesimple-bookmarks/issues/new");
-                      issueUrl.searchParams.set("title", "Incorrect page title parsed");
-                      issueUrl.searchParams.set("body", body);
-                      issueUrl.searchParams.set("labels", "bug");
-                      window.open(issueUrl.toString(), "_blank", "noopener,noreferrer");
-                    }}
-                  >
-                    Open GitHub issue
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setIsReportingTitle(false);
-                      setExpectedTitle("");
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              )}
-          </div>
-        )
-        : null}
-
-      {fetchTitle.isError
-        ? (
-          <p
-            className="
-              text-sm text-destructive
-              sm:col-span-2
-            "
-          >
-            {fetchTitle.error?.message ?? "Could not fetch a title for that URL."}
-          </p>
-        )
-        : null}
-
-      {websiteLookup.data && websiteLookup.data.domain
-        ? (
-          <div className="sm:col-span-2">
-            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-              {websiteLookup.data.exists
-                ? (
-                  <>
-                    <Badge variant="secondary">Existing site</Badge>
-                    <span>{websiteLookup.data.siteName}</span>
-                  </>
-                )
-                : (
-                  <>
-                    <Badge variant="outline">New site</Badge>
-                    <span>
-                      {websiteLookup.data.domain}
-                      {" "}
-                      will be added
-                    </span>
-                  </>
-                )}
-            </p>
-            {!websiteLookup.data.exists
-              ? (
-                <div className="mt-2">
-                  <Label
-                    htmlFor="website-site-name"
-                    className="mb-1 block text-sm"
-                  >
-                    Site name
-                  </Label>
-                  <Input
-                    id="website-site-name"
-                    value={websiteSiteName}
-                    onChange={e => setWebsiteSiteName(e.target.value)}
-                    placeholder={websiteLookup.data.domain ?? ""}
-                  />
-                </div>
-              )
-              : null}
-          </div>
-        )
-        : null}
 
       {lockedCategoryId
         ? null

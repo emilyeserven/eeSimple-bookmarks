@@ -1,4 +1,5 @@
 import type { QueryClient } from "@tanstack/react-query";
+import type { CSSProperties } from "react";
 
 import {
   Outlet,
@@ -65,9 +66,14 @@ function RootComponent() {
     open,
   } = usePanelControls();
   const theme = useUiStore(state => state.theme);
+  const sidebarWidth = useUiStore(state => state.sidebarWidth);
 
   return (
-    <SidebarProvider>
+    <SidebarProvider
+      style={{
+        "--sidebar-width": `${sidebarWidth}rem`,
+      } as CSSProperties}
+    >
       <AppSidebar />
       <SidebarInset>
         <header
