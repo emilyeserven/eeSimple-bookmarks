@@ -46,6 +46,55 @@ pnpm --filter=@eesimple/middleware generate   # writes a new SQL file under pack
 Migrations are applied automatically on `pnpm dev` and on every deploy; `drizzle-kit push` runs
 afterward only to reconcile any residual drift.
 
+### Object storage (Garage) for bookmark images
+
+Bookmark images are compressed to an 800px WebP and stored in **Garage**, an S3-compatible object
+store that runs as its own container (defined in `docker-compose.yml`). `pnpm dev` only starts
+Postgres, so set Garage up once:
+
+**1. Start Garage:**
+
+```bash
+docker compose up -d garage
+```
+
+**2. Initialize it (one time only).** Run each command and copy what it prints where noted:
+
+```bash
+# a) Find the node ID:
+docker compose exec garage /garage status
+#    → copy the node ID listed under "HEALTHY NODES" (the long id before the first space).
+
+# b) Give the node a storage layout (1G is plenty for images) and apply it:
+docker compose exec garage /garage layout assign -z dc1 -c 1G <node-id>
+docker compose exec garage /garage layout apply --version 1
+
+# c) Create an access key — COPY the "Key ID" and "Secret key" it prints (the secret is shown once):
+docker compose exec garage /garage key create bookmarks-key
+
+# d) Create the bucket and let the key read/write it:
+docker compose exec garage /garage bucket create bookmarks
+docker compose exec garage /garage bucket allow bookmarks --read --write --key bookmarks-key
+```
+
+**3. Put the key into your env.** In `packages/middleware/.env`:
+
+```
+S3_ENDPOINT=http://localhost:3900
+S3_REGION=garage
+S3_BUCKET=bookmarks
+S3_ACCESS_KEY_ID=<the Key ID from step 2c>
+S3_SECRET_ACCESS_KEY=<the Secret key from step 2c>
+```
+
+**4. Run the app** (`pnpm dev`) and add an image to a bookmark. To confirm it landed in storage:
+
+```bash
+docker compose exec garage /garage bucket info bookmarks
+```
+
+> Without the `S3_*` values the app still runs — only image upload / auto-capture returns a 503.
+
 ### Useful commands
 
 ```bash
@@ -97,6 +146,37 @@ the versioned migrations (`dist/db/migrate.js`) and then a reconciling `drizzle-
 >
 > Running these from `/app/packages/gateway` (the default directory) fails — the gateway package
 > has no `drizzle-kit` dependency, no `drizzle.config.*`, and no migrations folder there.
+
+### Object storage (Garage) for bookmark images
+
+Bookmark images need an S3-compatible store. Run **Garage** as a second resource alongside the app:
+
+1. **Add a Garage service.** New Resource → Docker image `dxflrs/garage:v1.0.1`, on the same
+   project/network as the app. Mount this repo's `garage.toml` at `/etc/garage.toml` (and set your
+   own `rpc_secret` — generate one with `openssl rand -hex 32`).
+2. **Attach a persistent volume — this is the part that matters.** Map a volume to **both**
+   `/var/lib/garage/data` *and* `/var/lib/garage/meta`. **Without a persistent volume, every redeploy
+   wipes your images.**
+3. **Bootstrap it once.** Open Garage's **Terminal** in Coolify and run the same commands as the
+   [local setup](#object-storage-garage-for-bookmark-images) (`/garage status` → `layout assign` →
+   `layout apply` → `key create` → `bucket create` + `bucket allow`). Copy the printed Key ID + Secret.
+4. **Point the app at it.** On the **app** resource, add these variables next to `DATABASE_URL` (so the
+   "only `DATABASE_URL`" rule now grows by a few), then redeploy:
+
+   ```
+   S3_ENDPOINT=http://<garage-service-name>:3900
+   S3_REGION=garage
+   S3_BUCKET=bookmarks
+   S3_ACCESS_KEY_ID=<Key ID>
+   S3_SECRET_ACCESS_KEY=<Secret key>
+   ```
+
+> **Troubleshooting images.**
+> - **Upload returns 503 / "storage not configured"** → an `S3_*` variable is missing or wrong.
+> - **Images vanish after a redeploy** → the Garage `data`/`meta` volume isn't persistent.
+> - **`AccessDenied` in the logs** → the key wasn't granted on the bucket (re-run `bucket allow`).
+> - **App can't reach storage** → `S3_ENDPOINT` must be Garage's **internal** service URL (e.g.
+>   `http://garage:3900`), not `localhost`, from inside a container.
 
 ### How it works in production
 
