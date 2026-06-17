@@ -48,7 +48,7 @@ describe("TagTreeFilter", () => {
       />,
     );
     screen.getByRole("button", {
-      name: "All",
+      name: "All tags",
     }).click();
     expect(onSelect).toHaveBeenCalledWith(undefined);
   });

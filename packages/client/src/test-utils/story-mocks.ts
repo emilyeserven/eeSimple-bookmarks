@@ -39,6 +39,7 @@ export const sampleCategories: Category[] = [
   {
     id: "cat-default",
     name: "Default",
+    slug: "default",
     description: "The category bookmarks use when none is chosen.",
     icon: null,
     builtIn: true,
@@ -48,6 +49,7 @@ export const sampleCategories: Category[] = [
   {
     id: "cat-workflow",
     name: "Workflow",
+    slug: "workflow",
     description: "Properties that drive triage and ordering.",
     icon: "Workflow",
     builtIn: false,
@@ -57,6 +59,7 @@ export const sampleCategories: Category[] = [
   {
     id: "cat-content",
     name: "Content",
+    slug: "content",
     description: "Properties that describe what a bookmark is about.",
     icon: "BookOpen",
     builtIn: false,
