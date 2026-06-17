@@ -28,8 +28,14 @@ const THEME_LABELS: Record<Theme, string> = {
 };
 
 const TAXONOMY_ITEMS = [
-  { key: "tags", label: "Tags" },
-  { key: "websites", label: "Websites" },
+  {
+    key: "tags",
+    label: "Tags",
+  },
+  {
+    key: "websites",
+    label: "Websites",
+  },
 ] as const;
 
 /** Display preferences — a theme switcher (light / dark / system) and sidebar section toggles. */
@@ -41,7 +47,9 @@ export function DisplaySettings() {
   const hiddenTaxonomyItems = useUiStore(state => state.hiddenTaxonomyItems);
   const toggleTaxonomyItem = useUiStore(state => state.toggleTaxonomyItem);
 
-  const { data: categories } = useCategories();
+  const {
+    data: categories,
+  } = useCategories();
 
   return (
     <div className="space-y-6">
@@ -49,7 +57,7 @@ export function DisplaySettings() {
         <CardHeader>
           <CardTitle>Theme</CardTitle>
           <CardDescription>
-            Choose a color theme. "System" follows your operating system setting.
+            Choose a color theme. &ldquo;System&rdquo; follows your operating system setting.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-1">
