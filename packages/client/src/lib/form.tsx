@@ -110,27 +110,48 @@ interface TextareaFieldProps {
   placeholder?: string;
   rows?: number;
   disabled?: boolean;
+  /** Class applied to the textarea itself (e.g. a tighter min-height to start at one row). */
+  inputClassName?: string;
+  /** Extra blur handler (runs after the field's own blur), e.g. autofill-on-blur. */
+  onBlur?: () => void;
+  /** Optional control rendered at the inline-end of the textarea (input-group pattern). */
+  action?: ReactNode;
 }
 
 /** Labelled multi-line text input bound to the surrounding field. */
 function TextareaField({
-  label, placeholder, rows = 2, disabled,
+  label, placeholder, rows = 2, disabled, inputClassName, onBlur, action,
 }: TextareaFieldProps) {
   const field = useFieldContext<string>();
   const id = useId();
 
+  const textarea = (
+    <Textarea
+      id={id}
+      rows={rows}
+      placeholder={placeholder}
+      disabled={disabled}
+      className={inputClassName}
+      value={field.state.value}
+      onBlur={() => {
+        field.handleBlur();
+        onBlur?.();
+      }}
+      onChange={event => field.handleChange(event.target.value)}
+    />
+  );
+
   return (
     <div className="space-y-1">
       <Label htmlFor={id}>{label}</Label>
-      <Textarea
-        id={id}
-        rows={rows}
-        placeholder={placeholder}
-        disabled={disabled}
-        value={field.state.value}
-        onBlur={field.handleBlur}
-        onChange={event => field.handleChange(event.target.value)}
-      />
+      {action
+        ? (
+          <div className="flex items-start gap-2">
+            <div className="flex-1">{textarea}</div>
+            {action}
+          </div>
+        )
+        : textarea}
       {field.state.meta.isTouched && <FieldErrors errors={field.state.meta.errors} />}
     </div>
   );
