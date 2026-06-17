@@ -99,8 +99,18 @@ const ruleSchema = z
     }
   });
 
-/** Create, list, edit, and delete autofill rules. */
-export function AutofillRulesManager() {
+interface AutofillRulesManagerProps {
+  /**
+   * When set, scopes the manager to a single category: only rules that set this category are
+   * listed, and the "New rule" form defaults its target category to it.
+   */
+  categoryId?: string;
+}
+
+/** Create, list, edit, and delete autofill rules (optionally scoped to one category). */
+export function AutofillRulesManager({
+  categoryId,
+}: AutofillRulesManagerProps = {}) {
   const {
     data: rules, isLoading, error,
   } = useAutofillRules();
@@ -115,6 +125,10 @@ export function AutofillRulesManager() {
   } = useTagTree();
   const createRule = useCreateAutofillRule();
 
+  const visibleRules = categoryId
+    ? (rules ?? []).filter(rule => rule.setCategoryId === categoryId)
+    : (rules ?? []);
+
   return (
     <section className="space-y-6">
       <Card>
@@ -126,6 +140,7 @@ export function AutofillRulesManager() {
             categories={categories ?? []}
             properties={properties ?? []}
             tagTree={tagTree ?? []}
+            defaultCategoryId={categoryId}
             submitLabel="Add rule"
             resetOnSubmit
             isError={createRule.isError}
@@ -137,12 +152,18 @@ export function AutofillRulesManager() {
 
       {isLoading ? <p className="text-muted-foreground">Loading rules…</p> : null}
       {error ? <p className="text-destructive">{error.message}</p> : null}
-      {!isLoading && (rules?.length ?? 0) === 0
-        ? <p className="text-muted-foreground">No autofill rules yet. Create one above.</p>
+      {!isLoading && visibleRules.length === 0
+        ? (
+          <p className="text-muted-foreground">
+            {categoryId
+              ? "No autofill rules add bookmarks to this category yet. Create one above."
+              : "No autofill rules yet. Create one above."}
+          </p>
+        )
         : null}
 
       <div className="space-y-4">
-        {(rules ?? []).map(rule => (
+        {visibleRules.map(rule => (
           <RuleCard
             key={rule.id}
             rule={rule}
@@ -221,6 +242,8 @@ interface RuleFormProps {
   categories: Category[];
   properties: CustomProperty[];
   tagTree: TagNode[];
+  /** Preselected target category for a new rule (e.g. when creating from a category's edit page). */
+  defaultCategoryId?: string;
   submitLabel: string;
   resetOnSubmit?: boolean;
   isError?: boolean;
@@ -230,7 +253,7 @@ interface RuleFormProps {
 
 /** Shared create/edit form for an autofill rule (matcher + category/tags/property actions). */
 function RuleForm({
-  rule, categories, properties, tagTree, submitLabel, resetOnSubmit, isError, errorMessage, onSubmit,
+  rule, categories, properties, tagTree, defaultCategoryId, submitLabel, resetOnSubmit, isError, errorMessage, onSubmit,
 }: RuleFormProps) {
   // Custom-property values live outside the typed form (they're dynamic), like the bookmark form.
   const [numberInputs, setNumberInputs] = useState<Record<string, string>>(() =>
@@ -244,7 +267,7 @@ function RuleForm({
       field: rule?.field ?? ("url" as AutofillRule["field"]),
       operator: rule?.operator ?? ("contains" as AutofillRule["operator"]),
       pattern: rule?.pattern ?? "",
-      setCategoryId: rule?.setCategoryId ?? NO_CATEGORY,
+      setCategoryId: rule?.setCategoryId ?? defaultCategoryId ?? NO_CATEGORY,
       tagIds: rule?.tagIds ?? ([] as string[]),
       sortOrder: rule?.sortOrder ?? 0,
     },

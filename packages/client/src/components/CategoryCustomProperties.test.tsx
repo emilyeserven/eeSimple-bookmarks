@@ -1,0 +1,113 @@
+import type { Category, CustomProperty } from "@eesimple/types";
+
+import { fireEvent, render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { CategoryCustomProperties } from "./CategoryCustomProperties";
+
+// The component reads from query hooks; stub them so the test can focus on the
+// assign/unassign behavior without a live API or QueryClient.
+const updateMutate = vi.fn<(args: unknown) => void>();
+
+const category: Category = {
+  id: "cat-1",
+  name: "Workflow",
+  slug: "workflow",
+  description: null,
+  icon: null,
+  builtIn: false,
+  isHomepage: false,
+  createdAt: "2026-06-01T00:00:00.000Z",
+};
+
+const properties: CustomProperty[] = [
+  {
+    id: "prop-assigned",
+    name: "Priority",
+    type: "number",
+    numberMin: null,
+    numberMax: null,
+    unitSingular: null,
+    unitPlural: null,
+    operandPropertyIds: [],
+    categoryIds: ["cat-1"],
+    createdAt: "2026-06-01T00:00:00.000Z",
+  },
+  {
+    id: "prop-unassigned",
+    name: "Archived",
+    type: "boolean",
+    numberMin: null,
+    numberMax: null,
+    unitSingular: null,
+    unitPlural: null,
+    operandPropertyIds: [],
+    categoryIds: [],
+    createdAt: "2026-06-01T00:00:00.000Z",
+  },
+];
+
+vi.mock("../hooks/useCustomProperties", () => ({
+  useCustomProperties: () => ({
+    data: properties,
+    isLoading: false,
+  }),
+  useUpdateCustomProperty: () => ({
+    mutate: updateMutate,
+  }),
+}));
+vi.mock("../hooks/useCategories", () => ({
+  useCategoryDefaults: () => ({
+    data: undefined,
+  }),
+  useSetCategoryDefaults: () => ({
+    mutate: vi.fn(),
+  }),
+}));
+
+describe("CategoryCustomProperties", () => {
+  beforeEach(() => {
+    updateMutate.mockReset();
+  });
+
+  it("reflects which properties are assigned to the category", () => {
+    render(<CategoryCustomProperties category={category} />);
+
+    expect(screen.getByRole("checkbox", {
+      name: /Priority/,
+    })).toBeChecked();
+    expect(screen.getByRole("checkbox", {
+      name: /Archived/,
+    })).not.toBeChecked();
+  });
+
+  it("assigns the category when an unassigned property is toggled", () => {
+    render(<CategoryCustomProperties category={category} />);
+
+    fireEvent.click(screen.getByRole("checkbox", {
+      name: /Archived/,
+    }));
+
+    expect(updateMutate).toHaveBeenCalledWith({
+      id: "prop-unassigned",
+      input: {
+        categoryIds: ["cat-1"],
+      },
+    });
+  });
+
+  it("unassigns the category when an assigned property is toggled", () => {
+    render(<CategoryCustomProperties category={category} />);
+
+    fireEvent.click(screen.getByRole("checkbox", {
+      name: /Priority/,
+    }));
+
+    expect(updateMutate).toHaveBeenCalledWith({
+      id: "prop-assigned",
+      input: {
+        categoryIds: [],
+      },
+    });
+  });
+});
