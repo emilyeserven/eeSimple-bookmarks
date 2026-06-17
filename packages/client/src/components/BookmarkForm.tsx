@@ -1,9 +1,21 @@
 import { useForm } from "@tanstack/react-form";
+import { ChevronDown } from "lucide-react";
 import { z } from "zod";
 
 import { TagPicker } from "./TagPicker";
 import { useCreateBookmark } from "../hooks/useBookmarks";
 import { useTagTree } from "../hooks/useTags";
+
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 const bookmarkSchema = z.object({
   url: z.string().url("Enter a valid URL"),
@@ -11,10 +23,9 @@ const bookmarkSchema = z.object({
   description: z.string(),
   tagIds: z.array(z.string()),
   favorite: z.boolean(),
+  pinned: z.boolean(),
+  priority: z.number().int(),
 });
-
-const fieldClass
-  = "mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none";
 
 /** Create-bookmark form. Owns its own mutation so the page stays focused on the list. */
 export function BookmarkForm() {
@@ -30,6 +41,8 @@ export function BookmarkForm() {
       description: "",
       tagIds: [] as string[],
       favorite: false,
+      pinned: false,
+      priority: 0,
     },
     validators: {
       onChange: bookmarkSchema,
@@ -43,6 +56,8 @@ export function BookmarkForm() {
         description: value.description || null,
         tagIds: value.tagIds,
         favorite: value.favorite,
+        pinned: value.pinned,
+        priority: value.priority,
       });
       form.reset();
     },
@@ -51,7 +66,7 @@ export function BookmarkForm() {
   return (
     <form
       className="
-        grid gap-4 rounded-lg border border-slate-200 bg-white p-4
+        grid gap-4 rounded-lg border bg-card p-4
         sm:grid-cols-2
       "
       onSubmit={(event) => {
@@ -87,9 +102,9 @@ export function BookmarkForm() {
 
       <form.Field name="tagIds">
         {field => (
-          <div className="block text-sm font-medium text-slate-700">
-            Tags
-            <div className="mt-1 rounded-md border border-slate-300 p-2">
+          <div className="space-y-1">
+            <Label>Tags</Label>
+            <div className="rounded-md border p-2">
               <TagPicker
                 tree={tagTree ?? []}
                 selectedIds={field.state.value}
@@ -109,60 +124,116 @@ export function BookmarkForm() {
 
       <form.Field name="favorite">
         {field => (
-          <label
-            className="
-              flex items-center gap-2 self-end text-sm font-medium
-              text-slate-700
-            "
-          >
-            <input
-              type="checkbox"
+          <div className="flex items-center gap-2 self-end">
+            <Checkbox
+              id="bookmark-favorite"
               checked={field.state.value}
               onBlur={field.handleBlur}
-              onChange={event => field.handleChange(event.target.checked)}
+              onCheckedChange={checked => field.handleChange(checked === true)}
             />
-            Favorite
-          </label>
+            <Label htmlFor="bookmark-favorite">Favorite</Label>
+          </div>
         )}
       </form.Field>
 
       <form.Field name="description">
         {field => (
-          <label
+          <div
             className="
-              block text-sm font-medium text-slate-700
+              space-y-1
               sm:col-span-2
             "
           >
-            Description
-            <textarea
-              className={fieldClass}
+            <Label htmlFor="bookmark-description">Description</Label>
+            <Textarea
+              id="bookmark-description"
               rows={2}
               value={field.state.value}
               onBlur={field.handleBlur}
               onChange={event => field.handleChange(event.target.value)}
             />
-          </label>
+          </div>
         )}
       </form.Field>
+
+      <Collapsible
+        className="
+          group/advanced space-y-3
+          sm:col-span-2
+        "
+      >
+        <CollapsibleTrigger
+          className="
+            flex items-center gap-1 text-sm font-medium text-muted-foreground
+            hover:text-foreground
+          "
+        >
+          <ChevronDown
+            className="
+              size-4 transition-transform
+              group-data-[state=open]/advanced:rotate-180
+            "
+          />
+          Advanced
+        </CollapsibleTrigger>
+        <CollapsibleContent className="space-y-3">
+          <form.Field name="pinned">
+            {field => (
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="bookmark-pinned"
+                  checked={field.state.value}
+                  onBlur={field.handleBlur}
+                  onCheckedChange={checked => field.handleChange(checked === true)}
+                />
+                <Label htmlFor="bookmark-pinned">Pin to Homepage</Label>
+              </div>
+            )}
+          </form.Field>
+
+          <form.Subscribe selector={state => state.values.pinned}>
+            {pinned =>
+              pinned
+                ? (
+                  <form.Field name="priority">
+                    {field => (
+                      <div className="space-y-1">
+                        <Label htmlFor="bookmark-priority">Priority</Label>
+                        <Input
+                          id="bookmark-priority"
+                          type="number"
+                          className="max-w-32"
+                          value={Number.isNaN(field.state.value) ? "" : field.state.value}
+                          onBlur={field.handleBlur}
+                          onChange={(event) => {
+                            const next = event.target.valueAsNumber;
+                            field.handleChange(Number.isNaN(next) ? 0 : next);
+                          }}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Higher numbers appear first on the homepage.
+                        </p>
+                      </div>
+                    )}
+                  </form.Field>
+                )
+                : null}
+          </form.Subscribe>
+        </CollapsibleContent>
+      </Collapsible>
 
       <div className="sm:col-span-2">
         <form.Subscribe selector={state => [state.canSubmit, state.isSubmitting] as const}>
           {([canSubmit, isSubmitting]) => (
-            <button
+            <Button
               type="submit"
               disabled={!canSubmit}
-              className="
-                rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white
-                hover:bg-blue-700
-                disabled:opacity-50
-              "
             >
               {isSubmitting ? "Saving…" : "Add bookmark"}
-            </button>
+            </Button>
           )}
         </form.Subscribe>
-        {createBookmark.isError ? <p className="mt-2 text-sm text-red-600">{createBookmark.error?.message}</p> : null}
+        {createBookmark.isError ? <p className="mt-2 text-sm text-destructive">{createBookmark.error?.message}</p> : null}
       </div>
     </form>
   );
@@ -183,18 +254,19 @@ function TextField({
   const messages = errors
     .map(error => (typeof error === "string" ? error : (error as { message?: string })?.message))
     .filter(Boolean);
+  const id = `bookmark-${label.toLowerCase()}`;
 
   return (
-    <label className="block text-sm font-medium text-slate-700">
-      {label}
-      <input
+    <div className="space-y-1">
+      <Label htmlFor={id}>{label}</Label>
+      <Input
+        id={id}
         type={type}
-        className={fieldClass}
         value={value}
         onBlur={onBlur}
         onChange={event => onChange(event.target.value)}
       />
-      {messages.length > 0 ? <span className="mt-1 block text-xs text-red-600">{messages.join(", ")}</span> : null}
-    </label>
+      {messages.length > 0 ? <span className="block text-xs text-destructive">{messages.join(", ")}</span> : null}
+    </div>
   );
 }

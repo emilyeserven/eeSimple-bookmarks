@@ -7,6 +7,9 @@ import { useBookmarks, useDeleteBookmark } from "../hooks/useBookmarks";
 import { useTagTree } from "../hooks/useTags";
 import { useUiStore } from "../stores/uiStore";
 
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+
 interface BookmarksSearch {
   tag?: string;
 }
@@ -42,14 +45,19 @@ function BookmarksPage() {
     <section className="space-y-8">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Bookmarks</h1>
-        <label className="flex items-center gap-2 text-sm text-slate-600">
-          <input
-            type="checkbox"
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="favorites-only"
             checked={showFavoritesOnly}
-            onChange={toggleShowFavoritesOnly}
+            onCheckedChange={toggleShowFavoritesOnly}
           />
-          Show favorites only
-        </label>
+          <Label
+            htmlFor="favorites-only"
+            className="text-muted-foreground"
+          >
+            Show favorites only
+          </Label>
+        </div>
       </div>
 
       <TagTreeFilter
@@ -67,12 +75,12 @@ function BookmarksPage() {
       <BookmarkForm />
 
       <div className="space-y-3">
-        {isLoading ? <p className="text-slate-500">Loading bookmarks…</p> : null}
-        {error ? <p className="text-red-600">{error.message}</p> : null}
+        {isLoading ? <p className="text-muted-foreground">Loading bookmarks…</p> : null}
+        {error ? <p className="text-destructive">{error.message}</p> : null}
         {!isLoading && visibleBookmarks.length === 0
           ? (
             <p
-              className="text-slate-500"
+              className="text-muted-foreground"
             >No bookmarks yet. Add one above.
             </p>
           )

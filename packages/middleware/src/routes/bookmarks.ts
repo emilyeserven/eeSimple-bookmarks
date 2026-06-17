@@ -57,6 +57,12 @@ const createBookmarkBody = {
     favorite: {
       type: "boolean",
     },
+    pinned: {
+      type: "boolean",
+    },
+    priority: {
+      type: "integer",
+    },
   },
 } as const;
 

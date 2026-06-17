@@ -1,7 +1,21 @@
 import type { QueryClient } from "@tanstack/react-query";
 
-import { Link, Outlet, createRootRouteWithContext } from "@tanstack/react-router";
+import { Outlet, createRootRouteWithContext, useRouterState } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+
+import { AppSidebar } from "@/components/app-sidebar";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbPage,
+} from "@/components/ui/breadcrumb";
+import { Separator } from "@/components/ui/separator";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 
 export interface RouterContext {
   queryClient: QueryClient;
@@ -11,54 +25,43 @@ export const Route = createRootRouteWithContext<RouterContext>()({
   component: RootComponent,
 });
 
+const PAGE_TITLES: Record<string, string> = {
+  "/": "Home",
+  "/bookmarks": "Bookmarks",
+  "/tags": "Tags",
+};
+
 function RootComponent() {
+  const pathname = useRouterState({
+    select: state => state.location.pathname,
+  });
+  const title = PAGE_TITLES[pathname] ?? "eeSimple Bookmarks";
+
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      <header className="border-b border-slate-200 bg-white">
-        <nav className="mx-auto flex max-w-3xl items-center gap-4 px-4 py-3">
-          <span className="text-lg font-semibold">eeSimple Bookmarks</span>
-          <Link
-            to="/"
-            className="
-              text-sm text-slate-600
-              hover:underline
-            "
-            activeProps={{
-              className: "text-sm font-medium text-slate-900 underline",
-            }}
-          >
-            Home
-          </Link>
-          <Link
-            to="/bookmarks"
-            className="
-              text-sm text-slate-600
-              hover:underline
-            "
-            activeProps={{
-              className: "text-sm font-medium text-slate-900 underline",
-            }}
-          >
-            Bookmarks
-          </Link>
-          <Link
-            to="/tags"
-            className="
-              text-sm text-slate-600
-              hover:underline
-            "
-            activeProps={{
-              className: "text-sm font-medium text-slate-900 underline",
-            }}
-          >
-            Tags
-          </Link>
-        </nav>
-      </header>
-      <main className="mx-auto max-w-3xl px-4 py-8">
-        <Outlet />
-      </main>
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <header
+          className="flex h-16 shrink-0 items-center gap-2 border-b px-4"
+        >
+          <SidebarTrigger className="-ml-1" />
+          <Separator
+            orientation="vertical"
+            className="mr-2 h-4"
+          />
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbPage>{title}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </header>
+        <main className="mx-auto w-full max-w-3xl px-4 py-8">
+          <Outlet />
+        </main>
+      </SidebarInset>
       {import.meta.env.DEV ? <TanStackRouterDevtools /> : null}
-    </div>
+    </SidebarProvider>
   );
 }

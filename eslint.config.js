@@ -62,4 +62,23 @@ export default [
       "import/no-unassigned-import": "off",
     },
   },
+  {
+    // The client owns the only Tailwind entry point; point the better-tailwindcss
+    // plugin at it so the shadcn theme tokens (e.g. `text-muted-foreground`) resolve.
+    files: ["packages/client/**/*.{ts,tsx}"],
+    settings: {
+      "better-tailwindcss": {
+        entryPoint: "packages/client/src/index.css",
+      },
+    },
+  },
+  {
+    // Vendored shadcn/ui primitives co-locate components with their variant helpers
+    // (e.g. `buttonVariants`) and pull in many Radix imports by design.
+    files: ["packages/client/src/components/ui/**/*.tsx"],
+    rules: {
+      "react-refresh/only-export-components": "off",
+      "import/max-dependencies": "off",
+    },
+  },
 ];

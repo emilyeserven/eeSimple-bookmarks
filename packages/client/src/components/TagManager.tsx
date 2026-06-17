@@ -5,6 +5,9 @@ import { useState } from "react";
 import { useCreateTag, useDeleteTag, useTagTree, useUpdateTag } from "../hooks/useTags";
 import { flattenTree, subtreeIds } from "../lib/tagTree";
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+
 /** Full tag-taxonomy management: create, rename, reparent, and delete tags. */
 export function TagManager() {
   const {
@@ -28,40 +31,29 @@ export function TagManager() {
   return (
     <section className="space-y-4">
       <div className="flex items-center gap-2">
-        <input
-          className="
-            w-full rounded-md border border-slate-300 px-3 py-2 text-sm
-            focus:border-blue-500 focus:outline-none
-          "
+        <Input
           placeholder="New root tag name"
           value={newRootName}
           onChange={event => setNewRootName(event.target.value)}
           onKeyDown={event => event.key === "Enter" && addRoot()}
         />
-        <button
+        <Button
           type="button"
           onClick={addRoot}
           disabled={!newRootName.trim()}
-          className="
-            rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white
-            hover:bg-blue-700
-            disabled:opacity-50
-          "
         >
           Add tag
-        </button>
+        </Button>
       </div>
 
-      {isLoading ? <p className="text-slate-500">Loading tags…</p> : null}
-      {error ? <p className="text-red-600">{error.message}</p> : null}
+      {isLoading ? <p className="text-muted-foreground">Loading tags…</p> : null}
+      {error ? <p className="text-destructive">{error.message}</p> : null}
       {!isLoading && flat.length === 0
-        ? <p className="text-slate-500">No tags yet. Add one above.</p>
+        ? <p className="text-muted-foreground">No tags yet. Add one above.</p>
         : null}
 
       <ul
-        className="
-          divide-y divide-slate-100 rounded-lg border border-slate-200 bg-white
-        "
+        className="divide-y rounded-lg border bg-card"
       >
         {flat.map(item => (
           <TagRow
@@ -133,11 +125,8 @@ function TagRow({
         paddingLeft: `${0.75 + depth * 1.25}rem`,
       }}
     >
-      <input
-        className="
-          rounded-md border border-slate-300 px-2 py-1 text-sm
-          focus:border-blue-500 focus:outline-none
-        "
+      <Input
+        className="h-8 w-auto"
         value={name}
         onChange={event => setName(event.target.value)}
         onBlur={rename}
@@ -146,7 +135,11 @@ function TagRow({
       />
 
       <select
-        className="rounded-md border border-slate-300 px-2 py-1 text-sm"
+        className="
+          h-8 rounded-md border bg-transparent px-2 text-sm shadow-xs
+          focus-visible:border-ring focus-visible:ring-[3px]
+          focus-visible:ring-ring/50 focus-visible:outline-none
+        "
         value={node.parentId ?? ""}
         onChange={event => reparent(event.target.value)}
         aria-label={`Parent of ${node.name}`}
@@ -162,11 +155,8 @@ function TagRow({
         ))}
       </select>
 
-      <input
-        className="
-          rounded-md border border-slate-300 px-2 py-1 text-sm
-          focus:border-blue-500 focus:outline-none
-        "
+      <Input
+        className="h-8 w-auto"
         placeholder="Add child…"
         value={childName}
         onChange={event => setChildName(event.target.value)}
@@ -174,19 +164,21 @@ function TagRow({
         aria-label={`Add child tag under ${node.name}`}
       />
 
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="sm"
         onClick={() => deleteTag.mutate(node.id)}
         className="
-          text-sm text-red-600
-          hover:underline
+          text-destructive
+          hover:text-destructive
         "
       >
         Delete
-      </button>
+      </Button>
 
       {updateTag.isError
-        ? <span className="text-xs text-red-600">{updateTag.error.message}</span>
+        ? <span className="text-xs text-destructive">{updateTag.error.message}</span>
         : null}
     </li>
   );
