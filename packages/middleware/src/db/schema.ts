@@ -143,11 +143,59 @@ export const bookmarkNumberValues = pgTable("bookmark_number_values", {
   }),
 ]);
 
+/** `categories` table — named groups (with an optional Lucide icon) for custom properties. */
+export const categories = pgTable("categories", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  description: text("description"),
+  // Lucide icon name (e.g. "Star"); NULL falls back to a default icon in the UI.
+  icon: text("icon"),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+}, table => [
+  unique("categories_name_unique").on(table.name),
+]);
+
+/** `property_categories` join — many-to-many between custom properties and categories. */
+export const propertyCategories = pgTable("property_categories", {
+  propertyId: uuid("property_id").notNull().references(() => customProperties.id, {
+    onDelete: "cascade",
+  }),
+  categoryId: uuid("category_id").notNull().references(() => categories.id, {
+    onDelete: "cascade",
+  }),
+}, table => [
+  primaryKey({
+    columns: [table.propertyId, table.categoryId],
+  }),
+]);
+
 export const customPropertiesRelations = relations(customProperties, ({
   many,
 }) => ({
   tags: many(customPropertyTags),
   numberValues: many(bookmarkNumberValues),
+  propertyCategories: many(propertyCategories),
+}));
+
+export const categoriesRelations = relations(categories, ({
+  many,
+}) => ({
+  propertyCategories: many(propertyCategories),
+}));
+
+export const propertyCategoriesRelations = relations(propertyCategories, ({
+  one,
+}) => ({
+  property: one(customProperties, {
+    fields: [propertyCategories.propertyId],
+    references: [customProperties.id],
+  }),
+  category: one(categories, {
+    fields: [propertyCategories.categoryId],
+    references: [categories.id],
+  }),
 }));
 
 export const customPropertyTagsRelations = relations(customPropertyTags, ({
@@ -205,3 +253,6 @@ export type CustomPropertyTagRow = typeof customPropertyTags.$inferSelect;
 export type NewCustomPropertyTagRow = typeof customPropertyTags.$inferInsert;
 export type BookmarkPropertyTagRow = typeof bookmarkPropertyTags.$inferSelect;
 export type BookmarkNumberValueRow = typeof bookmarkNumberValues.$inferSelect;
+export type CategoryRow = typeof categories.$inferSelect;
+export type NewCategoryRow = typeof categories.$inferInsert;
+export type PropertyCategoryRow = typeof propertyCategories.$inferSelect;

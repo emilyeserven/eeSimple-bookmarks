@@ -1,6 +1,8 @@
 import type {
   Bookmark,
+  Category,
   CreateBookmarkInput,
+  CreateCategoryInput,
   CreateCustomPropertyInput,
   CreateCustomPropertyTagInput,
   CreateTagInput,
@@ -10,6 +12,7 @@ import type {
   Tag,
   TagNode,
   UpdateBookmarkInput,
+  UpdateCategoryInput,
   UpdateCustomPropertyInput,
   UpdateCustomPropertyTagInput,
   UpdateTagInput,
@@ -101,4 +104,21 @@ export const customPropertiesApi = {
     request<undefined>(`/custom-properties/${propertyId}/tags/${tagId}`, {
       method: "DELETE",
     }),
+};
+
+export const categoriesApi = {
+  list: () => request<Category[]>("/categories"),
+  create: (input: CreateCategoryInput) =>
+    request<Category>("/categories", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  update: (id: string, input: UpdateCategoryInput) =>
+    request<Category>(`/categories/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  remove: (id: string) => request<undefined>(`/categories/${id}`, {
+    method: "DELETE",
+  }),
 };

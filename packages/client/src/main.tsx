@@ -5,8 +5,21 @@ import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { createRoot } from "react-dom/client";
 
 import { queryClient } from "./lib/queryClient";
+import { watchTheme } from "./lib/theme";
 import { routeTree } from "./routeTree.gen";
+import { useUiStore } from "./stores/uiStore";
 import "./index.css";
+
+// Apply the persisted theme before first paint, and keep it in sync with both
+// store changes and (for "system") the OS color-scheme preference.
+let currentTheme = useUiStore.getState().theme;
+let stopWatching = watchTheme(currentTheme);
+useUiStore.subscribe((state) => {
+  if (state.theme === currentTheme) return;
+  currentTheme = state.theme;
+  stopWatching();
+  stopWatching = watchTheme(currentTheme);
+});
 
 const router = createRouter({
   routeTree,

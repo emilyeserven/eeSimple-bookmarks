@@ -99,6 +99,8 @@ export interface CustomProperty {
   numberMin: number | null;
   /** Upper bound of a `number` property's range slider (`null` = derive from data). */
   numberMax: number | null;
+  /** Ids of the categories this property is assigned to (zero, one, or many). */
+  categoryIds: string[];
   createdAt: string;
 }
 
@@ -108,6 +110,8 @@ export interface CreateCustomPropertyInput {
   type: CustomPropertyType;
   numberMin?: number | null;
   numberMax?: number | null;
+  /** Ids of categories to assign this property to. Omit to leave unassigned. */
+  categoryIds?: string[];
 }
 
 /** Payload for updating a custom property. Its `type` is immutable. */
@@ -154,6 +158,30 @@ export interface BookmarkPropertyTag {
   name: string;
   parentId: string | null;
 }
+
+/**
+ * A category groups custom properties. Properties may belong to zero, one, or many
+ * categories, and each category carries an optional Lucide icon shown in the sidebar.
+ */
+export interface Category {
+  id: string;
+  name: string;
+  /** Optional free-form description. */
+  description: string | null;
+  /** Name of a Lucide icon (e.g. `"Star"`), or `null` for the default icon. */
+  icon: string | null;
+  createdAt: string;
+}
+
+/** Payload for creating a category. */
+export interface CreateCategoryInput {
+  name: string;
+  description?: string | null;
+  icon?: string | null;
+}
+
+/** Payload for partially updating a category. */
+export type UpdateCategoryInput = Partial<CreateCategoryInput>;
 
 /** Standard error shape returned by the API. */
 export interface ApiError {

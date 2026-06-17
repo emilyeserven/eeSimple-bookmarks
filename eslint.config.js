@@ -17,6 +17,9 @@ export default [
       "**/*.gen.ts",
       "packages/client/src/routeTree.gen.ts",
       ".claude/skills/fallow/**",
+      // Storybook build output and the generated MSW service worker are not source.
+      "**/storybook-static/**",
+      "packages/client/public/mockServiceWorker.js",
     ],
   },
   ...(Array.isArray(emilyConfig) ? emilyConfig : [emilyConfig]),
@@ -79,6 +82,29 @@ export default [
     rules: {
       "react-refresh/only-export-components": "off",
       "import/max-dependencies": "off",
+    },
+  },
+  {
+    // Storybook stories and config export a default `meta`/config object and
+    // co-locate non-component exports, which the fast-refresh rule flags. Stories
+    // also use no-op handler args and `useState` inside `render` for interactivity.
+    files: [
+      "packages/client/**/*.stories.{ts,tsx}",
+      "packages/client/.storybook/**/*.{ts,tsx}",
+    ],
+    rules: {
+      "react-refresh/only-export-components": "off",
+      "react-hooks/rules-of-hooks": "off",
+      "@typescript-eslint/no-empty-function": "off",
+    },
+  },
+  {
+    // The icon helper exports both a component and the icon-name list, and resolves
+    // icons by computed name from lucide's `icons` map.
+    files: ["packages/client/src/lib/icons.tsx"],
+    rules: {
+      "react-refresh/only-export-components": "off",
+      "import/namespace": "off",
     },
   },
 ];
