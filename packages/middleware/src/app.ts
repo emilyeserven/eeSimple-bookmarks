@@ -6,6 +6,7 @@ import { bookmarkRoutes } from "@/routes/bookmarks";
 import { categoryRoutes } from "@/routes/categories";
 import { customPropertyRoutes } from "@/routes/customProperties";
 import { healthRoutes } from "@/routes/health";
+import { metadataRoutes } from "@/routes/metadata";
 import { tagRoutes } from "@/routes/tags";
 
 /** Build and configure the Fastify application (without starting it). */
@@ -47,6 +48,10 @@ export async function buildApp(): Promise<FastifyInstance> {
           name: "health",
           description: "Service health",
         },
+        {
+          name: "metadata",
+          description: "URL metadata helpers (page-title lookup)",
+        },
       ],
     },
   });
@@ -55,6 +60,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   });
 
   await app.register(healthRoutes);
+  await app.register(metadataRoutes);
   await app.register(bookmarkRoutes);
   await app.register(tagRoutes);
   await app.register(customPropertyRoutes);

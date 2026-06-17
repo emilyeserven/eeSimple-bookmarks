@@ -17,6 +17,7 @@ import { Route as SettingsIndexRouteImport } from './routes/settings.index'
 import { Route as SettingsDisplayRouteImport } from './routes/settings.display'
 import { Route as SettingsCustomPropertiesRouteImport } from './routes/settings.custom-properties'
 import { Route as SettingsCategoriesRouteImport } from './routes/settings.categories'
+import { Route as SettingsAutomationsRouteImport } from './routes/settings.automations'
 import { Route as CategoriesCategoryIdRouteImport } from './routes/categories.$categoryId'
 
 const TagsRoute = TagsRouteImport.update({
@@ -60,6 +61,11 @@ const SettingsCategoriesRoute = SettingsCategoriesRouteImport.update({
   path: '/categories',
   getParentRoute: () => SettingsRoute,
 } as any)
+const SettingsAutomationsRoute = SettingsAutomationsRouteImport.update({
+  id: '/automations',
+  path: '/automations',
+  getParentRoute: () => SettingsRoute,
+} as any)
 const CategoriesCategoryIdRoute = CategoriesCategoryIdRouteImport.update({
   id: '/categories/$categoryId',
   path: '/categories/$categoryId',
@@ -72,6 +78,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRouteWithChildren
   '/tags': typeof TagsRoute
   '/categories/$categoryId': typeof CategoriesCategoryIdRoute
+  '/settings/automations': typeof SettingsAutomationsRoute
   '/settings/categories': typeof SettingsCategoriesRoute
   '/settings/custom-properties': typeof SettingsCustomPropertiesRoute
   '/settings/display': typeof SettingsDisplayRoute
@@ -82,6 +89,7 @@ export interface FileRoutesByTo {
   '/bookmarks': typeof BookmarksRoute
   '/tags': typeof TagsRoute
   '/categories/$categoryId': typeof CategoriesCategoryIdRoute
+  '/settings/automations': typeof SettingsAutomationsRoute
   '/settings/categories': typeof SettingsCategoriesRoute
   '/settings/custom-properties': typeof SettingsCustomPropertiesRoute
   '/settings/display': typeof SettingsDisplayRoute
@@ -94,6 +102,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRouteWithChildren
   '/tags': typeof TagsRoute
   '/categories/$categoryId': typeof CategoriesCategoryIdRoute
+  '/settings/automations': typeof SettingsAutomationsRoute
   '/settings/categories': typeof SettingsCategoriesRoute
   '/settings/custom-properties': typeof SettingsCustomPropertiesRoute
   '/settings/display': typeof SettingsDisplayRoute
@@ -107,6 +116,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/tags'
     | '/categories/$categoryId'
+    | '/settings/automations'
     | '/settings/categories'
     | '/settings/custom-properties'
     | '/settings/display'
@@ -117,6 +127,7 @@ export interface FileRouteTypes {
     | '/bookmarks'
     | '/tags'
     | '/categories/$categoryId'
+    | '/settings/automations'
     | '/settings/categories'
     | '/settings/custom-properties'
     | '/settings/display'
@@ -128,6 +139,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/tags'
     | '/categories/$categoryId'
+    | '/settings/automations'
     | '/settings/categories'
     | '/settings/custom-properties'
     | '/settings/display'
@@ -200,6 +212,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsCategoriesRouteImport
       parentRoute: typeof SettingsRoute
     }
+    '/settings/automations': {
+      id: '/settings/automations'
+      path: '/automations'
+      fullPath: '/settings/automations'
+      preLoaderRoute: typeof SettingsAutomationsRouteImport
+      parentRoute: typeof SettingsRoute
+    }
     '/categories/$categoryId': {
       id: '/categories/$categoryId'
       path: '/categories/$categoryId'
@@ -211,6 +230,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface SettingsRouteChildren {
+  SettingsAutomationsRoute: typeof SettingsAutomationsRoute
   SettingsCategoriesRoute: typeof SettingsCategoriesRoute
   SettingsCustomPropertiesRoute: typeof SettingsCustomPropertiesRoute
   SettingsDisplayRoute: typeof SettingsDisplayRoute
@@ -218,6 +238,7 @@ interface SettingsRouteChildren {
 }
 
 const SettingsRouteChildren: SettingsRouteChildren = {
+  SettingsAutomationsRoute: SettingsAutomationsRoute,
   SettingsCategoriesRoute: SettingsCategoriesRoute,
   SettingsCustomPropertiesRoute: SettingsCustomPropertiesRoute,
   SettingsDisplayRoute: SettingsDisplayRoute,

@@ -1,6 +1,8 @@
 // This module pairs reusable field/form components with the TanStack `useAppForm`
 // hook they're wired into, so it intentionally exports a hook alongside components.
 /* eslint-disable react-refresh/only-export-components */
+import type { ReactNode } from "react";
+
 import { useId } from "react";
 
 import { createFormHook, createFormHookContexts } from "@tanstack/react-form";
@@ -53,14 +55,32 @@ interface TextFieldProps {
   hideLabel?: boolean;
   /** Extra blur handler (runs after the field's own blur), e.g. submit-on-blur. */
   onBlur?: () => void;
+  /** Optional control rendered at the inline-end of the input (input-group pattern). */
+  action?: ReactNode;
 }
 
 /** Labelled text input bound to the surrounding field. */
 function TextField({
-  label, type = "text", placeholder, disabled, className, inputClassName, hideLabel, onBlur,
+  label, type = "text", placeholder, disabled, className, inputClassName, hideLabel, onBlur, action,
 }: TextFieldProps) {
   const field = useFieldContext<string>();
   const id = useId();
+
+  const input = (
+    <Input
+      id={id}
+      type={type}
+      placeholder={placeholder}
+      disabled={disabled}
+      className={inputClassName}
+      value={field.state.value}
+      onBlur={() => {
+        field.handleBlur();
+        onBlur?.();
+      }}
+      onChange={event => field.handleChange(event.target.value)}
+    />
+  );
 
   return (
     <div className={`space-y-1 ${className ?? ""}`.trim()}>
@@ -70,19 +90,14 @@ function TextField({
       >
         {label}
       </Label>
-      <Input
-        id={id}
-        type={type}
-        placeholder={placeholder}
-        disabled={disabled}
-        className={inputClassName}
-        value={field.state.value}
-        onBlur={() => {
-          field.handleBlur();
-          onBlur?.();
-        }}
-        onChange={event => field.handleChange(event.target.value)}
-      />
+      {action
+        ? (
+          <div className="flex items-center gap-2">
+            <div className="flex-1">{input}</div>
+            {action}
+          </div>
+        )
+        : input}
       <FieldErrors errors={field.state.meta.errors} />
     </div>
   );
