@@ -1,14 +1,16 @@
 import type { ComboboxOption } from "./Combobox";
 import type { Bookmark, CustomProperty } from "@eesimple/types";
 
-import { Ban, Circle, CircleDot } from "lucide-react";
+import { Ban, ChevronDown, Circle, CircleDot } from "lucide-react";
 
 import { Combobox } from "./Combobox";
 import { RangeSlider } from "./RangeSlider";
 
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Label } from "@/components/ui/label";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 interface CustomPropertyFiltersProps {
   properties: CustomProperty[];
@@ -50,6 +52,12 @@ function effectiveBounds(
   return [min, max > min ? max : min + 1];
 }
 
+const collapseWhenInactive = `
+  w-0 min-w-0 overflow-hidden p-0 opacity-0
+  transition-all duration-150
+  group-hover/presence:w-7 group-hover/presence:opacity-100 group-hover/presence:p-1.5
+`;
+
 interface PresenceControlProps {
   propertyId: string;
   value: "has" | "missing" | undefined;
@@ -76,12 +84,14 @@ function PresenceFilterControl({
       size="sm"
       value={toggleValue}
       onValueChange={handleChange}
+      className="group/presence"
     >
       <Tooltip>
         <TooltipTrigger asChild>
           <ToggleGroupItem
             value="any"
             aria-label="Any"
+            className={cn(toggleValue !== "any" && collapseWhenInactive)}
           >
             <Circle className="size-3.5" />
           </ToggleGroupItem>
@@ -93,6 +103,7 @@ function PresenceFilterControl({
           <ToggleGroupItem
             value="has"
             aria-label="Has value"
+            className={cn(toggleValue !== "has" && collapseWhenInactive)}
           >
             <CircleDot className="size-3.5" />
           </ToggleGroupItem>
@@ -104,6 +115,7 @@ function PresenceFilterControl({
           <ToggleGroupItem
             value="missing"
             aria-label="No value"
+            className={cn(toggleValue !== "missing" && collapseWhenInactive)}
           >
             <Ban className="size-3.5" />
           </ToggleGroupItem>
@@ -128,7 +140,7 @@ export function CustomPropertyFilters({
   if (properties.length === 0) return null;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       {properties.map((property) => {
         const presenceValue = presenceValues[property.id];
         const isFilterActive
@@ -143,12 +155,26 @@ export function CustomPropertyFilters({
         }
 
         return (
-          <div
+          <Collapsible
             key={property.id}
-            className="space-y-2"
+            defaultOpen
+            className="group/prop space-y-3"
           >
             <div className="flex items-center justify-between">
-              <Label className="text-xs text-muted-foreground">{property.name}</Label>
+              <CollapsibleTrigger
+                className="
+                  flex items-center gap-1.5 text-xs text-muted-foreground
+                  hover:text-foreground
+                "
+              >
+                <ChevronDown
+                  className="
+                    size-3 shrink-0 transition-transform
+                    group-data-[state=open]/prop:rotate-180
+                  "
+                />
+                <Label className="cursor-pointer text-xs">{property.name}</Label>
+              </CollapsibleTrigger>
               <PresenceFilterControl
                 propertyId={property.id}
                 value={presenceValue}
@@ -156,42 +182,44 @@ export function CustomPropertyFilters({
               />
             </div>
 
-            {presenceValue !== "missing" && isRangeProperty(property)
-              ? (
-                <NumberFilterControl
-                  property={property}
-                  bounds={effectiveBounds(property, bookmarks)}
-                  value={numberValues[property.id]}
-                  onChange={onNumberFilterChange}
-                />
-              )
-              : null}
+            <CollapsibleContent className="space-y-3">
+              {presenceValue !== "missing" && isRangeProperty(property)
+                ? (
+                  <NumberFilterControl
+                    property={property}
+                    bounds={effectiveBounds(property, bookmarks)}
+                    value={numberValues[property.id]}
+                    onChange={onNumberFilterChange}
+                  />
+                )
+                : null}
 
-            {presenceValue !== "missing" && !isRangeProperty(property)
-              ? (
-                <BooleanFilterControl
-                  property={property}
-                  value={booleanValues[property.id]}
-                  onChange={onBooleanFilterChange}
-                />
-              )
-              : null}
+              {presenceValue !== "missing" && !isRangeProperty(property)
+                ? (
+                  <BooleanFilterControl
+                    property={property}
+                    value={booleanValues[property.id]}
+                    onChange={onBooleanFilterChange}
+                  />
+                )
+                : null}
 
-            {isFilterActive
-              ? (
-                <button
-                  type="button"
-                  onClick={handleReset}
-                  className="
-                    text-xs text-primary
-                    hover:underline
-                  "
-                >
-                  Reset
-                </button>
-              )
-              : null}
-          </div>
+              {isFilterActive
+                ? (
+                  <button
+                    type="button"
+                    onClick={handleReset}
+                    className="
+                      text-xs text-primary
+                      hover:underline
+                    "
+                  >
+                    Reset
+                  </button>
+                )
+                : null}
+            </CollapsibleContent>
+          </Collapsible>
         );
       })}
     </div>

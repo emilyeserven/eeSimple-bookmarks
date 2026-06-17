@@ -8,6 +8,7 @@ import { Ban, ChevronDown, ChevronUp, Circle, CircleDot } from "lucide-react";
 import { CustomPropertyFilters } from "./CustomPropertyFilters";
 import { TagTreeFilter } from "./TagTreeFilter";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
+import { Separator } from "./ui/separator";
 import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import {
@@ -31,6 +32,12 @@ interface FilterSidebarProps {
   onSearchChange: (next: BookmarkSearch) => void;
 }
 
+const collapseWhenInactive = `
+  w-0 min-w-0 overflow-hidden p-0 opacity-0
+  transition-all duration-150
+  group-hover/presence:w-7 group-hover/presence:opacity-100 group-hover/presence:p-1.5
+`;
+
 /** Left filter rail for the search pages: tiered tags plus custom-property filters. */
 export function FilterSidebar({
   tree, properties, categories, bookmarks, search, onSearchChange,
@@ -42,6 +49,7 @@ export function FilterSidebar({
   const hasFilters = hasTags || hasProperties;
 
   const tagFilterActive = search.tag !== undefined || search.tagPresence !== undefined;
+  const tagToggleValue = search.tagPresence ?? "any";
 
   const globalProperties = properties.filter(p => p.categoryIds.length === 0);
   const categoryGroups = categories && categories.length > 0
@@ -78,11 +86,7 @@ export function FilterSidebar({
             Filters
             {open
               ? <ChevronUp className="size-4" />
-              : (
-                <ChevronDown
-                  className="size-4"
-                />
-              )}
+              : <ChevronDown className="size-4" />}
           </button>
         )
         : null}
@@ -91,26 +95,44 @@ export function FilterSidebar({
         ? <p className="text-sm text-muted-foreground">No filters available yet.</p>
         : null}
 
-      <div className={cn("space-y-6", !open && "hidden", "lg:block")}>
+      <div className={cn("space-y-8", !open && "hidden", "lg:block")}>
         {hasTags
           ? (
-            <div className="space-y-2">
+            <Collapsible
+              defaultOpen
+              className="group/tags space-y-3"
+            >
               <div className="flex items-center justify-between">
-                <h2 className="text-sm font-semibold">Tags</h2>
+                <CollapsibleTrigger
+                  className="
+                    flex items-center gap-1.5 text-sm font-semibold
+                    hover:text-foreground
+                  "
+                >
+                  <ChevronDown
+                    className="
+                      size-3.5 shrink-0 transition-transform
+                      group-data-[state=open]/tags:rotate-180
+                    "
+                  />
+                  Tags
+                </CollapsibleTrigger>
                 <ToggleGroup
                   type="single"
                   size="sm"
-                  value={search.tagPresence ?? "any"}
+                  value={tagToggleValue}
                   onValueChange={(v) => {
                     const mode = v === "any" || v === "" ? undefined : v as "has" | "missing";
                     onSearchChange(withTagPresence(search, mode));
                   }}
+                  className="group/presence"
                 >
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <ToggleGroupItem
                         value="any"
                         aria-label="Any"
+                        className={cn(tagToggleValue !== "any" && collapseWhenInactive)}
                       >
                         <Circle className="size-3.5" />
                       </ToggleGroupItem>
@@ -122,6 +144,7 @@ export function FilterSidebar({
                       <ToggleGroupItem
                         value="has"
                         aria-label="Has tags"
+                        className={cn(tagToggleValue !== "has" && collapseWhenInactive)}
                       >
                         <CircleDot className="size-3.5" />
                       </ToggleGroupItem>
@@ -133,6 +156,7 @@ export function FilterSidebar({
                       <ToggleGroupItem
                         value="missing"
                         aria-label="No tags"
+                        className={cn(tagToggleValue !== "missing" && collapseWhenInactive)}
                       >
                         <Ban className="size-3.5" />
                       </ToggleGroupItem>
@@ -142,33 +166,37 @@ export function FilterSidebar({
                 </ToggleGroup>
               </div>
 
-              {search.tagPresence !== "missing"
-                ? (
-                  <TagTreeFilter
-                    tree={tree}
-                    activeId={search.tag}
-                    onSelect={tag => onSearchChange(withTag(search, tag))}
-                  />
-                )
-                : null}
+              <CollapsibleContent className="space-y-3">
+                {search.tagPresence !== "missing"
+                  ? (
+                    <TagTreeFilter
+                      tree={tree}
+                      activeId={search.tag}
+                      onSelect={tag => onSearchChange(withTag(search, tag))}
+                    />
+                  )
+                  : null}
 
-              {tagFilterActive
-                ? (
-                  <button
-                    type="button"
-                    onClick={() => onSearchChange(withTag(withTagPresence(search, undefined), undefined))}
-                    className="
-                      text-xs text-primary
-                      hover:underline
-                    "
-                  >
-                    Reset
-                  </button>
-                )
-                : null}
-            </div>
+                {tagFilterActive
+                  ? (
+                    <button
+                      type="button"
+                      onClick={() => onSearchChange(withTag(withTagPresence(search, undefined), undefined))}
+                      className="
+                        text-xs text-primary
+                        hover:underline
+                      "
+                    >
+                      Reset
+                    </button>
+                  )
+                  : null}
+              </CollapsibleContent>
+            </Collapsible>
           )
           : null}
+
+        {hasTags && hasProperties ? <Separator /> : null}
 
         {hasProperties
           ? (
