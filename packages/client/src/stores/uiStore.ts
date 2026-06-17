@@ -22,6 +22,12 @@ interface UiState {
   /** When pinned, the right-hand panel docks as a persistent column instead of a floating drawer. */
   panelPinned: boolean;
   setPanelPinned: (value: boolean) => void;
+  /** When on, the Categories group is shown in the left sidebar. */
+  showCategoriesInSidebar: boolean;
+  setShowCategoriesInSidebar: (value: boolean) => void;
+  /** When on, the Taxonomies group is shown in the left sidebar. */
+  showTaxonomiesInSidebar: boolean;
+  setShowTaxonomiesInSidebar: (value: boolean) => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -46,6 +52,14 @@ export const useUiStore = create<UiState>()(
       setPanelPinned: value => set({
         panelPinned: value,
       }),
+      showCategoriesInSidebar: true,
+      setShowCategoriesInSidebar: value => set({
+        showCategoriesInSidebar: value,
+      }),
+      showTaxonomiesInSidebar: true,
+      setShowTaxonomiesInSidebar: value => set({
+        showTaxonomiesInSidebar: value,
+      }),
     }),
     {
       name: "eesimple-ui",
@@ -54,6 +68,8 @@ export const useUiStore = create<UiState>()(
         autoFetchTitle: state.autoFetchTitle,
         bookmarkColumns: state.bookmarkColumns,
         panelPinned: state.panelPinned,
+        showCategoriesInSidebar: state.showCategoriesInSidebar,
+        showTaxonomiesInSidebar: state.showTaxonomiesInSidebar,
       }),
     },
   ),
