@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Bookmark, Home, Tags } from "lucide-react";
+import { Bookmark, Home, Settings, Tags } from "lucide-react";
 
 import {
   Sidebar,
@@ -30,6 +30,11 @@ const navItems = [
     title: "Tags",
     to: "/tags",
     icon: Tags,
+  },
+  {
+    title: "Settings",
+    to: "/settings",
+    icon: Settings,
   },
 ] as const;
 

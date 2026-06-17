@@ -2,8 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { BookmarkCard } from "../components/BookmarkCard";
 import { BookmarkForm } from "../components/BookmarkForm";
+import { CustomPropertyFilters } from "../components/CustomPropertyFilters";
 import { TagTreeFilter } from "../components/TagTreeFilter";
 import { useBookmarks, useDeleteBookmark } from "../hooks/useBookmarks";
+import { useCustomProperties } from "../hooks/useCustomProperties";
+import { useCustomPropertyFilters } from "../hooks/useCustomPropertyFilters";
 import { useTagTree } from "../hooks/useTags";
 import { useUiStore } from "../stores/uiStore";
 
@@ -35,11 +38,20 @@ function BookmarksPage() {
   const {
     data: tagTree,
   } = useTagTree();
+  const {
+    data: customProperties,
+  } = useCustomProperties();
   const deleteBookmark = useDeleteBookmark();
   const showFavoritesOnly = useUiStore(state => state.showFavoritesOnly);
   const toggleShowFavoritesOnly = useUiStore(state => state.toggleShowFavoritesOnly);
 
-  const visibleBookmarks = (bookmarks ?? []).filter(bookmark => !showFavoritesOnly || bookmark.favorite);
+  const {
+    onNumberFilterChange, onTagFilterChange, matches,
+  } = useCustomPropertyFilters();
+
+  const visibleBookmarks = (bookmarks ?? [])
+    .filter(bookmark => !showFavoritesOnly || bookmark.favorite)
+    .filter(matches);
 
   return (
     <section className="space-y-8">
@@ -70,6 +82,12 @@ function BookmarksPage() {
             }
             : {},
         })}
+      />
+
+      <CustomPropertyFilters
+        properties={customProperties ?? []}
+        onNumberFilterChange={onNumberFilterChange}
+        onTagFilterChange={onTagFilterChange}
       />
 
       <BookmarkForm />

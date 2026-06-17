@@ -1,9 +1,14 @@
+import type { CustomProperty } from "@eesimple/types";
+
+import { useRef, useState } from "react";
+
 import { useForm } from "@tanstack/react-form";
 import { ChevronDown } from "lucide-react";
 import { z } from "zod";
 
 import { TagPicker } from "./TagPicker";
 import { useCreateBookmark } from "../hooks/useBookmarks";
+import { useCustomProperties, usePropertyTagTree } from "../hooks/useCustomProperties";
 import { useTagTree } from "../hooks/useTags";
 
 import { Button } from "@/components/ui/button";
@@ -33,6 +38,27 @@ export function BookmarkForm() {
   const {
     data: tagTree,
   } = useTagTree();
+  const {
+    data: customProperties,
+  } = useCustomProperties();
+
+  // Custom-property values live outside the typed form (they're dynamic). A ref
+  // mirrors them so the submit handler always reads the latest entries.
+  const [numberInputs, setNumberInputs] = useState<Record<string, string>>({});
+  const [propertyTagIds, setPropertyTagIds] = useState<string[]>([]);
+  const customRef = useRef({
+    numberInputs,
+    propertyTagIds,
+  });
+  customRef.current = {
+    numberInputs,
+    propertyTagIds,
+  };
+
+  function togglePropertyTag(id: string) {
+    setPropertyTagIds(current =>
+      (current.includes(id) ? current.filter(tagId => tagId !== id) : [...current, id]));
+  }
 
   const form = useForm({
     defaultValues: {
@@ -50,16 +76,30 @@ export function BookmarkForm() {
     onSubmit: async ({
       value,
     }) => {
+      const {
+        numberInputs: numbers, propertyTagIds: tagIds,
+      } = customRef.current;
+      const numberValues = Object.entries(numbers)
+        .filter(([, raw]) => raw.trim() !== "" && !Number.isNaN(Number(raw)))
+        .map(([propertyId, raw]) => ({
+          propertyId,
+          value: Number(raw),
+        }));
+
       await createBookmark.mutateAsync({
         url: value.url,
         title: value.title,
         description: value.description || null,
         tagIds: value.tagIds,
+        propertyTagIds: tagIds,
+        numberValues,
         favorite: value.favorite,
         pinned: value.pinned,
         priority: value.priority,
       });
       form.reset();
+      setNumberInputs({});
+      setPropertyTagIds([]);
     },
   });
 
@@ -121,6 +161,53 @@ export function BookmarkForm() {
           </div>
         )}
       </form.Field>
+
+      {(customProperties ?? []).length > 0
+        ? (
+          <div
+            className="
+              space-y-3
+              sm:col-span-2
+            "
+          >
+            <span className="text-sm font-medium">Custom properties</span>
+            <div
+              className="
+                grid gap-3
+                sm:grid-cols-2
+              "
+            >
+              {(customProperties ?? []).map(property =>
+                (property.type === "number"
+                  ? (
+                    <div
+                      key={property.id}
+                      className="space-y-1"
+                    >
+                      <Label htmlFor={`property-${property.id}`}>{property.name}</Label>
+                      <Input
+                        id={`property-${property.id}`}
+                        type="number"
+                        value={numberInputs[property.id] ?? ""}
+                        onChange={event => setNumberInputs(current => ({
+                          ...current,
+                          [property.id]: event.target.value,
+                        }))}
+                      />
+                    </div>
+                  )
+                  : (
+                    <PropertyTagField
+                      key={property.id}
+                      property={property}
+                      selectedIds={propertyTagIds}
+                      onToggle={togglePropertyTag}
+                    />
+                  )))}
+            </div>
+          </div>
+        )
+        : null}
 
       <form.Field name="favorite">
         {field => (
@@ -236,6 +323,38 @@ export function BookmarkForm() {
         {createBookmark.isError ? <p className="mt-2 text-sm text-destructive">{createBookmark.error?.message}</p> : null}
       </div>
     </form>
+  );
+}
+
+interface PropertyTagFieldProps {
+  property: CustomProperty;
+  selectedIds: string[];
+  onToggle: (id: string) => void;
+}
+
+/** Multi-select picker for one tiered-tags property's tiers, fetching its own tree. */
+function PropertyTagField({
+  property, selectedIds, onToggle,
+}: PropertyTagFieldProps) {
+  const {
+    data: tree,
+  } = usePropertyTagTree(property.id);
+
+  return (
+    <div className="space-y-1">
+      <Label>{property.name}</Label>
+      <div className="rounded-md border p-2">
+        {(tree ?? []).length === 0
+          ? <p className="text-xs text-muted-foreground">No tiers yet. Add some in Settings.</p>
+          : (
+            <TagPicker
+              tree={tree ?? []}
+              selectedIds={selectedIds}
+              onToggle={onToggle}
+            />
+          )}
+      </div>
+    </div>
   );
 }
 

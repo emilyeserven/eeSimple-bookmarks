@@ -11,6 +11,8 @@ function makeBookmark(overrides: Partial<Bookmark>): Bookmark {
     title: overrides.title ?? "Example",
     description: null,
     tags: [],
+    numberValues: [],
+    propertyTags: [],
     favorite: false,
     pinned: true,
     priority: 0,

@@ -29,6 +29,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/": "Home",
   "/bookmarks": "Bookmarks",
   "/tags": "Tags",
+  "/settings": "Settings",
 };
 
 function RootComponent() {
