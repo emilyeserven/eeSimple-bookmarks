@@ -74,6 +74,18 @@ middleware (spawned as a child process), and on boot applies the database schema
 5. **Deploy.** Coolify builds the multi-stage image and starts the gateway. The schema is applied
    automatically on first boot. Visit the app URL and check `GET /healthz` returns `{"status":"ok"}`.
 
+> **If the schema didn't apply automatically.** The gateway runs the Drizzle schema push on boot.
+> If a deploy logged a `drizzle-kit push` error and the app is failing against a stale schema, you
+> can apply it by hand from the container terminal (Coolify → the app → **Terminal**). Run it from
+> the middleware package, not the gateway working directory:
+>
+> ```bash
+> cd /app/packages/middleware && pnpm exec drizzle-kit push --force
+> ```
+>
+> Running `drizzle-kit push` from `/app/packages/gateway` (the default directory) fails — the
+> gateway package has no `drizzle-kit` dependency and no `drizzle.config.*` there.
+
 ### How it works in production
 
 The gateway (`packages/gateway/server.js`) spawns the middleware, restarts it with exponential
