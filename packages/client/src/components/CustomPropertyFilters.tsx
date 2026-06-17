@@ -1,27 +1,49 @@
 import type { ComboboxOption } from "./Combobox";
-import type { CustomProperty } from "@eesimple/types";
+import type { Bookmark, CustomProperty } from "@eesimple/types";
 
 import { useState } from "react";
 
 import { Combobox } from "./Combobox";
 import { RangeSlider } from "./RangeSlider";
-import { usePropertyTagTree } from "../hooks/useCustomProperties";
-import { flattenTree, subtreeIds } from "../lib/tagTree";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 
 interface CustomPropertyFiltersProps {
   properties: CustomProperty[];
+  /** Bookmarks in view, used to derive slider bounds when a property has no min/max. */
+  bookmarks: Pick<Bookmark, "numberValues">[];
   /** Report a number filter (or `undefined` to clear it when back at full range). */
   onNumberFilterChange: (propertyId: string, range: [number, number] | undefined) => void;
-  /** Report a tag filter's allowed ids (or `undefined` to clear it). */
-  onTagFilterChange: (propertyId: string, allowedTagIds: string[] | undefined) => void;
+  /** Report a boolean filter (`true`/`false`, or `undefined` to clear it). */
+  onBooleanFilterChange: (propertyId: string, value: boolean | undefined) => void;
+}
+
+/** Number and calculate properties share the range-slider control; both live in numberValues. */
+function isRangeProperty(property: CustomProperty): boolean {
+  return property.type === "number" || property.type === "calculate";
+}
+
+/** Resolve a property's slider bounds, falling back to the data range when a bound is null. */
+function effectiveBounds(
+  property: CustomProperty,
+  bookmarks: Pick<Bookmark, "numberValues">[],
+): [number, number] {
+  const values = bookmarks
+    .flatMap(bookmark => bookmark.numberValues)
+    .filter(value => value.propertyId === property.id)
+    .map(value => value.value);
+  const dataMin = values.length > 0 ? Math.min(...values) : 0;
+  const dataMax = values.length > 0 ? Math.max(...values) : 100;
+  const min = property.numberMin ?? dataMin;
+  const max = property.numberMax ?? dataMax;
+  // A slider needs a non-empty range; nudge the max when bounds collapse.
+  return [min, max > min ? max : min + 1];
 }
 
 /** Renders one dynamic filter control per custom property under the bookmarks list. */
 export function CustomPropertyFilters({
-  properties, onNumberFilterChange, onTagFilterChange,
+  properties, bookmarks, onNumberFilterChange, onBooleanFilterChange,
 }: CustomPropertyFiltersProps) {
   if (properties.length === 0) return null;
 
@@ -39,17 +61,18 @@ export function CustomPropertyFilters({
             className="space-y-1"
           >
             <Label className="text-xs text-muted-foreground">{property.name}</Label>
-            {property.type === "number"
+            {isRangeProperty(property)
               ? (
                 <NumberFilterControl
                   property={property}
+                  bounds={effectiveBounds(property, bookmarks)}
                   onChange={onNumberFilterChange}
                 />
               )
               : (
-                <TagFilterControl
+                <BooleanFilterControl
                   property={property}
-                  onChange={onTagFilterChange}
+                  onChange={onBooleanFilterChange}
                 />
               )}
           </div>
@@ -61,14 +84,14 @@ export function CustomPropertyFilters({
 
 interface NumberControlProps {
   property: CustomProperty;
+  bounds: [number, number];
   onChange: (propertyId: string, range: [number, number] | undefined) => void;
 }
 
 function NumberFilterControl({
-  property, onChange,
+  property, bounds, onChange,
 }: NumberControlProps) {
-  const min = property.numberMin ?? 0;
-  const max = property.numberMax ?? 100;
+  const [min, max] = bounds;
   const [range, setRange] = useState<[number, number]>([min, max]);
 
   return (
@@ -87,42 +110,36 @@ function NumberFilterControl({
   );
 }
 
-interface TagControlProps {
+interface BooleanControlProps {
   property: CustomProperty;
-  onChange: (propertyId: string, allowedTagIds: string[] | undefined) => void;
+  onChange: (propertyId: string, value: boolean | undefined) => void;
 }
 
-function TagFilterControl({
-  property, onChange,
-}: TagControlProps) {
-  const {
-    data: tree,
-  } = usePropertyTagTree(property.id);
-  const [selected, setSelected] = useState<string | undefined>(undefined);
+const BOOLEAN_OPTIONS: ComboboxOption[] = [
+  {
+    value: "true",
+    label: "Yes",
+  },
+  {
+    value: "false",
+    label: "No",
+  },
+];
 
-  const flat = tree ? flattenTree(tree) : [];
-  const options: ComboboxOption[] = flat.map(({
-    node, depth,
-  }) => ({
-    value: node.id,
-    label: node.name,
-    depth,
-  }));
+function BooleanFilterControl({
+  property, onChange,
+}: BooleanControlProps) {
+  const [selected, setSelected] = useState<string | undefined>(undefined);
 
   return (
     <Combobox
-      options={options}
+      options={BOOLEAN_OPTIONS}
       value={selected}
       placeholder={`Filter by ${property.name}…`}
       aria-label={`Filter by ${property.name}`}
-      onValueChange={(id) => {
-        setSelected(id);
-        if (!id) {
-          onChange(property.id, undefined);
-          return;
-        }
-        const node = flat.find(item => item.node.id === id)?.node;
-        onChange(property.id, node ? subtreeIds(node) : [id]);
+      onValueChange={(value) => {
+        setSelected(value);
+        onChange(property.id, value === undefined ? undefined : value === "true");
       }}
     />
   );

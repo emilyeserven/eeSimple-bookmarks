@@ -49,6 +49,11 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
 - **Conventional Commits** are enforced by commitlint (commit-msg hook) and the `pr-title` workflow.
   Valid types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`,
   `revert`. release-please derives `CHANGELOG.md` and version bumps from them.
+- **PR titles must also start with a Conventional Commits prefix** (e.g. `feat: …`, `fix: …`). The
+  `pr-title` workflow (`amannn/action-semantic-pull-request`) lints the title independently of the
+  commit messages, so a title without a valid `type:` prefix fails CI even when every commit is
+  valid. When opening a PR — or if a PR title was auto-generated without one — set/rename the title
+  to a valid prefix before expecting `lint-title` to pass.
 - **Git hooks** (Husky): pre-commit runs `lint-staged`; commit-msg runs commitlint.
 - **Path alias:** the middleware uses `@/*` → `src/*` (resolved at build time by `tsc-alias`).
 

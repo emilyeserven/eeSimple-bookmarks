@@ -1,8 +1,6 @@
 import type {
   CreateCustomPropertyInput,
-  CreateCustomPropertyTagInput,
   UpdateCustomPropertyInput,
-  UpdateCustomPropertyTagInput,
 } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -29,6 +27,25 @@ export function useCreateCustomProperty() {
   });
 }
 
+export function useUpdateCustomProperty() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id, input,
+    }: { id: string;
+      input: UpdateCustomPropertyInput; }) => customPropertiesApi.update(id, input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: PROPERTIES_KEY,
+      });
+      // Operand/unit edits can change how bookmark values are computed or rendered.
+      void queryClient.invalidateQueries({
+        queryKey: BOOKMARKS_KEY,
+      });
+    },
+  });
+}
+
 export function useDeleteCustomProperty() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -42,68 +59,5 @@ export function useDeleteCustomProperty() {
         queryKey: BOOKMARKS_KEY,
       });
     },
-  });
-}
-
-/** The tier tree for a single tiered-tags custom property. */
-export function usePropertyTagTree(propertyId: string) {
-  return useQuery({
-    queryKey: [...PROPERTIES_KEY, propertyId, "tags"],
-    queryFn: () => customPropertiesApi.tagTree(propertyId),
-  });
-}
-
-/** Invalidate a property's tier tree and bookmarks, since tier edits ripple into both. */
-function usePropertyTagInvalidation(propertyId: string) {
-  const queryClient = useQueryClient();
-  return () => {
-    void queryClient.invalidateQueries({
-      queryKey: [...PROPERTIES_KEY, propertyId, "tags"],
-    });
-    void queryClient.invalidateQueries({
-      queryKey: BOOKMARKS_KEY,
-    });
-  };
-}
-
-export function useCreatePropertyTag(propertyId: string) {
-  const invalidate = usePropertyTagInvalidation(propertyId);
-  return useMutation({
-    mutationFn: (input: CreateCustomPropertyTagInput) =>
-      customPropertiesApi.createTag(propertyId, input),
-    onSuccess: invalidate,
-  });
-}
-
-export function useUpdatePropertyTag(propertyId: string) {
-  const invalidate = usePropertyTagInvalidation(propertyId);
-  return useMutation({
-    mutationFn: ({
-      tagId, input,
-    }: { tagId: string;
-      input: UpdateCustomPropertyTagInput; }) =>
-      customPropertiesApi.updateTag(propertyId, tagId, input),
-    onSuccess: invalidate,
-  });
-}
-
-export function useDeletePropertyTag(propertyId: string) {
-  const invalidate = usePropertyTagInvalidation(propertyId);
-  return useMutation({
-    mutationFn: (tagId: string) => customPropertiesApi.removeTag(propertyId, tagId),
-    onSuccess: invalidate,
-  });
-}
-
-export function useUpdateCustomProperty() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({
-      id, input,
-    }: { id: string;
-      input: UpdateCustomPropertyInput; }) => customPropertiesApi.update(id, input),
-    onSuccess: () => queryClient.invalidateQueries({
-      queryKey: PROPERTIES_KEY,
-    }),
   });
 }

@@ -4,17 +4,13 @@ import type {
   CreateBookmarkInput,
   CreateCategoryInput,
   CreateCustomPropertyInput,
-  CreateCustomPropertyTagInput,
   CreateTagInput,
   CustomProperty,
-  CustomPropertyTag,
-  CustomPropertyTagNode,
   Tag,
   TagNode,
   UpdateBookmarkInput,
   UpdateCategoryInput,
   UpdateCustomPropertyInput,
-  UpdateCustomPropertyTagInput,
   UpdateTagInput,
 } from "@eesimple/types";
 
@@ -40,6 +36,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 export const bookmarksApi = {
   list: (tagId?: string) =>
     request<Bookmark[]>(`/bookmarks${tagId ? `?tag=${encodeURIComponent(tagId)}` : ""}`),
+  homepage: () => request<Bookmark[]>("/bookmarks/homepage"),
   create: (input: CreateBookmarkInput) =>
     request<Bookmark>("/bookmarks", {
       method: "POST",
@@ -88,22 +85,6 @@ export const customPropertiesApi = {
   remove: (id: string) => request<undefined>(`/custom-properties/${id}`, {
     method: "DELETE",
   }),
-  tagTree: (propertyId: string) =>
-    request<CustomPropertyTagNode[]>(`/custom-properties/${propertyId}/tags`),
-  createTag: (propertyId: string, input: CreateCustomPropertyTagInput) =>
-    request<CustomPropertyTag>(`/custom-properties/${propertyId}/tags`, {
-      method: "POST",
-      body: JSON.stringify(input),
-    }),
-  updateTag: (propertyId: string, tagId: string, input: UpdateCustomPropertyTagInput) =>
-    request<CustomPropertyTag>(`/custom-properties/${propertyId}/tags/${tagId}`, {
-      method: "PATCH",
-      body: JSON.stringify(input),
-    }),
-  removeTag: (propertyId: string, tagId: string) =>
-    request<undefined>(`/custom-properties/${propertyId}/tags/${tagId}`, {
-      method: "DELETE",
-    }),
 };
 
 export const categoriesApi = {
@@ -121,4 +102,21 @@ export const categoriesApi = {
   remove: (id: string) => request<undefined>(`/categories/${id}`, {
     method: "DELETE",
   }),
+  rootTags: (id: string) =>
+    request<{ tagIds: string[] }>(`/categories/${id}/root-tags`),
+  setRootTags: (id: string, tagIds: string[]) =>
+    request<{ tagIds: string[] }>(`/categories/${id}/root-tags`, {
+      method: "PUT",
+      body: JSON.stringify({
+        tagIds,
+      }),
+    }),
+  homepageTags: () => request<{ tagIds: string[] }>("/homepage-tags"),
+  setHomepageTags: (tagIds: string[]) =>
+    request<{ tagIds: string[] }>("/homepage-tags", {
+      method: "PUT",
+      body: JSON.stringify({
+        tagIds,
+      }),
+    }),
 };

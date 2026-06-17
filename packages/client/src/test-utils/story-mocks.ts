@@ -2,7 +2,6 @@ import type {
   Bookmark,
   Category,
   CustomProperty,
-  CustomPropertyTagNode,
   TagNode,
 } from "@eesimple/types";
 
@@ -38,10 +37,21 @@ export const sampleTagTree: TagNode[] = [
 
 export const sampleCategories: Category[] = [
   {
+    id: "cat-default",
+    name: "Default",
+    description: "The category bookmarks use when none is chosen.",
+    icon: null,
+    builtIn: true,
+    isHomepage: true,
+    createdAt: NOW,
+  },
+  {
     id: "cat-workflow",
     name: "Workflow",
     description: "Properties that drive triage and ordering.",
     icon: "Workflow",
+    builtIn: false,
+    isHomepage: false,
     createdAt: NOW,
   },
   {
@@ -49,6 +59,8 @@ export const sampleCategories: Category[] = [
     name: "Content",
     description: "Properties that describe what a bookmark is about.",
     icon: "BookOpen",
+    builtIn: false,
+    isHomepage: false,
     createdAt: NOW,
   },
 ];
@@ -60,37 +72,47 @@ export const sampleProperties: CustomProperty[] = [
     type: "number",
     numberMin: 0,
     numberMax: 10,
+    unitSingular: null,
+    unitPlural: null,
+    operandPropertyIds: [],
     categoryIds: ["cat-workflow"],
     createdAt: NOW,
   },
   {
-    id: "prop-topic",
-    name: "Topic",
-    type: "tiered_tags",
-    numberMin: null,
-    numberMax: null,
-    categoryIds: ["cat-content"],
+    id: "prop-effort",
+    name: "Effort",
+    type: "number",
+    numberMin: 0,
+    numberMax: 10,
+    unitSingular: "point",
+    unitPlural: "points",
+    operandPropertyIds: [],
+    categoryIds: ["cat-workflow"],
     createdAt: NOW,
   },
-];
-
-export const samplePropertyTagTree: CustomPropertyTagNode[] = [
   {
-    id: "ptag-web",
-    propertyId: "prop-topic",
-    name: "web",
-    parentId: null,
+    id: "prop-score",
+    name: "Score",
+    type: "calculate",
+    numberMin: null,
+    numberMax: null,
+    unitSingular: null,
+    unitPlural: null,
+    operandPropertyIds: ["prop-priority", "prop-effort"],
+    categoryIds: ["cat-workflow"],
     createdAt: NOW,
-    children: [
-      {
-        id: "ptag-frontend",
-        propertyId: "prop-topic",
-        name: "frontend",
-        parentId: "ptag-web",
-        createdAt: NOW,
-        children: [],
-      },
-    ],
+  },
+  {
+    id: "prop-reviewed",
+    name: "Reviewed",
+    type: "boolean",
+    numberMin: null,
+    numberMax: null,
+    unitSingular: null,
+    unitPlural: null,
+    operandPropertyIds: [],
+    categoryIds: ["cat-content"],
+    createdAt: NOW,
   },
 ];
 
@@ -99,6 +121,7 @@ export const sampleBookmark: Bookmark = {
   url: "https://github.com",
   title: "GitHub",
   description: "Where the code lives.",
+  categoryId: "cat-workflow",
   tags: [
     {
       id: "tag-cli",
@@ -111,17 +134,21 @@ export const sampleBookmark: Bookmark = {
       propertyId: "prop-priority",
       value: 8,
     },
-  ],
-  propertyTags: [
     {
-      propertyId: "prop-topic",
-      id: "ptag-frontend",
-      name: "frontend",
-      parentId: "ptag-web",
+      propertyId: "prop-effort",
+      value: 3,
+    },
+    {
+      propertyId: "prop-score",
+      value: 11,
     },
   ],
-  favorite: true,
-  pinned: true,
+  booleanValues: [
+    {
+      propertyId: "prop-reviewed",
+      value: true,
+    },
+  ],
   priority: 10,
   createdAt: NOW,
 };
@@ -131,8 +158,14 @@ export const apiHandlers = [
   http.get("/api/tags", () => HttpResponse.json([])),
   http.get("/api/tags/tree", () => HttpResponse.json(sampleTagTree)),
   http.get("/api/custom-properties", () => HttpResponse.json(sampleProperties)),
-  http.get("/api/custom-properties/:id/tags", () => HttpResponse.json(samplePropertyTagTree)),
   http.get("/api/categories", () => HttpResponse.json(sampleCategories)),
+  http.get("/api/categories/:id/root-tags", () => HttpResponse.json({
+    tagIds: [],
+  })),
+  http.get("/api/homepage-tags", () => HttpResponse.json({
+    tagIds: [],
+  })),
+  http.get("/api/bookmarks/homepage", () => HttpResponse.json([sampleBookmark])),
   http.post("/api/bookmarks", () => HttpResponse.json(sampleBookmark, {
     status: 201,
   })),

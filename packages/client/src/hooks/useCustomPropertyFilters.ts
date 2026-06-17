@@ -1,12 +1,9 @@
-import type { NumberFilter, TagFilter } from "../lib/customPropertyFilter";
+import type { BooleanFilter, NumberFilter } from "../lib/customPropertyFilter";
 import type { Bookmark } from "@eesimple/types";
 
 import { useState } from "react";
 
-import {
-  bookmarkMatchesFilters,
-
-} from "../lib/customPropertyFilter";
+import { bookmarkMatchesFilters } from "../lib/customPropertyFilter";
 
 /** Set or clear (when `value` is undefined) a keyed entry in a record state. */
 function updateRecord<V>(
@@ -35,7 +32,7 @@ function updateRecord<V>(
 export function useCustomPropertyFilters() {
   // Active filters keyed by property id (absent = inactive).
   const [numberFilters, setNumberFilters] = useState<Record<string, [number, number]>>({});
-  const [tagFilters, setTagFilters] = useState<Record<string, string[]>>({});
+  const [booleanFilters, setBooleanFilters] = useState<Record<string, boolean>>({});
 
   const numberFilterList: NumberFilter[] = Object.entries(numberFilters)
     .map(([propertyId, [lo, hi]]) => ({
@@ -43,18 +40,18 @@ export function useCustomPropertyFilters() {
       lo,
       hi,
     }));
-  const tagFilterList: TagFilter[] = Object.entries(tagFilters)
-    .map(([propertyId, allowedTagIds]) => ({
+  const booleanFilterList: BooleanFilter[] = Object.entries(booleanFilters)
+    .map(([propertyId, value]) => ({
       propertyId,
-      allowedTagIds,
+      value,
     }));
 
   return {
     onNumberFilterChange: (propertyId: string, range: [number, number] | undefined) =>
       updateRecord(setNumberFilters, propertyId, range),
-    onTagFilterChange: (propertyId: string, allowedTagIds: string[] | undefined) =>
-      updateRecord(setTagFilters, propertyId, allowedTagIds),
-    matches: (bookmark: Pick<Bookmark, "numberValues" | "propertyTags">) =>
-      bookmarkMatchesFilters(bookmark, numberFilterList, tagFilterList),
+    onBooleanFilterChange: (propertyId: string, value: boolean | undefined) =>
+      updateRecord(setBooleanFilters, propertyId, value),
+    matches: (bookmark: Pick<Bookmark, "numberValues" | "booleanValues">) =>
+      bookmarkMatchesFilters(bookmark, numberFilterList, booleanFilterList),
   };
 }

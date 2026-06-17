@@ -1,13 +1,14 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { BookmarkCard } from "./BookmarkCard";
-import { sampleBookmark } from "../test-utils/story-mocks";
+import { sampleBookmark, sampleProperties } from "../test-utils/story-mocks";
 
 const meta = {
   title: "Bookmarks/BookmarkCard",
   component: BookmarkCard,
   args: {
     bookmark: sampleBookmark,
+    properties: sampleProperties,
   },
 } satisfies Meta<typeof BookmarkCard>;
 
@@ -27,9 +28,10 @@ export const Plain: Story = {
   args: {
     bookmark: {
       ...sampleBookmark,
-      favorite: false,
       description: null,
       tags: [],
+      numberValues: [],
+      booleanValues: [],
     },
   },
 };

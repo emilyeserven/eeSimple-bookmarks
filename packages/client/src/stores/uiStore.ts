@@ -5,9 +5,6 @@ import { persist } from "zustand/middleware";
 export type Theme = "light" | "dark" | "system";
 
 interface UiState {
-  /** Whether only favorite bookmarks are shown in the list. */
-  showFavoritesOnly: boolean;
-  toggleShowFavoritesOnly: () => void;
   /** The selected theme; persisted to localStorage so it survives reloads. */
   theme: Theme;
   setTheme: (theme: Theme) => void;
@@ -16,10 +13,6 @@ interface UiState {
 export const useUiStore = create<UiState>()(
   persist(
     set => ({
-      showFavoritesOnly: false,
-      toggleShowFavoritesOnly: () => set(state => ({
-        showFavoritesOnly: !state.showFavoritesOnly,
-      })),
       theme: "system",
       setTheme: theme => set({
         theme,
@@ -27,7 +20,6 @@ export const useUiStore = create<UiState>()(
     }),
     {
       name: "eesimple-ui",
-      // Only the theme is worth persisting; the favorites filter is per-session.
       partialize: state => ({
         theme: state.theme,
       }),

@@ -2,11 +2,18 @@ import type { FastifyInstance } from "fastify";
 import type {
   CreateCategoryInput,
   UpdateCategoryInput,
+  UpdateCategoryRootTagsInput,
 } from "@eesimple/types";
 import {
+  BuiltInCategoryError,
   createCategory,
   deleteCategory,
+  getCategoryRootTags,
+  getHomepageTagIds,
+  InvalidRootTagError,
   listCategories,
+  setCategoryRootTags,
+  setHomepageTagIds,
   updateCategory,
 } from "@/services/categories";
 
@@ -36,6 +43,9 @@ const createCategoryBody = {
     icon: {
       type: ["string", "null"],
     },
+    isHomepage: {
+      type: "boolean",
+    },
   },
 } as const;
 
@@ -45,7 +55,22 @@ const updateCategoryBody = {
   properties: createCategoryBody.properties,
 } as const;
 
-/** CRUD routes for categories, under `/api/categories`. */
+const tagIdsBody = {
+  type: "object",
+  required: ["tagIds"],
+  additionalProperties: false,
+  properties: {
+    tagIds: {
+      type: "array",
+      items: {
+        type: "string",
+        format: "uuid",
+      },
+    },
+  },
+} as const;
+
+/** CRUD routes for categories plus homepage/root-tag config, under `/api`. */
 export async function categoryRoutes(app: FastifyInstance): Promise<void> {
   app.get("/api/categories", {
     schema: {
@@ -63,6 +88,29 @@ export async function categoryRoutes(app: FastifyInstance): Promise<void> {
     return reply.code(201).send(category);
   });
 
+  // Homepage tag selection (registered before `:id` so the static path wins clearly).
+  app.get("/api/homepage-tags", {
+    schema: {
+      tags: ["categories"],
+    },
+  }, async () => ({
+    tagIds: await getHomepageTagIds(),
+  }));
+
+  app.put("/api/homepage-tags", {
+    schema: {
+      tags: ["categories"],
+      body: tagIdsBody,
+    },
+  }, async (req) => {
+    const {
+      tagIds,
+    } = req.body as UpdateCategoryRootTagsInput;
+    return {
+      tagIds: await setHomepageTagIds(tagIds),
+    };
+  });
+
   app.patch("/api/categories/:id", {
     schema: {
       tags: ["categories"],
@@ -73,11 +121,21 @@ export async function categoryRoutes(app: FastifyInstance): Promise<void> {
     const {
       id,
     } = req.params as { id: string };
-    const category = await updateCategory(id, req.body as UpdateCategoryInput);
-    if (!category) return reply.code(404).send({
-      message: "Category not found",
-    });
-    return category;
+    try {
+      const category = await updateCategory(id, req.body as UpdateCategoryInput);
+      if (!category) return reply.code(404).send({
+        message: "Category not found",
+      });
+      return category;
+    }
+    catch (err) {
+      if (err instanceof BuiltInCategoryError) {
+        return reply.code(403).send({
+          message: err.message,
+        });
+      }
+      throw err;
+    }
   });
 
   app.delete("/api/categories/:id", {
@@ -89,10 +147,66 @@ export async function categoryRoutes(app: FastifyInstance): Promise<void> {
     const {
       id,
     } = req.params as { id: string };
-    const deleted = await deleteCategory(id);
-    if (!deleted) return reply.code(404).send({
-      message: "Category not found",
-    });
-    return reply.code(204).send();
+    try {
+      const deleted = await deleteCategory(id);
+      if (!deleted) return reply.code(404).send({
+        message: "Category not found",
+      });
+      return reply.code(204).send();
+    }
+    catch (err) {
+      if (err instanceof BuiltInCategoryError) {
+        return reply.code(403).send({
+          message: err.message,
+        });
+      }
+      throw err;
+    }
+  });
+
+  app.get("/api/categories/:id/root-tags", {
+    schema: {
+      tags: ["categories"],
+      params: categoryParams,
+    },
+  }, async (req) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    return {
+      tagIds: await getCategoryRootTags(id),
+    };
+  });
+
+  app.put("/api/categories/:id/root-tags", {
+    schema: {
+      tags: ["categories"],
+      params: categoryParams,
+      body: tagIdsBody,
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    const {
+      tagIds,
+    } = req.body as UpdateCategoryRootTagsInput;
+    try {
+      const result = await setCategoryRootTags(id, tagIds);
+      if (result === null) return reply.code(404).send({
+        message: "Category not found",
+      });
+      return {
+        tagIds: result,
+      };
+    }
+    catch (err) {
+      if (err instanceof InvalidRootTagError) {
+        return reply.code(400).send({
+          message: err.message,
+        });
+      }
+      throw err;
+    }
   });
 }

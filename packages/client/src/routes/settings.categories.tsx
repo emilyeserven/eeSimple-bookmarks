@@ -12,8 +12,8 @@ function CategoriesPage() {
       <div>
         <h2 className="text-xl font-semibold">Categories</h2>
         <p className="text-sm text-muted-foreground">
-          Group custom properties into categories. Each category can carry an icon shown in the
-          sidebar and a short description.
+          Categories own your bookmarks and group custom properties. Choose which categories and
+          tags appear on the homepage, and which parent tags each category offers.
         </p>
       </div>
       <CategoryManager />

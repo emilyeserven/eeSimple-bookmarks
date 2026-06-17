@@ -1,8 +1,8 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 
 import { BookmarkCard } from "../components/BookmarkCard";
-import { useBookmarks } from "../hooks/useBookmarks";
-import { sortPinnedBookmarks } from "../lib/pinned";
+import { useHomepageBookmarks } from "../hooks/useBookmarks";
+import { useCustomProperties } from "../hooks/useCustomProperties";
 
 export const Route = createFileRoute("/")({
   component: HomePage,
@@ -11,38 +11,41 @@ export const Route = createFileRoute("/")({
 function HomePage() {
   const {
     data: bookmarks, isLoading, error,
-  } = useBookmarks();
+  } = useHomepageBookmarks();
+  const {
+    data: customProperties,
+  } = useCustomProperties();
 
-  const pinned = sortPinnedBookmarks(bookmarks ?? []);
+  const homepage = bookmarks ?? [];
 
   return (
     <section className="space-y-6">
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold">Pinned</h1>
+        <h1 className="text-2xl font-bold">Homepage</h1>
         <p className="text-muted-foreground">
-          Your homepage bookmarks, ordered by priority.
+          Bookmarks from your homepage categories and tags, ordered by priority.
         </p>
       </div>
 
       {isLoading ? <p className="text-muted-foreground">Loading bookmarks…</p> : null}
       {error ? <p className="text-destructive">{error.message}</p> : null}
 
-      {!isLoading && pinned.length === 0
+      {!isLoading && homepage.length === 0
         ? (
           <p className="text-muted-foreground">
-            Nothing pinned yet. Pin a bookmark from the
+            Nothing here yet. Choose homepage categories or tags in
             {" "}
             <Link
-              to="/bookmarks"
+              to="/settings/categories"
               className="
                 font-medium text-foreground
                 hover:underline
               "
             >
-              Bookmarks
+              Settings → Categories
             </Link>
             {" "}
-            page (under “Advanced”) to see it here.
+            to surface bookmarks here.
           </p>
         )
         : null}
@@ -53,10 +56,11 @@ function HomePage() {
           sm:grid-cols-2
         "
       >
-        {pinned.map(bookmark => (
+        {homepage.map(bookmark => (
           <BookmarkCard
             key={bookmark.id}
             bookmark={bookmark}
+            properties={customProperties ?? []}
           />
         ))}
       </div>

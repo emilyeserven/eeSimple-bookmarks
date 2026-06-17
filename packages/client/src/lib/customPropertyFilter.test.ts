@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import { bookmarkMatchesFilters } from "./customPropertyFilter";
 
-type Values = Pick<Bookmark, "numberValues" | "propertyTags">;
+type Values = Pick<Bookmark, "numberValues" | "booleanValues">;
 
 const bookmark: Values = {
   numberValues: [
@@ -13,12 +13,10 @@ const bookmark: Values = {
       value: 5,
     },
   ],
-  propertyTags: [
+  booleanValues: [
     {
-      propertyId: "topic",
-      id: "frontend",
-      name: "frontend",
-      parentId: "web",
+      propertyId: "reviewed",
+      value: true,
     },
   ],
 };
@@ -52,20 +50,29 @@ describe("bookmarkMatchesFilters", () => {
     }], [])).toBe(false);
   });
 
-  it("matches a tiered-tags filter when the bookmark's tag is in the allowed subtree", () => {
+  it("matches a boolean filter when the bookmark's value equals the filter", () => {
     expect(
       bookmarkMatchesFilters(bookmark, [], [{
-        propertyId: "topic",
-        allowedTagIds: ["web", "frontend", "backend"],
+        propertyId: "reviewed",
+        value: true,
       }]),
     ).toBe(true);
   });
 
-  it("drops a bookmark whose tag is outside the allowed subtree", () => {
+  it("drops a bookmark whose boolean value differs from the filter", () => {
     expect(
       bookmarkMatchesFilters(bookmark, [], [{
-        propertyId: "topic",
-        allowedTagIds: ["backend"],
+        propertyId: "reviewed",
+        value: false,
+      }]),
+    ).toBe(false);
+  });
+
+  it("drops a bookmark that lacks a value for an active boolean filter", () => {
+    expect(
+      bookmarkMatchesFilters(bookmark, [], [{
+        propertyId: "missing",
+        value: true,
       }]),
     ).toBe(false);
   });
