@@ -102,6 +102,8 @@ export function BookmarkForm({
     Object.fromEntries((bookmark?.numberValues ?? []).map(entry => [entry.propertyId, String(entry.value)])));
   const [booleanInputs, setBooleanInputs] = useState<Record<string, boolean>>(() =>
     Object.fromEntries((bookmark?.booleanValues ?? []).map(entry => [entry.propertyId, entry.value])));
+  const [isReportingTitle, setIsReportingTitle] = useState(false);
+  const [expectedTitle, setExpectedTitle] = useState("");
   const customRef = useRef({
     numberInputs,
     booleanInputs,
@@ -350,6 +352,13 @@ export function BookmarkForm({
     form.setFieldValue("categoryId", fallback.id);
   }, [categories, form]);
 
+  useEffect(() => {
+    if (fetchTitle.isPending) {
+      setIsReportingTitle(false);
+      setExpectedTitle("");
+    }
+  }, [fetchTitle.isPending]);
+
   return (
     <form
       className="
@@ -379,35 +388,6 @@ export function BookmarkForm({
           />
         )}
       </form.AppField>
-
-      {websiteLookup.data && websiteLookup.data.domain
-        ? (
-          <p
-            className="
-              flex items-center gap-2 text-sm text-muted-foreground
-              sm:col-span-2
-            "
-          >
-            {websiteLookup.data.exists
-              ? (
-                <>
-                  <Badge variant="secondary">Existing site</Badge>
-                  <span>{websiteLookup.data.siteName}</span>
-                </>
-              )
-              : (
-                <>
-                  <Badge variant="outline">New site</Badge>
-                  <span>
-                    {websiteLookup.data.domain}
-                    {" "}
-                    will be added
-                  </span>
-                </>
-              )}
-          </p>
-        )
-        : null}
 
       <form.Subscribe selector={state => state.values.url}>
         {url => (
@@ -439,6 +419,85 @@ export function BookmarkForm({
         )}
       </form.Subscribe>
 
+      {fetchTitle.isSuccess
+        ? (
+          <div
+            className="
+              flex flex-col gap-2 text-sm text-muted-foreground
+              sm:col-span-2
+            "
+          >
+            {!isReportingTitle
+              ? (
+                <p>
+                  Incorrect title?
+                  {" "}
+                  <button
+                    type="button"
+                    className="
+                      underline
+                      hover:text-foreground
+                    "
+                    onClick={() => setIsReportingTitle(true)}
+                  >
+                    Report it
+                  </button>
+                </p>
+              )
+              : (
+                <div className="flex items-center gap-2">
+                  <Label
+                    htmlFor="expected-title"
+                    className="shrink-0"
+                  >
+                    Expected title
+                  </Label>
+                  <Input
+                    id="expected-title"
+                    value={expectedTitle}
+                    onChange={e => setExpectedTitle(e.target.value)}
+                    placeholder="Enter the correct title"
+                    className="h-8"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={!expectedTitle.trim()}
+                    onClick={() => {
+                      const actualTitle = fetchTitle.data?.title ?? form.getFieldValue("title");
+                      const url = form.getFieldValue("url");
+                      const body = [
+                        `**URL:** ${url}`,
+                        `**Actual title parsed:** ${actualTitle}`,
+                        `**Expected title:** ${expectedTitle}`,
+                      ].join("\n\n");
+                      const issueUrl = new URL("https://github.com/emilyeserven/eesimple-bookmarks/issues/new");
+                      issueUrl.searchParams.set("title", "Incorrect page title parsed");
+                      issueUrl.searchParams.set("body", body);
+                      issueUrl.searchParams.set("labels", "bug");
+                      window.open(issueUrl.toString(), "_blank", "noopener,noreferrer");
+                    }}
+                  >
+                    Open GitHub issue
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setIsReportingTitle(false);
+                      setExpectedTitle("");
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              )}
+          </div>
+        )
+        : null}
+
       {fetchTitle.isError
         ? (
           <p
@@ -448,6 +507,35 @@ export function BookmarkForm({
             "
           >
             {fetchTitle.error?.message ?? "Could not fetch a title for that URL."}
+          </p>
+        )
+        : null}
+
+      {websiteLookup.data && websiteLookup.data.domain
+        ? (
+          <p
+            className="
+              flex items-center gap-2 text-sm text-muted-foreground
+              sm:col-span-2
+            "
+          >
+            {websiteLookup.data.exists
+              ? (
+                <>
+                  <Badge variant="secondary">Existing site</Badge>
+                  <span>{websiteLookup.data.siteName}</span>
+                </>
+              )
+              : (
+                <>
+                  <Badge variant="outline">New site</Badge>
+                  <span>
+                    {websiteLookup.data.domain}
+                    {" "}
+                    will be added
+                  </span>
+                </>
+              )}
           </p>
         )
         : null}
