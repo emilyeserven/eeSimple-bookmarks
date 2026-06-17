@@ -2,6 +2,7 @@ import cors from "@fastify/cors";
 import swagger from "@fastify/swagger";
 import swaggerUi from "@fastify/swagger-ui";
 import Fastify, { type FastifyInstance } from "fastify";
+import { autofillRoutes } from "@/routes/autofill";
 import { bookmarkRoutes } from "@/routes/bookmarks";
 import { categoryRoutes } from "@/routes/categories";
 import { customPropertyRoutes } from "@/routes/customProperties";
@@ -45,6 +46,10 @@ export async function buildApp(): Promise<FastifyInstance> {
           description: "Category endpoints for grouping custom properties",
         },
         {
+          name: "autofill",
+          description: "Autofill rules that prefill the bookmark form",
+        },
+        {
           name: "health",
           description: "Service health",
         },
@@ -65,6 +70,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(tagRoutes);
   await app.register(customPropertyRoutes);
   await app.register(categoryRoutes);
+  await app.register(autofillRoutes);
 
   return app;
 }

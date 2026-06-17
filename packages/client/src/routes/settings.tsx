@@ -12,6 +12,10 @@ const settingsNav = [
     label: "Custom Properties",
   },
   {
+    to: "/settings/autofill",
+    label: "Autofill",
+  },
+  {
     to: "/settings/display",
     label: "Display",
   },

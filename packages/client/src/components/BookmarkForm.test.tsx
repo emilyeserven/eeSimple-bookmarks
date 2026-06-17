@@ -31,9 +31,17 @@ vi.mock("../hooks/useCategories", () => ({
   useCategoryRootTags: () => ({
     data: [],
   }),
+  useCategoryDefaults: () => ({
+    data: undefined,
+  }),
 }));
 vi.mock("../hooks/useCustomProperties", () => ({
   useCustomProperties: () => ({
+    data: [],
+  }),
+}));
+vi.mock("../hooks/useAutofill", () => ({
+  useAutofillRules: () => ({
     data: [],
   }),
 }));
