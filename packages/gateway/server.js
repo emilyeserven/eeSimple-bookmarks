@@ -32,6 +32,10 @@ const MIDDLEWARE_URL = `http://127.0.0.1:${MIDDLEWARE_PORT}`;
 const DB_WAIT_TIMEOUT_MS = Number(process.env.DB_WAIT_TIMEOUT_MS ?? 60_000);
 const SCHEMA_PUSH_ATTEMPTS = Number(process.env.SCHEMA_PUSH_ATTEMPTS ?? 5);
 
+// How long to wait for the middleware's /healthz to come up before starting the gateway anyway.
+// Generous by default so modest hardware (e.g. a Raspberry Pi) has time to boot the API.
+const MIDDLEWARE_WAIT_TIMEOUT_MS = Number(process.env.MIDDLEWARE_WAIT_TIMEOUT_MS ?? 60_000);
+
 let middlewareChild = null;
 let shuttingDown = false;
 let restartDelay = 500;
@@ -191,7 +195,7 @@ function startMiddleware() {
   }, 30_000);
 }
 
-async function waitForMiddleware(timeoutMs = 30_000) {
+async function waitForMiddleware(timeoutMs = MIDDLEWARE_WAIT_TIMEOUT_MS) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     try {
@@ -259,5 +263,18 @@ for (const signal of ["SIGINT", "SIGTERM"]) {
 
 await applySchema();
 startMiddleware();
-await waitForMiddleware();
+if (await waitForMiddleware()) {
+  console.log(`[gateway] middleware healthy at ${MIDDLEWARE_URL}`);
+}
+else {
+  // Don't fail the boot — the gateway still serves the client and will proxy successfully once the
+  // middleware recovers — but say so plainly. Until then, every `/api` request returns
+  // `ECONNREFUSED ${MIDDLEWARE_PORT}`; the usual causes are the middleware crash-looping (look for
+  // "[gateway] middleware exited" above — a SIGKILL there means it was out-of-memory killed) or a
+  // boot step that never finished.
+  console.error(
+    `[gateway] middleware did not become healthy at ${MIDDLEWARE_URL} within ${MIDDLEWARE_WAIT_TIMEOUT_MS}ms; `
+    + "/api requests will fail with ECONNREFUSED until it does. Check the middleware logs above.",
+  );
+}
 await startGateway();

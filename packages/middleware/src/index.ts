@@ -11,6 +11,23 @@ const host = process.env.HOST ?? "0.0.0.0";
 
 const app = await buildApp();
 
+// Start listening BEFORE running the boot data-steps. The production gateway proxies `/api/*` to
+// this process and waits on `/healthz`; if a boot step is slow or stalls (a sluggish database on
+// modest hardware, a lock, etc.), blocking `listen` on it would leave the gateway unable to reach
+// the upstream — every `/api` request fails with `ECONNREFUSED 127.0.0.1:3001` until it finishes.
+// Serving first keeps the API and health probe available; the idempotent steps below catch up.
+try {
+  await app.listen({
+    port,
+    host,
+  });
+  app.log.info(`eeSimple Bookmarks API ready on http://${host}:${port} (docs at /docs)`);
+}
+catch (err) {
+  app.log.error(err);
+  process.exit(1);
+}
+
 try {
   // Runs in every environment: guarantees the built-in "Default" category and
   // backfills any bookmarks left without a category.
@@ -26,16 +43,4 @@ catch (err) {
   app.log.warn({
     err,
   }, "Startup data step skipped (database not ready?)");
-}
-
-try {
-  await app.listen({
-    port,
-    host,
-  });
-  app.log.info(`eeSimple Bookmarks API ready on http://${host}:${port} (docs at /docs)`);
-}
-catch (err) {
-  app.log.error(err);
-  process.exit(1);
 }
