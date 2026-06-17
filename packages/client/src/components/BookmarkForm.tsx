@@ -7,7 +7,6 @@ import type {
 
 import { useEffect, useRef, useState } from "react";
 
-import { useForm } from "@tanstack/react-form";
 import { ChevronDown } from "lucide-react";
 import { z } from "zod";
 
@@ -16,8 +15,8 @@ import { useCreateBookmark } from "../hooks/useBookmarks";
 import { useCategories, useCategoryRootTags } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useTagTree } from "../hooks/useTags";
+import { useAppForm } from "../lib/form";
 
-import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Collapsible,
@@ -26,14 +25,6 @@ import {
 } from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 
 const bookmarkSchema = z.object({
   url: z.string().url("Enter a valid URL"),
@@ -70,7 +61,7 @@ export function BookmarkForm() {
     booleanInputs,
   };
 
-  const form = useForm({
+  const form = useAppForm({
     defaultValues: {
       url: "",
       title: "",
@@ -152,64 +143,32 @@ export function BookmarkForm() {
         void form.handleSubmit();
       }}
     >
-      <form.Field name="title">
-        {field => (
-          <TextField
-            label="Name"
-            value={field.state.value}
-            errors={field.state.meta.errors}
-            onBlur={field.handleBlur}
-            onChange={field.handleChange}
-          />
-        )}
-      </form.Field>
+      <form.AppField name="title">
+        {field => <field.TextField label="Name" />}
+      </form.AppField>
 
-      <form.Field name="url">
+      <form.AppField name="url">
         {field => (
-          <TextField
+          <field.TextField
             label="URL"
             type="url"
-            value={field.state.value}
-            errors={field.state.meta.errors}
-            onBlur={field.handleBlur}
-            onChange={field.handleChange}
           />
         )}
-      </form.Field>
+      </form.AppField>
 
-      <form.Field name="categoryId">
+      <form.AppField name="categoryId">
         {field => (
-          <div
-            className="
-              space-y-1
-              sm:col-span-2
-            "
-          >
-            <Label htmlFor="bookmark-category">Category</Label>
-            <Select
-              value={field.state.value || undefined}
-              onValueChange={value => field.handleChange(value)}
-            >
-              <SelectTrigger
-                id="bookmark-category"
-                className="w-full"
-              >
-                <SelectValue placeholder="Select a category" />
-              </SelectTrigger>
-              <SelectContent>
-                {(categories ?? []).map(category => (
-                  <SelectItem
-                    key={category.id}
-                    value={category.id}
-                  >
-                    {category.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <field.SelectField
+            label="Category"
+            className="sm:col-span-2"
+            placeholder="Select a category"
+            options={(categories ?? []).map(category => ({
+              value: category.id,
+              label: category.name,
+            }))}
+          />
         )}
-      </form.Field>
+      </form.AppField>
 
       <Collapsible
         className="
@@ -232,20 +191,9 @@ export function BookmarkForm() {
           Advanced
         </CollapsibleTrigger>
         <CollapsibleContent className="space-y-4">
-          <form.Field name="description">
-            {field => (
-              <div className="space-y-1">
-                <Label htmlFor="bookmark-description">Description</Label>
-                <Textarea
-                  id="bookmark-description"
-                  rows={2}
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={event => field.handleChange(event.target.value)}
-                />
-              </div>
-            )}
-          </form.Field>
+          <form.AppField name="description">
+            {field => <field.TextareaField label="Description" />}
+          </form.AppField>
 
           <form.Subscribe selector={state => state.values.categoryId}>
             {categoryId => (
@@ -272,27 +220,15 @@ export function BookmarkForm() {
             )}
           </form.Subscribe>
 
-          <form.Field name="priority">
+          <form.AppField name="priority">
             {field => (
-              <div className="space-y-1">
-                <Label htmlFor="bookmark-priority">Priority</Label>
-                <Input
-                  id="bookmark-priority"
-                  type="number"
-                  className="max-w-32"
-                  value={Number.isNaN(field.state.value) ? "" : field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(event) => {
-                    const next = event.target.valueAsNumber;
-                    field.handleChange(Number.isNaN(next) ? 0 : next);
-                  }}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Higher numbers appear first on the homepage.
-                </p>
-              </div>
+              <field.NumberField
+                label="Priority"
+                className="max-w-32"
+                hint="Higher numbers appear first on the homepage."
+              />
             )}
-          </form.Field>
+          </form.AppField>
 
           <form.Subscribe selector={state => state.values.categoryId}>
             {categoryId => (
@@ -318,16 +254,12 @@ export function BookmarkForm() {
       </Collapsible>
 
       <div className="sm:col-span-2">
-        <form.Subscribe selector={state => [state.canSubmit, state.isSubmitting] as const}>
-          {([canSubmit, isSubmitting]) => (
-            <Button
-              type="submit"
-              disabled={!canSubmit}
-            >
-              {isSubmitting ? "Saving…" : "Add bookmark"}
-            </Button>
-          )}
-        </form.Subscribe>
+        <form.AppForm>
+          <form.SubmitButton
+            label="Add bookmark"
+            pendingLabel="Saving…"
+          />
+        </form.AppForm>
         {createBookmark.isError ? <p className="mt-2 text-sm text-destructive">{createBookmark.error?.message}</p> : null}
       </div>
     </form>
@@ -436,38 +368,6 @@ function CategoryCustomFields({
           );
         })}
       </div>
-    </div>
-  );
-}
-
-interface TextFieldProps {
-  label: string;
-  value: string;
-  errors: unknown[];
-  type?: string;
-  onBlur: () => void;
-  onChange: (value: string) => void;
-}
-
-function TextField({
-  label, value, errors, type = "text", onBlur, onChange,
-}: TextFieldProps) {
-  const messages = errors
-    .map(error => (typeof error === "string" ? error : (error as { message?: string })?.message))
-    .filter(Boolean);
-  const id = `bookmark-${label.toLowerCase()}`;
-
-  return (
-    <div className="space-y-1">
-      <Label htmlFor={id}>{label}</Label>
-      <Input
-        id={id}
-        type={type}
-        value={value}
-        onBlur={onBlur}
-        onChange={event => onChange(event.target.value)}
-      />
-      {messages.length > 0 ? <span className="block text-xs text-destructive">{messages.join(", ")}</span> : null}
     </div>
   );
 }

@@ -1,0 +1,250 @@
+// This module pairs reusable field/form components with the TanStack `useAppForm`
+// hook they're wired into, so it intentionally exports a hook alongside components.
+/* eslint-disable react-refresh/only-export-components */
+import { useId } from "react";
+
+import { createFormHook, createFormHookContexts } from "@tanstack/react-form";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+
+const {
+  fieldContext, formContext, useFieldContext, useFormContext,
+}
+  = createFormHookContexts();
+
+/** Normalise a field's errors (string | { message } | …) into displayable strings. */
+function fieldErrorMessages(errors: unknown[]): string[] {
+  return errors
+    .map(error => (typeof error === "string" ? error : (error as { message?: string })?.message))
+    .filter((message): message is string => Boolean(message));
+}
+
+/** Destructive helper text rendered beneath a field's control. */
+function FieldErrors({
+  errors,
+}: {
+  errors: unknown[];
+}) {
+  const messages = fieldErrorMessages(errors);
+  if (messages.length === 0) return null;
+  return <span className="block text-xs text-destructive">{messages.join(", ")}</span>;
+}
+
+interface TextFieldProps {
+  label: string;
+  type?: string;
+  placeholder?: string;
+  disabled?: boolean;
+  /** Class for the wrapping element. */
+  className?: string;
+  /** Class applied to the input itself (e.g. compact inline sizing). */
+  inputClassName?: string;
+  /** Visually hide the label but keep it as the input's accessible name. */
+  hideLabel?: boolean;
+  /** Extra blur handler (runs after the field's own blur), e.g. submit-on-blur. */
+  onBlur?: () => void;
+}
+
+/** Labelled text input bound to the surrounding field. */
+function TextField({
+  label, type = "text", placeholder, disabled, className, inputClassName, hideLabel, onBlur,
+}: TextFieldProps) {
+  const field = useFieldContext<string>();
+  const id = useId();
+
+  return (
+    <div className={`space-y-1 ${className ?? ""}`.trim()}>
+      <Label
+        htmlFor={id}
+        className={hideLabel ? "sr-only" : undefined}
+      >
+        {label}
+      </Label>
+      <Input
+        id={id}
+        type={type}
+        placeholder={placeholder}
+        disabled={disabled}
+        className={inputClassName}
+        value={field.state.value}
+        onBlur={() => {
+          field.handleBlur();
+          onBlur?.();
+        }}
+        onChange={event => field.handleChange(event.target.value)}
+      />
+      <FieldErrors errors={field.state.meta.errors} />
+    </div>
+  );
+}
+
+interface TextareaFieldProps {
+  label: string;
+  placeholder?: string;
+  rows?: number;
+  disabled?: boolean;
+}
+
+/** Labelled multi-line text input bound to the surrounding field. */
+function TextareaField({
+  label, placeholder, rows = 2, disabled,
+}: TextareaFieldProps) {
+  const field = useFieldContext<string>();
+  const id = useId();
+
+  return (
+    <div className="space-y-1">
+      <Label htmlFor={id}>{label}</Label>
+      <Textarea
+        id={id}
+        rows={rows}
+        placeholder={placeholder}
+        disabled={disabled}
+        value={field.state.value}
+        onBlur={field.handleBlur}
+        onChange={event => field.handleChange(event.target.value)}
+      />
+      <FieldErrors errors={field.state.meta.errors} />
+    </div>
+  );
+}
+
+interface NumberFieldProps {
+  label: string;
+  placeholder?: string;
+  disabled?: boolean;
+  className?: string;
+  hint?: string;
+}
+
+/** Labelled numeric input; empty input maps to 0 to keep the value a number. */
+function NumberField({
+  label, placeholder, disabled, className, hint,
+}: NumberFieldProps) {
+  const field = useFieldContext<number>();
+  const id = useId();
+
+  return (
+    <div className="space-y-1">
+      <Label htmlFor={id}>{label}</Label>
+      <Input
+        id={id}
+        type="number"
+        placeholder={placeholder}
+        disabled={disabled}
+        className={className}
+        value={Number.isNaN(field.state.value) ? "" : field.state.value}
+        onBlur={field.handleBlur}
+        onChange={(event) => {
+          const next = event.target.valueAsNumber;
+          field.handleChange(Number.isNaN(next) ? 0 : next);
+        }}
+      />
+      {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
+      <FieldErrors errors={field.state.meta.errors} />
+    </div>
+  );
+}
+
+interface SelectFieldProps {
+  label: string;
+  options: {
+    value: string;
+    label: string;
+  }[];
+  placeholder?: string;
+  className?: string;
+}
+
+/** Labelled single-select bound to the surrounding field. */
+function SelectField({
+  label, options, placeholder, className,
+}: SelectFieldProps) {
+  const field = useFieldContext<string>();
+  const id = useId();
+
+  return (
+    <div className={`space-y-1 ${className ?? ""}`.trim()}>
+      <Label htmlFor={id}>{label}</Label>
+      <Select
+        value={field.state.value || undefined}
+        onValueChange={value => field.handleChange(value)}
+      >
+        <SelectTrigger
+          id={id}
+          className="w-full"
+        >
+          <SelectValue placeholder={placeholder} />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map(option => (
+            <SelectItem
+              key={option.value}
+              value={option.value}
+            >
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <FieldErrors errors={field.state.meta.errors} />
+    </div>
+  );
+}
+
+interface SubmitButtonProps {
+  /** Label shown when idle. */
+  label: string;
+  /** Label shown while submitting (defaults to `label`). */
+  pendingLabel?: string;
+  size?: "default" | "sm" | "lg";
+  /** Extra condition that disables the button on top of the form's own validity. */
+  disabledWhen?: boolean;
+}
+
+/** Submit button wired to the form's `canSubmit` / `isSubmitting` state. */
+function SubmitButton({
+  label, pendingLabel, size = "default", disabledWhen = false,
+}: SubmitButtonProps) {
+  const form = useFormContext();
+
+  return (
+    <form.Subscribe selector={state => [state.canSubmit, state.isSubmitting] as const}>
+      {([canSubmit, isSubmitting]) => (
+        <Button
+          type="submit"
+          size={size}
+          disabled={!canSubmit || disabledWhen}
+        >
+          {isSubmitting ? (pendingLabel ?? label) : label}
+        </Button>
+      )}
+    </form.Subscribe>
+  );
+}
+
+export const {
+  useAppForm,
+} = createFormHook({
+  fieldContext,
+  formContext,
+  fieldComponents: {
+    TextField,
+    TextareaField,
+    NumberField,
+    SelectField,
+  },
+  formComponents: {
+    SubmitButton,
+  },
+});
