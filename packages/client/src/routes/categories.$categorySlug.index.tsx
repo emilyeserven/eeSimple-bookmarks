@@ -92,7 +92,8 @@ function CategoryPage() {
       })}
       isLoading={bookmarksLoading}
       error={error}
-      emptyMessage="No bookmarks in this category match these filters."
+      emptyMessage="No bookmarks in this category yet."
+      noMatchMessage="No bookmarks in this category match these filters."
     />
   );
 }

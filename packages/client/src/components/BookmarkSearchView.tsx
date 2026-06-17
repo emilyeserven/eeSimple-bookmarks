@@ -22,8 +22,10 @@ interface BookmarkSearchViewProps {
   onSearchChange: (next: BookmarkSearch) => void;
   isLoading: boolean;
   error: Error | null;
-  /** Message shown when no bookmarks match. */
+  /** Message shown when there are no bookmarks and no filter is active. */
   emptyMessage: string;
+  /** Message shown when a filter is active but nothing matches it. */
+  noMatchMessage: string;
 }
 
 /**
@@ -41,11 +43,15 @@ export function BookmarkSearchView({
   isLoading,
   error,
   emptyMessage,
+  noMatchMessage,
 }: BookmarkSearchViewProps) {
   const deleteBookmark = useDeleteBookmark();
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const visibleBookmarks = bookmarks.filter(bookmark => bookmarkMatchesSearch(bookmark, search));
+  const hasActiveFilters = search.tag !== undefined
+    || Object.keys(search.num ?? {}).length > 0
+    || Object.keys(search.bool ?? {}).length > 0;
 
   return (
     <section className="space-y-8">
@@ -72,7 +78,11 @@ export function BookmarkSearchView({
             {isLoading ? <p className="text-muted-foreground">Loading bookmarks…</p> : null}
             {error ? <p className="text-destructive">{error.message}</p> : null}
             {!isLoading && visibleBookmarks.length === 0
-              ? <p className="text-muted-foreground">{emptyMessage}</p>
+              ? (
+                <p className="text-muted-foreground">
+                  {hasActiveFilters ? noMatchMessage : emptyMessage}
+                </p>
+              )
               : null}
             {visibleBookmarks.map(bookmark =>
               editingId === bookmark.id
