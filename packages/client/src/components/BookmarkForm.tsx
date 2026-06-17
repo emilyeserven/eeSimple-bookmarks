@@ -522,14 +522,38 @@ export function BookmarkForm({
 
       {fetchTitle.isError
         ? (
-          <p
+          <div
             className="
-              text-sm text-destructive
+              flex flex-col gap-2 text-sm
               sm:col-span-2
             "
           >
-            {fetchTitle.error?.message ?? "Could not fetch a title for that URL."}
-          </p>
+            <p className="text-destructive">
+              {fetchTitle.error?.message ?? "Could not fetch a title for that URL."}
+            </p>
+            <div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const currentUrl = form.getFieldValue("url");
+                  const errorMessage = fetchTitle.error?.message ?? "Unknown error";
+                  const body = [
+                    `**URL:** ${currentUrl}`,
+                    `**Error:** ${errorMessage}`,
+                  ].join("\n\n");
+                  const issueUrl = new URL("https://github.com/emilyeserven/eesimple-bookmarks/issues/new");
+                  issueUrl.searchParams.set("title", "Title fetch failed");
+                  issueUrl.searchParams.set("body", body);
+                  issueUrl.searchParams.set("labels", "bug");
+                  window.open(issueUrl.toString(), "_blank", "noopener,noreferrer");
+                }}
+              >
+                File GitHub issue
+              </Button>
+            </div>
+          </div>
         )
         : null}
 
