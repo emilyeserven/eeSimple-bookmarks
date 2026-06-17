@@ -3,11 +3,13 @@ import type { Bookmark, Category, CustomProperty, TagNode } from "@eesimple/type
 
 import { useState } from "react";
 
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { Ban, ChevronDown, ChevronUp, Circle, CircleDot } from "lucide-react";
 
 import { CustomPropertyFilters } from "./CustomPropertyFilters";
 import { TagTreeFilter } from "./TagTreeFilter";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
+import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import {
   withBooleanFilter,
   withNumberFilter,
@@ -28,10 +30,6 @@ interface FilterSidebarProps {
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;
 }
-
-const presenceButton = "rounded-md px-2 py-0.5 text-xs transition-colors";
-const presenceActive = "bg-primary text-primary-foreground";
-const presenceInactive = "text-foreground hover:bg-accent hover:text-accent-foreground";
 
 /** Left filter rail for the search pages: tiered tags plus custom-property filters. */
 export function FilterSidebar({
@@ -99,44 +97,49 @@ export function FilterSidebar({
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-semibold">Tags</h2>
-                {tagFilterActive
-                  ? (
-                    <button
-                      type="button"
-                      onClick={() => onSearchChange(withTag(withTagPresence(search, undefined), undefined))}
-                      className="
-                        text-xs text-primary
-                        hover:underline
-                      "
-                    >
-                      Reset
-                    </button>
-                  )
-                  : null}
-              </div>
-
-              <div className="flex gap-1">
-                <button
-                  type="button"
-                  onClick={() => onSearchChange(withTagPresence(search, undefined))}
-                  className={cn(presenceButton, search.tagPresence === undefined ? presenceActive : presenceInactive)}
+                <ToggleGroup
+                  type="single"
+                  size="sm"
+                  value={search.tagPresence ?? "any"}
+                  onValueChange={(v) => {
+                    const mode = v === "any" || v === "" ? undefined : v as "has" | "missing";
+                    onSearchChange(withTagPresence(search, mode));
+                  }}
                 >
-                  Any
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onSearchChange(withTagPresence(search, "has"))}
-                  className={cn(presenceButton, search.tagPresence === "has" ? presenceActive : presenceInactive)}
-                >
-                  Has tags
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onSearchChange(withTagPresence(search, "missing"))}
-                  className={cn(presenceButton, search.tagPresence === "missing" ? presenceActive : presenceInactive)}
-                >
-                  No tags
-                </button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <ToggleGroupItem
+                        value="any"
+                        aria-label="Any"
+                      >
+                        <Circle className="size-3.5" />
+                      </ToggleGroupItem>
+                    </TooltipTrigger>
+                    <TooltipContent>Any</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <ToggleGroupItem
+                        value="has"
+                        aria-label="Has tags"
+                      >
+                        <CircleDot className="size-3.5" />
+                      </ToggleGroupItem>
+                    </TooltipTrigger>
+                    <TooltipContent>Has tags</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <ToggleGroupItem
+                        value="missing"
+                        aria-label="No tags"
+                      >
+                        <Ban className="size-3.5" />
+                      </ToggleGroupItem>
+                    </TooltipTrigger>
+                    <TooltipContent>No tags</TooltipContent>
+                  </Tooltip>
+                </ToggleGroup>
               </div>
 
               {search.tagPresence !== "missing"
@@ -146,6 +149,21 @@ export function FilterSidebar({
                     activeId={search.tag}
                     onSelect={tag => onSearchChange(withTag(search, tag))}
                   />
+                )
+                : null}
+
+              {tagFilterActive
+                ? (
+                  <button
+                    type="button"
+                    onClick={() => onSearchChange(withTag(withTagPresence(search, undefined), undefined))}
+                    className="
+                      text-xs text-primary
+                      hover:underline
+                    "
+                  >
+                    Reset
+                  </button>
                 )
                 : null}
             </div>
