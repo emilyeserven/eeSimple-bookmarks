@@ -55,6 +55,7 @@ const propertySchema = z
     advancedOnly: z.boolean(),
     showInListings: z.boolean(),
     editableOnCard: z.boolean(),
+    enabled: z.boolean(),
   })
   .superRefine((value, ctx) => {
     if (value.type === "calculate" && value.operandIds.length < 2) {
@@ -94,6 +95,7 @@ const CREATE_DEFAULTS: PropertyFormValues = {
   advancedOnly: false,
   showInListings: true,
   editableOnCard: false,
+  enabled: true,
 };
 
 /** Map a saved property to editable form values (null bounds become the "disabled" state). */
@@ -118,6 +120,7 @@ function valuesFromProperty(property: CustomProperty): PropertyFormValues {
     advancedOnly: !property.showInForm,
     showInListings: property.showInListings,
     editableOnCard: property.editableOnCard,
+    enabled: property.enabled,
   };
 }
 
@@ -144,6 +147,7 @@ function payloadFromValues(values: PropertyFormValues): CreateCustomPropertyInpu
     showInListings: values.showInListings,
     // Calculate values are computed server-side, so they can never be edited from the card menu.
     editableOnCard: values.type === "calculate" ? false : values.editableOnCard,
+    enabled: values.enabled,
   };
 }
 
@@ -409,6 +413,19 @@ export function PropertyForm({
           )}
         </form.AppField>
       </div>
+
+      <form.AppField name="enabled">
+        {field => (
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id={`${idPrefix}-enabled`}
+              checked={field.state.value}
+              onCheckedChange={checked => field.handleChange(checked === true)}
+            />
+            <Label htmlFor={`${idPrefix}-enabled`}>Property is active</Label>
+          </div>
+        )}
+      </form.AppField>
 
       <form.AppField name="description">
         {field => (

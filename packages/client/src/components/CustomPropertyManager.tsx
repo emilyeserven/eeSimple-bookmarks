@@ -38,7 +38,7 @@ function PropertyPreview({
   }
 
   const categoryCount = property.categoryIds.length;
-  const isUncategorized = categoryCount === 0;
+  const isUncategorized = categoryCount === 0 && property.enabled;
 
   return (
     <Card className={cn("p-0", isUncategorized && "opacity-60")}>
@@ -55,6 +55,7 @@ function PropertyPreview({
         <div className="flex flex-wrap items-center gap-2">
           <span className="font-medium">{property.name}</span>
           {isUncategorized && <TriangleAlert className="size-4 text-amber-500" />}
+          {!property.enabled && <Badge variant="outline">Disabled</Badge>}
           <Badge variant="secondary">{TYPE_LABELS[property.type]}</Badge>
           {summary ? <span className="text-xs text-muted-foreground">{summary}</span> : null}
         </div>

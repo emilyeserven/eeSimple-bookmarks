@@ -56,7 +56,7 @@ export function CategoryCustomProperties({
             sm:grid-cols-2
           "
         >
-          {(properties ?? []).map((property) => {
+          {(properties ?? []).filter(p => p.enabled).map((property) => {
             const inputId = `category-property-${property.id}`;
             return (
               <div

@@ -192,6 +192,9 @@ export const customProperties = pgTable("custom_properties", {
   allCategories: boolean("all_categories").notNull().default(false),
   // When true, the property's value can be edited inline from a bookmark card's "More" menu.
   editableOnCard: boolean("editable_on_card").notNull().default(false),
+  // When false, the property is globally inactive: hidden from filters, conditions, category
+  // assignment, and the bookmark form. Existing rows default to true via the column default.
+  enabled: boolean("enabled").notNull().default(true),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
