@@ -55,5 +55,14 @@
     "maxCyclomatic": 30,
     "maxCognitive": 25,
     "maxCrap": 1000000
-  }
+  },
+  // shadcn/ui drops raw primitives here; many sub-exports are intentionally unused until needed.
+  "overrides": [
+    {
+      "files": ["packages/client/src/components/ui/**"],
+      "rules": {
+        "unused-exports": "off"
+      }
+    }
+  ]
 }
