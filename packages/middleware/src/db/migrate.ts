@@ -18,6 +18,7 @@
  *
  * Run via `migrate:prod` (compiled) or `migrate:dev` (tsx); the gateway runs it on boot.
  */
+import { sql } from "drizzle-orm";
 import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import pg from "pg";
 
@@ -33,9 +34,29 @@ interface RuntimeMigration {
   run: (db: NodePgDatabase) => Promise<unknown>;
 }
 
-// Ordered list of idempotent, destructive/push-incompatible steps. Empty today: every schema change
-// so far is additive and is handled by `drizzle-kit push`.
-const migrations: RuntimeMigration[] = [];
+// Ordered list of idempotent, destructive/push-incompatible steps.
+const migrations: RuntimeMigration[] = [
+  {
+    // `autofill_rules.slug` carries a UNIQUE constraint and was added to a table that already had
+    // rows. `drizzle-kit push` won't add a new column + unique constraint to a populated table
+    // without an interactive truncation confirmation, so in this non-TTY deploy it silently skips
+    // the change and every `slug` query 500s. Create the column and constraint here, before push,
+    // so push's diff stays empty. The boot-time `ensureAutofillSlugs()` step then backfills the
+    // NULL slugs.
+    name: "add autofill_rules.slug column + unique constraint",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "autofill_rules" ADD COLUMN IF NOT EXISTS "slug" text;
+      DO $$ BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM pg_constraint WHERE conname = 'autofill_rules_slug_unique'
+        ) THEN
+          ALTER TABLE IF EXISTS "autofill_rules"
+            ADD CONSTRAINT "autofill_rules_slug_unique" UNIQUE ("slug");
+        END IF;
+      END $$;
+    `),
+  },
+];
 
 async function main(): Promise<void> {
   if (migrations.length === 0) {
