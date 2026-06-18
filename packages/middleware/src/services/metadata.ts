@@ -42,12 +42,31 @@ export function decodeEntities(value: string): string {
   });
 }
 
-/** Pull the <title> text out of an HTML document, or null when absent. */
-export function extractTitle(html: string): string | null {
+/** Pull the raw `<title>` element text out of an HTML document, or undefined when absent. */
+function titleTag(html: string): string | undefined {
   const match = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(html);
-  if (!match) return null;
-  const title = decodeEntities(match[1]).replace(/\s+/g, " ").trim();
-  return title.length > 0 ? title : null;
+  return match ? match[1] : undefined;
+}
+
+/**
+ * Pick the best page title from an HTML document. Prefers `og:title` / `twitter:title` (the
+ * canonical, shareable title sites publish) and falls back to the `<title>` element. The `<title>`
+ * tag commonly appends a site-name suffix (e.g. "Recipe • Just One Cookbook") and templating
+ * artifacts, whereas `og:title` carries the clean title — so this mirrors how `extractImageUrl`
+ * prefers `og:image`. Returns the normalised title, or null when none is usable.
+ */
+export function extractTitle(html: string): string | null {
+  const candidates = [
+    metaContent(html, /(?:property|name)=["']og:title["']/i),
+    metaContent(html, /(?:property|name)=["']twitter:title["']/i),
+    titleTag(html),
+  ];
+  for (const raw of candidates) {
+    if (raw === undefined) continue;
+    const title = decodeEntities(raw).replace(/\s+/g, " ").trim();
+    if (title.length > 0) return title;
+  }
+  return null;
 }
 
 /** A low-level fetch result: the page HTML, or a typed reason it couldn't be read. */
@@ -129,7 +148,9 @@ async function fetchHtml(url: string, stopAt: RegExp): Promise<FetchHtmlResult> 
  * obtained, or the title itself. Guarded by a timeout and a body cap.
  */
 export async function fetchPageTitle(url: string): Promise<FetchTitleResult> {
-  const result = await fetchHtml(url, /<\/title>/i);
+  // Read through `</head>` rather than stopping at `</title>`: the `og:title`/`twitter:title` meta
+  // tags `extractTitle` prefers are typically emitted after the `<title>` element.
+  const result = await fetchHtml(url, /<\/head>/i);
   if (result.kind !== "ok") return result;
   const title = extractTitle(result.html);
   if (title === null) return {
