@@ -10,8 +10,8 @@
  * so push never blocks on an interactive prompt in this non-TTY deploy, and needs no `--force`).
  *
  * Every step runs on every start, so each MUST be idempotent — guard with `IF EXISTS` /
- * `IF NOT EXISTS`, check before mutating, etc. There are none today; this is their registered home.
- * Add one by pushing to `migrations`, e.g.:
+ * `IF NOT EXISTS`, check before mutating, etc. See the entries in the `migrations` array below for
+ * worked examples. Add one by pushing to `migrations`, e.g.:
  *
  *   import { sql } from "drizzle-orm";
  *   { name: "drop legacy websites.color", run: db => db.execute(sql`ALTER TABLE "websites" DROP COLUMN IF EXISTS "color"`) }
