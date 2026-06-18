@@ -43,12 +43,14 @@ function HomePage() {
   return (
     <section className="space-y-6">
       <div className="flex items-start justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold">Homepage</h1>
-          <p className="text-muted-foreground">
-            Bookmarks from your homepage sections, ordered by priority.
-          </p>
-        </div>
+        {!content?.homepageHeaderHidden && (
+          <div className="space-y-1">
+            <h1 className="text-2xl font-bold">Homepage</h1>
+            <p className="text-muted-foreground">
+              Bookmarks from your homepage sections, ordered by priority.
+            </p>
+          </div>
+        )}
         <Link
           to="/settings/homepage"
           className="

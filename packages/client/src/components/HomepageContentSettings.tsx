@@ -23,6 +23,7 @@ const DEFAULTS: HomepageContent = {
   bookmarkQuickAddEnabled: false,
   bookmarkQuickAddWidth: "full",
   bookmarkQuickAddDisplay: "collapsible",
+  homepageHeaderHidden: false,
 };
 
 /**
@@ -58,6 +59,16 @@ export function HomepageContentSettings() {
         title="Homepage Text"
         description="Markdown shown at the very top of your homepage. Leave empty to hide it."
       >
+        <label className="flex items-center gap-2 text-sm">
+          <Checkbox
+            checked={form.homepageHeaderHidden}
+            onCheckedChange={checked => setForm(prev => ({
+              ...prev,
+              homepageHeaderHidden: checked === true,
+            }))}
+          />
+          Hide default &ldquo;Homepage&rdquo; title and description
+        </label>
         <RichTextEditor
           value={form.homepageText}
           onChange={markdown => setForm(prev => ({
@@ -73,6 +84,15 @@ export function HomepageContentSettings() {
             homepageTextWidth: width,
           }))}
         />
+        <div>
+          <Button
+            type="button"
+            onClick={save}
+            disabled={update.isPending}
+          >
+            Save
+          </Button>
+        </div>
       </LabeledSection>
 
       <Separator />
@@ -125,17 +145,16 @@ export function HomepageContentSettings() {
             </div>
           )
           : null}
+        <div>
+          <Button
+            type="button"
+            onClick={save}
+            disabled={update.isPending}
+          >
+            Save
+          </Button>
+        </div>
       </LabeledSection>
-
-      <div>
-        <Button
-          type="button"
-          onClick={save}
-          disabled={update.isPending}
-        >
-          Save
-        </Button>
-      </div>
     </div>
   );
 }
