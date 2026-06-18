@@ -4,6 +4,7 @@ import type { Bookmark, Category, CustomProperty } from "@eesimple/types";
 import { Ban, ChevronDown, Circle, CircleDot, CircleHelp } from "lucide-react";
 
 import { Combobox } from "./Combobox";
+import { DateTimeRangeFields } from "./DateTimePicker";
 import { RangeSlider } from "./RangeSlider";
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -27,12 +28,16 @@ interface CustomPropertyFiltersProps {
   numberValues: Record<string, [number, number]>;
   /** Active boolean filters keyed by property id (absent = no filter). */
   booleanValues: Record<string, boolean>;
+  /** Active date/time range filters (`[from, to]`, either `null`) keyed by property id. */
+  dateTimeValues: Record<string, [string | null, string | null]>;
   /** Active presence filters keyed by property id (absent = no filter). */
   presenceValues: Record<string, "has" | "missing">;
   /** Report a number filter (or `undefined` to clear it when back at full range). */
   onNumberFilterChange: (propertyId: string, range: [number, number] | undefined) => void;
   /** Report a boolean filter (`true`/`false`, or `undefined` to clear it). */
   onBooleanFilterChange: (propertyId: string, value: boolean | undefined) => void;
+  /** Report a date/time range filter (`[from, to]`, or `undefined` to clear it). */
+  onDateTimeFilterChange: (propertyId: string, range: [string | null, string | null] | undefined) => void;
   /** Report a presence filter (`"has"`/`"missing"`, or `undefined` to clear it). */
   onPresenceFilterChange: (propertyId: string, mode: "has" | "missing" | undefined) => void;
   /** Clear all filter types (num, bool, presence) for a property in one navigation. */
@@ -143,9 +148,11 @@ export function CustomPropertyFilters({
   bookmarks,
   numberValues,
   booleanValues,
+  dateTimeValues,
   presenceValues,
   onNumberFilterChange,
   onBooleanFilterChange,
+  onDateTimeFilterChange,
   onPresenceFilterChange,
   onPropertyReset,
 }: CustomPropertyFiltersProps) {
@@ -184,6 +191,7 @@ export function CustomPropertyFilters({
         const isFilterActive
           = numberValues[property.id] !== undefined
             || booleanValues[property.id] !== undefined
+            || dateTimeValues[property.id] !== undefined
             || presenceValue !== undefined;
 
         function handleReset() {
@@ -262,7 +270,17 @@ export function CustomPropertyFilters({
                 )
                 : null}
 
-              {presenceValue !== "missing" && !isRangeProperty(property)
+              {presenceValue !== "missing" && property.type === "datetime"
+                ? (
+                  <DateTimeFilterControl
+                    property={property}
+                    value={dateTimeValues[property.id]}
+                    onChange={onDateTimeFilterChange}
+                  />
+                )
+                : null}
+
+              {presenceValue !== "missing" && property.type === "boolean"
                 ? (
                   <BooleanFilterControl
                     property={property}
@@ -353,6 +371,29 @@ function BooleanFilterControl({
       aria-label={`Filter by ${property.name}`}
       onValueChange={next =>
         onChange(property.id, next === undefined ? undefined : next === "true")}
+    />
+  );
+}
+
+interface DateTimeControlProps {
+  property: CustomProperty;
+  /** Current `[from, to]` range from the URL, or undefined when the filter is inactive. */
+  value: [string | null, string | null] | undefined;
+  onChange: (propertyId: string, range: [string | null, string | null] | undefined) => void;
+}
+
+/** A From/To date-time range filter for a `datetime` property, built on the shared picker. */
+function DateTimeFilterControl({
+  property, value, onChange,
+}: DateTimeControlProps) {
+  const [from, to] = value ?? [null, null];
+
+  return (
+    <DateTimeRangeFields
+      format={property.dateTimeFormat ?? "date"}
+      from={from}
+      to={to}
+      onChange={next => onChange(property.id, [next.from, next.to])}
     />
   );
 }

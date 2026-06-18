@@ -54,6 +54,7 @@ const bookmark: Bookmark = {
   ],
   numberValues: [],
   booleanValues: [],
+  dateTimeValues: [],
   priority: 0,
   createdAt: "2026-06-01T00:00:00.000Z",
 };
@@ -65,6 +66,7 @@ const starsProperty: CustomProperty = {
   type: "number",
   builtIn: false,
   numberFormat: null,
+  dateTimeFormat: null,
   description: null,
   numberMin: null,
   numberMax: null,
@@ -91,6 +93,7 @@ const reviewedProperty: CustomProperty = {
   type: "boolean",
   builtIn: false,
   numberFormat: null,
+  dateTimeFormat: null,
   description: null,
   numberMin: null,
   numberMax: null,

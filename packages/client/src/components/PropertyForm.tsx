@@ -32,12 +32,32 @@ const TYPE_OPTIONS = [
     value: "calculate",
     label: "Calculate (Sum)",
   },
+  {
+    value: "datetime",
+    label: "Date / Time",
+  },
+];
+
+const DATE_TIME_FORMAT_OPTIONS = [
+  {
+    value: "date",
+    label: "Date only",
+  },
+  {
+    value: "time",
+    label: "Time only",
+  },
+  {
+    value: "datetime",
+    label: "Date & time",
+  },
 ];
 
 const propertySchema = z
   .object({
     name: z.string().trim().min(1, "Name is required"),
-    type: z.enum(["number", "boolean", "calculate"]),
+    type: z.enum(["number", "boolean", "calculate", "datetime"]),
+    dateTimeFormat: z.enum(["date", "time", "datetime"]),
     description: z.string(),
     numberMin: z.string(),
     numberMax: z.string(),
@@ -77,6 +97,7 @@ function toggleId(ids: string[], id: string): string[] {
 const CREATE_DEFAULTS: PropertyFormValues = {
   name: "",
   type: "number",
+  dateTimeFormat: "date",
   description: "",
   // No minimum / maximum by default — the disable boxes start checked.
   numberMin: "0",
@@ -103,6 +124,7 @@ function valuesFromProperty(property: CustomProperty): PropertyFormValues {
   return {
     name: property.name,
     type: property.type,
+    dateTimeFormat: property.dateTimeFormat ?? "date",
     description: property.description ?? "",
     numberMin: property.numberMin === null ? "0" : String(property.numberMin),
     numberMax: property.numberMax === null ? "100" : String(property.numberMax),
@@ -131,6 +153,7 @@ function payloadFromValues(values: PropertyFormValues): CreateCustomPropertyInpu
   return {
     name: values.name.trim(),
     type: values.type,
+    dateTimeFormat: values.type === "datetime" ? values.dateTimeFormat : null,
     description: trimOrNull(values.description),
     numberMin: isNumber && !values.disableMin ? Number(values.numberMin) : null,
     numberMax: isNumber && !values.disableMax ? Number(values.numberMax) : null,
@@ -556,6 +579,25 @@ export function PropertyForm({
                     )}
                   </form.AppField>
                 </div>
+              </FormSection>
+            )
+            : null}
+      </form.Subscribe>
+
+      <form.Subscribe selector={state => state.values.type}>
+        {type =>
+          type === "datetime"
+            ? (
+              <FormSection title="Property options">
+                <form.AppField name="dateTimeFormat">
+                  {field => (
+                    <field.SelectField
+                      label="Captures"
+                      options={DATE_TIME_FORMAT_OPTIONS}
+                      disabled={mode === "edit"}
+                    />
+                  )}
+                </form.AppField>
               </FormSection>
             )
             : null}

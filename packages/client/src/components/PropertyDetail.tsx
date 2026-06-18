@@ -2,7 +2,7 @@ import type { Category, CustomProperty } from "@eesimple/types";
 
 import { TriangleAlert } from "lucide-react";
 
-import { TYPE_LABELS } from "../lib/propertyFormat";
+import { DATE_TIME_FORMAT_LABELS, TYPE_LABELS } from "../lib/propertyFormat";
 
 import { DetailField } from "@/components/DetailField";
 import { Badge } from "@/components/ui/badge";
@@ -107,6 +107,10 @@ export function PropertyDetail({
               operandNames={operandNames}
             />
           )
+          : null}
+
+        {property.type === "datetime"
+          ? <DetailField label="Captures">{DATE_TIME_FORMAT_LABELS[property.dateTimeFormat ?? "date"]}</DetailField>
           : null}
 
         <DetailField label="Categories">

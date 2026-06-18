@@ -2,6 +2,7 @@ import { and, desc, eq, inArray, ne } from "drizzle-orm";
 import type {
   Bookmark,
   BookmarkBooleanValue,
+  BookmarkDateTimeValue,
   BookmarkImage,
   BookmarkMediaType,
   BookmarkNumberValue,
@@ -15,6 +16,7 @@ import type {
 import { db } from "@/db";
 import {
   bookmarkBooleanValues,
+  bookmarkDateTimeValues,
   bookmarkImages,
   bookmarkNumberValues,
   bookmarks,
@@ -52,6 +54,7 @@ interface BookmarkExtras {
   tags: BookmarkTag[];
   numberValues: BookmarkNumberValue[];
   booleanValues: BookmarkBooleanValue[];
+  dateTimeValues: BookmarkDateTimeValue[];
   image: BookmarkImage | null;
 }
 
@@ -62,6 +65,7 @@ const EMPTY_EXTRAS: BookmarkExtras = {
   tags: [],
   numberValues: [],
   booleanValues: [],
+  dateTimeValues: [],
   image: null,
 };
 
@@ -80,6 +84,7 @@ function toBookmark(row: BookmarkRow, extras: BookmarkExtras, defaultCategoryId:
     tags: extras.tags,
     numberValues: extras.numberValues,
     booleanValues: extras.booleanValues,
+    dateTimeValues: extras.dateTimeValues,
     image: extras.image,
     priority: row.priority,
     createdAt:
@@ -243,6 +248,33 @@ async function booleanValuesByBookmarkId(
   return grouped;
 }
 
+/** Load date/time custom-property values for a set of bookmarks, grouped by bookmark id. */
+async function dateTimeValuesByBookmarkId(
+  bookmarkIds: string[],
+): Promise<Map<string, BookmarkDateTimeValue[]>> {
+  const grouped = new Map<string, BookmarkDateTimeValue[]>();
+  if (bookmarkIds.length === 0) return grouped;
+
+  const rows = await db
+    .select({
+      bookmarkId: bookmarkDateTimeValues.bookmarkId,
+      propertyId: bookmarkDateTimeValues.propertyId,
+      value: bookmarkDateTimeValues.value,
+    })
+    .from(bookmarkDateTimeValues)
+    .where(inArray(bookmarkDateTimeValues.bookmarkId, bookmarkIds));
+
+  for (const row of rows) {
+    const list = grouped.get(row.bookmarkId) ?? [];
+    list.push({
+      propertyId: row.propertyId,
+      value: row.value,
+    });
+    grouped.set(row.bookmarkId, list);
+  }
+  return grouped;
+}
+
 /** Load attached images for a set of bookmarks in a single query, keyed by bookmark id. */
 async function imagesByBookmarkId(bookmarkIds: string[]): Promise<Map<string, BookmarkImage>> {
   const byId = new Map<string, BookmarkImage>();
@@ -261,10 +293,11 @@ async function imagesByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
 
 /** Hydrate all custom-property relations for a set of bookmark rows in batched queries. */
 async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, BookmarkExtras>> {
-  const [tagsMap, numberMap, booleanMap, imageMap] = await Promise.all([
+  const [tagsMap, numberMap, booleanMap, dateTimeMap, imageMap] = await Promise.all([
     tagsByBookmarkId(bookmarkIds),
     numberValuesByBookmarkId(bookmarkIds),
     booleanValuesByBookmarkId(bookmarkIds),
+    dateTimeValuesByBookmarkId(bookmarkIds),
     imagesByBookmarkId(bookmarkIds),
   ]);
   const grouped = new Map<string, BookmarkExtras>();
@@ -276,6 +309,7 @@ async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
       tags: tagsMap.get(id) ?? [],
       numberValues: numberMap.get(id) ?? [],
       booleanValues: booleanMap.get(id) ?? [],
+      dateTimeValues: dateTimeMap.get(id) ?? [],
       image: imageMap.get(id) ?? null,
     });
   }
@@ -393,6 +427,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
     await linkTags(tx, row.id, input.tagIds);
     await setNumberValues(tx, row.id, input.numberValues);
     await setBooleanValues(tx, row.id, input.booleanValues);
+    await setDateTimeValues(tx, row.id, input.dateTimeValues);
     await recomputeCalculatedValues(tx, row.id);
     return row.id;
   });
@@ -476,6 +511,10 @@ export async function updateBookmark(
       await tx.delete(bookmarkBooleanValues).where(eq(bookmarkBooleanValues.bookmarkId, id));
       await setBooleanValues(tx, id, input.booleanValues);
     }
+    if (input.dateTimeValues !== undefined) {
+      await tx.delete(bookmarkDateTimeValues).where(eq(bookmarkDateTimeValues.bookmarkId, id));
+      await setDateTimeValues(tx, id, input.dateTimeValues);
+    }
     // Always recompute last: number-value edits ripple into calculate results.
     await recomputeCalculatedValues(tx, id);
     return true;
@@ -522,6 +561,20 @@ async function setBooleanValues(
 ): Promise<void> {
   if (!booleanValues || booleanValues.length === 0) return;
   await tx.insert(bookmarkBooleanValues).values(booleanValues.map(entry => ({
+    bookmarkId,
+    propertyId: entry.propertyId,
+    value: entry.value,
+  })));
+}
+
+/** Insert date/time custom-property values for a bookmark (no-op when empty). */
+async function setDateTimeValues(
+  tx: Tx,
+  bookmarkId: string,
+  dateTimeValues: BookmarkDateTimeValue[] | undefined,
+): Promise<void> {
+  if (!dateTimeValues || dateTimeValues.length === 0) return;
+  await tx.insert(bookmarkDateTimeValues).values(dateTimeValues.map(entry => ({
     bookmarkId,
     propertyId: entry.propertyId,
     value: entry.value,

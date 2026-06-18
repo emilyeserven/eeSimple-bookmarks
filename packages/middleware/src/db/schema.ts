@@ -281,13 +281,16 @@ export const customProperties = pgTable("custom_properties", {
   // applies cleanly to existing rows; the service layer backfills it at boot and always returns a
   // slug on the wire type.
   slug: text("slug"),
-  // "number" | "boolean" | "calculate" — kept as text so new kinds can be added later.
+  // "number" | "boolean" | "calculate" | "datetime" — kept as text so new kinds can be added later.
   type: text("type").notNull(),
   // The built-in "Video Length" property; built-ins cannot be renamed, retyped, or deleted.
   builtIn: boolean("built_in").notNull().default(false),
   // How a number/calculate value is rendered: "plain" (default) or "duration" (seconds → H:MM:SS).
   // Nullable/text so it's an additive, push-safe column and new formats can be added later.
   numberFormat: text("number_format"),
+  // What a `datetime` property captures: "date" | "time" | "datetime". NULL for non-datetime types.
+  // Nullable/text so it's an additive, push-safe column.
+  dateTimeFormat: text("date_time_format"),
   // Free-text description surfaced as a hint where the property's field is rendered.
   description: text("description"),
   // Range-slider bounds for a `number`/`calculate` property; NULL means no bound / derive from data.
@@ -344,6 +347,23 @@ export const bookmarkBooleanValues = pgTable("bookmark_boolean_values", {
     onDelete: "cascade",
   }),
   value: boolean("value").notNull(),
+}, table => [
+  primaryKey({
+    columns: [table.bookmarkId, table.propertyId],
+  }),
+]);
+
+/** `bookmark_datetime_values` — one date/time value per (bookmark, datetime property). */
+export const bookmarkDateTimeValues = pgTable("bookmark_datetime_values", {
+  bookmarkId: uuid("bookmark_id").notNull().references(() => bookmarks.id, {
+    onDelete: "cascade",
+  }),
+  propertyId: uuid("property_id").notNull().references(() => customProperties.id, {
+    onDelete: "cascade",
+  }),
+  // Canonical string encoding for the property's DateTimeFormat:
+  // "YYYY-MM-DD" | "HH:MM" | "YYYY-MM-DDTHH:MM" (chosen so it sorts lexicographically).
+  value: text("value").notNull(),
 }, table => [
   primaryKey({
     columns: [table.bookmarkId, table.propertyId],
@@ -538,6 +558,21 @@ export const autofillRuleBooleanValues = pgTable("autofill_rule_boolean_values",
   }),
 ]);
 
+/** `autofill_rule_datetime_values` — date/time custom-property values a rule applies. */
+export const autofillRuleDateTimeValues = pgTable("autofill_rule_datetime_values", {
+  ruleId: uuid("rule_id").notNull().references(() => autofillRules.id, {
+    onDelete: "cascade",
+  }),
+  propertyId: uuid("property_id").notNull().references(() => customProperties.id, {
+    onDelete: "cascade",
+  }),
+  value: text("value").notNull(),
+}, table => [
+  primaryKey({
+    columns: [table.ruleId, table.propertyId],
+  }),
+]);
+
 /** `category_number_defaults` — default number property values for new bookmarks in a category. */
 export const categoryNumberDefaults = pgTable("category_number_defaults", {
   categoryId: uuid("category_id").notNull().references(() => categories.id, {
@@ -568,6 +603,21 @@ export const categoryBooleanDefaults = pgTable("category_boolean_defaults", {
   }),
 ]);
 
+/** `category_datetime_defaults` — default date/time property values for new bookmarks in a category. */
+export const categoryDateTimeDefaults = pgTable("category_datetime_defaults", {
+  categoryId: uuid("category_id").notNull().references(() => categories.id, {
+    onDelete: "cascade",
+  }),
+  propertyId: uuid("property_id").notNull().references(() => customProperties.id, {
+    onDelete: "cascade",
+  }),
+  value: text("value").notNull(),
+}, table => [
+  primaryKey({
+    columns: [table.categoryId, table.propertyId],
+  }),
+]);
+
 export const autofillRulesRelations = relations(autofillRules, ({
   one, many,
 }) => ({
@@ -578,6 +628,7 @@ export const autofillRulesRelations = relations(autofillRules, ({
   tags: many(autofillRuleTags),
   numberValues: many(autofillRuleNumberValues),
   booleanValues: many(autofillRuleBooleanValues),
+  dateTimeValues: many(autofillRuleDateTimeValues),
 }));
 
 export const customPropertiesRelations = relations(customProperties, ({
@@ -694,5 +745,7 @@ export type NewAutofillRuleRow = typeof autofillRules.$inferInsert;
 export type AutofillRuleTagRow = typeof autofillRuleTags.$inferSelect;
 export type AutofillRuleNumberValueRow = typeof autofillRuleNumberValues.$inferSelect;
 export type AutofillRuleBooleanValueRow = typeof autofillRuleBooleanValues.$inferSelect;
+export type AutofillRuleDateTimeValueRow = typeof autofillRuleDateTimeValues.$inferSelect;
 export type CategoryNumberDefaultRow = typeof categoryNumberDefaults.$inferSelect;
 export type CategoryBooleanDefaultRow = typeof categoryBooleanDefaults.$inferSelect;
+export type CategoryDateTimeDefaultRow = typeof categoryDateTimeDefaults.$inferSelect;

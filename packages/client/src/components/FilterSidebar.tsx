@@ -15,6 +15,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import {
   withBooleanFilter,
   withCategories,
+  withDateTimeFilter,
   withNumberFilter,
   withPresenceFilter,
   withTag,
@@ -347,13 +348,19 @@ function PropertiesFilterSection({
     onSearchChange(withNumberFilter(search, propertyId, range));
   const booleanFilterChange = (propertyId: string, value: boolean | undefined) =>
     onSearchChange(withBooleanFilter(search, propertyId, value));
+  const dateTimeFilterChange = (propertyId: string, range: [string | null, string | null] | undefined) =>
+    onSearchChange(withDateTimeFilter(search, propertyId, range));
   const presenceFilterChange = (propertyId: string, mode: "has" | "missing" | undefined) =>
     onSearchChange(withPresenceFilter(search, propertyId, mode));
   const propertyReset = (propertyId: string) =>
     onSearchChange(
-      withNumberFilter(
-        withBooleanFilter(
-          withPresenceFilter(search, propertyId, undefined),
+      withDateTimeFilter(
+        withNumberFilter(
+          withBooleanFilter(
+            withPresenceFilter(search, propertyId, undefined),
+            propertyId,
+            undefined,
+          ),
           propertyId,
           undefined,
         ),
@@ -372,9 +379,11 @@ function PropertiesFilterSection({
         bookmarks={bookmarks}
         numberValues={search.num ?? {}}
         booleanValues={search.bool ?? {}}
+        dateTimeValues={search.date ?? {}}
         presenceValues={search.presence ?? {}}
         onNumberFilterChange={numberFilterChange}
         onBooleanFilterChange={booleanFilterChange}
+        onDateTimeFilterChange={dateTimeFilterChange}
         onPresenceFilterChange={presenceFilterChange}
         onPropertyReset={propertyReset}
       />

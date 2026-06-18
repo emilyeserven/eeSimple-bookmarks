@@ -1,6 +1,7 @@
 import type {
   Bookmark,
   BookmarkBooleanValue,
+  BookmarkDateTimeValue,
   BookmarkNumberValue,
   BookmarkTag,
   CustomProperty,
@@ -12,8 +13,9 @@ import { propertyAppliesToCategory } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 import { ExternalLink, MoreVertical, Sparkles } from "lucide-react";
 
+import { DateTimePicker } from "./DateTimePicker";
 import { useAutoBookmarkImage, useUpdateBookmark } from "../hooks/useBookmarks";
-import { formatNumber } from "../lib/bookmarkFormat";
+import { formatDateTime, formatNumber } from "../lib/bookmarkFormat";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -158,6 +160,25 @@ function mergeBooleanValue(
     }];
 }
 
+/** Replace the entry for `propertyId` with `value`, or append it when the property has no value yet. */
+function mergeDateTimeValue(
+  values: BookmarkDateTimeValue[],
+  propertyId: string,
+  value: string,
+): BookmarkDateTimeValue[] {
+  return values.some(entry => entry.propertyId === propertyId)
+    ? values.map(entry => (entry.propertyId === propertyId
+      ? {
+        propertyId,
+        value,
+      }
+      : entry))
+    : [...values, {
+      propertyId,
+      value,
+    }];
+}
+
 interface CardNumberPropertyEditorProps {
   property: CustomProperty;
   inputId: string;
@@ -247,6 +268,15 @@ export function BookmarkCard({
     });
   }
 
+  function saveDateTime(propertyId: string, value: string) {
+    updateBookmark.mutate({
+      id: bookmark.id,
+      input: {
+        dateTimeValues: mergeDateTimeValue(bookmark.dateTimeValues, propertyId, value),
+      },
+    });
+  }
+
   const numberBadges = bookmark.numberValues
     .map((entry) => {
       const property = byId.get(entry.propertyId);
@@ -273,7 +303,20 @@ export function BookmarkCard({
     .filter((badge): badge is { id: string;
       label: string; } => badge !== null);
 
-  const valueBadges = [...numberBadges, ...booleanBadges];
+  const dateTimeBadges = bookmark.dateTimeValues
+    .map((entry) => {
+      const property = byId.get(entry.propertyId);
+      return property && property.showInListings
+        ? {
+          id: entry.propertyId,
+          label: `${property.name}: ${formatDateTime(entry.value, property)}`,
+        }
+        : null;
+    })
+    .filter((badge): badge is { id: string;
+      label: string; } => badge !== null);
+
+  const valueBadges = [...numberBadges, ...booleanBadges, ...dateTimeBadges];
 
   const header = (
     <div className="flex items-start justify-between gap-4">
@@ -353,6 +396,28 @@ export function BookmarkCard({
                         >
                           {property.name}
                         </DropdownMenuCheckboxItem>
+                      );
+                    }
+                    if (property.type === "datetime") {
+                      const current
+                        = bookmark.dateTimeValues.find(entry => entry.propertyId === property.id)?.value
+                          ?? null;
+                      return (
+                        <div
+                          key={property.id}
+                          className="px-2 py-1.5"
+                          // Keep keystrokes/clicks inside the picker from reaching the menu.
+                          onKeyDown={event => event.stopPropagation()}
+                        >
+                          <Label className="text-xs text-muted-foreground">{property.name}</Label>
+                          <div className="mt-1">
+                            <DateTimePicker
+                              format={property.dateTimeFormat ?? "date"}
+                              value={current}
+                              onChange={value => saveDateTime(property.id, value ?? "")}
+                            />
+                          </div>
+                        </div>
                       );
                     }
                     return (

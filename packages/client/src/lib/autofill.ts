@@ -1,6 +1,7 @@
 import type {
   AutofillRule,
   BookmarkBooleanValue,
+  BookmarkDateTimeValue,
   BookmarkNumberValue,
   ConditionInput,
 } from "@eesimple/types";
@@ -20,6 +21,7 @@ export interface AutofillResult {
   tagIds: string[];
   numberValues: BookmarkNumberValue[];
   booleanValues: BookmarkBooleanValue[];
+  dateTimeValues: BookmarkDateTimeValue[];
 }
 
 /**
@@ -36,6 +38,7 @@ export function matchesRule(rule: AutofillRule, input: AutofillInput): boolean {
     tagIds: new Set(),
     numberValues: new Map(),
     booleanValues: new Map(),
+    dateTimeValues: new Map(),
   };
   return evaluateConditions(rule.conditions, projection);
 }
@@ -53,6 +56,7 @@ export function applyAutofill(input: AutofillInput, rules: AutofillRule[]): Auto
   const tagIds = new Set<string>();
   const numberByProperty = new Map<string, number>();
   const booleanByProperty = new Map<string, boolean>();
+  const dateTimeByProperty = new Map<string, string>();
 
   for (const rule of ordered) {
     if (!matchesRule(rule, input)) continue;
@@ -60,6 +64,7 @@ export function applyAutofill(input: AutofillInput, rules: AutofillRule[]): Auto
     for (const tagId of rule.tagIds) tagIds.add(tagId);
     for (const entry of rule.numberValues) numberByProperty.set(entry.propertyId, entry.value);
     for (const entry of rule.booleanValues) booleanByProperty.set(entry.propertyId, entry.value);
+    for (const entry of rule.dateTimeValues) dateTimeByProperty.set(entry.propertyId, entry.value);
   }
 
   return {
@@ -70,6 +75,10 @@ export function applyAutofill(input: AutofillInput, rules: AutofillRule[]): Auto
       value,
     })),
     booleanValues: [...booleanByProperty].map(([propertyId, value]) => ({
+      propertyId,
+      value,
+    })),
+    dateTimeValues: [...dateTimeByProperty].map(([propertyId, value]) => ({
       propertyId,
       value,
     })),

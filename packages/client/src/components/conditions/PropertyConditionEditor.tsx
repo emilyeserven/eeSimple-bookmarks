@@ -2,6 +2,7 @@ import type { Category, CustomProperty, PropertyCondition } from "@eesimple/type
 
 import { ChevronDown, CircleHelp } from "lucide-react";
 
+import { DateTimeRangeFields } from "../DateTimePicker";
 import { RangeSlider } from "../RangeSlider";
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -31,6 +32,25 @@ function numberBounds(property: CustomProperty): [number, number] {
 }
 
 const NUMBER_MODES = [
+  {
+    value: "none",
+    label: "Any",
+  },
+  {
+    value: "range",
+    label: "In range",
+  },
+  {
+    value: "has",
+    label: "Has value",
+  },
+  {
+    value: "missing",
+    label: "Missing",
+  },
+];
+
+const DATETIME_MODES = [
   {
     value: "none",
     label: "Any",
@@ -200,6 +220,93 @@ function PropertyConditionRow({
                     },
                   },
                 })}
+            />
+          )
+          : null}
+      </div>
+    );
+  }
+
+  if (property.type === "datetime") {
+    const format = property.dateTimeFormat ?? "date";
+    const predicate = condition?.predicate.valueKind === "datetime" ? condition.predicate.predicate : undefined;
+    const mode = predicate ? predicate.kind === "range" ? "range" : predicate.mode : "none";
+    const range = predicate?.kind === "range"
+      ? {
+        from: predicate.from,
+        to: predicate.to,
+      }
+      : {
+        from: null,
+        to: null,
+      };
+
+    function emitRange(next: { from: string | null;
+      to: string | null; }): void {
+      onChange({
+        type: "property",
+        propertyId: property.id,
+        predicate: {
+          valueKind: "datetime",
+          predicate: {
+            kind: "range",
+            from: next.from,
+            to: next.to,
+          },
+        },
+      });
+    }
+
+    return (
+      <div className="space-y-2">
+        <div className="flex items-center justify-between gap-2">
+          <PropertyNameLabel
+            property={property}
+            categories={categories}
+          />
+          <Select
+            value={mode}
+            onValueChange={(next) => {
+              if (next === "none") onChange(null);
+              else if (next === "range") emitRange(range);
+              else {
+                onChange({
+                  type: "property",
+                  propertyId: property.id,
+                  predicate: {
+                    valueKind: "datetime",
+                    predicate: {
+                      kind: "presence",
+                      mode: next as "has" | "missing",
+                    },
+                  },
+                });
+              }
+            }}
+          >
+            <SelectTrigger className="w-36">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {DATETIME_MODES.map(option => (
+                <SelectItem
+                  key={option.value}
+                  value={option.value}
+                >
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        {mode === "range"
+          ? (
+            <DateTimeRangeFields
+              format={format}
+              from={range.from}
+              to={range.to}
+              layout="grid"
+              onChange={emitRange}
             />
           )
           : null}

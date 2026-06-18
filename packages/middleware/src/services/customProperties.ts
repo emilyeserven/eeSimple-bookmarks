@@ -48,6 +48,7 @@ function toCustomProperty(
     type: row.type as CustomProperty["type"],
     builtIn: row.builtIn,
     numberFormat: (row.numberFormat as CustomProperty["numberFormat"]) ?? null,
+    dateTimeFormat: (row.dateTimeFormat as CustomProperty["dateTimeFormat"]) ?? null,
     description: row.description,
     numberMin: row.numberMin,
     numberMax: row.numberMax,
@@ -206,6 +207,7 @@ export async function createCustomProperty(
         slug,
         type: input.type,
         numberFormat: input.numberFormat ?? null,
+        dateTimeFormat: input.type === "datetime" ? (input.dateTimeFormat ?? "date") : null,
         description: input.description ?? null,
         numberMin: input.numberMin ?? null,
         numberMax: input.numberMax ?? null,
@@ -242,6 +244,7 @@ type UpdatePatch = Partial<
     | "name"
     | "slug"
     | "numberFormat"
+    | "dateTimeFormat"
     | "description"
     | "numberMin"
     | "numberMax"
@@ -264,6 +267,9 @@ function buildUpdatePatch(input: UpdateCustomPropertyInput, renamedSlug: string 
   if (input.name !== undefined) patch.name = input.name;
   if (renamedSlug !== undefined) patch.slug = renamedSlug;
   if (input.numberFormat !== undefined) patch.numberFormat = input.numberFormat ?? null;
+  // dateTimeFormat only matters for datetime properties; the client only sends it for those, and
+  // `type` is immutable, so writing it unconditionally when present is safe.
+  if (input.dateTimeFormat !== undefined) patch.dateTimeFormat = input.dateTimeFormat ?? null;
   if (input.description !== undefined) patch.description = input.description ?? null;
   if (input.numberMin !== undefined) patch.numberMin = input.numberMin;
   if (input.numberMax !== undefined) patch.numberMax = input.numberMax;

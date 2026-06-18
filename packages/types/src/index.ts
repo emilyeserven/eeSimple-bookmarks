@@ -250,6 +250,8 @@ export interface Bookmark {
   numberValues: BookmarkNumberValue[];
   /** Boolean custom property values assigned to this bookmark. */
   booleanValues: BookmarkBooleanValue[];
+  /** Date/time custom property values assigned to this bookmark. */
+  dateTimeValues: BookmarkDateTimeValue[];
   /** Homepage ordering weight; higher values appear first. */
   priority: number;
   /** ISO-8601 timestamp of when the bookmark was created. */
@@ -271,6 +273,8 @@ export interface CreateBookmarkInput {
   numberValues?: BookmarkNumberValue[];
   /** Boolean custom property values to assign. */
   booleanValues?: BookmarkBooleanValue[];
+  /** Date/time custom property values to assign. */
+  dateTimeValues?: BookmarkDateTimeValue[];
   /** Homepage ordering weight; higher values appear first. */
   priority?: number;
   /** Friendly name for the website when it doesn't exist yet; ignored for existing sites. */
@@ -293,8 +297,9 @@ export type UpdateBookmarkInput = Partial<CreateBookmarkInput>;
  * - `boolean` — a single true/false value per bookmark.
  * - `calculate` — a numeric value derived from other `number` properties (Sum formula);
  *   computed and stored server-side so it filters and sorts like a `number`.
+ * - `datetime` — a calendar/clock value (a date, a time, or both; see {@link DateTimeFormat}).
  */
-export type CustomPropertyType = "number" | "boolean" | "calculate";
+export type CustomPropertyType = "number" | "boolean" | "calculate" | "datetime";
 
 /**
  * How a `number`/`calculate` value is rendered:
@@ -302,6 +307,16 @@ export type CustomPropertyType = "number" | "boolean" | "calculate";
  * - `duration` — the value is a count of seconds, shown as `H:MM:SS` / `M:SS` (e.g. video length).
  */
 export type NumberFormat = "plain" | "duration";
+
+/**
+ * What a `datetime` property captures (and therefore how its value is entered/encoded):
+ * - `date` — a calendar date only, stored as `"YYYY-MM-DD"`.
+ * - `time` — a clock time only, stored as 24h `"HH:MM"`.
+ * - `datetime` — both, stored as local `"YYYY-MM-DDTHH:MM"` (no timezone).
+ *
+ * The canonical encodings are chosen so values sort lexicographically.
+ */
+export type DateTimeFormat = "date" | "time" | "datetime";
 
 /** A user-defined custom property that becomes a dynamic bookmark filter. */
 export interface CustomProperty {
@@ -314,6 +329,8 @@ export interface CustomProperty {
   builtIn: boolean;
   /** How a `number`/`calculate` value is displayed; `null` is treated as `"plain"`. */
   numberFormat: NumberFormat | null;
+  /** What a `datetime` property captures (`date`/`time`/`datetime`); `null` for non-datetime types. */
+  dateTimeFormat: DateTimeFormat | null;
   /** Free-text description of the property, shown as a hint where its field is rendered, or `null`. */
   description: string | null;
   /** Lower bound of a `number`/`calculate` range slider (`null` = no minimum / derive from data). */
@@ -355,6 +372,8 @@ export interface CreateCustomPropertyInput {
   type: CustomPropertyType;
   /** How a `number`/`calculate` value is displayed. Defaults to `"plain"`. */
   numberFormat?: NumberFormat | null;
+  /** What a `datetime` property captures (`date`/`time`/`datetime`). Required for `datetime`. */
+  dateTimeFormat?: DateTimeFormat | null;
   description?: string | null;
   numberMin?: number | null;
   numberMax?: number | null;
@@ -408,6 +427,16 @@ export interface BookmarkBooleanValue {
 }
 
 /**
+ * A date/time custom property value carried on a bookmark. The `value` is the canonical string
+ * encoding for the property's {@link DateTimeFormat} (`"YYYY-MM-DD"`, `"HH:MM"`, or
+ * `"YYYY-MM-DDTHH:MM"`).
+ */
+export interface BookmarkDateTimeValue {
+  propertyId: string;
+  value: string;
+}
+
+/**
  * A category groups custom properties and owns each bookmark assigned to it.
  * Properties may belong to zero, one, or many categories; each category carries an
  * optional Lucide icon shown in the sidebar.
@@ -450,6 +479,8 @@ export interface CategoryPropertyDefaults {
   numberValues: BookmarkNumberValue[];
   /** Default boolean property values. */
   booleanValues: BookmarkBooleanValue[];
+  /** Default date/time property values. */
+  dateTimeValues: BookmarkDateTimeValue[];
 }
 
 /** Payload for replacing a category's default custom-property values. */
@@ -483,6 +514,8 @@ export interface AutofillRule {
   numberValues: BookmarkNumberValue[];
   /** Boolean custom-property values to apply. */
   booleanValues: BookmarkBooleanValue[];
+  /** Date/time custom-property values to apply. */
+  dateTimeValues: BookmarkDateTimeValue[];
   /** Lower sorts first; later (higher) rules win for single-valued targets when several match. */
   sortOrder: number;
   createdAt: string;
@@ -497,6 +530,7 @@ export interface CreateAutofillRuleInput {
   tagIds?: string[];
   numberValues?: BookmarkNumberValue[];
   booleanValues?: BookmarkBooleanValue[];
+  dateTimeValues?: BookmarkDateTimeValue[];
   sortOrder?: number;
 }
 

@@ -12,6 +12,7 @@ import { buildTagDescendants, emptyConditionTree, evaluateConditions } from "@ee
 import { db } from "@/db";
 import {
   bookmarkBooleanValues,
+  bookmarkDateTimeValues,
   bookmarkNumberValues,
   bookmarks,
   bookmarkTags,
@@ -189,7 +190,7 @@ async function buildConditionInputs(
 ): Promise<Map<string, ConditionInput>> {
   const ids = baseRows.map(row => row.id);
 
-  const [tagRows, numberRows, booleanRows] = await Promise.all([
+  const [tagRows, numberRows, booleanRows, dateTimeRows] = await Promise.all([
     db
       .select({
         bookmarkId: bookmarkTags.bookmarkId,
@@ -213,6 +214,14 @@ async function buildConditionInputs(
       })
       .from(bookmarkBooleanValues)
       .where(inArray(bookmarkBooleanValues.bookmarkId, ids)),
+    db
+      .select({
+        bookmarkId: bookmarkDateTimeValues.bookmarkId,
+        propertyId: bookmarkDateTimeValues.propertyId,
+        value: bookmarkDateTimeValues.value,
+      })
+      .from(bookmarkDateTimeValues)
+      .where(inArray(bookmarkDateTimeValues.bookmarkId, ids)),
   ]);
 
   const tagsByBid = new Map<string, Set<string>>();
@@ -236,6 +245,13 @@ async function buildConditionInputs(
     boolsByBid.set(r.bookmarkId, m);
   }
 
+  const datesByBid = new Map<string, Map<string, string>>();
+  for (const r of dateTimeRows) {
+    const m = datesByBid.get(r.bookmarkId) ?? new Map<string, string>();
+    m.set(r.propertyId, r.value);
+    datesByBid.set(r.bookmarkId, m);
+  }
+
   const result = new Map<string, ConditionInput>();
   for (const row of baseRows) {
     result.set(row.id, {
@@ -245,6 +261,7 @@ async function buildConditionInputs(
       tagIds: tagsByBid.get(row.id) ?? new Set(),
       numberValues: numsByBid.get(row.id) ?? new Map(),
       booleanValues: boolsByBid.get(row.id) ?? new Map(),
+      dateTimeValues: datesByBid.get(row.id) ?? new Map(),
     });
   }
   return result;

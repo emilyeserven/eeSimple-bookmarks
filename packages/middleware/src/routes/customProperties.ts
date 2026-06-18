@@ -42,11 +42,15 @@ const createPropertyBody = {
     },
     type: {
       type: "string",
-      enum: ["number", "boolean", "calculate"],
+      enum: ["number", "boolean", "calculate", "datetime"],
     },
     numberFormat: {
       type: ["string", "null"],
       enum: ["plain", "duration", null],
+    },
+    dateTimeFormat: {
+      type: ["string", "null"],
+      enum: ["date", "time", "datetime", null],
     },
     description: {
       type: ["string", "null"],
@@ -101,6 +105,7 @@ const updatePropertyBody = {
   properties: {
     name: createPropertyBody.properties.name,
     numberFormat: createPropertyBody.properties.numberFormat,
+    dateTimeFormat: createPropertyBody.properties.dateTimeFormat,
     description: createPropertyBody.properties.description,
     numberMin: createPropertyBody.properties.numberMin,
     numberMax: createPropertyBody.properties.numberMax,

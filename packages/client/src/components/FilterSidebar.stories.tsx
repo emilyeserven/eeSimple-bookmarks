@@ -50,6 +50,7 @@ export const WithUnassignedProperty: Story = {
         type: "boolean" as const,
         builtIn: false,
         numberFormat: null,
+        dateTimeFormat: null,
         description: null,
         numberMin: null,
         numberMax: null,

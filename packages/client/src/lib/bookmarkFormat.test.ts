@@ -14,6 +14,7 @@ function property(overrides: Partial<CustomProperty>): CustomProperty {
     type: "number",
     builtIn: false,
     numberFormat: null,
+    dateTimeFormat: null,
     description: null,
     numberMin: null,
     numberMax: null,

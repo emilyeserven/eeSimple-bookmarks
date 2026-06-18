@@ -58,6 +58,24 @@ const booleanValues = {
   },
 } as const;
 
+const dateTimeValues = {
+  type: "array",
+  items: {
+    type: "object",
+    required: ["propertyId", "value"],
+    additionalProperties: false,
+    properties: {
+      propertyId: {
+        type: "string",
+        format: "uuid",
+      },
+      value: {
+        type: "string",
+      },
+    },
+  },
+} as const;
+
 const createRuleBody = {
   type: "object",
   required: ["name", "conditions"],
@@ -86,6 +104,7 @@ const createRuleBody = {
     },
     numberValues,
     booleanValues,
+    dateTimeValues,
     sortOrder: {
       type: "integer",
     },
