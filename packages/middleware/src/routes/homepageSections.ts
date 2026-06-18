@@ -41,6 +41,9 @@ const createBody = {
     sortOrder: {
       type: "integer",
     },
+    hideIfEmpty: {
+      type: "boolean",
+    },
   },
 } as const;
 
@@ -60,6 +63,9 @@ const updateBody = {
     },
     sortOrder: {
       type: "integer",
+    },
+    hideIfEmpty: {
+      type: "boolean",
     },
   },
 } as const;

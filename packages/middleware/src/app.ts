@@ -8,6 +8,7 @@ import { bookmarkRoutes } from "@/routes/bookmarks";
 import { categoryRoutes } from "@/routes/categories";
 import { conditionNodeSchema, conditionTreeSchema } from "@/routes/conditionSchema";
 import { customPropertyRoutes } from "@/routes/customProperties";
+import { galleryRoutes } from "@/routes/gallery";
 import { healthRoutes } from "@/routes/health";
 import { homepageFilterRoutes } from "@/routes/homepageFilter";
 import { homepageSectionsRoutes } from "@/routes/homepageSections";
@@ -98,6 +99,10 @@ export async function buildApp(): Promise<FastifyInstance> {
           name: "images",
           description: "Bookmark image upload, auto-capture, and serving",
         },
+        {
+          name: "gallery",
+          description: "Storage bucket manifest, scan/reconcile, and orphan cleanup",
+        },
       ],
     },
   });
@@ -121,6 +126,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(autofillRoutes);
   await app.register(homepageFilterRoutes);
   await app.register(homepageSectionsRoutes);
+  await app.register(galleryRoutes);
 
   return app;
 }

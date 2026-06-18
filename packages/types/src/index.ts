@@ -173,6 +173,56 @@ export interface BookmarkImage {
   source: "upload" | "og";
 }
 
+/**
+ * A single object cataloged in the bucket manifest (`media_objects`). The Gallery lists these so
+ * every image in object storage is accounted for, including ones with no live bookmark (orphans).
+ */
+export interface MediaObject {
+  /** Object-storage key the bytes live under, e.g. `bookmarks/<id>.webp`. Unique. */
+  objectKey: string;
+  /** MIME type of the stored bytes (derived from the key's extension), or `null` when unknown. */
+  contentType: string | null;
+  /** Size of the stored object in bytes, or `null` when the store didn't report it. */
+  byteSize: number | null;
+  /** ISO-8601 last-modified timestamp from object storage, or `null`. */
+  lastModified: string | null;
+  /** ISO-8601 timestamp the object was last seen during a bucket scan. */
+  lastSeenAt: string;
+  /**
+   * The bookmark this object belongs to, or `null` when it's an orphan (the bookmark was deleted
+   * but its image bytes were left behind in storage).
+   */
+  bookmark: { id: string;
+    title: string; } | null;
+  /** Serving URL for rendering the object (the bookmark image endpoint, or the by-key gallery one). */
+  url: string;
+}
+
+/** The Gallery catalog: every cataloged object split into ones linked to a bookmark vs. orphans. */
+export interface GalleryCatalog {
+  /** Objects whose bookmark still exists. */
+  registered: MediaObject[];
+  /** Objects with no live bookmark — reclaimable storage. */
+  orphans: MediaObject[];
+}
+
+/** Result of a manual bucket scan/reconciliation, with the refreshed catalog and per-scan counts. */
+export interface GalleryScanResult {
+  catalog: GalleryCatalog;
+  /** Objects newly added to the manifest this scan. */
+  added: number;
+  /** Existing manifest rows refreshed this scan. */
+  updated: number;
+  /** Manifest rows pruned because their object is no longer in the bucket. */
+  pruned: number;
+}
+
+/** Result of deleting orphan objects: keys actually removed vs. keys refused (unknown or now linked). */
+export interface DeleteOrphansResult {
+  deleted: string[];
+  skipped: string[];
+}
+
 /** A single saved bookmark. */
 export interface Bookmark {
   id: string;
@@ -505,6 +555,7 @@ export interface HomepageSection {
   description: string | null;
   conditions: ConditionTree;
   sortOrder: number;
+  hideIfEmpty: boolean;
   createdAt: string;
 }
 
@@ -520,6 +571,7 @@ export interface CreateHomepageSectionInput {
   description?: string | null;
   conditions: ConditionTree;
   sortOrder?: number;
+  hideIfEmpty?: boolean;
 }
 
 /** Payload for partially updating a homepage section. */

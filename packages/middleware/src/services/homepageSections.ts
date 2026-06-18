@@ -33,6 +33,7 @@ function toSection(row: SectionRow): HomepageSection {
     description: row.description,
     conditions: row.conditions,
     sortOrder: row.sortOrder,
+    hideIfEmpty: row.hideIfEmpty,
     createdAt: row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
   };
 }
@@ -68,6 +69,7 @@ export async function createHomepageSection(
       description: input.description ?? null,
       conditions: input.conditions,
       sortOrder,
+      hideIfEmpty: input.hideIfEmpty ?? false,
     })
     .returning();
   return toSection(row);
@@ -83,6 +85,7 @@ export async function updateHomepageSection(
   if (input.description !== undefined) updates.description = input.description ?? null;
   if (input.conditions !== undefined) updates.conditions = input.conditions;
   if (input.sortOrder !== undefined) updates.sortOrder = input.sortOrder;
+  if (input.hideIfEmpty !== undefined) updates.hideIfEmpty = input.hideIfEmpty;
 
   if (Object.keys(updates).length === 0) {
     const [existing] = await db

@@ -20,6 +20,10 @@ const settingsNav = [
     customizationKey: "autofill",
   },
   {
+    to: "/settings/gallery",
+    label: "Gallery",
+  },
+  {
     to: "/settings/display",
     label: "Display",
   },

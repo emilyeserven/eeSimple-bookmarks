@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { type AnyPgColumn, boolean, integer, jsonb, pgTable, primaryKey, real, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
+import { type AnyPgColumn, boolean, integer, jsonb, pgTable, primaryKey, real, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import type { ConditionTree } from "@eesimple/types";
 
 /** `bookmarks` table — one row per saved bookmark. Tags now live in `bookmark_tags`. */
@@ -58,6 +58,33 @@ export const bookmarkImages = pgTable("bookmark_images", {
   // "upload" | "og" — kept as text so new sources can be added without a migration.
   source: text("source").notNull(),
   createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+});
+
+/**
+ * `media_objects` — a full manifest of every object in the storage bucket, reconciled by the
+ * "Scan bucket" action. `objectKey` is the primary key. `bookmarkId` links the object to its
+ * bookmark when one exists; the `set null` FK means deleting a bookmark auto-nulls the link, so the
+ * row *becomes* an orphan (`bookmarkId IS NULL`) with no extra bookkeeping. `lastSeenAt` is stamped
+ * each scan so rows for objects deleted out-of-band can be pruned.
+ */
+export const mediaObjects = pgTable("media_objects", {
+  objectKey: text("object_key").primaryKey(),
+  // MIME type derived from the key's extension; nullable since listings don't carry it.
+  contentType: text("content_type"),
+  // Size in bytes as reported by the store; nullable when unavailable.
+  byteSize: integer("byte_size"),
+  // Last-modified timestamp from object storage; nullable when unavailable.
+  lastModified: timestamp("last_modified", {
+    withTimezone: true,
+  }),
+  // The owning bookmark, or NULL for an orphan. `set null` so deleting a bookmark turns its object
+  // into an orphan automatically rather than leaving a dangling reference.
+  bookmarkId: uuid("bookmark_id").references(() => bookmarks.id, {
+    onDelete: "set null",
+  }),
+  lastSeenAt: timestamp("last_seen_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
 });
@@ -138,7 +165,12 @@ export const tags = pgTable("tags", {
 }, table => [
   // Sibling names are unique within a parent. NULL parents are distinct in
   // Postgres, so root-level uniqueness is enforced in the service layer instead.
-  unique("tags_parent_name_unique").on(table.parentId, table.name),
+  // NOTE: a uniqueIndex, NOT a table `unique()` constraint, on purpose. drizzle-kit 0.31.10 cannot
+  // converge on a COMPOSITE unique CONSTRAINT — every `push` tries to drop+recreate it, and on the
+  // populated `tags` table that recreate fires an interactive "truncate?" suggestion that crashes
+  // the non-TTY deploy. A unique INDEX converges and applies without prompting. `migrate.ts`
+  // migrates existing DBs from the old constraint to this index. Do not change back to `unique()`.
+  uniqueIndex("tags_parent_name_unique").on(table.parentId, table.name),
 ]);
 
 /** `bookmark_tags` join — many-to-many between bookmarks and tags. */
@@ -217,6 +249,15 @@ export const websitesRelations = relations(websites, ({
   many,
 }) => ({
   bookmarks: many(bookmarks),
+}));
+
+export const mediaObjectsRelations = relations(mediaObjects, ({
+  one,
+}) => ({
+  bookmark: one(bookmarks, {
+    fields: [mediaObjects.bookmarkId],
+    references: [bookmarks.id],
+  }),
 }));
 
 export const bookmarkTagsRelations = relations(bookmarkTags, ({
@@ -419,6 +460,7 @@ export const homepageSections = pgTable("homepage_sections", {
   description: text("description"),
   conditions: jsonb("conditions").$type<ConditionTree>().notNull(),
   sortOrder: integer("sort_order").notNull().default(0),
+  hideIfEmpty: boolean("hide_if_empty").notNull().default(false),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
@@ -676,6 +718,8 @@ export type BookmarkRow = typeof bookmarks.$inferSelect;
 export type NewBookmarkRow = typeof bookmarks.$inferInsert;
 export type BookmarkImageRow = typeof bookmarkImages.$inferSelect;
 export type NewBookmarkImageRow = typeof bookmarkImages.$inferInsert;
+export type MediaObjectRow = typeof mediaObjects.$inferSelect;
+export type NewMediaObjectRow = typeof mediaObjects.$inferInsert;
 export type WebsiteRow = typeof websites.$inferSelect;
 export type NewWebsiteRow = typeof websites.$inferInsert;
 export type MediaTypeRow = typeof mediaTypes.$inferSelect;

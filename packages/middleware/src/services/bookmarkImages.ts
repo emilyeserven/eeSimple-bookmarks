@@ -7,6 +7,7 @@ import type { BookmarkImage } from "@eesimple/types";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { bookmarkImages, type BookmarkImageRow, bookmarks } from "@/db/schema";
+import { forgetManifestObject, recordManifestObject } from "@/services/gallery";
 import { fetchOgImage } from "@/services/metadata";
 import { processImage } from "@/utils/image";
 import { deleteObject, putObject } from "@/utils/objectStore";
@@ -80,6 +81,13 @@ export async function setBookmarkImage(
       set: values,
     })
     .returning();
+  // Keep the bucket manifest in sync so the Gallery reflects the upload before any scan runs.
+  await recordManifestObject({
+    objectKey,
+    contentType: processed.contentType,
+    byteSize: processed.body.byteLength,
+    bookmarkId,
+  });
   return bookmarkImageFromRow(row);
 }
 
@@ -89,6 +97,7 @@ export async function removeBookmarkImage(bookmarkId: string): Promise<boolean> 
   if (!row) return false;
   await deleteObject(row.objectKey);
   await db.delete(bookmarkImages).where(eq(bookmarkImages.bookmarkId, bookmarkId));
+  await forgetManifestObject(row.objectKey);
   return true;
 }
 
