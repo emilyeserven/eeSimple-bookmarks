@@ -21,7 +21,7 @@ export function HomepageContentBlocks({
   const homepageText = content.homepageText.trim() ? content.homepageText : "";
 
   return (
-    <div className="flex flex-wrap gap-4">
+    <div className="grid grid-cols-2 gap-4">
       {homepageText
         ? (
           <div className={contentWidthClass(content.homepageTextWidth)}>
