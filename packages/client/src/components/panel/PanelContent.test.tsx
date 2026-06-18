@@ -18,6 +18,11 @@ vi.mock("./AutofillRulePanel", () => ({
   }: {
     ruleId: string;
   }) => <div>autofill:{ruleId}</div>,
+  ViewAutofillRule: ({
+    ruleId,
+  }: {
+    ruleId: string;
+  }) => <div>autofill-view:{ruleId}</div>,
 }));
 
 vi.mock("./TagPanel", () => ({
@@ -45,6 +50,7 @@ describe("PanelContent", () => {
   it("dispatches to the autofill editor", () => {
     panelState.dCT = "autofill";
     panelState.dCId = "rule-1";
+    panelState.dMode = "edit";
     render(<PanelContent />);
     expect(screen.getByText("autofill:rule-1")).toBeInTheDocument();
   });
