@@ -89,6 +89,16 @@ const TAXONOMY_CRUMBS = [
     listLabel: "YouTube Channels",
     detailLabel: "Channel",
   },
+  {
+    prefix: "/custom-properties",
+    listLabel: "Custom Properties",
+    detailLabel: "Custom Property",
+  },
+  {
+    prefix: "/autofill",
+    listLabel: "Autofill Rules",
+    detailLabel: "Rule",
+  },
 ] as const;
 
 function settingsCrumbs(pathname: string): BreadcrumbSegment[] {
@@ -98,21 +108,6 @@ function settingsCrumbs(pathname: string): BreadcrumbSegment[] {
   }];
   const parts = rest.split("/");
   const sub = parts[0];
-  if (sub === "autofill" && parts.length > 1) {
-    return [
-      {
-        label: "Settings",
-        href: "/settings",
-      },
-      {
-        label: "Autofill",
-        href: "/settings/autofill",
-      },
-      {
-        label: "Rule",
-      },
-    ];
-  }
   return [{
     label: "Settings",
     href: "/settings",

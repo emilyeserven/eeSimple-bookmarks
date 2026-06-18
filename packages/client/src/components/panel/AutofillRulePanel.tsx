@@ -1,5 +1,7 @@
 import type { CreateAutofillRuleInput } from "@eesimple/types";
 
+import { useParams } from "@tanstack/react-router";
+
 import { usePanelControls } from "./usePanelControls";
 import { usePanelDismissAfterDelete } from "./usePanelDismissAfterDelete";
 import {
@@ -82,6 +84,18 @@ function CreateAutofillRule() {
   } = useTagTree();
   const createRule = useCreateAutofillRule();
 
+  // When opened from a category's autofill tab the slug is still in the route path; preselect that
+  // category as the new rule's target so it shows up in the category's scoped list. Undefined on
+  // every other surface (e.g. /settings/autofill), leaving the default unchanged.
+  const {
+    categorySlug,
+  } = useParams({
+    strict: false,
+  });
+  const defaultCategoryId = categorySlug
+    ? (categories ?? []).find(category => category.slug === categorySlug)?.id
+    : undefined;
+
   async function handleCreate(input: CreateAutofillRuleInput) {
     const created = await createRule.mutateAsync(input);
     openAutofill(created.id);
@@ -99,6 +113,7 @@ function CreateAutofillRule() {
         categories={categories ?? []}
         properties={properties ?? []}
         tagTree={tagTree ?? []}
+        defaultCategoryId={defaultCategoryId}
         submitLabel="Add rule"
         isError={createRule.isError}
         errorMessage={createRule.error?.message}

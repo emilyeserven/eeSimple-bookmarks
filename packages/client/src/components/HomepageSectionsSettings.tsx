@@ -139,7 +139,7 @@ export function HomepageSectionsSettings() {
         >
           {localSections.length > 0
             ? (
-              <div className="divide-y rounded-md border">
+              <div className="space-y-3">
                 {localSections.map(section => (
                   <SortableSectionCard
                     key={section.id}
@@ -179,6 +179,9 @@ export function HomepageSectionsSettings() {
                       description: values.description,
                       conditions: values.conditions,
                       hideIfEmpty: values.hideIfEmpty,
+                      columns: values.columns,
+                      imageMode: values.imageMode,
+                      imageLayout: values.imageLayout,
                     },
                     {
                       onSuccess: () => setAddingNew(false),

@@ -1,13 +1,27 @@
-import { Outlet, createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+
+import { CustomPropertyManager } from "../components/CustomPropertyManager";
 
 /**
- * Layout for the Custom Properties settings section: the searchable listing and each property's
- * view/edit page render through this outlet.
+ * Settings fallback for Custom Properties, shown in the Settings nav when the section is hidden
+ * from the sidebar's Customization group. The listing links out to the top-level
+ * `/custom-properties` pages — the section's primary home.
  */
 export const Route = createFileRoute("/settings/custom-properties")({
-  component: CustomPropertiesLayout,
+  component: CustomPropertiesPage,
 });
 
-function CustomPropertiesLayout() {
-  return <Outlet />;
+function CustomPropertiesPage() {
+  return (
+    <section className="space-y-6">
+      <div>
+        <h2 className="text-xl font-semibold">Custom Properties</h2>
+        <p className="text-sm text-muted-foreground">
+          Define custom properties to attach to bookmarks. Each property becomes a filter on the
+          bookmarks page — a combobox for tiered tags, a range slider for numbers.
+        </p>
+      </div>
+      <CustomPropertyManager />
+    </section>
+  );
 }

@@ -74,9 +74,6 @@ interface UiState {
   /** Section IDs whose bookmark grid is collapsed on the homepage. */
   collapsedHomepageSectionIds: string[];
   toggleHomepageSectionCollapsed: (id: string) => void;
-  /** Per-section image layout for 2-column homepage sections: "above" (default) or "side". Keyed by section ID. */
-  homepageSectionImageLayout: Record<string, HomepageSectionImageLayout>;
-  setHomepageSectionImageLayout: (sectionId: string, layout: HomepageSectionImageLayout) => void;
   /** Per-listing image layout for 2-column listing pages: "above" (default) or "side". Keyed by a stable page key. */
   bookmarkImageLayout: Record<string, HomepageSectionImageLayout>;
   setBookmarkImageLayout: (pageKey: string, layout: HomepageSectionImageLayout) => void;
@@ -167,13 +164,6 @@ export const useUiStore = create<UiState>()(
           ? state.collapsedHomepageSectionIds.filter(x => x !== id)
           : [...state.collapsedHomepageSectionIds, id],
       })),
-      homepageSectionImageLayout: {},
-      setHomepageSectionImageLayout: (sectionId, layout) => set(state => ({
-        homepageSectionImageLayout: {
-          ...state.homepageSectionImageLayout,
-          [sectionId]: layout,
-        },
-      })),
       bookmarkImageLayout: {},
       setBookmarkImageLayout: (pageKey, layout) => set(state => ({
         bookmarkImageLayout: {
@@ -201,7 +191,6 @@ export const useUiStore = create<UiState>()(
         collapsedSidebarSections: state.collapsedSidebarSections,
         addBookmarkFormOpen: state.addBookmarkFormOpen,
         collapsedHomepageSectionIds: state.collapsedHomepageSectionIds,
-        homepageSectionImageLayout: state.homepageSectionImageLayout,
         bookmarkImageLayout: state.bookmarkImageLayout,
       }),
     },

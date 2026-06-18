@@ -1,5 +1,6 @@
 import type { AutofillRule, Category } from "@eesimple/types";
 
+import { LabeledSection } from "./LabeledSection";
 import { summarizeConditions } from "../lib/conditionsSummary";
 
 import { Button } from "@/components/ui/button";
@@ -73,17 +74,17 @@ export function AutofillRuleDetail({
 
       <Separator />
 
-      <div className="space-y-1">
-        <h3 className="text-sm font-semibold">Activation Conditions</h3>
-        <p className="text-sm text-muted-foreground">{summarizeConditions(rule.conditions)}</p>
-      </div>
+      <LabeledSection
+        title="Activation Conditions"
+        description={summarizeConditions(rule.conditions)}
+      />
 
       <Separator />
 
-      <div className="space-y-1">
-        <h3 className="text-sm font-semibold">What Gets Prefilled</h3>
-        <p className="text-sm text-muted-foreground">{prefillSummary}</p>
-      </div>
+      <LabeledSection
+        title="What Gets Prefilled"
+        description={prefillSummary}
+      />
 
       <Separator />
 

@@ -3,12 +3,7 @@ import type { HomepageSectionBookmarks, CustomProperty } from "@eesimple/types";
 import { ChevronDown, ChevronRight } from "lucide-react";
 
 import { BookmarkCard } from "./BookmarkCard";
-import {
-  COLUMN_CLASS,
-  useBookmarkColumns,
-  useBookmarkImageMode,
-  useHomepageSectionImageLayout,
-} from "../lib/bookmarkColumns";
+import { COLUMN_CLASS } from "../lib/bookmarkColumns";
 import { useUiStore } from "../stores/uiStore";
 
 import { Button } from "@/components/ui/button";
@@ -25,9 +20,9 @@ export function HomepageSectionBlock({
   const {
     section, bookmarks,
   } = data;
-  const columns = useBookmarkColumns(section.id);
-  const imageMode = useBookmarkImageMode(section.id);
-  const imageLayout = useHomepageSectionImageLayout(section.id);
+  const columns = section.columns;
+  const imageMode = section.imageMode;
+  const imageLayout = section.imageLayout;
   const imageLeft = columns === 1 || (columns === 2 && imageLayout === "side");
   const collapsedIds = useUiStore(state => state.collapsedHomepageSectionIds);
   const toggle = useUiStore(state => state.toggleHomepageSectionCollapsed);
