@@ -628,7 +628,7 @@ export interface FileRoutesByFullPath {
   '/autofill/$ruleSlug': typeof AutofillRuleSlugRouteWithChildren
   '/bookmarks/$bookmarkId': typeof BookmarksBookmarkIdRouteWithChildren
   '/categories/$categorySlug': typeof CategoriesCategorySlugRouteWithChildren
-  '/custom-properties/$propertySlug': typeof CustomPropertiesPropertySlugViewRouteWithChildren
+  '/custom-properties/$propertySlug': typeof CustomPropertiesPropertySlugRouteWithChildren
   '/custom-properties/new': typeof CustomPropertiesNewRoute
   '/settings/autofill': typeof SettingsAutofillRoute
   '/settings/automations': typeof SettingsAutomationsRoute
@@ -641,7 +641,7 @@ export interface FileRoutesByFullPath {
   '/settings/sidebar': typeof SettingsSidebarRoute
   '/settings/websites': typeof SettingsWebsitesRoute
   '/settings/youtube-channels': typeof SettingsYoutubeChannelsRoute
-  '/tags/$tagSlug': typeof TagsTagSlugViewRouteWithChildren
+  '/tags/$tagSlug': typeof TagsTagSlugRouteWithChildren
   '/taxonomies/media-types': typeof TaxonomiesMediaTypesRouteWithChildren
   '/taxonomies/websites': typeof TaxonomiesWebsitesRouteWithChildren
   '/taxonomies/youtube-channels': typeof TaxonomiesYoutubeChannelsRouteWithChildren
@@ -657,9 +657,9 @@ export interface FileRoutesByFullPath {
   '/categories/$categorySlug/settings': typeof CategoriesCategorySlugSettingsRoute
   '/custom-properties/$propertySlug/edit': typeof CustomPropertiesPropertySlugEditRouteWithChildren
   '/tags/$tagSlug/edit': typeof TagsTagSlugEditRouteWithChildren
-  '/taxonomies/media-types/$mediaTypeSlug': typeof TaxonomiesMediaTypesMediaTypeSlugViewRouteWithChildren
-  '/taxonomies/websites/$websiteSlug': typeof TaxonomiesWebsitesWebsiteSlugViewRouteWithChildren
-  '/taxonomies/youtube-channels/$channelSlug': typeof TaxonomiesYoutubeChannelsChannelSlugViewRouteWithChildren
+  '/taxonomies/media-types/$mediaTypeSlug': typeof TaxonomiesMediaTypesMediaTypeSlugRouteWithChildren
+  '/taxonomies/websites/$websiteSlug': typeof TaxonomiesWebsitesWebsiteSlugRouteWithChildren
+  '/taxonomies/youtube-channels/$channelSlug': typeof TaxonomiesYoutubeChannelsChannelSlugRouteWithChildren
   '/autofill/$ruleSlug/': typeof AutofillRuleSlugIndexRoute
   '/bookmarks/$bookmarkId/': typeof BookmarksBookmarkIdIndexRoute
   '/categories/$categorySlug/': typeof CategoriesCategorySlugIndexRoute
