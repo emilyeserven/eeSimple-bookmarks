@@ -65,6 +65,15 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
 - **UI primitives:** before adding a Radix/shadcn primitive, check
   `packages/client/src/components/ui/` — `dialog`, `dropdown-menu`, `popover`, `toggle-group`,
   `command`, etc. already exist (`Dialog` was once reintroduced twice). Reuse the existing one.
+- **Grouped sections on detail/edit pages:** use the shared `LabeledSection`
+  (`packages/client/src/components/LabeledSection.tsx`) — a heading + optional muted description over
+  its content. Stack instances in a `space-y-6` container and divide them with `<Separator />`
+  (`@/components/ui/separator`); don't wrap a detail/edit page's sections in card boxes
+  (`rounded-lg border bg-card`). `AutofillRuleDetail`/`AutofillRuleForm` and the Website
+  view/edit pages are the reference. Reach for the **collapsible/accordion** pattern instead
+  (`Collapsible` + a `CollapsibleFormSection`-style trigger with a collapsed one-line preview) only
+  when a section is long or optional and benefits from collapsing (e.g. autofill activation
+  conditions, property options).
 - **Right-panel parity:** the shared right-hand panel (`packages/client/src/components/panel/`) is
   URL-driven (`dOpen`/`dCT`/`dCId`/`dMode`) and must achieve **feature and component parity** with
   the main app. A single item viewed/edited in the panel reuses the **same** components the main app
