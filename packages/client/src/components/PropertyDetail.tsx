@@ -50,6 +50,7 @@ export function PropertyDetail({
           {assignedCategories.length === 0 && property.enabled && (
             <TriangleAlert className="size-4 text-amber-500" />
           )}
+          {property.builtIn && <Badge variant="secondary">Built-in</Badge>}
           {!property.enabled && <Badge variant="outline">Disabled</Badge>}
           <Badge variant="secondary">{TYPE_LABELS[property.type]}</Badge>
         </div>

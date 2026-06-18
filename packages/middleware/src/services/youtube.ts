@@ -9,7 +9,13 @@
  * network call reuses the guarded fetch helpers from `metadata.ts`.
  */
 
+import { isYouTubeVideoUrl, parseYouTubeVideo } from "@eesimple/types";
+
 import { fetchHeadHtml, isPublicHttpUrl, metaContent } from "@/services/metadata";
+
+// Re-exported so existing intra-package importers (and tests) keep their `@/services/youtube` path;
+// the pure parsers now live in `@eesimple/types` so the client can share them.
+export { isYouTubeVideoUrl, parseYouTubeVideo };
 
 const OEMBED_TIMEOUT_MS = 5000;
 
@@ -20,56 +26,6 @@ export interface YouTubeMetadata {
   channelName: string | null;
   channelUrl: string | null;
   durationSeconds: number | null;
-}
-
-/**
- * Identify a YouTube video URL and return its 11-character video id, or `null` when the URL isn't a
- * recognizable YouTube video. Handles `youtube.com/watch?v=`, `youtu.be/<id>`, `/shorts/<id>`,
- * `/embed/<id>`, and `/live/<id>` on any youtube.com subdomain.
- */
-export function parseYouTubeVideo(url: string): { videoId: string } | null {
-  let parsed: URL;
-  try {
-    parsed = new URL(url);
-  }
-  catch {
-    return null;
-  }
-  const host = parsed.hostname.replace(/^www\./i, "").toLowerCase();
-  const isValidId = (id: string | null | undefined): id is string => !!id && /^[\w-]{11}$/.test(id);
-
-  if (host === "youtu.be") {
-    const id = parsed.pathname.split("/").filter(Boolean)[0];
-    return isValidId(id)
-      ? {
-        videoId: id,
-      }
-      : null;
-  }
-  if (host === "youtube.com" || host.endsWith(".youtube.com")) {
-    if (parsed.pathname === "/watch") {
-      const id = parsed.searchParams.get("v");
-      return isValidId(id)
-        ? {
-          videoId: id,
-        }
-        : null;
-    }
-    const segments = parsed.pathname.split("/").filter(Boolean);
-    if (segments.length >= 2 && ["shorts", "embed", "live", "v"].includes(segments[0])) {
-      return isValidId(segments[1])
-        ? {
-          videoId: segments[1],
-        }
-        : null;
-    }
-  }
-  return null;
-}
-
-/** True when `url` points at a YouTube video. */
-export function isYouTubeVideoUrl(url: string): boolean {
-  return parseYouTubeVideo(url) !== null;
 }
 
 /**
