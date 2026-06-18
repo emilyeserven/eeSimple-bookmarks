@@ -27,6 +27,7 @@ function rule(overrides: Partial<AutofillRule>): AutofillRule {
   return {
     id: overrides.id ?? "rule",
     name: overrides.name ?? "Rule",
+    slug: overrides.slug ?? "rule",
     description: overrides.description ?? null,
     conditions: overrides.conditions ?? match(""),
     setCategoryId: overrides.setCategoryId ?? null,

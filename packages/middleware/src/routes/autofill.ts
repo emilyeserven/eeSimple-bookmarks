@@ -6,6 +6,7 @@ import type {
 import {
   createAutofillRule,
   deleteAutofillRule,
+  getAutofillRuleBySlug,
   listAutofillRules,
   updateAutofillRule,
 } from "@/services/autofill";
@@ -97,6 +98,17 @@ const updateRuleBody = {
   properties: createRuleBody.properties,
 } as const;
 
+const slugParams = {
+  type: "object",
+  required: ["slug"],
+  properties: {
+    slug: {
+      type: "string",
+      minLength: 1,
+    },
+  },
+} as const;
+
 /** CRUD routes for autofill rules, mounted under `/api/autofill-rules`. */
 export async function autofillRoutes(app: FastifyInstance): Promise<void> {
   app.get("/api/autofill-rules", {
@@ -104,6 +116,22 @@ export async function autofillRoutes(app: FastifyInstance): Promise<void> {
       tags: ["autofill"],
     },
   }, async () => listAutofillRules());
+
+  app.get("/api/autofill-rules/by-slug/:slug", {
+    schema: {
+      tags: ["autofill"],
+      params: slugParams,
+    },
+  }, async (req, reply) => {
+    const {
+      slug,
+    } = req.params as { slug: string };
+    const rule = await getAutofillRuleBySlug(slug);
+    if (!rule) return reply.code(404).send({
+      message: "Autofill rule not found",
+    });
+    return rule;
+  });
 
   app.post("/api/autofill-rules", {
     schema: {

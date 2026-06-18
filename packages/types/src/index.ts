@@ -299,6 +299,8 @@ export interface AutofillRule {
   id: string;
   /** Friendly label shown in the settings list. */
   name: string;
+  /** URL-friendly identifier derived from the name (e.g. `"github-recipes"` from `"GitHub Recipes"`). Unique. */
+  slug: string;
   /** Optional free-form description. */
   description: string | null;
   /** The match predicate tree describing when this rule applies. */

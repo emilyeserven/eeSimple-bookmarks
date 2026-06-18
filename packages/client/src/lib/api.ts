@@ -211,6 +211,7 @@ export const homepageFilterApi = {
 
 export const autofillApi = {
   list: () => request<AutofillRule[]>("/autofill-rules"),
+  getBySlug: (slug: string) => request<AutofillRule>(`/autofill-rules/by-slug/${encodeURIComponent(slug)}`),
   create: (input: CreateAutofillRuleInput) =>
     request<AutofillRule>("/autofill-rules", {
       method: "POST",

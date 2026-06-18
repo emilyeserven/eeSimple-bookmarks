@@ -69,12 +69,12 @@ export function usePanelControls(): PanelControls {
       dCId: id,
       dMode: id === NEW_SENTINEL ? "edit" : "view",
     }),
-    // The autofill panel is an editor for both existing and new rules.
+    // Autofill rules open in view mode for existing rules; new ones open the editor.
     openAutofill: id => setContent({
       dOpen: true,
       dCT: "autofill",
       dCId: id,
-      dMode: "edit",
+      dMode: id === NEW_SENTINEL ? "edit" : "view",
     }),
     close: () => setContent({}),
   };

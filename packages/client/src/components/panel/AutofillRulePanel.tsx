@@ -11,6 +11,7 @@ import {
 import { useCategories } from "../../hooks/useCategories";
 import { useCustomProperties } from "../../hooks/useCustomProperties";
 import { useTagTree } from "../../hooks/useTags";
+import { AutofillRuleDetail } from "../AutofillRuleDetail";
 import { AutofillRuleForm } from "../AutofillRuleForm";
 
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,41 @@ export function AutofillRulePanel({
   return ruleId === NEW_SENTINEL
     ? <CreateAutofillRule />
     : <EditAutofillRule ruleId={ruleId} />;
+}
+
+/** Read-only view of an autofill rule in the panel, with Edit and Delete actions. */
+export function ViewAutofillRule({
+  ruleId,
+}: {
+  ruleId: string;
+}) {
+  const {
+    rule, isLoading, error,
+  } = useAutofillRuleById(ruleId);
+  const {
+    data: categories,
+  } = useCategories();
+  const {
+    openItem,
+  } = usePanelControls();
+  const dismiss = usePanelDismissAfterDelete();
+  const deleteRule = useDeleteAutofillRule();
+
+  if (isLoading) return <p className="text-muted-foreground">Loading…</p>;
+  if (error) return <p className="text-destructive">{error.message}</p>;
+  if (!rule) return <p className="text-destructive">Rule not found.</p>;
+
+  return (
+    <AutofillRuleDetail
+      rule={rule}
+      categories={categories ?? []}
+      onEdit={() => openItem("autofill", ruleId, "edit")}
+      onDelete={() => deleteRule.mutate(ruleId, {
+        onSuccess: dismiss,
+      })}
+      deleteIsPending={deleteRule.isPending}
+    />
+  );
 }
 
 /** Create form: on success, re-target the panel at the saved rule so editing continues inline. */
