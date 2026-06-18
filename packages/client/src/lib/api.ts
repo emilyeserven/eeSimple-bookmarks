@@ -21,6 +21,7 @@ import type {
   FetchMetadataResult,
   GalleryCatalog,
   GalleryScanResult,
+  HomepageContentSettings,
   HomepageSection,
   HomepageSectionBookmarks,
   MediaType,
@@ -31,6 +32,7 @@ import type {
   UpdateCategoryDefaultsInput,
   UpdateCategoryInput,
   UpdateCustomPropertyInput,
+  UpdateHomepageContentInput,
   UpdateHomepageSectionInput,
   UpdateMediaTypeInput,
   UpdateTagInput,
@@ -207,6 +209,13 @@ export const appSettingsApi = {
       body: JSON.stringify({
         domains,
       }),
+    }),
+  getHomepageContent: () =>
+    request<HomepageContentSettings>("/app-settings/homepage-content"),
+  updateHomepageContent: (input: UpdateHomepageContentInput) =>
+    request<HomepageContentSettings>("/app-settings/homepage-content", {
+      method: "PUT",
+      body: JSON.stringify(input),
     }),
 };
 

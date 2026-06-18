@@ -1,9 +1,18 @@
+import { Suspense, lazy } from "react";
+
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { Settings } from "lucide-react";
 
 import { HomepageSectionBlock } from "../components/HomepageSectionBlock";
+import { useHomepageContentSettings } from "../hooks/useAppSettings";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useHomepageSectionBookmarks } from "../hooks/useHomepageSections";
+
+// Lazy so the homepage doesn't load TipTap / the bookmark form unless there's content to show.
+const HomepageContentBlocks = lazy(() =>
+  import("../components/HomepageContentBlocks").then(module => ({
+    default: module.HomepageContentBlocks,
+  })));
 
 export const Route = createFileRoute("/")({
   component: HomePage,
@@ -16,6 +25,13 @@ function HomePage() {
   const {
     data: customProperties,
   } = useCustomProperties();
+  const {
+    data: content,
+  } = useHomepageContentSettings();
+
+  const hasContent = Boolean(
+    content && (content.homepageText.trim() || content.bookmarkQuickAddEnabled),
+  );
 
   const sectionList = (sections ?? []).filter(
     ({
@@ -46,6 +62,14 @@ function HomePage() {
           <span>Settings</span>
         </Link>
       </div>
+
+      {hasContent && content
+        ? (
+          <Suspense fallback={null}>
+            <HomepageContentBlocks content={content} />
+          </Suspense>
+        )
+        : null}
 
       {isLoading ? <p className="text-muted-foreground">Loading bookmarks…</p> : null}
       {error ? <p className="text-destructive">{error.message}</p> : null}

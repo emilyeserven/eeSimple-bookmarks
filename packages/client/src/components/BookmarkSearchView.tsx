@@ -3,10 +3,10 @@ import type { BookmarkSearch } from "../lib/bookmarkSearch";
 import type { Bookmark, Category, CustomProperty, MediaType, TagNode, YouTubeChannel } from "@eesimple/types";
 import type { ReactNode } from "react";
 
-import { ChevronDown, TriangleAlert } from "lucide-react";
+import { TriangleAlert } from "lucide-react";
 
+import { AddBookmarkCollapsible } from "./AddBookmarkCollapsible";
 import { BookmarkCard } from "./BookmarkCard";
-import { BookmarkForm } from "./BookmarkForm";
 import { ColumnsSwitcher } from "./ColumnsSwitcher";
 import { FilterSidebar } from "./FilterSidebar";
 import { ImageLayoutSwitcher } from "./ImageLayoutSwitcher";
@@ -18,7 +18,6 @@ import { bookmarkMatchesSearch, hasAnyActiveFilter } from "../lib/bookmarkSearch
 import { useUiStore } from "../stores/uiStore";
 
 import { Card } from "@/components/ui/card";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface BookmarkSearchViewProps {
@@ -86,8 +85,6 @@ export function BookmarkSearchView({
     ?? (columns === 1 && !isMobile ? "side" : DEFAULT_BOOKMARK_IMAGE_LAYOUT);
   const imageLeft = (columns === 1 || columns === 2) && imageLayout === "side";
   const setBookmarkImageLayout = useUiStore(state => state.setBookmarkImageLayout);
-  const addBookmarkFormOpen = useUiStore(state => state.addBookmarkFormOpen);
-  const setAddBookmarkFormOpen = useUiStore(state => state.setAddBookmarkFormOpen);
 
   const visibleBookmarks = bookmarks.filter(bookmark => bookmarkMatchesSearch(bookmark, search));
   const hasActiveFilters = hasAnyActiveFilter(search);
@@ -140,29 +137,7 @@ export function BookmarkSearchView({
         />
 
         <div className="space-y-6">
-          <Collapsible
-            open={addBookmarkFormOpen}
-            onOpenChange={setAddBookmarkFormOpen}
-            className="group/add-bookmark rounded-lg border bg-card"
-          >
-            <CollapsibleTrigger
-              className="
-                flex w-full items-center justify-between p-4 text-sm font-medium
-                hover:text-foreground
-              "
-            >
-              Add Bookmark
-              <ChevronDown
-                className="
-                  size-4 transition-transform
-                  group-data-[state=open]/add-bookmark:rotate-180
-                "
-              />
-            </CollapsibleTrigger>
-            <CollapsibleContent className="px-4 pb-4">
-              <BookmarkForm lockedCategoryId={addFormCategoryId} />
-            </CollapsibleContent>
-          </Collapsible>
+          <AddBookmarkCollapsible lockedCategoryId={addFormCategoryId} />
 
           <BookmarkListControls
             pageKey={pageKey}

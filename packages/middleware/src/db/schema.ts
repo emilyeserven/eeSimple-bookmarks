@@ -468,6 +468,16 @@ export const appSettings = pgTable("app_settings", {
   id: integer("id").primaryKey().default(1),
   // Generic URL-shortener domains (e.g. bit.ly) that can't be expanded to a vendor; always nudge.
   shortenerIgnoreList: jsonb("shortener_ignore_list").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+  // Markdown rendered at the top of the homepage.
+  homepageText: text("homepage_text").notNull().default(""),
+  // Desktop width of the homepage text block: "full" | "half".
+  homepageTextWidth: text("homepage_text_width").notNull().default("full"),
+  // When true, the Bookmark Quick Add form appears on the homepage.
+  bookmarkQuickAddEnabled: boolean("bookmark_quick_add_enabled").notNull().default(false),
+  // Desktop width of the homepage Quick Add block: "full" | "half".
+  bookmarkQuickAddWidth: text("bookmark_quick_add_width").notNull().default("full"),
+  // How the homepage Quick Add form is presented: "collapsible" | "expanded".
+  bookmarkQuickAddDisplay: text("bookmark_quick_add_display").notNull().default("collapsible"),
 });
 
 /**
