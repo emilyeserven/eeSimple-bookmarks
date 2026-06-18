@@ -12,7 +12,6 @@ import { categoriesApi } from "../lib/api";
 const CATEGORIES_KEY = ["categories"] as const;
 const PROPERTIES_KEY = ["custom-properties"] as const;
 const BOOKMARKS_KEY = ["bookmarks"] as const;
-const HOMEPAGE_TAGS_KEY = ["homepage-tags"] as const;
 
 export function useCategories() {
   return useQuery({
@@ -94,29 +93,6 @@ export function useSetCategoryRootTags(categoryId: string) {
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: [...CATEGORIES_KEY, categoryId, "root-tags"],
-      });
-    },
-  });
-}
-
-/** The tags selected to surface their bookmarks on the homepage. */
-export function useHomepageTags() {
-  return useQuery({
-    queryKey: HOMEPAGE_TAGS_KEY,
-    queryFn: () => categoriesApi.homepageTags().then(result => result.tagIds),
-  });
-}
-
-export function useSetHomepageTags() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (tagIds: string[]) => categoriesApi.setHomepageTags(tagIds),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: HOMEPAGE_TAGS_KEY,
-      });
-      void queryClient.invalidateQueries({
-        queryKey: BOOKMARKS_KEY,
       });
     },
   });
