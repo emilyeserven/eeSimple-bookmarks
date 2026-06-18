@@ -30,6 +30,7 @@ import { flattenTree } from "../../lib/tagTree";
 import { BookmarkDetail } from "../BookmarkDetail";
 import { BookmarkForm } from "../BookmarkForm";
 import { CategoryCard } from "../CategoryManager";
+import { CategoryPreviewCard } from "../CategoryPreviewCard";
 import { MediaTypeCard, MediaTypeRow } from "../MediaTypeManager";
 import { PropertyDetail } from "../PropertyDetail";
 import { PropertyForm } from "../PropertyForm";
@@ -223,8 +224,24 @@ function useCategoryList() {
   };
 }
 
-/** A category, reusing the settings page's `CategoryCard` (inline-editable, links to full edit). */
-function CategoryItem({
+/** Read-only category view, reusing the same `CategoryPreviewCard` the single category page renders. */
+function CategoryView({
+  id,
+}: {
+  id: string;
+}) {
+  const {
+    data, isLoading, error,
+  } = useCategories();
+  if (isLoading) return <Loading />;
+  if (error) return <Problem>{error.message}</Problem>;
+  const category = (data ?? []).find(item => item.id === id);
+  if (!category) return <Problem>Category not found.</Problem>;
+  return <CategoryPreviewCard category={category} />;
+}
+
+/** Editable category, reusing the settings `CategoryCard` (inline-editable, links to full edit). */
+function CategoryEdit({
   id,
 }: {
   id: string;
@@ -569,8 +586,8 @@ export const PANEL_CONTENT_TYPES: PanelContentTypeDef[] = [
     singular: "Category",
     icon: Folder,
     useList: useCategoryList,
-    View: CategoryItem,
-    Edit: CategoryItem,
+    View: CategoryView,
+    Edit: CategoryEdit,
   },
   {
     type: "property",

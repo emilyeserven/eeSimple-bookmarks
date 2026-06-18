@@ -1,9 +1,11 @@
 import type { TagNode } from "@eesimple/types";
 
+import { Link } from "@tanstack/react-router";
 import { ChevronDown, ChevronRight, Pencil } from "lucide-react";
 
 import { usePanelControls } from "./panel/usePanelControls";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 interface TagTreeListProps {
@@ -86,13 +88,28 @@ function TagTreeRow({
             />
           )}
 
-        <span className="flex-1 truncate">{node.name}</span>
+        <Link
+          to="/tags/$tagSlug/settings"
+          params={{
+            tagSlug: node.slug,
+          }}
+          className="
+            flex-1 truncate
+            hover:underline
+          "
+        >
+          {node.name}
+        </Link>
+
+        {node.bookmarkCount != null
+          ? <Badge variant="secondary">{node.bookmarkCount}</Badge>
+          : null}
 
         <Button
           type="button"
           variant="ghost"
           size="sm"
-          aria-label={`View ${node.name}`}
+          aria-label={`Quick view ${node.name}`}
           className="
             opacity-0 transition-opacity
             group-hover:opacity-100
@@ -105,15 +122,40 @@ function TagTreeRow({
       </li>
 
       {hasChildren && isOpen
-        ? node.children.map(child => (
-          <TagTreeRow
-            key={child.id}
-            node={child}
-            depth={depth + 1}
-            expanded={expanded}
-            onToggle={onToggle}
-          />
-        ))
+        ? (
+          <>
+            {node.children.map(child => (
+              <TagTreeRow
+                key={child.id}
+                node={child}
+                depth={depth + 1}
+                expanded={expanded}
+                onToggle={onToggle}
+              />
+            ))}
+            {/* Bookmarks tagged with this parent but none of its children. */}
+            {(node.ownBookmarkCount ?? 0) > 0
+              ? (
+                <li
+                  className="
+                    flex items-center gap-2 px-3 py-2 text-muted-foreground/70
+                    italic
+                  "
+                  style={{
+                    paddingLeft: `${0.75 + (depth + 1) * 1.25}rem`,
+                  }}
+                >
+                  <span
+                    className="inline-block size-4"
+                    aria-hidden="true"
+                  />
+                  <span className="flex-1 truncate">No Child</span>
+                  <Badge variant="outline">{node.ownBookmarkCount}</Badge>
+                </li>
+              )
+              : null}
+          </>
+        )
         : null}
     </>
   );

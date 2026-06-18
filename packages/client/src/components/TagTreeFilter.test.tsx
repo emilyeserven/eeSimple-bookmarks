@@ -9,12 +9,14 @@ const tree: TagNode[] = [
   {
     id: "dev",
     name: "dev",
+    slug: "dev",
     parentId: null,
     createdAt: "2026-06-01T00:00:00.000Z",
     children: [
       {
         id: "tools",
         name: "tools",
+        slug: "tools",
         parentId: "dev",
         createdAt: "2026-06-01T00:00:00.000Z",
         children: [],

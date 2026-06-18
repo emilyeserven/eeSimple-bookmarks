@@ -7,6 +7,7 @@ import { backfillCustomPropertySlugs, ensureVideoLengthProperty } from "@/servic
 import { ensureHomepageFilter } from "@/services/homepageFilter";
 import { ensureHomepageSections } from "@/services/homepageSections";
 import { backfillMediaTypeSlugs, ensureBuiltInMediaTypes } from "@/services/mediaTypes";
+import { backfillTagSlugs } from "@/services/tags";
 import { backfillWebsiteSlugs } from "@/services/websites";
 import { backfillYouTubeChannelSlugs } from "@/services/youtubeChannels";
 import { ensureBucket, isObjectStoreConfigured } from "@/utils/objectStore";
@@ -43,6 +44,7 @@ try {
   await ensureBuiltInMediaTypes();
   await backfillMediaTypeSlugs();
   await backfillYouTubeChannelSlugs();
+  await backfillTagSlugs();
   await maybeSeed();
   // Backfill condition trees for legacy autofill rules and seed the homepage filter from the
   // previous is-homepage / homepage-tags mechanism on first boot.

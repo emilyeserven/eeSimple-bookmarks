@@ -156,6 +156,8 @@ export const youtubeChannels = pgTable("youtube_channels", {
 export const tags = pgTable("tags", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
+  // URL-friendly identifier derived from the name. Nullable for clean `push`; backfilled at boot.
+  slug: text("slug"),
   parentId: uuid("parent_id").references((): AnyPgColumn => tags.id, {
     onDelete: "cascade",
   }),
@@ -171,6 +173,8 @@ export const tags = pgTable("tags", {
   // the non-TTY deploy. A unique INDEX converges and applies without prompting. `migrate.ts`
   // migrates existing DBs from the old constraint to this index. Do not change back to `unique()`.
   uniqueIndex("tags_parent_name_unique").on(table.parentId, table.name),
+  // Tag slugs are globally unique so each tag has a stable single-segment URL.
+  unique("tags_slug_unique").on(table.slug),
 ]);
 
 /** `bookmark_tags` join — many-to-many between bookmarks and tags. */

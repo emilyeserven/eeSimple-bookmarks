@@ -123,19 +123,54 @@ function settingsCrumbs(pathname: string): BreadcrumbSegment[] {
 
 function categoryCrumbs(pathname: string, categoryName?: string): BreadcrumbSegment[] {
   const parts = pathname.split("/").filter(Boolean);
-  const categoryHref = `/${parts[0]}/${parts[1]}`;
-  const catLabel = categoryName ?? "Category";
-  if (parts.length <= 2) return [{
-    label: catLabel,
+  // `/categories` — the listing page.
+  if (parts.length === 1) return [{
+    label: "Categories",
   }];
+  const listCrumb: BreadcrumbSegment = {
+    label: "Categories",
+    href: "/categories",
+  };
+  const catLabel = categoryName ?? "Category";
+  // `/categories/$slug` (bookmark browse) and `/categories/$slug/settings` (read-only view).
+  if (parts.length === 2 || parts[2] === "settings") {
+    return [listCrumb, {
+      label: catLabel,
+    }];
+  }
+  // `/categories/$slug/edit/<tab>` — link the name back to its view.
   const sectionLabel = parts.length > 3
     ? (CATEGORY_EDIT_SUBLABELS[parts[3]] ?? parts[3])
     : "Edit";
-  return [{
+  return [listCrumb, {
     label: catLabel,
-    href: categoryHref,
+    href: `/categories/${parts[1]}/settings`,
   }, {
     label: sectionLabel,
+  }];
+}
+
+function tagCrumbs(pathname: string): BreadcrumbSegment[] {
+  const parts = pathname.split("/").filter(Boolean);
+  // `/tags` — the listing page.
+  if (parts.length === 1) return [{
+    label: "Tags",
+  }];
+  const listCrumb: BreadcrumbSegment = {
+    label: "Tags",
+    href: "/tags",
+  };
+  // `/tags/$slug/edit` deepens one level past the tag's view.
+  if (parts[2] === "edit") {
+    return [listCrumb, {
+      label: "Tag",
+      href: `/tags/${parts[1]}/settings`,
+    }, {
+      label: "Edit",
+    }];
+  }
+  return [listCrumb, {
+    label: "Tag",
   }];
 }
 
@@ -155,10 +190,9 @@ function breadcrumbsForPath(pathname: string, categoryName?: string): Breadcrumb
       label: "Bookmark",
     }];
   if (pathname.startsWith("/settings")) return settingsCrumbs(pathname);
-  if (pathname.startsWith("/categories/")) return categoryCrumbs(pathname, categoryName);
-  if (pathname.startsWith("/taxonomies/tags")) return [{
-    label: "Tags",
-  }];
+  if (pathname === "/categories" || pathname.startsWith("/categories/"))
+    return categoryCrumbs(pathname, categoryName);
+  if (pathname === "/tags" || pathname.startsWith("/tags/")) return tagCrumbs(pathname);
 
   const taxonomy = TAXONOMY_CRUMBS.find(t => pathname.startsWith(t.prefix));
   if (taxonomy) {

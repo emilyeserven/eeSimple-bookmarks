@@ -15,10 +15,21 @@ export interface Tag {
   id: string;
   /** Display name, unique among its siblings. */
   name: string;
+  /** URL-friendly identifier derived from the name; unique across all tags. */
+  slug: string;
   /** Parent tag id, or `null` for a root-level tag. */
   parentId: string | null;
   /** ISO-8601 timestamp of when the tag was created. */
   createdAt: string;
+  /**
+   * Distinct bookmarks carrying this tag or any of its descendants (populated by list endpoints).
+   */
+  bookmarkCount?: number;
+  /**
+   * Distinct bookmarks carrying this tag but none of its descendants — i.e. the "parent only"
+   * bucket surfaced as a "No Child" entry. Equals {@link bookmarkCount} for leaf tags.
+   */
+  ownBookmarkCount?: number;
 }
 
 /** A tag with its children populated — used to render the taxonomy tree. */
@@ -469,6 +480,8 @@ export interface Category {
   /** Whether bookmarks in this category appear on the homepage. */
   isHomepage: boolean;
   createdAt: string;
+  /** Number of bookmarks in this category (populated by list endpoints). */
+  bookmarkCount?: number;
 }
 
 /** Payload for creating a category. */

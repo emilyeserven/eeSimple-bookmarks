@@ -9,28 +9,30 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TagsRouteImport } from './routes/tags'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as CustomPropertiesRouteImport } from './routes/custom-properties'
+import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as BookmarksRouteImport } from './routes/bookmarks'
 import { Route as AutofillRouteImport } from './routes/autofill'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TagsIndexRouteImport } from './routes/tags.index'
 import { Route as SettingsIndexRouteImport } from './routes/settings.index'
 import { Route as CustomPropertiesIndexRouteImport } from './routes/custom-properties.index'
+import { Route as CategoriesIndexRouteImport } from './routes/categories.index'
 import { Route as BookmarksIndexRouteImport } from './routes/bookmarks.index'
 import { Route as AutofillIndexRouteImport } from './routes/autofill.index'
 import { Route as TaxonomiesYoutubeChannelsRouteImport } from './routes/taxonomies.youtube-channels'
 import { Route as TaxonomiesWebsitesRouteImport } from './routes/taxonomies.websites'
-import { Route as TaxonomiesTagsRouteImport } from './routes/taxonomies.tags'
 import { Route as TaxonomiesMediaTypesRouteImport } from './routes/taxonomies.media-types'
+import { Route as TagsTagSlugRouteImport } from './routes/tags.$tagSlug'
 import { Route as SettingsYoutubeChannelsRouteImport } from './routes/settings.youtube-channels'
 import { Route as SettingsWebsitesRouteImport } from './routes/settings.websites'
-import { Route as SettingsTagsRouteImport } from './routes/settings.tags'
 import { Route as SettingsMediaTypesRouteImport } from './routes/settings.media-types'
 import { Route as SettingsHomepageRouteImport } from './routes/settings.homepage'
 import { Route as SettingsGalleryRouteImport } from './routes/settings.gallery'
 import { Route as SettingsDisplayRouteImport } from './routes/settings.display'
 import { Route as SettingsCustomPropertiesRouteImport } from './routes/settings.custom-properties'
-import { Route as SettingsCategoriesRouteImport } from './routes/settings.categories'
 import { Route as SettingsAutomationsRouteImport } from './routes/settings.automations'
 import { Route as SettingsAutofillRouteImport } from './routes/settings.autofill'
 import { Route as CategoriesCategorySlugRouteImport } from './routes/categories.$categorySlug'
@@ -45,9 +47,12 @@ import { Route as BookmarksBookmarkIdIndexRouteImport } from './routes/bookmarks
 import { Route as TaxonomiesYoutubeChannelsChannelSlugRouteImport } from './routes/taxonomies.youtube-channels.$channelSlug'
 import { Route as TaxonomiesWebsitesWebsiteSlugRouteImport } from './routes/taxonomies.websites.$websiteSlug'
 import { Route as TaxonomiesMediaTypesMediaTypeSlugRouteImport } from './routes/taxonomies.media-types.$mediaTypeSlug'
+import { Route as TagsTagSlugSettingsRouteImport } from './routes/tags.$tagSlug.settings'
+import { Route as TagsTagSlugEditRouteImport } from './routes/tags.$tagSlug.edit'
 import { Route as SettingsCustomPropertiesNewRouteImport } from './routes/settings.custom-properties.new'
 import { Route as SettingsCustomPropertiesPropertySlugRouteImport } from './routes/settings.custom-properties.$propertySlug'
 import { Route as SettingsAutofillRuleSlugRouteImport } from './routes/settings.autofill.$ruleSlug'
+import { Route as CategoriesCategorySlugSettingsRouteImport } from './routes/categories.$categorySlug.settings'
 import { Route as CategoriesCategorySlugEditRouteImport } from './routes/categories.$categorySlug.edit'
 import { Route as BookmarksBookmarkIdEditRouteImport } from './routes/bookmarks.$bookmarkId.edit'
 import { Route as TaxonomiesYoutubeChannelsChannelSlugIndexRouteImport } from './routes/taxonomies.youtube-channels.$channelSlug.index'
@@ -66,6 +71,11 @@ import { Route as CategoriesCategorySlugEditGeneralRouteImport } from './routes/
 import { Route as CategoriesCategorySlugEditCustomPropertiesRouteImport } from './routes/categories.$categorySlug.edit.custom-properties'
 import { Route as CategoriesCategorySlugEditAutofillRouteImport } from './routes/categories.$categorySlug.edit.autofill'
 
+const TagsRoute = TagsRouteImport.update({
+  id: '/tags',
+  path: '/tags',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -74,6 +84,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const CustomPropertiesRoute = CustomPropertiesRouteImport.update({
   id: '/custom-properties',
   path: '/custom-properties',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CategoriesRoute = CategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BookmarksRoute = BookmarksRouteImport.update({
@@ -91,6 +106,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TagsIndexRoute = TagsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => TagsRoute,
+} as any)
 const SettingsIndexRoute = SettingsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -100,6 +120,11 @@ const CustomPropertiesIndexRoute = CustomPropertiesIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => CustomPropertiesRoute,
+} as any)
+const CategoriesIndexRoute = CategoriesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CategoriesRoute,
 } as any)
 const BookmarksIndexRoute = BookmarksIndexRouteImport.update({
   id: '/',
@@ -122,15 +147,15 @@ const TaxonomiesWebsitesRoute = TaxonomiesWebsitesRouteImport.update({
   path: '/taxonomies/websites',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TaxonomiesTagsRoute = TaxonomiesTagsRouteImport.update({
-  id: '/taxonomies/tags',
-  path: '/taxonomies/tags',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const TaxonomiesMediaTypesRoute = TaxonomiesMediaTypesRouteImport.update({
   id: '/taxonomies/media-types',
   path: '/taxonomies/media-types',
   getParentRoute: () => rootRouteImport,
+} as any)
+const TagsTagSlugRoute = TagsTagSlugRouteImport.update({
+  id: '/$tagSlug',
+  path: '/$tagSlug',
+  getParentRoute: () => TagsRoute,
 } as any)
 const SettingsYoutubeChannelsRoute = SettingsYoutubeChannelsRouteImport.update({
   id: '/youtube-channels',
@@ -140,11 +165,6 @@ const SettingsYoutubeChannelsRoute = SettingsYoutubeChannelsRouteImport.update({
 const SettingsWebsitesRoute = SettingsWebsitesRouteImport.update({
   id: '/websites',
   path: '/websites',
-  getParentRoute: () => SettingsRoute,
-} as any)
-const SettingsTagsRoute = SettingsTagsRouteImport.update({
-  id: '/tags',
-  path: '/tags',
   getParentRoute: () => SettingsRoute,
 } as any)
 const SettingsMediaTypesRoute = SettingsMediaTypesRouteImport.update({
@@ -173,11 +193,6 @@ const SettingsCustomPropertiesRoute =
     path: '/custom-properties',
     getParentRoute: () => SettingsRoute,
   } as any)
-const SettingsCategoriesRoute = SettingsCategoriesRouteImport.update({
-  id: '/categories',
-  path: '/categories',
-  getParentRoute: () => SettingsRoute,
-} as any)
 const SettingsAutomationsRoute = SettingsAutomationsRouteImport.update({
   id: '/automations',
   path: '/automations',
@@ -189,9 +204,9 @@ const SettingsAutofillRoute = SettingsAutofillRouteImport.update({
   getParentRoute: () => SettingsRoute,
 } as any)
 const CategoriesCategorySlugRoute = CategoriesCategorySlugRouteImport.update({
-  id: '/categories/$categorySlug',
-  path: '/categories/$categorySlug',
-  getParentRoute: () => rootRouteImport,
+  id: '/$categorySlug',
+  path: '/$categorySlug',
+  getParentRoute: () => CategoriesRoute,
 } as any)
 const BookmarksBookmarkIdRoute = BookmarksBookmarkIdRouteImport.update({
   id: '/$bookmarkId',
@@ -256,6 +271,16 @@ const TaxonomiesMediaTypesMediaTypeSlugRoute =
     path: '/$mediaTypeSlug',
     getParentRoute: () => TaxonomiesMediaTypesRoute,
   } as any)
+const TagsTagSlugSettingsRoute = TagsTagSlugSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => TagsTagSlugRoute,
+} as any)
+const TagsTagSlugEditRoute = TagsTagSlugEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => TagsTagSlugRoute,
+} as any)
 const SettingsCustomPropertiesNewRoute =
   SettingsCustomPropertiesNewRouteImport.update({
     id: '/new',
@@ -273,6 +298,12 @@ const SettingsAutofillRuleSlugRoute =
     id: '/$ruleSlug',
     path: '/$ruleSlug',
     getParentRoute: () => SettingsAutofillRoute,
+  } as any)
+const CategoriesCategorySlugSettingsRoute =
+  CategoriesCategorySlugSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => CategoriesCategorySlugRoute,
   } as any)
 const CategoriesCategorySlugEditRoute =
   CategoriesCategorySlugEditRouteImport.update({
@@ -380,34 +411,39 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/autofill': typeof AutofillRouteWithChildren
   '/bookmarks': typeof BookmarksRouteWithChildren
+  '/categories': typeof CategoriesRouteWithChildren
   '/custom-properties': typeof CustomPropertiesRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
+  '/tags': typeof TagsRouteWithChildren
   '/bookmarks/$bookmarkId': typeof BookmarksBookmarkIdRouteWithChildren
   '/categories/$categorySlug': typeof CategoriesCategorySlugRouteWithChildren
   '/settings/autofill': typeof SettingsAutofillRouteWithChildren
   '/settings/automations': typeof SettingsAutomationsRoute
-  '/settings/categories': typeof SettingsCategoriesRoute
   '/settings/custom-properties': typeof SettingsCustomPropertiesRouteWithChildren
   '/settings/display': typeof SettingsDisplayRoute
   '/settings/gallery': typeof SettingsGalleryRoute
   '/settings/homepage': typeof SettingsHomepageRoute
   '/settings/media-types': typeof SettingsMediaTypesRoute
-  '/settings/tags': typeof SettingsTagsRoute
   '/settings/websites': typeof SettingsWebsitesRoute
   '/settings/youtube-channels': typeof SettingsYoutubeChannelsRoute
+  '/tags/$tagSlug': typeof TagsTagSlugRouteWithChildren
   '/taxonomies/media-types': typeof TaxonomiesMediaTypesRouteWithChildren
-  '/taxonomies/tags': typeof TaxonomiesTagsRoute
   '/taxonomies/websites': typeof TaxonomiesWebsitesRouteWithChildren
   '/taxonomies/youtube-channels': typeof TaxonomiesYoutubeChannelsRouteWithChildren
   '/autofill/': typeof AutofillIndexRoute
   '/bookmarks/': typeof BookmarksIndexRoute
+  '/categories/': typeof CategoriesIndexRoute
   '/custom-properties/': typeof CustomPropertiesIndexRoute
   '/settings/': typeof SettingsIndexRoute
+  '/tags/': typeof TagsIndexRoute
   '/bookmarks/$bookmarkId/edit': typeof BookmarksBookmarkIdEditRoute
   '/categories/$categorySlug/edit': typeof CategoriesCategorySlugEditRouteWithChildren
+  '/categories/$categorySlug/settings': typeof CategoriesCategorySlugSettingsRoute
   '/settings/autofill/$ruleSlug': typeof SettingsAutofillRuleSlugRouteWithChildren
   '/settings/custom-properties/$propertySlug': typeof SettingsCustomPropertiesPropertySlugRouteWithChildren
   '/settings/custom-properties/new': typeof SettingsCustomPropertiesNewRoute
+  '/tags/$tagSlug/edit': typeof TagsTagSlugEditRoute
+  '/tags/$tagSlug/settings': typeof TagsTagSlugSettingsRoute
   '/taxonomies/media-types/$mediaTypeSlug': typeof TaxonomiesMediaTypesMediaTypeSlugRouteWithChildren
   '/taxonomies/websites/$websiteSlug': typeof TaxonomiesWebsitesWebsiteSlugRouteWithChildren
   '/taxonomies/youtube-channels/$channelSlug': typeof TaxonomiesYoutubeChannelsChannelSlugRouteWithChildren
@@ -437,21 +473,24 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/settings/automations': typeof SettingsAutomationsRoute
-  '/settings/categories': typeof SettingsCategoriesRoute
   '/settings/display': typeof SettingsDisplayRoute
   '/settings/gallery': typeof SettingsGalleryRoute
   '/settings/homepage': typeof SettingsHomepageRoute
   '/settings/media-types': typeof SettingsMediaTypesRoute
-  '/settings/tags': typeof SettingsTagsRoute
   '/settings/websites': typeof SettingsWebsitesRoute
   '/settings/youtube-channels': typeof SettingsYoutubeChannelsRoute
-  '/taxonomies/tags': typeof TaxonomiesTagsRoute
+  '/tags/$tagSlug': typeof TagsTagSlugRouteWithChildren
   '/autofill': typeof AutofillIndexRoute
   '/bookmarks': typeof BookmarksIndexRoute
+  '/categories': typeof CategoriesIndexRoute
   '/custom-properties': typeof CustomPropertiesIndexRoute
   '/settings': typeof SettingsIndexRoute
+  '/tags': typeof TagsIndexRoute
   '/bookmarks/$bookmarkId/edit': typeof BookmarksBookmarkIdEditRoute
+  '/categories/$categorySlug/settings': typeof CategoriesCategorySlugSettingsRoute
   '/settings/custom-properties/new': typeof SettingsCustomPropertiesNewRoute
+  '/tags/$tagSlug/edit': typeof TagsTagSlugEditRoute
+  '/tags/$tagSlug/settings': typeof TagsTagSlugSettingsRoute
   '/bookmarks/$bookmarkId': typeof BookmarksBookmarkIdIndexRoute
   '/categories/$categorySlug': typeof CategoriesCategorySlugIndexRoute
   '/settings/autofill': typeof SettingsAutofillIndexRoute
@@ -480,34 +519,39 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/autofill': typeof AutofillRouteWithChildren
   '/bookmarks': typeof BookmarksRouteWithChildren
+  '/categories': typeof CategoriesRouteWithChildren
   '/custom-properties': typeof CustomPropertiesRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
+  '/tags': typeof TagsRouteWithChildren
   '/bookmarks/$bookmarkId': typeof BookmarksBookmarkIdRouteWithChildren
   '/categories/$categorySlug': typeof CategoriesCategorySlugRouteWithChildren
   '/settings/autofill': typeof SettingsAutofillRouteWithChildren
   '/settings/automations': typeof SettingsAutomationsRoute
-  '/settings/categories': typeof SettingsCategoriesRoute
   '/settings/custom-properties': typeof SettingsCustomPropertiesRouteWithChildren
   '/settings/display': typeof SettingsDisplayRoute
   '/settings/gallery': typeof SettingsGalleryRoute
   '/settings/homepage': typeof SettingsHomepageRoute
   '/settings/media-types': typeof SettingsMediaTypesRoute
-  '/settings/tags': typeof SettingsTagsRoute
   '/settings/websites': typeof SettingsWebsitesRoute
   '/settings/youtube-channels': typeof SettingsYoutubeChannelsRoute
+  '/tags/$tagSlug': typeof TagsTagSlugRouteWithChildren
   '/taxonomies/media-types': typeof TaxonomiesMediaTypesRouteWithChildren
-  '/taxonomies/tags': typeof TaxonomiesTagsRoute
   '/taxonomies/websites': typeof TaxonomiesWebsitesRouteWithChildren
   '/taxonomies/youtube-channels': typeof TaxonomiesYoutubeChannelsRouteWithChildren
   '/autofill/': typeof AutofillIndexRoute
   '/bookmarks/': typeof BookmarksIndexRoute
+  '/categories/': typeof CategoriesIndexRoute
   '/custom-properties/': typeof CustomPropertiesIndexRoute
   '/settings/': typeof SettingsIndexRoute
+  '/tags/': typeof TagsIndexRoute
   '/bookmarks/$bookmarkId/edit': typeof BookmarksBookmarkIdEditRoute
   '/categories/$categorySlug/edit': typeof CategoriesCategorySlugEditRouteWithChildren
+  '/categories/$categorySlug/settings': typeof CategoriesCategorySlugSettingsRoute
   '/settings/autofill/$ruleSlug': typeof SettingsAutofillRuleSlugRouteWithChildren
   '/settings/custom-properties/$propertySlug': typeof SettingsCustomPropertiesPropertySlugRouteWithChildren
   '/settings/custom-properties/new': typeof SettingsCustomPropertiesNewRoute
+  '/tags/$tagSlug/edit': typeof TagsTagSlugEditRoute
+  '/tags/$tagSlug/settings': typeof TagsTagSlugSettingsRoute
   '/taxonomies/media-types/$mediaTypeSlug': typeof TaxonomiesMediaTypesMediaTypeSlugRouteWithChildren
   '/taxonomies/websites/$websiteSlug': typeof TaxonomiesWebsitesWebsiteSlugRouteWithChildren
   '/taxonomies/youtube-channels/$channelSlug': typeof TaxonomiesYoutubeChannelsChannelSlugRouteWithChildren
@@ -540,34 +584,39 @@ export interface FileRouteTypes {
     | '/'
     | '/autofill'
     | '/bookmarks'
+    | '/categories'
     | '/custom-properties'
     | '/settings'
+    | '/tags'
     | '/bookmarks/$bookmarkId'
     | '/categories/$categorySlug'
     | '/settings/autofill'
     | '/settings/automations'
-    | '/settings/categories'
     | '/settings/custom-properties'
     | '/settings/display'
     | '/settings/gallery'
     | '/settings/homepage'
     | '/settings/media-types'
-    | '/settings/tags'
     | '/settings/websites'
     | '/settings/youtube-channels'
+    | '/tags/$tagSlug'
     | '/taxonomies/media-types'
-    | '/taxonomies/tags'
     | '/taxonomies/websites'
     | '/taxonomies/youtube-channels'
     | '/autofill/'
     | '/bookmarks/'
+    | '/categories/'
     | '/custom-properties/'
     | '/settings/'
+    | '/tags/'
     | '/bookmarks/$bookmarkId/edit'
     | '/categories/$categorySlug/edit'
+    | '/categories/$categorySlug/settings'
     | '/settings/autofill/$ruleSlug'
     | '/settings/custom-properties/$propertySlug'
     | '/settings/custom-properties/new'
+    | '/tags/$tagSlug/edit'
+    | '/tags/$tagSlug/settings'
     | '/taxonomies/media-types/$mediaTypeSlug'
     | '/taxonomies/websites/$websiteSlug'
     | '/taxonomies/youtube-channels/$channelSlug'
@@ -597,21 +646,24 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/settings/automations'
-    | '/settings/categories'
     | '/settings/display'
     | '/settings/gallery'
     | '/settings/homepage'
     | '/settings/media-types'
-    | '/settings/tags'
     | '/settings/websites'
     | '/settings/youtube-channels'
-    | '/taxonomies/tags'
+    | '/tags/$tagSlug'
     | '/autofill'
     | '/bookmarks'
+    | '/categories'
     | '/custom-properties'
     | '/settings'
+    | '/tags'
     | '/bookmarks/$bookmarkId/edit'
+    | '/categories/$categorySlug/settings'
     | '/settings/custom-properties/new'
+    | '/tags/$tagSlug/edit'
+    | '/tags/$tagSlug/settings'
     | '/bookmarks/$bookmarkId'
     | '/categories/$categorySlug'
     | '/settings/autofill'
@@ -639,34 +691,39 @@ export interface FileRouteTypes {
     | '/'
     | '/autofill'
     | '/bookmarks'
+    | '/categories'
     | '/custom-properties'
     | '/settings'
+    | '/tags'
     | '/bookmarks/$bookmarkId'
     | '/categories/$categorySlug'
     | '/settings/autofill'
     | '/settings/automations'
-    | '/settings/categories'
     | '/settings/custom-properties'
     | '/settings/display'
     | '/settings/gallery'
     | '/settings/homepage'
     | '/settings/media-types'
-    | '/settings/tags'
     | '/settings/websites'
     | '/settings/youtube-channels'
+    | '/tags/$tagSlug'
     | '/taxonomies/media-types'
-    | '/taxonomies/tags'
     | '/taxonomies/websites'
     | '/taxonomies/youtube-channels'
     | '/autofill/'
     | '/bookmarks/'
+    | '/categories/'
     | '/custom-properties/'
     | '/settings/'
+    | '/tags/'
     | '/bookmarks/$bookmarkId/edit'
     | '/categories/$categorySlug/edit'
+    | '/categories/$categorySlug/settings'
     | '/settings/autofill/$ruleSlug'
     | '/settings/custom-properties/$propertySlug'
     | '/settings/custom-properties/new'
+    | '/tags/$tagSlug/edit'
+    | '/tags/$tagSlug/settings'
     | '/taxonomies/media-types/$mediaTypeSlug'
     | '/taxonomies/websites/$websiteSlug'
     | '/taxonomies/youtube-channels/$channelSlug'
@@ -698,17 +755,24 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AutofillRoute: typeof AutofillRouteWithChildren
   BookmarksRoute: typeof BookmarksRouteWithChildren
+  CategoriesRoute: typeof CategoriesRouteWithChildren
   CustomPropertiesRoute: typeof CustomPropertiesRouteWithChildren
   SettingsRoute: typeof SettingsRouteWithChildren
-  CategoriesCategorySlugRoute: typeof CategoriesCategorySlugRouteWithChildren
+  TagsRoute: typeof TagsRouteWithChildren
   TaxonomiesMediaTypesRoute: typeof TaxonomiesMediaTypesRouteWithChildren
-  TaxonomiesTagsRoute: typeof TaxonomiesTagsRoute
   TaxonomiesWebsitesRoute: typeof TaxonomiesWebsitesRouteWithChildren
   TaxonomiesYoutubeChannelsRoute: typeof TaxonomiesYoutubeChannelsRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/tags': {
+      id: '/tags'
+      path: '/tags'
+      fullPath: '/tags'
+      preLoaderRoute: typeof TagsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -721,6 +785,13 @@ declare module '@tanstack/react-router' {
       path: '/custom-properties'
       fullPath: '/custom-properties'
       preLoaderRoute: typeof CustomPropertiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/categories': {
+      id: '/categories'
+      path: '/categories'
+      fullPath: '/categories'
+      preLoaderRoute: typeof CategoriesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/bookmarks': {
@@ -744,6 +815,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tags/': {
+      id: '/tags/'
+      path: '/'
+      fullPath: '/tags/'
+      preLoaderRoute: typeof TagsIndexRouteImport
+      parentRoute: typeof TagsRoute
+    }
     '/settings/': {
       id: '/settings/'
       path: '/'
@@ -757,6 +835,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/custom-properties/'
       preLoaderRoute: typeof CustomPropertiesIndexRouteImport
       parentRoute: typeof CustomPropertiesRoute
+    }
+    '/categories/': {
+      id: '/categories/'
+      path: '/'
+      fullPath: '/categories/'
+      preLoaderRoute: typeof CategoriesIndexRouteImport
+      parentRoute: typeof CategoriesRoute
     }
     '/bookmarks/': {
       id: '/bookmarks/'
@@ -786,19 +871,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaxonomiesWebsitesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/taxonomies/tags': {
-      id: '/taxonomies/tags'
-      path: '/taxonomies/tags'
-      fullPath: '/taxonomies/tags'
-      preLoaderRoute: typeof TaxonomiesTagsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/taxonomies/media-types': {
       id: '/taxonomies/media-types'
       path: '/taxonomies/media-types'
       fullPath: '/taxonomies/media-types'
       preLoaderRoute: typeof TaxonomiesMediaTypesRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/tags/$tagSlug': {
+      id: '/tags/$tagSlug'
+      path: '/$tagSlug'
+      fullPath: '/tags/$tagSlug'
+      preLoaderRoute: typeof TagsTagSlugRouteImport
+      parentRoute: typeof TagsRoute
     }
     '/settings/youtube-channels': {
       id: '/settings/youtube-channels'
@@ -812,13 +897,6 @@ declare module '@tanstack/react-router' {
       path: '/websites'
       fullPath: '/settings/websites'
       preLoaderRoute: typeof SettingsWebsitesRouteImport
-      parentRoute: typeof SettingsRoute
-    }
-    '/settings/tags': {
-      id: '/settings/tags'
-      path: '/tags'
-      fullPath: '/settings/tags'
-      preLoaderRoute: typeof SettingsTagsRouteImport
       parentRoute: typeof SettingsRoute
     }
     '/settings/media-types': {
@@ -856,13 +934,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsCustomPropertiesRouteImport
       parentRoute: typeof SettingsRoute
     }
-    '/settings/categories': {
-      id: '/settings/categories'
-      path: '/categories'
-      fullPath: '/settings/categories'
-      preLoaderRoute: typeof SettingsCategoriesRouteImport
-      parentRoute: typeof SettingsRoute
-    }
     '/settings/automations': {
       id: '/settings/automations'
       path: '/automations'
@@ -879,10 +950,10 @@ declare module '@tanstack/react-router' {
     }
     '/categories/$categorySlug': {
       id: '/categories/$categorySlug'
-      path: '/categories/$categorySlug'
+      path: '/$categorySlug'
       fullPath: '/categories/$categorySlug'
       preLoaderRoute: typeof CategoriesCategorySlugRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof CategoriesRoute
     }
     '/bookmarks/$bookmarkId': {
       id: '/bookmarks/$bookmarkId'
@@ -961,6 +1032,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaxonomiesMediaTypesMediaTypeSlugRouteImport
       parentRoute: typeof TaxonomiesMediaTypesRoute
     }
+    '/tags/$tagSlug/settings': {
+      id: '/tags/$tagSlug/settings'
+      path: '/settings'
+      fullPath: '/tags/$tagSlug/settings'
+      preLoaderRoute: typeof TagsTagSlugSettingsRouteImport
+      parentRoute: typeof TagsTagSlugRoute
+    }
+    '/tags/$tagSlug/edit': {
+      id: '/tags/$tagSlug/edit'
+      path: '/edit'
+      fullPath: '/tags/$tagSlug/edit'
+      preLoaderRoute: typeof TagsTagSlugEditRouteImport
+      parentRoute: typeof TagsTagSlugRoute
+    }
     '/settings/custom-properties/new': {
       id: '/settings/custom-properties/new'
       path: '/new'
@@ -981,6 +1066,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/settings/autofill/$ruleSlug'
       preLoaderRoute: typeof SettingsAutofillRuleSlugRouteImport
       parentRoute: typeof SettingsAutofillRoute
+    }
+    '/categories/$categorySlug/settings': {
+      id: '/categories/$categorySlug/settings'
+      path: '/settings'
+      fullPath: '/categories/$categorySlug/settings'
+      preLoaderRoute: typeof CategoriesCategorySlugSettingsRouteImport
+      parentRoute: typeof CategoriesCategorySlugRoute
     }
     '/categories/$categorySlug/edit': {
       id: '/categories/$categorySlug/edit'
@@ -1143,6 +1235,65 @@ const BookmarksRouteWithChildren = BookmarksRoute._addFileChildren(
   BookmarksRouteChildren,
 )
 
+interface CategoriesCategorySlugEditRouteChildren {
+  CategoriesCategorySlugEditAutofillRoute: typeof CategoriesCategorySlugEditAutofillRoute
+  CategoriesCategorySlugEditCustomPropertiesRoute: typeof CategoriesCategorySlugEditCustomPropertiesRoute
+  CategoriesCategorySlugEditGeneralRoute: typeof CategoriesCategorySlugEditGeneralRoute
+  CategoriesCategorySlugEditTieredTagsRoute: typeof CategoriesCategorySlugEditTieredTagsRoute
+  CategoriesCategorySlugEditIndexRoute: typeof CategoriesCategorySlugEditIndexRoute
+}
+
+const CategoriesCategorySlugEditRouteChildren: CategoriesCategorySlugEditRouteChildren =
+  {
+    CategoriesCategorySlugEditAutofillRoute:
+      CategoriesCategorySlugEditAutofillRoute,
+    CategoriesCategorySlugEditCustomPropertiesRoute:
+      CategoriesCategorySlugEditCustomPropertiesRoute,
+    CategoriesCategorySlugEditGeneralRoute:
+      CategoriesCategorySlugEditGeneralRoute,
+    CategoriesCategorySlugEditTieredTagsRoute:
+      CategoriesCategorySlugEditTieredTagsRoute,
+    CategoriesCategorySlugEditIndexRoute: CategoriesCategorySlugEditIndexRoute,
+  }
+
+const CategoriesCategorySlugEditRouteWithChildren =
+  CategoriesCategorySlugEditRoute._addFileChildren(
+    CategoriesCategorySlugEditRouteChildren,
+  )
+
+interface CategoriesCategorySlugRouteChildren {
+  CategoriesCategorySlugEditRoute: typeof CategoriesCategorySlugEditRouteWithChildren
+  CategoriesCategorySlugSettingsRoute: typeof CategoriesCategorySlugSettingsRoute
+  CategoriesCategorySlugIndexRoute: typeof CategoriesCategorySlugIndexRoute
+}
+
+const CategoriesCategorySlugRouteChildren: CategoriesCategorySlugRouteChildren =
+  {
+    CategoriesCategorySlugEditRoute:
+      CategoriesCategorySlugEditRouteWithChildren,
+    CategoriesCategorySlugSettingsRoute: CategoriesCategorySlugSettingsRoute,
+    CategoriesCategorySlugIndexRoute: CategoriesCategorySlugIndexRoute,
+  }
+
+const CategoriesCategorySlugRouteWithChildren =
+  CategoriesCategorySlugRoute._addFileChildren(
+    CategoriesCategorySlugRouteChildren,
+  )
+
+interface CategoriesRouteChildren {
+  CategoriesCategorySlugRoute: typeof CategoriesCategorySlugRouteWithChildren
+  CategoriesIndexRoute: typeof CategoriesIndexRoute
+}
+
+const CategoriesRouteChildren: CategoriesRouteChildren = {
+  CategoriesCategorySlugRoute: CategoriesCategorySlugRouteWithChildren,
+  CategoriesIndexRoute: CategoriesIndexRoute,
+}
+
+const CategoriesRouteWithChildren = CategoriesRoute._addFileChildren(
+  CategoriesRouteChildren,
+)
+
 interface CustomPropertiesRouteChildren {
   CustomPropertiesIndexRoute: typeof CustomPropertiesIndexRoute
 }
@@ -1223,13 +1374,11 @@ const SettingsCustomPropertiesRouteWithChildren =
 interface SettingsRouteChildren {
   SettingsAutofillRoute: typeof SettingsAutofillRouteWithChildren
   SettingsAutomationsRoute: typeof SettingsAutomationsRoute
-  SettingsCategoriesRoute: typeof SettingsCategoriesRoute
   SettingsCustomPropertiesRoute: typeof SettingsCustomPropertiesRouteWithChildren
   SettingsDisplayRoute: typeof SettingsDisplayRoute
   SettingsGalleryRoute: typeof SettingsGalleryRoute
   SettingsHomepageRoute: typeof SettingsHomepageRoute
   SettingsMediaTypesRoute: typeof SettingsMediaTypesRoute
-  SettingsTagsRoute: typeof SettingsTagsRoute
   SettingsWebsitesRoute: typeof SettingsWebsitesRoute
   SettingsYoutubeChannelsRoute: typeof SettingsYoutubeChannelsRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
@@ -1238,13 +1387,11 @@ interface SettingsRouteChildren {
 const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsAutofillRoute: SettingsAutofillRouteWithChildren,
   SettingsAutomationsRoute: SettingsAutomationsRoute,
-  SettingsCategoriesRoute: SettingsCategoriesRoute,
   SettingsCustomPropertiesRoute: SettingsCustomPropertiesRouteWithChildren,
   SettingsDisplayRoute: SettingsDisplayRoute,
   SettingsGalleryRoute: SettingsGalleryRoute,
   SettingsHomepageRoute: SettingsHomepageRoute,
   SettingsMediaTypesRoute: SettingsMediaTypesRoute,
-  SettingsTagsRoute: SettingsTagsRoute,
   SettingsWebsitesRoute: SettingsWebsitesRoute,
   SettingsYoutubeChannelsRoute: SettingsYoutubeChannelsRoute,
   SettingsIndexRoute: SettingsIndexRoute,
@@ -1254,48 +1401,31 @@ const SettingsRouteWithChildren = SettingsRoute._addFileChildren(
   SettingsRouteChildren,
 )
 
-interface CategoriesCategorySlugEditRouteChildren {
-  CategoriesCategorySlugEditAutofillRoute: typeof CategoriesCategorySlugEditAutofillRoute
-  CategoriesCategorySlugEditCustomPropertiesRoute: typeof CategoriesCategorySlugEditCustomPropertiesRoute
-  CategoriesCategorySlugEditGeneralRoute: typeof CategoriesCategorySlugEditGeneralRoute
-  CategoriesCategorySlugEditTieredTagsRoute: typeof CategoriesCategorySlugEditTieredTagsRoute
-  CategoriesCategorySlugEditIndexRoute: typeof CategoriesCategorySlugEditIndexRoute
+interface TagsTagSlugRouteChildren {
+  TagsTagSlugEditRoute: typeof TagsTagSlugEditRoute
+  TagsTagSlugSettingsRoute: typeof TagsTagSlugSettingsRoute
 }
 
-const CategoriesCategorySlugEditRouteChildren: CategoriesCategorySlugEditRouteChildren =
-  {
-    CategoriesCategorySlugEditAutofillRoute:
-      CategoriesCategorySlugEditAutofillRoute,
-    CategoriesCategorySlugEditCustomPropertiesRoute:
-      CategoriesCategorySlugEditCustomPropertiesRoute,
-    CategoriesCategorySlugEditGeneralRoute:
-      CategoriesCategorySlugEditGeneralRoute,
-    CategoriesCategorySlugEditTieredTagsRoute:
-      CategoriesCategorySlugEditTieredTagsRoute,
-    CategoriesCategorySlugEditIndexRoute: CategoriesCategorySlugEditIndexRoute,
-  }
-
-const CategoriesCategorySlugEditRouteWithChildren =
-  CategoriesCategorySlugEditRoute._addFileChildren(
-    CategoriesCategorySlugEditRouteChildren,
-  )
-
-interface CategoriesCategorySlugRouteChildren {
-  CategoriesCategorySlugEditRoute: typeof CategoriesCategorySlugEditRouteWithChildren
-  CategoriesCategorySlugIndexRoute: typeof CategoriesCategorySlugIndexRoute
+const TagsTagSlugRouteChildren: TagsTagSlugRouteChildren = {
+  TagsTagSlugEditRoute: TagsTagSlugEditRoute,
+  TagsTagSlugSettingsRoute: TagsTagSlugSettingsRoute,
 }
 
-const CategoriesCategorySlugRouteChildren: CategoriesCategorySlugRouteChildren =
-  {
-    CategoriesCategorySlugEditRoute:
-      CategoriesCategorySlugEditRouteWithChildren,
-    CategoriesCategorySlugIndexRoute: CategoriesCategorySlugIndexRoute,
-  }
+const TagsTagSlugRouteWithChildren = TagsTagSlugRoute._addFileChildren(
+  TagsTagSlugRouteChildren,
+)
 
-const CategoriesCategorySlugRouteWithChildren =
-  CategoriesCategorySlugRoute._addFileChildren(
-    CategoriesCategorySlugRouteChildren,
-  )
+interface TagsRouteChildren {
+  TagsTagSlugRoute: typeof TagsTagSlugRouteWithChildren
+  TagsIndexRoute: typeof TagsIndexRoute
+}
+
+const TagsRouteChildren: TagsRouteChildren = {
+  TagsTagSlugRoute: TagsTagSlugRouteWithChildren,
+  TagsIndexRoute: TagsIndexRoute,
+}
+
+const TagsRouteWithChildren = TagsRoute._addFileChildren(TagsRouteChildren)
 
 interface TaxonomiesMediaTypesMediaTypeSlugRouteChildren {
   TaxonomiesMediaTypesMediaTypeSlugEditRoute: typeof TaxonomiesMediaTypesMediaTypeSlugEditRoute
@@ -1400,11 +1530,11 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AutofillRoute: AutofillRouteWithChildren,
   BookmarksRoute: BookmarksRouteWithChildren,
+  CategoriesRoute: CategoriesRouteWithChildren,
   CustomPropertiesRoute: CustomPropertiesRouteWithChildren,
   SettingsRoute: SettingsRouteWithChildren,
-  CategoriesCategorySlugRoute: CategoriesCategorySlugRouteWithChildren,
+  TagsRoute: TagsRouteWithChildren,
   TaxonomiesMediaTypesRoute: TaxonomiesMediaTypesRouteWithChildren,
-  TaxonomiesTagsRoute: TaxonomiesTagsRoute,
   TaxonomiesWebsitesRoute: TaxonomiesWebsitesRouteWithChildren,
   TaxonomiesYoutubeChannelsRoute: TaxonomiesYoutubeChannelsRouteWithChildren,
 }

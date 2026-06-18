@@ -54,9 +54,15 @@ const navItems = [
 
 const taxonomyItems = [
   {
+    key: "categories",
+    title: "Categories",
+    to: "/categories",
+    icon: FolderOpen,
+  },
+  {
     key: "tags",
     title: "Tags",
-    to: "/taxonomies/tags",
+    to: "/tags",
     icon: Tags,
   },
   {
@@ -94,21 +100,6 @@ const customizationItems = [
   },
 ] as const;
 
-const managementItems = [
-  {
-    key: "categories",
-    title: "Categories",
-    to: "/settings/categories",
-    icon: FolderOpen,
-  },
-  {
-    key: "tags",
-    title: "Tags",
-    to: "/settings/tags",
-    icon: Tags,
-  },
-] as const;
-
 export function AppSidebar({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
@@ -121,7 +112,6 @@ export function AppSidebar({
   const hiddenCategoryIds = useUiStore(state => state.hiddenCategoryIds);
   const hiddenTaxonomyItems = useUiStore(state => state.hiddenTaxonomyItems);
   const hiddenCustomizationItems = useUiStore(state => state.hiddenCustomizationItems);
-  const hiddenManagementItems = useUiStore(state => state.hiddenManagementItems);
 
   const visibleCategories = (categories ?? []).filter(
     c => !hiddenCategoryIds.includes(c.id),
@@ -131,9 +121,6 @@ export function AppSidebar({
   );
   const visibleCustomizationItems = customizationItems.filter(
     item => !hiddenCustomizationItems.includes(item.key),
-  );
-  const visibleManagementItems = managementItems.filter(
-    item => !hiddenManagementItems.includes(item.key),
   );
 
   return (
@@ -245,16 +232,6 @@ export function AppSidebar({
               sectionKey="customization"
               label="Customization"
               items={visibleCustomizationItems}
-            />
-          )
-          : null}
-
-        {visibleManagementItems.length > 0
-          ? (
-            <SidebarNavSection
-              sectionKey="management"
-              label="Management"
-              items={visibleManagementItems}
             />
           )
           : null}

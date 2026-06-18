@@ -2,7 +2,12 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { Tag } from "@eesimple/types";
 import { buildApp } from "@/app";
-import { buildTagTree, collectSubtreeIds, wouldCreateCycle } from "@/services/tags";
+import {
+  buildTagTree,
+  collectSubtreeIds,
+  computeTagBookmarkCounts,
+  wouldCreateCycle,
+} from "@/services/tags";
 
 // Pure-helper tests run without a live database, matching the `isValidUrl` style.
 
@@ -10,24 +15,28 @@ const flat: Tag[] = [
   {
     id: "dev",
     name: "dev",
+    slug: "dev",
     parentId: null,
     createdAt: "2026-06-01T00:00:00.000Z",
   },
   {
     id: "tools",
     name: "tools",
+    slug: "tools",
     parentId: "dev",
     createdAt: "2026-06-01T00:00:00.000Z",
   },
   {
     id: "cli",
     name: "cli",
+    slug: "cli",
     parentId: "tools",
     createdAt: "2026-06-01T00:00:00.000Z",
   },
   {
     id: "work",
     name: "work",
+    slug: "work",
     parentId: null,
     createdAt: "2026-06-01T00:00:00.000Z",
   },
@@ -54,6 +63,57 @@ test("wouldCreateCycle rejects reparenting under self or a descendant", () => {
   assert.equal(wouldCreateCycle(flat, "tools", "cli"), true);
   // Moving into an unrelated subtree is allowed.
   assert.equal(wouldCreateCycle(flat, "tools", "work"), false);
+});
+
+test("computeTagBookmarkCounts counts subtree (distinct) and own (no-descendant) bookmarks", () => {
+  // dev → tools → cli, plus a separate root "work". b4 sits on both dev and cli.
+  const links = [
+    {
+      tagId: "dev",
+      bookmarkId: "b1",
+    },
+    {
+      tagId: "tools",
+      bookmarkId: "b2",
+    },
+    {
+      tagId: "cli",
+      bookmarkId: "b3",
+    },
+    {
+      tagId: "dev",
+      bookmarkId: "b4",
+    },
+    {
+      tagId: "cli",
+      bookmarkId: "b4",
+    },
+    {
+      tagId: "work",
+      bookmarkId: "b5",
+    },
+  ];
+  const counts = computeTagBookmarkCounts(flat, links);
+
+  // dev's subtree spans b1–b4 (b4 deduped across dev + cli); only b1 sits on dev alone.
+  assert.deepEqual(counts.get("dev"), {
+    subtree: 4,
+    own: 1,
+  });
+  // tools spans its own b2 and descendant cli's b3/b4; b2 is tools-only.
+  assert.deepEqual(counts.get("tools"), {
+    subtree: 3,
+    own: 1,
+  });
+  // cli is a leaf, so its subtree and own counts match.
+  assert.deepEqual(counts.get("cli"), {
+    subtree: 2,
+    own: 2,
+  });
+  assert.deepEqual(counts.get("work"), {
+    subtree: 1,
+    own: 1,
+  });
 });
 
 // Schema-validation tests via `inject` (no database needed).

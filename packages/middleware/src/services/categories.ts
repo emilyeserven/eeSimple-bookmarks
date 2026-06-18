@@ -1,4 +1,4 @@
-import { asc, eq, inArray, isNull, ne } from "drizzle-orm";
+import { asc, eq, inArray, isNull, ne, sql } from "drizzle-orm";
 import type {
   Category,
   CategoryPropertyDefaults,
@@ -39,7 +39,7 @@ export class InvalidRootTagError extends Error {
 export const DEFAULT_CATEGORY_NAME = "Default";
 
 /** Map a DB row to the shared `Category` wire type. */
-function toCategory(row: CategoryRow): Category {
+function toCategory(row: CategoryRow & { bookmarkCount?: number }): Category {
   return {
     id: row.id,
     name: row.name,
@@ -51,6 +51,7 @@ function toCategory(row: CategoryRow): Category {
     isHomepage: row.isHomepage,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
+    bookmarkCount: row.bookmarkCount,
   };
 }
 
@@ -66,7 +67,20 @@ async function takenSlugs(excludeId?: string): Promise<string[]> {
 }
 
 export async function listCategories(): Promise<Category[]> {
-  const rows = await db.select().from(categories).orderBy(asc(categories.name));
+  const rows = await db
+    .select({
+      id: categories.id,
+      name: categories.name,
+      slug: categories.slug,
+      description: categories.description,
+      icon: categories.icon,
+      builtIn: categories.builtIn,
+      isHomepage: categories.isHomepage,
+      createdAt: categories.createdAt,
+      bookmarkCount: sql<number>`(select count(*)::int from ${bookmarks} where ${bookmarks.categoryId} = ${categories.id})`.mapWith(Number),
+    })
+    .from(categories)
+    .orderBy(asc(categories.name));
   return rows.map(toCategory);
 }
 
