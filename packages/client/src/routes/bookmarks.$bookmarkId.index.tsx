@@ -5,8 +5,6 @@ import { useBookmark, useDeleteBookmark } from "../hooks/useBookmarks";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 
-import { Card } from "@/components/ui/card";
-
 export const Route = createFileRoute("/bookmarks/$bookmarkId/")({
   component: BookmarkDetailPage,
 });
@@ -59,36 +57,34 @@ function BookmarkDetailPage() {
       >
         ← Back to bookmarks
       </Link>
-      <Card className="p-4">
-        <BookmarkDetail
-          bookmark={bookmark}
-          categories={categories ?? []}
-          properties={properties ?? []}
-          onEdit={() => navigate({
-            to: "/bookmarks/$bookmarkId/edit",
-            params: {
-              bookmarkId,
-            },
-          })}
-          onDelete={() => deleteBookmark.mutate(bookmarkId, {
-            onSuccess: () => {
-              // Return to the bookmark's category listing, or all bookmarks if it has none.
-              const slug = (categories ?? [])
-                .find(item => item.id === bookmark.categoryId)?.slug;
-              void (slug
-                ? navigate({
-                  to: "/categories/$categorySlug",
-                  params: {
-                    categorySlug: slug,
-                  },
-                })
-                : navigate({
-                  to: "/bookmarks",
-                }));
-            },
-          })}
-        />
-      </Card>
+      <BookmarkDetail
+        bookmark={bookmark}
+        categories={categories ?? []}
+        properties={properties ?? []}
+        onEdit={() => navigate({
+          to: "/bookmarks/$bookmarkId/edit",
+          params: {
+            bookmarkId,
+          },
+        })}
+        onDelete={() => deleteBookmark.mutate(bookmarkId, {
+          onSuccess: () => {
+            // Return to the bookmark's category listing, or all bookmarks if it has none.
+            const slug = (categories ?? [])
+              .find(item => item.id === bookmark.categoryId)?.slug;
+            void (slug
+              ? navigate({
+                to: "/categories/$categorySlug",
+                params: {
+                  categorySlug: slug,
+                },
+              })
+              : navigate({
+                to: "/bookmarks",
+              }));
+          },
+        })}
+      />
     </section>
   );
 }

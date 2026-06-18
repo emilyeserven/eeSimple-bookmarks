@@ -65,22 +65,55 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
 - **UI primitives:** before adding a Radix/shadcn primitive, check
   `packages/client/src/components/ui/` — `dialog`, `dropdown-menu`, `popover`, `toggle-group`,
   `command`, etc. already exist (`Dialog` was once reintroduced twice). Reuse the existing one.
-- **Grouped sections on detail/edit pages:** use the shared `LabeledSection`
-  (`packages/client/src/components/LabeledSection.tsx`) — a heading + optional muted description over
-  its content. Stack instances in a `space-y-6` container and divide them with `<Separator />`
-  (`@/components/ui/separator`); don't wrap a detail/edit page's sections in card boxes
-  (`rounded-lg border bg-card`). `AutofillRuleDetail`/`AutofillRuleForm` and the Website
-  view/edit pages are the reference. Reach for the **collapsible/accordion** pattern instead
-  (`Collapsible` + a `CollapsibleFormSection`-style trigger with a collapsed one-line preview) only
-  when a section is long or optional and benefits from collapsing (e.g. autofill activation
-  conditions, property options).
-- **Right-panel parity:** the shared right-hand panel (`packages/client/src/components/panel/`) is
-  URL-driven (`dOpen`/`dCT`/`dCId`/`dMode`) and must achieve **feature and component parity** with
-  the main app. A single item viewed/edited in the panel reuses the **same** components the main app
+- **Layout/section patterns** are catalogued under **Content hierarchies** below — consult it
+  before choosing how a detail/edit page or panel lays out its content.
+
+## Content hierarchies
+
+The client lays out page and panel content with a small, fixed set of hierarchies. Pick the one
+that matches the surface — don't invent a new structure for a one-off page.
+
+- **Flat `LabeledSection` stack** (`packages/client/src/components/LabeledSection.tsx`) — the
+  default for detail/edit page content. A small heading + optional muted description sits in a left
+  column (`md:col-span-1`, ~1/5) with its content on the right (`md:col-span-4`, ~4/5), stacking on
+  narrow screens. Stack instances in a `space-y-6` container and divide them with `<Separator />`
+  (`@/components/ui/separator`). **Don't wrap a detail/edit page's content in a card box**
+  (`rounded-lg border bg-card`, shadcn `<Card>`) — the stack is the box. Refs:
+  `AutofillRuleDetail`/`AutofillRuleForm`, the Website view/edit pages, `BookmarkDetail`,
+  `PropertyDetail`.
+- **Collapsible / accordion section** (`packages/client/src/components/CollapsibleFormSection.tsx`)
+  — a trigger showing the title plus a one-line preview (hidden when open) and a rotating chevron,
+  expanding to its full fields. Reach for it **only** when a section is long or optional and
+  benefits from collapsing (e.g. autofill activation conditions, property options). Refs:
+  `AutofillRuleForm`, `PropertyForm`, `HomepageSectionForm`.
+- **Vertical-tabbed sidebar + `<Outlet/>`** (`packages/client/src/components/TabbedEntityLayout.tsx`,
+  with the `TabWrapper.tsx` `createTabWrapper` factory and the shared `navLinkClass`) — a `header`
+  over a left vertical `nav` (`sm:w-48`, active link highlighted) and a `min-w-0 flex-1` content
+  pane holding `<Outlet/>`. The shell for slug-routed taxonomy entities: Categories, Custom
+  Properties, Websites, Media Types, YouTube Channels, Tags. Each tab's body is itself a flat
+  `LabeledSection` stack.
+- **Flat no-tab detail wrapper** (`packages/client/src/components/TaxonomyDetailLayout.tsx`) — a
+  loading/error/not-found wrapper that renders its children flat (a `LabeledSection` stack), no
+  tabs. Used by Autofill rules.
+- **Card boxes** — two coexisting mechanisms, both for **list/row** surfaces, never for detail/edit
+  page content: (a) inline `rounded-lg border bg-card` for manager/list rows (`CategoryManager`,
+  `WebsiteManager`, `CategoryPreviewCard`'s row variant); (b) the shadcn `<Card>` component
+  (`DisplaySettings.tsx`).
+- **URL-driven right panel** (`packages/client/src/components/panel/` — `RightPanel.tsx`,
+  `PanelContent.tsx`, `contentTypes.tsx`) — URL-driven (`dOpen`/`dCT`/`dCId`/`dMode`): content-type
+  tiles → searchable list → view/edit. It must achieve **feature and component parity** with the
+  main app: a single item viewed/edited in the panel reuses the **same** components the main app
   renders for that entity (e.g. `BookmarkCard`/`BookmarkForm`, `CategoryCard`, `PropertyCard`,
-  `WebsiteRow`), shown in their narrow/mobile layout — never a panel-only variant. Build entity
+  `WebsiteRow`), in their narrow/mobile layout — never a panel-only variant. Build entity
   views/forms as responsive, reusable components so both surfaces share them, and register each
   content type in `panel/contentTypes.tsx`.
+
+**Current divergences (to be reconciled):**
+
+- Single-tab entities (Tags, YouTube Channels, Media Types) use the full tabbed shell for a single
+  "General" tab.
+- Two card mechanisms coexist (inline `rounded-lg border bg-card` vs. the shadcn `<Card>`) —
+  unification is tracked as a follow-up.
 
 ## Generated files (do not edit)
 
