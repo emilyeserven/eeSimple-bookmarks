@@ -8,6 +8,7 @@ import type {
   HomepageSectionBookmarks,
   UpdateHomepageSectionInput,
 } from "@eesimple/types";
+import type { HomepageSectionImageLayout } from "@eesimple/types";
 import { buildTagDescendants, emptyConditionTree, evaluateConditions } from "@eesimple/types";
 import { db } from "@/db";
 import {
@@ -34,6 +35,9 @@ function toSection(row: SectionRow): HomepageSection {
     conditions: row.conditions,
     sortOrder: row.sortOrder,
     hideIfEmpty: row.hideIfEmpty,
+    columns: row.columns,
+    imageMode: row.imageMode,
+    imageLayout: row.imageLayout as HomepageSectionImageLayout,
     createdAt: row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
   };
 }
@@ -70,6 +74,9 @@ export async function createHomepageSection(
       conditions: input.conditions,
       sortOrder,
       hideIfEmpty: input.hideIfEmpty ?? false,
+      columns: input.columns ?? 2,
+      imageMode: input.imageMode ?? true,
+      imageLayout: input.imageLayout ?? "above",
     })
     .returning();
   return toSection(row);
@@ -86,6 +93,9 @@ export async function updateHomepageSection(
   if (input.conditions !== undefined) updates.conditions = input.conditions;
   if (input.sortOrder !== undefined) updates.sortOrder = input.sortOrder;
   if (input.hideIfEmpty !== undefined) updates.hideIfEmpty = input.hideIfEmpty;
+  if (input.columns !== undefined) updates.columns = input.columns;
+  if (input.imageMode !== undefined) updates.imageMode = input.imageMode;
+  if (input.imageLayout !== undefined) updates.imageLayout = input.imageLayout;
 
   if (Object.keys(updates).length === 0) {
     const [existing] = await db
