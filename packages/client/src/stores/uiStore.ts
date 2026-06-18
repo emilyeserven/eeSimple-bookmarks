@@ -62,6 +62,9 @@ interface UiState {
   /** Per-section image layout for 2-column homepage sections: "above" (default) or "side". Keyed by section ID. */
   homepageSectionImageLayout: Record<string, HomepageSectionImageLayout>;
   setHomepageSectionImageLayout: (sectionId: string, layout: HomepageSectionImageLayout) => void;
+  /** Per-listing image layout for 2-column listing pages: "above" (default) or "side". Keyed by a stable page key. */
+  bookmarkImageLayout: Record<string, HomepageSectionImageLayout>;
+  setBookmarkImageLayout: (pageKey: string, layout: HomepageSectionImageLayout) => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -134,6 +137,13 @@ export const useUiStore = create<UiState>()(
           [sectionId]: layout,
         },
       })),
+      bookmarkImageLayout: {},
+      setBookmarkImageLayout: (pageKey, layout) => set(state => ({
+        bookmarkImageLayout: {
+          ...state.bookmarkImageLayout,
+          [pageKey]: layout,
+        },
+      })),
     }),
     {
       name: "eesimple-ui",
@@ -151,6 +161,7 @@ export const useUiStore = create<UiState>()(
         addBookmarkFormOpen: state.addBookmarkFormOpen,
         collapsedHomepageSectionIds: state.collapsedHomepageSectionIds,
         homepageSectionImageLayout: state.homepageSectionImageLayout,
+        bookmarkImageLayout: state.bookmarkImageLayout,
       }),
     },
   ),

@@ -2,27 +2,23 @@ import type { HomepageSectionImageLayout } from "../lib/bookmarkColumns";
 
 import { useRef, useState } from "react";
 
-import { useHomepageSectionImageLayout } from "../lib/bookmarkColumns";
-import { useUiStore } from "../stores/uiStore";
-
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 interface ImageLayoutSwitcherProps {
-  /** Stable section ID used as the store key. */
-  pageKey: string;
+  layout: HomepageSectionImageLayout;
+  onLayoutChange: (layout: HomepageSectionImageLayout) => void;
 }
 
-/** Per-section control to choose image position in 2-column homepage sections: stacked above content or side-by-side on the left. */
+/** Control to choose image position in 2-column layouts: stacked above content or side-by-side on the left. */
 export function ImageLayoutSwitcher({
-  pageKey,
+  layout,
+  onLayoutChange,
 }: ImageLayoutSwitcherProps) {
   const [open, setOpen] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const layout = useHomepageSectionImageLayout(pageKey);
-  const setLayout = useUiStore(state => state.setHomepageSectionImageLayout);
 
   function handleMouseEnter() {
     if (closeTimer.current) clearTimeout(closeTimer.current);
@@ -58,7 +54,7 @@ export function ImageLayoutSwitcher({
             size="sm"
             value={layout}
             onValueChange={(value) => {
-              if (value) setLayout(pageKey, value as HomepageSectionImageLayout);
+              if (value) onLayoutChange(value as HomepageSectionImageLayout);
             }}
           >
             <ToggleGroupItem value="above">Above</ToggleGroupItem>

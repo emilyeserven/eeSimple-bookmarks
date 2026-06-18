@@ -8,9 +8,10 @@ import { BookmarkCard } from "./BookmarkCard";
 import { BookmarkForm } from "./BookmarkForm";
 import { ColumnsSwitcher } from "./ColumnsSwitcher";
 import { FilterSidebar } from "./FilterSidebar";
+import { ImageLayoutSwitcher } from "./ImageLayoutSwitcher";
 import { ImageModeSwitcher } from "./ImageModeSwitcher";
 import { useDeleteBookmark } from "../hooks/useBookmarks";
-import { COLUMN_CLASS, useBookmarkColumns, useBookmarkImageMode } from "../lib/bookmarkColumns";
+import { COLUMN_CLASS, useBookmarkColumns, useBookmarkImageLayout, useBookmarkImageMode } from "../lib/bookmarkColumns";
 import { bookmarkMatchesSearch } from "../lib/bookmarkSearch";
 import { useUiStore } from "../stores/uiStore";
 
@@ -68,6 +69,9 @@ export function BookmarkSearchView({
   const deleteBookmark = useDeleteBookmark();
   const columns = useBookmarkColumns(pageKey);
   const imageMode = useBookmarkImageMode(pageKey);
+  const imageLayout = useBookmarkImageLayout(pageKey);
+  const imageLeft = columns === 1 || (columns === 2 && imageLayout === "side");
+  const setBookmarkImageLayout = useUiStore(state => state.setBookmarkImageLayout);
   const addBookmarkFormOpen = useUiStore(state => state.addBookmarkFormOpen);
   const setAddBookmarkFormOpen = useUiStore(state => state.setAddBookmarkFormOpen);
 
@@ -151,6 +155,12 @@ export function BookmarkSearchView({
 
           <div className="flex justify-end gap-4">
             <ColumnsSwitcher pageKey={pageKey} />
+            {columns === 2 && (
+              <ImageLayoutSwitcher
+                layout={imageLayout}
+                onLayoutChange={layout => setBookmarkImageLayout(pageKey, layout)}
+              />
+            )}
             <ImageModeSwitcher pageKey={pageKey} />
           </div>
 
@@ -178,7 +188,7 @@ export function BookmarkSearchView({
                   bookmark={bookmark}
                   properties={properties}
                   onDelete={id => deleteBookmark.mutate(id)}
-                  imageLeft={columns === 1}
+                  imageLeft={imageLeft}
                   maintainImageAspectRatio={imageMode}
                 />
               </Card>
