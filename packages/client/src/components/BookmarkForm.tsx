@@ -7,6 +7,7 @@ import type {
   CreateBookmarkInput,
   CustomProperty,
   TagNode,
+  YouTubeChannelHint,
 } from "@eesimple/types";
 
 import { useEffect, useId, useRef, useState } from "react";
@@ -28,7 +29,9 @@ import {
 } from "../hooks/useBookmarks";
 import { useCategories, useCategoryDefaults, useCategoryRootTags } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
+import { useFetchMetadata } from "../hooks/useFetchMetadata";
 import { useFetchTitle } from "../hooks/useFetchTitle";
+import { useMediaTypes } from "../hooks/useMediaTypes";
 import { useTagTree } from "../hooks/useTags";
 import { useWebsiteLookup } from "../hooks/useWebsites";
 import { applyAutofill } from "../lib/autofill";
@@ -53,10 +56,20 @@ const bookmarkSchema = z.object({
   url: z.string().url("Enter a valid URL"),
   title: z.string().min(1, "Title is required"),
   categoryId: z.string().min(1, "Category is required"),
+  mediaTypeId: z.string(),
   description: z.string(),
   tagIds: z.array(z.string()),
   priority: z.number().int(),
 });
+
+/** Slug of the built-in "Video Length" property, used to fill duration from fetched metadata. */
+const VIDEO_LENGTH_SLUG = "video-length";
+/** Slug of the built-in "Video" media type, auto-selected for YouTube URLs. */
+const VIDEO_MEDIA_TYPE_SLUG = "video";
+/** Cheap client-side check so we only hit the richer metadata endpoint for YouTube URLs. */
+function looksLikeYouTube(url: string): boolean {
+  return /(?:youtube\.com|youtu\.be)/i.test(url);
+}
 
 interface BookmarkFormProps {
   /** When provided, the form edits this bookmark instead of creating a new one. */
@@ -85,7 +98,11 @@ export function BookmarkForm({
   const autoImage = useAutoBookmarkImage();
   const deleteImage = useDeleteBookmarkImage();
   const fetchTitle = useFetchTitle();
+  const fetchMetadata = useFetchMetadata();
   const websiteLookup = useWebsiteLookup();
+  const {
+    data: mediaTypes,
+  } = useMediaTypes();
   const autoFetchTitle = useUiStore(state => state.autoFetchTitle);
   const autoFetchImage = useUiStore(state => state.autoFetchImage);
   const {
@@ -111,6 +128,8 @@ export function BookmarkForm({
   const [isReportingTitle, setIsReportingTitle] = useState(false);
   const [expectedTitle, setExpectedTitle] = useState("");
   const [websiteSiteName, setWebsiteSiteName] = useState("");
+  // The channel resolved from a fetched YouTube video, passed on save so the server links/creates it.
+  const channelHintRef = useRef<YouTubeChannelHint | null>(null);
   const [showUrlCleanup, setShowUrlCleanup] = useState(false);
   const [urlCleanupMode, setUrlCleanupMode] = useState<UrlCleanupMode>("none");
   const urlCleanupModeRef = useRef<UrlCleanupMode>("none");
@@ -239,6 +258,7 @@ export function BookmarkForm({
       url: bookmark?.originalUrl ?? bookmark?.url ?? "",
       title: bookmark?.title ?? "",
       categoryId: bookmark?.categoryId ?? lockedCategoryId ?? "",
+      mediaTypeId: bookmark?.mediaType?.id ?? "",
       description: bookmark?.description ?? "",
       tagIds: (bookmark?.tags.map(tag => tag.id) ?? []) as string[],
       priority: bookmark?.priority ?? 0,
@@ -289,11 +309,15 @@ export function BookmarkForm({
         originalUrl: isModified ? rawUrl : null,
         title: value.title,
         categoryId: value.categoryId,
+        mediaTypeId: value.mediaTypeId || null,
         description: value.description || null,
         tagIds: value.tagIds,
         numberValues,
         booleanValues,
         priority: value.priority,
+        ...(channelHintRef.current && {
+          youtubeChannel: channelHintRef.current,
+        }),
       };
 
       if (bookmark) {
@@ -318,6 +342,7 @@ export function BookmarkForm({
       setNumberInputs({});
       setBooleanInputs({});
       setWebsiteSiteName("");
+      channelHintRef.current = null;
       imageIntentRef.current = EMPTY_IMAGE_INTENT;
       setImageFieldKey(key => key + 1);
       setShowUrlCleanup(false);
@@ -394,6 +419,43 @@ export function BookmarkForm({
     }
   }
 
+  // For a YouTube URL, pull the channel, duration, and media type from the video's metadata and
+  // prefill them: the channel is held as a hint applied on save, the duration fills the built-in
+  // "Video Length" property, and the media type is set to "Video". Best-effort and non-blocking.
+  async function runYouTubeEnrichment(url: string): Promise<void> {
+    if (!isFetchableUrl(url) || !looksLikeYouTube(url)) return;
+    try {
+      const meta = await fetchMetadata.mutateAsync({
+        url,
+      });
+      if (!meta.isYouTube) return;
+
+      if (meta.channel?.key) {
+        channelHintRef.current = {
+          key: meta.channel.key,
+          name: meta.channel.name,
+        };
+      }
+      const videoType = (mediaTypes ?? []).find(type => type.slug === VIDEO_MEDIA_TYPE_SLUG);
+      if (videoType && !form.getFieldValue("mediaTypeId")) {
+        form.setFieldValue("mediaTypeId", videoType.id);
+      }
+      if (meta.durationSeconds !== null) {
+        const lengthProp = (customProperties ?? []).find(property => property.slug === VIDEO_LENGTH_SLUG);
+        if (lengthProp) {
+          touchedRef.current.add(`number:${lengthProp.id}`);
+          setNumberInputs(current => ({
+            ...current,
+            [lengthProp.id]: String(meta.durationSeconds),
+          }));
+        }
+      }
+    }
+    catch {
+      // Non-fatal: enrichment is a best-effort convenience layered on the title fetch.
+    }
+  }
+
   // Check whether the URL's site is already on record so the banner can say whether a new
   // website will be created. Read-only — the site is created only when the bookmark is saved.
   function runWebsiteLookup(url: string): void {
@@ -458,6 +520,7 @@ export function BookmarkForm({
                     force: false,
                   });
                 }
+                void runYouTubeEnrichment(field.state.value);
               }}
               action={(
                 <Button
@@ -547,9 +610,12 @@ export function BookmarkForm({
                       title="Fetch title from URL"
                       aria-label="Fetch title from URL"
                       disabled={!isFetchableUrl(url) || fetchTitle.isPending}
-                      onClick={() => void runFetchTitle(url, {
-                        force: true,
-                      })}
+                      onClick={() => {
+                        void runFetchTitle(url, {
+                          force: true,
+                        });
+                        void runYouTubeEnrichment(url);
+                      }}
                     >
                       {fetchTitle.isPending
                         ? <Loader2 className="size-4 animate-spin" />
@@ -787,6 +853,28 @@ export function BookmarkForm({
             )}
           </form.AppField>
         )}
+
+      <form.AppField name="mediaTypeId">
+        {field => (
+          <field.ComboboxField
+            label="Media type"
+            className="sm:col-span-2"
+            placeholder="Select a media type"
+            searchPlaceholder="Search media types…"
+            emptyText="No media types found."
+            options={[
+              {
+                value: "",
+                label: "None",
+              },
+              ...(mediaTypes ?? []).map(type => ({
+                value: type.id,
+                label: type.name,
+              })),
+            ]}
+          />
+        )}
+      </form.AppField>
 
       <form.Subscribe selector={state => state.values.categoryId}>
         {categoryId => (

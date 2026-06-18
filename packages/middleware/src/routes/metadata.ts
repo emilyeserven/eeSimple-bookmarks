@@ -3,6 +3,7 @@ import type { FetchMetadataResult } from "@eesimple/types";
 import { fetchPageTitle } from "@/services/metadata";
 import { lookupWebsiteByUrl, stripSiteNameSuffix } from "@/services/websites";
 import { fetchYouTubeMetadata, isYouTubeVideoUrl } from "@/services/youtube";
+import { channelKeyFromUrl } from "@/services/youtubeChannels";
 import { isValidUrl } from "@/utils/url";
 
 const fetchTitleQuery = {
@@ -110,6 +111,7 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
           ? {
             name: meta.channelName,
             url: meta.channelUrl,
+            key: meta.channelUrl ? channelKeyFromUrl(meta.channelUrl) : null,
           }
           : null,
         durationSeconds: meta?.durationSeconds ?? null,

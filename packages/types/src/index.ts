@@ -497,9 +497,10 @@ export interface FetchMetadataResult {
   title: string | null;
   /** Whether the URL was recognized as a YouTube video. */
   isYouTube: boolean;
-  /** The video's channel (YouTube only), or `null`. */
+  /** The video's channel (YouTube only), or `null`. `key` is the stable id used to link/create it. */
   channel: { name: string;
-    url: string | null; } | null;
+    url: string | null;
+    key: string | null; } | null;
   /** The video's length in whole seconds (YouTube only), or `null`. */
   durationSeconds: number | null;
   /** A preview/thumbnail image URL (YouTube only), or `null`. */

@@ -181,6 +181,8 @@ export const sampleBookmark: Bookmark = {
     siteName: "GitHub",
     slug: "github",
   },
+  mediaType: null,
+  youtubeChannel: null,
   tags: [
     {
       id: "tag-cli",

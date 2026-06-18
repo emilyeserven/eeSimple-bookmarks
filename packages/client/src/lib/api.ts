@@ -10,12 +10,15 @@ import type {
   CreateCategoryInput,
   CreateCustomPropertyInput,
   CreateHomepageSectionInput,
+  CreateMediaTypeInput,
   CreateTagInput,
   CreateWebsiteInput,
   CustomProperty,
+  FetchMetadataResult,
   HomepageFilter,
   HomepageSection,
   HomepageSectionBookmarks,
+  MediaType,
   Tag,
   TagNode,
   UpdateAutofillRuleInput,
@@ -24,10 +27,13 @@ import type {
   UpdateCategoryInput,
   UpdateCustomPropertyInput,
   UpdateHomepageSectionInput,
+  UpdateMediaTypeInput,
   UpdateTagInput,
   UpdateWebsiteInput,
+  UpdateYouTubeChannelInput,
   Website,
   WebsiteLookup,
+  YouTubeChannel,
 } from "@eesimple/types";
 
 const BASE = "/api";
@@ -105,6 +111,16 @@ export const metadataApi = {
     if (siteName) params.set("siteName", siteName);
     return request<{ title: string }>(`/fetch-title?${params.toString()}`);
   },
+  fetchMetadata: ({
+    url, siteName,
+  }: { url: string;
+    siteName?: string; }) => {
+    const params = new URLSearchParams({
+      url,
+    });
+    if (siteName) params.set("siteName", siteName);
+    return request<FetchMetadataResult>(`/fetch-metadata?${params.toString()}`);
+  },
 };
 
 export const tagsApi = {
@@ -140,6 +156,35 @@ export const websitesApi = {
       body: JSON.stringify(input),
     }),
   remove: (id: string) => request<undefined>(`/websites/${id}`, {
+    method: "DELETE",
+  }),
+};
+
+export const mediaTypesApi = {
+  list: () => request<MediaType[]>("/media-types"),
+  create: (input: CreateMediaTypeInput) =>
+    request<MediaType>("/media-types", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  update: (id: string, input: UpdateMediaTypeInput) =>
+    request<MediaType>(`/media-types/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  remove: (id: string) => request<undefined>(`/media-types/${id}`, {
+    method: "DELETE",
+  }),
+};
+
+export const youtubeChannelsApi = {
+  list: () => request<YouTubeChannel[]>("/youtube-channels"),
+  update: (id: string, input: UpdateYouTubeChannelInput) =>
+    request<YouTubeChannel>(`/youtube-channels/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  remove: (id: string) => request<undefined>(`/youtube-channels/${id}`, {
     method: "DELETE",
   }),
 };
