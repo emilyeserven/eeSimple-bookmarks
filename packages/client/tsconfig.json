@@ -6,7 +6,6 @@
     "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom"],
     "noEmit": true,
     "useDefineForClassFields": true,
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     }
