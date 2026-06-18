@@ -4,8 +4,6 @@ import { PropertyDetail } from "../components/PropertyDetail";
 import { useCategories } from "../hooks/useCategories";
 import { useDeleteCustomProperty, usePropertyBySlug } from "../hooks/useCustomProperties";
 
-import { Card } from "@/components/ui/card";
-
 export const Route = createFileRoute("/custom-properties/$propertySlug/")({
   component: CustomPropertyDetailPage,
 });
@@ -51,24 +49,22 @@ function CustomPropertyDetailPage() {
   return (
     <section className="space-y-4">
       {backLink}
-      <Card className="p-4">
-        <PropertyDetail
-          property={property}
-          categories={categories ?? []}
-          allProperties={properties ?? []}
-          onEdit={() => navigate({
-            to: "/custom-properties/$propertySlug/edit",
-            params: {
-              propertySlug,
-            },
-          })}
-          onDelete={() => deleteProperty.mutate(property.id, {
-            onSuccess: () => navigate({
-              to: "/custom-properties",
-            }),
-          })}
-        />
-      </Card>
+      <PropertyDetail
+        property={property}
+        categories={categories ?? []}
+        allProperties={properties ?? []}
+        onEdit={() => navigate({
+          to: "/custom-properties/$propertySlug/edit",
+          params: {
+            propertySlug,
+          },
+        })}
+        onDelete={() => deleteProperty.mutate(property.id, {
+          onSuccess: () => navigate({
+            to: "/custom-properties",
+          }),
+        })}
+      />
     </section>
   );
 }
