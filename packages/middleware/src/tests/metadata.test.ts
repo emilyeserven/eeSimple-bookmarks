@@ -86,6 +86,40 @@ test("fetchPageTitle returns { kind: 'ok' } when the page has a title", async ()
   finally { globalThis.fetch = original; }
 });
 
+test("fetchPageTitle reads YouTube's clean og:title (issue #124)", async () => {
+  // YouTube's <title> carries a "- YouTube" suffix; og:title holds the clean, non-localized name.
+  const original = globalThis.fetch;
+  globalThis.fetch = async () => new Response(
+    "<head><title>なとり - Puppet - YouTube</title>"
+    + "<meta property=\"og:title\" content=\"なとり - Puppet\"></head>",
+    {
+      status: 200,
+    },
+  );
+  try {
+    const result = await fetchPageTitle("https://www.youtube.com/watch?v=4d9RSxd7Soo");
+    assert.equal(result.kind, "ok");
+    assert.equal(result.kind === "ok" ? result.title : "", "なとり - Puppet");
+  }
+  finally { globalThis.fetch = original; }
+});
+
+test("fetchPageTitle identifies as a browser so sites serve full HTML (issue #124)", async () => {
+  const original = globalThis.fetch;
+  let sentUserAgent: string | undefined;
+  globalThis.fetch = async (_input, init) => {
+    sentUserAgent = (init?.headers as Record<string, string> | undefined)?.["User-Agent"];
+    return new Response("<head><title>My Page</title></head>", {
+      status: 200,
+    });
+  };
+  try {
+    await fetchPageTitle("https://example.com");
+    assert.ok(sentUserAgent?.startsWith("Mozilla/"), `expected a browser UA, got ${sentUserAgent}`);
+  }
+  finally { globalThis.fetch = original; }
+});
+
 test("fetchPageTitle returns { kind: 'no_title' } when body has no <title>", async () => {
   const original = globalThis.fetch;
   globalThis.fetch = async () => new Response("<html><body>no title here</body></html>", {

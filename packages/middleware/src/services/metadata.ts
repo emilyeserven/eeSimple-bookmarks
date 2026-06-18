@@ -7,6 +7,15 @@ const FETCH_TIMEOUT_MS = 5000;
 /** Cap the body we read so a huge response can't exhaust memory. */
 const MAX_BYTES = 512 * 1024;
 
+/**
+ * A mainstream-browser User-Agent. Some sites (notably YouTube) serve their full HTML — including
+ * the `og:title`/`<title>` meta tags — to browsers, but a stripped or consent interstitial to bot
+ * User-Agents, which has no title to extract. Identifying as a browser gets the real page. See #124.
+ */
+const BROWSER_USER_AGENT
+  = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+    + "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
+
 export type FetchTitleResult
   = | { kind: "ok";
     title: string; }
@@ -93,7 +102,7 @@ async function fetchHtml(url: string, stopAt: RegExp): Promise<FetchHtmlResult> 
       redirect: "follow",
       signal: controller.signal,
       headers: {
-        "User-Agent": "eeSimple-bookmarks/0.1 (+title-fetch)",
+        "User-Agent": BROWSER_USER_AGENT,
         "Accept": "text/html,application/xhtml+xml",
       },
     });
