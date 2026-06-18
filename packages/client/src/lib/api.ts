@@ -13,7 +13,10 @@ import type {
   CreateTagInput,
   CreateWebsiteInput,
   CustomProperty,
+  DeleteOrphansResult,
   FetchMetadataResult,
+  GalleryCatalog,
+  GalleryScanResult,
   HomepageSection,
   HomepageSectionBookmarks,
   MediaType,
@@ -94,6 +97,20 @@ export const bookmarksApi = {
   deleteImage: (id: string) =>
     request<undefined>(`/bookmarks/${id}/image`, {
       method: "DELETE",
+    }),
+};
+
+export const galleryApi = {
+  list: () => request<GalleryCatalog>("/gallery"),
+  scan: () => request<GalleryScanResult>("/gallery/scan", {
+    method: "POST",
+  }),
+  deleteOrphans: (keys: string[]) =>
+    request<DeleteOrphansResult>("/gallery/orphans", {
+      method: "DELETE",
+      body: JSON.stringify({
+        keys,
+      }),
     }),
 };
 

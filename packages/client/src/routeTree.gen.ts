@@ -27,6 +27,7 @@ import { Route as SettingsWebsitesRouteImport } from './routes/settings.websites
 import { Route as SettingsTagsRouteImport } from './routes/settings.tags'
 import { Route as SettingsMediaTypesRouteImport } from './routes/settings.media-types'
 import { Route as SettingsHomepageRouteImport } from './routes/settings.homepage'
+import { Route as SettingsGalleryRouteImport } from './routes/settings.gallery'
 import { Route as SettingsDisplayRouteImport } from './routes/settings.display'
 import { Route as SettingsCustomPropertiesRouteImport } from './routes/settings.custom-properties'
 import { Route as SettingsCategoriesRouteImport } from './routes/settings.categories'
@@ -154,6 +155,11 @@ const SettingsMediaTypesRoute = SettingsMediaTypesRouteImport.update({
 const SettingsHomepageRoute = SettingsHomepageRouteImport.update({
   id: '/homepage',
   path: '/homepage',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsGalleryRoute = SettingsGalleryRouteImport.update({
+  id: '/gallery',
+  path: '/gallery',
   getParentRoute: () => SettingsRoute,
 } as any)
 const SettingsDisplayRoute = SettingsDisplayRouteImport.update({
@@ -383,6 +389,7 @@ export interface FileRoutesByFullPath {
   '/settings/categories': typeof SettingsCategoriesRoute
   '/settings/custom-properties': typeof SettingsCustomPropertiesRouteWithChildren
   '/settings/display': typeof SettingsDisplayRoute
+  '/settings/gallery': typeof SettingsGalleryRoute
   '/settings/homepage': typeof SettingsHomepageRoute
   '/settings/media-types': typeof SettingsMediaTypesRoute
   '/settings/tags': typeof SettingsTagsRoute
@@ -432,6 +439,7 @@ export interface FileRoutesByTo {
   '/settings/automations': typeof SettingsAutomationsRoute
   '/settings/categories': typeof SettingsCategoriesRoute
   '/settings/display': typeof SettingsDisplayRoute
+  '/settings/gallery': typeof SettingsGalleryRoute
   '/settings/homepage': typeof SettingsHomepageRoute
   '/settings/media-types': typeof SettingsMediaTypesRoute
   '/settings/tags': typeof SettingsTagsRoute
@@ -481,6 +489,7 @@ export interface FileRoutesById {
   '/settings/categories': typeof SettingsCategoriesRoute
   '/settings/custom-properties': typeof SettingsCustomPropertiesRouteWithChildren
   '/settings/display': typeof SettingsDisplayRoute
+  '/settings/gallery': typeof SettingsGalleryRoute
   '/settings/homepage': typeof SettingsHomepageRoute
   '/settings/media-types': typeof SettingsMediaTypesRoute
   '/settings/tags': typeof SettingsTagsRoute
@@ -540,6 +549,7 @@ export interface FileRouteTypes {
     | '/settings/categories'
     | '/settings/custom-properties'
     | '/settings/display'
+    | '/settings/gallery'
     | '/settings/homepage'
     | '/settings/media-types'
     | '/settings/tags'
@@ -589,6 +599,7 @@ export interface FileRouteTypes {
     | '/settings/automations'
     | '/settings/categories'
     | '/settings/display'
+    | '/settings/gallery'
     | '/settings/homepage'
     | '/settings/media-types'
     | '/settings/tags'
@@ -637,6 +648,7 @@ export interface FileRouteTypes {
     | '/settings/categories'
     | '/settings/custom-properties'
     | '/settings/display'
+    | '/settings/gallery'
     | '/settings/homepage'
     | '/settings/media-types'
     | '/settings/tags'
@@ -821,6 +833,13 @@ declare module '@tanstack/react-router' {
       path: '/homepage'
       fullPath: '/settings/homepage'
       preLoaderRoute: typeof SettingsHomepageRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/gallery': {
+      id: '/settings/gallery'
+      path: '/gallery'
+      fullPath: '/settings/gallery'
+      preLoaderRoute: typeof SettingsGalleryRouteImport
       parentRoute: typeof SettingsRoute
     }
     '/settings/display': {
@@ -1207,6 +1226,7 @@ interface SettingsRouteChildren {
   SettingsCategoriesRoute: typeof SettingsCategoriesRoute
   SettingsCustomPropertiesRoute: typeof SettingsCustomPropertiesRouteWithChildren
   SettingsDisplayRoute: typeof SettingsDisplayRoute
+  SettingsGalleryRoute: typeof SettingsGalleryRoute
   SettingsHomepageRoute: typeof SettingsHomepageRoute
   SettingsMediaTypesRoute: typeof SettingsMediaTypesRoute
   SettingsTagsRoute: typeof SettingsTagsRoute
@@ -1221,6 +1241,7 @@ const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsCategoriesRoute: SettingsCategoriesRoute,
   SettingsCustomPropertiesRoute: SettingsCustomPropertiesRouteWithChildren,
   SettingsDisplayRoute: SettingsDisplayRoute,
+  SettingsGalleryRoute: SettingsGalleryRoute,
   SettingsHomepageRoute: SettingsHomepageRoute,
   SettingsMediaTypesRoute: SettingsMediaTypesRoute,
   SettingsTagsRoute: SettingsTagsRoute,
