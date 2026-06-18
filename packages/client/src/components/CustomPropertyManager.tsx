@@ -3,7 +3,7 @@ import type { CustomProperty } from "@eesimple/types";
 import { useMemo, useState } from "react";
 
 import { Link } from "@tanstack/react-router";
-import { Plus } from "lucide-react";
+import { Plus, TriangleAlert } from "lucide-react";
 
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { TYPE_LABELS } from "../lib/propertyFormat";
@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 interface PropertyPreviewProps {
   property: CustomProperty;
@@ -37,9 +38,10 @@ function PropertyPreview({
   }
 
   const categoryCount = property.categoryIds.length;
+  const isUncategorized = categoryCount === 0;
 
   return (
-    <Card className="p-0">
+    <Card className={cn("p-0", isUncategorized && "opacity-60")}>
       <Link
         to="/settings/custom-properties/$propertySlug"
         params={{
@@ -52,6 +54,7 @@ function PropertyPreview({
       >
         <div className="flex flex-wrap items-center gap-2">
           <span className="font-medium">{property.name}</span>
+          {isUncategorized && <TriangleAlert className="size-4 text-amber-500" />}
           <Badge variant="secondary">{TYPE_LABELS[property.type]}</Badge>
           {summary ? <span className="text-xs text-muted-foreground">{summary}</span> : null}
         </div>
