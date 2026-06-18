@@ -26,6 +26,9 @@ interface UiState {
   /** When on, blurring the bookmark URL field auto-fetches the page title. */
   autoFetchTitle: boolean;
   setAutoFetchTitle: (value: boolean) => void;
+  /** When on, the Images section of the Add Bookmark form starts collapsed and the page image is fetched automatically on save. */
+  autoFetchImage: boolean;
+  setAutoFetchImage: (value: boolean) => void;
   /** Per-listing image display mode: `true` = natural aspect ratio, `false` = uniform crop. Keyed by a stable page key. */
   bookmarkImageMode: Record<string, boolean>;
   setBookmarkImageMode: (pageKey: string, mode: boolean) => void;
@@ -65,6 +68,10 @@ export const useUiStore = create<UiState>()(
       autoFetchTitle: true,
       setAutoFetchTitle: value => set({
         autoFetchTitle: value,
+      }),
+      autoFetchImage: true,
+      setAutoFetchImage: value => set({
+        autoFetchImage: value,
       }),
       bookmarkImageMode: {},
       setBookmarkImageMode: (pageKey, mode) => set(state => ({
@@ -120,6 +127,7 @@ export const useUiStore = create<UiState>()(
       partialize: state => ({
         theme: state.theme,
         autoFetchTitle: state.autoFetchTitle,
+        autoFetchImage: state.autoFetchImage,
         bookmarkImageMode: state.bookmarkImageMode,
         bookmarkColumns: state.bookmarkColumns,
         panelPinned: state.panelPinned,
