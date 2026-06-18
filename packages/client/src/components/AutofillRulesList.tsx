@@ -5,6 +5,8 @@ import type {
 
 import { useMemo, useState } from "react";
 
+import { Link } from "@tanstack/react-router";
+
 import { NO_CATEGORY } from "./AutofillRuleForm";
 import { usePanelControls } from "./panel/usePanelControls";
 import { useAutofillRules } from "../hooks/useAutofill";
@@ -164,21 +166,20 @@ interface RuleListItemProps {
   categories: Category[];
 }
 
-/** A single read-only rule card that opens the rule in the shared panel. */
+/** A single read-only rule card that navigates to the rule's full-page view. */
 function RuleListItem({
   rule, categories,
 }: RuleListItemProps) {
-  const {
-    openAutofill,
-  } = usePanelControls();
   const categoryName = rule.setCategoryId
     ? categories.find(category => category.id === rule.setCategoryId)?.name
     : null;
 
   return (
-    <button
-      type="button"
-      onClick={() => openAutofill(rule.id)}
+    <Link
+      to="/settings/autofill/$ruleSlug"
+      params={{
+        ruleSlug: rule.slug,
+      }}
       className="block w-full text-left"
     >
       <Card
@@ -197,6 +198,6 @@ function RuleListItem({
           {categoryName ? <Badge variant="secondary">{categoryName}</Badge> : null}
         </CardHeader>
       </Card>
-    </button>
+    </Link>
   );
 }

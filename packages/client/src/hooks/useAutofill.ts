@@ -26,6 +26,15 @@ export function useAutofillRuleById(id: string) {
   };
 }
 
+/** Look up a single autofill rule by its slug from the cached list. */
+export function useAutofillRuleBySlug(slug: string) {
+  const query = useAutofillRules();
+  return {
+    ...query,
+    rule: (query.data ?? []).find(item => item.slug === slug),
+  };
+}
+
 export function useCreateAutofillRule() {
   const queryClient = useQueryClient();
   return useMutation({

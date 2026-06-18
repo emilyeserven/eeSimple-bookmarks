@@ -9,7 +9,7 @@ import { useMemo } from "react";
 
 import { Bookmark, Folder, Globe, SlidersHorizontal, Sparkles, Tags } from "lucide-react";
 
-import { AutofillRulePanel } from "./AutofillRulePanel";
+import { AutofillRulePanel, ViewAutofillRule } from "./AutofillRulePanel";
 import { TagPanel } from "./TagPanel";
 import { usePanelControls } from "./usePanelControls";
 import { usePanelDismissAfterDelete } from "./usePanelDismissAfterDelete";
@@ -424,7 +424,10 @@ function useAutofillList() {
   };
 }
 
-const AutofillItem: FC<{ id: string }> = ({
+const AutofillView: FC<{ id: string }> = ({
+  id,
+}) => <ViewAutofillRule ruleId={id} />;
+const AutofillEdit: FC<{ id: string }> = ({
   id,
 }) => <AutofillRulePanel ruleId={id} />;
 
@@ -483,8 +486,8 @@ export const PANEL_CONTENT_TYPES: PanelContentTypeDef[] = [
     singular: "Autofill Rule",
     icon: Sparkles,
     useList: useAutofillList,
-    View: AutofillItem,
-    Edit: AutofillItem,
+    View: AutofillView,
+    Edit: AutofillEdit,
   },
 ];
 

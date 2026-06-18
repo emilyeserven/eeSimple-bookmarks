@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { buildApp } from "@/app";
 import { maybeSeed } from "@/db/seed";
-import { ensureAutofillConditions } from "@/services/autofill";
+import { ensureAutofillConditions, ensureAutofillSlugs } from "@/services/autofill";
 import { ensureDefaultCategory } from "@/services/categories";
 import { backfillCustomPropertySlugs } from "@/services/customProperties";
 import { ensureHomepageFilter } from "@/services/homepageFilter";
@@ -41,6 +41,7 @@ try {
   // Backfill condition trees for legacy autofill rules and seed the homepage filter from the
   // previous is-homepage / homepage-tags mechanism on first boot.
   await ensureAutofillConditions();
+  await ensureAutofillSlugs();
   await ensureHomepageFilter();
   await ensureHomepageSections();
   // Create the image bucket if storage is configured; harmless when it already exists.

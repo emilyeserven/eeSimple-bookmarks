@@ -1,4 +1,4 @@
-import { asc, eq, inArray, isNull } from "drizzle-orm";
+import { asc, eq, inArray, isNull, ne } from "drizzle-orm";
 import type {
   AutofillRule,
   BookmarkBooleanValue,
@@ -18,8 +18,30 @@ import {
   type AutofillRuleRow,
   autofillRuleTags,
 } from "@/db/schema";
+import { slugify } from "@/utils/slug";
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+/** Pick an autofill rule slug unique within existing rule slugs. Falls back to "rule" for empty names. */
+function uniqueAutofillSlug(name: string, taken: Set<string>): string {
+  const base = slugify(name) || "rule";
+  if (!taken.has(base)) return base;
+  for (let n = 2; ; n += 1) {
+    const candidate = `${base}-${n}`;
+    if (!taken.has(candidate)) return candidate;
+  }
+}
+
+/** Fetch the set of all existing autofill rule slugs, optionally excluding one rule. */
+async function takenAutofillSlugs(excludeId?: string): Promise<Set<string>> {
+  const rows = await db
+    .select({
+      slug: autofillRules.slug,
+    })
+    .from(autofillRules)
+    .where(excludeId ? ne(autofillRules.id, excludeId) : undefined);
+  return new Set(rows.map(r => r.slug).filter((s): s is string => s !== null));
+}
 
 /** Map a DB row plus its hydrated relations to the shared `AutofillRule` wire type. */
 function toAutofillRule(
@@ -31,6 +53,7 @@ function toAutofillRule(
   return {
     id: row.id,
     name: row.name,
+    slug: row.slug ?? slugify(row.name),
     description: row.description,
     conditions: row.conditions ?? emptyConditionTree(),
     setCategoryId: row.setCategoryId,
@@ -191,11 +214,15 @@ async function setRuleBooleanValues(
 }
 
 export async function createAutofillRule(input: CreateAutofillRuleInput): Promise<AutofillRule> {
+  const taken = await takenAutofillSlugs();
+  const slug = uniqueAutofillSlug(input.name, taken);
+
   const id = await db.transaction(async (tx) => {
     const [row] = await tx
       .insert(autofillRules)
       .values({
         name: input.name,
+        slug,
         description: input.description ?? null,
         conditions: input.conditions,
         setCategoryId: input.setCategoryId ?? null,
@@ -221,15 +248,22 @@ export async function updateAutofillRule(
     const [existing] = await tx
       .select({
         id: autofillRules.id,
+        name: autofillRules.name,
       })
       .from(autofillRules)
       .where(eq(autofillRules.id, id));
     if (!existing) return false;
 
     const patch: Partial<
-      Pick<AutofillRuleRow, "name" | "description" | "conditions" | "setCategoryId" | "sortOrder">
+      Pick<AutofillRuleRow, "name" | "slug" | "description" | "conditions" | "setCategoryId" | "sortOrder">
     > = {};
-    if (input.name !== undefined) patch.name = input.name;
+    if (input.name !== undefined) {
+      patch.name = input.name;
+      if (input.name !== existing.name) {
+        const taken = await takenAutofillSlugs(id);
+        patch.slug = uniqueAutofillSlug(input.name, taken);
+      }
+    }
     if (input.description !== undefined) patch.description = input.description ?? null;
     if (input.conditions !== undefined) patch.conditions = input.conditions;
     if (input.setCategoryId !== undefined) patch.setCategoryId = input.setCategoryId ?? null;
@@ -254,6 +288,36 @@ export async function deleteAutofillRule(id: string): Promise<boolean> {
     id: autofillRules.id,
   });
   return rows.length > 0;
+}
+
+export async function getAutofillRuleBySlug(slug: string): Promise<AutofillRule | null> {
+  const [row] = await db.select().from(autofillRules).where(eq(autofillRules.slug, slug));
+  if (!row) return null;
+  const [hydrated] = await hydrate([row]);
+  return hydrated ?? null;
+}
+
+/**
+ * Backfill `slug` for autofill rules that predate the column. Runs at boot; idempotent.
+ */
+export async function ensureAutofillSlugs(): Promise<void> {
+  const missing = await db
+    .select({
+      id: autofillRules.id,
+      name: autofillRules.name,
+    })
+    .from(autofillRules)
+    .where(isNull(autofillRules.slug));
+  if (missing.length === 0) return;
+
+  const taken = await takenAutofillSlugs();
+  for (const rule of missing) {
+    const slug = uniqueAutofillSlug(rule.name, taken);
+    taken.add(slug);
+    await db.update(autofillRules).set({
+      slug,
+    }).where(eq(autofillRules.id, rule.id));
+  }
 }
 
 /**

@@ -342,6 +342,8 @@ export const propertyCategories = pgTable("property_categories", {
 export const autofillRules = pgTable("autofill_rules", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
+  // URL-friendly identifier derived from the name (e.g. "github-recipes"). Backfilled at boot.
+  slug: text("slug"),
   // Optional free-form description shown alongside the rule.
   description: text("description"),
   // The match predicate tree describing when this rule applies. Nullable only during rollout:
@@ -362,7 +364,9 @@ export const autofillRules = pgTable("autofill_rules", {
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
-});
+}, table => [
+  unique("autofill_rules_slug_unique").on(table.slug),
+]);
 
 /** `autofill_rule_tags` — tiered tags a rule applies to a matching bookmark. */
 export const autofillRuleTags = pgTable("autofill_rule_tags", {
