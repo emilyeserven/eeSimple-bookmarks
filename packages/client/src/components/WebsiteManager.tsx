@@ -1,4 +1,5 @@
-import type { BulkUrlUpdateResult, ShortenedLink, UpdateWebsiteInput, Website, WebsiteParamRule } from "@eesimple/types";
+import type { ParamRuleDraft } from "../lib/websiteForm";
+import type { BulkUrlUpdateResult, ShortenedLink, UpdateWebsiteInput, Website } from "@eesimple/types";
 
 import { useEffect, useState } from "react";
 
@@ -13,6 +14,7 @@ import { useBookmarksOnHost, useBulkExpandBookmarkUrls } from "../hooks/useBookm
 import { useCreateWebsite, useUpdateWebsite, useWebsites } from "../hooks/useWebsites";
 import { useAppForm } from "../lib/form";
 import { canonicalize } from "../lib/urlCleanup";
+import { normalizeRules, normalizeShortLinks } from "../lib/websiteForm";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,33 +24,6 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
 import { useUiStore } from "@/stores/uiStore";
-
-/** Local draft of a param rule, with params edited as a comma-separated string. */
-interface ParamRuleDraft {
-  pathSuffix: string;
-  paramsText: string;
-}
-
-/** Normalize shortened-link drafts to the stored shape (lower-cased domains, blank expandTo → null). */
-function normalizeShortLinks(links: ShortenedLink[]): ShortenedLink[] {
-  return links
-    .map(link => ({
-      domain: link.domain.trim().replace(/^www\./i, "").toLowerCase(),
-      expandTo: link.expandTo && link.expandTo.trim() ? link.expandTo.trim() : null,
-      keepShortened: link.keepShortened,
-    }))
-    .filter(link => link.domain.length > 0);
-}
-
-/** Normalize param-rule drafts to the stored shape, dropping fully-empty rows. */
-function normalizeRules(rules: ParamRuleDraft[]): WebsiteParamRule[] {
-  return rules
-    .map(rule => ({
-      pathSuffix: rule.pathSuffix.trim(),
-      params: rule.paramsText.split(",").map(part => part.trim()).filter(Boolean),
-    }))
-    .filter(rule => rule.pathSuffix.length > 0 || rule.params.length > 0);
-}
 
 /** A single editable website row: name/domain plus shortened-link and param-cleanup rules. */
 export function WebsiteRow({
@@ -206,7 +181,7 @@ export function WebsiteRow({
 }
 
 /** Editor for a website's verified shortened-link domains (with optional expansion templates). */
-function ShortenedLinksEditor({
+export function ShortenedLinksEditor({
   idBase, links, onChange,
 }: { idBase: string;
   links: ShortenedLink[];
@@ -301,7 +276,7 @@ function ShortenedLinksEditor({
 }
 
 /** Editor for a website's path-scoped query-param whitelist. */
-function ParamRulesEditor({
+export function ParamRulesEditor({
   idBase, rules, onChange,
 }: { idBase: string;
   rules: ParamRuleDraft[];
@@ -374,7 +349,7 @@ function ParamRulesEditor({
 }
 
 /** Lists the website's saved shortened links that have an expansion rule, each with a bulk-expander. */
-function BulkExpandSection({
+export function BulkExpandSection({
   website,
 }: { website: Website }) {
   const expandable = website.shortenedLinks.filter(link => link.expandTo && !link.keepShortened);

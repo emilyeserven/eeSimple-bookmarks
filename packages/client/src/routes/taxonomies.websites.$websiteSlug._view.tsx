@@ -1,66 +1,53 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 
 import { TabbedEntityLayout, navLinkClass } from "../components/TabbedEntityLayout";
-import { useDeleteCustomProperty, usePropertyBySlug } from "../hooks/useCustomProperties";
-import { hasPropertyOptions } from "../lib/propertyForm";
-import { TYPE_LABELS } from "../lib/propertyFormat";
+import { useDeleteWebsite, useWebsiteBySlug } from "../hooks/useWebsites";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/custom-properties/$propertySlug/_view")({
-  component: CustomPropertyViewLayout,
+export const Route = createFileRoute("/taxonomies/websites/$websiteSlug/_view")({
+  component: WebsiteViewLayout,
 });
 
-function CustomPropertyViewLayout() {
+const viewNav = [
+  {
+    to: "/taxonomies/websites/$websiteSlug/general",
+    label: "General",
+  },
+  {
+    to: "/taxonomies/websites/$websiteSlug/shortened-links",
+    label: "Shortened Links",
+  },
+  {
+    to: "/taxonomies/websites/$websiteSlug/param-rules",
+    label: "Param Rules",
+  },
+] as const;
+
+function WebsiteViewLayout() {
   const {
-    propertySlug,
+    websiteSlug,
   } = Route.useParams();
   const navigate = Route.useNavigate();
   const {
-    property, isLoading,
-  } = usePropertyBySlug(propertySlug);
-  const deleteProperty = useDeleteCustomProperty();
-
-  // The "Options" tab only exists when the property has options (number / calculate / datetime).
-  const viewNav = [
-    {
-      to: "/custom-properties/$propertySlug/general",
-      label: "General",
-    },
-    ...(property && hasPropertyOptions(property)
-      ? [{
-        to: "/custom-properties/$propertySlug/options",
-        label: "Options",
-      }] as const
-      : []),
-    {
-      to: "/custom-properties/$propertySlug/categories",
-      label: "Categories",
-    },
-    {
-      to: "/custom-properties/$propertySlug/display",
-      label: "Display",
-    },
-    {
-      to: "/custom-properties/$propertySlug/autofill",
-      label: "Autofill Rules",
-    },
-  ] as const;
+    website, isLoading,
+  } = useWebsiteBySlug(websiteSlug);
+  const deleteWebsite = useDeleteWebsite();
 
   return (
     <TabbedEntityLayout
       header={(
         <div className="space-y-1">
           <Link
-            to="/custom-properties"
+            to="/taxonomies/websites"
             className="
               inline-block text-sm text-muted-foreground
               hover:text-foreground
             "
           >
-            ← Back to custom properties
+            ← Back to websites
           </Link>
           <div className="flex items-start justify-between gap-4">
             <h1
@@ -68,12 +55,10 @@ function CustomPropertyViewLayout() {
                 flex min-w-0 flex-wrap items-center gap-2 text-2xl font-bold
               "
             >
-              {isLoading ? "Custom property" : (property?.name ?? "Custom property not found")}
-              {property?.builtIn ? <Badge variant="secondary">Built-in</Badge> : null}
-              {property && !property.enabled ? <Badge variant="outline">Disabled</Badge> : null}
-              {property ? <Badge variant="secondary">{TYPE_LABELS[property.type]}</Badge> : null}
+              {isLoading ? "Website" : (website?.siteName ?? "Website not found")}
+              {website?.builtIn ? <Badge variant="secondary">Built-in</Badge> : null}
             </h1>
-            {property
+            {website
               ? (
                 <div className="flex shrink-0 items-center gap-1">
                   <Button
@@ -82,9 +67,9 @@ function CustomPropertyViewLayout() {
                     size="sm"
                   >
                     <Link
-                      to="/custom-properties/$propertySlug/edit/general"
+                      to="/taxonomies/websites/$websiteSlug/edit/general"
                       params={{
-                        propertySlug,
+                        websiteSlug,
                       }}
                     >
                       Edit
@@ -98,13 +83,14 @@ function CustomPropertyViewLayout() {
                       text-destructive
                       hover:text-destructive
                     "
-                    onClick={() => deleteProperty.mutate(property.id, {
+                    disabled={deleteWebsite.isPending}
+                    onClick={() => deleteWebsite.mutate(website.id, {
                       onSuccess: () => navigate({
-                        to: "/custom-properties",
+                        to: "/taxonomies/websites",
                       }),
                     })}
                   >
-                    Delete
+                    {deleteWebsite.isPending ? "Deleting…" : "Delete"}
                   </Button>
                 </div>
               )
@@ -118,14 +104,14 @@ function CustomPropertyViewLayout() {
             flex shrink-0 flex-col gap-1
             sm:w-48
           "
-          aria-label="Custom property sections"
+          aria-label="Website sections"
         >
           {viewNav.map(item => (
             <Link
               key={item.to}
               to={item.to}
               params={{
-                propertySlug,
+                websiteSlug,
               }}
               className={cn(navLinkClass)}
               activeProps={{

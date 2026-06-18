@@ -1,57 +1,86 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 
-import { TaxonomyDetailLayout } from "../components/TaxonomyDetailLayout";
-import { WebsiteRow } from "../components/WebsiteManager";
+import { TabbedEntityLayout, navLinkClass } from "../components/TabbedEntityLayout";
 import { useWebsiteBySlug } from "../hooks/useWebsites";
 
+import { cn } from "@/lib/utils";
+
 export const Route = createFileRoute("/taxonomies/websites/$websiteSlug/edit")({
-  component: WebsiteEditPage,
+  component: WebsiteEditLayout,
 });
 
-function WebsiteEditPage() {
+const editNav = [
+  {
+    to: "/taxonomies/websites/$websiteSlug/edit/general",
+    label: "General",
+  },
+  {
+    to: "/taxonomies/websites/$websiteSlug/edit/shortened-links",
+    label: "Shortened Links",
+  },
+  {
+    to: "/taxonomies/websites/$websiteSlug/edit/param-rules",
+    label: "Param Rules",
+  },
+] as const;
+
+function WebsiteEditLayout() {
   const {
     websiteSlug,
   } = Route.useParams();
-  const navigate = Route.useNavigate();
   const {
-    website, isLoading, error,
+    website, isLoading,
   } = useWebsiteBySlug(websiteSlug);
 
   return (
-    <TaxonomyDetailLayout
-      isLoading={isLoading}
-      error={error}
-      entity={website}
-      loadingLabel="Loading website…"
-      notFoundMessage="Website not found."
-      listHref="/taxonomies/websites"
-      listLabel="Back to websites"
-    >
-      {ws => (
-        <section className="space-y-6">
-          <div className="space-y-1">
+    <TabbedEntityLayout
+      header={(
+        <div className="space-y-1">
+          <Link
+            to="/taxonomies/websites/$websiteSlug"
+            params={{
+              websiteSlug,
+            }}
+            className="
+              text-sm text-muted-foreground
+              hover:text-foreground
+            "
+          >
+            ← Back to website
+          </Link>
+          <h1 className="text-2xl font-bold">
+            {isLoading ? "Edit website" : (website?.siteName ?? "Website not found")}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Edit this website&apos;s name, shortened links, and param rules.
+          </p>
+        </div>
+      )}
+      nav={(
+        <nav
+          className="
+            flex shrink-0 flex-col gap-1
+            sm:w-48
+          "
+          aria-label="Website edit sections"
+        >
+          {editNav.map(item => (
             <Link
-              to="/taxonomies/websites/$websiteSlug"
+              key={item.to}
+              to={item.to}
               params={{
                 websiteSlug,
               }}
-              className="
-                text-sm text-muted-foreground
-                hover:text-foreground
-              "
+              className={cn(navLinkClass)}
+              activeProps={{
+                className: "bg-accent text-accent-foreground",
+              }}
             >
-              ← Back to {ws.siteName}
+              {item.label}
             </Link>
-            <h1 className="text-2xl font-bold">Edit website</h1>
-          </div>
-          <WebsiteRow
-            website={ws}
-            onSaved={() => navigate({
-              to: "/taxonomies/websites",
-            })}
-          />
-        </section>
+          ))}
+        </nav>
       )}
-    </TaxonomyDetailLayout>
+    />
   );
 }
