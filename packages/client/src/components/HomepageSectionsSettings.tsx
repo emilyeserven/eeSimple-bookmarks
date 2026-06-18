@@ -137,14 +137,18 @@ export function HomepageSectionsSettings() {
           items={localSections.map(s => s.id)}
           strategy={verticalListSortingStrategy}
         >
-          <div className="space-y-3">
-            {localSections.map(section => (
-              <SortableSectionCard
-                key={section.id}
-                section={section}
-              />
-            ))}
-          </div>
+          {localSections.length > 0
+            ? (
+              <div className="divide-y rounded-md border">
+                {localSections.map(section => (
+                  <SortableSectionCard
+                    key={section.id}
+                    section={section}
+                  />
+                ))}
+              </div>
+            )
+            : null}
         </SortableContext>
 
         <DragOverlay>
