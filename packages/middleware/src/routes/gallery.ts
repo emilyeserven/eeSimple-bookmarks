@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
-import { deleteOrphans, getCatalog, MANAGED_PREFIX, scanBucket } from "@/services/gallery";
-import { getObjectStream, isObjectStoreConfigured } from "@/utils/objectStore";
+import { setBookmarkImage } from "@/services/bookmarkImages";
+import { deleteOrphans, forgetManifestObject, getCatalog, MANAGED_PREFIX, scanBucket, verifyIsOrphan } from "@/services/gallery";
+import { deleteObject, getObjectBytes, getObjectStream, isObjectStoreConfigured } from "@/utils/objectStore";
 
 const deleteOrphansBody = {
   type: "object",
@@ -13,6 +14,22 @@ const deleteOrphansBody = {
         type: "string",
         minLength: 1,
       },
+    },
+  },
+} as const;
+
+const attachBody = {
+  type: "object",
+  required: ["key", "bookmarkId"],
+  additionalProperties: false,
+  properties: {
+    key: {
+      type: "string",
+      minLength: 1,
+    },
+    bookmarkId: {
+      type: "string",
+      format: "uuid",
     },
   },
 } as const;
@@ -64,6 +81,63 @@ export async function galleryRoutes(app: FastifyInstance): Promise<void> {
       keys,
     } = req.body as { keys: string[] };
     return deleteOrphans(keys);
+  });
+
+  // Re-link an orphaned object to a bookmark. Downloads the orphan's bytes, re-processes and stores
+  // them under the bookmark's canonical key, then removes the old orphan. Orchestrated here rather
+  // than in the gallery service to avoid a circular import with bookmarkImages.
+  app.post("/api/gallery/attach", {
+    schema: {
+      tags: ["gallery"],
+      body: attachBody,
+    },
+  }, async (req, reply) => {
+    if (!isObjectStoreConfigured()) return reply.code(503).send(notConfigured);
+    const {
+      key, bookmarkId,
+    } = req.body as { key: string;
+      bookmarkId: string; };
+
+    if (!key.startsWith(MANAGED_PREFIX)) {
+      return reply.code(400).send({
+        message: "Invalid key",
+      });
+    }
+
+    const isOrphan = await verifyIsOrphan(key);
+    if (!isOrphan) {
+      return reply.code(409).send({
+        message: "Image is not an orphan or does not exist in the manifest",
+      });
+    }
+
+    const bytes = await getObjectBytes(key);
+    if (!bytes) {
+      return reply.code(502).send({
+        message: "Object is missing from storage",
+      });
+    }
+
+    const result = await setBookmarkImage(bookmarkId, bytes, "upload");
+    if (result === "not_found") {
+      return reply.code(404).send({
+        message: "Bookmark not found",
+      });
+    }
+    if (result === "bad_image") {
+      return reply.code(415).send({
+        message: "Stored object is not a valid image",
+      });
+    }
+
+    // Remove the old orphan key when it differs from the bookmark's canonical key.
+    const canonicalKey = `${MANAGED_PREFIX}${bookmarkId}.webp`;
+    if (key !== canonicalKey) {
+      await deleteObject(key);
+      await forgetManifestObject(key);
+    }
+
+    return result;
   });
 
   // Serve an arbitrary object by key so orphan thumbnails (which have no bookmark) can be previewed.

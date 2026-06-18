@@ -110,9 +110,14 @@ export async function getCatalog(): Promise<GalleryCatalog> {
     (b.lastModified ?? "").localeCompare(a.lastModified ?? "");
   registered.sort(byNewest);
   orphans.sort(byNewest);
+
+  const rawQuota = process.env.STORAGE_QUOTA_BYTES;
+  const storageQuotaBytes = rawQuota ? (parseInt(rawQuota, 10) || null) : null;
+
   return {
     registered,
     orphans,
+    storageQuotaBytes,
   };
 }
 
@@ -244,4 +249,18 @@ export async function recordManifestObject(input: {
 /** Drop a manifest row when its object is deleted. Called from `removeBookmarkImage`. */
 export async function forgetManifestObject(objectKey: string): Promise<void> {
   await db.delete(mediaObjects).where(eq(mediaObjects.objectKey, objectKey));
+}
+
+/**
+ * Check whether an object key is currently an orphan (exists in the manifest with no bookmark
+ * link). Used by the attach route before downloading the object bytes.
+ */
+export async function verifyIsOrphan(key: string): Promise<boolean> {
+  const [row] = await db
+    .select({
+      bookmarkId: mediaObjects.bookmarkId,
+    })
+    .from(mediaObjects)
+    .where(eq(mediaObjects.objectKey, key));
+  return row != null && row.bookmarkId == null;
 }
