@@ -26,6 +26,7 @@ const meta = {
     onNumberFilterChange: () => {},
     onBooleanFilterChange: () => {},
     onPresenceFilterChange: () => {},
+    onPropertyReset: () => {},
   },
 } satisfies Meta<typeof CustomPropertyFilters>;
 

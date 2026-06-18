@@ -35,6 +35,8 @@ interface CustomPropertyFiltersProps {
   onBooleanFilterChange: (propertyId: string, value: boolean | undefined) => void;
   /** Report a presence filter (`"has"`/`"missing"`, or `undefined` to clear it). */
   onPresenceFilterChange: (propertyId: string, mode: "has" | "missing" | undefined) => void;
+  /** Clear all filter types (num, bool, presence) for a property in one navigation. */
+  onPropertyReset: (propertyId: string) => void;
 }
 
 /** Number and calculate properties share the range-slider control; both live in numberValues. */
@@ -145,6 +147,7 @@ export function CustomPropertyFilters({
   onNumberFilterChange,
   onBooleanFilterChange,
   onPresenceFilterChange,
+  onPropertyReset,
 }: CustomPropertyFiltersProps) {
   if (properties.length === 0) return null;
 
@@ -184,9 +187,7 @@ export function CustomPropertyFilters({
             || presenceValue !== undefined;
 
         function handleReset() {
-          onNumberFilterChange(property.id, undefined);
-          onBooleanFilterChange(property.id, undefined);
-          onPresenceFilterChange(property.id, undefined);
+          onPropertyReset(property.id);
         }
 
         return (

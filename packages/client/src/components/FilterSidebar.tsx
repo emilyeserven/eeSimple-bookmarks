@@ -74,6 +74,18 @@ export function FilterSidebar({
     onSearchChange(withBooleanFilter(search, propertyId, value));
   const presenceFilterChange = (propertyId: string, mode: "has" | "missing" | undefined) =>
     onSearchChange(withPresenceFilter(search, propertyId, mode));
+  const propertyReset = (propertyId: string) =>
+    onSearchChange(
+      withNumberFilter(
+        withBooleanFilter(
+          withPresenceFilter(search, propertyId, undefined),
+          propertyId,
+          undefined,
+        ),
+        propertyId,
+        undefined,
+      ),
+    );
 
   return (
     <aside className="space-y-3">
@@ -268,6 +280,7 @@ export function FilterSidebar({
                 onNumberFilterChange={numberFilterChange}
                 onBooleanFilterChange={booleanFilterChange}
                 onPresenceFilterChange={presenceFilterChange}
+                onPropertyReset={propertyReset}
               />
               {unassignedProperties.length > 0
                 ? (
