@@ -1,8 +1,5 @@
-import { z } from "zod";
-
+import { TagForm } from "./TagForm";
 import { useCreateTag, useTagTree } from "../hooks/useTags";
-import { useAppForm } from "../lib/form";
-import { flattenTree } from "../lib/tagTree";
 
 import {
   Dialog,
@@ -12,13 +9,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-
-const ROOT = "__root__";
-
-const createTagSchema = z.object({
-  name: z.string().trim().min(1, "Name is required"),
-  parent: z.string(),
-});
 
 interface AddTagModalProps {
   open: boolean;
@@ -33,43 +23,6 @@ export function AddTagModal({
   } = useTagTree();
   const createTag = useCreateTag();
 
-  const parentOptions = [
-    {
-      value: ROOT,
-      label: "(root)",
-    },
-    ...flattenTree(tree ?? []).map(item => ({
-      value: item.node.id,
-      label: `${"– ".repeat(item.depth)}${item.node.name}`,
-    })),
-  ];
-
-  const form = useAppForm({
-    defaultValues: {
-      name: "",
-      parent: ROOT,
-    },
-    validators: {
-      onChange: createTagSchema,
-    },
-    onSubmit: ({
-      value,
-    }) => {
-      createTag.mutate(
-        {
-          name: value.name.trim(),
-          parentId: value.parent === ROOT ? null : value.parent,
-        },
-        {
-          onSuccess: () => {
-            form.reset();
-            onOpenChange(false);
-          },
-        },
-      );
-    },
-  });
-
   return (
     <Dialog
       open={open}
@@ -83,46 +36,25 @@ export function AddTagModal({
           </DialogDescription>
         </DialogHeader>
 
-        <form
-          className="space-y-4"
-          onSubmit={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            void form.handleSubmit();
-          }}
-        >
-          <form.AppField name="name">
-            {field => (
-              <field.TextField
-                label="Name"
-                placeholder="Tag name"
-              />
-            )}
-          </form.AppField>
-
-          <form.AppField name="parent">
-            {field => (
-              <field.SelectField
-                label="Parent"
-                options={parentOptions}
-                placeholder="Choose a parent"
-              />
-            )}
-          </form.AppField>
-
-          <DialogFooter>
-            <form.AppForm>
-              <form.SubmitButton
-                label="Add tag"
-                pendingLabel="Adding…"
-              />
-            </form.AppForm>
-          </DialogFooter>
-
-          {createTag.isError
-            ? <p className="text-xs text-destructive">{createTag.error.message}</p>
-            : null}
-        </form>
+        <TagForm
+          allTags={tree ?? []}
+          submitLabel="Add tag"
+          pendingLabel="Adding…"
+          SubmitWrapper={DialogFooter}
+          isError={createTag.isError}
+          errorMessage={createTag.error?.message}
+          onSubmit={({
+            name, parentId,
+          }) => createTag.mutate(
+            {
+              name,
+              parentId,
+            },
+            {
+              onSuccess: () => onOpenChange(false),
+            },
+          )}
+        />
       </DialogContent>
     </Dialog>
   );
