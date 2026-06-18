@@ -34,11 +34,14 @@ services:
         condition: service_started
   garage:
     # S3-compatible object storage for bookmark images. See README → "Object storage (Garage)".
-    image: dxflrs/garage:v1.0.1
+    # Built from garage.Dockerfile so garage.toml is baked into the image — a host bind mount of the
+    # config is unreliable on Coolify's compose build pack. Data/meta live in persistent named volumes.
+    build:
+      context: .
+      dockerfile: garage.Dockerfile
     volumes:
       - garage-meta:/var/lib/garage/meta
       - garage-data:/var/lib/garage/data
-      - ./garage.toml:/etc/garage.toml:ro
     ports:
       # S3 API — exposed on the host so `pnpm dev` (middleware on the host) and the AWS CLI reach it.
       - "${GARAGE_S3_HOST_PORT:-3900}:3900"
