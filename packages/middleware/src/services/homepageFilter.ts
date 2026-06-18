@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import type { ConditionNode, ConditionTree, HomepageFilter } from "@eesimple/types";
+import type { ConditionNode, HomepageFilter } from "@eesimple/types";
 import { emptyConditionTree } from "@eesimple/types";
 import { db } from "@/db";
 import { categories, homepageFilter, homepageTags } from "@/db/schema";
@@ -12,25 +12,6 @@ export async function getHomepageFilter(): Promise<HomepageFilter> {
   const [row] = await db.select().from(homepageFilter).where(eq(homepageFilter.id, ROW_ID));
   return {
     conditions: row?.conditions ?? emptyConditionTree(),
-  };
-}
-
-/** Replace the global homepage filter. */
-export async function setHomepageFilter(conditions: ConditionTree): Promise<HomepageFilter> {
-  await db
-    .insert(homepageFilter)
-    .values({
-      id: ROW_ID,
-      conditions,
-    })
-    .onConflictDoUpdate({
-      target: homepageFilter.id,
-      set: {
-        conditions,
-      },
-    });
-  return {
-    conditions,
   };
 }
 

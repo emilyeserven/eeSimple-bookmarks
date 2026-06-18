@@ -10,7 +10,6 @@ import { conditionNodeSchema, conditionTreeSchema } from "@/routes/conditionSche
 import { customPropertyRoutes } from "@/routes/customProperties";
 import { galleryRoutes } from "@/routes/gallery";
 import { healthRoutes } from "@/routes/health";
-import { homepageFilterRoutes } from "@/routes/homepageFilter";
 import { homepageSectionsRoutes } from "@/routes/homepageSections";
 import { mediaTypeRoutes } from "@/routes/mediaTypes";
 import { metadataRoutes } from "@/routes/metadata";
@@ -80,10 +79,6 @@ export async function buildApp(): Promise<FastifyInstance> {
           description: "Autofill rules that prefill the bookmark form",
         },
         {
-          name: "homepage",
-          description: "The condition filter that selects homepage bookmarks",
-        },
-        {
           name: "homepage-sections",
           description: "Named, ordered homepage sections with their own condition filters",
         },
@@ -124,7 +119,6 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(customPropertyRoutes);
   await app.register(categoryRoutes);
   await app.register(autofillRoutes);
-  await app.register(homepageFilterRoutes);
   await app.register(homepageSectionsRoutes);
   await app.register(galleryRoutes);
 
