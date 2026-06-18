@@ -57,6 +57,17 @@ const CUSTOMIZATION_ITEMS = [
   },
 ] as const;
 
+const MANAGEMENT_ITEMS = [
+  {
+    key: "categories",
+    label: "Categories",
+  },
+  {
+    key: "tags",
+    label: "Tags",
+  },
+] as const;
+
 /** Display preferences — a theme switcher (light / dark / system) and sidebar section toggles. */
 export function DisplaySettings() {
   const theme = useUiStore(state => state.theme);
@@ -67,6 +78,8 @@ export function DisplaySettings() {
   const toggleTaxonomyItem = useUiStore(state => state.toggleTaxonomyItem);
   const hiddenCustomizationItems = useUiStore(state => state.hiddenCustomizationItems);
   const toggleCustomizationItem = useUiStore(state => state.toggleCustomizationItem);
+  const hiddenManagementItems = useUiStore(state => state.hiddenManagementItems);
+  const toggleManagementItem = useUiStore(state => state.toggleManagementItem);
 
   const {
     data: categories,
@@ -112,45 +125,51 @@ export function DisplaySettings() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Sidebar</CardTitle>
+          <CardTitle>Sidebar — Categories</CardTitle>
           <CardDescription>
-            Choose which items appear in the left sidebar.
+            Choose which categories appear as shortcuts in the left sidebar.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <p className="text-sm font-medium">Categories</p>
-            {categories && categories.length > 0
-              ? (
-                <div className="space-y-2">
-                  {categories.map(category => (
-                    <div
-                      key={category.id}
-                      className="flex items-center gap-2"
+        <CardContent>
+          {categories && categories.length > 0
+            ? (
+              <div className="space-y-2">
+                {categories.map(category => (
+                  <div
+                    key={category.id}
+                    className="flex items-center gap-2"
+                  >
+                    <Checkbox
+                      id={`show-category-${category.id}`}
+                      checked={!hiddenCategoryIds.includes(category.id)}
+                      onCheckedChange={() => toggleCategoryVisibility(category.id)}
+                    />
+                    <Label
+                      htmlFor={`show-category-${category.id}`}
+                      className="flex items-center gap-1.5"
                     >
-                      <Checkbox
-                        id={`show-category-${category.id}`}
-                        checked={!hiddenCategoryIds.includes(category.id)}
-                        onCheckedChange={() => toggleCategoryVisibility(category.id)}
-                      />
-                      <Label
-                        htmlFor={`show-category-${category.id}`}
-                        className="flex items-center gap-1.5"
-                      >
-                        <CategoryIcon name={category.icon} />
-                        {category.name}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              )
-              : (
-                <p className="text-sm text-muted-foreground">No categories yet.</p>
-              )}
-          </div>
+                      <CategoryIcon name={category.icon} />
+                      {category.name}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            )
+            : (
+              <p className="text-sm text-muted-foreground">No categories yet.</p>
+            )}
+        </CardContent>
+      </Card>
 
+      <Card>
+        <CardHeader>
+          <CardTitle>Sidebar — Taxonomies</CardTitle>
+          <CardDescription>
+            Choose which taxonomy browsers appear in the left sidebar.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
           <div className="space-y-2">
-            <p className="text-sm font-medium">Taxonomies</p>
             {TAXONOMY_ITEMS.map(item => (
               <div
                 key={item.key}
@@ -165,9 +184,18 @@ export function DisplaySettings() {
               </div>
             ))}
           </div>
+        </CardContent>
+      </Card>
 
+      <Card>
+        <CardHeader>
+          <CardTitle>Sidebar — Customization</CardTitle>
+          <CardDescription>
+            Choose which customization tools appear in the left sidebar.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
           <div className="space-y-2">
-            <p className="text-sm font-medium">Customization</p>
             {CUSTOMIZATION_ITEMS.map(item => (
               <div
                 key={item.key}
@@ -185,6 +213,31 @@ export function DisplaySettings() {
         </CardContent>
       </Card>
 
+      <Card>
+        <CardHeader>
+          <CardTitle>Sidebar — Management</CardTitle>
+          <CardDescription>
+            Choose which management pages appear in the left sidebar.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            {MANAGEMENT_ITEMS.map(item => (
+              <div
+                key={item.key}
+                className="flex items-center gap-2"
+              >
+                <Checkbox
+                  id={`show-management-${item.key}`}
+                  checked={!hiddenManagementItems.includes(item.key)}
+                  onCheckedChange={() => toggleManagementItem(item.key)}
+                />
+                <Label htmlFor={`show-management-${item.key}`}>{item.label}</Label>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

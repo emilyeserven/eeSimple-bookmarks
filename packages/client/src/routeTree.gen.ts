@@ -10,10 +10,14 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as CustomPropertiesRouteImport } from './routes/custom-properties'
 import { Route as BookmarksRouteImport } from './routes/bookmarks'
+import { Route as AutofillRouteImport } from './routes/autofill'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsIndexRouteImport } from './routes/settings.index'
+import { Route as CustomPropertiesIndexRouteImport } from './routes/custom-properties.index'
 import { Route as BookmarksIndexRouteImport } from './routes/bookmarks.index'
+import { Route as AutofillIndexRouteImport } from './routes/autofill.index'
 import { Route as TaxonomiesYoutubeChannelsRouteImport } from './routes/taxonomies.youtube-channels'
 import { Route as TaxonomiesWebsitesRouteImport } from './routes/taxonomies.websites'
 import { Route as TaxonomiesTagsRouteImport } from './routes/taxonomies.tags'
@@ -66,9 +70,19 @@ const SettingsRoute = SettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CustomPropertiesRoute = CustomPropertiesRouteImport.update({
+  id: '/custom-properties',
+  path: '/custom-properties',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BookmarksRoute = BookmarksRouteImport.update({
   id: '/bookmarks',
   path: '/bookmarks',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AutofillRoute = AutofillRouteImport.update({
+  id: '/autofill',
+  path: '/autofill',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -81,10 +95,20 @@ const SettingsIndexRoute = SettingsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => SettingsRoute,
 } as any)
+const CustomPropertiesIndexRoute = CustomPropertiesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CustomPropertiesRoute,
+} as any)
 const BookmarksIndexRoute = BookmarksIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => BookmarksRoute,
+} as any)
+const AutofillIndexRoute = AutofillIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AutofillRoute,
 } as any)
 const TaxonomiesYoutubeChannelsRoute =
   TaxonomiesYoutubeChannelsRouteImport.update({
@@ -348,7 +372,9 @@ const CategoriesCategorySlugEditAutofillRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/autofill': typeof AutofillRouteWithChildren
   '/bookmarks': typeof BookmarksRouteWithChildren
+  '/custom-properties': typeof CustomPropertiesRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/bookmarks/$bookmarkId': typeof BookmarksBookmarkIdRouteWithChildren
   '/categories/$categorySlug': typeof CategoriesCategorySlugRouteWithChildren
@@ -366,7 +392,9 @@ export interface FileRoutesByFullPath {
   '/taxonomies/tags': typeof TaxonomiesTagsRoute
   '/taxonomies/websites': typeof TaxonomiesWebsitesRouteWithChildren
   '/taxonomies/youtube-channels': typeof TaxonomiesYoutubeChannelsRouteWithChildren
+  '/autofill/': typeof AutofillIndexRoute
   '/bookmarks/': typeof BookmarksIndexRoute
+  '/custom-properties/': typeof CustomPropertiesIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/bookmarks/$bookmarkId/edit': typeof BookmarksBookmarkIdEditRoute
   '/categories/$categorySlug/edit': typeof CategoriesCategorySlugEditRouteWithChildren
@@ -410,7 +438,9 @@ export interface FileRoutesByTo {
   '/settings/websites': typeof SettingsWebsitesRoute
   '/settings/youtube-channels': typeof SettingsYoutubeChannelsRoute
   '/taxonomies/tags': typeof TaxonomiesTagsRoute
+  '/autofill': typeof AutofillIndexRoute
   '/bookmarks': typeof BookmarksIndexRoute
+  '/custom-properties': typeof CustomPropertiesIndexRoute
   '/settings': typeof SettingsIndexRoute
   '/bookmarks/$bookmarkId/edit': typeof BookmarksBookmarkIdEditRoute
   '/settings/custom-properties/new': typeof SettingsCustomPropertiesNewRoute
@@ -440,7 +470,9 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/autofill': typeof AutofillRouteWithChildren
   '/bookmarks': typeof BookmarksRouteWithChildren
+  '/custom-properties': typeof CustomPropertiesRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/bookmarks/$bookmarkId': typeof BookmarksBookmarkIdRouteWithChildren
   '/categories/$categorySlug': typeof CategoriesCategorySlugRouteWithChildren
@@ -458,7 +490,9 @@ export interface FileRoutesById {
   '/taxonomies/tags': typeof TaxonomiesTagsRoute
   '/taxonomies/websites': typeof TaxonomiesWebsitesRouteWithChildren
   '/taxonomies/youtube-channels': typeof TaxonomiesYoutubeChannelsRouteWithChildren
+  '/autofill/': typeof AutofillIndexRoute
   '/bookmarks/': typeof BookmarksIndexRoute
+  '/custom-properties/': typeof CustomPropertiesIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/bookmarks/$bookmarkId/edit': typeof BookmarksBookmarkIdEditRoute
   '/categories/$categorySlug/edit': typeof CategoriesCategorySlugEditRouteWithChildren
@@ -495,7 +529,9 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/autofill'
     | '/bookmarks'
+    | '/custom-properties'
     | '/settings'
     | '/bookmarks/$bookmarkId'
     | '/categories/$categorySlug'
@@ -513,7 +549,9 @@ export interface FileRouteTypes {
     | '/taxonomies/tags'
     | '/taxonomies/websites'
     | '/taxonomies/youtube-channels'
+    | '/autofill/'
     | '/bookmarks/'
+    | '/custom-properties/'
     | '/settings/'
     | '/bookmarks/$bookmarkId/edit'
     | '/categories/$categorySlug/edit'
@@ -557,7 +595,9 @@ export interface FileRouteTypes {
     | '/settings/websites'
     | '/settings/youtube-channels'
     | '/taxonomies/tags'
+    | '/autofill'
     | '/bookmarks'
+    | '/custom-properties'
     | '/settings'
     | '/bookmarks/$bookmarkId/edit'
     | '/settings/custom-properties/new'
@@ -586,7 +626,9 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/autofill'
     | '/bookmarks'
+    | '/custom-properties'
     | '/settings'
     | '/bookmarks/$bookmarkId'
     | '/categories/$categorySlug'
@@ -604,7 +646,9 @@ export interface FileRouteTypes {
     | '/taxonomies/tags'
     | '/taxonomies/websites'
     | '/taxonomies/youtube-channels'
+    | '/autofill/'
     | '/bookmarks/'
+    | '/custom-properties/'
     | '/settings/'
     | '/bookmarks/$bookmarkId/edit'
     | '/categories/$categorySlug/edit'
@@ -640,7 +684,9 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AutofillRoute: typeof AutofillRouteWithChildren
   BookmarksRoute: typeof BookmarksRouteWithChildren
+  CustomPropertiesRoute: typeof CustomPropertiesRouteWithChildren
   SettingsRoute: typeof SettingsRouteWithChildren
   CategoriesCategorySlugRoute: typeof CategoriesCategorySlugRouteWithChildren
   TaxonomiesMediaTypesRoute: typeof TaxonomiesMediaTypesRouteWithChildren
@@ -658,11 +704,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/custom-properties': {
+      id: '/custom-properties'
+      path: '/custom-properties'
+      fullPath: '/custom-properties'
+      preLoaderRoute: typeof CustomPropertiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/bookmarks': {
       id: '/bookmarks'
       path: '/bookmarks'
       fullPath: '/bookmarks'
       preLoaderRoute: typeof BookmarksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/autofill': {
+      id: '/autofill'
+      path: '/autofill'
+      fullPath: '/autofill'
+      preLoaderRoute: typeof AutofillRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -679,12 +739,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsIndexRouteImport
       parentRoute: typeof SettingsRoute
     }
+    '/custom-properties/': {
+      id: '/custom-properties/'
+      path: '/'
+      fullPath: '/custom-properties/'
+      preLoaderRoute: typeof CustomPropertiesIndexRouteImport
+      parentRoute: typeof CustomPropertiesRoute
+    }
     '/bookmarks/': {
       id: '/bookmarks/'
       path: '/'
       fullPath: '/bookmarks/'
       preLoaderRoute: typeof BookmarksIndexRouteImport
       parentRoute: typeof BookmarksRoute
+    }
+    '/autofill/': {
+      id: '/autofill/'
+      path: '/'
+      fullPath: '/autofill/'
+      preLoaderRoute: typeof AutofillIndexRouteImport
+      parentRoute: typeof AutofillRoute
     }
     '/taxonomies/youtube-channels': {
       id: '/taxonomies/youtube-channels'
@@ -1011,6 +1085,18 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AutofillRouteChildren {
+  AutofillIndexRoute: typeof AutofillIndexRoute
+}
+
+const AutofillRouteChildren: AutofillRouteChildren = {
+  AutofillIndexRoute: AutofillIndexRoute,
+}
+
+const AutofillRouteWithChildren = AutofillRoute._addFileChildren(
+  AutofillRouteChildren,
+)
+
 interface BookmarksBookmarkIdRouteChildren {
   BookmarksBookmarkIdEditRoute: typeof BookmarksBookmarkIdEditRoute
   BookmarksBookmarkIdIndexRoute: typeof BookmarksBookmarkIdIndexRoute
@@ -1037,6 +1123,17 @@ const BookmarksRouteChildren: BookmarksRouteChildren = {
 const BookmarksRouteWithChildren = BookmarksRoute._addFileChildren(
   BookmarksRouteChildren,
 )
+
+interface CustomPropertiesRouteChildren {
+  CustomPropertiesIndexRoute: typeof CustomPropertiesIndexRoute
+}
+
+const CustomPropertiesRouteChildren: CustomPropertiesRouteChildren = {
+  CustomPropertiesIndexRoute: CustomPropertiesIndexRoute,
+}
+
+const CustomPropertiesRouteWithChildren =
+  CustomPropertiesRoute._addFileChildren(CustomPropertiesRouteChildren)
 
 interface SettingsAutofillRuleSlugRouteChildren {
   SettingsAutofillRuleSlugEditRoute: typeof SettingsAutofillRuleSlugEditRoute
@@ -1280,7 +1377,9 @@ const TaxonomiesYoutubeChannelsRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AutofillRoute: AutofillRouteWithChildren,
   BookmarksRoute: BookmarksRouteWithChildren,
+  CustomPropertiesRoute: CustomPropertiesRouteWithChildren,
   SettingsRoute: SettingsRouteWithChildren,
   CategoriesCategorySlugRoute: CategoriesCategorySlugRouteWithChildren,
   TaxonomiesMediaTypesRoute: TaxonomiesMediaTypesRouteWithChildren,
