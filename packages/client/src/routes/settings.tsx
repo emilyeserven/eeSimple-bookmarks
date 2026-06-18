@@ -1,5 +1,7 @@
 import { Link, Outlet, createFileRoute } from "@tanstack/react-router";
 
+import { useUiStore } from "../stores/uiStore";
+
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/settings")({
@@ -34,6 +36,7 @@ const settingsNav = [
   {
     to: "/settings/websites",
     label: "Websites",
+    taxonomyKey: "websites",
   },
   {
     to: "/settings/automations",
@@ -47,6 +50,15 @@ const navLinkClass = `
 `;
 
 function SettingsLayout() {
+  const hiddenTaxonomyItems = useUiStore(state => state.hiddenTaxonomyItems);
+
+  const visibleNav = settingsNav.filter((item) => {
+    if ("taxonomyKey" in item) {
+      return hiddenTaxonomyItems.includes(item.taxonomyKey);
+    }
+    return true;
+  });
+
   return (
     <section className="space-y-6">
       <div>
@@ -69,7 +81,7 @@ function SettingsLayout() {
           "
           aria-label="Settings sections"
         >
-          {settingsNav.map(item => (
+          {visibleNav.map(item => (
             <Link
               key={item.to}
               to={item.to}

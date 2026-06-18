@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { WebsiteManager } from "../components/WebsiteManager";
+import { WebsitesListing } from "../components/WebsiteManager";
 
 export const Route = createFileRoute("/settings/websites")({
   component: WebsitesPage,
@@ -12,11 +12,11 @@ function WebsitesPage() {
       <div>
         <h2 className="text-xl font-semibold">Websites</h2>
         <p className="text-sm text-muted-foreground">
-          The built-in Websites taxonomy. Each site is created automatically from a bookmark’s URL;
+          The built-in Websites taxonomy. Each site is created automatically from a bookmark&apos;s URL;
           rename a site here to give it a friendly name.
         </p>
       </div>
-      <WebsiteManager />
+      <WebsitesListing />
     </section>
   );
 }
