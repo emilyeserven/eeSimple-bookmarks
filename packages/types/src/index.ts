@@ -143,11 +143,39 @@ export interface WebsiteLookup {
   shortener: "verified" | "generic" | null;
 }
 
+/** Desktop width for a homepage content block: full-bleed or half the content column. */
+export type HomepageContentWidth = "full" | "half";
+
+/** How the homepage Bookmark Quick Add form is presented. */
+export type QuickAddDisplay = "collapsible" | "expanded";
+
 /** Global app settings singleton. */
 export interface AppSettings {
   /** Generic URL-shortener domains (e.g. `bit.ly`) that can't be expanded — always nudge. */
   shortenerIgnoreList: string[];
+  /** Markdown shown at the top of the homepage (edited via the rich-text editor in settings). */
+  homepageText: string;
+  /** Desktop width of the homepage text block. */
+  homepageTextWidth: HomepageContentWidth;
+  /** When true, the Bookmark Quick Add form appears on the homepage. */
+  bookmarkQuickAddEnabled: boolean;
+  /** Desktop width of the homepage Quick Add block. */
+  bookmarkQuickAddWidth: HomepageContentWidth;
+  /** Whether Quick Add is collapsible or always expanded on the homepage. */
+  bookmarkQuickAddDisplay: QuickAddDisplay;
 }
+
+/** The subset of {@link AppSettings} that drives homepage content (read/written together). */
+export interface HomepageContentSettings {
+  homepageText: string;
+  homepageTextWidth: HomepageContentWidth;
+  bookmarkQuickAddEnabled: boolean;
+  bookmarkQuickAddWidth: HomepageContentWidth;
+  bookmarkQuickAddDisplay: QuickAddDisplay;
+}
+
+/** Payload for replacing the homepage content settings. */
+export type UpdateHomepageContentInput = HomepageContentSettings;
 
 /**
  * A media type in the built-in "Media Types" taxonomy (Video, Article, Podcast, …). Classifies what
