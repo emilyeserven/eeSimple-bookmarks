@@ -1,3 +1,4 @@
+import type { BookmarkImageVisibility } from "../lib/bookmarkColumns";
 import type {
   Bookmark,
   BookmarkBooleanValue,
@@ -46,6 +47,11 @@ interface BookmarkCardProps {
   imageLeft?: boolean;
   /** When true, images keep their natural aspect ratio; when false they're cropped to a uniform capped size. Defaults to true. */
   maintainImageAspectRatio?: boolean;
+  /**
+   * How the bookmark image participates in the card: `"shown"` (image + content, the default),
+   * `"image-only"` (just the image, linked to the bookmark), or `"off"` (content with no image).
+   */
+  imageVisibility?: BookmarkImageVisibility;
 }
 
 /**
@@ -241,6 +247,7 @@ function CardNumberPropertyEditor({
 
 export function BookmarkCard({
   bookmark, properties = [], onDelete, imageLeft = false, maintainImageAspectRatio = true,
+  imageVisibility = "shown",
 }: BookmarkCardProps) {
   const autoImage = useAutoBookmarkImage();
   const updateBookmark = useUpdateBookmark();
@@ -475,7 +482,7 @@ export function BookmarkCard({
     </div>
   );
 
-  const imageEl = bookmark.image
+  const imageEl = bookmark.image && imageVisibility !== "off"
     ? (
       <img
         src={bookmark.image.url}
@@ -487,6 +494,24 @@ export function BookmarkCard({
       />
     )
     : null;
+
+  // Image-only view: render just the image, linked to the bookmark like its title is. A bookmark
+  // with no image falls through to the normal card below so the card is never empty.
+  if (imageVisibility === "image-only" && imageEl) {
+    return (
+      <Link
+        to="/bookmarks/$bookmarkId"
+        params={{
+          bookmarkId: bookmark.id,
+        }}
+        title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+        onClick={event => viewClick(event, "bookmark", bookmark.id)}
+        className="block"
+      >
+        {imageEl}
+      </Link>
+    );
+  }
 
   const {
     website, mediaType, youtubeChannel,

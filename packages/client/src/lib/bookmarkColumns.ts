@@ -1,4 +1,4 @@
-import type { HomepageSectionImageLayout } from "../stores/uiStore";
+import type { BookmarkImageVisibility, HomepageSectionImageLayout } from "../stores/uiStore";
 
 import { useUiStore } from "../stores/uiStore";
 
@@ -32,7 +32,17 @@ export function useBookmarkImageMode(pageKey: string): boolean {
   return useUiStore(state => state.bookmarkImageMode?.[pageKey] ?? DEFAULT_BOOKMARK_IMAGE_MODE);
 }
 
-export type { HomepageSectionImageLayout };
+export type { BookmarkImageVisibility, HomepageSectionImageLayout };
+
+/** Default image visibility for a listing page (full card with image shown). */
+export const DEFAULT_BOOKMARK_IMAGE_VISIBILITY: BookmarkImageVisibility = "shown";
+
+/** The chosen image visibility for a listing page: full card, image-only, or no image. */
+export function useBookmarkImageVisibility(pageKey: string): BookmarkImageVisibility {
+  return useUiStore(
+    state => state.bookmarkImageVisibility?.[pageKey] ?? DEFAULT_BOOKMARK_IMAGE_VISIBILITY,
+  );
+}
 
 /** Default image layout for a 2-column listing page. */
 export const DEFAULT_BOOKMARK_IMAGE_LAYOUT: HomepageSectionImageLayout = "above";
