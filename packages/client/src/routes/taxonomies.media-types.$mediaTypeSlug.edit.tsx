@@ -1,57 +1,73 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 
-import { MediaTypeRow } from "../components/MediaTypeManager";
-import { TaxonomyDetailLayout } from "../components/TaxonomyDetailLayout";
+import { TabbedEntityLayout, navLinkClass } from "../components/TabbedEntityLayout";
 import { useMediaTypeBySlug } from "../hooks/useMediaTypes";
 
+import { cn } from "@/lib/utils";
+
 export const Route = createFileRoute("/taxonomies/media-types/$mediaTypeSlug/edit")({
-  component: MediaTypeEditPage,
+  component: MediaTypeEditLayout,
 });
 
-function MediaTypeEditPage() {
+const editNav = [
+  {
+    to: "/taxonomies/media-types/$mediaTypeSlug/edit/general",
+    label: "General",
+  },
+] as const;
+
+function MediaTypeEditLayout() {
   const {
     mediaTypeSlug,
   } = Route.useParams();
-  const navigate = Route.useNavigate();
   const {
-    mediaType, isLoading, error,
+    mediaType, isLoading,
   } = useMediaTypeBySlug(mediaTypeSlug);
 
   return (
-    <TaxonomyDetailLayout
-      isLoading={isLoading}
-      error={error}
-      entity={mediaType}
-      loadingLabel="Loading media type…"
-      notFoundMessage="Media type not found."
-      listHref="/taxonomies/media-types"
-      listLabel="Back to media types"
-    >
-      {mt => (
-        <section className="space-y-6">
-          <div className="space-y-1">
+    <TabbedEntityLayout
+      header={(
+        <div className="space-y-1">
+          <Link
+            to="/taxonomies/media-types/$mediaTypeSlug"
+            params={{
+              mediaTypeSlug,
+            }}
+            className="
+              text-sm text-muted-foreground
+              hover:text-foreground
+            "
+          >
+            ← Back to {isLoading ? "media type" : (mediaType?.name ?? "media type")}
+          </Link>
+          <h1 className="text-2xl font-bold">Edit media type</h1>
+        </div>
+      )}
+      nav={(
+        <nav
+          className="
+            flex shrink-0 flex-col gap-1
+            sm:w-48
+          "
+          aria-label="Media type edit sections"
+        >
+          {editNav.map(item => (
             <Link
-              to="/taxonomies/media-types/$mediaTypeSlug"
+              key={item.to}
+              to={item.to}
               params={{
                 mediaTypeSlug,
               }}
-              className="
-                text-sm text-muted-foreground
-                hover:text-foreground
-              "
+              className={cn(navLinkClass)}
+              activeProps={{
+                className: "bg-accent text-accent-foreground",
+              }}
             >
-              ← Back to {mt.name}
+              {item.label}
             </Link>
-            <h1 className="text-2xl font-bold">Edit media type</h1>
-          </div>
-          <MediaTypeRow
-            mediaType={mt}
-            onSaved={() => navigate({
-              to: "/taxonomies/media-types",
-            })}
-          />
-        </section>
+          ))}
+        </nav>
       )}
-    </TaxonomyDetailLayout>
+    />
   );
 }

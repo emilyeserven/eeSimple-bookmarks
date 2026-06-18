@@ -1,6 +1,8 @@
 import type { Website } from "@eesimple/types";
 import type { ReactNode } from "react";
 
+import { TabWrapper } from "./TabWrapper";
+
 import { useWebsiteBySlug } from "@/hooks/useWebsites";
 
 interface Props {
@@ -20,15 +22,15 @@ export function WebsiteTabWrapper({
   const {
     website, isLoading,
   } = useWebsiteBySlug(websiteSlug);
-  if (isLoading) return <p className="text-muted-foreground">Loading…</p>;
-  if (!website) return <p className="text-destructive">Website not found.</p>;
   return (
-    <section className="space-y-4">
-      <div>
-        <h2 className="text-xl font-semibold">{title}</h2>
-        <p className="text-sm text-muted-foreground">{description}</p>
-      </div>
-      {children(website)}
-    </section>
+    <TabWrapper
+      entity={website}
+      isLoading={isLoading}
+      notFoundMessage="Website not found."
+      title={title}
+      description={description}
+    >
+      {children}
+    </TabWrapper>
   );
 }

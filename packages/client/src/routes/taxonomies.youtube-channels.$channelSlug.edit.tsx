@@ -1,57 +1,73 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 
-import { TaxonomyDetailLayout } from "../components/TaxonomyDetailLayout";
-import { YouTubeChannelRow } from "../components/YouTubeChannelManager";
+import { TabbedEntityLayout, navLinkClass } from "../components/TabbedEntityLayout";
 import { useYouTubeChannelBySlug } from "../hooks/useYouTubeChannels";
 
+import { cn } from "@/lib/utils";
+
 export const Route = createFileRoute("/taxonomies/youtube-channels/$channelSlug/edit")({
-  component: YouTubeChannelEditPage,
+  component: YouTubeChannelEditLayout,
 });
 
-function YouTubeChannelEditPage() {
+const editNav = [
+  {
+    to: "/taxonomies/youtube-channels/$channelSlug/edit/general",
+    label: "General",
+  },
+] as const;
+
+function YouTubeChannelEditLayout() {
   const {
     channelSlug,
   } = Route.useParams();
-  const navigate = Route.useNavigate();
   const {
-    channel, isLoading, error,
+    channel, isLoading,
   } = useYouTubeChannelBySlug(channelSlug);
 
   return (
-    <TaxonomyDetailLayout
-      isLoading={isLoading}
-      error={error}
-      entity={channel}
-      loadingLabel="Loading channel…"
-      notFoundMessage="Channel not found."
-      listHref="/taxonomies/youtube-channels"
-      listLabel="Back to channels"
-    >
-      {ch => (
-        <section className="space-y-6">
-          <div className="space-y-1">
+    <TabbedEntityLayout
+      header={(
+        <div className="space-y-1">
+          <Link
+            to="/taxonomies/youtube-channels/$channelSlug"
+            params={{
+              channelSlug,
+            }}
+            className="
+              text-sm text-muted-foreground
+              hover:text-foreground
+            "
+          >
+            ← Back to {isLoading ? "channel" : (channel?.name ?? "channel")}
+          </Link>
+          <h1 className="text-2xl font-bold">Edit channel</h1>
+        </div>
+      )}
+      nav={(
+        <nav
+          className="
+            flex shrink-0 flex-col gap-1
+            sm:w-48
+          "
+          aria-label="Channel edit sections"
+        >
+          {editNav.map(item => (
             <Link
-              to="/taxonomies/youtube-channels/$channelSlug"
+              key={item.to}
+              to={item.to}
               params={{
                 channelSlug,
               }}
-              className="
-                text-sm text-muted-foreground
-                hover:text-foreground
-              "
+              className={cn(navLinkClass)}
+              activeProps={{
+                className: "bg-accent text-accent-foreground",
+              }}
             >
-              ← Back to {ch.name}
+              {item.label}
             </Link>
-            <h1 className="text-2xl font-bold">Edit channel</h1>
-          </div>
-          <YouTubeChannelRow
-            channel={ch}
-            onSaved={() => navigate({
-              to: "/taxonomies/youtube-channels",
-            })}
-          />
-        </section>
+          ))}
+        </nav>
       )}
-    </TaxonomyDetailLayout>
+    />
   );
 }

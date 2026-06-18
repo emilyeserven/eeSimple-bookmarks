@@ -1,6 +1,8 @@
 import type { CustomProperty } from "@eesimple/types";
 import type { ReactNode } from "react";
 
+import { TabWrapper } from "./TabWrapper";
+
 import { usePropertyBySlug } from "@/hooks/useCustomProperties";
 
 interface Props {
@@ -24,15 +26,15 @@ export function PropertyTabWrapper({
   const {
     property, isLoading,
   } = usePropertyBySlug(propertySlug);
-  if (isLoading) return <p className="text-muted-foreground">Loading…</p>;
-  if (!property) return <p className="text-destructive">Custom property not found.</p>;
   return (
-    <section className="space-y-4">
-      <div>
-        <h2 className="text-xl font-semibold">{title}</h2>
-        <p className="text-sm text-muted-foreground">{description}</p>
-      </div>
-      {children(property)}
-    </section>
+    <TabWrapper
+      entity={property}
+      isLoading={isLoading}
+      notFoundMessage="Custom property not found."
+      title={title}
+      description={description}
+    >
+      {children}
+    </TabWrapper>
   );
 }
