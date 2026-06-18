@@ -7,7 +7,7 @@ import type { FC, ReactNode } from "react";
 
 import { useMemo } from "react";
 
-import { Bookmark, Clapperboard, Folder, Globe, MonitorPlay, SlidersHorizontal, Sparkles, Tags } from "lucide-react";
+import { Bookmark, Clapperboard, Folder, Globe, Layers, MonitorPlay, SlidersHorizontal, Sparkles, Tags } from "lucide-react";
 
 import { AutofillRulePanel, ViewAutofillRule } from "./AutofillRulePanel";
 import { TagPanel } from "./TagPanel";
@@ -22,6 +22,7 @@ import {
   useUpdateCustomProperty,
 } from "../../hooks/useCustomProperties";
 import { useMediaTypes } from "../../hooks/useMediaTypes";
+import { usePropertyGroups } from "../../hooks/usePropertyGroups";
 import { useTagTree } from "../../hooks/useTags";
 import { useWebsites } from "../../hooks/useWebsites";
 import { useYouTubeChannels } from "../../hooks/useYouTubeChannels";
@@ -34,6 +35,7 @@ import { CategoryPreviewCard } from "../CategoryPreviewCard";
 import { MediaTypeCard, MediaTypeRow } from "../MediaTypeManager";
 import { PropertyDetail } from "../PropertyDetail";
 import { PropertyForm } from "../PropertyForm";
+import { PropertyGroupCard, PropertyGroupRow } from "../PropertyGroupManager";
 import { WebsiteCard, WebsiteRow } from "../WebsiteManager";
 import { YouTubeChannelCard, YouTubeChannelRow } from "../YouTubeChannelManager";
 
@@ -108,6 +110,9 @@ function BookmarkView({
     data: properties,
   } = useCustomProperties();
   const {
+    data: propertyGroups,
+  } = usePropertyGroups();
+  const {
     data: categories,
   } = useCategories();
   const {
@@ -126,6 +131,7 @@ function BookmarkView({
       bookmark={bookmark}
       categories={categories ?? []}
       properties={properties ?? []}
+      propertyGroups={propertyGroups ?? []}
       onEdit={() => openItem("bookmark", id, "edit")}
       onDelete={() => deleteBookmark.mutate(id, {
         onSuccess: dismiss,
@@ -293,6 +299,9 @@ function PropertyView({
     data: properties, isLoading, error,
   } = useCustomProperties();
   const {
+    data: propertyGroups,
+  } = usePropertyGroups();
+  const {
     data: categories,
   } = useCategories();
   const {
@@ -311,6 +320,7 @@ function PropertyView({
       property={property}
       categories={categories ?? []}
       allProperties={properties ?? []}
+      propertyGroups={propertyGroups ?? []}
       onEdit={() => openItem("property", id, "edit")}
       onDelete={() => deleteProperty.mutate(id, {
         onSuccess: dismiss,
@@ -328,6 +338,9 @@ function PropertyEdit({
   const {
     data: properties, isLoading, error,
   } = useCustomProperties();
+  const {
+    data: propertyGroups,
+  } = usePropertyGroups();
   const {
     data: categories,
   } = useCategories();
@@ -354,6 +367,7 @@ function PropertyEdit({
         property={property}
         categories={categories ?? []}
         numberProperties={numberProperties}
+        propertyGroups={propertyGroups ?? []}
         onSubmit={({
           type, ...input
         }) => updateProperty.mutate({
@@ -477,6 +491,59 @@ function MediaTypeEdit({
   return <MediaTypeRow mediaType={mediaType} />;
 }
 
+// --- Property group -----------------------------------------------------------------------------
+
+function usePropertyGroupList() {
+  const {
+    data, isLoading, error,
+  } = usePropertyGroups();
+  const items = useMemo<PanelListItem[]>(
+    () => (data ?? []).map(group => ({
+      id: group.id,
+      label: group.name,
+      sublabel: group.propertyCount != null ? `${group.propertyCount} properties` : undefined,
+    })),
+    [data],
+  );
+  return {
+    items,
+    isLoading,
+    error,
+  };
+}
+
+/** Read-only property-group view, reusing the same `PropertyGroupCard` the view page renders. */
+function PropertyGroupView({
+  id,
+}: {
+  id: string;
+}) {
+  const {
+    data, isLoading, error,
+  } = usePropertyGroups();
+  if (isLoading) return <Loading />;
+  if (error) return <Problem>{error.message}</Problem>;
+  const group = (data ?? []).find(item => item.id === id);
+  if (!group) return <Problem>Property group not found.</Problem>;
+  return <PropertyGroupCard group={group} />;
+}
+
+/** Inline property-group editor, reusing the same `PropertyGroupRow` the settings and edit pages use. */
+function PropertyGroupEdit({
+  id,
+}: {
+  id: string;
+}) {
+  const {
+    data, isLoading, error,
+  } = usePropertyGroups();
+  if (isLoading) return <Loading />;
+  if (error) return <Problem>{error.message}</Problem>;
+  const group = (data ?? []).find(item => item.id === id);
+  if (!group) return <Problem>Property group not found.</Problem>;
+  return <PropertyGroupRow group={group} />;
+}
+
 // --- YouTube channel ----------------------------------------------------------------------------
 
 function useYouTubeChannelList() {
@@ -597,6 +664,15 @@ export const PANEL_CONTENT_TYPES: PanelContentTypeDef[] = [
     useList: usePropertyList,
     View: PropertyView,
     Edit: PropertyEdit,
+  },
+  {
+    type: "property-group",
+    label: "Property Groups",
+    singular: "Property Group",
+    icon: Layers,
+    useList: usePropertyGroupList,
+    View: PropertyGroupView,
+    Edit: PropertyGroupEdit,
   },
   {
     type: "website",

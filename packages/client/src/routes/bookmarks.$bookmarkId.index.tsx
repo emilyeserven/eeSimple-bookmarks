@@ -4,6 +4,7 @@ import { BookmarkDetail } from "../components/BookmarkDetail";
 import { useBookmark, useDeleteBookmark } from "../hooks/useBookmarks";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
+import { usePropertyGroups } from "../hooks/usePropertyGroups";
 
 export const Route = createFileRoute("/bookmarks/$bookmarkId/")({
   component: BookmarkDetailPage,
@@ -23,6 +24,9 @@ function BookmarkDetailPage() {
   const {
     data: properties,
   } = useCustomProperties();
+  const {
+    data: propertyGroups,
+  } = usePropertyGroups();
   const deleteBookmark = useDeleteBookmark();
 
   if (isLoading) {
@@ -61,6 +65,7 @@ function BookmarkDetailPage() {
         bookmark={bookmark}
         categories={categories ?? []}
         properties={properties ?? []}
+        propertyGroups={propertyGroups ?? []}
         onEdit={() => navigate({
           to: "/bookmarks/$bookmarkId/edit",
           params: {

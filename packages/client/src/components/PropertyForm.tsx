@@ -2,11 +2,15 @@ import type {
   Category,
   CreateCustomPropertyInput,
   CustomProperty,
+  PropertyGroup,
 } from "@eesimple/types";
 import type { ReactNode } from "react";
 
+import { useState } from "react";
+
 import { z } from "zod";
 
+import { AddPropertyGroupModal } from "./AddPropertyGroupModal";
 import { CollapsibleFormSection } from "./CollapsibleFormSection";
 import { LabeledSection } from "./LabeledSection";
 import { CategoryCheckboxList, OperandCheckboxList } from "./PropertyFormFields";
@@ -46,6 +50,7 @@ const propertySchema = z
     showInListings: z.boolean(),
     editableOnCard: z.boolean(),
     enabled: z.boolean(),
+    propertyGroupId: z.string(),
   })
   .superRefine((value, ctx) => {
     if (value.type === "calculate" && value.operandIds.length < 2) {
@@ -82,6 +87,7 @@ const CREATE_DEFAULTS: PropertyFormValues = {
   showInListings: true,
   editableOnCard: false,
   enabled: true,
+  propertyGroupId: "",
 };
 
 /** Map a saved property to editable form values (null bounds become the "disabled" state). */
@@ -108,6 +114,7 @@ function valuesFromProperty(property: CustomProperty): PropertyFormValues {
     showInListings: property.showInListings,
     editableOnCard: property.editableOnCard,
     enabled: property.enabled,
+    propertyGroupId: property.propertyGroupId ?? "",
   };
 }
 
@@ -136,6 +143,7 @@ function payloadFromValues(values: PropertyFormValues): CreateCustomPropertyInpu
     // Calculate values are computed server-side, so they can never be edited from the card menu.
     editableOnCard: values.type === "calculate" ? false : values.editableOnCard,
     enabled: values.enabled,
+    propertyGroupId: values.propertyGroupId || null,
   };
 }
 
@@ -148,6 +156,8 @@ interface PropertyFormProps {
   categories: Category[];
   /** Number properties offered as Calculate operands (exclude the property being edited). */
   numberProperties: CustomProperty[];
+  /** Property groups offered in the Display tab's "Group" combobox. */
+  propertyGroups: PropertyGroup[];
   /** The property to edit; required in `edit` mode. */
   property?: CustomProperty;
   /** Receives the built payload; the update route ignores `type`. */
@@ -175,6 +185,7 @@ export function PropertyForm({
   mode,
   categories,
   numberProperties,
+  propertyGroups,
   property,
   onSubmit,
   submitLabel,
@@ -186,6 +197,13 @@ export function PropertyForm({
   section,
 }: PropertyFormProps) {
   const isBuiltIn = mode === "edit" && Boolean(property?.builtIn);
+  const [addGroupOpen, setAddGroupOpen] = useState(false);
+  const groupOptions = [...propertyGroups]
+    .sort((a, b) => a.priority - b.priority || a.name.localeCompare(b.name))
+    .map(group => ({
+      value: group.id,
+      label: group.name,
+    }));
   // When `section` is set we render a single tab; the dividers/collapsibles only make sense in the
   // full form, and a section's collapsible defaults to open.
   const full = section === undefined;
@@ -536,6 +554,27 @@ export function PropertyForm({
         ? (
           <LabeledSection title="Display options">
             <div className="space-y-2">
+              <span className="text-sm font-medium">Grouping</span>
+              <form.AppField name="propertyGroupId">
+                {field => (
+                  <field.ComboboxField
+                    label="Property group"
+                    options={groupOptions}
+                    placeholder="Ungrouped"
+                    searchPlaceholder="Search groups…"
+                    emptyText="No groups yet."
+                    createOption={{
+                      label: "Create group…",
+                      onSelect: () => setAddGroupOpen(true),
+                    }}
+                  />
+                )}
+              </form.AppField>
+              <p className="text-xs text-muted-foreground">
+                Grouped properties render together on bookmark pages and in the listings filters.
+              </p>
+            </div>
+            <div className="space-y-2 border-t pt-3">
               <span className="text-sm font-medium">Show in…</span>
               <div className="space-y-2">
                 <form.AppField name="inForm">
@@ -628,6 +667,12 @@ export function PropertyForm({
         {actions}
       </div>
       {errorMessage ? <p className="text-sm text-destructive">{errorMessage}</p> : null}
+
+      <AddPropertyGroupModal
+        open={addGroupOpen}
+        onOpenChange={setAddGroupOpen}
+        onCreated={group => form.setFieldValue("propertyGroupId", group.id)}
+      />
     </form>
   );
 }

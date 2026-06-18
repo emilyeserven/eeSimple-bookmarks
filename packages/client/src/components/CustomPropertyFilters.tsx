@@ -1,5 +1,5 @@
 import type { ComboboxOption } from "./Combobox";
-import type { Bookmark, Category, CustomProperty } from "@eesimple/types";
+import type { Bookmark, Category, CustomProperty, PropertyGroup } from "@eesimple/types";
 
 import { Ban, ChevronDown, Circle, CircleDot, CircleHelp } from "lucide-react";
 
@@ -15,6 +15,8 @@ import { cn } from "@/lib/utils";
 
 interface CustomPropertyFiltersProps {
   properties: CustomProperty[];
+  /** Property groups; when a property belongs to one, its filter renders under that group's heading. */
+  propertyGroups?: PropertyGroup[];
   /** When provided, each property shows a tooltip naming the categories it belongs to. */
   categories?: Category[];
   /**
@@ -143,6 +145,7 @@ function PresenceFilterControl({
 /** Renders one dynamic filter control per custom property in the filter sidebar. */
 export function CustomPropertyFilters({
   properties,
+  propertyGroups = [],
   categories,
   selectedCategoryIds,
   bookmarks,
@@ -183,131 +186,182 @@ export function CustomPropertyFilters({
     })
     : properties;
 
-  return (
-    <div className="space-y-10">
-      {sorted.map((property) => {
-        const isActive = isPropertyActive(property);
-        const presenceValue = presenceValues[property.id];
-        const isFilterActive
-          = numberValues[property.id] !== undefined
-            || booleanValues[property.id] !== undefined
-            || dateTimeValues[property.id] !== undefined
-            || presenceValue !== undefined;
+  /** Render one property's collapsible filter control (unchanged from the flat layout). */
+  function renderProperty(property: CustomProperty) {
+    const isActive = isPropertyActive(property);
+    const presenceValue = presenceValues[property.id];
+    const isFilterActive
+      = numberValues[property.id] !== undefined
+        || booleanValues[property.id] !== undefined
+        || dateTimeValues[property.id] !== undefined
+        || presenceValue !== undefined;
 
-        function handleReset() {
-          onPropertyReset(property.id);
-        }
+    function handleReset() {
+      onPropertyReset(property.id);
+    }
 
-        return (
-          <Collapsible
-            key={`${property.id}-${String(isActive)}`}
-            defaultOpen={isActive}
-            className={cn("group/prop space-y-3", !isActive && "opacity-50")}
-          >
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex min-w-0 items-center gap-1">
-                <CollapsibleTrigger
-                  disabled={!isActive}
-                  className="
-                    flex min-w-0 items-center gap-1.5 text-xs
-                    text-muted-foreground
-                    hover:text-foreground
-                  "
-                >
-                  <ChevronDown
-                    className="
-                      size-3 shrink-0 transition-transform
-                      group-data-[state=open]/prop:rotate-180
-                    "
-                  />
-                  <Label className="cursor-pointer truncate text-xs">{property.name}</Label>
-                </CollapsibleTrigger>
-                {/* Tooltip kept interactive regardless of active state (user can still check which categories a property belongs to). */}
-                {categories && property.categoryIds.length > 0
-                  ? (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button
-                          type="button"
-                          aria-label="Associated categories"
-                          className="
-                            shrink-0 text-muted-foreground
-                            hover:text-foreground
-                          "
-                        >
-                          <CircleHelp className="size-3.5" />
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        {property.categoryIds
-                          .map(id => categoryName.get(id) ?? id)
-                          .join(", ")}
-                      </TooltipContent>
-                    </Tooltip>
-                  )
-                  : null}
-              </div>
-              <div className={cn(!isActive && "pointer-events-none")}>
-                <PresenceFilterControl
-                  propertyId={property.id}
-                  value={presenceValue}
-                  onChange={onPresenceFilterChange}
-                />
-              </div>
-            </div>
-
-            <CollapsibleContent
-              className={cn("space-y-3", !isActive && "pointer-events-none")}
+    return (
+      <Collapsible
+        key={`${property.id}-${String(isActive)}`}
+        defaultOpen={isActive}
+        className={cn("group/prop space-y-3", !isActive && "opacity-50")}
+      >
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-1">
+            <CollapsibleTrigger
+              disabled={!isActive}
+              className="
+                flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground
+                hover:text-foreground
+              "
             >
-              {presenceValue !== "missing" && isRangeProperty(property)
-                ? (
-                  <NumberFilterControl
-                    property={property}
-                    bounds={effectiveBounds(property, bookmarks)}
-                    value={numberValues[property.id]}
-                    onChange={onNumberFilterChange}
-                  />
-                )
-                : null}
+              <ChevronDown
+                className="
+                  size-3 shrink-0 transition-transform
+                  group-data-[state=open]/prop:rotate-180
+                "
+              />
+              <Label className="cursor-pointer truncate text-xs">{property.name}</Label>
+            </CollapsibleTrigger>
+            {/* Tooltip kept interactive regardless of active state (user can still check which categories a property belongs to). */}
+            {categories && property.categoryIds.length > 0
+              ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      aria-label="Associated categories"
+                      className="
+                        shrink-0 text-muted-foreground
+                        hover:text-foreground
+                      "
+                    >
+                      <CircleHelp className="size-3.5" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {property.categoryIds
+                      .map(id => categoryName.get(id) ?? id)
+                      .join(", ")}
+                  </TooltipContent>
+                </Tooltip>
+              )
+              : null}
+          </div>
+          <div className={cn(!isActive && "pointer-events-none")}>
+            <PresenceFilterControl
+              propertyId={property.id}
+              value={presenceValue}
+              onChange={onPresenceFilterChange}
+            />
+          </div>
+        </div>
 
-              {presenceValue !== "missing" && property.type === "datetime"
-                ? (
-                  <DateTimeFilterControl
-                    property={property}
-                    value={dateTimeValues[property.id]}
-                    onChange={onDateTimeFilterChange}
-                  />
-                )
-                : null}
+        <CollapsibleContent
+          className={cn("space-y-3", !isActive && "pointer-events-none")}
+        >
+          {presenceValue !== "missing" && isRangeProperty(property)
+            ? (
+              <NumberFilterControl
+                property={property}
+                bounds={effectiveBounds(property, bookmarks)}
+                value={numberValues[property.id]}
+                onChange={onNumberFilterChange}
+              />
+            )
+            : null}
 
-              {presenceValue !== "missing" && property.type === "boolean"
-                ? (
-                  <BooleanFilterControl
-                    property={property}
-                    value={booleanValues[property.id]}
-                    onChange={onBooleanFilterChange}
-                  />
-                )
-                : null}
+          {presenceValue !== "missing" && property.type === "datetime"
+            ? (
+              <DateTimeFilterControl
+                property={property}
+                value={dateTimeValues[property.id]}
+                onChange={onDateTimeFilterChange}
+              />
+            )
+            : null}
 
-              {isFilterActive
-                ? (
-                  <button
-                    type="button"
-                    onClick={handleReset}
-                    className="
-                      text-xs text-primary
-                      hover:underline
-                    "
-                  >
-                    Reset
-                  </button>
-                )
-                : null}
-            </CollapsibleContent>
-          </Collapsible>
-        );
-      })}
+          {presenceValue !== "missing" && property.type === "boolean"
+            ? (
+              <BooleanFilterControl
+                property={property}
+                value={booleanValues[property.id]}
+                onChange={onBooleanFilterChange}
+              />
+            )
+            : null}
+
+          {isFilterActive
+            ? (
+              <button
+                type="button"
+                onClick={handleReset}
+                className="
+                  text-xs text-primary
+                  hover:underline
+                "
+              >
+                Reset
+              </button>
+            )
+            : null}
+        </CollapsibleContent>
+      </Collapsible>
+    );
+  }
+
+  // Partition properties by group. Groups with members render first (ordered by priority then
+  // name) under their own heading; ungrouped properties (or those whose group is unknown) fall into
+  // a trailing bucket. When there are no group sections at all, the bucket renders headingless to
+  // preserve the original flat layout.
+  const knownGroupIds = new Set(propertyGroups.map(group => group.id));
+  const inGroup = (property: CustomProperty, target: string | null): boolean =>
+    target === null
+      ? property.propertyGroupId === null || !knownGroupIds.has(property.propertyGroupId)
+      : property.propertyGroupId === target;
+  const sortedGroups = [...propertyGroups]
+    .sort((a, b) => a.priority - b.priority || a.name.localeCompare(b.name));
+  const groupSections = sortedGroups
+    .map(group => ({
+      key: group.id,
+      title: group.name,
+      items: sorted.filter(property => inGroup(property, group.id)),
+    }))
+    .filter(section => section.items.length > 0);
+  const ungrouped = sorted.filter(property => inGroup(property, null));
+
+  // No groups in play → render the original flat list.
+  if (groupSections.length === 0) {
+    return (
+      <div className="space-y-10">
+        {ungrouped.map(renderProperty)}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {groupSections.map(section => (
+        <div
+          key={section.key}
+          className="space-y-3"
+        >
+          <h3 className="text-sm font-semibold">{section.title}</h3>
+          <div className="space-y-10">
+            {section.items.map(renderProperty)}
+          </div>
+        </div>
+      ))}
+      {ungrouped.length > 0
+        ? (
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold">Other</h3>
+            <div className="space-y-10">
+              {ungrouped.map(renderProperty)}
+            </div>
+          </div>
+        )
+        : null}
     </div>
   );
 }

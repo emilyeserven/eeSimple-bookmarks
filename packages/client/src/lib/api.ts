@@ -14,6 +14,7 @@ import type {
   CreateCustomPropertyInput,
   CreateHomepageSectionInput,
   CreateMediaTypeInput,
+  CreatePropertyGroupInput,
   CreateTagInput,
   CreateWebsiteInput,
   CustomProperty,
@@ -25,6 +26,7 @@ import type {
   HomepageSection,
   HomepageSectionBookmarks,
   MediaType,
+  PropertyGroup,
   Tag,
   TagNode,
   UpdateAutofillRuleInput,
@@ -35,6 +37,7 @@ import type {
   UpdateHomepageContentInput,
   UpdateHomepageSectionInput,
   UpdateMediaTypeInput,
+  UpdatePropertyGroupInput,
   UpdateTagInput,
   UpdateWebsiteInput,
   UpdateYouTubeChannelInput,
@@ -232,6 +235,23 @@ export const mediaTypesApi = {
       body: JSON.stringify(input),
     }),
   remove: (id: string) => request<undefined>(`/media-types/${id}`, {
+    method: "DELETE",
+  }),
+};
+
+export const propertyGroupsApi = {
+  list: () => request<PropertyGroup[]>("/property-groups"),
+  create: (input: CreatePropertyGroupInput) =>
+    request<PropertyGroup>("/property-groups", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  update: (id: string, input: UpdatePropertyGroupInput) =>
+    request<PropertyGroup>(`/property-groups/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  remove: (id: string) => request<undefined>(`/property-groups/${id}`, {
     method: "DELETE",
   }),
 };

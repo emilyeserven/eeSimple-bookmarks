@@ -83,6 +83,7 @@ const starsProperty: CustomProperty = {
   allCategories: false,
   editableOnCard: false,
   enabled: true,
+  propertyGroupId: null,
   createdAt: "2026-06-01T00:00:00.000Z",
 };
 
@@ -110,6 +111,7 @@ const reviewedProperty: CustomProperty = {
   allCategories: false,
   editableOnCard: false,
   enabled: true,
+  propertyGroupId: null,
   createdAt: "2026-06-01T00:00:00.000Z",
 };
 

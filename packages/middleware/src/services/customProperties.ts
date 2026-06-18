@@ -65,6 +65,7 @@ function toCustomProperty(
     hiddenFromForm: row.hiddenFromForm,
     showInListings: row.showInListings,
     enabled: row.enabled,
+    propertyGroupId: row.propertyGroupId,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
   };
@@ -222,6 +223,7 @@ export async function createCustomProperty(
         allCategories: input.allCategories ?? false,
         editableOnCard: input.editableOnCard ?? false,
         enabled: input.enabled ?? true,
+        propertyGroupId: input.propertyGroupId ?? null,
       })
       .returning({
         id: customProperties.id,
@@ -259,6 +261,7 @@ type UpdatePatch = Partial<
     | "allCategories"
     | "editableOnCard"
     | "enabled"
+    | "propertyGroupId"
   >
 >;
 
@@ -284,6 +287,7 @@ function buildUpdatePatch(input: UpdateCustomPropertyInput, renamedSlug: string 
   if (input.allCategories !== undefined) patch.allCategories = input.allCategories;
   if (input.editableOnCard !== undefined) patch.editableOnCard = input.editableOnCard;
   if (input.enabled !== undefined) patch.enabled = input.enabled;
+  if (input.propertyGroupId !== undefined) patch.propertyGroupId = input.propertyGroupId ?? null;
   return patch;
 }
 

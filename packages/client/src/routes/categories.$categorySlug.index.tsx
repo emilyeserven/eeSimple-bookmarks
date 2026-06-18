@@ -6,6 +6,7 @@ import { useBookmarks } from "../hooks/useBookmarks";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useMediaTypes } from "../hooks/useMediaTypes";
+import { usePropertyGroups } from "../hooks/usePropertyGroups";
 import { useTagTree } from "../hooks/useTags";
 import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
 import { validateBookmarkSearch } from "../lib/bookmarkSearch";
@@ -30,6 +31,9 @@ function CategoryPage() {
   const {
     data: properties,
   } = useCustomProperties();
+  const {
+    data: propertyGroups,
+  } = usePropertyGroups();
   const {
     data: bookmarks, isLoading: bookmarksLoading, error,
   } = useBookmarks(search.tag);
@@ -95,6 +99,7 @@ function CategoryPage() {
       pageKey={`category:${categorySlug}`}
       tree={tagTree ?? []}
       properties={assignedProperties}
+      propertyGroups={propertyGroups ?? []}
       mediaTypes={mediaTypes ?? []}
       youtubeChannels={youtubeChannels ?? []}
       bookmarks={categoryBookmarks}

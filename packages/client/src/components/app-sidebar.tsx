@@ -11,6 +11,7 @@ import {
   FolderOpen,
   Globe,
   Home,
+  Layers,
   MonitorPlay,
   Settings,
   SlidersHorizontal,
@@ -93,6 +94,12 @@ const customizationItems = [
     title: "Custom Properties",
     to: "/custom-properties",
     icon: SlidersHorizontal,
+  },
+  {
+    key: "property-groups",
+    title: "Property Groups",
+    to: "/taxonomies/property-groups",
+    icon: Layers,
   },
   {
     key: "autofill",

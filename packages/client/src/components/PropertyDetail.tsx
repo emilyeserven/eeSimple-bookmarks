@@ -1,5 +1,6 @@
-import type { Category, CustomProperty } from "@eesimple/types";
+import type { Category, CustomProperty, PropertyGroup } from "@eesimple/types";
 
+import { Link } from "@tanstack/react-router";
 import { TriangleAlert } from "lucide-react";
 
 import { LabeledSection } from "./LabeledSection";
@@ -18,6 +19,8 @@ interface PropertyDetailProps {
   categories?: Category[];
   /** All properties, used to resolve a calculate property's operand names. */
   allProperties?: CustomProperty[];
+  /** All property groups, used to resolve the property's group name/link. */
+  propertyGroups?: PropertyGroup[];
   onEdit?: () => void;
   onDelete?: () => void;
 }
@@ -37,7 +40,7 @@ function formPlacement(property: CustomProperty): string {
  * the tabbed detail pages can render one section per tab.
  */
 export function PropertyDetail({
-  property, categories = [], allProperties = [], onEdit, onDelete,
+  property, categories = [], allProperties = [], propertyGroups = [], onEdit, onDelete,
 }: PropertyDetailProps) {
   const assignedCategories = categories.filter(category =>
     property.categoryIds.includes(category.id));
@@ -123,7 +126,10 @@ export function PropertyDetail({
       <Separator />
 
       <LabeledSection title="Display">
-        <PropertyDisplayFields property={property} />
+        <PropertyDisplayFields
+          property={property}
+          propertyGroups={propertyGroups}
+        />
       </LabeledSection>
     </div>
   );
@@ -219,14 +225,36 @@ export function PropertyCategoriesContent({
   );
 }
 
-/** The "Display" section body: form placement, listings, and card-menu editability. */
+/** The "Display" section body: group, form placement, listings, and card-menu editability. */
 export function PropertyDisplayFields({
-  property,
+  property, propertyGroups = [],
 }: {
   property: CustomProperty;
+  propertyGroups?: PropertyGroup[];
 }) {
+  const group = property.propertyGroupId
+    ? propertyGroups.find(candidate => candidate.id === property.propertyGroupId)
+    : undefined;
   return (
     <dl className="space-y-3">
+      <DetailField label="Group">
+        {group
+          ? (
+            <Link
+              to="/taxonomies/property-groups/$propertyGroupSlug"
+              params={{
+                propertyGroupSlug: group.slug,
+              }}
+              className="
+                text-primary
+                hover:underline
+              "
+            >
+              {group.name}
+            </Link>
+          )
+          : <span className="text-muted-foreground">Ungrouped</span>}
+      </DetailField>
       <DetailField label="Bookmark form">{formPlacement(property)}</DetailField>
       <DetailField label="Listings">
         {property.showInListings ? "Shown on bookmark cards" : "Hidden from bookmark cards"}

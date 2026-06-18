@@ -141,6 +141,28 @@ export const mediaTypes = pgTable("media_types", {
 ]);
 
 /**
+ * `property_groups` table — optional groupings for custom properties. A property may belong to one
+ * group; grouped properties render together (under the group's heading) on bookmark detail pages and
+ * in the listings filter sidebar. Groups carry a `priority` (lower sorts first) and a description.
+ */
+export const propertyGroups = pgTable("property_groups", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  // URL-friendly identifier derived from the name. Nullable for clean `push`; backfilled at boot.
+  slug: text("slug"),
+  // Free-text description surfaced on the group's detail page.
+  description: text("description"),
+  // Display ordering across groups; lower sorts first.
+  priority: integer("priority").notNull().default(0),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+}, table => [
+  unique("property_groups_name_unique").on(table.name),
+  unique("property_groups_slug_unique").on(table.slug),
+]);
+
+/**
  * `youtube_channels` table — the built-in "YouTube Channels" taxonomy. One row per distinct channel;
  * bookmarks for a YouTube video are auto-linked to their channel from the video's fetched metadata.
  */
@@ -342,6 +364,11 @@ export const customProperties = pgTable("custom_properties", {
   // When false, the property is globally inactive: hidden from filters, conditions, category
   // assignment, and the bookmark form. Existing rows default to true via the column default.
   enabled: boolean("enabled").notNull().default(true),
+  // Optional group this property belongs to; grouped properties render together. Nullable + set-null
+  // on delete so it's a push-safe additive column and deleting a group simply un-groups its members.
+  propertyGroupId: uuid("property_group_id").references(() => propertyGroups.id, {
+    onDelete: "set null",
+  }),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
@@ -774,6 +801,8 @@ export type WebsiteRow = typeof websites.$inferSelect;
 export type NewWebsiteRow = typeof websites.$inferInsert;
 export type MediaTypeRow = typeof mediaTypes.$inferSelect;
 export type NewMediaTypeRow = typeof mediaTypes.$inferInsert;
+export type PropertyGroupRow = typeof propertyGroups.$inferSelect;
+export type NewPropertyGroupRow = typeof propertyGroups.$inferInsert;
 export type YouTubeChannelRow = typeof youtubeChannels.$inferSelect;
 export type NewYouTubeChannelRow = typeof youtubeChannels.$inferInsert;
 export type YouTubeChannelSelfIdRow = typeof youtubeChannelSelfIds.$inferSelect;
