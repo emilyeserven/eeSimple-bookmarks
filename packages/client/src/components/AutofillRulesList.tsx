@@ -19,11 +19,7 @@ import { summarizeConditions } from "../lib/conditionsSummary";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { RowCard } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -239,22 +235,20 @@ function RuleListItem({
       onClick={event => viewClick(event, "autofill", rule.id)}
       className="block w-full text-left"
     >
-      <Card
+      <RowCard
         className="
           transition-colors
           hover:border-ring hover:bg-accent/40
         "
       >
-        <CardHeader
-          className="flex-row flex-wrap items-center gap-2 space-y-0"
-        >
-          <CardTitle>{rule.name}</CardTitle>
+        <div className="flex flex-wrap items-center gap-2 p-4">
+          <span className="leading-none font-semibold">{rule.name}</span>
           <span className="text-xs text-muted-foreground">
             {summarizeConditions(rule.conditions)}
           </span>
           {categoryName ? <Badge variant="secondary">{categoryName}</Badge> : null}
-        </CardHeader>
-      </Card>
+        </div>
+      </RowCard>
     </Link>
   );
 }

@@ -14,6 +14,7 @@ import { useAppForm } from "../lib/form";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { RowCard } from "@/components/ui/card";
 import { IconPicker } from "@/components/ui/icon-picker";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -57,7 +58,7 @@ export function CategoryManager() {
 
   return (
     <section className="space-y-6">
-      <div className="space-y-4 rounded-lg border bg-card p-4">
+      <RowCard className="space-y-4 p-4">
         <h2 className="text-lg font-semibold">New category</h2>
         <form
           className="space-y-4"
@@ -110,7 +111,7 @@ export function CategoryManager() {
             ? <p className="text-sm text-destructive">{createCategory.error.message}</p>
             : null}
         </form>
-      </div>
+      </RowCard>
 
       {isLoading ? <p className="text-muted-foreground">Loading categories…</p> : null}
       {error ? <p className="text-destructive">{error.message}</p> : null}
@@ -120,12 +121,12 @@ export function CategoryManager() {
 
       <div className="space-y-4">
         {(categories ?? []).map(category => (
-          <div
+          <RowCard
             key={category.id}
-            className="rounded-lg border bg-card p-4"
+            className="p-4"
           >
             <CategoryCard category={category} />
-          </div>
+          </RowCard>
         ))}
       </div>
     </section>

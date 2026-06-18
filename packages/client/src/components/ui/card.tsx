@@ -20,6 +20,18 @@ function Card({
   );
 }
 
+function RowCard({
+  className, ...props
+}: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="row-card"
+      className={cn("rounded-lg border bg-card", className)}
+      {...props}
+    />
+  );
+}
+
 function CardHeader({
   className, ...props
 }: React.ComponentProps<"div">) {
@@ -114,4 +126,5 @@ export {
   CardFooter,
   CardHeader,
   CardTitle,
+  RowCard,
 };

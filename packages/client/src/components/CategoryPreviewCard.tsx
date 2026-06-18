@@ -7,6 +7,7 @@ import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick"
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { RowCard } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { CategoryIcon } from "@/lib/icons";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
@@ -82,36 +83,38 @@ export function CategoryPreviewCard({
   const modifier = useUiStore(state => state.sidebarOpenModifier);
   if (variant === "row") {
     return (
-      <li className="group relative rounded-lg border bg-card">
-        <Link
-          to="/categories/$categorySlug/general"
-          params={{
-            categorySlug: category.slug,
-          }}
-          title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-          onClick={event => viewClick(event, "category", category.id)}
-          className="
-            flex items-center gap-3 rounded-lg p-4 pr-44 transition-colors
-            hover:bg-accent
-          "
-        >
-          <CategoryIcon
-            name={category.icon}
-            className="size-5 shrink-0"
-          />
-          <div className="min-w-0 flex-1">
-            <p className="flex items-center gap-2 font-medium">
-              {category.name}
-              {category.builtIn ? <Badge variant="secondary">Built-in</Badge> : null}
-            </p>
-            {category.description
-              ? <p className="truncate text-sm text-muted-foreground">{category.description}</p>
-              : null}
+      <li>
+        <RowCard className="group relative">
+          <Link
+            to="/categories/$categorySlug/general"
+            params={{
+              categorySlug: category.slug,
+            }}
+            title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+            onClick={event => viewClick(event, "category", category.id)}
+            className="
+              flex items-center gap-3 rounded-lg p-4 pr-44 transition-colors
+              hover:bg-accent
+            "
+          >
+            <CategoryIcon
+              name={category.icon}
+              className="size-5 shrink-0"
+            />
+            <div className="min-w-0 flex-1">
+              <p className="flex items-center gap-2 font-medium">
+                {category.name}
+                {category.builtIn ? <Badge variant="secondary">Built-in</Badge> : null}
+              </p>
+              {category.description
+                ? <p className="truncate text-sm text-muted-foreground">{category.description}</p>
+                : null}
+            </div>
+          </Link>
+          <div className="absolute top-1/2 right-3 -translate-y-1/2">
+            <CategoryControls category={category} />
           </div>
-        </Link>
-        <div className="absolute top-1/2 right-3 -translate-y-1/2">
-          <CategoryControls category={category} />
-        </div>
+        </RowCard>
       </li>
     );
   }

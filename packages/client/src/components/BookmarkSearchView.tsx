@@ -17,7 +17,7 @@ import { COLUMN_CLASS, DEFAULT_BOOKMARK_IMAGE_LAYOUT, useBookmarkColumns, useBoo
 import { bookmarkMatchesSearch, hasAnyActiveFilter } from "../lib/bookmarkSearch";
 import { useUiStore } from "../stores/uiStore";
 
-import { Card } from "@/components/ui/card";
+import { RowCard } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface BookmarkSearchViewProps {
@@ -168,7 +168,7 @@ export function BookmarkSearchView({
               )
               : null}
             {visibleBookmarks.map(bookmark => (
-              <Card
+              <RowCard
                 key={bookmark.id}
                 className="p-4"
               >
@@ -180,7 +180,7 @@ export function BookmarkSearchView({
                   maintainImageAspectRatio={imageMode}
                   imageVisibility={imageVisibility}
                 />
-              </Card>
+              </RowCard>
             ))}
           </div>
         </div>

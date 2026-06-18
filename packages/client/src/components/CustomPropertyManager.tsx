@@ -11,7 +11,7 @@ import { TYPE_LABELS } from "../lib/propertyFormat";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { RowCard } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
 import { cn } from "@/lib/utils";
@@ -46,7 +46,7 @@ function PropertyPreview({
   const isUncategorized = categoryCount === 0 && property.enabled;
 
   return (
-    <Card className={cn("p-0", isUncategorized && "opacity-60")}>
+    <RowCard className={cn(isUncategorized && "opacity-60")}>
       <Link
         to="/custom-properties/$propertySlug"
         params={{
@@ -55,7 +55,7 @@ function PropertyPreview({
         title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
         onClick={event => viewClick(event, "property", property.id)}
         className="
-          flex flex-col gap-1 rounded-xl p-4 transition-colors
+          flex flex-col gap-1 rounded-lg p-4 transition-colors
           hover:bg-accent
         "
       >
@@ -76,7 +76,7 @@ function PropertyPreview({
             : `${categoryCount} ${categoryCount === 1 ? "category" : "categories"}`}
         </p>
       </Link>
-    </Card>
+    </RowCard>
   );
 }
 

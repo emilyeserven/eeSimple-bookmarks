@@ -7,7 +7,7 @@ import { COLUMN_CLASS } from "../lib/bookmarkColumns";
 import { useUiStore } from "../stores/uiStore";
 
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { RowCard } from "@/components/ui/card";
 
 interface HomepageSectionBlockProps {
   data: HomepageSectionBookmarks;
@@ -61,7 +61,7 @@ export function HomepageSectionBlock({
               `}
             >
               {bookmarks.map(bookmark => (
-                <Card
+                <RowCard
                   key={bookmark.id}
                   className="p-4"
                 >
@@ -71,7 +71,7 @@ export function HomepageSectionBlock({
                     imageLeft={imageLeft}
                     maintainImageAspectRatio={imageMode}
                   />
-                </Card>
+                </RowCard>
               ))}
             </div>
           )

@@ -18,6 +18,7 @@ import { normalizeRules, normalizeShortLinks } from "../lib/websiteForm";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { RowCard } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -661,11 +662,10 @@ export function WebsiteManager() {
         ? (
           <ul className="space-y-3">
             {websites.map(website => (
-              <li
-                key={website.id}
-                className="rounded-lg border bg-card p-4"
-              >
-                <WebsiteRow website={website} />
+              <li key={website.id}>
+                <RowCard className="p-4">
+                  <WebsiteRow website={website} />
+                </RowCard>
               </li>
             ))}
           </ul>
@@ -708,47 +708,48 @@ function AddWebsiteForm() {
   });
 
   return (
-    <form
-      className="rounded-lg border bg-card p-4"
-      onSubmit={(event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        void form.handleSubmit();
-      }}
-    >
-      <div
-        className="
-          grid gap-3
-          sm:grid-cols-[1fr_1fr_auto] sm:items-end
-        "
+    <RowCard className="p-4">
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          void form.handleSubmit();
+        }}
       >
-        <form.AppField name="domain">
-          {field => (
-            <field.TextField
-              label="Domain"
-              placeholder="example.com"
+        <div
+          className="
+            grid gap-3
+            sm:grid-cols-[1fr_1fr_auto] sm:items-end
+          "
+        >
+          <form.AppField name="domain">
+            {field => (
+              <field.TextField
+                label="Domain"
+                placeholder="example.com"
+              />
+            )}
+          </form.AppField>
+          <form.AppField name="siteName">
+            {field => (
+              <field.TextField
+                label="Site name (optional)"
+                placeholder="Defaults to the domain"
+              />
+            )}
+          </form.AppField>
+          <form.AppForm>
+            <form.SubmitButton
+              label="Add website"
+              pendingLabel="Adding…"
             />
-          )}
-        </form.AppField>
-        <form.AppField name="siteName">
-          {field => (
-            <field.TextField
-              label="Site name (optional)"
-              placeholder="Defaults to the domain"
-            />
-          )}
-        </form.AppField>
-        <form.AppForm>
-          <form.SubmitButton
-            label="Add website"
-            pendingLabel="Adding…"
-          />
-        </form.AppForm>
-      </div>
-      {createWebsite.isError
-        ? <p className="mt-2 text-sm text-destructive">{createWebsite.error.message}</p>
-        : null}
-    </form>
+          </form.AppForm>
+        </div>
+        {createWebsite.isError
+          ? <p className="mt-2 text-sm text-destructive">{createWebsite.error.message}</p>
+          : null}
+      </form>
+    </RowCard>
   );
 }
 
@@ -801,54 +802,53 @@ export function WebsitesListing() {
           ? (
             <ul className="space-y-2">
               {filtered.map(website => (
-                <li
-                  key={website.id}
-                  className="group relative rounded-lg border bg-card"
-                >
-                  <Link
-                    to="/taxonomies/websites/$websiteSlug"
-                    params={{
-                      websiteSlug: website.slug,
-                    }}
-                    title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-                    onClick={event => viewClick(event, "website", website.id)}
-                    className="
-                      flex items-center gap-3 rounded-lg p-4 pr-12
-                      transition-colors
-                      hover:bg-accent
-                    "
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium">{website.siteName}</p>
-                      <p className="truncate text-sm text-muted-foreground">{website.domain}</p>
-                    </div>
-                    {website.bookmarkCount !== undefined
-                      ? <Badge variant="secondary">{website.bookmarkCount}</Badge>
-                      : null}
-                  </Link>
-                  <Button
-                    asChild
-                    variant="ghost"
-                    size="icon"
-                    className="
-                      absolute top-1/2 right-2 -translate-y-1/2 opacity-0
-                      transition-opacity
-                      group-hover:opacity-100
-                      focus-visible:opacity-100
-                    "
-                  >
+                <li key={website.id}>
+                  <RowCard className="group relative">
                     <Link
-                      to="/taxonomies/websites/$websiteSlug/edit"
+                      to="/taxonomies/websites/$websiteSlug"
                       params={{
                         websiteSlug: website.slug,
                       }}
-                      title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-                      onClick={event => editClick(event, "website", website.id)}
+                      title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+                      onClick={event => viewClick(event, "website", website.id)}
+                      className="
+                        flex items-center gap-3 rounded-lg p-4 pr-12
+                        transition-colors
+                        hover:bg-accent
+                      "
                     >
-                      <Pencil className="size-4" />
-                      <span className="sr-only">Edit {website.siteName}</span>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium">{website.siteName}</p>
+                        <p className="truncate text-sm text-muted-foreground">{website.domain}</p>
+                      </div>
+                      {website.bookmarkCount !== undefined
+                        ? <Badge variant="secondary">{website.bookmarkCount}</Badge>
+                        : null}
                     </Link>
-                  </Button>
+                    <Button
+                      asChild
+                      variant="ghost"
+                      size="icon"
+                      className="
+                        absolute top-1/2 right-2 -translate-y-1/2 opacity-0
+                        transition-opacity
+                        group-hover:opacity-100
+                        focus-visible:opacity-100
+                      "
+                    >
+                      <Link
+                        to="/taxonomies/websites/$websiteSlug/edit"
+                        params={{
+                          websiteSlug: website.slug,
+                        }}
+                        title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+                        onClick={event => editClick(event, "website", website.id)}
+                      >
+                        <Pencil className="size-4" />
+                        <span className="sr-only">Edit {website.siteName}</span>
+                      </Link>
+                    </Button>
+                  </RowCard>
                 </li>
               ))}
             </ul>

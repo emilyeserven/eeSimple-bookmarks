@@ -13,6 +13,7 @@ import { useAppForm } from "../lib/form";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { RowCard } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -213,11 +214,10 @@ export function MediaTypeManager() {
         ? (
           <ul className="space-y-3">
             {mediaTypes.map(mediaType => (
-              <li
-                key={mediaType.id}
-                className="rounded-lg border bg-card p-4"
-              >
-                <MediaTypeRow mediaType={mediaType} />
+              <li key={mediaType.id}>
+                <RowCard className="p-4">
+                  <MediaTypeRow mediaType={mediaType} />
+                </RowCard>
               </li>
             ))}
           </ul>
@@ -257,39 +257,40 @@ function AddMediaTypeForm() {
   });
 
   return (
-    <form
-      className="rounded-lg border bg-card p-4"
-      onSubmit={(event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        void form.handleSubmit();
-      }}
-    >
-      <div
-        className="
-          grid gap-3
-          sm:grid-cols-[1fr_auto] sm:items-end
-        "
+    <RowCard className="p-4">
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          void form.handleSubmit();
+        }}
       >
-        <form.AppField name="name">
-          {field => (
-            <field.TextField
-              label="Name"
-              placeholder="e.g. Newsletter"
+        <div
+          className="
+            grid gap-3
+            sm:grid-cols-[1fr_auto] sm:items-end
+          "
+        >
+          <form.AppField name="name">
+            {field => (
+              <field.TextField
+                label="Name"
+                placeholder="e.g. Newsletter"
+              />
+            )}
+          </form.AppField>
+          <form.AppForm>
+            <form.SubmitButton
+              label="Add media type"
+              pendingLabel="Adding…"
             />
-          )}
-        </form.AppField>
-        <form.AppForm>
-          <form.SubmitButton
-            label="Add media type"
-            pendingLabel="Adding…"
-          />
-        </form.AppForm>
-      </div>
-      {createMediaType.isError
-        ? <p className="mt-2 text-sm text-destructive">{createMediaType.error.message}</p>
-        : null}
-    </form>
+          </form.AppForm>
+        </div>
+        {createMediaType.isError
+          ? <p className="mt-2 text-sm text-destructive">{createMediaType.error.message}</p>
+          : null}
+      </form>
+    </RowCard>
   );
 }
 
@@ -342,56 +343,55 @@ export function MediaTypesListing() {
           ? (
             <ul className="space-y-2">
               {filtered.map(mediaType => (
-                <li
-                  key={mediaType.id}
-                  className="group relative rounded-lg border bg-card"
-                >
-                  <Link
-                    to="/taxonomies/media-types/$mediaTypeSlug"
-                    params={{
-                      mediaTypeSlug: mediaType.slug,
-                    }}
-                    title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-                    onClick={event => viewClick(event, "media-type", mediaType.id)}
-                    className="
-                      flex items-center gap-3 rounded-lg p-4 pr-12
-                      transition-colors
-                      hover:bg-accent
-                    "
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium">{mediaType.name}</p>
-                      <p className="truncate text-sm text-muted-foreground">
-                        {mediaType.builtIn ? "Built-in" : "Custom"}
-                      </p>
-                    </div>
-                    {mediaType.bookmarkCount !== undefined
-                      ? <Badge variant="secondary">{mediaType.bookmarkCount}</Badge>
-                      : null}
-                  </Link>
-                  <Button
-                    asChild
-                    variant="ghost"
-                    size="icon"
-                    className="
-                      absolute top-1/2 right-2 -translate-y-1/2 opacity-0
-                      transition-opacity
-                      group-hover:opacity-100
-                      focus-visible:opacity-100
-                    "
-                  >
+                <li key={mediaType.id}>
+                  <RowCard className="group relative">
                     <Link
-                      to="/taxonomies/media-types/$mediaTypeSlug/edit"
+                      to="/taxonomies/media-types/$mediaTypeSlug"
                       params={{
                         mediaTypeSlug: mediaType.slug,
                       }}
-                      title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-                      onClick={event => editClick(event, "media-type", mediaType.id)}
+                      title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+                      onClick={event => viewClick(event, "media-type", mediaType.id)}
+                      className="
+                        flex items-center gap-3 rounded-lg p-4 pr-12
+                        transition-colors
+                        hover:bg-accent
+                      "
                     >
-                      <Pencil className="size-4" />
-                      <span className="sr-only">Edit {mediaType.name}</span>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium">{mediaType.name}</p>
+                        <p className="truncate text-sm text-muted-foreground">
+                          {mediaType.builtIn ? "Built-in" : "Custom"}
+                        </p>
+                      </div>
+                      {mediaType.bookmarkCount !== undefined
+                        ? <Badge variant="secondary">{mediaType.bookmarkCount}</Badge>
+                        : null}
                     </Link>
-                  </Button>
+                    <Button
+                      asChild
+                      variant="ghost"
+                      size="icon"
+                      className="
+                        absolute top-1/2 right-2 -translate-y-1/2 opacity-0
+                        transition-opacity
+                        group-hover:opacity-100
+                        focus-visible:opacity-100
+                      "
+                    >
+                      <Link
+                        to="/taxonomies/media-types/$mediaTypeSlug/edit"
+                        params={{
+                          mediaTypeSlug: mediaType.slug,
+                        }}
+                        title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+                        onClick={event => editClick(event, "media-type", mediaType.id)}
+                      >
+                        <Pencil className="size-4" />
+                        <span className="sr-only">Edit {mediaType.name}</span>
+                      </Link>
+                    </Button>
+                  </RowCard>
                 </li>
               ))}
             </ul>
