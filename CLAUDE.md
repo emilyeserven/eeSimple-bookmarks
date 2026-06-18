@@ -79,9 +79,21 @@ database and applies the delta. There is intentionally **no `drizzle/` folder, j
 `generate` script** — adopting Drizzle's versioned-migration system was the source of brittle
 "column already exists" redeploys.
 
-- **Additive changes** (new tables, columns, constraints, indexes) — the common case: just edit
-  `src/db/schema.ts`. `push` applies them automatically on `pnpm dev` and on every deploy. No
-  migration file, no `drizzle-kit generate`.
+- **Truly push-safe additive changes** (new tables; nullable columns on existing tables; new
+  indexes): just edit `src/db/schema.ts`. `push` applies them without prompting on `pnpm dev` and
+  on every deploy. No migration file, no `drizzle-kit generate`.
+- **Additive changes that trigger a push prompt** — `drizzle-kit push` runs non-interactively in
+  production (non-TTY, stdin = `/dev/null`). Certain additive changes still cause an interactive
+  confirmation that either blocks the deploy or wipes data:
+  - **Unique constraints added to an existing table with data** — push warns the constraint may
+    fail and asks to truncate. With no TTY it reads EOF and may truncate or exit non-zero.
+  - **`NOT NULL` columns added to an existing table** (even with a column-level `DEFAULT`) — push
+    may prompt before applying.
+
+  For these cases, add an idempotent step to `src/db/migrate.ts` — the same place as destructive
+  changes. Use `ADD COLUMN IF NOT EXISTS` for columns; check `pg_constraint` by name before adding
+  a constraint. The pre-migration runs first, so push's subsequent diff is empty for that item and
+  no prompt is issued. See the existing entries in `migrate.ts` for examples.
 - **Destructive / push-incompatible changes** (drop or rename a column/table, `ALTER TYPE … ADD
   VALUE`, data-preserving transforms): add a small **idempotent** step to the `migrations` array in
   `src/db/migrate.ts`. It runs before `push` so push's diff stays additive — push runs **without**
