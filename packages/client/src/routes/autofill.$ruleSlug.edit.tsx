@@ -1,89 +1,64 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 
-import { AutofillRuleForm } from "../components/AutofillRuleForm";
-import { TaxonomyDetailLayout } from "../components/TaxonomyDetailLayout";
-import { useAutofillRuleBySlug, useUpdateAutofillRule } from "../hooks/useAutofill";
-import { useCategories } from "../hooks/useCategories";
-import { useCustomProperties } from "../hooks/useCustomProperties";
-import { useTagTree } from "../hooks/useTags";
+import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
+import { useAutofillRuleBySlug } from "../hooks/useAutofill";
 
 export const Route = createFileRoute("/autofill/$ruleSlug/edit")({
-  component: AutofillRuleEditPage,
+  component: AutofillRuleEditLayout,
 });
 
-function AutofillRuleEditPage() {
+function AutofillRuleEditLayout() {
   const {
     ruleSlug,
   } = Route.useParams();
-  const navigate = Route.useNavigate();
   const {
-    rule, isLoading, error,
+    rule, isLoading,
   } = useAutofillRuleBySlug(ruleSlug);
-  const {
-    data: categories,
-  } = useCategories();
-  const {
-    data: properties,
-  } = useCustomProperties();
-  const {
-    data: tagTree,
-  } = useTagTree();
-  const updateRule = useUpdateAutofillRule();
+
+  const editNav = [
+    {
+      to: "/autofill/$ruleSlug/edit/general",
+      label: "General",
+    },
+    {
+      to: "/autofill/$ruleSlug/edit/conditions",
+      label: "Conditions",
+    },
+    {
+      to: "/autofill/$ruleSlug/edit/prefill",
+      label: "Prefill",
+    },
+  ] as const;
 
   return (
-    <TaxonomyDetailLayout
-      isLoading={isLoading}
-      error={error}
-      entity={rule}
-      loadingLabel="Loading rule…"
-      notFoundMessage="Autofill rule not found."
-      listHref="/autofill"
-      listLabel="Back to autofill rules"
-    >
-      {r => (
-        <section className="space-y-6">
-          <div className="space-y-1">
-            <Link
-              to="/autofill/$ruleSlug"
-              params={{
-                ruleSlug,
-              }}
-              className="
-                text-sm text-muted-foreground
-                hover:text-foreground
-              "
-            >
-              ← Back to {r.name}
-            </Link>
-            <h1 className="text-2xl font-bold">Edit autofill rule</h1>
-          </div>
-          <AutofillRuleForm
-            rule={r}
-            categories={categories ?? []}
-            properties={properties ?? []}
-            tagTree={tagTree ?? []}
-            submitLabel="Save changes"
-            isError={updateRule.isError}
-            errorMessage={updateRule.error?.message}
-            onSubmit={input =>
-              updateRule.mutate(
-                {
-                  id: r.id,
-                  input,
-                },
-                {
-                  onSuccess: updated =>
-                    void navigate({
-                      to: "/autofill/$ruleSlug",
-                      params: {
-                        ruleSlug: updated.slug,
-                      },
-                    }),
-                },
-              )}
-          />
-        </section>
+    <TabbedEntityLayout
+      header={(
+        <div className="space-y-1">
+          <Link
+            to="/autofill/$ruleSlug"
+            params={{
+              ruleSlug,
+            }}
+            className="
+              text-sm text-muted-foreground
+              hover:text-foreground
+            "
+          >
+            ← Back to autofill rule
+          </Link>
+          <h1 className="text-2xl font-bold">
+            {isLoading ? "Edit autofill rule" : (rule?.name ?? "Autofill rule not found")}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Edit the general details, activation conditions, and prefill actions for this rule.
+          </p>
+        </div>
       )}
-    </TaxonomyDetailLayout>
+      nav={editNav}
+      params={{
+        ruleSlug,
+      }}
+      navAriaLabel="Autofill rule edit sections"
+    />
   );
 }
