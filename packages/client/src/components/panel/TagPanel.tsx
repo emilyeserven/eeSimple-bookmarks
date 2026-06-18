@@ -11,21 +11,10 @@ import { usePanelDismissAfterDelete } from "./usePanelDismissAfterDelete";
 import { useCreateTag, useDeleteTag, useTagTree, useUpdateTag } from "../../hooks/useTags";
 import { useAppForm } from "../../lib/form";
 import { flattenTree, subtreeIds } from "../../lib/tagTree";
+import { TagForm } from "../TagForm";
 
 import { Button } from "@/components/ui/button";
 import { NEW_SENTINEL } from "@/lib/drawerSearch";
-
-/** Sentinel for the "(root)" option, since Radix Select forbids an empty-string value. */
-const ROOT = "__root__";
-
-const nameSchema = z.object({
-  name: z.string().trim().min(1, "Name is required"),
-});
-
-const editSchema = z.object({
-  name: z.string().trim().min(1, "Name is required"),
-  parent: z.string(),
-});
 
 const childSchema = z.object({
   childName: z.string().trim().min(1, "Name is required"),
@@ -173,86 +162,32 @@ function TagEditForm({
 }) {
   const updateTag = useUpdateTag();
 
-  // A tag cannot be reparented under itself or any of its descendants.
-  const forbidden = new Set(subtreeIds(node));
-  const parentOptions = [
-    {
-      value: ROOT,
-      label: "(root)",
-    },
-    ...flattenTree(allTags)
-      .filter(item => !forbidden.has(item.node.id))
-      .map(item => ({
-        value: item.node.id,
-        label: `${"– ".repeat(item.depth)}${item.node.name}`,
-      })),
-  ];
-
-  const form = useAppForm({
-    defaultValues: {
-      name: node.name,
-      parent: node.parentId ?? ROOT,
-    },
-    validators: {
-      onChange: editSchema,
-    },
-    onSubmit: ({
-      value,
-    }) => {
-      updateTag.mutate(
+  return (
+    <TagForm
+      allTags={allTags}
+      // A tag cannot be reparented under itself or any of its descendants.
+      forbiddenIds={new Set(subtreeIds(node))}
+      defaultName={node.name}
+      defaultParentId={node.parentId}
+      submitLabel="Save"
+      pendingLabel="Saving…"
+      isError={updateTag.isError}
+      errorMessage={updateTag.error?.message}
+      onSubmit={({
+        name, parentId,
+      }) => updateTag.mutate(
         {
           id: node.id,
           input: {
-            name: value.name.trim(),
-            parentId: value.parent === ROOT ? null : value.parent,
+            name,
+            parentId,
           },
         },
         {
           onSuccess: onDone,
         },
-      );
-    },
-  });
-
-  return (
-    <form
-      className="space-y-4"
-      onSubmit={(event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        void form.handleSubmit();
-      }}
-    >
-      <form.AppField name="name">
-        {field => (
-          <field.TextField
-            label="Name"
-            placeholder="Tag name"
-          />
-        )}
-      </form.AppField>
-
-      <form.AppField name="parent">
-        {field => (
-          <field.SelectField
-            label="Parent"
-            options={parentOptions}
-            placeholder="Choose a parent"
-          />
-        )}
-      </form.AppField>
-
-      <form.AppForm>
-        <form.SubmitButton
-          label="Save"
-          pendingLabel="Saving…"
-        />
-      </form.AppForm>
-
-      {updateTag.isError
-        ? <p className="text-xs text-destructive">{updateTag.error.message}</p>
-        : null}
-    </form>
+      )}
+    />
   );
 }
 
@@ -381,60 +316,28 @@ function TagCreateForm() {
   } = usePanelControls();
   const createTag = useCreateTag();
 
-  const form = useAppForm({
-    defaultValues: {
-      name: "",
-    },
-    validators: {
-      onChange: nameSchema,
-    },
-    onSubmit: ({
-      value,
-    }) => {
-      createTag.mutate(
-        {
-          name: value.name.trim(),
-          parentId: null,
-        },
-        {
-          onSuccess: () => {
-            form.reset();
-            close();
-          },
-        },
-      );
-    },
-  });
-
   return (
     <div className="space-y-6">
       <h2 className="text-xl font-semibold">New tag</h2>
-      <form
-        className="space-y-4"
-        onSubmit={(event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          void form.handleSubmit();
-        }}
-      >
-        <form.AppField name="name">
-          {field => (
-            <field.TextField
-              label="Name"
-              placeholder="New root tag name"
-            />
-          )}
-        </form.AppField>
-        <form.AppForm>
-          <form.SubmitButton
-            label="Add tag"
-            pendingLabel="Adding…"
-          />
-        </form.AppForm>
-        {createTag.isError
-          ? <p className="text-xs text-destructive">{createTag.error.message}</p>
-          : null}
-      </form>
+      <TagForm
+        allTags={[]}
+        showParent={false}
+        submitLabel="Add tag"
+        pendingLabel="Adding…"
+        isError={createTag.isError}
+        errorMessage={createTag.error?.message}
+        onSubmit={({
+          name,
+        }) => createTag.mutate(
+          {
+            name,
+            parentId: null,
+          },
+          {
+            onSuccess: close,
+          },
+        )}
+      />
     </div>
   );
 }
