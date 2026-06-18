@@ -165,8 +165,18 @@ export async function fetchPageTitle(url: string): Promise<FetchTitleResult> {
 /** Cap on the image bytes we'll download (an image is stored, not streamed, so memory matters). */
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
+/**
+ * Fetch a URL and return its leading HTML through `</head>`, or null on any failure. Exposed so
+ * site-specific extractors (e.g. YouTube duration scraping) can reuse the same guarded,
+ * early-stopping fetch as the title/image lookups.
+ */
+export async function fetchHeadHtml(url: string): Promise<string | null> {
+  const result = await fetchHtml(url, /<\/head>/i);
+  return result.kind === "ok" ? result.html : null;
+}
+
 /** Find the `content` of the first `<meta>` tag whose attributes match `attrMatch`. */
-function metaContent(html: string, attrMatch: RegExp): string | undefined {
+export function metaContent(html: string, attrMatch: RegExp): string | undefined {
   for (const [tag] of html.matchAll(/<meta\b[^>]*>/gi)) {
     if (!attrMatch.test(tag)) continue;
     const content = /content=["']([^"']*)["']/i.exec(tag);

@@ -392,6 +392,25 @@ export interface CreateHomepageSectionInput {
 /** Payload for partially updating a homepage section. */
 export type UpdateHomepageSectionInput = Partial<CreateHomepageSectionInput>;
 
+/**
+ * Result of fetching metadata for a bookmark URL (`GET /api/fetch-metadata`). Always carries the
+ * page title; for recognized YouTube video URLs it also carries the channel, duration, and
+ * thumbnail pulled from YouTube's public oEmbed + watch page.
+ */
+export interface FetchMetadataResult {
+  /** Cleaned page/video title, or `null` when none could be read. */
+  title: string | null;
+  /** Whether the URL was recognized as a YouTube video. */
+  isYouTube: boolean;
+  /** The video's channel (YouTube only), or `null`. */
+  channel: { name: string;
+    url: string | null; } | null;
+  /** The video's length in whole seconds (YouTube only), or `null`. */
+  durationSeconds: number | null;
+  /** A preview/thumbnail image URL (YouTube only), or `null`. */
+  thumbnailUrl: string | null;
+}
+
 /** Standard error shape returned by the API. */
 export interface ApiError {
   error: string;
