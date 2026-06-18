@@ -187,7 +187,9 @@ function RootComponent() {
   const categorySlug = pathname.startsWith("/categories/")
     ? (pathname.split("/").filter(Boolean)[1] ?? "")
     : "";
-  const { category } = useCategoryBySlug(categorySlug);
+  const {
+    category,
+  } = useCategoryBySlug(categorySlug);
   const crumbs = breadcrumbsForPath(pathname, category?.name);
   const {
     open,

@@ -1,3 +1,5 @@
+import type { DrawerContentType } from "@/lib/drawerSearch";
+
 import { ChevronLeft, Pin, PinOff, X } from "lucide-react";
 
 import { getContentType } from "./contentTypes";
@@ -21,11 +23,10 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useResizeHandle } from "@/hooks/useResizeHandle";
 import { useCategories } from "@/hooks/useCategories";
+import { useResizeHandle } from "@/hooks/useResizeHandle";
 import { useTagTree } from "@/hooks/useTags";
 import { NEW_SENTINEL } from "@/lib/drawerSearch";
-import type { DrawerContentType } from "@/lib/drawerSearch";
 import { flattenTree } from "@/lib/tagTree";
 import { useUiStore } from "@/stores/uiStore";
 
@@ -119,13 +120,19 @@ interface PanelChromeProps {
 }
 
 function usePanelItemLabel(dCT: DrawerContentType | null, dCId: string | null): string | null {
-  const { data: tagTree } = useTagTree();
-  const { data: categories } = useCategories();
+  const {
+    data: tagTree,
+  } = useTagTree();
+  const {
+    data: categories,
+  } = useCategories();
 
   if (!dCId || dCId === NEW_SENTINEL || !dCT) return null;
 
   if (dCT === "tag") {
-    return flattenTree(tagTree ?? []).find(({ node }) => node.id === dCId)?.node.name ?? null;
+    return flattenTree(tagTree ?? []).find(({
+      node,
+    }) => node.id === dCId)?.node.name ?? null;
   }
   if (dCT === "category") {
     return categories?.find(c => c.id === dCId)?.name ?? null;
