@@ -1,6 +1,7 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 
 import { AutofillRuleDetail } from "../components/AutofillRuleDetail";
+import { TaxonomyDetailLayout } from "../components/TaxonomyDetailLayout";
 import { useAutofillRuleBySlug, useDeleteAutofillRule } from "../hooks/useAutofill";
 import { useCategories } from "../hooks/useCategories";
 
@@ -21,55 +22,37 @@ function AutofillRuleViewPage() {
   } = useCategories();
   const deleteRule = useDeleteAutofillRule();
 
-  if (isLoading) {
-    return <p className="text-muted-foreground">Loading rule…</p>;
-  }
-
-  if (error || !rule) {
-    return (
-      <div className="space-y-4">
-        <p className="text-destructive">{error?.message ?? "Autofill rule not found."}</p>
-        <Link
-          to="/settings/autofill"
-          className="
-            text-sm text-muted-foreground
-            hover:text-foreground
-          "
-        >
-          ← Back to autofill rules
-        </Link>
-      </div>
-    );
-  }
-
   return (
-    <section className="space-y-4">
-      <Link
-        to="/settings/autofill"
-        className="
-          inline-block text-sm text-muted-foreground
-          hover:text-foreground
-        "
-      >
-        ← Back to autofill rules
-      </Link>
-      <AutofillRuleDetail
-        rule={rule}
-        categories={categories ?? []}
-        onEdit={() => void navigate({
-          to: "/settings/autofill/$ruleSlug/edit",
-          params: {
-            ruleSlug,
-          },
-        })}
-        onDelete={() =>
-          deleteRule.mutate(rule.id, {
-            onSuccess: () => void navigate({
-              to: "/settings/autofill",
-            }),
-          })}
-        deleteIsPending={deleteRule.isPending}
-      />
-    </section>
+    <TaxonomyDetailLayout
+      isLoading={isLoading}
+      error={error}
+      entity={rule}
+      loadingLabel="Loading rule…"
+      notFoundMessage="Autofill rule not found."
+      listHref="/settings/autofill"
+      listLabel="Back to autofill rules"
+    >
+      {r => (
+        <section className="space-y-4">
+          <AutofillRuleDetail
+            rule={r}
+            categories={categories ?? []}
+            onEdit={() => void navigate({
+              to: "/settings/autofill/$ruleSlug/edit",
+              params: {
+                ruleSlug,
+              },
+            })}
+            onDelete={() =>
+              deleteRule.mutate(r.id, {
+                onSuccess: () => void navigate({
+                  to: "/settings/autofill",
+                }),
+              })}
+            deleteIsPending={deleteRule.isPending}
+          />
+        </section>
+      )}
+    </TaxonomyDetailLayout>
   );
 }
