@@ -17,6 +17,8 @@ export default [
       "**/*.gen.ts",
       "packages/client/src/routeTree.gen.ts",
       ".claude/skills/fallow/**",
+      // Fallow's working dir holds generated baselines/caches, not source.
+      ".fallow/**",
       // Storybook build output and the generated MSW service worker are not source.
       "**/storybook-static/**",
       "packages/client/public/mockServiceWorker.js",

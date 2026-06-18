@@ -31,4 +31,29 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run Fallow audit
-        run: pnpm exec fallow --fail-on-issues | tee -a "$GITHUB_STEP_SUMMARY"
+        # The previous step piped `fallow` straight into `tee`, so the pipeline returned tee's exit
+        # code (0) and fallow never actually blocked anything. These two gates have clean exit codes:
+        #
+        #   1. Dead-code regression gate -- fails if the dead-code issue count rises above the
+        #      committed baseline (tolerance 0), so any NEW unused file / export / dependency blocks
+        #      the PR while the existing intentional surface (shadcn/ui re-exports, symmetric service
+        #      getters) is grandfathered. Refresh after an intentional change with:
+        #        pnpm exec fallow dead-code --save-regression-baseline .fallow/dead-code-baseline.json
+        #   2. Duplication budget gate -- fails if total duplication exceeds DUP_BUDGET. fallow 2.97
+        #      has no per-finding duplication severity, so we enforce the percentage from JSON. Raise
+        #      the budget deliberately (and only after a consolidation pass) if it ever needs to grow.
+        shell: bash
+        env:
+          DUP_BUDGET: "6.0"
+        run: |
+          set -o pipefail
+          echo "## Fallow audit" >> "$GITHUB_STEP_SUMMARY"
+
+          echo "### Dead code (regression gate)" >> "$GITHUB_STEP_SUMMARY"
+          pnpm exec fallow dead-code \
+            --regression-baseline .fallow/dead-code-baseline.json \
+            --fail-on-regression --tolerance 0 | tee -a "$GITHUB_STEP_SUMMARY"
+
+          echo "### Duplication (budget gate)" >> "$GITHUB_STEP_SUMMARY"
+          pnpm exec fallow dupes --format json --quiet \
+            | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const d=JSON.parse(s);const pct=d.stats.duplication_percentage;const budget=parseFloat(process.env.DUP_BUDGET);const line='Duplication '+pct.toFixed(2)+'% (budget '+budget+'%)';console.log(line);require('fs').appendFileSync(process.env.GITHUB_STEP_SUMMARY,line+'\n');process.exit(pct>budget?1:0);});"

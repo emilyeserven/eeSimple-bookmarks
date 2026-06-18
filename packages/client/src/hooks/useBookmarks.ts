@@ -23,14 +23,6 @@ export function useBookmark(id: string) {
   });
 }
 
-/** The homepage bookmarks: bookmarks in homepage categories or carrying a homepage tag. */
-export function useHomepageBookmarks() {
-  return useQuery({
-    queryKey: [...BOOKMARKS_KEY, "homepage"],
-    queryFn: () => bookmarksApi.homepage(),
-  });
-}
-
 export function useCreateBookmark() {
   const queryClient = useQueryClient();
   return useMutation({

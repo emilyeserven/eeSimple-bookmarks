@@ -4,7 +4,6 @@ import type {
   BookmarkImage,
   Category,
   CategoryPropertyDefaults,
-  ConditionTree,
   CreateAutofillRuleInput,
   CreateBookmarkInput,
   CreateCategoryInput,
@@ -15,7 +14,6 @@ import type {
   CreateWebsiteInput,
   CustomProperty,
   FetchMetadataResult,
-  HomepageFilter,
   HomepageSection,
   HomepageSectionBookmarks,
   MediaType,
@@ -60,7 +58,6 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 export const bookmarksApi = {
   list: (tagId?: string) =>
     request<Bookmark[]>(`/bookmarks${tagId ? `?tag=${encodeURIComponent(tagId)}` : ""}`),
-  homepage: () => request<Bookmark[]>("/bookmarks/homepage"),
   get: (id: string) => request<Bookmark>(`/bookmarks/${id}`),
   create: (input: CreateBookmarkInput) =>
     request<Bookmark>("/bookmarks", {
@@ -230,31 +227,12 @@ export const categoriesApi = {
         tagIds,
       }),
     }),
-  homepageTags: () => request<{ tagIds: string[] }>("/homepage-tags"),
-  setHomepageTags: (tagIds: string[]) =>
-    request<{ tagIds: string[] }>("/homepage-tags", {
-      method: "PUT",
-      body: JSON.stringify({
-        tagIds,
-      }),
-    }),
   defaults: (id: string) =>
     request<CategoryPropertyDefaults>(`/categories/${id}/defaults`),
   setDefaults: (id: string, input: UpdateCategoryDefaultsInput) =>
     request<CategoryPropertyDefaults>(`/categories/${id}/defaults`, {
       method: "PUT",
       body: JSON.stringify(input),
-    }),
-};
-
-export const homepageFilterApi = {
-  get: () => request<HomepageFilter>("/homepage-filter"),
-  set: (conditions: ConditionTree) =>
-    request<HomepageFilter>("/homepage-filter", {
-      method: "PUT",
-      body: JSON.stringify({
-        conditions,
-      }),
     }),
 };
 
