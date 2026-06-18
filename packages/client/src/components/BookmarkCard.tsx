@@ -493,7 +493,14 @@ export function BookmarkCard({
   } = bookmark;
   const details = (
     <>
-      {bookmark.description ? <p className="mt-2 text-sm text-foreground">{bookmark.description}</p> : null}
+      {bookmark.description
+        ? (
+          <div className="relative mt-2 max-h-[4.5rem] overflow-hidden">
+            <p className="text-sm leading-6 text-foreground">{bookmark.description}</p>
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-card to-transparent" />
+          </div>
+        )
+        : null}
       {website || mediaType || youtubeChannel
         ? (
           <div className="mt-2 flex flex-wrap items-center gap-1">

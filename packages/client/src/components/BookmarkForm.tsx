@@ -5,7 +5,6 @@ import type {
   BookmarkBooleanValue,
   BookmarkDateTimeValue,
   BookmarkNumberValue,
-  CheckUrlResult,
   CreateBookmarkInput,
   CustomProperty,
   TagNode,
@@ -36,7 +35,6 @@ import {
   useUploadBookmarkImage,
 } from "../hooks/useBookmarks";
 import { useCategories, useCategoryDefaults, useCategoryRootTags } from "../hooks/useCategories";
-import { useCheckUrl } from "../hooks/useCheckUrl";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useFetchMetadata } from "../hooks/useFetchMetadata";
 import { useFetchTitle } from "../hooks/useFetchTitle";
@@ -58,7 +56,6 @@ import {
 } from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CategoryIcon } from "@/lib/icons";
 
 const bookmarkSchema = z.object({
@@ -603,10 +600,15 @@ export function BookmarkForm({
       if (fillTitle && meta.title && (force || form.getFieldValue("title").trim() === "")) {
         form.setFieldValue("title", meta.title);
       }
+      // Fill the Description from the watch-page og:description when the field is still empty.
+      if (fillTitle && meta.description && form.getFieldValue("description").trim() === "") {
+        form.setFieldValue("description", meta.description);
+      }
       if (meta.channel?.key) {
         const hint = {
           key: meta.channel.key,
           name: meta.channel.name,
+          selfIds: meta.channel.selfIds ?? [],
         };
         channelHintRef.current = hint;
         setYoutubeChannel(hint);
@@ -817,6 +819,39 @@ export function BookmarkForm({
 
       {scanned && (
         <>
+          {/* Shortened-link disclosure: full URL shown inline directly below the URL field. */}
+          {urlCleanup?.applied && (
+            <div className="space-y-1 text-sm text-muted-foreground">
+              {urlShortener.nudge && (
+                <p className="text-amber-600 dark:text-amber-500">
+                  This looks like a shortened link — consider using the full URL.
+                </p>
+              )}
+              <p>
+                Shortened from
+                {" "}
+                <span className="font-mono break-all">{urlCleanup.original}</span>
+                {" · "}
+                <Button
+                  type="button"
+                  variant="link"
+                  size="sm"
+                  className="h-auto p-0"
+                  onClick={undoUrlCleanup}
+                >
+                  Undo
+                </Button>
+              </p>
+              {urlShortener.expandedUrl && (
+                <p>
+                  Will be saved as
+                  {" "}
+                  <span className="font-mono break-all">{urlShortener.expandedUrl}</span>
+                </p>
+              )}
+            </div>
+          )}
+
           {showUrlCleanup && (
             <form.Subscribe selector={state => state.values.url}>
               {url => (
@@ -844,11 +879,17 @@ export function BookmarkForm({
                 data={websiteLookup.data}
                 isYouTube={websiteLookup.data?.domain === "youtube.com"}
                 youtubeChannel={youtubeChannel}
-                nudge={urlShortener.nudge}
-                expandedUrl={urlShortener.expandedUrl}
-                shortenedFrom={urlCleanup?.applied ? urlCleanup.original : null}
-                cleanedUrl={urlCleanup?.applied ? urlCleanup.cleaned : null}
-                onUndoShorten={undoUrlCleanup}
+                onChannelSelfIdsChange={(ids) => {
+                  const updated = {
+                    ...(youtubeChannel ?? {
+                      key: "",
+                      name: "",
+                    }),
+                    selfIds: ids,
+                  };
+                  channelHintRef.current = updated;
+                  setYoutubeChannel(updated);
+                }}
                 websiteSiteName={websiteSiteName}
                 onSiteNameChange={setWebsiteSiteName}
                 onSiteNameBlur={() => void runFetchTitle(form.getFieldValue("url"), {
@@ -1329,16 +1370,8 @@ interface WebsiteLookupBannerProps {
   isYouTube: boolean;
   /** The channel detected from a YouTube video, or `null` (e.g. a playlist URL or before it resolves). */
   youtubeChannel: YouTubeChannelHint | null;
-  /** Whether to nudge the user that this is a shortened link they should expand. */
-  nudge: boolean;
-  /** The long-form URL a verified short link will be saved as, or `null`. */
-  expandedUrl: string | null;
-  /** The URL the user typed before on-blur cleanup rewrote the field, or `null` when not cleaned. */
-  shortenedFrom: string | null;
-  /** The canonical URL the field was rewritten to (what will be saved), tested by the popover. */
-  cleanedUrl: string | null;
-  /** Restore the typed URL, undoing the on-blur cleanup. */
-  onUndoShorten: () => void;
+  /** Called when the user adds or removes a self-identifier in the YouTube channel section. */
+  onChannelSelfIdsChange: (ids: string[]) => void;
   websiteSiteName: string;
   onSiteNameChange: (value: string) => void;
   onSiteNameBlur: () => void;
@@ -1347,92 +1380,113 @@ interface WebsiteLookupBannerProps {
 /**
  * Banner shown below the URL field after a website lookup: existing vs. new site, plus the site-name
  * input for new sites. For the built-in YouTube site the site-name input is replaced by the
- * auto-detected channel, since the site name is fixed ("YouTube").
+ * auto-detected channel and its self-identifier editor.
  */
 function WebsiteLookupBanner({
-  data, isYouTube, youtubeChannel, nudge, expandedUrl, shortenedFrom, cleanedUrl, onUndoShorten,
+  data, isYouTube, youtubeChannel, onChannelSelfIdsChange,
   websiteSiteName, onSiteNameChange, onSiteNameBlur,
 }: WebsiteLookupBannerProps) {
+  const [newSelfId, setNewSelfId] = useState("");
+
   if (!data?.domain) return null;
+
+  function addSelfId(): void {
+    const trimmed = newSelfId.trim();
+    if (!trimmed || !youtubeChannel) return;
+    const current = youtubeChannel.selfIds ?? [];
+    if (current.includes(trimmed)) {
+      setNewSelfId("");
+      return;
+    }
+    onChannelSelfIdsChange([...current, trimmed]);
+    setNewSelfId("");
+  }
+
+  function removeSelfId(value: string): void {
+    if (!youtubeChannel) return;
+    onChannelSelfIdsChange((youtubeChannel.selfIds ?? []).filter(id => id !== value));
+  }
+
   return (
     <div>
-      <p
-        className="flex items-center gap-2 text-sm text-muted-foreground"
-      >
-        {data.exists
-          ? (
-            <>
-              <Badge variant="secondary">Existing site</Badge>
-              <span>{data.siteName}</span>
-            </>
-          )
-          : (
-            <>
-              <Badge variant="outline">New site</Badge>
-              <span>
-                {data.domain}
-                {" "}
-                will be added
-              </span>
-            </>
-          )}
-      </p>
-      {nudge
-        ? (
-          <p
-            className="
-              mt-1 text-sm text-amber-600
-              dark:text-amber-500
-            "
-          >
-            This looks like a shortened link — consider using the full URL.
-          </p>
-        )
-        : null}
-      {expandedUrl
-        ? (
-          <p className="mt-1 truncate text-sm text-muted-foreground">
-            Will be saved as
-            {" "}
-            <span className="font-mono">{expandedUrl}</span>
-          </p>
-        )
-        : null}
-      {shortenedFrom
-        ? (
-          <p
-            className="
-              mt-1 flex items-center gap-2 text-sm text-muted-foreground
-            "
-          >
-            <ShortenedFromPopover
-              shortenedFrom={shortenedFrom}
-              cleanedUrl={cleanedUrl}
-            />
-            <Button
-              type="button"
-              variant="link"
-              size="sm"
-              className="h-auto shrink-0 p-0"
-              onClick={onUndoShorten}
-            >
-              Undo
-            </Button>
-          </p>
-        )
-        : null}
+      {!isYouTube && (
+        <p className="flex items-center gap-2 text-sm text-muted-foreground">
+          {data.exists
+            ? (
+              <>
+                <Badge variant="secondary">Existing site</Badge>
+                <span>{data.siteName}</span>
+              </>
+            )
+            : (
+              <>
+                <Badge variant="outline">New site</Badge>
+                <span>
+                  {data.domain}
+                  {" "}
+                  will be added
+                </span>
+              </>
+            )}
+        </p>
+      )}
       {isYouTube
         ? (
           youtubeChannel
             ? (
-              <p
-                className="
-                  mt-2 flex items-center gap-2 text-sm text-muted-foreground
-                "
-              >
-                <Badge variant="secondary">YouTube channel</Badge>
-                <span>{youtubeChannel.name}</span>
-              </p>
+              <div className="space-y-2">
+                <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Badge variant="secondary">YouTube channel</Badge>
+                  <span>{youtubeChannel.name}</span>
+                </p>
+                <div>
+                  <Label className="mb-1 block text-sm">
+                    Channel self-identifiers
+                  </Label>
+                  <p className="mb-2 text-xs text-muted-foreground">
+                    Short names this channel appends to video titles (e.g. "SNL"). They are stripped from the bookmark title automatically.
+                  </p>
+                  {(youtubeChannel.selfIds ?? []).length > 0 && (
+                    <div className="mb-2 flex flex-wrap gap-1">
+                      {(youtubeChannel.selfIds ?? []).map(id => (
+                        <Badge
+                          key={id}
+                          variant="secondary"
+                          className="cursor-pointer gap-1"
+                          onClick={() => removeSelfId(id)}
+                          title={`Remove "${id}"`}
+                        >
+                          {id}
+                          <span aria-hidden>×</span>
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                  <div className="flex gap-2">
+                    <Input
+                      value={newSelfId}
+                      onChange={e => setNewSelfId(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          addSelfId();
+                        }
+                      }}
+                      placeholder="e.g. SNL"
+                      className="h-8 text-sm"
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={addSelfId}
+                      disabled={!newSelfId.trim()}
+                    >
+                      Add
+                    </Button>
+                  </div>
+                </div>
+              </div>
             )
             : null
         )
@@ -1456,166 +1510,6 @@ function WebsiteLookupBanner({
           )
           : null}
     </div>
-  );
-}
-
-interface ShortenedFromPopoverProps {
-  /** The full URL the user typed before on-blur cleanup, shown wrapped in the popover. */
-  shortenedFrom: string;
-  /** The cleaned URL that will be saved — the one the "Test link" button probes / opens. */
-  cleanedUrl: string | null;
-}
-
-/**
- * The "Shortened from …" label. The text truncates inline; hovering (or focusing) it opens a popover
- * with the full URL wrapped across lines, a backend reachability check for the cleaned/saved link,
- * and a manual "open in new tab" affordance.
- */
-function ShortenedFromPopover({
-  shortenedFrom, cleanedUrl,
-}: ShortenedFromPopoverProps) {
-  const [open, setOpen] = useState(false);
-  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const checkUrl = useCheckUrl();
-  // Test/open the saved (cleaned) link; fall back to the typed URL if cleanup left none.
-  const testUrl = cleanedUrl ?? shortenedFrom;
-
-  function show(): void {
-    if (closeTimer.current) clearTimeout(closeTimer.current);
-    setOpen(true);
-  }
-  // A short close delay lets the pointer travel from the trigger to the popover without it dismissing.
-  function scheduleHide(): void {
-    if (closeTimer.current) clearTimeout(closeTimer.current);
-    closeTimer.current = setTimeout(() => setOpen(false), 120);
-  }
-
-  return (
-    <Popover
-      open={open}
-      onOpenChange={setOpen}
-    >
-      <PopoverTrigger asChild>
-        <button
-          type="button"
-          className="
-            min-w-0 truncate text-left underline decoration-dotted
-            underline-offset-2
-          "
-          onMouseEnter={show}
-          onMouseLeave={scheduleHide}
-          onFocus={show}
-          onBlur={scheduleHide}
-        >
-          Shortened from
-          {" "}
-          <span className="font-mono">{shortenedFrom}</span>
-        </button>
-      </PopoverTrigger>
-      <PopoverContent
-        align="start"
-        className="max-w-sm space-y-3"
-        onOpenAutoFocus={event => event.preventDefault()}
-        onMouseEnter={show}
-        onMouseLeave={scheduleHide}
-      >
-        <div className="space-y-1">
-          <p className="text-xs font-medium text-muted-foreground">Full URL</p>
-          <p
-            className="font-mono text-xs break-all whitespace-normal"
-          >
-            {shortenedFrom}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={!isFetchableUrl(testUrl) || checkUrl.isPending}
-            onClick={() => checkUrl.mutate({
-              url: testUrl,
-            })}
-          >
-            {checkUrl.isPending
-              ? <Loader2 className="size-4 animate-spin" />
-              : null}
-            Test link
-          </Button>
-          {isFetchableUrl(testUrl)
-            ? (
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                asChild
-              >
-                <a
-                  href={testUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label="Open link in a new tab"
-                >
-                  <ExternalLink className="size-4" />
-                </a>
-              </Button>
-            )
-            : null}
-        </div>
-
-        {checkUrl.isSuccess
-          ? <CheckResultLine result={checkUrl.data} />
-          : null}
-        {checkUrl.isError
-          ? <p className="text-xs text-destructive">Couldn&apos;t run the check — try again.</p>
-          : null}
-      </PopoverContent>
-    </Popover>
-  );
-}
-
-/** One-line reachability verdict rendered under the "Test link" button. */
-function CheckResultLine({
-  result,
-}: {
-  result: CheckUrlResult;
-}) {
-  if (result.ok) {
-    return (
-      <p
-        className="
-          text-xs text-emerald-600
-          dark:text-emerald-500
-        "
-      >
-        Reachable — HTTP
-        {" "}
-        {result.status}
-      </p>
-    );
-  }
-  let message: string;
-  switch (result.reason) {
-    case "http_error":
-      message = `Returned HTTP ${result.status} — the link may be broken.`;
-      break;
-    case "timeout":
-      message = "Timed out — the site may be slow or unreachable.";
-      break;
-    default:
-      message = "Couldn't be reached.";
-      break;
-  }
-  return (
-    <p
-      className="
-        text-xs text-amber-600
-        dark:text-amber-500
-      "
-    >
-      {message}
-    </p>
   );
 }
 

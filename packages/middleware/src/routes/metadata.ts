@@ -3,7 +3,7 @@ import type { FetchMetadataResult } from "@eesimple/types";
 import { checkUrl, fetchPageTitle } from "@/services/metadata";
 import { lookupWebsiteByUrl, stripSiteNameSuffix } from "@/services/websites";
 import { fetchYouTubeMetadata, isYouTubeVideoUrl } from "@/services/youtube";
-import { channelKeyFromUrl } from "@/services/youtubeChannels";
+import { channelKeyFromUrl, getYouTubeChannelByKey } from "@/services/youtubeChannels";
 import { isValidUrl } from "@/utils/url";
 
 const fetchTitleQuery = {
@@ -143,14 +143,34 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
         const fallback = await fetchPageTitle(url);
         if (fallback.kind === "ok") title = fallback.title;
       }
+
+      const channelKey = meta?.channelUrl ? channelKeyFromUrl(meta.channelUrl) : null;
+      const existingChannel = channelKey ? await getYouTubeChannelByKey(channelKey) : null;
+      const selfIds = existingChannel?.selfIds ?? [];
+
+      // Strip channel self-identifier suffix from the title (e.g. " - SNL" from an SNL video).
+      if (title && selfIds.length > 0) {
+        for (const selfId of selfIds) {
+          const stripped = stripSiteNameSuffix(title, {
+            siteName: selfId,
+          });
+          if (stripped !== title) {
+            title = stripped;
+            break;
+          }
+        }
+      }
+
       return {
         title,
+        description: meta?.description ?? null,
         isYouTube: true,
         channel: meta?.channelName
           ? {
             name: meta.channelName,
             url: meta.channelUrl,
-            key: meta.channelUrl ? channelKeyFromUrl(meta.channelUrl) : null,
+            key: channelKey,
+            selfIds,
           }
           : null,
         durationSeconds: meta?.durationSeconds ?? null,
@@ -162,6 +182,7 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
     if (result.kind !== "ok") {
       return {
         title: null,
+        description: null,
         isYouTube: false,
         channel: null,
         durationSeconds: null,
@@ -176,6 +197,7 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
         siteName: siteNameHint ?? website?.siteName,
         domain,
       }),
+      description: null,
       isYouTube: false,
       channel: null,
       durationSeconds: null,

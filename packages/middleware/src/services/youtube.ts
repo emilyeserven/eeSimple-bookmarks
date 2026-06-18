@@ -22,6 +22,7 @@ const OEMBED_TIMEOUT_MS = 5000;
 /** What we can resolve for a YouTube video. Any field may be absent if a source omits it. */
 export interface YouTubeMetadata {
   title: string | null;
+  description: string | null;
   thumbnailUrl: string | null;
   channelName: string | null;
   channelUrl: string | null;
@@ -79,12 +80,31 @@ async function fetchOEmbed(videoUrl: string): Promise<OEmbedResponse | null> {
   }
 }
 
-/** Scrape the watch page's `<meta itemprop="duration">` (ISO-8601) and convert it to seconds. */
-async function fetchDurationSeconds(videoId: string): Promise<number | null> {
+/** Scrape the watch page's `<meta itemprop="duration">` and `og:description` meta tags. */
+async function fetchWatchPageMeta(videoId: string): Promise<{ durationSeconds: number | null;
+  description: string | null; }> {
   const html = await fetchHeadHtml(`https://www.youtube.com/watch?v=${videoId}`);
-  if (!html) return null;
+  if (!html) return {
+    durationSeconds: null,
+    description: null,
+  };
   const iso = metaContent(html, /itemprop=["']duration["']/i);
-  return iso ? parseIsoDuration(iso) : null;
+  const rawDescription = metaContent(html, /(?:property|name)=["']og:description["']/i);
+  return {
+    durationSeconds: iso ? parseIsoDuration(iso) : null,
+    description: rawDescription ? decodeEntities(rawDescription).trim() || null : null,
+  };
+}
+
+/** Decode common HTML entities in a string. */
+function decodeEntities(text: string): string {
+  return text
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, "\"")
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'");
 }
 
 /**
@@ -96,20 +116,21 @@ export async function fetchYouTubeMetadata(url: string): Promise<YouTubeMetadata
   const video = parseYouTubeVideo(url);
   if (!video) return null;
 
-  const [oembed, durationSeconds] = await Promise.all([
+  const [oembed, watchPage] = await Promise.all([
     fetchOEmbed(url),
-    fetchDurationSeconds(video.videoId),
+    fetchWatchPageMeta(video.videoId),
   ]);
 
   const thumbnailUrl = asString(oembed?.thumbnail_url);
   const channelUrl = asString(oembed?.author_url);
   return {
     title: asString(oembed?.title),
+    description: watchPage.description,
     // Only surface third-party URLs that pass the SSRF guard, matching the image pipeline.
     thumbnailUrl: thumbnailUrl && isPublicHttpUrl(thumbnailUrl) ? thumbnailUrl : null,
     channelName: asString(oembed?.author_name),
     channelUrl: channelUrl && isPublicHttpUrl(channelUrl) ? channelUrl : null,
-    durationSeconds,
+    durationSeconds: watchPage.durationSeconds,
   };
 }
 

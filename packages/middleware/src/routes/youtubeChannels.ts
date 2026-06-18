@@ -26,6 +26,13 @@ const updateChannelBody = {
       type: "string",
       minLength: 1,
     },
+    selfIds: {
+      type: "array",
+      items: {
+        type: "string",
+        minLength: 1,
+      },
+    },
   },
 } as const;
 
