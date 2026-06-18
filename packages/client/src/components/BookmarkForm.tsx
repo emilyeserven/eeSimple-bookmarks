@@ -1,3 +1,4 @@
+import type { ImageIntent } from "./bookmarkImageIntent";
 import type { UrlCleanupMode } from "../lib/urlCleanup";
 import type {
   Bookmark,
@@ -13,9 +14,17 @@ import { useEffect, useId, useRef, useState } from "react";
 import { Brush, ChevronDown, ExternalLink, Loader2, Sparkles } from "lucide-react";
 import { z } from "zod";
 
+import { BookmarkImageField } from "./BookmarkImageField";
+import { EMPTY_IMAGE_INTENT } from "./bookmarkImageIntent";
 import { TagPicker } from "./TagPicker";
 import { useAutofillRules } from "../hooks/useAutofill";
-import { useCreateBookmark, useUpdateBookmark } from "../hooks/useBookmarks";
+import {
+  useAutoBookmarkImage,
+  useCreateBookmark,
+  useDeleteBookmarkImage,
+  useUpdateBookmark,
+  useUploadBookmarkImage,
+} from "../hooks/useBookmarks";
 import { useCategories, useCategoryDefaults, useCategoryRootTags } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useFetchTitle } from "../hooks/useFetchTitle";
@@ -23,6 +32,7 @@ import { useTagTree } from "../hooks/useTags";
 import { useWebsiteLookup } from "../hooks/useWebsites";
 import { applyAutofill } from "../lib/autofill";
 import { useAppForm } from "../lib/form";
+import { isFetchableUrl } from "../lib/url";
 import { cleanUrl } from "../lib/urlCleanup";
 import { useUiStore } from "../stores/uiStore";
 
@@ -47,17 +57,6 @@ const bookmarkSchema = z.object({
   priority: z.number().int(),
 });
 
-/** True when `value` parses as an http(s) URL — mirrors the middleware's guard. */
-function isFetchableUrl(value: string): boolean {
-  try {
-    const url = new URL(value);
-    return url.protocol === "http:" || url.protocol === "https:";
-  }
-  catch {
-    return false;
-  }
-}
-
 interface BookmarkFormProps {
   /** When provided, the form edits this bookmark instead of creating a new one. */
   bookmark?: Bookmark;
@@ -81,6 +80,9 @@ export function BookmarkForm({
   const createBookmark = useCreateBookmark();
   const updateBookmark = useUpdateBookmark();
   const saveBookmark = isEdit ? updateBookmark : createBookmark;
+  const uploadImage = useUploadBookmarkImage();
+  const autoImage = useAutoBookmarkImage();
+  const deleteImage = useDeleteBookmarkImage();
   const fetchTitle = useFetchTitle();
   const websiteLookup = useWebsiteLookup();
   const autoFetchTitle = useUiStore(state => state.autoFetchTitle);
@@ -120,6 +122,11 @@ export function BookmarkForm({
     numberInputs,
     booleanInputs,
   };
+
+  // The image control reports its intent here; the form applies it after the bookmark is saved (so
+  // it works for both create and edit). `imageFieldKey` remounts the field to clear it on reset.
+  const imageIntentRef = useRef<ImageIntent>(EMPTY_IMAGE_INTENT);
+  const [imageFieldKey, setImageFieldKey] = useState(0);
 
   // Precedence when prefilling: user input > autofill rule > category default.
   // `touchedRef` tracks fields the user edited; `ruleSetRef` tracks property ids an autofill rule
@@ -292,21 +299,25 @@ export function BookmarkForm({
           id: bookmark.id,
           input,
         });
+        await applyImageIntent(bookmark.id);
         onDone?.();
         return;
       }
 
       const trimmedSiteName = websiteSiteName.trim();
-      await createBookmark.mutateAsync({
+      const created = await createBookmark.mutateAsync({
         ...input,
         ...(trimmedSiteName && {
           websiteSiteName: trimmedSiteName,
         }),
       });
+      await applyImageIntent(created.id);
       form.reset();
       setNumberInputs({});
       setBooleanInputs({});
       setWebsiteSiteName("");
+      imageIntentRef.current = EMPTY_IMAGE_INTENT;
+      setImageFieldKey(key => key + 1);
       setShowUrlCleanup(false);
       setUrlCleanupMode("none");
       touchedRef.current = new Set();
@@ -333,6 +344,29 @@ export function BookmarkForm({
       ...current,
       [id]: value,
     }));
+  }
+
+  // Apply the pending image intent to a saved bookmark. Non-fatal: the bookmark is already saved,
+  // so an image failure just surfaces a toast (from the mutation hooks) without blocking the form.
+  async function applyImageIntent(bookmarkId: string): Promise<void> {
+    const intent = imageIntentRef.current;
+    try {
+      if (intent.file) {
+        await uploadImage.mutateAsync({
+          id: bookmarkId,
+          file: intent.file,
+        });
+      }
+      else if (intent.auto) {
+        await autoImage.mutateAsync(bookmarkId);
+      }
+      else if (intent.remove) {
+        await deleteImage.mutateAsync(bookmarkId);
+      }
+    }
+    catch {
+      // Surfaced via the mutation hooks' onError toast; nothing else to do here.
+    }
   }
 
   // Fetch the page title for the current URL and write it into the Title field.
@@ -764,6 +798,21 @@ export function BookmarkForm({
             onNumberChange={handleNumberChange}
             onBooleanChange={handleBooleanChange}
           />
+        )}
+      </form.Subscribe>
+
+      <form.Subscribe selector={state => state.values.url}>
+        {url => (
+          <div className="sm:col-span-2">
+            <BookmarkImageField
+              key={imageFieldKey}
+              existingImageUrl={bookmark?.image?.url ?? null}
+              pageUrl={url}
+              onChange={(intent) => {
+                imageIntentRef.current = intent;
+              }}
+            />
+          </div>
         )}
       </form.Subscribe>
 

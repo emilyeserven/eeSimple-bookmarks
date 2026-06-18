@@ -2,6 +2,7 @@ import { and, desc, eq, inArray, ne } from "drizzle-orm";
 import type {
   Bookmark,
   BookmarkBooleanValue,
+  BookmarkImage,
   BookmarkNumberValue,
   BookmarkTag,
   BookmarkWebsite,
@@ -13,6 +14,7 @@ import { buildTagDescendants, evaluateConditions } from "@eesimple/types";
 import { db } from "@/db";
 import {
   bookmarkBooleanValues,
+  bookmarkImages,
   bookmarkNumberValues,
   bookmarks,
   type BookmarkRow,
@@ -22,6 +24,7 @@ import {
   tags,
   websites,
 } from "@/db/schema";
+import { bookmarkImageFromRow } from "@/services/bookmarkImages";
 import { ensureDefaultCategory } from "@/services/categories";
 import { getHomepageFilter } from "@/services/homepageFilter";
 import { getDescendantIds, listTags } from "@/services/tags";
@@ -43,6 +46,7 @@ interface BookmarkExtras {
   tags: BookmarkTag[];
   numberValues: BookmarkNumberValue[];
   booleanValues: BookmarkBooleanValue[];
+  image: BookmarkImage | null;
 }
 
 const EMPTY_EXTRAS: BookmarkExtras = {
@@ -50,6 +54,7 @@ const EMPTY_EXTRAS: BookmarkExtras = {
   tags: [],
   numberValues: [],
   booleanValues: [],
+  image: null,
 };
 
 /** Map a DB row plus its hydrated relations to the shared `Bookmark` wire type. */
@@ -65,6 +70,7 @@ function toBookmark(row: BookmarkRow, extras: BookmarkExtras, defaultCategoryId:
     tags: extras.tags,
     numberValues: extras.numberValues,
     booleanValues: extras.booleanValues,
+    image: extras.image,
     priority: row.priority,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
@@ -179,12 +185,29 @@ async function booleanValuesByBookmarkId(
   return grouped;
 }
 
+/** Load attached images for a set of bookmarks in a single query, keyed by bookmark id. */
+async function imagesByBookmarkId(bookmarkIds: string[]): Promise<Map<string, BookmarkImage>> {
+  const byId = new Map<string, BookmarkImage>();
+  if (bookmarkIds.length === 0) return byId;
+
+  const rows = await db
+    .select()
+    .from(bookmarkImages)
+    .where(inArray(bookmarkImages.bookmarkId, bookmarkIds));
+
+  for (const row of rows) {
+    byId.set(row.bookmarkId, bookmarkImageFromRow(row));
+  }
+  return byId;
+}
+
 /** Hydrate all custom-property relations for a set of bookmark rows in batched queries. */
 async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, BookmarkExtras>> {
-  const [tagsMap, numberMap, booleanMap] = await Promise.all([
+  const [tagsMap, numberMap, booleanMap, imageMap] = await Promise.all([
     tagsByBookmarkId(bookmarkIds),
     numberValuesByBookmarkId(bookmarkIds),
     booleanValuesByBookmarkId(bookmarkIds),
+    imagesByBookmarkId(bookmarkIds),
   ]);
   const grouped = new Map<string, BookmarkExtras>();
   for (const id of bookmarkIds) {
@@ -193,6 +216,7 @@ async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
       tags: tagsMap.get(id) ?? [],
       numberValues: numberMap.get(id) ?? [],
       booleanValues: booleanMap.get(id) ?? [],
+      image: imageMap.get(id) ?? null,
     });
   }
   return grouped;

@@ -150,6 +150,17 @@ export function BookmarkDetail({
           : null}
       </div>
 
+      {bookmark.image
+        ? (
+          <img
+            src={bookmark.image.url}
+            alt=""
+            loading="lazy"
+            className="max-h-72 w-full rounded-md border object-contain"
+          />
+        )
+        : null}
+
       <dl className="space-y-3">
         <Field label="Description">
           {bookmark.description

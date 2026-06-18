@@ -108,5 +108,15 @@ root `Dockerfile` builds everything for production. Deploy via Coolify using onl
 | `POSTGRES_DB` | docker-compose | DB name (default: `bookmarks`) |
 | `POSTGRES_HOST_PORT` | docker-compose | Host port mapped to the db container's 5432 (default: `5432`). Override to avoid host port collisions on a shared host. |
 | `GATEWAY_HOST_PORT` | docker-compose | Host port mapped to the gateway's 3000 (default: `3000`). |
+| `S3_ENDPOINT` | middleware / gateway | Object-storage (Garage/S3) endpoint for bookmark images, e.g. `http://garage:3900`. |
+| `S3_REGION` | middleware / gateway | Object-storage region (default: `garage`; must match `garage.toml`'s `s3_region`). |
+| `S3_BUCKET` | middleware / gateway | Bucket for bookmark images (default: `bookmarks`; auto-created on boot). |
+| `S3_ACCESS_KEY_ID` | middleware / gateway | Object-storage access key. Image routes return 503 until set. |
+| `S3_SECRET_ACCESS_KEY` | middleware / gateway | Object-storage secret key. |
+| `GARAGE_S3_HOST_PORT` | docker-compose | Host port mapped to Garage's S3 API 3900 (default: `3900`). |
+
+Bookmark images are compressed to an 800px WebP and stored in object storage (Garage by default),
+served via `GET /api/bookmarks/:id/image`. Without the `S3_*` vars the app runs normally but image
+upload/auto-capture returns 503. See `README.md` → "Object storage (Garage)" for the one-time setup.
 
 See `packages/middleware/.env.example`.
