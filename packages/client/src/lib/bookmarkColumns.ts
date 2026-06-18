@@ -47,3 +47,13 @@ export function useHomepageSectionImageLayout(sectionId: string): HomepageSectio
     state => state.homepageSectionImageLayout?.[sectionId] ?? DEFAULT_HOMEPAGE_SECTION_IMAGE_LAYOUT,
   );
 }
+
+/** Default image layout for a 2-column listing page. */
+export const DEFAULT_BOOKMARK_IMAGE_LAYOUT: HomepageSectionImageLayout = "above";
+
+/** The chosen image layout for a listing page at 2 columns. */
+export function useBookmarkImageLayout(pageKey: string): HomepageSectionImageLayout {
+  return useUiStore(
+    state => state.bookmarkImageLayout?.[pageKey] ?? DEFAULT_BOOKMARK_IMAGE_LAYOUT,
+  );
+}

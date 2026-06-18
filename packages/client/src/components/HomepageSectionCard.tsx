@@ -12,7 +12,8 @@ import {
   useDeleteHomepageSection,
   useUpdateHomepageSection,
 } from "../hooks/useHomepageSections";
-import { useBookmarkColumns } from "../lib/bookmarkColumns";
+import { useBookmarkColumns, useHomepageSectionImageLayout } from "../lib/bookmarkColumns";
+import { useUiStore } from "../stores/uiStore";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -35,6 +36,8 @@ export function HomepageSectionCard({
   const update = useUpdateHomepageSection();
   const remove = useDeleteHomepageSection();
   const columns = useBookmarkColumns(section.id);
+  const imageLayout = useHomepageSectionImageLayout(section.id);
+  const setHomepageSectionImageLayout = useUiStore(state => state.setHomepageSectionImageLayout);
 
   const conditionCount = section.conditions.children.length;
 
@@ -60,7 +63,12 @@ export function HomepageSectionCard({
         <CardTitle className="flex-1 text-base">{section.title}</CardTitle>
         <div className="flex items-center gap-1">
           <ColumnsSwitcher pageKey={section.id} />
-          {columns === 2 && <ImageLayoutSwitcher pageKey={section.id} />}
+          {columns === 2 && (
+            <ImageLayoutSwitcher
+              layout={imageLayout}
+              onLayoutChange={layout => setHomepageSectionImageLayout(section.id, layout)}
+            />
+          )}
           <ImageModeSwitcher pageKey={section.id} />
           <Button
             type="button"
