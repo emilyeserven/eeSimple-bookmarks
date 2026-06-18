@@ -1,5 +1,4 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-
 import { Settings } from "lucide-react";
 
 import { HomepageSectionBlock } from "../components/HomepageSectionBlock";
