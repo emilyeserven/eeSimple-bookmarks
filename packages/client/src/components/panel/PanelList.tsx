@@ -2,7 +2,7 @@ import type { DrawerContentType } from "@/lib/drawerSearch";
 
 import { useMemo, useState } from "react";
 
-import { ChevronLeft, Pencil } from "lucide-react";
+import { Pencil } from "lucide-react";
 
 import { getContentType } from "./contentTypes";
 import { usePanelControls } from "./usePanelControls";
@@ -23,7 +23,7 @@ export function PanelList({
 }: PanelListProps) {
   const def = getContentType(type);
   const {
-    open, openItem,
+    openItem,
   } = usePanelControls();
   const {
     items, isLoading, error,
@@ -40,19 +40,7 @@ export function PanelList({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="size-7"
-          aria-label="Back to content types"
-          onClick={open}
-        >
-          <ChevronLeft className="size-4" />
-        </Button>
-        <h2 className="text-xl font-semibold">{def.label}</h2>
-      </div>
+      <h2 className="text-xl font-semibold">{def.label}</h2>
 
       <Input
         type="search"
