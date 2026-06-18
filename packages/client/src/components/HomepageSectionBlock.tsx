@@ -3,7 +3,7 @@ import type { HomepageSectionBookmarks, CustomProperty } from "@eesimple/types";
 import { ChevronDown, ChevronRight } from "lucide-react";
 
 import { BookmarkCard } from "./BookmarkCard";
-import { COLUMN_CLASS } from "../lib/bookmarkColumns";
+import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
 import { useUiStore } from "../stores/uiStore";
 
 import { Button } from "@/components/ui/button";
@@ -11,16 +11,16 @@ import { Card } from "@/components/ui/card";
 
 interface HomepageSectionBlockProps {
   data: HomepageSectionBookmarks;
-  columns: number;
   customProperties: CustomProperty[];
 }
 
 export function HomepageSectionBlock({
-  data, columns, customProperties,
+  data, customProperties,
 }: HomepageSectionBlockProps) {
   const {
     section, bookmarks,
   } = data;
+  const columns = useBookmarkColumns(section.id);
   const collapsedIds = useUiStore(state => state.collapsedHomepageSectionIds);
   const toggle = useUiStore(state => state.toggleHomepageSectionCollapsed);
   const isCollapsed = collapsedIds.includes(section.id);

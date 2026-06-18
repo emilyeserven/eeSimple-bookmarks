@@ -1,16 +1,14 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 
-import { ColumnsSwitcher } from "../components/ColumnsSwitcher";
+import { Settings } from "lucide-react";
+
 import { HomepageSectionBlock } from "../components/HomepageSectionBlock";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useHomepageSectionBookmarks } from "../hooks/useHomepageSections";
-import { useBookmarkColumns } from "../lib/bookmarkColumns";
 
 export const Route = createFileRoute("/")({
   component: HomePage,
 });
-
-const HOME_PAGE_KEY = "home";
 
 function HomePage() {
   const {
@@ -19,7 +17,6 @@ function HomePage() {
   const {
     data: customProperties,
   } = useCustomProperties();
-  const columns = useBookmarkColumns(HOME_PAGE_KEY);
 
   const sectionList = sections ?? [];
   const hasSections = sectionList.length > 0;
@@ -33,7 +30,18 @@ function HomePage() {
             Bookmarks from your homepage sections, ordered by priority.
           </p>
         </div>
-        <ColumnsSwitcher pageKey={HOME_PAGE_KEY} />
+        <Link
+          to="/settings/homepage"
+          className="
+            flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm
+            text-muted-foreground transition-colors
+            hover:bg-accent hover:text-accent-foreground
+          "
+          aria-label="Homepage settings"
+        >
+          <Settings className="size-4" />
+          <span>Settings</span>
+        </Link>
       </div>
 
       {isLoading ? <p className="text-muted-foreground">Loading bookmarks…</p> : null}
@@ -64,7 +72,6 @@ function HomePage() {
           <HomepageSectionBlock
             key={data.section.id}
             data={data}
-            columns={columns}
             customProperties={customProperties ?? []}
           />
         ))}
