@@ -22,6 +22,7 @@ import { z } from "zod";
 import { CollapsibleFormSection } from "./CollapsibleFormSection";
 import { ConditionsField } from "./conditions/ConditionsField";
 import { DateTimePicker } from "./DateTimePicker";
+import { LabeledSection } from "./LabeledSection";
 import { PreviewBookmarksSection } from "./PreviewBookmarksSection";
 import { TagPicker } from "./TagPicker";
 import { autofillConditionsValidator } from "../lib/conditionsSchema";
@@ -211,18 +212,15 @@ export function AutofillRuleForm({
 
       <Separator />
 
-      <section className="space-y-3">
-        <div>
-          <h3 className="text-sm font-semibold">Preview Bookmarks</h3>
-          <p className="text-xs text-muted-foreground">
-            Test which existing bookmarks match the activation conditions above.
-          </p>
-        </div>
+      <LabeledSection
+        title="Preview Bookmarks"
+        description="Test which existing bookmarks match the activation conditions above."
+      >
         <PreviewBookmarksSection
           conditions={conditions}
           tagTree={tagTree}
         />
-      </section>
+      </LabeledSection>
 
       <Separator />
 

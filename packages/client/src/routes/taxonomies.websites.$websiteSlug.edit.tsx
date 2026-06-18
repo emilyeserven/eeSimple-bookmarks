@@ -44,14 +44,12 @@ function WebsiteEditPage() {
             </Link>
             <h1 className="text-2xl font-bold">Edit website</h1>
           </div>
-          <div className="rounded-lg border bg-card p-4">
-            <WebsiteRow
-              website={ws}
-              onSaved={() => navigate({
-                to: "/taxonomies/websites",
-              })}
-            />
-          </div>
+          <WebsiteRow
+            website={ws}
+            onSaved={() => navigate({
+              to: "/taxonomies/websites",
+            })}
+          />
         </section>
       )}
     </TaxonomyDetailLayout>

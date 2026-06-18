@@ -28,6 +28,10 @@ const settingsNav = [
     label: "Display",
   },
   {
+    to: "/settings/sidebar",
+    label: "Sidebar",
+  },
+  {
     to: "/settings/homepage",
     label: "Homepage",
   },

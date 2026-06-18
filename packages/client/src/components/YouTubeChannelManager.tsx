@@ -5,12 +5,15 @@ import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Pencil } from "lucide-react";
 
+import { useEditPanelClick } from "./panel/useEditPanelClick";
 import { useUpdateYouTubeChannel, useYouTubeChannels } from "../hooks/useYouTubeChannels";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
+import { useUiStore } from "@/stores/uiStore";
 
 /** A single editable channel row: rename only — the channel key is fixed and auto-assigned. */
 export function YouTubeChannelRow({
@@ -75,6 +78,8 @@ export function YouTubeChannelRow({
 export function YouTubeChannelCard({
   channel,
 }: { channel: YouTubeChannel }) {
+  const editClick = useEditPanelClick();
+  const modifier = useUiStore(state => state.sidebarOpenModifier);
   return (
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-2">
@@ -92,6 +97,8 @@ export function YouTubeChannelCard({
             params={{
               channelSlug: channel.slug,
             }}
+            title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+            onClick={event => editClick(event, "youtube-channel", channel.id)}
           >
             Edit
           </Link>
@@ -159,6 +166,8 @@ export function YouTubeChannelsListing() {
     data: allChannels, isLoading, error,
   } = useYouTubeChannels();
   const [search, setSearch] = useState("");
+  const editClick = useEditPanelClick();
+  const modifier = useUiStore(state => state.sidebarOpenModifier);
 
   const filtered = (allChannels ?? []).filter((c) => {
     const q = search.trim().toLowerCase();
@@ -235,6 +244,8 @@ export function YouTubeChannelsListing() {
                     params={{
                       channelSlug: channel.slug,
                     }}
+                    title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+                    onClick={event => editClick(event, "youtube-channel", channel.id)}
                   >
                     <Pencil className="size-4" />
                     <span className="sr-only">Edit {channel.name}</span>
