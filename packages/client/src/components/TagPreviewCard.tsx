@@ -85,6 +85,15 @@ export function TagPreviewCard({
         <dd>{node.slug}</dd>
         <dt className="text-muted-foreground">Bookmarks</dt>
         <dd>{node.bookmarkCount ?? 0}</dd>
+        {/* When the tag has children, call out how many bookmarks sit on it alone. */}
+        {node.children.length > 0 && (node.ownBookmarkCount ?? 0) > 0
+          ? (
+            <>
+              <dt className="text-muted-foreground/70 italic">No Child</dt>
+              <dd className="text-muted-foreground/70 italic">{node.ownBookmarkCount}</dd>
+            </>
+          )
+          : null}
         <dt className="text-muted-foreground">Created</dt>
         <dd>{new Date(node.createdAt).toLocaleDateString()}</dd>
       </dl>

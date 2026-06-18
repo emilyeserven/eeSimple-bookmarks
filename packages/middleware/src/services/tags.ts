@@ -12,8 +12,16 @@ export class TagCycleError extends Error {
   }
 }
 
-/** Map a DB row to the shared `Tag` wire type. */
-function toTag(row: TagRow & { bookmarkCount?: number }): Tag {
+/** Distinct-bookmark counts for a tag: across its whole subtree, and for the tag alone. */
+export interface TagBookmarkCounts {
+  /** Distinct bookmarks carrying this tag or any descendant. */
+  subtree: number;
+  /** Distinct bookmarks carrying this tag but none of its descendants (the "No Child" bucket). */
+  own: number;
+}
+
+/** Map a DB row (plus optional precomputed counts) to the shared `Tag` wire type. */
+function toTag(row: TagRow, counts?: TagBookmarkCounts): Tag {
   return {
     id: row.id,
     name: row.name,
@@ -22,8 +30,55 @@ function toTag(row: TagRow & { bookmarkCount?: number }): Tag {
     parentId: row.parentId,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
-    bookmarkCount: row.bookmarkCount,
+    bookmarkCount: counts?.subtree,
+    ownBookmarkCount: counts?.own,
   };
+}
+
+/**
+ * Compute each tag's distinct subtree bookmark count and its "own" (no-descendant) count from a
+ * flat tag list and the bookmark↔tag links. Distinct counting dedupes bookmarks tagged with both a
+ * tag and one of its descendants. Pure — operates on in-memory data so it can be unit-tested.
+ */
+export function computeTagBookmarkCounts(
+  all: { id: string;
+    parentId: string | null; }[],
+  links: { tagId: string;
+    bookmarkId: string; }[],
+): Map<string, TagBookmarkCounts> {
+  const directSets = new Map<string, Set<string>>(all.map(tag => [tag.id, new Set<string>()]));
+  for (const link of links) directSets.get(link.tagId)?.add(link.bookmarkId);
+
+  const childrenByParent = new Map<string, string[]>();
+  for (const tag of all) {
+    if (!tag.parentId) continue;
+    const siblings = childrenByParent.get(tag.parentId) ?? [];
+    siblings.push(tag.id);
+    childrenByParent.set(tag.parentId, siblings);
+  }
+
+  const result = new Map<string, TagBookmarkCounts>();
+  for (const tag of all) {
+    const ownDirect = directSets.get(tag.id) ?? new Set<string>();
+    const subtree = new Set<string>(ownDirect);
+    const descendants = new Set<string>();
+    const stack = [...(childrenByParent.get(tag.id) ?? [])];
+    while (stack.length > 0) {
+      const id = stack.pop()!;
+      for (const bookmarkId of directSets.get(id) ?? []) {
+        subtree.add(bookmarkId);
+        descendants.add(bookmarkId);
+      }
+      for (const child of childrenByParent.get(id) ?? []) stack.push(child);
+    }
+    let own = 0;
+    for (const bookmarkId of ownDirect) if (!descendants.has(bookmarkId)) own += 1;
+    result.set(tag.id, {
+      subtree: subtree.size,
+      own,
+    });
+  }
+  return result;
 }
 
 /** Existing tag slugs, optionally excluding one tag id (when renaming). */
@@ -94,11 +149,17 @@ export async function listTags(): Promise<Tag[]> {
       slug: tags.slug,
       parentId: tags.parentId,
       createdAt: tags.createdAt,
-      bookmarkCount: sql<number>`(select count(*)::int from ${bookmarkTags} where ${bookmarkTags.tagId} = ${tags.id})`.mapWith(Number),
     })
     .from(tags)
     .orderBy(asc(tags.name));
-  return rows.map(toTag);
+  const links = await db
+    .select({
+      tagId: bookmarkTags.tagId,
+      bookmarkId: bookmarkTags.bookmarkId,
+    })
+    .from(bookmarkTags);
+  const counts = computeTagBookmarkCounts(rows, links);
+  return rows.map(row => toTag(row, counts.get(row.id)));
 }
 
 export async function getTagTree(): Promise<TagNode[]> {

@@ -5,6 +5,7 @@ import { ChevronDown, ChevronRight, Pencil } from "lucide-react";
 
 import { usePanelControls } from "./panel/usePanelControls";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 interface TagTreeListProps {
@@ -100,6 +101,10 @@ function TagTreeRow({
           {node.name}
         </Link>
 
+        {node.bookmarkCount != null
+          ? <Badge variant="secondary">{node.bookmarkCount}</Badge>
+          : null}
+
         <Button
           type="button"
           variant="ghost"
@@ -117,15 +122,40 @@ function TagTreeRow({
       </li>
 
       {hasChildren && isOpen
-        ? node.children.map(child => (
-          <TagTreeRow
-            key={child.id}
-            node={child}
-            depth={depth + 1}
-            expanded={expanded}
-            onToggle={onToggle}
-          />
-        ))
+        ? (
+          <>
+            {node.children.map(child => (
+              <TagTreeRow
+                key={child.id}
+                node={child}
+                depth={depth + 1}
+                expanded={expanded}
+                onToggle={onToggle}
+              />
+            ))}
+            {/* Bookmarks tagged with this parent but none of its children. */}
+            {(node.ownBookmarkCount ?? 0) > 0
+              ? (
+                <li
+                  className="
+                    flex items-center gap-2 px-3 py-2 text-muted-foreground/70
+                    italic
+                  "
+                  style={{
+                    paddingLeft: `${0.75 + (depth + 1) * 1.25}rem`,
+                  }}
+                >
+                  <span
+                    className="inline-block size-4"
+                    aria-hidden="true"
+                  />
+                  <span className="flex-1 truncate">No Child</span>
+                  <Badge variant="outline">{node.ownBookmarkCount}</Badge>
+                </li>
+              )
+              : null}
+          </>
+        )
         : null}
     </>
   );

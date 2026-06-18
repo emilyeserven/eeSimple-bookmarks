@@ -20,8 +20,15 @@ export interface Tag {
   parentId: string | null;
   /** ISO-8601 timestamp of when the tag was created. */
   createdAt: string;
-  /** Number of bookmarks directly carrying this tag (populated by list endpoints). */
+  /**
+   * Distinct bookmarks carrying this tag or any of its descendants (populated by list endpoints).
+   */
   bookmarkCount?: number;
+  /**
+   * Distinct bookmarks carrying this tag but none of its descendants — i.e. the "parent only"
+   * bucket surfaced as a "No Child" entry. Equals {@link bookmarkCount} for leaf tags.
+   */
+  ownBookmarkCount?: number;
 }
 
 /** A tag with its children populated — used to render the taxonomy tree. */
