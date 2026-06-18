@@ -1,3 +1,4 @@
+import type { HomepageSectionImageLayout } from "../lib/bookmarkColumns";
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
 import type { Bookmark, Category, CustomProperty, TagNode } from "@eesimple/types";
 import type { ReactNode } from "react";
@@ -10,8 +11,9 @@ import { ColumnsSwitcher } from "./ColumnsSwitcher";
 import { FilterSidebar } from "./FilterSidebar";
 import { ImageLayoutSwitcher } from "./ImageLayoutSwitcher";
 import { ImageModeSwitcher } from "./ImageModeSwitcher";
+import { useIsMobile } from "../hooks/use-mobile";
 import { useDeleteBookmark } from "../hooks/useBookmarks";
-import { COLUMN_CLASS, useBookmarkColumns, useBookmarkImageLayout, useBookmarkImageMode } from "../lib/bookmarkColumns";
+import { COLUMN_CLASS, DEFAULT_BOOKMARK_IMAGE_LAYOUT, useBookmarkColumns, useBookmarkImageMode } from "../lib/bookmarkColumns";
 import { bookmarkMatchesSearch } from "../lib/bookmarkSearch";
 import { useUiStore } from "../stores/uiStore";
 
@@ -69,8 +71,14 @@ export function BookmarkSearchView({
   const deleteBookmark = useDeleteBookmark();
   const columns = useBookmarkColumns(pageKey);
   const imageMode = useBookmarkImageMode(pageKey);
-  const imageLayout = useBookmarkImageLayout(pageKey);
-  const imageLeft = columns === 1 || (columns === 2 && imageLayout === "side");
+  const isMobile = useIsMobile();
+  // Raw stored value (may be undefined) so we can tell "unset" from an explicit "above".
+  const storedImageLayout = useUiStore(state => state.bookmarkImageLayout[pageKey]);
+  // At 1 column the default is responsive — image above on mobile, side on desktop — until the
+  // user makes an explicit pick; 2 columns keeps the "above" default and 3–4 always stack.
+  const imageLayout: HomepageSectionImageLayout = storedImageLayout
+    ?? (columns === 1 && !isMobile ? "side" : DEFAULT_BOOKMARK_IMAGE_LAYOUT);
+  const imageLeft = (columns === 1 || columns === 2) && imageLayout === "side";
   const setBookmarkImageLayout = useUiStore(state => state.setBookmarkImageLayout);
   const addBookmarkFormOpen = useUiStore(state => state.addBookmarkFormOpen);
   const setAddBookmarkFormOpen = useUiStore(state => state.setAddBookmarkFormOpen);
@@ -155,7 +163,7 @@ export function BookmarkSearchView({
 
           <div className="flex justify-end gap-4">
             <ColumnsSwitcher pageKey={pageKey} />
-            {columns === 2 && (
+            {(columns === 1 || columns === 2) && (
               <ImageLayoutSwitcher
                 layout={imageLayout}
                 onLayoutChange={layout => setBookmarkImageLayout(pageKey, layout)}
