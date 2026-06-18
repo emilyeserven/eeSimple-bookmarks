@@ -5,8 +5,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ExternalLink, MoreVertical, Sparkles } from "lucide-react";
 
-import { formatNumber } from "../lib/bookmarkFormat";
 import { useAutoBookmarkImage } from "../hooks/useBookmarks";
+import { formatNumber } from "../lib/bookmarkFormat";
 import { useUiStore } from "../stores/uiStore";
 
 import { Badge } from "@/components/ui/badge";
