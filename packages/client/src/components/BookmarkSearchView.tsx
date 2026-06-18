@@ -8,8 +8,9 @@ import { BookmarkCard } from "./BookmarkCard";
 import { BookmarkForm } from "./BookmarkForm";
 import { ColumnsSwitcher } from "./ColumnsSwitcher";
 import { FilterSidebar } from "./FilterSidebar";
+import { ImageModeSwitcher } from "./ImageModeSwitcher";
 import { useDeleteBookmark } from "../hooks/useBookmarks";
-import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
+import { COLUMN_CLASS, useBookmarkColumns, useBookmarkImageMode } from "../lib/bookmarkColumns";
 import { bookmarkMatchesSearch } from "../lib/bookmarkSearch";
 import { useUiStore } from "../stores/uiStore";
 
@@ -66,6 +67,7 @@ export function BookmarkSearchView({
 }: BookmarkSearchViewProps) {
   const deleteBookmark = useDeleteBookmark();
   const columns = useBookmarkColumns(pageKey);
+  const imageMode = useBookmarkImageMode(pageKey);
   const addBookmarkFormOpen = useUiStore(state => state.addBookmarkFormOpen);
   const setAddBookmarkFormOpen = useUiStore(state => state.setAddBookmarkFormOpen);
 
@@ -147,8 +149,9 @@ export function BookmarkSearchView({
             </CollapsibleContent>
           </Collapsible>
 
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-4">
             <ColumnsSwitcher pageKey={pageKey} />
+            <ImageModeSwitcher pageKey={pageKey} />
           </div>
 
           <div
@@ -176,6 +179,7 @@ export function BookmarkSearchView({
                   properties={properties}
                   onDelete={id => deleteBookmark.mutate(id)}
                   imageLeft={columns === 1}
+                  maintainImageAspectRatio={imageMode}
                 />
               </Card>
             ))}
