@@ -814,7 +814,8 @@ export function BookmarkForm({
           >
             <CollapsibleTrigger
               className="
-                flex items-center gap-1 text-sm font-medium text-muted-foreground
+                flex items-center gap-1 text-sm font-medium
+                text-muted-foreground
                 hover:text-foreground
               "
             >
