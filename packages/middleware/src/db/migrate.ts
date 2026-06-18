@@ -56,6 +56,31 @@ const migrations: RuntimeMigration[] = [
       END $$;
     `),
   },
+  {
+    // `custom_properties.built_in` is NOT NULL DEFAULT false. drizzle-kit push may prompt before
+    // applying it to a populated table, which blocks non-TTY deploys and leaves the column absent.
+    name: "add custom_properties.built_in column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "custom_properties"
+        ADD COLUMN IF NOT EXISTS "built_in" boolean NOT NULL DEFAULT false;
+    `),
+  },
+  {
+    // `tags_parent_name_unique` is a unique constraint on an existing populated table; drizzle-kit
+    // push prompts for truncation confirmation which in non-TTY mode either wipes the table or
+    // exits non-zero. Create the constraint here so push's diff stays empty on every deploy.
+    name: "add tags_parent_name_unique constraint",
+    run: db => db.execute(sql`
+      DO $$ BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM pg_constraint WHERE conname = 'tags_parent_name_unique'
+        ) THEN
+          ALTER TABLE IF EXISTS "tags"
+            ADD CONSTRAINT "tags_parent_name_unique" UNIQUE ("parent_id", "name");
+        END IF;
+      END $$;
+    `),
+  },
 ];
 
 async function main(): Promise<void> {
