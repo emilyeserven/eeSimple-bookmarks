@@ -15,6 +15,13 @@
       "when": 1781737452197,
       "tag": "0001_aromatic_metal_master",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1781743836403,
+      "tag": "0002_lean_psylocke",
+      "breakpoints": true
     }
   ]
 }

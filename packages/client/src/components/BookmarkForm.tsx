@@ -923,9 +923,12 @@ interface CategoryCustomFieldsProps {
 function CategoryCustomFields({
   categoryId, properties, placement, className, numberInputs, booleanInputs, onNumberChange, onBooleanChange,
 }: CategoryCustomFieldsProps) {
-  const categoryProps = properties.filter(property =>
-    property.categoryIds.includes(categoryId)
-    && (placement === "default" ? property.showInForm : !property.showInForm));
+  const categoryProps = properties.filter((property) => {
+    if (!property.categoryIds.includes(categoryId)) return false;
+    // showInForm gates whether the field appears at all; advancedOnly chooses Advanced vs. the main area.
+    if (!property.showInForm) return false;
+    return placement === "default" ? !property.advancedOnly : property.advancedOnly;
+  });
   if (categoryProps.length === 0) return null;
 
   return (
@@ -959,6 +962,9 @@ function CategoryCustomFields({
                   value={numberInputs[property.id] ?? ""}
                   onChange={event => onNumberChange(property.id, event.target.value)}
                 />
+                {property.description
+                  ? <p className="text-xs text-muted-foreground">{property.description}</p>
+                  : null}
               </div>
             );
           }
@@ -966,14 +972,19 @@ function CategoryCustomFields({
             return (
               <div
                 key={property.id}
-                className="flex items-center gap-2 self-end"
+                className="space-y-1 self-end"
               >
-                <Checkbox
-                  id={`property-${property.id}`}
-                  checked={booleanInputs[property.id] ?? false}
-                  onCheckedChange={checked => onBooleanChange(property.id, checked === true)}
-                />
-                <Label htmlFor={`property-${property.id}`}>{property.name}</Label>
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id={`property-${property.id}`}
+                    checked={booleanInputs[property.id] ?? false}
+                    onCheckedChange={checked => onBooleanChange(property.id, checked === true)}
+                  />
+                  <Label htmlFor={`property-${property.id}`}>{property.name}</Label>
+                </div>
+                {property.description
+                  ? <p className="text-xs text-muted-foreground">{property.description}</p>
+                  : null}
               </div>
             );
           }

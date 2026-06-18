@@ -151,6 +151,8 @@ export interface CustomProperty {
   id: string;
   name: string;
   type: CustomPropertyType;
+  /** Free-text description of the property, shown as a hint where its field is rendered, or `null`. */
+  description: string | null;
   /** Lower bound of a `number`/`calculate` range slider (`null` = no minimum / derive from data). */
   numberMin: number | null;
   /** Upper bound of a `number`/`calculate` range slider (`null` = no maximum / derive from data). */
@@ -159,12 +161,22 @@ export interface CustomProperty {
   unitSingular: string | null;
   /** Plural unit label for a `number`/`calculate` value (e.g. `"stars"`), or `null`. */
   unitPlural: string | null;
+  /** Prefix shown before a `number`/`calculate` value (e.g. `"$"`), or `null`. */
+  valuePrefix: string | null;
+  /** Label shown instead of a `number`/`calculate` value of 0 (e.g. `"Free"`), or `null`. */
+  zeroLabel: string | null;
+  /** Label shown when a `number`/`calculate` value reaches its maximum (e.g. `"Unlimited"`), or `null`. */
+  maxLabel: string | null;
   /** For a `calculate` property: ids of the `number` properties summed to produce its value. */
   operandPropertyIds: string[];
   /** Ids of the categories this property is assigned to (zero, one, or many). */
   categoryIds: string[];
-  /** When true, the property's field shows in the main bookmark form; otherwise it lives in Advanced. */
+  /** When true, the property's field appears in the bookmark form (combine with `advancedOnly`); false hides it from the form entirely. */
   showInForm: boolean;
+  /** When true (and `showInForm`), the field lives under the form's Advanced section instead of the main area. */
+  advancedOnly: boolean;
+  /** When true, the property's value is shown on bookmark cards in listings. */
+  showInListings: boolean;
   createdAt: string;
 }
 
@@ -172,16 +184,24 @@ export interface CustomProperty {
 export interface CreateCustomPropertyInput {
   name: string;
   type: CustomPropertyType;
+  description?: string | null;
   numberMin?: number | null;
   numberMax?: number | null;
   unitSingular?: string | null;
   unitPlural?: string | null;
+  valuePrefix?: string | null;
+  zeroLabel?: string | null;
+  maxLabel?: string | null;
   /** For a `calculate` property: ids of the `number` properties to sum (at least two). */
   operandPropertyIds?: string[];
   /** Ids of categories to assign this property to. Omit to leave unassigned. */
   categoryIds?: string[];
-  /** When true, the property's field shows in the main bookmark form; otherwise it lives in Advanced. */
+  /** When true, the property's field appears in the bookmark form (combine with `advancedOnly`); false hides it from the form. */
   showInForm?: boolean;
+  /** When true (and `showInForm`), the field lives under the form's Advanced section instead of the main area. */
+  advancedOnly?: boolean;
+  /** When true, the property's value is shown on bookmark cards in listings. Defaults to true. */
+  showInListings?: boolean;
 }
 
 /** Payload for updating a custom property. Its `type` is immutable. */

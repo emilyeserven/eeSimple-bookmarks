@@ -11,13 +11,19 @@ function property(overrides: Partial<CustomProperty>): CustomProperty {
     id: "prop",
     name: "Prop",
     type: "number",
+    description: null,
     numberMin: null,
     numberMax: null,
     unitSingular: null,
     unitPlural: null,
+    valuePrefix: null,
+    zeroLabel: null,
+    maxLabel: null,
     operandPropertyIds: [],
     categoryIds: [],
     showInForm: false,
+    advancedOnly: false,
+    showInListings: true,
     createdAt: NOW,
     ...overrides,
   };
@@ -49,5 +55,50 @@ describe("formatNumber", () => {
     expect(formatNumber(1, property({
       unitPlural: "points",
     }))).toBe("1 points");
+  });
+
+  it("prepends the value prefix, with and without a unit", () => {
+    expect(formatNumber(5, property({
+      valuePrefix: "$",
+    }))).toBe("$5");
+    expect(formatNumber(5, property({
+      valuePrefix: "$",
+      unitPlural: "each",
+    }))).toBe("$5 each");
+  });
+
+  it("shows the zero label for a value of zero, ignoring prefix and unit", () => {
+    expect(formatNumber(0, property({
+      zeroLabel: "Free",
+      valuePrefix: "$",
+      unitPlural: "dollars",
+    }))).toBe("Free");
+  });
+
+  it("shows the bare value at zero when no zero label is set", () => {
+    expect(formatNumber(0, property({
+      valuePrefix: "$",
+    }))).toBe("$0");
+  });
+
+  it("shows the max label once the value reaches the maximum", () => {
+    expect(formatNumber(5, property({
+      numberMax: 5,
+      maxLabel: "Unlimited",
+    }))).toBe("Unlimited");
+    expect(formatNumber(7, property({
+      numberMax: 5,
+      maxLabel: "Unlimited",
+    }))).toBe("Unlimited");
+  });
+
+  it("does not apply the max label below the maximum or when no maximum is set", () => {
+    expect(formatNumber(4, property({
+      numberMax: 5,
+      maxLabel: "Unlimited",
+    }))).toBe("4");
+    expect(formatNumber(5, property({
+      maxLabel: "Unlimited",
+    }))).toBe("5");
   });
 });

@@ -32,13 +32,19 @@ function toCustomProperty(
     id: row.id,
     name: row.name,
     type: row.type as CustomProperty["type"],
+    description: row.description,
     numberMin: row.numberMin,
     numberMax: row.numberMax,
     unitSingular: row.unitSingular,
     unitPlural: row.unitPlural,
+    valuePrefix: row.valuePrefix,
+    zeroLabel: row.zeroLabel,
+    maxLabel: row.maxLabel,
     operandPropertyIds,
     categoryIds,
     showInForm: row.showInForm,
+    advancedOnly: row.advancedOnly,
+    showInListings: row.showInListings,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
   };
@@ -164,11 +170,17 @@ export async function createCustomProperty(
       .values({
         name: input.name,
         type: input.type,
+        description: input.description ?? null,
         numberMin: input.numberMin ?? null,
         numberMax: input.numberMax ?? null,
         unitSingular: input.unitSingular ?? null,
         unitPlural: input.unitPlural ?? null,
+        valuePrefix: input.valuePrefix ?? null,
+        zeroLabel: input.zeroLabel ?? null,
+        maxLabel: input.maxLabel ?? null,
         showInForm: input.showInForm ?? false,
+        advancedOnly: input.advancedOnly ?? false,
+        showInListings: input.showInListings ?? true,
       })
       .returning({
         id: customProperties.id,
@@ -202,15 +214,32 @@ export async function updateCustomProperty(
     const patch: Partial<
       Pick<
         CustomPropertyRow,
-        "name" | "numberMin" | "numberMax" | "unitSingular" | "unitPlural" | "showInForm"
+        | "name"
+        | "description"
+        | "numberMin"
+        | "numberMax"
+        | "unitSingular"
+        | "unitPlural"
+        | "valuePrefix"
+        | "zeroLabel"
+        | "maxLabel"
+        | "showInForm"
+        | "advancedOnly"
+        | "showInListings"
       >
     > = {};
     if (input.name !== undefined) patch.name = input.name;
+    if (input.description !== undefined) patch.description = input.description ?? null;
     if (input.numberMin !== undefined) patch.numberMin = input.numberMin;
     if (input.numberMax !== undefined) patch.numberMax = input.numberMax;
     if (input.unitSingular !== undefined) patch.unitSingular = input.unitSingular ?? null;
     if (input.unitPlural !== undefined) patch.unitPlural = input.unitPlural ?? null;
+    if (input.valuePrefix !== undefined) patch.valuePrefix = input.valuePrefix ?? null;
+    if (input.zeroLabel !== undefined) patch.zeroLabel = input.zeroLabel ?? null;
+    if (input.maxLabel !== undefined) patch.maxLabel = input.maxLabel ?? null;
     if (input.showInForm !== undefined) patch.showInForm = input.showInForm;
+    if (input.advancedOnly !== undefined) patch.advancedOnly = input.advancedOnly;
+    if (input.showInListings !== undefined) patch.showInListings = input.showInListings;
 
     if (Object.keys(patch).length > 0) {
       await tx.update(customProperties).set(patch).where(eq(customProperties.id, id));
