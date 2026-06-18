@@ -63,6 +63,7 @@ export const WithUnassignedProperty: Story = {
         showInListings: true,
         allCategories: false,
         editableOnCard: false,
+        enabled: true,
         createdAt: "2026-06-01T00:00:00.000Z",
       },
     ],

@@ -27,6 +27,7 @@ function property(overrides: Partial<CustomProperty>): CustomProperty {
     showInListings: true,
     allCategories: false,
     editableOnCard: false,
+    enabled: true,
     createdAt: NOW,
     ...overrides,
   };

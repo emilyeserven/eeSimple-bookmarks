@@ -268,7 +268,7 @@ function PropertyConditionRow({
   );
 }
 
-/** Custom-property conditions as a flat list, with a collapsible "Disabled Properties" section for properties not assigned to the active category filter. */
+/** Custom-property conditions as a flat list, with a collapsible "Other Properties" section for properties not assigned to the active category filter. */
 export function PropertyConditionEditor({
   value, properties, categories, selectedCategoryIds, onChange,
 }: PropertyConditionEditorProps) {
@@ -285,10 +285,11 @@ export function PropertyConditionEditor({
     return property.categoryIds.some(id => selectedCategoryIds.includes(id));
   }
 
-  const activeProperties = properties.filter(isPropertyActive);
-  const disabledProperties = properties.filter(p => !isPropertyActive(p));
+  const enabledProperties = properties.filter(p => p.enabled);
+  const activeProperties = enabledProperties.filter(isPropertyActive);
+  const categoryInactiveProperties = enabledProperties.filter(p => !isPropertyActive(p));
 
-  if (properties.length === 0) {
+  if (enabledProperties.length === 0) {
     return <p className="text-xs text-muted-foreground">No custom properties yet.</p>;
   }
 
@@ -310,7 +311,7 @@ export function PropertyConditionEditor({
         )
         : null}
 
-      {disabledProperties.length > 0
+      {categoryInactiveProperties.length > 0
         ? (
           <Collapsible className="group/disabled">
             <CollapsibleTrigger
@@ -325,14 +326,14 @@ export function PropertyConditionEditor({
                   group-data-[state=open]/disabled:rotate-180
                 "
               />
-              Disabled Properties
+              Other Properties
             </CollapsibleTrigger>
             <CollapsibleContent className="space-y-3 pt-3">
               <p className="text-xs text-muted-foreground">
                 These properties are not assigned to the selected categories and are unlikely to affect the results.
               </p>
               <div className="space-y-2">
-                {disabledProperties.map(property => (
+                {categoryInactiveProperties.map(property => (
                   <PropertyConditionRow
                     key={property.id}
                     property={property}

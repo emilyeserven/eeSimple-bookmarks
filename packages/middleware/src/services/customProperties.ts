@@ -50,6 +50,7 @@ function toCustomProperty(
     showInForm: row.showInForm,
     hiddenFromForm: row.hiddenFromForm,
     showInListings: row.showInListings,
+    enabled: row.enabled,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
   };
@@ -204,6 +205,7 @@ export async function createCustomProperty(
         showInListings: input.showInListings ?? true,
         allCategories: input.allCategories ?? false,
         editableOnCard: input.editableOnCard ?? false,
+        enabled: input.enabled ?? true,
       })
       .returning({
         id: customProperties.id,
@@ -267,6 +269,7 @@ export async function updateCustomProperty(
         | "showInListings"
         | "allCategories"
         | "editableOnCard"
+        | "enabled"
       >
     > = {};
     if (input.name !== undefined) patch.name = input.name;
@@ -284,6 +287,7 @@ export async function updateCustomProperty(
     if (input.showInListings !== undefined) patch.showInListings = input.showInListings;
     if (input.allCategories !== undefined) patch.allCategories = input.allCategories;
     if (input.editableOnCard !== undefined) patch.editableOnCard = input.editableOnCard;
+    if (input.enabled !== undefined) patch.enabled = input.enabled;
 
     if (Object.keys(patch).length > 0) {
       await tx.update(customProperties).set(patch).where(eq(customProperties.id, id));

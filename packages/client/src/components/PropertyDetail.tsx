@@ -70,9 +70,10 @@ export function PropertyDetail({
       <div className="flex items-start justify-between gap-4">
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           <h1 className="text-xl font-bold">{property.name}</h1>
-          {assignedCategories.length === 0 && (
+          {assignedCategories.length === 0 && property.enabled && (
             <TriangleAlert className="size-4 text-amber-500" />
           )}
+          {!property.enabled && <Badge variant="outline">Disabled</Badge>}
           <Badge variant="secondary">{TYPE_LABELS[property.type]}</Badge>
         </div>
         {onEdit || onDelete
@@ -112,6 +113,10 @@ export function PropertyDetail({
       </div>
 
       <dl className="space-y-3">
+        <Field label="Status">
+          {property.enabled ? "Enabled" : "Disabled"}
+        </Field>
+
         <Field label="Description">
           {property.description
             ? <p className="whitespace-pre-wrap">{property.description}</p>

@@ -52,8 +52,10 @@ export function FilterSidebar({
   // Category data is only supplied on the overall Bookmarks page; category pages render flat.
   const hasCategoryFilter = (categories?.length ?? 0) > 0;
 
+  const enabledProperties = properties.filter(p => p.enabled);
+
   const hasTags = tree.length > 0;
-  const hasProperties = properties.length > 0;
+  const hasProperties = enabledProperties.length > 0;
   const hasFilters = hasTags || hasProperties || hasCategoryFilter;
 
   const tagFilterActive = search.tag !== undefined || search.tagPresence !== undefined;
@@ -65,7 +67,7 @@ export function FilterSidebar({
   const selectedCategories = search.categories ?? [];
   // A property assigned to no category is almost certainly orphaned; flag it as an error.
   const unassignedProperties = hasCategoryFilter
-    ? properties.filter(property => property.categoryIds.length === 0)
+    ? enabledProperties.filter(property => property.categoryIds.length === 0)
     : [];
 
   const numberFilterChange = (propertyId: string, range: [number, number] | undefined) =>
@@ -270,7 +272,7 @@ export function FilterSidebar({
             <div className="space-y-3">
               <h2 className="text-sm font-semibold">Properties</h2>
               <CustomPropertyFilters
-                properties={properties}
+                properties={enabledProperties}
                 categories={categories}
                 selectedCategoryIds={selectedCategories}
                 bookmarks={bookmarks}

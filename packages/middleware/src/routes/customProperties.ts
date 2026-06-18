@@ -84,6 +84,9 @@ const createPropertyBody = {
     editableOnCard: {
       type: "boolean",
     },
+    enabled: {
+      type: "boolean",
+    },
   },
 } as const;
 
@@ -107,6 +110,7 @@ const updatePropertyBody = {
     showInListings: createPropertyBody.properties.showInListings,
     allCategories: createPropertyBody.properties.allCategories,
     editableOnCard: createPropertyBody.properties.editableOnCard,
+    enabled: createPropertyBody.properties.enabled,
   },
 } as const;
 

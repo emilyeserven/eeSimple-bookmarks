@@ -252,9 +252,9 @@ export function BookmarkForm({
       const {
         numberInputs: numbers, booleanInputs: booleans,
       } = customRef.current;
-      // Only persist values for properties that belong to the chosen category.
+      // Only persist values for properties that belong to the chosen category and are enabled.
       const categoryProps = (customProperties ?? []).filter(property =>
-        propertyAppliesToCategory(property, value.categoryId));
+        propertyAppliesToCategory(property, value.categoryId) && property.enabled);
       const numberValues: BookmarkNumberValue[] = categoryProps
         .filter(property => property.type === "number")
         .map((property) => {
@@ -999,6 +999,7 @@ function CategoryCustomFields({
 }: CategoryCustomFieldsProps) {
   const categoryProps = properties.filter((property) => {
     if (!propertyAppliesToCategory(property, categoryId)) return false;
+    if (!property.enabled) return false;
     // hiddenFromForm drops the field entirely; otherwise showInForm chooses the main area vs. Advanced.
     if (property.hiddenFromForm) return false;
     return placement === "default" ? property.showInForm : !property.showInForm;

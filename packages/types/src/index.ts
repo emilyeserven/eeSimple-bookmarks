@@ -201,6 +201,8 @@ export interface CustomProperty {
   hiddenFromForm: boolean;
   /** When true, the property's value is shown on bookmark cards in listings. */
   showInListings: boolean;
+  /** When false, the property is globally inactive: hidden from filters, conditions, category assignment, and the bookmark form. */
+  enabled: boolean;
   createdAt: string;
 }
 
@@ -230,6 +232,8 @@ export interface CreateCustomPropertyInput {
   hiddenFromForm?: boolean;
   /** When true, the property's value is shown on bookmark cards in listings. Defaults to true. */
   showInListings?: boolean;
+  /** When false, the property is globally inactive. Defaults to true. */
+  enabled?: boolean;
 }
 
 /** Payload for updating a custom property. Its `type` is immutable. */
