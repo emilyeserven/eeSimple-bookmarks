@@ -12,9 +12,9 @@ function GalleryPage() {
       <div>
         <h2 className="text-xl font-semibold">Gallery</h2>
         <p className="text-sm text-muted-foreground">
-          Every image stored in the bucket. Run a scan to catalog what&apos;s in storage; orphans
-          (objects whose bookmark was deleted) can be reclaimed here. A per-bookmark gallery of
-          multiple images is coming soon.
+          Every image stored in the bucket. Run a scan to catalog what&apos;s in storage. When a
+          bookmark is deleted its image is preserved here as an orphan — use &quot;Attach&quot; to
+          re-link it to another bookmark, or delete it to reclaim the space.
         </p>
       </div>
       <GalleryListing />

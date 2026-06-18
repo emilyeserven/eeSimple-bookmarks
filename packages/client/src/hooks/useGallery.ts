@@ -35,3 +35,20 @@ export function useDeleteOrphans() {
     },
   });
 }
+
+/** Attach an orphaned object to a bookmark, then refetch the catalog. */
+export function useAttachOrphan() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      key, bookmarkId,
+    }: { key: string;
+      bookmarkId: string; }) =>
+      galleryApi.attach(key, bookmarkId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: GALLERY_KEY,
+      });
+    },
+  });
+}

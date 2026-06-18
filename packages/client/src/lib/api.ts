@@ -112,6 +112,14 @@ export const galleryApi = {
         keys,
       }),
     }),
+  attach: (key: string, bookmarkId: string) =>
+    request<BookmarkImage>("/gallery/attach", {
+      method: "POST",
+      body: JSON.stringify({
+        key,
+        bookmarkId,
+      }),
+    }),
 };
 
 export const metadataApi = {

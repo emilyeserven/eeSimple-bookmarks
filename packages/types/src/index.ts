@@ -204,6 +204,19 @@ export interface GalleryCatalog {
   registered: MediaObject[];
   /** Objects with no live bookmark — reclaimable storage. */
   orphans: MediaObject[];
+  /**
+   * Configured storage quota in bytes, or `null` when not set. Set via the `STORAGE_QUOTA_BYTES`
+   * environment variable; used by the gallery UI to show used vs. total space.
+   */
+  storageQuotaBytes: number | null;
+}
+
+/** Payload for attaching an orphaned object to an existing bookmark. */
+export interface AttachOrphanInput {
+  /** Object-storage key of the orphan (must be currently unlinked in the manifest). */
+  key: string;
+  /** Id of the bookmark to attach the image to. */
+  bookmarkId: string;
 }
 
 /** Result of a manual bucket scan/reconciliation, with the refreshed catalog and per-scan counts. */

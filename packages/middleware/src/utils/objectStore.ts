@@ -116,6 +116,20 @@ export async function listObjects(prefix?: string): Promise<StoredObjectInfo[]> 
   return out;
 }
 
+/**
+ * Download the object at `key` as a `Buffer`, or `null` when it doesn't exist. Useful when the
+ * caller needs raw bytes (e.g. re-processing an orphaned image to attach it to a new bookmark).
+ */
+export async function getObjectBytes(key: string): Promise<Buffer | null> {
+  const stored = await getObjectStream(key);
+  if (!stored) return null;
+  const chunks: Buffer[] = [];
+  for await (const chunk of stored.body) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk as Uint8Array));
+  }
+  return Buffer.concat(chunks);
+}
+
 /** Delete the object at `key`. A missing object is treated as success. */
 export async function deleteObject(key: string): Promise<void> {
   try {

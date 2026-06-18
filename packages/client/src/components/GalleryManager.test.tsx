@@ -27,6 +27,16 @@ vi.mock("../hooks/useGallery", () => ({
     mutate: deleteMutate,
     isPending: false,
   }),
+  useAttachOrphan: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+  }),
+}));
+
+vi.mock("../hooks/useBookmarks", () => ({
+  useBookmarks: () => ({
+    data: [],
+  }),
 }));
 
 const DETAIL_PATH = "/bookmarks/$bookmarkId";
@@ -63,6 +73,7 @@ describe("GalleryListing", () => {
       data: {
         registered: [],
         orphans: [],
+        storageQuotaBytes: null,
       },
       isLoading: false,
       error: null,
@@ -90,6 +101,7 @@ describe("GalleryListing", () => {
         orphans: [makeObject({
           objectKey: "bookmarks/orphan.webp",
         })],
+        storageQuotaBytes: null,
       },
       isLoading: false,
       error: null,
@@ -111,6 +123,7 @@ describe("GalleryListing", () => {
         orphans: [makeObject({
           objectKey: "bookmarks/orphan.webp",
         })],
+        storageQuotaBytes: null,
       },
       isLoading: false,
       error: null,
