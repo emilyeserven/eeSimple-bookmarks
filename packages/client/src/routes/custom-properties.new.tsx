@@ -7,7 +7,7 @@ import { PropertyForm } from "../components/PropertyForm";
 import { useCategories } from "../hooks/useCategories";
 import { useCreateCustomProperty, useCustomProperties } from "../hooks/useCustomProperties";
 
-export const Route = createFileRoute("/settings/custom-properties/new")({
+export const Route = createFileRoute("/custom-properties/new")({
   component: NewCustomPropertyPage,
 });
 
@@ -28,7 +28,7 @@ function NewCustomPropertyPage() {
     <section className="space-y-6">
       <div className="space-y-1">
         <Link
-          to="/settings/custom-properties"
+          to="/custom-properties"
           className="
             inline-block text-sm text-muted-foreground
             hover:text-foreground
@@ -52,7 +52,7 @@ function NewCustomPropertyPage() {
                 prev => (prev ? [...prev, created] : [created]),
               );
               void navigate({
-                to: "/settings/custom-properties/$propertySlug",
+                to: "/custom-properties/$propertySlug",
                 params: {
                   propertySlug: created.slug,
                 },
