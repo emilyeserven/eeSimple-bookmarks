@@ -10,6 +10,14 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
+const IMAGE_GRAB_ERROR_LABELS: Record<string, string> = {
+  no_image: "No preview image on this page",
+  bad_image: "Preview image couldn't be loaded",
+  blocked: "Access to this page was blocked",
+  server_error: "Site returned a server error",
+  fetch_error: "Page couldn't be reached",
+};
+
 interface BookmarkImageFieldProps {
   /** The bookmark's current image URL when editing, or null. */
   existingImageUrl: string | null;
@@ -19,6 +27,8 @@ interface BookmarkImageFieldProps {
   onChange: (intent: ImageIntent) => void;
   /** When true, the control starts in auto-fetch mode (shows "Fetched on save"). */
   defaultAuto?: boolean;
+  /** Error from the last auto-grab attempt on the existing bookmark, if any. */
+  autoGrabError?: string | null;
 }
 
 /**
@@ -27,7 +37,7 @@ interface BookmarkImageFieldProps {
  * it reports an intent the form applies once the bookmark has an id (so it works for create + edit).
  */
 export function BookmarkImageField({
-  existingImageUrl, pageUrl, onChange, defaultAuto,
+  existingImageUrl, pageUrl, onChange, defaultAuto, autoGrabError,
 }: BookmarkImageFieldProps) {
   const [file, setFile] = useState<File | null>(null);
   const [auto, setAuto] = useState(defaultAuto ?? false);
@@ -168,6 +178,11 @@ export function BookmarkImageField({
             <Sparkles className="size-4" />
             Use page image
           </Button>
+          {autoGrabError && (
+            <p className="text-xs text-muted-foreground">
+              {IMAGE_GRAB_ERROR_LABELS[autoGrabError] ?? "Previous auto-grab failed"} — you can still try again after saving.
+            </p>
+          )}
           {hasSomething
             ? (
               <Button

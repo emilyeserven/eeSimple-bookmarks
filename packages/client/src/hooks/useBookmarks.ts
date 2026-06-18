@@ -105,7 +105,12 @@ export function useAutoBookmarkImage() {
       });
       toast.success("Page image fetched");
     },
-    onError: (err: Error) => toast.error(err.message || "Could not fetch a preview image"),
+    onError: (err: Error) => {
+      void queryClient.invalidateQueries({
+        queryKey: BOOKMARKS_KEY,
+      });
+      toast.error(err.message || "Could not fetch a preview image");
+    },
   });
 }
 

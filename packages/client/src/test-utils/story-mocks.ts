@@ -242,6 +242,7 @@ export const sampleBookmark: Bookmark = {
   title: "GitHub",
   description: "Where the code lives.",
   image: null,
+  imageAutoGrabError: null,
   categoryId: "cat-workflow",
   website: {
     id: "site-github",

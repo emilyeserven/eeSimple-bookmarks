@@ -401,18 +401,29 @@ export async function bookmarkRoutes(app: FastifyInstance): Promise<void> {
       });
     }
     const result = await fetchAndStoreOgImage(id);
-    req.log.info({
-      bookmarkId: id,
-      result: typeof result === "string" ? result : "stored",
-    }, "[youtube-enrich] image/auto capture");
+    const success = typeof result !== "string";
+    req.log[success ? "info" : "warn"](
+      {
+        bookmarkId: id,
+        result: success ? "stored" : result,
+      },
+      success ? "[image-auto] auto-capture succeeded" : "[image-auto] auto-capture failed",
+    );
     if (result === "not_found") {
       return reply.code(404).send({
         message: "Bookmark not found",
       });
     }
-    if (result === "no_image") {
+    if (typeof result === "string") {
+      const errorMessages: Record<string, string> = {
+        no_image: "No preview image found for that page",
+        bad_image: "Preview image couldn't be loaded",
+        blocked: "Access to this page was blocked",
+        server_error: "Site returned a server error",
+        fetch_error: "Page couldn't be reached",
+      };
       return reply.code(502).send({
-        message: "No preview image found for that page",
+        message: errorMessages[result] ?? "Could not fetch a preview image",
       });
     }
     return reply.code(201).send(result);

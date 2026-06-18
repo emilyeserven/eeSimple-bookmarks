@@ -1171,6 +1171,7 @@ export function BookmarkForm({
                       existingImageUrl={bookmark?.image?.url ?? null}
                       pageUrl={url}
                       defaultAuto={!isEdit && autoFetchImage}
+                      autoGrabError={bookmark?.imageAutoGrabError ?? null}
                       onChange={(intent) => {
                         imageIntentRef.current = intent;
                       }}

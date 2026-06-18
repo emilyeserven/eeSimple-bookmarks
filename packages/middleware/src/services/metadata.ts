@@ -378,14 +378,23 @@ export async function downloadImage(url: string): Promise<Buffer | null> {
   }
 }
 
+/** Typed outcome of an og:image fetch attempt. */
+export type OgImageResult = Buffer | "fetch_error" | "blocked" | "server_error" | "no_image" | "bad_image";
+
 /**
  * Fetch the page at `pageUrl`, find its preview image (og:image / twitter:image / icon), download
- * it, and return the raw bytes — or null when there's no usable, fetchable image.
+ * it, and return the raw bytes — or a typed error string describing why it failed.
  */
-export async function fetchOgImage(pageUrl: string): Promise<Buffer | null> {
+export async function fetchOgImage(pageUrl: string): Promise<OgImageResult> {
   const result = await fetchHtml(pageUrl, /<\/head>/i);
-  if (result.kind !== "ok") return null;
+  if (result.kind === "timeout" || result.kind === "network_error" || result.kind === "no_body") {
+    return "fetch_error";
+  }
+  if (result.kind === "http_error") {
+    return result.status >= 500 ? "server_error" : "blocked";
+  }
   const imageUrl = extractImageUrl(result.html, pageUrl);
-  if (!imageUrl || !isPublicHttpUrl(imageUrl)) return null;
-  return downloadImage(imageUrl);
+  if (!imageUrl || !isPublicHttpUrl(imageUrl)) return "no_image";
+  const bytes = await downloadImage(imageUrl);
+  return bytes ?? "bad_image";
 }
