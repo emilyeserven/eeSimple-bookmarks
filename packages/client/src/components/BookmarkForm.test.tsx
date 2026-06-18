@@ -1,4 +1,4 @@
-import type { Bookmark } from "@eesimple/types";
+import type { Bookmark, Website } from "@eesimple/types";
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -14,8 +14,28 @@ let websiteLookupData:
     domain: string | null;
     siteName: string | null; }
     | undefined;
+let websitesData: Website[] = [];
 
 const updateMutateAsync = vi.fn<(args: unknown) => Promise<unknown>>();
+
+// A built-in YouTube website carrying the param rule that keeps only `v` on `/watch`.
+function youtubeWebsite(): Website {
+  return {
+    id: "yt",
+    domain: "youtube.com",
+    siteName: "YouTube",
+    slug: "youtube",
+    builtIn: true,
+    shortenedLinks: [],
+    paramRules: [
+      {
+        pathSuffix: "/watch",
+        params: ["v"],
+      },
+    ],
+    createdAt: "2026-01-01T00:00:00.000Z",
+  };
+}
 
 vi.mock("../hooks/useBookmarks", () => ({
   useCreateBookmark: () => ({
@@ -67,6 +87,7 @@ vi.mock("../hooks/useTags", () => ({
 vi.mock("../hooks/useFetchTitle", () => ({
   useFetchTitle: () => ({
     mutateAsync,
+    reset: vi.fn(),
     isPending: false,
     isError: false,
     error: null,
@@ -96,7 +117,7 @@ vi.mock("../hooks/useWebsites", () => ({
     reset: vi.fn(),
   }),
   useWebsites: () => ({
-    data: [],
+    data: websitesData,
   }),
 }));
 vi.mock("../hooks/useAppSettings", () => ({
@@ -117,6 +138,7 @@ describe("BookmarkForm title fetching", () => {
     updateMutateAsync.mockReset();
     autoFetchTitle = true;
     websiteLookupData = undefined;
+    websitesData = [];
   });
 
   it("fills the Name field when the fetch button is clicked", async () => {
@@ -265,5 +287,88 @@ describe("BookmarkForm title fetching", () => {
       url: "https://allrecipes.com/recipe/123",
       siteName: "Allrecipes",
     });
+  });
+
+  it("shortens a YouTube URL on blur and restores it on undo", async () => {
+    websitesData = [youtubeWebsite()];
+    websiteLookupData = {
+      exists: true,
+      domain: "youtube.com",
+      siteName: "YouTube",
+    };
+    autoFetchTitle = false;
+    render(<BookmarkForm />);
+
+    const urlInput = screen.getByLabelText("URL");
+    const typed = "https://www.youtube.com/watch?v=4d9RSxd7Soo&list=PL123&index=96";
+    fireEvent.change(urlInput, {
+      target: {
+        value: typed,
+      },
+    });
+    fireEvent.blur(urlInput);
+
+    await waitFor(() =>
+      expect(urlInput).toHaveValue("https://www.youtube.com/watch?v=4d9RSxd7Soo"));
+
+    const undo = await screen.findByRole("button", {
+      name: "Undo",
+    });
+    fireEvent.click(undo);
+
+    expect(urlInput).toHaveValue(typed);
+  });
+
+  it("saves the cleaned URL and records the typed original when editing", async () => {
+    updateMutateAsync.mockResolvedValue(undefined);
+    websitesData = [youtubeWebsite()];
+    autoFetchTitle = false;
+    const bookmark: Bookmark = {
+      id: "11111111-1111-1111-1111-111111111111",
+      url: "https://www.youtube.com/watch?v=old",
+      originalUrl: null,
+      title: "A video",
+      description: null,
+      image: null,
+      categoryId: "22222222-2222-2222-2222-222222222222",
+      website: null,
+      mediaType: null,
+      youtubeChannel: null,
+      tags: [],
+      numberValues: [],
+      booleanValues: [],
+      dateTimeValues: [],
+      priority: 0,
+      createdAt: "2026-06-01T00:00:00.000Z",
+    };
+
+    render(<BookmarkForm bookmark={bookmark} />);
+
+    const urlInput = screen.getByLabelText("URL");
+    const typed = "https://www.youtube.com/watch?v=4d9RSxd7Soo&list=PL123&index=96";
+    fireEvent.change(urlInput, {
+      target: {
+        value: typed,
+      },
+    });
+    fireEvent.blur(urlInput);
+
+    await waitFor(() =>
+      expect(urlInput).toHaveValue("https://www.youtube.com/watch?v=4d9RSxd7Soo"));
+
+    fireEvent.click(screen.getByRole("button", {
+      name: "Save changes",
+    }));
+
+    await waitFor(() => expect(updateMutateAsync).toHaveBeenCalledTimes(1));
+    expect(updateMutateAsync).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: bookmark.id,
+        input: expect.objectContaining({
+          url: "https://www.youtube.com/watch?v=4d9RSxd7Soo",
+          originalUrl: typed,
+        }),
+      }),
+    );
   });
 });

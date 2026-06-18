@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Pencil } from "lucide-react";
 
+import { LabeledSection } from "./LabeledSection";
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { useUpdateYouTubeChannel, useYouTubeChannels } from "../hooks/useYouTubeChannels";
 
@@ -12,8 +13,33 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
 import { useUiStore } from "@/stores/uiStore";
+
+/** Read-only metadata list for a channel — shared by the view card and the edit row's Details section. */
+function ChannelDetailsList({
+  channel,
+}: { channel: YouTubeChannel }) {
+  return (
+    <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
+      <dt className="text-muted-foreground">Added</dt>
+      <dd>{new Date(channel.createdAt).toLocaleDateString()}</dd>
+      <dt className="text-muted-foreground">Channel key</dt>
+      <dd>{channel.channelKey}</dd>
+      <dt className="text-muted-foreground">Slug</dt>
+      <dd>{channel.slug}</dd>
+      {channel.bookmarkCount != null
+        ? (
+          <>
+            <dt className="text-muted-foreground">Bookmarks</dt>
+            <dd>{channel.bookmarkCount}</dd>
+          </>
+        )
+        : null}
+    </dl>
+  );
+}
 
 /** A single editable channel row: rename only — the channel key is fixed and auto-assigned. */
 export function YouTubeChannelRow({
@@ -43,33 +69,44 @@ export function YouTubeChannelRow({
   }
 
   return (
-    <div>
-      <div
-        className="
-          grid gap-3
-          sm:grid-cols-[1fr_auto] sm:items-end
-        "
-      >
-        <div className="space-y-1">
-          <Label htmlFor={`channel-name-${channel.id}`}>Channel name</Label>
-          <Input
-            id={`channel-name-${channel.id}`}
-            value={name}
-            onChange={event => setName(event.target.value)}
-          />
-        </div>
-        <Button
-          type="button"
-          size="sm"
-          disabled={!dirty || !valid || updateChannel.isPending}
-          onClick={save}
+    <div className="space-y-6">
+      <LabeledSection title="Channel name">
+        <div
+          className="
+            grid gap-3
+            sm:grid-cols-[1fr_auto] sm:items-end
+          "
         >
-          {updateChannel.isPending ? "Saving…" : "Save"}
-        </Button>
-      </div>
-      {updateChannel.isError
-        ? <p className="mt-2 text-sm text-destructive">{updateChannel.error.message}</p>
-        : null}
+          <div className="space-y-1">
+            <Label htmlFor={`channel-name-${channel.id}`}>Channel name</Label>
+            <Input
+              id={`channel-name-${channel.id}`}
+              value={name}
+              onChange={event => setName(event.target.value)}
+            />
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            disabled={!dirty || !valid || updateChannel.isPending}
+            onClick={save}
+          >
+            {updateChannel.isPending ? "Saving…" : "Save"}
+          </Button>
+        </div>
+        {updateChannel.isError
+          ? <p className="mt-2 text-sm text-destructive">{updateChannel.error.message}</p>
+          : null}
+      </LabeledSection>
+
+      <Separator />
+
+      <LabeledSection
+        title="Details"
+        description="Assigned automatically — not editable."
+      >
+        <ChannelDetailsList channel={channel} />
+      </LabeledSection>
     </div>
   );
 }
@@ -81,7 +118,7 @@ export function YouTubeChannelCard({
   const editClick = useEditPanelClick();
   const modifier = useUiStore(state => state.sidebarOpenModifier);
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 space-y-1">
           <h2 className="text-xl font-semibold">{channel.name}</h2>
@@ -104,22 +141,12 @@ export function YouTubeChannelCard({
           </Link>
         </Button>
       </div>
-      <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
-        <dt className="text-muted-foreground">Added</dt>
-        <dd>{new Date(channel.createdAt).toLocaleDateString()}</dd>
-        <dt className="text-muted-foreground">Channel key</dt>
-        <dd>{channel.channelKey}</dd>
-        <dt className="text-muted-foreground">Slug</dt>
-        <dd>{channel.slug}</dd>
-        {channel.bookmarkCount != null
-          ? (
-            <>
-              <dt className="text-muted-foreground">Bookmarks</dt>
-              <dd>{channel.bookmarkCount}</dd>
-            </>
-          )
-          : null}
-      </dl>
+
+      <Separator />
+
+      <LabeledSection title="Details">
+        <ChannelDetailsList channel={channel} />
+      </LabeledSection>
     </div>
   );
 }

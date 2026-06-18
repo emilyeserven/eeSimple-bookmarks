@@ -44,14 +44,12 @@ function MediaTypeEditPage() {
             </Link>
             <h1 className="text-2xl font-bold">Edit media type</h1>
           </div>
-          <div className="rounded-lg border bg-card p-4">
-            <MediaTypeRow
-              mediaType={mt}
-              onSaved={() => navigate({
-                to: "/taxonomies/media-types",
-              })}
-            />
-          </div>
+          <MediaTypeRow
+            mediaType={mt}
+            onSaved={() => navigate({
+              to: "/taxonomies/media-types",
+            })}
+          />
         </section>
       )}
     </TaxonomyDetailLayout>

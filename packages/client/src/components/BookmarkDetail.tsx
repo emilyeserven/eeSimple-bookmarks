@@ -7,8 +7,10 @@ import { useViewPanelClick } from "./panel/useEditPanelClick";
 import { formatDateTime, formatNumber } from "../lib/bookmarkFormat";
 
 import { DetailField } from "@/components/DetailField";
+import { LabeledSection } from "@/components/LabeledSection";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { CategoryIcon } from "@/lib/icons";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
 import { useUiStore } from "@/stores/uiStore";
@@ -190,122 +192,137 @@ export function BookmarkDetail({
             )
             : null}
 
-        <dl className="min-w-0 flex-1 space-y-3">
-          <DetailField label="Description">
-            {bookmark.description
-              ? <p className="whitespace-pre-wrap">{bookmark.description}</p>
-              : null}
-          </DetailField>
+        <div className="min-w-0 flex-1 space-y-6">
+          <LabeledSection title="Details">
+            <dl className="space-y-3">
+              <DetailField label="Description">
+                {bookmark.description
+                  ? <p className="whitespace-pre-wrap">{bookmark.description}</p>
+                  : null}
+              </DetailField>
 
-          <DetailField label="Category">
-            {category
-              ? (
-                <Link
-                  to="/categories/$categorySlug"
-                  params={{
-                    categorySlug: category.slug,
-                  }}
-                  title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-                  onClick={event => viewClick(event, "category", category.id)}
-                  className="
-                    inline-flex items-center gap-1.5 text-primary
-                    hover:underline
-                  "
-                >
-                  <CategoryIcon
-                    name={category.icon}
-                    className="size-4 shrink-0"
-                  />
-                  {category.name}
-                </Link>
-              )
-              : null}
-          </DetailField>
-
-          <DetailField label="Website">
-            {bookmark.website
-              ? `${bookmark.website.siteName} (${bookmark.website.domain})`
-              : null}
-          </DetailField>
-
-          <DetailField label="Media type">
-            {bookmark.mediaType ? bookmark.mediaType.name : null}
-          </DetailField>
-
-          <DetailField label="Channel">
-            {bookmark.youtubeChannel ? bookmark.youtubeChannel.name : null}
-          </DetailField>
-
-          <DetailField label="Tags">
-            {bookmark.tags.length > 0
-              ? (
-                <ul className="flex flex-wrap gap-1">
-                  {bookmark.tags.map(tag => (
-                    <li key={tag.id}>
-                      <Badge variant="secondary">{tag.name}</Badge>
-                    </li>
-                  ))}
-                </ul>
-              )
-              : null}
-          </DetailField>
-
-          <DetailField label="Properties">
-            {hasProperties
-              ? (
-                <dl className="space-y-1">
-                  {numberRows.map(row => (
-                    <div
-                      key={row.id}
-                      className="flex items-baseline gap-2"
+              <DetailField label="Category">
+                {category
+                  ? (
+                    <Link
+                      to="/categories/$categorySlug"
+                      params={{
+                        categorySlug: category.slug,
+                      }}
+                      title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+                      onClick={event => viewClick(event, "category", category.id)}
+                      className="
+                        inline-flex items-center gap-1.5 text-primary
+                        hover:underline
+                      "
                     >
-                      <dt className="text-muted-foreground">
-                        {row.name}
-                        {row.isCalculated
-                          ? <span className="text-xs"> (calculated)</span>
-                          : null}
-                        :
-                      </dt>
-                      <dd>{row.value}</dd>
-                    </div>
-                  ))}
-                  {booleanRows.map(row => (
-                    <div
-                      key={row.id}
-                      className="flex items-baseline gap-2"
-                    >
-                      <dt className="text-muted-foreground">
-                        {row.name}
-                        :
-                      </dt>
-                      <dd>{row.value}</dd>
-                    </div>
-                  ))}
-                  {dateTimeRows.map(row => (
-                    <div
-                      key={row.id}
-                      className="flex items-baseline gap-2"
-                    >
-                      <dt className="text-muted-foreground">
-                        {row.name}
-                        :
-                      </dt>
-                      <dd>{row.value}</dd>
-                    </div>
-                  ))}
-                </dl>
-              )
-              : null}
-          </DetailField>
+                      <CategoryIcon
+                        name={category.icon}
+                        className="size-4 shrink-0"
+                      />
+                      {category.name}
+                    </Link>
+                  )
+                  : null}
+              </DetailField>
 
-          <DetailField label="Priority">
-            <span>{bookmark.priority}</span>
-          </DetailField>
+              <DetailField label="Website">
+                {bookmark.website
+                  ? `${bookmark.website.siteName} (${bookmark.website.domain})`
+                  : null}
+              </DetailField>
 
-          <DetailField label="Created">
-            <span>{new Date(bookmark.createdAt).toLocaleString()}</span>
-          </DetailField>
-        </dl>
+              <DetailField label="Media type">
+                {bookmark.mediaType ? bookmark.mediaType.name : null}
+              </DetailField>
+
+              <DetailField label="Channel">
+                {bookmark.youtubeChannel ? bookmark.youtubeChannel.name : null}
+              </DetailField>
+            </dl>
+          </LabeledSection>
+
+          {bookmark.tags.length > 0
+            ? (
+              <>
+                <Separator />
+                <LabeledSection title="Tags">
+                  <ul className="flex flex-wrap gap-1">
+                    {bookmark.tags.map(tag => (
+                      <li key={tag.id}>
+                        <Badge variant="secondary">{tag.name}</Badge>
+                      </li>
+                    ))}
+                  </ul>
+                </LabeledSection>
+              </>
+            )
+            : null}
+
+          {hasProperties
+            ? (
+              <>
+                <Separator />
+                <LabeledSection title="Properties">
+                  <dl className="space-y-1">
+                    {numberRows.map(row => (
+                      <div
+                        key={row.id}
+                        className="flex items-baseline gap-2"
+                      >
+                        <dt className="text-muted-foreground">
+                          {row.name}
+                          {row.isCalculated
+                            ? <span className="text-xs"> (calculated)</span>
+                            : null}
+                          :
+                        </dt>
+                        <dd>{row.value}</dd>
+                      </div>
+                    ))}
+                    {booleanRows.map(row => (
+                      <div
+                        key={row.id}
+                        className="flex items-baseline gap-2"
+                      >
+                        <dt className="text-muted-foreground">
+                          {row.name}
+                          :
+                        </dt>
+                        <dd>{row.value}</dd>
+                      </div>
+                    ))}
+                    {dateTimeRows.map(row => (
+                      <div
+                        key={row.id}
+                        className="flex items-baseline gap-2"
+                      >
+                        <dt className="text-muted-foreground">
+                          {row.name}
+                          :
+                        </dt>
+                        <dd>{row.value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </LabeledSection>
+              </>
+            )
+            : null}
+
+          <Separator />
+          <LabeledSection title="Metadata">
+            <dl className="space-y-3">
+              <DetailField label="Priority">
+                <span>{bookmark.priority}</span>
+              </DetailField>
+
+              <DetailField label="Created">
+                <span>{new Date(bookmark.createdAt).toLocaleString()}</span>
+              </DetailField>
+            </dl>
+          </LabeledSection>
+        </div>
       </div>
     </div>
   );

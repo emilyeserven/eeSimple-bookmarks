@@ -150,6 +150,15 @@ export function BookmarkForm({
     nudge: false,
     expandedUrl: null,
   });
+  // On-blur URL cleanup: when blur rewrites the field to its canonical form we keep the original so
+  // the banner can offer an undo, and so the submit handler can record it as `originalUrl`. `applied`
+  // flips to false after an undo, which both suppresses re-cleaning on the next blur and tells submit
+  // to save the original URL untouched. The ref mirrors the state for the (stale) submit closure.
+  const [urlCleanup, setUrlCleanup] = useState<{ original: string;
+    cleaned: string;
+    applied: boolean; } | null>(null);
+  const urlCleanupRef = useRef<typeof urlCleanup>(null);
+  urlCleanupRef.current = urlCleanup;
   const [showUrlCleanup, setShowUrlCleanup] = useState(false);
   const [urlCleanupMode, setUrlCleanupMode] = useState<UrlCleanupMode>("none");
   const urlCleanupModeRef = useRef<UrlCleanupMode>("none");
@@ -376,17 +385,35 @@ export function BookmarkForm({
         }))
         .filter(entry => entry.value !== "");
 
+      // Resolve the URL to save plus the original it was cleaned from. When blur already cleaned the
+      // field we trust that decision: an applied cleanup saves the cleaned URL (recording the typed
+      // original), while an undone cleanup saves the original untouched — re-canonicalizing here would
+      // re-shorten it, since param rules strip regardless of mode. Otherwise (URL edited after the
+      // cleanup, or no cleanup) fall back to canonicalizing the field on submit.
       const rawUrl = value.url;
-      const finalUrl = canonicalize(rawUrl, {
-        mode: urlCleanupModeRef.current,
-        websites: canonDataRef.current.websites,
-        ignoreList: canonDataRef.current.ignoreList,
-      }).url;
-      const isModified = finalUrl !== rawUrl;
+      const cleanup = urlCleanupRef.current;
+      let finalUrl: string;
+      let originalUrl: string | null;
+      if (cleanup?.applied && rawUrl === cleanup.cleaned) {
+        finalUrl = cleanup.cleaned;
+        originalUrl = cleanup.original;
+      }
+      else if (cleanup && !cleanup.applied && rawUrl === cleanup.original) {
+        finalUrl = cleanup.original;
+        originalUrl = null;
+      }
+      else {
+        finalUrl = canonicalize(rawUrl, {
+          mode: urlCleanupModeRef.current,
+          websites: canonDataRef.current.websites,
+          ignoreList: canonDataRef.current.ignoreList,
+        }).url;
+        originalUrl = finalUrl !== rawUrl ? rawUrl : null;
+      }
 
       const input: CreateBookmarkInput = {
         url: finalUrl,
-        originalUrl: isModified ? rawUrl : null,
+        originalUrl,
         title: value.title,
         categoryId: value.categoryId,
         mediaTypeId: value.mediaTypeId || null,
@@ -429,6 +456,7 @@ export function BookmarkForm({
         nudge: false,
         expandedUrl: null,
       });
+      setUrlCleanup(null);
       imageIntentRef.current = EMPTY_IMAGE_INTENT;
       setImageFieldKey(key => key + 1);
       setShowUrlCleanup(false);
@@ -513,16 +541,24 @@ export function BookmarkForm({
     }
   }
 
-  // For a YouTube URL, pull the channel, duration, and media type from the video's metadata and
-  // prefill them: the channel is held as a hint applied on save, the duration fills the built-in
-  // "Video Length" property, and the media type is set to "Video". Best-effort and non-blocking.
-  async function runYouTubeEnrichment(url: string): Promise<void> {
+  // For a YouTube URL, pull the title, channel, duration, and media type from the video's metadata
+  // and prefill them: the title is written into the Name field (this owns the title fetch for
+  // YouTube, so runFetchTitle is skipped), the channel is held as a hint applied on save, the
+  // duration fills the built-in "Video Length" property, and the media type is set to "Video".
+  // `fillTitle` mirrors the autoFetchTitle gate; `force` overwrites an existing title (manual button).
+  // Best-effort and non-blocking.
+  async function runYouTubeEnrichment(url: string, {
+    fillTitle, force,
+  }: { fillTitle: boolean;
+    force: boolean; }): Promise<void> {
     // A non-YouTube URL clears any channel left over from a previously-entered YouTube link.
     if (!isFetchableUrl(url) || !looksLikeYouTube(url)) {
       channelHintRef.current = null;
       setYoutubeChannel(null);
       return;
     }
+    // YouTube owns its own title fetch here, so clear any stale fetch-title error from a prior URL.
+    fetchTitle.reset();
     try {
       const meta = await fetchMetadata.mutateAsync({
         url,
@@ -533,6 +569,10 @@ export function BookmarkForm({
         return;
       }
 
+      // Fill the Name from the (clean) oEmbed title, matching runFetchTitle's overwrite rule.
+      if (fillTitle && meta.title && (force || form.getFieldValue("title").trim() === "")) {
+        form.setFieldValue("title", meta.title);
+      }
       if (meta.channel?.key) {
         const hint = {
           key: meta.channel.key,
@@ -559,6 +599,45 @@ export function BookmarkForm({
     catch {
       // Non-fatal: enrichment is a best-effort convenience layered on the title fetch.
     }
+  }
+
+  // Canonicalize the URL on blur and rewrite the field to the cleaned form, recording the original so
+  // the banner can offer an undo. Skips a value the user just restored via undo (so blur doesn't
+  // re-shorten it), and clears the undo state when the URL is left unchanged.
+  function runUrlCleanup(url: string): void {
+    const restored = urlCleanupRef.current;
+    if (restored && !restored.applied && url === restored.original) return;
+    if (!isFetchableUrl(url)) {
+      setUrlCleanup(null);
+      return;
+    }
+    const cleaned = canonicalize(url, {
+      mode: urlCleanupModeRef.current,
+      websites: canonDataRef.current.websites,
+      ignoreList: canonDataRef.current.ignoreList,
+    }).url;
+    if (cleaned === url) {
+      setUrlCleanup(null);
+      return;
+    }
+    form.setFieldValue("url", cleaned);
+    setUrlCleanup({
+      original: url,
+      cleaned,
+      applied: true,
+    });
+  }
+
+  // Restore the URL the user typed before on-blur cleanup, and mark the cleanup undone so neither the
+  // next blur nor the submit handler re-shortens it.
+  function undoUrlCleanup(): void {
+    const current = urlCleanupRef.current;
+    if (!current) return;
+    form.setFieldValue("url", current.original);
+    setUrlCleanup({
+      ...current,
+      applied: false,
+    });
   }
 
   // Check whether the URL's site is already on record so the banner can say whether a new
@@ -632,14 +711,22 @@ export function BookmarkForm({
               label="URL"
               type="url"
               onBlur={() => {
+                // Clean first so the lookup / title / enrichment steps all see the canonical URL.
+                runUrlCleanup(field.state.value);
+                const url = form.getFieldValue("url");
                 runAutofill();
-                runWebsiteLookup(field.state.value);
-                if (autoFetchTitle) {
-                  void runFetchTitle(field.state.value, {
+                runWebsiteLookup(url);
+                // YouTube gets its title from enrichment; non-YouTube uses the strict fetch-title.
+                const yt = looksLikeYouTube(url);
+                if (autoFetchTitle && !yt) {
+                  void runFetchTitle(url, {
                     force: false,
                   });
                 }
-                void runYouTubeEnrichment(field.state.value);
+                void runYouTubeEnrichment(url, {
+                  fillTitle: autoFetchTitle,
+                  force: false,
+                });
               }}
               action={(
                 <Button
@@ -664,6 +751,8 @@ export function BookmarkForm({
           youtubeChannel={youtubeChannel}
           nudge={urlShortener.nudge}
           expandedUrl={urlShortener.expandedUrl}
+          shortenedFrom={urlCleanup?.applied ? urlCleanup.original : null}
+          onUndoShorten={undoUrlCleanup}
           websiteSiteName={websiteSiteName}
           onSiteNameChange={setWebsiteSiteName}
           onSiteNameBlur={() => void runFetchTitle(form.getFieldValue("url"), {
@@ -690,15 +779,22 @@ export function BookmarkForm({
                       size="icon"
                       title="Fetch title from URL"
                       aria-label="Fetch title from URL"
-                      disabled={!isFetchableUrl(url) || fetchTitle.isPending}
+                      disabled={!isFetchableUrl(url) || fetchTitle.isPending || fetchMetadata.isPending}
                       onClick={() => {
-                        void runFetchTitle(url, {
+                        // YouTube gets its title from enrichment; skip the strict fetch-title for it.
+                        const yt = looksLikeYouTube(url);
+                        if (!yt) {
+                          void runFetchTitle(url, {
+                            force: true,
+                          });
+                        }
+                        void runYouTubeEnrichment(url, {
+                          fillTitle: true,
                           force: true,
                         });
-                        void runYouTubeEnrichment(url);
                       }}
                     >
-                      {fetchTitle.isPending
+                      {fetchTitle.isPending || fetchMetadata.isPending
                         ? <Loader2 className="size-4 animate-spin" />
                         : <Sparkles className="size-4" />}
                     </Button>
@@ -1150,6 +1246,10 @@ interface WebsiteLookupBannerProps {
   nudge: boolean;
   /** The long-form URL a verified short link will be saved as, or `null`. */
   expandedUrl: string | null;
+  /** The URL the user typed before on-blur cleanup rewrote the field, or `null` when not cleaned. */
+  shortenedFrom: string | null;
+  /** Restore the typed URL, undoing the on-blur cleanup. */
+  onUndoShorten: () => void;
   websiteSiteName: string;
   onSiteNameChange: (value: string) => void;
   onSiteNameBlur: () => void;
@@ -1161,7 +1261,8 @@ interface WebsiteLookupBannerProps {
  * auto-detected channel, since the site name is fixed ("YouTube").
  */
 function WebsiteLookupBanner({
-  data, isYouTube, youtubeChannel, nudge, expandedUrl, websiteSiteName, onSiteNameChange, onSiteNameBlur,
+  data, isYouTube, youtubeChannel, nudge, expandedUrl, shortenedFrom, onUndoShorten,
+  websiteSiteName, onSiteNameChange, onSiteNameBlur,
 }: WebsiteLookupBannerProps) {
   if (!data?.domain) return null;
   return (
@@ -1205,6 +1306,30 @@ function WebsiteLookupBanner({
             Will be saved as
             {" "}
             <span className="font-mono">{expandedUrl}</span>
+          </p>
+        )
+        : null}
+      {shortenedFrom
+        ? (
+          <p
+            className="
+              mt-1 flex items-center gap-2 text-sm text-muted-foreground
+            "
+          >
+            <span className="truncate">
+              Shortened from
+              {" "}
+              <span className="font-mono">{shortenedFrom}</span>
+            </span>
+            <Button
+              type="button"
+              variant="link"
+              size="sm"
+              className="h-auto shrink-0 p-0"
+              onClick={onUndoShorten}
+            >
+              Undo
+            </Button>
           </p>
         )
         : null}

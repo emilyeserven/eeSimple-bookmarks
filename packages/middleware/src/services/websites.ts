@@ -1,4 +1,4 @@
-import { asc, eq, isNull, ne, or, sql } from "drizzle-orm";
+import { and, asc, eq, isNull, ne, or, sql } from "drizzle-orm";
 import type { CreateWebsiteInput, ShortenedLink, UpdateWebsiteInput, Website, WebsiteParamRule } from "@eesimple/types";
 import { getShortenerIgnoreList } from "@/services/appSettings";
 import { db } from "@/db";
@@ -427,6 +427,21 @@ export async function ensureBuiltInWebsites(): Promise<void> {
           siteName,
         },
       });
+
+    // Heal rows that predate rule seeding (e.g. a youtube.com site auto-created before the built-in
+    // param rules existed): seed the rules only when the row never received them — both arrays still
+    // empty — so deliberate user edits to a built-in's rules are left untouched.
+    await db
+      .update(websites)
+      .set({
+        shortenedLinks,
+        paramRules,
+      })
+      .where(and(
+        eq(websites.domain, domain),
+        sql`${websites.shortenedLinks} = '[]'::jsonb`,
+        sql`${websites.paramRules} = '[]'::jsonb`,
+      ));
   }
 }
 

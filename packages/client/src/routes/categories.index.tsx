@@ -6,12 +6,6 @@ import { useCategories, useCreateCategory } from "../hooks/useCategories";
 import { useAppForm } from "../lib/form";
 
 import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { IconPicker } from "@/components/ui/icon-picker";
 import { Label } from "@/components/ui/label";
 
@@ -51,64 +45,60 @@ function AddCategoryForm() {
   });
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>New category</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form
-          className="space-y-4"
-          onSubmit={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            void form.handleSubmit();
-          }}
+    <div className="space-y-4 rounded-lg border bg-card p-4">
+      <h2 className="text-lg font-semibold">New category</h2>
+      <form
+        className="space-y-4"
+        onSubmit={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          void form.handleSubmit();
+        }}
+      >
+        <div
+          className="
+            grid gap-3
+            sm:grid-cols-2
+          "
         >
-          <div
-            className="
-              grid gap-3
-              sm:grid-cols-2
-            "
-          >
-            <form.AppField name="name">
-              {field => (
-                <field.TextField
-                  label="Name"
-                  placeholder="e.g. Workflow"
+          <form.AppField name="name">
+            {field => (
+              <field.TextField
+                label="Name"
+                placeholder="e.g. Workflow"
+              />
+            )}
+          </form.AppField>
+          <form.AppField name="icon">
+            {field => (
+              <div className="space-y-1">
+                <Label htmlFor="category-icon">Icon</Label>
+                <IconPicker
+                  aria-label="Category icon"
+                  value={field.state.value}
+                  onChange={field.handleChange}
                 />
-              )}
-            </form.AppField>
-            <form.AppField name="icon">
-              {field => (
-                <div className="space-y-1">
-                  <Label htmlFor="category-icon">Icon</Label>
-                  <IconPicker
-                    aria-label="Category icon"
-                    value={field.state.value}
-                    onChange={field.handleChange}
-                  />
-                </div>
-              )}
-            </form.AppField>
-            <form.AppField name="description">
-              {field => (
-                <field.TextareaField
-                  label="Description"
-                  placeholder="What kind of bookmarks belong here?"
-                />
-              )}
-            </form.AppField>
-          </div>
+              </div>
+            )}
+          </form.AppField>
+          <form.AppField name="description">
+            {field => (
+              <field.TextareaField
+                label="Description"
+                placeholder="What kind of bookmarks belong here?"
+              />
+            )}
+          </form.AppField>
+        </div>
 
-          <form.AppForm>
-            <form.SubmitButton label="Add category" />
-          </form.AppForm>
-          {createCategory.isError
-            ? <p className="text-sm text-destructive">{createCategory.error.message}</p>
-            : null}
-        </form>
-      </CardContent>
-    </Card>
+        <form.AppForm>
+          <form.SubmitButton label="Add category" />
+        </form.AppForm>
+        {createCategory.isError
+          ? <p className="text-sm text-destructive">{createCategory.error.message}</p>
+          : null}
+      </form>
+    </div>
   );
 }
 

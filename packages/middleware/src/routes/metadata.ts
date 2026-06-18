@@ -39,6 +39,19 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
         message: "url must be a valid http(s) URL",
       });
     }
+    // YouTube watch pages rarely expose a parseable <title> before the </head> cutoff,
+    // so use the same oEmbed lookup as /api/fetch-metadata before the strict HTML path.
+    if (isYouTubeVideoUrl(url)) {
+      const meta = await fetchYouTubeMetadata(url);
+      // oEmbed titles are already clean (no site-name suffix to strip).
+      if (meta?.title) {
+        return {
+          title: meta.title,
+        };
+      }
+      // Fall through to the page-title fetch below if oEmbed had no title
+      // (e.g. private/blocked video) — it can still 502 with a real reason.
+    }
     const result = await fetchPageTitle(url);
     if (result.kind !== "ok") {
       let message: string;
