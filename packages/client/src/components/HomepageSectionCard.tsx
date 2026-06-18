@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { GripVertical, Pencil, Trash2 } from "lucide-react";
 
+import { ColumnsSwitcher } from "./ColumnsSwitcher";
 import { HomepageSectionForm } from "./HomepageSectionForm";
 import {
   useDeleteHomepageSection,
@@ -54,6 +55,7 @@ export function HomepageSectionCard({
         </button>
         <CardTitle className="flex-1 text-base">{section.title}</CardTitle>
         <div className="flex items-center gap-1">
+          <ColumnsSwitcher pageKey={section.id} />
           <Button
             type="button"
             variant="ghost"
