@@ -12,10 +12,12 @@ const settingsNav = [
   {
     to: "/settings/custom-properties",
     label: "Custom Properties",
+    customizationKey: "custom-properties",
   },
   {
     to: "/settings/autofill",
     label: "Autofill Rules",
+    customizationKey: "autofill",
   },
   {
     to: "/settings/display",
@@ -28,10 +30,12 @@ const settingsNav = [
   {
     to: "/settings/categories",
     label: "Categories",
+    managementKey: "categories",
   },
   {
     to: "/settings/tags",
     label: "Tags",
+    managementKey: "tags",
   },
   {
     to: "/settings/websites",
@@ -61,11 +65,13 @@ const navLinkClass = `
 
 function SettingsLayout() {
   const hiddenTaxonomyItems = useUiStore(state => state.hiddenTaxonomyItems);
+  const hiddenCustomizationItems = useUiStore(state => state.hiddenCustomizationItems);
+  const hiddenManagementItems = useUiStore(state => state.hiddenManagementItems);
 
   const visibleNav = settingsNav.filter((item) => {
-    if ("taxonomyKey" in item) {
-      return hiddenTaxonomyItems.includes(item.taxonomyKey);
-    }
+    if ("taxonomyKey" in item) return hiddenTaxonomyItems.includes(item.taxonomyKey);
+    if ("customizationKey" in item) return hiddenCustomizationItems.includes(item.customizationKey);
+    if ("managementKey" in item) return hiddenManagementItems.includes(item.managementKey);
     return true;
   });
 

@@ -1,12 +1,25 @@
 import * as React from "react";
 
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Bookmark, Clapperboard, Globe, Home, MonitorPlay, Settings, SlidersHorizontal, Tags, Wand2 } from "lucide-react";
+import {
+  Bookmark,
+  ChevronDown,
+  Clapperboard,
+  FolderOpen,
+  Globe,
+  Home,
+  MonitorPlay,
+  Settings,
+  SlidersHorizontal,
+  Tags,
+  Wand2,
+} from "lucide-react";
 
 import { useCategories } from "../hooks/useCategories";
 import { useResizeHandle } from "../hooks/useResizeHandle";
 import { useUiStore } from "../stores/uiStore";
 
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   Sidebar,
   SidebarContent,
@@ -67,14 +80,29 @@ const customizationItems = [
   {
     key: "custom-properties",
     title: "Custom Properties",
-    to: "/settings/custom-properties",
+    to: "/custom-properties",
     icon: SlidersHorizontal,
   },
   {
     key: "autofill",
     title: "Autofill Rules",
-    to: "/settings/autofill",
+    to: "/autofill",
     icon: Wand2,
+  },
+] as const;
+
+const managementItems = [
+  {
+    key: "categories",
+    title: "Categories",
+    to: "/settings/categories",
+    icon: FolderOpen,
+  },
+  {
+    key: "tags",
+    title: "Tags",
+    to: "/settings/tags",
+    icon: Tags,
   },
 ] as const;
 
@@ -85,11 +113,77 @@ export function AppSidebar({
     select: state => state.location.pathname,
   });
   const {
+    state: sidebarState,
+  } = useSidebar();
+  const {
     data: categories,
   } = useCategories();
   const hiddenCategoryIds = useUiStore(state => state.hiddenCategoryIds);
   const hiddenTaxonomyItems = useUiStore(state => state.hiddenTaxonomyItems);
   const hiddenCustomizationItems = useUiStore(state => state.hiddenCustomizationItems);
+  const hiddenManagementItems = useUiStore(state => state.hiddenManagementItems);
+  const collapsedSidebarSections = useUiStore(state => state.collapsedSidebarSections);
+  const toggleSidebarSection = useUiStore(state => state.toggleSidebarSection);
+
+  const isIconMode = sidebarState === "collapsed";
+
+  function CollapsibleSection({
+    sectionKey,
+    label,
+    children,
+  }: {
+    sectionKey: string;
+    label: string;
+    children: React.ReactNode;
+  }) {
+    const isCollapsed = collapsedSidebarSections.includes(sectionKey);
+    if (isIconMode) {
+      return (
+        <SidebarGroup>
+          <SidebarGroupLabel>{label}</SidebarGroupLabel>
+          <SidebarGroupContent>{children}</SidebarGroupContent>
+        </SidebarGroup>
+      );
+    }
+    return (
+      <Collapsible
+        open={!isCollapsed}
+        onOpenChange={() => toggleSidebarSection(sectionKey)}
+      >
+        <SidebarGroup>
+          <SidebarGroupLabel asChild>
+            <CollapsibleTrigger
+              className="flex w-full items-center justify-between"
+            >
+              {label}
+              <ChevronDown
+                className={`
+                  size-3.5 shrink-0 transition-transform duration-200
+                  ${isCollapsed ? "-rotate-90" : ""}
+                `}
+              />
+            </CollapsibleTrigger>
+          </SidebarGroupLabel>
+          <CollapsibleContent>
+            <SidebarGroupContent>{children}</SidebarGroupContent>
+          </CollapsibleContent>
+        </SidebarGroup>
+      </Collapsible>
+    );
+  }
+
+  const visibleCategories = (categories ?? []).filter(
+    c => !hiddenCategoryIds.includes(c.id),
+  );
+  const visibleTaxonomyItems = taxonomyItems.filter(
+    item => !hiddenTaxonomyItems.includes(item.key),
+  );
+  const visibleCustomizationItems = customizationItems.filter(
+    item => !hiddenCustomizationItems.includes(item.key),
+  );
+  const visibleManagementItems = managementItems.filter(
+    item => !hiddenManagementItems.includes(item.key),
+  );
 
   return (
     <Sidebar
@@ -150,112 +244,126 @@ export function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {(() => {
-          const visibleCategories = (categories ?? []).filter(
-            c => !hiddenCategoryIds.includes(c.id),
-          );
-          return visibleCategories.length > 0
-            ? (
-              <SidebarGroup>
-                <SidebarGroupLabel>Categories</SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {visibleCategories.map((category) => {
-                      const isActive = pathname === `/categories/${category.slug}`;
-                      return (
-                        <SidebarMenuItem key={category.id}>
-                          <SidebarMenuButton
-                            asChild
-                            isActive={isActive}
-                            tooltip={category.name}
-                          >
-                            <Link
-                              to="/categories/$categorySlug"
-                              params={{
-                                categorySlug: category.slug,
-                              }}
-                            >
-                              <CategoryIcon name={category.icon} />
-                              <span>{category.name}</span>
-                            </Link>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      );
-                    })}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
-            )
-            : null;
-        })()}
+        {visibleCategories.length > 0
+          ? (
+            <CollapsibleSection
+              sectionKey="categories"
+              label="Categories"
+            >
+              <SidebarMenu>
+                {visibleCategories.map((category) => {
+                  const isActive = pathname === `/categories/${category.slug}`;
+                  return (
+                    <SidebarMenuItem key={category.id}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive}
+                        tooltip={category.name}
+                      >
+                        <Link
+                          to="/categories/$categorySlug"
+                          params={{
+                            categorySlug: category.slug,
+                          }}
+                        >
+                          <CategoryIcon name={category.icon} />
+                          <span>{category.name}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </CollapsibleSection>
+          )
+          : null}
 
-        {(() => {
-          const visibleTaxonomyItems = taxonomyItems.filter(
-            item => !hiddenTaxonomyItems.includes(item.key),
-          );
-          return visibleTaxonomyItems.length > 0
-            ? (
-              <SidebarGroup>
-                <SidebarGroupLabel>Taxonomies</SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {visibleTaxonomyItems.map((item) => {
-                      const isActive = pathname.startsWith(item.to);
-                      return (
-                        <SidebarMenuItem key={item.to}>
-                          <SidebarMenuButton
-                            asChild
-                            isActive={isActive}
-                            tooltip={item.title}
-                          >
-                            <Link to={item.to}>
-                              <item.icon />
-                              <span>{item.title}</span>
-                            </Link>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      );
-                    })}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
-            )
-            : null;
-        })()}
+        {visibleTaxonomyItems.length > 0
+          ? (
+            <CollapsibleSection
+              sectionKey="taxonomies"
+              label="Taxonomies"
+            >
+              <SidebarMenu>
+                {visibleTaxonomyItems.map((item) => {
+                  const isActive = pathname.startsWith(item.to);
+                  return (
+                    <SidebarMenuItem key={item.to}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive}
+                        tooltip={item.title}
+                      >
+                        <Link to={item.to}>
+                          <item.icon />
+                          <span>{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </CollapsibleSection>
+          )
+          : null}
 
-        {(() => {
-          const visibleCustomizationItems = customizationItems.filter(
-            item => !hiddenCustomizationItems.includes(item.key),
-          );
-          return visibleCustomizationItems.length > 0
-            ? (
-              <SidebarGroup>
-                <SidebarGroupLabel>Customization</SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {visibleCustomizationItems.map((item) => {
-                      const isActive = pathname.startsWith(item.to);
-                      return (
-                        <SidebarMenuItem key={item.to}>
-                          <SidebarMenuButton
-                            asChild
-                            isActive={isActive}
-                            tooltip={item.title}
-                          >
-                            <Link to={item.to}>
-                              <item.icon />
-                              <span>{item.title}</span>
-                            </Link>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      );
-                    })}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
-            )
-            : null;
-        })()}
+        {visibleCustomizationItems.length > 0
+          ? (
+            <CollapsibleSection
+              sectionKey="customization"
+              label="Customization"
+            >
+              <SidebarMenu>
+                {visibleCustomizationItems.map((item) => {
+                  const isActive = pathname.startsWith(item.to);
+                  return (
+                    <SidebarMenuItem key={item.to}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive}
+                        tooltip={item.title}
+                      >
+                        <Link to={item.to}>
+                          <item.icon />
+                          <span>{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </CollapsibleSection>
+          )
+          : null}
+
+        {visibleManagementItems.length > 0
+          ? (
+            <CollapsibleSection
+              sectionKey="management"
+              label="Management"
+            >
+              <SidebarMenu>
+                {visibleManagementItems.map((item) => {
+                  const isActive = pathname.startsWith(item.to);
+                  return (
+                    <SidebarMenuItem key={item.to}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive}
+                        tooltip={item.title}
+                      >
+                        <Link to={item.to}>
+                          <item.icon />
+                          <span>{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </CollapsibleSection>
+          )
+          : null}
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>

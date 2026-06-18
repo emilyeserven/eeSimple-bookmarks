@@ -56,6 +56,12 @@ interface UiState {
   /** Customization item keys hidden in the left sidebar ("custom-properties" | "autofill"). Empty = all visible. */
   hiddenCustomizationItems: string[];
   toggleCustomizationItem: (key: string) => void;
+  /** Management item keys hidden from the left sidebar ("categories" | "tags"). Empty = all visible. */
+  hiddenManagementItems: string[];
+  toggleManagementItem: (key: string) => void;
+  /** Section keys currently collapsed in the left sidebar ("categories" | "taxonomies" | "customization" | "management"). */
+  collapsedSidebarSections: string[];
+  toggleSidebarSection: (section: string) => void;
   /** Whether the Add Bookmark accordion is expanded on Listings pages. Shared across all listing pages. */
   addBookmarkFormOpen: boolean;
   setAddBookmarkFormOpen: (open: boolean) => void;
@@ -129,6 +135,18 @@ export const useUiStore = create<UiState>()(
           ? state.hiddenCustomizationItems.filter(x => x !== key)
           : [...state.hiddenCustomizationItems, key],
       })),
+      hiddenManagementItems: [],
+      toggleManagementItem: key => set(state => ({
+        hiddenManagementItems: state.hiddenManagementItems.includes(key)
+          ? state.hiddenManagementItems.filter(x => x !== key)
+          : [...state.hiddenManagementItems, key],
+      })),
+      collapsedSidebarSections: [],
+      toggleSidebarSection: section => set(state => ({
+        collapsedSidebarSections: state.collapsedSidebarSections.includes(section)
+          ? state.collapsedSidebarSections.filter(x => x !== section)
+          : [...state.collapsedSidebarSections, section],
+      })),
       addBookmarkFormOpen: true,
       setAddBookmarkFormOpen: open => set({
         addBookmarkFormOpen: open,
@@ -168,6 +186,8 @@ export const useUiStore = create<UiState>()(
         hiddenCategoryIds: state.hiddenCategoryIds,
         hiddenTaxonomyItems: state.hiddenTaxonomyItems,
         hiddenCustomizationItems: state.hiddenCustomizationItems,
+        hiddenManagementItems: state.hiddenManagementItems,
+        collapsedSidebarSections: state.collapsedSidebarSections,
         addBookmarkFormOpen: state.addBookmarkFormOpen,
         collapsedHomepageSectionIds: state.collapsedHomepageSectionIds,
         homepageSectionImageLayout: state.homepageSectionImageLayout,
