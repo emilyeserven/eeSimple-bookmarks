@@ -1,5 +1,7 @@
 import type { Category, CustomPropertyType } from "@eesimple/types";
 
+import { propertyAppliesToCategory } from "@eesimple/types";
+
 import { CategoryDefaultsSection } from "./CategoryDefaultsSection";
 import {
   useCustomProperties,
@@ -63,11 +65,14 @@ export function CategoryCustomProperties({
               >
                 <Checkbox
                   id={inputId}
-                  checked={property.categoryIds.includes(category.id)}
+                  checked={propertyAppliesToCategory(property, category.id)}
                   onCheckedChange={() =>
                     updateProperty.mutate({
                       id: property.id,
+                      // Unchecking a property that applies to "all categories" drops that flag and
+                      // falls back to its explicit list (minus this category).
                       input: {
+                        allCategories: false,
                         categoryIds: toggleId(property.categoryIds, category.id),
                       },
                     })}

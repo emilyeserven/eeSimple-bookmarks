@@ -191,6 +191,10 @@ export interface CustomProperty {
   operandPropertyIds: string[];
   /** Ids of the categories this property is assigned to (zero, one, or many). */
   categoryIds: string[];
+  /** When true, the property applies to every category, including ones created later (overrides `categoryIds`). */
+  allCategories: boolean;
+  /** When true, the property's value can be edited inline from a bookmark card's "More" menu. */
+  editableOnCard: boolean;
   /** When true, the field shows in the main bookmark form; otherwise it lives under Advanced. Only applies when not `hiddenFromForm`. */
   showInForm: boolean;
   /** When true, the property's field is hidden from the bookmark form entirely (neither main nor Advanced). */
@@ -216,6 +220,10 @@ export interface CreateCustomPropertyInput {
   operandPropertyIds?: string[];
   /** Ids of categories to assign this property to. Omit to leave unassigned. */
   categoryIds?: string[];
+  /** When true, the property applies to every category, including ones created later. Defaults to false. */
+  allCategories?: boolean;
+  /** When true, the property's value can be edited from a bookmark card's "More" menu. Defaults to false. */
+  editableOnCard?: boolean;
   /** When true, the field shows in the main bookmark form; otherwise it lives under Advanced. Only applies when not `hiddenFromForm`. */
   showInForm?: boolean;
   /** When true, the property's field is hidden from the bookmark form entirely. Defaults to false. */
@@ -226,6 +234,17 @@ export interface CreateCustomPropertyInput {
 
 /** Payload for updating a custom property. Its `type` is immutable. */
 export type UpdateCustomPropertyInput = Partial<Omit<CreateCustomPropertyInput, "type">>;
+
+/**
+ * Whether a property is assigned to a given category. A property with `allCategories` set applies to
+ * every category (including ones created after it); otherwise it applies only to its `categoryIds`.
+ */
+export function propertyAppliesToCategory(
+  property: Pick<CustomProperty, "allCategories" | "categoryIds">,
+  categoryId: string,
+): boolean {
+  return property.allCategories || property.categoryIds.includes(categoryId);
+}
 
 /** A number custom property value carried on a bookmark. */
 export interface BookmarkNumberValue {

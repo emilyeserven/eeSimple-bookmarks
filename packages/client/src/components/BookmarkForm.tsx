@@ -11,6 +11,7 @@ import type {
 
 import { useEffect, useId, useRef, useState } from "react";
 
+import { propertyAppliesToCategory } from "@eesimple/types";
 import { Brush, ChevronDown, ExternalLink, Loader2, Sparkles } from "lucide-react";
 import { z } from "zod";
 
@@ -253,7 +254,7 @@ export function BookmarkForm({
       } = customRef.current;
       // Only persist values for properties that belong to the chosen category.
       const categoryProps = (customProperties ?? []).filter(property =>
-        property.categoryIds.includes(value.categoryId));
+        propertyAppliesToCategory(property, value.categoryId));
       const numberValues: BookmarkNumberValue[] = categoryProps
         .filter(property => property.type === "number")
         .map((property) => {
@@ -997,7 +998,7 @@ function CategoryCustomFields({
   categoryId, properties, placement, className, numberInputs, booleanInputs, onNumberChange, onBooleanChange,
 }: CategoryCustomFieldsProps) {
   const categoryProps = properties.filter((property) => {
-    if (!property.categoryIds.includes(categoryId)) return false;
+    if (!propertyAppliesToCategory(property, categoryId)) return false;
     // hiddenFromForm drops the field entirely; otherwise showInForm chooses the main area vs. Advanced.
     if (property.hiddenFromForm) return false;
     return placement === "default" ? property.showInForm : !property.showInForm;

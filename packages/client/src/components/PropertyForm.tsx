@@ -5,11 +5,17 @@ import type {
 } from "@eesimple/types";
 import type { ReactNode } from "react";
 
+import { ChevronDown } from "lucide-react";
 import { z } from "zod";
 
 import { useAppForm } from "../lib/form";
 
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Label } from "@/components/ui/label";
 import { CategoryIcon } from "@/lib/icons";
 
@@ -44,9 +50,11 @@ const propertySchema = z
     maxLabel: z.string(),
     operandIds: z.array(z.string()),
     categoryIds: z.array(z.string()),
+    allCategories: z.boolean(),
     inForm: z.boolean(),
     advancedOnly: z.boolean(),
     showInListings: z.boolean(),
+    editableOnCard: z.boolean(),
   })
   .superRefine((value, ctx) => {
     if (value.type === "calculate" && value.operandIds.length < 2) {
@@ -81,9 +89,11 @@ const CREATE_DEFAULTS: PropertyFormValues = {
   maxLabel: "",
   operandIds: [],
   categoryIds: [],
+  allCategories: false,
   inForm: true,
   advancedOnly: false,
   showInListings: true,
+  editableOnCard: false,
 };
 
 /** Map a saved property to editable form values (null bounds become the "disabled" state). */
@@ -103,9 +113,11 @@ function valuesFromProperty(property: CustomProperty): PropertyFormValues {
     maxLabel: property.maxLabel ?? "",
     operandIds: property.operandPropertyIds,
     categoryIds: property.categoryIds,
+    allCategories: property.allCategories,
     inForm: !property.hiddenFromForm,
     advancedOnly: !property.showInForm,
     showInListings: property.showInListings,
+    editableOnCard: property.editableOnCard,
   };
 }
 
@@ -126,9 +138,12 @@ function payloadFromValues(values: PropertyFormValues): CreateCustomPropertyInpu
     maxLabel: isNumber ? trimOrNull(values.maxLabel) : null,
     operandPropertyIds: values.type === "calculate" ? values.operandIds : undefined,
     categoryIds: values.categoryIds,
+    allCategories: values.allCategories,
     hiddenFromForm: !values.inForm,
     showInForm: !values.advancedOnly,
     showInListings: values.showInListings,
+    // Calculate values are computed server-side, so they can never be edited from the card menu.
+    editableOnCard: values.type === "calculate" ? false : values.editableOnCard,
   };
 }
 
@@ -139,6 +154,8 @@ interface CategoryCheckboxListProps {
   idPrefix: string;
   /** When set, render a leading "Select all" checkbox that selects every / no category. */
   onToggleAll?: (selectAll: boolean) => void;
+  /** When true, the property applies to all (incl. future) categories; "Select all" stays checked. */
+  allCategories?: boolean;
 }
 
 /** A checkbox list for assigning a property to zero, one, or many categories. */
@@ -148,6 +165,7 @@ function CategoryCheckboxList({
   onToggle,
   idPrefix,
   onToggleAll,
+  allCategories = false,
 }: CategoryCheckboxListProps) {
   if (categories.length === 0) {
     return (
@@ -156,7 +174,7 @@ function CategoryCheckboxList({
       </p>
     );
   }
-  const allSelected = categories.every(category => selectedIds.includes(category.id));
+  const allSelected = allCategories || categories.every(category => selectedIds.includes(category.id));
   return (
     <div className="space-y-2">
       {onToggleAll
@@ -191,7 +209,7 @@ function CategoryCheckboxList({
             >
               <Checkbox
                 id={inputId}
-                checked={selectedIds.includes(category.id)}
+                checked={allCategories || selectedIds.includes(category.id)}
                 onCheckedChange={() => onToggle(category.id)}
               />
               <Label
@@ -256,22 +274,55 @@ function OperandCheckboxList({
   );
 }
 
-/** A bordered, titled group of related fields (e.g. "Property options", "Display options"). */
+/**
+ * A bordered, titled group of related fields (e.g. "Property options", "Display options").
+ * When `collapsible`, the title row toggles the section open/closed (open by default).
+ */
 function FormSection({
-  title, description, children,
+  title, description, children, collapsible = false, defaultOpen = true,
 }: {
   title: string;
   description?: string;
   children: ReactNode;
+  collapsible?: boolean;
+  defaultOpen?: boolean;
 }) {
-  return (
-    <div className="space-y-3 rounded-md border p-4">
-      <div className="space-y-0.5">
-        <h3 className="text-sm font-medium">{title}</h3>
-        {description ? <p className="text-xs text-muted-foreground">{description}</p> : null}
-      </div>
-      {children}
+  const heading = (
+    <div className="space-y-0.5 text-left">
+      <h3 className="text-sm font-medium">{title}</h3>
+      {description ? <p className="text-xs text-muted-foreground">{description}</p> : null}
     </div>
+  );
+
+  if (!collapsible) {
+    return (
+      <div className="space-y-3 rounded-md border p-4">
+        {heading}
+        {children}
+      </div>
+    );
+  }
+
+  return (
+    <Collapsible
+      defaultOpen={defaultOpen}
+      className="group/section space-y-3 rounded-md border p-4"
+    >
+      <CollapsibleTrigger
+        className="flex w-full items-center justify-between gap-2"
+      >
+        {heading}
+        <ChevronDown
+          className="
+            size-4 shrink-0 text-muted-foreground transition-transform
+            group-data-[state=open]/section:rotate-180
+          "
+        />
+      </CollapsibleTrigger>
+      <CollapsibleContent className="space-y-3">
+        {children}
+      </CollapsibleContent>
+    </Collapsible>
   );
 }
 
@@ -373,7 +424,10 @@ export function PropertyForm({
         {type =>
           type === "number"
             ? (
-              <FormSection title="Property options">
+              <FormSection
+                title="Property options"
+                collapsible
+              >
                 <div
                   className="
                     grid gap-3
@@ -517,23 +571,48 @@ export function PropertyForm({
             : null}
       </form.Subscribe>
 
-      <form.AppField name="categoryIds">
-        {field => (
-          <div className="space-y-2">
-            <Label>Categories</Label>
-            <CategoryCheckboxList
-              categories={categories}
-              selectedIds={field.state.value}
-              onToggle={id => field.handleChange(toggleId(field.state.value, id))}
-              onToggleAll={selectAll =>
-                field.handleChange(selectAll ? categories.map(category => category.id) : [])}
-              idPrefix={idPrefix}
-            />
-          </div>
-        )}
-      </form.AppField>
+      <FormSection
+        title="Categories"
+        collapsible
+      >
+        <form.Subscribe selector={state => state.values.allCategories}>
+          {allCategories => (
+            <form.AppField name="categoryIds">
+              {field => (
+                <CategoryCheckboxList
+                  categories={categories}
+                  selectedIds={field.state.value}
+                  allCategories={allCategories}
+                  onToggle={(id) => {
+                    if (allCategories) {
+                      // Toggling one category drops the "all categories" flag and falls back to an
+                      // explicit list of every current category except the one just unchecked.
+                      form.setFieldValue("allCategories", false);
+                      field.handleChange(
+                        categories.map(category => category.id).filter(categoryId => categoryId !== id),
+                      );
+                    }
+                    else {
+                      field.handleChange(toggleId(field.state.value, id));
+                    }
+                  }}
+                  onToggleAll={(selectAll) => {
+                    // Select all also means "apply to categories created later" via the flag.
+                    form.setFieldValue("allCategories", selectAll);
+                    field.handleChange(selectAll ? categories.map(category => category.id) : []);
+                  }}
+                  idPrefix={idPrefix}
+                />
+              )}
+            </form.AppField>
+          )}
+        </form.Subscribe>
+      </FormSection>
 
-      <FormSection title="Display options">
+      <FormSection
+        title="Display options"
+        collapsible
+      >
         <div className="space-y-2">
           <span className="text-sm font-medium">Show in…</span>
           <div className="space-y-2">
@@ -587,6 +666,30 @@ export function PropertyForm({
             </form.AppField>
           </div>
         </div>
+        <form.Subscribe selector={state => state.values.type}>
+          {type =>
+            type === "calculate"
+              ? null
+              : (
+                <div className="space-y-2 border-t pt-3">
+                  <span className="text-sm font-medium">Editing</span>
+                  <form.AppField name="editableOnCard">
+                    {field => (
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          id={`${idPrefix}-editable-on-card`}
+                          checked={field.state.value}
+                          onCheckedChange={checked => field.handleChange(checked === true)}
+                        />
+                        <Label htmlFor={`${idPrefix}-editable-on-card`}>
+                          Allow editing from the bookmark card menu
+                        </Label>
+                      </div>
+                    )}
+                  </form.AppField>
+                </div>
+              )}
+        </form.Subscribe>
       </FormSection>
 
       <div className="flex items-center gap-2">

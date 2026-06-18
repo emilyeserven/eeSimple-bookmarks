@@ -281,7 +281,7 @@ export function PropertyConditionEditor({
 
   function isPropertyActive(property: CustomProperty): boolean {
     if (!selectedCategoryIds.length) return true;
-    if (property.categoryIds.length === 0) return true;
+    if (property.allCategories || property.categoryIds.length === 0) return true;
     return property.categoryIds.some(id => selectedCategoryIds.includes(id));
   }
 
