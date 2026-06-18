@@ -6,6 +6,7 @@ import { Link } from "@tanstack/react-router";
 import { Pencil } from "lucide-react";
 import { z } from "zod";
 
+import { useEditPanelClick } from "./panel/useEditPanelClick";
 import { useCreateMediaType, useDeleteMediaType, useMediaTypes, useUpdateMediaType } from "../hooks/useMediaTypes";
 import { useAppForm } from "../lib/form";
 
@@ -13,6 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
+import { useUiStore } from "@/stores/uiStore";
 
 /** A single editable media-type row: rename and/or reorder. Built-ins can't be renamed or deleted. */
 export function MediaTypeRow({
@@ -120,6 +123,8 @@ export function MediaTypeRow({
 export function MediaTypeCard({
   mediaType,
 }: { mediaType: MediaType }) {
+  const editClick = useEditPanelClick();
+  const modifier = useUiStore(state => state.sidebarOpenModifier);
   return (
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-2">
@@ -139,6 +144,8 @@ export function MediaTypeCard({
             params={{
               mediaTypeSlug: mediaType.slug,
             }}
+            title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+            onClick={event => editClick(event, "media-type", mediaType.id)}
           >
             Edit
           </Link>
@@ -272,6 +279,8 @@ export function MediaTypesListing() {
     data: allMediaTypes, isLoading, error,
   } = useMediaTypes();
   const [search, setSearch] = useState("");
+  const editClick = useEditPanelClick();
+  const modifier = useUiStore(state => state.sidebarOpenModifier);
 
   const filtered = (allMediaTypes ?? []).filter((m) => {
     const q = search.trim().toLowerCase();
@@ -353,6 +362,8 @@ export function MediaTypesListing() {
                       params={{
                         mediaTypeSlug: mediaType.slug,
                       }}
+                      title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+                      onClick={event => editClick(event, "media-type", mediaType.id)}
                     >
                       <Pencil className="size-4" />
                       <span className="sr-only">Edit {mediaType.name}</span>

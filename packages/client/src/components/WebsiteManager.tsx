@@ -8,6 +8,7 @@ import { z } from "zod";
 
 import { LabeledSection } from "./LabeledSection";
 import { LinkPreview } from "./LinkPreview";
+import { useEditPanelClick } from "./panel/useEditPanelClick";
 import { useBookmarksOnHost, useBulkExpandBookmarkUrls } from "../hooks/useBookmarks";
 import { useCreateWebsite, useUpdateWebsite, useWebsites } from "../hooks/useWebsites";
 import { useAppForm } from "../lib/form";
@@ -18,6 +19,8 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
+import { useUiStore } from "@/stores/uiStore";
 import { Separator } from "@/components/ui/separator";
 
 /** Local draft of a param rule, with params edited as a comma-separated string. */
@@ -543,6 +546,8 @@ function BulkExpandShortened({
 export function WebsiteCard({
   website,
 }: { website: Website }) {
+  const editClick = useEditPanelClick();
+  const modifier = useUiStore(state => state.sidebarOpenModifier);
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-2">
@@ -571,6 +576,8 @@ export function WebsiteCard({
             params={{
               websiteSlug: website.slug,
             }}
+            title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+            onClick={event => editClick(event, "website", website.id)}
           >
             Edit
           </Link>
@@ -776,6 +783,8 @@ export function WebsitesListing() {
     data: allWebsites, isLoading, error,
   } = useWebsites();
   const [search, setSearch] = useState("");
+  const editClick = useEditPanelClick();
+  const modifier = useUiStore(state => state.sidebarOpenModifier);
 
   const filtered = (allWebsites ?? []).filter((w) => {
     const q = search.trim().toLowerCase();
@@ -855,6 +864,8 @@ export function WebsitesListing() {
                       params={{
                         websiteSlug: website.slug,
                       }}
+                      title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+                      onClick={event => editClick(event, "website", website.id)}
                     >
                       <Pencil className="size-4" />
                       <span className="sr-only">Edit {website.siteName}</span>

@@ -2,9 +2,13 @@ import type { Category } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
 
+import { useEditPanelClick } from "./panel/useEditPanelClick";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CategoryIcon } from "@/lib/icons";
+import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
+import { useUiStore } from "@/stores/uiStore";
 
 /**
  * Hover-revealed Edit / See All button group with an always-visible bookmark count to its right.
@@ -15,6 +19,8 @@ function CategoryControls({
 }: {
   category: Category;
 }) {
+  const editClick = useEditPanelClick();
+  const modifier = useUiStore(state => state.sidebarOpenModifier);
   return (
     <div className="flex items-center gap-2">
       <div
@@ -34,6 +40,8 @@ function CategoryControls({
             params={{
               categorySlug: category.slug,
             }}
+            title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+            onClick={event => editClick(event, "category", category.id)}
           >
             Edit
           </Link>

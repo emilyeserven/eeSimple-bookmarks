@@ -4,6 +4,9 @@ import { persist } from "zustand/middleware";
 /** The user's theme preference. `system` follows the OS `prefers-color-scheme`. */
 export type Theme = "light" | "dark" | "system";
 
+/** Modifier key that, held while clicking an Edit button, opens the item in the right-hand sidebar. */
+export type SidebarOpenModifier = "alt" | "ctrl" | "shift" | "meta";
+
 /** Per-section image layout preference for 2-column homepage sections. */
 export type HomepageSectionImageLayout = "above" | "side";
 
@@ -26,6 +29,9 @@ interface UiState {
   /** The selected theme; persisted to localStorage so it survives reloads. */
   theme: Theme;
   setTheme: (theme: Theme) => void;
+  /** Modifier held while clicking an Edit button to open the item in the sidebar instead of its page. */
+  sidebarOpenModifier: SidebarOpenModifier;
+  setSidebarOpenModifier: (value: SidebarOpenModifier) => void;
   /** When on, blurring the bookmark URL field auto-fetches the page title. */
   autoFetchTitle: boolean;
   setAutoFetchTitle: (value: boolean) => void;
@@ -79,6 +85,10 @@ export const useUiStore = create<UiState>()(
       theme: "system",
       setTheme: theme => set({
         theme,
+      }),
+      sidebarOpenModifier: "alt",
+      setSidebarOpenModifier: value => set({
+        sidebarOpenModifier: value,
       }),
       autoFetchTitle: true,
       setAutoFetchTitle: value => set({
@@ -166,6 +176,7 @@ export const useUiStore = create<UiState>()(
       name: "eesimple-ui",
       partialize: state => ({
         theme: state.theme,
+        sidebarOpenModifier: state.sidebarOpenModifier,
         autoFetchTitle: state.autoFetchTitle,
         autoFetchImage: state.autoFetchImage,
         bookmarkImageMode: state.bookmarkImageMode,

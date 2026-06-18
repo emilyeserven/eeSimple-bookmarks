@@ -3,10 +3,12 @@ import type { TagNode } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 import { ChevronDown, ChevronRight, Pencil } from "lucide-react";
 
-import { usePanelControls } from "./panel/usePanelControls";
+import { useEditPanelClick } from "./panel/useEditPanelClick";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
+import { useUiStore } from "@/stores/uiStore";
 
 interface TagTreeListProps {
   /** The root tags to render. */
@@ -46,9 +48,8 @@ interface TagTreeRowProps {
 function TagTreeRow({
   node, depth, expanded, onToggle,
 }: TagTreeRowProps) {
-  const {
-    openTag,
-  } = usePanelControls();
+  const editClick = useEditPanelClick();
+  const modifier = useUiStore(state => state.sidebarOpenModifier);
   const hasChildren = node.children.length > 0;
   const isOpen = expanded.has(node.id);
 
@@ -106,18 +107,26 @@ function TagTreeRow({
           : null}
 
         <Button
-          type="button"
+          asChild
           variant="ghost"
           size="sm"
-          aria-label={`Quick view ${node.name}`}
           className="
             opacity-0 transition-opacity
             group-hover:opacity-100
             focus-visible:opacity-100
           "
-          onClick={() => openTag(node.id)}
         >
-          <Pencil className="size-4" />
+          <Link
+            to="/tags/$tagSlug/edit"
+            params={{
+              tagSlug: node.slug,
+            }}
+            aria-label={`Edit ${node.name}`}
+            title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+            onClick={event => editClick(event, "tag", node.id)}
+          >
+            <Pencil className="size-4" />
+          </Link>
         </Button>
       </li>
 

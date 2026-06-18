@@ -14,6 +14,7 @@ import { Link } from "@tanstack/react-router";
 import { ExternalLink, MoreVertical, Sparkles } from "lucide-react";
 
 import { DateTimePicker } from "./DateTimePicker";
+import { useEditPanelClick } from "./panel/useEditPanelClick";
 import { useAutoBookmarkImage, useUpdateBookmark } from "../hooks/useBookmarks";
 import { formatDateTime, formatNumber } from "../lib/bookmarkFormat";
 
@@ -30,6 +31,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
+import { useUiStore } from "@/stores/uiStore";
 
 interface BookmarkCardProps {
   bookmark: Bookmark;
@@ -241,6 +244,8 @@ export function BookmarkCard({
 }: BookmarkCardProps) {
   const autoImage = useAutoBookmarkImage();
   const updateBookmark = useUpdateBookmark();
+  const editClick = useEditPanelClick();
+  const modifier = useUiStore(state => state.sidebarOpenModifier);
   const byId = new Map(properties.map(property => [property.id, property]));
 
   // Properties opted into inline editing from this card, limited to ones that apply to its category.
@@ -370,6 +375,8 @@ export function BookmarkCard({
                 params={{
                   bookmarkId: bookmark.id,
                 }}
+                title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+                onClick={event => editClick(event, "bookmark", bookmark.id)}
               >
                 Edit
               </Link>
