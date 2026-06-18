@@ -11,6 +11,7 @@ import { createFormHook, createFormHookContexts } from "@tanstack/react-form";
 import { Combobox } from "@/components/Combobox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { InputAddon, InputGroup } from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -74,7 +75,7 @@ function TextField({
       type={type}
       placeholder={placeholder}
       disabled={disabled}
-      className={inputClassName}
+      className={action ? `pe-10 ${inputClassName ?? ""}`.trim() : inputClassName}
       value={field.state.value}
       onBlur={() => {
         field.handleBlur();
@@ -94,10 +95,10 @@ function TextField({
       </Label>
       {action
         ? (
-          <div className="flex items-center gap-2">
-            <div className="flex-1">{input}</div>
-            {action}
-          </div>
+          <InputGroup>
+            {input}
+            <InputAddon align="inline-end">{action}</InputAddon>
+          </InputGroup>
         )
         : input}
       {field.state.meta.isTouched && <FieldErrors errors={field.state.meta.errors} />}
@@ -133,7 +134,7 @@ function TextareaField({
       rows={rows}
       placeholder={placeholder}
       disabled={disabled}
-      className={`${fill ? "h-full flex-1" : ""} ${inputClassName ?? ""}`.trim() || undefined}
+      className={`${fill ? "h-full flex-1" : ""} ${action ? "pe-10" : ""} ${inputClassName ?? ""}`.trim() || undefined}
       value={field.state.value}
       onBlur={() => {
         field.handleBlur();
@@ -148,10 +149,15 @@ function TextareaField({
       <Label htmlFor={id}>{label}</Label>
       {action
         ? (
-          <div className="flex items-start gap-2">
-            <div className="flex-1">{textarea}</div>
-            {action}
-          </div>
+          <InputGroup>
+            {textarea}
+            <InputAddon
+              align="inline-end"
+              className="items-start pt-1"
+            >
+              {action}
+            </InputAddon>
+          </InputGroup>
         )
         : textarea}
       {field.state.meta.isTouched && <FieldErrors errors={field.state.meta.errors} />}

@@ -1,7 +1,7 @@
-import { asc, eq, isNull, ne, sql } from "drizzle-orm";
+import { asc, eq, inArray, isNull, ne, sql } from "drizzle-orm";
 import type { UpdateYouTubeChannelInput, YouTubeChannel } from "@eesimple/types";
 import { db } from "@/db";
-import { bookmarks, type YouTubeChannelRow, youtubeChannels } from "@/db/schema";
+import { bookmarks, type YouTubeChannelRow, youtubeChannelSelfIds, youtubeChannels } from "@/db/schema";
 import { slugify, uniqueSlug } from "@/utils/slug";
 
 /** Transaction handle type, matching the callback arg of `db.transaction`. */
@@ -38,8 +38,47 @@ export function channelKeyFromUrl(channelUrl: string): string | null {
   return segments[segments.length - 1].toLowerCase();
 }
 
+/** Replace the full set of self-identifiers for a channel (delete-then-insert). */
+async function setSelfIds(
+  txOrDb: Tx | typeof db,
+  channelId: string,
+  values: string[],
+): Promise<void> {
+  await txOrDb.delete(youtubeChannelSelfIds).where(eq(youtubeChannelSelfIds.channelId, channelId));
+  if (values.length > 0) {
+    await txOrDb.insert(youtubeChannelSelfIds).values(
+      values.map(value => ({
+        channelId,
+        value,
+      })),
+    );
+  }
+}
+
+/** Load self-identifiers for a set of channel ids as a map of id → string[]. */
+async function loadSelfIdsMap(channelIds: string[]): Promise<Map<string, string[]>> {
+  if (channelIds.length === 0) return new Map();
+  const rows = await db
+    .select({
+      channelId: youtubeChannelSelfIds.channelId,
+      value: youtubeChannelSelfIds.value,
+    })
+    .from(youtubeChannelSelfIds)
+    .where(inArray(youtubeChannelSelfIds.channelId, channelIds));
+  const map = new Map<string, string[]>();
+  for (const row of rows) {
+    const existing = map.get(row.channelId) ?? [];
+    existing.push(row.value);
+    map.set(row.channelId, existing);
+  }
+  return map;
+}
+
 /** Map a DB row to the shared `YouTubeChannel` wire type. */
-function toYouTubeChannel(row: YouTubeChannelRow & { bookmarkCount?: number }): YouTubeChannel {
+function toYouTubeChannel(
+  row: YouTubeChannelRow & { bookmarkCount?: number },
+  selfIds: string[] = [],
+): YouTubeChannel {
   return {
     id: row.id,
     channelKey: row.channelKey,
@@ -48,6 +87,7 @@ function toYouTubeChannel(row: YouTubeChannelRow & { bookmarkCount?: number }): 
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount: row.bookmarkCount,
+    selfIds,
   };
 }
 
@@ -75,29 +115,56 @@ export async function listYouTubeChannels(): Promise<YouTubeChannel[]> {
     })
     .from(youtubeChannels)
     .orderBy(asc(youtubeChannels.name));
-  return rows.map(toYouTubeChannel);
+
+  const selfIdsMap = await loadSelfIdsMap(rows.map(r => r.id));
+  return rows.map(row => toYouTubeChannel(row, selfIdsMap.get(row.id) ?? []));
 }
 
 /** Fetch a single channel by id, or `null` when absent. */
 export async function getYouTubeChannel(id: string): Promise<YouTubeChannel | null> {
   const [row] = await db.select().from(youtubeChannels).where(eq(youtubeChannels.id, id));
-  return row ? toYouTubeChannel(row) : null;
+  if (!row) return null;
+  const selfIdsMap = await loadSelfIdsMap([id]);
+  return toYouTubeChannel(row, selfIdsMap.get(id) ?? []);
 }
 
 /** Fetch a channel by its slug, or `null` when absent. */
 export async function getYouTubeChannelBySlug(slug: string): Promise<YouTubeChannel | null> {
   const [row] = await db.select().from(youtubeChannels).where(eq(youtubeChannels.slug, slug));
-  return row ? toYouTubeChannel(row) : null;
+  if (!row) return null;
+  const selfIdsMap = await loadSelfIdsMap([row.id]);
+  return toYouTubeChannel(row, selfIdsMap.get(row.id) ?? []);
+}
+
+/** Fetch a channel by its stable channel key, or `null` when absent. */
+export async function getYouTubeChannelByKey(channelKey: string): Promise<YouTubeChannel | null> {
+  const [row] = await db.select().from(youtubeChannels).where(eq(youtubeChannels.channelKey, channelKey));
+  if (!row) return null;
+  const selfIdsMap = await loadSelfIdsMap([row.id]);
+  return toYouTubeChannel(row, selfIdsMap.get(row.id) ?? []);
+}
+
+/** List self-identifiers for a single channel. */
+export async function listSelfIds(channelId: string): Promise<string[]> {
+  const rows = await db
+    .select({
+      value: youtubeChannelSelfIds.value,
+    })
+    .from(youtubeChannelSelfIds)
+    .where(eq(youtubeChannelSelfIds.channelId, channelId));
+  return rows.map(r => r.value);
 }
 
 /**
  * Resolve the channel for a `{ key, name }` hint inside a transaction, creating it when none exists
  * yet. Returns the channel id, or `null` when the hint is unusable.
+ * When `hint.selfIds` is provided, replaces the channel's self-identifier set.
  */
 export async function ensureYouTubeChannel(
   tx: Tx,
   hint: { key: string;
-    name: string; },
+    name: string;
+    selfIds?: string[]; },
 ): Promise<string | null> {
   const channelKey = hint.key.trim();
   const name = hint.name.trim();
@@ -109,58 +176,80 @@ export async function ensureYouTubeChannel(
     })
     .from(youtubeChannels)
     .where(eq(youtubeChannels.channelKey, channelKey));
-  if (existing) return existing.id;
 
-  const slug = uniqueSlug(name, await takenSlugs());
-  const inserted = await tx
-    .insert(youtubeChannels)
-    .values({
-      channelKey,
-      name,
-      slug,
-    })
-    .onConflictDoNothing({
-      target: youtubeChannels.channelKey,
-    })
-    .returning({
-      id: youtubeChannels.id,
-    });
-  if (inserted.length > 0) return inserted[0].id;
+  let channelId: string;
 
-  // Lost a concurrent insert race — re-read the row the other writer created.
-  const [row] = await tx
-    .select({
-      id: youtubeChannels.id,
-    })
-    .from(youtubeChannels)
-    .where(eq(youtubeChannels.channelKey, channelKey));
-  return row?.id ?? null;
+  if (existing) {
+    channelId = existing.id;
+  }
+  else {
+    const slug = uniqueSlug(name, await takenSlugs());
+    const inserted = await tx
+      .insert(youtubeChannels)
+      .values({
+        channelKey,
+        name,
+        slug,
+      })
+      .onConflictDoNothing({
+        target: youtubeChannels.channelKey,
+      })
+      .returning({
+        id: youtubeChannels.id,
+      });
+
+    if (inserted.length > 0) {
+      channelId = inserted[0].id;
+    }
+    else {
+      // Lost a concurrent insert race — re-read the row the other writer created.
+      const [row] = await tx
+        .select({
+          id: youtubeChannels.id,
+        })
+        .from(youtubeChannels)
+        .where(eq(youtubeChannels.channelKey, channelKey));
+      if (!row) return null;
+      channelId = row.id;
+    }
+  }
+
+  if (hint.selfIds && hint.selfIds.length > 0) {
+    await setSelfIds(tx, channelId, hint.selfIds);
+  }
+
+  return channelId;
 }
 
-/** Rename a channel. Returns the updated row, or `null` when absent. */
+/** Rename a channel and/or update its self-identifiers. Returns the updated row, or `null` when absent. */
 export async function updateYouTubeChannel(
   id: string,
   input: UpdateYouTubeChannelInput,
 ): Promise<YouTubeChannel | null> {
-  if (input.name === undefined) return getYouTubeChannel(id);
-  const name = input.name.trim();
-  if (name.length === 0) return getYouTubeChannel(id);
+  if (input.name !== undefined) {
+    const name = input.name.trim();
+    if (name.length > 0) {
+      const [clash] = await db.select({
+        id: youtubeChannels.id,
+      }).from(youtubeChannels).where(eq(youtubeChannels.name, name));
+      if (clash && clash.id !== id) throw new DuplicateYouTubeChannelError(name);
 
-  const [clash] = await db.select({
-    id: youtubeChannels.id,
-  }).from(youtubeChannels).where(eq(youtubeChannels.name, name));
-  if (clash && clash.id !== id) throw new DuplicateYouTubeChannelError(name);
+      const slug = uniqueSlug(name, await takenSlugs(id));
+      await db
+        .update(youtubeChannels)
+        .set({
+          name,
+          slug,
+        })
+        .where(eq(youtubeChannels.id, id));
+    }
+  }
 
-  const slug = uniqueSlug(name, await takenSlugs(id));
-  const [row] = await db
-    .update(youtubeChannels)
-    .set({
-      name,
-      slug,
-    })
-    .where(eq(youtubeChannels.id, id))
-    .returning();
-  return row ? toYouTubeChannel(row) : null;
+  if (input.selfIds !== undefined) {
+    await setSelfIds(db, id, input.selfIds);
+  }
+
+  return getYouTubeChannel(id);
 }
 
 /** Delete a channel. Bookmarks pointing at it have their `youtubeChannelId` set to NULL via FK. */

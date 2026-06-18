@@ -475,11 +475,13 @@ function channelHintFrom(
   hint: YouTubeChannelHint | null | undefined,
   meta: YouTubeMetadata | null,
 ): { key: string;
-  name: string; } | null {
+  name: string;
+  selfIds?: string[]; } | null {
   if (hint && hint.key.trim() && hint.name.trim()) {
     return {
       key: hint.key.trim(),
       name: hint.name.trim(),
+      selfIds: hint.selfIds,
     };
   }
   if (meta?.channelName && meta.channelUrl) {
