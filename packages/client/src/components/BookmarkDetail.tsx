@@ -3,13 +3,13 @@ import type { Bookmark, Category, CustomProperty, PropertyGroup } from "@eesimpl
 import { youtubeEmbedUrl } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 
+import { DetailHeaderActions } from "./DetailHeaderActions";
 import { useViewPanelClick } from "./panel/useEditPanelClick";
 import { formatDateTime, formatNumber } from "../lib/bookmarkFormat";
 
 import { DetailField } from "@/components/DetailField";
 import { LabeledSection } from "@/components/LabeledSection";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { CategoryIcon } from "@/lib/icons";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
@@ -153,40 +153,10 @@ export function BookmarkDetail({
             {bookmark.url}
           </a>
         </div>
-        {onEdit || onDelete
-          ? (
-            <div className="flex shrink-0 items-center gap-1">
-              {onEdit
-                ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={onEdit}
-                  >
-                    Edit
-                  </Button>
-                )
-                : null}
-              {onDelete
-                ? (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={onDelete}
-                    className="
-                      text-destructive
-                      hover:text-destructive
-                    "
-                  >
-                    Delete
-                  </Button>
-                )
-                : null}
-            </div>
-          )
-          : null}
+        <DetailHeaderActions
+          onEdit={onEdit}
+          onDelete={onDelete}
+        />
       </div>
 
       <div

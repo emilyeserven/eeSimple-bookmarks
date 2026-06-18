@@ -1,22 +1,7 @@
 import type { Category } from "@eesimple/types";
 
-import { z } from "zod";
-
+import { InlineCreateModal } from "./InlineCreateModal";
 import { useCreateCategory } from "../hooks/useCategories";
-import { useAppForm } from "../lib/form";
-
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-
-const addCategorySchema = z.object({
-  name: z.string().trim().min(1, "Name is required"),
-});
 
 interface AddCategoryModalProps {
   open: boolean;
@@ -31,75 +16,29 @@ export function AddCategoryModal({
 }: AddCategoryModalProps) {
   const createCategory = useCreateCategory();
 
-  const form = useAppForm({
-    defaultValues: {
-      name: "",
-    },
-    validators: {
-      onChange: addCategorySchema,
-    },
-    onSubmit: ({
-      value,
-    }) => {
-      createCategory.mutate(
-        {
-          name: value.name.trim(),
-        },
-        {
-          onSuccess: (category) => {
-            onCreated?.(category);
-            onOpenChange(false);
-            form.reset();
-          },
-        },
-      );
-    },
-  });
-
   return (
-    <Dialog
+    <InlineCreateModal
       open={open}
       onOpenChange={onOpenChange}
-    >
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>New category</DialogTitle>
-          <DialogDescription>
-            Give the category a name — you can fill in the rest later from its edit page.
-          </DialogDescription>
-        </DialogHeader>
-
-        <form
-          className="space-y-4"
-          onSubmit={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            void form.handleSubmit();
-          }}
-        >
-          <form.AppField name="name">
-            {field => (
-              <field.TextField
-                label="Name"
-                placeholder="e.g. Workflow"
-              />
-            )}
-          </form.AppField>
-
-          {createCategory.isError
-            ? <p className="text-sm text-destructive">{createCategory.error.message}</p>
-            : null}
-
-          <DialogFooter>
-            <form.AppForm>
-              <form.SubmitButton
-                label="Add category"
-                pendingLabel="Adding…"
-              />
-            </form.AppForm>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+      title="New category"
+      description="Give the category a name — you can fill in the rest later from its edit page."
+      placeholder="e.g. Workflow"
+      submitLabel="Add category"
+      isError={createCategory.isError}
+      errorMessage={createCategory.error?.message}
+      onSubmit={(name, done) => {
+        createCategory.mutate(
+          {
+            name,
+          },
+          {
+            onSuccess: (category) => {
+              onCreated?.(category);
+              done();
+            },
+          },
+        );
+      }}
+    />
   );
 }

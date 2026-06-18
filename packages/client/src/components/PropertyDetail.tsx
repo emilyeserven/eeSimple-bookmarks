@@ -3,13 +3,13 @@ import type { Category, CustomProperty, PropertyGroup } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 import { TriangleAlert } from "lucide-react";
 
+import { DetailHeaderActions } from "./DetailHeaderActions";
 import { LabeledSection } from "./LabeledSection";
 import { hasPropertyOptions } from "../lib/propertyForm";
 import { DATE_TIME_FORMAT_LABELS, TYPE_LABELS } from "../lib/propertyFormat";
 
 import { DetailField } from "@/components/DetailField";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { CategoryIcon } from "@/lib/icons";
 
@@ -57,40 +57,10 @@ export function PropertyDetail({
           {!property.enabled && <Badge variant="outline">Disabled</Badge>}
           <Badge variant="secondary">{TYPE_LABELS[property.type]}</Badge>
         </div>
-        {onEdit || onDelete
-          ? (
-            <div className="flex shrink-0 items-center gap-1">
-              {onEdit
-                ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={onEdit}
-                  >
-                    Edit
-                  </Button>
-                )
-                : null}
-              {onDelete
-                ? (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={onDelete}
-                    className="
-                      text-destructive
-                      hover:text-destructive
-                    "
-                  >
-                    Delete
-                  </Button>
-                )
-                : null}
-            </div>
-          )
-          : null}
+        <DetailHeaderActions
+          onEdit={onEdit}
+          onDelete={onDelete}
+        />
       </div>
 
       <Separator />

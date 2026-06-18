@@ -1,22 +1,7 @@
 import type { PropertyGroup } from "@eesimple/types";
 
-import { z } from "zod";
-
+import { InlineCreateModal } from "./InlineCreateModal";
 import { useCreatePropertyGroup } from "../hooks/usePropertyGroups";
-import { useAppForm } from "../lib/form";
-
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-
-const addPropertyGroupSchema = z.object({
-  name: z.string().trim().min(1, "Name is required"),
-});
 
 interface AddPropertyGroupModalProps {
   open: boolean;
@@ -31,75 +16,29 @@ export function AddPropertyGroupModal({
 }: AddPropertyGroupModalProps) {
   const createGroup = useCreatePropertyGroup();
 
-  const form = useAppForm({
-    defaultValues: {
-      name: "",
-    },
-    validators: {
-      onChange: addPropertyGroupSchema,
-    },
-    onSubmit: ({
-      value,
-    }) => {
-      createGroup.mutate(
-        {
-          name: value.name.trim(),
-        },
-        {
-          onSuccess: (group) => {
-            onCreated?.(group);
-            onOpenChange(false);
-            form.reset();
-          },
-        },
-      );
-    },
-  });
-
   return (
-    <Dialog
+    <InlineCreateModal
       open={open}
       onOpenChange={onOpenChange}
-    >
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>New property group</DialogTitle>
-          <DialogDescription>
-            Give the group a name — you can set its priority and description later from its edit page.
-          </DialogDescription>
-        </DialogHeader>
-
-        <form
-          className="space-y-4"
-          onSubmit={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            void form.handleSubmit();
-          }}
-        >
-          <form.AppField name="name">
-            {field => (
-              <field.TextField
-                label="Name"
-                placeholder="e.g. Ratings"
-              />
-            )}
-          </form.AppField>
-
-          {createGroup.isError
-            ? <p className="text-sm text-destructive">{createGroup.error.message}</p>
-            : null}
-
-          <DialogFooter>
-            <form.AppForm>
-              <form.SubmitButton
-                label="Add group"
-                pendingLabel="Adding…"
-              />
-            </form.AppForm>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+      title="New property group"
+      description="Give the group a name — you can set its priority and description later from its edit page."
+      placeholder="e.g. Ratings"
+      submitLabel="Add group"
+      isError={createGroup.isError}
+      errorMessage={createGroup.error?.message}
+      onSubmit={(name, done) => {
+        createGroup.mutate(
+          {
+            name,
+          },
+          {
+            onSuccess: (group) => {
+              onCreated?.(group);
+              done();
+            },
+          },
+        );
+      }}
+    />
   );
 }
