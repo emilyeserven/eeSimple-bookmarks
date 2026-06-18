@@ -42,7 +42,7 @@ const propertySchema = z
     categoryIds: z.array(z.string()),
     allCategories: z.boolean(),
     inForm: z.boolean(),
-    advancedOnly: z.boolean(),
+    showOutsideAdvanced: z.boolean(),
     showInListings: z.boolean(),
     editableOnCard: z.boolean(),
     enabled: z.boolean(),
@@ -78,7 +78,7 @@ const CREATE_DEFAULTS: PropertyFormValues = {
   categoryIds: [],
   allCategories: false,
   inForm: true,
-  advancedOnly: false,
+  showOutsideAdvanced: true,
   showInListings: true,
   editableOnCard: false,
   enabled: true,
@@ -104,7 +104,7 @@ function valuesFromProperty(property: CustomProperty): PropertyFormValues {
     categoryIds: property.categoryIds,
     allCategories: property.allCategories,
     inForm: !property.hiddenFromForm,
-    advancedOnly: !property.showInForm,
+    showOutsideAdvanced: property.showInForm,
     showInListings: property.showInListings,
     editableOnCard: property.editableOnCard,
     enabled: property.enabled,
@@ -131,7 +131,7 @@ function payloadFromValues(values: PropertyFormValues): CreateCustomPropertyInpu
     categoryIds: values.categoryIds,
     allCategories: values.allCategories,
     hiddenFromForm: !values.inForm,
-    showInForm: !values.advancedOnly,
+    showInForm: values.showOutsideAdvanced,
     showInListings: values.showInListings,
     // Calculate values are computed server-side, so they can never be edited from the card menu.
     editableOnCard: values.type === "calculate" ? false : values.editableOnCard,
@@ -554,19 +554,19 @@ export function PropertyForm({
                   {inForm =>
                     inForm
                       ? (
-                        <form.AppField name="advancedOnly">
+                        <form.AppField name="showOutsideAdvanced">
                           {field => (
                             <div className="ml-6 flex items-center gap-2">
                               <Checkbox
-                                id={`${idPrefix}-advanced-only`}
+                                id={`${idPrefix}-show-outside-advanced`}
                                 checked={field.state.value}
                                 onCheckedChange={checked => field.handleChange(checked === true)}
                               />
                               <Label
-                                htmlFor={`${idPrefix}-advanced-only`}
+                                htmlFor={`${idPrefix}-show-outside-advanced`}
                                 className="text-xs text-muted-foreground"
                               >
-                                Only show in Advanced area
+                                Show outside Advanced area
                               </Label>
                             </div>
                           )}
