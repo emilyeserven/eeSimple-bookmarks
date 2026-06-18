@@ -14,7 +14,7 @@ import { ImageModeSwitcher } from "./ImageModeSwitcher";
 import { useIsMobile } from "../hooks/use-mobile";
 import { useDeleteBookmark } from "../hooks/useBookmarks";
 import { COLUMN_CLASS, DEFAULT_BOOKMARK_IMAGE_LAYOUT, useBookmarkColumns, useBookmarkImageMode } from "../lib/bookmarkColumns";
-import { bookmarkMatchesSearch } from "../lib/bookmarkSearch";
+import { bookmarkMatchesSearch, hasAnyActiveFilter } from "../lib/bookmarkSearch";
 import { useUiStore } from "../stores/uiStore";
 
 import { Card } from "@/components/ui/card";
@@ -84,12 +84,7 @@ export function BookmarkSearchView({
   const setAddBookmarkFormOpen = useUiStore(state => state.setAddBookmarkFormOpen);
 
   const visibleBookmarks = bookmarks.filter(bookmark => bookmarkMatchesSearch(bookmark, search));
-  const hasActiveFilters = search.tag !== undefined
-    || search.tagPresence !== undefined
-    || (search.categories?.length ?? 0) > 0
-    || Object.keys(search.num ?? {}).length > 0
-    || Object.keys(search.bool ?? {}).length > 0
-    || Object.keys(search.presence ?? {}).length > 0;
+  const hasActiveFilters = hasAnyActiveFilter(search);
 
   const unassignedProperties = categories
     ? properties.filter(property => property.categoryIds.length === 0)
@@ -161,16 +156,12 @@ export function BookmarkSearchView({
             </CollapsibleContent>
           </Collapsible>
 
-          <div className="flex justify-end gap-4">
-            <ColumnsSwitcher pageKey={pageKey} />
-            {(columns === 1 || columns === 2) && (
-              <ImageLayoutSwitcher
-                layout={imageLayout}
-                onLayoutChange={layout => setBookmarkImageLayout(pageKey, layout)}
-              />
-            )}
-            <ImageModeSwitcher pageKey={pageKey} />
-          </div>
+          <BookmarkListControls
+            pageKey={pageKey}
+            columns={columns}
+            imageLayout={imageLayout}
+            onImageLayoutChange={layout => setBookmarkImageLayout(pageKey, layout)}
+          />
 
           <div
             className={`
@@ -205,5 +196,29 @@ export function BookmarkSearchView({
         </div>
       </div>
     </section>
+  );
+}
+
+interface BookmarkListControlsProps {
+  pageKey: string;
+  columns: number;
+  imageLayout: HomepageSectionImageLayout;
+  onImageLayoutChange: (layout: HomepageSectionImageLayout) => void;
+}
+
+function BookmarkListControls({
+  pageKey, columns, imageLayout, onImageLayoutChange,
+}: BookmarkListControlsProps) {
+  return (
+    <div className="flex justify-end gap-4">
+      <ColumnsSwitcher pageKey={pageKey} />
+      {(columns === 1 || columns === 2) && (
+        <ImageLayoutSwitcher
+          layout={imageLayout}
+          onLayoutChange={onImageLayoutChange}
+        />
+      )}
+      <ImageModeSwitcher pageKey={pageKey} />
+    </div>
   );
 }

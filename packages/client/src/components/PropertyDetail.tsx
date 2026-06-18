@@ -1,10 +1,10 @@
 import type { Category, CustomProperty } from "@eesimple/types";
-import type { ReactNode } from "react";
 
 import { TriangleAlert } from "lucide-react";
 
 import { TYPE_LABELS } from "../lib/propertyFormat";
 
+import { DetailField } from "@/components/DetailField";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CategoryIcon } from "@/lib/icons";
@@ -17,27 +17,6 @@ interface PropertyDetailProps {
   allProperties?: CustomProperty[];
   onEdit?: () => void;
   onDelete?: () => void;
-}
-
-/** A labelled field row in the detail layout; renders nothing when its value is empty. */
-function Field({
-  label, children,
-}: {
-  label: string;
-  children: ReactNode;
-}) {
-  if (children === null || children === undefined || children === false) return null;
-  return (
-    <div
-      className="
-        grid gap-1
-        sm:grid-cols-[10rem_1fr] sm:gap-4
-      "
-    >
-      <dt className="text-sm font-medium text-muted-foreground">{label}</dt>
-      <dd className="min-w-0 text-sm text-foreground">{children}</dd>
-    </div>
-  );
 }
 
 /** Where the property's field appears in the bookmark form. */
@@ -62,8 +41,6 @@ export function PropertyDetail({
   const operandNames = property.operandPropertyIds
     .map(id => allProperties.find(candidate => candidate.id === id)?.name)
     .filter((value): value is string => Boolean(value));
-
-  const units = [property.unitSingular, property.unitPlural].filter(Boolean).join(" / ");
 
   return (
     <div className="space-y-6">
@@ -113,35 +90,26 @@ export function PropertyDetail({
       </div>
 
       <dl className="space-y-3">
-        <Field label="Status">
+        <DetailField label="Status">
           {property.enabled ? "Enabled" : "Disabled"}
-        </Field>
+        </DetailField>
 
-        <Field label="Description">
+        <DetailField label="Description">
           {property.description
             ? <p className="whitespace-pre-wrap">{property.description}</p>
             : null}
-        </Field>
+        </DetailField>
 
         {isNumeric
           ? (
-            <Field label="Range">
-              {`${property.numberMin ?? "auto"} – ${property.numberMax ?? "auto"}`}
-              {property.unitPlural ? ` ${property.unitPlural}` : ""}
-            </Field>
+            <NumericPropertyFields
+              property={property}
+              operandNames={operandNames}
+            />
           )
           : null}
 
-        {isNumeric ? <Field label="Units">{units || null}</Field> : null}
-        {isNumeric ? <Field label="Value prefix">{property.valuePrefix}</Field> : null}
-        {isNumeric ? <Field label="Zero label">{property.zeroLabel}</Field> : null}
-        {isNumeric ? <Field label="Maximum label">{property.maxLabel}</Field> : null}
-
-        {property.type === "calculate"
-          ? <Field label="Operands">{operandNames.length > 0 ? `Σ ${operandNames.join(" + ")}` : null}</Field>
-          : null}
-
-        <Field label="Categories">
+        <DetailField label="Categories">
           {property.allCategories
             ? <Badge variant="secondary">All categories</Badge>
             : assignedCategories.length > 0
@@ -164,24 +132,55 @@ export function PropertyDetail({
                 </ul>
               )
               : <span className="text-muted-foreground">None</span>}
-        </Field>
+        </DetailField>
 
-        <Field label="Bookmark form">{formPlacement(property)}</Field>
-        <Field label="Listings">
+        <DetailField label="Bookmark form">{formPlacement(property)}</DetailField>
+        <DetailField label="Listings">
           {property.showInListings ? "Shown on bookmark cards" : "Hidden from bookmark cards"}
-        </Field>
+        </DetailField>
         {property.type === "calculate"
           ? null
           : (
-            <Field label="Card menu">
+            <DetailField label="Card menu">
               {property.editableOnCard ? "Editable from the card menu" : "Not editable from the card menu"}
-            </Field>
+            </DetailField>
           )}
 
-        <Field label="Created">
+        <DetailField label="Created">
           <span>{new Date(property.createdAt).toLocaleString()}</span>
-        </Field>
+        </DetailField>
       </dl>
     </div>
+  );
+}
+
+interface NumericPropertyFieldsProps {
+  property: CustomProperty;
+  operandNames: string[];
+}
+
+/** Renders the numeric/calculate-specific fields; called only when `isNumeric` is true. */
+function NumericPropertyFields({
+  property, operandNames,
+}: NumericPropertyFieldsProps) {
+  const units = [property.unitSingular, property.unitPlural].filter(Boolean).join(" / ");
+  return (
+    <>
+      <DetailField label="Range">
+        {`${property.numberMin ?? "auto"} – ${property.numberMax ?? "auto"}`}
+        {property.unitPlural ? ` ${property.unitPlural}` : ""}
+      </DetailField>
+      <DetailField label="Units">{units || null}</DetailField>
+      <DetailField label="Value prefix">{property.valuePrefix}</DetailField>
+      <DetailField label="Zero label">{property.zeroLabel}</DetailField>
+      <DetailField label="Maximum label">{property.maxLabel}</DetailField>
+      {property.type === "calculate"
+        ? (
+          <DetailField label="Operands">
+            {operandNames.length > 0 ? `Σ ${operandNames.join(" + ")}` : null}
+          </DetailField>
+        )
+        : null}
+    </>
   );
 }
