@@ -21,3 +21,11 @@ export const COLUMN_CLASS: Record<number, string> = {
 export function useBookmarkColumns(pageKey: string): number {
   return useUiStore(state => state.bookmarkColumns[pageKey] ?? DEFAULT_BOOKMARK_COLUMNS);
 }
+
+/** Default image display mode for a listing page (natural aspect ratio). */
+export const DEFAULT_BOOKMARK_IMAGE_MODE = true;
+
+/** The chosen image display mode for a listing page: `true` = natural ratio, `false` = uniform crop. */
+export function useBookmarkImageMode(pageKey: string): boolean {
+  return useUiStore(state => state.bookmarkImageMode?.[pageKey] ?? DEFAULT_BOOKMARK_IMAGE_MODE);
+}

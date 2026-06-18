@@ -7,7 +7,6 @@ import { ExternalLink, MoreVertical, Sparkles } from "lucide-react";
 
 import { useAutoBookmarkImage } from "../hooks/useBookmarks";
 import { formatNumber } from "../lib/bookmarkFormat";
-import { useUiStore } from "../stores/uiStore";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,6 +28,8 @@ interface BookmarkCardProps {
    * above it (multi-column listings). Defaults to the stacked, image-on-top layout.
    */
   imageLeft?: boolean;
+  /** When true, images keep their natural aspect ratio; when false they're cropped to a uniform capped size. Defaults to true. */
+  maintainImageAspectRatio?: boolean;
 }
 
 /**
@@ -109,9 +110,8 @@ function TagsBox({
 }
 
 export function BookmarkCard({
-  bookmark, properties = [], onDelete, imageLeft = false,
+  bookmark, properties = [], onDelete, imageLeft = false, maintainImageAspectRatio = true,
 }: BookmarkCardProps) {
-  const maintainImageAspectRatio = useUiStore(state => state.maintainImageAspectRatio);
   const autoImage = useAutoBookmarkImage();
   const byId = new Map(properties.map(property => [property.id, property]));
 
