@@ -43,18 +43,27 @@ const migrations: RuntimeMigration[] = [
     // the change and every `slug` query 500s. Create the column and constraint here, before push,
     // so push's diff stays empty. The boot-time `ensureAutofillSlugs()` step then backfills the
     // NULL slugs.
+    //
+    // NOTE: each `db.execute` MUST contain a single SQL statement. drizzle/node-postgres send these
+    // over the extended protocol, which executes only the FIRST statement of a multi-statement
+    // string — so the column-add and the constraint-add are two separate executes (a single
+    // `ALTER TABLE … ADD COLUMN …` or a single `DO $$…$$` block each count as one statement).
     name: "add autofill_rules.slug column + unique constraint",
-    run: db => db.execute(sql`
-      ALTER TABLE IF EXISTS "autofill_rules" ADD COLUMN IF NOT EXISTS "slug" text;
-      DO $$ BEGIN
-        IF NOT EXISTS (
-          SELECT 1 FROM pg_constraint WHERE conname = 'autofill_rules_slug_unique'
-        ) THEN
-          ALTER TABLE IF EXISTS "autofill_rules"
-            ADD CONSTRAINT "autofill_rules_slug_unique" UNIQUE ("slug");
-        END IF;
-      END $$;
-    `),
+    run: async (db) => {
+      await db.execute(sql`
+        ALTER TABLE IF EXISTS "autofill_rules" ADD COLUMN IF NOT EXISTS "slug" text
+      `);
+      await db.execute(sql`
+        DO $$ BEGIN
+          IF NOT EXISTS (
+            SELECT 1 FROM pg_constraint WHERE conname = 'autofill_rules_slug_unique'
+          ) THEN
+            ALTER TABLE IF EXISTS "autofill_rules"
+              ADD CONSTRAINT "autofill_rules_slug_unique" UNIQUE ("slug");
+          END IF;
+        END $$
+      `);
+    },
   },
   {
     // `custom_properties.built_in` is NOT NULL DEFAULT false. drizzle-kit push may prompt before
@@ -62,24 +71,54 @@ const migrations: RuntimeMigration[] = [
     name: "add custom_properties.built_in column",
     run: db => db.execute(sql`
       ALTER TABLE IF EXISTS "custom_properties"
-        ADD COLUMN IF NOT EXISTS "built_in" boolean NOT NULL DEFAULT false;
+        ADD COLUMN IF NOT EXISTS "built_in" boolean NOT NULL DEFAULT false
     `),
   },
   {
-    // `tags_parent_name_unique` is a unique constraint on an existing populated table; drizzle-kit
-    // push prompts for truncation confirmation which in non-TTY mode either wipes the table or
-    // exits non-zero. Create the constraint here so push's diff stays empty on every deploy.
-    name: "add tags_parent_name_unique constraint",
+    // `bookmarks.priority` is NOT NULL DEFAULT 0. Adding a NOT NULL column to the populated
+    // `bookmarks` table makes drizzle-kit push prompt for confirmation; in this non-TTY deploy that
+    // prompt crashes push (and even `--force` doesn't suppress it), leaving the whole additive diff
+    // unapplied so `/api/bookmarks` 500s on the missing column. Pre-apply it so push's diff stays
+    // additive-only and never prompts.
+    name: "add bookmarks.priority column",
     run: db => db.execute(sql`
-      DO $$ BEGIN
-        IF NOT EXISTS (
-          SELECT 1 FROM pg_constraint WHERE conname = 'tags_parent_name_unique'
-        ) THEN
-          ALTER TABLE IF EXISTS "tags"
-            ADD CONSTRAINT "tags_parent_name_unique" UNIQUE ("parent_id", "name");
-        END IF;
-      END $$;
+      ALTER TABLE IF EXISTS "bookmarks"
+        ADD COLUMN IF NOT EXISTS "priority" integer NOT NULL DEFAULT 0
     `),
+  },
+  {
+    // `custom_properties` gained several NOT NULL boolean columns (PRs #90/#95). Each would make
+    // push prompt on the populated table — the same non-TTY crash as above — so pre-apply them here.
+    // This is one `ALTER TABLE` statement with multiple `ADD COLUMN` clauses (a single statement,
+    // safe over the extended protocol). Defaults must match schema.ts exactly: `show_in_listings`
+    // and `enabled` default to true, the rest to false.
+    name: "add custom_properties form/listing/enabled boolean columns",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "custom_properties"
+        ADD COLUMN IF NOT EXISTS "show_in_form" boolean NOT NULL DEFAULT false,
+        ADD COLUMN IF NOT EXISTS "hidden_from_form" boolean NOT NULL DEFAULT false,
+        ADD COLUMN IF NOT EXISTS "show_in_listings" boolean NOT NULL DEFAULT true,
+        ADD COLUMN IF NOT EXISTS "all_categories" boolean NOT NULL DEFAULT false,
+        ADD COLUMN IF NOT EXISTS "editable_on_card" boolean NOT NULL DEFAULT false,
+        ADD COLUMN IF NOT EXISTS "enabled" boolean NOT NULL DEFAULT true
+    `),
+  },
+  {
+    // `tags_parent_name_unique` enforces sibling-name uniqueness. In schema.ts it is a
+    // `uniqueIndex` (NOT a table `unique()` constraint) because drizzle-kit 0.31.10 cannot converge
+    // on a COMPOSITE unique CONSTRAINT: every push tries to drop+recreate it, and on the populated
+    // `tags` table the recreate fires an interactive "Do you want to truncate?" suggestion that
+    // crashes the non-TTY deploy (push then exits 0, so the rest of the additive diff is silently
+    // skipped — the original cause of the missing-column 500s). A unique INDEX both converges and
+    // applies without that prompt. This step migrates existing prod DBs from the old CONSTRAINT to
+    // the INDEX before push runs, so push's diff for `tags` stays empty. Idempotent: the DROP and
+    // CREATE are both guarded by IF [NOT] EXISTS. (Two separate single-statement executes — the
+    // extended protocol runs only the first statement of a multi-statement string.)
+    name: "migrate tags_parent_name_unique from constraint to unique index",
+    run: async (db) => {
+      await db.execute(sql`ALTER TABLE IF EXISTS "tags" DROP CONSTRAINT IF EXISTS "tags_parent_name_unique"`);
+      await db.execute(sql`CREATE UNIQUE INDEX IF NOT EXISTS "tags_parent_name_unique" ON "tags" ("parent_id", "name")`);
+    },
   },
 ];
 

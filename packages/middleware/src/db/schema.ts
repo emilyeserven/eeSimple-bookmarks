@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { type AnyPgColumn, boolean, integer, jsonb, pgTable, primaryKey, real, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
+import { type AnyPgColumn, boolean, integer, jsonb, pgTable, primaryKey, real, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import type { ConditionTree } from "@eesimple/types";
 
 /** `bookmarks` table — one row per saved bookmark. Tags now live in `bookmark_tags`. */
@@ -138,7 +138,12 @@ export const tags = pgTable("tags", {
 }, table => [
   // Sibling names are unique within a parent. NULL parents are distinct in
   // Postgres, so root-level uniqueness is enforced in the service layer instead.
-  unique("tags_parent_name_unique").on(table.parentId, table.name),
+  // NOTE: a uniqueIndex, NOT a table `unique()` constraint, on purpose. drizzle-kit 0.31.10 cannot
+  // converge on a COMPOSITE unique CONSTRAINT — every `push` tries to drop+recreate it, and on the
+  // populated `tags` table that recreate fires an interactive "truncate?" suggestion that crashes
+  // the non-TTY deploy. A unique INDEX converges and applies without prompting. `migrate.ts`
+  // migrates existing DBs from the old constraint to this index. Do not change back to `unique()`.
+  uniqueIndex("tags_parent_name_unique").on(table.parentId, table.name),
 ]);
 
 /** `bookmark_tags` join — many-to-many between bookmarks and tags. */

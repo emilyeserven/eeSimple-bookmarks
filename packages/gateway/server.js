@@ -140,21 +140,21 @@ async function applySchema() {
   //      the destructive / push-incompatible changes (DROP COLUMN, ALTER TYPE … ADD VALUE, data
   //      transforms). They run first so they remove anything destructive from the diff push computes
   //      next. (There are none yet, so this is a no-op until one is added.)
-  //   2. `drizzle-kit push --force` reconciles the schema for every additive change (new tables/
-  //      columns/constraints) by diffing schema.ts against the live database. `--force` auto-accepts
-  //      push's confirmation prompts so additive NOT NULL/unique columns apply non-interactively in
-  //      this non-TTY deploy (without it, those prompts hit EOF and abort the whole push, leaving the
-  //      diff unapplied and queries 500ing). The flip side: `--force` also applies *destructive*
-  //      diffs silently — which is exactly why step 1 must run first and pre-handle any destructive /
-  //      data-preserving change, keeping push's diff additive so `--force` has nothing to drop.
+  //   2. `drizzle-kit push` reconciles the schema for every additive change (new tables/columns/
+  //      constraints) by diffing schema.ts against the live database. Because step 1 keeps the diff
+  //      additive, push never hits a data-loss change — so it needs no `--force` and won't block on
+  //      an interactive prompt in this non-TTY deploy. (We deliberately do NOT pass `--force`: it
+  //      does not suppress drizzle-kit's `pgSuggestions` truncation prompts anyway, and it would
+  //      apply genuinely destructive diffs silently. Any NOT NULL column or unique constraint on a
+  //      populated table MUST be pre-applied in step 1 so push's diff stays additive.)
   const migrateJs = join(middlewareDir, "dist", "db", "migrate.js");
   let delay = 1_000;
   for (let attempt = 1; ; attempt++) {
     console.log("[gateway] running database migrations…");
     let code = await runOnce(process.execPath, [migrateJs], middlewareDir);
     if (code === 0) {
-      console.log("[gateway] applying schema (drizzle-kit push --force)…");
-      code = await runOnce("drizzle-kit", ["push", "--force"], middlewareDir);
+      console.log("[gateway] applying schema (drizzle-kit push)…");
+      code = await runOnce("drizzle-kit", ["push"], middlewareDir);
     }
     if (code === 0) return;
     // A broken schema apply only surfaces later as confusing per-query failures, so fail fast
