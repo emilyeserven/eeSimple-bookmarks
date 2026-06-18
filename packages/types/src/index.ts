@@ -471,6 +471,7 @@ export interface HomepageSection {
   description: string | null;
   conditions: ConditionTree;
   sortOrder: number;
+  hideIfEmpty: boolean;
   createdAt: string;
 }
 
@@ -486,6 +487,7 @@ export interface CreateHomepageSectionInput {
   description?: string | null;
   conditions: ConditionTree;
   sortOrder?: number;
+  hideIfEmpty?: boolean;
 }
 
 /** Payload for partially updating a homepage section. */

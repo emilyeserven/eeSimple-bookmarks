@@ -399,6 +399,7 @@ export const homepageSections = pgTable("homepage_sections", {
   description: text("description"),
   conditions: jsonb("conditions").$type<ConditionTree>().notNull(),
   sortOrder: integer("sort_order").notNull().default(0),
+  hideIfEmpty: boolean("hide_if_empty").notNull().default(false),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),

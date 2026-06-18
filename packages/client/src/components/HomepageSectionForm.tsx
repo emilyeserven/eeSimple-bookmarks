@@ -10,6 +10,7 @@ import { useTagTree } from "../hooks/useTags";
 import { ConditionsField } from "./conditions/ConditionsField";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,7 +19,8 @@ interface HomepageSectionFormProps {
   section?: HomepageSection;
   onSave: (values: { title: string;
     description: string | null;
-    conditions: ConditionTree; }) => void;
+    conditions: ConditionTree;
+    hideIfEmpty: boolean; }) => void;
   onCancel: () => void;
   isPending?: boolean;
 }
@@ -31,6 +33,7 @@ export function HomepageSectionForm({
   const [conditions, setConditions] = useState<ConditionTree>(
     section?.conditions ?? emptyConditionTree(),
   );
+  const [hideIfEmpty, setHideIfEmpty] = useState(section?.hideIfEmpty ?? false);
 
   const {
     data: categories,
@@ -48,6 +51,7 @@ export function HomepageSectionForm({
       title: title.trim(),
       description: description.trim() || null,
       conditions,
+      hideIfEmpty,
     });
   }
 
@@ -90,6 +94,25 @@ export function HomepageSectionForm({
           properties={properties ?? []}
           tagTree={tagTree ?? []}
         />
+      </div>
+
+      <div className="flex items-start gap-2">
+        <Checkbox
+          id="section-hide-if-empty"
+          checked={hideIfEmpty}
+          onCheckedChange={checked => setHideIfEmpty(checked === true)}
+        />
+        <div className="space-y-0.5">
+          <Label
+            htmlFor="section-hide-if-empty"
+            className="cursor-pointer"
+          >
+            Hide when empty
+          </Label>
+          <p className="text-sm text-muted-foreground">
+            Don&rsquo;t show this section when no bookmarks match its filter.
+          </p>
+        </div>
       </div>
 
       <div className="flex gap-2">

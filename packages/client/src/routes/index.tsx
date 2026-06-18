@@ -17,8 +17,12 @@ function HomePage() {
     data: customProperties,
   } = useCustomProperties();
 
-  const sectionList = sections ?? [];
-  const hasSections = sectionList.length > 0;
+  const sectionList = (sections ?? []).filter(
+    ({
+      section, bookmarks,
+    }) => !(section.hideIfEmpty && bookmarks.length === 0),
+  );
+  const hasSections = (sections ?? []).length > 0;
 
   return (
     <section className="space-y-6">

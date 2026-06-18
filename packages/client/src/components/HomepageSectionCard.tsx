@@ -2,7 +2,7 @@ import type { HomepageSection } from "@eesimple/types";
 
 import { useState } from "react";
 
-import { GripVertical, Pencil, Trash2 } from "lucide-react";
+import { EyeOff, GripVertical, Pencil, Trash2 } from "lucide-react";
 
 import { ColumnsSwitcher } from "./ColumnsSwitcher";
 import { HomepageSectionForm } from "./HomepageSectionForm";
@@ -60,7 +60,15 @@ export function HomepageSectionCard({
         >
           <GripVertical className="size-4" />
         </button>
-        <CardTitle className="flex-1 text-base">{section.title}</CardTitle>
+        <CardTitle className="flex-1 text-base">
+          {section.title}
+          {section.hideIfEmpty && (
+            <EyeOff
+              className="ml-1.5 inline size-3.5 text-muted-foreground"
+              aria-label="Hides when empty"
+            />
+          )}
+        </CardTitle>
         <div className="flex items-center gap-1">
           <ColumnsSwitcher pageKey={section.id} />
           {columns === 2 && (
