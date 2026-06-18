@@ -31,7 +31,7 @@ function MediaTypeViewPage() {
       listLabel="Back to media types"
     >
       {mt => (
-        <section className="space-y-4">
+        <section className="space-y-6">
           <Link
             to="/taxonomies/media-types"
             className="

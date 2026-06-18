@@ -19,9 +19,9 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
 import { useUiStore } from "@/stores/uiStore";
-import { Separator } from "@/components/ui/separator";
 
 /** Local draft of a param rule, with params edited as a comma-separated string. */
 interface ParamRuleDraft {
