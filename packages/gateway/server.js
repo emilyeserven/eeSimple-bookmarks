@@ -1,7 +1,7 @@
 // eeSimple Bookmarks production gateway.
 //
 // A single Fastify entrypoint that:
-//   1. applies the database schema on boot (drizzle-kit push),
+//   1. applies the database schema on boot (runtime-migrations hook + drizzle-kit push),
 //   2. spawns the middleware API as a child process and respawns it with backoff,
 //   3. proxies `/api/*` to the middleware,
 //   4. serves the client's static build (with SPA fallback),
@@ -31,6 +31,10 @@ const MIDDLEWARE_URL = `http://127.0.0.1:${MIDDLEWARE_PORT}`;
 // boot, and how many times to retry the schema push once it is reachable.
 const DB_WAIT_TIMEOUT_MS = Number(process.env.DB_WAIT_TIMEOUT_MS ?? 60_000);
 const SCHEMA_PUSH_ATTEMPTS = Number(process.env.SCHEMA_PUSH_ATTEMPTS ?? 5);
+
+// How long to wait for the middleware's /healthz to come up before starting the gateway anyway.
+// Generous by default so modest hardware (e.g. a Raspberry Pi) has time to boot the API.
+const MIDDLEWARE_WAIT_TIMEOUT_MS = Number(process.env.MIDDLEWARE_WAIT_TIMEOUT_MS ?? 60_000);
 
 let middlewareChild = null;
 let shuttingDown = false;
@@ -131,23 +135,23 @@ async function applySchema() {
     process.exit(1);
   }
 
-  // Apply the schema in two phases, mirroring the middleware's `push:prod` script:
-  //   1. Run versioned migrations (`dist/db/migrate.js`) — the authoritative, deterministic
-  //      step that brings the schema up to date the same way on every database.
-  //   2. `drizzle-kit push --force` to reconcile any residual drift. `--force` is required
-  //      because there is no TTY here: a change drizzle-kit flags as data-loss would otherwise
-  //      block on an interactive prompt, apply nothing, yet exit 0 — leaving the API to boot
-  //      against a stale schema and fail every query touching the new columns.
-  // Relying on `push` alone (the previous behavior) was the source of flaky redeploys; the
-  // migrations now do the work and push is only a safety net.
+  // Apply the schema in two phases, mirroring the middleware's `push:prod` script (and course-tracker):
+  //   1. Run the runtime-migrations hook (`dist/db/migrate.js`) — idempotent, imperative steps for
+  //      the destructive / push-incompatible changes (DROP COLUMN, ALTER TYPE … ADD VALUE, data
+  //      transforms). They run first so they remove anything destructive from the diff push computes
+  //      next. (There are none yet, so this is a no-op until one is added.)
+  //   2. `drizzle-kit push` reconciles the schema for every additive change (new tables/columns/
+  //      constraints) by diffing schema.ts against the live database. Because step 1 keeps the diff
+  //      additive, push never hits a data-loss change — so it needs no `--force` and won't block on
+  //      an interactive prompt in this non-TTY deploy.
   const migrateJs = join(middlewareDir, "dist", "db", "migrate.js");
   let delay = 1_000;
   for (let attempt = 1; ; attempt++) {
     console.log("[gateway] running database migrations…");
     let code = await runOnce(process.execPath, [migrateJs], middlewareDir);
     if (code === 0) {
-      console.log("[gateway] reconciling schema (drizzle-kit push)…");
-      code = await runOnce("drizzle-kit", ["push", "--force"], middlewareDir);
+      console.log("[gateway] applying schema (drizzle-kit push)…");
+      code = await runOnce("drizzle-kit", ["push"], middlewareDir);
     }
     if (code === 0) return;
     // A broken schema apply only surfaces later as confusing per-query failures, so fail fast
@@ -191,7 +195,7 @@ function startMiddleware() {
   }, 30_000);
 }
 
-async function waitForMiddleware(timeoutMs = 30_000) {
+async function waitForMiddleware(timeoutMs = MIDDLEWARE_WAIT_TIMEOUT_MS) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     try {
@@ -259,5 +263,18 @@ for (const signal of ["SIGINT", "SIGTERM"]) {
 
 await applySchema();
 startMiddleware();
-await waitForMiddleware();
+if (await waitForMiddleware()) {
+  console.log(`[gateway] middleware healthy at ${MIDDLEWARE_URL}`);
+}
+else {
+  // Don't fail the boot — the gateway still serves the client and will proxy successfully once the
+  // middleware recovers — but say so plainly. Until then, every `/api` request returns
+  // `ECONNREFUSED ${MIDDLEWARE_PORT}`; the usual causes are the middleware crash-looping (look for
+  // "[gateway] middleware exited" above — a SIGKILL there means it was out-of-memory killed) or a
+  // boot step that never finished.
+  console.error(
+    `[gateway] middleware did not become healthy at ${MIDDLEWARE_URL} within ${MIDDLEWARE_WAIT_TIMEOUT_MS}ms; `
+    + "/api requests will fail with ECONNREFUSED until it does. Check the middleware logs above.",
+  );
+}
 await startGateway();

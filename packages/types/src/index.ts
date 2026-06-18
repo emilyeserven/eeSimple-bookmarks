@@ -5,9 +5,9 @@
  * (`@eesimple/client`) so the wire contract stays in one place.
  */
 
-import type { ConditionMatchField, ConditionMatchOperator, ConditionTree } from "./conditions";
+import type { ConditionMatchField, ConditionMatchOperator, ConditionTree } from "./conditions.js";
 
-export * from "./conditions";
+export * from "./conditions.js";
 
 /** A tag node in the hierarchical taxonomy. `parentId === null` marks a root tag. */
 export interface Tag {
