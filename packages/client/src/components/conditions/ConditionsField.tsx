@@ -234,6 +234,7 @@ export function ConditionsField({
           value={propertyLeaves}
           properties={properties}
           categories={categories}
+          selectedCategoryIds={categoryLeaf?.categoryIds ?? []}
           onChange={next =>
             commit({
               properties: next,
