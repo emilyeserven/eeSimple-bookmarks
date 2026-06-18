@@ -79,9 +79,11 @@ export function FilterSidebar({
       withNumberFilter(
         withBooleanFilter(
           withPresenceFilter(search, propertyId, undefined),
-          propertyId, undefined,
+          propertyId,
+          undefined,
         ),
-        propertyId, undefined,
+        propertyId,
+        undefined,
       ),
     );
 
