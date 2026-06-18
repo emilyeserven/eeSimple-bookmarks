@@ -21,6 +21,16 @@ export const bookmarks = pgTable("bookmarks", {
   websiteId: uuid("website_id").references((): AnyPgColumn => websites.id, {
     onDelete: "set null",
   }),
+  // The media type (built-in taxonomy) of this bookmark, e.g. "Video". Nullable; user-chosen or
+  // auto-set (e.g. to "Video" for a YouTube URL). `set null` so deleting a media type is non-destructive.
+  mediaTypeId: uuid("media_type_id").references((): AnyPgColumn => mediaTypes.id, {
+    onDelete: "set null",
+  }),
+  // The YouTube channel (built-in taxonomy) this bookmark belongs to, auto-linked from a video's
+  // fetched metadata. Nullable; only set for recognized YouTube videos.
+  youtubeChannelId: uuid("youtube_channel_id").references((): AnyPgColumn => youtubeChannels.id, {
+    onDelete: "set null",
+  }),
   priority: integer("priority").notNull().default(0),
   createdAt: timestamp("created_at", {
     withTimezone: true,
@@ -71,6 +81,48 @@ export const websites = pgTable("websites", {
 }, table => [
   unique("websites_domain_unique").on(table.domain),
   unique("websites_slug_unique").on(table.slug),
+]);
+
+/**
+ * `media_types` table — the built-in "Media Types" taxonomy. A small, mostly-seeded vocabulary
+ * (Video, Article, Podcast, …) classifying what a bookmark is. Unlike websites it isn't URL-derived;
+ * a bookmark's media type is chosen in the form or auto-set from fetched metadata.
+ */
+export const mediaTypes = pgTable("media_types", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  // URL-friendly identifier derived from the name. Nullable for clean `push`; backfilled at boot.
+  slug: text("slug"),
+  // Seeded built-ins (Video, Article, …) can't be renamed or deleted; users may add custom ones.
+  builtIn: boolean("built_in").notNull().default(false),
+  // Display ordering; lower sorts first. Seeded built-ins get a stable order.
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+}, table => [
+  unique("media_types_name_unique").on(table.name),
+  unique("media_types_slug_unique").on(table.slug),
+]);
+
+/**
+ * `youtube_channels` table — the built-in "YouTube Channels" taxonomy. One row per distinct channel;
+ * bookmarks for a YouTube video are auto-linked to their channel from the video's fetched metadata.
+ */
+export const youtubeChannels = pgTable("youtube_channels", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  // Stable normalized identifier for the channel (its canonical URL/handle path), e.g. "@veritasium".
+  channelKey: text("channel_key").notNull(),
+  // Human-friendly channel name (from oEmbed `author_name`); renamable.
+  name: text("name").notNull(),
+  // URL-friendly identifier derived from the name. Nullable for clean `push`; backfilled at boot.
+  slug: text("slug"),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+}, table => [
+  unique("youtube_channels_key_unique").on(table.channelKey),
+  unique("youtube_channels_slug_unique").on(table.slug),
 ]);
 
 /** `tags` table — a self-referencing tree. `parentId` NULL means a root tag. */
@@ -128,8 +180,28 @@ export const bookmarksRelations = relations(bookmarks, ({
     fields: [bookmarks.websiteId],
     references: [websites.id],
   }),
+  mediaType: one(mediaTypes, {
+    fields: [bookmarks.mediaTypeId],
+    references: [mediaTypes.id],
+  }),
+  youtubeChannel: one(youtubeChannels, {
+    fields: [bookmarks.youtubeChannelId],
+    references: [youtubeChannels.id],
+  }),
   bookmarkTags: many(bookmarkTags),
   image: one(bookmarkImages),
+}));
+
+export const mediaTypesRelations = relations(mediaTypes, ({
+  many,
+}) => ({
+  bookmarks: many(bookmarks),
+}));
+
+export const youtubeChannelsRelations = relations(youtubeChannels, ({
+  many,
+}) => ({
+  bookmarks: many(bookmarks),
 }));
 
 export const bookmarkImagesRelations = relations(bookmarkImages, ({
@@ -170,6 +242,11 @@ export const customProperties = pgTable("custom_properties", {
   slug: text("slug"),
   // "number" | "boolean" | "calculate" — kept as text so new kinds can be added later.
   type: text("type").notNull(),
+  // The built-in "Video Length" property; built-ins cannot be renamed, retyped, or deleted.
+  builtIn: boolean("built_in").notNull().default(false),
+  // How a number/calculate value is rendered: "plain" (default) or "duration" (seconds → H:MM:SS).
+  // Nullable/text so it's an additive, push-safe column and new formats can be added later.
+  numberFormat: text("number_format"),
   // Free-text description surfaced as a hint where the property's field is rendered.
   description: text("description"),
   // Range-slider bounds for a `number`/`calculate` property; NULL means no bound / derive from data.
@@ -550,6 +627,10 @@ export type BookmarkImageRow = typeof bookmarkImages.$inferSelect;
 export type NewBookmarkImageRow = typeof bookmarkImages.$inferInsert;
 export type WebsiteRow = typeof websites.$inferSelect;
 export type NewWebsiteRow = typeof websites.$inferInsert;
+export type MediaTypeRow = typeof mediaTypes.$inferSelect;
+export type NewMediaTypeRow = typeof mediaTypes.$inferInsert;
+export type YouTubeChannelRow = typeof youtubeChannels.$inferSelect;
+export type NewYouTubeChannelRow = typeof youtubeChannels.$inferInsert;
 export type TagRow = typeof tags.$inferSelect;
 export type NewTagRow = typeof tags.$inferInsert;
 export type BookmarkTagRow = typeof bookmarkTags.$inferSelect;

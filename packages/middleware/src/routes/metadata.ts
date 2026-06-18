@@ -1,6 +1,9 @@
 import type { FastifyInstance } from "fastify";
+import type { FetchMetadataResult } from "@eesimple/types";
 import { fetchPageTitle } from "@/services/metadata";
 import { lookupWebsiteByUrl, stripSiteNameSuffix } from "@/services/websites";
+import { fetchYouTubeMetadata, isYouTubeVideoUrl } from "@/services/youtube";
+import { channelKeyFromUrl } from "@/services/youtubeChannels";
 import { isValidUrl } from "@/utils/url";
 
 const fetchTitleQuery = {
@@ -72,6 +75,72 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
         siteName: siteNameHint ?? website?.siteName,
         domain,
       }),
+    };
+  });
+
+  // Richer metadata lookup: title for any URL, plus channel/duration/thumbnail for YouTube videos.
+  // Unlike /api/fetch-title this never 502s — a partial result (e.g. title-only) is still useful.
+  app.get("/api/fetch-metadata", {
+    schema: {
+      tags: ["metadata"],
+      querystring: fetchTitleQuery,
+    },
+  }, async (req, reply): Promise<FetchMetadataResult> => {
+    const {
+      url, siteName: siteNameHint,
+    } = req.query as { url: string;
+      siteName?: string; };
+    if (!isValidUrl(url)) {
+      return reply.code(400).send({
+        message: "url must be a valid http(s) URL",
+      }) as unknown as FetchMetadataResult;
+    }
+
+    if (isYouTubeVideoUrl(url)) {
+      const meta = await fetchYouTubeMetadata(url);
+      // oEmbed titles are already clean; fall back to a page-title fetch if it was unavailable.
+      let title = meta?.title ?? null;
+      if (title === null) {
+        const fallback = await fetchPageTitle(url);
+        if (fallback.kind === "ok") title = fallback.title;
+      }
+      return {
+        title,
+        isYouTube: true,
+        channel: meta?.channelName
+          ? {
+            name: meta.channelName,
+            url: meta.channelUrl,
+            key: meta.channelUrl ? channelKeyFromUrl(meta.channelUrl) : null,
+          }
+          : null,
+        durationSeconds: meta?.durationSeconds ?? null,
+        thumbnailUrl: meta?.thumbnailUrl ?? null,
+      };
+    }
+
+    const result = await fetchPageTitle(url);
+    if (result.kind !== "ok") {
+      return {
+        title: null,
+        isYouTube: false,
+        channel: null,
+        durationSeconds: null,
+        thumbnailUrl: null,
+      };
+    }
+    const {
+      domain, website,
+    } = await lookupWebsiteByUrl(url);
+    return {
+      title: stripSiteNameSuffix(result.title, {
+        siteName: siteNameHint ?? website?.siteName,
+        domain,
+      }),
+      isYouTube: false,
+      channel: null,
+      durationSeconds: null,
+      thumbnailUrl: null,
     };
   });
 }

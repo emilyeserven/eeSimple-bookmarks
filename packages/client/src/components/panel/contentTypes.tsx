@@ -7,7 +7,7 @@ import type { FC, ReactNode } from "react";
 
 import { useMemo } from "react";
 
-import { Bookmark, Folder, Globe, SlidersHorizontal, Sparkles, Tags } from "lucide-react";
+import { Bookmark, Clapperboard, Folder, Globe, MonitorPlay, SlidersHorizontal, Sparkles, Tags } from "lucide-react";
 
 import { AutofillRulePanel, ViewAutofillRule } from "./AutofillRulePanel";
 import { TagPanel } from "./TagPanel";
@@ -21,16 +21,20 @@ import {
   useDeleteCustomProperty,
   useUpdateCustomProperty,
 } from "../../hooks/useCustomProperties";
+import { useMediaTypes } from "../../hooks/useMediaTypes";
 import { useTagTree } from "../../hooks/useTags";
 import { useWebsites } from "../../hooks/useWebsites";
+import { useYouTubeChannels } from "../../hooks/useYouTubeChannels";
 import { summarizeConditions } from "../../lib/conditionsSummary";
 import { flattenTree } from "../../lib/tagTree";
 import { BookmarkDetail } from "../BookmarkDetail";
 import { BookmarkForm } from "../BookmarkForm";
 import { CategoryCard } from "../CategoryManager";
+import { MediaTypeCard, MediaTypeRow } from "../MediaTypeManager";
 import { PropertyDetail } from "../PropertyDetail";
 import { PropertyForm } from "../PropertyForm";
 import { WebsiteCard, WebsiteRow } from "../WebsiteManager";
+import { YouTubeChannelCard, YouTubeChannelRow } from "../YouTubeChannelManager";
 
 /** A single row in a content type's searchable list. */
 export interface PanelListItem {
@@ -403,6 +407,112 @@ function WebsiteEdit({
   return <WebsiteRow website={website} />;
 }
 
+// --- Media type ---------------------------------------------------------------------------------
+
+function useMediaTypeList() {
+  const {
+    data, isLoading, error,
+  } = useMediaTypes();
+  const items = useMemo<PanelListItem[]>(
+    () => (data ?? []).map(mediaType => ({
+      id: mediaType.id,
+      label: mediaType.name,
+      sublabel: mediaType.builtIn ? "Built-in" : "Custom",
+    })),
+    [data],
+  );
+  return {
+    items,
+    isLoading,
+    error,
+  };
+}
+
+/** Read-only media-type view, reusing the same `MediaTypeCard` the view page renders. */
+function MediaTypeView({
+  id,
+}: {
+  id: string;
+}) {
+  const {
+    data, isLoading, error,
+  } = useMediaTypes();
+  if (isLoading) return <Loading />;
+  if (error) return <Problem>{error.message}</Problem>;
+  const mediaType = (data ?? []).find(item => item.id === id);
+  if (!mediaType) return <Problem>Media type not found.</Problem>;
+  return <MediaTypeCard mediaType={mediaType} />;
+}
+
+/** Inline media-type editor, reusing the same `MediaTypeRow` the settings and edit pages use. */
+function MediaTypeEdit({
+  id,
+}: {
+  id: string;
+}) {
+  const {
+    data, isLoading, error,
+  } = useMediaTypes();
+  if (isLoading) return <Loading />;
+  if (error) return <Problem>{error.message}</Problem>;
+  const mediaType = (data ?? []).find(item => item.id === id);
+  if (!mediaType) return <Problem>Media type not found.</Problem>;
+  return <MediaTypeRow mediaType={mediaType} />;
+}
+
+// --- YouTube channel ----------------------------------------------------------------------------
+
+function useYouTubeChannelList() {
+  const {
+    data, isLoading, error,
+  } = useYouTubeChannels();
+  const items = useMemo<PanelListItem[]>(
+    () => (data ?? []).map(channel => ({
+      id: channel.id,
+      label: channel.name,
+      sublabel: channel.channelKey,
+    })),
+    [data],
+  );
+  return {
+    items,
+    isLoading,
+    error,
+  };
+}
+
+/** Read-only channel view, reusing the same `YouTubeChannelCard` the view page renders. */
+function YouTubeChannelView({
+  id,
+}: {
+  id: string;
+}) {
+  const {
+    data, isLoading, error,
+  } = useYouTubeChannels();
+  if (isLoading) return <Loading />;
+  if (error) return <Problem>{error.message}</Problem>;
+  const channel = (data ?? []).find(item => item.id === id);
+  if (!channel) return <Problem>Channel not found.</Problem>;
+  return <YouTubeChannelCard channel={channel} />;
+}
+
+/** Inline channel editor, reusing the same `YouTubeChannelRow` the settings and edit pages use. */
+function YouTubeChannelEdit({
+  id,
+}: {
+  id: string;
+}) {
+  const {
+    data, isLoading, error,
+  } = useYouTubeChannels();
+  if (isLoading) return <Loading />;
+  if (error) return <Problem>{error.message}</Problem>;
+  const channel = (data ?? []).find(item => item.id === id);
+  if (!channel) return <Problem>Channel not found.</Problem>;
+  return <YouTubeChannelRow channel={channel} />;
+}
+
 // --- Autofill rule ------------------------------------------------------------------------------
 
 function useAutofillList() {
@@ -479,6 +589,24 @@ export const PANEL_CONTENT_TYPES: PanelContentTypeDef[] = [
     useList: useWebsiteList,
     View: WebsiteView,
     Edit: WebsiteEdit,
+  },
+  {
+    type: "media-type",
+    label: "Media Types",
+    singular: "Media Type",
+    icon: Clapperboard,
+    useList: useMediaTypeList,
+    View: MediaTypeView,
+    Edit: MediaTypeEdit,
+  },
+  {
+    type: "youtube-channel",
+    label: "YouTube Channels",
+    singular: "YouTube Channel",
+    icon: MonitorPlay,
+    useList: useYouTubeChannelList,
+    View: YouTubeChannelView,
+    Edit: YouTubeChannelEdit,
   },
   {
     type: "autofill",

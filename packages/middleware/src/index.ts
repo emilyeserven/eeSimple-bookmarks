@@ -3,10 +3,12 @@ import { buildApp } from "@/app";
 import { maybeSeed } from "@/db/seed";
 import { ensureAutofillConditions, ensureAutofillSlugs } from "@/services/autofill";
 import { ensureDefaultCategory } from "@/services/categories";
-import { backfillCustomPropertySlugs } from "@/services/customProperties";
+import { backfillCustomPropertySlugs, ensureVideoLengthProperty } from "@/services/customProperties";
 import { ensureHomepageFilter } from "@/services/homepageFilter";
 import { ensureHomepageSections } from "@/services/homepageSections";
+import { backfillMediaTypeSlugs, ensureBuiltInMediaTypes } from "@/services/mediaTypes";
 import { backfillWebsiteSlugs } from "@/services/websites";
+import { backfillYouTubeChannelSlugs } from "@/services/youtubeChannels";
 import { ensureBucket, isObjectStoreConfigured } from "@/utils/objectStore";
 
 const port = Number(process.env.PORT ?? 3001);
@@ -37,6 +39,10 @@ try {
   await ensureDefaultCategory();
   await backfillWebsiteSlugs();
   await backfillCustomPropertySlugs();
+  await ensureVideoLengthProperty();
+  await ensureBuiltInMediaTypes();
+  await backfillMediaTypeSlugs();
+  await backfillYouTubeChannelSlugs();
   await maybeSeed();
   // Backfill condition trees for legacy autofill rules and seed the homepage filter from the
   // previous is-homepage / homepage-tags mechanism on first boot.

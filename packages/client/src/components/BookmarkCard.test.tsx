@@ -38,6 +38,8 @@ const bookmark: Bookmark = {
   image: null,
   categoryId: "22222222-2222-2222-2222-222222222222",
   website: null,
+  mediaType: null,
+  youtubeChannel: null,
   tags: [
     {
       id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
@@ -61,6 +63,8 @@ const starsProperty: CustomProperty = {
   name: "Stars",
   slug: "stars",
   type: "number",
+  builtIn: false,
+  numberFormat: null,
   description: null,
   numberMin: null,
   numberMax: null,
@@ -85,6 +89,8 @@ const reviewedProperty: CustomProperty = {
   name: "Reviewed",
   slug: "reviewed",
   type: "boolean",
+  builtIn: false,
+  numberFormat: null,
   description: null,
   numberMin: null,
   numberMax: null,

@@ -206,6 +206,14 @@ export function BookmarkDetail({
               : null}
           </Field>
 
+          <Field label="Media type">
+            {bookmark.mediaType ? bookmark.mediaType.name : null}
+          </Field>
+
+          <Field label="Channel">
+            {bookmark.youtubeChannel ? bookmark.youtubeChannel.name : null}
+          </Field>
+
           <Field label="Tags">
             {bookmark.tags.length > 0
               ? (

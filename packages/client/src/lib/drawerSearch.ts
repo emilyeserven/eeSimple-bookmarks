@@ -16,6 +16,8 @@ export type DrawerContentType
     | "category"
     | "property"
     | "website"
+    | "media-type"
+    | "youtube-channel"
     | "autofill";
 
 /** Whether an opened item is shown read-only (`view`) or in its editor (`edit`). */
@@ -31,6 +33,8 @@ export const DRAWER_CONTENT_TYPES: DrawerContentType[] = [
   "category",
   "property",
   "website",
+  "media-type",
+  "youtube-channel",
   "autofill",
 ];
 

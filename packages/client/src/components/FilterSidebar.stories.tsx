@@ -48,6 +48,8 @@ export const WithUnassignedProperty: Story = {
         name: "Orphaned",
         slug: "orphaned",
         type: "boolean" as const,
+        builtIn: false,
+        numberFormat: null,
         description: null,
         numberMin: null,
         numberMax: null,

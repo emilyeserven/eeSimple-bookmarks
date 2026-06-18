@@ -4,6 +4,7 @@ import type {
   UpdateCustomPropertyInput,
 } from "@eesimple/types";
 import {
+  BuiltInPropertyError,
   createCustomProperty,
   CustomPropertyValidationError,
   deleteCustomProperty,
@@ -42,6 +43,10 @@ const createPropertyBody = {
     type: {
       type: "string",
       enum: ["number", "boolean", "calculate"],
+    },
+    numberFormat: {
+      type: ["string", "null"],
+      enum: ["plain", "duration", null],
     },
     description: {
       type: ["string", "null"],
@@ -95,6 +100,7 @@ const updatePropertyBody = {
   additionalProperties: false,
   properties: {
     name: createPropertyBody.properties.name,
+    numberFormat: createPropertyBody.properties.numberFormat,
     description: createPropertyBody.properties.description,
     numberMin: createPropertyBody.properties.numberMin,
     numberMax: createPropertyBody.properties.numberMax,
@@ -165,6 +171,11 @@ export async function customPropertyRoutes(app: FastifyInstance): Promise<void> 
           message: err.message,
         });
       }
+      if (err instanceof BuiltInPropertyError) {
+        return reply.code(403).send({
+          message: err.message,
+        });
+      }
       throw err;
     }
   });
@@ -178,10 +189,20 @@ export async function customPropertyRoutes(app: FastifyInstance): Promise<void> 
     const {
       id,
     } = req.params as { id: string };
-    const deleted = await deleteCustomProperty(id);
-    if (!deleted) return reply.code(404).send({
-      message: "Custom property not found",
-    });
-    return reply.code(204).send();
+    try {
+      const deleted = await deleteCustomProperty(id);
+      if (!deleted) return reply.code(404).send({
+        message: "Custom property not found",
+      });
+      return reply.code(204).send();
+    }
+    catch (err) {
+      if (err instanceof BuiltInPropertyError) {
+        return reply.code(403).send({
+          message: err.message,
+        });
+      }
+      throw err;
+    }
   });
 }

@@ -72,6 +72,23 @@ vi.mock("../hooks/useFetchTitle", () => ({
     error: null,
   }),
 }));
+vi.mock("../hooks/useFetchMetadata", () => ({
+  useFetchMetadata: () => ({
+    mutateAsync: vi.fn().mockResolvedValue({
+      title: null,
+      isYouTube: false,
+      channel: null,
+      durationSeconds: null,
+      thumbnailUrl: null,
+    }),
+    isPending: false,
+  }),
+}));
+vi.mock("../hooks/useMediaTypes", () => ({
+  useMediaTypes: () => ({
+    data: [],
+  }),
+}));
 vi.mock("../hooks/useWebsites", () => ({
   useWebsiteLookup: () => ({
     data: websiteLookupData,
@@ -167,6 +184,8 @@ describe("BookmarkForm title fetching", () => {
       image: null,
       categoryId: "22222222-2222-2222-2222-222222222222",
       website: null,
+      mediaType: null,
+      youtubeChannel: null,
       tags: [],
       numberValues: [],
       booleanValues: [],

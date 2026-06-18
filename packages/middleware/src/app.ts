@@ -11,9 +11,11 @@ import { customPropertyRoutes } from "@/routes/customProperties";
 import { healthRoutes } from "@/routes/health";
 import { homepageFilterRoutes } from "@/routes/homepageFilter";
 import { homepageSectionsRoutes } from "@/routes/homepageSections";
+import { mediaTypeRoutes } from "@/routes/mediaTypes";
 import { metadataRoutes } from "@/routes/metadata";
 import { tagRoutes } from "@/routes/tags";
 import { websiteRoutes } from "@/routes/websites";
+import { youtubeChannelRoutes } from "@/routes/youtubeChannels";
 
 /** Build and configure the Fastify application (without starting it). */
 export async function buildApp(): Promise<FastifyInstance> {
@@ -55,6 +57,14 @@ export async function buildApp(): Promise<FastifyInstance> {
         {
           name: "websites",
           description: "Built-in Websites taxonomy endpoints",
+        },
+        {
+          name: "media-types",
+          description: "Built-in Media Types taxonomy endpoints",
+        },
+        {
+          name: "youtube-channels",
+          description: "Built-in YouTube Channels taxonomy endpoints",
         },
         {
           name: "custom-properties",
@@ -104,6 +114,8 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(bookmarkRoutes);
   await app.register(tagRoutes);
   await app.register(websiteRoutes);
+  await app.register(mediaTypeRoutes);
+  await app.register(youtubeChannelRoutes);
   await app.register(customPropertyRoutes);
   await app.register(categoryRoutes);
   await app.register(autofillRoutes);

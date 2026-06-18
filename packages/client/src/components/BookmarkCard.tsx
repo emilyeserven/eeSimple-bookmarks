@@ -416,17 +416,45 @@ export function BookmarkCard({
   const details = (
     <>
       {bookmark.description ? <p className="mt-2 text-sm text-foreground">{bookmark.description}</p> : null}
-      {bookmark.website
+      {bookmark.website || bookmark.mediaType || bookmark.youtubeChannel
         ? (
-          <div className="mt-2">
-            <Link
-              to="/taxonomies/websites/$websiteSlug"
-              params={{
-                websiteSlug: bookmark.website.slug,
-              }}
-            >
-              <Badge variant="secondary">{bookmark.website.siteName}</Badge>
-            </Link>
+          <div className="mt-2 flex flex-wrap items-center gap-1">
+            {bookmark.website
+              ? (
+                <Link
+                  to="/taxonomies/websites/$websiteSlug"
+                  params={{
+                    websiteSlug: bookmark.website.slug,
+                  }}
+                >
+                  <Badge variant="secondary">{bookmark.website.siteName}</Badge>
+                </Link>
+              )
+              : null}
+            {bookmark.mediaType
+              ? (
+                <Link
+                  to="/taxonomies/media-types/$mediaTypeSlug"
+                  params={{
+                    mediaTypeSlug: bookmark.mediaType.slug,
+                  }}
+                >
+                  <Badge variant="secondary">{bookmark.mediaType.name}</Badge>
+                </Link>
+              )
+              : null}
+            {bookmark.youtubeChannel
+              ? (
+                <Link
+                  to="/taxonomies/youtube-channels/$channelSlug"
+                  params={{
+                    channelSlug: bookmark.youtubeChannel.slug,
+                  }}
+                >
+                  <Badge variant="secondary">{bookmark.youtubeChannel.name}</Badge>
+                </Link>
+              )
+              : null}
           </div>
         )
         : null}
