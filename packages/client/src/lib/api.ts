@@ -9,10 +9,13 @@ import type {
   CreateBookmarkInput,
   CreateCategoryInput,
   CreateCustomPropertyInput,
+  CreateHomepageSectionInput,
   CreateTagInput,
   CreateWebsiteInput,
   CustomProperty,
   HomepageFilter,
+  HomepageSection,
+  HomepageSectionBookmarks,
   Tag,
   TagNode,
   UpdateAutofillRuleInput,
@@ -20,6 +23,7 @@ import type {
   UpdateCategoryDefaultsInput,
   UpdateCategoryInput,
   UpdateCustomPropertyInput,
+  UpdateHomepageSectionInput,
   UpdateTagInput,
   UpdateWebsiteInput,
   Website,
@@ -207,6 +211,32 @@ export const homepageFilterApi = {
         conditions,
       }),
     }),
+};
+
+export const homepageSectionsApi = {
+  list: () => request<HomepageSection[]>("/homepage-sections"),
+  create: (input: CreateHomepageSectionInput) =>
+    request<HomepageSection>("/homepage-sections", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  update: (id: string, input: UpdateHomepageSectionInput) =>
+    request<HomepageSection>(`/homepage-sections/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  remove: (id: string) =>
+    request<undefined>(`/homepage-sections/${id}`, {
+      method: "DELETE",
+    }),
+  reorder: (orderedIds: string[]) =>
+    request<undefined>("/homepage-sections/reorder", {
+      method: "PUT",
+      body: JSON.stringify({
+        orderedIds,
+      }),
+    }),
+  withBookmarks: () => request<HomepageSectionBookmarks[]>("/bookmarks/homepage-sections"),
 };
 
 export const autofillApi = {

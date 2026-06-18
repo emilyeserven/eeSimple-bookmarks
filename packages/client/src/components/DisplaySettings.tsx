@@ -1,6 +1,5 @@
 import type { Theme } from "../stores/uiStore";
 
-import { HomepageSettings } from "./HomepageSettings";
 import { useCategories } from "../hooks/useCategories";
 import { useUiStore } from "../stores/uiStore";
 
@@ -169,8 +168,6 @@ export function DisplaySettings() {
           </div>
         </CardContent>
       </Card>
-
-      <HomepageSettings />
     </div>
   );
 }

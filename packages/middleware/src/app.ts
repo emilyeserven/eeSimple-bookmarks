@@ -10,6 +10,7 @@ import { conditionNodeSchema, conditionTreeSchema } from "@/routes/conditionSche
 import { customPropertyRoutes } from "@/routes/customProperties";
 import { healthRoutes } from "@/routes/health";
 import { homepageFilterRoutes } from "@/routes/homepageFilter";
+import { homepageSectionsRoutes } from "@/routes/homepageSections";
 import { metadataRoutes } from "@/routes/metadata";
 import { tagRoutes } from "@/routes/tags";
 import { websiteRoutes } from "@/routes/websites";
@@ -72,6 +73,10 @@ export async function buildApp(): Promise<FastifyInstance> {
           description: "The condition filter that selects homepage bookmarks",
         },
         {
+          name: "homepage-sections",
+          description: "Named, ordered homepage sections with their own condition filters",
+        },
+        {
           name: "health",
           description: "Service health",
         },
@@ -103,6 +108,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(categoryRoutes);
   await app.register(autofillRoutes);
   await app.register(homepageFilterRoutes);
+  await app.register(homepageSectionsRoutes);
 
   return app;
 }

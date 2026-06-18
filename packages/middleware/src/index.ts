@@ -4,6 +4,7 @@ import { maybeSeed } from "@/db/seed";
 import { ensureAutofillConditions } from "@/services/autofill";
 import { ensureDefaultCategory } from "@/services/categories";
 import { ensureHomepageFilter } from "@/services/homepageFilter";
+import { ensureHomepageSections } from "@/services/homepageSections";
 import { backfillWebsiteSlugs } from "@/services/websites";
 import { ensureBucket, isObjectStoreConfigured } from "@/utils/objectStore";
 
@@ -39,6 +40,7 @@ try {
   // previous is-homepage / homepage-tags mechanism on first boot.
   await ensureAutofillConditions();
   await ensureHomepageFilter();
+  await ensureHomepageSections();
   // Create the image bucket if storage is configured; harmless when it already exists.
   if (isObjectStoreConfigured()) await ensureBucket();
 }

@@ -222,8 +222,8 @@ async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
   return grouped;
 }
 
-/** Hydrate a list of bookmark rows into wire types (shared by list/get/homepage). */
-async function hydrate(rows: BookmarkRow[]): Promise<Bookmark[]> {
+/** Hydrate a list of bookmark rows into wire types (shared by list/get/homepage/sections). */
+export async function hydrateBookmarkRows(rows: BookmarkRow[]): Promise<Bookmark[]> {
   if (rows.length === 0) return [];
   const defaultCategoryId = await ensureDefaultCategory();
   const websiteIds = [...new Set(rows.map(row => row.websiteId).filter((id): id is string => id !== null))];
@@ -259,7 +259,7 @@ export async function listBookmarks(filterTagId?: string): Promise<Bookmark[]> {
 
   const baseRows = await db.select().from(bookmarks).orderBy(desc(bookmarks.createdAt));
   const rows = allowedIds ? baseRows.filter(row => allowedIds.has(row.id)) : baseRows;
-  return hydrate(rows);
+  return hydrateBookmarkRows(rows);
 }
 
 /**
@@ -301,13 +301,13 @@ export async function listHomepageBookmarks(): Promise<Bookmark[]> {
   matched.sort((a, b) =>
     b.priority - a.priority
     || (a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0));
-  return hydrate(matched);
+  return hydrateBookmarkRows(matched);
 }
 
 export async function getBookmark(id: string): Promise<Bookmark | null> {
   const [row] = await db.select().from(bookmarks).where(eq(bookmarks.id, id));
   if (!row) return null;
-  const [hydrated] = await hydrate([row]);
+  const [hydrated] = await hydrateBookmarkRows([row]);
   return hydrated ?? null;
 }
 

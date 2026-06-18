@@ -18,6 +18,7 @@ import { Route as TaxonomiesWebsitesRouteImport } from './routes/taxonomies.webs
 import { Route as TaxonomiesTagsRouteImport } from './routes/taxonomies.tags'
 import { Route as SettingsWebsitesRouteImport } from './routes/settings.websites'
 import { Route as SettingsTagsRouteImport } from './routes/settings.tags'
+import { Route as SettingsHomepageRouteImport } from './routes/settings.homepage'
 import { Route as SettingsDisplayRouteImport } from './routes/settings.display'
 import { Route as SettingsCustomPropertiesRouteImport } from './routes/settings.custom-properties'
 import { Route as SettingsCategoriesRouteImport } from './routes/settings.categories'
@@ -84,6 +85,11 @@ const SettingsWebsitesRoute = SettingsWebsitesRouteImport.update({
 const SettingsTagsRoute = SettingsTagsRouteImport.update({
   id: '/tags',
   path: '/tags',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsHomepageRoute = SettingsHomepageRouteImport.update({
+  id: '/homepage',
+  path: '/homepage',
   getParentRoute: () => SettingsRoute,
 } as any)
 const SettingsDisplayRoute = SettingsDisplayRouteImport.update({
@@ -220,6 +226,7 @@ export interface FileRoutesByFullPath {
   '/settings/categories': typeof SettingsCategoriesRoute
   '/settings/custom-properties': typeof SettingsCustomPropertiesRoute
   '/settings/display': typeof SettingsDisplayRoute
+  '/settings/homepage': typeof SettingsHomepageRoute
   '/settings/tags': typeof SettingsTagsRoute
   '/settings/websites': typeof SettingsWebsitesRoute
   '/taxonomies/tags': typeof TaxonomiesTagsRoute
@@ -248,6 +255,7 @@ export interface FileRoutesByTo {
   '/settings/categories': typeof SettingsCategoriesRoute
   '/settings/custom-properties': typeof SettingsCustomPropertiesRoute
   '/settings/display': typeof SettingsDisplayRoute
+  '/settings/homepage': typeof SettingsHomepageRoute
   '/settings/tags': typeof SettingsTagsRoute
   '/settings/websites': typeof SettingsWebsitesRoute
   '/taxonomies/tags': typeof TaxonomiesTagsRoute
@@ -279,6 +287,7 @@ export interface FileRoutesById {
   '/settings/categories': typeof SettingsCategoriesRoute
   '/settings/custom-properties': typeof SettingsCustomPropertiesRoute
   '/settings/display': typeof SettingsDisplayRoute
+  '/settings/homepage': typeof SettingsHomepageRoute
   '/settings/tags': typeof SettingsTagsRoute
   '/settings/websites': typeof SettingsWebsitesRoute
   '/taxonomies/tags': typeof TaxonomiesTagsRoute
@@ -314,6 +323,7 @@ export interface FileRouteTypes {
     | '/settings/categories'
     | '/settings/custom-properties'
     | '/settings/display'
+    | '/settings/homepage'
     | '/settings/tags'
     | '/settings/websites'
     | '/taxonomies/tags'
@@ -342,6 +352,7 @@ export interface FileRouteTypes {
     | '/settings/categories'
     | '/settings/custom-properties'
     | '/settings/display'
+    | '/settings/homepage'
     | '/settings/tags'
     | '/settings/websites'
     | '/taxonomies/tags'
@@ -372,6 +383,7 @@ export interface FileRouteTypes {
     | '/settings/categories'
     | '/settings/custom-properties'
     | '/settings/display'
+    | '/settings/homepage'
     | '/settings/tags'
     | '/settings/websites'
     | '/taxonomies/tags'
@@ -467,6 +479,13 @@ declare module '@tanstack/react-router' {
       path: '/tags'
       fullPath: '/settings/tags'
       preLoaderRoute: typeof SettingsTagsRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/homepage': {
+      id: '/settings/homepage'
+      path: '/homepage'
+      fullPath: '/settings/homepage'
+      preLoaderRoute: typeof SettingsHomepageRouteImport
       parentRoute: typeof SettingsRoute
     }
     '/settings/display': {
@@ -672,6 +691,7 @@ interface SettingsRouteChildren {
   SettingsCategoriesRoute: typeof SettingsCategoriesRoute
   SettingsCustomPropertiesRoute: typeof SettingsCustomPropertiesRoute
   SettingsDisplayRoute: typeof SettingsDisplayRoute
+  SettingsHomepageRoute: typeof SettingsHomepageRoute
   SettingsTagsRoute: typeof SettingsTagsRoute
   SettingsWebsitesRoute: typeof SettingsWebsitesRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
@@ -683,6 +703,7 @@ const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsCategoriesRoute: SettingsCategoriesRoute,
   SettingsCustomPropertiesRoute: SettingsCustomPropertiesRoute,
   SettingsDisplayRoute: SettingsDisplayRoute,
+  SettingsHomepageRoute: SettingsHomepageRoute,
   SettingsTagsRoute: SettingsTagsRoute,
   SettingsWebsitesRoute: SettingsWebsitesRoute,
   SettingsIndexRoute: SettingsIndexRoute,

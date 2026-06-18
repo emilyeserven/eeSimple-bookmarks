@@ -298,6 +298,22 @@ export const homepageFilter = pgTable("homepage_filter", {
   conditions: jsonb("conditions").$type<ConditionTree>().notNull(),
 });
 
+/**
+ * `homepage_sections` — user-defined, ordered sections that appear on the homepage. Each section
+ * has its own condition filter; bookmarks matching that filter are shown under the section's title
+ * and description. `sort_order` controls the display sequence.
+ */
+export const homepageSections = pgTable("homepage_sections", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  title: text("title").notNull(),
+  description: text("description"),
+  conditions: jsonb("conditions").$type<ConditionTree>().notNull(),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+});
+
 /** `property_categories` join — many-to-many between custom properties and categories. */
 export const propertyCategories = pgTable("property_categories", {
   propertyId: uuid("property_id").notNull().references(() => customProperties.id, {

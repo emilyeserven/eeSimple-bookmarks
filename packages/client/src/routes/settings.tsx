@@ -20,6 +20,10 @@ const settingsNav = [
     label: "Display",
   },
   {
+    to: "/settings/homepage",
+    label: "Homepage",
+  },
+  {
     to: "/settings/categories",
     label: "Categories",
   },
