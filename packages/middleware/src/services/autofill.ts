@@ -6,11 +6,12 @@ import type {
   BookmarkNumberValue,
   ConditionMatchField,
   ConditionMatchOperator,
+  ConditionNode,
   ConditionTree,
   CreateAutofillRuleInput,
   UpdateAutofillRuleInput,
 } from "@eesimple/types";
-import { emptyConditionTree } from "@eesimple/types";
+import { emptyConditionTree, normalizeDomain } from "@eesimple/types";
 import { db } from "@/db";
 import {
   autofillRuleBooleanValues,
@@ -398,6 +399,71 @@ export async function ensureAutofillConditions(): Promise<void> {
     };
     await db.update(autofillRules).set({
       conditions,
+    }).where(eq(autofillRules.id, row.id));
+  }
+}
+
+/**
+ * Rewrite a condition node, turning any legacy `match` leaf with the `domain` operator into a
+ * dedicated `website` leaf. Returns the original node when nothing changed so callers can detect
+ * a no-op. Recurses into groups so deeply nested legacy trees are migrated too.
+ */
+export function migrateDomainMatches(node: ConditionNode): { node: ConditionNode;
+  changed: boolean; } {
+  if (node.type === "match" && node.operator === "domain") {
+    return {
+      node: {
+        type: "website",
+        domains: [normalizeDomain(node.pattern)],
+      },
+      changed: true,
+    };
+  }
+  if (node.type === "group") {
+    let changed = false;
+    const children = node.children.map((child) => {
+      const result = migrateDomainMatches(child);
+      if (result.changed) changed = true;
+      return result.node;
+    });
+    return changed
+      ? {
+        node: {
+          ...node,
+          children,
+        },
+        changed: true,
+      }
+      : {
+        node,
+        changed: false,
+      };
+  }
+  return {
+    node,
+    changed: false,
+  };
+}
+
+/**
+ * Backfill the dedicated `website` leaf for rules that still encode a website match via the legacy
+ * `match`/`domain` operator. Runs at boot; idempotent (rules without a domain match are untouched).
+ */
+export async function ensureWebsiteConditions(): Promise<void> {
+  const rows = await db
+    .select({
+      id: autofillRules.id,
+      conditions: autofillRules.conditions,
+    })
+    .from(autofillRules);
+
+  for (const row of rows) {
+    const tree = row.conditions as ConditionTree | null;
+    if (!tree) continue;
+    const result = migrateDomainMatches(tree);
+    if (!result.changed) continue;
+    await db.update(autofillRules).set({
+      conditions: result.node as ConditionTree,
     }).where(eq(autofillRules.id, row.id));
   }
 }

@@ -67,6 +67,17 @@ export interface CategoryCondition {
 }
 
 /**
+ * Leaf: the bookmark's host (its URL's hostname with a leading `www.` stripped) is one of
+ * `domains`. Domains are stored normalized (lowercase, no `www.`); an empty list never matches.
+ * This is the dedicated "Website" filter — it supersedes the legacy `match` leaf's `domain`
+ * operator, which is retained only so older stored trees still evaluate.
+ */
+export interface WebsiteCondition {
+  type: "website";
+  domains: string[];
+}
+
+/**
  * Leaf: the bookmark carries one of `tagIds`. Cascade (a selected parent also matches its
  * descendants) is applied at EVALUATION time, so `tagIds` stores exactly what the user picked.
  */
@@ -100,6 +111,7 @@ export type ConditionNode
   = | ConditionGroup
     | MatchCondition
     | CategoryCondition
+    | WebsiteCondition
     | TagCondition
     | PropertyCondition;
 
@@ -180,6 +192,17 @@ function hostOf(url: string): string | null {
   catch {
     return null;
   }
+}
+
+/** Normalize a domain to the form `hostOf` produces (lowercase, no leading `www.`). */
+export function normalizeDomain(domain: string): string {
+  return domain.trim().replace(/^www\./i, "").toLowerCase();
+}
+
+function evaluateWebsite(condition: WebsiteCondition, input: ConditionInput): boolean {
+  const host = hostOf(input.url);
+  if (host === null) return false;
+  return condition.domains.some(domain => normalizeDomain(domain) === host);
 }
 
 function evaluateMatch(condition: MatchCondition, input: ConditionInput): boolean {
@@ -310,6 +333,8 @@ export function evaluateConditions(
       return evaluateMatch(node, input);
     case "category":
       return node.categoryIds.includes(input.categoryId);
+    case "website":
+      return evaluateWebsite(node, input);
     case "tag":
       return evaluateTag(node, input, options);
     case "property":

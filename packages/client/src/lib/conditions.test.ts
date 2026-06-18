@@ -101,6 +101,41 @@ describe("evaluateConditions — category leaf", () => {
   });
 });
 
+describe("evaluateConditions — website leaf", () => {
+  const input = makeInput(); // host: 101cookbooks.com (www. stripped)
+
+  it("matches the bookmark host, stripping www. and ignoring case/extra domains", () => {
+    expect(evaluateConditions({
+      type: "website",
+      domains: ["example.com", "101cookbooks.com"],
+    }, input)).toBe(true);
+    expect(evaluateConditions({
+      type: "website",
+      domains: ["WWW.101CookBooks.com"],
+    }, input)).toBe(true);
+  });
+
+  it("does not match an unrelated domain or an empty list", () => {
+    expect(evaluateConditions({
+      type: "website",
+      domains: ["example.com"],
+    }, input)).toBe(false);
+    expect(evaluateConditions({
+      type: "website",
+      domains: [],
+    }, input)).toBe(false);
+  });
+
+  it("never matches when the URL can't be parsed", () => {
+    expect(evaluateConditions({
+      type: "website",
+      domains: ["101cookbooks.com"],
+    }, makeInput({
+      url: "not a url",
+    }))).toBe(false);
+  });
+});
+
 describe("evaluateConditions — tag leaf with cascade", () => {
   const tagDescendants = buildTagDescendants([
     {

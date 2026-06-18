@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import type { ConditionTree } from "@eesimple/types";
 import { buildApp } from "@/app";
+import { migrateDomainMatches } from "@/services/autofill";
 
 // Schema-validation tests via `inject` (no database needed), matching the
 // `categories` / `customProperties` test style.
@@ -127,6 +129,102 @@ test("POST /api/autofill-rules rejects a non-uuid setCategoryId", async () => {
   });
   assert.equal(res.statusCode, 400);
   await app.close();
+});
+
+test("POST /api/autofill-rules accepts a website condition (schema)", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "POST",
+    url: "/api/autofill-rules",
+    payload: {
+      name: "Recipes",
+      conditions: {
+        type: "group",
+        combinator: "and",
+        children: [{
+          type: "website",
+          domains: ["101cookbooks.com"],
+        }],
+      },
+    },
+  });
+  // No DB in this test, so the handler may 500; we only assert the schema accepted the payload.
+  assert.notEqual(res.statusCode, 400);
+  await app.close();
+});
+
+test("POST /api/autofill-rules rejects a website condition missing domains", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "POST",
+    url: "/api/autofill-rules",
+    payload: {
+      name: "Recipes",
+      conditions: {
+        type: "group",
+        combinator: "and",
+        children: [{
+          type: "website",
+        }],
+      },
+    },
+  });
+  assert.equal(res.statusCode, 400);
+  await app.close();
+});
+
+test("migrateDomainMatches rewrites legacy domain matches into website leaves", () => {
+  const result = migrateDomainMatches({
+    type: "group",
+    combinator: "and",
+    children: [
+      {
+        type: "match",
+        field: "url",
+        operator: "domain",
+        pattern: "www.101cookbooks.com",
+      },
+      {
+        type: "match",
+        field: "title",
+        operator: "contains",
+        pattern: "ponzu",
+      },
+    ],
+  });
+  assert.equal(result.changed, true);
+  assert.deepEqual(result.node, {
+    type: "group",
+    combinator: "and",
+    children: [
+      {
+        type: "website",
+        domains: ["101cookbooks.com"],
+      },
+      {
+        type: "match",
+        field: "title",
+        operator: "contains",
+        pattern: "ponzu",
+      },
+    ],
+  });
+});
+
+test("migrateDomainMatches leaves trees without a domain match untouched", () => {
+  const tree: ConditionTree = {
+    type: "group",
+    combinator: "and",
+    children: [{
+      type: "match",
+      field: "title",
+      operator: "contains",
+      pattern: "ponzu",
+    }],
+  };
+  const result = migrateDomainMatches(tree);
+  assert.equal(result.changed, false);
+  assert.equal(result.node, tree);
 });
 
 test("PATCH /api/autofill-rules/:id rejects a non-uuid id", async () => {

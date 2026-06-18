@@ -7,6 +7,8 @@ export interface ConditionSummary {
   match: number;
   /** Number of selected category ids (a single category leaf can hold several). */
   categories: number;
+  /** Number of selected website domains (a single website leaf can hold several). */
+  websites: number;
   /** Number of selected tag ids (a single tag leaf can hold several). */
   tags: number;
   properties: number;
@@ -17,11 +19,13 @@ export interface ConditionSummary {
 export function summarizeConditions(tree: ConditionTree): ConditionSummary {
   let match = 0;
   let categories = 0;
+  let websites = 0;
   let tags = 0;
   let properties = 0;
   for (const child of tree.children) {
     if (child.type === "match") match += 1;
     else if (child.type === "category") categories += child.categoryIds.length;
+    else if (child.type === "website") websites += child.domains.length;
     else if (child.type === "tag") tags += child.tagIds.length;
     else if (child.type === "property") properties += 1;
   }
@@ -29,6 +33,7 @@ export function summarizeConditions(tree: ConditionTree): ConditionSummary {
     total: tree.children.length,
     match,
     categories,
+    websites,
     tags,
     properties,
     combinator: tree.combinator,
@@ -46,8 +51,9 @@ export function conditionsSummaryLabel(tree: ConditionTree): string {
 export function conditionsBreakdown(tree: ConditionTree): string[] {
   const summary = summarizeConditions(tree);
   const lines: string[] = [];
-  if (summary.match > 0) lines.push(`${summary.match} URL / title match${summary.match === 1 ? "" : "es"}`);
+  if (summary.match > 0) lines.push(`${summary.match} title match${summary.match === 1 ? "" : "es"}`);
   if (summary.categories > 0) lines.push(`${summary.categories} categor${summary.categories === 1 ? "y" : "ies"}`);
+  if (summary.websites > 0) lines.push(`${summary.websites} website${summary.websites === 1 ? "" : "s"}`);
   if (summary.tags > 0) lines.push(`${summary.tags} tag${summary.tags === 1 ? "" : "s"}`);
   if (summary.properties > 0) lines.push(`${summary.properties} custom propert${summary.properties === 1 ? "y" : "ies"}`);
   return lines;
