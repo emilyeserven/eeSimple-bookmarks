@@ -513,16 +513,24 @@ export function BookmarkForm({
     }
   }
 
-  // For a YouTube URL, pull the channel, duration, and media type from the video's metadata and
-  // prefill them: the channel is held as a hint applied on save, the duration fills the built-in
-  // "Video Length" property, and the media type is set to "Video". Best-effort and non-blocking.
-  async function runYouTubeEnrichment(url: string): Promise<void> {
+  // For a YouTube URL, pull the title, channel, duration, and media type from the video's metadata
+  // and prefill them: the title is written into the Name field (this owns the title fetch for
+  // YouTube, so runFetchTitle is skipped), the channel is held as a hint applied on save, the
+  // duration fills the built-in "Video Length" property, and the media type is set to "Video".
+  // `fillTitle` mirrors the autoFetchTitle gate; `force` overwrites an existing title (manual button).
+  // Best-effort and non-blocking.
+  async function runYouTubeEnrichment(url: string, {
+    fillTitle, force,
+  }: { fillTitle: boolean;
+    force: boolean; }): Promise<void> {
     // A non-YouTube URL clears any channel left over from a previously-entered YouTube link.
     if (!isFetchableUrl(url) || !looksLikeYouTube(url)) {
       channelHintRef.current = null;
       setYoutubeChannel(null);
       return;
     }
+    // YouTube owns its own title fetch here, so clear any stale fetch-title error from a prior URL.
+    fetchTitle.reset();
     try {
       const meta = await fetchMetadata.mutateAsync({
         url,
@@ -533,6 +541,10 @@ export function BookmarkForm({
         return;
       }
 
+      // Fill the Name from the (clean) oEmbed title, matching runFetchTitle's overwrite rule.
+      if (fillTitle && meta.title && (force || form.getFieldValue("title").trim() === "")) {
+        form.setFieldValue("title", meta.title);
+      }
       if (meta.channel?.key) {
         const hint = {
           key: meta.channel.key,
@@ -634,12 +646,17 @@ export function BookmarkForm({
               onBlur={() => {
                 runAutofill();
                 runWebsiteLookup(field.state.value);
-                if (autoFetchTitle) {
+                // YouTube gets its title from enrichment; non-YouTube uses the strict fetch-title.
+                const yt = looksLikeYouTube(field.state.value);
+                if (autoFetchTitle && !yt) {
                   void runFetchTitle(field.state.value, {
                     force: false,
                   });
                 }
-                void runYouTubeEnrichment(field.state.value);
+                void runYouTubeEnrichment(field.state.value, {
+                  fillTitle: autoFetchTitle,
+                  force: false,
+                });
               }}
               action={(
                 <Button
@@ -690,15 +707,22 @@ export function BookmarkForm({
                       size="icon"
                       title="Fetch title from URL"
                       aria-label="Fetch title from URL"
-                      disabled={!isFetchableUrl(url) || fetchTitle.isPending}
+                      disabled={!isFetchableUrl(url) || fetchTitle.isPending || fetchMetadata.isPending}
                       onClick={() => {
-                        void runFetchTitle(url, {
+                        // YouTube gets its title from enrichment; skip the strict fetch-title for it.
+                        const yt = looksLikeYouTube(url);
+                        if (!yt) {
+                          void runFetchTitle(url, {
+                            force: true,
+                          });
+                        }
+                        void runYouTubeEnrichment(url, {
+                          fillTitle: true,
                           force: true,
                         });
-                        void runYouTubeEnrichment(url);
                       }}
                     >
-                      {fetchTitle.isPending
+                      {fetchTitle.isPending || fetchMetadata.isPending
                         ? <Loader2 className="size-4 animate-spin" />
                         : <Sparkles className="size-4" />}
                     </Button>
