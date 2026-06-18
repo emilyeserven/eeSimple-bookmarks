@@ -3,7 +3,7 @@ import type { TagNode } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 import { ChevronDown, ChevronRight, Pencil } from "lucide-react";
 
-import { useEditPanelClick } from "./panel/useEditPanelClick";
+import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -49,6 +49,7 @@ function TagTreeRow({
   node, depth, expanded, onToggle,
 }: TagTreeRowProps) {
   const editClick = useEditPanelClick();
+  const viewClick = useViewPanelClick();
   const modifier = useUiStore(state => state.sidebarOpenModifier);
   const hasChildren = node.children.length > 0;
   const isOpen = expanded.has(node.id);
@@ -94,6 +95,8 @@ function TagTreeRow({
           params={{
             tagSlug: node.slug,
           }}
+          title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+          onClick={event => viewClick(event, "tag", node.id)}
           className="
             flex-1 truncate
             hover:underline

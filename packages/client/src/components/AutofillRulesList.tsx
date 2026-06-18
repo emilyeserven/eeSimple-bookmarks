@@ -8,6 +8,7 @@ import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 
 import { NO_CATEGORY } from "./AutofillRuleForm";
+import { useViewPanelClick } from "./panel/useEditPanelClick";
 import { usePanelControls } from "./panel/usePanelControls";
 import { useAutofillRules } from "../hooks/useAutofill";
 import { useCategories } from "../hooks/useCategories";
@@ -29,6 +30,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { NEW_SENTINEL } from "@/lib/drawerSearch";
+import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
+import { useUiStore } from "@/stores/uiStore";
 
 /** Select sentinel for "show rules for every category". */
 const ALL_CATEGORIES = "all";
@@ -170,6 +173,8 @@ interface RuleListItemProps {
 function RuleListItem({
   rule, categories,
 }: RuleListItemProps) {
+  const viewClick = useViewPanelClick();
+  const modifier = useUiStore(state => state.sidebarOpenModifier);
   const categoryName = rule.setCategoryId
     ? categories.find(category => category.id === rule.setCategoryId)?.name
     : null;
@@ -180,6 +185,8 @@ function RuleListItem({
       params={{
         ruleSlug: rule.slug,
       }}
+      title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+      onClick={event => viewClick(event, "autofill", rule.id)}
       className="block w-full text-left"
     >
       <Card

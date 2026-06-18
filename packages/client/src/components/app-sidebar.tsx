@@ -18,6 +18,7 @@ import {
   Wand2,
 } from "lucide-react";
 
+import { useViewPanelClick } from "./panel/useEditPanelClick";
 import { useCategories } from "../hooks/useCategories";
 import { useResizeHandle } from "../hooks/useResizeHandle";
 import { useUiStore } from "../stores/uiStore";
@@ -38,6 +39,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { CategoryIcon } from "@/lib/icons";
+import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
 
 const navItems = [
   {
@@ -112,6 +114,8 @@ export function AppSidebar({
   const hiddenCategoryIds = useUiStore(state => state.hiddenCategoryIds);
   const hiddenTaxonomyItems = useUiStore(state => state.hiddenTaxonomyItems);
   const hiddenCustomizationItems = useUiStore(state => state.hiddenCustomizationItems);
+  const modifier = useUiStore(state => state.sidebarOpenModifier);
+  const viewClick = useViewPanelClick();
 
   const visibleCategories = (categories ?? []).filter(
     c => !hiddenCategoryIds.includes(c.id),
@@ -203,6 +207,8 @@ export function AppSidebar({
                           params={{
                             categorySlug: category.slug,
                           }}
+                          title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+                          onClick={event => viewClick(event, "category", category.id)}
                         >
                           <CategoryIcon name={category.icon} />
                           <span>{category.name}</span>
