@@ -25,12 +25,19 @@ interface AddTagModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export function AddTagModal({ open, onOpenChange }: AddTagModalProps) {
-  const { data: tree } = useTagTree();
+export function AddTagModal({
+  open, onOpenChange,
+}: AddTagModalProps) {
+  const {
+    data: tree,
+  } = useTagTree();
   const createTag = useCreateTag();
 
   const parentOptions = [
-    { value: ROOT, label: "(root)" },
+    {
+      value: ROOT,
+      label: "(root)",
+    },
     ...flattenTree(tree ?? []).map(item => ({
       value: item.node.id,
       label: `${"– ".repeat(item.depth)}${item.node.name}`,
@@ -38,9 +45,16 @@ export function AddTagModal({ open, onOpenChange }: AddTagModalProps) {
   ];
 
   const form = useAppForm({
-    defaultValues: { name: "", parent: ROOT },
-    validators: { onChange: createTagSchema },
-    onSubmit: ({ value }) => {
+    defaultValues: {
+      name: "",
+      parent: ROOT,
+    },
+    validators: {
+      onChange: createTagSchema,
+    },
+    onSubmit: ({
+      value,
+    }) => {
       createTag.mutate(
         {
           name: value.name.trim(),
@@ -57,7 +71,10 @@ export function AddTagModal({ open, onOpenChange }: AddTagModalProps) {
   });
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={onOpenChange}
+    >
       <DialogContent>
         <DialogHeader>
           <DialogTitle>New tag</DialogTitle>

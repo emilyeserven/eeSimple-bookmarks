@@ -40,7 +40,7 @@ export function TagManager() {
         </Button>
       </div>
 
-      {isLoading ? <p className="text-muted-foreground">Loading tags&hellip;</p> : null}
+      {isLoading ? <p className="text-muted-foreground">Loading tags&#8230;</p> : null}
       {error ? <p className="text-destructive">{error.message}</p> : null}
       {!isLoading && tree && tree.length === 0
         ? (
@@ -48,7 +48,10 @@ export function TagManager() {
             {"No tags yet. "}
             <button
               type="button"
-              className="underline hover:no-underline"
+              className="
+                underline
+                hover:no-underline
+              "
               onClick={() => setModalOpen(true)}
             >
               Add your first tag.
@@ -67,7 +70,10 @@ export function TagManager() {
         )
         : null}
 
-      <AddTagModal open={modalOpen} onOpenChange={setModalOpen} />
+      <AddTagModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+      />
     </section>
   );
 }

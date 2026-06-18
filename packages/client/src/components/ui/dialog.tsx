@@ -81,10 +81,8 @@ function DialogContent({
         data-slot="dialog-content"
         className={cn(
           `
-            fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2
-            w-full max-w-lg
-            bg-background border rounded-lg shadow-lg
-            flex flex-col gap-4 p-6
+            fixed top-1/2 left-1/2 z-50 flex w-full max-w-lg -translate-1/2
+            flex-col gap-4 rounded-lg border bg-background p-6 shadow-lg
             data-[state=closed]:animate-out data-[state=closed]:fade-out-0
             data-[state=closed]:zoom-out-95
             data-[state=open]:animate-in data-[state=open]:fade-in-0
