@@ -1,15 +1,16 @@
 import type { YouTubeChannel } from "@eesimple/types";
 
 import { useState } from "react";
+
 import { z } from "zod";
 
-import { useUpdateYouTubeChannel } from "@/hooks/useYouTubeChannels";
-import { useAppForm } from "@/lib/form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { useUpdateYouTubeChannel } from "@/hooks/useYouTubeChannels";
+import { useAppForm } from "@/lib/form";
 
 const channelGeneralSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
@@ -81,7 +82,7 @@ export function YouTubeChannelGeneralForm({
       <div className="space-y-2">
         <Label className="block">Self-identifiers</Label>
         <p className="text-sm text-muted-foreground">
-          Short names this channel appends to video titles (e.g. "SNL"). Stripped automatically when a bookmark title is fetched.
+          Short names this channel appends to video titles (e.g. &quot;SNL&quot;). Stripped automatically when a bookmark title is fetched.
         </p>
         {selfIds.length > 0 && (
           <div className="flex flex-wrap gap-1">

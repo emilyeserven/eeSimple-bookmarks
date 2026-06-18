@@ -2,7 +2,7 @@ import type { HTMLAttributes } from "react";
 
 import { cn } from "@/lib/utils";
 
-interface InputGroupProps extends HTMLAttributes<HTMLDivElement> {}
+type InputGroupProps = HTMLAttributes<HTMLDivElement>;
 
 export function InputGroup({
   className, children, ...props
@@ -31,7 +31,7 @@ export function InputAddon({
       data-align={align}
       className={cn(
         "absolute inset-y-0 flex items-center",
-        align === "inline-end" ? "end-0 pe-1" : "start-0 ps-1",
+        align === "inline-end" ? "inset-e-0 pe-1" : "inset-s-0 ps-1",
         className,
       )}
       {...props}

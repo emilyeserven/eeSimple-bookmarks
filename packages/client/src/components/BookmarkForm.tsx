@@ -838,7 +838,12 @@ export function BookmarkForm({
           {urlCleanup?.applied && (
             <div className="space-y-1 text-sm text-muted-foreground">
               {urlShortener.nudge && (
-                <p className="text-amber-600 dark:text-amber-500">
+                <p
+                  className="
+                    text-amber-600
+                    dark:text-amber-500
+                  "
+                >
                   This looks like a shortened link — consider using the full URL.
                 </p>
               )}
@@ -1451,7 +1456,11 @@ function WebsiteLookupBanner({
           youtubeChannel
             ? (
               <div className="space-y-2">
-                <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                <p
+                  className="
+                    flex items-center gap-2 text-sm text-muted-foreground
+                  "
+                >
                   <Badge variant="secondary">YouTube channel</Badge>
                   <span>{youtubeChannel.name}</span>
                 </p>
@@ -1460,7 +1469,7 @@ function WebsiteLookupBanner({
                     Channel self-identifiers
                   </Label>
                   <p className="mb-2 text-xs text-muted-foreground">
-                    Short names this channel appends to video titles (e.g. "SNL"). They are stripped from the bookmark title automatically.
+                    Short names this channel appends to video titles (e.g. &quot;SNL&quot;). They are stripped from the bookmark title automatically.
                   </p>
                   {(youtubeChannel.selfIds ?? []).length > 0 && (
                     <div className="mb-2 flex flex-wrap gap-1">

@@ -10,8 +10,8 @@ import { createFormHook, createFormHookContexts } from "@tanstack/react-form";
 
 import { Combobox } from "@/components/Combobox";
 import { Button } from "@/components/ui/button";
-import { InputAddon, InputGroup } from "@/components/ui/input-group";
 import { Input } from "@/components/ui/input";
+import { InputAddon, InputGroup } from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -151,7 +151,12 @@ function TextareaField({
         ? (
           <InputGroup>
             {textarea}
-            <InputAddon align="inline-end" className="items-start pt-1">{action}</InputAddon>
+            <InputAddon
+              align="inline-end"
+              className="items-start pt-1"
+            >
+              {action}
+            </InputAddon>
           </InputGroup>
         )
         : textarea}

@@ -495,9 +495,14 @@ export function BookmarkCard({
     <>
       {bookmark.description
         ? (
-          <div className="relative mt-2 max-h-[4.5rem] overflow-hidden">
-            <p className="text-sm leading-6 text-foreground">{bookmark.description}</p>
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-card to-transparent" />
+          <div className="relative mt-2 max-h-18 overflow-hidden">
+            <p className="text-sm/6 text-foreground">{bookmark.description}</p>
+            <div
+              className="
+                pointer-events-none absolute inset-x-0 bottom-0 h-8
+                bg-linear-to-t from-card to-transparent
+              "
+            />
           </div>
         )
         : null}
