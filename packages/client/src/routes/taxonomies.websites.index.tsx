@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { useWebsites } from "../hooks/useWebsites";
 import { WebsitesListing } from "../components/WebsiteManager";
+import { useWebsites } from "../hooks/useWebsites";
 
 import { Badge } from "@/components/ui/badge";
 
@@ -11,7 +11,9 @@ export const Route = createFileRoute("/taxonomies/websites/")({
 
 /** Browse view for the Websites taxonomy: every known site with search filtering. */
 function WebsitesTaxonomyPage() {
-  const { data: allWebsites } = useWebsites();
+  const {
+    data: allWebsites,
+  } = useWebsites();
 
   return (
     <section className="space-y-6">
