@@ -6,7 +6,7 @@ import { useDeleteCustomProperty, usePropertyBySlug } from "../hooks/useCustomPr
 
 import { Card } from "@/components/ui/card";
 
-export const Route = createFileRoute("/settings/custom-properties/$propertySlug/")({
+export const Route = createFileRoute("/custom-properties/$propertySlug/")({
   component: CustomPropertyDetailPage,
 });
 
@@ -25,7 +25,7 @@ function CustomPropertyDetailPage() {
 
   const backLink = (
     <Link
-      to="/settings/custom-properties"
+      to="/custom-properties"
       className="
         inline-block text-sm text-muted-foreground
         hover:text-foreground
@@ -57,14 +57,14 @@ function CustomPropertyDetailPage() {
           categories={categories ?? []}
           allProperties={properties ?? []}
           onEdit={() => navigate({
-            to: "/settings/custom-properties/$propertySlug/edit",
+            to: "/custom-properties/$propertySlug/edit",
             params: {
               propertySlug,
             },
           })}
           onDelete={() => deleteProperty.mutate(property.id, {
             onSuccess: () => navigate({
-              to: "/settings/custom-properties",
+              to: "/custom-properties",
             }),
           })}
         />

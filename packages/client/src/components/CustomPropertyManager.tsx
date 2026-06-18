@@ -43,7 +43,7 @@ function PropertyPreview({
   return (
     <Card className={cn("p-0", isUncategorized && "opacity-60")}>
       <Link
-        to="/settings/custom-properties/$propertySlug"
+        to="/custom-properties/$propertySlug"
         params={{
           propertySlug: property.slug,
         }}
@@ -105,7 +105,7 @@ export function CustomPropertyManager() {
           className="sm:flex-1"
         />
         <Button asChild>
-          <Link to="/settings/custom-properties/new">
+          <Link to="/custom-properties/new">
             <Plus className="size-4" />
             New property
           </Link>

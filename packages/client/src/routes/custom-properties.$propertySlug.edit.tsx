@@ -4,7 +4,7 @@ import { PropertyForm } from "../components/PropertyForm";
 import { useCategories } from "../hooks/useCategories";
 import { usePropertyBySlug, useUpdateCustomProperty } from "../hooks/useCustomProperties";
 
-export const Route = createFileRoute("/settings/custom-properties/$propertySlug/edit")({
+export const Route = createFileRoute("/custom-properties/$propertySlug/edit")({
   component: CustomPropertyEditPage,
 });
 
@@ -30,7 +30,7 @@ function CustomPropertyEditPage() {
     <section className="space-y-6">
       <div className="space-y-1">
         <Link
-          to="/settings/custom-properties/$propertySlug"
+          to="/custom-properties/$propertySlug"
           params={{
             propertySlug,
           }}
@@ -64,7 +64,7 @@ function CustomPropertyEditPage() {
               }, {
                 // Renaming can change the slug, so navigate to the property's returned slug.
                 onSuccess: updated => navigate({
-                  to: "/settings/custom-properties/$propertySlug",
+                  to: "/custom-properties/$propertySlug",
                   params: {
                     propertySlug: updated.slug,
                   },
