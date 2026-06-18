@@ -68,6 +68,9 @@ interface UiState {
   /** Management item keys hidden from the left sidebar ("categories" | "tags"). Empty = all visible. */
   hiddenManagementItems: string[];
   toggleManagementItem: (key: string) => void;
+  /** Group keys for entire sidebar sections that are disabled ("categories" | "taxonomies" | "customization" | "management"). Empty = all enabled. */
+  hiddenSidebarGroups: string[];
+  toggleSidebarGroup: (group: string) => void;
   /** Section keys currently collapsed in the left sidebar ("categories" | "taxonomies" | "customization" | "management"). */
   collapsedSidebarSections: string[];
   toggleSidebarSection: (section: string) => void;
@@ -155,6 +158,12 @@ export const useUiStore = create<UiState>()(
           ? state.hiddenManagementItems.filter(x => x !== key)
           : [...state.hiddenManagementItems, key],
       })),
+      hiddenSidebarGroups: [],
+      toggleSidebarGroup: group => set(state => ({
+        hiddenSidebarGroups: state.hiddenSidebarGroups.includes(group)
+          ? state.hiddenSidebarGroups.filter(x => x !== group)
+          : [...state.hiddenSidebarGroups, group],
+      })),
       collapsedSidebarSections: [],
       toggleSidebarSection: section => set(state => ({
         collapsedSidebarSections: state.collapsedSidebarSections.includes(section)
@@ -196,6 +205,7 @@ export const useUiStore = create<UiState>()(
         hiddenTaxonomyItems: state.hiddenTaxonomyItems,
         hiddenCustomizationItems: state.hiddenCustomizationItems,
         hiddenManagementItems: state.hiddenManagementItems,
+        hiddenSidebarGroups: state.hiddenSidebarGroups,
         collapsedSidebarSections: state.collapsedSidebarSections,
         addBookmarkFormOpen: state.addBookmarkFormOpen,
         collapsedHomepageSectionIds: state.collapsedHomepageSectionIds,

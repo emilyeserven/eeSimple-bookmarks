@@ -114,6 +114,7 @@ export function AppSidebar({
   const hiddenCategoryIds = useUiStore(state => state.hiddenCategoryIds);
   const hiddenTaxonomyItems = useUiStore(state => state.hiddenTaxonomyItems);
   const hiddenCustomizationItems = useUiStore(state => state.hiddenCustomizationItems);
+  const hiddenSidebarGroups = useUiStore(state => state.hiddenSidebarGroups);
   const modifier = useUiStore(state => state.sidebarOpenModifier);
   const viewClick = useViewPanelClick();
 
@@ -186,7 +187,7 @@ export function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {visibleCategories.length > 0
+        {!hiddenSidebarGroups.includes("categories") && visibleCategories.length > 0
           ? (
             <CollapsibleSection
               sectionKey="categories"
@@ -222,7 +223,7 @@ export function AppSidebar({
           )
           : null}
 
-        {visibleTaxonomyItems.length > 0
+        {!hiddenSidebarGroups.includes("taxonomies") && visibleTaxonomyItems.length > 0
           ? (
             <SidebarNavSection
               sectionKey="taxonomies"
@@ -232,7 +233,7 @@ export function AppSidebar({
           )
           : null}
 
-        {visibleCustomizationItems.length > 0
+        {!hiddenSidebarGroups.includes("customization") && visibleCustomizationItems.length > 0
           ? (
             <SidebarNavSection
               sectionKey="customization"
