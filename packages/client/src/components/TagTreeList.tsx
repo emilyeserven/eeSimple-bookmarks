@@ -1,5 +1,6 @@
 import type { TagNode } from "@eesimple/types";
 
+import { Link } from "@tanstack/react-router";
 import { ChevronDown, ChevronRight, Pencil } from "lucide-react";
 
 import { usePanelControls } from "./panel/usePanelControls";
@@ -86,13 +87,24 @@ function TagTreeRow({
             />
           )}
 
-        <span className="flex-1 truncate">{node.name}</span>
+        <Link
+          to="/tags/$tagSlug/settings"
+          params={{
+            tagSlug: node.slug,
+          }}
+          className="
+            flex-1 truncate
+            hover:underline
+          "
+        >
+          {node.name}
+        </Link>
 
         <Button
           type="button"
           variant="ghost"
           size="sm"
-          aria-label={`View ${node.name}`}
+          aria-label={`Quick view ${node.name}`}
           className="
             opacity-0 transition-opacity
             group-hover:opacity-100

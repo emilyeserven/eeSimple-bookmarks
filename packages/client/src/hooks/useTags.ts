@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { tagsApi } from "../lib/api";
+import { flattenTree } from "../lib/tagTree";
 
 const TAGS_KEY = ["tags"] as const;
 const BOOKMARKS_KEY = ["bookmarks"] as const;
@@ -20,6 +21,21 @@ export function useTagTree() {
     queryKey: [...TAGS_KEY, "tree"],
     queryFn: tagsApi.tree,
   });
+}
+
+/**
+ * A single tag (as a tree node, so children and bookmark count are available) looked up by slug
+ * from the tag tree, plus the tree's load state. Mirrors `useCategoryBySlug`.
+ */
+export function useTagBySlug(slug: string) {
+  const query = useTagTree();
+  const tag = query.data
+    ? flattenTree(query.data).find(item => item.node.slug === slug)?.node
+    : undefined;
+  return {
+    ...query,
+    tag,
+  };
 }
 
 /** Invalidate tags (tree + list) and bookmarks, since tag edits ripple into both. */

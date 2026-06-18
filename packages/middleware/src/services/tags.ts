@@ -1,7 +1,8 @@
-import { asc, eq, sql } from "drizzle-orm";
+import { asc, eq, isNull, ne, sql } from "drizzle-orm";
 import type { CreateTagInput, Tag, TagNode, UpdateTagInput } from "@eesimple/types";
 import { db } from "@/db";
-import { tags, type TagRow } from "@/db/schema";
+import { bookmarkTags, tags, type TagRow } from "@/db/schema";
+import { slugify, uniqueSlug } from "@/utils/slug";
 
 /** Thrown when a reparent would put a tag under itself or one of its descendants. */
 export class TagCycleError extends Error {
@@ -12,14 +13,28 @@ export class TagCycleError extends Error {
 }
 
 /** Map a DB row to the shared `Tag` wire type. */
-function toTag(row: TagRow): Tag {
+function toTag(row: TagRow & { bookmarkCount?: number }): Tag {
   return {
     id: row.id,
     name: row.name,
+    // Backfill runs at boot, but fall back to a derived slug so the wire type is never null.
+    slug: row.slug ?? slugify(row.name),
     parentId: row.parentId,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
+    bookmarkCount: row.bookmarkCount,
   };
+}
+
+/** Existing tag slugs, optionally excluding one tag id (when renaming). */
+async function takenTagSlugs(excludeId?: string): Promise<string[]> {
+  const rows = await db
+    .select({
+      slug: tags.slug,
+    })
+    .from(tags)
+    .where(excludeId ? ne(tags.id, excludeId) : undefined);
+  return rows.map(row => row.slug).filter((slug): slug is string => slug !== null);
 }
 
 /**
@@ -72,7 +87,17 @@ export function wouldCreateCycle(all: Tag[], id: string, newParentId: string): b
 }
 
 export async function listTags(): Promise<Tag[]> {
-  const rows = await db.select().from(tags).orderBy(asc(tags.name));
+  const rows = await db
+    .select({
+      id: tags.id,
+      name: tags.name,
+      slug: tags.slug,
+      parentId: tags.parentId,
+      createdAt: tags.createdAt,
+      bookmarkCount: sql<number>`(select count(*)::int from ${bookmarkTags} where ${bookmarkTags.tagId} = ${tags.id})`.mapWith(Number),
+    })
+    .from(tags)
+    .orderBy(asc(tags.name));
   return rows.map(toTag);
 }
 
@@ -100,10 +125,12 @@ export async function getDescendantIds(rootId: string): Promise<Set<string>> {
 }
 
 export async function createTag(input: CreateTagInput): Promise<Tag> {
+  const slug = uniqueSlug(input.name, await takenTagSlugs());
   const [row] = await db
     .insert(tags)
     .values({
       name: input.name,
+      slug,
       parentId: input.parentId ?? null,
     })
     .returning();
@@ -117,12 +144,37 @@ export async function updateTag(id: string, input: UpdateTagInput): Promise<Tag 
     if (wouldCreateCycle(all, id, input.parentId)) throw new TagCycleError();
   }
 
-  const patch: Partial<Pick<TagRow, "name" | "parentId">> = {};
+  const patch: Partial<Pick<TagRow, "name" | "slug" | "parentId">> = {};
   if (input.name !== undefined) patch.name = input.name;
+  // Keep the slug in sync when the name changes.
+  if (input.name !== undefined) {
+    patch.slug = uniqueSlug(input.name, await takenTagSlugs(id));
+  }
   if (input.parentId !== undefined) patch.parentId = input.parentId;
 
   const [row] = await db.update(tags).set(patch).where(eq(tags.id, id)).returning();
   return row ? toTag(row) : null;
+}
+
+/** Fill in slugs for any tags missing one (e.g. rows that predate the `slug` column). */
+export async function backfillTagSlugs(): Promise<void> {
+  const missing = await db
+    .select({
+      id: tags.id,
+      name: tags.name,
+    })
+    .from(tags)
+    .where(isNull(tags.slug));
+  if (missing.length === 0) return;
+
+  const taken = await takenTagSlugs();
+  for (const tag of missing) {
+    const slug = uniqueSlug(tag.name, taken);
+    taken.push(slug);
+    await db.update(tags).set({
+      slug,
+    }).where(eq(tags.id, tag.id));
+  }
 }
 
 export async function deleteTag(id: string): Promise<boolean> {

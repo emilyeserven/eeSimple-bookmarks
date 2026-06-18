@@ -10,24 +10,28 @@ const flat: Tag[] = [
   {
     id: "dev",
     name: "dev",
+    slug: "dev",
     parentId: null,
     createdAt: "2026-06-01T00:00:00.000Z",
   },
   {
     id: "tools",
     name: "tools",
+    slug: "tools",
     parentId: "dev",
     createdAt: "2026-06-01T00:00:00.000Z",
   },
   {
     id: "cli",
     name: "cli",
+    slug: "cli",
     parentId: "tools",
     createdAt: "2026-06-01T00:00:00.000Z",
   },
   {
     id: "work",
     name: "work",
+    slug: "work",
     parentId: null,
     createdAt: "2026-06-01T00:00:00.000Z",
   },

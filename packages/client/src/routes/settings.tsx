@@ -32,16 +32,6 @@ const settingsNav = [
     label: "Homepage",
   },
   {
-    to: "/settings/categories",
-    label: "Categories",
-    managementKey: "categories",
-  },
-  {
-    to: "/settings/tags",
-    label: "Tags",
-    managementKey: "tags",
-  },
-  {
     to: "/settings/websites",
     label: "Websites",
     taxonomyKey: "websites",
@@ -70,12 +60,10 @@ const navLinkClass = `
 function SettingsLayout() {
   const hiddenTaxonomyItems = useUiStore(state => state.hiddenTaxonomyItems);
   const hiddenCustomizationItems = useUiStore(state => state.hiddenCustomizationItems);
-  const hiddenManagementItems = useUiStore(state => state.hiddenManagementItems);
 
   const visibleNav = settingsNav.filter((item) => {
     if ("taxonomyKey" in item) return hiddenTaxonomyItems.includes(item.taxonomyKey);
     if ("customizationKey" in item) return hiddenCustomizationItems.includes(item.customizationKey);
-    if ("managementKey" in item) return hiddenManagementItems.includes(item.managementKey);
     return true;
   });
 
@@ -84,7 +72,7 @@ function SettingsLayout() {
       <div>
         <h1 className="text-2xl font-bold">Settings</h1>
         <p className="text-sm text-muted-foreground">
-          Manage custom properties, display preferences, categories, and automations.
+          Manage custom properties, display preferences, and automations.
         </p>
       </div>
 

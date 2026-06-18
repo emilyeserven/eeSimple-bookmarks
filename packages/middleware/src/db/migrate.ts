@@ -120,6 +120,32 @@ const migrations: RuntimeMigration[] = [
       await db.execute(sql`CREATE UNIQUE INDEX IF NOT EXISTS "tags_parent_name_unique" ON "tags" ("parent_id", "name")`);
     },
   },
+  {
+    // `tags.slug` carries a global UNIQUE constraint and was added to a table that already had rows.
+    // As with `autofill_rules.slug`, `drizzle-kit push` won't add a new column + unique constraint to
+    // a populated table without an interactive truncation confirmation, which crashes the non-TTY
+    // deploy. Create the column and constraint here, before push, so push's diff stays empty. The
+    // boot-time `backfillTagSlugs()` step then fills the NULL slugs.
+    //
+    // NOTE: each `db.execute` MUST contain a single SQL statement (extended protocol runs only the
+    // first), so the column-add and the constraint-add are two separate executes.
+    name: "add tags.slug column + unique constraint",
+    run: async (db) => {
+      await db.execute(sql`
+        ALTER TABLE IF EXISTS "tags" ADD COLUMN IF NOT EXISTS "slug" text
+      `);
+      await db.execute(sql`
+        DO $$ BEGIN
+          IF NOT EXISTS (
+            SELECT 1 FROM pg_constraint WHERE conname = 'tags_slug_unique'
+          ) THEN
+            ALTER TABLE IF EXISTS "tags"
+              ADD CONSTRAINT "tags_slug_unique" UNIQUE ("slug");
+          END IF;
+        END $$
+      `);
+    },
+  },
 ];
 
 async function main(): Promise<void> {

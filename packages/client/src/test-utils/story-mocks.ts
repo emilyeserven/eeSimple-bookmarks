@@ -15,18 +15,21 @@ export const sampleTagTree: TagNode[] = [
   {
     id: "tag-dev",
     name: "dev",
+    slug: "dev",
     parentId: null,
     createdAt: NOW,
     children: [
       {
         id: "tag-tools",
         name: "tools",
+        slug: "tools",
         parentId: "tag-dev",
         createdAt: NOW,
         children: [
           {
             id: "tag-cli",
             name: "cli",
+            slug: "cli",
             parentId: "tag-tools",
             createdAt: NOW,
             children: [],

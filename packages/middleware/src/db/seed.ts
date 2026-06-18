@@ -37,14 +37,17 @@ export async function maybeSeed(): Promise<void> {
 
   const [dev] = await db.insert(tags).values({
     name: "dev",
+    slug: "dev",
     parentId: null,
   }).returning();
   const [tools] = await db.insert(tags).values({
     name: "tools",
+    slug: "tools",
     parentId: dev.id,
   }).returning();
   const [cli] = await db.insert(tags).values({
     name: "cli",
+    slug: "cli",
     parentId: tools.id,
   }).returning();
 
