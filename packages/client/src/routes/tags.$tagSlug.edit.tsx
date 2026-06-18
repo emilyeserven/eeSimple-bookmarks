@@ -1,9 +1,7 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 
-import { TabbedEntityLayout, navLinkClass } from "../components/TabbedEntityLayout";
+import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useTagBySlug } from "../hooks/useTags";
-
-import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/tags/$tagSlug/edit")({
   component: TagEditLayout,
@@ -43,31 +41,11 @@ function TagEditLayout() {
           <h1 className="text-2xl font-bold">Edit tag</h1>
         </div>
       )}
-      nav={(
-        <nav
-          className="
-            flex shrink-0 flex-col gap-1
-            sm:w-48
-          "
-          aria-label="Tag edit sections"
-        >
-          {editNav.map(item => (
-            <Link
-              key={item.to}
-              to={item.to}
-              params={{
-                tagSlug,
-              }}
-              className={cn(navLinkClass)}
-              activeProps={{
-                className: "bg-accent text-accent-foreground",
-              }}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-      )}
+      nav={editNav}
+      params={{
+        tagSlug,
+      }}
+      navAriaLabel="Tag edit sections"
     />
   );
 }

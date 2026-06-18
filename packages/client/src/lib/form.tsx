@@ -302,21 +302,28 @@ interface SubmitButtonProps {
   size?: "default" | "sm" | "lg";
   /** Extra condition that disables the button on top of the form's own validity. */
   disabledWhen?: boolean;
+  /**
+   * Also disable while every field still holds its default value (non-persistent dirty).
+   * Replaces the per-form `Subscribe`-to-values + manual dirty comparison on edit forms.
+   */
+  requireDirty?: boolean;
 }
 
 /** Submit button wired to the form's `canSubmit` / `isSubmitting` state. */
 function SubmitButton({
-  label, pendingLabel, size = "default", disabledWhen = false,
+  label, pendingLabel, size = "default", disabledWhen = false, requireDirty = false,
 }: SubmitButtonProps) {
   const form = useFormContext();
 
   return (
-    <form.Subscribe selector={state => [state.canSubmit, state.isSubmitting] as const}>
-      {([canSubmit, isSubmitting]) => (
+    <form.Subscribe
+      selector={state => [state.canSubmit, state.isSubmitting, state.isDefaultValue] as const}
+    >
+      {([canSubmit, isSubmitting, isDefaultValue]) => (
         <Button
           type="submit"
           size={size}
-          disabled={!canSubmit || disabledWhen}
+          disabled={!canSubmit || disabledWhen || (requireDirty && isDefaultValue)}
         >
           {isSubmitting ? (pendingLabel ?? label) : label}
         </Button>

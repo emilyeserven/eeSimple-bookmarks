@@ -1,11 +1,10 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 
-import { TabbedEntityLayout, navLinkClass } from "../components/TabbedEntityLayout";
+import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useDeleteMediaType, useMediaTypeBySlug } from "../hooks/useMediaTypes";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/taxonomies/media-types/$mediaTypeSlug/_view")({
   component: MediaTypeViewLayout,
@@ -94,31 +93,11 @@ function MediaTypeViewLayout() {
           </div>
         </div>
       )}
-      nav={(
-        <nav
-          className="
-            flex shrink-0 flex-col gap-1
-            sm:w-48
-          "
-          aria-label="Media type sections"
-        >
-          {viewNav.map(item => (
-            <Link
-              key={item.to}
-              to={item.to}
-              params={{
-                mediaTypeSlug,
-              }}
-              className={cn(navLinkClass)}
-              activeProps={{
-                className: "bg-accent text-accent-foreground",
-              }}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-      )}
+      nav={viewNav}
+      params={{
+        mediaTypeSlug,
+      }}
+      navAriaLabel="Media type sections"
     />
   );
 }

@@ -91,21 +91,11 @@ export function CategoryGeneralForm({
         </div>
 
         <form.AppForm>
-          <form.Subscribe selector={state => state.values}>
-            {(values) => {
-              const dirty
-                = values.name.trim() !== category.name
-                  || (values.description.trim() || null) !== (category.description ?? null)
-                  || values.icon !== category.icon;
-              return (
-                <form.SubmitButton
-                  label="Save changes"
-                  size="sm"
-                  disabledWhen={!dirty}
-                />
-              );
-            }}
-          </form.Subscribe>
+          <form.SubmitButton
+            label="Save changes"
+            size="sm"
+            requireDirty
+          />
         </form.AppForm>
       </form>
     </div>
