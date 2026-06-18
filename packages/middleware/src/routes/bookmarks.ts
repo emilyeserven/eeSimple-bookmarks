@@ -12,7 +12,6 @@ import {
   DuplicateUrlError,
   getBookmark,
   listBookmarks,
-  listHomepageBookmarks,
   updateBookmark,
 } from "@/services/bookmarks";
 import { getObjectStream, isObjectStoreConfigured } from "@/utils/objectStore";
@@ -152,12 +151,6 @@ export async function bookmarkRoutes(app: FastifyInstance): Promise<void> {
     } = req.query as { tag?: string };
     return listBookmarks(tag);
   });
-
-  app.get("/api/bookmarks/homepage", {
-    schema: {
-      tags: ["bookmarks"],
-    },
-  }, async () => listHomepageBookmarks());
 
   app.get("/api/bookmarks/:id", {
     schema: {

@@ -8,12 +8,10 @@ import type {
   BookmarkTag,
   BookmarkWebsite,
   BookmarkYouTubeChannel,
-  ConditionInput,
   CreateBookmarkInput,
   UpdateBookmarkInput,
   YouTubeChannelHint,
 } from "@eesimple/types";
-import { buildTagDescendants, evaluateConditions } from "@eesimple/types";
 import { db } from "@/db";
 import {
   bookmarkBooleanValues,
@@ -31,8 +29,7 @@ import {
 } from "@/db/schema";
 import { bookmarkImageFromRow } from "@/services/bookmarkImages";
 import { ensureDefaultCategory } from "@/services/categories";
-import { getHomepageFilter } from "@/services/homepageFilter";
-import { getDescendantIds, listTags } from "@/services/tags";
+import { getDescendantIds } from "@/services/tags";
 import { ensureWebsiteForUrl } from "@/services/websites";
 import { fetchYouTubeMetadata, isYouTubeVideoUrl } from "@/services/youtube";
 import { channelKeyFromUrl, ensureYouTubeChannel } from "@/services/youtubeChannels";
@@ -328,48 +325,6 @@ export async function listBookmarks(filterTagId?: string): Promise<Bookmark[]> {
   const baseRows = await db.select().from(bookmarks).orderBy(desc(bookmarks.createdAt));
   const rows = allowedIds ? baseRows.filter(row => allowedIds.has(row.id)) : baseRows;
   return hydrateBookmarkRows(rows);
-}
-
-/**
- * List the homepage bookmarks: every bookmark matching the global homepage condition filter,
- * ordered by `priority` (highest first), ties broken by most-recently created. An empty filter
- * matches nothing.
- */
-export async function listHomepageBookmarks(): Promise<Bookmark[]> {
-  const {
-    conditions,
-  } = await getHomepageFilter();
-  const defaultCategoryId = await ensureDefaultCategory();
-  const tagDescendants = buildTagDescendants(await listTags());
-
-  const baseRows = await db.select().from(bookmarks);
-  if (baseRows.length === 0) return [];
-
-  const ids = baseRows.map(row => row.id);
-  const [tagsMap, numberMap, booleanMap] = await Promise.all([
-    tagsByBookmarkId(ids),
-    numberValuesByBookmarkId(ids),
-    booleanValuesByBookmarkId(ids),
-  ]);
-
-  const matched = baseRows.filter((row) => {
-    const input: ConditionInput = {
-      url: row.url,
-      title: row.title,
-      categoryId: row.categoryId ?? defaultCategoryId,
-      tagIds: new Set((tagsMap.get(row.id) ?? []).map(tag => tag.id)),
-      numberValues: new Map((numberMap.get(row.id) ?? []).map(value => [value.propertyId, value.value])),
-      booleanValues: new Map((booleanMap.get(row.id) ?? []).map(value => [value.propertyId, value.value])),
-    };
-    return evaluateConditions(conditions, input, {
-      tagDescendants,
-    });
-  });
-
-  matched.sort((a, b) =>
-    b.priority - a.priority
-    || (a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0));
-  return hydrateBookmarkRows(matched);
 }
 
 export async function getBookmark(id: string): Promise<Bookmark | null> {
