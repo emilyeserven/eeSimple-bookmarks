@@ -3,7 +3,12 @@ import type { HomepageSectionBookmarks, CustomProperty } from "@eesimple/types";
 import { ChevronDown, ChevronRight } from "lucide-react";
 
 import { BookmarkCard } from "./BookmarkCard";
-import { COLUMN_CLASS } from "../lib/bookmarkColumns";
+import {
+  COLUMN_CLASS,
+  useBookmarkColumns,
+  useBookmarkImageMode,
+  useHomepageSectionImageLayout,
+} from "../lib/bookmarkColumns";
 import { useUiStore } from "../stores/uiStore";
 
 import { Button } from "@/components/ui/button";
@@ -11,16 +16,19 @@ import { Card } from "@/components/ui/card";
 
 interface HomepageSectionBlockProps {
   data: HomepageSectionBookmarks;
-  columns: number;
   customProperties: CustomProperty[];
 }
 
 export function HomepageSectionBlock({
-  data, columns, customProperties,
+  data, customProperties,
 }: HomepageSectionBlockProps) {
   const {
     section, bookmarks,
   } = data;
+  const columns = useBookmarkColumns(section.id);
+  const imageMode = useBookmarkImageMode(section.id);
+  const imageLayout = useHomepageSectionImageLayout(section.id);
+  const imageLeft = columns === 1 || (columns === 2 && imageLayout === "side");
   const collapsedIds = useUiStore(state => state.collapsedHomepageSectionIds);
   const toggle = useUiStore(state => state.toggleHomepageSectionCollapsed);
   const isCollapsed = collapsedIds.includes(section.id);
@@ -65,7 +73,8 @@ export function HomepageSectionBlock({
                   <BookmarkCard
                     bookmark={bookmark}
                     properties={customProperties}
-                    imageLeft={columns === 1}
+                    imageLeft={imageLeft}
+                    maintainImageAspectRatio={imageMode}
                   />
                 </Card>
               ))}

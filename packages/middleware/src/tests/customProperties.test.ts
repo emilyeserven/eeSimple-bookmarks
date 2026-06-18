@@ -76,6 +76,23 @@ test("POST /api/custom-properties accepts the boolean and calculate types (schem
   await app.close();
 });
 
+test("POST /api/custom-properties accepts the allCategories and editableOnCard flags (schema)", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "POST",
+    url: "/api/custom-properties",
+    payload: {
+      name: "Priority",
+      type: "boolean",
+      allCategories: true,
+      editableOnCard: true,
+    },
+  });
+  // No DB in this test, so the handler may 500; we only assert the schema accepted the flags.
+  assert.notEqual(res.statusCode, 400);
+  await app.close();
+});
+
 test("PATCH /api/custom-properties/:id rejects a non-uuid id", async () => {
   const app = await buildApp();
   const res = await app.inject({

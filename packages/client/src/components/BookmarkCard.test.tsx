@@ -6,7 +6,28 @@ import { describe, expect, it, vi } from "vitest";
 import { BookmarkCard } from "./BookmarkCard";
 import { renderWithRouter } from "../test-utils/router";
 
+// Stub the bookmark hooks so the card-menu editors can assert the update call without a live API.
+const updateMutate = vi.fn<(args: unknown) => void>();
+vi.mock("../hooks/useBookmarks", () => ({
+  useAutoBookmarkImage: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+  }),
+  useUpdateBookmark: () => ({
+    mutate: updateMutate,
+  }),
+}));
+
 const DETAIL_PATH = "/bookmarks/$bookmarkId";
+
+/** Open the card's "More" menu (Radix opens on keyboard in jsdom, which lacks PointerEvent). */
+function openMoreMenu() {
+  fireEvent.keyDown(screen.getByRole("button", {
+    name: "More options",
+  }), {
+    key: " ",
+  });
+}
 
 const bookmark: Bookmark = {
   id: "11111111-1111-1111-1111-111111111111",
@@ -53,6 +74,8 @@ const starsProperty: CustomProperty = {
   showInForm: false,
   hiddenFromForm: false,
   showInListings: true,
+  allCategories: false,
+  editableOnCard: false,
   createdAt: "2026-06-01T00:00:00.000Z",
 };
 
@@ -74,6 +97,8 @@ const reviewedProperty: CustomProperty = {
   showInForm: false,
   hiddenFromForm: false,
   showInListings: true,
+  allCategories: false,
+  editableOnCard: false,
   createdAt: "2026-06-01T00:00:00.000Z",
 };
 
@@ -178,5 +203,93 @@ describe("BookmarkCard", () => {
       name: "Delete",
     }));
     expect(onDelete).toHaveBeenCalledWith(bookmark.id);
+  });
+
+  it("toggles a boolean property from the card menu and saves the merged values", async () => {
+    updateMutate.mockReset();
+    const reviewedOnCard = {
+      ...reviewedProperty,
+      editableOnCard: true,
+      categoryIds: [bookmark.categoryId],
+    };
+    await renderWithRouter(
+      <BookmarkCard
+        bookmark={bookmark}
+        properties={[reviewedOnCard]}
+      />,
+      {
+        paths: [DETAIL_PATH],
+      },
+    );
+    openMoreMenu();
+    const item = await screen.findByRole("menuitemcheckbox", {
+      name: "Reviewed",
+    });
+    fireEvent.click(item);
+    expect(updateMutate).toHaveBeenCalledWith({
+      id: bookmark.id,
+      input: {
+        booleanValues: [
+          {
+            propertyId: "prop-reviewed",
+            value: true,
+          },
+        ],
+      },
+    });
+  });
+
+  it("edits a number property from the card menu and saves on blur", async () => {
+    updateMutate.mockReset();
+    const starsOnCard = {
+      ...starsProperty,
+      editableOnCard: true,
+      categoryIds: [bookmark.categoryId],
+    };
+    await renderWithRouter(
+      <BookmarkCard
+        bookmark={bookmark}
+        properties={[starsOnCard]}
+      />,
+      {
+        paths: [DETAIL_PATH],
+      },
+    );
+    openMoreMenu();
+    const input = await screen.findByLabelText("Stars (stars)");
+    fireEvent.change(input, {
+      target: {
+        value: "4",
+      },
+    });
+    fireEvent.blur(input);
+    expect(updateMutate).toHaveBeenCalledWith({
+      id: bookmark.id,
+      input: {
+        numberValues: [
+          {
+            propertyId: "prop-stars",
+            value: 4,
+          },
+        ],
+      },
+    });
+  });
+
+  it("omits the card-menu editors for properties not opted in", async () => {
+    await renderWithRouter(
+      <BookmarkCard
+        bookmark={bookmark}
+        properties={[starsProperty, reviewedProperty]}
+      />,
+      {
+        paths: [DETAIL_PATH],
+      },
+    );
+    openMoreMenu();
+    await screen.findByRole("menuitem", {
+      name: "Edit",
+    });
+    expect(screen.queryByText("Quick edit")).not.toBeInTheDocument();
   });
 });

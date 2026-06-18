@@ -188,6 +188,10 @@ export const customProperties = pgTable("custom_properties", {
   hiddenFromForm: boolean("hidden_from_form").notNull().default(false),
   // When true, the property's value is shown on bookmark cards in listings.
   showInListings: boolean("show_in_listings").notNull().default(true),
+  // When true, the property applies to every category, including ones created later.
+  allCategories: boolean("all_categories").notNull().default(false),
+  // When true, the property's value can be edited inline from a bookmark card's "More" menu.
+  editableOnCard: boolean("editable_on_card").notNull().default(false),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),

@@ -1,3 +1,4 @@
+import { propertyAppliesToCategory } from "@eesimple/types";
 import { Link, createFileRoute } from "@tanstack/react-router";
 
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
@@ -48,7 +49,7 @@ function CategoryPage() {
   const categoryBookmarks = (bookmarks ?? []).filter(bookmark =>
     bookmark.categoryId === category.id);
   const assignedProperties = (properties ?? []).filter(property =>
-    property.categoryIds.includes(category.id));
+    propertyAppliesToCategory(property, category.id));
 
   return (
     <BookmarkSearchView

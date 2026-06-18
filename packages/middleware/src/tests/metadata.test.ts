@@ -39,6 +39,31 @@ test("extractTitle pulls and normalises the <title> contents", () => {
   assert.equal(extractTitle("<title>   </title>"), null);
 });
 
+test("extractTitle prefers og:title / twitter:title over the <title> suffix", () => {
+  // JOC's <title> carries a site-name suffix and a stray Yoast template artifact ("%"),
+  // while og:title holds the clean recipe name. See issue #85.
+  const html = "<html><head>"
+    + "<title>Miso Butter Pasta with Tuna and Cabbage キャベツとツナの和風パスタ • Just One Cookbook %</title>"
+    + "<meta property=\"og:title\" content=\"Miso Butter Pasta with Tuna and Cabbage キャベツとツナの和風パスタ\" />"
+    + "</head></html>";
+  assert.equal(
+    extractTitle(html),
+    "Miso Butter Pasta with Tuna and Cabbage キャベツとツナの和風パスタ",
+  );
+
+  // twitter:title is used when og:title is absent.
+  assert.equal(
+    extractTitle("<head><title>Page • Site</title><meta name=\"twitter:title\" content=\"Page\"></head>"),
+    "Page",
+  );
+
+  // An empty og:title falls through to the <title> element.
+  assert.equal(
+    extractTitle("<head><meta property=\"og:title\" content=\"  \"><title>Fallback</title></head>"),
+    "Fallback",
+  );
+});
+
 test("decodeEntities decodes the common named and numeric entities", () => {
   assert.equal(decodeEntities("Tom &amp; Jerry"), "Tom & Jerry");
   assert.equal(decodeEntities("&lt;tag&gt;"), "<tag>");

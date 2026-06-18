@@ -1,6 +1,8 @@
 import type { Category, CustomProperty } from "@eesimple/types";
 import type { ReactNode } from "react";
 
+import { TriangleAlert } from "lucide-react";
+
 import { TYPE_LABELS } from "../lib/propertyFormat";
 
 import { Badge } from "@/components/ui/badge";
@@ -68,6 +70,9 @@ export function PropertyDetail({
       <div className="flex items-start justify-between gap-4">
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           <h1 className="text-xl font-bold">{property.name}</h1>
+          {assignedCategories.length === 0 && (
+            <TriangleAlert className="size-4 text-amber-500" />
+          )}
           <Badge variant="secondary">{TYPE_LABELS[property.type]}</Badge>
         </div>
         {onEdit || onDelete
@@ -132,32 +137,41 @@ export function PropertyDetail({
           : null}
 
         <Field label="Categories">
-          {assignedCategories.length > 0
-            ? (
-              <ul className="flex flex-wrap gap-1">
-                {assignedCategories.map(category => (
-                  <li key={category.id}>
-                    <Badge
-                      variant="secondary"
-                      className="gap-1.5"
-                    >
-                      <CategoryIcon
-                        name={category.icon}
-                        className="size-3.5"
-                      />
-                      {category.name}
-                    </Badge>
-                  </li>
-                ))}
-              </ul>
-            )
-            : <span className="text-muted-foreground">None</span>}
+          {property.allCategories
+            ? <Badge variant="secondary">All categories</Badge>
+            : assignedCategories.length > 0
+              ? (
+                <ul className="flex flex-wrap gap-1">
+                  {assignedCategories.map(category => (
+                    <li key={category.id}>
+                      <Badge
+                        variant="secondary"
+                        className="gap-1.5"
+                      >
+                        <CategoryIcon
+                          name={category.icon}
+                          className="size-3.5"
+                        />
+                        {category.name}
+                      </Badge>
+                    </li>
+                  ))}
+                </ul>
+              )
+              : <span className="text-muted-foreground">None</span>}
         </Field>
 
         <Field label="Bookmark form">{formPlacement(property)}</Field>
         <Field label="Listings">
           {property.showInListings ? "Shown on bookmark cards" : "Hidden from bookmark cards"}
         </Field>
+        {property.type === "calculate"
+          ? null
+          : (
+            <Field label="Card menu">
+              {property.editableOnCard ? "Editable from the card menu" : "Not editable from the card menu"}
+            </Field>
+          )}
 
         <Field label="Created">
           <span>{new Date(property.createdAt).toLocaleString()}</span>

@@ -27,23 +27,23 @@ function DialogTrigger({
   );
 }
 
-function DialogPortal({
-  ...props
-}: React.ComponentProps<typeof DialogPrimitive.Portal>) {
-  return (
-    <DialogPrimitive.Portal
-      data-slot="dialog-portal"
-      {...props}
-    />
-  );
-}
-
 function DialogClose({
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Close>) {
   return (
     <DialogPrimitive.Close
       data-slot="dialog-close"
+      {...props}
+    />
+  );
+}
+
+function DialogPortal({
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Portal>) {
+  return (
+    <DialogPrimitive.Portal
+      data-slot="dialog-portal"
       {...props}
     />
   );
@@ -81,8 +81,8 @@ function DialogContent({
         data-slot="dialog-content"
         className={cn(
           `
-            fixed top-1/2 left-1/2 z-50 w-full max-w-md -translate-1/2
-            rounded-lg border bg-background p-6 shadow-lg
+            fixed top-1/2 left-1/2 z-50 flex w-full max-w-lg -translate-1/2
+            flex-col gap-4 rounded-lg border bg-background p-6 shadow-lg
             data-[state=closed]:animate-out data-[state=closed]:fade-out-0
             data-[state=closed]:zoom-out-95
             data-[state=open]:animate-in data-[state=open]:fade-in-0
@@ -101,7 +101,6 @@ function DialogContent({
             focus:ring-2 focus:ring-ring focus:ring-offset-2
             focus:outline-hidden
             disabled:pointer-events-none
-            data-[state=open]:bg-accent data-[state=open]:text-muted-foreground
           "
         >
           <XIcon className="size-4" />
@@ -118,7 +117,7 @@ function DialogHeader({
   return (
     <div
       data-slot="dialog-header"
-      className={cn("flex flex-col gap-1.5 pb-4", className)}
+      className={cn("flex flex-col gap-1.5", className)}
       {...props}
     />
   );
@@ -130,10 +129,7 @@ function DialogFooter({
   return (
     <div
       data-slot="dialog-footer"
-      className={cn(`
-        flex flex-col-reverse gap-2 pt-4
-        sm:flex-row sm:justify-end
-      `, className)}
+      className={cn("flex justify-end gap-2", className)}
       {...props}
     />
   );
@@ -146,7 +142,7 @@ function DialogTitle({
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
-      className={cn("text-lg font-semibold", className)}
+      className={cn("font-semibold text-foreground", className)}
       {...props}
     />
   );
@@ -172,8 +168,6 @@ export {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogOverlay,
-  DialogPortal,
   DialogTitle,
   DialogTrigger,
 };

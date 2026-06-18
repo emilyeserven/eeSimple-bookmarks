@@ -4,6 +4,9 @@ import { persist } from "zustand/middleware";
 /** The user's theme preference. `system` follows the OS `prefers-color-scheme`. */
 export type Theme = "light" | "dark" | "system";
 
+/** Per-section image layout preference for 2-column homepage sections. */
+export type HomepageSectionImageLayout = "above" | "side";
+
 /** Clamp a requested bookmark column count to the supported 1–4 range. */
 export function clampColumns(columns: number): number {
   return Math.min(4, Math.max(1, Math.round(columns)));
@@ -56,6 +59,9 @@ interface UiState {
   /** Section IDs whose bookmark grid is collapsed on the homepage. */
   collapsedHomepageSectionIds: string[];
   toggleHomepageSectionCollapsed: (id: string) => void;
+  /** Per-section image layout for 2-column homepage sections: "above" (default) or "side". Keyed by section ID. */
+  homepageSectionImageLayout: Record<string, HomepageSectionImageLayout>;
+  setHomepageSectionImageLayout: (sectionId: string, layout: HomepageSectionImageLayout) => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -121,6 +127,13 @@ export const useUiStore = create<UiState>()(
           ? state.collapsedHomepageSectionIds.filter(x => x !== id)
           : [...state.collapsedHomepageSectionIds, id],
       })),
+      homepageSectionImageLayout: {},
+      setHomepageSectionImageLayout: (sectionId, layout) => set(state => ({
+        homepageSectionImageLayout: {
+          ...state.homepageSectionImageLayout,
+          [sectionId]: layout,
+        },
+      })),
     }),
     {
       name: "eesimple-ui",
@@ -137,6 +150,7 @@ export const useUiStore = create<UiState>()(
         hiddenTaxonomyItems: state.hiddenTaxonomyItems,
         addBookmarkFormOpen: state.addBookmarkFormOpen,
         collapsedHomepageSectionIds: state.collapsedHomepageSectionIds,
+        homepageSectionImageLayout: state.homepageSectionImageLayout,
       }),
     },
   ),

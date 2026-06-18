@@ -2,6 +2,8 @@ import type { Category } from "@eesimple/types";
 
 import { useEffect, useState } from "react";
 
+import { propertyAppliesToCategory } from "@eesimple/types";
+
 import {
   useCategoryDefaults,
   useSetCategoryDefaults,
@@ -54,7 +56,7 @@ export function CategoryDefaultsSection({
   }, [defaults]);
 
   const categoryProps = (properties ?? []).filter(property =>
-    property.categoryIds.includes(category.id) && property.type !== "calculate");
+    propertyAppliesToCategory(property, category.id) && property.type !== "calculate");
   if (categoryProps.length === 0) return null;
 
   function save() {

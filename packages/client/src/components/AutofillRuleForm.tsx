@@ -15,7 +15,12 @@ import type {
 
 import { useMemo, useState } from "react";
 
-import { buildTagDescendants, emptyConditionTree, evaluateConditions } from "@eesimple/types";
+import {
+  buildTagDescendants,
+  emptyConditionTree,
+  evaluateConditions,
+  propertyAppliesToCategory,
+} from "@eesimple/types";
 import { ChevronDown } from "lucide-react";
 import { z } from "zod";
 
@@ -100,7 +105,7 @@ export function AutofillRuleForm({
       const categoryId = value.setCategoryId === NO_CATEGORY ? null : value.setCategoryId;
       // Only persist property values for properties assigned to the rule's category.
       const categoryProps = categoryId
-        ? properties.filter(property => property.categoryIds.includes(categoryId))
+        ? properties.filter(property => propertyAppliesToCategory(property, categoryId))
         : [];
       const numberValues = categoryProps
         .filter(property => property.type === "number")
@@ -333,7 +338,7 @@ function RulePropertyFields({
 }: RulePropertyFieldsProps) {
   if (!categoryId) return null;
   const categoryProps = properties.filter(property =>
-    property.categoryIds.includes(categoryId) && property.type !== "calculate");
+    propertyAppliesToCategory(property, categoryId) && property.type !== "calculate");
   if (categoryProps.length === 0) return null;
 
   return (
@@ -475,7 +480,7 @@ function summarizePrefill({
 
   if (setCategoryId !== NO_CATEGORY) {
     const categoryProps = properties.filter(property =>
-      property.categoryIds.includes(setCategoryId) && property.type !== "calculate");
+      propertyAppliesToCategory(property, setCategoryId) && property.type !== "calculate");
     const propertyCount = categoryProps.filter((property) => {
       if (property.type === "number") return (numberInputs[property.id] ?? "").trim() !== "";
       if (property.type === "boolean") return booleanInputs[property.id] === true;
