@@ -1,69 +1,99 @@
-import { useRef, useState } from "react";
-
-import { useBookmarkImageMode } from "../lib/bookmarkColumns";
+import { useBookmarkImageMode, useBookmarkImageVisibility } from "../lib/bookmarkColumns";
 import { useUiStore } from "../stores/uiStore";
 
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 interface ImageModeSwitcherProps {
-  /** Stable key identifying the page, so each listing remembers its own image display mode. */
+  /** Stable key identifying the page, so each listing remembers its own image display settings. */
   pageKey: string;
 }
 
-/** On-page control to choose how listing bookmark images are displayed (natural ratio vs. uniform crop). */
+/**
+ * On-page control for how listing bookmark images are displayed: a "Display" section (show the full
+ * card, the image only, or no image) and an "Aspect" section (natural ratio vs. uniform crop).
+ */
 export function ImageModeSwitcher({
   pageKey,
 }: ImageModeSwitcherProps) {
-  const [open, setOpen] = useState(false);
-  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const imageMode = useBookmarkImageMode(pageKey);
+  const visibility = useBookmarkImageVisibility(pageKey);
   const setBookmarkImageMode = useUiStore(state => state.setBookmarkImageMode);
+  const setBookmarkImageVisibility = useUiStore(state => state.setBookmarkImageVisibility);
 
-  function handleMouseEnter() {
-    if (closeTimer.current) clearTimeout(closeTimer.current);
-    setOpen(true);
-  }
-
-  function handleMouseLeave() {
-    closeTimer.current = setTimeout(() => setOpen(false), 100);
-  }
+  const triggerLabel = visibility === "off"
+    ? "Off"
+    : visibility === "image-only"
+      ? "Image only"
+      : imageMode ? "Natural" : "Cropped";
 
   return (
     <div className="flex items-center gap-2">
       <Label className="text-xs text-muted-foreground">Images</Label>
-      <Popover open={open}>
-        <PopoverTrigger asChild>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
             size="sm"
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
           >
-            {imageMode ? "Natural" : "Cropped"}
+            {triggerLabel}
           </Button>
-        </PopoverTrigger>
-        <PopoverContent
-          className="w-auto p-2"
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-          onInteractOutside={e => e.preventDefault()}
-        >
-          <ToggleGroup
-            type="single"
-            size="sm"
-            value={imageMode ? "natural" : "cropped"}
-            onValueChange={(value) => {
-              if (value) setBookmarkImageMode(pageKey, value === "natural");
-            }}
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuLabel className="text-xs text-muted-foreground">
+            Display
+          </DropdownMenuLabel>
+          <DropdownMenuCheckboxItem
+            checked={visibility === "shown"}
+            onSelect={e => e.preventDefault()}
+            onCheckedChange={() => setBookmarkImageVisibility(pageKey, "shown")}
           >
-            <ToggleGroupItem value="natural">Natural</ToggleGroupItem>
-            <ToggleGroupItem value="cropped">Cropped</ToggleGroupItem>
-          </ToggleGroup>
-        </PopoverContent>
-      </Popover>
+            Show
+          </DropdownMenuCheckboxItem>
+          <DropdownMenuCheckboxItem
+            checked={visibility === "image-only"}
+            onSelect={e => e.preventDefault()}
+            onCheckedChange={() => setBookmarkImageVisibility(pageKey, "image-only")}
+          >
+            Image only
+          </DropdownMenuCheckboxItem>
+          <DropdownMenuCheckboxItem
+            checked={visibility === "off"}
+            onSelect={e => e.preventDefault()}
+            onCheckedChange={() => setBookmarkImageVisibility(pageKey, "off")}
+          >
+            Off
+          </DropdownMenuCheckboxItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuLabel className="text-xs text-muted-foreground">
+            Aspect
+          </DropdownMenuLabel>
+          <DropdownMenuCheckboxItem
+            checked={imageMode}
+            disabled={visibility === "off"}
+            onSelect={e => e.preventDefault()}
+            onCheckedChange={() => setBookmarkImageMode(pageKey, true)}
+          >
+            Natural
+          </DropdownMenuCheckboxItem>
+          <DropdownMenuCheckboxItem
+            checked={!imageMode}
+            disabled={visibility === "off"}
+            onSelect={e => e.preventDefault()}
+            onCheckedChange={() => setBookmarkImageMode(pageKey, false)}
+          >
+            Cropped
+          </DropdownMenuCheckboxItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }

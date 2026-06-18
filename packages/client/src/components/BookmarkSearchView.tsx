@@ -1,4 +1,4 @@
-import type { HomepageSectionImageLayout } from "../lib/bookmarkColumns";
+import type { BookmarkImageVisibility, HomepageSectionImageLayout } from "../lib/bookmarkColumns";
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
 import type { Bookmark, Category, CustomProperty, MediaType, TagNode, YouTubeChannel } from "@eesimple/types";
 import type { ReactNode } from "react";
@@ -13,7 +13,7 @@ import { ImageLayoutSwitcher } from "./ImageLayoutSwitcher";
 import { ImageModeSwitcher } from "./ImageModeSwitcher";
 import { useIsMobile } from "../hooks/use-mobile";
 import { useDeleteBookmark } from "../hooks/useBookmarks";
-import { COLUMN_CLASS, DEFAULT_BOOKMARK_IMAGE_LAYOUT, useBookmarkColumns, useBookmarkImageMode } from "../lib/bookmarkColumns";
+import { COLUMN_CLASS, DEFAULT_BOOKMARK_IMAGE_LAYOUT, useBookmarkColumns, useBookmarkImageMode, useBookmarkImageVisibility } from "../lib/bookmarkColumns";
 import { bookmarkMatchesSearch, hasAnyActiveFilter } from "../lib/bookmarkSearch";
 import { useUiStore } from "../stores/uiStore";
 
@@ -76,6 +76,7 @@ export function BookmarkSearchView({
   const deleteBookmark = useDeleteBookmark();
   const columns = useBookmarkColumns(pageKey);
   const imageMode = useBookmarkImageMode(pageKey);
+  const imageVisibility = useBookmarkImageVisibility(pageKey);
   const isMobile = useIsMobile();
   // Raw stored value (may be undefined) so we can tell "unset" from an explicit "above".
   const storedImageLayout = useUiStore(state => state.bookmarkImageLayout[pageKey]);
@@ -142,6 +143,7 @@ export function BookmarkSearchView({
           <BookmarkListControls
             pageKey={pageKey}
             columns={columns}
+            imageVisibility={imageVisibility}
             imageLayout={imageLayout}
             onImageLayoutChange={layout => setBookmarkImageLayout(pageKey, layout)}
           />
@@ -172,6 +174,7 @@ export function BookmarkSearchView({
                   onDelete={id => deleteBookmark.mutate(id)}
                   imageLeft={imageLeft}
                   maintainImageAspectRatio={imageMode}
+                  imageVisibility={imageVisibility}
                 />
               </Card>
             ))}
@@ -185,17 +188,18 @@ export function BookmarkSearchView({
 interface BookmarkListControlsProps {
   pageKey: string;
   columns: number;
+  imageVisibility: BookmarkImageVisibility;
   imageLayout: HomepageSectionImageLayout;
   onImageLayoutChange: (layout: HomepageSectionImageLayout) => void;
 }
 
 function BookmarkListControls({
-  pageKey, columns, imageLayout, onImageLayoutChange,
+  pageKey, columns, imageVisibility, imageLayout, onImageLayoutChange,
 }: BookmarkListControlsProps) {
   return (
     <div className="flex justify-end gap-4">
       <ColumnsSwitcher pageKey={pageKey} />
-      {(columns === 1 || columns === 2) && (
+      {imageVisibility === "shown" && (columns === 1 || columns === 2) && (
         <ImageLayoutSwitcher
           layout={imageLayout}
           onLayoutChange={onImageLayoutChange}
