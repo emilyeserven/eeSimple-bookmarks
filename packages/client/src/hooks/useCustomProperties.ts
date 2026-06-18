@@ -32,7 +32,9 @@ export function useCreateCustomProperty() {
   return useMutation({
     mutationFn: (input: CreateCustomPropertyInput) => customPropertiesApi.create(input),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: PROPERTIES_KEY });
+      void queryClient.invalidateQueries({
+        queryKey: PROPERTIES_KEY,
+      });
     },
   });
 }
