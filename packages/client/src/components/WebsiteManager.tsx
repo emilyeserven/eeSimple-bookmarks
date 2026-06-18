@@ -3,10 +3,13 @@ import type { Website } from "@eesimple/types";
 import { useState } from "react";
 
 import { Link } from "@tanstack/react-router";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Pencil } from "lucide-react";
+import { z } from "zod";
 
-import { useUpdateWebsite, useWebsites } from "../hooks/useWebsites";
+import { useCreateWebsite, useUpdateWebsite, useWebsites } from "../hooks/useWebsites";
+import { useAppForm } from "../lib/form";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -168,5 +171,182 @@ export function WebsiteManager() {
         )
         : null}
     </section>
+  );
+}
+
+const addWebsiteSchema = z.object({
+  domain: z.string().trim().min(1, "Domain is required"),
+  siteName: z.string().trim(),
+});
+
+/** Inline "add a website" form — websites are normally auto-created, this adds one by hand. */
+function AddWebsiteForm() {
+  const createWebsite = useCreateWebsite();
+
+  const form = useAppForm({
+    defaultValues: {
+      domain: "",
+      siteName: "",
+    },
+    validators: {
+      onChange: addWebsiteSchema,
+    },
+    onSubmit: ({
+      value,
+    }) => {
+      createWebsite.mutate(
+        {
+          domain: value.domain.trim(),
+          siteName: value.siteName.trim() || undefined,
+        },
+        {
+          onSuccess: () => form.reset(),
+        },
+      );
+    },
+  });
+
+  return (
+    <form
+      className="rounded-lg border bg-card p-4"
+      onSubmit={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        void form.handleSubmit();
+      }}
+    >
+      <div
+        className="
+          grid gap-3
+          sm:grid-cols-[1fr_1fr_auto] sm:items-end
+        "
+      >
+        <form.AppField name="domain">
+          {field => (
+            <field.TextField
+              label="Domain"
+              placeholder="example.com"
+            />
+          )}
+        </form.AppField>
+        <form.AppField name="siteName">
+          {field => (
+            <field.TextField
+              label="Site name (optional)"
+              placeholder="Defaults to the domain"
+            />
+          )}
+        </form.AppField>
+        <form.AppForm>
+          <form.SubmitButton
+            label="Add website"
+            pendingLabel="Adding…"
+          />
+        </form.AppForm>
+      </div>
+      {createWebsite.isError
+        ? <p className="mt-2 text-sm text-destructive">{createWebsite.error.message}</p>
+        : null}
+    </form>
+  );
+}
+
+/** Browsable, searchable website listing with add form. Shared by the Websites taxonomy page and the Settings Websites page. */
+export function WebsitesListing() {
+  const {
+    data: allWebsites, isLoading, error,
+  } = useWebsites();
+  const [search, setSearch] = useState("");
+
+  const filtered = (allWebsites ?? []).filter((w) => {
+    const q = search.trim().toLowerCase();
+    if (!q) return true;
+    return w.siteName.toLowerCase().includes(q) || w.domain.toLowerCase().includes(q);
+  });
+
+  return (
+    <div className="space-y-4">
+      <AddWebsiteForm />
+
+      <div className="space-y-4">
+        <Input
+          placeholder="Search by name or domain…"
+          value={search}
+          onChange={event => setSearch(event.target.value)}
+          className="max-w-sm"
+        />
+
+        {isLoading ? <p className="text-muted-foreground">Loading websites…</p> : null}
+        {error ? <p className="text-destructive">{error.message}</p> : null}
+        {!isLoading && (allWebsites?.length ?? 0) === 0
+          ? (
+            <p className="text-muted-foreground">
+              No websites yet. They&apos;re created automatically when you add bookmarks.
+            </p>
+          )
+          : null}
+        {!isLoading && (allWebsites?.length ?? 0) > 0 && filtered.length === 0
+          ? (
+            <p className="text-muted-foreground">
+              No websites match &ldquo;{search}&rdquo;.
+            </p>
+          )
+          : null}
+
+        {filtered.length > 0
+          ? (
+            <ul className="space-y-2">
+              {filtered.map(website => (
+                <li
+                  key={website.id}
+                  className="group relative rounded-lg border bg-card"
+                >
+                  <Link
+                    to="/taxonomies/websites/$websiteSlug"
+                    params={{
+                      websiteSlug: website.slug,
+                    }}
+                    className="
+                      flex items-center gap-3 rounded-lg p-4 pr-12
+                      transition-colors
+                      hover:bg-accent
+                    "
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium">{website.siteName}</p>
+                      <p className="truncate text-sm text-muted-foreground">{website.domain}</p>
+                    </div>
+                    {website.bookmarkCount !== undefined
+                      ? <Badge variant="secondary">{website.bookmarkCount}</Badge>
+                      : null}
+                  </Link>
+                  <Button
+                    asChild
+                    variant="ghost"
+                    size="icon"
+                    className="
+                      absolute top-1/2 right-2 -translate-y-1/2 opacity-0
+                      transition-opacity
+                      group-hover:opacity-100
+                      focus-visible:opacity-100
+                    "
+                  >
+                    <Link
+                      to="/taxonomies/websites/$websiteSlug/edit"
+                      params={{
+                        websiteSlug: website.slug,
+                      }}
+                    >
+                      <Pencil className="size-4" />
+                      <span className="sr-only">Edit {website.siteName}</span>
+                    </Link>
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )
+          : null}
+      </div>
+    </div>
   );
 }
