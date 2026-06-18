@@ -5,20 +5,21 @@ description: >-
   used by Categories and Settings (left sidebar nav + `<Outlet/>`), optionally adding an entity-scoped
   Autofill Rules tab. Use when asked to "give X a vertical tabbed layout", "make X's detail/edit pages
   tabbed like Categories/Settings", "split the X page into tabs", or "add an autofill tab to X".
-  Mirrors how Custom Properties / Websites / Media Types / YouTube Channels / Categories / Tags view
-  and edit pages were tabbed.
+  Mirrors how Custom Properties / Websites / Media Types / YouTube Channels / Categories / Tags /
+  Property Groups view and edit pages were tabbed.
 ---
 
 # Convert detail/edit pages to a vertical-tabbed layout
 
 Categories and Settings render a left **vertical nav** beside an `<Outlet/>`; each tab is its own
 file-based route. This skill restructures an entity that currently has one long detail page and one
-long edit form into that shape. Six entities already use it, so copy whichever is closest:
+long edit form into that shape. Seven entities already use it, so copy whichever is closest:
 
 - **Custom Properties** — the most complete (read-only View *and* Edit, a **conditional** tab, plus a
   scoped Autofill tab).
 - **Websites** — multiple non-trivial tabs (General / Shortened Links / Param Rules).
-- **Media Types / YouTube Channels** — the leanest General-only edit forms.
+- **Media Types / YouTube Channels / Property Groups** — the leanest General-only edit forms (a
+  single tab inside the full shell).
 - **Tags** — the leanest View side, and the example of when to **skip** the per-entity wrapper.
 
 ## Shared primitives (already exist — reuse them)

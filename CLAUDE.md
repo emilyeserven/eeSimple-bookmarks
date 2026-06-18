@@ -65,6 +65,10 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
 - **UI primitives:** before adding a Radix/shadcn primitive, check
   `packages/client/src/components/ui/` — `dialog`, `dropdown-menu`, `popover`, `toggle-group`,
   `command`, etc. already exist (`Dialog` was once reintroduced twice). Reuse the existing one.
+- **Inline-create modals:** the name-only "Add new X" dialogs (`AddCategoryModal`,
+  `AddPropertyGroupModal`) are thin wrappers over the shared `InlineCreateModal`
+  (`packages/client/src/components/InlineCreateModal.tsx`). A new one should wrap it too rather than
+  re-implement the Dialog + name field + reset — see the **`inline-create-modal`** skill.
 - **Layout/section patterns** are catalogued under **Content hierarchies** below — consult it
   before choosing how a detail/edit page or panel lays out its content.
 
@@ -115,8 +119,8 @@ that matches the surface — don't invent a new structure for a one-off page.
 
 **Current divergences (to be reconciled):**
 
-- Single-tab entities (Tags, YouTube Channels, Media Types) use the full tabbed shell for a single
-  "General" tab.
+- Single-tab entities (Tags, YouTube Channels, Media Types, Property Groups) use the full tabbed
+  shell for a single "General" tab.
 
 ## Generated files (do not edit)
 
