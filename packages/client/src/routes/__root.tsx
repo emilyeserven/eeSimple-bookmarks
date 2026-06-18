@@ -127,8 +127,8 @@ function categoryCrumbs(pathname: string, categoryName?: string): BreadcrumbSegm
     href: "/categories",
   };
   const catLabel = categoryName ?? "Category";
-  // `/categories/$slug` (bookmark browse) and `/categories/$slug/settings` (read-only view).
-  if (parts.length === 2 || parts[2] === "settings") {
+  // `/categories/$slug` (bookmark browse) and all `_view` tabs (general, tiered-tags, etc.).
+  if (parts.length === 2 || parts[2] !== "edit") {
     return [listCrumb, {
       label: catLabel,
     }];
@@ -139,7 +139,7 @@ function categoryCrumbs(pathname: string, categoryName?: string): BreadcrumbSegm
     : "Edit";
   return [listCrumb, {
     label: catLabel,
-    href: `/categories/${parts[1]}/settings`,
+    href: `/categories/${parts[1]}/general`,
   }, {
     label: sectionLabel,
   }];

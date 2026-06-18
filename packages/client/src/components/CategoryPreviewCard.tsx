@@ -84,7 +84,7 @@ export function CategoryPreviewCard({
     return (
       <li className="group relative rounded-lg border bg-card">
         <Link
-          to="/categories/$categorySlug/settings"
+          to="/categories/$categorySlug/general"
           params={{
             categorySlug: category.slug,
           }}
@@ -140,19 +140,29 @@ export function CategoryPreviewCard({
       <Separator />
 
       <LabeledSection title="Details">
-        <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
-          <dt className="text-muted-foreground">Slug</dt>
-          <dd className="font-mono">{category.slug}</dd>
-          <dt className="text-muted-foreground">Bookmarks</dt>
-          <dd>{category.bookmarkCount ?? 0}</dd>
-          <dt className="text-muted-foreground">Added</dt>
-          <dd>{new Date(category.createdAt).toLocaleDateString()}</dd>
-          <dt className="text-muted-foreground">Built-in</dt>
-          <dd>{category.builtIn ? "Yes — name is fixed" : "No"}</dd>
-          <dt className="text-muted-foreground">On homepage</dt>
-          <dd>{category.isHomepage ? "Yes" : "No"}</dd>
-        </dl>
+        <CategoryGeneralFields category={category} />
       </LabeledSection>
     </div>
+  );
+}
+
+export function CategoryGeneralFields({
+  category,
+}: {
+  category: Category;
+}) {
+  return (
+    <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
+      <dt className="text-muted-foreground">Slug</dt>
+      <dd className="font-mono">{category.slug}</dd>
+      <dt className="text-muted-foreground">Bookmarks</dt>
+      <dd>{category.bookmarkCount ?? 0}</dd>
+      <dt className="text-muted-foreground">Added</dt>
+      <dd>{new Date(category.createdAt).toLocaleDateString()}</dd>
+      <dt className="text-muted-foreground">Built-in</dt>
+      <dd>{category.builtIn ? "Yes — name is fixed" : "No"}</dd>
+      <dt className="text-muted-foreground">On homepage</dt>
+      <dd>{category.isHomepage ? "Yes" : "No"}</dd>
+    </dl>
   );
 }
