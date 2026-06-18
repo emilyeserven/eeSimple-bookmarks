@@ -62,5 +62,4 @@ describe("PanelList", () => {
     fireEvent.click(screen.getByLabelText("Edit Alpha"));
     expect(openItem).toHaveBeenCalledWith("bookmark", "1", "edit");
   });
-
 });

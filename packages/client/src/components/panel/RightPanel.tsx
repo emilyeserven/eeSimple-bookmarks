@@ -13,7 +13,6 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
-import { NEW_SENTINEL } from "@/lib/drawerSearch";
 import {
   Sheet,
   SheetContent,
@@ -23,6 +22,7 @@ import {
 } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useResizeHandle } from "@/hooks/useResizeHandle";
+import { NEW_SENTINEL } from "@/lib/drawerSearch";
 import { useUiStore } from "@/stores/uiStore";
 
 /**
