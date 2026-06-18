@@ -1,4 +1,4 @@
-import { asc, eq, inArray } from "drizzle-orm";
+import { asc, eq, inArray, isNull, ne } from "drizzle-orm";
 import type {
   CreateCustomPropertyInput,
   CustomProperty,
@@ -11,6 +11,7 @@ import {
   type CustomPropertyRow,
   propertyCategories,
 } from "@/db/schema";
+import { slugify, uniqueSlug } from "@/utils/slug";
 
 /** Thrown when a custom-property payload is structurally invalid (e.g. a bad calculate config). */
 export class CustomPropertyValidationError extends Error {
@@ -31,6 +32,8 @@ function toCustomProperty(
   return {
     id: row.id,
     name: row.name,
+    // Backfill runs at boot, but fall back to a derived slug so the wire type is never null.
+    slug: row.slug ?? slugify(row.name),
     type: row.type as CustomProperty["type"],
     description: row.description,
     numberMin: row.numberMin,
@@ -48,6 +51,20 @@ function toCustomProperty(
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
   };
+}
+
+/** Slugs reserved for real sub-routes, so a property can never shadow them (e.g. `/…/new`). */
+const RESERVED_SLUGS = ["new"];
+
+/** Existing property slugs plus reserved route words, optionally excluding one id (when renaming). */
+async function takenSlugs(excludeId?: string): Promise<string[]> {
+  const rows = await db
+    .select({
+      slug: customProperties.slug,
+    })
+    .from(customProperties)
+    .where(excludeId ? ne(customProperties.id, excludeId) : undefined);
+  return [...RESERVED_SLUGS, ...rows.map(row => row.slug).filter((slug): slug is string => slug !== null)];
 }
 
 /** Load category ids for a set of property ids in a single query, grouped by property id. */
@@ -164,11 +181,13 @@ async function setCalculateOperands(
 export async function createCustomProperty(
   input: CreateCustomPropertyInput,
 ): Promise<CustomProperty> {
+  const slug = uniqueSlug(input.name, await takenSlugs());
   const id = await db.transaction(async (tx) => {
     const [row] = await tx
       .insert(customProperties)
       .values({
         name: input.name,
+        slug,
         type: input.type,
         description: input.description ?? null,
         numberMin: input.numberMin ?? null,
@@ -201,6 +220,21 @@ export async function updateCustomProperty(
   id: string,
   input: UpdateCustomPropertyInput,
 ): Promise<CustomProperty | null> {
+  // Keep the slug in sync when the name changes. Computed before the write transaction so the
+  // uniqueness read sees a committed view and never nests a second pooled connection inside it.
+  let renamedSlug: string | undefined;
+  if (input.name !== undefined) {
+    const [current] = await db
+      .select({
+        name: customProperties.name,
+      })
+      .from(customProperties)
+      .where(eq(customProperties.id, id));
+    if (current && input.name !== current.name) {
+      renamedSlug = uniqueSlug(input.name, await takenSlugs(id));
+    }
+  }
+
   const found = await db.transaction(async (tx) => {
     const [existing] = await tx
       .select({
@@ -215,6 +249,7 @@ export async function updateCustomProperty(
       Pick<
         CustomPropertyRow,
         | "name"
+        | "slug"
         | "description"
         | "numberMin"
         | "numberMax"
@@ -229,6 +264,7 @@ export async function updateCustomProperty(
       >
     > = {};
     if (input.name !== undefined) patch.name = input.name;
+    if (renamedSlug !== undefined) patch.slug = renamedSlug;
     if (input.description !== undefined) patch.description = input.description ?? null;
     if (input.numberMin !== undefined) patch.numberMin = input.numberMin;
     if (input.numberMax !== undefined) patch.numberMax = input.numberMax;
@@ -263,4 +299,25 @@ export async function deleteCustomProperty(id: string): Promise<boolean> {
     id: customProperties.id,
   });
   return rows.length > 0;
+}
+
+/** Fill in slugs for any properties missing one (e.g. rows that predate the `slug` column). */
+export async function backfillCustomPropertySlugs(): Promise<void> {
+  const missing = await db
+    .select({
+      id: customProperties.id,
+      name: customProperties.name,
+    })
+    .from(customProperties)
+    .where(isNull(customProperties.slug));
+  if (missing.length === 0) return;
+
+  const taken = await takenSlugs();
+  for (const property of missing) {
+    const slug = uniqueSlug(property.name, taken);
+    taken.push(slug);
+    await db.update(customProperties).set({
+      slug,
+    }).where(eq(customProperties.id, property.id));
+  }
 }

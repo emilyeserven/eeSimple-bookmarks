@@ -16,7 +16,11 @@ import { usePanelDismissAfterDelete } from "./usePanelDismissAfterDelete";
 import { useAutofillRules } from "../../hooks/useAutofill";
 import { useBookmarks, useDeleteBookmark } from "../../hooks/useBookmarks";
 import { useCategories } from "../../hooks/useCategories";
-import { useCustomProperties } from "../../hooks/useCustomProperties";
+import {
+  useCustomProperties,
+  useDeleteCustomProperty,
+  useUpdateCustomProperty,
+} from "../../hooks/useCustomProperties";
 import { useTagTree } from "../../hooks/useTags";
 import { useWebsites } from "../../hooks/useWebsites";
 import { summarizeConditions } from "../../lib/conditionsSummary";
@@ -24,7 +28,8 @@ import { flattenTree } from "../../lib/tagTree";
 import { BookmarkDetail } from "../BookmarkDetail";
 import { BookmarkForm } from "../BookmarkForm";
 import { CategoryCard } from "../CategoryManager";
-import { PropertyCard } from "../CustomPropertyManager";
+import { PropertyDetail } from "../PropertyDetail";
+import { PropertyForm } from "../PropertyForm";
 import { WebsiteCard, WebsiteRow } from "../WebsiteManager";
 
 /** A single row in a content type's searchable list. */
@@ -257,8 +262,8 @@ function usePropertyList() {
   };
 }
 
-/** A custom property, reusing the settings page's inline-editable `PropertyCard`. */
-function PropertyItem({
+/** Read-only property, reusing the same `PropertyDetail` the full detail page renders. */
+function PropertyView({
   id,
 }: {
   id: string;
@@ -269,18 +274,79 @@ function PropertyItem({
   const {
     data: categories,
   } = useCategories();
+  const {
+    openItem,
+  } = usePanelControls();
   const dismiss = usePanelDismissAfterDelete();
+  const deleteProperty = useDeleteCustomProperty();
+
   if (isLoading) return <Loading />;
   if (error) return <Problem>{error.message}</Problem>;
   const property = (properties ?? []).find(item => item.id === id);
   if (!property) return <Problem>Property not found.</Problem>;
+
   return (
-    <PropertyCard
+    <PropertyDetail
       property={property}
       categories={categories ?? []}
       allProperties={properties ?? []}
-      onDeleted={dismiss}
+      onEdit={() => openItem("property", id, "edit")}
+      onDelete={() => deleteProperty.mutate(id, {
+        onSuccess: dismiss,
+      })}
     />
+  );
+}
+
+/** Edit a property with the same `PropertyForm` the main app uses. */
+function PropertyEdit({
+  id,
+}: {
+  id: string;
+}) {
+  const {
+    data: properties, isLoading, error,
+  } = useCustomProperties();
+  const {
+    data: categories,
+  } = useCategories();
+  const {
+    openItem,
+  } = usePanelControls();
+  const updateProperty = useUpdateCustomProperty();
+
+  if (isLoading) return <Loading />;
+  if (error) return <Problem>{error.message}</Problem>;
+  const property = (properties ?? []).find(item => item.id === id);
+  if (!property) return <Problem>Property not found.</Problem>;
+
+  // A calculate property may sum any other number property, but never itself.
+  const numberProperties = (properties ?? []).filter(
+    candidate => candidate.type === "number" && candidate.id !== property.id,
+  );
+
+  return (
+    <div className="space-y-4">
+      <h2 className="text-xl font-semibold">Edit custom property</h2>
+      <PropertyForm
+        mode="edit"
+        property={property}
+        categories={categories ?? []}
+        numberProperties={numberProperties}
+        onSubmit={({
+          type, ...input
+        }) => updateProperty.mutate({
+          id,
+          input,
+        }, {
+          onSuccess: () => openItem("property", id, "view"),
+        })}
+        submitLabel="Save changes"
+        pendingLabel="Saving…"
+        errorMessage={updateProperty.isError ? updateProperty.error.message : undefined}
+        idPrefix={`panel-property-${id}-category`}
+      />
+    </div>
   );
 }
 
@@ -399,8 +465,8 @@ export const PANEL_CONTENT_TYPES: PanelContentTypeDef[] = [
     singular: "Custom Property",
     icon: SlidersHorizontal,
     useList: usePropertyList,
-    View: PropertyItem,
-    Edit: PropertyItem,
+    View: PropertyView,
+    Edit: PropertyEdit,
   },
   {
     type: "website",

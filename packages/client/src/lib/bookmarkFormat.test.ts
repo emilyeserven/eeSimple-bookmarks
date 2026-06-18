@@ -10,6 +10,7 @@ function property(overrides: Partial<CustomProperty>): CustomProperty {
   return {
     id: "prop",
     name: "Prop",
+    slug: "prop",
     type: "number",
     description: null,
     numberMin: null,

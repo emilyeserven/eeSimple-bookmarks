@@ -38,6 +38,7 @@ const bookmark: Bookmark = {
 const starsProperty: CustomProperty = {
   id: "prop-stars",
   name: "Stars",
+  slug: "stars",
   type: "number",
   description: null,
   numberMin: null,
@@ -58,6 +59,7 @@ const starsProperty: CustomProperty = {
 const reviewedProperty: CustomProperty = {
   id: "prop-reviewed",
   name: "Reviewed",
+  slug: "reviewed",
   type: "boolean",
   description: null,
   numberMin: null,

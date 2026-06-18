@@ -1,158 +1,133 @@
-import type { Category, CustomProperty, CustomPropertyType } from "@eesimple/types";
+import type { CustomProperty } from "@eesimple/types";
 
-import { PropertyForm } from "./PropertyForm";
-import { useCategories } from "../hooks/useCategories";
-import {
-  useCreateCustomProperty,
-  useCustomProperties,
-  useDeleteCustomProperty,
-  useUpdateCustomProperty,
-} from "../hooks/useCustomProperties";
+import { useMemo, useState } from "react";
+
+import { Link } from "@tanstack/react-router";
+import { Plus } from "lucide-react";
+
+import { useCustomProperties } from "../hooks/useCustomProperties";
+import { TYPE_LABELS } from "../lib/propertyFormat";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 
-const TYPE_LABELS: Record<CustomPropertyType, string> = {
-  number: "Number",
-  boolean: "Boolean",
-  calculate: "Calculate (Sum)",
-};
-
-/** Create, list, and delete custom properties (Number, Boolean, Calculate). */
-export function CustomPropertyManager() {
-  const {
-    data: properties, isLoading, error,
-  } = useCustomProperties();
-  const {
-    data: categories,
-  } = useCategories();
-  const createProperty = useCreateCustomProperty();
-
-  const numberProperties = (properties ?? []).filter(property => property.type === "number");
-
-  return (
-    <section className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>New custom property</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <PropertyForm
-            mode="create"
-            categories={categories ?? []}
-            numberProperties={numberProperties}
-            onSubmit={payload => createProperty.mutate(payload)}
-            submitLabel="Add property"
-            resetOnSubmit
-            errorMessage={createProperty.isError ? createProperty.error.message : undefined}
-            idPrefix="new-property-category"
-          />
-        </CardContent>
-      </Card>
-
-      {isLoading ? <p className="text-muted-foreground">Loading custom properties…</p> : null}
-      {error ? <p className="text-destructive">{error.message}</p> : null}
-      {!isLoading && (properties?.length ?? 0) === 0
-        ? <p className="text-muted-foreground">No custom properties yet. Create one above.</p>
-        : null}
-
-      <div className="space-y-4">
-        {(properties ?? []).map(property => (
-          <Card
-            key={property.id}
-            className="p-6"
-          >
-            <PropertyCard
-              property={property}
-              categories={categories ?? []}
-              allProperties={properties ?? []}
-            />
-          </Card>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-interface PropertyCardProps {
+interface PropertyPreviewProps {
   property: CustomProperty;
-  categories: Category[];
+  /** All properties, used to resolve a calculate property's operand names. */
   allProperties: CustomProperty[];
-  /** Called after a successful delete — e.g. the panel uses it to dismiss itself. */
-  onDeleted?: () => void;
 }
 
-/** A property's header summary plus the shared edit form; also deletes the property. */
-export function PropertyCard({
-  property,
-  categories,
-  allProperties,
-  onDeleted,
-}: PropertyCardProps) {
-  const deleteProperty = useDeleteCustomProperty();
-  const updateProperty = useUpdateCustomProperty();
-
-  // A calculate property may sum any other number property, but never itself.
-  const numberProperties = allProperties.filter(
-    candidate => candidate.type === "number" && candidate.id !== property.id,
-  );
+/** A compact, clickable preview of one property; links to its full view page. */
+function PropertyPreview({
+  property, allProperties,
+}: PropertyPreviewProps) {
   const operandNames = property.operandPropertyIds
     .map(id => allProperties.find(candidate => candidate.id === id)?.name)
     .filter((value): value is string => Boolean(value));
 
+  let summary: string | null = null;
+  if (property.type === "number") {
+    summary = `${property.numberMin ?? "auto"} – ${property.numberMax ?? "auto"}`
+      + (property.unitPlural ? ` ${property.unitPlural}` : "");
+  }
+  else if (property.type === "calculate" && operandNames.length > 0) {
+    summary = `Σ ${operandNames.join(" + ")}`;
+  }
+
+  const categoryCount = property.categoryIds.length;
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-2">
+    <Card className="p-0">
+      <Link
+        to="/settings/custom-properties/$propertySlug"
+        params={{
+          propertySlug: property.slug,
+        }}
+        className="
+          flex flex-col gap-1 rounded-xl p-4 transition-colors
+          hover:bg-accent
+        "
+      >
         <div className="flex flex-wrap items-center gap-2">
-          <CardTitle>{property.name}</CardTitle>
+          <span className="font-medium">{property.name}</span>
           <Badge variant="secondary">{TYPE_LABELS[property.type]}</Badge>
-          {property.type === "number"
-            ? (
-              <span className="text-xs text-muted-foreground">
-                {`${property.numberMin ?? "auto"} – ${property.numberMax ?? "auto"}`}
-                {property.unitPlural ? ` ${property.unitPlural}` : ""}
-              </span>
-            )
-            : null}
-          {property.type === "calculate" && operandNames.length > 0
-            ? <span className="text-xs text-muted-foreground">{`Σ ${operandNames.join(" + ")}`}</span>
-            : null}
+          {summary ? <span className="text-xs text-muted-foreground">{summary}</span> : null}
         </div>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="text-destructive"
-          onClick={() => deleteProperty.mutate(property.id, {
-            onSuccess: onDeleted,
-          })}
-        >
-          Delete
+        {property.description
+          ? <p className="truncate text-sm text-muted-foreground">{property.description}</p>
+          : null}
+        <p className="text-xs text-muted-foreground">
+          {categoryCount === 0
+            ? "No categories"
+            : `${categoryCount} ${categoryCount === 1 ? "category" : "categories"}`}
+        </p>
+      </Link>
+    </Card>
+  );
+}
+
+/** Searchable listing of custom properties, with previews that link out to the view/create pages. */
+export function CustomPropertyManager() {
+  const {
+    data: properties, isLoading, error,
+  } = useCustomProperties();
+  const [query, setQuery] = useState("");
+
+  const filtered = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    const all = properties ?? [];
+    if (!needle) return all;
+    return all.filter(property =>
+      property.name.toLowerCase().includes(needle)
+      || TYPE_LABELS[property.type].toLowerCase().includes(needle));
+  }, [properties, query]);
+
+  return (
+    <section className="space-y-4">
+      <div
+        className="
+          flex flex-col gap-2
+          sm:flex-row sm:items-center
+        "
+      >
+        <Input
+          type="search"
+          placeholder="Search custom properties…"
+          value={query}
+          onChange={event => setQuery(event.target.value)}
+          className="sm:flex-1"
+        />
+        <Button asChild>
+          <Link to="/settings/custom-properties/new">
+            <Plus className="size-4" />
+            New property
+          </Link>
         </Button>
       </div>
 
-      <PropertyForm
-        mode="edit"
-        property={property}
-        categories={categories}
-        numberProperties={numberProperties}
-        onSubmit={({
-          type, ...input
-        }) => updateProperty.mutate({
-          id: property.id,
-          input,
-        })}
-        submitLabel="Save changes"
-        pendingLabel="Saving…"
-        errorMessage={updateProperty.isError ? updateProperty.error.message : undefined}
-        idPrefix={`property-${property.id}-category`}
-      />
-    </div>
+      {isLoading ? <p className="text-muted-foreground">Loading custom properties…</p> : null}
+      {error ? <p className="text-destructive">{error.message}</p> : null}
+      {!isLoading && !error && filtered.length === 0
+        ? (
+          <p className="text-muted-foreground">
+            {query
+              ? "No custom properties match your search."
+              : "No custom properties yet. Create one to get started."}
+          </p>
+        )
+        : null}
+
+      <div className="space-y-3">
+        {filtered.map(property => (
+          <PropertyPreview
+            key={property.id}
+            property={property}
+            allProperties={properties ?? []}
+          />
+        ))}
+      </div>
+    </section>
   );
 }

@@ -24,6 +24,7 @@ const properties: CustomProperty[] = [
   {
     id: "prop-assigned",
     name: "Priority",
+    slug: "priority",
     type: "number",
     description: null,
     numberMin: null,
@@ -43,6 +44,7 @@ const properties: CustomProperty[] = [
   {
     id: "prop-unassigned",
     name: "Archived",
+    slug: "archived",
     type: "boolean",
     description: null,
     numberMin: null,
