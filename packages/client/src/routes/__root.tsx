@@ -234,7 +234,7 @@ function RootComponent() {
             <PanelRight className="size-4" />
           </Button>
         </header>
-        <main className="mx-auto w-full max-w-6xl px-4 py-8">
+        <main className="w-full px-4 py-8">
           <Outlet />
         </main>
       </SidebarInset>

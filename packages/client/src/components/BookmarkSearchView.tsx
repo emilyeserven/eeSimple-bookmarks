@@ -110,7 +110,7 @@ export function BookmarkSearchView({
       <div
         className="
           grid gap-8
-          lg:grid-cols-[16rem_1fr]
+          lg:grid-cols-[16rem_1fr] lg:gap-x-12
         "
       >
         <FilterSidebar
