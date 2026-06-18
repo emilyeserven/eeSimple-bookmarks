@@ -115,6 +115,8 @@ interface TextareaFieldProps {
   inputClassName?: string;
   /** Extra blur handler (runs after the field's own blur), e.g. autofill-on-blur. */
   onBlur?: () => void;
+  /** Extra change handler (runs after the field's own change), e.g. clearing an undo banner. */
+  onChange?: () => void;
   /** Optional control rendered at the inline-end of the textarea (input-group pattern). */
   action?: ReactNode;
   /** Stretch the textarea to fill its container's height (for equal-height grid cells). */
@@ -123,7 +125,7 @@ interface TextareaFieldProps {
 
 /** Labelled multi-line text input bound to the surrounding field. */
 function TextareaField({
-  label, placeholder, rows = 2, disabled, inputClassName, onBlur, action, fill,
+  label, placeholder, rows = 2, disabled, inputClassName, onBlur, onChange, action, fill,
 }: TextareaFieldProps) {
   const field = useFieldContext<string>();
   const id = useId();
@@ -140,7 +142,10 @@ function TextareaField({
         field.handleBlur();
         onBlur?.();
       }}
-      onChange={event => field.handleChange(event.target.value)}
+      onChange={(event) => {
+        field.handleChange(event.target.value);
+        onChange?.();
+      }}
     />
   );
 
