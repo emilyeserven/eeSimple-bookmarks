@@ -6,6 +6,7 @@ import { Link } from "@tanstack/react-router";
 import { ExternalLink, Pencil, Plus, X } from "lucide-react";
 import { z } from "zod";
 
+import { LabeledSection } from "./LabeledSection";
 import { LinkPreview } from "./LinkPreview";
 import { useBookmarksOnHost, useBulkExpandBookmarkUrls } from "../hooks/useBookmarks";
 import { useCreateWebsite, useUpdateWebsite, useWebsites } from "../hooks/useWebsites";
@@ -17,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 
 /** Local draft of a param rule, with params edited as a comma-separated string. */
 interface ParamRuleDraft {
@@ -107,71 +109,91 @@ export function WebsiteRow({
     );
   }
 
+  const expandableLinks = website.shortenedLinks.filter(link => link.expandTo && !link.keepShortened);
+
   return (
-    <div className="space-y-5">
-      <div
-        className="
-          grid gap-3
-          sm:grid-cols-[1fr_1fr_auto] sm:items-end
-        "
-      >
-        <div className="space-y-1">
-          <Label htmlFor={`site-name-${website.id}`}>Site name</Label>
-          <Input
-            id={`site-name-${website.id}`}
-            value={siteName}
-            disabled={website.builtIn}
-            onChange={event => setSiteName(event.target.value)}
-          />
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor={`site-domain-${website.id}`}>Domain</Label>
-          <Input
-            id={`site-domain-${website.id}`}
-            value={domain}
-            disabled={website.builtIn}
-            onChange={event => setDomain(event.target.value)}
-          />
-        </div>
-        <Button
-          type="button"
-          size="sm"
-          disabled={!dirty || !valid || updateWebsite.isPending}
-          onClick={save}
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <div
+          className="
+            grid gap-3
+            sm:grid-cols-[1fr_1fr_auto] sm:items-end
+          "
         >
-          {updateWebsite.isPending ? "Saving…" : "Save"}
-        </Button>
+          <div className="space-y-1">
+            <Label htmlFor={`site-name-${website.id}`}>Site name</Label>
+            <Input
+              id={`site-name-${website.id}`}
+              value={siteName}
+              disabled={website.builtIn}
+              onChange={event => setSiteName(event.target.value)}
+            />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor={`site-domain-${website.id}`}>Domain</Label>
+            <Input
+              id={`site-domain-${website.id}`}
+              value={domain}
+              disabled={website.builtIn}
+              onChange={event => setDomain(event.target.value)}
+            />
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            disabled={!dirty || !valid || updateWebsite.isPending}
+            onClick={save}
+          >
+            {updateWebsite.isPending ? "Saving…" : "Save"}
+          </Button>
+        </div>
+        {website.builtIn
+          ? (
+            <p className="text-xs text-muted-foreground">
+              Built-in site — its name and domain are fixed, but you can edit its rules below.
+            </p>
+          )
+          : null}
       </div>
-      {website.builtIn
-        ? (
-          <p className="text-xs text-muted-foreground">
-            Built-in site — its name and domain are fixed, but you can edit its rules below.
-          </p>
-        )
-        : null}
+
+      <Separator />
 
       <ShortenedLinksEditor
         idBase={website.id}
         links={shortLinks}
         onChange={setShortLinks}
       />
+
+      <Separator />
+
       <ParamRulesEditor
         idBase={website.id}
         rules={rules}
         onChange={setRules}
       />
 
-      <div className="space-y-1">
-        <p className="text-sm font-medium">Preview (uses the edits above)</p>
+      <Separator />
+
+      <LabeledSection
+        title="Preview"
+        description="Uses the edits above."
+      >
         <LinkPreview
           websites={[editedWebsite]}
           ignoreList={[]}
           label=""
           placeholder="Paste a link on this site…"
         />
-      </div>
+      </LabeledSection>
 
-      <BulkExpandSection website={website} />
+      {expandableLinks.length > 0
+        ? (
+          <>
+            <Separator />
+            <BulkExpandSection website={website} />
+          </>
+        )
+        : null}
 
       {updateWebsite.isError
         ? <p className="text-sm text-destructive">{updateWebsite.error.message}</p>
@@ -195,10 +217,10 @@ function ShortenedLinksEditor({
       : link)));
   }
   return (
-    <div className="space-y-2">
-      <div>
-        <p className="text-sm font-medium">Verified shortened links</p>
-        <p className="text-xs text-muted-foreground">
+    <LabeledSection
+      title="Verified shortened links"
+      description={(
+        <>
           Short domains that resolve to this site (e.g. youtu.be). Use
           {" "}
           <code>{"{id}"}</code>
@@ -208,67 +230,70 @@ function ShortenedLinksEditor({
           <code>{"{path}"}</code>
           {" "}
           in the expansion template; leave it blank to keep links shortened.
-        </p>
-      </div>
-      {links.map((link, index) => (
-        <div
-          key={index}
-          className="
-            grid gap-2 rounded-md border p-2
-            sm:grid-cols-[1fr_2fr_auto_auto] sm:items-center
-          "
-        >
-          <Input
-            aria-label="Short domain"
-            placeholder="youtu.be"
-            value={link.domain}
-            onChange={event => update(index, {
-              domain: event.target.value,
-            })}
-          />
-          <Input
-            aria-label="Expansion template"
-            placeholder="https://www.youtube.com/watch?v={id}"
-            value={link.expandTo ?? ""}
-            onChange={event => update(index, {
-              expandTo: event.target.value,
-            })}
-          />
-          <label className="flex items-center gap-1 text-sm whitespace-nowrap">
-            <Checkbox
-              id={`keep-${idBase}-${index}`}
-              checked={link.keepShortened}
-              onCheckedChange={checked => update(index, {
-                keepShortened: checked === true,
+        </>
+      )}
+    >
+      <div className="space-y-2">
+        {links.map((link, index) => (
+          <div
+            key={index}
+            className="
+              grid gap-2 rounded-md border p-2
+              sm:grid-cols-[1fr_2fr_auto_auto] sm:items-center
+            "
+          >
+            <Input
+              aria-label="Short domain"
+              placeholder="youtu.be"
+              value={link.domain}
+              onChange={event => update(index, {
+                domain: event.target.value,
               })}
             />
-            Keep shortened
-          </label>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label="Remove shortened link"
-            onClick={() => onChange(links.filter((_, i) => i !== index))}
-          >
-            <X className="size-4" />
-          </Button>
-        </div>
-      ))}
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={() => onChange([...links, {
-          domain: "",
-          expandTo: null,
-          keepShortened: false,
-        }])}
-      >
-        <Plus className="mr-1 size-4" />
-        Add shortened link
-      </Button>
-    </div>
+            <Input
+              aria-label="Expansion template"
+              placeholder="https://www.youtube.com/watch?v={id}"
+              value={link.expandTo ?? ""}
+              onChange={event => update(index, {
+                expandTo: event.target.value,
+              })}
+            />
+            <label className="flex items-center gap-1 text-sm whitespace-nowrap">
+              <Checkbox
+                id={`keep-${idBase}-${index}`}
+                checked={link.keepShortened}
+                onCheckedChange={checked => update(index, {
+                  keepShortened: checked === true,
+                })}
+              />
+              Keep shortened
+            </label>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label="Remove shortened link"
+              onClick={() => onChange(links.filter((_, i) => i !== index))}
+            >
+              <X className="size-4" />
+            </Button>
+          </div>
+        ))}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => onChange([...links, {
+            domain: "",
+            expandTo: null,
+            keepShortened: false,
+          }])}
+        >
+          <Plus className="mr-1 size-4" />
+          Add shortened link
+        </Button>
+      </div>
+    </LabeledSection>
   );
 }
 
@@ -287,64 +312,61 @@ function ParamRulesEditor({
       : rule)));
   }
   return (
-    <div className="space-y-2">
-      <div>
-        <p className="text-sm font-medium">Keep-param rules</p>
-        <p className="text-xs text-muted-foreground">
-          For URLs whose path ends with the suffix, keep only these query params (comma-separated) and
-          strip the rest. Leave the path blank to match any path. With rules set, params aren’t kept
-          unless whitelisted.
-        </p>
-      </div>
-      {rules.map((rule, index) => (
-        <div
-          key={index}
-          className="
-            grid gap-2 rounded-md border p-2
-            sm:grid-cols-[1fr_2fr_auto] sm:items-center
-          "
-        >
-          <Input
-            aria-label="Path suffix"
-            placeholder="/watch"
-            value={rule.pathSuffix}
-            onChange={event => update(index, {
-              pathSuffix: event.target.value,
-            })}
-          />
-          <Input
-            aria-label="Kept params"
-            placeholder="v, list"
-            value={rule.paramsText}
-            onChange={event => update(index, {
-              paramsText: event.target.value,
-            })}
-          />
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label="Remove rule"
-            onClick={() => onChange(rules.filter((_, i) => i !== index))}
+    <LabeledSection
+      title="Keep-param rules"
+      description="For URLs whose path ends with the suffix, keep only these query params (comma-separated) and strip the rest. Leave the path blank to match any path. With rules set, params aren’t kept unless whitelisted."
+    >
+      <div className="space-y-2">
+        {rules.map((rule, index) => (
+          <div
+            key={index}
+            className="
+              grid gap-2 rounded-md border p-2
+              sm:grid-cols-[1fr_2fr_auto] sm:items-center
+            "
           >
-            <X className="size-4" />
-          </Button>
-        </div>
-      ))}
-      <Button
-        id={`add-rule-${idBase}`}
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={() => onChange([...rules, {
-          pathSuffix: "",
-          paramsText: "",
-        }])}
-      >
-        <Plus className="mr-1 size-4" />
-        Add rule
-      </Button>
-    </div>
+            <Input
+              aria-label="Path suffix"
+              placeholder="/watch"
+              value={rule.pathSuffix}
+              onChange={event => update(index, {
+                pathSuffix: event.target.value,
+              })}
+            />
+            <Input
+              aria-label="Kept params"
+              placeholder="v, list"
+              value={rule.paramsText}
+              onChange={event => update(index, {
+                paramsText: event.target.value,
+              })}
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label="Remove rule"
+              onClick={() => onChange(rules.filter((_, i) => i !== index))}
+            >
+              <X className="size-4" />
+            </Button>
+          </div>
+        ))}
+        <Button
+          id={`add-rule-${idBase}`}
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => onChange([...rules, {
+            pathSuffix: "",
+            paramsText: "",
+          }])}
+        >
+          <Plus className="mr-1 size-4" />
+          Add rule
+        </Button>
+      </div>
+    </LabeledSection>
   );
 }
 
@@ -355,8 +377,7 @@ function BulkExpandSection({
   const expandable = website.shortenedLinks.filter(link => link.expandTo && !link.keepShortened);
   if (expandable.length === 0) return null;
   return (
-    <div className="space-y-3">
-      <p className="text-sm font-medium">Expand existing bookmarks</p>
+    <LabeledSection title="Expand existing bookmarks">
       {expandable.map(link => (
         <BulkExpandShortened
           key={link.domain}
@@ -364,7 +385,7 @@ function BulkExpandSection({
           domain={link.domain}
         />
       ))}
-    </div>
+    </LabeledSection>
   );
 }
 
@@ -523,7 +544,7 @@ export function WebsiteCard({
   website,
 }: { website: Website }) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 space-y-1">
           <h2 className="text-xl font-semibold">{website.siteName}</h2>
@@ -555,20 +576,83 @@ export function WebsiteCard({
           </Link>
         </Button>
       </div>
-      <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
-        <dt className="text-muted-foreground">Added</dt>
-        <dd>{new Date(website.createdAt).toLocaleDateString()}</dd>
-        <dt className="text-muted-foreground">Slug</dt>
-        <dd>{website.slug}</dd>
-        {website.bookmarkCount != null
-          ? (
-            <>
-              <dt className="text-muted-foreground">Bookmarks</dt>
-              <dd>{website.bookmarkCount}</dd>
-            </>
-          )
-          : null}
-      </dl>
+
+      <Separator />
+
+      <LabeledSection title="Details">
+        <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
+          <dt className="text-muted-foreground">Added</dt>
+          <dd>{new Date(website.createdAt).toLocaleDateString()}</dd>
+          <dt className="text-muted-foreground">Slug</dt>
+          <dd className="font-mono">{website.slug}</dd>
+          <dt className="text-muted-foreground">Built-in</dt>
+          <dd>{website.builtIn ? "Yes — name & domain are fixed" : "No"}</dd>
+          {website.bookmarkCount != null
+            ? (
+              <>
+                <dt className="text-muted-foreground">Bookmarks</dt>
+                <dd>{website.bookmarkCount}</dd>
+              </>
+            )
+            : null}
+        </dl>
+      </LabeledSection>
+
+      <Separator />
+
+      <LabeledSection
+        title="Verified shortened links"
+        description="Short domains that resolve to this site and how they expand."
+      >
+        {website.shortenedLinks.length === 0
+          ? <p className="text-sm text-muted-foreground">None</p>
+          : (
+            <ul className="space-y-2 text-sm">
+              {website.shortenedLinks.map(link => (
+                <li
+                  key={link.domain}
+                  className="rounded-md border p-2"
+                >
+                  <span className="font-mono">{link.domain}</span>
+                  {link.keepShortened || !link.expandTo
+                    ? <span className="text-muted-foreground"> — kept shortened</span>
+                    : (
+                      <>
+                        <span className="text-muted-foreground"> → </span>
+                        <span className="font-mono">{link.expandTo}</span>
+                      </>
+                    )}
+                </li>
+              ))}
+            </ul>
+          )}
+      </LabeledSection>
+
+      <Separator />
+
+      <LabeledSection
+        title="Keep-param rules"
+        description="For matching paths, only these query params are kept; the rest are stripped."
+      >
+        {website.paramRules.length === 0
+          ? <p className="text-sm text-muted-foreground">None</p>
+          : (
+            <ul className="space-y-2 text-sm">
+              {website.paramRules.map((rule, index) => (
+                <li
+                  key={index}
+                  className="rounded-md border p-2"
+                >
+                  <span className="font-mono">{rule.pathSuffix || "any path"}</span>
+                  <span className="text-muted-foreground"> → </span>
+                  <span className="font-mono">
+                    {rule.params.length > 0 ? rule.params.join(", ") : "(none kept)"}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+      </LabeledSection>
     </div>
   );
 }
