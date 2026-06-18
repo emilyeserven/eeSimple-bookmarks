@@ -8,6 +8,7 @@
 import type { ConditionMatchField, ConditionMatchOperator, ConditionTree } from "./conditions.js";
 
 export * from "./conditions.js";
+export * from "./youtube.js";
 
 /** A tag node in the hierarchical taxonomy. `parentId === null` marks a root tag. */
 export interface Tag {

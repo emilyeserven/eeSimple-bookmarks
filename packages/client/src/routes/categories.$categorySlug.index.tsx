@@ -5,7 +5,9 @@ import { BookmarkSearchView } from "../components/BookmarkSearchView";
 import { useBookmarks } from "../hooks/useBookmarks";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
+import { useMediaTypes } from "../hooks/useMediaTypes";
 import { useTagTree } from "../hooks/useTags";
+import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
 import { validateBookmarkSearch } from "../lib/bookmarkSearch";
 
 import { Button } from "@/components/ui/button";
@@ -34,6 +36,12 @@ function CategoryPage() {
   const {
     data: tagTree,
   } = useTagTree();
+  const {
+    data: mediaTypes,
+  } = useMediaTypes();
+  const {
+    data: youtubeChannels,
+  } = useYouTubeChannels();
 
   const category = (categories ?? []).find(item => item.slug === categorySlug);
 
@@ -87,6 +95,8 @@ function CategoryPage() {
       pageKey={`category:${categorySlug}`}
       tree={tagTree ?? []}
       properties={assignedProperties}
+      mediaTypes={mediaTypes ?? []}
+      youtubeChannels={youtubeChannels ?? []}
       bookmarks={categoryBookmarks}
       search={search}
       onSearchChange={next => navigate({

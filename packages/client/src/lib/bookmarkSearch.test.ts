@@ -5,8 +5,10 @@ import {
   validateBookmarkSearch,
   withBooleanFilter,
   withCategories,
+  withMediaTypes,
   withNumberFilter,
   withTag,
+  withYouTubeChannels,
 } from "./bookmarkSearch";
 
 describe("validateBookmarkSearch", () => {
@@ -37,6 +39,20 @@ describe("validateBookmarkSearch", () => {
     })).toEqual({});
     expect(validateBookmarkSearch({
       categories: "not-an-array",
+    })).toEqual({});
+  });
+
+  it("keeps valid mediaTypes / youtubeChannels arrays and drops malformed ones", () => {
+    expect(validateBookmarkSearch({
+      mediaTypes: ["mt-1", 7],
+      youtubeChannels: ["ch-1", "ch-2"],
+    })).toEqual({
+      mediaTypes: ["mt-1"],
+      youtubeChannels: ["ch-1", "ch-2"],
+    });
+    expect(validateBookmarkSearch({
+      mediaTypes: [],
+      youtubeChannels: "nope",
     })).toEqual({});
   });
 
@@ -89,6 +105,21 @@ describe("with* helpers", () => {
     });
   });
 
+  it("sets and clears the media-type and channel filters", () => {
+    expect(withMediaTypes({}, ["mt-1"])).toEqual({
+      mediaTypes: ["mt-1"],
+    });
+    expect(withMediaTypes({
+      mediaTypes: ["mt-1"],
+    }, [])).toEqual({});
+    expect(withYouTubeChannels({}, ["ch-1", "ch-2"])).toEqual({
+      youtubeChannels: ["ch-1", "ch-2"],
+    });
+    expect(withYouTubeChannels({
+      youtubeChannels: ["ch-1"],
+    }, [])).toEqual({});
+  });
+
   it("sets and clears the tag immutably", () => {
     const base = {
       tag: "a",
@@ -128,6 +159,16 @@ describe("with* helpers", () => {
 describe("bookmarkMatchesSearch", () => {
   const bookmark = {
     categoryId: "cat-1",
+    mediaType: {
+      id: "mt-1",
+      name: "Video",
+      slug: "video",
+    },
+    youtubeChannel: {
+      id: "ch-1",
+      name: "Veritasium",
+      slug: "veritasium",
+    },
     tags: [],
     numberValues: [{
       propertyId: "p1",
@@ -160,6 +201,36 @@ describe("bookmarkMatchesSearch", () => {
     expect(bookmarkMatchesSearch(bookmark, {
       categories: [],
     })).toBe(true);
+  });
+
+  it("applies the media-type filter", () => {
+    expect(bookmarkMatchesSearch(bookmark, {
+      mediaTypes: ["mt-1"],
+    })).toBe(true);
+    expect(bookmarkMatchesSearch(bookmark, {
+      mediaTypes: ["mt-2"],
+    })).toBe(false);
+    expect(bookmarkMatchesSearch({
+      ...bookmark,
+      mediaType: null,
+    }, {
+      mediaTypes: ["mt-1"],
+    })).toBe(false);
+  });
+
+  it("applies the YouTube-channel filter", () => {
+    expect(bookmarkMatchesSearch(bookmark, {
+      youtubeChannels: ["ch-1"],
+    })).toBe(true);
+    expect(bookmarkMatchesSearch(bookmark, {
+      youtubeChannels: ["ch-2"],
+    })).toBe(false);
+    expect(bookmarkMatchesSearch({
+      ...bookmark,
+      youtubeChannel: null,
+    }, {
+      youtubeChannels: ["ch-1"],
+    })).toBe(false);
   });
 
   it("applies number-range and boolean filters", () => {

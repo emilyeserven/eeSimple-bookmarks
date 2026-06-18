@@ -320,6 +320,9 @@ export async function updateCustomProperty(
     if (existing.builtIn && input.name !== undefined && input.name !== existing.name) {
       throw new BuiltInPropertyError("A built-in property cannot be renamed");
     }
+    if (existing.builtIn && input.enabled === false) {
+      throw new BuiltInPropertyError("A built-in property cannot be disabled");
+    }
 
     const patch = buildUpdatePatch(input, renamedSlug);
     if (Object.keys(patch).length > 0) {
@@ -366,7 +369,21 @@ export async function ensureVideoLengthProperty(): Promise<string> {
     })
     .from(customProperties)
     .where(eq(customProperties.slug, VIDEO_LENGTH_SLUG));
-  if (existing) return existing.id;
+  if (existing) {
+    // Reconcile rows that predate the built-in flag (or were created without it) so Video Length is
+    // always marked built-in, enabled, available in every category, and shown in listings.
+    await db
+      .update(customProperties)
+      .set({
+        builtIn: true,
+        enabled: true,
+        allCategories: true,
+        showInListings: true,
+        numberFormat: "duration",
+      })
+      .where(eq(customProperties.id, existing.id));
+    return existing.id;
+  }
 
   const [row] = await db
     .insert(customProperties)

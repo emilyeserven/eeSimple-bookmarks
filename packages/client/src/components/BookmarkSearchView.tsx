@@ -1,6 +1,6 @@
 import type { HomepageSectionImageLayout } from "../lib/bookmarkColumns";
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
-import type { Bookmark, Category, CustomProperty, TagNode } from "@eesimple/types";
+import type { Bookmark, Category, CustomProperty, MediaType, TagNode, YouTubeChannel } from "@eesimple/types";
 import type { ReactNode } from "react";
 
 import { ChevronDown, TriangleAlert } from "lucide-react";
@@ -31,6 +31,10 @@ interface BookmarkSearchViewProps {
   properties: CustomProperty[];
   /** When provided, groups category-specific property filters under collapsible sections. */
   categories?: Category[];
+  /** Media types offered as a multi-select filter in the rail. */
+  mediaTypes?: MediaType[];
+  /** YouTube channels offered as a multi-select filter in the rail. */
+  youtubeChannels?: YouTubeChannel[];
   /** Bookmarks already narrowed by tag (and category, on category pages). */
   bookmarks: Bookmark[];
   search: BookmarkSearch;
@@ -59,6 +63,8 @@ export function BookmarkSearchView({
   tree,
   properties,
   categories,
+  mediaTypes,
+  youtubeChannels,
   bookmarks,
   search,
   onSearchChange,
@@ -126,6 +132,8 @@ export function BookmarkSearchView({
           tree={tree}
           properties={properties}
           categories={categories}
+          mediaTypes={mediaTypes}
+          youtubeChannels={youtubeChannels}
           bookmarks={bookmarks}
           search={search}
           onSearchChange={onSearchChange}

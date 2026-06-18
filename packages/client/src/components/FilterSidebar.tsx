@@ -1,5 +1,5 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
-import type { Bookmark, Category, CustomProperty, TagNode } from "@eesimple/types";
+import type { Bookmark, Category, CustomProperty, MediaType, TagNode, YouTubeChannel } from "@eesimple/types";
 
 import { useState } from "react";
 
@@ -16,10 +16,12 @@ import {
   withBooleanFilter,
   withCategories,
   withDateTimeFilter,
+  withMediaTypes,
   withNumberFilter,
   withPresenceFilter,
   withTag,
   withTagPresence,
+  withYouTubeChannels,
 } from "../lib/bookmarkSearch";
 
 import { cn } from "@/lib/utils";
@@ -32,6 +34,10 @@ interface FilterSidebarProps {
    * Only the Bookmarks page passes this; category pages render flat without it.
    */
   categories?: Category[];
+  /** Media types offered as a multi-select filter; rendered only when non-empty. */
+  mediaTypes?: MediaType[];
+  /** YouTube channels offered as a multi-select filter; rendered only when non-empty. */
+  youtubeChannels?: YouTubeChannel[];
   /** Bookmarks in view, used to derive slider bounds when a property has no min/max. */
   bookmarks: Pick<Bookmark, "numberValues">[];
   search: BookmarkSearch;
@@ -40,18 +46,21 @@ interface FilterSidebarProps {
 
 /** Left filter rail for the search pages: tiered tags plus custom-property filters. */
 export function FilterSidebar({
-  tree, properties, categories, bookmarks, search, onSearchChange,
+  tree, properties, categories, mediaTypes, youtubeChannels, bookmarks, search, onSearchChange,
 }: FilterSidebarProps) {
   const [open, setOpen] = useState(false);
 
   // Category data is only supplied on the overall Bookmarks page; category pages render flat.
   const hasCategoryFilter = (categories?.length ?? 0) > 0;
+  const hasMediaTypeFilter = (mediaTypes?.length ?? 0) > 0;
+  const hasChannelFilter = (youtubeChannels?.length ?? 0) > 0;
 
   const enabledProperties = properties.filter(p => p.enabled);
 
   const hasTags = tree.length > 0;
   const hasProperties = enabledProperties.length > 0;
-  const hasFilters = hasTags || hasProperties || hasCategoryFilter;
+  const hasFilters
+    = hasTags || hasProperties || hasCategoryFilter || hasMediaTypeFilter || hasChannelFilter;
 
   return (
     <aside className="space-y-3">
@@ -75,7 +84,7 @@ export function FilterSidebar({
         )
         : null}
 
-      {!hasTags && !hasProperties
+      {!hasFilters
         ? <p className="text-sm text-muted-foreground">No filters available yet.</p>
         : null}
 
@@ -84,12 +93,16 @@ export function FilterSidebar({
           tree={tree}
           enabledProperties={enabledProperties}
           categories={categories}
+          mediaTypes={mediaTypes}
+          youtubeChannels={youtubeChannels}
           bookmarks={bookmarks}
           search={search}
           onSearchChange={onSearchChange}
           hasTags={hasTags}
           hasProperties={hasProperties}
           hasCategoryFilter={hasCategoryFilter}
+          hasMediaTypeFilter={hasMediaTypeFilter}
+          hasChannelFilter={hasChannelFilter}
         />
       </div>
     </aside>
@@ -98,18 +111,22 @@ export function FilterSidebar({
 
 /** The filter sections themselves, with separators between adjacent groups. */
 function FilterSections({
-  tree, enabledProperties, categories, bookmarks, search, onSearchChange,
-  hasTags, hasProperties, hasCategoryFilter,
+  tree, enabledProperties, categories, mediaTypes, youtubeChannels, bookmarks, search, onSearchChange,
+  hasTags, hasProperties, hasCategoryFilter, hasMediaTypeFilter, hasChannelFilter,
 }: {
   tree: TagNode[];
   enabledProperties: CustomProperty[];
   categories?: Category[];
+  mediaTypes?: MediaType[];
+  youtubeChannels?: YouTubeChannel[];
   bookmarks: Pick<Bookmark, "numberValues">[];
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;
   hasTags: boolean;
   hasProperties: boolean;
   hasCategoryFilter: boolean;
+  hasMediaTypeFilter: boolean;
+  hasChannelFilter: boolean;
 }) {
   return (
     <>
@@ -123,7 +140,9 @@ function FilterSections({
         )
         : null}
 
-      {hasTags && (hasCategoryFilter || hasProperties) ? <Separator /> : null}
+      {hasTags && (hasCategoryFilter || hasMediaTypeFilter || hasChannelFilter || hasProperties)
+        ? <Separator />
+        : null}
 
       {hasCategoryFilter
         ? (
@@ -135,7 +154,33 @@ function FilterSections({
         )
         : null}
 
-      {hasCategoryFilter && hasProperties ? <Separator /> : null}
+      {hasCategoryFilter && (hasMediaTypeFilter || hasChannelFilter || hasProperties)
+        ? <Separator />
+        : null}
+
+      {hasMediaTypeFilter
+        ? (
+          <MediaTypeFilterSection
+            mediaTypes={mediaTypes}
+            search={search}
+            onSearchChange={onSearchChange}
+          />
+        )
+        : null}
+
+      {hasMediaTypeFilter && (hasChannelFilter || hasProperties) ? <Separator /> : null}
+
+      {hasChannelFilter
+        ? (
+          <YouTubeChannelFilterSection
+            youtubeChannels={youtubeChannels}
+            search={search}
+            onSearchChange={onSearchChange}
+          />
+        )
+        : null}
+
+      {hasChannelFilter && hasProperties ? <Separator /> : null}
 
       {hasProperties
         ? (
@@ -317,6 +362,126 @@ function CategoryFilterSection({
                 hover:underline
               "
               onClick={() => onSearchChange(withCategories(search, []))}
+            >
+              Reset
+            </button>
+          )
+          : null}
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
+/** Multi-select media-type filter; rendered wherever media types exist. */
+function MediaTypeFilterSection({
+  mediaTypes, search, onSearchChange,
+}: {
+  mediaTypes?: MediaType[];
+  search: BookmarkSearch;
+  onSearchChange: (next: BookmarkSearch) => void;
+}) {
+  const options = (mediaTypes ?? []).map(mediaType => ({
+    value: mediaType.id,
+    label: mediaType.name,
+  }));
+  const selected = search.mediaTypes ?? [];
+
+  return (
+    <Collapsible
+      defaultOpen
+      className="group/media-type space-y-3"
+    >
+      <CollapsibleTrigger
+        className="
+          flex items-center gap-1.5 text-sm font-semibold
+          hover:text-foreground
+        "
+      >
+        <ChevronDown
+          className="
+            size-3.5 shrink-0 transition-transform
+            group-data-[state=open]/media-type:rotate-180
+          "
+        />
+        Media type
+      </CollapsibleTrigger>
+      <CollapsibleContent className="space-y-3">
+        <MultiCombobox
+          options={options}
+          values={selected}
+          onValuesChange={ids => onSearchChange(withMediaTypes(search, ids))}
+          placeholder="All media types"
+          aria-label="Filter by media type"
+        />
+        {selected.length > 0
+          ? (
+            <button
+              type="button"
+              className="
+                text-xs text-primary
+                hover:underline
+              "
+              onClick={() => onSearchChange(withMediaTypes(search, []))}
+            >
+              Reset
+            </button>
+          )
+          : null}
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
+/** Multi-select YouTube-channel filter; rendered wherever channels exist. */
+function YouTubeChannelFilterSection({
+  youtubeChannels, search, onSearchChange,
+}: {
+  youtubeChannels?: YouTubeChannel[];
+  search: BookmarkSearch;
+  onSearchChange: (next: BookmarkSearch) => void;
+}) {
+  const options = (youtubeChannels ?? []).map(channel => ({
+    value: channel.id,
+    label: channel.name,
+  }));
+  const selected = search.youtubeChannels ?? [];
+
+  return (
+    <Collapsible
+      defaultOpen
+      className="group/channel space-y-3"
+    >
+      <CollapsibleTrigger
+        className="
+          flex items-center gap-1.5 text-sm font-semibold
+          hover:text-foreground
+        "
+      >
+        <ChevronDown
+          className="
+            size-3.5 shrink-0 transition-transform
+            group-data-[state=open]/channel:rotate-180
+          "
+        />
+        YouTube channel
+      </CollapsibleTrigger>
+      <CollapsibleContent className="space-y-3">
+        <MultiCombobox
+          options={options}
+          values={selected}
+          onValuesChange={ids => onSearchChange(withYouTubeChannels(search, ids))}
+          placeholder="All channels"
+          aria-label="Filter by YouTube channel"
+        />
+        {selected.length > 0
+          ? (
+            <button
+              type="button"
+              className="
+                text-xs text-primary
+                hover:underline
+              "
+              onClick={() => onSearchChange(withYouTubeChannels(search, []))}
             >
               Reset
             </button>

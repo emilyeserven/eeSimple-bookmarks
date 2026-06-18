@@ -1,5 +1,6 @@
 import type { Bookmark, Category, CustomProperty } from "@eesimple/types";
 
+import { youtubeEmbedUrl } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 
 import { formatDateTime, formatNumber } from "../lib/bookmarkFormat";
@@ -78,6 +79,8 @@ export function BookmarkDetail({
       value: string; } => row !== null);
 
   const hasProperties = numberRows.length > 0 || booleanRows.length > 0 || dateTimeRows.length > 0;
+  // For YouTube bookmarks, show a playable embed in place of the static thumbnail.
+  const embedUrl = youtubeEmbedUrl(bookmark.url);
 
   return (
     <div className="@container space-y-6">
@@ -150,19 +153,37 @@ export function BookmarkDetail({
           @2xl:flex-row @2xl:items-start
         "
       >
-        {bookmark.image
+        {embedUrl
           ? (
-            <img
-              src={bookmark.image.url}
-              alt=""
-              loading="lazy"
+            <div
               className="
-                max-h-72 w-full rounded-md border object-contain
-                @2xl:w-72 @2xl:shrink-0
+                aspect-video w-full overflow-hidden rounded-md border
+                @2xl:w-96 @2xl:shrink-0
               "
-            />
+            >
+              <iframe
+                src={embedUrl}
+                title={bookmark.title}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                loading="lazy"
+                className="size-full"
+              />
+            </div>
           )
-          : null}
+          : bookmark.image
+            ? (
+              <img
+                src={bookmark.image.url}
+                alt=""
+                loading="lazy"
+                className="
+                  max-h-72 w-full rounded-md border object-contain
+                  @2xl:w-72 @2xl:shrink-0
+                "
+              />
+            )
+            : null}
 
         <dl className="min-w-0 flex-1 space-y-3">
           <DetailField label="Description">

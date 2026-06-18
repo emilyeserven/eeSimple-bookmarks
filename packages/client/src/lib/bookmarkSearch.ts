@@ -14,6 +14,10 @@ export interface BookmarkSearch {
   tagPresence?: "has" | "missing";
   /** Restrict to bookmarks whose category is one of these ids (empty/absent = all categories). */
   categories?: string[];
+  /** Restrict to bookmarks whose media type is one of these ids (empty/absent = all media types). */
+  mediaTypes?: string[];
+  /** Restrict to bookmarks whose YouTube channel is one of these ids (empty/absent = all channels). */
+  youtubeChannels?: string[];
   num?: Record<string, [number, number]>;
   bool?: Record<string, boolean>;
   /** `[from, to]` date/time range bounds (canonical strings, either `null`) keyed by property id. */
@@ -83,6 +87,16 @@ export function validateBookmarkSearch(search: Record<string, unknown>): Bookmar
     if (cats.length > 0) result.categories = cats;
   }
 
+  if (Array.isArray(search.mediaTypes)) {
+    const ids = search.mediaTypes.filter((v): v is string => typeof v === "string");
+    if (ids.length > 0) result.mediaTypes = ids;
+  }
+
+  if (Array.isArray(search.youtubeChannels)) {
+    const ids = search.youtubeChannels.filter((v): v is string => typeof v === "string");
+    if (ids.length > 0) result.youtubeChannels = ids;
+  }
+
   const num = parseNumRecord(search.num);
   if (Object.keys(num).length > 0) result.num = num;
 
@@ -100,13 +114,38 @@ export function validateBookmarkSearch(search: Record<string, unknown>): Bookmar
 
 /** Whether a bookmark satisfies every active filter in `search`. */
 export function bookmarkMatchesSearch(
-  bookmark: Pick<Bookmark, "categoryId" | "tags" | "numberValues" | "booleanValues" | "dateTimeValues">,
+  bookmark: Pick<
+    Bookmark,
+    | "categoryId"
+    | "mediaType"
+    | "youtubeChannel"
+    | "tags"
+    | "numberValues"
+    | "booleanValues"
+    | "dateTimeValues"
+  >,
   search: BookmarkSearch,
 ): boolean {
   if (
     search.categories
     && search.categories.length > 0
     && !search.categories.includes(bookmark.categoryId)
+  ) {
+    return false;
+  }
+
+  if (
+    search.mediaTypes
+    && search.mediaTypes.length > 0
+    && !(bookmark.mediaType && search.mediaTypes.includes(bookmark.mediaType.id))
+  ) {
+    return false;
+  }
+
+  if (
+    search.youtubeChannels
+    && search.youtubeChannels.length > 0
+    && !(bookmark.youtubeChannel && search.youtubeChannels.includes(bookmark.youtubeChannel.id))
   ) {
     return false;
   }
@@ -146,6 +185,8 @@ export function hasAnyActiveFilter(search: BookmarkSearch): boolean {
     search.tag !== undefined
     || search.tagPresence !== undefined
     || (search.categories?.length ?? 0) > 0
+    || (search.mediaTypes?.length ?? 0) > 0
+    || (search.youtubeChannels?.length ?? 0) > 0
     || Object.keys(search.num ?? {}).length > 0
     || Object.keys(search.bool ?? {}).length > 0
     || Object.keys(search.date ?? {}).length > 0
@@ -209,6 +250,26 @@ export function withCategories(search: BookmarkSearch, ids: string[]): BookmarkS
   };
   if (ids.length === 0) delete next.categories;
   else next.categories = ids;
+  return next;
+}
+
+/** Return a copy of `search` with the media-type filter set, or cleared when `ids` is empty. */
+export function withMediaTypes(search: BookmarkSearch, ids: string[]): BookmarkSearch {
+  const next = {
+    ...search,
+  };
+  if (ids.length === 0) delete next.mediaTypes;
+  else next.mediaTypes = ids;
+  return next;
+}
+
+/** Return a copy of `search` with the YouTube-channel filter set, or cleared when `ids` is empty. */
+export function withYouTubeChannels(search: BookmarkSearch, ids: string[]): BookmarkSearch {
+  const next = {
+    ...search,
+  };
+  if (ids.length === 0) delete next.youtubeChannels;
+  else next.youtubeChannels = ids;
   return next;
 }
 

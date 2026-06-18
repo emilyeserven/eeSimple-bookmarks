@@ -389,6 +389,7 @@ export function PropertyForm({
   actions,
   idPrefix,
 }: PropertyFormProps) {
+  const isBuiltIn = mode === "edit" && Boolean(property?.builtIn);
   const form = useAppForm({
     defaultValues: property ? valuesFromProperty(property) : CREATE_DEFAULTS,
     validators: {
@@ -439,13 +440,19 @@ export function PropertyForm({
 
       <form.AppField name="enabled">
         {field => (
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id={`${idPrefix}-enabled`}
-              checked={field.state.value}
-              onCheckedChange={checked => field.handleChange(checked === true)}
-            />
-            <Label htmlFor={`${idPrefix}-enabled`}>Property is active</Label>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id={`${idPrefix}-enabled`}
+                checked={field.state.value}
+                disabled={isBuiltIn}
+                onCheckedChange={checked => field.handleChange(checked === true)}
+              />
+              <Label htmlFor={`${idPrefix}-enabled`}>Property is active</Label>
+            </div>
+            {isBuiltIn
+              ? <p className="text-xs text-muted-foreground">Built-in properties can&apos;t be disabled.</p>
+              : null}
           </div>
         )}
       </form.AppField>
