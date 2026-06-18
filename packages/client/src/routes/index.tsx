@@ -18,7 +18,9 @@ function HomePage() {
   } = useCustomProperties();
 
   const sectionList = (sections ?? []).filter(
-    ({ section, bookmarks }) => !(section.hideIfEmpty && bookmarks.length === 0),
+    ({
+      section, bookmarks,
+    }) => !(section.hideIfEmpty && bookmarks.length === 0),
   );
   const hasSections = (sections ?? []).length > 0;
 

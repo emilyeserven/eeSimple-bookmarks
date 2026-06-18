@@ -103,7 +103,10 @@ export function HomepageSectionForm({
           onCheckedChange={checked => setHideIfEmpty(checked === true)}
         />
         <div className="space-y-0.5">
-          <Label htmlFor="section-hide-if-empty" className="cursor-pointer">
+          <Label
+            htmlFor="section-hide-if-empty"
+            className="cursor-pointer"
+          >
             Hide when empty
           </Label>
           <p className="text-sm text-muted-foreground">
