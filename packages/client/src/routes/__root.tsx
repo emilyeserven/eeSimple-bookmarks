@@ -32,6 +32,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { useCategoryBySlug } from "@/hooks/useCategories";
 import { validateDrawerSearch } from "@/lib/drawerSearch";
 import { useUiStore } from "@/stores/uiStore";
 
@@ -71,7 +72,7 @@ const CATEGORY_EDIT_SUBLABELS: Record<string, string> = {
 };
 
 /** Derive breadcrumb segments from a pathname. */
-function breadcrumbsForPath(pathname: string): BreadcrumbSegment[] {
+function breadcrumbsForPath(pathname: string, categoryName?: string): BreadcrumbSegment[] {
   if (pathname === "/") return [{
     label: "Home",
   }];
@@ -128,13 +129,14 @@ function breadcrumbsForPath(pathname: string): BreadcrumbSegment[] {
   if (pathname.startsWith("/categories/")) {
     const parts = pathname.split("/").filter(Boolean);
     const categoryHref = `/${parts[0]}/${parts[1]}`;
+    const catLabel = categoryName ?? "Category";
     if (parts.length <= 2) return [{
-      label: "Category",
+      label: catLabel,
     }];
     if (parts.length === 3) {
       return [
         {
-          label: "Category",
+          label: catLabel,
           href: categoryHref,
         },
         {
@@ -145,7 +147,7 @@ function breadcrumbsForPath(pathname: string): BreadcrumbSegment[] {
     const sectionLabel = CATEGORY_EDIT_SUBLABELS[parts[3]] ?? parts[3];
     return [
       {
-        label: "Category",
+        label: catLabel,
         href: categoryHref,
       },
       {
@@ -182,7 +184,13 @@ function RootComponent() {
   const pathname = useRouterState({
     select: state => state.location.pathname,
   });
-  const crumbs = breadcrumbsForPath(pathname);
+  const categorySlug = pathname.startsWith("/categories/")
+    ? (pathname.split("/").filter(Boolean)[1] ?? "")
+    : "";
+  const {
+    category,
+  } = useCategoryBySlug(categorySlug);
+  const crumbs = breadcrumbsForPath(pathname, category?.name);
   const {
     open,
   } = usePanelControls();

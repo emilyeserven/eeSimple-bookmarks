@@ -23,6 +23,18 @@ vi.mock("@/hooks/use-mobile", () => ({
   useIsMobile: () => mobile,
 }));
 
+vi.mock("@/hooks/useTags", () => ({
+  useTagTree: () => ({
+    data: undefined,
+  }),
+}));
+
+vi.mock("@/hooks/useCategories", () => ({
+  useCategories: () => ({
+    data: undefined,
+  }),
+}));
+
 beforeEach(() => {
   controls.isOpen = false;
   controls.close = vi.fn();
