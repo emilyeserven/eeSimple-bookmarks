@@ -3,12 +3,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PanelList } from "./PanelList";
 
-const open = vi.fn();
 const openItem = vi.fn();
 
 vi.mock("./usePanelControls", () => ({
   usePanelControls: () => ({
-    open,
     openItem,
   }),
 }));
@@ -38,7 +36,6 @@ vi.mock("./contentTypes", () => ({
 
 describe("PanelList", () => {
   beforeEach(() => {
-    open.mockClear();
     openItem.mockClear();
   });
 
@@ -64,11 +61,5 @@ describe("PanelList", () => {
 
     fireEvent.click(screen.getByLabelText("Edit Alpha"));
     expect(openItem).toHaveBeenCalledWith("bookmark", "1", "edit");
-  });
-
-  it("returns to the tiles from the back button", () => {
-    render(<PanelList type="bookmark" />);
-    fireEvent.click(screen.getByLabelText("Back to content types"));
-    expect(open).toHaveBeenCalled();
   });
 });
