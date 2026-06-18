@@ -1,5 +1,5 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
-import type { Bookmark, Category, CustomProperty, MediaType, TagNode, YouTubeChannel } from "@eesimple/types";
+import type { Bookmark, Category, CustomProperty, MediaType, PropertyGroup, TagNode, YouTubeChannel } from "@eesimple/types";
 
 import { useState } from "react";
 
@@ -29,6 +29,8 @@ import { cn } from "@/lib/utils";
 interface FilterSidebarProps {
   tree: TagNode[];
   properties: CustomProperty[];
+  /** Property groups; grouped property filters render under their group's heading. */
+  propertyGroups?: PropertyGroup[];
   /**
    * When provided, shows a multi-select Category filter and per-property category tooltips.
    * Only the Bookmarks page passes this; category pages render flat without it.
@@ -46,7 +48,7 @@ interface FilterSidebarProps {
 
 /** Left filter rail for the search pages: tiered tags plus custom-property filters. */
 export function FilterSidebar({
-  tree, properties, categories, mediaTypes, youtubeChannels, bookmarks, search, onSearchChange,
+  tree, properties, propertyGroups, categories, mediaTypes, youtubeChannels, bookmarks, search, onSearchChange,
 }: FilterSidebarProps) {
   const [open, setOpen] = useState(false);
 
@@ -92,6 +94,7 @@ export function FilterSidebar({
         <FilterSections
           tree={tree}
           enabledProperties={enabledProperties}
+          propertyGroups={propertyGroups}
           categories={categories}
           mediaTypes={mediaTypes}
           youtubeChannels={youtubeChannels}
@@ -111,11 +114,12 @@ export function FilterSidebar({
 
 /** The filter sections themselves, with separators between adjacent groups. */
 function FilterSections({
-  tree, enabledProperties, categories, mediaTypes, youtubeChannels, bookmarks, search, onSearchChange,
+  tree, enabledProperties, propertyGroups, categories, mediaTypes, youtubeChannels, bookmarks, search, onSearchChange,
   hasTags, hasProperties, hasCategoryFilter, hasMediaTypeFilter, hasChannelFilter,
 }: {
   tree: TagNode[];
   enabledProperties: CustomProperty[];
+  propertyGroups?: PropertyGroup[];
   categories?: Category[];
   mediaTypes?: MediaType[];
   youtubeChannels?: YouTubeChannel[];
@@ -186,6 +190,7 @@ function FilterSections({
         ? (
           <PropertiesFilterSection
             enabledProperties={enabledProperties}
+            propertyGroups={propertyGroups}
             categories={categories}
             bookmarks={bookmarks}
             search={search}
@@ -494,9 +499,10 @@ function YouTubeChannelFilterSection({
 
 /** Custom-property filters plus a warning for properties with no category assignment. */
 function PropertiesFilterSection({
-  enabledProperties, categories, bookmarks, search, onSearchChange, hasCategoryFilter,
+  enabledProperties, propertyGroups, categories, bookmarks, search, onSearchChange, hasCategoryFilter,
 }: {
   enabledProperties: CustomProperty[];
+  propertyGroups?: PropertyGroup[];
   categories?: Category[];
   bookmarks: Pick<Bookmark, "numberValues">[];
   search: BookmarkSearch;
@@ -539,6 +545,7 @@ function PropertiesFilterSection({
       <h2 className="text-sm font-semibold">Properties</h2>
       <CustomPropertyFilters
         properties={enabledProperties}
+        propertyGroups={propertyGroups}
         categories={categories}
         selectedCategoryIds={selectedCategories}
         bookmarks={bookmarks}

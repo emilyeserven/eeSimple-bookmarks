@@ -5,6 +5,7 @@ import { useBookmarks } from "../hooks/useBookmarks";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useMediaTypes } from "../hooks/useMediaTypes";
+import { usePropertyGroups } from "../hooks/usePropertyGroups";
 import { useTagTree } from "../hooks/useTags";
 import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
 import { validateBookmarkSearch } from "../lib/bookmarkSearch";
@@ -27,6 +28,9 @@ function BookmarksPage() {
     data: customProperties,
   } = useCustomProperties();
   const {
+    data: propertyGroups,
+  } = usePropertyGroups();
+  const {
     data: categories,
   } = useCategories();
   const {
@@ -42,6 +46,7 @@ function BookmarksPage() {
       pageKey="bookmarks"
       tree={tagTree ?? []}
       properties={customProperties ?? []}
+      propertyGroups={propertyGroups ?? []}
       categories={categories ?? []}
       mediaTypes={mediaTypes ?? []}
       youtubeChannels={youtubeChannels ?? []}

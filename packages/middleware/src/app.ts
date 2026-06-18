@@ -14,6 +14,7 @@ import { healthRoutes } from "@/routes/health";
 import { homepageSectionsRoutes } from "@/routes/homepageSections";
 import { mediaTypeRoutes } from "@/routes/mediaTypes";
 import { metadataRoutes } from "@/routes/metadata";
+import { propertyGroupRoutes } from "@/routes/propertyGroups";
 import { tagRoutes } from "@/routes/tags";
 import { websiteRoutes } from "@/routes/websites";
 import { youtubeChannelRoutes } from "@/routes/youtubeChannels";
@@ -122,6 +123,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(mediaTypeRoutes);
   await app.register(youtubeChannelRoutes);
   await app.register(customPropertyRoutes);
+  await app.register(propertyGroupRoutes);
   await app.register(categoryRoutes);
   await app.register(autofillRoutes);
   await app.register(homepageSectionsRoutes);

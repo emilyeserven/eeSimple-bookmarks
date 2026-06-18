@@ -6,6 +6,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { PropertyForm } from "./PropertyForm";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties, useUpdateCustomProperty } from "../hooks/useCustomProperties";
+import { usePropertyGroups } from "../hooks/usePropertyGroups";
 
 interface PropertyEditFormProps {
   property: CustomProperty;
@@ -28,6 +29,9 @@ export function PropertyEditForm({
   const {
     data: properties,
   } = useCustomProperties();
+  const {
+    data: propertyGroups,
+  } = usePropertyGroups();
   const updateProperty = useUpdateCustomProperty();
 
   // A calculate property may sum any other number property, but never itself.
@@ -42,6 +46,7 @@ export function PropertyEditForm({
       property={property}
       categories={categories ?? []}
       numberProperties={numberProperties}
+      propertyGroups={propertyGroups ?? []}
       onSubmit={({
         type, ...input
       }) => updateProperty.mutate({

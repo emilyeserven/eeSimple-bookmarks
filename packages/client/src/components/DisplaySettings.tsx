@@ -52,6 +52,10 @@ const CUSTOMIZATION_ITEMS = [
     label: "Custom Properties",
   },
   {
+    key: "property-groups",
+    label: "Property Groups",
+  },
+  {
     key: "autofill",
     label: "Autofill Rules",
   },

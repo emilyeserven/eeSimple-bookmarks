@@ -1,4 +1,4 @@
-import type { Bookmark, Category, CustomProperty } from "@eesimple/types";
+import type { Bookmark, Category, CustomProperty, PropertyGroup } from "@eesimple/types";
 
 import { youtubeEmbedUrl } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
@@ -21,6 +21,8 @@ interface BookmarkDetailProps {
   categories?: Category[];
   /** Custom property definitions, used to label and unit-format the bookmark's values. */
   properties?: CustomProperty[];
+  /** Property groups, used to group property values under their group headings. */
+  propertyGroups?: PropertyGroup[];
   onEdit?: () => void;
   onDelete?: () => void;
 }
@@ -31,7 +33,7 @@ interface BookmarkDetailProps {
  * Presentational: pass `categories`/`properties` for labels and `onEdit`/`onDelete` for actions.
  */
 export function BookmarkDetail({
-  bookmark, categories = [], properties = [], onEdit, onDelete,
+  bookmark, categories = [], properties = [], propertyGroups = [], onEdit, onDelete,
 }: BookmarkDetailProps) {
   const viewClick = useViewPanelClick();
   const modifier = useUiStore(state => state.sidebarOpenModifier);
@@ -45,6 +47,7 @@ export function BookmarkDetail({
         ? {
           id: entry.propertyId,
           name: property.name,
+          groupId: property.propertyGroupId,
           isCalculated: property.type === "calculate",
           value: formatNumber(entry.value, property),
         }
@@ -52,6 +55,7 @@ export function BookmarkDetail({
     })
     .filter((row): row is { id: string;
       name: string;
+      groupId: string | null;
       isCalculated: boolean;
       value: string; } => row !== null);
 
@@ -62,12 +66,14 @@ export function BookmarkDetail({
         ? {
           id: entry.propertyId,
           name: property.name,
+          groupId: property.propertyGroupId,
           value: entry.value ? "Yes" : "No",
         }
         : null;
     })
     .filter((row): row is { id: string;
       name: string;
+      groupId: string | null;
       value: string; } => row !== null);
 
   const dateTimeRows = bookmark.dateTimeValues
@@ -77,15 +83,44 @@ export function BookmarkDetail({
         ? {
           id: entry.propertyId,
           name: property.name,
+          groupId: property.propertyGroupId,
           value: formatDateTime(entry.value, property),
         }
         : null;
     })
     .filter((row): row is { id: string;
       name: string;
+      groupId: string | null;
       value: string; } => row !== null);
 
   const hasProperties = numberRows.length > 0 || booleanRows.length > 0 || dateTimeRows.length > 0;
+
+  // Partition the property rows by group. Groups with rows render first (ordered by priority then
+  // name) under their own heading; everything ungrouped (or whose group is unknown) falls into a
+  // trailing "Properties" section. A row belongs to the ungrouped bucket when its `groupId` is null
+  // or doesn't resolve to a known group.
+  const knownGroupIds = new Set(propertyGroups.map(group => group.id));
+  const inGroup = (groupId: string | null, target: string | null): boolean =>
+    target === null
+      ? groupId === null || !knownGroupIds.has(groupId)
+      : groupId === target;
+  const sortedGroups = [...propertyGroups]
+    .sort((a, b) => a.priority - b.priority || a.name.localeCompare(b.name));
+  const propertySections = [
+    ...sortedGroups.map(group => ({
+      key: group.id,
+      title: group.name,
+      target: group.id as string | null,
+    })),
+    {
+      key: "__ungrouped__",
+      title: "Properties",
+      target: null as string | null,
+    },
+  ].filter(section =>
+    numberRows.some(row => inGroup(row.groupId, section.target))
+    || booleanRows.some(row => inGroup(row.groupId, section.target))
+    || dateTimeRows.some(row => inGroup(row.groupId, section.target)));
   // For YouTube bookmarks, show a playable embed in place of the static thumbnail.
   const embedUrl = youtubeEmbedUrl(bookmark.url);
 
@@ -260,12 +295,12 @@ export function BookmarkDetail({
             : null}
 
           {hasProperties
-            ? (
-              <>
-                <Separator />
-                <LabeledSection title="Properties">
+            ? propertySections.map(section => (
+              <div key={section.key}>
+                <Separator className="mb-6" />
+                <LabeledSection title={section.title}>
                   <dl className="space-y-1">
-                    {numberRows.map(row => (
+                    {numberRows.filter(row => inGroup(row.groupId, section.target)).map(row => (
                       <div
                         key={row.id}
                         className="flex items-baseline gap-2"
@@ -280,7 +315,7 @@ export function BookmarkDetail({
                         <dd>{row.value}</dd>
                       </div>
                     ))}
-                    {booleanRows.map(row => (
+                    {booleanRows.filter(row => inGroup(row.groupId, section.target)).map(row => (
                       <div
                         key={row.id}
                         className="flex items-baseline gap-2"
@@ -292,7 +327,7 @@ export function BookmarkDetail({
                         <dd>{row.value}</dd>
                       </div>
                     ))}
-                    {dateTimeRows.map(row => (
+                    {dateTimeRows.filter(row => inGroup(row.groupId, section.target)).map(row => (
                       <div
                         key={row.id}
                         className="flex items-baseline gap-2"
@@ -306,8 +341,8 @@ export function BookmarkDetail({
                     ))}
                   </dl>
                 </LabeledSection>
-              </>
-            )
+              </div>
+            ))
             : null}
 
           <Separator />

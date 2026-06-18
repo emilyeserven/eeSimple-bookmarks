@@ -218,6 +218,41 @@ export interface UpdateMediaTypeInput {
 }
 
 /**
+ * A Property Group — an optional grouping for custom properties. A property may belong to one group;
+ * grouped properties render together (under the group's heading) on bookmark detail pages and in the
+ * listings filter sidebar. Groups carry a `priority` (lower sorts first) and an optional description.
+ */
+export interface PropertyGroup {
+  id: string;
+  /** Display name. Unique. */
+  name: string;
+  /** URL-friendly identifier derived from the name. Unique. */
+  slug: string;
+  /** Free-text description surfaced on the group's detail page. */
+  description: string | null;
+  /** Display ordering weight across groups; lower sorts first. */
+  priority: number;
+  /** ISO-8601 timestamp of when the group was created. */
+  createdAt: string;
+  /** Number of custom properties in this group (populated by list endpoints). */
+  propertyCount?: number;
+}
+
+/** Payload for creating a property group. */
+export interface CreatePropertyGroupInput {
+  name: string;
+  description?: string | null;
+  priority?: number;
+}
+
+/** Payload for updating a property group (rename, re-describe, and/or reorder). */
+export interface UpdatePropertyGroupInput {
+  name?: string;
+  description?: string | null;
+  priority?: number;
+}
+
+/**
  * A channel in the built-in "YouTube Channels" taxonomy. Bookmarks for a YouTube video are
  * auto-linked to their channel from the video's fetched metadata, so videos can be browsed per
  * channel.
@@ -493,6 +528,8 @@ export interface CustomProperty {
   showInListings: boolean;
   /** When false, the property is globally inactive: hidden from filters, conditions, category assignment, and the bookmark form. */
   enabled: boolean;
+  /** Id of the property group this property belongs to, or `null` when ungrouped. */
+  propertyGroupId: string | null;
   createdAt: string;
 }
 
@@ -528,6 +565,8 @@ export interface CreateCustomPropertyInput {
   showInListings?: boolean;
   /** When false, the property is globally inactive. Defaults to true. */
   enabled?: boolean;
+  /** Id of the property group to place this property in, or `null` to leave it ungrouped. */
+  propertyGroupId?: string | null;
 }
 
 /** Payload for updating a custom property. Its `type` is immutable. */

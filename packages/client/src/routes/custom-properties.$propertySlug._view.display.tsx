@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { PropertyDisplayFields } from "../components/PropertyDetail";
 import { PropertyTabWrapper } from "../components/PropertyTabWrapper";
+import { usePropertyGroups } from "../hooks/usePropertyGroups";
 
 export const Route = createFileRoute("/custom-properties/$propertySlug/_view/display")({
   component: DisplayViewTab,
@@ -11,13 +12,21 @@ function DisplayViewTab() {
   const {
     propertySlug,
   } = Route.useParams();
+  const {
+    data: propertyGroups,
+  } = usePropertyGroups();
   return (
     <PropertyTabWrapper
       propertySlug={propertySlug}
       title="Display"
       description="Where this property appears and whether it's editable from the card menu."
     >
-      {property => <PropertyDisplayFields property={property} />}
+      {property => (
+        <PropertyDisplayFields
+          property={property}
+          propertyGroups={propertyGroups ?? []}
+        />
+      )}
     </PropertyTabWrapper>
   );
 }

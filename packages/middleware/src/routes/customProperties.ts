@@ -31,6 +31,11 @@ const uuidArray = {
   },
 } as const;
 
+const nullableUuid = {
+  type: ["string", "null"],
+  format: "uuid",
+} as const;
+
 const createPropertyBody = {
   type: "object",
   required: ["name", "type"],
@@ -96,6 +101,7 @@ const createPropertyBody = {
     enabled: {
       type: "boolean",
     },
+    propertyGroupId: nullableUuid,
   },
 } as const;
 
@@ -122,6 +128,7 @@ const updatePropertyBody = {
     allCategories: createPropertyBody.properties.allCategories,
     editableOnCard: createPropertyBody.properties.editableOnCard,
     enabled: createPropertyBody.properties.enabled,
+    propertyGroupId: createPropertyBody.properties.propertyGroupId,
   },
 } as const;
 

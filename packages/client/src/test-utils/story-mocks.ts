@@ -98,6 +98,7 @@ export const sampleProperties: CustomProperty[] = [
     allCategories: false,
     editableOnCard: false,
     enabled: true,
+    propertyGroupId: null,
     createdAt: NOW,
   },
   {
@@ -124,6 +125,7 @@ export const sampleProperties: CustomProperty[] = [
     allCategories: false,
     editableOnCard: false,
     enabled: true,
+    propertyGroupId: null,
     createdAt: NOW,
   },
   {
@@ -150,6 +152,7 @@ export const sampleProperties: CustomProperty[] = [
     allCategories: false,
     editableOnCard: false,
     enabled: true,
+    propertyGroupId: null,
     createdAt: NOW,
   },
   {
@@ -176,6 +179,7 @@ export const sampleProperties: CustomProperty[] = [
     allCategories: false,
     editableOnCard: false,
     enabled: true,
+    propertyGroupId: null,
     createdAt: NOW,
   },
 ];

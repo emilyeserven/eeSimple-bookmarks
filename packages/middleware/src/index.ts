@@ -8,6 +8,7 @@ import { backfillCustomPropertySlugs, ensureVideoLengthProperty } from "@/servic
 import { ensureHomepageFilter } from "@/services/homepageFilter";
 import { ensureHomepageSections } from "@/services/homepageSections";
 import { backfillMediaTypeSlugs, ensureBuiltInMediaTypes } from "@/services/mediaTypes";
+import { backfillPropertyGroupSlugs } from "@/services/propertyGroups";
 import { backfillTagSlugs } from "@/services/tags";
 import { backfillWebsiteSlugs, ensureBuiltInWebsites } from "@/services/websites";
 import { backfillYouTubeChannelSlugs } from "@/services/youtubeChannels";
@@ -46,6 +47,7 @@ try {
   await ensureVideoLengthProperty();
   await ensureBuiltInMediaTypes();
   await backfillMediaTypeSlugs();
+  await backfillPropertyGroupSlugs();
   await backfillYouTubeChannelSlugs();
   await backfillTagSlugs();
   await maybeSeed();
