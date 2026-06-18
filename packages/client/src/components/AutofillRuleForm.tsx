@@ -22,12 +22,14 @@ import { TagPicker } from "./TagPicker";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 
 /** Sentinel select value standing in for "no category" (Radix selects can't hold an empty value). */
 export const NO_CATEGORY = "none";
 
 const ruleSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
+  description: z.string(),
   setCategoryId: z.string(),
   tagIds: z.array(z.string()),
   sortOrder: z.number().int(),
@@ -63,6 +65,7 @@ export function AutofillRuleForm({
   const form = useAppForm({
     defaultValues: {
       name: rule?.name ?? "",
+      description: rule?.description ?? "",
       setCategoryId: rule?.setCategoryId ?? defaultCategoryId ?? NO_CATEGORY,
       tagIds: rule?.tagIds ?? ([] as string[]),
       sortOrder: rule?.sortOrder ?? 0,
@@ -109,6 +112,7 @@ export function AutofillRuleForm({
 
       onSubmit({
         name: value.name.trim(),
+        description: value.description.trim() || null,
         conditions,
         setCategoryId: categoryId,
         tagIds: value.tagIds,
@@ -136,18 +140,19 @@ export function AutofillRuleForm({
         void form.handleSubmit();
       }}
     >
-      <div
-        className="
-          grid gap-3
-          sm:grid-cols-2
-        "
-      >
+      <div className="space-y-4">
         <form.AppField name="name">
           {field => (
             <field.TextField
               label="Name"
               placeholder="e.g. Recipes from 101 Cookbooks"
             />
+          )}
+        </form.AppField>
+
+        <form.AppField name="description">
+          {field => (
+            <field.TextareaField label="Description" />
           )}
         </form.AppField>
 
@@ -162,9 +167,11 @@ export function AutofillRuleForm({
         </form.AppField>
       </div>
 
+      <Separator />
+
       <section className="space-y-2">
         <div>
-          <h3 className="text-sm font-semibold">When a bookmark matches</h3>
+          <h3 className="text-sm font-semibold">Activation Conditions</h3>
           <p className="text-xs text-muted-foreground">
             Conditions that decide whether this rule applies.
           </p>
@@ -184,9 +191,11 @@ export function AutofillRuleForm({
         </div>
       </section>
 
+      <Separator />
+
       <section className="space-y-3">
         <div>
-          <h3 className="text-sm font-semibold">Then apply</h3>
+          <h3 className="text-sm font-semibold">What Gets Prefilled</h3>
           <p className="text-xs text-muted-foreground">
             What to prefill on the bookmark when this rule matches.
           </p>
@@ -252,6 +261,17 @@ export function AutofillRuleForm({
             />
           )}
         </form.Subscribe>
+      </section>
+
+      <Separator />
+
+      <section className="space-y-2">
+        <div>
+          <h3 className="text-sm font-semibold">Preview Bookmarks</h3>
+          <p className="text-xs text-muted-foreground">
+            See which existing bookmarks match this rule. Coming soon.
+          </p>
+        </div>
       </section>
 
       <form.AppForm>

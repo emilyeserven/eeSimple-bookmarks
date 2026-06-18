@@ -31,6 +31,7 @@ function toAutofillRule(
   return {
     id: row.id,
     name: row.name,
+    description: row.description,
     conditions: row.conditions ?? emptyConditionTree(),
     setCategoryId: row.setCategoryId,
     tagIds,
@@ -195,6 +196,7 @@ export async function createAutofillRule(input: CreateAutofillRuleInput): Promis
       .insert(autofillRules)
       .values({
         name: input.name,
+        description: input.description ?? null,
         conditions: input.conditions,
         setCategoryId: input.setCategoryId ?? null,
         sortOrder: input.sortOrder ?? 0,
@@ -225,9 +227,10 @@ export async function updateAutofillRule(
     if (!existing) return false;
 
     const patch: Partial<
-      Pick<AutofillRuleRow, "name" | "conditions" | "setCategoryId" | "sortOrder">
+      Pick<AutofillRuleRow, "name" | "description" | "conditions" | "setCategoryId" | "sortOrder">
     > = {};
     if (input.name !== undefined) patch.name = input.name;
+    if (input.description !== undefined) patch.description = input.description ?? null;
     if (input.conditions !== undefined) patch.conditions = input.conditions;
     if (input.setCategoryId !== undefined) patch.setCategoryId = input.setCategoryId ?? null;
     if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder;
