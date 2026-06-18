@@ -44,6 +44,16 @@ const createBody = {
     hideIfEmpty: {
       type: "boolean",
     },
+    columns: {
+      type: "integer",
+    },
+    imageMode: {
+      type: "boolean",
+    },
+    imageLayout: {
+      type: "string",
+      enum: ["above", "side"],
+    },
   },
 } as const;
 
@@ -66,6 +76,16 @@ const updateBody = {
     },
     hideIfEmpty: {
       type: "boolean",
+    },
+    columns: {
+      type: "integer",
+    },
+    imageMode: {
+      type: "boolean",
+    },
+    imageLayout: {
+      type: "string",
+      enum: ["above", "side"],
     },
   },
 } as const;

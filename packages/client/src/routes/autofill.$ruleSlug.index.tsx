@@ -5,7 +5,7 @@ import { TaxonomyDetailLayout } from "../components/TaxonomyDetailLayout";
 import { useAutofillRuleBySlug, useDeleteAutofillRule } from "../hooks/useAutofill";
 import { useCategories } from "../hooks/useCategories";
 
-export const Route = createFileRoute("/settings/autofill/$ruleSlug/")({
+export const Route = createFileRoute("/autofill/$ruleSlug/")({
   component: AutofillRuleViewPage,
 });
 
@@ -29,7 +29,7 @@ function AutofillRuleViewPage() {
       entity={rule}
       loadingLabel="Loading rule…"
       notFoundMessage="Autofill rule not found."
-      listHref="/settings/autofill"
+      listHref="/autofill"
       listLabel="Back to autofill rules"
     >
       {r => (
@@ -38,7 +38,7 @@ function AutofillRuleViewPage() {
             rule={r}
             categories={categories ?? []}
             onEdit={() => void navigate({
-              to: "/settings/autofill/$ruleSlug/edit",
+              to: "/autofill/$ruleSlug/edit",
               params: {
                 ruleSlug,
               },
@@ -46,7 +46,7 @@ function AutofillRuleViewPage() {
             onDelete={() =>
               deleteRule.mutate(r.id, {
                 onSuccess: () => void navigate({
-                  to: "/settings/autofill",
+                  to: "/autofill",
                 }),
               })}
             deleteIsPending={deleteRule.isPending}

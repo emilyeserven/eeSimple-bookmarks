@@ -7,7 +7,7 @@ import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useTagTree } from "../hooks/useTags";
 
-export const Route = createFileRoute("/settings/autofill/$ruleSlug/edit")({
+export const Route = createFileRoute("/autofill/$ruleSlug/edit")({
   component: AutofillRuleEditPage,
 });
 
@@ -37,14 +37,14 @@ function AutofillRuleEditPage() {
       entity={rule}
       loadingLabel="Loading rule…"
       notFoundMessage="Autofill rule not found."
-      listHref="/settings/autofill"
+      listHref="/autofill"
       listLabel="Back to autofill rules"
     >
       {r => (
         <section className="space-y-6">
           <div className="space-y-1">
             <Link
-              to="/settings/autofill/$ruleSlug"
+              to="/autofill/$ruleSlug"
               params={{
                 ruleSlug,
               }}
@@ -74,7 +74,7 @@ function AutofillRuleEditPage() {
                 {
                   onSuccess: updated =>
                     void navigate({
-                      to: "/settings/autofill/$ruleSlug",
+                      to: "/autofill/$ruleSlug",
                       params: {
                         ruleSlug: updated.slug,
                       },

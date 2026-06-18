@@ -176,7 +176,7 @@ function RuleListItem({
 
   return (
     <Link
-      to="/settings/autofill/$ruleSlug"
+      to="/autofill/$ruleSlug"
       params={{
         ruleSlug: rule.slug,
       }}
