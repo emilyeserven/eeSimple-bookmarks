@@ -8,6 +8,7 @@ import { isFetchableUrl } from "../lib/url";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 interface BookmarkImageFieldProps {
   /** The bookmark's current image URL when editing, or null. */
@@ -19,9 +20,9 @@ interface BookmarkImageFieldProps {
 }
 
 /**
- * Image control for the bookmark form. Lets the user choose/paste a file or auto-fetch the page's
- * preview image, with a live preview. It doesn't talk to the server itself — it reports an intent
- * the form applies once the bookmark has an id (so it works for both create and edit).
+ * Image control for the bookmark form. Lets the user choose, drag-and-drop, or paste a file, or
+ * auto-fetch the page's preview image, with a live preview. It doesn't talk to the server itself —
+ * it reports an intent the form applies once the bookmark has an id (so it works for create + edit).
  */
 export function BookmarkImageField({
   existingImageUrl, pageUrl, onChange,
@@ -30,7 +31,10 @@ export function BookmarkImageField({
   const [auto, setAuto] = useState(false);
   const [remove, setRemove] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  // Track drag nesting so moving the pointer over a child element doesn't flicker the highlight off.
+  const [dragDepth, setDragDepth] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const dragActive = dragDepth > 0;
 
   // Build (and clean up) the object-URL preview for a chosen file.
   useEffect(() => {
@@ -86,13 +90,31 @@ export function BookmarkImageField({
     <div className="space-y-2">
       <Label>Image</Label>
       <div
-        className="flex flex-wrap items-start gap-3"
+        data-testid="image-dropzone"
+        className={cn(
+          "flex flex-wrap items-start gap-3 rounded-md transition-shadow",
+          dragActive && "ring-2 ring-ring ring-offset-2 ring-offset-background",
+        )}
         onPaste={(event) => {
           const pasted = event.clipboardData.files[0];
           if (pasted?.type.startsWith("image/")) {
             event.preventDefault();
             chooseFile(pasted);
           }
+        }}
+        onDragEnter={(event) => {
+          event.preventDefault();
+          setDragDepth(depth => depth + 1);
+        }}
+        onDragLeave={(event) => {
+          event.preventDefault();
+          setDragDepth(depth => Math.max(0, depth - 1));
+        }}
+        onDragOver={event => event.preventDefault()}
+        onDrop={(event) => {
+          event.preventDefault();
+          setDragDepth(0);
+          chooseFile(event.dataTransfer.files[0] ?? null);
         }}
       >
         <div
@@ -160,7 +182,8 @@ export function BookmarkImageField({
         </div>
       </div>
       <p className="text-xs text-muted-foreground">
-        Paste an image too. Stored as an 800px WebP.
+        Drag and drop, paste, or choose an image. Accepted formats: JPEG, PNG, WebP,
+        GIF, SVG, AVIF, TIFF. Stored as an 800px WebP.
       </p>
     </div>
   );
