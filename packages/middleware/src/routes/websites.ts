@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import type { CreateWebsiteInput, UpdateWebsiteInput, WebsiteLookup } from "@eesimple/types";
 import {
+  BuiltInWebsiteError,
   createWebsite,
   deleteWebsite,
   DuplicateDomainError,
@@ -33,6 +34,47 @@ const lookupQuery = {
   },
 } as const;
 
+const shortenedLinksSchema = {
+  type: "array",
+  items: {
+    type: "object",
+    required: ["domain", "expandTo", "keepShortened"],
+    additionalProperties: false,
+    properties: {
+      domain: {
+        type: "string",
+        minLength: 1,
+      },
+      expandTo: {
+        type: ["string", "null"],
+      },
+      keepShortened: {
+        type: "boolean",
+      },
+    },
+  },
+} as const;
+
+const paramRulesSchema = {
+  type: "array",
+  items: {
+    type: "object",
+    required: ["pathSuffix", "params"],
+    additionalProperties: false,
+    properties: {
+      pathSuffix: {
+        type: "string",
+      },
+      params: {
+        type: "array",
+        items: {
+          type: "string",
+        },
+      },
+    },
+  },
+} as const;
+
 const createWebsiteBody = {
   type: "object",
   required: ["domain"],
@@ -46,6 +88,8 @@ const createWebsiteBody = {
       type: "string",
       minLength: 1,
     },
+    shortenedLinks: shortenedLinksSchema,
+    paramRules: paramRulesSchema,
   },
 } as const;
 
@@ -61,6 +105,8 @@ const updateWebsiteBody = {
       type: "string",
       minLength: 1,
     },
+    shortenedLinks: shortenedLinksSchema,
+    paramRules: paramRulesSchema,
   },
 } as const;
 
@@ -82,12 +128,13 @@ export async function websiteRoutes(app: FastifyInstance): Promise<void> {
       url,
     } = req.query as { url: string };
     const {
-      domain, website,
+      domain, website, shortener,
     } = await lookupWebsiteByUrl(url);
     const result: WebsiteLookup = {
       domain,
       exists: website !== null,
       siteName: website?.siteName ?? null,
+      shortener,
     };
     return result;
   });
@@ -140,6 +187,11 @@ export async function websiteRoutes(app: FastifyInstance): Promise<void> {
           message: err.message,
         });
       }
+      if (err instanceof BuiltInWebsiteError) {
+        return reply.code(403).send({
+          message: err.message,
+        });
+      }
       throw err;
     }
   });
@@ -153,10 +205,20 @@ export async function websiteRoutes(app: FastifyInstance): Promise<void> {
     const {
       id,
     } = req.params as { id: string };
-    const deleted = await deleteWebsite(id);
-    if (!deleted) return reply.code(404).send({
-      message: "Website not found",
-    });
-    return reply.code(204).send();
+    try {
+      const deleted = await deleteWebsite(id);
+      if (!deleted) return reply.code(404).send({
+        message: "Website not found",
+      });
+      return reply.code(204).send();
+    }
+    catch (err) {
+      if (err instanceof BuiltInWebsiteError) {
+        return reply.code(403).send({
+          message: err.message,
+        });
+      }
+      throw err;
+    }
   });
 }

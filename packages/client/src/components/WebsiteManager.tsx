@@ -1,20 +1,51 @@
-import type { Website } from "@eesimple/types";
+import type { BulkUrlUpdateResult, ShortenedLink, UpdateWebsiteInput, Website, WebsiteParamRule } from "@eesimple/types";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Link } from "@tanstack/react-router";
-import { ExternalLink, Pencil } from "lucide-react";
+import { ExternalLink, Pencil, Plus, X } from "lucide-react";
 import { z } from "zod";
 
+import { LinkPreview } from "./LinkPreview";
+import { useBookmarksOnHost, useBulkExpandBookmarkUrls } from "../hooks/useBookmarks";
 import { useCreateWebsite, useUpdateWebsite, useWebsites } from "../hooks/useWebsites";
 import { useAppForm } from "../lib/form";
+import { canonicalize } from "../lib/urlCleanup";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-/** A single editable website row: rename the site name and/or fix up its domain. */
+/** Local draft of a param rule, with params edited as a comma-separated string. */
+interface ParamRuleDraft {
+  pathSuffix: string;
+  paramsText: string;
+}
+
+/** Normalize shortened-link drafts to the stored shape (lower-cased domains, blank expandTo → null). */
+function normalizeShortLinks(links: ShortenedLink[]): ShortenedLink[] {
+  return links
+    .map(link => ({
+      domain: link.domain.trim().replace(/^www\./i, "").toLowerCase(),
+      expandTo: link.expandTo && link.expandTo.trim() ? link.expandTo.trim() : null,
+      keepShortened: link.keepShortened,
+    }))
+    .filter(link => link.domain.length > 0);
+}
+
+/** Normalize param-rule drafts to the stored shape, dropping fully-empty rows. */
+function normalizeRules(rules: ParamRuleDraft[]): WebsiteParamRule[] {
+  return rules
+    .map(rule => ({
+      pathSuffix: rule.pathSuffix.trim(),
+      params: rule.paramsText.split(",").map(part => part.trim()).filter(Boolean),
+    }))
+    .filter(rule => rule.pathSuffix.length > 0 || rule.params.length > 0);
+}
+
+/** A single editable website row: name/domain plus shortened-link and param-cleanup rules. */
 export function WebsiteRow({
   website,
   onSaved,
@@ -23,19 +54,52 @@ export function WebsiteRow({
   const updateWebsite = useUpdateWebsite();
   const [siteName, setSiteName] = useState(website.siteName);
   const [domain, setDomain] = useState(website.domain);
+  const [shortLinks, setShortLinks] = useState<ShortenedLink[]>(website.shortenedLinks);
+  const [rules, setRules] = useState<ParamRuleDraft[]>(() =>
+    website.paramRules.map(rule => ({
+      pathSuffix: rule.pathSuffix,
+      paramsText: rule.params.join(", "),
+    })));
 
-  const dirty = siteName.trim() !== website.siteName || domain.trim() !== website.domain;
+  const payloadShortLinks = normalizeShortLinks(shortLinks);
+  const payloadRules = normalizeRules(rules);
+  const stored = {
+    shortLinks: normalizeShortLinks(website.shortenedLinks),
+    rules: normalizeRules(website.paramRules.map(rule => ({
+      pathSuffix: rule.pathSuffix,
+      paramsText: rule.params.join(", "),
+    }))),
+  };
+
+  const dirty
+    = (!website.builtIn && (siteName.trim() !== website.siteName || domain.trim() !== website.domain))
+      || JSON.stringify(payloadShortLinks) !== JSON.stringify(stored.shortLinks)
+      || JSON.stringify(payloadRules) !== JSON.stringify(stored.rules);
   const valid = siteName.trim().length > 0 && domain.trim().length > 0;
+
+  // A live website built from the current (unsaved) edits, used to preview canonicalization.
+  const editedWebsite: Website = {
+    ...website,
+    siteName: siteName.trim() || website.siteName,
+    domain: domain.trim() || website.domain,
+    shortenedLinks: payloadShortLinks,
+    paramRules: payloadRules,
+  };
 
   function save(): void {
     if (!dirty || !valid) return;
+    const input: UpdateWebsiteInput = {
+      shortenedLinks: payloadShortLinks,
+      paramRules: payloadRules,
+    };
+    if (!website.builtIn) {
+      input.siteName = siteName.trim();
+      input.domain = domain.trim();
+    }
     updateWebsite.mutate(
       {
         id: website.id,
-        input: {
-          siteName: siteName.trim(),
-          domain: domain.trim(),
-        },
+        input,
       },
       {
         onSuccess: () => onSaved?.(),
@@ -44,7 +108,7 @@ export function WebsiteRow({
   }
 
   return (
-    <div>
+    <div className="space-y-5">
       <div
         className="
           grid gap-3
@@ -56,6 +120,7 @@ export function WebsiteRow({
           <Input
             id={`site-name-${website.id}`}
             value={siteName}
+            disabled={website.builtIn}
             onChange={event => setSiteName(event.target.value)}
           />
         </div>
@@ -64,6 +129,7 @@ export function WebsiteRow({
           <Input
             id={`site-domain-${website.id}`}
             value={domain}
+            disabled={website.builtIn}
             onChange={event => setDomain(event.target.value)}
           />
         </div>
@@ -76,8 +142,377 @@ export function WebsiteRow({
           {updateWebsite.isPending ? "Saving…" : "Save"}
         </Button>
       </div>
+      {website.builtIn
+        ? (
+          <p className="text-xs text-muted-foreground">
+            Built-in site — its name and domain are fixed, but you can edit its rules below.
+          </p>
+        )
+        : null}
+
+      <ShortenedLinksEditor
+        idBase={website.id}
+        links={shortLinks}
+        onChange={setShortLinks}
+      />
+      <ParamRulesEditor
+        idBase={website.id}
+        rules={rules}
+        onChange={setRules}
+      />
+
+      <div className="space-y-1">
+        <p className="text-sm font-medium">Preview (uses the edits above)</p>
+        <LinkPreview
+          websites={[editedWebsite]}
+          ignoreList={[]}
+          label=""
+          placeholder="Paste a link on this site…"
+        />
+      </div>
+
+      <BulkExpandSection website={website} />
+
       {updateWebsite.isError
-        ? <p className="mt-2 text-sm text-destructive">{updateWebsite.error.message}</p>
+        ? <p className="text-sm text-destructive">{updateWebsite.error.message}</p>
+        : null}
+    </div>
+  );
+}
+
+/** Editor for a website's verified shortened-link domains (with optional expansion templates). */
+function ShortenedLinksEditor({
+  idBase, links, onChange,
+}: { idBase: string;
+  links: ShortenedLink[];
+  onChange: (links: ShortenedLink[]) => void; }) {
+  function update(index: number, patch: Partial<ShortenedLink>): void {
+    onChange(links.map((link, i) => (i === index
+      ? {
+        ...link,
+        ...patch,
+      }
+      : link)));
+  }
+  return (
+    <div className="space-y-2">
+      <div>
+        <p className="text-sm font-medium">Verified shortened links</p>
+        <p className="text-xs text-muted-foreground">
+          Short domains that resolve to this site (e.g. youtu.be). Use
+          {" "}
+          <code>{"{id}"}</code>
+          {" "}
+          (first path segment) or
+          {" "}
+          <code>{"{path}"}</code>
+          {" "}
+          in the expansion template; leave it blank to keep links shortened.
+        </p>
+      </div>
+      {links.map((link, index) => (
+        <div
+          key={index}
+          className="
+            grid gap-2 rounded-md border p-2
+            sm:grid-cols-[1fr_2fr_auto_auto] sm:items-center
+          "
+        >
+          <Input
+            aria-label="Short domain"
+            placeholder="youtu.be"
+            value={link.domain}
+            onChange={event => update(index, {
+              domain: event.target.value,
+            })}
+          />
+          <Input
+            aria-label="Expansion template"
+            placeholder="https://www.youtube.com/watch?v={id}"
+            value={link.expandTo ?? ""}
+            onChange={event => update(index, {
+              expandTo: event.target.value,
+            })}
+          />
+          <label className="flex items-center gap-1 text-sm whitespace-nowrap">
+            <Checkbox
+              id={`keep-${idBase}-${index}`}
+              checked={link.keepShortened}
+              onCheckedChange={checked => update(index, {
+                keepShortened: checked === true,
+              })}
+            />
+            Keep shortened
+          </label>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label="Remove shortened link"
+            onClick={() => onChange(links.filter((_, i) => i !== index))}
+          >
+            <X className="size-4" />
+          </Button>
+        </div>
+      ))}
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={() => onChange([...links, {
+          domain: "",
+          expandTo: null,
+          keepShortened: false,
+        }])}
+      >
+        <Plus className="mr-1 size-4" />
+        Add shortened link
+      </Button>
+    </div>
+  );
+}
+
+/** Editor for a website's path-scoped query-param whitelist. */
+function ParamRulesEditor({
+  idBase, rules, onChange,
+}: { idBase: string;
+  rules: ParamRuleDraft[];
+  onChange: (rules: ParamRuleDraft[]) => void; }) {
+  function update(index: number, patch: Partial<ParamRuleDraft>): void {
+    onChange(rules.map((rule, i) => (i === index
+      ? {
+        ...rule,
+        ...patch,
+      }
+      : rule)));
+  }
+  return (
+    <div className="space-y-2">
+      <div>
+        <p className="text-sm font-medium">Keep-param rules</p>
+        <p className="text-xs text-muted-foreground">
+          For URLs whose path ends with the suffix, keep only these query params (comma-separated) and
+          strip the rest. Leave the path blank to match any path. With rules set, params aren’t kept
+          unless whitelisted.
+        </p>
+      </div>
+      {rules.map((rule, index) => (
+        <div
+          key={index}
+          className="
+            grid gap-2 rounded-md border p-2
+            sm:grid-cols-[1fr_2fr_auto] sm:items-center
+          "
+        >
+          <Input
+            aria-label="Path suffix"
+            placeholder="/watch"
+            value={rule.pathSuffix}
+            onChange={event => update(index, {
+              pathSuffix: event.target.value,
+            })}
+          />
+          <Input
+            aria-label="Kept params"
+            placeholder="v, list"
+            value={rule.paramsText}
+            onChange={event => update(index, {
+              paramsText: event.target.value,
+            })}
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label="Remove rule"
+            onClick={() => onChange(rules.filter((_, i) => i !== index))}
+          >
+            <X className="size-4" />
+          </Button>
+        </div>
+      ))}
+      <Button
+        id={`add-rule-${idBase}`}
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={() => onChange([...rules, {
+          pathSuffix: "",
+          paramsText: "",
+        }])}
+      >
+        <Plus className="mr-1 size-4" />
+        Add rule
+      </Button>
+    </div>
+  );
+}
+
+/** Lists the website's saved shortened links that have an expansion rule, each with a bulk-expander. */
+function BulkExpandSection({
+  website,
+}: { website: Website }) {
+  const expandable = website.shortenedLinks.filter(link => link.expandTo && !link.keepShortened);
+  if (expandable.length === 0) return null;
+  return (
+    <div className="space-y-3">
+      <p className="text-sm font-medium">Expand existing bookmarks</p>
+      {expandable.map(link => (
+        <BulkExpandShortened
+          key={link.domain}
+          website={website}
+          domain={link.domain}
+        />
+      ))}
+    </div>
+  );
+}
+
+/** Review + bulk-apply the expansion of bookmarks saved on one shortened domain. */
+function BulkExpandShortened({
+  website, domain,
+}: { website: Website;
+  domain: string; }) {
+  const [open, setOpen] = useState(false);
+  const {
+    data: bookmarks = [], isLoading,
+  } = useBookmarksOnHost(open ? domain : null);
+  const bulk = useBulkExpandBookmarkUrls();
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [results, setResults] = useState<BulkUrlUpdateResult[] | null>(null);
+
+  // Compute the expanded form for each bookmark and keep only those that actually change.
+  const items = bookmarks
+    .map(bookmark => ({
+      ...bookmark,
+      after: canonicalize(bookmark.url, {
+        mode: "none",
+        websites: [website],
+        ignoreList: [],
+      }).url,
+    }))
+    .filter(item => item.after !== item.url);
+
+  // Default every changed bookmark to selected once the list loads.
+  useEffect(() => {
+    setSelected(new Set(items.map(item => item.id)));
+    setResults(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bookmarks]);
+
+  function toggle(id: string): void {
+    setSelected((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function apply(): void {
+    const payload = items
+      .filter(item => selected.has(item.id))
+      .map(item => ({
+        id: item.id,
+        url: item.after,
+      }));
+    if (payload.length === 0) return;
+    bulk.mutate(payload, {
+      onSuccess: setResults,
+    });
+  }
+
+  return (
+    <div className="rounded-md border p-3">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-sm">
+          Review
+          {" "}
+          <span className="font-mono">{domain}</span>
+          {" "}
+          links to expand
+        </span>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setOpen(value => !value)}
+        >
+          {open ? "Hide" : "Review"}
+        </Button>
+      </div>
+
+      {open
+        ? (
+          <div className="mt-3 space-y-2">
+            {isLoading ? <p className="text-sm text-muted-foreground">Loading…</p> : null}
+            {!isLoading && items.length === 0
+              ? <p className="text-sm text-muted-foreground">No bookmarks to expand.</p>
+              : null}
+            {items.map(item => (
+              <div
+                key={item.id}
+                className="flex items-start gap-2 rounded-md border p-2 text-sm"
+              >
+                <Checkbox
+                  checked={selected.has(item.id)}
+                  onCheckedChange={() => toggle(item.id)}
+                  aria-label={`Expand ${item.title}`}
+                  className="mt-1"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium">{item.title}</p>
+                  <p
+                    className="truncate font-mono text-xs text-muted-foreground"
+                  >{item.url}
+                  </p>
+                  <p className="truncate font-mono text-xs">→ {item.after}</p>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  asChild
+                  aria-label="Open expanded link in new tab"
+                >
+                  <a
+                    href={item.after}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <ExternalLink className="size-4" />
+                  </a>
+                </Button>
+              </div>
+            ))}
+
+            {items.length > 0
+              ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  disabled={selected.size === 0 || bulk.isPending}
+                  onClick={apply}
+                >
+                  {bulk.isPending ? "Applying…" : `Apply ${selected.size} selected`}
+                </Button>
+              )
+              : null}
+
+            {results
+              ? (
+                <p className="text-sm text-muted-foreground">
+                  Applied
+                  {" "}
+                  {results.filter(result => result.status === "applied").length}
+                  {", skipped "}
+                  {results.filter(result => result.status !== "applied").length}
+                  .
+                </p>
+              )
+              : null}
+          </div>
+        )
         : null}
     </div>
   );

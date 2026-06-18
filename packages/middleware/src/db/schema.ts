@@ -1,6 +1,6 @@
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import { type AnyPgColumn, boolean, integer, jsonb, pgTable, primaryKey, real, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
-import type { ConditionTree } from "@eesimple/types";
+import type { ConditionTree, ShortenedLink, WebsiteParamRule } from "@eesimple/types";
 
 /** `bookmarks` table — one row per saved bookmark. Tags now live in `bookmark_tags`. */
 export const bookmarks = pgTable("bookmarks", {
@@ -91,7 +91,8 @@ export const mediaObjects = pgTable("media_objects", {
 
 /**
  * `websites` table — the built-in "Websites" taxonomy. One row per distinct host; bookmarks are
- * auto-linked to a website by the host of their URL.
+ * auto-linked to a website by the host of their URL. Seeded built-ins (e.g. youtube.com → "YouTube")
+ * are protected from rename/delete.
  */
 export const websites = pgTable("websites", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -102,6 +103,13 @@ export const websites = pgTable("websites", {
   // URL-friendly identifier derived from the domain (e.g. "github" from "github.com"). Nullable at
   // the DB level so `drizzle-kit push` applies cleanly to existing rows; backfilled at boot.
   slug: text("slug"),
+  // Seeded built-ins (e.g. youtube.com) can't be renamed or deleted; auto-created sites can.
+  builtIn: boolean("built_in").notNull().default(false),
+  // Verified shortened-link domains that resolve to this site (e.g. youtu.be → youtube.com), with
+  // optional expansion templates. Drives URL canonicalization instead of hardcoded per-site logic.
+  shortenedLinks: jsonb("shortened_links").$type<ShortenedLink[]>().notNull().default(sql`'[]'::jsonb`),
+  // Path-scoped query-param whitelist; params outside the matching rule are stripped on canonicalize.
+  paramRules: jsonb("param_rules").$type<WebsiteParamRule[]>().notNull().default(sql`'[]'::jsonb`),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
@@ -454,6 +462,15 @@ export const homepageFilter = pgTable("homepage_filter", {
 });
 
 /**
+ * `app_settings` — global application settings singleton (exactly one row, id = 1). Seeded on boot.
+ */
+export const appSettings = pgTable("app_settings", {
+  id: integer("id").primaryKey().default(1),
+  // Generic URL-shortener domains (e.g. bit.ly) that can't be expanded to a vendor; always nudge.
+  shortenerIgnoreList: jsonb("shortener_ignore_list").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+});
+
+/**
  * `homepage_sections` — user-defined, ordered sections that appear on the homepage. Each section
  * has its own condition filter; bookmarks matching that filter are shown under the section's title
  * and description. `sort_order` controls the display sequence.
@@ -744,6 +761,7 @@ export type PropertyCategoryRow = typeof propertyCategories.$inferSelect;
 export type CategoryRootTagRow = typeof categoryRootTags.$inferSelect;
 export type HomepageTagRow = typeof homepageTags.$inferSelect;
 export type HomepageFilterRow = typeof homepageFilter.$inferSelect;
+export type AppSettingsRow = typeof appSettings.$inferSelect;
 export type AutofillRuleRow = typeof autofillRules.$inferSelect;
 export type NewAutofillRuleRow = typeof autofillRules.$inferInsert;
 export type AutofillRuleTagRow = typeof autofillRuleTags.$inferSelect;

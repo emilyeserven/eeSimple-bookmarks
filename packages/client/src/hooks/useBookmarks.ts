@@ -1,4 +1,4 @@
-import type { CreateBookmarkInput, UpdateBookmarkInput } from "@eesimple/types";
+import type { BulkUrlUpdate, CreateBookmarkInput, UpdateBookmarkInput } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -6,6 +6,26 @@ import { toast } from "sonner";
 import { bookmarksApi } from "../lib/api";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
+
+/** Bookmarks whose URL host equals `domain` — powers the bulk shortened-link expansion review. */
+export function useBookmarksOnHost(domain: string | null) {
+  return useQuery({
+    queryKey: [...BOOKMARKS_KEY, "on-host", domain],
+    queryFn: () => bookmarksApi.onHost(domain ?? ""),
+    enabled: Boolean(domain),
+  });
+}
+
+/** Apply a batch of URL rewrites (e.g. expanding shortened links). */
+export function useBulkExpandBookmarkUrls() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (items: BulkUrlUpdate[]) => bookmarksApi.bulkUrl(items),
+    onSuccess: () => queryClient.invalidateQueries({
+      queryKey: BOOKMARKS_KEY,
+    }),
+  });
+}
 
 export function useBookmarks(tagId?: string) {
   return useQuery({

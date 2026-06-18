@@ -8,6 +8,7 @@ import type {
   CreateBookmarkInput,
   CustomProperty,
   TagNode,
+  Website,
   YouTubeChannelHint,
 } from "@eesimple/types";
 
@@ -21,6 +22,7 @@ import { BookmarkImageField } from "./BookmarkImageField";
 import { EMPTY_IMAGE_INTENT } from "./bookmarkImageIntent";
 import { DateTimePicker } from "./DateTimePicker";
 import { TagPicker } from "./TagPicker";
+import { useShortenerIgnoreList } from "../hooks/useAppSettings";
 import { useAutofillRules } from "../hooks/useAutofill";
 import {
   useAutoBookmarkImage,
@@ -35,11 +37,11 @@ import { useFetchMetadata } from "../hooks/useFetchMetadata";
 import { useFetchTitle } from "../hooks/useFetchTitle";
 import { useMediaTypes } from "../hooks/useMediaTypes";
 import { useTagTree } from "../hooks/useTags";
-import { useWebsiteLookup } from "../hooks/useWebsites";
+import { useWebsiteLookup, useWebsites } from "../hooks/useWebsites";
 import { applyAutofill } from "../lib/autofill";
 import { useAppForm } from "../lib/form";
 import { isFetchableUrl } from "../lib/url";
-import { cleanUrl } from "../lib/urlCleanup";
+import { canonicalize } from "../lib/urlCleanup";
 import { useUiStore } from "../stores/uiStore";
 
 import { Badge } from "@/components/ui/badge";
@@ -103,6 +105,12 @@ export function BookmarkForm({
   const fetchMetadata = useFetchMetadata();
   const websiteLookup = useWebsiteLookup();
   const {
+    data: websites,
+  } = useWebsites();
+  const {
+    data: shortenerIgnoreList,
+  } = useShortenerIgnoreList();
+  const {
     data: mediaTypes,
   } = useMediaTypes();
   const autoFetchTitle = useUiStore(state => state.autoFetchTitle);
@@ -133,11 +141,30 @@ export function BookmarkForm({
   const [expectedTitle, setExpectedTitle] = useState("");
   const [websiteSiteName, setWebsiteSiteName] = useState("");
   // The channel resolved from a fetched YouTube video, passed on save so the server links/creates it.
+  // The ref is read by the submit handler (stale-closure-safe); the state drives the banner display.
   const channelHintRef = useRef<YouTubeChannelHint | null>(null);
+  const [youtubeChannel, setYoutubeChannel] = useState<YouTubeChannelHint | null>(null);
+  // Shortened-link info for the current URL, computed on blur: whether to nudge and the expansion.
+  const [urlShortener, setUrlShortener] = useState<{ nudge: boolean;
+    expandedUrl: string | null; }>({
+    nudge: false,
+    expandedUrl: null,
+  });
   const [showUrlCleanup, setShowUrlCleanup] = useState(false);
   const [urlCleanupMode, setUrlCleanupMode] = useState<UrlCleanupMode>("none");
   const urlCleanupModeRef = useRef<UrlCleanupMode>("none");
   urlCleanupModeRef.current = urlCleanupMode;
+  // Mirror the canonicalize inputs into a ref so the (potentially stale) submit closure reads fresh
+  // websites + ignore-list data.
+  const canonDataRef = useRef<{ websites: Website[];
+    ignoreList: string[]; }>({
+    websites: [],
+    ignoreList: [],
+  });
+  canonDataRef.current = {
+    websites: websites ?? [],
+    ignoreList: shortenerIgnoreList ?? [],
+  };
   const cleanupId = useId();
   const customRef = useRef({
     numberInputs,
@@ -350,7 +377,11 @@ export function BookmarkForm({
         .filter(entry => entry.value !== "");
 
       const rawUrl = value.url;
-      const finalUrl = cleanUrl(rawUrl, urlCleanupModeRef.current);
+      const finalUrl = canonicalize(rawUrl, {
+        mode: urlCleanupModeRef.current,
+        websites: canonDataRef.current.websites,
+        ignoreList: canonDataRef.current.ignoreList,
+      }).url;
       const isModified = finalUrl !== rawUrl;
 
       const input: CreateBookmarkInput = {
@@ -393,6 +424,11 @@ export function BookmarkForm({
       setBooleanInputs({});
       setWebsiteSiteName("");
       channelHintRef.current = null;
+      setYoutubeChannel(null);
+      setUrlShortener({
+        nudge: false,
+        expandedUrl: null,
+      });
       imageIntentRef.current = EMPTY_IMAGE_INTENT;
       setImageFieldKey(key => key + 1);
       setShowUrlCleanup(false);
@@ -481,18 +517,29 @@ export function BookmarkForm({
   // prefill them: the channel is held as a hint applied on save, the duration fills the built-in
   // "Video Length" property, and the media type is set to "Video". Best-effort and non-blocking.
   async function runYouTubeEnrichment(url: string): Promise<void> {
-    if (!isFetchableUrl(url) || !looksLikeYouTube(url)) return;
+    // A non-YouTube URL clears any channel left over from a previously-entered YouTube link.
+    if (!isFetchableUrl(url) || !looksLikeYouTube(url)) {
+      channelHintRef.current = null;
+      setYoutubeChannel(null);
+      return;
+    }
     try {
       const meta = await fetchMetadata.mutateAsync({
         url,
       });
-      if (!meta.isYouTube) return;
+      if (!meta.isYouTube) {
+        channelHintRef.current = null;
+        setYoutubeChannel(null);
+        return;
+      }
 
       if (meta.channel?.key) {
-        channelHintRef.current = {
+        const hint = {
           key: meta.channel.key,
           name: meta.channel.name,
         };
+        channelHintRef.current = hint;
+        setYoutubeChannel(hint);
       }
       const videoType = (mediaTypes ?? []).find(type => type.slug === VIDEO_MEDIA_TYPE_SLUG);
       if (videoType && !form.getFieldValue("mediaTypeId")) {
@@ -520,8 +567,22 @@ export function BookmarkForm({
     if (!isFetchableUrl(url)) {
       websiteLookup.reset();
       setWebsiteSiteName("");
+      setUrlShortener({
+        nudge: false,
+        expandedUrl: null,
+      });
       return;
     }
+    // Locally classify the URL (shortened? expandable?) so the banner can nudge / show the expansion.
+    const canon = canonicalize(url, {
+      mode: "none",
+      websites: websites ?? [],
+      ignoreList: shortenerIgnoreList ?? [],
+    });
+    setUrlShortener({
+      nudge: canon.nudge,
+      expandedUrl: canon.expanded ? canon.url : null,
+    });
     websiteLookup.mutate(url, {
       onSuccess: (data) => {
         // Pre-fill the site name input with the domain when it's a new site.
@@ -599,6 +660,10 @@ export function BookmarkForm({
 
         <WebsiteLookupBanner
           data={websiteLookup.data}
+          isYouTube={websiteLookup.data?.domain === "youtube.com"}
+          youtubeChannel={youtubeChannel}
+          nudge={urlShortener.nudge}
+          expandedUrl={urlShortener.expandedUrl}
           websiteSiteName={websiteSiteName}
           onSiteNameChange={setWebsiteSiteName}
           onSiteNameBlur={() => void runFetchTitle(form.getFieldValue("url"), {
@@ -670,6 +735,8 @@ export function BookmarkForm({
               cleanupId={cleanupId}
               mode={urlCleanupMode}
               onModeChange={setUrlCleanupMode}
+              websites={websites ?? []}
+              ignoreList={shortenerIgnoreList ?? []}
             />
           )}
         </form.Subscribe>
@@ -1075,14 +1142,26 @@ interface WebsiteLookupBannerProps {
   data: { exists: boolean;
     domain: string | null;
     siteName?: string | null; } | undefined;
+  /** When the URL is the built-in YouTube site, show the detected channel instead of the site-name input. */
+  isYouTube: boolean;
+  /** The channel detected from a YouTube video, or `null` (e.g. a playlist URL or before it resolves). */
+  youtubeChannel: YouTubeChannelHint | null;
+  /** Whether to nudge the user that this is a shortened link they should expand. */
+  nudge: boolean;
+  /** The long-form URL a verified short link will be saved as, or `null`. */
+  expandedUrl: string | null;
   websiteSiteName: string;
   onSiteNameChange: (value: string) => void;
   onSiteNameBlur: () => void;
 }
 
-/** Banner shown below the URL field after a website lookup: existing vs. new site, plus site-name input. */
+/**
+ * Banner shown below the URL field after a website lookup: existing vs. new site, plus the site-name
+ * input for new sites. For the built-in YouTube site the site-name input is replaced by the
+ * auto-detected channel, since the site name is fixed ("YouTube").
+ */
 function WebsiteLookupBanner({
-  data, websiteSiteName, onSiteNameChange, onSiteNameBlur,
+  data, isYouTube, youtubeChannel, nudge, expandedUrl, websiteSiteName, onSiteNameChange, onSiteNameBlur,
 }: WebsiteLookupBannerProps) {
   if (!data?.domain) return null;
   return (
@@ -1108,25 +1187,61 @@ function WebsiteLookupBanner({
             </>
           )}
       </p>
-      {!data.exists
+      {nudge
         ? (
-          <div className="mt-2">
-            <Label
-              htmlFor="website-site-name"
-              className="mb-1 block text-sm"
-            >
-              Site name
-            </Label>
-            <Input
-              id="website-site-name"
-              value={websiteSiteName}
-              onChange={e => onSiteNameChange(e.target.value)}
-              onBlur={onSiteNameBlur}
-              placeholder={data.domain ?? ""}
-            />
-          </div>
+          <p
+            className="
+              mt-1 text-sm text-amber-600
+              dark:text-amber-500
+            "
+          >
+            This looks like a shortened link — consider using the full URL.
+          </p>
         )
         : null}
+      {expandedUrl
+        ? (
+          <p className="mt-1 truncate text-sm text-muted-foreground">
+            Will be saved as
+            {" "}
+            <span className="font-mono">{expandedUrl}</span>
+          </p>
+        )
+        : null}
+      {isYouTube
+        ? (
+          youtubeChannel
+            ? (
+              <p
+                className="
+                  mt-2 flex items-center gap-2 text-sm text-muted-foreground
+                "
+              >
+                <Badge variant="secondary">YouTube channel</Badge>
+                <span>{youtubeChannel.name}</span>
+              </p>
+            )
+            : null
+        )
+        : !data.exists
+          ? (
+            <div className="mt-2">
+              <Label
+                htmlFor="website-site-name"
+                className="mb-1 block text-sm"
+              >
+                Site name
+              </Label>
+              <Input
+                id="website-site-name"
+                value={websiteSiteName}
+                onChange={e => onSiteNameChange(e.target.value)}
+                onBlur={onSiteNameBlur}
+                placeholder={data.domain ?? ""}
+              />
+            </div>
+          )
+          : null}
     </div>
   );
 }
@@ -1289,13 +1404,19 @@ interface UrlCleanupPanelProps {
   cleanupId: string;
   mode: UrlCleanupMode;
   onModeChange: (mode: UrlCleanupMode) => void;
+  websites: Website[];
+  ignoreList: string[];
 }
 
 /** Radio-group + live URL preview for the URL cleanup options. */
 function UrlCleanupPanel({
-  url, cleanupId, mode, onModeChange,
+  url, cleanupId, mode, onModeChange, websites, ignoreList,
 }: UrlCleanupPanelProps) {
-  const preview = cleanUrl(url, mode);
+  const preview = canonicalize(url, {
+    mode,
+    websites,
+    ignoreList,
+  }).url;
   return (
     <div
       className="

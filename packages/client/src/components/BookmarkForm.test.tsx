@@ -95,6 +95,14 @@ vi.mock("../hooks/useWebsites", () => ({
     mutate: vi.fn(),
     reset: vi.fn(),
   }),
+  useWebsites: () => ({
+    data: [],
+  }),
+}));
+vi.mock("../hooks/useAppSettings", () => ({
+  useShortenerIgnoreList: () => ({
+    data: [],
+  }),
 }));
 vi.mock("../stores/uiStore", () => ({
   useUiStore: (selector: (state: { autoFetchTitle: boolean }) => unknown) =>

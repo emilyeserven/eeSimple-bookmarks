@@ -2,6 +2,9 @@ import type {
   AutofillRule,
   Bookmark,
   BookmarkImage,
+  BookmarkUrlSummary,
+  BulkUrlUpdate,
+  BulkUrlUpdateResult,
   Category,
   CategoryPropertyDefaults,
   CreateAutofillRuleInput,
@@ -75,6 +78,15 @@ export const bookmarksApi = {
   remove: (id: string) => request<undefined>(`/bookmarks/${id}`, {
     method: "DELETE",
   }),
+  onHost: (domain: string) =>
+    request<BookmarkUrlSummary[]>(`/bookmarks/on-host?domain=${encodeURIComponent(domain)}`),
+  bulkUrl: (items: BulkUrlUpdate[]) =>
+    request<BulkUrlUpdateResult[]>("/bookmarks/bulk-url", {
+      method: "POST",
+      body: JSON.stringify({
+        items,
+      }),
+    }),
   // Image upload goes through FormData, not the JSON `request` helper, so the browser sets the
   // multipart boundary itself.
   uploadImage: async (id: string, file: File): Promise<BookmarkImage> => {
@@ -180,6 +192,17 @@ export const websitesApi = {
   remove: (id: string) => request<undefined>(`/websites/${id}`, {
     method: "DELETE",
   }),
+};
+
+export const appSettingsApi = {
+  getShortenerIgnoreList: () => request<string[]>("/app-settings/shortener-ignore-list"),
+  updateShortenerIgnoreList: (domains: string[]) =>
+    request<string[]>("/app-settings/shortener-ignore-list", {
+      method: "PUT",
+      body: JSON.stringify({
+        domains,
+      }),
+    }),
 };
 
 export const mediaTypesApi = {
