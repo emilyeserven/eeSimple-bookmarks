@@ -73,6 +73,14 @@ function looksLikeYouTube(url: string): boolean {
   return /(?:youtube\.com|youtu\.be)/i.test(url);
 }
 
+/** Client-side mirror of the server's stripSiteNameSuffix for user-entered selfIds. */
+function stripSelfId(title: string, selfId: string): string {
+  const escaped = selfId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const re = new RegExp(`\\s*[-|–—·•:／]\\s*${escaped}\\s*$`, "i");
+  const stripped = title.replace(re, "").trim();
+  return stripped.length > 0 ? stripped : title;
+}
+
 interface BookmarkFormProps {
   /** When provided, the form edits this bookmark instead of creating a new one. */
   bookmark?: Bookmark;
@@ -158,6 +166,9 @@ export function BookmarkForm({
   const urlCleanupRef = useRef<typeof urlCleanup>(null);
   urlCleanupRef.current = urlCleanup;
   const [showUrlCleanup, setShowUrlCleanup] = useState(false);
+  // When the fetch-title button overwrites a non-empty title, record the previous value so the
+  // banner can offer an undo. Cleared when the user manually edits the title field.
+  const [titleFetch, setTitleFetch] = useState<{ previous: string } | null>(null);
   const [urlCleanupMode, setUrlCleanupMode] = useState<UrlCleanupMode>("none");
   const urlCleanupModeRef = useRef<UrlCleanupMode>("none");
   urlCleanupModeRef.current = urlCleanupMode;
@@ -574,8 +585,13 @@ export function BookmarkForm({
         url,
         siteName: websiteSiteName.trim() || undefined,
       });
-      if (force || form.getFieldValue("title").trim() === "") {
+      const prevTitle = form.getFieldValue("title");
+      if (force || prevTitle.trim() === "") {
         form.setFieldValue("title", title);
+        if (force && prevTitle.trim() !== "") setTitleFetch({
+          previous: prevTitle,
+        });
+        else setTitleFetch(null);
       }
     }
     catch {
@@ -611,19 +627,46 @@ export function BookmarkForm({
         return;
       }
 
+      // Capture selfIds the user has already entered for this channel before overwriting the hint,
+      // so we can (a) preserve them in the merged hint and (b) apply client-side stripping for any
+      // that the server didn't know about (not yet saved to the DB).
+      const existingSelfIds
+        = channelHintRef.current?.key === meta.channel?.key
+          ? (channelHintRef.current?.selfIds ?? [])
+          : [];
+
       // Fill the Name from the (clean) oEmbed title, matching runFetchTitle's overwrite rule.
+      // After the server has stripped DB-known selfIds, strip any user-added ones client-side.
       if (fillTitle && meta.title && (force || form.getFieldValue("title").trim() === "")) {
-        form.setFieldValue("title", meta.title);
+        const serverSelfIdSet = new Set(meta.channel?.selfIds ?? []);
+        const userAddedSelfIds = existingSelfIds.filter(id => !serverSelfIdSet.has(id));
+        let title = meta.title;
+        for (const selfId of userAddedSelfIds) {
+          const stripped = stripSelfId(title, selfId);
+          if (stripped !== title) {
+            title = stripped;
+            break;
+          }
+        }
+        const prevTitle = form.getFieldValue("title");
+        form.setFieldValue("title", title);
+        if (force && prevTitle.trim() !== "") setTitleFetch({
+          previous: prevTitle,
+        });
+        else setTitleFetch(null);
       }
       // Fill the Description from the watch-page og:description when the field is still empty.
       if (fillTitle && meta.description && form.getFieldValue("description").trim() === "") {
         form.setFieldValue("description", meta.description);
       }
       if (meta.channel?.key) {
+        // Merge server selfIds with user-entered ones (union, server IDs first) so the user's
+        // edits survive a re-fetch.
+        const mergedSelfIds = [...new Set([...(meta.channel.selfIds ?? []), ...existingSelfIds])];
         const hint = {
           key: meta.channel.key,
           name: meta.channel.name,
-          selfIds: meta.channel.selfIds ?? [],
+          selfIds: mergedSelfIds,
         };
         channelHintRef.current = hint;
         setYoutubeChannel(hint);
@@ -671,6 +714,12 @@ export function BookmarkForm({
       ...current,
       applied: false,
     });
+  }
+
+  function undoTitleFetch(): void {
+    if (!titleFetch) return;
+    form.setFieldValue("title", titleFetch.previous);
+    setTitleFetch(null);
   }
 
   // Check whether the URL's site is already on record so the banner can say whether a new
@@ -817,7 +866,7 @@ export function BookmarkForm({
               ? (
                 <Button
                   type="button"
-                  variant={showUrlCleanup ? "secondary" : "outline"}
+                  variant={showUrlCleanup ? "secondary" : "ghost"}
                   size="icon"
                   title="URL cleanup"
                   aria-label="Toggle URL cleanup"
@@ -928,10 +977,11 @@ export function BookmarkForm({
                         rows={1}
                         inputClassName="min-h-9"
                         onBlur={runAutofill}
+                        onChange={() => setTitleFetch(null)}
                         action={(
                           <Button
                             type="button"
-                            variant="outline"
+                            variant="ghost"
                             size="icon"
                             title="Fetch title from URL"
                             aria-label="Fetch title from URL"
@@ -960,6 +1010,24 @@ export function BookmarkForm({
                   </form.AppField>
                 )}
               </form.Subscribe>
+
+              {titleFetch && (
+                <p className="text-sm text-muted-foreground">
+                  Changed from
+                  {" "}
+                  <span className="font-mono">{titleFetch.previous}</span>
+                  {" · "}
+                  <Button
+                    type="button"
+                    variant="link"
+                    size="sm"
+                    className="h-auto p-0"
+                    onClick={undoTitleFetch}
+                  >
+                    Undo
+                  </Button>
+                </p>
+              )}
 
               <TitleFetchFeedback
                 isSuccess={fetchTitle.isSuccess}
