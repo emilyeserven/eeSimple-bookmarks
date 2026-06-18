@@ -86,7 +86,7 @@ export function BookmarkDetail({
   const hasProperties = numberRows.length > 0 || booleanRows.length > 0;
 
   return (
-    <div className="space-y-6">
+    <div className="@container space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 space-y-1">
           <h1 className="text-xl font-bold">
@@ -150,111 +150,121 @@ export function BookmarkDetail({
           : null}
       </div>
 
-      {bookmark.image
-        ? (
-          <img
-            src={bookmark.image.url}
-            alt=""
-            loading="lazy"
-            className="max-h-72 w-full rounded-md border object-contain"
-          />
-        )
-        : null}
+      <div
+        className="
+          flex flex-col gap-6
+          @2xl:flex-row @2xl:items-start
+        "
+      >
+        {bookmark.image
+          ? (
+            <img
+              src={bookmark.image.url}
+              alt=""
+              loading="lazy"
+              className="
+                max-h-72 w-full rounded-md border object-contain
+                @2xl:w-72 @2xl:shrink-0
+              "
+            />
+          )
+          : null}
 
-      <dl className="space-y-3">
-        <Field label="Description">
-          {bookmark.description
-            ? <p className="whitespace-pre-wrap">{bookmark.description}</p>
-            : null}
-        </Field>
+        <dl className="min-w-0 flex-1 space-y-3">
+          <Field label="Description">
+            {bookmark.description
+              ? <p className="whitespace-pre-wrap">{bookmark.description}</p>
+              : null}
+          </Field>
 
-        <Field label="Category">
-          {category
-            ? (
-              <Link
-                to="/categories/$categorySlug"
-                params={{
-                  categorySlug: category.slug,
-                }}
-                className="
-                  inline-flex items-center gap-1.5 text-primary
-                  hover:underline
-                "
-              >
-                <CategoryIcon
-                  name={category.icon}
-                  className="size-4 shrink-0"
-                />
-                {category.name}
-              </Link>
-            )
-            : null}
-        </Field>
+          <Field label="Category">
+            {category
+              ? (
+                <Link
+                  to="/categories/$categorySlug"
+                  params={{
+                    categorySlug: category.slug,
+                  }}
+                  className="
+                    inline-flex items-center gap-1.5 text-primary
+                    hover:underline
+                  "
+                >
+                  <CategoryIcon
+                    name={category.icon}
+                    className="size-4 shrink-0"
+                  />
+                  {category.name}
+                </Link>
+              )
+              : null}
+          </Field>
 
-        <Field label="Website">
-          {bookmark.website
-            ? `${bookmark.website.siteName} (${bookmark.website.domain})`
-            : null}
-        </Field>
+          <Field label="Website">
+            {bookmark.website
+              ? `${bookmark.website.siteName} (${bookmark.website.domain})`
+              : null}
+          </Field>
 
-        <Field label="Tags">
-          {bookmark.tags.length > 0
-            ? (
-              <ul className="flex flex-wrap gap-1">
-                {bookmark.tags.map(tag => (
-                  <li key={tag.id}>
-                    <Badge variant="secondary">{tag.name}</Badge>
-                  </li>
-                ))}
-              </ul>
-            )
-            : null}
-        </Field>
+          <Field label="Tags">
+            {bookmark.tags.length > 0
+              ? (
+                <ul className="flex flex-wrap gap-1">
+                  {bookmark.tags.map(tag => (
+                    <li key={tag.id}>
+                      <Badge variant="secondary">{tag.name}</Badge>
+                    </li>
+                  ))}
+                </ul>
+              )
+              : null}
+          </Field>
 
-        <Field label="Properties">
-          {hasProperties
-            ? (
-              <dl className="space-y-1">
-                {numberRows.map(row => (
-                  <div
-                    key={row.id}
-                    className="flex items-baseline gap-2"
-                  >
-                    <dt className="text-muted-foreground">
-                      {row.name}
-                      {row.isCalculated
-                        ? <span className="text-xs"> (calculated)</span>
-                        : null}
-                      :
-                    </dt>
-                    <dd>{row.value}</dd>
-                  </div>
-                ))}
-                {booleanRows.map(row => (
-                  <div
-                    key={row.id}
-                    className="flex items-baseline gap-2"
-                  >
-                    <dt className="text-muted-foreground">
-                      {row.name}
-                      :
-                    </dt>
-                    <dd>{row.value}</dd>
-                  </div>
-                ))}
-              </dl>
-            )
-            : null}
-        </Field>
+          <Field label="Properties">
+            {hasProperties
+              ? (
+                <dl className="space-y-1">
+                  {numberRows.map(row => (
+                    <div
+                      key={row.id}
+                      className="flex items-baseline gap-2"
+                    >
+                      <dt className="text-muted-foreground">
+                        {row.name}
+                        {row.isCalculated
+                          ? <span className="text-xs"> (calculated)</span>
+                          : null}
+                        :
+                      </dt>
+                      <dd>{row.value}</dd>
+                    </div>
+                  ))}
+                  {booleanRows.map(row => (
+                    <div
+                      key={row.id}
+                      className="flex items-baseline gap-2"
+                    >
+                      <dt className="text-muted-foreground">
+                        {row.name}
+                        :
+                      </dt>
+                      <dd>{row.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              )
+              : null}
+          </Field>
 
-        <Field label="Priority">
-          <span>{bookmark.priority}</span>
-        </Field>
+          <Field label="Priority">
+            <span>{bookmark.priority}</span>
+          </Field>
 
-        <Field label="Created">
-          <span>{new Date(bookmark.createdAt).toLocaleString()}</span>
-        </Field>
-      </dl>
+          <Field label="Created">
+            <span>{new Date(bookmark.createdAt).toLocaleString()}</span>
+          </Field>
+        </dl>
+      </div>
     </div>
   );
 }
