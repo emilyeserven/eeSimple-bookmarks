@@ -1,5 +1,6 @@
-import { asc, eq, isNull, ne, sql } from "drizzle-orm";
-import type { CreateWebsiteInput, UpdateWebsiteInput, Website } from "@eesimple/types";
+import { asc, eq, isNull, ne, or, sql } from "drizzle-orm";
+import type { CreateWebsiteInput, ShortenedLink, UpdateWebsiteInput, Website, WebsiteParamRule } from "@eesimple/types";
+import { getShortenerIgnoreList } from "@/services/appSettings";
 import { db } from "@/db";
 import { bookmarks, websites, type WebsiteRow } from "@/db/schema";
 import { slugify } from "@/utils/slug";
@@ -23,14 +24,52 @@ export class BuiltInWebsiteError extends Error {
   }
 }
 
-/** Seeded built-in websites, kept in sync at boot. Built-ins can't be renamed or deleted. */
-const BUILT_IN_WEBSITES: { domain: string;
-  siteName: string; }[] = [
+/**
+ * Seeded built-in websites, kept in sync at boot. Built-ins can't be renamed or deleted, but their
+ * `shortenedLinks`/`paramRules` are seeded once (on insert) and stay user-editable thereafter.
+ */
+const BUILT_IN_WEBSITES: {
+  domain: string;
+  siteName: string;
+  shortenedLinks: ShortenedLink[];
+  paramRules: WebsiteParamRule[];
+}[] = [
   {
     domain: "youtube.com",
     siteName: "YouTube",
+    shortenedLinks: [
+      {
+        domain: "youtu.be",
+        expandTo: "https://www.youtube.com/watch?v={id}",
+        keepShortened: false,
+      },
+    ],
+    paramRules: [
+      {
+        pathSuffix: "/watch",
+        params: ["v"],
+      },
+      {
+        pathSuffix: "/playlist",
+        params: ["list"],
+      },
+    ],
   },
 ];
+
+/**
+ * SQL predicate matching a website by its canonical `domain` OR any of its verified
+ * `shortenedLinks[].domain` (so e.g. a `youtu.be` URL resolves to the `youtube.com` site). Uses
+ * jsonb containment (`@>`) for partial-object matching within the array.
+ */
+function matchesAnyDomain(domain: string) {
+  return or(
+    eq(websites.domain, domain),
+    sql`${websites.shortenedLinks} @> ${JSON.stringify([{
+      domain,
+    }])}::jsonb`,
+  );
+}
 
 /**
  * Derive a URL-safe slug base from a domain by stripping the TLD (last dot-segment) and
@@ -72,6 +111,8 @@ function toWebsite(row: WebsiteRow & { bookmarkCount?: number }): Website {
     siteName: row.siteName,
     slug: row.slug ?? slugFromDomain(row.domain),
     builtIn: row.builtIn,
+    shortenedLinks: row.shortenedLinks,
+    paramRules: row.paramRules,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount: row.bookmarkCount,
@@ -146,6 +187,8 @@ export async function listWebsites(): Promise<Website[]> {
       siteName: websites.siteName,
       slug: websites.slug,
       builtIn: websites.builtIn,
+      shortenedLinks: websites.shortenedLinks,
+      paramRules: websites.paramRules,
       createdAt: websites.createdAt,
       bookmarkCount: sql<number>`(select count(*)::int from ${bookmarks} where ${bookmarks.websiteId} = ${websites.id})`.mapWith(Number),
     })
@@ -167,6 +210,15 @@ export async function getWebsiteByDomain(domain: string): Promise<Website | null
 }
 
 /**
+ * Fetch a website by its canonical domain OR a verified shortened-link domain (e.g. `youtu.be`
+ * resolves to the `youtube.com` site), or `null` when none matches.
+ */
+export async function getWebsiteByAnyDomain(domain: string): Promise<Website | null> {
+  const [row] = await db.select().from(websites).where(matchesAnyDomain(domain));
+  return row ? toWebsite(row) : null;
+}
+
+/**
  * Resolve the website for a URL inside a transaction, creating it when none exists yet.
  * `siteName` sets the friendly name for the new site; defaults to the domain when omitted.
  * Returns the website id, or `null` when the URL has no host.
@@ -175,12 +227,14 @@ export async function ensureWebsiteForUrl(tx: Tx, url: string, siteName?: string
   const domain = normalizeDomain(url);
   if (!domain) return null;
 
+  // Match by canonical domain OR a verified shortened link, so e.g. a kept `youtu.be` bookmark
+  // associates with the existing `youtube.com` site instead of creating a `youtu.be` website.
   const [existing] = await tx
     .select({
       id: websites.id,
     })
     .from(websites)
-    .where(eq(websites.domain, domain));
+    .where(matchesAnyDomain(domain));
   if (existing) return existing.id;
 
   // Generate a slug before inserting (read outside tx is safe — backfill covers edge cases).
@@ -213,21 +267,45 @@ export async function ensureWebsiteForUrl(tx: Tx, url: string, siteName?: string
 }
 
 /**
- * Look up the website for a URL without creating one — powers the add-bookmark banner. Returns
- * the normalized domain (or `null`) and the existing website (or `null`).
+ * Look up the website for a URL without creating one — powers the add-bookmark banner. Resolves
+ * verified shortened links to their parent site, and flags whether the host is a shortened link:
+ * `"verified"` when it resolves through a shortened link, `"generic"` when it's in the ignore list,
+ * else `null`. The returned `domain` is the resolved canonical domain (or the host when unmatched).
  */
 export async function lookupWebsiteByUrl(
   url: string,
 ): Promise<{ domain: string | null;
-  website: Website | null; }> {
-  const domain = normalizeDomain(url);
-  if (!domain) return {
+  website: Website | null;
+  shortener: "verified" | "generic" | null; }> {
+  const host = normalizeDomain(url);
+  if (!host) return {
     domain: null,
     website: null,
+    shortener: null,
   };
+  const website = await getWebsiteByAnyDomain(host);
+  // Matched through a shortened link when the resolved site's canonical domain differs from the host.
+  if (website && website.domain !== host) {
+    return {
+      domain: website.domain,
+      website,
+      shortener: "verified",
+    };
+  }
+  if (!website) {
+    const ignoreList = await getShortenerIgnoreList();
+    if (ignoreList.includes(host)) {
+      return {
+        domain: host,
+        website: null,
+        shortener: "generic",
+      };
+    }
+  }
   return {
-    domain,
-    website: await getWebsiteByDomain(domain),
+    domain: host,
+    website,
+    shortener: null,
   };
 }
 
@@ -259,6 +337,12 @@ export async function createWebsite(input: CreateWebsiteInput): Promise<Website>
     domain,
     siteName,
     slug,
+    ...(input.shortenedLinks !== undefined && {
+      shortenedLinks: input.shortenedLinks,
+    }),
+    ...(input.paramRules !== undefined && {
+      paramRules: input.paramRules,
+    }),
   }).returning();
   return toWebsite(row);
 }
@@ -279,8 +363,11 @@ export async function updateWebsite(
     }
   }
 
-  const patch: Partial<Pick<WebsiteRow, "domain" | "siteName" | "slug">> = {};
+  const patch: Partial<Pick<WebsiteRow, "domain" | "siteName" | "slug" | "shortenedLinks" | "paramRules">> = {};
   if (input.siteName !== undefined) patch.siteName = input.siteName;
+  // Rule fields stay editable even on built-ins (only rename/move/delete are blocked above).
+  if (input.shortenedLinks !== undefined) patch.shortenedLinks = input.shortenedLinks;
+  if (input.paramRules !== undefined) patch.paramRules = input.paramRules;
   if (input.domain !== undefined) {
     const domain = input.domain.replace(/^www\./i, "").toLowerCase();
     const clash = await getWebsiteByDomain(domain);
@@ -317,7 +404,7 @@ export async function deleteWebsite(id: string): Promise<boolean> {
  */
 export async function ensureBuiltInWebsites(): Promise<void> {
   for (const {
-    domain, siteName,
+    domain, siteName, shortenedLinks, paramRules,
   } of BUILT_IN_WEBSITES) {
     const taken = await takenWebsiteSlugs();
     const slug = uniqueWebsiteSlug(slugFromDomain(domain), taken);
@@ -328,6 +415,10 @@ export async function ensureBuiltInWebsites(): Promise<void> {
         siteName,
         slug,
         builtIn: true,
+        // Rules are seeded on first insert only; they stay out of the conflict `set` below so a
+        // user's later edits to the built-in site's shortened links / param rules are preserved.
+        shortenedLinks,
+        paramRules,
       })
       .onConflictDoUpdate({
         target: websites.domain,

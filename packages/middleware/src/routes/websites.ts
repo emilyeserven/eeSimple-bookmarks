@@ -34,6 +34,47 @@ const lookupQuery = {
   },
 } as const;
 
+const shortenedLinksSchema = {
+  type: "array",
+  items: {
+    type: "object",
+    required: ["domain", "expandTo", "keepShortened"],
+    additionalProperties: false,
+    properties: {
+      domain: {
+        type: "string",
+        minLength: 1,
+      },
+      expandTo: {
+        type: ["string", "null"],
+      },
+      keepShortened: {
+        type: "boolean",
+      },
+    },
+  },
+} as const;
+
+const paramRulesSchema = {
+  type: "array",
+  items: {
+    type: "object",
+    required: ["pathSuffix", "params"],
+    additionalProperties: false,
+    properties: {
+      pathSuffix: {
+        type: "string",
+      },
+      params: {
+        type: "array",
+        items: {
+          type: "string",
+        },
+      },
+    },
+  },
+} as const;
+
 const createWebsiteBody = {
   type: "object",
   required: ["domain"],
@@ -47,6 +88,8 @@ const createWebsiteBody = {
       type: "string",
       minLength: 1,
     },
+    shortenedLinks: shortenedLinksSchema,
+    paramRules: paramRulesSchema,
   },
 } as const;
 
@@ -62,6 +105,8 @@ const updateWebsiteBody = {
       type: "string",
       minLength: 1,
     },
+    shortenedLinks: shortenedLinksSchema,
+    paramRules: paramRulesSchema,
   },
 } as const;
 
@@ -83,12 +128,13 @@ export async function websiteRoutes(app: FastifyInstance): Promise<void> {
       url,
     } = req.query as { url: string };
     const {
-      domain, website,
+      domain, website, shortener,
     } = await lookupWebsiteByUrl(url);
     const result: WebsiteLookup = {
       domain,
       exists: website !== null,
       siteName: website?.siteName ?? null,
+      shortener,
     };
     return result;
   });

@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, ne } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, ne } from "drizzle-orm";
 import type {
   Bookmark,
   BookmarkBooleanValue,
@@ -7,8 +7,11 @@ import type {
   BookmarkMediaType,
   BookmarkNumberValue,
   BookmarkTag,
+  BookmarkUrlSummary,
   BookmarkWebsite,
   BookmarkYouTubeChannel,
+  BulkUrlUpdate,
+  BulkUrlUpdateResult,
   CreateBookmarkInput,
   UpdateBookmarkInput,
   YouTubeChannelHint,
@@ -32,7 +35,7 @@ import {
 import { bookmarkImageFromRow } from "@/services/bookmarkImages";
 import { ensureDefaultCategory } from "@/services/categories";
 import { getDescendantIds } from "@/services/tags";
-import { ensureWebsiteForUrl } from "@/services/websites";
+import { ensureWebsiteForUrl, normalizeDomain } from "@/services/websites";
 import { fetchYouTubeMetadata, isYouTubeVideoUrl } from "@/services/youtube";
 import { channelKeyFromUrl, ensureYouTubeChannel } from "@/services/youtubeChannels";
 
@@ -366,6 +369,87 @@ export async function getBookmark(id: string): Promise<Bookmark | null> {
   if (!row) return null;
   const [hydrated] = await hydrateBookmarkRows([row]);
   return hydrated ?? null;
+}
+
+/**
+ * List bookmarks whose URL host equals `domain` (used to find links saved on a shortened domain so
+ * they can be bulk-expanded). An `ILIKE` prefilter narrows the scan, then `normalizeDomain` confirms
+ * the exact host so a substring like `youtu.be` can't match an unrelated URL.
+ */
+export async function listBookmarksOnHost(domain: string): Promise<BookmarkUrlSummary[]> {
+  const host = domain.trim().replace(/^www\./i, "").toLowerCase();
+  if (host.length === 0) return [];
+  const rows = await db
+    .select({
+      id: bookmarks.id,
+      url: bookmarks.url,
+      title: bookmarks.title,
+    })
+    .from(bookmarks)
+    .where(ilike(bookmarks.url, `%${host}%`))
+    .orderBy(desc(bookmarks.createdAt));
+  return rows.filter(row => normalizeDomain(row.url) === host);
+}
+
+/**
+ * Apply a batch of URL rewrites (e.g. expanding shortened links). Each item reuses `updateBookmark`
+ * so the website / YouTube-channel are re-derived, and preserves the pre-existing original URL (or
+ * records the old URL as the original on first change). Per-item failures are reported rather than
+ * aborting the batch, so one duplicate doesn't sink the rest.
+ */
+export async function bulkUpdateBookmarkUrls(items: BulkUrlUpdate[]): Promise<BulkUrlUpdateResult[]> {
+  const results: BulkUrlUpdateResult[] = [];
+  for (const item of items) {
+    const [current] = await db
+      .select({
+        url: bookmarks.url,
+        originalUrl: bookmarks.originalUrl,
+      })
+      .from(bookmarks)
+      .where(eq(bookmarks.id, item.id));
+    if (!current) {
+      results.push({
+        id: item.id,
+        status: "not-found",
+      });
+      continue;
+    }
+    if (current.url === item.url) {
+      results.push({
+        id: item.id,
+        status: "skipped-unchanged",
+      });
+      continue;
+    }
+    try {
+      await updateBookmark(item.id, {
+        url: item.url,
+        // Keep the first-seen original; otherwise record the URL we're replacing.
+        originalUrl: current.originalUrl ?? current.url,
+      });
+      results.push({
+        id: item.id,
+        status: "applied",
+      });
+    }
+    catch (err) {
+      if (err instanceof DuplicateUrlError) {
+        results.push({
+          id: item.id,
+          status: "skipped-duplicate",
+          message: err.message,
+        });
+      }
+      else {
+        results.push({
+          id: item.id,
+          status: "error",
+          message: err instanceof Error ? err.message : String(err),
+        });
+      }
+    }
+  }
+  return results;
 }
 
 /**

@@ -85,6 +85,18 @@ const migrations: RuntimeMigration[] = [
     `),
   },
   {
+    // `websites.shortened_links` / `param_rules` are NOT NULL jsonb DEFAULT '[]'. Adding NOT NULL
+    // columns to the populated `websites` table makes drizzle-kit push prompt (non-TTY crash), so
+    // pre-apply them here. One ALTER TABLE with two ADD COLUMN clauses is a single statement (safe
+    // over the extended protocol). Defaults must match schema.ts exactly.
+    name: "add websites.shortened_links + param_rules columns",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "websites"
+        ADD COLUMN IF NOT EXISTS "shortened_links" jsonb NOT NULL DEFAULT '[]'::jsonb,
+        ADD COLUMN IF NOT EXISTS "param_rules" jsonb NOT NULL DEFAULT '[]'::jsonb
+    `),
+  },
+  {
     // `bookmarks.priority` is NOT NULL DEFAULT 0. Adding a NOT NULL column to the populated
     // `bookmarks` table makes drizzle-kit push prompt for confirmation; in this non-TTY deploy that
     // prompt crashes push (and even `--force` doesn't suppress it), leaving the whole additive diff

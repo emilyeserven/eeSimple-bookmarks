@@ -50,6 +50,10 @@ const settingsNav = [
     to: "/settings/automations",
     label: "Automations",
   },
+  {
+    to: "/settings/link-parsing",
+    label: "Link parsing",
+  },
 ] as const;
 
 const navLinkClass = `

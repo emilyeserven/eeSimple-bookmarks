@@ -1,55 +1,151 @@
+import type { ShortenedLink, Website } from "@eesimple/types";
+
 import { describe, expect, it } from "vitest";
 
-import { canonicalizeYouTubeUrl, cleanUrl } from "./urlCleanup";
+import { canonicalize, cleanUrl } from "./urlCleanup";
 
-describe("canonicalizeYouTubeUrl", () => {
-  it("keeps only the v param on a watch URL", () => {
-    expect(
-      canonicalizeYouTubeUrl("https://www.youtube.com/watch?v=FqWBQv7h_3I&list=RDYjPMupS1Lg4&index=8"),
-    ).toBe("https://www.youtube.com/watch?v=FqWBQv7h_3I");
+function youtube(shortened?: Partial<ShortenedLink>): Website {
+  return {
+    id: "yt",
+    domain: "youtube.com",
+    siteName: "YouTube",
+    slug: "youtube",
+    builtIn: true,
+    shortenedLinks: [
+      {
+        domain: "youtu.be",
+        expandTo: "https://www.youtube.com/watch?v={id}",
+        keepShortened: false,
+        ...shortened,
+      },
+    ],
+    paramRules: [
+      {
+        pathSuffix: "/watch",
+        params: ["v"],
+      },
+      {
+        pathSuffix: "/playlist",
+        params: ["list"],
+      },
+    ],
+    createdAt: "2020-01-01T00:00:00Z",
+  };
+}
+
+const ignoreList = ["bit.ly", "t.co"];
+
+describe("canonicalize — param rules", () => {
+  it("keeps only the whitelisted param for the matching path", () => {
+    const watch = canonicalize("https://www.youtube.com/watch?v=FqWBQv7h_3I&list=RD&index=8", {
+      mode: "none",
+      websites: [youtube()],
+      ignoreList,
+    });
+    expect(watch.url).toBe("https://www.youtube.com/watch?v=FqWBQv7h_3I");
+    expect(watch.matchedWebsite?.domain).toBe("youtube.com");
+
+    const playlist = canonicalize("https://www.youtube.com/playlist?list=PL123", {
+      mode: "none",
+      websites: [youtube()],
+      ignoreList,
+    });
+    expect(playlist.url).toBe("https://www.youtube.com/playlist?list=PL123");
   });
 
-  it("keeps the list param on a playlist URL", () => {
-    expect(
-      canonicalizeYouTubeUrl("https://www.youtube.com/playlist?list=PLI6O8zuzXWiTxBwGQ9N4t0RAKw9jYc7IP"),
-    ).toBe("https://www.youtube.com/playlist?list=PLI6O8zuzXWiTxBwGQ9N4t0RAKw9jYc7IP");
+  it("applies param rules regardless of cleanup mode (protects v under 'all')", () => {
+    const result = canonicalize("https://www.youtube.com/watch?v=X&list=Y", {
+      mode: "all",
+      websites: [youtube()],
+      ignoreList,
+    });
+    expect(result.url).toBe("https://www.youtube.com/watch?v=X");
   });
 
-  it("strips all query params from short links and other YouTube paths", () => {
-    expect(canonicalizeYouTubeUrl("https://youtu.be/FqWBQv7h_3I?si=abc&t=42")).toBe(
-      "https://youtu.be/FqWBQv7h_3I",
-    );
-    expect(canonicalizeYouTubeUrl("https://www.youtube.com/shorts/abc123?feature=share")).toBe(
-      "https://www.youtube.com/shorts/abc123",
-    );
-  });
-
-  it("leaves non-YouTube and unparseable URLs unchanged", () => {
-    expect(canonicalizeYouTubeUrl("https://example.com/watch?v=abc&utm_source=x")).toBe(
-      "https://example.com/watch?v=abc&utm_source=x",
-    );
-    expect(canonicalizeYouTubeUrl("not a url")).toBe("not a url");
+  it("strips all params when the site has rules but none match the path", () => {
+    const result = canonicalize("https://www.youtube.com/feed/subscriptions?ab=1", {
+      mode: "none",
+      websites: [youtube()],
+      ignoreList,
+    });
+    expect(result.url).toBe("https://www.youtube.com/feed/subscriptions");
   });
 });
 
-describe("cleanUrl", () => {
-  it("canonicalizes YouTube URLs even when the mode is 'none'", () => {
-    expect(
-      cleanUrl("https://www.youtube.com/watch?v=FqWBQv7h_3I&list=RDYjPMupS1Lg4&index=8", "none"),
-    ).toBe("https://www.youtube.com/watch?v=FqWBQv7h_3I");
+describe("canonicalize — shortened links", () => {
+  it("expands a verified short link to its long form (no nudge)", () => {
+    const result = canonicalize("https://youtu.be/FqWBQv7h_3I?si=abc", {
+      mode: "none",
+      websites: [youtube()],
+      ignoreList,
+    });
+    expect(result.url).toBe("https://www.youtube.com/watch?v=FqWBQv7h_3I");
+    expect(result.expanded).toBe(true);
+    expect(result.shortener).toBe("verified");
+    expect(result.nudge).toBe(false);
+    expect(result.matchedWebsite?.domain).toBe("youtube.com");
   });
 
-  it("never strips the v param from a YouTube watch URL under 'all'", () => {
-    expect(
-      cleanUrl("https://www.youtube.com/watch?v=FqWBQv7h_3I&list=RDYjPMupS1Lg4", "all"),
-    ).toBe("https://www.youtube.com/watch?v=FqWBQv7h_3I");
+  it("keeps a 'keep-shortened' link and nudges instead of expanding", () => {
+    const result = canonicalize("https://youtu.be/FqWBQv7h_3I", {
+      mode: "none",
+      websites: [youtube({
+        keepShortened: true,
+      })],
+      ignoreList,
+    });
+    expect(result.url).toBe("https://youtu.be/FqWBQv7h_3I");
+    expect(result.expanded).toBe(false);
+    expect(result.shortener).toBe("verified");
+    expect(result.nudge).toBe(true);
   });
 
-  it("still applies the normal modes to non-YouTube URLs", () => {
-    expect(cleanUrl("https://example.com/a?b=1", "none")).toBe("https://example.com/a?b=1");
-    expect(cleanUrl("https://example.com/a?b=1&utm_source=x", "trackers")).toBe(
+  it("nudges for a generic ignore-list shortener with no expansion", () => {
+    const result = canonicalize("https://bit.ly/abc123", {
+      mode: "none",
+      websites: [youtube()],
+      ignoreList,
+    });
+    expect(result.url).toBe("https://bit.ly/abc123");
+    expect(result.shortener).toBe("generic");
+    expect(result.nudge).toBe(true);
+    expect(result.matchedWebsite).toBeNull();
+  });
+});
+
+describe("canonicalize — non-rule sites honor mode", () => {
+  const data = (mode: "none" | "trackers" | "all") => ({
+    mode,
+    websites: [youtube()],
+    ignoreList,
+  });
+
+  it("leaves URLs untouched in 'none' mode", () => {
+    expect(canonicalize("https://example.com/a?b=1", data("none")).url).toBe("https://example.com/a?b=1");
+  });
+  it("strips known trackers in 'trackers' mode", () => {
+    expect(canonicalize("https://example.com/a?b=1&utm_source=x", data("trackers")).url).toBe(
       "https://example.com/a?b=1",
     );
-    expect(cleanUrl("https://example.com/a?b=1", "all")).toBe("https://example.com/a");
+  });
+  it("strips all params in 'all' mode", () => {
+    expect(canonicalize("https://example.com/a?b=1", data("all")).url).toBe("https://example.com/a");
+  });
+});
+
+describe("cleanUrl wrapper", () => {
+  it("returns just the cleaned URL string", () => {
+    expect(cleanUrl("https://youtu.be/FqWBQv7h_3I", {
+      mode: "none",
+      websites: [youtube()],
+      ignoreList,
+    })).toBe("https://www.youtube.com/watch?v=FqWBQv7h_3I");
+  });
+  it("returns unparseable input unchanged", () => {
+    expect(cleanUrl("not a url", {
+      mode: "all",
+      websites: [],
+      ignoreList,
+    })).toBe("not a url");
   });
 });

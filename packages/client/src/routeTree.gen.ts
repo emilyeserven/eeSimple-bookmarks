@@ -29,6 +29,7 @@ import { Route as TagsTagSlugRouteImport } from './routes/tags.$tagSlug'
 import { Route as SettingsYoutubeChannelsRouteImport } from './routes/settings.youtube-channels'
 import { Route as SettingsWebsitesRouteImport } from './routes/settings.websites'
 import { Route as SettingsMediaTypesRouteImport } from './routes/settings.media-types'
+import { Route as SettingsLinkParsingRouteImport } from './routes/settings.link-parsing'
 import { Route as SettingsHomepageRouteImport } from './routes/settings.homepage'
 import { Route as SettingsGalleryRouteImport } from './routes/settings.gallery'
 import { Route as SettingsDisplayRouteImport } from './routes/settings.display'
@@ -170,6 +171,11 @@ const SettingsWebsitesRoute = SettingsWebsitesRouteImport.update({
 const SettingsMediaTypesRoute = SettingsMediaTypesRouteImport.update({
   id: '/media-types',
   path: '/media-types',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsLinkParsingRoute = SettingsLinkParsingRouteImport.update({
+  id: '/link-parsing',
+  path: '/link-parsing',
   getParentRoute: () => SettingsRoute,
 } as any)
 const SettingsHomepageRoute = SettingsHomepageRouteImport.update({
@@ -423,6 +429,7 @@ export interface FileRoutesByFullPath {
   '/settings/display': typeof SettingsDisplayRoute
   '/settings/gallery': typeof SettingsGalleryRoute
   '/settings/homepage': typeof SettingsHomepageRoute
+  '/settings/link-parsing': typeof SettingsLinkParsingRoute
   '/settings/media-types': typeof SettingsMediaTypesRoute
   '/settings/websites': typeof SettingsWebsitesRoute
   '/settings/youtube-channels': typeof SettingsYoutubeChannelsRoute
@@ -476,6 +483,7 @@ export interface FileRoutesByTo {
   '/settings/display': typeof SettingsDisplayRoute
   '/settings/gallery': typeof SettingsGalleryRoute
   '/settings/homepage': typeof SettingsHomepageRoute
+  '/settings/link-parsing': typeof SettingsLinkParsingRoute
   '/settings/media-types': typeof SettingsMediaTypesRoute
   '/settings/websites': typeof SettingsWebsitesRoute
   '/settings/youtube-channels': typeof SettingsYoutubeChannelsRoute
@@ -531,6 +539,7 @@ export interface FileRoutesById {
   '/settings/display': typeof SettingsDisplayRoute
   '/settings/gallery': typeof SettingsGalleryRoute
   '/settings/homepage': typeof SettingsHomepageRoute
+  '/settings/link-parsing': typeof SettingsLinkParsingRoute
   '/settings/media-types': typeof SettingsMediaTypesRoute
   '/settings/websites': typeof SettingsWebsitesRoute
   '/settings/youtube-channels': typeof SettingsYoutubeChannelsRoute
@@ -596,6 +605,7 @@ export interface FileRouteTypes {
     | '/settings/display'
     | '/settings/gallery'
     | '/settings/homepage'
+    | '/settings/link-parsing'
     | '/settings/media-types'
     | '/settings/websites'
     | '/settings/youtube-channels'
@@ -649,6 +659,7 @@ export interface FileRouteTypes {
     | '/settings/display'
     | '/settings/gallery'
     | '/settings/homepage'
+    | '/settings/link-parsing'
     | '/settings/media-types'
     | '/settings/websites'
     | '/settings/youtube-channels'
@@ -703,6 +714,7 @@ export interface FileRouteTypes {
     | '/settings/display'
     | '/settings/gallery'
     | '/settings/homepage'
+    | '/settings/link-parsing'
     | '/settings/media-types'
     | '/settings/websites'
     | '/settings/youtube-channels'
@@ -904,6 +916,13 @@ declare module '@tanstack/react-router' {
       path: '/media-types'
       fullPath: '/settings/media-types'
       preLoaderRoute: typeof SettingsMediaTypesRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/link-parsing': {
+      id: '/settings/link-parsing'
+      path: '/link-parsing'
+      fullPath: '/settings/link-parsing'
+      preLoaderRoute: typeof SettingsLinkParsingRouteImport
       parentRoute: typeof SettingsRoute
     }
     '/settings/homepage': {
@@ -1378,6 +1397,7 @@ interface SettingsRouteChildren {
   SettingsDisplayRoute: typeof SettingsDisplayRoute
   SettingsGalleryRoute: typeof SettingsGalleryRoute
   SettingsHomepageRoute: typeof SettingsHomepageRoute
+  SettingsLinkParsingRoute: typeof SettingsLinkParsingRoute
   SettingsMediaTypesRoute: typeof SettingsMediaTypesRoute
   SettingsWebsitesRoute: typeof SettingsWebsitesRoute
   SettingsYoutubeChannelsRoute: typeof SettingsYoutubeChannelsRoute
@@ -1391,6 +1411,7 @@ const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsDisplayRoute: SettingsDisplayRoute,
   SettingsGalleryRoute: SettingsGalleryRoute,
   SettingsHomepageRoute: SettingsHomepageRoute,
+  SettingsLinkParsingRoute: SettingsLinkParsingRoute,
   SettingsMediaTypesRoute: SettingsMediaTypesRoute,
   SettingsWebsitesRoute: SettingsWebsitesRoute,
   SettingsYoutubeChannelsRoute: SettingsYoutubeChannelsRoute,

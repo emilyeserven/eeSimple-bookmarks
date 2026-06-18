@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { buildApp } from "@/app";
 import { maybeSeed } from "@/db/seed";
+import { ensureAppSettings } from "@/services/appSettings";
 import { ensureAutofillConditions, ensureAutofillSlugs } from "@/services/autofill";
 import { ensureDefaultCategory } from "@/services/categories";
 import { backfillCustomPropertySlugs, ensureVideoLengthProperty } from "@/services/customProperties";
@@ -38,6 +39,7 @@ try {
   // Runs in every environment: guarantees the built-in "Default" category and
   // backfills any bookmarks left without a category.
   await ensureDefaultCategory();
+  await ensureAppSettings();
   await ensureBuiltInWebsites();
   await backfillWebsiteSlugs();
   await backfillCustomPropertySlugs();

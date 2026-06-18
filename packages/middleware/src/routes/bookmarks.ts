@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import type { CreateBookmarkInput, UpdateBookmarkInput } from "@eesimple/types";
+import type { BulkUrlUpdate, CreateBookmarkInput, UpdateBookmarkInput } from "@eesimple/types";
 import {
   fetchAndStoreOgImage,
   getBookmarkImageRow,
@@ -7,11 +7,13 @@ import {
   setBookmarkImage,
 } from "@/services/bookmarkImages";
 import {
+  bulkUpdateBookmarkUrls,
   createBookmark,
   deleteBookmark,
   DuplicateUrlError,
   getBookmark,
   listBookmarks,
+  listBookmarksOnHost,
   updateBookmark,
 } from "@/services/bookmarks";
 import { getObjectStream, isObjectStoreConfigured } from "@/utils/objectStore";
@@ -155,6 +157,44 @@ const updateBookmarkBody = {
   properties: createBookmarkBody.properties,
 } as const;
 
+const onHostQuery = {
+  type: "object",
+  required: ["domain"],
+  additionalProperties: false,
+  properties: {
+    domain: {
+      type: "string",
+      minLength: 1,
+    },
+  },
+} as const;
+
+const bulkUrlBody = {
+  type: "object",
+  required: ["items"],
+  additionalProperties: false,
+  properties: {
+    items: {
+      type: "array",
+      items: {
+        type: "object",
+        required: ["id", "url"],
+        additionalProperties: false,
+        properties: {
+          id: {
+            type: "string",
+            format: "uuid",
+          },
+          url: {
+            type: "string",
+            format: "uri",
+          },
+        },
+      },
+    },
+  },
+} as const;
+
 /** CRUD routes for bookmarks, mounted under `/api/bookmarks`. */
 export async function bookmarkRoutes(app: FastifyInstance): Promise<void> {
   app.get("/api/bookmarks", {
@@ -167,6 +207,31 @@ export async function bookmarkRoutes(app: FastifyInstance): Promise<void> {
       tag,
     } = req.query as { tag?: string };
     return listBookmarks(tag);
+  });
+
+  // Static sub-paths are declared before `/:id` so they aren't captured by the param route.
+  app.get("/api/bookmarks/on-host", {
+    schema: {
+      tags: ["bookmarks"],
+      querystring: onHostQuery,
+    },
+  }, async (req) => {
+    const {
+      domain,
+    } = req.query as { domain: string };
+    return listBookmarksOnHost(domain);
+  });
+
+  app.post("/api/bookmarks/bulk-url", {
+    schema: {
+      tags: ["bookmarks"],
+      body: bulkUrlBody,
+    },
+  }, async (req) => {
+    const {
+      items,
+    } = req.body as { items: BulkUrlUpdate[] };
+    return bulkUpdateBookmarkUrls(items);
   });
 
   app.get("/api/bookmarks/:id", {

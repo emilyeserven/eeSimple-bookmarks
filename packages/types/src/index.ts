@@ -57,6 +57,34 @@ export interface UpdateTagInput {
  * A site in the built-in "Websites" taxonomy. Every bookmark is auto-linked to one of these by
  * the host of its URL, so bookmarks can be grouped and browsed per site.
  */
+/**
+ * A path-scoped query-param whitelist for a website. When a website has any rules, the URL
+ * canonicalizer keeps only the `params` of the longest-matching rule for the URL's path and strips
+ * everything else (and strips all params when the site has rules but none match the path).
+ */
+export interface WebsiteParamRule {
+  /** Path suffix the rule matches (e.g. `"/watch"`, `"/playlist"`); `""` matches any path. */
+  pathSuffix: string;
+  /** Query params kept on a matching path; all others are stripped. */
+  params: string[];
+}
+
+/**
+ * A verified shortened-link domain that resolves to a website (e.g. `youtu.be` → `youtube.com`).
+ * Bookmarks on the short domain are associated with the parent site.
+ */
+export interface ShortenedLink {
+  /** Normalized short domain that resolves to this site, e.g. `"youtu.be"`. */
+  domain: string;
+  /**
+   * Expansion template, e.g. `"https://www.youtube.com/watch?v={id}"`. Tokens: `{id}` = first path
+   * segment of the short URL, `{path}` = pathname without the leading slash. `null` = no rule yet.
+   */
+  expandTo: string | null;
+  /** When `true`, never expand — keep the short URL and always nudge to use the long link. */
+  keepShortened: boolean;
+}
+
 export interface Website {
   id: string;
   /** Normalized host (lower-cased, leading `www.` stripped), e.g. `"github.com"`. Unique. */
@@ -67,6 +95,10 @@ export interface Website {
   slug: string;
   /** Whether this is a seeded built-in (e.g. youtube.com); protected from rename/delete. */
   builtIn: boolean;
+  /** Verified shortened-link domains that resolve to this site (e.g. `youtu.be`). */
+  shortenedLinks: ShortenedLink[];
+  /** Path-scoped query-param whitelist applied when canonicalizing this site's URLs. */
+  paramRules: WebsiteParamRule[];
   /** ISO-8601 timestamp of when the website was first seen. */
   createdAt: string;
   /** Number of bookmarks associated with this website (populated by list endpoints). */
@@ -82,22 +114,39 @@ export interface CreateWebsiteInput {
   domain: string;
   /** Optional friendly name; defaults to the normalized domain when omitted. */
   siteName?: string;
+  /** Optional verified shortened-link domains that resolve to this site. */
+  shortenedLinks?: ShortenedLink[];
+  /** Optional path-scoped query-param whitelist. */
+  paramRules?: WebsiteParamRule[];
 }
 
 /** Payload for updating a website (rename its site name and/or change its domain). */
 export interface UpdateWebsiteInput {
   siteName?: string;
   domain?: string;
+  shortenedLinks?: ShortenedLink[];
+  paramRules?: WebsiteParamRule[];
 }
 
 /** Result of looking up the website for a URL without creating one — powers the form banner. */
 export interface WebsiteLookup {
-  /** Normalized host of the URL, or `null` when the URL has no usable host. */
+  /** Normalized host of the URL, resolved through a verified shortened link to the parent site. */
   domain: string | null;
   /** Whether a website already exists for that domain. */
   exists: boolean;
   /** The existing website's site name when `exists`, otherwise `null`. */
   siteName: string | null;
+  /**
+   * Whether the looked-up host is a shortened link: `"verified"` when it resolves to a known site,
+   * `"generic"` when it's in the shortener ignore list, otherwise `null`.
+   */
+  shortener: "verified" | "generic" | null;
+}
+
+/** Global app settings singleton. */
+export interface AppSettings {
+  /** Generic URL-shortener domains (e.g. `bit.ly`) that can't be expanded — always nudge. */
+  shortenerIgnoreList: string[];
 }
 
 /**
@@ -317,6 +366,28 @@ export interface CreateBookmarkInput {
 
 /** Payload for partially updating a bookmark. */
 export type UpdateBookmarkInput = Partial<CreateBookmarkInput>;
+
+/** Minimal bookmark shape for the bulk shortened-link expansion review list. */
+export interface BookmarkUrlSummary {
+  id: string;
+  url: string;
+  title: string;
+}
+
+/** One bookmark URL rewrite in a bulk apply. */
+export interface BulkUrlUpdate {
+  id: string;
+  /** The new (e.g. expanded) URL to store. */
+  url: string;
+}
+
+/** Per-item outcome of a bulk URL rewrite. */
+export interface BulkUrlUpdateResult {
+  id: string;
+  status: "applied" | "skipped-duplicate" | "skipped-unchanged" | "not-found" | "error";
+  /** Human-readable detail when the status isn't `applied`. */
+  message?: string;
+}
 
 /**
  * The kind of a user-defined custom property:

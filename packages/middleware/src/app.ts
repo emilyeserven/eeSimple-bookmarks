@@ -3,6 +3,7 @@ import multipart from "@fastify/multipart";
 import swagger from "@fastify/swagger";
 import swaggerUi from "@fastify/swagger-ui";
 import Fastify, { type FastifyInstance } from "fastify";
+import { appSettingsRoutes } from "@/routes/appSettings";
 import { autofillRoutes } from "@/routes/autofill";
 import { bookmarkRoutes } from "@/routes/bookmarks";
 import { categoryRoutes } from "@/routes/categories";
@@ -83,6 +84,10 @@ export async function buildApp(): Promise<FastifyInstance> {
           description: "Named, ordered homepage sections with their own condition filters",
         },
         {
+          name: "app-settings",
+          description: "Global application settings (e.g. the URL-shortener ignore list)",
+        },
+        {
           name: "health",
           description: "Service health",
         },
@@ -120,6 +125,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(categoryRoutes);
   await app.register(autofillRoutes);
   await app.register(homepageSectionsRoutes);
+  await app.register(appSettingsRoutes);
   await app.register(galleryRoutes);
 
   return app;
