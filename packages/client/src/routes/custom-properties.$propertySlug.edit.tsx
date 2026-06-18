@@ -1,5 +1,6 @@
-import { Link, Outlet, createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 
+import { TabbedEntityLayout, navLinkClass } from "../components/TabbedEntityLayout";
 import { usePropertyBySlug } from "../hooks/useCustomProperties";
 import { hasPropertyOptions } from "../lib/propertyForm";
 
@@ -8,11 +9,6 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/custom-properties/$propertySlug/edit")({
   component: CustomPropertyEditLayout,
 });
-
-const navLinkClass = `
-  rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors
-  hover:bg-accent hover:text-accent-foreground
-`;
 
 function CustomPropertyEditLayout() {
   const {
@@ -49,34 +45,30 @@ function CustomPropertyEditLayout() {
   ] as const;
 
   return (
-    <section className="space-y-6">
-      <div className="space-y-1">
-        <Link
-          to="/custom-properties/$propertySlug"
-          params={{
-            propertySlug,
-          }}
-          className="
-            text-sm text-muted-foreground
-            hover:text-foreground
-          "
-        >
-          ← Back to custom property
-        </Link>
-        <h1 className="text-2xl font-bold">
-          {isLoading ? "Edit custom property" : (property?.name ?? "Custom property not found")}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Edit the general details, options, categories, display, and autofill rules for this property.
-        </p>
-      </div>
-
-      <div
-        className="
-          flex flex-col gap-6
-          sm:flex-row
-        "
-      >
+    <TabbedEntityLayout
+      header={(
+        <div className="space-y-1">
+          <Link
+            to="/custom-properties/$propertySlug"
+            params={{
+              propertySlug,
+            }}
+            className="
+              text-sm text-muted-foreground
+              hover:text-foreground
+            "
+          >
+            ← Back to custom property
+          </Link>
+          <h1 className="text-2xl font-bold">
+            {isLoading ? "Edit custom property" : (property?.name ?? "Custom property not found")}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Edit the general details, options, categories, display, and autofill rules for this property.
+          </p>
+        </div>
+      )}
+      nav={(
         <nav
           className="
             flex shrink-0 flex-col gap-1
@@ -100,11 +92,7 @@ function CustomPropertyEditLayout() {
             </Link>
           ))}
         </nav>
-
-        <div className="min-w-0 flex-1">
-          <Outlet />
-        </div>
-      </div>
-    </section>
+      )}
+    />
   );
 }

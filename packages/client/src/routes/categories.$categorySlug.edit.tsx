@@ -1,5 +1,6 @@
-import { Link, Outlet, createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 
+import { TabbedEntityLayout, navLinkClass } from "../components/TabbedEntityLayout";
 import { useCategoryBySlug } from "../hooks/useCategories";
 
 import { CategoryIcon } from "@/lib/icons";
@@ -28,11 +29,6 @@ const editNav = [
   },
 ] as const;
 
-const navLinkClass = `
-  rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors
-  hover:bg-accent hover:text-accent-foreground
-`;
-
 function CategoryEditLayout() {
   const {
     categorySlug,
@@ -42,38 +38,34 @@ function CategoryEditLayout() {
   } = useCategoryBySlug(categorySlug);
 
   return (
-    <section className="space-y-6">
-      <div className="space-y-1">
-        <Link
-          to="/categories/$categorySlug"
-          params={{
-            categorySlug,
-          }}
-          className="
-            text-sm text-muted-foreground
-            hover:text-foreground
-          "
-        >
-          ← Back to category
-        </Link>
-        <h1 className="flex items-center gap-2 text-2xl font-bold">
-          <CategoryIcon
-            name={category?.icon ?? null}
-            className="size-6"
-          />
-          {isLoading ? "Edit category" : (category?.name ?? "Category not found")}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Edit this category, its tiered tags, custom properties, and autofill rules.
-        </p>
-      </div>
-
-      <div
-        className="
-          flex flex-col gap-6
-          sm:flex-row
-        "
-      >
+    <TabbedEntityLayout
+      header={(
+        <div className="space-y-1">
+          <Link
+            to="/categories/$categorySlug"
+            params={{
+              categorySlug,
+            }}
+            className="
+              text-sm text-muted-foreground
+              hover:text-foreground
+            "
+          >
+            ← Back to category
+          </Link>
+          <h1 className="flex items-center gap-2 text-2xl font-bold">
+            <CategoryIcon
+              name={category?.icon ?? null}
+              className="size-6"
+            />
+            {isLoading ? "Edit category" : (category?.name ?? "Category not found")}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Edit this category, its tiered tags, custom properties, and autofill rules.
+          </p>
+        </div>
+      )}
+      nav={(
         <nav
           className="
             flex shrink-0 flex-col gap-1
@@ -97,11 +89,7 @@ function CategoryEditLayout() {
             </Link>
           ))}
         </nav>
-
-        <div className="min-w-0 flex-1">
-          <Outlet />
-        </div>
-      </div>
-    </section>
+      )}
+    />
   );
 }

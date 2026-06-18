@@ -67,6 +67,7 @@ import { Route as CustomPropertiesPropertySlugEditIndexRouteImport } from './rou
 import { Route as CategoriesCategorySlugEditIndexRouteImport } from './routes/categories.$categorySlug.edit.index'
 import { Route as TaxonomiesYoutubeChannelsChannelSlugEditRouteImport } from './routes/taxonomies.youtube-channels.$channelSlug.edit'
 import { Route as TaxonomiesWebsitesWebsiteSlugEditRouteImport } from './routes/taxonomies.websites.$websiteSlug.edit'
+import { Route as TaxonomiesWebsitesWebsiteSlugViewRouteImport } from './routes/taxonomies.websites.$websiteSlug._view'
 import { Route as TaxonomiesMediaTypesMediaTypeSlugEditRouteImport } from './routes/taxonomies.media-types.$mediaTypeSlug.edit'
 import { Route as CustomPropertiesPropertySlugEditOptionsRouteImport } from './routes/custom-properties.$propertySlug.edit.options'
 import { Route as CustomPropertiesPropertySlugEditGeneralRouteImport } from './routes/custom-properties.$propertySlug.edit.general'
@@ -82,6 +83,13 @@ import { Route as CategoriesCategorySlugEditTieredTagsRouteImport } from './rout
 import { Route as CategoriesCategorySlugEditGeneralRouteImport } from './routes/categories.$categorySlug.edit.general'
 import { Route as CategoriesCategorySlugEditCustomPropertiesRouteImport } from './routes/categories.$categorySlug.edit.custom-properties'
 import { Route as CategoriesCategorySlugEditAutofillRouteImport } from './routes/categories.$categorySlug.edit.autofill'
+import { Route as TaxonomiesWebsitesWebsiteSlugEditIndexRouteImport } from './routes/taxonomies.websites.$websiteSlug.edit.index'
+import { Route as TaxonomiesWebsitesWebsiteSlugEditShortenedLinksRouteImport } from './routes/taxonomies.websites.$websiteSlug.edit.shortened-links'
+import { Route as TaxonomiesWebsitesWebsiteSlugEditParamRulesRouteImport } from './routes/taxonomies.websites.$websiteSlug.edit.param-rules'
+import { Route as TaxonomiesWebsitesWebsiteSlugEditGeneralRouteImport } from './routes/taxonomies.websites.$websiteSlug.edit.general'
+import { Route as TaxonomiesWebsitesWebsiteSlugViewShortenedLinksRouteImport } from './routes/taxonomies.websites.$websiteSlug._view.shortened-links'
+import { Route as TaxonomiesWebsitesWebsiteSlugViewParamRulesRouteImport } from './routes/taxonomies.websites.$websiteSlug._view.param-rules'
+import { Route as TaxonomiesWebsitesWebsiteSlugViewGeneralRouteImport } from './routes/taxonomies.websites.$websiteSlug._view.general'
 
 const TagsRoute = TagsRouteImport.update({
   id: '/tags',
@@ -394,6 +402,11 @@ const TaxonomiesWebsitesWebsiteSlugEditRoute =
     path: '/edit',
     getParentRoute: () => TaxonomiesWebsitesWebsiteSlugRoute,
   } as any)
+const TaxonomiesWebsitesWebsiteSlugViewRoute =
+  TaxonomiesWebsitesWebsiteSlugViewRouteImport.update({
+    id: '/_view',
+    getParentRoute: () => TaxonomiesWebsitesWebsiteSlugRoute,
+  } as any)
 const TaxonomiesMediaTypesMediaTypeSlugEditRoute =
   TaxonomiesMediaTypesMediaTypeSlugEditRouteImport.update({
     id: '/edit',
@@ -484,6 +497,48 @@ const CategoriesCategorySlugEditAutofillRoute =
     path: '/autofill',
     getParentRoute: () => CategoriesCategorySlugEditRoute,
   } as any)
+const TaxonomiesWebsitesWebsiteSlugEditIndexRoute =
+  TaxonomiesWebsitesWebsiteSlugEditIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => TaxonomiesWebsitesWebsiteSlugEditRoute,
+  } as any)
+const TaxonomiesWebsitesWebsiteSlugEditShortenedLinksRoute =
+  TaxonomiesWebsitesWebsiteSlugEditShortenedLinksRouteImport.update({
+    id: '/shortened-links',
+    path: '/shortened-links',
+    getParentRoute: () => TaxonomiesWebsitesWebsiteSlugEditRoute,
+  } as any)
+const TaxonomiesWebsitesWebsiteSlugEditParamRulesRoute =
+  TaxonomiesWebsitesWebsiteSlugEditParamRulesRouteImport.update({
+    id: '/param-rules',
+    path: '/param-rules',
+    getParentRoute: () => TaxonomiesWebsitesWebsiteSlugEditRoute,
+  } as any)
+const TaxonomiesWebsitesWebsiteSlugEditGeneralRoute =
+  TaxonomiesWebsitesWebsiteSlugEditGeneralRouteImport.update({
+    id: '/general',
+    path: '/general',
+    getParentRoute: () => TaxonomiesWebsitesWebsiteSlugEditRoute,
+  } as any)
+const TaxonomiesWebsitesWebsiteSlugViewShortenedLinksRoute =
+  TaxonomiesWebsitesWebsiteSlugViewShortenedLinksRouteImport.update({
+    id: '/shortened-links',
+    path: '/shortened-links',
+    getParentRoute: () => TaxonomiesWebsitesWebsiteSlugViewRoute,
+  } as any)
+const TaxonomiesWebsitesWebsiteSlugViewParamRulesRoute =
+  TaxonomiesWebsitesWebsiteSlugViewParamRulesRouteImport.update({
+    id: '/param-rules',
+    path: '/param-rules',
+    getParentRoute: () => TaxonomiesWebsitesWebsiteSlugViewRoute,
+  } as any)
+const TaxonomiesWebsitesWebsiteSlugViewGeneralRoute =
+  TaxonomiesWebsitesWebsiteSlugViewGeneralRouteImport.update({
+    id: '/general',
+    path: '/general',
+    getParentRoute: () => TaxonomiesWebsitesWebsiteSlugViewRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -496,7 +551,7 @@ export interface FileRoutesByFullPath {
   '/autofill/$ruleSlug': typeof AutofillRuleSlugRouteWithChildren
   '/bookmarks/$bookmarkId': typeof BookmarksBookmarkIdRouteWithChildren
   '/categories/$categorySlug': typeof CategoriesCategorySlugRouteWithChildren
-  '/custom-properties/$propertySlug': typeof CustomPropertiesPropertySlugViewRouteWithChildren
+  '/custom-properties/$propertySlug': typeof CustomPropertiesPropertySlugRouteWithChildren
   '/custom-properties/new': typeof CustomPropertiesNewRoute
   '/settings/autofill': typeof SettingsAutofillRoute
   '/settings/automations': typeof SettingsAutomationsRoute
@@ -551,13 +606,20 @@ export interface FileRoutesByFullPath {
   '/custom-properties/$propertySlug/edit/general': typeof CustomPropertiesPropertySlugEditGeneralRoute
   '/custom-properties/$propertySlug/edit/options': typeof CustomPropertiesPropertySlugEditOptionsRoute
   '/taxonomies/media-types/$mediaTypeSlug/edit': typeof TaxonomiesMediaTypesMediaTypeSlugEditRoute
-  '/taxonomies/websites/$websiteSlug/edit': typeof TaxonomiesWebsitesWebsiteSlugEditRoute
+  '/taxonomies/websites/$websiteSlug/edit': typeof TaxonomiesWebsitesWebsiteSlugEditRouteWithChildren
   '/taxonomies/youtube-channels/$channelSlug/edit': typeof TaxonomiesYoutubeChannelsChannelSlugEditRoute
   '/categories/$categorySlug/edit/': typeof CategoriesCategorySlugEditIndexRoute
   '/custom-properties/$propertySlug/edit/': typeof CustomPropertiesPropertySlugEditIndexRoute
   '/taxonomies/media-types/$mediaTypeSlug/': typeof TaxonomiesMediaTypesMediaTypeSlugIndexRoute
   '/taxonomies/websites/$websiteSlug/': typeof TaxonomiesWebsitesWebsiteSlugIndexRoute
   '/taxonomies/youtube-channels/$channelSlug/': typeof TaxonomiesYoutubeChannelsChannelSlugIndexRoute
+  '/taxonomies/websites/$websiteSlug/general': typeof TaxonomiesWebsitesWebsiteSlugViewGeneralRoute
+  '/taxonomies/websites/$websiteSlug/param-rules': typeof TaxonomiesWebsitesWebsiteSlugViewParamRulesRoute
+  '/taxonomies/websites/$websiteSlug/shortened-links': typeof TaxonomiesWebsitesWebsiteSlugViewShortenedLinksRoute
+  '/taxonomies/websites/$websiteSlug/edit/general': typeof TaxonomiesWebsitesWebsiteSlugEditGeneralRoute
+  '/taxonomies/websites/$websiteSlug/edit/param-rules': typeof TaxonomiesWebsitesWebsiteSlugEditParamRulesRoute
+  '/taxonomies/websites/$websiteSlug/edit/shortened-links': typeof TaxonomiesWebsitesWebsiteSlugEditShortenedLinksRoute
+  '/taxonomies/websites/$websiteSlug/edit/': typeof TaxonomiesWebsitesWebsiteSlugEditIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -607,13 +669,19 @@ export interface FileRoutesByTo {
   '/custom-properties/$propertySlug/edit/general': typeof CustomPropertiesPropertySlugEditGeneralRoute
   '/custom-properties/$propertySlug/edit/options': typeof CustomPropertiesPropertySlugEditOptionsRoute
   '/taxonomies/media-types/$mediaTypeSlug/edit': typeof TaxonomiesMediaTypesMediaTypeSlugEditRoute
-  '/taxonomies/websites/$websiteSlug/edit': typeof TaxonomiesWebsitesWebsiteSlugEditRoute
+  '/taxonomies/websites/$websiteSlug': typeof TaxonomiesWebsitesWebsiteSlugIndexRoute
   '/taxonomies/youtube-channels/$channelSlug/edit': typeof TaxonomiesYoutubeChannelsChannelSlugEditRoute
   '/categories/$categorySlug/edit': typeof CategoriesCategorySlugEditIndexRoute
   '/custom-properties/$propertySlug/edit': typeof CustomPropertiesPropertySlugEditIndexRoute
   '/taxonomies/media-types/$mediaTypeSlug': typeof TaxonomiesMediaTypesMediaTypeSlugIndexRoute
-  '/taxonomies/websites/$websiteSlug': typeof TaxonomiesWebsitesWebsiteSlugIndexRoute
   '/taxonomies/youtube-channels/$channelSlug': typeof TaxonomiesYoutubeChannelsChannelSlugIndexRoute
+  '/taxonomies/websites/$websiteSlug/general': typeof TaxonomiesWebsitesWebsiteSlugViewGeneralRoute
+  '/taxonomies/websites/$websiteSlug/param-rules': typeof TaxonomiesWebsitesWebsiteSlugViewParamRulesRoute
+  '/taxonomies/websites/$websiteSlug/shortened-links': typeof TaxonomiesWebsitesWebsiteSlugViewShortenedLinksRoute
+  '/taxonomies/websites/$websiteSlug/edit/general': typeof TaxonomiesWebsitesWebsiteSlugEditGeneralRoute
+  '/taxonomies/websites/$websiteSlug/edit/param-rules': typeof TaxonomiesWebsitesWebsiteSlugEditParamRulesRoute
+  '/taxonomies/websites/$websiteSlug/edit/shortened-links': typeof TaxonomiesWebsitesWebsiteSlugEditShortenedLinksRoute
+  '/taxonomies/websites/$websiteSlug/edit': typeof TaxonomiesWebsitesWebsiteSlugEditIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -683,13 +751,21 @@ export interface FileRoutesById {
   '/custom-properties/$propertySlug/edit/general': typeof CustomPropertiesPropertySlugEditGeneralRoute
   '/custom-properties/$propertySlug/edit/options': typeof CustomPropertiesPropertySlugEditOptionsRoute
   '/taxonomies/media-types/$mediaTypeSlug/edit': typeof TaxonomiesMediaTypesMediaTypeSlugEditRoute
-  '/taxonomies/websites/$websiteSlug/edit': typeof TaxonomiesWebsitesWebsiteSlugEditRoute
+  '/taxonomies/websites/$websiteSlug/_view': typeof TaxonomiesWebsitesWebsiteSlugViewRouteWithChildren
+  '/taxonomies/websites/$websiteSlug/edit': typeof TaxonomiesWebsitesWebsiteSlugEditRouteWithChildren
   '/taxonomies/youtube-channels/$channelSlug/edit': typeof TaxonomiesYoutubeChannelsChannelSlugEditRoute
   '/categories/$categorySlug/edit/': typeof CategoriesCategorySlugEditIndexRoute
   '/custom-properties/$propertySlug/edit/': typeof CustomPropertiesPropertySlugEditIndexRoute
   '/taxonomies/media-types/$mediaTypeSlug/': typeof TaxonomiesMediaTypesMediaTypeSlugIndexRoute
   '/taxonomies/websites/$websiteSlug/': typeof TaxonomiesWebsitesWebsiteSlugIndexRoute
   '/taxonomies/youtube-channels/$channelSlug/': typeof TaxonomiesYoutubeChannelsChannelSlugIndexRoute
+  '/taxonomies/websites/$websiteSlug/_view/general': typeof TaxonomiesWebsitesWebsiteSlugViewGeneralRoute
+  '/taxonomies/websites/$websiteSlug/_view/param-rules': typeof TaxonomiesWebsitesWebsiteSlugViewParamRulesRoute
+  '/taxonomies/websites/$websiteSlug/_view/shortened-links': typeof TaxonomiesWebsitesWebsiteSlugViewShortenedLinksRoute
+  '/taxonomies/websites/$websiteSlug/edit/general': typeof TaxonomiesWebsitesWebsiteSlugEditGeneralRoute
+  '/taxonomies/websites/$websiteSlug/edit/param-rules': typeof TaxonomiesWebsitesWebsiteSlugEditParamRulesRoute
+  '/taxonomies/websites/$websiteSlug/edit/shortened-links': typeof TaxonomiesWebsitesWebsiteSlugEditShortenedLinksRoute
+  '/taxonomies/websites/$websiteSlug/edit/': typeof TaxonomiesWebsitesWebsiteSlugEditIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -766,6 +842,13 @@ export interface FileRouteTypes {
     | '/taxonomies/media-types/$mediaTypeSlug/'
     | '/taxonomies/websites/$websiteSlug/'
     | '/taxonomies/youtube-channels/$channelSlug/'
+    | '/taxonomies/websites/$websiteSlug/general'
+    | '/taxonomies/websites/$websiteSlug/param-rules'
+    | '/taxonomies/websites/$websiteSlug/shortened-links'
+    | '/taxonomies/websites/$websiteSlug/edit/general'
+    | '/taxonomies/websites/$websiteSlug/edit/param-rules'
+    | '/taxonomies/websites/$websiteSlug/edit/shortened-links'
+    | '/taxonomies/websites/$websiteSlug/edit/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -815,13 +898,19 @@ export interface FileRouteTypes {
     | '/custom-properties/$propertySlug/edit/general'
     | '/custom-properties/$propertySlug/edit/options'
     | '/taxonomies/media-types/$mediaTypeSlug/edit'
-    | '/taxonomies/websites/$websiteSlug/edit'
+    | '/taxonomies/websites/$websiteSlug'
     | '/taxonomies/youtube-channels/$channelSlug/edit'
     | '/categories/$categorySlug/edit'
     | '/custom-properties/$propertySlug/edit'
     | '/taxonomies/media-types/$mediaTypeSlug'
-    | '/taxonomies/websites/$websiteSlug'
     | '/taxonomies/youtube-channels/$channelSlug'
+    | '/taxonomies/websites/$websiteSlug/general'
+    | '/taxonomies/websites/$websiteSlug/param-rules'
+    | '/taxonomies/websites/$websiteSlug/shortened-links'
+    | '/taxonomies/websites/$websiteSlug/edit/general'
+    | '/taxonomies/websites/$websiteSlug/edit/param-rules'
+    | '/taxonomies/websites/$websiteSlug/edit/shortened-links'
+    | '/taxonomies/websites/$websiteSlug/edit'
   id:
     | '__root__'
     | '/'
@@ -890,6 +979,7 @@ export interface FileRouteTypes {
     | '/custom-properties/$propertySlug/edit/general'
     | '/custom-properties/$propertySlug/edit/options'
     | '/taxonomies/media-types/$mediaTypeSlug/edit'
+    | '/taxonomies/websites/$websiteSlug/_view'
     | '/taxonomies/websites/$websiteSlug/edit'
     | '/taxonomies/youtube-channels/$channelSlug/edit'
     | '/categories/$categorySlug/edit/'
@@ -897,6 +987,13 @@ export interface FileRouteTypes {
     | '/taxonomies/media-types/$mediaTypeSlug/'
     | '/taxonomies/websites/$websiteSlug/'
     | '/taxonomies/youtube-channels/$channelSlug/'
+    | '/taxonomies/websites/$websiteSlug/_view/general'
+    | '/taxonomies/websites/$websiteSlug/_view/param-rules'
+    | '/taxonomies/websites/$websiteSlug/_view/shortened-links'
+    | '/taxonomies/websites/$websiteSlug/edit/general'
+    | '/taxonomies/websites/$websiteSlug/edit/param-rules'
+    | '/taxonomies/websites/$websiteSlug/edit/shortened-links'
+    | '/taxonomies/websites/$websiteSlug/edit/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1320,6 +1417,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaxonomiesWebsitesWebsiteSlugEditRouteImport
       parentRoute: typeof TaxonomiesWebsitesWebsiteSlugRoute
     }
+    '/taxonomies/websites/$websiteSlug/_view': {
+      id: '/taxonomies/websites/$websiteSlug/_view'
+      path: ''
+      fullPath: '/taxonomies/websites/$websiteSlug'
+      preLoaderRoute: typeof TaxonomiesWebsitesWebsiteSlugViewRouteImport
+      parentRoute: typeof TaxonomiesWebsitesWebsiteSlugRoute
+    }
     '/taxonomies/media-types/$mediaTypeSlug/edit': {
       id: '/taxonomies/media-types/$mediaTypeSlug/edit'
       path: '/edit'
@@ -1424,6 +1528,55 @@ declare module '@tanstack/react-router' {
       fullPath: '/categories/$categorySlug/edit/autofill'
       preLoaderRoute: typeof CategoriesCategorySlugEditAutofillRouteImport
       parentRoute: typeof CategoriesCategorySlugEditRoute
+    }
+    '/taxonomies/websites/$websiteSlug/edit/': {
+      id: '/taxonomies/websites/$websiteSlug/edit/'
+      path: '/'
+      fullPath: '/taxonomies/websites/$websiteSlug/edit/'
+      preLoaderRoute: typeof TaxonomiesWebsitesWebsiteSlugEditIndexRouteImport
+      parentRoute: typeof TaxonomiesWebsitesWebsiteSlugEditRoute
+    }
+    '/taxonomies/websites/$websiteSlug/edit/shortened-links': {
+      id: '/taxonomies/websites/$websiteSlug/edit/shortened-links'
+      path: '/shortened-links'
+      fullPath: '/taxonomies/websites/$websiteSlug/edit/shortened-links'
+      preLoaderRoute: typeof TaxonomiesWebsitesWebsiteSlugEditShortenedLinksRouteImport
+      parentRoute: typeof TaxonomiesWebsitesWebsiteSlugEditRoute
+    }
+    '/taxonomies/websites/$websiteSlug/edit/param-rules': {
+      id: '/taxonomies/websites/$websiteSlug/edit/param-rules'
+      path: '/param-rules'
+      fullPath: '/taxonomies/websites/$websiteSlug/edit/param-rules'
+      preLoaderRoute: typeof TaxonomiesWebsitesWebsiteSlugEditParamRulesRouteImport
+      parentRoute: typeof TaxonomiesWebsitesWebsiteSlugEditRoute
+    }
+    '/taxonomies/websites/$websiteSlug/edit/general': {
+      id: '/taxonomies/websites/$websiteSlug/edit/general'
+      path: '/general'
+      fullPath: '/taxonomies/websites/$websiteSlug/edit/general'
+      preLoaderRoute: typeof TaxonomiesWebsitesWebsiteSlugEditGeneralRouteImport
+      parentRoute: typeof TaxonomiesWebsitesWebsiteSlugEditRoute
+    }
+    '/taxonomies/websites/$websiteSlug/_view/shortened-links': {
+      id: '/taxonomies/websites/$websiteSlug/_view/shortened-links'
+      path: '/shortened-links'
+      fullPath: '/taxonomies/websites/$websiteSlug/shortened-links'
+      preLoaderRoute: typeof TaxonomiesWebsitesWebsiteSlugViewShortenedLinksRouteImport
+      parentRoute: typeof TaxonomiesWebsitesWebsiteSlugViewRoute
+    }
+    '/taxonomies/websites/$websiteSlug/_view/param-rules': {
+      id: '/taxonomies/websites/$websiteSlug/_view/param-rules'
+      path: '/param-rules'
+      fullPath: '/taxonomies/websites/$websiteSlug/param-rules'
+      preLoaderRoute: typeof TaxonomiesWebsitesWebsiteSlugViewParamRulesRouteImport
+      parentRoute: typeof TaxonomiesWebsitesWebsiteSlugViewRoute
+    }
+    '/taxonomies/websites/$websiteSlug/_view/general': {
+      id: '/taxonomies/websites/$websiteSlug/_view/general'
+      path: '/general'
+      fullPath: '/taxonomies/websites/$websiteSlug/general'
+      preLoaderRoute: typeof TaxonomiesWebsitesWebsiteSlugViewGeneralRouteImport
+      parentRoute: typeof TaxonomiesWebsitesWebsiteSlugViewRoute
     }
   }
 }
@@ -1727,15 +1880,63 @@ const TaxonomiesMediaTypesRouteChildren: TaxonomiesMediaTypesRouteChildren = {
 const TaxonomiesMediaTypesRouteWithChildren =
   TaxonomiesMediaTypesRoute._addFileChildren(TaxonomiesMediaTypesRouteChildren)
 
+interface TaxonomiesWebsitesWebsiteSlugViewRouteChildren {
+  TaxonomiesWebsitesWebsiteSlugViewGeneralRoute: typeof TaxonomiesWebsitesWebsiteSlugViewGeneralRoute
+  TaxonomiesWebsitesWebsiteSlugViewParamRulesRoute: typeof TaxonomiesWebsitesWebsiteSlugViewParamRulesRoute
+  TaxonomiesWebsitesWebsiteSlugViewShortenedLinksRoute: typeof TaxonomiesWebsitesWebsiteSlugViewShortenedLinksRoute
+}
+
+const TaxonomiesWebsitesWebsiteSlugViewRouteChildren: TaxonomiesWebsitesWebsiteSlugViewRouteChildren =
+  {
+    TaxonomiesWebsitesWebsiteSlugViewGeneralRoute:
+      TaxonomiesWebsitesWebsiteSlugViewGeneralRoute,
+    TaxonomiesWebsitesWebsiteSlugViewParamRulesRoute:
+      TaxonomiesWebsitesWebsiteSlugViewParamRulesRoute,
+    TaxonomiesWebsitesWebsiteSlugViewShortenedLinksRoute:
+      TaxonomiesWebsitesWebsiteSlugViewShortenedLinksRoute,
+  }
+
+const TaxonomiesWebsitesWebsiteSlugViewRouteWithChildren =
+  TaxonomiesWebsitesWebsiteSlugViewRoute._addFileChildren(
+    TaxonomiesWebsitesWebsiteSlugViewRouteChildren,
+  )
+
+interface TaxonomiesWebsitesWebsiteSlugEditRouteChildren {
+  TaxonomiesWebsitesWebsiteSlugEditGeneralRoute: typeof TaxonomiesWebsitesWebsiteSlugEditGeneralRoute
+  TaxonomiesWebsitesWebsiteSlugEditParamRulesRoute: typeof TaxonomiesWebsitesWebsiteSlugEditParamRulesRoute
+  TaxonomiesWebsitesWebsiteSlugEditShortenedLinksRoute: typeof TaxonomiesWebsitesWebsiteSlugEditShortenedLinksRoute
+  TaxonomiesWebsitesWebsiteSlugEditIndexRoute: typeof TaxonomiesWebsitesWebsiteSlugEditIndexRoute
+}
+
+const TaxonomiesWebsitesWebsiteSlugEditRouteChildren: TaxonomiesWebsitesWebsiteSlugEditRouteChildren =
+  {
+    TaxonomiesWebsitesWebsiteSlugEditGeneralRoute:
+      TaxonomiesWebsitesWebsiteSlugEditGeneralRoute,
+    TaxonomiesWebsitesWebsiteSlugEditParamRulesRoute:
+      TaxonomiesWebsitesWebsiteSlugEditParamRulesRoute,
+    TaxonomiesWebsitesWebsiteSlugEditShortenedLinksRoute:
+      TaxonomiesWebsitesWebsiteSlugEditShortenedLinksRoute,
+    TaxonomiesWebsitesWebsiteSlugEditIndexRoute:
+      TaxonomiesWebsitesWebsiteSlugEditIndexRoute,
+  }
+
+const TaxonomiesWebsitesWebsiteSlugEditRouteWithChildren =
+  TaxonomiesWebsitesWebsiteSlugEditRoute._addFileChildren(
+    TaxonomiesWebsitesWebsiteSlugEditRouteChildren,
+  )
+
 interface TaxonomiesWebsitesWebsiteSlugRouteChildren {
-  TaxonomiesWebsitesWebsiteSlugEditRoute: typeof TaxonomiesWebsitesWebsiteSlugEditRoute
+  TaxonomiesWebsitesWebsiteSlugViewRoute: typeof TaxonomiesWebsitesWebsiteSlugViewRouteWithChildren
+  TaxonomiesWebsitesWebsiteSlugEditRoute: typeof TaxonomiesWebsitesWebsiteSlugEditRouteWithChildren
   TaxonomiesWebsitesWebsiteSlugIndexRoute: typeof TaxonomiesWebsitesWebsiteSlugIndexRoute
 }
 
 const TaxonomiesWebsitesWebsiteSlugRouteChildren: TaxonomiesWebsitesWebsiteSlugRouteChildren =
   {
+    TaxonomiesWebsitesWebsiteSlugViewRoute:
+      TaxonomiesWebsitesWebsiteSlugViewRouteWithChildren,
     TaxonomiesWebsitesWebsiteSlugEditRoute:
-      TaxonomiesWebsitesWebsiteSlugEditRoute,
+      TaxonomiesWebsitesWebsiteSlugEditRouteWithChildren,
     TaxonomiesWebsitesWebsiteSlugIndexRoute:
       TaxonomiesWebsitesWebsiteSlugIndexRoute,
   }
