@@ -14,6 +14,7 @@ const bookmark: Bookmark = {
   originalUrl: null,
   title: "GitHub",
   description: "Where the code lives.",
+  image: null,
   categoryId: "22222222-2222-2222-2222-222222222222",
   website: null,
   tags: [
@@ -49,7 +50,7 @@ const starsProperty: CustomProperty = {
   operandPropertyIds: [],
   categoryIds: [],
   showInForm: false,
-  advancedOnly: false,
+  hiddenFromForm: false,
   showInListings: true,
   createdAt: "2026-06-01T00:00:00.000Z",
 };
@@ -69,7 +70,7 @@ const reviewedProperty: CustomProperty = {
   operandPropertyIds: [],
   categoryIds: [],
   showInForm: false,
-  advancedOnly: false,
+  hiddenFromForm: false,
   showInListings: true,
   createdAt: "2026-06-01T00:00:00.000Z",
 };

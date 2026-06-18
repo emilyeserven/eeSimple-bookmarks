@@ -86,6 +86,22 @@ export interface WebsiteLookup {
   siteName: string | null;
 }
 
+/**
+ * The image attached to a bookmark. The bytes live in object storage; this carries only what the
+ * UI needs to render it. `url` points at the API serving endpoint (it embeds a `?v=` version param
+ * so a replaced image busts the browser cache).
+ */
+export interface BookmarkImage {
+  /** Serving URL on the API, e.g. `/api/bookmarks/<id>/image?v=<version>`. */
+  url: string;
+  /** Pixel width of the stored (already-resized) image. */
+  width: number;
+  /** Pixel height of the stored (already-resized) image. */
+  height: number;
+  /** How the image was obtained: a manual upload or the page's auto-fetched `og:image`. */
+  source: "upload" | "og";
+}
+
 /** A single saved bookmark. */
 export interface Bookmark {
   id: string;
@@ -97,6 +113,8 @@ export interface Bookmark {
   title: string;
   /** Optional free-form description. */
   description: string | null;
+  /** The image attached to this bookmark, or `null` when none has been set. */
+  image: BookmarkImage | null;
   /** Id of the category this bookmark belongs to (always set; the built-in "Default" when unassigned). */
   categoryId: string;
   /** The website this bookmark belongs to (auto-linked by URL host), or `null` when the URL has no host. */
@@ -171,10 +189,10 @@ export interface CustomProperty {
   operandPropertyIds: string[];
   /** Ids of the categories this property is assigned to (zero, one, or many). */
   categoryIds: string[];
-  /** When true, the property's field appears in the bookmark form (combine with `advancedOnly`); false hides it from the form entirely. */
+  /** When true, the field shows in the main bookmark form; otherwise it lives under Advanced. Only applies when not `hiddenFromForm`. */
   showInForm: boolean;
-  /** When true (and `showInForm`), the field lives under the form's Advanced section instead of the main area. */
-  advancedOnly: boolean;
+  /** When true, the property's field is hidden from the bookmark form entirely (neither main nor Advanced). */
+  hiddenFromForm: boolean;
   /** When true, the property's value is shown on bookmark cards in listings. */
   showInListings: boolean;
   createdAt: string;
@@ -196,10 +214,10 @@ export interface CreateCustomPropertyInput {
   operandPropertyIds?: string[];
   /** Ids of categories to assign this property to. Omit to leave unassigned. */
   categoryIds?: string[];
-  /** When true, the property's field appears in the bookmark form (combine with `advancedOnly`); false hides it from the form. */
+  /** When true, the field shows in the main bookmark form; otherwise it lives under Advanced. Only applies when not `hiddenFromForm`. */
   showInForm?: boolean;
-  /** When true (and `showInForm`), the field lives under the form's Advanced section instead of the main area. */
-  advancedOnly?: boolean;
+  /** When true, the property's field is hidden from the bookmark form entirely. Defaults to false. */
+  hiddenFromForm?: boolean;
   /** When true, the property's value is shown on bookmark cards in listings. Defaults to true. */
   showInListings?: boolean;
 }

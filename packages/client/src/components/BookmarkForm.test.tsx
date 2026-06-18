@@ -28,6 +28,15 @@ vi.mock("../hooks/useBookmarks", () => ({
     isError: false,
     error: null,
   }),
+  useUploadBookmarkImage: () => ({
+    mutateAsync: vi.fn(),
+  }),
+  useAutoBookmarkImage: () => ({
+    mutateAsync: vi.fn(),
+  }),
+  useDeleteBookmarkImage: () => ({
+    mutateAsync: vi.fn(),
+  }),
 }));
 vi.mock("../hooks/useCategories", () => ({
   useCategories: () => ({
@@ -155,6 +164,7 @@ describe("BookmarkForm title fetching", () => {
       originalUrl: null,
       title: "GitHub",
       description: "Code host",
+      image: null,
       categoryId: "22222222-2222-2222-2222-222222222222",
       website: null,
       tags: [],

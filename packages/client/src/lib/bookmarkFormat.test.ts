@@ -22,7 +22,7 @@ function property(overrides: Partial<CustomProperty>): CustomProperty {
     operandPropertyIds: [],
     categoryIds: [],
     showInForm: false,
-    advancedOnly: false,
+    hiddenFromForm: false,
     showInListings: true,
     createdAt: NOW,
     ...overrides,

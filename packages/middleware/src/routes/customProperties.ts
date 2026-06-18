@@ -72,7 +72,7 @@ const createPropertyBody = {
     showInForm: {
       type: "boolean",
     },
-    advancedOnly: {
+    hiddenFromForm: {
       type: "boolean",
     },
     showInListings: {
@@ -97,7 +97,7 @@ const updatePropertyBody = {
     operandPropertyIds: uuidArray,
     categoryIds: uuidArray,
     showInForm: createPropertyBody.properties.showInForm,
-    advancedOnly: createPropertyBody.properties.advancedOnly,
+    hiddenFromForm: createPropertyBody.properties.hiddenFromForm,
     showInListings: createPropertyBody.properties.showInListings,
   },
 } as const;

@@ -66,3 +66,42 @@ export function useDeleteBookmark() {
     },
   });
 }
+
+/** Upload an image file for an existing bookmark, replacing any current image. */
+export function useUploadBookmarkImage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id, file,
+    }: { id: string;
+      file: File; }) => bookmarksApi.uploadImage(id, file),
+    onSuccess: () => queryClient.invalidateQueries({
+      queryKey: BOOKMARKS_KEY,
+    }),
+    onError: (err: Error) => toast.error(err.message || "Could not upload that image"),
+  });
+}
+
+/** Auto-capture a bookmark's preview image from its page (og:image). */
+export function useAutoBookmarkImage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => bookmarksApi.autoImage(id),
+    onSuccess: () => queryClient.invalidateQueries({
+      queryKey: BOOKMARKS_KEY,
+    }),
+    onError: (err: Error) => toast.error(err.message || "Could not fetch a preview image"),
+  });
+}
+
+/** Remove a bookmark's image. */
+export function useDeleteBookmarkImage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => bookmarksApi.deleteImage(id),
+    onSuccess: () => queryClient.invalidateQueries({
+      queryKey: BOOKMARKS_KEY,
+    }),
+    onError: (err: Error) => toast.error(err.message || "Could not remove the image"),
+  });
+}

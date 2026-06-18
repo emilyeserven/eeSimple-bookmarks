@@ -31,20 +31,70 @@ cp packages/middleware/.env.example packages/middleware/.env
 pnpm dev                                  # starts Postgres, pushes the schema, runs all packages
 ```
 
-`pnpm dev` brings up the database via Docker Compose, applies the schema (runtime migrations then a
-reconciling `drizzle-kit push`), then runs the types watcher, the API (http://localhost:3001, docs
+`pnpm dev` brings up the database via Docker Compose, applies the schema (`drizzle-kit push`, after
+the runtime-migrations hook), then runs the types watcher, the API (http://localhost:3001, docs
 at `/docs`), and the client (http://localhost:5173) concurrently. The API auto-seeds a sample
 bookmark on first run.
 
-The schema is managed with **Drizzle migrations**. After changing `packages/middleware/src/db/schema.ts`,
-generate a migration and commit the result:
+The schema is managed with **`drizzle-kit push`**, like
+[course-tracker](https://github.com/emilyeserven/course-tracker): for additive changes (new tables,
+columns, constraints) just edit `packages/middleware/src/db/schema.ts` — `push` diffs it against the
+database and applies the delta on `pnpm dev` and on every deploy. There are no generated migration
+files to write or commit.
+
+Destructive or push-incompatible changes (dropping a column, `ALTER TYPE … ADD VALUE`, data
+transforms) go in the idempotent runtime-migrations hook at
+`packages/middleware/src/db/migrate.ts`, which runs before `push`.
+
+### Object storage (Garage) for bookmark images
+
+Bookmark images are compressed to an 800px WebP and stored in **Garage**, an S3-compatible object
+store that runs as its own container (defined in `docker-compose.yml`). The `docker compose` commands
+below are for **local development** — on Coolify you don't run them by hand (see
+[Deploy to Coolify](#deploy-to-coolify)). `pnpm dev` only starts Postgres, so set Garage up once:
+
+**1. Start Garage:**
 
 ```bash
-pnpm --filter=@eesimple/middleware generate   # writes a new SQL file under packages/middleware/drizzle/
+docker compose up -d garage
 ```
 
-Migrations are applied automatically on `pnpm dev` and on every deploy; `drizzle-kit push` runs
-afterward only to reconcile any residual drift.
+**2. Initialize it (one time only).** Run each command and copy what it prints where noted:
+
+```bash
+# a) Find the node ID:
+docker compose exec garage /garage status
+#    → copy the node ID listed under "HEALTHY NODES" (the long id before the first space).
+
+# b) Give the node a storage layout (1G is plenty for images) and apply it:
+docker compose exec garage /garage layout assign -z dc1 -c 1G <node-id>
+docker compose exec garage /garage layout apply --version 1
+
+# c) Create an access key — COPY the "Key ID" and "Secret key" it prints (the secret is shown once):
+docker compose exec garage /garage key create bookmarks-key
+
+# d) Create the bucket and let the key read/write it:
+docker compose exec garage /garage bucket create bookmarks
+docker compose exec garage /garage bucket allow bookmarks --read --write --key bookmarks-key
+```
+
+**3. Put the key into your env.** In `packages/middleware/.env`:
+
+```
+S3_ENDPOINT=http://localhost:3900
+S3_REGION=garage
+S3_BUCKET=bookmarks
+S3_ACCESS_KEY_ID=<the Key ID from step 2c>
+S3_SECRET_ACCESS_KEY=<the Secret key from step 2c>
+```
+
+**4. Run the app** (`pnpm dev`) and add an image to a bookmark. To confirm it landed in storage:
+
+```bash
+docker compose exec garage /garage bucket info bookmarks
+```
+
+> Without the `S3_*` values the app still runs — only image upload / auto-capture returns a 503.
 
 ### Useful commands
 
@@ -56,7 +106,7 @@ pnpm lint / lint:fix  # ESLint (run from the repo root)
 pnpm verify:changed   # lint + typecheck + test only the changed packages
 pnpm fallow           # dead-code / duplication / complexity audit
 pnpm studio           # Drizzle Studio (database GUI)
-pnpm push:dev         # run migrations + push the Drizzle schema to the local database
+pnpm push:dev         # run the migrations hook, then push the schema to the local database
 ```
 
 To reset the database: `docker compose down -v && docker compose up --wait db && pnpm push:dev`.
@@ -66,7 +116,7 @@ To reset the database: `docker compose down -v && docker compose up --wait db &&
 eeSimple Bookmarks is built to self-deploy. In production a single Docker image (the repo-root `Dockerfile`)
 runs the **gateway** on port **3000**: it serves the client's static build, proxies `/api/*` to the
 middleware (spawned as a child process), and on boot brings the database schema up to date — it runs
-the versioned migrations (`dist/db/migrate.js`) and then a reconciling `drizzle-kit push` — against
+the runtime-migrations hook (`dist/db/migrate.js`) and then `drizzle-kit push` — against
 `DATABASE_URL`. The only configuration it needs is `DATABASE_URL`.
 
 1. **Provision PostgreSQL.** In your Coolify project, add a PostgreSQL database (or use any external
@@ -86,17 +136,61 @@ the versioned migrations (`dist/db/migrate.js`) and then a reconciling `drizzle-
 5. **Deploy.** Coolify builds the multi-stage image and starts the gateway. The schema is applied
    automatically on first boot. Visit the app URL and check `GET /healthz` returns `{"status":"ok"}`.
 
-> **If the schema didn't apply automatically.** The gateway applies migrations and then a
-> reconciling push on boot. If a deploy logged a schema error and the app is failing against a
-> stale schema, you can apply it by hand from the container terminal (Coolify → the app →
+> **If the schema didn't apply automatically.** The gateway runs the runtime-migrations hook and
+> then `drizzle-kit push` on boot. If a deploy logged a schema error and the app is failing against
+> a stale schema, you can apply it by hand from the container terminal (Coolify → the app →
 > **Terminal**). Run it from the middleware package, not the gateway working directory:
 >
 > ```bash
-> cd /app/packages/middleware && node dist/db/migrate.js && pnpm exec drizzle-kit push --force
+> cd /app/packages/middleware && node dist/db/migrate.js && pnpm exec drizzle-kit push
 > ```
 >
 > Running these from `/app/packages/gateway` (the default directory) fails — the gateway package
 > has no `drizzle-kit` dependency, no `drizzle.config.*`, and no migrations folder there.
+
+### Object storage (Garage) for bookmark images
+
+Bookmark images need an S3-compatible store. How Garage runs depends on your build pack:
+
+**Docker Compose build pack (Coolify deploys `docker-compose.yml`).** Garage is already part of the
+stack — Coolify starts `garage` next to `db` and `gateway`, and the `garage-data` / `garage-meta`
+volumes from the compose file are managed by Coolify and **persist across redeploys**. There is
+nothing to add and no volume to attach by hand. You only:
+
+1. **Deploy the stack.** Coolify brings up `db`, `garage`, and `gateway` together — there is **no
+   manual `docker compose up`** (that command is local-development only).
+2. **Bootstrap Garage once.** Open the **`garage` container's Terminal** in Coolify (your stack → the
+   `garage` service → **Terminal**). You're *inside* the container, so call the binary directly —
+   **no `docker compose exec` prefix**:
+
+   ```bash
+   /garage status                                              # copy the node ID it prints
+   /garage layout assign -z dc1 -c 1G <node-id>
+   /garage layout apply --version 1
+   /garage key create bookmarks-key                            # COPY the Key ID + Secret (shown once)
+   /garage bucket create bookmarks
+   /garage bucket allow bookmarks --read --write --key bookmarks-key
+   ```
+
+3. **Set the keys.** Add `S3_ACCESS_KEY_ID` and `S3_SECRET_ACCESS_KEY` (from step 2) to your Coolify
+   environment, then redeploy. `S3_ENDPOINT` (`http://garage:3900`), `S3_REGION`, and `S3_BUCKET`
+   already default correctly from `docker-compose.yml`.
+
+**Using the Dockerfile build pack instead?** Then `docker-compose.yml` isn't used in production, so
+add Garage as its **own** Coolify resource: New Resource → Docker Image `dxflrs/garage:v1.0.1`; mount
+this repo's `garage.toml` at `/etc/garage.toml`; and **attach a persistent volume to both
+`/var/lib/garage/data` and `/var/lib/garage/meta`** — without it, every redeploy wipes your images.
+Run the same bootstrap (above) in that resource's Terminal, then add all five `S3_*` vars to the
+**app** resource (`S3_ENDPOINT=http://<garage-service-name>:3900`) and redeploy.
+
+> **Troubleshooting images.**
+> - **Upload returns 503 / "storage not configured"** → `S3_ACCESS_KEY_ID` / `S3_SECRET_ACCESS_KEY`
+>   is missing or wrong (set them *after* the bootstrap, then redeploy).
+> - **`AccessDenied` in the logs** → the key wasn't granted on the bucket (re-run `bucket allow`).
+> - **App can't reach storage** → `S3_ENDPOINT` must be Garage's **internal** hostname
+>   (`http://garage:3900`), not `localhost`.
+> - **Images vanish after a redeploy** → the Garage data volume isn't persisting (compose volumes
+>   persist by default; on the Dockerfile path, make sure you attached one).
 
 ### How it works in production
 

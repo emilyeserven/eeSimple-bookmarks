@@ -1,4 +1,5 @@
 import cors from "@fastify/cors";
+import multipart from "@fastify/multipart";
 import swagger from "@fastify/swagger";
 import swaggerUi from "@fastify/swagger-ui";
 import Fastify, { type FastifyInstance } from "fastify";
@@ -23,6 +24,16 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   await app.register(cors, {
     origin: true,
+  });
+
+  // Bookmark image uploads. Cap the raw upload so a huge file can't exhaust memory; `sharp`
+  // shrinks whatever lands to an 800px WebP afterwards.
+  await app.register(multipart, {
+    throwFileSizeLimit: true,
+    limits: {
+      fileSize: 8 * 1024 * 1024,
+      files: 1,
+    },
   });
 
   await app.register(swagger, {
@@ -67,6 +78,10 @@ export async function buildApp(): Promise<FastifyInstance> {
         {
           name: "metadata",
           description: "URL metadata helpers (page-title lookup)",
+        },
+        {
+          name: "images",
+          description: "Bookmark image upload, auto-capture, and serving",
         },
       ],
     },

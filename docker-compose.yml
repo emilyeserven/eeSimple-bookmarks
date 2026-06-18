@@ -22,9 +22,31 @@ services:
       - "${GATEWAY_HOST_PORT:-3000}:3000"
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-bookmarks}
+      - S3_ENDPOINT=${S3_ENDPOINT:-http://garage:3900}
+      - S3_REGION=${S3_REGION:-garage}
+      - S3_BUCKET=${S3_BUCKET:-bookmarks}
+      - S3_ACCESS_KEY_ID=${S3_ACCESS_KEY_ID:-}
+      - S3_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY:-}
     depends_on:
       db:
         condition: service_healthy
+      garage:
+        condition: service_started
+  garage:
+    # S3-compatible object storage for bookmark images. See README → "Object storage (Garage)".
+    # Built from garage.Dockerfile so garage.toml is baked into the image — a host bind mount of the
+    # config is unreliable on Coolify's compose build pack. Data/meta live in persistent named volumes.
+    build:
+      context: .
+      dockerfile: garage.Dockerfile
+    volumes:
+      - garage-meta:/var/lib/garage/meta
+      - garage-data:/var/lib/garage/data
+    ports:
+      # S3 API — exposed on the host so `pnpm dev` (middleware on the host) and the AWS CLI reach it.
+      - "${GARAGE_S3_HOST_PORT:-3900}:3900"
 
 volumes:
   pgdata:
+  garage-meta:
+  garage-data:

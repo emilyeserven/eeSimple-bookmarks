@@ -43,7 +43,7 @@ function toCustomProperty(
     operandPropertyIds,
     categoryIds,
     showInForm: row.showInForm,
-    advancedOnly: row.advancedOnly,
+    hiddenFromForm: row.hiddenFromForm,
     showInListings: row.showInListings,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
@@ -179,7 +179,7 @@ export async function createCustomProperty(
         zeroLabel: input.zeroLabel ?? null,
         maxLabel: input.maxLabel ?? null,
         showInForm: input.showInForm ?? false,
-        advancedOnly: input.advancedOnly ?? false,
+        hiddenFromForm: input.hiddenFromForm ?? false,
         showInListings: input.showInListings ?? true,
       })
       .returning({
@@ -224,7 +224,7 @@ export async function updateCustomProperty(
         | "zeroLabel"
         | "maxLabel"
         | "showInForm"
-        | "advancedOnly"
+        | "hiddenFromForm"
         | "showInListings"
       >
     > = {};
@@ -238,7 +238,7 @@ export async function updateCustomProperty(
     if (input.zeroLabel !== undefined) patch.zeroLabel = input.zeroLabel ?? null;
     if (input.maxLabel !== undefined) patch.maxLabel = input.maxLabel ?? null;
     if (input.showInForm !== undefined) patch.showInForm = input.showInForm;
-    if (input.advancedOnly !== undefined) patch.advancedOnly = input.advancedOnly;
+    if (input.hiddenFromForm !== undefined) patch.hiddenFromForm = input.hiddenFromForm;
     if (input.showInListings !== undefined) patch.showInListings = input.showInListings;
 
     if (Object.keys(patch).length > 0) {

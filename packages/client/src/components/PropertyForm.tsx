@@ -44,7 +44,7 @@ const propertySchema = z
     maxLabel: z.string(),
     operandIds: z.array(z.string()),
     categoryIds: z.array(z.string()),
-    showInForm: z.boolean(),
+    inForm: z.boolean(),
     advancedOnly: z.boolean(),
     showInListings: z.boolean(),
   })
@@ -81,7 +81,7 @@ const CREATE_DEFAULTS: PropertyFormValues = {
   maxLabel: "",
   operandIds: [],
   categoryIds: [],
-  showInForm: true,
+  inForm: true,
   advancedOnly: false,
   showInListings: true,
 };
@@ -103,8 +103,8 @@ function valuesFromProperty(property: CustomProperty): PropertyFormValues {
     maxLabel: property.maxLabel ?? "",
     operandIds: property.operandPropertyIds,
     categoryIds: property.categoryIds,
-    showInForm: property.showInForm,
-    advancedOnly: property.advancedOnly,
+    inForm: !property.hiddenFromForm,
+    advancedOnly: !property.showInForm,
     showInListings: property.showInListings,
   };
 }
@@ -126,8 +126,8 @@ function payloadFromValues(values: PropertyFormValues): CreateCustomPropertyInpu
     maxLabel: isNumber ? trimOrNull(values.maxLabel) : null,
     operandPropertyIds: values.type === "calculate" ? values.operandIds : undefined,
     categoryIds: values.categoryIds,
-    showInForm: values.showInForm,
-    advancedOnly: values.advancedOnly,
+    hiddenFromForm: !values.inForm,
+    showInForm: !values.advancedOnly,
     showInListings: values.showInListings,
   };
 }
@@ -537,21 +537,21 @@ export function PropertyForm({
         <div className="space-y-2">
           <span className="text-sm font-medium">Show in…</span>
           <div className="space-y-2">
-            <form.AppField name="showInForm">
+            <form.AppField name="inForm">
               {field => (
                 <div className="flex items-center gap-2">
                   <Checkbox
-                    id={`${idPrefix}-show-in-form`}
+                    id={`${idPrefix}-in-form`}
                     checked={field.state.value}
                     onCheckedChange={checked => field.handleChange(checked === true)}
                   />
-                  <Label htmlFor={`${idPrefix}-show-in-form`}>Main bookmark form</Label>
+                  <Label htmlFor={`${idPrefix}-in-form`}>Main bookmark form</Label>
                 </div>
               )}
             </form.AppField>
-            <form.Subscribe selector={state => state.values.showInForm}>
-              {showInForm =>
-                showInForm
+            <form.Subscribe selector={state => state.values.inForm}>
+              {inForm =>
+                inForm
                   ? (
                     <form.AppField name="advancedOnly">
                       {field => (

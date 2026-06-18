@@ -5,6 +5,7 @@ import { ensureAutofillConditions } from "@/services/autofill";
 import { ensureDefaultCategory } from "@/services/categories";
 import { ensureHomepageFilter } from "@/services/homepageFilter";
 import { backfillWebsiteSlugs } from "@/services/websites";
+import { ensureBucket, isObjectStoreConfigured } from "@/utils/objectStore";
 
 const port = Number(process.env.PORT ?? 3001);
 const host = process.env.HOST ?? "0.0.0.0";
@@ -38,6 +39,8 @@ try {
   // previous is-homepage / homepage-tags mechanism on first boot.
   await ensureAutofillConditions();
   await ensureHomepageFilter();
+  // Create the image bucket if storage is configured; harmless when it already exists.
+  if (isObjectStoreConfigured()) await ensureBucket();
 }
 catch (err) {
   app.log.warn({
