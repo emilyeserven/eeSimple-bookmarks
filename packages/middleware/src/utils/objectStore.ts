@@ -10,6 +10,7 @@ import {
   DeleteObjectCommand,
   GetObjectCommand,
   HeadBucketCommand,
+  ListObjectsV2Command,
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
@@ -78,6 +79,41 @@ export async function getObjectStream(key: string): Promise<StoredObject | null>
     if (isNotFound(err)) return null;
     throw err;
   }
+}
+
+/** A single object as reported by a bucket listing. */
+export interface StoredObjectInfo {
+  key: string;
+  size?: number;
+  lastModified?: Date;
+}
+
+/**
+ * List every object in the bucket (optionally under `prefix`), paginating through all pages.
+ * Used to reconcile the `media_objects` manifest against what's actually in storage.
+ */
+export async function listObjects(prefix?: string): Promise<StoredObjectInfo[]> {
+  const s3 = getClient();
+  const out: StoredObjectInfo[] = [];
+  let token: string | undefined;
+  do {
+    const res = await s3.send(new ListObjectsV2Command({
+      Bucket: bucket,
+      Prefix: prefix,
+      ContinuationToken: token,
+    }));
+    for (const obj of res.Contents ?? []) {
+      if (obj.Key) {
+        out.push({
+          key: obj.Key,
+          size: obj.Size,
+          lastModified: obj.LastModified,
+        });
+      }
+    }
+    token = res.IsTruncated ? res.NextContinuationToken : undefined;
+  } while (token);
+  return out;
 }
 
 /** Delete the object at `key`. A missing object is treated as success. */

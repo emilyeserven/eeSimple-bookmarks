@@ -185,6 +185,12 @@ export function BookmarkImageField({
         Drag and drop, paste, or choose an image. Accepted formats: JPEG, PNG, WebP,
         GIF, SVG, AVIF, TIFF. Stored as an 800px WebP.
       </p>
+      <div className="rounded-md border border-dashed bg-muted/20 px-3 py-2">
+        <p className="text-xs font-medium text-muted-foreground">Gallery — coming soon</p>
+        <p className="text-xs text-muted-foreground">
+          Attaching multiple images to a bookmark will let you build a gallery here.
+        </p>
+      </div>
     </div>
   );
 }
