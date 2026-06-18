@@ -78,7 +78,10 @@ export function RightPanel() {
           "
           onPointerDown={onPanelResizePointerDown}
         />
-        <PanelChrome docked isBreakpointUnpinned={isBreakpointUnpinned} />
+        <PanelChrome
+          docked
+          isBreakpointUnpinned={isBreakpointUnpinned}
+        />
         <PanelBreadcrumbs />
         <div className="flex-1 overflow-y-auto px-4 pb-6">
           <PanelContent />
@@ -106,7 +109,10 @@ export function RightPanel() {
           <SheetTitle>Panel</SheetTitle>
           <SheetDescription>Browse, view, and edit your content.</SheetDescription>
         </SheetHeader>
-        <PanelChrome docked={false} isBreakpointUnpinned={isBreakpointUnpinned} />
+        <PanelChrome
+          docked={false}
+          isBreakpointUnpinned={isBreakpointUnpinned}
+        />
         <PanelBreadcrumbs />
         <div className="flex-1 overflow-y-auto px-4 pb-6">
           <PanelContent />

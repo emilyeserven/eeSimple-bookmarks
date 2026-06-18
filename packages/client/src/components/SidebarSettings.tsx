@@ -21,11 +21,26 @@ import {
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
 
 const BREAKPOINT_OPTIONS = [
-  { px: 640, label: "640 px — Small (sm)" },
-  { px: 768, label: "768 px — Medium (md)" },
-  { px: 1024, label: "1024 px — Large (lg)" },
-  { px: 1280, label: "1280 px — Extra Large (xl)" },
-  { px: 1536, label: "1536 px — 2× Large (2xl)" },
+  {
+    px: 640,
+    label: "640 px — Small (sm)",
+  },
+  {
+    px: 768,
+    label: "768 px — Medium (md)",
+  },
+  {
+    px: 1024,
+    label: "1024 px — Large (lg)",
+  },
+  {
+    px: 1280,
+    label: "1280 px — Extra Large (xl)",
+  },
+  {
+    px: 1536,
+    label: "1536 px — 2× Large (2xl)",
+  },
 ] as const;
 
 /** Drawer preferences — pin behaviour, responsive breakpoints, and modifier key. */
@@ -77,7 +92,10 @@ export function SidebarSettings() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {BREAKPOINT_OPTIONS.map(({ px, label }) => (
+            {BREAKPOINT_OPTIONS.map(({
+              px,
+              label,
+            }) => (
               <div
                 key={px}
                 className="flex items-center gap-2"
