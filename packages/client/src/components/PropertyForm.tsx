@@ -5,18 +5,15 @@ import type {
 } from "@eesimple/types";
 import type { ReactNode } from "react";
 
-import { ChevronDown } from "lucide-react";
 import { z } from "zod";
 
+import { CollapsibleFormSection } from "./CollapsibleFormSection";
+import { LabeledSection } from "./LabeledSection";
 import { useAppForm } from "../lib/form";
 
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { CategoryIcon } from "@/lib/icons";
 
 const TYPE_OPTIONS = [
@@ -92,6 +89,36 @@ type PropertyFormValues = z.infer<typeof propertySchema>;
 /** Add or remove `id` from `ids`, returning a new array. */
 function toggleId(ids: string[], id: string): string[] {
   return ids.includes(id) ? ids.filter(value => value !== id) : [...ids, id];
+}
+
+/** One-line summary of the number options for the collapsed "Property options" preview. */
+function summarizeNumberOptions(values: {
+  disableMin: boolean;
+  disableMax: boolean;
+  numberMin: string;
+  numberMax: string;
+  unitPlural: string;
+  valuePrefix: string;
+}): string {
+  const parts: string[] = [];
+  const min = values.disableMin ? "auto" : (values.numberMin.trim() || "auto");
+  const max = values.disableMax ? "auto" : (values.numberMax.trim() || "auto");
+  if (min !== "auto" || max !== "auto") {
+    parts.push(`${min}–${max}${values.unitPlural.trim() ? ` ${values.unitPlural.trim()}` : ""}`);
+  }
+  else if (values.unitPlural.trim()) {
+    parts.push(values.unitPlural.trim());
+  }
+  if (values.valuePrefix.trim()) parts.push(`prefix ${values.valuePrefix.trim()}`);
+  return parts.length > 0 ? parts.join(" · ") : "No options set";
+}
+
+/** One-line summary of the category selection for the collapsed "Categories" preview. */
+function summarizeCategories(allCategories: boolean, selectedIds: string[]): string {
+  if (allCategories) return "All categories";
+  const count = selectedIds.length;
+  if (count === 0) return "No categories";
+  return `${count} ${count === 1 ? "category" : "categories"}`;
 }
 
 const CREATE_DEFAULTS: PropertyFormValues = {
@@ -301,58 +328,6 @@ function OperandCheckboxList({
   );
 }
 
-/**
- * A bordered, titled group of related fields (e.g. "Property options", "Display options").
- * When `collapsible`, the title row toggles the section open/closed (open by default).
- */
-function FormSection({
-  title, description, children, collapsible = false, defaultOpen = true,
-}: {
-  title: string;
-  description?: string;
-  children: ReactNode;
-  collapsible?: boolean;
-  defaultOpen?: boolean;
-}) {
-  const heading = (
-    <div className="space-y-0.5 text-left">
-      <h3 className="text-sm font-medium">{title}</h3>
-      {description ? <p className="text-xs text-muted-foreground">{description}</p> : null}
-    </div>
-  );
-
-  if (!collapsible) {
-    return (
-      <div className="space-y-3 rounded-md border p-4">
-        {heading}
-        {children}
-      </div>
-    );
-  }
-
-  return (
-    <Collapsible
-      defaultOpen={defaultOpen}
-      className="group/section space-y-3 rounded-md border p-4"
-    >
-      <CollapsibleTrigger
-        className="flex w-full items-center justify-between gap-2"
-      >
-        {heading}
-        <ChevronDown
-          className="
-            size-4 shrink-0 text-muted-foreground transition-transform
-            group-data-[state=open]/section:rotate-180
-          "
-        />
-      </CollapsibleTrigger>
-      <CollapsibleContent className="space-y-3">
-        {children}
-      </CollapsibleContent>
-    </Collapsible>
-  );
-}
-
 interface PropertyFormProps {
   /** `create` shows an editable Type select; `edit` locks Type (it is immutable) and prefills values. */
   mode: "create" | "edit";
@@ -405,188 +380,209 @@ export function PropertyForm({
 
   return (
     <form
-      className="space-y-4"
+      className="space-y-6"
       onSubmit={(event) => {
         event.preventDefault();
         event.stopPropagation();
         void form.handleSubmit();
       }}
     >
-      <div
-        className="
-          grid gap-3
-          sm:grid-cols-2
-        "
-      >
-        <form.AppField name="name">
+      <div className="space-y-4">
+        <div
+          className="
+            grid gap-3
+            sm:grid-cols-2
+          "
+        >
+          <form.AppField name="name">
+            {field => (
+              <field.TextField
+                label="Name"
+                placeholder="e.g. Priority"
+              />
+            )}
+          </form.AppField>
+
+          <form.AppField name="type">
+            {field => (
+              <field.SelectField
+                label="Type"
+                options={TYPE_OPTIONS}
+                disabled={mode === "edit"}
+              />
+            )}
+          </form.AppField>
+        </div>
+
+        <form.AppField name="enabled">
           {field => (
-            <field.TextField
-              label="Name"
-              placeholder="e.g. Priority"
-            />
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id={`${idPrefix}-enabled`}
+                  checked={field.state.value}
+                  disabled={isBuiltIn}
+                  onCheckedChange={checked => field.handleChange(checked === true)}
+                />
+                <Label htmlFor={`${idPrefix}-enabled`}>Property is active</Label>
+              </div>
+              {isBuiltIn
+                ? <p className="text-xs text-muted-foreground">Built-in properties can&apos;t be disabled.</p>
+                : null}
+            </div>
           )}
         </form.AppField>
 
-        <form.AppField name="type">
+        <form.AppField name="description">
           {field => (
-            <field.SelectField
-              label="Type"
-              options={TYPE_OPTIONS}
-              disabled={mode === "edit"}
+            <field.TextareaField
+              label="Description"
+              placeholder="Optional — shown as a hint where this property appears."
+              rows={2}
             />
           )}
         </form.AppField>
       </div>
 
-      <form.AppField name="enabled">
-        {field => (
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id={`${idPrefix}-enabled`}
-                checked={field.state.value}
-                disabled={isBuiltIn}
-                onCheckedChange={checked => field.handleChange(checked === true)}
-              />
-              <Label htmlFor={`${idPrefix}-enabled`}>Property is active</Label>
-            </div>
-            {isBuiltIn
-              ? <p className="text-xs text-muted-foreground">Built-in properties can&apos;t be disabled.</p>
-              : null}
-          </div>
-        )}
-      </form.AppField>
-
-      <form.AppField name="description">
-        {field => (
-          <field.TextareaField
-            label="Description"
-            placeholder="Optional — shown as a hint where this property appears."
-            rows={2}
-          />
-        )}
-      </form.AppField>
-
       <form.Subscribe selector={state => state.values.type}>
         {type =>
           type === "number"
             ? (
-              <FormSection
-                title="Property options"
-                collapsible
-              >
-                <div
-                  className="
-                    grid gap-3
-                    sm:grid-cols-2
-                  "
+              <>
+                <Separator />
+
+                <CollapsibleFormSection
+                  title="Property options"
+                  description="Configure the slider range, units, and labels for this number."
+                  defaultOpen={mode === "create"}
+                  preview={(
+                    <form.Subscribe
+                      selector={state => ({
+                        disableMin: state.values.disableMin,
+                        disableMax: state.values.disableMax,
+                        numberMin: state.values.numberMin,
+                        numberMax: state.values.numberMax,
+                        unitPlural: state.values.unitPlural,
+                        valuePrefix: state.values.valuePrefix,
+                      })}
+                    >
+                      {values => summarizeNumberOptions(values)}
+                    </form.Subscribe>
+                  )}
                 >
-                  <div className="space-y-1">
-                    <form.Subscribe selector={state => state.values.disableMin}>
-                      {disableMin => (
-                        <form.AppField name="numberMin">
-                          {field => (
-                            <field.TextField
-                              label="Slider minimum"
-                              type="number"
-                              disabled={disableMin}
+                  <div
+                    className="
+                      grid gap-3
+                      sm:grid-cols-2
+                    "
+                  >
+                    <div className="space-y-1">
+                      <form.Subscribe selector={state => state.values.disableMin}>
+                        {disableMin => (
+                          <form.AppField name="numberMin">
+                            {field => (
+                              <field.TextField
+                                label="Slider minimum"
+                                type="number"
+                                disabled={disableMin}
+                              />
+                            )}
+                          </form.AppField>
+                        )}
+                      </form.Subscribe>
+                      <form.AppField name="disableMin">
+                        {field => (
+                          <div className="flex items-center gap-2">
+                            <Checkbox
+                              id="property-disable-min"
+                              checked={field.state.value}
+                              onCheckedChange={checked => field.handleChange(checked === true)}
                             />
-                          )}
-                        </form.AppField>
-                      )}
-                    </form.Subscribe>
-                    <form.AppField name="disableMin">
+                            <Label
+                              htmlFor="property-disable-min"
+                              className="text-xs text-muted-foreground"
+                            >
+                              No minimum
+                            </Label>
+                          </div>
+                        )}
+                      </form.AppField>
+                    </div>
+                    <div className="space-y-1">
+                      <form.Subscribe selector={state => state.values.disableMax}>
+                        {disableMax => (
+                          <form.AppField name="numberMax">
+                            {field => (
+                              <field.TextField
+                                label="Slider maximum"
+                                type="number"
+                                disabled={disableMax}
+                              />
+                            )}
+                          </form.AppField>
+                        )}
+                      </form.Subscribe>
+                      <form.AppField name="disableMax">
+                        {field => (
+                          <div className="flex items-center gap-2">
+                            <Checkbox
+                              id="property-disable-max"
+                              checked={field.state.value}
+                              onCheckedChange={checked => field.handleChange(checked === true)}
+                            />
+                            <Label
+                              htmlFor="property-disable-max"
+                              className="text-xs text-muted-foreground"
+                            >
+                              No maximum
+                            </Label>
+                          </div>
+                        )}
+                      </form.AppField>
+                    </div>
+                    <form.AppField name="unitSingular">
                       {field => (
-                        <div className="flex items-center gap-2">
-                          <Checkbox
-                            id="property-disable-min"
-                            checked={field.state.value}
-                            onCheckedChange={checked => field.handleChange(checked === true)}
-                          />
-                          <Label
-                            htmlFor="property-disable-min"
-                            className="text-xs text-muted-foreground"
-                          >
-                            No minimum
-                          </Label>
-                        </div>
+                        <field.TextField
+                          label="Unit (singular)"
+                          placeholder="e.g. star"
+                        />
+                      )}
+                    </form.AppField>
+                    <form.AppField name="unitPlural">
+                      {field => (
+                        <field.TextField
+                          label="Unit (plural)"
+                          placeholder="e.g. stars"
+                        />
+                      )}
+                    </form.AppField>
+                    <form.AppField name="valuePrefix">
+                      {field => (
+                        <field.TextField
+                          label="Value prefix"
+                          placeholder="e.g. $"
+                        />
+                      )}
+                    </form.AppField>
+                    <form.AppField name="zeroLabel">
+                      {field => (
+                        <field.TextField
+                          label="Zero label"
+                          placeholder="e.g. Free"
+                        />
+                      )}
+                    </form.AppField>
+                    <form.AppField name="maxLabel">
+                      {field => (
+                        <field.TextField
+                          label="Maximum label"
+                          placeholder="e.g. Unlimited"
+                        />
                       )}
                     </form.AppField>
                   </div>
-                  <div className="space-y-1">
-                    <form.Subscribe selector={state => state.values.disableMax}>
-                      {disableMax => (
-                        <form.AppField name="numberMax">
-                          {field => (
-                            <field.TextField
-                              label="Slider maximum"
-                              type="number"
-                              disabled={disableMax}
-                            />
-                          )}
-                        </form.AppField>
-                      )}
-                    </form.Subscribe>
-                    <form.AppField name="disableMax">
-                      {field => (
-                        <div className="flex items-center gap-2">
-                          <Checkbox
-                            id="property-disable-max"
-                            checked={field.state.value}
-                            onCheckedChange={checked => field.handleChange(checked === true)}
-                          />
-                          <Label
-                            htmlFor="property-disable-max"
-                            className="text-xs text-muted-foreground"
-                          >
-                            No maximum
-                          </Label>
-                        </div>
-                      )}
-                    </form.AppField>
-                  </div>
-                  <form.AppField name="unitSingular">
-                    {field => (
-                      <field.TextField
-                        label="Unit (singular)"
-                        placeholder="e.g. star"
-                      />
-                    )}
-                  </form.AppField>
-                  <form.AppField name="unitPlural">
-                    {field => (
-                      <field.TextField
-                        label="Unit (plural)"
-                        placeholder="e.g. stars"
-                      />
-                    )}
-                  </form.AppField>
-                  <form.AppField name="valuePrefix">
-                    {field => (
-                      <field.TextField
-                        label="Value prefix"
-                        placeholder="e.g. $"
-                      />
-                    )}
-                  </form.AppField>
-                  <form.AppField name="zeroLabel">
-                    {field => (
-                      <field.TextField
-                        label="Zero label"
-                        placeholder="e.g. Free"
-                      />
-                    )}
-                  </form.AppField>
-                  <form.AppField name="maxLabel">
-                    {field => (
-                      <field.TextField
-                        label="Maximum label"
-                        placeholder="e.g. Unlimited"
-                      />
-                    )}
-                  </form.AppField>
-                </div>
-              </FormSection>
+                </CollapsibleFormSection>
+              </>
             )
             : null}
       </form.Subscribe>
@@ -595,17 +591,21 @@ export function PropertyForm({
         {type =>
           type === "datetime"
             ? (
-              <FormSection title="Property options">
-                <form.AppField name="dateTimeFormat">
-                  {field => (
-                    <field.SelectField
-                      label="Captures"
-                      options={DATE_TIME_FORMAT_OPTIONS}
-                      disabled={mode === "edit"}
-                    />
-                  )}
-                </form.AppField>
-              </FormSection>
+              <>
+                <Separator />
+
+                <LabeledSection title="Property options">
+                  <form.AppField name="dateTimeFormat">
+                    {field => (
+                      <field.SelectField
+                        label="Captures"
+                        options={DATE_TIME_FORMAT_OPTIONS}
+                        disabled={mode === "edit"}
+                      />
+                    )}
+                  </form.AppField>
+                </LabeledSection>
+              </>
             )
             : null}
       </form.Subscribe>
@@ -614,32 +614,53 @@ export function PropertyForm({
         {type =>
           type === "calculate"
             ? (
-              <form.AppField name="operandIds">
-                {field => (
-                  <div className="space-y-2">
-                    <Label>Operands (summed)</Label>
-                    <OperandCheckboxList
-                      numberProperties={numberProperties}
-                      selectedIds={field.state.value}
-                      onToggle={id => field.handleChange(toggleId(field.state.value, id))}
-                    />
-                    {field.state.meta.errors.length > 0
-                      ? (
-                        <p className="text-xs text-destructive">
-                          Select at least two Number properties.
-                        </p>
-                      )
-                      : null}
-                  </div>
-                )}
-              </form.AppField>
+              <>
+                <Separator />
+
+                <LabeledSection title="Operands">
+                  <form.AppField name="operandIds">
+                    {field => (
+                      <div className="space-y-2">
+                        <Label>Operands (summed)</Label>
+                        <OperandCheckboxList
+                          numberProperties={numberProperties}
+                          selectedIds={field.state.value}
+                          onToggle={id => field.handleChange(toggleId(field.state.value, id))}
+                        />
+                        {field.state.meta.errors.length > 0
+                          ? (
+                            <p className="text-xs text-destructive">
+                              Select at least two Number properties.
+                            </p>
+                          )
+                          : null}
+                      </div>
+                    )}
+                  </form.AppField>
+                </LabeledSection>
+              </>
             )
             : null}
       </form.Subscribe>
 
-      <FormSection
+      <Separator />
+
+      <CollapsibleFormSection
         title="Categories"
-        collapsible
+        description="Choose which categories this property applies to."
+        defaultOpen={mode === "create"}
+        preview={(
+          <form.Subscribe
+            selector={state => ({
+              allCategories: state.values.allCategories,
+              categoryIds: state.values.categoryIds,
+            })}
+          >
+            {({
+              allCategories, categoryIds,
+            }) => summarizeCategories(allCategories, categoryIds)}
+          </form.Subscribe>
+        )}
       >
         <form.Subscribe selector={state => state.values.allCategories}>
           {allCategories => (
@@ -673,12 +694,11 @@ export function PropertyForm({
             </form.AppField>
           )}
         </form.Subscribe>
-      </FormSection>
+      </CollapsibleFormSection>
 
-      <FormSection
-        title="Display options"
-        collapsible
-      >
+      <Separator />
+
+      <LabeledSection title="Display options">
         <div className="space-y-2">
           <span className="text-sm font-medium">Show in…</span>
           <div className="space-y-2">
@@ -756,7 +776,9 @@ export function PropertyForm({
                 </div>
               )}
         </form.Subscribe>
-      </FormSection>
+      </LabeledSection>
+
+      <Separator />
 
       <div className="flex items-center gap-2">
         <form.AppForm>
