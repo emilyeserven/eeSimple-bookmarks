@@ -3,15 +3,18 @@
 import type {
   AutofillRule,
   Category,
+  CategoryCondition,
   ConditionTree,
   CreateAutofillRuleInput,
   CustomProperty,
+  TagCondition,
   TagNode,
 } from "@eesimple/types";
 
 import { useState } from "react";
 
 import { emptyConditionTree } from "@eesimple/types";
+import { ChevronDown } from "lucide-react";
 import { z } from "zod";
 
 import { autofillConditionsValidator } from "../lib/conditionsSchema";
@@ -20,6 +23,11 @@ import { ConditionsField } from "./conditions/ConditionsField";
 import { TagPicker } from "./TagPicker";
 
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -169,13 +177,12 @@ export function AutofillRuleForm({
 
       <Separator />
 
-      <section className="space-y-2">
-        <div>
-          <h3 className="text-sm font-semibold">Activation Conditions</h3>
-          <p className="text-xs text-muted-foreground">
-            Conditions that decide whether this rule applies.
-          </p>
-        </div>
+      <CollapsibleFormSection
+        title="Activation Conditions"
+        description="Conditions that decide whether this rule applies."
+        defaultOpen={!rule}
+        preview={summarizeConditions(conditions)}
+      >
         <div className="space-y-1">
           <ConditionsField
             value={conditions}
@@ -189,18 +196,35 @@ export function AutofillRuleForm({
           />
           {conditionsError ? <p className="text-sm text-destructive">{conditionsError}</p> : null}
         </div>
-      </section>
+      </CollapsibleFormSection>
 
       <Separator />
 
-      <section className="space-y-3">
-        <div>
-          <h3 className="text-sm font-semibold">What Gets Prefilled</h3>
-          <p className="text-xs text-muted-foreground">
-            What to prefill on the bookmark when this rule matches.
-          </p>
-        </div>
-
+      <CollapsibleFormSection
+        title="What Gets Prefilled"
+        description="What to prefill on the bookmark when this rule matches."
+        defaultOpen={!rule}
+        preview={(
+          <form.Subscribe
+            selector={state => ({
+              setCategoryId: state.values.setCategoryId,
+              tagIds: state.values.tagIds,
+            })}
+          >
+            {({
+              setCategoryId, tagIds,
+            }) =>
+              summarizePrefill({
+                setCategoryId,
+                tagIds,
+                categories,
+                properties,
+                numberInputs,
+                booleanInputs,
+              })}
+          </form.Subscribe>
+        )}
+      >
         <form.AppField name="setCategoryId">
           {field => (
             <field.SelectField
@@ -261,7 +285,7 @@ export function AutofillRuleForm({
             />
           )}
         </form.Subscribe>
-      </section>
+      </CollapsibleFormSection>
 
       <Separator />
 
@@ -346,4 +370,107 @@ function RulePropertyFields({
       </div>
     </div>
   );
+}
+
+interface CollapsibleFormSectionProps {
+  title: string;
+  description: string;
+  preview: React.ReactNode;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}
+
+/** A form section that collapses to a one-line preview and expands to its full fields. */
+function CollapsibleFormSection({
+  title, description, preview, defaultOpen, children,
+}: CollapsibleFormSectionProps) {
+  return (
+    <Collapsible
+      defaultOpen={defaultOpen}
+      className="group/section space-y-3"
+    >
+      <CollapsibleTrigger asChild>
+        <button
+          type="button"
+          className="flex w-full items-start justify-between gap-2 text-left"
+        >
+          <span className="space-y-1">
+            <span className="block text-sm font-semibold">{title}</span>
+            <span
+              className="
+                block text-xs text-muted-foreground
+                group-data-[state=open]/section:hidden
+              "
+            >
+              {preview}
+            </span>
+          </span>
+          <ChevronDown
+            className="
+              mt-0.5 size-4 shrink-0 text-muted-foreground transition-transform
+              group-data-[state=open]/section:rotate-180
+            "
+          />
+        </button>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="space-y-3">
+        <p className="text-xs text-muted-foreground">{description}</p>
+        {children}
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
+/** One-line summary of the activation conditions for the collapsed section preview. */
+function summarizeConditions(conditions: ConditionTree): string {
+  const matchCount = conditions.children.filter(child => child.type === "match").length;
+  const categoryLeaf = conditions.children.find((child): child is CategoryCondition => child.type === "category");
+  const tagLeaf = conditions.children.find((child): child is TagCondition => child.type === "tag");
+  const propertyCount = conditions.children.filter(child => child.type === "property").length;
+  const categoryCount = categoryLeaf?.categoryIds.length ?? 0;
+  const tagCount = tagLeaf?.tagIds.length ?? 0;
+
+  const parts: string[] = [];
+  if (matchCount > 0) parts.push(`${matchCount} match ${matchCount === 1 ? "condition" : "conditions"}`);
+  if (categoryCount > 0) parts.push(`${categoryCount} ${categoryCount === 1 ? "category" : "categories"}`);
+  if (tagCount > 0) parts.push(`${tagCount} ${tagCount === 1 ? "tag" : "tags"}`);
+  if (propertyCount > 0) parts.push(`${propertyCount} ${propertyCount === 1 ? "property" : "properties"}`);
+
+  return parts.length > 0 ? parts.join(" · ") : "No conditions set";
+}
+
+interface PrefillSummaryArgs {
+  setCategoryId: string;
+  tagIds: string[];
+  categories: Category[];
+  properties: CustomProperty[];
+  numberInputs: Record<string, string>;
+  booleanInputs: Record<string, boolean>;
+}
+
+/** One-line summary of the prefill actions for the collapsed section preview. */
+function summarizePrefill({
+  setCategoryId, tagIds, categories, properties, numberInputs, booleanInputs,
+}: PrefillSummaryArgs): string {
+  const parts: string[] = [];
+
+  if (setCategoryId !== NO_CATEGORY) {
+    const category = categories.find(item => item.id === setCategoryId);
+    if (category) parts.push(`Category: ${category.name}`);
+  }
+
+  if (tagIds.length > 0) parts.push(`${tagIds.length} ${tagIds.length === 1 ? "tag" : "tags"}`);
+
+  if (setCategoryId !== NO_CATEGORY) {
+    const categoryProps = properties.filter(property =>
+      property.categoryIds.includes(setCategoryId) && property.type !== "calculate");
+    const propertyCount = categoryProps.filter((property) => {
+      if (property.type === "number") return (numberInputs[property.id] ?? "").trim() !== "";
+      if (property.type === "boolean") return booleanInputs[property.id] === true;
+      return false;
+    }).length;
+    if (propertyCount > 0) parts.push(`${propertyCount} ${propertyCount === 1 ? "property" : "properties"}`);
+  }
+
+  return parts.length > 0 ? parts.join(" · ") : "Nothing set yet";
 }

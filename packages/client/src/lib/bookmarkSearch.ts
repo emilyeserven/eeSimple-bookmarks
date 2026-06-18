@@ -12,6 +12,8 @@ export interface BookmarkSearch {
   tag?: string;
   /** Filter bookmarks by whether they have any tag ("has") or no tags ("missing"). */
   tagPresence?: "has" | "missing";
+  /** Restrict to bookmarks whose category is one of these ids (empty/absent = all categories). */
+  categories?: string[];
   num?: Record<string, [number, number]>;
   bool?: Record<string, boolean>;
   /** Filter bookmarks by whether a property value is present or absent, keyed by property id. */
@@ -26,6 +28,12 @@ export function validateBookmarkSearch(search: Record<string, unknown>): Bookmar
 
   if (search.tagPresence === "has" || search.tagPresence === "missing") {
     result.tagPresence = search.tagPresence;
+  }
+
+  if (Array.isArray(search.categories)) {
+    const categories = search.categories.filter((value): value is string =>
+      typeof value === "string");
+    if (categories.length > 0) result.categories = categories;
   }
 
   if (search.num !== null && typeof search.num === "object") {
@@ -64,9 +72,17 @@ export function validateBookmarkSearch(search: Record<string, unknown>): Bookmar
 
 /** Whether a bookmark satisfies every active filter in `search`. */
 export function bookmarkMatchesSearch(
-  bookmark: Pick<Bookmark, "tags" | "numberValues" | "booleanValues">,
+  bookmark: Pick<Bookmark, "categoryId" | "tags" | "numberValues" | "booleanValues">,
   search: BookmarkSearch,
 ): boolean {
+  if (
+    search.categories
+    && search.categories.length > 0
+    && !search.categories.includes(bookmark.categoryId)
+  ) {
+    return false;
+  }
+
   if (search.tagPresence === "has" && bookmark.tags.length === 0) return false;
   if (search.tagPresence === "missing" && bookmark.tags.length > 0) return false;
 
@@ -136,6 +152,16 @@ export function withTagPresence(
     next.tagPresence = mode;
     if (mode === "missing") delete next.tag;
   }
+  return next;
+}
+
+/** Return a copy of `search` with the category filter set, or cleared when `ids` is empty. */
+export function withCategories(search: BookmarkSearch, ids: string[]): BookmarkSearch {
+  const next = {
+    ...search,
+  };
+  if (ids.length === 0) delete next.categories;
+  else next.categories = ids;
   return next;
 }
 

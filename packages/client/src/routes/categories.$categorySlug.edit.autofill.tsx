@@ -21,7 +21,7 @@ function AutofillTab() {
   return (
     <section className="space-y-4">
       <div>
-        <h2 className="text-xl font-semibold">Autofill</h2>
+        <h2 className="text-xl font-semibold">Autofill Rules</h2>
         <p className="text-sm text-muted-foreground">
           Autofill rules that add matching bookmarks to this category. New rules created here
           target this category by default.

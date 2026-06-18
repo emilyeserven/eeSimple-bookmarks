@@ -1,8 +1,17 @@
-import { Pin, PinOff, X } from "lucide-react";
+import { ChevronLeft, Pin, PinOff, X } from "lucide-react";
 
+import { getContentType } from "./contentTypes";
 import { PanelContent } from "./PanelContent";
 import { usePanelControls } from "./usePanelControls";
 
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -13,6 +22,7 @@ import {
 } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useResizeHandle } from "@/hooks/useResizeHandle";
+import { NEW_SENTINEL } from "@/lib/drawerSearch";
 import { useUiStore } from "@/stores/uiStore";
 
 /**
@@ -62,6 +72,7 @@ export function RightPanel() {
           onPointerDown={onPanelResizePointerDown}
         />
         <PanelChrome docked />
+        <PanelBreadcrumbs />
         <div className="flex-1 overflow-y-auto px-4 pb-6">
           <PanelContent />
         </div>
@@ -89,6 +100,7 @@ export function RightPanel() {
           <SheetDescription>Browse, view, and edit your content.</SheetDescription>
         </SheetHeader>
         <PanelChrome docked={false} />
+        <PanelBreadcrumbs />
         <div className="flex-1 overflow-y-auto px-4 pb-6">
           <PanelContent />
         </div>
@@ -100,6 +112,74 @@ export function RightPanel() {
 interface PanelChromeProps {
   /** Whether the panel is docked inline (vs. a floating overlay). */
   docked: boolean;
+}
+
+/** Breadcrumb navigation bar shown below the chrome when a content type is selected. */
+function PanelBreadcrumbs() {
+  const {
+    dCT, dCId, open, openType,
+  } = usePanelControls();
+
+  if (!dCT) return null;
+
+  const def = getContentType(dCT);
+
+  const atList = !dCId;
+  const onBack = atList ? open : () => openType(dCT);
+
+  const itemLabel = dCId
+    ? (dCId === NEW_SENTINEL ? `New ${def.singular}` : def.singular)
+    : null;
+
+  return (
+    <div className="flex items-center gap-1 px-4 pb-2">
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="size-7 shrink-0"
+        aria-label={atList ? "Back to content types" : `Back to ${def.label}`}
+        onClick={onBack}
+      >
+        <ChevronLeft className="size-4" />
+      </Button>
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink
+              className="cursor-pointer"
+              onClick={open}
+            >
+              Browse
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            {itemLabel
+              ? (
+                <BreadcrumbLink
+                  className="cursor-pointer"
+                  onClick={() => openType(dCT)}
+                >
+                  {def.label}
+                </BreadcrumbLink>
+              )
+              : <BreadcrumbPage>{def.label}</BreadcrumbPage>}
+          </BreadcrumbItem>
+          {itemLabel
+            ? (
+              <>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbPage>{itemLabel}</BreadcrumbPage>
+                </BreadcrumbItem>
+              </>
+            )
+            : null}
+        </BreadcrumbList>
+      </Breadcrumb>
+    </div>
+  );
 }
 
 /** Panel toolbar: a pin toggle (desktop only) and a close button (docked only). */

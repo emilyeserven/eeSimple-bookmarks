@@ -26,6 +26,9 @@ interface UiState {
   /** When on, blurring the bookmark URL field auto-fetches the page title. */
   autoFetchTitle: boolean;
   setAutoFetchTitle: (value: boolean) => void;
+  /** When on, listing images keep their true aspect ratio; when off they're cropped to a uniform, capped size. */
+  maintainImageAspectRatio: boolean;
+  setMaintainImageAspectRatio: (value: boolean) => void;
   /** Bookmark grid column count (1–4) per listing page, keyed by a stable page key. */
   bookmarkColumns: Record<string, number>;
   setBookmarkColumns: (pageKey: string, columns: number) => void;
@@ -59,6 +62,10 @@ export const useUiStore = create<UiState>()(
       autoFetchTitle: true,
       setAutoFetchTitle: value => set({
         autoFetchTitle: value,
+      }),
+      maintainImageAspectRatio: true,
+      setMaintainImageAspectRatio: value => set({
+        maintainImageAspectRatio: value,
       }),
       bookmarkColumns: {},
       setBookmarkColumns: (pageKey, columns) => set(state => ({
@@ -101,6 +108,7 @@ export const useUiStore = create<UiState>()(
       partialize: state => ({
         theme: state.theme,
         autoFetchTitle: state.autoFetchTitle,
+        maintainImageAspectRatio: state.maintainImageAspectRatio,
         bookmarkColumns: state.bookmarkColumns,
         panelPinned: state.panelPinned,
         sidebarWidth: state.sidebarWidth,

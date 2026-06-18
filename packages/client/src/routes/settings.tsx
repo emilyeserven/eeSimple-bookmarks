@@ -13,7 +13,7 @@ const settingsNav = [
   },
   {
     to: "/settings/autofill",
-    label: "Autofill",
+    label: "Autofill Rules",
   },
   {
     to: "/settings/display",

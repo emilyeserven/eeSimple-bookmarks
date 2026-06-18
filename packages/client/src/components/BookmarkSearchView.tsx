@@ -2,7 +2,7 @@ import type { BookmarkSearch } from "../lib/bookmarkSearch";
 import type { Bookmark, Category, CustomProperty, TagNode } from "@eesimple/types";
 import type { ReactNode } from "react";
 
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, TriangleAlert } from "lucide-react";
 
 import { BookmarkCard } from "./BookmarkCard";
 import { BookmarkForm } from "./BookmarkForm";
@@ -15,6 +15,7 @@ import { useUiStore } from "../stores/uiStore";
 
 import { Card } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface BookmarkSearchViewProps {
   /** Page heading area rendered above the two-column body. */
@@ -71,13 +72,40 @@ export function BookmarkSearchView({
   const visibleBookmarks = bookmarks.filter(bookmark => bookmarkMatchesSearch(bookmark, search));
   const hasActiveFilters = search.tag !== undefined
     || search.tagPresence !== undefined
+    || (search.categories?.length ?? 0) > 0
     || Object.keys(search.num ?? {}).length > 0
     || Object.keys(search.bool ?? {}).length > 0
     || Object.keys(search.presence ?? {}).length > 0;
 
+  const unassignedProperties = categories
+    ? properties.filter(property => property.categoryIds.length === 0)
+    : [];
+
   return (
     <section className="space-y-8">
       {header}
+
+      {unassignedProperties.length > 0
+        ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span
+                className="
+                  inline-flex items-center gap-1.5 text-xs text-destructive
+                "
+              >
+                <TriangleAlert className="size-4 shrink-0" />
+                {unassignedProperties.length === 1
+                  ? "1 property without a category"
+                  : `${unassignedProperties.length} properties without a category`}
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>
+              {unassignedProperties.map(property => property.name).join(", ")}
+            </TooltipContent>
+          </Tooltip>
+        )
+        : null}
 
       <div
         className="
@@ -147,6 +175,7 @@ export function BookmarkSearchView({
                   bookmark={bookmark}
                   properties={properties}
                   onDelete={id => deleteBookmark.mutate(id)}
+                  imageLeft={columns === 1}
                 />
               </Card>
             ))}

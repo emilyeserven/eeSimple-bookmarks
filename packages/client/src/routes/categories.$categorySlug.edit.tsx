@@ -24,7 +24,7 @@ const editNav = [
   },
   {
     to: "/categories/$categorySlug/edit/autofill",
-    label: "Autofill",
+    label: "Autofill Rules",
   },
 ] as const;
 
