@@ -31,20 +31,20 @@ cp packages/middleware/.env.example packages/middleware/.env
 pnpm dev                                  # starts Postgres, pushes the schema, runs all packages
 ```
 
-`pnpm dev` brings up the database via Docker Compose, applies the schema (runtime migrations then a
-reconciling `drizzle-kit push`), then runs the types watcher, the API (http://localhost:3001, docs
+`pnpm dev` brings up the database via Docker Compose, applies the schema (`drizzle-kit push`, after
+the runtime-migrations hook), then runs the types watcher, the API (http://localhost:3001, docs
 at `/docs`), and the client (http://localhost:5173) concurrently. The API auto-seeds a sample
 bookmark on first run.
 
-The schema is managed with **Drizzle migrations**. After changing `packages/middleware/src/db/schema.ts`,
-generate a migration and commit the result:
+The schema is managed with **`drizzle-kit push`**, like
+[course-tracker](https://github.com/emilyeserven/course-tracker): for additive changes (new tables,
+columns, constraints) just edit `packages/middleware/src/db/schema.ts` — `push` diffs it against the
+database and applies the delta on `pnpm dev` and on every deploy. There are no generated migration
+files to write or commit.
 
-```bash
-pnpm --filter=@eesimple/middleware generate   # writes a new SQL file under packages/middleware/drizzle/
-```
-
-Migrations are applied automatically on `pnpm dev` and on every deploy; `drizzle-kit push` runs
-afterward only to reconcile any residual drift.
+Destructive or push-incompatible changes (dropping a column, `ALTER TYPE … ADD VALUE`, data
+transforms) go in the idempotent runtime-migrations hook at
+`packages/middleware/src/db/migrate.ts`, which runs before `push`.
 
 ### Useful commands
 
@@ -56,7 +56,7 @@ pnpm lint / lint:fix  # ESLint (run from the repo root)
 pnpm verify:changed   # lint + typecheck + test only the changed packages
 pnpm fallow           # dead-code / duplication / complexity audit
 pnpm studio           # Drizzle Studio (database GUI)
-pnpm push:dev         # run migrations + push the Drizzle schema to the local database
+pnpm push:dev         # run the migrations hook, then push the schema to the local database
 ```
 
 To reset the database: `docker compose down -v && docker compose up --wait db && pnpm push:dev`.
@@ -66,7 +66,7 @@ To reset the database: `docker compose down -v && docker compose up --wait db &&
 eeSimple Bookmarks is built to self-deploy. In production a single Docker image (the repo-root `Dockerfile`)
 runs the **gateway** on port **3000**: it serves the client's static build, proxies `/api/*` to the
 middleware (spawned as a child process), and on boot brings the database schema up to date — it runs
-the versioned migrations (`dist/db/migrate.js`) and then a reconciling `drizzle-kit push` — against
+the runtime-migrations hook (`dist/db/migrate.js`) and then `drizzle-kit push` — against
 `DATABASE_URL`. The only configuration it needs is `DATABASE_URL`.
 
 1. **Provision PostgreSQL.** In your Coolify project, add a PostgreSQL database (or use any external
@@ -86,13 +86,13 @@ the versioned migrations (`dist/db/migrate.js`) and then a reconciling `drizzle-
 5. **Deploy.** Coolify builds the multi-stage image and starts the gateway. The schema is applied
    automatically on first boot. Visit the app URL and check `GET /healthz` returns `{"status":"ok"}`.
 
-> **If the schema didn't apply automatically.** The gateway applies migrations and then a
-> reconciling push on boot. If a deploy logged a schema error and the app is failing against a
-> stale schema, you can apply it by hand from the container terminal (Coolify → the app →
+> **If the schema didn't apply automatically.** The gateway runs the runtime-migrations hook and
+> then `drizzle-kit push` on boot. If a deploy logged a schema error and the app is failing against
+> a stale schema, you can apply it by hand from the container terminal (Coolify → the app →
 > **Terminal**). Run it from the middleware package, not the gateway working directory:
 >
 > ```bash
-> cd /app/packages/middleware && node dist/db/migrate.js && pnpm exec drizzle-kit push --force
+> cd /app/packages/middleware && node dist/db/migrate.js && pnpm exec drizzle-kit push
 > ```
 >
 > Running these from `/app/packages/gateway` (the default directory) fails — the gateway package
