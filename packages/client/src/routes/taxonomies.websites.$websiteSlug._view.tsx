@@ -24,6 +24,10 @@ const viewNav = [
     to: "/taxonomies/websites/$websiteSlug/param-rules",
     label: "Param Rules",
   },
+  {
+    to: "/taxonomies/websites/$websiteSlug/autofill",
+    label: "Autofill Rules",
+  },
 ] as const;
 
 function WebsiteViewLayout() {

@@ -20,6 +20,10 @@ function summarizeNode(node: ConditionNode): string {
         : `${node.field === "url" ? "URL" : "title"} ${OPERATOR_VERBS[node.operator]} “${node.pattern}”`;
     case "category":
       return `category is one of (${node.categoryIds.length})`;
+    case "website":
+      return node.domains.length === 1
+        ? `website is “${node.domains[0]}”`
+        : `website is one of (${node.domains.length})`;
     case "tag":
       return `tagged with (${node.tagIds.length})`;
     case "property":
