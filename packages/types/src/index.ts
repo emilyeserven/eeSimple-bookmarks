@@ -350,6 +350,8 @@ export interface Bookmark {
   description: string | null;
   /** The image attached to this bookmark, or `null` when none has been set. */
   image: BookmarkImage | null;
+  /** Specific reason the last image auto-grab attempt failed, or `null` when not yet attempted or the last attempt succeeded. */
+  imageAutoGrabError: "no_image" | "bad_image" | "blocked" | "server_error" | "fetch_error" | null;
   /** Id of the category this bookmark belongs to (always set; the built-in "Default" when unassigned). */
   categoryId: string;
   /** The website this bookmark belongs to (auto-linked by URL host), or `null` when the URL has no host. */

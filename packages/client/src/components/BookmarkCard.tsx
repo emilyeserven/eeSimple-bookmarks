@@ -10,6 +10,14 @@ import type {
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+const IMAGE_GRAB_ERROR_LABELS: Record<string, string> = {
+  no_image: "No preview image on this page",
+  bad_image: "Preview image couldn't be loaded",
+  blocked: "Access to this page was blocked",
+  server_error: "Site returned a server error",
+  fetch_error: "Page couldn't be reached",
+};
+
 import { propertyAppliesToCategory } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 import { ExternalLink, MoreVertical, Sparkles } from "lucide-react";
@@ -454,11 +462,20 @@ export function BookmarkCard({
               : null}
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              disabled={autoImage.isPending}
+              disabled={autoImage.isPending || bookmark.imageAutoGrabError !== null}
               onClick={() => autoImage.mutate(bookmark.id)}
             >
-              <Sparkles className="mr-2 size-4" />
-              Get page image
+              <div className="flex flex-col gap-0.5">
+                <span className="flex items-center">
+                  <Sparkles className="mr-2 size-4" />
+                  Get page image
+                </span>
+                {bookmark.imageAutoGrabError && (
+                  <span className="ml-6 text-xs text-muted-foreground">
+                    {IMAGE_GRAB_ERROR_LABELS[bookmark.imageAutoGrabError] ?? "Could not fetch a preview image"}
+                  </span>
+                )}
+              </div>
             </DropdownMenuItem>
             {onDelete
               ? (

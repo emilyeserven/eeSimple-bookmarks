@@ -32,6 +32,10 @@ export const bookmarks = pgTable("bookmarks", {
     onDelete: "set null",
   }),
   priority: integer("priority").notNull().default(0),
+  // Specific reason the last image auto-grab attempt failed. Nullable so `drizzle-kit push`
+  // applies cleanly to existing rows (push-safe additive change). NULL means never attempted or
+  // the last attempt succeeded.
+  imageAutoGrabError: text("image_auto_grab_error"),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
