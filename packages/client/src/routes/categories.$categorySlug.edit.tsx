@@ -1,10 +1,9 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 
-import { TabbedEntityLayout, navLinkClass } from "../components/TabbedEntityLayout";
+import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useCategoryBySlug } from "../hooks/useCategories";
 
 import { CategoryIcon } from "@/lib/icons";
-import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/categories/$categorySlug/edit")({
   component: CategoryEditLayout,
@@ -65,31 +64,11 @@ function CategoryEditLayout() {
           </p>
         </div>
       )}
-      nav={(
-        <nav
-          className="
-            flex shrink-0 flex-col gap-1
-            sm:w-48
-          "
-          aria-label="Category settings sections"
-        >
-          {editNav.map(item => (
-            <Link
-              key={item.to}
-              to={item.to}
-              params={{
-                categorySlug,
-              }}
-              className={cn(navLinkClass)}
-              activeProps={{
-                className: "bg-accent text-accent-foreground",
-              }}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-      )}
+      nav={editNav}
+      params={{
+        categorySlug,
+      }}
+      navAriaLabel="Category settings sections"
     />
   );
 }

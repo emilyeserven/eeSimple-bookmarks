@@ -1,9 +1,7 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 
-import { TabbedEntityLayout, navLinkClass } from "../components/TabbedEntityLayout";
+import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useYouTubeChannelBySlug } from "../hooks/useYouTubeChannels";
-
-import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/taxonomies/youtube-channels/$channelSlug/edit")({
   component: YouTubeChannelEditLayout,
@@ -43,31 +41,11 @@ function YouTubeChannelEditLayout() {
           <h1 className="text-2xl font-bold">Edit channel</h1>
         </div>
       )}
-      nav={(
-        <nav
-          className="
-            flex shrink-0 flex-col gap-1
-            sm:w-48
-          "
-          aria-label="Channel edit sections"
-        >
-          {editNav.map(item => (
-            <Link
-              key={item.to}
-              to={item.to}
-              params={{
-                channelSlug,
-              }}
-              className={cn(navLinkClass)}
-              activeProps={{
-                className: "bg-accent text-accent-foreground",
-              }}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-      )}
+      nav={editNav}
+      params={{
+        channelSlug,
+      }}
+      navAriaLabel="Channel edit sections"
     />
   );
 }

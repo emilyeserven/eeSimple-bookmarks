@@ -1,10 +1,9 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 
-import { TabbedEntityLayout, navLinkClass } from "../components/TabbedEntityLayout";
+import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useDeleteYouTubeChannel, useYouTubeChannelBySlug } from "../hooks/useYouTubeChannels";
 
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/taxonomies/youtube-channels/$channelSlug/_view")({
   component: YouTubeChannelViewLayout,
@@ -91,31 +90,11 @@ function YouTubeChannelViewLayout() {
           </div>
         </div>
       )}
-      nav={(
-        <nav
-          className="
-            flex shrink-0 flex-col gap-1
-            sm:w-48
-          "
-          aria-label="Channel sections"
-        >
-          {viewNav.map(item => (
-            <Link
-              key={item.to}
-              to={item.to}
-              params={{
-                channelSlug,
-              }}
-              className={cn(navLinkClass)}
-              activeProps={{
-                className: "bg-accent text-accent-foreground",
-              }}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-      )}
+      nav={viewNav}
+      params={{
+        channelSlug,
+      }}
+      navAriaLabel="Channel sections"
     />
   );
 }

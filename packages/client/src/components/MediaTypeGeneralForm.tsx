@@ -86,20 +86,11 @@ export function MediaTypeGeneralForm({
       {!mediaType.builtIn
         ? (
           <form.AppForm>
-            <form.Subscribe selector={state => state.values}>
-              {(values) => {
-                const dirty
-                  = values.name.trim() !== mediaType.name
-                    || values.sortOrder !== mediaType.sortOrder;
-                return (
-                  <form.SubmitButton
-                    label="Save changes"
-                    size="sm"
-                    disabledWhen={!dirty}
-                  />
-                );
-              }}
-            </form.Subscribe>
+            <form.SubmitButton
+              label="Save changes"
+              size="sm"
+              requireDirty
+            />
           </form.AppForm>
         )
         : null}

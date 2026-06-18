@@ -1,35 +1,11 @@
-import type { Category } from "@eesimple/types";
-import type { ReactNode } from "react";
-
-import { TabWrapper } from "./TabWrapper";
+import { createTabWrapper } from "./TabWrapper";
 
 import { useCategoryBySlug } from "@/hooks/useCategories";
 
-interface Props {
-  categorySlug: string;
-  title: string;
-  description: string;
-  children: (category: Category) => ReactNode;
-}
-
-export function CategoryEditTabWrapper({
-  categorySlug,
-  title,
-  description,
-  children,
-}: Props) {
-  const {
-    category, isLoading,
-  } = useCategoryBySlug(categorySlug);
-  return (
-    <TabWrapper
-      entity={category}
-      isLoading={isLoading}
-      notFoundMessage="Category not found."
-      title={title}
-      description={description}
-    >
-      {children}
-    </TabWrapper>
-  );
-}
+/** Loads a category by slug and renders a tab's title + description header above its content. */
+export const CategoryEditTabWrapper = createTabWrapper(
+  "categorySlug",
+  useCategoryBySlug,
+  result => result.category,
+  "Category not found.",
+);

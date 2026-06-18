@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { TabWrapper } from "../components/TabWrapper";
-import { useMediaTypeBySlug } from "../hooks/useMediaTypes";
+import { MediaTypeTabWrapper } from "../components/MediaTypeTabWrapper";
 
 export const Route = createFileRoute("/taxonomies/media-types/$mediaTypeSlug/_view/general")({
   component: GeneralViewTab,
@@ -11,14 +10,9 @@ function GeneralViewTab() {
   const {
     mediaTypeSlug,
   } = Route.useParams();
-  const {
-    mediaType, isLoading,
-  } = useMediaTypeBySlug(mediaTypeSlug);
   return (
-    <TabWrapper
-      entity={mediaType}
-      isLoading={isLoading}
-      notFoundMessage="Media type not found."
+    <MediaTypeTabWrapper
+      mediaTypeSlug={mediaTypeSlug}
       title="General"
       description="Name, sort order, and metadata."
     >
@@ -40,6 +34,6 @@ function GeneralViewTab() {
             : null}
         </dl>
       )}
-    </TabWrapper>
+    </MediaTypeTabWrapper>
   );
 }
