@@ -4,6 +4,7 @@ import {
   bookmarkMatchesSearch,
   validateBookmarkSearch,
   withBooleanFilter,
+  withCategories,
   withNumberFilter,
   withTag,
 } from "./bookmarkSearch";
@@ -17,6 +18,25 @@ describe("validateBookmarkSearch", () => {
     });
     expect(validateBookmarkSearch({
       tag: 5,
+    })).toEqual({});
+  });
+
+  it("keeps a valid categories array and drops non-string entries", () => {
+    expect(validateBookmarkSearch({
+      categories: ["cat-1", "cat-2"],
+    })).toEqual({
+      categories: ["cat-1", "cat-2"],
+    });
+    expect(validateBookmarkSearch({
+      categories: ["cat-1", 42, null],
+    })).toEqual({
+      categories: ["cat-1"],
+    });
+    expect(validateBookmarkSearch({
+      categories: [],
+    })).toEqual({});
+    expect(validateBookmarkSearch({
+      categories: "not-an-array",
     })).toEqual({});
   });
 
@@ -51,6 +71,24 @@ describe("validateBookmarkSearch", () => {
 });
 
 describe("with* helpers", () => {
+  it("sets and clears the category filter", () => {
+    expect(withCategories({}, ["cat-1", "cat-2"])).toEqual({
+      categories: ["cat-1", "cat-2"],
+    });
+    expect(withCategories({
+      categories: ["cat-1"],
+    }, [])).toEqual({});
+    const base = {
+      categories: ["cat-1"],
+    };
+    expect(withCategories(base, ["cat-2"])).toEqual({
+      categories: ["cat-2"],
+    });
+    expect(base).toEqual({
+      categories: ["cat-1"],
+    });
+  });
+
   it("sets and clears the tag immutably", () => {
     const base = {
       tag: "a",
@@ -89,6 +127,7 @@ describe("with* helpers", () => {
 
 describe("bookmarkMatchesSearch", () => {
   const bookmark = {
+    categoryId: "cat-1",
     tags: [],
     numberValues: [{
       propertyId: "p1",
@@ -102,6 +141,21 @@ describe("bookmarkMatchesSearch", () => {
 
   it("passes when no filters are active", () => {
     expect(bookmarkMatchesSearch(bookmark, {})).toBe(true);
+  });
+
+  it("applies the category filter", () => {
+    expect(bookmarkMatchesSearch(bookmark, {
+      categories: ["cat-1"],
+    })).toBe(true);
+    expect(bookmarkMatchesSearch(bookmark, {
+      categories: ["cat-1", "cat-2"],
+    })).toBe(true);
+    expect(bookmarkMatchesSearch(bookmark, {
+      categories: ["cat-2"],
+    })).toBe(false);
+    expect(bookmarkMatchesSearch(bookmark, {
+      categories: [],
+    })).toBe(true);
   });
 
   it("applies number-range and boolean filters", () => {
