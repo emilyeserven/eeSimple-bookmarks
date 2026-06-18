@@ -3,10 +3,10 @@ import { useRef, useState } from "react";
 import { useBookmarkImageMode } from "../lib/bookmarkColumns";
 import { useUiStore } from "../stores/uiStore";
 
+import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Button } from "@/components/ui/button";
 
 interface ImageModeSwitcherProps {
   /** Stable key identifying the page, so each listing remembers its own image display mode. */
@@ -14,7 +14,9 @@ interface ImageModeSwitcherProps {
 }
 
 /** On-page control to choose how listing bookmark images are displayed (natural ratio vs. uniform crop). */
-export function ImageModeSwitcher({ pageKey }: ImageModeSwitcherProps) {
+export function ImageModeSwitcher({
+  pageKey,
+}: ImageModeSwitcherProps) {
   const [open, setOpen] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const imageMode = useBookmarkImageMode(pageKey);
@@ -53,7 +55,7 @@ export function ImageModeSwitcher({ pageKey }: ImageModeSwitcherProps) {
             type="single"
             size="sm"
             value={imageMode ? "natural" : "cropped"}
-            onValueChange={value => {
+            onValueChange={(value) => {
               if (value) setBookmarkImageMode(pageKey, value === "natural");
             }}
           >
