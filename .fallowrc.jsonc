@@ -33,6 +33,7 @@
     "eslint-plugin-react-refresh",
     "typescript-eslint"
   ],
+  "ignoreExportsUsedInFile": true,
   "rules": {
     "unused-files": "error",
     "unused-exports": "warn",
