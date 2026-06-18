@@ -403,7 +403,10 @@ export async function bookmarkRoutes(app: FastifyInstance): Promise<void> {
     const result = await fetchAndStoreOgImage(id);
     const success = typeof result !== "string";
     req.log[success ? "info" : "warn"](
-      { bookmarkId: id, result: success ? "stored" : result },
+      {
+        bookmarkId: id,
+        result: success ? "stored" : result,
+      },
       success ? "[image-auto] auto-capture succeeded" : "[image-auto] auto-capture failed",
     );
     if (result === "not_found") {

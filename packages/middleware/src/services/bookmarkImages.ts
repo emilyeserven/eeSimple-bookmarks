@@ -91,7 +91,9 @@ export async function setBookmarkImage(
     bookmarkId,
   });
   // Clear any previous auto-grab error: a new image (upload or auto) resolves the failure.
-  await db.update(bookmarks).set({ imageAutoGrabError: null }).where(eq(bookmarks.id, bookmarkId));
+  await db.update(bookmarks).set({
+    imageAutoGrabError: null,
+  }).where(eq(bookmarks.id, bookmarkId));
   return bookmarkImageFromRow(row);
 }
 
@@ -130,20 +132,22 @@ export async function fetchAndStoreOgImage(bookmarkId: string): Promise<AutoImag
     else {
       console.warn(`[youtube-enrich] image: YouTube thumbnail unavailable for ${bookmarkId}; falling back to og:image`);
       const r = await fetchOgImage(bookmark.url);
-      if (r instanceof Buffer) bytes = r;
-      else grabError = r;
+      if (typeof r === "string") grabError = r;
+      else bytes = r;
     }
   }
   else {
     const r = await fetchOgImage(bookmark.url);
-    if (r instanceof Buffer) bytes = r;
-    else grabError = r;
+    if (typeof r === "string") grabError = r;
+    else bytes = r;
   }
 
   if (!bytes) {
     const error = grabError ?? "no_image";
     console.warn(`[image-auto] ${error} for bookmark ${bookmarkId} (${bookmark.url})`);
-    await db.update(bookmarks).set({ imageAutoGrabError: error }).where(eq(bookmarks.id, bookmarkId));
+    await db.update(bookmarks).set({
+      imageAutoGrabError: error,
+    }).where(eq(bookmarks.id, bookmarkId));
     return error;
   }
 
@@ -151,7 +155,9 @@ export async function fetchAndStoreOgImage(bookmarkId: string): Promise<AutoImag
   if (storeResult === "not_found") return "not_found";
   if (storeResult === "bad_image") {
     console.warn(`[image-auto] bad_image (decode failed) for bookmark ${bookmarkId}`);
-    await db.update(bookmarks).set({ imageAutoGrabError: "bad_image" }).where(eq(bookmarks.id, bookmarkId));
+    await db.update(bookmarks).set({
+      imageAutoGrabError: "bad_image",
+    }).where(eq(bookmarks.id, bookmarkId));
     return "bad_image";
   }
   return storeResult;
