@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { PropertyGeneralForm } from "../components/PropertyGeneralForm";
+import { PropertyEditForm } from "../components/PropertyEditForm";
 import { PropertyTabWrapper } from "../components/PropertyTabWrapper";
 
 export const Route = createFileRoute("/custom-properties/$propertySlug/edit/general")({
@@ -17,7 +17,12 @@ function GeneralEditTab() {
       title="General"
       description="Name, status, and description."
     >
-      {property => <PropertyGeneralForm property={property} />}
+      {property => (
+        <PropertyEditForm
+          property={property}
+          section="general"
+        />
+      )}
     </PropertyTabWrapper>
   );
 }
