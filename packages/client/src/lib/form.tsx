@@ -116,11 +116,13 @@ interface TextareaFieldProps {
   onBlur?: () => void;
   /** Optional control rendered at the inline-end of the textarea (input-group pattern). */
   action?: ReactNode;
+  /** Stretch the textarea to fill its container's height (for equal-height grid cells). */
+  fill?: boolean;
 }
 
 /** Labelled multi-line text input bound to the surrounding field. */
 function TextareaField({
-  label, placeholder, rows = 2, disabled, inputClassName, onBlur, action,
+  label, placeholder, rows = 2, disabled, inputClassName, onBlur, action, fill,
 }: TextareaFieldProps) {
   const field = useFieldContext<string>();
   const id = useId();
@@ -131,7 +133,7 @@ function TextareaField({
       rows={rows}
       placeholder={placeholder}
       disabled={disabled}
-      className={inputClassName}
+      className={`${fill ? "h-full flex-1" : ""} ${inputClassName ?? ""}`.trim() || undefined}
       value={field.state.value}
       onBlur={() => {
         field.handleBlur();
@@ -142,7 +144,7 @@ function TextareaField({
   );
 
   return (
-    <div className="space-y-1">
+    <div className={fill ? "flex h-full flex-col gap-1" : "space-y-1"}>
       <Label htmlFor={id}>{label}</Label>
       {action
         ? (
