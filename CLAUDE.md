@@ -56,6 +56,13 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
   to a valid prefix before expecting `lint-title` to pass.
 - **Git hooks** (Husky): pre-commit runs `lint-staged`; commit-msg runs commitlint.
 - **Path alias:** the middleware uses `@/*` → `src/*` (resolved at build time by `tsc-alias`).
+- **`.js` import extensions in `@eesimple/types`:** the types package emits native ESM, so its
+  intra-package imports/re-exports must carry explicit `.js` extensions (e.g.
+  `export * from "./conditions.js"`), even though the source files are `.ts`. Omitting them builds
+  locally but breaks ESM resolution for consumers.
+- **UI primitives:** before adding a Radix/shadcn primitive, check
+  `packages/client/src/components/ui/` — `dialog`, `dropdown-menu`, `popover`, `toggle-group`,
+  `command`, etc. already exist (`Dialog` was once reintroduced twice). Reuse the existing one.
 - **Right-panel parity:** the shared right-hand panel (`packages/client/src/components/panel/`) is
   URL-driven (`dOpen`/`dCT`/`dCId`/`dMode`) and must achieve **feature and component parity** with
   the main app. A single item viewed/edited in the panel reuses the **same** components the main app
@@ -109,6 +116,12 @@ server that spawns the middleware as a child process, proxies `/api/*` to it, se
 static build, runs `drizzle-kit push` on boot, and respawns the middleware with backoff. The
 root `Dockerfile` builds everything for production. Deploy via Coolify using only `DATABASE_URL`
 (see `README.md`).
+
+The middleware calls `app.listen()` **before** running its boot data-steps (`ensure*` / `backfill*`
+in `src/index.ts`) so the gateway's `/healthz` probe and `/api/*` proxy stay reachable even if a
+boot step is slow on modest hardware — keep that ordering when adding boot steps. The gateway waits
+on the middleware with a configurable timeout (`MIDDLEWARE_WAIT_TIMEOUT_MS`, default 60s; database
+readiness uses `DB_WAIT_TIMEOUT_MS`).
 
 ## Environment variables
 
