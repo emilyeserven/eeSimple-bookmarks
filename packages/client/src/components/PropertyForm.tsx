@@ -9,46 +9,19 @@ import { z } from "zod";
 
 import { CollapsibleFormSection } from "./CollapsibleFormSection";
 import { LabeledSection } from "./LabeledSection";
+import { CategoryCheckboxList, OperandCheckboxList } from "./PropertyFormFields";
 import { useAppForm } from "../lib/form";
+import {
+  DATE_TIME_FORMAT_OPTIONS,
+  summarizeCategories,
+  summarizeNumberOptions,
+  toggleId,
+  TYPE_OPTIONS,
+} from "../lib/propertyForm";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { CategoryIcon } from "@/lib/icons";
-
-const TYPE_OPTIONS = [
-  {
-    value: "number",
-    label: "Number",
-  },
-  {
-    value: "boolean",
-    label: "Boolean",
-  },
-  {
-    value: "calculate",
-    label: "Calculate (Sum)",
-  },
-  {
-    value: "datetime",
-    label: "Date / Time",
-  },
-];
-
-const DATE_TIME_FORMAT_OPTIONS = [
-  {
-    value: "date",
-    label: "Date only",
-  },
-  {
-    value: "time",
-    label: "Time only",
-  },
-  {
-    value: "datetime",
-    label: "Date & time",
-  },
-];
 
 const propertySchema = z
   .object({
@@ -85,41 +58,6 @@ const propertySchema = z
   });
 
 type PropertyFormValues = z.infer<typeof propertySchema>;
-
-/** Add or remove `id` from `ids`, returning a new array. */
-function toggleId(ids: string[], id: string): string[] {
-  return ids.includes(id) ? ids.filter(value => value !== id) : [...ids, id];
-}
-
-/** One-line summary of the number options for the collapsed "Property options" preview. */
-function summarizeNumberOptions(values: {
-  disableMin: boolean;
-  disableMax: boolean;
-  numberMin: string;
-  numberMax: string;
-  unitPlural: string;
-  valuePrefix: string;
-}): string {
-  const parts: string[] = [];
-  const min = values.disableMin ? "auto" : (values.numberMin.trim() || "auto");
-  const max = values.disableMax ? "auto" : (values.numberMax.trim() || "auto");
-  if (min !== "auto" || max !== "auto") {
-    parts.push(`${min}–${max}${values.unitPlural.trim() ? ` ${values.unitPlural.trim()}` : ""}`);
-  }
-  else if (values.unitPlural.trim()) {
-    parts.push(values.unitPlural.trim());
-  }
-  if (values.valuePrefix.trim()) parts.push(`prefix ${values.valuePrefix.trim()}`);
-  return parts.length > 0 ? parts.join(" · ") : "No options set";
-}
-
-/** One-line summary of the category selection for the collapsed "Categories" preview. */
-function summarizeCategories(allCategories: boolean, selectedIds: string[]): string {
-  if (allCategories) return "All categories";
-  const count = selectedIds.length;
-  if (count === 0) return "No categories";
-  return `${count} ${count === 1 ? "category" : "categories"}`;
-}
 
 const CREATE_DEFAULTS: PropertyFormValues = {
   name: "",
@@ -199,133 +137,6 @@ function payloadFromValues(values: PropertyFormValues): CreateCustomPropertyInpu
     editableOnCard: values.type === "calculate" ? false : values.editableOnCard,
     enabled: values.enabled,
   };
-}
-
-interface CategoryCheckboxListProps {
-  categories: Category[];
-  selectedIds: string[];
-  onToggle: (id: string) => void;
-  idPrefix: string;
-  /** When set, render a leading "Select all" checkbox that selects every / no category. */
-  onToggleAll?: (selectAll: boolean) => void;
-  /** When true, the property applies to all (incl. future) categories; "Select all" stays checked. */
-  allCategories?: boolean;
-}
-
-/** A checkbox list for assigning a property to zero, one, or many categories. */
-function CategoryCheckboxList({
-  categories,
-  selectedIds,
-  onToggle,
-  idPrefix,
-  onToggleAll,
-  allCategories = false,
-}: CategoryCheckboxListProps) {
-  if (categories.length === 0) {
-    return (
-      <p className="text-sm text-muted-foreground">
-        No categories yet. Create some on the Categories page.
-      </p>
-    );
-  }
-  const allSelected = allCategories || categories.every(category => selectedIds.includes(category.id));
-  return (
-    <div className="space-y-2">
-      {onToggleAll
-        ? (
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id={`${idPrefix}-select-all`}
-              checked={allSelected}
-              onCheckedChange={() => onToggleAll(!allSelected)}
-            />
-            <Label
-              htmlFor={`${idPrefix}-select-all`}
-              className="text-xs text-muted-foreground"
-            >
-              Select all
-            </Label>
-          </div>
-        )
-        : null}
-      <div
-        className="
-          grid gap-2
-          sm:grid-cols-2
-        "
-      >
-        {categories.map((category) => {
-          const inputId = `${idPrefix}-${category.id}`;
-          return (
-            <div
-              key={category.id}
-              className="flex items-center gap-2"
-            >
-              <Checkbox
-                id={inputId}
-                checked={allCategories || selectedIds.includes(category.id)}
-                onCheckedChange={() => onToggle(category.id)}
-              />
-              <Label
-                htmlFor={inputId}
-                className="flex items-center gap-1.5"
-              >
-                <CategoryIcon
-                  name={category.icon}
-                  className="size-3.5"
-                />
-                {category.name}
-              </Label>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-interface OperandCheckboxListProps {
-  numberProperties: CustomProperty[];
-  selectedIds: string[];
-  onToggle: (id: string) => void;
-}
-
-/** A checkbox list for choosing the Number properties a Calculate property sums. */
-function OperandCheckboxList({
-  numberProperties, selectedIds, onToggle,
-}: OperandCheckboxListProps) {
-  if (numberProperties.length < 2) {
-    return (
-      <p className="text-sm text-muted-foreground">
-        Create at least two Number properties first; a Calculate property sums them.
-      </p>
-    );
-  }
-  return (
-    <div
-      className="
-        grid gap-2
-        sm:grid-cols-2
-      "
-    >
-      {numberProperties.map((property) => {
-        const inputId = `operand-${property.id}`;
-        return (
-          <div
-            key={property.id}
-            className="flex items-center gap-2"
-          >
-            <Checkbox
-              id={inputId}
-              checked={selectedIds.includes(property.id)}
-              onCheckedChange={() => onToggle(property.id)}
-            />
-            <Label htmlFor={inputId}>{property.name}</Label>
-          </div>
-        );
-      })}
-    </div>
-  );
 }
 
 interface PropertyFormProps {

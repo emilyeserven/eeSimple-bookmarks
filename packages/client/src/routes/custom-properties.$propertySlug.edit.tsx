@@ -1,30 +1,52 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { Link, Outlet, createFileRoute } from "@tanstack/react-router";
 
-import { PropertyForm } from "../components/PropertyForm";
-import { useCategories } from "../hooks/useCategories";
-import { usePropertyBySlug, useUpdateCustomProperty } from "../hooks/useCustomProperties";
+import { usePropertyBySlug } from "../hooks/useCustomProperties";
+import { hasPropertyOptions } from "../lib/propertyForm";
+
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/custom-properties/$propertySlug/edit")({
-  component: CustomPropertyEditPage,
+  component: CustomPropertyEditLayout,
 });
 
-function CustomPropertyEditPage() {
+const navLinkClass = `
+  rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors
+  hover:bg-accent hover:text-accent-foreground
+`;
+
+function CustomPropertyEditLayout() {
   const {
     propertySlug,
   } = Route.useParams();
-  const navigate = Route.useNavigate();
   const {
-    property, data: properties, isLoading, error,
+    property, isLoading,
   } = usePropertyBySlug(propertySlug);
-  const {
-    data: categories,
-  } = useCategories();
-  const updateProperty = useUpdateCustomProperty();
 
-  // A calculate property may sum any other number property, but never itself.
-  const numberProperties = (properties ?? []).filter(
-    candidate => candidate.type === "number" && candidate.id !== property?.id,
-  );
+  // The "Options" tab only exists when the property has options (number / calculate / datetime).
+  const editNav = [
+    {
+      to: "/custom-properties/$propertySlug/edit/general",
+      label: "General",
+    },
+    ...(property && hasPropertyOptions(property)
+      ? [{
+        to: "/custom-properties/$propertySlug/edit/options",
+        label: "Options",
+      }] as const
+      : []),
+    {
+      to: "/custom-properties/$propertySlug/edit/categories",
+      label: "Categories",
+    },
+    {
+      to: "/custom-properties/$propertySlug/edit/display",
+      label: "Display",
+    },
+    {
+      to: "/custom-properties/$propertySlug/edit/autofill",
+      label: "Autofill Rules",
+    },
+  ] as const;
 
   return (
     <section className="space-y-6">
@@ -41,41 +63,48 @@ function CustomPropertyEditPage() {
         >
           ← Back to custom property
         </Link>
-        <h1 className="text-2xl font-bold">Edit custom property</h1>
+        <h1 className="text-2xl font-bold">
+          {isLoading ? "Edit custom property" : (property?.name ?? "Custom property not found")}
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Edit the general details, options, categories, display, and autofill rules for this property.
+        </p>
       </div>
 
-      {isLoading ? <p className="text-muted-foreground">Loading custom property…</p> : null}
-      {error || (!isLoading && !property)
-        ? <p className="text-destructive">{error?.message ?? "Custom property not found."}</p>
-        : null}
-      {property
-        ? (
-          <PropertyForm
-            mode="edit"
-            property={property}
-            categories={categories ?? []}
-            numberProperties={numberProperties}
-            onSubmit={({
-              type, ...input
-            }) => updateProperty.mutate({
-              id: property.id,
-              input,
-            }, {
-              // Renaming can change the slug, so navigate to the property's returned slug.
-              onSuccess: updated => navigate({
-                to: "/custom-properties/$propertySlug",
-                params: {
-                  propertySlug: updated.slug,
-                },
-              }),
-            })}
-            submitLabel="Save changes"
-            pendingLabel="Saving…"
-            errorMessage={updateProperty.isError ? updateProperty.error.message : undefined}
-            idPrefix={`property-${property.id}-category`}
-          />
-        )
-        : null}
+      <div
+        className="
+          flex flex-col gap-6
+          sm:flex-row
+        "
+      >
+        <nav
+          className="
+            flex shrink-0 flex-col gap-1
+            sm:w-48
+          "
+          aria-label="Custom property settings sections"
+        >
+          {editNav.map(item => (
+            <Link
+              key={item.to}
+              to={item.to}
+              params={{
+                propertySlug,
+              }}
+              className={cn(navLinkClass)}
+              activeProps={{
+                className: "bg-accent text-accent-foreground",
+              }}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="min-w-0 flex-1">
+          <Outlet />
+        </div>
+      </div>
     </section>
   );
 }
