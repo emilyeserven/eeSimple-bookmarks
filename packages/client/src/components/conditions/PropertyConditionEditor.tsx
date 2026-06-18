@@ -1,7 +1,10 @@
 import type { Category, CustomProperty, PropertyCondition } from "@eesimple/types";
 
+import { ChevronDown, CircleHelp } from "lucide-react";
+
 import { RangeSlider } from "../RangeSlider";
 
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -10,11 +13,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface PropertyConditionEditorProps {
   value: PropertyCondition[];
   properties: CustomProperty[];
   categories: Category[];
+  selectedCategoryIds: string[];
   onChange: (next: PropertyCondition[]) => void;
 }
 
@@ -70,12 +75,46 @@ const BOOLEAN_MODES = [
 interface RowProps {
   property: CustomProperty;
   condition: PropertyCondition | undefined;
+  categories: Category[];
   onChange: (next: PropertyCondition | null) => void;
+}
+
+function PropertyNameLabel({
+  property, categories,
+}: { property: CustomProperty;
+  categories: Category[]; }) {
+  const categoryName = new Map(categories.map(c => [c.id, c.name]));
+  return (
+    <div className="flex items-center gap-1">
+      <Label className="text-sm">{property.name}</Label>
+      {categories.length > 0 && property.categoryIds.length > 0
+        ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                aria-label="Associated categories"
+                className="
+                  shrink-0 text-muted-foreground
+                  hover:text-foreground
+                "
+              >
+                <CircleHelp className="size-3.5" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {property.categoryIds.map(id => categoryName.get(id) ?? id).join(", ")}
+            </TooltipContent>
+          </Tooltip>
+        )
+        : null}
+    </div>
+  );
 }
 
 /** A single property's condition control (range/presence for numbers, value/presence for booleans). */
 function PropertyConditionRow({
-  property, condition, onChange,
+  property, condition, categories, onChange,
 }: RowProps) {
   const isNumber = property.type === "number" || property.type === "calculate";
 
@@ -90,7 +129,10 @@ function PropertyConditionRow({
     return (
       <div className="space-y-2">
         <div className="flex items-center justify-between gap-2">
-          <Label className="text-sm">{property.name}</Label>
+          <PropertyNameLabel
+            property={property}
+            categories={categories}
+          />
           <Select
             value={mode}
             onValueChange={(next) => {
@@ -172,7 +214,10 @@ function PropertyConditionRow({
 
   return (
     <div className="flex items-center justify-between gap-2">
-      <Label className="text-sm">{property.name}</Label>
+      <PropertyNameLabel
+        property={property}
+        categories={categories}
+      />
       <Select
         value={mode}
         onValueChange={(next) => {
@@ -223,9 +268,9 @@ function PropertyConditionRow({
   );
 }
 
-/** Custom-property conditions, organized one sub-group per category (plus uncategorized). */
+/** Custom-property conditions as a flat list, with a collapsible "Disabled Properties" section for properties not assigned to the active category filter. */
 export function PropertyConditionEditor({
-  value, properties, categories, onChange,
+  value, properties, categories, selectedCategoryIds, onChange,
 }: PropertyConditionEditorProps) {
   const byId = new Map(value.map(condition => [condition.propertyId, condition]));
 
@@ -234,46 +279,73 @@ export function PropertyConditionEditor({
     onChange(condition ? [...others, condition] : others);
   }
 
-  const uncategorized = properties.filter(property => property.categoryIds.length === 0);
-  const groups = [
-    ...(uncategorized.length > 0
-      ? [{
-        id: "general",
-        name: "General",
-        props: uncategorized,
-      }]
-      : []),
-    ...categories
-      .map(category => ({
-        id: category.id,
-        name: category.name,
-        props: properties.filter(property => property.categoryIds.includes(category.id)),
-      }))
-      .filter(group => group.props.length > 0),
-  ];
+  function isPropertyActive(property: CustomProperty): boolean {
+    if (!selectedCategoryIds.length) return true;
+    if (property.categoryIds.length === 0) return true;
+    return property.categoryIds.some(id => selectedCategoryIds.includes(id));
+  }
 
-  if (groups.length === 0) {
+  const activeProperties = properties.filter(isPropertyActive);
+  const disabledProperties = properties.filter(p => !isPropertyActive(p));
+
+  if (properties.length === 0) {
     return <p className="text-xs text-muted-foreground">No custom properties yet.</p>;
   }
 
   return (
     <div className="space-y-4">
-      {groups.map(group => (
-        <div
-          key={group.id}
-          className="space-y-2"
-        >
-          <p className="text-xs font-medium text-muted-foreground">{group.name}</p>
-          {group.props.map(property => (
-            <PropertyConditionRow
-              key={`${group.id}-${property.id}`}
-              property={property}
-              condition={byId.get(property.id)}
-              onChange={condition => setCondition(property.id, condition)}
-            />
-          ))}
-        </div>
-      ))}
+      {activeProperties.length > 0
+        ? (
+          <div className="space-y-2">
+            {activeProperties.map(property => (
+              <PropertyConditionRow
+                key={property.id}
+                property={property}
+                condition={byId.get(property.id)}
+                categories={categories}
+                onChange={condition => setCondition(property.id, condition)}
+              />
+            ))}
+          </div>
+        )
+        : null}
+
+      {disabledProperties.length > 0
+        ? (
+          <Collapsible className="group/disabled">
+            <CollapsibleTrigger
+              className="
+                flex w-full items-center gap-1.5 text-xs text-muted-foreground
+                hover:text-foreground
+              "
+            >
+              <ChevronDown
+                className="
+                  size-3 shrink-0 transition-transform
+                  group-data-[state=open]/disabled:rotate-180
+                "
+              />
+              Disabled Properties
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-3 pt-3">
+              <p className="text-xs text-muted-foreground">
+                These properties are not assigned to the selected categories and are unlikely to affect the results.
+              </p>
+              <div className="space-y-2">
+                {disabledProperties.map(property => (
+                  <PropertyConditionRow
+                    key={property.id}
+                    property={property}
+                    condition={byId.get(property.id)}
+                    categories={categories}
+                    onChange={condition => setCondition(property.id, condition)}
+                  />
+                ))}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        )
+        : null}
     </div>
   );
 }
