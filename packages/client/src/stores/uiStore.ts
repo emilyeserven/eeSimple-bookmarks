@@ -50,6 +50,9 @@ interface UiState {
   /** Whether the Add Bookmark accordion is expanded on Listings pages. Shared across all listing pages. */
   addBookmarkFormOpen: boolean;
   setAddBookmarkFormOpen: (open: boolean) => void;
+  /** Section IDs whose bookmark grid is collapsed on the homepage. */
+  collapsedHomepageSectionIds: string[];
+  toggleHomepageSectionCollapsed: (id: string) => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -102,6 +105,12 @@ export const useUiStore = create<UiState>()(
       setAddBookmarkFormOpen: open => set({
         addBookmarkFormOpen: open,
       }),
+      collapsedHomepageSectionIds: [],
+      toggleHomepageSectionCollapsed: id => set(state => ({
+        collapsedHomepageSectionIds: state.collapsedHomepageSectionIds.includes(id)
+          ? state.collapsedHomepageSectionIds.filter(x => x !== id)
+          : [...state.collapsedHomepageSectionIds, id],
+      })),
     }),
     {
       name: "eesimple-ui",
@@ -116,6 +125,7 @@ export const useUiStore = create<UiState>()(
         hiddenCategoryIds: state.hiddenCategoryIds,
         hiddenTaxonomyItems: state.hiddenTaxonomyItems,
         addBookmarkFormOpen: state.addBookmarkFormOpen,
+        collapsedHomepageSectionIds: state.collapsedHomepageSectionIds,
       }),
     },
   ),

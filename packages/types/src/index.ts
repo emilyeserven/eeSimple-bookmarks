@@ -344,6 +344,33 @@ export interface HomepageFilter {
 /** Payload for replacing the homepage filter. */
 export type UpdateHomepageFilterInput = HomepageFilter;
 
+/** A named, ordered section on the homepage with its own condition filter. */
+export interface HomepageSection {
+  id: string;
+  title: string;
+  description: string | null;
+  conditions: ConditionTree;
+  sortOrder: number;
+  createdAt: string;
+}
+
+/** A homepage section together with the bookmarks that match its filter. */
+export interface HomepageSectionBookmarks {
+  section: HomepageSection;
+  bookmarks: Bookmark[];
+}
+
+/** Payload for creating a homepage section. */
+export interface CreateHomepageSectionInput {
+  title: string;
+  description?: string | null;
+  conditions: ConditionTree;
+  sortOrder?: number;
+}
+
+/** Payload for partially updating a homepage section. */
+export type UpdateHomepageSectionInput = Partial<CreateHomepageSectionInput>;
+
 /** Standard error shape returned by the API. */
 export interface ApiError {
   error: string;
