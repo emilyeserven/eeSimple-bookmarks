@@ -337,7 +337,7 @@ export function isPublicHttpUrl(value: string): boolean {
 }
 
 /** Download an image URL into a Buffer, guarded by a timeout, content-type check, and byte cap. */
-async function downloadImage(url: string): Promise<Buffer | null> {
+export async function downloadImage(url: string): Promise<Buffer | null> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {

@@ -32,12 +32,15 @@ import {
   websites,
   youtubeChannels,
 } from "@/db/schema";
-import { bookmarkImageFromRow } from "@/services/bookmarkImages";
+import { bookmarkImageFromRow, fetchAndStoreOgImage, getBookmarkImageRow } from "@/services/bookmarkImages";
 import { ensureDefaultCategory } from "@/services/categories";
+import { getVideoLengthPropertyId } from "@/services/customProperties";
+import { getMediaTypeBySlug } from "@/services/mediaTypes";
 import { getDescendantIds } from "@/services/tags";
 import { ensureWebsiteForUrl, normalizeDomain } from "@/services/websites";
-import { fetchYouTubeMetadata, isYouTubeVideoUrl } from "@/services/youtube";
+import { fetchYouTubeMetadata, isYouTubeVideoUrl, parseYouTubeVideo, type YouTubeMetadata } from "@/services/youtube";
 import { channelKeyFromUrl, ensureYouTubeChannel } from "@/services/youtubeChannels";
+import { isObjectStoreConfigured } from "@/utils/objectStore";
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
@@ -452,24 +455,33 @@ export async function bulkUpdateBookmarkUrls(items: BulkUrlUpdate[]): Promise<Bu
   return results;
 }
 
+/** Slug of the built-in "Video" media type, defaulted onto YouTube-video bookmarks. */
+const VIDEO_MEDIA_TYPE_SLUG = "video";
+
+/** Tagged log line so the whole YouTube enrichment path is greppable in production. */
+function ytLog(level: "info" | "warn", message: string, err?: unknown): void {
+  const line = `[youtube-enrich] ${message}`;
+  if (level === "warn") err === undefined ? console.warn(line) : console.warn(line, err);
+  else console.info(line);
+}
+
 /**
- * Resolve the `{ key, name }` channel hint for a URL, fetching the video's metadata when the URL is
- * a YouTube video and no hint was supplied. Run *outside* a transaction (it may do a network call),
- * so the resolved hint can then be upserted cheaply inside one. Returns `null` for non-videos.
+ * Derive the `{ key, name }` channel hint from a client-supplied hint or already-fetched YouTube
+ * metadata. Pure — the network fetch happens once in the caller and is reused for media type and
+ * duration too. A client hint wins; otherwise fall back to the metadata's channel. Returns `null`
+ * when neither yields a usable channel.
  */
-async function resolveChannelHint(
-  url: string,
+function channelHintFrom(
   hint: YouTubeChannelHint | null | undefined,
-): Promise<{ key: string;
-  name: string; } | null> {
+  meta: YouTubeMetadata | null,
+): { key: string;
+  name: string; } | null {
   if (hint && hint.key.trim() && hint.name.trim()) {
     return {
       key: hint.key.trim(),
       name: hint.name.trim(),
     };
   }
-  if (!isYouTubeVideoUrl(url)) return null;
-  const meta = await fetchYouTubeMetadata(url);
   if (meta?.channelName && meta.channelUrl) {
     const key = channelKeyFromUrl(meta.channelUrl);
     if (key) return {
@@ -480,6 +492,80 @@ async function resolveChannelHint(
   return null;
 }
 
+/** The built-in "Video" media type id, or `null` when it hasn't been seeded yet. */
+async function videoMediaTypeId(): Promise<string | null> {
+  const type = await getMediaTypeBySlug(VIDEO_MEDIA_TYPE_SLUG);
+  return type?.id ?? null;
+}
+
+/**
+ * Append the video's duration to a bookmark's number values as the built-in "Video Length"
+ * property, unless the metadata has no duration or the caller already supplied a value for that
+ * property (a user edit always wins). Returns the (possibly extended) array. `ctx` labels the log.
+ */
+async function withVideoLength(
+  numberValues: BookmarkNumberValue[],
+  meta: YouTubeMetadata | null,
+  ctx: string,
+): Promise<BookmarkNumberValue[]> {
+  if (meta?.durationSeconds == null) return numberValues;
+  const lengthPropId = await getVideoLengthPropertyId();
+  if (!lengthPropId) {
+    ytLog("warn", `${ctx}: "video-length" property missing; duration ${meta.durationSeconds}s not stored`);
+    return numberValues;
+  }
+  if (numberValues.some(value => value.propertyId === lengthPropId)) {
+    ytLog("info", `${ctx}: Video Length already supplied; keeping caller value`);
+    return numberValues;
+  }
+  ytLog("info", `${ctx}: filled Video Length = ${meta.durationSeconds}s`);
+  return [
+    ...numberValues,
+    {
+      propertyId: lengthPropId,
+      value: meta.durationSeconds,
+    },
+  ];
+}
+
+/**
+ * Best-effort thumbnail capture for a YouTube-video bookmark: pulls the oEmbed thumbnail (falling
+ * back to og:image) and stores it. Never throws — a failure here must not fail the create/update.
+ * Skips silently when object storage isn't configured. `ctx` labels the log.
+ */
+async function captureYouTubeThumbnail(bookmarkId: string, ctx: string): Promise<void> {
+  if (!isObjectStoreConfigured()) {
+    ytLog("info", `${ctx}: thumbnail skipped (object store not configured) for ${bookmarkId}`);
+    return;
+  }
+  try {
+    const result = await fetchAndStoreOgImage(bookmarkId);
+    ytLog("info", `${ctx}: thumbnail capture result=${typeof result === "string" ? result : "stored"} for ${bookmarkId}`);
+  }
+  catch (err) {
+    ytLog("warn", `${ctx}: thumbnail capture threw for ${bookmarkId}`, err);
+  }
+}
+
+/**
+ * Fetch a YouTube video's metadata once (network) and log what resolved, or `null` for non-videos.
+ * Callers reuse the result for the channel, media-type default, and duration backfill so a create or
+ * update makes at most one metadata round-trip.
+ */
+async function resolveYouTubeMeta(url: string, ctx: string): Promise<YouTubeMetadata | null> {
+  if (!isYouTubeVideoUrl(url)) return null;
+  const video = parseYouTubeVideo(url);
+  ytLog("info", `${ctx}: detected YouTube video id=${video?.videoId ?? "?"} url=${url}`);
+  const meta = await fetchYouTubeMetadata(url);
+  if (!meta) {
+    ytLog("warn", `${ctx}: metadata fetch FAILED (oEmbed/watch page unreachable) url=${url}`);
+  }
+  else {
+    ytLog("info", `${ctx}: metadata resolved title=${meta.title != null} channel=${meta.channelName != null} duration=${meta.durationSeconds != null} thumbnail=${meta.thumbnailUrl != null}`);
+  }
+  return meta;
+}
+
 export async function createBookmark(input: CreateBookmarkInput): Promise<Bookmark> {
   const existing = await db.select({
     id: bookmarks.id,
@@ -487,8 +573,27 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
   if (existing.length > 0) throw new DuplicateUrlError(input.url);
 
   const categoryId = input.categoryId ?? await ensureDefaultCategory();
-  // Resolve the channel before opening the transaction — it may make a network request.
-  const channelHint = await resolveChannelHint(input.url, input.youtubeChannel);
+
+  // Resolve YouTube metadata once (network) before opening the transaction, then reuse it for the
+  // channel, the "Video" media-type default, and the Video Length backfill below.
+  const meta = await resolveYouTubeMeta(input.url, "create");
+  const channelHint = channelHintFrom(input.youtubeChannel, meta);
+
+  // Default the media type to "Video" for a YouTube video unless the caller already chose one.
+  let mediaTypeId = input.mediaTypeId ?? null;
+  if (meta && !mediaTypeId) {
+    const videoId = await videoMediaTypeId();
+    if (videoId) {
+      mediaTypeId = videoId;
+      ytLog("info", "create: applied \"Video\" media type");
+    }
+    else {
+      ytLog("warn", "create: \"video\" media type missing; media type left unset");
+    }
+  }
+
+  const numberValues = await withVideoLength(input.numberValues ?? [], meta, "create");
+
   const id = await db.transaction(async (tx) => {
     const websiteId = await ensureWebsiteForUrl(tx, input.url, input.websiteSiteName);
     const youtubeChannelId = channelHint ? await ensureYouTubeChannel(tx, channelHint) : null;
@@ -501,7 +606,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
         description: input.description ?? null,
         categoryId,
         websiteId,
-        mediaTypeId: input.mediaTypeId ?? null,
+        mediaTypeId,
         youtubeChannelId,
         priority: input.priority ?? 0,
       })
@@ -509,12 +614,17 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
         id: bookmarks.id,
       });
     await linkTags(tx, row.id, input.tagIds);
-    await setNumberValues(tx, row.id, input.numberValues);
+    await setNumberValues(tx, row.id, numberValues);
     await setBooleanValues(tx, row.id, input.booleanValues);
     await setDateTimeValues(tx, row.id, input.dateTimeValues);
     await recomputeCalculatedValues(tx, row.id);
     return row.id;
   });
+
+  // Auto-capture the YouTube thumbnail after the row exists, before the hydrated re-read so the
+  // returned bookmark includes the image. Best-effort: never fails the create.
+  if (meta !== null) await captureYouTubeThumbnail(id, "create");
+
   // Re-read so callers always get the hydrated shape.
   return (await getBookmark(id))!;
 }
@@ -533,11 +643,42 @@ export async function updateBookmark(
     if (clash.length > 0) throw new DuplicateUrlError(input.url);
   }
 
-  // Re-resolve the channel outside the transaction when the URL changes or a hint is supplied.
+  // When the URL changes, resolve YouTube metadata once and reuse it for the channel, the "Video"
+  // media-type default, and the Video Length backfill. A channel-only change still re-resolves the
+  // channel from the supplied hint.
+  const meta = input.url !== undefined ? await resolveYouTubeMeta(input.url, "update") : null;
   const channelHint
     = input.url !== undefined || input.youtubeChannel !== undefined
-      ? await resolveChannelHint(input.url ?? "", input.youtubeChannel)
+      ? channelHintFrom(input.youtubeChannel, meta)
       : undefined;
+
+  // Default the media type to "Video" only when the URL becomes a YouTube video, the caller didn't
+  // set a media type, and the bookmark doesn't already have one — never overriding an existing pick.
+  let mediaTypeDefault: string | undefined;
+  if (meta && input.mediaTypeId === undefined) {
+    const [current] = await db
+      .select({
+        mediaTypeId: bookmarks.mediaTypeId,
+      })
+      .from(bookmarks)
+      .where(eq(bookmarks.id, id));
+    if (current && current.mediaTypeId == null) {
+      const videoId = await videoMediaTypeId();
+      if (videoId) {
+        mediaTypeDefault = videoId;
+        ytLog("info", "update: applied \"Video\" media type");
+      }
+      else {
+        ytLog("warn", "update: \"video\" media type missing; media type left unset");
+      }
+    }
+  }
+
+  // Backfill Video Length only when the caller is already managing number values (full form submit),
+  // so a partial update that doesn't touch properties is left untouched.
+  const numberValues = input.numberValues !== undefined
+    ? await withVideoLength(input.numberValues, meta, "update")
+    : undefined;
 
   const found = await db.transaction(async (tx) => {
     const patch: Partial<
@@ -568,6 +709,7 @@ export async function updateBookmark(
     if (input.description !== undefined) patch.description = input.description ?? null;
     if (input.categoryId !== undefined) patch.categoryId = input.categoryId;
     if (input.mediaTypeId !== undefined) patch.mediaTypeId = input.mediaTypeId ?? null;
+    else if (mediaTypeDefault !== undefined) patch.mediaTypeId = mediaTypeDefault;
     if (input.priority !== undefined) patch.priority = input.priority;
 
     if (Object.keys(patch).length > 0) {
@@ -587,9 +729,9 @@ export async function updateBookmark(
       await tx.delete(bookmarkTags).where(eq(bookmarkTags.bookmarkId, id));
       await linkTags(tx, id, input.tagIds);
     }
-    if (input.numberValues !== undefined) {
+    if (numberValues !== undefined) {
       await tx.delete(bookmarkNumberValues).where(eq(bookmarkNumberValues.bookmarkId, id));
-      await setNumberValues(tx, id, input.numberValues);
+      await setNumberValues(tx, id, numberValues);
     }
     if (input.booleanValues !== undefined) {
       await tx.delete(bookmarkBooleanValues).where(eq(bookmarkBooleanValues.bookmarkId, id));
@@ -603,6 +745,18 @@ export async function updateBookmark(
     await recomputeCalculatedValues(tx, id);
     return true;
   });
+
+  // Capture a thumbnail when the URL becomes a YouTube video and there's no image yet — don't
+  // clobber a user upload or an earlier capture. Best-effort, before the hydrated re-read.
+  if (found && meta !== null) {
+    const existingImage = await getBookmarkImageRow(id);
+    if (existingImage) {
+      ytLog("info", `update: thumbnail skipped (image already present) for ${id}`);
+    }
+    else {
+      await captureYouTubeThumbnail(id, "update");
+    }
+  }
 
   return found ? getBookmark(id) : null;
 }
