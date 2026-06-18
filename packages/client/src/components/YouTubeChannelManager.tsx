@@ -152,41 +152,6 @@ export function YouTubeChannelCard({
   );
 }
 
-/** Manage the built-in YouTube Channels taxonomy: list every known channel and rename it. */
-export function YouTubeChannelManager() {
-  const {
-    data: channels, isLoading, error,
-  } = useYouTubeChannels();
-
-  return (
-    <section className="space-y-4">
-      {isLoading ? <p className="text-muted-foreground">Loading channels…</p> : null}
-      {error ? <p className="text-destructive">{error.message}</p> : null}
-      {!isLoading && channels && channels.length === 0
-        ? (
-          <p className="text-muted-foreground">
-            No channels yet. They&apos;re created automatically when you add YouTube bookmarks.
-          </p>
-        )
-        : null}
-
-      {channels && channels.length > 0
-        ? (
-          <ul className="space-y-3">
-            {channels.map(channel => (
-              <li key={channel.id}>
-                <RowCard className="p-4">
-                  <YouTubeChannelRow channel={channel} />
-                </RowCard>
-              </li>
-            ))}
-          </ul>
-        )
-        : null}
-    </section>
-  );
-}
-
 /** Browsable, searchable channel listing — search + list only; channels can't be added by hand. Shared by the YouTube Channels taxonomy page and the Settings page. */
 export function YouTubeChannelsListing() {
   const {

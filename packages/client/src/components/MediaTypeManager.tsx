@@ -192,41 +192,6 @@ export function MediaTypeCard({
   );
 }
 
-/** Manage the built-in Media Types taxonomy: list every known type and rename/reorder it. */
-export function MediaTypeManager() {
-  const {
-    data: mediaTypes, isLoading, error,
-  } = useMediaTypes();
-
-  return (
-    <section className="space-y-4">
-      {isLoading ? <p className="text-muted-foreground">Loading media types…</p> : null}
-      {error ? <p className="text-destructive">{error.message}</p> : null}
-      {!isLoading && mediaTypes && mediaTypes.length === 0
-        ? (
-          <p className="text-muted-foreground">
-            No media types yet. Add one below.
-          </p>
-        )
-        : null}
-
-      {mediaTypes && mediaTypes.length > 0
-        ? (
-          <ul className="space-y-3">
-            {mediaTypes.map(mediaType => (
-              <li key={mediaType.id}>
-                <RowCard className="p-4">
-                  <MediaTypeRow mediaType={mediaType} />
-                </RowCard>
-              </li>
-            ))}
-          </ul>
-        )
-        : null}
-    </section>
-  );
-}
-
 const addMediaTypeSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
 });

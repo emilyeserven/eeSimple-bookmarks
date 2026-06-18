@@ -20,9 +20,6 @@ export class BuiltInMediaTypeError extends Error {
   }
 }
 
-/** Slug of the built-in "Video" media type, auto-assigned to recognized video URLs. */
-export const VIDEO_MEDIA_TYPE_SLUG = "video";
-
 /** The seeded built-in vocabulary, in display order. */
 const BUILT_IN_MEDIA_TYPES = ["Video", "Article", "Podcast", "Audio", "Image", "Document", "Other"];
 
@@ -66,12 +63,6 @@ export async function listMediaTypes(): Promise<MediaType[]> {
     .from(mediaTypes)
     .orderBy(asc(mediaTypes.sortOrder), asc(mediaTypes.name));
   return rows.map(toMediaType);
-}
-
-/** Fetch a single media type by id, or `null` when absent. */
-export async function getMediaType(id: string): Promise<MediaType | null> {
-  const [row] = await db.select().from(mediaTypes).where(eq(mediaTypes.id, id));
-  return row ? toMediaType(row) : null;
 }
 
 /** Fetch a media type by its slug, or `null` when absent. */

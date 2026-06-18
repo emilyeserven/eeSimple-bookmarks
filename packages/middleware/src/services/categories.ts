@@ -84,11 +84,6 @@ export async function listCategories(): Promise<Category[]> {
   return rows.map(toCategory);
 }
 
-export async function getCategory(id: string): Promise<Category | null> {
-  const [row] = await db.select().from(categories).where(eq(categories.id, id));
-  return row ? toCategory(row) : null;
-}
-
 export async function createCategory(input: CreateCategoryInput): Promise<Category> {
   const slug = uniqueSlug(input.name, await takenSlugs());
   const [row] = await db

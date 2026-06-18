@@ -58,18 +58,6 @@ export async function listPropertyGroups(): Promise<PropertyGroup[]> {
   return rows.map(toPropertyGroup);
 }
 
-/** Fetch a single property group by id, or `null` when absent. */
-export async function getPropertyGroup(id: string): Promise<PropertyGroup | null> {
-  const [row] = await db.select().from(propertyGroups).where(eq(propertyGroups.id, id));
-  return row ? toPropertyGroup(row) : null;
-}
-
-/** Fetch a property group by its slug, or `null` when absent. */
-export async function getPropertyGroupBySlug(slug: string): Promise<PropertyGroup | null> {
-  const [row] = await db.select().from(propertyGroups).where(eq(propertyGroups.slug, slug));
-  return row ? toPropertyGroup(row) : null;
-}
-
 /** Add a property group. Throws `DuplicatePropertyGroupError` on a name clash. */
 export async function createPropertyGroup(input: CreatePropertyGroupInput): Promise<PropertyGroup> {
   const name = input.name.trim();

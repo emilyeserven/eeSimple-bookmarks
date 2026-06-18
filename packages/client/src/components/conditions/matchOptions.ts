@@ -21,11 +21,3 @@ export const OPERATOR_OPTIONS: { value: Exclude<ConditionMatchOperator, "domain"
     label: "Regex",
   },
 ];
-
-/** Short verbs used when rendering a human-readable summary of a match condition. */
-export const OPERATOR_LABELS: Record<ConditionMatchOperator, string> = {
-  contains: "contains",
-  starts_with: "starts with",
-  regex: "matches",
-  domain: "domain is",
-};

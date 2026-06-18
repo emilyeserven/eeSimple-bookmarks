@@ -1,6 +1,5 @@
 import { eq } from "drizzle-orm";
 import type {
-  AppSettings,
   HomepageContentSettings,
   HomepageContentWidth,
   QuickAddDisplay,
@@ -67,21 +66,6 @@ export async function ensureAppSettings(): Promise<void> {
     .onConflictDoNothing({
       target: appSettings.id,
     });
-}
-
-/** Read the full settings singleton, falling back to defaults when the row is somehow absent. */
-export async function getAppSettings(): Promise<AppSettings> {
-  const [row] = await db.select().from(appSettings).where(eq(appSettings.id, ROW_ID));
-  return {
-    shortenerIgnoreList: row?.shortenerIgnoreList ?? [],
-    homepageText: row?.homepageText ?? DEFAULT_HOMEPAGE_CONTENT.homepageText,
-    homepageTextWidth: asWidth(row?.homepageTextWidth),
-    bookmarkQuickAddEnabled: row?.bookmarkQuickAddEnabled
-      ?? DEFAULT_HOMEPAGE_CONTENT.bookmarkQuickAddEnabled,
-    bookmarkQuickAddWidth: asWidth(row?.bookmarkQuickAddWidth),
-    bookmarkQuickAddDisplay: asQuickAddDisplay(row?.bookmarkQuickAddDisplay),
-    homepageHeaderHidden: row?.homepageHeaderHidden ?? false,
-  };
 }
 
 /** Read just the homepage-content settings shown/edited on the homepage settings page. */

@@ -640,41 +640,6 @@ export function WebsiteCard({
   );
 }
 
-/** Manage the built-in Websites taxonomy: list every known site and rename it. */
-export function WebsiteManager() {
-  const {
-    data: websites, isLoading, error,
-  } = useWebsites();
-
-  return (
-    <section className="space-y-4">
-      {isLoading ? <p className="text-muted-foreground">Loading websites…</p> : null}
-      {error ? <p className="text-destructive">{error.message}</p> : null}
-      {!isLoading && websites && websites.length === 0
-        ? (
-          <p className="text-muted-foreground">
-            No websites yet. They&apos;re created automatically when you add bookmarks.
-          </p>
-        )
-        : null}
-
-      {websites && websites.length > 0
-        ? (
-          <ul className="space-y-3">
-            {websites.map(website => (
-              <li key={website.id}>
-                <RowCard className="p-4">
-                  <WebsiteRow website={website} />
-                </RowCard>
-              </li>
-            ))}
-          </ul>
-        )
-        : null}
-    </section>
-  );
-}
-
 const addWebsiteSchema = z.object({
   domain: z.string().trim().min(1, "Domain is required"),
   siteName: z.string().trim(),
