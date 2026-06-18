@@ -147,6 +147,7 @@ export function BookmarkSearchView({
                   bookmark={bookmark}
                   properties={properties}
                   onDelete={id => deleteBookmark.mutate(id)}
+                  imageLeft={columns === 1}
                 />
               </Card>
             ))}

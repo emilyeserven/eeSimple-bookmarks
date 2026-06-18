@@ -74,6 +74,7 @@ function HomePage() {
             <BookmarkCard
               bookmark={bookmark}
               properties={customProperties ?? []}
+              imageLeft={columns === 1}
             />
           </Card>
         ))}

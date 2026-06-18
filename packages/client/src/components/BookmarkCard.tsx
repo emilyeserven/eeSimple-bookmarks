@@ -6,6 +6,7 @@ import { Link } from "@tanstack/react-router";
 import { ExternalLink, MoreVertical } from "lucide-react";
 
 import { formatNumber } from "../lib/bookmarkFormat";
+import { useUiStore } from "../stores/uiStore";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,27 @@ interface BookmarkCardProps {
   /** Custom property definitions, used to label and unit-format the bookmark's values. */
   properties?: CustomProperty[];
   onDelete?: (id: string) => void;
+  /**
+   * Place the image to the left of the rest of the card (single-column listings) instead of stacked
+   * above it (multi-column listings). Defaults to the stacked, image-on-top layout.
+   */
+  imageLeft?: boolean;
+}
+
+/**
+ * Image classes for the listing card. The aspect-ratio setting constrains a single dimension and lets
+ * the other be `auto` (true ratio, never cropped); the uniform setting keeps the capped `object-cover`
+ * crop. Each branch is a literal string so Tailwind v4 emits every utility it sees here.
+ */
+function bookmarkImageClass(imageLeft: boolean, maintainAspectRatio: boolean): string {
+  if (imageLeft) {
+    return maintainAspectRatio
+      ? "h-auto w-32 shrink-0 self-start rounded-md border sm:w-40"
+      : "h-24 w-32 shrink-0 self-start rounded-md border object-cover sm:h-28 sm:w-40";
+  }
+  return maintainAspectRatio
+    ? "mb-2 h-auto w-full rounded-md border"
+    : "mb-2 max-h-40 w-full rounded-md border object-cover";
 }
 
 interface TagsBoxProps {
@@ -86,8 +108,9 @@ function TagsBox({
 }
 
 export function BookmarkCard({
-  bookmark, properties = [], onDelete,
+  bookmark, properties = [], onDelete, imageLeft = false,
 }: BookmarkCardProps) {
+  const maintainImageAspectRatio = useUiStore(state => state.maintainImageAspectRatio);
   const byId = new Map(properties.map(property => [property.id, property]));
 
   const numberBadges = bookmark.numberValues
@@ -118,95 +141,99 @@ export function BookmarkCard({
 
   const valueBadges = [...numberBadges, ...booleanBadges];
 
-  return (
-    <div>
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h3 className="font-semibold">
-            <Link
-              to="/bookmarks/$bookmarkId"
-              params={{
-                bookmarkId: bookmark.id,
-              }}
-              className="
-                wrap-break-word text-primary
-                hover:underline
-              "
-            >
-              {bookmark.title}
-            </Link>
-          </h3>
-        </div>
-        <div className="flex shrink-0 items-center gap-1">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            asChild
+  const header = (
+    <div className="flex items-start justify-between gap-4">
+      <div className="min-w-0">
+        <h3 className="font-semibold">
+          <Link
+            to="/bookmarks/$bookmarkId"
+            params={{
+              bookmarkId: bookmark.id,
+            }}
+            className="
+              wrap-break-word text-primary
+              hover:underline
+            "
           >
-            <a
-              href={bookmark.url}
-              target="_blank"
-              rel="noreferrer"
-              aria-label="Open URL in new tab"
-            >
-              <ExternalLink className="size-4" />
-            </a>
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                aria-label="More options"
-              >
-                <MoreVertical className="size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem asChild>
-                <Link
-                  to="/bookmarks/$bookmarkId/edit"
-                  params={{
-                    bookmarkId: bookmark.id,
-                  }}
-                >
-                  Edit
-                </Link>
-              </DropdownMenuItem>
-              {onDelete
-                ? (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      className="
-                        text-destructive
-                        focus:text-destructive
-                      "
-                      onClick={() => onDelete(bookmark.id)}
-                    >
-                      Delete
-                    </DropdownMenuItem>
-                  </>
-                )
-                : null}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+            {bookmark.title}
+          </Link>
+        </h3>
       </div>
-      {bookmark.image
-        ? (
-          <img
-            src={bookmark.image.url}
-            alt=""
-            loading="lazy"
-            width={bookmark.image.width}
-            height={bookmark.image.height}
-            className="mt-2 max-h-40 w-full rounded-md border object-cover"
-          />
-        )
-        : null}
+      <div className="flex shrink-0 items-center gap-1">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          asChild
+        >
+          <a
+            href={bookmark.url}
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Open URL in new tab"
+          >
+            <ExternalLink className="size-4" />
+          </a>
+        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label="More options"
+            >
+              <MoreVertical className="size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem asChild>
+              <Link
+                to="/bookmarks/$bookmarkId/edit"
+                params={{
+                  bookmarkId: bookmark.id,
+                }}
+              >
+                Edit
+              </Link>
+            </DropdownMenuItem>
+            {onDelete
+              ? (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="
+                      text-destructive
+                      focus:text-destructive
+                    "
+                    onClick={() => onDelete(bookmark.id)}
+                  >
+                    Delete
+                  </DropdownMenuItem>
+                </>
+              )
+              : null}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </div>
+  );
+
+  const imageEl = bookmark.image
+    ? (
+      <img
+        src={bookmark.image.url}
+        alt=""
+        loading="lazy"
+        width={bookmark.image.width}
+        height={bookmark.image.height}
+        className={bookmarkImageClass(imageLeft, maintainImageAspectRatio)}
+      />
+    )
+    : null;
+
+  const details = (
+    <>
       {bookmark.description ? <p className="mt-2 text-sm text-foreground">{bookmark.description}</p> : null}
       {bookmark.website
         ? (
@@ -234,6 +261,26 @@ export function BookmarkCard({
           </ul>
         )
         : null}
+    </>
+  );
+
+  if (imageLeft) {
+    return (
+      <div className="flex gap-4">
+        {imageEl}
+        <div className="min-w-0 flex-1">
+          {header}
+          {details}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {imageEl}
+      {header}
+      {details}
     </div>
   );
 }

@@ -43,6 +43,8 @@ const TAXONOMY_ITEMS = [
 export function DisplaySettings() {
   const theme = useUiStore(state => state.theme);
   const setTheme = useUiStore(state => state.setTheme);
+  const maintainImageAspectRatio = useUiStore(state => state.maintainImageAspectRatio);
+  const setMaintainImageAspectRatio = useUiStore(state => state.setMaintainImageAspectRatio);
   const hiddenCategoryIds = useUiStore(state => state.hiddenCategoryIds);
   const toggleCategoryVisibility = useUiStore(state => state.toggleCategoryVisibility);
   const hiddenTaxonomyItems = useUiStore(state => state.hiddenTaxonomyItems);
@@ -144,6 +146,26 @@ export function DisplaySettings() {
                 <Label htmlFor={`show-taxonomy-${item.key}`}>{item.label}</Label>
               </div>
             ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Images</CardTitle>
+          <CardDescription>
+            When on, listing images keep their original aspect ratio. When off, they&rsquo;re cropped to a
+            uniform, capped size.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="maintain-image-aspect-ratio"
+              checked={maintainImageAspectRatio}
+              onCheckedChange={checked => setMaintainImageAspectRatio(checked === true)}
+            />
+            <Label htmlFor="maintain-image-aspect-ratio">Maintain image aspect ratio</Label>
           </div>
         </CardContent>
       </Card>
