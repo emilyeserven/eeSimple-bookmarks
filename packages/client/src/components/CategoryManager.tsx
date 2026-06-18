@@ -4,6 +4,7 @@ import { Link } from "@tanstack/react-router";
 import { z } from "zod";
 
 import { CategoryGeneralForm } from "./CategoryGeneralForm";
+import { useEditPanelClick } from "./panel/useEditPanelClick";
 import {
   useCategories,
   useCreateCategory,
@@ -22,6 +23,8 @@ import {
 import { IconPicker } from "@/components/ui/icon-picker";
 import { Label } from "@/components/ui/label";
 import { CategoryIcon } from "@/lib/icons";
+import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
+import { useUiStore } from "@/stores/uiStore";
 
 const categorySchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
@@ -149,6 +152,8 @@ export function CategoryCard({
   category, onDeleted,
 }: CategoryCardProps) {
   const deleteCategory = useDeleteCategory();
+  const editClick = useEditPanelClick();
+  const modifier = useUiStore(state => state.sidebarOpenModifier);
 
   return (
     <div className="space-y-6">
@@ -172,6 +177,8 @@ export function CategoryCard({
               params={{
                 categorySlug: category.slug,
               }}
+              title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+              onClick={event => editClick(event, "category", category.id)}
             >
               Edit
             </Link>

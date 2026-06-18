@@ -28,6 +28,7 @@ import { Route as TaxonomiesMediaTypesRouteImport } from './routes/taxonomies.me
 import { Route as TagsTagSlugRouteImport } from './routes/tags.$tagSlug'
 import { Route as SettingsYoutubeChannelsRouteImport } from './routes/settings.youtube-channels'
 import { Route as SettingsWebsitesRouteImport } from './routes/settings.websites'
+import { Route as SettingsSidebarRouteImport } from './routes/settings.sidebar'
 import { Route as SettingsMediaTypesRouteImport } from './routes/settings.media-types'
 import { Route as SettingsLinkParsingRouteImport } from './routes/settings.link-parsing'
 import { Route as SettingsHomepageRouteImport } from './routes/settings.homepage'
@@ -166,6 +167,11 @@ const SettingsYoutubeChannelsRoute = SettingsYoutubeChannelsRouteImport.update({
 const SettingsWebsitesRoute = SettingsWebsitesRouteImport.update({
   id: '/websites',
   path: '/websites',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsSidebarRoute = SettingsSidebarRouteImport.update({
+  id: '/sidebar',
+  path: '/sidebar',
   getParentRoute: () => SettingsRoute,
 } as any)
 const SettingsMediaTypesRoute = SettingsMediaTypesRouteImport.update({
@@ -431,6 +437,7 @@ export interface FileRoutesByFullPath {
   '/settings/homepage': typeof SettingsHomepageRoute
   '/settings/link-parsing': typeof SettingsLinkParsingRoute
   '/settings/media-types': typeof SettingsMediaTypesRoute
+  '/settings/sidebar': typeof SettingsSidebarRoute
   '/settings/websites': typeof SettingsWebsitesRoute
   '/settings/youtube-channels': typeof SettingsYoutubeChannelsRoute
   '/tags/$tagSlug': typeof TagsTagSlugRouteWithChildren
@@ -485,6 +492,7 @@ export interface FileRoutesByTo {
   '/settings/homepage': typeof SettingsHomepageRoute
   '/settings/link-parsing': typeof SettingsLinkParsingRoute
   '/settings/media-types': typeof SettingsMediaTypesRoute
+  '/settings/sidebar': typeof SettingsSidebarRoute
   '/settings/websites': typeof SettingsWebsitesRoute
   '/settings/youtube-channels': typeof SettingsYoutubeChannelsRoute
   '/tags/$tagSlug': typeof TagsTagSlugRouteWithChildren
@@ -541,6 +549,7 @@ export interface FileRoutesById {
   '/settings/homepage': typeof SettingsHomepageRoute
   '/settings/link-parsing': typeof SettingsLinkParsingRoute
   '/settings/media-types': typeof SettingsMediaTypesRoute
+  '/settings/sidebar': typeof SettingsSidebarRoute
   '/settings/websites': typeof SettingsWebsitesRoute
   '/settings/youtube-channels': typeof SettingsYoutubeChannelsRoute
   '/tags/$tagSlug': typeof TagsTagSlugRouteWithChildren
@@ -607,6 +616,7 @@ export interface FileRouteTypes {
     | '/settings/homepage'
     | '/settings/link-parsing'
     | '/settings/media-types'
+    | '/settings/sidebar'
     | '/settings/websites'
     | '/settings/youtube-channels'
     | '/tags/$tagSlug'
@@ -661,6 +671,7 @@ export interface FileRouteTypes {
     | '/settings/homepage'
     | '/settings/link-parsing'
     | '/settings/media-types'
+    | '/settings/sidebar'
     | '/settings/websites'
     | '/settings/youtube-channels'
     | '/tags/$tagSlug'
@@ -716,6 +727,7 @@ export interface FileRouteTypes {
     | '/settings/homepage'
     | '/settings/link-parsing'
     | '/settings/media-types'
+    | '/settings/sidebar'
     | '/settings/websites'
     | '/settings/youtube-channels'
     | '/tags/$tagSlug'
@@ -909,6 +921,13 @@ declare module '@tanstack/react-router' {
       path: '/websites'
       fullPath: '/settings/websites'
       preLoaderRoute: typeof SettingsWebsitesRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/sidebar': {
+      id: '/settings/sidebar'
+      path: '/sidebar'
+      fullPath: '/settings/sidebar'
+      preLoaderRoute: typeof SettingsSidebarRouteImport
       parentRoute: typeof SettingsRoute
     }
     '/settings/media-types': {
@@ -1399,6 +1418,7 @@ interface SettingsRouteChildren {
   SettingsHomepageRoute: typeof SettingsHomepageRoute
   SettingsLinkParsingRoute: typeof SettingsLinkParsingRoute
   SettingsMediaTypesRoute: typeof SettingsMediaTypesRoute
+  SettingsSidebarRoute: typeof SettingsSidebarRoute
   SettingsWebsitesRoute: typeof SettingsWebsitesRoute
   SettingsYoutubeChannelsRoute: typeof SettingsYoutubeChannelsRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
@@ -1413,6 +1433,7 @@ const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsHomepageRoute: SettingsHomepageRoute,
   SettingsLinkParsingRoute: SettingsLinkParsingRoute,
   SettingsMediaTypesRoute: SettingsMediaTypesRoute,
+  SettingsSidebarRoute: SettingsSidebarRoute,
   SettingsWebsitesRoute: SettingsWebsitesRoute,
   SettingsYoutubeChannelsRoute: SettingsYoutubeChannelsRoute,
   SettingsIndexRoute: SettingsIndexRoute,
