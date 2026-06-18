@@ -15,7 +15,6 @@ import {
   categoryNumberDefaults,
   type CategoryRow,
   categoryRootTags,
-  homepageTags,
   tags,
 } from "@/db/schema";
 import { slugify, uniqueSlug } from "@/utils/slug";
@@ -239,27 +238,6 @@ export async function setCategoryRootTags(
     if (tagIds.length > 0) {
       await tx.insert(categoryRootTags).values(tagIds.map(tagId => ({
         categoryId,
-        tagId,
-      })));
-    }
-  });
-  return tagIds;
-}
-
-/** The tag ids selected to surface their bookmarks on the homepage. */
-export async function getHomepageTagIds(): Promise<string[]> {
-  const rows = await db.select({
-    tagId: homepageTags.tagId,
-  }).from(homepageTags);
-  return rows.map(row => row.tagId);
-}
-
-/** Replace the set of homepage tags. */
-export async function setHomepageTagIds(tagIds: string[]): Promise<string[]> {
-  await db.transaction(async (tx) => {
-    await tx.delete(homepageTags);
-    if (tagIds.length > 0) {
-      await tx.insert(homepageTags).values(tagIds.map(tagId => ({
         tagId,
       })));
     }

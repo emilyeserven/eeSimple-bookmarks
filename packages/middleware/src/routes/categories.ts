@@ -11,12 +11,10 @@ import {
   deleteCategory,
   getCategoryDefaults,
   getCategoryRootTags,
-  getHomepageTagIds,
   InvalidRootTagError,
   listCategories,
   setCategoryDefaults,
   setCategoryRootTags,
-  setHomepageTagIds,
   updateCategory,
 } from "@/services/categories";
 
@@ -148,29 +146,6 @@ export async function categoryRoutes(app: FastifyInstance): Promise<void> {
   }, async (req, reply) => {
     const category = await createCategory(req.body as CreateCategoryInput);
     return reply.code(201).send(category);
-  });
-
-  // Homepage tag selection (registered before `:id` so the static path wins clearly).
-  app.get("/api/homepage-tags", {
-    schema: {
-      tags: ["categories"],
-    },
-  }, async () => ({
-    tagIds: await getHomepageTagIds(),
-  }));
-
-  app.put("/api/homepage-tags", {
-    schema: {
-      tags: ["categories"],
-      body: tagIdsBody,
-    },
-  }, async (req) => {
-    const {
-      tagIds,
-    } = req.body as UpdateCategoryRootTagsInput;
-    return {
-      tagIds: await setHomepageTagIds(tagIds),
-    };
   });
 
   app.patch("/api/categories/:id", {

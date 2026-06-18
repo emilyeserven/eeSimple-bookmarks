@@ -12,6 +12,7 @@ coverage/
 # Caches
 .cache/
 .eslintcache
+.fallow/churn.bin
 
 # Env
 .env
@@ -31,3 +32,6 @@ pnpm-debug.log*
 
 # Storybook (unused, kept out just in case)
 storybook-static/
+
+# fallow runtime/churn cache (the dead-code baseline is intentionally tracked)
+.fallow/churn.bin

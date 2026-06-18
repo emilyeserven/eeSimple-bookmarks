@@ -1,3 +1,6 @@
+import type { LinkProps } from "@tanstack/react-router";
+import type { LucideIcon } from "lucide-react";
+
 import * as React from "react";
 
 import { Link, useRouterState } from "@tanstack/react-router";
@@ -113,64 +116,12 @@ export function AppSidebar({
     select: state => state.location.pathname,
   });
   const {
-    state: sidebarState,
-  } = useSidebar();
-  const {
     data: categories,
   } = useCategories();
   const hiddenCategoryIds = useUiStore(state => state.hiddenCategoryIds);
   const hiddenTaxonomyItems = useUiStore(state => state.hiddenTaxonomyItems);
   const hiddenCustomizationItems = useUiStore(state => state.hiddenCustomizationItems);
   const hiddenManagementItems = useUiStore(state => state.hiddenManagementItems);
-  const collapsedSidebarSections = useUiStore(state => state.collapsedSidebarSections);
-  const toggleSidebarSection = useUiStore(state => state.toggleSidebarSection);
-
-  const isIconMode = sidebarState === "collapsed";
-
-  function CollapsibleSection({
-    sectionKey,
-    label,
-    children,
-  }: {
-    sectionKey: string;
-    label: string;
-    children: React.ReactNode;
-  }) {
-    const isCollapsed = collapsedSidebarSections.includes(sectionKey);
-    if (isIconMode) {
-      return (
-        <SidebarGroup>
-          <SidebarGroupLabel>{label}</SidebarGroupLabel>
-          <SidebarGroupContent>{children}</SidebarGroupContent>
-        </SidebarGroup>
-      );
-    }
-    return (
-      <Collapsible
-        open={!isCollapsed}
-        onOpenChange={() => toggleSidebarSection(sectionKey)}
-      >
-        <SidebarGroup>
-          <SidebarGroupLabel asChild>
-            <CollapsibleTrigger
-              className="flex w-full items-center justify-between"
-            >
-              {label}
-              <ChevronDown
-                className={`
-                  size-3.5 shrink-0 transition-transform duration-200
-                  ${isCollapsed ? "-rotate-90" : ""}
-                `}
-              />
-            </CollapsibleTrigger>
-          </SidebarGroupLabel>
-          <CollapsibleContent>
-            <SidebarGroupContent>{children}</SidebarGroupContent>
-          </CollapsibleContent>
-        </SidebarGroup>
-      </Collapsible>
-    );
-  }
 
   const visibleCategories = (categories ?? []).filter(
     c => !hiddenCategoryIds.includes(c.id),
@@ -280,88 +231,31 @@ export function AppSidebar({
 
         {visibleTaxonomyItems.length > 0
           ? (
-            <CollapsibleSection
+            <SidebarNavSection
               sectionKey="taxonomies"
               label="Taxonomies"
-            >
-              <SidebarMenu>
-                {visibleTaxonomyItems.map((item) => {
-                  const isActive = pathname.startsWith(item.to);
-                  return (
-                    <SidebarMenuItem key={item.to}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={isActive}
-                        tooltip={item.title}
-                      >
-                        <Link to={item.to}>
-                          <item.icon />
-                          <span>{item.title}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                })}
-              </SidebarMenu>
-            </CollapsibleSection>
+              items={visibleTaxonomyItems}
+            />
           )
           : null}
 
         {visibleCustomizationItems.length > 0
           ? (
-            <CollapsibleSection
+            <SidebarNavSection
               sectionKey="customization"
               label="Customization"
-            >
-              <SidebarMenu>
-                {visibleCustomizationItems.map((item) => {
-                  const isActive = pathname.startsWith(item.to);
-                  return (
-                    <SidebarMenuItem key={item.to}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={isActive}
-                        tooltip={item.title}
-                      >
-                        <Link to={item.to}>
-                          <item.icon />
-                          <span>{item.title}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                })}
-              </SidebarMenu>
-            </CollapsibleSection>
+              items={visibleCustomizationItems}
+            />
           )
           : null}
 
         {visibleManagementItems.length > 0
           ? (
-            <CollapsibleSection
+            <SidebarNavSection
               sectionKey="management"
               label="Management"
-            >
-              <SidebarMenu>
-                {visibleManagementItems.map((item) => {
-                  const isActive = pathname.startsWith(item.to);
-                  return (
-                    <SidebarMenuItem key={item.to}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={isActive}
-                        tooltip={item.title}
-                      >
-                        <Link to={item.to}>
-                          <item.icon />
-                          <span>{item.title}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                })}
-              </SidebarMenu>
-            </CollapsibleSection>
+              items={visibleManagementItems}
+            />
           )
           : null}
       </SidebarContent>
@@ -396,6 +290,107 @@ export function AppSidebar({
       <SidebarResizeHandle />
       <SidebarRail />
     </Sidebar>
+  );
+}
+
+/** Collapsible sidebar group; collapses to a plain labelled group in icon mode. */
+function CollapsibleSection({
+  sectionKey,
+  label,
+  children,
+}: {
+  sectionKey: string;
+  label: string;
+  children: React.ReactNode;
+}) {
+  const {
+    state,
+  } = useSidebar();
+  const collapsedSidebarSections = useUiStore(s => s.collapsedSidebarSections);
+  const toggleSidebarSection = useUiStore(s => s.toggleSidebarSection);
+  const isCollapsed = collapsedSidebarSections.includes(sectionKey);
+
+  if (state === "collapsed") {
+    return (
+      <SidebarGroup>
+        <SidebarGroupLabel>{label}</SidebarGroupLabel>
+        <SidebarGroupContent>{children}</SidebarGroupContent>
+      </SidebarGroup>
+    );
+  }
+  return (
+    <Collapsible
+      open={!isCollapsed}
+      onOpenChange={() => toggleSidebarSection(sectionKey)}
+    >
+      <SidebarGroup>
+        <SidebarGroupLabel asChild>
+          <CollapsibleTrigger
+            className="flex w-full items-center justify-between"
+          >
+            {label}
+            <ChevronDown
+              className={`
+                size-3.5 shrink-0 transition-transform duration-200
+                ${isCollapsed ? "-rotate-90" : ""}
+              `}
+            />
+          </CollapsibleTrigger>
+        </SidebarGroupLabel>
+        <CollapsibleContent>
+          <SidebarGroupContent>{children}</SidebarGroupContent>
+        </CollapsibleContent>
+      </SidebarGroup>
+    </Collapsible>
+  );
+}
+
+interface SidebarNavSectionItem {
+  key: string;
+  title: string;
+  to: NonNullable<LinkProps["to"]>;
+  icon: LucideIcon;
+}
+
+/** A collapsible group of static nav links, active when the path is under each link. */
+function SidebarNavSection({
+  sectionKey,
+  label,
+  items,
+}: {
+  sectionKey: string;
+  label: string;
+  items: readonly SidebarNavSectionItem[];
+}) {
+  const pathname = useRouterState({
+    select: state => state.location.pathname,
+  });
+
+  return (
+    <CollapsibleSection
+      sectionKey={sectionKey}
+      label={label}
+    >
+      <SidebarMenu>
+        {items.map((item) => {
+          const isActive = pathname.startsWith(item.to);
+          return (
+            <SidebarMenuItem key={item.key}>
+              <SidebarMenuButton
+                asChild
+                isActive={isActive}
+                tooltip={item.title}
+              >
+                <Link to={item.to}>
+                  <item.icon />
+                  <span>{item.title}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          );
+        })}
+      </SidebarMenu>
+    </CollapsibleSection>
   );
 }
 

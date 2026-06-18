@@ -4,7 +4,7 @@ import type { Bookmark, Category, CustomProperty } from "@eesimple/types";
 import { Ban, ChevronDown, Circle, CircleDot, CircleHelp } from "lucide-react";
 
 import { Combobox } from "./Combobox";
-import { DateTimePicker } from "./DateTimePicker";
+import { DateTimeRangeFields } from "./DateTimePicker";
 import { RangeSlider } from "./RangeSlider";
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -386,29 +386,14 @@ interface DateTimeControlProps {
 function DateTimeFilterControl({
   property, value, onChange,
 }: DateTimeControlProps) {
-  const format = property.dateTimeFormat ?? "date";
   const [from, to] = value ?? [null, null];
 
   return (
-    <div className="space-y-2">
-      <div className="space-y-1">
-        <Label className="text-xs text-muted-foreground">From</Label>
-        <DateTimePicker
-          format={format}
-          value={from}
-          placeholder="Any"
-          onChange={next => onChange(property.id, [next, to])}
-        />
-      </div>
-      <div className="space-y-1">
-        <Label className="text-xs text-muted-foreground">To</Label>
-        <DateTimePicker
-          format={format}
-          value={to}
-          placeholder="Any"
-          onChange={next => onChange(property.id, [from, next])}
-        />
-      </div>
-    </div>
+    <DateTimeRangeFields
+      format={property.dateTimeFormat ?? "date"}
+      from={from}
+      to={to}
+      onChange={next => onChange(property.id, [next.from, next.to])}
+    />
   );
 }

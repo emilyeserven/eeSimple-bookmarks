@@ -73,6 +73,72 @@ const CATEGORY_EDIT_SUBLABELS: Record<string, string> = {
   "autofill": "Autofill",
 };
 
+const TAXONOMY_CRUMBS = [
+  {
+    prefix: "/taxonomies/websites",
+    listLabel: "Websites",
+    detailLabel: "Website",
+  },
+  {
+    prefix: "/taxonomies/media-types",
+    listLabel: "Media Types",
+    detailLabel: "Media Type",
+  },
+  {
+    prefix: "/taxonomies/youtube-channels",
+    listLabel: "YouTube Channels",
+    detailLabel: "Channel",
+  },
+] as const;
+
+function settingsCrumbs(pathname: string): BreadcrumbSegment[] {
+  const rest = pathname.slice("/settings".length).replace(/^\//, "");
+  if (!rest) return [{
+    label: "Settings",
+  }];
+  const parts = rest.split("/");
+  const sub = parts[0];
+  if (sub === "autofill" && parts.length > 1) {
+    return [
+      {
+        label: "Settings",
+        href: "/settings",
+      },
+      {
+        label: "Autofill",
+        href: "/settings/autofill",
+      },
+      {
+        label: "Rule",
+      },
+    ];
+  }
+  return [{
+    label: "Settings",
+    href: "/settings",
+  }, {
+    label: SETTINGS_SUBLABELS[sub] ?? sub,
+  }];
+}
+
+function categoryCrumbs(pathname: string, categoryName?: string): BreadcrumbSegment[] {
+  const parts = pathname.split("/").filter(Boolean);
+  const categoryHref = `/${parts[0]}/${parts[1]}`;
+  const catLabel = categoryName ?? "Category";
+  if (parts.length <= 2) return [{
+    label: catLabel,
+  }];
+  const sectionLabel = parts.length > 3
+    ? (CATEGORY_EDIT_SUBLABELS[parts[3]] ?? parts[3])
+    : "Edit";
+  return [{
+    label: catLabel,
+    href: categoryHref,
+  }, {
+    label: sectionLabel,
+  }];
+}
+
 /** Derive breadcrumb segments from a pathname. */
 function breadcrumbsForPath(pathname: string, categoryName?: string): BreadcrumbSegment[] {
   if (pathname === "/") return [{
@@ -81,132 +147,31 @@ function breadcrumbsForPath(pathname: string, categoryName?: string): Breadcrumb
   if (pathname === "/bookmarks") return [{
     label: "Bookmarks",
   }];
-
-  if (pathname.startsWith("/bookmarks/")) {
-    return [
-      {
-        label: "Bookmarks",
-        href: "/bookmarks",
-      },
-      {
-        label: "Bookmark",
-      },
-    ];
-  }
-
-  if (pathname.startsWith("/settings")) {
-    const rest = pathname.slice("/settings".length).replace(/^\//, "");
-    if (!rest) return [{
-      label: "Settings",
+  if (pathname.startsWith("/bookmarks/"))
+    return [{
+      label: "Bookmarks",
+      href: "/bookmarks",
+    }, {
+      label: "Bookmark",
     }];
-    const parts = rest.split("/");
-    const sub = parts[0];
-    const subLabel = SETTINGS_SUBLABELS[sub] ?? sub;
-    if (sub === "autofill" && parts.length > 1) {
-      return [
-        {
-          label: "Settings",
-          href: "/settings",
-        },
-        {
-          label: "Autofill",
-          href: "/settings/autofill",
-        },
-        {
-          label: "Rule",
-        },
-      ];
-    }
-    return [
-      {
-        label: "Settings",
-        href: "/settings",
-      },
-      {
-        label: subLabel,
-      },
-    ];
-  }
-
-  if (pathname.startsWith("/categories/")) {
-    const parts = pathname.split("/").filter(Boolean);
-    const categoryHref = `/${parts[0]}/${parts[1]}`;
-    const catLabel = categoryName ?? "Category";
-    if (parts.length <= 2) return [{
-      label: catLabel,
-    }];
-    if (parts.length === 3) {
-      return [
-        {
-          label: catLabel,
-          href: categoryHref,
-        },
-        {
-          label: "Edit",
-        },
-      ];
-    }
-    const sectionLabel = CATEGORY_EDIT_SUBLABELS[parts[3]] ?? parts[3];
-    return [
-      {
-        label: catLabel,
-        href: categoryHref,
-      },
-      {
-        label: sectionLabel,
-      },
-    ];
-  }
-
-  if (pathname.startsWith("/taxonomies/websites")) {
-    if (pathname === "/taxonomies/websites") return [{
-      label: "Websites",
-    }];
-    return [
-      {
-        label: "Websites",
-        href: "/taxonomies/websites",
-      },
-      {
-        label: "Website",
-      },
-    ];
-  }
-
-  if (pathname.startsWith("/taxonomies/media-types")) {
-    if (pathname === "/taxonomies/media-types") return [{
-      label: "Media Types",
-    }];
-    return [
-      {
-        label: "Media Types",
-        href: "/taxonomies/media-types",
-      },
-      {
-        label: "Media Type",
-      },
-    ];
-  }
-
-  if (pathname.startsWith("/taxonomies/youtube-channels")) {
-    if (pathname === "/taxonomies/youtube-channels") return [{
-      label: "YouTube Channels",
-    }];
-    return [
-      {
-        label: "YouTube Channels",
-        href: "/taxonomies/youtube-channels",
-      },
-      {
-        label: "Channel",
-      },
-    ];
-  }
-
+  if (pathname.startsWith("/settings")) return settingsCrumbs(pathname);
+  if (pathname.startsWith("/categories/")) return categoryCrumbs(pathname, categoryName);
   if (pathname.startsWith("/taxonomies/tags")) return [{
     label: "Tags",
   }];
 
+  const taxonomy = TAXONOMY_CRUMBS.find(t => pathname.startsWith(t.prefix));
+  if (taxonomy) {
+    if (pathname === taxonomy.prefix) return [{
+      label: taxonomy.listLabel,
+    }];
+    return [{
+      label: taxonomy.listLabel,
+      href: taxonomy.prefix,
+    }, {
+      label: taxonomy.detailLabel,
+    }];
+  }
   return [{
     label: "eeSimple Bookmarks",
   }];

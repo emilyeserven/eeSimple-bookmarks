@@ -5,6 +5,7 @@ import { CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   composeDateTime,
@@ -93,6 +94,64 @@ export function DateTimePicker({
             : null}
         </PopoverContent>
       </Popover>
+    </div>
+  );
+}
+
+interface DateTimeRangeFieldsProps {
+  format: DateTimeFormat;
+  /** Lower bound of the range (canonical string), or `null` for open-ended. */
+  from: string | null;
+  /** Upper bound of the range (canonical string), or `null` for open-ended. */
+  to: string | null;
+  onChange: (range: { from: string | null;
+    to: string | null; }) => void;
+  /** `stack` lays the two pickers vertically (default); `grid` puts them side by side. */
+  layout?: "stack" | "grid";
+}
+
+/**
+ * A labelled From/To pair of {@link DateTimePicker}s for a date/time range, shared by the homepage
+ * filter sidebar and the condition editor so both render identical controls.
+ */
+export function DateTimeRangeFields({
+  format, from, to, onChange, layout = "stack",
+}: DateTimeRangeFieldsProps) {
+  return (
+    <div
+      className={cn(
+        layout === "grid"
+          ? `
+            grid gap-2
+            sm:grid-cols-2
+          `
+          : "space-y-2",
+      )}
+    >
+      <div className="space-y-1">
+        <Label className="text-xs text-muted-foreground">From</Label>
+        <DateTimePicker
+          format={format}
+          value={from}
+          placeholder="Any"
+          onChange={next => onChange({
+            from: next,
+            to,
+          })}
+        />
+      </div>
+      <div className="space-y-1">
+        <Label className="text-xs text-muted-foreground">To</Label>
+        <DateTimePicker
+          format={format}
+          value={to}
+          placeholder="Any"
+          onChange={next => onChange({
+            from,
+            to: next,
+          })}
+        />
+      </div>
     </div>
   );
 }

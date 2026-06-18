@@ -2,7 +2,7 @@ import type { Category, CustomProperty, PropertyCondition } from "@eesimple/type
 
 import { ChevronDown, CircleHelp } from "lucide-react";
 
-import { DateTimePicker } from "../DateTimePicker";
+import { DateTimeRangeFields } from "../DateTimePicker";
 import { RangeSlider } from "../RangeSlider";
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -301,37 +301,13 @@ function PropertyConditionRow({
         </div>
         {mode === "range"
           ? (
-            <div
-              className="
-                grid gap-2
-                sm:grid-cols-2
-              "
-            >
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">From</Label>
-                <DateTimePicker
-                  format={format}
-                  value={range.from}
-                  placeholder="Any"
-                  onChange={from => emitRange({
-                    from,
-                    to: range.to,
-                  })}
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">To</Label>
-                <DateTimePicker
-                  format={format}
-                  value={range.to}
-                  placeholder="Any"
-                  onChange={to => emitRange({
-                    from: range.from,
-                    to,
-                  })}
-                />
-              </div>
-            </div>
+            <DateTimeRangeFields
+              format={format}
+              from={range.from}
+              to={range.to}
+              layout="grid"
+              onChange={emitRange}
+            />
           )
           : null}
       </div>

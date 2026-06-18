@@ -238,6 +238,55 @@ export async function createCustomProperty(
   return (await getCustomProperty(id))!;
 }
 
+type UpdatePatch = Partial<
+  Pick<
+    CustomPropertyRow,
+    | "name"
+    | "slug"
+    | "numberFormat"
+    | "dateTimeFormat"
+    | "description"
+    | "numberMin"
+    | "numberMax"
+    | "unitSingular"
+    | "unitPlural"
+    | "valuePrefix"
+    | "zeroLabel"
+    | "maxLabel"
+    | "showInForm"
+    | "hiddenFromForm"
+    | "showInListings"
+    | "allCategories"
+    | "editableOnCard"
+    | "enabled"
+  >
+>;
+
+function buildUpdatePatch(input: UpdateCustomPropertyInput, renamedSlug: string | undefined): UpdatePatch {
+  const patch: UpdatePatch = {};
+  if (input.name !== undefined) patch.name = input.name;
+  if (renamedSlug !== undefined) patch.slug = renamedSlug;
+  if (input.numberFormat !== undefined) patch.numberFormat = input.numberFormat ?? null;
+  // dateTimeFormat only matters for datetime properties; the client only sends it for those, and
+  // `type` is immutable, so writing it unconditionally when present is safe.
+  if (input.dateTimeFormat !== undefined) patch.dateTimeFormat = input.dateTimeFormat ?? null;
+  if (input.description !== undefined) patch.description = input.description ?? null;
+  if (input.numberMin !== undefined) patch.numberMin = input.numberMin;
+  if (input.numberMax !== undefined) patch.numberMax = input.numberMax;
+  if (input.unitSingular !== undefined) patch.unitSingular = input.unitSingular ?? null;
+  if (input.unitPlural !== undefined) patch.unitPlural = input.unitPlural ?? null;
+  if (input.valuePrefix !== undefined) patch.valuePrefix = input.valuePrefix ?? null;
+  if (input.zeroLabel !== undefined) patch.zeroLabel = input.zeroLabel ?? null;
+  if (input.maxLabel !== undefined) patch.maxLabel = input.maxLabel ?? null;
+  if (input.showInForm !== undefined) patch.showInForm = input.showInForm;
+  if (input.hiddenFromForm !== undefined) patch.hiddenFromForm = input.hiddenFromForm;
+  if (input.showInListings !== undefined) patch.showInListings = input.showInListings;
+  if (input.allCategories !== undefined) patch.allCategories = input.allCategories;
+  if (input.editableOnCard !== undefined) patch.editableOnCard = input.editableOnCard;
+  if (input.enabled !== undefined) patch.enabled = input.enabled;
+  return patch;
+}
+
 export async function updateCustomProperty(
   id: string,
   input: UpdateCustomPropertyInput,
@@ -272,51 +321,7 @@ export async function updateCustomProperty(
       throw new BuiltInPropertyError("A built-in property cannot be renamed");
     }
 
-    const patch: Partial<
-      Pick<
-        CustomPropertyRow,
-        | "name"
-        | "slug"
-        | "numberFormat"
-        | "dateTimeFormat"
-        | "description"
-        | "numberMin"
-        | "numberMax"
-        | "unitSingular"
-        | "unitPlural"
-        | "valuePrefix"
-        | "zeroLabel"
-        | "maxLabel"
-        | "showInForm"
-        | "hiddenFromForm"
-        | "showInListings"
-        | "allCategories"
-        | "editableOnCard"
-        | "enabled"
-      >
-    > = {};
-    if (input.name !== undefined) patch.name = input.name;
-    if (renamedSlug !== undefined) patch.slug = renamedSlug;
-    if (input.numberFormat !== undefined) patch.numberFormat = input.numberFormat ?? null;
-    // dateTimeFormat only applies to datetime properties; ignore it for other types.
-    if (input.dateTimeFormat !== undefined && existing.type === "datetime") {
-      patch.dateTimeFormat = input.dateTimeFormat ?? "date";
-    }
-    if (input.description !== undefined) patch.description = input.description ?? null;
-    if (input.numberMin !== undefined) patch.numberMin = input.numberMin;
-    if (input.numberMax !== undefined) patch.numberMax = input.numberMax;
-    if (input.unitSingular !== undefined) patch.unitSingular = input.unitSingular ?? null;
-    if (input.unitPlural !== undefined) patch.unitPlural = input.unitPlural ?? null;
-    if (input.valuePrefix !== undefined) patch.valuePrefix = input.valuePrefix ?? null;
-    if (input.zeroLabel !== undefined) patch.zeroLabel = input.zeroLabel ?? null;
-    if (input.maxLabel !== undefined) patch.maxLabel = input.maxLabel ?? null;
-    if (input.showInForm !== undefined) patch.showInForm = input.showInForm;
-    if (input.hiddenFromForm !== undefined) patch.hiddenFromForm = input.hiddenFromForm;
-    if (input.showInListings !== undefined) patch.showInListings = input.showInListings;
-    if (input.allCategories !== undefined) patch.allCategories = input.allCategories;
-    if (input.editableOnCard !== undefined) patch.editableOnCard = input.editableOnCard;
-    if (input.enabled !== undefined) patch.enabled = input.enabled;
-
+    const patch = buildUpdatePatch(input, renamedSlug);
     if (Object.keys(patch).length > 0) {
       await tx.update(customProperties).set(patch).where(eq(customProperties.id, id));
     }
