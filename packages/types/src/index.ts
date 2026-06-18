@@ -709,6 +709,16 @@ export interface FetchMetadataResult {
   thumbnailUrl: string | null;
 }
 
+/** Result of probing a URL for reachability (`GET /api/check-url`). */
+export interface CheckUrlResult {
+  /** Whether the link resolved with an ok (2xx) response. */
+  ok: boolean;
+  /** The HTTP status returned, or `null` when the request never completed (timeout/network error). */
+  status: number | null;
+  /** Why the check failed, present only when `ok` is false. */
+  reason?: "timeout" | "http_error" | "network_error";
+}
+
 /** Standard error shape returned by the API. */
 export interface ApiError {
   error: string;

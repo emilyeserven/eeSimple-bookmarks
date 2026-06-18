@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { buildApp } from "@/app";
-import { decodeEntities, extractTitle, fetchPageTitle } from "@/services/metadata";
+import { checkUrl, decodeEntities, extractTitle, fetchPageTitle } from "@/services/metadata";
 
 // These tests cover schema validation and the pure title-parsing helpers, so
 // they run without a live network or database.
@@ -171,4 +171,105 @@ test("fetchPageTitle returns { kind: 'network_error' } on a non-abort exception"
   finally {
     globalThis.fetch = original;
   }
+});
+
+// checkUrl — unit tests using a mocked global fetch
+
+test("checkUrl returns { kind: 'ok' } with the status on a reachable link", async () => {
+  const original = globalThis.fetch;
+  globalThis.fetch = async () => new Response(null, {
+    status: 200,
+  });
+  try {
+    const result = await checkUrl("https://example.com");
+    assert.equal(result.kind, "ok");
+    assert.equal(result.kind === "ok" ? result.status : 0, 200);
+  }
+  finally { globalThis.fetch = original; }
+});
+
+test("checkUrl returns { kind: 'http_error' } with the status on a 404", async () => {
+  const original = globalThis.fetch;
+  globalThis.fetch = async () => new Response(null, {
+    status: 404,
+  });
+  try {
+    const result = await checkUrl("https://example.com/missing");
+    assert.equal(result.kind, "http_error");
+    assert.equal(result.kind === "http_error" ? result.status : 0, 404);
+  }
+  finally { globalThis.fetch = original; }
+});
+
+test("checkUrl falls back to GET when HEAD is rejected with 405", async () => {
+  const original = globalThis.fetch;
+  const methods: (string | undefined)[] = [];
+  globalThis.fetch = async (_input, init) => {
+    methods.push(init?.method);
+    return init?.method === "HEAD"
+      ? new Response(null, {
+        status: 405,
+      })
+      : new Response(null, {
+        status: 200,
+      });
+  };
+  try {
+    const result = await checkUrl("https://example.com");
+    assert.deepEqual(methods, ["HEAD", "GET"]);
+    assert.equal(result.kind, "ok");
+  }
+  finally { globalThis.fetch = original; }
+});
+
+test("checkUrl falls back to GET when HEAD throws", async () => {
+  const original = globalThis.fetch;
+  const methods: (string | undefined)[] = [];
+  globalThis.fetch = async (_input, init) => {
+    methods.push(init?.method);
+    if (init?.method === "HEAD") throw new Error("HEAD not allowed");
+    return new Response(null, {
+      status: 200,
+    });
+  };
+  try {
+    const result = await checkUrl("https://example.com");
+    assert.deepEqual(methods, ["HEAD", "GET"]);
+    assert.equal(result.kind, "ok");
+  }
+  finally { globalThis.fetch = original; }
+});
+
+test("checkUrl returns { kind: 'timeout' } on an AbortError", async () => {
+  const original = globalThis.fetch;
+  globalThis.fetch = async () => {
+    throw new DOMException("The operation was aborted", "AbortError");
+  };
+  try {
+    const result = await checkUrl("https://example.com");
+    assert.equal(result.kind, "timeout");
+  }
+  finally { globalThis.fetch = original; }
+});
+
+test("checkUrl returns { kind: 'network_error' } on a non-abort exception", async () => {
+  const original = globalThis.fetch;
+  globalThis.fetch = async () => {
+    throw new Error("Connection refused");
+  };
+  try {
+    const result = await checkUrl("https://example.com");
+    assert.equal(result.kind, "network_error");
+  }
+  finally { globalThis.fetch = original; }
+});
+
+test("GET /api/check-url rejects an invalid url", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "GET",
+    url: "/api/check-url?url=not-a-url",
+  });
+  assert.equal(res.statusCode, 400);
+  await app.close();
 });

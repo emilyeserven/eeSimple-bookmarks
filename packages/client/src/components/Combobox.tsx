@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +12,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 /** A selectable option, optionally indented by `depth` to convey hierarchy. */
@@ -34,6 +35,15 @@ interface ComboboxProps {
   /** Id applied to the trigger button so an external `<Label htmlFor>` can target it. */
   "id"?: string;
   "aria-label"?: string;
+  /**
+   * Optional action pinned to the bottom of the dropdown (e.g. "Create category…"). Rendered outside
+   * the filtered list so it stays visible regardless of the search query; selecting it closes the
+   * popover and runs `onSelect`.
+   */
+  "createOption"?: {
+    label: string;
+    onSelect: () => void;
+  };
 }
 
 /**
@@ -50,6 +60,7 @@ export function Combobox({
   className,
   id,
   "aria-label": ariaLabel,
+  createOption,
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false);
   const selected = options.find(option => option.value === value);
@@ -114,6 +125,27 @@ export function Combobox({
               ))}
             </CommandGroup>
           </CommandList>
+          {createOption
+            ? (
+              <>
+                <Separator />
+                <button
+                  type="button"
+                  className="
+                    flex w-full items-center gap-2 p-2 text-sm font-medium
+                    hover:bg-accent hover:text-accent-foreground
+                  "
+                  onClick={() => {
+                    setOpen(false);
+                    createOption.onSelect();
+                  }}
+                >
+                  <Plus className="size-4 shrink-0" />
+                  {createOption.label}
+                </button>
+              </>
+            )
+            : null}
         </Command>
       </PopoverContent>
     </Popover>

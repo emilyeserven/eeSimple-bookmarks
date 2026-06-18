@@ -171,6 +171,76 @@ export async function fetchPageTitle(url: string): Promise<FetchTitleResult> {
   };
 }
 
+/** A reachability check result: the link resolved, or a typed reason it couldn't be reached. */
+export type CheckUrlResult
+  = | { kind: "ok";
+    status: number; }
+    | { kind: "http_error";
+      status: number; }
+      | { kind: "timeout" }
+      | { kind: "network_error" };
+
+/**
+ * Probe `url` to see whether it still resolves, without downloading the page body. Tries a `HEAD`
+ * first and falls back to `GET` for servers that reject HEAD (405/501 or an outright failure).
+ * Guarded by the same timeout as the other fetches. Like `fetchPageTitle`, it hits the raw
+ * user-entered URL (only `isValidUrl` upstream, not `isPublicHttpUrl`) so intranet/localhost
+ * bookmarks stay checkable.
+ */
+export async function checkUrl(url: string): Promise<CheckUrlResult> {
+  async function probe(method: "HEAD" | "GET"): Promise<Response> {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    try {
+      return await fetch(url, {
+        method,
+        redirect: "follow",
+        signal: controller.signal,
+        headers: {
+          "User-Agent": BROWSER_USER_AGENT,
+        },
+      });
+    }
+    finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  try {
+    let res: Response;
+    try {
+      res = await probe("HEAD");
+      // Some servers don't implement HEAD; retry once with GET before giving up.
+      if (res.status === 405 || res.status === 501) {
+        res = await probe("GET");
+      }
+    }
+    catch {
+      // A HEAD that throws (e.g. the method is refused at the connection level) — fall back to GET.
+      res = await probe("GET");
+    }
+    return res.ok
+      ? {
+        kind: "ok",
+        status: res.status,
+      }
+      : {
+        kind: "http_error",
+        status: res.status,
+      };
+  }
+  catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") {
+      return {
+        kind: "timeout",
+      };
+    }
+    return {
+      kind: "network_error",
+    };
+  }
+}
+
 /** Cap on the image bytes we'll download (an image is stored, not streamed, so memory matters). */
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 

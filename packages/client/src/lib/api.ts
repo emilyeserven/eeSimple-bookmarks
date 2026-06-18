@@ -7,6 +7,7 @@ import type {
   BulkUrlUpdateResult,
   Category,
   CategoryPropertyDefaults,
+  CheckUrlResult,
   CreateAutofillRuleInput,
   CreateBookmarkInput,
   CreateCategoryInput,
@@ -155,6 +156,10 @@ export const metadataApi = {
     if (siteName) params.set("siteName", siteName);
     return request<FetchMetadataResult>(`/fetch-metadata?${params.toString()}`);
   },
+  checkUrl: ({
+    url,
+  }: { url: string }) =>
+    request<CheckUrlResult>(`/check-url?url=${encodeURIComponent(url)}`),
 };
 
 export const tagsApi = {

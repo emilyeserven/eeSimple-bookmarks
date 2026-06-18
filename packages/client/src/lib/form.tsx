@@ -253,6 +253,11 @@ interface ComboboxFieldProps {
   searchPlaceholder?: string;
   emptyText?: string;
   className?: string;
+  /** Optional action pinned to the bottom of the dropdown (e.g. inline "Create…"). */
+  createOption?: {
+    label: string;
+    onSelect: () => void;
+  };
 }
 
 /**
@@ -260,7 +265,7 @@ interface ComboboxFieldProps {
  * Like `SelectField` but built on `Combobox`, and options may carry a left-aligned `icon`.
  */
 function ComboboxField({
-  label, options, placeholder, searchPlaceholder, emptyText, className,
+  label, options, placeholder, searchPlaceholder, emptyText, className, createOption,
 }: ComboboxFieldProps) {
   const field = useFieldContext<string>();
   const id = useId();
@@ -280,6 +285,7 @@ function ComboboxField({
         placeholder={placeholder}
         searchPlaceholder={searchPlaceholder}
         emptyText={emptyText}
+        createOption={createOption}
       />
       {field.state.meta.isTouched && <FieldErrors errors={field.state.meta.errors} />}
     </div>

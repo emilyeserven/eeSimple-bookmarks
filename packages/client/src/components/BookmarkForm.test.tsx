@@ -62,10 +62,24 @@ vi.mock("../hooks/useCategories", () => ({
   useCategories: () => ({
     data: [],
   }),
+  useCreateCategory: () => ({
+    mutate: vi.fn(),
+    isError: false,
+    error: null,
+  }),
   useCategoryRootTags: () => ({
     data: [],
   }),
   useCategoryDefaults: () => ({
+    data: undefined,
+  }),
+}));
+vi.mock("../hooks/useCheckUrl", () => ({
+  useCheckUrl: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+    isSuccess: false,
+    isError: false,
     data: undefined,
   }),
 }));
