@@ -42,11 +42,24 @@ interface AutofillRulesListProps {
    * shown and the category filter is hidden.
    */
   categoryId?: string;
+  /**
+   * When set, scopes the list to a single custom property: only rules that set a value for this
+   * property (number / boolean / datetime) are shown and the category filter is hidden.
+   */
+  propertyId?: string;
+}
+
+/** True when the rule sets a value for `propertyId` via any of its custom-property value arrays. */
+function ruleSetsProperty(rule: AutofillRule, propertyId: string): boolean {
+  return rule.numberValues.some(value => value.propertyId === propertyId)
+    || rule.booleanValues.some(value => value.propertyId === propertyId)
+    || rule.dateTimeValues.some(value => value.propertyId === propertyId);
 }
 
 /** Read-only, searchable/filterable list of autofill rules; selecting one opens it in the panel. */
 export function AutofillRulesList({
   categoryId,
+  propertyId,
 }: AutofillRulesListProps = {}) {
   const {
     data: rules, isLoading, error,
@@ -61,13 +74,16 @@ export function AutofillRulesList({
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState(ALL_CATEGORIES);
 
-  // Scope to the category in context (category edit tab) before any search/category filtering.
-  const scopedRules = useMemo(
-    () => (categoryId
-      ? (rules ?? []).filter(rule => rule.setCategoryId === categoryId)
-      : (rules ?? [])),
-    [rules, categoryId],
-  );
+  // Whether the list is scoped to a single entity (category or property edit/view tab).
+  const scoped = Boolean(categoryId) || Boolean(propertyId);
+
+  // Scope to the entity in context before any search/category filtering.
+  const scopedRules = useMemo(() => {
+    let list = rules ?? [];
+    if (categoryId) list = list.filter(rule => rule.setCategoryId === categoryId);
+    if (propertyId) list = list.filter(rule => ruleSetsProperty(rule, propertyId));
+    return list;
+  }, [rules, categoryId, propertyId]);
 
   const visibleRules = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -99,7 +115,7 @@ export function AutofillRulesList({
             onChange={event => setSearch(event.target.value)}
             className="max-w-xs"
           />
-          {categoryId
+          {scoped
             ? null
             : (
               <Select
@@ -143,7 +159,9 @@ export function AutofillRulesList({
           <p className="text-muted-foreground">
             {categoryId
               ? "No autofill rules add bookmarks to this category yet. Create one above."
-              : "No autofill rules yet. Create one above."}
+              : propertyId
+                ? "No autofill rules set this property yet. Create one above."
+                : "No autofill rules yet. Create one above."}
           </p>
         )
         : null}

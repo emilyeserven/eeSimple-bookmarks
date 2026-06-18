@@ -3,6 +3,7 @@ import type { Category, CustomProperty } from "@eesimple/types";
 import { TriangleAlert } from "lucide-react";
 
 import { LabeledSection } from "./LabeledSection";
+import { hasPropertyOptions } from "../lib/propertyForm";
 import { DATE_TIME_FORMAT_LABELS, TYPE_LABELS } from "../lib/propertyFormat";
 
 import { DetailField } from "@/components/DetailField";
@@ -32,17 +33,14 @@ function formPlacement(property: CustomProperty): string {
  * The full read-only view of a single custom property, showing every configured field. Shared by the
  * custom-property detail page and the right panel's property view so the two stay identical; the panel
  * simply renders it in its narrow column. Presentational: pass `categories`/`allProperties` for labels
- * and `onEdit`/`onDelete` for the header actions.
+ * and `onEdit`/`onDelete` for the header actions. The section bodies are also exported individually so
+ * the tabbed detail pages can render one section per tab.
  */
 export function PropertyDetail({
   property, categories = [], allProperties = [], onEdit, onDelete,
 }: PropertyDetailProps) {
-  const isNumeric = property.type === "number" || property.type === "calculate";
   const assignedCategories = categories.filter(category =>
     property.categoryIds.includes(category.id));
-  const operandNames = property.operandPropertyIds
-    .map(id => allProperties.find(candidate => candidate.id === id)?.name)
-    .filter((value): value is string => Boolean(value));
 
   return (
     <div className="space-y-6">
@@ -95,43 +93,19 @@ export function PropertyDetail({
       <Separator />
 
       <LabeledSection title="General">
-        <dl className="space-y-3">
-          <DetailField label="Status">
-            {property.enabled ? "Enabled" : "Disabled"}
-          </DetailField>
-
-          <DetailField label="Description">
-            {property.description
-              ? <p className="whitespace-pre-wrap">{property.description}</p>
-              : null}
-          </DetailField>
-
-          <DetailField label="Created">
-            <span>{new Date(property.createdAt).toLocaleString()}</span>
-          </DetailField>
-        </dl>
+        <PropertyGeneralFields property={property} />
       </LabeledSection>
 
-      {isNumeric || property.type === "datetime"
+      {hasPropertyOptions(property)
         ? (
           <>
             <Separator />
 
             <LabeledSection title="Property options">
-              <dl className="space-y-3">
-                {isNumeric
-                  ? (
-                    <NumericPropertyFields
-                      property={property}
-                      operandNames={operandNames}
-                    />
-                  )
-                  : (
-                    <DetailField label="Captures">
-                      {DATE_TIME_FORMAT_LABELS[property.dateTimeFormat ?? "date"]}
-                    </DetailField>
-                  )}
-              </dl>
+              <PropertyOptionsFields
+                property={property}
+                allProperties={allProperties}
+              />
             </LabeledSection>
           </>
         )
@@ -140,48 +114,131 @@ export function PropertyDetail({
       <Separator />
 
       <LabeledSection title="Categories">
-        {property.allCategories
-          ? <Badge variant="secondary">All categories</Badge>
-          : assignedCategories.length > 0
-            ? (
-              <ul className="flex flex-wrap gap-1">
-                {assignedCategories.map(category => (
-                  <li key={category.id}>
-                    <Badge
-                      variant="secondary"
-                      className="gap-1.5"
-                    >
-                      <CategoryIcon
-                        name={category.icon}
-                        className="size-3.5"
-                      />
-                      {category.name}
-                    </Badge>
-                  </li>
-                ))}
-              </ul>
-            )
-            : <span className="text-sm text-muted-foreground">None</span>}
+        <PropertyCategoriesContent
+          property={property}
+          categories={categories}
+        />
       </LabeledSection>
 
       <Separator />
 
       <LabeledSection title="Display">
-        <dl className="space-y-3">
-          <DetailField label="Bookmark form">{formPlacement(property)}</DetailField>
-          <DetailField label="Listings">
-            {property.showInListings ? "Shown on bookmark cards" : "Hidden from bookmark cards"}
-          </DetailField>
-          {property.type === "calculate"
-            ? null
-            : (
-              <DetailField label="Card menu">
-                {property.editableOnCard ? "Editable from the card menu" : "Not editable from the card menu"}
-              </DetailField>
-            )}
-        </dl>
+        <PropertyDisplayFields property={property} />
       </LabeledSection>
     </div>
+  );
+}
+
+/** The "General" section body: status, description, created date. */
+export function PropertyGeneralFields({
+  property,
+}: {
+  property: CustomProperty;
+}) {
+  return (
+    <dl className="space-y-3">
+      <DetailField label="Status">
+        {property.enabled ? "Enabled" : "Disabled"}
+      </DetailField>
+
+      <DetailField label="Description">
+        {property.description
+          ? <p className="whitespace-pre-wrap">{property.description}</p>
+          : null}
+      </DetailField>
+
+      <DetailField label="Created">
+        <span>{new Date(property.createdAt).toLocaleString()}</span>
+      </DetailField>
+    </dl>
+  );
+}
+
+/** The "Property options" section body; renders nothing for boolean properties. */
+export function PropertyOptionsFields({
+  property, allProperties = [],
+}: {
+  property: CustomProperty;
+  allProperties?: CustomProperty[];
+}) {
+  const isNumeric = property.type === "number" || property.type === "calculate";
+  const operandNames = property.operandPropertyIds
+    .map(id => allProperties.find(candidate => candidate.id === id)?.name)
+    .filter((value): value is string => Boolean(value));
+
+  if (!hasPropertyOptions(property)) return null;
+
+  return (
+    <dl className="space-y-3">
+      {isNumeric
+        ? (
+          <NumericPropertyFields
+            property={property}
+            operandNames={operandNames}
+          />
+        )
+        : (
+          <DetailField label="Captures">
+            {DATE_TIME_FORMAT_LABELS[property.dateTimeFormat ?? "date"]}
+          </DetailField>
+        )}
+    </dl>
+  );
+}
+
+/** The "Categories" section body: an "All categories" badge or the assigned category badges. */
+export function PropertyCategoriesContent({
+  property, categories = [],
+}: {
+  property: CustomProperty;
+  categories?: Category[];
+}) {
+  const assignedCategories = categories.filter(category =>
+    property.categoryIds.includes(category.id));
+  if (property.allCategories) return <Badge variant="secondary">All categories</Badge>;
+  if (assignedCategories.length === 0) {
+    return <span className="text-sm text-muted-foreground">None</span>;
+  }
+  return (
+    <ul className="flex flex-wrap gap-1">
+      {assignedCategories.map(category => (
+        <li key={category.id}>
+          <Badge
+            variant="secondary"
+            className="gap-1.5"
+          >
+            <CategoryIcon
+              name={category.icon}
+              className="size-3.5"
+            />
+            {category.name}
+          </Badge>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** The "Display" section body: form placement, listings, and card-menu editability. */
+export function PropertyDisplayFields({
+  property,
+}: {
+  property: CustomProperty;
+}) {
+  return (
+    <dl className="space-y-3">
+      <DetailField label="Bookmark form">{formPlacement(property)}</DetailField>
+      <DetailField label="Listings">
+        {property.showInListings ? "Shown on bookmark cards" : "Hidden from bookmark cards"}
+      </DetailField>
+      {property.type === "calculate"
+        ? null
+        : (
+          <DetailField label="Card menu">
+            {property.editableOnCard ? "Editable from the card menu" : "Not editable from the card menu"}
+          </DetailField>
+        )}
+    </dl>
   );
 }
 
@@ -190,7 +247,7 @@ interface NumericPropertyFieldsProps {
   operandNames: string[];
 }
 
-/** Renders the numeric/calculate-specific fields; called only when `isNumeric` is true. */
+/** Renders the numeric/calculate-specific fields; called only when the type is numeric. */
 function NumericPropertyFields({
   property, operandNames,
 }: NumericPropertyFieldsProps) {

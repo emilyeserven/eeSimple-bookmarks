@@ -9,46 +9,19 @@ import { z } from "zod";
 
 import { CollapsibleFormSection } from "./CollapsibleFormSection";
 import { LabeledSection } from "./LabeledSection";
+import { CategoryCheckboxList, OperandCheckboxList } from "./PropertyFormFields";
 import { useAppForm } from "../lib/form";
+import {
+  DATE_TIME_FORMAT_OPTIONS,
+  summarizeCategories,
+  summarizeNumberOptions,
+  toggleId,
+  TYPE_OPTIONS,
+} from "../lib/propertyForm";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { CategoryIcon } from "@/lib/icons";
-
-const TYPE_OPTIONS = [
-  {
-    value: "number",
-    label: "Number",
-  },
-  {
-    value: "boolean",
-    label: "Boolean",
-  },
-  {
-    value: "calculate",
-    label: "Calculate (Sum)",
-  },
-  {
-    value: "datetime",
-    label: "Date / Time",
-  },
-];
-
-const DATE_TIME_FORMAT_OPTIONS = [
-  {
-    value: "date",
-    label: "Date only",
-  },
-  {
-    value: "time",
-    label: "Time only",
-  },
-  {
-    value: "datetime",
-    label: "Date & time",
-  },
-];
 
 const propertySchema = z
   .object({
@@ -85,41 +58,6 @@ const propertySchema = z
   });
 
 type PropertyFormValues = z.infer<typeof propertySchema>;
-
-/** Add or remove `id` from `ids`, returning a new array. */
-function toggleId(ids: string[], id: string): string[] {
-  return ids.includes(id) ? ids.filter(value => value !== id) : [...ids, id];
-}
-
-/** One-line summary of the number options for the collapsed "Property options" preview. */
-function summarizeNumberOptions(values: {
-  disableMin: boolean;
-  disableMax: boolean;
-  numberMin: string;
-  numberMax: string;
-  unitPlural: string;
-  valuePrefix: string;
-}): string {
-  const parts: string[] = [];
-  const min = values.disableMin ? "auto" : (values.numberMin.trim() || "auto");
-  const max = values.disableMax ? "auto" : (values.numberMax.trim() || "auto");
-  if (min !== "auto" || max !== "auto") {
-    parts.push(`${min}–${max}${values.unitPlural.trim() ? ` ${values.unitPlural.trim()}` : ""}`);
-  }
-  else if (values.unitPlural.trim()) {
-    parts.push(values.unitPlural.trim());
-  }
-  if (values.valuePrefix.trim()) parts.push(`prefix ${values.valuePrefix.trim()}`);
-  return parts.length > 0 ? parts.join(" · ") : "No options set";
-}
-
-/** One-line summary of the category selection for the collapsed "Categories" preview. */
-function summarizeCategories(allCategories: boolean, selectedIds: string[]): string {
-  if (allCategories) return "All categories";
-  const count = selectedIds.length;
-  if (count === 0) return "No categories";
-  return `${count} ${count === 1 ? "category" : "categories"}`;
-}
 
 const CREATE_DEFAULTS: PropertyFormValues = {
   name: "",
@@ -201,132 +139,8 @@ function payloadFromValues(values: PropertyFormValues): CreateCustomPropertyInpu
   };
 }
 
-interface CategoryCheckboxListProps {
-  categories: Category[];
-  selectedIds: string[];
-  onToggle: (id: string) => void;
-  idPrefix: string;
-  /** When set, render a leading "Select all" checkbox that selects every / no category. */
-  onToggleAll?: (selectAll: boolean) => void;
-  /** When true, the property applies to all (incl. future) categories; "Select all" stays checked. */
-  allCategories?: boolean;
-}
-
-/** A checkbox list for assigning a property to zero, one, or many categories. */
-function CategoryCheckboxList({
-  categories,
-  selectedIds,
-  onToggle,
-  idPrefix,
-  onToggleAll,
-  allCategories = false,
-}: CategoryCheckboxListProps) {
-  if (categories.length === 0) {
-    return (
-      <p className="text-sm text-muted-foreground">
-        No categories yet. Create some on the Categories page.
-      </p>
-    );
-  }
-  const allSelected = allCategories || categories.every(category => selectedIds.includes(category.id));
-  return (
-    <div className="space-y-2">
-      {onToggleAll
-        ? (
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id={`${idPrefix}-select-all`}
-              checked={allSelected}
-              onCheckedChange={() => onToggleAll(!allSelected)}
-            />
-            <Label
-              htmlFor={`${idPrefix}-select-all`}
-              className="text-xs text-muted-foreground"
-            >
-              Select all
-            </Label>
-          </div>
-        )
-        : null}
-      <div
-        className="
-          grid gap-2
-          sm:grid-cols-2
-        "
-      >
-        {categories.map((category) => {
-          const inputId = `${idPrefix}-${category.id}`;
-          return (
-            <div
-              key={category.id}
-              className="flex items-center gap-2"
-            >
-              <Checkbox
-                id={inputId}
-                checked={allCategories || selectedIds.includes(category.id)}
-                onCheckedChange={() => onToggle(category.id)}
-              />
-              <Label
-                htmlFor={inputId}
-                className="flex items-center gap-1.5"
-              >
-                <CategoryIcon
-                  name={category.icon}
-                  className="size-3.5"
-                />
-                {category.name}
-              </Label>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-interface OperandCheckboxListProps {
-  numberProperties: CustomProperty[];
-  selectedIds: string[];
-  onToggle: (id: string) => void;
-}
-
-/** A checkbox list for choosing the Number properties a Calculate property sums. */
-function OperandCheckboxList({
-  numberProperties, selectedIds, onToggle,
-}: OperandCheckboxListProps) {
-  if (numberProperties.length < 2) {
-    return (
-      <p className="text-sm text-muted-foreground">
-        Create at least two Number properties first; a Calculate property sums them.
-      </p>
-    );
-  }
-  return (
-    <div
-      className="
-        grid gap-2
-        sm:grid-cols-2
-      "
-    >
-      {numberProperties.map((property) => {
-        const inputId = `operand-${property.id}`;
-        return (
-          <div
-            key={property.id}
-            className="flex items-center gap-2"
-          >
-            <Checkbox
-              id={inputId}
-              checked={selectedIds.includes(property.id)}
-              onCheckedChange={() => onToggle(property.id)}
-            />
-            <Label htmlFor={inputId}>{property.name}</Label>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
+/** One section of the property form, used to render a single tab on the edit pages. */
+export type PropertyFormSection = "general" | "options" | "categories" | "display";
 
 interface PropertyFormProps {
   /** `create` shows an editable Type select; `edit` locks Type (it is immutable) and prefills values. */
@@ -348,6 +162,12 @@ interface PropertyFormProps {
   actions?: ReactNode;
   /** Unique prefix for category checkbox ids so multiple forms can coexist on a page. */
   idPrefix: string;
+  /**
+   * Render only one section (a single edit tab) instead of the whole form. The form still validates
+   * and submits every field — the property is prefilled, so saving from any tab persists the full
+   * record. Omit to render the complete form (create page + right panel).
+   */
+  section?: PropertyFormSection;
 }
 
 /** Shared create/edit form for a custom property, used by the settings page and the right panel. */
@@ -363,8 +183,16 @@ export function PropertyForm({
   errorMessage,
   actions,
   idPrefix,
+  section,
 }: PropertyFormProps) {
   const isBuiltIn = mode === "edit" && Boolean(property?.builtIn);
+  // When `section` is set we render a single tab; the dividers/collapsibles only make sense in the
+  // full form, and a section's collapsible defaults to open.
+  const full = section === undefined;
+  const showGeneral = full || section === "general";
+  const showOptions = full || section === "options";
+  const showCategories = full || section === "categories";
+  const showDisplay = full || section === "display";
   const form = useAppForm({
     defaultValues: property ? valuesFromProperty(property) : CREATE_DEFAULTS,
     validators: {
@@ -387,74 +215,78 @@ export function PropertyForm({
         void form.handleSubmit();
       }}
     >
-      <div className="space-y-4">
-        <div
-          className="
-            grid gap-3
-            sm:grid-cols-2
-          "
-        >
-          <form.AppField name="name">
-            {field => (
-              <field.TextField
-                label="Name"
-                placeholder="e.g. Priority"
-              />
-            )}
-          </form.AppField>
+      {showGeneral
+        ? (
+          <div className="space-y-4">
+            <div
+              className="
+                grid gap-3
+                sm:grid-cols-2
+              "
+            >
+              <form.AppField name="name">
+                {field => (
+                  <field.TextField
+                    label="Name"
+                    placeholder="e.g. Priority"
+                  />
+                )}
+              </form.AppField>
 
-          <form.AppField name="type">
-            {field => (
-              <field.SelectField
-                label="Type"
-                options={TYPE_OPTIONS}
-                disabled={mode === "edit"}
-              />
-            )}
-          </form.AppField>
-        </div>
-
-        <form.AppField name="enabled">
-          {field => (
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id={`${idPrefix}-enabled`}
-                  checked={field.state.value}
-                  disabled={isBuiltIn}
-                  onCheckedChange={checked => field.handleChange(checked === true)}
-                />
-                <Label htmlFor={`${idPrefix}-enabled`}>Property is active</Label>
-              </div>
-              {isBuiltIn
-                ? <p className="text-xs text-muted-foreground">Built-in properties can&apos;t be disabled.</p>
-                : null}
+              <form.AppField name="type">
+                {field => (
+                  <field.SelectField
+                    label="Type"
+                    options={TYPE_OPTIONS}
+                    disabled={mode === "edit"}
+                  />
+                )}
+              </form.AppField>
             </div>
-          )}
-        </form.AppField>
 
-        <form.AppField name="description">
-          {field => (
-            <field.TextareaField
-              label="Description"
-              placeholder="Optional — shown as a hint where this property appears."
-              rows={2}
-            />
-          )}
-        </form.AppField>
-      </div>
+            <form.AppField name="enabled">
+              {field => (
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id={`${idPrefix}-enabled`}
+                      checked={field.state.value}
+                      disabled={isBuiltIn}
+                      onCheckedChange={checked => field.handleChange(checked === true)}
+                    />
+                    <Label htmlFor={`${idPrefix}-enabled`}>Property is active</Label>
+                  </div>
+                  {isBuiltIn
+                    ? <p className="text-xs text-muted-foreground">Built-in properties can&apos;t be disabled.</p>
+                    : null}
+                </div>
+              )}
+            </form.AppField>
+
+            <form.AppField name="description">
+              {field => (
+                <field.TextareaField
+                  label="Description"
+                  placeholder="Optional — shown as a hint where this property appears."
+                  rows={2}
+                />
+              )}
+            </form.AppField>
+          </div>
+        )
+        : null}
 
       <form.Subscribe selector={state => state.values.type}>
         {type =>
-          type === "number"
+          showOptions && type === "number"
             ? (
               <>
-                <Separator />
+                {full ? <Separator /> : null}
 
                 <CollapsibleFormSection
                   title="Property options"
                   description="Configure the slider range, units, and labels for this number."
-                  defaultOpen={mode === "create"}
+                  defaultOpen={mode === "create" || section === "options"}
                   preview={(
                     <form.Subscribe
                       selector={state => ({
@@ -589,10 +421,10 @@ export function PropertyForm({
 
       <form.Subscribe selector={state => state.values.type}>
         {type =>
-          type === "datetime"
+          showOptions && type === "datetime"
             ? (
               <>
-                <Separator />
+                {full ? <Separator /> : null}
 
                 <LabeledSection title="Property options">
                   <form.AppField name="dateTimeFormat">
@@ -612,10 +444,10 @@ export function PropertyForm({
 
       <form.Subscribe selector={state => state.values.type}>
         {type =>
-          type === "calculate"
+          showOptions && type === "calculate"
             ? (
               <>
-                <Separator />
+                {full ? <Separator /> : null}
 
                 <LabeledSection title="Operands">
                   <form.AppField name="operandIds">
@@ -643,142 +475,148 @@ export function PropertyForm({
             : null}
       </form.Subscribe>
 
-      <Separator />
+      {full ? <Separator /> : null}
 
-      <CollapsibleFormSection
-        title="Categories"
-        description="Choose which categories this property applies to."
-        defaultOpen={mode === "create"}
-        preview={(
-          <form.Subscribe
-            selector={state => ({
-              allCategories: state.values.allCategories,
-              categoryIds: state.values.categoryIds,
-            })}
-          >
-            {({
-              allCategories, categoryIds,
-            }) => summarizeCategories(allCategories, categoryIds)}
-          </form.Subscribe>
-        )}
-      >
-        <form.Subscribe selector={state => state.values.allCategories}>
-          {allCategories => (
-            <form.AppField name="categoryIds">
-              {field => (
-                <CategoryCheckboxList
-                  categories={categories}
-                  selectedIds={field.state.value}
-                  allCategories={allCategories}
-                  onToggle={(id) => {
-                    if (allCategories) {
+      {showCategories && (
+        <CollapsibleFormSection
+          title="Categories"
+          description="Choose which categories this property applies to."
+          defaultOpen={mode === "create" || section === "categories"}
+          preview={(
+            <form.Subscribe
+              selector={state => ({
+                allCategories: state.values.allCategories,
+                categoryIds: state.values.categoryIds,
+              })}
+            >
+              {({
+                allCategories, categoryIds,
+              }) => summarizeCategories(allCategories, categoryIds)}
+            </form.Subscribe>
+          )}
+        >
+          <form.Subscribe selector={state => state.values.allCategories}>
+            {allCategories => (
+              <form.AppField name="categoryIds">
+                {field => (
+                  <CategoryCheckboxList
+                    categories={categories}
+                    selectedIds={field.state.value}
+                    allCategories={allCategories}
+                    onToggle={(id) => {
+                      if (allCategories) {
                       // Toggling one category drops the "all categories" flag and falls back to an
                       // explicit list of every current category except the one just unchecked.
-                      form.setFieldValue("allCategories", false);
-                      field.handleChange(
-                        categories.map(category => category.id).filter(categoryId => categoryId !== id),
-                      );
-                    }
-                    else {
-                      field.handleChange(toggleId(field.state.value, id));
-                    }
-                  }}
-                  onToggleAll={(selectAll) => {
+                        form.setFieldValue("allCategories", false);
+                        field.handleChange(
+                          categories.map(category => category.id).filter(categoryId => categoryId !== id),
+                        );
+                      }
+                      else {
+                        field.handleChange(toggleId(field.state.value, id));
+                      }
+                    }}
+                    onToggleAll={(selectAll) => {
                     // Select all also means "apply to categories created later" via the flag.
-                    form.setFieldValue("allCategories", selectAll);
-                    field.handleChange(selectAll ? categories.map(category => category.id) : []);
-                  }}
-                  idPrefix={idPrefix}
-                />
-              )}
-            </form.AppField>
-          )}
-        </form.Subscribe>
-      </CollapsibleFormSection>
-
-      <Separator />
-
-      <LabeledSection title="Display options">
-        <div className="space-y-2">
-          <span className="text-sm font-medium">Show in…</span>
-          <div className="space-y-2">
-            <form.AppField name="inForm">
-              {field => (
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id={`${idPrefix}-in-form`}
-                    checked={field.state.value}
-                    onCheckedChange={checked => field.handleChange(checked === true)}
+                      form.setFieldValue("allCategories", selectAll);
+                      field.handleChange(selectAll ? categories.map(category => category.id) : []);
+                    }}
+                    idPrefix={idPrefix}
                   />
-                  <Label htmlFor={`${idPrefix}-in-form`}>Main bookmark form</Label>
-                </div>
-              )}
-            </form.AppField>
-            <form.Subscribe selector={state => state.values.inForm}>
-              {inForm =>
-                inForm
-                  ? (
-                    <form.AppField name="advancedOnly">
-                      {field => (
-                        <div className="ml-6 flex items-center gap-2">
-                          <Checkbox
-                            id={`${idPrefix}-advanced-only`}
-                            checked={field.state.value}
-                            onCheckedChange={checked => field.handleChange(checked === true)}
-                          />
-                          <Label
-                            htmlFor={`${idPrefix}-advanced-only`}
-                            className="text-xs text-muted-foreground"
-                          >
-                            Only show in Advanced area
-                          </Label>
-                        </div>
-                      )}
-                    </form.AppField>
-                  )
-                  : null}
+                )}
+              </form.AppField>
+            )}
+          </form.Subscribe>
+        </CollapsibleFormSection>
+      )}
+
+      {full ? <Separator /> : null}
+
+      {showDisplay
+        ? (
+          <LabeledSection title="Display options">
+            <div className="space-y-2">
+              <span className="text-sm font-medium">Show in…</span>
+              <div className="space-y-2">
+                <form.AppField name="inForm">
+                  {field => (
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id={`${idPrefix}-in-form`}
+                        checked={field.state.value}
+                        onCheckedChange={checked => field.handleChange(checked === true)}
+                      />
+                      <Label htmlFor={`${idPrefix}-in-form`}>Main bookmark form</Label>
+                    </div>
+                  )}
+                </form.AppField>
+                <form.Subscribe selector={state => state.values.inForm}>
+                  {inForm =>
+                    inForm
+                      ? (
+                        <form.AppField name="advancedOnly">
+                          {field => (
+                            <div className="ml-6 flex items-center gap-2">
+                              <Checkbox
+                                id={`${idPrefix}-advanced-only`}
+                                checked={field.state.value}
+                                onCheckedChange={checked => field.handleChange(checked === true)}
+                              />
+                              <Label
+                                htmlFor={`${idPrefix}-advanced-only`}
+                                className="text-xs text-muted-foreground"
+                              >
+                                Only show in Advanced area
+                              </Label>
+                            </div>
+                          )}
+                        </form.AppField>
+                      )
+                      : null}
+                </form.Subscribe>
+                <form.AppField name="showInListings">
+                  {field => (
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id={`${idPrefix}-show-in-listings`}
+                        checked={field.state.value}
+                        onCheckedChange={checked => field.handleChange(checked === true)}
+                      />
+                      <Label htmlFor={`${idPrefix}-show-in-listings`}>Bookmark listings</Label>
+                    </div>
+                  )}
+                </form.AppField>
+              </div>
+            </div>
+            <form.Subscribe selector={state => state.values.type}>
+              {type =>
+                type === "calculate"
+                  ? null
+                  : (
+                    <div className="space-y-2 border-t pt-3">
+                      <span className="text-sm font-medium">Editing</span>
+                      <form.AppField name="editableOnCard">
+                        {field => (
+                          <div className="flex items-center gap-2">
+                            <Checkbox
+                              id={`${idPrefix}-editable-on-card`}
+                              checked={field.state.value}
+                              onCheckedChange={checked => field.handleChange(checked === true)}
+                            />
+                            <Label htmlFor={`${idPrefix}-editable-on-card`}>
+                              Allow editing from the bookmark card menu
+                            </Label>
+                          </div>
+                        )}
+                      </form.AppField>
+                    </div>
+                  )}
             </form.Subscribe>
-            <form.AppField name="showInListings">
-              {field => (
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id={`${idPrefix}-show-in-listings`}
-                    checked={field.state.value}
-                    onCheckedChange={checked => field.handleChange(checked === true)}
-                  />
-                  <Label htmlFor={`${idPrefix}-show-in-listings`}>Bookmark listings</Label>
-                </div>
-              )}
-            </form.AppField>
-          </div>
-        </div>
-        <form.Subscribe selector={state => state.values.type}>
-          {type =>
-            type === "calculate"
-              ? null
-              : (
-                <div className="space-y-2 border-t pt-3">
-                  <span className="text-sm font-medium">Editing</span>
-                  <form.AppField name="editableOnCard">
-                    {field => (
-                      <div className="flex items-center gap-2">
-                        <Checkbox
-                          id={`${idPrefix}-editable-on-card`}
-                          checked={field.state.value}
-                          onCheckedChange={checked => field.handleChange(checked === true)}
-                        />
-                        <Label htmlFor={`${idPrefix}-editable-on-card`}>
-                          Allow editing from the bookmark card menu
-                        </Label>
-                      </div>
-                    )}
-                  </form.AppField>
-                </div>
-              )}
-        </form.Subscribe>
-      </LabeledSection>
+          </LabeledSection>
+        )
+        : null}
 
-      <Separator />
+      {full ? <Separator /> : null}
 
       <div className="flex items-center gap-2">
         <form.AppForm>
