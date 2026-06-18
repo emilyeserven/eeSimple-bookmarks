@@ -22,7 +22,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useViewportWidth } from "@/hooks/use-mobile";
 import { useCategories } from "@/hooks/useCategories";
 import { useResizeHandle } from "@/hooks/useResizeHandle";
 import { useTagTree } from "@/hooks/useTags";
@@ -39,8 +39,9 @@ export function RightPanel() {
   const {
     isOpen, close,
   } = usePanelControls();
-  const isMobile = useIsMobile();
+  const viewportWidth = useViewportWidth();
   const pinned = useUiStore(state => state.panelPinned);
+  const drawerUnpinnedBreakpoints = useUiStore(state => state.drawerUnpinnedBreakpoints);
   const panelWidth = useUiStore(state => state.panelWidth);
   const setPanelWidth = useUiStore(state => state.setPanelWidth);
   const {
@@ -53,7 +54,8 @@ export function RightPanel() {
     max: 40,
   });
 
-  const docked = pinned && !isMobile;
+  const isBreakpointUnpinned = drawerUnpinnedBreakpoints.some(bp => viewportWidth < bp);
+  const docked = pinned && !isBreakpointUnpinned;
 
   // Docked + closed: render nothing so the main content area spans the full width.
   if (docked) {
@@ -76,7 +78,7 @@ export function RightPanel() {
           "
           onPointerDown={onPanelResizePointerDown}
         />
-        <PanelChrome docked />
+        <PanelChrome docked isBreakpointUnpinned={isBreakpointUnpinned} />
         <PanelBreadcrumbs />
         <div className="flex-1 overflow-y-auto px-4 pb-6">
           <PanelContent />
@@ -104,7 +106,7 @@ export function RightPanel() {
           <SheetTitle>Panel</SheetTitle>
           <SheetDescription>Browse, view, and edit your content.</SheetDescription>
         </SheetHeader>
-        <PanelChrome docked={false} />
+        <PanelChrome docked={false} isBreakpointUnpinned={isBreakpointUnpinned} />
         <PanelBreadcrumbs />
         <div className="flex-1 overflow-y-auto px-4 pb-6">
           <PanelContent />
@@ -117,6 +119,8 @@ export function RightPanel() {
 interface PanelChromeProps {
   /** Whether the panel is docked inline (vs. a floating overlay). */
   docked: boolean;
+  /** Whether the current viewport width falls below a user-configured unpin breakpoint. */
+  isBreakpointUnpinned: boolean;
 }
 
 function usePanelItemLabel(dCT: DrawerContentType | null, dCId: string | null): string | null {
@@ -213,6 +217,7 @@ function PanelBreadcrumbs() {
 /** Panel toolbar: a pin toggle (desktop only) and a close button (docked only). */
 function PanelChrome({
   docked,
+  isBreakpointUnpinned,
 }: PanelChromeProps) {
   const {
     close,
@@ -222,20 +227,22 @@ function PanelChrome({
 
   return (
     <div className="flex items-center justify-between gap-1 px-4 pt-4">
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        className="
-          hidden size-7
-          md:inline-flex
-        "
-        aria-label={pinned ? "Unpin panel" : "Pin panel"}
-        aria-pressed={pinned}
-        onClick={() => setPanelPinned(!pinned)}
-      >
-        {pinned ? <PinOff className="size-4" /> : <Pin className="size-4" />}
-      </Button>
+      {!isBreakpointUnpinned && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="
+            hidden size-7
+            md:inline-flex
+          "
+          aria-label={pinned ? "Unpin panel" : "Pin panel"}
+          aria-pressed={pinned}
+          onClick={() => setPanelPinned(!pinned)}
+        >
+          {pinned ? <PinOff className="size-4" /> : <Pin className="size-4" />}
+        </Button>
+      )}
       {docked
         ? (
           <Button

@@ -47,6 +47,9 @@ interface UiState {
   /** When pinned, the right-hand panel docks as a persistent column instead of a floating drawer. */
   panelPinned: boolean;
   setPanelPinned: (value: boolean) => void;
+  /** Viewport widths (px) below which the drawer is unpinned (floats) even when panelPinned is true. Default [768] matches the original mobile cutoff. */
+  drawerUnpinnedBreakpoints: number[];
+  setDrawerUnpinnedBreakpoints: (breakpoints: number[]) => void;
   /** Left sidebar width in rem (10–28). Persisted so the user's drag preference survives reloads. */
   sidebarWidth: number;
   setSidebarWidth: (value: number) => void;
@@ -116,6 +119,10 @@ export const useUiStore = create<UiState>()(
       setPanelPinned: value => set({
         panelPinned: value,
       }),
+      drawerUnpinnedBreakpoints: [768],
+      setDrawerUnpinnedBreakpoints: breakpoints => set({
+        drawerUnpinnedBreakpoints: breakpoints,
+      }),
       sidebarWidth: 16,
       setSidebarWidth: value => set({
         sidebarWidth: clampSidebarWidth(value),
@@ -182,6 +189,7 @@ export const useUiStore = create<UiState>()(
         bookmarkImageMode: state.bookmarkImageMode,
         bookmarkColumns: state.bookmarkColumns,
         panelPinned: state.panelPinned,
+        drawerUnpinnedBreakpoints: state.drawerUnpinnedBreakpoints,
         sidebarWidth: state.sidebarWidth,
         panelWidth: state.panelWidth,
         hiddenCategoryIds: state.hiddenCategoryIds,
