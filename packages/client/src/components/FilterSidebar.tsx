@@ -3,9 +3,10 @@ import type { Bookmark, Category, CustomProperty, TagNode } from "@eesimple/type
 
 import { useState } from "react";
 
-import { Ban, ChevronDown, ChevronUp, Circle, CircleDot } from "lucide-react";
+import { Ban, ChevronDown, ChevronUp, Circle, CircleDot, TriangleAlert } from "lucide-react";
 
 import { CustomPropertyFilters } from "./CustomPropertyFilters";
+import { MultiCombobox } from "./MultiCombobox";
 import { TagTreeFilter } from "./TagTreeFilter";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 import { Separator } from "./ui/separator";
@@ -13,6 +14,7 @@ import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import {
   withBooleanFilter,
+  withCategories,
   withNumberFilter,
   withPresenceFilter,
   withTag,
@@ -24,7 +26,10 @@ import { cn } from "@/lib/utils";
 interface FilterSidebarProps {
   tree: TagNode[];
   properties: CustomProperty[];
-  /** When provided, groups category-specific properties under collapsible sections. */
+  /**
+   * When provided, shows a multi-select Category filter and per-property category tooltips.
+   * Only the Bookmarks page passes this; category pages render flat without it.
+   */
   categories?: Category[];
   /** Bookmarks in view, used to derive slider bounds when a property has no min/max. */
   bookmarks: Pick<Bookmark, "numberValues">[];
@@ -44,23 +49,24 @@ export function FilterSidebar({
 }: FilterSidebarProps) {
   const [open, setOpen] = useState(false);
 
+  // Category data is only supplied on the overall Bookmarks page; category pages render flat.
+  const hasCategoryFilter = (categories?.length ?? 0) > 0;
+
   const hasTags = tree.length > 0;
   const hasProperties = properties.length > 0;
-  const hasFilters = hasTags || hasProperties;
+  const hasFilters = hasTags || hasProperties || hasCategoryFilter;
 
   const tagFilterActive = search.tag !== undefined || search.tagPresence !== undefined;
   const tagToggleValue = search.tagPresence ?? "any";
-
-  const globalProperties = properties.filter(p => p.categoryIds.length === 0);
-  const categoryGroups = categories && categories.length > 0
-    ? categories
-      .map(cat => ({
-        category: cat,
-        props: properties.filter(p => p.categoryIds.includes(cat.id)),
-      }))
-      .filter(group => group.props.length > 0)
+  const categoryOptions = (categories ?? []).map(category => ({
+    value: category.id,
+    label: category.name,
+  }));
+  const selectedCategories = search.categories ?? [];
+  // A property assigned to no category is almost certainly orphaned; flag it as an error.
+  const unassignedProperties = hasCategoryFilter
+    ? properties.filter(property => property.categoryIds.length === 0)
     : [];
-  const useCategoryGrouping = categoryGroups.length > 0;
 
   const numberFilterChange = (propertyId: string, range: [number, number] | undefined) =>
     onSearchChange(withNumberFilter(search, propertyId, range));
@@ -196,65 +202,86 @@ export function FilterSidebar({
           )
           : null}
 
-        {hasTags && hasProperties ? <Separator /> : null}
+        {hasTags && (hasCategoryFilter || hasProperties) ? <Separator /> : null}
+
+        {hasCategoryFilter
+          ? (
+            <Collapsible
+              defaultOpen
+              className="group/category space-y-3"
+            >
+              <CollapsibleTrigger
+                className="
+                  flex items-center gap-1.5 text-sm font-semibold
+                  hover:text-foreground
+                "
+              >
+                <ChevronDown
+                  className="
+                    size-3.5 shrink-0 transition-transform
+                    group-data-[state=open]/category:rotate-180
+                  "
+                />
+                Category
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-3">
+                <MultiCombobox
+                  options={categoryOptions}
+                  values={selectedCategories}
+                  onValuesChange={ids => onSearchChange(withCategories(search, ids))}
+                  placeholder="All categories"
+                  aria-label="Filter by category"
+                />
+                {selectedCategories.length > 0
+                  ? (
+                    <button
+                      type="button"
+                      className="
+                        text-xs text-primary
+                        hover:underline
+                      "
+                      onClick={() => onSearchChange(withCategories(search, []))}
+                    >
+                      Reset
+                    </button>
+                  )
+                  : null}
+              </CollapsibleContent>
+            </Collapsible>
+          )
+          : null}
+
+        {hasCategoryFilter && hasProperties ? <Separator /> : null}
 
         {hasProperties
           ? (
             <div className="space-y-3">
               <h2 className="text-sm font-semibold">Properties</h2>
-
-              {(!useCategoryGrouping || globalProperties.length > 0)
+              <CustomPropertyFilters
+                properties={properties}
+                categories={categories}
+                selectedCategoryIds={selectedCategories}
+                bookmarks={bookmarks}
+                numberValues={search.num ?? {}}
+                booleanValues={search.bool ?? {}}
+                presenceValues={search.presence ?? {}}
+                onNumberFilterChange={numberFilterChange}
+                onBooleanFilterChange={booleanFilterChange}
+                onPresenceFilterChange={presenceFilterChange}
+              />
+              {unassignedProperties.length > 0
                 ? (
-                  <CustomPropertyFilters
-                    properties={useCategoryGrouping ? globalProperties : properties}
-                    bookmarks={bookmarks}
-                    numberValues={search.num ?? {}}
-                    booleanValues={search.bool ?? {}}
-                    presenceValues={search.presence ?? {}}
-                    onNumberFilterChange={numberFilterChange}
-                    onBooleanFilterChange={booleanFilterChange}
-                    onPresenceFilterChange={presenceFilterChange}
-                  />
+                  <div className="space-y-1 text-xs text-destructive">
+                    <p className="flex items-center gap-1.5 font-medium">
+                      <TriangleAlert className="size-3.5 shrink-0" />
+                      {unassignedProperties.length === 1
+                        ? "1 property isn't assigned to a category"
+                        : `${unassignedProperties.length} properties aren't assigned to a category`}
+                    </p>
+                    <p>{unassignedProperties.map(property => property.name).join(", ")}</p>
+                  </div>
                 )
                 : null}
-
-              {categoryGroups.map(({
-                category, props,
-              }) => (
-                <Collapsible
-                  key={category.id}
-                  className="group/cat space-y-2"
-                  defaultOpen={false}
-                >
-                  <CollapsibleTrigger
-                    className="
-                      flex w-full items-center gap-1.5 text-xs font-medium
-                      text-muted-foreground
-                      hover:text-foreground
-                    "
-                  >
-                    <ChevronDown
-                      className="
-                        size-3.5 shrink-0 transition-transform
-                        group-data-[state=open]/cat:rotate-180
-                      "
-                    />
-                    {category.name}
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="space-y-3 pl-5">
-                    <CustomPropertyFilters
-                      properties={props}
-                      bookmarks={bookmarks}
-                      numberValues={search.num ?? {}}
-                      booleanValues={search.bool ?? {}}
-                      presenceValues={search.presence ?? {}}
-                      onNumberFilterChange={numberFilterChange}
-                      onBooleanFilterChange={booleanFilterChange}
-                      onPresenceFilterChange={presenceFilterChange}
-                    />
-                  </CollapsibleContent>
-                </Collapsible>
-              ))}
             </div>
           )
           : null}

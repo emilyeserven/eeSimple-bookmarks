@@ -1,7 +1,7 @@
 import type { ComboboxOption } from "./Combobox";
-import type { Bookmark, CustomProperty } from "@eesimple/types";
+import type { Bookmark, Category, CustomProperty } from "@eesimple/types";
 
-import { Ban, ChevronDown, Circle, CircleDot } from "lucide-react";
+import { Ban, ChevronDown, Circle, CircleDot, CircleHelp } from "lucide-react";
 
 import { Combobox } from "./Combobox";
 import { RangeSlider } from "./RangeSlider";
@@ -14,6 +14,13 @@ import { cn } from "@/lib/utils";
 
 interface CustomPropertyFiltersProps {
   properties: CustomProperty[];
+  /** When provided, each property shows a tooltip naming the categories it belongs to. */
+  categories?: Category[];
+  /**
+   * When provided, properties whose categories have no overlap with this set are dimmed,
+   * collapsed, and moved to the bottom. Global properties (no categoryIds) are unaffected.
+   */
+  selectedCategoryIds?: string[];
   /** Bookmarks in view, used to derive slider bounds when a property has no min/max. */
   bookmarks: Pick<Bookmark, "numberValues">[];
   /** Active number-range filters keyed by property id (absent = no filter / full range). */
@@ -129,6 +136,8 @@ function PresenceFilterControl({
 /** Renders one dynamic filter control per custom property in the filter sidebar. */
 export function CustomPropertyFilters({
   properties,
+  categories,
+  selectedCategoryIds,
   bookmarks,
   numberValues,
   booleanValues,
@@ -139,9 +148,35 @@ export function CustomPropertyFilters({
 }: CustomPropertyFiltersProps) {
   if (properties.length === 0) return null;
 
+  const categoryName = new Map((categories ?? []).map(category => [category.id, category.name]));
+
+  /**
+   * A property is "active" (relevant to the current category filter) when:
+   * - no category filter is active, OR
+   * - the property is global (no categoryIds), OR
+   * - at least one of its categories is selected.
+   * Global properties are never dimmed because they aren't tied to any category.
+   */
+  function isPropertyActive(property: CustomProperty): boolean {
+    if (!selectedCategoryIds?.length) return true;
+    if (property.categoryIds.length === 0) return true;
+    return property.categoryIds.some(id => selectedCategoryIds.includes(id));
+  }
+
+  // Inactive properties sort to the bottom; stable order preserved within each group.
+  const sorted = selectedCategoryIds?.length
+    ? [...properties].sort((a, b) => {
+      const aActive = isPropertyActive(a);
+      const bActive = isPropertyActive(b);
+      if (aActive === bActive) return 0;
+      return aActive ? -1 : 1;
+    })
+    : properties;
+
   return (
     <div className="space-y-10">
-      {properties.map((property) => {
+      {sorted.map((property) => {
+        const isActive = isPropertyActive(property);
         const presenceValue = presenceValues[property.id];
         const isFilterActive
           = numberValues[property.id] !== undefined
@@ -156,33 +191,64 @@ export function CustomPropertyFilters({
 
         return (
           <Collapsible
-            key={property.id}
-            defaultOpen
-            className="group/prop space-y-3"
+            key={`${property.id}-${String(isActive)}`}
+            defaultOpen={isActive}
+            className={cn("group/prop space-y-3", !isActive && "opacity-50")}
           >
-            <div className="flex items-center justify-between">
-              <CollapsibleTrigger
-                className="
-                  flex items-center gap-1.5 text-xs text-muted-foreground
-                  hover:text-foreground
-                "
-              >
-                <ChevronDown
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex min-w-0 items-center gap-1">
+                <CollapsibleTrigger
                   className="
-                    size-3 shrink-0 transition-transform
-                    group-data-[state=open]/prop:rotate-180
+                    flex min-w-0 items-center gap-1.5 text-xs
+                    text-muted-foreground
+                    hover:text-foreground
                   "
+                >
+                  <ChevronDown
+                    className="
+                      size-3 shrink-0 transition-transform
+                      group-data-[state=open]/prop:rotate-180
+                    "
+                  />
+                  <Label className="cursor-pointer truncate text-xs">{property.name}</Label>
+                </CollapsibleTrigger>
+                {/* Tooltip kept interactive regardless of active state (user can still check which categories a property belongs to). */}
+                {categories && property.categoryIds.length > 0
+                  ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          aria-label="Associated categories"
+                          className="
+                            shrink-0 text-muted-foreground
+                            hover:text-foreground
+                          "
+                        >
+                          <CircleHelp className="size-3.5" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {property.categoryIds
+                          .map(id => categoryName.get(id) ?? id)
+                          .join(", ")}
+                      </TooltipContent>
+                    </Tooltip>
+                  )
+                  : null}
+              </div>
+              <div className={cn(!isActive && "pointer-events-none")}>
+                <PresenceFilterControl
+                  propertyId={property.id}
+                  value={presenceValue}
+                  onChange={onPresenceFilterChange}
                 />
-                <Label className="cursor-pointer text-xs">{property.name}</Label>
-              </CollapsibleTrigger>
-              <PresenceFilterControl
-                propertyId={property.id}
-                value={presenceValue}
-                onChange={onPresenceFilterChange}
-              />
+              </div>
             </div>
 
-            <CollapsibleContent className="space-y-3">
+            <CollapsibleContent
+              className={cn("space-y-3", !isActive && "pointer-events-none")}
+            >
               {presenceValue !== "missing" && isRangeProperty(property)
                 ? (
                   <NumberFilterControl
