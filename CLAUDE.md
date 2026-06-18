@@ -81,31 +81,34 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
 
 The schema is managed like course-tracker: **`drizzle-kit push` is the source of truth**, not
 generated migration files. On boot the gateway runs the runtime-migrations hook
-(`dist/db/migrate.js`) and then `drizzle-kit push`, which diffs `src/db/schema.ts` against the live
-database and applies the delta. There is intentionally **no `drizzle/` folder, journal, or
-`generate` script** — adopting Drizzle's versioned-migration system was the source of brittle
-"column already exists" redeploys.
+(`dist/db/migrate.js`) and then **`drizzle-kit push --force`**, which diffs `src/db/schema.ts`
+against the live database and applies the delta. There is intentionally **no `drizzle/` folder,
+journal, or `generate` script** — adopting Drizzle's versioned-migration system was the source of
+brittle "column already exists" redeploys.
+
+`--force` is what makes the non-TTY deploy work: it auto-accepts push's confirmation prompts, so
+additive `NOT NULL`/unique columns apply without blocking. (Without it, those prompts read EOF and
+abort the entire push, leaving the diff unapplied so queries 500 on the missing columns.) The flip
+side is that **`--force` also applies *destructive* diffs silently** — so the runtime-migrations hook
+must run first and pre-handle anything destructive (see below), keeping push's diff additive.
 
 - **Truly push-safe additive changes** (new tables; nullable columns on existing tables; new
   indexes): just edit `src/db/schema.ts`. `push` applies them without prompting on `pnpm dev` and
   on every deploy. No migration file, no `drizzle-kit generate`.
-- **Additive changes that trigger a push prompt** — `drizzle-kit push` runs non-interactively in
-  production (non-TTY, stdin = `/dev/null`). Certain additive changes still cause an interactive
-  confirmation that either blocks the deploy or wipes data:
-  - **Unique constraints added to an existing table with data** — push warns the constraint may
-    fail and asks to truncate. With no TTY it reads EOF and may truncate or exit non-zero.
-  - **`NOT NULL` columns added to an existing table** (even with a column-level `DEFAULT`) — push
-    may prompt before applying.
-
-  For these cases, add an idempotent step to `src/db/migrate.ts` — the same place as destructive
-  changes. Use `ADD COLUMN IF NOT EXISTS` for columns; check `pg_constraint` by name before adding
-  a constraint. The pre-migration runs first, so push's subsequent diff is empty for that item and
-  no prompt is issued. See the existing entries in `migrate.ts` for examples.
+- **Additive `NOT NULL` columns and unique constraints** (a `NOT NULL` column — even with a
+  column-level `DEFAULT` — or a unique constraint added to an existing populated table): just edit
+  `src/db/schema.ts`. These once needed a `migrate.ts` pre-step because they make push prompt, but
+  `push --force` now auto-accepts that prompt and applies them directly. No migration file needed.
+  (One caveat: a **unique constraint on a table with duplicate values** — push truncates to satisfy
+  it under `--force`. If duplicates are possible, dedupe the rows in a `migrate.ts`/boot step first.)
 - **Destructive / push-incompatible changes** (drop or rename a column/table, `ALTER TYPE … ADD
   VALUE`, data-preserving transforms): add a small **idempotent** step to the `migrations` array in
-  `src/db/migrate.ts`. It runs before `push` so push's diff stays additive — push runs **without**
-  `--force` and so never silently drops data. Each step runs on every boot, so guard it (`IF EXISTS`
-  / `IF NOT EXISTS`, check-before-mutate).
+  `src/db/migrate.ts`. It runs before `push` so push's diff stays additive. **This is mandatory:**
+  push runs with `--force`, so a destructive diff left in `schema.ts` is applied **silently** and can
+  drop data with no prompt — the pre-migration is what keeps that out of push's diff. Each step runs
+  on every boot, so guard it (`IF EXISTS` / `IF NOT EXISTS`, check-before-mutate). Use
+  `ADD COLUMN IF NOT EXISTS` for columns; check `pg_constraint` by name before adding a constraint.
+  See the existing entries in `migrate.ts` for examples.
 - **Data backfills** for existing rows live in the middleware's boot steps in `src/index.ts`
   (`ensure*` / `backfill*`), which run after the schema is in place.
 
@@ -113,7 +116,7 @@ database and applies the delta. There is intentionally **no `drizzle/` folder, j
 
 The **gateway pattern** uses `packages/gateway` as the single production entrypoint: a Fastify
 server that spawns the middleware as a child process, proxies `/api/*` to it, serves the client's
-static build, runs `drizzle-kit push` on boot, and respawns the middleware with backoff. The
+static build, runs `drizzle-kit push --force` on boot, and respawns the middleware with backoff. The
 root `Dockerfile` builds everything for production. Deploy via Coolify using only `DATABASE_URL`
 (see `README.md`).
 
