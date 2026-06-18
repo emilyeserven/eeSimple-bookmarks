@@ -242,7 +242,7 @@ function RuleListItem({
         "
       >
         <div className="flex flex-wrap items-center gap-2 p-4">
-          <span className="font-semibold leading-none">{rule.name}</span>
+          <span className="leading-none font-semibold">{rule.name}</span>
           <span className="text-xs text-muted-foreground">
             {summarizeConditions(rule.conditions)}
           </span>
