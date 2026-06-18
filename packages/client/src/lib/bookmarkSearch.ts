@@ -20,6 +20,36 @@ export interface BookmarkSearch {
   presence?: Record<string, "has" | "missing">;
 }
 
+function parseNumRecord(raw: unknown): Record<string, [number, number]> {
+  if (raw === null || typeof raw !== "object") return {};
+  const result: Record<string, [number, number]> = {};
+  for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+    if (
+      Array.isArray(value)
+      && value.length === 2
+      && typeof value[0] === "number"
+      && typeof value[1] === "number"
+    ) result[key] = [value[0], value[1]];
+  }
+  return result;
+}
+
+function parseBoolRecord(raw: unknown): Record<string, boolean> {
+  if (raw === null || typeof raw !== "object") return {};
+  const result: Record<string, boolean> = {};
+  for (const [key, value] of Object.entries(raw as Record<string, unknown>))
+    if (typeof value === "boolean") result[key] = value;
+  return result;
+}
+
+function parsePresenceRecord(raw: unknown): Record<string, "has" | "missing"> {
+  if (raw === null || typeof raw !== "object") return {};
+  const result: Record<string, "has" | "missing"> = {};
+  for (const [key, value] of Object.entries(raw as Record<string, unknown>))
+    if (value === "has" || value === "missing") result[key] = value;
+  return result;
+}
+
 /** Narrow an unknown search record into a `BookmarkSearch`, dropping anything malformed. */
 export function validateBookmarkSearch(search: Record<string, unknown>): BookmarkSearch {
   const result: BookmarkSearch = {};
@@ -31,41 +61,18 @@ export function validateBookmarkSearch(search: Record<string, unknown>): Bookmar
   }
 
   if (Array.isArray(search.categories)) {
-    const categories = search.categories.filter((value): value is string =>
-      typeof value === "string");
-    if (categories.length > 0) result.categories = categories;
+    const cats = search.categories.filter((v): v is string => typeof v === "string");
+    if (cats.length > 0) result.categories = cats;
   }
 
-  if (search.num !== null && typeof search.num === "object") {
-    const num: Record<string, [number, number]> = {};
-    for (const [key, value] of Object.entries(search.num as Record<string, unknown>)) {
-      if (
-        Array.isArray(value)
-        && value.length === 2
-        && typeof value[0] === "number"
-        && typeof value[1] === "number"
-      ) {
-        num[key] = [value[0], value[1]];
-      }
-    }
-    if (Object.keys(num).length > 0) result.num = num;
-  }
+  const num = parseNumRecord(search.num);
+  if (Object.keys(num).length > 0) result.num = num;
 
-  if (search.bool !== null && typeof search.bool === "object") {
-    const bool: Record<string, boolean> = {};
-    for (const [key, value] of Object.entries(search.bool as Record<string, unknown>)) {
-      if (typeof value === "boolean") bool[key] = value;
-    }
-    if (Object.keys(bool).length > 0) result.bool = bool;
-  }
+  const bool = parseBoolRecord(search.bool);
+  if (Object.keys(bool).length > 0) result.bool = bool;
 
-  if (search.presence !== null && typeof search.presence === "object") {
-    const presence: Record<string, "has" | "missing"> = {};
-    for (const [key, value] of Object.entries(search.presence as Record<string, unknown>)) {
-      if (value === "has" || value === "missing") presence[key] = value;
-    }
-    if (Object.keys(presence).length > 0) result.presence = presence;
-  }
+  const presence = parsePresenceRecord(search.presence);
+  if (Object.keys(presence).length > 0) result.presence = presence;
 
   return result;
 }
@@ -104,6 +111,18 @@ export function bookmarkMatchesSearch(
     value,
   }));
   return bookmarkMatchesFilters(bookmark, numberFilters, booleanFilters);
+}
+
+/** Whether any filter in `search` is active (used to choose the empty-state message). */
+export function hasAnyActiveFilter(search: BookmarkSearch): boolean {
+  return (
+    search.tag !== undefined
+    || search.tagPresence !== undefined
+    || (search.categories?.length ?? 0) > 0
+    || Object.keys(search.num ?? {}).length > 0
+    || Object.keys(search.bool ?? {}).length > 0
+    || Object.keys(search.presence ?? {}).length > 0
+  );
 }
 
 /** Set or clear (when `value` is undefined) a keyed entry, returning a new record or undefined. */

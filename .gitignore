@@ -12,6 +12,7 @@ coverage/
 # Caches
 .cache/
 .eslintcache
+.fallow/churn.bin
 
 # Env
 .env

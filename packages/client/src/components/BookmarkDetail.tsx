@@ -1,10 +1,10 @@
 import type { Bookmark, Category, CustomProperty } from "@eesimple/types";
-import type { ReactNode } from "react";
 
 import { Link } from "@tanstack/react-router";
 
 import { formatNumber } from "../lib/bookmarkFormat";
 
+import { DetailField } from "@/components/DetailField";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CategoryIcon } from "@/lib/icons";
@@ -17,27 +17,6 @@ interface BookmarkDetailProps {
   properties?: CustomProperty[];
   onEdit?: () => void;
   onDelete?: () => void;
-}
-
-/** A labelled field row in the detail layout; renders nothing when its value is empty. */
-function Field({
-  label, children,
-}: {
-  label: string;
-  children: ReactNode;
-}) {
-  if (children === null || children === undefined || children === false) return null;
-  return (
-    <div
-      className="
-        grid gap-1
-        sm:grid-cols-[10rem_1fr] sm:gap-4
-      "
-    >
-      <dt className="text-sm font-medium text-muted-foreground">{label}</dt>
-      <dd className="min-w-0 text-sm text-foreground">{children}</dd>
-    </div>
-  );
 }
 
 /**
@@ -171,13 +150,13 @@ export function BookmarkDetail({
           : null}
 
         <dl className="min-w-0 flex-1 space-y-3">
-          <Field label="Description">
+          <DetailField label="Description">
             {bookmark.description
               ? <p className="whitespace-pre-wrap">{bookmark.description}</p>
               : null}
-          </Field>
+          </DetailField>
 
-          <Field label="Category">
+          <DetailField label="Category">
             {category
               ? (
                 <Link
@@ -198,23 +177,23 @@ export function BookmarkDetail({
                 </Link>
               )
               : null}
-          </Field>
+          </DetailField>
 
-          <Field label="Website">
+          <DetailField label="Website">
             {bookmark.website
               ? `${bookmark.website.siteName} (${bookmark.website.domain})`
               : null}
-          </Field>
+          </DetailField>
 
-          <Field label="Media type">
+          <DetailField label="Media type">
             {bookmark.mediaType ? bookmark.mediaType.name : null}
-          </Field>
+          </DetailField>
 
-          <Field label="Channel">
+          <DetailField label="Channel">
             {bookmark.youtubeChannel ? bookmark.youtubeChannel.name : null}
-          </Field>
+          </DetailField>
 
-          <Field label="Tags">
+          <DetailField label="Tags">
             {bookmark.tags.length > 0
               ? (
                 <ul className="flex flex-wrap gap-1">
@@ -226,9 +205,9 @@ export function BookmarkDetail({
                 </ul>
               )
               : null}
-          </Field>
+          </DetailField>
 
-          <Field label="Properties">
+          <DetailField label="Properties">
             {hasProperties
               ? (
                 <dl className="space-y-1">
@@ -262,15 +241,15 @@ export function BookmarkDetail({
                 </dl>
               )
               : null}
-          </Field>
+          </DetailField>
 
-          <Field label="Priority">
+          <DetailField label="Priority">
             <span>{bookmark.priority}</span>
-          </Field>
+          </DetailField>
 
-          <Field label="Created">
+          <DetailField label="Created">
             <span>{new Date(bookmark.createdAt).toLocaleString()}</span>
-          </Field>
+          </DetailField>
         </dl>
       </div>
     </div>
