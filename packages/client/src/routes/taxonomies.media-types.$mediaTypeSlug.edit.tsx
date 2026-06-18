@@ -1,6 +1,7 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 
 import { MediaTypeRow } from "../components/MediaTypeManager";
+import { TaxonomyDetailLayout } from "../components/TaxonomyDetailLayout";
 import { useMediaTypeBySlug } from "../hooks/useMediaTypes";
 
 export const Route = createFileRoute("/taxonomies/media-types/$mediaTypeSlug/edit")({
@@ -16,52 +17,43 @@ function MediaTypeEditPage() {
     mediaType, isLoading, error,
   } = useMediaTypeBySlug(mediaTypeSlug);
 
-  if (isLoading) {
-    return <p className="text-muted-foreground">Loading media type…</p>;
-  }
-
-  if (error || !mediaType) {
-    return (
-      <div className="space-y-4">
-        <p className="text-destructive">{error?.message ?? "Media type not found."}</p>
-        <Link
-          to="/taxonomies/media-types"
-          className="
-            text-sm text-muted-foreground
-            hover:text-foreground
-          "
-        >
-          ← Back to media types
-        </Link>
-      </div>
-    );
-  }
-
   return (
-    <section className="space-y-6">
-      <div className="space-y-1">
-        <Link
-          to="/taxonomies/media-types/$mediaTypeSlug"
-          params={{
-            mediaTypeSlug,
-          }}
-          className="
-            text-sm text-muted-foreground
-            hover:text-foreground
-          "
-        >
-          ← Back to {mediaType.name}
-        </Link>
-        <h1 className="text-2xl font-bold">Edit media type</h1>
-      </div>
-      <div className="rounded-lg border bg-card p-4">
-        <MediaTypeRow
-          mediaType={mediaType}
-          onSaved={() => navigate({
-            to: "/taxonomies/media-types",
-          })}
-        />
-      </div>
-    </section>
+    <TaxonomyDetailLayout
+      isLoading={isLoading}
+      error={error}
+      entity={mediaType}
+      loadingLabel="Loading media type…"
+      notFoundMessage="Media type not found."
+      listHref="/taxonomies/media-types"
+      listLabel="Back to media types"
+    >
+      {mt => (
+        <section className="space-y-6">
+          <div className="space-y-1">
+            <Link
+              to="/taxonomies/media-types/$mediaTypeSlug"
+              params={{
+                mediaTypeSlug,
+              }}
+              className="
+                text-sm text-muted-foreground
+                hover:text-foreground
+              "
+            >
+              ← Back to {mt.name}
+            </Link>
+            <h1 className="text-2xl font-bold">Edit media type</h1>
+          </div>
+          <div className="rounded-lg border bg-card p-4">
+            <MediaTypeRow
+              mediaType={mt}
+              onSaved={() => navigate({
+                to: "/taxonomies/media-types",
+              })}
+            />
+          </div>
+        </section>
+      )}
+    </TaxonomyDetailLayout>
   );
 }
