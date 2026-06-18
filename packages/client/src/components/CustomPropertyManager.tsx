@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 interface PropertyPreviewProps {
   property: CustomProperty;
@@ -40,7 +41,7 @@ function PropertyPreview({
   const isUncategorized = categoryCount === 0;
 
   return (
-    <Card className={`p-0${isUncategorized ? " opacity-60" : ""}`}>
+    <Card className={cn("p-0", isUncategorized && "opacity-60")}>
       <Link
         to="/settings/custom-properties/$propertySlug"
         params={{

@@ -70,7 +70,9 @@ export function PropertyDetail({
       <div className="flex items-start justify-between gap-4">
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           <h1 className="text-xl font-bold">{property.name}</h1>
-          {assignedCategories.length === 0 && <TriangleAlert className="size-4 text-amber-500" />}
+          {assignedCategories.length === 0 && (
+            <TriangleAlert className="size-4 text-amber-500" />
+          )}
           <Badge variant="secondary">{TYPE_LABELS[property.type]}</Badge>
         </div>
         {onEdit || onDelete
