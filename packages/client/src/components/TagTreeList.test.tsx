@@ -34,7 +34,7 @@ const tree: TagNode[] = [
   },
 ];
 
-const paths = ["/tags/$tagSlug/settings", "/tags/$tagSlug/edit"];
+const paths = ["/tags/$tagSlug/general", "/tags/$tagSlug/edit/general"];
 
 describe("TagTreeList", () => {
   it("keeps children hidden when the parent is collapsed", async () => {
@@ -95,7 +95,7 @@ describe("TagTreeList", () => {
     );
     const edit = screen.getByLabelText("Edit dev");
     expect(edit).toBeInTheDocument();
-    expect(edit).toHaveAttribute("href", "/tags/dev/edit");
+    expect(edit).toHaveAttribute("href", "/tags/dev/edit/general");
     expect(screen.getByLabelText("Edit tools")).toBeInTheDocument();
     // The leaf tag "tools" has no expand/collapse control.
     expect(screen.queryByLabelText("Expand tools")).not.toBeInTheDocument();

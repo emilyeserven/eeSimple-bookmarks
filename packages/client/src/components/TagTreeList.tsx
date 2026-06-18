@@ -91,7 +91,7 @@ function TagTreeRow({
           )}
 
         <Link
-          to="/tags/$tagSlug/settings"
+          to="/tags/$tagSlug/general"
           params={{
             tagSlug: node.slug,
           }}
@@ -120,7 +120,7 @@ function TagTreeRow({
           "
         >
           <Link
-            to="/tags/$tagSlug/edit"
+            to="/tags/$tagSlug/edit/general"
             params={{
               tagSlug: node.slug,
             }}
