@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Bookmark, Globe, Home, Settings, Tags } from "lucide-react";
+import { Bookmark, Globe, Home, Settings, SlidersHorizontal, Tags, Wand2 } from "lucide-react";
 
 import { useCategories } from "../hooks/useCategories";
 import { useResizeHandle } from "../hooks/useResizeHandle";
@@ -51,6 +51,21 @@ const taxonomyItems = [
   },
 ] as const;
 
+const customizationItems = [
+  {
+    key: "custom-properties",
+    title: "Custom Properties",
+    to: "/settings/custom-properties",
+    icon: SlidersHorizontal,
+  },
+  {
+    key: "autofill",
+    title: "Autofill Rules",
+    to: "/settings/autofill",
+    icon: Wand2,
+  },
+] as const;
+
 export function AppSidebar({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
@@ -62,6 +77,7 @@ export function AppSidebar({
   } = useCategories();
   const hiddenCategoryIds = useUiStore(state => state.hiddenCategoryIds);
   const hiddenTaxonomyItems = useUiStore(state => state.hiddenTaxonomyItems);
+  const hiddenCustomizationItems = useUiStore(state => state.hiddenCustomizationItems);
 
   return (
     <Sidebar
@@ -172,6 +188,40 @@ export function AppSidebar({
                 <SidebarGroupContent>
                   <SidebarMenu>
                     {visibleTaxonomyItems.map((item) => {
+                      const isActive = pathname.startsWith(item.to);
+                      return (
+                        <SidebarMenuItem key={item.to}>
+                          <SidebarMenuButton
+                            asChild
+                            isActive={isActive}
+                            tooltip={item.title}
+                          >
+                            <Link to={item.to}>
+                              <item.icon />
+                              <span>{item.title}</span>
+                            </Link>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      );
+                    })}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            )
+            : null;
+        })()}
+
+        {(() => {
+          const visibleCustomizationItems = customizationItems.filter(
+            item => !hiddenCustomizationItems.includes(item.key),
+          );
+          return visibleCustomizationItems.length > 0
+            ? (
+              <SidebarGroup>
+                <SidebarGroupLabel>Customization</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {visibleCustomizationItems.map((item) => {
                       const isActive = pathname.startsWith(item.to);
                       return (
                         <SidebarMenuItem key={item.to}>
