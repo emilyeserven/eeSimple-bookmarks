@@ -2,10 +2,12 @@ import type { Category } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
 
+import { LabeledSection } from "./LabeledSection";
 import { useEditPanelClick } from "./panel/useEditPanelClick";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { CategoryIcon } from "@/lib/icons";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
 import { useUiStore } from "@/stores/uiStore";
@@ -111,7 +113,7 @@ export function CategoryPreviewCard({
   }
 
   return (
-    <div className="group space-y-4 rounded-lg border bg-card p-6">
+    <div className="group space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div className="flex min-w-0 items-center gap-3">
           <CategoryIcon
@@ -130,14 +132,23 @@ export function CategoryPreviewCard({
         </div>
         <CategoryControls category={category} />
       </div>
-      <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
-        <dt className="text-muted-foreground">Slug</dt>
-        <dd>{category.slug}</dd>
-        <dt className="text-muted-foreground">Bookmarks</dt>
-        <dd>{category.bookmarkCount ?? 0}</dd>
-        <dt className="text-muted-foreground">Added</dt>
-        <dd>{new Date(category.createdAt).toLocaleDateString()}</dd>
-      </dl>
+
+      <Separator />
+
+      <LabeledSection title="Details">
+        <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
+          <dt className="text-muted-foreground">Slug</dt>
+          <dd className="font-mono">{category.slug}</dd>
+          <dt className="text-muted-foreground">Bookmarks</dt>
+          <dd>{category.bookmarkCount ?? 0}</dd>
+          <dt className="text-muted-foreground">Added</dt>
+          <dd>{new Date(category.createdAt).toLocaleDateString()}</dd>
+          <dt className="text-muted-foreground">Built-in</dt>
+          <dd>{category.builtIn ? "Yes — name is fixed" : "No"}</dd>
+          <dt className="text-muted-foreground">On homepage</dt>
+          <dd>{category.isHomepage ? "Yes" : "No"}</dd>
+        </dl>
+      </LabeledSection>
     </div>
   );
 }
