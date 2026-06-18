@@ -3,17 +3,25 @@ import type { ConditionTree, HomepageSection } from "@eesimple/types";
 import { useState } from "react";
 
 import { emptyConditionTree } from "@eesimple/types";
+import { ChevronDown } from "lucide-react";
 
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useTagTree } from "../hooks/useTags";
 import { ConditionsField } from "./conditions/ConditionsField";
+import { conditionsSummaryLabel } from "./conditions/summarizeConditions";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 
 interface HomepageSectionFormProps {
   section?: HomepageSection;
@@ -34,6 +42,7 @@ export function HomepageSectionForm({
     section?.conditions ?? emptyConditionTree(),
   );
   const [hideIfEmpty, setHideIfEmpty] = useState(section?.hideIfEmpty ?? false);
+  const [filterOpen, setFilterOpen] = useState((section?.conditions.children.length ?? 0) > 0);
 
   const {
     data: categories,
@@ -82,19 +91,46 @@ export function HomepageSectionForm({
         />
       </div>
 
-      <div className="space-y-1">
-        <p className="text-sm font-medium">Filter</p>
-        <p className="text-sm text-muted-foreground">
-          Choose which bookmarks appear in this section. Combine conditions with AND/OR.
-        </p>
-        <ConditionsField
-          value={conditions}
-          onChange={setConditions}
-          categories={categories ?? []}
-          properties={properties ?? []}
-          tagTree={tagTree ?? []}
-        />
-      </div>
+      <Collapsible
+        open={filterOpen}
+        onOpenChange={setFilterOpen}
+        className="rounded-md border"
+      >
+        <CollapsibleTrigger asChild>
+          <button
+            type="button"
+            className="
+              flex w-full items-center justify-between gap-2 p-3 text-left
+              text-sm font-medium
+            "
+          >
+            <span>
+              Filter
+              <span className="ml-2 font-normal text-muted-foreground">
+                {conditionsSummaryLabel(conditions)}
+              </span>
+            </span>
+            <ChevronDown
+              className={cn(
+                "size-4 shrink-0 opacity-60 transition-transform",
+                filterOpen && "rotate-180",
+              )}
+            />
+          </button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="space-y-2 border-t p-3">
+          <p className="text-sm text-muted-foreground">
+            Choose which bookmarks appear in this section. Combine conditions with AND/OR.
+          </p>
+          <ConditionsField
+            value={conditions}
+            onChange={setConditions}
+            categories={categories ?? []}
+            properties={properties ?? []}
+            tagTree={tagTree ?? []}
+          />
+        </CollapsibleContent>
+      </Collapsible>
 
       <div className="flex items-start gap-2">
         <Checkbox
