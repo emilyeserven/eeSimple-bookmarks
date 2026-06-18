@@ -81,7 +81,7 @@ function DialogContent({
         data-slot="dialog-content"
         className={cn(
           `
-            fixed top-1/2 left-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2
+            fixed top-1/2 left-1/2 z-50 w-full max-w-md -translate-1/2
             rounded-lg border bg-background p-6 shadow-lg
             data-[state=closed]:animate-out data-[state=closed]:fade-out-0
             data-[state=closed]:zoom-out-95
@@ -130,7 +130,10 @@ function DialogFooter({
   return (
     <div
       data-slot="dialog-footer"
-      className={cn("flex flex-col-reverse gap-2 pt-4 sm:flex-row sm:justify-end", className)}
+      className={cn(`
+        flex flex-col-reverse gap-2 pt-4
+        sm:flex-row sm:justify-end
+      `, className)}
       {...props}
     />
   );

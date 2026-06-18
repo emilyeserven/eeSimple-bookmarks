@@ -1,6 +1,6 @@
-import { useState } from "react";
-
 import type { MatchCondition } from "@eesimple/types";
+
+import { useState } from "react";
 
 import { FIELD_OPTIONS, OPERATOR_OPTIONS } from "./matchOptions";
 
@@ -45,7 +45,9 @@ export function MatchConditionEditor({
 }: MatchConditionEditorProps) {
   const isDomain = value.operator === "domain";
 
-  const { data: websites = [], isLoading } = useWebsites();
+  const {
+    data: websites = [], isLoading,
+  } = useWebsites();
   const createWebsite = useCreateWebsite();
 
   const [addOpen, setAddOpen] = useState(false);
@@ -92,7 +94,7 @@ export function MatchConditionEditor({
       {isDomain
         ? (
           <p className="self-end text-xs text-muted-foreground">
-            Matches the bookmark URL's domain (a leading "www." is ignored).
+            Matches the bookmark URL’s domain (a leading “www.” is ignored).
           </p>
         )
         : (
@@ -138,7 +140,10 @@ export function MatchConditionEditor({
                 label: w.siteName ?? w.domain,
               }))}
               value={value.pattern || undefined}
-              onValueChange={domain => onChange({ ...value, pattern: domain ?? "" })}
+              onValueChange={domain => onChange({
+                ...value,
+                pattern: domain ?? "",
+              })}
               placeholder={isLoading ? "Loading…" : "Select a website…"}
               searchPlaceholder="Search websites…"
               emptyText="No websites found."
@@ -146,10 +151,14 @@ export function MatchConditionEditor({
             {!isLoading && websites.length === 0
               ? (
                 <p className="text-sm text-muted-foreground">
-                  No websites yet.{" "}
+                  No websites yet.
+                  {" "}
                   <button
                     type="button"
-                    className="underline hover:no-underline"
+                    className="
+                      underline
+                      hover:no-underline
+                    "
                     onClick={() => setAddOpen(true)}
                   >
                     Add one
@@ -159,7 +168,10 @@ export function MatchConditionEditor({
               : (
                 <button
                   type="button"
-                  className="text-xs text-muted-foreground underline hover:no-underline"
+                  className="
+                    text-xs text-muted-foreground underline
+                    hover:no-underline
+                  "
                   onClick={() => setAddOpen(true)}
                 >
                   Add new website
@@ -217,7 +229,10 @@ export function MatchConditionEditor({
                         domain,
                         siteName: titleInput.trim() || undefined,
                       });
-                      onChange({ ...value, pattern: result.domain });
+                      onChange({
+                        ...value,
+                        pattern: result.domain,
+                      });
                       setAddOpen(false);
                       setUrlInput("");
                       setTitleInput("");
