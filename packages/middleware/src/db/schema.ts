@@ -310,6 +310,8 @@ export const propertyCategories = pgTable("property_categories", {
 export const autofillRules = pgTable("autofill_rules", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
+  // Optional free-form description shown alongside the rule.
+  description: text("description"),
   // The match predicate tree describing when this rule applies. Nullable only during rollout:
   // existing rows are backfilled from the legacy columns below at boot, then the service always
   // writes it.

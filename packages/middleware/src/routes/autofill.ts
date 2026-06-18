@@ -66,6 +66,9 @@ const createRuleBody = {
       type: "string",
       minLength: 1,
     },
+    description: {
+      type: ["string", "null"],
+    },
     conditions: {
       $ref: "conditionTree#",
     },

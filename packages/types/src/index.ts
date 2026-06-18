@@ -279,6 +279,8 @@ export interface AutofillRule {
   id: string;
   /** Friendly label shown in the settings list. */
   name: string;
+  /** Optional free-form description. */
+  description: string | null;
   /** The match predicate tree describing when this rule applies. */
   conditions: ConditionTree;
   /** Category to assign, or `null` to leave the category unchanged. */
@@ -297,6 +299,7 @@ export interface AutofillRule {
 /** Payload for creating an autofill rule. */
 export interface CreateAutofillRuleInput {
   name: string;
+  description?: string | null;
   conditions: ConditionTree;
   setCategoryId?: string | null;
   tagIds?: string[];
