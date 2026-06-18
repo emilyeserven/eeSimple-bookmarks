@@ -340,7 +340,7 @@ interface RulePropertyFieldsProps {
 }
 
 /** Property-value inputs for the rule's chosen category (calculate properties are computed). */
-function RulePropertyFields({
+export function RulePropertyFields({
   categoryId, properties, numberInputs, booleanInputs, dateTimeInputs,
   onNumberChange, onBooleanChange, onDateTimeChange,
 }: RulePropertyFieldsProps) {
