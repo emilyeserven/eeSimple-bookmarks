@@ -3,12 +3,15 @@ import type {
   Bookmark,
   BookmarkBooleanValue,
   BookmarkImage,
+  BookmarkMediaType,
   BookmarkNumberValue,
   BookmarkTag,
   BookmarkWebsite,
+  BookmarkYouTubeChannel,
   ConditionInput,
   CreateBookmarkInput,
   UpdateBookmarkInput,
+  YouTubeChannelHint,
 } from "@eesimple/types";
 import { buildTagDescendants, evaluateConditions } from "@eesimple/types";
 import { db } from "@/db";
@@ -21,14 +24,18 @@ import {
   bookmarkTags,
   calculatePropertyOperands,
   customProperties,
+  mediaTypes,
   tags,
   websites,
+  youtubeChannels,
 } from "@/db/schema";
 import { bookmarkImageFromRow } from "@/services/bookmarkImages";
 import { ensureDefaultCategory } from "@/services/categories";
 import { getHomepageFilter } from "@/services/homepageFilter";
 import { getDescendantIds, listTags } from "@/services/tags";
 import { ensureWebsiteForUrl } from "@/services/websites";
+import { fetchYouTubeMetadata, isYouTubeVideoUrl } from "@/services/youtube";
+import { channelKeyFromUrl, ensureYouTubeChannel } from "@/services/youtubeChannels";
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
@@ -43,6 +50,8 @@ export class DuplicateUrlError extends Error {
 /** The hydrated relations that accompany a bookmark row. */
 interface BookmarkExtras {
   website: BookmarkWebsite | null;
+  mediaType: BookmarkMediaType | null;
+  youtubeChannel: BookmarkYouTubeChannel | null;
   tags: BookmarkTag[];
   numberValues: BookmarkNumberValue[];
   booleanValues: BookmarkBooleanValue[];
@@ -51,6 +60,8 @@ interface BookmarkExtras {
 
 const EMPTY_EXTRAS: BookmarkExtras = {
   website: null,
+  mediaType: null,
+  youtubeChannel: null,
   tags: [],
   numberValues: [],
   booleanValues: [],
@@ -67,6 +78,8 @@ function toBookmark(row: BookmarkRow, extras: BookmarkExtras, defaultCategoryId:
     description: row.description,
     categoryId: row.categoryId ?? defaultCategoryId,
     website: extras.website,
+    mediaType: extras.mediaType,
+    youtubeChannel: extras.youtubeChannel,
     tags: extras.tags,
     numberValues: extras.numberValues,
     booleanValues: extras.booleanValues,
@@ -98,6 +111,54 @@ async function websitesById(websiteIds: string[]): Promise<Map<string, BookmarkW
       domain: row.domain,
       siteName: row.siteName,
       slug: row.slug ?? (row.domain.replace(/\.[^.]+$/, "").replace(/[^a-z0-9]+/gi, "-") || "website"),
+    });
+  }
+  return byId;
+}
+
+/** Load media types for a set of media-type ids in a single query, keyed by media-type id. */
+async function mediaTypesById(mediaTypeIds: string[]): Promise<Map<string, BookmarkMediaType>> {
+  const byId = new Map<string, BookmarkMediaType>();
+  if (mediaTypeIds.length === 0) return byId;
+
+  const rows = await db
+    .select({
+      id: mediaTypes.id,
+      name: mediaTypes.name,
+      slug: mediaTypes.slug,
+    })
+    .from(mediaTypes)
+    .where(inArray(mediaTypes.id, mediaTypeIds));
+
+  for (const row of rows) {
+    byId.set(row.id, {
+      id: row.id,
+      name: row.name,
+      slug: row.slug ?? row.id,
+    });
+  }
+  return byId;
+}
+
+/** Load YouTube channels for a set of channel ids in a single query, keyed by channel id. */
+async function channelsById(channelIds: string[]): Promise<Map<string, BookmarkYouTubeChannel>> {
+  const byId = new Map<string, BookmarkYouTubeChannel>();
+  if (channelIds.length === 0) return byId;
+
+  const rows = await db
+    .select({
+      id: youtubeChannels.id,
+      name: youtubeChannels.name,
+      slug: youtubeChannels.slug,
+    })
+    .from(youtubeChannels)
+    .where(inArray(youtubeChannels.id, channelIds));
+
+  for (const row of rows) {
+    byId.set(row.id, {
+      id: row.id,
+      name: row.name,
+      slug: row.slug ?? row.id,
     });
   }
   return byId;
@@ -213,6 +274,8 @@ async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
   for (const id of bookmarkIds) {
     grouped.set(id, {
       website: null,
+      mediaType: null,
+      youtubeChannel: null,
       tags: tagsMap.get(id) ?? [],
       numberValues: numberMap.get(id) ?? [],
       booleanValues: booleanMap.get(id) ?? [],
@@ -227,16 +290,21 @@ export async function hydrateBookmarkRows(rows: BookmarkRow[]): Promise<Bookmark
   if (rows.length === 0) return [];
   const defaultCategoryId = await ensureDefaultCategory();
   const websiteIds = [...new Set(rows.map(row => row.websiteId).filter((id): id is string => id !== null))];
-  const [grouped, websiteMap] = await Promise.all([
+  const mediaTypeIds = [...new Set(rows.map(row => row.mediaTypeId).filter((id): id is string => id !== null))];
+  const channelIds = [...new Set(rows.map(row => row.youtubeChannelId).filter((id): id is string => id !== null))];
+  const [grouped, websiteMap, mediaTypeMap, channelMap] = await Promise.all([
     extrasByBookmarkId(rows.map(row => row.id)),
     websitesById(websiteIds),
+    mediaTypesById(mediaTypeIds),
+    channelsById(channelIds),
   ]);
   return rows.map((row) => {
     const extras = grouped.get(row.id) ?? EMPTY_EXTRAS;
-    const website = row.websiteId ? websiteMap.get(row.websiteId) ?? null : null;
     return toBookmark(row, {
       ...extras,
-      website,
+      website: row.websiteId ? websiteMap.get(row.websiteId) ?? null : null,
+      mediaType: row.mediaTypeId ? mediaTypeMap.get(row.mediaTypeId) ?? null : null,
+      youtubeChannel: row.youtubeChannelId ? channelMap.get(row.youtubeChannelId) ?? null : null,
     }, defaultCategoryId);
   });
 }
@@ -311,6 +379,34 @@ export async function getBookmark(id: string): Promise<Bookmark | null> {
   return hydrated ?? null;
 }
 
+/**
+ * Resolve the `{ key, name }` channel hint for a URL, fetching the video's metadata when the URL is
+ * a YouTube video and no hint was supplied. Run *outside* a transaction (it may do a network call),
+ * so the resolved hint can then be upserted cheaply inside one. Returns `null` for non-videos.
+ */
+async function resolveChannelHint(
+  url: string,
+  hint: YouTubeChannelHint | null | undefined,
+): Promise<{ key: string;
+  name: string; } | null> {
+  if (hint && hint.key.trim() && hint.name.trim()) {
+    return {
+      key: hint.key.trim(),
+      name: hint.name.trim(),
+    };
+  }
+  if (!isYouTubeVideoUrl(url)) return null;
+  const meta = await fetchYouTubeMetadata(url);
+  if (meta?.channelName && meta.channelUrl) {
+    const key = channelKeyFromUrl(meta.channelUrl);
+    if (key) return {
+      key,
+      name: meta.channelName,
+    };
+  }
+  return null;
+}
+
 export async function createBookmark(input: CreateBookmarkInput): Promise<Bookmark> {
   const existing = await db.select({
     id: bookmarks.id,
@@ -318,8 +414,11 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
   if (existing.length > 0) throw new DuplicateUrlError(input.url);
 
   const categoryId = input.categoryId ?? await ensureDefaultCategory();
+  // Resolve the channel before opening the transaction — it may make a network request.
+  const channelHint = await resolveChannelHint(input.url, input.youtubeChannel);
   const id = await db.transaction(async (tx) => {
     const websiteId = await ensureWebsiteForUrl(tx, input.url, input.websiteSiteName);
+    const youtubeChannelId = channelHint ? await ensureYouTubeChannel(tx, channelHint) : null;
     const [row] = await tx
       .insert(bookmarks)
       .values({
@@ -329,6 +428,8 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
         description: input.description ?? null,
         categoryId,
         websiteId,
+        mediaTypeId: input.mediaTypeId ?? null,
+        youtubeChannelId,
         priority: input.priority ?? 0,
       })
       .returning({
@@ -358,19 +459,41 @@ export async function updateBookmark(
     if (clash.length > 0) throw new DuplicateUrlError(input.url);
   }
 
+  // Re-resolve the channel outside the transaction when the URL changes or a hint is supplied.
+  const channelHint
+    = input.url !== undefined || input.youtubeChannel !== undefined
+      ? await resolveChannelHint(input.url ?? "", input.youtubeChannel)
+      : undefined;
+
   const found = await db.transaction(async (tx) => {
     const patch: Partial<
-      Pick<BookmarkRow, "url" | "originalUrl" | "title" | "description" | "categoryId" | "websiteId" | "priority">
+      Pick<
+        BookmarkRow,
+        | "url"
+        | "originalUrl"
+        | "title"
+        | "description"
+        | "categoryId"
+        | "websiteId"
+        | "mediaTypeId"
+        | "youtubeChannelId"
+        | "priority"
+      >
     > = {};
     if (input.url !== undefined) {
       patch.url = input.url;
-      // Re-derive the website whenever the URL changes.
+      // Re-derive the website and YouTube channel whenever the URL changes.
       patch.websiteId = await ensureWebsiteForUrl(tx, input.url);
+      patch.youtubeChannelId = channelHint ? await ensureYouTubeChannel(tx, channelHint) : null;
+    }
+    else if (channelHint !== undefined) {
+      patch.youtubeChannelId = channelHint ? await ensureYouTubeChannel(tx, channelHint) : null;
     }
     if (input.originalUrl !== undefined) patch.originalUrl = input.originalUrl ?? null;
     if (input.title !== undefined) patch.title = input.title;
     if (input.description !== undefined) patch.description = input.description ?? null;
     if (input.categoryId !== undefined) patch.categoryId = input.categoryId;
+    if (input.mediaTypeId !== undefined) patch.mediaTypeId = input.mediaTypeId ?? null;
     if (input.priority !== undefined) patch.priority = input.priority;
 
     if (Object.keys(patch).length > 0) {

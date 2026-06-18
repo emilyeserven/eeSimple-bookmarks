@@ -87,6 +87,77 @@ export interface WebsiteLookup {
 }
 
 /**
+ * A media type in the built-in "Media Types" taxonomy (Video, Article, Podcast, …). Classifies what
+ * a bookmark is; chosen in the form or auto-set from fetched metadata. Built-ins can't be
+ * renamed/deleted; users may add their own.
+ */
+export interface MediaType {
+  id: string;
+  /** Display name, e.g. `"Video"`. Unique. */
+  name: string;
+  /** URL-friendly identifier derived from the name (e.g. `"video"`). Unique. */
+  slug: string;
+  /** Whether this is a seeded built-in (protected from rename/delete). */
+  builtIn: boolean;
+  /** Display ordering weight; lower sorts first. */
+  sortOrder: number;
+  /** ISO-8601 timestamp of when the media type was created. */
+  createdAt: string;
+  /** Number of bookmarks with this media type (populated by list endpoints). */
+  bookmarkCount?: number;
+}
+
+/** Lightweight media-type shape carried on a bookmark. */
+export type BookmarkMediaType = Pick<MediaType, "id" | "name" | "slug">;
+
+/** Payload for creating a custom media type. */
+export interface CreateMediaTypeInput {
+  name: string;
+  sortOrder?: number;
+}
+
+/** Payload for updating a media type (rename and/or reorder). */
+export interface UpdateMediaTypeInput {
+  name?: string;
+  sortOrder?: number;
+}
+
+/**
+ * A channel in the built-in "YouTube Channels" taxonomy. Bookmarks for a YouTube video are
+ * auto-linked to their channel from the video's fetched metadata, so videos can be browsed per
+ * channel.
+ */
+export interface YouTubeChannel {
+  id: string;
+  /** Stable normalized identifier (the channel's canonical URL/handle path), e.g. `"@veritasium"`. */
+  channelKey: string;
+  /** Human-friendly channel name; renamable. */
+  name: string;
+  /** URL-friendly identifier derived from the name. Unique. */
+  slug: string;
+  /** ISO-8601 timestamp of when the channel was first seen. */
+  createdAt: string;
+  /** Number of bookmarks associated with this channel (populated by list endpoints). */
+  bookmarkCount?: number;
+}
+
+/** Lightweight channel shape carried on a bookmark. */
+export type BookmarkYouTubeChannel = Pick<YouTubeChannel, "id" | "name" | "slug">;
+
+/** A resolved channel hint passed when creating a bookmark, used to auto-link/auto-create it. */
+export interface YouTubeChannelHint {
+  /** Stable channel identifier (its canonical URL/handle path). */
+  key: string;
+  /** Human-friendly channel name. */
+  name: string;
+}
+
+/** Payload for updating a YouTube channel (rename). */
+export interface UpdateYouTubeChannelInput {
+  name?: string;
+}
+
+/**
  * The image attached to a bookmark. The bytes live in object storage; this carries only what the
  * UI needs to render it. `url` points at the API serving endpoint (it embeds a `?v=` version param
  * so a replaced image busts the browser cache).
@@ -119,6 +190,10 @@ export interface Bookmark {
   categoryId: string;
   /** The website this bookmark belongs to (auto-linked by URL host), or `null` when the URL has no host. */
   website: BookmarkWebsite | null;
+  /** The media type of this bookmark (Video, Article, …), or `null` when unset. */
+  mediaType: BookmarkMediaType | null;
+  /** The YouTube channel this bookmark belongs to (auto-linked for YouTube videos), or `null`. */
+  youtubeChannel: BookmarkYouTubeChannel | null;
   /** Tags assigned to this bookmark, drawn from the taxonomy. */
   tags: BookmarkTag[];
   /** Number-typed custom property values (includes computed `calculate` results) assigned to this bookmark. */
@@ -150,6 +225,13 @@ export interface CreateBookmarkInput {
   priority?: number;
   /** Friendly name for the website when it doesn't exist yet; ignored for existing sites. */
   websiteSiteName?: string;
+  /** Id of the media type to assign, or `null` to clear it. Omit to leave unchanged. */
+  mediaTypeId?: string | null;
+  /**
+   * Channel hint for a YouTube video, used to auto-create/link its channel. When omitted for a
+   * recognized YouTube URL, the server resolves it from the video's metadata.
+   */
+  youtubeChannel?: YouTubeChannelHint | null;
 }
 
 /** Payload for partially updating a bookmark. */

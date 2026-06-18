@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { parseIsoDuration, parseYouTubeVideo } from "@/services/youtube";
+import { channelKeyFromUrl } from "@/services/youtubeChannels";
 
 // Pure-helper tests run without a live database or network, matching the `websites` style.
 
@@ -37,4 +38,11 @@ test("parseIsoDuration returns null for empty or non-time durations", () => {
   assert.equal(parseIsoDuration("PT"), null);
   assert.equal(parseIsoDuration("P1D"), null);
   assert.equal(parseIsoDuration("garbage"), null);
+});
+
+test("channelKeyFromUrl normalizes handles, channel ids, and vanity paths", () => {
+  assert.equal(channelKeyFromUrl("https://www.youtube.com/@Veritasium"), "@veritasium");
+  assert.equal(channelKeyFromUrl("https://www.youtube.com/channel/UCabc123"), "UCabc123");
+  assert.equal(channelKeyFromUrl("https://www.youtube.com/c/SomeName"), "somename");
+  assert.equal(channelKeyFromUrl("not a url"), null);
 });

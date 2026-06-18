@@ -108,6 +108,25 @@ const createBookmarkBody = {
       type: "string",
       minLength: 1,
     },
+    mediaTypeId: {
+      type: ["string", "null"],
+      format: "uuid",
+    },
+    youtubeChannel: {
+      type: ["object", "null"],
+      required: ["key", "name"],
+      additionalProperties: false,
+      properties: {
+        key: {
+          type: "string",
+          minLength: 1,
+        },
+        name: {
+          type: "string",
+          minLength: 1,
+        },
+      },
+    },
     originalUrl: {
       type: ["string", "null"],
     },
