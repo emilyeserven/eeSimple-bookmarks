@@ -417,6 +417,20 @@ export async function ensureVideoLengthProperty(): Promise<string> {
   return created.id;
 }
 
+/**
+ * Look up the built-in "Video Length" property id at request time, or `null` when it hasn't been
+ * seeded yet. Used by the bookmark service to backfill a video's duration from fetched metadata.
+ */
+export async function getVideoLengthPropertyId(): Promise<string | null> {
+  const [row] = await db
+    .select({
+      id: customProperties.id,
+    })
+    .from(customProperties)
+    .where(eq(customProperties.slug, VIDEO_LENGTH_SLUG));
+  return row?.id ?? null;
+}
+
 /** Fill in slugs for any properties missing one (e.g. rows that predate the `slug` column). */
 export async function backfillCustomPropertySlugs(): Promise<void> {
   const missing = await db

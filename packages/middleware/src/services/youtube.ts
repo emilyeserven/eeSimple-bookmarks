@@ -11,7 +11,7 @@
 
 import { isYouTubeVideoUrl, parseYouTubeVideo } from "@eesimple/types";
 
-import { fetchHeadHtml, isPublicHttpUrl, metaContent } from "@/services/metadata";
+import { downloadImage, fetchHeadHtml, isPublicHttpUrl, metaContent } from "@/services/metadata";
 
 // Re-exported so existing intra-package importers (and tests) keep their `@/services/youtube` path;
 // the pure parsers now live in `@eesimple/types` so the client can share them.
@@ -111,4 +111,15 @@ export async function fetchYouTubeMetadata(url: string): Promise<YouTubeMetadata
     channelUrl: channelUrl && isPublicHttpUrl(channelUrl) ? channelUrl : null,
     durationSeconds,
   };
+}
+
+/**
+ * Download the bytes of a YouTube video's thumbnail (from oEmbed's `thumbnail_url`), or `null` when
+ * `url` isn't a YouTube video, oEmbed had no thumbnail, or the download fails. The thumbnail URL is
+ * already SSRF-guarded by `fetchYouTubeMetadata`. Preferred over scraping `og:image` for YouTube.
+ */
+export async function fetchYouTubeThumbnail(url: string): Promise<Buffer | null> {
+  const meta = await fetchYouTubeMetadata(url);
+  if (!meta?.thumbnailUrl) return null;
+  return downloadImage(meta.thumbnailUrl);
 }

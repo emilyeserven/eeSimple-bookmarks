@@ -394,6 +394,10 @@ export async function bookmarkRoutes(app: FastifyInstance): Promise<void> {
       });
     }
     const result = await fetchAndStoreOgImage(id);
+    req.log.info({
+      bookmarkId: id,
+      result: typeof result === "string" ? result : "stored",
+    }, "[youtube-enrich] image/auto capture");
     if (result === "not_found") {
       return reply.code(404).send({
         message: "Bookmark not found",

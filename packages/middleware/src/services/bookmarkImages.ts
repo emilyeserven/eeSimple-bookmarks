@@ -9,6 +9,7 @@ import { db } from "@/db";
 import { bookmarkImages, type BookmarkImageRow, bookmarks } from "@/db/schema";
 import { forgetManifestObject, recordManifestObject } from "@/services/gallery";
 import { fetchOgImage } from "@/services/metadata";
+import { fetchYouTubeThumbnail, isYouTubeVideoUrl } from "@/services/youtube";
 import { processImage } from "@/utils/image";
 import { deleteObject, putObject } from "@/utils/objectStore";
 
@@ -113,7 +114,22 @@ export async function fetchAndStoreOgImage(bookmarkId: string): Promise<AutoImag
   }).from(bookmarks).where(eq(bookmarks.id, bookmarkId));
   if (!bookmark) return "not_found";
 
-  const bytes = await fetchOgImage(bookmark.url);
+  // YouTube serves a known, high-quality thumbnail via oEmbed — prefer it over scraping og:image,
+  // falling back to the generic page-image path when the thumbnail can't be fetched.
+  let bytes: Buffer | null;
+  if (isYouTubeVideoUrl(bookmark.url)) {
+    bytes = await fetchYouTubeThumbnail(bookmark.url);
+    if (bytes) {
+      console.info(`[youtube-enrich] image: using YouTube thumbnail for ${bookmarkId}`);
+    }
+    else {
+      console.warn(`[youtube-enrich] image: YouTube thumbnail unavailable for ${bookmarkId}; falling back to og:image`);
+      bytes = await fetchOgImage(bookmark.url);
+    }
+  }
+  else {
+    bytes = await fetchOgImage(bookmark.url);
+  }
   if (!bytes) return "no_image";
 
   const result = await setBookmarkImage(bookmarkId, bytes, "og");
