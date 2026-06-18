@@ -168,6 +168,8 @@ export type CustomPropertyType = "number" | "boolean" | "calculate";
 export interface CustomProperty {
   id: string;
   name: string;
+  /** URL-friendly identifier derived from `name`; unique across properties. */
+  slug: string;
   type: CustomPropertyType;
   /** Free-text description of the property, shown as a hint where its field is rendered, or `null`. */
   description: string | null;

@@ -164,6 +164,10 @@ export const bookmarkTagsRelations = relations(bookmarkTags, ({
 export const customProperties = pgTable("custom_properties", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
+  // URL-friendly identifier derived from the name. Nullable at the DB level so `drizzle-kit push`
+  // applies cleanly to existing rows; the service layer backfills it at boot and always returns a
+  // slug on the wire type.
+  slug: text("slug"),
   // "number" | "boolean" | "calculate" — kept as text so new kinds can be added later.
   type: text("type").notNull(),
   // Free-text description surfaced as a hint where the property's field is rendered.
@@ -187,7 +191,9 @@ export const customProperties = pgTable("custom_properties", {
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
-});
+}, table => [
+  unique("custom_properties_slug_unique").on(table.slug),
+]);
 
 /** `bookmark_number_values` — one numeric value per (bookmark, number/calculate property). */
 export const bookmarkNumberValues = pgTable("bookmark_number_values", {

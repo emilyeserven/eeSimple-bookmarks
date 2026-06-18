@@ -3,8 +3,9 @@ import type { Bookmark, BookmarkTag, CustomProperty } from "@eesimple/types";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Link } from "@tanstack/react-router";
-import { ExternalLink, MoreVertical } from "lucide-react";
+import { ExternalLink, MoreVertical, Sparkles } from "lucide-react";
 
+import { useAutoBookmarkImage } from "../hooks/useBookmarks";
 import { formatNumber } from "../lib/bookmarkFormat";
 import { useUiStore } from "../stores/uiStore";
 
@@ -111,6 +112,7 @@ export function BookmarkCard({
   bookmark, properties = [], onDelete, imageLeft = false,
 }: BookmarkCardProps) {
   const maintainImageAspectRatio = useUiStore(state => state.maintainImageAspectRatio);
+  const autoImage = useAutoBookmarkImage();
   const byId = new Map(properties.map(property => [property.id, property]));
 
   const numberBadges = bookmark.numberValues
@@ -196,6 +198,14 @@ export function BookmarkCard({
               >
                 Edit
               </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              disabled={autoImage.isPending}
+              onClick={() => autoImage.mutate(bookmark.id)}
+            >
+              <Sparkles className="mr-2 size-4" />
+              Get page image
             </DropdownMenuItem>
             {onDelete
               ? (

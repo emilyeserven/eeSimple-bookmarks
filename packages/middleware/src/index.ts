@@ -3,6 +3,7 @@ import { buildApp } from "@/app";
 import { maybeSeed } from "@/db/seed";
 import { ensureAutofillConditions, ensureAutofillSlugs } from "@/services/autofill";
 import { ensureDefaultCategory } from "@/services/categories";
+import { backfillCustomPropertySlugs } from "@/services/customProperties";
 import { ensureHomepageFilter } from "@/services/homepageFilter";
 import { backfillWebsiteSlugs } from "@/services/websites";
 import { ensureBucket, isObjectStoreConfigured } from "@/utils/objectStore";
@@ -34,6 +35,7 @@ try {
   // backfills any bookmarks left without a category.
   await ensureDefaultCategory();
   await backfillWebsiteSlugs();
+  await backfillCustomPropertySlugs();
   await maybeSeed();
   // Backfill condition trees for legacy autofill rules and seed the homepage filter from the
   // previous is-homepage / homepage-tags mechanism on first boot.

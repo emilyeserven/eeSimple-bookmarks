@@ -18,6 +18,15 @@ export function useCustomProperties() {
   });
 }
 
+/** A single custom property looked up by slug from the list, plus the list's load state. */
+export function usePropertyBySlug(slug: string) {
+  const query = useCustomProperties();
+  return {
+    ...query,
+    property: (query.data ?? []).find(item => item.slug === slug),
+  };
+}
+
 export function useCreateCustomProperty() {
   const queryClient = useQueryClient();
   return useMutation({
