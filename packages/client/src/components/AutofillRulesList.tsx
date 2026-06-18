@@ -1,39 +1,16 @@
-import type {
-  AutofillRule,
-  Category,
-  ConditionNode,
-} from "@eesimple/types";
+import type { AutofillRule, ConditionNode } from "@eesimple/types";
 
 import { useMemo, useState } from "react";
 
 import { normalizeDomain } from "@eesimple/types";
-import { Link } from "@tanstack/react-router";
 
 import { NO_CATEGORY } from "./AutofillRuleForm";
-import { useViewPanelClick } from "./panel/useEditPanelClick";
-import { usePanelControls } from "./panel/usePanelControls";
+import { AutofillRuleListItem } from "./AutofillRuleListItem";
+import { ALL_CATEGORIES, AutofillRulesToolbar } from "./AutofillRulesToolbar";
 import { useAutofillRules } from "../hooks/useAutofill";
 import { useCategories } from "../hooks/useCategories";
 import { useWebsites } from "../hooks/useWebsites";
 import { summarizeConditions } from "../lib/conditionsSummary";
-
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { RowCard } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { NEW_SENTINEL } from "@/lib/drawerSearch";
-import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
-import { useUiStore } from "@/stores/uiStore";
-
-/** Select sentinel for "show rules for every category". */
-const ALL_CATEGORIES = "all";
 
 interface AutofillRulesListProps {
   /**
@@ -85,9 +62,6 @@ export function AutofillRulesList({
   const {
     data: websites,
   } = useWebsites();
-  const {
-    openAutofill,
-  } = usePanelControls();
 
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState(ALL_CATEGORIES);
@@ -127,56 +101,14 @@ export function AutofillRulesList({
 
   return (
     <section className="space-y-6">
-      <div
-        className="
-          flex flex-col gap-3
-          sm:flex-row sm:items-center sm:justify-between
-        "
-      >
-        <div className="flex flex-1 flex-wrap items-center gap-3">
-          <Input
-            type="search"
-            placeholder="Search rules…"
-            value={search}
-            onChange={event => setSearch(event.target.value)}
-            className="max-w-xs"
-          />
-          {scoped
-            ? null
-            : (
-              <Select
-                value={categoryFilter}
-                onValueChange={setCategoryFilter}
-              >
-                <SelectTrigger
-                  aria-label="Filter by category"
-                  className="w-56"
-                >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={ALL_CATEGORIES}>All categories</SelectItem>
-                  <SelectItem value={NO_CATEGORY}>No category</SelectItem>
-                  {(categories ?? []).map(category => (
-                    <SelectItem
-                      key={category.id}
-                      value={category.id}
-                    >
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-        </div>
-
-        <Button
-          type="button"
-          onClick={() => openAutofill(NEW_SENTINEL)}
-        >
-          New Autofill Rule
-        </Button>
-      </div>
+      <AutofillRulesToolbar
+        search={search}
+        onSearchChange={setSearch}
+        scoped={scoped}
+        categoryFilter={categoryFilter}
+        onCategoryFilterChange={setCategoryFilter}
+        categories={categories ?? []}
+      />
 
       {isLoading ? <p className="text-muted-foreground">Loading rules…</p> : null}
       {error ? <p className="text-destructive">{error.message}</p> : null}
@@ -199,7 +131,7 @@ export function AutofillRulesList({
 
       <div className="space-y-3">
         {visibleRules.map(rule => (
-          <RuleListItem
+          <AutofillRuleListItem
             key={rule.id}
             rule={rule}
             categories={categories ?? []}
@@ -207,48 +139,5 @@ export function AutofillRulesList({
         ))}
       </div>
     </section>
-  );
-}
-
-interface RuleListItemProps {
-  rule: AutofillRule;
-  categories: Category[];
-}
-
-/** A single read-only rule card that navigates to the rule's full-page view. */
-function RuleListItem({
-  rule, categories,
-}: RuleListItemProps) {
-  const viewClick = useViewPanelClick();
-  const modifier = useUiStore(state => state.sidebarOpenModifier);
-  const categoryName = rule.setCategoryId
-    ? categories.find(category => category.id === rule.setCategoryId)?.name
-    : null;
-
-  return (
-    <Link
-      to="/autofill/$ruleSlug"
-      params={{
-        ruleSlug: rule.slug,
-      }}
-      title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-      onClick={event => viewClick(event, "autofill", rule.id)}
-      className="block w-full text-left"
-    >
-      <RowCard
-        className="
-          transition-colors
-          hover:border-ring hover:bg-accent/40
-        "
-      >
-        <div className="flex flex-wrap items-center gap-2 p-4">
-          <span className="leading-none font-semibold">{rule.name}</span>
-          <span className="text-xs text-muted-foreground">
-            {summarizeConditions(rule.conditions)}
-          </span>
-          {categoryName ? <Badge variant="secondary">{categoryName}</Badge> : null}
-        </div>
-      </RowCard>
-    </Link>
   );
 }

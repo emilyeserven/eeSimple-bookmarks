@@ -4,7 +4,7 @@ import type { MarkdownStorage } from "tiptap-markdown";
 import { useEffect } from "react";
 
 import { EditorContent, useEditor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
+import { StarterKit } from "@tiptap/starter-kit";
 import { Bold, Heading2, Heading3, Italic, Link2, List, ListOrdered } from "lucide-react";
 import { Markdown } from "tiptap-markdown";
 

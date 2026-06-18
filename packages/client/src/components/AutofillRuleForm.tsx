@@ -3,13 +3,10 @@
 import type {
   AutofillRule,
   Category,
-  CategoryCondition,
   ConditionTree,
   CreateAutofillRuleInput,
   CustomProperty,
-  TagCondition,
   TagNode,
-  WebsiteCondition,
 } from "@eesimple/types";
 
 import { useState } from "react";
@@ -20,18 +17,13 @@ import {
 } from "@eesimple/types";
 import { z } from "zod";
 
+import { AutofillRuleActivationSection } from "./AutofillRuleActivationSection";
 import { CollapsibleFormSection } from "./CollapsibleFormSection";
-import { ConditionsField } from "./conditions/ConditionsField";
-import { DateTimePicker } from "./DateTimePicker";
-import { LabeledSection } from "./LabeledSection";
-import { PreviewBookmarksSection } from "./PreviewBookmarksSection";
-import { TagPicker } from "./TagPicker";
+import { RulePropertyField } from "./RulePropertyField";
+import { RuleTagsField } from "./RuleTagsField";
 import { autofillConditionsValidator } from "../lib/conditionsSchema";
 import { useAppForm } from "../lib/form";
 
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 
 /** Sentinel select value standing in for "no category" (Radix selects can't hold an empty value). */
@@ -195,38 +187,18 @@ export function AutofillRuleForm({
 
       <Separator />
 
-      <CollapsibleFormSection
-        title="Activation Conditions"
-        description="Conditions that decide whether this rule applies."
+      <AutofillRuleActivationSection
         defaultOpen={!rule}
-        preview={summarizeConditions(conditions)}
-      >
-        <div className="space-y-1">
-          <ConditionsField
-            value={conditions}
-            onChange={(next) => {
-              setConditions(next);
-              setConditionsError(null);
-            }}
-            categories={categories}
-            properties={properties}
-            tagTree={tagTree}
-          />
-          {conditionsError ? <p className="text-sm text-destructive">{conditionsError}</p> : null}
-        </div>
-      </CollapsibleFormSection>
-
-      <Separator />
-
-      <LabeledSection
-        title="Preview Bookmarks"
-        description="Test which existing bookmarks match the activation conditions above."
-      >
-        <PreviewBookmarksSection
-          conditions={conditions}
-          tagTree={tagTree}
-        />
-      </LabeledSection>
+        conditions={conditions}
+        conditionsError={conditionsError}
+        onChange={(next) => {
+          setConditions(next);
+          setConditionsError(null);
+        }}
+        categories={categories}
+        properties={properties}
+        tagTree={tagTree}
+      />
 
       <Separator />
 
@@ -276,23 +248,18 @@ export function AutofillRuleForm({
 
         <form.Field name="tagIds">
           {field => (
-            <div className="space-y-1">
-              <Label>Apply tags</Label>
-              <div className="rounded-md border p-2">
-                <TagPicker
-                  tree={tagTree}
-                  selectedIds={field.state.value}
-                  onToggle={(id) => {
-                    const current = field.state.value;
-                    field.handleChange(
-                      current.includes(id)
-                        ? current.filter(tagId => tagId !== id)
-                        : [...current, id],
-                    );
-                  }}
-                />
-              </div>
-            </div>
+            <RuleTagsField
+              tagTree={tagTree}
+              selectedIds={field.state.value}
+              onToggle={(id) => {
+                const current = field.state.value;
+                field.handleChange(
+                  current.includes(id)
+                    ? current.filter(tagId => tagId !== id)
+                    : [...current, id],
+                );
+              }}
+            />
           )}
         </form.Field>
 
@@ -364,56 +331,18 @@ export function RulePropertyFields({
           sm:grid-cols-2
         "
       >
-        {categoryProps.map((property) => {
-          if (property.type === "number") {
-            return (
-              <div
-                key={property.id}
-                className="space-y-1"
-              >
-                <Label htmlFor={`rule-property-${property.id}`}>
-                  {property.name}
-                  {property.unitPlural ? ` (${property.unitPlural})` : ""}
-                </Label>
-                <Input
-                  id={`rule-property-${property.id}`}
-                  type="number"
-                  value={numberInputs[property.id] ?? ""}
-                  onChange={event => onNumberChange(property.id, event.target.value)}
-                />
-              </div>
-            );
-          }
-          if (property.type === "datetime") {
-            return (
-              <div
-                key={property.id}
-                className="space-y-1"
-              >
-                <Label htmlFor={`rule-property-${property.id}`}>{property.name}</Label>
-                <DateTimePicker
-                  id={`rule-property-${property.id}`}
-                  format={property.dateTimeFormat ?? "date"}
-                  value={dateTimeInputs[property.id] ?? null}
-                  onChange={value => onDateTimeChange(property.id, value ?? "")}
-                />
-              </div>
-            );
-          }
-          return (
-            <div
-              key={property.id}
-              className="flex items-center gap-2 self-end"
-            >
-              <Checkbox
-                id={`rule-property-${property.id}`}
-                checked={booleanInputs[property.id] ?? false}
-                onCheckedChange={checked => onBooleanChange(property.id, checked === true)}
-              />
-              <Label htmlFor={`rule-property-${property.id}`}>{property.name}</Label>
-            </div>
-          );
-        })}
+        {categoryProps.map(property => (
+          <RulePropertyField
+            key={property.id}
+            property={property}
+            numberInputs={numberInputs}
+            booleanInputs={booleanInputs}
+            dateTimeInputs={dateTimeInputs}
+            onNumberChange={onNumberChange}
+            onBooleanChange={onBooleanChange}
+            onDateTimeChange={onDateTimeChange}
+          />
+        ))}
       </div>
     </div>
   );
@@ -430,27 +359,6 @@ function seedConditions(defaultWebsiteDomain?: string): ConditionTree {
       domains: [defaultWebsiteDomain],
     }],
   };
-}
-
-/** One-line summary of the activation conditions for the collapsed section preview. */
-function summarizeConditions(conditions: ConditionTree): string {
-  const matchCount = conditions.children.filter(child => child.type === "match").length;
-  const categoryLeaf = conditions.children.find((child): child is CategoryCondition => child.type === "category");
-  const websiteLeaf = conditions.children.find((child): child is WebsiteCondition => child.type === "website");
-  const tagLeaf = conditions.children.find((child): child is TagCondition => child.type === "tag");
-  const propertyCount = conditions.children.filter(child => child.type === "property").length;
-  const categoryCount = categoryLeaf?.categoryIds.length ?? 0;
-  const websiteCount = websiteLeaf?.domains.length ?? 0;
-  const tagCount = tagLeaf?.tagIds.length ?? 0;
-
-  const parts: string[] = [];
-  if (matchCount > 0) parts.push(`${matchCount} title ${matchCount === 1 ? "match" : "matches"}`);
-  if (categoryCount > 0) parts.push(`${categoryCount} ${categoryCount === 1 ? "category" : "categories"}`);
-  if (websiteCount > 0) parts.push(`${websiteCount} ${websiteCount === 1 ? "website" : "websites"}`);
-  if (tagCount > 0) parts.push(`${tagCount} ${tagCount === 1 ? "tag" : "tags"}`);
-  if (propertyCount > 0) parts.push(`${propertyCount} ${propertyCount === 1 ? "property" : "properties"}`);
-
-  return parts.length > 0 ? parts.join(" · ") : "No conditions set";
 }
 
 interface PrefillSummaryArgs {

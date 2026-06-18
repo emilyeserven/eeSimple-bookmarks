@@ -30,14 +30,18 @@ import { summarizeConditions } from "../../lib/conditionsSummary";
 import { flattenTree } from "../../lib/tagTree";
 import { BookmarkDetail } from "../BookmarkDetail";
 import { BookmarkForm } from "../BookmarkForm";
-import { CategoryCard } from "../CategoryManager";
+import { CategoryCard } from "../CategoryCard";
 import { CategoryPreviewCard } from "../CategoryPreviewCard";
-import { MediaTypeCard, MediaTypeRow } from "../MediaTypeManager";
+import { MediaTypeCard } from "../MediaTypeCard";
+import { MediaTypeRow } from "../MediaTypeRow";
 import { PropertyDetail } from "../PropertyDetail";
 import { PropertyForm } from "../PropertyForm";
-import { PropertyGroupCard, PropertyGroupRow } from "../PropertyGroupManager";
-import { WebsiteCard, WebsiteRow } from "../WebsiteManager";
-import { YouTubeChannelCard, YouTubeChannelRow } from "../YouTubeChannelManager";
+import { PropertyGroupCard } from "../PropertyGroupCard";
+import { PropertyGroupRow } from "../PropertyGroupRow";
+import { WebsiteCard } from "../WebsiteCard";
+import { WebsiteRow } from "../WebsiteRow";
+import { YouTubeChannelCard } from "../YouTubeChannelCard";
+import { YouTubeChannelRow } from "../YouTubeChannelRow";
 
 /** A single row in a content type's searchable list. */
 export interface PanelListItem {

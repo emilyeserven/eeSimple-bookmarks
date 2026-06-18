@@ -4,10 +4,8 @@ import { useState } from "react";
 
 import { ChevronDown, EyeOff, GripVertical, Pencil } from "lucide-react";
 
-import { CollapsibleFormSection } from "./CollapsibleFormSection";
-import { conditionsBreakdown, conditionsSummaryLabel } from "./conditions/summarizeConditions";
 import { HomepageSectionForm } from "./HomepageSectionForm";
-import { SectionDisplayControls } from "./SectionDisplayControls";
+import { HomepageSectionView } from "./HomepageSectionView";
 import {
   useDeleteHomepageSection,
   useUpdateHomepageSection,
@@ -19,22 +17,12 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 interface HomepageSectionCardProps {
   section: HomepageSection;
   dragHandleProps?: Record<string, unknown>;
   isDragging?: boolean;
-}
-
-function displayPreview(section: HomepageSection): string {
-  const parts = [
-    `${section.columns} ${section.columns === 1 ? "column" : "columns"}`,
-    section.imageMode ? "Natural" : "Cropped",
-  ];
-  if (section.columns === 2) parts.push(section.imageLayout === "side" ? "Side" : "Above");
-  return parts.join(" · ");
 }
 
 export function HomepageSectionCard({
@@ -44,8 +32,6 @@ export function HomepageSectionCard({
   const [editing, setEditing] = useState(false);
   const update = useUpdateHomepageSection();
   const remove = useDeleteHomepageSection();
-
-  const breakdown = conditionsBreakdown(section.conditions);
 
   function startEditing() {
     setEditing(true);
@@ -150,55 +136,10 @@ export function HomepageSectionCard({
             />
           )
           : (
-            <>
-              {section.description
-                ? <p className="text-sm text-muted-foreground">{section.description}</p>
-                : null}
-
-              <CollapsibleFormSection
-                title="Display"
-                description="How this section's bookmarks are laid out on the homepage."
-                preview={displayPreview(section)}
-              >
-                <SectionDisplayControls
-                  idPrefix={`view-${section.id}`}
-                  columns={section.columns}
-                  imageMode={section.imageMode}
-                  imageLayout={section.imageLayout}
-                  onColumnsChange={columns => patchDisplay({
-                    columns,
-                  })}
-                  onImageModeChange={imageMode => patchDisplay({
-                    imageMode,
-                  })}
-                  onImageLayoutChange={imageLayout => patchDisplay({
-                    imageLayout,
-                  })}
-                />
-              </CollapsibleFormSection>
-
-              <Separator />
-
-              <CollapsibleFormSection
-                title="Filter"
-                description="The bookmarks shown in this section — use Edit to change them."
-                preview={conditionsSummaryLabel(section.conditions)}
-              >
-                {breakdown.length === 0
-                  ? (
-                    <p className="text-sm text-muted-foreground">
-                      No conditions yet — use Edit to choose which bookmarks appear here.
-                    </p>
-                  )
-                  : (
-                    <ul className="space-y-1 text-sm text-muted-foreground">
-                      {breakdown.map(line => (
-                        <li key={line}>{line}</li>
-                      ))}
-                    </ul>
-                  )}
-              </CollapsibleFormSection>
-            </>
+            <HomepageSectionView
+              section={section}
+              onPatchDisplay={patchDisplay}
+            />
           )}
       </CollapsibleContent>
     </Collapsible>

@@ -1,24 +1,14 @@
-import type { BookmarkImageVisibility, HomepageSectionImageLayout } from "../lib/bookmarkColumns";
+import type { HomepageSectionImageLayout } from "../lib/bookmarkColumns";
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
 import type { Bookmark, Category, CustomProperty, MediaType, PropertyGroup, TagNode, YouTubeChannel } from "@eesimple/types";
 import type { ReactNode } from "react";
 
-import { TriangleAlert } from "lucide-react";
-
-import { AddBookmarkCollapsible } from "./AddBookmarkCollapsible";
-import { BookmarkCard } from "./BookmarkCard";
-import { ColumnsSwitcher } from "./ColumnsSwitcher";
+import { BookmarkListPane } from "./BookmarkListPane";
 import { FilterSidebar } from "./FilterSidebar";
-import { ImageLayoutSwitcher } from "./ImageLayoutSwitcher";
-import { ImageModeSwitcher } from "./ImageModeSwitcher";
+import { UnassignedPropertiesWarning } from "./UnassignedPropertiesWarning";
 import { useIsMobile } from "../hooks/use-mobile";
-import { useDeleteBookmark } from "../hooks/useBookmarks";
-import { COLUMN_CLASS, DEFAULT_BOOKMARK_IMAGE_LAYOUT, useBookmarkColumns, useBookmarkImageMode, useBookmarkImageVisibility } from "../lib/bookmarkColumns";
-import { bookmarkMatchesSearch, hasAnyActiveFilter } from "../lib/bookmarkSearch";
+import { DEFAULT_BOOKMARK_IMAGE_LAYOUT, useBookmarkColumns, useBookmarkImageMode, useBookmarkImageVisibility } from "../lib/bookmarkColumns";
 import { useUiStore } from "../stores/uiStore";
-
-import { RowCard } from "@/components/ui/card";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface BookmarkSearchViewProps {
   /** Page heading area rendered above the two-column body. */
@@ -76,7 +66,6 @@ export function BookmarkSearchView({
   noMatchMessage,
   addFormCategoryId,
 }: BookmarkSearchViewProps) {
-  const deleteBookmark = useDeleteBookmark();
   const columns = useBookmarkColumns(pageKey);
   const imageMode = useBookmarkImageMode(pageKey);
   const imageVisibility = useBookmarkImageVisibility(pageKey);
@@ -90,9 +79,6 @@ export function BookmarkSearchView({
   const imageLeft = (columns === 1 || columns === 2) && imageLayout === "side";
   const setBookmarkImageLayout = useUiStore(state => state.setBookmarkImageLayout);
 
-  const visibleBookmarks = bookmarks.filter(bookmark => bookmarkMatchesSearch(bookmark, search));
-  const hasActiveFilters = hasAnyActiveFilter(search);
-
   const unassignedProperties = categories
     ? properties.filter(property => property.categoryIds.length === 0)
     : [];
@@ -101,27 +87,7 @@ export function BookmarkSearchView({
     <section className="space-y-8">
       {header}
 
-      {unassignedProperties.length > 0
-        ? (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span
-                className="
-                  inline-flex items-center gap-1.5 text-xs text-destructive
-                "
-              >
-                <TriangleAlert className="size-4 shrink-0" />
-                {unassignedProperties.length === 1
-                  ? "1 property without a category"
-                  : `${unassignedProperties.length} properties without a category`}
-              </span>
-            </TooltipTrigger>
-            <TooltipContent>
-              {unassignedProperties.map(property => property.name).join(", ")}
-            </TooltipContent>
-          </Tooltip>
-        )
-        : null}
+      <UnassignedPropertiesWarning properties={unassignedProperties} />
 
       <div
         className="
@@ -141,75 +107,24 @@ export function BookmarkSearchView({
           onSearchChange={onSearchChange}
         />
 
-        <div className="space-y-6">
-          <AddBookmarkCollapsible lockedCategoryId={addFormCategoryId} />
-
-          <BookmarkListControls
-            pageKey={pageKey}
-            columns={columns}
-            imageVisibility={imageVisibility}
-            imageLayout={imageLayout}
-            onImageLayoutChange={layout => setBookmarkImageLayout(pageKey, layout)}
-          />
-
-          <div
-            className={`
-              grid gap-3
-              ${COLUMN_CLASS[columns]}
-            `}
-          >
-            {isLoading ? <p className="text-muted-foreground">Loading bookmarks…</p> : null}
-            {error ? <p className="text-destructive">{error.message}</p> : null}
-            {!isLoading && visibleBookmarks.length === 0
-              ? (
-                <p className="text-muted-foreground">
-                  {hasActiveFilters ? noMatchMessage : emptyMessage}
-                </p>
-              )
-              : null}
-            {visibleBookmarks.map(bookmark => (
-              <RowCard
-                key={bookmark.id}
-                className="p-4"
-              >
-                <BookmarkCard
-                  bookmark={bookmark}
-                  properties={properties}
-                  onDelete={id => deleteBookmark.mutate(id)}
-                  imageLeft={imageLeft}
-                  maintainImageAspectRatio={imageMode}
-                  imageVisibility={imageVisibility}
-                />
-              </RowCard>
-            ))}
-          </div>
-        </div>
+        <BookmarkListPane
+          pageKey={pageKey}
+          columns={columns}
+          imageVisibility={imageVisibility}
+          imageLayout={imageLayout}
+          onImageLayoutChange={layout => setBookmarkImageLayout(pageKey, layout)}
+          imageLeft={imageLeft}
+          imageMode={imageMode}
+          bookmarks={bookmarks}
+          properties={properties}
+          search={search}
+          isLoading={isLoading}
+          error={error}
+          emptyMessage={emptyMessage}
+          noMatchMessage={noMatchMessage}
+          addFormCategoryId={addFormCategoryId}
+        />
       </div>
     </section>
-  );
-}
-
-interface BookmarkListControlsProps {
-  pageKey: string;
-  columns: number;
-  imageVisibility: BookmarkImageVisibility;
-  imageLayout: HomepageSectionImageLayout;
-  onImageLayoutChange: (layout: HomepageSectionImageLayout) => void;
-}
-
-function BookmarkListControls({
-  pageKey, columns, imageVisibility, imageLayout, onImageLayoutChange,
-}: BookmarkListControlsProps) {
-  return (
-    <div className="flex justify-end gap-4">
-      <ColumnsSwitcher pageKey={pageKey} />
-      {imageVisibility === "shown" && (columns === 1 || columns === 2) && (
-        <ImageLayoutSwitcher
-          layout={imageLayout}
-          onLayoutChange={onImageLayoutChange}
-        />
-      )}
-      <ImageModeSwitcher pageKey={pageKey} />
-    </div>
   );
 }

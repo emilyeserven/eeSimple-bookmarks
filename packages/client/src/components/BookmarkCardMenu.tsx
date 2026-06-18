@@ -1,0 +1,218 @@
+import type { Bookmark, CustomProperty } from "@eesimple/types";
+
+import { useEffect, useState } from "react";
+
+import { Link } from "@tanstack/react-router";
+import { Sparkles } from "lucide-react";
+
+import { DateTimePicker } from "./DateTimePicker";
+import { useEditPanelClick } from "./panel/useEditPanelClick";
+
+import {
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
+import { useUiStore } from "@/stores/uiStore";
+
+const IMAGE_GRAB_ERROR_LABELS: Record<string, string> = {
+  no_image: "No preview image on this page",
+  bad_image: "Preview image couldn't be loaded",
+  blocked: "Access to this page was blocked",
+  server_error: "Site returned a server error",
+  fetch_error: "Page couldn't be reached",
+};
+
+interface CardNumberPropertyEditorProps {
+  property: CustomProperty;
+  inputId: string;
+  /** The bookmark's current value for this property, or `undefined` when unset. */
+  current: number | undefined;
+  /** Commit a new numeric value (called on blur / Enter, only when it changed). */
+  onCommit: (value: number) => void;
+}
+
+/** A labelled number input rendered inside the card's "More" menu (keystrokes stay out of the menu). */
+function CardNumberPropertyEditor({
+  property, inputId, current, onCommit,
+}: CardNumberPropertyEditorProps) {
+  const [draft, setDraft] = useState(current === undefined ? "" : String(current));
+
+  // Re-seed when the saved value changes (e.g. after a successful save or external update).
+  useEffect(() => {
+    setDraft(current === undefined ? "" : String(current));
+  }, [current]);
+
+  function commit() {
+    const trimmed = draft.trim();
+    if (trimmed === "") return;
+    const next = Number(trimmed);
+    if (Number.isNaN(next) || next === current) return;
+    onCommit(next);
+  }
+
+  return (
+    <div className="px-2 py-1.5">
+      <Label
+        htmlFor={inputId}
+        className="text-xs text-muted-foreground"
+      >
+        {property.name}
+        {property.unitPlural ? ` (${property.unitPlural})` : ""}
+      </Label>
+      <Input
+        id={inputId}
+        type="number"
+        className="mt-1 h-8"
+        value={draft}
+        onChange={event => setDraft(event.target.value)}
+        onBlur={commit}
+        // Keep typing (digits, space, arrows) from reaching the menu's typeahead/navigation.
+        onKeyDown={(event) => {
+          event.stopPropagation();
+          if (event.key === "Enter") {
+            event.preventDefault();
+            commit();
+          }
+        }}
+      />
+    </div>
+  );
+}
+
+interface BookmarkCardMenuProps {
+  bookmark: Bookmark;
+  /** Properties opted into inline editing that apply to the bookmark's category. */
+  editableProperties: CustomProperty[];
+  autoImagePending: boolean;
+  onAutoImage: () => void;
+  onSaveNumber: (propertyId: string, value: number) => void;
+  onSaveBoolean: (propertyId: string, value: boolean) => void;
+  onSaveDateTime: (propertyId: string, value: string) => void;
+  onDelete?: (id: string) => void;
+}
+
+/** The dropdown menu content for a bookmark card: edit link, quick-edit properties, image grab, delete. */
+export function BookmarkCardMenu({
+  bookmark, editableProperties, autoImagePending, onAutoImage,
+  onSaveNumber, onSaveBoolean, onSaveDateTime, onDelete,
+}: BookmarkCardMenuProps) {
+  const editClick = useEditPanelClick();
+  const modifier = useUiStore(state => state.sidebarOpenModifier);
+
+  return (
+    <DropdownMenuContent align="end">
+      <DropdownMenuItem asChild>
+        <Link
+          to="/bookmarks/$bookmarkId/edit"
+          params={{
+            bookmarkId: bookmark.id,
+          }}
+          title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+          onClick={event => editClick(event, "bookmark", bookmark.id)}
+        >
+          Edit
+        </Link>
+      </DropdownMenuItem>
+      {editableProperties.length > 0
+        ? (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel className="text-xs text-muted-foreground">
+              Quick edit
+            </DropdownMenuLabel>
+            {editableProperties.map((property) => {
+              if (property.type === "boolean") {
+                const checked
+                  = bookmark.booleanValues.find(entry => entry.propertyId === property.id)?.value
+                    ?? false;
+                return (
+                  <DropdownMenuCheckboxItem
+                    key={property.id}
+                    checked={checked}
+                    // Keep the menu open so several values can be edited in one go.
+                    onSelect={event => event.preventDefault()}
+                    onCheckedChange={value => onSaveBoolean(property.id, value === true)}
+                  >
+                    {property.name}
+                  </DropdownMenuCheckboxItem>
+                );
+              }
+              if (property.type === "datetime") {
+                const current
+                  = bookmark.dateTimeValues.find(entry => entry.propertyId === property.id)?.value
+                    ?? null;
+                return (
+                  <div
+                    key={property.id}
+                    className="px-2 py-1.5"
+                    // Keep keystrokes/clicks inside the picker from reaching the menu.
+                    onKeyDown={event => event.stopPropagation()}
+                  >
+                    <Label className="text-xs text-muted-foreground">{property.name}</Label>
+                    <div className="mt-1">
+                      <DateTimePicker
+                        format={property.dateTimeFormat ?? "date"}
+                        value={current}
+                        onChange={value => onSaveDateTime(property.id, value ?? "")}
+                      />
+                    </div>
+                  </div>
+                );
+              }
+              return (
+                <CardNumberPropertyEditor
+                  key={property.id}
+                  property={property}
+                  inputId={`card-${bookmark.id}-property-${property.id}`}
+                  current={
+                    bookmark.numberValues.find(entry => entry.propertyId === property.id)?.value
+                  }
+                  onCommit={value => onSaveNumber(property.id, value)}
+                />
+              );
+            })}
+          </>
+        )
+        : null}
+      <DropdownMenuSeparator />
+      <DropdownMenuItem
+        disabled={autoImagePending || bookmark.imageAutoGrabError !== null}
+        onClick={onAutoImage}
+      >
+        <div className="flex flex-col gap-0.5">
+          <span className="flex items-center">
+            <Sparkles className="mr-2 size-4" />
+            Get page image
+          </span>
+          {bookmark.imageAutoGrabError && (
+            <span className="ml-6 text-xs text-muted-foreground">
+              {IMAGE_GRAB_ERROR_LABELS[bookmark.imageAutoGrabError] ?? "Could not fetch a preview image"}
+            </span>
+          )}
+        </div>
+      </DropdownMenuItem>
+      {onDelete
+        ? (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="
+                text-destructive
+                focus:text-destructive
+              "
+              onClick={() => onDelete(bookmark.id)}
+            >
+              Delete
+            </DropdownMenuItem>
+          </>
+        )
+        : null}
+    </DropdownMenuContent>
+  );
+}

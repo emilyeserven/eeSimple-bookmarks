@@ -5,21 +5,13 @@ import { useState } from "react";
 import { propertyAppliesToCategory } from "@eesimple/types";
 
 import { NO_CATEGORY, RulePropertyFields } from "./AutofillRuleForm";
-import { TagPicker } from "./TagPicker";
+import { AutofillRulePrefillPickers } from "./AutofillRulePrefillPickers";
 import { useUpdateAutofillRule } from "../hooks/useAutofill";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useTagTree } from "../hooks/useTags";
 
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 interface Props {
   rule: AutofillRule;
@@ -107,41 +99,16 @@ export function AutofillRulePrefillForm({
 
   return (
     <div className="space-y-4">
-      <div className="space-y-1">
-        <Label>Set category</Label>
-        <Select
-          value={setCategoryId}
-          onValueChange={setSetCategoryId}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={NO_CATEGORY}>— Leave unchanged —</SelectItem>
-            {categories.map(c => (
-              <SelectItem
-                key={c.id}
-                value={c.id}
-              >{c.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-1">
-        <Label>Apply tags</Label>
-        <div className="rounded-md border p-2">
-          <TagPicker
-            tree={tagTree}
-            selectedIds={tagIds}
-            onToggle={(id) => {
-              setTagIds(current =>
-                current.includes(id) ? current.filter(t => t !== id) : [...current, id]);
-            }}
-          />
-        </div>
-      </div>
+      <AutofillRulePrefillPickers
+        categories={categories}
+        tagTree={tagTree}
+        setCategoryId={setCategoryId}
+        onCategoryChange={setSetCategoryId}
+        tagIds={tagIds}
+        onToggleTag={id =>
+          setTagIds(current =>
+            current.includes(id) ? current.filter(t => t !== id) : [...current, id])}
+      />
 
       <RulePropertyFields
         categoryId={setCategoryId === NO_CATEGORY ? "" : setCategoryId}

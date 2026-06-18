@@ -6,10 +6,7 @@ import { emptyConditionTree } from "@eesimple/types";
 
 import { ConditionsField } from "./conditions/ConditionsField";
 import { PreviewBookmarksSection } from "./PreviewBookmarksSection";
-import { useUpdateAutofillRule } from "../hooks/useAutofill";
-import { useCategories } from "../hooks/useCategories";
-import { useCustomProperties } from "../hooks/useCustomProperties";
-import { useTagTree } from "../hooks/useTags";
+import { useAutofillRuleFormData } from "./useAutofillRuleFormData";
 import { autofillConditionsValidator } from "../lib/conditionsSchema";
 
 import { LabeledSection } from "@/components/LabeledSection";
@@ -25,15 +22,8 @@ export function AutofillRuleConditionsForm({
   rule,
 }: Props) {
   const {
-    data: categories = [],
-  } = useCategories();
-  const {
-    data: properties = [],
-  } = useCustomProperties();
-  const {
-    data: tagTree = [],
-  } = useTagTree();
-  const updateRule = useUpdateAutofillRule();
+    categories, properties, tagTree, updateRule,
+  } = useAutofillRuleFormData();
 
   const [conditions, setConditions] = useState<ConditionTree>(rule.conditions ?? emptyConditionTree());
   const [conditionsError, setConditionsError] = useState<string | null>(null);
