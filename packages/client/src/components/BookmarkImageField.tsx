@@ -17,6 +17,8 @@ interface BookmarkImageFieldProps {
   pageUrl: string;
   /** Reports the chosen image intent up to the form, which applies it after the bookmark saves. */
   onChange: (intent: ImageIntent) => void;
+  /** When true, the control starts in auto-fetch mode (shows "Fetched on save"). */
+  defaultAuto?: boolean;
 }
 
 /**
@@ -25,10 +27,10 @@ interface BookmarkImageFieldProps {
  * it reports an intent the form applies once the bookmark has an id (so it works for create + edit).
  */
 export function BookmarkImageField({
-  existingImageUrl, pageUrl, onChange,
+  existingImageUrl, pageUrl, onChange, defaultAuto,
 }: BookmarkImageFieldProps) {
   const [file, setFile] = useState<File | null>(null);
-  const [auto, setAuto] = useState(false);
+  const [auto, setAuto] = useState(defaultAuto ?? false);
   const [remove, setRemove] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   // Track drag nesting so moving the pointer over a child element doesn't flicker the highlight off.

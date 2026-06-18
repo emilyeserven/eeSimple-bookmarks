@@ -1,11 +1,10 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 
-import { TabbedEntityLayout, navLinkClass } from "../components/TabbedEntityLayout";
+import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useDeleteWebsite, useWebsiteBySlug } from "../hooks/useWebsites";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/taxonomies/websites/$websiteSlug/_view")({
   component: WebsiteViewLayout,
@@ -98,31 +97,11 @@ function WebsiteViewLayout() {
           </div>
         </div>
       )}
-      nav={(
-        <nav
-          className="
-            flex shrink-0 flex-col gap-1
-            sm:w-48
-          "
-          aria-label="Website sections"
-        >
-          {viewNav.map(item => (
-            <Link
-              key={item.to}
-              to={item.to}
-              params={{
-                websiteSlug,
-              }}
-              className={cn(navLinkClass)}
-              activeProps={{
-                className: "bg-accent text-accent-foreground",
-              }}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-      )}
+      nav={viewNav}
+      params={{
+        websiteSlug,
+      }}
+      navAriaLabel="Website sections"
     />
   );
 }

@@ -86,20 +86,11 @@ export function WebsiteGeneralForm({
       {!website.builtIn
         ? (
           <form.AppForm>
-            <form.Subscribe selector={state => state.values}>
-              {(values) => {
-                const dirty
-                  = values.siteName.trim() !== website.siteName
-                    || values.domain.trim() !== website.domain;
-                return (
-                  <form.SubmitButton
-                    label="Save changes"
-                    size="sm"
-                    disabledWhen={!dirty}
-                  />
-                );
-              }}
-            </form.Subscribe>
+            <form.SubmitButton
+              label="Save changes"
+              size="sm"
+              requireDirty
+            />
           </form.AppForm>
         )
         : null}
