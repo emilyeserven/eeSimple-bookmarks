@@ -44,14 +44,12 @@ function YouTubeChannelEditPage() {
             </Link>
             <h1 className="text-2xl font-bold">Edit channel</h1>
           </div>
-          <div className="rounded-lg border bg-card p-4">
-            <YouTubeChannelRow
-              channel={ch}
-              onSaved={() => navigate({
-                to: "/taxonomies/youtube-channels",
-              })}
-            />
-          </div>
+          <YouTubeChannelRow
+            channel={ch}
+            onSaved={() => navigate({
+              to: "/taxonomies/youtube-channels",
+            })}
+          />
         </section>
       )}
     </TaxonomyDetailLayout>
