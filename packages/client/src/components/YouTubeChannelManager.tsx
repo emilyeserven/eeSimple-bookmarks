@@ -11,6 +11,7 @@ import { useUpdateYouTubeChannel, useYouTubeChannels } from "../hooks/useYouTube
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { RowCard } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -173,11 +174,10 @@ export function YouTubeChannelManager() {
         ? (
           <ul className="space-y-3">
             {channels.map(channel => (
-              <li
-                key={channel.id}
-                className="rounded-lg border bg-card p-4"
-              >
-                <YouTubeChannelRow channel={channel} />
+              <li key={channel.id}>
+                <RowCard className="p-4">
+                  <YouTubeChannelRow channel={channel} />
+                </RowCard>
               </li>
             ))}
           </ul>
@@ -233,54 +233,53 @@ export function YouTubeChannelsListing() {
         ? (
           <ul className="space-y-2">
             {filtered.map(channel => (
-              <li
-                key={channel.id}
-                className="group relative rounded-lg border bg-card"
-              >
-                <Link
-                  to="/taxonomies/youtube-channels/$channelSlug"
-                  params={{
-                    channelSlug: channel.slug,
-                  }}
-                  title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-                  onClick={event => viewClick(event, "youtube-channel", channel.id)}
-                  className="
-                    flex items-center gap-3 rounded-lg p-4 pr-12
-                    transition-colors
-                    hover:bg-accent
-                  "
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium">{channel.name}</p>
-                    <p className="truncate text-sm text-muted-foreground">{channel.channelKey}</p>
-                  </div>
-                  {channel.bookmarkCount !== undefined
-                    ? <Badge variant="secondary">{channel.bookmarkCount}</Badge>
-                    : null}
-                </Link>
-                <Button
-                  asChild
-                  variant="ghost"
-                  size="icon"
-                  className="
-                    absolute top-1/2 right-2 -translate-y-1/2 opacity-0
-                    transition-opacity
-                    group-hover:opacity-100
-                    focus-visible:opacity-100
-                  "
-                >
+              <li key={channel.id}>
+                <RowCard className="group relative">
                   <Link
-                    to="/taxonomies/youtube-channels/$channelSlug/edit"
+                    to="/taxonomies/youtube-channels/$channelSlug"
                     params={{
                       channelSlug: channel.slug,
                     }}
-                    title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-                    onClick={event => editClick(event, "youtube-channel", channel.id)}
+                    title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+                    onClick={event => viewClick(event, "youtube-channel", channel.id)}
+                    className="
+                      flex items-center gap-3 rounded-lg p-4 pr-12
+                      transition-colors
+                      hover:bg-accent
+                    "
                   >
-                    <Pencil className="size-4" />
-                    <span className="sr-only">Edit {channel.name}</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium">{channel.name}</p>
+                      <p className="truncate text-sm text-muted-foreground">{channel.channelKey}</p>
+                    </div>
+                    {channel.bookmarkCount !== undefined
+                      ? <Badge variant="secondary">{channel.bookmarkCount}</Badge>
+                      : null}
                   </Link>
-                </Button>
+                  <Button
+                    asChild
+                    variant="ghost"
+                    size="icon"
+                    className="
+                      absolute top-1/2 right-2 -translate-y-1/2 opacity-0
+                      transition-opacity
+                      group-hover:opacity-100
+                      focus-visible:opacity-100
+                    "
+                  >
+                    <Link
+                      to="/taxonomies/youtube-channels/$channelSlug/edit"
+                      params={{
+                        channelSlug: channel.slug,
+                      }}
+                      title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+                      onClick={event => editClick(event, "youtube-channel", channel.id)}
+                    >
+                      <Pencil className="size-4" />
+                      <span className="sr-only">Edit {channel.name}</span>
+                    </Link>
+                  </Button>
+                </RowCard>
               </li>
             ))}
           </ul>

@@ -95,10 +95,15 @@ that matches the surface — don't invent a new structure for a one-off page.
 - **Flat no-tab detail wrapper** (`packages/client/src/components/TaxonomyDetailLayout.tsx`) — a
   loading/error/not-found wrapper that renders its children flat (a `LabeledSection` stack), no
   tabs. Used by Autofill rules.
-- **Card boxes** — two coexisting mechanisms, both for **list/row** surfaces, never for detail/edit
-  page content: (a) inline `rounded-lg border bg-card` for manager/list rows (`CategoryManager`,
-  `WebsiteManager`, `CategoryPreviewCard`'s row variant); (b) the shadcn `<Card>` component
-  (`DisplaySettings.tsx`).
+- **Card boxes** — two distinct uses of the card token, never for detail/edit page content:
+  - **List/row cards**: use `<RowCard>` from `@/components/ui/card` (renders `rounded-lg border
+    bg-card`). Pass padding (`p-4`) or layout utilities (`group relative`) via `className`. Used in
+    `CategoryManager`, `WebsiteManager`, `MediaTypeManager`, `YouTubeChannelManager`,
+    `CategoryPreviewCard` (row variant), `BookmarkSearchView`, `HomepageSectionBlock`,
+    `CustomPropertyManager`, `AutofillRulesList`.
+  - **Settings panels**: use the shadcn `<Card>` with `<CardHeader>`, `<CardContent>`, etc.
+    (`DisplaySettings`, `SidebarSettings`, `AutomationsSettings`, `LinkParsingSettings`,
+    `HomepageSectionsSettings`).
 - **URL-driven right panel** (`packages/client/src/components/panel/` — `RightPanel.tsx`,
   `PanelContent.tsx`, `contentTypes.tsx`) — URL-driven (`dOpen`/`dCT`/`dCId`/`dMode`): content-type
   tiles → searchable list → view/edit. It must achieve **feature and component parity** with the
@@ -112,8 +117,6 @@ that matches the surface — don't invent a new structure for a one-off page.
 
 - Single-tab entities (Tags, YouTube Channels, Media Types) use the full tabbed shell for a single
   "General" tab.
-- Two card mechanisms coexist (inline `rounded-lg border bg-card` vs. the shadcn `<Card>`) —
-  unification is tracked as a follow-up.
 
 ## Generated files (do not edit)
 
