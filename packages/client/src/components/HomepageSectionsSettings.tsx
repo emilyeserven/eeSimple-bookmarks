@@ -174,6 +174,7 @@ export function HomepageSectionsSettings() {
                       title: values.title,
                       description: values.description,
                       conditions: values.conditions,
+                      hideIfEmpty: values.hideIfEmpty,
                     },
                     {
                       onSuccess: () => setAddingNew(false),
