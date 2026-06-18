@@ -31,9 +31,9 @@ export function useCreateCustomProperty() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: CreateCustomPropertyInput) => customPropertiesApi.create(input),
-    onSuccess: () => queryClient.invalidateQueries({
-      queryKey: PROPERTIES_KEY,
-    }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: PROPERTIES_KEY });
+    },
   });
 }
 
