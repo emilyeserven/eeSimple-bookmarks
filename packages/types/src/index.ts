@@ -163,6 +163,8 @@ export interface AppSettings {
   bookmarkQuickAddWidth: HomepageContentWidth;
   /** Whether Quick Add is collapsible or always expanded on the homepage. */
   bookmarkQuickAddDisplay: QuickAddDisplay;
+  /** When true, the default "Homepage" title and description are hidden on the homepage. */
+  homepageHeaderHidden: boolean;
 }
 
 /** The subset of {@link AppSettings} that drives homepage content (read/written together). */
@@ -172,6 +174,8 @@ export interface HomepageContentSettings {
   bookmarkQuickAddEnabled: boolean;
   bookmarkQuickAddWidth: HomepageContentWidth;
   bookmarkQuickAddDisplay: QuickAddDisplay;
+  /** When true, the default "Homepage" title and description are hidden on the homepage. */
+  homepageHeaderHidden: boolean;
 }
 
 /** Payload for replacing the homepage content settings. */

@@ -11,6 +11,7 @@ const settings: HomepageContent = {
   bookmarkQuickAddEnabled: false,
   bookmarkQuickAddWidth: "full",
   bookmarkQuickAddDisplay: "collapsible",
+  homepageHeaderHidden: false,
 };
 
 const updateMutate = vi.fn<(input: HomepageContent, opts?: unknown) => void>();
@@ -78,9 +79,9 @@ describe("HomepageContentSettings", () => {
     fireEvent.click(screen.getByRole("radio", {
       name: "Expanded",
     }));
-    fireEvent.click(screen.getByRole("button", {
+    fireEvent.click(screen.getAllByRole("button", {
       name: "Save",
-    }));
+    })[0]);
 
     expect(updateMutate).toHaveBeenCalledTimes(1);
     const [payload] = updateMutate.mock.calls[0];

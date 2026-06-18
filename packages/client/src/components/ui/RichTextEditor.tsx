@@ -40,7 +40,11 @@ export function RichTextEditor({
   const editor = useEditor({
     editable,
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        heading: {
+          levels: [2, 3],
+        },
+      }),
       Markdown.configure({
         linkify: true,
       }),

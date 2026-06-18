@@ -173,6 +173,16 @@ const migrations: RuntimeMigration[] = [
     },
   },
   {
+    // `app_settings.homepage_header_hidden` is NOT NULL DEFAULT false. Adding a NOT NULL column to
+    // the populated singleton makes drizzle-kit push prompt — the same non-TTY crash as above — so
+    // pre-apply it here to keep push's diff additive-only.
+    name: "add app_settings.homepage_header_hidden column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "app_settings"
+        ADD COLUMN IF NOT EXISTS "homepage_header_hidden" boolean NOT NULL DEFAULT false
+    `),
+  },
+  {
     // `tags.slug` carries a global UNIQUE constraint and was added to a table that already had rows.
     // As with `autofill_rules.slug`, `drizzle-kit push` won't add a new column + unique constraint to
     // a populated table without an interactive truncation confirmation, which crashes the non-TTY

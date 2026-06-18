@@ -29,6 +29,7 @@ const homepageContentBody = {
     "bookmarkQuickAddEnabled",
     "bookmarkQuickAddWidth",
     "bookmarkQuickAddDisplay",
+    "homepageHeaderHidden",
   ],
   additionalProperties: false,
   properties: {
@@ -49,6 +50,9 @@ const homepageContentBody = {
     bookmarkQuickAddDisplay: {
       type: "string",
       enum: ["collapsible", "expanded"],
+    },
+    homepageHeaderHidden: {
+      type: "boolean",
     },
   },
 } as const;

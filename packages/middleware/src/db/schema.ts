@@ -478,6 +478,8 @@ export const appSettings = pgTable("app_settings", {
   bookmarkQuickAddWidth: text("bookmark_quick_add_width").notNull().default("full"),
   // How the homepage Quick Add form is presented: "collapsible" | "expanded".
   bookmarkQuickAddDisplay: text("bookmark_quick_add_display").notNull().default("collapsible"),
+  // When true, the default "Homepage" title and description are hidden on the homepage.
+  homepageHeaderHidden: boolean("homepage_header_hidden").notNull().default(false),
 });
 
 /**
