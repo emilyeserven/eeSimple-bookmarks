@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import { bookmarkMatchesFilters } from "./customPropertyFilter";
 
-type Values = Pick<Bookmark, "numberValues" | "booleanValues">;
+type Values = Pick<Bookmark, "numberValues" | "booleanValues" | "dateTimeValues">;
 
 const bookmark: Values = {
   numberValues: [
@@ -17,6 +17,12 @@ const bookmark: Values = {
     {
       propertyId: "reviewed",
       value: true,
+    },
+  ],
+  dateTimeValues: [
+    {
+      propertyId: "due",
+      value: "2026-06-15",
     },
   ],
 };
@@ -73,6 +79,43 @@ describe("bookmarkMatchesFilters", () => {
       bookmarkMatchesFilters(bookmark, [], [{
         propertyId: "missing",
         value: true,
+      }]),
+    ).toBe(false);
+  });
+
+  it("keeps a bookmark whose date value falls within the range (inclusive, open bounds)", () => {
+    expect(
+      bookmarkMatchesFilters(bookmark, [], [], [{
+        propertyId: "due",
+        from: "2026-06-01",
+        to: "2026-06-30",
+      }]),
+    ).toBe(true);
+    expect(
+      bookmarkMatchesFilters(bookmark, [], [], [{
+        propertyId: "due",
+        from: null,
+        to: "2026-06-15",
+      }]),
+    ).toBe(true);
+  });
+
+  it("drops a bookmark whose date value is outside the range", () => {
+    expect(
+      bookmarkMatchesFilters(bookmark, [], [], [{
+        propertyId: "due",
+        from: "2026-07-01",
+        to: null,
+      }]),
+    ).toBe(false);
+  });
+
+  it("drops a bookmark that lacks a value for an active date filter", () => {
+    expect(
+      bookmarkMatchesFilters(bookmark, [], [], [{
+        propertyId: "missing",
+        from: "2026-01-01",
+        to: null,
       }]),
     ).toBe(false);
   });

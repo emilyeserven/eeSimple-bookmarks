@@ -240,13 +240,16 @@ export const customProperties = pgTable("custom_properties", {
   // applies cleanly to existing rows; the service layer backfills it at boot and always returns a
   // slug on the wire type.
   slug: text("slug"),
-  // "number" | "boolean" | "calculate" — kept as text so new kinds can be added later.
+  // "number" | "boolean" | "calculate" | "datetime" — kept as text so new kinds can be added later.
   type: text("type").notNull(),
   // The built-in "Video Length" property; built-ins cannot be renamed, retyped, or deleted.
   builtIn: boolean("built_in").notNull().default(false),
   // How a number/calculate value is rendered: "plain" (default) or "duration" (seconds → H:MM:SS).
   // Nullable/text so it's an additive, push-safe column and new formats can be added later.
   numberFormat: text("number_format"),
+  // What a `datetime` property captures: "date" | "time" | "datetime". NULL for non-datetime types.
+  // Nullable/text so it's an additive, push-safe column.
+  dateTimeFormat: text("date_time_format"),
   // Free-text description surfaced as a hint where the property's field is rendered.
   description: text("description"),
   // Range-slider bounds for a `number`/`calculate` property; NULL means no bound / derive from data.
@@ -303,6 +306,23 @@ export const bookmarkBooleanValues = pgTable("bookmark_boolean_values", {
     onDelete: "cascade",
   }),
   value: boolean("value").notNull(),
+}, table => [
+  primaryKey({
+    columns: [table.bookmarkId, table.propertyId],
+  }),
+]);
+
+/** `bookmark_datetime_values` — one date/time value per (bookmark, datetime property). */
+export const bookmarkDateTimeValues = pgTable("bookmark_datetime_values", {
+  bookmarkId: uuid("bookmark_id").notNull().references(() => bookmarks.id, {
+    onDelete: "cascade",
+  }),
+  propertyId: uuid("property_id").notNull().references(() => customProperties.id, {
+    onDelete: "cascade",
+  }),
+  // Canonical string encoding for the property's DateTimeFormat:
+  // "YYYY-MM-DD" | "HH:MM" | "YYYY-MM-DDTHH:MM" (chosen so it sorts lexicographically).
+  value: text("value").notNull(),
 }, table => [
   primaryKey({
     columns: [table.bookmarkId, table.propertyId],

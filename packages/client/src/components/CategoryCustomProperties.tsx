@@ -17,6 +17,7 @@ const TYPE_LABELS: Record<CustomPropertyType, string> = {
   number: "Number",
   boolean: "Boolean",
   calculate: "Calculate (Sum)",
+  datetime: "Date / Time",
 };
 
 interface CategoryCustomPropertiesProps {

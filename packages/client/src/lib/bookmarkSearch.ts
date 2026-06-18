@@ -16,6 +16,8 @@ export interface BookmarkSearch {
   categories?: string[];
   num?: Record<string, [number, number]>;
   bool?: Record<string, boolean>;
+  /** `[from, to]` date/time range bounds (canonical strings, either `null`) keyed by property id. */
+  date?: Record<string, [string | null, string | null]>;
   /** Filter bookmarks by whether a property value is present or absent, keyed by property id. */
   presence?: Record<string, "has" | "missing">;
 }
@@ -59,6 +61,23 @@ export function validateBookmarkSearch(search: Record<string, unknown>): Bookmar
     if (Object.keys(bool).length > 0) result.bool = bool;
   }
 
+  if (search.date !== null && typeof search.date === "object") {
+    const date: Record<string, [string | null, string | null]> = {};
+    for (const [key, value] of Object.entries(search.date as Record<string, unknown>)) {
+      if (
+        Array.isArray(value)
+        && value.length === 2
+        && (typeof value[0] === "string" || value[0] === null)
+        && (typeof value[1] === "string" || value[1] === null)
+        // Drop an all-null entry: it's not an active filter.
+        && (value[0] !== null || value[1] !== null)
+      ) {
+        date[key] = [value[0], value[1]];
+      }
+    }
+    if (Object.keys(date).length > 0) result.date = date;
+  }
+
   if (search.presence !== null && typeof search.presence === "object") {
     const presence: Record<string, "has" | "missing"> = {};
     for (const [key, value] of Object.entries(search.presence as Record<string, unknown>)) {
@@ -72,7 +91,7 @@ export function validateBookmarkSearch(search: Record<string, unknown>): Bookmar
 
 /** Whether a bookmark satisfies every active filter in `search`. */
 export function bookmarkMatchesSearch(
-  bookmark: Pick<Bookmark, "categoryId" | "tags" | "numberValues" | "booleanValues">,
+  bookmark: Pick<Bookmark, "categoryId" | "tags" | "numberValues" | "booleanValues" | "dateTimeValues">,
   search: BookmarkSearch,
 ): boolean {
   if (
@@ -89,7 +108,8 @@ export function bookmarkMatchesSearch(
   for (const [propertyId, mode] of Object.entries(search.presence ?? {})) {
     const hasNum = bookmark.numberValues.some(v => v.propertyId === propertyId);
     const hasBool = bookmark.booleanValues.some(v => v.propertyId === propertyId);
-    const hasValue = hasNum || hasBool;
+    const hasDate = bookmark.dateTimeValues.some(v => v.propertyId === propertyId);
+    const hasValue = hasNum || hasBool || hasDate;
     if (mode === "has" && !hasValue) return false;
     if (mode === "missing" && hasValue) return false;
   }
@@ -103,7 +123,12 @@ export function bookmarkMatchesSearch(
     propertyId,
     value,
   }));
-  return bookmarkMatchesFilters(bookmark, numberFilters, booleanFilters);
+  const dateTimeFilters = Object.entries(search.date ?? {}).map(([propertyId, [from, to]]) => ({
+    propertyId,
+    from,
+    to,
+  }));
+  return bookmarkMatchesFilters(bookmark, numberFilters, booleanFilters, dateTimeFilters);
 }
 
 /** Set or clear (when `value` is undefined) a keyed entry, returning a new record or undefined. */
@@ -198,5 +223,21 @@ export function withBooleanFilter(
   return {
     ...search,
     bool: patchRecord(search.bool, propertyId, value),
+  };
+}
+
+/**
+ * Return a copy of `search` with a date/time range filter set or cleared. An all-null range
+ * (both bounds empty) clears the filter rather than persisting an inactive entry.
+ */
+export function withDateTimeFilter(
+  search: BookmarkSearch,
+  propertyId: string,
+  range: [string | null, string | null] | undefined,
+): BookmarkSearch {
+  const active = range && (range[0] !== null || range[1] !== null) ? range : undefined;
+  return {
+    ...search,
+    date: patchRecord(search.date, propertyId, active),
   };
 }

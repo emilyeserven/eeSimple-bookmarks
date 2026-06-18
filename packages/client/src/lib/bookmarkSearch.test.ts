@@ -137,6 +137,10 @@ describe("bookmarkMatchesSearch", () => {
       propertyId: "p2",
       value: true,
     }],
+    dateTimeValues: [{
+      propertyId: "p3",
+      value: "2026-06-15",
+    }],
   };
 
   it("passes when no filters are active", () => {

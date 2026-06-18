@@ -3,6 +3,7 @@ import type { UrlCleanupMode } from "../lib/urlCleanup";
 import type {
   Bookmark,
   BookmarkBooleanValue,
+  BookmarkDateTimeValue,
   BookmarkNumberValue,
   CreateBookmarkInput,
   CustomProperty,
@@ -18,6 +19,7 @@ import { z } from "zod";
 
 import { BookmarkImageField } from "./BookmarkImageField";
 import { EMPTY_IMAGE_INTENT } from "./bookmarkImageIntent";
+import { DateTimePicker } from "./DateTimePicker";
 import { TagPicker } from "./TagPicker";
 import { useAutofillRules } from "../hooks/useAutofill";
 import {
@@ -125,6 +127,8 @@ export function BookmarkForm({
     Object.fromEntries((bookmark?.numberValues ?? []).map(entry => [entry.propertyId, String(entry.value)])));
   const [booleanInputs, setBooleanInputs] = useState<Record<string, boolean>>(() =>
     Object.fromEntries((bookmark?.booleanValues ?? []).map(entry => [entry.propertyId, entry.value])));
+  const [dateTimeInputs, setDateTimeInputs] = useState<Record<string, string>>(() =>
+    Object.fromEntries((bookmark?.dateTimeValues ?? []).map(entry => [entry.propertyId, entry.value])));
   const [isReportingTitle, setIsReportingTitle] = useState(false);
   const [expectedTitle, setExpectedTitle] = useState("");
   const [websiteSiteName, setWebsiteSiteName] = useState("");
@@ -138,10 +142,12 @@ export function BookmarkForm({
   const customRef = useRef({
     numberInputs,
     booleanInputs,
+    dateTimeInputs,
   });
   customRef.current = {
     numberInputs,
     booleanInputs,
+    dateTimeInputs,
   };
 
   // The image control reports its intent here; the form applies it after the bookmark is saved (so
@@ -270,7 +276,7 @@ export function BookmarkForm({
       value,
     }) => {
       const {
-        numberInputs: numbers, booleanInputs: booleans,
+        numberInputs: numbers, booleanInputs: booleans, dateTimeInputs: dateTimes,
       } = customRef.current;
       // Only persist values for properties that belong to the chosen category and are enabled.
       const categoryProps = (customProperties ?? []).filter(property =>
@@ -299,6 +305,13 @@ export function BookmarkForm({
           propertyId: property.id,
           value: booleans[property.id] ?? false,
         }));
+      const dateTimeValues: BookmarkDateTimeValue[] = categoryProps
+        .filter(property => property.type === "datetime")
+        .map(property => ({
+          propertyId: property.id,
+          value: (dateTimes[property.id] ?? "").trim(),
+        }))
+        .filter(entry => entry.value !== "");
 
       const rawUrl = value.url;
       const finalUrl = cleanUrl(rawUrl, urlCleanupModeRef.current);
@@ -314,6 +327,7 @@ export function BookmarkForm({
         tagIds: value.tagIds,
         numberValues,
         booleanValues,
+        dateTimeValues,
         priority: value.priority,
         ...(channelHintRef.current && {
           youtubeChannel: channelHintRef.current,
@@ -368,6 +382,13 @@ export function BookmarkForm({
   function handleBooleanChange(id: string, value: boolean): void {
     touchedRef.current.add(`boolean:${id}`);
     setBooleanInputs(current => ({
+      ...current,
+      [id]: value,
+    }));
+  }
+  function handleDateTimeChange(id: string, value: string): void {
+    touchedRef.current.add(`datetime:${id}`);
+    setDateTimeInputs(current => ({
       ...current,
       [id]: value,
     }));
@@ -885,8 +906,10 @@ export function BookmarkForm({
             properties={customProperties ?? []}
             numberInputs={numberInputs}
             booleanInputs={booleanInputs}
+            dateTimeInputs={dateTimeInputs}
             onNumberChange={handleNumberChange}
             onBooleanChange={handleBooleanChange}
+            onDateTimeChange={handleDateTimeChange}
           />
         )}
       </form.Subscribe>
@@ -1003,8 +1026,10 @@ export function BookmarkForm({
                   properties={customProperties ?? []}
                   numberInputs={numberInputs}
                   booleanInputs={booleanInputs}
+                  dateTimeInputs={dateTimeInputs}
                   onNumberChange={handleNumberChange}
                   onBooleanChange={handleBooleanChange}
+                  onDateTimeChange={handleDateTimeChange}
                 />
               </>
             )}
@@ -1077,13 +1102,17 @@ interface CategoryCustomFieldsProps {
   className?: string;
   numberInputs: Record<string, string>;
   booleanInputs: Record<string, boolean>;
+  dateTimeInputs: Record<string, string>;
   onNumberChange: (propertyId: string, value: string) => void;
   onBooleanChange: (propertyId: string, value: boolean) => void;
+  onDateTimeChange: (propertyId: string, value: string) => void;
 }
 
 /** Renders the custom-property inputs for the properties assigned to the chosen category. */
 function CategoryCustomFields({
-  categoryId, properties, placement, className, numberInputs, booleanInputs, onNumberChange, onBooleanChange,
+  categoryId, properties, placement, className,
+  numberInputs, booleanInputs, dateTimeInputs,
+  onNumberChange, onBooleanChange, onDateTimeChange,
 }: CategoryCustomFieldsProps) {
   const categoryProps = properties.filter((property) => {
     if (!propertyAppliesToCategory(property, categoryId)) return false;
@@ -1145,6 +1174,25 @@ function CategoryCustomFields({
                   />
                   <Label htmlFor={`property-${property.id}`}>{property.name}</Label>
                 </div>
+                {property.description
+                  ? <p className="text-xs text-muted-foreground">{property.description}</p>
+                  : null}
+              </div>
+            );
+          }
+          if (property.type === "datetime") {
+            return (
+              <div
+                key={property.id}
+                className="space-y-1"
+              >
+                <Label htmlFor={`property-${property.id}`}>{property.name}</Label>
+                <DateTimePicker
+                  id={`property-${property.id}`}
+                  format={property.dateTimeFormat ?? "date"}
+                  value={dateTimeInputs[property.id] ?? null}
+                  onChange={value => onDateTimeChange(property.id, value ?? "")}
+                />
                 {property.description
                   ? <p className="text-xs text-muted-foreground">{property.description}</p>
                   : null}

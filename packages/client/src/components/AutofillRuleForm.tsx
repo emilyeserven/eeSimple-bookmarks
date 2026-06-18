@@ -524,6 +524,7 @@ function PreviewBookmarksSection({
         tagIds: new Set(bookmark.tags.map(t => t.id)),
         numberValues: new Map(bookmark.numberValues.map(v => [v.propertyId, v.value])),
         booleanValues: new Map(bookmark.booleanValues.map(v => [v.propertyId, v.value])),
+        dateTimeValues: new Map(bookmark.dateTimeValues.map(v => [v.propertyId, v.value])),
       };
       return evaluateConditions(conditions, input, {
         tagDescendants,
@@ -583,6 +584,7 @@ function PreviewBookmarksSection({
                   tagIds: new Set(bookmark.tags.map(t => t.id)),
                   numberValues: new Map(bookmark.numberValues.map(v => [v.propertyId, v.value])),
                   booleanValues: new Map(bookmark.booleanValues.map(v => [v.propertyId, v.value])),
+                  dateTimeValues: new Map(bookmark.dateTimeValues.map(v => [v.propertyId, v.value])),
                 };
                 const matches = evaluateConditions(conditions, input, {
                   tagDescendants,

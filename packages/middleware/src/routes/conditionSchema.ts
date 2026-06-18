@@ -129,6 +129,41 @@ const booleanPredicate = {
   ],
 } as const;
 
+const dateTimePredicate = {
+  oneOf: [
+    {
+      type: "object",
+      additionalProperties: false,
+      required: ["kind", "from", "to"],
+      properties: {
+        kind: {
+          const: "range",
+        },
+        from: {
+          type: ["string", "null"],
+        },
+        to: {
+          type: ["string", "null"],
+        },
+      },
+    },
+    {
+      type: "object",
+      additionalProperties: false,
+      required: ["kind", "mode"],
+      properties: {
+        kind: {
+          const: "presence",
+        },
+        mode: {
+          type: "string",
+          enum: ["has", "missing"],
+        },
+      },
+    },
+  ],
+} as const;
+
 const propertyNode = {
   type: "object",
   additionalProperties: false,
@@ -163,6 +198,17 @@ const propertyNode = {
               const: "boolean",
             },
             predicate: booleanPredicate,
+          },
+        },
+        {
+          type: "object",
+          additionalProperties: false,
+          required: ["valueKind", "predicate"],
+          properties: {
+            valueKind: {
+              const: "datetime",
+            },
+            predicate: dateTimePredicate,
           },
         },
       ],

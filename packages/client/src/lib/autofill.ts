@@ -36,6 +36,7 @@ export function matchesRule(rule: AutofillRule, input: AutofillInput): boolean {
     tagIds: new Set(),
     numberValues: new Map(),
     booleanValues: new Map(),
+    dateTimeValues: new Map(),
   };
   return evaluateConditions(rule.conditions, projection);
 }

@@ -13,6 +13,7 @@ function makeInput(overrides: Partial<ConditionInput> = {}): ConditionInput {
     tagIds: overrides.tagIds ?? new Set<string>(),
     numberValues: overrides.numberValues ?? new Map<string, number>(),
     booleanValues: overrides.booleanValues ?? new Map<string, boolean>(),
+    dateTimeValues: overrides.dateTimeValues ?? new Map<string, string>(),
   };
 }
 
@@ -240,6 +241,76 @@ describe("evaluateConditions — property leaf", () => {
         },
       },
     }, missing)).toBe(true);
+  });
+
+  it("evaluates a datetime range inclusively and respects open bounds", () => {
+    const input = makeInput({
+      dateTimeValues: new Map([["due", "2026-06-15"]]),
+    });
+    expect(evaluateConditions({
+      type: "property",
+      propertyId: "due",
+      predicate: {
+        valueKind: "datetime",
+        predicate: {
+          kind: "range",
+          from: "2026-06-01",
+          to: "2026-06-30",
+        },
+      },
+    }, input)).toBe(true);
+    expect(evaluateConditions({
+      type: "property",
+      propertyId: "due",
+      predicate: {
+        valueKind: "datetime",
+        predicate: {
+          kind: "range",
+          from: "2026-07-01",
+          to: null,
+        },
+      },
+    }, input)).toBe(false);
+    expect(evaluateConditions({
+      type: "property",
+      propertyId: "due",
+      predicate: {
+        valueKind: "datetime",
+        predicate: {
+          kind: "range",
+          from: null,
+          to: "2026-06-15",
+        },
+      },
+    }, input)).toBe(true);
+  });
+
+  it("evaluates datetime presence", () => {
+    const has = makeInput({
+      dateTimeValues: new Map([["due", "2026-06-15"]]),
+    });
+    expect(evaluateConditions({
+      type: "property",
+      propertyId: "due",
+      predicate: {
+        valueKind: "datetime",
+        predicate: {
+          kind: "presence",
+          mode: "has",
+        },
+      },
+    }, has)).toBe(true);
+    expect(evaluateConditions({
+      type: "property",
+      propertyId: "due",
+      predicate: {
+        valueKind: "datetime",
+        predicate: {
+          kind: "presence",
+          mode: "missing",
+        },
+      },
+    }, makeInput())).toBe(true);
   });
 
   it("evaluates boolean value and presence", () => {

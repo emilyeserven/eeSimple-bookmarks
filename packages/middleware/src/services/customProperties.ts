@@ -48,6 +48,7 @@ function toCustomProperty(
     type: row.type as CustomProperty["type"],
     builtIn: row.builtIn,
     numberFormat: (row.numberFormat as CustomProperty["numberFormat"]) ?? null,
+    dateTimeFormat: (row.dateTimeFormat as CustomProperty["dateTimeFormat"]) ?? null,
     description: row.description,
     numberMin: row.numberMin,
     numberMax: row.numberMax,
@@ -206,6 +207,7 @@ export async function createCustomProperty(
         slug,
         type: input.type,
         numberFormat: input.numberFormat ?? null,
+        dateTimeFormat: input.type === "datetime" ? (input.dateTimeFormat ?? "date") : null,
         description: input.description ?? null,
         numberMin: input.numberMin ?? null,
         numberMax: input.numberMax ?? null,
@@ -276,6 +278,7 @@ export async function updateCustomProperty(
         | "name"
         | "slug"
         | "numberFormat"
+        | "dateTimeFormat"
         | "description"
         | "numberMin"
         | "numberMax"
@@ -295,6 +298,10 @@ export async function updateCustomProperty(
     if (input.name !== undefined) patch.name = input.name;
     if (renamedSlug !== undefined) patch.slug = renamedSlug;
     if (input.numberFormat !== undefined) patch.numberFormat = input.numberFormat ?? null;
+    // dateTimeFormat only applies to datetime properties; ignore it for other types.
+    if (input.dateTimeFormat !== undefined && existing.type === "datetime") {
+      patch.dateTimeFormat = input.dateTimeFormat ?? "date";
+    }
     if (input.description !== undefined) patch.description = input.description ?? null;
     if (input.numberMin !== undefined) patch.numberMin = input.numberMin;
     if (input.numberMax !== undefined) patch.numberMax = input.numberMax;

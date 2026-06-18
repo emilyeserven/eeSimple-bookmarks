@@ -101,6 +101,23 @@ const createBookmarkBody = {
         },
       },
     },
+    dateTimeValues: {
+      type: "array",
+      items: {
+        type: "object",
+        required: ["propertyId", "value"],
+        additionalProperties: false,
+        properties: {
+          propertyId: {
+            type: "string",
+            format: "uuid",
+          },
+          value: {
+            type: "string",
+          },
+        },
+      },
+    },
     priority: {
       type: "integer",
     },

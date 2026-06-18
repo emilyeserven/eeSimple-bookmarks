@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 
 import { Link } from "@tanstack/react-router";
 
-import { formatNumber } from "../lib/bookmarkFormat";
+import { formatDateTime, formatNumber } from "../lib/bookmarkFormat";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -83,7 +83,22 @@ export function BookmarkDetail({
       name: string;
       value: string; } => row !== null);
 
-  const hasProperties = numberRows.length > 0 || booleanRows.length > 0;
+  const dateTimeRows = bookmark.dateTimeValues
+    .map((entry) => {
+      const property = byId.get(entry.propertyId);
+      return property
+        ? {
+          id: entry.propertyId,
+          name: property.name,
+          value: formatDateTime(entry.value, property),
+        }
+        : null;
+    })
+    .filter((row): row is { id: string;
+      name: string;
+      value: string; } => row !== null);
+
+  const hasProperties = numberRows.length > 0 || booleanRows.length > 0 || dateTimeRows.length > 0;
 
   return (
     <div className="@container space-y-6">
@@ -248,6 +263,18 @@ export function BookmarkDetail({
                     </div>
                   ))}
                   {booleanRows.map(row => (
+                    <div
+                      key={row.id}
+                      className="flex items-baseline gap-2"
+                    >
+                      <dt className="text-muted-foreground">
+                        {row.name}
+                        :
+                      </dt>
+                      <dd>{row.value}</dd>
+                    </div>
+                  ))}
+                  {dateTimeRows.map(row => (
                     <div
                       key={row.id}
                       className="flex items-baseline gap-2"

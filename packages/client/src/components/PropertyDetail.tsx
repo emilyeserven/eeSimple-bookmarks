@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 
 import { TriangleAlert } from "lucide-react";
 
-import { TYPE_LABELS } from "../lib/propertyFormat";
+import { DATE_TIME_FORMAT_LABELS, TYPE_LABELS } from "../lib/propertyFormat";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -136,6 +136,10 @@ export function PropertyDetail({
         {isNumeric ? <Field label="Value prefix">{property.valuePrefix}</Field> : null}
         {isNumeric ? <Field label="Zero label">{property.zeroLabel}</Field> : null}
         {isNumeric ? <Field label="Maximum label">{property.maxLabel}</Field> : null}
+
+        {property.type === "datetime"
+          ? <Field label="Captures">{DATE_TIME_FORMAT_LABELS[property.dateTimeFormat ?? "date"]}</Field>
+          : null}
 
         {property.type === "calculate"
           ? <Field label="Operands">{operandNames.length > 0 ? `Σ ${operandNames.join(" + ")}` : null}</Field>

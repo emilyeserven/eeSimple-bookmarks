@@ -1,5 +1,7 @@
 import type { CustomProperty } from "@eesimple/types";
 
+import { formatDateTimeValue } from "./datetime";
+
 /**
  * Format a count of seconds as a clock duration: `H:MM:SS` when an hour or more, otherwise `M:SS`
  * (e.g. `260` → `"4:20"`, `3723` → `"1:02:03"`). Negative/NaN values fall back to `"0:00"`.
@@ -32,4 +34,9 @@ export function formatNumber(value: number, property: CustomProperty): string {
     ? (property.unitSingular ?? property.unitPlural)
     : (property.unitPlural ?? property.unitSingular);
   return unit ? `${prefix}${value} ${unit}` : `${prefix}${value}`;
+}
+
+/** Format a `datetime` property's stored value for display, honoring its `dateTimeFormat`. */
+export function formatDateTime(value: string, property: CustomProperty): string {
+  return formatDateTimeValue(value, property.dateTimeFormat);
 }

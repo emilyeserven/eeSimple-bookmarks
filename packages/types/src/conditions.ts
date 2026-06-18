@@ -39,6 +39,19 @@ export type BooleanPredicate
     | { kind: "presence";
       mode: "has" | "missing"; };
 
+/**
+ * Predicate applied to a `datetime` custom-property value inside a `property` leaf. Bounds are the
+ * value's canonical string encoding (`"YYYY-MM-DD"` / `"HH:MM"` / `"YYYY-MM-DDTHH:MM"`); `range`
+ * compares them lexicographically, which is correct for those encodings. Both bounds are inclusive
+ * and either may be `null` (open-ended).
+ */
+export type DateTimePredicate
+  = | { kind: "range";
+    from: string | null;
+    to: string | null; }
+    | { kind: "presence";
+      mode: "has" | "missing"; };
+
 /** Leaf: text match against the bookmark's url/title. */
 export interface MatchCondition {
   type: "match";
@@ -70,7 +83,9 @@ export interface PropertyCondition {
     | { valueKind: "number";
       predicate: NumberPredicate; }
       | { valueKind: "boolean";
-        predicate: BooleanPredicate; };
+        predicate: BooleanPredicate; }
+        | { valueKind: "datetime";
+          predicate: DateTimePredicate; };
 }
 
 /** Branch: combines its children with `and`/`or`. The only node that nests. */
@@ -112,6 +127,8 @@ export interface ConditionInput {
   numberValues: Map<string, number>;
   /** Boolean custom-property values, keyed by property id. */
   booleanValues: Map<string, boolean>;
+  /** Date/time custom-property values (canonical string encoding), keyed by property id. */
+  dateTimeValues: Map<string, string>;
 }
 
 /** Resolves a tag id to the inclusive set of its descendant ids (for cascade matching). */
@@ -237,12 +254,33 @@ function evaluateBooleanPredicate(
   return value === predicate.value;
 }
 
+function evaluateDateTimePredicate(
+  predicate: DateTimePredicate,
+  hasValue: boolean,
+  value: string | undefined,
+): boolean {
+  if (predicate.kind === "presence") {
+    return predicate.mode === "has" ? hasValue : !hasValue;
+  }
+  if (!hasValue || value === undefined) return false;
+  if (predicate.from !== null && value < predicate.from) return false;
+  if (predicate.to !== null && value > predicate.to) return false;
+  return true;
+}
+
 function evaluateProperty(condition: PropertyCondition, input: ConditionInput): boolean {
   if (condition.predicate.valueKind === "number") {
     return evaluateNumberPredicate(
       condition.predicate.predicate,
       input.numberValues.has(condition.propertyId),
       input.numberValues.get(condition.propertyId),
+    );
+  }
+  if (condition.predicate.valueKind === "datetime") {
+    return evaluateDateTimePredicate(
+      condition.predicate.predicate,
+      input.dateTimeValues.has(condition.propertyId),
+      input.dateTimeValues.get(condition.propertyId),
     );
   }
   return evaluateBooleanPredicate(

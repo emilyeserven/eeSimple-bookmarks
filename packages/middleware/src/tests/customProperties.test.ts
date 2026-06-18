@@ -76,6 +76,39 @@ test("POST /api/custom-properties accepts the boolean and calculate types (schem
   await app.close();
 });
 
+test("POST /api/custom-properties accepts the datetime type with a valid dateTimeFormat (schema)", async () => {
+  const app = await buildApp();
+  for (const dateTimeFormat of ["date", "time", "datetime"]) {
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/custom-properties",
+      payload: {
+        name: `When ${dateTimeFormat}`,
+        type: "datetime",
+        dateTimeFormat,
+      },
+    });
+    // No DB in this test, so the handler may 500; we only assert the schema accepted the payload.
+    assert.notEqual(res.statusCode, 400, `dateTimeFormat ${dateTimeFormat} should pass schema validation`);
+  }
+  await app.close();
+});
+
+test("POST /api/custom-properties rejects an unknown dateTimeFormat", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "POST",
+    url: "/api/custom-properties",
+    payload: {
+      name: "When",
+      type: "datetime",
+      dateTimeFormat: "year",
+    },
+  });
+  assert.equal(res.statusCode, 400);
+  await app.close();
+});
+
 test("POST /api/custom-properties accepts the allCategories and editableOnCard flags (schema)", async () => {
   const app = await buildApp();
   const res = await app.inject({
