@@ -50,32 +50,30 @@ function CustomPropertyEditPage() {
         : null}
       {property
         ? (
-          <div className="rounded-lg border bg-card p-4">
-            <PropertyForm
-              mode="edit"
-              property={property}
-              categories={categories ?? []}
-              numberProperties={numberProperties}
-              onSubmit={({
-                type, ...input
-              }) => updateProperty.mutate({
-                id: property.id,
-                input,
-              }, {
-                // Renaming can change the slug, so navigate to the property's returned slug.
-                onSuccess: updated => navigate({
-                  to: "/custom-properties/$propertySlug",
-                  params: {
-                    propertySlug: updated.slug,
-                  },
-                }),
-              })}
-              submitLabel="Save changes"
-              pendingLabel="Saving…"
-              errorMessage={updateProperty.isError ? updateProperty.error.message : undefined}
-              idPrefix={`property-${property.id}-category`}
-            />
-          </div>
+          <PropertyForm
+            mode="edit"
+            property={property}
+            categories={categories ?? []}
+            numberProperties={numberProperties}
+            onSubmit={({
+              type, ...input
+            }) => updateProperty.mutate({
+              id: property.id,
+              input,
+            }, {
+              // Renaming can change the slug, so navigate to the property's returned slug.
+              onSuccess: updated => navigate({
+                to: "/custom-properties/$propertySlug",
+                params: {
+                  propertySlug: updated.slug,
+                },
+              }),
+            })}
+            submitLabel="Save changes"
+            pendingLabel="Saving…"
+            errorMessage={updateProperty.isError ? updateProperty.error.message : undefined}
+            idPrefix={`property-${property.id}-category`}
+          />
         )
         : null}
     </section>
