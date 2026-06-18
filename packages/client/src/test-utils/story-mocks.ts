@@ -72,6 +72,7 @@ export const sampleProperties: CustomProperty[] = [
   {
     id: "prop-priority",
     name: "Priority",
+    slug: "priority",
     type: "number",
     description: null,
     numberMin: 0,
@@ -91,6 +92,7 @@ export const sampleProperties: CustomProperty[] = [
   {
     id: "prop-effort",
     name: "Effort",
+    slug: "effort",
     type: "number",
     description: null,
     numberMin: 0,
@@ -110,6 +112,7 @@ export const sampleProperties: CustomProperty[] = [
   {
     id: "prop-score",
     name: "Score",
+    slug: "score",
     type: "calculate",
     description: null,
     numberMin: null,
@@ -129,6 +132,7 @@ export const sampleProperties: CustomProperty[] = [
   {
     id: "prop-reviewed",
     name: "Reviewed",
+    slug: "reviewed",
     type: "boolean",
     description: null,
     numberMin: null,
