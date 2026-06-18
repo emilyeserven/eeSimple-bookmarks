@@ -87,9 +87,10 @@ export function useAutoBookmarkImage() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => bookmarksApi.autoImage(id),
-    onSuccess: () => queryClient.invalidateQueries({
-      queryKey: BOOKMARKS_KEY,
-    }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: BOOKMARKS_KEY });
+      toast.success("Page image fetched");
+    },
     onError: (err: Error) => toast.error(err.message || "Could not fetch a preview image"),
   });
 }
