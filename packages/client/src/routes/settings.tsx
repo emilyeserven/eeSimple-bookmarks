@@ -29,7 +29,7 @@ const settingsNav = [
   },
   {
     to: "/settings/sidebar",
-    label: "Sidebar",
+    label: "Drawer",
   },
   {
     to: "/settings/homepage",

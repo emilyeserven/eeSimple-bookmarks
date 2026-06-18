@@ -10,9 +10,9 @@ function SidebarPage() {
   return (
     <section className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold">Sidebar</h2>
+        <h2 className="text-xl font-semibold">Drawer</h2>
         <p className="text-sm text-muted-foreground">
-          Control how the right-hand sidebar opens.
+          Control how the right-hand drawer opens.
         </p>
       </div>
       <SidebarSettings />

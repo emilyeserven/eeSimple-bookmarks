@@ -18,9 +18,9 @@ vi.mock("./PanelContent", () => ({
   PanelContent: () => <div>panel-body</div>,
 }));
 
-let mobile = false;
+let viewportWidth = 1024;
 vi.mock("@/hooks/use-mobile", () => ({
-  useIsMobile: () => mobile,
+  useViewportWidth: () => viewportWidth,
 }));
 
 vi.mock("@/hooks/useTags", () => ({
@@ -38,15 +38,17 @@ vi.mock("@/hooks/useCategories", () => ({
 beforeEach(() => {
   controls.isOpen = false;
   controls.close = vi.fn();
-  mobile = false;
+  viewportWidth = 1024;
   useUiStore.setState({
     panelPinned: false,
+    drawerUnpinnedBreakpoints: [768],
   });
 });
 
 afterEach(() => {
   useUiStore.setState({
     panelPinned: false,
+    drawerUnpinnedBreakpoints: [768],
   });
 });
 
@@ -81,7 +83,7 @@ describe("RightPanel", () => {
 
   it("stays floating on mobile even when pinned", () => {
     controls.isOpen = true;
-    mobile = true;
+    viewportWidth = 500; // below the 768 breakpoint in drawerUnpinnedBreakpoints
     useUiStore.setState({
       panelPinned: true,
     });

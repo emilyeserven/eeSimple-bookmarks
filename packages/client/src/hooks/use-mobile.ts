@@ -17,3 +17,16 @@ export function useIsMobile() {
 
   return !!isMobile;
 }
+
+export function useViewportWidth() {
+  const [width, setWidth] = React.useState<number | undefined>(undefined);
+
+  React.useEffect(() => {
+    const onChange = () => setWidth(window.innerWidth);
+    window.addEventListener("resize", onChange);
+    setWidth(window.innerWidth);
+    return () => window.removeEventListener("resize", onChange);
+  }, []);
+
+  return width ?? 1024;
+}
