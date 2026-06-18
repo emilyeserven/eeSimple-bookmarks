@@ -6,6 +6,7 @@ import { Link } from "@tanstack/react-router";
 import { Pencil } from "lucide-react";
 import { z } from "zod";
 
+import { LabeledSection } from "./LabeledSection";
 import { useEditPanelClick } from "./panel/useEditPanelClick";
 import { useCreateMediaType, useDeleteMediaType, useMediaTypes, useUpdateMediaType } from "../hooks/useMediaTypes";
 import { useAppForm } from "../lib/form";
@@ -14,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
 import { useUiStore } from "@/stores/uiStore";
 
@@ -51,69 +53,82 @@ export function MediaTypeRow({
   }
 
   return (
-    <div>
-      <div
-        className="
-          grid gap-3
-          sm:grid-cols-[1fr_8rem_auto] sm:items-end
-        "
-      >
-        <div className="space-y-1">
-          <Label htmlFor={`media-type-name-${mediaType.id}`}>Name</Label>
-          <Input
-            id={`media-type-name-${mediaType.id}`}
-            value={name}
-            disabled={mediaType.builtIn}
-            onChange={event => setName(event.target.value)}
-          />
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor={`media-type-sort-${mediaType.id}`}>Sort order</Label>
-          <Input
-            id={`media-type-sort-${mediaType.id}`}
-            type="number"
-            value={sortOrder}
-            disabled={mediaType.builtIn}
-            onChange={event => setSortOrder(event.target.value)}
-          />
-        </div>
-        <Button
-          type="button"
-          size="sm"
-          disabled={!dirty || !valid || mediaType.builtIn || updateMediaType.isPending}
-          onClick={save}
+    <div className="space-y-6">
+      <LabeledSection title="Details">
+        <div
+          className="
+            grid gap-3
+            sm:grid-cols-[1fr_8rem_auto] sm:items-end
+          "
         >
-          {updateMediaType.isPending ? "Saving…" : "Save"}
-        </Button>
-      </div>
-      {mediaType.builtIn
-        ? (
-          <p className="mt-2 text-sm text-muted-foreground">
-            Built-in media type — it can&apos;t be renamed or deleted.
-          </p>
-        )
-        : (
-          <div className="mt-2">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="
-                text-destructive
-                hover:text-destructive
-              "
-              disabled={deleteMediaType.isPending}
-              onClick={() => deleteMediaType.mutate(mediaType.id)}
-            >
-              {deleteMediaType.isPending ? "Deleting…" : "Delete"}
-            </Button>
+          <div className="space-y-1">
+            <Label htmlFor={`media-type-name-${mediaType.id}`}>Name</Label>
+            <Input
+              id={`media-type-name-${mediaType.id}`}
+              value={name}
+              disabled={mediaType.builtIn}
+              onChange={event => setName(event.target.value)}
+            />
           </div>
+          <div className="space-y-1">
+            <Label htmlFor={`media-type-sort-${mediaType.id}`}>Sort order</Label>
+            <Input
+              id={`media-type-sort-${mediaType.id}`}
+              type="number"
+              value={sortOrder}
+              disabled={mediaType.builtIn}
+              onChange={event => setSortOrder(event.target.value)}
+            />
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            disabled={!dirty || !valid || mediaType.builtIn || updateMediaType.isPending}
+            onClick={save}
+          >
+            {updateMediaType.isPending ? "Saving…" : "Save"}
+          </Button>
+        </div>
+        {mediaType.builtIn
+          ? (
+            <p className="text-xs text-muted-foreground">
+              Built-in media type — it can&apos;t be renamed or deleted.
+            </p>
+          )
+          : null}
+      </LabeledSection>
+
+      {mediaType.builtIn
+        ? null
+        : (
+          <>
+            <Separator />
+            <LabeledSection
+              title="Delete"
+              description="Permanently remove this media type."
+            >
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="
+                  text-destructive
+                  hover:text-destructive
+                "
+                disabled={deleteMediaType.isPending}
+                onClick={() => deleteMediaType.mutate(mediaType.id)}
+              >
+                {deleteMediaType.isPending ? "Deleting…" : "Delete"}
+              </Button>
+            </LabeledSection>
+          </>
         )}
+
       {updateMediaType.isError
-        ? <p className="mt-2 text-sm text-destructive">{updateMediaType.error.message}</p>
+        ? <p className="text-sm text-destructive">{updateMediaType.error.message}</p>
         : null}
       {deleteMediaType.isError
-        ? <p className="mt-2 text-sm text-destructive">{deleteMediaType.error.message}</p>
+        ? <p className="text-sm text-destructive">{deleteMediaType.error.message}</p>
         : null}
     </div>
   );
@@ -126,7 +141,7 @@ export function MediaTypeCard({
   const editClick = useEditPanelClick();
   const modifier = useUiStore(state => state.sidebarOpenModifier);
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 space-y-1">
           <h2 className="text-xl font-semibold">{mediaType.name}</h2>
@@ -151,22 +166,27 @@ export function MediaTypeCard({
           </Link>
         </Button>
       </div>
-      <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
-        <dt className="text-muted-foreground">Added</dt>
-        <dd>{new Date(mediaType.createdAt).toLocaleDateString()}</dd>
-        <dt className="text-muted-foreground">Slug</dt>
-        <dd>{mediaType.slug}</dd>
-        <dt className="text-muted-foreground">Sort order</dt>
-        <dd>{mediaType.sortOrder}</dd>
-        {mediaType.bookmarkCount != null
-          ? (
-            <>
-              <dt className="text-muted-foreground">Bookmarks</dt>
-              <dd>{mediaType.bookmarkCount}</dd>
-            </>
-          )
-          : null}
-      </dl>
+
+      <Separator />
+
+      <LabeledSection title="Details">
+        <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
+          <dt className="text-muted-foreground">Added</dt>
+          <dd>{new Date(mediaType.createdAt).toLocaleDateString()}</dd>
+          <dt className="text-muted-foreground">Slug</dt>
+          <dd className="font-mono">{mediaType.slug}</dd>
+          <dt className="text-muted-foreground">Sort order</dt>
+          <dd>{mediaType.sortOrder}</dd>
+          {mediaType.bookmarkCount != null
+            ? (
+              <>
+                <dt className="text-muted-foreground">Bookmarks</dt>
+                <dd>{mediaType.bookmarkCount}</dd>
+              </>
+            )
+            : null}
+        </dl>
+      </LabeledSection>
     </div>
   );
 }
