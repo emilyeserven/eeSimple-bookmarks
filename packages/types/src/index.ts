@@ -575,6 +575,9 @@ export interface HomepageFilter {
 /** Payload for replacing the homepage filter. */
 export type UpdateHomepageFilterInput = HomepageFilter;
 
+/** Image position for a homepage section's bookmark cards: stacked above content or side-by-side. */
+export type HomepageSectionImageLayout = "above" | "side";
+
 /** A named, ordered section on the homepage with its own condition filter. */
 export interface HomepageSection {
   id: string;
@@ -583,6 +586,12 @@ export interface HomepageSection {
   conditions: ConditionTree;
   sortOrder: number;
   hideIfEmpty: boolean;
+  /** Bookmark grid column count (1–4). */
+  columns: number;
+  /** Image display mode: `true` = natural aspect ratio, `false` = uniform crop. */
+  imageMode: boolean;
+  /** Image position in 2-column layouts: "above" (default) or "side". */
+  imageLayout: HomepageSectionImageLayout;
   createdAt: string;
 }
 
@@ -599,6 +608,9 @@ export interface CreateHomepageSectionInput {
   conditions: ConditionTree;
   sortOrder?: number;
   hideIfEmpty?: boolean;
+  columns?: number;
+  imageMode?: boolean;
+  imageLayout?: HomepageSectionImageLayout;
 }
 
 /** Payload for partially updating a homepage section. */

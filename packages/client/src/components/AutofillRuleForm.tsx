@@ -2,10 +2,8 @@
 
 import type {
   AutofillRule,
-  Bookmark,
   Category,
   CategoryCondition,
-  ConditionInput,
   ConditionTree,
   CreateAutofillRuleInput,
   CustomProperty,
@@ -13,33 +11,23 @@ import type {
   TagNode,
 } from "@eesimple/types";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 import {
-  buildTagDescendants,
   emptyConditionTree,
-  evaluateConditions,
   propertyAppliesToCategory,
 } from "@eesimple/types";
-import { ChevronDown } from "lucide-react";
 import { z } from "zod";
 
-import { useBookmarks } from "../hooks/useBookmarks";
-import { autofillConditionsValidator } from "../lib/conditionsSchema";
-import { useAppForm } from "../lib/form";
-import { flattenTree } from "../lib/tagTree";
+import { CollapsibleFormSection } from "./CollapsibleFormSection";
 import { ConditionsField } from "./conditions/ConditionsField";
 import { DateTimePicker } from "./DateTimePicker";
+import { PreviewBookmarksSection } from "./PreviewBookmarksSection";
 import { TagPicker } from "./TagPicker";
+import { autofillConditionsValidator } from "../lib/conditionsSchema";
+import { useAppForm } from "../lib/form";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -427,55 +415,6 @@ function RulePropertyFields({
   );
 }
 
-interface CollapsibleFormSectionProps {
-  title: string;
-  description: string;
-  preview: React.ReactNode;
-  defaultOpen?: boolean;
-  children: React.ReactNode;
-}
-
-/** A form section that collapses to a one-line preview and expands to its full fields. */
-function CollapsibleFormSection({
-  title, description, preview, defaultOpen, children,
-}: CollapsibleFormSectionProps) {
-  return (
-    <Collapsible
-      defaultOpen={defaultOpen}
-      className="group/section space-y-3"
-    >
-      <CollapsibleTrigger asChild>
-        <button
-          type="button"
-          className="flex w-full items-start justify-between gap-2 text-left"
-        >
-          <span className="space-y-1">
-            <span className="block text-sm font-semibold">{title}</span>
-            <span
-              className="
-                block text-xs text-muted-foreground
-                group-data-[state=open]/section:hidden
-              "
-            >
-              {preview}
-            </span>
-          </span>
-          <ChevronDown
-            className="
-              mt-0.5 size-4 shrink-0 text-muted-foreground transition-transform
-              group-data-[state=open]/section:rotate-180
-            "
-          />
-        </button>
-      </CollapsibleTrigger>
-      <CollapsibleContent className="space-y-3">
-        <p className="text-xs text-muted-foreground">{description}</p>
-        {children}
-      </CollapsibleContent>
-    </Collapsible>
-  );
-}
-
 /** One-line summary of the activation conditions for the collapsed section preview. */
 function summarizeConditions(conditions: ConditionTree): string {
   const matchCount = conditions.children.filter(child => child.type === "match").length;
@@ -530,149 +469,4 @@ function summarizePrefill({
   }
 
   return parts.length > 0 ? parts.join(" · ") : "Nothing set yet";
-}
-
-interface PreviewBookmarksSectionProps {
-  conditions: ConditionTree;
-  tagTree: TagNode[];
-}
-
-function PreviewBookmarksSection({
-  conditions, tagTree,
-}: PreviewBookmarksSectionProps) {
-  const [searched, setSearched] = useState(false);
-  const [matchingBookmarks, setMatchingBookmarks] = useState<Bookmark[]>([]);
-  const [checkQuery, setCheckQuery] = useState("");
-
-  const {
-    data: allBookmarks = [],
-  } = useBookmarks();
-
-  const tagDescendants = useMemo(
-    () => buildTagDescendants(flattenTree(tagTree).map(({
-      node,
-    }) => node)),
-    [tagTree],
-  );
-
-  const handleSearch = () => {
-    const matches = allBookmarks.filter((bookmark) => {
-      const input: ConditionInput = {
-        url: bookmark.url,
-        title: bookmark.title,
-        categoryId: bookmark.categoryId,
-        tagIds: new Set(bookmark.tags.map(t => t.id)),
-        numberValues: new Map(bookmark.numberValues.map(v => [v.propertyId, v.value])),
-        booleanValues: new Map(bookmark.booleanValues.map(v => [v.propertyId, v.value])),
-        dateTimeValues: new Map(bookmark.dateTimeValues.map(v => [v.propertyId, v.value])),
-      };
-      return evaluateConditions(conditions, input, {
-        tagDescendants,
-      });
-    });
-    setMatchingBookmarks(matches.slice(0, 5));
-    setSearched(true);
-  };
-
-  const checkedBookmarks = useMemo(() => {
-    if (!checkQuery.trim()) return [];
-    const q = checkQuery.toLowerCase();
-    return allBookmarks
-      .filter(b => b.title.toLowerCase().includes(q) || b.url.toLowerCase().includes(q))
-      .slice(0, 5);
-  }, [allBookmarks, checkQuery]);
-
-  return (
-    <div className="space-y-3">
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={handleSearch}
-      >
-        Search
-      </Button>
-      {searched && (
-        <div className="space-y-1">
-          {matchingBookmarks.length === 0
-            ? <p className="text-sm text-muted-foreground">No bookmarks matched.</p>
-            : matchingBookmarks.map(bookmark => (
-              <BookmarkPreviewRow
-                key={bookmark.id}
-                bookmark={bookmark}
-                matches
-              />
-            ))}
-        </div>
-      )}
-      <div className="space-y-2">
-        <Input
-          type="text"
-          placeholder="Search bookmarks to check…"
-          value={checkQuery}
-          onChange={e => setCheckQuery(e.target.value)}
-        />
-        {checkQuery.trim() && (
-          <div className="space-y-1">
-            {checkedBookmarks.length === 0
-              ? <p className="text-sm text-muted-foreground">No bookmarks found.</p>
-              : checkedBookmarks.map((bookmark) => {
-                const input: ConditionInput = {
-                  url: bookmark.url,
-                  title: bookmark.title,
-                  categoryId: bookmark.categoryId,
-                  tagIds: new Set(bookmark.tags.map(t => t.id)),
-                  numberValues: new Map(bookmark.numberValues.map(v => [v.propertyId, v.value])),
-                  booleanValues: new Map(bookmark.booleanValues.map(v => [v.propertyId, v.value])),
-                  dateTimeValues: new Map(bookmark.dateTimeValues.map(v => [v.propertyId, v.value])),
-                };
-                const matches = evaluateConditions(conditions, input, {
-                  tagDescendants,
-                });
-                return (
-                  <BookmarkPreviewRow
-                    key={bookmark.id}
-                    bookmark={bookmark}
-                    matches={matches}
-                  />
-                );
-              })}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-interface BookmarkPreviewRowProps {
-  bookmark: Bookmark;
-  matches: boolean;
-}
-
-function BookmarkPreviewRow({
-  bookmark, matches,
-}: BookmarkPreviewRowProps) {
-  return (
-    <div
-      className="
-        flex items-start justify-between gap-2 rounded-md border px-3 py-2
-      "
-    >
-      <div className="min-w-0 space-y-0.5">
-        <p className="truncate text-sm font-medium">{bookmark.title}</p>
-        <p className="truncate text-xs text-muted-foreground">{bookmark.url}</p>
-      </div>
-      <Badge
-        variant={matches ? "default" : "outline"}
-        className={matches
-          ? `
-            shrink-0 bg-green-600
-            hover:bg-green-600
-          `
-          : "shrink-0 text-destructive"}
-      >
-        {matches ? "Matches" : "No match"}
-      </Badge>
-    </div>
-  );
 }

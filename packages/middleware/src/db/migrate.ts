@@ -104,6 +104,20 @@ const migrations: RuntimeMigration[] = [
     `),
   },
   {
+    // `homepage_sections` gained NOT NULL display columns (`columns`, `image_mode`, `image_layout`).
+    // Adding NOT NULL columns to the populated table makes drizzle-kit push prompt — the same
+    // non-TTY crash as the cases above — so pre-apply them here. One `ALTER TABLE` statement with
+    // multiple `ADD COLUMN` clauses is a single statement, safe over the extended protocol. Defaults
+    // must match schema.ts: 2 columns, natural images (true), "above" layout.
+    name: "add homepage_sections display columns",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "homepage_sections"
+        ADD COLUMN IF NOT EXISTS "columns" integer NOT NULL DEFAULT 2,
+        ADD COLUMN IF NOT EXISTS "image_mode" boolean NOT NULL DEFAULT true,
+        ADD COLUMN IF NOT EXISTS "image_layout" text NOT NULL DEFAULT 'above'
+    `),
+  },
+  {
     // `tags_parent_name_unique` enforces sibling-name uniqueness. In schema.ts it is a
     // `uniqueIndex` (NOT a table `unique()` constraint) because drizzle-kit 0.31.10 cannot converge
     // on a COMPOSITE unique CONSTRAINT: every push tries to drop+recreate it, and on the populated
