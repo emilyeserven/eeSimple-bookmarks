@@ -87,6 +87,8 @@ export const sampleProperties: CustomProperty[] = [
     showInForm: false,
     hiddenFromForm: false,
     showInListings: true,
+    allCategories: false,
+    editableOnCard: false,
     createdAt: NOW,
   },
   {
@@ -107,6 +109,8 @@ export const sampleProperties: CustomProperty[] = [
     showInForm: false,
     hiddenFromForm: false,
     showInListings: true,
+    allCategories: false,
+    editableOnCard: false,
     createdAt: NOW,
   },
   {
@@ -127,6 +131,8 @@ export const sampleProperties: CustomProperty[] = [
     showInForm: false,
     hiddenFromForm: false,
     showInListings: true,
+    allCategories: false,
+    editableOnCard: false,
     createdAt: NOW,
   },
   {
@@ -147,6 +153,8 @@ export const sampleProperties: CustomProperty[] = [
     showInForm: true,
     hiddenFromForm: false,
     showInListings: true,
+    allCategories: false,
+    editableOnCard: false,
     createdAt: NOW,
   },
 ];

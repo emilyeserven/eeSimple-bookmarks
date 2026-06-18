@@ -25,6 +25,8 @@ function property(overrides: Partial<CustomProperty>): CustomProperty {
     showInForm: false,
     hiddenFromForm: false,
     showInListings: true,
+    allCategories: false,
+    editableOnCard: false,
     createdAt: NOW,
     ...overrides,
   };

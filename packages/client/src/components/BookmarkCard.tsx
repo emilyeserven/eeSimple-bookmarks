@@ -1,22 +1,33 @@
-import type { Bookmark, BookmarkTag, CustomProperty } from "@eesimple/types";
+import type {
+  Bookmark,
+  BookmarkBooleanValue,
+  BookmarkNumberValue,
+  BookmarkTag,
+  CustomProperty,
+} from "@eesimple/types";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { propertyAppliesToCategory } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 import { ExternalLink, MoreVertical, Sparkles } from "lucide-react";
 
-import { useAutoBookmarkImage } from "../hooks/useBookmarks";
+import { useAutoBookmarkImage, useUpdateBookmark } from "../hooks/useBookmarks";
 import { formatNumber } from "../lib/bookmarkFormat";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface BookmarkCardProps {
   bookmark: Bookmark;
@@ -109,11 +120,132 @@ function TagsBox({
   );
 }
 
+/** Replace the entry for `propertyId` with `value`, or append it when the property has no value yet. */
+function mergeNumberValue(
+  values: BookmarkNumberValue[],
+  propertyId: string,
+  value: number,
+): BookmarkNumberValue[] {
+  return values.some(entry => entry.propertyId === propertyId)
+    ? values.map(entry => (entry.propertyId === propertyId
+      ? {
+        propertyId,
+        value,
+      }
+      : entry))
+    : [...values, {
+      propertyId,
+      value,
+    }];
+}
+
+/** Replace the entry for `propertyId` with `value`, or append it when the property has no value yet. */
+function mergeBooleanValue(
+  values: BookmarkBooleanValue[],
+  propertyId: string,
+  value: boolean,
+): BookmarkBooleanValue[] {
+  return values.some(entry => entry.propertyId === propertyId)
+    ? values.map(entry => (entry.propertyId === propertyId
+      ? {
+        propertyId,
+        value,
+      }
+      : entry))
+    : [...values, {
+      propertyId,
+      value,
+    }];
+}
+
+interface CardNumberPropertyEditorProps {
+  property: CustomProperty;
+  inputId: string;
+  /** The bookmark's current value for this property, or `undefined` when unset. */
+  current: number | undefined;
+  /** Commit a new numeric value (called on blur / Enter, only when it changed). */
+  onCommit: (value: number) => void;
+}
+
+/** A labelled number input rendered inside the card's "More" menu (keystrokes stay out of the menu). */
+function CardNumberPropertyEditor({
+  property, inputId, current, onCommit,
+}: CardNumberPropertyEditorProps) {
+  const [draft, setDraft] = useState(current === undefined ? "" : String(current));
+
+  // Re-seed when the saved value changes (e.g. after a successful save or external update).
+  useEffect(() => {
+    setDraft(current === undefined ? "" : String(current));
+  }, [current]);
+
+  function commit() {
+    const trimmed = draft.trim();
+    if (trimmed === "") return;
+    const next = Number(trimmed);
+    if (Number.isNaN(next) || next === current) return;
+    onCommit(next);
+  }
+
+  return (
+    <div className="px-2 py-1.5">
+      <Label
+        htmlFor={inputId}
+        className="text-xs text-muted-foreground"
+      >
+        {property.name}
+        {property.unitPlural ? ` (${property.unitPlural})` : ""}
+      </Label>
+      <Input
+        id={inputId}
+        type="number"
+        className="mt-1 h-8"
+        value={draft}
+        onChange={event => setDraft(event.target.value)}
+        onBlur={commit}
+        // Keep typing (digits, space, arrows) from reaching the menu's typeahead/navigation.
+        onKeyDown={(event) => {
+          event.stopPropagation();
+          if (event.key === "Enter") {
+            event.preventDefault();
+            commit();
+          }
+        }}
+      />
+    </div>
+  );
+}
+
 export function BookmarkCard({
   bookmark, properties = [], onDelete, imageLeft = false, maintainImageAspectRatio = true,
 }: BookmarkCardProps) {
   const autoImage = useAutoBookmarkImage();
+  const updateBookmark = useUpdateBookmark();
   const byId = new Map(properties.map(property => [property.id, property]));
+
+  // Properties opted into inline editing from this card, limited to ones that apply to its category.
+  // Calculate properties are computed server-side, so they are never editable here.
+  const editableProperties = properties.filter(property =>
+    property.editableOnCard
+    && property.type !== "calculate"
+    && propertyAppliesToCategory(property, bookmark.categoryId));
+
+  function saveNumber(propertyId: string, value: number) {
+    updateBookmark.mutate({
+      id: bookmark.id,
+      input: {
+        numberValues: mergeNumberValue(bookmark.numberValues, propertyId, value),
+      },
+    });
+  }
+
+  function saveBoolean(propertyId: string, value: boolean) {
+    updateBookmark.mutate({
+      id: bookmark.id,
+      input: {
+        booleanValues: mergeBooleanValue(bookmark.booleanValues, propertyId, value),
+      },
+    });
+  }
 
   const numberBadges = bookmark.numberValues
     .map((entry) => {
@@ -199,6 +331,45 @@ export function BookmarkCard({
                 Edit
               </Link>
             </DropdownMenuItem>
+            {editableProperties.length > 0
+              ? (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel className="text-xs text-muted-foreground">
+                    Quick edit
+                  </DropdownMenuLabel>
+                  {editableProperties.map((property) => {
+                    if (property.type === "boolean") {
+                      const checked
+                        = bookmark.booleanValues.find(entry => entry.propertyId === property.id)?.value
+                          ?? false;
+                      return (
+                        <DropdownMenuCheckboxItem
+                          key={property.id}
+                          checked={checked}
+                          // Keep the menu open so several values can be edited in one go.
+                          onSelect={event => event.preventDefault()}
+                          onCheckedChange={value => saveBoolean(property.id, value === true)}
+                        >
+                          {property.name}
+                        </DropdownMenuCheckboxItem>
+                      );
+                    }
+                    return (
+                      <CardNumberPropertyEditor
+                        key={property.id}
+                        property={property}
+                        inputId={`card-${bookmark.id}-property-${property.id}`}
+                        current={
+                          bookmark.numberValues.find(entry => entry.propertyId === property.id)?.value
+                        }
+                        onCommit={value => saveNumber(property.id, value)}
+                      />
+                    );
+                  })}
+                </>
+              )
+              : null}
             <DropdownMenuSeparator />
             <DropdownMenuItem
               disabled={autoImage.isPending}

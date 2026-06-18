@@ -78,6 +78,12 @@ const createPropertyBody = {
     showInListings: {
       type: "boolean",
     },
+    allCategories: {
+      type: "boolean",
+    },
+    editableOnCard: {
+      type: "boolean",
+    },
   },
 } as const;
 
@@ -99,6 +105,8 @@ const updatePropertyBody = {
     showInForm: createPropertyBody.properties.showInForm,
     hiddenFromForm: createPropertyBody.properties.hiddenFromForm,
     showInListings: createPropertyBody.properties.showInListings,
+    allCategories: createPropertyBody.properties.allCategories,
+    editableOnCard: createPropertyBody.properties.editableOnCard,
   },
 } as const;
 

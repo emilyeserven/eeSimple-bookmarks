@@ -39,6 +39,8 @@ const properties: CustomProperty[] = [
     showInForm: false,
     hiddenFromForm: false,
     showInListings: true,
+    allCategories: false,
+    editableOnCard: false,
     createdAt: "2026-06-01T00:00:00.000Z",
   },
   {
@@ -59,6 +61,30 @@ const properties: CustomProperty[] = [
     showInForm: false,
     hiddenFromForm: false,
     showInListings: true,
+    allCategories: false,
+    editableOnCard: false,
+    createdAt: "2026-06-01T00:00:00.000Z",
+  },
+  {
+    id: "prop-all",
+    name: "Everywhere",
+    slug: "everywhere",
+    type: "boolean",
+    description: null,
+    numberMin: null,
+    numberMax: null,
+    unitSingular: null,
+    unitPlural: null,
+    valuePrefix: null,
+    zeroLabel: null,
+    maxLabel: null,
+    operandPropertyIds: [],
+    categoryIds: [],
+    showInForm: false,
+    hiddenFromForm: false,
+    showInListings: true,
+    allCategories: true,
+    editableOnCard: false,
     createdAt: "2026-06-01T00:00:00.000Z",
   },
 ];
@@ -97,6 +123,30 @@ describe("CategoryCustomProperties", () => {
     })).not.toBeChecked();
   });
 
+  it("shows an 'all categories' property as assigned to this category", () => {
+    render(<CategoryCustomProperties category={category} />);
+
+    expect(screen.getByRole("checkbox", {
+      name: /Everywhere/,
+    })).toBeChecked();
+  });
+
+  it("drops the all-categories flag when an 'all categories' property is unassigned", () => {
+    render(<CategoryCustomProperties category={category} />);
+
+    fireEvent.click(screen.getByRole("checkbox", {
+      name: /Everywhere/,
+    }));
+
+    expect(updateMutate).toHaveBeenCalledWith({
+      id: "prop-all",
+      input: {
+        allCategories: false,
+        categoryIds: ["cat-1"],
+      },
+    });
+  });
+
   it("assigns the category when an unassigned property is toggled", () => {
     render(<CategoryCustomProperties category={category} />);
 
@@ -107,6 +157,7 @@ describe("CategoryCustomProperties", () => {
     expect(updateMutate).toHaveBeenCalledWith({
       id: "prop-unassigned",
       input: {
+        allCategories: false,
         categoryIds: ["cat-1"],
       },
     });
@@ -122,6 +173,7 @@ describe("CategoryCustomProperties", () => {
     expect(updateMutate).toHaveBeenCalledWith({
       id: "prop-assigned",
       input: {
+        allCategories: false,
         categoryIds: [],
       },
     });
