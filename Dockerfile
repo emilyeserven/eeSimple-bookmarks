@@ -74,7 +74,6 @@ COPY --from=build-types /app/packages/types/src/ ./packages/types/src/
 COPY --from=build-middleware /app/packages/middleware/dist/ ./packages/middleware/dist/
 COPY --from=build-middleware /app/packages/middleware/src/ ./packages/middleware/src/
 COPY --from=build-middleware /app/packages/middleware/drizzle.config.ts ./packages/middleware/drizzle.config.ts
-COPY --from=build-middleware /app/packages/middleware/drizzle/ ./packages/middleware/drizzle/
 COPY --from=build-client /app/packages/client/dist/ ./packages/client/dist/
 COPY packages/gateway/server.js ./packages/gateway/server.js
 
