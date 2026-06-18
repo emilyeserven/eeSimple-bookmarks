@@ -1,19 +1,10 @@
 import { eq } from "drizzle-orm";
-import type { ConditionNode, HomepageFilter } from "@eesimple/types";
-import { emptyConditionTree } from "@eesimple/types";
+import type { ConditionNode } from "@eesimple/types";
 import { db } from "@/db";
 import { categories, homepageFilter, homepageTags } from "@/db/schema";
 
 // The homepage filter is a singleton; it always lives in row id = 1.
 const ROW_ID = 1;
-
-/** Read the global homepage filter, defaulting to an empty (matches-nothing) tree. */
-export async function getHomepageFilter(): Promise<HomepageFilter> {
-  const [row] = await db.select().from(homepageFilter).where(eq(homepageFilter.id, ROW_ID));
-  return {
-    conditions: row?.conditions ?? emptyConditionTree(),
-  };
-}
 
 /**
  * Seed the singleton homepage filter on first boot. If no row exists yet, build an initial tree
