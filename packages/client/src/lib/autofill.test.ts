@@ -34,6 +34,7 @@ function rule(overrides: Partial<AutofillRule>): AutofillRule {
     tagIds: overrides.tagIds ?? [],
     numberValues: overrides.numberValues ?? [],
     booleanValues: overrides.booleanValues ?? [],
+    dateTimeValues: overrides.dateTimeValues ?? [],
     sortOrder: overrides.sortOrder ?? 0,
     createdAt: overrides.createdAt ?? "2026-01-01T00:00:00.000Z",
   };
@@ -183,6 +184,23 @@ describe("applyAutofill", () => {
     }]);
   });
 
+  it("applies a matching rule's date/time values", () => {
+    const result = applyAutofill(input, [
+      rule({
+        conditions: match("ponzu"),
+        setCategoryId: "cat-a",
+        dateTimeValues: [{
+          propertyId: "published",
+          value: "2026-06-15",
+        }],
+      }),
+    ]);
+    expect(result.dateTimeValues).toEqual([{
+      propertyId: "published",
+      value: "2026-06-15",
+    }]);
+  });
+
   it("returns empty results when nothing matches", () => {
     const result = applyAutofill(input, [
       rule({
@@ -195,6 +213,7 @@ describe("applyAutofill", () => {
       tagIds: [],
       numberValues: [],
       booleanValues: [],
+      dateTimeValues: [],
     });
   });
 });

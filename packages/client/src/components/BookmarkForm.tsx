@@ -161,9 +161,11 @@ export function BookmarkForm({
   // category we set programmatically so a user's manual pick is never overwritten.
   const touchedRef = useRef<Set<string>>(new Set());
   const ruleSetRef = useRef<{ numbers: Set<string>;
-    booleans: Set<string>; }>({
+    booleans: Set<string>;
+    dateTimes: Set<string>; }>({
     numbers: new Set(),
     booleans: new Set(),
+    dateTimes: new Set(),
   });
   const lastAutoCategoryRef = useRef<string>("");
 
@@ -195,6 +197,7 @@ export function BookmarkForm({
     ruleSetRef.current = {
       numbers: new Set(result.numberValues.map(entry => entry.propertyId)),
       booleans: new Set(result.booleanValues.map(entry => entry.propertyId)),
+      dateTimes: new Set(result.dateTimeValues.map(entry => entry.propertyId)),
     };
     if (result.numberValues.length > 0) {
       setNumberInputs((current) => {
@@ -222,11 +225,28 @@ export function BookmarkForm({
         return next;
       });
     }
+    if (result.dateTimeValues.length > 0) {
+      setDateTimeInputs((current) => {
+        const next = {
+          ...current,
+        };
+        for (const entry of result.dateTimeValues) {
+          if (!touchedRef.current.has(`datetime:${entry.propertyId}`)) {
+            next[entry.propertyId] = entry.value;
+          }
+        }
+        return next;
+      });
+    }
   }
 
   // Apply a category's default property values, skipping anything the user touched or an autofill
   // rule already set (rules win over defaults), and never overwriting a non-empty number input.
-  function applyCategoryDefaults(numberValues: BookmarkNumberValue[], booleanValues: BookmarkBooleanValue[]): void {
+  function applyCategoryDefaults(
+    numberValues: BookmarkNumberValue[],
+    booleanValues: BookmarkBooleanValue[],
+    dateTimeValues: BookmarkDateTimeValue[],
+  ): void {
     setNumberInputs((current) => {
       const next = {
         ...current,
@@ -251,6 +271,22 @@ export function BookmarkForm({
         if (
           !touchedRef.current.has(`boolean:${entry.propertyId}`)
           && !ruleSetRef.current.booleans.has(entry.propertyId)
+        ) {
+          next[entry.propertyId] = entry.value;
+        }
+      }
+      return next;
+    });
+    setDateTimeInputs((current) => {
+      const next = {
+        ...current,
+      };
+      for (const entry of dateTimeValues) {
+        const existing = next[entry.propertyId];
+        if (
+          !touchedRef.current.has(`datetime:${entry.propertyId}`)
+          && !ruleSetRef.current.dateTimes.has(entry.propertyId)
+          && (existing === undefined || existing === "")
         ) {
           next[entry.propertyId] = entry.value;
         }
@@ -365,6 +401,7 @@ export function BookmarkForm({
       ruleSetRef.current = {
         numbers: new Set(),
         booleans: new Set(),
+        dateTimes: new Set(),
       };
       lastAutoCategoryRef.current = "";
     },
@@ -1217,7 +1254,11 @@ function CategoryCustomFields({
 
 interface CategoryDefaultsApplierProps {
   categoryId: string;
-  onApply: (numberValues: BookmarkNumberValue[], booleanValues: BookmarkBooleanValue[]) => void;
+  onApply: (
+    numberValues: BookmarkNumberValue[],
+    booleanValues: BookmarkBooleanValue[],
+    dateTimeValues: BookmarkDateTimeValue[],
+  ) => void;
 }
 
 /**
@@ -1233,7 +1274,7 @@ function CategoryDefaultsApplier({
 
   useEffect(() => {
     if (!categoryId || !defaults) return;
-    onApply(defaults.numberValues, defaults.booleanValues);
+    onApply(defaults.numberValues, defaults.booleanValues, defaults.dateTimeValues);
     // Re-apply only when the category or its loaded defaults change; `onApply` is stable enough.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categoryId, defaults]);

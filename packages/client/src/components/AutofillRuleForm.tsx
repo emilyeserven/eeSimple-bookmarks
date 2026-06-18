@@ -29,6 +29,7 @@ import { autofillConditionsValidator } from "../lib/conditionsSchema";
 import { useAppForm } from "../lib/form";
 import { flattenTree } from "../lib/tagTree";
 import { ConditionsField } from "./conditions/ConditionsField";
+import { DateTimePicker } from "./DateTimePicker";
 import { TagPicker } from "./TagPicker";
 
 import { Badge } from "@/components/ui/badge";
@@ -80,6 +81,8 @@ export function AutofillRuleForm({
     Object.fromEntries((rule?.numberValues ?? []).map(entry => [entry.propertyId, String(entry.value)])));
   const [booleanInputs, setBooleanInputs] = useState<Record<string, boolean>>(() =>
     Object.fromEntries((rule?.booleanValues ?? []).map(entry => [entry.propertyId, entry.value])));
+  const [dateTimeInputs, setDateTimeInputs] = useState<Record<string, string>>(() =>
+    Object.fromEntries((rule?.dateTimeValues ?? []).map(entry => [entry.propertyId, entry.value])));
 
   const form = useAppForm({
     defaultValues: {
@@ -128,6 +131,13 @@ export function AutofillRuleForm({
           propertyId: property.id,
           value: booleanInputs[property.id] ?? false,
         }));
+      const dateTimeValues = categoryProps
+        .filter(property => property.type === "datetime")
+        .map(property => ({
+          propertyId: property.id,
+          value: (dateTimeInputs[property.id] ?? "").trim(),
+        }))
+        .filter(entry => entry.value !== "");
 
       onSubmit({
         name: value.name.trim(),
@@ -137,6 +147,7 @@ export function AutofillRuleForm({
         tagIds: value.tagIds,
         numberValues,
         booleanValues,
+        dateTimeValues,
         sortOrder: value.sortOrder,
       });
 
@@ -146,6 +157,7 @@ export function AutofillRuleForm({
         setConditionsError(null);
         setNumberInputs({});
         setBooleanInputs({});
+        setDateTimeInputs({});
       }
     },
   });
@@ -247,6 +259,7 @@ export function AutofillRuleForm({
                 properties,
                 numberInputs,
                 booleanInputs,
+                dateTimeInputs,
               })}
           </form.Subscribe>
         )}
@@ -298,6 +311,7 @@ export function AutofillRuleForm({
               properties={properties}
               numberInputs={numberInputs}
               booleanInputs={booleanInputs}
+              dateTimeInputs={dateTimeInputs}
               onNumberChange={(id, value) =>
                 setNumberInputs(current => ({
                   ...current,
@@ -305,6 +319,11 @@ export function AutofillRuleForm({
                 }))}
               onBooleanChange={(id, value) =>
                 setBooleanInputs(current => ({
+                  ...current,
+                  [id]: value,
+                }))}
+              onDateTimeChange={(id, value) =>
+                setDateTimeInputs(current => ({
                   ...current,
                   [id]: value,
                 }))}
@@ -328,13 +347,16 @@ interface RulePropertyFieldsProps {
   properties: CustomProperty[];
   numberInputs: Record<string, string>;
   booleanInputs: Record<string, boolean>;
+  dateTimeInputs: Record<string, string>;
   onNumberChange: (propertyId: string, value: string) => void;
   onBooleanChange: (propertyId: string, value: boolean) => void;
+  onDateTimeChange: (propertyId: string, value: string) => void;
 }
 
 /** Property-value inputs for the rule's chosen category (calculate properties are computed). */
 function RulePropertyFields({
-  categoryId, properties, numberInputs, booleanInputs, onNumberChange, onBooleanChange,
+  categoryId, properties, numberInputs, booleanInputs, dateTimeInputs,
+  onNumberChange, onBooleanChange, onDateTimeChange,
 }: RulePropertyFieldsProps) {
   if (!categoryId) return null;
   const categoryProps = properties.filter(property =>
@@ -366,6 +388,22 @@ function RulePropertyFields({
                   type="number"
                   value={numberInputs[property.id] ?? ""}
                   onChange={event => onNumberChange(property.id, event.target.value)}
+                />
+              </div>
+            );
+          }
+          if (property.type === "datetime") {
+            return (
+              <div
+                key={property.id}
+                className="space-y-1"
+              >
+                <Label htmlFor={`rule-property-${property.id}`}>{property.name}</Label>
+                <DateTimePicker
+                  id={`rule-property-${property.id}`}
+                  format={property.dateTimeFormat ?? "date"}
+                  value={dateTimeInputs[property.id] ?? null}
+                  onChange={value => onDateTimeChange(property.id, value ?? "")}
                 />
               </div>
             );
@@ -463,11 +501,12 @@ interface PrefillSummaryArgs {
   properties: CustomProperty[];
   numberInputs: Record<string, string>;
   booleanInputs: Record<string, boolean>;
+  dateTimeInputs: Record<string, string>;
 }
 
 /** One-line summary of the prefill actions for the collapsed section preview. */
 function summarizePrefill({
-  setCategoryId, tagIds, categories, properties, numberInputs, booleanInputs,
+  setCategoryId, tagIds, categories, properties, numberInputs, booleanInputs, dateTimeInputs,
 }: PrefillSummaryArgs): string {
   const parts: string[] = [];
 
@@ -484,6 +523,7 @@ function summarizePrefill({
     const propertyCount = categoryProps.filter((property) => {
       if (property.type === "number") return (numberInputs[property.id] ?? "").trim() !== "";
       if (property.type === "boolean") return booleanInputs[property.id] === true;
+      if (property.type === "datetime") return (dateTimeInputs[property.id] ?? "").trim() !== "";
       return false;
     }).length;
     if (propertyCount > 0) parts.push(`${propertyCount} ${propertyCount === 1 ? "property" : "properties"}`);

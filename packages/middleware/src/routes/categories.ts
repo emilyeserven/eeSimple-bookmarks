@@ -75,7 +75,7 @@ const tagIdsBody = {
 
 const defaultsBody = {
   type: "object",
-  required: ["numberValues", "booleanValues"],
+  required: ["numberValues", "booleanValues", "dateTimeValues"],
   additionalProperties: false,
   properties: {
     numberValues: {
@@ -108,6 +108,23 @@ const defaultsBody = {
           },
           value: {
             type: "boolean",
+          },
+        },
+      },
+    },
+    dateTimeValues: {
+      type: "array",
+      items: {
+        type: "object",
+        required: ["propertyId", "value"],
+        additionalProperties: false,
+        properties: {
+          propertyId: {
+            type: "string",
+            format: "uuid",
+          },
+          value: {
+            type: "string",
           },
         },
       },

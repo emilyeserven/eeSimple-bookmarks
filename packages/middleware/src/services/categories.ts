@@ -11,6 +11,7 @@ import {
   bookmarks,
   categories,
   categoryBooleanDefaults,
+  categoryDateTimeDefaults,
   categoryNumberDefaults,
   type CategoryRow,
   categoryRootTags,
@@ -268,7 +269,7 @@ export async function setHomepageTagIds(tagIds: string[]): Promise<string[]> {
 
 /** A category's default custom-property values, applied to new bookmarks added to it. */
 export async function getCategoryDefaults(categoryId: string): Promise<CategoryPropertyDefaults> {
-  const [numberRows, booleanRows] = await Promise.all([
+  const [numberRows, booleanRows, dateTimeRows] = await Promise.all([
     db
       .select({
         propertyId: categoryNumberDefaults.propertyId,
@@ -283,6 +284,13 @@ export async function getCategoryDefaults(categoryId: string): Promise<CategoryP
       })
       .from(categoryBooleanDefaults)
       .where(eq(categoryBooleanDefaults.categoryId, categoryId)),
+    db
+      .select({
+        propertyId: categoryDateTimeDefaults.propertyId,
+        value: categoryDateTimeDefaults.value,
+      })
+      .from(categoryDateTimeDefaults)
+      .where(eq(categoryDateTimeDefaults.categoryId, categoryId)),
   ]);
   return {
     numberValues: numberRows.map(row => ({
@@ -290,6 +298,10 @@ export async function getCategoryDefaults(categoryId: string): Promise<CategoryP
       value: row.value,
     })),
     booleanValues: booleanRows.map(row => ({
+      propertyId: row.propertyId,
+      value: row.value,
+    })),
+    dateTimeValues: dateTimeRows.map(row => ({
       propertyId: row.propertyId,
       value: row.value,
     })),
@@ -309,6 +321,7 @@ export async function setCategoryDefaults(
   await db.transaction(async (tx) => {
     await tx.delete(categoryNumberDefaults).where(eq(categoryNumberDefaults.categoryId, categoryId));
     await tx.delete(categoryBooleanDefaults).where(eq(categoryBooleanDefaults.categoryId, categoryId));
+    await tx.delete(categoryDateTimeDefaults).where(eq(categoryDateTimeDefaults.categoryId, categoryId));
     if (input.numberValues.length > 0) {
       await tx.insert(categoryNumberDefaults).values(input.numberValues.map(entry => ({
         categoryId,
@@ -318,6 +331,13 @@ export async function setCategoryDefaults(
     }
     if (input.booleanValues.length > 0) {
       await tx.insert(categoryBooleanDefaults).values(input.booleanValues.map(entry => ({
+        categoryId,
+        propertyId: entry.propertyId,
+        value: entry.value,
+      })));
+    }
+    if (input.dateTimeValues.length > 0) {
+      await tx.insert(categoryDateTimeDefaults).values(input.dateTimeValues.map(entry => ({
         categoryId,
         propertyId: entry.propertyId,
         value: entry.value,

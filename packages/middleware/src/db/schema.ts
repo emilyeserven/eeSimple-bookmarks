@@ -516,6 +516,21 @@ export const autofillRuleBooleanValues = pgTable("autofill_rule_boolean_values",
   }),
 ]);
 
+/** `autofill_rule_datetime_values` — date/time custom-property values a rule applies. */
+export const autofillRuleDateTimeValues = pgTable("autofill_rule_datetime_values", {
+  ruleId: uuid("rule_id").notNull().references(() => autofillRules.id, {
+    onDelete: "cascade",
+  }),
+  propertyId: uuid("property_id").notNull().references(() => customProperties.id, {
+    onDelete: "cascade",
+  }),
+  value: text("value").notNull(),
+}, table => [
+  primaryKey({
+    columns: [table.ruleId, table.propertyId],
+  }),
+]);
+
 /** `category_number_defaults` — default number property values for new bookmarks in a category. */
 export const categoryNumberDefaults = pgTable("category_number_defaults", {
   categoryId: uuid("category_id").notNull().references(() => categories.id, {
@@ -546,6 +561,21 @@ export const categoryBooleanDefaults = pgTable("category_boolean_defaults", {
   }),
 ]);
 
+/** `category_datetime_defaults` — default date/time property values for new bookmarks in a category. */
+export const categoryDateTimeDefaults = pgTable("category_datetime_defaults", {
+  categoryId: uuid("category_id").notNull().references(() => categories.id, {
+    onDelete: "cascade",
+  }),
+  propertyId: uuid("property_id").notNull().references(() => customProperties.id, {
+    onDelete: "cascade",
+  }),
+  value: text("value").notNull(),
+}, table => [
+  primaryKey({
+    columns: [table.categoryId, table.propertyId],
+  }),
+]);
+
 export const autofillRulesRelations = relations(autofillRules, ({
   one, many,
 }) => ({
@@ -556,6 +586,7 @@ export const autofillRulesRelations = relations(autofillRules, ({
   tags: many(autofillRuleTags),
   numberValues: many(autofillRuleNumberValues),
   booleanValues: many(autofillRuleBooleanValues),
+  dateTimeValues: many(autofillRuleDateTimeValues),
 }));
 
 export const customPropertiesRelations = relations(customProperties, ({
@@ -670,5 +701,7 @@ export type NewAutofillRuleRow = typeof autofillRules.$inferInsert;
 export type AutofillRuleTagRow = typeof autofillRuleTags.$inferSelect;
 export type AutofillRuleNumberValueRow = typeof autofillRuleNumberValues.$inferSelect;
 export type AutofillRuleBooleanValueRow = typeof autofillRuleBooleanValues.$inferSelect;
+export type AutofillRuleDateTimeValueRow = typeof autofillRuleDateTimeValues.$inferSelect;
 export type CategoryNumberDefaultRow = typeof categoryNumberDefaults.$inferSelect;
 export type CategoryBooleanDefaultRow = typeof categoryBooleanDefaults.$inferSelect;
+export type CategoryDateTimeDefaultRow = typeof categoryDateTimeDefaults.$inferSelect;

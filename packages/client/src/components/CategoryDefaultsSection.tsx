@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { propertyAppliesToCategory } from "@eesimple/types";
 
+import { DateTimePicker } from "./DateTimePicker";
 import {
   useCategoryDefaults,
   useSetCategoryDefaults,
@@ -43,6 +44,7 @@ export function CategoryDefaultsSection({
   const [numberInputs, setNumberInputs] = useState<Record<string, string>>({});
   // `undefined` means "no default" — kept distinct from an explicit `false` so a false default saves.
   const [booleanInputs, setBooleanInputs] = useState<Record<string, boolean | undefined>>({});
+  const [dateTimeInputs, setDateTimeInputs] = useState<Record<string, string>>({});
 
   // Seed the inputs from the saved defaults once they load (or change).
   useEffect(() => {
@@ -52,6 +54,9 @@ export function CategoryDefaultsSection({
     ));
     setBooleanInputs(Object.fromEntries(
       defaults.booleanValues.map(entry => [entry.propertyId, entry.value]),
+    ));
+    setDateTimeInputs(Object.fromEntries(
+      defaults.dateTimeValues.map(entry => [entry.propertyId, entry.value]),
     ));
   }, [defaults]);
 
@@ -84,9 +89,17 @@ export function CategoryDefaultsSection({
       // Only persist properties given an explicit Yes/No; "No default" is left unset.
       .filter((entry): entry is { propertyId: string;
         value: boolean; } => entry.value !== undefined);
+    const dateTimeValues = categoryProps
+      .filter(property => property.type === "datetime")
+      .map(property => ({
+        propertyId: property.id,
+        value: (dateTimeInputs[property.id] ?? "").trim(),
+      }))
+      .filter(entry => entry.value !== "");
     setDefaults.mutate({
       numberValues,
       booleanValues,
+      dateTimeValues,
     });
   }
 
@@ -121,6 +134,26 @@ export function CategoryDefaultsSection({
                     setNumberInputs(current => ({
                       ...current,
                       [property.id]: event.target.value,
+                    }))}
+                />
+              </div>
+            );
+          }
+          if (property.type === "datetime") {
+            return (
+              <div
+                key={property.id}
+                className="space-y-1"
+              >
+                <Label htmlFor={`default-${category.id}-${property.id}`}>{property.name}</Label>
+                <DateTimePicker
+                  id={`default-${category.id}-${property.id}`}
+                  format={property.dateTimeFormat ?? "date"}
+                  value={dateTimeInputs[property.id] ?? null}
+                  onChange={value =>
+                    setDateTimeInputs(current => ({
+                      ...current,
+                      [property.id]: value ?? "",
                     }))}
                 />
               </div>

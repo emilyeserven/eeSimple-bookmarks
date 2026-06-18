@@ -166,6 +166,63 @@ test("PUT /api/categories/:id/defaults rejects a non-uuid propertyId", async () 
         value: 1,
       }],
       booleanValues: [],
+      dateTimeValues: [],
+    },
+  });
+  assert.equal(res.statusCode, 400);
+  await app.close();
+});
+
+test("PUT /api/categories/:id/defaults accepts date/time defaults (schema)", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "PUT",
+    url: "/api/categories/11111111-1111-1111-1111-111111111111/defaults",
+    payload: {
+      numberValues: [],
+      booleanValues: [],
+      dateTimeValues: [{
+        propertyId: "22222222-2222-2222-2222-222222222222",
+        value: "2026-06-15",
+      }],
+    },
+  });
+  // No DB in this test, so the handler may 404/500; we only assert the schema accepted the payload.
+  assert.notEqual(res.statusCode, 400);
+  await app.close();
+});
+
+test("POST /api/autofill-rules accepts date/time set-values (schema)", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "POST",
+    url: "/api/autofill-rules",
+    payload: {
+      name: "Recipes",
+      conditions: validConditions,
+      dateTimeValues: [{
+        propertyId: "22222222-2222-2222-2222-222222222222",
+        value: "2026-06-15",
+      }],
+    },
+  });
+  // No DB in this test, so the handler may 500; we only assert the schema accepted the payload.
+  assert.notEqual(res.statusCode, 400);
+  await app.close();
+});
+
+test("POST /api/autofill-rules rejects a non-uuid propertyId in dateTimeValues", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "POST",
+    url: "/api/autofill-rules",
+    payload: {
+      name: "Recipes",
+      conditions: validConditions,
+      dateTimeValues: [{
+        propertyId: "not-a-uuid",
+        value: "2026-06-15",
+      }],
     },
   });
   assert.equal(res.statusCode, 400);

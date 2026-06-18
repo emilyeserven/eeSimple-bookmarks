@@ -429,6 +429,8 @@ export interface CategoryPropertyDefaults {
   numberValues: BookmarkNumberValue[];
   /** Default boolean property values. */
   booleanValues: BookmarkBooleanValue[];
+  /** Default date/time property values. */
+  dateTimeValues: BookmarkDateTimeValue[];
 }
 
 /** Payload for replacing a category's default custom-property values. */
@@ -462,6 +464,8 @@ export interface AutofillRule {
   numberValues: BookmarkNumberValue[];
   /** Boolean custom-property values to apply. */
   booleanValues: BookmarkBooleanValue[];
+  /** Date/time custom-property values to apply. */
+  dateTimeValues: BookmarkDateTimeValue[];
   /** Lower sorts first; later (higher) rules win for single-valued targets when several match. */
   sortOrder: number;
   createdAt: string;
@@ -476,6 +480,7 @@ export interface CreateAutofillRuleInput {
   tagIds?: string[];
   numberValues?: BookmarkNumberValue[];
   booleanValues?: BookmarkBooleanValue[];
+  dateTimeValues?: BookmarkDateTimeValue[];
   sortOrder?: number;
 }
 

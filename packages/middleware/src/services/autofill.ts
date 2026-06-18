@@ -2,6 +2,7 @@ import { asc, eq, inArray, isNull, ne } from "drizzle-orm";
 import type {
   AutofillRule,
   BookmarkBooleanValue,
+  BookmarkDateTimeValue,
   BookmarkNumberValue,
   ConditionMatchField,
   ConditionMatchOperator,
@@ -13,6 +14,7 @@ import { emptyConditionTree } from "@eesimple/types";
 import { db } from "@/db";
 import {
   autofillRuleBooleanValues,
+  autofillRuleDateTimeValues,
   autofillRuleNumberValues,
   autofillRules,
   type AutofillRuleRow,
@@ -49,6 +51,7 @@ function toAutofillRule(
   tagIds: string[],
   numberValues: BookmarkNumberValue[],
   booleanValues: BookmarkBooleanValue[],
+  dateTimeValues: BookmarkDateTimeValue[],
 ): AutofillRule {
   return {
     id: row.id,
@@ -60,6 +63,7 @@ function toAutofillRule(
     tagIds,
     numberValues,
     booleanValues,
+    dateTimeValues,
     sortOrder: row.sortOrder,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
@@ -141,13 +145,41 @@ async function booleanValuesByRuleId(
   return grouped;
 }
 
+/** Load date/time property values for a set of rule ids, grouped by rule id. */
+async function dateTimeValuesByRuleId(
+  ruleIds: string[],
+): Promise<Map<string, BookmarkDateTimeValue[]>> {
+  const grouped = new Map<string, BookmarkDateTimeValue[]>();
+  if (ruleIds.length === 0) return grouped;
+
+  const rows = await db
+    .select({
+      ruleId: autofillRuleDateTimeValues.ruleId,
+      propertyId: autofillRuleDateTimeValues.propertyId,
+      value: autofillRuleDateTimeValues.value,
+    })
+    .from(autofillRuleDateTimeValues)
+    .where(inArray(autofillRuleDateTimeValues.ruleId, ruleIds));
+
+  for (const row of rows) {
+    const list = grouped.get(row.ruleId) ?? [];
+    list.push({
+      propertyId: row.propertyId,
+      value: row.value,
+    });
+    grouped.set(row.ruleId, list);
+  }
+  return grouped;
+}
+
 /** Hydrate a set of rule rows with their tags and property values. */
 async function hydrate(rows: AutofillRuleRow[]): Promise<AutofillRule[]> {
   const ids = rows.map(row => row.id);
-  const [tagMap, numberMap, booleanMap] = await Promise.all([
+  const [tagMap, numberMap, booleanMap, dateTimeMap] = await Promise.all([
     tagIdsByRuleId(ids),
     numberValuesByRuleId(ids),
     booleanValuesByRuleId(ids),
+    dateTimeValuesByRuleId(ids),
   ]);
   return rows.map(row =>
     toAutofillRule(
@@ -155,6 +187,7 @@ async function hydrate(rows: AutofillRuleRow[]): Promise<AutofillRule[]> {
       tagMap.get(row.id) ?? [],
       numberMap.get(row.id) ?? [],
       booleanMap.get(row.id) ?? [],
+      dateTimeMap.get(row.id) ?? [],
     ));
 }
 
@@ -213,6 +246,21 @@ async function setRuleBooleanValues(
   })));
 }
 
+/** Replace a rule's date/time property values (delete then insert). */
+async function setRuleDateTimeValues(
+  tx: Tx,
+  ruleId: string,
+  dateTimeValues: BookmarkDateTimeValue[],
+): Promise<void> {
+  await tx.delete(autofillRuleDateTimeValues).where(eq(autofillRuleDateTimeValues.ruleId, ruleId));
+  if (dateTimeValues.length === 0) return;
+  await tx.insert(autofillRuleDateTimeValues).values(dateTimeValues.map(entry => ({
+    ruleId,
+    propertyId: entry.propertyId,
+    value: entry.value,
+  })));
+}
+
 export async function createAutofillRule(input: CreateAutofillRuleInput): Promise<AutofillRule> {
   const taken = await takenAutofillSlugs();
   const slug = uniqueAutofillSlug(input.name, taken);
@@ -234,6 +282,7 @@ export async function createAutofillRule(input: CreateAutofillRuleInput): Promis
     await setRuleTags(tx, row.id, input.tagIds ?? []);
     await setRuleNumberValues(tx, row.id, input.numberValues ?? []);
     await setRuleBooleanValues(tx, row.id, input.booleanValues ?? []);
+    await setRuleDateTimeValues(tx, row.id, input.dateTimeValues ?? []);
     return row.id;
   });
   // Re-read so callers always get the hydrated shape.
@@ -276,6 +325,7 @@ export async function updateAutofillRule(
     if (input.tagIds !== undefined) await setRuleTags(tx, id, input.tagIds);
     if (input.numberValues !== undefined) await setRuleNumberValues(tx, id, input.numberValues);
     if (input.booleanValues !== undefined) await setRuleBooleanValues(tx, id, input.booleanValues);
+    if (input.dateTimeValues !== undefined) await setRuleDateTimeValues(tx, id, input.dateTimeValues);
     return true;
   });
 
