@@ -1,6 +1,8 @@
 import type { Category } from "@eesimple/types";
 import type { ReactNode } from "react";
 
+import { TabWrapper } from "./TabWrapper";
+
 import { useCategoryBySlug } from "@/hooks/useCategories";
 
 interface Props {
@@ -19,15 +21,15 @@ export function CategoryEditTabWrapper({
   const {
     category, isLoading,
   } = useCategoryBySlug(categorySlug);
-  if (isLoading) return <p className="text-muted-foreground">Loading…</p>;
-  if (!category) return <p className="text-destructive">Category not found.</p>;
   return (
-    <section className="space-y-4">
-      <div>
-        <h2 className="text-xl font-semibold">{title}</h2>
-        <p className="text-sm text-muted-foreground">{description}</p>
-      </div>
-      {children(category)}
-    </section>
+    <TabWrapper
+      entity={category}
+      isLoading={isLoading}
+      notFoundMessage="Category not found."
+      title={title}
+      description={description}
+    >
+      {children}
+    </TabWrapper>
   );
 }
