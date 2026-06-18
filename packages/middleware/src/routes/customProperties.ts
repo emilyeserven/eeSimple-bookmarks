@@ -43,6 +43,9 @@ const createPropertyBody = {
       type: "string",
       enum: ["number", "boolean", "calculate"],
     },
+    description: {
+      type: ["string", "null"],
+    },
     numberMin: {
       type: ["number", "null"],
     },
@@ -55,9 +58,24 @@ const createPropertyBody = {
     unitPlural: {
       type: ["string", "null"],
     },
+    valuePrefix: {
+      type: ["string", "null"],
+    },
+    zeroLabel: {
+      type: ["string", "null"],
+    },
+    maxLabel: {
+      type: ["string", "null"],
+    },
     operandPropertyIds: uuidArray,
     categoryIds: uuidArray,
     showInForm: {
+      type: "boolean",
+    },
+    hiddenFromForm: {
+      type: "boolean",
+    },
+    showInListings: {
       type: "boolean",
     },
   },
@@ -68,13 +86,19 @@ const updatePropertyBody = {
   additionalProperties: false,
   properties: {
     name: createPropertyBody.properties.name,
+    description: createPropertyBody.properties.description,
     numberMin: createPropertyBody.properties.numberMin,
     numberMax: createPropertyBody.properties.numberMax,
     unitSingular: createPropertyBody.properties.unitSingular,
     unitPlural: createPropertyBody.properties.unitPlural,
+    valuePrefix: createPropertyBody.properties.valuePrefix,
+    zeroLabel: createPropertyBody.properties.zeroLabel,
+    maxLabel: createPropertyBody.properties.maxLabel,
     operandPropertyIds: uuidArray,
     categoryIds: uuidArray,
     showInForm: createPropertyBody.properties.showInForm,
+    hiddenFromForm: createPropertyBody.properties.hiddenFromForm,
+    showInListings: createPropertyBody.properties.showInListings,
   },
 } as const;
 

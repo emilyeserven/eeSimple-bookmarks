@@ -166,14 +166,24 @@ export const customProperties = pgTable("custom_properties", {
   name: text("name").notNull(),
   // "number" | "boolean" | "calculate" — kept as text so new kinds can be added later.
   type: text("type").notNull(),
+  // Free-text description surfaced as a hint where the property's field is rendered.
+  description: text("description"),
   // Range-slider bounds for a `number`/`calculate` property; NULL means no bound / derive from data.
   numberMin: real("number_min"),
   numberMax: real("number_max"),
   // Optional unit labels for a `number`/`calculate` value (e.g. "star"/"stars").
   unitSingular: text("unit_singular"),
   unitPlural: text("unit_plural"),
-  // When true, the property's field shows in the main bookmark form; otherwise it lives in Advanced.
+  // Optional prefix shown before a value (e.g. "$"), and labels for the 0 and max ("no limit") values.
+  valuePrefix: text("value_prefix"),
+  zeroLabel: text("zero_label"),
+  maxLabel: text("max_label"),
+  // Form placement: showInForm = main area vs. Advanced section (only when not hidden);
+  // hiddenFromForm = not shown in the bookmark form at all.
   showInForm: boolean("show_in_form").notNull().default(false),
+  hiddenFromForm: boolean("hidden_from_form").notNull().default(false),
+  // When true, the property's value is shown on bookmark cards in listings.
+  showInListings: boolean("show_in_listings").notNull().default(true),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),

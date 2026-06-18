@@ -93,7 +93,7 @@ export function BookmarkCard({
   const numberBadges = bookmark.numberValues
     .map((entry) => {
       const property = byId.get(entry.propertyId);
-      return property
+      return property && property.showInListings
         ? {
           id: entry.propertyId,
           label: `${property.name}: ${formatNumber(entry.value, property)}`,
@@ -106,7 +106,7 @@ export function BookmarkCard({
   const booleanBadges = bookmark.booleanValues
     .map((entry) => {
       const property = byId.get(entry.propertyId);
-      return property
+      return property && property.showInListings
         ? {
           id: entry.propertyId,
           label: `${property.name}: ${entry.value ? "Yes" : "No"}`,

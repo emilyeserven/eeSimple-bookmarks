@@ -202,11 +202,13 @@ interface SelectFieldProps {
   }[];
   placeholder?: string;
   className?: string;
+  /** Render the select read-only (e.g. an immutable field shown for context). */
+  disabled?: boolean;
 }
 
 /** Labelled single-select bound to the surrounding field. */
 function SelectField({
-  label, options, placeholder, className,
+  label, options, placeholder, className, disabled,
 }: SelectFieldProps) {
   const field = useFieldContext<string>();
   const id = useId();
@@ -216,6 +218,7 @@ function SelectField({
       <Label htmlFor={id}>{label}</Label>
       <Select
         value={field.state.value || undefined}
+        disabled={disabled}
         onValueChange={(value) => {
           field.handleChange(value);
           field.handleBlur();
