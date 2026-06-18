@@ -2,11 +2,13 @@ import type { Category, CustomProperty } from "@eesimple/types";
 
 import { TriangleAlert } from "lucide-react";
 
+import { LabeledSection } from "./LabeledSection";
 import { DATE_TIME_FORMAT_LABELS, TYPE_LABELS } from "../lib/propertyFormat";
 
 import { DetailField } from "@/components/DetailField";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { CategoryIcon } from "@/lib/icons";
 
 interface PropertyDetailProps {
@@ -90,71 +92,95 @@ export function PropertyDetail({
           : null}
       </div>
 
-      <dl className="space-y-3">
-        <DetailField label="Status">
-          {property.enabled ? "Enabled" : "Disabled"}
-        </DetailField>
+      <Separator />
 
-        <DetailField label="Description">
-          {property.description
-            ? <p className="whitespace-pre-wrap">{property.description}</p>
-            : null}
-        </DetailField>
+      <LabeledSection title="General">
+        <dl className="space-y-3">
+          <DetailField label="Status">
+            {property.enabled ? "Enabled" : "Disabled"}
+          </DetailField>
 
-        {isNumeric
-          ? (
-            <NumericPropertyFields
-              property={property}
-              operandNames={operandNames}
-            />
-          )
-          : null}
+          <DetailField label="Description">
+            {property.description
+              ? <p className="whitespace-pre-wrap">{property.description}</p>
+              : null}
+          </DetailField>
 
-        {property.type === "datetime"
-          ? <DetailField label="Captures">{DATE_TIME_FORMAT_LABELS[property.dateTimeFormat ?? "date"]}</DetailField>
-          : null}
+          <DetailField label="Created">
+            <span>{new Date(property.createdAt).toLocaleString()}</span>
+          </DetailField>
+        </dl>
+      </LabeledSection>
 
-        <DetailField label="Categories">
-          {property.allCategories
-            ? <Badge variant="secondary">All categories</Badge>
-            : assignedCategories.length > 0
-              ? (
-                <ul className="flex flex-wrap gap-1">
-                  {assignedCategories.map(category => (
-                    <li key={category.id}>
-                      <Badge
-                        variant="secondary"
-                        className="gap-1.5"
-                      >
-                        <CategoryIcon
-                          name={category.icon}
-                          className="size-3.5"
-                        />
-                        {category.name}
-                      </Badge>
-                    </li>
-                  ))}
-                </ul>
-              )
-              : <span className="text-muted-foreground">None</span>}
-        </DetailField>
+      {isNumeric || property.type === "datetime"
+        ? (
+          <>
+            <Separator />
 
-        <DetailField label="Bookmark form">{formPlacement(property)}</DetailField>
-        <DetailField label="Listings">
-          {property.showInListings ? "Shown on bookmark cards" : "Hidden from bookmark cards"}
-        </DetailField>
-        {property.type === "calculate"
-          ? null
-          : (
-            <DetailField label="Card menu">
-              {property.editableOnCard ? "Editable from the card menu" : "Not editable from the card menu"}
-            </DetailField>
-          )}
+            <LabeledSection title="Property options">
+              <dl className="space-y-3">
+                {isNumeric
+                  ? (
+                    <NumericPropertyFields
+                      property={property}
+                      operandNames={operandNames}
+                    />
+                  )
+                  : (
+                    <DetailField label="Captures">
+                      {DATE_TIME_FORMAT_LABELS[property.dateTimeFormat ?? "date"]}
+                    </DetailField>
+                  )}
+              </dl>
+            </LabeledSection>
+          </>
+        )
+        : null}
 
-        <DetailField label="Created">
-          <span>{new Date(property.createdAt).toLocaleString()}</span>
-        </DetailField>
-      </dl>
+      <Separator />
+
+      <LabeledSection title="Categories">
+        {property.allCategories
+          ? <Badge variant="secondary">All categories</Badge>
+          : assignedCategories.length > 0
+            ? (
+              <ul className="flex flex-wrap gap-1">
+                {assignedCategories.map(category => (
+                  <li key={category.id}>
+                    <Badge
+                      variant="secondary"
+                      className="gap-1.5"
+                    >
+                      <CategoryIcon
+                        name={category.icon}
+                        className="size-3.5"
+                      />
+                      {category.name}
+                    </Badge>
+                  </li>
+                ))}
+              </ul>
+            )
+            : <span className="text-sm text-muted-foreground">None</span>}
+      </LabeledSection>
+
+      <Separator />
+
+      <LabeledSection title="Display">
+        <dl className="space-y-3">
+          <DetailField label="Bookmark form">{formPlacement(property)}</DetailField>
+          <DetailField label="Listings">
+            {property.showInListings ? "Shown on bookmark cards" : "Hidden from bookmark cards"}
+          </DetailField>
+          {property.type === "calculate"
+            ? null
+            : (
+              <DetailField label="Card menu">
+                {property.editableOnCard ? "Editable from the card menu" : "Not editable from the card menu"}
+              </DetailField>
+            )}
+        </dl>
+      </LabeledSection>
     </div>
   );
 }
