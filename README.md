@@ -49,8 +49,9 @@ transforms) go in the idempotent runtime-migrations hook at
 ### Object storage (Garage) for bookmark images
 
 Bookmark images are compressed to an 800px WebP and stored in **Garage**, an S3-compatible object
-store that runs as its own container (defined in `docker-compose.yml`). `pnpm dev` only starts
-Postgres, so set Garage up once:
+store that runs as its own container (defined in `docker-compose.yml`). The `docker compose` commands
+below are for **local development** — on Coolify you don't run them by hand (see
+[Deploy to Coolify](#deploy-to-coolify)). `pnpm dev` only starts Postgres, so set Garage up once:
 
 **1. Start Garage:**
 
@@ -149,34 +150,47 @@ the runtime-migrations hook (`dist/db/migrate.js`) and then `drizzle-kit push` �
 
 ### Object storage (Garage) for bookmark images
 
-Bookmark images need an S3-compatible store. Run **Garage** as a second resource alongside the app:
+Bookmark images need an S3-compatible store. How Garage runs depends on your build pack:
 
-1. **Add a Garage service.** New Resource → Docker image `dxflrs/garage:v1.0.1`, on the same
-   project/network as the app. Mount this repo's `garage.toml` at `/etc/garage.toml` (and set your
-   own `rpc_secret` — generate one with `openssl rand -hex 32`).
-2. **Attach a persistent volume — this is the part that matters.** Map a volume to **both**
-   `/var/lib/garage/data` *and* `/var/lib/garage/meta`. **Without a persistent volume, every redeploy
-   wipes your images.**
-3. **Bootstrap it once.** Open Garage's **Terminal** in Coolify and run the same commands as the
-   [local setup](#object-storage-garage-for-bookmark-images) (`/garage status` → `layout assign` →
-   `layout apply` → `key create` → `bucket create` + `bucket allow`). Copy the printed Key ID + Secret.
-4. **Point the app at it.** On the **app** resource, add these variables next to `DATABASE_URL` (so the
-   "only `DATABASE_URL`" rule now grows by a few), then redeploy:
+**Docker Compose build pack (Coolify deploys `docker-compose.yml`).** Garage is already part of the
+stack — Coolify starts `garage` next to `db` and `gateway`, and the `garage-data` / `garage-meta`
+volumes from the compose file are managed by Coolify and **persist across redeploys**. There is
+nothing to add and no volume to attach by hand. You only:
 
+1. **Deploy the stack.** Coolify brings up `db`, `garage`, and `gateway` together — there is **no
+   manual `docker compose up`** (that command is local-development only).
+2. **Bootstrap Garage once.** Open the **`garage` container's Terminal** in Coolify (your stack → the
+   `garage` service → **Terminal**). You're *inside* the container, so call the binary directly —
+   **no `docker compose exec` prefix**:
+
+   ```bash
+   /garage status                                              # copy the node ID it prints
+   /garage layout assign -z dc1 -c 1G <node-id>
+   /garage layout apply --version 1
+   /garage key create bookmarks-key                            # COPY the Key ID + Secret (shown once)
+   /garage bucket create bookmarks
+   /garage bucket allow bookmarks --read --write --key bookmarks-key
    ```
-   S3_ENDPOINT=http://<garage-service-name>:3900
-   S3_REGION=garage
-   S3_BUCKET=bookmarks
-   S3_ACCESS_KEY_ID=<Key ID>
-   S3_SECRET_ACCESS_KEY=<Secret key>
-   ```
+
+3. **Set the keys.** Add `S3_ACCESS_KEY_ID` and `S3_SECRET_ACCESS_KEY` (from step 2) to your Coolify
+   environment, then redeploy. `S3_ENDPOINT` (`http://garage:3900`), `S3_REGION`, and `S3_BUCKET`
+   already default correctly from `docker-compose.yml`.
+
+**Using the Dockerfile build pack instead?** Then `docker-compose.yml` isn't used in production, so
+add Garage as its **own** Coolify resource: New Resource → Docker Image `dxflrs/garage:v1.0.1`; mount
+this repo's `garage.toml` at `/etc/garage.toml`; and **attach a persistent volume to both
+`/var/lib/garage/data` and `/var/lib/garage/meta`** — without it, every redeploy wipes your images.
+Run the same bootstrap (above) in that resource's Terminal, then add all five `S3_*` vars to the
+**app** resource (`S3_ENDPOINT=http://<garage-service-name>:3900`) and redeploy.
 
 > **Troubleshooting images.**
-> - **Upload returns 503 / "storage not configured"** → an `S3_*` variable is missing or wrong.
-> - **Images vanish after a redeploy** → the Garage `data`/`meta` volume isn't persistent.
+> - **Upload returns 503 / "storage not configured"** → `S3_ACCESS_KEY_ID` / `S3_SECRET_ACCESS_KEY`
+>   is missing or wrong (set them *after* the bootstrap, then redeploy).
 > - **`AccessDenied` in the logs** → the key wasn't granted on the bucket (re-run `bucket allow`).
-> - **App can't reach storage** → `S3_ENDPOINT` must be Garage's **internal** service URL (e.g.
->   `http://garage:3900`), not `localhost`, from inside a container.
+> - **App can't reach storage** → `S3_ENDPOINT` must be Garage's **internal** hostname
+>   (`http://garage:3900`), not `localhost`.
+> - **Images vanish after a redeploy** → the Garage data volume isn't persisting (compose volumes
+>   persist by default; on the Dockerfile path, make sure you attached one).
 
 ### How it works in production
 
