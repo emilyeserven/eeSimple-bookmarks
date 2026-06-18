@@ -88,6 +88,29 @@ describe("matchesRule", () => {
     }), input)).toBe(false);
   });
 
+  it("matches a website condition by the bookmark's host", () => {
+    expect(matchesRule(rule({
+      conditions: {
+        type: "group",
+        combinator: "and",
+        children: [{
+          type: "website",
+          domains: ["example.com", "101cookbooks.com"],
+        }],
+      },
+    }), input)).toBe(true);
+    expect(matchesRule(rule({
+      conditions: {
+        type: "group",
+        combinator: "and",
+        children: [{
+          type: "website",
+          domains: ["example.com"],
+        }],
+      },
+    }), input)).toBe(false);
+  });
+
   it("does not fire category/tag/property leaves at add-time, but an OR match leaf still can", () => {
     // Category leaf alone can't match (no category is known yet).
     expect(matchesRule(rule({

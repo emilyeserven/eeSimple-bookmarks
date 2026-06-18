@@ -20,7 +20,7 @@ interface Props {
   /** Tab links rendered in the left vertical nav; all share `params`. */
   nav: readonly TabNavItem[];
   /** Route params shared by every nav link (e.g. `{ websiteSlug }`). */
-  params: LinkProps["params"];
+  params?: LinkProps["params"];
   navAriaLabel: string;
 }
 

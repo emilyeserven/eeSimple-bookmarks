@@ -13,6 +13,7 @@ import {
 import { useCategories } from "../../hooks/useCategories";
 import { useCustomProperties } from "../../hooks/useCustomProperties";
 import { useTagTree } from "../../hooks/useTags";
+import { useWebsites } from "../../hooks/useWebsites";
 import { AutofillRuleDetail } from "../AutofillRuleDetail";
 import { AutofillRuleForm } from "../AutofillRuleForm";
 
@@ -82,18 +83,25 @@ function CreateAutofillRule() {
   const {
     data: tagTree,
   } = useTagTree();
+  const {
+    data: websites,
+  } = useWebsites();
   const createRule = useCreateAutofillRule();
 
-  // When opened from a category's autofill tab the slug is still in the route path; preselect that
-  // category as the new rule's target so it shows up in the category's scoped list. Undefined on
-  // every other surface (e.g. /settings/autofill), leaving the default unchanged.
+  // When opened from a category's / website's autofill tab the slug is still in the route path;
+  // preselect that entity so the new rule shows up in the scoped list. Undefined on every other
+  // surface (e.g. /settings/autofill), leaving the defaults unchanged.
   const {
     categorySlug,
+    websiteSlug,
   } = useParams({
     strict: false,
   });
   const defaultCategoryId = categorySlug
     ? (categories ?? []).find(category => category.slug === categorySlug)?.id
+    : undefined;
+  const defaultWebsiteDomain = websiteSlug
+    ? (websites ?? []).find(site => site.slug === websiteSlug)?.domain
     : undefined;
 
   async function handleCreate(input: CreateAutofillRuleInput) {
@@ -106,7 +114,7 @@ function CreateAutofillRule() {
       <div className="space-y-1">
         <h2 className="text-xl font-semibold">New autofill rule</h2>
         <p className="text-sm text-muted-foreground">
-          Match a bookmark’s URL or title to prefill its category, tags, and custom properties.
+          Match a bookmark’s title or website to prefill its category, tags, and custom properties.
         </p>
       </div>
       <AutofillRuleForm
@@ -114,6 +122,7 @@ function CreateAutofillRule() {
         properties={properties ?? []}
         tagTree={tagTree ?? []}
         defaultCategoryId={defaultCategoryId}
+        defaultWebsiteDomain={defaultWebsiteDomain}
         submitLabel="Add rule"
         isError={createRule.isError}
         errorMessage={createRule.error?.message}

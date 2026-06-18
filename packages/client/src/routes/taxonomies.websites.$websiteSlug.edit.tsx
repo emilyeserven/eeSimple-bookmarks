@@ -20,6 +20,10 @@ const editNav = [
     to: "/taxonomies/websites/$websiteSlug/edit/param-rules",
     label: "Param Rules",
   },
+  {
+    to: "/taxonomies/websites/$websiteSlug/edit/autofill",
+    label: "Autofill Rules",
+  },
 ] as const;
 
 function WebsiteEditLayout() {

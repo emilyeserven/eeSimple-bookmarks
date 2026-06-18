@@ -182,6 +182,20 @@ export const youtubeChannels = pgTable("youtube_channels", {
   unique("youtube_channels_slug_unique").on(table.slug),
 ]);
 
+/**
+ * `youtube_channel_self_ids` — short self-identifiers a channel appends to its video titles
+ * (e.g. "SNL" for Saturday Night Live). Used to strip the suffix on metadata fetch.
+ */
+export const youtubeChannelSelfIds = pgTable("youtube_channel_self_ids", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  channelId: uuid("channel_id").notNull().references(() => youtubeChannels.id, {
+    onDelete: "cascade",
+  }),
+  value: text("value").notNull(),
+}, table => [
+  unique("youtube_channel_self_ids_channel_value_unique").on(table.channelId, table.value),
+]);
+
 /** `tags` table — a self-referencing tree. `parentId` NULL means a root tag. */
 export const tags = pgTable("tags", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -791,6 +805,7 @@ export type PropertyGroupRow = typeof propertyGroups.$inferSelect;
 export type NewPropertyGroupRow = typeof propertyGroups.$inferInsert;
 export type YouTubeChannelRow = typeof youtubeChannels.$inferSelect;
 export type NewYouTubeChannelRow = typeof youtubeChannels.$inferInsert;
+export type YouTubeChannelSelfIdRow = typeof youtubeChannelSelfIds.$inferSelect;
 export type TagRow = typeof tags.$inferSelect;
 export type NewTagRow = typeof tags.$inferInsert;
 export type BookmarkTagRow = typeof bookmarkTags.$inferSelect;

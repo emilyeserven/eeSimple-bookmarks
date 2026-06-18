@@ -50,6 +50,23 @@ const categoryNode = {
   },
 } as const;
 
+const websiteNode = {
+  type: "object",
+  additionalProperties: false,
+  required: ["type", "domains"],
+  properties: {
+    type: {
+      const: "website",
+    },
+    domains: {
+      type: "array",
+      items: {
+        type: "string",
+      },
+    },
+  },
+} as const;
+
 const tagNode = {
   type: "object",
   additionalProperties: false,
@@ -240,7 +257,7 @@ const groupNode = {
 /** Any node in the tree (group or one of the four leaf kinds). Self-references for nesting. */
 export const conditionNodeSchema = {
   $id: "conditionNode",
-  oneOf: [groupNode, matchNode, categoryNode, tagNode, propertyNode],
+  oneOf: [groupNode, matchNode, categoryNode, websiteNode, tagNode, propertyNode],
 } as const;
 
 /** The persisted root: always a group. Referenced by request bodies as `conditionTree#`. */

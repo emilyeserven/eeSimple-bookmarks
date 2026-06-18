@@ -11,6 +11,7 @@ import { createFormHook, createFormHookContexts } from "@tanstack/react-form";
 import { Combobox } from "@/components/Combobox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { InputAddon, InputGroup } from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -74,7 +75,7 @@ function TextField({
       type={type}
       placeholder={placeholder}
       disabled={disabled}
-      className={inputClassName}
+      className={action ? `pe-10 ${inputClassName ?? ""}`.trim() : inputClassName}
       value={field.state.value}
       onBlur={() => {
         field.handleBlur();
@@ -94,10 +95,10 @@ function TextField({
       </Label>
       {action
         ? (
-          <div className="flex items-center gap-2">
-            <div className="flex-1">{input}</div>
-            {action}
-          </div>
+          <InputGroup>
+            {input}
+            <InputAddon align="inline-end">{action}</InputAddon>
+          </InputGroup>
         )
         : input}
       {field.state.meta.isTouched && <FieldErrors errors={field.state.meta.errors} />}
@@ -114,6 +115,8 @@ interface TextareaFieldProps {
   inputClassName?: string;
   /** Extra blur handler (runs after the field's own blur), e.g. autofill-on-blur. */
   onBlur?: () => void;
+  /** Extra change handler (runs after the field's own change), e.g. clearing an undo banner. */
+  onChange?: () => void;
   /** Optional control rendered at the inline-end of the textarea (input-group pattern). */
   action?: ReactNode;
   /** Stretch the textarea to fill its container's height (for equal-height grid cells). */
@@ -122,7 +125,7 @@ interface TextareaFieldProps {
 
 /** Labelled multi-line text input bound to the surrounding field. */
 function TextareaField({
-  label, placeholder, rows = 2, disabled, inputClassName, onBlur, action, fill,
+  label, placeholder, rows = 2, disabled, inputClassName, onBlur, onChange, action, fill,
 }: TextareaFieldProps) {
   const field = useFieldContext<string>();
   const id = useId();
@@ -133,13 +136,16 @@ function TextareaField({
       rows={rows}
       placeholder={placeholder}
       disabled={disabled}
-      className={`${fill ? "h-full flex-1" : ""} ${inputClassName ?? ""}`.trim() || undefined}
+      className={`${fill ? "h-full flex-1" : ""} ${action ? "pe-10" : ""} ${inputClassName ?? ""}`.trim() || undefined}
       value={field.state.value}
       onBlur={() => {
         field.handleBlur();
         onBlur?.();
       }}
-      onChange={event => field.handleChange(event.target.value)}
+      onChange={(event) => {
+        field.handleChange(event.target.value);
+        onChange?.();
+      }}
     />
   );
 
@@ -148,10 +154,15 @@ function TextareaField({
       <Label htmlFor={id}>{label}</Label>
       {action
         ? (
-          <div className="flex items-start gap-2">
-            <div className="flex-1">{textarea}</div>
-            {action}
-          </div>
+          <InputGroup>
+            {textarea}
+            <InputAddon
+              align="inline-end"
+              className="items-start pt-1"
+            >
+              {action}
+            </InputAddon>
+          </InputGroup>
         )
         : textarea}
       {field.state.meta.isTouched && <FieldErrors errors={field.state.meta.errors} />}

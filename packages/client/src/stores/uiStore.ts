@@ -10,6 +10,9 @@ export type SidebarOpenModifier = "alt" | "ctrl" | "shift" | "meta";
 /** Per-section image layout preference for 2-column homepage sections. */
 export type HomepageSectionImageLayout = "above" | "side";
 
+/** Per-listing image visibility on Listings pages: full card, image-only, or no image. */
+export type BookmarkImageVisibility = "shown" | "image-only" | "off";
+
 /** Clamp a requested bookmark column count to the supported 1–4 range. */
 export function clampColumns(columns: number): number {
   return Math.min(4, Math.max(1, Math.round(columns)));
@@ -41,6 +44,9 @@ interface UiState {
   /** Per-listing image display mode: `true` = natural aspect ratio, `false` = uniform crop. Keyed by a stable page key. */
   bookmarkImageMode: Record<string, boolean>;
   setBookmarkImageMode: (pageKey: string, mode: boolean) => void;
+  /** Per-listing image visibility ("shown" | "image-only" | "off"), keyed by a stable page key. */
+  bookmarkImageVisibility: Record<string, BookmarkImageVisibility>;
+  setBookmarkImageVisibility: (pageKey: string, value: BookmarkImageVisibility) => void;
   /** Bookmark grid column count (1–4) per listing page, keyed by a stable page key. */
   bookmarkColumns: Record<string, number>;
   setBookmarkColumns: (pageKey: string, columns: number) => void;
@@ -109,6 +115,13 @@ export const useUiStore = create<UiState>()(
         bookmarkImageMode: {
           ...state.bookmarkImageMode,
           [pageKey]: mode,
+        },
+      })),
+      bookmarkImageVisibility: {},
+      setBookmarkImageVisibility: (pageKey, value) => set(state => ({
+        bookmarkImageVisibility: {
+          ...state.bookmarkImageVisibility,
+          [pageKey]: value,
         },
       })),
       bookmarkColumns: {},
@@ -196,6 +209,7 @@ export const useUiStore = create<UiState>()(
         autoFetchTitle: state.autoFetchTitle,
         autoFetchImage: state.autoFetchImage,
         bookmarkImageMode: state.bookmarkImageMode,
+        bookmarkImageVisibility: state.bookmarkImageVisibility,
         bookmarkColumns: state.bookmarkColumns,
         panelPinned: state.panelPinned,
         drawerUnpinnedBreakpoints: state.drawerUnpinnedBreakpoints,

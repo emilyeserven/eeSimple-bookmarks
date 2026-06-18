@@ -12,7 +12,7 @@ function AutofillListPage() {
       <div>
         <h2 className="text-xl font-semibold">Autofill Rules</h2>
         <p className="text-sm text-muted-foreground">
-          Define rules that match a bookmark&apos;s URL or title and prefill its category, tags, and
+          Define rules that match a bookmark&apos;s title or website and prefill its category, tags, and
           custom properties when you add it. Select a rule to edit it, or create a new one.
         </p>
       </div>

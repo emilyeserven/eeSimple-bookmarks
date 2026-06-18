@@ -269,6 +269,8 @@ export interface YouTubeChannel {
   createdAt: string;
   /** Number of bookmarks associated with this channel (populated by list endpoints). */
   bookmarkCount?: number;
+  /** Short self-identifiers the channel appends to video titles (e.g. "SNL"). Stripped on fetch. */
+  selfIds: string[];
 }
 
 /** Lightweight channel shape carried on a bookmark. */
@@ -280,11 +282,15 @@ export interface YouTubeChannelHint {
   key: string;
   /** Human-friendly channel name. */
   name: string;
+  /** Self-identifiers to save on the channel (replaces existing set). */
+  selfIds?: string[];
 }
 
-/** Payload for updating a YouTube channel (rename). */
+/** Payload for updating a YouTube channel (rename and/or self-identifier list). */
 export interface UpdateYouTubeChannelInput {
   name?: string;
+  /** Full replacement list of self-identifiers. Omit to leave unchanged. */
+  selfIds?: string[];
 }
 
 /**
@@ -768,12 +774,15 @@ export type UpdateHomepageSectionInput = Partial<CreateHomepageSectionInput>;
 export interface FetchMetadataResult {
   /** Cleaned page/video title, or `null` when none could be read. */
   title: string | null;
+  /** Video description scraped from the watch page (YouTube only), or `null`. */
+  description: string | null;
   /** Whether the URL was recognized as a YouTube video. */
   isYouTube: boolean;
   /** The video's channel (YouTube only), or `null`. `key` is the stable id used to link/create it. */
   channel: { name: string;
     url: string | null;
-    key: string | null; } | null;
+    key: string | null;
+    selfIds: string[]; } | null;
   /** The video's length in whole seconds (YouTube only), or `null`. */
   durationSeconds: number | null;
   /** A preview/thumbnail image URL (YouTube only), or `null`. */

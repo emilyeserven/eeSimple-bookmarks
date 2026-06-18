@@ -170,7 +170,7 @@ export function stripSiteNameSuffix(
   for (const token of candidates) {
     if (token.length === 0) continue;
     // Trailing separator (dash/pipe/colon/dot variants) + the token at the very end.
-    const re = new RegExp(`\\s*[-|–—·•:]\\s*${escapeRegExp(token)}\\s*$`, "i");
+    const re = new RegExp(`\\s*[-|–—·•:／]\\s*${escapeRegExp(token)}\\s*$`, "i");
     if (!re.test(title)) continue;
     const stripped = title.replace(re, "").trim();
     if (stripped.length > 0) return stripped;

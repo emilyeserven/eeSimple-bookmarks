@@ -39,6 +39,12 @@ test("stripSiteNameSuffix matches the brand from the domain when no site name is
   }), "Some Article");
 });
 
+test("stripSiteNameSuffix strips the fullwidth solidus (／) separator", () => {
+  assert.equal(stripSiteNameSuffix("Episode Title ／ ChannelName", {
+    siteName: "ChannelName",
+  }), "Episode Title");
+});
+
 test("stripSiteNameSuffix leaves a title alone when nothing matches or the prefix is empty", () => {
   assert.equal(stripSiteNameSuffix("Just a Title", {
     siteName: "GitHub",

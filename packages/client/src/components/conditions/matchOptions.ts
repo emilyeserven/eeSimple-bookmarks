@@ -1,20 +1,12 @@
-import type { ConditionMatchField, ConditionMatchOperator } from "@eesimple/types";
+import type { ConditionMatchOperator } from "@eesimple/types";
 
-/** Field options for a match condition (which bookmark text the pattern tests). */
-export const FIELD_OPTIONS: { value: ConditionMatchField;
-  label: string; }[] = [
-  {
-    value: "url",
-    label: "URL",
-  },
-  {
-    value: "title",
-    label: "Title",
-  },
-];
-
-/** Operator options for a match condition. */
-export const OPERATOR_OPTIONS: { value: ConditionMatchOperator;
+/**
+ * Operator options offered when authoring a Title / Name match. `domain` is intentionally absent:
+ * website matching now has its own dedicated condition (see `WebsiteConditionEditor`); the
+ * `domain` operator and the `url` field survive only in the shared type for evaluating legacy
+ * stored trees.
+ */
+export const OPERATOR_OPTIONS: { value: Exclude<ConditionMatchOperator, "domain">;
   label: string; }[] = [
   {
     value: "contains",
@@ -28,10 +20,6 @@ export const OPERATOR_OPTIONS: { value: ConditionMatchOperator;
     value: "regex",
     label: "Regex",
   },
-  {
-    value: "domain",
-    label: "Domain is",
-  },
 ];
 
 /** Short verbs used when rendering a human-readable summary of a match condition. */
@@ -40,10 +28,4 @@ export const OPERATOR_LABELS: Record<ConditionMatchOperator, string> = {
   starts_with: "starts with",
   regex: "matches",
   domain: "domain is",
-};
-
-/** Display names for a match field. */
-export const FIELD_LABELS: Record<ConditionMatchField, string> = {
-  url: "URL",
-  title: "title",
 };

@@ -8,6 +8,7 @@ import type {
   PropertyCondition,
   TagCondition,
   TagNode,
+  WebsiteCondition,
 } from "@eesimple/types";
 
 import { ChevronDown } from "lucide-react";
@@ -16,6 +17,7 @@ import { CategoryConditionEditor } from "./CategoryConditionEditor";
 import { MatchConditionEditor } from "./MatchConditionEditor";
 import { PropertyConditionEditor } from "./PropertyConditionEditor";
 import { TagConditionEditor } from "./TagConditionEditor";
+import { WebsiteConditionEditor } from "./WebsiteConditionEditor";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -82,6 +84,7 @@ export function ConditionsField({
 }: ConditionsFieldProps) {
   const matches = value.children.filter((child): child is MatchCondition => child.type === "match");
   const categoryLeaf = value.children.find((child): child is CategoryCondition => child.type === "category");
+  const websiteLeaf = value.children.find((child): child is WebsiteCondition => child.type === "website");
   const tagLeaf = value.children.find((child): child is TagCondition => child.type === "tag");
   const propertyLeaves = value.children.filter((child): child is PropertyCondition => child.type === "property");
   // Preserve any nested groups (not editable in this v1 UI) so the tree round-trips.
@@ -90,16 +93,19 @@ export function ConditionsField({
   function commit(next: {
     matches?: MatchCondition[];
     category?: CategoryCondition | null;
+    website?: WebsiteCondition | null;
     tag?: TagCondition | null;
     properties?: PropertyCondition[];
   }) {
     const nextMatches = next.matches ?? matches;
     const nextCategory = next.category === undefined ? categoryLeaf : next.category;
+    const nextWebsite = next.website === undefined ? websiteLeaf : next.website;
     const nextTag = next.tag === undefined ? tagLeaf : next.tag;
     const nextProperties = next.properties ?? propertyLeaves;
     const children: ConditionNode[] = [
       ...nextMatches,
       ...(nextCategory && nextCategory.categoryIds.length > 0 ? [nextCategory] : []),
+      ...(nextWebsite && nextWebsite.domains.length > 0 ? [nextWebsite] : []),
       ...(nextTag && nextTag.tagIds.length > 0 ? [nextTag] : []),
       ...nextProperties,
       ...nestedGroups,
@@ -111,6 +117,7 @@ export function ConditionsField({
   }
 
   const categoryCount = categoryLeaf?.categoryIds.length ?? 0;
+  const websiteCount = websiteLeaf?.domains.length ?? 0;
   const tagCount = tagLeaf?.tagIds.length ?? 0;
 
   return (
@@ -137,7 +144,7 @@ export function ConditionsField({
       </div>
 
       <Section
-        title="Match (URL / title)"
+        title="Title / Name"
         summary={matches.length > 0 ? `${matches.length}` : undefined}
         defaultOpen={matches.length > 0}
       >
@@ -178,13 +185,13 @@ export function ConditionsField({
               commit({
                 matches: [...matches, {
                   type: "match",
-                  field: "url",
+                  field: "title",
                   operator: "contains",
                   pattern: "",
                 }],
               })}
           >
-            Add match condition
+            Add title condition
           </Button>
         </div>
       </Section>
@@ -203,6 +210,23 @@ export function ConditionsField({
           onChange={next =>
             commit({
               category: next.categoryIds.length > 0 ? next : null,
+            })}
+        />
+      </Section>
+
+      <Section
+        title="Website"
+        summary={websiteCount > 0 ? `${websiteCount} selected` : undefined}
+        defaultOpen={websiteCount > 0}
+      >
+        <WebsiteConditionEditor
+          value={websiteLeaf ?? {
+            type: "website",
+            domains: [],
+          }}
+          onChange={next =>
+            commit({
+              website: next.domains.length > 0 ? next : null,
             })}
         />
       </Section>

@@ -143,6 +143,13 @@ const createBookmarkBody = {
           type: "string",
           minLength: 1,
         },
+        selfIds: {
+          type: "array",
+          items: {
+            type: "string",
+            minLength: 1,
+          },
+        },
       },
     },
     originalUrl: {

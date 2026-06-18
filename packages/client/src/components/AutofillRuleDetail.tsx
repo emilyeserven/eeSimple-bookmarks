@@ -6,6 +6,55 @@ import { summarizeConditions } from "../lib/conditionsSummary";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
+/** Body of the General view tab: description and priority (name lives in the page header). */
+export function AutofillGeneralFields({
+  rule,
+}: { rule: AutofillRule }) {
+  return (
+    <div className="space-y-3 text-sm">
+      {rule.description
+        ? <p>{rule.description}</p>
+        : <p className="text-muted-foreground">No description.</p>}
+      <p className="text-muted-foreground">Priority: {rule.sortOrder}</p>
+    </div>
+  );
+}
+
+/** Body of the Conditions view tab: one-line summary of the activation condition tree. */
+export function AutofillConditionsFields({
+  rule,
+}: { rule: AutofillRule }) {
+  return (
+    <p className="text-sm text-muted-foreground">{summarizeConditions(rule.conditions)}</p>
+  );
+}
+
+/** Body of the Prefill view tab: what category/tags/properties the rule sets. */
+export function AutofillPrefillFields({
+  rule, categories,
+}: { rule: AutofillRule;
+  categories: Category[]; }) {
+  const categoryName = rule.setCategoryId
+    ? (categories.find(c => c.id === rule.setCategoryId)?.name ?? null)
+    : null;
+
+  const parts: string[] = [];
+  if (categoryName) parts.push(`Category: ${categoryName}`);
+  if (rule.tagIds.length > 0) {
+    parts.push(`${rule.tagIds.length} ${rule.tagIds.length === 1 ? "tag" : "tags"}`);
+  }
+  const propertyCount = rule.numberValues.length + rule.booleanValues.length + rule.dateTimeValues.length;
+  if (propertyCount > 0) {
+    parts.push(`${propertyCount} ${propertyCount === 1 ? "property" : "properties"}`);
+  }
+
+  return (
+    <p className="text-sm text-muted-foreground">
+      {parts.length > 0 ? parts.join(" · ") : "Nothing prefilled."}
+    </p>
+  );
+}
+
 interface AutofillRuleDetailProps {
   rule: AutofillRule;
   categories: Category[];

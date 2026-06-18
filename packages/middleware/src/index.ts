@@ -2,7 +2,7 @@ import "dotenv/config";
 import { buildApp } from "@/app";
 import { maybeSeed } from "@/db/seed";
 import { ensureAppSettings } from "@/services/appSettings";
-import { ensureAutofillConditions, ensureAutofillSlugs } from "@/services/autofill";
+import { ensureAutofillConditions, ensureAutofillSlugs, ensureWebsiteConditions } from "@/services/autofill";
 import { ensureDefaultCategory } from "@/services/categories";
 import { backfillCustomPropertySlugs, ensureVideoLengthProperty } from "@/services/customProperties";
 import { ensureHomepageFilter } from "@/services/homepageFilter";
@@ -54,6 +54,7 @@ try {
   // Backfill condition trees for legacy autofill rules and seed the homepage filter from the
   // previous is-homepage / homepage-tags mechanism on first boot.
   await ensureAutofillConditions();
+  await ensureWebsiteConditions();
   await ensureAutofillSlugs();
   await ensureHomepageFilter();
   await ensureHomepageSections();
