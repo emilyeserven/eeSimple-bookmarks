@@ -192,10 +192,10 @@ export function BookmarkForm({
   const imageIntentRef = useRef<ImageIntent>(
     !isEdit && autoFetchImage
       ? {
-          file: null,
-          auto: true,
-          remove: false,
-        }
+        file: null,
+        auto: true,
+        remove: false,
+      }
       : EMPTY_IMAGE_INTENT,
   );
   const [imageFieldKey, setImageFieldKey] = useState(0);
@@ -496,10 +496,10 @@ export function BookmarkForm({
       setUrlCleanup(null);
       imageIntentRef.current = autoFetchImage
         ? {
-            file: null,
-            auto: true,
-            remove: false,
-          }
+          file: null,
+          auto: true,
+          remove: false,
+        }
         : EMPTY_IMAGE_INTENT;
       setImageFieldKey(key => key + 1);
       setShowUrlCleanup(false);
