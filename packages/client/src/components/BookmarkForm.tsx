@@ -5,6 +5,7 @@ import type {
   BookmarkBooleanValue,
   BookmarkDateTimeValue,
   BookmarkNumberValue,
+  CheckUrlResult,
   CreateBookmarkInput,
   CustomProperty,
   TagNode,
@@ -15,9 +16,12 @@ import type {
 import { useEffect, useId, useRef, useState } from "react";
 
 import { propertyAppliesToCategory } from "@eesimple/types";
+import { useNavigate } from "@tanstack/react-router";
 import { Brush, ChevronDown, ExternalLink, Loader2, Sparkles } from "lucide-react";
+import { toast } from "sonner";
 import { z } from "zod";
 
+import { AddCategoryModal } from "./AddCategoryModal";
 import { BookmarkImageField } from "./BookmarkImageField";
 import { EMPTY_IMAGE_INTENT } from "./bookmarkImageIntent";
 import { DateTimePicker } from "./DateTimePicker";
@@ -32,6 +36,7 @@ import {
   useUploadBookmarkImage,
 } from "../hooks/useBookmarks";
 import { useCategories, useCategoryDefaults, useCategoryRootTags } from "../hooks/useCategories";
+import { useCheckUrl } from "../hooks/useCheckUrl";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useFetchMetadata } from "../hooks/useFetchMetadata";
 import { useFetchTitle } from "../hooks/useFetchTitle";
@@ -54,6 +59,7 @@ import {
 } from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CategoryIcon } from "@/lib/icons";
 
 const bookmarkSchema = z.object({
@@ -95,6 +101,7 @@ export function BookmarkForm({
   bookmark, onDone, lockedCategoryId,
 }: BookmarkFormProps = {}) {
   const isEdit = Boolean(bookmark);
+  const navigate = useNavigate();
   const createBookmark = useCreateBookmark();
   const updateBookmark = useUpdateBookmark();
   const saveBookmark = isEdit ? updateBookmark : createBookmark;
@@ -140,6 +147,8 @@ export function BookmarkForm({
   const [isReportingTitle, setIsReportingTitle] = useState(false);
   const [expectedTitle, setExpectedTitle] = useState("");
   const [websiteSiteName, setWebsiteSiteName] = useState("");
+  // Drives the inline "Create category" modal opened from the Category combobox.
+  const [addCategoryOpen, setAddCategoryOpen] = useState(false);
   // The channel resolved from a fetched YouTube video, passed on save so the server links/creates it.
   // The ref is read by the submit handler (stale-closure-safe); the state drives the banner display.
   const channelHintRef = useRef<YouTubeChannelHint | null>(null);
@@ -446,6 +455,21 @@ export function BookmarkForm({
         }),
       });
       await applyImageIntent(created.id);
+      // Offer a shortcut to refine the chosen category right after saving.
+      const categorySlug = (categories ?? []).find(category => category.id === value.categoryId)?.slug;
+      toast.success("Bookmark added", categorySlug
+        ? {
+          action: {
+            label: "Edit category",
+            onClick: () => void navigate({
+              to: "/categories/$categorySlug/edit/general",
+              params: {
+                categorySlug,
+              },
+            }),
+          },
+        }
+        : undefined);
       form.reset();
       setNumberInputs({});
       setBooleanInputs({});
@@ -752,6 +776,7 @@ export function BookmarkForm({
           nudge={urlShortener.nudge}
           expandedUrl={urlShortener.expandedUrl}
           shortenedFrom={urlCleanup?.applied ? urlCleanup.original : null}
+          cleanedUrl={urlCleanup?.applied ? urlCleanup.cleaned : null}
           onUndoShorten={undoUrlCleanup}
           websiteSiteName={websiteSiteName}
           onSiteNameChange={setWebsiteSiteName}
@@ -849,6 +874,10 @@ export function BookmarkForm({
                 placeholder="Select a category"
                 searchPlaceholder="Search categories…"
                 emptyText="No categories found."
+                createOption={{
+                  label: "Create category",
+                  onSelect: () => setAddCategoryOpen(true),
+                }}
                 options={(categories ?? []).map(category => ({
                   value: category.id,
                   label: category.name,
@@ -863,6 +892,12 @@ export function BookmarkForm({
             )}
           </form.AppField>
         )}
+
+      <AddCategoryModal
+        open={addCategoryOpen}
+        onOpenChange={setAddCategoryOpen}
+        onCreated={category => form.setFieldValue("categoryId", category.id)}
+      />
 
       <form.AppField name="mediaTypeId">
         {field => (
@@ -1248,6 +1283,8 @@ interface WebsiteLookupBannerProps {
   expandedUrl: string | null;
   /** The URL the user typed before on-blur cleanup rewrote the field, or `null` when not cleaned. */
   shortenedFrom: string | null;
+  /** The canonical URL the field was rewritten to (what will be saved), tested by the popover. */
+  cleanedUrl: string | null;
   /** Restore the typed URL, undoing the on-blur cleanup. */
   onUndoShorten: () => void;
   websiteSiteName: string;
@@ -1261,7 +1298,7 @@ interface WebsiteLookupBannerProps {
  * auto-detected channel, since the site name is fixed ("YouTube").
  */
 function WebsiteLookupBanner({
-  data, isYouTube, youtubeChannel, nudge, expandedUrl, shortenedFrom, onUndoShorten,
+  data, isYouTube, youtubeChannel, nudge, expandedUrl, shortenedFrom, cleanedUrl, onUndoShorten,
   websiteSiteName, onSiteNameChange, onSiteNameBlur,
 }: WebsiteLookupBannerProps) {
   if (!data?.domain) return null;
@@ -1316,11 +1353,10 @@ function WebsiteLookupBanner({
               mt-1 flex items-center gap-2 text-sm text-muted-foreground
             "
           >
-            <span className="truncate">
-              Shortened from
-              {" "}
-              <span className="font-mono">{shortenedFrom}</span>
-            </span>
+            <ShortenedFromPopover
+              shortenedFrom={shortenedFrom}
+              cleanedUrl={cleanedUrl}
+            />
             <Button
               type="button"
               variant="link"
@@ -1368,6 +1404,166 @@ function WebsiteLookupBanner({
           )
           : null}
     </div>
+  );
+}
+
+interface ShortenedFromPopoverProps {
+  /** The full URL the user typed before on-blur cleanup, shown wrapped in the popover. */
+  shortenedFrom: string;
+  /** The cleaned URL that will be saved — the one the "Test link" button probes / opens. */
+  cleanedUrl: string | null;
+}
+
+/**
+ * The "Shortened from …" label. The text truncates inline; hovering (or focusing) it opens a popover
+ * with the full URL wrapped across lines, a backend reachability check for the cleaned/saved link,
+ * and a manual "open in new tab" affordance.
+ */
+function ShortenedFromPopover({
+  shortenedFrom, cleanedUrl,
+}: ShortenedFromPopoverProps) {
+  const [open, setOpen] = useState(false);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const checkUrl = useCheckUrl();
+  // Test/open the saved (cleaned) link; fall back to the typed URL if cleanup left none.
+  const testUrl = cleanedUrl ?? shortenedFrom;
+
+  function show(): void {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    setOpen(true);
+  }
+  // A short close delay lets the pointer travel from the trigger to the popover without it dismissing.
+  function scheduleHide(): void {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    closeTimer.current = setTimeout(() => setOpen(false), 120);
+  }
+
+  return (
+    <Popover
+      open={open}
+      onOpenChange={setOpen}
+    >
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className="
+            min-w-0 truncate text-left underline decoration-dotted
+            underline-offset-2
+          "
+          onMouseEnter={show}
+          onMouseLeave={scheduleHide}
+          onFocus={show}
+          onBlur={scheduleHide}
+        >
+          Shortened from
+          {" "}
+          <span className="font-mono">{shortenedFrom}</span>
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        align="start"
+        className="max-w-sm space-y-3"
+        onOpenAutoFocus={event => event.preventDefault()}
+        onMouseEnter={show}
+        onMouseLeave={scheduleHide}
+      >
+        <div className="space-y-1">
+          <p className="text-xs font-medium text-muted-foreground">Full URL</p>
+          <p
+            className="font-mono text-xs break-all whitespace-normal"
+          >
+            {shortenedFrom}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={!isFetchableUrl(testUrl) || checkUrl.isPending}
+            onClick={() => checkUrl.mutate({
+              url: testUrl,
+            })}
+          >
+            {checkUrl.isPending
+              ? <Loader2 className="size-4 animate-spin" />
+              : null}
+            Test link
+          </Button>
+          {isFetchableUrl(testUrl)
+            ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                asChild
+              >
+                <a
+                  href={testUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="Open link in a new tab"
+                >
+                  <ExternalLink className="size-4" />
+                </a>
+              </Button>
+            )
+            : null}
+        </div>
+
+        {checkUrl.isSuccess
+          ? <CheckResultLine result={checkUrl.data} />
+          : null}
+        {checkUrl.isError
+          ? <p className="text-xs text-destructive">Couldn&apos;t run the check — try again.</p>
+          : null}
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+/** One-line reachability verdict rendered under the "Test link" button. */
+function CheckResultLine({
+  result,
+}: {
+  result: CheckUrlResult;
+}) {
+  if (result.ok) {
+    return (
+      <p
+        className="
+          text-xs text-emerald-600
+          dark:text-emerald-500
+        "
+      >
+        Reachable — HTTP
+        {" "}
+        {result.status}
+      </p>
+    );
+  }
+  let message: string;
+  switch (result.reason) {
+    case "http_error":
+      message = `Returned HTTP ${result.status} — the link may be broken.`;
+      break;
+    case "timeout":
+      message = "Timed out — the site may be slow or unreachable.";
+      break;
+    default:
+      message = "Couldn't be reached.";
+      break;
+  }
+  return (
+    <p
+      className="
+        text-xs text-amber-600
+        dark:text-amber-500
+      "
+    >
+      {message}
+    </p>
   );
 }
 

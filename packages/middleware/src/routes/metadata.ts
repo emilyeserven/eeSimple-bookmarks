@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import type { FetchMetadataResult } from "@eesimple/types";
-import { fetchPageTitle } from "@/services/metadata";
+import { checkUrl, fetchPageTitle } from "@/services/metadata";
 import { lookupWebsiteByUrl, stripSiteNameSuffix } from "@/services/websites";
 import { fetchYouTubeMetadata, isYouTubeVideoUrl } from "@/services/youtube";
 import { channelKeyFromUrl } from "@/services/youtubeChannels";
@@ -87,6 +87,32 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
       title: stripSiteNameSuffix(result.title, {
         siteName: siteNameHint ?? website?.siteName,
         domain,
+      }),
+    };
+  });
+
+  // Lightweight reachability probe: does this URL still resolve? Never 502s — the client renders the
+  // returned status/reason directly, so a dead link is a normal 200 result, not a request failure.
+  app.get("/api/check-url", {
+    schema: {
+      tags: ["metadata"],
+      querystring: fetchTitleQuery,
+    },
+  }, async (req, reply) => {
+    const {
+      url,
+    } = req.query as { url: string };
+    if (!isValidUrl(url)) {
+      return reply.code(400).send({
+        message: "url must be a valid http(s) URL",
+      });
+    }
+    const result = await checkUrl(url);
+    return {
+      ok: result.kind === "ok",
+      status: result.kind === "ok" || result.kind === "http_error" ? result.status : null,
+      ...(result.kind !== "ok" && {
+        reason: result.kind,
       }),
     };
   });
