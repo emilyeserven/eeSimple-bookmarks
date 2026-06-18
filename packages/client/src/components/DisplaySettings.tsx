@@ -38,6 +38,17 @@ const TAXONOMY_ITEMS = [
   },
 ] as const;
 
+const CUSTOMIZATION_ITEMS = [
+  {
+    key: "custom-properties",
+    label: "Custom Properties",
+  },
+  {
+    key: "autofill",
+    label: "Autofill Rules",
+  },
+] as const;
+
 /** Display preferences — a theme switcher (light / dark / system) and sidebar section toggles. */
 export function DisplaySettings() {
   const theme = useUiStore(state => state.theme);
@@ -46,6 +57,8 @@ export function DisplaySettings() {
   const toggleCategoryVisibility = useUiStore(state => state.toggleCategoryVisibility);
   const hiddenTaxonomyItems = useUiStore(state => state.hiddenTaxonomyItems);
   const toggleTaxonomyItem = useUiStore(state => state.toggleTaxonomyItem);
+  const hiddenCustomizationItems = useUiStore(state => state.hiddenCustomizationItems);
+  const toggleCustomizationItem = useUiStore(state => state.toggleCustomizationItem);
 
   const {
     data: categories,
@@ -141,6 +154,23 @@ export function DisplaySettings() {
                   onCheckedChange={() => toggleTaxonomyItem(item.key)}
                 />
                 <Label htmlFor={`show-taxonomy-${item.key}`}>{item.label}</Label>
+              </div>
+            ))}
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Customization</p>
+            {CUSTOMIZATION_ITEMS.map(item => (
+              <div
+                key={item.key}
+                className="flex items-center gap-2"
+              >
+                <Checkbox
+                  id={`show-customization-${item.key}`}
+                  checked={!hiddenCustomizationItems.includes(item.key)}
+                  onCheckedChange={() => toggleCustomizationItem(item.key)}
+                />
+                <Label htmlFor={`show-customization-${item.key}`}>{item.label}</Label>
               </div>
             ))}
           </div>

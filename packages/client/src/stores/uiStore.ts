@@ -53,6 +53,9 @@ interface UiState {
   /** Taxonomy item keys hidden in the left sidebar ("tags" | "websites"). Empty = all visible. */
   hiddenTaxonomyItems: string[];
   toggleTaxonomyItem: (key: string) => void;
+  /** Customization item keys hidden in the left sidebar ("custom-properties" | "autofill"). Empty = all visible. */
+  hiddenCustomizationItems: string[];
+  toggleCustomizationItem: (key: string) => void;
   /** Whether the Add Bookmark accordion is expanded on Listings pages. Shared across all listing pages. */
   addBookmarkFormOpen: boolean;
   setAddBookmarkFormOpen: (open: boolean) => void;
@@ -117,6 +120,12 @@ export const useUiStore = create<UiState>()(
           ? state.hiddenTaxonomyItems.filter(x => x !== key)
           : [...state.hiddenTaxonomyItems, key],
       })),
+      hiddenCustomizationItems: [],
+      toggleCustomizationItem: key => set(state => ({
+        hiddenCustomizationItems: state.hiddenCustomizationItems.includes(key)
+          ? state.hiddenCustomizationItems.filter(x => x !== key)
+          : [...state.hiddenCustomizationItems, key],
+      })),
       addBookmarkFormOpen: true,
       setAddBookmarkFormOpen: open => set({
         addBookmarkFormOpen: open,
@@ -148,6 +157,7 @@ export const useUiStore = create<UiState>()(
         panelWidth: state.panelWidth,
         hiddenCategoryIds: state.hiddenCategoryIds,
         hiddenTaxonomyItems: state.hiddenTaxonomyItems,
+        hiddenCustomizationItems: state.hiddenCustomizationItems,
         addBookmarkFormOpen: state.addBookmarkFormOpen,
         collapsedHomepageSectionIds: state.collapsedHomepageSectionIds,
         homepageSectionImageLayout: state.homepageSectionImageLayout,
