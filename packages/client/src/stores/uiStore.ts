@@ -50,7 +50,7 @@ interface UiState {
   /** Category IDs hidden in the left sidebar. Empty = all visible. */
   hiddenCategoryIds: string[];
   toggleCategoryVisibility: (id: string) => void;
-  /** Taxonomy item keys hidden in the left sidebar ("tags" | "websites"). Empty = all visible. */
+  /** Taxonomy item keys hidden in the left sidebar ("tags" | "websites" | "media-types" | "youtube-channels"). Empty = all visible. */
   hiddenTaxonomyItems: string[];
   toggleTaxonomyItem: (key: string) => void;
   /** Customization item keys hidden in the left sidebar ("custom-properties" | "autofill"). Empty = all visible. */

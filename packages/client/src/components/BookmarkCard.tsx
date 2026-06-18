@@ -431,9 +431,29 @@ export function BookmarkCard({
                 </Link>
               )
               : null}
-            {bookmark.mediaType ? <Badge variant="secondary">{bookmark.mediaType.name}</Badge> : null}
+            {bookmark.mediaType
+              ? (
+                <Link
+                  to="/taxonomies/media-types/$mediaTypeSlug"
+                  params={{
+                    mediaTypeSlug: bookmark.mediaType.slug,
+                  }}
+                >
+                  <Badge variant="secondary">{bookmark.mediaType.name}</Badge>
+                </Link>
+              )
+              : null}
             {bookmark.youtubeChannel
-              ? <Badge variant="secondary">{bookmark.youtubeChannel.name}</Badge>
+              ? (
+                <Link
+                  to="/taxonomies/youtube-channels/$channelSlug"
+                  params={{
+                    channelSlug: bookmark.youtubeChannel.slug,
+                  }}
+                >
+                  <Badge variant="secondary">{bookmark.youtubeChannel.name}</Badge>
+                </Link>
+              )
               : null}
           </div>
         )

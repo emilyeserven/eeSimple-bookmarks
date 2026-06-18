@@ -2,7 +2,9 @@ import type {
   Bookmark,
   Category,
   CustomProperty,
+  MediaType,
   TagNode,
+  YouTubeChannel,
 } from "@eesimple/types";
 
 import { HttpResponse, http } from "msw";
@@ -167,6 +169,55 @@ export const sampleProperties: CustomProperty[] = [
   },
 ];
 
+export const sampleMediaTypes: MediaType[] = [
+  {
+    id: "media-video",
+    name: "Video",
+    slug: "video",
+    builtIn: true,
+    sortOrder: 0,
+    createdAt: NOW,
+    bookmarkCount: 4,
+  },
+  {
+    id: "media-article",
+    name: "Article",
+    slug: "article",
+    builtIn: true,
+    sortOrder: 1,
+    createdAt: NOW,
+    bookmarkCount: 7,
+  },
+  {
+    id: "media-newsletter",
+    name: "Newsletter",
+    slug: "newsletter",
+    builtIn: false,
+    sortOrder: 2,
+    createdAt: NOW,
+    bookmarkCount: 1,
+  },
+];
+
+export const sampleChannels: YouTubeChannel[] = [
+  {
+    id: "channel-veritasium",
+    channelKey: "@veritasium",
+    name: "Veritasium",
+    slug: "veritasium",
+    createdAt: NOW,
+    bookmarkCount: 3,
+  },
+  {
+    id: "channel-fireship",
+    channelKey: "@fireship",
+    name: "Fireship",
+    slug: "fireship",
+    createdAt: NOW,
+    bookmarkCount: 5,
+  },
+];
+
 export const sampleBookmark: Bookmark = {
   id: "bookmark-github",
   url: "https://github.com",
@@ -237,6 +288,8 @@ export const apiHandlers = [
     exists: true,
     siteName: "GitHub",
   })),
+  http.get("/api/media-types", () => HttpResponse.json(sampleMediaTypes)),
+  http.get("/api/youtube-channels", () => HttpResponse.json(sampleChannels)),
   http.get("/api/bookmarks/homepage", () => HttpResponse.json([sampleBookmark])),
   http.post("/api/bookmarks", () => HttpResponse.json(sampleBookmark, {
     status: 201,

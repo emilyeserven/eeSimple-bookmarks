@@ -18,7 +18,7 @@ describe("PanelTypeTiles", () => {
 
   it("renders a tile for every content type", () => {
     render(<PanelTypeTiles />);
-    for (const label of ["Bookmarks", "Tags", "Categories", "Custom Properties", "Websites", "Autofill Rules"]) {
+    for (const label of ["Bookmarks", "Tags", "Categories", "Custom Properties", "Websites", "Media Types", "YouTube Channels", "Autofill Rules"]) {
       expect(screen.getByText(label)).toBeInTheDocument();
     }
   });

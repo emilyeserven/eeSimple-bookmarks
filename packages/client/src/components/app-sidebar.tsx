@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Bookmark, Globe, Home, Settings, SlidersHorizontal, Tags, Wand2 } from "lucide-react";
+import { Bookmark, Clapperboard, Globe, Home, MonitorPlay, Settings, SlidersHorizontal, Tags, Wand2 } from "lucide-react";
 
 import { useCategories } from "../hooks/useCategories";
 import { useResizeHandle } from "../hooks/useResizeHandle";
@@ -48,6 +48,18 @@ const taxonomyItems = [
     title: "Websites",
     to: "/taxonomies/websites",
     icon: Globe,
+  },
+  {
+    key: "media-types",
+    title: "Media Types",
+    to: "/taxonomies/media-types",
+    icon: Clapperboard,
+  },
+  {
+    key: "youtube-channels",
+    title: "YouTube Channels",
+    to: "/taxonomies/youtube-channels",
+    icon: MonitorPlay,
   },
 ] as const;
 

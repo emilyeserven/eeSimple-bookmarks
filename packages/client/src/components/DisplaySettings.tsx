@@ -36,6 +36,14 @@ const TAXONOMY_ITEMS = [
     key: "websites",
     label: "Websites",
   },
+  {
+    key: "media-types",
+    label: "Media Types",
+  },
+  {
+    key: "youtube-channels",
+    label: "YouTube Channels",
+  },
 ] as const;
 
 const CUSTOMIZATION_ITEMS = [

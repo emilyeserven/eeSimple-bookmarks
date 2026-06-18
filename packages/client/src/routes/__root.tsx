@@ -60,6 +60,8 @@ const SETTINGS_SUBLABELS: Record<string, string> = {
   "categories": "Categories",
   "custom-properties": "Custom Properties",
   "websites": "Websites",
+  "media-types": "Media Types",
+  "youtube-channels": "YouTube Channels",
   "automations": "Automations",
   "autofill": "Autofill",
 };
@@ -167,6 +169,36 @@ function breadcrumbsForPath(pathname: string, categoryName?: string): Breadcrumb
       },
       {
         label: "Website",
+      },
+    ];
+  }
+
+  if (pathname.startsWith("/taxonomies/media-types")) {
+    if (pathname === "/taxonomies/media-types") return [{
+      label: "Media Types",
+    }];
+    return [
+      {
+        label: "Media Types",
+        href: "/taxonomies/media-types",
+      },
+      {
+        label: "Media Type",
+      },
+    ];
+  }
+
+  if (pathname.startsWith("/taxonomies/youtube-channels")) {
+    if (pathname === "/taxonomies/youtube-channels") return [{
+      label: "YouTube Channels",
+    }];
+    return [
+      {
+        label: "YouTube Channels",
+        href: "/taxonomies/youtube-channels",
+      },
+      {
+        label: "Channel",
       },
     ];
   }

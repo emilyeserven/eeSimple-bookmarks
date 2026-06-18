@@ -39,6 +39,16 @@ const settingsNav = [
     taxonomyKey: "websites",
   },
   {
+    to: "/settings/media-types",
+    label: "Media Types",
+    taxonomyKey: "media-types",
+  },
+  {
+    to: "/settings/youtube-channels",
+    label: "YouTube Channels",
+    taxonomyKey: "youtube-channels",
+  },
+  {
     to: "/settings/automations",
     label: "Automations",
   },
