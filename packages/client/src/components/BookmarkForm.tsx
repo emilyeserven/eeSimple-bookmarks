@@ -86,6 +86,7 @@ export function BookmarkForm({
   const fetchTitle = useFetchTitle();
   const websiteLookup = useWebsiteLookup();
   const autoFetchTitle = useUiStore(state => state.autoFetchTitle);
+  const autoFetchImage = useUiStore(state => state.autoFetchImage);
   const {
     data: tagTree,
   } = useTagTree();
@@ -803,16 +804,39 @@ export function BookmarkForm({
 
       <form.Subscribe selector={state => state.values.url}>
         {url => (
-          <div className="sm:col-span-2">
-            <BookmarkImageField
-              key={imageFieldKey}
-              existingImageUrl={bookmark?.image?.url ?? null}
-              pageUrl={url}
-              onChange={(intent) => {
-                imageIntentRef.current = intent;
-              }}
-            />
-          </div>
+          <Collapsible
+            key={imageFieldKey}
+            defaultOpen={!autoFetchImage}
+            className="
+              group/images space-y-2
+              sm:col-span-2
+            "
+          >
+            <CollapsibleTrigger
+              className="
+                flex items-center gap-1 text-sm font-medium
+                text-muted-foreground
+                hover:text-foreground
+              "
+            >
+              <ChevronDown
+                className="
+                  size-4 transition-transform
+                  group-data-[state=open]/images:rotate-180
+                "
+              />
+              Images
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <BookmarkImageField
+                existingImageUrl={bookmark?.image?.url ?? null}
+                pageUrl={url}
+                onChange={(intent) => {
+                  imageIntentRef.current = intent;
+                }}
+              />
+            </CollapsibleContent>
+          </Collapsible>
         )}
       </form.Subscribe>
 
