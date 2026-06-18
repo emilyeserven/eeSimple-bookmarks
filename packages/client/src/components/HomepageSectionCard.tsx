@@ -6,10 +6,13 @@ import { GripVertical, Pencil, Trash2 } from "lucide-react";
 
 import { ColumnsSwitcher } from "./ColumnsSwitcher";
 import { HomepageSectionForm } from "./HomepageSectionForm";
+import { ImageLayoutSwitcher } from "./ImageLayoutSwitcher";
+import { ImageModeSwitcher } from "./ImageModeSwitcher";
 import {
   useDeleteHomepageSection,
   useUpdateHomepageSection,
 } from "../hooks/useHomepageSections";
+import { useBookmarkColumns } from "../lib/bookmarkColumns";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -31,6 +34,7 @@ export function HomepageSectionCard({
   const [editing, setEditing] = useState(false);
   const update = useUpdateHomepageSection();
   const remove = useDeleteHomepageSection();
+  const columns = useBookmarkColumns(section.id);
 
   const conditionCount = section.conditions.children.length;
 
@@ -56,6 +60,8 @@ export function HomepageSectionCard({
         <CardTitle className="flex-1 text-base">{section.title}</CardTitle>
         <div className="flex items-center gap-1">
           <ColumnsSwitcher pageKey={section.id} />
+          {columns === 2 && <ImageLayoutSwitcher pageKey={section.id} />}
+          <ImageModeSwitcher pageKey={section.id} />
           <Button
             type="button"
             variant="ghost"

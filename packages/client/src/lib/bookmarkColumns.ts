@@ -1,3 +1,5 @@
+import type { HomepageSectionImageLayout } from "../stores/uiStore";
+
 import { useUiStore } from "../stores/uiStore";
 
 /** Default bookmark grid column count for a listing page that has no saved preference. */
@@ -28,4 +30,20 @@ export const DEFAULT_BOOKMARK_IMAGE_MODE = true;
 /** The chosen image display mode for a listing page: `true` = natural ratio, `false` = uniform crop. */
 export function useBookmarkImageMode(pageKey: string): boolean {
   return useUiStore(state => state.bookmarkImageMode?.[pageKey] ?? DEFAULT_BOOKMARK_IMAGE_MODE);
+}
+
+/** Default image layout for a 2-column homepage section. */
+export const DEFAULT_HOMEPAGE_SECTION_IMAGE_LAYOUT: HomepageSectionImageLayout = "above";
+
+export type { HomepageSectionImageLayout };
+
+/**
+ * The chosen image layout for a homepage section.
+ * Only meaningful when the section is displayed at 2 columns;
+ * callers are responsible for ignoring this value otherwise.
+ */
+export function useHomepageSectionImageLayout(sectionId: string): HomepageSectionImageLayout {
+  return useUiStore(
+    state => state.homepageSectionImageLayout?.[sectionId] ?? DEFAULT_HOMEPAGE_SECTION_IMAGE_LAYOUT,
+  );
 }
