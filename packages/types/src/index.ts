@@ -65,6 +65,8 @@ export interface Website {
   siteName: string;
   /** URL-friendly identifier derived from the domain (e.g. `"github"` from `"github.com"`). Unique. */
   slug: string;
+  /** Whether this is a seeded built-in (e.g. youtube.com); protected from rename/delete. */
+  builtIn: boolean;
   /** ISO-8601 timestamp of when the website was first seen. */
   createdAt: string;
   /** Number of bookmarks associated with this website (populated by list endpoints). */

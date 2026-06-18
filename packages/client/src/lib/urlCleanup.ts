@@ -9,21 +9,69 @@ export const TRACKING_PARAMS: ReadonlySet<string> = new Set([
   "li_fat_id", "igshid", "awc", "ef_id", "s_kwcid", "siid",
 ]);
 
-export function cleanUrl(url: string, mode: UrlCleanupMode): string {
-  if (mode === "none") return url;
+/** True when `parsed`'s host is youtube.com (any subdomain) or the youtu.be short domain. */
+function isYouTubeHost(parsed: URL): boolean {
+  const host = parsed.hostname.replace(/^www\./i, "").toLowerCase();
+  return host === "youtube.com" || host.endsWith(".youtube.com") || host === "youtu.be";
+}
+
+/**
+ * Reduce a YouTube URL to its canonical, param-free form so equivalent links dedupe and tracking
+ * params drop. Keeps only the param that identifies the resource:
+ *   - `youtube.com/watch`    → keep `v` (the video id), drop `list`, `index`, `si`, `t`, …
+ *   - `youtube.com/playlist` → keep `list` (the playlist id)
+ *   - everything else (`/shorts`, `/embed`, `/live`, `youtu.be/<id>`, …) → strip all query params
+ * Returns the input unchanged when it isn't a parseable YouTube URL. Pure.
+ */
+export function canonicalizeYouTubeUrl(url: string): string {
+  let parsed: URL;
   try {
-    const parsed = new URL(url);
-    if (mode === "all") {
-      parsed.search = "";
-    }
-    else {
-      for (const key of [...parsed.searchParams.keys()]) {
-        if (TRACKING_PARAMS.has(key)) parsed.searchParams.delete(key);
-      }
-    }
-    return parsed.toString();
+    parsed = new URL(url);
   }
   catch {
     return url;
   }
+  if (!isYouTubeHost(parsed)) return url;
+
+  const host = parsed.hostname.replace(/^www\./i, "").toLowerCase();
+  const keep
+    = host !== "youtu.be" && parsed.pathname === "/watch"
+      ? "v"
+      : host !== "youtu.be" && parsed.pathname === "/playlist"
+        ? "list"
+        : null;
+
+  const value = keep ? parsed.searchParams.get(keep) : null;
+  if (keep && value !== null) {
+    const next = new URLSearchParams();
+    next.set(keep, value);
+    parsed.search = next.toString();
+  }
+  else {
+    parsed.search = "";
+  }
+  return parsed.toString();
+}
+
+export function cleanUrl(url: string, mode: UrlCleanupMode): string {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  }
+  catch {
+    return url;
+  }
+  // YouTube URLs are always canonicalized to a single identifying param, independent of `mode` —
+  // this both strips trackers and protects the `v`/`list` param from `mode === "all"`.
+  if (isYouTubeHost(parsed)) return canonicalizeYouTubeUrl(url);
+  if (mode === "none") return url;
+  if (mode === "all") {
+    parsed.search = "";
+  }
+  else {
+    for (const key of [...parsed.searchParams.keys()]) {
+      if (TRACKING_PARAMS.has(key)) parsed.searchParams.delete(key);
+    }
+  }
+  return parsed.toString();
 }

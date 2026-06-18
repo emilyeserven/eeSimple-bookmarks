@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import type { CreateWebsiteInput, UpdateWebsiteInput, WebsiteLookup } from "@eesimple/types";
 import {
+  BuiltInWebsiteError,
   createWebsite,
   deleteWebsite,
   DuplicateDomainError,
@@ -140,6 +141,11 @@ export async function websiteRoutes(app: FastifyInstance): Promise<void> {
           message: err.message,
         });
       }
+      if (err instanceof BuiltInWebsiteError) {
+        return reply.code(403).send({
+          message: err.message,
+        });
+      }
       throw err;
     }
   });
@@ -153,10 +159,20 @@ export async function websiteRoutes(app: FastifyInstance): Promise<void> {
     const {
       id,
     } = req.params as { id: string };
-    const deleted = await deleteWebsite(id);
-    if (!deleted) return reply.code(404).send({
-      message: "Website not found",
-    });
-    return reply.code(204).send();
+    try {
+      const deleted = await deleteWebsite(id);
+      if (!deleted) return reply.code(404).send({
+        message: "Website not found",
+      });
+      return reply.code(204).send();
+    }
+    catch (err) {
+      if (err instanceof BuiltInWebsiteError) {
+        return reply.code(403).send({
+          message: err.message,
+        });
+      }
+      throw err;
+    }
   });
 }

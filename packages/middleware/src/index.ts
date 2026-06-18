@@ -8,7 +8,7 @@ import { ensureHomepageFilter } from "@/services/homepageFilter";
 import { ensureHomepageSections } from "@/services/homepageSections";
 import { backfillMediaTypeSlugs, ensureBuiltInMediaTypes } from "@/services/mediaTypes";
 import { backfillTagSlugs } from "@/services/tags";
-import { backfillWebsiteSlugs } from "@/services/websites";
+import { backfillWebsiteSlugs, ensureBuiltInWebsites } from "@/services/websites";
 import { backfillYouTubeChannelSlugs } from "@/services/youtubeChannels";
 import { ensureBucket, isObjectStoreConfigured } from "@/utils/objectStore";
 
@@ -38,6 +38,7 @@ try {
   // Runs in every environment: guarantees the built-in "Default" category and
   // backfills any bookmarks left without a category.
   await ensureDefaultCategory();
+  await ensureBuiltInWebsites();
   await backfillWebsiteSlugs();
   await backfillCustomPropertySlugs();
   await ensureVideoLengthProperty();

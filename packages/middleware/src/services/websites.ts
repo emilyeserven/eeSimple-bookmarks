@@ -15,6 +15,23 @@ export class DuplicateDomainError extends Error {
   }
 }
 
+/** Thrown when an update or delete targets a built-in website in a disallowed way. */
+export class BuiltInWebsiteError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "BuiltInWebsiteError";
+  }
+}
+
+/** Seeded built-in websites, kept in sync at boot. Built-ins can't be renamed or deleted. */
+const BUILT_IN_WEBSITES: { domain: string;
+  siteName: string; }[] = [
+  {
+    domain: "youtube.com",
+    siteName: "YouTube",
+  },
+];
+
 /**
  * Derive a URL-safe slug base from a domain by stripping the TLD (last dot-segment) and
  * slugifying. `"github.com"` → `"github"`, `"news.ycombinator.com"` → `"news-ycombinator"`.
@@ -54,6 +71,7 @@ function toWebsite(row: WebsiteRow & { bookmarkCount?: number }): Website {
     domain: row.domain,
     siteName: row.siteName,
     slug: row.slug ?? slugFromDomain(row.domain),
+    builtIn: row.builtIn,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount: row.bookmarkCount,
@@ -127,6 +145,7 @@ export async function listWebsites(): Promise<Website[]> {
       domain: websites.domain,
       siteName: websites.siteName,
       slug: websites.slug,
+      builtIn: websites.builtIn,
       createdAt: websites.createdAt,
       bookmarkCount: sql<number>`(select count(*)::int from ${bookmarks} where ${bookmarks.websiteId} = ${websites.id})`.mapWith(Number),
     })
@@ -249,6 +268,17 @@ export async function updateWebsite(
   id: string,
   input: UpdateWebsiteInput,
 ): Promise<Website | null> {
+  const [existing] = await db.select().from(websites).where(eq(websites.id, id));
+  if (!existing) return null;
+  if (existing.builtIn) {
+    const renames = input.siteName !== undefined && input.siteName.trim() !== existing.siteName;
+    const moves = input.domain !== undefined
+      && input.domain.replace(/^www\./i, "").toLowerCase() !== existing.domain;
+    if (renames || moves) {
+      throw new BuiltInWebsiteError("A built-in website cannot be renamed or moved");
+    }
+  }
+
   const patch: Partial<Pick<WebsiteRow, "domain" | "siteName" | "slug">> = {};
   if (input.siteName !== undefined) patch.siteName = input.siteName;
   if (input.domain !== undefined) {
@@ -266,12 +296,47 @@ export async function updateWebsite(
   return row ? toWebsite(row) : null;
 }
 
-/** Delete a website. Bookmarks pointing at it have their `websiteId` set to NULL via FK. */
+/** Delete a website. Built-ins can't be deleted. Bookmarks pointing at it are set to NULL via FK. */
 export async function deleteWebsite(id: string): Promise<boolean> {
+  const [existing] = await db.select({
+    builtIn: websites.builtIn,
+  }).from(websites).where(eq(websites.id, id));
+  if (!existing) return false;
+  if (existing.builtIn) throw new BuiltInWebsiteError("A built-in website cannot be deleted");
   const rows = await db.delete(websites).where(eq(websites.id, id)).returning({
     id: websites.id,
   });
   return rows.length > 0;
+}
+
+/**
+ * Ensure the seeded built-in websites exist and are marked built-in. Idempotent and safe to call at
+ * boot: inserts any missing built-in by domain, and upgrades a pre-existing auto-created row (e.g. a
+ * youtube.com site created before seeding) to `builtIn` with the canonical site name. The slug is
+ * only set on insert, preserving any slug an existing row already has.
+ */
+export async function ensureBuiltInWebsites(): Promise<void> {
+  for (const {
+    domain, siteName,
+  } of BUILT_IN_WEBSITES) {
+    const taken = await takenWebsiteSlugs();
+    const slug = uniqueWebsiteSlug(slugFromDomain(domain), taken);
+    await db
+      .insert(websites)
+      .values({
+        domain,
+        siteName,
+        slug,
+        builtIn: true,
+      })
+      .onConflictDoUpdate({
+        target: websites.domain,
+        set: {
+          builtIn: true,
+          siteName,
+        },
+      });
+  }
 }
 
 /** Fill in slugs for any websites missing one (e.g. rows that predate the `slug` column). */

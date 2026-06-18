@@ -133,7 +133,9 @@ export function BookmarkForm({
   const [expectedTitle, setExpectedTitle] = useState("");
   const [websiteSiteName, setWebsiteSiteName] = useState("");
   // The channel resolved from a fetched YouTube video, passed on save so the server links/creates it.
+  // The ref is read by the submit handler (stale-closure-safe); the state drives the banner display.
   const channelHintRef = useRef<YouTubeChannelHint | null>(null);
+  const [youtubeChannel, setYoutubeChannel] = useState<YouTubeChannelHint | null>(null);
   const [showUrlCleanup, setShowUrlCleanup] = useState(false);
   const [urlCleanupMode, setUrlCleanupMode] = useState<UrlCleanupMode>("none");
   const urlCleanupModeRef = useRef<UrlCleanupMode>("none");
@@ -393,6 +395,7 @@ export function BookmarkForm({
       setBooleanInputs({});
       setWebsiteSiteName("");
       channelHintRef.current = null;
+      setYoutubeChannel(null);
       imageIntentRef.current = EMPTY_IMAGE_INTENT;
       setImageFieldKey(key => key + 1);
       setShowUrlCleanup(false);
@@ -481,18 +484,29 @@ export function BookmarkForm({
   // prefill them: the channel is held as a hint applied on save, the duration fills the built-in
   // "Video Length" property, and the media type is set to "Video". Best-effort and non-blocking.
   async function runYouTubeEnrichment(url: string): Promise<void> {
-    if (!isFetchableUrl(url) || !looksLikeYouTube(url)) return;
+    // A non-YouTube URL clears any channel left over from a previously-entered YouTube link.
+    if (!isFetchableUrl(url) || !looksLikeYouTube(url)) {
+      channelHintRef.current = null;
+      setYoutubeChannel(null);
+      return;
+    }
     try {
       const meta = await fetchMetadata.mutateAsync({
         url,
       });
-      if (!meta.isYouTube) return;
+      if (!meta.isYouTube) {
+        channelHintRef.current = null;
+        setYoutubeChannel(null);
+        return;
+      }
 
       if (meta.channel?.key) {
-        channelHintRef.current = {
+        const hint = {
           key: meta.channel.key,
           name: meta.channel.name,
         };
+        channelHintRef.current = hint;
+        setYoutubeChannel(hint);
       }
       const videoType = (mediaTypes ?? []).find(type => type.slug === VIDEO_MEDIA_TYPE_SLUG);
       if (videoType && !form.getFieldValue("mediaTypeId")) {
@@ -599,6 +613,8 @@ export function BookmarkForm({
 
         <WebsiteLookupBanner
           data={websiteLookup.data}
+          isYouTube={websiteLookup.data?.domain === "youtube.com"}
+          youtubeChannel={youtubeChannel}
           websiteSiteName={websiteSiteName}
           onSiteNameChange={setWebsiteSiteName}
           onSiteNameBlur={() => void runFetchTitle(form.getFieldValue("url"), {
@@ -1075,14 +1091,22 @@ interface WebsiteLookupBannerProps {
   data: { exists: boolean;
     domain: string | null;
     siteName?: string | null; } | undefined;
+  /** When the URL is the built-in YouTube site, show the detected channel instead of the site-name input. */
+  isYouTube: boolean;
+  /** The channel detected from a YouTube video, or `null` (e.g. a playlist URL or before it resolves). */
+  youtubeChannel: YouTubeChannelHint | null;
   websiteSiteName: string;
   onSiteNameChange: (value: string) => void;
   onSiteNameBlur: () => void;
 }
 
-/** Banner shown below the URL field after a website lookup: existing vs. new site, plus site-name input. */
+/**
+ * Banner shown below the URL field after a website lookup: existing vs. new site, plus the site-name
+ * input for new sites. For the built-in YouTube site the site-name input is replaced by the
+ * auto-detected channel, since the site name is fixed ("YouTube").
+ */
 function WebsiteLookupBanner({
-  data, websiteSiteName, onSiteNameChange, onSiteNameBlur,
+  data, isYouTube, youtubeChannel, websiteSiteName, onSiteNameChange, onSiteNameBlur,
 }: WebsiteLookupBannerProps) {
   if (!data?.domain) return null;
   return (
@@ -1108,25 +1132,40 @@ function WebsiteLookupBanner({
             </>
           )}
       </p>
-      {!data.exists
+      {isYouTube
         ? (
-          <div className="mt-2">
-            <Label
-              htmlFor="website-site-name"
-              className="mb-1 block text-sm"
-            >
-              Site name
-            </Label>
-            <Input
-              id="website-site-name"
-              value={websiteSiteName}
-              onChange={e => onSiteNameChange(e.target.value)}
-              onBlur={onSiteNameBlur}
-              placeholder={data.domain ?? ""}
-            />
-          </div>
+          youtubeChannel
+            ? (
+              <p
+                className="
+                  mt-2 flex items-center gap-2 text-sm text-muted-foreground
+                "
+              >
+                <Badge variant="secondary">YouTube channel</Badge>
+                <span>{youtubeChannel.name}</span>
+              </p>
+            )
+            : null
         )
-        : null}
+        : !data.exists
+          ? (
+            <div className="mt-2">
+              <Label
+                htmlFor="website-site-name"
+                className="mb-1 block text-sm"
+              >
+                Site name
+              </Label>
+              <Input
+                id="website-site-name"
+                value={websiteSiteName}
+                onChange={e => onSiteNameChange(e.target.value)}
+                onBlur={onSiteNameBlur}
+                placeholder={data.domain ?? ""}
+              />
+            </div>
+          )
+          : null}
     </div>
   );
 }

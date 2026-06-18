@@ -91,7 +91,8 @@ export const mediaObjects = pgTable("media_objects", {
 
 /**
  * `websites` table — the built-in "Websites" taxonomy. One row per distinct host; bookmarks are
- * auto-linked to a website by the host of their URL.
+ * auto-linked to a website by the host of their URL. Seeded built-ins (e.g. youtube.com → "YouTube")
+ * are protected from rename/delete.
  */
 export const websites = pgTable("websites", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -102,6 +103,8 @@ export const websites = pgTable("websites", {
   // URL-friendly identifier derived from the domain (e.g. "github" from "github.com"). Nullable at
   // the DB level so `drizzle-kit push` applies cleanly to existing rows; backfilled at boot.
   slug: text("slug"),
+  // Seeded built-ins (e.g. youtube.com) can't be renamed or deleted; auto-created sites can.
+  builtIn: boolean("built_in").notNull().default(false),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
