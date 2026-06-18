@@ -8,7 +8,7 @@ import { z } from "zod";
 
 import { LabeledSection } from "./LabeledSection";
 import { LinkPreview } from "./LinkPreview";
-import { useEditPanelClick } from "./panel/useEditPanelClick";
+import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { useBookmarksOnHost, useBulkExpandBookmarkUrls } from "../hooks/useBookmarks";
 import { useCreateWebsite, useUpdateWebsite, useWebsites } from "../hooks/useWebsites";
 import { useAppForm } from "../lib/form";
@@ -19,9 +19,9 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
 import { useUiStore } from "@/stores/uiStore";
-import { Separator } from "@/components/ui/separator";
 
 /** Local draft of a param rule, with params edited as a comma-separated string. */
 interface ParamRuleDraft {
@@ -784,6 +784,7 @@ export function WebsitesListing() {
   } = useWebsites();
   const [search, setSearch] = useState("");
   const editClick = useEditPanelClick();
+  const viewClick = useViewPanelClick();
   const modifier = useUiStore(state => state.sidebarOpenModifier);
 
   const filtered = (allWebsites ?? []).filter((w) => {
@@ -834,6 +835,8 @@ export function WebsitesListing() {
                     params={{
                       websiteSlug: website.slug,
                     }}
+                    title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+                    onClick={event => viewClick(event, "website", website.id)}
                     className="
                       flex items-center gap-3 rounded-lg p-4 pr-12
                       transition-colors

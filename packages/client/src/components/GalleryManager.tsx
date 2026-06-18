@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Check, Crop, Maximize2, RefreshCw, Trash2 } from "lucide-react";
 
+import { useViewPanelClick } from "./panel/useEditPanelClick";
 import { useBookmarks } from "../hooks/useBookmarks";
 import { useAttachOrphan, useDeleteOrphans, useGallery, useScanBucket } from "../hooks/useGallery";
 
@@ -27,6 +28,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
+import { useUiStore } from "@/stores/uiStore";
 
 type ImageMode = "cover" | "contain";
 
@@ -117,6 +120,8 @@ export function GalleryListing() {
   const scan = useScanBucket();
   const deleteOrphans = useDeleteOrphans();
   const attachOrphan = useAttachOrphan();
+  const viewClick = useViewPanelClick();
+  const modifier = useUiStore(state => state.sidebarOpenModifier);
 
   const [imageMode, setImageMode] = useState<ImageMode>("cover");
 
@@ -256,6 +261,13 @@ export function GalleryListing() {
                     to="/bookmarks/$bookmarkId"
                     params={{
                       bookmarkId: object.bookmark?.id ?? "",
+                    }}
+                    title={object.bookmark
+                      ? `Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`
+                      : undefined}
+                    onClick={(event) => {
+                      const id = object.bookmark?.id;
+                      if (id) viewClick(event, "bookmark", id);
                     }}
                     className="block"
                   >

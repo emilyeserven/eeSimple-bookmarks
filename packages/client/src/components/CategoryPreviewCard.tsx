@@ -2,7 +2,7 @@ import type { Category } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
 
-import { useEditPanelClick } from "./panel/useEditPanelClick";
+import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -76,6 +76,8 @@ interface CategoryPreviewCardProps {
 export function CategoryPreviewCard({
   category, variant = "full",
 }: CategoryPreviewCardProps) {
+  const viewClick = useViewPanelClick();
+  const modifier = useUiStore(state => state.sidebarOpenModifier);
   if (variant === "row") {
     return (
       <li className="group relative rounded-lg border bg-card">
@@ -84,6 +86,8 @@ export function CategoryPreviewCard({
           params={{
             categorySlug: category.slug,
           }}
+          title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+          onClick={event => viewClick(event, "category", category.id)}
           className="
             flex items-center gap-3 rounded-lg p-4 pr-44 transition-colors
             hover:bg-accent

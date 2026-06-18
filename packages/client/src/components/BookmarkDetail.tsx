@@ -3,12 +3,15 @@ import type { Bookmark, Category, CustomProperty } from "@eesimple/types";
 import { youtubeEmbedUrl } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 
+import { useViewPanelClick } from "./panel/useEditPanelClick";
 import { formatDateTime, formatNumber } from "../lib/bookmarkFormat";
 
 import { DetailField } from "@/components/DetailField";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CategoryIcon } from "@/lib/icons";
+import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
+import { useUiStore } from "@/stores/uiStore";
 
 interface BookmarkDetailProps {
   bookmark: Bookmark;
@@ -28,6 +31,8 @@ interface BookmarkDetailProps {
 export function BookmarkDetail({
   bookmark, categories = [], properties = [], onEdit, onDelete,
 }: BookmarkDetailProps) {
+  const viewClick = useViewPanelClick();
+  const modifier = useUiStore(state => state.sidebarOpenModifier);
   const category = categories.find(item => item.id === bookmark.categoryId);
   const byId = new Map(properties.map(property => [property.id, property]));
 
@@ -200,6 +205,8 @@ export function BookmarkDetail({
                   params={{
                     categorySlug: category.slug,
                   }}
+                  title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+                  onClick={event => viewClick(event, "category", category.id)}
                   className="
                     inline-flex items-center gap-1.5 text-primary
                     hover:underline

@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Pencil } from "lucide-react";
 
-import { useEditPanelClick } from "./panel/useEditPanelClick";
+import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { useUpdateYouTubeChannel, useYouTubeChannels } from "../hooks/useYouTubeChannels";
 
 import { Badge } from "@/components/ui/badge";
@@ -167,6 +167,7 @@ export function YouTubeChannelsListing() {
   } = useYouTubeChannels();
   const [search, setSearch] = useState("");
   const editClick = useEditPanelClick();
+  const viewClick = useViewPanelClick();
   const modifier = useUiStore(state => state.sidebarOpenModifier);
 
   const filtered = (allChannels ?? []).filter((c) => {
@@ -214,6 +215,8 @@ export function YouTubeChannelsListing() {
                   params={{
                     channelSlug: channel.slug,
                   }}
+                  title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+                  onClick={event => viewClick(event, "youtube-channel", channel.id)}
                   className="
                     flex items-center gap-3 rounded-lg p-4 pr-12
                     transition-colors

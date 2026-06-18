@@ -6,7 +6,7 @@ import { Link } from "@tanstack/react-router";
 import { Pencil } from "lucide-react";
 import { z } from "zod";
 
-import { useEditPanelClick } from "./panel/useEditPanelClick";
+import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { useCreateMediaType, useDeleteMediaType, useMediaTypes, useUpdateMediaType } from "../hooks/useMediaTypes";
 import { useAppForm } from "../lib/form";
 
@@ -280,6 +280,7 @@ export function MediaTypesListing() {
   } = useMediaTypes();
   const [search, setSearch] = useState("");
   const editClick = useEditPanelClick();
+  const viewClick = useViewPanelClick();
   const modifier = useUiStore(state => state.sidebarOpenModifier);
 
   const filtered = (allMediaTypes ?? []).filter((m) => {
@@ -330,6 +331,8 @@ export function MediaTypesListing() {
                     params={{
                       mediaTypeSlug: mediaType.slug,
                     }}
+                    title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+                    onClick={event => viewClick(event, "media-type", mediaType.id)}
                     className="
                       flex items-center gap-3 rounded-lg p-4 pr-12
                       transition-colors

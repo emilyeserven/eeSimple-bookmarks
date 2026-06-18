@@ -14,7 +14,7 @@ import { Link } from "@tanstack/react-router";
 import { ExternalLink, MoreVertical, Sparkles } from "lucide-react";
 
 import { DateTimePicker } from "./DateTimePicker";
-import { useEditPanelClick } from "./panel/useEditPanelClick";
+import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { useAutoBookmarkImage, useUpdateBookmark } from "../hooks/useBookmarks";
 import { formatDateTime, formatNumber } from "../lib/bookmarkFormat";
 
@@ -245,6 +245,7 @@ export function BookmarkCard({
   const autoImage = useAutoBookmarkImage();
   const updateBookmark = useUpdateBookmark();
   const editClick = useEditPanelClick();
+  const viewClick = useViewPanelClick();
   const modifier = useUiStore(state => state.sidebarOpenModifier);
   const byId = new Map(properties.map(property => [property.id, property]));
 
@@ -332,6 +333,8 @@ export function BookmarkCard({
             params={{
               bookmarkId: bookmark.id,
             }}
+            title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+            onClick={event => viewClick(event, "bookmark", bookmark.id)}
             className="
               wrap-break-word text-primary
               hover:underline
@@ -485,45 +488,54 @@ export function BookmarkCard({
     )
     : null;
 
+  const {
+    website, mediaType, youtubeChannel,
+  } = bookmark;
   const details = (
     <>
       {bookmark.description ? <p className="mt-2 text-sm text-foreground">{bookmark.description}</p> : null}
-      {bookmark.website || bookmark.mediaType || bookmark.youtubeChannel
+      {website || mediaType || youtubeChannel
         ? (
           <div className="mt-2 flex flex-wrap items-center gap-1">
-            {bookmark.website
+            {website
               ? (
                 <Link
                   to="/taxonomies/websites/$websiteSlug"
                   params={{
-                    websiteSlug: bookmark.website.slug,
+                    websiteSlug: website.slug,
                   }}
+                  title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+                  onClick={event => viewClick(event, "website", website.id)}
                 >
-                  <Badge variant="secondary">{bookmark.website.siteName}</Badge>
+                  <Badge variant="secondary">{website.siteName}</Badge>
                 </Link>
               )
               : null}
-            {bookmark.mediaType
+            {mediaType
               ? (
                 <Link
                   to="/taxonomies/media-types/$mediaTypeSlug"
                   params={{
-                    mediaTypeSlug: bookmark.mediaType.slug,
+                    mediaTypeSlug: mediaType.slug,
                   }}
+                  title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+                  onClick={event => viewClick(event, "media-type", mediaType.id)}
                 >
-                  <Badge variant="secondary">{bookmark.mediaType.name}</Badge>
+                  <Badge variant="secondary">{mediaType.name}</Badge>
                 </Link>
               )
               : null}
-            {bookmark.youtubeChannel
+            {youtubeChannel
               ? (
                 <Link
                   to="/taxonomies/youtube-channels/$channelSlug"
                   params={{
-                    channelSlug: bookmark.youtubeChannel.slug,
+                    channelSlug: youtubeChannel.slug,
                   }}
+                  title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+                  onClick={event => viewClick(event, "youtube-channel", youtubeChannel.id)}
                 >
-                  <Badge variant="secondary">{bookmark.youtubeChannel.name}</Badge>
+                  <Badge variant="secondary">{youtubeChannel.name}</Badge>
                 </Link>
               )
               : null}

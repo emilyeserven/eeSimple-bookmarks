@@ -135,4 +135,42 @@ describe("TagTreeList", () => {
     });
     expect(openItem).toHaveBeenCalledWith("tag", "dev", "edit");
   });
+
+  it("does not open the panel on a plain row click (the link navigates to the tag page)", async () => {
+    openItem.mockClear();
+    await renderWithRouter(
+      <TagTreeList
+        tree={tree}
+        expanded={new Set()}
+        onToggle={vi.fn()}
+      />,
+      {
+        paths,
+      },
+    );
+    screen.getByRole("link", {
+      name: "dev",
+    }).click();
+    expect(openItem).not.toHaveBeenCalled();
+  });
+
+  it("opens the panel in view mode when the tag row is alt-clicked", async () => {
+    openItem.mockClear();
+    await renderWithRouter(
+      <TagTreeList
+        tree={tree}
+        expanded={new Set()}
+        onToggle={vi.fn()}
+      />,
+      {
+        paths,
+      },
+    );
+    fireEvent.click(screen.getByRole("link", {
+      name: "dev",
+    }), {
+      altKey: true,
+    });
+    expect(openItem).toHaveBeenCalledWith("tag", "dev", "view");
+  });
 });
