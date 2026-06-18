@@ -113,6 +113,7 @@ export function BookmarkForm({
     data: shortenerIgnoreList,
   } = useShortenerIgnoreList();
   const autoFetchTitle = useUiStore(state => state.autoFetchTitle);
+  const autoFetchImage = useUiStore(state => state.autoFetchImage);
   const {
     data: tagTree,
   } = useTagTree();
@@ -188,7 +189,15 @@ export function BookmarkForm({
 
   // The image control reports its intent here; the form applies it after the bookmark is saved (so
   // it works for both create and edit). `imageFieldKey` remounts the field to clear it on reset.
-  const imageIntentRef = useRef<ImageIntent>(EMPTY_IMAGE_INTENT);
+  const imageIntentRef = useRef<ImageIntent>(
+    !isEdit && autoFetchImage
+      ? {
+        file: null,
+        auto: true,
+        remove: false,
+      }
+      : EMPTY_IMAGE_INTENT,
+  );
   const [imageFieldKey, setImageFieldKey] = useState(0);
 
   // Progressive disclosure for new bookmarks: a fresh form shows only the URL field until the URL is
@@ -485,7 +494,13 @@ export function BookmarkForm({
         expandedUrl: null,
       });
       setUrlCleanup(null);
-      imageIntentRef.current = EMPTY_IMAGE_INTENT;
+      imageIntentRef.current = autoFetchImage
+        ? {
+          file: null,
+          auto: true,
+          remove: false,
+        }
+        : EMPTY_IMAGE_INTENT;
       setImageFieldKey(key => key + 1);
       setShowUrlCleanup(false);
       setUrlCleanupMode("none");
@@ -1041,6 +1056,7 @@ export function BookmarkForm({
                       key={imageFieldKey}
                       existingImageUrl={bookmark?.image?.url ?? null}
                       pageUrl={url}
+                      defaultAuto={!isEdit && autoFetchImage}
                       onChange={(intent) => {
                         imageIntentRef.current = intent;
                       }}
