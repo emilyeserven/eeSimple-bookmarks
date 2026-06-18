@@ -6,6 +6,7 @@ on:
 
 permissions:
   pull-requests: read
+  issues: read
 
 jobs:
   lint-title:
@@ -15,11 +16,32 @@ jobs:
       - uses: amannn/action-semantic-pull-request@v5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Require issue number in PR title
-        env:
-          PR_TITLE: ${{ github.event.pull_request.title }}
-        run: |
-          if ! echo "$PR_TITLE" | grep -qE '#[0-9]+'; then
-            echo "PR title must include an issue number, e.g.: feat: add feature (#102)"
-            exit 1
-          fi
+      # If the PR closes an issue, its title must include the issue number (e.g. (#102)).
+      - uses: actions/github-script@v7
+        name: Require issue number in PR title if issue is linked
+        with:
+          script: |
+            const title = context.payload.pull_request.title;
+            const { repository } = await github.graphql(`
+              query($owner: String!, $repo: String!, $number: Int!) {
+                repository(owner: $owner, name: $repo) {
+                  pullRequest(number: $number) {
+                    closingIssuesReferences(first: 1) {
+                      totalCount
+                    }
+                  }
+                }
+              }
+            `, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              number: context.payload.pull_request.number,
+            });
+            const hasLinkedIssue =
+              repository.pullRequest.closingIssuesReferences.totalCount > 0;
+            if (hasLinkedIssue && !/#[0-9]+/.test(title)) {
+              core.setFailed(
+                'PR is linked to a closing issue but the title does not include its number.\n' +
+                'Expected format: "feat: add feature (#102)"'
+              );
+            }

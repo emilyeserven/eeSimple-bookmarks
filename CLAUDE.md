@@ -53,9 +53,9 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
   `pr-title` workflow (`amannn/action-semantic-pull-request`) lints the title independently of the
   commit messages, so a title without a valid `type:` prefix fails CI even when every commit is
   valid. When opening a PR — or if a PR title was auto-generated without one — set/rename the title
-  to a valid prefix before expecting `lint-title` to pass. PR titles must also include a linked
-  issue number (e.g. `(#102)`) — the `lint-title` workflow enforces this alongside the
-  Conventional Commits prefix.
+  to a valid prefix before expecting `lint-title` to pass. When a PR closes an issue, its title
+  must also include the issue number (e.g. `(#102)`) — the `lint-title` workflow enforces this
+  for any PR that has a closing-issue link.
 - **Git hooks** (Husky): pre-commit runs `lint-staged`; commit-msg runs commitlint.
 - **Path alias:** the middleware uses `@/*` → `src/*` (resolved at build time by `tsc-alias`).
 - **`.js` import extensions in `@eesimple/types`:** the types package emits native ESM, so its
