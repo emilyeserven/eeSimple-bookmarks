@@ -2,7 +2,7 @@ import type { CustomProperty } from "@eesimple/types";
 
 import { describe, expect, it } from "vitest";
 
-import { formatNumber } from "./bookmarkFormat";
+import { formatDuration, formatNumber } from "./bookmarkFormat";
 
 const NOW = "2026-06-01T00:00:00.000Z";
 
@@ -12,6 +12,8 @@ function property(overrides: Partial<CustomProperty>): CustomProperty {
     name: "Prop",
     slug: "prop",
     type: "number",
+    builtIn: false,
+    numberFormat: null,
     description: null,
     numberMin: null,
     numberMax: null,
@@ -103,5 +105,29 @@ describe("formatNumber", () => {
     expect(formatNumber(5, property({
       maxLabel: "Unlimited",
     }))).toBe("5");
+  });
+
+  it("formats a duration property as a clock, ignoring unit/label knobs", () => {
+    expect(formatNumber(260, property({
+      numberFormat: "duration",
+      unitPlural: "seconds",
+    }))).toBe("4:20");
+    expect(formatNumber(3723, property({
+      numberFormat: "duration",
+    }))).toBe("1:02:03");
+  });
+});
+
+describe("formatDuration", () => {
+  it("uses M:SS below an hour and H:MM:SS at or above an hour", () => {
+    expect(formatDuration(5)).toBe("0:05");
+    expect(formatDuration(75)).toBe("1:15");
+    expect(formatDuration(3600)).toBe("1:00:00");
+  });
+
+  it("clamps non-positive or non-finite values to 0:00", () => {
+    expect(formatDuration(0)).toBe("0:00");
+    expect(formatDuration(-10)).toBe("0:00");
+    expect(formatDuration(Number.NaN)).toBe("0:00");
   });
 });

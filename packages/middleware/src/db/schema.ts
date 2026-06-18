@@ -170,6 +170,11 @@ export const customProperties = pgTable("custom_properties", {
   slug: text("slug"),
   // "number" | "boolean" | "calculate" — kept as text so new kinds can be added later.
   type: text("type").notNull(),
+  // The built-in "Video Length" property; built-ins cannot be renamed, retyped, or deleted.
+  builtIn: boolean("built_in").notNull().default(false),
+  // How a number/calculate value is rendered: "plain" (default) or "duration" (seconds → H:MM:SS).
+  // Nullable/text so it's an additive, push-safe column and new formats can be added later.
+  numberFormat: text("number_format"),
   // Free-text description surfaced as a hint where the property's field is rendered.
   description: text("description"),
   // Range-slider bounds for a `number`/`calculate` property; NULL means no bound / derive from data.

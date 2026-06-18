@@ -164,6 +164,13 @@ export type UpdateBookmarkInput = Partial<CreateBookmarkInput>;
  */
 export type CustomPropertyType = "number" | "boolean" | "calculate";
 
+/**
+ * How a `number`/`calculate` value is rendered:
+ * - `plain` — the number with its optional prefix/unit (the default).
+ * - `duration` — the value is a count of seconds, shown as `H:MM:SS` / `M:SS` (e.g. video length).
+ */
+export type NumberFormat = "plain" | "duration";
+
 /** A user-defined custom property that becomes a dynamic bookmark filter. */
 export interface CustomProperty {
   id: string;
@@ -171,6 +178,10 @@ export interface CustomProperty {
   /** URL-friendly identifier derived from `name`; unique across properties. */
   slug: string;
   type: CustomPropertyType;
+  /** Whether this is a built-in property (e.g. "Video Length"); built-ins can't be renamed/retyped/deleted. */
+  builtIn: boolean;
+  /** How a `number`/`calculate` value is displayed; `null` is treated as `"plain"`. */
+  numberFormat: NumberFormat | null;
   /** Free-text description of the property, shown as a hint where its field is rendered, or `null`. */
   description: string | null;
   /** Lower bound of a `number`/`calculate` range slider (`null` = no minimum / derive from data). */
@@ -208,6 +219,8 @@ export interface CustomProperty {
 export interface CreateCustomPropertyInput {
   name: string;
   type: CustomPropertyType;
+  /** How a `number`/`calculate` value is displayed. Defaults to `"plain"`. */
+  numberFormat?: NumberFormat | null;
   description?: string | null;
   numberMin?: number | null;
   numberMax?: number | null;

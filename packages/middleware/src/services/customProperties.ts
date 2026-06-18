@@ -21,6 +21,17 @@ export class CustomPropertyValidationError extends Error {
   }
 }
 
+/** Thrown when an update or delete targets a built-in property in a disallowed way. */
+export class BuiltInPropertyError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "BuiltInPropertyError";
+  }
+}
+
+/** Reserved slug + spec of the built-in "Video Length" property, seeded at boot. */
+export const VIDEO_LENGTH_SLUG = "video-length";
+
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 /** Map a DB row plus its hydrated relations to the shared `CustomProperty` wire type. */
@@ -35,6 +46,8 @@ function toCustomProperty(
     // Backfill runs at boot, but fall back to a derived slug so the wire type is never null.
     slug: row.slug ?? slugify(row.name),
     type: row.type as CustomProperty["type"],
+    builtIn: row.builtIn,
+    numberFormat: (row.numberFormat as CustomProperty["numberFormat"]) ?? null,
     description: row.description,
     numberMin: row.numberMin,
     numberMax: row.numberMax,
@@ -55,8 +68,8 @@ function toCustomProperty(
   };
 }
 
-/** Slugs reserved for real sub-routes, so a property can never shadow them (e.g. `/…/new`). */
-const RESERVED_SLUGS = ["new"];
+/** Slugs reserved for real sub-routes + built-ins, so a property can never shadow them. */
+const RESERVED_SLUGS = ["new", VIDEO_LENGTH_SLUG];
 
 /** Existing property slugs plus reserved route words, optionally excluding one id (when renaming). */
 async function takenSlugs(excludeId?: string): Promise<string[]> {
@@ -191,6 +204,7 @@ export async function createCustomProperty(
         name: input.name,
         slug,
         type: input.type,
+        numberFormat: input.numberFormat ?? null,
         description: input.description ?? null,
         numberMin: input.numberMin ?? null,
         numberMax: input.numberMax ?? null,
@@ -244,16 +258,22 @@ export async function updateCustomProperty(
       .select({
         id: customProperties.id,
         type: customProperties.type,
+        name: customProperties.name,
+        builtIn: customProperties.builtIn,
       })
       .from(customProperties)
       .where(eq(customProperties.id, id));
     if (!existing) return false;
+    if (existing.builtIn && input.name !== undefined && input.name !== existing.name) {
+      throw new BuiltInPropertyError("A built-in property cannot be renamed");
+    }
 
     const patch: Partial<
       Pick<
         CustomPropertyRow,
         | "name"
         | "slug"
+        | "numberFormat"
         | "description"
         | "numberMin"
         | "numberMax"
@@ -271,6 +291,7 @@ export async function updateCustomProperty(
     > = {};
     if (input.name !== undefined) patch.name = input.name;
     if (renamedSlug !== undefined) patch.slug = renamedSlug;
+    if (input.numberFormat !== undefined) patch.numberFormat = input.numberFormat ?? null;
     if (input.description !== undefined) patch.description = input.description ?? null;
     if (input.numberMin !== undefined) patch.numberMin = input.numberMin;
     if (input.numberMax !== undefined) patch.numberMax = input.numberMax;
@@ -302,11 +323,65 @@ export async function updateCustomProperty(
 }
 
 export async function deleteCustomProperty(id: string): Promise<boolean> {
+  const [existing] = await db
+    .select({
+      builtIn: customProperties.builtIn,
+    })
+    .from(customProperties)
+    .where(eq(customProperties.id, id));
+  if (!existing) return false;
+  if (existing.builtIn) throw new BuiltInPropertyError("A built-in property cannot be deleted");
   // FK cascade removes the property's values, operands, and category links.
   const rows = await db.delete(customProperties).where(eq(customProperties.id, id)).returning({
     id: customProperties.id,
   });
   return rows.length > 0;
+}
+
+/**
+ * Ensure the built-in "Video Length" property exists. Idempotent and safe to call at boot in every
+ * environment: a number property measured in seconds, displayed as a duration, available in every
+ * category. Auto-populated from a video's metadata when a bookmark URL is fetched.
+ */
+export async function ensureVideoLengthProperty(): Promise<string> {
+  const [existing] = await db
+    .select({
+      id: customProperties.id,
+    })
+    .from(customProperties)
+    .where(eq(customProperties.slug, VIDEO_LENGTH_SLUG));
+  if (existing) return existing.id;
+
+  const [row] = await db
+    .insert(customProperties)
+    .values({
+      name: "Video Length",
+      slug: VIDEO_LENGTH_SLUG,
+      type: "number",
+      builtIn: true,
+      numberFormat: "duration",
+      description: "Length of the video, in seconds. Auto-filled from a video URL.",
+      numberMin: 0,
+      allCategories: true,
+      showInListings: true,
+      editableOnCard: true,
+    })
+    .onConflictDoNothing({
+      target: customProperties.slug,
+    })
+    .returning({
+      id: customProperties.id,
+    });
+  if (row) return row.id;
+
+  // Lost a concurrent insert race — re-read the row the other writer created.
+  const [created] = await db
+    .select({
+      id: customProperties.id,
+    })
+    .from(customProperties)
+    .where(eq(customProperties.slug, VIDEO_LENGTH_SLUG));
+  return created.id;
 }
 
 /** Fill in slugs for any properties missing one (e.g. rows that predate the `slug` column). */
