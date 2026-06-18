@@ -51,9 +51,7 @@ function WebsiteViewPage() {
       >
         ← Back to websites
       </Link>
-      <div className="rounded-lg border bg-card p-4">
-        <WebsiteCard website={website} />
-      </div>
+      <WebsiteCard website={website} />
       <div className="border-t pt-4">
         <Button
           type="button"
