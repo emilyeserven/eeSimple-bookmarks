@@ -1,6 +1,6 @@
 import type { Website } from "@eesimple/types";
 
-import { fireEvent, screen } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { WebsitesListing } from "./WebsiteManager";
@@ -37,6 +37,10 @@ vi.mock("../hooks/useWebsites", () => ({
     isPending: false,
   }),
   useUpdateWebsite: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+  }),
+  useAutoWebsiteFavicon: () => ({
     mutate: vi.fn(),
     isPending: false,
   }),
@@ -79,14 +83,23 @@ describe("WebsitesListing", () => {
     expect(openItem).toHaveBeenCalledWith("website", website.id, "view");
   });
 
-  it("opens the panel in edit mode when the website edit pencil is alt-clicked", async () => {
+  it("opens the panel in edit mode when the row menu's Edit item is alt-clicked", async () => {
     openItem.mockClear();
     await renderWithRouter(<WebsitesListing />, {
       paths,
     });
-    fireEvent.click(screen.getByRole("link", {
-      name: "Edit GitHub",
+    // Open the row's "More options" menu. Radix opens on keyboard (Space) in jsdom because
+    // jsdom 26 doesn't implement PointerEvent, making fireEvent.pointerDown useless.
+    fireEvent.keyDown(screen.getByRole("button", {
+      name: "More options for GitHub",
     }), {
+      key: " ",
+    });
+    const editItem = await waitFor(() =>
+      screen.getByRole("menuitem", {
+        name: "Edit",
+      }));
+    fireEvent.click(editItem, {
       altKey: true,
     });
     expect(openItem).toHaveBeenCalledWith("website", website.id, "edit");

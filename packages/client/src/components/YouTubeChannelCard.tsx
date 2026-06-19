@@ -1,6 +1,9 @@
 import type { YouTubeChannel } from "@eesimple/types";
 
+import { useState } from "react";
+
 import { Link } from "@tanstack/react-router";
+import { MonitorPlay } from "lucide-react";
 
 import { ChannelDetailsList } from "./ChannelDetailsList";
 import { LabeledSection } from "./LabeledSection";
@@ -17,12 +20,33 @@ export function YouTubeChannelCard({
 }: { channel: YouTubeChannel }) {
   const editClick = useEditPanelClick();
   const modifier = useUiStore(state => state.sidebarOpenModifier);
+  const [imageFailed, setImageFailed] = useState(false);
+  const showImage = channel.imageUrl != null && !imageFailed;
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0 space-y-1">
-          <h2 className="text-xl font-semibold">{channel.name}</h2>
-          <p className="truncate text-sm text-muted-foreground">{channel.channelKey}</p>
+        <div className="flex min-w-0 items-center gap-3">
+          <span
+            className="
+              flex size-12 shrink-0 items-center justify-center overflow-hidden
+              rounded-full bg-muted text-muted-foreground
+            "
+          >
+            {showImage
+              ? (
+                <img
+                  src={channel.imageUrl ?? undefined}
+                  alt=""
+                  className="size-full object-cover"
+                  onError={() => setImageFailed(true)}
+                />
+              )
+              : <MonitorPlay className="size-6" />}
+          </span>
+          <div className="min-w-0 space-y-1">
+            <h2 className="text-xl font-semibold">{channel.name}</h2>
+            <p className="truncate text-sm text-muted-foreground">{channel.channelKey}</p>
+          </div>
         </div>
         <Button
           asChild

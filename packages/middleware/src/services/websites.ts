@@ -2,8 +2,19 @@ import { and, asc, eq, isNull, ne, or, sql } from "drizzle-orm";
 import type { CreateWebsiteInput, ShortenedLink, UpdateWebsiteInput, Website, WebsiteParamRule } from "@eesimple/types";
 import { getShortenerIgnoreList } from "@/services/appSettings";
 import { db } from "@/db";
-import { bookmarks, websites, type WebsiteRow } from "@/db/schema";
+import { bookmarks, websiteFavicons, websites, type WebsiteRow } from "@/db/schema";
 import { slugify } from "@/utils/slug";
+
+/**
+ * Build a favicon serving URL (with a `?v=` cache-buster) from a website id and its favicon's
+ * `createdAt`, or `null` when there's no favicon. Kept in sync with `websiteFaviconUrl` in the
+ * favicon service — both encode the version the same way so a replaced favicon busts the cache.
+ */
+function faviconUrlFrom(websiteId: string, createdAt: Date | string | null): string | null {
+  if (!createdAt) return null;
+  const time = (createdAt instanceof Date ? createdAt : new Date(createdAt)).getTime();
+  return `/api/websites/${websiteId}/image?v=${time}`;
+}
 
 /** Transaction handle type, matching the callback arg of `db.transaction`. */
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
@@ -104,7 +115,10 @@ async function takenWebsiteSlugs(excludeId?: string): Promise<Set<string>> {
 }
 
 /** Map a DB row to the shared `Website` wire type. */
-function toWebsite(row: WebsiteRow & { bookmarkCount?: number }): Website {
+function toWebsite(
+  row: WebsiteRow & { bookmarkCount?: number;
+    faviconCreatedAt?: Date | string | null; },
+): Website {
   return {
     id: row.id,
     domain: row.domain,
@@ -116,6 +130,7 @@ function toWebsite(row: WebsiteRow & { bookmarkCount?: number }): Website {
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount: row.bookmarkCount,
+    imageUrl: faviconUrlFrom(row.id, row.faviconCreatedAt ?? null),
   };
 }
 
@@ -191,8 +206,10 @@ export async function listWebsites(): Promise<Website[]> {
       paramRules: websites.paramRules,
       createdAt: websites.createdAt,
       bookmarkCount: sql<number>`(select count(*)::int from ${bookmarks} where ${bookmarks.websiteId} = ${websites.id})`.mapWith(Number),
+      faviconCreatedAt: websiteFavicons.createdAt,
     })
     .from(websites)
+    .leftJoin(websiteFavicons, eq(websiteFavicons.websiteId, websites.id))
     .orderBy(asc(websites.siteName));
   return rows.map(toWebsite);
 }

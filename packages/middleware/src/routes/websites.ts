@@ -1,6 +1,11 @@
 import type { FastifyInstance } from "fastify";
 import type { CreateWebsiteInput, UpdateWebsiteInput, WebsiteLookup } from "@eesimple/types";
 import {
+  fetchAndStoreWebsiteFavicon,
+  getWebsiteFaviconRow,
+  removeWebsiteFavicon,
+} from "@/services/websiteFavicons";
+import {
   BuiltInWebsiteError,
   createWebsite,
   deleteWebsite,
@@ -10,6 +15,16 @@ import {
   lookupWebsiteByUrl,
   updateWebsite,
 } from "@/services/websites";
+import { deleteObject, getObjectStream, isObjectStoreConfigured } from "@/utils/objectStore";
+
+/** User-facing messages for the typed grab failures shared by the entity-image auto routes. */
+const IMAGE_GRAB_ERROR_MESSAGES: Record<string, string> = {
+  no_image: "No image found for that site",
+  bad_image: "Image couldn't be loaded",
+  blocked: "Access to the site was blocked",
+  server_error: "Site returned a server error",
+  fetch_error: "Site couldn't be reached",
+};
 
 const websiteParams = {
   type: "object",
@@ -206,10 +221,15 @@ export async function websiteRoutes(app: FastifyInstance): Promise<void> {
       id,
     } = req.params as { id: string };
     try {
+      // Read the favicon row before deleting: the row cascades away with the website, but its bytes
+      // live under an object-storage prefix the Gallery reconciliation doesn't cover, so capture the
+      // key now and drop the object after a confirmed delete (best-effort) to avoid leaking it.
+      const faviconRow = await getWebsiteFaviconRow(id);
       const deleted = await deleteWebsite(id);
       if (!deleted) return reply.code(404).send({
         message: "Website not found",
       });
+      if (faviconRow) await deleteObject(faviconRow.objectKey).catch(() => undefined);
       return reply.code(204).send();
     }
     catch (err) {
@@ -220,5 +240,81 @@ export async function websiteRoutes(app: FastifyInstance): Promise<void> {
       }
       throw err;
     }
+  });
+
+  // Auto-capture: fetch the site's favicon (from its homepage) and store it.
+  app.post("/api/websites/:id/image/auto", {
+    schema: {
+      tags: ["websites"],
+      params: websiteParams,
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    if (!isObjectStoreConfigured()) {
+      return reply.code(503).send({
+        message: "Image storage is not configured",
+      });
+    }
+    const result = await fetchAndStoreWebsiteFavicon(id);
+    if (result === "not_found") {
+      return reply.code(404).send({
+        message: "Website not found",
+      });
+    }
+    if (typeof result === "string") {
+      return reply.code(502).send({
+        message: IMAGE_GRAB_ERROR_MESSAGES[result] ?? "Could not fetch a favicon",
+      });
+    }
+    return reply.code(201).send(result);
+  });
+
+  // Remove a website's favicon.
+  app.delete("/api/websites/:id/image", {
+    schema: {
+      tags: ["websites"],
+      params: websiteParams,
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    const removed = await removeWebsiteFavicon(id);
+    if (!removed) {
+      return reply.code(404).send({
+        message: "No favicon to delete",
+      });
+    }
+    return reply.code(204).send();
+  });
+
+  // Serve a website's favicon bytes by streaming them from object storage. The `?v=` version param
+  // makes the response safe to cache immutably — a replaced favicon gets a new URL.
+  app.get("/api/websites/:id/image", {
+    schema: {
+      tags: ["websites"],
+      params: websiteParams,
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    const row = await getWebsiteFaviconRow(id);
+    if (!row) {
+      return reply.code(404).send({
+        message: "No favicon",
+      });
+    }
+    const object = await getObjectStream(row.objectKey);
+    if (!object) {
+      return reply.code(404).send({
+        message: "No favicon",
+      });
+    }
+    reply.header("Content-Type", row.contentType);
+    reply.header("Cache-Control", "public, max-age=31536000, immutable");
+    return reply.send(object.body);
   });
 }

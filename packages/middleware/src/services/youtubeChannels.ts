@@ -1,8 +1,19 @@
 import { asc, eq, inArray, isNull, ne, sql } from "drizzle-orm";
 import type { UpdateYouTubeChannelInput, YouTubeChannel } from "@eesimple/types";
 import { db } from "@/db";
-import { bookmarks, type YouTubeChannelRow, youtubeChannelSelfIds, youtubeChannels } from "@/db/schema";
+import { bookmarks, type YouTubeChannelRow, youtubeChannelImages, youtubeChannelSelfIds, youtubeChannels } from "@/db/schema";
 import { slugify, uniqueSlug } from "@/utils/slug";
+
+/**
+ * Build an avatar serving URL (with a `?v=` cache-buster) from a channel id and its avatar's
+ * `createdAt`, or `null` when there's no avatar. Kept in sync with `youtubeChannelImageUrl` in the
+ * channel-image service — both encode the version the same way so a replaced avatar busts the cache.
+ */
+function avatarUrlFrom(channelId: string, createdAt: Date | string | null): string | null {
+  if (!createdAt) return null;
+  const time = (createdAt instanceof Date ? createdAt : new Date(createdAt)).getTime();
+  return `/api/youtube-channels/${channelId}/image?v=${time}`;
+}
 
 /** Transaction handle type, matching the callback arg of `db.transaction`. */
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
@@ -36,6 +47,19 @@ export function channelKeyFromUrl(channelUrl: string): string | null {
     return segments[0] === "channel" ? segments[1] : segments[1].toLowerCase();
   }
   return segments[segments.length - 1].toLowerCase();
+}
+
+/**
+ * Reconstruct a browsable channel-page URL from a stored `channelKey`, inverting `channelKeyFromUrl`.
+ * Handles (`@name`) and channel ids (`UC…`) round-trip exactly; bare vanity names fall back to the
+ * `/c/<name>` path. Used to fetch a channel's avatar (its page `og:image`) on demand. Pure.
+ */
+export function channelUrlFromKey(channelKey: string): string {
+  const key = channelKey.trim();
+  if (key.startsWith("@")) return `https://www.youtube.com/${key}`;
+  // Channel ids are "UC" followed by 22 url-safe chars; route them through `/channel/`.
+  if (/^UC[\w-]{20,}$/.test(key)) return `https://www.youtube.com/channel/${key}`;
+  return `https://www.youtube.com/c/${key}`;
 }
 
 /** Replace the full set of self-identifiers for a channel (delete-then-insert). */
@@ -76,7 +100,8 @@ async function loadSelfIdsMap(channelIds: string[]): Promise<Map<string, string[
 
 /** Map a DB row to the shared `YouTubeChannel` wire type. */
 function toYouTubeChannel(
-  row: YouTubeChannelRow & { bookmarkCount?: number },
+  row: YouTubeChannelRow & { bookmarkCount?: number;
+    avatarCreatedAt?: Date | string | null; },
   selfIds: string[] = [],
 ): YouTubeChannel {
   return {
@@ -88,6 +113,7 @@ function toYouTubeChannel(
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount: row.bookmarkCount,
     selfIds,
+    imageUrl: avatarUrlFrom(row.id, row.avatarCreatedAt ?? null),
   };
 }
 
@@ -112,8 +138,10 @@ export async function listYouTubeChannels(): Promise<YouTubeChannel[]> {
       slug: youtubeChannels.slug,
       createdAt: youtubeChannels.createdAt,
       bookmarkCount: sql<number>`(select count(*)::int from ${bookmarks} where ${bookmarks.youtubeChannelId} = ${youtubeChannels.id})`.mapWith(Number),
+      avatarCreatedAt: youtubeChannelImages.createdAt,
     })
     .from(youtubeChannels)
+    .leftJoin(youtubeChannelImages, eq(youtubeChannelImages.youtubeChannelId, youtubeChannels.id))
     .orderBy(asc(youtubeChannels.name));
 
   const selfIdsMap = await loadSelfIdsMap(rows.map(r => r.id));

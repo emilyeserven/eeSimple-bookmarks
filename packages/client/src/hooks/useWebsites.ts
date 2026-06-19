@@ -3,6 +3,7 @@ import type { CreateWebsiteInput, UpdateWebsiteInput } from "@eesimple/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { websitesApi } from "../lib/api";
+import { notifyError, notifySuccess } from "../lib/notifications";
 
 const WEBSITES_KEY = ["websites"] as const;
 const BOOKMARKS_KEY = ["bookmarks"] as const;
@@ -74,5 +75,20 @@ export function useDeleteWebsite() {
         queryKey: BOOKMARKS_KEY,
       });
     },
+  });
+}
+
+/** Re-grab a website's favicon from its homepage (icon link / og:image). */
+export function useAutoWebsiteFavicon() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => websitesApi.autoImage(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: WEBSITES_KEY,
+      });
+      notifySuccess("Favicon fetched");
+    },
+    onError: (err: Error) => notifyError(err.message || "Could not fetch a favicon"),
   });
 }

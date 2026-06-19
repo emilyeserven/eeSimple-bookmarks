@@ -3,6 +3,7 @@ import type { UpdateYouTubeChannelInput } from "@eesimple/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { youtubeChannelsApi } from "../lib/api";
+import { notifyError, notifySuccess } from "../lib/notifications";
 
 const CHANNELS_KEY = ["youtube-channels"] as const;
 const BOOKMARKS_KEY = ["bookmarks"] as const;
@@ -54,5 +55,20 @@ export function useDeleteYouTubeChannel() {
         queryKey: BOOKMARKS_KEY,
       });
     },
+  });
+}
+
+/** Re-grab a channel's avatar from its public channel page (`og:image`). */
+export function useAutoYouTubeChannelImage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => youtubeChannelsApi.autoImage(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: CHANNELS_KEY,
+      });
+      notifySuccess("Avatar fetched");
+    },
+    onError: (err: Error) => notifyError(err.message || "Could not fetch an avatar"),
   });
 }
