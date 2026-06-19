@@ -9,8 +9,8 @@ import { MAX_IMAGE_EDGE, processImage } from "@/utils/image";
 test("processImage resizes to fit the max edge and re-encodes to WebP", async () => {
   const wide = await sharp({
     create: {
-      width: 1200,
-      height: 300,
+      width: 2400,
+      height: 600,
       channels: 3,
       background: {
         r: 200,
@@ -23,9 +23,9 @@ test("processImage resizes to fit the max edge and re-encodes to WebP", async ()
   const result = await processImage(wide);
   assert.ok(result, "expected a processed image");
   assert.equal(result.contentType, "image/webp");
-  // 1200x300 fits within 800x800 by scaling to 800x200 (aspect ratio preserved).
+  // 2400x600 fits within 1200x1200 by scaling to 1200x300 (aspect ratio preserved).
   assert.equal(result.width, MAX_IMAGE_EDGE);
-  assert.equal(result.height, 200);
+  assert.equal(result.height, 300);
   assert.ok(result.body.byteLength > 0);
 });
 
