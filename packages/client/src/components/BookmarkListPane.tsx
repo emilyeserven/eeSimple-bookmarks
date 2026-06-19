@@ -11,6 +11,8 @@ import { bookmarkMatchesSearch, hasAnyActiveFilter } from "../lib/bookmarkSearch
 import { RowCard } from "@/components/ui/card";
 
 interface BookmarkListPaneProps {
+  /** Stable listing-page key, so cards can honor that page's Card Options field toggles. */
+  pageKey: string;
   columns: number;
   imageVisibility: BookmarkImageVisibility;
   imageLeft: boolean;
@@ -29,6 +31,7 @@ interface BookmarkListPaneProps {
 
 /** Right column of the search view: the add form and the matching bookmark grid. */
 export function BookmarkListPane({
+  pageKey,
   columns,
   imageVisibility,
   imageLeft,
@@ -72,6 +75,7 @@ export function BookmarkListPane({
             className="p-4"
           >
             <BookmarkCard
+              pageKey={pageKey}
               bookmark={bookmark}
               properties={properties}
               onDelete={id => deleteBookmark.mutate(id)}

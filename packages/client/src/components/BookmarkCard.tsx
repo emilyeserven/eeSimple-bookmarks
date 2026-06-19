@@ -38,6 +38,8 @@ interface BookmarkCardProps {
    * `"image-only"` (just the image, linked to the bookmark), or `"off"` (content with no image).
    */
   imageVisibility?: BookmarkImageVisibility;
+  /** Listing-page key, so the card honors that page's Card Options field toggles. Omitted off listing pages. */
+  pageKey?: string;
 }
 
 function bookmarkImageClass(imageLeft: boolean, imageMode: string): string {
@@ -134,7 +136,7 @@ function mergeDateTimeValue(
 
 export function BookmarkCard({
   bookmark, properties = [], onDelete, imageLeft = false, imageMode = "natural",
-  imageVisibility = "shown",
+  imageVisibility = "shown", pageKey,
 }: BookmarkCardProps) {
   const autoImage = useAutoBookmarkImage();
   const updateBookmark = useUpdateBookmark();
@@ -232,6 +234,7 @@ export function BookmarkCard({
     <BookmarkCardDetails
       bookmark={bookmark}
       properties={properties}
+      pageKey={pageKey}
     />
   );
 

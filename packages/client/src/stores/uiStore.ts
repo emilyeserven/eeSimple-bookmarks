@@ -78,6 +78,9 @@ interface UiState {
   /** Bookmark grid column count (1–4) per listing page, keyed by a stable page key. */
   bookmarkColumns: Record<string, number>;
   setBookmarkColumns: (pageKey: string, columns: number) => void;
+  /** Card field keys hidden per listing page (standard field key or custom-property id). Empty/absent = all shown. */
+  hiddenCardFields: Record<string, string[]>;
+  toggleCardField: (pageKey: string, fieldKey: string) => void;
   /** When pinned, the right-hand panel docks as a persistent column instead of a floating drawer. */
   panelPinned: boolean;
   setPanelPinned: (value: boolean) => void;
@@ -132,13 +135,15 @@ interface UiState {
   /** Transient: live filter data from the active listing page. Cleared when leaving a listing page. Never persisted. */
   filterContext: FilterContextData | null;
   setFilterContext: (ctx: FilterContextData | null) => void;
-  /** Transient: the current listing page's key, image controls flag, and filter-sidebar flag. Cleared when leaving. Never persisted. */
+  /** Transient: the current listing page's key, image controls flag, filter-sidebar flag, and whether it renders bookmark cards. Cleared when leaving. Never persisted. */
   listingPage: { key: string;
     showsImages: boolean;
-    hasFilters: boolean; } | null;
+    hasFilters: boolean;
+    showsCards: boolean; } | null;
   setListingPage: (page: { key: string;
     showsImages: boolean;
-    hasFilters: boolean; } | null) => void;
+    hasFilters: boolean;
+    showsCards: boolean; } | null) => void;
   /** Transient: true while a listing page with header-search support is mounted. Never persisted. */
   headerSearchActive: boolean;
   setHeaderSearchActive: (active: boolean) => void;
@@ -195,6 +200,18 @@ export const useUiStore = create<UiState>()(
           [pageKey]: clampColumns(columns),
         },
       })),
+      hiddenCardFields: {},
+      toggleCardField: (pageKey, fieldKey) => set((state) => {
+        const current = state.hiddenCardFields[pageKey] ?? [];
+        return {
+          hiddenCardFields: {
+            ...state.hiddenCardFields,
+            [pageKey]: current.includes(fieldKey)
+              ? current.filter(x => x !== fieldKey)
+              : [...current, fieldKey],
+          },
+        };
+      }),
       panelPinned: false,
       setPanelPinned: value => set({
         panelPinned: value,
@@ -325,6 +342,7 @@ export const useUiStore = create<UiState>()(
         croppedHeight: state.croppedHeight,
         bookmarkImageVisibility: state.bookmarkImageVisibility,
         bookmarkColumns: state.bookmarkColumns,
+        hiddenCardFields: state.hiddenCardFields,
         panelPinned: state.panelPinned,
         drawerUnpinnedBreakpoints: state.drawerUnpinnedBreakpoints,
         sidebarWidth: state.sidebarWidth,

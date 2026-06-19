@@ -68,7 +68,7 @@ export function BookmarkSearchView({
   noMatchMessage,
   addFormCategoryId,
 }: BookmarkSearchViewProps) {
-  useSetListingPage(pageKey, true, true);
+  useSetListingPage(pageKey, true, true, true);
   useRegisterHeaderSearch();
   const columns = useBookmarkColumns(pageKey);
   const imageMode = useBookmarkImageMode(pageKey);
@@ -145,6 +145,7 @@ export function BookmarkSearchView({
         )}
 
         <BookmarkListPane
+          pageKey={pageKey}
           columns={columns}
           imageVisibility={imageVisibility}
           imageLeft={imageLeft}
