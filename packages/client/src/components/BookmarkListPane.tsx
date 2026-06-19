@@ -14,7 +14,7 @@ interface BookmarkListPaneProps {
   columns: number;
   imageVisibility: BookmarkImageVisibility;
   imageLeft: boolean;
-  imageMode: boolean;
+  imageMode: string;
   bookmarks: Bookmark[];
   properties: CustomProperty[];
   search: BookmarkSearch;
@@ -76,7 +76,7 @@ export function BookmarkListPane({
               properties={properties}
               onDelete={id => deleteBookmark.mutate(id)}
               imageLeft={imageLeft}
-              maintainImageAspectRatio={imageMode}
+              imageMode={imageMode}
               imageVisibility={imageVisibility}
             />
           </RowCard>

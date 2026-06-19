@@ -63,9 +63,15 @@ interface UiState {
   /** When on, the Images section of the Add Bookmark form starts collapsed and the page image is fetched automatically on save. */
   autoFetchImage: boolean;
   setAutoFetchImage: (value: boolean) => void;
-  /** Per-listing image display mode: `true` = natural aspect ratio, `false` = uniform crop. Keyed by a stable page key. */
-  bookmarkImageMode: Record<string, boolean>;
-  setBookmarkImageMode: (pageKey: string, mode: boolean) => void;
+  /** Per-listing image display mode: "natural", "cropped", "square", "opengraph", or a custom ratio UUID. Keyed by a stable page key. */
+  bookmarkImageMode: Record<string, string>;
+  setBookmarkImageMode: (pageKey: string, mode: string) => void;
+  /** Width component of the "Cropped" built-in aspect ratio (default 16). */
+  croppedWidth: number;
+  setCroppedWidth: (value: number) => void;
+  /** Height component of the "Cropped" built-in aspect ratio (default 9). */
+  croppedHeight: number;
+  setCroppedHeight: (value: number) => void;
   /** Per-listing image visibility ("shown" | "image-only" | "off"), keyed by a stable page key. */
   bookmarkImageVisibility: Record<string, BookmarkImageVisibility>;
   setBookmarkImageVisibility: (pageKey: string, value: BookmarkImageVisibility) => void;
@@ -167,6 +173,14 @@ export const useUiStore = create<UiState>()(
           [pageKey]: mode,
         },
       })),
+      croppedWidth: 16,
+      setCroppedWidth: value => set({
+        croppedWidth: Math.max(1, Math.round(value)),
+      }),
+      croppedHeight: 9,
+      setCroppedHeight: value => set({
+        croppedHeight: Math.max(1, Math.round(value)),
+      }),
       bookmarkImageVisibility: {},
       setBookmarkImageVisibility: (pageKey, value) => set(state => ({
         bookmarkImageVisibility: {
@@ -285,12 +299,30 @@ export const useUiStore = create<UiState>()(
     }),
     {
       name: "eesimple-ui",
+      version: 1,
+      migrate: (persistedState: unknown, version: number) => {
+        if (version === 0) {
+          const s = persistedState as Record<string, unknown>;
+          const old = (s.bookmarkImageMode ?? {}) as Record<string, unknown>;
+          const converted: Record<string, string> = {};
+          for (const [k, v] of Object.entries(old)) {
+            converted[k] = v === true ? "natural" : v === false ? "cropped" : String(v);
+          }
+          return {
+            ...s,
+            bookmarkImageMode: converted,
+          };
+        }
+        return persistedState;
+      },
       partialize: state => ({
         theme: state.theme,
         sidebarOpenModifier: state.sidebarOpenModifier,
         autoFetchTitle: state.autoFetchTitle,
         autoFetchImage: state.autoFetchImage,
         bookmarkImageMode: state.bookmarkImageMode,
+        croppedWidth: state.croppedWidth,
+        croppedHeight: state.croppedHeight,
         bookmarkImageVisibility: state.bookmarkImageVisibility,
         bookmarkColumns: state.bookmarkColumns,
         panelPinned: state.panelPinned,

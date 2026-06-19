@@ -69,7 +69,7 @@ export function HomepageSectionBlock({
                     bookmark={bookmark}
                     properties={customProperties}
                     imageLeft={imageLeft}
-                    maintainImageAspectRatio={imageMode}
+                    imageMode={imageMode}
                   />
                 </RowCard>
               ))}

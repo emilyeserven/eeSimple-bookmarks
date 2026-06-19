@@ -3,15 +3,18 @@ import type { HomepageSection, HomepageSectionImageLayout } from "@eesimple/type
 import { CollapsibleFormSection } from "./CollapsibleFormSection";
 import { conditionsBreakdown, conditionsSummaryLabel } from "./conditions/summarizeConditions";
 import { SectionDisplayControls } from "./SectionDisplayControls";
+import { bookmarkImageModeLabel } from "../lib/bookmarkColumns";
 
 import { Separator } from "@/components/ui/separator";
 
 function displayPreview(section: HomepageSection): string {
   const parts = [
     `${section.columns} ${section.columns === 1 ? "column" : "columns"}`,
-    section.imageMode ? "Natural" : "Cropped",
+    bookmarkImageModeLabel(section.imageMode),
   ];
-  if (section.columns === 2) parts.push(section.imageLayout === "side" ? "Side" : "Above");
+  if (section.columns === 1 || section.columns === 2) {
+    parts.push(section.imageLayout === "side" ? "Side" : "Above");
+  }
   return parts.join(" · ");
 }
 
@@ -19,7 +22,7 @@ interface HomepageSectionViewProps {
   section: HomepageSection;
   onPatchDisplay: (input: {
     columns?: number;
-    imageMode?: boolean;
+    imageMode?: string;
     imageLayout?: HomepageSectionImageLayout;
   }) => void;
 }

@@ -12,6 +12,7 @@ import { customPropertyRoutes } from "@/routes/customProperties";
 import { galleryRoutes } from "@/routes/gallery";
 import { healthRoutes } from "@/routes/health";
 import { homepageSectionsRoutes } from "@/routes/homepageSections";
+import { customAspectRatioRoutes } from "@/routes/customAspectRatios";
 import { displayPresetRoutes } from "@/routes/displayPresets";
 import { savedFilterRoutes } from "@/routes/savedFilters";
 import { mediaTypeRoutes } from "@/routes/mediaTypes";
@@ -139,6 +140,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(homepageSectionsRoutes);
   await app.register(savedFilterRoutes);
   await app.register(displayPresetRoutes);
+  await app.register(customAspectRatioRoutes);
   await app.register(appSettingsRoutes);
   await app.register(galleryRoutes);
 

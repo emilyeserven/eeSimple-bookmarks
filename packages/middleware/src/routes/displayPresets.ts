@@ -34,7 +34,7 @@ const settingsSchema = {
       enum: ["shown", "image-only", "off"],
     },
     imageMode: {
-      type: "boolean",
+      type: "string",
     },
     imageLayout: {
       type: "string",

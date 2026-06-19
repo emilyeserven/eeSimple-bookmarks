@@ -4,8 +4,10 @@ import type {
   BookmarkBooleanValue,
   BookmarkDateTimeValue,
   BookmarkNumberValue,
+  CustomAspectRatio,
   CustomProperty,
 } from "@eesimple/types";
+import type { CSSProperties } from "react";
 
 import { propertyAppliesToCategory } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
@@ -14,6 +16,7 @@ import { BookmarkCardDetails } from "./BookmarkCardDetails";
 import { BookmarkCardHeader } from "./BookmarkCardHeader";
 import { useViewPanelClick } from "./panel/useEditPanelClick";
 import { useAutoBookmarkImage, useUpdateBookmark } from "../hooks/useBookmarks";
+import { useCustomAspectRatios } from "../hooks/useCustomAspectRatios";
 
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
 import { useUiStore } from "@/stores/uiStore";
@@ -28,8 +31,8 @@ interface BookmarkCardProps {
    * above it (multi-column listings). Defaults to the stacked, image-on-top layout.
    */
   imageLeft?: boolean;
-  /** When true, images keep their natural aspect ratio; when false they're cropped to a uniform capped size. Defaults to true. */
-  maintainImageAspectRatio?: boolean;
+  /** Image display mode: "natural" (unconstrained), "square" (1:1), "opengraph" (1.91:1), "cropped" (user-configured ratio), or a custom ratio UUID. Defaults to "natural". */
+  imageMode?: string;
   /**
    * How the bookmark image participates in the card: `"shown"` (image + content, the default),
    * `"image-only"` (just the image, linked to the bookmark), or `"off"` (content with no image).
@@ -37,20 +40,39 @@ interface BookmarkCardProps {
   imageVisibility?: BookmarkImageVisibility;
 }
 
-/**
- * Image classes for the listing card. The aspect-ratio setting constrains a single dimension and lets
- * the other be `auto` (true ratio, never cropped); the uniform setting keeps the capped `object-cover`
- * crop. Each branch is a literal string so Tailwind v4 emits every utility it sees here.
- */
-function bookmarkImageClass(imageLeft: boolean, maintainAspectRatio: boolean): string {
+function bookmarkImageClass(imageLeft: boolean, imageMode: string): string {
   if (imageLeft) {
-    return maintainAspectRatio
+    return imageMode === "natural"
       ? "h-auto w-32 shrink-0 self-start rounded-md border sm:w-40"
-      : "h-24 w-32 shrink-0 self-start rounded-md border object-cover sm:h-28 sm:w-40";
+      : "w-32 shrink-0 self-start rounded-md border object-cover sm:w-40";
   }
-  return maintainAspectRatio
+  return imageMode === "natural"
     ? "mb-2 h-auto w-full rounded-md border"
-    : "mb-2 max-h-40 w-full rounded-md border object-cover";
+    : "mb-2 w-full rounded-md border object-cover";
+}
+
+function bookmarkImageAspectStyle(
+  imageMode: string,
+  croppedW: number,
+  croppedH: number,
+  customRatios: CustomAspectRatio[],
+): CSSProperties {
+  if (imageMode === "natural") return {};
+  if (imageMode === "square") return {
+    aspectRatio: "1 / 1",
+  };
+  if (imageMode === "opengraph") return {
+    aspectRatio: "191 / 100",
+  };
+  if (imageMode === "cropped") return {
+    aspectRatio: `${croppedW} / ${croppedH}`,
+  };
+  const custom = customRatios.find(r => r.id === imageMode);
+  return custom
+    ? {
+      aspectRatio: `${custom.width} / ${custom.height}`,
+    }
+    : {};
 }
 
 /** Replace the entry for `propertyId` with `value`, or append it when the property has no value yet. */
@@ -111,13 +133,18 @@ function mergeDateTimeValue(
 }
 
 export function BookmarkCard({
-  bookmark, properties = [], onDelete, imageLeft = false, maintainImageAspectRatio = true,
+  bookmark, properties = [], onDelete, imageLeft = false, imageMode = "natural",
   imageVisibility = "shown",
 }: BookmarkCardProps) {
   const autoImage = useAutoBookmarkImage();
   const updateBookmark = useUpdateBookmark();
   const viewClick = useViewPanelClick();
   const modifier = useUiStore(state => state.sidebarOpenModifier);
+  const croppedWidth = useUiStore(state => state.croppedWidth);
+  const croppedHeight = useUiStore(state => state.croppedHeight);
+  const {
+    data: customRatios = [],
+  } = useCustomAspectRatios();
 
   // Properties opted into inline editing from this card, limited to ones that apply to its category.
   // Calculate properties are computed server-side, so they are never editable here.
@@ -174,7 +201,8 @@ export function BookmarkCard({
         loading="lazy"
         width={bookmark.image.width}
         height={bookmark.image.height}
-        className={bookmarkImageClass(imageLeft, maintainImageAspectRatio)}
+        className={bookmarkImageClass(imageLeft, imageMode)}
+        style={bookmarkImageAspectStyle(imageMode, croppedWidth, croppedHeight, customRatios)}
       />
     )
     : null;

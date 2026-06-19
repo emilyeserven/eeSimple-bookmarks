@@ -63,7 +63,7 @@ export function HomepageSectionCard({
 
   function patchDisplay(input: {
     columns?: number;
-    imageMode?: boolean;
+    imageMode?: string;
     imageLayout?: HomepageSectionImageLayout;
   }) {
     update.mutate({

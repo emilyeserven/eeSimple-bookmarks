@@ -637,6 +637,7 @@ export const homepageSections = pgTable("homepage_sections", {
   hideIfEmpty: boolean("hide_if_empty").notNull().default(false),
   columns: integer("columns").notNull().default(2),
   imageMode: boolean("image_mode").notNull().default(true),
+  imageCropMode: text("image_crop_mode"),
   imageLayout: text("image_layout").notNull().default("above"),
   createdAt: timestamp("created_at", {
     withTimezone: true,
@@ -979,3 +980,19 @@ export const displayPresets = pgTable("saved_display_presets", {
 ]);
 
 export type DisplayPresetRow = typeof displayPresets.$inferSelect;
+
+/**
+ * `custom_aspect_ratios` — user-defined named aspect ratios that appear alongside the built-in
+ * options (Natural, Cropped, Square, OpenGraph) in the Aspect dropdown for bookmark listings.
+ */
+export const customAspectRatios = pgTable("custom_aspect_ratios", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  width: integer("width").notNull(),
+  height: integer("height").notNull(),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+});
+
+export type CustomAspectRatioRow = typeof customAspectRatios.$inferSelect;

@@ -48,7 +48,7 @@ const createBody = {
       type: "integer",
     },
     imageMode: {
-      type: "boolean",
+      type: "string",
     },
     imageLayout: {
       type: "string",
@@ -81,7 +81,7 @@ const updateBody = {
       type: "integer",
     },
     imageMode: {
-      type: "boolean",
+      type: "string",
     },
     imageLayout: {
       type: "string",

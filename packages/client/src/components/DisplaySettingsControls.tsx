@@ -1,11 +1,12 @@
 import type { BookmarkImageVisibility, HomepageSectionImageLayout } from "../lib/bookmarkColumns";
-import type { DisplayPresetSettings } from "@eesimple/types";
+import type { CustomAspectRatio, DisplayPresetSettings } from "@eesimple/types";
 
 import { useState } from "react";
 
 import { Bookmark } from "lucide-react";
 
 import { InlineCreateModal } from "./InlineCreateModal";
+import { useCustomAspectRatios } from "../hooks/useCustomAspectRatios";
 import { useCreateDisplayPreset, useDisplayPresets } from "../hooks/useDisplayPresets";
 import { COLUMN_OPTIONS, useBookmarkColumns, useBookmarkImageLayout, useBookmarkImageMode, useBookmarkImageVisibility } from "../lib/bookmarkColumns";
 import { useUiStore } from "../stores/uiStore";
@@ -26,17 +27,43 @@ interface DisplaySettingsControlsProps {
   showsImages: boolean;
 }
 
+function buildAspectOptions(croppedW: number, croppedH: number, customRatios: CustomAspectRatio[]) {
+  return [
+    {
+      value: "natural",
+      label: "Natural",
+    },
+    {
+      value: "square",
+      label: "Square (1:1)",
+    },
+    {
+      value: "opengraph",
+      label: "OpenGraph (1.91:1)",
+    },
+    {
+      value: "cropped",
+      label: `Cropped (${croppedW}:${croppedH})`,
+    },
+    ...customRatios.map(r => ({
+      value: r.id,
+      label: `${r.name} (${r.width}:${r.height})`,
+    })),
+  ];
+}
+
 function applyDisplayPreset(
   pageKey: string,
   settings: DisplayPresetSettings,
   setBookmarkColumns: (key: string, v: number) => void,
   setBookmarkImageVisibility: (key: string, v: BookmarkImageVisibility) => void,
-  setBookmarkImageMode: (key: string, v: boolean) => void,
+  setBookmarkImageMode: (key: string, v: string) => void,
   setBookmarkImageLayout: (key: string, v: HomepageSectionImageLayout) => void,
 ) {
   setBookmarkColumns(pageKey, settings.columns);
   setBookmarkImageVisibility(pageKey, settings.imageVisibility);
-  setBookmarkImageMode(pageKey, settings.imageMode);
+  const rawMode = settings.imageMode;
+  setBookmarkImageMode(pageKey, typeof rawMode === "boolean" ? (rawMode ? "natural" : "cropped") : rawMode);
   setBookmarkImageLayout(pageKey, settings.imageLayout);
 }
 
@@ -56,6 +83,11 @@ export function DisplaySettingsControls({
   const setBookmarkImageMode = useUiStore(state => state.setBookmarkImageMode);
   const setBookmarkImageVisibility = useUiStore(state => state.setBookmarkImageVisibility);
   const setBookmarkImageLayout = useUiStore(state => state.setBookmarkImageLayout);
+  const croppedWidth = useUiStore(state => state.croppedWidth);
+  const croppedHeight = useUiStore(state => state.croppedHeight);
+  const {
+    data: customRatios = [],
+  } = useCustomAspectRatios();
 
   const {
     data: presets = [],
@@ -176,34 +208,24 @@ export function DisplaySettingsControls({
           {imageVisibility !== "off" && (
             <div className="flex items-center justify-between gap-4">
               <Label className="text-sm font-medium">Aspect</Label>
-              <ToggleGroup
-                type="single"
-                size="sm"
-                value={imageMode ? "natural" : "cropped"}
-                className="gap-0 overflow-hidden rounded-md border border-input"
-                onValueChange={(value) => {
-                  if (value) setBookmarkImageMode(pageKey, value === "natural");
-                }}
+              <Select
+                value={typeof imageMode === "boolean" ? (imageMode ? "natural" : "cropped") : imageMode}
+                onValueChange={value => setBookmarkImageMode(pageKey, value)}
               >
-                <ToggleGroupItem
-                  value="natural"
-                  className="
-                    rounded-none border-r border-input
-                    first:rounded-l-sm
-                  "
-                >
-                  Natural
-                </ToggleGroupItem>
-                <ToggleGroupItem
-                  value="cropped"
-                  className="
-                    rounded-none
-                    last:rounded-r-sm
-                  "
-                >
-                  Cropped
-                </ToggleGroupItem>
-              </ToggleGroup>
+                <SelectTrigger className="h-7 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {buildAspectOptions(croppedWidth, croppedHeight, customRatios).map(opt => (
+                    <SelectItem
+                      key={opt.value}
+                      value={opt.value}
+                    >
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           )}
 

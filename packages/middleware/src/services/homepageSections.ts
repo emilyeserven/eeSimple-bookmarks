@@ -36,7 +36,7 @@ function toSection(row: SectionRow): HomepageSection {
     sortOrder: row.sortOrder,
     hideIfEmpty: row.hideIfEmpty,
     columns: row.columns,
-    imageMode: row.imageMode,
+    imageMode: row.imageCropMode ?? (row.imageMode ? "natural" : "cropped"),
     imageLayout: row.imageLayout as HomepageSectionImageLayout,
     createdAt: row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
   };
@@ -75,7 +75,7 @@ export async function createHomepageSection(
       sortOrder,
       hideIfEmpty: input.hideIfEmpty ?? false,
       columns: input.columns ?? 2,
-      imageMode: input.imageMode ?? true,
+      imageCropMode: input.imageMode ?? "natural",
       imageLayout: input.imageLayout ?? "above",
     })
     .returning();
@@ -94,7 +94,7 @@ export async function updateHomepageSection(
   if (input.sortOrder !== undefined) updates.sortOrder = input.sortOrder;
   if (input.hideIfEmpty !== undefined) updates.hideIfEmpty = input.hideIfEmpty;
   if (input.columns !== undefined) updates.columns = input.columns;
-  if (input.imageMode !== undefined) updates.imageMode = input.imageMode;
+  if (input.imageMode !== undefined) updates.imageCropMode = input.imageMode;
   if (input.imageLayout !== undefined) updates.imageLayout = input.imageLayout;
 
   if (Object.keys(updates).length === 0) {
@@ -277,6 +277,18 @@ async function buildConditionInputs(
     });
   }
   return result;
+}
+
+/**
+ * Populate the `image_crop_mode` text column for rows that still carry only the legacy boolean
+ * `image_mode`. Idempotent — only touches rows where `image_crop_mode IS NULL`.
+ */
+export async function backfillImageCropModes(): Promise<void> {
+  await db.execute(sql`
+    UPDATE homepage_sections
+    SET image_crop_mode = CASE WHEN image_mode THEN 'natural' ELSE 'cropped' END
+    WHERE image_crop_mode IS NULL
+  `);
 }
 
 /**
