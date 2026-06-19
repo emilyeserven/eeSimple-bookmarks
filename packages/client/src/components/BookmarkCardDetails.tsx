@@ -93,13 +93,23 @@ export function BookmarkCardDetails({
               ? <CategoryPill category={bookmarkCategory} />
               : null}
             {website
-              ? <SourcePill type="website" data={website} />
+              ? (
+                <SourcePill
+                  type="website"
+                  data={website}
+                />
+              )
               : null}
             {mediaType
               ? <MediaTypePill mediaType={mediaType} />
               : null}
             {youtubeChannel
-              ? <SourcePill type="youtube-channel" data={youtubeChannel} />
+              ? (
+                <SourcePill
+                  type="youtube-channel"
+                  data={youtubeChannel}
+                />
+              )
               : null}
           </div>
         )
