@@ -1,5 +1,13 @@
 import type { ReactNode } from "react";
 
+const IMAGE_GRAB_ERROR_LABELS: Record<string, string> = {
+  no_image: "No favicon found for this site",
+  bad_image: "Favicon image couldn't be loaded",
+  blocked: "Access to the site was blocked",
+  server_error: "Site returned a server error",
+  fetch_error: "Site couldn't be reached",
+};
+
 import { useRef, useState } from "react";
 
 import { ImagePlus, Sparkles, X } from "lucide-react";
@@ -68,6 +76,8 @@ interface EntityImageFieldProps {
   onRemove: () => void;
   /** Whether any image mutation is in flight (disables the buttons). */
   busy?: boolean;
+  /** Error code from the last auto-grab attempt, if any. Disables the auto button and shows a reason. */
+  autoError?: string | null;
 }
 
 /**
@@ -77,7 +87,7 @@ interface EntityImageFieldProps {
  * than deferring an intent (the entity already has an id on its edit page).
  */
 export function EntityImageField({
-  label, imageUrl, shape = "square", fallback, onUpload, onAuto, autoLabel = "Fetch image", onRemove, busy,
+  label, imageUrl, shape = "square", fallback, onUpload, onAuto, autoLabel = "Fetch image", onRemove, busy, autoError,
 }: EntityImageFieldProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   // Hide an image that 404s/fails to decode so the fallback icon shows instead.
@@ -143,7 +153,7 @@ export function EntityImageField({
                 type="button"
                 variant="outline"
                 size="sm"
-                disabled={busy}
+                disabled={busy || !!autoError}
                 title={autoLabel}
                 onClick={() => {
                   setImageFailed(false);
@@ -155,6 +165,11 @@ export function EntityImageField({
               </Button>
             )
             : null}
+          {autoError && (
+            <p className="text-xs text-muted-foreground">
+              {IMAGE_GRAB_ERROR_LABELS[autoError] ?? "Previous auto-grab failed"} — upload an image manually to reset.
+            </p>
+          )}
           {imageUrl
             ? (
               <Button

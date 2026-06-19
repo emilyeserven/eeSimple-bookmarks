@@ -141,6 +141,10 @@ export const websites = pgTable("websites", {
   categoryId: uuid("category_id").references((): AnyPgColumn => categories.id, {
     onDelete: "set null",
   }),
+  // Specific reason the last favicon auto-grab attempt failed. Nullable so `drizzle-kit push`
+  // applies cleanly to existing rows (push-safe additive change). NULL means never attempted or
+  // the last attempt succeeded.
+  faviconAutoGrabError: text("favicon_auto_grab_error"),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),

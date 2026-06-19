@@ -129,6 +129,7 @@ export function WebsiteGeneralForm({
           sourceUrl: `https://${website.domain}`,
         })}
         autoLabel="Fetch favicon"
+        autoError={website.faviconAutoGrabError ?? null}
         onRemove={() => deleteFavicon.mutate(website.id)}
       />
 

@@ -108,6 +108,8 @@ export interface Website {
    * Auto-captured on first sighting and re-grabbable from the listing. Populated by list/get endpoints.
    */
   imageUrl?: string | null;
+  /** Specific reason the last favicon auto-grab attempt failed, or `null` when not yet attempted or the last attempt succeeded. */
+  faviconAutoGrabError?: "no_image" | "bad_image" | "blocked" | "server_error" | "fetch_error" | null;
   /** The category this website has been assigned to, or `null` when unassigned. */
   category?: YouTubeChannelCategory | null;
   /** Default tag ids applied to bookmarks saved from this website. */

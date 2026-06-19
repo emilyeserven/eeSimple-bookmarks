@@ -166,6 +166,7 @@ function toWebsite(
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount: row.bookmarkCount,
     imageUrl: faviconUrlFrom(row.id, row.faviconCreatedAt ?? null),
+    faviconAutoGrabError: (row.faviconAutoGrabError as "no_image" | "bad_image" | "blocked" | "server_error" | "fetch_error" | null) ?? null,
     category: row.categoryId && row.categoryName
       ? {
         id: row.categoryId,
@@ -189,6 +190,7 @@ const websiteSelect = {
   paramRules: websites.paramRules,
   createdAt: websites.createdAt,
   categoryId: websites.categoryId,
+  faviconAutoGrabError: websites.faviconAutoGrabError,
   faviconCreatedAt: websiteFavicons.createdAt,
   categoryName: categories.name,
   categorySlug: categories.slug,
