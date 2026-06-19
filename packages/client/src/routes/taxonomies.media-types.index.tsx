@@ -6,6 +6,7 @@ import { Plus } from "lucide-react";
 import { AddMediaTypeModal } from "../components/AddMediaTypeModal";
 import { MediaTypesListing } from "../components/MediaTypeManager";
 import { useMediaTypes } from "../hooks/useMediaTypes";
+import { useSetListingPage } from "../hooks/useListingPage";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ function MediaTypesTaxonomyPage() {
   } = useMediaTypes();
   const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
+  useSetListingPage("media-types-listing");
 
   return (
     <section className="space-y-6">

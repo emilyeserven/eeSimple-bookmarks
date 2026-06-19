@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import { MediaTypeTreeList } from "./MediaTypeTreeList";
 import { useMediaTypeTree } from "../hooks/useMediaTypes";
+import { useBookmarkColumns } from "../lib/bookmarkColumns";
 
 /** Browsable, collapsible media-type taxonomy tree. Shared by the Media Types taxonomy page and the Settings page. */
 export function MediaTypesListing() {
@@ -11,6 +12,7 @@ export function MediaTypesListing() {
 
   // Empty set means every parent is collapsed by default.
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const columns = useBookmarkColumns("media-types-listing");
 
   function toggle(id: string) {
     setExpanded((current) => {
@@ -39,6 +41,7 @@ export function MediaTypesListing() {
             tree={tree}
             expanded={expanded}
             onToggle={toggle}
+            columns={columns}
           />
         )
         : null}
