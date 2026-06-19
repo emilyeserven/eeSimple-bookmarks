@@ -682,18 +682,33 @@ async function resolveYouTubeMeta(url: string, ctx: string): Promise<YouTubeMeta
   return meta;
 }
 
+/** Fetch just the categoryId of a YouTube channel by channelKey, or null when absent/uncategorized. */
+async function getChannelCategoryId(channelKey: string): Promise<string | null> {
+  const [row] = await db.select({
+    categoryId: youtubeChannels.categoryId,
+  }).from(youtubeChannels).where(eq(youtubeChannels.channelKey, channelKey));
+  return row?.categoryId ?? null;
+}
+
 export async function createBookmark(input: CreateBookmarkInput): Promise<Bookmark> {
   const existing = await db.select({
     id: bookmarks.id,
   }).from(bookmarks).where(eq(bookmarks.url, input.url));
   if (existing.length > 0) throw new DuplicateUrlError(input.url);
 
-  const categoryId = input.categoryId ?? await ensureDefaultCategory();
+  const defaultId = await ensureDefaultCategory();
+  let categoryId = input.categoryId ?? defaultId;
 
   // Resolve YouTube metadata once (network) before opening the transaction, then reuse it for the
   // channel, the "Video" media-type default, and the Video Length backfill below.
   const meta = await resolveYouTubeMeta(input.url, "create");
   const channelHint = channelHintFrom(input.youtubeChannel, meta);
+
+  // If the bookmark is on the Default category and the channel has its own category set, inherit it.
+  if (channelHint && categoryId === defaultId) {
+    const channelCategoryId = await getChannelCategoryId(channelHint.key);
+    if (channelCategoryId) categoryId = channelCategoryId;
+  }
 
   // Default the media type to "Video" for a YouTube video unless the caller already chose one.
   let mediaTypeId = input.mediaTypeId ?? null;
