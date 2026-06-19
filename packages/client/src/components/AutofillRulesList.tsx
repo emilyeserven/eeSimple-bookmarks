@@ -1,19 +1,23 @@
 import { useMemo, useState } from "react";
 
 import { normalizeDomain } from "@eesimple/types";
+import { useNavigate } from "@tanstack/react-router";
 
 import { NO_CATEGORY } from "./AutofillRuleForm";
 import { AutofillRuleListItem } from "./AutofillRuleListItem";
 import { ALL_CATEGORIES, AutofillRulesToolbar } from "./AutofillRulesToolbar";
+import { useAutofillRuleColumns } from "./tables/autofillRuleColumns";
+import { useTableRowNav } from "./tables/useTableRowNav";
 import { useAutofillRules } from "../hooks/useAutofill";
 import { useCategories } from "../hooks/useCategories";
 import { useNewAutofillRule } from "../hooks/useNewAutofillRule";
 import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
 import { useWebsites } from "../hooks/useWebsites";
 import { ruleSetsMediaType, ruleSetsProperty, ruleSetsTag, ruleTargetsWebsite, ruleTargetsYoutubeChannel } from "../lib/autofillRulesFilter";
-import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
+import { COLUMN_CLASS, useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
 import { summarizeConditions } from "../lib/conditionsSummary";
 
+import { DataTable } from "@/components/ui/data-table";
 import { useUiStore } from "@/stores/uiStore";
 
 interface AutofillRulesListProps {
@@ -96,6 +100,10 @@ export function AutofillRulesList({
 
   // Read column count for the unscoped listing page (always call hook to keep hooks order stable).
   const columns = useBookmarkColumns("autofill-rules-listing");
+  const viewMode = useViewMode("autofill-rules-listing");
+  const ruleColumns = useAutofillRuleColumns(categories ?? []);
+  const rowNav = useTableRowNav();
+  const navigate = useNavigate();
 
   // The scoping website's normalized domain (rules reference websites by domain, not id).
   const websiteDomain = useMemo(() => {
@@ -150,24 +158,43 @@ export function AutofillRulesList({
         ? <p className="text-muted-foreground">No rules match these filters.</p>
         : null}
 
-      <div
-        className={
-          scoped
-            ? "space-y-3"
-            : `
-              grid gap-3
-              ${COLUMN_CLASS[columns]}
-            `
-        }
-      >
-        {visibleRules.map(rule => (
-          <AutofillRuleListItem
-            key={rule.id}
-            rule={rule}
-            categories={categories ?? []}
+      {!scoped && viewMode === "table"
+        ? (
+          <DataTable
+            columns={ruleColumns}
+            data={visibleRules}
+            sortable
+            onRowClick={(rule, event) =>
+              rowNav(event, "autofill", rule.id, () => {
+                void navigate({
+                  to: "/autofill/$ruleSlug",
+                  params: {
+                    ruleSlug: rule.slug,
+                  },
+                });
+              })}
           />
-        ))}
-      </div>
+        )
+        : (
+          <div
+            className={
+              scoped
+                ? "space-y-3"
+                : `
+                  grid gap-3
+                  ${COLUMN_CLASS[columns]}
+                `
+            }
+          >
+            {visibleRules.map(rule => (
+              <AutofillRuleListItem
+                key={rule.id}
+                rule={rule}
+                categories={categories ?? []}
+              />
+            ))}
+          </div>
+        )}
     </section>
   );
 }

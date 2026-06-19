@@ -1,8 +1,11 @@
 import { useState } from "react";
 
+import { useTagColumns } from "./tables/tagColumns";
 import { TagTreeList } from "./TagTreeList";
 import { useTagTree } from "../hooks/useTags";
-import { useBookmarkColumns } from "../lib/bookmarkColumns";
+import { useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
+
+import { DataTable } from "@/components/ui/data-table";
 
 interface TagManagerProps {
   onNew?: () => void;
@@ -19,6 +22,8 @@ export function TagManager({
   // Empty set means every parent is collapsed by default.
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const columns = useBookmarkColumns("tags-listing");
+  const viewMode = useViewMode("tags-listing");
+  const tagColumns = useTagColumns();
 
   function toggle(id: string) {
     setExpanded((current) => {
@@ -51,7 +56,17 @@ export function TagManager({
         )
         : null}
 
-      {tree && tree.length > 0
+      {tree && tree.length > 0 && viewMode === "table"
+        ? (
+          <DataTable
+            columns={tagColumns}
+            data={tree}
+            getSubRows={node => node.children}
+          />
+        )
+        : null}
+
+      {tree && tree.length > 0 && viewMode !== "table"
         ? (
           <TagTreeList
             tree={tree}

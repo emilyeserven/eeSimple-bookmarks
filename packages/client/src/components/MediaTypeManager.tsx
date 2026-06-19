@@ -1,8 +1,11 @@
 import { useState } from "react";
 
 import { MediaTypeTreeList } from "./MediaTypeTreeList";
+import { useMediaTypeColumns } from "./tables/mediaTypeColumns";
 import { useMediaTypeTree } from "../hooks/useMediaTypes";
-import { useBookmarkColumns } from "../lib/bookmarkColumns";
+import { useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
+
+import { DataTable } from "@/components/ui/data-table";
 
 /** Browsable, collapsible media-type taxonomy tree. Shared by the Media Types taxonomy page and the Settings page. */
 export function MediaTypesListing() {
@@ -13,6 +16,8 @@ export function MediaTypesListing() {
   // Empty set means every parent is collapsed by default.
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const columns = useBookmarkColumns("media-types-listing");
+  const viewMode = useViewMode("media-types-listing");
+  const mediaTypeColumns = useMediaTypeColumns();
 
   function toggle(id: string) {
     setExpanded((current) => {
@@ -35,7 +40,17 @@ export function MediaTypesListing() {
         )
         : null}
 
-      {tree && tree.length > 0
+      {tree && tree.length > 0 && viewMode === "table"
+        ? (
+          <DataTable
+            columns={mediaTypeColumns}
+            data={tree}
+            getSubRows={node => node.children}
+          />
+        )
+        : null}
+
+      {tree && tree.length > 0 && viewMode !== "table"
         ? (
           <MediaTypeTreeList
             tree={tree}
