@@ -132,7 +132,9 @@ export function useAutoWebsiteFavicon() {
     onError: (err: Error, {
       sourceUrl,
     }) => {
-      void queryClient.invalidateQueries({ queryKey: WEBSITES_KEY });
+      void queryClient.invalidateQueries({
+        queryKey: WEBSITES_KEY,
+      });
       if (err instanceof ApiError && err.code === "blocked") cooldown.startCooldown();
       notifyImageFetchError(err, "website favicon", "Could not fetch a favicon", sourceUrl);
     },
