@@ -70,6 +70,10 @@ vi.mock("../hooks/useBookmarks", () => ({
   useDeleteBookmarkImage: () => ({
     mutateAsync: vi.fn(),
   }),
+  useBookmarkUrlDuplicateCheck: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+  }),
 }));
 vi.mock("../hooks/useCategories", () => ({
   useCategories: () => ({
@@ -104,6 +108,9 @@ vi.mock("../hooks/useCustomProperties", () => ({
 vi.mock("../hooks/useAutofill", () => ({
   useAutofillRules: () => ({
     data: [],
+  }),
+  useCreateAutofillRule: () => ({
+    mutateAsync: vi.fn(),
   }),
 }));
 vi.mock("../hooks/useTags", () => ({
