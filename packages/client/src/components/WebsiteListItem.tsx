@@ -1,16 +1,13 @@
 import type { Website } from "@eesimple/types";
 
-import { useState } from "react";
-
 import { Link } from "@tanstack/react-router";
 import { Globe, MoreVertical, Sparkles } from "lucide-react";
 
 import { CategoryPill } from "./CategoryPill";
+import { RowListItem } from "./RowListItem";
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { RowCard } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,6 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useEntityImage } from "@/hooks/useEntityImage";
 import { useAutoWebsiteFavicon } from "@/hooks/useWebsites";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
 import { useUiStore } from "@/stores/uiStore";
@@ -30,48 +28,41 @@ export function WebsiteListItem({
   const viewClick = useViewPanelClick();
   const modifier = useUiStore(state => state.sidebarOpenModifier);
   const autoFavicon = useAutoWebsiteFavicon();
-  // Hide a favicon that 404s/fails to decode so the fallback icon shows instead.
-  const [imageFailed, setImageFailed] = useState(false);
-  const showImage = website.imageUrl != null && !imageFailed;
+  const { showImage, onError } = useEntityImage(website.imageUrl);
+
   return (
-    <RowCard
-      className="
-        group transition-colors
-        hover:bg-accent
-      "
-    >
-      <div className="flex items-center gap-3 p-4">
-        <Link
-          to="/taxonomies/websites/$websiteSlug"
-          params={{
-            websiteSlug: website.slug,
-          }}
-          title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-          onClick={event => viewClick(event, "website", website.id)}
-          className="flex min-w-0 flex-1 items-center gap-3"
+    <RowListItem
+      icon={(
+        <span
+          className="
+            flex size-8 shrink-0 items-center justify-center overflow-hidden
+            rounded-sm bg-muted text-muted-foreground
+          "
         >
-          <span
-            className="
-              flex size-8 shrink-0 items-center justify-center overflow-hidden
-              rounded-sm bg-muted text-muted-foreground
-            "
-          >
-            {showImage
-              ? (
-                <img
-                  src={website.imageUrl ?? undefined}
-                  alt=""
-                  className="size-full object-contain"
-                  onError={() => setImageFailed(true)}
-                />
-              )
-              : <Globe className="size-4" />}
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="font-medium">{website.siteName}</p>
-            <p className="truncate text-sm text-muted-foreground">{website.domain}</p>
-          </div>
-        </Link>
+          {showImage
+            ? (
+              <img
+                src={website.imageUrl ?? undefined}
+                alt=""
+                className="size-full object-contain"
+                onError={onError}
+              />
+            )
+            : <Globe className="size-4" />}
+        </span>
+      )}
+      title={website.siteName}
+      subtitle={website.domain}
+      badge={website.bookmarkCount}
+      linkProps={{
+        to: "/taxonomies/websites/$websiteSlug",
+        params: {
+          websiteSlug: website.slug,
+        },
+        title: `Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`,
+        onClick: event => viewClick(event, "website", website.id),
+      }}
+      menu={(
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -80,8 +71,7 @@ export function WebsiteListItem({
               size="icon"
               aria-label={`More options for ${website.siteName}`}
               className="
-                shrink-0 opacity-0
-                transition-opacity
+                shrink-0 opacity-0 transition-opacity
                 group-hover:opacity-100
                 focus-visible:opacity-100
                 data-[state=open]:opacity-100
@@ -124,17 +114,10 @@ export function WebsiteListItem({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-        {website.bookmarkCount !== undefined
-          ? <Badge variant="secondary">{website.bookmarkCount}</Badge>
-          : null}
-      </div>
-      {website.category
-        ? (
-          <div className="px-4 pb-2 pl-15">
-            <CategoryPill category={website.category} />
-          </div>
-        )
-        : null}
-    </RowCard>
+      )}
+      categoryPill={website.category
+        ? <CategoryPill category={website.category} />
+        : undefined}
+    />
   );
 }

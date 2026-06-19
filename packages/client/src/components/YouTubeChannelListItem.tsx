@@ -1,17 +1,14 @@
 import type { YouTubeChannel } from "@eesimple/types";
 
-import { useState } from "react";
-
 import { channelUrlFromKey } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 import { MonitorPlay, MoreVertical, Sparkles } from "lucide-react";
 
 import { CategoryPill } from "./CategoryPill";
+import { RowListItem } from "./RowListItem";
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { RowCard } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useEntityImage } from "@/hooks/useEntityImage";
 import { useAutoYouTubeChannelImage } from "@/hooks/useYouTubeChannels";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
 import { useUiStore } from "@/stores/uiStore";
@@ -31,48 +29,41 @@ export function YouTubeChannelListItem({
   const viewClick = useViewPanelClick();
   const modifier = useUiStore(state => state.sidebarOpenModifier);
   const autoAvatar = useAutoYouTubeChannelImage();
-  // Hide an avatar that 404s/fails to decode so the fallback icon shows instead.
-  const [imageFailed, setImageFailed] = useState(false);
-  const showImage = channel.imageUrl != null && !imageFailed;
+  const { showImage, onError } = useEntityImage(channel.imageUrl);
+
   return (
-    <RowCard
-      className="
-        group transition-colors
-        hover:bg-accent
-      "
-    >
-      <div className="flex items-center gap-3 p-4">
-        <Link
-          to="/taxonomies/youtube-channels/$channelSlug"
-          params={{
-            channelSlug: channel.slug,
-          }}
-          title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-          onClick={event => viewClick(event, "youtube-channel", channel.id)}
-          className="flex min-w-0 flex-1 items-center gap-3"
+    <RowListItem
+      icon={(
+        <span
+          className="
+            flex size-8 shrink-0 items-center justify-center overflow-hidden
+            rounded-full bg-muted text-muted-foreground
+          "
         >
-          <span
-            className="
-              flex size-8 shrink-0 items-center justify-center overflow-hidden
-              rounded-full bg-muted text-muted-foreground
-            "
-          >
-            {showImage
-              ? (
-                <img
-                  src={channel.imageUrl ?? undefined}
-                  alt=""
-                  className="size-full object-cover"
-                  onError={() => setImageFailed(true)}
-                />
-              )
-              : <MonitorPlay className="size-4" />}
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="font-medium">{channel.name}</p>
-            <p className="truncate text-sm text-muted-foreground">{channel.channelKey}</p>
-          </div>
-        </Link>
+          {showImage
+            ? (
+              <img
+                src={channel.imageUrl ?? undefined}
+                alt=""
+                className="size-full object-cover"
+                onError={onError}
+              />
+            )
+            : <MonitorPlay className="size-4" />}
+        </span>
+      )}
+      title={channel.name}
+      subtitle={channel.channelKey}
+      badge={channel.bookmarkCount}
+      linkProps={{
+        to: "/taxonomies/youtube-channels/$channelSlug",
+        params: {
+          channelSlug: channel.slug,
+        },
+        title: `Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`,
+        onClick: event => viewClick(event, "youtube-channel", channel.id),
+      }}
+      menu={(
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -81,8 +72,7 @@ export function YouTubeChannelListItem({
               size="icon"
               aria-label={`More options for ${channel.name}`}
               className="
-                shrink-0 opacity-0
-                transition-opacity
+                shrink-0 opacity-0 transition-opacity
                 group-hover:opacity-100
                 focus-visible:opacity-100
                 data-[state=open]:opacity-100
@@ -125,17 +115,10 @@ export function YouTubeChannelListItem({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-        {channel.bookmarkCount !== undefined
-          ? <Badge variant="secondary">{channel.bookmarkCount}</Badge>
-          : null}
-      </div>
-      {channel.category
-        ? (
-          <div className="px-4 pb-2 pl-15">
-            <CategoryPill category={channel.category} />
-          </div>
-        )
-        : null}
-    </RowCard>
+      )}
+      categoryPill={channel.category
+        ? <CategoryPill category={channel.category} />
+        : undefined}
+    />
   );
 }
