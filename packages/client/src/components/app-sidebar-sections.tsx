@@ -120,7 +120,11 @@ export function SidebarNavSection({
                 </Link>
               </SidebarMenuButton>
               {item.count !== undefined && state !== "collapsed"
-                ? <SidebarMenuBadge><Badge variant="secondary">{item.count}</Badge></SidebarMenuBadge>
+                ? (
+                  <SidebarMenuBadge>
+                    <Badge variant="secondary">{item.count}</Badge>
+                  </SidebarMenuBadge>
+                )
                 : null}
             </SidebarMenuItem>
           );

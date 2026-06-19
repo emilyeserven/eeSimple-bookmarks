@@ -28,6 +28,7 @@ import { useWebsites } from "../hooks/useWebsites";
 import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
 import { useUiStore } from "../stores/uiStore";
 
+import { Badge } from "@/components/ui/badge";
 import {
   Sidebar,
   SidebarContent,
@@ -42,7 +43,6 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Badge } from "@/components/ui/badge";
 import { CategoryIcon } from "@/lib/icons";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
 
@@ -239,7 +239,11 @@ export function AppSidebar({
                       </Link>
                     </SidebarMenuButton>
                     {item.to === "/bookmarks" && allBookmarks != null && state !== "collapsed"
-                      ? <SidebarMenuBadge><Badge variant="secondary">{allBookmarks.length}</Badge></SidebarMenuBadge>
+                      ? (
+                        <SidebarMenuBadge>
+                          <Badge variant="secondary">{allBookmarks.length}</Badge>
+                        </SidebarMenuBadge>
+                      )
                       : null}
                   </SidebarMenuItem>
                 );
@@ -277,7 +281,11 @@ export function AppSidebar({
                         </Link>
                       </SidebarMenuButton>
                       {category.bookmarkCount != null && state !== "collapsed"
-                        ? <SidebarMenuBadge><Badge variant="secondary">{category.bookmarkCount}</Badge></SidebarMenuBadge>
+                        ? (
+                          <SidebarMenuBadge>
+                            <Badge variant="secondary">{category.bookmarkCount}</Badge>
+                          </SidebarMenuBadge>
+                        )
                         : null}
                     </SidebarMenuItem>
                   );
