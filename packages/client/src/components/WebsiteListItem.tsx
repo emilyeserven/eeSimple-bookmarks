@@ -36,44 +36,98 @@ export function WebsiteListItem({
   return (
     <RowCard
       className="
-        group relative transition-colors
+        group transition-colors
         hover:bg-accent
       "
     >
-      <Link
-        to="/taxonomies/websites/$websiteSlug"
-        params={{
-          websiteSlug: website.slug,
-        }}
-        title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-        onClick={event => viewClick(event, "website", website.id)}
-        className="flex items-center gap-3 p-4 pr-12"
-      >
-        <span
-          className="
-            flex size-8 shrink-0 items-center justify-center overflow-hidden
-            rounded-sm bg-muted text-muted-foreground
-          "
+      <div className="flex items-center gap-3 p-4">
+        <Link
+          to="/taxonomies/websites/$websiteSlug"
+          params={{
+            websiteSlug: website.slug,
+          }}
+          title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+          onClick={event => viewClick(event, "website", website.id)}
+          className="flex min-w-0 flex-1 items-center gap-3"
         >
-          {showImage
-            ? (
-              <img
-                src={website.imageUrl ?? undefined}
-                alt=""
-                className="size-full object-contain"
-                onError={() => setImageFailed(true)}
-              />
-            )
-            : <Globe className="size-4" />}
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="font-medium">{website.siteName}</p>
-          <p className="truncate text-sm text-muted-foreground">{website.domain}</p>
-        </div>
+          <span
+            className="
+              flex size-8 shrink-0 items-center justify-center overflow-hidden
+              rounded-sm bg-muted text-muted-foreground
+            "
+          >
+            {showImage
+              ? (
+                <img
+                  src={website.imageUrl ?? undefined}
+                  alt=""
+                  className="size-full object-contain"
+                  onError={() => setImageFailed(true)}
+                />
+              )
+              : <Globe className="size-4" />}
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="font-medium">{website.siteName}</p>
+            <p className="truncate text-sm text-muted-foreground">{website.domain}</p>
+          </div>
+        </Link>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label={`More options for ${website.siteName}`}
+              className="
+                shrink-0 opacity-0
+                transition-opacity
+                group-hover:opacity-100
+                focus-visible:opacity-100
+                data-[state=open]:opacity-100
+              "
+            >
+              <MoreVertical className="size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem asChild>
+              <Link
+                to="/taxonomies/websites/$websiteSlug/edit"
+                params={{
+                  websiteSlug: website.slug,
+                }}
+                title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+                onClick={event => editClick(event, "website", website.id)}
+              >
+                Edit
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              disabled={autoFavicon.isPending || autoFavicon.cooldown.isOnCooldown}
+              onClick={() => {
+                if (!autoFavicon.cooldown.isOnCooldown) {
+                  autoFavicon.mutate({
+                    id: website.id,
+                    sourceUrl: `https://${website.domain}/`,
+                  });
+                }
+              }}
+            >
+              <Sparkles className="mr-2 size-4" />
+              {autoFavicon.cooldown.isOnCooldown
+                ? `Try again in ${autoFavicon.cooldown.remaining}s`
+                : website.imageUrl
+                  ? "Refresh favicon"
+                  : "Get favicon"}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         {website.bookmarkCount !== undefined
           ? <Badge variant="secondary">{website.bookmarkCount}</Badge>
           : null}
-      </Link>
+      </div>
       {website.category
         ? (
           <div className="px-4 pb-2 pl-15">
@@ -81,58 +135,6 @@ export function WebsiteListItem({
           </div>
         )
         : null}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label={`More options for ${website.siteName}`}
-            className="
-              absolute top-1/2 right-2 -translate-y-1/2 opacity-0
-              transition-opacity
-              group-hover:opacity-100
-              focus-visible:opacity-100
-              data-[state=open]:opacity-100
-            "
-          >
-            <MoreVertical className="size-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem asChild>
-            <Link
-              to="/taxonomies/websites/$websiteSlug/edit"
-              params={{
-                websiteSlug: website.slug,
-              }}
-              title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-              onClick={event => editClick(event, "website", website.id)}
-            >
-              Edit
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            disabled={autoFavicon.isPending || autoFavicon.cooldown.isOnCooldown}
-            onClick={() => {
-              if (!autoFavicon.cooldown.isOnCooldown) {
-                autoFavicon.mutate({
-                  id: website.id,
-                  sourceUrl: `https://${website.domain}/`,
-                });
-              }
-            }}
-          >
-            <Sparkles className="mr-2 size-4" />
-            {autoFavicon.cooldown.isOnCooldown
-              ? `Try again in ${autoFavicon.cooldown.remaining}s`
-              : website.imageUrl
-                ? "Refresh favicon"
-                : "Get favicon"}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
     </RowCard>
   );
 }

@@ -18,53 +18,53 @@ export function PropertyGroupListItem({
   const viewClick = useViewPanelClick();
   const modifier = useUiStore(state => state.sidebarOpenModifier);
   return (
-    <li
-      className="group relative rounded-lg border bg-card"
-    >
-      <Link
-        to="/taxonomies/property-groups/$propertyGroupSlug"
-        params={{
-          propertyGroupSlug: group.slug,
-        }}
-        title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-        onClick={event => viewClick(event, "property-group", group.id)}
+    <li className="group rounded-lg border bg-card">
+      <div
         className="
-          flex items-center gap-3 rounded-lg p-4 pr-12 transition-colors
+          flex items-center gap-3 rounded-lg p-4 transition-colors
           hover:bg-accent
         "
       >
-        <div className="min-w-0 flex-1">
+        <Link
+          to="/taxonomies/property-groups/$propertyGroupSlug"
+          params={{
+            propertyGroupSlug: group.slug,
+          }}
+          title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+          onClick={event => viewClick(event, "property-group", group.id)}
+          className="min-w-0 flex-1"
+        >
           <p className="font-medium">{group.name}</p>
           <p className="truncate text-sm text-muted-foreground">
             {group.description || `Priority ${group.priority}`}
           </p>
-        </div>
+        </Link>
+        <Button
+          asChild
+          variant="ghost"
+          size="icon"
+          className="
+            shrink-0 opacity-0 transition-opacity
+            group-hover:opacity-100
+            focus-visible:opacity-100
+          "
+        >
+          <Link
+            to="/taxonomies/property-groups/$propertyGroupSlug/edit"
+            params={{
+              propertyGroupSlug: group.slug,
+            }}
+            title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+            onClick={event => editClick(event, "property-group", group.id)}
+          >
+            <Pencil className="size-4" />
+            <span className="sr-only">Edit {group.name}</span>
+          </Link>
+        </Button>
         {group.propertyCount !== undefined
           ? <Badge variant="secondary">{group.propertyCount}</Badge>
           : null}
-      </Link>
-      <Button
-        asChild
-        variant="ghost"
-        size="icon"
-        className="
-          absolute top-1/2 right-2 -translate-y-1/2 opacity-0 transition-opacity
-          group-hover:opacity-100
-          focus-visible:opacity-100
-        "
-      >
-        <Link
-          to="/taxonomies/property-groups/$propertyGroupSlug/edit"
-          params={{
-            propertyGroupSlug: group.slug,
-          }}
-          title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-          onClick={event => editClick(event, "property-group", group.id)}
-        >
-          <Pencil className="size-4" />
-          <span className="sr-only">Edit {group.name}</span>
-        </Link>
-      </Button>
+      </div>
     </li>
   );
 }

@@ -108,10 +108,6 @@ function TagTreeRow({
         {node.name}
       </Link>
 
-      {node.bookmarkCount != null
-        ? <Badge variant="secondary">{node.bookmarkCount}</Badge>
-        : null}
-
       <Button
         asChild
         variant="ghost"
@@ -134,6 +130,10 @@ function TagTreeRow({
           <Pencil className="size-4" />
         </Link>
       </Button>
+
+      {node.bookmarkCount != null
+        ? <Badge variant="secondary">{node.bookmarkCount}</Badge>
+        : null}
     </>
   );
 
