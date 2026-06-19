@@ -8,9 +8,11 @@ import { Loader2, Sparkles } from "lucide-react";
 import { CategoryCustomFields } from "./BookmarkCustomFields";
 import {
   buildCategoryPropertyValues,
+  DATE_POSTED_SLUG,
   looksLikeYouTube,
   VIDEO_LENGTH_SLUG,
 } from "./bookmarkFormSchema";
+import { DateTimePicker } from "./DateTimePicker";
 import { useUpdateBookmark } from "../hooks/useBookmarks";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useFetchMetadata } from "../hooks/useFetchMetadata";
@@ -100,15 +102,17 @@ export function BookmarkPropertiesForm({
   }
 
   const videoLengthProp = (customProperties ?? []).find(p => p.slug === VIDEO_LENGTH_SLUG);
+  const datePostedProp = (customProperties ?? []).find(p => p.slug === DATE_POSTED_SLUG);
   const isYouTubeBookmark = looksLikeYouTube(bookmark.url);
 
   const hasProperties
-    = (videoLengthProp !== undefined && isYouTubeBookmark)
+    = ((videoLengthProp !== undefined || datePostedProp !== undefined) && isYouTubeBookmark)
       || (customProperties ?? []).some(
         property =>
           property.enabled
           && !property.hiddenFromForm
           && property.slug !== VIDEO_LENGTH_SLUG
+          && property.slug !== DATE_POSTED_SLUG
           && propertyAppliesToCategory(property, bookmark.categoryId ?? ""),
       );
 
@@ -125,50 +129,92 @@ export function BookmarkPropertiesForm({
       className="space-y-4"
       onSubmit={event => void handleSubmit(event)}
     >
-      {videoLengthProp && isYouTubeBookmark && (
+      {(videoLengthProp || datePostedProp) && isYouTubeBookmark && (
         <div className="space-y-3">
           <span className="text-sm font-medium">Video</span>
-          <div className="space-y-1">
-            <Label htmlFor={`property-${videoLengthProp.id}`}>
-              Video Length (seconds)
-            </Label>
-            <InputGroup>
-              <Input
-                id={`property-${videoLengthProp.id}`}
-                type="number"
-                className="pe-10"
-                value={numberInputs[videoLengthProp.id] ?? ""}
-                onChange={event => handleNumberChange(videoLengthProp.id, event.target.value)}
-              />
-              <InputAddon align="inline-end">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  title="Fetch video length from YouTube"
-                  aria-label="Fetch video length from YouTube"
-                  disabled={fetchMetadata.isPending}
-                  onClick={async () => {
-                    try {
-                      const meta = await fetchMetadata.mutateAsync({
-                        url: bookmark.url,
-                      });
-                      if (meta.durationSeconds !== null) {
-                        handleNumberChange(videoLengthProp.id, String(meta.durationSeconds));
+          {videoLengthProp && (
+            <div className="space-y-1">
+              <Label htmlFor={`property-${videoLengthProp.id}`}>
+                Video Length (seconds)
+              </Label>
+              <InputGroup>
+                <Input
+                  id={`property-${videoLengthProp.id}`}
+                  type="number"
+                  className="pe-10"
+                  value={numberInputs[videoLengthProp.id] ?? ""}
+                  onChange={event => handleNumberChange(videoLengthProp.id, event.target.value)}
+                />
+                <InputAddon align="inline-end">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    title="Fetch video length from YouTube"
+                    aria-label="Fetch video length from YouTube"
+                    disabled={fetchMetadata.isPending}
+                    onClick={async () => {
+                      try {
+                        const meta = await fetchMetadata.mutateAsync({
+                          url: bookmark.url,
+                        });
+                        if (meta.durationSeconds !== null) {
+                          handleNumberChange(videoLengthProp.id, String(meta.durationSeconds));
+                        }
                       }
-                    }
-                    catch {
-                      // Non-fatal: best-effort convenience.
-                    }
-                  }}
-                >
-                  {fetchMetadata.isPending
-                    ? <Loader2 className="size-4 animate-spin" />
-                    : <Sparkles className="size-4" />}
-                </Button>
-              </InputAddon>
-            </InputGroup>
-          </div>
+                      catch {
+                        // Non-fatal: best-effort convenience.
+                      }
+                    }}
+                  >
+                    {fetchMetadata.isPending
+                      ? <Loader2 className="size-4 animate-spin" />
+                      : <Sparkles className="size-4" />}
+                  </Button>
+                </InputAddon>
+              </InputGroup>
+            </div>
+          )}
+          {datePostedProp && (
+            <div className="space-y-1">
+              <Label htmlFor={`property-${datePostedProp.id}`}>Date Posted</Label>
+              <InputGroup>
+                <DateTimePicker
+                  id={`property-${datePostedProp.id}`}
+                  format="date"
+                  value={dateTimeInputs[datePostedProp.id] ?? null}
+                  onChange={value => handleDateTimeChange(datePostedProp.id, value ?? "")}
+                />
+                <InputAddon align="inline-end">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    title="Fetch date posted from YouTube"
+                    aria-label="Fetch date posted from YouTube"
+                    disabled={fetchMetadata.isPending}
+                    onClick={async () => {
+                      try {
+                        const meta = await fetchMetadata.mutateAsync({
+                          url: bookmark.url,
+                        });
+                        if (meta.datePosted !== null) {
+                          handleDateTimeChange(datePostedProp.id, meta.datePosted);
+                        }
+                      }
+                      catch {
+                        // Non-fatal: best-effort convenience.
+                      }
+                    }}
+                  >
+                    {fetchMetadata.isPending
+                      ? <Loader2 className="size-4 animate-spin" />
+                      : <Sparkles className="size-4" />}
+                  </Button>
+                </InputAddon>
+              </InputGroup>
+            </div>
+          )}
         </div>
       )}
       <CategoryCustomFields

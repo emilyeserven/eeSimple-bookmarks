@@ -27,6 +27,8 @@ export interface YouTubeMetadata {
   channelName: string | null;
   channelUrl: string | null;
   durationSeconds: number | null;
+  /** ISO-8601 publish date ("YYYY-MM-DD") scraped from the watch page, or `null`. */
+  datePosted: string | null;
 }
 
 /**
@@ -80,19 +82,23 @@ async function fetchOEmbed(videoUrl: string): Promise<OEmbedResponse | null> {
   }
 }
 
-/** Scrape the watch page's `<meta itemprop="duration">` and `og:description` meta tags. */
+/** Scrape the watch page's `<meta itemprop="duration">`, `og:description`, and `datePublished` meta tags. */
 async function fetchWatchPageMeta(videoId: string): Promise<{ durationSeconds: number | null;
-  description: string | null; }> {
+  description: string | null;
+  datePosted: string | null; }> {
   const html = await fetchHeadHtml(`https://www.youtube.com/watch?v=${videoId}`);
   if (!html) return {
     durationSeconds: null,
     description: null,
+    datePosted: null,
   };
   const iso = metaContent(html, /itemprop=["']duration["']/i);
   const rawDescription = metaContent(html, /(?:property|name)=["']og:description["']/i);
+  const rawDate = metaContent(html, /itemprop=["']datePublished["']/i);
   return {
     durationSeconds: iso ? parseIsoDuration(iso) : null,
     description: rawDescription ? decodeEntities(rawDescription).trim() || null : null,
+    datePosted: rawDate && /^\d{4}-\d{2}-\d{2}$/.test(rawDate) ? rawDate : null,
   };
 }
 
@@ -131,6 +137,7 @@ export async function fetchYouTubeMetadata(url: string): Promise<YouTubeMetadata
     channelName: asString(oembed?.author_name),
     channelUrl: channelUrl && isPublicHttpUrl(channelUrl) ? channelUrl : null,
     durationSeconds: watchPage.durationSeconds,
+    datePosted: watchPage.datePosted,
   };
 }
 

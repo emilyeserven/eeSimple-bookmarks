@@ -180,6 +180,7 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
           }
           : null,
         durationSeconds: meta?.durationSeconds ?? null,
+        datePosted: meta?.datePosted ?? null,
         thumbnailUrl: meta?.thumbnailUrl ?? null,
       };
     }
@@ -202,6 +203,7 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
       isYouTube: false,
       channel: null,
       durationSeconds: null,
+      datePosted: null,
       thumbnailUrl: null,
     };
   });

@@ -820,6 +820,8 @@ export interface FetchMetadataResult {
     selfIds: string[]; } | null;
   /** The video's length in whole seconds (YouTube only), or `null`. */
   durationSeconds: number | null;
+  /** ISO-8601 date the video was published ("YYYY-MM-DD"), scraped from the watch page (YouTube only), or `null`. */
+  datePosted: string | null;
   /** A preview/thumbnail image URL (YouTube only), or `null`. */
   thumbnailUrl: string | null;
 }
