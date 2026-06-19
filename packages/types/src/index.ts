@@ -114,6 +114,8 @@ export interface Website {
   category?: YouTubeChannelCategory | null;
   /** Default tag ids applied to bookmarks saved from this website. */
   tagIds?: string[];
+  /** Default media type id applied to new bookmarks saved from this website, or `null` when unset. */
+  mediaTypeId?: string | null;
 }
 
 /** Lightweight website shape carried on a bookmark. */
@@ -141,6 +143,8 @@ export interface UpdateWebsiteInput {
   categoryId?: string | null;
   /** Full replacement list of default tag ids. Omit to leave unchanged. */
   tagIds?: string[];
+  /** Default media type to apply to new bookmarks from this website. `null` clears it; omit to leave unchanged. */
+  mediaTypeId?: string | null;
 }
 
 /** Result of looking up the website for a URL without creating one — powers the form banner. */
@@ -312,6 +316,8 @@ export interface YouTubeChannel {
   category?: YouTubeChannelCategory | null;
   /** Default tag ids applied to bookmarks saved from this channel. */
   tagIds?: string[];
+  /** Default media type id applied to new bookmarks saved from this channel, or `null` when unset. */
+  mediaTypeId?: string | null;
 }
 
 /** Lightweight channel shape carried on a bookmark. */
@@ -339,6 +345,8 @@ export interface UpdateYouTubeChannelInput {
   categoryId?: string | null;
   /** Full replacement list of default tag ids. Omit to leave unchanged. */
   tagIds?: string[];
+  /** Default media type to apply to new bookmarks from this channel. `null` clears it; omit to leave unchanged. */
+  mediaTypeId?: string | null;
 }
 
 /**

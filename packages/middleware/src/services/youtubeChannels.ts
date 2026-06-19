@@ -117,6 +117,7 @@ function toYouTubeChannel(
     categoryName?: string | null;
     categorySlug?: string | null;
     categoryIcon?: string | null;
+    mediaTypeId?: string | null;
   },
   selfIds: string[] = [],
   tagIds: string[] = [],
@@ -140,6 +141,7 @@ function toYouTubeChannel(
       }
       : null,
     tagIds,
+    mediaTypeId: row.mediaTypeId ?? null,
   };
 }
 
@@ -169,6 +171,7 @@ export async function listYouTubeChannels(): Promise<YouTubeChannel[]> {
       categoryName: categories.name,
       categorySlug: categories.slug,
       categoryIcon: categories.icon,
+      mediaTypeId: youtubeChannels.mediaTypeId,
     })
     .from(youtubeChannels)
     .leftJoin(youtubeChannelImages, eq(youtubeChannelImages.youtubeChannelId, youtubeChannels.id))
@@ -192,6 +195,7 @@ const channelSelect = {
   categoryName: categories.name,
   categorySlug: categories.slug,
   categoryIcon: categories.icon,
+  mediaTypeId: youtubeChannels.mediaTypeId,
 };
 
 /** Load self-ids + tags for a single channel row and map it to the wire type. */
@@ -323,6 +327,15 @@ export async function updateYouTubeChannel(
       .update(youtubeChannels)
       .set({
         categoryId: input.categoryId ?? null,
+      })
+      .where(eq(youtubeChannels.id, id));
+  }
+
+  if ("mediaTypeId" in input) {
+    await db
+      .update(youtubeChannels)
+      .set({
+        mediaTypeId: input.mediaTypeId ?? null,
       })
       .where(eq(youtubeChannels.id, id));
   }

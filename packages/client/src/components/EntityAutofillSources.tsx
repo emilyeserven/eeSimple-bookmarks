@@ -5,19 +5,53 @@ import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
 import { RowCard } from "@/components/ui/card";
 
 interface EntityAutofillSourcesProps {
-  /** The entity being viewed: a category (matched by `category.id`) or a tag (matched by default tags). */
+  /**
+   * The entity being viewed: a category (matched by `category.id`), a media type (matched by the
+   * source's default `mediaTypeId`), or a tag (matched by the source's default tag ids).
+   */
   match:
     | { kind: "category";
       categoryId: string; }
-      | { kind: "tag";
-        tagId: string; };
+      | { kind: "media-type";
+        mediaTypeId: string; }
+        | { kind: "tag";
+          tagId: string; };
+}
+
+/** Whether a source's defaults (category / media type / tags) point at the matched entity. */
+function sourceMatches(
+  source: { category?: { id: string } | null;
+    mediaTypeId?: string | null;
+    tagIds?: string[]; },
+  match: EntityAutofillSourcesProps["match"],
+): boolean {
+  switch (match.kind) {
+    case "category":
+      return source.category?.id === match.categoryId;
+    case "media-type":
+      return source.mediaTypeId === match.mediaTypeId;
+    case "tag":
+      return (source.tagIds ?? []).includes(match.tagId);
+  }
+}
+
+/** Per-source-kind wording for what the matched entity is auto-applied as. */
+function noteFor(sourceLabel: "sites" | "channels", matchKind: EntityAutofillSourcesProps["match"]["kind"]): string {
+  switch (matchKind) {
+    case "category":
+      return `Bookmarks saved from these ${sourceLabel} are automatically added to this category.`;
+    case "media-type":
+      return `Bookmarks saved from these ${sourceLabel} are automatically marked as this media type.`;
+    case "tag":
+      return `Bookmarks saved from these ${sourceLabel} are automatically tagged with this tag.`;
+  }
 }
 
 /**
- * Surfaces the websites and YouTube channels whose default category / default tags point at the
- * currently-viewed category or tag — i.e. the sources that will autofill it onto new bookmarks.
- * Renders a "Websites" card and/or a "YouTube Channels" card of clickable pills, or nothing when no
- * source feeds this entity.
+ * Surfaces the websites and YouTube channels whose default category / media type / tags point at the
+ * currently-viewed entity — i.e. the sources that will autofill it onto new bookmarks. Renders a
+ * "Websites" card and/or a "YouTube Channels" card of clickable pills, or nothing when no source
+ * feeds this entity.
  */
 export function EntityAutofillSources({
   match,
@@ -29,23 +63,13 @@ export function EntityAutofillSources({
     data: channels,
   } = useYouTubeChannels();
 
-  const matchedWebsites = (websites ?? []).filter(site =>
-    match.kind === "category"
-      ? site.category?.id === match.categoryId
-      : (site.tagIds ?? []).includes(match.tagId));
-  const matchedChannels = (channels ?? []).filter(channel =>
-    match.kind === "category"
-      ? channel.category?.id === match.categoryId
-      : (channel.tagIds ?? []).includes(match.tagId));
+  const matchedWebsites = (websites ?? []).filter(site => sourceMatches(site, match));
+  const matchedChannels = (channels ?? []).filter(channel => sourceMatches(channel, match));
 
   if (matchedWebsites.length === 0 && matchedChannels.length === 0) return null;
 
-  const websiteNote = match.kind === "category"
-    ? "Bookmarks saved from these sites are automatically added to this category."
-    : "Bookmarks saved from these sites are automatically tagged with this tag.";
-  const channelNote = match.kind === "category"
-    ? "Bookmarks saved from these channels are automatically added to this category."
-    : "Bookmarks saved from these channels are automatically tagged with this tag.";
+  const websiteNote = noteFor("sites", match.kind);
+  const channelNote = noteFor("channels", match.kind);
 
   return (
     <div className="space-y-3">

@@ -134,6 +134,10 @@ const updateWebsiteBody = {
         format: "uuid",
       },
     },
+    mediaTypeId: {
+      type: ["string", "null"],
+      format: "uuid",
+    },
   },
 } as const;
 

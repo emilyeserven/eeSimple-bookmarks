@@ -11,6 +11,7 @@ import { TagPicker } from "./TagPicker";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useCategories } from "@/hooks/useCategories";
+import { useMediaTypes } from "@/hooks/useMediaTypes";
 import { useTagTree } from "@/hooks/useTags";
 import {
   useAutoWebsiteFavicon,
@@ -25,6 +26,7 @@ const websiteGeneralSchema = z.object({
   siteName: z.string().trim().min(1, "Site name is required"),
   domain: z.string().trim().min(1, "Domain is required"),
   categoryId: z.string().nullable(),
+  mediaTypeId: z.string().nullable(),
 });
 
 interface Props {
@@ -45,6 +47,9 @@ export function WebsiteGeneralForm({
     data: categories,
   } = useCategories();
   const {
+    data: mediaTypes,
+  } = useMediaTypes();
+  const {
     data: tagTree,
   } = useTagTree();
 
@@ -53,6 +58,7 @@ export function WebsiteGeneralForm({
       siteName: website.siteName,
       domain: website.domain,
       categoryId: website.category?.id ?? null,
+      mediaTypeId: website.mediaTypeId ?? null,
     },
     validators: {
       onChange: websiteGeneralSchema,
@@ -67,6 +73,7 @@ export function WebsiteGeneralForm({
           siteName: value.siteName.trim(),
           domain: value.domain.trim(),
           categoryId: value.categoryId || null,
+          mediaTypeId: value.mediaTypeId || null,
           tagIds,
         },
       });
@@ -154,6 +161,30 @@ export function WebsiteGeneralForm({
         )}
       </form.AppField>
 
+      <form.AppField name="mediaTypeId">
+        {field => (
+          <field.ComboboxField
+            label="Media type"
+            placeholder="No media type"
+            searchPlaceholder="Search media types…"
+            emptyText="No media types found."
+            options={(mediaTypes ?? []).map(mediaType => ({
+              value: mediaType.id,
+              label: mediaType.name,
+              icon: (
+                <CategoryIcon
+                  name={mediaType.icon}
+                  className="size-4 shrink-0"
+                />
+              ),
+            }))}
+          />
+        )}
+      </form.AppField>
+      <p className="text-sm text-muted-foreground">
+        Media type applied automatically to bookmarks saved from this site.
+      </p>
+
       <Separator />
 
       <div className="space-y-2">
@@ -178,12 +209,13 @@ export function WebsiteGeneralForm({
                 const siteNameDirty = values.siteName.trim() !== website.siteName;
                 const domainDirty = values.domain.trim() !== website.domain;
                 const categoryIdDirty = (values.categoryId || null) !== (website.category?.id ?? null);
+                const mediaTypeIdDirty = (values.mediaTypeId || null) !== (website.mediaTypeId ?? null);
                 const tagIdsDirty = JSON.stringify([...tagIds].sort()) !== JSON.stringify([...(website.tagIds ?? [])].sort());
                 return (
                   <form.SubmitButton
                     label="Save changes"
                     size="sm"
-                    disabledWhen={!siteNameDirty && !domainDirty && !categoryIdDirty && !tagIdsDirty}
+                    disabledWhen={!siteNameDirty && !domainDirty && !categoryIdDirty && !mediaTypeIdDirty && !tagIdsDirty}
                   />
                 );
               }}

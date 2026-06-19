@@ -738,6 +738,14 @@ async function getChannelCategoryId(channelKey: string): Promise<string | null> 
   return row?.categoryId ?? null;
 }
 
+/** Fetch the default mediaTypeId of a YouTube channel by channelKey, or null when absent/unset. */
+async function getChannelMediaTypeId(channelKey: string): Promise<string | null> {
+  const [row] = await db.select({
+    mediaTypeId: youtubeChannels.mediaTypeId,
+  }).from(youtubeChannels).where(eq(youtubeChannels.channelKey, channelKey));
+  return row?.mediaTypeId ?? null;
+}
+
 /** Fetch the default tag ids for a YouTube channel by channelKey. */
 async function getChannelTagIds(channelKey: string): Promise<string[]> {
   const [channel] = await db.select({
@@ -785,8 +793,14 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
   }
   const mergedTagIds = [...new Set([...(input.tagIds ?? []), ...defaultTagIds])];
 
-  // Default the media type to "Video" for a YouTube video unless the caller already chose one.
+  // Media-type precedence: user-provided > channel default > website default > "Video" (for YouTube).
   let mediaTypeId = input.mediaTypeId ?? null;
+  if (!mediaTypeId && channelHint) {
+    mediaTypeId = await getChannelMediaTypeId(channelHint.key);
+  }
+  if (!mediaTypeId && siteData?.mediaTypeId) {
+    mediaTypeId = siteData.mediaTypeId;
+  }
   if (meta && !mediaTypeId) {
     const videoId = await videoMediaTypeId();
     if (videoId) {

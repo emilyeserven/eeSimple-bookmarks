@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useCategories } from "@/hooks/useCategories";
+import { useMediaTypes } from "@/hooks/useMediaTypes";
 import { useTagTree } from "@/hooks/useTags";
 import {
   useAutoYouTubeChannelImage,
@@ -28,6 +29,7 @@ import { CategoryIcon } from "@/lib/icons";
 const channelGeneralSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
   categoryId: z.string().nullable(),
+  mediaTypeId: z.string().nullable(),
 });
 
 interface Props {
@@ -50,6 +52,9 @@ export function YouTubeChannelGeneralForm({
     data: categories,
   } = useCategories();
   const {
+    data: mediaTypes,
+  } = useMediaTypes();
+  const {
     data: tagTree,
   } = useTagTree();
 
@@ -57,6 +62,7 @@ export function YouTubeChannelGeneralForm({
     defaultValues: {
       name: channel.name,
       categoryId: channel.category?.id ?? null,
+      mediaTypeId: channel.mediaTypeId ?? null,
     },
     validators: {
       onChange: channelGeneralSchema,
@@ -70,6 +76,7 @@ export function YouTubeChannelGeneralForm({
           name: value.name.trim(),
           selfIds,
           categoryId: value.categoryId || null,
+          mediaTypeId: value.mediaTypeId || null,
           tagIds,
         },
       });
@@ -144,6 +151,30 @@ export function YouTubeChannelGeneralForm({
         )}
       </form.AppField>
 
+      <form.AppField name="mediaTypeId">
+        {field => (
+          <field.ComboboxField
+            label="Media type"
+            placeholder="No media type"
+            searchPlaceholder="Search media types…"
+            emptyText="No media types found."
+            options={(mediaTypes ?? []).map(mediaType => ({
+              value: mediaType.id,
+              label: mediaType.name,
+              icon: (
+                <CategoryIcon
+                  name={mediaType.icon}
+                  className="size-4 shrink-0"
+                />
+              ),
+            }))}
+          />
+        )}
+      </form.AppField>
+      <p className="text-sm text-muted-foreground">
+        Media type applied automatically to bookmarks saved from this channel.
+      </p>
+
       <Separator />
 
       <div className="space-y-2">
@@ -214,12 +245,13 @@ export function YouTubeChannelGeneralForm({
             const nameDirty = values.name.trim() !== channel.name;
             const selfIdsDirty = JSON.stringify(selfIds) !== JSON.stringify(channel.selfIds);
             const categoryIdDirty = (values.categoryId || null) !== (channel.category?.id ?? null);
+            const mediaTypeIdDirty = (values.mediaTypeId || null) !== (channel.mediaTypeId ?? null);
             const tagIdsDirty = JSON.stringify([...tagIds].sort()) !== JSON.stringify([...(channel.tagIds ?? [])].sort());
             return (
               <form.SubmitButton
                 label="Save changes"
                 size="sm"
-                disabledWhen={!nameDirty && !selfIdsDirty && !categoryIdDirty && !tagIdsDirty}
+                disabledWhen={!nameDirty && !selfIdsDirty && !categoryIdDirty && !mediaTypeIdDirty && !tagIdsDirty}
               />
             );
           }}
