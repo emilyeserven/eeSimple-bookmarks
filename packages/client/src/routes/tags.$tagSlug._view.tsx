@@ -14,6 +14,10 @@ const viewNav = [
     to: "/tags/$tagSlug/general",
     label: "General",
   },
+  {
+    to: "/tags/$tagSlug/autofill",
+    label: "Autofill Rules",
+  },
 ] as const;
 
 function TagViewLayout() {

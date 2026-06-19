@@ -12,6 +12,10 @@ const editNav = [
     to: "/tags/$tagSlug/edit/general",
     label: "General",
   },
+  {
+    to: "/tags/$tagSlug/edit/autofill",
+    label: "Autofill Rules",
+  },
 ] as const;
 
 function TagEditLayout() {

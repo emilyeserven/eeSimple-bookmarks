@@ -46,6 +46,8 @@ interface AutofillRuleFormProps {
   defaultCategoryId?: string;
   /** Preselected website domain for a new rule's "when" (e.g. when creating from a website's page). */
   defaultWebsiteDomain?: string;
+  /** Preselected tag ids for a new rule's "then" (e.g. when creating from a tag's page). */
+  defaultTagIds?: string[];
   submitLabel: string;
   resetOnSubmit?: boolean;
   isError?: boolean;
@@ -55,7 +57,7 @@ interface AutofillRuleFormProps {
 
 /** Shared create/edit form for an autofill rule: a "when" condition tree plus "then" actions. */
 export function AutofillRuleForm({
-  rule, categories, properties, tagTree, defaultCategoryId, defaultWebsiteDomain, submitLabel, resetOnSubmit, isError, errorMessage, onSubmit,
+  rule, categories, properties, tagTree, defaultCategoryId, defaultWebsiteDomain, defaultTagIds, submitLabel, resetOnSubmit, isError, errorMessage, onSubmit,
 }: AutofillRuleFormProps) {
   // The condition tree and custom-property values live outside the typed form (they're dynamic and,
   // for the recursive tree, would blow up TanStack Form's deep type inference). A new rule created
@@ -76,7 +78,7 @@ export function AutofillRuleForm({
       name: rule?.name ?? "",
       description: rule?.description ?? "",
       setCategoryId: rule?.setCategoryId ?? defaultCategoryId ?? NO_CATEGORY,
-      tagIds: rule?.tagIds ?? ([] as string[]),
+      tagIds: rule?.tagIds ?? defaultTagIds ?? ([] as string[]),
       sortOrder: rule?.sortOrder ?? 0,
     },
     validators: {
