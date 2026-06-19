@@ -336,6 +336,14 @@ export interface YouTubeChannelHint {
   selfIds?: string[];
 }
 
+/** Payload for creating a YouTube channel by hand (as opposed to auto-creation from a bookmark URL). */
+export interface CreateYouTubeChannelInput {
+  /** Full YouTube channel URL, e.g. `https://www.youtube.com/@mkbhd`. Used to derive the channel key. */
+  channelUrl: string;
+  /** Display name for the channel. */
+  name: string;
+}
+
 /** Payload for updating a YouTube channel (rename and/or self-identifier list). */
 export interface UpdateYouTubeChannelInput {
   name?: string;

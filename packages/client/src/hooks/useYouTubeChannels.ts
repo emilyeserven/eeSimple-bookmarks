@@ -1,4 +1,4 @@
-import type { UpdateYouTubeChannelInput } from "@eesimple/types";
+import type { CreateYouTubeChannelInput, UpdateYouTubeChannelInput } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -25,6 +25,18 @@ export function useYouTubeChannelBySlug(slug: string) {
     ...query,
     channel: (query.data ?? []).find(item => item.slug === slug),
   };
+}
+
+export function useCreateYouTubeChannel() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: CreateYouTubeChannelInput) => youtubeChannelsApi.create(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: CHANNELS_KEY,
+      });
+    },
+  });
 }
 
 export function useUpdateYouTubeChannel() {

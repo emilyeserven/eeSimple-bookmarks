@@ -52,6 +52,7 @@ import type {
   UpdateTagInput,
   UpdateWebsiteInput,
   UpdateYouTubeChannelInput,
+  CreateYouTubeChannelInput,
   Website,
   WebsiteLookup,
   YouTubeChannel,
@@ -274,6 +275,11 @@ export const propertyGroupsApi = createCrudApi<PropertyGroup, CreatePropertyGrou
 
 export const youtubeChannelsApi = {
   list: () => request<YouTubeChannel[]>("/youtube-channels"),
+  create: (input: CreateYouTubeChannelInput) =>
+    request<YouTubeChannel>("/youtube-channels", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
   update: (id: string, input: UpdateYouTubeChannelInput) =>
     request<YouTubeChannel>(`/youtube-channels/${id}`, {
       method: "PATCH",

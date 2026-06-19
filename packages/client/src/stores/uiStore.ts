@@ -146,11 +146,13 @@ interface UiState {
   listingPage: { key: string;
     showsImages: boolean;
     hasFilters: boolean;
-    showsCards: boolean; } | null;
+    showsCards: boolean;
+    createAction?: () => void; } | null;
   setListingPage: (page: { key: string;
     showsImages: boolean;
     hasFilters: boolean;
-    showsCards: boolean; } | null) => void;
+    showsCards: boolean;
+    createAction?: () => void; } | null) => void;
   /** Transient: true while a listing page with header-search support is mounted. Never persisted. */
   headerSearchActive: boolean;
   setHeaderSearchActive: (active: boolean) => void;

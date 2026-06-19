@@ -18,9 +18,11 @@ import { useUiStore } from "@/stores/uiStore";
  * rule (with any scope prefill baked in) and navigates to its Conditions edit tab so the user can
  * start editing immediately. Holding the configured sidebar modifier instead opens the rule in the
  * right drawer, preserving the previous behavior. Spread `onClick` onto the button and render `modal`.
+ * Use `openModal` for non-event contexts like the AppHeader create button.
  */
 export function useNewAutofillRule(): {
   onClick: (event: MouseEvent) => void;
+  openModal: () => void;
   modal: ReactNode;
 } {
   const {
@@ -58,6 +60,7 @@ export function useNewAutofillRule(): {
 
   return {
     onClick,
+    openModal: () => setModalOpen(true),
     modal,
   };
 }

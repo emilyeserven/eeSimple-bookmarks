@@ -1,7 +1,6 @@
 import { useState } from "react";
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Plus } from "lucide-react";
 
 import { AddCategoryModal } from "../components/AddCategoryModal";
 import { CategoryPreviewCard } from "../components/CategoryPreviewCard";
@@ -13,7 +12,6 @@ import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
 import { COLUMN_CLASS, useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { useUiStore } from "@/stores/uiStore";
 
@@ -28,7 +26,7 @@ function CategoriesListingPage() {
   } = useCategories();
   const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
-  useSetListingPage("categories-listing");
+  useSetListingPage("categories-listing", false, false, false, () => setModalOpen(true));
   useRegisterHeaderSearch();
   const columns = useBookmarkColumns("categories-listing");
   const viewMode = useViewMode("categories-listing");
@@ -46,21 +44,11 @@ function CategoriesListingPage() {
   return (
     <section className="space-y-6">
       <div className="space-y-1">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold">Categories</h1>
-            {categories
-              ? <Badge variant="secondary">{categories.length}</Badge>
-              : null}
-          </div>
-          <Button
-            type="button"
-            size="sm"
-            onClick={() => setModalOpen(true)}
-          >
-            <Plus className="size-4" />
-            New category
-          </Button>
+        <div className="flex items-center gap-2">
+          <h1 className="text-2xl font-bold">Categories</h1>
+          {categories
+            ? <Badge variant="secondary">{categories.length}</Badge>
+            : null}
         </div>
         <p className="text-sm text-muted-foreground">
           Group bookmarks by category. Click a category to view it, or edit it for tiered tags,

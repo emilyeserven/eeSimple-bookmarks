@@ -1,5 +1,8 @@
+import { useState } from "react";
+
 import { useNavigate } from "@tanstack/react-router";
 
+import { AddYouTubeChannelModal } from "./AddYouTubeChannelModal";
 import { useTableRowNav } from "./tables/useTableRowNav";
 import { useYouTubeChannelColumns } from "./tables/youtubeChannelColumns";
 import { YouTubeChannelListItem } from "./YouTubeChannelListItem";
@@ -11,12 +14,13 @@ import { COLUMN_CLASS, useBookmarkColumns, useViewMode } from "../lib/bookmarkCo
 import { DataTable } from "@/components/ui/data-table";
 import { useUiStore } from "@/stores/uiStore";
 
-/** Browsable, searchable channel listing — search + list only; channels can't be added by hand. Shared by the YouTube Channels taxonomy page and the Settings page. */
+/** Browsable, searchable channel listing with add modal. Shared by the YouTube Channels taxonomy page and the Settings page. */
 export function YouTubeChannelsListing() {
   const {
     data: allChannels, isLoading, error,
   } = useYouTubeChannels();
-  useSetListingPage("youtube-channels-listing");
+  const [modalOpen, setModalOpen] = useState(false);
+  useSetListingPage("youtube-channels-listing", false, false, false, () => setModalOpen(true));
   useRegisterHeaderSearch();
   const columns = useBookmarkColumns("youtube-channels-listing");
   const viewMode = useViewMode("youtube-channels-listing");
@@ -46,7 +50,7 @@ export function YouTubeChannelsListing() {
       {!isLoading && (allChannels?.length ?? 0) === 0
         ? (
           <p className="text-muted-foreground">
-            No channels yet. They&apos;re created automatically when you add YouTube bookmarks.
+            No channels yet. Add one above or they&apos;re created automatically when you add YouTube bookmarks.
           </p>
         )
         : null}
@@ -94,6 +98,19 @@ export function YouTubeChannelsListing() {
           </div>
         )
         : null}
+
+      <AddYouTubeChannelModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        onCreated={(channel) => {
+          void navigate({
+            to: "/taxonomies/youtube-channels/$channelSlug/edit/general",
+            params: {
+              channelSlug: channel.slug,
+            },
+          });
+        }}
+      />
     </div>
   );
 }
