@@ -4,11 +4,12 @@ import { useState } from "react";
 
 import { propertyAppliesToCategory } from "@eesimple/types";
 
-import { NO_CATEGORY, RulePropertyFields } from "./AutofillRuleForm";
+import { NO_CATEGORY, NO_MEDIA_TYPE, RulePropertyFields } from "./AutofillRuleForm";
 import { AutofillRulePrefillPickers } from "./AutofillRulePrefillPickers";
 import { useUpdateAutofillRule } from "../hooks/useAutofill";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
+import { useMediaTypes } from "../hooks/useMediaTypes";
 import { useTagTree } from "../hooks/useTags";
 
 import { Button } from "@/components/ui/button";
@@ -30,15 +31,20 @@ export function AutofillRulePrefillForm({
   const {
     data: tagTree = [],
   } = useTagTree();
+  const {
+    data: mediaTypes = [],
+  } = useMediaTypes();
   const updateRule = useUpdateAutofillRule();
 
   const initialCategoryId = rule.setCategoryId ?? NO_CATEGORY;
+  const initialMediaTypeId = rule.setMediaTypeId ?? NO_MEDIA_TYPE;
   const initialTagIds = rule.tagIds;
   const initialNumberInputs = Object.fromEntries(rule.numberValues.map(e => [e.propertyId, String(e.value)]));
   const initialBooleanInputs = Object.fromEntries(rule.booleanValues.map(e => [e.propertyId, e.value]));
   const initialDateTimeInputs = Object.fromEntries(rule.dateTimeValues.map(e => [e.propertyId, e.value]));
 
   const [setCategoryId, setSetCategoryId] = useState(initialCategoryId);
+  const [setMediaTypeId, setSetMediaTypeId] = useState(initialMediaTypeId);
   const [tagIds, setTagIds] = useState<string[]>(initialTagIds);
   const [numberInputs, setNumberInputs] = useState<Record<string, string>>(initialNumberInputs);
   const [booleanInputs, setBooleanInputs] = useState<Record<string, boolean>>(initialBooleanInputs);
@@ -46,6 +52,7 @@ export function AutofillRulePrefillForm({
 
   const isDirty
     = setCategoryId !== initialCategoryId
+      || setMediaTypeId !== initialMediaTypeId
       || JSON.stringify(tagIds) !== JSON.stringify(initialTagIds)
       || JSON.stringify(numberInputs) !== JSON.stringify(initialNumberInputs)
       || JSON.stringify(booleanInputs) !== JSON.stringify(initialBooleanInputs)
@@ -53,6 +60,7 @@ export function AutofillRulePrefillForm({
 
   function handleSave() {
     const categoryId = setCategoryId === NO_CATEGORY ? null : setCategoryId;
+    const mediaTypeId = setMediaTypeId === NO_MEDIA_TYPE ? null : setMediaTypeId;
     const categoryProps = categoryId
       ? properties.filter(p => propertyAppliesToCategory(p, categoryId))
       : [];
@@ -89,6 +97,7 @@ export function AutofillRulePrefillForm({
       id: rule.id,
       input: {
         setCategoryId: categoryId,
+        setMediaTypeId: mediaTypeId,
         tagIds,
         numberValues,
         booleanValues,
@@ -101,9 +110,12 @@ export function AutofillRulePrefillForm({
     <div className="space-y-4">
       <AutofillRulePrefillPickers
         categories={categories}
+        mediaTypes={mediaTypes}
         tagTree={tagTree}
         setCategoryId={setCategoryId}
         onCategoryChange={setSetCategoryId}
+        setMediaTypeId={setMediaTypeId}
+        onMediaTypeChange={setSetMediaTypeId}
         tagIds={tagIds}
         onToggleTag={id =>
           setTagIds(current =>

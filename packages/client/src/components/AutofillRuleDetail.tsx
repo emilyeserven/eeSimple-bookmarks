@@ -4,6 +4,7 @@ import type {
   ConditionMatchOperator,
   ConditionNode,
   CustomProperty,
+  MediaType,
   PropertyCondition,
   Tag,
 } from "@eesimple/types";
@@ -105,7 +106,7 @@ function describeConditionNode(
   }
 }
 
-/** Body of the General view tab: description and priority (name lives in the page header). */
+/** Body of the General view tab: description and metadata (name lives in the page header). */
 export function AutofillGeneralFields({
   rule,
 }: { rule: AutofillRule }) {
@@ -114,7 +115,14 @@ export function AutofillGeneralFields({
       {rule.description
         ? <p>{rule.description}</p>
         : <p className="text-muted-foreground">No description.</p>}
-      <p className="text-muted-foreground">Priority: {rule.sortOrder}</p>
+      <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2">
+        <dt className="text-muted-foreground">Priority</dt>
+        <dd>{rule.sortOrder}</dd>
+        <dt className="text-muted-foreground">Slug</dt>
+        <dd className="font-mono">{rule.slug}</dd>
+        <dt className="text-muted-foreground">Added</dt>
+        <dd>{new Date(rule.createdAt).toLocaleDateString()}</dd>
+      </dl>
     </div>
   );
 }
@@ -158,17 +166,22 @@ export function AutofillConditionsFields({
   );
 }
 
-/** Body of the Prefill view tab: what category/tags/properties the rule sets. */
+/** Body of the Prefill view tab: what category/media type/tags/properties the rule sets. */
 export function AutofillPrefillFields({
-  rule, categories, tags, properties,
+  rule, categories, mediaTypes, tags, properties,
 }: {
   rule: AutofillRule;
   categories: Category[];
+  mediaTypes: MediaType[];
   tags: Tag[];
   properties: CustomProperty[];
 }) {
   const categoryName = rule.setCategoryId
     ? (categories.find(c => c.id === rule.setCategoryId)?.name ?? null)
+    : null;
+
+  const mediaTypeName = rule.setMediaTypeId
+    ? (mediaTypes.find(m => m.id === rule.setMediaTypeId)?.name ?? null)
     : null;
 
   const tagNames = rule.tagIds.map(id => tags.find(t => t.id === id)?.name ?? id);
@@ -207,6 +220,14 @@ export function AutofillPrefillFields({
       <LabeledSection title="Category">
         {categoryName
           ? <p className="text-sm">{categoryName}</p>
+          : <p className="text-sm text-muted-foreground">— Leave unchanged —</p>}
+      </LabeledSection>
+
+      <Separator />
+
+      <LabeledSection title="Media type">
+        {mediaTypeName
+          ? <p className="text-sm">{mediaTypeName}</p>
           : <p className="text-sm text-muted-foreground">— Leave unchanged —</p>}
       </LabeledSection>
 
