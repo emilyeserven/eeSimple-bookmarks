@@ -1,12 +1,11 @@
 import { useState } from "react";
 
-import { AddPropertyGroupForm } from "./AddPropertyGroupForm";
 import { PropertyGroupListItem } from "./PropertyGroupListItem";
 import { usePropertyGroups } from "../hooks/usePropertyGroups";
 
 import { Input } from "@/components/ui/input";
 
-/** Browsable, searchable property-group listing with add form. */
+/** Browsable, searchable property-group listing. */
 export function PropertyGroupsListing() {
   const {
     data: allGroups, isLoading, error,
@@ -21,46 +20,42 @@ export function PropertyGroupsListing() {
 
   return (
     <div className="space-y-4">
-      <AddPropertyGroupForm />
+      <Input
+        placeholder="Search by name…"
+        value={search}
+        onChange={event => setSearch(event.target.value)}
+        className="max-w-sm"
+      />
 
-      <div className="space-y-4">
-        <Input
-          placeholder="Search by name…"
-          value={search}
-          onChange={event => setSearch(event.target.value)}
-          className="max-w-sm"
-        />
+      {isLoading ? <p className="text-muted-foreground">Loading property groups…</p> : null}
+      {error ? <p className="text-destructive">{error.message}</p> : null}
+      {!isLoading && (allGroups?.length ?? 0) === 0
+        ? (
+          <p className="text-muted-foreground">
+            No property groups yet.
+          </p>
+        )
+        : null}
+      {!isLoading && (allGroups?.length ?? 0) > 0 && filtered.length === 0
+        ? (
+          <p className="text-muted-foreground">
+            No property groups match &ldquo;{search}&rdquo;.
+          </p>
+        )
+        : null}
 
-        {isLoading ? <p className="text-muted-foreground">Loading property groups…</p> : null}
-        {error ? <p className="text-destructive">{error.message}</p> : null}
-        {!isLoading && (allGroups?.length ?? 0) === 0
-          ? (
-            <p className="text-muted-foreground">
-              No property groups yet. Add one above.
-            </p>
-          )
-          : null}
-        {!isLoading && (allGroups?.length ?? 0) > 0 && filtered.length === 0
-          ? (
-            <p className="text-muted-foreground">
-              No property groups match &ldquo;{search}&rdquo;.
-            </p>
-          )
-          : null}
-
-        {filtered.length > 0
-          ? (
-            <ul className="space-y-2">
-              {filtered.map(group => (
-                <PropertyGroupListItem
-                  key={group.id}
-                  group={group}
-                />
-              ))}
-            </ul>
-          )
-          : null}
-      </div>
+      {filtered.length > 0
+        ? (
+          <ul className="space-y-2">
+            {filtered.map(group => (
+              <PropertyGroupListItem
+                key={group.id}
+                group={group}
+              />
+            ))}
+          </ul>
+        )
+        : null}
     </div>
   );
 }
