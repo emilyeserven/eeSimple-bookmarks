@@ -19,7 +19,7 @@ export function MediaTypeListItem({
   const viewClick = useViewPanelClick();
   const modifier = useUiStore(state => state.sidebarOpenModifier);
   return (
-    <RowCard className="group relative">
+    <RowCard className="group relative transition-colors hover:bg-accent">
       <Link
         to="/taxonomies/media-types/$mediaTypeSlug"
         params={{
@@ -27,10 +27,7 @@ export function MediaTypeListItem({
         }}
         title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
         onClick={event => viewClick(event, "media-type", mediaType.id)}
-        className="
-          flex items-center gap-3 rounded-lg p-4 pr-12 transition-colors
-          hover:bg-accent
-        "
+        className="flex items-center gap-3 p-4 pr-12"
       >
         <div className="min-w-0 flex-1">
           <p className="font-medium">{mediaType.name}</p>

@@ -34,13 +34,7 @@ export function WebsiteListItem({
   const [imageFailed, setImageFailed] = useState(false);
   const showImage = website.imageUrl != null && !imageFailed;
   return (
-    <RowCard className="group relative">
-      <div
-        className="
-          rounded-lg transition-colors
-          hover:bg-accent
-        "
-      >
+    <RowCard className="group relative transition-colors hover:bg-accent">
         <Link
           to="/taxonomies/websites/$websiteSlug"
           params={{
@@ -82,7 +76,6 @@ export function WebsiteListItem({
             </div>
           )
           : null}
-      </div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
