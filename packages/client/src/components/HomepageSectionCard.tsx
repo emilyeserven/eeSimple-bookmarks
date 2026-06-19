@@ -1,6 +1,6 @@
 import type { HomepageSection, HomepageSectionImageLayout } from "@eesimple/types";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { ChevronDown, EyeOff, GripVertical, Pencil } from "lucide-react";
 
@@ -25,6 +25,10 @@ interface HomepageSectionCardProps {
   isDragging?: boolean;
 }
 
+type SectionFormValues = Parameters<Parameters<typeof HomepageSectionForm>[0]["onChange"] & {}>[0];
+
+const AUTOSAVE_DELAY_MS = 800;
+
 export function HomepageSectionCard({
   section, dragHandleProps, isDragging,
 }: HomepageSectionCardProps) {
@@ -33,9 +37,28 @@ export function HomepageSectionCard({
   const update = useUpdateHomepageSection();
   const remove = useDeleteHomepageSection();
 
+  const latestValues = useRef<SectionFormValues | null>(null);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => {
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+  }, []);
+
   function startEditing() {
     setEditing(true);
     setOpen(true);
+  }
+
+  function handleFieldChange(values: SectionFormValues) {
+    latestValues.current = values;
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      if (!latestValues.current) return;
+      update.mutate({
+        id: section.id,
+        input: latestValues.current,
+      });
+    }, AUTOSAVE_DELAY_MS);
   }
 
   function patchDisplay(input: {
@@ -114,18 +137,7 @@ export function HomepageSectionCard({
           ? (
             <HomepageSectionForm
               section={section}
-              isPending={update.isPending}
-              onSave={(values) => {
-                update.mutate(
-                  {
-                    id: section.id,
-                    input: values,
-                  },
-                  {
-                    onSuccess: () => setEditing(false),
-                  },
-                );
-              }}
+              onChange={handleFieldChange}
               onCancel={() => setEditing(false)}
               onDelete={() => {
                 if (confirm(`Delete section "${section.title}"?`)) {

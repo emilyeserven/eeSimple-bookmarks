@@ -1,6 +1,6 @@
 import type { ConditionTree, HomepageSection, HomepageSectionImageLayout } from "@eesimple/types";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { emptyConditionTree } from "@eesimple/types";
 
@@ -25,7 +25,10 @@ interface HomepageSectionFormValues {
 
 interface HomepageSectionFormProps {
   section?: HomepageSection;
-  onSave: (values: HomepageSectionFormValues) => void;
+  /** Explicit-save mode (create): called when the Save button is clicked. */
+  onSave?: (values: HomepageSectionFormValues) => void;
+  /** Auto-save mode (edit): called on every field change so the parent can debounce + persist. */
+  onChange?: (values: HomepageSectionFormValues) => void;
   onCancel: () => void;
   isPending?: boolean;
   /** When provided (editing an existing section), renders a Delete button in the actions row. */
@@ -34,19 +37,30 @@ interface HomepageSectionFormProps {
 }
 
 export function HomepageSectionForm({
-  section, onSave, onCancel, isPending, onDelete, isDeleting,
+  section, onSave, onChange, onCancel, isPending, onDelete, isDeleting,
 }: HomepageSectionFormProps) {
-  const [title, setTitle] = useState(section?.title ?? "");
-  const [description, setDescription] = useState(section?.description ?? "");
-  const [conditions, setConditions] = useState<ConditionTree>(
-    section?.conditions ?? emptyConditionTree(),
-  );
-  const [hideIfEmpty, setHideIfEmpty] = useState(section?.hideIfEmpty ?? false);
-  const [columns, setColumns] = useState(section?.columns ?? 2);
-  const [imageMode, setImageMode] = useState(section?.imageMode ?? true);
-  const [imageLayout, setImageLayout] = useState<HomepageSectionImageLayout>(
-    section?.imageLayout ?? "above",
-  );
+  const initialValues: HomepageSectionFormValues = {
+    title: section?.title ?? "",
+    description: section?.description ?? "",
+    conditions: section?.conditions ?? emptyConditionTree(),
+    hideIfEmpty: section?.hideIfEmpty ?? false,
+    columns: section?.columns ?? 2,
+    imageMode: section?.imageMode ?? true,
+    imageLayout: section?.imageLayout ?? "above",
+  };
+
+  const [values, setValues] = useState<HomepageSectionFormValues>(initialValues);
+  const valuesRef = useRef<HomepageSectionFormValues>(initialValues);
+
+  function setField<K extends keyof HomepageSectionFormValues>(key: K, value: HomepageSectionFormValues[K]): void {
+    const next = {
+      ...valuesRef.current,
+      [key]: value,
+    };
+    valuesRef.current = next;
+    setValues(next);
+    onChange?.(next);
+  }
 
   const {
     data: categories,
@@ -58,16 +72,14 @@ export function HomepageSectionForm({
     data: tagTree,
   } = useTagTree();
 
+  const isAutoSave = onChange !== undefined;
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    onSave({
-      title: title.trim(),
-      description: description.trim() || null,
-      conditions,
-      hideIfEmpty,
-      columns,
-      imageMode,
-      imageLayout,
+    onSave?.({
+      ...valuesRef.current,
+      title: valuesRef.current.title.trim(),
+      description: valuesRef.current.description?.trim() || null,
     });
   }
 
@@ -78,20 +90,20 @@ export function HomepageSectionForm({
     >
       <HomepageSectionFields
         idPrefix={`section-${section?.id ?? "new"}`}
-        title={title}
-        setTitle={setTitle}
-        description={description}
-        setDescription={setDescription}
-        columns={columns}
-        setColumns={setColumns}
-        imageMode={imageMode}
-        setImageMode={setImageMode}
-        imageLayout={imageLayout}
-        setImageLayout={setImageLayout}
-        hideIfEmpty={hideIfEmpty}
-        setHideIfEmpty={setHideIfEmpty}
-        conditions={conditions}
-        setConditions={setConditions}
+        title={values.title}
+        setTitle={v => setField("title", v)}
+        description={values.description ?? ""}
+        setDescription={v => setField("description", v)}
+        columns={values.columns}
+        setColumns={v => setField("columns", v)}
+        imageMode={values.imageMode}
+        setImageMode={v => setField("imageMode", v)}
+        imageLayout={values.imageLayout}
+        setImageLayout={v => setField("imageLayout", v)}
+        hideIfEmpty={values.hideIfEmpty}
+        setHideIfEmpty={v => setField("hideIfEmpty", v)}
+        conditions={values.conditions}
+        setConditions={v => setField("conditions", v)}
         displayDefaultOpen={!section}
         filterDefaultOpen={(section?.conditions.children.length ?? 0) > 0}
         categories={categories ?? []}
@@ -109,7 +121,7 @@ export function HomepageSectionForm({
           </p>
         </div>
         <PreviewBookmarksSection
-          conditions={conditions}
+          conditions={values.conditions}
           tagTree={tagTree ?? []}
         />
       </section>
@@ -117,20 +129,34 @@ export function HomepageSectionForm({
       <Separator />
 
       <div className="flex flex-wrap gap-2">
-        <Button
-          type="submit"
-          disabled={isPending || !title.trim()}
-        >
-          {isPending ? "Saving…" : "Save section"}
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onCancel}
-          disabled={isPending}
-        >
-          Cancel
-        </Button>
+        {isAutoSave
+          ? (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+            >
+              Done
+            </Button>
+          )
+          : (
+            <>
+              <Button
+                type="submit"
+                disabled={isPending || !values.title.trim()}
+              >
+                {isPending ? "Saving…" : "Save section"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onCancel}
+                disabled={isPending}
+              >
+                Cancel
+              </Button>
+            </>
+          )}
         {onDelete
           ? (
             <Button
