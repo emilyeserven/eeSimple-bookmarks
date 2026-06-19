@@ -6,6 +6,9 @@ import { bookmarksApi } from "../lib/api";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
+const MEDIA_TYPES_KEY = ["media-types"] as const;
+const WEBSITES_KEY = ["websites"] as const;
+const YOUTUBE_CHANNELS_KEY = ["youtube-channels"] as const;
 
 /** Bookmarks whose URL host equals `domain` — powers the bulk shortened-link expansion review. */
 export function useBookmarksOnHost(domain: string | null) {
@@ -21,9 +24,14 @@ export function useBulkExpandBookmarkUrls() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (items: BulkUrlUpdate[]) => bookmarksApi.bulkUrl(items),
-    onSuccess: () => queryClient.invalidateQueries({
-      queryKey: BOOKMARKS_KEY,
-    }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: BOOKMARKS_KEY,
+      });
+      void queryClient.invalidateQueries({
+        queryKey: WEBSITES_KEY,
+      });
+    },
   });
 }
 
@@ -47,9 +55,20 @@ export function useCreateBookmark() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: CreateBookmarkInput) => bookmarksApi.create(input),
-    onSuccess: () => queryClient.invalidateQueries({
-      queryKey: BOOKMARKS_KEY,
-    }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: BOOKMARKS_KEY,
+      });
+      void queryClient.invalidateQueries({
+        queryKey: MEDIA_TYPES_KEY,
+      });
+      void queryClient.invalidateQueries({
+        queryKey: WEBSITES_KEY,
+      });
+      void queryClient.invalidateQueries({
+        queryKey: YOUTUBE_CHANNELS_KEY,
+      });
+    },
   });
 }
 
@@ -60,9 +79,20 @@ export function useUpdateBookmark() {
       id, input,
     }: { id: string;
       input: UpdateBookmarkInput; }) => bookmarksApi.update(id, input),
-    onSuccess: () => queryClient.invalidateQueries({
-      queryKey: BOOKMARKS_KEY,
-    }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: BOOKMARKS_KEY,
+      });
+      void queryClient.invalidateQueries({
+        queryKey: MEDIA_TYPES_KEY,
+      });
+      void queryClient.invalidateQueries({
+        queryKey: WEBSITES_KEY,
+      });
+      void queryClient.invalidateQueries({
+        queryKey: YOUTUBE_CHANNELS_KEY,
+      });
+    },
   });
 }
 
@@ -73,6 +103,15 @@ export function useDeleteBookmark() {
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: BOOKMARKS_KEY,
+      });
+      void queryClient.invalidateQueries({
+        queryKey: MEDIA_TYPES_KEY,
+      });
+      void queryClient.invalidateQueries({
+        queryKey: WEBSITES_KEY,
+      });
+      void queryClient.invalidateQueries({
+        queryKey: YOUTUBE_CHANNELS_KEY,
       });
       notifySuccess("Bookmark deleted");
     },
