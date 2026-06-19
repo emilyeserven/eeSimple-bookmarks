@@ -4,8 +4,8 @@ import { Link } from "@tanstack/react-router";
 import { Globe, MoreVertical, Sparkles } from "lucide-react";
 
 import { CategoryPill } from "./CategoryPill";
-import { RowListItem } from "./RowListItem";
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
+import { RowListItem } from "./RowListItem";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -28,7 +28,10 @@ export function WebsiteListItem({
   const viewClick = useViewPanelClick();
   const modifier = useUiStore(state => state.sidebarOpenModifier);
   const autoFavicon = useAutoWebsiteFavicon();
-  const { showImage, onError } = useEntityImage(website.imageUrl);
+  const {
+    showImage,
+    onError,
+  } = useEntityImage(website.imageUrl);
 
   return (
     <RowListItem
@@ -54,14 +57,19 @@ export function WebsiteListItem({
       title={website.siteName}
       subtitle={website.domain}
       badge={website.bookmarkCount}
-      linkProps={{
-        to: "/taxonomies/websites/$websiteSlug",
-        params: {
-          websiteSlug: website.slug,
-        },
-        title: `Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`,
-        onClick: event => viewClick(event, "website", website.id),
-      }}
+      renderLink={(className, children) => (
+        <Link
+          to="/taxonomies/websites/$websiteSlug"
+          params={{
+            websiteSlug: website.slug,
+          }}
+          className={className}
+          title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+          onClick={event => viewClick(event, "website", website.id)}
+        >
+          {children}
+        </Link>
+      )}
       menu={(
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

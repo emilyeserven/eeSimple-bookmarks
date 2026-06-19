@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { ChevronDown, ChevronRight, Pencil } from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -124,8 +124,7 @@ function TaxonomyTreeRow({
       ? (
         <li
           className="
-            flex items-center gap-2 px-3 py-2 text-muted-foreground/70
-            italic
+            flex items-center gap-2 px-3 py-2 text-muted-foreground/70 italic
           "
           style={{
             paddingLeft: `${0.75 + indentDepth * 1.25}rem`,

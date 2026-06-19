@@ -5,8 +5,8 @@ import { Link } from "@tanstack/react-router";
 import { MonitorPlay, MoreVertical, Sparkles } from "lucide-react";
 
 import { CategoryPill } from "./CategoryPill";
-import { RowListItem } from "./RowListItem";
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
+import { RowListItem } from "./RowListItem";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -29,7 +29,10 @@ export function YouTubeChannelListItem({
   const viewClick = useViewPanelClick();
   const modifier = useUiStore(state => state.sidebarOpenModifier);
   const autoAvatar = useAutoYouTubeChannelImage();
-  const { showImage, onError } = useEntityImage(channel.imageUrl);
+  const {
+    showImage,
+    onError,
+  } = useEntityImage(channel.imageUrl);
 
   return (
     <RowListItem
@@ -55,14 +58,19 @@ export function YouTubeChannelListItem({
       title={channel.name}
       subtitle={channel.channelKey}
       badge={channel.bookmarkCount}
-      linkProps={{
-        to: "/taxonomies/youtube-channels/$channelSlug",
-        params: {
-          channelSlug: channel.slug,
-        },
-        title: `Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`,
-        onClick: event => viewClick(event, "youtube-channel", channel.id),
-      }}
+      renderLink={(className, children) => (
+        <Link
+          to="/taxonomies/youtube-channels/$channelSlug"
+          params={{
+            channelSlug: channel.slug,
+          }}
+          className={className}
+          title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+          onClick={event => viewClick(event, "youtube-channel", channel.id)}
+        >
+          {children}
+        </Link>
+      )}
       menu={(
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

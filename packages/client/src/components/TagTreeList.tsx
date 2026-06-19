@@ -3,8 +3,8 @@ import type { TagNode } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 import { Pencil } from "lucide-react";
 
-import { TaxonomyTreeList } from "./TaxonomyTreeRow";
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
+import { TaxonomyTreeList } from "./TaxonomyTreeRow";
 
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
 import { useUiStore } from "@/stores/uiStore";

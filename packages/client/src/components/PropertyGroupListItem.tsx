@@ -3,8 +3,8 @@ import type { PropertyGroup } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 import { Pencil } from "lucide-react";
 
-import { RowListItem } from "./RowListItem";
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
+import { RowListItem } from "./RowListItem";
 
 import { Button } from "@/components/ui/button";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
@@ -23,14 +23,19 @@ export function PropertyGroupListItem({
       title={group.name}
       subtitle={group.description || `Priority ${group.priority}`}
       badge={group.propertyCount}
-      linkProps={{
-        to: "/taxonomies/property-groups/$propertyGroupSlug",
-        params: {
-          propertyGroupSlug: group.slug,
-        },
-        title: `Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`,
-        onClick: event => viewClick(event, "property-group", group.id),
-      }}
+      renderLink={(className, children) => (
+        <Link
+          to="/taxonomies/property-groups/$propertyGroupSlug"
+          params={{
+            propertyGroupSlug: group.slug,
+          }}
+          className={className}
+          title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+          onClick={event => viewClick(event, "property-group", group.id)}
+        >
+          {children}
+        </Link>
+      )}
       menu={(
         <Button
           asChild
