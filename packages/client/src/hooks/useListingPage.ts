@@ -12,9 +12,7 @@ export function useSetListingPage(
 ) {
   const setListingPage = useUiStore(state => state.setListingPage);
 
-  // Keep a ref so the stable wrapper below always calls the latest version of createAction
-  // without adding it to the effect dependency array (avoids re-registering on every render
-  // when callers pass an inline arrow function).
+  // Ref so the stable wrapper always delegates to the latest createAction without re-registering.
   const createActionRef = useRef(createAction);
   createActionRef.current = createAction;
 
@@ -27,7 +25,5 @@ export function useSetListingPage(
       createAction: createAction != null ? () => createActionRef.current?.() : undefined,
     });
     return () => setListingPage(null);
-  // createAction is intentionally excluded — the ref handles updates.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, showsImages, hasFilters, showsCards, setListingPage]);
 }

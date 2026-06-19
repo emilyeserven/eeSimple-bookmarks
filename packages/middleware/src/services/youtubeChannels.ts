@@ -374,8 +374,14 @@ export async function createYouTubeChannel(input: CreateYouTubeChannelInput): Pr
   const slug = uniqueSlug(name, await takenSlugs());
   const [row] = await db
     .insert(youtubeChannels)
-    .values({ channelKey, name, slug })
-    .returning({ id: youtubeChannels.id });
+    .values({
+      channelKey,
+      name,
+      slug,
+    })
+    .returning({
+      id: youtubeChannels.id,
+    });
 
   return (await getYouTubeChannel(row.id))!;
 }

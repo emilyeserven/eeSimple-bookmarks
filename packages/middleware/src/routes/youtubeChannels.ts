@@ -71,8 +71,14 @@ const createChannelBody = {
   required: ["channelUrl", "name"],
   additionalProperties: false,
   properties: {
-    channelUrl: { type: "string", minLength: 1 },
-    name: { type: "string", minLength: 1 },
+    channelUrl: {
+      type: "string",
+      minLength: 1,
+    },
+    name: {
+      type: "string",
+      minLength: 1,
+    },
   },
 } as const;
 
@@ -96,10 +102,14 @@ export async function youtubeChannelRoutes(app: FastifyInstance): Promise<void> 
     }
     catch (err) {
       if (err instanceof InvalidChannelUrlError) {
-        return reply.code(400).send({ message: err.message });
+        return reply.code(400).send({
+          message: err.message,
+        });
       }
       if (err instanceof DuplicateChannelKeyError) {
-        return reply.code(409).send({ message: "A channel with this URL already exists" });
+        return reply.code(409).send({
+          message: "A channel with this URL already exists",
+        });
       }
       throw err;
     }

@@ -39,7 +39,9 @@ export function AddYouTubeChannelModal({
     validators: {
       onChange: schema,
     },
-    onSubmit: ({ value }) => {
+    onSubmit: ({
+      value,
+    }) => {
       createChannel.mutate(
         {
           channelUrl: value.channelUrl.trim(),

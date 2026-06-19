@@ -105,7 +105,9 @@ export function YouTubeChannelsListing() {
         onCreated={(channel) => {
           void navigate({
             to: "/taxonomies/youtube-channels/$channelSlug/edit/general",
-            params: { channelSlug: channel.slug },
+            params: {
+              channelSlug: channel.slug,
+            },
           });
         }}
       />

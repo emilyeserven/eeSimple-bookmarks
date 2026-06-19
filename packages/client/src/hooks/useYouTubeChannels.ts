@@ -32,7 +32,9 @@ export function useCreateYouTubeChannel() {
   return useMutation({
     mutationFn: (input: CreateYouTubeChannelInput) => youtubeChannelsApi.create(input),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: CHANNELS_KEY });
+      void queryClient.invalidateQueries({
+        queryKey: CHANNELS_KEY,
+      });
     },
   });
 }

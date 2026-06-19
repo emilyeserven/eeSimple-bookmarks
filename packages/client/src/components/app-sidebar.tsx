@@ -108,7 +108,7 @@ const customizationItems = [
   {
     key: "autofill",
     title: "Autofill Rules",
-    to: "/autofill/",
+    to: "/autofill",
     icon: Wand2,
   },
 ] as const;
