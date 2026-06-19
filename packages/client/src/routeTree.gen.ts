@@ -92,11 +92,13 @@ import { Route as TagsTagSlugViewHierarchyRouteImport } from './routes/tags.$tag
 import { Route as TagsTagSlugViewGeneralRouteImport } from './routes/tags.$tagSlug._view.general'
 import { Route as TagsTagSlugViewAutofillRouteImport } from './routes/tags.$tagSlug._view.autofill'
 import { Route as CustomPropertiesPropertySlugEditOptionsRouteImport } from './routes/custom-properties.$propertySlug.edit.options'
+import { Route as CustomPropertiesPropertySlugEditMediaTypesRouteImport } from './routes/custom-properties.$propertySlug.edit.media-types'
 import { Route as CustomPropertiesPropertySlugEditGeneralRouteImport } from './routes/custom-properties.$propertySlug.edit.general'
 import { Route as CustomPropertiesPropertySlugEditDisplayRouteImport } from './routes/custom-properties.$propertySlug.edit.display'
 import { Route as CustomPropertiesPropertySlugEditCategoriesRouteImport } from './routes/custom-properties.$propertySlug.edit.categories'
 import { Route as CustomPropertiesPropertySlugEditAutofillRouteImport } from './routes/custom-properties.$propertySlug.edit.autofill'
 import { Route as CustomPropertiesPropertySlugViewOptionsRouteImport } from './routes/custom-properties.$propertySlug._view.options'
+import { Route as CustomPropertiesPropertySlugViewMediaTypesRouteImport } from './routes/custom-properties.$propertySlug._view.media-types'
 import { Route as CustomPropertiesPropertySlugViewGeneralRouteImport } from './routes/custom-properties.$propertySlug._view.general'
 import { Route as CustomPropertiesPropertySlugViewDisplayRouteImport } from './routes/custom-properties.$propertySlug._view.display'
 import { Route as CustomPropertiesPropertySlugViewCategoriesRouteImport } from './routes/custom-properties.$propertySlug._view.categories'
@@ -587,6 +589,12 @@ const CustomPropertiesPropertySlugEditOptionsRoute =
     path: '/options',
     getParentRoute: () => CustomPropertiesPropertySlugEditRoute,
   } as any)
+const CustomPropertiesPropertySlugEditMediaTypesRoute =
+  CustomPropertiesPropertySlugEditMediaTypesRouteImport.update({
+    id: '/media-types',
+    path: '/media-types',
+    getParentRoute: () => CustomPropertiesPropertySlugEditRoute,
+  } as any)
 const CustomPropertiesPropertySlugEditGeneralRoute =
   CustomPropertiesPropertySlugEditGeneralRouteImport.update({
     id: '/general',
@@ -615,6 +623,12 @@ const CustomPropertiesPropertySlugViewOptionsRoute =
   CustomPropertiesPropertySlugViewOptionsRouteImport.update({
     id: '/options',
     path: '/options',
+    getParentRoute: () => CustomPropertiesPropertySlugViewRoute,
+  } as any)
+const CustomPropertiesPropertySlugViewMediaTypesRoute =
+  CustomPropertiesPropertySlugViewMediaTypesRouteImport.update({
+    id: '/media-types',
+    path: '/media-types',
     getParentRoute: () => CustomPropertiesPropertySlugViewRoute,
   } as any)
 const CustomPropertiesPropertySlugViewGeneralRoute =
@@ -968,11 +982,13 @@ export interface FileRoutesByFullPath {
   '/custom-properties/$propertySlug/categories': typeof CustomPropertiesPropertySlugViewCategoriesRoute
   '/custom-properties/$propertySlug/display': typeof CustomPropertiesPropertySlugViewDisplayRoute
   '/custom-properties/$propertySlug/general': typeof CustomPropertiesPropertySlugViewGeneralRoute
+  '/custom-properties/$propertySlug/media-types': typeof CustomPropertiesPropertySlugViewMediaTypesRoute
   '/custom-properties/$propertySlug/options': typeof CustomPropertiesPropertySlugViewOptionsRoute
   '/custom-properties/$propertySlug/edit/autofill': typeof CustomPropertiesPropertySlugEditAutofillRoute
   '/custom-properties/$propertySlug/edit/categories': typeof CustomPropertiesPropertySlugEditCategoriesRoute
   '/custom-properties/$propertySlug/edit/display': typeof CustomPropertiesPropertySlugEditDisplayRoute
   '/custom-properties/$propertySlug/edit/general': typeof CustomPropertiesPropertySlugEditGeneralRoute
+  '/custom-properties/$propertySlug/edit/media-types': typeof CustomPropertiesPropertySlugEditMediaTypesRoute
   '/custom-properties/$propertySlug/edit/options': typeof CustomPropertiesPropertySlugEditOptionsRoute
   '/tags/$tagSlug/autofill': typeof TagsTagSlugViewAutofillRoute
   '/tags/$tagSlug/general': typeof TagsTagSlugViewGeneralRoute
@@ -1071,11 +1087,13 @@ export interface FileRoutesByTo {
   '/custom-properties/$propertySlug/categories': typeof CustomPropertiesPropertySlugViewCategoriesRoute
   '/custom-properties/$propertySlug/display': typeof CustomPropertiesPropertySlugViewDisplayRoute
   '/custom-properties/$propertySlug/general': typeof CustomPropertiesPropertySlugViewGeneralRoute
+  '/custom-properties/$propertySlug/media-types': typeof CustomPropertiesPropertySlugViewMediaTypesRoute
   '/custom-properties/$propertySlug/options': typeof CustomPropertiesPropertySlugViewOptionsRoute
   '/custom-properties/$propertySlug/edit/autofill': typeof CustomPropertiesPropertySlugEditAutofillRoute
   '/custom-properties/$propertySlug/edit/categories': typeof CustomPropertiesPropertySlugEditCategoriesRoute
   '/custom-properties/$propertySlug/edit/display': typeof CustomPropertiesPropertySlugEditDisplayRoute
   '/custom-properties/$propertySlug/edit/general': typeof CustomPropertiesPropertySlugEditGeneralRoute
+  '/custom-properties/$propertySlug/edit/media-types': typeof CustomPropertiesPropertySlugEditMediaTypesRoute
   '/custom-properties/$propertySlug/edit/options': typeof CustomPropertiesPropertySlugEditOptionsRoute
   '/tags/$tagSlug/autofill': typeof TagsTagSlugViewAutofillRoute
   '/tags/$tagSlug/general': typeof TagsTagSlugViewGeneralRoute
@@ -1199,11 +1217,13 @@ export interface FileRoutesById {
   '/custom-properties/$propertySlug/_view/categories': typeof CustomPropertiesPropertySlugViewCategoriesRoute
   '/custom-properties/$propertySlug/_view/display': typeof CustomPropertiesPropertySlugViewDisplayRoute
   '/custom-properties/$propertySlug/_view/general': typeof CustomPropertiesPropertySlugViewGeneralRoute
+  '/custom-properties/$propertySlug/_view/media-types': typeof CustomPropertiesPropertySlugViewMediaTypesRoute
   '/custom-properties/$propertySlug/_view/options': typeof CustomPropertiesPropertySlugViewOptionsRoute
   '/custom-properties/$propertySlug/edit/autofill': typeof CustomPropertiesPropertySlugEditAutofillRoute
   '/custom-properties/$propertySlug/edit/categories': typeof CustomPropertiesPropertySlugEditCategoriesRoute
   '/custom-properties/$propertySlug/edit/display': typeof CustomPropertiesPropertySlugEditDisplayRoute
   '/custom-properties/$propertySlug/edit/general': typeof CustomPropertiesPropertySlugEditGeneralRoute
+  '/custom-properties/$propertySlug/edit/media-types': typeof CustomPropertiesPropertySlugEditMediaTypesRoute
   '/custom-properties/$propertySlug/edit/options': typeof CustomPropertiesPropertySlugEditOptionsRoute
   '/tags/$tagSlug/_view/autofill': typeof TagsTagSlugViewAutofillRoute
   '/tags/$tagSlug/_view/general': typeof TagsTagSlugViewGeneralRoute
@@ -1332,11 +1352,13 @@ export interface FileRouteTypes {
     | '/custom-properties/$propertySlug/categories'
     | '/custom-properties/$propertySlug/display'
     | '/custom-properties/$propertySlug/general'
+    | '/custom-properties/$propertySlug/media-types'
     | '/custom-properties/$propertySlug/options'
     | '/custom-properties/$propertySlug/edit/autofill'
     | '/custom-properties/$propertySlug/edit/categories'
     | '/custom-properties/$propertySlug/edit/display'
     | '/custom-properties/$propertySlug/edit/general'
+    | '/custom-properties/$propertySlug/edit/media-types'
     | '/custom-properties/$propertySlug/edit/options'
     | '/tags/$tagSlug/autofill'
     | '/tags/$tagSlug/general'
@@ -1435,11 +1457,13 @@ export interface FileRouteTypes {
     | '/custom-properties/$propertySlug/categories'
     | '/custom-properties/$propertySlug/display'
     | '/custom-properties/$propertySlug/general'
+    | '/custom-properties/$propertySlug/media-types'
     | '/custom-properties/$propertySlug/options'
     | '/custom-properties/$propertySlug/edit/autofill'
     | '/custom-properties/$propertySlug/edit/categories'
     | '/custom-properties/$propertySlug/edit/display'
     | '/custom-properties/$propertySlug/edit/general'
+    | '/custom-properties/$propertySlug/edit/media-types'
     | '/custom-properties/$propertySlug/edit/options'
     | '/tags/$tagSlug/autofill'
     | '/tags/$tagSlug/general'
@@ -1562,11 +1586,13 @@ export interface FileRouteTypes {
     | '/custom-properties/$propertySlug/_view/categories'
     | '/custom-properties/$propertySlug/_view/display'
     | '/custom-properties/$propertySlug/_view/general'
+    | '/custom-properties/$propertySlug/_view/media-types'
     | '/custom-properties/$propertySlug/_view/options'
     | '/custom-properties/$propertySlug/edit/autofill'
     | '/custom-properties/$propertySlug/edit/categories'
     | '/custom-properties/$propertySlug/edit/display'
     | '/custom-properties/$propertySlug/edit/general'
+    | '/custom-properties/$propertySlug/edit/media-types'
     | '/custom-properties/$propertySlug/edit/options'
     | '/tags/$tagSlug/_view/autofill'
     | '/tags/$tagSlug/_view/general'
@@ -2211,6 +2237,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CustomPropertiesPropertySlugEditOptionsRouteImport
       parentRoute: typeof CustomPropertiesPropertySlugEditRoute
     }
+    '/custom-properties/$propertySlug/edit/media-types': {
+      id: '/custom-properties/$propertySlug/edit/media-types'
+      path: '/media-types'
+      fullPath: '/custom-properties/$propertySlug/edit/media-types'
+      preLoaderRoute: typeof CustomPropertiesPropertySlugEditMediaTypesRouteImport
+      parentRoute: typeof CustomPropertiesPropertySlugEditRoute
+    }
     '/custom-properties/$propertySlug/edit/general': {
       id: '/custom-properties/$propertySlug/edit/general'
       path: '/general'
@@ -2244,6 +2277,13 @@ declare module '@tanstack/react-router' {
       path: '/options'
       fullPath: '/custom-properties/$propertySlug/options'
       preLoaderRoute: typeof CustomPropertiesPropertySlugViewOptionsRouteImport
+      parentRoute: typeof CustomPropertiesPropertySlugViewRoute
+    }
+    '/custom-properties/$propertySlug/_view/media-types': {
+      id: '/custom-properties/$propertySlug/_view/media-types'
+      path: '/media-types'
+      fullPath: '/custom-properties/$propertySlug/media-types'
+      preLoaderRoute: typeof CustomPropertiesPropertySlugViewMediaTypesRouteImport
       parentRoute: typeof CustomPropertiesPropertySlugViewRoute
     }
     '/custom-properties/$propertySlug/_view/general': {
@@ -2768,6 +2808,7 @@ interface CustomPropertiesPropertySlugViewRouteChildren {
   CustomPropertiesPropertySlugViewCategoriesRoute: typeof CustomPropertiesPropertySlugViewCategoriesRoute
   CustomPropertiesPropertySlugViewDisplayRoute: typeof CustomPropertiesPropertySlugViewDisplayRoute
   CustomPropertiesPropertySlugViewGeneralRoute: typeof CustomPropertiesPropertySlugViewGeneralRoute
+  CustomPropertiesPropertySlugViewMediaTypesRoute: typeof CustomPropertiesPropertySlugViewMediaTypesRoute
   CustomPropertiesPropertySlugViewOptionsRoute: typeof CustomPropertiesPropertySlugViewOptionsRoute
 }
 
@@ -2781,6 +2822,8 @@ const CustomPropertiesPropertySlugViewRouteChildren: CustomPropertiesPropertySlu
       CustomPropertiesPropertySlugViewDisplayRoute,
     CustomPropertiesPropertySlugViewGeneralRoute:
       CustomPropertiesPropertySlugViewGeneralRoute,
+    CustomPropertiesPropertySlugViewMediaTypesRoute:
+      CustomPropertiesPropertySlugViewMediaTypesRoute,
     CustomPropertiesPropertySlugViewOptionsRoute:
       CustomPropertiesPropertySlugViewOptionsRoute,
   }
@@ -2795,6 +2838,7 @@ interface CustomPropertiesPropertySlugEditRouteChildren {
   CustomPropertiesPropertySlugEditCategoriesRoute: typeof CustomPropertiesPropertySlugEditCategoriesRoute
   CustomPropertiesPropertySlugEditDisplayRoute: typeof CustomPropertiesPropertySlugEditDisplayRoute
   CustomPropertiesPropertySlugEditGeneralRoute: typeof CustomPropertiesPropertySlugEditGeneralRoute
+  CustomPropertiesPropertySlugEditMediaTypesRoute: typeof CustomPropertiesPropertySlugEditMediaTypesRoute
   CustomPropertiesPropertySlugEditOptionsRoute: typeof CustomPropertiesPropertySlugEditOptionsRoute
   CustomPropertiesPropertySlugEditIndexRoute: typeof CustomPropertiesPropertySlugEditIndexRoute
 }
@@ -2809,6 +2853,8 @@ const CustomPropertiesPropertySlugEditRouteChildren: CustomPropertiesPropertySlu
       CustomPropertiesPropertySlugEditDisplayRoute,
     CustomPropertiesPropertySlugEditGeneralRoute:
       CustomPropertiesPropertySlugEditGeneralRoute,
+    CustomPropertiesPropertySlugEditMediaTypesRoute:
+      CustomPropertiesPropertySlugEditMediaTypesRoute,
     CustomPropertiesPropertySlugEditOptionsRoute:
       CustomPropertiesPropertySlugEditOptionsRoute,
     CustomPropertiesPropertySlugEditIndexRoute:

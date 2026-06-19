@@ -10,6 +10,7 @@ import {
   customProperties,
   type CustomPropertyRow,
   propertyCategories,
+  propertyMediaTypes,
 } from "@/db/schema";
 import { slugify, uniqueSlug } from "@/utils/slug";
 
@@ -41,6 +42,7 @@ type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 function toCustomProperty(
   row: CustomPropertyRow,
   categoryIds: string[],
+  mediaTypeIds: string[],
   operandPropertyIds: string[],
 ): CustomProperty {
   return {
@@ -63,6 +65,8 @@ function toCustomProperty(
     operandPropertyIds,
     categoryIds,
     allCategories: row.allCategories,
+    mediaTypeIds,
+    allMediaTypes: row.allMediaTypes,
     editableOnCard: row.editableOnCard,
     showInForm: row.showInForm,
     hiddenFromForm: row.hiddenFromForm,
@@ -114,6 +118,27 @@ async function categoryIdsByPropertyId(propertyIds: string[]): Promise<Map<strin
   return grouped;
 }
 
+/** Load media type ids for a set of property ids in a single query, grouped by property id. */
+async function mediaTypeIdsByPropertyId(propertyIds: string[]): Promise<Map<string, string[]>> {
+  const grouped = new Map<string, string[]>();
+  if (propertyIds.length === 0) return grouped;
+
+  const rows = await db
+    .select({
+      propertyId: propertyMediaTypes.propertyId,
+      mediaTypeId: propertyMediaTypes.mediaTypeId,
+    })
+    .from(propertyMediaTypes)
+    .where(inArray(propertyMediaTypes.propertyId, propertyIds));
+
+  for (const row of rows) {
+    const list = grouped.get(row.propertyId) ?? [];
+    list.push(row.mediaTypeId);
+    grouped.set(row.propertyId, list);
+  }
+  return grouped;
+}
+
 /** Load calculate-operand ids for a set of property ids, grouped by the calculate property id. */
 async function operandIdsByPropertyId(propertyIds: string[]): Promise<Map<string, string[]>> {
   const grouped = new Map<string, string[]>();
@@ -138,22 +163,34 @@ async function operandIdsByPropertyId(propertyIds: string[]): Promise<Map<string
 export async function listCustomProperties(): Promise<CustomProperty[]> {
   const rows = await db.select().from(customProperties).orderBy(asc(customProperties.name));
   const ids = rows.map(row => row.id);
-  const [categoryMap, operandMap] = await Promise.all([
+  const [categoryMap, mediaTypeMap, operandMap] = await Promise.all([
     categoryIdsByPropertyId(ids),
+    mediaTypeIdsByPropertyId(ids),
     operandIdsByPropertyId(ids),
   ]);
   return rows.map(row =>
-    toCustomProperty(row, categoryMap.get(row.id) ?? [], operandMap.get(row.id) ?? []));
+    toCustomProperty(
+      row,
+      categoryMap.get(row.id) ?? [],
+      mediaTypeMap.get(row.id) ?? [],
+      operandMap.get(row.id) ?? [],
+    ));
 }
 
 export async function getCustomProperty(id: string): Promise<CustomProperty | null> {
   const [row] = await db.select().from(customProperties).where(eq(customProperties.id, id));
   if (!row) return null;
-  const [categoryMap, operandMap] = await Promise.all([
+  const [categoryMap, mediaTypeMap, operandMap] = await Promise.all([
     categoryIdsByPropertyId([row.id]),
+    mediaTypeIdsByPropertyId([row.id]),
     operandIdsByPropertyId([row.id]),
   ]);
-  return toCustomProperty(row, categoryMap.get(row.id) ?? [], operandMap.get(row.id) ?? []);
+  return toCustomProperty(
+    row,
+    categoryMap.get(row.id) ?? [],
+    mediaTypeMap.get(row.id) ?? [],
+    operandMap.get(row.id) ?? [],
+  );
 }
 
 /** Replace a property's category links with the given set (no-op delete then insert). */
@@ -167,6 +204,20 @@ async function setPropertyCategories(
   await tx.insert(propertyCategories).values(categoryIds.map(categoryId => ({
     propertyId,
     categoryId,
+  })));
+}
+
+/** Replace a property's media-type links with the given set (no-op delete then insert). */
+async function setPropertyMediaTypes(
+  tx: Tx,
+  propertyId: string,
+  mediaTypeIds: string[],
+): Promise<void> {
+  await tx.delete(propertyMediaTypes).where(eq(propertyMediaTypes.propertyId, propertyId));
+  if (mediaTypeIds.length === 0) return;
+  await tx.insert(propertyMediaTypes).values(mediaTypeIds.map(mediaTypeId => ({
+    propertyId,
+    mediaTypeId,
   })));
 }
 
@@ -229,6 +280,7 @@ export async function createCustomProperty(
         hiddenFromForm: input.hiddenFromForm ?? false,
         showInListings: input.showInListings ?? true,
         allCategories: input.allCategories ?? false,
+        allMediaTypes: input.allMediaTypes ?? false,
         editableOnCard: input.editableOnCard ?? false,
         enabled: input.enabled ?? true,
         allowDefault: input.allowDefault ?? true,
@@ -246,6 +298,9 @@ export async function createCustomProperty(
     }
     if (input.categoryIds && input.categoryIds.length > 0) {
       await setPropertyCategories(tx, row.id, input.categoryIds);
+    }
+    if (input.mediaTypeIds && input.mediaTypeIds.length > 0) {
+      await setPropertyMediaTypes(tx, row.id, input.mediaTypeIds);
     }
     return row.id;
   });
@@ -272,6 +327,7 @@ type UpdatePatch = Partial<
     | "hiddenFromForm"
     | "showInListings"
     | "allCategories"
+    | "allMediaTypes"
     | "editableOnCard"
     | "enabled"
     | "allowDefault"
@@ -303,6 +359,7 @@ function buildUpdatePatch(input: UpdateCustomPropertyInput, renamedSlug: string 
   if (input.hiddenFromForm !== undefined) patch.hiddenFromForm = input.hiddenFromForm;
   if (input.showInListings !== undefined) patch.showInListings = input.showInListings;
   if (input.allCategories !== undefined) patch.allCategories = input.allCategories;
+  if (input.allMediaTypes !== undefined) patch.allMediaTypes = input.allMediaTypes;
   if (input.editableOnCard !== undefined) patch.editableOnCard = input.editableOnCard;
   if (input.enabled !== undefined) patch.enabled = input.enabled;
   if (input.allowDefault !== undefined) patch.allowDefault = input.allowDefault;
@@ -361,6 +418,9 @@ export async function updateCustomProperty(
     }
     if (input.categoryIds !== undefined) {
       await setPropertyCategories(tx, id, input.categoryIds);
+    }
+    if (input.mediaTypeIds !== undefined) {
+      await setPropertyMediaTypes(tx, id, input.mediaTypeIds);
     }
     return true;
   });

@@ -218,6 +218,17 @@ const migrations: RuntimeMigration[] = [
         ADD COLUMN IF NOT EXISTS "allow_default" boolean NOT NULL DEFAULT true
     `),
   },
+  {
+    // `custom_properties.all_media_types` is NOT NULL DEFAULT false. Adding a NOT NULL column to the
+    // populated table makes drizzle-kit push prompt — the same non-TTY crash as the cases above —
+    // so pre-apply it here to keep push's diff additive-only. (The `property_media_types` join table
+    // and the nullable `media_types.parent_id` column are both push-safe additive and need no step.)
+    name: "add custom_properties.all_media_types column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "custom_properties"
+        ADD COLUMN IF NOT EXISTS "all_media_types" boolean NOT NULL DEFAULT false
+    `),
+  },
 ];
 
 async function main(): Promise<void> {

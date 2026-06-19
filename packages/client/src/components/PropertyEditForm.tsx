@@ -6,6 +6,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { PropertyForm } from "./PropertyForm";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties, useUpdateCustomProperty } from "../hooks/useCustomProperties";
+import { useMediaTypes } from "../hooks/useMediaTypes";
 import { usePropertyGroups } from "../hooks/usePropertyGroups";
 
 interface PropertyEditFormProps {
@@ -27,6 +28,9 @@ export function PropertyEditForm({
     data: categories,
   } = useCategories();
   const {
+    data: mediaTypes,
+  } = useMediaTypes();
+  const {
     data: properties,
   } = useCustomProperties();
   const {
@@ -45,6 +49,7 @@ export function PropertyEditForm({
       section={section}
       property={property}
       categories={categories ?? []}
+      mediaTypes={mediaTypes ?? []}
       numberProperties={numberProperties}
       propertyGroups={propertyGroups ?? []}
       onSubmit={({

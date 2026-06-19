@@ -317,7 +317,12 @@ export function BookmarkForm({
     }) => {
       const {
         numberValues, booleanValues, dateTimeValues,
-      } = buildCategoryPropertyValues(customProperties ?? [], value.categoryId, customRef.current);
+      } = buildCategoryPropertyValues(
+        customProperties ?? [],
+        value.categoryId,
+        customRef.current,
+        bookmark?.mediaType?.id ?? null,
+      );
 
       // Resolve the URL to save plus the original it was cleaned from (see resolveSubmitUrl).
       const {
@@ -709,6 +714,7 @@ export function BookmarkForm({
           }}
           tagTree={tagTree ?? []}
           customProperties={customProperties ?? []}
+          mediaTypeId={bookmark?.mediaType?.id ?? null}
           onTagToggle={() => {
             touchedRef.current.add("tags");
           }}

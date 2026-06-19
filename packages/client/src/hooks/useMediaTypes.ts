@@ -14,6 +14,14 @@ export function useMediaTypes() {
   });
 }
 
+/** The media-type taxonomy as a nested tree (roots first). */
+export function useMediaTypeTree() {
+  return useQuery({
+    queryKey: [...MEDIA_TYPES_KEY, "tree"],
+    queryFn: mediaTypesApi.tree,
+  });
+}
+
 /** Look up a single media type by its slug from the cached list. */
 export function useMediaTypeBySlug(slug: string) {
   const query = useMediaTypes();

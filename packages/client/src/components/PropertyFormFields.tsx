@@ -1,6 +1,7 @@
 import type {
   Category,
   CustomProperty,
+  MediaType,
 } from "@eesimple/types";
 
 import { Checkbox } from "@/components/ui/checkbox";
@@ -82,6 +83,85 @@ export function CategoryCheckboxList({
                 />
                 {category.name}
               </Label>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+interface MediaTypeCheckboxListProps {
+  mediaTypes: MediaType[];
+  selectedIds: string[];
+  onToggle: (id: string) => void;
+  idPrefix: string;
+  /** When set, render a leading "Select all" checkbox that selects every / no media type. */
+  onToggleAll?: (selectAll: boolean) => void;
+  /** When true, the property applies to all (incl. future) media types; "Select all" stays checked. */
+  allMediaTypes?: boolean;
+}
+
+/** A checkbox list for assigning a property to zero, one, or many media types (children indented). */
+export function MediaTypeCheckboxList({
+  mediaTypes,
+  selectedIds,
+  onToggle,
+  idPrefix,
+  onToggleAll,
+  allMediaTypes = false,
+}: MediaTypeCheckboxListProps) {
+  if (mediaTypes.length === 0) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        No media types yet. Create some on the Media Types page.
+      </p>
+    );
+  }
+  const allSelected = allMediaTypes || mediaTypes.every(mt => selectedIds.includes(mt.id));
+  return (
+    <div className="space-y-2">
+      {onToggleAll
+        ? (
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id={`${idPrefix}-select-all`}
+              checked={allSelected}
+              onCheckedChange={() => onToggleAll(!allSelected)}
+            />
+            <Label
+              htmlFor={`${idPrefix}-select-all`}
+              className="text-xs text-muted-foreground"
+            >
+              Select all
+            </Label>
+          </div>
+        )
+        : null}
+      <div
+        className="
+          grid gap-2
+          sm:grid-cols-2
+        "
+      >
+        {mediaTypes.map((mt) => {
+          const inputId = `${idPrefix}-${mt.id}`;
+          return (
+            <div
+              key={mt.id}
+              className="flex items-center gap-2"
+              style={mt.parentId
+                ? {
+                  paddingLeft: "1rem",
+                }
+                : undefined}
+            >
+              <Checkbox
+                id={inputId}
+                checked={allMediaTypes || selectedIds.includes(mt.id)}
+                onCheckedChange={() => onToggle(mt.id)}
+              />
+              <Label htmlFor={inputId}>{mt.name}</Label>
             </div>
           );
         })}

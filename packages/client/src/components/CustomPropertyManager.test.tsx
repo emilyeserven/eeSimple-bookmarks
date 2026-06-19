@@ -33,6 +33,8 @@ const property: CustomProperty = {
   operandPropertyIds: [],
   categoryIds: ["cat-1"],
   allCategories: false,
+  mediaTypeIds: [],
+  allMediaTypes: false,
   editableOnCard: false,
   showInForm: true,
   hiddenFromForm: false,

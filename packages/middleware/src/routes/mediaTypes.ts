@@ -5,7 +5,9 @@ import {
   createMediaType,
   deleteMediaType,
   DuplicateMediaTypeError,
+  getMediaTypeTree,
   listMediaTypes,
+  MediaTypeNestingError,
   updateMediaType,
 } from "@/services/mediaTypes";
 
@@ -36,6 +38,11 @@ const createMediaTypeBody = {
       type: "string",
       nullable: true,
     },
+    parentId: {
+      type: "string",
+      format: "uuid",
+      nullable: true,
+    },
   },
 } as const;
 
@@ -54,6 +61,11 @@ const updateMediaTypeBody = {
       type: "string",
       nullable: true,
     },
+    parentId: {
+      type: "string",
+      format: "uuid",
+      nullable: true,
+    },
   },
 } as const;
 
@@ -64,6 +76,12 @@ export async function mediaTypeRoutes(app: FastifyInstance): Promise<void> {
       tags: ["media-types"],
     },
   }, async () => listMediaTypes());
+
+  app.get("/api/media-types/tree", {
+    schema: {
+      tags: ["media-types"],
+    },
+  }, async () => getMediaTypeTree());
 
   app.post("/api/media-types", {
     schema: {
@@ -78,6 +96,11 @@ export async function mediaTypeRoutes(app: FastifyInstance): Promise<void> {
     catch (err) {
       if (err instanceof DuplicateMediaTypeError) {
         return reply.code(409).send({
+          message: err.message,
+        });
+      }
+      if (err instanceof MediaTypeNestingError) {
+        return reply.code(400).send({
           message: err.message,
         });
       }
@@ -110,6 +133,11 @@ export async function mediaTypeRoutes(app: FastifyInstance): Promise<void> {
       }
       if (err instanceof BuiltInMediaTypeError) {
         return reply.code(403).send({
+          message: err.message,
+        });
+      }
+      if (err instanceof MediaTypeNestingError) {
+        return reply.code(400).send({
           message: err.message,
         });
       }

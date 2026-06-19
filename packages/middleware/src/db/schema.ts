@@ -165,6 +165,11 @@ export const mediaTypes = pgTable("media_types", {
   sortOrder: integer("sort_order").notNull().default(0),
   // Optional Lucide icon name shown in the MediaTypePill on bookmark cards.
   icon: text("icon"),
+  // Parent media type for one level of nesting (e.g. Audio > Podcast). NULL means a root type.
+  // Nullable, so it is a push-safe additive column. Cascade so deleting a parent removes its children.
+  parentId: uuid("parent_id").references((): AnyPgColumn => mediaTypes.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
@@ -385,9 +390,17 @@ export const bookmarksRelations = relations(bookmarks, ({
 }));
 
 export const mediaTypesRelations = relations(mediaTypes, ({
-  many,
+  one, many,
 }) => ({
   bookmarks: many(bookmarks),
+  parent: one(mediaTypes, {
+    fields: [mediaTypes.parentId],
+    references: [mediaTypes.id],
+    relationName: "media_type_parent",
+  }),
+  children: many(mediaTypes, {
+    relationName: "media_type_parent",
+  }),
 }));
 
 export const youtubeChannelsRelations = relations(youtubeChannels, ({
@@ -498,6 +511,9 @@ export const customProperties = pgTable("custom_properties", {
   showInListings: boolean("show_in_listings").notNull().default(true),
   // When true, the property applies to every category, including ones created later.
   allCategories: boolean("all_categories").notNull().default(false),
+  // When true, the property applies to every media type, including ones created later.
+  // NOT NULL on the populated `custom_properties` table → pre-applied in migrate.ts to keep push additive.
+  allMediaTypes: boolean("all_media_types").notNull().default(false),
   // When true, the property's value can be edited inline from a bookmark card's "More" menu.
   editableOnCard: boolean("editable_on_card").notNull().default(false),
   // When false, the property is globally inactive: hidden from filters, conditions, category
@@ -706,6 +722,20 @@ export const propertyCategories = pgTable("property_categories", {
   }),
 ]);
 
+/** `property_media_types` join — many-to-many between custom properties and media types. */
+export const propertyMediaTypes = pgTable("property_media_types", {
+  propertyId: uuid("property_id").notNull().references(() => customProperties.id, {
+    onDelete: "cascade",
+  }),
+  mediaTypeId: uuid("media_type_id").notNull().references(() => mediaTypes.id, {
+    onDelete: "cascade",
+  }),
+}, table => [
+  primaryKey({
+    columns: [table.propertyId, table.mediaTypeId],
+  }),
+]);
+
 /**
  * `autofill_rules` — user-defined rules that prefill the Add-Bookmark form. A rule matches a
  * bookmark against its `conditions` tree, then applies a category, tags, and custom-property
@@ -871,6 +901,7 @@ export const customPropertiesRelations = relations(customProperties, ({
   numberValues: many(bookmarkNumberValues),
   booleanValues: many(bookmarkBooleanValues),
   propertyCategories: many(propertyCategories),
+  propertyMediaTypes: many(propertyMediaTypes),
 }));
 
 export const categoriesRelations = relations(categories, ({
@@ -893,6 +924,19 @@ export const propertyCategoriesRelations = relations(propertyCategories, ({
   category: one(categories, {
     fields: [propertyCategories.categoryId],
     references: [categories.id],
+  }),
+}));
+
+export const propertyMediaTypesRelations = relations(propertyMediaTypes, ({
+  one,
+}) => ({
+  property: one(customProperties, {
+    fields: [propertyMediaTypes.propertyId],
+    references: [customProperties.id],
+  }),
+  mediaType: one(mediaTypes, {
+    fields: [propertyMediaTypes.mediaTypeId],
+    references: [mediaTypes.id],
   }),
 }));
 
@@ -1023,6 +1067,7 @@ export type CalculatePropertyOperandRow = typeof calculatePropertyOperands.$infe
 export type CategoryRow = typeof categories.$inferSelect;
 export type NewCategoryRow = typeof categories.$inferInsert;
 export type PropertyCategoryRow = typeof propertyCategories.$inferSelect;
+export type PropertyMediaTypeRow = typeof propertyMediaTypes.$inferSelect;
 export type CategoryRootTagRow = typeof categoryRootTags.$inferSelect;
 export type WebsiteTagRow = typeof websiteTags.$inferSelect;
 export type YouTubeChannelTagRow = typeof youtubeChannelTags.$inferSelect;

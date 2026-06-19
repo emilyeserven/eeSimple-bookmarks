@@ -35,6 +35,7 @@ import type {
   HomepageSection,
   HomepageSectionBookmarks,
   MediaType,
+  MediaTypeNode,
   PropertyGroup,
   Tag,
   TagNode,
@@ -255,7 +256,10 @@ export const appSettingsApi = {
     }),
 };
 
-export const mediaTypesApi = createCrudApi<MediaType, CreateMediaTypeInput, UpdateMediaTypeInput>("media-types");
+export const mediaTypesApi = {
+  ...createCrudApi<MediaType, CreateMediaTypeInput, UpdateMediaTypeInput>("media-types"),
+  tree: () => request<MediaTypeNode[]>("/media-types/tree"),
+};
 
 export const propertyGroupsApi = createCrudApi<PropertyGroup, CreatePropertyGroupInput, UpdatePropertyGroupInput>("property-groups");
 

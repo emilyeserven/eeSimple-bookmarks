@@ -65,6 +65,8 @@ export const WithUnassignedProperty: Story = {
         hiddenFromForm: false,
         showInListings: true,
         allCategories: false,
+        mediaTypeIds: [],
+        allMediaTypes: false,
         editableOnCard: false,
         enabled: true,
         allowDefault: true,

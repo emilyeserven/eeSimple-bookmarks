@@ -31,6 +31,8 @@ interface BookmarkAdvancedSectionProps {
   lockedCategoryId?: string;
   categories: Category[];
   customProperties: CustomProperty[];
+  /** The bookmark's media type (when editing); properties scoped to it also appear (union). */
+  mediaTypeId?: string | null;
   addCategoryOpen: boolean;
   onAddCategoryOpenChange: (open: boolean) => void;
   /** Remount key for the image field so a form reset clears it. */
@@ -67,6 +69,7 @@ export function BookmarkAdvancedSection({
   lockedCategoryId,
   categories,
   customProperties,
+  mediaTypeId = null,
   addCategoryOpen,
   onAddCategoryOpenChange,
   imageFieldKey,
@@ -240,6 +243,7 @@ export function BookmarkAdvancedSection({
               <CategoryCustomFields
                 placement="advanced"
                 categoryId={categoryId}
+                mediaTypeId={mediaTypeId}
                 properties={customProperties}
                 numberInputs={numberInputs}
                 booleanInputs={booleanInputs}

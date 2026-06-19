@@ -1,5 +1,10 @@
-import { asc, eq, isNull, ne, sql } from "drizzle-orm";
-import type { CreateMediaTypeInput, MediaType, UpdateMediaTypeInput } from "@eesimple/types";
+import { asc, eq, isNotNull, isNull, ne } from "drizzle-orm";
+import type {
+  CreateMediaTypeInput,
+  MediaType,
+  MediaTypeNode,
+  UpdateMediaTypeInput,
+} from "@eesimple/types";
 import { db } from "@/db";
 import { bookmarks, mediaTypes, type MediaTypeRow } from "@/db/schema";
 import { slugify, uniqueSlug } from "@/utils/slug";
@@ -20,11 +25,63 @@ export class BuiltInMediaTypeError extends Error {
   }
 }
 
-/** The seeded built-in vocabulary, in display order. */
-const BUILT_IN_MEDIA_TYPES = ["Video", "Article", "Podcast", "Audio", "Image", "Document", "Other"];
+/** Thrown when a parent/child assignment would exceed the single allowed level of nesting. */
+export class MediaTypeNestingError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "MediaTypeNestingError";
+  }
+}
 
-/** Map a DB row to the shared `MediaType` wire type. */
-function toMediaType(row: MediaTypeRow & { bookmarkCount?: number }): MediaType {
+/** Distinct-bookmark counts for a media type: across its subtree, and for the type alone. */
+interface MediaTypeBookmarkCounts {
+  /** Bookmarks carrying this type or any child. */
+  subtree: number;
+  /** Bookmarks carrying this type directly, not any child (the "No Child" bucket). */
+  own: number;
+}
+
+/** A root media type seeded at boot, with optional built-in children nested one level under it. */
+interface BuiltInMediaType {
+  name: string;
+  children?: string[];
+}
+
+/**
+ * The seeded built-in vocabulary, in display order. A single level of nesting only: Audio and
+ * Document carry children; everything else is a leaf root.
+ */
+const BUILT_IN_MEDIA_TYPES: BuiltInMediaType[] = [
+  {
+    name: "Video",
+  },
+  {
+    name: "Audio",
+    children: ["Podcast", "Music", "Interview"],
+  },
+  {
+    name: "Document",
+    children: ["Article"],
+  },
+  {
+    name: "Image",
+  },
+  {
+    name: "Book",
+  },
+  {
+    name: "Website/App",
+  },
+  {
+    name: "Other",
+  },
+];
+
+/** Map a DB row (plus optional precomputed counts) to the shared `MediaType` wire type. */
+function toMediaType(
+  row: MediaTypeRow,
+  counts?: MediaTypeBookmarkCounts,
+): MediaType {
   return {
     id: row.id,
     name: row.name,
@@ -32,10 +89,80 @@ function toMediaType(row: MediaTypeRow & { bookmarkCount?: number }): MediaType 
     icon: row.icon ?? null,
     builtIn: row.builtIn,
     sortOrder: row.sortOrder,
+    parentId: row.parentId,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
-    bookmarkCount: row.bookmarkCount,
+    bookmarkCount: counts?.subtree,
+    ownBookmarkCount: counts?.own,
   };
+}
+
+/** Build a parent→children id map from a flat media-type list. Pure helper. */
+function buildChildrenByParent(
+  all: { id: string;
+    parentId: string | null; }[],
+): Map<string, string[]> {
+  const map = new Map<string, string[]>();
+  for (const mt of all) {
+    if (!mt.parentId) continue;
+    const siblings = map.get(mt.parentId) ?? [];
+    siblings.push(mt.id);
+    map.set(mt.parentId, siblings);
+  }
+  return map;
+}
+
+/**
+ * Compute each media type's subtree and own bookmark counts. A media type is single-valued on a
+ * bookmark (`bookmarks.mediaTypeId`), so no dedup is needed: own is the direct count and subtree
+ * adds the direct counts of all descendants. Pure — operates on in-memory data for unit testing.
+ */
+export function computeMediaTypeBookmarkCounts(
+  all: { id: string;
+    parentId: string | null; }[],
+  bookmarkMediaTypeIds: (string | null)[],
+): Map<string, MediaTypeBookmarkCounts> {
+  const directCount = new Map<string, number>(all.map(mt => [mt.id, 0]));
+  for (const id of bookmarkMediaTypeIds) {
+    if (id === null) continue;
+    directCount.set(id, (directCount.get(id) ?? 0) + 1);
+  }
+
+  const childrenByParent = buildChildrenByParent(all);
+  const result = new Map<string, MediaTypeBookmarkCounts>();
+  for (const mt of all) {
+    const own = directCount.get(mt.id) ?? 0;
+    let subtree = own;
+    const stack = [...(childrenByParent.get(mt.id) ?? [])];
+    while (stack.length > 0) {
+      const id = stack.pop()!;
+      subtree += directCount.get(id) ?? 0;
+      for (const child of childrenByParent.get(id) ?? []) stack.push(child);
+    }
+    result.set(mt.id, {
+      subtree,
+      own,
+    });
+  }
+  return result;
+}
+
+/**
+ * Build a nested tree from a flat media-type list (roots first). Pure — kept separate from DB
+ * access so it can be unit-tested with in-memory data.
+ */
+export function buildMediaTypeTree(all: MediaType[]): MediaTypeNode[] {
+  const byId = new Map<string, MediaTypeNode>(all.map(mt => [mt.id, {
+    ...mt,
+    children: [],
+  }]));
+  const roots: MediaTypeNode[] = [];
+  for (const node of byId.values()) {
+    const parent = node.parentId ? byId.get(node.parentId) : undefined;
+    if (parent) parent.children.push(node);
+    else roots.push(node);
+  }
+  return roots;
 }
 
 /** Existing media-type slugs, optionally excluding one row (when renaming). */
@@ -49,22 +176,57 @@ async function takenSlugs(excludeId?: string): Promise<string[]> {
   return rows.map(r => r.slug).filter((s): s is string => s !== null);
 }
 
-/** List all media types, ordered by their display order then name. */
-export async function listMediaTypes(): Promise<MediaType[]> {
-  const rows = await db
+/**
+ * Enforce the single allowed level of nesting: a non-null parent must reference an existing
+ * media type that is itself a root (its own `parentId` is null). Throws `MediaTypeNestingError`
+ * otherwise (or when the parent does not exist).
+ */
+async function assertParentIsRoot(parentId: string): Promise<void> {
+  const [parent] = await db
     .select({
-      id: mediaTypes.id,
-      name: mediaTypes.name,
-      slug: mediaTypes.slug,
-      icon: mediaTypes.icon,
-      builtIn: mediaTypes.builtIn,
-      sortOrder: mediaTypes.sortOrder,
-      createdAt: mediaTypes.createdAt,
-      bookmarkCount: sql<number>`(select count(*)::int from ${bookmarks} where ${bookmarks.mediaTypeId} = ${mediaTypes.id})`.mapWith(Number),
+      parentId: mediaTypes.parentId,
     })
     .from(mediaTypes)
+    .where(eq(mediaTypes.id, parentId));
+  if (!parent) throw new MediaTypeNestingError("Parent media type not found");
+  if (parent.parentId !== null) {
+    throw new MediaTypeNestingError("Media types can only be nested one level deep");
+  }
+}
+
+/** Whether a media type currently has any children (so it can't itself become a child). */
+async function hasChildren(id: string): Promise<boolean> {
+  const [child] = await db
+    .select({
+      id: mediaTypes.id,
+    })
+    .from(mediaTypes)
+    .where(eq(mediaTypes.parentId, id));
+  return child !== undefined;
+}
+
+/** List all media types, ordered by their display order then name, with bookmark counts. */
+export async function listMediaTypes(): Promise<MediaType[]> {
+  const rows = await db
+    .select()
+    .from(mediaTypes)
     .orderBy(asc(mediaTypes.sortOrder), asc(mediaTypes.name));
-  return rows.map(toMediaType);
+  const links = await db
+    .select({
+      mediaTypeId: bookmarks.mediaTypeId,
+    })
+    .from(bookmarks)
+    .where(isNotNull(bookmarks.mediaTypeId));
+  const counts = computeMediaTypeBookmarkCounts(
+    rows,
+    links.map(l => l.mediaTypeId),
+  );
+  return rows.map(row => toMediaType(row, counts.get(row.id)));
+}
+
+/** The full media-type taxonomy as a nested tree (roots first). */
+export async function getMediaTypeTree(): Promise<MediaTypeNode[]> {
+  return buildMediaTypeTree(await listMediaTypes());
 }
 
 /** Fetch a media type by its slug, or `null` when absent. */
@@ -83,17 +245,21 @@ export async function createMediaType(input: CreateMediaTypeInput): Promise<Medi
   }).from(mediaTypes).where(eq(mediaTypes.name, name));
   if (clash) throw new DuplicateMediaTypeError(name);
 
+  const parentId = input.parentId ?? null;
+  if (parentId !== null) await assertParentIsRoot(parentId);
+
   const slug = uniqueSlug(name, await takenSlugs());
   const [row] = await db.insert(mediaTypes).values({
     name,
     slug,
     icon: input.icon ?? null,
+    parentId,
     sortOrder: input.sortOrder ?? BUILT_IN_MEDIA_TYPES.length,
   }).returning();
   return toMediaType(row);
 }
 
-/** Rename and/or reorder a media type. Built-ins cannot be renamed. */
+/** Rename, reorder, and/or reparent a media type. Built-ins cannot be renamed. */
 export async function updateMediaType(
   id: string,
   input: UpdateMediaTypeInput,
@@ -104,7 +270,7 @@ export async function updateMediaType(
     throw new BuiltInMediaTypeError("A built-in media type cannot be renamed");
   }
 
-  const patch: Partial<Pick<MediaTypeRow, "name" | "slug" | "sortOrder" | "icon">> = {};
+  const patch: Partial<Pick<MediaTypeRow, "name" | "slug" | "sortOrder" | "icon" | "parentId">> = {};
   if (input.name !== undefined && input.name.trim() !== existing.name) {
     const name = input.name.trim();
     const [clash] = await db.select({
@@ -116,6 +282,21 @@ export async function updateMediaType(
   }
   if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder;
   if (input.icon !== undefined) patch.icon = input.icon;
+  if (input.parentId !== undefined) {
+    const parentId = input.parentId;
+    if (parentId !== null) {
+      if (parentId === id) {
+        throw new MediaTypeNestingError("A media type cannot be its own parent");
+      }
+      if (await hasChildren(id)) {
+        throw new MediaTypeNestingError(
+          "This media type has children, so it can't become a child itself",
+        );
+      }
+      await assertParentIsRoot(parentId);
+    }
+    patch.parentId = parentId;
+  }
   if (Object.keys(patch).length === 0) return toMediaType(existing);
 
   const [row] = await db.update(mediaTypes).set(patch).where(eq(mediaTypes.id, id)).returning();
@@ -135,24 +316,63 @@ export async function deleteMediaType(id: string): Promise<boolean> {
   return rows.length > 0;
 }
 
+/** Insert a built-in media type by slug if missing, returning the existing or new row's id. */
+async function ensureBuiltIn(
+  name: string,
+  sortOrder: number,
+  parentId: string | null,
+): Promise<string> {
+  const slug = slugify(name);
+  await db
+    .insert(mediaTypes)
+    .values({
+      name,
+      slug,
+      builtIn: true,
+      sortOrder,
+      parentId,
+    })
+    .onConflictDoNothing({
+      target: mediaTypes.slug,
+    });
+  const [row] = await db
+    .select({
+      id: mediaTypes.id,
+    })
+    .from(mediaTypes)
+    .where(eq(mediaTypes.slug, slug));
+  return row.id;
+}
+
 /**
  * Ensure the seeded built-in media types exist. Idempotent and safe to call at boot: inserts any
- * missing built-in by slug, preserving its display order.
+ * missing built-in by slug, then nests the built-in children one level under their parent. Existing
+ * installs whose Podcast/Article were top-level roots are re-parented under Audio/Document (slugs
+ * are unchanged, so bookmarks keep pointing at them). The whole step is idempotent.
  */
 export async function ensureBuiltInMediaTypes(): Promise<void> {
-  for (const [index, name] of BUILT_IN_MEDIA_TYPES.entries()) {
-    const slug = slugify(name);
-    await db
-      .insert(mediaTypes)
-      .values({
-        name,
-        slug,
-        builtIn: true,
-        sortOrder: index,
-      })
-      .onConflictDoNothing({
-        target: mediaTypes.slug,
-      });
+  // Insert roots first so children can reference them.
+  let order = 0;
+  const rootIdByName = new Map<string, string>();
+  for (const root of BUILT_IN_MEDIA_TYPES) {
+    rootIdByName.set(root.name, await ensureBuiltIn(root.name, order, null));
+    order += 1;
+  }
+  // Then insert/re-parent children one level under their root.
+  for (const root of BUILT_IN_MEDIA_TYPES) {
+    if (!root.children) continue;
+    const parentId = rootIdByName.get(root.name)!;
+    for (const childName of root.children) {
+      const childId = await ensureBuiltIn(childName, order, parentId);
+      order += 1;
+      // Re-parent legacy installs where the child was created as a top-level root.
+      await db
+        .update(mediaTypes)
+        .set({
+          parentId,
+        })
+        .where(eq(mediaTypes.id, childId));
+    }
   }
 }
 

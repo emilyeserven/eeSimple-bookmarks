@@ -83,6 +83,7 @@ const createPropertyBody = {
     },
     operandPropertyIds: uuidArray,
     categoryIds: uuidArray,
+    mediaTypeIds: uuidArray,
     showInForm: {
       type: "boolean",
     },
@@ -93,6 +94,9 @@ const createPropertyBody = {
       type: "boolean",
     },
     allCategories: {
+      type: "boolean",
+    },
+    allMediaTypes: {
       type: "boolean",
     },
     editableOnCard: {
@@ -138,10 +142,12 @@ const updatePropertyBody = {
     maxLabel: createPropertyBody.properties.maxLabel,
     operandPropertyIds: uuidArray,
     categoryIds: uuidArray,
+    mediaTypeIds: uuidArray,
     showInForm: createPropertyBody.properties.showInForm,
     hiddenFromForm: createPropertyBody.properties.hiddenFromForm,
     showInListings: createPropertyBody.properties.showInListings,
     allCategories: createPropertyBody.properties.allCategories,
+    allMediaTypes: createPropertyBody.properties.allMediaTypes,
     editableOnCard: createPropertyBody.properties.editableOnCard,
     enabled: createPropertyBody.properties.enabled,
     allowDefault: createPropertyBody.properties.allowDefault,

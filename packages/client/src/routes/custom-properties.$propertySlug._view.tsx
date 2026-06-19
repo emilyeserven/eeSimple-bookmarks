@@ -39,6 +39,10 @@ function CustomPropertyViewLayout() {
       label: "Categories",
     },
     {
+      to: "/custom-properties/$propertySlug/media-types",
+      label: "Media Types",
+    },
+    {
       to: "/custom-properties/$propertySlug/display",
       label: "Display",
     },
