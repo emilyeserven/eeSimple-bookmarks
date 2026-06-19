@@ -13,12 +13,12 @@ export const Route = createFileRoute("/custom-properties/$propertySlug/_view")({
 });
 
 const VIEW_TO_EDIT = {
-  general: "/custom-properties/$propertySlug/edit/general",
-  options: "/custom-properties/$propertySlug/edit/options",
-  categories: "/custom-properties/$propertySlug/edit/categories",
+  "general": "/custom-properties/$propertySlug/edit/general",
+  "options": "/custom-properties/$propertySlug/edit/options",
+  "categories": "/custom-properties/$propertySlug/edit/categories",
   "media-types": "/custom-properties/$propertySlug/edit/media-types",
-  display: "/custom-properties/$propertySlug/edit/display",
-  autofill: "/custom-properties/$propertySlug/edit/autofill",
+  "display": "/custom-properties/$propertySlug/edit/display",
+  "autofill": "/custom-properties/$propertySlug/edit/autofill",
 } as const;
 type PropertyEditRoute = typeof VIEW_TO_EDIT[keyof typeof VIEW_TO_EDIT];
 
@@ -27,7 +27,9 @@ function CustomPropertyViewLayout() {
     propertySlug,
   } = Route.useParams();
   const navigate = Route.useNavigate();
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const pathname = useRouterState({
+    select: s => s.location.pathname,
+  });
   const editRoute: PropertyEditRoute = (VIEW_TO_EDIT[pathname.split("/").at(-1) as keyof typeof VIEW_TO_EDIT] ?? VIEW_TO_EDIT.general) as PropertyEditRoute;
   const {
     property, isLoading,

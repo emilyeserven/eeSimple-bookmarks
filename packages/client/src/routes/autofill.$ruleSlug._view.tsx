@@ -21,7 +21,9 @@ function AutofillRuleViewLayout() {
     ruleSlug,
   } = Route.useParams();
   const navigate = Route.useNavigate();
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const pathname = useRouterState({
+    select: s => s.location.pathname,
+  });
   const editRoute: AutofillEditRoute = (VIEW_TO_EDIT[pathname.split("/").at(-1) as keyof typeof VIEW_TO_EDIT] ?? VIEW_TO_EDIT.general) as AutofillEditRoute;
   const {
     rule, isLoading,
