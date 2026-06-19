@@ -25,6 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 
 interface DataTableProps<T> {
   columns: ColumnDef<T>[];
@@ -95,34 +96,46 @@ export function DataTable<T>({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    ...(resizable ? {
-      columnResizeMode: "onChange" as const,
-    } : {}),
-    ...(sortable ? {
-      getSortedRowModel: getSortedRowModel(),
-      onSortingChange: setSorting,
-    } : {}),
-    ...(resizable ? {
-      onColumnSizingChange: handleColumnSizingChange,
-    } : {}),
-    ...(getSubRows ? {
-      getSubRows,
-      getExpandedRowModel: getExpandedRowModel(),
-    } : {}),
+    ...(resizable
+      ? {
+        columnResizeMode: "onChange" as const,
+      }
+      : {}),
+    ...(sortable
+      ? {
+        getSortedRowModel: getSortedRowModel(),
+        onSortingChange: setSorting,
+      }
+      : {}),
+    ...(resizable
+      ? {
+        onColumnSizingChange: handleColumnSizingChange,
+      }
+      : {}),
+    ...(getSubRows
+      ? {
+        getSubRows,
+        getExpandedRowModel: getExpandedRowModel(),
+      }
+      : {}),
     state: {
-      ...(sortable ? {
-        sorting,
-      } : {}),
-      ...(resizable ? {
-        columnSizing,
-      } : {}),
+      ...(sortable
+        ? {
+          sorting,
+        }
+        : {}),
+      ...(resizable
+        ? {
+          columnSizing,
+        }
+        : {}),
     },
   });
 
   const rows = table.getRowModel().rows;
 
   return (
-    <div className="rounded-md border overflow-x-auto">
+    <div className="overflow-x-auto rounded-md border">
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map(headerGroup => (
@@ -133,10 +146,15 @@ export function DataTable<T>({
                 return (
                   <TableHead
                     key={header.id}
-                    className={canSort ? "relative cursor-pointer select-none" : resizable ? "relative" : undefined}
-                    style={resizable ? {
-                      width: header.getSize(),
-                    } : undefined}
+                    className={cn(
+                      resizable && "relative",
+                      canSort && "cursor-pointer select-none",
+                    ) || undefined}
+                    style={resizable
+                      ? {
+                        width: header.getSize(),
+                      }
+                      : undefined}
                     onClick={canSort ? header.column.getToggleSortingHandler() : undefined}
                   >
                     {header.isPlaceholder
@@ -148,10 +166,11 @@ export function DataTable<T>({
                         onMouseDown={header.getResizeHandler()}
                         onTouchStart={header.getResizeHandler()}
                         className="
-                          absolute right-0 top-0 h-full w-1
-                          cursor-col-resize touch-none select-none
-                          bg-border opacity-0
-                          hover:opacity-100 active:opacity-100
+                          absolute top-0 right-0 h-full w-1
+                          cursor-col-resize touch-none bg-border
+                          opacity-0 select-none
+                          hover:opacity-100
+                          active:opacity-100
                         "
                       />
                     )}
@@ -187,9 +206,11 @@ export function DataTable<T>({
                 {row.getVisibleCells().map(cell => (
                   <TableCell
                     key={cell.id}
-                    style={resizable ? {
-                      width: cell.column.getSize(),
-                    } : undefined}
+                    style={resizable
+                      ? {
+                        width: cell.column.getSize(),
+                      }
+                      : undefined}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>

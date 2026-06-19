@@ -8,16 +8,16 @@ import { Link } from "@tanstack/react-router";
 import { Globe } from "lucide-react";
 
 import { ImageCell } from "./cells";
+import { useCustomAspectRatios } from "../../hooks/useCustomAspectRatios";
 import { useHiddenCardFields } from "../../lib/bookmarkCardFields";
-import { formatBoolean, formatDateTime, formatNumber } from "../../lib/bookmarkFormat";
 import { useBookmarkImageMode, useBookmarkImageVisibility } from "../../lib/bookmarkColumns";
+import { formatBoolean, formatDateTime, formatNumber } from "../../lib/bookmarkFormat";
 import { bookmarkImageAspectStyle } from "../../lib/bookmarkImage";
 import { BookmarkTagsBox } from "../BookmarkTagsBox";
 import { CategoryPill } from "../CategoryPill";
 import { MediaTypePill } from "../MediaTypePill";
 import { useViewPanelClick } from "../panel/useEditPanelClick";
 import { SourcePill } from "../SourcePill";
-import { useCustomAspectRatios } from "../../hooks/useCustomAspectRatios";
 
 import { useCategories } from "@/hooks/useCategories";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
@@ -62,7 +62,9 @@ export function useBookmarkTableColumns({
   const croppedHeight = useUiStore(state => state.croppedHeight);
   const imageMode = useBookmarkImageMode(pageKey);
   const imageVisibility = useBookmarkImageVisibility(pageKey);
-  const { data: customRatios = [] } = useCustomAspectRatios();
+  const {
+    data: customRatios = [],
+  } = useCustomAspectRatios();
   const {
     data: allCategories,
   } = useCategories();
@@ -81,20 +83,25 @@ export function useBookmarkTableColumns({
         maxSize: 76,
         enableResizing: false,
         enableSorting: false,
-        cell: ({ row }) => {
+        cell: ({
+          row,
+        }) => {
           const url = row.original.image?.url;
           if (!url) return null;
           return (
             <div
               className="overflow-hidden rounded-sm"
-              style={{ width: 64, ...aspectStyle }}
+              style={{
+                width: 64,
+                ...aspectStyle,
+              }}
             >
               <img
                 src={url}
                 alt=""
                 className={isNatural
                   ? "h-auto max-h-12 w-full object-contain"
-                  : "h-full w-full object-cover"}
+                  : "size-full object-cover"}
                 loading="lazy"
               />
             </div>
@@ -119,9 +126,9 @@ export function useBookmarkTableColumns({
           title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
           onClick={event => viewClick(event, "bookmark", row.original.id)}
           className="
-              flex items-center gap-2 font-medium
-              hover:underline
-            "
+            flex items-center gap-2 font-medium
+            hover:underline
+          "
         >
           <ImageCell
             src={row.original.website?.imageUrl}
