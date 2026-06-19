@@ -384,6 +384,17 @@ export async function deleteCustomProperty(id: string): Promise<boolean> {
   return rows.length > 0;
 }
 
+/** Re-read a built-in property's id by its slug after a concurrent-insert race. */
+async function readPropertyIdBySlug(slug: string): Promise<string> {
+  const [row] = await db
+    .select({
+      id: customProperties.id,
+    })
+    .from(customProperties)
+    .where(eq(customProperties.slug, slug));
+  return row.id;
+}
+
 /**
  * Ensure the built-in "Video Length" property exists. Idempotent and safe to call at boot in every
  * environment: a number property measured in seconds, displayed as a duration, available in every
@@ -435,13 +446,7 @@ export async function ensureVideoLengthProperty(): Promise<string> {
   if (row) return row.id;
 
   // Lost a concurrent insert race — re-read the row the other writer created.
-  const [created] = await db
-    .select({
-      id: customProperties.id,
-    })
-    .from(customProperties)
-    .where(eq(customProperties.slug, VIDEO_LENGTH_SLUG));
-  return created.id;
+  return readPropertyIdBySlug(VIDEO_LENGTH_SLUG);
 }
 
 /**
@@ -505,13 +510,7 @@ export async function ensureDatePostedProperty(): Promise<string> {
   if (row) return row.id;
 
   // Lost a concurrent insert race — re-read the row the other writer created.
-  const [created] = await db
-    .select({
-      id: customProperties.id,
-    })
-    .from(customProperties)
-    .where(eq(customProperties.slug, DATE_POSTED_SLUG));
-  return created.id;
+  return readPropertyIdBySlug(DATE_POSTED_SLUG);
 }
 
 /**

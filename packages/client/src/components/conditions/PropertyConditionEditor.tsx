@@ -400,23 +400,25 @@ export function PropertyConditionEditor({
     return <p className="text-xs text-muted-foreground">No custom properties yet.</p>;
   }
 
+  function renderConditionRows(props: typeof activeProperties) {
+    return (
+      <div className="space-y-2">
+        {props.map(property => (
+          <PropertyConditionRow
+            key={property.id}
+            property={property}
+            condition={byId.get(property.id)}
+            categories={categories}
+            onChange={condition => setCondition(property.id, condition)}
+          />
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
-      {activeProperties.length > 0
-        ? (
-          <div className="space-y-2">
-            {activeProperties.map(property => (
-              <PropertyConditionRow
-                key={property.id}
-                property={property}
-                condition={byId.get(property.id)}
-                categories={categories}
-                onChange={condition => setCondition(property.id, condition)}
-              />
-            ))}
-          </div>
-        )
-        : null}
+      {activeProperties.length > 0 ? renderConditionRows(activeProperties) : null}
 
       {categoryInactiveProperties.length > 0
         ? (
@@ -439,17 +441,7 @@ export function PropertyConditionEditor({
               <p className="text-xs text-muted-foreground">
                 These properties are not assigned to the selected categories and are unlikely to affect the results.
               </p>
-              <div className="space-y-2">
-                {categoryInactiveProperties.map(property => (
-                  <PropertyConditionRow
-                    key={property.id}
-                    property={property}
-                    condition={byId.get(property.id)}
-                    categories={categories}
-                    onChange={condition => setCondition(property.id, condition)}
-                  />
-                ))}
-              </div>
+              {renderConditionRows(categoryInactiveProperties)}
             </CollapsibleContent>
           </Collapsible>
         )

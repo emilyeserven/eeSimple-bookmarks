@@ -439,10 +439,10 @@ export type EntityImageGrabError = Exclude<OgImageResult, Buffer>;
 export type EntityImageResult = { imageUrl: string } | "not_found" | EntityImageGrabError;
 
 /**
- * Fetch the page at `pageUrl`, find its preview image (og:image / twitter:image / icon), download
- * it, and return the raw bytes — or a typed error string describing why it failed.
+ * Fetch a page's `<head>` HTML, returning the html string or an `OgImageResult` error.
+ * Centralises the error-kind → result-string mapping shared by `fetchOgImage` and `fetchFaviconImage`.
  */
-export async function fetchOgImage(pageUrl: string): Promise<OgImageResult> {
+async function fetchHeadOrImageError(pageUrl: string): Promise<string | Extract<OgImageResult, string>> {
   const result = await fetchHtml(pageUrl, /<\/head>/i);
   if (result.kind === "timeout" || result.kind === "network_error" || result.kind === "no_body") {
     return "fetch_error";
@@ -450,7 +450,17 @@ export async function fetchOgImage(pageUrl: string): Promise<OgImageResult> {
   if (result.kind === "http_error") {
     return result.status >= 500 ? "server_error" : "blocked";
   }
-  const imageUrl = extractImageUrl(result.html, pageUrl);
+  return result.html;
+}
+
+/**
+ * Fetch the page at `pageUrl`, find its preview image (og:image / twitter:image / icon), download
+ * it, and return the raw bytes — or a typed error string describing why it failed.
+ */
+export async function fetchOgImage(pageUrl: string): Promise<OgImageResult> {
+  const html = await fetchHeadOrImageError(pageUrl);
+  if (typeof html !== "string") return html;
+  const imageUrl = extractImageUrl(html, pageUrl);
   if (!imageUrl || !isPublicHttpUrl(imageUrl)) return "no_image";
   const bytes = await downloadImage(imageUrl);
   return bytes ?? "bad_image";
@@ -462,14 +472,9 @@ export async function fetchOgImage(pageUrl: string): Promise<OgImageResult> {
  * `extractFaviconUrl`, and as a last resort tries the conventional `/favicon.ico`.
  */
 export async function fetchFaviconImage(pageUrl: string): Promise<OgImageResult> {
-  const result = await fetchHtml(pageUrl, /<\/head>/i);
-  if (result.kind === "timeout" || result.kind === "network_error" || result.kind === "no_body") {
-    return "fetch_error";
-  }
-  if (result.kind === "http_error") {
-    return result.status >= 500 ? "server_error" : "blocked";
-  }
-  let iconUrl = extractFaviconUrl(result.html, pageUrl);
+  const html = await fetchHeadOrImageError(pageUrl);
+  if (typeof html !== "string") return html;
+  let iconUrl = extractFaviconUrl(html, pageUrl);
   if (!iconUrl) {
     // Last resort: the well-known conventional location every browser probes.
     try {

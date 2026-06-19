@@ -109,6 +109,28 @@ export function PropertyForm({
     },
   });
 
+  function allowDefaultBlock(className: string): ReactNode {
+    return (
+      <div className={className}>
+        <form.AppField name="allowDefault">
+          {field => (
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id={`${idPrefix}-allow-default`}
+                checked={field.state.value}
+                onCheckedChange={checked => field.handleChange(checked === true)}
+              />
+              <Label htmlFor={`${idPrefix}-allow-default`}>Allow default value</Label>
+            </div>
+          )}
+        </form.AppField>
+        <p className="text-xs text-muted-foreground">
+          When disabled, this property will not appear in the category defaults editor.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <form
       className="space-y-6"
@@ -315,23 +337,7 @@ export function PropertyForm({
                         />
                       )}
                     </form.AppField>
-                    <div className="col-span-full space-y-1">
-                      <form.AppField name="allowDefault">
-                        {field => (
-                          <div className="flex items-center gap-2">
-                            <Checkbox
-                              id={`${idPrefix}-allow-default`}
-                              checked={field.state.value}
-                              onCheckedChange={checked => field.handleChange(checked === true)}
-                            />
-                            <Label htmlFor={`${idPrefix}-allow-default`}>Allow default value</Label>
-                          </div>
-                        )}
-                      </form.AppField>
-                      <p className="text-xs text-muted-foreground">
-                        When disabled, this property will not appear in the category defaults editor.
-                      </p>
-                    </div>
+                    {allowDefaultBlock("col-span-full space-y-1")}
                   </div>
                 </CollapsibleFormSection>
               </>
@@ -446,23 +452,7 @@ export function PropertyForm({
                         />
                       )}
                     </form.AppField>
-                    <div className="space-y-1">
-                      <form.AppField name="allowDefault">
-                        {field => (
-                          <div className="flex items-center gap-2">
-                            <Checkbox
-                              id={`${idPrefix}-allow-default`}
-                              checked={field.state.value}
-                              onCheckedChange={checked => field.handleChange(checked === true)}
-                            />
-                            <Label htmlFor={`${idPrefix}-allow-default`}>Allow default value</Label>
-                          </div>
-                        )}
-                      </form.AppField>
-                      <p className="text-xs text-muted-foreground">
-                        When disabled, this property will not appear in the category defaults editor.
-                      </p>
-                    </div>
+                    {allowDefaultBlock("space-y-1")}
                   </div>
                 </LabeledSection>
               </>
@@ -511,23 +501,7 @@ export function PropertyForm({
                 {full ? <Separator /> : null}
 
                 <LabeledSection title="Property options">
-                  <div className="space-y-1">
-                    <form.AppField name="allowDefault">
-                      {field => (
-                        <div className="flex items-center gap-2">
-                          <Checkbox
-                            id={`${idPrefix}-allow-default`}
-                            checked={field.state.value}
-                            onCheckedChange={checked => field.handleChange(checked === true)}
-                          />
-                          <Label htmlFor={`${idPrefix}-allow-default`}>Allow default value</Label>
-                        </div>
-                      )}
-                    </form.AppField>
-                    <p className="text-xs text-muted-foreground">
-                      When disabled, this property will not appear in the category defaults editor.
-                    </p>
-                  </div>
+                  {allowDefaultBlock("space-y-1")}
                 </LabeledSection>
               </>
             )

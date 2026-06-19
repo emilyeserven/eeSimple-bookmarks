@@ -254,6 +254,15 @@ export function stripSiteNameSuffix(
   return title;
 }
 
+/** Shared query builder for single-website lookups (joins favicon + category rows). */
+function websiteBaseQuery() {
+  return db
+    .select(websiteSelect)
+    .from(websites)
+    .leftJoin(websiteFavicons, eq(websiteFavicons.websiteId, websites.id))
+    .leftJoin(categories, eq(categories.id, websites.categoryId));
+}
+
 /** List all websites, ordered by site name. */
 export async function listWebsites(): Promise<Website[]> {
   const rows = await db
@@ -271,25 +280,15 @@ export async function listWebsites(): Promise<Website[]> {
 
 /** Fetch a single website by id, or `null` when absent. */
 export async function getWebsite(id: string): Promise<Website | null> {
-  const [row] = await db
-    .select(websiteSelect)
-    .from(websites)
-    .leftJoin(websiteFavicons, eq(websiteFavicons.websiteId, websites.id))
-    .leftJoin(categories, eq(categories.id, websites.categoryId))
-    .where(eq(websites.id, id));
+  const [row] = await websiteBaseQuery().where(eq(websites.id, id));
   if (!row) return null;
-  const tagsMap = await loadWebsiteTagsMap([id]);
-  return toWebsite(row, tagsMap.get(id) ?? []);
+  const tagsMap = await loadWebsiteTagsMap([row.id]);
+  return toWebsite(row, tagsMap.get(row.id) ?? []);
 }
 
 /** Fetch a website by its normalized domain, or `null` when absent. */
 export async function getWebsiteByDomain(domain: string): Promise<Website | null> {
-  const [row] = await db
-    .select(websiteSelect)
-    .from(websites)
-    .leftJoin(websiteFavicons, eq(websiteFavicons.websiteId, websites.id))
-    .leftJoin(categories, eq(categories.id, websites.categoryId))
-    .where(eq(websites.domain, domain));
+  const [row] = await websiteBaseQuery().where(eq(websites.domain, domain));
   if (!row) return null;
   const tagsMap = await loadWebsiteTagsMap([row.id]);
   return toWebsite(row, tagsMap.get(row.id) ?? []);
@@ -300,12 +299,7 @@ export async function getWebsiteByDomain(domain: string): Promise<Website | null
  * resolves to the `youtube.com` site), or `null` when none matches.
  */
 export async function getWebsiteByAnyDomain(domain: string): Promise<Website | null> {
-  const [row] = await db
-    .select(websiteSelect)
-    .from(websites)
-    .leftJoin(websiteFavicons, eq(websiteFavicons.websiteId, websites.id))
-    .leftJoin(categories, eq(categories.id, websites.categoryId))
-    .where(matchesAnyDomain(domain));
+  const [row] = await websiteBaseQuery().where(matchesAnyDomain(domain));
   if (!row) return null;
   const tagsMap = await loadWebsiteTagsMap([row.id]);
   return toWebsite(row, tagsMap.get(row.id) ?? []);
