@@ -6,8 +6,6 @@ import type {
   BookmarkDateTimeValue,
   BookmarkNumberValue,
   CreateBookmarkInput,
-  CustomProperty,
-  TagNode,
   Website,
   YouTubeChannelHint,
 } from "@eesimple/types";
@@ -16,70 +14,24 @@ import { useEffect, useId, useRef, useState } from "react";
 
 import { propertyAppliesToCategory } from "@eesimple/types";
 import { useNavigate } from "@tanstack/react-router";
-import { Brush, ChevronDown, ExternalLink, Loader2, Sparkles } from "lucide-react";
+import { Brush, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { z } from "zod";
 
-import { AddCategoryModal } from "./AddCategoryModal";
-import { BookmarkImageField } from "./BookmarkImageField";
-import { EMPTY_IMAGE_INTENT } from "./bookmarkImageIntent";
-import { DateTimePicker } from "./DateTimePicker";
-import { TagPicker } from "./TagPicker";
-import { WebsiteLookupBanner } from "./WebsiteLookupBanner";
-import { useShortenerIgnoreList } from "../hooks/useAppSettings";
-import { useAutofillRules } from "../hooks/useAutofill";
 import {
-  useAutoBookmarkImage,
-  useCreateBookmark,
-  useDeleteBookmarkImage,
-  useUpdateBookmark,
-  useUploadBookmarkImage,
-} from "../hooks/useBookmarks";
-import { useCategories, useCategoryDefaults, useCategoryRootTags } from "../hooks/useCategories";
-import { useCustomProperties } from "../hooks/useCustomProperties";
-import { useFetchMetadata } from "../hooks/useFetchMetadata";
-import { useFetchTitle } from "../hooks/useFetchTitle";
-import { useTagTree } from "../hooks/useTags";
-import { useWebsiteLookup, useWebsites } from "../hooks/useWebsites";
+  bookmarkSchema,
+  looksLikeYouTube,
+  stripSelfId,
+} from "./bookmarkFormSchema";
+import { EMPTY_IMAGE_INTENT } from "./bookmarkImageIntent";
+import { BookmarkRevealedFields } from "./BookmarkRevealedFields";
+import { useBookmarkFormActions } from "./useBookmarkFormActions";
+import { useBookmarkFormData } from "./useBookmarkFormData";
 import { applyAutofill } from "../lib/autofill";
 import { useAppForm } from "../lib/form";
 import { isFetchableUrl } from "../lib/url";
 import { canonicalize } from "../lib/urlCleanup";
-import { useUiStore } from "../stores/uiStore";
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { CategoryIcon } from "@/lib/icons";
-
-const bookmarkSchema = z.object({
-  url: z.string().url("Enter a valid URL"),
-  title: z.string().min(1, "Title is required"),
-  categoryId: z.string().min(1, "Category is required"),
-  description: z.string(),
-  tagIds: z.array(z.string()),
-});
-
-/** Slug of the built-in "Video Length" property, hidden from the form (filled server-side). */
-const VIDEO_LENGTH_SLUG = "video-length";
-/** Cheap client-side check so we only hit the richer metadata endpoint for YouTube URLs. */
-function looksLikeYouTube(url: string): boolean {
-  return /(?:youtube\.com|youtu\.be)/i.test(url);
-}
-
-/** Client-side mirror of the server's stripSiteNameSuffix for user-entered selfIds. */
-function stripSelfId(title: string, selfId: string): string {
-  const escaped = selfId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const re = new RegExp(`\\s*[-|–—·•:／]\\s*${escaped}\\s*$`, "i");
-  const stripped = title.replace(re, "").trim();
-  return stripped.length > 0 ? stripped : title;
-}
 
 interface BookmarkFormProps {
   /** When provided, the form edits this bookmark instead of creating a new one. */
@@ -102,35 +54,27 @@ export function BookmarkForm({
 }: BookmarkFormProps = {}) {
   const isEdit = Boolean(bookmark);
   const navigate = useNavigate();
-  const createBookmark = useCreateBookmark();
-  const updateBookmark = useUpdateBookmark();
+  const {
+    createBookmark,
+    updateBookmark,
+    uploadImage,
+    autoImage,
+    deleteImage,
+    fetchTitle,
+    fetchMetadata,
+    websiteLookup,
+  } = useBookmarkFormActions();
   const saveBookmark = isEdit ? updateBookmark : createBookmark;
-  const uploadImage = useUploadBookmarkImage();
-  const autoImage = useAutoBookmarkImage();
-  const deleteImage = useDeleteBookmarkImage();
-  const fetchTitle = useFetchTitle();
-  const fetchMetadata = useFetchMetadata();
-  const websiteLookup = useWebsiteLookup();
   const {
-    data: websites,
-  } = useWebsites();
-  const {
-    data: shortenerIgnoreList,
-  } = useShortenerIgnoreList();
-  const autoFetchTitle = useUiStore(state => state.autoFetchTitle);
-  const autoFetchImage = useUiStore(state => state.autoFetchImage);
-  const {
-    data: tagTree,
-  } = useTagTree();
-  const {
-    data: customProperties,
-  } = useCustomProperties();
-  const {
-    data: categories,
-  } = useCategories();
-  const {
-    data: autofillRules,
-  } = useAutofillRules();
+    websites,
+    shortenerIgnoreList,
+    tagTree,
+    customProperties,
+    categories,
+    autofillRules,
+    autoFetchTitle,
+    autoFetchImage,
+  } = useBookmarkFormData();
 
   // Custom-property values live outside the typed form (they're dynamic). A ref
   // mirrors them so the submit handler always reads the latest entries. When editing,
@@ -882,329 +826,90 @@ export function BookmarkForm({
       </form.AppField>
 
       {scanned && (
-        <>
-          {/* Shortened-link disclosure: full URL shown inline directly below the URL field. */}
-          {urlCleanup?.applied && (
-            <div className="space-y-1 text-sm text-muted-foreground">
-              {urlShortener.nudge && (
-                <p
-                  className="
-                    text-amber-600
-                    dark:text-amber-500
-                  "
-                >
-                  This looks like a shortened link — consider using the full URL.
-                </p>
-              )}
-              <p>
-                Shortened from
-                {" "}
-                <span className="font-mono break-all">{urlCleanup.original}</span>
-                {" · "}
-                <Button
-                  type="button"
-                  variant="link"
-                  size="sm"
-                  className="h-auto p-0"
-                  onClick={undoUrlCleanup}
-                >
-                  Undo
-                </Button>
-              </p>
-              {urlShortener.expandedUrl && (
-                <p>
-                  Will be saved as
-                  {" "}
-                  <span className="font-mono break-all">{urlShortener.expandedUrl}</span>
-                </p>
-              )}
-            </div>
-          )}
-
-          {showUrlCleanup && (
-            <form.Subscribe selector={state => state.values.url}>
-              {url => (
-                <UrlCleanupPanel
-                  url={url}
-                  cleanupId={cleanupId}
-                  mode={urlCleanupMode}
-                  onModeChange={setUrlCleanupMode}
-                  websites={websites ?? []}
-                  ignoreList={shortenerIgnoreList ?? []}
-                />
-              )}
-            </form.Subscribe>
-          )}
-
-          {/* Left: site / shortener info derived from the URL. Right: Name + title feedback. */}
-          <div
-            className="
-              grid gap-4
-              sm:grid-cols-2
-            "
-          >
-            <div className="flex flex-col gap-4">
-              <WebsiteLookupBanner
-                data={websiteLookup.data}
-                isYouTube={websiteLookup.data?.domain === "youtube.com"}
-                youtubeChannel={youtubeChannel}
-                onChannelSelfIdsChange={(ids) => {
-                  const updated = {
-                    ...(youtubeChannel ?? {
-                      key: "",
-                      name: "",
-                    }),
-                    selfIds: ids,
-                  };
-                  channelHintRef.current = updated;
-                  setYoutubeChannel(updated);
-                }}
-                websiteSiteName={websiteSiteName}
-                onSiteNameChange={setWebsiteSiteName}
-                onSiteNameBlur={() => void runFetchTitle(form.getFieldValue("url"), {
-                  force: true,
-                })}
-              />
-            </div>
-
-            <div className="flex flex-col gap-4">
-              <form.Subscribe selector={state => state.values.url}>
-                {url => (
-                  <form.AppField name="title">
-                    {field => (
-                      <field.TextareaField
-                        label="Name"
-                        rows={1}
-                        inputClassName="min-h-9"
-                        onBlur={runAutofill}
-                        onChange={() => setTitleFetch(null)}
-                        action={(
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            title="Fetch title from URL"
-                            aria-label="Fetch title from URL"
-                            disabled={!isFetchableUrl(url) || fetchTitle.isPending || fetchMetadata.isPending}
-                            onClick={() => {
-                              // YouTube gets its title from enrichment; skip the strict fetch-title for it.
-                              const yt = looksLikeYouTube(url);
-                              if (!yt) {
-                                void runFetchTitle(url, {
-                                  force: true,
-                                });
-                              }
-                              void runYouTubeEnrichment(url, {
-                                fillTitle: true,
-                                force: true,
-                              });
-                            }}
-                          >
-                            {fetchTitle.isPending || fetchMetadata.isPending
-                              ? <Loader2 className="size-4 animate-spin" />
-                              : <Sparkles className="size-4" />}
-                          </Button>
-                        )}
-                      />
-                    )}
-                  </form.AppField>
-                )}
-              </form.Subscribe>
-
-              {titleFetch && (
-                <p className="text-sm text-muted-foreground">
-                  Changed from
-                  {" "}
-                  <span className="font-mono">{titleFetch.previous}</span>
-                  {" · "}
-                  <Button
-                    type="button"
-                    variant="link"
-                    size="sm"
-                    className="h-auto p-0"
-                    onClick={undoTitleFetch}
-                  >
-                    Undo
-                  </Button>
-                </p>
-              )}
-
-              <TitleFetchFeedback
-                isSuccess={fetchTitle.isSuccess}
-                isError={fetchTitle.isError}
-                errorMessage={fetchTitle.error?.message}
-                fetchedTitle={fetchTitle.data?.title}
-                isReportingTitle={isReportingTitle}
-                onStartReporting={() => setIsReportingTitle(true)}
-                expectedTitle={expectedTitle}
-                onExpectedTitleChange={setExpectedTitle}
-                onCancelReporting={() => {
-                  setIsReportingTitle(false);
-                  setExpectedTitle("");
-                }}
-                getFormUrl={() => form.getFieldValue("url")}
-                getFormTitle={() => form.getFieldValue("title")}
-              />
-            </div>
-          </div>
-
-          {/* Description and Tags side by side, stretched to a matching height. */}
-          <div
-            className="
-              grid items-stretch gap-4
-              sm:grid-cols-2
-            "
-          >
-            <form.AppField name="description">
-              {field => (
-                <field.TextareaField
-                  label="Description"
-                  fill
-                  inputClassName="min-h-24"
-                />
-              )}
-            </form.AppField>
-
-            <form.Subscribe selector={state => state.values.categoryId}>
-              {categoryId => (
-                <form.Field name="tagIds">
-                  {field => (
-                    <div className="flex h-full flex-col gap-1">
-                      <Label>Tags</Label>
-                      <GatedTagPicker
-                        className="flex-1 overflow-auto"
-                        categoryId={categoryId}
-                        tree={tagTree ?? []}
-                        selectedIds={field.state.value}
-                        onToggle={(id) => {
-                          touchedRef.current.add("tags");
-                          const current = field.state.value;
-                          field.handleChange(
-                            current.includes(id)
-                              ? current.filter(tagId => tagId !== id)
-                              : [...current, id],
-                          );
-                        }}
-                      />
-                    </div>
-                  )}
-                </form.Field>
-              )}
-            </form.Subscribe>
-          </div>
-
-          <form.Subscribe selector={state => state.values.categoryId}>
-            {categoryId => (
-              <CategoryCustomFields
-                placement="default"
-                categoryId={categoryId}
-                properties={customProperties ?? []}
-                hiddenSlugs={[VIDEO_LENGTH_SLUG]}
-                numberInputs={numberInputs}
-                booleanInputs={booleanInputs}
-                dateTimeInputs={dateTimeInputs}
-                onNumberChange={handleNumberChange}
-                onBooleanChange={handleBooleanChange}
-                onDateTimeChange={handleDateTimeChange}
-              />
-            )}
-          </form.Subscribe>
-
-          <Collapsible className="group/advanced space-y-3">
-            <CollapsibleTrigger
-              className="
-                flex items-center gap-1 text-sm font-medium
-                text-muted-foreground
-                hover:text-foreground
-              "
-            >
-              <ChevronDown
-                className="
-                  size-4 transition-transform
-                  group-data-[state=open]/advanced:rotate-180
-                "
-              />
-              Advanced
-            </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-4">
-              {lockedCategoryId
-                ? null
-                : (
-                  <form.AppField name="categoryId">
-                    {field => (
-                      <field.ComboboxField
-                        label="Category"
-                        placeholder="Select a category"
-                        searchPlaceholder="Search categories…"
-                        emptyText="No categories found."
-                        createOption={{
-                          label: "Create category",
-                          onSelect: () => setAddCategoryOpen(true),
-                        }}
-                        options={(categories ?? []).map(category => ({
-                          value: category.id,
-                          label: category.name,
-                          icon: (
-                            <CategoryIcon
-                              name={category.icon}
-                              className="size-4 shrink-0"
-                            />
-                          ),
-                        }))}
-                      />
-                    )}
-                  </form.AppField>
-                )}
-
-              <AddCategoryModal
-                open={addCategoryOpen}
-                onOpenChange={setAddCategoryOpen}
-                onCreated={category => form.setFieldValue("categoryId", category.id)}
-              />
-
-              <form.Subscribe selector={state => state.values.url}>
-                {url => (
-                  <div className="space-y-1">
-                    <Label>Image</Label>
-                    <BookmarkImageField
-                      key={imageFieldKey}
-                      existingImageUrl={bookmark?.image?.url ?? null}
-                      pageUrl={url}
-                      defaultAuto={!isEdit && autoFetchImage}
-                      autoGrabError={bookmark?.imageAutoGrabError ?? null}
-                      onChange={(intent) => {
-                        imageIntentRef.current = intent;
-                      }}
-                    />
-                  </div>
-                )}
-              </form.Subscribe>
-
-              <form.Subscribe selector={state => state.values.categoryId}>
-                {categoryId => (
-                  <>
-                    <CategoryDefaultsApplier
-                      categoryId={categoryId}
-                      onApply={applyCategoryDefaults}
-                    />
-                    <CategoryCustomFields
-                      placement="advanced"
-                      categoryId={categoryId}
-                      properties={customProperties ?? []}
-                      hiddenSlugs={[VIDEO_LENGTH_SLUG]}
-                      numberInputs={numberInputs}
-                      booleanInputs={booleanInputs}
-                      dateTimeInputs={dateTimeInputs}
-                      onNumberChange={handleNumberChange}
-                      onBooleanChange={handleBooleanChange}
-                      onDateTimeChange={handleDateTimeChange}
-                    />
-                  </>
-                )}
-              </form.Subscribe>
-            </CollapsibleContent>
-          </Collapsible>
-        </>
+        <BookmarkRevealedFields
+          form={form}
+          lockedCategoryId={lockedCategoryId}
+          urlCleanup={urlCleanup}
+          urlShortener={urlShortener}
+          onUndoUrlCleanup={undoUrlCleanup}
+          showUrlCleanup={showUrlCleanup}
+          cleanupId={cleanupId}
+          urlCleanupMode={urlCleanupMode}
+          onUrlCleanupModeChange={setUrlCleanupMode}
+          websites={websites ?? []}
+          ignoreList={shortenerIgnoreList ?? []}
+          websiteLookup={websiteLookup}
+          youtubeChannel={youtubeChannel}
+          onChannelSelfIdsChange={(ids) => {
+            const updated = {
+              ...(youtubeChannel ?? {
+                key: "",
+                name: "",
+              }),
+              selfIds: ids,
+            };
+            channelHintRef.current = updated;
+            setYoutubeChannel(updated);
+          }}
+          websiteSiteName={websiteSiteName}
+          onSiteNameChange={setWebsiteSiteName}
+          onSiteNameBlur={() => void runFetchTitle(form.getFieldValue("url"), {
+            force: true,
+          })}
+          onTitleBlur={runAutofill}
+          onTitleChange={() => setTitleFetch(null)}
+          onFetchTitleClick={(url) => {
+            // YouTube gets its title from enrichment; skip the strict fetch-title for it.
+            const yt = looksLikeYouTube(url);
+            if (!yt) {
+              void runFetchTitle(url, {
+                force: true,
+              });
+            }
+            void runYouTubeEnrichment(url, {
+              fillTitle: true,
+              force: true,
+            });
+          }}
+          isFetchTitlePending={fetchTitle.isPending}
+          isFetchMetadataPending={fetchMetadata.isPending}
+          titleFetch={titleFetch}
+          onUndoTitleFetch={undoTitleFetch}
+          fetchTitleIsSuccess={fetchTitle.isSuccess}
+          fetchTitleIsError={fetchTitle.isError}
+          fetchTitleErrorMessage={fetchTitle.error?.message}
+          fetchedTitle={fetchTitle.data?.title}
+          isReportingTitle={isReportingTitle}
+          onStartReporting={() => setIsReportingTitle(true)}
+          expectedTitle={expectedTitle}
+          onExpectedTitleChange={setExpectedTitle}
+          onCancelReporting={() => {
+            setIsReportingTitle(false);
+            setExpectedTitle("");
+          }}
+          tagTree={tagTree ?? []}
+          customProperties={customProperties ?? []}
+          onTagToggle={() => {
+            touchedRef.current.add("tags");
+          }}
+          numberInputs={numberInputs}
+          booleanInputs={booleanInputs}
+          dateTimeInputs={dateTimeInputs}
+          onNumberChange={handleNumberChange}
+          onBooleanChange={handleBooleanChange}
+          onDateTimeChange={handleDateTimeChange}
+          categories={categories ?? []}
+          addCategoryOpen={addCategoryOpen}
+          onAddCategoryOpenChange={setAddCategoryOpen}
+          imageFieldKey={imageFieldKey}
+          existingImageUrl={bookmark?.image?.url ?? null}
+          defaultAuto={!isEdit && autoFetchImage}
+          autoGrabError={bookmark?.imageAutoGrabError ?? null}
+          onImageIntentChange={(intent) => {
+            imageIntentRef.current = intent;
+          }}
+          onApplyCategoryDefaults={applyCategoryDefaults}
+        />
       )}
 
       <div>
@@ -1261,452 +966,5 @@ export function BookmarkForm({
         {saveBookmark.isError ? <p className="mt-2 text-sm text-destructive">{saveBookmark.error?.message}</p> : null}
       </div>
     </form>
-  );
-}
-
-interface GatedTagPickerProps {
-  categoryId: string;
-  tree: TagNode[];
-  selectedIds: string[];
-  onToggle: (id: string) => void;
-  /** Extra classes for the bordered box (e.g. `flex-1` to fill an equal-height grid cell). */
-  className?: string;
-}
-
-/** TagPicker limited to the selected category's enabled root tags (empty allowlist = all). */
-function GatedTagPicker({
-  categoryId, tree, selectedIds, onToggle, className,
-}: GatedTagPickerProps) {
-  const {
-    data: allowedRootIds,
-  } = useCategoryRootTags(categoryId);
-
-  const gated = allowedRootIds && allowedRootIds.length > 0
-    ? tree.filter(root => allowedRootIds.includes(root.id))
-    : tree;
-
-  return (
-    <div className={`rounded-md border p-2 ${className ?? ""}`.trim()}>
-      <TagPicker
-        tree={gated}
-        selectedIds={selectedIds}
-        onToggle={onToggle}
-      />
-    </div>
-  );
-}
-
-interface CategoryCustomFieldsProps {
-  categoryId: string;
-  properties: CustomProperty[];
-  /** `default` shows properties flagged to appear in the main form; `advanced` shows the rest. */
-  placement: "default" | "advanced";
-  /** Extra classes for the root (e.g. a grid `col-span` when rendered in the main form). */
-  className?: string;
-  /** Property slugs to drop from rendering entirely (their value is still submitted/derived). */
-  hiddenSlugs?: string[];
-  numberInputs: Record<string, string>;
-  booleanInputs: Record<string, boolean>;
-  dateTimeInputs: Record<string, string>;
-  onNumberChange: (propertyId: string, value: string) => void;
-  onBooleanChange: (propertyId: string, value: boolean) => void;
-  onDateTimeChange: (propertyId: string, value: string) => void;
-}
-
-/** Renders the custom-property inputs for the properties assigned to the chosen category. */
-function CategoryCustomFields({
-  categoryId, properties, placement, className, hiddenSlugs,
-  numberInputs, booleanInputs, dateTimeInputs,
-  onNumberChange, onBooleanChange, onDateTimeChange,
-}: CategoryCustomFieldsProps) {
-  const categoryProps = properties.filter((property) => {
-    if (!propertyAppliesToCategory(property, categoryId)) return false;
-    if (!property.enabled) return false;
-    // hiddenFromForm drops the field entirely; otherwise showInForm chooses the main area vs. Advanced.
-    if (property.hiddenFromForm) return false;
-    // Slugs the form fills server-side (e.g. Video Length) are hidden but still persisted.
-    if (hiddenSlugs?.includes(property.slug)) return false;
-    return placement === "default" ? property.showInForm : !property.showInForm;
-  });
-  if (categoryProps.length === 0) return null;
-
-  return (
-    <div
-      className={`
-        space-y-3
-        ${className ?? ""}
-      `}
-    >
-      <span className="text-sm font-medium">Properties</span>
-      <div
-        className="
-          grid gap-3
-          sm:grid-cols-2
-        "
-      >
-        {categoryProps.map((property) => {
-          if (property.type === "number") {
-            return (
-              <div
-                key={property.id}
-                className="space-y-1"
-              >
-                <Label htmlFor={`property-${property.id}`}>
-                  {property.name}
-                  {property.unitPlural ? ` (${property.unitPlural})` : ""}
-                </Label>
-                <Input
-                  id={`property-${property.id}`}
-                  type="number"
-                  value={numberInputs[property.id] ?? ""}
-                  onChange={event => onNumberChange(property.id, event.target.value)}
-                />
-                {property.description
-                  ? <p className="text-xs text-muted-foreground">{property.description}</p>
-                  : null}
-              </div>
-            );
-          }
-          if (property.type === "boolean") {
-            return (
-              <div
-                key={property.id}
-                className="space-y-1 self-end"
-              >
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id={`property-${property.id}`}
-                    checked={booleanInputs[property.id] ?? false}
-                    onCheckedChange={checked => onBooleanChange(property.id, checked === true)}
-                  />
-                  <Label htmlFor={`property-${property.id}`}>{property.name}</Label>
-                </div>
-                {property.description
-                  ? <p className="text-xs text-muted-foreground">{property.description}</p>
-                  : null}
-              </div>
-            );
-          }
-          if (property.type === "datetime") {
-            return (
-              <div
-                key={property.id}
-                className="space-y-1"
-              >
-                <Label htmlFor={`property-${property.id}`}>{property.name}</Label>
-                <DateTimePicker
-                  id={`property-${property.id}`}
-                  format={property.dateTimeFormat ?? "date"}
-                  value={dateTimeInputs[property.id] ?? null}
-                  onChange={value => onDateTimeChange(property.id, value ?? "")}
-                />
-                {property.description
-                  ? <p className="text-xs text-muted-foreground">{property.description}</p>
-                  : null}
-              </div>
-            );
-          }
-          // calculate: computed server-side; shown read-only so the user knows it exists.
-          return (
-            <div
-              key={property.id}
-              className="space-y-1"
-            >
-              <Label>{property.name}</Label>
-              <p className="text-xs text-muted-foreground">Calculated automatically when saved.</p>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-interface CategoryDefaultsApplierProps {
-  categoryId: string;
-  onApply: (
-    numberValues: BookmarkNumberValue[],
-    booleanValues: BookmarkBooleanValue[],
-    dateTimeValues: BookmarkDateTimeValue[],
-  ) => void;
-}
-
-/**
- * Headless helper that loads the chosen category's default property values and applies them to the
- * form whenever the category changes. Renders nothing — the parent owns the property inputs.
- */
-function CategoryDefaultsApplier({
-  categoryId, onApply,
-}: CategoryDefaultsApplierProps) {
-  const {
-    data: defaults,
-  } = useCategoryDefaults(categoryId);
-
-  useEffect(() => {
-    if (!categoryId || !defaults) return;
-    onApply(defaults.numberValues, defaults.booleanValues, defaults.dateTimeValues);
-    // Re-apply only when the category or its loaded defaults change; `onApply` is stable enough.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [categoryId, defaults]);
-
-  return null;
-}
-
-function openGitHubIssue(title: string, body: string): void {
-  const url = new URL("https://github.com/emilyeserven/eesimple-bookmarks/issues/new");
-  url.searchParams.set("title", title);
-  url.searchParams.set("body", body);
-  url.searchParams.set("labels", "bug");
-  window.open(url.toString(), "_blank", "noopener,noreferrer");
-}
-
-interface IncorrectTitleReporterProps {
-  fetchedTitle: string | undefined;
-  expectedTitle: string;
-  onExpectedTitleChange: (v: string) => void;
-  onCancel: () => void;
-  getFormUrl: () => string;
-  getFormTitle: () => string;
-}
-
-function IncorrectTitleReporter({
-  fetchedTitle, expectedTitle, onExpectedTitleChange, onCancel, getFormUrl, getFormTitle,
-}: IncorrectTitleReporterProps) {
-  return (
-    <div className="flex flex-col gap-2">
-      <Label htmlFor="expected-title">Expected title</Label>
-      <Input
-        id="expected-title"
-        value={expectedTitle}
-        onChange={e => onExpectedTitleChange(e.target.value)}
-        placeholder="Enter the correct title"
-        className="h-8"
-      />
-      <div className="flex items-center gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={!expectedTitle.trim()}
-          onClick={() => {
-            const body = [
-              `**URL:** ${getFormUrl()}`,
-              `**Actual title parsed:** ${fetchedTitle ?? getFormTitle()}`,
-              `**Expected title:** ${expectedTitle}`,
-            ].join("\n\n");
-            openGitHubIssue("Incorrect page title parsed", body);
-          }}
-        >
-          Open GitHub issue
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={onCancel}
-        >
-          Cancel
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-interface TitleFetchFeedbackProps {
-  isSuccess: boolean;
-  isError: boolean;
-  errorMessage: string | undefined;
-  fetchedTitle: string | undefined;
-  isReportingTitle: boolean;
-  onStartReporting: () => void;
-  expectedTitle: string;
-  onExpectedTitleChange: (v: string) => void;
-  onCancelReporting: () => void;
-  /** Returns the current URL at click-time (not a reactive value). */
-  getFormUrl: () => string;
-  /** Returns the current title at click-time (not a reactive value). */
-  getFormTitle: () => string;
-}
-
-/** Success/error feedback shown below the title field after a fetch-title attempt. */
-function TitleFetchFeedback({
-  isSuccess,
-  isError,
-  errorMessage,
-  fetchedTitle,
-  isReportingTitle,
-  onStartReporting,
-  expectedTitle,
-  onExpectedTitleChange,
-  onCancelReporting,
-  getFormUrl,
-  getFormTitle,
-}: TitleFetchFeedbackProps) {
-  if (isSuccess) {
-    return (
-      <div className="flex flex-col gap-2 text-sm text-muted-foreground">
-        {!isReportingTitle
-          ? (
-            <p>
-              Incorrect title?
-              {" "}
-              <button
-                type="button"
-                className="
-                  underline
-                  hover:text-foreground
-                "
-                onClick={onStartReporting}
-              >
-                Report it
-              </button>
-            </p>
-          )
-          : (
-            <IncorrectTitleReporter
-              fetchedTitle={fetchedTitle}
-              expectedTitle={expectedTitle}
-              onExpectedTitleChange={onExpectedTitleChange}
-              onCancel={onCancelReporting}
-              getFormUrl={getFormUrl}
-              getFormTitle={getFormTitle}
-            />
-          )}
-      </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <div className="flex flex-col gap-2 text-sm">
-        <p className="text-destructive">
-          {errorMessage ?? "Could not fetch a title for that URL."}
-        </p>
-        <div>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              const body = [
-                `**URL:** ${getFormUrl()}`,
-                `**Error:** ${errorMessage ?? "Unknown error"}`,
-              ].join("\n\n");
-              openGitHubIssue("Title fetch failed", body);
-            }}
-          >
-            File GitHub issue
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  return null;
-}
-
-interface UrlCleanupPanelProps {
-  url: string;
-  cleanupId: string;
-  mode: UrlCleanupMode;
-  onModeChange: (mode: UrlCleanupMode) => void;
-  websites: Website[];
-  ignoreList: string[];
-}
-
-/** Radio-group + live URL preview for the URL cleanup options. */
-function UrlCleanupPanel({
-  url, cleanupId, mode, onModeChange, websites, ignoreList,
-}: UrlCleanupPanelProps) {
-  const preview = canonicalize(url, {
-    mode,
-    websites,
-    ignoreList,
-  }).url;
-  return (
-    <div
-      className="
-        space-y-4 rounded-lg border bg-muted/50 p-4
-        sm:col-span-2
-      "
-    >
-      <p className="text-sm font-medium">URL Cleanup</p>
-
-      <div className="space-y-2">
-        {(
-          [
-            {
-              value: "none" as UrlCleanupMode,
-              label: "No modification",
-            },
-            {
-              value: "trackers" as UrlCleanupMode,
-              label: "Just trackers",
-            },
-            {
-              value: "all" as UrlCleanupMode,
-              label: "All params",
-            },
-          ]
-        ).map(option => (
-          <div
-            key={option.value}
-            className="flex items-center gap-2"
-          >
-            <input
-              type="radio"
-              id={`${cleanupId}-${option.value}`}
-              name={`${cleanupId}-mode`}
-              value={option.value}
-              checked={mode === option.value}
-              onChange={() => onModeChange(option.value)}
-              className="accent-primary"
-            />
-            <Label htmlFor={`${cleanupId}-${option.value}`}>{option.label}</Label>
-          </div>
-        ))}
-      </div>
-
-      <div className="space-y-1">
-        <p className="text-xs text-muted-foreground">Preview</p>
-        <div className="flex items-center gap-2">
-          <Input
-            value={preview}
-            readOnly
-            className="font-mono text-sm"
-            aria-label="Cleaned URL preview"
-          />
-          {isFetchableUrl(preview)
-            ? (
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                asChild
-              >
-                <a
-                  href={preview}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label="Open cleaned URL in new tab"
-                >
-                  <ExternalLink className="size-4" />
-                </a>
-              </Button>
-            )
-            : (
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                disabled
-                aria-label="Open cleaned URL in new tab"
-              >
-                <ExternalLink className="size-4" />
-              </Button>
-            )}
-        </div>
-      </div>
-    </div>
   );
 }
