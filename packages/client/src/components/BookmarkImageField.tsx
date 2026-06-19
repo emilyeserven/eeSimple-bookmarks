@@ -144,7 +144,15 @@ export function BookmarkImageField({
               />
             )
             : auto
-              ? <span className="px-2 text-center text-xs text-muted-foreground">Fetched on save</span>
+              ? (
+                <div className="flex flex-col items-center justify-center gap-1">
+                  <Sparkles className="size-5 text-muted-foreground" />
+                  <span
+                    className="px-2 text-center text-xs text-muted-foreground"
+                  >Page image on save
+                  </span>
+                </div>
+              )
               : <ImagePlus className="size-6 text-muted-foreground" />}
         </div>
         <div className="flex flex-col gap-2">
@@ -202,12 +210,6 @@ export function BookmarkImageField({
         Drag and drop, paste, or choose an image. Accepted formats: JPEG, PNG, WebP,
         GIF, SVG, AVIF, TIFF. Stored as an 800px WebP.
       </p>
-      <div className="rounded-md border border-dashed bg-muted/20 px-3 py-2">
-        <p className="text-xs font-medium text-muted-foreground">Gallery — coming soon</p>
-        <p className="text-xs text-muted-foreground">
-          Attaching multiple images to a bookmark will let you build a gallery here.
-        </p>
-      </div>
     </div>
   );
 }

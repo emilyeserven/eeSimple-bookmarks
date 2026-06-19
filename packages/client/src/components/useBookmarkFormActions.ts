@@ -1,5 +1,6 @@
 import {
   useAutoBookmarkImage,
+  useBookmarkUrlDuplicateCheck,
   useCreateBookmark,
   useDeleteBookmarkImage,
   useUpdateBookmark,
@@ -25,5 +26,6 @@ export function useBookmarkFormActions() {
     fetchTitle: useFetchTitle(),
     fetchMetadata: useFetchMetadata(),
     websiteLookup: useWebsiteLookup(),
+    urlDuplicateCheck: useBookmarkUrlDuplicateCheck(),
   };
 }

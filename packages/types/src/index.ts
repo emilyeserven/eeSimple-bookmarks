@@ -449,6 +449,12 @@ export interface BookmarkUrlSummary {
   title: string;
 }
 
+/** Result of checking whether a URL (or its path) collides with an existing bookmark. */
+export interface BookmarkUrlDuplicateResult {
+  exactMatch: BookmarkUrlSummary | null;
+  pathMatch: BookmarkUrlSummary | null;
+}
+
 /** One bookmark URL rewrite in a bulk apply. */
 export interface BulkUrlUpdate {
   id: string;

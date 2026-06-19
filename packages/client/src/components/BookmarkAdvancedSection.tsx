@@ -6,6 +6,7 @@ import type {
   BookmarkNumberValue,
   Category,
   CustomProperty,
+  TagNode,
 } from "@eesimple/types";
 
 import { ChevronDown } from "lucide-react";
@@ -13,6 +14,7 @@ import { ChevronDown } from "lucide-react";
 import { AddCategoryModal } from "./AddCategoryModal";
 import { CategoryCustomFields, CategoryDefaultsApplier } from "./BookmarkCustomFields";
 import { BookmarkImageField } from "./BookmarkImageField";
+import { GatedTagPicker } from "./BookmarkTagsField";
 
 import {
   Collapsible,
@@ -35,6 +37,8 @@ interface BookmarkAdvancedSectionProps {
   defaultAuto: boolean;
   autoGrabError: string | null;
   onImageIntentChange: (intent: ImageIntent) => void;
+  tagTree: TagNode[];
+  onTagToggle: (id: string) => void;
   numberInputs: Record<string, string>;
   booleanInputs: Record<string, boolean>;
   dateTimeInputs: Record<string, string>;
@@ -49,8 +53,8 @@ interface BookmarkAdvancedSectionProps {
 }
 
 /**
- * The bookmark form's "Advanced" collapsible: the Category combobox (+ inline create), the image
- * field, and the category's non-main custom properties (with their defaults applier).
+ * The bookmark form's "Advanced" collapsible: the Category combobox (+ inline create), the
+ * Description + Tags fields, the image field, and the category's non-main custom properties.
  */
 export function BookmarkAdvancedSection({
   form,
@@ -64,6 +68,8 @@ export function BookmarkAdvancedSection({
   defaultAuto,
   autoGrabError,
   onImageIntentChange,
+  tagTree,
+  onTagToggle,
   numberInputs,
   booleanInputs,
   dateTimeInputs,
@@ -90,7 +96,20 @@ export function BookmarkAdvancedSection({
       </CollapsibleTrigger>
       <CollapsibleContent className="space-y-4">
         {lockedCategoryId
-          ? null
+          ? (
+            <p
+              className="
+                rounded-md border bg-muted px-3 py-2 text-xs
+                text-muted-foreground
+              "
+            >
+              Category is pre-filled (
+              <span className="font-medium">
+                {categories.find(c => c.id === lockedCategoryId)?.name ?? "a specific category"}
+              </span>
+              ) — open from any other view to change it.
+            </p>
+          )
           : (
             <form.AppField name="categoryId">
               {field => (
@@ -124,19 +143,61 @@ export function BookmarkAdvancedSection({
           onCreated={category => form.setFieldValue("categoryId", category.id)}
         />
 
+        {/* Description and Tags side by side, stretched to a matching height. */}
+        <div
+          className="
+            grid items-stretch gap-4
+            sm:grid-cols-2
+          "
+        >
+          <form.AppField name="description">
+            {field => (
+              <field.TextareaField
+                label="Description"
+                fill
+                inputClassName="min-h-24"
+              />
+            )}
+          </form.AppField>
+
+          <form.Subscribe selector={state => state.values.categoryId}>
+            {categoryId => (
+              <form.Field name="tagIds">
+                {field => (
+                  <div className="flex h-full flex-col gap-1">
+                    <Label>Tags</Label>
+                    <GatedTagPicker
+                      className="flex-1 overflow-auto"
+                      categoryId={categoryId}
+                      tree={tagTree}
+                      selectedIds={field.state.value}
+                      onToggle={(id) => {
+                        onTagToggle(id);
+                        const current = field.state.value;
+                        field.handleChange(
+                          current.includes(id)
+                            ? current.filter(tagId => tagId !== id)
+                            : [...current, id],
+                        );
+                      }}
+                    />
+                  </div>
+                )}
+              </form.Field>
+            )}
+          </form.Subscribe>
+        </div>
+
         <form.Subscribe selector={state => state.values.url}>
           {url => (
-            <div className="space-y-1">
-              <Label>Image</Label>
-              <BookmarkImageField
-                key={imageFieldKey}
-                existingImageUrl={existingImageUrl}
-                pageUrl={url}
-                defaultAuto={defaultAuto}
-                autoGrabError={autoGrabError}
-                onChange={onImageIntentChange}
-              />
-            </div>
+            <BookmarkImageField
+              key={imageFieldKey}
+              existingImageUrl={existingImageUrl}
+              pageUrl={url}
+              defaultAuto={defaultAuto}
+              autoGrabError={autoGrabError}
+              onChange={onImageIntentChange}
+            />
           )}
         </form.Subscribe>
 

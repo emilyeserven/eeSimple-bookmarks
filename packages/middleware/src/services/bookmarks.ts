@@ -1,4 +1,4 @@
-import { and, desc, eq, ilike, inArray, ne } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, like, ne } from "drizzle-orm";
 import type {
   Bookmark,
   BookmarkBooleanValue,
@@ -7,6 +7,7 @@ import type {
   BookmarkMediaType,
   BookmarkNumberValue,
   BookmarkTag,
+  BookmarkUrlDuplicateResult,
   BookmarkUrlSummary,
   BookmarkWebsite,
   BookmarkYouTubeChannel,
@@ -879,4 +880,55 @@ async function recomputeCalculatedValues(tx: Tx, bookmarkId: string): Promise<vo
     value: sumOperands(valueById, operandsByCalc.get(prop.id) ?? []),
   }));
   if (inserts.length > 0) await tx.insert(bookmarkNumberValues).values(inserts);
+}
+
+/** Check if a URL exactly matches an existing bookmark, or shares the same origin+pathname. */
+export async function checkBookmarkUrlDuplicate(url: string): Promise<BookmarkUrlDuplicateResult> {
+  const exact = await db
+    .select({
+      id: bookmarks.id,
+      url: bookmarks.url,
+      title: bookmarks.title,
+    })
+    .from(bookmarks)
+    .where(eq(bookmarks.url, url))
+    .limit(1);
+  if (exact.length > 0) return {
+    exactMatch: exact[0]!,
+    pathMatch: null,
+  };
+
+  let basePath: string;
+  try {
+    const p = new URL(url);
+    basePath = p.origin + p.pathname;
+  }
+  catch {
+    return {
+      exactMatch: null,
+      pathMatch: null,
+    };
+  }
+
+  const candidates = await db
+    .select({
+      id: bookmarks.id,
+      url: bookmarks.url,
+      title: bookmarks.title,
+    })
+    .from(bookmarks)
+    .where(like(bookmarks.url, `${basePath}%`));
+
+  const pathMatch = candidates.find((b) => {
+    try {
+      const p = new URL(b.url);
+      return p.origin + p.pathname === basePath;
+    }
+    catch { return false; }
+  }) ?? null;
+
+  return {
+    exactMatch: null,
+    pathMatch,
+  };
 }
