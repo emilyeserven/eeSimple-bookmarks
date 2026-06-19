@@ -176,6 +176,7 @@ function toWebsite(
       }
       : null,
     tagIds,
+    mediaTypeId: row.mediaTypeId ?? null,
   };
 }
 
@@ -190,6 +191,7 @@ const websiteSelect = {
   paramRules: websites.paramRules,
   createdAt: websites.createdAt,
   categoryId: websites.categoryId,
+  mediaTypeId: websites.mediaTypeId,
   faviconAutoGrabError: websites.faviconAutoGrabError,
   faviconCreatedAt: websiteFavicons.createdAt,
   categoryName: categories.name,
@@ -459,7 +461,7 @@ export async function updateWebsite(
     }
   }
 
-  const patch: Partial<Pick<WebsiteRow, "domain" | "siteName" | "slug" | "shortenedLinks" | "paramRules" | "categoryId">> = {};
+  const patch: Partial<Pick<WebsiteRow, "domain" | "siteName" | "slug" | "shortenedLinks" | "paramRules" | "categoryId" | "mediaTypeId">> = {};
   if (input.siteName !== undefined) patch.siteName = input.siteName;
   // Rule fields stay editable even on built-ins (only rename/move/delete are blocked above).
   if (input.shortenedLinks !== undefined) patch.shortenedLinks = input.shortenedLinks;
@@ -477,6 +479,9 @@ export async function updateWebsite(
   }
   if ("categoryId" in input) {
     patch.categoryId = input.categoryId ?? null;
+  }
+  if ("mediaTypeId" in input) {
+    patch.mediaTypeId = input.mediaTypeId ?? null;
   }
 
   if (Object.keys(patch).length > 0) {

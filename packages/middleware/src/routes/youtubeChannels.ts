@@ -60,6 +60,10 @@ const updateChannelBody = {
         format: "uuid",
       },
     },
+    mediaTypeId: {
+      type: ["string", "null"],
+      format: "uuid",
+    },
   },
 } as const;
 

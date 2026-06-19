@@ -1,9 +1,14 @@
 import type { Tag, YouTubeChannelCategory } from "@eesimple/types";
+import type { ReactNode } from "react";
+
+import { Fragment } from "react";
 
 import { Link } from "@tanstack/react-router";
 
 import { CategoryPill } from "./CategoryPill";
+import { MediaTypePill } from "./MediaTypePill";
 import { useViewPanelClick } from "./panel/useEditPanelClick";
+import { useMediaTypes } from "../hooks/useMediaTypes";
 import { useTags } from "../hooks/useTags";
 
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +20,8 @@ interface SourceAutofillDefaultsProps {
   kind: "website" | "channel";
   /** The source's default category, applied to new bookmarks saved from it. */
   category?: YouTubeChannelCategory | null;
+  /** The source's default media type id, applied to new bookmarks saved from it. */
+  mediaTypeId?: string | null;
   /** The source's default tag ids, applied to new bookmarks saved from it. */
   tagIds?: string[];
 }
@@ -40,24 +47,63 @@ function TagPill({
 }
 
 /**
- * A subtle note surfacing that a website's / YouTube channel's own default category and tags are
- * automatically applied to new bookmarks saved from it. Renders nothing when the source has neither.
+ * A subtle note surfacing that a website's / YouTube channel's own default category, media type, and
+ * tags are automatically applied to new bookmarks saved from it. Renders nothing when the source has
+ * no defaults.
  */
 export function SourceAutofillDefaults({
-  kind, category, tagIds,
+  kind, category, mediaTypeId, tagIds,
 }: SourceAutofillDefaultsProps) {
   const {
     data: tags,
   } = useTags();
+  const {
+    data: mediaTypes,
+  } = useMediaTypes();
 
   const resolvedTags = (tagIds ?? [])
     .map(id => (tags ?? []).find(tag => tag.id === id))
     .filter((tag): tag is Tag => Boolean(tag));
+  const mediaType = mediaTypeId
+    ? (mediaTypes ?? []).find(mt => mt.id === mediaTypeId) ?? null
+    : null;
 
   const hasTags = resolvedTags.length > 0;
-  if (!category && !hasTags) return null;
+  if (!category && !mediaType && !hasTags) return null;
 
   const source = kind === "website" ? "this site" : "this channel";
+
+  // Each default contributes a clause; clauses are joined with "and".
+  const clauses: ReactNode[] = [];
+  if (category) {
+    clauses.push(
+      <>
+        <span>added to</span>
+        <CategoryPill category={category} />
+      </>,
+    );
+  }
+  if (mediaType) {
+    clauses.push(
+      <>
+        <span>marked as</span>
+        <MediaTypePill mediaType={mediaType} />
+      </>,
+    );
+  }
+  if (hasTags) {
+    clauses.push(
+      <>
+        <span>tagged</span>
+        {resolvedTags.map(tag => (
+          <TagPill
+            key={tag.id}
+            tag={tag}
+          />
+        ))}
+      </>,
+    );
+  }
 
   return (
     <p
@@ -66,28 +112,12 @@ export function SourceAutofillDefaults({
       "
     >
       <span>{`New bookmarks saved from ${source} are automatically`}</span>
-      {category
-        ? (
-          <>
-            <span>added to</span>
-            <CategoryPill category={category} />
-          </>
-        )
-        : null}
-      {category && hasTags ? <span>and</span> : null}
-      {hasTags
-        ? (
-          <>
-            <span>tagged</span>
-            {resolvedTags.map(tag => (
-              <TagPill
-                key={tag.id}
-                tag={tag}
-              />
-            ))}
-          </>
-        )
-        : null}
+      {clauses.map((clause, index) => (
+        <Fragment key={index}>
+          {index > 0 ? <span>and</span> : null}
+          {clause}
+        </Fragment>
+      ))}
     </p>
   );
 }

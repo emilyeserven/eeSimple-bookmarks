@@ -51,6 +51,7 @@ function GeneralViewTab() {
           <SourceAutofillDefaults
             kind="channel"
             category={ch.category}
+            mediaTypeId={ch.mediaTypeId}
             tagIds={ch.tagIds}
           />
         </div>

@@ -23,6 +23,7 @@ function AutofillEditTab() {
           <SourceAutofillDefaults
             kind="channel"
             category={channel.category}
+            mediaTypeId={channel.mediaTypeId}
             tagIds={channel.tagIds}
           />
           <AutofillRulesList channelId={channel.id} />

@@ -141,6 +141,11 @@ export const websites = pgTable("websites", {
   categoryId: uuid("category_id").references((): AnyPgColumn => categories.id, {
     onDelete: "set null",
   }),
+  // Optional default media type applied to new bookmarks saved from this site. Nullable (push-safe
+  // additive); set null when the media type is deleted.
+  mediaTypeId: uuid("media_type_id").references((): AnyPgColumn => mediaTypes.id, {
+    onDelete: "set null",
+  }),
   // Specific reason the last favicon auto-grab attempt failed. Nullable so `drizzle-kit push`
   // applies cleanly to existing rows (push-safe additive change). NULL means never attempted or
   // the last attempt succeeded.
@@ -218,6 +223,11 @@ export const youtubeChannels = pgTable("youtube_channels", {
   slug: text("slug"),
   // Optional category association; set null when the category is deleted.
   categoryId: uuid("category_id").references((): AnyPgColumn => categories.id, {
+    onDelete: "set null",
+  }),
+  // Optional default media type applied to new bookmarks saved from this channel. Nullable (push-safe
+  // additive); set null when the media type is deleted.
+  mediaTypeId: uuid("media_type_id").references((): AnyPgColumn => mediaTypes.id, {
     onDelete: "set null",
   }),
   createdAt: timestamp("created_at", {
