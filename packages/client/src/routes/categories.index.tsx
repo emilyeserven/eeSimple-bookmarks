@@ -93,7 +93,7 @@ function CategoriesListingPage() {
 
         {filtered.length > 0
           ? (
-            <div
+            <ul
               className={`
                 grid gap-2
                 ${COLUMN_CLASS[columns]}
@@ -106,7 +106,7 @@ function CategoriesListingPage() {
                   variant="row"
                 />
               ))}
-            </div>
+            </ul>
           )
           : null}
       </div>
