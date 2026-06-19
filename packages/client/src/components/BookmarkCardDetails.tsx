@@ -4,7 +4,7 @@ import { BookmarkTagsBox } from "./BookmarkTagsBox";
 import { CategoryPill } from "./CategoryPill";
 import { MediaTypePill } from "./MediaTypePill";
 import { SourcePill } from "./SourcePill";
-import { formatDateTime, formatNumber } from "../lib/bookmarkFormat";
+import { formatBoolean, formatDateTime, formatNumber } from "../lib/bookmarkFormat";
 
 import { Badge } from "@/components/ui/badge";
 import { useCategories } from "@/hooks/useCategories";
@@ -42,12 +42,12 @@ export function BookmarkCardDetails({
   const booleanBadges = bookmark.booleanValues
     .map((entry) => {
       const property = byId.get(entry.propertyId);
-      return property && property.showInListings
-        ? {
-          id: entry.propertyId,
-          label: `${property.name}: ${entry.value ? "Yes" : "No"}`,
-        }
-        : null;
+      if (!property || !property.showInListings) return null;
+      if (!entry.value && !property.showIfFalse) return null;
+      return {
+        id: entry.propertyId,
+        label: `${property.name}: ${formatBoolean(entry.value, property)}`,
+      };
     })
     .filter((badge): badge is { id: string;
       label: string; } => badge !== null);

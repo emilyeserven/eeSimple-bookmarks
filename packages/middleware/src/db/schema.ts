@@ -466,6 +466,13 @@ export const customProperties = pgTable("custom_properties", {
   enabled: boolean("enabled").notNull().default(true),
   // When false, this property is hidden from the category defaults editor.
   allowDefault: boolean("allow_default").notNull().default(true),
+  // Boolean-specific display settings. All nullable (additive, push-safe). null → false / "yes-no".
+  showIfFalse: boolean("show_if_false"),
+  // "yes-no" | "true-false" | "enabled-disabled" | "icons" | "custom". null → "yes-no".
+  booleanLabelPreset: text("boolean_label_preset"),
+  // Custom labels used only when booleanLabelPreset = "custom".
+  booleanTrueLabel: text("boolean_true_label"),
+  booleanFalseLabel: text("boolean_false_label"),
   // Optional group this property belongs to; grouped properties render together. Nullable + set-null
   // on delete so it's a push-safe additive column and deleting a group simply un-groups its members.
   propertyGroupId: uuid("property_group_id").references(() => propertyGroups.id, {

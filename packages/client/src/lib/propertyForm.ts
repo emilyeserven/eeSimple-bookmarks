@@ -27,6 +27,30 @@ export const TYPE_OPTIONS = [
   },
 ];
 
+/** How `true`/`false` values of a `boolean` property are rendered. */
+export const BOOLEAN_LABEL_PRESET_OPTIONS = [
+  {
+    value: "yes-no",
+    label: "Yes / No",
+  },
+  {
+    value: "true-false",
+    label: "True / False",
+  },
+  {
+    value: "enabled-disabled",
+    label: "Enabled / Disabled",
+  },
+  {
+    value: "icons",
+    label: "✓ / ✗",
+  },
+  {
+    value: "custom",
+    label: "Custom",
+  },
+];
+
 /** What a `datetime` property captures. */
 export const DATE_TIME_FORMAT_OPTIONS = [
   {
@@ -68,6 +92,24 @@ export function summarizeNumberOptions(values: {
   }
   if (values.valuePrefix.trim()) parts.push(`prefix ${values.valuePrefix.trim()}`);
   return parts.length > 0 ? parts.join(" · ") : "No options set";
+}
+
+/** One-line summary of the boolean options for a collapsed "Property options" preview. */
+export function summarizeBooleanOptions(values: {
+  showIfFalse: boolean;
+  booleanLabelPreset: string;
+  booleanTrueLabel: string;
+  booleanFalseLabel: string;
+}): string {
+  const preset = BOOLEAN_LABEL_PRESET_OPTIONS.find(o => o.value === values.booleanLabelPreset);
+  const parts: string[] = [preset?.label ?? "Yes / No"];
+  if (values.booleanLabelPreset === "custom") {
+    const trueText = values.booleanTrueLabel.trim() || "Yes";
+    const falseText = values.booleanFalseLabel.trim() || "No";
+    parts[0] = `${trueText} / ${falseText}`;
+  }
+  if (values.showIfFalse) parts.push("show if false");
+  return parts.join(" · ");
 }
 
 /** One-line summary of the category selection for a collapsed "Categories" preview. */

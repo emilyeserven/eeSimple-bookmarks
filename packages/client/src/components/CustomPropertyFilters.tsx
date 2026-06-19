@@ -11,6 +11,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Label } from "@/components/ui/label";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { formatBoolean } from "@/lib/bookmarkFormat";
 import { cn } from "@/lib/utils";
 
 interface CustomPropertyFiltersProps {
@@ -401,25 +402,24 @@ interface BooleanControlProps {
   onChange: (propertyId: string, value: boolean | undefined) => void;
 }
 
-const BOOLEAN_OPTIONS: ComboboxOption[] = [
-  {
-    value: "true",
-    label: "Yes",
-  },
-  {
-    value: "false",
-    label: "No",
-  },
-];
-
 function BooleanFilterControl({
   property, value, onChange,
 }: BooleanControlProps) {
   const selected = value === undefined ? undefined : String(value);
+  const booleanOptions: ComboboxOption[] = [
+    {
+      value: "true",
+      label: formatBoolean(true, property),
+    },
+    {
+      value: "false",
+      label: formatBoolean(false, property),
+    },
+  ];
 
   return (
     <Combobox
-      options={BOOLEAN_OPTIONS}
+      options={booleanOptions}
       value={selected}
       placeholder={`Filter by ${property.name}…`}
       aria-label={`Filter by ${property.name}`}

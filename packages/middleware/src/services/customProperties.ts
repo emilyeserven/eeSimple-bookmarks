@@ -70,6 +70,10 @@ function toCustomProperty(
     enabled: row.enabled,
     allowDefault: row.allowDefault,
     propertyGroupId: row.propertyGroupId,
+    showIfFalse: row.showIfFalse ?? false,
+    booleanLabelPreset: (row.booleanLabelPreset as CustomProperty["booleanLabelPreset"]) ?? null,
+    booleanTrueLabel: row.booleanTrueLabel ?? null,
+    booleanFalseLabel: row.booleanFalseLabel ?? null,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
   };
@@ -229,6 +233,10 @@ export async function createCustomProperty(
         enabled: input.enabled ?? true,
         allowDefault: input.allowDefault ?? true,
         propertyGroupId: input.propertyGroupId ?? null,
+        showIfFalse: input.showIfFalse ?? null,
+        booleanLabelPreset: input.booleanLabelPreset ?? null,
+        booleanTrueLabel: input.booleanTrueLabel ?? null,
+        booleanFalseLabel: input.booleanFalseLabel ?? null,
       })
       .returning({
         id: customProperties.id,
@@ -268,6 +276,10 @@ type UpdatePatch = Partial<
     | "enabled"
     | "allowDefault"
     | "propertyGroupId"
+    | "showIfFalse"
+    | "booleanLabelPreset"
+    | "booleanTrueLabel"
+    | "booleanFalseLabel"
   >
 >;
 
@@ -295,6 +307,10 @@ function buildUpdatePatch(input: UpdateCustomPropertyInput, renamedSlug: string 
   if (input.enabled !== undefined) patch.enabled = input.enabled;
   if (input.allowDefault !== undefined) patch.allowDefault = input.allowDefault;
   if (input.propertyGroupId !== undefined) patch.propertyGroupId = input.propertyGroupId ?? null;
+  if (input.showIfFalse !== undefined) patch.showIfFalse = input.showIfFalse ?? null;
+  if (input.booleanLabelPreset !== undefined) patch.booleanLabelPreset = input.booleanLabelPreset ?? null;
+  if (input.booleanTrueLabel !== undefined) patch.booleanTrueLabel = input.booleanTrueLabel ?? null;
+  if (input.booleanFalseLabel !== undefined) patch.booleanFalseLabel = input.booleanFalseLabel ?? null;
   return patch;
 }
 
