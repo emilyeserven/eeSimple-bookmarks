@@ -8,8 +8,11 @@ import { Link } from "@tanstack/react-router";
 import { Globe } from "lucide-react";
 
 import { ImageCell } from "./cells";
+import { useCustomAspectRatios } from "../../hooks/useCustomAspectRatios";
 import { useHiddenCardFields } from "../../lib/bookmarkCardFields";
+import { useBookmarkImageMode, useBookmarkImageVisibility } from "../../lib/bookmarkColumns";
 import { formatBoolean, formatDateTime, formatNumber } from "../../lib/bookmarkFormat";
+import { bookmarkImageAspectStyle } from "../../lib/bookmarkImage";
 import { BookmarkTagsBox } from "../BookmarkTagsBox";
 import { CategoryPill } from "../CategoryPill";
 import { MediaTypePill } from "../MediaTypePill";
@@ -55,44 +58,93 @@ export function useBookmarkTableColumns({
   const hidden = useHiddenCardFields(pageKey);
   const viewClick = useViewPanelClick();
   const modifier = useUiStore(state => state.sidebarOpenModifier);
+  const croppedWidth = useUiStore(state => state.croppedWidth);
+  const croppedHeight = useUiStore(state => state.croppedHeight);
+  const imageMode = useBookmarkImageMode(pageKey);
+  const imageVisibility = useBookmarkImageVisibility(pageKey);
+  const {
+    data: customRatios = [],
+  } = useCustomAspectRatios();
   const {
     data: allCategories,
   } = useCategories();
 
   return useMemo(() => {
-    const cols: ColumnDef<Bookmark>[] = [
-      {
-        accessorKey: "title",
-        header: "Title",
+    const cols: ColumnDef<Bookmark>[] = [];
+
+    if (imageVisibility !== "off") {
+      const aspectStyle = bookmarkImageAspectStyle(imageMode, croppedWidth, croppedHeight, customRatios);
+      const isNatural = imageMode === "natural";
+      cols.push({
+        id: "image",
+        header: "",
+        size: 76,
+        minSize: 76,
+        maxSize: 76,
+        enableResizing: false,
+        enableSorting: false,
         cell: ({
           row,
-        }) => (
-          <Link
-            to="/bookmarks/$bookmarkId"
-            params={{
-              bookmarkId: row.original.id,
-            }}
-            title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-            onClick={event => viewClick(event, "bookmark", row.original.id)}
-            className="
-              flex items-center gap-2 font-medium
-              hover:underline
-            "
-          >
-            <ImageCell
-              src={row.original.website?.imageUrl}
-              fallback={<Globe className="size-4" />}
-            />
-            <span className="line-clamp-2">{row.original.title}</span>
-          </Link>
-        ),
-      },
-    ];
+        }) => {
+          const url = row.original.image?.url;
+          if (!url) return null;
+          return (
+            <div
+              className="overflow-hidden rounded-sm"
+              style={{
+                width: 64,
+                ...aspectStyle,
+              }}
+            >
+              <img
+                src={url}
+                alt=""
+                className={isNatural
+                  ? "h-auto max-h-12 w-full object-contain"
+                  : "size-full object-cover"}
+                loading="lazy"
+              />
+            </div>
+          );
+        },
+      });
+    }
+
+    cols.push({
+      accessorKey: "title",
+      header: "Title",
+      size: 280,
+      minSize: 120,
+      cell: ({
+        row,
+      }) => (
+        <Link
+          to="/bookmarks/$bookmarkId"
+          params={{
+            bookmarkId: row.original.id,
+          }}
+          title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+          onClick={event => viewClick(event, "bookmark", row.original.id)}
+          className="
+            flex items-center gap-2 font-medium
+            hover:underline
+          "
+        >
+          <ImageCell
+            src={row.original.website?.imageUrl}
+            fallback={<Globe className="size-4" />}
+          />
+          <span className="line-clamp-2">{row.original.title}</span>
+        </Link>
+      ),
+    });
 
     if (!hidden.has("category")) {
       cols.push({
         id: "category",
         header: "Category",
+        size: 120,
+        minSize: 80,
         enableSorting: false,
         cell: ({
           row,
@@ -109,6 +161,8 @@ export function useBookmarkTableColumns({
       cols.push({
         id: "source",
         header: "Source",
+        size: 140,
+        minSize: 80,
         enableSorting: false,
         cell: ({
           row,
@@ -141,6 +195,8 @@ export function useBookmarkTableColumns({
       cols.push({
         id: "mediaType",
         header: "Media Type",
+        size: 120,
+        minSize: 80,
         enableSorting: false,
         cell: ({
           row,
@@ -152,6 +208,8 @@ export function useBookmarkTableColumns({
       cols.push({
         id: "tags",
         header: "Tags",
+        size: 160,
+        minSize: 80,
         enableSorting: false,
         cell: ({
           row,
@@ -165,6 +223,8 @@ export function useBookmarkTableColumns({
       cols.push({
         id: property.id,
         header: property.name,
+        size: 120,
+        minSize: 80,
         enableSorting: false,
         cell: ({
           row,
@@ -180,6 +240,8 @@ export function useBookmarkTableColumns({
     cols.push({
       accessorKey: "createdAt",
       header: "Added",
+      size: 100,
+      minSize: 80,
       cell: ({
         row,
       }) => (
@@ -190,5 +252,17 @@ export function useBookmarkTableColumns({
     });
 
     return cols;
-  }, [properties, categoryId, hidden, viewClick, modifier, allCategories]);
+  }, [
+    properties,
+    categoryId,
+    hidden,
+    viewClick,
+    modifier,
+    allCategories,
+    imageVisibility,
+    imageMode,
+    croppedWidth,
+    croppedHeight,
+    customRatios,
+  ]);
 }

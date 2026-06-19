@@ -2,6 +2,7 @@ import { Eye } from "lucide-react";
 
 import { CardDisplayControls } from "./CardDisplayControls";
 import { CardOptionsPreview } from "./CardOptionsPreview";
+import { useViewMode } from "../lib/bookmarkColumns";
 
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -13,6 +14,10 @@ interface CardOptionsPopoverProps {
 export function CardOptionsPopover({
   pageKey,
 }: CardOptionsPopoverProps) {
+  const viewMode = useViewMode(pageKey);
+  const isTable = viewMode === "table";
+  const label = isTable ? "Column options" : "Card options";
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -20,7 +25,7 @@ export function CardOptionsPopover({
           type="button"
           variant="ghost"
           size="icon"
-          aria-label="Card options"
+          aria-label={label}
         >
           <Eye className="size-4" />
         </Button>
@@ -29,9 +34,9 @@ export function CardOptionsPopover({
         align="end"
         className="w-auto"
       >
-        <p className="mb-2 text-sm font-medium">Card options</p>
+        <p className="mb-2 text-sm font-medium">{label}</p>
         <div className="flex gap-4">
-          <CardOptionsPreview pageKey={pageKey} />
+          {!isTable && <CardOptionsPreview pageKey={pageKey} />}
           <CardDisplayControls pageKey={pageKey} />
         </div>
       </PopoverContent>

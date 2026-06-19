@@ -1,7 +1,9 @@
 import type {
   ColumnDef,
+  ColumnSizingState,
   Row,
   SortingState,
+  Updater,
 } from "@tanstack/react-table";
 import type { MouseEvent } from "react";
 
@@ -23,12 +25,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 
 interface DataTableProps<T> {
   columns: ColumnDef<T>[];
   data: T[];
   /** Enables column sorting via header clicks. */
   sortable?: boolean;
+  /** Enables drag-to-resize column handles. */
+  resizable?: boolean;
+  /** Controlled column sizing state (for persistence); falls back to local state when omitted. */
+  columnSizing?: ColumnSizingState;
+  /** Called with the resolved new sizing state whenever column widths change. */
+  onColumnSizingChange?: (widths: ColumnSizingState) => void;
   /** Returns child rows for tree data; enables the expanded row model. */
   getSubRows?: (row: T) => T[] | undefined;
   /** Row click handler (skipped when the click originated inside an interactive element). */
@@ -54,23 +63,53 @@ const SORT_INDICATOR: Record<string, string> = {
  * Generic TanStack-Table renderer over the shadcn table primitives. Powers the Table view of
  * listing pages: pass per-entity column defs, the already-filtered rows, and an optional
  * `onRowClick`. Supply `getSubRows` for tree data (Tags / Media Types) to enable expand/collapse.
+ * Pass `resizable` to enable drag-to-resize handles; pair with `columnSizing` /
+ * `onColumnSizingChange` to persist widths externally.
  */
 export function DataTable<T>({
-  columns, data, sortable = false, getSubRows, onRowClick, emptyMessage,
+  columns,
+  data,
+  sortable = false,
+  resizable = false,
+  columnSizing: externalColumnSizing,
+  onColumnSizingChange: externalOnColumnSizingChange,
+  getSubRows,
+  onRowClick,
+  emptyMessage,
 }: DataTableProps<T>) {
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [localColumnSizing, setLocalColumnSizing] = useState<ColumnSizingState>({});
+
+  const columnSizing = externalColumnSizing ?? localColumnSizing;
+
+  function handleColumnSizingChange(updater: Updater<ColumnSizingState>) {
+    const next = typeof updater === "function" ? updater(columnSizing) : updater;
+    if (externalOnColumnSizingChange) {
+      externalOnColumnSizingChange(next);
+    }
+    else {
+      setLocalColumnSizing(next);
+    }
+  }
 
   const table = useReactTable<T>({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    ...(resizable
+      ? {
+        columnResizeMode: "onChange" as const,
+      }
+      : {}),
     ...(sortable
       ? {
         getSortedRowModel: getSortedRowModel(),
-        state: {
-          sorting,
-        },
         onSortingChange: setSorting,
+      }
+      : {}),
+    ...(resizable
+      ? {
+        onColumnSizingChange: handleColumnSizingChange,
       }
       : {}),
     ...(getSubRows
@@ -79,28 +118,61 @@ export function DataTable<T>({
         getExpandedRowModel: getExpandedRowModel(),
       }
       : {}),
+    state: {
+      ...(sortable
+        ? {
+          sorting,
+        }
+        : {}),
+      ...(resizable
+        ? {
+          columnSizing,
+        }
+        : {}),
+    },
   });
 
   const rows = table.getRowModel().rows;
 
   return (
-    <div className="rounded-md border">
+    <div className="overflow-x-auto rounded-md border">
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map(headerGroup => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => {
                 const canSort = header.column.getCanSort();
+                const canResize = resizable && header.column.getCanResize();
                 return (
                   <TableHead
                     key={header.id}
-                    className={canSort ? "cursor-pointer select-none" : undefined}
+                    className={cn(
+                      resizable && "relative",
+                      canSort && "cursor-pointer select-none",
+                    ) || undefined}
+                    style={resizable
+                      ? {
+                        width: header.getSize(),
+                      }
+                      : undefined}
                     onClick={canSort ? header.column.getToggleSortingHandler() : undefined}
                   >
                     {header.isPlaceholder
                       ? null
                       : flexRender(header.column.columnDef.header, header.getContext())}
                     {SORT_INDICATOR[header.column.getIsSorted() as string] ?? null}
+                    {canResize && (
+                      <div
+                        onMouseDown={header.getResizeHandler()}
+                        onTouchStart={header.getResizeHandler()}
+                        className="
+                          absolute top-0 right-0 h-full w-1 cursor-col-resize
+                          touch-none bg-border opacity-0 select-none
+                          hover:opacity-100
+                          active:opacity-100
+                        "
+                      />
+                    )}
                   </TableHead>
                 );
               })}
@@ -131,7 +203,14 @@ export function DataTable<T>({
                   : undefined}
               >
                 {row.getVisibleCells().map(cell => (
-                  <TableCell key={cell.id}>
+                  <TableCell
+                    key={cell.id}
+                    style={resizable
+                      ? {
+                        width: cell.column.getSize(),
+                      }
+                      : undefined}
+                  >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}
