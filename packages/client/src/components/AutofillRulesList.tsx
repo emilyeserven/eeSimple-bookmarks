@@ -8,11 +8,13 @@ import { ALL_CATEGORIES, AutofillRulesToolbar } from "./AutofillRulesToolbar";
 import { useAutofillRules } from "../hooks/useAutofill";
 import { useCategories } from "../hooks/useCategories";
 import { useNewAutofillRule } from "../hooks/useNewAutofillRule";
+import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
 import { useWebsites } from "../hooks/useWebsites";
 import { ruleSetsMediaType, ruleSetsProperty, ruleSetsTag, ruleTargetsWebsite, ruleTargetsYoutubeChannel } from "../lib/autofillRulesFilter";
 import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
 import { summarizeConditions } from "../lib/conditionsSummary";
 
+import { useUiStore } from "@/stores/uiStore";
 interface AutofillRulesListProps {
   /**
    * When set, scopes the list to a single category: only rules that set this category are
@@ -83,8 +85,10 @@ export function AutofillRulesList({
     data: websites,
   } = useWebsites();
 
-  const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState(ALL_CATEGORIES);
+  useRegisterHeaderSearch();
+
+  const rawQuery = useUiStore(state => state.headerSearchQuery);
 
   // Whether the list is scoped to a single entity (category / property / website / tag / media type / channel edit/view tab).
   const scoped = Boolean(categoryId) || Boolean(propertyId) || Boolean(websiteId) || Boolean(tagId) || Boolean(mediaTypeId) || Boolean(channelId);
@@ -112,7 +116,7 @@ export function AutofillRulesList({
   }, [rules, categoryId, propertyId, websiteId, websiteDomain, tagId, mediaTypeId, channelId]);
 
   const visibleRules = useMemo(() => {
-    const query = search.trim().toLowerCase();
+    const query = rawQuery.trim().toLowerCase();
     return scopedRules.filter((rule) => {
       const matchesSearch = query === ""
         || rule.name.toLowerCase().includes(query)
@@ -123,13 +127,11 @@ export function AutofillRulesList({
           : rule.setCategoryId === categoryFilter);
       return matchesSearch && matchesCategory;
     });
-  }, [scopedRules, search, categoryFilter]);
+  }, [scopedRules, rawQuery, categoryFilter]);
 
   return (
     <section className="space-y-6">
       <AutofillRulesToolbar
-        search={search}
-        onSearchChange={setSearch}
         scoped={scoped}
         categoryFilter={categoryFilter}
         onCategoryFilterChange={setCategoryFilter}

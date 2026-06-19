@@ -3,9 +3,11 @@ import type { TagNode } from "@eesimple/types";
 import React from "react";
 
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Filter, PanelRight } from "lucide-react";
+import { PanelRight } from "lucide-react";
 
+import { FilterLocationPopover } from "@/components/FilterLocationPopover";
 import { ListingOptionsPopover } from "@/components/ListingOptionsPopover";
+import { ListingSearchBar } from "@/components/ListingSearchBar";
 import { usePanelControls } from "@/components/panel/usePanelControls";
 import {
   Breadcrumb,
@@ -375,26 +377,21 @@ export function AppHeader() {
   } = usePanelControls();
 
   const listingPage = useUiStore(state => state.listingPage);
-  const filtersHidden = useUiStore(state => state.filtersHidden);
-  const setFiltersHidden = useUiStore(state => state.setFiltersHidden);
+  const headerSearchActive = useUiStore(state => state.headerSearchActive);
 
   // Right-side toolbar controls, left→right; only present ones render, divided by separators.
   const toolbarActions: { key: string;
     node: React.ReactNode; }[] = [];
-  if (listingPage && filtersHidden) {
+  if (headerSearchActive) {
     toolbarActions.push({
-      key: "show-filters",
-      node: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          aria-label="Show filters"
-          onClick={() => setFiltersHidden(false)}
-        >
-          <Filter className="size-4" />
-        </Button>
-      ),
+      key: "search-bar",
+      node: <ListingSearchBar />,
+    });
+  }
+  if (listingPage?.hasFilters) {
+    toolbarActions.push({
+      key: "filter-location",
+      node: <FilterLocationPopover />,
     });
   }
   if (listingPage) {

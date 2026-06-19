@@ -18,6 +18,8 @@ interface BookmarkListPaneProps {
   bookmarks: Bookmark[];
   properties: CustomProperty[];
   search: BookmarkSearch;
+  /** True when the header text search is non-empty, so the "no results" message is correct. */
+  textSearchActive?: boolean;
   isLoading: boolean;
   error: Error | null;
   emptyMessage: string;
@@ -34,6 +36,7 @@ export function BookmarkListPane({
   bookmarks,
   properties,
   search,
+  textSearchActive = false,
   isLoading,
   error,
   emptyMessage,
@@ -42,7 +45,7 @@ export function BookmarkListPane({
 }: BookmarkListPaneProps) {
   const deleteBookmark = useDeleteBookmark();
   const visibleBookmarks = bookmarks.filter(bookmark => bookmarkMatchesSearch(bookmark, search));
-  const hasActiveFilters = hasAnyActiveFilter(search);
+  const hasActiveFilters = hasAnyActiveFilter(search) || textSearchActive;
 
   return (
     <div className="space-y-6">

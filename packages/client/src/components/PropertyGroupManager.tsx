@@ -1,36 +1,29 @@
-import { useState } from "react";
-
 import { PropertyGroupListItem } from "./PropertyGroupListItem";
 import { useSetListingPage } from "../hooks/useListingPage";
 import { usePropertyGroups } from "../hooks/usePropertyGroups";
+import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
 import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
 
-import { Input } from "@/components/ui/input";
+import { useUiStore } from "@/stores/uiStore";
 
 /** Browsable, searchable property-group listing. */
 export function PropertyGroupsListing() {
   const {
     data: allGroups, isLoading, error,
   } = usePropertyGroups();
-  const [search, setSearch] = useState("");
   useSetListingPage("property-groups-listing");
+  useRegisterHeaderSearch();
   const columns = useBookmarkColumns("property-groups-listing");
 
+  const rawQuery = useUiStore(state => state.headerSearchQuery);
   const filtered = (allGroups ?? []).filter((g) => {
-    const q = search.trim().toLowerCase();
+    const q = rawQuery.trim().toLowerCase();
     if (!q) return true;
     return g.name.toLowerCase().includes(q) || g.slug.toLowerCase().includes(q);
   });
 
   return (
     <div className="space-y-4">
-      <Input
-        placeholder="Search by name…"
-        value={search}
-        onChange={event => setSearch(event.target.value)}
-        className="max-w-sm"
-      />
-
       {isLoading ? <p className="text-muted-foreground">Loading property groups…</p> : null}
       {error ? <p className="text-destructive">{error.message}</p> : null}
       {!isLoading && (allGroups?.length ?? 0) === 0
@@ -43,7 +36,7 @@ export function PropertyGroupsListing() {
       {!isLoading && (allGroups?.length ?? 0) > 0 && filtered.length === 0
         ? (
           <p className="text-muted-foreground">
-            No property groups match &ldquo;{search}&rdquo;.
+            No property groups match &ldquo;{rawQuery}&rdquo;.
           </p>
         )
         : null}
