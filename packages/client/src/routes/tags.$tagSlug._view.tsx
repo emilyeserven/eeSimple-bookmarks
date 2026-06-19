@@ -15,6 +15,10 @@ const viewNav = [
     label: "General",
   },
   {
+    to: "/tags/$tagSlug/hierarchy",
+    label: "Hierarchy",
+  },
+  {
     to: "/tags/$tagSlug/autofill",
     label: "Autofill Rules",
   },

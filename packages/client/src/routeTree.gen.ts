@@ -87,6 +87,7 @@ import { Route as TaxonomiesMediaTypesMediaTypeSlugEditRouteImport } from './rou
 import { Route as TaxonomiesMediaTypesMediaTypeSlugViewRouteImport } from './routes/taxonomies.media-types.$mediaTypeSlug._view'
 import { Route as TagsTagSlugEditGeneralRouteImport } from './routes/tags.$tagSlug.edit.general'
 import { Route as TagsTagSlugEditAutofillRouteImport } from './routes/tags.$tagSlug.edit.autofill'
+import { Route as TagsTagSlugViewHierarchyRouteImport } from './routes/tags.$tagSlug._view.hierarchy'
 import { Route as TagsTagSlugViewGeneralRouteImport } from './routes/tags.$tagSlug._view.general'
 import { Route as TagsTagSlugViewAutofillRouteImport } from './routes/tags.$tagSlug._view.autofill'
 import { Route as CustomPropertiesPropertySlugEditOptionsRouteImport } from './routes/custom-properties.$propertySlug.edit.options'
@@ -550,6 +551,12 @@ const TagsTagSlugEditAutofillRoute = TagsTagSlugEditAutofillRouteImport.update({
   path: '/autofill',
   getParentRoute: () => TagsTagSlugEditRoute,
 } as any)
+const TagsTagSlugViewHierarchyRoute =
+  TagsTagSlugViewHierarchyRouteImport.update({
+    id: '/hierarchy',
+    path: '/hierarchy',
+    getParentRoute: () => TagsTagSlugViewRoute,
+  } as any)
 const TagsTagSlugViewGeneralRoute = TagsTagSlugViewGeneralRouteImport.update({
   id: '/general',
   path: '/general',
@@ -908,6 +915,7 @@ export interface FileRoutesByFullPath {
   '/custom-properties/$propertySlug/edit/options': typeof CustomPropertiesPropertySlugEditOptionsRoute
   '/tags/$tagSlug/autofill': typeof TagsTagSlugViewAutofillRoute
   '/tags/$tagSlug/general': typeof TagsTagSlugViewGeneralRoute
+  '/tags/$tagSlug/hierarchy': typeof TagsTagSlugViewHierarchyRoute
   '/tags/$tagSlug/edit/autofill': typeof TagsTagSlugEditAutofillRoute
   '/tags/$tagSlug/edit/general': typeof TagsTagSlugEditGeneralRoute
   '/taxonomies/media-types/$mediaTypeSlug/edit': typeof TaxonomiesMediaTypesMediaTypeSlugEditRouteWithChildren
@@ -1003,6 +1011,7 @@ export interface FileRoutesByTo {
   '/custom-properties/$propertySlug/edit/options': typeof CustomPropertiesPropertySlugEditOptionsRoute
   '/tags/$tagSlug/autofill': typeof TagsTagSlugViewAutofillRoute
   '/tags/$tagSlug/general': typeof TagsTagSlugViewGeneralRoute
+  '/tags/$tagSlug/hierarchy': typeof TagsTagSlugViewHierarchyRoute
   '/tags/$tagSlug/edit/autofill': typeof TagsTagSlugEditAutofillRoute
   '/tags/$tagSlug/edit/general': typeof TagsTagSlugEditGeneralRoute
   '/taxonomies/media-types/$mediaTypeSlug': typeof TaxonomiesMediaTypesMediaTypeSlugIndexRoute
@@ -1122,6 +1131,7 @@ export interface FileRoutesById {
   '/custom-properties/$propertySlug/edit/options': typeof CustomPropertiesPropertySlugEditOptionsRoute
   '/tags/$tagSlug/_view/autofill': typeof TagsTagSlugViewAutofillRoute
   '/tags/$tagSlug/_view/general': typeof TagsTagSlugViewGeneralRoute
+  '/tags/$tagSlug/_view/hierarchy': typeof TagsTagSlugViewHierarchyRoute
   '/tags/$tagSlug/edit/autofill': typeof TagsTagSlugEditAutofillRoute
   '/tags/$tagSlug/edit/general': typeof TagsTagSlugEditGeneralRoute
   '/taxonomies/media-types/$mediaTypeSlug/_view': typeof TaxonomiesMediaTypesMediaTypeSlugViewRouteWithChildren
@@ -1246,6 +1256,7 @@ export interface FileRouteTypes {
     | '/custom-properties/$propertySlug/edit/options'
     | '/tags/$tagSlug/autofill'
     | '/tags/$tagSlug/general'
+    | '/tags/$tagSlug/hierarchy'
     | '/tags/$tagSlug/edit/autofill'
     | '/tags/$tagSlug/edit/general'
     | '/taxonomies/media-types/$mediaTypeSlug/edit'
@@ -1341,6 +1352,7 @@ export interface FileRouteTypes {
     | '/custom-properties/$propertySlug/edit/options'
     | '/tags/$tagSlug/autofill'
     | '/tags/$tagSlug/general'
+    | '/tags/$tagSlug/hierarchy'
     | '/tags/$tagSlug/edit/autofill'
     | '/tags/$tagSlug/edit/general'
     | '/taxonomies/media-types/$mediaTypeSlug'
@@ -1459,6 +1471,7 @@ export interface FileRouteTypes {
     | '/custom-properties/$propertySlug/edit/options'
     | '/tags/$tagSlug/_view/autofill'
     | '/tags/$tagSlug/_view/general'
+    | '/tags/$tagSlug/_view/hierarchy'
     | '/tags/$tagSlug/edit/autofill'
     | '/tags/$tagSlug/edit/general'
     | '/taxonomies/media-types/$mediaTypeSlug/_view'
@@ -2060,6 +2073,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/tags/$tagSlug/edit/autofill'
       preLoaderRoute: typeof TagsTagSlugEditAutofillRouteImport
       parentRoute: typeof TagsTagSlugEditRoute
+    }
+    '/tags/$tagSlug/_view/hierarchy': {
+      id: '/tags/$tagSlug/_view/hierarchy'
+      path: '/hierarchy'
+      fullPath: '/tags/$tagSlug/hierarchy'
+      preLoaderRoute: typeof TagsTagSlugViewHierarchyRouteImport
+      parentRoute: typeof TagsTagSlugViewRoute
     }
     '/tags/$tagSlug/_view/general': {
       id: '/tags/$tagSlug/_view/general'
@@ -2697,11 +2717,13 @@ const SettingsRouteWithChildren = SettingsRoute._addFileChildren(
 interface TagsTagSlugViewRouteChildren {
   TagsTagSlugViewAutofillRoute: typeof TagsTagSlugViewAutofillRoute
   TagsTagSlugViewGeneralRoute: typeof TagsTagSlugViewGeneralRoute
+  TagsTagSlugViewHierarchyRoute: typeof TagsTagSlugViewHierarchyRoute
 }
 
 const TagsTagSlugViewRouteChildren: TagsTagSlugViewRouteChildren = {
   TagsTagSlugViewAutofillRoute: TagsTagSlugViewAutofillRoute,
   TagsTagSlugViewGeneralRoute: TagsTagSlugViewGeneralRoute,
+  TagsTagSlugViewHierarchyRoute: TagsTagSlugViewHierarchyRoute,
 }
 
 const TagsTagSlugViewRouteWithChildren = TagsTagSlugViewRoute._addFileChildren(
