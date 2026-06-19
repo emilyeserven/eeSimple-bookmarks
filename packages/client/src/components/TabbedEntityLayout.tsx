@@ -11,6 +11,7 @@ export const navLinkClass = `
 `;
 
 export interface TabNavItem {
+  type?: never;
   to: LinkProps["to"];
   label: string;
 }

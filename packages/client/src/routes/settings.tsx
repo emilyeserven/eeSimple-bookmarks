@@ -9,19 +9,46 @@ export const Route = createFileRoute("/settings")({
 });
 
 const settingsNav: readonly TabNavEntry[] = [
-  { to: "/settings/display",      label: "Display" },
-  { to: "/settings/sidebar",      label: "Drawer" },
-  { to: "/settings/homepage",     label: "Homepage" },
-  { to: "/settings/gallery",      label: "Gallery" },
-  { to: "/settings/automations",  label: "Automations" },
-  { to: "/settings/link-parsing", label: "Link Parsing" },
+  {
+    to: "/settings/display",
+    label: "Display",
+  },
+  {
+    to: "/settings/sidebar",
+    label: "Drawer",
+  },
+  {
+    to: "/settings/homepage",
+    label: "Homepage",
+  },
+  {
+    to: "/settings/gallery",
+    label: "Gallery",
+  },
+  {
+    to: "/settings/automations",
+    label: "Automations",
+  },
+  {
+    to: "/settings/link-parsing",
+    label: "Link Parsing",
+  },
   {
     type: "group",
     label: "More Settings",
     items: [
-      { to: "/settings/more-categories",    label: "Categories" },
-      { to: "/settings/more-taxonomies",    label: "Taxonomies" },
-      { to: "/settings/more-customization", label: "Customization" },
+      {
+        to: "/settings/more-categories",
+        label: "Categories",
+      },
+      {
+        to: "/settings/more-taxonomies",
+        label: "Taxonomies",
+      },
+      {
+        to: "/settings/more-customization",
+        label: "Customization",
+      },
     ],
   },
 ] as const;

@@ -5,7 +5,6 @@ import { useCategories } from "../hooks/useCategories";
 
 import {
   Card,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -16,7 +15,10 @@ export const Route = createFileRoute("/settings/more-categories")({
 });
 
 function MoreCategoriesPage() {
-  const { data: categories, isLoading } = useCategories();
+  const {
+    data: categories,
+    isLoading,
+  } = useCategories();
 
   return (
     <section className="space-y-6">
@@ -41,9 +43,14 @@ function MoreCategoriesPage() {
                 <Link
                   key={category.id}
                   to="/categories/$categorySlug/general"
-                  params={{ categorySlug: category.slug }}
+                  params={{
+                    categorySlug: category.slug,
+                  }}
                 >
-                  <Card className="cursor-pointer py-4 transition-colors hover:bg-accent">
+                  <Card className="
+                    cursor-pointer py-4 transition-colors
+                    hover:bg-accent
+                  ">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2 text-base">
                         <CategoryIcon
@@ -73,7 +80,10 @@ function MoreCategoriesPage() {
       {categories && categories.length > 0 && (
         <Link
           to="/categories"
-          className="inline-flex items-center gap-1.5 text-sm underline underline-offset-4"
+          className="
+            inline-flex items-center gap-1.5 text-sm
+            underline underline-offset-4
+          "
         >
           <FolderOpen className="size-4" />
           Manage all categories
