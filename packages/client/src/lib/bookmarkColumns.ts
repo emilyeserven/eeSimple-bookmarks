@@ -1,4 +1,4 @@
-import type { BookmarkImageVisibility, HomepageSectionImageLayout } from "../stores/uiStore";
+import type { BookmarkImageVisibility, HomepageSectionImageLayout, ViewMode } from "../stores/uiStore";
 
 import { useIsMobile } from "../hooks/use-mobile";
 import { useUiStore } from "../stores/uiStore";
@@ -42,7 +42,15 @@ export function bookmarkImageModeLabel(mode: string): string {
   return "Custom";
 }
 
-export type { BookmarkImageVisibility, HomepageSectionImageLayout };
+export type { BookmarkImageVisibility, HomepageSectionImageLayout, ViewMode };
+
+/** Default view mode for a listing page that has no saved preference. */
+export const DEFAULT_VIEW_MODE: ViewMode = "cards";
+
+/** The chosen view mode for a listing page, falling back to the default (card grid). */
+export function useViewMode(pageKey: string): ViewMode {
+  return useUiStore(state => state.viewMode[pageKey] ?? DEFAULT_VIEW_MODE);
+}
 
 /** Default image visibility for a listing page (full card with image shown). */
 export const DEFAULT_BOOKMARK_IMAGE_VISIBILITY: BookmarkImageVisibility = "shown";

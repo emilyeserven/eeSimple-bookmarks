@@ -4,13 +4,16 @@ import { useNavigate } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 
 import { AddWebsiteModal } from "./AddWebsiteModal";
+import { useTableRowNav } from "./tables/useTableRowNav";
+import { useWebsiteColumns } from "./tables/websiteColumns";
 import { WebsiteListItem } from "./WebsiteListItem";
 import { useSetListingPage } from "../hooks/useListingPage";
 import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
 import { useWebsites } from "../hooks/useWebsites";
-import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
+import { COLUMN_CLASS, useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
 
 import { Button } from "@/components/ui/button";
+import { DataTable } from "@/components/ui/data-table";
 import { useUiStore } from "@/stores/uiStore";
 
 /** Browsable, searchable website listing with add modal. Shared by the Websites taxonomy page and the Settings Websites page. */
@@ -22,6 +25,9 @@ export function WebsitesListing() {
   useSetListingPage("websites-listing");
   useRegisterHeaderSearch();
   const columns = useBookmarkColumns("websites-listing");
+  const viewMode = useViewMode("websites-listing");
+  const websiteColumns = useWebsiteColumns();
+  const rowNav = useTableRowNav();
   const navigate = useNavigate();
 
   const rawQuery = useUiStore(state => state.headerSearchQuery);
@@ -72,7 +78,26 @@ export function WebsitesListing() {
           )
           : null}
 
-        {filtered.length > 0
+        {filtered.length > 0 && viewMode === "table"
+          ? (
+            <DataTable
+              columns={websiteColumns}
+              data={filtered}
+              sortable
+              onRowClick={(website, event) =>
+                rowNav(event, "website", website.id, () => {
+                  void navigate({
+                    to: "/taxonomies/websites/$websiteSlug",
+                    params: {
+                      websiteSlug: website.slug,
+                    },
+                  });
+                })}
+            />
+          )
+          : null}
+
+        {filtered.length > 0 && viewMode !== "table"
           ? (
             <div
               className={`

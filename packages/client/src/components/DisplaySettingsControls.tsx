@@ -1,4 +1,4 @@
-import type { BookmarkImageVisibility, HomepageSectionImageLayout } from "../lib/bookmarkColumns";
+import type { BookmarkImageVisibility, HomepageSectionImageLayout, ViewMode } from "../lib/bookmarkColumns";
 import type { CustomAspectRatio, DisplayPresetSettings } from "@eesimple/types";
 
 import { useState } from "react";
@@ -8,7 +8,7 @@ import { Bookmark } from "lucide-react";
 import { InlineCreateModal } from "./InlineCreateModal";
 import { useCustomAspectRatios } from "../hooks/useCustomAspectRatios";
 import { useCreateDisplayPreset, useDisplayPresets } from "../hooks/useDisplayPresets";
-import { COLUMN_OPTIONS, useBookmarkColumns, useBookmarkImageLayout, useBookmarkImageMode, useBookmarkImageVisibility } from "../lib/bookmarkColumns";
+import { COLUMN_OPTIONS, useBookmarkColumns, useBookmarkImageLayout, useBookmarkImageMode, useBookmarkImageVisibility, useViewMode } from "../lib/bookmarkColumns";
 import { useUiStore } from "../stores/uiStore";
 
 import { Button } from "@/components/ui/button";
@@ -75,6 +75,8 @@ function applyDisplayPreset(
 export function DisplaySettingsControls({
   pageKey, showsImages,
 }: DisplaySettingsControlsProps) {
+  const viewMode = useViewMode(pageKey);
+  const setViewMode = useUiStore(state => state.setViewMode);
   const columns = useBookmarkColumns(pageKey);
   const imageMode = useBookmarkImageMode(pageKey);
   const imageVisibility = useBookmarkImageVisibility(pageKey);
@@ -104,6 +106,39 @@ export function DisplaySettingsControls({
 
   return (
     <div className="flex flex-col gap-2.5">
+      {/* View mode */}
+      <div className="flex items-center justify-between gap-4">
+        <Label className="text-sm font-medium">View</Label>
+        <ToggleGroup
+          type="single"
+          size="sm"
+          value={viewMode}
+          className="gap-0 overflow-hidden rounded-md border border-input"
+          onValueChange={(value) => {
+            if (value) setViewMode(pageKey, value as ViewMode);
+          }}
+        >
+          <ToggleGroupItem
+            value="cards"
+            className="
+              rounded-none border-r border-input
+              first:rounded-l-sm
+            "
+          >
+            Cards
+          </ToggleGroupItem>
+          <ToggleGroupItem
+            value="table"
+            className="
+              rounded-none
+              last:rounded-r-sm
+            "
+          >
+            Table
+          </ToggleGroupItem>
+        </ToggleGroup>
+      </div>
+
       {/* Preset picker */}
       {presets.length > 0 && (
         <div className="flex items-center justify-between gap-4">
@@ -140,127 +175,135 @@ export function DisplaySettingsControls({
         </div>
       )}
 
-      {/* Columns */}
-      <div className="flex items-center justify-between gap-4">
-        <Label className="text-sm font-medium">Columns</Label>
-        <Select
-          value={String(columns)}
-          onValueChange={value => setBookmarkColumns(pageKey, Number(value))}
-        >
-          <SelectTrigger className="h-7 w-16 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {COLUMN_OPTIONS.map(option => (
-              <SelectItem
-                key={option}
-                value={String(option)}
-              >
-                {option}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {showsImages && (
+      {viewMode === "cards" && (
         <>
-          {/* Images */}
+          {/* Columns */}
           <div className="flex items-center justify-between gap-4">
-            <Label className="text-sm font-medium">Images</Label>
-            <ToggleGroup
-              type="single"
-              size="sm"
-              value={imageVisibility}
-              className="gap-0 overflow-hidden rounded-md border border-input"
-              onValueChange={(value) => {
-                if (value) setBookmarkImageVisibility(pageKey, value as BookmarkImageVisibility);
-              }}
+            <Label className="text-sm font-medium">Columns</Label>
+            <Select
+              value={String(columns)}
+              onValueChange={value => setBookmarkColumns(pageKey, Number(value))}
             >
-              <ToggleGroupItem
-                value="shown"
-                className="
-                  rounded-none border-r border-input
-                  first:rounded-l-sm
-                  last:rounded-r-sm
-                "
-              >
-                Show
-              </ToggleGroupItem>
-              <ToggleGroupItem
-                value="image-only"
-                className="rounded-none border-r border-input"
-              >
-                Only
-              </ToggleGroupItem>
-              <ToggleGroupItem
-                value="off"
-                className="
-                  rounded-none
-                  last:rounded-r-sm
-                "
-              >
-                Off
-              </ToggleGroupItem>
-            </ToggleGroup>
+              <SelectTrigger className="h-7 w-16 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {COLUMN_OPTIONS.map(option => (
+                  <SelectItem
+                    key={option}
+                    value={String(option)}
+                  >
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          {imageVisibility !== "off" && (
-            <div className="flex items-center justify-between gap-4">
-              <Label className="text-sm font-medium">Aspect</Label>
-              <Select
-                value={typeof imageMode === "boolean" ? (imageMode ? "natural" : "cropped") : imageMode}
-                onValueChange={value => setBookmarkImageMode(pageKey, value)}
-              >
-                <SelectTrigger className="h-7 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {buildAspectOptions(croppedWidth, croppedHeight, customRatios).map(opt => (
-                    <SelectItem
-                      key={opt.value}
-                      value={opt.value}
-                    >
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+          {showsImages && (
+            <>
+              {/* Images */}
+              <div className="flex items-center justify-between gap-4">
+                <Label className="text-sm font-medium">Images</Label>
+                <ToggleGroup
+                  type="single"
+                  size="sm"
+                  value={imageVisibility}
+                  className="
+                    gap-0 overflow-hidden rounded-md border border-input
+                  "
+                  onValueChange={(value) => {
+                    if (value) setBookmarkImageVisibility(pageKey, value as BookmarkImageVisibility);
+                  }}
+                >
+                  <ToggleGroupItem
+                    value="shown"
+                    className="
+                      rounded-none border-r border-input
+                      first:rounded-l-sm
+                      last:rounded-r-sm
+                    "
+                  >
+                    Show
+                  </ToggleGroupItem>
+                  <ToggleGroupItem
+                    value="image-only"
+                    className="rounded-none border-r border-input"
+                  >
+                    Only
+                  </ToggleGroupItem>
+                  <ToggleGroupItem
+                    value="off"
+                    className="
+                      rounded-none
+                      last:rounded-r-sm
+                    "
+                  >
+                    Off
+                  </ToggleGroupItem>
+                </ToggleGroup>
+              </div>
 
-          {imageVisibility === "shown" && (columns === 1 || columns === 2) && (
-            <div className="flex items-center justify-between gap-4">
-              <Label className="text-sm font-medium">Layout</Label>
-              <ToggleGroup
-                type="single"
-                size="sm"
-                value={imageLayout}
-                className="gap-0 overflow-hidden rounded-md border border-input"
-                onValueChange={(value) => {
-                  if (value) setBookmarkImageLayout(pageKey, value as HomepageSectionImageLayout);
-                }}
-              >
-                <ToggleGroupItem
-                  value="above"
-                  className="
-                    rounded-none border-r border-input
-                    first:rounded-l-sm
-                  "
-                >
-                  Above
-                </ToggleGroupItem>
-                <ToggleGroupItem
-                  value="side"
-                  className="
-                    rounded-none
-                    last:rounded-r-sm
-                  "
-                >
-                  Side
-                </ToggleGroupItem>
-              </ToggleGroup>
-            </div>
+              {imageVisibility !== "off" && (
+                <div className="flex items-center justify-between gap-4">
+                  <Label className="text-sm font-medium">Aspect</Label>
+                  <Select
+                    value={typeof imageMode === "boolean" ? (imageMode ? "natural" : "cropped") : imageMode}
+                    onValueChange={value => setBookmarkImageMode(pageKey, value)}
+                  >
+                    <SelectTrigger className="h-7 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {buildAspectOptions(croppedWidth, croppedHeight, customRatios).map(opt => (
+                        <SelectItem
+                          key={opt.value}
+                          value={opt.value}
+                        >
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {imageVisibility === "shown" && (columns === 1 || columns === 2) && (
+                <div className="flex items-center justify-between gap-4">
+                  <Label className="text-sm font-medium">Layout</Label>
+                  <ToggleGroup
+                    type="single"
+                    size="sm"
+                    value={imageLayout}
+                    className="
+                      gap-0 overflow-hidden rounded-md border border-input
+                    "
+                    onValueChange={(value) => {
+                      if (value) setBookmarkImageLayout(pageKey, value as HomepageSectionImageLayout);
+                    }}
+                  >
+                    <ToggleGroupItem
+                      value="above"
+                      className="
+                        rounded-none border-r border-input
+                        first:rounded-l-sm
+                      "
+                    >
+                      Above
+                    </ToggleGroupItem>
+                    <ToggleGroupItem
+                      value="side"
+                      className="
+                        rounded-none
+                        last:rounded-r-sm
+                      "
+                    >
+                      Side
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+                </div>
+              )}
+            </>
           )}
         </>
       )}
