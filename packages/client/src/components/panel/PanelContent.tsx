@@ -1,4 +1,5 @@
 import { getContentType } from "./contentTypes";
+import { NotificationsPanel } from "./NotificationsPanel";
 import { PanelList } from "./PanelList";
 import { PanelTypeTiles } from "./PanelTypeTiles";
 import { usePanelControls } from "./usePanelControls";
@@ -17,6 +18,8 @@ export function PanelContent() {
   } = usePanelControls();
 
   if (!dCT) return <PanelTypeTiles />;
+  // Notifications is a registry-less, list-only view (no per-item view/edit).
+  if (dCT === "notifications") return <NotificationsPanel />;
   if (!dCId) {
     return (
       <PanelList

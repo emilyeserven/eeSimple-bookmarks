@@ -1,6 +1,6 @@
 import type { HomepageContentSettings as HomepageContent } from "@eesimple/types";
 
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { HomepageContentSettings } from "./HomepageContentSettings";
@@ -65,30 +65,43 @@ describe("HomepageContentSettings", () => {
     })).toBeInTheDocument();
   });
 
-  it("saves the edited homepage content", () => {
-    render(<HomepageContentSettings />);
+  it("auto-saves the edited homepage content after a debounce", () => {
+    vi.useFakeTimers();
+    try {
+      render(<HomepageContentSettings />);
 
-    fireEvent.change(screen.getByLabelText("Homepage text"), {
-      target: {
-        value: "Updated copy",
-      },
-    });
-    fireEvent.click(screen.getByRole("checkbox", {
-      name: /Enable Bookmark Quick Add/,
-    }));
-    fireEvent.click(screen.getByRole("radio", {
-      name: "Expanded",
-    }));
-    fireEvent.click(screen.getAllByRole("button", {
-      name: "Save",
-    })[0]);
+      fireEvent.change(screen.getByLabelText("Homepage text"), {
+        target: {
+          value: "Updated copy",
+        },
+      });
+      fireEvent.click(screen.getByRole("checkbox", {
+        name: /Enable Bookmark Quick Add/,
+      }));
+      fireEvent.click(screen.getByRole("radio", {
+        name: "Expanded",
+      }));
 
-    expect(updateMutate).toHaveBeenCalledTimes(1);
-    const [payload] = updateMutate.mock.calls[0];
-    expect(payload).toMatchObject({
-      homepageText: "Updated copy",
-      bookmarkQuickAddEnabled: true,
-      bookmarkQuickAddDisplay: "expanded",
-    });
+      // No Save button — editing schedules a debounced save instead.
+      expect(screen.queryByRole("button", {
+        name: "Save",
+      })).toBeNull();
+
+      // The rapid edits coalesce into a single save once the debounce window elapses.
+      act(() => {
+        vi.runAllTimers();
+      });
+
+      expect(updateMutate).toHaveBeenCalledTimes(1);
+      const [payload] = updateMutate.mock.calls[0];
+      expect(payload).toMatchObject({
+        homepageText: "Updated copy",
+        bookmarkQuickAddEnabled: true,
+        bookmarkQuickAddDisplay: "expanded",
+      });
+    }
+    finally {
+      vi.useRealTimers();
+    }
   });
 });

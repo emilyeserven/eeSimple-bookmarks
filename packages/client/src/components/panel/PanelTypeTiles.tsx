@@ -1,3 +1,5 @@
+import { Bell } from "lucide-react";
+
 import { PANEL_CONTENT_TYPES } from "./contentTypes";
 import { usePanelControls } from "./usePanelControls";
 
@@ -31,6 +33,15 @@ export function PanelTypeTiles() {
           </Button>
         ))}
       </div>
+      <Button
+        type="button"
+        variant="outline"
+        className="h-auto w-full flex-col items-start gap-2 p-4"
+        onClick={() => openType("notifications")}
+      >
+        <Bell className="size-5" />
+        <span className="text-sm font-medium">Notifications</span>
+      </Button>
     </div>
   );
 }

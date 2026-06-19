@@ -50,6 +50,40 @@ export function PanelBreadcrumbs() {
 
   if (!dCT) return null;
 
+  // Notifications has no registry entry; render a simple "Browse > Notifications" trail.
+  if (dCT === "notifications") {
+    return (
+      <div className="flex items-center gap-1 px-4 pb-2">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="size-7 shrink-0"
+          aria-label="Back to content types"
+          onClick={open}
+        >
+          <ChevronLeft className="size-4" />
+        </Button>
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink
+                className="cursor-pointer"
+                onClick={open}
+              >
+                Browse
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>Notifications</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </div>
+    );
+  }
+
   const def = getContentType(dCT);
 
   const atList = !dCId;

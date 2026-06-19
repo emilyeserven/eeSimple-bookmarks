@@ -5,9 +5,9 @@ import type {
 } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 
 import { homepageSectionsApi } from "../lib/api";
+import { notifyError, notifySuccess } from "../lib/notifications";
 
 const SECTIONS_KEY = ["homepage-sections"] as const;
 const SECTIONS_WITH_BOOKMARKS_KEY = ["bookmarks", "homepage-sections"] as const;
@@ -41,7 +41,7 @@ export function useCreateHomepageSection() {
     mutationFn: (input: CreateHomepageSectionInput) => homepageSectionsApi.create(input),
     onSuccess: () => {
       invalidateAll(queryClient);
-      toast.success("Section created");
+      notifySuccess("Section created");
     },
   });
 }
@@ -56,7 +56,7 @@ export function useUpdateHomepageSection() {
       homepageSectionsApi.update(id, input),
     onSuccess: () => {
       invalidateAll(queryClient);
-      toast.success("Section saved");
+      notifySuccess("Section saved");
     },
   });
 }
@@ -67,7 +67,7 @@ export function useDeleteHomepageSection() {
     mutationFn: (id: string) => homepageSectionsApi.remove(id),
     onSuccess: () => {
       invalidateAll(queryClient);
-      toast.success("Section deleted");
+      notifySuccess("Section deleted");
     },
   });
 }
@@ -87,7 +87,7 @@ export function useReorderHomepageSections() {
       void queryClient.invalidateQueries({
         queryKey: SECTIONS_KEY,
       });
-      toast.error("Reorder failed");
+      notifyError("Reorder failed");
     },
   });
 }
