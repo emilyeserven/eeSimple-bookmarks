@@ -28,3 +28,13 @@ export function ruleTargetsWebsite(rule: AutofillRule, domain: string): boolean 
   };
   return visit(rule.conditions);
 }
+
+/** True when any youtube-channel condition in the rule's tree references `channelId`. */
+export function ruleTargetsYoutubeChannel(rule: AutofillRule, channelId: string): boolean {
+  const visit = (node: ConditionNode): boolean => {
+    if (node.type === "youtube-channel") return node.channelIds.includes(channelId);
+    if (node.type === "group") return node.children.some(visit);
+    return false;
+  };
+  return visit(rule.conditions);
+}

@@ -11,6 +11,8 @@ export interface ConditionSummary {
   websites: number;
   /** Number of selected tag ids (a single tag leaf can hold several). */
   tags: number;
+  /** Number of selected YouTube channel ids (a single youtube-channel leaf can hold several). */
+  channels: number;
   properties: number;
   combinator: "and" | "or";
 }
@@ -21,12 +23,14 @@ export function summarizeConditions(tree: ConditionTree): ConditionSummary {
   let categories = 0;
   let websites = 0;
   let tags = 0;
+  let channels = 0;
   let properties = 0;
   for (const child of tree.children) {
     if (child.type === "match") match += 1;
     else if (child.type === "category") categories += child.categoryIds.length;
     else if (child.type === "website") websites += child.domains.length;
     else if (child.type === "tag") tags += child.tagIds.length;
+    else if (child.type === "youtube-channel") channels += child.channelIds.length;
     else if (child.type === "property") properties += 1;
   }
   return {
@@ -35,6 +39,7 @@ export function summarizeConditions(tree: ConditionTree): ConditionSummary {
     categories,
     websites,
     tags,
+    channels,
     properties,
     combinator: tree.combinator,
   };
@@ -55,6 +60,7 @@ export function conditionsBreakdown(tree: ConditionTree): string[] {
   if (summary.categories > 0) lines.push(`${summary.categories} categor${summary.categories === 1 ? "y" : "ies"}`);
   if (summary.websites > 0) lines.push(`${summary.websites} website${summary.websites === 1 ? "" : "s"}`);
   if (summary.tags > 0) lines.push(`${summary.tags} tag${summary.tags === 1 ? "" : "s"}`);
+  if (summary.channels > 0) lines.push(`${summary.channels} YouTube channel${summary.channels === 1 ? "" : "s"}`);
   if (summary.properties > 0) lines.push(`${summary.properties} custom propert${summary.properties === 1 ? "y" : "ies"}`);
   return lines;
 }

@@ -8,7 +8,7 @@ import { ALL_CATEGORIES, AutofillRulesToolbar } from "./AutofillRulesToolbar";
 import { useAutofillRules } from "../hooks/useAutofill";
 import { useCategories } from "../hooks/useCategories";
 import { useWebsites } from "../hooks/useWebsites";
-import { ruleSetsMediaType, ruleSetsProperty, ruleSetsTag, ruleTargetsWebsite } from "../lib/autofillRulesFilter";
+import { ruleSetsMediaType, ruleSetsProperty, ruleSetsTag, ruleTargetsWebsite, ruleTargetsYoutubeChannel } from "../lib/autofillRulesFilter";
 import { summarizeConditions } from "../lib/conditionsSummary";
 
 interface AutofillRulesListProps {
@@ -37,6 +37,11 @@ interface AutofillRulesListProps {
    * and the category filter is hidden.
    */
   mediaTypeId?: string;
+  /**
+   * When set, scopes the list to a single YouTube channel: only rules whose conditions target this
+   * channel (via a youtube-channel condition) are shown and the category filter is hidden.
+   */
+  channelId?: string;
 }
 
 function emptyStateMessage(
@@ -45,12 +50,14 @@ function emptyStateMessage(
   websiteId: string | undefined,
   tagId: string | undefined,
   mediaTypeId: string | undefined,
+  channelId: string | undefined,
 ): string {
   if (categoryId) return "No autofill rules add bookmarks to this category yet. Create one above.";
   if (propertyId) return "No autofill rules set this property yet. Create one above.";
   if (websiteId) return "No autofill rules target this website yet. Create one above.";
   if (tagId) return "No autofill rules apply this tag yet. Create one above.";
   if (mediaTypeId) return "No autofill rules set this media type yet. Create one above.";
+  if (channelId) return "No autofill rules target this channel yet. Create one above.";
   return "No autofill rules yet. Create one above.";
 }
 
@@ -61,6 +68,7 @@ export function AutofillRulesList({
   websiteId,
   tagId,
   mediaTypeId,
+  channelId,
 }: AutofillRulesListProps = {}) {
   const {
     data: rules, isLoading, error,
@@ -75,8 +83,8 @@ export function AutofillRulesList({
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState(ALL_CATEGORIES);
 
-  // Whether the list is scoped to a single entity (category / property / website / tag / media type edit/view tab).
-  const scoped = Boolean(categoryId) || Boolean(propertyId) || Boolean(websiteId) || Boolean(tagId) || Boolean(mediaTypeId);
+  // Whether the list is scoped to a single entity (category / property / website / tag / media type / channel edit/view tab).
+  const scoped = Boolean(categoryId) || Boolean(propertyId) || Boolean(websiteId) || Boolean(tagId) || Boolean(mediaTypeId) || Boolean(channelId);
 
   // The scoping website's normalized domain (rules reference websites by domain, not id).
   const websiteDomain = useMemo(() => {
@@ -93,8 +101,9 @@ export function AutofillRulesList({
     if (websiteId) list = websiteDomain ? list.filter(rule => ruleTargetsWebsite(rule, websiteDomain)) : [];
     if (tagId) list = list.filter(rule => ruleSetsTag(rule, tagId));
     if (mediaTypeId) list = list.filter(rule => ruleSetsMediaType(rule, mediaTypeId));
+    if (channelId) list = list.filter(rule => ruleTargetsYoutubeChannel(rule, channelId));
     return list;
-  }, [rules, categoryId, propertyId, websiteId, websiteDomain, tagId, mediaTypeId]);
+  }, [rules, categoryId, propertyId, websiteId, websiteDomain, tagId, mediaTypeId, channelId]);
 
   const visibleRules = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -124,7 +133,7 @@ export function AutofillRulesList({
       {isLoading ? <p className="text-muted-foreground">Loading rules…</p> : null}
       {error ? <p className="text-destructive">{error.message}</p> : null}
       {!isLoading && scopedRules.length === 0
-        ? <p className="text-muted-foreground">{emptyStateMessage(categoryId, propertyId, websiteId, tagId, mediaTypeId)}</p>
+        ? <p className="text-muted-foreground">{emptyStateMessage(categoryId, propertyId, websiteId, tagId, mediaTypeId, channelId)}</p>
         : null}
       {!isLoading && scopedRules.length > 0 && visibleRules.length === 0
         ? <p className="text-muted-foreground">No rules match these filters.</p>

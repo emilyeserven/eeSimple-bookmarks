@@ -56,6 +56,8 @@ interface AutofillRuleFormProps {
   defaultWebsiteDomain?: string;
   /** Preselected tag ids for a new rule's "then" (e.g. when creating from a tag's page). */
   defaultTagIds?: string[];
+  /** Preselected YouTube channel ids for a new rule's "when" (e.g. when creating from a channel's page). */
+  defaultChannelIds?: string[];
   submitLabel: string;
   resetOnSubmit?: boolean;
   isError?: boolean;
@@ -65,13 +67,13 @@ interface AutofillRuleFormProps {
 
 /** Shared create/edit form for an autofill rule: a "when" condition tree plus "then" actions. */
 export function AutofillRuleForm({
-  rule, categories, mediaTypes, properties, tagTree, defaultCategoryId, defaultMediaTypeId, defaultWebsiteDomain, defaultTagIds, submitLabel, resetOnSubmit, isError, errorMessage, onSubmit,
+  rule, categories, mediaTypes, properties, tagTree, defaultCategoryId, defaultMediaTypeId, defaultWebsiteDomain, defaultTagIds, defaultChannelIds, submitLabel, resetOnSubmit, isError, errorMessage, onSubmit,
 }: AutofillRuleFormProps) {
   // The condition tree and custom-property values live outside the typed form (they're dynamic and,
   // for the recursive tree, would blow up TanStack Form's deep type inference). A new rule created
-  // from a website's page is seeded with that website as its "when".
+  // from a website's or channel's page is seeded with that entity as its "when".
   const [conditions, setConditions] = useState<ConditionTree>(
-    rule?.conditions ?? seedConditions(defaultWebsiteDomain),
+    rule?.conditions ?? seedConditions(defaultWebsiteDomain, defaultChannelIds),
   );
   const [conditionsError, setConditionsError] = useState<string | null>(null);
   const [numberInputs, setNumberInputs] = useState<Record<string, string>>(() =>
@@ -153,7 +155,7 @@ export function AutofillRuleForm({
 
       if (resetOnSubmit) {
         form.reset();
-        setConditions(seedConditions(defaultWebsiteDomain));
+        setConditions(seedConditions(defaultWebsiteDomain, defaultChannelIds));
         setConditionsError(null);
         setNumberInputs({});
         setBooleanInputs({});
@@ -382,16 +384,26 @@ export function RulePropertyFields({
   );
 }
 
-/** Initial "when" tree for a new rule: empty, or pre-scoped to a website when created from one. */
-function seedConditions(defaultWebsiteDomain?: string): ConditionTree {
+/** Initial "when" tree for a new rule: empty, or pre-scoped to a website/channel when created from one. */
+function seedConditions(defaultWebsiteDomain?: string, defaultChannelIds?: string[]): ConditionTree {
   const tree = emptyConditionTree();
-  if (!defaultWebsiteDomain) return tree;
-  return {
-    ...tree,
-    children: [{
+  const leaves: ConditionTree["children"] = [];
+  if (defaultWebsiteDomain) {
+    leaves.push({
       type: "website",
       domains: [defaultWebsiteDomain],
-    }],
+    });
+  }
+  if (defaultChannelIds && defaultChannelIds.length > 0) {
+    leaves.push({
+      type: "youtube-channel",
+      channelIds: defaultChannelIds,
+    });
+  }
+  if (leaves.length === 0) return tree;
+  return {
+    ...tree,
+    children: leaves,
   };
 }
 
