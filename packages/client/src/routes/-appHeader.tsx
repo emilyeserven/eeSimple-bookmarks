@@ -3,7 +3,7 @@ import type { TagNode } from "@eesimple/types";
 import React from "react";
 
 import { Link, useRouterState } from "@tanstack/react-router";
-import { PanelRight } from "lucide-react";
+import { Filter, PanelRight } from "lucide-react";
 
 import { ListingOptionsPopover } from "@/components/ListingOptionsPopover";
 import { usePanelControls } from "@/components/panel/usePanelControls";
@@ -303,11 +303,106 @@ export function AppHeader() {
     && !pathname.includes("/edit")
     && pathname.startsWith("/bookmarks/");
 
+  // Category browse page (the index route — `/categories/<slug>`, not its `_view`/`edit` tabs).
+  const pathParts = pathname.split("/").filter(Boolean);
+  const isCategoryListing = pathParts[0] === "categories" && pathParts.length === 2;
+
   const {
     open,
   } = usePanelControls();
 
   const listingPage = useUiStore(state => state.listingPage);
+  const filtersHidden = useUiStore(state => state.filtersHidden);
+  const setFiltersHidden = useUiStore(state => state.setFiltersHidden);
+
+  // Right-side toolbar controls, left→right; only present ones render, divided by separators.
+  const toolbarActions: { key: string;
+    node: React.ReactNode; }[] = [];
+  if (listingPage && filtersHidden) {
+    toolbarActions.push({
+      key: "show-filters",
+      node: (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label="Show filters"
+          onClick={() => setFiltersHidden(false)}
+        >
+          <Filter className="size-4" />
+        </Button>
+      ),
+    });
+  }
+  if (listingPage) {
+    toolbarActions.push({
+      key: "listing-options",
+      node: (
+        <ListingOptionsPopover
+          pageKey={listingPage.key}
+          showsImages={listingPage.showsImages}
+        />
+      ),
+    });
+  }
+  if (isBookmarkDetail) {
+    toolbarActions.push({
+      key: "edit-bookmark",
+      node: (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          asChild
+        >
+          <Link
+            to="/bookmarks/$bookmarkId/edit/general"
+            params={{
+              bookmarkId,
+            }}
+          >
+            Edit
+          </Link>
+        </Button>
+      ),
+    });
+  }
+  if (isCategoryListing) {
+    toolbarActions.push({
+      key: "edit-category",
+      node: (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          asChild
+        >
+          <Link
+            to="/categories/$categorySlug/edit/general"
+            params={{
+              categorySlug,
+            }}
+          >
+            Edit
+          </Link>
+        </Button>
+      ),
+    });
+  }
+  toolbarActions.push({
+    key: "open-panel",
+    node: (
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        aria-label="Open panel"
+        onClick={open}
+      >
+        <PanelRight className="size-4" />
+      </Button>
+    ),
+  });
 
   return (
     <header
@@ -337,39 +432,17 @@ export function AppHeader() {
         </BreadcrumbList>
       </Breadcrumb>
       <div className="-mr-1 ml-auto flex items-center gap-1">
-        {isBookmarkDetail && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            asChild
-          >
-            <Link
-              to="/bookmarks/$bookmarkId/edit/general"
-              params={{
-                bookmarkId,
-              }}
-            >
-              Edit
-            </Link>
-          </Button>
-        )}
-        {listingPage && (
-          <ListingOptionsPopover
-            pageKey={listingPage.key}
-            showsImages={listingPage.showsImages}
-          />
-        )}
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="border-l pl-2"
-          aria-label="Open panel"
-          onClick={open}
-        >
-          <PanelRight className="size-4" />
-        </Button>
+        {toolbarActions.map((action, i) => (
+          <React.Fragment key={action.key}>
+            {i > 0 && (
+              <Separator
+                orientation="vertical"
+                className="h-4"
+              />
+            )}
+            {action.node}
+          </React.Fragment>
+        ))}
       </div>
     </header>
   );

@@ -1,11 +1,10 @@
 import { propertyAppliesToCategory } from "@eesimple/types";
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 
 import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
 import { validateBookmarkSearch } from "../lib/bookmarkSearch";
 
-import { Button } from "@/components/ui/button";
 import { CategoryIcon } from "@/lib/icons";
 
 export const Route = createFileRoute("/categories/$categorySlug/")({
@@ -48,33 +47,17 @@ function CategoryPage() {
   return (
     <BookmarkSearchView
       header={(
-        <div className="flex items-start justify-between gap-2">
-          <div className="space-y-1">
-            <h1 className="flex items-center gap-2 text-2xl font-bold">
-              <CategoryIcon
-                name={category.icon}
-                className="size-6"
-              />
-              {category.name}
-            </h1>
-            {category.description
-              ? <p className="text-sm text-muted-foreground">{category.description}</p>
-              : null}
-          </div>
-          <Button
-            asChild
-            variant="outline"
-            size="sm"
-          >
-            <Link
-              to="/categories/$categorySlug/edit/general"
-              params={{
-                categorySlug,
-              }}
-            >
-              Edit
-            </Link>
-          </Button>
+        <div className="space-y-1">
+          <h1 className="flex items-center gap-2 text-2xl font-bold">
+            <CategoryIcon
+              name={category.icon}
+              className="size-6"
+            />
+            {category.name}
+          </h1>
+          {category.description
+            ? <p className="text-sm text-muted-foreground">{category.description}</p>
+            : null}
         </div>
       )}
       addFormCategoryId={category.id}

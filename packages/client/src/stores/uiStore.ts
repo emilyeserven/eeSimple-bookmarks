@@ -114,6 +114,9 @@ interface UiState {
   /** When true, listing pages auto-open filters in the right-hand drawer instead of the left column. */
   filtersInDrawer: boolean;
   setFiltersInDrawer: (value: boolean) => void;
+  /** When true, the left filter rail is hidden on listing pages; a Show-filters toggle appears in the header. */
+  filtersHidden: boolean;
+  setFiltersHidden: (value: boolean) => void;
   /** Image size on the bookmark detail page/panel: small (160px), medium (288px, default), or large (384px). */
   bookmarkDetailImageSize: BookmarkDetailImageSize;
   setBookmarkDetailImageSize: (size: BookmarkDetailImageSize) => void;
@@ -243,6 +246,10 @@ export const useUiStore = create<UiState>()(
       setFiltersInDrawer: value => set({
         filtersInDrawer: value,
       }),
+      filtersHidden: false,
+      setFiltersHidden: value => set({
+        filtersHidden: value,
+      }),
       bookmarkDetailImageSize: "medium",
       setBookmarkDetailImageSize: size => set({
         bookmarkDetailImageSize: size,
@@ -284,6 +291,7 @@ export const useUiStore = create<UiState>()(
         collapsedHomepageSectionIds: state.collapsedHomepageSectionIds,
         bookmarkImageLayout: state.bookmarkImageLayout,
         filtersInDrawer: state.filtersInDrawer,
+        filtersHidden: state.filtersHidden,
         bookmarkDetailImageSize: state.bookmarkDetailImageSize,
         bookmarkDetailVideoSize: state.bookmarkDetailVideoSize,
       }),
