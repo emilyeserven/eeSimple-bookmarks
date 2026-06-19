@@ -66,16 +66,21 @@ export function useAutoYouTubeChannelImage() {
   const queryClient = useQueryClient();
   const cooldown = useRateLimitCooldown(60_000);
   const mutation = useMutation({
-    mutationFn: (id: string) => youtubeChannelsApi.autoImage(id),
+    mutationFn: ({
+      id,
+    }: { id: string;
+      sourceUrl: string; }) => youtubeChannelsApi.autoImage(id),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: CHANNELS_KEY,
       });
       notifySuccess("Avatar fetched");
     },
-    onError: (err: Error) => {
+    onError: (err: Error, {
+      sourceUrl,
+    }) => {
       if (err instanceof ApiError && err.code === "blocked") cooldown.startCooldown();
-      notifyImageFetchError(err, "YouTube channel avatar", "Could not fetch an avatar");
+      notifyImageFetchError(err, "YouTube channel avatar", "Could not fetch an avatar", sourceUrl);
     },
   });
   return {

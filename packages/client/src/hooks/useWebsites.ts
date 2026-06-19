@@ -86,16 +86,21 @@ export function useAutoWebsiteFavicon() {
   const queryClient = useQueryClient();
   const cooldown = useRateLimitCooldown(30_000);
   const mutation = useMutation({
-    mutationFn: (id: string) => websitesApi.autoImage(id),
+    mutationFn: ({
+      id,
+    }: { id: string;
+      sourceUrl: string; }) => websitesApi.autoImage(id),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: WEBSITES_KEY,
       });
       notifySuccess("Favicon fetched");
     },
-    onError: (err: Error) => {
+    onError: (err: Error, {
+      sourceUrl,
+    }) => {
       if (err instanceof ApiError && err.code === "blocked") cooldown.startCooldown();
-      notifyImageFetchError(err, "website favicon", "Could not fetch a favicon");
+      notifyImageFetchError(err, "website favicon", "Could not fetch a favicon", sourceUrl);
     },
   });
   return {

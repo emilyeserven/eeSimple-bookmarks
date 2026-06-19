@@ -116,7 +116,12 @@ export function WebsiteListItem({
           <DropdownMenuItem
             disabled={autoFavicon.isPending || autoFavicon.cooldown.isOnCooldown}
             onClick={() => {
-              if (!autoFavicon.cooldown.isOnCooldown) autoFavicon.mutate(website.id);
+              if (!autoFavicon.cooldown.isOnCooldown) {
+                autoFavicon.mutate({
+                  id: website.id,
+                  sourceUrl: `https://${website.domain}/`,
+                });
+              }
             }}
           >
             <Sparkles className="mr-2 size-4" />

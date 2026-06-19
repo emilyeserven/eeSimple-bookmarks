@@ -8,13 +8,21 @@ export interface BugReportContext {
   operation: string;
   errorMessage: string;
   errorCode?: string;
+  /** The source URL the image was being grabbed from (website homepage, channel page, bookmark URL). */
+  sourceUrl?: string;
 }
 
 /**
  * Show an error toast for a failed image auto-fetch, with a pre-filled "File issue" GitHub
- * action button. Shared by the three image auto-fetch mutation hooks.
+ * action button. Shared by the three image auto-fetch mutation hooks. `sourceUrl` is the URL the
+ * image was being grabbed from, so the filed issue is reproducible.
  */
-export function notifyImageFetchError(err: Error, operation: string, fallback: string): void {
+export function notifyImageFetchError(
+  err: Error,
+  operation: string,
+  fallback: string,
+  sourceUrl?: string,
+): void {
   const code = err instanceof ApiError ? err.code : undefined;
   notifyError(err.message || fallback, {
     action: {
@@ -25,6 +33,7 @@ export function notifyImageFetchError(err: Error, operation: string, fallback: s
             operation,
             errorMessage: err.message,
             errorCode: code,
+            sourceUrl,
           }),
           "_blank",
           "noopener,noreferrer",
@@ -37,9 +46,11 @@ export function buildGitHubIssueUrl({
   operation,
   errorMessage,
   errorCode,
+  sourceUrl,
 }: BugReportContext): string {
   const lines = [
     `**Operation:** ${operation}`,
+    ...(sourceUrl ? [`**URL:** ${sourceUrl}`] : []),
     `**Error message:** ${errorMessage}`,
     ...(errorCode ? [`**Error code:** \`${errorCode}\``] : []),
     `**Page:** ${window.location.href}`,

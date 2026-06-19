@@ -347,7 +347,7 @@ export function BookmarkForm({
           id: bookmark.id,
           input,
         });
-        await applyImageIntent(bookmark.id);
+        await applyImageIntent(bookmark.id, finalUrl);
         onDone?.();
         return;
       }
@@ -359,7 +359,7 @@ export function BookmarkForm({
           websiteSiteName: trimmedSiteName,
         }),
       });
-      await applyImageIntent(created.id);
+      await applyImageIntent(created.id, finalUrl);
 
       // Promote category/tags to entity defaults if the user opted in.
       if ((setWebsiteCategory || setWebsiteTags) && created.website?.id) {
@@ -498,7 +498,7 @@ export function BookmarkForm({
 
   // Apply the pending image intent to a saved bookmark. Non-fatal: the bookmark is already saved,
   // so an image failure just surfaces a toast (from the mutation hooks) without blocking the form.
-  async function applyImageIntent(bookmarkId: string): Promise<void> {
+  async function applyImageIntent(bookmarkId: string, sourceUrl: string): Promise<void> {
     const intent = imageIntentRef.current;
     try {
       if (intent.file) {
@@ -508,7 +508,10 @@ export function BookmarkForm({
         });
       }
       else if (intent.auto) {
-        await autoImage.mutateAsync(bookmarkId);
+        await autoImage.mutateAsync({
+          id: bookmarkId,
+          sourceUrl,
+        });
       }
       else if (intent.remove) {
         await deleteImage.mutateAsync(bookmarkId);

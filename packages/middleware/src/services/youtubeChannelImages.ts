@@ -9,10 +9,10 @@
  */
 
 import { eq } from "drizzle-orm";
+import { channelUrlFromKey } from "@eesimple/types";
 import { db } from "@/db";
 import { type YouTubeChannelImageRow, youtubeChannelImages, youtubeChannels } from "@/db/schema";
 import { type EntityImageResult, fetchOgImage, withTransientRetry } from "@/services/metadata";
-import { channelUrlFromKey } from "@/services/youtubeChannels";
 import { processImage } from "@/utils/image";
 import { deleteObject, putObject } from "@/utils/objectStore";
 

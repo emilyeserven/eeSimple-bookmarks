@@ -185,7 +185,10 @@ export function BookmarkCard({
       bookmark={bookmark}
       editableProperties={editableProperties}
       autoImagePending={autoImage.isPending}
-      onAutoImage={() => autoImage.mutate(bookmark.id)}
+      onAutoImage={() => autoImage.mutate({
+        id: bookmark.id,
+        sourceUrl: bookmark.url,
+      })}
       onSaveNumber={saveNumber}
       onSaveBoolean={saveBoolean}
       onSaveDateTime={saveDateTime}

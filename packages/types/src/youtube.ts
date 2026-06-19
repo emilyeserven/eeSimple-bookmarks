@@ -62,3 +62,16 @@ export function youtubeEmbedUrl(url: string): string | null {
   const video = parseYouTubeVideo(url);
   return video ? `https://www.youtube-nocookie.com/embed/${video.videoId}` : null;
 }
+
+/**
+ * Reconstruct a browsable channel-page URL from a stored `channelKey`, inverting `channelKeyFromUrl`.
+ * Handles (`@name`) and channel ids (`UC…`) round-trip exactly; bare vanity names fall back to the
+ * `/c/<name>` path. Used to fetch a channel's avatar (its page `og:image`) on demand. Pure.
+ */
+export function channelUrlFromKey(channelKey: string): string {
+  const key = channelKey.trim();
+  if (key.startsWith("@")) return `https://www.youtube.com/${key}`;
+  // Channel ids are "UC" followed by 22 url-safe chars; route them through `/channel/`.
+  if (/^UC[\w-]{20,}$/.test(key)) return `https://www.youtube.com/channel/${key}`;
+  return `https://www.youtube.com/c/${key}`;
+}
