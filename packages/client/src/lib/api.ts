@@ -219,6 +219,14 @@ export const websitesApi = {
   remove: (id: string) => request<undefined>(`/websites/${id}`, {
     method: "DELETE",
   }),
+  autoImage: (id: string) =>
+    request<{ imageUrl: string }>(`/websites/${id}/image/auto`, {
+      method: "POST",
+    }),
+  deleteImage: (id: string) =>
+    request<undefined>(`/websites/${id}/image`, {
+      method: "DELETE",
+    }),
 };
 
 export const appSettingsApi = {
@@ -283,6 +291,14 @@ export const youtubeChannelsApi = {
   remove: (id: string) => request<undefined>(`/youtube-channels/${id}`, {
     method: "DELETE",
   }),
+  autoImage: (id: string) =>
+    request<{ imageUrl: string }>(`/youtube-channels/${id}/image/auto`, {
+      method: "POST",
+    }),
+  deleteImage: (id: string) =>
+    request<undefined>(`/youtube-channels/${id}/image`, {
+      method: "DELETE",
+    }),
 };
 
 export const customPropertiesApi = {

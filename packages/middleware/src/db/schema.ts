@@ -94,6 +94,29 @@ export const mediaObjects = pgTable("media_objects", {
 });
 
 /**
+ * `website_favicons` — 0..1 favicon per website. Mirrors `bookmark_images`: the bytes live in object
+ * storage under `website-favicons/<id>.webp`; this table holds only metadata. `websiteId` is the
+ * primary key (a replace is an upsert) and the row cascades away with its website.
+ */
+export const websiteFavicons = pgTable("website_favicons", {
+  websiteId: uuid("website_id").primaryKey().references((): AnyPgColumn => websites.id, {
+    onDelete: "cascade",
+  }),
+  // Object-storage key the bytes are stored under, e.g. "website-favicons/<id>.webp".
+  objectKey: text("object_key").notNull(),
+  // Always "image/webp" after the resize/encode pipeline.
+  contentType: text("content_type").notNull(),
+  width: integer("width").notNull(),
+  height: integer("height").notNull(),
+  byteSize: integer("byte_size").notNull(),
+  // "icon" | "og" — how the favicon was sourced; text so new sources can be added without a migration.
+  source: text("source").notNull(),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+});
+
+/**
  * `websites` table — the built-in "Websites" taxonomy. One row per distinct host; bookmarks are
  * auto-linked to a website by the host of their URL. Seeded built-ins (e.g. youtube.com → "YouTube")
  * are protected from rename/delete.
@@ -185,6 +208,29 @@ export const youtubeChannels = pgTable("youtube_channels", {
   unique("youtube_channels_key_unique").on(table.channelKey),
   unique("youtube_channels_slug_unique").on(table.slug),
 ]);
+
+/**
+ * `youtube_channel_images` — 0..1 avatar per channel. Mirrors `bookmark_images`: the bytes live in
+ * object storage under `youtube-channels/<id>.webp`; this table holds only metadata. `youtubeChannelId`
+ * is the primary key (a replace is an upsert) and the row cascades away with its channel.
+ */
+export const youtubeChannelImages = pgTable("youtube_channel_images", {
+  youtubeChannelId: uuid("youtube_channel_id").primaryKey().references((): AnyPgColumn => youtubeChannels.id, {
+    onDelete: "cascade",
+  }),
+  // Object-storage key the bytes are stored under, e.g. "youtube-channels/<id>.webp".
+  objectKey: text("object_key").notNull(),
+  // Always "image/webp" after the resize/encode pipeline.
+  contentType: text("content_type").notNull(),
+  width: integer("width").notNull(),
+  height: integer("height").notNull(),
+  byteSize: integer("byte_size").notNull(),
+  // "og" | "upload" — kept as text so new sources can be added without a migration.
+  source: text("source").notNull(),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+});
 
 /**
  * `youtube_channel_self_ids` — short self-identifiers a channel appends to its video titles
@@ -866,12 +912,16 @@ export type MediaObjectRow = typeof mediaObjects.$inferSelect;
 export type NewMediaObjectRow = typeof mediaObjects.$inferInsert;
 export type WebsiteRow = typeof websites.$inferSelect;
 export type NewWebsiteRow = typeof websites.$inferInsert;
+export type WebsiteFaviconRow = typeof websiteFavicons.$inferSelect;
+export type NewWebsiteFaviconRow = typeof websiteFavicons.$inferInsert;
 export type MediaTypeRow = typeof mediaTypes.$inferSelect;
 export type NewMediaTypeRow = typeof mediaTypes.$inferInsert;
 export type PropertyGroupRow = typeof propertyGroups.$inferSelect;
 export type NewPropertyGroupRow = typeof propertyGroups.$inferInsert;
 export type YouTubeChannelRow = typeof youtubeChannels.$inferSelect;
 export type NewYouTubeChannelRow = typeof youtubeChannels.$inferInsert;
+export type YouTubeChannelImageRow = typeof youtubeChannelImages.$inferSelect;
+export type NewYouTubeChannelImageRow = typeof youtubeChannelImages.$inferInsert;
 export type YouTubeChannelSelfIdRow = typeof youtubeChannelSelfIds.$inferSelect;
 export type TagRow = typeof tags.$inferSelect;
 export type NewTagRow = typeof tags.$inferInsert;

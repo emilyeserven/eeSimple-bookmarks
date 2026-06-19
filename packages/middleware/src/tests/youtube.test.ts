@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { parseIsoDuration, parseYouTubeVideo } from "@/services/youtube";
-import { channelKeyFromUrl } from "@/services/youtubeChannels";
+import { channelKeyFromUrl, channelUrlFromKey } from "@/services/youtubeChannels";
 
 // Pure-helper tests run without a live database or network, matching the `websites` style.
 
@@ -45,4 +45,16 @@ test("channelKeyFromUrl normalizes handles, channel ids, and vanity paths", () =
   assert.equal(channelKeyFromUrl("https://www.youtube.com/channel/UCabc123"), "UCabc123");
   assert.equal(channelKeyFromUrl("https://www.youtube.com/c/SomeName"), "somename");
   assert.equal(channelKeyFromUrl("not a url"), null);
+});
+
+test("channelUrlFromKey reconstructs a browsable channel page URL", () => {
+  // A handle round-trips to the `/@handle` page.
+  assert.equal(channelUrlFromKey("@veritasium"), "https://www.youtube.com/@veritasium");
+  // A full channel id (UC + 22 chars) routes through `/channel/`.
+  assert.equal(
+    channelUrlFromKey("UCHnyfMqiRRG1u-2MsSQLbXA"),
+    "https://www.youtube.com/channel/UCHnyfMqiRRG1u-2MsSQLbXA",
+  );
+  // A bare vanity name falls back to the `/c/` path.
+  assert.equal(channelUrlFromKey("somename"), "https://www.youtube.com/c/somename");
 });
