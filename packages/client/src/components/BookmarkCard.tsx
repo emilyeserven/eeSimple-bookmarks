@@ -4,10 +4,8 @@ import type {
   BookmarkBooleanValue,
   BookmarkDateTimeValue,
   BookmarkNumberValue,
-  CustomAspectRatio,
   CustomProperty,
 } from "@eesimple/types";
-import type { CSSProperties } from "react";
 
 import { propertyAppliesToCategory } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
@@ -17,6 +15,7 @@ import { BookmarkCardHeader } from "./BookmarkCardHeader";
 import { useViewPanelClick } from "./panel/useEditPanelClick";
 import { useAutoBookmarkImage, useUpdateBookmark } from "../hooks/useBookmarks";
 import { useCustomAspectRatios } from "../hooks/useCustomAspectRatios";
+import { bookmarkImageAspectStyle, bookmarkImageClass } from "../lib/bookmarkImage";
 
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
 import { useUiStore } from "@/stores/uiStore";
@@ -40,41 +39,6 @@ interface BookmarkCardProps {
   imageVisibility?: BookmarkImageVisibility;
   /** Listing-page key, so the card honors that page's Card Options field toggles. Omitted off listing pages. */
   pageKey?: string;
-}
-
-function bookmarkImageClass(imageLeft: boolean, imageMode: string): string {
-  if (imageLeft) {
-    return imageMode === "natural"
-      ? "h-auto w-32 shrink-0 self-start rounded-md border sm:w-40"
-      : "w-32 shrink-0 self-start rounded-md border object-cover sm:w-40";
-  }
-  return imageMode === "natural"
-    ? "mb-2 h-auto w-full rounded-md border"
-    : "mb-2 w-full rounded-md border object-cover";
-}
-
-function bookmarkImageAspectStyle(
-  imageMode: string,
-  croppedW: number,
-  croppedH: number,
-  customRatios: CustomAspectRatio[],
-): CSSProperties {
-  if (imageMode === "natural") return {};
-  if (imageMode === "square") return {
-    aspectRatio: "1 / 1",
-  };
-  if (imageMode === "opengraph") return {
-    aspectRatio: "191 / 100",
-  };
-  if (imageMode === "cropped") return {
-    aspectRatio: `${croppedW} / ${croppedH}`,
-  };
-  const custom = customRatios.find(r => r.id === imageMode);
-  return custom
-    ? {
-      aspectRatio: `${custom.width} / ${custom.height}`,
-    }
-    : {};
 }
 
 /** Replace the entry for `propertyId` with `value`, or append it when the property has no value yet. */
