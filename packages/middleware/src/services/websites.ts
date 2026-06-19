@@ -3,6 +3,7 @@ import type { CreateWebsiteInput, ShortenedLink, UpdateWebsiteInput, Website, We
 import { getShortenerIgnoreList } from "@/services/appSettings";
 import { db } from "@/db";
 import { bookmarks, categories, websiteFavicons, websiteTags, websites, type WebsiteRow } from "@/db/schema";
+import { buildStringMap } from "@/utils/mapUtils";
 import { slugify } from "@/utils/slug";
 
 /**
@@ -124,13 +125,7 @@ async function loadWebsiteTagsMap(websiteIds: string[]): Promise<Map<string, str
     })
     .from(websiteTags)
     .where(inArray(websiteTags.websiteId, websiteIds));
-  const map = new Map<string, string[]>();
-  for (const row of rows) {
-    const existing = map.get(row.websiteId) ?? [];
-    existing.push(row.tagId);
-    map.set(row.websiteId, existing);
-  }
-  return map;
+  return buildStringMap(rows, r => r.websiteId, r => r.tagId);
 }
 
 /** Replace the full set of default tags for a website (delete-then-insert). */

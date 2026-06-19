@@ -213,9 +213,7 @@ export function WebsiteLookupBanner({
                 <div className="space-y-1.5">
                   {categoryId && (
                     <label
-                      className="
-                        flex cursor-pointer items-center gap-2 text-sm
-                      "
+                      className="flex cursor-pointer items-center gap-2 text-sm"
                     >
                       <Checkbox
                         checked={setWebsiteCategory}
@@ -228,9 +226,7 @@ export function WebsiteLookupBanner({
                   )}
                   {tagIds.length > 0 && (
                     <label
-                      className="
-                        flex cursor-pointer items-center gap-2 text-sm
-                      "
+                      className="flex cursor-pointer items-center gap-2 text-sm"
                     >
                       <Checkbox
                         checked={setWebsiteTags}

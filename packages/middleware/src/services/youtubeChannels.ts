@@ -2,6 +2,7 @@ import { asc, eq, inArray, isNull, ne, sql } from "drizzle-orm";
 import type { UpdateYouTubeChannelInput, YouTubeChannel } from "@eesimple/types";
 import { db } from "@/db";
 import { bookmarks, categories, type YouTubeChannelRow, youtubeChannelImages, youtubeChannelSelfIds, youtubeChannelTags, youtubeChannels } from "@/db/schema";
+import { buildStringMap } from "@/utils/mapUtils";
 import { slugify, uniqueSlug } from "@/utils/slug";
 
 /**
@@ -89,13 +90,7 @@ async function loadChannelTagsMap(channelIds: string[]): Promise<Map<string, str
     })
     .from(youtubeChannelTags)
     .where(inArray(youtubeChannelTags.channelId, channelIds));
-  const map = new Map<string, string[]>();
-  for (const row of rows) {
-    const existing = map.get(row.channelId) ?? [];
-    existing.push(row.tagId);
-    map.set(row.channelId, existing);
-  }
-  return map;
+  return buildStringMap(rows, r => r.channelId, r => r.tagId);
 }
 
 /** Replace the full set of default tags for a channel (delete-then-insert). */
@@ -123,13 +118,7 @@ async function loadSelfIdsMap(channelIds: string[]): Promise<Map<string, string[
     })
     .from(youtubeChannelSelfIds)
     .where(inArray(youtubeChannelSelfIds.channelId, channelIds));
-  const map = new Map<string, string[]>();
-  for (const row of rows) {
-    const existing = map.get(row.channelId) ?? [];
-    existing.push(row.value);
-    map.set(row.channelId, existing);
-  }
-  return map;
+  return buildStringMap(rows, r => r.channelId, r => r.value);
 }
 
 /** Map a DB row to the shared `YouTubeChannel` wire type. */
