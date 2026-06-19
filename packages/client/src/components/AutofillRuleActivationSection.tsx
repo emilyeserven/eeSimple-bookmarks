@@ -24,11 +24,12 @@ interface AutofillRuleActivationSectionProps {
   categories: Category[];
   properties: CustomProperty[];
   tagTree: TagNode[];
+  openCustomProperties?: boolean;
 }
 
 /** The "Activation Conditions" collapsible plus the "Preview Bookmarks" section beneath it. */
 export function AutofillRuleActivationSection({
-  defaultOpen, conditions, conditionsError, onChange, categories, properties, tagTree,
+  defaultOpen, conditions, conditionsError, onChange, categories, properties, tagTree, openCustomProperties,
 }: AutofillRuleActivationSectionProps) {
   return (
     <>
@@ -45,6 +46,7 @@ export function AutofillRuleActivationSection({
             categories={categories}
             properties={properties}
             tagTree={tagTree}
+            openCustomProperties={openCustomProperties}
           />
           {conditionsError ? <p className="text-sm text-destructive">{conditionsError}</p> : null}
         </div>
