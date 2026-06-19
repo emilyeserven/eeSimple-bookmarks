@@ -68,7 +68,7 @@ const paths = [
 ];
 
 describe("WebsitesListing", () => {
-  it("does not open the panel on a plain row click (the link navigates to the view page)", async () => {
+  it("does not open the panel on a plain row click (the link navigates to the listing page)", async () => {
     openItem.mockClear();
     await renderWithRouter(<WebsitesListing />, {
       paths,
