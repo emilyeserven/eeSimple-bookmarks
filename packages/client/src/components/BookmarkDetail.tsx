@@ -1,9 +1,22 @@
+import type { BookmarkDetailImageSize, BookmarkDetailVideoSize } from "../stores/uiStore";
 import type { Bookmark, Category, CustomProperty, PropertyGroup } from "@eesimple/types";
 
 import { youtubeEmbedUrl } from "@eesimple/types";
 
 import { BookmarkDetailBody } from "./BookmarkDetailBody";
 import { DetailHeaderActions } from "./DetailHeaderActions";
+import { useUiStore } from "../stores/uiStore";
+
+const IMAGE_SIZE_CLASS: Record<BookmarkDetailImageSize, string> = {
+  small: "max-h-40 w-full rounded-md border object-contain @2xl:w-40 @2xl:shrink-0",
+  medium: "max-h-72 w-full rounded-md border object-contain @2xl:w-72 @2xl:shrink-0",
+  large: "max-h-96 w-full rounded-md border object-contain @2xl:w-96 @2xl:shrink-0",
+};
+
+const VIDEO_SIZE_CLASS: Record<BookmarkDetailVideoSize, string> = {
+  standard: "aspect-video w-full overflow-hidden rounded-md border @2xl:w-96 @2xl:shrink-0",
+  fullwidth: "aspect-video w-full overflow-hidden rounded-md border",
+};
 
 interface BookmarkDetailProps {
   bookmark: Bookmark;
@@ -25,8 +38,16 @@ interface BookmarkDetailProps {
 export function BookmarkDetail({
   bookmark, categories = [], properties = [], propertyGroups = [], onEdit, onDelete,
 }: BookmarkDetailProps) {
+  const imageSize = useUiStore(state => state.bookmarkDetailImageSize);
+  const videoSize = useUiStore(state => state.bookmarkDetailVideoSize);
+
   // For YouTube bookmarks, show a playable embed in place of the static thumbnail.
   const embedUrl = youtubeEmbedUrl(bookmark.url);
+
+  // Fullwidth video stays stacked above the body — suppress side-by-side layout.
+  const outerFlexClass = embedUrl && videoSize === "fullwidth"
+    ? "flex flex-col gap-6"
+    : "flex flex-col gap-6 @2xl:flex-row @2xl:items-start";
 
   return (
     <div className="@container space-y-6">
@@ -63,20 +84,10 @@ export function BookmarkDetail({
         />
       </div>
 
-      <div
-        className="
-          flex flex-col gap-6
-          @2xl:flex-row @2xl:items-start
-        "
-      >
+      <div className={outerFlexClass}>
         {embedUrl
           ? (
-            <div
-              className="
-                aspect-video w-full overflow-hidden rounded-md border
-                @2xl:w-96 @2xl:shrink-0
-              "
-            >
+            <div className={VIDEO_SIZE_CLASS[videoSize]}>
               <iframe
                 src={embedUrl}
                 title={bookmark.title}
@@ -93,10 +104,7 @@ export function BookmarkDetail({
                 src={bookmark.image.url}
                 alt=""
                 loading="lazy"
-                className="
-                  max-h-72 w-full rounded-md border object-contain
-                  @2xl:w-72 @2xl:shrink-0
-                "
+                className={IMAGE_SIZE_CLASS[imageSize]}
               />
             )
             : null}
