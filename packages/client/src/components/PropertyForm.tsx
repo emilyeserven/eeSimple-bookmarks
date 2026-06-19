@@ -11,6 +11,7 @@ import { useState } from "react";
 import { CollapsibleFormSection } from "./CollapsibleFormSection";
 import { LabeledSection } from "./LabeledSection";
 import {
+  BOOLEAN_LABEL_PRESET_OPTIONS,
   CategoryCheckboxList,
   CREATE_DEFAULTS,
   DATE_TIME_FORMAT_OPTIONS,
@@ -18,6 +19,7 @@ import {
   payloadFromValues,
   PropertyDisplaySection,
   propertySchema,
+  summarizeBooleanOptions,
   summarizeCategories,
   summarizeNumberOptions,
   toggleId,
@@ -330,6 +332,95 @@ export function PropertyForm({
                         When disabled, this property will not appear in the category defaults editor.
                       </p>
                     </div>
+                  </div>
+                </CollapsibleFormSection>
+              </>
+            )
+            : null}
+      </form.Subscribe>
+
+      <form.Subscribe selector={state => state.values.type}>
+        {type =>
+          showOptions && type === "boolean"
+            ? (
+              <>
+                {full ? <Separator /> : null}
+
+                <CollapsibleFormSection
+                  title="Property options"
+                  description="Configure how the boolean value is displayed."
+                  defaultOpen={mode === "create" || section === "options"}
+                  preview={(
+                    <form.Subscribe
+                      selector={state => ({
+                        showIfFalse: state.values.showIfFalse,
+                        booleanLabelPreset: state.values.booleanLabelPreset,
+                        booleanTrueLabel: state.values.booleanTrueLabel,
+                        booleanFalseLabel: state.values.booleanFalseLabel,
+                      })}
+                    >
+                      {values => summarizeBooleanOptions(values)}
+                    </form.Subscribe>
+                  )}
+                >
+                  <div className="space-y-4">
+                    <form.AppField name="booleanLabelPreset">
+                      {field => (
+                        <field.SelectField
+                          label="Display labels"
+                          options={BOOLEAN_LABEL_PRESET_OPTIONS}
+                        />
+                      )}
+                    </form.AppField>
+
+                    <form.Subscribe selector={state => state.values.booleanLabelPreset}>
+                      {preset =>
+                        preset === "custom"
+                          ? (
+                            <div
+                              className="
+                                grid gap-3
+                                sm:grid-cols-2
+                              "
+                            >
+                              <form.AppField name="booleanTrueLabel">
+                                {field => (
+                                  <field.TextField
+                                    label="True label"
+                                    placeholder="e.g. Read"
+                                  />
+                                )}
+                              </form.AppField>
+                              <form.AppField name="booleanFalseLabel">
+                                {field => (
+                                  <field.TextField
+                                    label="False label"
+                                    placeholder="e.g. Unread"
+                                  />
+                                )}
+                              </form.AppField>
+                            </div>
+                          )
+                          : null}
+                    </form.Subscribe>
+
+                    <form.AppField name="showIfFalse">
+                      {field => (
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            id={`${idPrefix}-show-if-false`}
+                            checked={field.state.value}
+                            onCheckedChange={checked => field.handleChange(checked === true)}
+                          />
+                          <Label htmlFor={`${idPrefix}-show-if-false`}>
+                            Show if false
+                          </Label>
+                        </div>
+                      )}
+                    </form.AppField>
+                    <p className="text-xs text-muted-foreground">
+                      When unchecked, the property is hidden from cards and detail pages when its value is false.
+                    </p>
                   </div>
                 </CollapsibleFormSection>
               </>

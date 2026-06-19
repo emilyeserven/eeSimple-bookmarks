@@ -2,7 +2,7 @@ import type { Bookmark, CustomProperty, PropertyGroup } from "@eesimple/types";
 
 import { LabeledSection } from "@/components/LabeledSection";
 import { Separator } from "@/components/ui/separator";
-import { formatDateTime, formatNumber } from "@/lib/bookmarkFormat";
+import { formatBoolean, formatDateTime, formatNumber } from "@/lib/bookmarkFormat";
 
 interface BookmarkPropertySectionsProps {
   bookmark: Bookmark;
@@ -45,14 +45,14 @@ export function BookmarkPropertySections({
   const booleanRows = bookmark.booleanValues
     .map((entry) => {
       const property = byId.get(entry.propertyId);
-      return property
-        ? {
-          id: entry.propertyId,
-          name: property.name,
-          groupId: property.propertyGroupId,
-          value: entry.value ? "Yes" : "No",
-        }
-        : null;
+      if (!property) return null;
+      if (!entry.value && !property.showIfFalse) return null;
+      return {
+        id: entry.propertyId,
+        name: property.name,
+        groupId: property.propertyGroupId,
+        value: formatBoolean(entry.value, property),
+      };
     })
     .filter((row): row is { id: string;
       name: string;

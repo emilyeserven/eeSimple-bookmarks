@@ -525,6 +525,16 @@ export type NumberFormat = "plain" | "duration";
  */
 export type DateTimeFormat = "date" | "time" | "datetime";
 
+/**
+ * How `true`/`false` values of a boolean property are rendered:
+ * - `yes-no` — "Yes" / "No" (the default when null).
+ * - `true-false` — "True" / "False".
+ * - `enabled-disabled` — "Enabled" / "Disabled".
+ * - `icons` — "✓" / "✗".
+ * - `custom` — user-supplied strings via `booleanTrueLabel` / `booleanFalseLabel`.
+ */
+export type BooleanLabelPreset = "yes-no" | "true-false" | "enabled-disabled" | "icons" | "custom";
+
 /** A user-defined custom property that becomes a dynamic bookmark filter. */
 export interface CustomProperty {
   id: string;
@@ -554,6 +564,14 @@ export interface CustomProperty {
   zeroLabel: string | null;
   /** Label shown when a `number`/`calculate` value reaches its maximum (e.g. `"Unlimited"`), or `null`. */
   maxLabel: string | null;
+  /** When true, the property's value badge/row is shown even when the value is false. Defaults to false. */
+  showIfFalse: boolean;
+  /** How `true`/`false` values are rendered; `null` defaults to `"yes-no"`. Only relevant for `boolean` type. */
+  booleanLabelPreset: BooleanLabelPreset | null;
+  /** Custom label for a `true` value; only used when `booleanLabelPreset` is `"custom"`. */
+  booleanTrueLabel: string | null;
+  /** Custom label for a `false` value; only used when `booleanLabelPreset` is `"custom"`. */
+  booleanFalseLabel: string | null;
   /** For a `calculate` property: ids of the `number` properties summed to produce its value. */
   operandPropertyIds: string[];
   /** Ids of the categories this property is assigned to (zero, one, or many). */
@@ -613,6 +631,14 @@ export interface CreateCustomPropertyInput {
   allowDefault?: boolean;
   /** Id of the property group to place this property in, or `null` to leave it ungrouped. */
   propertyGroupId?: string | null;
+  /** When true, the property's value badge/row is shown even when the value is false. Defaults to false. */
+  showIfFalse?: boolean;
+  /** How `true`/`false` values are rendered. Only relevant for `boolean` type. */
+  booleanLabelPreset?: BooleanLabelPreset | null;
+  /** Custom label for a `true` value; only used when `booleanLabelPreset` is `"custom"`. */
+  booleanTrueLabel?: string | null;
+  /** Custom label for a `false` value; only used when `booleanLabelPreset` is `"custom"`. */
+  booleanFalseLabel?: string | null;
 }
 
 /** Payload for updating a custom property. Its `type` is immutable. */

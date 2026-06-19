@@ -12,6 +12,7 @@ import { DetailField } from "@/components/DetailField";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { CategoryIcon } from "@/lib/icons";
+import { BOOLEAN_LABEL_PRESET_OPTIONS } from "@/lib/propertyForm";
 
 interface PropertyDetailProps {
   property: CustomProperty;
@@ -143,6 +144,23 @@ export function PropertyOptionsFields({
     .filter((value): value is string => Boolean(value));
 
   if (!hasPropertyOptions(property)) return null;
+
+  if (property.type === "boolean") {
+    const preset = BOOLEAN_LABEL_PRESET_OPTIONS.find(o => o.value === (property.booleanLabelPreset ?? "yes-no"));
+    const labelsDisplay = property.booleanLabelPreset === "custom"
+      ? `Custom: ${property.booleanTrueLabel || "Yes"} / ${property.booleanFalseLabel || "No"}`
+      : (preset?.label ?? "Yes / No");
+    return (
+      <dl className="space-y-3">
+        <DetailField label="Display labels">{labelsDisplay}</DetailField>
+        <DetailField label="Show if false">
+          {property.showIfFalse
+            ? "Yes — shown even when unchecked"
+            : "No — hidden when unchecked"}
+        </DetailField>
+      </dl>
+    );
+  }
 
   return (
     <dl className="space-y-3">

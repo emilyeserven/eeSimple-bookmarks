@@ -29,6 +29,10 @@ export const propertySchema = z
     enabled: z.boolean(),
     allowDefault: z.boolean(),
     propertyGroupId: z.string(),
+    showIfFalse: z.boolean(),
+    booleanLabelPreset: z.enum(["yes-no", "true-false", "enabled-disabled", "icons", "custom"]),
+    booleanTrueLabel: z.string(),
+    booleanFalseLabel: z.string(),
   })
   .superRefine((value, ctx) => {
     if (value.type === "calculate" && value.operandIds.length < 2) {
@@ -67,6 +71,10 @@ export const CREATE_DEFAULTS: PropertyFormValues = {
   enabled: true,
   allowDefault: true,
   propertyGroupId: "",
+  showIfFalse: false,
+  booleanLabelPreset: "yes-no",
+  booleanTrueLabel: "",
+  booleanFalseLabel: "",
 };
 
 /**
@@ -112,6 +120,10 @@ export function valuesFromProperty(property: CustomProperty): PropertyFormValues
     enabled: property.enabled,
     allowDefault: property.allowDefault ?? true,
     propertyGroupId: property.propertyGroupId ?? "",
+    showIfFalse: property.showIfFalse,
+    booleanLabelPreset: property.booleanLabelPreset ?? "yes-no",
+    booleanTrueLabel: property.booleanTrueLabel ?? "",
+    booleanFalseLabel: property.booleanFalseLabel ?? "",
   };
 }
 
@@ -142,5 +154,15 @@ export function payloadFromValues(values: PropertyFormValues): CreateCustomPrope
     enabled: values.enabled,
     allowDefault: values.allowDefault,
     propertyGroupId: values.propertyGroupId || null,
+    showIfFalse: values.type === "boolean" ? values.showIfFalse : undefined,
+    booleanLabelPreset: values.type === "boolean" ? values.booleanLabelPreset : null,
+    booleanTrueLabel:
+      values.type === "boolean" && values.booleanLabelPreset === "custom"
+        ? trimOrNull(values.booleanTrueLabel)
+        : null,
+    booleanFalseLabel:
+      values.type === "boolean" && values.booleanLabelPreset === "custom"
+        ? trimOrNull(values.booleanFalseLabel)
+        : null,
   };
 }

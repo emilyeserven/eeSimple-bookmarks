@@ -6,6 +6,7 @@ import { Ban, ChevronDown, Circle, CircleDot, CircleHelp } from "lucide-react";
 import { Combobox } from "./Combobox";
 import { DateTimeRangeFields } from "./DateTimePicker";
 import { RangeSlider } from "./RangeSlider";
+import { formatBoolean } from "@/lib/bookmarkFormat";
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Label } from "@/components/ui/label";
@@ -401,25 +402,18 @@ interface BooleanControlProps {
   onChange: (propertyId: string, value: boolean | undefined) => void;
 }
 
-const BOOLEAN_OPTIONS: ComboboxOption[] = [
-  {
-    value: "true",
-    label: "Yes",
-  },
-  {
-    value: "false",
-    label: "No",
-  },
-];
-
 function BooleanFilterControl({
   property, value, onChange,
 }: BooleanControlProps) {
   const selected = value === undefined ? undefined : String(value);
+  const booleanOptions: ComboboxOption[] = [
+    { value: "true", label: formatBoolean(true, property) },
+    { value: "false", label: formatBoolean(false, property) },
+  ];
 
   return (
     <Combobox
-      options={BOOLEAN_OPTIONS}
+      options={booleanOptions}
       value={selected}
       placeholder={`Filter by ${property.name}…`}
       aria-label={`Filter by ${property.name}`}

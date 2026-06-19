@@ -40,3 +40,18 @@ export function formatNumber(value: number, property: CustomProperty): string {
 export function formatDateTime(value: string, property: CustomProperty): string {
   return formatDateTimeValue(value, property.dateTimeFormat);
 }
+
+/** Format a boolean value for display, honoring the property's `booleanLabelPreset` and custom labels. */
+export function formatBoolean(value: boolean, property: CustomProperty): string {
+  switch (property.booleanLabelPreset ?? "yes-no") {
+    case "yes-no": return value ? "Yes" : "No";
+    case "true-false": return value ? "True" : "False";
+    case "enabled-disabled": return value ? "Enabled" : "Disabled";
+    case "icons": return value ? "✓" : "✗";
+    case "custom":
+      return value
+        ? (property.booleanTrueLabel || "Yes")
+        : (property.booleanFalseLabel || "No");
+    default: return value ? "Yes" : "No";
+  }
+}
