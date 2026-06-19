@@ -188,7 +188,7 @@ function TagsFilterSection({
             const mode = v === "any" || v === "" ? undefined : v as "has" | "missing";
             onSearchChange(withTagPresence(search, mode));
           }}
-          className="group/presence"
+          className="group/presence rounded-sm ring-1 ring-border"
         >
           {tagPresenceOptions.map(({
             value, label, Icon,
