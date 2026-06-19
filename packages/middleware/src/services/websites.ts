@@ -173,11 +173,11 @@ function toWebsite(
     imageUrl: faviconUrlFrom(row.id, row.faviconCreatedAt ?? null),
     category: row.categoryId && row.categoryName
       ? {
-          id: row.categoryId,
-          name: row.categoryName,
-          slug: row.categorySlug ?? slugify(row.categoryName),
-          icon: row.categoryIcon ?? null,
-        }
+        id: row.categoryId,
+        name: row.categoryName,
+        slug: row.categorySlug ?? slugify(row.categoryName),
+        icon: row.categoryIcon ?? null,
+      }
       : null,
     tagIds,
   };

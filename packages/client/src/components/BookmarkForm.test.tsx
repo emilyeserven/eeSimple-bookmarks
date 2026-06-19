@@ -139,6 +139,17 @@ vi.mock("../hooks/useWebsites", () => ({
   useWebsites: () => ({
     data: websitesData,
   }),
+  useUpdateWebsite: () => ({
+    mutate: vi.fn(),
+  }),
+}));
+vi.mock("../hooks/useYouTubeChannels", () => ({
+  useYouTubeChannels: () => ({
+    data: [],
+  }),
+  useUpdateYouTubeChannel: () => ({
+    mutate: vi.fn(),
+  }),
 }));
 vi.mock("../hooks/useAppSettings", () => ({
   useShortenerIgnoreList: () => ({

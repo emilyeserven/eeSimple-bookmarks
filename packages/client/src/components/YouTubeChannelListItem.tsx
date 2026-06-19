@@ -35,7 +35,10 @@ export function YouTubeChannelListItem({
   const showImage = channel.imageUrl != null && !imageFailed;
   return (
     <RowCard className="group relative">
-      <div className="rounded-lg transition-colors hover:bg-accent">
+      <div className="
+        rounded-lg transition-colors
+        hover:bg-accent
+      ">
         <Link
           to="/taxonomies/youtube-channels/$channelSlug/general"
           params={{

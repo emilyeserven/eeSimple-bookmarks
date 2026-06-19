@@ -156,7 +156,9 @@ export function WebsiteLookupBanner({
                 {isNewChannel && (categoryId || tagIds.length > 0) && (
                   <div className="space-y-1.5 pt-1">
                     {categoryId && (
-                      <label className="flex cursor-pointer items-center gap-2 text-sm">
+                      <label className="
+                        flex cursor-pointer items-center gap-2 text-sm
+                      ">
                         <Checkbox
                           checked={setChannelCategory}
                           onCheckedChange={v => onSetChannelCategory(Boolean(v))}
@@ -167,7 +169,9 @@ export function WebsiteLookupBanner({
                       </label>
                     )}
                     {tagIds.length > 0 && (
-                      <label className="flex cursor-pointer items-center gap-2 text-sm">
+                      <label className="
+                        flex cursor-pointer items-center gap-2 text-sm
+                      ">
                         <Checkbox
                           checked={setChannelTags}
                           onCheckedChange={v => onSetChannelTags(Boolean(v))}
@@ -204,7 +208,9 @@ export function WebsiteLookupBanner({
               {(categoryId || tagIds.length > 0) && (
                 <div className="space-y-1.5">
                   {categoryId && (
-                    <label className="flex cursor-pointer items-center gap-2 text-sm">
+                    <label className="
+                      flex cursor-pointer items-center gap-2 text-sm
+                    ">
                       <Checkbox
                         checked={setWebsiteCategory}
                         onCheckedChange={v => onSetWebsiteCategory(Boolean(v))}
@@ -215,7 +221,9 @@ export function WebsiteLookupBanner({
                     </label>
                   )}
                   {tagIds.length > 0 && (
-                    <label className="flex cursor-pointer items-center gap-2 text-sm">
+                    <label className="
+                      flex cursor-pointer items-center gap-2 text-sm
+                    ">
                       <Checkbox
                         checked={setWebsiteTags}
                         onCheckedChange={v => onSetWebsiteTags(Boolean(v))}
