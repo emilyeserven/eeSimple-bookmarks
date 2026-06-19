@@ -79,7 +79,7 @@ export function TabbedEntityLayout({
               return (
                 <div
                   key={entry.label}
-                  className="flex flex-col gap-1"
+                  className="mt-2 flex flex-col gap-1"
                 >
                   <p
                     className="
