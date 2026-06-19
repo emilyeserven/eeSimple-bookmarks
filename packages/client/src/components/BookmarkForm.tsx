@@ -1,35 +1,31 @@
 import type { ImageIntent } from "./bookmarkImageIntent";
-import type { UrlCleanupMode } from "../lib/urlCleanup";
 import type {
   Bookmark,
   BookmarkBooleanValue,
   BookmarkDateTimeValue,
   BookmarkNumberValue,
   CreateBookmarkInput,
-  Website,
   YouTubeChannelHint,
 } from "@eesimple/types";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import { propertyAppliesToCategory } from "@eesimple/types";
 import { useNavigate } from "@tanstack/react-router";
 import { Brush, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
   bookmarkSchema,
+  buildCategoryPropertyValues,
+  computeAutofill,
+  initialImageIntent,
   looksLikeYouTube,
   stripSelfId,
 } from "./bookmarkFormSchema";
-import { EMPTY_IMAGE_INTENT } from "./bookmarkImageIntent";
 import { BookmarkRevealedFields } from "./BookmarkRevealedFields";
-import { useBookmarkFormActions } from "./useBookmarkFormActions";
 import { useBookmarkFormData } from "./useBookmarkFormData";
-import { applyAutofill } from "../lib/autofill";
+import { useBookmarkUrlProcessing } from "./useBookmarkUrlProcessing";
 import { useAppForm } from "../lib/form";
-import { isFetchableUrl } from "../lib/url";
-import { canonicalize } from "../lib/urlCleanup";
 
 import { Button } from "@/components/ui/button";
 
@@ -55,17 +51,16 @@ export function BookmarkForm({
   const isEdit = Boolean(bookmark);
   const navigate = useNavigate();
   const {
-    createBookmark,
-    updateBookmark,
-    uploadImage,
-    autoImage,
-    deleteImage,
-    fetchTitle,
-    fetchMetadata,
-    websiteLookup,
-  } = useBookmarkFormActions();
-  const saveBookmark = isEdit ? updateBookmark : createBookmark;
-  const {
+    actions: {
+      createBookmark,
+      updateBookmark,
+      uploadImage,
+      autoImage,
+      deleteImage,
+      fetchTitle,
+      fetchMetadata,
+      websiteLookup,
+    },
     websites,
     shortenerIgnoreList,
     tagTree,
@@ -75,6 +70,7 @@ export function BookmarkForm({
     autoFetchTitle,
     autoFetchImage,
   } = useBookmarkFormData();
+  const saveBookmark = isEdit ? updateBookmark : createBookmark;
 
   // Custom-property values live outside the typed form (they're dynamic). A ref
   // mirrors them so the submit handler always reads the latest entries. When editing,
@@ -94,40 +90,30 @@ export function BookmarkForm({
   // The ref is read by the submit handler (stale-closure-safe); the state drives the banner display.
   const channelHintRef = useRef<YouTubeChannelHint | null>(null);
   const [youtubeChannel, setYoutubeChannel] = useState<YouTubeChannelHint | null>(null);
-  // Shortened-link info for the current URL, computed on blur: whether to nudge and the expansion.
-  const [urlShortener, setUrlShortener] = useState<{ nudge: boolean;
-    expandedUrl: string | null; }>({
-    nudge: false,
-    expandedUrl: null,
+  // All URL-string handling (on-blur cleanup, shortener classification, submit-URL resolution) plus the
+  // canonicalize-input refs live in this hook so the form imports one URL module.
+  const {
+    urlShortener,
+    setUrlShortener,
+    urlCleanup,
+    setUrlCleanup,
+    showUrlCleanup,
+    setShowUrlCleanup,
+    urlCleanupMode,
+    setUrlCleanupMode,
+    cleanupId,
+    isUrlFetchable,
+    runUrlCleanup: cleanUrl,
+    undoUrlCleanup: undoCleanup,
+    classifyUrlShortener,
+    resolveSubmitUrl,
+  } = useBookmarkUrlProcessing({
+    websites: websites ?? [],
+    ignoreList: shortenerIgnoreList ?? [],
   });
-  // On-blur URL cleanup: when blur rewrites the field to its canonical form we keep the original so
-  // the banner can offer an undo, and so the submit handler can record it as `originalUrl`. `applied`
-  // flips to false after an undo, which both suppresses re-cleaning on the next blur and tells submit
-  // to save the original URL untouched. The ref mirrors the state for the (stale) submit closure.
-  const [urlCleanup, setUrlCleanup] = useState<{ original: string;
-    cleaned: string;
-    applied: boolean; } | null>(null);
-  const urlCleanupRef = useRef<typeof urlCleanup>(null);
-  urlCleanupRef.current = urlCleanup;
-  const [showUrlCleanup, setShowUrlCleanup] = useState(false);
   // When the fetch-title button overwrites a non-empty title, record the previous value so the
   // banner can offer an undo. Cleared when the user manually edits the title field.
   const [titleFetch, setTitleFetch] = useState<{ previous: string } | null>(null);
-  const [urlCleanupMode, setUrlCleanupMode] = useState<UrlCleanupMode>("none");
-  const urlCleanupModeRef = useRef<UrlCleanupMode>("none");
-  urlCleanupModeRef.current = urlCleanupMode;
-  // Mirror the canonicalize inputs into a ref so the (potentially stale) submit closure reads fresh
-  // websites + ignore-list data.
-  const canonDataRef = useRef<{ websites: Website[];
-    ignoreList: string[]; }>({
-    websites: [],
-    ignoreList: [],
-  });
-  canonDataRef.current = {
-    websites: websites ?? [],
-    ignoreList: shortenerIgnoreList ?? [],
-  };
-  const cleanupId = useId();
   const customRef = useRef({
     numberInputs,
     booleanInputs,
@@ -142,13 +128,7 @@ export function BookmarkForm({
   // The image control reports its intent here; the form applies it after the bookmark is saved (so
   // it works for both create and edit). `imageFieldKey` remounts the field to clear it on reset.
   const imageIntentRef = useRef<ImageIntent>(
-    !isEdit && autoFetchImage
-      ? {
-        file: null,
-        auto: true,
-        remove: false,
-      }
-      : EMPTY_IMAGE_INTENT,
+    initialImageIntent(!isEdit && autoFetchImage),
   );
   const [imageFieldKey, setImageFieldKey] = useState(0);
 
@@ -182,7 +162,7 @@ export function BookmarkForm({
     const title = form.getFieldValue("title");
     if (!url && !title) return;
 
-    const result = applyAutofill({
+    const result = computeAutofill({
       url,
       title,
     }, autofillRules ?? []);
@@ -316,73 +296,13 @@ export function BookmarkForm({
       value,
     }) => {
       const {
-        numberInputs: numbers, booleanInputs: booleans, dateTimeInputs: dateTimes,
-      } = customRef.current;
-      // Only persist values for properties that belong to the chosen category and are enabled.
-      const categoryProps = (customProperties ?? []).filter(property =>
-        propertyAppliesToCategory(property, value.categoryId) && property.enabled);
-      const numberValues: BookmarkNumberValue[] = categoryProps
-        .filter(property => property.type === "number")
-        .map((property) => {
-          const raw = numbers[property.id] ?? "";
-          return {
-            property,
-            raw,
-          };
-        })
-        .filter(({
-          raw,
-        }) => raw.trim() !== "" && !Number.isNaN(Number(raw)))
-        .map(({
-          property, raw,
-        }) => ({
-          propertyId: property.id,
-          value: Number(raw),
-        }));
-      const booleanValues: BookmarkBooleanValue[] = categoryProps
-        .filter(property => property.type === "boolean")
-        .map(property => ({
-          propertyId: property.id,
-          value: booleans[property.id] ?? false,
-        }));
-      const dateTimeValues: BookmarkDateTimeValue[] = categoryProps
-        .filter(property => property.type === "datetime")
-        .map(property => ({
-          propertyId: property.id,
-          value: (dateTimes[property.id] ?? "").trim(),
-        }))
-        .filter(entry => entry.value !== "");
+        numberValues, booleanValues, dateTimeValues,
+      } = buildCategoryPropertyValues(customProperties ?? [], value.categoryId, customRef.current);
 
-      // Resolve the URL to save plus the original it was cleaned from. When blur already cleaned the
-      // field we trust that decision: an applied cleanup saves the cleaned URL (recording the typed
-      // original), while an undone cleanup saves the original untouched — re-canonicalizing here would
-      // re-shorten it, since param rules strip regardless of mode. Otherwise (URL edited after the
-      // cleanup, or no cleanup) fall back to canonicalizing the field on submit.
-      const rawUrl = value.url;
-      const cleanup = urlCleanupRef.current;
-      let finalUrl: string;
-      let originalUrl: string | null;
-      if (quickAddRef.current) {
-        // "Add Now" deliberately skips shortened-link expansion: save the URL exactly as typed.
-        finalUrl = rawUrl;
-        originalUrl = null;
-      }
-      else if (cleanup?.applied && rawUrl === cleanup.cleaned) {
-        finalUrl = cleanup.cleaned;
-        originalUrl = cleanup.original;
-      }
-      else if (cleanup && !cleanup.applied && rawUrl === cleanup.original) {
-        finalUrl = cleanup.original;
-        originalUrl = null;
-      }
-      else {
-        finalUrl = canonicalize(rawUrl, {
-          mode: urlCleanupModeRef.current,
-          websites: canonDataRef.current.websites,
-          ignoreList: canonDataRef.current.ignoreList,
-        }).url;
-        originalUrl = finalUrl !== rawUrl ? rawUrl : null;
-      }
+      // Resolve the URL to save plus the original it was cleaned from (see resolveSubmitUrl).
+      const {
+        finalUrl, originalUrl,
+      } = resolveSubmitUrl(value.url, quickAddRef.current);
 
       // Media type, video length, and priority are intentionally omitted — the server fills the first
       // two from the URL's metadata and defaults priority. On edit, omitting them preserves the
@@ -446,13 +366,7 @@ export function BookmarkForm({
         expandedUrl: null,
       });
       setUrlCleanup(null);
-      imageIntentRef.current = autoFetchImage
-        ? {
-          file: null,
-          auto: true,
-          remove: false,
-        }
-        : EMPTY_IMAGE_INTENT;
+      imageIntentRef.current = initialImageIntent(autoFetchImage);
       setImageFieldKey(key => key + 1);
       setShowUrlCleanup(false);
       setUrlCleanupMode("none");
@@ -520,7 +434,7 @@ export function BookmarkForm({
   async function runFetchTitle(url: string, {
     force,
   }: { force: boolean }): Promise<void> {
-    if (!isFetchableUrl(url)) return;
+    if (!isUrlFetchable(url)) return;
     if (!force && form.getFieldValue("title").trim() !== "") return;
     try {
       const {
@@ -554,7 +468,7 @@ export function BookmarkForm({
   }: { fillTitle: boolean;
     force: boolean; }): Promise<void> {
     // A non-YouTube URL clears any channel left over from a previously-entered YouTube link.
-    if (!isFetchableUrl(url) || !looksLikeYouTube(url)) {
+    if (!isUrlFetchable(url) || !looksLikeYouTube(url)) {
       channelHintRef.current = null;
       setYoutubeChannel(null);
       return;
@@ -621,43 +535,18 @@ export function BookmarkForm({
     }
   }
 
-  // Canonicalize the URL on blur and rewrite the field to the cleaned form, recording the original so
-  // the banner can offer an undo. Skips a value the user just restored via undo (so blur doesn't
-  // re-shorten it), and clears the undo state when the URL is left unchanged.
+  // Canonicalize the URL on blur and rewrite the field to the cleaned form (the hook records the
+  // original for undo and tracks the cleanup state); a `null` result means leave the field as-is.
   function runUrlCleanup(url: string): void {
-    const restored = urlCleanupRef.current;
-    if (restored && !restored.applied && url === restored.original) return;
-    if (!isFetchableUrl(url)) {
-      setUrlCleanup(null);
-      return;
-    }
-    const cleaned = canonicalize(url, {
-      mode: urlCleanupModeRef.current,
-      websites: canonDataRef.current.websites,
-      ignoreList: canonDataRef.current.ignoreList,
-    }).url;
-    if (cleaned === url) {
-      setUrlCleanup(null);
-      return;
-    }
-    form.setFieldValue("url", cleaned);
-    setUrlCleanup({
-      original: url,
-      cleaned,
-      applied: true,
-    });
+    const cleaned = cleanUrl(url);
+    if (cleaned !== null) form.setFieldValue("url", cleaned);
   }
 
-  // Restore the URL the user typed before on-blur cleanup, and mark the cleanup undone so neither the
-  // next blur nor the submit handler re-shortens it.
+  // Restore the URL the user typed before on-blur cleanup (the hook marks the cleanup undone so
+  // neither the next blur nor the submit handler re-shortens it).
   function undoUrlCleanup(): void {
-    const current = urlCleanupRef.current;
-    if (!current) return;
-    form.setFieldValue("url", current.original);
-    setUrlCleanup({
-      ...current,
-      applied: false,
-    });
+    const original = undoCleanup();
+    if (original !== null) form.setFieldValue("url", original);
   }
 
   function undoTitleFetch(): void {
@@ -669,25 +558,13 @@ export function BookmarkForm({
   // Check whether the URL's site is already on record so the banner can say whether a new
   // website will be created. Read-only — the site is created only when the bookmark is saved.
   function runWebsiteLookup(url: string): void {
-    if (!isFetchableUrl(url)) {
+    // Locally classify the URL (shortened? expandable?) so the banner can nudge / show the expansion;
+    // a `null` result means the URL isn't fetchable, so reset the lookup + site-name state.
+    if (classifyUrlShortener(url) === null) {
       websiteLookup.reset();
       setWebsiteSiteName("");
-      setUrlShortener({
-        nudge: false,
-        expandedUrl: null,
-      });
       return;
     }
-    // Locally classify the URL (shortened? expandable?) so the banner can nudge / show the expansion.
-    const canon = canonicalize(url, {
-      mode: "none",
-      websites: websites ?? [],
-      ignoreList: shortenerIgnoreList ?? [],
-    });
-    setUrlShortener({
-      nudge: canon.nudge,
-      expandedUrl: canon.expanded ? canon.url : null,
-    });
     websiteLookup.mutate(url, {
       onSuccess: (data) => {
         // Pre-fill the site name input with the domain when it's a new site.

@@ -1,7 +1,19 @@
-import type { Bookmark } from "@eesimple/types";
+import type { ImageIntent } from "./bookmarkImageIntent";
+import type { AutofillInput, AutofillResult } from "../lib/autofill";
+import type {
+  AutofillRule,
+  Bookmark,
+  BookmarkBooleanValue,
+  BookmarkDateTimeValue,
+  BookmarkNumberValue,
+  CustomProperty,
+} from "@eesimple/types";
 
+import { propertyAppliesToCategory } from "@eesimple/types";
 import { z } from "zod";
 
+import { EMPTY_IMAGE_INTENT } from "./bookmarkImageIntent";
+import { applyAutofill } from "../lib/autofill";
 import { useAppForm } from "../lib/form";
 
 export const bookmarkSchema = z.object({
@@ -69,3 +81,89 @@ function _bookmarkFormApiSample(_bookmark?: Bookmark) {
   });
 }
 export type BookmarkFormApi = ReturnType<typeof _bookmarkFormApiSample>;
+
+/** The raw custom-property inputs the submit handler reads off its ref. */
+export interface CustomPropertyInputs {
+  numberInputs: Record<string, string>;
+  booleanInputs: Record<string, boolean>;
+  dateTimeInputs: Record<string, string>;
+}
+
+/** The category-scoped, validated property values built for a bookmark's create/update payload. */
+export interface CategoryPropertyValues {
+  numberValues: BookmarkNumberValue[];
+  booleanValues: BookmarkBooleanValue[];
+  dateTimeValues: BookmarkDateTimeValue[];
+}
+
+/** Run the autofill rules against the current URL/Title and return the suggested values. */
+export function computeAutofill(input: AutofillInput, rules: AutofillRule[]): AutofillResult {
+  return applyAutofill(input, rules);
+}
+
+/**
+ * The pending image intent for a fresh (or just-reset) form: auto-fetch the preview when the
+ * auto-fetch-image setting is on, otherwise the no-op default.
+ */
+export function initialImageIntent(autoFetchImage: boolean): ImageIntent {
+  return autoFetchImage
+    ? {
+      file: null,
+      auto: true,
+      remove: false,
+    }
+    : EMPTY_IMAGE_INTENT;
+}
+
+/**
+ * Build the typed property values for the submit payload: only properties that belong to the chosen
+ * category and are enabled, with number inputs parsed/validated and empty datetimes dropped.
+ */
+export function buildCategoryPropertyValues(
+  customProperties: CustomProperty[],
+  categoryId: string,
+  inputs: CustomPropertyInputs,
+): CategoryPropertyValues {
+  const {
+    numberInputs: numbers, booleanInputs: booleans, dateTimeInputs: dateTimes,
+  } = inputs;
+  // Only persist values for properties that belong to the chosen category and are enabled.
+  const categoryProps = customProperties.filter(property =>
+    propertyAppliesToCategory(property, categoryId) && property.enabled);
+  const numberValues: BookmarkNumberValue[] = categoryProps
+    .filter(property => property.type === "number")
+    .map((property) => {
+      const raw = numbers[property.id] ?? "";
+      return {
+        property,
+        raw,
+      };
+    })
+    .filter(({
+      raw,
+    }) => raw.trim() !== "" && !Number.isNaN(Number(raw)))
+    .map(({
+      property, raw,
+    }) => ({
+      propertyId: property.id,
+      value: Number(raw),
+    }));
+  const booleanValues: BookmarkBooleanValue[] = categoryProps
+    .filter(property => property.type === "boolean")
+    .map(property => ({
+      propertyId: property.id,
+      value: booleans[property.id] ?? false,
+    }));
+  const dateTimeValues: BookmarkDateTimeValue[] = categoryProps
+    .filter(property => property.type === "datetime")
+    .map(property => ({
+      propertyId: property.id,
+      value: (dateTimes[property.id] ?? "").trim(),
+    }))
+    .filter(entry => entry.value !== "");
+  return {
+    numberValues,
+    booleanValues,
+    dateTimeValues,
+  };
+}
