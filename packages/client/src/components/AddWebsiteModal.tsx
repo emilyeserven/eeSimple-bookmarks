@@ -2,6 +2,9 @@ import type { Website } from "@eesimple/types";
 
 import { z } from "zod";
 
+import { useCreateWebsite } from "../hooks/useWebsites";
+import { useAppForm } from "../lib/form";
+
 import {
   Dialog,
   DialogContent,
@@ -10,8 +13,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useCreateWebsite } from "../hooks/useWebsites";
-import { useAppForm } from "../lib/form";
 
 const schema = z.object({
   domain: z.string().trim().min(1, "Domain is required"),
@@ -24,14 +25,28 @@ interface AddWebsiteModalProps {
   onCreated?: (website: Website) => void;
 }
 
-export function AddWebsiteModal({ open, onOpenChange, onCreated }: AddWebsiteModalProps) {
+export function AddWebsiteModal({
+  open,
+  onOpenChange,
+  onCreated,
+}: AddWebsiteModalProps) {
   const createWebsite = useCreateWebsite();
   const form = useAppForm({
-    defaultValues: { domain: "", siteName: "" },
-    validators: { onChange: schema },
-    onSubmit: ({ value }) => {
+    defaultValues: {
+      domain: "",
+      siteName: "",
+    },
+    validators: {
+      onChange: schema,
+    },
+    onSubmit: ({
+      value,
+    }) => {
       createWebsite.mutate(
-        { domain: value.domain.trim(), siteName: value.siteName.trim() || undefined },
+        {
+          domain: value.domain.trim(),
+          siteName: value.siteName.trim() || undefined,
+        },
         {
           onSuccess: (website) => {
             onCreated?.(website);
@@ -44,7 +59,10 @@ export function AddWebsiteModal({ open, onOpenChange, onCreated }: AddWebsiteMod
   });
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={onOpenChange}
+    >
       <DialogContent>
         <DialogHeader>
           <DialogTitle>New website</DialogTitle>
@@ -62,11 +80,19 @@ export function AddWebsiteModal({ open, onOpenChange, onCreated }: AddWebsiteMod
           }}
         >
           <form.AppField name="domain">
-            {field => <field.TextField label="Domain" placeholder="example.com" />}
+            {field => (
+              <field.TextField
+                label="Domain"
+                placeholder="example.com"
+              />
+            )}
           </form.AppField>
           <form.AppField name="siteName">
             {field => (
-              <field.TextField label="Site name (optional)" placeholder="Defaults to the domain" />
+              <field.TextField
+                label="Site name (optional)"
+                placeholder="Defaults to the domain"
+              />
             )}
           </form.AppField>
           {createWebsite.isError
@@ -74,7 +100,10 @@ export function AddWebsiteModal({ open, onOpenChange, onCreated }: AddWebsiteMod
             : null}
           <DialogFooter>
             <form.AppForm>
-              <form.SubmitButton label="Add website" pendingLabel="Adding…" />
+              <form.SubmitButton
+                label="Add website"
+                pendingLabel="Adding…"
+              />
             </form.AppForm>
           </DialogFooter>
         </form>

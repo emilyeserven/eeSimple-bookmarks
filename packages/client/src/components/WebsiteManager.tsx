@@ -40,7 +40,11 @@ export function WebsitesListing() {
           />
           <ColumnsSwitcher pageKey="websites-listing" />
           <div className="ml-auto">
-            <Button type="button" size="sm" onClick={() => setModalOpen(true)}>
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => setModalOpen(true)}
+            >
               <Plus className="size-4" />
               New website
             </Button>
@@ -97,7 +101,9 @@ export function WebsitesListing() {
         onCreated={(website) => {
           void navigate({
             to: "/taxonomies/websites/$websiteSlug/edit/general",
-            params: { websiteSlug: website.slug },
+            params: {
+              websiteSlug: website.slug,
+            },
           });
         }}
       />
