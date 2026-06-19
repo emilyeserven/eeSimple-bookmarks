@@ -122,6 +122,17 @@ const updateWebsiteBody = {
     },
     shortenedLinks: shortenedLinksSchema,
     paramRules: paramRulesSchema,
+    categoryId: {
+      type: ["string", "null"],
+      format: "uuid",
+    },
+    tagIds: {
+      type: "array",
+      items: {
+        type: "string",
+        format: "uuid",
+      },
+    },
   },
 } as const;
 

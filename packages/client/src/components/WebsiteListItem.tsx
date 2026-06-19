@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Globe, MoreVertical, Sparkles } from "lucide-react";
 
+import { CategoryPill } from "./CategoryPill";
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 
 import { Badge } from "@/components/ui/badge";
@@ -34,43 +35,49 @@ export function WebsiteListItem({
   const showImage = website.imageUrl != null && !imageFailed;
   return (
     <RowCard className="group relative">
-      <Link
-        to="/taxonomies/websites/$websiteSlug"
-        params={{
-          websiteSlug: website.slug,
-        }}
-        title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-        onClick={event => viewClick(event, "website", website.id)}
-        className="
-          flex items-center gap-3 rounded-lg p-4 pr-12 transition-colors
-          hover:bg-accent
-        "
-      >
-        <span
-          className="
-            flex size-8 shrink-0 items-center justify-center overflow-hidden
-            rounded-sm bg-muted text-muted-foreground
-          "
+      <div className="rounded-lg transition-colors hover:bg-accent">
+        <Link
+          to="/taxonomies/websites/$websiteSlug"
+          params={{
+            websiteSlug: website.slug,
+          }}
+          title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+          onClick={event => viewClick(event, "website", website.id)}
+          className="flex items-center gap-3 p-4 pr-12"
         >
-          {showImage
-            ? (
-              <img
-                src={website.imageUrl ?? undefined}
-                alt=""
-                className="size-full object-contain"
-                onError={() => setImageFailed(true)}
-              />
-            )
-            : <Globe className="size-4" />}
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="font-medium">{website.siteName}</p>
-          <p className="truncate text-sm text-muted-foreground">{website.domain}</p>
-        </div>
-        {website.bookmarkCount !== undefined
-          ? <Badge variant="secondary">{website.bookmarkCount}</Badge>
+          <span
+            className="
+              flex size-8 shrink-0 items-center justify-center overflow-hidden
+              rounded-sm bg-muted text-muted-foreground
+            "
+          >
+            {showImage
+              ? (
+                <img
+                  src={website.imageUrl ?? undefined}
+                  alt=""
+                  className="size-full object-contain"
+                  onError={() => setImageFailed(true)}
+                />
+              )
+              : <Globe className="size-4" />}
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="font-medium">{website.siteName}</p>
+            <p className="truncate text-sm text-muted-foreground">{website.domain}</p>
+          </div>
+          {website.bookmarkCount !== undefined
+            ? <Badge variant="secondary">{website.bookmarkCount}</Badge>
+            : null}
+        </Link>
+        {website.category
+          ? (
+            <div className="px-4 pb-2 pl-15">
+              <CategoryPill category={website.category} />
+            </div>
+          )
           : null}
-      </Link>
+      </div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button

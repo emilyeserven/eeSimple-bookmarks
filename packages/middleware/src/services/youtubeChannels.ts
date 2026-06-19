@@ -1,7 +1,7 @@
 import { asc, eq, inArray, isNull, ne, sql } from "drizzle-orm";
 import type { UpdateYouTubeChannelInput, YouTubeChannel } from "@eesimple/types";
 import { db } from "@/db";
-import { bookmarks, categories, type YouTubeChannelRow, youtubeChannelImages, youtubeChannelSelfIds, youtubeChannels } from "@/db/schema";
+import { bookmarks, categories, type YouTubeChannelRow, youtubeChannelImages, youtubeChannelSelfIds, youtubeChannelTags, youtubeChannels } from "@/db/schema";
 import { slugify, uniqueSlug } from "@/utils/slug";
 
 /**
@@ -79,6 +79,40 @@ async function setSelfIds(
   }
 }
 
+/** Load default tag ids for a set of channel ids as a map of id → string[]. */
+async function loadChannelTagsMap(channelIds: string[]): Promise<Map<string, string[]>> {
+  if (channelIds.length === 0) return new Map();
+  const rows = await db
+    .select({
+      channelId: youtubeChannelTags.channelId,
+      tagId: youtubeChannelTags.tagId,
+    })
+    .from(youtubeChannelTags)
+    .where(inArray(youtubeChannelTags.channelId, channelIds));
+  const map = new Map<string, string[]>();
+  for (const row of rows) {
+    const existing = map.get(row.channelId) ?? [];
+    existing.push(row.tagId);
+    map.set(row.channelId, existing);
+  }
+  return map;
+}
+
+/** Replace the full set of default tags for a channel (delete-then-insert). */
+async function setChannelTags(
+  txOrDb: Tx | typeof db,
+  channelId: string,
+  tagIds: string[],
+): Promise<void> {
+  await txOrDb.delete(youtubeChannelTags).where(eq(youtubeChannelTags.channelId, channelId));
+  if (tagIds.length > 0) {
+    await txOrDb.insert(youtubeChannelTags).values(tagIds.map(tagId => ({
+      channelId,
+      tagId,
+    })));
+  }
+}
+
 /** Load self-identifiers for a set of channel ids as a map of id → string[]. */
 async function loadSelfIdsMap(channelIds: string[]): Promise<Map<string, string[]>> {
   if (channelIds.length === 0) return new Map();
@@ -109,6 +143,7 @@ function toYouTubeChannel(
     categoryIcon?: string | null;
   },
   selfIds: string[] = [],
+  tagIds: string[] = [],
 ): YouTubeChannel {
   return {
     id: row.id,
@@ -128,6 +163,7 @@ function toYouTubeChannel(
         icon: row.categoryIcon ?? null,
       }
       : null,
+    tagIds,
   };
 }
 
@@ -163,8 +199,9 @@ export async function listYouTubeChannels(): Promise<YouTubeChannel[]> {
     .leftJoin(categories, eq(categories.id, youtubeChannels.categoryId))
     .orderBy(asc(youtubeChannels.name));
 
-  const selfIdsMap = await loadSelfIdsMap(rows.map(r => r.id));
-  return rows.map(row => toYouTubeChannel(row, selfIdsMap.get(row.id) ?? []));
+  const ids = rows.map(r => r.id);
+  const [selfIdsMap, tagsMap] = await Promise.all([loadSelfIdsMap(ids), loadChannelTagsMap(ids)]);
+  return rows.map(row => toYouTubeChannel(row, selfIdsMap.get(row.id) ?? [], tagsMap.get(row.id) ?? []));
 }
 
 /** Shared select shape for single-channel lookups (includes category join). */
@@ -190,8 +227,8 @@ export async function getYouTubeChannel(id: string): Promise<YouTubeChannel | nu
     .leftJoin(categories, eq(categories.id, youtubeChannels.categoryId))
     .where(eq(youtubeChannels.id, id));
   if (!row) return null;
-  const selfIdsMap = await loadSelfIdsMap([id]);
-  return toYouTubeChannel(row, selfIdsMap.get(id) ?? []);
+  const [selfIdsMap, tagsMap] = await Promise.all([loadSelfIdsMap([id]), loadChannelTagsMap([id])]);
+  return toYouTubeChannel(row, selfIdsMap.get(id) ?? [], tagsMap.get(id) ?? []);
 }
 
 /** Fetch a channel by its stable channel key, or `null` when absent. */
@@ -203,8 +240,8 @@ export async function getYouTubeChannelByKey(channelKey: string): Promise<YouTub
     .leftJoin(categories, eq(categories.id, youtubeChannels.categoryId))
     .where(eq(youtubeChannels.channelKey, channelKey));
   if (!row) return null;
-  const selfIdsMap = await loadSelfIdsMap([row.id]);
-  return toYouTubeChannel(row, selfIdsMap.get(row.id) ?? []);
+  const [selfIdsMap, tagsMap] = await Promise.all([loadSelfIdsMap([row.id]), loadChannelTagsMap([row.id])]);
+  return toYouTubeChannel(row, selfIdsMap.get(row.id) ?? [], tagsMap.get(row.id) ?? []);
 }
 
 /**
@@ -308,6 +345,10 @@ export async function updateYouTubeChannel(
         categoryId: input.categoryId ?? null,
       })
       .where(eq(youtubeChannels.id, id));
+  }
+
+  if (input.tagIds !== undefined) {
+    await setChannelTags(db, id, input.tagIds);
   }
 
   return getYouTubeChannel(id);

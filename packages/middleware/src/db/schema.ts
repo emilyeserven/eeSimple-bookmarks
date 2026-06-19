@@ -137,6 +137,10 @@ export const websites = pgTable("websites", {
   shortenedLinks: jsonb("shortened_links").$type<ShortenedLink[]>().notNull().default(sql`'[]'::jsonb`),
   // Path-scoped query-param whitelist; params outside the matching rule are stripped on canonicalize.
   paramRules: jsonb("param_rules").$type<WebsiteParamRule[]>().notNull().default(sql`'[]'::jsonb`),
+  // Optional category association; set null when the category is deleted.
+  categoryId: uuid("category_id").references((): AnyPgColumn => categories.id, {
+    onDelete: "set null",
+  }),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
@@ -250,6 +254,34 @@ export const youtubeChannelSelfIds = pgTable("youtube_channel_self_ids", {
   value: text("value").notNull(),
 }, table => [
   unique("youtube_channel_self_ids_channel_value_unique").on(table.channelId, table.value),
+]);
+
+/** `website_tags` join — default tags applied to bookmarks saved for a given website. */
+export const websiteTags = pgTable("website_tags", {
+  websiteId: uuid("website_id").notNull().references(() => websites.id, {
+    onDelete: "cascade",
+  }),
+  tagId: uuid("tag_id").notNull().references((): AnyPgColumn => tags.id, {
+    onDelete: "cascade",
+  }),
+}, table => [
+  primaryKey({
+    columns: [table.websiteId, table.tagId],
+  }),
+]);
+
+/** `youtube_channel_tags` join — default tags applied to bookmarks saved for a given channel. */
+export const youtubeChannelTags = pgTable("youtube_channel_tags", {
+  channelId: uuid("channel_id").notNull().references(() => youtubeChannels.id, {
+    onDelete: "cascade",
+  }),
+  tagId: uuid("tag_id").notNull().references((): AnyPgColumn => tags.id, {
+    onDelete: "cascade",
+  }),
+}, table => [
+  primaryKey({
+    columns: [table.channelId, table.tagId],
+  }),
 ]);
 
 /** `tags` table — a self-referencing tree. `parentId` NULL means a root tag. */
@@ -367,6 +399,7 @@ export const youtubeChannelsRelations = relations(youtubeChannels, ({
     fields: [youtubeChannels.categoryId],
     references: [categories.id],
   }),
+  channelTags: many(youtubeChannelTags),
 }));
 
 export const bookmarkImagesRelations = relations(bookmarkImages, ({
@@ -379,9 +412,15 @@ export const bookmarkImagesRelations = relations(bookmarkImages, ({
 }));
 
 export const websitesRelations = relations(websites, ({
+  one,
   many,
 }) => ({
   bookmarks: many(bookmarks),
+  category: one(categories, {
+    fields: [websites.categoryId],
+    references: [categories.id],
+  }),
+  websiteTags: many(websiteTags),
 }));
 
 export const mediaObjectsRelations = relations(mediaObjects, ({
@@ -834,6 +873,7 @@ export const categoriesRelations = relations(categories, ({
   propertyCategories: many(propertyCategories),
   categoryRootTags: many(categoryRootTags),
   youtubeChannels: many(youtubeChannels),
+  websites: many(websites),
 }));
 
 export const propertyCategoriesRelations = relations(propertyCategories, ({
@@ -858,6 +898,32 @@ export const categoryRootTagsRelations = relations(categoryRootTags, ({
   }),
   tag: one(tags, {
     fields: [categoryRootTags.tagId],
+    references: [tags.id],
+  }),
+}));
+
+export const websiteTagsRelations = relations(websiteTags, ({
+  one,
+}) => ({
+  website: one(websites, {
+    fields: [websiteTags.websiteId],
+    references: [websites.id],
+  }),
+  tag: one(tags, {
+    fields: [websiteTags.tagId],
+    references: [tags.id],
+  }),
+}));
+
+export const youtubeChannelTagsRelations = relations(youtubeChannelTags, ({
+  one,
+}) => ({
+  channel: one(youtubeChannels, {
+    fields: [youtubeChannelTags.channelId],
+    references: [youtubeChannels.id],
+  }),
+  tag: one(tags, {
+    fields: [youtubeChannelTags.tagId],
     references: [tags.id],
   }),
 }));
@@ -951,6 +1017,8 @@ export type CategoryRow = typeof categories.$inferSelect;
 export type NewCategoryRow = typeof categories.$inferInsert;
 export type PropertyCategoryRow = typeof propertyCategories.$inferSelect;
 export type CategoryRootTagRow = typeof categoryRootTags.$inferSelect;
+export type WebsiteTagRow = typeof websiteTags.$inferSelect;
+export type YouTubeChannelTagRow = typeof youtubeChannelTags.$inferSelect;
 export type HomepageTagRow = typeof homepageTags.$inferSelect;
 export type HomepageFilterRow = typeof homepageFilter.$inferSelect;
 export type AppSettingsRow = typeof appSettings.$inferSelect;
