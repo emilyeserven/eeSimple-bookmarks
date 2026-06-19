@@ -105,12 +105,12 @@ export function BookmarkPropertiesForm({
   const hasProperties
     = (videoLengthProp !== undefined && isYouTubeBookmark)
       || (customProperties ?? []).some(
-      property =>
-        property.enabled
-        && !property.hiddenFromForm
-        && property.slug !== VIDEO_LENGTH_SLUG
-        && propertyAppliesToCategory(property, bookmark.categoryId ?? ""),
-    );
+        property =>
+          property.enabled
+          && !property.hiddenFromForm
+          && property.slug !== VIDEO_LENGTH_SLUG
+          && propertyAppliesToCategory(property, bookmark.categoryId ?? ""),
+      );
 
   if (!hasProperties) {
     return (
