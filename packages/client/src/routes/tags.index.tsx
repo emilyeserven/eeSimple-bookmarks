@@ -5,8 +5,8 @@ import { Plus } from "lucide-react";
 
 import { AddTagModal } from "../components/AddTagModal";
 import { TagManager } from "../components/TagManager";
-import { useTags } from "../hooks/useTags";
 import { useSetListingPage } from "../hooks/useListingPage";
+import { useTags } from "../hooks/useTags";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

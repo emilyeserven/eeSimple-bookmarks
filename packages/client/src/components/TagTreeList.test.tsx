@@ -43,6 +43,7 @@ describe("TagTreeList", () => {
         tree={tree}
         expanded={new Set()}
         onToggle={vi.fn()}
+        columns={1}
       />,
       {
         paths,
@@ -58,6 +59,7 @@ describe("TagTreeList", () => {
         tree={tree}
         expanded={new Set(["dev"])}
         onToggle={vi.fn()}
+        columns={1}
       />,
       {
         paths,
@@ -73,6 +75,7 @@ describe("TagTreeList", () => {
         tree={tree}
         expanded={new Set()}
         onToggle={onToggle}
+        columns={1}
       />,
       {
         paths,
@@ -88,6 +91,7 @@ describe("TagTreeList", () => {
         tree={tree}
         expanded={new Set(["dev"])}
         onToggle={vi.fn()}
+        columns={1}
       />,
       {
         paths,
@@ -109,6 +113,7 @@ describe("TagTreeList", () => {
         tree={tree}
         expanded={new Set()}
         onToggle={vi.fn()}
+        columns={1}
       />,
       {
         paths,
@@ -125,6 +130,7 @@ describe("TagTreeList", () => {
         tree={tree}
         expanded={new Set()}
         onToggle={vi.fn()}
+        columns={1}
       />,
       {
         paths,
@@ -143,6 +149,7 @@ describe("TagTreeList", () => {
         tree={tree}
         expanded={new Set()}
         onToggle={vi.fn()}
+        columns={1}
       />,
       {
         paths,
@@ -161,6 +168,7 @@ describe("TagTreeList", () => {
         tree={tree}
         expanded={new Set()}
         onToggle={vi.fn()}
+        columns={1}
       />,
       {
         paths,

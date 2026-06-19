@@ -5,8 +5,8 @@ import { Plus } from "lucide-react";
 
 import { AddMediaTypeModal } from "../components/AddMediaTypeModal";
 import { MediaTypesListing } from "../components/MediaTypeManager";
-import { useMediaTypes } from "../hooks/useMediaTypes";
 import { useSetListingPage } from "../hooks/useListingPage";
+import { useMediaTypes } from "../hooks/useMediaTypes";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

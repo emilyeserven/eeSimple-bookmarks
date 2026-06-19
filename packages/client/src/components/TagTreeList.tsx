@@ -28,7 +28,12 @@ export function TagTreeList({
   tree, expanded, onToggle, columns,
 }: TagTreeListProps) {
   return (
-    <div className={`grid gap-2 ${COLUMN_CLASS[columns]}`}>
+    <div
+      className={`
+        grid gap-2
+        ${COLUMN_CLASS[columns]}
+      `}
+    >
       {tree.map(node => (
         <RowCard
           key={node.id}
@@ -90,10 +95,15 @@ function TagTreeRow({
 
       <Link
         to="/tags/$tagSlug"
-        params={{ tagSlug: node.slug }}
+        params={{
+          tagSlug: node.slug,
+        }}
         title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
         onClick={event => viewClick(event, "tag", node.id)}
-        className="flex-1 truncate hover:underline"
+        className="
+          flex-1 truncate
+          hover:underline
+        "
       >
         {node.name}
       </Link>
@@ -114,7 +124,9 @@ function TagTreeRow({
       >
         <Link
           to="/tags/$tagSlug/edit/general"
-          params={{ tagSlug: node.slug }}
+          params={{
+            tagSlug: node.slug,
+          }}
           aria-label={`Edit ${node.name}`}
           title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
           onClick={event => editClick(event, "tag", node.id)}
@@ -151,9 +163,14 @@ function TagTreeRow({
                       flex items-center gap-2 px-3 py-2 text-muted-foreground/70
                       italic
                     "
-                    style={{ paddingLeft: `${0.75 + 1.25}rem` }}
+                    style={{
+                      paddingLeft: `${0.75 + 1.25}rem`,
+                    }}
                   >
-                    <span className="inline-block size-4" aria-hidden="true" />
+                    <span
+                      className="inline-block size-4"
+                      aria-hidden="true"
+                    />
                     <span className="flex-1 truncate">No Child</span>
                     <Badge variant="outline">{node.ownBookmarkCount}</Badge>
                   </li>
@@ -170,7 +187,9 @@ function TagTreeRow({
     <>
       <li
         className="group flex items-center gap-2 px-3 py-2"
-        style={{ paddingLeft: `${0.75 + depth * 1.25}rem` }}
+        style={{
+          paddingLeft: `${0.75 + depth * 1.25}rem`,
+        }}
       >
         {rowInner}
       </li>
@@ -194,9 +213,14 @@ function TagTreeRow({
                     flex items-center gap-2 px-3 py-2 text-muted-foreground/70
                     italic
                   "
-                  style={{ paddingLeft: `${0.75 + (depth + 1) * 1.25}rem` }}
+                  style={{
+                    paddingLeft: `${0.75 + (depth + 1) * 1.25}rem`,
+                  }}
                 >
-                  <span className="inline-block size-4" aria-hidden="true" />
+                  <span
+                    className="inline-block size-4"
+                    aria-hidden="true"
+                  />
                   <span className="flex-1 truncate">No Child</span>
                   <Badge variant="outline">{node.ownBookmarkCount}</Badge>
                 </li>

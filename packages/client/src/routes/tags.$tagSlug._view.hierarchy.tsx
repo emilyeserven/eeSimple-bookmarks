@@ -89,6 +89,7 @@ function HierarchyViewTab() {
                     tree={node.children}
                     expanded={expanded}
                     onToggle={onToggle}
+                    columns={1}
                   />
                 )}
             </div>
