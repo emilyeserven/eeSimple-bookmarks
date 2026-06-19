@@ -168,7 +168,7 @@ function DisplayPresetsCard() {
       <CardHeader>
         <CardTitle>Display Presets</CardTitle>
         <CardDescription>
-          Saved display configurations. Apply them from the listing options popover or from a
+          Saved display configurations. Apply them from the layout options popover or from a
           category&apos;s Display tab.
         </CardDescription>
       </CardHeader>

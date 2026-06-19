@@ -4,6 +4,7 @@ import { BookmarkTagsBox } from "./BookmarkTagsBox";
 import { CategoryPill } from "./CategoryPill";
 import { MediaTypePill } from "./MediaTypePill";
 import { SourcePill } from "./SourcePill";
+import { useHiddenCardFields } from "../lib/bookmarkCardFields";
 import { formatBoolean, formatDateTime, formatNumber } from "../lib/bookmarkFormat";
 
 import { Badge } from "@/components/ui/badge";
@@ -12,12 +13,15 @@ import { useCategories } from "@/hooks/useCategories";
 interface BookmarkCardDetailsProps {
   bookmark: Bookmark;
   properties: CustomProperty[];
+  /** Listing-page key, so fields toggled off in that page's Card Options are hidden. Omitted off listing pages. */
+  pageKey?: string;
 }
 
 /** The body of a bookmark card: description, taxonomy badges, tags, and custom-property value badges. */
 export function BookmarkCardDetails({
-  bookmark, properties,
+  bookmark, properties, pageKey,
 }: BookmarkCardDetailsProps) {
+  const hidden = useHiddenCardFields(pageKey);
   const byId = new Map(properties.map(property => [property.id, property]));
   const {
     data: allCategories,
@@ -65,15 +69,23 @@ export function BookmarkCardDetails({
     .filter((badge): badge is { id: string;
       label: string; } => badge !== null);
 
-  const valueBadges = [...numberBadges, ...booleanBadges, ...dateTimeBadges];
+  const valueBadges = [...numberBadges, ...booleanBadges, ...dateTimeBadges]
+    .filter(badge => !hidden.has(badge.id));
 
   const {
     website, mediaType, youtubeChannel,
   } = bookmark;
 
+  const showDescription = !!bookmark.description && !hidden.has("description");
+  const showCategory = !!bookmarkCategory && !hidden.has("category");
+  const showWebsite = !!website && !hidden.has("website");
+  const showMediaType = !!mediaType && !hidden.has("mediaType");
+  const showYoutubeChannel = !!youtubeChannel && !hidden.has("youtubeChannel");
+  const showTags = bookmark.tags.length > 0 && !hidden.has("tags");
+
   return (
     <>
-      {bookmark.description
+      {showDescription
         ? (
           <div className="relative mt-2 max-h-18 overflow-hidden">
             <p className="text-sm/6 text-foreground">{bookmark.description}</p>
@@ -86,13 +98,13 @@ export function BookmarkCardDetails({
           </div>
         )
         : null}
-      {bookmarkCategory || website || mediaType || youtubeChannel
+      {showCategory || showWebsite || showMediaType || showYoutubeChannel
         ? (
           <div className="mt-2 flex flex-wrap items-center gap-1">
-            {bookmarkCategory
+            {showCategory && bookmarkCategory
               ? <CategoryPill category={bookmarkCategory} />
               : null}
-            {website
+            {showWebsite && website
               ? (
                 <SourcePill
                   type="website"
@@ -100,10 +112,10 @@ export function BookmarkCardDetails({
                 />
               )
               : null}
-            {mediaType
+            {showMediaType && mediaType
               ? <MediaTypePill mediaType={mediaType} />
               : null}
-            {youtubeChannel
+            {showYoutubeChannel && youtubeChannel
               ? (
                 <SourcePill
                   type="youtube-channel"
@@ -114,7 +126,7 @@ export function BookmarkCardDetails({
           </div>
         )
         : null}
-      {bookmark.tags.length > 0 ? <BookmarkTagsBox tags={bookmark.tags} /> : null}
+      {showTags ? <BookmarkTagsBox tags={bookmark.tags} /> : null}
       {valueBadges.length > 0
         ? (
           <ul className="mt-2 flex flex-wrap gap-1">

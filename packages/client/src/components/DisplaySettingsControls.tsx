@@ -70,7 +70,7 @@ function applyDisplayPreset(
 /**
  * Per-listing display controls: column count, image visibility/aspect/layout, and preset
  * save/apply. Labels sit left of their control; toggle groups use the bordered variant.
- * Reused by ListingOptionsPopover, the category Display tab, and Settings → Display.
+ * Reused by LayoutOptionsPopover, the category Display tab, and Settings → Display.
  */
 export function DisplaySettingsControls({
   pageKey, showsImages,
