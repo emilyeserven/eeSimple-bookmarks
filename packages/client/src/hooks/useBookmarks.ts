@@ -3,8 +3,7 @@ import type { BulkUrlUpdate, CreateBookmarkInput, UpdateBookmarkInput, UpdateBoo
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { bookmarksApi } from "../lib/api";
-import { ApiError } from "../lib/apiError";
-import { buildGitHubIssueUrl } from "../lib/bugReport";
+import { notifyImageFetchError } from "../lib/bugReport";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
@@ -160,22 +159,7 @@ export function useAutoBookmarkImage() {
       void queryClient.invalidateQueries({
         queryKey: BOOKMARKS_KEY,
       });
-      const code = err instanceof ApiError ? err.code : undefined;
-      notifyError(err.message || "Could not fetch a preview image", {
-        action: {
-          label: "File issue",
-          onClick: () =>
-            window.open(
-              buildGitHubIssueUrl({
-                operation: "bookmark page image",
-                errorMessage: err.message,
-                errorCode: code,
-              }),
-              "_blank",
-              "noopener,noreferrer",
-            ),
-        },
-      });
+      notifyImageFetchError(err, "bookmark page image", "Could not fetch a preview image");
     },
   });
 }

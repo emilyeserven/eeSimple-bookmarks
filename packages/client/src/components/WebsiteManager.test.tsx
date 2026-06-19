@@ -43,6 +43,11 @@ vi.mock("../hooks/useWebsites", () => ({
   useAutoWebsiteFavicon: () => ({
     mutate: vi.fn(),
     isPending: false,
+    cooldown: {
+      isOnCooldown: false,
+      remaining: 0,
+      startCooldown: vi.fn(),
+    },
   }),
 }));
 

@@ -11,7 +11,7 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { type YouTubeChannelImageRow, youtubeChannelImages, youtubeChannels } from "@/db/schema";
-import { type EntityImageResult, fetchOgImage } from "@/services/metadata";
+import { type EntityImageResult, fetchOgImage, withTransientRetry } from "@/services/metadata";
 import { channelUrlFromKey } from "@/services/youtubeChannels";
 import { processImage } from "@/utils/image";
 import { deleteObject, putObject } from "@/utils/objectStore";
@@ -30,13 +30,6 @@ function imageVersion(row: YouTubeChannelImageRow): number {
 /** Serving URL (with a `?v=` cache-buster) for a channel's stored avatar. */
 export function youtubeChannelImageUrl(row: YouTubeChannelImageRow): string {
   return `/api/youtube-channels/${row.youtubeChannelId}/image?v=${imageVersion(row)}`;
-}
-
-const RETRY_DELAY_MS = 2_000;
-const TRANSIENT = new Set(["blocked", "fetch_error"]);
-
-function sleep(ms: number): Promise<void> {
-  return new Promise(r => setTimeout(r, ms));
 }
 
 /** Read a channel's stored-avatar row, or null when it has none. */
@@ -119,11 +112,7 @@ export async function fetchAndStoreChannelImage(channelId: string): Promise<Enti
   if (!channel) return "not_found";
 
   const url = channelUrlFromKey(channel.channelKey);
-  let result = await fetchOgImage(url);
-  if (typeof result === "string" && TRANSIENT.has(result)) {
-    await sleep(RETRY_DELAY_MS);
-    result = await fetchOgImage(url);
-  }
+  const result = await withTransientRetry(() => fetchOgImage(url));
   if (typeof result === "string") return result;
   return setYouTubeChannelImage(channelId, result, "og");
 }

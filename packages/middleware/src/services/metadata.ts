@@ -457,6 +457,23 @@ export async function fetchOgImage(pageUrl: string): Promise<OgImageResult> {
 }
 
 /**
+ * Run `fn` once; if the result is a transient error (`"blocked"` or `"fetch_error"`), wait
+ * `delayMs` and try once more. Used by the website-favicon and YouTube-channel-avatar services so
+ * their retry logic doesn't have to be duplicated.
+ */
+export async function withTransientRetry(
+  fn: () => Promise<OgImageResult>,
+  delayMs = 2_000,
+): Promise<OgImageResult> {
+  const first = await fn();
+  if (first === "blocked" || first === "fetch_error") {
+    await new Promise<void>(r => setTimeout(r, delayMs));
+    return fn();
+  }
+  return first;
+}
+
+/**
  * Fetch the page at `pageUrl`, find its favicon (icon link, then `og:image`), download it, and
  * return the raw bytes — or a typed error. Mirrors `fetchOgImage` but prefers declared icons via
  * `extractFaviconUrl`, and as a last resort tries the conventional `/favicon.ico`.

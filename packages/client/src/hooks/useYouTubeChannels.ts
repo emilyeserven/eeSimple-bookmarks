@@ -2,11 +2,11 @@ import type { UpdateYouTubeChannelInput } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useRateLimitCooldown } from "./useRateLimitCooldown";
 import { youtubeChannelsApi } from "../lib/api";
 import { ApiError } from "../lib/apiError";
-import { buildGitHubIssueUrl } from "../lib/bugReport";
-import { notifyError, notifySuccess } from "../lib/notifications";
-import { useRateLimitCooldown } from "./useRateLimitCooldown";
+import { notifyImageFetchError } from "../lib/bugReport";
+import { notifySuccess } from "../lib/notifications";
 
 const CHANNELS_KEY = ["youtube-channels"] as const;
 const BOOKMARKS_KEY = ["bookmarks"] as const;
@@ -74,26 +74,14 @@ export function useAutoYouTubeChannelImage() {
       notifySuccess("Avatar fetched");
     },
     onError: (err: Error) => {
-      const code = err instanceof ApiError ? err.code : undefined;
-      if (code === "blocked") cooldown.startCooldown();
-      notifyError(err.message || "Could not fetch an avatar", {
-        action: {
-          label: "File issue",
-          onClick: () =>
-            window.open(
-              buildGitHubIssueUrl({
-                operation: "YouTube channel avatar",
-                errorMessage: err.message,
-                errorCode: code,
-              }),
-              "_blank",
-              "noopener,noreferrer",
-            ),
-        },
-      });
+      if (err instanceof ApiError && err.code === "blocked") cooldown.startCooldown();
+      notifyImageFetchError(err, "YouTube channel avatar", "Could not fetch an avatar");
     },
   });
-  return { ...mutation, cooldown };
+  return {
+    ...mutation,
+    cooldown,
+  };
 }
 
 export function useDeleteYouTubeChannelImage() {

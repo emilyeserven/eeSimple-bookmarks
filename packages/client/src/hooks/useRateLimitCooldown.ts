@@ -26,9 +26,10 @@ export function useRateLimitCooldown(durationMs: number): RateLimitCooldown {
 
   useEffect(() => {
     if (endTime === null) return;
+    const end = endTime;
 
     function tick() {
-      const left = endTime! - Date.now();
+      const left = end - Date.now();
       if (left <= 0) {
         setRemaining(0);
         setEndTime(null);
@@ -36,9 +37,9 @@ export function useRateLimitCooldown(durationMs: number): RateLimitCooldown {
           clearInterval(intervalRef.current);
           intervalRef.current = null;
         }
-      } else {
-        setRemaining(Math.ceil(left / 1000));
+        return;
       }
+      setRemaining(Math.ceil(left / 1000));
     }
 
     intervalRef.current = setInterval(tick, 500);
@@ -50,5 +51,9 @@ export function useRateLimitCooldown(durationMs: number): RateLimitCooldown {
     };
   }, [endTime]);
 
-  return { remaining, isOnCooldown: endTime !== null, startCooldown };
+  return {
+    remaining,
+    isOnCooldown: endTime !== null,
+    startCooldown,
+  };
 }
