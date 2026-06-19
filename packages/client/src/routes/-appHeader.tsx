@@ -1,3 +1,5 @@
+import type { TagNode } from "@eesimple/types";
+
 import React from "react";
 
 import { Link, useRouterState } from "@tanstack/react-router";
@@ -16,6 +18,8 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useCategoryBySlug } from "@/hooks/useCategories";
+import { useTagTree } from "@/hooks/useTags";
+import { findAncestorPath } from "@/lib/tagTree";
 
 interface BreadcrumbSegment {
   label: string;
@@ -113,7 +117,7 @@ function categoryCrumbs(pathname: string, categoryName?: string): BreadcrumbSegm
   }];
 }
 
-function tagCrumbs(pathname: string): BreadcrumbSegment[] {
+function tagCrumbs(pathname: string, tagAncestors?: TagNode[]): BreadcrumbSegment[] {
   const parts = pathname.split("/").filter(Boolean);
   // `/tags` — the listing page.
   if (parts.length === 1) return [{
@@ -125,20 +129,52 @@ function tagCrumbs(pathname: string): BreadcrumbSegment[] {
   };
   // `/tags/$slug/edit` deepens one level past the tag's view.
   if (parts[2] === "edit") {
+    if (!tagAncestors?.length) {
+      return [listCrumb, {
+        label: "Tag",
+        href: `/tags/${parts[1]}/settings`,
+      }, {
+        label: "Edit",
+      }];
+    }
+    const parents = tagAncestors.slice(0, -1);
+    const current = tagAncestors[tagAncestors.length - 1];
+    return [
+      listCrumb,
+      ...parents.map(t => ({
+        label: t.name,
+        href: `/tags/${t.slug}/general`,
+      })),
+      {
+        label: current.name,
+        href: `/tags/${parts[1]}/settings`,
+      },
+      {
+        label: "Edit",
+      },
+    ];
+  }
+  if (!tagAncestors?.length) {
     return [listCrumb, {
       label: "Tag",
-      href: `/tags/${parts[1]}/settings`,
-    }, {
-      label: "Edit",
     }];
   }
-  return [listCrumb, {
-    label: "Tag",
-  }];
+  const parents = tagAncestors.slice(0, -1);
+  const current = tagAncestors[tagAncestors.length - 1];
+  return [
+    listCrumb,
+    ...parents.map(t => ({
+      label: t.name,
+      href: `/tags/${t.slug}/general`,
+    })),
+    {
+      label: current.name,
+    },
+  ];
 }
 
 /** Derive breadcrumb segments from a pathname. */
-function breadcrumbsForPath(pathname: string, categoryName?: string): BreadcrumbSegment[] {
+function breadcrumbsForPath(pathname: string, categoryName?: string, tagAncestors?: TagNode[]): BreadcrumbSegment[] {
   if (pathname === "/") return [{
     label: "Home",
   }];
@@ -155,7 +191,7 @@ function breadcrumbsForPath(pathname: string, categoryName?: string): Breadcrumb
   if (pathname.startsWith("/settings")) return settingsCrumbs(pathname);
   if (pathname === "/categories" || pathname.startsWith("/categories/"))
     return categoryCrumbs(pathname, categoryName);
-  if (pathname === "/tags" || pathname.startsWith("/tags/")) return tagCrumbs(pathname);
+  if (pathname === "/tags" || pathname.startsWith("/tags/")) return tagCrumbs(pathname, tagAncestors);
 
   const taxonomy = TAXONOMY_CRUMBS.find(t => pathname.startsWith(t.prefix));
   if (taxonomy) {
@@ -185,7 +221,16 @@ export function AppHeader() {
   const {
     category,
   } = useCategoryBySlug(categorySlug);
-  const crumbs = breadcrumbsForPath(pathname, category?.name);
+  const tagSlug = pathname.startsWith("/tags/")
+    ? (pathname.split("/").filter(Boolean)[1] ?? "")
+    : "";
+  const {
+    data: tagTree,
+  } = useTagTree();
+  const tagAncestors = tagSlug && tagTree
+    ? (findAncestorPath(tagTree, tagSlug) ?? undefined)
+    : undefined;
+  const crumbs = breadcrumbsForPath(pathname, category?.name, tagAncestors);
   const {
     open,
   } = usePanelControls();
