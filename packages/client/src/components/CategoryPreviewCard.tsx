@@ -91,7 +91,12 @@ export function CategoryPreviewCard({
   if (variant === "row") {
     return (
       <li>
-        <RowCard className="group relative">
+        <RowCard
+          className="
+            group relative transition-colors
+            hover:bg-accent
+          "
+        >
           <Link
             to="/categories/$categorySlug/general"
             params={{
@@ -99,10 +104,7 @@ export function CategoryPreviewCard({
             }}
             title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
             onClick={event => viewClick(event, "category", category.id)}
-            className="
-              flex items-center gap-3 rounded-lg p-4 pr-44 transition-colors
-              hover:bg-accent
-            "
+            className="flex items-center gap-3 p-4 pr-44"
           >
             <CategoryIcon
               name={category.icon}

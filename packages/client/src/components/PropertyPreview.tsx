@@ -41,7 +41,12 @@ export function PropertyPreview({
   const isUncategorized = categoryCount === 0 && property.enabled;
 
   return (
-    <RowCard className={cn(isUncategorized && "opacity-60")}>
+    <RowCard
+      className={cn(`
+        transition-colors
+        hover:bg-accent
+      `, isUncategorized && "opacity-60")}
+    >
       <Link
         to="/custom-properties/$propertySlug"
         params={{
@@ -49,10 +54,7 @@ export function PropertyPreview({
         }}
         title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
         onClick={event => viewClick(event, "property", property.id)}
-        className="
-          flex flex-col gap-1 rounded-lg p-4 transition-colors
-          hover:bg-accent
-        "
+        className="flex flex-col gap-1 p-4"
       >
         <div className="flex flex-wrap items-center gap-2">
           <span className="font-medium">{property.name}</span>

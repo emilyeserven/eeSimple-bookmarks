@@ -34,55 +34,53 @@ export function WebsiteListItem({
   const [imageFailed, setImageFailed] = useState(false);
   const showImage = website.imageUrl != null && !imageFailed;
   return (
-    <RowCard className="group relative">
-      <div
-        className="
-          rounded-lg transition-colors
-          hover:bg-accent
-        "
+    <RowCard
+      className="
+        group relative transition-colors
+        hover:bg-accent
+      "
+    >
+      <Link
+        to="/taxonomies/websites/$websiteSlug"
+        params={{
+          websiteSlug: website.slug,
+        }}
+        title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+        onClick={event => viewClick(event, "website", website.id)}
+        className="flex items-center gap-3 p-4 pr-12"
       >
-        <Link
-          to="/taxonomies/websites/$websiteSlug"
-          params={{
-            websiteSlug: website.slug,
-          }}
-          title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-          onClick={event => viewClick(event, "website", website.id)}
-          className="flex items-center gap-3 p-4 pr-12"
+        <span
+          className="
+            flex size-8 shrink-0 items-center justify-center overflow-hidden
+            rounded-sm bg-muted text-muted-foreground
+          "
         >
-          <span
-            className="
-              flex size-8 shrink-0 items-center justify-center overflow-hidden
-              rounded-sm bg-muted text-muted-foreground
-            "
-          >
-            {showImage
-              ? (
-                <img
-                  src={website.imageUrl ?? undefined}
-                  alt=""
-                  className="size-full object-contain"
-                  onError={() => setImageFailed(true)}
-                />
-              )
-              : <Globe className="size-4" />}
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="font-medium">{website.siteName}</p>
-            <p className="truncate text-sm text-muted-foreground">{website.domain}</p>
-          </div>
-          {website.bookmarkCount !== undefined
-            ? <Badge variant="secondary">{website.bookmarkCount}</Badge>
-            : null}
-        </Link>
-        {website.category
-          ? (
-            <div className="px-4 pb-2 pl-15">
-              <CategoryPill category={website.category} />
-            </div>
-          )
+          {showImage
+            ? (
+              <img
+                src={website.imageUrl ?? undefined}
+                alt=""
+                className="size-full object-contain"
+                onError={() => setImageFailed(true)}
+              />
+            )
+            : <Globe className="size-4" />}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="font-medium">{website.siteName}</p>
+          <p className="truncate text-sm text-muted-foreground">{website.domain}</p>
+        </div>
+        {website.bookmarkCount !== undefined
+          ? <Badge variant="secondary">{website.bookmarkCount}</Badge>
           : null}
-      </div>
+      </Link>
+      {website.category
+        ? (
+          <div className="px-4 pb-2 pl-15">
+            <CategoryPill category={website.category} />
+          </div>
+        )
+        : null}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
