@@ -1,6 +1,7 @@
 import { Eye } from "lucide-react";
 
 import { CardDisplayControls } from "./CardDisplayControls";
+import { CardOptionsPreview } from "./CardOptionsPreview";
 
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -26,10 +27,13 @@ export function CardOptionsPopover({
       </PopoverTrigger>
       <PopoverContent
         align="end"
-        className="w-56"
+        className="w-auto"
       >
         <p className="mb-2 text-sm font-medium">Card options</p>
-        <CardDisplayControls pageKey={pageKey} />
+        <div className="flex gap-4">
+          <CardOptionsPreview pageKey={pageKey} />
+          <CardDisplayControls pageKey={pageKey} />
+        </div>
       </PopoverContent>
     </Popover>
   );
