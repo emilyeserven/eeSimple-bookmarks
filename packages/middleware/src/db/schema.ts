@@ -795,6 +795,22 @@ export const calculatePropertyOperandsRelations = relations(calculatePropertyOpe
   }),
 }));
 
+/**
+ * `saved_filters` — named snapshots of bookmark listing filter state that users can apply to any
+ * listing page's filter sidebar in one click.
+ */
+export const savedFilters = pgTable("saved_filters", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  description: text("description"),
+  filters: jsonb("filters").$type<Record<string, unknown>>().notNull(),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+}, table => [
+  unique("saved_filters_name_unique").on(table.name),
+]);
+
 export type BookmarkRow = typeof bookmarks.$inferSelect;
 export type NewBookmarkRow = typeof bookmarks.$inferInsert;
 export type BookmarkImageRow = typeof bookmarkImages.$inferSelect;
@@ -834,3 +850,4 @@ export type AutofillRuleDateTimeValueRow = typeof autofillRuleDateTimeValues.$in
 export type CategoryNumberDefaultRow = typeof categoryNumberDefaults.$inferSelect;
 export type CategoryBooleanDefaultRow = typeof categoryBooleanDefaults.$inferSelect;
 export type CategoryDateTimeDefaultRow = typeof categoryDateTimeDefaults.$inferSelect;
+export type SavedFilterRow = typeof savedFilters.$inferSelect;

@@ -18,6 +18,10 @@ const settingsNav: readonly TabNavEntry[] = [
     label: "Drawer",
   },
   {
+    to: "/settings/saved-filters",
+    label: "Saved Filters",
+  },
+  {
     to: "/settings/homepage",
     label: "Homepage",
   },

@@ -310,6 +310,31 @@ export function withBooleanFilter(
 }
 
 /**
+ * Return a human-readable summary of the active filters in a raw stored filter blob
+ * (e.g. "2 categories · 1 tag · 1 property"). Accepts `Record<string, unknown>` so it can be
+ * called on the JSONB blob from the API without a cast at the call site.
+ */
+export function summarizeBookmarkSearch(raw: Record<string, unknown>): string {
+  const search = validateBookmarkSearch(raw);
+  const parts: string[] = [];
+  const categoryCount = search.categories?.length ?? 0;
+  if (categoryCount > 0) parts.push(`${categoryCount} ${categoryCount === 1 ? "category" : "categories"}`);
+  const mediaTypeCount = search.mediaTypes?.length ?? 0;
+  if (mediaTypeCount > 0) parts.push(`${mediaTypeCount} media ${mediaTypeCount === 1 ? "type" : "types"}`);
+  const channelCount = search.youtubeChannels?.length ?? 0;
+  if (channelCount > 0) parts.push(`${channelCount} ${channelCount === 1 ? "channel" : "channels"}`);
+  if (search.tag !== undefined) parts.push("1 tag");
+  if (search.tagPresence !== undefined) parts.push(`tags: ${search.tagPresence}`);
+  const propCount
+    = Object.keys(search.num ?? {}).length
+      + Object.keys(search.bool ?? {}).length
+      + Object.keys(search.date ?? {}).length
+      + Object.keys(search.presence ?? {}).length;
+  if (propCount > 0) parts.push(`${propCount} ${propCount === 1 ? "property" : "properties"}`);
+  return parts.join(" · ") || "No filters";
+}
+
+/**
  * Return a copy of `search` with a date/time range filter set or cleared. An all-null range
  * (both bounds empty) clears the filter rather than persisting an inactive entry.
  */

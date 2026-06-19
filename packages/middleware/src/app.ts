@@ -12,6 +12,7 @@ import { customPropertyRoutes } from "@/routes/customProperties";
 import { galleryRoutes } from "@/routes/gallery";
 import { healthRoutes } from "@/routes/health";
 import { homepageSectionsRoutes } from "@/routes/homepageSections";
+import { savedFilterRoutes } from "@/routes/savedFilters";
 import { mediaTypeRoutes } from "@/routes/mediaTypes";
 import { metadataRoutes } from "@/routes/metadata";
 import { propertyGroupRoutes } from "@/routes/propertyGroups";
@@ -85,6 +86,10 @@ export async function buildApp(): Promise<FastifyInstance> {
           description: "Named, ordered homepage sections with their own condition filters",
         },
         {
+          name: "saved-filters",
+          description: "Named filter presets that can be applied to any bookmark listing",
+        },
+        {
           name: "app-settings",
           description: "Global application settings (e.g. the URL-shortener ignore list)",
         },
@@ -127,6 +132,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(categoryRoutes);
   await app.register(autofillRoutes);
   await app.register(homepageSectionsRoutes);
+  await app.register(savedFilterRoutes);
   await app.register(appSettingsRoutes);
   await app.register(galleryRoutes);
 

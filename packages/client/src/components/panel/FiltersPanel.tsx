@@ -1,5 +1,7 @@
 import { FilterSections } from "../FilterSidebarSections";
+import { SavedFiltersSection } from "../SavedFiltersSection";
 
+import { Separator } from "@/components/ui/separator";
 import { useUiStore } from "@/stores/uiStore";
 
 /**
@@ -38,21 +40,32 @@ export function FiltersPanel() {
   const hasProperties = enabledProperties.length > 0;
 
   return (
-    <FilterSections
-      tree={tree}
-      enabledProperties={enabledProperties}
-      propertyGroups={propertyGroups}
-      categories={categories}
-      mediaTypes={mediaTypes}
-      youtubeChannels={youtubeChannels}
-      bookmarks={bookmarks}
-      search={search}
-      onSearchChange={onSearchChange}
-      hasTags={hasTags}
-      hasProperties={hasProperties}
-      hasCategoryFilter={hasCategoryFilter}
-      hasMediaTypeFilter={hasMediaTypeFilter}
-      hasChannelFilter={hasChannelFilter}
-    />
+    <div className="space-y-8">
+      <SavedFiltersSection
+        search={search}
+        onSearchChange={onSearchChange}
+      />
+
+      {(hasTags || hasProperties || hasCategoryFilter || hasMediaTypeFilter || hasChannelFilter)
+        ? <Separator />
+        : null}
+
+      <FilterSections
+        tree={tree}
+        enabledProperties={enabledProperties}
+        propertyGroups={propertyGroups}
+        categories={categories}
+        mediaTypes={mediaTypes}
+        youtubeChannels={youtubeChannels}
+        bookmarks={bookmarks}
+        search={search}
+        onSearchChange={onSearchChange}
+        hasTags={hasTags}
+        hasProperties={hasProperties}
+        hasCategoryFilter={hasCategoryFilter}
+        hasMediaTypeFilter={hasMediaTypeFilter}
+        hasChannelFilter={hasChannelFilter}
+      />
+    </div>
   );
 }
