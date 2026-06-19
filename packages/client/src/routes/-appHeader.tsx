@@ -3,7 +3,7 @@ import type { TagNode } from "@eesimple/types";
 import React from "react";
 
 import { Link, useRouterState } from "@tanstack/react-router";
-import { PanelRight } from "lucide-react";
+import { Info, PanelRight } from "lucide-react";
 
 import { CardOptionsPopover } from "@/components/CardOptionsPopover";
 import { FilterLocationPopover } from "@/components/FilterLocationPopover";
@@ -288,6 +288,105 @@ function breadcrumbsForPath(
   }];
 }
 
+/** Ghost icon button wrapping a typed link to a taxonomy item's read-only view page. */
+function InfoLinkButton({
+  children,
+}: { children: React.ReactNode }) {
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
+      aria-label="View details"
+      title="View details"
+      asChild
+    >
+      {children}
+    </Button>
+  );
+}
+
+/**
+ * On a taxonomy listing index page (`/<entity>/<slug>`, not a `_view`/`edit` tab), return an
+ * "Info" button linking to that item's read-only view page, or `null` elsewhere.
+ */
+function taxonomyInfoButton(pathParts: string[]): React.ReactNode {
+  if (pathParts[0] === "categories" && pathParts.length === 2) {
+    return (
+      <InfoLinkButton>
+        <Link
+          to="/categories/$categorySlug/general"
+          params={{
+            categorySlug: pathParts[1],
+          }}
+        >
+          <Info className="size-4" />
+        </Link>
+      </InfoLinkButton>
+    );
+  }
+  if (pathParts[0] === "tags" && pathParts.length === 2) {
+    return (
+      <InfoLinkButton>
+        <Link
+          to="/tags/$tagSlug/general"
+          params={{
+            tagSlug: pathParts[1],
+          }}
+        >
+          <Info className="size-4" />
+        </Link>
+      </InfoLinkButton>
+    );
+  }
+  if (pathParts[0] === "taxonomies" && pathParts.length === 3) {
+    const slug = pathParts[2];
+    if (pathParts[1] === "websites") {
+      return (
+        <InfoLinkButton>
+          <Link
+            to="/taxonomies/websites/$websiteSlug/general"
+            params={{
+              websiteSlug: slug,
+            }}
+          >
+            <Info className="size-4" />
+          </Link>
+        </InfoLinkButton>
+      );
+    }
+    if (pathParts[1] === "media-types") {
+      return (
+        <InfoLinkButton>
+          <Link
+            to="/taxonomies/media-types/$mediaTypeSlug/general"
+            params={{
+              mediaTypeSlug: slug,
+            }}
+          >
+            <Info className="size-4" />
+          </Link>
+        </InfoLinkButton>
+      );
+    }
+    if (pathParts[1] === "youtube-channels") {
+      return (
+        <InfoLinkButton>
+          <Link
+            to="/taxonomies/youtube-channels/$channelSlug/general"
+            params={{
+              channelSlug: slug,
+            }}
+          >
+            <Info className="size-4" />
+          </Link>
+        </InfoLinkButton>
+      );
+    }
+  }
+  return null;
+}
+
 /** Top app bar: sidebar trigger, breadcrumbs derived from the path, and the panel toggle. */
 export function AppHeader() {
   const pathname = useRouterState({
@@ -364,9 +463,10 @@ export function AppHeader() {
     && !pathname.includes("/edit")
     && pathname.startsWith("/bookmarks/");
 
-  // Category browse page (the index route — `/categories/<slug>`, not its `_view`/`edit` tabs).
+  // Taxonomy listing index pages (`/<entity>/<slug>`, the bookmark browse view — not its
+  // `_view`/`edit` tabs) surface a header "Info" link to that item's read-only view page.
   const pathParts = pathname.split("/").filter(Boolean);
-  const isCategoryListing = pathParts[0] === "categories" && pathParts.length === 2;
+  const infoButton = taxonomyInfoButton(pathParts);
 
   const {
     open,
@@ -429,26 +529,10 @@ export function AppHeader() {
       ),
     });
   }
-  if (isCategoryListing) {
+  if (infoButton) {
     toolbarActions.push({
-      key: "edit-category",
-      node: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          asChild
-        >
-          <Link
-            to="/categories/$categorySlug/edit/general"
-            params={{
-              categorySlug,
-            }}
-          >
-            Edit
-          </Link>
-        </Button>
-      ),
+      key: "view-details",
+      node: infoButton,
     });
   }
   toolbarActions.push({
