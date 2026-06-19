@@ -1,7 +1,5 @@
 import type { CreateAutofillRuleInput } from "@eesimple/types";
 
-import { useParams } from "@tanstack/react-router";
-
 import { usePanelControls } from "./usePanelControls";
 import { usePanelDismissAfterDelete } from "./usePanelDismissAfterDelete";
 import {
@@ -10,12 +8,11 @@ import {
   useDeleteAutofillRule,
   useUpdateAutofillRule,
 } from "../../hooks/useAutofill";
+import { useAutofillScopeDefaults } from "../../hooks/useAutofillScopeDefaults";
 import { useCategories } from "../../hooks/useCategories";
 import { useCustomProperties } from "../../hooks/useCustomProperties";
 import { useMediaTypes } from "../../hooks/useMediaTypes";
-import { useTagBySlug, useTagTree } from "../../hooks/useTags";
-import { useWebsites } from "../../hooks/useWebsites";
-import { useYouTubeChannelBySlug } from "../../hooks/useYouTubeChannels";
+import { useTagTree } from "../../hooks/useTags";
 import { AutofillRuleForm } from "../AutofillRuleForm";
 
 import { Button } from "@/components/ui/button";
@@ -35,9 +32,6 @@ export function CreateAutofillRule() {
     data: tagTree,
   } = useTagTree();
   const {
-    data: websites,
-  } = useWebsites();
-  const {
     data: mediaTypes,
   } = useMediaTypes();
   const createRule = useCreateAutofillRule();
@@ -46,36 +40,13 @@ export function CreateAutofillRule() {
   // slug is still in the route path; preselect that entity so the new rule shows up in the scoped
   // list. Undefined on every other surface (e.g. /settings/autofill), leaving the defaults unchanged.
   const {
-    categorySlug,
-    propertySlug,
-    websiteSlug,
-    tagSlug,
-    mediaTypeSlug,
-    channelSlug,
-  } = useParams({
-    strict: false,
-  });
-  // useTagBySlug / useYouTubeChannelBySlug are safe to call unconditionally (return undefined when slug is empty).
-  const {
-    tag: preseedTag,
-  } = useTagBySlug(tagSlug ?? "");
-  const {
-    channel: preseedChannel,
-  } = useYouTubeChannelBySlug(channelSlug ?? "");
-  const defaultCategoryId = categorySlug
-    ? (categories ?? []).find(category => category.slug === categorySlug)?.id
-    : undefined;
-  const defaultPropertyId = propertySlug
-    ? (properties ?? []).find(p => p.slug === propertySlug)?.id
-    : undefined;
-  const defaultWebsiteDomain = websiteSlug
-    ? (websites ?? []).find(site => site.slug === websiteSlug)?.domain
-    : undefined;
-  const defaultTagIds = tagSlug && preseedTag ? [preseedTag.id] : undefined;
-  const defaultMediaTypeId = mediaTypeSlug
-    ? (mediaTypes ?? []).find(mt => mt.slug === mediaTypeSlug)?.id
-    : undefined;
-  const defaultChannelIds = channelSlug && preseedChannel ? [preseedChannel.id] : undefined;
+    categoryId: defaultCategoryId,
+    propertyId: defaultPropertyId,
+    websiteDomain: defaultWebsiteDomain,
+    tagIds: defaultTagIds,
+    mediaTypeId: defaultMediaTypeId,
+    channelIds: defaultChannelIds,
+  } = useAutofillScopeDefaults();
 
   async function handleCreate(input: CreateAutofillRuleInput) {
     const created = await createRule.mutateAsync(input);
