@@ -38,7 +38,7 @@ import { ensureDefaultCategory } from "@/services/categories";
 import { getVideoLengthPropertyId } from "@/services/customProperties";
 import { getMediaTypeBySlug } from "@/services/mediaTypes";
 import { getDescendantIds } from "@/services/tags";
-import { ensureWebsiteForUrl, normalizeDomain } from "@/services/websites";
+import { ensureWebsiteForUrl, getWebsiteByAnyDomain, normalizeDomain } from "@/services/websites";
 import { fetchYouTubeMetadata, isYouTubeVideoUrl, parseYouTubeVideo, type YouTubeMetadata } from "@/services/youtube";
 import { channelKeyFromUrl, ensureYouTubeChannel } from "@/services/youtubeChannels";
 import { isObjectStoreConfigured } from "@/utils/objectStore";
@@ -898,10 +898,9 @@ export async function checkBookmarkUrlDuplicate(url: string): Promise<BookmarkUr
     pathMatch: null,
   };
 
-  let basePath: string;
+  let parsed: URL;
   try {
-    const p = new URL(url);
-    basePath = p.origin + p.pathname;
+    parsed = new URL(url);
   }
   catch {
     return {
@@ -909,6 +908,7 @@ export async function checkBookmarkUrlDuplicate(url: string): Promise<BookmarkUr
       pathMatch: null,
     };
   }
+  const basePath = parsed.origin + parsed.pathname;
 
   const candidates = await db
     .select({
@@ -919,16 +919,41 @@ export async function checkBookmarkUrlDuplicate(url: string): Promise<BookmarkUr
     .from(bookmarks)
     .where(like(bookmarks.url, `${basePath}%`));
 
-  const pathMatch = candidates.find((b) => {
+  const pathCandidates = candidates.filter((b) => {
     try {
       const p = new URL(b.url);
       return p.origin + p.pathname === basePath;
     }
     catch { return false; }
+  });
+
+  if (pathCandidates.length === 0) return { exactMatch: null, pathMatch: null };
+
+  // Look up paramRules for this domain so identity-bearing params (e.g. YouTube's ?v= on /watch)
+  // are included in the match. Uses getWebsiteByAnyDomain so youtu.be resolves to youtube.com.
+  const domain = normalizeDomain(url);
+  const website = domain ? await getWebsiteByAnyDomain(domain) : null;
+
+  // Find the most-specific matching rule (longest pathSuffix wins, mirrors urlCleanup applyParamRules).
+  const matchingRule = website?.paramRules.length
+    ? website.paramRules
+      .filter(r => r.pathSuffix === "" || parsed.pathname.endsWith(r.pathSuffix))
+      .sort((a, b) => b.pathSuffix.length - a.pathSuffix.length)[0] ?? null
+    : null;
+
+  if (!matchingRule) {
+    return { exactMatch: null, pathMatch: pathCandidates[0] ?? null };
+  }
+
+  // Only flag a candidate as a path-match when all identity params also match.
+  const newParamValues = matchingRule.params.map(p => parsed.searchParams.get(p) ?? "");
+  const pathMatch = pathCandidates.find((b) => {
+    try {
+      const bp = new URL(b.url);
+      return matchingRule.params.every((p, i) => (bp.searchParams.get(p) ?? "") === newParamValues[i]);
+    }
+    catch { return false; }
   }) ?? null;
 
-  return {
-    exactMatch: null,
-    pathMatch,
-  };
+  return { exactMatch: null, pathMatch };
 }
