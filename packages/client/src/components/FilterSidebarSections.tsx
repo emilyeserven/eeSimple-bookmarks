@@ -510,15 +510,18 @@ function PropertiesFilterSection({
       />
       {unassignedProperties.length > 0
         ? (
-          <div className="space-y-1 text-xs text-destructive">
-            <p className="flex items-center gap-1.5 font-medium">
-              <TriangleAlert className="size-3.5 shrink-0" />
-              {unassignedProperties.length === 1
-                ? "1 property isn't assigned to a category"
-                : `${unassignedProperties.length} properties aren't assigned to a category`}
-            </p>
-            <p>{unassignedProperties.map(property => property.name).join(", ")}</p>
-          </div>
+          <>
+            <Separator className="my-3" />
+            <div className="space-y-1 text-xs text-destructive">
+              <p className="flex items-center gap-1.5 font-medium">
+                <TriangleAlert className="size-3.5 shrink-0" />
+                {unassignedProperties.length === 1
+                  ? "1 property isn't assigned to a category"
+                  : `${unassignedProperties.length} properties aren't assigned to a category`}
+              </p>
+              <p>{unassignedProperties.map(property => property.name).join(", ")}</p>
+            </div>
+          </>
         )
         : null}
     </div>
