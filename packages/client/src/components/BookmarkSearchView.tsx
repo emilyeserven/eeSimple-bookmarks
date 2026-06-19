@@ -72,11 +72,13 @@ export function BookmarkSearchView({
   const imageMode = useBookmarkImageMode(pageKey);
   const imageVisibility = useBookmarkImageVisibility(pageKey);
   const filtersInDrawer = useUiStore(state => state.filtersInDrawer);
+  const filtersHidden = useUiStore(state => state.filtersHidden);
   const setFilterContext = useUiStore(state => state.setFilterContext);
   const {
     isOpen, dCT, openType,
   } = usePanelControls();
   const filtersActiveInDrawer = isOpen && dCT === "filters";
+  const hideSidebar = filtersActiveInDrawer || filtersHidden;
 
   useEffect(() => {
     setFilterContext({
@@ -110,14 +112,14 @@ export function BookmarkSearchView({
       {header}
 
       <div
-        className={filtersActiveInDrawer
+        className={hideSidebar
           ? "grid gap-8"
           : `
             grid gap-8
             lg:grid-cols-[16rem_1fr] lg:gap-x-12
           `}
       >
-        {!filtersActiveInDrawer && (
+        {!hideSidebar && (
           <FilterSidebar
             tree={tree}
             properties={properties}
