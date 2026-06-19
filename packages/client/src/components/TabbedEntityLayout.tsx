@@ -83,8 +83,8 @@ export function TabbedEntityLayout({
                 >
                   <p
                     className="
-                      px-3 pt-3 pb-0.5 text-xs font-semibold
-                      tracking-wide text-muted-foreground uppercase
+                      px-3 pt-3 pb-0.5 text-xs font-semibold tracking-wide
+                      text-muted-foreground uppercase
                     "
                   >
                     {entry.label}
