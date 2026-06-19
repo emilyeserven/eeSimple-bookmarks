@@ -1,7 +1,10 @@
 import type { Category } from "@eesimple/types";
 
+import { Plus } from "lucide-react";
+
 import { NO_CATEGORY } from "./AutofillRuleForm";
 
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -22,11 +25,13 @@ interface AutofillRulesToolbarProps {
   categoryFilter: string;
   onCategoryFilterChange: (value: string) => void;
   categories: Category[];
+  /** When provided and the list is scoped, a "New autofill rule" button is rendered. */
+  onCreateClick?: () => void;
 }
 
 /** Search box + category filter above the rules list. */
 export function AutofillRulesToolbar({
-  search, onSearchChange, scoped, categoryFilter, onCategoryFilterChange, categories,
+  search, onSearchChange, scoped, categoryFilter, onCategoryFilterChange, categories, onCreateClick,
 }: AutofillRulesToolbarProps) {
   return (
     <div className="flex flex-wrap items-center gap-3">
@@ -37,6 +42,18 @@ export function AutofillRulesToolbar({
         onChange={event => onSearchChange(event.target.value)}
         className="max-w-xs"
       />
+      {scoped && onCreateClick
+        ? (
+          <Button
+            type="button"
+            size="sm"
+            onClick={onCreateClick}
+          >
+            <Plus className="size-4" />
+            New autofill rule
+          </Button>
+        )
+        : null}
       {scoped
         ? null
         : (
