@@ -48,6 +48,10 @@ vi.mock("../hooks/useCustomProperties", () => ({
     isLoading: false,
     error: null,
   }),
+  useCreateCustomProperty: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+  }),
 }));
 
 const paths = ["/custom-properties/$propertySlug", "/custom-properties/new"];

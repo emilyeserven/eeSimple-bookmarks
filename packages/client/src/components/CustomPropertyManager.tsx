@@ -44,7 +44,11 @@ export function CustomPropertyManager() {
           onChange={event => setQuery(event.target.value)}
           className="sm:flex-1"
         />
-        <Button type="button" size="sm" onClick={() => setModalOpen(true)}>
+        <Button
+          type="button"
+          size="sm"
+          onClick={() => setModalOpen(true)}
+        >
           <Plus className="size-4" />
           New property
         </Button>
@@ -78,7 +82,9 @@ export function CustomPropertyManager() {
         onCreated={(property) => {
           void navigate({
             to: "/custom-properties/$propertySlug/edit/general",
-            params: { propertySlug: property.slug },
+            params: {
+              propertySlug: property.slug,
+            },
           });
         }}
       />
