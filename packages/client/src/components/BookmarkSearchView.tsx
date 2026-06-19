@@ -8,7 +8,6 @@ import { useEffect } from "react";
 import { BookmarkListPane } from "./BookmarkListPane";
 import { FilterSidebar } from "./FilterSidebar";
 import { usePanelControls } from "./panel/usePanelControls";
-import { UnassignedPropertiesWarning } from "./UnassignedPropertiesWarning";
 import { useIsMobile } from "../hooks/use-mobile";
 import { DEFAULT_BOOKMARK_IMAGE_LAYOUT, useBookmarkColumns, useBookmarkImageMode, useBookmarkImageVisibility } from "../lib/bookmarkColumns";
 import { useUiStore } from "../stores/uiStore";
@@ -113,15 +112,9 @@ export function BookmarkSearchView({
   const imageLeft = (columns === 1 || columns === 2) && imageLayout === "side";
   const setBookmarkImageLayout = useUiStore(state => state.setBookmarkImageLayout);
 
-  const unassignedProperties = categories
-    ? properties.filter(property => property.categoryIds.length === 0)
-    : [];
-
   return (
     <section className="space-y-8">
       {header}
-
-      <UnassignedPropertiesWarning properties={unassignedProperties} />
 
       <div
         className={filtersActiveInDrawer
