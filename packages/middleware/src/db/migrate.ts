@@ -208,6 +208,16 @@ const migrations: RuntimeMigration[] = [
       `);
     },
   },
+  {
+    // `custom_properties.allow_default` is NOT NULL DEFAULT true. Adding a NOT NULL column to the
+    // populated table makes drizzle-kit push prompt — the same non-TTY crash as the cases above —
+    // so pre-apply it here to keep push's diff additive-only.
+    name: "add custom_properties.allow_default column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "custom_properties"
+        ADD COLUMN IF NOT EXISTS "allow_default" boolean NOT NULL DEFAULT true
+    `),
+  },
 ];
 
 async function main(): Promise<void> {

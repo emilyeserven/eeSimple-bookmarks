@@ -62,7 +62,9 @@ export function CategoryDefaultsSection({
   }, [defaults]);
 
   const categoryProps = (properties ?? []).filter(property =>
-    propertyAppliesToCategory(property, category.id) && property.type !== "calculate");
+    propertyAppliesToCategory(property, category.id)
+    && property.type !== "calculate"
+    && property.allowDefault !== false);
   if (categoryProps.length === 0) return null;
 
   function save() {

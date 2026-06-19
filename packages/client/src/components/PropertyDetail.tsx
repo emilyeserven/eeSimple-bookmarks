@@ -130,7 +130,7 @@ export function PropertyGeneralFields({
   );
 }
 
-/** The "Property options" section body; renders nothing for boolean properties. */
+/** The "Property options" section body; renders nothing for calculate properties. */
 export function PropertyOptionsFields({
   property, allProperties = [],
 }: {
@@ -153,11 +153,18 @@ export function PropertyOptionsFields({
             operandNames={operandNames}
           />
         )
-        : (
-          <DetailField label="Captures">
-            {DATE_TIME_FORMAT_LABELS[property.dateTimeFormat ?? "date"]}
-          </DetailField>
-        )}
+        : property.type === "datetime"
+          ? (
+            <DetailField label="Captures">
+              {DATE_TIME_FORMAT_LABELS[property.dateTimeFormat ?? "date"]}
+            </DetailField>
+          )
+          : null}
+      {property.type !== "calculate" && (
+        <DetailField label="Allow default value">
+          {property.allowDefault ? "Allowed" : "Hidden from category defaults"}
+        </DetailField>
+      )}
     </dl>
   );
 }
