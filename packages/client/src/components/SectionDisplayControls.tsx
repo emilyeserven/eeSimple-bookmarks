@@ -1,6 +1,8 @@
-import type { HomepageSectionImageLayout } from "@eesimple/types";
+import type { CustomAspectRatio, HomepageSectionImageLayout } from "@eesimple/types";
 
+import { useCustomAspectRatios } from "../hooks/useCustomAspectRatios";
 import { COLUMN_OPTIONS } from "../lib/bookmarkColumns";
+import { useUiStore } from "../stores/uiStore";
 
 import { Label } from "@/components/ui/label";
 import {
@@ -12,27 +14,56 @@ import {
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
+function buildAspectOptions(croppedW: number, croppedH: number, customRatios: CustomAspectRatio[]) {
+  return [
+    {
+      value: "natural",
+      label: "Natural",
+    },
+    {
+      value: "square",
+      label: "Square (1:1)",
+    },
+    {
+      value: "opengraph",
+      label: "OpenGraph (1.91:1)",
+    },
+    {
+      value: "cropped",
+      label: `Cropped (${croppedW}:${croppedH})`,
+    },
+    ...customRatios.map(r => ({
+      value: r.id,
+      label: `${r.name} (${r.width}:${r.height})`,
+    })),
+  ];
+}
+
 interface SectionDisplayControlsProps {
   columns: number;
-  imageMode: boolean;
+  imageMode: string;
   imageLayout: HomepageSectionImageLayout;
   onColumnsChange: (columns: number) => void;
-  onImageModeChange: (imageMode: boolean) => void;
+  onImageModeChange: (imageMode: string) => void;
   onImageLayoutChange: (layout: HomepageSectionImageLayout) => void;
   /** Stable id prefix so the Columns select's label/control pair stays unique on the page. */
   idPrefix: string;
 }
 
 /**
- * Controlled display controls for a homepage section: column count, image mode (natural/cropped),
- * and — at 2 columns — image layout (above/side). Rendered inline (no popovers); the Image and
- * Layout toggle groups are always shown rather than tucked behind a button.
+ * Controlled display controls for a homepage section: column count, image aspect, and — at 1 or 2
+ * columns — image layout (above/side). Rendered inline (no popovers).
  */
 export function SectionDisplayControls({
   columns, imageMode, imageLayout,
   onColumnsChange, onImageModeChange, onImageLayoutChange, idPrefix,
 }: SectionDisplayControlsProps) {
   const columnsId = `${idPrefix}-columns`;
+  const croppedWidth = useUiStore(state => state.croppedWidth);
+  const croppedHeight = useUiStore(state => state.croppedHeight);
+  const {
+    data: customRatios = [],
+  } = useCustomAspectRatios();
 
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -68,21 +99,28 @@ export function SectionDisplayControls({
       </div>
 
       <div className="flex items-center gap-2">
-        <Label className="text-xs text-muted-foreground">Images</Label>
-        <ToggleGroup
-          type="single"
-          size="sm"
-          value={imageMode ? "natural" : "cropped"}
-          onValueChange={(value) => {
-            if (value) onImageModeChange(value === "natural");
-          }}
+        <Label className="text-xs text-muted-foreground">Aspect</Label>
+        <Select
+          value={typeof imageMode === "boolean" ? (imageMode ? "natural" : "cropped") : imageMode}
+          onValueChange={value => onImageModeChange(value)}
         >
-          <ToggleGroupItem value="natural">Natural</ToggleGroupItem>
-          <ToggleGroupItem value="cropped">Cropped</ToggleGroupItem>
-        </ToggleGroup>
+          <SelectTrigger size="sm">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {buildAspectOptions(croppedWidth, croppedHeight, customRatios).map(opt => (
+              <SelectItem
+                key={opt.value}
+                value={opt.value}
+              >
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
-      {columns === 2 && (
+      {(columns === 1 || columns === 2) && (
         <div className="flex items-center gap-2">
           <Label className="text-xs text-muted-foreground">Layout</Label>
           <ToggleGroup

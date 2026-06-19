@@ -19,7 +19,7 @@ interface HomepageSectionFormValues {
   conditions: ConditionTree;
   hideIfEmpty: boolean;
   columns: number;
-  imageMode: boolean;
+  imageMode: string;
   imageLayout: HomepageSectionImageLayout;
 }
 
@@ -45,7 +45,7 @@ export function HomepageSectionForm({
     conditions: section?.conditions ?? emptyConditionTree(),
     hideIfEmpty: section?.hideIfEmpty ?? false,
     columns: section?.columns ?? 2,
-    imageMode: section?.imageMode ?? true,
+    imageMode: section?.imageMode ?? "natural",
     imageLayout: section?.imageLayout ?? "above",
   };
 

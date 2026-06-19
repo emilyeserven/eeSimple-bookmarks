@@ -26,11 +26,20 @@ export function useBookmarkColumns(pageKey: string): number {
 }
 
 /** Default image display mode for a listing page (natural aspect ratio). */
-export const DEFAULT_BOOKMARK_IMAGE_MODE = true;
+export const DEFAULT_BOOKMARK_IMAGE_MODE = "natural";
 
-/** The chosen image display mode for a listing page: `true` = natural ratio, `false` = uniform crop. */
-export function useBookmarkImageMode(pageKey: string): boolean {
+/** The chosen image display mode for a listing page: "natural", "cropped", "square", "opengraph", or a custom ratio UUID. */
+export function useBookmarkImageMode(pageKey: string): string {
   return useUiStore(state => state.bookmarkImageMode?.[pageKey] ?? DEFAULT_BOOKMARK_IMAGE_MODE);
+}
+
+/** Human-readable label for a BookmarkImageMode string value. */
+export function bookmarkImageModeLabel(mode: string): string {
+  if (mode === "natural") return "Natural";
+  if (mode === "square") return "Square";
+  if (mode === "opengraph") return "OpenGraph";
+  if (mode === "cropped") return "Cropped";
+  return "Custom";
 }
 
 export type { BookmarkImageVisibility, HomepageSectionImageLayout };

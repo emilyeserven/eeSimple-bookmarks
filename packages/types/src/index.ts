@@ -763,6 +763,13 @@ export type UpdateHomepageFilterInput = HomepageFilter;
 /** Image position for a homepage section's bookmark cards: stacked above content or side-by-side. */
 export type HomepageSectionImageLayout = "above" | "side";
 
+/**
+ * Image display mode for bookmark cards. Built-in values: "natural" (unconstrained), "cropped"
+ * (uses the user's configured crop ratio), "square" (1:1), "opengraph" (1.91:1). Custom aspect
+ * ratio UUIDs are also valid values — they reference rows in the `custom_aspect_ratios` table.
+ */
+export type BookmarkImageMode = "natural" | "cropped" | "square" | "opengraph" | string;
+
 /** A named, ordered section on the homepage with its own condition filter. */
 export interface HomepageSection {
   id: string;
@@ -773,8 +780,8 @@ export interface HomepageSection {
   hideIfEmpty: boolean;
   /** Bookmark grid column count (1–4). */
   columns: number;
-  /** Image display mode: `true` = natural aspect ratio, `false` = uniform crop. */
-  imageMode: boolean;
+  /** Image display mode: "natural", "cropped", "square", "opengraph", or a custom ratio UUID. */
+  imageMode: BookmarkImageMode;
   /** Image position in 2-column layouts: "above" (default) or "side". */
   imageLayout: HomepageSectionImageLayout;
   createdAt: string;
@@ -794,7 +801,7 @@ export interface CreateHomepageSectionInput {
   sortOrder?: number;
   hideIfEmpty?: boolean;
   columns?: number;
-  imageMode?: boolean;
+  imageMode?: BookmarkImageMode;
   imageLayout?: HomepageSectionImageLayout;
 }
 
@@ -856,8 +863,23 @@ export type UpdateSavedFilterInput = Partial<CreateSavedFilterInput>;
 export interface DisplayPresetSettings {
   columns: number;
   imageVisibility: "shown" | "image-only" | "off";
-  imageMode: boolean;
+  imageMode: BookmarkImageMode;
   imageLayout: "above" | "side";
+}
+
+/** A user-defined named aspect ratio available in the Aspect dropdown. */
+export interface CustomAspectRatio {
+  id: string;
+  name: string;
+  width: number;
+  height: number;
+  createdAt: string;
+}
+
+export interface CreateCustomAspectRatioInput {
+  name: string;
+  width: number;
+  height: number;
 }
 
 /** A named snapshot of listing display settings, reusable across any listing page. */

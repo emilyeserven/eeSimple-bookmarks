@@ -4,6 +4,7 @@ import { CollapsibleFormSection } from "./CollapsibleFormSection";
 import { ConditionsField } from "./conditions/ConditionsField";
 import { conditionsSummaryLabel } from "./conditions/summarizeConditions";
 import { SectionDisplayControls } from "./SectionDisplayControls";
+import { bookmarkImageModeLabel } from "../lib/bookmarkColumns";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -13,15 +14,15 @@ import { Textarea } from "@/components/ui/textarea";
 
 function displayPreview(
   columns: number,
-  imageMode: boolean,
+  imageMode: string,
   imageLayout: HomepageSectionImageLayout,
   hideIfEmpty: boolean,
 ): string {
   const parts = [
     `${columns} ${columns === 1 ? "column" : "columns"}`,
-    imageMode ? "Natural" : "Cropped",
+    bookmarkImageModeLabel(imageMode),
   ];
-  if (columns === 2) parts.push(imageLayout === "side" ? "Side" : "Above");
+  if (columns === 1 || columns === 2) parts.push(imageLayout === "side" ? "Side" : "Above");
   if (hideIfEmpty) parts.push("Hidden when empty");
   return parts.join(" · ");
 }
@@ -34,8 +35,8 @@ interface HomepageSectionFieldsProps {
   setDescription: (value: string) => void;
   columns: number;
   setColumns: (value: number) => void;
-  imageMode: boolean;
-  setImageMode: (value: boolean) => void;
+  imageMode: string;
+  setImageMode: (value: string) => void;
   imageLayout: HomepageSectionImageLayout;
   setImageLayout: (value: HomepageSectionImageLayout) => void;
   hideIfEmpty: boolean;

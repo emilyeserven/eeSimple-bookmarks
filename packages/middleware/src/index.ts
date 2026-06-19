@@ -6,7 +6,7 @@ import { ensureAutofillConditions, ensureAutofillSlugs, ensureWebsiteConditions 
 import { ensureDefaultCategory } from "@/services/categories";
 import { backfillCustomPropertySlugs, ensureVideoLengthProperty } from "@/services/customProperties";
 import { ensureHomepageFilter } from "@/services/homepageFilter";
-import { ensureHomepageSections } from "@/services/homepageSections";
+import { backfillImageCropModes, ensureHomepageSections } from "@/services/homepageSections";
 import { backfillMediaTypeSlugs, ensureBuiltInMediaTypes } from "@/services/mediaTypes";
 import { backfillPropertyGroupSlugs } from "@/services/propertyGroups";
 import { backfillTagSlugs } from "@/services/tags";
@@ -58,6 +58,7 @@ try {
   await ensureAutofillSlugs();
   await ensureHomepageFilter();
   await ensureHomepageSections();
+  await backfillImageCropModes();
   // Create the image bucket if storage is configured; harmless when it already exists.
   if (isObjectStoreConfigured()) await ensureBucket();
 }

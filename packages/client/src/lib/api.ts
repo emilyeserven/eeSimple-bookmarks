@@ -1,7 +1,9 @@
 import type {
   AutofillRule,
   Bookmark,
+  CreateCustomAspectRatioInput,
   CreateDisplayPresetInput,
+  CustomAspectRatio,
   DisplayPreset,
   UpdateDisplayPresetInput,
   CreateSavedFilterInput,
@@ -407,6 +409,18 @@ export const displayPresetsApi = {
       body: JSON.stringify(input),
     }),
   remove: (id: string) => request<undefined>(`/display-presets/${id}`, {
+    method: "DELETE",
+  }),
+};
+
+export const customAspectRatiosApi = {
+  list: () => request<CustomAspectRatio[]>("/custom-aspect-ratios"),
+  create: (input: CreateCustomAspectRatioInput) =>
+    request<CustomAspectRatio>("/custom-aspect-ratios", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  remove: (id: string) => request<undefined>(`/custom-aspect-ratios/${id}`, {
     method: "DELETE",
   }),
 };
