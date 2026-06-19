@@ -20,6 +20,7 @@ import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useBookmark } from "@/hooks/useBookmarks";
 import { useCategories, useCategoryBySlug } from "@/hooks/useCategories";
+import { useMediaTypeBySlug } from "@/hooks/useMediaTypes";
 import { useTagTree } from "@/hooks/useTags";
 import { useWebsiteBySlug } from "@/hooks/useWebsites";
 import { findAncestorPath } from "@/lib/tagTree";
@@ -252,6 +253,7 @@ function breadcrumbsForPath(
   tagAncestors?: TagNode[],
   bookmarkData?: BookmarkCrumbData,
   websiteName?: string,
+  mediaTypeName?: string,
 ): BreadcrumbSegment[] {
   if (pathname === "/") return [{
     label: "Home",
@@ -273,11 +275,14 @@ function breadcrumbsForPath(
     if (pathname === taxonomy.prefix) return [{
       label: taxonomy.listLabel,
     }];
+    const itemLabel = (taxonomy.prefix === "/taxonomies/media-types" && mediaTypeName)
+      ? mediaTypeName
+      : taxonomy.detailLabel;
     return [{
       label: taxonomy.listLabel,
       href: taxonomy.prefix,
     }, {
-      label: taxonomy.detailLabel,
+      label: itemLabel,
     }];
   }
   return [{
@@ -318,6 +323,14 @@ export function AppHeader() {
     website,
   } = useWebsiteBySlug(websiteSlug);
 
+  // Media type breadcrumbs
+  const mediaTypeSlug = pathname.startsWith("/taxonomies/media-types/")
+    ? (pathname.split("/").filter(Boolean)[2] ?? "")
+    : "";
+  const {
+    mediaType,
+  } = useMediaTypeBySlug(mediaTypeSlug);
+
   // Bookmark breadcrumbs — extract bookmarkId from /bookmarks/$id[/...]
   const bookmarkId = pathname.startsWith("/bookmarks/")
     ? (pathname.split("/").filter(Boolean)[1] ?? "")
@@ -339,7 +352,14 @@ export function AppHeader() {
     }
     : undefined;
 
-  const crumbs = breadcrumbsForPath(pathname, category?.name, tagAncestors, bookmarkData, website?.siteName);
+  const crumbs = breadcrumbsForPath(
+    pathname,
+    category?.name,
+    tagAncestors,
+    bookmarkData,
+    website?.siteName,
+    mediaType?.name,
+  );
 
   // Show Edit button in the header only on the bookmark detail page (not edit pages)
   const isBookmarkDetail = Boolean(bookmarkId)
