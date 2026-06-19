@@ -3,10 +3,12 @@ import type { Bookmark, Category, CustomProperty, MediaType, PropertyGroup, TagN
 
 import { useState } from "react";
 
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, PanelRight } from "lucide-react";
 
 import { FilterSections } from "./FilterSidebarSections";
+import { usePanelControls } from "./panel/usePanelControls";
 
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface FilterSidebarProps {
@@ -34,6 +36,9 @@ export function FilterSidebar({
   tree, properties, propertyGroups, categories, mediaTypes, youtubeChannels, bookmarks, search, onSearchChange,
 }: FilterSidebarProps) {
   const [open, setOpen] = useState(false);
+  const {
+    openType,
+  } = usePanelControls();
 
   // Category data is only supplied on the overall Bookmarks page; category pages render flat.
   const hasCategoryFilter = (categories?.length ?? 0) > 0;
@@ -51,21 +56,36 @@ export function FilterSidebar({
     <aside className="space-y-3">
       {hasFilters
         ? (
-          <button
-            type="button"
-            onClick={() => setOpen(prev => !prev)}
-            className="
-              flex w-full items-center justify-between rounded-md px-2 py-1
-              text-sm font-semibold transition-colors
-              hover:bg-accent
-              lg:hidden
-            "
-          >
-            Filters
-            {open
-              ? <ChevronUp className="size-4" />
-              : <ChevronDown className="size-4" />}
-          </button>
+          <div className="flex items-center justify-between gap-2">
+            <button
+              type="button"
+              onClick={() => setOpen(prev => !prev)}
+              className="
+                flex flex-1 items-center justify-between rounded-md px-2 py-1
+                text-sm font-semibold transition-colors
+                hover:bg-accent
+                lg:hidden
+              "
+            >
+              Filters
+              {open
+                ? <ChevronUp className="size-4" />
+                : <ChevronDown className="size-4" />}
+            </button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="
+                hidden shrink-0 gap-1.5 text-xs text-muted-foreground
+                lg:flex
+              "
+              onClick={() => openType("filters")}
+            >
+              <PanelRight className="size-3.5" />
+              Send to Drawer
+            </Button>
+          </div>
         )
         : null}
 

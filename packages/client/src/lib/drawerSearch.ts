@@ -20,7 +20,8 @@ export type DrawerContentType
     | "media-type"
     | "youtube-channel"
     | "autofill"
-    | "notifications";
+    | "notifications"
+    | "filters";
 
 /** Whether an opened item is shown read-only (`view`) or in its editor (`edit`). */
 export type DrawerMode = "view" | "edit";
@@ -40,6 +41,7 @@ export const DRAWER_CONTENT_TYPES: DrawerContentType[] = [
   "youtube-channel",
   "autofill",
   "notifications",
+  "filters",
 ];
 
 export interface DrawerSearch {

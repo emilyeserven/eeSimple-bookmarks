@@ -95,6 +95,8 @@ const SIDEBAR_GROUPS = [
 export function DisplaySettings() {
   const theme = useUiStore(state => state.theme);
   const setTheme = useUiStore(state => state.setTheme);
+  const filtersInDrawer = useUiStore(state => state.filtersInDrawer);
+  const setFiltersInDrawer = useUiStore(state => state.setFiltersInDrawer);
   const hiddenCategoryIds = useUiStore(state => state.hiddenCategoryIds);
   const toggleCategoryVisibility = useUiStore(state => state.toggleCategoryVisibility);
   const hiddenTaxonomyItems = useUiStore(state => state.hiddenTaxonomyItems);
@@ -145,6 +147,26 @@ export function DisplaySettings() {
               ))}
             </SelectContent>
           </Select>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Filters location</CardTitle>
+          <CardDescription>
+            When on, listing pages open filters in the right-hand drawer by default instead of
+            showing them in the left column.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="filters-in-drawer"
+              checked={filtersInDrawer}
+              onCheckedChange={checked => setFiltersInDrawer(checked === true)}
+            />
+            <Label htmlFor="filters-in-drawer">Show filters in drawer by default</Label>
+          </div>
         </CardContent>
       </Card>
 
