@@ -10,6 +10,7 @@ import {
   useSetCategoryDefaults,
 } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
+import { buildNumberValuesFromInputs } from "../lib/propertyValues";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -65,21 +66,7 @@ export function CategoryDefaultsSection({
   if (categoryProps.length === 0) return null;
 
   function save() {
-    const numberValues = categoryProps
-      .filter(property => property.type === "number")
-      .map(property => ({
-        propertyId: property.id,
-        raw: numberInputs[property.id] ?? "",
-      }))
-      .filter(({
-        raw,
-      }) => raw.trim() !== "" && !Number.isNaN(Number(raw)))
-      .map(({
-        propertyId, raw,
-      }) => ({
-        propertyId,
-        value: Number(raw),
-      }));
+    const numberValues = buildNumberValuesFromInputs(categoryProps, numberInputs);
     const booleanValues = categoryProps
       .filter(property => property.type === "boolean")
       .map(property => ({

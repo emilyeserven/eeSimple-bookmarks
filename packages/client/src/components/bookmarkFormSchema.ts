@@ -15,6 +15,7 @@ import { z } from "zod";
 import { EMPTY_IMAGE_INTENT } from "./bookmarkImageIntent";
 import { applyAutofill } from "../lib/autofill";
 import { useAppForm } from "../lib/form";
+import { buildNumberValuesFromInputs } from "../lib/propertyValues";
 
 export const bookmarkSchema = z.object({
   url: z.string().url("Enter a valid URL"),
@@ -130,24 +131,7 @@ export function buildCategoryPropertyValues(
   // Only persist values for properties that belong to the chosen category and are enabled.
   const categoryProps = customProperties.filter(property =>
     propertyAppliesToCategory(property, categoryId) && property.enabled);
-  const numberValues: BookmarkNumberValue[] = categoryProps
-    .filter(property => property.type === "number")
-    .map((property) => {
-      const raw = numbers[property.id] ?? "";
-      return {
-        property,
-        raw,
-      };
-    })
-    .filter(({
-      raw,
-    }) => raw.trim() !== "" && !Number.isNaN(Number(raw)))
-    .map(({
-      property, raw,
-    }) => ({
-      propertyId: property.id,
-      value: Number(raw),
-    }));
+  const numberValues = buildNumberValuesFromInputs(categoryProps, numbers);
   const booleanValues: BookmarkBooleanValue[] = categoryProps
     .filter(property => property.type === "boolean")
     .map(property => ({
