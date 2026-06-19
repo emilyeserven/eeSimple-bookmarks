@@ -927,7 +927,10 @@ export async function checkBookmarkUrlDuplicate(url: string): Promise<BookmarkUr
     catch { return false; }
   });
 
-  if (pathCandidates.length === 0) return { exactMatch: null, pathMatch: null };
+  if (pathCandidates.length === 0) return {
+    exactMatch: null,
+    pathMatch: null,
+  };
 
   // Look up paramRules for this domain so identity-bearing params (e.g. YouTube's ?v= on /watch)
   // are included in the match. Uses getWebsiteByAnyDomain so youtu.be resolves to youtube.com.
@@ -942,7 +945,10 @@ export async function checkBookmarkUrlDuplicate(url: string): Promise<BookmarkUr
     : null;
 
   if (!matchingRule) {
-    return { exactMatch: null, pathMatch: pathCandidates[0] ?? null };
+    return {
+      exactMatch: null,
+      pathMatch: pathCandidates[0] ?? null,
+    };
   }
 
   // Only flag a candidate as a path-match when all identity params also match.
@@ -955,5 +961,8 @@ export async function checkBookmarkUrlDuplicate(url: string): Promise<BookmarkUr
     catch { return false; }
   }) ?? null;
 
-  return { exactMatch: null, pathMatch };
+  return {
+    exactMatch: null,
+    pathMatch,
+  };
 }

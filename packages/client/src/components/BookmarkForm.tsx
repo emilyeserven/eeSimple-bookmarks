@@ -396,7 +396,10 @@ export function BookmarkForm({
     setWebsiteSiteName("");
     channelHintRef.current = null;
     setYoutubeChannel(null);
-    setUrlShortener({ nudge: false, expandedUrl: null });
+    setUrlShortener({
+      nudge: false,
+      expandedUrl: null,
+    });
     setUrlCleanup(null);
     imageIntentRef.current = initialImageIntent(autoFetchImage);
     setImageFieldKey(key => key + 1);
@@ -407,7 +410,11 @@ export function BookmarkForm({
     setAutofillOfferDismissed(false);
     quickAddRef.current = false;
     touchedRef.current = new Set();
-    ruleSetRef.current = { numbers: new Set(), booleans: new Set(), dateTimes: new Set() };
+    ruleSetRef.current = {
+      numbers: new Set(),
+      booleans: new Set(),
+      dateTimes: new Set(),
+    };
     lastAutoCategoryRef.current = "";
     setTitleFetch(null);
   }
