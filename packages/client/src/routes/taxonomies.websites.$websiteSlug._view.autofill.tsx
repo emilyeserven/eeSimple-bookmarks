@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { AutofillRulesList } from "../components/AutofillRulesList";
+import { SourceAutofillDefaults } from "../components/SourceAutofillDefaults";
 import { WebsiteTabWrapper } from "../components/WebsiteTabWrapper";
 
 export const Route = createFileRoute("/taxonomies/websites/$websiteSlug/_view/autofill")({
@@ -17,7 +18,16 @@ function AutofillViewTab() {
       title="Autofill Rules"
       description="Autofill rules whose conditions target this website."
     >
-      {website => <AutofillRulesList websiteId={website.id} />}
+      {website => (
+        <div className="space-y-6">
+          <SourceAutofillDefaults
+            kind="website"
+            category={website.category}
+            tagIds={website.tagIds}
+          />
+          <AutofillRulesList websiteId={website.id} />
+        </div>
+      )}
     </WebsiteTabWrapper>
   );
 }

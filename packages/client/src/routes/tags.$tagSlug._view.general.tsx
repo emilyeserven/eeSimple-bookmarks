@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { EntityAutofillSources } from "../components/EntityAutofillSources";
 import { TabWrapper } from "../components/TabWrapper";
 import { useNewAutofillRule } from "../hooks/useNewAutofillRule";
 import { useTagBySlug } from "../hooks/useTags";
@@ -66,6 +67,12 @@ function GeneralViewTab() {
               </Button>
               {newRule.modal}
             </div>
+            <EntityAutofillSources
+              match={{
+                kind: "tag",
+                tagId: node.id,
+              }}
+            />
           </>
         );
       }}
