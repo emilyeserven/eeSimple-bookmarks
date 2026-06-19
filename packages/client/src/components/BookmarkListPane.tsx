@@ -73,6 +73,7 @@ export function BookmarkListPane({
           <RowCard
             key={bookmark.id}
             className="p-4"
+            data-bookmark-card-sample
           >
             <BookmarkCard
               pageKey={pageKey}
