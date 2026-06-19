@@ -1,4 +1,4 @@
-import type { Theme } from "../stores/uiStore";
+import type { BookmarkDetailImageSize, BookmarkDetailVideoSize, Theme } from "../stores/uiStore";
 
 import { useCategories } from "../hooks/useCategories";
 import { useUiStore } from "../stores/uiStore";
@@ -25,6 +25,17 @@ const THEME_LABELS: Record<Theme, string> = {
   light: "Light",
   dark: "Dark",
   system: "System",
+};
+
+const IMAGE_SIZE_LABELS: Record<BookmarkDetailImageSize, string> = {
+  small: "Small",
+  medium: "Medium",
+  large: "Large",
+};
+
+const VIDEO_SIZE_LABELS: Record<BookmarkDetailVideoSize, string> = {
+  standard: "Standard",
+  fullwidth: "Full width",
 };
 
 const TAXONOMY_ITEMS = [
@@ -97,6 +108,10 @@ export function DisplaySettings() {
   const setTheme = useUiStore(state => state.setTheme);
   const filtersInDrawer = useUiStore(state => state.filtersInDrawer);
   const setFiltersInDrawer = useUiStore(state => state.setFiltersInDrawer);
+  const bookmarkDetailImageSize = useUiStore(state => state.bookmarkDetailImageSize);
+  const setBookmarkDetailImageSize = useUiStore(state => state.setBookmarkDetailImageSize);
+  const bookmarkDetailVideoSize = useUiStore(state => state.bookmarkDetailVideoSize);
+  const setBookmarkDetailVideoSize = useUiStore(state => state.setBookmarkDetailVideoSize);
   const hiddenCategoryIds = useUiStore(state => state.hiddenCategoryIds);
   const toggleCategoryVisibility = useUiStore(state => state.toggleCategoryVisibility);
   const hiddenTaxonomyItems = useUiStore(state => state.hiddenTaxonomyItems);
@@ -166,6 +181,71 @@ export function DisplaySettings() {
               onCheckedChange={checked => setFiltersInDrawer(checked === true)}
             />
             <Label htmlFor="filters-in-drawer">Show filters in drawer by default</Label>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Bookmark media</CardTitle>
+          <CardDescription>
+            Control the size of images and video embeds on the bookmark detail page.
+          </CardDescription>
+        </CardHeader>
+        <CardContent
+          className="
+            grid grid-cols-1 gap-4
+            sm:grid-cols-2
+          "
+        >
+          <div className="space-y-1">
+            <Label htmlFor="bookmark-image-size">Image size</Label>
+            <Select
+              value={bookmarkDetailImageSize}
+              onValueChange={value => setBookmarkDetailImageSize(value as BookmarkDetailImageSize)}
+            >
+              <SelectTrigger
+                id="bookmark-image-size"
+                className="w-full"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {(Object.keys(IMAGE_SIZE_LABELS) as BookmarkDetailImageSize[]).map(value => (
+                  <SelectItem
+                    key={value}
+                    value={value}
+                  >
+                    {IMAGE_SIZE_LABELS[value]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-1">
+            <Label htmlFor="bookmark-video-size">Video size</Label>
+            <Select
+              value={bookmarkDetailVideoSize}
+              onValueChange={value => setBookmarkDetailVideoSize(value as BookmarkDetailVideoSize)}
+            >
+              <SelectTrigger
+                id="bookmark-video-size"
+                className="w-full"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {(Object.keys(VIDEO_SIZE_LABELS) as BookmarkDetailVideoSize[]).map(value => (
+                  <SelectItem
+                    key={value}
+                    value={value}
+                  >
+                    {VIDEO_SIZE_LABELS[value]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>

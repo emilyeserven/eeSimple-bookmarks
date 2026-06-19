@@ -13,6 +13,12 @@ export type SidebarOpenModifier = "alt" | "ctrl" | "shift" | "meta";
 /** Per-section image layout preference for 2-column homepage sections. */
 export type HomepageSectionImageLayout = "above" | "side";
 
+/** Bookmark detail page image size preference. */
+export type BookmarkDetailImageSize = "small" | "medium" | "large";
+
+/** Bookmark detail page video size preference: constrained side-by-side or full-width stacked. */
+export type BookmarkDetailVideoSize = "standard" | "fullwidth";
+
 /** Per-listing image visibility on Listings pages: full card, image-only, or no image. */
 export type BookmarkImageVisibility = "shown" | "image-only" | "off";
 
@@ -108,6 +114,12 @@ interface UiState {
   /** When true, listing pages auto-open filters in the right-hand drawer instead of the left column. */
   filtersInDrawer: boolean;
   setFiltersInDrawer: (value: boolean) => void;
+  /** Image size on the bookmark detail page/panel: small (160px), medium (288px, default), or large (384px). */
+  bookmarkDetailImageSize: BookmarkDetailImageSize;
+  setBookmarkDetailImageSize: (size: BookmarkDetailImageSize) => void;
+  /** Video embed size on the bookmark detail page/panel: constrained side-by-side (standard) or full-width stacked (fullwidth). */
+  bookmarkDetailVideoSize: BookmarkDetailVideoSize;
+  setBookmarkDetailVideoSize: (size: BookmarkDetailVideoSize) => void;
   /** Transient: live filter data from the active listing page. Cleared when leaving a listing page. Never persisted. */
   filterContext: FilterContextData | null;
   setFilterContext: (ctx: FilterContextData | null) => void;
@@ -226,6 +238,14 @@ export const useUiStore = create<UiState>()(
       setFiltersInDrawer: value => set({
         filtersInDrawer: value,
       }),
+      bookmarkDetailImageSize: "medium",
+      setBookmarkDetailImageSize: size => set({
+        bookmarkDetailImageSize: size,
+      }),
+      bookmarkDetailVideoSize: "standard",
+      setBookmarkDetailVideoSize: size => set({
+        bookmarkDetailVideoSize: size,
+      }),
       filterContext: null,
       setFilterContext: ctx => set({
         filterContext: ctx,
@@ -255,6 +275,8 @@ export const useUiStore = create<UiState>()(
         collapsedHomepageSectionIds: state.collapsedHomepageSectionIds,
         bookmarkImageLayout: state.bookmarkImageLayout,
         filtersInDrawer: state.filtersInDrawer,
+        bookmarkDetailImageSize: state.bookmarkDetailImageSize,
+        bookmarkDetailVideoSize: state.bookmarkDetailVideoSize,
       }),
     },
   ),
