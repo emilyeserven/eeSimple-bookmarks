@@ -1,7 +1,7 @@
 import { useState } from "react";
 
-import { ColumnsSwitcher } from "./ColumnsSwitcher";
 import { YouTubeChannelListItem } from "./YouTubeChannelListItem";
+import { useSetListingPage } from "../hooks/useListingPage";
 import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
 import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
 
@@ -13,6 +13,7 @@ export function YouTubeChannelsListing() {
     data: allChannels, isLoading, error,
   } = useYouTubeChannels();
   const [search, setSearch] = useState("");
+  useSetListingPage("youtube-channels-listing");
   const columns = useBookmarkColumns("youtube-channels-listing");
 
   const q = search.trim().toLowerCase();
@@ -30,7 +31,6 @@ export function YouTubeChannelsListing() {
           onChange={event => setSearch(event.target.value)}
           className="max-w-sm"
         />
-        <ColumnsSwitcher pageKey="youtube-channels-listing" />
       </div>
 
       {q && filtered.length < (allChannels?.length ?? 0)

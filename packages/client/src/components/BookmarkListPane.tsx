@@ -1,12 +1,9 @@
-import type { BookmarkImageVisibility, HomepageSectionImageLayout } from "../lib/bookmarkColumns";
+import type { BookmarkImageVisibility } from "../lib/bookmarkColumns";
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
 import type { Bookmark, CustomProperty } from "@eesimple/types";
 
 import { AddBookmarkCollapsible } from "./AddBookmarkCollapsible";
 import { BookmarkCard } from "./BookmarkCard";
-import { ColumnsSwitcher } from "./ColumnsSwitcher";
-import { ImageLayoutSwitcher } from "./ImageLayoutSwitcher";
-import { ImageModeSwitcher } from "./ImageModeSwitcher";
 import { useDeleteBookmark } from "../hooks/useBookmarks";
 import { COLUMN_CLASS } from "../lib/bookmarkColumns";
 import { bookmarkMatchesSearch, hasAnyActiveFilter } from "../lib/bookmarkSearch";
@@ -14,11 +11,8 @@ import { bookmarkMatchesSearch, hasAnyActiveFilter } from "../lib/bookmarkSearch
 import { RowCard } from "@/components/ui/card";
 
 interface BookmarkListPaneProps {
-  pageKey: string;
   columns: number;
   imageVisibility: BookmarkImageVisibility;
-  imageLayout: HomepageSectionImageLayout;
-  onImageLayoutChange: (layout: HomepageSectionImageLayout) => void;
   imageLeft: boolean;
   imageMode: boolean;
   bookmarks: Bookmark[];
@@ -31,13 +25,10 @@ interface BookmarkListPaneProps {
   addFormCategoryId?: string;
 }
 
-/** Right column of the search view: the add form, list controls, and the matching bookmark grid. */
+/** Right column of the search view: the add form and the matching bookmark grid. */
 export function BookmarkListPane({
-  pageKey,
   columns,
   imageVisibility,
-  imageLayout,
-  onImageLayoutChange,
   imageLeft,
   imageMode,
   bookmarks,
@@ -56,14 +47,6 @@ export function BookmarkListPane({
   return (
     <div className="space-y-6">
       <AddBookmarkCollapsible lockedCategoryId={addFormCategoryId} />
-
-      <BookmarkListControls
-        pageKey={pageKey}
-        columns={columns}
-        imageVisibility={imageVisibility}
-        imageLayout={imageLayout}
-        onImageLayoutChange={onImageLayoutChange}
-      />
 
       <div
         className={`
@@ -96,31 +79,6 @@ export function BookmarkListPane({
           </RowCard>
         ))}
       </div>
-    </div>
-  );
-}
-
-interface BookmarkListControlsProps {
-  pageKey: string;
-  columns: number;
-  imageVisibility: BookmarkImageVisibility;
-  imageLayout: HomepageSectionImageLayout;
-  onImageLayoutChange: (layout: HomepageSectionImageLayout) => void;
-}
-
-function BookmarkListControls({
-  pageKey, columns, imageVisibility, imageLayout, onImageLayoutChange,
-}: BookmarkListControlsProps) {
-  return (
-    <div className="flex justify-end gap-4">
-      <ColumnsSwitcher pageKey={pageKey} />
-      {imageVisibility === "shown" && (columns === 1 || columns === 2) && (
-        <ImageLayoutSwitcher
-          layout={imageLayout}
-          onLayoutChange={onImageLayoutChange}
-        />
-      )}
-      <ImageModeSwitcher pageKey={pageKey} />
     </div>
   );
 }

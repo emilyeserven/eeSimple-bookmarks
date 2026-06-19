@@ -1,4 +1,3 @@
-import type { HomepageSectionImageLayout } from "../lib/bookmarkColumns";
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
 import type { Bookmark, Category, CustomProperty, MediaType, PropertyGroup, TagNode, YouTubeChannel } from "@eesimple/types";
 import type { ReactNode } from "react";
@@ -8,8 +7,8 @@ import { useEffect } from "react";
 import { BookmarkListPane } from "./BookmarkListPane";
 import { FilterSidebar } from "./FilterSidebar";
 import { usePanelControls } from "./panel/usePanelControls";
-import { useIsMobile } from "../hooks/use-mobile";
-import { DEFAULT_BOOKMARK_IMAGE_LAYOUT, useBookmarkColumns, useBookmarkImageMode, useBookmarkImageVisibility } from "../lib/bookmarkColumns";
+import { useSetListingPage } from "../hooks/useListingPage";
+import { useBookmarkColumns, useBookmarkImageLayout, useBookmarkImageMode, useBookmarkImageVisibility } from "../lib/bookmarkColumns";
 import { useUiStore } from "../stores/uiStore";
 
 interface BookmarkSearchViewProps {
@@ -68,10 +67,10 @@ export function BookmarkSearchView({
   noMatchMessage,
   addFormCategoryId,
 }: BookmarkSearchViewProps) {
+  useSetListingPage(pageKey, true);
   const columns = useBookmarkColumns(pageKey);
   const imageMode = useBookmarkImageMode(pageKey);
   const imageVisibility = useBookmarkImageVisibility(pageKey);
-  const isMobile = useIsMobile();
   const filtersInDrawer = useUiStore(state => state.filtersInDrawer);
   const setFilterContext = useUiStore(state => state.setFilterContext);
   const {
@@ -103,14 +102,8 @@ export function BookmarkSearchView({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Raw stored value (may be undefined) so we can tell "unset" from an explicit "above".
-  const storedImageLayout = useUiStore(state => state.bookmarkImageLayout[pageKey]);
-  // At 1 column the default is responsive — image above on mobile, side on desktop — until the
-  // user makes an explicit pick; 2 columns keeps the "above" default and 3–4 always stack.
-  const imageLayout: HomepageSectionImageLayout = storedImageLayout
-    ?? (columns === 1 && !isMobile ? "side" : DEFAULT_BOOKMARK_IMAGE_LAYOUT);
+  const imageLayout = useBookmarkImageLayout(pageKey);
   const imageLeft = (columns === 1 || columns === 2) && imageLayout === "side";
-  const setBookmarkImageLayout = useUiStore(state => state.setBookmarkImageLayout);
 
   return (
     <section className="space-y-8">
@@ -139,11 +132,8 @@ export function BookmarkSearchView({
         )}
 
         <BookmarkListPane
-          pageKey={pageKey}
           columns={columns}
           imageVisibility={imageVisibility}
-          imageLayout={imageLayout}
-          onImageLayoutChange={layout => setBookmarkImageLayout(pageKey, layout)}
           imageLeft={imageLeft}
           imageMode={imageMode}
           bookmarks={bookmarks}

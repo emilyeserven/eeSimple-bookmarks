@@ -4,8 +4,8 @@ import { useNavigate } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 
 import { AddWebsiteModal } from "./AddWebsiteModal";
-import { ColumnsSwitcher } from "./ColumnsSwitcher";
 import { WebsiteListItem } from "./WebsiteListItem";
+import { useSetListingPage } from "../hooks/useListingPage";
 import { useWebsites } from "../hooks/useWebsites";
 import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
 
@@ -19,6 +19,7 @@ export function WebsitesListing() {
   } = useWebsites();
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
+  useSetListingPage("websites-listing");
   const columns = useBookmarkColumns("websites-listing");
   const navigate = useNavigate();
 
@@ -38,7 +39,6 @@ export function WebsitesListing() {
             onChange={event => setSearch(event.target.value)}
             className="max-w-sm"
           />
-          <ColumnsSwitcher pageKey="websites-listing" />
           <div className="ml-auto">
             <Button
               type="button"

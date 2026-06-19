@@ -123,6 +123,11 @@ interface UiState {
   /** Transient: live filter data from the active listing page. Cleared when leaving a listing page. Never persisted. */
   filterContext: FilterContextData | null;
   setFilterContext: (ctx: FilterContextData | null) => void;
+  /** Transient: the current listing page's key and whether it exposes image controls. Cleared when leaving a listing page. Never persisted. */
+  listingPage: { key: string;
+    showsImages: boolean; } | null;
+  setListingPage: (page: { key: string;
+    showsImages: boolean; } | null) => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -249,6 +254,10 @@ export const useUiStore = create<UiState>()(
       filterContext: null,
       setFilterContext: ctx => set({
         filterContext: ctx,
+      }),
+      listingPage: null,
+      setListingPage: page => set({
+        listingPage: page,
       }),
     }),
     {

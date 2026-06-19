@@ -1,7 +1,7 @@
 import { useState } from "react";
 
-import { ColumnsSwitcher } from "./ColumnsSwitcher";
 import { MediaTypeListItem } from "./MediaTypeListItem";
+import { useSetListingPage } from "../hooks/useListingPage";
 import { useMediaTypes } from "../hooks/useMediaTypes";
 import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
 
@@ -13,6 +13,7 @@ export function MediaTypesListing() {
     data: allMediaTypes, isLoading, error,
   } = useMediaTypes();
   const [search, setSearch] = useState("");
+  useSetListingPage("media-types-listing");
   const columns = useBookmarkColumns("media-types-listing");
 
   const q = search.trim().toLowerCase();
@@ -30,7 +31,6 @@ export function MediaTypesListing() {
           onChange={event => setSearch(event.target.value)}
           className="max-w-sm"
         />
-        <ColumnsSwitcher pageKey="media-types-listing" />
       </div>
 
       {q && filtered.length < (allMediaTypes?.length ?? 0)

@@ -5,8 +5,8 @@ import { Plus } from "lucide-react";
 
 import { AddCategoryModal } from "../components/AddCategoryModal";
 import { CategoryPreviewCard } from "../components/CategoryPreviewCard";
-import { ColumnsSwitcher } from "../components/ColumnsSwitcher";
 import { useCategories } from "../hooks/useCategories";
+import { useSetListingPage } from "../hooks/useListingPage";
 import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
 
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +25,7 @@ function CategoriesListingPage() {
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
+  useSetListingPage("categories-listing");
   const columns = useBookmarkColumns("categories-listing");
 
   const q = search.trim().toLowerCase();
@@ -67,7 +68,6 @@ function CategoriesListingPage() {
             onChange={event => setSearch(event.target.value)}
             className="max-w-sm"
           />
-          <ColumnsSwitcher pageKey="categories-listing" />
         </div>
 
         {q && filtered.length < (categories?.length ?? 0)
