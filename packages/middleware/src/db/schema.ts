@@ -586,6 +586,10 @@ export const autofillRules = pgTable("autofill_rules", {
   setCategoryId: uuid("set_category_id").references((): AnyPgColumn => categories.id, {
     onDelete: "set null",
   }),
+  // The media type this rule assigns; NULL means the rule leaves the media type alone.
+  setMediaTypeId: uuid("set_media_type_id").references((): AnyPgColumn => mediaTypes.id, {
+    onDelete: "set null",
+  }),
   // Lower sorts first; later (higher) rules win for single-valued targets when several match.
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: timestamp("created_at", {
@@ -705,6 +709,10 @@ export const autofillRulesRelations = relations(autofillRules, ({
   category: one(categories, {
     fields: [autofillRules.setCategoryId],
     references: [categories.id],
+  }),
+  mediaType: one(mediaTypes, {
+    fields: [autofillRules.setMediaTypeId],
+    references: [mediaTypes.id],
   }),
   tags: many(autofillRuleTags),
   numberValues: many(autofillRuleNumberValues),

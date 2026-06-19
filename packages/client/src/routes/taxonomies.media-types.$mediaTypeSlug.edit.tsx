@@ -12,6 +12,10 @@ const editNav = [
     to: "/taxonomies/media-types/$mediaTypeSlug/edit/general",
     label: "General",
   },
+  {
+    to: "/taxonomies/media-types/$mediaTypeSlug/edit/autofill",
+    label: "Autofill Rules",
+  },
 ] as const;
 
 function MediaTypeEditLayout() {

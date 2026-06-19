@@ -14,6 +14,11 @@ export function ruleSetsTag(rule: AutofillRule, tagId: string): boolean {
   return rule.tagIds.includes(tagId);
 }
 
+/** True when the rule sets `mediaTypeId` on matching bookmarks. */
+export function ruleSetsMediaType(rule: AutofillRule, mediaTypeId: string): boolean {
+  return rule.setMediaTypeId === mediaTypeId;
+}
+
 /** True when any Website condition in the rule's tree references `domain` (already normalized). */
 export function ruleTargetsWebsite(rule: AutofillRule, domain: string): boolean {
   const visit = (node: ConditionNode): boolean => {

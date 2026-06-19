@@ -6,6 +6,7 @@ import type {
   ConditionTree,
   CreateAutofillRuleInput,
   CustomProperty,
+  MediaType,
   TagNode,
 } from "@eesimple/types";
 
@@ -29,10 +30,14 @@ import { Separator } from "@/components/ui/separator";
 /** Sentinel select value standing in for "no category" (Radix selects can't hold an empty value). */
 export const NO_CATEGORY = "none";
 
+/** Sentinel select value standing in for "no media type" (Radix selects can't hold an empty value). */
+export const NO_MEDIA_TYPE = "none";
+
 const ruleSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
   description: z.string(),
   setCategoryId: z.string(),
+  setMediaTypeId: z.string(),
   tagIds: z.array(z.string()),
   sortOrder: z.number().int(),
 });
@@ -40,10 +45,13 @@ const ruleSchema = z.object({
 interface AutofillRuleFormProps {
   rule?: AutofillRule;
   categories: Category[];
+  mediaTypes: MediaType[];
   properties: CustomProperty[];
   tagTree: TagNode[];
   /** Preselected target category for a new rule (e.g. when creating from a category's edit page). */
   defaultCategoryId?: string;
+  /** Preselected target media type for a new rule (e.g. when creating from a media type's page). */
+  defaultMediaTypeId?: string;
   /** Preselected website domain for a new rule's "when" (e.g. when creating from a website's page). */
   defaultWebsiteDomain?: string;
   /** Preselected tag ids for a new rule's "then" (e.g. when creating from a tag's page). */
@@ -57,7 +65,7 @@ interface AutofillRuleFormProps {
 
 /** Shared create/edit form for an autofill rule: a "when" condition tree plus "then" actions. */
 export function AutofillRuleForm({
-  rule, categories, properties, tagTree, defaultCategoryId, defaultWebsiteDomain, defaultTagIds, submitLabel, resetOnSubmit, isError, errorMessage, onSubmit,
+  rule, categories, mediaTypes, properties, tagTree, defaultCategoryId, defaultMediaTypeId, defaultWebsiteDomain, defaultTagIds, submitLabel, resetOnSubmit, isError, errorMessage, onSubmit,
 }: AutofillRuleFormProps) {
   // The condition tree and custom-property values live outside the typed form (they're dynamic and,
   // for the recursive tree, would blow up TanStack Form's deep type inference). A new rule created
@@ -78,6 +86,7 @@ export function AutofillRuleForm({
       name: rule?.name ?? "",
       description: rule?.description ?? "",
       setCategoryId: rule?.setCategoryId ?? defaultCategoryId ?? NO_CATEGORY,
+      setMediaTypeId: rule?.setMediaTypeId ?? defaultMediaTypeId ?? NO_MEDIA_TYPE,
       tagIds: rule?.tagIds ?? defaultTagIds ?? ([] as string[]),
       sortOrder: rule?.sortOrder ?? 0,
     },
@@ -95,6 +104,7 @@ export function AutofillRuleForm({
       setConditionsError(null);
 
       const categoryId = value.setCategoryId === NO_CATEGORY ? null : value.setCategoryId;
+      const mediaTypeId = value.setMediaTypeId === NO_MEDIA_TYPE ? null : value.setMediaTypeId;
       // Only persist property values for properties assigned to the rule's category.
       const categoryProps = categoryId
         ? properties.filter(property => propertyAppliesToCategory(property, categoryId))
@@ -133,6 +143,7 @@ export function AutofillRuleForm({
         description: value.description.trim() || null,
         conditions,
         setCategoryId: categoryId,
+        setMediaTypeId: mediaTypeId,
         tagIds: value.tagIds,
         numberValues,
         booleanValues,
@@ -212,16 +223,19 @@ export function AutofillRuleForm({
           <form.Subscribe
             selector={state => ({
               setCategoryId: state.values.setCategoryId,
+              setMediaTypeId: state.values.setMediaTypeId,
               tagIds: state.values.tagIds,
             })}
           >
             {({
-              setCategoryId, tagIds,
+              setCategoryId, setMediaTypeId, tagIds,
             }) =>
               summarizePrefill({
                 setCategoryId,
+                setMediaTypeId,
                 tagIds,
                 categories,
+                mediaTypes,
                 properties,
                 numberInputs,
                 booleanInputs,
@@ -242,6 +256,24 @@ export function AutofillRuleForm({
                 ...categories.map(category => ({
                   value: category.id,
                   label: category.name,
+                })),
+              ]}
+            />
+          )}
+        </form.AppField>
+
+        <form.AppField name="setMediaTypeId">
+          {field => (
+            <field.SelectField
+              label="Set media type"
+              options={[
+                {
+                  value: NO_MEDIA_TYPE,
+                  label: "— Leave unchanged —",
+                },
+                ...mediaTypes.map(mediaType => ({
+                  value: mediaType.id,
+                  label: mediaType.name,
                 })),
               ]}
             />
@@ -365,8 +397,10 @@ function seedConditions(defaultWebsiteDomain?: string): ConditionTree {
 
 interface PrefillSummaryArgs {
   setCategoryId: string;
+  setMediaTypeId: string;
   tagIds: string[];
   categories: Category[];
+  mediaTypes: MediaType[];
   properties: CustomProperty[];
   numberInputs: Record<string, string>;
   booleanInputs: Record<string, boolean>;
@@ -375,13 +409,18 @@ interface PrefillSummaryArgs {
 
 /** One-line summary of the prefill actions for the collapsed section preview. */
 function summarizePrefill({
-  setCategoryId, tagIds, categories, properties, numberInputs, booleanInputs, dateTimeInputs,
+  setCategoryId, setMediaTypeId, tagIds, categories, mediaTypes, properties, numberInputs, booleanInputs, dateTimeInputs,
 }: PrefillSummaryArgs): string {
   const parts: string[] = [];
 
   if (setCategoryId !== NO_CATEGORY) {
     const category = categories.find(item => item.id === setCategoryId);
     if (category) parts.push(`Category: ${category.name}`);
+  }
+
+  if (setMediaTypeId !== NO_MEDIA_TYPE) {
+    const mediaType = mediaTypes.find(item => item.id === setMediaTypeId);
+    if (mediaType) parts.push(`Media type: ${mediaType.name}`);
   }
 
   if (tagIds.length > 0) parts.push(`${tagIds.length} ${tagIds.length === 1 ? "tag" : "tags"}`);

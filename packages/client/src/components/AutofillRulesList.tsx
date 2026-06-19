@@ -8,7 +8,7 @@ import { ALL_CATEGORIES, AutofillRulesToolbar } from "./AutofillRulesToolbar";
 import { useAutofillRules } from "../hooks/useAutofill";
 import { useCategories } from "../hooks/useCategories";
 import { useWebsites } from "../hooks/useWebsites";
-import { ruleSetsProperty, ruleSetsTag, ruleTargetsWebsite } from "../lib/autofillRulesFilter";
+import { ruleSetsMediaType, ruleSetsProperty, ruleSetsTag, ruleTargetsWebsite } from "../lib/autofillRulesFilter";
 import { summarizeConditions } from "../lib/conditionsSummary";
 
 interface AutofillRulesListProps {
@@ -32,6 +32,11 @@ interface AutofillRulesListProps {
    * category filter is hidden.
    */
   tagId?: string;
+  /**
+   * When set, scopes the list to a single media type: only rules that set this media type are shown
+   * and the category filter is hidden.
+   */
+  mediaTypeId?: string;
 }
 
 function emptyStateMessage(
@@ -39,11 +44,13 @@ function emptyStateMessage(
   propertyId: string | undefined,
   websiteId: string | undefined,
   tagId: string | undefined,
+  mediaTypeId: string | undefined,
 ): string {
   if (categoryId) return "No autofill rules add bookmarks to this category yet. Create one above.";
   if (propertyId) return "No autofill rules set this property yet. Create one above.";
   if (websiteId) return "No autofill rules target this website yet. Create one above.";
   if (tagId) return "No autofill rules apply this tag yet. Create one above.";
+  if (mediaTypeId) return "No autofill rules set this media type yet. Create one above.";
   return "No autofill rules yet. Create one above.";
 }
 
@@ -53,6 +60,7 @@ export function AutofillRulesList({
   propertyId,
   websiteId,
   tagId,
+  mediaTypeId,
 }: AutofillRulesListProps = {}) {
   const {
     data: rules, isLoading, error,
@@ -67,8 +75,8 @@ export function AutofillRulesList({
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState(ALL_CATEGORIES);
 
-  // Whether the list is scoped to a single entity (category / property / website / tag edit/view tab).
-  const scoped = Boolean(categoryId) || Boolean(propertyId) || Boolean(websiteId) || Boolean(tagId);
+  // Whether the list is scoped to a single entity (category / property / website / tag / media type edit/view tab).
+  const scoped = Boolean(categoryId) || Boolean(propertyId) || Boolean(websiteId) || Boolean(tagId) || Boolean(mediaTypeId);
 
   // The scoping website's normalized domain (rules reference websites by domain, not id).
   const websiteDomain = useMemo(() => {
@@ -84,8 +92,9 @@ export function AutofillRulesList({
     if (propertyId) list = list.filter(rule => ruleSetsProperty(rule, propertyId));
     if (websiteId) list = websiteDomain ? list.filter(rule => ruleTargetsWebsite(rule, websiteDomain)) : [];
     if (tagId) list = list.filter(rule => ruleSetsTag(rule, tagId));
+    if (mediaTypeId) list = list.filter(rule => ruleSetsMediaType(rule, mediaTypeId));
     return list;
-  }, [rules, categoryId, propertyId, websiteId, websiteDomain, tagId]);
+  }, [rules, categoryId, propertyId, websiteId, websiteDomain, tagId, mediaTypeId]);
 
   const visibleRules = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -115,7 +124,7 @@ export function AutofillRulesList({
       {isLoading ? <p className="text-muted-foreground">Loading rules…</p> : null}
       {error ? <p className="text-destructive">{error.message}</p> : null}
       {!isLoading && scopedRules.length === 0
-        ? <p className="text-muted-foreground">{emptyStateMessage(categoryId, propertyId, websiteId, tagId)}</p>
+        ? <p className="text-muted-foreground">{emptyStateMessage(categoryId, propertyId, websiteId, tagId, mediaTypeId)}</p>
         : null}
       {!isLoading && scopedRules.length > 0 && visibleRules.length === 0
         ? <p className="text-muted-foreground">No rules match these filters.</p>

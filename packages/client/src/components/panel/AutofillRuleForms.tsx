@@ -12,6 +12,7 @@ import {
 } from "../../hooks/useAutofill";
 import { useCategories } from "../../hooks/useCategories";
 import { useCustomProperties } from "../../hooks/useCustomProperties";
+import { useMediaTypes } from "../../hooks/useMediaTypes";
 import { useTagBySlug, useTagTree } from "../../hooks/useTags";
 import { useWebsites } from "../../hooks/useWebsites";
 import { AutofillRuleForm } from "../AutofillRuleForm";
@@ -35,15 +36,19 @@ export function CreateAutofillRule() {
   const {
     data: websites,
   } = useWebsites();
+  const {
+    data: mediaTypes,
+  } = useMediaTypes();
   const createRule = useCreateAutofillRule();
 
-  // When opened from a category's / website's / tag's autofill tab the slug is still in the route
-  // path; preselect that entity so the new rule shows up in the scoped list. Undefined on every
-  // other surface (e.g. /settings/autofill), leaving the defaults unchanged.
+  // When opened from a category's / website's / tag's / media type's autofill tab the slug is
+  // still in the route path; preselect that entity so the new rule shows up in the scoped list.
+  // Undefined on every other surface (e.g. /settings/autofill), leaving the defaults unchanged.
   const {
     categorySlug,
     websiteSlug,
     tagSlug,
+    mediaTypeSlug,
   } = useParams({
     strict: false,
   });
@@ -58,6 +63,9 @@ export function CreateAutofillRule() {
     ? (websites ?? []).find(site => site.slug === websiteSlug)?.domain
     : undefined;
   const defaultTagIds = tagSlug && preseedTag ? [preseedTag.id] : undefined;
+  const defaultMediaTypeId = mediaTypeSlug
+    ? (mediaTypes ?? []).find(mt => mt.slug === mediaTypeSlug)?.id
+    : undefined;
 
   async function handleCreate(input: CreateAutofillRuleInput) {
     const created = await createRule.mutateAsync(input);
@@ -74,9 +82,11 @@ export function CreateAutofillRule() {
       </div>
       <AutofillRuleForm
         categories={categories ?? []}
+        mediaTypes={mediaTypes ?? []}
         properties={properties ?? []}
         tagTree={tagTree ?? []}
         defaultCategoryId={defaultCategoryId}
+        defaultMediaTypeId={defaultMediaTypeId}
         defaultWebsiteDomain={defaultWebsiteDomain}
         defaultTagIds={defaultTagIds}
         submitLabel="Add rule"
@@ -105,6 +115,9 @@ export function EditAutofillRule({
   const {
     data: categories,
   } = useCategories();
+  const {
+    data: mediaTypes,
+  } = useMediaTypes();
   const {
     data: properties,
   } = useCustomProperties();
@@ -139,6 +152,7 @@ export function EditAutofillRule({
       <AutofillRuleForm
         rule={rule}
         categories={categories ?? []}
+        mediaTypes={mediaTypes ?? []}
         properties={properties ?? []}
         tagTree={tagTree ?? []}
         submitLabel="Save changes"

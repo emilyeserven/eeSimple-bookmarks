@@ -31,6 +31,7 @@ function rule(overrides: Partial<AutofillRule>): AutofillRule {
     description: overrides.description ?? null,
     conditions: overrides.conditions ?? match(""),
     setCategoryId: overrides.setCategoryId ?? null,
+    setMediaTypeId: overrides.setMediaTypeId ?? null,
     tagIds: overrides.tagIds ?? [],
     numberValues: overrides.numberValues ?? [],
     booleanValues: overrides.booleanValues ?? [],

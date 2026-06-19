@@ -61,6 +61,7 @@ function toAutofillRule(
     description: row.description,
     conditions: row.conditions ?? emptyConditionTree(),
     setCategoryId: row.setCategoryId,
+    setMediaTypeId: row.setMediaTypeId,
     tagIds,
     numberValues,
     booleanValues,
@@ -275,6 +276,7 @@ export async function createAutofillRule(input: CreateAutofillRuleInput): Promis
         description: input.description ?? null,
         conditions: input.conditions,
         setCategoryId: input.setCategoryId ?? null,
+        setMediaTypeId: input.setMediaTypeId ?? null,
         sortOrder: input.sortOrder ?? 0,
       })
       .returning({
@@ -305,7 +307,7 @@ export async function updateAutofillRule(
     if (!existing) return false;
 
     const patch: Partial<
-      Pick<AutofillRuleRow, "name" | "slug" | "description" | "conditions" | "setCategoryId" | "sortOrder">
+      Pick<AutofillRuleRow, "name" | "slug" | "description" | "conditions" | "setCategoryId" | "setMediaTypeId" | "sortOrder">
     > = {};
     if (input.name !== undefined) {
       patch.name = input.name;
@@ -317,6 +319,7 @@ export async function updateAutofillRule(
     if (input.description !== undefined) patch.description = input.description ?? null;
     if (input.conditions !== undefined) patch.conditions = input.conditions;
     if (input.setCategoryId !== undefined) patch.setCategoryId = input.setCategoryId ?? null;
+    if (input.setMediaTypeId !== undefined) patch.setMediaTypeId = input.setMediaTypeId ?? null;
     if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder;
 
     if (Object.keys(patch).length > 0) {
