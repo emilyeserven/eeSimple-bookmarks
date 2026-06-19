@@ -9,6 +9,11 @@ export function ruleSetsProperty(rule: AutofillRule, propertyId: string): boolea
     || rule.dateTimeValues.some(value => value.propertyId === propertyId);
 }
 
+/** True when the rule applies `tagId` to a bookmark. */
+export function ruleSetsTag(rule: AutofillRule, tagId: string): boolean {
+  return rule.tagIds.includes(tagId);
+}
+
 /** True when any Website condition in the rule's tree references `domain` (already normalized). */
 export function ruleTargetsWebsite(rule: AutofillRule, domain: string): boolean {
   const visit = (node: ConditionNode): boolean => {

@@ -12,7 +12,7 @@ import {
 } from "../../hooks/useAutofill";
 import { useCategories } from "../../hooks/useCategories";
 import { useCustomProperties } from "../../hooks/useCustomProperties";
-import { useTagTree } from "../../hooks/useTags";
+import { useTagBySlug, useTagTree } from "../../hooks/useTags";
 import { useWebsites } from "../../hooks/useWebsites";
 import { AutofillRuleForm } from "../AutofillRuleForm";
 
@@ -37,21 +37,27 @@ export function CreateAutofillRule() {
   } = useWebsites();
   const createRule = useCreateAutofillRule();
 
-  // When opened from a category's / website's autofill tab the slug is still in the route path;
-  // preselect that entity so the new rule shows up in the scoped list. Undefined on every other
-  // surface (e.g. /settings/autofill), leaving the defaults unchanged.
+  // When opened from a category's / website's / tag's autofill tab the slug is still in the route
+  // path; preselect that entity so the new rule shows up in the scoped list. Undefined on every
+  // other surface (e.g. /settings/autofill), leaving the defaults unchanged.
   const {
     categorySlug,
     websiteSlug,
+    tagSlug,
   } = useParams({
     strict: false,
   });
+  // useTagBySlug is safe to call unconditionally (returns undefined when slug is empty).
+  const {
+    tag: preseedTag,
+  } = useTagBySlug(tagSlug ?? "");
   const defaultCategoryId = categorySlug
     ? (categories ?? []).find(category => category.slug === categorySlug)?.id
     : undefined;
   const defaultWebsiteDomain = websiteSlug
     ? (websites ?? []).find(site => site.slug === websiteSlug)?.domain
     : undefined;
+  const defaultTagIds = tagSlug && preseedTag ? [preseedTag.id] : undefined;
 
   async function handleCreate(input: CreateAutofillRuleInput) {
     const created = await createRule.mutateAsync(input);
@@ -72,6 +78,7 @@ export function CreateAutofillRule() {
         tagTree={tagTree ?? []}
         defaultCategoryId={defaultCategoryId}
         defaultWebsiteDomain={defaultWebsiteDomain}
+        defaultTagIds={defaultTagIds}
         submitLabel="Add rule"
         isError={createRule.isError}
         errorMessage={createRule.error?.message}
