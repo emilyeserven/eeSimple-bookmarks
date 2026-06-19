@@ -1,4 +1,4 @@
-import { asc, eq, isNull, ne, sql } from "drizzle-orm";
+import { asc, eq, isNull, ne } from "drizzle-orm";
 import type { CreateMediaTypeInput, MediaType, UpdateMediaTypeInput } from "@eesimple/types";
 import { db } from "@/db";
 import { bookmarks, mediaTypes, type MediaTypeRow } from "@/db/schema";
@@ -60,7 +60,7 @@ export async function listMediaTypes(): Promise<MediaType[]> {
       builtIn: mediaTypes.builtIn,
       sortOrder: mediaTypes.sortOrder,
       createdAt: mediaTypes.createdAt,
-      bookmarkCount: sql<number>`(select count(*)::int from ${bookmarks} where ${bookmarks.mediaTypeId} = ${mediaTypes.id})`.mapWith(Number),
+      bookmarkCount: db.$count(bookmarks, eq(bookmarks.mediaTypeId, mediaTypes.id)),
     })
     .from(mediaTypes)
     .orderBy(asc(mediaTypes.sortOrder), asc(mediaTypes.name));
