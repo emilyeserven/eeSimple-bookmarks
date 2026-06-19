@@ -34,48 +34,53 @@ export function YouTubeChannelListItem({
   const [imageFailed, setImageFailed] = useState(false);
   const showImage = channel.imageUrl != null && !imageFailed;
   return (
-    <RowCard className="group relative transition-colors hover:bg-accent">
-        <Link
-          to="/taxonomies/youtube-channels/$channelSlug/general"
-          params={{
-            channelSlug: channel.slug,
-          }}
-          title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-          onClick={event => viewClick(event, "youtube-channel", channel.id)}
-          className="flex items-center gap-3 p-4 pr-12"
+    <RowCard
+      className="
+        group relative transition-colors
+        hover:bg-accent
+      "
+    >
+      <Link
+        to="/taxonomies/youtube-channels/$channelSlug/general"
+        params={{
+          channelSlug: channel.slug,
+        }}
+        title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+        onClick={event => viewClick(event, "youtube-channel", channel.id)}
+        className="flex items-center gap-3 p-4 pr-12"
+      >
+        <span
+          className="
+            flex size-8 shrink-0 items-center justify-center overflow-hidden
+            rounded-full bg-muted text-muted-foreground
+          "
         >
-          <span
-            className="
-              flex size-8 shrink-0 items-center justify-center overflow-hidden
-              rounded-full bg-muted text-muted-foreground
-            "
-          >
-            {showImage
-              ? (
-                <img
-                  src={channel.imageUrl ?? undefined}
-                  alt=""
-                  className="size-full object-cover"
-                  onError={() => setImageFailed(true)}
-                />
-              )
-              : <MonitorPlay className="size-4" />}
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="font-medium">{channel.name}</p>
-            <p className="truncate text-sm text-muted-foreground">{channel.channelKey}</p>
-          </div>
-          {channel.bookmarkCount !== undefined
-            ? <Badge variant="secondary">{channel.bookmarkCount}</Badge>
-            : null}
-        </Link>
-        {channel.category
-          ? (
-            <div className="px-4 pb-2 pl-15">
-              <CategoryPill category={channel.category} />
-            </div>
-          )
+          {showImage
+            ? (
+              <img
+                src={channel.imageUrl ?? undefined}
+                alt=""
+                className="size-full object-cover"
+                onError={() => setImageFailed(true)}
+              />
+            )
+            : <MonitorPlay className="size-4" />}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="font-medium">{channel.name}</p>
+          <p className="truncate text-sm text-muted-foreground">{channel.channelKey}</p>
+        </div>
+        {channel.bookmarkCount !== undefined
+          ? <Badge variant="secondary">{channel.bookmarkCount}</Badge>
           : null}
+      </Link>
+      {channel.category
+        ? (
+          <div className="px-4 pb-2 pl-15">
+            <CategoryPill category={channel.category} />
+          </div>
+        )
+        : null}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button

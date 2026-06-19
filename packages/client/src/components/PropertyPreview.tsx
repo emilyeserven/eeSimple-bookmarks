@@ -41,7 +41,12 @@ export function PropertyPreview({
   const isUncategorized = categoryCount === 0 && property.enabled;
 
   return (
-    <RowCard className={cn("transition-colors hover:bg-accent", isUncategorized && "opacity-60")}>
+    <RowCard
+      className={cn(`
+        transition-colors
+        hover:bg-accent
+      `, isUncategorized && "opacity-60")}
+    >
       <Link
         to="/custom-properties/$propertySlug"
         params={{

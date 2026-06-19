@@ -19,7 +19,12 @@ export function MediaTypeListItem({
   const viewClick = useViewPanelClick();
   const modifier = useUiStore(state => state.sidebarOpenModifier);
   return (
-    <RowCard className="group relative transition-colors hover:bg-accent">
+    <RowCard
+      className="
+        group relative transition-colors
+        hover:bg-accent
+      "
+    >
       <Link
         to="/taxonomies/media-types/$mediaTypeSlug"
         params={{

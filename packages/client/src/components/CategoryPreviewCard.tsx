@@ -91,7 +91,12 @@ export function CategoryPreviewCard({
   if (variant === "row") {
     return (
       <li>
-        <RowCard className="group relative transition-colors hover:bg-accent">
+        <RowCard
+          className="
+            group relative transition-colors
+            hover:bg-accent
+          "
+        >
           <Link
             to="/categories/$categorySlug/general"
             params={{
