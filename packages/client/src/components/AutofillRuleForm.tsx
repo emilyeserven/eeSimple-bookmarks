@@ -73,7 +73,7 @@ export function AutofillRuleForm({
   // for the recursive tree, would blow up TanStack Form's deep type inference). A new rule created
   // from a website's or channel's page is seeded with that entity as its "when".
   const [conditions, setConditions] = useState<ConditionTree>(
-    rule?.conditions ?? seedConditions(defaultWebsiteDomain, defaultChannelIds),
+    rule?.conditions ?? seedConditions(defaultWebsiteDomain, defaultChannelIds, defaultCategoryId ? [defaultCategoryId] : undefined),
   );
   const [conditionsError, setConditionsError] = useState<string | null>(null);
   const [numberInputs, setNumberInputs] = useState<Record<string, string>>(() =>
@@ -155,7 +155,7 @@ export function AutofillRuleForm({
 
       if (resetOnSubmit) {
         form.reset();
-        setConditions(seedConditions(defaultWebsiteDomain, defaultChannelIds));
+        setConditions(seedConditions(defaultWebsiteDomain, defaultChannelIds, defaultCategoryId ? [defaultCategoryId] : undefined));
         setConditionsError(null);
         setNumberInputs({});
         setBooleanInputs({});
@@ -384,8 +384,8 @@ export function RulePropertyFields({
   );
 }
 
-/** Initial "when" tree for a new rule: empty, or pre-scoped to a website/channel when created from one. */
-function seedConditions(defaultWebsiteDomain?: string, defaultChannelIds?: string[]): ConditionTree {
+/** Initial "when" tree for a new rule: empty, or pre-scoped to a website/channel/category when created from one. */
+function seedConditions(defaultWebsiteDomain?: string, defaultChannelIds?: string[], defaultCategoryIds?: string[]): ConditionTree {
   const tree = emptyConditionTree();
   const leaves: ConditionTree["children"] = [];
   if (defaultWebsiteDomain) {
@@ -398,6 +398,12 @@ function seedConditions(defaultWebsiteDomain?: string, defaultChannelIds?: strin
     leaves.push({
       type: "youtube-channel",
       channelIds: defaultChannelIds,
+    });
+  }
+  if (defaultCategoryIds && defaultCategoryIds.length > 0) {
+    leaves.push({
+      type: "category",
+      categoryIds: defaultCategoryIds,
     });
   }
   if (leaves.length === 0) return tree;
