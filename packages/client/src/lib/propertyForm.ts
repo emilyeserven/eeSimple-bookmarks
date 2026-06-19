@@ -29,11 +29,26 @@ export const TYPE_OPTIONS = [
 
 /** How `true`/`false` values of a `boolean` property are rendered. */
 export const BOOLEAN_LABEL_PRESET_OPTIONS = [
-  { value: "yes-no", label: "Yes / No" },
-  { value: "true-false", label: "True / False" },
-  { value: "enabled-disabled", label: "Enabled / Disabled" },
-  { value: "icons", label: "✓ / ✗" },
-  { value: "custom", label: "Custom" },
+  {
+    value: "yes-no",
+    label: "Yes / No",
+  },
+  {
+    value: "true-false",
+    label: "True / False",
+  },
+  {
+    value: "enabled-disabled",
+    label: "Enabled / Disabled",
+  },
+  {
+    value: "icons",
+    label: "✓ / ✗",
+  },
+  {
+    value: "custom",
+    label: "Custom",
+  },
 ];
 
 /** What a `datetime` property captures. */
