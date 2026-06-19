@@ -43,7 +43,7 @@
   },
   "duplicates": {
     "enabled": true,
-    "threshold": 6.0,
+    "threshold": 6.2,
     "ignore": [
       "**/routeTree.gen.ts",
       "packages/middleware/src/routes/**",

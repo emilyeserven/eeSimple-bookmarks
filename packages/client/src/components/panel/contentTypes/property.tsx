@@ -5,7 +5,7 @@ import { useMemo } from "react";
 
 import { SlidersHorizontal } from "lucide-react";
 
-import { Loading, Problem } from "./status";
+import { WithPanelItem } from "./status";
 import { useCategories } from "../../../hooks/useCategories";
 import {
   useCustomProperties,
@@ -43,9 +43,7 @@ function PropertyView({
 }: {
   id: string;
 }) {
-  const {
-    data: properties, isLoading, error,
-  } = useCustomProperties();
+  const propertiesQuery = useCustomProperties();
   const {
     data: propertyGroups,
   } = usePropertyGroups();
@@ -58,22 +56,25 @@ function PropertyView({
   const dismiss = usePanelDismissAfterDelete();
   const deleteProperty = useDeleteCustomProperty();
 
-  if (isLoading) return <Loading />;
-  if (error) return <Problem>{error.message}</Problem>;
-  const property = (properties ?? []).find(item => item.id === id);
-  if (!property) return <Problem>Property not found.</Problem>;
-
   return (
-    <PropertyDetail
-      property={property}
-      categories={categories ?? []}
-      allProperties={properties ?? []}
-      propertyGroups={propertyGroups ?? []}
-      onEdit={() => openItem("property", id, "edit")}
-      onDelete={() => deleteProperty.mutate(id, {
-        onSuccess: dismiss,
-      })}
-    />
+    <WithPanelItem
+      queryResult={propertiesQuery}
+      id={id}
+      notFoundMessage="Property not found."
+    >
+      {property => (
+        <PropertyDetail
+          property={property}
+          categories={categories ?? []}
+          allProperties={propertiesQuery.data ?? []}
+          propertyGroups={propertyGroups ?? []}
+          onEdit={() => openItem("property", id, "edit")}
+          onDelete={() => deleteProperty.mutate(id, {
+            onSuccess: dismiss,
+          })}
+        />
+      )}
+    </WithPanelItem>
   );
 }
 
@@ -83,9 +84,7 @@ function PropertyEdit({
 }: {
   id: string;
 }) {
-  const {
-    data: properties, isLoading, error,
-  } = useCustomProperties();
+  const propertiesQuery = useCustomProperties();
   const {
     data: propertyGroups,
   } = usePropertyGroups();
@@ -97,39 +96,42 @@ function PropertyEdit({
   } = usePanelControls();
   const updateProperty = useUpdateCustomProperty();
 
-  if (isLoading) return <Loading />;
-  if (error) return <Problem>{error.message}</Problem>;
-  const property = (properties ?? []).find(item => item.id === id);
-  if (!property) return <Problem>Property not found.</Problem>;
-
-  // A calculate property may sum any other number property, but never itself.
-  const numberProperties = (properties ?? []).filter(
-    candidate => candidate.type === "number" && candidate.id !== property.id,
-  );
-
   return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-semibold">Edit custom property</h2>
-      <PropertyForm
-        mode="edit"
-        property={property}
-        categories={categories ?? []}
-        numberProperties={numberProperties}
-        propertyGroups={propertyGroups ?? []}
-        onSubmit={({
-          type, ...input
-        }) => updateProperty.mutate({
-          id,
-          input,
-        }, {
-          onSuccess: () => openItem("property", id, "view"),
-        })}
-        submitLabel="Save changes"
-        pendingLabel="Saving…"
-        errorMessage={updateProperty.isError ? updateProperty.error.message : undefined}
-        idPrefix={`panel-property-${id}-category`}
-      />
-    </div>
+    <WithPanelItem
+      queryResult={propertiesQuery}
+      id={id}
+      notFoundMessage="Property not found."
+    >
+      {(property) => {
+        const numberProperties = (propertiesQuery.data ?? []).filter(
+          candidate => candidate.type === "number" && candidate.id !== property.id,
+        );
+        return (
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold">Edit custom property</h2>
+            <PropertyForm
+              mode="edit"
+              property={property}
+              categories={categories ?? []}
+              numberProperties={numberProperties}
+              propertyGroups={propertyGroups ?? []}
+              onSubmit={({
+                type, ...input
+              }) => updateProperty.mutate({
+                id,
+                input,
+              }, {
+                onSuccess: () => openItem("property", id, "view"),
+              })}
+              submitLabel="Save changes"
+              pendingLabel="Saving…"
+              errorMessage={updateProperty.isError ? updateProperty.error.message : undefined}
+              idPrefix={`panel-property-${id}-category`}
+            />
+          </div>
+        );
+      }}
+    </WithPanelItem>
   );
 }
 

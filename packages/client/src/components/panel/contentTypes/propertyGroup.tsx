@@ -5,7 +5,7 @@ import { useMemo } from "react";
 
 import { Layers } from "lucide-react";
 
-import { Loading, Problem } from "./status";
+import { WithPanelItem } from "./status";
 import { usePropertyGroups } from "../../../hooks/usePropertyGroups";
 import { PropertyGroupCard } from "../../PropertyGroupCard";
 import { PropertyGroupRow } from "../../PropertyGroupRow";
@@ -35,14 +35,16 @@ function PropertyGroupView({
 }: {
   id: string;
 }) {
-  const {
-    data, isLoading, error,
-  } = usePropertyGroups();
-  if (isLoading) return <Loading />;
-  if (error) return <Problem>{error.message}</Problem>;
-  const group = (data ?? []).find(item => item.id === id);
-  if (!group) return <Problem>Property group not found.</Problem>;
-  return <PropertyGroupCard group={group} />;
+  const query = usePropertyGroups();
+  return (
+    <WithPanelItem
+      queryResult={query}
+      id={id}
+      notFoundMessage="Property group not found."
+    >
+      {group => <PropertyGroupCard group={group} />}
+    </WithPanelItem>
+  );
 }
 
 /** Inline property-group editor, reusing the same `PropertyGroupRow` the settings and edit pages use. */
@@ -51,14 +53,16 @@ function PropertyGroupEdit({
 }: {
   id: string;
 }) {
-  const {
-    data, isLoading, error,
-  } = usePropertyGroups();
-  if (isLoading) return <Loading />;
-  if (error) return <Problem>{error.message}</Problem>;
-  const group = (data ?? []).find(item => item.id === id);
-  if (!group) return <Problem>Property group not found.</Problem>;
-  return <PropertyGroupRow group={group} />;
+  const query = usePropertyGroups();
+  return (
+    <WithPanelItem
+      queryResult={query}
+      id={id}
+      notFoundMessage="Property group not found."
+    >
+      {group => <PropertyGroupRow group={group} />}
+    </WithPanelItem>
+  );
 }
 
 export const propertyGroupContentType: PanelContentTypeDef = {

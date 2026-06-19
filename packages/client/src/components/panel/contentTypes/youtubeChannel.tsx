@@ -5,7 +5,7 @@ import { useMemo } from "react";
 
 import { MonitorPlay } from "lucide-react";
 
-import { Loading, Problem } from "./status";
+import { WithPanelItem } from "./status";
 import { useYouTubeChannels } from "../../../hooks/useYouTubeChannels";
 import { YouTubeChannelCard } from "../../YouTubeChannelCard";
 import { YouTubeChannelRow } from "../../YouTubeChannelRow";
@@ -35,14 +35,16 @@ function YouTubeChannelView({
 }: {
   id: string;
 }) {
-  const {
-    data, isLoading, error,
-  } = useYouTubeChannels();
-  if (isLoading) return <Loading />;
-  if (error) return <Problem>{error.message}</Problem>;
-  const channel = (data ?? []).find(item => item.id === id);
-  if (!channel) return <Problem>Channel not found.</Problem>;
-  return <YouTubeChannelCard channel={channel} />;
+  const query = useYouTubeChannels();
+  return (
+    <WithPanelItem
+      queryResult={query}
+      id={id}
+      notFoundMessage="Channel not found."
+    >
+      {channel => <YouTubeChannelCard channel={channel} />}
+    </WithPanelItem>
+  );
 }
 
 /** Inline channel editor, reusing the same `YouTubeChannelRow` the settings and edit pages use. */
@@ -51,14 +53,16 @@ function YouTubeChannelEdit({
 }: {
   id: string;
 }) {
-  const {
-    data, isLoading, error,
-  } = useYouTubeChannels();
-  if (isLoading) return <Loading />;
-  if (error) return <Problem>{error.message}</Problem>;
-  const channel = (data ?? []).find(item => item.id === id);
-  if (!channel) return <Problem>Channel not found.</Problem>;
-  return <YouTubeChannelRow channel={channel} />;
+  const query = useYouTubeChannels();
+  return (
+    <WithPanelItem
+      queryResult={query}
+      id={id}
+      notFoundMessage="Channel not found."
+    >
+      {channel => <YouTubeChannelRow channel={channel} />}
+    </WithPanelItem>
+  );
 }
 
 export const youtubeChannelContentType: PanelContentTypeDef = {
