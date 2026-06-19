@@ -21,7 +21,11 @@ export function CategoryManager() {
   return (
     <section className="space-y-6">
       <div className="flex justify-end">
-        <Button type="button" size="sm" onClick={() => setModalOpen(true)}>
+        <Button
+          type="button"
+          size="sm"
+          onClick={() => setModalOpen(true)}
+        >
           <Plus className="size-4" />
           New category
         </Button>
@@ -50,7 +54,9 @@ export function CategoryManager() {
         onCreated={(category) => {
           void navigate({
             to: "/categories/$categorySlug/edit/general",
-            params: { categorySlug: category.slug },
+            params: {
+              categorySlug: category.slug,
+            },
           });
         }}
       />

@@ -44,7 +44,11 @@ function CategoriesListingPage() {
               ? <Badge variant="secondary">{categories.length}</Badge>
               : null}
           </div>
-          <Button type="button" size="sm" onClick={() => setModalOpen(true)}>
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => setModalOpen(true)}
+          >
             <Plus className="size-4" />
             New category
           </Button>
@@ -113,7 +117,9 @@ function CategoriesListingPage() {
         onCreated={(category) => {
           void navigate({
             to: "/categories/$categorySlug/edit/general",
-            params: { categorySlug: category.slug },
+            params: {
+              categorySlug: category.slug,
+            },
           });
         }}
       />
