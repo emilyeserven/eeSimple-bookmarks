@@ -229,6 +229,17 @@ const migrations: RuntimeMigration[] = [
         ADD COLUMN IF NOT EXISTS "all_media_types" boolean NOT NULL DEFAULT false
     `),
   },
+  {
+    // Rename the built-in "Video Length" property slug from "video-length" to "runtime". The property
+    // is now named "Runtime" and applies to video and audio content. The WHERE NOT EXISTS guard makes
+    // this idempotent and prevents a unique-constraint failure if a "runtime" row already exists.
+    name: "rename custom_properties slug video-length to runtime",
+    run: db => db.execute(sql`
+      UPDATE "custom_properties" SET "slug" = 'runtime'
+      WHERE "slug" = 'video-length'
+        AND NOT EXISTS (SELECT 1 FROM "custom_properties" WHERE "slug" = 'runtime')
+    `),
+  },
 ];
 
 async function main(): Promise<void> {

@@ -56,6 +56,9 @@ const BUILT_IN_MEDIA_TYPES: BuiltInMediaType[] = [
     name: "Video",
   },
   {
+    name: "Video Game",
+  },
+  {
     name: "Audio",
     children: ["Podcast", "Music", "Interview"],
   },

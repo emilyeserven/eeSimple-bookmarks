@@ -25,8 +25,8 @@ export const bookmarkSchema = z.object({
   tagIds: z.array(z.string()),
 });
 
-/** Slug of the built-in "Video Length" property, hidden from the form (filled server-side). */
-export const VIDEO_LENGTH_SLUG = "video-length";
+/** Slug of the built-in "Runtime" property, hidden from the form (filled server-side). */
+export const RUNTIME_SLUG = "runtime";
 
 /** Slug of the built-in "Date Posted" property, hidden from the form (filled server-side). */
 export const DATE_POSTED_SLUG = "date-posted";

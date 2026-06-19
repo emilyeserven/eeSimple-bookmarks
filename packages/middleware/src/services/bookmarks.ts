@@ -40,7 +40,7 @@ import {
 } from "@/db/schema";
 import { bookmarkImageFromRow, fetchAndStoreOgImage, getBookmarkImageRow } from "@/services/bookmarkImages";
 import { ensureDefaultCategory } from "@/services/categories";
-import { getDatePostedPropertyId, getVideoLengthPropertyId } from "@/services/customProperties";
+import { getDatePostedPropertyId, getRuntimePropertyId } from "@/services/customProperties";
 import { getMediaTypeBySlug } from "@/services/mediaTypes";
 import { getDescendantIds } from "@/services/tags";
 import { fetchAndStoreWebsiteFavicon, getWebsiteFaviconRow } from "@/services/websiteFavicons";
@@ -598,30 +598,30 @@ async function videoMediaTypeId(): Promise<string | null> {
 }
 
 /**
- * Append the video's duration to a bookmark's number values as the built-in "Video Length"
- * property, unless the metadata has no duration or the caller already supplied a value for that
- * property (a user edit always wins). Returns the (possibly extended) array. `ctx` labels the log.
+ * Append the video's duration to a bookmark's number values as the built-in "Runtime" property,
+ * unless the metadata has no duration or the caller already supplied a value for that property
+ * (a user edit always wins). Returns the (possibly extended) array. `ctx` labels the log.
  */
-async function withVideoLength(
+async function withRuntime(
   numberValues: BookmarkNumberValue[],
   meta: YouTubeMetadata | null,
   ctx: string,
 ): Promise<BookmarkNumberValue[]> {
   if (meta?.durationSeconds == null) return numberValues;
-  const lengthPropId = await getVideoLengthPropertyId();
-  if (!lengthPropId) {
-    ytLog("warn", `${ctx}: "video-length" property missing; duration ${meta.durationSeconds}s not stored`);
+  const runtimePropId = await getRuntimePropertyId();
+  if (!runtimePropId) {
+    ytLog("warn", `${ctx}: "runtime" property missing; duration ${meta.durationSeconds}s not stored`);
     return numberValues;
   }
-  if (numberValues.some(value => value.propertyId === lengthPropId)) {
-    ytLog("info", `${ctx}: Video Length already supplied; keeping caller value`);
+  if (numberValues.some(value => value.propertyId === runtimePropId)) {
+    ytLog("info", `${ctx}: Runtime already supplied; keeping caller value`);
     return numberValues;
   }
-  ytLog("info", `${ctx}: filled Video Length = ${meta.durationSeconds}s`);
+  ytLog("info", `${ctx}: filled Runtime = ${meta.durationSeconds}s`);
   return [
     ...numberValues,
     {
-      propertyId: lengthPropId,
+      propertyId: runtimePropId,
       value: meta.durationSeconds,
     },
   ];
@@ -812,7 +812,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
     }
   }
 
-  const numberValues = await withVideoLength(input.numberValues ?? [], meta, "create");
+  const numberValues = await withRuntime(input.numberValues ?? [], meta, "create");
   const dateTimeValues = await withDatePosted(input.dateTimeValues ?? [], meta, "create");
 
   const {
@@ -906,10 +906,10 @@ export async function updateBookmark(
     }
   }
 
-  // Backfill Video Length only when the caller is already managing number values (full form submit),
+  // Backfill Runtime only when the caller is already managing number values (full form submit),
   // so a partial update that doesn't touch properties is left untouched.
   const numberValues = input.numberValues !== undefined
-    ? await withVideoLength(input.numberValues, meta, "update")
+    ? await withRuntime(input.numberValues, meta, "update")
     : undefined;
   const dateTimeValues = input.dateTimeValues !== undefined
     ? await withDatePosted(input.dateTimeValues, meta, "update")

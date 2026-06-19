@@ -10,7 +10,7 @@ import {
   buildCategoryPropertyValues,
   DATE_POSTED_SLUG,
   looksLikeYouTube,
-  VIDEO_LENGTH_SLUG,
+  RUNTIME_SLUG,
 } from "./bookmarkFormSchema";
 import { DateTimePicker } from "./DateTimePicker";
 import { useUpdateBookmark } from "../hooks/useBookmarks";
@@ -108,17 +108,17 @@ export function BookmarkPropertiesForm({
     }
   }
 
-  const videoLengthProp = (customProperties ?? []).find(p => p.slug === VIDEO_LENGTH_SLUG);
+  const runtimeProp = (customProperties ?? []).find(p => p.slug === RUNTIME_SLUG);
   const datePostedProp = (customProperties ?? []).find(p => p.slug === DATE_POSTED_SLUG);
   const isYouTubeBookmark = looksLikeYouTube(bookmark.url);
 
   const hasProperties
-    = ((videoLengthProp !== undefined || datePostedProp !== undefined) && isYouTubeBookmark)
+    = ((runtimeProp !== undefined || datePostedProp !== undefined) && isYouTubeBookmark)
       || (customProperties ?? []).some(
         property =>
           property.enabled
           && !property.hiddenFromForm
-          && property.slug !== VIDEO_LENGTH_SLUG
+          && property.slug !== RUNTIME_SLUG
           && property.slug !== DATE_POSTED_SLUG
           && (propertyAppliesToCategory(property, bookmark.categoryId ?? "")
             || propertyAppliesToMediaType(property, bookmark.mediaType?.id ?? null)),
@@ -137,29 +137,29 @@ export function BookmarkPropertiesForm({
       className="space-y-4"
       onSubmit={event => void handleSubmit(event)}
     >
-      {(videoLengthProp || datePostedProp) && isYouTubeBookmark && (
+      {(runtimeProp || datePostedProp) && isYouTubeBookmark && (
         <div className="space-y-3">
           <span className="text-sm font-medium">Video</span>
-          {videoLengthProp && (
+          {runtimeProp && (
             <div className="space-y-1">
-              <Label htmlFor={`property-${videoLengthProp.id}`}>
-                Video Length (seconds)
+              <Label htmlFor={`property-${runtimeProp.id}`}>
+                Runtime (seconds)
               </Label>
               <InputGroup>
                 <Input
-                  id={`property-${videoLengthProp.id}`}
+                  id={`property-${runtimeProp.id}`}
                   type="number"
                   className="pe-10"
-                  value={numberInputs[videoLengthProp.id] ?? ""}
-                  onChange={event => handleNumberChange(videoLengthProp.id, event.target.value)}
+                  value={numberInputs[runtimeProp.id] ?? ""}
+                  onChange={event => handleNumberChange(runtimeProp.id, event.target.value)}
                 />
                 <InputAddon align="inline-end">
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    title="Fetch video length from YouTube"
-                    aria-label="Fetch video length from YouTube"
+                    title="Fetch runtime from YouTube"
+                    aria-label="Fetch runtime from YouTube"
                     disabled={fetchMetadata.isPending}
                     onClick={async () => {
                       try {
@@ -167,14 +167,14 @@ export function BookmarkPropertiesForm({
                           url: bookmark.url,
                         });
                         if (meta.durationSeconds !== null) {
-                          handleNumberChange(videoLengthProp.id, String(meta.durationSeconds));
+                          handleNumberChange(runtimeProp.id, String(meta.durationSeconds));
                         }
                         else {
-                          notifyError(metadataErrorMessage("video length", meta.diagnostics));
+                          notifyError(metadataErrorMessage("runtime", meta.diagnostics));
                         }
                       }
                       catch {
-                        notifyError(metadataErrorMessage("video length"));
+                        notifyError(metadataErrorMessage("runtime"));
                       }
                     }}
                   >
