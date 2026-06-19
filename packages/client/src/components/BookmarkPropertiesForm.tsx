@@ -2,7 +2,7 @@ import type { Bookmark } from "@eesimple/types";
 
 import { useRef, useState } from "react";
 
-import { propertyAppliesToCategory } from "@eesimple/types";
+import { propertyAppliesToCategory, propertyAppliesToMediaType } from "@eesimple/types";
 import { Loader2, Sparkles } from "lucide-react";
 
 import { CategoryCustomFields } from "./BookmarkCustomFields";
@@ -91,6 +91,7 @@ export function BookmarkPropertiesForm({
         customProperties ?? [],
         bookmark.categoryId ?? "",
         customRef.current,
+        bookmark.mediaType?.id ?? null,
       );
       await updateBookmark.mutateAsync({
         id: bookmark.id,
@@ -119,7 +120,8 @@ export function BookmarkPropertiesForm({
           && !property.hiddenFromForm
           && property.slug !== VIDEO_LENGTH_SLUG
           && property.slug !== DATE_POSTED_SLUG
-          && propertyAppliesToCategory(property, bookmark.categoryId ?? ""),
+          && (propertyAppliesToCategory(property, bookmark.categoryId ?? "")
+            || propertyAppliesToMediaType(property, bookmark.mediaType?.id ?? null)),
       );
 
   if (!hasProperties) {
@@ -232,6 +234,7 @@ export function BookmarkPropertiesForm({
       <CategoryCustomFields
         placement="default"
         categoryId={bookmark.categoryId ?? ""}
+        mediaTypeId={bookmark.mediaType?.id ?? null}
         properties={customProperties ?? []}
         numberInputs={numberInputs}
         booleanInputs={booleanInputs}
@@ -243,6 +246,7 @@ export function BookmarkPropertiesForm({
       <CategoryCustomFields
         placement="advanced"
         categoryId={bookmark.categoryId ?? ""}
+        mediaTypeId={bookmark.mediaType?.id ?? null}
         properties={customProperties ?? []}
         numberInputs={numberInputs}
         booleanInputs={booleanInputs}

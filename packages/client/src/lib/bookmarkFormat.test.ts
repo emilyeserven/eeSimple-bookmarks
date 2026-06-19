@@ -25,6 +25,8 @@ function property(overrides: Partial<CustomProperty>): CustomProperty {
     maxLabel: null,
     operandPropertyIds: [],
     categoryIds: [],
+    mediaTypeIds: [],
+    allMediaTypes: false,
     showInForm: false,
     hiddenFromForm: false,
     showInListings: true,

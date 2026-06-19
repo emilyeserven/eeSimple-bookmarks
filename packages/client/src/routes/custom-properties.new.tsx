@@ -6,6 +6,7 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import { PropertyForm } from "../components/PropertyForm";
 import { useCategories } from "../hooks/useCategories";
 import { useCreateCustomProperty, useCustomProperties } from "../hooks/useCustomProperties";
+import { useMediaTypes } from "../hooks/useMediaTypes";
 import { usePropertyGroups } from "../hooks/usePropertyGroups";
 
 export const Route = createFileRoute("/custom-properties/new")({
@@ -21,6 +22,9 @@ function NewCustomPropertyPage() {
   const {
     data: categories,
   } = useCategories();
+  const {
+    data: mediaTypes,
+  } = useMediaTypes();
   const {
     data: propertyGroups,
   } = usePropertyGroups();
@@ -47,6 +51,7 @@ function NewCustomPropertyPage() {
         <PropertyForm
           mode="create"
           categories={categories ?? []}
+          mediaTypes={mediaTypes ?? []}
           numberProperties={numberProperties}
           propertyGroups={propertyGroups ?? []}
           onSubmit={payload => createProperty.mutate(payload, {

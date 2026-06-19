@@ -131,3 +131,11 @@ export function summarizeCategories(allCategories: boolean, selectedIds: string[
   if (count === 0) return "No categories";
   return `${count} ${count === 1 ? "category" : "categories"}`;
 }
+
+/** One-line summary of the media-type selection for a collapsed "Media Types" preview. */
+export function summarizeMediaTypes(allMediaTypes: boolean, selectedIds: string[]): string {
+  if (allMediaTypes) return "All media types";
+  const count = selectedIds.length;
+  if (count === 0) return "No media types";
+  return `${count} media ${count === 1 ? "type" : "types"}`;
+}

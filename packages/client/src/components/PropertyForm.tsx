@@ -2,6 +2,7 @@ import type {
   Category,
   CreateCustomPropertyInput,
   CustomProperty,
+  MediaType,
   PropertyGroup,
 } from "@eesimple/types";
 import type { ReactNode } from "react";
@@ -15,6 +16,7 @@ import {
   CategoryCheckboxList,
   CREATE_DEFAULTS,
   DATE_TIME_FORMAT_OPTIONS,
+  MediaTypeCheckboxList,
   NUMBER_FORMAT_OPTIONS,
   OperandCheckboxList,
   payloadFromValues,
@@ -22,6 +24,7 @@ import {
   propertySchema,
   summarizeBooleanOptions,
   summarizeCategories,
+  summarizeMediaTypes,
   summarizeNumberOptions,
   toggleId,
   TYPE_OPTIONS,
@@ -34,12 +37,14 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 
 /** One section of the property form, used to render a single tab on the edit pages. */
-export type PropertyFormSection = "general" | "options" | "categories" | "display";
+export type PropertyFormSection = "general" | "options" | "categories" | "media-types" | "display";
 
 interface PropertyFormProps {
   /** `create` shows an editable Type select; `edit` locks Type (it is immutable) and prefills values. */
   mode: "create" | "edit";
   categories: Category[];
+  /** Media types offered in the "Media Types" section for scoping (roots + children). */
+  mediaTypes: MediaType[];
   /** Number properties offered as Calculate operands (exclude the property being edited). */
   numberProperties: CustomProperty[];
   /** Property groups offered in the Display tab's "Group" combobox. */
@@ -70,6 +75,7 @@ interface PropertyFormProps {
 export function PropertyForm({
   mode,
   categories,
+  mediaTypes,
   numberProperties,
   propertyGroups,
   property,
@@ -96,6 +102,7 @@ export function PropertyForm({
   const showGeneral = full || section === "general";
   const showOptions = full || section === "options";
   const showCategories = full || section === "categories";
+  const showMediaTypes = full || section === "media-types";
   const showDisplay = full || section === "display";
   const form = useAppForm({
     defaultValues: property ? valuesFromProperty(property) : CREATE_DEFAULTS,
@@ -551,6 +558,61 @@ export function PropertyForm({
                       field.handleChange(selectAll ? categories.map(category => category.id) : []);
                     }}
                     idPrefix={idPrefix}
+                  />
+                )}
+              </form.AppField>
+            )}
+          </form.Subscribe>
+        </CollapsibleFormSection>
+      )}
+
+      {full ? <Separator /> : null}
+
+      {showMediaTypes && (
+        <CollapsibleFormSection
+          title="Media Types"
+          description="Also show this property on bookmarks of the chosen media types (in addition to its categories)."
+          defaultOpen={section === "media-types"}
+          preview={(
+            <form.Subscribe
+              selector={state => ({
+                allMediaTypes: state.values.allMediaTypes,
+                mediaTypeIds: state.values.mediaTypeIds,
+              })}
+            >
+              {({
+                allMediaTypes, mediaTypeIds,
+              }) => summarizeMediaTypes(allMediaTypes, mediaTypeIds)}
+            </form.Subscribe>
+          )}
+        >
+          <form.Subscribe selector={state => state.values.allMediaTypes}>
+            {allMediaTypes => (
+              <form.AppField name="mediaTypeIds">
+                {field => (
+                  <MediaTypeCheckboxList
+                    mediaTypes={mediaTypes}
+                    selectedIds={field.state.value}
+                    allMediaTypes={allMediaTypes}
+                    onToggle={(id) => {
+                      if (allMediaTypes) {
+                        // Toggling one drops the "all media types" flag and falls back to an explicit
+                        // list of every current media type except the one just unchecked.
+                        form.setFieldValue("allMediaTypes", false);
+                        field.handleChange(
+                          mediaTypes.map(mt => mt.id).filter(mediaTypeId => mediaTypeId !== id),
+                        );
+                      }
+                      else {
+                        field.handleChange(toggleId(field.state.value, id));
+                      }
+                    }}
+                    onToggleAll={(selectAll) => {
+                      // Select all also means "apply to media types created later" via the flag.
+                      form.setFieldValue("allMediaTypes", selectAll);
+                      field.handleChange(selectAll ? mediaTypes.map(mt => mt.id) : []);
+                    }}
+                    idPrefix={`${idPrefix}-mt`}
                   />
                 )}
               </form.AppField>

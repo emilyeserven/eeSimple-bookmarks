@@ -211,27 +211,40 @@ export interface MediaType {
   builtIn: boolean;
   /** Display ordering weight; lower sorts first. */
   sortOrder: number;
+  /** Id of the parent media type, or `null` for a top-level (root) type. One level of nesting only. */
+  parentId: string | null;
   /** ISO-8601 timestamp of when the media type was created. */
   createdAt: string;
-  /** Number of bookmarks with this media type (populated by list endpoints). */
+  /** Distinct bookmarks with this media type or any child (populated by list endpoints). */
   bookmarkCount?: number;
+  /** Bookmarks with this media type directly, excluding its children (the "No Child" bucket). */
+  ownBookmarkCount?: number;
+}
+
+/** A media type with its children populated — used to render the taxonomy tree. */
+export interface MediaTypeNode extends MediaType {
+  children: MediaTypeNode[];
 }
 
 /** Lightweight media-type shape carried on a bookmark. */
-export type BookmarkMediaType = Pick<MediaType, "id" | "name" | "slug" | "icon">;
+export type BookmarkMediaType = Pick<MediaType, "id" | "name" | "slug" | "icon" | "parentId">;
 
 /** Payload for creating a custom media type. */
 export interface CreateMediaTypeInput {
   name: string;
   sortOrder?: number;
   icon?: string | null;
+  /** Parent media type id; omit/null for a root type. */
+  parentId?: string | null;
 }
 
-/** Payload for updating a media type (rename and/or reorder). */
+/** Payload for updating a media type (rename, reorder, and/or reparent). */
 export interface UpdateMediaTypeInput {
   name?: string;
   sortOrder?: number;
   icon?: string | null;
+  /** Parent media type id; `null` to make it a root. */
+  parentId?: string | null;
 }
 
 /**
@@ -590,6 +603,10 @@ export interface CustomProperty {
   categoryIds: string[];
   /** When true, the property applies to every category, including ones created later (overrides `categoryIds`). */
   allCategories: boolean;
+  /** Ids of the media types this property is assigned to (zero, one, or many). */
+  mediaTypeIds: string[];
+  /** When true, the property applies to every media type, including ones created later (overrides `mediaTypeIds`). */
+  allMediaTypes: boolean;
   /** When true, the property's value can be edited inline from a bookmark card's "More" menu. */
   editableOnCard: boolean;
   /** When true, the field shows in the main bookmark form; otherwise it lives under Advanced. Only applies when not `hiddenFromForm`. */
@@ -629,6 +646,10 @@ export interface CreateCustomPropertyInput {
   categoryIds?: string[];
   /** When true, the property applies to every category, including ones created later. Defaults to false. */
   allCategories?: boolean;
+  /** Ids of media types to assign this property to. Omit to leave unassigned. */
+  mediaTypeIds?: string[];
+  /** When true, the property applies to every media type, including ones created later. Defaults to false. */
+  allMediaTypes?: boolean;
   /** When true, the property's value can be edited from a bookmark card's "More" menu. Defaults to false. */
   editableOnCard?: boolean;
   /** When true, the field shows in the main bookmark form; otherwise it lives under Advanced. Only applies when not `hiddenFromForm`. */
@@ -665,6 +686,19 @@ export function propertyAppliesToCategory(
   categoryId: string,
 ): boolean {
   return property.allCategories || property.categoryIds.includes(categoryId);
+}
+
+/**
+ * Whether a property is assigned to a given media type. A property with `allMediaTypes` set applies
+ * to every media type (including ones created after it); otherwise it applies only to its
+ * `mediaTypeIds`. A bookmark with no media type (`null`) is never matched.
+ */
+export function propertyAppliesToMediaType(
+  property: Pick<CustomProperty, "allMediaTypes" | "mediaTypeIds">,
+  mediaTypeId: string | null,
+): boolean {
+  if (!mediaTypeId) return false;
+  return property.allMediaTypes || property.mediaTypeIds.includes(mediaTypeId);
 }
 
 /** A number custom property value carried on a bookmark. */

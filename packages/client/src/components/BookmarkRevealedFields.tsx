@@ -90,6 +90,8 @@ interface BookmarkRevealedFieldsProps {
   // Tags + custom properties.
   tagTree: TagNode[];
   customProperties: CustomProperty[];
+  /** The bookmark's media type (when editing); properties scoped to it also appear (union). */
+  mediaTypeId?: string | null;
   onTagToggle: (id: string) => void;
   numberInputs: Record<string, string>;
   booleanInputs: Record<string, boolean>;
@@ -176,6 +178,7 @@ export function BookmarkRevealedFields({
   onCancelReporting,
   tagTree,
   customProperties,
+  mediaTypeId = null,
   onTagToggle,
   numberInputs,
   booleanInputs,
@@ -353,6 +356,7 @@ export function BookmarkRevealedFields({
           <CategoryCustomFields
             placement="default"
             categoryId={categoryId}
+            mediaTypeId={mediaTypeId}
             properties={customProperties}
             numberInputs={numberInputs}
             booleanInputs={booleanInputs}
@@ -376,6 +380,7 @@ export function BookmarkRevealedFields({
         defaultAuto={defaultAuto}
         autoGrabError={autoGrabError}
         onImageIntentChange={onImageIntentChange}
+        mediaTypeId={mediaTypeId}
         tagTree={tagTree}
         onTagToggle={onTagToggle}
         numberInputs={numberInputs}

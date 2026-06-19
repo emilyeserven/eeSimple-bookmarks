@@ -7,7 +7,7 @@ import type {
 
 import { useEffect } from "react";
 
-import { propertyAppliesToCategory } from "@eesimple/types";
+import { propertyAppliesToCategory, propertyAppliesToMediaType } from "@eesimple/types";
 
 import { DATE_POSTED_SLUG, VIDEO_LENGTH_SLUG } from "./bookmarkFormSchema";
 import { DateTimePicker } from "./DateTimePicker";
@@ -19,6 +19,8 @@ import { Label } from "@/components/ui/label";
 
 interface CategoryCustomFieldsProps {
   categoryId: string;
+  /** The bookmark's selected media type, if any; properties scoped to it also appear (union). */
+  mediaTypeId?: string | null;
   properties: CustomProperty[];
   /** `default` shows properties flagged to appear in the main form; `advanced` shows the rest. */
   placement: "default" | "advanced";
@@ -39,12 +41,17 @@ interface CategoryCustomFieldsProps {
 
 /** Renders the custom-property inputs for the properties assigned to the chosen category. */
 export function CategoryCustomFields({
-  categoryId, properties, placement, className, hiddenSlugs = [VIDEO_LENGTH_SLUG, DATE_POSTED_SLUG],
+  categoryId, mediaTypeId = null, properties, placement, className,
+  hiddenSlugs = [VIDEO_LENGTH_SLUG, DATE_POSTED_SLUG],
   numberInputs, booleanInputs, dateTimeInputs,
   onNumberChange, onBooleanChange, onDateTimeChange,
 }: CategoryCustomFieldsProps) {
   const categoryProps = properties.filter((property) => {
-    if (!propertyAppliesToCategory(property, categoryId)) return false;
+    // Union scoping: a property shows if it applies to the bookmark's category OR its media type.
+    if (
+      !propertyAppliesToCategory(property, categoryId)
+      && !propertyAppliesToMediaType(property, mediaTypeId)
+    ) return false;
     if (!property.enabled) return false;
     // hiddenFromForm drops the field entirely; otherwise showInForm chooses the main area vs. Advanced.
     if (property.hiddenFromForm) return false;

@@ -1,4 +1,4 @@
-import type { Category, CustomProperty, PropertyGroup } from "@eesimple/types";
+import type { Category, CustomProperty, MediaType, PropertyGroup } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
 import { TriangleAlert } from "lucide-react";
@@ -214,6 +214,29 @@ export function PropertyCategoriesContent({
             />
             {category.name}
           </Badge>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** The "Media Types" section body: the media types this property is also scoped to. */
+export function PropertyMediaTypesContent({
+  property, mediaTypes = [],
+}: {
+  property: CustomProperty;
+  mediaTypes?: MediaType[];
+}) {
+  const assigned = mediaTypes.filter(mt => property.mediaTypeIds.includes(mt.id));
+  if (property.allMediaTypes) return <Badge variant="secondary">All media types</Badge>;
+  if (assigned.length === 0) {
+    return <span className="text-sm text-muted-foreground">None</span>;
+  }
+  return (
+    <ul className="flex flex-wrap gap-1">
+      {assigned.map(mt => (
+        <li key={mt.id}>
+          <Badge variant="secondary">{mt.name}</Badge>
         </li>
       ))}
     </ul>

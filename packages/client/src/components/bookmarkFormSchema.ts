@@ -9,7 +9,7 @@ import type {
   CustomProperty,
 } from "@eesimple/types";
 
-import { propertyAppliesToCategory } from "@eesimple/types";
+import { propertyAppliesToCategory, propertyAppliesToMediaType } from "@eesimple/types";
 import { z } from "zod";
 
 import { EMPTY_IMAGE_INTENT } from "./bookmarkImageIntent";
@@ -121,19 +121,23 @@ export function initialImageIntent(autoFetchImage: boolean): ImageIntent {
 
 /**
  * Build the typed property values for the submit payload: only properties that belong to the chosen
- * category and are enabled, with number inputs parsed/validated and empty datetimes dropped.
+ * category OR the chosen media type (union scoping) and are enabled, with number inputs
+ * parsed/validated and empty datetimes dropped.
  */
 export function buildCategoryPropertyValues(
   customProperties: CustomProperty[],
   categoryId: string,
   inputs: CustomPropertyInputs,
+  mediaTypeId: string | null = null,
 ): CategoryPropertyValues {
   const {
     numberInputs: numbers, booleanInputs: booleans, dateTimeInputs: dateTimes,
   } = inputs;
-  // Only persist values for properties that belong to the chosen category and are enabled.
+  // Only persist values for properties scoped to the chosen category or media type, and enabled.
   const categoryProps = customProperties.filter(property =>
-    propertyAppliesToCategory(property, categoryId) && property.enabled);
+    (propertyAppliesToCategory(property, categoryId)
+      || propertyAppliesToMediaType(property, mediaTypeId))
+    && property.enabled);
   const numberValues = buildNumberValuesFromInputs(categoryProps, numbers);
   const booleanValues: BookmarkBooleanValue[] = categoryProps
     .filter(property => property.type === "boolean")

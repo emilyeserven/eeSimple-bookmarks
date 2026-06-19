@@ -33,6 +33,10 @@ function CustomPropertyEditLayout() {
       label: "Categories",
     },
     {
+      to: "/custom-properties/$propertySlug/edit/media-types",
+      label: "Media Types",
+    },
+    {
       to: "/custom-properties/$propertySlug/edit/display",
       label: "Display",
     },

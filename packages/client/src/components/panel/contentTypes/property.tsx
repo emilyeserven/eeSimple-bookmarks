@@ -12,6 +12,7 @@ import {
   useDeleteCustomProperty,
   useUpdateCustomProperty,
 } from "../../../hooks/useCustomProperties";
+import { useMediaTypes } from "../../../hooks/useMediaTypes";
 import { usePropertyGroups } from "../../../hooks/usePropertyGroups";
 import { PropertyDetail } from "../../PropertyDetail";
 import { PropertyForm } from "../../PropertyForm";
@@ -92,6 +93,9 @@ function PropertyEdit({
     data: categories,
   } = useCategories();
   const {
+    data: mediaTypes,
+  } = useMediaTypes();
+  const {
     openItem,
   } = usePanelControls();
   const updateProperty = useUpdateCustomProperty();
@@ -113,6 +117,7 @@ function PropertyEdit({
               mode="edit"
               property={property}
               categories={categories ?? []}
+              mediaTypes={mediaTypes ?? []}
               numberProperties={numberProperties}
               propertyGroups={propertyGroups ?? []}
               onSubmit={({

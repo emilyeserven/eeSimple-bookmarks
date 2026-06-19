@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { MediaTypeTabWrapper } from "../components/MediaTypeTabWrapper";
+import { useMediaTypes } from "../hooks/useMediaTypes";
 
 import { CategoryIcon } from "@/lib/icons";
 
@@ -12,6 +13,9 @@ function GeneralViewTab() {
   const {
     mediaTypeSlug,
   } = Route.useParams();
+  const {
+    data: allMediaTypes,
+  } = useMediaTypes();
   return (
     <MediaTypeTabWrapper
       mediaTypeSlug={mediaTypeSlug}
@@ -24,6 +28,14 @@ function GeneralViewTab() {
           <dd>{new Date(mt.createdAt).toLocaleDateString()}</dd>
           <dt className="text-muted-foreground">Slug</dt>
           <dd className="font-mono">{mt.slug}</dd>
+          {mt.parentId != null
+            ? (
+              <>
+                <dt className="text-muted-foreground">Parent</dt>
+                <dd>{(allMediaTypes ?? []).find(m => m.id === mt.parentId)?.name ?? "—"}</dd>
+              </>
+            )
+            : null}
           <dt className="text-muted-foreground">Icon</dt>
           <dd>
             {mt.icon
