@@ -4,17 +4,20 @@ import { z } from "zod";
 
 import { useUpdateMediaType } from "@/hooks/useMediaTypes";
 import { useAppForm } from "@/lib/form";
+import { IconPicker } from "@/components/ui/icon-picker";
+import { Label } from "@/components/ui/label";
 
 const mediaTypeGeneralSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
   sortOrder: z.number().int(),
+  icon: z.string().nullable(),
 });
 
 interface Props {
   mediaType: MediaType;
 }
 
-/** Edit a media type's name and sort order. */
+/** Edit a media type's name, sort order, and icon. Icons are editable for all types; name/sort order are locked on built-ins. */
 export function MediaTypeGeneralForm({
   mediaType,
 }: Props) {
@@ -24,6 +27,7 @@ export function MediaTypeGeneralForm({
     defaultValues: {
       name: mediaType.name,
       sortOrder: mediaType.sortOrder,
+      icon: mediaType.icon,
     },
     validators: {
       onChange: mediaTypeGeneralSchema,
@@ -31,12 +35,12 @@ export function MediaTypeGeneralForm({
     onSubmit: ({
       value,
     }) => {
-      if (mediaType.builtIn) return;
       updateMediaType.mutate({
         id: mediaType.id,
         input: {
           name: value.name.trim(),
           sortOrder: value.sortOrder,
+          icon: value.icon,
         },
       });
     },
@@ -83,17 +87,26 @@ export function MediaTypeGeneralForm({
         </form.AppField>
       </div>
 
-      {!mediaType.builtIn
-        ? (
-          <form.AppForm>
-            <form.SubmitButton
-              label="Save changes"
-              size="sm"
-              requireDirty
+      <form.AppField name="icon">
+        {field => (
+          <div className="space-y-1">
+            <Label>Icon</Label>
+            <IconPicker
+              aria-label={`Icon for ${mediaType.name}`}
+              value={field.state.value}
+              onChange={field.handleChange}
             />
-          </form.AppForm>
-        )
-        : null}
+          </div>
+        )}
+      </form.AppField>
+
+      <form.AppForm>
+        <form.SubmitButton
+          label="Save changes"
+          size="sm"
+          requireDirty
+        />
+      </form.AppForm>
     </form>
   );
 }

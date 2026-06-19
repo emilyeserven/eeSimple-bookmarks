@@ -1,16 +1,13 @@
 import type { Bookmark, CustomProperty } from "@eesimple/types";
 
-import { Link } from "@tanstack/react-router";
-
 import { BookmarkTagsBox } from "./BookmarkTagsBox";
 import { CategoryPill } from "./CategoryPill";
-import { useViewPanelClick } from "./panel/useEditPanelClick";
+import { MediaTypePill } from "./MediaTypePill";
+import { SourcePill } from "./SourcePill";
 import { formatDateTime, formatNumber } from "../lib/bookmarkFormat";
 
 import { Badge } from "@/components/ui/badge";
 import { useCategories } from "@/hooks/useCategories";
-import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
-import { useUiStore } from "@/stores/uiStore";
 
 interface BookmarkCardDetailsProps {
   bookmark: Bookmark;
@@ -21,8 +18,6 @@ interface BookmarkCardDetailsProps {
 export function BookmarkCardDetails({
   bookmark, properties,
 }: BookmarkCardDetailsProps) {
-  const viewClick = useViewPanelClick();
-  const modifier = useUiStore(state => state.sidebarOpenModifier);
   const byId = new Map(properties.map(property => [property.id, property]));
   const {
     data: allCategories,
@@ -98,46 +93,13 @@ export function BookmarkCardDetails({
               ? <CategoryPill category={bookmarkCategory} />
               : null}
             {website
-              ? (
-                <Link
-                  to="/taxonomies/websites/$websiteSlug"
-                  params={{
-                    websiteSlug: website.slug,
-                  }}
-                  title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-                  onClick={event => viewClick(event, "website", website.id)}
-                >
-                  <Badge variant="secondary">{website.siteName}</Badge>
-                </Link>
-              )
+              ? <SourcePill type="website" data={website} />
               : null}
             {mediaType
-              ? (
-                <Link
-                  to="/taxonomies/media-types/$mediaTypeSlug"
-                  params={{
-                    mediaTypeSlug: mediaType.slug,
-                  }}
-                  title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-                  onClick={event => viewClick(event, "media-type", mediaType.id)}
-                >
-                  <Badge variant="secondary">{mediaType.name}</Badge>
-                </Link>
-              )
+              ? <MediaTypePill mediaType={mediaType} />
               : null}
             {youtubeChannel
-              ? (
-                <Link
-                  to="/taxonomies/youtube-channels/$channelSlug"
-                  params={{
-                    channelSlug: youtubeChannel.slug,
-                  }}
-                  title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-                  onClick={event => viewClick(event, "youtube-channel", youtubeChannel.id)}
-                >
-                  <Badge variant="secondary">{youtubeChannel.name}</Badge>
-                </Link>
-              )
+              ? <SourcePill type="youtube-channel" data={youtubeChannel} />
               : null}
           </div>
         )

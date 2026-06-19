@@ -111,7 +111,7 @@ export interface Website {
 }
 
 /** Lightweight website shape carried on a bookmark. */
-export type BookmarkWebsite = Pick<Website, "id" | "domain" | "siteName" | "slug">;
+export type BookmarkWebsite = Pick<Website, "id" | "domain" | "siteName" | "slug" | "imageUrl">;
 
 /** Payload for manually creating a website in the taxonomy (normally auto-created from URLs). */
 export interface CreateWebsiteInput {
@@ -197,6 +197,8 @@ export interface MediaType {
   name: string;
   /** URL-friendly identifier derived from the name (e.g. `"video"`). Unique. */
   slug: string;
+  /** Optional Lucide icon name shown in the MediaTypePill on bookmark cards. */
+  icon: string | null;
   /** Whether this is a seeded built-in (protected from rename/delete). */
   builtIn: boolean;
   /** Display ordering weight; lower sorts first. */
@@ -208,18 +210,20 @@ export interface MediaType {
 }
 
 /** Lightweight media-type shape carried on a bookmark. */
-export type BookmarkMediaType = Pick<MediaType, "id" | "name" | "slug">;
+export type BookmarkMediaType = Pick<MediaType, "id" | "name" | "slug" | "icon">;
 
 /** Payload for creating a custom media type. */
 export interface CreateMediaTypeInput {
   name: string;
   sortOrder?: number;
+  icon?: string | null;
 }
 
 /** Payload for updating a media type (rename and/or reorder). */
 export interface UpdateMediaTypeInput {
   name?: string;
   sortOrder?: number;
+  icon?: string | null;
 }
 
 /**
@@ -286,7 +290,7 @@ export interface YouTubeChannel {
 }
 
 /** Lightweight channel shape carried on a bookmark. */
-export type BookmarkYouTubeChannel = Pick<YouTubeChannel, "id" | "name" | "slug">;
+export type BookmarkYouTubeChannel = Pick<YouTubeChannel, "id" | "name" | "slug" | "imageUrl">;
 
 /** Lightweight category shape embedded on a YouTube channel. */
 export type YouTubeChannelCategory = Pick<Category, "id" | "name" | "slug" | "icon">;

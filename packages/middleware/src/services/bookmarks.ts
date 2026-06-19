@@ -32,7 +32,9 @@ import {
   customProperties,
   mediaTypes,
   tags,
+  websiteFavicons,
   websites,
+  youtubeChannelImages,
   youtubeChannels,
 } from "@/db/schema";
 import { bookmarkImageFromRow, fetchAndStoreOgImage, getBookmarkImageRow } from "@/services/bookmarkImages";
@@ -119,8 +121,10 @@ async function websitesById(websiteIds: string[]): Promise<Map<string, BookmarkW
       domain: websites.domain,
       siteName: websites.siteName,
       slug: websites.slug,
+      faviconCreatedAt: websiteFavicons.createdAt,
     })
     .from(websites)
+    .leftJoin(websiteFavicons, eq(websiteFavicons.websiteId, websites.id))
     .where(inArray(websites.id, websiteIds));
 
   for (const row of rows) {
@@ -129,6 +133,9 @@ async function websitesById(websiteIds: string[]): Promise<Map<string, BookmarkW
       domain: row.domain,
       siteName: row.siteName,
       slug: row.slug ?? (row.domain.replace(/\.[^.]+$/, "").replace(/[^a-z0-9]+/gi, "-") || "website"),
+      imageUrl: row.faviconCreatedAt
+        ? `/api/websites/${row.id}/image?v=${new Date(row.faviconCreatedAt).getTime()}`
+        : null,
     });
   }
   return byId;
@@ -144,6 +151,7 @@ async function mediaTypesById(mediaTypeIds: string[]): Promise<Map<string, Bookm
       id: mediaTypes.id,
       name: mediaTypes.name,
       slug: mediaTypes.slug,
+      icon: mediaTypes.icon,
     })
     .from(mediaTypes)
     .where(inArray(mediaTypes.id, mediaTypeIds));
@@ -153,6 +161,7 @@ async function mediaTypesById(mediaTypeIds: string[]): Promise<Map<string, Bookm
       id: row.id,
       name: row.name,
       slug: row.slug ?? row.id,
+      icon: row.icon ?? null,
     });
   }
   return byId;
@@ -168,8 +177,10 @@ async function channelsById(channelIds: string[]): Promise<Map<string, BookmarkY
       id: youtubeChannels.id,
       name: youtubeChannels.name,
       slug: youtubeChannels.slug,
+      imageCreatedAt: youtubeChannelImages.createdAt,
     })
     .from(youtubeChannels)
+    .leftJoin(youtubeChannelImages, eq(youtubeChannelImages.youtubeChannelId, youtubeChannels.id))
     .where(inArray(youtubeChannels.id, channelIds));
 
   for (const row of rows) {
@@ -177,6 +188,9 @@ async function channelsById(channelIds: string[]): Promise<Map<string, BookmarkY
       id: row.id,
       name: row.name,
       slug: row.slug ?? row.id,
+      imageUrl: row.imageCreatedAt
+        ? `/api/youtube-channels/${row.id}/image?v=${new Date(row.imageCreatedAt).getTime()}`
+        : null,
     });
   }
   return byId;

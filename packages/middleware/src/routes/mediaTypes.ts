@@ -32,6 +32,10 @@ const createMediaTypeBody = {
     sortOrder: {
       type: "integer",
     },
+    icon: {
+      type: "string",
+      nullable: true,
+    },
   },
 } as const;
 
@@ -45,6 +49,10 @@ const updateMediaTypeBody = {
     },
     sortOrder: {
       type: "integer",
+    },
+    icon: {
+      type: "string",
+      nullable: true,
     },
   },
 } as const;

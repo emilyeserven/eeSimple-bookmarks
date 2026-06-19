@@ -29,6 +29,7 @@ function toMediaType(row: MediaTypeRow & { bookmarkCount?: number }): MediaType 
     id: row.id,
     name: row.name,
     slug: row.slug ?? slugify(row.name),
+    icon: row.icon ?? null,
     builtIn: row.builtIn,
     sortOrder: row.sortOrder,
     createdAt:
@@ -55,6 +56,7 @@ export async function listMediaTypes(): Promise<MediaType[]> {
       id: mediaTypes.id,
       name: mediaTypes.name,
       slug: mediaTypes.slug,
+      icon: mediaTypes.icon,
       builtIn: mediaTypes.builtIn,
       sortOrder: mediaTypes.sortOrder,
       createdAt: mediaTypes.createdAt,
@@ -85,6 +87,7 @@ export async function createMediaType(input: CreateMediaTypeInput): Promise<Medi
   const [row] = await db.insert(mediaTypes).values({
     name,
     slug,
+    icon: input.icon ?? null,
     sortOrder: input.sortOrder ?? BUILT_IN_MEDIA_TYPES.length,
   }).returning();
   return toMediaType(row);
@@ -101,7 +104,7 @@ export async function updateMediaType(
     throw new BuiltInMediaTypeError("A built-in media type cannot be renamed");
   }
 
-  const patch: Partial<Pick<MediaTypeRow, "name" | "slug" | "sortOrder">> = {};
+  const patch: Partial<Pick<MediaTypeRow, "name" | "slug" | "sortOrder" | "icon">> = {};
   if (input.name !== undefined && input.name.trim() !== existing.name) {
     const name = input.name.trim();
     const [clash] = await db.select({
@@ -112,6 +115,7 @@ export async function updateMediaType(
     patch.slug = uniqueSlug(name, await takenSlugs(id));
   }
   if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder;
+  if (input.icon !== undefined) patch.icon = input.icon;
   if (Object.keys(patch).length === 0) return toMediaType(existing);
 
   const [row] = await db.update(mediaTypes).set(patch).where(eq(mediaTypes.id, id)).returning();

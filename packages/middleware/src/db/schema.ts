@@ -159,6 +159,8 @@ export const mediaTypes = pgTable("media_types", {
   builtIn: boolean("built_in").notNull().default(false),
   // Display ordering; lower sorts first. Seeded built-ins get a stable order.
   sortOrder: integer("sort_order").notNull().default(0),
+  // Optional Lucide icon name shown in the MediaTypePill on bookmark cards.
+  icon: text("icon"),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
