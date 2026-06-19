@@ -64,7 +64,7 @@ export function BookmarkListPane({
   const hasActiveFilters = hasAnyActiveFilter(search) || textSearchActive;
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-6">
       <AddBookmarkCollapsible lockedCategoryId={addFormCategoryId} />
 
       {isLoading ? <p className="text-muted-foreground">Loading bookmarks…</p> : null}

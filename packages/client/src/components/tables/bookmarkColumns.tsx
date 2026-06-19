@@ -116,19 +116,19 @@ export function useBookmarkTableColumns({
           const {
             website, youtubeChannel,
           } = row.original;
-          if (website && !hidden.has("website")) {
-            return (
-              <SourcePill
-                type="website"
-                data={website}
-              />
-            );
-          }
           if (youtubeChannel && !hidden.has("youtubeChannel")) {
             return (
               <SourcePill
                 type="youtube-channel"
                 data={youtubeChannel}
+              />
+            );
+          }
+          if (website && !hidden.has("website")) {
+            return (
+              <SourcePill
+                type="website"
+                data={website}
               />
             );
           }
