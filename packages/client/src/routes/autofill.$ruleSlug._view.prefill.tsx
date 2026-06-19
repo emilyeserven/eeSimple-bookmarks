@@ -6,6 +6,7 @@ import { AutofillPrefillFields } from "../components/AutofillRuleDetail";
 import { AutofillRuleTabWrapper } from "../components/AutofillRuleTabWrapper";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
+import { useMediaTypes } from "../hooks/useMediaTypes";
 import { useTags } from "../hooks/useTags";
 
 export const Route = createFileRoute("/autofill/$ruleSlug/_view/prefill")({
@@ -34,6 +35,9 @@ function PrefillViewContent({
     data: categories = [],
   } = useCategories();
   const {
+    data: mediaTypes = [],
+  } = useMediaTypes();
+  const {
     data: tags = [],
   } = useTags();
   const {
@@ -43,6 +47,7 @@ function PrefillViewContent({
     <AutofillPrefillFields
       rule={rule}
       categories={categories}
+      mediaTypes={mediaTypes}
       tags={tags}
       properties={properties}
     />

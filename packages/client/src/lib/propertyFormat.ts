@@ -1,4 +1,4 @@
-import type { CustomPropertyType, DateTimeFormat } from "@eesimple/types";
+import type { CustomPropertyType, DateTimeFormat, NumberFormat } from "@eesimple/types";
 
 /** Human labels for each custom-property type, shared by the detail view and listing previews. */
 export const TYPE_LABELS: Record<CustomPropertyType, string> = {
@@ -13,4 +13,10 @@ export const DATE_TIME_FORMAT_LABELS: Record<DateTimeFormat, string> = {
   date: "Date only",
   time: "Time only",
   datetime: "Date & time",
+};
+
+/** Human labels for how a `number` property's value is displayed. */
+export const NUMBER_FORMAT_LABELS: Record<NumberFormat, string> = {
+  plain: "Plain",
+  duration: "Duration",
 };

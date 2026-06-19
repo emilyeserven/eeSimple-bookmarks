@@ -1,6 +1,6 @@
-import type { Category, TagNode } from "@eesimple/types";
+import type { Category, MediaType, TagNode } from "@eesimple/types";
 
-import { NO_CATEGORY } from "./AutofillRuleForm";
+import { NO_CATEGORY, NO_MEDIA_TYPE } from "./AutofillRuleForm";
 import { TagPicker } from "./TagPicker";
 
 import { Label } from "@/components/ui/label";
@@ -14,16 +14,20 @@ import {
 
 interface Props {
   categories: Category[];
+  mediaTypes: MediaType[];
   tagTree: TagNode[];
   setCategoryId: string;
   onCategoryChange: (value: string) => void;
+  setMediaTypeId: string;
+  onMediaTypeChange: (value: string) => void;
   tagIds: string[];
   onToggleTag: (id: string) => void;
 }
 
-/** Category select + tag picker for the autofill rule prefill form. */
+/** Category + media-type selects and tag picker for the autofill rule prefill form. */
 export function AutofillRulePrefillPickers({
-  categories, tagTree, setCategoryId, onCategoryChange, tagIds, onToggleTag,
+  categories, mediaTypes, tagTree, setCategoryId, onCategoryChange,
+  setMediaTypeId, onMediaTypeChange, tagIds, onToggleTag,
 }: Props) {
   return (
     <>
@@ -43,6 +47,28 @@ export function AutofillRulePrefillPickers({
                 key={c.id}
                 value={c.id}
               >{c.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-1">
+        <Label>Set media type</Label>
+        <Select
+          value={setMediaTypeId}
+          onValueChange={onMediaTypeChange}
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={NO_MEDIA_TYPE}>— Leave unchanged —</SelectItem>
+            {mediaTypes.map(m => (
+              <SelectItem
+                key={m.id}
+                value={m.id}
+              >{m.name}
               </SelectItem>
             ))}
           </SelectContent>

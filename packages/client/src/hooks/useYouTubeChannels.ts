@@ -61,6 +61,24 @@ export function useDeleteYouTubeChannel() {
   });
 }
 
+/** Upload a user-chosen avatar for a channel, replacing any existing one. */
+export function useUploadYouTubeChannelImage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id, file,
+    }: { id: string;
+      file: File; }) => youtubeChannelsApi.uploadImage(id, file),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: CHANNELS_KEY,
+      });
+      notifySuccess("Avatar updated");
+    },
+    onError: (err: Error) => notifyError(err.message || "Could not upload the avatar"),
+  });
+}
+
 /** Re-grab a channel's avatar from its public channel page (`og:image`). */
 export function useAutoYouTubeChannelImage() {
   const queryClient = useQueryClient();

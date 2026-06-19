@@ -6,7 +6,7 @@ import { useRateLimitCooldown } from "./useRateLimitCooldown";
 import { websitesApi } from "../lib/api";
 import { ApiError } from "../lib/apiError";
 import { notifyImageFetchError } from "../lib/bugReport";
-import { notifySuccess } from "../lib/notifications";
+import { notifyError, notifySuccess } from "../lib/notifications";
 
 const WEBSITES_KEY = ["websites"] as const;
 const BOOKMARKS_KEY = ["bookmarks"] as const;
@@ -78,6 +78,39 @@ export function useDeleteWebsite() {
         queryKey: BOOKMARKS_KEY,
       });
     },
+  });
+}
+
+/** Upload a user-chosen favicon for a website, replacing any existing one. */
+export function useUploadWebsiteFavicon() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id, file,
+    }: { id: string;
+      file: File; }) => websitesApi.uploadImage(id, file),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: WEBSITES_KEY,
+      });
+      notifySuccess("Favicon updated");
+    },
+    onError: (err: Error) => notifyError(err.message || "Could not upload the favicon"),
+  });
+}
+
+/** Remove a website's stored favicon. */
+export function useDeleteWebsiteFavicon() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => websitesApi.deleteImage(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: WEBSITES_KEY,
+      });
+      notifySuccess("Favicon removed");
+    },
+    onError: (err: Error) => notifyError(err.message || "Could not remove the favicon"),
   });
 }
 

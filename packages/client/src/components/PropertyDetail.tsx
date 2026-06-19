@@ -6,7 +6,7 @@ import { TriangleAlert } from "lucide-react";
 import { DetailHeaderActions } from "./DetailHeaderActions";
 import { LabeledSection } from "./LabeledSection";
 import { hasPropertyOptions } from "../lib/propertyForm";
-import { DATE_TIME_FORMAT_LABELS, TYPE_LABELS } from "../lib/propertyFormat";
+import { DATE_TIME_FORMAT_LABELS, NUMBER_FORMAT_LABELS, TYPE_LABELS } from "../lib/propertyFormat";
 
 import { DetailField } from "@/components/DetailField";
 import { Badge } from "@/components/ui/badge";
@@ -285,6 +285,13 @@ function NumericPropertyFields({
       <DetailField label="Value prefix">{property.valuePrefix}</DetailField>
       <DetailField label="Zero label">{property.zeroLabel}</DetailField>
       <DetailField label="Maximum label">{property.maxLabel}</DetailField>
+      {property.type === "number"
+        ? (
+          <DetailField label="Number format">
+            {NUMBER_FORMAT_LABELS[property.numberFormat ?? "plain"]}
+          </DetailField>
+        )
+        : null}
       {property.type === "calculate"
         ? (
           <DetailField label="Operands">

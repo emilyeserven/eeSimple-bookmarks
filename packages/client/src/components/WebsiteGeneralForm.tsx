@@ -2,15 +2,22 @@ import type { Website } from "@eesimple/types";
 
 import { useState } from "react";
 
+import { Globe } from "lucide-react";
 import { z } from "zod";
 
+import { EntityImageField } from "./EntityImageField";
 import { TagPicker } from "./TagPicker";
 
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useCategories } from "@/hooks/useCategories";
 import { useTagTree } from "@/hooks/useTags";
-import { useUpdateWebsite } from "@/hooks/useWebsites";
+import {
+  useAutoWebsiteFavicon,
+  useDeleteWebsiteFavicon,
+  useUpdateWebsite,
+  useUploadWebsiteFavicon,
+} from "@/hooks/useWebsites";
 import { useAppForm } from "@/lib/form";
 import { CategoryIcon } from "@/lib/icons";
 
@@ -29,6 +36,10 @@ export function WebsiteGeneralForm({
   website,
 }: Props) {
   const updateWebsite = useUpdateWebsite();
+  const uploadFavicon = useUploadWebsiteFavicon();
+  const autoFavicon = useAutoWebsiteFavicon();
+  const deleteFavicon = useDeleteWebsiteFavicon();
+  const faviconBusy = uploadFavicon.isPending || autoFavicon.isPending || deleteFavicon.isPending;
   const [tagIds, setTagIds] = useState<string[]>(website.tagIds ?? []);
   const {
     data: categories,
@@ -102,6 +113,24 @@ export function WebsiteGeneralForm({
           )}
         </form.AppField>
       </div>
+
+      <EntityImageField
+        label="Favicon"
+        imageUrl={website.imageUrl}
+        shape="square"
+        fallback={<Globe className="size-5" />}
+        busy={faviconBusy}
+        onUpload={file => uploadFavicon.mutate({
+          id: website.id,
+          file,
+        })}
+        onAuto={() => autoFavicon.mutate({
+          id: website.id,
+          sourceUrl: `https://${website.domain}`,
+        })}
+        autoLabel="Fetch favicon"
+        onRemove={() => deleteFavicon.mutate(website.id)}
+      />
 
       <form.AppField name="categoryId">
         {field => (

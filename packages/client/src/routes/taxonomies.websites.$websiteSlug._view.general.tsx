@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Globe } from "lucide-react";
 
+import { EntityImagePreview } from "../components/EntityImageField";
 import { SourceAutofillDefaults } from "../components/SourceAutofillDefaults";
 import { WebsiteTabWrapper } from "../components/WebsiteTabWrapper";
 
@@ -20,6 +21,11 @@ function GeneralViewTab() {
     >
       {website => (
         <div className="space-y-4">
+          <EntityImagePreview
+            imageUrl={website.imageUrl}
+            shape="square"
+            fallback={<Globe className="size-5" />}
+          />
           <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
             <dt className="text-muted-foreground">Domain</dt>
             <dd>

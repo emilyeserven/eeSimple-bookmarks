@@ -4,6 +4,7 @@ import {
   fetchAndStoreWebsiteFavicon,
   getWebsiteFaviconRow,
   removeWebsiteFavicon,
+  setWebsiteFaviconFromBytes,
 } from "@/services/websiteFavicons";
 import {
   BuiltInWebsiteError,
@@ -251,6 +252,55 @@ export async function websiteRoutes(app: FastifyInstance): Promise<void> {
       }
       throw err;
     }
+  });
+
+  // Upload a favicon for a website (multipart). Replaces any existing one.
+  app.post("/api/websites/:id/image", {
+    schema: {
+      tags: ["websites"],
+      params: websiteParams,
+      consumes: ["multipart/form-data"],
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    if (!isObjectStoreConfigured()) {
+      return reply.code(503).send({
+        message: "Image storage is not configured",
+      });
+    }
+    let bytes: Buffer;
+    try {
+      const file = await req.file();
+      if (!file) {
+        return reply.code(400).send({
+          message: "No file uploaded",
+        });
+      }
+      bytes = await file.toBuffer();
+    }
+    catch (err) {
+      // @fastify/multipart throws this when the upload exceeds the configured size limit.
+      if ((err as { code?: string }).code === "FST_REQ_FILE_TOO_LARGE") {
+        return reply.code(413).send({
+          message: "Image is too large",
+        });
+      }
+      throw err;
+    }
+    const result = await setWebsiteFaviconFromBytes(id, bytes);
+    if (result === "not_found") {
+      return reply.code(404).send({
+        message: "Website not found",
+      });
+    }
+    if (result === "bad_image") {
+      return reply.code(415).send({
+        message: "Unsupported or invalid image",
+      });
+    }
+    return reply.code(201).send(result);
   });
 
   // Auto-capture: fetch the site's favicon (from its homepage) and store it.
