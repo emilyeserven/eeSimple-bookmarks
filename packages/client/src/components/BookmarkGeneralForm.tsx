@@ -14,7 +14,6 @@ import {
   bookmarkSchema,
   computeAutofill,
   looksLikeYouTube,
-  stripSelfId,
 } from "./bookmarkFormSchema";
 import { GatedTagPicker } from "./BookmarkTagsField";
 import { TitleFetchFeedback } from "./BookmarkTitleFeedback";
@@ -22,6 +21,7 @@ import { BookmarkUrlCleanupBanner } from "./BookmarkUrlCleanupBanner";
 import { UrlCleanupPanel } from "./BookmarkUrlCleanupPanel";
 import { BookmarkUrlDuplicateWarnings } from "./BookmarkUrlDuplicateWarnings";
 import { useBookmarkFormData } from "./useBookmarkFormData";
+import { useBookmarkScanHandlers } from "./useBookmarkScanHandlers";
 import { useBookmarkUrlProcessing } from "./useBookmarkUrlProcessing";
 import { WebsiteLookupBanner } from "./WebsiteLookupBanner";
 import { useAppForm } from "../lib/form";
@@ -143,125 +143,29 @@ export function BookmarkGeneralForm({
     }
   }
 
-  function runUrlCleanup(url: string): void {
-    const cleaned = cleanUrl(url);
-    if (cleaned !== null) form.setFieldValue("url", cleaned);
-  }
-
-  function undoUrlCleanup(): void {
-    const original = undoCleanup();
-    if (original !== null) form.setFieldValue("url", original);
-  }
-
-  function undoTitleFetch(): void {
-    if (!titleFetch) return;
-    form.setFieldValue("title", titleFetch.previous);
-    setTitleFetch(null);
-  }
-
-  async function runFetchTitle(url: string, {
-    force,
-  }: { force: boolean }): Promise<void> {
-    if (!isUrlFetchable(url)) return;
-    if (!force && form.getFieldValue("title").trim() !== "") return;
-    try {
-      const {
-        title,
-      } = await fetchTitle.mutateAsync({
-        url,
-        siteName: websiteSiteName.trim() || undefined,
-      });
-      const prevTitle = form.getFieldValue("title");
-      if (force || prevTitle.trim() === "") {
-        form.setFieldValue("title", title);
-        if (force && prevTitle.trim() !== "") setTitleFetch({
-          previous: prevTitle,
-        });
-        else setTitleFetch(null);
-      }
-    }
-    catch {
-      // Surfaced via fetchTitle.isError; nothing else to do here.
-    }
-  }
-
-  async function runYouTubeEnrichment(url: string, {
-    fillTitle, force,
-  }: { fillTitle: boolean;
-    force: boolean; }): Promise<void> {
-    if (!isUrlFetchable(url) || !looksLikeYouTube(url)) {
-      channelHintRef.current = null;
-      setYoutubeChannel(null);
-      return;
-    }
-    fetchTitle.reset();
-    try {
-      const meta = await fetchMetadata.mutateAsync({
-        url,
-      });
-      if (!meta.isYouTube) {
-        channelHintRef.current = null;
-        setYoutubeChannel(null);
-        return;
-      }
-      const existingSelfIds
-        = channelHintRef.current?.key === meta.channel?.key
-          ? (channelHintRef.current?.selfIds ?? [])
-          : [];
-      if (fillTitle && meta.title && (force || form.getFieldValue("title").trim() === "")) {
-        const serverSelfIdSet = new Set(meta.channel?.selfIds ?? []);
-        const userAddedSelfIds = existingSelfIds.filter(id => !serverSelfIdSet.has(id));
-        let title = meta.title;
-        for (const selfId of userAddedSelfIds) {
-          const stripped = stripSelfId(title, selfId);
-          if (stripped !== title) {
-            title = stripped;
-            break;
-          }
-        }
-        const prevTitle = form.getFieldValue("title");
-        form.setFieldValue("title", title);
-        if (force && prevTitle.trim() !== "") setTitleFetch({
-          previous: prevTitle,
-        });
-        else setTitleFetch(null);
-      }
-      if (fillTitle && meta.description && form.getFieldValue("description").trim() === "") {
-        form.setFieldValue("description", meta.description);
-      }
-      if (meta.channel?.key) {
-        const mergedSelfIds = [...new Set([...(meta.channel.selfIds ?? []), ...existingSelfIds])];
-        const hint = {
-          key: meta.channel.key,
-          name: meta.channel.name,
-          selfIds: mergedSelfIds,
-        };
-        channelHintRef.current = hint;
-        setYoutubeChannel(hint);
-      }
-    }
-    catch {
-      // Non-fatal.
-    }
-  }
-
-  function runWebsiteLookup(url: string): void {
-    if (classifyUrlShortener(url) === null) {
-      websiteLookup.reset();
-      setWebsiteSiteName("");
-      return;
-    }
-    websiteLookup.mutate(url, {
-      onSuccess: (data) => {
-        if (!data.exists && data.domain) {
-          setWebsiteSiteName(data.domain);
-        }
-        else {
-          setWebsiteSiteName("");
-        }
-      },
-    });
-  }
+  const {
+    runFetchTitle,
+    runYouTubeEnrichment,
+    runUrlCleanup,
+    undoUrlCleanup,
+    undoTitleFetch,
+    runWebsiteLookup,
+  } = useBookmarkScanHandlers({
+    form,
+    channelHintRef,
+    setYoutubeChannel,
+    websiteSiteName,
+    setWebsiteSiteName,
+    titleFetch,
+    setTitleFetch,
+    fetchTitle,
+    fetchMetadata,
+    websiteLookup,
+    isUrlFetchable,
+    classifyUrlShortener,
+    cleanUrl,
+    undoCleanup,
+  });
 
   async function performUrlScan(): Promise<void> {
     runUrlCleanup(form.getFieldValue("url"));
