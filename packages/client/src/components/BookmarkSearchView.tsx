@@ -3,8 +3,11 @@ import type { BookmarkSearch } from "../lib/bookmarkSearch";
 import type { Bookmark, Category, CustomProperty, MediaType, PropertyGroup, TagNode, YouTubeChannel } from "@eesimple/types";
 import type { ReactNode } from "react";
 
+import { useEffect } from "react";
+
 import { BookmarkListPane } from "./BookmarkListPane";
 import { FilterSidebar } from "./FilterSidebar";
+import { usePanelControls } from "./panel/usePanelControls";
 import { UnassignedPropertiesWarning } from "./UnassignedPropertiesWarning";
 import { useIsMobile } from "../hooks/use-mobile";
 import { DEFAULT_BOOKMARK_IMAGE_LAYOUT, useBookmarkColumns, useBookmarkImageMode, useBookmarkImageVisibility } from "../lib/bookmarkColumns";
@@ -70,6 +73,37 @@ export function BookmarkSearchView({
   const imageMode = useBookmarkImageMode(pageKey);
   const imageVisibility = useBookmarkImageVisibility(pageKey);
   const isMobile = useIsMobile();
+  const filtersInDrawer = useUiStore(state => state.filtersInDrawer);
+  const setFilterContext = useUiStore(state => state.setFilterContext);
+  const {
+    isOpen, dCT, openType,
+  } = usePanelControls();
+  const filtersActiveInDrawer = isOpen && dCT === "filters";
+
+  useEffect(() => {
+    setFilterContext({
+      tree,
+      properties,
+      propertyGroups,
+      categories,
+      mediaTypes,
+      youtubeChannels,
+      bookmarks,
+      search,
+      onSearchChange,
+    });
+    return () => setFilterContext(null);
+    // onSearchChange is a new arrow fn each render from the page; stable deps are the data arrays
+  }, [tree, properties, propertyGroups, categories, mediaTypes, youtubeChannels, bookmarks, search, onSearchChange, setFilterContext]);
+
+  useEffect(() => {
+    if (filtersInDrawer && !isOpen) {
+      openType("filters");
+    }
+  // Only on mount — intentionally omit filtersInDrawer/isOpen/openType to avoid re-running
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Raw stored value (may be undefined) so we can tell "unset" from an explicit "above".
   const storedImageLayout = useUiStore(state => state.bookmarkImageLayout[pageKey]);
   // At 1 column the default is responsive — image above on mobile, side on desktop — until the
@@ -90,22 +124,26 @@ export function BookmarkSearchView({
       <UnassignedPropertiesWarning properties={unassignedProperties} />
 
       <div
-        className="
-          grid gap-8
-          lg:grid-cols-[16rem_1fr] lg:gap-x-12
-        "
+        className={filtersActiveInDrawer
+          ? "grid gap-8"
+          : `
+            grid gap-8
+            lg:grid-cols-[16rem_1fr] lg:gap-x-12
+          `}
       >
-        <FilterSidebar
-          tree={tree}
-          properties={properties}
-          propertyGroups={propertyGroups}
-          categories={categories}
-          mediaTypes={mediaTypes}
-          youtubeChannels={youtubeChannels}
-          bookmarks={bookmarks}
-          search={search}
-          onSearchChange={onSearchChange}
-        />
+        {!filtersActiveInDrawer && (
+          <FilterSidebar
+            tree={tree}
+            properties={properties}
+            propertyGroups={propertyGroups}
+            categories={categories}
+            mediaTypes={mediaTypes}
+            youtubeChannels={youtubeChannels}
+            bookmarks={bookmarks}
+            search={search}
+            onSearchChange={onSearchChange}
+          />
+        )}
 
         <BookmarkListPane
           pageKey={pageKey}

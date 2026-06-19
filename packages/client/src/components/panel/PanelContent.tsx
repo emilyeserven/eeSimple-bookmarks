@@ -1,4 +1,5 @@
 import { getContentType } from "./contentTypes";
+import { FiltersPanel } from "./FiltersPanel";
 import { NotificationsPanel } from "./NotificationsPanel";
 import { PanelList } from "./PanelList";
 import { PanelTypeTiles } from "./PanelTypeTiles";
@@ -20,6 +21,8 @@ export function PanelContent() {
   if (!dCT) return <PanelTypeTiles />;
   // Notifications is a registry-less, list-only view (no per-item view/edit).
   if (dCT === "notifications") return <NotificationsPanel />;
+  // Filters renders the listing page's filter sidebar inline; no registry entry.
+  if (dCT === "filters") return <FiltersPanel />;
   if (!dCId) {
     return (
       <PanelList

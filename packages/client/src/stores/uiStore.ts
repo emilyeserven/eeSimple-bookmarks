@@ -1,3 +1,6 @@
+import type { BookmarkSearch } from "../lib/bookmarkSearch";
+import type { Bookmark, Category, CustomProperty, MediaType, PropertyGroup, TagNode, YouTubeChannel } from "@eesimple/types";
+
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -26,6 +29,19 @@ export function clampSidebarWidth(w: number): number {
 /** Clamp the right panel width to the supported 18–40 rem range. */
 export function clampPanelWidth(w: number): number {
   return Math.min(40, Math.max(18, w));
+}
+
+/** Live filter data and change handler shared from the active listing page to the FiltersPanel. */
+export interface FilterContextData {
+  tree: TagNode[];
+  properties: CustomProperty[];
+  propertyGroups?: PropertyGroup[];
+  categories?: Category[];
+  mediaTypes?: MediaType[];
+  youtubeChannels?: YouTubeChannel[];
+  bookmarks: Pick<Bookmark, "numberValues">[];
+  search: BookmarkSearch;
+  onSearchChange: (next: BookmarkSearch) => void;
 }
 
 interface UiState {
@@ -89,6 +105,12 @@ interface UiState {
   /** Per-listing image layout for 2-column listing pages: "above" (default) or "side". Keyed by a stable page key. */
   bookmarkImageLayout: Record<string, HomepageSectionImageLayout>;
   setBookmarkImageLayout: (pageKey: string, layout: HomepageSectionImageLayout) => void;
+  /** When true, listing pages auto-open filters in the right-hand drawer instead of the left column. */
+  filtersInDrawer: boolean;
+  setFiltersInDrawer: (value: boolean) => void;
+  /** Transient: live filter data from the active listing page. Cleared when leaving a listing page. Never persisted. */
+  filterContext: FilterContextData | null;
+  setFilterContext: (ctx: FilterContextData | null) => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -200,6 +222,14 @@ export const useUiStore = create<UiState>()(
           [pageKey]: layout,
         },
       })),
+      filtersInDrawer: false,
+      setFiltersInDrawer: value => set({
+        filtersInDrawer: value,
+      }),
+      filterContext: null,
+      setFilterContext: ctx => set({
+        filterContext: ctx,
+      }),
     }),
     {
       name: "eesimple-ui",
@@ -224,6 +254,7 @@ export const useUiStore = create<UiState>()(
         addBookmarkFormOpen: state.addBookmarkFormOpen,
         collapsedHomepageSectionIds: state.collapsedHomepageSectionIds,
         bookmarkImageLayout: state.bookmarkImageLayout,
+        filtersInDrawer: state.filtersInDrawer,
       }),
     },
   ),
