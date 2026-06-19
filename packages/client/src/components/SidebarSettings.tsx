@@ -1,6 +1,7 @@
 import type { SidebarOpenModifier } from "../stores/uiStore";
 
 import { useUiStore } from "../stores/uiStore";
+import { usePanelControls } from "./panel/usePanelControls";
 
 import {
   Card,
@@ -51,6 +52,9 @@ export function SidebarSettings() {
   const setPanelPinned = useUiStore(state => state.setPanelPinned);
   const drawerUnpinnedBreakpoints = useUiStore(state => state.drawerUnpinnedBreakpoints);
   const setDrawerUnpinnedBreakpoints = useUiStore(state => state.setDrawerUnpinnedBreakpoints);
+  const {
+    open, isOpen,
+  } = usePanelControls();
 
   function toggleBreakpoint(px: number) {
     setDrawerUnpinnedBreakpoints(
@@ -75,7 +79,11 @@ export function SidebarSettings() {
             <Checkbox
               id="panel-pinned"
               checked={panelPinned}
-              onCheckedChange={checked => setPanelPinned(checked === true)}
+              onCheckedChange={(checked) => {
+                const isPinned = checked === true;
+                setPanelPinned(isPinned);
+                if (isPinned && !isOpen) open();
+              }}
             />
             <Label htmlFor="panel-pinned">Pin the drawer by default</Label>
           </div>
