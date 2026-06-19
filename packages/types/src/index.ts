@@ -103,6 +103,11 @@ export interface Website {
   createdAt: string;
   /** Number of bookmarks associated with this website (populated by list endpoints). */
   bookmarkCount?: number;
+  /**
+   * Serving URL for the site's favicon (with a `?v=` cache-buster), or `null` when none is stored.
+   * Auto-captured on first sighting and re-grabbable from the listing. Populated by list/get endpoints.
+   */
+  imageUrl?: string | null;
 }
 
 /** Lightweight website shape carried on a bookmark. */
@@ -271,6 +276,11 @@ export interface YouTubeChannel {
   bookmarkCount?: number;
   /** Short self-identifiers the channel appends to video titles (e.g. "SNL"). Stripped on fetch. */
   selfIds: string[];
+  /**
+   * Serving URL for the channel's avatar (with a `?v=` cache-buster), or `null` when none is stored.
+   * Auto-captured on first sighting and re-grabbable from the listing. Populated by list/get endpoints.
+   */
+  imageUrl?: string | null;
 }
 
 /** Lightweight channel shape carried on a bookmark. */
@@ -834,6 +844,31 @@ export interface CreateSavedFilterInput {
 }
 
 export type UpdateSavedFilterInput = Partial<CreateSavedFilterInput>;
+
+/** The display settings captured in a display preset (columns, image visibility, mode, layout). */
+export interface DisplayPresetSettings {
+  columns: number;
+  imageVisibility: "shown" | "image-only" | "off";
+  imageMode: boolean;
+  imageLayout: "above" | "side";
+}
+
+/** A named snapshot of listing display settings, reusable across any listing page. */
+export interface DisplayPreset {
+  id: string;
+  name: string;
+  description: string | null;
+  settings: DisplayPresetSettings;
+  createdAt: string;
+}
+
+export interface CreateDisplayPresetInput {
+  name: string;
+  description?: string | null;
+  settings: DisplayPresetSettings;
+}
+
+export type UpdateDisplayPresetInput = Partial<CreateDisplayPresetInput>;
 
 /** Standard error shape returned by the API. */
 export interface ApiError {

@@ -10,6 +10,7 @@ import { useCategories } from "../hooks/useCategories";
 import { useNewAutofillRule } from "../hooks/useNewAutofillRule";
 import { useWebsites } from "../hooks/useWebsites";
 import { ruleSetsMediaType, ruleSetsProperty, ruleSetsTag, ruleTargetsWebsite, ruleTargetsYoutubeChannel } from "../lib/autofillRulesFilter";
+import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
 import { summarizeConditions } from "../lib/conditionsSummary";
 
 interface AutofillRulesListProps {
@@ -88,6 +89,9 @@ export function AutofillRulesList({
   // Whether the list is scoped to a single entity (category / property / website / tag / media type / channel edit/view tab).
   const scoped = Boolean(categoryId) || Boolean(propertyId) || Boolean(websiteId) || Boolean(tagId) || Boolean(mediaTypeId) || Boolean(channelId);
 
+  // Read column count for the unscoped listing page (always call hook to keep hooks order stable).
+  const columns = useBookmarkColumns("autofill-rules-listing");
+
   // The scoping website's normalized domain (rules reference websites by domain, not id).
   const websiteDomain = useMemo(() => {
     if (!websiteId) return undefined;
@@ -143,7 +147,16 @@ export function AutofillRulesList({
         ? <p className="text-muted-foreground">No rules match these filters.</p>
         : null}
 
-      <div className="space-y-3">
+      <div
+        className={
+          scoped
+            ? "space-y-3"
+            : `
+              grid gap-3
+              ${COLUMN_CLASS[columns]}
+            `
+        }
+      >
         {visibleRules.map(rule => (
           <AutofillRuleListItem
             key={rule.id}

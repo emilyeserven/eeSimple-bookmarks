@@ -1,7 +1,9 @@
 import type { Website } from "@eesimple/types";
 
+import { useState } from "react";
+
 import { Link } from "@tanstack/react-router";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Globe } from "lucide-react";
 
 import { LabeledSection } from "./LabeledSection";
 import { useEditPanelClick } from "./panel/useEditPanelClick";
@@ -17,23 +19,44 @@ export function WebsiteCard({
 }: { website: Website }) {
   const editClick = useEditPanelClick();
   const modifier = useUiStore(state => state.sidebarOpenModifier);
+  const [imageFailed, setImageFailed] = useState(false);
+  const showImage = website.imageUrl != null && !imageFailed;
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0 space-y-1">
-          <h2 className="text-xl font-semibold">{website.siteName}</h2>
-          <a
-            href={`https://${website.domain}`}
-            target="_blank"
-            rel="noreferrer"
+        <div className="flex min-w-0 items-center gap-3">
+          <span
             className="
-              inline-flex items-center gap-1 text-sm text-muted-foreground
-              hover:text-foreground hover:underline
+              flex size-12 shrink-0 items-center justify-center overflow-hidden
+              rounded-sm bg-muted text-muted-foreground
             "
           >
-            {website.domain}
-            <ExternalLink className="size-3" />
-          </a>
+            {showImage
+              ? (
+                <img
+                  src={website.imageUrl ?? undefined}
+                  alt=""
+                  className="size-full object-contain"
+                  onError={() => setImageFailed(true)}
+                />
+              )
+              : <Globe className="size-6" />}
+          </span>
+          <div className="min-w-0 space-y-1">
+            <h2 className="text-xl font-semibold">{website.siteName}</h2>
+            <a
+              href={`https://${website.domain}`}
+              target="_blank"
+              rel="noreferrer"
+              className="
+                inline-flex items-center gap-1 text-sm text-muted-foreground
+                hover:text-foreground hover:underline
+              "
+            >
+              {website.domain}
+              <ExternalLink className="size-3" />
+            </a>
+          </div>
         </div>
         <Button
           asChild

@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 import { Link, Outlet } from "@tanstack/react-router";
 
+import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 export const navLinkClass = `
@@ -81,6 +82,7 @@ export function TabbedEntityLayout({
                   key={entry.label}
                   className="mt-2 flex flex-col gap-1"
                 >
+                  <Separator className="mb-1" />
                   <p
                     className="
                       px-3 pt-3 pb-0.5 text-xs font-semibold tracking-wide

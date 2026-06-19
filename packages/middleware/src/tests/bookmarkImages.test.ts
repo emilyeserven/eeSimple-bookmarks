@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import sharp from "sharp";
-import { extractImageUrl, isPublicHttpUrl } from "@/services/metadata";
+import { extractFaviconUrl, extractImageUrl, isPublicHttpUrl } from "@/services/metadata";
 import { MAX_IMAGE_EDGE, processImage } from "@/utils/image";
 
 // Pure-function coverage for the bookmark-image pipeline and og:image parsing — no DB or network.
@@ -64,6 +64,36 @@ test("extractImageUrl prefers og:image and resolves relative URLs", () => {
     "https://example.com/icon.png",
   );
   assert.equal(extractImageUrl("<head></head>", "https://example.com/"), null);
+});
+
+test("extractFaviconUrl prefers icon links over og:image", () => {
+  // apple-touch-icon wins over a plain icon and over og:image.
+  assert.equal(
+    extractFaviconUrl(
+      "<meta property=\"og:image\" content=\"https://cdn.example.com/share.png\">"
+      + "<link rel=\"icon\" href=\"/favicon-32.png\">"
+      + "<link rel=\"apple-touch-icon\" href=\"/touch.png\">",
+      "https://example.com/page",
+    ),
+    "https://example.com/touch.png",
+  );
+  // `rel="shortcut icon"` is matched by the icon pattern.
+  assert.equal(
+    extractFaviconUrl(
+      "<link rel=\"shortcut icon\" href=\"https://example.com/legacy.ico\">",
+      "https://example.com/",
+    ),
+    "https://example.com/legacy.ico",
+  );
+  // Falls back to og:image only when no icon link is declared.
+  assert.equal(
+    extractFaviconUrl(
+      "<meta property=\"og:image\" content=\"https://cdn.example.com/share.png\">",
+      "https://example.com/",
+    ),
+    "https://cdn.example.com/share.png",
+  );
+  assert.equal(extractFaviconUrl("<head></head>", "https://example.com/"), null);
 });
 
 test("isPublicHttpUrl rejects non-http(s) and internal hosts", () => {

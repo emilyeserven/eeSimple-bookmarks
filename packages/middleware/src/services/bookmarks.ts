@@ -40,8 +40,10 @@ import { ensureDefaultCategory } from "@/services/categories";
 import { getVideoLengthPropertyId } from "@/services/customProperties";
 import { getMediaTypeBySlug } from "@/services/mediaTypes";
 import { getDescendantIds } from "@/services/tags";
+import { fetchAndStoreWebsiteFavicon, getWebsiteFaviconRow } from "@/services/websiteFavicons";
 import { ensureWebsiteForUrl, getWebsiteByAnyDomain, normalizeDomain } from "@/services/websites";
 import { fetchYouTubeMetadata, isYouTubeVideoUrl, parseYouTubeVideo, type YouTubeMetadata } from "@/services/youtube";
+import { fetchAndStoreChannelImage, getYouTubeChannelImageRow } from "@/services/youtubeChannelImages";
 import { channelKeyFromUrl, ensureYouTubeChannel } from "@/services/youtubeChannels";
 import { isObjectStoreConfigured } from "@/utils/objectStore";
 import { slugify } from "@/utils/slug";
@@ -627,6 +629,41 @@ async function captureYouTubeThumbnail(bookmarkId: string, ctx: string): Promise
 }
 
 /**
+ * Best-effort favicon capture for the website a bookmark was just linked to. Fetches and stores the
+ * site's favicon only when it has none yet, so the first bookmark for a domain populates the icon
+ * and later ones skip the network round-trip. Never throws; skips when object storage is unconfigured.
+ */
+async function captureWebsiteFavicon(websiteId: string | null, ctx: string): Promise<void> {
+  if (!websiteId || !isObjectStoreConfigured()) return;
+  try {
+    if (await getWebsiteFaviconRow(websiteId)) return;
+    const result = await fetchAndStoreWebsiteFavicon(websiteId);
+    ytLog("info", `${ctx}: favicon capture result=${typeof result === "string" ? result : "stored"} for website ${websiteId}`);
+  }
+  catch (err) {
+    ytLog("warn", `${ctx}: favicon capture threw for website ${websiteId}`, err);
+  }
+}
+
+/**
+ * Best-effort avatar capture for the YouTube channel a bookmark was just linked to. Fetches and
+ * stores the channel's avatar (its page `og:image`) only when it has none yet — so the first
+ * bookmark for a channel populates the avatar and later ones skip the network round-trip. Never
+ * throws; skips when object storage is unconfigured.
+ */
+async function captureChannelAvatar(channelId: string | null, ctx: string): Promise<void> {
+  if (!channelId || !isObjectStoreConfigured()) return;
+  try {
+    if (await getYouTubeChannelImageRow(channelId)) return;
+    const result = await fetchAndStoreChannelImage(channelId);
+    ytLog("info", `${ctx}: avatar capture result=${typeof result === "string" ? result : "stored"} for channel ${channelId}`);
+  }
+  catch (err) {
+    ytLog("warn", `${ctx}: avatar capture threw for channel ${channelId}`, err);
+  }
+}
+
+/**
  * Fetch a YouTube video's metadata once (network) and log what resolved, or `null` for non-videos.
  * Callers reuse the result for the channel, media-type default, and duration backfill so a create or
  * update makes at most one metadata round-trip.
@@ -673,7 +710,9 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
 
   const numberValues = await withVideoLength(input.numberValues ?? [], meta, "create");
 
-  const id = await db.transaction(async (tx) => {
+  const {
+    id, websiteId, youtubeChannelId,
+  } = await db.transaction(async (tx) => {
     const websiteId = await ensureWebsiteForUrl(tx, input.url, input.websiteSiteName);
     const youtubeChannelId = channelHint ? await ensureYouTubeChannel(tx, channelHint) : null;
     const [row] = await tx
@@ -697,12 +736,21 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
     await setBooleanValues(tx, row.id, input.booleanValues);
     await setDateTimeValues(tx, row.id, input.dateTimeValues);
     await recomputeCalculatedValues(tx, row.id);
-    return row.id;
+    return {
+      id: row.id,
+      websiteId,
+      youtubeChannelId,
+    };
   });
 
   // Auto-capture the YouTube thumbnail after the row exists, before the hydrated re-read so the
   // returned bookmark includes the image. Best-effort: never fails the create.
   if (meta !== null) await captureYouTubeThumbnail(id, "create");
+  // Populate the website favicon / channel avatar on first sighting. Fire-and-forget (these don't
+  // appear on the bookmark itself), so a new-domain bookmark isn't blocked on the icon fetch; each
+  // helper is self-guarded (skips when one already exists) and swallows its own errors.
+  void captureWebsiteFavicon(websiteId, "create");
+  void captureChannelAvatar(youtubeChannelId, "create");
 
   // Re-read so callers always get the hydrated shape.
   return (await getBookmark(id))!;
@@ -759,6 +807,11 @@ export async function updateBookmark(
     ? await withVideoLength(input.numberValues, meta, "update")
     : undefined;
 
+  // Website / channel ids touched by this update, surfaced from the transaction so the post-commit
+  // favicon / avatar capture can run on the resolved entities. `undefined` means "not changed".
+  let touchedWebsiteId: string | null | undefined;
+  let touchedChannelId: string | null | undefined;
+
   const found = await db.transaction(async (tx) => {
     const patch: Partial<
       Pick<
@@ -779,9 +832,12 @@ export async function updateBookmark(
       // Re-derive the website and YouTube channel whenever the URL changes.
       patch.websiteId = await ensureWebsiteForUrl(tx, input.url);
       patch.youtubeChannelId = channelHint ? await ensureYouTubeChannel(tx, channelHint) : null;
+      touchedWebsiteId = patch.websiteId;
+      touchedChannelId = patch.youtubeChannelId;
     }
     else if (channelHint !== undefined) {
       patch.youtubeChannelId = channelHint ? await ensureYouTubeChannel(tx, channelHint) : null;
+      touchedChannelId = patch.youtubeChannelId;
     }
     if (input.originalUrl !== undefined) patch.originalUrl = input.originalUrl ?? null;
     if (input.title !== undefined) patch.title = input.title;
@@ -835,6 +891,13 @@ export async function updateBookmark(
     else {
       await captureYouTubeThumbnail(id, "update");
     }
+  }
+
+  // Populate the website favicon / channel avatar on first sighting of a newly-linked entity.
+  // Fire-and-forget (see createBookmark); only fires when this update actually (re)resolved them.
+  if (found) {
+    void captureWebsiteFavicon(touchedWebsiteId ?? null, "update");
+    void captureChannelAvatar(touchedChannelId ?? null, "update");
   }
 
   return found ? getBookmark(id) : null;

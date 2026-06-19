@@ -6,6 +6,8 @@ import { Plus } from "lucide-react";
 import { AddCustomPropertyModal } from "./AddCustomPropertyModal";
 import { PropertyPreview } from "./PropertyPreview";
 import { useCustomProperties } from "../hooks/useCustomProperties";
+import { useSetListingPage } from "../hooks/useListingPage";
+import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
 import { TYPE_LABELS } from "../lib/propertyFormat";
 
 import { Button } from "@/components/ui/button";
@@ -19,6 +21,8 @@ export function CustomPropertyManager() {
   const [query, setQuery] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
+  useSetListingPage("custom-properties-listing");
+  const columns = useBookmarkColumns("custom-properties-listing");
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -66,7 +70,12 @@ export function CustomPropertyManager() {
         )
         : null}
 
-      <div className="space-y-3">
+      <div
+        className={`
+          grid gap-3
+          ${COLUMN_CLASS[columns]}
+        `}
+      >
         {filtered.map(property => (
           <PropertyPreview
             key={property.id}

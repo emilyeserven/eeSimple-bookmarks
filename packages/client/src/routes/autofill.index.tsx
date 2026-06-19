@@ -3,6 +3,7 @@ import { Plus } from "lucide-react";
 
 import { AutofillRulesList } from "../components/AutofillRulesList";
 import { useAutofillRules } from "../hooks/useAutofill";
+import { useSetListingPage } from "../hooks/useListingPage";
 import { useNewAutofillRule } from "../hooks/useNewAutofillRule";
 
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +18,7 @@ function AutofillListPage() {
     data: rules,
   } = useAutofillRules();
   const newRule = useNewAutofillRule();
+  useSetListingPage("autofill-rules-listing");
 
   return (
     <section className="space-y-6">

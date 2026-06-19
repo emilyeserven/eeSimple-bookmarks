@@ -301,6 +301,35 @@ export function extractImageUrl(html: string, pageUrl: string): string | null {
 }
 
 /**
+ * Pull a site's favicon URL out of an HTML document's `<head>`. Unlike `extractImageUrl` (which
+ * prefers the large `og:image` share card), this prefers declared icon links — highest-quality
+ * first (`apple-touch-icon` is typically a 180px PNG) — and only falls back to `og:image` when a
+ * page declares no icon at all. Relative URLs are resolved against `pageUrl`. Returns an absolute
+ * http(s) URL or null. Pure — unit-testable like `extractImageUrl`.
+ */
+export function extractFaviconUrl(html: string, pageUrl: string): string | null {
+  const candidates = [
+    linkHref(html, /rel=["'][^"']*\bapple-touch-icon\b[^"']*["']/i),
+    // Matches both `rel="icon"` and `rel="shortcut icon"`.
+    linkHref(html, /rel=["'][^"']*\bicon\b[^"']*["']/i),
+    metaContent(html, /(?:property|name)=["']og:image(?::url)?["']/i),
+  ];
+  for (const raw of candidates) {
+    if (!raw) continue;
+    const decoded = decodeEntities(raw).trim();
+    if (!decoded) continue;
+    try {
+      const resolved = new URL(decoded, pageUrl);
+      if (resolved.protocol === "http:" || resolved.protocol === "https:") return resolved.href;
+    }
+    catch {
+      // Skip a malformed candidate and try the next one.
+    }
+  }
+  return null;
+}
+
+/**
  * Reject non-http(s) URLs and obvious internal/loopback/private hosts. The image URL comes from a
  * third-party page, so it's treated as untrusted to limit SSRF on a private network.
  */
@@ -382,6 +411,15 @@ export async function downloadImage(url: string): Promise<Buffer | null> {
 export type OgImageResult = Buffer | "fetch_error" | "blocked" | "server_error" | "no_image" | "bad_image";
 
 /**
+ * The non-buffer outcomes of an entity-image grab — a typed reason no image could be stored. Shared
+ * by the website-favicon and YouTube-channel-avatar services so the outcome shape stays consistent.
+ */
+export type EntityImageGrabError = Exclude<OgImageResult, Buffer>;
+
+/** A successful grab returns the cache-busting serving URL; otherwise a typed failure. */
+export type EntityImageResult = { imageUrl: string } | "not_found" | EntityImageGrabError;
+
+/**
  * Fetch the page at `pageUrl`, find its preview image (og:image / twitter:image / icon), download
  * it, and return the raw bytes — or a typed error string describing why it failed.
  */
@@ -396,5 +434,33 @@ export async function fetchOgImage(pageUrl: string): Promise<OgImageResult> {
   const imageUrl = extractImageUrl(result.html, pageUrl);
   if (!imageUrl || !isPublicHttpUrl(imageUrl)) return "no_image";
   const bytes = await downloadImage(imageUrl);
+  return bytes ?? "bad_image";
+}
+
+/**
+ * Fetch the page at `pageUrl`, find its favicon (icon link, then `og:image`), download it, and
+ * return the raw bytes — or a typed error. Mirrors `fetchOgImage` but prefers declared icons via
+ * `extractFaviconUrl`, and as a last resort tries the conventional `/favicon.ico`.
+ */
+export async function fetchFaviconImage(pageUrl: string): Promise<OgImageResult> {
+  const result = await fetchHtml(pageUrl, /<\/head>/i);
+  if (result.kind === "timeout" || result.kind === "network_error" || result.kind === "no_body") {
+    return "fetch_error";
+  }
+  if (result.kind === "http_error") {
+    return result.status >= 500 ? "server_error" : "blocked";
+  }
+  let iconUrl = extractFaviconUrl(result.html, pageUrl);
+  if (!iconUrl) {
+    // Last resort: the well-known conventional location every browser probes.
+    try {
+      iconUrl = new URL("/favicon.ico", pageUrl).href;
+    }
+    catch {
+      return "no_image";
+    }
+  }
+  if (!isPublicHttpUrl(iconUrl)) return "no_image";
+  const bytes = await downloadImage(iconUrl);
   return bytes ?? "bad_image";
 }

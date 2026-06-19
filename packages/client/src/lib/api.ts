@@ -1,6 +1,9 @@
 import type {
   AutofillRule,
   Bookmark,
+  CreateDisplayPresetInput,
+  DisplayPreset,
+  UpdateDisplayPresetInput,
   CreateSavedFilterInput,
   SavedFilter,
   UpdateSavedFilterInput,
@@ -216,6 +219,14 @@ export const websitesApi = {
   remove: (id: string) => request<undefined>(`/websites/${id}`, {
     method: "DELETE",
   }),
+  autoImage: (id: string) =>
+    request<{ imageUrl: string }>(`/websites/${id}/image/auto`, {
+      method: "POST",
+    }),
+  deleteImage: (id: string) =>
+    request<undefined>(`/websites/${id}/image`, {
+      method: "DELETE",
+    }),
 };
 
 export const appSettingsApi = {
@@ -280,6 +291,14 @@ export const youtubeChannelsApi = {
   remove: (id: string) => request<undefined>(`/youtube-channels/${id}`, {
     method: "DELETE",
   }),
+  autoImage: (id: string) =>
+    request<{ imageUrl: string }>(`/youtube-channels/${id}/image/auto`, {
+      method: "POST",
+    }),
+  deleteImage: (id: string) =>
+    request<undefined>(`/youtube-channels/${id}/image`, {
+      method: "DELETE",
+    }),
 };
 
 export const customPropertiesApi = {
@@ -371,6 +390,23 @@ export const savedFiltersApi = {
       body: JSON.stringify(input),
     }),
   remove: (id: string) => request<undefined>(`/saved-filters/${id}`, {
+    method: "DELETE",
+  }),
+};
+
+export const displayPresetsApi = {
+  list: () => request<DisplayPreset[]>("/display-presets"),
+  create: (input: CreateDisplayPresetInput) =>
+    request<DisplayPreset>("/display-presets", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  update: (id: string, input: UpdateDisplayPresetInput) =>
+    request<DisplayPreset>(`/display-presets/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  remove: (id: string) => request<undefined>(`/display-presets/${id}`, {
     method: "DELETE",
   }),
 };
