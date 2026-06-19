@@ -32,8 +32,8 @@ export function YouTubeChannelCard({
           <div className="flex shrink-0 flex-col items-center gap-1">
             <span
               className="
-                flex size-12 shrink-0 items-center justify-center overflow-hidden
-                rounded-full bg-muted text-muted-foreground
+                flex size-12 shrink-0 items-center justify-center
+                overflow-hidden rounded-full bg-muted text-muted-foreground
               "
             >
               {showImage
@@ -53,7 +53,9 @@ export function YouTubeChannelCard({
                 variant="ghost"
                 size="sm"
                 disabled={autoAvatar.isPending || deleteAvatar.isPending}
-                onClick={() => autoAvatar.mutate(channel.id, { onSuccess: () => setImageFailed(false) })}
+                onClick={() => autoAvatar.mutate(channel.id, {
+                  onSuccess: () => setImageFailed(false),
+                })}
                 title={channel.imageUrl ? "Refresh avatar" : "Fetch avatar"}
               >
                 <Sparkles className="size-3" />
