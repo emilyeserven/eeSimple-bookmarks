@@ -45,11 +45,13 @@ const bookmark: Bookmark = {
     {
       id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
       name: "dev",
+      slug: "dev",
       parentId: null,
     },
     {
       id: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
       name: "tools",
+      slug: "tools",
       parentId: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
     },
   ],

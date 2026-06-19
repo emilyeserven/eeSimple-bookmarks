@@ -40,8 +40,15 @@ function BookmarkEditLayout() {
       onSuccess: () => {
         const slug = (categories ?? []).find(c => c.id === bookmark?.categoryId)?.slug;
         void (slug
-          ? navigate({ to: "/categories/$categorySlug", params: { categorySlug: slug } })
-          : navigate({ to: "/bookmarks" }));
+          ? navigate({
+            to: "/categories/$categorySlug",
+            params: {
+              categorySlug: slug,
+            },
+          })
+          : navigate({
+            to: "/bookmarks",
+          }));
       },
     });
   }

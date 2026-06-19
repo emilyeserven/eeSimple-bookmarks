@@ -181,17 +181,32 @@ interface BookmarkCrumbData {
 }
 
 function bookmarkCrumbs(pathname: string, data?: BookmarkCrumbData): BreadcrumbSegment[] {
-  const listCrumb: BreadcrumbSegment = { label: "Bookmarks", href: "/bookmarks" };
+  const listCrumb: BreadcrumbSegment = {
+    label: "Bookmarks",
+    href: "/bookmarks",
+  };
   const catCrumb: BreadcrumbSegment = data?.categorySlug
-    ? { label: data.categoryName ?? "Category", href: `/categories/${data.categorySlug}` }
-    : { label: data?.categoryName ?? "Category" };
-  const titleCrumb: BreadcrumbSegment = { label: data?.title ?? "Bookmark" };
+    ? {
+      label: data.categoryName ?? "Category",
+      href: `/categories/${data.categorySlug}`,
+    }
+    : {
+      label: data?.categoryName ?? "Category",
+    };
+  const titleCrumb: BreadcrumbSegment = {
+    label: data?.title ?? "Bookmark",
+  };
 
   const isEdit = pathname.includes("/edit");
   if (isEdit) {
     // link the title back to the detail view
     const detailHref = pathname.replace(/\/edit.*$/, "");
-    return [listCrumb, catCrumb, { ...titleCrumb, href: detailHref }, { label: "Edit" }];
+    return [listCrumb, catCrumb, {
+      ...titleCrumb,
+      href: detailHref,
+    }, {
+      label: "Edit",
+    }];
   }
   return [listCrumb, catCrumb, titleCrumb];
 }
@@ -243,13 +258,17 @@ export function AppHeader() {
   const categorySlug = pathname.startsWith("/categories/")
     ? (pathname.split("/").filter(Boolean)[1] ?? "")
     : "";
-  const { category } = useCategoryBySlug(categorySlug);
+  const {
+    category,
+  } = useCategoryBySlug(categorySlug);
 
   // Tag breadcrumbs
   const tagSlug = pathname.startsWith("/tags/")
     ? (pathname.split("/").filter(Boolean)[1] ?? "")
     : "";
-  const { data: tagTree } = useTagTree();
+  const {
+    data: tagTree,
+  } = useTagTree();
   const tagAncestors = tagSlug && tagTree
     ? (findAncestorPath(tagTree, tagSlug) ?? undefined)
     : undefined;
@@ -258,8 +277,12 @@ export function AppHeader() {
   const bookmarkId = pathname.startsWith("/bookmarks/")
     ? (pathname.split("/").filter(Boolean)[1] ?? "")
     : "";
-  const { data: bookmarkForCrumb } = useBookmark(bookmarkId);
-  const { data: allCategories } = useCategories();
+  const {
+    data: bookmarkForCrumb,
+  } = useBookmark(bookmarkId);
+  const {
+    data: allCategories,
+  } = useCategories();
   const bookmarkCategory = bookmarkForCrumb && allCategories
     ? allCategories.find(c => c.id === bookmarkForCrumb.categoryId)
     : undefined;
@@ -278,7 +301,9 @@ export function AppHeader() {
     && !pathname.includes("/edit")
     && pathname.startsWith("/bookmarks/");
 
-  const { open } = usePanelControls();
+  const {
+    open,
+  } = usePanelControls();
 
   return (
     <header
@@ -317,7 +342,9 @@ export function AppHeader() {
           >
             <Link
               to="/bookmarks/$bookmarkId/edit/general"
-              params={{ bookmarkId }}
+              params={{
+                bookmarkId,
+              }}
             >
               Edit
             </Link>

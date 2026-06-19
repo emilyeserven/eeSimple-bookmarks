@@ -51,7 +51,9 @@ export function BookmarkDetailBody({
               ? (
                 <Link
                   to="/taxonomies/websites/$websiteSlug"
-                  params={{ websiteSlug: bookmark.website.slug }}
+                  params={{
+                    websiteSlug: bookmark.website.slug,
+                  }}
                   className="hover:underline"
                 >
                   {bookmark.website.siteName} ({bookmark.website.domain})
@@ -65,7 +67,9 @@ export function BookmarkDetailBody({
               ? (
                 <Link
                   to="/taxonomies/media-types/$mediaTypeSlug"
-                  params={{ mediaTypeSlug: bookmark.mediaType.slug }}
+                  params={{
+                    mediaTypeSlug: bookmark.mediaType.slug,
+                  }}
                   className="hover:underline"
                 >
                   {bookmark.mediaType.name}
@@ -79,7 +83,9 @@ export function BookmarkDetailBody({
               ? (
                 <Link
                   to="/taxonomies/youtube-channels/$channelSlug"
-                  params={{ channelSlug: bookmark.youtubeChannel.slug }}
+                  params={{
+                    channelSlug: bookmark.youtubeChannel.slug,
+                  }}
                   className="hover:underline"
                 >
                   {bookmark.youtubeChannel.name}
@@ -98,8 +104,19 @@ export function BookmarkDetailBody({
               <ul className="flex flex-wrap gap-1">
                 {bookmark.tags.map(tag => (
                   <li key={tag.id}>
-                    <Link to="/tags/$tagSlug" params={{ tagSlug: tag.slug }}>
-                      <Badge variant="secondary" className="cursor-pointer hover:opacity-80">
+                    <Link
+                      to="/tags/$tagSlug"
+                      params={{
+                        tagSlug: tag.slug,
+                      }}
+                    >
+                      <Badge
+                        variant="secondary"
+                        className="
+                          cursor-pointer
+                          hover:opacity-80
+                        "
+                      >
                         {tag.name}
                       </Badge>
                     </Link>

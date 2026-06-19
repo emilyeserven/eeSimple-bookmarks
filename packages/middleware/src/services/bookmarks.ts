@@ -44,6 +44,7 @@ import { ensureWebsiteForUrl, getWebsiteByAnyDomain, normalizeDomain } from "@/s
 import { fetchYouTubeMetadata, isYouTubeVideoUrl, parseYouTubeVideo, type YouTubeMetadata } from "@/services/youtube";
 import { channelKeyFromUrl, ensureYouTubeChannel } from "@/services/youtubeChannels";
 import { isObjectStoreConfigured } from "@/utils/objectStore";
+import { slugify } from "@/utils/slug";
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
@@ -201,7 +202,7 @@ async function tagsByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Book
     list.push({
       id: row.id,
       name: row.name,
-      slug: row.slug,
+      slug: row.slug ?? slugify(row.name),
       parentId: row.parentId,
     });
     grouped.set(row.bookmarkId, list);
