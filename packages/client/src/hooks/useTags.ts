@@ -1,9 +1,9 @@
 import type { CreateTagInput, UpdateTagInput } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 
 import { tagsApi } from "../lib/api";
+import { notifySuccess } from "../lib/notifications";
 import { flattenTree } from "../lib/tagTree";
 
 const TAGS_KEY = ["tags"] as const;
@@ -76,7 +76,7 @@ export function useDeleteTag() {
     mutationFn: (id: string) => tagsApi.remove(id),
     onSuccess: () => {
       invalidate();
-      toast.success("Tag deleted");
+      notifySuccess("Tag deleted");
     },
   });
 }

@@ -1,9 +1,9 @@
 import type { BulkUrlUpdate, CreateBookmarkInput, UpdateBookmarkInput, UpdateBookmarkRelationshipsInput } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 
 import { bookmarksApi } from "../lib/api";
+import { notifyError, notifySuccess } from "../lib/notifications";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
 
@@ -74,7 +74,7 @@ export function useDeleteBookmark() {
       void queryClient.invalidateQueries({
         queryKey: BOOKMARKS_KEY,
       });
-      toast.success("Bookmark deleted");
+      notifySuccess("Bookmark deleted");
     },
   });
 }
@@ -90,7 +90,7 @@ export function useUploadBookmarkImage() {
     onSuccess: () => queryClient.invalidateQueries({
       queryKey: BOOKMARKS_KEY,
     }),
-    onError: (err: Error) => toast.error(err.message || "Could not upload that image"),
+    onError: (err: Error) => notifyError(err.message || "Could not upload that image"),
   });
 }
 
@@ -103,13 +103,13 @@ export function useAutoBookmarkImage() {
       void queryClient.invalidateQueries({
         queryKey: BOOKMARKS_KEY,
       });
-      toast.success("Page image fetched");
+      notifySuccess("Page image fetched");
     },
     onError: (err: Error) => {
       void queryClient.invalidateQueries({
         queryKey: BOOKMARKS_KEY,
       });
-      toast.error(err.message || "Could not fetch a preview image");
+      notifyError(err.message || "Could not fetch a preview image");
     },
   });
 }
@@ -122,7 +122,7 @@ export function useDeleteBookmarkImage() {
     onSuccess: () => queryClient.invalidateQueries({
       queryKey: BOOKMARKS_KEY,
     }),
-    onError: (err: Error) => toast.error(err.message || "Could not remove the image"),
+    onError: (err: Error) => notifyError(err.message || "Could not remove the image"),
   });
 }
 

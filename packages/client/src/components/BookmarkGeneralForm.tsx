@@ -7,7 +7,6 @@ import type {
 import { useRef, useState } from "react";
 
 import { Brush, Loader2, Sparkles } from "lucide-react";
-import { toast } from "sonner";
 
 import { AddCategoryModal } from "./AddCategoryModal";
 import { BookmarkAutofillOffer } from "./BookmarkAutofillOffer";
@@ -26,6 +25,7 @@ import { useBookmarkFormData } from "./useBookmarkFormData";
 import { useBookmarkUrlProcessing } from "./useBookmarkUrlProcessing";
 import { WebsiteLookupBanner } from "./WebsiteLookupBanner";
 import { useAppForm } from "../lib/form";
+import { notifySuccess } from "../lib/notifications";
 import { isFetchableUrl } from "../lib/url";
 
 import { Button } from "@/components/ui/button";
@@ -117,7 +117,7 @@ export function BookmarkGeneralForm({
           }),
         },
       });
-      toast.success("Changes saved");
+      notifySuccess("Changes saved");
     },
   });
 

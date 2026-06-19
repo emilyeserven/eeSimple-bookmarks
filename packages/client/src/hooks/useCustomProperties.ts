@@ -4,9 +4,9 @@ import type {
 } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 
 import { customPropertiesApi } from "../lib/api";
+import { notifySuccess } from "../lib/notifications";
 
 const PROPERTIES_KEY = ["custom-properties"] as const;
 const BOOKMARKS_KEY = ["bookmarks"] as const;
@@ -70,7 +70,7 @@ export function useDeleteCustomProperty() {
       void queryClient.invalidateQueries({
         queryKey: BOOKMARKS_KEY,
       });
-      toast.success("Property deleted");
+      notifySuccess("Property deleted");
     },
   });
 }

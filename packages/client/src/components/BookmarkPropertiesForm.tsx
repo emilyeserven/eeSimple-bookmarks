@@ -3,12 +3,12 @@ import type { Bookmark } from "@eesimple/types";
 import { useRef, useState } from "react";
 
 import { propertyAppliesToCategory } from "@eesimple/types";
-import { toast } from "sonner";
 
 import { CategoryCustomFields } from "./BookmarkCustomFields";
 import { buildCategoryPropertyValues, VIDEO_LENGTH_SLUG } from "./bookmarkFormSchema";
 import { useUpdateBookmark } from "../hooks/useBookmarks";
 import { useCustomProperties } from "../hooks/useCustomProperties";
+import { notifySuccess } from "../lib/notifications";
 
 import { Button } from "@/components/ui/button";
 
@@ -82,7 +82,7 @@ export function BookmarkPropertiesForm({
           dateTimeValues,
         },
       });
-      toast.success("Changes saved");
+      notifySuccess("Changes saved");
     }
     finally {
       setIsPending(false);
