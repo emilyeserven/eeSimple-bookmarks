@@ -57,7 +57,13 @@ export function WebsiteConditionEditor({
       value: w.domain,
       label: w.siteName ?? w.domain,
       icon: w.imageUrl
-        ? <img src={w.imageUrl} alt="" className="size-4 shrink-0 rounded-sm object-contain" />
+        ? (
+          <img
+            src={w.imageUrl}
+            alt=""
+            className="size-4 shrink-0 rounded-sm object-contain"
+          />
+        )
         : <Globe className="size-4 shrink-0 text-muted-foreground" />,
     })),
     ...value.domains

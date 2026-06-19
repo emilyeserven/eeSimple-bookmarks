@@ -99,13 +99,18 @@ export function TreeMultiCombobox({
             value={node.value}
             onSelect={() => toggle(node.value)}
             className="flex items-center gap-1.5 pr-2"
-            style={{ paddingLeft: `${0.5 + depth * 1}rem` }}
+            style={{
+              paddingLeft: `${0.5 + depth * 1}rem`,
+            }}
           >
             {hasChildren
               ? (
                 <button
                   type="button"
-                  className="shrink-0 rounded p-0.5 hover:bg-accent"
+                  className="
+                    shrink-0 rounded-sm p-0.5
+                    hover:bg-accent
+                  "
                   onClick={(e) => {
                     e.stopPropagation();
                     toggleExpand(node.value);
@@ -129,7 +134,7 @@ export function TreeMultiCombobox({
               )}
             />
           </CommandItem>
-          {hasChildren && isExpanded && renderTreeItems(node.children!, depth + 1)}
+          {hasChildren && isExpanded && renderTreeItems(node.children ?? [], depth + 1)}
         </React.Fragment>
       );
     });
@@ -168,7 +173,7 @@ export function TreeMultiCombobox({
   const flatFiltered = isSearching
     ? allNodes.filter(n => n.label.toLowerCase().includes(searchTerm.toLowerCase()))
     : null;
-  const isEmpty = isSearching && flatFiltered!.length === 0;
+  const isEmpty = isSearching && (flatFiltered?.length ?? 0) === 0;
 
   return (
     <Popover

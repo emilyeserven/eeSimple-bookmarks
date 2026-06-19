@@ -1,9 +1,8 @@
+import type { TreeComboboxOption } from "./TreeMultiCombobox";
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
 import type { Bookmark, Category, CustomProperty, MediaType, PropertyGroup, TagNode, YouTubeChannel } from "@eesimple/types";
 
 import { Ban, ChevronDown, Circle, CircleDot, MonitorPlay, TriangleAlert } from "lucide-react";
-
-import type { TreeComboboxOption } from "./TreeMultiCombobox";
 
 import { CustomPropertyFilters } from "./CustomPropertyFilters";
 import { MultiCombobox } from "./MultiCombobox";
@@ -312,7 +311,10 @@ function toMediaTypeTree(flat: MediaType[]): TreeComboboxOption[] {
     children: flat
       .filter(m => m.parentId === root.id)
       .sort((a, b) => a.sortOrder - b.sortOrder)
-      .map(child => ({ value: child.id, label: child.name })),
+      .map(child => ({
+        value: child.id,
+        label: child.name,
+      })),
   }));
 }
 
@@ -387,7 +389,13 @@ function YouTubeChannelFilterSection({
     value: channel.id,
     label: channel.name,
     icon: channel.imageUrl
-      ? <img src={channel.imageUrl} alt="" className="size-4 shrink-0 rounded-full object-cover" />
+      ? (
+        <img
+          src={channel.imageUrl}
+          alt=""
+          className="size-4 shrink-0 rounded-full object-cover"
+        />
+      )
       : <MonitorPlay className="size-4 shrink-0 text-muted-foreground" />,
   }));
   const selected = search.youtubeChannels ?? [];
