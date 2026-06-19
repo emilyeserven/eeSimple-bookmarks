@@ -7,17 +7,17 @@ import { persist } from "zustand/middleware";
 /** The user's theme preference. `system` follows the OS `prefers-color-scheme`. */
 export type Theme = "light" | "dark" | "system";
 
+/** Image size on the bookmark detail page. */
+export type BookmarkDetailImageSize = "small" | "medium" | "large";
+
+/** Video size on the bookmark detail page. "fullwidth" removes the side-by-side cap so the embed fills the container width. */
+export type BookmarkDetailVideoSize = "standard" | "fullwidth";
+
 /** Modifier key that, held while clicking an Edit button, opens the item in the right-hand sidebar. */
 export type SidebarOpenModifier = "alt" | "ctrl" | "shift" | "meta";
 
 /** Per-section image layout preference for 2-column homepage sections. */
 export type HomepageSectionImageLayout = "above" | "side";
-
-/** Bookmark detail page image size preference. */
-export type BookmarkDetailImageSize = "small" | "medium" | "large";
-
-/** Bookmark detail page video size preference: constrained side-by-side or full-width stacked. */
-export type BookmarkDetailVideoSize = "standard" | "fullwidth";
 
 /** Per-listing image visibility on Listings pages: full card, image-only, or no image. */
 export type BookmarkImageVisibility = "shown" | "image-only" | "off";
