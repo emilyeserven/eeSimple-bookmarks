@@ -1,4 +1,4 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute, useRouterState } from "@tanstack/react-router";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useDeleteYouTubeChannel, useYouTubeChannelBySlug } from "../hooks/useYouTubeChannels";
@@ -20,11 +20,19 @@ const viewNav = [
   },
 ] as const;
 
+const VIEW_TO_EDIT = {
+  general: "/taxonomies/youtube-channels/$channelSlug/edit/general",
+  autofill: "/taxonomies/youtube-channels/$channelSlug/edit/autofill",
+} as const;
+type ChannelEditRoute = typeof VIEW_TO_EDIT[keyof typeof VIEW_TO_EDIT];
+
 function YouTubeChannelViewLayout() {
   const {
     channelSlug,
   } = Route.useParams();
   const navigate = Route.useNavigate();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const editRoute: ChannelEditRoute = (VIEW_TO_EDIT[pathname.split("/").at(-1) as keyof typeof VIEW_TO_EDIT] ?? VIEW_TO_EDIT.general) as ChannelEditRoute;
   const {
     channel, isLoading,
   } = useYouTubeChannelBySlug(channelSlug);
@@ -63,7 +71,7 @@ function YouTubeChannelViewLayout() {
                     size="sm"
                   >
                     <Link
-                      to="/taxonomies/youtube-channels/$channelSlug/edit/general"
+                      to={editRoute}
                       params={{
                         channelSlug,
                       }}

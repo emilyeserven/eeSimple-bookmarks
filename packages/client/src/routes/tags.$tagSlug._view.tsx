@@ -1,4 +1,4 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute, useRouterState } from "@tanstack/react-router";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useDeleteTag, useTagBySlug } from "../hooks/useTags";
@@ -24,11 +24,20 @@ const viewNav = [
   },
 ] as const;
 
+// "hierarchy" is view-only; clicking Edit from there falls back to "general".
+const VIEW_TO_EDIT = {
+  general: "/tags/$tagSlug/edit/general",
+  autofill: "/tags/$tagSlug/edit/autofill",
+} as const;
+type TagEditRoute = typeof VIEW_TO_EDIT[keyof typeof VIEW_TO_EDIT];
+
 function TagViewLayout() {
   const {
     tagSlug,
   } = Route.useParams();
   const navigate = Route.useNavigate();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const editRoute: TagEditRoute = (VIEW_TO_EDIT[pathname.split("/").at(-1) as keyof typeof VIEW_TO_EDIT] ?? VIEW_TO_EDIT.general) as TagEditRoute;
   const {
     tag, isLoading,
   } = useTagBySlug(tagSlug);
@@ -60,7 +69,7 @@ function TagViewLayout() {
                     size="sm"
                   >
                     <Link
-                      to="/tags/$tagSlug/edit/general"
+                      to={editRoute}
                       params={{
                         tagSlug,
                       }}

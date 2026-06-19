@@ -1,4 +1,4 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute, useRouterState } from "@tanstack/react-router";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useCategoryBySlug, useDeleteCategory } from "../hooks/useCategories";
@@ -10,6 +10,14 @@ import { CategoryIcon } from "@/lib/icons";
 export const Route = createFileRoute("/categories/$categorySlug/_view")({
   component: CategoryViewLayout,
 });
+
+const VIEW_TO_EDIT = {
+  general: "/categories/$categorySlug/edit/general",
+  "tiered-tags": "/categories/$categorySlug/edit/tiered-tags",
+  "custom-properties": "/categories/$categorySlug/edit/custom-properties",
+  autofill: "/categories/$categorySlug/edit/autofill",
+} as const;
+type CategoryEditRoute = typeof VIEW_TO_EDIT[keyof typeof VIEW_TO_EDIT];
 
 const viewNav = [
   {
@@ -35,6 +43,8 @@ function CategoryViewLayout() {
     categorySlug,
   } = Route.useParams();
   const navigate = Route.useNavigate();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const editRoute: CategoryEditRoute = (VIEW_TO_EDIT[pathname.split("/").at(-1) as keyof typeof VIEW_TO_EDIT] ?? VIEW_TO_EDIT.general) as CategoryEditRoute;
   const {
     category, isLoading,
   } = useCategoryBySlug(categorySlug);
@@ -75,7 +85,7 @@ function CategoryViewLayout() {
                     size="sm"
                   >
                     <Link
-                      to="/categories/$categorySlug/edit/general"
+                      to={editRoute}
                       params={{
                         categorySlug,
                       }}

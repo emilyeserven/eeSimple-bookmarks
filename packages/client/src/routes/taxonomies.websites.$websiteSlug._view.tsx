@@ -1,4 +1,4 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute, useRouterState } from "@tanstack/react-router";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useDeleteWebsite, useWebsiteBySlug } from "../hooks/useWebsites";
@@ -29,11 +29,21 @@ const viewNav = [
   },
 ] as const;
 
+const VIEW_TO_EDIT = {
+  general: "/taxonomies/websites/$websiteSlug/edit/general",
+  "shortened-links": "/taxonomies/websites/$websiteSlug/edit/shortened-links",
+  "param-rules": "/taxonomies/websites/$websiteSlug/edit/param-rules",
+  autofill: "/taxonomies/websites/$websiteSlug/edit/autofill",
+} as const;
+type WebsiteEditRoute = typeof VIEW_TO_EDIT[keyof typeof VIEW_TO_EDIT];
+
 function WebsiteViewLayout() {
   const {
     websiteSlug,
   } = Route.useParams();
   const navigate = Route.useNavigate();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const editRoute: WebsiteEditRoute = (VIEW_TO_EDIT[pathname.split("/").at(-1) as keyof typeof VIEW_TO_EDIT] ?? VIEW_TO_EDIT.general) as WebsiteEditRoute;
   const {
     website, isLoading,
   } = useWebsiteBySlug(websiteSlug);
@@ -70,7 +80,7 @@ function WebsiteViewLayout() {
                     size="sm"
                   >
                     <Link
-                      to="/taxonomies/websites/$websiteSlug/edit/general"
+                      to={editRoute}
                       params={{
                         websiteSlug,
                       }}
