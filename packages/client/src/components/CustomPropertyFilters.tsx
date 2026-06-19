@@ -101,7 +101,7 @@ function PresenceFilterControl({
       size="sm"
       value={toggleValue}
       onValueChange={handleChange}
-      className="group/presence rounded-sm ring-1 ring-border"
+      className="group/presence rounded-sm ring-1 ring-border gap-0"
     >
       <Tooltip>
         <TooltipTrigger asChild>
