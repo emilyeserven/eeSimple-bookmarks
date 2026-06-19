@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
-import { Plus } from "lucide-react";
 
 import { AddCustomPropertyModal } from "./AddCustomPropertyModal";
 import { PropertyPreview } from "./PropertyPreview";
@@ -13,7 +12,6 @@ import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
 import { COLUMN_CLASS, useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
 import { TYPE_LABELS } from "../lib/propertyFormat";
 
-import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { useUiStore } from "@/stores/uiStore";
 
@@ -24,7 +22,7 @@ export function CustomPropertyManager() {
   } = useCustomProperties();
   const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
-  useSetListingPage("custom-properties-listing");
+  useSetListingPage("custom-properties-listing", false, false, false, () => setModalOpen(true));
   useRegisterHeaderSearch();
   const columns = useBookmarkColumns("custom-properties-listing");
   const viewMode = useViewMode("custom-properties-listing");
@@ -43,17 +41,6 @@ export function CustomPropertyManager() {
 
   return (
     <section className="space-y-4">
-      <div className="flex justify-end">
-        <Button
-          type="button"
-          size="sm"
-          onClick={() => setModalOpen(true)}
-        >
-          <Plus className="size-4" />
-          New property
-        </Button>
-      </div>
-
       {isLoading ? <p className="text-muted-foreground">Loading custom properties…</p> : null}
       {error ? <p className="text-destructive">{error.message}</p> : null}
       {!isLoading && !error && filtered.length === 0

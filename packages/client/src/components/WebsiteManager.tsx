@@ -1,7 +1,6 @@
 import { useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
-import { Plus } from "lucide-react";
 
 import { AddWebsiteModal } from "./AddWebsiteModal";
 import { useTableRowNav } from "./tables/useTableRowNav";
@@ -12,7 +11,6 @@ import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
 import { useWebsites } from "../hooks/useWebsites";
 import { COLUMN_CLASS, useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
 
-import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { useUiStore } from "@/stores/uiStore";
 
@@ -22,7 +20,7 @@ export function WebsitesListing() {
     data: allWebsites, isLoading, error,
   } = useWebsites();
   const [modalOpen, setModalOpen] = useState(false);
-  useSetListingPage("websites-listing");
+  useSetListingPage("websites-listing", false, false, false, () => setModalOpen(true));
   useRegisterHeaderSearch();
   const columns = useBookmarkColumns("websites-listing");
   const viewMode = useViewMode("websites-listing");
@@ -40,19 +38,6 @@ export function WebsitesListing() {
   return (
     <div className="space-y-4">
       <div className="space-y-4">
-        <div className="flex items-center gap-4">
-          <div className="ml-auto">
-            <Button
-              type="button"
-              size="sm"
-              onClick={() => setModalOpen(true)}
-            >
-              <Plus className="size-4" />
-              New website
-            </Button>
-          </div>
-        </div>
-
         {q && filtered.length < (allWebsites?.length ?? 0)
           ? (
             <p className="text-sm text-muted-foreground">

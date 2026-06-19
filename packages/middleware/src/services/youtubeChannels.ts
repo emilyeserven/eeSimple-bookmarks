@@ -1,5 +1,5 @@
 import { asc, eq, inArray, isNull, ne } from "drizzle-orm";
-import type { UpdateYouTubeChannelInput, YouTubeChannel } from "@eesimple/types";
+import type { CreateYouTubeChannelInput, UpdateYouTubeChannelInput, YouTubeChannel } from "@eesimple/types";
 import { db } from "@/db";
 import { bookmarks, categories, type YouTubeChannelRow, youtubeChannelImages, youtubeChannelSelfIds, youtubeChannelTags, youtubeChannels } from "@/db/schema";
 import { buildStringMap } from "@/utils/mapUtils";
@@ -24,6 +24,22 @@ export class DuplicateYouTubeChannelError extends Error {
   constructor(name: string) {
     super(`A channel named "${name}" already exists`);
     this.name = "DuplicateYouTubeChannelError";
+  }
+}
+
+/** Thrown when the provided channel URL cannot be parsed into a channel key. */
+export class InvalidChannelUrlError extends Error {
+  constructor(url: string) {
+    super(`"${url}" is not a valid YouTube channel URL`);
+    this.name = "InvalidChannelUrlError";
+  }
+}
+
+/** Thrown when trying to create a channel whose key already exists in the database. */
+export class DuplicateChannelKeyError extends Error {
+  constructor(channelKey: string) {
+    super(`A channel with the key "${channelKey}" already exists`);
+    this.name = "DuplicateChannelKeyError";
   }
 }
 
@@ -340,6 +356,28 @@ export async function deleteYouTubeChannel(id: string): Promise<boolean> {
     id: youtubeChannels.id,
   });
   return rows.length > 0;
+}
+
+/**
+ * Create a YouTube channel by hand from a channel URL and display name.
+ * Throws `InvalidChannelUrlError` when the URL yields no usable channel key,
+ * and `DuplicateChannelKeyError` when a channel with that key already exists.
+ */
+export async function createYouTubeChannel(input: CreateYouTubeChannelInput): Promise<YouTubeChannel> {
+  const channelKey = channelKeyFromUrl(input.channelUrl.trim());
+  if (!channelKey) throw new InvalidChannelUrlError(input.channelUrl);
+
+  const existing = await getYouTubeChannelByKey(channelKey);
+  if (existing) throw new DuplicateChannelKeyError(channelKey);
+
+  const name = input.name.trim();
+  const slug = uniqueSlug(name, await takenSlugs());
+  const [row] = await db
+    .insert(youtubeChannels)
+    .values({ channelKey, name, slug })
+    .returning({ id: youtubeChannels.id });
+
+  return (await getYouTubeChannel(row.id))!;
 }
 
 /** Fill in slugs for any channels missing one (e.g. rows that predate the `slug` column). */

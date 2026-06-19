@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import type { UpdateYouTubeChannelInput } from "@eesimple/types";
+import type { CreateYouTubeChannelInput, UpdateYouTubeChannelInput } from "@eesimple/types";
 import {
   fetchAndStoreChannelImage,
   getYouTubeChannelImageRow,
@@ -7,8 +7,11 @@ import {
   setYouTubeChannelImageFromBytes,
 } from "@/services/youtubeChannelImages";
 import {
+  createYouTubeChannel,
   deleteYouTubeChannel,
+  DuplicateChannelKeyError,
   DuplicateYouTubeChannelError,
+  InvalidChannelUrlError,
   listYouTubeChannels,
   updateYouTubeChannel,
 } from "@/services/youtubeChannels";
@@ -63,6 +66,16 @@ const updateChannelBody = {
   },
 } as const;
 
+const createChannelBody = {
+  type: "object",
+  required: ["channelUrl", "name"],
+  additionalProperties: false,
+  properties: {
+    channelUrl: { type: "string", minLength: 1 },
+    name: { type: "string", minLength: 1 },
+  },
+} as const;
+
 /** Routes for the built-in YouTube Channels taxonomy, mounted under `/api/youtube-channels`. */
 export async function youtubeChannelRoutes(app: FastifyInstance): Promise<void> {
   app.get("/api/youtube-channels", {
@@ -70,6 +83,27 @@ export async function youtubeChannelRoutes(app: FastifyInstance): Promise<void> 
       tags: ["youtube-channels"],
     },
   }, async () => listYouTubeChannels());
+
+  app.post("/api/youtube-channels", {
+    schema: {
+      tags: ["youtube-channels"],
+      body: createChannelBody,
+    },
+  }, async (req, reply) => {
+    try {
+      const channel = await createYouTubeChannel(req.body as CreateYouTubeChannelInput);
+      return reply.code(201).send(channel);
+    }
+    catch (err) {
+      if (err instanceof InvalidChannelUrlError) {
+        return reply.code(400).send({ message: err.message });
+      }
+      if (err instanceof DuplicateChannelKeyError) {
+        return reply.code(409).send({ message: "A channel with this URL already exists" });
+      }
+      throw err;
+    }
+  });
 
   app.patch("/api/youtube-channels/:id", {
     schema: {

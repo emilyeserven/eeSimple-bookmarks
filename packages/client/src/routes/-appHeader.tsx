@@ -3,7 +3,7 @@ import type { TagNode } from "@eesimple/types";
 import React from "react";
 
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Info, PanelRight } from "lucide-react";
+import { Info, PanelRight, Plus } from "lucide-react";
 
 import { CardOptionsPopover } from "@/components/CardOptionsPopover";
 import { FilterLocationPopover } from "@/components/FilterLocationPopover";
@@ -533,6 +533,22 @@ export function AppHeader() {
     toolbarActions.push({
       key: "view-details",
       node: infoButton,
+    });
+  }
+  if (listingPage?.createAction) {
+    toolbarActions.push({
+      key: "create",
+      node: (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label="New"
+          onClick={listingPage.createAction}
+        >
+          <Plus className="size-4" />
+        </Button>
+      ),
     });
   }
   toolbarActions.push({
