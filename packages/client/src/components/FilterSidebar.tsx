@@ -7,8 +7,10 @@ import { ChevronDown, ChevronUp, PanelRight } from "lucide-react";
 
 import { FilterSections } from "./FilterSidebarSections";
 import { usePanelControls } from "./panel/usePanelControls";
+import { SavedFiltersSection } from "./SavedFiltersSection";
 
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 interface FilterSidebarProps {
@@ -94,6 +96,13 @@ export function FilterSidebar({
         : null}
 
       <div className={cn("space-y-8", !open && "hidden", "lg:block")}>
+        <SavedFiltersSection
+          search={search}
+          onSearchChange={onSearchChange}
+        />
+
+        {hasFilters ? <Separator /> : null}
+
         <FilterSections
           tree={tree}
           enabledProperties={enabledProperties}

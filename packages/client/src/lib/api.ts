@@ -1,6 +1,9 @@
 import type {
   AutofillRule,
   Bookmark,
+  CreateSavedFilterInput,
+  SavedFilter,
+  UpdateSavedFilterInput,
   BookmarkImage,
   BookmarkUrlDuplicateResult,
   BookmarkUrlSummary,
@@ -347,6 +350,23 @@ export const homepageSectionsApi = {
       }),
     }),
   withBookmarks: () => request<HomepageSectionBookmarks[]>("/bookmarks/homepage-sections"),
+};
+
+export const savedFiltersApi = {
+  list: () => request<SavedFilter[]>("/saved-filters"),
+  create: (input: CreateSavedFilterInput) =>
+    request<SavedFilter>("/saved-filters", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  update: (id: string, input: UpdateSavedFilterInput) =>
+    request<SavedFilter>(`/saved-filters/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  remove: (id: string) => request<undefined>(`/saved-filters/${id}`, {
+    method: "DELETE",
+  }),
 };
 
 export const autofillApi = {

@@ -807,6 +807,24 @@ export interface CheckUrlResult {
   reason?: "timeout" | "http_error" | "network_error";
 }
 
+/** A named snapshot of bookmark listing filter state, reusable on any listing page. */
+export interface SavedFilter {
+  id: string;
+  name: string;
+  description: string | null;
+  /** Serialized `BookmarkSearch` — typed generically so the middleware stays decoupled from the client's URL-state type. */
+  filters: Record<string, unknown>;
+  createdAt: string;
+}
+
+export interface CreateSavedFilterInput {
+  name: string;
+  description?: string | null;
+  filters: Record<string, unknown>;
+}
+
+export type UpdateSavedFilterInput = Partial<CreateSavedFilterInput>;
+
 /** Standard error shape returned by the API. */
 export interface ApiError {
   error: string;
