@@ -21,6 +21,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useBookmark } from "@/hooks/useBookmarks";
 import { useCategories, useCategoryBySlug } from "@/hooks/useCategories";
 import { useTagTree } from "@/hooks/useTags";
+import { useWebsiteBySlug } from "@/hooks/useWebsites";
 import { findAncestorPath } from "@/lib/tagTree";
 import { useUiStore } from "@/stores/uiStore";
 
@@ -48,12 +49,14 @@ const CATEGORY_EDIT_SUBLABELS: Record<string, string> = {
   "autofill": "Autofill",
 };
 
+const WEBSITE_EDIT_SUBLABELS: Record<string, string> = {
+  "general": "General",
+  "shortened-links": "Shortened Links",
+  "param-rules": "Param Rules",
+  "autofill": "Autofill Rules",
+};
+
 const TAXONOMY_CRUMBS = [
-  {
-    prefix: "/taxonomies/websites",
-    listLabel: "Websites",
-    detailLabel: "Website",
-  },
   {
     prefix: "/taxonomies/media-types",
     listLabel: "Media Types",
@@ -75,6 +78,35 @@ const TAXONOMY_CRUMBS = [
     detailLabel: "Rule",
   },
 ] as const;
+
+function websiteCrumbs(pathname: string, websiteName?: string): BreadcrumbSegment[] {
+  const parts = pathname.split("/").filter(Boolean);
+  // `/taxonomies/websites` — the listing page.
+  if (parts.length === 2) return [{
+    label: "Websites",
+  }];
+  const listCrumb: BreadcrumbSegment = {
+    label: "Websites",
+    href: "/taxonomies/websites",
+  };
+  const siteLabel = websiteName ?? "Website";
+  // View tabs (no `edit` segment in path)
+  if (parts[3] !== "edit") {
+    return [listCrumb, {
+      label: siteLabel,
+    }];
+  }
+  // `/taxonomies/websites/$slug/edit/<tab>` — link name back to its view.
+  const sectionLabel = parts.length > 4
+    ? (WEBSITE_EDIT_SUBLABELS[parts[4]] ?? parts[4])
+    : "Edit";
+  return [listCrumb, {
+    label: siteLabel,
+    href: `/taxonomies/websites/${parts[2]}/general`,
+  }, {
+    label: sectionLabel,
+  }];
+}
 
 function settingsCrumbs(pathname: string): BreadcrumbSegment[] {
   const rest = pathname.slice("/settings".length).replace(/^\//, "");
@@ -219,6 +251,7 @@ function breadcrumbsForPath(
   categoryName?: string,
   tagAncestors?: TagNode[],
   bookmarkData?: BookmarkCrumbData,
+  websiteName?: string,
 ): BreadcrumbSegment[] {
   if (pathname === "/") return [{
     label: "Home",
@@ -232,6 +265,8 @@ function breadcrumbsForPath(
   if (pathname === "/categories" || pathname.startsWith("/categories/"))
     return categoryCrumbs(pathname, categoryName);
   if (pathname === "/tags" || pathname.startsWith("/tags/")) return tagCrumbs(pathname, tagAncestors);
+  if (pathname === "/taxonomies/websites" || pathname.startsWith("/taxonomies/websites/"))
+    return websiteCrumbs(pathname, websiteName);
 
   const taxonomy = TAXONOMY_CRUMBS.find(t => pathname.startsWith(t.prefix));
   if (taxonomy) {
@@ -275,6 +310,14 @@ export function AppHeader() {
     ? (findAncestorPath(tagTree, tagSlug) ?? undefined)
     : undefined;
 
+  // Website breadcrumbs
+  const websiteSlug = pathname.startsWith("/taxonomies/websites/")
+    ? (pathname.split("/").filter(Boolean)[2] ?? "")
+    : "";
+  const {
+    website,
+  } = useWebsiteBySlug(websiteSlug);
+
   // Bookmark breadcrumbs — extract bookmarkId from /bookmarks/$id[/...]
   const bookmarkId = pathname.startsWith("/bookmarks/")
     ? (pathname.split("/").filter(Boolean)[1] ?? "")
@@ -296,7 +339,7 @@ export function AppHeader() {
     }
     : undefined;
 
-  const crumbs = breadcrumbsForPath(pathname, category?.name, tagAncestors, bookmarkData);
+  const crumbs = breadcrumbsForPath(pathname, category?.name, tagAncestors, bookmarkData, website?.siteName);
 
   // Show Edit button in the header only on the bookmark detail page (not edit pages)
   const isBookmarkDetail = Boolean(bookmarkId)
