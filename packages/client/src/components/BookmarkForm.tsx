@@ -388,6 +388,37 @@ export function BookmarkForm({
     },
   });
 
+  function handleReset(): void {
+    form.reset();
+    setNumberInputs({});
+    setBooleanInputs({});
+    setDateTimeInputs({});
+    setWebsiteSiteName("");
+    channelHintRef.current = null;
+    setYoutubeChannel(null);
+    setUrlShortener({
+      nudge: false,
+      expandedUrl: null,
+    });
+    setUrlCleanup(null);
+    imageIntentRef.current = initialImageIntent(autoFetchImage);
+    setImageFieldKey(key => key + 1);
+    setShowUrlCleanup(false);
+    setUrlCleanupMode("none");
+    setScanned(false);
+    setUrlDuplicate(null);
+    setAutofillOfferDismissed(false);
+    quickAddRef.current = false;
+    touchedRef.current = new Set();
+    ruleSetRef.current = {
+      numbers: new Set(),
+      booleans: new Set(),
+      dateTimes: new Set(),
+    };
+    lastAutoCategoryRef.current = "";
+    setTitleFetch(null);
+  }
+
   // Custom-property change handlers, shared by the main-form and Advanced field groups. Marking the
   // field touched stops autofill/category-defaults from later overwriting the user's entry.
   function handleNumberChange(id: string, value: string): void {
@@ -849,6 +880,18 @@ export function BookmarkForm({
                 onClick={onDone}
               >
                 Cancel
+              </Button>
+            )
+            : null}
+          {!isEdit
+            ? (
+              <Button
+                type="button"
+                variant="ghost"
+                className="ml-auto"
+                onClick={handleReset}
+              >
+                Reset Form
               </Button>
             )
             : null}
