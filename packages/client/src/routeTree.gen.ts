@@ -103,6 +103,7 @@ import { Route as CustomPropertiesPropertySlugViewCategoriesRouteImport } from '
 import { Route as CustomPropertiesPropertySlugViewAutofillRouteImport } from './routes/custom-properties.$propertySlug._view.autofill'
 import { Route as CategoriesCategorySlugEditTieredTagsRouteImport } from './routes/categories.$categorySlug.edit.tiered-tags'
 import { Route as CategoriesCategorySlugEditGeneralRouteImport } from './routes/categories.$categorySlug.edit.general'
+import { Route as CategoriesCategorySlugEditDisplayRouteImport } from './routes/categories.$categorySlug.edit.display'
 import { Route as CategoriesCategorySlugEditCustomPropertiesRouteImport } from './routes/categories.$categorySlug.edit.custom-properties'
 import { Route as CategoriesCategorySlugEditAutofillRouteImport } from './routes/categories.$categorySlug.edit.autofill'
 import { Route as CategoriesCategorySlugViewTieredTagsRouteImport } from './routes/categories.$categorySlug._view.tiered-tags'
@@ -652,6 +653,12 @@ const CategoriesCategorySlugEditGeneralRoute =
     path: '/general',
     getParentRoute: () => CategoriesCategorySlugEditRoute,
   } as any)
+const CategoriesCategorySlugEditDisplayRoute =
+  CategoriesCategorySlugEditDisplayRouteImport.update({
+    id: '/display',
+    path: '/display',
+    getParentRoute: () => CategoriesCategorySlugEditRoute,
+  } as any)
 const CategoriesCategorySlugEditCustomPropertiesRoute =
   CategoriesCategorySlugEditCustomPropertiesRouteImport.update({
     id: '/custom-properties',
@@ -889,10 +896,10 @@ export interface FileRoutesByFullPath {
   '/custom-properties': typeof CustomPropertiesRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/tags': typeof TagsRouteWithChildren
-  '/autofill/$ruleSlug': typeof AutofillRuleSlugViewRouteWithChildren
+  '/autofill/$ruleSlug': typeof AutofillRuleSlugRouteWithChildren
   '/bookmarks/$bookmarkId': typeof BookmarksBookmarkIdRouteWithChildren
-  '/categories/$categorySlug': typeof CategoriesCategorySlugViewRouteWithChildren
-  '/custom-properties/$propertySlug': typeof CustomPropertiesPropertySlugViewRouteWithChildren
+  '/categories/$categorySlug': typeof CategoriesCategorySlugRouteWithChildren
+  '/custom-properties/$propertySlug': typeof CustomPropertiesPropertySlugRouteWithChildren
   '/custom-properties/new': typeof CustomPropertiesNewRoute
   '/settings/autofill': typeof SettingsAutofillRoute
   '/settings/automations': typeof SettingsAutomationsRoute
@@ -909,7 +916,7 @@ export interface FileRoutesByFullPath {
   '/settings/sidebar': typeof SettingsSidebarRoute
   '/settings/websites': typeof SettingsWebsitesRoute
   '/settings/youtube-channels': typeof SettingsYoutubeChannelsRoute
-  '/tags/$tagSlug': typeof TagsTagSlugViewRouteWithChildren
+  '/tags/$tagSlug': typeof TagsTagSlugRouteWithChildren
   '/taxonomies/media-types': typeof TaxonomiesMediaTypesRouteWithChildren
   '/taxonomies/property-groups': typeof TaxonomiesPropertyGroupsRouteWithChildren
   '/taxonomies/websites': typeof TaxonomiesWebsitesRouteWithChildren
@@ -925,10 +932,10 @@ export interface FileRoutesByFullPath {
   '/categories/$categorySlug/edit': typeof CategoriesCategorySlugEditRouteWithChildren
   '/custom-properties/$propertySlug/edit': typeof CustomPropertiesPropertySlugEditRouteWithChildren
   '/tags/$tagSlug/edit': typeof TagsTagSlugEditRouteWithChildren
-  '/taxonomies/media-types/$mediaTypeSlug': typeof TaxonomiesMediaTypesMediaTypeSlugViewRouteWithChildren
-  '/taxonomies/property-groups/$propertyGroupSlug': typeof TaxonomiesPropertyGroupsPropertyGroupSlugViewRouteWithChildren
-  '/taxonomies/websites/$websiteSlug': typeof TaxonomiesWebsitesWebsiteSlugViewRouteWithChildren
-  '/taxonomies/youtube-channels/$channelSlug': typeof TaxonomiesYoutubeChannelsChannelSlugViewRouteWithChildren
+  '/taxonomies/media-types/$mediaTypeSlug': typeof TaxonomiesMediaTypesMediaTypeSlugRouteWithChildren
+  '/taxonomies/property-groups/$propertyGroupSlug': typeof TaxonomiesPropertyGroupsPropertyGroupSlugRouteWithChildren
+  '/taxonomies/websites/$websiteSlug': typeof TaxonomiesWebsitesWebsiteSlugRouteWithChildren
+  '/taxonomies/youtube-channels/$channelSlug': typeof TaxonomiesYoutubeChannelsChannelSlugRouteWithChildren
   '/autofill/$ruleSlug/': typeof AutofillRuleSlugIndexRoute
   '/bookmarks/$bookmarkId/': typeof BookmarksBookmarkIdIndexRoute
   '/categories/$categorySlug/': typeof CategoriesCategorySlugIndexRoute
@@ -954,6 +961,7 @@ export interface FileRoutesByFullPath {
   '/categories/$categorySlug/tiered-tags': typeof CategoriesCategorySlugViewTieredTagsRoute
   '/categories/$categorySlug/edit/autofill': typeof CategoriesCategorySlugEditAutofillRoute
   '/categories/$categorySlug/edit/custom-properties': typeof CategoriesCategorySlugEditCustomPropertiesRoute
+  '/categories/$categorySlug/edit/display': typeof CategoriesCategorySlugEditDisplayRoute
   '/categories/$categorySlug/edit/general': typeof CategoriesCategorySlugEditGeneralRoute
   '/categories/$categorySlug/edit/tiered-tags': typeof CategoriesCategorySlugEditTieredTagsRoute
   '/custom-properties/$propertySlug/autofill': typeof CustomPropertiesPropertySlugViewAutofillRoute
@@ -1056,6 +1064,7 @@ export interface FileRoutesByTo {
   '/categories/$categorySlug/tiered-tags': typeof CategoriesCategorySlugViewTieredTagsRoute
   '/categories/$categorySlug/edit/autofill': typeof CategoriesCategorySlugEditAutofillRoute
   '/categories/$categorySlug/edit/custom-properties': typeof CategoriesCategorySlugEditCustomPropertiesRoute
+  '/categories/$categorySlug/edit/display': typeof CategoriesCategorySlugEditDisplayRoute
   '/categories/$categorySlug/edit/general': typeof CategoriesCategorySlugEditGeneralRoute
   '/categories/$categorySlug/edit/tiered-tags': typeof CategoriesCategorySlugEditTieredTagsRoute
   '/custom-properties/$propertySlug/autofill': typeof CustomPropertiesPropertySlugViewAutofillRoute
@@ -1183,6 +1192,7 @@ export interface FileRoutesById {
   '/categories/$categorySlug/_view/tiered-tags': typeof CategoriesCategorySlugViewTieredTagsRoute
   '/categories/$categorySlug/edit/autofill': typeof CategoriesCategorySlugEditAutofillRoute
   '/categories/$categorySlug/edit/custom-properties': typeof CategoriesCategorySlugEditCustomPropertiesRoute
+  '/categories/$categorySlug/edit/display': typeof CategoriesCategorySlugEditDisplayRoute
   '/categories/$categorySlug/edit/general': typeof CategoriesCategorySlugEditGeneralRoute
   '/categories/$categorySlug/edit/tiered-tags': typeof CategoriesCategorySlugEditTieredTagsRoute
   '/custom-properties/$propertySlug/_view/autofill': typeof CustomPropertiesPropertySlugViewAutofillRoute
@@ -1315,6 +1325,7 @@ export interface FileRouteTypes {
     | '/categories/$categorySlug/tiered-tags'
     | '/categories/$categorySlug/edit/autofill'
     | '/categories/$categorySlug/edit/custom-properties'
+    | '/categories/$categorySlug/edit/display'
     | '/categories/$categorySlug/edit/general'
     | '/categories/$categorySlug/edit/tiered-tags'
     | '/custom-properties/$propertySlug/autofill'
@@ -1417,6 +1428,7 @@ export interface FileRouteTypes {
     | '/categories/$categorySlug/tiered-tags'
     | '/categories/$categorySlug/edit/autofill'
     | '/categories/$categorySlug/edit/custom-properties'
+    | '/categories/$categorySlug/edit/display'
     | '/categories/$categorySlug/edit/general'
     | '/categories/$categorySlug/edit/tiered-tags'
     | '/custom-properties/$propertySlug/autofill'
@@ -1543,6 +1555,7 @@ export interface FileRouteTypes {
     | '/categories/$categorySlug/_view/tiered-tags'
     | '/categories/$categorySlug/edit/autofill'
     | '/categories/$categorySlug/edit/custom-properties'
+    | '/categories/$categorySlug/edit/display'
     | '/categories/$categorySlug/edit/general'
     | '/categories/$categorySlug/edit/tiered-tags'
     | '/custom-properties/$propertySlug/_view/autofill'
@@ -2275,6 +2288,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CategoriesCategorySlugEditGeneralRouteImport
       parentRoute: typeof CategoriesCategorySlugEditRoute
     }
+    '/categories/$categorySlug/edit/display': {
+      id: '/categories/$categorySlug/edit/display'
+      path: '/display'
+      fullPath: '/categories/$categorySlug/edit/display'
+      preLoaderRoute: typeof CategoriesCategorySlugEditDisplayRouteImport
+      parentRoute: typeof CategoriesCategorySlugEditRoute
+    }
     '/categories/$categorySlug/edit/custom-properties': {
       id: '/categories/$categorySlug/edit/custom-properties'
       path: '/custom-properties'
@@ -2683,6 +2703,7 @@ const CategoriesCategorySlugViewRouteWithChildren =
 interface CategoriesCategorySlugEditRouteChildren {
   CategoriesCategorySlugEditAutofillRoute: typeof CategoriesCategorySlugEditAutofillRoute
   CategoriesCategorySlugEditCustomPropertiesRoute: typeof CategoriesCategorySlugEditCustomPropertiesRoute
+  CategoriesCategorySlugEditDisplayRoute: typeof CategoriesCategorySlugEditDisplayRoute
   CategoriesCategorySlugEditGeneralRoute: typeof CategoriesCategorySlugEditGeneralRoute
   CategoriesCategorySlugEditTieredTagsRoute: typeof CategoriesCategorySlugEditTieredTagsRoute
   CategoriesCategorySlugEditIndexRoute: typeof CategoriesCategorySlugEditIndexRoute
@@ -2694,6 +2715,8 @@ const CategoriesCategorySlugEditRouteChildren: CategoriesCategorySlugEditRouteCh
       CategoriesCategorySlugEditAutofillRoute,
     CategoriesCategorySlugEditCustomPropertiesRoute:
       CategoriesCategorySlugEditCustomPropertiesRoute,
+    CategoriesCategorySlugEditDisplayRoute:
+      CategoriesCategorySlugEditDisplayRoute,
     CategoriesCategorySlugEditGeneralRoute:
       CategoriesCategorySlugEditGeneralRoute,
     CategoriesCategorySlugEditTieredTagsRoute:

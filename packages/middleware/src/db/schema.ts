@@ -899,3 +899,21 @@ export type CategoryNumberDefaultRow = typeof categoryNumberDefaults.$inferSelec
 export type CategoryBooleanDefaultRow = typeof categoryBooleanDefaults.$inferSelect;
 export type CategoryDateTimeDefaultRow = typeof categoryDateTimeDefaults.$inferSelect;
 export type SavedFilterRow = typeof savedFilters.$inferSelect;
+
+/**
+ * `saved_display_presets` — named snapshots of listing display settings (columns, image
+ * visibility/mode/layout) that can be applied to any listing page in one click.
+ */
+export const displayPresets = pgTable("saved_display_presets", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  description: text("description"),
+  settings: jsonb("settings").$type<import("@eesimple/types").DisplayPresetSettings>().notNull(),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+}, table => [
+  unique("saved_display_presets_name_unique").on(table.name),
+]);
+
+export type DisplayPresetRow = typeof displayPresets.$inferSelect;

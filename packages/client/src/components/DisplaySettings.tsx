@@ -1,14 +1,21 @@
 import type { BookmarkDetailImageSize, BookmarkDetailVideoSize, Theme } from "../stores/uiStore";
 
+import { Trash2 } from "lucide-react";
+
+import { DisplaySettingsControls } from "./DisplaySettingsControls";
 import { useCategories } from "../hooks/useCategories";
+import { useDeleteDisplayPreset, useDisplayPresets } from "../hooks/useDisplayPresets";
+import { summarizeDisplayPreset } from "../lib/displayPresets";
 import { useUiStore } from "../stores/uiStore";
 
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
+  RowCard,
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -19,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import { CategoryIcon } from "@/lib/icons";
 
 const THEME_LABELS: Record<Theme, string> = {
@@ -102,6 +110,115 @@ const SIDEBAR_GROUPS = [
   },
 ] as const;
 
+const LISTING_DEFAULTS = [
+  {
+    label: "Bookmarks",
+    pageKey: "bookmarks",
+    showsImages: true,
+  },
+  {
+    label: "Categories",
+    pageKey: "categories-listing",
+    showsImages: false,
+  },
+  {
+    label: "Websites",
+    pageKey: "websites-listing",
+    showsImages: false,
+  },
+  {
+    label: "Media Types",
+    pageKey: "media-types-listing",
+    showsImages: false,
+  },
+  {
+    label: "YouTube Channels",
+    pageKey: "youtube-channels-listing",
+    showsImages: false,
+  },
+  {
+    label: "Custom Properties",
+    pageKey: "custom-properties-listing",
+    showsImages: false,
+  },
+  {
+    label: "Property Groups",
+    pageKey: "property-groups-listing",
+    showsImages: false,
+  },
+  {
+    label: "Autofill Rules",
+    pageKey: "autofill-rules-listing",
+    showsImages: false,
+  },
+] as const;
+
+function DisplayPresetsCard() {
+  const {
+    data: presets = [], isLoading, error,
+  } = useDisplayPresets();
+  const deleteMutation = useDeleteDisplayPreset();
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Display Presets</CardTitle>
+        <CardDescription>
+          Saved display configurations. Apply them from the listing options popover or from a
+          category&apos;s Display tab.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? <p className="text-sm text-muted-foreground">Loading…</p> : null}
+        {error ? <p className="text-sm text-destructive">{error.message}</p> : null}
+        {!isLoading && !error && presets.length === 0
+          ? (
+            <p className="text-sm text-muted-foreground">
+              No presets yet. Set up a listing page and click &ldquo;Save as preset&rdquo; to create one.
+            </p>
+          )
+          : null}
+        {presets.length > 0
+          ? (
+            <div className="space-y-3">
+              {presets.map(preset => (
+                <RowCard
+                  key={preset.id}
+                  className="flex items-start justify-between gap-4 p-4"
+                >
+                  <div className="min-w-0 space-y-0.5">
+                    <p className="truncate font-medium">{preset.name}</p>
+                    {preset.description
+                      ? <p className="truncate text-sm text-muted-foreground">{preset.description}</p>
+                      : null}
+                    <p className="text-xs text-muted-foreground">
+                      {summarizeDisplayPreset(preset.settings)}
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="
+                      shrink-0 text-muted-foreground
+                      hover:text-destructive
+                    "
+                    disabled={deleteMutation.isPending}
+                    onClick={() => deleteMutation.mutate(preset.id)}
+                  >
+                    <Trash2 className="size-4" />
+                    <span className="sr-only">Delete {preset.name}</span>
+                  </Button>
+                </RowCard>
+              ))}
+            </div>
+          )
+          : null}
+      </CardContent>
+    </Card>
+  );
+}
+
 /** Display preferences — a theme switcher (light / dark / system) and sidebar section toggles. */
 export function DisplaySettings() {
   const theme = useUiStore(state => state.theme);
@@ -129,6 +246,41 @@ export function DisplaySettings() {
 
   return (
     <div className="space-y-6">
+      <DisplayPresetsCard />
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Listing Defaults</CardTitle>
+          <CardDescription>
+            Default display settings for each type of listing page. These apply when no per-page
+            preference has been set, and can be saved as a preset.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-0">
+          {LISTING_DEFAULTS.map((listing, index) => (
+            <div key={listing.pageKey}>
+              {index > 0 && <Separator className="my-4" />}
+              <div
+                className="
+                  grid grid-cols-1 gap-4
+                  sm:grid-cols-[1fr_auto] sm:items-start
+                "
+              >
+                <div>
+                  <p className="font-medium">{listing.label}</p>
+                </div>
+                <div className="sm:min-w-52">
+                  <DisplaySettingsControls
+                    pageKey={listing.pageKey}
+                    showsImages={listing.showsImages}
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>Theme</CardTitle>

@@ -26,6 +26,10 @@ const editNav = [
     to: "/categories/$categorySlug/edit/autofill",
     label: "Autofill Rules",
   },
+  {
+    to: "/categories/$categorySlug/edit/display",
+    label: "Display",
+  },
 ] as const;
 
 function CategoryEditLayout() {
