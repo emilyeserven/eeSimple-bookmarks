@@ -17,7 +17,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { useCategoryBySlug } from "@/hooks/useCategories";
+import { useBookmark } from "@/hooks/useBookmarks";
+import { useCategories, useCategoryBySlug } from "@/hooks/useCategories";
 import { useTagTree } from "@/hooks/useTags";
 import { findAncestorPath } from "@/lib/tagTree";
 
@@ -173,8 +174,50 @@ function tagCrumbs(pathname: string, tagAncestors?: TagNode[]): BreadcrumbSegmen
   ];
 }
 
+interface BookmarkCrumbData {
+  title: string;
+  categoryName?: string;
+  categorySlug?: string;
+}
+
+function bookmarkCrumbs(pathname: string, data?: BookmarkCrumbData): BreadcrumbSegment[] {
+  const listCrumb: BreadcrumbSegment = {
+    label: "Bookmarks",
+    href: "/bookmarks",
+  };
+  const catCrumb: BreadcrumbSegment = data?.categorySlug
+    ? {
+      label: data.categoryName ?? "Category",
+      href: `/categories/${data.categorySlug}`,
+    }
+    : {
+      label: data?.categoryName ?? "Category",
+    };
+  const titleCrumb: BreadcrumbSegment = {
+    label: data?.title ?? "Bookmark",
+  };
+
+  const isEdit = pathname.includes("/edit");
+  if (isEdit) {
+    // link the title back to the detail view
+    const detailHref = pathname.replace(/\/edit.*$/, "");
+    return [listCrumb, catCrumb, {
+      ...titleCrumb,
+      href: detailHref,
+    }, {
+      label: "Edit",
+    }];
+  }
+  return [listCrumb, catCrumb, titleCrumb];
+}
+
 /** Derive breadcrumb segments from a pathname. */
-function breadcrumbsForPath(pathname: string, categoryName?: string, tagAncestors?: TagNode[]): BreadcrumbSegment[] {
+function breadcrumbsForPath(
+  pathname: string,
+  categoryName?: string,
+  tagAncestors?: TagNode[],
+  bookmarkData?: BookmarkCrumbData,
+): BreadcrumbSegment[] {
   if (pathname === "/") return [{
     label: "Home",
   }];
@@ -182,12 +225,7 @@ function breadcrumbsForPath(pathname: string, categoryName?: string, tagAncestor
     label: "Bookmarks",
   }];
   if (pathname.startsWith("/bookmarks/"))
-    return [{
-      label: "Bookmarks",
-      href: "/bookmarks",
-    }, {
-      label: "Bookmark",
-    }];
+    return bookmarkCrumbs(pathname, bookmarkData);
   if (pathname.startsWith("/settings")) return settingsCrumbs(pathname);
   if (pathname === "/categories" || pathname.startsWith("/categories/"))
     return categoryCrumbs(pathname, categoryName);
@@ -215,12 +253,16 @@ export function AppHeader() {
   const pathname = useRouterState({
     select: state => state.location.pathname,
   });
+
+  // Category breadcrumbs
   const categorySlug = pathname.startsWith("/categories/")
     ? (pathname.split("/").filter(Boolean)[1] ?? "")
     : "";
   const {
     category,
   } = useCategoryBySlug(categorySlug);
+
+  // Tag breadcrumbs
   const tagSlug = pathname.startsWith("/tags/")
     ? (pathname.split("/").filter(Boolean)[1] ?? "")
     : "";
@@ -230,7 +272,35 @@ export function AppHeader() {
   const tagAncestors = tagSlug && tagTree
     ? (findAncestorPath(tagTree, tagSlug) ?? undefined)
     : undefined;
-  const crumbs = breadcrumbsForPath(pathname, category?.name, tagAncestors);
+
+  // Bookmark breadcrumbs — extract bookmarkId from /bookmarks/$id[/...]
+  const bookmarkId = pathname.startsWith("/bookmarks/")
+    ? (pathname.split("/").filter(Boolean)[1] ?? "")
+    : "";
+  const {
+    data: bookmarkForCrumb,
+  } = useBookmark(bookmarkId);
+  const {
+    data: allCategories,
+  } = useCategories();
+  const bookmarkCategory = bookmarkForCrumb && allCategories
+    ? allCategories.find(c => c.id === bookmarkForCrumb.categoryId)
+    : undefined;
+  const bookmarkData: BookmarkCrumbData | undefined = bookmarkForCrumb
+    ? {
+      title: bookmarkForCrumb.title,
+      categoryName: bookmarkCategory?.name,
+      categorySlug: bookmarkCategory?.slug,
+    }
+    : undefined;
+
+  const crumbs = breadcrumbsForPath(pathname, category?.name, tagAncestors, bookmarkData);
+
+  // Show Edit button in the header only on the bookmark detail page (not edit pages)
+  const isBookmarkDetail = Boolean(bookmarkId)
+    && !pathname.includes("/edit")
+    && pathname.startsWith("/bookmarks/");
+
   const {
     open,
   } = usePanelControls();
@@ -262,16 +332,35 @@ export function AppHeader() {
           ))}
         </BreadcrumbList>
       </Breadcrumb>
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        className="-mr-1 ml-auto border-l pl-2"
-        aria-label="Open panel"
-        onClick={open}
-      >
-        <PanelRight className="size-4" />
-      </Button>
+      <div className="-mr-1 ml-auto flex items-center gap-1">
+        {isBookmarkDetail && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            asChild
+          >
+            <Link
+              to="/bookmarks/$bookmarkId/edit/general"
+              params={{
+                bookmarkId,
+              }}
+            >
+              Edit
+            </Link>
+          </Button>
+        )}
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="border-l pl-2"
+          aria-label="Open panel"
+          onClick={open}
+        >
+          <PanelRight className="size-4" />
+        </Button>
+      </div>
     </header>
   );
 }

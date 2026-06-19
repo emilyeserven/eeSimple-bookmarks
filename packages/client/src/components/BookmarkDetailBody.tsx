@@ -48,16 +48,50 @@ export function BookmarkDetailBody({
 
           <DetailField label="Website">
             {bookmark.website
-              ? `${bookmark.website.siteName} (${bookmark.website.domain})`
+              ? (
+                <Link
+                  to="/taxonomies/websites/$websiteSlug"
+                  params={{
+                    websiteSlug: bookmark.website.slug,
+                  }}
+                  className="hover:underline"
+                >
+                  {bookmark.website.siteName} ({bookmark.website.domain})
+                </Link>
+              )
               : null}
           </DetailField>
 
           <DetailField label="Media type">
-            {bookmark.mediaType ? bookmark.mediaType.name : null}
+            {bookmark.mediaType
+              ? (
+                <Link
+                  to="/taxonomies/media-types/$mediaTypeSlug"
+                  params={{
+                    mediaTypeSlug: bookmark.mediaType.slug,
+                  }}
+                  className="hover:underline"
+                >
+                  {bookmark.mediaType.name}
+                </Link>
+              )
+              : null}
           </DetailField>
 
           <DetailField label="Channel">
-            {bookmark.youtubeChannel ? bookmark.youtubeChannel.name : null}
+            {bookmark.youtubeChannel
+              ? (
+                <Link
+                  to="/taxonomies/youtube-channels/$channelSlug"
+                  params={{
+                    channelSlug: bookmark.youtubeChannel.slug,
+                  }}
+                  className="hover:underline"
+                >
+                  {bookmark.youtubeChannel.name}
+                </Link>
+              )
+              : null}
           </DetailField>
         </dl>
       </LabeledSection>
@@ -70,7 +104,22 @@ export function BookmarkDetailBody({
               <ul className="flex flex-wrap gap-1">
                 {bookmark.tags.map(tag => (
                   <li key={tag.id}>
-                    <Badge variant="secondary">{tag.name}</Badge>
+                    <Link
+                      to="/tags/$tagSlug"
+                      params={{
+                        tagSlug: tag.slug,
+                      }}
+                    >
+                      <Badge
+                        variant="secondary"
+                        className="
+                          cursor-pointer
+                          hover:opacity-80
+                        "
+                      >
+                        {tag.name}
+                      </Badge>
+                    </Link>
                   </li>
                 ))}
               </ul>

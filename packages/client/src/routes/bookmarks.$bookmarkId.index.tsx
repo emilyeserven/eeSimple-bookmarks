@@ -1,7 +1,7 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 
 import { BookmarkDetail } from "../components/BookmarkDetail";
-import { useBookmark, useDeleteBookmark } from "../hooks/useBookmarks";
+import { useBookmark } from "../hooks/useBookmarks";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { usePropertyGroups } from "../hooks/usePropertyGroups";
@@ -14,7 +14,6 @@ function BookmarkDetailPage() {
   const {
     bookmarkId,
   } = Route.useParams();
-  const navigate = Route.useNavigate();
   const {
     data: bookmark, isLoading, error,
   } = useBookmark(bookmarkId);
@@ -27,7 +26,6 @@ function BookmarkDetailPage() {
   const {
     data: propertyGroups,
   } = usePropertyGroups();
-  const deleteBookmark = useDeleteBookmark();
 
   if (isLoading) {
     return <p className="text-muted-foreground">Loading bookmark…</p>;
@@ -51,45 +49,11 @@ function BookmarkDetailPage() {
   }
 
   return (
-    <section className="space-y-4">
-      <Link
-        to="/bookmarks"
-        className="
-          inline-block text-sm text-muted-foreground
-          hover:text-foreground
-        "
-      >
-        ← Back to bookmarks
-      </Link>
-      <BookmarkDetail
-        bookmark={bookmark}
-        categories={categories ?? []}
-        properties={properties ?? []}
-        propertyGroups={propertyGroups ?? []}
-        onEdit={() => navigate({
-          to: "/bookmarks/$bookmarkId/edit",
-          params: {
-            bookmarkId,
-          },
-        })}
-        onDelete={() => deleteBookmark.mutate(bookmarkId, {
-          onSuccess: () => {
-            // Return to the bookmark's category listing, or all bookmarks if it has none.
-            const slug = (categories ?? [])
-              .find(item => item.id === bookmark.categoryId)?.slug;
-            void (slug
-              ? navigate({
-                to: "/categories/$categorySlug",
-                params: {
-                  categorySlug: slug,
-                },
-              })
-              : navigate({
-                to: "/bookmarks",
-              }));
-          },
-        })}
-      />
-    </section>
+    <BookmarkDetail
+      bookmark={bookmark}
+      categories={categories ?? []}
+      properties={properties ?? []}
+      propertyGroups={propertyGroups ?? []}
+    />
   );
 }

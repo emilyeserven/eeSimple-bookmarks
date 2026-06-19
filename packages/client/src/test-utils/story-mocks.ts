@@ -256,6 +256,7 @@ export const sampleBookmark: Bookmark = {
     {
       id: "tag-cli",
       name: "cli",
+      slug: "cli",
       parentId: "tag-tools",
     },
   ],

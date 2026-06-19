@@ -38,7 +38,7 @@ export interface TagNode extends Tag {
 }
 
 /** Lightweight tag shape carried on a bookmark (enough to render and group). */
-export type BookmarkTag = Pick<Tag, "id" | "name" | "parentId">;
+export type BookmarkTag = Pick<Tag, "id" | "name" | "slug" | "parentId">;
 
 /** Payload for creating a tag. */
 export interface CreateTagInput {
