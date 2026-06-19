@@ -1,13 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { useBookmarksPageData } from "./-bookmarksPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
-import { useBookmarks } from "../hooks/useBookmarks";
-import { useCategories } from "../hooks/useCategories";
-import { useCustomProperties } from "../hooks/useCustomProperties";
-import { useMediaTypes } from "../hooks/useMediaTypes";
-import { usePropertyGroups } from "../hooks/usePropertyGroups";
-import { useTagTree } from "../hooks/useTags";
-import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
 import { validateBookmarkSearch } from "../lib/bookmarkSearch";
 
 export const Route = createFileRoute("/bookmarks/")({
@@ -19,26 +13,15 @@ function BookmarksPage() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
   const {
-    data: bookmarks, isLoading, error,
-  } = useBookmarks(search.tags);
-  const {
-    data: tagTree,
-  } = useTagTree();
-  const {
-    data: customProperties,
-  } = useCustomProperties();
-  const {
-    data: propertyGroups,
-  } = usePropertyGroups();
-  const {
-    data: categories,
-  } = useCategories();
-  const {
-    data: mediaTypes,
-  } = useMediaTypes();
-  const {
-    data: youtubeChannels,
-  } = useYouTubeChannels();
+    bookmarks, isLoading, error,
+    tagTree,
+    customProperties,
+    propertyGroups,
+    categories,
+    mediaTypes,
+    youtubeChannels,
+    websites,
+  } = useBookmarksPageData(search.tags);
 
   return (
     <BookmarkSearchView
@@ -50,6 +33,7 @@ function BookmarksPage() {
       categories={categories ?? []}
       mediaTypes={mediaTypes ?? []}
       youtubeChannels={youtubeChannels ?? []}
+      websites={websites ?? []}
       bookmarks={bookmarks ?? []}
       search={search}
       onSearchChange={next => navigate({

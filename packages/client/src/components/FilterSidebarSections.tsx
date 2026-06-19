@@ -1,16 +1,15 @@
 import type { TreeComboboxOption } from "./TreeMultiCombobox";
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
-import type { Bookmark, Category, CustomProperty, MediaType, PropertyGroup, TagNode, YouTubeChannel } from "@eesimple/types";
+import type { Bookmark, Category, CustomProperty, MediaType, PropertyGroup, TagNode, Website, YouTubeChannel } from "@eesimple/types";
 
-import { Ban, ChevronDown, Circle, CircleDot, MonitorPlay, TriangleAlert } from "lucide-react";
+import { ChevronDown, Globe, MonitorPlay, TriangleAlert } from "lucide-react";
 
 import { CustomPropertyFilters } from "./CustomPropertyFilters";
+import { FacetChips, FacetPresenceToggle } from "./FilterFacetControls";
 import { MultiCombobox } from "./MultiCombobox";
 import { TreeMultiCombobox } from "./TreeMultiCombobox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 import { Separator } from "./ui/separator";
-import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group";
-import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import {
   withBooleanFilter,
   withCategories,
@@ -20,15 +19,16 @@ import {
   withPresenceFilter,
   withTagPresence,
   withTags,
+  withWebsitePresence,
+  withWebsites,
+  withYouTubeChannelPresence,
   withYouTubeChannels,
 } from "../lib/bookmarkSearch";
 
-import { cn } from "@/lib/utils";
-
 /** The filter sections themselves, with separators between adjacent groups. */
 export function FilterSections({
-  tree, enabledProperties, propertyGroups, categories, mediaTypes, youtubeChannels, bookmarks, search, onSearchChange,
-  hasTags, hasProperties, hasCategoryFilter, hasMediaTypeFilter, hasChannelFilter,
+  tree, enabledProperties, propertyGroups, categories, mediaTypes, youtubeChannels, websites, bookmarks, search, onSearchChange,
+  hasTags, hasProperties, hasCategoryFilter, hasMediaTypeFilter, hasChannelFilter, hasWebsiteFilter,
 }: {
   tree: TagNode[];
   enabledProperties: CustomProperty[];
@@ -36,6 +36,7 @@ export function FilterSections({
   categories?: Category[];
   mediaTypes?: MediaType[];
   youtubeChannels?: YouTubeChannel[];
+  websites?: Website[];
   bookmarks: Pick<Bookmark, "numberValues">[];
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;
@@ -44,6 +45,7 @@ export function FilterSections({
   hasCategoryFilter: boolean;
   hasMediaTypeFilter: boolean;
   hasChannelFilter: boolean;
+  hasWebsiteFilter: boolean;
 }) {
   return (
     <>
@@ -57,7 +59,7 @@ export function FilterSections({
         )
         : null}
 
-      {hasTags && (hasCategoryFilter || hasMediaTypeFilter || hasChannelFilter || hasProperties)
+      {hasTags && (hasCategoryFilter || hasMediaTypeFilter || hasChannelFilter || hasWebsiteFilter || hasProperties)
         ? <Separator />
         : null}
 
@@ -71,7 +73,7 @@ export function FilterSections({
         )
         : null}
 
-      {hasCategoryFilter && (hasMediaTypeFilter || hasChannelFilter || hasProperties)
+      {hasCategoryFilter && (hasMediaTypeFilter || hasChannelFilter || hasWebsiteFilter || hasProperties)
         ? <Separator />
         : null}
 
@@ -85,7 +87,7 @@ export function FilterSections({
         )
         : null}
 
-      {hasMediaTypeFilter && (hasChannelFilter || hasProperties) ? <Separator /> : null}
+      {hasMediaTypeFilter && (hasChannelFilter || hasWebsiteFilter || hasProperties) ? <Separator /> : null}
 
       {hasChannelFilter
         ? (
@@ -97,7 +99,19 @@ export function FilterSections({
         )
         : null}
 
-      {hasChannelFilter && hasProperties ? <Separator /> : null}
+      {hasChannelFilter && (hasWebsiteFilter || hasProperties) ? <Separator /> : null}
+
+      {hasWebsiteFilter
+        ? (
+          <WebsiteFilterSection
+            websites={websites}
+            search={search}
+            onSearchChange={onSearchChange}
+          />
+        )
+        : null}
+
+      {hasWebsiteFilter && hasProperties ? <Separator /> : null}
 
       {hasProperties
         ? (
@@ -115,30 +129,6 @@ export function FilterSections({
     </>
   );
 }
-
-const collapseWhenInactive = `
-  w-0 min-w-0 overflow-hidden p-0 opacity-0
-  transition-all duration-150
-  group-hover/presence:w-7 group-hover/presence:opacity-100 group-hover/presence:p-1.5
-`;
-
-const tagPresenceOptions = [
-  {
-    value: "any",
-    label: "Any",
-    Icon: Circle,
-  },
-  {
-    value: "has",
-    label: "Has tags",
-    Icon: CircleDot,
-  },
-  {
-    value: "missing",
-    label: "No tags",
-    Icon: Ban,
-  },
-] as const;
 
 function tagNodesToOptions(nodes: TagNode[]): TreeComboboxOption[] {
   return nodes.map(n => ({
@@ -158,7 +148,6 @@ function TagsFilterSection({
 }) {
   const selectedTags = search.tags ?? [];
   const tagFilterActive = selectedTags.length > 0 || search.tagPresence !== undefined;
-  const tagToggleValue = search.tagPresence ?? "any";
 
   return (
     <Collapsible
@@ -180,33 +169,12 @@ function TagsFilterSection({
           />
           Tags
         </CollapsibleTrigger>
-        <ToggleGroup
-          type="single"
-          size="sm"
-          value={tagToggleValue}
-          onValueChange={(v) => {
-            const mode = v === "any" || v === "" ? undefined : v as "has" | "missing";
-            onSearchChange(withTagPresence(search, mode));
-          }}
-          className="group/presence"
-        >
-          {tagPresenceOptions.map(({
-            value, label, Icon,
-          }) => (
-            <Tooltip key={value}>
-              <TooltipTrigger asChild>
-                <ToggleGroupItem
-                  value={value}
-                  aria-label={label}
-                  className={cn(tagToggleValue !== value && collapseWhenInactive)}
-                >
-                  <Icon className="size-3.5" />
-                </ToggleGroupItem>
-              </TooltipTrigger>
-              <TooltipContent>{label}</TooltipContent>
-            </Tooltip>
-          ))}
-        </ToggleGroup>
+        <FacetPresenceToggle
+          value={search.tagPresence}
+          onChange={mode => onSearchChange(withTagPresence(search, mode))}
+          hasLabel="Has tags"
+          missingLabel="No tags"
+        />
       </div>
 
       <CollapsibleContent className="space-y-3">
@@ -399,35 +367,55 @@ function YouTubeChannelFilterSection({
       : <MonitorPlay className="size-4 shrink-0 text-muted-foreground" />,
   }));
   const selected = search.youtubeChannels ?? [];
+  const filterActive = selected.length > 0 || search.youtubeChannelPresence !== undefined;
 
   return (
     <Collapsible
       defaultOpen
       className="group/channel space-y-3"
     >
-      <CollapsibleTrigger
-        className="
-          flex items-center gap-1.5 text-sm font-semibold
-          hover:text-foreground
-        "
-      >
-        <ChevronDown
+      <div className="flex items-center justify-between">
+        <CollapsibleTrigger
           className="
-            size-3.5 shrink-0 transition-transform
-            group-data-[state=open]/channel:rotate-180
+            flex items-center gap-1.5 text-sm font-semibold
+            hover:text-foreground
           "
+        >
+          <ChevronDown
+            className="
+              size-3.5 shrink-0 transition-transform
+              group-data-[state=open]/channel:rotate-180
+            "
+          />
+          YouTube channel
+        </CollapsibleTrigger>
+        <FacetPresenceToggle
+          value={search.youtubeChannelPresence}
+          onChange={mode => onSearchChange(withYouTubeChannelPresence(search, mode))}
+          hasLabel="Has value"
+          missingLabel="No value"
         />
-        YouTube channel
-      </CollapsibleTrigger>
+      </div>
       <CollapsibleContent className="space-y-3">
-        <MultiCombobox
-          options={options}
-          values={selected}
-          onValuesChange={ids => onSearchChange(withYouTubeChannels(search, ids))}
-          placeholder="All channels"
-          aria-label="Filter by YouTube channel"
-        />
-        {selected.length > 0
+        {search.youtubeChannelPresence !== "missing"
+          ? (
+            <>
+              <MultiCombobox
+                options={options}
+                values={selected}
+                onValuesChange={ids => onSearchChange(withYouTubeChannels(search, ids))}
+                placeholder="All channels"
+                aria-label="Filter by YouTube channel"
+              />
+              <FacetChips
+                options={options}
+                values={selected}
+                onValuesChange={ids => onSearchChange(withYouTubeChannels(search, ids))}
+              />
+            </>
+          )
+          : null}
+        {filterActive
           ? (
             <button
               type="button"
@@ -435,7 +423,98 @@ function YouTubeChannelFilterSection({
                 text-xs text-primary
                 hover:underline
               "
-              onClick={() => onSearchChange(withYouTubeChannels(search, []))}
+              onClick={() => onSearchChange(withYouTubeChannelPresence(withYouTubeChannels(search, []), undefined))}
+            >
+              Reset
+            </button>
+          )
+          : null}
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
+/** Multi-select website filter with favicons; rendered wherever websites exist. */
+function WebsiteFilterSection({
+  websites, search, onSearchChange,
+}: {
+  websites?: Website[];
+  search: BookmarkSearch;
+  onSearchChange: (next: BookmarkSearch) => void;
+}) {
+  const options = (websites ?? []).map(website => ({
+    value: website.id,
+    label: website.siteName,
+    icon: website.imageUrl
+      ? (
+        <img
+          src={website.imageUrl}
+          alt=""
+          className="size-4 shrink-0 rounded-sm object-contain"
+        />
+      )
+      : <Globe className="size-4 shrink-0 text-muted-foreground" />,
+  }));
+  const selected = search.websites ?? [];
+  const filterActive = selected.length > 0 || search.websitePresence !== undefined;
+
+  return (
+    <Collapsible
+      defaultOpen
+      className="group/website space-y-3"
+    >
+      <div className="flex items-center justify-between">
+        <CollapsibleTrigger
+          className="
+            flex items-center gap-1.5 text-sm font-semibold
+            hover:text-foreground
+          "
+        >
+          <ChevronDown
+            className="
+              size-3.5 shrink-0 transition-transform
+              group-data-[state=open]/website:rotate-180
+            "
+          />
+          Website
+        </CollapsibleTrigger>
+        <FacetPresenceToggle
+          value={search.websitePresence}
+          onChange={mode => onSearchChange(withWebsitePresence(search, mode))}
+          hasLabel="Has value"
+          missingLabel="No value"
+        />
+      </div>
+      <CollapsibleContent className="space-y-3">
+        {search.websitePresence !== "missing"
+          ? (
+            <>
+              <MultiCombobox
+                options={options}
+                values={selected}
+                onValuesChange={ids => onSearchChange(withWebsites(search, ids))}
+                placeholder="All websites"
+                searchPlaceholder="Search websites…"
+                emptyText="No websites found."
+                aria-label="Filter by website"
+              />
+              <FacetChips
+                options={options}
+                values={selected}
+                onValuesChange={ids => onSearchChange(withWebsites(search, ids))}
+              />
+            </>
+          )
+          : null}
+        {filterActive
+          ? (
+            <button
+              type="button"
+              className="
+                text-xs text-primary
+                hover:underline
+              "
+              onClick={() => onSearchChange(withWebsitePresence(withWebsites(search, []), undefined))}
             >
               Reset
             </button>

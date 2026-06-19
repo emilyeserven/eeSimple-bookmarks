@@ -1,5 +1,5 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
-import type { Bookmark, Category, CustomProperty, MediaType, PropertyGroup, TagNode, YouTubeChannel } from "@eesimple/types";
+import type { Bookmark, Category, CustomProperty, MediaType, PropertyGroup, TagNode, Website, YouTubeChannel } from "@eesimple/types";
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
@@ -45,6 +45,7 @@ export interface FilterContextData {
   categories?: Category[];
   mediaTypes?: MediaType[];
   youtubeChannels?: YouTubeChannel[];
+  websites?: Website[];
   bookmarks: Pick<Bookmark, "numberValues">[];
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;

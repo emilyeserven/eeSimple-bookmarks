@@ -1,5 +1,5 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
-import type { Bookmark, Category, CustomProperty, MediaType, PropertyGroup, TagNode, YouTubeChannel } from "@eesimple/types";
+import type { Bookmark, Category, CustomProperty, MediaType, PropertyGroup, TagNode, Website, YouTubeChannel } from "@eesimple/types";
 
 import { useState } from "react";
 
@@ -24,6 +24,8 @@ interface FilterSidebarProps {
   mediaTypes?: MediaType[];
   /** YouTube channels offered as a multi-select filter; rendered only when non-empty. */
   youtubeChannels?: YouTubeChannel[];
+  /** Websites offered as a multi-select filter; rendered only when non-empty. */
+  websites?: Website[];
   /** Bookmarks in view, used to derive slider bounds when a property has no min/max. */
   bookmarks: Pick<Bookmark, "numberValues">[];
   search: BookmarkSearch;
@@ -32,7 +34,7 @@ interface FilterSidebarProps {
 
 /** Left filter rail for the search pages: tiered tags plus custom-property filters. */
 export function FilterSidebar({
-  tree, properties, propertyGroups, categories, mediaTypes, youtubeChannels, bookmarks, search, onSearchChange,
+  tree, properties, propertyGroups, categories, mediaTypes, youtubeChannels, websites, bookmarks, search, onSearchChange,
 }: FilterSidebarProps) {
   const [open, setOpen] = useState(false);
 
@@ -40,13 +42,14 @@ export function FilterSidebar({
   const hasCategoryFilter = (categories?.length ?? 0) > 0;
   const hasMediaTypeFilter = (mediaTypes?.length ?? 0) > 0;
   const hasChannelFilter = (youtubeChannels?.length ?? 0) > 0;
+  const hasWebsiteFilter = (websites?.length ?? 0) > 0;
 
   const enabledProperties = properties.filter(p => p.enabled);
 
   const hasTags = tree.length > 0;
   const hasProperties = enabledProperties.length > 0;
   const hasFilters
-    = hasTags || hasProperties || hasCategoryFilter || hasMediaTypeFilter || hasChannelFilter;
+    = hasTags || hasProperties || hasCategoryFilter || hasMediaTypeFilter || hasChannelFilter || hasWebsiteFilter;
 
   return (
     <aside className="space-y-3">
@@ -91,6 +94,7 @@ export function FilterSidebar({
           categories={categories}
           mediaTypes={mediaTypes}
           youtubeChannels={youtubeChannels}
+          websites={websites}
           bookmarks={bookmarks}
           search={search}
           onSearchChange={onSearchChange}
@@ -99,6 +103,7 @@ export function FilterSidebar({
           hasCategoryFilter={hasCategoryFilter}
           hasMediaTypeFilter={hasMediaTypeFilter}
           hasChannelFilter={hasChannelFilter}
+          hasWebsiteFilter={hasWebsiteFilter}
         />
       </div>
     </aside>

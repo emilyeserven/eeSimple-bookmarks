@@ -19,6 +19,12 @@ export interface BookmarkSearch {
   mediaTypes?: string[];
   /** Restrict to bookmarks whose YouTube channel is one of these ids (empty/absent = all channels). */
   youtubeChannels?: string[];
+  /** Filter bookmarks by whether they have a YouTube channel ("has") or none ("missing"). */
+  youtubeChannelPresence?: "has" | "missing";
+  /** Restrict to bookmarks whose website is one of these ids (empty/absent = all websites). */
+  websites?: string[];
+  /** Filter bookmarks by whether they have a website ("has") or none ("missing"). */
+  websitePresence?: "has" | "missing";
   num?: Record<string, [number, number]>;
   bool?: Record<string, boolean>;
   /** `[from, to]` date/time range bounds (canonical strings, either `null`) keyed by property id. */
@@ -101,6 +107,19 @@ export function validateBookmarkSearch(search: Record<string, unknown>): Bookmar
     if (ids.length > 0) result.youtubeChannels = ids;
   }
 
+  if (search.youtubeChannelPresence === "has" || search.youtubeChannelPresence === "missing") {
+    result.youtubeChannelPresence = search.youtubeChannelPresence;
+  }
+
+  if (Array.isArray(search.websites)) {
+    const ids = search.websites.filter((v): v is string => typeof v === "string");
+    if (ids.length > 0) result.websites = ids;
+  }
+
+  if (search.websitePresence === "has" || search.websitePresence === "missing") {
+    result.websitePresence = search.websitePresence;
+  }
+
   const num = parseNumRecord(search.num);
   if (Object.keys(num).length > 0) result.num = num;
 
@@ -123,6 +142,7 @@ export function bookmarkMatchesSearch(
     | "categoryId"
     | "mediaType"
     | "youtubeChannel"
+    | "website"
     | "tags"
     | "numberValues"
     | "booleanValues"
@@ -153,6 +173,20 @@ export function bookmarkMatchesSearch(
   ) {
     return false;
   }
+
+  if (search.youtubeChannelPresence === "has" && !bookmark.youtubeChannel) return false;
+  if (search.youtubeChannelPresence === "missing" && bookmark.youtubeChannel) return false;
+
+  if (
+    search.websites
+    && search.websites.length > 0
+    && !(bookmark.website && search.websites.includes(bookmark.website.id))
+  ) {
+    return false;
+  }
+
+  if (search.websitePresence === "has" && !bookmark.website) return false;
+  if (search.websitePresence === "missing" && bookmark.website) return false;
 
   if (search.tagPresence === "has" && bookmark.tags.length === 0) return false;
   if (search.tagPresence === "missing" && bookmark.tags.length > 0) return false;
@@ -191,6 +225,9 @@ export function hasAnyActiveFilter(search: BookmarkSearch): boolean {
     || (search.categories?.length ?? 0) > 0
     || (search.mediaTypes?.length ?? 0) > 0
     || (search.youtubeChannels?.length ?? 0) > 0
+    || search.youtubeChannelPresence !== undefined
+    || (search.websites?.length ?? 0) > 0
+    || search.websitePresence !== undefined
     || Object.keys(search.num ?? {}).length > 0
     || Object.keys(search.bool ?? {}).length > 0
     || Object.keys(search.date ?? {}).length > 0
@@ -277,6 +314,58 @@ export function withYouTubeChannels(search: BookmarkSearch, ids: string[]): Book
   return next;
 }
 
+/**
+ * Return a copy of `search` with the YouTube-channel-presence filter set or cleared.
+ * Setting `"missing"` also clears any specific channel selection (selecting one contradicts "none").
+ */
+export function withYouTubeChannelPresence(
+  search: BookmarkSearch,
+  mode: "has" | "missing" | undefined,
+): BookmarkSearch {
+  const next = {
+    ...search,
+  };
+  if (mode === undefined) {
+    delete next.youtubeChannelPresence;
+  }
+  else {
+    next.youtubeChannelPresence = mode;
+    if (mode === "missing") delete next.youtubeChannels;
+  }
+  return next;
+}
+
+/** Return a copy of `search` with the website filter set, or cleared when `ids` is empty. */
+export function withWebsites(search: BookmarkSearch, ids: string[]): BookmarkSearch {
+  const next = {
+    ...search,
+  };
+  if (ids.length === 0) delete next.websites;
+  else next.websites = ids;
+  return next;
+}
+
+/**
+ * Return a copy of `search` with the website-presence filter set or cleared.
+ * Setting `"missing"` also clears any specific website selection (selecting one contradicts "none").
+ */
+export function withWebsitePresence(
+  search: BookmarkSearch,
+  mode: "has" | "missing" | undefined,
+): BookmarkSearch {
+  const next = {
+    ...search,
+  };
+  if (mode === undefined) {
+    delete next.websitePresence;
+  }
+  else {
+    next.websitePresence = mode;
+    if (mode === "missing") delete next.websites;
+  }
+  return next;
+}
+
 /** Return a copy of `search` with a property-presence filter set or cleared. */
 export function withPresenceFilter(
   search: BookmarkSearch,
@@ -327,6 +416,10 @@ export function summarizeBookmarkSearch(raw: Record<string, unknown>): string {
   if (mediaTypeCount > 0) parts.push(`${mediaTypeCount} media ${mediaTypeCount === 1 ? "type" : "types"}`);
   const channelCount = search.youtubeChannels?.length ?? 0;
   if (channelCount > 0) parts.push(`${channelCount} ${channelCount === 1 ? "channel" : "channels"}`);
+  if (search.youtubeChannelPresence !== undefined) parts.push(`channel: ${search.youtubeChannelPresence}`);
+  const websiteCount = search.websites?.length ?? 0;
+  if (websiteCount > 0) parts.push(`${websiteCount} ${websiteCount === 1 ? "website" : "websites"}`);
+  if (search.websitePresence !== undefined) parts.push(`website: ${search.websitePresence}`);
   const tagCount = search.tags?.length ?? 0;
   if (tagCount > 0) parts.push(`${tagCount} ${tagCount === 1 ? "tag" : "tags"}`);
   if (search.tagPresence !== undefined) parts.push(`tags: ${search.tagPresence}`);

@@ -26,6 +26,7 @@ function CategoryPage() {
     tagTree,
     mediaTypes,
     youtubeChannels,
+    websites,
   } = useCategoryPageData(search.tags);
 
   const category = (categories ?? []).find(item => item.slug === categorySlug);
@@ -67,6 +68,7 @@ function CategoryPage() {
       propertyGroups={propertyGroups ?? []}
       mediaTypes={mediaTypes ?? []}
       youtubeChannels={youtubeChannels ?? []}
+      websites={websites ?? []}
       bookmarks={categoryBookmarks}
       search={search}
       onSearchChange={next => navigate({
