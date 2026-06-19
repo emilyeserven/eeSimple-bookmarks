@@ -15,7 +15,10 @@ type Props =
   | { type: "youtube-channel"; data: BookmarkYouTubeChannel };
 
 /** A clickable pill showing a website's favicon or a YouTube channel's avatar alongside the entity name. */
-export function SourcePill({ type, data }: Props) {
+export function SourcePill({
+  type,
+  data,
+}: Props) {
   const [imgError, setImgError] = useState(false);
   const viewClick = useViewPanelClick();
   const modifier = useUiStore(state => state.sidebarOpenModifier);
@@ -37,7 +40,10 @@ export function SourcePill({ type, data }: Props) {
       : <MonitorPlay className="size-3 shrink-0" />;
 
   const badge = (
-    <Badge variant="secondary" className="inline-flex items-center gap-1">
+    <Badge
+      variant="secondary"
+      className="inline-flex items-center gap-1"
+    >
       {icon}
       {type === "website" ? data.siteName : data.name}
     </Badge>
@@ -47,7 +53,9 @@ export function SourcePill({ type, data }: Props) {
     return (
       <Link
         to="/taxonomies/websites/$websiteSlug"
-        params={{ websiteSlug: data.slug }}
+        params={{
+          websiteSlug: data.slug,
+        }}
         title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
         onClick={event => viewClick(event, "website", data.id)}
       >
@@ -59,7 +67,9 @@ export function SourcePill({ type, data }: Props) {
   return (
     <Link
       to="/taxonomies/youtube-channels/$channelSlug"
-      params={{ channelSlug: data.slug }}
+      params={{
+        channelSlug: data.slug,
+      }}
       title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
       onClick={event => viewClick(event, "youtube-channel", data.id)}
     >
