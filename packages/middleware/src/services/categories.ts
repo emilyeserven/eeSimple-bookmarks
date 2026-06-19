@@ -77,7 +77,11 @@ export async function listCategories(): Promise<Category[]> {
       builtIn: categories.builtIn,
       isHomepage: categories.isHomepage,
       createdAt: categories.createdAt,
-      bookmarkCount: sql<number>`(select count(*)::int from ${bookmarks} where ${bookmarks.categoryId} = ${categories.id})`.mapWith(Number),
+      bookmarkCount: sql<number>`(
+        select count(*)::int from ${bookmarks}
+        where ${bookmarks.categoryId} = ${categories.id}
+           or (${categories.builtIn} = true and ${bookmarks.categoryId} is null)
+      )`.mapWith(Number),
     })
     .from(categories)
     .orderBy(asc(categories.name));
@@ -137,10 +141,15 @@ export async function deleteCategory(id: string): Promise<boolean> {
     throw new BuiltInCategoryError("The built-in category cannot be deleted");
   }
   // FK cascade removes this category's property_categories and root-tag links; bookmarks
-  // in it have their category_id set to NULL (resolved back to Default on read).
+  // in it have their category_id set to NULL. Re-assign them to Default immediately so the
+  // count subquery never has to handle orphaned NULLs mid-session.
   const rows = await db.delete(categories).where(eq(categories.id, id)).returning({
     id: categories.id,
   });
+  if (rows.length > 0) {
+    const defaultId = await ensureDefaultCategory();
+    await db.update(bookmarks).set({ categoryId: defaultId }).where(isNull(bookmarks.categoryId));
+  }
   return rows.length > 0;
 }
 

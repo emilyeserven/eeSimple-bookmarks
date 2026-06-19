@@ -6,6 +6,7 @@ import { bookmarksApi } from "../lib/api";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
+const CATEGORIES_KEY = ["categories"] as const;
 const MEDIA_TYPES_KEY = ["media-types"] as const;
 const WEBSITES_KEY = ["websites"] as const;
 const YOUTUBE_CHANNELS_KEY = ["youtube-channels"] as const;
@@ -60,6 +61,9 @@ export function useCreateBookmark() {
         queryKey: BOOKMARKS_KEY,
       });
       void queryClient.invalidateQueries({
+        queryKey: CATEGORIES_KEY,
+      });
+      void queryClient.invalidateQueries({
         queryKey: MEDIA_TYPES_KEY,
       });
       void queryClient.invalidateQueries({
@@ -84,6 +88,9 @@ export function useUpdateBookmark() {
         queryKey: BOOKMARKS_KEY,
       });
       void queryClient.invalidateQueries({
+        queryKey: CATEGORIES_KEY,
+      });
+      void queryClient.invalidateQueries({
         queryKey: MEDIA_TYPES_KEY,
       });
       void queryClient.invalidateQueries({
@@ -103,6 +110,9 @@ export function useDeleteBookmark() {
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: BOOKMARKS_KEY,
+      });
+      void queryClient.invalidateQueries({
+        queryKey: CATEGORIES_KEY,
       });
       void queryClient.invalidateQueries({
         queryKey: MEDIA_TYPES_KEY,
