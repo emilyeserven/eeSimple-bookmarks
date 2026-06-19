@@ -1,17 +1,20 @@
 /**
- * YouTube-specific metadata extraction. Pulls a video's title, thumbnail, channel, and duration
- * from public, unauthenticated sources — no API key required:
+ * YouTube-specific metadata extraction. Pulls a video's title, thumbnail, channel, duration, and
+ * publish date from public, unauthenticated sources — no API key required:
  *  - title / thumbnail / channel come from YouTube's oEmbed endpoint (clean JSON);
- *  - duration is scraped from the watch page's `<meta itemprop="duration">` (ISO-8601), which oEmbed
- *    does not provide.
+ *  - duration / publish date are scraped from the watch page (which oEmbed omits): preferring the
+ *    embedded `ytInitialPlayerResponse` JSON and falling back to the schema.org
+ *    `<meta itemprop="duration"/"datePublished">` microdata.
  *
- * The pure parsers (`parseYouTubeVideo`, `parseIsoDuration`) are exported and unit-tested; the
- * network call reuses the guarded fetch helpers from `metadata.ts`.
+ * Every scrape failure is recorded as a `warnings` entry (and logged) rather than silently
+ * collapsed to `null`, so a partial result explains itself. The pure parsers (`parseYouTubeVideo`,
+ * `parseIsoDuration`) are exported and unit-tested; the network call reuses the guarded fetch
+ * helpers from `metadata.ts`.
  */
 
 import { isYouTubeVideoUrl, parseYouTubeVideo } from "@eesimple/types";
 
-import { downloadImage, fetchHeadHtml, isPublicHttpUrl, metaContent } from "@/services/metadata";
+import { downloadImage, fetchBodyHtmlResult, isPublicHttpUrl, metaContent } from "@/services/metadata";
 
 // Re-exported so existing intra-package importers (and tests) keep their `@/services/youtube` path;
 // the pure parsers now live in `@eesimple/types` so the client can share them.
@@ -29,6 +32,17 @@ export interface YouTubeMetadata {
   durationSeconds: number | null;
   /** ISO-8601 publish date ("YYYY-MM-DD") scraped from the watch page, or `null`. */
   datePosted: string | null;
+  /**
+   * Human-readable reasons a field could not be resolved (watch-page fetch failed, value absent or
+   * unparseable). Empty when everything resolved. Surfaced so a partial result explains itself
+   * instead of returning a silent `null`.
+   */
+  warnings: string[];
+}
+
+/** Tagged log line so the whole YouTube metadata-scrape path is greppable in production. */
+function ytmLog(message: string): void {
+  console.warn(`[youtube-metadata] ${message}`);
 }
 
 /**
@@ -82,23 +96,91 @@ async function fetchOEmbed(videoUrl: string): Promise<OEmbedResponse | null> {
   }
 }
 
-/** Scrape the watch page's `<meta itemprop="duration">`, `og:description`, and `datePublished` meta tags. */
-async function fetchWatchPageMeta(videoId: string): Promise<{ durationSeconds: number | null;
+/** Normalize a YouTube publish/upload date (e.g. `"2024-06-15T00:00:00-07:00"`) to `"YYYY-MM-DD"`, or `null`. */
+function normalizeDate(raw: string): string | null {
+  const match = /^(\d{4}-\d{2}-\d{2})/.exec(raw.trim());
+  return match ? match[1] : null;
+}
+
+/** A watch-page scrape outcome plus the reasons any field is missing. */
+interface WatchPageMeta {
+  durationSeconds: number | null;
   description: string | null;
-  datePosted: string | null; }> {
-  const html = await fetchHeadHtml(`https://www.youtube.com/watch?v=${videoId}`);
-  if (!html) return {
-    durationSeconds: null,
-    description: null,
-    datePosted: null,
-  };
-  const iso = metaContent(html, /itemprop=["']duration["']/i);
+  datePosted: string | null;
+  warnings: string[];
+}
+
+/**
+ * Scrape the watch page for duration, publish date, and description. Reads into the body (the data
+ * of interest lives after `</head>`): prefers the embedded `ytInitialPlayerResponse` JSON
+ * (`videoDetails.lengthSeconds`, `microformat…publishDate`) and falls back to the schema.org
+ * `<meta itemprop="duration"/"datePublished">` microdata. Every failure (fetch error, absent or
+ * unparseable value) is recorded as a warning rather than silently collapsed to `null`.
+ */
+async function fetchWatchPageMeta(videoId: string): Promise<WatchPageMeta> {
+  const warnings: string[] = [];
+  // Stop once the player response's `publishDate` is in hand (it follows `lengthSeconds`), or at the
+  // end of the body / the byte cap. Keeps the read small on the common path.
+  const result = await fetchBodyHtmlResult(
+    `https://www.youtube.com/watch?v=${videoId}`,
+    /"publishDate"|<\/body>/i,
+  );
+  if (result.kind !== "ok") {
+    const reason
+      = result.kind === "http_error"
+        ? `http_error ${result.status}`
+        : result.kind;
+    warnings.push(`watch-page fetch failed: ${reason}`);
+    return {
+      durationSeconds: null,
+      description: null,
+      datePosted: null,
+      warnings,
+    };
+  }
+  const {
+    html,
+  } = result;
+
+  // Duration: JSON `lengthSeconds` first, then the ISO-8601 `itemprop="duration"` microdata.
+  let durationSeconds: number | null = null;
+  const jsonSeconds = /"lengthSeconds"\s*:\s*"(\d+)"/.exec(html)?.[1];
+  if (jsonSeconds) {
+    const n = Number(jsonSeconds);
+    if (Number.isInteger(n) && n > 0) durationSeconds = n;
+  }
+  if (durationSeconds === null) {
+    const iso = metaContent(html, /itemprop=["']duration["']/i);
+    if (iso) {
+      durationSeconds = parseIsoDuration(iso);
+      if (durationSeconds === null) warnings.push(`duration value "${iso}" could not be parsed`);
+    }
+    else if (!jsonSeconds) {
+      warnings.push("duration not found in watch page");
+    }
+  }
+
+  // Date: JSON `publishDate`/`uploadDate` first, then the `itemprop="datePublished"` microdata.
+  let datePosted: string | null = null;
+  const rawJsonDate
+    = /"publishDate"\s*:\s*"([^"]+)"/.exec(html)?.[1]
+      ?? /"uploadDate"\s*:\s*"([^"]+)"/.exec(html)?.[1];
+  const rawMicroDate = metaContent(html, /itemprop=["']datePublished["']/i);
+  const rawDate = rawJsonDate ?? rawMicroDate;
+  if (rawDate) {
+    datePosted = normalizeDate(rawDate);
+    if (datePosted === null) warnings.push(`date "${rawDate}" not in YYYY-MM-DD form`);
+  }
+  else {
+    warnings.push("date not found in watch page");
+  }
+
   const rawDescription = metaContent(html, /(?:property|name)=["']og:description["']/i);
-  const rawDate = metaContent(html, /itemprop=["']datePublished["']/i);
   return {
-    durationSeconds: iso ? parseIsoDuration(iso) : null,
+    durationSeconds,
     description: rawDescription ? decodeEntities(rawDescription).trim() || null : null,
-    datePosted: rawDate && /^\d{4}-\d{2}-\d{2}$/.test(rawDate) ? rawDate : null,
+    datePosted,
+    warnings,
   };
 }
 
@@ -127,6 +209,11 @@ export async function fetchYouTubeMetadata(url: string): Promise<YouTubeMetadata
     fetchWatchPageMeta(video.videoId),
   ]);
 
+  const warnings = [...watchPage.warnings];
+  if (oembed === null) warnings.push("oEmbed lookup failed (title/channel/thumbnail unavailable)");
+  // Log loudly so a partial scrape is visible in production logs, not just a silent `null`.
+  for (const warning of warnings) ytmLog(`${url} — ${warning}`);
+
   const thumbnailUrl = asString(oembed?.thumbnail_url);
   const channelUrl = asString(oembed?.author_url);
   return {
@@ -138,6 +225,7 @@ export async function fetchYouTubeMetadata(url: string): Promise<YouTubeMetadata
     channelUrl: channelUrl && isPublicHttpUrl(channelUrl) ? channelUrl : null,
     durationSeconds: watchPage.durationSeconds,
     datePosted: watchPage.datePosted,
+    warnings,
   };
 }
 
