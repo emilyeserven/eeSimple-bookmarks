@@ -91,6 +91,18 @@ const youtubeChannelNode = {
   },
 } as const;
 
+const mediaTypeNode = {
+  type: "object",
+  additionalProperties: false,
+  required: ["type", "mediaTypeIds"],
+  properties: {
+    type: {
+      const: "media-type",
+    },
+    mediaTypeIds: uuidArray,
+  },
+} as const;
+
 const numberPredicate = {
   oneOf: [
     {
@@ -266,10 +278,10 @@ const groupNode = {
   },
 } as const;
 
-/** Any node in the tree (group or one of the five leaf kinds). Self-references for nesting. */
+/** Any node in the tree (group or one of the leaf kinds). Self-references for nesting. */
 export const conditionNodeSchema = {
   $id: "conditionNode",
-  oneOf: [groupNode, matchNode, categoryNode, websiteNode, tagNode, youtubeChannelNode, propertyNode],
+  oneOf: [groupNode, matchNode, categoryNode, websiteNode, tagNode, youtubeChannelNode, mediaTypeNode, propertyNode],
 } as const;
 
 /** The persisted root: always a group. Referenced by request bodies as `conditionTree#`. */

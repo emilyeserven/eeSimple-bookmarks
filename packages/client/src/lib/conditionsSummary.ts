@@ -30,6 +30,10 @@ function summarizeNode(node: ConditionNode): string {
       return node.channelIds.length === 1
         ? "YouTube channel is (1)"
         : `YouTube channel is one of (${node.channelIds.length})`;
+    case "media-type":
+      return node.mediaTypeIds.length === 1
+        ? "media type is (1)"
+        : `media type is one of (${node.mediaTypeIds.length})`;
     case "property":
       return `${node.predicate.valueKind} property condition`;
     default: {

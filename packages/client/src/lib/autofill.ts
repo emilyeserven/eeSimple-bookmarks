@@ -37,6 +37,7 @@ export function matchesRule(rule: AutofillRule, input: AutofillInput): boolean {
     categoryId: "",
     tagIds: new Set(),
     youtubeChannelId: null,
+    mediaTypeId: null,
     numberValues: new Map(),
     booleanValues: new Map(),
     dateTimeValues: new Map(),

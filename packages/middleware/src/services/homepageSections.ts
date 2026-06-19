@@ -270,6 +270,7 @@ async function buildConditionInputs(
       categoryId: row.categoryId ?? defaultCategoryId,
       tagIds: tagsByBid.get(row.id) ?? new Set(),
       youtubeChannelId: row.youtubeChannelId ?? null,
+      mediaTypeId: row.mediaTypeId ?? null,
       numberValues: numsByBid.get(row.id) ?? new Map(),
       booleanValues: boolsByBid.get(row.id) ?? new Map(),
       dateTimeValues: datesByBid.get(row.id) ?? new Map(),
