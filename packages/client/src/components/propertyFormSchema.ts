@@ -27,6 +27,7 @@ export const propertySchema = z
     showInListings: z.boolean(),
     editableOnCard: z.boolean(),
     enabled: z.boolean(),
+    allowDefault: z.boolean(),
     propertyGroupId: z.string(),
   })
   .superRefine((value, ctx) => {
@@ -64,6 +65,7 @@ export const CREATE_DEFAULTS: PropertyFormValues = {
   showInListings: true,
   editableOnCard: false,
   enabled: true,
+  allowDefault: true,
   propertyGroupId: "",
 };
 
@@ -108,6 +110,7 @@ export function valuesFromProperty(property: CustomProperty): PropertyFormValues
     showInListings: property.showInListings,
     editableOnCard: property.editableOnCard,
     enabled: property.enabled,
+    allowDefault: property.allowDefault ?? true,
     propertyGroupId: property.propertyGroupId ?? "",
   };
 }
@@ -137,6 +140,7 @@ export function payloadFromValues(values: PropertyFormValues): CreateCustomPrope
     // Calculate values are computed server-side, so they can never be edited from the card menu.
     editableOnCard: values.type === "calculate" ? false : values.editableOnCard,
     enabled: values.enabled,
+    allowDefault: values.allowDefault,
     propertyGroupId: values.propertyGroupId || null,
   };
 }

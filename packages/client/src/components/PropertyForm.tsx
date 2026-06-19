@@ -313,6 +313,23 @@ export function PropertyForm({
                         />
                       )}
                     </form.AppField>
+                    <div className="col-span-full space-y-1">
+                      <form.AppField name="allowDefault">
+                        {field => (
+                          <div className="flex items-center gap-2">
+                            <Checkbox
+                              id={`${idPrefix}-allow-default`}
+                              checked={field.state.value}
+                              onCheckedChange={checked => field.handleChange(checked === true)}
+                            />
+                            <Label htmlFor={`${idPrefix}-allow-default`}>Allow default value</Label>
+                          </div>
+                        )}
+                      </form.AppField>
+                      <p className="text-xs text-muted-foreground">
+                        When disabled, this property will not appear in the category defaults editor.
+                      </p>
+                    </div>
                   </div>
                 </CollapsibleFormSection>
               </>
@@ -328,15 +345,34 @@ export function PropertyForm({
                 {full ? <Separator /> : null}
 
                 <LabeledSection title="Property options">
-                  <form.AppField name="dateTimeFormat">
-                    {field => (
-                      <field.SelectField
-                        label="Captures"
-                        options={DATE_TIME_FORMAT_OPTIONS}
-                        disabled={mode === "edit"}
-                      />
-                    )}
-                  </form.AppField>
+                  <div className="space-y-4">
+                    <form.AppField name="dateTimeFormat">
+                      {field => (
+                        <field.SelectField
+                          label="Captures"
+                          options={DATE_TIME_FORMAT_OPTIONS}
+                          disabled={mode === "edit"}
+                        />
+                      )}
+                    </form.AppField>
+                    <div className="space-y-1">
+                      <form.AppField name="allowDefault">
+                        {field => (
+                          <div className="flex items-center gap-2">
+                            <Checkbox
+                              id={`${idPrefix}-allow-default`}
+                              checked={field.state.value}
+                              onCheckedChange={checked => field.handleChange(checked === true)}
+                            />
+                            <Label htmlFor={`${idPrefix}-allow-default`}>Allow default value</Label>
+                          </div>
+                        )}
+                      </form.AppField>
+                      <p className="text-xs text-muted-foreground">
+                        When disabled, this property will not appear in the category defaults editor.
+                      </p>
+                    </div>
+                  </div>
                 </LabeledSection>
               </>
             )
@@ -370,6 +406,37 @@ export function PropertyForm({
                       </div>
                     )}
                   </form.AppField>
+                </LabeledSection>
+              </>
+            )
+            : null}
+      </form.Subscribe>
+
+      <form.Subscribe selector={state => state.values.type}>
+        {type =>
+          showOptions && type === "boolean"
+            ? (
+              <>
+                {full ? <Separator /> : null}
+
+                <LabeledSection title="Property options">
+                  <div className="space-y-1">
+                    <form.AppField name="allowDefault">
+                      {field => (
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            id={`${idPrefix}-allow-default`}
+                            checked={field.state.value}
+                            onCheckedChange={checked => field.handleChange(checked === true)}
+                          />
+                          <Label htmlFor={`${idPrefix}-allow-default`}>Allow default value</Label>
+                        </div>
+                      )}
+                    </form.AppField>
+                    <p className="text-xs text-muted-foreground">
+                      When disabled, this property will not appear in the category defaults editor.
+                    </p>
+                  </div>
                 </LabeledSection>
               </>
             )

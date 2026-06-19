@@ -566,6 +566,8 @@ export interface CustomProperty {
   showInListings: boolean;
   /** When false, the property is globally inactive: hidden from filters, conditions, category assignment, and the bookmark form. */
   enabled: boolean;
+  /** When false, this property does not appear in the category defaults editor. */
+  allowDefault: boolean;
   /** Id of the property group this property belongs to, or `null` when ungrouped. */
   propertyGroupId: string | null;
   createdAt: string;
@@ -603,6 +605,8 @@ export interface CreateCustomPropertyInput {
   showInListings?: boolean;
   /** When false, the property is globally inactive. Defaults to true. */
   enabled?: boolean;
+  /** When false, this property is excluded from the category defaults editor. Defaults to true. */
+  allowDefault?: boolean;
   /** Id of the property group to place this property in, or `null` to leave it ungrouped. */
   propertyGroupId?: string | null;
 }

@@ -31,6 +31,7 @@ function property(overrides: Partial<CustomProperty>): CustomProperty {
     allCategories: false,
     editableOnCard: false,
     enabled: true,
+    allowDefault: true,
     propertyGroupId: null,
     createdAt: NOW,
     ...overrides,

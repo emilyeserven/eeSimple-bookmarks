@@ -101,6 +101,9 @@ const createPropertyBody = {
     enabled: {
       type: "boolean",
     },
+    allowDefault: {
+      type: "boolean",
+    },
     propertyGroupId: nullableUuid,
   },
 } as const;
@@ -128,6 +131,7 @@ const updatePropertyBody = {
     allCategories: createPropertyBody.properties.allCategories,
     editableOnCard: createPropertyBody.properties.editableOnCard,
     enabled: createPropertyBody.properties.enabled,
+    allowDefault: createPropertyBody.properties.allowDefault,
     propertyGroupId: createPropertyBody.properties.propertyGroupId,
   },
 } as const;
