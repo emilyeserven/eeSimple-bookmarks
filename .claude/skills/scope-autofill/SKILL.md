@@ -44,41 +44,18 @@ This skill focuses on the autofill/condition plumbing. For the surrounding verti
 
 ## B. Condition-based scoping (rule matches the entity) — the Website pattern
 
-Add a new condition leaf type, then scope by it. Touch points (Website is the reference):
+Condition-based scoping has two halves:
 
-1. **Shared type + evaluator** — `packages/types/src/conditions.ts`:
-   - Add the leaf interface (e.g. `WebsiteCondition { type: "website"; domains: string[] }`) and add
-     it to the `ConditionNode` union.
-   - Add a `case` to `evaluateConditions`. **Keep the evaluator pure** — it must run unchanged in the
-     browser and in `homepageSections.ts`. Website matches on `hostOf(input.url)` so it needs no
-     resolver; if your leaf needs lookups, follow the `tagDescendants` resolver precedent in
-     `EvaluateOptions` rather than reaching for a DB.
-   - Adding to the union is enforced by exhaustive `switch`es — `lib/conditionsSummary.ts` will fail
-     to compile until you add the case, which is your checklist.
-2. **Server schema** — `packages/middleware/src/routes/conditionSchema.ts`: add a node schema and
-   include it in `conditionNodeSchema.oneOf`.
-3. **Client validator** — `packages/client/src/lib/conditionsSchema.ts`: validate the leaf
-   (e.g. require ≥1 selection) in the `walk`.
-4. **Summaries (three of them)** — `lib/conditionsSummary.ts` (string used by the list),
-   `components/conditions/summarizeConditions.ts` (counts + breakdown), and the local
-   `summarizeConditions` in `AutofillRuleForm.tsx`.
-5. **Builder UI** — `components/conditions/ConditionsField.tsx`: read the leaf, add a `Section`, and
-   extend `commit()` (drop the leaf when empty, like the category/tag leaves). Add an editor
-   component under `components/conditions/`. For a multi-select reuse `MultiCombobox`
-   (`CategoryConditionEditor` is the template); for websites reuse the existing website `Combobox` +
-   "Add new website" `Dialog`.
-6. **Scope the list** — `AutofillRulesList`: add the scope prop, resolve the entity to whatever the
-   leaf stores (websites store **domain strings**, so resolve `website.id → domain` via
-   `useWebsites()`), and filter `scopedRules` by walking each rule's `conditions` for a matching
-   leaf.
-7. **Default a new rule** — in `AutofillRulePanel.CreateAutofillRule` resolve the entity from the URL
-   slug and pass a `default…` prop; `AutofillRuleForm` seeds the initial `conditions` tree with the
-   leaf (see `seedConditions`).
-8. **Boot backfill for legacy data** — if the new leaf supersedes an older encoding (Website replaced
-   the legacy `match`/`domain` operator), add an idempotent `ensure*` step to
-   `services/autofill.ts` and wire it into `src/index.ts` next to the other autofill `ensure*` steps
-   (after `app.listen()`, per CLAUDE.md boot ordering). Keep legacy types/evaluator branches intact
-   so old stored trees still evaluate.
+1. **Add the condition leaf type** to the shared condition tree (type + evaluator, server/client
+   schema, the three summaries, builder UI). This is its own task — see the **`add-condition-type`**
+   skill, which walks the Website leaf end to end. The leaf then appears in both the autofill builder
+   and the Homepage filter.
+2. **Scope the list to that leaf** — `AutofillRulesList`: add the scope prop, resolve the entity to
+   whatever the leaf stores (websites store **domain strings**, so resolve `website.id → domain` via
+   `useWebsites()`), and filter `scopedRules` by walking each rule's `conditions` for a matching leaf.
+   Then default a new rule by resolving the entity from the URL slug in
+   `AutofillRulePanel.CreateAutofillRule` and passing a `default…` prop that `AutofillRuleForm` seeds
+   into the initial `conditions` tree (see `seedConditions`) — same as step A.2.
 
 ## Route files (both A and B)
 

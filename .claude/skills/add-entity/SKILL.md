@@ -6,7 +6,8 @@ description: >-
   types, the client route quartet, a manager component, and right-panel registration. Use when
   asked to "add a new entity/table/taxonomy/content type", "give X detail and edit pages",
   "make X slug-routed", or "register a panel content type". Mirrors how categories, websites,
-  custom-properties, autofill, media-types, and youtube-channels were each built.
+  custom-properties, autofill, media-types, youtube-channels, tags, and property-groups were each
+  built.
 ---
 
 # Add a slug-routed entity

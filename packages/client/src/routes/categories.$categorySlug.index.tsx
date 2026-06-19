@@ -1,14 +1,8 @@
 import { propertyAppliesToCategory } from "@eesimple/types";
 import { Link, createFileRoute } from "@tanstack/react-router";
 
+import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
-import { useBookmarks } from "../hooks/useBookmarks";
-import { useCategories } from "../hooks/useCategories";
-import { useCustomProperties } from "../hooks/useCustomProperties";
-import { useMediaTypes } from "../hooks/useMediaTypes";
-import { usePropertyGroups } from "../hooks/usePropertyGroups";
-import { useTagTree } from "../hooks/useTags";
-import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
 import { validateBookmarkSearch } from "../lib/bookmarkSearch";
 
 import { Button } from "@/components/ui/button";
@@ -26,26 +20,14 @@ function CategoryPage() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
   const {
-    data: categories, isLoading: categoriesLoading,
-  } = useCategories();
-  const {
-    data: properties,
-  } = useCustomProperties();
-  const {
-    data: propertyGroups,
-  } = usePropertyGroups();
-  const {
-    data: bookmarks, isLoading: bookmarksLoading, error,
-  } = useBookmarks(search.tag);
-  const {
-    data: tagTree,
-  } = useTagTree();
-  const {
-    data: mediaTypes,
-  } = useMediaTypes();
-  const {
-    data: youtubeChannels,
-  } = useYouTubeChannels();
+    categories, categoriesLoading,
+    properties,
+    propertyGroups,
+    bookmarks, bookmarksLoading, error,
+    tagTree,
+    mediaTypes,
+    youtubeChannels,
+  } = useCategoryPageData(search.tag);
 
   const category = (categories ?? []).find(item => item.slug === categorySlug);
 

@@ -2,9 +2,10 @@ import type { ShortenedLink, Website } from "@eesimple/types";
 
 import { useState } from "react";
 
+import { BulkExpandSection } from "./BulkExpandSection";
 import { LabeledSection } from "./LabeledSection";
 import { LinkPreview } from "./LinkPreview";
-import { BulkExpandSection, ShortenedLinksEditor } from "./WebsiteManager";
+import { ShortenedLinksEditor } from "./WebsiteEditors";
 import { useUpdateWebsite } from "../hooks/useWebsites";
 import { normalizeShortLinks } from "../lib/websiteForm";
 

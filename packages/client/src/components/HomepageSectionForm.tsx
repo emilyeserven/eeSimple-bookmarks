@@ -4,21 +4,14 @@ import { useState } from "react";
 
 import { emptyConditionTree } from "@eesimple/types";
 
-import { CollapsibleFormSection } from "./CollapsibleFormSection";
+import { HomepageSectionFields } from "./HomepageSectionFields";
+import { PreviewBookmarksSection } from "./PreviewBookmarksSection";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useTagTree } from "../hooks/useTags";
-import { ConditionsField } from "./conditions/ConditionsField";
-import { conditionsSummaryLabel } from "./conditions/summarizeConditions";
-import { PreviewBookmarksSection } from "./PreviewBookmarksSection";
-import { SectionDisplayControls } from "./SectionDisplayControls";
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Textarea } from "@/components/ui/textarea";
 
 interface HomepageSectionFormValues {
   title: string;
@@ -38,21 +31,6 @@ interface HomepageSectionFormProps {
   /** When provided (editing an existing section), renders a Delete button in the actions row. */
   onDelete?: () => void;
   isDeleting?: boolean;
-}
-
-function displayPreview(
-  columns: number,
-  imageMode: boolean,
-  imageLayout: HomepageSectionImageLayout,
-  hideIfEmpty: boolean,
-): string {
-  const parts = [
-    `${columns} ${columns === 1 ? "column" : "columns"}`,
-    imageMode ? "Natural" : "Cropped",
-  ];
-  if (columns === 2) parts.push(imageLayout === "side" ? "Side" : "Above");
-  if (hideIfEmpty) parts.push("Hidden when empty");
-  return parts.join(" · ");
 }
 
 export function HomepageSectionForm({
@@ -98,89 +76,28 @@ export function HomepageSectionForm({
       onSubmit={handleSubmit}
       className="space-y-6"
     >
-      <CollapsibleFormSection
-        title="General"
-        description="Name and description shown above the section's bookmarks."
-        defaultOpen
-        preview={title.trim() || "Untitled section"}
-      >
-        <div className="space-y-1">
-          <Label htmlFor="section-title">Name</Label>
-          <Input
-            id="section-title"
-            value={title}
-            onChange={e => setTitle(e.target.value)}
-            placeholder="Section name"
-            required
-          />
-        </div>
-
-        <div className="space-y-1">
-          <Label htmlFor="section-description">Description</Label>
-          <Textarea
-            id="section-description"
-            value={description}
-            onChange={e => setDescription(e.target.value)}
-            placeholder="Optional description shown above the bookmarks"
-            rows={2}
-          />
-        </div>
-      </CollapsibleFormSection>
-
-      <Separator />
-
-      <CollapsibleFormSection
-        title="Display"
-        description="How this section's bookmarks are laid out on the homepage."
-        defaultOpen={!section}
-        preview={displayPreview(columns, imageMode, imageLayout, hideIfEmpty)}
-      >
-        <SectionDisplayControls
-          idPrefix={`section-${section?.id ?? "new"}`}
-          columns={columns}
-          imageMode={imageMode}
-          imageLayout={imageLayout}
-          onColumnsChange={setColumns}
-          onImageModeChange={setImageMode}
-          onImageLayoutChange={setImageLayout}
-        />
-
-        <div className="flex items-start gap-2">
-          <Checkbox
-            id="section-hide-if-empty"
-            checked={hideIfEmpty}
-            onCheckedChange={checked => setHideIfEmpty(checked === true)}
-          />
-          <div className="space-y-0.5">
-            <Label
-              htmlFor="section-hide-if-empty"
-              className="cursor-pointer"
-            >
-              Hide when empty
-            </Label>
-            <p className="text-sm text-muted-foreground">
-              Don&rsquo;t show this section when no bookmarks match its filter.
-            </p>
-          </div>
-        </div>
-      </CollapsibleFormSection>
-
-      <Separator />
-
-      <CollapsibleFormSection
-        title="Filter"
-        description="Choose which bookmarks appear in this section. Combine conditions with AND/OR."
-        defaultOpen={(section?.conditions.children.length ?? 0) > 0}
-        preview={conditionsSummaryLabel(conditions)}
-      >
-        <ConditionsField
-          value={conditions}
-          onChange={setConditions}
-          categories={categories ?? []}
-          properties={properties ?? []}
-          tagTree={tagTree ?? []}
-        />
-      </CollapsibleFormSection>
+      <HomepageSectionFields
+        idPrefix={`section-${section?.id ?? "new"}`}
+        title={title}
+        setTitle={setTitle}
+        description={description}
+        setDescription={setDescription}
+        columns={columns}
+        setColumns={setColumns}
+        imageMode={imageMode}
+        setImageMode={setImageMode}
+        imageLayout={imageLayout}
+        setImageLayout={setImageLayout}
+        hideIfEmpty={hideIfEmpty}
+        setHideIfEmpty={setHideIfEmpty}
+        conditions={conditions}
+        setConditions={setConditions}
+        displayDefaultOpen={!section}
+        filterDefaultOpen={(section?.conditions.children.length ?? 0) > 0}
+        categories={categories ?? []}
+        properties={properties ?? []}
+        tagTree={tagTree ?? []}
+      />
 
       <Separator />
 

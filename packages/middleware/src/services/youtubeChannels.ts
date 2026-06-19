@@ -128,31 +128,12 @@ export async function getYouTubeChannel(id: string): Promise<YouTubeChannel | nu
   return toYouTubeChannel(row, selfIdsMap.get(id) ?? []);
 }
 
-/** Fetch a channel by its slug, or `null` when absent. */
-export async function getYouTubeChannelBySlug(slug: string): Promise<YouTubeChannel | null> {
-  const [row] = await db.select().from(youtubeChannels).where(eq(youtubeChannels.slug, slug));
-  if (!row) return null;
-  const selfIdsMap = await loadSelfIdsMap([row.id]);
-  return toYouTubeChannel(row, selfIdsMap.get(row.id) ?? []);
-}
-
 /** Fetch a channel by its stable channel key, or `null` when absent. */
 export async function getYouTubeChannelByKey(channelKey: string): Promise<YouTubeChannel | null> {
   const [row] = await db.select().from(youtubeChannels).where(eq(youtubeChannels.channelKey, channelKey));
   if (!row) return null;
   const selfIdsMap = await loadSelfIdsMap([row.id]);
   return toYouTubeChannel(row, selfIdsMap.get(row.id) ?? []);
-}
-
-/** List self-identifiers for a single channel. */
-export async function listSelfIds(channelId: string): Promise<string[]> {
-  const rows = await db
-    .select({
-      value: youtubeChannelSelfIds.value,
-    })
-    .from(youtubeChannelSelfIds)
-    .where(eq(youtubeChannelSelfIds.channelId, channelId));
-  return rows.map(r => r.value);
 }
 
 /**

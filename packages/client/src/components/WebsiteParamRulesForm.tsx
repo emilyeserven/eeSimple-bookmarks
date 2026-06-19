@@ -3,7 +3,7 @@ import type { Website } from "@eesimple/types";
 
 import { useState } from "react";
 
-import { ParamRulesEditor } from "./WebsiteManager";
+import { ParamRulesEditor } from "./WebsiteEditors";
 import { useUpdateWebsite } from "../hooks/useWebsites";
 import { normalizeRules } from "../lib/websiteForm";
 
