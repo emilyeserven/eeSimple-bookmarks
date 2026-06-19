@@ -693,6 +693,8 @@ export interface AutofillRule {
   conditions: ConditionTree;
   /** Category to assign, or `null` to leave the category unchanged. */
   setCategoryId: string | null;
+  /** Media type to assign, or `null` to leave the media type unchanged. */
+  setMediaTypeId: string | null;
   /** Tag ids to apply, drawn from the taxonomy. */
   tagIds: string[];
   /** Number custom-property values to apply. */
@@ -712,6 +714,7 @@ export interface CreateAutofillRuleInput {
   description?: string | null;
   conditions: ConditionTree;
   setCategoryId?: string | null;
+  setMediaTypeId?: string | null;
   tagIds?: string[];
   numberValues?: BookmarkNumberValue[];
   booleanValues?: BookmarkBooleanValue[];

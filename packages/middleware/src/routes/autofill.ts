@@ -95,6 +95,10 @@ const createRuleBody = {
       type: ["string", "null"],
       format: "uuid",
     },
+    setMediaTypeId: {
+      type: ["string", "null"],
+      format: "uuid",
+    },
     tagIds: {
       type: "array",
       items: {

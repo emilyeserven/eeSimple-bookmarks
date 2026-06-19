@@ -15,6 +15,10 @@ const viewNav = [
     to: "/taxonomies/media-types/$mediaTypeSlug/general",
     label: "General",
   },
+  {
+    to: "/taxonomies/media-types/$mediaTypeSlug/autofill",
+    label: "Autofill Rules",
+  },
 ] as const;
 
 function MediaTypeViewLayout() {
