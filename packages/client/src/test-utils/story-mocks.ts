@@ -280,6 +280,7 @@ export const sampleBookmark: Bookmark = {
     },
   ],
   dateTimeValues: [],
+  relatedBookmarks: [],
   priority: 10,
   createdAt: NOW,
 };

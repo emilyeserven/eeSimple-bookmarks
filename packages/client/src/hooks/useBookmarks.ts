@@ -1,4 +1,4 @@
-import type { BulkUrlUpdate, CreateBookmarkInput, UpdateBookmarkInput } from "@eesimple/types";
+import type { BulkUrlUpdate, CreateBookmarkInput, UpdateBookmarkInput, UpdateBookmarkRelationshipsInput } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -130,5 +130,20 @@ export function useDeleteBookmarkImage() {
 export function useBookmarkUrlDuplicateCheck() {
   return useMutation({
     mutationFn: (url: string) => bookmarksApi.urlCheck(url),
+  });
+}
+
+/** Replace the full set of relationships for a bookmark. */
+export function useUpdateBookmarkRelationships() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id, input,
+    }: { id: string;
+      input: UpdateBookmarkRelationshipsInput; }) =>
+      bookmarksApi.updateRelationships(id, input),
+    onSuccess: () => queryClient.invalidateQueries({
+      queryKey: BOOKMARKS_KEY,
+    }),
   });
 }

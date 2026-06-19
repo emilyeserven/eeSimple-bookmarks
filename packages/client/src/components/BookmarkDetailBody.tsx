@@ -1,5 +1,7 @@
 import type { Bookmark, Category, CustomProperty, PropertyGroup } from "@eesimple/types";
 
+import { Link } from "@tanstack/react-router";
+
 import { BookmarkCategoryLink } from "./BookmarkCategoryLink";
 import { BookmarkPropertySections } from "./BookmarkPropertySections";
 
@@ -69,6 +71,35 @@ export function BookmarkDetailBody({
                 {bookmark.tags.map(tag => (
                   <li key={tag.id}>
                     <Badge variant="secondary">{tag.name}</Badge>
+                  </li>
+                ))}
+              </ul>
+            </LabeledSection>
+          </>
+        )
+        : null}
+
+      {bookmark.relatedBookmarks.length > 0
+        ? (
+          <>
+            <Separator />
+            <LabeledSection title="Relationships">
+              <ul className="space-y-1">
+                {bookmark.relatedBookmarks.map(related => (
+                  <li key={related.id}>
+                    <Link
+                      to="/bookmarks/$bookmarkId"
+                      params={{
+                        bookmarkId: related.id,
+                      }}
+                      className="
+                        text-sm font-medium
+                        hover:underline
+                      "
+                    >
+                      {related.title}
+                    </Link>
+                    <p className="truncate text-xs text-muted-foreground">{related.url}</p>
                   </li>
                 ))}
               </ul>

@@ -403,6 +403,8 @@ export interface Bookmark {
   booleanValues: BookmarkBooleanValue[];
   /** Date/time custom property values assigned to this bookmark. */
   dateTimeValues: BookmarkDateTimeValue[];
+  /** Other bookmarks this bookmark is related to (undirected edges in the Relationships graph). */
+  relatedBookmarks: BookmarkUrlSummary[];
   /** Homepage ordering weight; higher values appear first. */
   priority: number;
   /** ISO-8601 timestamp of when the bookmark was created. */
@@ -441,6 +443,11 @@ export interface CreateBookmarkInput {
 
 /** Payload for partially updating a bookmark. */
 export type UpdateBookmarkInput = Partial<CreateBookmarkInput>;
+
+/** Payload for replacing the full set of relationships for a bookmark. */
+export interface UpdateBookmarkRelationshipsInput {
+  relatedBookmarkIds: string[];
+}
 
 /** Minimal bookmark shape for the bulk shortened-link expansion review list. */
 export interface BookmarkUrlSummary {

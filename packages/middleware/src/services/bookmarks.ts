@@ -1,4 +1,4 @@
-import { and, desc, eq, ilike, inArray, like, ne } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, like, ne, or } from "drizzle-orm";
 import type {
   Bookmark,
   BookmarkBooleanValue,
@@ -15,6 +15,7 @@ import type {
   BulkUrlUpdateResult,
   CreateBookmarkInput,
   UpdateBookmarkInput,
+  UpdateBookmarkRelationshipsInput,
   YouTubeChannelHint,
 } from "@eesimple/types";
 import { db } from "@/db";
@@ -23,6 +24,7 @@ import {
   bookmarkDateTimeValues,
   bookmarkImages,
   bookmarkNumberValues,
+  bookmarkRelationships,
   bookmarks,
   type BookmarkRow,
   bookmarkTags,
@@ -63,6 +65,7 @@ interface BookmarkExtras {
   booleanValues: BookmarkBooleanValue[];
   dateTimeValues: BookmarkDateTimeValue[];
   image: BookmarkImage | null;
+  relatedBookmarks: BookmarkUrlSummary[];
 }
 
 const EMPTY_EXTRAS: BookmarkExtras = {
@@ -74,6 +77,7 @@ const EMPTY_EXTRAS: BookmarkExtras = {
   booleanValues: [],
   dateTimeValues: [],
   image: null,
+  relatedBookmarks: [],
 };
 
 /** Map a DB row plus its hydrated relations to the shared `Bookmark` wire type. */
@@ -92,6 +96,7 @@ function toBookmark(row: BookmarkRow, extras: BookmarkExtras, defaultCategoryId:
     numberValues: extras.numberValues,
     booleanValues: extras.booleanValues,
     dateTimeValues: extras.dateTimeValues,
+    relatedBookmarks: extras.relatedBookmarks,
     image: extras.image,
     imageAutoGrabError: (row.imageAutoGrabError as "no_image" | "bad_image" | "blocked" | "server_error" | "fetch_error" | null) ?? null,
     priority: row.priority,
@@ -299,14 +304,80 @@ async function imagesByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
   return byId;
 }
 
+/**
+ * Load related bookmarks for a set of bookmark ids, handling both sides of the undirected join.
+ * Returns a map of bookmarkId → array of minimal bookmark summaries for its related bookmarks.
+ */
+async function relatedBookmarksByBookmarkId(
+  bookmarkIds: string[],
+): Promise<Map<string, BookmarkUrlSummary[]>> {
+  const grouped = new Map<string, BookmarkUrlSummary[]>();
+  if (bookmarkIds.length === 0) return grouped;
+
+  const idSet = new Set(bookmarkIds);
+
+  const rels = await db
+    .select({
+      bookmarkAId: bookmarkRelationships.bookmarkAId,
+      bookmarkBId: bookmarkRelationships.bookmarkBId,
+    })
+    .from(bookmarkRelationships)
+    .where(
+      or(
+        inArray(bookmarkRelationships.bookmarkAId, bookmarkIds),
+        inArray(bookmarkRelationships.bookmarkBId, bookmarkIds),
+      ),
+    );
+
+  if (rels.length === 0) return grouped;
+
+  // Collect all "other" bookmark ids we need to fetch (may include ids outside our batch).
+  const otherIds = new Set<string>();
+  for (const rel of rels) {
+    if (idSet.has(rel.bookmarkAId)) otherIds.add(rel.bookmarkBId);
+    if (idSet.has(rel.bookmarkBId)) otherIds.add(rel.bookmarkAId);
+  }
+
+  const otherRows = await db
+    .select({
+      id: bookmarks.id,
+      url: bookmarks.url,
+      title: bookmarks.title,
+    })
+    .from(bookmarks)
+    .where(inArray(bookmarks.id, [...otherIds]));
+
+  const otherById = new Map(otherRows.map(row => [row.id, row]));
+
+  for (const rel of rels) {
+    const addTo = (ownId: string, otherId: string) => {
+      if (!idSet.has(ownId)) return;
+      const other = otherById.get(otherId);
+      if (!other) return;
+      const list = grouped.get(ownId) ?? [];
+      list.push({
+        id: other.id,
+        url: other.url,
+        title: other.title,
+      });
+      grouped.set(ownId, list);
+    };
+    addTo(rel.bookmarkAId, rel.bookmarkBId);
+    addTo(rel.bookmarkBId, rel.bookmarkAId);
+  }
+
+  return grouped;
+}
+
 /** Hydrate all custom-property relations for a set of bookmark rows in batched queries. */
 async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, BookmarkExtras>> {
-  const [tagsMap, numberMap, booleanMap, dateTimeMap, imageMap] = await Promise.all([
+  const [tagsMap, numberMap, booleanMap, dateTimeMap, imageMap, relatedMap] = await Promise.all([
     tagsByBookmarkId(bookmarkIds),
     numberValuesByBookmarkId(bookmarkIds),
     booleanValuesByBookmarkId(bookmarkIds),
     dateTimeValuesByBookmarkId(bookmarkIds),
     imagesByBookmarkId(bookmarkIds),
+    relatedBookmarksByBookmarkId(bookmarkIds),
   ]);
   const grouped = new Map<string, BookmarkExtras>();
   for (const id of bookmarkIds) {
@@ -319,6 +390,7 @@ async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
       booleanValues: booleanMap.get(id) ?? [],
       dateTimeValues: dateTimeMap.get(id) ?? [],
       image: imageMap.get(id) ?? null,
+      relatedBookmarks: relatedMap.get(id) ?? [],
     });
   }
   return grouped;
@@ -880,6 +952,45 @@ async function recomputeCalculatedValues(tx: Tx, bookmarkId: string): Promise<vo
     value: sumOperands(valueById, operandsByCalc.get(prop.id) ?? []),
   }));
   if (inserts.length > 0) await tx.insert(bookmarkNumberValues).values(inserts);
+}
+
+/**
+ * Replace the full set of undirected relationships for a bookmark. Each pair is stored with the
+ * lexicographically smaller UUID in `bookmarkAId` so each edge has exactly one canonical row.
+ * Self-references (a bookmark related to itself) are silently ignored.
+ */
+export async function updateBookmarkRelationships(
+  bookmarkId: string,
+  {
+    relatedBookmarkIds,
+  }: UpdateBookmarkRelationshipsInput,
+): Promise<void> {
+  const pairs = relatedBookmarkIds
+    .filter(otherId => otherId !== bookmarkId)
+    .map(otherId =>
+      bookmarkId < otherId
+        ? {
+          bookmarkAId: bookmarkId,
+          bookmarkBId: otherId,
+        }
+        : {
+          bookmarkAId: otherId,
+          bookmarkBId: bookmarkId,
+        });
+
+  await db.transaction(async (tx) => {
+    await tx
+      .delete(bookmarkRelationships)
+      .where(
+        or(
+          eq(bookmarkRelationships.bookmarkAId, bookmarkId),
+          eq(bookmarkRelationships.bookmarkBId, bookmarkId),
+        ),
+      );
+    if (pairs.length > 0) {
+      await tx.insert(bookmarkRelationships).values(pairs);
+    }
+  });
 }
 
 /** Check if a URL exactly matches an existing bookmark, or shares the same origin+pathname. */
