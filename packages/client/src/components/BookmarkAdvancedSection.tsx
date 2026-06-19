@@ -16,12 +16,12 @@ import { CategoryCustomFields, CategoryDefaultsApplier } from "./BookmarkCustomF
 import { BookmarkImageField } from "./BookmarkImageField";
 import { GatedTagPicker } from "./BookmarkTagsField";
 
+import { Button } from "@/components/ui/button";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { CategoryIcon } from "@/lib/icons";
 import { isFetchableUrl } from "@/lib/url";

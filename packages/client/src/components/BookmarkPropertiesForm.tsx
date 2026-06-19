@@ -2,9 +2,8 @@ import type { Bookmark } from "@eesimple/types";
 
 import { useRef, useState } from "react";
 
-import { Loader2, Sparkles } from "lucide-react";
-
 import { propertyAppliesToCategory } from "@eesimple/types";
+import { Loader2, Sparkles } from "lucide-react";
 
 import { CategoryCustomFields } from "./BookmarkCustomFields";
 import {
@@ -105,7 +104,7 @@ export function BookmarkPropertiesForm({
 
   const hasProperties
     = (videoLengthProp !== undefined && isYouTubeBookmark)
-    || (customProperties ?? []).some(
+      || (customProperties ?? []).some(
       property =>
         property.enabled
         && !property.hiddenFromForm

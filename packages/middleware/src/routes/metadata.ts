@@ -184,7 +184,9 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
       };
     }
 
-    const [html, { domain, website }] = await Promise.all([
+    const [html, {
+      domain, website,
+    }] = await Promise.all([
       fetchHeadHtml(url),
       lookupWebsiteByUrl(url),
     ]);
