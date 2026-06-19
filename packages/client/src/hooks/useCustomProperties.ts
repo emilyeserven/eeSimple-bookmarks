@@ -6,7 +6,7 @@ import type {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { customPropertiesApi } from "../lib/api";
-import { notifySuccess } from "../lib/notifications";
+import { notifyError, notifySuccess } from "../lib/notifications";
 
 const PROPERTIES_KEY = ["custom-properties"] as const;
 const BOOKMARKS_KEY = ["bookmarks"] as const;
@@ -35,7 +35,9 @@ export function useCreateCustomProperty() {
       void queryClient.invalidateQueries({
         queryKey: PROPERTIES_KEY,
       });
+      notifySuccess("Property created");
     },
+    onError: error => notifyError(error.message),
   });
 }
 
@@ -54,7 +56,9 @@ export function useUpdateCustomProperty() {
       void queryClient.invalidateQueries({
         queryKey: BOOKMARKS_KEY,
       });
+      notifySuccess("Property saved");
     },
+    onError: error => notifyError(error.message),
   });
 }
 
@@ -72,5 +76,6 @@ export function useDeleteCustomProperty() {
       });
       notifySuccess("Property deleted");
     },
+    onError: error => notifyError(error.message),
   });
 }

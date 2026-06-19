@@ -104,6 +104,19 @@ const createPropertyBody = {
     allowDefault: {
       type: "boolean",
     },
+    showIfFalse: {
+      type: "boolean",
+    },
+    booleanLabelPreset: {
+      type: ["string", "null"],
+      enum: ["yes-no", "true-false", "enabled-disabled", "icons", "custom", null],
+    },
+    booleanTrueLabel: {
+      type: ["string", "null"],
+    },
+    booleanFalseLabel: {
+      type: ["string", "null"],
+    },
     propertyGroupId: nullableUuid,
   },
 } as const;
@@ -132,6 +145,10 @@ const updatePropertyBody = {
     editableOnCard: createPropertyBody.properties.editableOnCard,
     enabled: createPropertyBody.properties.enabled,
     allowDefault: createPropertyBody.properties.allowDefault,
+    showIfFalse: createPropertyBody.properties.showIfFalse,
+    booleanLabelPreset: createPropertyBody.properties.booleanLabelPreset,
+    booleanTrueLabel: createPropertyBody.properties.booleanTrueLabel,
+    booleanFalseLabel: createPropertyBody.properties.booleanFalseLabel,
     propertyGroupId: createPropertyBody.properties.propertyGroupId,
   },
 } as const;
