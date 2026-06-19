@@ -91,15 +91,6 @@ vi.mock("../hooks/useCategories", () => ({
     data: undefined,
   }),
 }));
-vi.mock("../hooks/useCheckUrl", () => ({
-  useCheckUrl: () => ({
-    mutate: vi.fn(),
-    isPending: false,
-    isSuccess: false,
-    isError: false,
-    data: undefined,
-  }),
-}));
 vi.mock("../hooks/useCustomProperties", () => ({
   useCustomProperties: () => ({
     data: [],
