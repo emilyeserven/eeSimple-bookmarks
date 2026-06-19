@@ -189,6 +189,7 @@ async function tagsByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Book
       bookmarkId: bookmarkTags.bookmarkId,
       id: tags.id,
       name: tags.name,
+      slug: tags.slug,
       parentId: tags.parentId,
     })
     .from(bookmarkTags)
@@ -200,6 +201,7 @@ async function tagsByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Book
     list.push({
       id: row.id,
       name: row.name,
+      slug: row.slug,
       parentId: row.parentId,
     });
     grouped.set(row.bookmarkId, list);
