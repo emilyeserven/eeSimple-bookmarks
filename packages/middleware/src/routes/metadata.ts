@@ -1,4 +1,4 @@
-import type { FastifyInstance } from "fastify";
+import type { FastifyBaseLogger, FastifyInstance } from "fastify";
 import type { FetchMetadataResult } from "@eesimple/types";
 import {
   checkUrl,
@@ -27,6 +27,93 @@ const fetchTitleQuery = {
     },
   },
 } as const;
+
+/** Build the `/api/fetch-metadata` response for a YouTube video URL (oEmbed + channel enrichment). */
+async function buildYouTubeMetadataResult(
+  url: string,
+  log: FastifyBaseLogger,
+): Promise<FetchMetadataResult> {
+  const meta = await fetchYouTubeMetadata(url);
+  const warnings = meta?.warnings ?? [];
+  // Surface scrape failures loudly in the server log (req.log), not just the response.
+  if (warnings.length > 0) {
+    log.warn({
+      url,
+      warnings,
+    }, "[youtube-metadata] scrape incomplete");
+  }
+  // oEmbed titles are already clean; fall back to a page-title fetch if it was unavailable.
+  let title = meta?.title ?? null;
+  if (title === null) {
+    const fallback = await fetchPageTitle(url);
+    if (fallback.kind === "ok") title = fallback.title;
+  }
+
+  const channelKey = meta?.channelUrl ? channelKeyFromUrl(meta.channelUrl) : null;
+  const existingChannel = channelKey ? await getYouTubeChannelByKey(channelKey) : null;
+  const selfIds = existingChannel?.selfIds ?? [];
+
+  // Strip channel self-identifier suffix from the title (e.g. " - SNL" from an SNL video).
+  if (title && selfIds.length > 0) {
+    for (const selfId of selfIds) {
+      const stripped = stripSiteNameSuffix(title, {
+        siteName: selfId,
+      });
+      if (stripped !== title) {
+        title = stripped;
+        break;
+      }
+    }
+  }
+
+  return {
+    title,
+    description: meta?.description ?? null,
+    isYouTube: true,
+    channel: meta?.channelName
+      ? {
+        name: meta.channelName,
+        url: meta.channelUrl,
+        key: channelKey,
+        selfIds,
+      }
+      : null,
+    durationSeconds: meta?.durationSeconds ?? null,
+    datePosted: meta?.datePosted ?? null,
+    thumbnailUrl: meta?.thumbnailUrl ?? null,
+    ...(warnings.length > 0 && {
+      diagnostics: warnings,
+    }),
+  };
+}
+
+/** Build the `/api/fetch-metadata` response for a non-YouTube URL (HTML title/description scrape). */
+async function buildGenericMetadataResult(
+  url: string,
+  siteNameHint: string | undefined,
+): Promise<FetchMetadataResult> {
+  const [html, {
+    domain, website,
+  }] = await Promise.all([
+    fetchHeadHtml(url),
+    lookupWebsiteByUrl(url),
+  ]);
+  const rawTitle = html ? extractTitle(html) : null;
+  return {
+    title: rawTitle
+      ? stripSiteNameSuffix(rawTitle, {
+        siteName: siteNameHint ?? website?.siteName,
+        domain,
+      })
+      : null,
+    description: html ? extractDescription(html) : null,
+    isYouTube: false,
+    channel: null,
+    durationSeconds: null,
+    datePosted: null,
+    thumbnailUrl: null,
+  };
+}
 
 /** Metadata helpers (page-title lookup), mounted under `/api`. */
 export async function metadataRoutes(app: FastifyInstance): Promise<void> {
@@ -141,81 +228,8 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
       }) as unknown as FetchMetadataResult;
     }
 
-    if (isYouTubeVideoUrl(url)) {
-      const meta = await fetchYouTubeMetadata(url);
-      const warnings = meta?.warnings ?? [];
-      // Surface scrape failures loudly in the server log (req.log), not just the response.
-      if (warnings.length > 0) {
-        req.log.warn({
-          url,
-          warnings,
-        }, "[youtube-metadata] scrape incomplete");
-      }
-      // oEmbed titles are already clean; fall back to a page-title fetch if it was unavailable.
-      let title = meta?.title ?? null;
-      if (title === null) {
-        const fallback = await fetchPageTitle(url);
-        if (fallback.kind === "ok") title = fallback.title;
-      }
-
-      const channelKey = meta?.channelUrl ? channelKeyFromUrl(meta.channelUrl) : null;
-      const existingChannel = channelKey ? await getYouTubeChannelByKey(channelKey) : null;
-      const selfIds = existingChannel?.selfIds ?? [];
-
-      // Strip channel self-identifier suffix from the title (e.g. " - SNL" from an SNL video).
-      if (title && selfIds.length > 0) {
-        for (const selfId of selfIds) {
-          const stripped = stripSiteNameSuffix(title, {
-            siteName: selfId,
-          });
-          if (stripped !== title) {
-            title = stripped;
-            break;
-          }
-        }
-      }
-
-      return {
-        title,
-        description: meta?.description ?? null,
-        isYouTube: true,
-        channel: meta?.channelName
-          ? {
-            name: meta.channelName,
-            url: meta.channelUrl,
-            key: channelKey,
-            selfIds,
-          }
-          : null,
-        durationSeconds: meta?.durationSeconds ?? null,
-        datePosted: meta?.datePosted ?? null,
-        thumbnailUrl: meta?.thumbnailUrl ?? null,
-        ...(warnings.length > 0 && {
-          diagnostics: warnings,
-        }),
-      };
-    }
-
-    const [html, {
-      domain, website,
-    }] = await Promise.all([
-      fetchHeadHtml(url),
-      lookupWebsiteByUrl(url),
-    ]);
-    const rawTitle = html ? extractTitle(html) : null;
-    return {
-      title: rawTitle
-        ? stripSiteNameSuffix(rawTitle, {
-          siteName: siteNameHint ?? website?.siteName,
-          domain,
-        })
-        : null,
-      description: html ? extractDescription(html) : null,
-      isYouTube: false,
-      channel: null,
-      durationSeconds: null,
-      datePosted: null,
-      thumbnailUrl: null,
-    };
+    return isYouTubeVideoUrl(url)
+      ? buildYouTubeMetadataResult(url, req.log)
+      : buildGenericMetadataResult(url, siteNameHint);
   });
 }
