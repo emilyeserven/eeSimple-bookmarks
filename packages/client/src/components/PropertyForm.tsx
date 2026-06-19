@@ -427,6 +427,8 @@ export function PropertyForm({
                     <p className="text-xs text-muted-foreground">
                       When unchecked, the property is hidden from cards and detail pages when its value is false.
                     </p>
+
+                    {allowDefaultBlock("space-y-1")}
                   </div>
                 </CollapsibleFormSection>
               </>
@@ -487,21 +489,6 @@ export function PropertyForm({
                       </div>
                     )}
                   </form.AppField>
-                </LabeledSection>
-              </>
-            )
-            : null}
-      </form.Subscribe>
-
-      <form.Subscribe selector={state => state.values.type}>
-        {type =>
-          showOptions && type === "boolean"
-            ? (
-              <>
-                {full ? <Separator /> : null}
-
-                <LabeledSection title="Property options">
-                  {allowDefaultBlock("space-y-1")}
                 </LabeledSection>
               </>
             )
