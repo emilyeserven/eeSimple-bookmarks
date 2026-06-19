@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { channelUrlFromKey } from "@eesimple/types";
-import { parseIsoDuration, parseYouTubeVideo } from "@/services/youtube";
+import { fetchYouTubeMetadata, parseIsoDuration, parseYouTubeVideo } from "@/services/youtube";
 import { channelKeyFromUrl } from "@/services/youtubeChannels";
 
 // Pure-helper tests run without a live database or network, matching the `websites` style.
@@ -58,4 +58,128 @@ test("channelUrlFromKey reconstructs a browsable channel page URL", () => {
   );
   // A bare vanity name falls back to the `/c/` path.
   assert.equal(channelUrlFromKey("somename"), "https://www.youtube.com/c/somename");
+});
+
+// --- fetchYouTubeMetadata: network-mocked diagnostics + extraction ---
+
+const VIDEO_URL = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+
+const OEMBED_OK = JSON.stringify({
+  title: "Some Title",
+  author_name: "Some Channel",
+  author_url: "https://www.youtube.com/@somechannel",
+  thumbnail_url: "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
+});
+
+/** Install a `global.fetch` stub routing oEmbed vs watch-page requests, plus a `console.warn` silencer. */
+function stubNetwork(handlers: { oembed: () => Response;
+  watch: () => Response; }): () => void {
+  const originalFetch = global.fetch;
+  const originalWarn = console.warn;
+  console.warn = () => undefined;
+  global.fetch = (async (input: string | URL | Request) => {
+    const url = typeof input === "string" ? input : input.toString();
+    return url.includes("/oembed") ? handlers.oembed() : handlers.watch();
+  }) as typeof global.fetch;
+  return () => {
+    global.fetch = originalFetch;
+    console.warn = originalWarn;
+  };
+}
+
+test("fetchYouTubeMetadata extracts duration and date from ytInitialPlayerResponse JSON", async () => {
+  const restore = stubNetwork({
+    oembed: () => new Response(OEMBED_OK, {
+      headers: {
+        "content-type": "application/json",
+      },
+    }),
+    watch: () => new Response(
+      "<html><head></head><body><script>var ytInitialPlayerResponse = {"
+      + "\"videoDetails\":{\"lengthSeconds\":\"272\"},"
+      + "\"microformat\":{\"playerMicroformatRenderer\":{\"publishDate\":\"2024-06-15T00:00:00-07:00\"}}};"
+      + "</script></body></html>",
+    ),
+  });
+  try {
+    const meta = await fetchYouTubeMetadata(VIDEO_URL);
+    assert.ok(meta);
+    assert.equal(meta.durationSeconds, 272);
+    assert.equal(meta.datePosted, "2024-06-15");
+    assert.deepEqual(meta.warnings, []);
+  }
+  finally {
+    restore();
+  }
+});
+
+test("fetchYouTubeMetadata warns with the reason when the watch-page fetch fails", async () => {
+  const restore = stubNetwork({
+    oembed: () => new Response(OEMBED_OK, {
+      headers: {
+        "content-type": "application/json",
+      },
+    }),
+    watch: () => new Response("", {
+      status: 403,
+    }),
+  });
+  try {
+    const meta = await fetchYouTubeMetadata(VIDEO_URL);
+    assert.ok(meta);
+    assert.equal(meta.durationSeconds, null);
+    assert.equal(meta.datePosted, null);
+    assert.ok(meta.warnings.includes("watch-page fetch failed: http_error 403"));
+  }
+  finally {
+    restore();
+  }
+});
+
+test("fetchYouTubeMetadata warns when the watch page omits duration and date", async () => {
+  const restore = stubNetwork({
+    oembed: () => new Response(OEMBED_OK, {
+      headers: {
+        "content-type": "application/json",
+      },
+    }),
+    watch: () => new Response("<html><head></head><body>no useful data</body></html>"),
+  });
+  try {
+    const meta = await fetchYouTubeMetadata(VIDEO_URL);
+    assert.ok(meta);
+    assert.equal(meta.durationSeconds, null);
+    assert.equal(meta.datePosted, null);
+    assert.ok(meta.warnings.includes("duration not found in watch page"));
+    assert.ok(meta.warnings.includes("date not found in watch page"));
+  }
+  finally {
+    restore();
+  }
+});
+
+test("fetchYouTubeMetadata falls back to itemprop microdata for duration and date", async () => {
+  const restore = stubNetwork({
+    oembed: () => new Response(OEMBED_OK, {
+      headers: {
+        "content-type": "application/json",
+      },
+    }),
+    watch: () => new Response(
+      "<html><head></head><body>"
+      + "<meta itemprop=\"duration\" content=\"PT4M32S\">"
+      + "<meta itemprop=\"datePublished\" content=\"2024-06-15\">"
+      + "</body></html>",
+    ),
+  });
+  try {
+    const meta = await fetchYouTubeMetadata(VIDEO_URL);
+    assert.ok(meta);
+    assert.equal(meta.durationSeconds, 272);
+    assert.equal(meta.datePosted, "2024-06-15");
+    assert.deepEqual(meta.warnings, []);
+  }
+  finally {
+    restore();
+  }
 });

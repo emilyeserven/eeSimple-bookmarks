@@ -16,7 +16,7 @@ import { DateTimePicker } from "./DateTimePicker";
 import { useUpdateBookmark } from "../hooks/useBookmarks";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useFetchMetadata } from "../hooks/useFetchMetadata";
-import { notifySuccess } from "../lib/notifications";
+import { notifyError, notifySuccess } from "../lib/notifications";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,12 @@ import { Label } from "@/components/ui/label";
 
 interface BookmarkPropertiesFormProps {
   bookmark: Bookmark;
+}
+
+/** Build an error-toast message for a failed metadata fetch, appending the server's reason if any. */
+function metadataErrorMessage(label: string, diagnostics?: string[]): string {
+  const reason = diagnostics?.length ? ` ${diagnostics.join("; ")}` : "";
+  return `Couldn't fetch ${label} from YouTube.${reason}`;
 }
 
 /** Edit a bookmark's custom property values. */
@@ -161,9 +167,12 @@ export function BookmarkPropertiesForm({
                         if (meta.durationSeconds !== null) {
                           handleNumberChange(videoLengthProp.id, String(meta.durationSeconds));
                         }
+                        else {
+                          notifyError(metadataErrorMessage("video length", meta.diagnostics));
+                        }
                       }
                       catch {
-                        // Non-fatal: best-effort convenience.
+                        notifyError(metadataErrorMessage("video length"));
                       }
                     }}
                   >
@@ -201,9 +210,12 @@ export function BookmarkPropertiesForm({
                         if (meta.datePosted !== null) {
                           handleDateTimeChange(datePostedProp.id, meta.datePosted);
                         }
+                        else {
+                          notifyError(metadataErrorMessage("date posted", meta.diagnostics));
+                        }
                       }
                       catch {
-                        // Non-fatal: best-effort convenience.
+                        notifyError(metadataErrorMessage("date posted"));
                       }
                     }}
                   >
