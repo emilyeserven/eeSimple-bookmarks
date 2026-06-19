@@ -9,8 +9,12 @@ import { useUiStore } from "../stores/uiStore";
 const PREVIEW_CREATED_AT = "2026-01-15T12:00:00.000Z";
 
 /** Non-interactive dummy bookmark card shown in the Card Options popover so users can preview field visibility changes live. */
-export function CardOptionsPreview({ pageKey }: { pageKey: string }) {
-  const { data: allCategories = [] } = useCategories();
+export function CardOptionsPreview({
+  pageKey,
+}: { pageKey: string }) {
+  const {
+    data: allCategories = [],
+  } = useCategories();
   const dummyCategory = allCategories.find(c => !c.builtIn);
 
   const filterProperties = useUiStore(state => state.filterContext?.properties ?? []);
