@@ -1,3 +1,5 @@
+import type { Tag } from "@eesimple/types";
+
 import { TagForm } from "./TagForm";
 import { useCreateTag, useTagTree } from "../hooks/useTags";
 
@@ -13,10 +15,11 @@ import {
 interface AddTagModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onCreated?: (tag: Tag) => void;
 }
 
 export function AddTagModal({
-  open, onOpenChange,
+  open, onOpenChange, onCreated,
 }: AddTagModalProps) {
   const {
     data: tree,
@@ -51,7 +54,10 @@ export function AddTagModal({
               parentId,
             },
             {
-              onSuccess: () => onOpenChange(false),
+              onSuccess: (tag) => {
+                onCreated?.(tag);
+                onOpenChange(false);
+              },
             },
           )}
         />
