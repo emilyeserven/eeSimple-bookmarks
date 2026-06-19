@@ -82,6 +82,10 @@ async function setWebsiteFavicon(
       set: values,
     })
     .returning();
+  // Clear any previous auto-grab error: a new image (upload or auto) resolves the failure.
+  await db.update(websites).set({
+    faviconAutoGrabError: null,
+  }).where(eq(websites.id, websiteId));
   return {
     imageUrl: websiteFaviconUrl(row),
   };
@@ -104,6 +108,10 @@ export async function removeWebsiteFavicon(websiteId: string): Promise<boolean> 
   if (!row) return false;
   await deleteObject(row.objectKey);
   await db.delete(websiteFavicons).where(eq(websiteFavicons.websiteId, websiteId));
+  // Clear any stored grab error so the button re-enables after a manual remove.
+  await db.update(websites).set({
+    faviconAutoGrabError: null,
+  }).where(eq(websites.id, websiteId));
   return true;
 }
 
@@ -124,6 +132,18 @@ export async function fetchAndStoreWebsiteFavicon(websiteId: string): Promise<En
 
   const pageUrl = `https://${website.domain}/`;
   const result = await withTransientRetry(() => fetchFaviconImage(pageUrl));
-  if (typeof result === "string") return result;
-  return setWebsiteFavicon(websiteId, result, "icon");
+  if (typeof result === "string") {
+    await db.update(websites).set({
+      faviconAutoGrabError: result,
+    }).where(eq(websites.id, websiteId));
+    return result;
+  }
+  const storeResult = await setWebsiteFavicon(websiteId, result, "icon");
+  if (storeResult === "bad_image") {
+    await db.update(websites).set({
+      faviconAutoGrabError: "bad_image",
+    }).where(eq(websites.id, websiteId));
+    return "bad_image";
+  }
+  return storeResult;
 }
