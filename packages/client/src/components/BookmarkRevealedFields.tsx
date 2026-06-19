@@ -20,7 +20,9 @@ import { BookmarkAdvancedSection } from "./BookmarkAdvancedSection";
 import { BookmarkAutofillOffer } from "./BookmarkAutofillOffer";
 import { CategoryCustomFields } from "./BookmarkCustomFields";
 import { TitleFetchFeedback } from "./BookmarkTitleFeedback";
+import { BookmarkUrlCleanupBanner } from "./BookmarkUrlCleanupBanner";
 import { UrlCleanupPanel } from "./BookmarkUrlCleanupPanel";
+import { BookmarkUrlDuplicateWarnings } from "./BookmarkUrlDuplicateWarnings";
 import { WebsiteLookupBanner } from "./WebsiteLookupBanner";
 import { isFetchableUrl } from "../lib/url";
 
@@ -174,42 +176,11 @@ export function BookmarkRevealedFields({
   return (
     <>
       {/* Shortened-link disclosure: full URL shown inline directly below the URL field. */}
-      {urlCleanup?.applied && (
-        <div className="space-y-1 text-sm text-muted-foreground">
-          {urlShortener.nudge && (
-            <p
-              className="
-                text-amber-600
-                dark:text-amber-500
-              "
-            >
-              This looks like a shortened link — consider using the full URL.
-            </p>
-          )}
-          <p>
-            Shortened from
-            {" "}
-            <span className="font-mono break-all">{urlCleanup.original}</span>
-            {" · "}
-            <Button
-              type="button"
-              variant="link"
-              size="sm"
-              className="h-auto p-0"
-              onClick={onUndoUrlCleanup}
-            >
-              Undo
-            </Button>
-          </p>
-          {urlShortener.expandedUrl && (
-            <p>
-              Will be saved as
-              {" "}
-              <span className="font-mono break-all">{urlShortener.expandedUrl}</span>
-            </p>
-          )}
-        </div>
-      )}
+      <BookmarkUrlCleanupBanner
+        urlCleanup={urlCleanup}
+        urlShortener={urlShortener}
+        onUndo={onUndoUrlCleanup}
+      />
 
       {showUrlCleanup && (
         <form.Subscribe selector={state => state.values.url}>
@@ -227,60 +198,7 @@ export function BookmarkRevealedFields({
       )}
 
       {/* Duplicate URL warnings. */}
-      {urlDuplicate?.exactMatch && (
-        <div
-          className="
-            flex flex-col gap-2 rounded-md border border-destructive
-            bg-destructive/10 px-3 py-2 text-sm
-          "
-        >
-          <div className="flex items-center justify-between gap-2">
-            <span>
-              A bookmark with this exact URL already exists:
-              {" "}
-              <strong>{urlDuplicate.exactMatch.title}</strong>
-            </span>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() => window.open(urlDuplicate.exactMatch?.url, "_blank")}
-            >
-              Open in new tab
-            </Button>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Change the URL above to save a new bookmark.
-          </p>
-        </div>
-      )}
-      {!urlDuplicate?.exactMatch && urlDuplicate?.pathMatch && (
-        <div
-          className="
-            flex flex-col gap-2 rounded-md border border-amber-500/50
-            bg-amber-500/10 px-3 py-2 text-sm
-          "
-        >
-          <div className="flex items-center justify-between gap-2">
-            <span>
-              A bookmark with a similar URL already exists:
-              {" "}
-              <strong>{urlDuplicate.pathMatch.title}</strong>
-            </span>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() => window.open(urlDuplicate.pathMatch?.url, "_blank")}
-            >
-              Open in new tab
-            </Button>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            You can still save — the query parameters differ.
-          </p>
-        </div>
-      )}
+      <BookmarkUrlDuplicateWarnings urlDuplicate={urlDuplicate} />
 
       {/* Left: site / shortener info derived from the URL. Right: Name + title feedback. */}
       <div

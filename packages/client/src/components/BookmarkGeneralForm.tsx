@@ -19,7 +19,9 @@ import {
 } from "./bookmarkFormSchema";
 import { GatedTagPicker } from "./BookmarkTagsField";
 import { TitleFetchFeedback } from "./BookmarkTitleFeedback";
+import { BookmarkUrlCleanupBanner } from "./BookmarkUrlCleanupBanner";
 import { UrlCleanupPanel } from "./BookmarkUrlCleanupPanel";
+import { BookmarkUrlDuplicateWarnings } from "./BookmarkUrlDuplicateWarnings";
 import { useBookmarkFormData } from "./useBookmarkFormData";
 import { useBookmarkUrlProcessing } from "./useBookmarkUrlProcessing";
 import { WebsiteLookupBanner } from "./WebsiteLookupBanner";
@@ -313,42 +315,11 @@ export function BookmarkGeneralForm({
         )}
       </form.AppField>
 
-      {urlCleanup?.applied && (
-        <div className="space-y-1 text-sm text-muted-foreground">
-          {urlShortener.nudge && (
-            <p
-              className="
-                text-amber-600
-                dark:text-amber-500
-              "
-            >
-              This looks like a shortened link — consider using the full URL.
-            </p>
-          )}
-          <p>
-            Shortened from
-            {" "}
-            <span className="font-mono break-all">{urlCleanup.original}</span>
-            {" · "}
-            <Button
-              type="button"
-              variant="link"
-              size="sm"
-              className="h-auto p-0"
-              onClick={undoUrlCleanup}
-            >
-              Undo
-            </Button>
-          </p>
-          {urlShortener.expandedUrl && (
-            <p>
-              Will be saved as
-              {" "}
-              <span className="font-mono break-all">{urlShortener.expandedUrl}</span>
-            </p>
-          )}
-        </div>
-      )}
+      <BookmarkUrlCleanupBanner
+        urlCleanup={urlCleanup}
+        urlShortener={urlShortener}
+        onUndo={undoUrlCleanup}
+      />
 
       {showUrlCleanup && (
         <form.Subscribe selector={state => state.values.url}>
@@ -365,60 +336,10 @@ export function BookmarkGeneralForm({
         </form.Subscribe>
       )}
 
-      {urlDuplicate?.exactMatch && urlDuplicate.exactMatch.id !== bookmark.id && (
-        <div
-          className="
-            flex flex-col gap-2 rounded-md border border-destructive
-            bg-destructive/10 px-3 py-2 text-sm
-          "
-        >
-          <div className="flex items-center justify-between gap-2">
-            <span>
-              A bookmark with this exact URL already exists:
-              {" "}
-              <strong>{urlDuplicate.exactMatch.title}</strong>
-            </span>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() => window.open(urlDuplicate.exactMatch?.url, "_blank")}
-            >
-              Open in new tab
-            </Button>
-          </div>
-        </div>
-      )}
-      {(!urlDuplicate?.exactMatch || urlDuplicate.exactMatch.id === bookmark.id)
-        && urlDuplicate?.pathMatch
-        && urlDuplicate.pathMatch.id !== bookmark.id
-        && (
-          <div
-            className="
-              flex flex-col gap-2 rounded-md border border-amber-500/50
-              bg-amber-500/10 px-3 py-2 text-sm
-            "
-          >
-            <div className="flex items-center justify-between gap-2">
-              <span>
-                A bookmark with a similar URL already exists:
-                {" "}
-                <strong>{urlDuplicate.pathMatch.title}</strong>
-              </span>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={() => window.open(urlDuplicate.pathMatch?.url, "_blank")}
-              >
-                Open in new tab
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              You can still save — the query parameters differ.
-            </p>
-          </div>
-        )}
+      <BookmarkUrlDuplicateWarnings
+        urlDuplicate={urlDuplicate}
+        currentBookmarkId={bookmark.id}
+      />
 
       <div
         className="
