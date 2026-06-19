@@ -54,7 +54,14 @@ function CategoryControls({
           variant="outline"
           size="sm"
         >
-          <Link to="/categories">See All</Link>
+          <Link
+            to="/categories/$categorySlug/"
+            params={{
+              categorySlug: category.slug,
+            }}
+          >
+            See All
+          </Link>
         </Button>
       </div>
       <Badge variant="secondary">{category.bookmarkCount ?? 0}</Badge>
