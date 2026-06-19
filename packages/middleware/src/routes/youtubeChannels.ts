@@ -52,6 +52,13 @@ const updateChannelBody = {
       type: ["string", "null"],
       format: "uuid",
     },
+    tagIds: {
+      type: "array",
+      items: {
+        type: "string",
+        format: "uuid",
+      },
+    },
   },
 } as const;
 

@@ -56,6 +56,17 @@ interface BookmarkRevealedFieldsProps {
   onSiteNameChange: (name: string) => void;
   onSiteNameBlur: () => void;
 
+  // "Set as default" checkboxes for new sites/channels.
+  isNewChannel: boolean;
+  setWebsiteCategory: boolean;
+  setWebsiteTags: boolean;
+  setChannelCategory: boolean;
+  setChannelTags: boolean;
+  onSetWebsiteCategory: (v: boolean) => void;
+  onSetWebsiteTags: (v: boolean) => void;
+  onSetChannelCategory: (v: boolean) => void;
+  onSetChannelTags: (v: boolean) => void;
+
   // Title field + fetch.
   onTitleBlur: () => void;
   onTitleChange: () => void;
@@ -138,6 +149,15 @@ export function BookmarkRevealedFields({
   websiteSiteName,
   onSiteNameChange,
   onSiteNameBlur,
+  isNewChannel,
+  setWebsiteCategory,
+  setWebsiteTags,
+  setChannelCategory,
+  setChannelTags,
+  onSetWebsiteCategory,
+  onSetWebsiteTags,
+  onSetChannelCategory,
+  onSetChannelTags,
   onTitleBlur,
   onTitleChange,
   onFetchTitleClick,
@@ -212,15 +232,38 @@ export function BookmarkRevealedFields({
         "
       >
         <div className="flex flex-col gap-4">
-          <WebsiteLookupBanner
-            data={websiteLookup.data}
-            isYouTube={websiteLookup.data?.domain === "youtube.com"}
-            youtubeChannel={youtubeChannel}
-            onChannelSelfIdsChange={onChannelSelfIdsChange}
-            websiteSiteName={websiteSiteName}
-            onSiteNameChange={onSiteNameChange}
-            onSiteNameBlur={onSiteNameBlur}
-          />
+          <form.Subscribe
+            selector={s => ({
+              categoryId: s.values.categoryId,
+              tagIds: s.values.tagIds,
+            })}
+          >
+            {({
+              categoryId,
+              tagIds,
+            }) => (
+              <WebsiteLookupBanner
+                data={websiteLookup.data}
+                isYouTube={websiteLookup.data?.domain === "youtube.com"}
+                youtubeChannel={youtubeChannel}
+                onChannelSelfIdsChange={onChannelSelfIdsChange}
+                websiteSiteName={websiteSiteName}
+                onSiteNameChange={onSiteNameChange}
+                onSiteNameBlur={onSiteNameBlur}
+                categoryId={categoryId ?? ""}
+                tagIds={tagIds ?? []}
+                isNewChannel={isNewChannel}
+                setWebsiteCategory={setWebsiteCategory}
+                setWebsiteTags={setWebsiteTags}
+                setChannelCategory={setChannelCategory}
+                setChannelTags={setChannelTags}
+                onSetWebsiteCategory={onSetWebsiteCategory}
+                onSetWebsiteTags={onSetWebsiteTags}
+                onSetChannelCategory={onSetChannelCategory}
+                onSetChannelTags={onSetChannelTags}
+              />
+            )}
+          </form.Subscribe>
         </div>
 
         <div className="flex flex-col gap-4">

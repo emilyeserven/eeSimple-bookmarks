@@ -4,12 +4,15 @@ import { useState } from "react";
 
 import { z } from "zod";
 
+import { TagPicker } from "./TagPicker";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useCategories } from "@/hooks/useCategories";
+import { useTagTree } from "@/hooks/useTags";
 import { useUpdateYouTubeChannel } from "@/hooks/useYouTubeChannels";
 import { useAppForm } from "@/lib/form";
 import { CategoryIcon } from "@/lib/icons";
@@ -30,9 +33,13 @@ export function YouTubeChannelGeneralForm({
   const updateChannel = useUpdateYouTubeChannel();
   const [selfIds, setSelfIds] = useState<string[]>(channel.selfIds);
   const [newSelfId, setNewSelfId] = useState("");
+  const [tagIds, setTagIds] = useState<string[]>(channel.tagIds ?? []);
   const {
     data: categories,
   } = useCategories();
+  const {
+    data: tagTree,
+  } = useTagTree();
 
   const form = useAppForm({
     defaultValues: {
@@ -51,6 +58,7 @@ export function YouTubeChannelGeneralForm({
           name: value.name.trim(),
           selfIds,
           categoryId: value.categoryId || null,
+          tagIds,
         },
       });
     },
@@ -154,17 +162,34 @@ export function YouTubeChannelGeneralForm({
         </div>
       </div>
 
+      <Separator />
+
+      <div className="space-y-2">
+        <Label className="block">Default tags</Label>
+        <p className="text-sm text-muted-foreground">
+          Tags applied automatically to bookmarks saved from this channel.
+        </p>
+        <div className="rounded-md border p-2">
+          <TagPicker
+            tree={tagTree ?? []}
+            selectedIds={tagIds}
+            onToggle={id => setTagIds(prev => prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id])}
+          />
+        </div>
+      </div>
+
       <form.AppForm>
         <form.Subscribe selector={state => state.values}>
           {(values) => {
             const nameDirty = values.name.trim() !== channel.name;
             const selfIdsDirty = JSON.stringify(selfIds) !== JSON.stringify(channel.selfIds);
             const categoryIdDirty = (values.categoryId || null) !== (channel.category?.id ?? null);
+            const tagIdsDirty = JSON.stringify([...tagIds].sort()) !== JSON.stringify([...(channel.tagIds ?? [])].sort());
             return (
               <form.SubmitButton
                 label="Save changes"
                 size="sm"
-                disabledWhen={!nameDirty && !selfIdsDirty && !categoryIdDirty}
+                disabledWhen={!nameDirty && !selfIdsDirty && !categoryIdDirty && !tagIdsDirty}
               />
             );
           }}

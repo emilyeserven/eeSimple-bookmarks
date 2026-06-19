@@ -25,6 +25,8 @@ import { BookmarkRevealedFields } from "./BookmarkRevealedFields";
 import { useBookmarkFormData } from "./useBookmarkFormData";
 import { useBookmarkScanHandlers } from "./useBookmarkScanHandlers";
 import { useBookmarkUrlProcessing } from "./useBookmarkUrlProcessing";
+import { useUpdateWebsite } from "../hooks/useWebsites";
+import { useUpdateYouTubeChannel } from "../hooks/useYouTubeChannels";
 import { useAppForm } from "../lib/form";
 import { notifySuccess } from "../lib/notifications";
 
@@ -69,10 +71,19 @@ export function BookmarkForm({
     customProperties,
     categories,
     autofillRules,
+    youtubeChannels,
     autoFetchTitle,
     autoFetchImage,
   } = useBookmarkFormData();
   const saveBookmark = isEdit ? updateBookmark : createBookmark;
+  const updateWebsite = useUpdateWebsite();
+  const updateYouTubeChannel = useUpdateYouTubeChannel();
+
+  // "Set as default" checkbox flags for new sites/channels (create-only).
+  const [setWebsiteCategory, setSetWebsiteCategory] = useState(false);
+  const [setWebsiteTags, setSetWebsiteTags] = useState(false);
+  const [setChannelCategory, setSetChannelCategory] = useState(false);
+  const [setChannelTags, setSetChannelTags] = useState(false);
 
   // Custom-property values live outside the typed form (they're dynamic). A ref
   // mirrors them so the submit handler always reads the latest entries. When editing,
@@ -92,6 +103,11 @@ export function BookmarkForm({
   // The ref is read by the submit handler (stale-closure-safe); the state drives the banner display.
   const channelHintRef = useRef<YouTubeChannelHint | null>(null);
   const [youtubeChannel, setYoutubeChannel] = useState<YouTubeChannelHint | null>(null);
+  // True when the detected channel isn't in the existing channels list yet — shows "set defaults" checkboxes.
+  const isNewChannel = youtubeChannel !== null
+    && youtubeChannels !== undefined
+    && !youtubeChannels.some(ch => ch.channelKey === youtubeChannel.key);
+
   // All URL-string handling (on-blur cleanup, shortener classification, submit-URL resolution) plus the
   // canonicalize-input refs live in this hook so the form imports one URL module.
   const {
@@ -344,6 +360,35 @@ export function BookmarkForm({
         }),
       });
       await applyImageIntent(created.id);
+
+      // Promote category/tags to entity defaults if the user opted in.
+      if ((setWebsiteCategory || setWebsiteTags) && created.website?.id) {
+        updateWebsite.mutate({
+          id: created.website.id,
+          input: {
+            ...(setWebsiteCategory && {
+              categoryId: value.categoryId || null,
+            }),
+            ...(setWebsiteTags && {
+              tagIds: value.tagIds,
+            }),
+          },
+        });
+      }
+      if ((setChannelCategory || setChannelTags) && created.youtubeChannel?.id) {
+        updateYouTubeChannel.mutate({
+          id: created.youtubeChannel.id,
+          input: {
+            ...(setChannelCategory && {
+              categoryId: value.categoryId || null,
+            }),
+            ...(setChannelTags && {
+              tagIds: value.tagIds,
+            }),
+          },
+        });
+      }
+
       // Offer a shortcut to refine the chosen category right after saving.
       const categorySlug = (categories ?? []).find(category => category.id === value.categoryId)?.slug;
       notifySuccess("Bookmark added", categorySlug
@@ -377,6 +422,10 @@ export function BookmarkForm({
       setScanned(false);
       setUrlDuplicate(null);
       setAutofillOfferDismissed(false);
+      setSetWebsiteCategory(false);
+      setSetWebsiteTags(false);
+      setSetChannelCategory(false);
+      setSetChannelTags(false);
       quickAddRef.current = false;
       touchedRef.current = new Set();
       ruleSetRef.current = {
@@ -408,6 +457,10 @@ export function BookmarkForm({
     setScanned(false);
     setUrlDuplicate(null);
     setAutofillOfferDismissed(false);
+    setSetWebsiteCategory(false);
+    setSetWebsiteTags(false);
+    setSetChannelCategory(false);
+    setSetChannelTags(false);
     quickAddRef.current = false;
     touchedRef.current = new Set();
     ruleSetRef.current = {
@@ -708,6 +761,15 @@ export function BookmarkForm({
           onFetchDescription={url => void runFetchDescription(url, {
             force: true,
           })}
+          isNewChannel={isNewChannel}
+          setWebsiteCategory={setWebsiteCategory}
+          setWebsiteTags={setWebsiteTags}
+          setChannelCategory={setChannelCategory}
+          setChannelTags={setChannelTags}
+          onSetWebsiteCategory={setSetWebsiteCategory}
+          onSetWebsiteTags={setSetWebsiteTags}
+          onSetChannelCategory={setSetChannelCategory}
+          onSetChannelTags={setSetChannelTags}
         />
       )}
 

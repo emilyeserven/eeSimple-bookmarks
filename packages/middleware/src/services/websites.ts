@@ -1,8 +1,9 @@
-import { and, asc, eq, isNull, ne, or, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull, ne, or, sql } from "drizzle-orm";
 import type { CreateWebsiteInput, ShortenedLink, UpdateWebsiteInput, Website, WebsiteParamRule } from "@eesimple/types";
 import { getShortenerIgnoreList } from "@/services/appSettings";
 import { db } from "@/db";
-import { bookmarks, websiteFavicons, websites, type WebsiteRow } from "@/db/schema";
+import { bookmarks, categories, websiteFavicons, websiteTags, websites, type WebsiteRow } from "@/db/schema";
+import { buildStringMap } from "@/utils/mapUtils";
 import { slugify } from "@/utils/slug";
 
 /**
@@ -114,10 +115,44 @@ async function takenWebsiteSlugs(excludeId?: string): Promise<Set<string>> {
   return new Set(rows.map(r => r.slug).filter((s): s is string => s !== null));
 }
 
+/** Load default tag ids for a set of website ids as a map of id → string[]. */
+async function loadWebsiteTagsMap(websiteIds: string[]): Promise<Map<string, string[]>> {
+  if (websiteIds.length === 0) return new Map();
+  const rows = await db
+    .select({
+      websiteId: websiteTags.websiteId,
+      tagId: websiteTags.tagId,
+    })
+    .from(websiteTags)
+    .where(inArray(websiteTags.websiteId, websiteIds));
+  return buildStringMap(rows, r => r.websiteId, r => r.tagId);
+}
+
+/** Replace the full set of default tags for a website (delete-then-insert). */
+async function setWebsiteTags(
+  txOrDb: Tx | typeof db,
+  websiteId: string,
+  tagIds: string[],
+): Promise<void> {
+  await txOrDb.delete(websiteTags).where(eq(websiteTags.websiteId, websiteId));
+  if (tagIds.length > 0) {
+    await txOrDb.insert(websiteTags).values(tagIds.map(tagId => ({
+      websiteId,
+      tagId,
+    })));
+  }
+}
+
 /** Map a DB row to the shared `Website` wire type. */
 function toWebsite(
-  row: WebsiteRow & { bookmarkCount?: number;
-    faviconCreatedAt?: Date | string | null; },
+  row: WebsiteRow & {
+    bookmarkCount?: number;
+    faviconCreatedAt?: Date | string | null;
+    categoryName?: string | null;
+    categorySlug?: string | null;
+    categoryIcon?: string | null;
+  },
+  tagIds: string[] = [],
 ): Website {
   return {
     id: row.id,
@@ -131,8 +166,34 @@ function toWebsite(
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount: row.bookmarkCount,
     imageUrl: faviconUrlFrom(row.id, row.faviconCreatedAt ?? null),
+    category: row.categoryId && row.categoryName
+      ? {
+        id: row.categoryId,
+        name: row.categoryName,
+        slug: row.categorySlug ?? slugify(row.categoryName),
+        icon: row.categoryIcon ?? null,
+      }
+      : null,
+    tagIds,
   };
 }
+
+/** Shared select shape for website lookups (includes favicon + category join fields). */
+const websiteSelect = {
+  id: websites.id,
+  domain: websites.domain,
+  siteName: websites.siteName,
+  slug: websites.slug,
+  builtIn: websites.builtIn,
+  shortenedLinks: websites.shortenedLinks,
+  paramRules: websites.paramRules,
+  createdAt: websites.createdAt,
+  categoryId: websites.categoryId,
+  faviconCreatedAt: websiteFavicons.createdAt,
+  categoryName: categories.name,
+  categorySlug: categories.slug,
+  categoryIcon: categories.icon,
+};
 
 /**
  * Normalize a URL to its host for the Websites taxonomy: lower-cased, leading `www.` stripped.
@@ -197,33 +258,41 @@ export function stripSiteNameSuffix(
 export async function listWebsites(): Promise<Website[]> {
   const rows = await db
     .select({
-      id: websites.id,
-      domain: websites.domain,
-      siteName: websites.siteName,
-      slug: websites.slug,
-      builtIn: websites.builtIn,
-      shortenedLinks: websites.shortenedLinks,
-      paramRules: websites.paramRules,
-      createdAt: websites.createdAt,
+      ...websiteSelect,
       bookmarkCount: sql<number>`(select count(*)::int from ${bookmarks} where ${bookmarks.websiteId} = ${websites.id})`.mapWith(Number),
-      faviconCreatedAt: websiteFavicons.createdAt,
     })
     .from(websites)
     .leftJoin(websiteFavicons, eq(websiteFavicons.websiteId, websites.id))
+    .leftJoin(categories, eq(categories.id, websites.categoryId))
     .orderBy(asc(websites.siteName));
-  return rows.map(toWebsite);
+  const tagsMap = await loadWebsiteTagsMap(rows.map(r => r.id));
+  return rows.map(row => toWebsite(row, tagsMap.get(row.id) ?? []));
 }
 
 /** Fetch a single website by id, or `null` when absent. */
 export async function getWebsite(id: string): Promise<Website | null> {
-  const [row] = await db.select().from(websites).where(eq(websites.id, id));
-  return row ? toWebsite(row) : null;
+  const [row] = await db
+    .select(websiteSelect)
+    .from(websites)
+    .leftJoin(websiteFavicons, eq(websiteFavicons.websiteId, websites.id))
+    .leftJoin(categories, eq(categories.id, websites.categoryId))
+    .where(eq(websites.id, id));
+  if (!row) return null;
+  const tagsMap = await loadWebsiteTagsMap([id]);
+  return toWebsite(row, tagsMap.get(id) ?? []);
 }
 
 /** Fetch a website by its normalized domain, or `null` when absent. */
 export async function getWebsiteByDomain(domain: string): Promise<Website | null> {
-  const [row] = await db.select().from(websites).where(eq(websites.domain, domain));
-  return row ? toWebsite(row) : null;
+  const [row] = await db
+    .select(websiteSelect)
+    .from(websites)
+    .leftJoin(websiteFavicons, eq(websiteFavicons.websiteId, websites.id))
+    .leftJoin(categories, eq(categories.id, websites.categoryId))
+    .where(eq(websites.domain, domain));
+  if (!row) return null;
+  const tagsMap = await loadWebsiteTagsMap([row.id]);
+  return toWebsite(row, tagsMap.get(row.id) ?? []);
 }
 
 /**
@@ -231,8 +300,15 @@ export async function getWebsiteByDomain(domain: string): Promise<Website | null
  * resolves to the `youtube.com` site), or `null` when none matches.
  */
 export async function getWebsiteByAnyDomain(domain: string): Promise<Website | null> {
-  const [row] = await db.select().from(websites).where(matchesAnyDomain(domain));
-  return row ? toWebsite(row) : null;
+  const [row] = await db
+    .select(websiteSelect)
+    .from(websites)
+    .leftJoin(websiteFavicons, eq(websiteFavicons.websiteId, websites.id))
+    .leftJoin(categories, eq(categories.id, websites.categoryId))
+    .where(matchesAnyDomain(domain));
+  if (!row) return null;
+  const tagsMap = await loadWebsiteTagsMap([row.id]);
+  return toWebsite(row, tagsMap.get(row.id) ?? []);
 }
 
 /**
@@ -360,8 +436,10 @@ export async function createWebsite(input: CreateWebsiteInput): Promise<Website>
     ...(input.paramRules !== undefined && {
       paramRules: input.paramRules,
     }),
-  }).returning();
-  return toWebsite(row);
+  }).returning({
+    id: websites.id,
+  });
+  return (await getWebsite(row.id))!;
 }
 
 /** Rename a website's site name and/or change its domain. Returns the updated row, or `null`. */
@@ -369,7 +447,12 @@ export async function updateWebsite(
   id: string,
   input: UpdateWebsiteInput,
 ): Promise<Website | null> {
-  const [existing] = await db.select().from(websites).where(eq(websites.id, id));
+  const [existing] = await db.select({
+    id: websites.id,
+    builtIn: websites.builtIn,
+    siteName: websites.siteName,
+    domain: websites.domain,
+  }).from(websites).where(eq(websites.id, id));
   if (!existing) return null;
   if (existing.builtIn) {
     const renames = input.siteName !== undefined && input.siteName.trim() !== existing.siteName;
@@ -380,24 +463,35 @@ export async function updateWebsite(
     }
   }
 
-  const patch: Partial<Pick<WebsiteRow, "domain" | "siteName" | "slug" | "shortenedLinks" | "paramRules">> = {};
+  const patch: Partial<Pick<WebsiteRow, "domain" | "siteName" | "slug" | "shortenedLinks" | "paramRules" | "categoryId">> = {};
   if (input.siteName !== undefined) patch.siteName = input.siteName;
   // Rule fields stay editable even on built-ins (only rename/move/delete are blocked above).
   if (input.shortenedLinks !== undefined) patch.shortenedLinks = input.shortenedLinks;
   if (input.paramRules !== undefined) patch.paramRules = input.paramRules;
   if (input.domain !== undefined) {
     const domain = input.domain.replace(/^www\./i, "").toLowerCase();
-    const clash = await getWebsiteByDomain(domain);
+    const [clash] = await db.select({
+      id: websites.id,
+    }).from(websites).where(eq(websites.domain, domain));
     if (clash && clash.id !== id) throw new DuplicateDomainError(domain);
     patch.domain = domain;
     // Regenerate the slug when the domain changes since it derives from the domain.
     const taken = await takenWebsiteSlugs(id);
     patch.slug = uniqueWebsiteSlug(slugFromDomain(domain), taken);
   }
-  if (Object.keys(patch).length === 0) return getWebsite(id);
+  if ("categoryId" in input) {
+    patch.categoryId = input.categoryId ?? null;
+  }
 
-  const [row] = await db.update(websites).set(patch).where(eq(websites.id, id)).returning();
-  return row ? toWebsite(row) : null;
+  if (Object.keys(patch).length > 0) {
+    await db.update(websites).set(patch).where(eq(websites.id, id));
+  }
+
+  if (input.tagIds !== undefined) {
+    await setWebsiteTags(db, id, input.tagIds);
+  }
+
+  return getWebsite(id);
 }
 
 /** Delete a website. Built-ins can't be deleted. Bookmarks pointing at it are set to NULL via FK. */

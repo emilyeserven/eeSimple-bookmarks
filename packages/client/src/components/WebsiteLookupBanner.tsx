@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -20,16 +21,33 @@ interface WebsiteLookupBannerProps {
   websiteSiteName: string;
   onSiteNameChange: (value: string) => void;
   onSiteNameBlur: () => void;
+
+  // "Set as default" checkbox state — only shown for new sites/channels.
+  categoryId: string;
+  tagIds: string[];
+  isNewChannel: boolean;
+  setWebsiteCategory: boolean;
+  setWebsiteTags: boolean;
+  setChannelCategory: boolean;
+  setChannelTags: boolean;
+  onSetWebsiteCategory: (v: boolean) => void;
+  onSetWebsiteTags: (v: boolean) => void;
+  onSetChannelCategory: (v: boolean) => void;
+  onSetChannelTags: (v: boolean) => void;
 }
 
 /**
  * Banner shown below the URL field after a website lookup: existing vs. new site, plus the site-name
  * input for new sites. For the built-in YouTube site the site-name input is replaced by the
- * auto-detected channel and its self-identifier editor.
+ * auto-detected channel and its self-identifier editor. For new sites/channels with a category or
+ * tags selected, optional checkboxes let the user promote those values to the entity's defaults.
  */
 export function WebsiteLookupBanner({
   data, isYouTube, youtubeChannel, onChannelSelfIdsChange,
   websiteSiteName, onSiteNameChange, onSiteNameBlur,
+  categoryId, tagIds, isNewChannel,
+  setWebsiteCategory, setWebsiteTags, setChannelCategory, setChannelTags,
+  onSetWebsiteCategory, onSetWebsiteTags, onSetChannelCategory, onSetChannelTags,
 }: WebsiteLookupBannerProps) {
   const [newSelfId, setNewSelfId] = useState("");
 
@@ -135,26 +153,92 @@ export function WebsiteLookupBanner({
                     </Button>
                   </div>
                 </div>
+                {isNewChannel && (categoryId || tagIds.length > 0) && (
+                  <div className="space-y-1.5 pt-1">
+                    {categoryId && (
+                      <label
+                        className="
+                          flex cursor-pointer items-center gap-2 text-sm
+                        "
+                      >
+                        <Checkbox
+                          checked={setChannelCategory}
+                          onCheckedChange={v => onSetChannelCategory(Boolean(v))}
+                        />
+                        Set as default category for
+                        {" "}
+                        {youtubeChannel.name}
+                      </label>
+                    )}
+                    {tagIds.length > 0 && (
+                      <label
+                        className="
+                          flex cursor-pointer items-center gap-2 text-sm
+                        "
+                      >
+                        <Checkbox
+                          checked={setChannelTags}
+                          onCheckedChange={v => onSetChannelTags(Boolean(v))}
+                        />
+                        Apply selected tags as defaults for
+                        {" "}
+                        {youtubeChannel.name}
+                      </label>
+                    )}
+                  </div>
+                )}
               </div>
             )
             : null
         )
         : !data.exists
           ? (
-            <div className="mt-2">
-              <Label
-                htmlFor="website-site-name"
-                className="mb-1 block text-sm"
-              >
-                Site name
-              </Label>
-              <Input
-                id="website-site-name"
-                value={websiteSiteName}
-                onChange={e => onSiteNameChange(e.target.value)}
-                onBlur={onSiteNameBlur}
-                placeholder={data.domain ?? ""}
-              />
+            <div className="mt-2 space-y-2">
+              <div>
+                <Label
+                  htmlFor="website-site-name"
+                  className="mb-1 block text-sm"
+                >
+                  Site name
+                </Label>
+                <Input
+                  id="website-site-name"
+                  value={websiteSiteName}
+                  onChange={e => onSiteNameChange(e.target.value)}
+                  onBlur={onSiteNameBlur}
+                  placeholder={data.domain ?? ""}
+                />
+              </div>
+              {(categoryId || tagIds.length > 0) && (
+                <div className="space-y-1.5">
+                  {categoryId && (
+                    <label
+                      className="flex cursor-pointer items-center gap-2 text-sm"
+                    >
+                      <Checkbox
+                        checked={setWebsiteCategory}
+                        onCheckedChange={v => onSetWebsiteCategory(Boolean(v))}
+                      />
+                      Set as default category for
+                      {" "}
+                      {data.domain}
+                    </label>
+                  )}
+                  {tagIds.length > 0 && (
+                    <label
+                      className="flex cursor-pointer items-center gap-2 text-sm"
+                    >
+                      <Checkbox
+                        checked={setWebsiteTags}
+                        onCheckedChange={v => onSetWebsiteTags(Boolean(v))}
+                      />
+                      Apply selected tags as defaults for
+                      {" "}
+                      {data.domain}
+                    </label>
+                  )}
+                </div>
+              )}
             </div>
           )
           : null}

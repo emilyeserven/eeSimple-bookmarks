@@ -35,6 +35,7 @@ import {
   websiteFavicons,
   websites,
   youtubeChannelImages,
+  youtubeChannelTags,
   youtubeChannels,
 } from "@/db/schema";
 import { bookmarkImageFromRow, fetchAndStoreOgImage, getBookmarkImageRow } from "@/services/bookmarkImages";
@@ -734,6 +735,18 @@ async function getChannelCategoryId(channelKey: string): Promise<string | null> 
   return row?.categoryId ?? null;
 }
 
+/** Fetch the default tag ids for a YouTube channel by channelKey. */
+async function getChannelTagIds(channelKey: string): Promise<string[]> {
+  const [channel] = await db.select({
+    id: youtubeChannels.id,
+  }).from(youtubeChannels).where(eq(youtubeChannels.channelKey, channelKey));
+  if (!channel) return [];
+  const rows = await db.select({
+    tagId: youtubeChannelTags.tagId,
+  }).from(youtubeChannelTags).where(eq(youtubeChannelTags.channelId, channel.id));
+  return rows.map(r => r.tagId);
+}
+
 export async function createBookmark(input: CreateBookmarkInput): Promise<Bookmark> {
   const existing = await db.select({
     id: bookmarks.id,
@@ -748,11 +761,26 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
   const meta = await resolveYouTubeMeta(input.url, "create");
   const channelHint = channelHintFrom(input.youtubeChannel, meta);
 
-  // If the bookmark is on the Default category and the channel has its own category set, inherit it.
+  // Load site defaults (category + tags) once before the transaction for reuse below.
+  const domain = normalizeDomain(input.url);
+  const siteData = domain ? await getWebsiteByAnyDomain(domain) : null;
+
+  // Category precedence: user-provided > channel > website > Default.
   if (channelHint && categoryId === defaultId) {
     const channelCategoryId = await getChannelCategoryId(channelHint.key);
     if (channelCategoryId) categoryId = channelCategoryId;
   }
+  if (siteData?.category?.id && categoryId === defaultId) {
+    categoryId = siteData.category.id;
+  }
+
+  // Tags: union user-provided + website defaults + channel defaults.
+  const defaultTagIds: string[] = [...(siteData?.tagIds ?? [])];
+  if (channelHint) {
+    const channelTagIds = await getChannelTagIds(channelHint.key);
+    defaultTagIds.push(...channelTagIds);
+  }
+  const mergedTagIds = [...new Set([...(input.tagIds ?? []), ...defaultTagIds])];
 
   // Default the media type to "Video" for a YouTube video unless the caller already chose one.
   let mediaTypeId = input.mediaTypeId ?? null;
@@ -791,7 +819,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
       .returning({
         id: bookmarks.id,
       });
-    await linkTags(tx, row.id, input.tagIds);
+    await linkTags(tx, row.id, mergedTagIds);
     await setNumberValues(tx, row.id, numberValues);
     await setBooleanValues(tx, row.id, input.booleanValues);
     await setDateTimeValues(tx, row.id, dateTimeValues);

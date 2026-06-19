@@ -5,6 +5,7 @@ import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useTagTree } from "../hooks/useTags";
 import { useWebsites } from "../hooks/useWebsites";
+import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
 import { useUiStore } from "../stores/uiStore";
 
 /**
@@ -34,6 +35,9 @@ export function useBookmarkFormData() {
   const {
     data: autofillRules,
   } = useAutofillRules();
+  const {
+    data: youtubeChannels,
+  } = useYouTubeChannels();
   const autoFetchTitle = useUiStore(state => state.autoFetchTitle);
   const autoFetchImage = useUiStore(state => state.autoFetchImage);
 
@@ -45,6 +49,7 @@ export function useBookmarkFormData() {
     customProperties,
     categories,
     autofillRules,
+    youtubeChannels,
     autoFetchTitle,
     autoFetchImage,
   };

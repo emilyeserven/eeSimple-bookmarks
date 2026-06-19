@@ -108,6 +108,10 @@ export interface Website {
    * Auto-captured on first sighting and re-grabbable from the listing. Populated by list/get endpoints.
    */
   imageUrl?: string | null;
+  /** The category this website has been assigned to, or `null` when unassigned. */
+  category?: YouTubeChannelCategory | null;
+  /** Default tag ids applied to bookmarks saved from this website. */
+  tagIds?: string[];
 }
 
 /** Lightweight website shape carried on a bookmark. */
@@ -131,6 +135,10 @@ export interface UpdateWebsiteInput {
   domain?: string;
   shortenedLinks?: ShortenedLink[];
   paramRules?: WebsiteParamRule[];
+  /** Category to associate with this website. `null` clears the association; omit to leave unchanged. */
+  categoryId?: string | null;
+  /** Full replacement list of default tag ids. Omit to leave unchanged. */
+  tagIds?: string[];
 }
 
 /** Result of looking up the website for a URL without creating one — powers the form banner. */
@@ -287,6 +295,8 @@ export interface YouTubeChannel {
   imageUrl?: string | null;
   /** The category this channel has been assigned to, or `null` when unassigned. */
   category?: YouTubeChannelCategory | null;
+  /** Default tag ids applied to bookmarks saved from this channel. */
+  tagIds?: string[];
 }
 
 /** Lightweight channel shape carried on a bookmark. */
@@ -312,6 +322,8 @@ export interface UpdateYouTubeChannelInput {
   selfIds?: string[];
   /** Category to associate with this channel. `null` clears the association; omit to leave unchanged. */
   categoryId?: string | null;
+  /** Full replacement list of default tag ids. Omit to leave unchanged. */
+  tagIds?: string[];
 }
 
 /**
