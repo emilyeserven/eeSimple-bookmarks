@@ -15,13 +15,36 @@ export interface TabNavItem {
   label: string;
 }
 
+export interface TabNavGroup {
+  type: "group";
+  label: string;
+  items: readonly TabNavItem[];
+}
+
+export type TabNavEntry = TabNavItem | TabNavGroup;
+
 interface Props {
   header: ReactNode;
   /** Tab links rendered in the left vertical nav; all share `params`. */
-  nav: readonly TabNavItem[];
+  nav: readonly TabNavEntry[];
   /** Route params shared by every nav link (e.g. `{ websiteSlug }`). */
   params?: LinkProps["params"];
   navAriaLabel: string;
+}
+
+function NavLink({ item, params }: { item: TabNavItem; params?: LinkProps["params"] }) {
+  return (
+    <Link
+      to={item.to}
+      params={params}
+      className={cn(navLinkClass)}
+      activeProps={{
+        className: "bg-accent text-accent-foreground",
+      }}
+    >
+      {item.label}
+    </Link>
+  );
 }
 
 /** Shared vertical-tabbed layout shell used by all slug-routed entities. */
@@ -44,19 +67,39 @@ export function TabbedEntityLayout({
           "
           aria-label={navAriaLabel}
         >
-          {nav.map(item => (
-            <Link
-              key={item.label}
-              to={item.to}
-              params={params}
-              className={cn(navLinkClass)}
-              activeProps={{
-                className: "bg-accent text-accent-foreground",
-              }}
-            >
-              {item.label}
-            </Link>
-          ))}
+          {nav.map(entry => {
+            if ("type" in entry && entry.type === "group") {
+              return (
+                <div
+                  key={entry.label}
+                  className="flex flex-col gap-1"
+                >
+                  <p
+                    className="
+                      px-3 pb-0.5 pt-3 text-xs font-semibold
+                      uppercase tracking-wide text-muted-foreground
+                    "
+                  >
+                    {entry.label}
+                  </p>
+                  {entry.items.map(item => (
+                    <NavLink
+                      key={item.label}
+                      item={item}
+                      params={params}
+                    />
+                  ))}
+                </div>
+              );
+            }
+            return (
+              <NavLink
+                key={entry.label}
+                item={entry}
+                params={params}
+              />
+            );
+          })}
         </nav>
         <div className="min-w-0 flex-1">
           <Outlet />

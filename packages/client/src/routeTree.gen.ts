@@ -38,6 +38,9 @@ import { Route as SettingsDisplayRouteImport } from './routes/settings.display'
 import { Route as SettingsCustomPropertiesRouteImport } from './routes/settings.custom-properties'
 import { Route as SettingsAutomationsRouteImport } from './routes/settings.automations'
 import { Route as SettingsAutofillRouteImport } from './routes/settings.autofill'
+import { Route as SettingsMoreCategoriesRouteImport } from './routes/settings.more-categories'
+import { Route as SettingsMoreCustomizationRouteImport } from './routes/settings.more-customization'
+import { Route as SettingsMoreTaxonomiesRouteImport } from './routes/settings.more-taxonomies'
 import { Route as CustomPropertiesNewRouteImport } from './routes/custom-properties.new'
 import { Route as CustomPropertiesPropertySlugRouteImport } from './routes/custom-properties.$propertySlug'
 import { Route as CategoriesCategorySlugRouteImport } from './routes/categories.$categorySlug'
@@ -272,6 +275,22 @@ const SettingsAutomationsRoute = SettingsAutomationsRouteImport.update({
 const SettingsAutofillRoute = SettingsAutofillRouteImport.update({
   id: '/autofill',
   path: '/autofill',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsMoreCategoriesRoute = SettingsMoreCategoriesRouteImport.update({
+  id: '/more-categories',
+  path: '/more-categories',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsMoreCustomizationRoute =
+  SettingsMoreCustomizationRouteImport.update({
+    id: '/more-customization',
+    path: '/more-customization',
+    getParentRoute: () => SettingsRoute,
+  } as any)
+const SettingsMoreTaxonomiesRoute = SettingsMoreTaxonomiesRouteImport.update({
+  id: '/more-taxonomies',
+  path: '/more-taxonomies',
   getParentRoute: () => SettingsRoute,
 } as any)
 const CustomPropertiesNewRoute = CustomPropertiesNewRouteImport.update({
@@ -795,6 +814,9 @@ export interface FileRoutesByFullPath {
   '/settings/homepage': typeof SettingsHomepageRoute
   '/settings/link-parsing': typeof SettingsLinkParsingRoute
   '/settings/media-types': typeof SettingsMediaTypesRoute
+  '/settings/more-categories': typeof SettingsMoreCategoriesRoute
+  '/settings/more-customization': typeof SettingsMoreCustomizationRoute
+  '/settings/more-taxonomies': typeof SettingsMoreTaxonomiesRoute
   '/settings/sidebar': typeof SettingsSidebarRoute
   '/settings/websites': typeof SettingsWebsitesRoute
   '/settings/youtube-channels': typeof SettingsYoutubeChannelsRoute
@@ -895,6 +917,9 @@ export interface FileRoutesByTo {
   '/settings/homepage': typeof SettingsHomepageRoute
   '/settings/link-parsing': typeof SettingsLinkParsingRoute
   '/settings/media-types': typeof SettingsMediaTypesRoute
+  '/settings/more-categories': typeof SettingsMoreCategoriesRoute
+  '/settings/more-customization': typeof SettingsMoreCustomizationRoute
+  '/settings/more-taxonomies': typeof SettingsMoreTaxonomiesRoute
   '/settings/sidebar': typeof SettingsSidebarRoute
   '/settings/websites': typeof SettingsWebsitesRoute
   '/settings/youtube-channels': typeof SettingsYoutubeChannelsRoute
@@ -989,6 +1014,9 @@ export interface FileRoutesById {
   '/settings/homepage': typeof SettingsHomepageRoute
   '/settings/link-parsing': typeof SettingsLinkParsingRoute
   '/settings/media-types': typeof SettingsMediaTypesRoute
+  '/settings/more-categories': typeof SettingsMoreCategoriesRoute
+  '/settings/more-customization': typeof SettingsMoreCustomizationRoute
+  '/settings/more-taxonomies': typeof SettingsMoreTaxonomiesRoute
   '/settings/sidebar': typeof SettingsSidebarRoute
   '/settings/websites': typeof SettingsWebsitesRoute
   '/settings/youtube-channels': typeof SettingsYoutubeChannelsRoute
@@ -1109,6 +1137,9 @@ export interface FileRouteTypes {
     | '/settings/homepage'
     | '/settings/link-parsing'
     | '/settings/media-types'
+    | '/settings/more-categories'
+    | '/settings/more-customization'
+    | '/settings/more-taxonomies'
     | '/settings/sidebar'
     | '/settings/websites'
     | '/settings/youtube-channels'
@@ -1209,6 +1240,9 @@ export interface FileRouteTypes {
     | '/settings/homepage'
     | '/settings/link-parsing'
     | '/settings/media-types'
+    | '/settings/more-categories'
+    | '/settings/more-customization'
+    | '/settings/more-taxonomies'
     | '/settings/sidebar'
     | '/settings/websites'
     | '/settings/youtube-channels'
@@ -1302,6 +1336,9 @@ export interface FileRouteTypes {
     | '/settings/homepage'
     | '/settings/link-parsing'
     | '/settings/media-types'
+    | '/settings/more-categories'
+    | '/settings/more-customization'
+    | '/settings/more-taxonomies'
     | '/settings/sidebar'
     | '/settings/websites'
     | '/settings/youtube-channels'
@@ -1568,6 +1605,27 @@ declare module '@tanstack/react-router' {
       path: '/media-types'
       fullPath: '/settings/media-types'
       preLoaderRoute: typeof SettingsMediaTypesRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/more-categories': {
+      id: '/settings/more-categories'
+      path: '/more-categories'
+      fullPath: '/settings/more-categories'
+      preLoaderRoute: typeof SettingsMoreCategoriesRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/more-customization': {
+      id: '/settings/more-customization'
+      path: '/more-customization'
+      fullPath: '/settings/more-customization'
+      preLoaderRoute: typeof SettingsMoreCustomizationRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/more-taxonomies': {
+      id: '/settings/more-taxonomies'
+      path: '/more-taxonomies'
+      fullPath: '/settings/more-taxonomies'
+      preLoaderRoute: typeof SettingsMoreTaxonomiesRouteImport
       parentRoute: typeof SettingsRoute
     }
     '/settings/link-parsing': {
@@ -2506,6 +2564,9 @@ interface SettingsRouteChildren {
   SettingsHomepageRoute: typeof SettingsHomepageRoute
   SettingsLinkParsingRoute: typeof SettingsLinkParsingRoute
   SettingsMediaTypesRoute: typeof SettingsMediaTypesRoute
+  SettingsMoreCategoriesRoute: typeof SettingsMoreCategoriesRoute
+  SettingsMoreCustomizationRoute: typeof SettingsMoreCustomizationRoute
+  SettingsMoreTaxonomiesRoute: typeof SettingsMoreTaxonomiesRoute
   SettingsSidebarRoute: typeof SettingsSidebarRoute
   SettingsWebsitesRoute: typeof SettingsWebsitesRoute
   SettingsYoutubeChannelsRoute: typeof SettingsYoutubeChannelsRoute
@@ -2521,6 +2582,9 @@ const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsHomepageRoute: SettingsHomepageRoute,
   SettingsLinkParsingRoute: SettingsLinkParsingRoute,
   SettingsMediaTypesRoute: SettingsMediaTypesRoute,
+  SettingsMoreCategoriesRoute: SettingsMoreCategoriesRoute,
+  SettingsMoreCustomizationRoute: SettingsMoreCustomizationRoute,
+  SettingsMoreTaxonomiesRoute: SettingsMoreTaxonomiesRoute,
   SettingsSidebarRoute: SettingsSidebarRoute,
   SettingsWebsitesRoute: SettingsWebsitesRoute,
   SettingsYoutubeChannelsRoute: SettingsYoutubeChannelsRoute,
