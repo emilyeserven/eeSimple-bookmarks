@@ -442,18 +442,19 @@ export async function hydrateBookmarkRows(rows: BookmarkRow[]): Promise<Bookmark
   });
 }
 
-/** List bookmarks, optionally filtered to a tag and its entire subtree. */
-export async function listBookmarks(filterTagId?: string): Promise<Bookmark[]> {
+/** List bookmarks, optionally filtered to the union of the given tags and their subtrees. */
+export async function listBookmarks(filterTagIds?: string[]): Promise<Bookmark[]> {
   let allowedIds: Set<string> | null = null;
-  if (filterTagId) {
-    const subtree = await getDescendantIds(filterTagId);
-    if (subtree.size === 0) return [];
+  if (filterTagIds && filterTagIds.length > 0) {
+    const subtrees = await Promise.all(filterTagIds.map(id => getDescendantIds(id)));
+    const allTagIds = [...new Set(subtrees.flatMap(s => [...s]))];
+    if (allTagIds.length === 0) return [];
     const links = await db
       .select({
         bookmarkId: bookmarkTags.bookmarkId,
       })
       .from(bookmarkTags)
-      .where(inArray(bookmarkTags.tagId, [...subtree]));
+      .where(inArray(bookmarkTags.tagId, allTagIds));
     allowedIds = new Set(links.map(link => link.bookmarkId));
     if (allowedIds.size === 0) return [];
   }

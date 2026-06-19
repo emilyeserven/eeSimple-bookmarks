@@ -27,7 +27,7 @@ function MediaTypeBookmarksPage() {
     error,
     tagTree,
     youtubeChannels,
-  } = useCategoryPageData(search.tag);
+  } = useCategoryPageData(search.tags);
 
   const {
     mediaType, isLoading: mediaTypeLoading,

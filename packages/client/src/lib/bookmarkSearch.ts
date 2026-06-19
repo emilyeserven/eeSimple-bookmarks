@@ -9,7 +9,8 @@ import { bookmarkMatchesFilters } from "./customPropertyFilter";
  * default search serializer round-trips these nested objects/arrays.
  */
 export interface BookmarkSearch {
-  tag?: string;
+  /** Restrict to bookmarks whose tag is one of these ids (empty/absent = all tags). The server expands each id to its full subtree. */
+  tags?: string[];
   /** Filter bookmarks by whether they have any tag ("has") or no tags ("missing"). */
   tagPresence?: "has" | "missing";
   /** Restrict to bookmarks whose category is one of these ids (empty/absent = all categories). */
@@ -76,7 +77,10 @@ function parseDateRecord(raw: unknown): Record<string, [string | null, string | 
 export function validateBookmarkSearch(search: Record<string, unknown>): BookmarkSearch {
   const result: BookmarkSearch = {};
 
-  if (typeof search.tag === "string") result.tag = search.tag;
+  if (Array.isArray(search.tags)) {
+    const tagIds = search.tags.filter((v): v is string => typeof v === "string");
+    if (tagIds.length > 0) result.tags = tagIds;
+  }
 
   if (search.tagPresence === "has" || search.tagPresence === "missing") {
     result.tagPresence = search.tagPresence;
@@ -182,7 +186,7 @@ export function bookmarkMatchesSearch(
 /** Whether any filter in `search` is active (used to choose the empty-state message). */
 export function hasAnyActiveFilter(search: BookmarkSearch): boolean {
   return (
-    search.tag !== undefined
+    (search.tags?.length ?? 0) > 0
     || search.tagPresence !== undefined
     || (search.categories?.length ?? 0) > 0
     || (search.mediaTypes?.length ?? 0) > 0
@@ -212,13 +216,13 @@ function patchRecord<V>(
   };
 }
 
-/** Return a copy of `search` with the tag set, or cleared when `tag` is undefined. */
-export function withTag(search: BookmarkSearch, tag: string | undefined): BookmarkSearch {
+/** Return a copy of `search` with the tag filter set, or cleared when `ids` is empty. */
+export function withTags(search: BookmarkSearch, ids: string[]): BookmarkSearch {
   const next = {
     ...search,
   };
-  if (tag === undefined) delete next.tag;
-  else next.tag = tag;
+  if (ids.length === 0) delete next.tags;
+  else next.tags = ids;
   return next;
 }
 
@@ -238,7 +242,7 @@ export function withTagPresence(
   }
   else {
     next.tagPresence = mode;
-    if (mode === "missing") delete next.tag;
+    if (mode === "missing") delete next.tags;
   }
   return next;
 }
@@ -323,7 +327,8 @@ export function summarizeBookmarkSearch(raw: Record<string, unknown>): string {
   if (mediaTypeCount > 0) parts.push(`${mediaTypeCount} media ${mediaTypeCount === 1 ? "type" : "types"}`);
   const channelCount = search.youtubeChannels?.length ?? 0;
   if (channelCount > 0) parts.push(`${channelCount} ${channelCount === 1 ? "channel" : "channels"}`);
-  if (search.tag !== undefined) parts.push("1 tag");
+  const tagCount = search.tags?.length ?? 0;
+  if (tagCount > 0) parts.push(`${tagCount} ${tagCount === 1 ? "tag" : "tags"}`);
   if (search.tagPresence !== undefined) parts.push(`tags: ${search.tagPresence}`);
   const propCount
     = Object.keys(search.num ?? {}).length

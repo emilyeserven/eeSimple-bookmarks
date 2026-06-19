@@ -28,7 +28,7 @@ function WebsiteBookmarksPage() {
     tagTree,
     mediaTypes,
     youtubeChannels,
-  } = useCategoryPageData(search.tag);
+  } = useCategoryPageData(search.tags);
 
   const {
     website, isLoading: websiteLoading,

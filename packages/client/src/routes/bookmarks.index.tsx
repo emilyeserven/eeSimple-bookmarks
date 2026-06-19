@@ -20,7 +20,7 @@ function BookmarksPage() {
   const navigate = Route.useNavigate();
   const {
     data: bookmarks, isLoading, error,
-  } = useBookmarks(search.tag);
+  } = useBookmarks(search.tags);
   const {
     data: tagTree,
   } = useTagTree();

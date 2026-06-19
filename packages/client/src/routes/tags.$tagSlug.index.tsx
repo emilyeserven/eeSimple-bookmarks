@@ -28,7 +28,7 @@ function TagBookmarksPage() {
     tagTree,
     mediaTypes,
     youtubeChannels,
-  } = useCategoryPageData(search.tag);
+  } = useCategoryPageData(search.tags);
 
   const path = tagTree ? findAncestorPath(tagTree, tagSlug) : null;
   const tag = path?.[path.length - 1];

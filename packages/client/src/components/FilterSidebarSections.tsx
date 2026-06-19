@@ -1,11 +1,12 @@
+import type { TreeComboboxOption } from "./TreeMultiCombobox";
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
 import type { Bookmark, Category, CustomProperty, MediaType, PropertyGroup, TagNode, YouTubeChannel } from "@eesimple/types";
 
-import { Ban, ChevronDown, Circle, CircleDot, TriangleAlert } from "lucide-react";
+import { Ban, ChevronDown, Circle, CircleDot, MonitorPlay, TriangleAlert } from "lucide-react";
 
 import { CustomPropertyFilters } from "./CustomPropertyFilters";
 import { MultiCombobox } from "./MultiCombobox";
-import { TagTreeFilter } from "./TagTreeFilter";
+import { TreeMultiCombobox } from "./TreeMultiCombobox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 import { Separator } from "./ui/separator";
 import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group";
@@ -17,8 +18,8 @@ import {
   withMediaTypes,
   withNumberFilter,
   withPresenceFilter,
-  withTag,
   withTagPresence,
+  withTags,
   withYouTubeChannels,
 } from "../lib/bookmarkSearch";
 
@@ -139,7 +140,15 @@ const tagPresenceOptions = [
   },
 ] as const;
 
-/** Tiered-tag filter: a presence toggle plus the tag tree, both driving `search`. */
+function tagNodesToOptions(nodes: TagNode[]): TreeComboboxOption[] {
+  return nodes.map(n => ({
+    value: n.id,
+    label: n.name,
+    children: tagNodesToOptions(n.children),
+  }));
+}
+
+/** Tiered-tag filter: a presence toggle plus a multi-select tree combobox, both driving `search`. */
 function TagsFilterSection({
   tree, search, onSearchChange,
 }: {
@@ -147,7 +156,8 @@ function TagsFilterSection({
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;
 }) {
-  const tagFilterActive = search.tag !== undefined || search.tagPresence !== undefined;
+  const selectedTags = search.tags ?? [];
+  const tagFilterActive = selectedTags.length > 0 || search.tagPresence !== undefined;
   const tagToggleValue = search.tagPresence ?? "any";
 
   return (
@@ -178,7 +188,7 @@ function TagsFilterSection({
             const mode = v === "any" || v === "" ? undefined : v as "has" | "missing";
             onSearchChange(withTagPresence(search, mode));
           }}
-          className="group/presence"
+          className="group/presence rounded-sm ring-1 ring-border"
         >
           {tagPresenceOptions.map(({
             value, label, Icon,
@@ -202,10 +212,14 @@ function TagsFilterSection({
       <CollapsibleContent className="space-y-3">
         {search.tagPresence !== "missing"
           ? (
-            <TagTreeFilter
-              tree={tree}
-              activeId={search.tag}
-              onSelect={tag => onSearchChange(withTag(search, tag))}
+            <TreeMultiCombobox
+              options={tagNodesToOptions(tree)}
+              values={selectedTags}
+              onValuesChange={ids => onSearchChange(withTags(search, ids))}
+              placeholder="All tags"
+              searchPlaceholder="Search tags…"
+              emptyText="No tags found."
+              aria-label="Filter by tag"
             />
           )
           : null}
@@ -214,7 +228,7 @@ function TagsFilterSection({
           ? (
             <button
               type="button"
-              onClick={() => onSearchChange(withTag(withTagPresence(search, undefined), undefined))}
+              onClick={() => onSearchChange(withTags(withTagPresence(search, undefined), []))}
               className="
                 text-xs text-primary
                 hover:underline
@@ -289,7 +303,22 @@ function CategoryFilterSection({
   );
 }
 
-/** Multi-select media-type filter; rendered wherever media types exist. */
+function toMediaTypeTree(flat: MediaType[]): TreeComboboxOption[] {
+  const roots = flat.filter(m => m.parentId === null).sort((a, b) => a.sortOrder - b.sortOrder);
+  return roots.map(root => ({
+    value: root.id,
+    label: root.name,
+    children: flat
+      .filter(m => m.parentId === root.id)
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .map(child => ({
+        value: child.id,
+        label: child.name,
+      })),
+  }));
+}
+
+/** Multi-select media-type filter with expandable parent groups; rendered wherever media types exist. */
 function MediaTypeFilterSection({
   mediaTypes, search, onSearchChange,
 }: {
@@ -297,10 +326,7 @@ function MediaTypeFilterSection({
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;
 }) {
-  const options = (mediaTypes ?? []).map(mediaType => ({
-    value: mediaType.id,
-    label: mediaType.name,
-  }));
+  const options = toMediaTypeTree(mediaTypes ?? []);
   const selected = search.mediaTypes ?? [];
 
   return (
@@ -323,11 +349,13 @@ function MediaTypeFilterSection({
         Media type
       </CollapsibleTrigger>
       <CollapsibleContent className="space-y-3">
-        <MultiCombobox
+        <TreeMultiCombobox
           options={options}
           values={selected}
           onValuesChange={ids => onSearchChange(withMediaTypes(search, ids))}
           placeholder="All media types"
+          searchPlaceholder="Search media types…"
+          emptyText="No media types found."
           aria-label="Filter by media type"
         />
         {selected.length > 0
@@ -360,6 +388,15 @@ function YouTubeChannelFilterSection({
   const options = (youtubeChannels ?? []).map(channel => ({
     value: channel.id,
     label: channel.name,
+    icon: channel.imageUrl
+      ? (
+        <img
+          src={channel.imageUrl}
+          alt=""
+          className="size-4 shrink-0 rounded-full object-cover"
+        />
+      )
+      : <MonitorPlay className="size-4 shrink-0 text-muted-foreground" />,
   }));
   const selected = search.youtubeChannels ?? [];
 
@@ -473,15 +510,18 @@ function PropertiesFilterSection({
       />
       {unassignedProperties.length > 0
         ? (
-          <div className="space-y-1 text-xs text-destructive">
-            <p className="flex items-center gap-1.5 font-medium">
-              <TriangleAlert className="size-3.5 shrink-0" />
-              {unassignedProperties.length === 1
-                ? "1 property isn't assigned to a category"
-                : `${unassignedProperties.length} properties aren't assigned to a category`}
-            </p>
-            <p>{unassignedProperties.map(property => property.name).join(", ")}</p>
-          </div>
+          <>
+            <Separator className="my-3" />
+            <div className="space-y-1 text-xs text-destructive">
+              <p className="flex items-center gap-1.5 font-medium">
+                <TriangleAlert className="size-3.5 shrink-0" />
+                {unassignedProperties.length === 1
+                  ? "1 property isn't assigned to a category"
+                  : `${unassignedProperties.length} properties aren't assigned to a category`}
+              </p>
+              <p>{unassignedProperties.map(property => property.name).join(", ")}</p>
+            </div>
+          </>
         )
         : null}
     </div>

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import sharp from "sharp";
-import { extractFaviconUrl, extractImageUrl, isPublicHttpUrl } from "@/services/metadata";
+import { extractFaviconUrl, extractFaviconUrls, extractImageUrl, isPublicHttpUrl } from "@/services/metadata";
 import { MAX_IMAGE_EDGE, processImage } from "@/utils/image";
 
 // Pure-function coverage for the bookmark-image pipeline and og:image parsing — no DB or network.
@@ -94,6 +94,38 @@ test("extractFaviconUrl prefers icon links over og:image", () => {
     "https://cdn.example.com/share.png",
   );
   assert.equal(extractFaviconUrl("<head></head>", "https://example.com/"), null);
+});
+
+test("extractFaviconUrls returns all candidates ordered and deduped", () => {
+  // apple-touch-icons come first, then rel="icon" links, then og:image.
+  assert.deepEqual(
+    extractFaviconUrls(
+      "<link rel=\"icon\" href=\"/favicon.svg\">"
+      + "<link rel=\"icon\" sizes=\"32x32\" href=\"/favicon-32.png\">"
+      + "<link rel=\"apple-touch-icon\" href=\"/touch.png\">"
+      + "<meta property=\"og:image\" content=\"https://cdn.example.com/share.png\">",
+      "https://example.com/",
+    ),
+    [
+      "https://example.com/touch.png",
+      "https://example.com/favicon.svg",
+      "https://example.com/favicon-32.png",
+      "https://cdn.example.com/share.png",
+    ],
+  );
+
+  // Duplicates (same resolved URL) appear only once.
+  assert.deepEqual(
+    extractFaviconUrls(
+      "<link rel=\"apple-touch-icon\" href=\"/touch.png\">"
+      + "<link rel=\"icon\" href=\"/touch.png\">",
+      "https://example.com/",
+    ),
+    ["https://example.com/touch.png"],
+  );
+
+  // Empty head returns an empty array.
+  assert.deepEqual(extractFaviconUrls("<head></head>", "https://example.com/"), []);
 });
 
 test("isPublicHttpUrl rejects non-http(s) and internal hosts", () => {

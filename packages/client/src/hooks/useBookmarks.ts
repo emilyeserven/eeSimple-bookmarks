@@ -37,10 +37,10 @@ export function useBulkExpandBookmarkUrls() {
   });
 }
 
-export function useBookmarks(tagId?: string) {
+export function useBookmarks(tagIds?: string[]) {
   return useQuery({
-    queryKey: [...BOOKMARKS_KEY, tagId ?? null],
-    queryFn: () => bookmarksApi.list(tagId),
+    queryKey: [...BOOKMARKS_KEY, tagIds ?? null],
+    queryFn: () => bookmarksApi.list(tagIds),
   });
 }
 

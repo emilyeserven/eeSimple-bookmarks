@@ -36,9 +36,12 @@ const listQuery = {
   type: "object",
   additionalProperties: false,
   properties: {
-    tag: {
-      type: "string",
-      format: "uuid",
+    tags: {
+      type: "array",
+      items: {
+        type: "string",
+        format: "uuid",
+      },
     },
   },
 } as const;
@@ -213,9 +216,9 @@ export async function bookmarkRoutes(app: FastifyInstance): Promise<void> {
     },
   }, async (req) => {
     const {
-      tag,
-    } = req.query as { tag?: string };
-    return listBookmarks(tag);
+      tags,
+    } = req.query as { tags?: string[] };
+    return listBookmarks(tags);
   });
 
   // Static sub-paths are declared before `/:id` so they aren't captured by the param route.

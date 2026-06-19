@@ -3,6 +3,8 @@
  * pages (CORS), so the title lookup for a bookmark URL has to happen here.
  */
 
+import { processImage } from "@/utils/image";
+
 const FETCH_TIMEOUT_MS = 5000;
 /** Cap the body we read so a huge response can't exhaust memory. */
 const MAX_BYTES = 512 * 1024;
@@ -290,6 +292,17 @@ function linkHref(html: string, attrMatch: RegExp): string | undefined {
   return undefined;
 }
 
+/** Find the `href` of every `<link>` tag whose attributes match `attrMatch`. */
+function linkHrefs(html: string, attrMatch: RegExp): string[] {
+  const results: string[] = [];
+  for (const [tag] of html.matchAll(/<link\b[^>]*>/gi)) {
+    if (!attrMatch.test(tag)) continue;
+    const href = /href=["']([^"']*)["']/i.exec(tag);
+    if (href?.[1]) results.push(href[1]);
+  }
+  return results;
+}
+
 /**
  * Pull the description from an HTML document's `<head>`. Prefers `og:description` /
  * `twitter:description` (canonical shareable summaries) and falls back to the standard
@@ -362,6 +375,41 @@ export function extractFaviconUrl(html: string, pageUrl: string): string | null 
     }
   }
   return null;
+}
+
+/**
+ * Pull all favicon candidate URLs out of an HTML document's `<head>`, ordered by preference:
+ * apple-touch-icons first, then all `rel="icon"` links, then `og:image`. Relative URLs are
+ * resolved against `pageUrl`. Returns an ordered, deduped list of absolute http(s) URLs. Pure —
+ * unit-testable like `extractFaviconUrl`.
+ */
+export function extractFaviconUrls(html: string, pageUrl: string): string[] {
+  const rawCandidates: (string | undefined)[] = [
+    ...linkHrefs(html, /rel=["'][^"']*\bapple-touch-icon\b[^"']*["']/i),
+    ...linkHrefs(html, /rel=["'][^"']*\bicon\b[^"']*["']/i),
+    metaContent(html, /(?:property|name)=["']og:image(?::url)?["']/i),
+  ];
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const raw of rawCandidates) {
+    if (!raw) continue;
+    const decoded = decodeEntities(raw).trim();
+    if (!decoded) continue;
+    try {
+      const resolved = new URL(decoded, pageUrl);
+      if (
+        (resolved.protocol === "http:" || resolved.protocol === "https:")
+        && !seen.has(resolved.href)
+      ) {
+        seen.add(resolved.href);
+        result.push(resolved.href);
+      }
+    }
+    catch {
+      // Skip malformed candidates.
+    }
+  }
+  return result;
 }
 
 /**
@@ -500,24 +548,36 @@ export async function withTransientRetry(
 }
 
 /**
- * Fetch the page at `pageUrl`, find its favicon (icon link, then `og:image`), download it, and
- * return the raw bytes — or a typed error. Mirrors `fetchOgImage` but prefers declared icons via
- * `extractFaviconUrl`, and as a last resort tries the conventional `/favicon.ico`.
+ * Fetch the page at `pageUrl`, find its favicon (icon links, then `og:image`), download and
+ * validate each candidate in order, and return the raw bytes of the first decodable image — or a
+ * typed error. Trying all candidates (instead of only the first) lets the pipeline skip formats
+ * Sharp can't decode (e.g. SVG without librsvg) and fall through to the next option rather than
+ * immediately returning `bad_image`.
  */
 export async function fetchFaviconImage(pageUrl: string): Promise<OgImageResult> {
   const html = await fetchHeadOrImageError(pageUrl);
   if (typeof html !== "string") return html;
-  let iconUrl = extractFaviconUrl(html, pageUrl);
-  if (!iconUrl) {
-    // Last resort: the well-known conventional location every browser probes.
-    try {
-      iconUrl = new URL("/favicon.ico", pageUrl).href;
-    }
-    catch {
-      return "no_image";
-    }
+
+  const candidates = extractFaviconUrls(html, pageUrl);
+  // Append the well-known conventional location every browser probes as a final fallback.
+  try {
+    const ico = new URL("/favicon.ico", pageUrl).href;
+    if (!candidates.includes(ico)) candidates.push(ico);
   }
-  if (!isPublicHttpUrl(iconUrl)) return "no_image";
-  const bytes = await downloadImage(iconUrl);
-  return bytes ?? "bad_image";
+  catch {
+    // ignore
+  }
+
+  if (candidates.length === 0) return "no_image";
+  for (const iconUrl of candidates) {
+    if (!isPublicHttpUrl(iconUrl)) continue;
+    const bytes = await downloadImage(iconUrl);
+    if (!bytes) continue;
+    // Validate the bytes are decodable before returning; skips SVG or corrupted icons so the
+    // loop can try the next candidate instead of surfacing bad_image immediately.
+    const valid = await processImage(bytes);
+    if (!valid) continue;
+    return bytes;
+  }
+  return "bad_image";
 }
