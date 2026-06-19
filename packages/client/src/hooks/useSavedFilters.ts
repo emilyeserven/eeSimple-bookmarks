@@ -1,6 +1,5 @@
 import type {
   CreateSavedFilterInput,
-  UpdateSavedFilterInput,
 } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -17,14 +16,6 @@ export function useSavedFilters() {
   });
 }
 
-export function useSavedFilterById(id: string | undefined) {
-  const query = useSavedFilters();
-  return {
-    ...query,
-    item: id ? (query.data ?? []).find(f => f.id === id) : undefined,
-  };
-}
-
 export function useCreateSavedFilter() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -37,26 +28,6 @@ export function useCreateSavedFilter() {
     },
     onError: (err: Error) => {
       notifyError(err.message || "Failed to save filter");
-    },
-  });
-}
-
-export function useUpdateSavedFilter() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({
-      id, input,
-    }: { id: string;
-      input: UpdateSavedFilterInput; }) =>
-      savedFiltersApi.update(id, input),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: SAVED_FILTERS_KEY,
-      });
-      notifySuccess("Filter updated");
-    },
-    onError: (err: Error) => {
-      notifyError(err.message || "Failed to update filter");
     },
   });
 }

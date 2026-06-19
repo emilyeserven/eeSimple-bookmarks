@@ -24,6 +24,7 @@ import { RulePropertyField } from "./RulePropertyField";
 import { RuleTagsField } from "./RuleTagsField";
 import { autofillConditionsValidator } from "../lib/conditionsSchema";
 import { useAppForm } from "../lib/form";
+import { buildNumberValuesFromInputs } from "../lib/propertyValues";
 
 import { Separator } from "@/components/ui/separator";
 
@@ -113,21 +114,7 @@ export function AutofillRuleForm({
       const categoryProps = categoryId
         ? properties.filter(property => propertyAppliesToCategory(property, categoryId))
         : [];
-      const numberValues = categoryProps
-        .filter(property => property.type === "number")
-        .map(property => ({
-          propertyId: property.id,
-          raw: numberInputs[property.id] ?? "",
-        }))
-        .filter(({
-          raw,
-        }) => raw.trim() !== "" && !Number.isNaN(Number(raw)))
-        .map(({
-          propertyId, raw,
-        }) => ({
-          propertyId,
-          value: Number(raw),
-        }));
+      const numberValues = buildNumberValuesFromInputs(categoryProps, numberInputs);
       const booleanValues = categoryProps
         .filter(property => property.type === "boolean")
         .map(property => ({
