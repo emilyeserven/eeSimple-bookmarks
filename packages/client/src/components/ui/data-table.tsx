@@ -166,9 +166,8 @@ export function DataTable<T>({
                         onMouseDown={header.getResizeHandler()}
                         onTouchStart={header.getResizeHandler()}
                         className="
-                          absolute top-0 right-0 h-full w-1
-                          cursor-col-resize touch-none bg-border
-                          opacity-0 select-none
+                          absolute top-0 right-0 h-full w-1 cursor-col-resize
+                          touch-none bg-border opacity-0 select-none
                           hover:opacity-100
                           active:opacity-100
                         "
