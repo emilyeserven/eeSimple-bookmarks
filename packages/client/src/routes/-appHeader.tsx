@@ -5,6 +5,7 @@ import React from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { PanelRight } from "lucide-react";
 
+import { ListingOptionsPopover } from "@/components/ListingOptionsPopover";
 import { usePanelControls } from "@/components/panel/usePanelControls";
 import {
   Breadcrumb,
@@ -21,6 +22,7 @@ import { useBookmark } from "@/hooks/useBookmarks";
 import { useCategories, useCategoryBySlug } from "@/hooks/useCategories";
 import { useTagTree } from "@/hooks/useTags";
 import { findAncestorPath } from "@/lib/tagTree";
+import { useUiStore } from "@/stores/uiStore";
 
 interface BreadcrumbSegment {
   label: string;
@@ -305,6 +307,8 @@ export function AppHeader() {
     open,
   } = usePanelControls();
 
+  const listingPage = useUiStore(state => state.listingPage);
+
   return (
     <header
       className="flex h-16 shrink-0 items-center gap-2 border-b px-4"
@@ -349,6 +353,12 @@ export function AppHeader() {
               Edit
             </Link>
           </Button>
+        )}
+        {listingPage && (
+          <ListingOptionsPopover
+            pageKey={listingPage.key}
+            showsImages={listingPage.showsImages}
+          />
         )}
         <Button
           type="button"
