@@ -54,7 +54,7 @@ export function FacetPresenceToggle({
         const mode = v === "any" || v === "" ? undefined : v as "has" | "missing";
         onChange(mode);
       }}
-      className="group/presence"
+      className="group/presence rounded-sm ring-1 ring-border"
     >
       {options.map(({
         value: optionValue, label, Icon,

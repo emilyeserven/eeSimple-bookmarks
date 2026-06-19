@@ -22,6 +22,9 @@ export type BookmarkDetailVideoSize = "standard" | "fullwidth";
 /** Per-listing image visibility on Listings pages: full card, image-only, or no image. */
 export type BookmarkImageVisibility = "shown" | "image-only" | "off";
 
+/** Per-listing rendering mode: card grid (default) or a data table. */
+export type ViewMode = "cards" | "table";
+
 /** Clamp a requested bookmark column count to the supported 1–4 range. */
 export function clampColumns(columns: number): number {
   return Math.min(4, Math.max(1, Math.round(columns)));
@@ -79,6 +82,9 @@ interface UiState {
   /** Bookmark grid column count (1–4) per listing page, keyed by a stable page key. */
   bookmarkColumns: Record<string, number>;
   setBookmarkColumns: (pageKey: string, columns: number) => void;
+  /** Per-listing view mode ("cards" | "table"), keyed by a stable page key. */
+  viewMode: Record<string, ViewMode>;
+  setViewMode: (pageKey: string, mode: ViewMode) => void;
   /** Card field keys hidden per listing page (standard field key or custom-property id). Empty/absent = all shown. */
   hiddenCardFields: Record<string, string[]>;
   toggleCardField: (pageKey: string, fieldKey: string) => void;
@@ -199,6 +205,13 @@ export const useUiStore = create<UiState>()(
         bookmarkColumns: {
           ...state.bookmarkColumns,
           [pageKey]: clampColumns(columns),
+        },
+      })),
+      viewMode: {},
+      setViewMode: (pageKey, mode) => set(state => ({
+        viewMode: {
+          ...state.viewMode,
+          [pageKey]: mode,
         },
       })),
       hiddenCardFields: {},
@@ -343,6 +356,7 @@ export const useUiStore = create<UiState>()(
         croppedHeight: state.croppedHeight,
         bookmarkImageVisibility: state.bookmarkImageVisibility,
         bookmarkColumns: state.bookmarkColumns,
+        viewMode: state.viewMode,
         hiddenCardFields: state.hiddenCardFields,
         panelPinned: state.panelPinned,
         drawerUnpinnedBreakpoints: state.drawerUnpinnedBreakpoints,

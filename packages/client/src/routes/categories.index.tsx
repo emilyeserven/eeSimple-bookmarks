@@ -5,13 +5,16 @@ import { Plus } from "lucide-react";
 
 import { AddCategoryModal } from "../components/AddCategoryModal";
 import { CategoryPreviewCard } from "../components/CategoryPreviewCard";
+import { useCategoryColumns } from "../components/tables/categoryColumns";
+import { useTableRowNav } from "../components/tables/useTableRowNav";
 import { useCategories } from "../hooks/useCategories";
 import { useSetListingPage } from "../hooks/useListingPage";
 import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
-import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
+import { COLUMN_CLASS, useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { DataTable } from "@/components/ui/data-table";
 import { useUiStore } from "@/stores/uiStore";
 
 export const Route = createFileRoute("/categories/")({
@@ -28,6 +31,9 @@ function CategoriesListingPage() {
   useSetListingPage("categories-listing");
   useRegisterHeaderSearch();
   const columns = useBookmarkColumns("categories-listing");
+  const viewMode = useViewMode("categories-listing");
+  const categoryColumns = useCategoryColumns();
+  const rowNav = useTableRowNav();
 
   const rawQuery = useUiStore(state => state.headerSearchQuery);
   const q = rawQuery.trim().toLowerCase();
@@ -84,7 +90,26 @@ function CategoriesListingPage() {
           )
           : null}
 
-        {filtered.length > 0
+        {filtered.length > 0 && viewMode === "table"
+          ? (
+            <DataTable
+              columns={categoryColumns}
+              data={filtered}
+              sortable
+              onRowClick={(category, event) =>
+                rowNav(event, "category", category.id, () => {
+                  void navigate({
+                    to: "/categories/$categorySlug",
+                    params: {
+                      categorySlug: category.slug,
+                    },
+                  });
+                })}
+            />
+          )
+          : null}
+
+        {filtered.length > 0 && viewMode !== "table"
           ? (
             <ul
               className={`

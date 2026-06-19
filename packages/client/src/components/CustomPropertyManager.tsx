@@ -5,13 +5,16 @@ import { Plus } from "lucide-react";
 
 import { AddCustomPropertyModal } from "./AddCustomPropertyModal";
 import { PropertyPreview } from "./PropertyPreview";
+import { useCustomPropertyColumns } from "./tables/customPropertyColumns";
+import { useTableRowNav } from "./tables/useTableRowNav";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useSetListingPage } from "../hooks/useListingPage";
 import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
-import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
+import { COLUMN_CLASS, useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
 import { TYPE_LABELS } from "../lib/propertyFormat";
 
 import { Button } from "@/components/ui/button";
+import { DataTable } from "@/components/ui/data-table";
 import { useUiStore } from "@/stores/uiStore";
 
 /** Searchable listing of custom properties, with previews that link out to the view/create pages. */
@@ -24,6 +27,9 @@ export function CustomPropertyManager() {
   useSetListingPage("custom-properties-listing");
   useRegisterHeaderSearch();
   const columns = useBookmarkColumns("custom-properties-listing");
+  const viewMode = useViewMode("custom-properties-listing");
+  const propertyColumns = useCustomPropertyColumns();
+  const rowNav = useTableRowNav();
 
   const rawQuery = useUiStore(state => state.headerSearchQuery);
   const filtered = useMemo(() => {
@@ -60,20 +66,43 @@ export function CustomPropertyManager() {
         )
         : null}
 
-      <div
-        className={`
-          grid gap-3
-          ${COLUMN_CLASS[columns]}
-        `}
-      >
-        {filtered.map(property => (
-          <PropertyPreview
-            key={property.id}
-            property={property}
-            allProperties={properties ?? []}
+      {filtered.length > 0 && viewMode === "table"
+        ? (
+          <DataTable
+            columns={propertyColumns}
+            data={filtered}
+            sortable
+            onRowClick={(property, event) =>
+              rowNav(event, "property", property.id, () => {
+                void navigate({
+                  to: "/custom-properties/$propertySlug",
+                  params: {
+                    propertySlug: property.slug,
+                  },
+                });
+              })}
           />
-        ))}
-      </div>
+        )
+        : null}
+
+      {viewMode !== "table"
+        ? (
+          <div
+            className={`
+              grid gap-3
+              ${COLUMN_CLASS[columns]}
+            `}
+          >
+            {filtered.map(property => (
+              <PropertyPreview
+                key={property.id}
+                property={property}
+                allProperties={properties ?? []}
+              />
+            ))}
+          </div>
+        )
+        : null}
 
       <AddCustomPropertyModal
         open={modalOpen}
