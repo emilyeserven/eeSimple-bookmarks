@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import { TagTreeList } from "./TagTreeList";
 import { useTagTree } from "../hooks/useTags";
+import { useBookmarkColumns } from "../lib/bookmarkColumns";
 
 interface TagManagerProps {
   onNew?: () => void;
@@ -17,6 +18,7 @@ export function TagManager({
 
   // Empty set means every parent is collapsed by default.
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const columns = useBookmarkColumns("tags-listing");
 
   function toggle(id: string) {
     setExpanded((current) => {
@@ -55,6 +57,7 @@ export function TagManager({
             tree={tree}
             expanded={expanded}
             onToggle={toggle}
+            columns={columns}
           />
         )
         : null}

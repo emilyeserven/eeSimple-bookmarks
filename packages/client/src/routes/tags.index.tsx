@@ -5,6 +5,7 @@ import { Plus } from "lucide-react";
 
 import { AddTagModal } from "../components/AddTagModal";
 import { TagManager } from "../components/TagManager";
+import { useSetListingPage } from "../hooks/useListingPage";
 import { useTags } from "../hooks/useTags";
 
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +22,7 @@ function TagsListingPage() {
   } = useTags();
   const navigate = useNavigate();
   const [modalOpen, setModalOpen] = useState(false);
+  useSetListingPage("tags-listing");
 
   return (
     <section className="space-y-6">
