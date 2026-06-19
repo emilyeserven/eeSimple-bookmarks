@@ -110,6 +110,8 @@ import { Route as CategoriesCategorySlugViewGeneralRouteImport } from './routes/
 import { Route as CategoriesCategorySlugViewCustomPropertiesRouteImport } from './routes/categories.$categorySlug._view.custom-properties'
 import { Route as CategoriesCategorySlugViewAutofillRouteImport } from './routes/categories.$categorySlug._view.autofill'
 import { Route as BookmarksBookmarkIdEditRelationshipsRouteImport } from './routes/bookmarks.$bookmarkId.edit.relationships'
+import { Route as BookmarksBookmarkIdEditPropertiesRouteImport } from './routes/bookmarks.$bookmarkId.edit.properties'
+import { Route as BookmarksBookmarkIdEditImageRouteImport } from './routes/bookmarks.$bookmarkId.edit.image'
 import { Route as BookmarksBookmarkIdEditGeneralRouteImport } from './routes/bookmarks.$bookmarkId.edit.general'
 import { Route as AutofillRuleSlugEditPrefillRouteImport } from './routes/autofill.$ruleSlug.edit.prefill'
 import { Route as AutofillRuleSlugEditGeneralRouteImport } from './routes/autofill.$ruleSlug.edit.general'
@@ -692,6 +694,18 @@ const BookmarksBookmarkIdEditRelationshipsRoute =
     path: '/relationships',
     getParentRoute: () => BookmarksBookmarkIdEditRoute,
   } as any)
+const BookmarksBookmarkIdEditPropertiesRoute =
+  BookmarksBookmarkIdEditPropertiesRouteImport.update({
+    id: '/properties',
+    path: '/properties',
+    getParentRoute: () => BookmarksBookmarkIdEditRoute,
+  } as any)
+const BookmarksBookmarkIdEditImageRoute =
+  BookmarksBookmarkIdEditImageRouteImport.update({
+    id: '/image',
+    path: '/image',
+    getParentRoute: () => BookmarksBookmarkIdEditRoute,
+  } as any)
 const BookmarksBookmarkIdEditGeneralRoute =
   BookmarksBookmarkIdEditGeneralRouteImport.update({
     id: '/general',
@@ -875,10 +889,10 @@ export interface FileRoutesByFullPath {
   '/custom-properties': typeof CustomPropertiesRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/tags': typeof TagsRouteWithChildren
-  '/autofill/$ruleSlug': typeof AutofillRuleSlugViewRouteWithChildren
+  '/autofill/$ruleSlug': typeof AutofillRuleSlugRouteWithChildren
   '/bookmarks/$bookmarkId': typeof BookmarksBookmarkIdRouteWithChildren
-  '/categories/$categorySlug': typeof CategoriesCategorySlugViewRouteWithChildren
-  '/custom-properties/$propertySlug': typeof CustomPropertiesPropertySlugViewRouteWithChildren
+  '/categories/$categorySlug': typeof CategoriesCategorySlugRouteWithChildren
+  '/custom-properties/$propertySlug': typeof CustomPropertiesPropertySlugRouteWithChildren
   '/custom-properties/new': typeof CustomPropertiesNewRoute
   '/settings/autofill': typeof SettingsAutofillRoute
   '/settings/automations': typeof SettingsAutomationsRoute
@@ -895,7 +909,7 @@ export interface FileRoutesByFullPath {
   '/settings/sidebar': typeof SettingsSidebarRoute
   '/settings/websites': typeof SettingsWebsitesRoute
   '/settings/youtube-channels': typeof SettingsYoutubeChannelsRoute
-  '/tags/$tagSlug': typeof TagsTagSlugViewRouteWithChildren
+  '/tags/$tagSlug': typeof TagsTagSlugRouteWithChildren
   '/taxonomies/media-types': typeof TaxonomiesMediaTypesRouteWithChildren
   '/taxonomies/property-groups': typeof TaxonomiesPropertyGroupsRouteWithChildren
   '/taxonomies/websites': typeof TaxonomiesWebsitesRouteWithChildren
@@ -911,10 +925,10 @@ export interface FileRoutesByFullPath {
   '/categories/$categorySlug/edit': typeof CategoriesCategorySlugEditRouteWithChildren
   '/custom-properties/$propertySlug/edit': typeof CustomPropertiesPropertySlugEditRouteWithChildren
   '/tags/$tagSlug/edit': typeof TagsTagSlugEditRouteWithChildren
-  '/taxonomies/media-types/$mediaTypeSlug': typeof TaxonomiesMediaTypesMediaTypeSlugViewRouteWithChildren
-  '/taxonomies/property-groups/$propertyGroupSlug': typeof TaxonomiesPropertyGroupsPropertyGroupSlugViewRouteWithChildren
-  '/taxonomies/websites/$websiteSlug': typeof TaxonomiesWebsitesWebsiteSlugViewRouteWithChildren
-  '/taxonomies/youtube-channels/$channelSlug': typeof TaxonomiesYoutubeChannelsChannelSlugViewRouteWithChildren
+  '/taxonomies/media-types/$mediaTypeSlug': typeof TaxonomiesMediaTypesMediaTypeSlugRouteWithChildren
+  '/taxonomies/property-groups/$propertyGroupSlug': typeof TaxonomiesPropertyGroupsPropertyGroupSlugRouteWithChildren
+  '/taxonomies/websites/$websiteSlug': typeof TaxonomiesWebsitesWebsiteSlugRouteWithChildren
+  '/taxonomies/youtube-channels/$channelSlug': typeof TaxonomiesYoutubeChannelsChannelSlugRouteWithChildren
   '/autofill/$ruleSlug/': typeof AutofillRuleSlugIndexRoute
   '/bookmarks/$bookmarkId/': typeof BookmarksBookmarkIdIndexRoute
   '/categories/$categorySlug/': typeof CategoriesCategorySlugIndexRoute
@@ -931,6 +945,8 @@ export interface FileRoutesByFullPath {
   '/autofill/$ruleSlug/edit/general': typeof AutofillRuleSlugEditGeneralRoute
   '/autofill/$ruleSlug/edit/prefill': typeof AutofillRuleSlugEditPrefillRoute
   '/bookmarks/$bookmarkId/edit/general': typeof BookmarksBookmarkIdEditGeneralRoute
+  '/bookmarks/$bookmarkId/edit/image': typeof BookmarksBookmarkIdEditImageRoute
+  '/bookmarks/$bookmarkId/edit/properties': typeof BookmarksBookmarkIdEditPropertiesRoute
   '/bookmarks/$bookmarkId/edit/relationships': typeof BookmarksBookmarkIdEditRelationshipsRoute
   '/categories/$categorySlug/autofill': typeof CategoriesCategorySlugViewAutofillRoute
   '/categories/$categorySlug/custom-properties': typeof CategoriesCategorySlugViewCustomPropertiesRoute
@@ -982,10 +998,10 @@ export interface FileRoutesByFullPath {
   '/taxonomies/websites/$websiteSlug/edit/general': typeof TaxonomiesWebsitesWebsiteSlugEditGeneralRoute
   '/taxonomies/websites/$websiteSlug/edit/param-rules': typeof TaxonomiesWebsitesWebsiteSlugEditParamRulesRoute
   '/taxonomies/websites/$websiteSlug/edit/shortened-links': typeof TaxonomiesWebsitesWebsiteSlugEditShortenedLinksRoute
-  '/taxonomies/youtube-channels/$channelSlug/general': typeof TaxonomiesYoutubeChannelsChannelSlugViewGeneralRoute
   '/taxonomies/youtube-channels/$channelSlug/autofill': typeof TaxonomiesYoutubeChannelsChannelSlugViewAutofillRoute
-  '/taxonomies/youtube-channels/$channelSlug/edit/general': typeof TaxonomiesYoutubeChannelsChannelSlugEditGeneralRoute
+  '/taxonomies/youtube-channels/$channelSlug/general': typeof TaxonomiesYoutubeChannelsChannelSlugViewGeneralRoute
   '/taxonomies/youtube-channels/$channelSlug/edit/autofill': typeof TaxonomiesYoutubeChannelsChannelSlugEditAutofillRoute
+  '/taxonomies/youtube-channels/$channelSlug/edit/general': typeof TaxonomiesYoutubeChannelsChannelSlugEditGeneralRoute
   '/taxonomies/media-types/$mediaTypeSlug/edit/': typeof TaxonomiesMediaTypesMediaTypeSlugEditIndexRoute
   '/taxonomies/property-groups/$propertyGroupSlug/edit/': typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditIndexRoute
   '/taxonomies/websites/$websiteSlug/edit/': typeof TaxonomiesWebsitesWebsiteSlugEditIndexRoute
@@ -1031,6 +1047,8 @@ export interface FileRoutesByTo {
   '/autofill/$ruleSlug/edit/general': typeof AutofillRuleSlugEditGeneralRoute
   '/autofill/$ruleSlug/edit/prefill': typeof AutofillRuleSlugEditPrefillRoute
   '/bookmarks/$bookmarkId/edit/general': typeof BookmarksBookmarkIdEditGeneralRoute
+  '/bookmarks/$bookmarkId/edit/image': typeof BookmarksBookmarkIdEditImageRoute
+  '/bookmarks/$bookmarkId/edit/properties': typeof BookmarksBookmarkIdEditPropertiesRoute
   '/bookmarks/$bookmarkId/edit/relationships': typeof BookmarksBookmarkIdEditRelationshipsRoute
   '/categories/$categorySlug/autofill': typeof CategoriesCategorySlugViewAutofillRoute
   '/categories/$categorySlug/custom-properties': typeof CategoriesCategorySlugViewCustomPropertiesRoute
@@ -1078,10 +1096,10 @@ export interface FileRoutesByTo {
   '/taxonomies/websites/$websiteSlug/edit/general': typeof TaxonomiesWebsitesWebsiteSlugEditGeneralRoute
   '/taxonomies/websites/$websiteSlug/edit/param-rules': typeof TaxonomiesWebsitesWebsiteSlugEditParamRulesRoute
   '/taxonomies/websites/$websiteSlug/edit/shortened-links': typeof TaxonomiesWebsitesWebsiteSlugEditShortenedLinksRoute
-  '/taxonomies/youtube-channels/$channelSlug/general': typeof TaxonomiesYoutubeChannelsChannelSlugViewGeneralRoute
   '/taxonomies/youtube-channels/$channelSlug/autofill': typeof TaxonomiesYoutubeChannelsChannelSlugViewAutofillRoute
-  '/taxonomies/youtube-channels/$channelSlug/edit/general': typeof TaxonomiesYoutubeChannelsChannelSlugEditGeneralRoute
+  '/taxonomies/youtube-channels/$channelSlug/general': typeof TaxonomiesYoutubeChannelsChannelSlugViewGeneralRoute
   '/taxonomies/youtube-channels/$channelSlug/edit/autofill': typeof TaxonomiesYoutubeChannelsChannelSlugEditAutofillRoute
+  '/taxonomies/youtube-channels/$channelSlug/edit/general': typeof TaxonomiesYoutubeChannelsChannelSlugEditGeneralRoute
   '/taxonomies/media-types/$mediaTypeSlug/edit': typeof TaxonomiesMediaTypesMediaTypeSlugEditIndexRoute
   '/taxonomies/property-groups/$propertyGroupSlug/edit': typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditIndexRoute
   '/taxonomies/websites/$websiteSlug/edit': typeof TaxonomiesWebsitesWebsiteSlugEditIndexRoute
@@ -1156,6 +1174,8 @@ export interface FileRoutesById {
   '/autofill/$ruleSlug/edit/general': typeof AutofillRuleSlugEditGeneralRoute
   '/autofill/$ruleSlug/edit/prefill': typeof AutofillRuleSlugEditPrefillRoute
   '/bookmarks/$bookmarkId/edit/general': typeof BookmarksBookmarkIdEditGeneralRoute
+  '/bookmarks/$bookmarkId/edit/image': typeof BookmarksBookmarkIdEditImageRoute
+  '/bookmarks/$bookmarkId/edit/properties': typeof BookmarksBookmarkIdEditPropertiesRoute
   '/bookmarks/$bookmarkId/edit/relationships': typeof BookmarksBookmarkIdEditRelationshipsRoute
   '/categories/$categorySlug/_view/autofill': typeof CategoriesCategorySlugViewAutofillRoute
   '/categories/$categorySlug/_view/custom-properties': typeof CategoriesCategorySlugViewCustomPropertiesRoute
@@ -1211,10 +1231,10 @@ export interface FileRoutesById {
   '/taxonomies/websites/$websiteSlug/edit/general': typeof TaxonomiesWebsitesWebsiteSlugEditGeneralRoute
   '/taxonomies/websites/$websiteSlug/edit/param-rules': typeof TaxonomiesWebsitesWebsiteSlugEditParamRulesRoute
   '/taxonomies/websites/$websiteSlug/edit/shortened-links': typeof TaxonomiesWebsitesWebsiteSlugEditShortenedLinksRoute
-  '/taxonomies/youtube-channels/$channelSlug/_view/general': typeof TaxonomiesYoutubeChannelsChannelSlugViewGeneralRoute
   '/taxonomies/youtube-channels/$channelSlug/_view/autofill': typeof TaxonomiesYoutubeChannelsChannelSlugViewAutofillRoute
-  '/taxonomies/youtube-channels/$channelSlug/edit/general': typeof TaxonomiesYoutubeChannelsChannelSlugEditGeneralRoute
+  '/taxonomies/youtube-channels/$channelSlug/_view/general': typeof TaxonomiesYoutubeChannelsChannelSlugViewGeneralRoute
   '/taxonomies/youtube-channels/$channelSlug/edit/autofill': typeof TaxonomiesYoutubeChannelsChannelSlugEditAutofillRoute
+  '/taxonomies/youtube-channels/$channelSlug/edit/general': typeof TaxonomiesYoutubeChannelsChannelSlugEditGeneralRoute
   '/taxonomies/media-types/$mediaTypeSlug/edit/': typeof TaxonomiesMediaTypesMediaTypeSlugEditIndexRoute
   '/taxonomies/property-groups/$propertyGroupSlug/edit/': typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditIndexRoute
   '/taxonomies/websites/$websiteSlug/edit/': typeof TaxonomiesWebsitesWebsiteSlugEditIndexRoute
@@ -1286,6 +1306,8 @@ export interface FileRouteTypes {
     | '/autofill/$ruleSlug/edit/general'
     | '/autofill/$ruleSlug/edit/prefill'
     | '/bookmarks/$bookmarkId/edit/general'
+    | '/bookmarks/$bookmarkId/edit/image'
+    | '/bookmarks/$bookmarkId/edit/properties'
     | '/bookmarks/$bookmarkId/edit/relationships'
     | '/categories/$categorySlug/autofill'
     | '/categories/$categorySlug/custom-properties'
@@ -1337,10 +1359,10 @@ export interface FileRouteTypes {
     | '/taxonomies/websites/$websiteSlug/edit/general'
     | '/taxonomies/websites/$websiteSlug/edit/param-rules'
     | '/taxonomies/websites/$websiteSlug/edit/shortened-links'
-    | '/taxonomies/youtube-channels/$channelSlug/general'
     | '/taxonomies/youtube-channels/$channelSlug/autofill'
-    | '/taxonomies/youtube-channels/$channelSlug/edit/general'
+    | '/taxonomies/youtube-channels/$channelSlug/general'
     | '/taxonomies/youtube-channels/$channelSlug/edit/autofill'
+    | '/taxonomies/youtube-channels/$channelSlug/edit/general'
     | '/taxonomies/media-types/$mediaTypeSlug/edit/'
     | '/taxonomies/property-groups/$propertyGroupSlug/edit/'
     | '/taxonomies/websites/$websiteSlug/edit/'
@@ -1386,6 +1408,8 @@ export interface FileRouteTypes {
     | '/autofill/$ruleSlug/edit/general'
     | '/autofill/$ruleSlug/edit/prefill'
     | '/bookmarks/$bookmarkId/edit/general'
+    | '/bookmarks/$bookmarkId/edit/image'
+    | '/bookmarks/$bookmarkId/edit/properties'
     | '/bookmarks/$bookmarkId/edit/relationships'
     | '/categories/$categorySlug/autofill'
     | '/categories/$categorySlug/custom-properties'
@@ -1433,10 +1457,10 @@ export interface FileRouteTypes {
     | '/taxonomies/websites/$websiteSlug/edit/general'
     | '/taxonomies/websites/$websiteSlug/edit/param-rules'
     | '/taxonomies/websites/$websiteSlug/edit/shortened-links'
-    | '/taxonomies/youtube-channels/$channelSlug/general'
     | '/taxonomies/youtube-channels/$channelSlug/autofill'
-    | '/taxonomies/youtube-channels/$channelSlug/edit/general'
+    | '/taxonomies/youtube-channels/$channelSlug/general'
     | '/taxonomies/youtube-channels/$channelSlug/edit/autofill'
+    | '/taxonomies/youtube-channels/$channelSlug/edit/general'
     | '/taxonomies/media-types/$mediaTypeSlug/edit'
     | '/taxonomies/property-groups/$propertyGroupSlug/edit'
     | '/taxonomies/websites/$websiteSlug/edit'
@@ -1510,6 +1534,8 @@ export interface FileRouteTypes {
     | '/autofill/$ruleSlug/edit/general'
     | '/autofill/$ruleSlug/edit/prefill'
     | '/bookmarks/$bookmarkId/edit/general'
+    | '/bookmarks/$bookmarkId/edit/image'
+    | '/bookmarks/$bookmarkId/edit/properties'
     | '/bookmarks/$bookmarkId/edit/relationships'
     | '/categories/$categorySlug/_view/autofill'
     | '/categories/$categorySlug/_view/custom-properties'
@@ -1565,10 +1591,10 @@ export interface FileRouteTypes {
     | '/taxonomies/websites/$websiteSlug/edit/general'
     | '/taxonomies/websites/$websiteSlug/edit/param-rules'
     | '/taxonomies/websites/$websiteSlug/edit/shortened-links'
-    | '/taxonomies/youtube-channels/$channelSlug/_view/general'
     | '/taxonomies/youtube-channels/$channelSlug/_view/autofill'
-    | '/taxonomies/youtube-channels/$channelSlug/edit/general'
+    | '/taxonomies/youtube-channels/$channelSlug/_view/general'
     | '/taxonomies/youtube-channels/$channelSlug/edit/autofill'
+    | '/taxonomies/youtube-channels/$channelSlug/edit/general'
     | '/taxonomies/media-types/$mediaTypeSlug/edit/'
     | '/taxonomies/property-groups/$propertyGroupSlug/edit/'
     | '/taxonomies/websites/$websiteSlug/edit/'
@@ -2298,6 +2324,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BookmarksBookmarkIdEditRelationshipsRouteImport
       parentRoute: typeof BookmarksBookmarkIdEditRoute
     }
+    '/bookmarks/$bookmarkId/edit/properties': {
+      id: '/bookmarks/$bookmarkId/edit/properties'
+      path: '/properties'
+      fullPath: '/bookmarks/$bookmarkId/edit/properties'
+      preLoaderRoute: typeof BookmarksBookmarkIdEditPropertiesRouteImport
+      parentRoute: typeof BookmarksBookmarkIdEditRoute
+    }
+    '/bookmarks/$bookmarkId/edit/image': {
+      id: '/bookmarks/$bookmarkId/edit/image'
+      path: '/image'
+      fullPath: '/bookmarks/$bookmarkId/edit/image'
+      preLoaderRoute: typeof BookmarksBookmarkIdEditImageRouteImport
+      parentRoute: typeof BookmarksBookmarkIdEditRoute
+    }
     '/bookmarks/$bookmarkId/edit/general': {
       id: '/bookmarks/$bookmarkId/edit/general'
       path: '/general'
@@ -2567,6 +2607,8 @@ const AutofillRouteWithChildren = AutofillRoute._addFileChildren(
 
 interface BookmarksBookmarkIdEditRouteChildren {
   BookmarksBookmarkIdEditGeneralRoute: typeof BookmarksBookmarkIdEditGeneralRoute
+  BookmarksBookmarkIdEditImageRoute: typeof BookmarksBookmarkIdEditImageRoute
+  BookmarksBookmarkIdEditPropertiesRoute: typeof BookmarksBookmarkIdEditPropertiesRoute
   BookmarksBookmarkIdEditRelationshipsRoute: typeof BookmarksBookmarkIdEditRelationshipsRoute
   BookmarksBookmarkIdEditIndexRoute: typeof BookmarksBookmarkIdEditIndexRoute
 }
@@ -2574,6 +2616,9 @@ interface BookmarksBookmarkIdEditRouteChildren {
 const BookmarksBookmarkIdEditRouteChildren: BookmarksBookmarkIdEditRouteChildren =
   {
     BookmarksBookmarkIdEditGeneralRoute: BookmarksBookmarkIdEditGeneralRoute,
+    BookmarksBookmarkIdEditImageRoute: BookmarksBookmarkIdEditImageRoute,
+    BookmarksBookmarkIdEditPropertiesRoute:
+      BookmarksBookmarkIdEditPropertiesRoute,
     BookmarksBookmarkIdEditRelationshipsRoute:
       BookmarksBookmarkIdEditRelationshipsRoute,
     BookmarksBookmarkIdEditIndexRoute: BookmarksBookmarkIdEditIndexRoute,
@@ -3123,16 +3168,16 @@ const TaxonomiesWebsitesRouteWithChildren =
   TaxonomiesWebsitesRoute._addFileChildren(TaxonomiesWebsitesRouteChildren)
 
 interface TaxonomiesYoutubeChannelsChannelSlugViewRouteChildren {
-  TaxonomiesYoutubeChannelsChannelSlugViewGeneralRoute: typeof TaxonomiesYoutubeChannelsChannelSlugViewGeneralRoute
   TaxonomiesYoutubeChannelsChannelSlugViewAutofillRoute: typeof TaxonomiesYoutubeChannelsChannelSlugViewAutofillRoute
+  TaxonomiesYoutubeChannelsChannelSlugViewGeneralRoute: typeof TaxonomiesYoutubeChannelsChannelSlugViewGeneralRoute
 }
 
 const TaxonomiesYoutubeChannelsChannelSlugViewRouteChildren: TaxonomiesYoutubeChannelsChannelSlugViewRouteChildren =
   {
-    TaxonomiesYoutubeChannelsChannelSlugViewGeneralRoute:
-      TaxonomiesYoutubeChannelsChannelSlugViewGeneralRoute,
     TaxonomiesYoutubeChannelsChannelSlugViewAutofillRoute:
       TaxonomiesYoutubeChannelsChannelSlugViewAutofillRoute,
+    TaxonomiesYoutubeChannelsChannelSlugViewGeneralRoute:
+      TaxonomiesYoutubeChannelsChannelSlugViewGeneralRoute,
   }
 
 const TaxonomiesYoutubeChannelsChannelSlugViewRouteWithChildren =
@@ -3141,17 +3186,17 @@ const TaxonomiesYoutubeChannelsChannelSlugViewRouteWithChildren =
   )
 
 interface TaxonomiesYoutubeChannelsChannelSlugEditRouteChildren {
-  TaxonomiesYoutubeChannelsChannelSlugEditGeneralRoute: typeof TaxonomiesYoutubeChannelsChannelSlugEditGeneralRoute
   TaxonomiesYoutubeChannelsChannelSlugEditAutofillRoute: typeof TaxonomiesYoutubeChannelsChannelSlugEditAutofillRoute
+  TaxonomiesYoutubeChannelsChannelSlugEditGeneralRoute: typeof TaxonomiesYoutubeChannelsChannelSlugEditGeneralRoute
   TaxonomiesYoutubeChannelsChannelSlugEditIndexRoute: typeof TaxonomiesYoutubeChannelsChannelSlugEditIndexRoute
 }
 
 const TaxonomiesYoutubeChannelsChannelSlugEditRouteChildren: TaxonomiesYoutubeChannelsChannelSlugEditRouteChildren =
   {
-    TaxonomiesYoutubeChannelsChannelSlugEditGeneralRoute:
-      TaxonomiesYoutubeChannelsChannelSlugEditGeneralRoute,
     TaxonomiesYoutubeChannelsChannelSlugEditAutofillRoute:
       TaxonomiesYoutubeChannelsChannelSlugEditAutofillRoute,
+    TaxonomiesYoutubeChannelsChannelSlugEditGeneralRoute:
+      TaxonomiesYoutubeChannelsChannelSlugEditGeneralRoute,
     TaxonomiesYoutubeChannelsChannelSlugEditIndexRoute:
       TaxonomiesYoutubeChannelsChannelSlugEditIndexRoute,
   }
