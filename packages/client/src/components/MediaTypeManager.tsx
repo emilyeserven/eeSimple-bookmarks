@@ -1,8 +1,10 @@
 import { useState } from "react";
 
 import { AddMediaTypeForm } from "./AddMediaTypeForm";
+import { ColumnsSwitcher } from "./ColumnsSwitcher";
 import { MediaTypeListItem } from "./MediaTypeListItem";
 import { useMediaTypes } from "../hooks/useMediaTypes";
+import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
 
 import { Input } from "@/components/ui/input";
 
@@ -12,9 +14,10 @@ export function MediaTypesListing() {
     data: allMediaTypes, isLoading, error,
   } = useMediaTypes();
   const [search, setSearch] = useState("");
+  const columns = useBookmarkColumns("media-types-listing");
 
+  const q = search.trim().toLowerCase();
   const filtered = (allMediaTypes ?? []).filter((m) => {
-    const q = search.trim().toLowerCase();
     if (!q) return true;
     return m.name.toLowerCase().includes(q) || m.slug.toLowerCase().includes(q);
   });
@@ -24,12 +27,23 @@ export function MediaTypesListing() {
       <AddMediaTypeForm />
 
       <div className="space-y-4">
-        <Input
-          placeholder="Search by name…"
-          value={search}
-          onChange={event => setSearch(event.target.value)}
-          className="max-w-sm"
-        />
+        <div className="flex items-center gap-4">
+          <Input
+            placeholder="Search by name…"
+            value={search}
+            onChange={event => setSearch(event.target.value)}
+            className="max-w-sm"
+          />
+          <ColumnsSwitcher pageKey="media-types-listing" />
+        </div>
+
+        {q && filtered.length < (allMediaTypes?.length ?? 0)
+          ? (
+            <p className="text-sm text-muted-foreground">
+              Showing {filtered.length} of {allMediaTypes?.length ?? 0}
+            </p>
+          )
+          : null}
 
         {isLoading ? <p className="text-muted-foreground">Loading media types…</p> : null}
         {error ? <p className="text-destructive">{error.message}</p> : null}
@@ -50,13 +64,19 @@ export function MediaTypesListing() {
 
         {filtered.length > 0
           ? (
-            <ul className="space-y-2">
+            <div
+              className={`
+                grid gap-2
+                ${COLUMN_CLASS[columns]}
+              `}
+            >
               {filtered.map(mediaType => (
-                <li key={mediaType.id}>
-                  <MediaTypeListItem mediaType={mediaType} />
-                </li>
+                <MediaTypeListItem
+                  key={mediaType.id}
+                  mediaType={mediaType}
+                />
               ))}
-            </ul>
+            </div>
           )
           : null}
       </div>

@@ -15,6 +15,7 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
+  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
@@ -77,6 +78,7 @@ interface SidebarNavSectionItem {
   title: string;
   to: NonNullable<LinkProps["to"]>;
   icon: LucideIcon;
+  count?: number;
 }
 
 /** A collapsible group of static nav links, active when the path is under each link. */
@@ -92,6 +94,9 @@ export function SidebarNavSection({
   const pathname = useRouterState({
     select: state => state.location.pathname,
   });
+  const {
+    state,
+  } = useSidebar();
 
   return (
     <CollapsibleSection
@@ -113,6 +118,9 @@ export function SidebarNavSection({
                   <span>{item.title}</span>
                 </Link>
               </SidebarMenuButton>
+              {item.count !== undefined && state !== "collapsed"
+                ? <SidebarMenuBadge>{item.count}</SidebarMenuBadge>
+                : null}
             </SidebarMenuItem>
           );
         })}

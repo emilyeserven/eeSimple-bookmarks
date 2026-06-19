@@ -1,7 +1,9 @@
 import { useState } from "react";
 
+import { ColumnsSwitcher } from "./ColumnsSwitcher";
 import { YouTubeChannelListItem } from "./YouTubeChannelListItem";
 import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
+import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
 
 import { Input } from "@/components/ui/input";
 
@@ -11,21 +13,33 @@ export function YouTubeChannelsListing() {
     data: allChannels, isLoading, error,
   } = useYouTubeChannels();
   const [search, setSearch] = useState("");
+  const columns = useBookmarkColumns("youtube-channels-listing");
 
+  const q = search.trim().toLowerCase();
   const filtered = (allChannels ?? []).filter((c) => {
-    const q = search.trim().toLowerCase();
     if (!q) return true;
     return c.name.toLowerCase().includes(q) || c.channelKey.toLowerCase().includes(q);
   });
 
   return (
     <div className="space-y-4">
-      <Input
-        placeholder="Search by name or channel key…"
-        value={search}
-        onChange={event => setSearch(event.target.value)}
-        className="max-w-sm"
-      />
+      <div className="flex items-center gap-4">
+        <Input
+          placeholder="Search by name or channel key…"
+          value={search}
+          onChange={event => setSearch(event.target.value)}
+          className="max-w-sm"
+        />
+        <ColumnsSwitcher pageKey="youtube-channels-listing" />
+      </div>
+
+      {q && filtered.length < (allChannels?.length ?? 0)
+        ? (
+          <p className="text-sm text-muted-foreground">
+            Showing {filtered.length} of {allChannels?.length ?? 0}
+          </p>
+        )
+        : null}
 
       {isLoading ? <p className="text-muted-foreground">Loading channels…</p> : null}
       {error ? <p className="text-destructive">{error.message}</p> : null}
@@ -46,13 +60,19 @@ export function YouTubeChannelsListing() {
 
       {filtered.length > 0
         ? (
-          <ul className="space-y-2">
+          <div
+            className={`
+              grid gap-2
+              ${COLUMN_CLASS[columns]}
+            `}
+          >
             {filtered.map(channel => (
-              <li key={channel.id}>
-                <YouTubeChannelListItem channel={channel} />
-              </li>
+              <YouTubeChannelListItem
+                key={channel.id}
+                channel={channel}
+              />
             ))}
-          </ul>
+          </div>
         )
         : null}
     </div>

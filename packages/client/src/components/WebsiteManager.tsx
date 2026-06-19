@@ -1,8 +1,10 @@
 import { useState } from "react";
 
 import { AddWebsiteForm } from "./AddWebsiteForm";
+import { ColumnsSwitcher } from "./ColumnsSwitcher";
 import { WebsiteListItem } from "./WebsiteListItem";
 import { useWebsites } from "../hooks/useWebsites";
+import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
 
 import { Input } from "@/components/ui/input";
 
@@ -12,9 +14,10 @@ export function WebsitesListing() {
     data: allWebsites, isLoading, error,
   } = useWebsites();
   const [search, setSearch] = useState("");
+  const columns = useBookmarkColumns("websites-listing");
 
+  const q = search.trim().toLowerCase();
   const filtered = (allWebsites ?? []).filter((w) => {
-    const q = search.trim().toLowerCase();
     if (!q) return true;
     return w.siteName.toLowerCase().includes(q) || w.domain.toLowerCase().includes(q);
   });
@@ -24,12 +27,23 @@ export function WebsitesListing() {
       <AddWebsiteForm />
 
       <div className="space-y-4">
-        <Input
-          placeholder="Search by name or domain…"
-          value={search}
-          onChange={event => setSearch(event.target.value)}
-          className="max-w-sm"
-        />
+        <div className="flex items-center gap-4">
+          <Input
+            placeholder="Search by name or domain…"
+            value={search}
+            onChange={event => setSearch(event.target.value)}
+            className="max-w-sm"
+          />
+          <ColumnsSwitcher pageKey="websites-listing" />
+        </div>
+
+        {q && filtered.length < (allWebsites?.length ?? 0)
+          ? (
+            <p className="text-sm text-muted-foreground">
+              Showing {filtered.length} of {allWebsites?.length ?? 0}
+            </p>
+          )
+          : null}
 
         {isLoading ? <p className="text-muted-foreground">Loading websites…</p> : null}
         {error ? <p className="text-destructive">{error.message}</p> : null}
@@ -50,13 +64,19 @@ export function WebsitesListing() {
 
         {filtered.length > 0
           ? (
-            <ul className="space-y-2">
+            <div
+              className={`
+                grid gap-2
+                ${COLUMN_CLASS[columns]}
+              `}
+            >
               {filtered.map(website => (
-                <li key={website.id}>
-                  <WebsiteListItem website={website} />
-                </li>
+                <WebsiteListItem
+                  key={website.id}
+                  website={website}
+                />
               ))}
-            </ul>
+            </div>
           )
           : null}
       </div>
