@@ -9,6 +9,7 @@ import { ChevronDown } from "lucide-react";
 import { useResizeHandle } from "../hooks/useResizeHandle";
 import { useUiStore } from "../stores/uiStore";
 
+import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   SidebarGroup,
@@ -119,7 +120,11 @@ export function SidebarNavSection({
                 </Link>
               </SidebarMenuButton>
               {item.count !== undefined && state !== "collapsed"
-                ? <SidebarMenuBadge>{item.count}</SidebarMenuBadge>
+                ? (
+                  <SidebarMenuBadge>
+                    <Badge variant="secondary">{item.count}</Badge>
+                  </SidebarMenuBadge>
+                )
                 : null}
             </SidebarMenuItem>
           );
