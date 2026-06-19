@@ -15,6 +15,7 @@ import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
 import { summarizeConditions } from "../lib/conditionsSummary";
 
 import { useUiStore } from "@/stores/uiStore";
+
 interface AutofillRulesListProps {
   /**
    * When set, scopes the list to a single category: only rules that set this category are
