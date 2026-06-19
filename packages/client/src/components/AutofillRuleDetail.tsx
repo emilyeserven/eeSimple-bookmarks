@@ -1,10 +1,101 @@
-import type { AutofillRule, Category } from "@eesimple/types";
+import type {
+  AutofillRule,
+  Category,
+  ConditionMatchOperator,
+  ConditionNode,
+  CustomProperty,
+  PropertyCondition,
+  Tag,
+} from "@eesimple/types";
 
 import { LabeledSection } from "./LabeledSection";
+import { formatDateTime, formatNumber } from "../lib/bookmarkFormat";
 import { summarizeConditions } from "../lib/conditionsSummary";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+
+const OPERATOR_VERBS: Record<ConditionMatchOperator, string> = {
+  contains: "contains",
+  starts_with: "starts with",
+  regex: "matches",
+  domain: "domain is",
+};
+
+function describePropertyPredicate(
+  predicate: PropertyCondition["predicate"],
+  property: CustomProperty | undefined,
+): string {
+  if (predicate.valueKind === "number") {
+    const p = predicate.predicate;
+    if (p.kind === "presence") return p.mode === "has" ? "has a value" : "has no value";
+    const {
+      min, max,
+    } = p;
+    if (min !== null && max !== null) return `between ${min} and ${max}`;
+    if (min !== null) return `at least ${min}`;
+    if (max !== null) return `at most ${max}`;
+    return "any value";
+  }
+  if (predicate.valueKind === "boolean") {
+    const p = predicate.predicate;
+    if (p.kind === "presence") return p.mode === "has" ? "has a value" : "has no value";
+    return p.value ? "Yes" : "No";
+  }
+  const p = predicate.predicate;
+  if (p.kind === "presence") return p.mode === "has" ? "has a value" : "has no value";
+  const fmt = (s: string) => property ? formatDateTime(s, property) : s;
+  const {
+    from, to,
+  } = p;
+  if (from !== null && to !== null) return `from ${fmt(from)} to ${fmt(to)}`;
+  if (from !== null) return `from ${fmt(from)}`;
+  if (to !== null) return `to ${fmt(to)}`;
+  return "any value";
+}
+
+function describeConditionNode(
+  node: ConditionNode,
+  categories: Category[],
+  tags: Tag[],
+  properties: CustomProperty[],
+): string {
+  switch (node.type) {
+    case "group": {
+      if (node.children.length === 0) return "(empty group)";
+      const combLabel = node.combinator === "and" ? "ALL" : "ANY";
+      const inner = node.children
+        .map(c => describeConditionNode(c, categories, tags, properties))
+        .join(node.combinator === "and" ? " AND " : " OR ");
+      return `${combLabel} of: (${inner})`;
+    }
+    case "match":
+      return node.operator === "domain"
+        ? `Domain is "${node.pattern}"`
+        : `${node.field === "url" ? "URL" : "Title"} ${OPERATOR_VERBS[node.operator]} "${node.pattern}"`;
+    case "category": {
+      const names = node.categoryIds.map(id => categories.find(c => c.id === id)?.name ?? id);
+      return `Category is one of: ${names.join(", ")}`;
+    }
+    case "website":
+      return node.domains.length === 1
+        ? `Website is: ${node.domains[0]}`
+        : `Website is one of: ${node.domains.join(", ")}`;
+    case "tag": {
+      const names = node.tagIds.map(id => tags.find(t => t.id === id)?.name ?? id);
+      return `Tagged with any of: ${names.join(", ")}`;
+    }
+    case "property": {
+      const property = properties.find(p => p.id === node.propertyId);
+      const name = property?.name ?? "Unknown property";
+      return `${name}: ${describePropertyPredicate(node.predicate, property)}`;
+    }
+    default: {
+      const exhaustive: never = node;
+      return String(exhaustive);
+    }
+  }
+}
 
 /** Body of the General view tab: description and priority (name lives in the page header). */
 export function AutofillGeneralFields({
@@ -20,38 +111,137 @@ export function AutofillGeneralFields({
   );
 }
 
-/** Body of the Conditions view tab: one-line summary of the activation condition tree. */
+/** Body of the Conditions view tab: detailed breakdown of the activation condition tree. */
 export function AutofillConditionsFields({
-  rule,
-}: { rule: AutofillRule }) {
+  rule, categories, tags, properties,
+}: {
+  rule: AutofillRule;
+  categories: Category[];
+  tags: Tag[];
+  properties: CustomProperty[];
+}) {
+  const tree = rule.conditions;
+  if (tree.children.length === 0) {
+    return <p className="text-sm text-muted-foreground">Always matches (no conditions set.)</p>;
+  }
+  const combinatorLabel = tree.combinator === "and" ? "ALL" : "ANY";
   return (
-    <p className="text-sm text-muted-foreground">{summarizeConditions(rule.conditions)}</p>
+    <div className="space-y-2 text-sm">
+      <p className="text-muted-foreground">
+        Matches
+        {" "}
+        {combinatorLabel}
+        {" "}
+        of:
+      </p>
+      <ul className="space-y-1">
+        {tree.children.map((child, index) => (
+
+          <li
+            key={index}
+            className="flex gap-2"
+          >
+            <span className="text-muted-foreground">•</span>
+            <span>{describeConditionNode(child, categories, tags, properties)}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
 /** Body of the Prefill view tab: what category/tags/properties the rule sets. */
 export function AutofillPrefillFields({
-  rule, categories,
-}: { rule: AutofillRule;
-  categories: Category[]; }) {
+  rule, categories, tags, properties,
+}: {
+  rule: AutofillRule;
+  categories: Category[];
+  tags: Tag[];
+  properties: CustomProperty[];
+}) {
   const categoryName = rule.setCategoryId
     ? (categories.find(c => c.id === rule.setCategoryId)?.name ?? null)
     : null;
 
-  const parts: string[] = [];
-  if (categoryName) parts.push(`Category: ${categoryName}`);
-  if (rule.tagIds.length > 0) {
-    parts.push(`${rule.tagIds.length} ${rule.tagIds.length === 1 ? "tag" : "tags"}`);
-  }
-  const propertyCount = rule.numberValues.length + rule.booleanValues.length + rule.dateTimeValues.length;
-  if (propertyCount > 0) {
-    parts.push(`${propertyCount} ${propertyCount === 1 ? "property" : "properties"}`);
-  }
+  const tagNames = rule.tagIds.map(id => tags.find(t => t.id === id)?.name ?? id);
+
+  const propertyValues: { id: string;
+    name: string;
+    display: string; }[] = [
+    ...rule.numberValues.map((e) => {
+      const prop = properties.find(p => p.id === e.propertyId);
+      return {
+        id: e.propertyId,
+        name: prop?.name ?? "Unknown",
+        display: prop ? formatNumber(e.value, prop) : String(e.value),
+      };
+    }),
+    ...rule.booleanValues.map((e) => {
+      const prop = properties.find(p => p.id === e.propertyId);
+      return {
+        id: e.propertyId,
+        name: prop?.name ?? "Unknown",
+        display: e.value ? "Yes" : "No",
+      };
+    }),
+    ...rule.dateTimeValues.map((e) => {
+      const prop = properties.find(p => p.id === e.propertyId);
+      return {
+        id: e.propertyId,
+        name: prop?.name ?? "Unknown",
+        display: prop ? formatDateTime(e.value, prop) : e.value,
+      };
+    }),
+  ];
 
   return (
-    <p className="text-sm text-muted-foreground">
-      {parts.length > 0 ? parts.join(" · ") : "Nothing prefilled."}
-    </p>
+    <div className="space-y-6">
+      <LabeledSection title="Category">
+        {categoryName
+          ? <p className="text-sm">{categoryName}</p>
+          : <p className="text-sm text-muted-foreground">— Leave unchanged —</p>}
+      </LabeledSection>
+
+      <Separator />
+
+      <LabeledSection title="Tags">
+        {tagNames.length > 0
+          ? (
+            <ul className="space-y-1 text-sm">
+              {tagNames.map((name, i) => (
+
+                <li key={i}>
+                  •
+                  {" "}
+                  {name}
+                </li>
+              ))}
+            </ul>
+          )
+          : <p className="text-sm text-muted-foreground">None</p>}
+      </LabeledSection>
+
+      <Separator />
+
+      <LabeledSection title="Custom Properties">
+        {propertyValues.length > 0
+          ? (
+            <ul className="space-y-1 text-sm">
+              {propertyValues.map(pv => (
+                <li key={pv.id}>
+                  •
+                  {" "}
+                  {pv.name}
+                  :
+                  {" "}
+                  {pv.display}
+                </li>
+              ))}
+            </ul>
+          )
+          : <p className="text-sm text-muted-foreground">None</p>}
+      </LabeledSection>
+    </div>
   );
 }
 
