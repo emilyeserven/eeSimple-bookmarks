@@ -105,7 +105,7 @@ export function YouTubeChannelListItem({
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
             <Link
-              to="/taxonomies/youtube-channels/$channelSlug/"
+              to="/taxonomies/youtube-channels/$channelSlug"
               params={{
                 channelSlug: channel.slug,
               }}
