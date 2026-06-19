@@ -94,6 +94,14 @@ export interface YouTubeChannelCondition {
   channelIds: string[];
 }
 
+/**
+ * Leaf: the bookmark's media type is one of `mediaTypeIds`. An empty list never matches.
+ */
+export interface MediaTypeCondition {
+  type: "media-type";
+  mediaTypeIds: string[];
+}
+
 /** Leaf: a predicate on a single custom property's value. */
 export interface PropertyCondition {
   type: "property";
@@ -122,6 +130,7 @@ export type ConditionNode
     | WebsiteCondition
     | TagCondition
     | YouTubeChannelCondition
+    | MediaTypeCondition
     | PropertyCondition;
 
 /** The persisted root is always a group, so the AND/OR combinator always has a home. */
@@ -146,6 +155,8 @@ export interface ConditionInput {
   tagIds: Set<string>;
   /** The bookmark's YouTube channel id, or `null` when not a YouTube video. */
   youtubeChannelId: string | null;
+  /** The bookmark's media type id, or `null` when not set. */
+  mediaTypeId: string | null;
   /** Number/calculate custom-property values, keyed by property id. */
   numberValues: Map<string, number>;
   /** Boolean custom-property values, keyed by property id. */
@@ -307,6 +318,11 @@ function evaluateYoutubeChannel(condition: YouTubeChannelCondition, input: Condi
   return input.youtubeChannelId !== null && condition.channelIds.includes(input.youtubeChannelId);
 }
 
+function evaluateMediaType(condition: MediaTypeCondition, input: ConditionInput): boolean {
+  if (condition.mediaTypeIds.length === 0) return false;
+  return input.mediaTypeId !== null && condition.mediaTypeIds.includes(input.mediaTypeId);
+}
+
 function evaluateProperty(condition: PropertyCondition, input: ConditionInput): boolean {
   if (condition.predicate.valueKind === "number") {
     return evaluateNumberPredicate(
@@ -355,6 +371,8 @@ export function evaluateConditions(
       return evaluateTag(node, input, options);
     case "youtube-channel":
       return evaluateYoutubeChannel(node, input);
+    case "media-type":
+      return evaluateMediaType(node, input);
     case "property":
       return evaluateProperty(node, input);
     default: {

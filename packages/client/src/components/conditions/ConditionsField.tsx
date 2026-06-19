@@ -5,6 +5,7 @@ import type {
   ConditionTree,
   CustomProperty,
   MatchCondition,
+  MediaTypeCondition,
   PropertyCondition,
   TagCondition,
   TagNode,
@@ -16,6 +17,7 @@ import { ChevronDown } from "lucide-react";
 
 import { CategoryConditionEditor } from "./CategoryConditionEditor";
 import { MatchConditionEditor } from "./MatchConditionEditor";
+import { MediaTypeConditionEditor } from "./MediaTypeConditionEditor";
 import { PropertyConditionEditor } from "./PropertyConditionEditor";
 import { TagConditionEditor } from "./TagConditionEditor";
 import { WebsiteConditionEditor } from "./WebsiteConditionEditor";
@@ -90,6 +92,7 @@ export function ConditionsField({
   const websiteLeaf = value.children.find((child): child is WebsiteCondition => child.type === "website");
   const tagLeaf = value.children.find((child): child is TagCondition => child.type === "tag");
   const youtubeChannelLeaf = value.children.find((child): child is YouTubeChannelCondition => child.type === "youtube-channel");
+  const mediaTypeLeaf = value.children.find((child): child is MediaTypeCondition => child.type === "media-type");
   const propertyLeaves = value.children.filter((child): child is PropertyCondition => child.type === "property");
   // Preserve any nested groups (not editable in this v1 UI) so the tree round-trips.
   const nestedGroups = value.children.filter(child => child.type === "group");
@@ -100,6 +103,7 @@ export function ConditionsField({
     website?: WebsiteCondition | null;
     tag?: TagCondition | null;
     youtubeChannel?: YouTubeChannelCondition | null;
+    mediaType?: MediaTypeCondition | null;
     properties?: PropertyCondition[];
   }) {
     const nextMatches = next.matches ?? matches;
@@ -107,6 +111,7 @@ export function ConditionsField({
     const nextWebsite = next.website === undefined ? websiteLeaf : next.website;
     const nextTag = next.tag === undefined ? tagLeaf : next.tag;
     const nextYoutubeChannel = next.youtubeChannel === undefined ? youtubeChannelLeaf : next.youtubeChannel;
+    const nextMediaType = next.mediaType === undefined ? mediaTypeLeaf : next.mediaType;
     const nextProperties = next.properties ?? propertyLeaves;
     const children: ConditionNode[] = [
       ...nextMatches,
@@ -114,6 +119,7 @@ export function ConditionsField({
       ...(nextWebsite && nextWebsite.domains.length > 0 ? [nextWebsite] : []),
       ...(nextTag && nextTag.tagIds.length > 0 ? [nextTag] : []),
       ...(nextYoutubeChannel && nextYoutubeChannel.channelIds.length > 0 ? [nextYoutubeChannel] : []),
+      ...(nextMediaType && nextMediaType.mediaTypeIds.length > 0 ? [nextMediaType] : []),
       ...nextProperties,
       ...nestedGroups,
     ];
@@ -127,6 +133,7 @@ export function ConditionsField({
   const websiteCount = websiteLeaf?.domains.length ?? 0;
   const tagCount = tagLeaf?.tagIds.length ?? 0;
   const channelCount = youtubeChannelLeaf?.channelIds.length ?? 0;
+  const mediaTypeCount = mediaTypeLeaf?.mediaTypeIds.length ?? 0;
 
   return (
     <div className="space-y-3">
@@ -252,6 +259,23 @@ export function ConditionsField({
           onChange={next =>
             commit({
               youtubeChannel: next.channelIds.length > 0 ? next : null,
+            })}
+        />
+      </Section>
+
+      <Section
+        title="Media Type"
+        summary={mediaTypeCount > 0 ? `${mediaTypeCount} selected` : undefined}
+        defaultOpen={mediaTypeCount > 0}
+      >
+        <MediaTypeConditionEditor
+          value={mediaTypeLeaf ?? {
+            type: "media-type",
+            mediaTypeIds: [],
+          }}
+          onChange={next =>
+            commit({
+              mediaType: next.mediaTypeIds.length > 0 ? next : null,
             })}
         />
       </Section>
