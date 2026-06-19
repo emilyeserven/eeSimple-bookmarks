@@ -3,9 +3,9 @@ import type { PropertyGroup } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 import { Pencil } from "lucide-react";
 
+import { RowListItem } from "./RowListItem";
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
 import { useUiStore } from "@/stores/uiStore";
@@ -17,28 +17,21 @@ export function PropertyGroupListItem({
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useUiStore(state => state.sidebarOpenModifier);
+
   return (
-    <li className="group rounded-lg border bg-card">
-      <div
-        className="
-          flex items-center gap-3 rounded-lg p-4 transition-colors
-          hover:bg-accent
-        "
-      >
-        <Link
-          to="/taxonomies/property-groups/$propertyGroupSlug"
-          params={{
-            propertyGroupSlug: group.slug,
-          }}
-          title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-          onClick={event => viewClick(event, "property-group", group.id)}
-          className="min-w-0 flex-1"
-        >
-          <p className="font-medium">{group.name}</p>
-          <p className="truncate text-sm text-muted-foreground">
-            {group.description || `Priority ${group.priority}`}
-          </p>
-        </Link>
+    <RowListItem
+      title={group.name}
+      subtitle={group.description || `Priority ${group.priority}`}
+      badge={group.propertyCount}
+      linkProps={{
+        to: "/taxonomies/property-groups/$propertyGroupSlug",
+        params: {
+          propertyGroupSlug: group.slug,
+        },
+        title: `Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`,
+        onClick: event => viewClick(event, "property-group", group.id),
+      }}
+      menu={(
         <Button
           asChild
           variant="ghost"
@@ -61,10 +54,7 @@ export function PropertyGroupListItem({
             <span className="sr-only">Edit {group.name}</span>
           </Link>
         </Button>
-        {group.propertyCount !== undefined
-          ? <Badge variant="secondary">{group.propertyCount}</Badge>
-          : null}
-      </div>
-    </li>
+      )}
+    />
   );
 }
