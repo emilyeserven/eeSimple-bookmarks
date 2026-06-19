@@ -88,6 +88,17 @@ async function setYouTubeChannelImage(
   };
 }
 
+/**
+ * Store a user-uploaded avatar from raw bytes (replacing any existing one). Returns the serving
+ * URL, `"not_found"` when the channel is gone, or `"bad_image"` when the bytes aren't decodable.
+ */
+export async function setYouTubeChannelImageFromBytes(
+  channelId: string,
+  rawBytes: Buffer,
+): Promise<{ imageUrl: string } | "not_found" | "bad_image"> {
+  return setYouTubeChannelImage(channelId, rawBytes, "upload");
+}
+
 /** Delete a channel's avatar (object + row). Returns whether one existed. */
 export async function removeYouTubeChannelImage(channelId: string): Promise<boolean> {
   const row = await getYouTubeChannelImageRow(channelId);

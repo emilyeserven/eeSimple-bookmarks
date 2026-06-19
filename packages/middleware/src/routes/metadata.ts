@@ -143,6 +143,14 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
 
     if (isYouTubeVideoUrl(url)) {
       const meta = await fetchYouTubeMetadata(url);
+      const warnings = meta?.warnings ?? [];
+      // Surface scrape failures loudly in the server log (req.log), not just the response.
+      if (warnings.length > 0) {
+        req.log.warn({
+          url,
+          warnings,
+        }, "[youtube-metadata] scrape incomplete");
+      }
       // oEmbed titles are already clean; fall back to a page-title fetch if it was unavailable.
       let title = meta?.title ?? null;
       if (title === null) {
@@ -182,6 +190,9 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
         durationSeconds: meta?.durationSeconds ?? null,
         datePosted: meta?.datePosted ?? null,
         thumbnailUrl: meta?.thumbnailUrl ?? null,
+        ...(warnings.length > 0 && {
+          diagnostics: warnings,
+        }),
       };
     }
 

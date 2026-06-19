@@ -268,7 +268,7 @@ export async function listWebsites(): Promise<Website[]> {
   const rows = await db
     .select({
       ...websiteSelect,
-      bookmarkCount: sql<number>`(select count(*)::int from ${bookmarks} where ${bookmarks.websiteId} = ${websites.id})`.mapWith(Number),
+      bookmarkCount: db.$count(bookmarks, eq(bookmarks.websiteId, websites.id)),
     })
     .from(websites)
     .leftJoin(websiteFavicons, eq(websiteFavicons.websiteId, websites.id))

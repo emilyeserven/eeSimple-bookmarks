@@ -20,6 +20,7 @@ Phase order (always respect this sequence within each loop iteration):
 2. Duplicates
 3. Complexity
 4. Large files / high-import files
+5. Skill maintenance (review recent commits; add/remove repo skills as needed)
 
 ---
 
@@ -363,9 +364,74 @@ git commit -m "refactor: split large files (Phase 4)"
 
 ---
 
+## Phase 5 — Skill maintenance
+
+The repo's own skills (`.claude/skills/`) document the codebase's patterns. As the code evolves,
+those skills drift out of sync — a pattern gets renamed, a new repeatable workflow emerges, or a
+documented pattern is removed entirely. This phase keeps the skill set honest by grounding it in
+what has actually changed.
+
+### 5.1 Review recent commits
+
+Read the commits landed since the last overnight run (or, if unsure, the last ~30) to understand
+what changed in the codebase:
+
+```bash
+git log --oneline -n 30
+git log --stat -n 30
+```
+
+Pay attention to: new entities/components/patterns being introduced, existing patterns being
+renamed or relocated, files or whole concepts being deleted, and any change that touched several
+files in the same shaped way (a sign of a repeatable workflow worth a skill).
+
+### 5.2 Evaluate the existing skills against the commits
+
+List the current skills and, for each, judge whether recent commits have made it stale, wrong, or
+redundant:
+
+```bash
+ls .claude/skills/
+```
+
+For each skill, ask:
+- **Still accurate?** Do the file paths, component names, and patterns it references still exist
+  as described? If a commit renamed or moved something the skill points at, update the skill.
+- **Still needed?** If recent commits removed the pattern the skill documents, the skill is dead —
+  remove it.
+- **Now redundant?** If two skills have converged on the same workflow, consolidate them.
+
+### 5.3 Add, update, or remove skills as needed
+
+- **Add** a new skill when recent commits reveal a repeatable, multi-file workflow that isn't yet
+  documented (mirror the structure and frontmatter of an existing skill — `name`, `description`
+  with concrete trigger phrases, then the body).
+- **Update** a skill whose referenced paths/names/patterns have drifted from the current code.
+- **Remove** a skill whose pattern no longer exists in the codebase.
+
+Treat additions and removals as legitimate outcomes of this phase — do not preserve a stale skill
+just because it exists, and do not skip documenting a clearly-recurring new pattern. When in doubt
+about whether to remove a skill (e.g. the pattern is rare but still valid), leave it and note it in
+the final report rather than deleting it.
+
+### 5.4 Verify and commit
+
+Skill files are Markdown and have no test/typecheck impact, but still run the suite if you changed
+any non-skill file in this phase. Commit skill changes on their own:
+
+```bash
+git add .claude/skills/
+git commit -m "docs: reconcile repo skills with recent commits (Phase 5)"
+```
+
+Use `docs:` for skill content changes; if you only deleted a skill, `chore:` is also acceptable.
+
+---
+
 ## Loop control
 
-After completing phases 1–4, check whether the health target has been reached:
+After completing phases 1–5, check whether the health target has been reached (Phase 5 is
+skill-maintenance and does not affect the health score, but still run it each iteration):
 
 ```bash
 pnpm exec fallow health --format json --quiet 2>/dev/null || true

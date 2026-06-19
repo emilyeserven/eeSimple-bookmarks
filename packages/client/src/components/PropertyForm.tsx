@@ -17,6 +17,7 @@ import {
   CREATE_DEFAULTS,
   DATE_TIME_FORMAT_OPTIONS,
   MediaTypeCheckboxList,
+  NUMBER_FORMAT_OPTIONS,
   OperandCheckboxList,
   payloadFromValues,
   PropertyDisplaySection,
@@ -341,6 +342,14 @@ export function PropertyForm({
                         <field.TextField
                           label="Maximum label"
                           placeholder="e.g. Unlimited"
+                        />
+                      )}
+                    </form.AppField>
+                    <form.AppField name="numberFormat">
+                      {field => (
+                        <field.SelectField
+                          label="Number format"
+                          options={NUMBER_FORMAT_OPTIONS}
                         />
                       )}
                     </form.AppField>

@@ -6,6 +6,12 @@
 const FETCH_TIMEOUT_MS = 5000;
 /** Cap the body we read so a huge response can't exhaust memory. */
 const MAX_BYTES = 512 * 1024;
+/**
+ * A larger cap for pages whose data of interest lives in the body rather than the `<head>` (the
+ * YouTube watch page embeds `ytInitialPlayerResponse` after `</head>`). Still bounded so a huge
+ * response can't exhaust memory; callers stop early at a sentinel once they've read enough.
+ */
+const MAX_BODY_BYTES = 3 * 1024 * 1024;
 
 /**
  * A mainstream-browser User-Agent. Some sites (notably YouTube) serve their full HTML — including
@@ -79,7 +85,7 @@ export function extractTitle(html: string): string | null {
 }
 
 /** A low-level fetch result: the page HTML, or a typed reason it couldn't be read. */
-type FetchHtmlResult
+export type FetchHtmlResult
   = | { kind: "ok";
     html: string; }
     | { kind: "timeout" }
@@ -89,11 +95,11 @@ type FetchHtmlResult
       | { kind: "network_error" };
 
 /**
- * Fetch `url` and return its leading HTML, stopping as soon as `stopAt` matches (or the body cap is
+ * Fetch `url` and return its leading HTML, stopping as soon as `stopAt` matches (or `maxBytes` is
  * hit). Reading incrementally lets the title/`<head>` parsers stop early instead of downloading the
  * whole page. Guarded by a timeout and a body cap; failures come back as typed kinds.
  */
-async function fetchHtml(url: string, stopAt: RegExp): Promise<FetchHtmlResult> {
+async function fetchHtml(url: string, stopAt: RegExp, maxBytes = MAX_BYTES): Promise<FetchHtmlResult> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
@@ -127,7 +133,7 @@ async function fetchHtml(url: string, stopAt: RegExp): Promise<FetchHtmlResult> 
       html += decoder.decode(value, {
         stream: true,
       });
-      if (stopAt.test(html) || received >= MAX_BYTES) {
+      if (stopAt.test(html) || received >= maxBytes) {
         await reader.cancel();
         break;
       }
@@ -252,6 +258,16 @@ const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 export async function fetchHeadHtml(url: string): Promise<string | null> {
   const result = await fetchHtml(url, /<\/head>/i);
   return result.kind === "ok" ? result.html : null;
+}
+
+/**
+ * Fetch a page and return the typed `FetchHtmlResult` (rather than collapsing failures to `null`),
+ * reading into the body up to `MAX_BODY_BYTES` and stopping at `stopAt`. Used by the YouTube
+ * watch-page scrape, whose data of interest (`ytInitialPlayerResponse`, schema.org microdata) lives
+ * after `</head>` — and which needs the *reason* a fetch failed so it can be surfaced, not swallowed.
+ */
+export async function fetchBodyHtmlResult(url: string, stopAt: RegExp): Promise<FetchHtmlResult> {
+  return fetchHtml(url, stopAt, MAX_BODY_BYTES);
 }
 
 /** Find the `content` of the first `<meta>` tag whose attributes match `attrMatch`. */

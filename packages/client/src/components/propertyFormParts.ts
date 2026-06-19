@@ -13,6 +13,7 @@ export {
 export {
   BOOLEAN_LABEL_PRESET_OPTIONS,
   DATE_TIME_FORMAT_OPTIONS,
+  NUMBER_FORMAT_OPTIONS,
   summarizeBooleanOptions,
   summarizeCategories,
   summarizeMediaTypes,

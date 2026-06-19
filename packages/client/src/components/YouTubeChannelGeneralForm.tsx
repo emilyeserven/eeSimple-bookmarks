@@ -2,8 +2,11 @@ import type { YouTubeChannel } from "@eesimple/types";
 
 import { useState } from "react";
 
+import { channelUrlFromKey } from "@eesimple/types";
+import { MonitorPlay } from "lucide-react";
 import { z } from "zod";
 
+import { EntityImageField } from "./EntityImageField";
 import { TagPicker } from "./TagPicker";
 
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +16,12 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useCategories } from "@/hooks/useCategories";
 import { useTagTree } from "@/hooks/useTags";
-import { useUpdateYouTubeChannel } from "@/hooks/useYouTubeChannels";
+import {
+  useAutoYouTubeChannelImage,
+  useDeleteYouTubeChannelImage,
+  useUpdateYouTubeChannel,
+  useUploadYouTubeChannelImage,
+} from "@/hooks/useYouTubeChannels";
 import { useAppForm } from "@/lib/form";
 import { CategoryIcon } from "@/lib/icons";
 
@@ -31,6 +39,10 @@ export function YouTubeChannelGeneralForm({
   channel,
 }: Props) {
   const updateChannel = useUpdateYouTubeChannel();
+  const uploadAvatar = useUploadYouTubeChannelImage();
+  const autoAvatar = useAutoYouTubeChannelImage();
+  const deleteAvatar = useDeleteYouTubeChannelImage();
+  const avatarBusy = uploadAvatar.isPending || autoAvatar.isPending || deleteAvatar.isPending;
   const [selfIds, setSelfIds] = useState<string[]>(channel.selfIds);
   const [newSelfId, setNewSelfId] = useState("");
   const [tagIds, setTagIds] = useState<string[]>(channel.tagIds ?? []);
@@ -92,6 +104,24 @@ export function YouTubeChannelGeneralForm({
           <field.TextField label="Channel name" />
         )}
       </form.AppField>
+
+      <EntityImageField
+        label="Avatar"
+        imageUrl={channel.imageUrl}
+        shape="circle"
+        fallback={<MonitorPlay className="size-5" />}
+        busy={avatarBusy}
+        onUpload={file => uploadAvatar.mutate({
+          id: channel.id,
+          file,
+        })}
+        onAuto={() => autoAvatar.mutate({
+          id: channel.id,
+          sourceUrl: channelUrlFromKey(channel.channelKey),
+        })}
+        autoLabel="Fetch avatar"
+        onRemove={() => deleteAvatar.mutate(channel.id)}
+      />
 
       <form.AppField name="categoryId">
         {field => (

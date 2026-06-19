@@ -911,6 +911,12 @@ export interface FetchMetadataResult {
   datePosted: string | null;
   /** A preview/thumbnail image URL (YouTube only), or `null`. */
   thumbnailUrl: string | null;
+  /**
+   * Human-readable reasons a YouTube field could not be resolved (e.g. the watch-page fetch failed
+   * or a value was absent/unparseable). Present and non-empty only when something went wrong;
+   * surfaced so a partial result still explains itself instead of returning a silent `null`.
+   */
+  diagnostics?: string[];
 }
 
 /** Result of probing a URL for reachability (`GET /api/check-url`). */

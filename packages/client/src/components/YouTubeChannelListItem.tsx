@@ -42,7 +42,7 @@ export function YouTubeChannelListItem({
       "
     >
       <Link
-        to="/taxonomies/youtube-channels/$channelSlug/general"
+        to="/taxonomies/youtube-channels/$channelSlug"
         params={{
           channelSlug: channel.slug,
         }}
@@ -111,17 +111,6 @@ export function YouTubeChannelListItem({
               onClick={event => editClick(event, "youtube-channel", channel.id)}
             >
               Edit
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem asChild>
-            <Link
-              to="/taxonomies/youtube-channels/$channelSlug"
-              params={{
-                channelSlug: channel.slug,
-              }}
-            >
-              See Bookmarks
             </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />

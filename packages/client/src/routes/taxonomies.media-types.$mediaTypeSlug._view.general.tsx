@@ -3,6 +3,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { MediaTypeTabWrapper } from "../components/MediaTypeTabWrapper";
 import { useMediaTypes } from "../hooks/useMediaTypes";
 
+import { CategoryIcon } from "@/lib/icons";
+
 export const Route = createFileRoute("/taxonomies/media-types/$mediaTypeSlug/_view/general")({
   component: GeneralViewTab,
 });
@@ -34,8 +36,21 @@ function GeneralViewTab() {
               </>
             )
             : null}
+          <dt className="text-muted-foreground">Icon</dt>
+          <dd>
+            {mt.icon
+              ? (
+                <CategoryIcon
+                  name={mt.icon}
+                  className="size-4"
+                />
+              )
+              : <span className="text-muted-foreground">None</span>}
+          </dd>
           <dt className="text-muted-foreground">Sort order</dt>
           <dd>{mt.sortOrder}</dd>
+          <dt className="text-muted-foreground">Built-in</dt>
+          <dd>{mt.builtIn ? "Yes" : "No"}</dd>
           {mt.bookmarkCount != null
             ? (
               <>
