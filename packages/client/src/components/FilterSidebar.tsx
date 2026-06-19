@@ -8,7 +8,6 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import { FilterSections } from "./FilterSidebarSections";
 import { SavedFiltersSection } from "./SavedFiltersSection";
 
-import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 interface FilterSidebarProps {
@@ -83,7 +82,7 @@ export function FilterSidebar({
           onSearchChange={onSearchChange}
         />
 
-        {hasFilters ? <Separator /> : null}
+        {hasFilters ? <h2 className="text-sm font-semibold">Filters</h2> : null}
 
         <FilterSections
           tree={tree}
