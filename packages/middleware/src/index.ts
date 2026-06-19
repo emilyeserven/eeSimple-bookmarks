@@ -4,7 +4,7 @@ import { maybeSeed } from "@/db/seed";
 import { ensureAppSettings } from "@/services/appSettings";
 import { ensureAutofillConditions, ensureAutofillSlugs, ensureWebsiteConditions } from "@/services/autofill";
 import { ensureDefaultCategory } from "@/services/categories";
-import { backfillCustomPropertySlugs, ensureVideoLengthProperty } from "@/services/customProperties";
+import { backfillCustomPropertySlugs, ensureDatePostedProperty, ensureVideoLengthProperty } from "@/services/customProperties";
 import { ensureHomepageFilter } from "@/services/homepageFilter";
 import { backfillImageCropModes, ensureHomepageSections } from "@/services/homepageSections";
 import { backfillMediaTypeSlugs, ensureBuiltInMediaTypes } from "@/services/mediaTypes";
@@ -45,6 +45,7 @@ try {
   await backfillWebsiteSlugs();
   await backfillCustomPropertySlugs();
   await ensureVideoLengthProperty();
+  await ensureDatePostedProperty();
   await ensureBuiltInMediaTypes();
   await backfillMediaTypeSlugs();
   await backfillPropertyGroupSlugs();

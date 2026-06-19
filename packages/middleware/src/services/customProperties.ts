@@ -32,6 +32,9 @@ export class BuiltInPropertyError extends Error {
 /** Reserved slug + spec of the built-in "Video Length" property, seeded at boot. */
 export const VIDEO_LENGTH_SLUG = "video-length";
 
+/** Reserved slug + spec of the built-in "Date Posted" property, seeded at boot. */
+export const DATE_POSTED_SLUG = "date-posted";
+
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 /** Map a DB row plus its hydrated relations to the shared `CustomProperty` wire type. */
@@ -436,6 +439,76 @@ export async function getVideoLengthPropertyId(): Promise<string | null> {
     })
     .from(customProperties)
     .where(eq(customProperties.slug, VIDEO_LENGTH_SLUG));
+  return row?.id ?? null;
+}
+
+/**
+ * Ensure the built-in "Date Posted" property exists. Idempotent and safe to call at boot in every
+ * environment: a datetime property (date-only) available in every category. Auto-populated from the
+ * YouTube watch page's `<meta itemprop="datePublished">` when a bookmark URL is fetched.
+ */
+export async function ensureDatePostedProperty(): Promise<string> {
+  const [existing] = await db
+    .select({
+      id: customProperties.id,
+    })
+    .from(customProperties)
+    .where(eq(customProperties.slug, DATE_POSTED_SLUG));
+  if (existing) {
+    await db
+      .update(customProperties)
+      .set({
+        builtIn: true,
+        enabled: true,
+        allCategories: true,
+        showInListings: true,
+        dateTimeFormat: "date",
+      })
+      .where(eq(customProperties.id, existing.id));
+    return existing.id;
+  }
+
+  const [row] = await db
+    .insert(customProperties)
+    .values({
+      name: "Date Posted",
+      slug: DATE_POSTED_SLUG,
+      type: "datetime",
+      builtIn: true,
+      dateTimeFormat: "date",
+      description: "Date the video was published. Auto-filled from a YouTube video URL.",
+      allCategories: true,
+      showInListings: true,
+    })
+    .onConflictDoNothing({
+      target: customProperties.slug,
+    })
+    .returning({
+      id: customProperties.id,
+    });
+  if (row) return row.id;
+
+  // Lost a concurrent insert race — re-read the row the other writer created.
+  const [created] = await db
+    .select({
+      id: customProperties.id,
+    })
+    .from(customProperties)
+    .where(eq(customProperties.slug, DATE_POSTED_SLUG));
+  return created.id;
+}
+
+/**
+ * Look up the built-in "Date Posted" property id at request time, or `null` when it hasn't been
+ * seeded yet. Used by the bookmark service to backfill a video's publish date from fetched metadata.
+ */
+export async function getDatePostedPropertyId(): Promise<string | null> {
+  const [row] = await db
+    .select({
+      id: customProperties.id,
+    })
+    .from(customProperties)
+    .where(eq(customProperties.slug, DATE_POSTED_SLUG));
   return row?.id ?? null;
 }
 

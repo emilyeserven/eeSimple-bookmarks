@@ -28,6 +28,9 @@ export const bookmarkSchema = z.object({
 /** Slug of the built-in "Video Length" property, hidden from the form (filled server-side). */
 export const VIDEO_LENGTH_SLUG = "video-length";
 
+/** Slug of the built-in "Date Posted" property, hidden from the form (filled server-side). */
+export const DATE_POSTED_SLUG = "date-posted";
+
 /** Cheap client-side check so we only hit the richer metadata endpoint for YouTube URLs. */
 export function looksLikeYouTube(url: string): boolean {
   return /(?:youtube\.com|youtu\.be)/i.test(url);

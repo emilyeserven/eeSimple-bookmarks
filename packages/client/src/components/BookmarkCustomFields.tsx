@@ -9,7 +9,7 @@ import { useEffect } from "react";
 
 import { propertyAppliesToCategory } from "@eesimple/types";
 
-import { VIDEO_LENGTH_SLUG } from "./bookmarkFormSchema";
+import { DATE_POSTED_SLUG, VIDEO_LENGTH_SLUG } from "./bookmarkFormSchema";
 import { DateTimePicker } from "./DateTimePicker";
 import { useCategoryDefaults } from "../hooks/useCategories";
 
@@ -39,7 +39,7 @@ interface CategoryCustomFieldsProps {
 
 /** Renders the custom-property inputs for the properties assigned to the chosen category. */
 export function CategoryCustomFields({
-  categoryId, properties, placement, className, hiddenSlugs = [VIDEO_LENGTH_SLUG],
+  categoryId, properties, placement, className, hiddenSlugs = [VIDEO_LENGTH_SLUG, DATE_POSTED_SLUG],
   numberInputs, booleanInputs, dateTimeInputs,
   onNumberChange, onBooleanChange, onDateTimeChange,
 }: CategoryCustomFieldsProps) {

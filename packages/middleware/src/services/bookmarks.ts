@@ -37,7 +37,7 @@ import {
 } from "@/db/schema";
 import { bookmarkImageFromRow, fetchAndStoreOgImage, getBookmarkImageRow } from "@/services/bookmarkImages";
 import { ensureDefaultCategory } from "@/services/categories";
-import { getVideoLengthPropertyId } from "@/services/customProperties";
+import { getDatePostedPropertyId, getVideoLengthPropertyId } from "@/services/customProperties";
 import { getMediaTypeBySlug } from "@/services/mediaTypes";
 import { getDescendantIds } from "@/services/tags";
 import { fetchAndStoreWebsiteFavicon, getWebsiteFaviconRow } from "@/services/websiteFavicons";
@@ -610,6 +610,36 @@ async function withVideoLength(
 }
 
 /**
+ * Append the video's publish date to a bookmark's datetime values as the built-in "Date Posted"
+ * property, unless the metadata has no date or the caller already supplied a value for that
+ * property (a user edit always wins). Returns the (possibly extended) array. `ctx` labels the log.
+ */
+async function withDatePosted(
+  dateTimeValues: BookmarkDateTimeValue[],
+  meta: YouTubeMetadata | null,
+  ctx: string,
+): Promise<BookmarkDateTimeValue[]> {
+  if (meta?.datePosted == null) return dateTimeValues;
+  const datePostedPropId = await getDatePostedPropertyId();
+  if (!datePostedPropId) {
+    ytLog("warn", `${ctx}: "date-posted" property missing; date "${meta.datePosted}" not stored`);
+    return dateTimeValues;
+  }
+  if (dateTimeValues.some(value => value.propertyId === datePostedPropId)) {
+    ytLog("info", `${ctx}: Date Posted already supplied; keeping caller value`);
+    return dateTimeValues;
+  }
+  ytLog("info", `${ctx}: filled Date Posted = ${meta.datePosted}`);
+  return [
+    ...dateTimeValues,
+    {
+      propertyId: datePostedPropId,
+      value: meta.datePosted,
+    },
+  ];
+}
+
+/**
  * Best-effort thumbnail capture for a YouTube-video bookmark: pulls the oEmbed thumbnail (falling
  * back to og:image) and stores it. Never throws — a failure here must not fail the create/update.
  * Skips silently when object storage isn't configured. `ctx` labels the log.
@@ -724,6 +754,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
   }
 
   const numberValues = await withVideoLength(input.numberValues ?? [], meta, "create");
+  const dateTimeValues = await withDatePosted(input.dateTimeValues ?? [], meta, "create");
 
   const {
     id, websiteId, youtubeChannelId,
@@ -749,7 +780,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
     await linkTags(tx, row.id, input.tagIds);
     await setNumberValues(tx, row.id, numberValues);
     await setBooleanValues(tx, row.id, input.booleanValues);
-    await setDateTimeValues(tx, row.id, input.dateTimeValues);
+    await setDateTimeValues(tx, row.id, dateTimeValues);
     await recomputeCalculatedValues(tx, row.id);
     return {
       id: row.id,
@@ -821,6 +852,9 @@ export async function updateBookmark(
   const numberValues = input.numberValues !== undefined
     ? await withVideoLength(input.numberValues, meta, "update")
     : undefined;
+  const dateTimeValues = input.dateTimeValues !== undefined
+    ? await withDatePosted(input.dateTimeValues, meta, "update")
+    : undefined;
 
   // Website / channel ids touched by this update, surfaced from the transaction so the post-commit
   // favicon / avatar capture can run on the resolved entities. `undefined` means "not changed".
@@ -887,9 +921,9 @@ export async function updateBookmark(
       await tx.delete(bookmarkBooleanValues).where(eq(bookmarkBooleanValues.bookmarkId, id));
       await setBooleanValues(tx, id, input.booleanValues);
     }
-    if (input.dateTimeValues !== undefined) {
+    if (dateTimeValues !== undefined) {
       await tx.delete(bookmarkDateTimeValues).where(eq(bookmarkDateTimeValues.bookmarkId, id));
-      await setDateTimeValues(tx, id, input.dateTimeValues);
+      await setDateTimeValues(tx, id, dateTimeValues);
     }
     // Always recompute last: number-value edits ripple into calculate results.
     await recomputeCalculatedValues(tx, id);
