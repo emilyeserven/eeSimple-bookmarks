@@ -48,6 +48,10 @@ const updateChannelBody = {
         minLength: 1,
       },
     },
+    categoryId: {
+      type: ["string", "null"],
+      format: "uuid",
+    },
   },
 } as const;
 

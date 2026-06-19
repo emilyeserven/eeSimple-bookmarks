@@ -3,10 +3,12 @@ import type { Bookmark, CustomProperty } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 
 import { BookmarkTagsBox } from "./BookmarkTagsBox";
+import { CategoryPill } from "./CategoryPill";
 import { useViewPanelClick } from "./panel/useEditPanelClick";
 import { formatDateTime, formatNumber } from "../lib/bookmarkFormat";
 
 import { Badge } from "@/components/ui/badge";
+import { useCategories } from "@/hooks/useCategories";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
 import { useUiStore } from "@/stores/uiStore";
 
@@ -22,6 +24,12 @@ export function BookmarkCardDetails({
   const viewClick = useViewPanelClick();
   const modifier = useUiStore(state => state.sidebarOpenModifier);
   const byId = new Map(properties.map(property => [property.id, property]));
+  const {
+    data: allCategories,
+  } = useCategories();
+  const bookmarkCategory = (allCategories ?? []).find(
+    c => c.id === bookmark.categoryId && !c.builtIn,
+  );
 
   const numberBadges = bookmark.numberValues
     .map((entry) => {
@@ -83,9 +91,12 @@ export function BookmarkCardDetails({
           </div>
         )
         : null}
-      {website || mediaType || youtubeChannel
+      {bookmarkCategory || website || mediaType || youtubeChannel
         ? (
           <div className="mt-2 flex flex-wrap items-center gap-1">
+            {bookmarkCategory
+              ? <CategoryPill category={bookmarkCategory} />
+              : null}
             {website
               ? (
                 <Link
