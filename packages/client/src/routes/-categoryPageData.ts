@@ -10,7 +10,7 @@ import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
  * Bundles the data hooks the category page needs into a single call, keeping the route module's
  * import count down. Behaviour is identical to calling each hook inline.
  */
-export function useCategoryPageData(tag: string | undefined) {
+export function useCategoryPageData(tags: string[] | undefined) {
   const {
     data: categories, isLoading: categoriesLoading,
   } = useCategories();
@@ -22,7 +22,7 @@ export function useCategoryPageData(tag: string | undefined) {
   } = usePropertyGroups();
   const {
     data: bookmarks, isLoading: bookmarksLoading, error,
-  } = useBookmarks(tag);
+  } = useBookmarks(tags);
   const {
     data: tagTree,
   } = useTagTree();

@@ -148,7 +148,7 @@ test("GET /api/bookmarks rejects a non-uuid tag filter", async () => {
   const app = await buildApp();
   const res = await app.inject({
     method: "GET",
-    url: "/api/bookmarks?tag=not-a-uuid",
+    url: "/api/bookmarks?tags=not-a-uuid",
   });
   assert.equal(res.statusCode, 400);
   await app.close();

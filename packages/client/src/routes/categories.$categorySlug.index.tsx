@@ -26,7 +26,7 @@ function CategoryPage() {
     tagTree,
     mediaTypes,
     youtubeChannels,
-  } = useCategoryPageData(search.tag);
+  } = useCategoryPageData(search.tags);
 
   const category = (categories ?? []).find(item => item.slug === categorySlug);
 

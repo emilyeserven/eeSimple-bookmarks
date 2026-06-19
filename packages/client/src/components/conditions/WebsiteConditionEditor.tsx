@@ -2,6 +2,8 @@ import type { WebsiteCondition } from "@eesimple/types";
 
 import { useState } from "react";
 
+import { Globe } from "lucide-react";
+
 import { MultiCombobox } from "../MultiCombobox";
 
 import { Button } from "@/components/ui/button";
@@ -54,6 +56,15 @@ export function WebsiteConditionEditor({
     ...websites.map(w => ({
       value: w.domain,
       label: w.siteName ?? w.domain,
+      icon: w.imageUrl
+        ? (
+          <img
+            src={w.imageUrl}
+            alt=""
+            className="size-4 shrink-0 rounded-sm object-contain"
+          />
+        )
+        : <Globe className="size-4 shrink-0 text-muted-foreground" />,
     })),
     ...value.domains
       .filter(domain => !knownDomains.has(domain))

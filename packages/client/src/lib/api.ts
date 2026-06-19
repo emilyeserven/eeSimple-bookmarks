@@ -120,8 +120,12 @@ function createCrudApi<T, C, U>(endpoint: string) {
 }
 
 export const bookmarksApi = {
-  list: (tagId?: string) =>
-    request<Bookmark[]>(`/bookmarks${tagId ? `?tag=${encodeURIComponent(tagId)}` : ""}`),
+  list: (tagIds?: string[]) => {
+    const params = new URLSearchParams();
+    for (const id of tagIds ?? []) params.append("tags", id);
+    const qs = params.toString();
+    return request<Bookmark[]>(`/bookmarks${qs ? `?${qs}` : ""}`);
+  },
   get: (id: string) => request<Bookmark>(`/bookmarks/${id}`),
   create: (input: CreateBookmarkInput) =>
     request<Bookmark>("/bookmarks", {
