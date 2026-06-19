@@ -1,27 +1,14 @@
+import type { TabNavEntry } from "../components/TabbedEntityLayout";
+
 import { createFileRoute } from "@tanstack/react-router";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
-import { useUiStore } from "../stores/uiStore";
 
 export const Route = createFileRoute("/settings")({
   component: SettingsLayout,
 });
 
-const settingsNav = [
-  {
-    to: "/settings/custom-properties",
-    label: "Custom Properties",
-    customizationKey: "custom-properties",
-  },
-  {
-    to: "/settings/autofill",
-    label: "Autofill Rules",
-    customizationKey: "autofill",
-  },
-  {
-    to: "/settings/gallery",
-    label: "Gallery",
-  },
+const settingsNav: readonly TabNavEntry[] = [
   {
     to: "/settings/display",
     label: "Display",
@@ -35,19 +22,8 @@ const settingsNav = [
     label: "Homepage",
   },
   {
-    to: "/settings/websites",
-    label: "Websites",
-    taxonomyKey: "websites",
-  },
-  {
-    to: "/settings/media-types",
-    label: "Media Types",
-    taxonomyKey: "media-types",
-  },
-  {
-    to: "/settings/youtube-channels",
-    label: "YouTube Channels",
-    taxonomyKey: "youtube-channels",
+    to: "/settings/gallery",
+    label: "Gallery",
   },
   {
     to: "/settings/automations",
@@ -55,20 +31,29 @@ const settingsNav = [
   },
   {
     to: "/settings/link-parsing",
-    label: "Link parsing",
+    label: "Link Parsing",
+  },
+  {
+    type: "group",
+    label: "More Settings",
+    items: [
+      {
+        to: "/settings/more-categories",
+        label: "Categories",
+      },
+      {
+        to: "/settings/more-taxonomies",
+        label: "Taxonomies",
+      },
+      {
+        to: "/settings/more-customization",
+        label: "Customization",
+      },
+    ],
   },
 ] as const;
 
 function SettingsLayout() {
-  const hiddenTaxonomyItems = useUiStore(state => state.hiddenTaxonomyItems);
-  const hiddenCustomizationItems = useUiStore(state => state.hiddenCustomizationItems);
-
-  const visibleNav = settingsNav.filter((item) => {
-    if ("taxonomyKey" in item) return hiddenTaxonomyItems.includes(item.taxonomyKey);
-    if ("customizationKey" in item) return hiddenCustomizationItems.includes(item.customizationKey);
-    return true;
-  });
-
   return (
     <TabbedEntityLayout
       header={(
@@ -79,7 +64,7 @@ function SettingsLayout() {
           </p>
         </div>
       )}
-      nav={visibleNav}
+      nav={settingsNav}
       navAriaLabel="Settings sections"
     />
   );
