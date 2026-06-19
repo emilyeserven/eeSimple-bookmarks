@@ -67,6 +67,18 @@ export const DATE_TIME_FORMAT_OPTIONS = [
   },
 ];
 
+/** How a `number` property's value is displayed. */
+export const NUMBER_FORMAT_OPTIONS = [
+  {
+    value: "plain",
+    label: "Plain",
+  },
+  {
+    value: "duration",
+    label: "Duration",
+  },
+];
+
 /** Add or remove `id` from `ids`, returning a new array. */
 export function toggleId(ids: string[], id: string): string[] {
   return ids.includes(id) ? ids.filter(value => value !== id) : [...ids, id];
