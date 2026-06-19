@@ -2,6 +2,7 @@ import type {
   AutofillRule,
   Bookmark,
   BookmarkImage,
+  BookmarkUrlDuplicateResult,
   BookmarkUrlSummary,
   BulkUrlUpdate,
   BulkUrlUpdateResult,
@@ -93,6 +94,10 @@ export const bookmarksApi = {
         items,
       }),
     }),
+  urlCheck: (url: string) =>
+    request<BookmarkUrlDuplicateResult>(
+      `/bookmarks/url-check?url=${encodeURIComponent(url)}`,
+    ),
   // Image upload goes through FormData, not the JSON `request` helper, so the browser sets the
   // multipart boundary itself.
   uploadImage: async (id: string, file: File): Promise<BookmarkImage> => {

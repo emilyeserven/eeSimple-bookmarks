@@ -125,3 +125,10 @@ export function useDeleteBookmarkImage() {
     onError: (err: Error) => toast.error(err.message || "Could not remove the image"),
   });
 }
+
+/** Check if a URL (or its path) already exists as a bookmark. */
+export function useBookmarkUrlDuplicateCheck() {
+  return useMutation({
+    mutationFn: (url: string) => bookmarksApi.urlCheck(url),
+  });
+}

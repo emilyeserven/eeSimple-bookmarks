@@ -8,6 +8,7 @@ import {
 } from "@/services/bookmarkImages";
 import {
   bulkUpdateBookmarkUrls,
+  checkBookmarkUrlDuplicate,
   createBookmark,
   deleteBookmark,
   DuplicateUrlError,
@@ -227,6 +228,20 @@ export async function bookmarkRoutes(app: FastifyInstance): Promise<void> {
       domain,
     } = req.query as { domain: string };
     return listBookmarksOnHost(domain);
+  });
+
+  app.get("/api/bookmarks/url-check", {
+    schema: {
+      tags: ["bookmarks"],
+    },
+  }, async (req, reply) => {
+    const {
+      url,
+    } = req.query as { url?: string };
+    if (!url) return reply.code(400).send({
+      message: "url is required",
+    });
+    return checkBookmarkUrlDuplicate(url);
   });
 
   app.post("/api/bookmarks/bulk-url", {

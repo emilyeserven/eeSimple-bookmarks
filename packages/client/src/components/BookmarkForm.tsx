@@ -4,6 +4,7 @@ import type {
   BookmarkBooleanValue,
   BookmarkDateTimeValue,
   BookmarkNumberValue,
+  BookmarkUrlDuplicateResult,
   CreateBookmarkInput,
   YouTubeChannelHint,
 } from "@eesimple/types";
@@ -60,6 +61,7 @@ export function BookmarkForm({
       fetchTitle,
       fetchMetadata,
       websiteLookup,
+      urlDuplicateCheck,
     },
     websites,
     shortenerIgnoreList,
@@ -137,6 +139,8 @@ export function BookmarkForm({
   // drives the Check URL button's spinner.
   const [scanned, setScanned] = useState(isEdit);
   const [isScanning, setIsScanning] = useState(false);
+  const [urlDuplicate, setUrlDuplicate] = useState<BookmarkUrlDuplicateResult | null>(null);
+  const [autofillOfferDismissed, setAutofillOfferDismissed] = useState(false);
   // Set by the "Add Now" quick path so the submit handler saves the URL exactly as typed (no
   // shortened-link expansion). Read by the (stale) submit closure.
   const quickAddRef = useRef(false);
@@ -371,6 +375,8 @@ export function BookmarkForm({
       setShowUrlCleanup(false);
       setUrlCleanupMode("none");
       setScanned(false);
+      setUrlDuplicate(null);
+      setAutofillOfferDismissed(false);
       quickAddRef.current = false;
       touchedRef.current = new Set();
       ruleSetRef.current = {
@@ -591,6 +597,9 @@ export function BookmarkForm({
       const url = form.getFieldValue("url");
       runAutofill();
       runWebsiteLookup(url);
+      urlDuplicateCheck.mutate(url, {
+        onSuccess: setUrlDuplicate,
+      });
       const yt = looksLikeYouTube(url);
       const fillTitle = revealing || autoFetchTitle;
       // YouTube gets its title from enrichment; non-YouTube uses the strict fetch-title.
@@ -786,6 +795,9 @@ export function BookmarkForm({
             imageIntentRef.current = intent;
           }}
           onApplyCategoryDefaults={applyCategoryDefaults}
+          urlDuplicate={urlDuplicate}
+          autofillOfferDismissed={autofillOfferDismissed}
+          onAutofillOfferDismiss={() => setAutofillOfferDismissed(true)}
         />
       )}
 
@@ -797,6 +809,7 @@ export function BookmarkForm({
                 <form.SubmitButton
                   label={isEdit ? "Save changes" : "Add Bookmark"}
                   pendingLabel="Saving…"
+                  disabledWhen={!isEdit && Boolean(urlDuplicate?.exactMatch)}
                 />
               </form.AppForm>
             )

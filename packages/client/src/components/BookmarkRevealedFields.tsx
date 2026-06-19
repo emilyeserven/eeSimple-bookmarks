@@ -6,6 +6,7 @@ import type {
   BookmarkBooleanValue,
   BookmarkDateTimeValue,
   BookmarkNumberValue,
+  BookmarkUrlDuplicateResult,
   Category,
   CustomProperty,
   TagNode,
@@ -16,15 +17,14 @@ import type {
 import { Loader2, Sparkles } from "lucide-react";
 
 import { BookmarkAdvancedSection } from "./BookmarkAdvancedSection";
+import { BookmarkAutofillOffer } from "./BookmarkAutofillOffer";
 import { CategoryCustomFields } from "./BookmarkCustomFields";
-import { GatedTagPicker } from "./BookmarkTagsField";
 import { TitleFetchFeedback } from "./BookmarkTitleFeedback";
 import { UrlCleanupPanel } from "./BookmarkUrlCleanupPanel";
 import { WebsiteLookupBanner } from "./WebsiteLookupBanner";
 import { isFetchableUrl } from "../lib/url";
 
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 
 type WebsiteLookupResult = ReturnType<typeof useWebsiteLookup>;
 
@@ -99,13 +99,21 @@ interface BookmarkRevealedFieldsProps {
     booleanValues: BookmarkBooleanValue[],
     dateTimeValues: BookmarkDateTimeValue[],
   ) => void;
+
+  // Duplicate URL check result.
+  urlDuplicate?: BookmarkUrlDuplicateResult | null;
+
+  // Autofill offer state.
+  autofillOfferDismissed: boolean;
+  onAutofillOfferDismiss: () => void;
 }
 
 /**
  * Everything the bookmark form reveals once the URL has been checked (or always, when editing): the
  * shortened-link banner, the URL cleanup panel, the website/YouTube banner, the Name field with its
- * fetch button and feedback, Description + Tags, the main custom-property fields, and the Advanced
- * collapsible. The URL field and the form's primary actions stay in `BookmarkForm`.
+ * fetch button and feedback, the main custom-property fields, and the Advanced collapsible (which
+ * holds Description, Tags, image, and category). The URL field and the form's primary actions stay
+ * in `BookmarkForm`.
  */
 export function BookmarkRevealedFields({
   form,
@@ -159,6 +167,9 @@ export function BookmarkRevealedFields({
   autoGrabError,
   onImageIntentChange,
   onApplyCategoryDefaults,
+  urlDuplicate,
+  autofillOfferDismissed,
+  onAutofillOfferDismiss,
 }: BookmarkRevealedFieldsProps) {
   return (
     <>
@@ -213,6 +224,62 @@ export function BookmarkRevealedFields({
             />
           )}
         </form.Subscribe>
+      )}
+
+      {/* Duplicate URL warnings. */}
+      {urlDuplicate?.exactMatch && (
+        <div
+          className="
+            flex flex-col gap-2 rounded-md border border-destructive
+            bg-destructive/10 px-3 py-2 text-sm
+          "
+        >
+          <div className="flex items-center justify-between gap-2">
+            <span>
+              A bookmark with this exact URL already exists:
+              {" "}
+              <strong>{urlDuplicate.exactMatch.title}</strong>
+            </span>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => window.open(urlDuplicate.exactMatch?.url, "_blank")}
+            >
+              Open in new tab
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Change the URL above to save a new bookmark.
+          </p>
+        </div>
+      )}
+      {!urlDuplicate?.exactMatch && urlDuplicate?.pathMatch && (
+        <div
+          className="
+            flex flex-col gap-2 rounded-md border border-amber-500/50
+            bg-amber-500/10 px-3 py-2 text-sm
+          "
+        >
+          <div className="flex items-center justify-between gap-2">
+            <span>
+              A bookmark with a similar URL already exists:
+              {" "}
+              <strong>{urlDuplicate.pathMatch.title}</strong>
+            </span>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => window.open(urlDuplicate.pathMatch?.url, "_blank")}
+            >
+              Open in new tab
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            You can still save — the query parameters differ.
+          </p>
+        </div>
       )}
 
       {/* Left: site / shortener info derived from the URL. Right: Name + title feedback. */}
@@ -300,50 +367,21 @@ export function BookmarkRevealedFields({
         </div>
       </div>
 
-      {/* Description and Tags side by side, stretched to a matching height. */}
-      <div
-        className="
-          grid items-stretch gap-4
-          sm:grid-cols-2
-        "
-      >
-        <form.AppField name="description">
-          {field => (
-            <field.TextareaField
-              label="Description"
-              fill
-              inputClassName="min-h-24"
-            />
-          )}
-        </form.AppField>
-
+      {/* Autofill rule offer for new sites with a non-default category. */}
+      {websiteLookup.data?.exists === false && websiteLookup.data.domain && (
         <form.Subscribe selector={state => state.values.categoryId}>
           {categoryId => (
-            <form.Field name="tagIds">
-              {field => (
-                <div className="flex h-full flex-col gap-1">
-                  <Label>Tags</Label>
-                  <GatedTagPicker
-                    className="flex-1 overflow-auto"
-                    categoryId={categoryId}
-                    tree={tagTree}
-                    selectedIds={field.state.value}
-                    onToggle={(id) => {
-                      onTagToggle(id);
-                      const current = field.state.value;
-                      field.handleChange(
-                        current.includes(id)
-                          ? current.filter(tagId => tagId !== id)
-                          : [...current, id],
-                      );
-                    }}
-                  />
-                </div>
-              )}
-            </form.Field>
+            <BookmarkAutofillOffer
+              domain={websiteLookup.data?.domain ?? ""}
+              categoryId={categoryId}
+              lockedCategoryId={lockedCategoryId}
+              categories={categories}
+              dismissed={autofillOfferDismissed}
+              onDismiss={onAutofillOfferDismiss}
+            />
           )}
         </form.Subscribe>
-      </div>
+      )}
 
       <form.Subscribe selector={state => state.values.categoryId}>
         {categoryId => (
@@ -373,6 +411,8 @@ export function BookmarkRevealedFields({
         defaultAuto={defaultAuto}
         autoGrabError={autoGrabError}
         onImageIntentChange={onImageIntentChange}
+        tagTree={tagTree}
+        onTagToggle={onTagToggle}
         numberInputs={numberInputs}
         booleanInputs={booleanInputs}
         dateTimeInputs={dateTimeInputs}
