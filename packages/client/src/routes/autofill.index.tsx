@@ -1,12 +1,10 @@
-import { useState } from "react";
-
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 
-import { AddAutofillRuleModal } from "../components/AddAutofillRuleModal";
 import { AutofillRulesList } from "../components/AutofillRulesList";
 import { useAutofillRules } from "../hooks/useAutofill";
 import { useSetListingPage } from "../hooks/useListingPage";
+import { useNewAutofillRule } from "../hooks/useNewAutofillRule";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,8 +17,7 @@ function AutofillListPage() {
   const {
     data: rules,
   } = useAutofillRules();
-  const [modalOpen, setModalOpen] = useState(false);
-  const navigate = useNavigate();
+  const newRule = useNewAutofillRule();
   useSetListingPage("autofill-rules-listing");
 
   return (
@@ -36,7 +33,7 @@ function AutofillListPage() {
           <Button
             type="button"
             size="sm"
-            onClick={() => setModalOpen(true)}
+            onClick={newRule.onClick}
           >
             <Plus className="size-4" />
             New autofill rule
@@ -50,18 +47,7 @@ function AutofillListPage() {
 
       <AutofillRulesList />
 
-      <AddAutofillRuleModal
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-        onCreated={(rule) => {
-          void navigate({
-            to: "/autofill/$ruleSlug/edit/general",
-            params: {
-              ruleSlug: rule.slug,
-            },
-          });
-        }}
-      />
+      {newRule.modal}
     </section>
   );
 }

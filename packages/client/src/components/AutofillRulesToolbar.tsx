@@ -1,4 +1,5 @@
 import type { Category } from "@eesimple/types";
+import type { MouseEvent } from "react";
 
 import { Plus } from "lucide-react";
 
@@ -26,7 +27,7 @@ interface AutofillRulesToolbarProps {
   onCategoryFilterChange: (value: string) => void;
   categories: Category[];
   /** When provided and the list is scoped, a "New autofill rule" button is rendered. */
-  onCreateClick?: () => void;
+  onCreateClick?: (event: MouseEvent) => void;
 }
 
 /** Search box + category filter above the rules list. */
@@ -47,7 +48,7 @@ export function AutofillRulesToolbar({
           <Button
             type="button"
             size="sm"
-            onClick={onCreateClick}
+            onClick={event => onCreateClick(event)}
           >
             <Plus className="size-4" />
             New autofill rule

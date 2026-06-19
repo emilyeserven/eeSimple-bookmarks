@@ -1,9 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { usePanelControls } from "../components/panel/usePanelControls";
 import { TabWrapper } from "../components/TabWrapper";
+import { useNewAutofillRule } from "../hooks/useNewAutofillRule";
 import { useTagBySlug } from "../hooks/useTags";
-import { NEW_SENTINEL } from "../lib/drawerSearch";
 import { flattenTree } from "../lib/tagTree";
 
 import { Button } from "@/components/ui/button";
@@ -19,9 +18,7 @@ function GeneralViewTab() {
   const {
     tag, data, isLoading,
   } = useTagBySlug(tagSlug);
-  const {
-    openAutofill,
-  } = usePanelControls();
+  const newRule = useNewAutofillRule();
 
   return (
     <TabWrapper
@@ -63,10 +60,11 @@ function GeneralViewTab() {
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => openAutofill(NEW_SENTINEL)}
+                onClick={newRule.onClick}
               >
                 New Autofill Rule
               </Button>
+              {newRule.modal}
             </div>
           </>
         );

@@ -1,4 +1,4 @@
-import type { AutofillRule } from "@eesimple/types";
+import type { AutofillRule, CreateAutofillRuleInput } from "@eesimple/types";
 
 import { emptyConditionTree } from "@eesimple/types";
 
@@ -10,11 +10,16 @@ interface AddAutofillRuleModalProps {
   onOpenChange: (open: boolean) => void;
   /** Called with the created rule so the opener can navigate to it. */
   onCreated?: (rule: AutofillRule) => void;
+  /**
+   * Everything besides the name to bake into the created rule — conditions plus any scoped prefill
+   * (e.g. the category you came from). Defaults to an empty condition tree.
+   */
+  prefill?: Omit<CreateAutofillRuleInput, "name">;
 }
 
 /** Minimal name-only modal to create an autofill rule inline from the listing page header. */
 export function AddAutofillRuleModal({
-  open, onOpenChange, onCreated,
+  open, onOpenChange, onCreated, prefill,
 }: AddAutofillRuleModalProps) {
   const createRule = useCreateAutofillRule();
 
@@ -31,8 +36,9 @@ export function AddAutofillRuleModal({
       onSubmit={(name, done) => {
         createRule.mutate(
           {
-            name,
             conditions: emptyConditionTree(),
+            ...prefill,
+            name,
           },
           {
             onSuccess: (rule) => {

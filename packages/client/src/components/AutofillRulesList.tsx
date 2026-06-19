@@ -5,15 +5,13 @@ import { normalizeDomain } from "@eesimple/types";
 import { NO_CATEGORY } from "./AutofillRuleForm";
 import { AutofillRuleListItem } from "./AutofillRuleListItem";
 import { ALL_CATEGORIES, AutofillRulesToolbar } from "./AutofillRulesToolbar";
-import { usePanelControls } from "./panel/usePanelControls";
 import { useAutofillRules } from "../hooks/useAutofill";
 import { useCategories } from "../hooks/useCategories";
+import { useNewAutofillRule } from "../hooks/useNewAutofillRule";
 import { useWebsites } from "../hooks/useWebsites";
 import { ruleSetsMediaType, ruleSetsProperty, ruleSetsTag, ruleTargetsWebsite, ruleTargetsYoutubeChannel } from "../lib/autofillRulesFilter";
 import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
 import { summarizeConditions } from "../lib/conditionsSummary";
-
-import { NEW_SENTINEL } from "@/lib/drawerSearch";
 
 interface AutofillRulesListProps {
   /**
@@ -74,9 +72,7 @@ export function AutofillRulesList({
   mediaTypeId,
   channelId,
 }: AutofillRulesListProps = {}) {
-  const {
-    openAutofill,
-  } = usePanelControls();
+  const newRule = useNewAutofillRule();
   const {
     data: rules, isLoading, error,
   } = useAutofillRules();
@@ -138,8 +134,9 @@ export function AutofillRulesList({
         categoryFilter={categoryFilter}
         onCategoryFilterChange={setCategoryFilter}
         categories={categories ?? []}
-        onCreateClick={scoped ? () => openAutofill(NEW_SENTINEL) : undefined}
+        onCreateClick={scoped ? newRule.onClick : undefined}
       />
+      {scoped ? newRule.modal : null}
 
       {isLoading ? <p className="text-muted-foreground">Loading rules…</p> : null}
       {error ? <p className="text-destructive">{error.message}</p> : null}
