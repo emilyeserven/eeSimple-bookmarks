@@ -1,0 +1,20 @@
+import type { AutofillRule, ConditionNode } from "@eesimple/types";
+
+import { normalizeDomain } from "@eesimple/types";
+
+/** True when the rule sets a value for `propertyId` via any of its custom-property value arrays. */
+export function ruleSetsProperty(rule: AutofillRule, propertyId: string): boolean {
+  return rule.numberValues.some(value => value.propertyId === propertyId)
+    || rule.booleanValues.some(value => value.propertyId === propertyId)
+    || rule.dateTimeValues.some(value => value.propertyId === propertyId);
+}
+
+/** True when any Website condition in the rule's tree references `domain` (already normalized). */
+export function ruleTargetsWebsite(rule: AutofillRule, domain: string): boolean {
+  const visit = (node: ConditionNode): boolean => {
+    if (node.type === "website") return node.domains.some(d => normalizeDomain(d) === domain);
+    if (node.type === "group") return node.children.some(visit);
+    return false;
+  };
+  return visit(rule.conditions);
+}

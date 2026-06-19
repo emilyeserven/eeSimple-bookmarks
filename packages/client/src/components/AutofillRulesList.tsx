@@ -1,5 +1,3 @@
-import type { AutofillRule, ConditionNode } from "@eesimple/types";
-
 import { useMemo, useState } from "react";
 
 import { normalizeDomain } from "@eesimple/types";
@@ -10,6 +8,7 @@ import { ALL_CATEGORIES, AutofillRulesToolbar } from "./AutofillRulesToolbar";
 import { useAutofillRules } from "../hooks/useAutofill";
 import { useCategories } from "../hooks/useCategories";
 import { useWebsites } from "../hooks/useWebsites";
+import { ruleSetsProperty, ruleTargetsWebsite } from "../lib/autofillRulesFilter";
 import { summarizeConditions } from "../lib/conditionsSummary";
 
 interface AutofillRulesListProps {
@@ -30,21 +29,15 @@ interface AutofillRulesListProps {
   websiteId?: string;
 }
 
-/** True when the rule sets a value for `propertyId` via any of its custom-property value arrays. */
-function ruleSetsProperty(rule: AutofillRule, propertyId: string): boolean {
-  return rule.numberValues.some(value => value.propertyId === propertyId)
-    || rule.booleanValues.some(value => value.propertyId === propertyId)
-    || rule.dateTimeValues.some(value => value.propertyId === propertyId);
-}
-
-/** True when any Website condition in the rule's tree references `domain` (already normalized). */
-function ruleTargetsWebsite(rule: AutofillRule, domain: string): boolean {
-  const visit = (node: ConditionNode): boolean => {
-    if (node.type === "website") return node.domains.some(d => normalizeDomain(d) === domain);
-    if (node.type === "group") return node.children.some(visit);
-    return false;
-  };
-  return visit(rule.conditions);
+function emptyStateMessage(
+  categoryId: string | undefined,
+  propertyId: string | undefined,
+  websiteId: string | undefined,
+): string {
+  if (categoryId) return "No autofill rules add bookmarks to this category yet. Create one above.";
+  if (propertyId) return "No autofill rules set this property yet. Create one above.";
+  if (websiteId) return "No autofill rules target this website yet. Create one above.";
+  return "No autofill rules yet. Create one above.";
 }
 
 /** Read-only, searchable/filterable list of autofill rules; selecting one opens it in the panel. */
@@ -113,17 +106,7 @@ export function AutofillRulesList({
       {isLoading ? <p className="text-muted-foreground">Loading rules…</p> : null}
       {error ? <p className="text-destructive">{error.message}</p> : null}
       {!isLoading && scopedRules.length === 0
-        ? (
-          <p className="text-muted-foreground">
-            {categoryId
-              ? "No autofill rules add bookmarks to this category yet. Create one above."
-              : propertyId
-                ? "No autofill rules set this property yet. Create one above."
-                : websiteId
-                  ? "No autofill rules target this website yet. Create one above."
-                  : "No autofill rules yet. Create one above."}
-          </p>
-        )
+        ? <p className="text-muted-foreground">{emptyStateMessage(categoryId, propertyId, websiteId)}</p>
         : null}
       {!isLoading && scopedRules.length > 0 && visibleRules.length === 0
         ? <p className="text-muted-foreground">No rules match these filters.</p>

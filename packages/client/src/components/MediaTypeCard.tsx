@@ -11,6 +11,29 @@ import { Separator } from "@/components/ui/separator";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
 import { useUiStore } from "@/stores/uiStore";
 
+function MediaTypeDetails({
+  mediaType,
+}: { mediaType: MediaType }) {
+  return (
+    <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
+      <dt className="text-muted-foreground">Added</dt>
+      <dd>{new Date(mediaType.createdAt).toLocaleDateString()}</dd>
+      <dt className="text-muted-foreground">Slug</dt>
+      <dd className="font-mono">{mediaType.slug}</dd>
+      <dt className="text-muted-foreground">Sort order</dt>
+      <dd>{mediaType.sortOrder}</dd>
+      {mediaType.bookmarkCount != null
+        ? (
+          <>
+            <dt className="text-muted-foreground">Bookmarks</dt>
+            <dd>{mediaType.bookmarkCount}</dd>
+          </>
+        )
+        : null}
+    </dl>
+  );
+}
+
 /** Read-only display card for a single media type. Shared by the view page and the right panel's View body. */
 export function MediaTypeCard({
   mediaType,
@@ -47,22 +70,7 @@ export function MediaTypeCard({
       <Separator />
 
       <LabeledSection title="Details">
-        <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
-          <dt className="text-muted-foreground">Added</dt>
-          <dd>{new Date(mediaType.createdAt).toLocaleDateString()}</dd>
-          <dt className="text-muted-foreground">Slug</dt>
-          <dd className="font-mono">{mediaType.slug}</dd>
-          <dt className="text-muted-foreground">Sort order</dt>
-          <dd>{mediaType.sortOrder}</dd>
-          {mediaType.bookmarkCount != null
-            ? (
-              <>
-                <dt className="text-muted-foreground">Bookmarks</dt>
-                <dd>{mediaType.bookmarkCount}</dd>
-              </>
-            )
-            : null}
-        </dl>
+        <MediaTypeDetails mediaType={mediaType} />
       </LabeledSection>
     </div>
   );

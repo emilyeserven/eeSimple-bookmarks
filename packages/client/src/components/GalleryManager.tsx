@@ -13,6 +13,64 @@ import { useAttachOrphan, useDeleteOrphans, useGallery, useScanBucket } from "..
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
+interface GalleryToolbarProps {
+  imageMode: ImageMode;
+  onImageModeChange: (mode: ImageMode) => void;
+  scan: ReturnType<typeof useScanBucket>;
+}
+
+function GalleryToolbar({
+  imageMode, onImageModeChange, scan,
+}: GalleryToolbarProps) {
+  return (
+    <div className="flex flex-wrap items-center gap-3">
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        disabled={scan.isPending}
+        onClick={() => scan.mutate()}
+      >
+        <RefreshCw
+          className={`
+            size-4
+            ${scan.isPending ? "animate-spin" : ""}
+          `}
+        />
+        {scan.isPending ? "Scanning…" : "Scan bucket"}
+      </Button>
+
+      <ToggleGroup
+        type="single"
+        value={imageMode}
+        onValueChange={value => value && onImageModeChange(value as ImageMode)}
+        size="sm"
+      >
+        <ToggleGroupItem
+          value="cover"
+          title="Cropped"
+        >
+          <Crop className="size-4" />
+        </ToggleGroupItem>
+        <ToggleGroupItem
+          value="contain"
+          title="Fit"
+        >
+          <Maximize2 className="size-4" />
+        </ToggleGroupItem>
+      </ToggleGroup>
+
+      {scan.data
+        ? (
+          <p className="text-sm text-muted-foreground">
+            {`Added ${scan.data.added}, updated ${scan.data.updated}, pruned ${scan.data.pruned}.`}
+          </p>
+        )
+        : null}
+    </div>
+  );
+}
+
 /**
  * The Gallery: a catalog of every object in the storage bucket, split into images still linked to a
  * bookmark and orphans (objects with no live bookmark) that can be reclaimed. The bucket is
@@ -71,51 +129,11 @@ export function GalleryListing() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center gap-3">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={scan.isPending}
-          onClick={() => scan.mutate()}
-        >
-          <RefreshCw
-            className={`
-              size-4
-              ${scan.isPending ? "animate-spin" : ""}
-            `}
-          />
-          {scan.isPending ? "Scanning…" : "Scan bucket"}
-        </Button>
-
-        <ToggleGroup
-          type="single"
-          value={imageMode}
-          onValueChange={value => value && setImageMode(value as ImageMode)}
-          size="sm"
-        >
-          <ToggleGroupItem
-            value="cover"
-            title="Cropped"
-          >
-            <Crop className="size-4" />
-          </ToggleGroupItem>
-          <ToggleGroupItem
-            value="contain"
-            title="Fit"
-          >
-            <Maximize2 className="size-4" />
-          </ToggleGroupItem>
-        </ToggleGroup>
-
-        {scan.data
-          ? (
-            <p className="text-sm text-muted-foreground">
-              {`Added ${scan.data.added}, updated ${scan.data.updated}, pruned ${scan.data.pruned}.`}
-            </p>
-          )
-          : null}
-      </div>
+      <GalleryToolbar
+        imageMode={imageMode}
+        onImageModeChange={setImageMode}
+        scan={scan}
+      />
 
       {catalog
         ? (
