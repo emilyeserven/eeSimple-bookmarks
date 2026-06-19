@@ -1,6 +1,4 @@
-import type { ComponentProps, ReactNode } from "react";
-
-import { Link } from "@tanstack/react-router";
+import type { ReactNode } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { RowCard } from "@/components/ui/card";
@@ -16,8 +14,11 @@ interface RowListItemProps {
   menu: ReactNode;
   /** Optional content rendered below the main flex row (e.g. a CategoryPill). */
   categoryPill?: ReactNode;
-  /** TanStack Router Link props forwarded to the primary navigation link (className/children are controlled internally). */
-  linkProps: Omit<ComponentProps<typeof Link>, "className" | "children">;
+  /**
+   * Render prop: caller builds the typed TanStack Router Link, receiving the className to apply and
+   * the icon + title/subtitle content as children. Keeps route-specific type-safety at the call site.
+   */
+  renderLink: (className: string, children: ReactNode) => ReactNode;
 }
 
 /**
@@ -26,8 +27,24 @@ interface RowListItemProps {
  * YouTubeChannelListItem, and PropertyGroupListItem.
  */
 export function RowListItem({
-  icon, title, subtitle, badge, menu, categoryPill, linkProps,
+  icon, title, subtitle, badge, menu, categoryPill, renderLink,
 }: RowListItemProps) {
+  const linkClassName = icon !== undefined
+    ? "flex min-w-0 flex-1 items-center gap-3"
+    : "min-w-0 flex-1";
+
+  const linkChildren = (
+    <>
+      {icon !== undefined && icon}
+      <div className="min-w-0 flex-1">
+        <p className="font-medium">{title}</p>
+        {subtitle !== undefined && (
+          <p className="truncate text-sm text-muted-foreground">{subtitle}</p>
+        )}
+      </div>
+    </>
+  );
+
   return (
     <RowCard
       className="
@@ -36,22 +53,7 @@ export function RowListItem({
       "
     >
       <div className="flex items-center gap-3 p-4">
-        <Link
-          {...linkProps}
-          className={
-            icon !== undefined
-              ? "flex min-w-0 flex-1 items-center gap-3"
-              : "min-w-0 flex-1"
-          }
-        >
-          {icon !== undefined && icon}
-          <div className="min-w-0 flex-1">
-            <p className="font-medium">{title}</p>
-            {subtitle !== undefined && (
-              <p className="truncate text-sm text-muted-foreground">{subtitle}</p>
-            )}
-          </div>
-        </Link>
+        {renderLink(linkClassName, linkChildren)}
         {menu}
         {badge !== undefined
           ? <Badge variant="secondary">{badge}</Badge>
