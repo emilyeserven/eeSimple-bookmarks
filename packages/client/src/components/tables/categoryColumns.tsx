@@ -4,6 +4,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { useMemo } from "react";
 
 import { EditActionCell } from "./cells";
+import { bookmarkCountColumn } from "./columnHelpers";
 import { useEditPanelClick } from "../panel/useEditPanelClick";
 
 import { Badge } from "@/components/ui/badge";
@@ -40,15 +41,7 @@ export function useCategoryColumns(): ColumnDef<Category>[] {
           <span className="text-muted-foreground">{row.original.description ?? "—"}</span>
         ),
       },
-      {
-        accessorKey: "bookmarkCount",
-        header: "Bookmarks",
-        cell: ({
-          row,
-        }) => (row.original.bookmarkCount !== undefined
-          ? <Badge variant="secondary">{row.original.bookmarkCount}</Badge>
-          : null),
-      },
+      bookmarkCountColumn<Category>(),
       {
         id: "actions",
         header: "",

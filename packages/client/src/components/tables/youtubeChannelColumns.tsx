@@ -6,10 +6,8 @@ import { useMemo } from "react";
 import { MonitorPlay } from "lucide-react";
 
 import { EditActionCell, ImageCell } from "./cells";
-import { CategoryPill } from "../CategoryPill";
+import { bookmarkCountColumn, categoryPillColumn } from "./columnHelpers";
 import { useEditPanelClick } from "../panel/useEditPanelClick";
-
-import { Badge } from "@/components/ui/badge";
 
 /** Column definitions for the YouTube Channels listing Table view. */
 export function useYouTubeChannelColumns(): ColumnDef<YouTubeChannel>[] {
@@ -41,23 +39,8 @@ export function useYouTubeChannelColumns(): ColumnDef<YouTubeChannel>[] {
           <span className="font-mono text-xs text-muted-foreground">{row.original.channelKey}</span>
         ),
       },
-      {
-        id: "category",
-        header: "Category",
-        enableSorting: false,
-        cell: ({
-          row,
-        }) => (row.original.category ? <CategoryPill category={row.original.category} /> : null),
-      },
-      {
-        accessorKey: "bookmarkCount",
-        header: "Bookmarks",
-        cell: ({
-          row,
-        }) => (row.original.bookmarkCount !== undefined
-          ? <Badge variant="secondary">{row.original.bookmarkCount}</Badge>
-          : null),
-      },
+      categoryPillColumn<YouTubeChannel>(),
+      bookmarkCountColumn<YouTubeChannel>(),
       {
         id: "actions",
         header: "",

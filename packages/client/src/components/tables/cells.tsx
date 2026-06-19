@@ -1,12 +1,46 @@
+import type { Row } from "@tanstack/react-table";
 import type { ReactNode } from "react";
 
 import { useState } from "react";
 
 import { Link } from "@tanstack/react-router";
-import { Pencil } from "lucide-react";
+import { ChevronDown, ChevronRight, Pencil } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+
+/**
+ * Expand/collapse chevron for a row in a flattened, expandable tree table. Renders a toggle button
+ * when the row has children, or a same-size spacer so leaf rows stay aligned.
+ */
+export function TreeExpandToggle<T>({
+  row,
+}: { row: Row<T> }) {
+  if (!row.getCanExpand()) {
+    return (
+      <span
+        className="inline-block size-4"
+        aria-hidden="true"
+      />
+    );
+  }
+  return (
+    <button
+      type="button"
+      data-no-row-click
+      aria-label={row.getIsExpanded() ? "Collapse" : "Expand"}
+      onClick={row.getToggleExpandedHandler()}
+      className="
+        flex size-4 items-center justify-center text-muted-foreground
+        hover:text-foreground
+      "
+    >
+      {row.getIsExpanded()
+        ? <ChevronDown className="size-4" />
+        : <ChevronRight className="size-4" />}
+    </button>
+  );
+}
 
 /**
  * Small square/round thumbnail cell shared by the entity tables (website favicon, channel avatar).

@@ -6,8 +6,8 @@ import { channelUrlFromKey } from "@eesimple/types";
 import { MonitorPlay } from "lucide-react";
 import { z } from "zod";
 
+import { DefaultTagsField } from "./DefaultTagsField";
 import { EntityImageField } from "./EntityImageField";
-import { TagPicker } from "./TagPicker";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -225,19 +225,12 @@ export function YouTubeChannelGeneralForm({
 
       <Separator />
 
-      <div className="space-y-2">
-        <Label className="block">Default tags</Label>
-        <p className="text-sm text-muted-foreground">
-          Tags applied automatically to bookmarks saved from this channel.
-        </p>
-        <div className="rounded-md border p-2">
-          <TagPicker
-            tree={tagTree ?? []}
-            selectedIds={tagIds}
-            onToggle={id => setTagIds(prev => prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id])}
-          />
-        </div>
-      </div>
+      <DefaultTagsField
+        tree={tagTree ?? []}
+        selectedIds={tagIds}
+        onToggle={id => setTagIds(prev => prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id])}
+        description="Tags applied automatically to bookmarks saved from this channel."
+      />
 
       <form.AppForm>
         <form.Subscribe selector={state => state.values}>
