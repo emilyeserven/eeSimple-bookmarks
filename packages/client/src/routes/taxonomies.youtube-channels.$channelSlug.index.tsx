@@ -27,7 +27,7 @@ function YouTubeChannelBookmarksPage() {
     error,
     tagTree,
     mediaTypes,
-  } = useCategoryPageData(search.tag);
+  } = useCategoryPageData(search.tags);
 
   const {
     channel, isLoading: channelLoading,

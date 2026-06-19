@@ -7,19 +7,27 @@ import {
   withCategories,
   withMediaTypes,
   withNumberFilter,
-  withTag,
+  withTags,
   withYouTubeChannels,
 } from "./bookmarkSearch";
 
 describe("validateBookmarkSearch", () => {
-  it("keeps a string tag and drops a non-string one", () => {
+  it("keeps a string-array tags field and drops non-string entries", () => {
     expect(validateBookmarkSearch({
-      tag: "abc",
+      tags: ["abc", "def"],
     })).toEqual({
-      tag: "abc",
+      tags: ["abc", "def"],
     });
     expect(validateBookmarkSearch({
-      tag: 5,
+      tags: ["abc", 5, null],
+    })).toEqual({
+      tags: ["abc"],
+    });
+    expect(validateBookmarkSearch({
+      tags: [],
+    })).toEqual({});
+    expect(validateBookmarkSearch({
+      tags: "not-an-array",
     })).toEqual({});
   });
 
@@ -120,16 +128,16 @@ describe("with* helpers", () => {
     }, [])).toEqual({});
   });
 
-  it("sets and clears the tag immutably", () => {
+  it("sets and clears tags immutably", () => {
     const base = {
-      tag: "a",
+      tags: ["a"],
     };
-    expect(withTag(base, "b")).toEqual({
-      tag: "b",
+    expect(withTags(base, ["b"])).toEqual({
+      tags: ["b"],
     });
-    expect(withTag(base, undefined)).toEqual({});
+    expect(withTags(base, [])).toEqual({});
     expect(base).toEqual({
-      tag: "a",
+      tags: ["a"],
     });
   });
 
