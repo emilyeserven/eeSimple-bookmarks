@@ -411,6 +411,15 @@ export async function downloadImage(url: string): Promise<Buffer | null> {
 export type OgImageResult = Buffer | "fetch_error" | "blocked" | "server_error" | "no_image" | "bad_image";
 
 /**
+ * The non-buffer outcomes of an entity-image grab — a typed reason no image could be stored. Shared
+ * by the website-favicon and YouTube-channel-avatar services so the outcome shape stays consistent.
+ */
+export type EntityImageGrabError = Exclude<OgImageResult, Buffer>;
+
+/** A successful grab returns the cache-busting serving URL; otherwise a typed failure. */
+export type EntityImageResult = { imageUrl: string } | "not_found" | EntityImageGrabError;
+
+/**
  * Fetch the page at `pageUrl`, find its preview image (og:image / twitter:image / icon), download
  * it, and return the raw bytes — or a typed error string describing why it failed.
  */

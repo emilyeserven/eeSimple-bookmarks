@@ -11,15 +11,10 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { type YouTubeChannelImageRow, youtubeChannelImages, youtubeChannels } from "@/db/schema";
-import { fetchOgImage, type OgImageResult } from "@/services/metadata";
+import { type EntityImageResult, fetchOgImage } from "@/services/metadata";
 import { channelUrlFromKey } from "@/services/youtubeChannels";
 import { processImage } from "@/utils/image";
 import { deleteObject, putObject } from "@/utils/objectStore";
-
-/** The non-buffer outcomes of an image grab — a typed reason no image could be stored. */
-export type EntityImageGrabError = Exclude<OgImageResult, Buffer>;
-/** A successful grab returns the cache-busting serving URL; otherwise a typed failure. */
-export type EntityImageResult = { imageUrl: string } | "not_found" | EntityImageGrabError;
 
 /** Object-storage key for a channel's avatar. Stable per channel, so a replace overwrites it. */
 function objectKeyFor(channelId: string): string {

@@ -11,14 +11,9 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { type WebsiteFaviconRow, websiteFavicons, websites } from "@/db/schema";
-import { fetchFaviconImage, type OgImageResult } from "@/services/metadata";
+import { type EntityImageResult, fetchFaviconImage } from "@/services/metadata";
 import { processImage } from "@/utils/image";
 import { deleteObject, putObject } from "@/utils/objectStore";
-
-/** The non-buffer outcomes of a favicon grab — a typed reason no image could be stored. */
-export type EntityImageGrabError = Exclude<OgImageResult, Buffer>;
-/** A successful grab returns the cache-busting serving URL; otherwise a typed failure. */
-export type EntityImageResult = { imageUrl: string } | "not_found" | EntityImageGrabError;
 
 /** Object-storage key for a website's favicon. Stable per website, so a replace overwrites it. */
 function objectKeyFor(websiteId: string): string {
