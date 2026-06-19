@@ -108,6 +108,9 @@ interface BookmarkRevealedFieldsProps {
   // Autofill offer state.
   autofillOfferDismissed: boolean;
   onAutofillOfferDismiss: () => void;
+
+  // Description fetch sparkle.
+  onFetchDescription: (url: string) => void;
 }
 
 /**
@@ -172,6 +175,7 @@ export function BookmarkRevealedFields({
   urlDuplicate,
   autofillOfferDismissed,
   onAutofillOfferDismiss,
+  onFetchDescription,
 }: BookmarkRevealedFieldsProps) {
   return (
     <>
@@ -338,6 +342,8 @@ export function BookmarkRevealedFields({
         onBooleanChange={onBooleanChange}
         onDateTimeChange={onDateTimeChange}
         onApplyCategoryDefaults={onApplyCategoryDefaults}
+        onFetchDescription={onFetchDescription}
+        isFetchDescriptionPending={isFetchMetadataPending}
       />
     </>
   );

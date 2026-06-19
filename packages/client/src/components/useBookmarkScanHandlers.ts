@@ -169,6 +169,29 @@ export function useBookmarkScanHandlers({
     }
   }
 
+  // Fetch the page description for the current URL and write it into the Description field.
+  // Works for both YouTube (uses the same fetch-metadata result) and regular websites (og:description).
+  // `force` always overwrites; the on-blur path would only fill a blank field.
+  async function runFetchDescription(url: string, {
+    force,
+  }: { force: boolean }): Promise<void> {
+    if (!isUrlFetchable(url)) return;
+    if (!force && form.getFieldValue("description").trim() !== "") return;
+    try {
+      const meta = await fetchMetadata.mutateAsync({
+        url,
+      });
+      if (!meta.description) return;
+      const prev = form.getFieldValue("description");
+      if (force || prev.trim() === "") {
+        form.setFieldValue("description", meta.description);
+      }
+    }
+    catch {
+      // Non-fatal: best-effort convenience.
+    }
+  }
+
   // Canonicalize the URL on blur and rewrite the field to the cleaned form (the hook records the
   // original for undo and tracks the cleanup state); a `null` result means leave the field as-is.
   function runUrlCleanup(url: string): void {
@@ -214,6 +237,7 @@ export function useBookmarkScanHandlers({
 
   return {
     runFetchTitle,
+    runFetchDescription,
     runYouTubeEnrichment,
     runUrlCleanup,
     undoUrlCleanup,

@@ -145,6 +145,7 @@ export function BookmarkGeneralForm({
 
   const {
     runFetchTitle,
+    runFetchDescription,
     runYouTubeEnrichment,
     runUrlCleanup,
     undoUrlCleanup,
@@ -369,9 +370,34 @@ export function BookmarkGeneralForm({
         </form.Subscribe>
       )}
 
-      <form.AppField name="description">
-        {field => <field.TextareaField label="Description" />}
-      </form.AppField>
+      <form.Subscribe selector={state => state.values.url}>
+        {url => (
+          <form.AppField name="description">
+            {field => (
+              <field.TextareaField
+                label="Description"
+                action={(
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    title="Fetch description from URL"
+                    aria-label="Fetch description from URL"
+                    disabled={!isFetchableUrl(url) || fetchMetadata.isPending}
+                    onClick={() => void runFetchDescription(url, {
+                      force: true,
+                    })}
+                  >
+                    {fetchMetadata.isPending
+                      ? <Loader2 className="size-4 animate-spin" />
+                      : <Sparkles className="size-4" />}
+                  </Button>
+                )}
+              />
+            )}
+          </form.AppField>
+        )}
+      </form.Subscribe>
 
       <form.AppField name="categoryId">
         {field => (

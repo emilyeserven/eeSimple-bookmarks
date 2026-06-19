@@ -1,6 +1,12 @@
 import type { FastifyInstance } from "fastify";
 import type { FetchMetadataResult } from "@eesimple/types";
-import { checkUrl, fetchPageTitle } from "@/services/metadata";
+import {
+  checkUrl,
+  extractDescription,
+  extractTitle,
+  fetchHeadHtml,
+  fetchPageTitle,
+} from "@/services/metadata";
 import { lookupWebsiteByUrl, stripSiteNameSuffix } from "@/services/websites";
 import { fetchYouTubeMetadata, isYouTubeVideoUrl } from "@/services/youtube";
 import { channelKeyFromUrl, getYouTubeChannelByKey } from "@/services/youtubeChannels";
@@ -178,26 +184,21 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
       };
     }
 
-    const result = await fetchPageTitle(url);
-    if (result.kind !== "ok") {
-      return {
-        title: null,
-        description: null,
-        isYouTube: false,
-        channel: null,
-        durationSeconds: null,
-        thumbnailUrl: null,
-      };
-    }
-    const {
+    const [html, {
       domain, website,
-    } = await lookupWebsiteByUrl(url);
+    }] = await Promise.all([
+      fetchHeadHtml(url),
+      lookupWebsiteByUrl(url),
+    ]);
+    const rawTitle = html ? extractTitle(html) : null;
     return {
-      title: stripSiteNameSuffix(result.title, {
-        siteName: siteNameHint ?? website?.siteName,
-        domain,
-      }),
-      description: null,
+      title: rawTitle
+        ? stripSiteNameSuffix(rawTitle, {
+          siteName: siteNameHint ?? website?.siteName,
+          domain,
+        })
+        : null,
+      description: html ? extractDescription(html) : null,
       isYouTube: false,
       channel: null,
       durationSeconds: null,
