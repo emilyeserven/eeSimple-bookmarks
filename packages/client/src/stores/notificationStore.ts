@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+import { randomId } from "@/lib/utils";
+
 /** Whether a recorded notification reported a success or an error. */
 export type NotificationType = "success" | "error";
 
@@ -33,7 +35,7 @@ export const useNotificationStore = create<NotificationState>()(
         notifications: [
           {
             ...record,
-            id: crypto.randomUUID(),
+            id: randomId(),
           },
           ...state.notifications,
         ].slice(0, MAX_RECORDS),
