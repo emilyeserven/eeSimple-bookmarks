@@ -35,6 +35,7 @@ interface ConditionsFieldProps {
   categories: Category[];
   properties: CustomProperty[];
   tagTree: TagNode[];
+  openCustomProperties?: boolean;
 }
 
 interface SectionProps {
@@ -82,7 +83,7 @@ function Section({
  * be layered on later without changing the data shape.
  */
 export function ConditionsField({
-  value, onChange, categories, properties, tagTree,
+  value, onChange, categories, properties, tagTree, openCustomProperties,
 }: ConditionsFieldProps) {
   const matches = value.children.filter((child): child is MatchCondition => child.type === "match");
   const categoryLeaf = value.children.find((child): child is CategoryCondition => child.type === "category");
@@ -276,7 +277,7 @@ export function ConditionsField({
       <Section
         title="Custom properties"
         summary={propertyLeaves.length > 0 ? `${propertyLeaves.length}` : undefined}
-        defaultOpen={propertyLeaves.length > 0}
+        defaultOpen={openCustomProperties || propertyLeaves.length > 0}
       >
         <PropertyConditionEditor
           value={propertyLeaves}

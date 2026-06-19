@@ -47,6 +47,7 @@ export function CreateAutofillRule() {
   // list. Undefined on every other surface (e.g. /settings/autofill), leaving the defaults unchanged.
   const {
     categorySlug,
+    propertySlug,
     websiteSlug,
     tagSlug,
     mediaTypeSlug,
@@ -63,6 +64,9 @@ export function CreateAutofillRule() {
   } = useYouTubeChannelBySlug(channelSlug ?? "");
   const defaultCategoryId = categorySlug
     ? (categories ?? []).find(category => category.slug === categorySlug)?.id
+    : undefined;
+  const defaultPropertyId = propertySlug
+    ? (properties ?? []).find(p => p.slug === propertySlug)?.id
     : undefined;
   const defaultWebsiteDomain = websiteSlug
     ? (websites ?? []).find(site => site.slug === websiteSlug)?.domain
@@ -96,6 +100,7 @@ export function CreateAutofillRule() {
         defaultWebsiteDomain={defaultWebsiteDomain}
         defaultTagIds={defaultTagIds}
         defaultChannelIds={defaultChannelIds}
+        defaultOpenCustomProperties={!!defaultPropertyId}
         submitLabel="Add rule"
         isError={createRule.isError}
         errorMessage={createRule.error?.message}
