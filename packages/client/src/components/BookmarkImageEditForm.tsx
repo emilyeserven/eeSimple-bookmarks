@@ -3,8 +3,6 @@ import type { Bookmark } from "@eesimple/types";
 
 import { useRef, useState } from "react";
 
-import { toast } from "sonner";
-
 import { BookmarkImageField } from "./BookmarkImageField";
 import { EMPTY_IMAGE_INTENT } from "./bookmarkImageIntent";
 import {
@@ -12,6 +10,7 @@ import {
   useDeleteBookmarkImage,
   useUploadBookmarkImage,
 } from "../hooks/useBookmarks";
+import { notifySuccess } from "../lib/notifications";
 
 import { Button } from "@/components/ui/button";
 
@@ -48,7 +47,7 @@ export function BookmarkImageEditForm({
       else if (intent.remove) {
         await deleteImage.mutateAsync(bookmark.id);
       }
-      toast.success("Changes saved");
+      notifySuccess("Changes saved");
       imageIntentRef.current = EMPTY_IMAGE_INTENT;
       setImageFieldKey(key => key + 1);
     }

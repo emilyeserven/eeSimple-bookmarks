@@ -2,9 +2,8 @@ import type { Category } from "@eesimple/types";
 
 import { useState } from "react";
 
-import { toast } from "sonner";
-
 import { useCreateAutofillRule } from "../hooks/useAutofill";
+import { notifyError, notifySuccess } from "../lib/notifications";
 
 import { Button } from "@/components/ui/button";
 
@@ -56,11 +55,11 @@ export function BookmarkAutofillOffer({
         },
         setCategoryId: effectiveCategoryId,
       });
-      toast.success("Autofill rule created");
+      notifySuccess("Autofill rule created");
       onDismiss();
     }
     catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not create autofill rule");
+      notifyError(err instanceof Error ? err.message : "Could not create autofill rule");
     }
     finally {
       setIsPending(false);

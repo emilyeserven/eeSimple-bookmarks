@@ -13,7 +13,6 @@ import { useEffect, useRef, useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
 import { Brush, Loader2 } from "lucide-react";
-import { toast } from "sonner";
 
 import {
   bookmarkSchema,
@@ -27,6 +26,7 @@ import { BookmarkRevealedFields } from "./BookmarkRevealedFields";
 import { useBookmarkFormData } from "./useBookmarkFormData";
 import { useBookmarkUrlProcessing } from "./useBookmarkUrlProcessing";
 import { useAppForm } from "../lib/form";
+import { notifySuccess } from "../lib/notifications";
 
 import { Button } from "@/components/ui/button";
 
@@ -346,7 +346,7 @@ export function BookmarkForm({
       await applyImageIntent(created.id);
       // Offer a shortcut to refine the chosen category right after saving.
       const categorySlug = (categories ?? []).find(category => category.id === value.categoryId)?.slug;
-      toast.success("Bookmark added", categorySlug
+      notifySuccess("Bookmark added", categorySlug
         ? {
           action: {
             label: "Edit category",
