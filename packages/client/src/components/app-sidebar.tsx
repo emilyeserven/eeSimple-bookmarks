@@ -15,8 +15,7 @@ import {
   Wand2,
 } from "lucide-react";
 
-import { CollapsibleSection, SidebarNavSection, SidebarResizeHandle } from "./app-sidebar-sections";
-import { useViewPanelClick } from "./panel/useEditPanelClick";
+import { CollapsibleSection, SidebarNavSection, SidebarResizeHandle, useViewPanelClick } from "./app-sidebar-sections";
 import { useCategories } from "../hooks/useCategories";
 import { useUiStore } from "../stores/uiStore";
 

@@ -9,6 +9,8 @@ import { ChevronDown } from "lucide-react";
 import { useResizeHandle } from "../hooks/useResizeHandle";
 import { useUiStore } from "../stores/uiStore";
 
+export { useViewPanelClick } from "./panel/useEditPanelClick";
+
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   SidebarGroup,
