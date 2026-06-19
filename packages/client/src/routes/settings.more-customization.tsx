@@ -54,10 +54,12 @@ function MoreCustomizationPage() {
             key={tile.label}
             to={tile.to}
           >
-            <Card className="
-              cursor-pointer py-4 transition-colors
-              hover:bg-accent
-            ">
+            <Card
+              className="
+                cursor-pointer py-4 transition-colors
+                hover:bg-accent
+              "
+            >
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-base">
                   <tile.icon className="size-4 shrink-0" />

@@ -33,7 +33,13 @@ interface Props {
   navAriaLabel: string;
 }
 
-function NavLink({ item, params }: { item: TabNavItem; params?: LinkProps["params"] }) {
+function NavLink({
+  item,
+  params,
+}: {
+  item: TabNavItem;
+  params?: LinkProps["params"];
+}) {
   return (
     <Link
       to={item.to}
@@ -68,7 +74,7 @@ export function TabbedEntityLayout({
           "
           aria-label={navAriaLabel}
         >
-          {nav.map(entry => {
+          {nav.map((entry) => {
             if ("type" in entry && entry.type === "group") {
               return (
                 <div
@@ -77,8 +83,8 @@ export function TabbedEntityLayout({
                 >
                   <p
                     className="
-                      px-3 pb-0.5 pt-3 text-xs font-semibold
-                      uppercase tracking-wide text-muted-foreground
+                      px-3 pt-3 pb-0.5 text-xs font-semibold
+                      tracking-wide text-muted-foreground uppercase
                     "
                   >
                     {entry.label}

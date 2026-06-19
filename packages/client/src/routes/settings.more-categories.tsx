@@ -47,10 +47,12 @@ function MoreCategoriesPage() {
                     categorySlug: category.slug,
                   }}
                 >
-                  <Card className="
-                    cursor-pointer py-4 transition-colors
-                    hover:bg-accent
-                  ">
+                  <Card
+                    className="
+                      cursor-pointer py-4 transition-colors
+                      hover:bg-accent
+                    "
+                  >
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2 text-base">
                         <CategoryIcon
@@ -81,8 +83,8 @@ function MoreCategoriesPage() {
         <Link
           to="/categories"
           className="
-            inline-flex items-center gap-1.5 text-sm
-            underline underline-offset-4
+            inline-flex items-center gap-1.5 text-sm underline
+            underline-offset-4
           "
         >
           <FolderOpen className="size-4" />
