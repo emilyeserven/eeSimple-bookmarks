@@ -28,7 +28,7 @@ function summarizeNode(node: ConditionNode): string {
       return `tagged with (${node.tagIds.length})`;
     case "youtube-channel":
       return node.channelIds.length === 1
-        ? `YouTube channel is (1)`
+        ? "YouTube channel is (1)"
         : `YouTube channel is one of (${node.channelIds.length})`;
     case "property":
       return `${node.predicate.valueKind} property condition`;

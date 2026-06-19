@@ -85,6 +85,10 @@ function describeConditionNode(
       const names = node.tagIds.map(id => tags.find(t => t.id === id)?.name ?? id);
       return `Tagged with any of: ${names.join(", ")}`;
     }
+    case "youtube-channel":
+      return node.channelIds.length === 1
+        ? "YouTube channel is (1)"
+        : `YouTube channel is one of (${node.channelIds.length})`;
     case "property": {
       const property = properties.find(p => p.id === node.propertyId);
       const name = property?.name ?? "Unknown property";
