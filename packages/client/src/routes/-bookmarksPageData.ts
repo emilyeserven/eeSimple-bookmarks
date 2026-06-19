@@ -8,25 +8,25 @@ import { useWebsites } from "../hooks/useWebsites";
 import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
 
 /**
- * Bundles the data hooks the category page needs into a single call, keeping the route module's
+ * Bundles the data hooks the Bookmarks page needs into a single call, keeping the route module's
  * import count down. Behaviour is identical to calling each hook inline.
  */
-export function useCategoryPageData(tags: string[] | undefined) {
+export function useBookmarksPageData(tags: string[] | undefined) {
   const {
-    data: categories, isLoading: categoriesLoading,
-  } = useCategories();
+    data: bookmarks, isLoading, error,
+  } = useBookmarks(tags);
   const {
-    data: properties,
+    data: tagTree,
+  } = useTagTree();
+  const {
+    data: customProperties,
   } = useCustomProperties();
   const {
     data: propertyGroups,
   } = usePropertyGroups();
   const {
-    data: bookmarks, isLoading: bookmarksLoading, error,
-  } = useBookmarks(tags);
-  const {
-    data: tagTree,
-  } = useTagTree();
+    data: categories,
+  } = useCategories();
   const {
     data: mediaTypes,
   } = useMediaTypes();
@@ -38,14 +38,13 @@ export function useCategoryPageData(tags: string[] | undefined) {
   } = useWebsites();
 
   return {
-    categories,
-    categoriesLoading,
-    properties,
-    propertyGroups,
     bookmarks,
-    bookmarksLoading,
+    isLoading,
     error,
     tagTree,
+    customProperties,
+    propertyGroups,
+    categories,
     mediaTypes,
     youtubeChannels,
     websites,

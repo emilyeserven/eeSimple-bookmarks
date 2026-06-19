@@ -8,6 +8,9 @@ import {
   withMediaTypes,
   withNumberFilter,
   withTags,
+  withWebsitePresence,
+  withWebsites,
+  withYouTubeChannelPresence,
   withYouTubeChannels,
 } from "./bookmarkSearch";
 
@@ -61,6 +64,20 @@ describe("validateBookmarkSearch", () => {
     expect(validateBookmarkSearch({
       mediaTypes: [],
       youtubeChannels: "nope",
+    })).toEqual({});
+  });
+
+  it("keeps a valid websites array and drops malformed entries", () => {
+    expect(validateBookmarkSearch({
+      websites: ["site-1", 9, null],
+    })).toEqual({
+      websites: ["site-1"],
+    });
+    expect(validateBookmarkSearch({
+      websites: [],
+    })).toEqual({});
+    expect(validateBookmarkSearch({
+      websites: "nope",
     })).toEqual({});
   });
 
@@ -126,6 +143,35 @@ describe("with* helpers", () => {
     expect(withYouTubeChannels({
       youtubeChannels: ["ch-1"],
     }, [])).toEqual({});
+    expect(withWebsites({}, ["site-1", "site-2"])).toEqual({
+      websites: ["site-1", "site-2"],
+    });
+    expect(withWebsites({
+      websites: ["site-1"],
+    }, [])).toEqual({});
+  });
+
+  it("sets and clears channel/website presence, dropping the selection on 'missing'", () => {
+    expect(withYouTubeChannelPresence({}, "has")).toEqual({
+      youtubeChannelPresence: "has",
+    });
+    expect(withYouTubeChannelPresence({
+      youtubeChannels: ["ch-1"],
+    }, "missing")).toEqual({
+      youtubeChannelPresence: "missing",
+    });
+    expect(withYouTubeChannelPresence({
+      youtubeChannelPresence: "has",
+    }, undefined)).toEqual({});
+
+    expect(withWebsitePresence({
+      websites: ["site-1"],
+    }, "missing")).toEqual({
+      websitePresence: "missing",
+    });
+    expect(withWebsitePresence({
+      websitePresence: "has",
+    }, undefined)).toEqual({});
   });
 
   it("sets and clears tags immutably", () => {
@@ -178,6 +224,13 @@ describe("bookmarkMatchesSearch", () => {
       id: "ch-1",
       name: "Veritasium",
       slug: "veritasium",
+    },
+    website: {
+      id: "site-1",
+      domain: "github.com",
+      siteName: "GitHub",
+      slug: "github",
+      imageUrl: null,
     },
     tags: [],
     numberValues: [{
@@ -241,6 +294,52 @@ describe("bookmarkMatchesSearch", () => {
     }, {
       youtubeChannels: ["ch-1"],
     })).toBe(false);
+  });
+
+  it("applies the website filter", () => {
+    expect(bookmarkMatchesSearch(bookmark, {
+      websites: ["site-1"],
+    })).toBe(true);
+    expect(bookmarkMatchesSearch(bookmark, {
+      websites: ["site-2"],
+    })).toBe(false);
+    expect(bookmarkMatchesSearch({
+      ...bookmark,
+      website: null,
+    }, {
+      websites: ["site-1"],
+    })).toBe(false);
+  });
+
+  it("applies channel/website presence filters", () => {
+    expect(bookmarkMatchesSearch(bookmark, {
+      youtubeChannelPresence: "has",
+    })).toBe(true);
+    expect(bookmarkMatchesSearch(bookmark, {
+      youtubeChannelPresence: "missing",
+    })).toBe(false);
+    expect(bookmarkMatchesSearch({
+      ...bookmark,
+      youtubeChannel: null,
+    }, {
+      youtubeChannelPresence: "missing",
+    })).toBe(true);
+
+    expect(bookmarkMatchesSearch(bookmark, {
+      websitePresence: "has",
+    })).toBe(true);
+    expect(bookmarkMatchesSearch({
+      ...bookmark,
+      website: null,
+    }, {
+      websitePresence: "has",
+    })).toBe(false);
+    expect(bookmarkMatchesSearch({
+      ...bookmark,
+      website: null,
+    }, {
+      websitePresence: "missing",
+    })).toBe(true);
   });
 
   it("applies number-range and boolean filters", () => {

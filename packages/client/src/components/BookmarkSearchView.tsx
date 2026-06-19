@@ -1,5 +1,5 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
-import type { Bookmark, Category, CustomProperty, MediaType, PropertyGroup, TagNode, YouTubeChannel } from "@eesimple/types";
+import type { Bookmark, Category, CustomProperty, MediaType, PropertyGroup, TagNode, Website, YouTubeChannel } from "@eesimple/types";
 import type { ReactNode } from "react";
 
 import { useEffect } from "react";
@@ -28,6 +28,8 @@ interface BookmarkSearchViewProps {
   mediaTypes?: MediaType[];
   /** YouTube channels offered as a multi-select filter in the rail. */
   youtubeChannels?: YouTubeChannel[];
+  /** Websites offered as a multi-select filter in the rail. */
+  websites?: Website[];
   /** Bookmarks already narrowed by tag (and category, on category pages). */
   bookmarks: Bookmark[];
   search: BookmarkSearch;
@@ -59,6 +61,7 @@ export function BookmarkSearchView({
   categories,
   mediaTypes,
   youtubeChannels,
+  websites,
   bookmarks,
   search,
   onSearchChange,
@@ -91,13 +94,14 @@ export function BookmarkSearchView({
       categories,
       mediaTypes,
       youtubeChannels,
+      websites,
       bookmarks,
       search,
       onSearchChange,
     });
     return () => setFilterContext(null);
     // onSearchChange is a new arrow fn each render from the page; stable deps are the data arrays
-  }, [tree, properties, propertyGroups, categories, mediaTypes, youtubeChannels, bookmarks, search, onSearchChange, setFilterContext]);
+  }, [tree, properties, propertyGroups, categories, mediaTypes, youtubeChannels, websites, bookmarks, search, onSearchChange, setFilterContext]);
 
   useEffect(() => {
     if (filtersInDrawer && !isOpen) {
@@ -138,6 +142,7 @@ export function BookmarkSearchView({
             categories={categories}
             mediaTypes={mediaTypes}
             youtubeChannels={youtubeChannels}
+            websites={websites}
             bookmarks={bookmarks}
             search={search}
             onSearchChange={onSearchChange}
