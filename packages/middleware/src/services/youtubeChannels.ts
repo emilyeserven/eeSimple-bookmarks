@@ -1,4 +1,4 @@
-import { asc, eq, inArray, isNull, ne, sql } from "drizzle-orm";
+import { asc, eq, inArray, isNull, ne } from "drizzle-orm";
 import type { UpdateYouTubeChannelInput, YouTubeChannel } from "@eesimple/types";
 import { db } from "@/db";
 import { bookmarks, categories, type YouTubeChannelRow, youtubeChannelImages, youtubeChannelSelfIds, youtubeChannelTags, youtubeChannels } from "@/db/schema";
@@ -163,7 +163,7 @@ export async function listYouTubeChannels(): Promise<YouTubeChannel[]> {
       name: youtubeChannels.name,
       slug: youtubeChannels.slug,
       createdAt: youtubeChannels.createdAt,
-      bookmarkCount: sql<number>`(select count(*)::int from ${bookmarks} where ${bookmarks.youtubeChannelId} = ${youtubeChannels.id})`.mapWith(Number),
+      bookmarkCount: db.$count(bookmarks, eq(bookmarks.youtubeChannelId, youtubeChannels.id)),
       avatarCreatedAt: youtubeChannelImages.createdAt,
       categoryId: categories.id,
       categoryName: categories.name,

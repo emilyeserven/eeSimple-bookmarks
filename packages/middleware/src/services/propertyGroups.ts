@@ -1,4 +1,4 @@
-import { asc, eq, isNull, ne, sql } from "drizzle-orm";
+import { asc, eq, isNull, ne } from "drizzle-orm";
 import type {
   CreatePropertyGroupInput,
   PropertyGroup,
@@ -51,7 +51,7 @@ export async function listPropertyGroups(): Promise<PropertyGroup[]> {
       description: propertyGroups.description,
       priority: propertyGroups.priority,
       createdAt: propertyGroups.createdAt,
-      propertyCount: sql<number>`(select count(*)::int from ${customProperties} where ${customProperties.propertyGroupId} = ${propertyGroups.id})`.mapWith(Number),
+      propertyCount: db.$count(customProperties, eq(customProperties.propertyGroupId, propertyGroups.id)),
     })
     .from(propertyGroups)
     .orderBy(asc(propertyGroups.priority), asc(propertyGroups.name));

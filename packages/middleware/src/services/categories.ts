@@ -1,4 +1,4 @@
-import { asc, eq, inArray, isNull, ne, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull, ne, or } from "drizzle-orm";
 import type {
   Category,
   CategoryPropertyDefaults,
@@ -77,11 +77,18 @@ export async function listCategories(): Promise<Category[]> {
       builtIn: categories.builtIn,
       isHomepage: categories.isHomepage,
       createdAt: categories.createdAt,
-      bookmarkCount: sql<number>`(
-        select count(*)::int from ${bookmarks}
-        where ${bookmarks.categoryId} = ${categories.id}
-           or (${categories.builtIn} = true and ${bookmarks.categoryId} is null)
-      )`.mapWith(Number),
+      // A correlated subquery built with the query builder so the column
+      // references stay table-qualified — a bare `sql` template renders them
+      // unqualified, which silently resolves them against the inner `bookmarks`
+      // table and counts zero. Built-in categories also absorb uncategorized
+      // (null) bookmarks.
+      bookmarkCount: db.$count(
+        bookmarks,
+        or(
+          eq(bookmarks.categoryId, categories.id),
+          and(eq(categories.builtIn, true), isNull(bookmarks.categoryId)),
+        ),
+      ),
     })
     .from(categories)
     .orderBy(asc(categories.name));
