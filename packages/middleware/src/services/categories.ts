@@ -148,7 +148,9 @@ export async function deleteCategory(id: string): Promise<boolean> {
   });
   if (rows.length > 0) {
     const defaultId = await ensureDefaultCategory();
-    await db.update(bookmarks).set({ categoryId: defaultId }).where(isNull(bookmarks.categoryId));
+    await db.update(bookmarks).set({
+      categoryId: defaultId,
+    }).where(isNull(bookmarks.categoryId));
   }
   return rows.length > 0;
 }
