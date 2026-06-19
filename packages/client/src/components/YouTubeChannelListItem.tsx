@@ -36,7 +36,7 @@ export function YouTubeChannelListItem({
   return (
     <RowCard className="group relative">
       <Link
-        to="/taxonomies/youtube-channels/$channelSlug"
+        to="/taxonomies/youtube-channels/$channelSlug/general"
         params={{
           channelSlug: channel.slug,
         }}
@@ -108,6 +108,17 @@ export function YouTubeChannelListItem({
               onClick={event => editClick(event, "youtube-channel", channel.id)}
             >
               Edit
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <Link
+              to="/taxonomies/youtube-channels/$channelSlug"
+              params={{
+                channelSlug: channel.slug,
+              }}
+            >
+              See Bookmarks
             </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
