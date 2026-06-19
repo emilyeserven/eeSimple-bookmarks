@@ -35,6 +35,7 @@ import type {
   TagNode,
   UpdateAutofillRuleInput,
   UpdateBookmarkInput,
+  UpdateBookmarkRelationshipsInput,
   UpdateCategoryDefaultsInput,
   UpdateCategoryInput,
   UpdateCustomPropertyInput,
@@ -123,6 +124,11 @@ export const bookmarksApi = {
   deleteImage: (id: string) =>
     request<undefined>(`/bookmarks/${id}/image`, {
       method: "DELETE",
+    }),
+  updateRelationships: (id: string, input: UpdateBookmarkRelationshipsInput) =>
+    request<Bookmark>(`/bookmarks/${id}/relationships`, {
+      method: "PUT",
+      body: JSON.stringify(input),
     }),
 };
 

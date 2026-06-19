@@ -369,6 +369,7 @@ describe("BookmarkForm editing", () => {
       numberValues: [],
       booleanValues: [],
       dateTimeValues: [],
+      relatedBookmarks: [],
       priority: 0,
       createdAt: "2026-06-01T00:00:00.000Z",
     };
@@ -426,6 +427,7 @@ describe("BookmarkForm editing", () => {
       numberValues: [],
       booleanValues: [],
       dateTimeValues: [],
+      relatedBookmarks: [],
       priority: 0,
       createdAt: "2026-06-01T00:00:00.000Z",
     };

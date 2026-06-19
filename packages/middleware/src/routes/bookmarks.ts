@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import type { BulkUrlUpdate, CreateBookmarkInput, UpdateBookmarkInput } from "@eesimple/types";
+import type { BulkUrlUpdate, CreateBookmarkInput, UpdateBookmarkInput, UpdateBookmarkRelationshipsInput } from "@eesimple/types";
 import {
   fetchAndStoreOgImage,
   getBookmarkImageRow,
@@ -16,6 +16,7 @@ import {
   listBookmarks,
   listBookmarksOnHost,
   updateBookmark,
+  updateBookmarkRelationships,
 } from "@/services/bookmarks";
 import { getObjectStream, isObjectStoreConfigured } from "@/utils/objectStore";
 import { isValidUrl } from "@/utils/url";
@@ -461,6 +462,41 @@ export async function bookmarkRoutes(app: FastifyInstance): Promise<void> {
       });
     }
     return reply.code(204).send();
+  });
+
+  // Replace the full set of relationships for a bookmark (undirected edges to other bookmarks).
+  app.put("/api/bookmarks/:id/relationships", {
+    schema: {
+      tags: ["bookmarks"],
+      params: bookmarkParams,
+      body: {
+        type: "object",
+        required: ["relatedBookmarkIds"],
+        additionalProperties: false,
+        properties: {
+          relatedBookmarkIds: {
+            type: "array",
+            items: {
+              type: "string",
+              format: "uuid",
+            },
+          },
+        },
+      } as const,
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    const input = req.body as UpdateBookmarkRelationshipsInput;
+    const existing = await getBookmark(id);
+    if (!existing) {
+      return reply.code(404).send({
+        message: "Bookmark not found",
+      });
+    }
+    await updateBookmarkRelationships(id, input);
+    return getBookmark(id);
   });
 
   // Serve a bookmark's image bytes by streaming them from object storage. The URL carries a `?v=`

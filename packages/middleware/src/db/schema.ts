@@ -253,6 +253,24 @@ export const tagsRelations = relations(tags, ({
   bookmarkTags: many(bookmarkTags),
 }));
 
+/**
+ * `bookmark_relationships` — undirected many-to-many edges between bookmarks. A canonical ordering
+ * (`bookmarkAId < bookmarkBId`, enforced in the service layer) ensures each pair is stored once.
+ * Both FKs cascade on delete so removing either bookmark removes the edge automatically.
+ */
+export const bookmarkRelationships = pgTable("bookmark_relationships", {
+  bookmarkAId: uuid("bookmark_a_id").notNull().references(() => bookmarks.id, {
+    onDelete: "cascade",
+  }),
+  bookmarkBId: uuid("bookmark_b_id").notNull().references(() => bookmarks.id, {
+    onDelete: "cascade",
+  }),
+}, table => [
+  primaryKey({
+    columns: [table.bookmarkAId, table.bookmarkBId],
+  }),
+]);
+
 export const bookmarksRelations = relations(bookmarks, ({
   one, many,
 }) => ({
@@ -274,6 +292,12 @@ export const bookmarksRelations = relations(bookmarks, ({
   }),
   bookmarkTags: many(bookmarkTags),
   image: one(bookmarkImages),
+  relationsA: many(bookmarkRelationships, {
+    relationName: "bookmark_relation_a",
+  }),
+  relationsB: many(bookmarkRelationships, {
+    relationName: "bookmark_relation_b",
+  }),
 }));
 
 export const mediaTypesRelations = relations(mediaTypes, ({
@@ -322,6 +346,21 @@ export const bookmarkTagsRelations = relations(bookmarkTags, ({
   tag: one(tags, {
     fields: [bookmarkTags.tagId],
     references: [tags.id],
+  }),
+}));
+
+export const bookmarkRelationshipsRelations = relations(bookmarkRelationships, ({
+  one,
+}) => ({
+  bookmarkA: one(bookmarks, {
+    fields: [bookmarkRelationships.bookmarkAId],
+    references: [bookmarks.id],
+    relationName: "bookmark_relation_a",
+  }),
+  bookmarkB: one(bookmarks, {
+    fields: [bookmarkRelationships.bookmarkBId],
+    references: [bookmarks.id],
+    relationName: "bookmark_relation_b",
   }),
 }));
 
@@ -837,6 +876,7 @@ export type YouTubeChannelSelfIdRow = typeof youtubeChannelSelfIds.$inferSelect;
 export type TagRow = typeof tags.$inferSelect;
 export type NewTagRow = typeof tags.$inferInsert;
 export type BookmarkTagRow = typeof bookmarkTags.$inferSelect;
+export type BookmarkRelationshipRow = typeof bookmarkRelationships.$inferSelect;
 export type CustomPropertyRow = typeof customProperties.$inferSelect;
 export type NewCustomPropertyRow = typeof customProperties.$inferInsert;
 export type BookmarkNumberValueRow = typeof bookmarkNumberValues.$inferSelect;
