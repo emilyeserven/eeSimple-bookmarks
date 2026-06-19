@@ -9,28 +9,35 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { useCategories } from "@/hooks/useCategories";
 import { useUpdateYouTubeChannel } from "@/hooks/useYouTubeChannels";
 import { useAppForm } from "@/lib/form";
+import { CategoryIcon } from "@/lib/icons";
 
 const channelGeneralSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
+  categoryId: z.string().nullable(),
 });
 
 interface Props {
   channel: YouTubeChannel;
 }
 
-/** Edit a YouTube channel's display name and self-identifiers. */
+/** Edit a YouTube channel's display name, category, and self-identifiers. */
 export function YouTubeChannelGeneralForm({
   channel,
 }: Props) {
   const updateChannel = useUpdateYouTubeChannel();
   const [selfIds, setSelfIds] = useState<string[]>(channel.selfIds);
   const [newSelfId, setNewSelfId] = useState("");
+  const {
+    data: categories,
+  } = useCategories();
 
   const form = useAppForm({
     defaultValues: {
       name: channel.name,
+      categoryId: channel.category?.id ?? null,
     },
     validators: {
       onChange: channelGeneralSchema,
@@ -43,6 +50,7 @@ export function YouTubeChannelGeneralForm({
         input: {
           name: value.name.trim(),
           selfIds,
+          categoryId: value.categoryId || null,
         },
       });
     },
@@ -74,6 +82,27 @@ export function YouTubeChannelGeneralForm({
       <form.AppField name="name">
         {field => (
           <field.TextField label="Channel name" />
+        )}
+      </form.AppField>
+
+      <form.AppField name="categoryId">
+        {field => (
+          <field.ComboboxField
+            label="Category"
+            placeholder="No category"
+            searchPlaceholder="Search categories…"
+            emptyText="No categories found."
+            options={(categories ?? []).map(category => ({
+              value: category.id,
+              label: category.name,
+              icon: (
+                <CategoryIcon
+                  name={category.icon}
+                  className="size-4 shrink-0"
+                />
+              ),
+            }))}
+          />
         )}
       </form.AppField>
 
@@ -130,11 +159,12 @@ export function YouTubeChannelGeneralForm({
           {(values) => {
             const nameDirty = values.name.trim() !== channel.name;
             const selfIdsDirty = JSON.stringify(selfIds) !== JSON.stringify(channel.selfIds);
+            const categoryIdDirty = (values.categoryId || null) !== (channel.category?.id ?? null);
             return (
               <form.SubmitButton
                 label="Save changes"
                 size="sm"
-                disabledWhen={!nameDirty && !selfIdsDirty}
+                disabledWhen={!nameDirty && !selfIdsDirty && !categoryIdDirty}
               />
             );
           }}

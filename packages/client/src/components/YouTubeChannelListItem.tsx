@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { MonitorPlay, MoreVertical, Sparkles } from "lucide-react";
 
+import { CategoryPill } from "./CategoryPill";
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 
 import { Badge } from "@/components/ui/badge";
@@ -71,6 +72,13 @@ export function YouTubeChannelListItem({
           ? <Badge variant="secondary">{channel.bookmarkCount}</Badge>
           : null}
       </Link>
+      {channel.category
+        ? (
+          <div className="px-4 pb-2 pl-15">
+            <CategoryPill category={channel.category} />
+          </div>
+        )
+        : null}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button

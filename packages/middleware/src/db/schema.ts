@@ -201,6 +201,10 @@ export const youtubeChannels = pgTable("youtube_channels", {
   name: text("name").notNull(),
   // URL-friendly identifier derived from the name. Nullable for clean `push`; backfilled at boot.
   slug: text("slug"),
+  // Optional category association; set null when the category is deleted.
+  categoryId: uuid("category_id").references((): AnyPgColumn => categories.id, {
+    onDelete: "set null",
+  }),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
@@ -353,9 +357,14 @@ export const mediaTypesRelations = relations(mediaTypes, ({
 }));
 
 export const youtubeChannelsRelations = relations(youtubeChannels, ({
+  one,
   many,
 }) => ({
   bookmarks: many(bookmarks),
+  category: one(categories, {
+    fields: [youtubeChannels.categoryId],
+    references: [categories.id],
+  }),
 }));
 
 export const bookmarkImagesRelations = relations(bookmarkImages, ({
@@ -819,6 +828,7 @@ export const categoriesRelations = relations(categories, ({
   bookmarks: many(bookmarks),
   propertyCategories: many(propertyCategories),
   categoryRootTags: many(categoryRootTags),
+  youtubeChannels: many(youtubeChannels),
 }));
 
 export const propertyCategoriesRelations = relations(propertyCategories, ({

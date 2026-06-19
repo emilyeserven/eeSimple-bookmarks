@@ -1,7 +1,7 @@
 import { asc, eq, inArray, isNull, ne, sql } from "drizzle-orm";
 import type { UpdateYouTubeChannelInput, YouTubeChannel } from "@eesimple/types";
 import { db } from "@/db";
-import { bookmarks, type YouTubeChannelRow, youtubeChannelImages, youtubeChannelSelfIds, youtubeChannels } from "@/db/schema";
+import { bookmarks, categories, type YouTubeChannelRow, youtubeChannelImages, youtubeChannelSelfIds, youtubeChannels } from "@/db/schema";
 import { slugify, uniqueSlug } from "@/utils/slug";
 
 /**
@@ -100,8 +100,14 @@ async function loadSelfIdsMap(channelIds: string[]): Promise<Map<string, string[
 
 /** Map a DB row to the shared `YouTubeChannel` wire type. */
 function toYouTubeChannel(
-  row: YouTubeChannelRow & { bookmarkCount?: number;
-    avatarCreatedAt?: Date | string | null; },
+  row: YouTubeChannelRow & {
+    bookmarkCount?: number;
+    avatarCreatedAt?: Date | string | null;
+    categoryId?: string | null;
+    categoryName?: string | null;
+    categorySlug?: string | null;
+    categoryIcon?: string | null;
+  },
   selfIds: string[] = [],
 ): YouTubeChannel {
   return {
@@ -114,6 +120,14 @@ function toYouTubeChannel(
     bookmarkCount: row.bookmarkCount,
     selfIds,
     imageUrl: avatarUrlFrom(row.id, row.avatarCreatedAt ?? null),
+    category: row.categoryId && row.categoryName
+      ? {
+        id: row.categoryId,
+        name: row.categoryName,
+        slug: row.categorySlug ?? slugify(row.categoryName),
+        icon: row.categoryIcon ?? null,
+      }
+      : null,
   };
 }
 
@@ -139,18 +153,42 @@ export async function listYouTubeChannels(): Promise<YouTubeChannel[]> {
       createdAt: youtubeChannels.createdAt,
       bookmarkCount: sql<number>`(select count(*)::int from ${bookmarks} where ${bookmarks.youtubeChannelId} = ${youtubeChannels.id})`.mapWith(Number),
       avatarCreatedAt: youtubeChannelImages.createdAt,
+      categoryId: categories.id,
+      categoryName: categories.name,
+      categorySlug: categories.slug,
+      categoryIcon: categories.icon,
     })
     .from(youtubeChannels)
     .leftJoin(youtubeChannelImages, eq(youtubeChannelImages.youtubeChannelId, youtubeChannels.id))
+    .leftJoin(categories, eq(categories.id, youtubeChannels.categoryId))
     .orderBy(asc(youtubeChannels.name));
 
   const selfIdsMap = await loadSelfIdsMap(rows.map(r => r.id));
   return rows.map(row => toYouTubeChannel(row, selfIdsMap.get(row.id) ?? []));
 }
 
+/** Shared select shape for single-channel lookups (includes category join). */
+const channelSelect = {
+  id: youtubeChannels.id,
+  channelKey: youtubeChannels.channelKey,
+  name: youtubeChannels.name,
+  slug: youtubeChannels.slug,
+  categoryId: youtubeChannels.categoryId,
+  createdAt: youtubeChannels.createdAt,
+  avatarCreatedAt: youtubeChannelImages.createdAt,
+  categoryName: categories.name,
+  categorySlug: categories.slug,
+  categoryIcon: categories.icon,
+};
+
 /** Fetch a single channel by id, or `null` when absent. */
 export async function getYouTubeChannel(id: string): Promise<YouTubeChannel | null> {
-  const [row] = await db.select().from(youtubeChannels).where(eq(youtubeChannels.id, id));
+  const [row] = await db
+    .select(channelSelect)
+    .from(youtubeChannels)
+    .leftJoin(youtubeChannelImages, eq(youtubeChannelImages.youtubeChannelId, youtubeChannels.id))
+    .leftJoin(categories, eq(categories.id, youtubeChannels.categoryId))
+    .where(eq(youtubeChannels.id, id));
   if (!row) return null;
   const selfIdsMap = await loadSelfIdsMap([id]);
   return toYouTubeChannel(row, selfIdsMap.get(id) ?? []);
@@ -158,7 +196,12 @@ export async function getYouTubeChannel(id: string): Promise<YouTubeChannel | nu
 
 /** Fetch a channel by its stable channel key, or `null` when absent. */
 export async function getYouTubeChannelByKey(channelKey: string): Promise<YouTubeChannel | null> {
-  const [row] = await db.select().from(youtubeChannels).where(eq(youtubeChannels.channelKey, channelKey));
+  const [row] = await db
+    .select(channelSelect)
+    .from(youtubeChannels)
+    .leftJoin(youtubeChannelImages, eq(youtubeChannelImages.youtubeChannelId, youtubeChannels.id))
+    .leftJoin(categories, eq(categories.id, youtubeChannels.categoryId))
+    .where(eq(youtubeChannels.channelKey, channelKey));
   if (!row) return null;
   const selfIdsMap = await loadSelfIdsMap([row.id]);
   return toYouTubeChannel(row, selfIdsMap.get(row.id) ?? []);
@@ -230,7 +273,7 @@ export async function ensureYouTubeChannel(
   return channelId;
 }
 
-/** Rename a channel and/or update its self-identifiers. Returns the updated row, or `null` when absent. */
+/** Rename a channel and/or update its self-identifiers and category. Returns the updated row, or `null` when absent. */
 export async function updateYouTubeChannel(
   id: string,
   input: UpdateYouTubeChannelInput,
@@ -256,6 +299,15 @@ export async function updateYouTubeChannel(
 
   if (input.selfIds !== undefined) {
     await setSelfIds(db, id, input.selfIds);
+  }
+
+  if ("categoryId" in input) {
+    await db
+      .update(youtubeChannels)
+      .set({
+        categoryId: input.categoryId ?? null,
+      })
+      .where(eq(youtubeChannels.id, id));
   }
 
   return getYouTubeChannel(id);

@@ -281,10 +281,15 @@ export interface YouTubeChannel {
    * Auto-captured on first sighting and re-grabbable from the listing. Populated by list/get endpoints.
    */
   imageUrl?: string | null;
+  /** The category this channel has been assigned to, or `null` when unassigned. */
+  category?: YouTubeChannelCategory | null;
 }
 
 /** Lightweight channel shape carried on a bookmark. */
 export type BookmarkYouTubeChannel = Pick<YouTubeChannel, "id" | "name" | "slug">;
+
+/** Lightweight category shape embedded on a YouTube channel. */
+export type YouTubeChannelCategory = Pick<Category, "id" | "name" | "slug" | "icon">;
 
 /** A resolved channel hint passed when creating a bookmark, used to auto-link/auto-create it. */
 export interface YouTubeChannelHint {
@@ -301,6 +306,8 @@ export interface UpdateYouTubeChannelInput {
   name?: string;
   /** Full replacement list of self-identifiers. Omit to leave unchanged. */
   selfIds?: string[];
+  /** Category to associate with this channel. `null` clears the association; omit to leave unchanged. */
+  categoryId?: string | null;
 }
 
 /**
