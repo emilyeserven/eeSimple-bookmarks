@@ -34,6 +34,7 @@ export function RootLayout() {
       <RightPanel />
       <Toaster
         richColors
+        expand
         theme={theme}
       />
       {import.meta.env.DEV ? <TanStackRouterDevtools /> : null}
