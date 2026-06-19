@@ -9,6 +9,7 @@ import {
   calculatePropertyOperands,
   customProperties,
   type CustomPropertyRow,
+  mediaTypes,
   propertyCategories,
   propertyMediaTypes,
 } from "@/db/schema";
@@ -30,8 +31,8 @@ export class BuiltInPropertyError extends Error {
   }
 }
 
-/** Reserved slug + spec of the built-in "Video Length" property, seeded at boot. */
-export const VIDEO_LENGTH_SLUG = "video-length";
+/** Reserved slug + spec of the built-in "Runtime" property, seeded at boot. */
+export const RUNTIME_SLUG = "runtime";
 
 /** Reserved slug + spec of the built-in "Date Posted" property, seeded at boot. */
 export const DATE_POSTED_SLUG = "date-posted";
@@ -84,7 +85,7 @@ function toCustomProperty(
 }
 
 /** Slugs reserved for real sub-routes + built-ins, so a property can never shadow them. */
-const RESERVED_SLUGS = ["new", VIDEO_LENGTH_SLUG];
+const RESERVED_SLUGS = ["new", RUNTIME_SLUG];
 
 /** Existing property slugs plus reserved route words, optionally excluding one id (when renaming). */
 async function takenSlugs(excludeId?: string): Promise<string[]> {
@@ -456,70 +457,93 @@ async function readPropertyIdBySlug(slug: string): Promise<string> {
 }
 
 /**
- * Ensure the built-in "Video Length" property exists. Idempotent and safe to call at boot in every
- * environment: a number property measured in seconds, displayed as a duration, available in every
- * category. Auto-populated from a video's metadata when a bookmark URL is fetched.
+ * Ensure the built-in "Runtime" property exists and is scoped to Video and Audio media types
+ * (including their children). Idempotent and safe to call at boot — must run after
+ * ensureBuiltInMediaTypes so the Video/Audio rows are present when scoping is applied.
  */
-export async function ensureVideoLengthProperty(): Promise<string> {
+export async function ensureRuntimeProperty(): Promise<string> {
   const [existing] = await db
     .select({
       id: customProperties.id,
     })
     .from(customProperties)
-    .where(eq(customProperties.slug, VIDEO_LENGTH_SLUG));
+    .where(eq(customProperties.slug, RUNTIME_SLUG));
+
+  let propertyId: string;
   if (existing) {
-    // Reconcile rows that predate the built-in flag (or were created without it) so Video Length is
-    // always marked built-in, enabled, available in every category, and shown in listings.
     await db
       .update(customProperties)
       .set({
+        name: "Runtime",
         builtIn: true,
         enabled: true,
-        allCategories: true,
+        allCategories: false,
         showInListings: true,
+        editableOnCard: true,
         numberFormat: "duration",
       })
       .where(eq(customProperties.id, existing.id));
-    return existing.id;
+    propertyId = existing.id;
+  }
+  else {
+    const [row] = await db
+      .insert(customProperties)
+      .values({
+        name: "Runtime",
+        slug: RUNTIME_SLUG,
+        type: "number",
+        builtIn: true,
+        numberFormat: "duration",
+        description: "Runtime of the content, in seconds. Auto-filled from a video URL.",
+        numberMin: 0,
+        allCategories: false,
+        showInListings: true,
+        editableOnCard: true,
+      })
+      .onConflictDoNothing({
+        target: customProperties.slug,
+      })
+      .returning({
+        id: customProperties.id,
+      });
+    propertyId = row ? row.id : await readPropertyIdBySlug(RUNTIME_SLUG);
   }
 
-  const [row] = await db
-    .insert(customProperties)
-    .values({
-      name: "Video Length",
-      slug: VIDEO_LENGTH_SLUG,
-      type: "number",
-      builtIn: true,
-      numberFormat: "duration",
-      description: "Length of the video, in seconds. Auto-filled from a video URL.",
-      numberMin: 0,
-      allCategories: true,
-      showInListings: true,
-      editableOnCard: true,
-    })
-    .onConflictDoNothing({
-      target: customProperties.slug,
-    })
-    .returning({
-      id: customProperties.id,
-    });
-  if (row) return row.id;
+  // Scope to Video + Audio roots and all their children. Runs after ensureBuiltInMediaTypes so the
+  // slugs exist; gracefully no-ops if they haven't been seeded yet on a truly fresh DB.
+  const rootRows = await db
+    .select({ id: mediaTypes.id })
+    .from(mediaTypes)
+    .where(inArray(mediaTypes.slug, ["video", "audio"]));
+  if (rootRows.length > 0) {
+    const rootIds = rootRows.map(r => r.id);
+    const childRows = await db
+      .select({ id: mediaTypes.id })
+      .from(mediaTypes)
+      .where(inArray(mediaTypes.parentId, rootIds));
+    const allMediaTypeIds = [...rootIds, ...childRows.map(r => r.id)];
+    await db
+      .delete(propertyMediaTypes)
+      .where(eq(propertyMediaTypes.propertyId, propertyId));
+    await db
+      .insert(propertyMediaTypes)
+      .values(allMediaTypeIds.map(mediaTypeId => ({ propertyId, mediaTypeId })));
+  }
 
-  // Lost a concurrent insert race — re-read the row the other writer created.
-  return readPropertyIdBySlug(VIDEO_LENGTH_SLUG);
+  return propertyId;
 }
 
 /**
- * Look up the built-in "Video Length" property id at request time, or `null` when it hasn't been
+ * Look up the built-in "Runtime" property id at request time, or `null` when it hasn't been
  * seeded yet. Used by the bookmark service to backfill a video's duration from fetched metadata.
  */
-export async function getVideoLengthPropertyId(): Promise<string | null> {
+export async function getRuntimePropertyId(): Promise<string | null> {
   const [row] = await db
     .select({
       id: customProperties.id,
     })
     .from(customProperties)
-    .where(eq(customProperties.slug, VIDEO_LENGTH_SLUG));
+    .where(eq(customProperties.slug, RUNTIME_SLUG));
   return row?.id ?? null;
 }
 

@@ -9,7 +9,7 @@ import { useEffect } from "react";
 
 import { propertyAppliesToCategory, propertyAppliesToMediaType } from "@eesimple/types";
 
-import { DATE_POSTED_SLUG, VIDEO_LENGTH_SLUG } from "./bookmarkFormSchema";
+import { DATE_POSTED_SLUG, RUNTIME_SLUG } from "./bookmarkFormSchema";
 import { DateTimePicker } from "./DateTimePicker";
 import { useCategoryDefaults } from "../hooks/useCategories";
 
@@ -28,7 +28,7 @@ interface CategoryCustomFieldsProps {
   className?: string;
   /**
    * Property slugs to drop from rendering entirely (their value is still submitted/derived).
-   * Defaults to the form's server-filled slugs (e.g. Video Length).
+   * Defaults to the form's server-filled slugs (e.g. Runtime).
    */
   hiddenSlugs?: string[];
   numberInputs: Record<string, string>;
@@ -42,7 +42,7 @@ interface CategoryCustomFieldsProps {
 /** Renders the custom-property inputs for the properties assigned to the chosen category. */
 export function CategoryCustomFields({
   categoryId, mediaTypeId = null, properties, placement, className,
-  hiddenSlugs = [VIDEO_LENGTH_SLUG, DATE_POSTED_SLUG],
+  hiddenSlugs = [RUNTIME_SLUG, DATE_POSTED_SLUG],
   numberInputs, booleanInputs, dateTimeInputs,
   onNumberChange, onBooleanChange, onDateTimeChange,
 }: CategoryCustomFieldsProps) {
@@ -55,7 +55,7 @@ export function CategoryCustomFields({
     if (!property.enabled) return false;
     // hiddenFromForm drops the field entirely; otherwise showInForm chooses the main area vs. Advanced.
     if (property.hiddenFromForm) return false;
-    // Slugs the form fills server-side (e.g. Video Length) are hidden but still persisted.
+    // Slugs the form fills server-side (e.g. Runtime) are hidden but still persisted.
     if (hiddenSlugs?.includes(property.slug)) return false;
     return placement === "default" ? property.showInForm : !property.showInForm;
   });

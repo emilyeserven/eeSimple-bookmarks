@@ -273,7 +273,7 @@ describe("BookmarkForm progressive disclosure", () => {
       title: "example.com",
       originalUrl: null,
     });
-    // Media type, video length, and priority are filled by the server, never sent by the form.
+    // Media type, runtime, and priority are filled by the server, never sent by the form.
     expect(input).not.toHaveProperty("mediaTypeId");
     expect(input).not.toHaveProperty("priority");
     // The page-title endpoint is never hit on the quick path.
