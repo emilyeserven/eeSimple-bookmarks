@@ -25,8 +25,12 @@ export function useBulkExpandBookmarkUrls() {
   return useMutation({
     mutationFn: (items: BulkUrlUpdate[]) => bookmarksApi.bulkUrl(items),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: BOOKMARKS_KEY });
-      void queryClient.invalidateQueries({ queryKey: WEBSITES_KEY });
+      void queryClient.invalidateQueries({
+        queryKey: BOOKMARKS_KEY,
+      });
+      void queryClient.invalidateQueries({
+        queryKey: WEBSITES_KEY,
+      });
     },
   });
 }
@@ -52,10 +56,18 @@ export function useCreateBookmark() {
   return useMutation({
     mutationFn: (input: CreateBookmarkInput) => bookmarksApi.create(input),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: BOOKMARKS_KEY });
-      void queryClient.invalidateQueries({ queryKey: MEDIA_TYPES_KEY });
-      void queryClient.invalidateQueries({ queryKey: WEBSITES_KEY });
-      void queryClient.invalidateQueries({ queryKey: YOUTUBE_CHANNELS_KEY });
+      void queryClient.invalidateQueries({
+        queryKey: BOOKMARKS_KEY,
+      });
+      void queryClient.invalidateQueries({
+        queryKey: MEDIA_TYPES_KEY,
+      });
+      void queryClient.invalidateQueries({
+        queryKey: WEBSITES_KEY,
+      });
+      void queryClient.invalidateQueries({
+        queryKey: YOUTUBE_CHANNELS_KEY,
+      });
     },
   });
 }
@@ -68,10 +80,18 @@ export function useUpdateBookmark() {
     }: { id: string;
       input: UpdateBookmarkInput; }) => bookmarksApi.update(id, input),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: BOOKMARKS_KEY });
-      void queryClient.invalidateQueries({ queryKey: MEDIA_TYPES_KEY });
-      void queryClient.invalidateQueries({ queryKey: WEBSITES_KEY });
-      void queryClient.invalidateQueries({ queryKey: YOUTUBE_CHANNELS_KEY });
+      void queryClient.invalidateQueries({
+        queryKey: BOOKMARKS_KEY,
+      });
+      void queryClient.invalidateQueries({
+        queryKey: MEDIA_TYPES_KEY,
+      });
+      void queryClient.invalidateQueries({
+        queryKey: WEBSITES_KEY,
+      });
+      void queryClient.invalidateQueries({
+        queryKey: YOUTUBE_CHANNELS_KEY,
+      });
     },
   });
 }
@@ -81,10 +101,18 @@ export function useDeleteBookmark() {
   return useMutation({
     mutationFn: (id: string) => bookmarksApi.remove(id),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: BOOKMARKS_KEY });
-      void queryClient.invalidateQueries({ queryKey: MEDIA_TYPES_KEY });
-      void queryClient.invalidateQueries({ queryKey: WEBSITES_KEY });
-      void queryClient.invalidateQueries({ queryKey: YOUTUBE_CHANNELS_KEY });
+      void queryClient.invalidateQueries({
+        queryKey: BOOKMARKS_KEY,
+      });
+      void queryClient.invalidateQueries({
+        queryKey: MEDIA_TYPES_KEY,
+      });
+      void queryClient.invalidateQueries({
+        queryKey: WEBSITES_KEY,
+      });
+      void queryClient.invalidateQueries({
+        queryKey: YOUTUBE_CHANNELS_KEY,
+      });
       notifySuccess("Bookmark deleted");
     },
   });
