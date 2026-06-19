@@ -1,4 +1,4 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute, useRouterState } from "@tanstack/react-router";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useAutofillRuleBySlug, useDeleteAutofillRule } from "../hooks/useAutofill";
@@ -9,11 +9,22 @@ export const Route = createFileRoute("/autofill/$ruleSlug/_view")({
   component: AutofillRuleViewLayout,
 });
 
+const VIEW_TO_EDIT = {
+  general: "/autofill/$ruleSlug/edit/general",
+  conditions: "/autofill/$ruleSlug/edit/conditions",
+  prefill: "/autofill/$ruleSlug/edit/prefill",
+} as const;
+type AutofillEditRoute = typeof VIEW_TO_EDIT[keyof typeof VIEW_TO_EDIT];
+
 function AutofillRuleViewLayout() {
   const {
     ruleSlug,
   } = Route.useParams();
   const navigate = Route.useNavigate();
+  const pathname = useRouterState({
+    select: s => s.location.pathname,
+  });
+  const editRoute: AutofillEditRoute = (VIEW_TO_EDIT[pathname.split("/").at(-1) as keyof typeof VIEW_TO_EDIT] ?? VIEW_TO_EDIT.general) as AutofillEditRoute;
   const {
     rule, isLoading,
   } = useAutofillRuleBySlug(ruleSlug);
@@ -60,7 +71,7 @@ function AutofillRuleViewLayout() {
                     size="sm"
                   >
                     <Link
-                      to="/autofill/$ruleSlug/edit/general"
+                      to={editRoute}
                       params={{
                         ruleSlug,
                       }}

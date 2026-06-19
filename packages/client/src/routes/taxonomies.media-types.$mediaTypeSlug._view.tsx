@@ -1,4 +1,4 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute, useRouterState } from "@tanstack/react-router";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useDeleteMediaType, useMediaTypeBySlug } from "../hooks/useMediaTypes";
@@ -21,11 +21,21 @@ const viewNav = [
   },
 ] as const;
 
+const VIEW_TO_EDIT = {
+  general: "/taxonomies/media-types/$mediaTypeSlug/edit/general",
+  autofill: "/taxonomies/media-types/$mediaTypeSlug/edit/autofill",
+} as const;
+type MediaTypeEditRoute = typeof VIEW_TO_EDIT[keyof typeof VIEW_TO_EDIT];
+
 function MediaTypeViewLayout() {
   const {
     mediaTypeSlug,
   } = Route.useParams();
   const navigate = Route.useNavigate();
+  const pathname = useRouterState({
+    select: s => s.location.pathname,
+  });
+  const editRoute: MediaTypeEditRoute = (VIEW_TO_EDIT[pathname.split("/").at(-1) as keyof typeof VIEW_TO_EDIT] ?? VIEW_TO_EDIT.general) as MediaTypeEditRoute;
   const {
     mediaType, isLoading,
   } = useMediaTypeBySlug(mediaTypeSlug);
@@ -62,7 +72,7 @@ function MediaTypeViewLayout() {
                     size="sm"
                   >
                     <Link
-                      to="/taxonomies/media-types/$mediaTypeSlug/edit/general"
+                      to={editRoute}
                       params={{
                         mediaTypeSlug,
                       }}

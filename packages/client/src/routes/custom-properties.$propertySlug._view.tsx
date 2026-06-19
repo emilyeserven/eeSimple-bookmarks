@@ -1,4 +1,4 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute, useRouterState } from "@tanstack/react-router";
 
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useDeleteCustomProperty, usePropertyBySlug } from "../hooks/useCustomProperties";
@@ -12,11 +12,25 @@ export const Route = createFileRoute("/custom-properties/$propertySlug/_view")({
   component: CustomPropertyViewLayout,
 });
 
+const VIEW_TO_EDIT = {
+  "general": "/custom-properties/$propertySlug/edit/general",
+  "options": "/custom-properties/$propertySlug/edit/options",
+  "categories": "/custom-properties/$propertySlug/edit/categories",
+  "media-types": "/custom-properties/$propertySlug/edit/media-types",
+  "display": "/custom-properties/$propertySlug/edit/display",
+  "autofill": "/custom-properties/$propertySlug/edit/autofill",
+} as const;
+type PropertyEditRoute = typeof VIEW_TO_EDIT[keyof typeof VIEW_TO_EDIT];
+
 function CustomPropertyViewLayout() {
   const {
     propertySlug,
   } = Route.useParams();
   const navigate = Route.useNavigate();
+  const pathname = useRouterState({
+    select: s => s.location.pathname,
+  });
+  const editRoute: PropertyEditRoute = (VIEW_TO_EDIT[pathname.split("/").at(-1) as keyof typeof VIEW_TO_EDIT] ?? VIEW_TO_EDIT.general) as PropertyEditRoute;
   const {
     property, isLoading,
   } = usePropertyBySlug(propertySlug);
@@ -85,7 +99,7 @@ function CustomPropertyViewLayout() {
                     size="sm"
                   >
                     <Link
-                      to="/custom-properties/$propertySlug/edit/general"
+                      to={editRoute}
                       params={{
                         propertySlug,
                       }}

@@ -106,6 +106,41 @@ View side (pathless `_view` layout keeps URLs clean, e.g. `/custom-properties/:s
   params={{ <slug> }} navAriaLabel="…" />`. Define `viewNav` as
   `const viewNav = [{ to, label }, …] as const` (conditionally spread an optional tab — see Custom
   Properties). The `header` carries the back link, name + badges, and an **Edit** link.
+
+  The Edit link must navigate to the **same tab** the user is currently viewing. Use a module-scope
+  `VIEW_TO_EDIT` map that keys every view tab to its edit route. Any view tab with no edit
+  counterpart (e.g. Tags' `hierarchy`) simply falls back to `general` by being absent from the map.
+  Read the current tab from the last URL segment via `useRouterState`:
+
+  ```tsx
+  import { useRouterState } from "@tanstack/react-router";
+
+  // module scope — quote ALL keys when any key contains a hyphen (quote-props rule):
+  const VIEW_TO_EDIT = {
+    "general": "/websites/$websiteSlug/edit/general",
+    "shortened-links": "/websites/$websiteSlug/edit/shortened-links",
+    "param-rules": "/websites/$websiteSlug/edit/param-rules",
+    "autofill": "/websites/$websiteSlug/edit/autofill",
+  } as const;
+  type WebsiteEditRoute = typeof VIEW_TO_EDIT[keyof typeof VIEW_TO_EDIT];
+
+  // inside the component — multiline selector required by stylistic rules:
+  const pathname = useRouterState({
+    select: s => s.location.pathname,
+  });
+  const editRoute: WebsiteEditRoute =
+    (VIEW_TO_EDIT[pathname.split("/").at(-1) as keyof typeof VIEW_TO_EDIT]
+      ?? VIEW_TO_EDIT.general) as WebsiteEditRoute;
+
+  // in JSX — keeps the existing asChild + Link pattern:
+  <Button asChild variant="outline" size="sm">
+    <Link to={editRoute} params={{ websiteSlug }}>Edit</Link>
+  </Button>
+  ```
+
+  **Styling gotcha:** `@stylistic/quote-props` enforces *consistent* quoting within an object.
+  If any key requires quotes (hyphen in the name), *all* keys must be quoted. If no keys need
+  quotes, leave them unquoted. Always run `pnpm lint:fix` from the repo root after adding the map.
 - `<entity>.$<slug>._view.<tab>.tsx` — one per tab; render `<EntityTabWrapper <entity>Slug={slug}
   title=… description=…>{e => <…Fields … />}</EntityTabWrapper>`.
 
@@ -144,8 +179,10 @@ pnpm lint:fix                              # always from repo root
 Then run `pnpm dev` and check that the entity:
 - redirects `/<entity>/<slug>` to `…/general` and switches tabs via the left nav (conditional tabs
   appear/disappear by type),
-- has an **Edit** link to `…/edit/general`; each edit tab saves independently, the Save button is
-  disabled until the form is dirty and re-disables when reverted, and the tab reloads correctly,
+- has an **Edit** link that preserves the active tab (e.g. clicking Edit from "Param Rules" lands on
+  the edit "Param Rules" tab, not "General"); tabs without an edit counterpart fall back to "General";
+  each edit tab saves independently, the Save button is disabled until the form is dirty and
+  re-disables when reverted, and the tab reloads correctly,
 - (if added) shows only the autofill rules scoped to the entity on its Autofill tab, and
 - still works in the right panel via the whole `*Detail` / `*Form`.
 ```
