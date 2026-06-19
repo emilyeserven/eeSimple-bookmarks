@@ -6,7 +6,7 @@ import { useRateLimitCooldown } from "./useRateLimitCooldown";
 import { youtubeChannelsApi } from "../lib/api";
 import { ApiError } from "../lib/apiError";
 import { notifyImageFetchError } from "../lib/bugReport";
-import { notifySuccess } from "../lib/notifications";
+import { notifyError, notifySuccess } from "../lib/notifications";
 
 const CHANNELS_KEY = ["youtube-channels"] as const;
 const BOOKMARKS_KEY = ["bookmarks"] as const;
