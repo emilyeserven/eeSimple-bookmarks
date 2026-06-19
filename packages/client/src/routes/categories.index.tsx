@@ -4,7 +4,9 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { AddCategoryForm } from "../components/AddCategoryForm";
 import { CategoryPreviewCard } from "../components/CategoryPreviewCard";
+import { ColumnsSwitcher } from "../components/ColumnsSwitcher";
 import { useCategories } from "../hooks/useCategories";
+import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
 
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -19,9 +21,10 @@ function CategoriesListingPage() {
     data: categories, isLoading, error,
   } = useCategories();
   const [search, setSearch] = useState("");
+  const columns = useBookmarkColumns("categories-listing");
 
+  const q = search.trim().toLowerCase();
   const filtered = (categories ?? []).filter((category) => {
-    const q = search.trim().toLowerCase();
     if (!q) return true;
     return category.name.toLowerCase().includes(q)
       || (category.description ?? "").toLowerCase().includes(q);
@@ -45,12 +48,23 @@ function CategoriesListingPage() {
       <AddCategoryForm />
 
       <div className="space-y-4">
-        <Input
-          placeholder="Search by name…"
-          value={search}
-          onChange={event => setSearch(event.target.value)}
-          className="max-w-sm"
-        />
+        <div className="flex items-center gap-4">
+          <Input
+            placeholder="Search by name…"
+            value={search}
+            onChange={event => setSearch(event.target.value)}
+            className="max-w-sm"
+          />
+          <ColumnsSwitcher pageKey="categories-listing" />
+        </div>
+
+        {q && filtered.length < (categories?.length ?? 0)
+          ? (
+            <p className="text-sm text-muted-foreground">
+              Showing {filtered.length} of {categories?.length ?? 0}
+            </p>
+          )
+          : null}
 
         {isLoading ? <p className="text-muted-foreground">Loading categories…</p> : null}
         {error ? <p className="text-destructive">{error.message}</p> : null}
@@ -67,7 +81,12 @@ function CategoriesListingPage() {
 
         {filtered.length > 0
           ? (
-            <ul className="space-y-2">
+            <div
+              className={`
+                grid gap-2
+                ${COLUMN_CLASS[columns]}
+              `}
+            >
               {filtered.map(category => (
                 <CategoryPreviewCard
                   key={category.id}
@@ -75,7 +94,7 @@ function CategoriesListingPage() {
                   variant="row"
                 />
               ))}
-            </ul>
+            </div>
           )
           : null}
       </div>

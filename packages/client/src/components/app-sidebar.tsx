@@ -18,6 +18,9 @@ import {
 import { CollapsibleSection, SidebarNavSection, SidebarResizeHandle } from "./app-sidebar-sections";
 import { useViewPanelClick } from "./panel/useEditPanelClick";
 import { useCategories } from "../hooks/useCategories";
+import { useMediaTypes } from "../hooks/useMediaTypes";
+import { useWebsites } from "../hooks/useWebsites";
+import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
 import { useUiStore } from "../stores/uiStore";
 
 import {
@@ -111,6 +114,15 @@ export function AppSidebar({
   const {
     data: categories,
   } = useCategories();
+  const {
+    data: allWebsites,
+  } = useWebsites();
+  const {
+    data: allMediaTypes,
+  } = useMediaTypes();
+  const {
+    data: allChannels,
+  } = useYouTubeChannels();
   const hiddenCategoryIds = useUiStore(state => state.hiddenCategoryIds);
   const hiddenTaxonomyItems = useUiStore(state => state.hiddenTaxonomyItems);
   const hiddenCustomizationItems = useUiStore(state => state.hiddenCustomizationItems);
@@ -121,9 +133,18 @@ export function AppSidebar({
   const visibleCategories = (categories ?? []).filter(
     c => !hiddenCategoryIds.includes(c.id),
   );
-  const visibleTaxonomyItems = taxonomyItems.filter(
-    item => !hiddenTaxonomyItems.includes(item.key),
-  );
+  const countByKey: Record<string, number | undefined> = {
+    "categories": categories?.length,
+    "websites": allWebsites?.length,
+    "media-types": allMediaTypes?.length,
+    "youtube-channels": allChannels?.length,
+  };
+  const visibleTaxonomyItems = taxonomyItems
+    .filter(item => !hiddenTaxonomyItems.includes(item.key))
+    .map(item => ({
+      ...item,
+      count: countByKey[item.key],
+    }));
   const visibleCustomizationItems = customizationItems.filter(
     item => !hiddenCustomizationItems.includes(item.key),
   );
