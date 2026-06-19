@@ -160,9 +160,9 @@ export function AppSidebar({
   );
 
   const taxonomyCountByKey: Record<string, number | undefined> = {
-    categories: categories?.length,
-    tags: allTags?.length,
-    websites: allWebsites?.length,
+    "categories": categories?.length,
+    "tags": allTags?.length,
+    "websites": allWebsites?.length,
     "media-types": allMediaTypes?.length,
     "youtube-channels": allChannels?.length,
   };
@@ -176,7 +176,7 @@ export function AppSidebar({
   const customizationCountByKey: Record<string, number | undefined> = {
     "custom-properties": allCustomProperties?.length,
     "property-groups": allPropertyGroups?.length,
-    autofill: allAutofillRules?.length,
+    "autofill": allAutofillRules?.length,
   };
   const visibleCustomizationItems = customizationItems
     .filter(item => !hiddenCustomizationItems.includes(item.key))
