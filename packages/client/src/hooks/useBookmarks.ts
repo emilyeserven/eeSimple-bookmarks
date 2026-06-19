@@ -3,6 +3,7 @@ import type { BulkUrlUpdate, CreateBookmarkInput, UpdateBookmarkInput, UpdateBoo
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { bookmarksApi } from "../lib/api";
+import { notifyImageFetchError } from "../lib/bugReport";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
@@ -158,7 +159,7 @@ export function useAutoBookmarkImage() {
       void queryClient.invalidateQueries({
         queryKey: BOOKMARKS_KEY,
       });
-      notifyError(err.message || "Could not fetch a preview image");
+      notifyImageFetchError(err, "bookmark page image", "Could not fetch a preview image");
     },
   });
 }

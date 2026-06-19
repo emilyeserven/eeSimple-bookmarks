@@ -440,6 +440,7 @@ export async function bookmarkRoutes(app: FastifyInstance): Promise<void> {
       };
       return reply.code(502).send({
         message: errorMessages[result] ?? "Could not fetch a preview image",
+        code: result,
       });
     }
     return reply.code(201).send(result);

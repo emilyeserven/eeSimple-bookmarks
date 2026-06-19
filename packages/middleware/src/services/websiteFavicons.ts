@@ -11,7 +11,7 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { type WebsiteFaviconRow, websiteFavicons, websites } from "@/db/schema";
-import { type EntityImageResult, fetchFaviconImage } from "@/services/metadata";
+import { type EntityImageResult, fetchFaviconImage, withTransientRetry } from "@/services/metadata";
 import { processImage } from "@/utils/image";
 import { deleteObject, putObject } from "@/utils/objectStore";
 
@@ -29,13 +29,6 @@ function imageVersion(row: WebsiteFaviconRow): number {
 /** Serving URL (with a `?v=` cache-buster) for a website's stored favicon. */
 export function websiteFaviconUrl(row: WebsiteFaviconRow): string {
   return `/api/websites/${row.websiteId}/image?v=${imageVersion(row)}`;
-}
-
-const RETRY_DELAY_MS = 2_000;
-const TRANSIENT = new Set(["blocked", "fetch_error"]);
-
-function sleep(ms: number): Promise<void> {
-  return new Promise(r => setTimeout(r, ms));
 }
 
 /** Read a website's stored-favicon row, or null when it has none. */
@@ -119,11 +112,7 @@ export async function fetchAndStoreWebsiteFavicon(websiteId: string): Promise<En
   if (!website) return "not_found";
 
   const pageUrl = `https://${website.domain}/`;
-  let result = await fetchFaviconImage(pageUrl);
-  if (typeof result === "string" && TRANSIENT.has(result)) {
-    await sleep(RETRY_DELAY_MS);
-    result = await fetchFaviconImage(pageUrl);
-  }
+  const result = await withTransientRetry(() => fetchFaviconImage(pageUrl));
   if (typeof result === "string") return result;
   return setWebsiteFavicon(websiteId, result, "icon");
 }

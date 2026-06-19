@@ -2,8 +2,11 @@ import type { CreateWebsiteInput, UpdateWebsiteInput } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useRateLimitCooldown } from "./useRateLimitCooldown";
 import { websitesApi } from "../lib/api";
-import { notifyError, notifySuccess } from "../lib/notifications";
+import { ApiError } from "../lib/apiError";
+import { notifyImageFetchError } from "../lib/bugReport";
+import { notifySuccess } from "../lib/notifications";
 
 const WEBSITES_KEY = ["websites"] as const;
 const BOOKMARKS_KEY = ["bookmarks"] as const;
@@ -81,7 +84,8 @@ export function useDeleteWebsite() {
 /** Re-grab a website's favicon from its homepage (icon link / og:image). */
 export function useAutoWebsiteFavicon() {
   const queryClient = useQueryClient();
-  return useMutation({
+  const cooldown = useRateLimitCooldown(30_000);
+  const mutation = useMutation({
     mutationFn: (id: string) => websitesApi.autoImage(id),
     onSuccess: () => {
       void queryClient.invalidateQueries({
@@ -89,6 +93,13 @@ export function useAutoWebsiteFavicon() {
       });
       notifySuccess("Favicon fetched");
     },
-    onError: (err: Error) => notifyError(err.message || "Could not fetch a favicon"),
+    onError: (err: Error) => {
+      if (err instanceof ApiError && err.code === "blocked") cooldown.startCooldown();
+      notifyImageFetchError(err, "website favicon", "Could not fetch a favicon");
+    },
   });
+  return {
+    ...mutation,
+    cooldown,
+  };
 }

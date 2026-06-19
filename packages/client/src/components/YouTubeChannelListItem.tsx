@@ -127,11 +127,17 @@ export function YouTubeChannelListItem({
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
-            disabled={autoAvatar.isPending}
-            onClick={() => autoAvatar.mutate(channel.id)}
+            disabled={autoAvatar.isPending || autoAvatar.cooldown.isOnCooldown}
+            onClick={() => {
+              if (!autoAvatar.cooldown.isOnCooldown) autoAvatar.mutate(channel.id);
+            }}
           >
             <Sparkles className="mr-2 size-4" />
-            {channel.imageUrl ? "Refresh avatar" : "Get avatar"}
+            {autoAvatar.cooldown.isOnCooldown
+              ? `Try again in ${autoAvatar.cooldown.remaining}s`
+              : channel.imageUrl
+                ? "Refresh avatar"
+                : "Get avatar"}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

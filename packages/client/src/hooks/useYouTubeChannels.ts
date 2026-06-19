@@ -2,7 +2,10 @@ import type { UpdateYouTubeChannelInput } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useRateLimitCooldown } from "./useRateLimitCooldown";
 import { youtubeChannelsApi } from "../lib/api";
+import { ApiError } from "../lib/apiError";
+import { notifyImageFetchError } from "../lib/bugReport";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
 const CHANNELS_KEY = ["youtube-channels"] as const;
@@ -61,7 +64,8 @@ export function useDeleteYouTubeChannel() {
 /** Re-grab a channel's avatar from its public channel page (`og:image`). */
 export function useAutoYouTubeChannelImage() {
   const queryClient = useQueryClient();
-  return useMutation({
+  const cooldown = useRateLimitCooldown(60_000);
+  const mutation = useMutation({
     mutationFn: (id: string) => youtubeChannelsApi.autoImage(id),
     onSuccess: () => {
       void queryClient.invalidateQueries({
@@ -69,8 +73,15 @@ export function useAutoYouTubeChannelImage() {
       });
       notifySuccess("Avatar fetched");
     },
-    onError: (err: Error) => notifyError(err.message || "Could not fetch an avatar"),
+    onError: (err: Error) => {
+      if (err instanceof ApiError && err.code === "blocked") cooldown.startCooldown();
+      notifyImageFetchError(err, "YouTube channel avatar", "Could not fetch an avatar");
+    },
   });
+  return {
+    ...mutation,
+    cooldown,
+  };
 }
 
 export function useDeleteYouTubeChannelImage() {
