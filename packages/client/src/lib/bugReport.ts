@@ -21,7 +21,11 @@ export function notifyImageFetchError(err: Error, operation: string, fallback: s
       label: "File issue",
       onClick: () =>
         window.open(
-          buildGitHubIssueUrl({ operation, errorMessage: err.message, errorCode: code }),
+          buildGitHubIssueUrl({
+            operation,
+            errorMessage: err.message,
+            errorCode: code,
+          }),
           "_blank",
           "noopener,noreferrer",
         ),
