@@ -1,20 +1,26 @@
 import { useState } from "react";
 
-import { AddWebsiteForm } from "./AddWebsiteForm";
+import { useNavigate } from "@tanstack/react-router";
+import { Plus } from "lucide-react";
+
+import { AddWebsiteModal } from "./AddWebsiteModal";
 import { ColumnsSwitcher } from "./ColumnsSwitcher";
 import { WebsiteListItem } from "./WebsiteListItem";
 import { useWebsites } from "../hooks/useWebsites";
 import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
 
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-/** Browsable, searchable website listing with add form. Shared by the Websites taxonomy page and the Settings Websites page. */
+/** Browsable, searchable website listing with add modal. Shared by the Websites taxonomy page and the Settings Websites page. */
 export function WebsitesListing() {
   const {
     data: allWebsites, isLoading, error,
   } = useWebsites();
   const [search, setSearch] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
   const columns = useBookmarkColumns("websites-listing");
+  const navigate = useNavigate();
 
   const q = search.trim().toLowerCase();
   const filtered = (allWebsites ?? []).filter((w) => {
@@ -24,8 +30,6 @@ export function WebsitesListing() {
 
   return (
     <div className="space-y-4">
-      <AddWebsiteForm />
-
       <div className="space-y-4">
         <div className="flex items-center gap-4">
           <Input
@@ -35,6 +39,12 @@ export function WebsitesListing() {
             className="max-w-sm"
           />
           <ColumnsSwitcher pageKey="websites-listing" />
+          <div className="ml-auto">
+            <Button type="button" size="sm" onClick={() => setModalOpen(true)}>
+              <Plus className="size-4" />
+              New website
+            </Button>
+          </div>
         </div>
 
         {q && filtered.length < (allWebsites?.length ?? 0)
@@ -80,6 +90,17 @@ export function WebsitesListing() {
           )
           : null}
       </div>
+
+      <AddWebsiteModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        onCreated={(website) => {
+          void navigate({
+            to: "/taxonomies/websites/$websiteSlug/edit/general",
+            params: { websiteSlug: website.slug },
+          });
+        }}
+      />
     </div>
   );
 }
