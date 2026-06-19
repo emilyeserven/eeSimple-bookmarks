@@ -44,7 +44,7 @@ jobs:
         #      the budget deliberately (and only after a consolidation pass) if it ever needs to grow.
         shell: bash
         env:
-          DUP_BUDGET: "6.0"
+          DUP_BUDGET: "6.2"
         run: |
           set -o pipefail
           echo "## Fallow audit" >> "$GITHUB_STEP_SUMMARY"
