@@ -11,10 +11,11 @@ import { Markdown } from "tiptap-markdown";
 import { Toggle } from "@/components/ui/toggle";
 import { cn } from "@/lib/utils";
 
-/** Read the serialized Markdown from the Markdown extension's storage (untyped on `editor.storage`). */
-function getMarkdown(editor: Editor): string {
-  const storage = editor.storage as unknown as { markdown: MarkdownStorage };
-  return storage.markdown.getMarkdown();
+/** Read the serialized Markdown from the Markdown extension's storage (untyped on `editor.storage`).
+ * Returns undefined when the extension storage isn't populated yet (TipTap v3 + React 19 timing). */
+function getMarkdown(editor: Editor): string | undefined {
+  const md = (editor.storage as unknown as { markdown?: MarkdownStorage }).markdown;
+  return md?.getMarkdown();
 }
 
 interface RichTextEditorProps {
@@ -53,7 +54,8 @@ export function RichTextEditor({
     onUpdate: ({
       editor: instance,
     }) => {
-      onChange?.(getMarkdown(instance));
+      const md = getMarkdown(instance);
+      if (md !== undefined) onChange?.(md);
     },
     editorProps: {
       attributes: {
@@ -66,11 +68,10 @@ export function RichTextEditor({
   useEffect(() => {
     if (!editor) return;
     const current = getMarkdown(editor);
-    if (value !== current) {
-      editor.commands.setContent(value, {
-        emitUpdate: false,
-      });
-    }
+    if (current === undefined || value === current) return;
+    editor.commands.setContent(value, {
+      emitUpdate: false,
+    });
   }, [editor, value]);
 
   // Reflect prop changes to editability after mount.
