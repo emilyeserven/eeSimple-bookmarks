@@ -1,14 +1,16 @@
 import { useState } from "react";
 
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Plus } from "lucide-react";
 
-import { AddCategoryForm } from "../components/AddCategoryForm";
+import { AddCategoryModal } from "../components/AddCategoryModal";
 import { CategoryPreviewCard } from "../components/CategoryPreviewCard";
 import { ColumnsSwitcher } from "../components/ColumnsSwitcher";
 import { useCategories } from "../hooks/useCategories";
 import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 export const Route = createFileRoute("/categories/")({
@@ -21,6 +23,8 @@ function CategoriesListingPage() {
     data: categories, isLoading, error,
   } = useCategories();
   const [search, setSearch] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
+  const navigate = useNavigate();
   const columns = useBookmarkColumns("categories-listing");
 
   const q = search.trim().toLowerCase();
@@ -33,19 +37,27 @@ function CategoriesListingPage() {
   return (
     <section className="space-y-6">
       <div className="space-y-1">
-        <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold">Categories</h1>
-          {categories
-            ? <Badge variant="secondary">{categories.length}</Badge>
-            : null}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold">Categories</h1>
+            {categories
+              ? <Badge variant="secondary">{categories.length}</Badge>
+              : null}
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => setModalOpen(true)}
+          >
+            <Plus className="size-4" />
+            New category
+          </Button>
         </div>
         <p className="text-sm text-muted-foreground">
           Group bookmarks by category. Click a category to view it, or edit it for tiered tags,
           custom properties and autofill rules.
         </p>
       </div>
-
-      <AddCategoryForm />
 
       <div className="space-y-4">
         <div className="flex items-center gap-4">
@@ -69,7 +81,7 @@ function CategoriesListingPage() {
         {isLoading ? <p className="text-muted-foreground">Loading categories…</p> : null}
         {error ? <p className="text-destructive">{error.message}</p> : null}
         {!isLoading && (categories?.length ?? 0) === 0
-          ? <p className="text-muted-foreground">No categories yet. Create one above.</p>
+          ? <p className="text-muted-foreground">No categories yet.</p>
           : null}
         {!isLoading && (categories?.length ?? 0) > 0 && filtered.length === 0
           ? (
@@ -98,6 +110,19 @@ function CategoriesListingPage() {
           )
           : null}
       </div>
+
+      <AddCategoryModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        onCreated={(category) => {
+          void navigate({
+            to: "/categories/$categorySlug/edit/general",
+            params: {
+              categorySlug: category.slug,
+            },
+          });
+        }}
+      />
     </section>
   );
 }
