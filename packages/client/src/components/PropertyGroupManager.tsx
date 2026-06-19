@@ -1,7 +1,9 @@
 import { useState } from "react";
 
 import { PropertyGroupListItem } from "./PropertyGroupListItem";
+import { useSetListingPage } from "../hooks/useListingPage";
 import { usePropertyGroups } from "../hooks/usePropertyGroups";
+import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
 
 import { Input } from "@/components/ui/input";
 
@@ -11,6 +13,8 @@ export function PropertyGroupsListing() {
     data: allGroups, isLoading, error,
   } = usePropertyGroups();
   const [search, setSearch] = useState("");
+  useSetListingPage("property-groups-listing");
+  const columns = useBookmarkColumns("property-groups-listing");
 
   const filtered = (allGroups ?? []).filter((g) => {
     const q = search.trim().toLowerCase();
@@ -46,14 +50,19 @@ export function PropertyGroupsListing() {
 
       {filtered.length > 0
         ? (
-          <ul className="space-y-2">
+          <div
+            className={`
+              grid gap-2
+              ${COLUMN_CLASS[columns]}
+            `}
+          >
             {filtered.map(group => (
               <PropertyGroupListItem
                 key={group.id}
                 group={group}
               />
             ))}
-          </ul>
+          </div>
         )
         : null}
     </div>

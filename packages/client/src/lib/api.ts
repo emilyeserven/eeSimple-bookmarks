@@ -1,6 +1,9 @@
 import type {
   AutofillRule,
   Bookmark,
+  CreateDisplayPresetInput,
+  DisplayPreset,
+  UpdateDisplayPresetInput,
   CreateSavedFilterInput,
   SavedFilter,
   UpdateSavedFilterInput,
@@ -371,6 +374,23 @@ export const savedFiltersApi = {
       body: JSON.stringify(input),
     }),
   remove: (id: string) => request<undefined>(`/saved-filters/${id}`, {
+    method: "DELETE",
+  }),
+};
+
+export const displayPresetsApi = {
+  list: () => request<DisplayPreset[]>("/display-presets"),
+  create: (input: CreateDisplayPresetInput) =>
+    request<DisplayPreset>("/display-presets", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  update: (id: string, input: UpdateDisplayPresetInput) =>
+    request<DisplayPreset>(`/display-presets/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  remove: (id: string) => request<undefined>(`/display-presets/${id}`, {
     method: "DELETE",
   }),
 };

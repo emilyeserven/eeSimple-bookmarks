@@ -6,6 +6,7 @@ import { Plus } from "lucide-react";
 import { AddAutofillRuleModal } from "../components/AddAutofillRuleModal";
 import { AutofillRulesList } from "../components/AutofillRulesList";
 import { useAutofillRules } from "../hooks/useAutofill";
+import { useSetListingPage } from "../hooks/useListingPage";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ function AutofillListPage() {
   } = useAutofillRules();
   const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
+  useSetListingPage("autofill-rules-listing");
 
   return (
     <section className="space-y-6">

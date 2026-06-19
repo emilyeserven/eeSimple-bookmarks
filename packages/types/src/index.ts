@@ -835,6 +835,31 @@ export interface CreateSavedFilterInput {
 
 export type UpdateSavedFilterInput = Partial<CreateSavedFilterInput>;
 
+/** The display settings captured in a display preset (columns, image visibility, mode, layout). */
+export interface DisplayPresetSettings {
+  columns: number;
+  imageVisibility: "shown" | "image-only" | "off";
+  imageMode: boolean;
+  imageLayout: "above" | "side";
+}
+
+/** A named snapshot of listing display settings, reusable across any listing page. */
+export interface DisplayPreset {
+  id: string;
+  name: string;
+  description: string | null;
+  settings: DisplayPresetSettings;
+  createdAt: string;
+}
+
+export interface CreateDisplayPresetInput {
+  name: string;
+  description?: string | null;
+  settings: DisplayPresetSettings;
+}
+
+export type UpdateDisplayPresetInput = Partial<CreateDisplayPresetInput>;
+
 /** Standard error shape returned by the API. */
 export interface ApiError {
   error: string;
