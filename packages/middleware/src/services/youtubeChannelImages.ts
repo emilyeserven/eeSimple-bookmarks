@@ -32,6 +32,13 @@ export function youtubeChannelImageUrl(row: YouTubeChannelImageRow): string {
   return `/api/youtube-channels/${row.youtubeChannelId}/image?v=${imageVersion(row)}`;
 }
 
+const RETRY_DELAY_MS = 2_000;
+const TRANSIENT = new Set(["blocked", "fetch_error"]);
+
+function sleep(ms: number): Promise<void> {
+  return new Promise(r => setTimeout(r, ms));
+}
+
 /** Read a channel's stored-avatar row, or null when it has none. */
 export async function getYouTubeChannelImageRow(channelId: string): Promise<YouTubeChannelImageRow | null> {
   const [row] = await db
@@ -111,7 +118,12 @@ export async function fetchAndStoreChannelImage(channelId: string): Promise<Enti
     .where(eq(youtubeChannels.id, channelId));
   if (!channel) return "not_found";
 
-  const result = await fetchOgImage(channelUrlFromKey(channel.channelKey));
+  const url = channelUrlFromKey(channel.channelKey);
+  let result = await fetchOgImage(url);
+  if (typeof result === "string" && TRANSIENT.has(result)) {
+    await sleep(RETRY_DELAY_MS);
+    result = await fetchOgImage(url);
+  }
   if (typeof result === "string") return result;
   return setYouTubeChannelImage(channelId, result, "og");
 }

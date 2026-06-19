@@ -17,7 +17,7 @@ import { deleteObject, getObjectStream, isObjectStoreConfigured } from "@/utils/
 const IMAGE_GRAB_ERROR_MESSAGES: Record<string, string> = {
   no_image: "No avatar found for that channel",
   bad_image: "Avatar couldn't be loaded",
-  blocked: "Access to the channel was blocked",
+  blocked: "YouTube rate-limited the request — wait a moment and try again",
   server_error: "YouTube returned a server error",
   fetch_error: "Channel page couldn't be reached",
 };
