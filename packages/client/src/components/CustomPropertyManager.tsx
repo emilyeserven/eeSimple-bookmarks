@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
 
-import { Link } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 
+import { AddCustomPropertyModal } from "./AddCustomPropertyModal";
 import { PropertyPreview } from "./PropertyPreview";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { TYPE_LABELS } from "../lib/propertyFormat";
@@ -16,6 +17,8 @@ export function CustomPropertyManager() {
     data: properties, isLoading, error,
   } = useCustomProperties();
   const [query, setQuery] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -41,11 +44,9 @@ export function CustomPropertyManager() {
           onChange={event => setQuery(event.target.value)}
           className="sm:flex-1"
         />
-        <Button asChild>
-          <Link to="/custom-properties/new">
-            <Plus className="size-4" />
-            New property
-          </Link>
+        <Button type="button" size="sm" onClick={() => setModalOpen(true)}>
+          <Plus className="size-4" />
+          New property
         </Button>
       </div>
 
@@ -70,6 +71,17 @@ export function CustomPropertyManager() {
           />
         ))}
       </div>
+
+      <AddCustomPropertyModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        onCreated={(property) => {
+          void navigate({
+            to: "/custom-properties/$propertySlug/edit/general",
+            params: { propertySlug: property.slug },
+          });
+        }}
+      />
     </section>
   );
 }
