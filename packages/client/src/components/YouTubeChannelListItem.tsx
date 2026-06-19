@@ -2,6 +2,7 @@ import type { YouTubeChannel } from "@eesimple/types";
 
 import { useState } from "react";
 
+import { channelUrlFromKey } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 import { MonitorPlay, MoreVertical, Sparkles } from "lucide-react";
 
@@ -127,7 +128,12 @@ export function YouTubeChannelListItem({
           <DropdownMenuItem
             disabled={autoAvatar.isPending || autoAvatar.cooldown.isOnCooldown}
             onClick={() => {
-              if (!autoAvatar.cooldown.isOnCooldown) autoAvatar.mutate(channel.id);
+              if (!autoAvatar.cooldown.isOnCooldown) {
+                autoAvatar.mutate({
+                  id: channel.id,
+                  sourceUrl: channelUrlFromKey(channel.channelKey),
+                });
+              }
             }}
           >
             <Sparkles className="mr-2 size-4" />

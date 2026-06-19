@@ -2,6 +2,7 @@ import type { YouTubeChannel } from "@eesimple/types";
 
 import { useState } from "react";
 
+import { channelUrlFromKey } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 import { MonitorPlay, Sparkles, Trash2 } from "lucide-react";
 
@@ -53,7 +54,10 @@ export function YouTubeChannelCard({
                 variant="ghost"
                 size="sm"
                 disabled={autoAvatar.isPending || deleteAvatar.isPending}
-                onClick={() => autoAvatar.mutate(channel.id, {
+                onClick={() => autoAvatar.mutate({
+                  id: channel.id,
+                  sourceUrl: channelUrlFromKey(channel.channelKey),
+                }, {
                   onSuccess: () => setImageFailed(false),
                 })}
                 title={channel.imageUrl ? "Refresh avatar" : "Fetch avatar"}

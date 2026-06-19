@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { channelUrlFromKey } from "@eesimple/types";
 import { parseIsoDuration, parseYouTubeVideo } from "@/services/youtube";
-import { channelKeyFromUrl, channelUrlFromKey } from "@/services/youtubeChannels";
+import { channelKeyFromUrl } from "@/services/youtubeChannels";
 
 // Pure-helper tests run without a live database or network, matching the `websites` style.
 

@@ -148,18 +148,23 @@ export function useUploadBookmarkImage() {
 export function useAutoBookmarkImage() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => bookmarksApi.autoImage(id),
+    mutationFn: ({
+      id,
+    }: { id: string;
+      sourceUrl: string; }) => bookmarksApi.autoImage(id),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: BOOKMARKS_KEY,
       });
       notifySuccess("Page image fetched");
     },
-    onError: (err: Error) => {
+    onError: (err: Error, {
+      sourceUrl,
+    }) => {
       void queryClient.invalidateQueries({
         queryKey: BOOKMARKS_KEY,
       });
-      notifyImageFetchError(err, "bookmark page image", "Could not fetch a preview image");
+      notifyImageFetchError(err, "bookmark page image", "Could not fetch a preview image", sourceUrl);
     },
   });
 }

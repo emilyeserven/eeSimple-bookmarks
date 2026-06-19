@@ -42,7 +42,10 @@ export function BookmarkImageEditForm({
         });
       }
       else if (intent.auto) {
-        await autoImage.mutateAsync(bookmark.id);
+        await autoImage.mutateAsync({
+          id: bookmark.id,
+          sourceUrl: bookmark.url,
+        });
       }
       else if (intent.remove) {
         await deleteImage.mutateAsync(bookmark.id);
