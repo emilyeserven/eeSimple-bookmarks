@@ -73,7 +73,9 @@ export function AutofillRulesList({
   mediaTypeId,
   channelId,
 }: AutofillRulesListProps = {}) {
-  const { openAutofill } = usePanelControls();
+  const {
+    openAutofill,
+  } = usePanelControls();
   const {
     data: rules, isLoading, error,
   } = useAutofillRules();
