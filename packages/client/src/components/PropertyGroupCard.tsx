@@ -10,6 +10,29 @@ import { Separator } from "@/components/ui/separator";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
 import { useUiStore } from "@/stores/uiStore";
 
+function PropertyGroupDetails({
+  group,
+}: { group: PropertyGroup }) {
+  return (
+    <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
+      <dt className="text-muted-foreground">Added</dt>
+      <dd>{new Date(group.createdAt).toLocaleDateString()}</dd>
+      <dt className="text-muted-foreground">Slug</dt>
+      <dd className="font-mono">{group.slug}</dd>
+      <dt className="text-muted-foreground">Priority</dt>
+      <dd>{group.priority}</dd>
+      {group.propertyCount != null
+        ? (
+          <>
+            <dt className="text-muted-foreground">Properties</dt>
+            <dd>{group.propertyCount}</dd>
+          </>
+        )
+        : null}
+    </dl>
+  );
+}
+
 /** Read-only display card for a single property group. Shared by the view page and the right panel's View body. */
 export function PropertyGroupCard({
   group,
@@ -47,22 +70,7 @@ export function PropertyGroupCard({
       <Separator />
 
       <LabeledSection title="Details">
-        <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
-          <dt className="text-muted-foreground">Added</dt>
-          <dd>{new Date(group.createdAt).toLocaleDateString()}</dd>
-          <dt className="text-muted-foreground">Slug</dt>
-          <dd className="font-mono">{group.slug}</dd>
-          <dt className="text-muted-foreground">Priority</dt>
-          <dd>{group.priority}</dd>
-          {group.propertyCount != null
-            ? (
-              <>
-                <dt className="text-muted-foreground">Properties</dt>
-                <dd>{group.propertyCount}</dd>
-              </>
-            )
-            : null}
-        </dl>
+        <PropertyGroupDetails group={group} />
       </LabeledSection>
     </div>
   );
