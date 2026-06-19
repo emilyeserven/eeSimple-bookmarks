@@ -201,7 +201,7 @@ readiness uses `DB_WAIT_TIMEOUT_MS`).
 | `GARAGE_S3_HOST_PORT` | docker-compose | Host port mapped to Garage's S3 API 3900 (default: `3900`). |
 | `STORAGE_QUOTA_BYTES` | middleware / gateway | Optional storage quota in bytes shown in the Gallery UI alongside used space (e.g. `10737418240` for 10 GB). Omit to hide the quota line. |
 
-Bookmark images are compressed to an 800px WebP and stored in object storage (Garage by default),
+Bookmark images are compressed to a 1200px WebP and stored in object storage (Garage by default),
 served via `GET /api/bookmarks/:id/image`. Without the `S3_*` vars the app runs normally but image
 upload/auto-capture returns 503. See `README.md` → "Object storage (Garage)" for the one-time setup.
 
