@@ -232,10 +232,12 @@ export function BookmarkRevealedFields({
         "
       >
         <div className="flex flex-col gap-4">
-          <form.Subscribe selector={s => ({
-            categoryId: s.values.categoryId,
-            tagIds: s.values.tagIds,
-          })}>
+          <form.Subscribe
+            selector={s => ({
+              categoryId: s.values.categoryId,
+              tagIds: s.values.tagIds,
+            })}
+          >
             {({
               categoryId,
               tagIds,
