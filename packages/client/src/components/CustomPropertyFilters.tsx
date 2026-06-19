@@ -6,12 +6,12 @@ import { Ban, ChevronDown, Circle, CircleDot, CircleHelp } from "lucide-react";
 import { Combobox } from "./Combobox";
 import { DateTimeRangeFields } from "./DateTimePicker";
 import { RangeSlider } from "./RangeSlider";
-import { formatBoolean } from "@/lib/bookmarkFormat";
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Label } from "@/components/ui/label";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { formatBoolean } from "@/lib/bookmarkFormat";
 import { cn } from "@/lib/utils";
 
 interface CustomPropertyFiltersProps {
@@ -407,8 +407,14 @@ function BooleanFilterControl({
 }: BooleanControlProps) {
   const selected = value === undefined ? undefined : String(value);
   const booleanOptions: ComboboxOption[] = [
-    { value: "true", label: formatBoolean(true, property) },
-    { value: "false", label: formatBoolean(false, property) },
+    {
+      value: "true",
+      label: formatBoolean(true, property),
+    },
+    {
+      value: "false",
+      label: formatBoolean(false, property),
+    },
   ];
 
   return (
