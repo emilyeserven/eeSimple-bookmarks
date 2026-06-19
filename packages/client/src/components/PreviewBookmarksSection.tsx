@@ -27,6 +27,7 @@ function toConditionInput(bookmark: Bookmark): ConditionInput {
     title: bookmark.title,
     categoryId: bookmark.categoryId,
     tagIds: new Set(bookmark.tags.map(t => t.id)),
+    youtubeChannelId: bookmark.youtubeChannel?.id ?? null,
     numberValues: new Map(bookmark.numberValues.map(v => [v.propertyId, v.value])),
     booleanValues: new Map(bookmark.booleanValues.map(v => [v.propertyId, v.value])),
     dateTimeValues: new Map(bookmark.dateTimeValues.map(v => [v.propertyId, v.value])),

@@ -14,6 +14,10 @@ const viewNav = [
     to: "/taxonomies/youtube-channels/$channelSlug/general",
     label: "General",
   },
+  {
+    to: "/taxonomies/youtube-channels/$channelSlug/autofill",
+    label: "Autofill",
+  },
 ] as const;
 
 function YouTubeChannelViewLayout() {

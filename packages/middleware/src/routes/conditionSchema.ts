@@ -79,6 +79,18 @@ const tagNode = {
   },
 } as const;
 
+const youtubeChannelNode = {
+  type: "object",
+  additionalProperties: false,
+  required: ["type", "channelIds"],
+  properties: {
+    type: {
+      const: "youtube-channel",
+    },
+    channelIds: uuidArray,
+  },
+} as const;
+
 const numberPredicate = {
   oneOf: [
     {
@@ -254,10 +266,10 @@ const groupNode = {
   },
 } as const;
 
-/** Any node in the tree (group or one of the four leaf kinds). Self-references for nesting. */
+/** Any node in the tree (group or one of the five leaf kinds). Self-references for nesting. */
 export const conditionNodeSchema = {
   $id: "conditionNode",
-  oneOf: [groupNode, matchNode, categoryNode, websiteNode, tagNode, propertyNode],
+  oneOf: [groupNode, matchNode, categoryNode, websiteNode, tagNode, youtubeChannelNode, propertyNode],
 } as const;
 
 /** The persisted root: always a group. Referenced by request bodies as `conditionTree#`. */

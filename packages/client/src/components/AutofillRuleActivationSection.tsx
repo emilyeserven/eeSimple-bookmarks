@@ -6,6 +6,7 @@ import type {
   TagCondition,
   TagNode,
   WebsiteCondition,
+  YouTubeChannelCondition,
 } from "@eesimple/types";
 
 import { CollapsibleFormSection } from "./CollapsibleFormSection";
@@ -70,16 +71,19 @@ function summarizeConditions(conditions: ConditionTree): string {
   const categoryLeaf = conditions.children.find((child): child is CategoryCondition => child.type === "category");
   const websiteLeaf = conditions.children.find((child): child is WebsiteCondition => child.type === "website");
   const tagLeaf = conditions.children.find((child): child is TagCondition => child.type === "tag");
+  const channelLeaf = conditions.children.find((child): child is YouTubeChannelCondition => child.type === "youtube-channel");
   const propertyCount = conditions.children.filter(child => child.type === "property").length;
   const categoryCount = categoryLeaf?.categoryIds.length ?? 0;
   const websiteCount = websiteLeaf?.domains.length ?? 0;
   const tagCount = tagLeaf?.tagIds.length ?? 0;
+  const channelCount = channelLeaf?.channelIds.length ?? 0;
 
   const parts: string[] = [];
   if (matchCount > 0) parts.push(`${matchCount} title ${matchCount === 1 ? "match" : "matches"}`);
   if (categoryCount > 0) parts.push(`${categoryCount} ${categoryCount === 1 ? "category" : "categories"}`);
   if (websiteCount > 0) parts.push(`${websiteCount} ${websiteCount === 1 ? "website" : "websites"}`);
   if (tagCount > 0) parts.push(`${tagCount} ${tagCount === 1 ? "tag" : "tags"}`);
+  if (channelCount > 0) parts.push(`${channelCount} YouTube ${channelCount === 1 ? "channel" : "channels"}`);
   if (propertyCount > 0) parts.push(`${propertyCount} ${propertyCount === 1 ? "property" : "properties"}`);
 
   return parts.length > 0 ? parts.join(" · ") : "No conditions set";

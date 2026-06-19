@@ -86,6 +86,14 @@ export interface TagCondition {
   tagIds: string[];
 }
 
+/**
+ * Leaf: the bookmark is linked to one of `channelIds`. An empty list never matches.
+ */
+export interface YouTubeChannelCondition {
+  type: "youtube-channel";
+  channelIds: string[];
+}
+
 /** Leaf: a predicate on a single custom property's value. */
 export interface PropertyCondition {
   type: "property";
@@ -113,6 +121,7 @@ export type ConditionNode
     | CategoryCondition
     | WebsiteCondition
     | TagCondition
+    | YouTubeChannelCondition
     | PropertyCondition;
 
 /** The persisted root is always a group, so the AND/OR combinator always has a home. */
@@ -135,6 +144,8 @@ export interface ConditionInput {
   categoryId: string;
   /** The bookmark's own tag ids (NOT expanded for cascade). */
   tagIds: Set<string>;
+  /** The bookmark's YouTube channel id, or `null` when not a YouTube video. */
+  youtubeChannelId: string | null;
   /** Number/calculate custom-property values, keyed by property id. */
   numberValues: Map<string, number>;
   /** Boolean custom-property values, keyed by property id. */
@@ -291,6 +302,11 @@ function evaluateDateTimePredicate(
   return true;
 }
 
+function evaluateYoutubeChannel(condition: YouTubeChannelCondition, input: ConditionInput): boolean {
+  if (condition.channelIds.length === 0) return false;
+  return input.youtubeChannelId !== null && condition.channelIds.includes(input.youtubeChannelId);
+}
+
 function evaluateProperty(condition: PropertyCondition, input: ConditionInput): boolean {
   if (condition.predicate.valueKind === "number") {
     return evaluateNumberPredicate(
@@ -337,6 +353,8 @@ export function evaluateConditions(
       return evaluateWebsite(node, input);
     case "tag":
       return evaluateTag(node, input, options);
+    case "youtube-channel":
+      return evaluateYoutubeChannel(node, input);
     case "property":
       return evaluateProperty(node, input);
     default: {

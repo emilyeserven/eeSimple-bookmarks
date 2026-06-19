@@ -9,6 +9,7 @@ import type {
   TagCondition,
   TagNode,
   WebsiteCondition,
+  YouTubeChannelCondition,
 } from "@eesimple/types";
 
 import { ChevronDown } from "lucide-react";
@@ -18,6 +19,7 @@ import { MatchConditionEditor } from "./MatchConditionEditor";
 import { PropertyConditionEditor } from "./PropertyConditionEditor";
 import { TagConditionEditor } from "./TagConditionEditor";
 import { WebsiteConditionEditor } from "./WebsiteConditionEditor";
+import { YouTubeChannelConditionEditor } from "./YouTubeChannelConditionEditor";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -86,6 +88,7 @@ export function ConditionsField({
   const categoryLeaf = value.children.find((child): child is CategoryCondition => child.type === "category");
   const websiteLeaf = value.children.find((child): child is WebsiteCondition => child.type === "website");
   const tagLeaf = value.children.find((child): child is TagCondition => child.type === "tag");
+  const youtubeChannelLeaf = value.children.find((child): child is YouTubeChannelCondition => child.type === "youtube-channel");
   const propertyLeaves = value.children.filter((child): child is PropertyCondition => child.type === "property");
   // Preserve any nested groups (not editable in this v1 UI) so the tree round-trips.
   const nestedGroups = value.children.filter(child => child.type === "group");
@@ -95,18 +98,21 @@ export function ConditionsField({
     category?: CategoryCondition | null;
     website?: WebsiteCondition | null;
     tag?: TagCondition | null;
+    youtubeChannel?: YouTubeChannelCondition | null;
     properties?: PropertyCondition[];
   }) {
     const nextMatches = next.matches ?? matches;
     const nextCategory = next.category === undefined ? categoryLeaf : next.category;
     const nextWebsite = next.website === undefined ? websiteLeaf : next.website;
     const nextTag = next.tag === undefined ? tagLeaf : next.tag;
+    const nextYoutubeChannel = next.youtubeChannel === undefined ? youtubeChannelLeaf : next.youtubeChannel;
     const nextProperties = next.properties ?? propertyLeaves;
     const children: ConditionNode[] = [
       ...nextMatches,
       ...(nextCategory && nextCategory.categoryIds.length > 0 ? [nextCategory] : []),
       ...(nextWebsite && nextWebsite.domains.length > 0 ? [nextWebsite] : []),
       ...(nextTag && nextTag.tagIds.length > 0 ? [nextTag] : []),
+      ...(nextYoutubeChannel && nextYoutubeChannel.channelIds.length > 0 ? [nextYoutubeChannel] : []),
       ...nextProperties,
       ...nestedGroups,
     ];
@@ -119,6 +125,7 @@ export function ConditionsField({
   const categoryCount = categoryLeaf?.categoryIds.length ?? 0;
   const websiteCount = websiteLeaf?.domains.length ?? 0;
   const tagCount = tagLeaf?.tagIds.length ?? 0;
+  const channelCount = youtubeChannelLeaf?.channelIds.length ?? 0;
 
   return (
     <div className="space-y-3">
@@ -227,6 +234,23 @@ export function ConditionsField({
           onChange={next =>
             commit({
               website: next.domains.length > 0 ? next : null,
+            })}
+        />
+      </Section>
+
+      <Section
+        title="YouTube Channel"
+        summary={channelCount > 0 ? `${channelCount} selected` : undefined}
+        defaultOpen={channelCount > 0}
+      >
+        <YouTubeChannelConditionEditor
+          value={youtubeChannelLeaf ?? {
+            type: "youtube-channel",
+            channelIds: [],
+          }}
+          onChange={next =>
+            commit({
+              youtubeChannel: next.channelIds.length > 0 ? next : null,
             })}
         />
       </Section>

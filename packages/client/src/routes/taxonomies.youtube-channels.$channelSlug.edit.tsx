@@ -12,6 +12,10 @@ const editNav = [
     to: "/taxonomies/youtube-channels/$channelSlug/edit/general",
     label: "General",
   },
+  {
+    to: "/taxonomies/youtube-channels/$channelSlug/edit/autofill",
+    label: "Autofill",
+  },
 ] as const;
 
 function YouTubeChannelEditLayout() {

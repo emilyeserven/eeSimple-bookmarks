@@ -11,6 +11,7 @@ function makeInput(overrides: Partial<ConditionInput> = {}): ConditionInput {
     title: overrides.title ?? "Weeknight Ponzu Pasta",
     categoryId: overrides.categoryId ?? "cat-recipes",
     tagIds: overrides.tagIds ?? new Set<string>(),
+    youtubeChannelId: overrides.youtubeChannelId ?? null,
     numberValues: overrides.numberValues ?? new Map<string, number>(),
     booleanValues: overrides.booleanValues ?? new Map<string, boolean>(),
     dateTimeValues: overrides.dateTimeValues ?? new Map<string, string>(),

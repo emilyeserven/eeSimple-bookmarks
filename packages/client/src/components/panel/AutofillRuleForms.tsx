@@ -15,6 +15,7 @@ import { useCustomProperties } from "../../hooks/useCustomProperties";
 import { useMediaTypes } from "../../hooks/useMediaTypes";
 import { useTagBySlug, useTagTree } from "../../hooks/useTags";
 import { useWebsites } from "../../hooks/useWebsites";
+import { useYouTubeChannelBySlug } from "../../hooks/useYouTubeChannels";
 import { AutofillRuleForm } from "../AutofillRuleForm";
 
 import { Button } from "@/components/ui/button";
@@ -41,21 +42,25 @@ export function CreateAutofillRule() {
   } = useMediaTypes();
   const createRule = useCreateAutofillRule();
 
-  // When opened from a category's / website's / tag's / media type's autofill tab the slug is
-  // still in the route path; preselect that entity so the new rule shows up in the scoped list.
-  // Undefined on every other surface (e.g. /settings/autofill), leaving the defaults unchanged.
+  // When opened from a category's / website's / tag's / media type's / channel's autofill tab the
+  // slug is still in the route path; preselect that entity so the new rule shows up in the scoped
+  // list. Undefined on every other surface (e.g. /settings/autofill), leaving the defaults unchanged.
   const {
     categorySlug,
     websiteSlug,
     tagSlug,
     mediaTypeSlug,
+    channelSlug,
   } = useParams({
     strict: false,
   });
-  // useTagBySlug is safe to call unconditionally (returns undefined when slug is empty).
+  // useTagBySlug / useYouTubeChannelBySlug are safe to call unconditionally (return undefined when slug is empty).
   const {
     tag: preseedTag,
   } = useTagBySlug(tagSlug ?? "");
+  const {
+    channel: preseedChannel,
+  } = useYouTubeChannelBySlug(channelSlug ?? "");
   const defaultCategoryId = categorySlug
     ? (categories ?? []).find(category => category.slug === categorySlug)?.id
     : undefined;
@@ -66,6 +71,7 @@ export function CreateAutofillRule() {
   const defaultMediaTypeId = mediaTypeSlug
     ? (mediaTypes ?? []).find(mt => mt.slug === mediaTypeSlug)?.id
     : undefined;
+  const defaultChannelIds = channelSlug && preseedChannel ? [preseedChannel.id] : undefined;
 
   async function handleCreate(input: CreateAutofillRuleInput) {
     const created = await createRule.mutateAsync(input);
@@ -89,6 +95,7 @@ export function CreateAutofillRule() {
         defaultMediaTypeId={defaultMediaTypeId}
         defaultWebsiteDomain={defaultWebsiteDomain}
         defaultTagIds={defaultTagIds}
+        defaultChannelIds={defaultChannelIds}
         submitLabel="Add rule"
         isError={createRule.isError}
         errorMessage={createRule.error?.message}
