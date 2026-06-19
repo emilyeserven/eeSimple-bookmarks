@@ -88,6 +88,9 @@ interface UiState {
   /** Card field keys hidden per listing page (standard field key or custom-property id). Empty/absent = all shown. */
   hiddenCardFields: Record<string, string[]>;
   toggleCardField: (pageKey: string, fieldKey: string) => void;
+  /** Persisted per-listing table column widths (px), keyed by pageKey → columnId. */
+  tableColumnWidths: Record<string, Record<string, number>>;
+  setTableColumnWidths: (pageKey: string, widths: Record<string, number>) => void;
   /** When pinned, the right-hand panel docks as a persistent column instead of a floating drawer. */
   panelPinned: boolean;
   setPanelPinned: (value: boolean) => void;
@@ -226,6 +229,13 @@ export const useUiStore = create<UiState>()(
           },
         };
       }),
+      tableColumnWidths: {},
+      setTableColumnWidths: (pageKey, widths) => set(state => ({
+        tableColumnWidths: {
+          ...state.tableColumnWidths,
+          [pageKey]: widths,
+        },
+      })),
       panelPinned: false,
       setPanelPinned: value => set({
         panelPinned: value,

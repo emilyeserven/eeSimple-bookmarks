@@ -14,6 +14,7 @@ import { bookmarkMatchesSearch, hasAnyActiveFilter } from "../lib/bookmarkSearch
 
 import { RowCard } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
+import { useUiStore } from "@/stores/uiStore";
 
 interface BookmarkListPaneProps {
   /** Stable listing-page key, so cards can honor that page's Card Options field toggles. */
@@ -53,6 +54,8 @@ export function BookmarkListPane({
 }: BookmarkListPaneProps) {
   const deleteBookmark = useDeleteBookmark();
   const viewMode = useViewMode(pageKey);
+  const tableColumnWidths = useUiStore(state => state.tableColumnWidths[pageKey] ?? {});
+  const setTableColumnWidths = useUiStore(state => state.setTableColumnWidths);
   const tableColumns = useBookmarkTableColumns({
     properties,
     pageKey,
@@ -80,6 +83,9 @@ export function BookmarkListPane({
       {visibleBookmarks.length > 0 && viewMode === "table"
         ? (
           <DataTable
+            resizable
+            columnSizing={tableColumnWidths}
+            onColumnSizingChange={widths => setTableColumnWidths(pageKey, widths)}
             columns={tableColumns}
             data={visibleBookmarks}
             sortable
