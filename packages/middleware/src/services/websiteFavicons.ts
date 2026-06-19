@@ -47,7 +47,7 @@ export async function getWebsiteFaviconRow(websiteId: string): Promise<WebsiteFa
 async function setWebsiteFavicon(
   websiteId: string,
   rawBytes: Buffer,
-  source: "icon" | "og",
+  source: "icon" | "og" | "upload",
 ): Promise<{ imageUrl: string } | "not_found" | "bad_image"> {
   const [website] = await db
     .select({
@@ -85,6 +85,17 @@ async function setWebsiteFavicon(
   return {
     imageUrl: websiteFaviconUrl(row),
   };
+}
+
+/**
+ * Store a user-uploaded favicon from raw bytes (replacing any existing one). Returns the serving
+ * URL, `"not_found"` when the website is gone, or `"bad_image"` when the bytes aren't decodable.
+ */
+export async function setWebsiteFaviconFromBytes(
+  websiteId: string,
+  rawBytes: Buffer,
+): Promise<{ imageUrl: string } | "not_found" | "bad_image"> {
+  return setWebsiteFavicon(websiteId, rawBytes, "upload");
 }
 
 /** Delete a website's favicon (object + row). Returns whether one existed. */

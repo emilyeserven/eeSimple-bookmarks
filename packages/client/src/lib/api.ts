@@ -82,6 +82,22 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return (await res.json()) as T;
 }
 
+// Image uploads go through FormData, not the JSON `request` helper, so the browser sets the
+// multipart boundary itself. Shared by the bookmark, website-favicon, and channel-avatar uploads.
+async function uploadImageFile<T>(path: string, file: File): Promise<T> {
+  const form = new FormData();
+  form.append("file", file);
+  const res = await fetch(`${BASE}${path}`, {
+    method: "POST",
+    body: form,
+  });
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as { message?: string };
+    throw new ApiError(body.message ?? `Upload failed with ${res.status}`);
+  }
+  return (await res.json()) as T;
+}
+
 function createCrudApi<T, C, U>(endpoint: string) {
   return {
     list: () => request<T[]>(`/${endpoint}`),
@@ -132,21 +148,8 @@ export const bookmarksApi = {
     request<BookmarkUrlDuplicateResult>(
       `/bookmarks/url-check?url=${encodeURIComponent(url)}`,
     ),
-  // Image upload goes through FormData, not the JSON `request` helper, so the browser sets the
-  // multipart boundary itself.
-  uploadImage: async (id: string, file: File): Promise<BookmarkImage> => {
-    const form = new FormData();
-    form.append("file", file);
-    const res = await fetch(`${BASE}/bookmarks/${id}/image`, {
-      method: "POST",
-      body: form,
-    });
-    if (!res.ok) {
-      const body = (await res.json().catch(() => ({}))) as { message?: string };
-      throw new ApiError(body.message ?? `Upload failed with ${res.status}`);
-    }
-    return (await res.json()) as BookmarkImage;
-  },
+  uploadImage: (id: string, file: File) =>
+    uploadImageFile<BookmarkImage>(`/bookmarks/${id}/image`, file),
   autoImage: (id: string) =>
     request<BookmarkImage>(`/bookmarks/${id}/image/auto`, {
       method: "POST",
@@ -227,6 +230,8 @@ export const websitesApi = {
   ...createCrudApi<Website, CreateWebsiteInput, UpdateWebsiteInput>("websites"),
   lookup: (url: string) =>
     request<WebsiteLookup>(`/websites/lookup?url=${encodeURIComponent(url)}`),
+  uploadImage: (id: string, file: File) =>
+    uploadImageFile<{ imageUrl: string }>(`/websites/${id}/image`, file),
   autoImage: (id: string) =>
     request<{ imageUrl: string }>(`/websites/${id}/image/auto`, {
       method: "POST",
@@ -269,6 +274,8 @@ export const youtubeChannelsApi = {
   remove: (id: string) => request<undefined>(`/youtube-channels/${id}`, {
     method: "DELETE",
   }),
+  uploadImage: (id: string, file: File) =>
+    uploadImageFile<{ imageUrl: string }>(`/youtube-channels/${id}/image`, file),
   autoImage: (id: string) =>
     request<{ imageUrl: string }>(`/youtube-channels/${id}/image/auto`, {
       method: "POST",
