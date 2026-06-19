@@ -2,10 +2,10 @@ import type { MediaType } from "@eesimple/types";
 
 import { z } from "zod";
 
-import { useUpdateMediaType } from "@/hooks/useMediaTypes";
-import { useAppForm } from "@/lib/form";
 import { IconPicker } from "@/components/ui/icon-picker";
 import { Label } from "@/components/ui/label";
+import { useUpdateMediaType } from "@/hooks/useMediaTypes";
+import { useAppForm } from "@/lib/form";
 
 const mediaTypeGeneralSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),

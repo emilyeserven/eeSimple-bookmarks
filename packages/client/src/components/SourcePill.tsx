@@ -1,7 +1,9 @@
 import type { BookmarkWebsite, BookmarkYouTubeChannel } from "@eesimple/types";
 
 import { useState } from "react";
+
 import { Link } from "@tanstack/react-router";
+
 import { Globe, MonitorPlay } from "lucide-react";
 
 import { useViewPanelClick } from "./panel/useEditPanelClick";
@@ -10,9 +12,15 @@ import { Badge } from "@/components/ui/badge";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
 import { useUiStore } from "@/stores/uiStore";
 
-type Props =
-  | { type: "website"; data: BookmarkWebsite }
-  | { type: "youtube-channel"; data: BookmarkYouTubeChannel };
+type Props
+  = {
+    type: "website";
+    data: BookmarkWebsite;
+  }
+  | {
+    type: "youtube-channel";
+    data: BookmarkYouTubeChannel;
+  };
 
 /** A clickable pill showing a website's favicon or a YouTube channel's avatar alongside the entity name. */
 export function SourcePill({
