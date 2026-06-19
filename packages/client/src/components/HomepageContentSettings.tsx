@@ -1,16 +1,14 @@
 import type { HomepageContentSettings as HomepageContent, HomepageContentWidth, QuickAddDisplay } from "@eesimple/types";
 
-import { useEffect, useState } from "react";
-
-import { toast } from "sonner";
+import { useEffect, useRef, useState } from "react";
 
 import { LabeledSection } from "./LabeledSection";
 import {
   useHomepageContentSettings,
   useUpdateHomepageContentSettings,
 } from "../hooks/useAppSettings";
+import { notifyError, notifySuccess } from "../lib/notifications";
 
-import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { RichTextEditor } from "@/components/ui/RichTextEditor";
@@ -26,9 +24,13 @@ const DEFAULTS: HomepageContent = {
   homepageHeaderHidden: false,
 };
 
+/** Debounce window (ms) before an edit auto-saves. */
+const AUTOSAVE_DELAY_MS = 800;
+
 /**
  * The homepage content block, shown above the homepage sections settings. Configures the Markdown
- * shown at the top of the homepage and whether/how the Bookmark Quick Add form appears.
+ * shown at the top of the homepage and whether/how the Bookmark Quick Add form appears. Edits
+ * auto-save after a short debounce (no Save button), firing a recorded success/error toast.
  */
 export function HomepageContentSettings() {
   const {
@@ -36,17 +38,43 @@ export function HomepageContentSettings() {
   } = useHomepageContentSettings();
   const update = useUpdateHomepageContentSettings();
   const [form, setForm] = useState<HomepageContent>(DEFAULTS);
+  // Mirror the latest form state for the debounced save to read without re-creating the timer.
+  const formRef = useRef<HomepageContent>(form);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Seed local form state once the saved settings load (and whenever they change server-side).
+  // Writing the ref directly (not via setField) ensures seeding never schedules a save.
   useEffect(() => {
-    if (data) setForm(data);
+    if (data) {
+      formRef.current = data;
+      setForm(data);
+    }
   }, [data]);
 
-  function save(): void {
-    update.mutate(form, {
-      onSuccess: () => toast.success("Homepage content saved"),
-      onError: error => toast.error(error.message),
-    });
+  // Cancel any pending auto-save when the component unmounts.
+  useEffect(() => () => {
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+  }, []);
+
+  function scheduleAutoSave(): void {
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      update.mutate(formRef.current, {
+        onSuccess: () => notifySuccess("Homepage content saved"),
+        onError: error => notifyError(error.message),
+      });
+    }, AUTOSAVE_DELAY_MS);
+  }
+
+  /** Update one field, mirror it into the ref, and debounce an auto-save. */
+  function setField<K extends keyof HomepageContent>(key: K, value: HomepageContent[K]): void {
+    const next = {
+      ...formRef.current,
+      [key]: value,
+    };
+    formRef.current = next;
+    setForm(next);
+    scheduleAutoSave();
   }
 
   if (isLoading) {
@@ -62,37 +90,19 @@ export function HomepageContentSettings() {
         <label className="flex items-center gap-2 text-sm">
           <Checkbox
             checked={form.homepageHeaderHidden}
-            onCheckedChange={checked => setForm(prev => ({
-              ...prev,
-              homepageHeaderHidden: checked === true,
-            }))}
+            onCheckedChange={checked => setField("homepageHeaderHidden", checked === true)}
           />
           Hide default &ldquo;Homepage&rdquo; title and description
         </label>
         <RichTextEditor
           value={form.homepageText}
-          onChange={markdown => setForm(prev => ({
-            ...prev,
-            homepageText: markdown,
-          }))}
+          onChange={markdown => setField("homepageText", markdown)}
         />
         <WidthToggle
           label="Desktop width"
           value={form.homepageTextWidth}
-          onChange={width => setForm(prev => ({
-            ...prev,
-            homepageTextWidth: width,
-          }))}
+          onChange={width => setField("homepageTextWidth", width)}
         />
-        <div>
-          <Button
-            type="button"
-            onClick={save}
-            disabled={update.isPending}
-          >
-            Save
-          </Button>
-        </div>
       </LabeledSection>
 
       <Separator />
@@ -104,10 +114,7 @@ export function HomepageContentSettings() {
         <label className="flex items-center gap-2 text-sm">
           <Checkbox
             checked={form.bookmarkQuickAddEnabled}
-            onCheckedChange={checked => setForm(prev => ({
-              ...prev,
-              bookmarkQuickAddEnabled: checked === true,
-            }))}
+            onCheckedChange={checked => setField("bookmarkQuickAddEnabled", checked === true)}
           />
           Enable Bookmark Quick Add
         </label>
@@ -118,10 +125,7 @@ export function HomepageContentSettings() {
               <WidthToggle
                 label="Desktop width"
                 value={form.bookmarkQuickAddWidth}
-                onChange={width => setForm(prev => ({
-                  ...prev,
-                  bookmarkQuickAddWidth: width,
-                }))}
+                onChange={width => setField("bookmarkQuickAddWidth", width)}
               />
               <div className="flex items-center gap-2">
                 <Label className="text-xs text-muted-foreground">Display</Label>
@@ -130,12 +134,7 @@ export function HomepageContentSettings() {
                   size="sm"
                   value={form.bookmarkQuickAddDisplay}
                   onValueChange={(value) => {
-                    if (value) {
-                      setForm(prev => ({
-                        ...prev,
-                        bookmarkQuickAddDisplay: value as QuickAddDisplay,
-                      }));
-                    }
+                    if (value) setField("bookmarkQuickAddDisplay", value as QuickAddDisplay);
                   }}
                 >
                   <ToggleGroupItem value="collapsible">Collapsible</ToggleGroupItem>
@@ -145,15 +144,6 @@ export function HomepageContentSettings() {
             </div>
           )
           : null}
-        <div>
-          <Button
-            type="button"
-            onClick={save}
-            disabled={update.isPending}
-          >
-            Save
-          </Button>
-        </div>
       </LabeledSection>
     </div>
   );
