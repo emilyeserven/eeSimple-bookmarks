@@ -13,6 +13,14 @@ const editNav = [
     label: "General",
   },
   {
+    to: "/bookmarks/$bookmarkId/edit/properties",
+    label: "Properties",
+  },
+  {
+    to: "/bookmarks/$bookmarkId/edit/image",
+    label: "Image",
+  },
+  {
     to: "/bookmarks/$bookmarkId/edit/relationships",
     label: "Relationships",
   },
@@ -43,7 +51,7 @@ function BookmarkEditLayout() {
             ← Back to bookmark
           </Link>
           <h1 className="text-2xl font-bold">
-            {isLoading ? "Edit bookmark" : (bookmark?.title ?? "Edit bookmark")}
+            {isLoading ? "Edit bookmark" : (bookmark?.title ?? "Bookmark not found")}
           </h1>
         </div>
       )}
