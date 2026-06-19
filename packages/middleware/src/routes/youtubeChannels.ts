@@ -135,6 +135,7 @@ export async function youtubeChannelRoutes(app: FastifyInstance): Promise<void> 
     if (typeof result === "string") {
       return reply.code(502).send({
         message: IMAGE_GRAB_ERROR_MESSAGES[result] ?? "Could not fetch an avatar",
+        code: result,
       });
     }
     return reply.code(201).send(result);

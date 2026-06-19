@@ -56,6 +56,8 @@ import type {
   YouTubeChannel,
 } from "@eesimple/types";
 
+import { ApiError } from "./apiError";
+
 const BASE = "/api";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -69,8 +71,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   });
 
   if (!res.ok) {
-    const body = (await res.json().catch(() => ({}))) as { message?: string };
-    throw new Error(body.message ?? `Request failed with ${res.status}`);
+    const body = (await res.json().catch(() => ({}))) as { message?: string; code?: string };
+    throw new ApiError(body.message ?? `Request failed with ${res.status}`, body.code);
   }
 
   if (res.status === 204) return undefined as T;
@@ -118,7 +120,7 @@ export const bookmarksApi = {
     });
     if (!res.ok) {
       const body = (await res.json().catch(() => ({}))) as { message?: string };
-      throw new Error(body.message ?? `Upload failed with ${res.status}`);
+      throw new ApiError(body.message ?? `Upload failed with ${res.status}`);
     }
     return (await res.json()) as BookmarkImage;
   },

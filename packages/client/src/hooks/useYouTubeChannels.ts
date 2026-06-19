@@ -3,7 +3,10 @@ import type { UpdateYouTubeChannelInput } from "@eesimple/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { youtubeChannelsApi } from "../lib/api";
+import { ApiError } from "../lib/apiError";
+import { buildGitHubIssueUrl } from "../lib/bugReport";
 import { notifyError, notifySuccess } from "../lib/notifications";
+import { useRateLimitCooldown } from "./useRateLimitCooldown";
 
 const CHANNELS_KEY = ["youtube-channels"] as const;
 const BOOKMARKS_KEY = ["bookmarks"] as const;
@@ -61,7 +64,8 @@ export function useDeleteYouTubeChannel() {
 /** Re-grab a channel's avatar from its public channel page (`og:image`). */
 export function useAutoYouTubeChannelImage() {
   const queryClient = useQueryClient();
-  return useMutation({
+  const cooldown = useRateLimitCooldown(60_000);
+  const mutation = useMutation({
     mutationFn: (id: string) => youtubeChannelsApi.autoImage(id),
     onSuccess: () => {
       void queryClient.invalidateQueries({
@@ -69,8 +73,27 @@ export function useAutoYouTubeChannelImage() {
       });
       notifySuccess("Avatar fetched");
     },
-    onError: (err: Error) => notifyError(err.message || "Could not fetch an avatar"),
+    onError: (err: Error) => {
+      const code = err instanceof ApiError ? err.code : undefined;
+      if (code === "blocked") cooldown.startCooldown();
+      notifyError(err.message || "Could not fetch an avatar", {
+        action: {
+          label: "File issue",
+          onClick: () =>
+            window.open(
+              buildGitHubIssueUrl({
+                operation: "YouTube channel avatar",
+                errorMessage: err.message,
+                errorCode: code,
+              }),
+              "_blank",
+              "noopener,noreferrer",
+            ),
+        },
+      });
+    },
   });
+  return { ...mutation, cooldown };
 }
 
 export function useDeleteYouTubeChannelImage() {

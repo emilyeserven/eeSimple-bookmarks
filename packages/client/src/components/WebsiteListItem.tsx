@@ -104,11 +104,17 @@ export function WebsiteListItem({
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
-            disabled={autoFavicon.isPending}
-            onClick={() => autoFavicon.mutate(website.id)}
+            disabled={autoFavicon.isPending || autoFavicon.cooldown.isOnCooldown}
+            onClick={() => {
+              if (!autoFavicon.cooldown.isOnCooldown) autoFavicon.mutate(website.id);
+            }}
           >
             <Sparkles className="mr-2 size-4" />
-            {website.imageUrl ? "Refresh favicon" : "Get favicon"}
+            {autoFavicon.cooldown.isOnCooldown
+              ? `Try again in ${autoFavicon.cooldown.remaining}s`
+              : website.imageUrl
+                ? "Refresh favicon"
+                : "Get favicon"}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

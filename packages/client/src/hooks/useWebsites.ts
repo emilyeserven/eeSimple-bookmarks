@@ -3,7 +3,10 @@ import type { CreateWebsiteInput, UpdateWebsiteInput } from "@eesimple/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { websitesApi } from "../lib/api";
+import { ApiError } from "../lib/apiError";
+import { buildGitHubIssueUrl } from "../lib/bugReport";
 import { notifyError, notifySuccess } from "../lib/notifications";
+import { useRateLimitCooldown } from "./useRateLimitCooldown";
 
 const WEBSITES_KEY = ["websites"] as const;
 const BOOKMARKS_KEY = ["bookmarks"] as const;
@@ -81,7 +84,8 @@ export function useDeleteWebsite() {
 /** Re-grab a website's favicon from its homepage (icon link / og:image). */
 export function useAutoWebsiteFavicon() {
   const queryClient = useQueryClient();
-  return useMutation({
+  const cooldown = useRateLimitCooldown(30_000);
+  const mutation = useMutation({
     mutationFn: (id: string) => websitesApi.autoImage(id),
     onSuccess: () => {
       void queryClient.invalidateQueries({
@@ -89,6 +93,25 @@ export function useAutoWebsiteFavicon() {
       });
       notifySuccess("Favicon fetched");
     },
-    onError: (err: Error) => notifyError(err.message || "Could not fetch a favicon"),
+    onError: (err: Error) => {
+      const code = err instanceof ApiError ? err.code : undefined;
+      if (code === "blocked") cooldown.startCooldown();
+      notifyError(err.message || "Could not fetch a favicon", {
+        action: {
+          label: "File issue",
+          onClick: () =>
+            window.open(
+              buildGitHubIssueUrl({
+                operation: "website favicon",
+                errorMessage: err.message,
+                errorCode: code,
+              }),
+              "_blank",
+              "noopener,noreferrer",
+            ),
+        },
+      });
+    },
   });
+  return { ...mutation, cooldown };
 }
