@@ -6,7 +6,7 @@ import { useMemo } from "react";
 import { Bookmark } from "lucide-react";
 
 import { usePanelControls, usePanelDismissAfterDelete } from "./panelHelpers";
-import { Loading, Problem } from "./status";
+import { WithPanelItem } from "./status";
 import { useBookmarks, useDeleteBookmark } from "../../../hooks/useBookmarks";
 import { useCategories } from "../../../hooks/useCategories";
 import { useCustomProperties } from "../../../hooks/useCustomProperties";
@@ -39,9 +39,7 @@ function BookmarkView({
 }: {
   id: string;
 }) {
-  const {
-    data: bookmarks, isLoading, error,
-  } = useBookmarks();
+  const bookmarksQuery = useBookmarks();
   const {
     data: properties,
   } = useCustomProperties();
@@ -57,22 +55,25 @@ function BookmarkView({
   const dismiss = usePanelDismissAfterDelete();
   const deleteBookmark = useDeleteBookmark();
 
-  if (isLoading) return <Loading />;
-  if (error) return <Problem>{error.message}</Problem>;
-  const bookmark = (bookmarks ?? []).find(item => item.id === id);
-  if (!bookmark) return <Problem>Bookmark not found.</Problem>;
-
   return (
-    <BookmarkDetail
-      bookmark={bookmark}
-      categories={categories ?? []}
-      properties={properties ?? []}
-      propertyGroups={propertyGroups ?? []}
-      onEdit={() => openItem("bookmark", id, "edit")}
-      onDelete={() => deleteBookmark.mutate(id, {
-        onSuccess: dismiss,
-      })}
-    />
+    <WithPanelItem
+      queryResult={bookmarksQuery}
+      id={id}
+      notFoundMessage="Bookmark not found."
+    >
+      {bookmark => (
+        <BookmarkDetail
+          bookmark={bookmark}
+          categories={categories ?? []}
+          properties={properties ?? []}
+          propertyGroups={propertyGroups ?? []}
+          onEdit={() => openItem("bookmark", id, "edit")}
+          onDelete={() => deleteBookmark.mutate(id, {
+            onSuccess: dismiss,
+          })}
+        />
+      )}
+    </WithPanelItem>
   );
 }
 
@@ -82,26 +83,27 @@ function BookmarkEdit({
 }: {
   id: string;
 }) {
-  const {
-    data: bookmarks, isLoading, error,
-  } = useBookmarks();
+  const bookmarksQuery = useBookmarks();
   const {
     openItem,
   } = usePanelControls();
 
-  if (isLoading) return <Loading />;
-  if (error) return <Problem>{error.message}</Problem>;
-  const bookmark = (bookmarks ?? []).find(item => item.id === id);
-  if (!bookmark) return <Problem>Bookmark not found.</Problem>;
-
   return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-semibold">Edit bookmark</h2>
-      <BookmarkForm
-        bookmark={bookmark}
-        onDone={() => openItem("bookmark", id, "view")}
-      />
-    </div>
+    <WithPanelItem
+      queryResult={bookmarksQuery}
+      id={id}
+      notFoundMessage="Bookmark not found."
+    >
+      {bookmark => (
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">Edit bookmark</h2>
+          <BookmarkForm
+            bookmark={bookmark}
+            onDone={() => openItem("bookmark", id, "view")}
+          />
+        </div>
+      )}
+    </WithPanelItem>
   );
 }
 

@@ -5,7 +5,7 @@ import { useMemo } from "react";
 
 import { Clapperboard } from "lucide-react";
 
-import { Loading, Problem } from "./status";
+import { WithPanelItem } from "./status";
 import { useMediaTypes } from "../../../hooks/useMediaTypes";
 import { MediaTypeCard } from "../../MediaTypeCard";
 import { MediaTypeRow } from "../../MediaTypeRow";
@@ -35,14 +35,16 @@ function MediaTypeView({
 }: {
   id: string;
 }) {
-  const {
-    data, isLoading, error,
-  } = useMediaTypes();
-  if (isLoading) return <Loading />;
-  if (error) return <Problem>{error.message}</Problem>;
-  const mediaType = (data ?? []).find(item => item.id === id);
-  if (!mediaType) return <Problem>Media type not found.</Problem>;
-  return <MediaTypeCard mediaType={mediaType} />;
+  const query = useMediaTypes();
+  return (
+    <WithPanelItem
+      queryResult={query}
+      id={id}
+      notFoundMessage="Media type not found."
+    >
+      {mediaType => <MediaTypeCard mediaType={mediaType} />}
+    </WithPanelItem>
+  );
 }
 
 /** Inline media-type editor, reusing the same `MediaTypeRow` the settings and edit pages use. */
@@ -51,14 +53,16 @@ function MediaTypeEdit({
 }: {
   id: string;
 }) {
-  const {
-    data, isLoading, error,
-  } = useMediaTypes();
-  if (isLoading) return <Loading />;
-  if (error) return <Problem>{error.message}</Problem>;
-  const mediaType = (data ?? []).find(item => item.id === id);
-  if (!mediaType) return <Problem>Media type not found.</Problem>;
-  return <MediaTypeRow mediaType={mediaType} />;
+  const query = useMediaTypes();
+  return (
+    <WithPanelItem
+      queryResult={query}
+      id={id}
+      notFoundMessage="Media type not found."
+    >
+      {mediaType => <MediaTypeRow mediaType={mediaType} />}
+    </WithPanelItem>
+  );
 }
 
 export const mediaTypeContentType: PanelContentTypeDef = {

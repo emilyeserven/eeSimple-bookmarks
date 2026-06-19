@@ -194,6 +194,12 @@ const channelSelect = {
   categoryIcon: categories.icon,
 };
 
+/** Load self-ids + tags for a single channel row and map it to the wire type. */
+async function hydrateChannelRow(row: Parameters<typeof toYouTubeChannel>[0]): Promise<YouTubeChannel> {
+  const [selfIdsMap, tagsMap] = await Promise.all([loadSelfIdsMap([row.id]), loadChannelTagsMap([row.id])]);
+  return toYouTubeChannel(row, selfIdsMap.get(row.id) ?? [], tagsMap.get(row.id) ?? []);
+}
+
 /** Fetch a single channel by id, or `null` when absent. */
 export async function getYouTubeChannel(id: string): Promise<YouTubeChannel | null> {
   const [row] = await db
@@ -203,8 +209,7 @@ export async function getYouTubeChannel(id: string): Promise<YouTubeChannel | nu
     .leftJoin(categories, eq(categories.id, youtubeChannels.categoryId))
     .where(eq(youtubeChannels.id, id));
   if (!row) return null;
-  const [selfIdsMap, tagsMap] = await Promise.all([loadSelfIdsMap([id]), loadChannelTagsMap([id])]);
-  return toYouTubeChannel(row, selfIdsMap.get(id) ?? [], tagsMap.get(id) ?? []);
+  return hydrateChannelRow(row);
 }
 
 /** Fetch a channel by its stable channel key, or `null` when absent. */
@@ -216,8 +221,7 @@ export async function getYouTubeChannelByKey(channelKey: string): Promise<YouTub
     .leftJoin(categories, eq(categories.id, youtubeChannels.categoryId))
     .where(eq(youtubeChannels.channelKey, channelKey));
   if (!row) return null;
-  const [selfIdsMap, tagsMap] = await Promise.all([loadSelfIdsMap([row.id]), loadChannelTagsMap([row.id])]);
-  return toYouTubeChannel(row, selfIdsMap.get(row.id) ?? [], tagsMap.get(row.id) ?? []);
+  return hydrateChannelRow(row);
 }
 
 /**

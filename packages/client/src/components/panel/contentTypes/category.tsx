@@ -5,7 +5,7 @@ import { useMemo } from "react";
 
 import { Folder } from "lucide-react";
 
-import { Loading, Problem } from "./status";
+import { WithPanelItem } from "./status";
 import { useCategories } from "../../../hooks/useCategories";
 import { CategoryCard } from "../../CategoryCard";
 import { CategoryPreviewCard } from "../../CategoryPreviewCard";
@@ -36,14 +36,16 @@ function CategoryView({
 }: {
   id: string;
 }) {
-  const {
-    data, isLoading, error,
-  } = useCategories();
-  if (isLoading) return <Loading />;
-  if (error) return <Problem>{error.message}</Problem>;
-  const category = (data ?? []).find(item => item.id === id);
-  if (!category) return <Problem>Category not found.</Problem>;
-  return <CategoryPreviewCard category={category} />;
+  const query = useCategories();
+  return (
+    <WithPanelItem
+      queryResult={query}
+      id={id}
+      notFoundMessage="Category not found."
+    >
+      {category => <CategoryPreviewCard category={category} />}
+    </WithPanelItem>
+  );
 }
 
 /** Editable category, reusing the settings `CategoryCard` (inline-editable, links to full edit). */
@@ -52,19 +54,21 @@ function CategoryEdit({
 }: {
   id: string;
 }) {
-  const {
-    data, isLoading, error,
-  } = useCategories();
+  const query = useCategories();
   const dismiss = usePanelDismissAfterDelete();
-  if (isLoading) return <Loading />;
-  if (error) return <Problem>{error.message}</Problem>;
-  const category = (data ?? []).find(item => item.id === id);
-  if (!category) return <Problem>Category not found.</Problem>;
   return (
-    <CategoryCard
-      category={category}
-      onDeleted={dismiss}
-    />
+    <WithPanelItem
+      queryResult={query}
+      id={id}
+      notFoundMessage="Category not found."
+    >
+      {category => (
+        <CategoryCard
+          category={category}
+          onDeleted={dismiss}
+        />
+      )}
+    </WithPanelItem>
   );
 }
 

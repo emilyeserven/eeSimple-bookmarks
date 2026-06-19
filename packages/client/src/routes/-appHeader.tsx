@@ -165,49 +165,44 @@ function tagCrumbs(pathname: string, tagAncestors?: TagNode[]): BreadcrumbSegmen
     label: "Tags",
     href: "/tags",
   };
-  // `/tags/$slug/edit` deepens one level past the tag's view.
-  if (parts[2] === "edit") {
-    if (!tagAncestors?.length) {
-      return [listCrumb, {
+  const isEdit = parts[2] === "edit";
+  if (!tagAncestors?.length) {
+    const fallback: BreadcrumbSegment = isEdit
+      ? {
         label: "Tag",
         href: `/tags/${parts[1]}/settings`,
-      }, {
+      }
+      : {
+        label: "Tag",
+      };
+    return isEdit
+      ? [listCrumb, fallback, {
         label: "Edit",
-      }];
-    }
-    const parents = tagAncestors.slice(0, -1);
-    const current = tagAncestors[tagAncestors.length - 1];
-    return [
-      listCrumb,
-      ...parents.map(t => ({
-        label: t.name,
-        href: `/tags/${t.slug}/general`,
-      })),
-      {
-        label: current.name,
-        href: `/tags/${parts[1]}/settings`,
-      },
-      {
-        label: "Edit",
-      },
-    ];
-  }
-  if (!tagAncestors?.length) {
-    return [listCrumb, {
-      label: "Tag",
-    }];
+      }]
+      : [listCrumb, fallback];
   }
   const parents = tagAncestors.slice(0, -1);
   const current = tagAncestors[tagAncestors.length - 1];
+  const currentCrumb: BreadcrumbSegment = isEdit
+    ? {
+      label: current.name,
+      href: `/tags/${parts[1]}/settings`,
+    }
+    : {
+      label: current.name,
+    };
   return [
     listCrumb,
     ...parents.map(t => ({
       label: t.name,
       href: `/tags/${t.slug}/general`,
     })),
-    {
-      label: current.name,
-    },
+    currentCrumb,
+    ...(isEdit
+      ? [{
+        label: "Edit",
+      }]
+      : []),
   ];
 }
 

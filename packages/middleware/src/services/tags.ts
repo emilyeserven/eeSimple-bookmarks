@@ -35,6 +35,19 @@ function toTag(row: TagRow, counts?: TagBookmarkCounts): Tag {
   };
 }
 
+/** Build a parent→children id map from a flat tag list. Pure helper. */
+function buildChildrenByParent(all: { id: string;
+  parentId: string | null; }[]): Map<string, string[]> {
+  const map = new Map<string, string[]>();
+  for (const tag of all) {
+    if (!tag.parentId) continue;
+    const siblings = map.get(tag.parentId) ?? [];
+    siblings.push(tag.id);
+    map.set(tag.parentId, siblings);
+  }
+  return map;
+}
+
 /**
  * Compute each tag's distinct subtree bookmark count and its "own" (no-descendant) count from a
  * flat tag list and the bookmark↔tag links. Distinct counting dedupes bookmarks tagged with both a
@@ -49,13 +62,7 @@ export function computeTagBookmarkCounts(
   const directSets = new Map<string, Set<string>>(all.map(tag => [tag.id, new Set<string>()]));
   for (const link of links) directSets.get(link.tagId)?.add(link.bookmarkId);
 
-  const childrenByParent = new Map<string, string[]>();
-  for (const tag of all) {
-    if (!tag.parentId) continue;
-    const siblings = childrenByParent.get(tag.parentId) ?? [];
-    siblings.push(tag.id);
-    childrenByParent.set(tag.parentId, siblings);
-  }
+  const childrenByParent = buildChildrenByParent(all);
 
   const result = new Map<string, TagBookmarkCounts>();
   for (const tag of all) {
@@ -115,13 +122,7 @@ export function buildTagTree(all: Tag[]): TagNode[] {
  * on a flat list so it can be unit-tested without a database.
  */
 export function collectSubtreeIds(all: Tag[], rootId: string): Set<string> {
-  const childrenByParent = new Map<string, string[]>();
-  for (const tag of all) {
-    if (!tag.parentId) continue;
-    const siblings = childrenByParent.get(tag.parentId) ?? [];
-    siblings.push(tag.id);
-    childrenByParent.set(tag.parentId, siblings);
-  }
+  const childrenByParent = buildChildrenByParent(all);
   const result = new Set<string>();
   const stack = [rootId];
   while (stack.length > 0) {

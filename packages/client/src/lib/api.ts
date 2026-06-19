@@ -82,6 +82,26 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return (await res.json()) as T;
 }
 
+function createCrudApi<T, C, U>(endpoint: string) {
+  return {
+    list: () => request<T[]>(`/${endpoint}`),
+    create: (input: C) =>
+      request<T>(`/${endpoint}`, {
+        method: "POST",
+        body: JSON.stringify(input),
+      }),
+    update: (id: string, input: U) =>
+      request<T>(`/${endpoint}/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(input),
+      }),
+    remove: (id: string) =>
+      request<undefined>(`/${endpoint}/${id}`, {
+        method: "DELETE",
+      }),
+  };
+}
+
 export const bookmarksApi = {
   list: (tagId?: string) =>
     request<Bookmark[]>(`/bookmarks${tagId ? `?tag=${encodeURIComponent(tagId)}` : ""}`),
@@ -164,27 +184,34 @@ export const galleryApi = {
     }),
 };
 
+function buildSiteParams({
+  url, siteName,
+}: { url: string;
+  siteName?: string; }): URLSearchParams {
+  const params = new URLSearchParams({
+    url,
+  });
+  if (siteName) params.set("siteName", siteName);
+  return params;
+}
+
 export const metadataApi = {
   fetchTitle: ({
     url, siteName,
   }: { url: string;
-    siteName?: string; }) => {
-    const params = new URLSearchParams({
+    siteName?: string; }) =>
+    request<{ title: string }>(`/fetch-title?${buildSiteParams({
       url,
-    });
-    if (siteName) params.set("siteName", siteName);
-    return request<{ title: string }>(`/fetch-title?${params.toString()}`);
-  },
+      siteName,
+    }).toString()}`),
   fetchMetadata: ({
     url, siteName,
   }: { url: string;
-    siteName?: string; }) => {
-    const params = new URLSearchParams({
+    siteName?: string; }) =>
+    request<FetchMetadataResult>(`/fetch-metadata?${buildSiteParams({
       url,
-    });
-    if (siteName) params.set("siteName", siteName);
-    return request<FetchMetadataResult>(`/fetch-metadata?${params.toString()}`);
-  },
+      siteName,
+    }).toString()}`),
   checkUrl: ({
     url,
   }: { url: string }) =>
@@ -192,40 +219,14 @@ export const metadataApi = {
 };
 
 export const tagsApi = {
-  list: () => request<Tag[]>("/tags"),
+  ...createCrudApi<Tag, CreateTagInput, UpdateTagInput>("tags"),
   tree: () => request<TagNode[]>("/tags/tree"),
-  create: (input: CreateTagInput) =>
-    request<Tag>("/tags", {
-      method: "POST",
-      body: JSON.stringify(input),
-    }),
-  update: (id: string, input: UpdateTagInput) =>
-    request<Tag>(`/tags/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify(input),
-    }),
-  remove: (id: string) => request<undefined>(`/tags/${id}`, {
-    method: "DELETE",
-  }),
 };
 
 export const websitesApi = {
-  list: () => request<Website[]>("/websites"),
-  create: (input: CreateWebsiteInput) =>
-    request<Website>("/websites", {
-      method: "POST",
-      body: JSON.stringify(input),
-    }),
+  ...createCrudApi<Website, CreateWebsiteInput, UpdateWebsiteInput>("websites"),
   lookup: (url: string) =>
     request<WebsiteLookup>(`/websites/lookup?url=${encodeURIComponent(url)}`),
-  update: (id: string, input: UpdateWebsiteInput) =>
-    request<Website>(`/websites/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify(input),
-    }),
-  remove: (id: string) => request<undefined>(`/websites/${id}`, {
-    method: "DELETE",
-  }),
   autoImage: (id: string) =>
     request<{ imageUrl: string }>(`/websites/${id}/image/auto`, {
       method: "POST",
@@ -254,39 +255,9 @@ export const appSettingsApi = {
     }),
 };
 
-export const mediaTypesApi = {
-  list: () => request<MediaType[]>("/media-types"),
-  create: (input: CreateMediaTypeInput) =>
-    request<MediaType>("/media-types", {
-      method: "POST",
-      body: JSON.stringify(input),
-    }),
-  update: (id: string, input: UpdateMediaTypeInput) =>
-    request<MediaType>(`/media-types/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify(input),
-    }),
-  remove: (id: string) => request<undefined>(`/media-types/${id}`, {
-    method: "DELETE",
-  }),
-};
+export const mediaTypesApi = createCrudApi<MediaType, CreateMediaTypeInput, UpdateMediaTypeInput>("media-types");
 
-export const propertyGroupsApi = {
-  list: () => request<PropertyGroup[]>("/property-groups"),
-  create: (input: CreatePropertyGroupInput) =>
-    request<PropertyGroup>("/property-groups", {
-      method: "POST",
-      body: JSON.stringify(input),
-    }),
-  update: (id: string, input: UpdatePropertyGroupInput) =>
-    request<PropertyGroup>(`/property-groups/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify(input),
-    }),
-  remove: (id: string) => request<undefined>(`/property-groups/${id}`, {
-    method: "DELETE",
-  }),
-};
+export const propertyGroupsApi = createCrudApi<PropertyGroup, CreatePropertyGroupInput, UpdatePropertyGroupInput>("property-groups");
 
 export const youtubeChannelsApi = {
   list: () => request<YouTubeChannel[]>("/youtube-channels"),
@@ -308,38 +279,10 @@ export const youtubeChannelsApi = {
     }),
 };
 
-export const customPropertiesApi = {
-  list: () => request<CustomProperty[]>("/custom-properties"),
-  create: (input: CreateCustomPropertyInput) =>
-    request<CustomProperty>("/custom-properties", {
-      method: "POST",
-      body: JSON.stringify(input),
-    }),
-  update: (id: string, input: UpdateCustomPropertyInput) =>
-    request<CustomProperty>(`/custom-properties/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify(input),
-    }),
-  remove: (id: string) => request<undefined>(`/custom-properties/${id}`, {
-    method: "DELETE",
-  }),
-};
+export const customPropertiesApi = createCrudApi<CustomProperty, CreateCustomPropertyInput, UpdateCustomPropertyInput>("custom-properties");
 
 export const categoriesApi = {
-  list: () => request<Category[]>("/categories"),
-  create: (input: CreateCategoryInput) =>
-    request<Category>("/categories", {
-      method: "POST",
-      body: JSON.stringify(input),
-    }),
-  update: (id: string, input: UpdateCategoryInput) =>
-    request<Category>(`/categories/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify(input),
-    }),
-  remove: (id: string) => request<undefined>(`/categories/${id}`, {
-    method: "DELETE",
-  }),
+  ...createCrudApi<Category, CreateCategoryInput, UpdateCategoryInput>("categories"),
   rootTags: (id: string) =>
     request<{ tagIds: string[] }>(`/categories/${id}/root-tags`),
   setRootTags: (id: string, tagIds: string[]) =>
@@ -359,21 +302,7 @@ export const categoriesApi = {
 };
 
 export const homepageSectionsApi = {
-  list: () => request<HomepageSection[]>("/homepage-sections"),
-  create: (input: CreateHomepageSectionInput) =>
-    request<HomepageSection>("/homepage-sections", {
-      method: "POST",
-      body: JSON.stringify(input),
-    }),
-  update: (id: string, input: UpdateHomepageSectionInput) =>
-    request<HomepageSection>(`/homepage-sections/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify(input),
-    }),
-  remove: (id: string) =>
-    request<undefined>(`/homepage-sections/${id}`, {
-      method: "DELETE",
-    }),
+  ...createCrudApi<HomepageSection, CreateHomepageSectionInput, UpdateHomepageSectionInput>("homepage-sections"),
   reorder: (orderedIds: string[]) =>
     request<undefined>("/homepage-sections/reorder", {
       method: "PUT",
@@ -384,39 +313,9 @@ export const homepageSectionsApi = {
   withBookmarks: () => request<HomepageSectionBookmarks[]>("/bookmarks/homepage-sections"),
 };
 
-export const savedFiltersApi = {
-  list: () => request<SavedFilter[]>("/saved-filters"),
-  create: (input: CreateSavedFilterInput) =>
-    request<SavedFilter>("/saved-filters", {
-      method: "POST",
-      body: JSON.stringify(input),
-    }),
-  update: (id: string, input: UpdateSavedFilterInput) =>
-    request<SavedFilter>(`/saved-filters/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify(input),
-    }),
-  remove: (id: string) => request<undefined>(`/saved-filters/${id}`, {
-    method: "DELETE",
-  }),
-};
+export const savedFiltersApi = createCrudApi<SavedFilter, CreateSavedFilterInput, UpdateSavedFilterInput>("saved-filters");
 
-export const displayPresetsApi = {
-  list: () => request<DisplayPreset[]>("/display-presets"),
-  create: (input: CreateDisplayPresetInput) =>
-    request<DisplayPreset>("/display-presets", {
-      method: "POST",
-      body: JSON.stringify(input),
-    }),
-  update: (id: string, input: UpdateDisplayPresetInput) =>
-    request<DisplayPreset>(`/display-presets/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify(input),
-    }),
-  remove: (id: string) => request<undefined>(`/display-presets/${id}`, {
-    method: "DELETE",
-  }),
-};
+export const displayPresetsApi = createCrudApi<DisplayPreset, CreateDisplayPresetInput, UpdateDisplayPresetInput>("display-presets");
 
 export const customAspectRatiosApi = {
   list: () => request<CustomAspectRatio[]>("/custom-aspect-ratios"),
@@ -431,19 +330,7 @@ export const customAspectRatiosApi = {
 };
 
 export const autofillApi = {
-  list: () => request<AutofillRule[]>("/autofill-rules"),
-  getBySlug: (slug: string) => request<AutofillRule>(`/autofill-rules/by-slug/${encodeURIComponent(slug)}`),
-  create: (input: CreateAutofillRuleInput) =>
-    request<AutofillRule>("/autofill-rules", {
-      method: "POST",
-      body: JSON.stringify(input),
-    }),
-  update: (id: string, input: UpdateAutofillRuleInput) =>
-    request<AutofillRule>(`/autofill-rules/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify(input),
-    }),
-  remove: (id: string) => request<undefined>(`/autofill-rules/${id}`, {
-    method: "DELETE",
-  }),
+  ...createCrudApi<AutofillRule, CreateAutofillRuleInput, UpdateAutofillRuleInput>("autofill-rules"),
+  getBySlug: (slug: string) =>
+    request<AutofillRule>(`/autofill-rules/by-slug/${encodeURIComponent(slug)}`),
 };

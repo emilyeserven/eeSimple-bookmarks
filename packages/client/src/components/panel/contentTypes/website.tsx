@@ -5,7 +5,7 @@ import { useMemo } from "react";
 
 import { Globe } from "lucide-react";
 
-import { Loading, Problem } from "./status";
+import { WithPanelItem } from "./status";
 import { useWebsites } from "../../../hooks/useWebsites";
 import { WebsiteCard } from "../../WebsiteCard";
 import { WebsiteRow } from "../../WebsiteRow";
@@ -35,14 +35,16 @@ function WebsiteView({
 }: {
   id: string;
 }) {
-  const {
-    data, isLoading, error,
-  } = useWebsites();
-  if (isLoading) return <Loading />;
-  if (error) return <Problem>{error.message}</Problem>;
-  const website = (data ?? []).find(item => item.id === id);
-  if (!website) return <Problem>Website not found.</Problem>;
-  return <WebsiteCard website={website} />;
+  const query = useWebsites();
+  return (
+    <WithPanelItem
+      queryResult={query}
+      id={id}
+      notFoundMessage="Website not found."
+    >
+      {website => <WebsiteCard website={website} />}
+    </WithPanelItem>
+  );
 }
 
 /** Inline website editor, reusing the same `WebsiteRow` the settings and edit pages use. */
@@ -51,14 +53,16 @@ function WebsiteEdit({
 }: {
   id: string;
 }) {
-  const {
-    data, isLoading, error,
-  } = useWebsites();
-  if (isLoading) return <Loading />;
-  if (error) return <Problem>{error.message}</Problem>;
-  const website = (data ?? []).find(item => item.id === id);
-  if (!website) return <Problem>Website not found.</Problem>;
-  return <WebsiteRow website={website} />;
+  const query = useWebsites();
+  return (
+    <WithPanelItem
+      queryResult={query}
+      id={id}
+      notFoundMessage="Website not found."
+    >
+      {website => <WebsiteRow website={website} />}
+    </WithPanelItem>
+  );
 }
 
 export const websiteContentType: PanelContentTypeDef = {

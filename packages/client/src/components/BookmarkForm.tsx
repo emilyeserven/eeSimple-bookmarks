@@ -404,36 +404,7 @@ export function BookmarkForm({
           },
         }
         : undefined);
-      form.reset();
-      setNumberInputs({});
-      setBooleanInputs({});
-      setWebsiteSiteName("");
-      channelHintRef.current = null;
-      setYoutubeChannel(null);
-      setUrlShortener({
-        nudge: false,
-        expandedUrl: null,
-      });
-      setUrlCleanup(null);
-      imageIntentRef.current = initialImageIntent(autoFetchImage);
-      setImageFieldKey(key => key + 1);
-      setShowUrlCleanup(false);
-      setUrlCleanupMode("none");
-      setScanned(false);
-      setUrlDuplicate(null);
-      setAutofillOfferDismissed(false);
-      setSetWebsiteCategory(false);
-      setSetWebsiteTags(false);
-      setSetChannelCategory(false);
-      setSetChannelTags(false);
-      quickAddRef.current = false;
-      touchedRef.current = new Set();
-      ruleSetRef.current = {
-        numbers: new Set(),
-        booleans: new Set(),
-        dateTimes: new Set(),
-      };
-      lastAutoCategoryRef.current = "";
+      handleReset();
     },
   });
 
