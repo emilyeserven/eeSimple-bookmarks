@@ -8,6 +8,7 @@ import { BookmarkListPane } from "./BookmarkListPane";
 import { FilterSidebar } from "./FilterSidebar";
 import { usePanelControls } from "./panel/usePanelControls";
 import { useSetListingPage } from "../hooks/useListingPage";
+import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
 import { useBookmarkColumns, useBookmarkImageLayout, useBookmarkImageMode, useBookmarkImageVisibility } from "../lib/bookmarkColumns";
 import { useUiStore } from "../stores/uiStore";
 
@@ -67,13 +68,15 @@ export function BookmarkSearchView({
   noMatchMessage,
   addFormCategoryId,
 }: BookmarkSearchViewProps) {
-  useSetListingPage(pageKey, true);
+  useSetListingPage(pageKey, true, true);
+  useRegisterHeaderSearch();
   const columns = useBookmarkColumns(pageKey);
   const imageMode = useBookmarkImageMode(pageKey);
   const imageVisibility = useBookmarkImageVisibility(pageKey);
   const filtersInDrawer = useUiStore(state => state.filtersInDrawer);
   const filtersHidden = useUiStore(state => state.filtersHidden);
   const setFilterContext = useUiStore(state => state.setFilterContext);
+  const headerSearchQuery = useUiStore(state => state.headerSearchQuery);
   const {
     isOpen, dCT, openType,
   } = usePanelControls();
@@ -107,6 +110,14 @@ export function BookmarkSearchView({
   const imageLayout = useBookmarkImageLayout(pageKey);
   const imageLeft = (columns === 1 || columns === 2) && imageLayout === "side";
 
+  const q = headerSearchQuery.trim().toLowerCase();
+  const textFilteredBookmarks = q
+    ? bookmarks.filter(b =>
+      b.title.toLowerCase().includes(q)
+      || b.url.toLowerCase().includes(q)
+      || (b.description ?? "").toLowerCase().includes(q))
+    : bookmarks;
+
   return (
     <section className="space-y-8">
       {header}
@@ -138,9 +149,10 @@ export function BookmarkSearchView({
           imageVisibility={imageVisibility}
           imageLeft={imageLeft}
           imageMode={imageMode}
-          bookmarks={bookmarks}
+          bookmarks={textFilteredBookmarks}
           properties={properties}
           search={search}
+          textSearchActive={!!q}
           isLoading={isLoading}
           error={error}
           emptyMessage={emptyMessage}

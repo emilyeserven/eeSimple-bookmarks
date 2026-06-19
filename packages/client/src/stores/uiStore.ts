@@ -126,11 +126,19 @@ interface UiState {
   /** Transient: live filter data from the active listing page. Cleared when leaving a listing page. Never persisted. */
   filterContext: FilterContextData | null;
   setFilterContext: (ctx: FilterContextData | null) => void;
-  /** Transient: the current listing page's key and whether it exposes image controls. Cleared when leaving a listing page. Never persisted. */
+  /** Transient: the current listing page's key, image controls flag, and filter-sidebar flag. Cleared when leaving. Never persisted. */
   listingPage: { key: string;
-    showsImages: boolean; } | null;
+    showsImages: boolean;
+    hasFilters: boolean; } | null;
   setListingPage: (page: { key: string;
-    showsImages: boolean; } | null) => void;
+    showsImages: boolean;
+    hasFilters: boolean; } | null) => void;
+  /** Transient: true while a listing page with header-search support is mounted. Never persisted. */
+  headerSearchActive: boolean;
+  setHeaderSearchActive: (active: boolean) => void;
+  /** Transient: the live text query from the header search bar. Cleared when leaving the page. Never persisted. */
+  headerSearchQuery: string;
+  setHeaderSearchQuery: (query: string) => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -265,6 +273,14 @@ export const useUiStore = create<UiState>()(
       listingPage: null,
       setListingPage: page => set({
         listingPage: page,
+      }),
+      headerSearchActive: false,
+      setHeaderSearchActive: active => set({
+        headerSearchActive: active,
+      }),
+      headerSearchQuery: "",
+      setHeaderSearchQuery: query => set({
+        headerSearchQuery: query,
       }),
     }),
     {

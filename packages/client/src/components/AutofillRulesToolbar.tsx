@@ -6,7 +6,6 @@ import { Plus } from "lucide-react";
 import { NO_CATEGORY } from "./AutofillRuleForm";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -19,8 +18,6 @@ import {
 export const ALL_CATEGORIES = "all";
 
 interface AutofillRulesToolbarProps {
-  search: string;
-  onSearchChange: (value: string) => void;
   /** When true, the category filter is hidden (the list is scoped to a single entity). */
   scoped: boolean;
   categoryFilter: string;
@@ -30,19 +27,12 @@ interface AutofillRulesToolbarProps {
   onCreateClick?: (event: MouseEvent) => void;
 }
 
-/** Search box + category filter above the rules list. */
+/** Category filter + optional create button above the rules list. */
 export function AutofillRulesToolbar({
-  search, onSearchChange, scoped, categoryFilter, onCategoryFilterChange, categories, onCreateClick,
+  scoped, categoryFilter, onCategoryFilterChange, categories, onCreateClick,
 }: AutofillRulesToolbarProps) {
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <Input
-        type="search"
-        placeholder="Search rules…"
-        value={search}
-        onChange={event => onSearchChange(event.target.value)}
-        className="max-w-xs"
-      />
       {scoped && onCreateClick
         ? (
           <Button

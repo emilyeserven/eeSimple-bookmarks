@@ -3,16 +3,13 @@ import type { Bookmark, Category, CustomProperty, MediaType, PropertyGroup, TagN
 
 import { useState } from "react";
 
-import { ChevronDown, ChevronUp, FilterX, PanelRight } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 import { FilterSections } from "./FilterSidebarSections";
-import { usePanelControls } from "./panel/usePanelControls";
 import { SavedFiltersSection } from "./SavedFiltersSection";
 
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { useUiStore } from "@/stores/uiStore";
 
 interface FilterSidebarProps {
   tree: TagNode[];
@@ -39,10 +36,6 @@ export function FilterSidebar({
   tree, properties, propertyGroups, categories, mediaTypes, youtubeChannels, bookmarks, search, onSearchChange,
 }: FilterSidebarProps) {
   const [open, setOpen] = useState(false);
-  const {
-    openType,
-  } = usePanelControls();
-  const setFiltersHidden = useUiStore(state => state.setFiltersHidden);
 
   // Category data is only supplied on the overall Bookmarks page; category pages render flat.
   const hasCategoryFilter = (categories?.length ?? 0) > 0;
@@ -76,33 +69,6 @@ export function FilterSidebar({
                 ? <ChevronUp className="size-4" />
                 : <ChevronDown className="size-4" />}
             </button>
-            <div
-              className="
-                hidden items-center gap-1
-                lg:flex
-              "
-            >
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="shrink-0 gap-1.5 text-xs text-muted-foreground"
-                onClick={() => openType("filters")}
-              >
-                <PanelRight className="size-3.5" />
-                Send to Drawer
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="shrink-0 gap-1.5 text-xs text-muted-foreground"
-                onClick={() => setFiltersHidden(true)}
-              >
-                <FilterX className="size-3.5" />
-                Hide filters
-              </Button>
-            </div>
           </div>
         )
         : null}

@@ -7,11 +7,12 @@ import { AddCategoryModal } from "../components/AddCategoryModal";
 import { CategoryPreviewCard } from "../components/CategoryPreviewCard";
 import { useCategories } from "../hooks/useCategories";
 import { useSetListingPage } from "../hooks/useListingPage";
+import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
 import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useUiStore } from "@/stores/uiStore";
 
 export const Route = createFileRoute("/categories/")({
   component: CategoriesListingPage,
@@ -22,13 +23,14 @@ function CategoriesListingPage() {
   const {
     data: categories, isLoading, error,
   } = useCategories();
-  const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
   useSetListingPage("categories-listing");
+  useRegisterHeaderSearch();
   const columns = useBookmarkColumns("categories-listing");
 
-  const q = search.trim().toLowerCase();
+  const rawQuery = useUiStore(state => state.headerSearchQuery);
+  const q = rawQuery.trim().toLowerCase();
   const filtered = (categories ?? []).filter((category) => {
     if (!q) return true;
     return category.name.toLowerCase().includes(q)
@@ -61,15 +63,6 @@ function CategoriesListingPage() {
       </div>
 
       <div className="space-y-4">
-        <div className="flex items-center gap-4">
-          <Input
-            placeholder="Search by name…"
-            value={search}
-            onChange={event => setSearch(event.target.value)}
-            className="max-w-sm"
-          />
-        </div>
-
         {q && filtered.length < (categories?.length ?? 0)
           ? (
             <p className="text-sm text-muted-foreground">
@@ -86,7 +79,7 @@ function CategoriesListingPage() {
         {!isLoading && (categories?.length ?? 0) > 0 && filtered.length === 0
           ? (
             <p className="text-muted-foreground">
-              No categories match &ldquo;{search}&rdquo;.
+              No categories match &ldquo;{rawQuery}&rdquo;.
             </p>
           )
           : null}

@@ -6,24 +6,26 @@ import { Plus } from "lucide-react";
 import { AddWebsiteModal } from "./AddWebsiteModal";
 import { WebsiteListItem } from "./WebsiteListItem";
 import { useSetListingPage } from "../hooks/useListingPage";
+import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
 import { useWebsites } from "../hooks/useWebsites";
 import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useUiStore } from "@/stores/uiStore";
 
 /** Browsable, searchable website listing with add modal. Shared by the Websites taxonomy page and the Settings Websites page. */
 export function WebsitesListing() {
   const {
     data: allWebsites, isLoading, error,
   } = useWebsites();
-  const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   useSetListingPage("websites-listing");
+  useRegisterHeaderSearch();
   const columns = useBookmarkColumns("websites-listing");
   const navigate = useNavigate();
 
-  const q = search.trim().toLowerCase();
+  const rawQuery = useUiStore(state => state.headerSearchQuery);
+  const q = rawQuery.trim().toLowerCase();
   const filtered = (allWebsites ?? []).filter((w) => {
     if (!q) return true;
     return w.siteName.toLowerCase().includes(q) || w.domain.toLowerCase().includes(q);
@@ -33,12 +35,6 @@ export function WebsitesListing() {
     <div className="space-y-4">
       <div className="space-y-4">
         <div className="flex items-center gap-4">
-          <Input
-            placeholder="Search by name or domain…"
-            value={search}
-            onChange={event => setSearch(event.target.value)}
-            className="max-w-sm"
-          />
           <div className="ml-auto">
             <Button
               type="button"
@@ -71,7 +67,7 @@ export function WebsitesListing() {
         {!isLoading && (allWebsites?.length ?? 0) > 0 && filtered.length === 0
           ? (
             <p className="text-muted-foreground">
-              No websites match &ldquo;{search}&rdquo;.
+              No websites match &ldquo;{rawQuery}&rdquo;.
             </p>
           )
           : null}

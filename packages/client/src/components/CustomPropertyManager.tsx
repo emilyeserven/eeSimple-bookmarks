@@ -7,47 +7,37 @@ import { AddCustomPropertyModal } from "./AddCustomPropertyModal";
 import { PropertyPreview } from "./PropertyPreview";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useSetListingPage } from "../hooks/useListingPage";
+import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
 import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
 import { TYPE_LABELS } from "../lib/propertyFormat";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useUiStore } from "@/stores/uiStore";
 
 /** Searchable listing of custom properties, with previews that link out to the view/create pages. */
 export function CustomPropertyManager() {
   const {
     data: properties, isLoading, error,
   } = useCustomProperties();
-  const [query, setQuery] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
   useSetListingPage("custom-properties-listing");
+  useRegisterHeaderSearch();
   const columns = useBookmarkColumns("custom-properties-listing");
 
+  const rawQuery = useUiStore(state => state.headerSearchQuery);
   const filtered = useMemo(() => {
-    const needle = query.trim().toLowerCase();
+    const needle = rawQuery.trim().toLowerCase();
     const all = properties ?? [];
     if (!needle) return all;
     return all.filter(property =>
       property.name.toLowerCase().includes(needle)
       || TYPE_LABELS[property.type].toLowerCase().includes(needle));
-  }, [properties, query]);
+  }, [properties, rawQuery]);
 
   return (
     <section className="space-y-4">
-      <div
-        className="
-          flex flex-col gap-2
-          sm:flex-row sm:items-center
-        "
-      >
-        <Input
-          type="search"
-          placeholder="Search custom properties…"
-          value={query}
-          onChange={event => setQuery(event.target.value)}
-          className="sm:flex-1"
-        />
+      <div className="flex justify-end">
         <Button
           type="button"
           size="sm"
@@ -63,7 +53,7 @@ export function CustomPropertyManager() {
       {!isLoading && !error && filtered.length === 0
         ? (
           <p className="text-muted-foreground">
-            {query
+            {rawQuery
               ? "No custom properties match your search."
               : "No custom properties yet. Create one to get started."}
           </p>
