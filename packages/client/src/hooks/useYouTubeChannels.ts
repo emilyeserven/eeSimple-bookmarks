@@ -72,3 +72,17 @@ export function useAutoYouTubeChannelImage() {
     onError: (err: Error) => notifyError(err.message || "Could not fetch an avatar"),
   });
 }
+
+export function useDeleteYouTubeChannelImage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => youtubeChannelsApi.deleteImage(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: CHANNELS_KEY,
+      });
+      notifySuccess("Avatar removed");
+    },
+    onError: (err: Error) => notifyError(err.message || "Could not remove the avatar"),
+  });
+}

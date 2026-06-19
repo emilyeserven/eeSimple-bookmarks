@@ -31,6 +31,13 @@ export function websiteFaviconUrl(row: WebsiteFaviconRow): string {
   return `/api/websites/${row.websiteId}/image?v=${imageVersion(row)}`;
 }
 
+const RETRY_DELAY_MS = 2_000;
+const TRANSIENT = new Set(["blocked", "fetch_error"]);
+
+function sleep(ms: number): Promise<void> {
+  return new Promise(r => setTimeout(r, ms));
+}
+
 /** Read a website's stored-favicon row, or null when it has none. */
 export async function getWebsiteFaviconRow(websiteId: string): Promise<WebsiteFaviconRow | null> {
   const [row] = await db
@@ -111,7 +118,12 @@ export async function fetchAndStoreWebsiteFavicon(websiteId: string): Promise<En
     .where(eq(websites.id, websiteId));
   if (!website) return "not_found";
 
-  const result = await fetchFaviconImage(`https://${website.domain}/`);
+  const pageUrl = `https://${website.domain}/`;
+  let result = await fetchFaviconImage(pageUrl);
+  if (typeof result === "string" && TRANSIENT.has(result)) {
+    await sleep(RETRY_DELAY_MS);
+    result = await fetchFaviconImage(pageUrl);
+  }
   if (typeof result === "string") return result;
   return setWebsiteFavicon(websiteId, result, "icon");
 }
