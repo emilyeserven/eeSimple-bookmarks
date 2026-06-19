@@ -50,8 +50,9 @@ export function PanelBreadcrumbs() {
 
   if (!dCT) return null;
 
-  // Notifications has no registry entry; render a simple "Browse > Notifications" trail.
-  if (dCT === "notifications") {
+  // Notifications and Filters have no registry entry; render a simple two-level trail.
+  if (dCT === "notifications" || dCT === "filters") {
+    const label = dCT === "notifications" ? "Notifications" : "Filters";
     return (
       <div className="flex items-center gap-1 px-4 pb-2">
         <Button
@@ -76,7 +77,7 @@ export function PanelBreadcrumbs() {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>Notifications</BreadcrumbPage>
+              <BreadcrumbPage>{label}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
