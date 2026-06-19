@@ -17,8 +17,13 @@ import {
 
 import { CollapsibleSection, SidebarNavSection, SidebarResizeHandle } from "./app-sidebar-sections";
 import { useViewPanelClick } from "./panel/useEditPanelClick";
+import { useAutofillRules } from "../hooks/useAutofill";
+import { useBookmarks } from "../hooks/useBookmarks";
 import { useCategories } from "../hooks/useCategories";
+import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useMediaTypes } from "../hooks/useMediaTypes";
+import { usePropertyGroups } from "../hooks/usePropertyGroups";
+import { useTags } from "../hooks/useTags";
 import { useWebsites } from "../hooks/useWebsites";
 import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
 import { useUiStore } from "../stores/uiStore";
@@ -31,9 +36,11 @@ import {
   SidebarGroupContent,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { CategoryIcon } from "@/lib/icons";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
@@ -112,8 +119,17 @@ export function AppSidebar({
     select: state => state.location.pathname,
   });
   const {
+    state,
+  } = useSidebar();
+  const {
+    data: allBookmarks,
+  } = useBookmarks();
+  const {
     data: categories,
   } = useCategories();
+  const {
+    data: allTags,
+  } = useTags();
   const {
     data: allWebsites,
   } = useWebsites();
@@ -123,18 +139,29 @@ export function AppSidebar({
   const {
     data: allChannels,
   } = useYouTubeChannels();
-  const hiddenCategoryIds = useUiStore(state => state.hiddenCategoryIds);
-  const hiddenTaxonomyItems = useUiStore(state => state.hiddenTaxonomyItems);
-  const hiddenCustomizationItems = useUiStore(state => state.hiddenCustomizationItems);
-  const hiddenSidebarGroups = useUiStore(state => state.hiddenSidebarGroups);
-  const modifier = useUiStore(state => state.sidebarOpenModifier);
+  const {
+    data: allCustomProperties,
+  } = useCustomProperties();
+  const {
+    data: allPropertyGroups,
+  } = usePropertyGroups();
+  const {
+    data: allAutofillRules,
+  } = useAutofillRules();
+  const hiddenCategoryIds = useUiStore(s => s.hiddenCategoryIds);
+  const hiddenTaxonomyItems = useUiStore(s => s.hiddenTaxonomyItems);
+  const hiddenCustomizationItems = useUiStore(s => s.hiddenCustomizationItems);
+  const hiddenSidebarGroups = useUiStore(s => s.hiddenSidebarGroups);
+  const modifier = useUiStore(s => s.sidebarOpenModifier);
   const viewClick = useViewPanelClick();
 
   const visibleCategories = (categories ?? []).filter(
     c => !hiddenCategoryIds.includes(c.id),
   );
-  const countByKey: Record<string, number | undefined> = {
+
+  const taxonomyCountByKey: Record<string, number | undefined> = {
     "categories": categories?.length,
+    "tags": allTags?.length,
     "websites": allWebsites?.length,
     "media-types": allMediaTypes?.length,
     "youtube-channels": allChannels?.length,
@@ -143,11 +170,20 @@ export function AppSidebar({
     .filter(item => !hiddenTaxonomyItems.includes(item.key))
     .map(item => ({
       ...item,
-      count: countByKey[item.key],
+      count: taxonomyCountByKey[item.key],
     }));
-  const visibleCustomizationItems = customizationItems.filter(
-    item => !hiddenCustomizationItems.includes(item.key),
-  );
+
+  const customizationCountByKey: Record<string, number | undefined> = {
+    "custom-properties": allCustomProperties?.length,
+    "property-groups": allPropertyGroups?.length,
+    "autofill": allAutofillRules?.length,
+  };
+  const visibleCustomizationItems = customizationItems
+    .filter(item => !hiddenCustomizationItems.includes(item.key))
+    .map(item => ({
+      ...item,
+      count: customizationCountByKey[item.key],
+    }));
 
   return (
     <Sidebar
@@ -201,6 +237,9 @@ export function AppSidebar({
                         <span>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
+                    {item.to === "/bookmarks" && allBookmarks != null && state !== "collapsed"
+                      ? <SidebarMenuBadge>{allBookmarks.length}</SidebarMenuBadge>
+                      : null}
                   </SidebarMenuItem>
                 );
               })}
@@ -236,6 +275,9 @@ export function AppSidebar({
                           <span>{category.name}</span>
                         </Link>
                       </SidebarMenuButton>
+                      {category.bookmarkCount != null && state !== "collapsed"
+                        ? <SidebarMenuBadge>{category.bookmarkCount}</SidebarMenuBadge>
+                        : null}
                     </SidebarMenuItem>
                   );
                 })}
