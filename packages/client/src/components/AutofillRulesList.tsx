@@ -5,11 +5,14 @@ import { normalizeDomain } from "@eesimple/types";
 import { NO_CATEGORY } from "./AutofillRuleForm";
 import { AutofillRuleListItem } from "./AutofillRuleListItem";
 import { ALL_CATEGORIES, AutofillRulesToolbar } from "./AutofillRulesToolbar";
+import { usePanelControls } from "./panel/usePanelControls";
 import { useAutofillRules } from "../hooks/useAutofill";
 import { useCategories } from "../hooks/useCategories";
 import { useWebsites } from "../hooks/useWebsites";
 import { ruleSetsMediaType, ruleSetsProperty, ruleSetsTag, ruleTargetsWebsite, ruleTargetsYoutubeChannel } from "../lib/autofillRulesFilter";
 import { summarizeConditions } from "../lib/conditionsSummary";
+
+import { NEW_SENTINEL } from "@/lib/drawerSearch";
 
 interface AutofillRulesListProps {
   /**
@@ -70,6 +73,7 @@ export function AutofillRulesList({
   mediaTypeId,
   channelId,
 }: AutofillRulesListProps = {}) {
+  const { openAutofill } = usePanelControls();
   const {
     data: rules, isLoading, error,
   } = useAutofillRules();
@@ -128,6 +132,7 @@ export function AutofillRulesList({
         categoryFilter={categoryFilter}
         onCategoryFilterChange={setCategoryFilter}
         categories={categories ?? []}
+        onCreateClick={scoped ? () => openAutofill(NEW_SENTINEL) : undefined}
       />
 
       {isLoading ? <p className="text-muted-foreground">Loading rules…</p> : null}
