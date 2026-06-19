@@ -9,7 +9,7 @@ import type {
   TagNode,
 } from "@eesimple/types";
 
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Loader2, Sparkles } from "lucide-react";
 
 import { AddCategoryModal } from "./AddCategoryModal";
 import { CategoryCustomFields, CategoryDefaultsApplier } from "./BookmarkCustomFields";
@@ -21,8 +21,10 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { CategoryIcon } from "@/lib/icons";
+import { isFetchableUrl } from "@/lib/url";
 
 interface BookmarkAdvancedSectionProps {
   form: BookmarkFormApi;
@@ -50,6 +52,10 @@ interface BookmarkAdvancedSectionProps {
     booleanValues: BookmarkBooleanValue[],
     dateTimeValues: BookmarkDateTimeValue[],
   ) => void;
+  /** Called when the user clicks the description sparkle; receives the current URL. */
+  onFetchDescription?: (url: string) => void;
+  /** Whether a description fetch is in-flight (drives the spinner on the sparkle button). */
+  isFetchDescriptionPending?: boolean;
 }
 
 /**
@@ -77,6 +83,8 @@ export function BookmarkAdvancedSection({
   onBooleanChange,
   onDateTimeChange,
   onApplyCategoryDefaults,
+  onFetchDescription,
+  isFetchDescriptionPending,
 }: BookmarkAdvancedSectionProps) {
   return (
     <Collapsible className="group/advanced space-y-3">
@@ -150,15 +158,36 @@ export function BookmarkAdvancedSection({
             sm:grid-cols-2
           "
         >
-          <form.AppField name="description">
-            {field => (
-              <field.TextareaField
-                label="Description"
-                fill
-                inputClassName="min-h-24"
-              />
+          <form.Subscribe selector={state => state.values.url}>
+            {url => (
+              <form.AppField name="description">
+                {field => (
+                  <field.TextareaField
+                    label="Description"
+                    fill
+                    inputClassName="min-h-24"
+                    action={onFetchDescription
+                      ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          title="Fetch description from URL"
+                          aria-label="Fetch description from URL"
+                          disabled={!isFetchableUrl(url) || isFetchDescriptionPending}
+                          onClick={() => onFetchDescription(url)}
+                        >
+                          {isFetchDescriptionPending
+                            ? <Loader2 className="size-4 animate-spin" />
+                            : <Sparkles className="size-4" />}
+                        </Button>
+                      )
+                      : undefined}
+                  />
+                )}
+              </form.AppField>
             )}
-          </form.AppField>
+          </form.Subscribe>
 
           <form.Subscribe selector={state => state.values.categoryId}>
             {categoryId => (

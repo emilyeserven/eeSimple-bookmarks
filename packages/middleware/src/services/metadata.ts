@@ -275,6 +275,25 @@ function linkHref(html: string, attrMatch: RegExp): string | undefined {
 }
 
 /**
+ * Pull the description from an HTML document's `<head>`. Prefers `og:description` /
+ * `twitter:description` (canonical shareable summaries) and falls back to the standard
+ * `<meta name="description">`. Mirrors the approach of `extractTitle`. Pure — unit-testable.
+ */
+export function extractDescription(html: string): string | null {
+  const candidates = [
+    metaContent(html, /(?:property|name)=["']og:description["']/i),
+    metaContent(html, /(?:property|name)=["']twitter:description["']/i),
+    metaContent(html, /name=["']description["']/i),
+  ];
+  for (const raw of candidates) {
+    if (raw === undefined) continue;
+    const desc = decodeEntities(raw).replace(/\s+/g, " ").trim();
+    if (desc.length > 0) return desc;
+  }
+  return null;
+}
+
+/**
  * Pull a representative image URL out of an HTML document's `<head>`: prefers Open Graph and
  * Twitter-card images, falling back to a declared icon. Relative URLs are resolved against
  * `pageUrl`. Returns an absolute http(s) URL or null. Pure — unit-testable like `extractTitle`.

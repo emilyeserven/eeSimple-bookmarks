@@ -468,6 +468,7 @@ export function BookmarkForm({
 
   const {
     runFetchTitle,
+    runFetchDescription,
     runYouTubeEnrichment,
     runUrlCleanup,
     undoUrlCleanup,
@@ -704,6 +705,9 @@ export function BookmarkForm({
           urlDuplicate={urlDuplicate}
           autofillOfferDismissed={autofillOfferDismissed}
           onAutofillOfferDismiss={() => setAutofillOfferDismissed(true)}
+          onFetchDescription={(url) => void runFetchDescription(url, {
+            force: true,
+          })}
         />
       )}
 
