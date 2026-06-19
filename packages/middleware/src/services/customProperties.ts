@@ -512,13 +512,17 @@ export async function ensureRuntimeProperty(): Promise<string> {
   // Scope to Video + Audio roots and all their children. Runs after ensureBuiltInMediaTypes so the
   // slugs exist; gracefully no-ops if they haven't been seeded yet on a truly fresh DB.
   const rootRows = await db
-    .select({ id: mediaTypes.id })
+    .select({
+      id: mediaTypes.id,
+    })
     .from(mediaTypes)
     .where(inArray(mediaTypes.slug, ["video", "audio"]));
   if (rootRows.length > 0) {
     const rootIds = rootRows.map(r => r.id);
     const childRows = await db
-      .select({ id: mediaTypes.id })
+      .select({
+        id: mediaTypes.id,
+      })
       .from(mediaTypes)
       .where(inArray(mediaTypes.parentId, rootIds));
     const allMediaTypeIds = [...rootIds, ...childRows.map(r => r.id)];
@@ -527,7 +531,10 @@ export async function ensureRuntimeProperty(): Promise<string> {
       .where(eq(propertyMediaTypes.propertyId, propertyId));
     await db
       .insert(propertyMediaTypes)
-      .values(allMediaTypeIds.map(mediaTypeId => ({ propertyId, mediaTypeId })));
+      .values(allMediaTypeIds.map(mediaTypeId => ({
+        propertyId,
+        mediaTypeId,
+      })));
   }
 
   return propertyId;
