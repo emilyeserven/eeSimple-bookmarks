@@ -7,7 +7,7 @@
 import sharp from "sharp";
 
 /** Longest-edge cap (px) for a stored bookmark image. */
-export const MAX_IMAGE_EDGE = 800;
+export const MAX_IMAGE_EDGE = 1200;
 
 export interface ProcessedImage {
   body: Buffer;
