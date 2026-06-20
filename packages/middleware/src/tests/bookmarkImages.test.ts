@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
-import { test } from "node:test";
+import { afterEach, test } from "node:test";
 import sharp from "sharp";
-import { extractFaviconUrl, extractFaviconUrls, extractImageUrl, isPublicHttpUrl } from "@/services/metadata";
+import { downloadImage, extractFaviconUrl, extractFaviconUrls, extractImageUrl, isPublicHttpUrl } from "@/services/metadata";
 import { MAX_IMAGE_EDGE, processImage } from "@/utils/image";
 
 // Pure-function coverage for the bookmark-image pipeline and og:image parsing — no DB or network.
@@ -126,6 +126,127 @@ test("extractFaviconUrls returns all candidates ordered and deduped", () => {
 
   // Empty head returns an empty array.
   assert.deepEqual(extractFaviconUrls("<head></head>", "https://example.com/"), []);
+});
+
+// --- downloadImage: header identity + content-type/byte-cap handling (mocked fetch) ---
+
+const realFetch = globalThis.fetch;
+afterEach(() => {
+  globalThis.fetch = realFetch;
+});
+
+/** Build a Response-like stub whose body streams `chunks` (Uint8Arrays) through a reader. */
+function fakeResponse(opts: {
+  ok?: boolean;
+  contentType?: string | null;
+  chunks?: Uint8Array[];
+}): Response {
+  const chunks = opts.chunks ?? [];
+  let i = 0;
+  const body = {
+    getReader() {
+      return {
+        read() {
+          if (i < chunks.length) {
+            return Promise.resolve({
+              done: false,
+              value: chunks[i++],
+            });
+          }
+          return Promise.resolve({
+            done: true,
+            value: undefined,
+          });
+        },
+        cancel() {
+          return Promise.resolve();
+        },
+      };
+    },
+  };
+  return {
+    ok: opts.ok ?? true,
+    body: body as unknown as ReadableStream<Uint8Array>,
+    headers: {
+      get: (name: string) =>
+        name.toLowerCase() === "content-type" ? (opts.contentType ?? null) : null,
+    },
+  } as unknown as Response;
+}
+
+/** Replace `fetch`, recording the init of the last call, and return the recorder. */
+function mockFetch(response: Response): { lastInit: () => RequestInit | undefined } {
+  let captured: RequestInit | undefined;
+  globalThis.fetch = ((_url: string | URL | Request, init?: RequestInit) => {
+    captured = init;
+    return Promise.resolve(response);
+  }) as typeof fetch;
+  return {
+    lastInit: () => captured,
+  };
+}
+
+function headerValue(init: RequestInit | undefined, name: string): string | undefined {
+  const headers = (init?.headers ?? {}) as Record<string, string>;
+  return headers[name];
+}
+
+test("downloadImage sends a browser User-Agent (not a bot UA) and a Referer when given", async () => {
+  const recorder = mockFetch(fakeResponse({
+    contentType: "image/png",
+    chunks: [new Uint8Array([1, 2, 3])],
+  }));
+  const bytes = await downloadImage("https://cdn.example.com/icon.png", "https://example.com/");
+  assert.ok(bytes, "expected bytes back");
+
+  const ua = headerValue(recorder.lastInit(), "User-Agent") ?? "";
+  assert.ok(ua.includes("Mozilla/"), `expected a browser UA, got: ${ua}`);
+  assert.ok(!ua.includes("eeSimple-bookmarks"), "must not send the bot UA that CDNs block");
+  assert.equal(headerValue(recorder.lastInit(), "Referer"), "https://example.com/");
+});
+
+test("downloadImage omits Referer when none is provided", async () => {
+  const recorder = mockFetch(fakeResponse({
+    contentType: "image/png",
+    chunks: [new Uint8Array([1])],
+  }));
+  await downloadImage("https://cdn.example.com/icon.png");
+  assert.equal(headerValue(recorder.lastInit(), "Referer"), undefined);
+});
+
+test("downloadImage returns bytes even when content-type is octet-stream or absent", async () => {
+  mockFetch(fakeResponse({
+    contentType: "application/octet-stream",
+    chunks: [new Uint8Array([9, 8, 7])],
+  }));
+  const octet = await downloadImage("https://cdn.example.com/icon");
+  assert.ok(octet, "octet-stream image bytes should pass through to the decoder");
+
+  mockFetch(fakeResponse({
+    contentType: null,
+    chunks: [new Uint8Array([4, 5, 6])],
+  }));
+  const noType = await downloadImage("https://cdn.example.com/icon");
+  assert.ok(noType, "missing content-type should pass through to the decoder");
+});
+
+test("downloadImage returns null on a non-OK response", async () => {
+  mockFetch(fakeResponse({
+    ok: false,
+    contentType: "image/png",
+    chunks: [new Uint8Array([1])],
+  }));
+  assert.equal(await downloadImage("https://cdn.example.com/icon.png"), null);
+});
+
+test("downloadImage returns null when the body exceeds the byte cap", async () => {
+  // MAX_IMAGE_BYTES is 5 MiB; a single oversized chunk must trip the cap.
+  const oversized = new Uint8Array(5 * 1024 * 1024 + 1);
+  mockFetch(fakeResponse({
+    contentType: "image/png",
+    chunks: [oversized],
+  }));
+  assert.equal(await downloadImage("https://cdn.example.com/huge.png"), null);
 });
 
 test("isPublicHttpUrl rejects non-http(s) and internal hosts", () => {
