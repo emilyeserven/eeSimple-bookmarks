@@ -141,7 +141,8 @@ export function MediaTypeCheckboxList({
     return (
       <div
         key={mt.id}
-        className={indent ? "flex items-center gap-2 pl-6" : "flex items-center gap-2"}
+        className="flex items-center gap-2"
+        style={indent ? { paddingLeft: "1.5rem" } : undefined}
       >
         <Checkbox
           id={inputId}
