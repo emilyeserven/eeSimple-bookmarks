@@ -2,12 +2,18 @@ import type { BookmarkSearch } from "../lib/bookmarkSearch";
 
 import { useState } from "react";
 
-import { Bookmark, ChevronDown } from "lucide-react";
+import { Bookmark, ChevronDown, X } from "lucide-react";
 
 import { InlineCreateModal } from "./InlineCreateModal";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 import { useCreateSavedFilter, useSavedFilters } from "../hooks/useSavedFilters";
-import { hasAnyActiveFilter, validateBookmarkSearch } from "../lib/bookmarkSearch";
+import { bookmarkSearchEquals, hasAnyActiveFilter, validateBookmarkSearch } from "../lib/bookmarkSearch";
 
 import { Button } from "@/components/ui/button";
 
@@ -17,8 +23,10 @@ interface SavedFiltersSectionProps {
 }
 
 /**
- * Collapsible "Saved Filters" section for the filter sidebar and panel. Users can save the
- * current filter state under a name, and apply any saved filter with one click.
+ * "Saved Filters" controls for the filter sidebar and panel. A "Clear Filters" button (disabled
+ * when nothing is applied) sits above a dropdown of saved filters; selecting one applies it. The
+ * dropdown trigger reflects the currently-selected saved filter when the applied filters match it.
+ * Saving the current filter state lives in the dropdown's "Save current filters…" item.
  */
 export function SavedFiltersSection({
   search, onSearchChange,
@@ -33,68 +41,72 @@ export function SavedFiltersSection({
 
   if (!hasActive && savedFilters.length === 0 && !isLoading) return null;
 
+  const activeFilter = hasActive
+    ? savedFilters.find(filter =>
+      bookmarkSearchEquals(search as Record<string, unknown>, filter.filters))
+    : undefined;
+
   return (
     <>
-      <Collapsible
-        defaultOpen
-        className="group/saved-filters space-y-3"
-      >
-        <div className="flex items-center justify-between">
-          <CollapsibleTrigger
-            className="
-              flex items-center gap-1.5 text-sm font-semibold
-              hover:text-foreground
-            "
-          >
-            <ChevronDown
-              className="
-                size-3.5 shrink-0 transition-transform
-                group-data-[state=open]/saved-filters:rotate-180
-              "
-            />
-            Saved Filters
-          </CollapsibleTrigger>
+      <div className="space-y-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="w-full gap-1.5"
+          disabled={!hasActive}
+          onClick={() => onSearchChange({})}
+        >
+          <X className="size-3.5" />
+          Clear Filters
+        </Button>
 
-          {hasActive
-            ? (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="h-6 gap-1 px-1.5 text-xs text-muted-foreground"
-                onClick={() => setSaveModalOpen(true)}
-              >
-                <Bookmark className="size-3" />
-                Save
-              </Button>
-            )
-            : null}
-        </div>
-
-        <CollapsibleContent className="space-y-1">
-          {isLoading
-            ? <p className="text-xs text-muted-foreground">Loading…</p>
-            : null}
-
-          {!isLoading && savedFilters.length === 0
-            ? <p className="text-xs text-muted-foreground">No saved filters yet.</p>
-            : null}
-
-          {savedFilters.map(filter => (
-            <button
-              key={filter.id}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
               type="button"
-              className="
-                w-full rounded-sm px-2 py-1 text-left text-sm
-                hover:bg-accent hover:text-accent-foreground
-              "
-              onClick={() => onSearchChange(validateBookmarkSearch(filter.filters))}
+              variant="outline"
+              size="sm"
+              className="w-full justify-between font-normal"
             >
-              {filter.name}
-            </button>
-          ))}
-        </CollapsibleContent>
-      </Collapsible>
+              <span className="truncate">{activeFilter?.name ?? "Saved Filters"}</span>
+              <ChevronDown className="size-3.5 shrink-0 opacity-70" />
+            </Button>
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent
+            align="start"
+            className="w-(--radix-dropdown-menu-trigger-width) min-w-48"
+          >
+            {isLoading
+              ? <p className="px-2 py-1.5 text-xs text-muted-foreground">Loading…</p>
+              : null}
+
+            {!isLoading && savedFilters.length === 0
+              ? <p className="px-2 py-1.5 text-xs text-muted-foreground">No saved filters yet.</p>
+              : null}
+
+            {savedFilters.map(filter => (
+              <DropdownMenuItem
+                key={filter.id}
+                onSelect={() => onSearchChange(validateBookmarkSearch(filter.filters))}
+              >
+                {filter.name}
+              </DropdownMenuItem>
+            ))}
+
+            {savedFilters.length > 0 ? <DropdownMenuSeparator /> : null}
+
+            <DropdownMenuItem
+              disabled={!hasActive}
+              onSelect={() => setSaveModalOpen(true)}
+            >
+              <Bookmark className="size-3.5" />
+              Save current filters…
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
 
       <InlineCreateModal
         open={saveModalOpen}

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   bookmarkMatchesSearch,
+  bookmarkSearchEquals,
   validateBookmarkSearch,
   withBooleanFilter,
   withCategories,
@@ -364,5 +365,59 @@ describe("bookmarkMatchesSearch", () => {
         p2: false,
       },
     })).toBe(false);
+  });
+});
+
+describe("bookmarkSearchEquals", () => {
+  it("treats two empty searches as equal", () => {
+    expect(bookmarkSearchEquals({}, {})).toBe(true);
+  });
+
+  it("matches regardless of top-level key order", () => {
+    const a = {
+      tags: ["t1"],
+      categories: ["c1"],
+    };
+    const b = {
+      categories: ["c1"],
+      tags: ["t1"],
+    };
+    expect(bookmarkSearchEquals(a, b)).toBe(true);
+  });
+
+  it("matches regardless of record (num/bool) key order", () => {
+    const a = {
+      num: {
+        p1: [1, 3],
+        p2: [0, 5],
+      },
+    };
+    const b = {
+      num: {
+        p2: [0, 5],
+        p1: [1, 3],
+      },
+    };
+    expect(bookmarkSearchEquals(a, b)).toBe(true);
+  });
+
+  it("ignores fields the validator drops", () => {
+    expect(bookmarkSearchEquals({
+      tags: ["t1"],
+      bogus: 5,
+    }, {
+      tags: ["t1"],
+    })).toBe(true);
+  });
+
+  it("returns false when the filters differ", () => {
+    expect(bookmarkSearchEquals({
+      tags: ["t1"],
+    }, {
+      tags: ["t2"],
+    })).toBe(false);
+    expect(bookmarkSearchEquals({
+      tags: ["t1"],
+    }, {})).toBe(false);
   });
 });
