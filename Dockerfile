@@ -27,14 +27,17 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store NODE_ENV=development pnpm inst
 COPY tsconfig.json ./
 
 
-# Per-package build stages — middleware and client build in parallel
+# Per-package build stages — types, middleware, and client build in parallel
 FROM deps AS build-types
 
 COPY packages/types ./packages/types/
 RUN pnpm --filter @eesimple/types build
 
 
-FROM build-types AS build-middleware
+# Middleware is transpile-only (--noCheck), so it doesn't need types/dist to emit — branch off
+# `deps` instead of `build-types` so it runs in parallel with the types build rather than after it.
+# Only the final image needs types/dist, which it copies from build-types.
+FROM deps AS build-middleware
 
 COPY packages/middleware ./packages/middleware/
 # Transpile-only: CI owns the type gate (.github/workflows/ci.yml), so skip it here for speed.
