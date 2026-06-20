@@ -25,6 +25,22 @@ export const TYPE_OPTIONS = [
     value: "datetime",
     label: "Date / Time",
   },
+  {
+    value: "ratingScale",
+    label: "Rating Scale",
+  },
+];
+
+/** Supported `ratingScale` maxima (1–3 or 1–5 stars). */
+export const RATING_MAX_OPTIONS = [
+  {
+    value: "3",
+    label: "1 – 3",
+  },
+  {
+    value: "5",
+    label: "1 – 5",
+  },
 ];
 
 /** How `true`/`false` values of a `boolean` property are rendered. */
@@ -132,6 +148,21 @@ export function summarizeBooleanOptions(values: {
     if (values.showValueBeforeLabel) parts.push("value first");
     if (values.showLabelColon === false) parts.push("no colon");
   }
+  return parts.join(" · ");
+}
+
+/** One-line summary of the rating options for a collapsed "Property options" preview. */
+export function summarizeRatingOptions(values: {
+  ratingMax: string;
+  ratingAllowZero: boolean;
+  ratingAllowHalf: boolean;
+  ratingShowLabel: boolean;
+  ratingLabel: string;
+}): string {
+  const min = values.ratingAllowZero ? 0 : 1;
+  const parts: string[] = [`${min}–${values.ratingMax.trim() || "5"} stars`];
+  if (values.ratingAllowHalf) parts.push("half steps");
+  if (values.ratingShowLabel && values.ratingLabel.trim()) parts.push(`label "${values.ratingLabel.trim()}"`);
   return parts.join(" · ");
 }
 

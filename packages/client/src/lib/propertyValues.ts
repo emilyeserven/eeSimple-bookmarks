@@ -1,17 +1,18 @@
 import type { BookmarkNumberValue, CustomProperty } from "@eesimple/types";
 
 /**
- * Build the typed `number` property values from a record of raw string inputs, keeping only the
- * `number`-typed properties whose input parses to a finite number. Shared by the bookmark form,
- * autofill-rule form, and category-defaults section, which each pass their own pre-filtered
- * property list (so their differing category/enabled/calculate filtering is preserved).
+ * Build the typed numeric property values from a record of raw string inputs, keeping only the
+ * `number`/`ratingScale` properties (both stored in `bookmarkNumberValues`) whose input parses to a
+ * finite number. Shared by the bookmark form, autofill-rule form, and category-defaults section,
+ * which each pass their own pre-filtered property list (so their differing category/enabled/
+ * calculate filtering is preserved).
  */
 export function buildNumberValuesFromInputs(
   properties: CustomProperty[],
   numberInputs: Record<string, string>,
 ): BookmarkNumberValue[] {
   return properties
-    .filter(property => property.type === "number")
+    .filter(property => property.type === "number" || property.type === "ratingScale")
     .map(property => ({
       propertyId: property.id,
       raw: numberInputs[property.id] ?? "",

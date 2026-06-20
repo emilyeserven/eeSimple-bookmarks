@@ -47,7 +47,7 @@ const createPropertyBody = {
     },
     type: {
       type: "string",
-      enum: ["number", "boolean", "calculate", "datetime"],
+      enum: ["number", "boolean", "calculate", "datetime", "ratingScale"],
     },
     numberFormat: {
       type: ["string", "null"],
@@ -127,6 +127,22 @@ const createPropertyBody = {
     showValueBeforeLabel: {
       type: "boolean",
     },
+    ratingMax: {
+      type: ["number", "null"],
+      enum: [3, 5, null],
+    },
+    ratingAllowZero: {
+      type: "boolean",
+    },
+    ratingAllowHalf: {
+      type: "boolean",
+    },
+    ratingShowLabel: {
+      type: "boolean",
+    },
+    ratingLabel: {
+      type: ["string", "null"],
+    },
     propertyGroupId: nullableUuid,
   },
 } as const;
@@ -163,6 +179,11 @@ const updatePropertyBody = {
     booleanFalseLabel: createPropertyBody.properties.booleanFalseLabel,
     showLabelColon: createPropertyBody.properties.showLabelColon,
     showValueBeforeLabel: createPropertyBody.properties.showValueBeforeLabel,
+    ratingMax: createPropertyBody.properties.ratingMax,
+    ratingAllowZero: createPropertyBody.properties.ratingAllowZero,
+    ratingAllowHalf: createPropertyBody.properties.ratingAllowHalf,
+    ratingShowLabel: createPropertyBody.properties.ratingShowLabel,
+    ratingLabel: createPropertyBody.properties.ratingLabel,
     propertyGroupId: createPropertyBody.properties.propertyGroupId,
   },
 } as const;

@@ -10,7 +10,7 @@ export type PropertyFormSection = "general" | "options" | "categories" | "media-
 export const propertySchema = z
   .object({
     name: z.string().trim().min(1, "Name is required"),
-    type: z.enum(["number", "boolean", "calculate", "datetime"]),
+    type: z.enum(["number", "boolean", "calculate", "datetime", "ratingScale"]),
     dateTimeFormat: z.enum(["date", "time", "datetime"]),
     description: z.string(),
     numberMin: z.string(),
@@ -41,6 +41,11 @@ export const propertySchema = z
     booleanFalseLabel: z.string(),
     showLabelColon: z.boolean(),
     showValueBeforeLabel: z.boolean(),
+    ratingMax: z.enum(["3", "5"]),
+    ratingAllowZero: z.boolean(),
+    ratingAllowHalf: z.boolean(),
+    ratingShowLabel: z.boolean(),
+    ratingLabel: z.string(),
   })
   .superRefine((value, ctx) => {
     if (value.type === "calculate" && value.operandIds.length < 2) {
@@ -88,6 +93,11 @@ export const CREATE_DEFAULTS: PropertyFormValues = {
   booleanFalseLabel: "",
   showLabelColon: true,
   showValueBeforeLabel: false,
+  ratingMax: "5",
+  ratingAllowZero: false,
+  ratingAllowHalf: false,
+  ratingShowLabel: false,
+  ratingLabel: "",
 };
 
 /**
@@ -142,12 +152,18 @@ export function valuesFromProperty(property: CustomProperty): PropertyFormValues
     booleanFalseLabel: property.booleanFalseLabel ?? "",
     showLabelColon: property.showLabelColon,
     showValueBeforeLabel: property.showValueBeforeLabel,
+    ratingMax: property.ratingMax === 3 ? "3" : "5",
+    ratingAllowZero: property.ratingAllowZero,
+    ratingAllowHalf: property.ratingAllowHalf,
+    ratingShowLabel: property.ratingShowLabel,
+    ratingLabel: property.ratingLabel ?? "",
   };
 }
 
 /** Build the create/update payload from form values (`type` is ignored by the update route). */
 export function payloadFromValues(values: PropertyFormValues): CreateCustomPropertyInput {
   const isNumber = values.type === "number";
+  const isRating = values.type === "ratingScale";
   const trimOrNull = (value: string): string | null => (value.trim() ? value.trim() : null);
   return {
     name: values.name.trim(),
@@ -187,5 +203,10 @@ export function payloadFromValues(values: PropertyFormValues): CreateCustomPrope
         : null,
     showLabelColon: values.type === "boolean" ? values.showLabelColon : undefined,
     showValueBeforeLabel: values.type === "boolean" ? values.showValueBeforeLabel : undefined,
+    ratingMax: isRating ? (values.ratingMax === "3" ? 3 : 5) : null,
+    ratingAllowZero: isRating ? values.ratingAllowZero : undefined,
+    ratingAllowHalf: isRating ? values.ratingAllowHalf : undefined,
+    ratingShowLabel: isRating ? values.ratingShowLabel : undefined,
+    ratingLabel: isRating ? trimOrNull(values.ratingLabel) : null,
   };
 }

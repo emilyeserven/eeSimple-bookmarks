@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { propertyAppliesToCategory } from "@eesimple/types";
 
 import { DateTimePicker } from "./DateTimePicker";
+import { StarRating } from "./StarRating";
 import {
   useCategoryDefaults,
   useSetCategoryDefaults,
@@ -145,6 +146,30 @@ export function CategoryDefaultsSection({
                       [property.id]: value ?? "",
                     }))}
                 />
+              </div>
+            );
+          }
+          if (property.type === "ratingScale") {
+            const raw = numberInputs[property.id];
+            return (
+              <div
+                key={property.id}
+                className="space-y-1"
+              >
+                <Label>{property.name}</Label>
+                <div>
+                  <StarRating
+                    value={raw ? Number(raw) : 0}
+                    max={property.ratingMax ?? 5}
+                    allowHalf={property.ratingAllowHalf}
+                    allowZero={property.ratingAllowZero}
+                    onChange={value =>
+                      setNumberInputs(current => ({
+                        ...current,
+                        [property.id]: String(value),
+                      }))}
+                  />
+                </div>
               </div>
             );
           }

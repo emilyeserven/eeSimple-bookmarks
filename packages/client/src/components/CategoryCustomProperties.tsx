@@ -34,6 +34,7 @@ const TYPE_LABELS: Record<CustomPropertyType, string> = {
   boolean: "Boolean",
   calculate: "Calculate (Sum)",
   datetime: "Date / Time",
+  ratingScale: "Rating Scale",
 };
 
 interface CategoryCustomPropertiesProps {

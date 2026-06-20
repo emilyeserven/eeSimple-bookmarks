@@ -199,6 +199,7 @@ export function BookmarkCard({
       bookmark={bookmark}
       properties={properties}
       pageKey={pageKey}
+      onSaveRating={saveNumber}
     />
   );
 

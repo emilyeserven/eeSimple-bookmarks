@@ -545,6 +545,14 @@ export const customProperties = pgTable("custom_properties", {
   // Icon-preset layout options. null → true (showLabelColon) / false (showValueBeforeLabel).
   showLabelColon: boolean("show_label_colon"),
   showValueBeforeLabel: boolean("show_value_before_label"),
+  // Rating-scale display settings. All nullable (additive, push-safe). Ratings store their value
+  // in `bookmark_number_values` like numbers, so only this config is rating-specific.
+  // ratingMax: 3 | 5 (null → 5). ratingAllowZero/Half/ShowLabel: null → false. ratingLabel after stars.
+  ratingMax: integer("rating_max"),
+  ratingAllowZero: boolean("rating_allow_zero"),
+  ratingAllowHalf: boolean("rating_allow_half"),
+  ratingShowLabel: boolean("rating_show_label"),
+  ratingLabel: text("rating_label"),
   // Optional group this property belongs to; grouped properties render together. Nullable + set-null
   // on delete so it's a push-safe additive column and deleting a group simply un-groups its members.
   propertyGroupId: uuid("property_group_id").references(() => propertyGroups.id, {

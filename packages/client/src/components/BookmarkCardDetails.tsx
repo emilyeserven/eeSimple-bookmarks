@@ -4,6 +4,7 @@ import { BookmarkTagsBox } from "./BookmarkTagsBox";
 import { CategoryPill } from "./CategoryPill";
 import { MediaTypePill } from "./MediaTypePill";
 import { SourcePill } from "./SourcePill";
+import { StarRating } from "./StarRating";
 import { useHiddenCardFields } from "../lib/bookmarkCardFields";
 import { formatBooleanBadge, formatDateTime, formatNumber } from "../lib/bookmarkFormat";
 
@@ -15,11 +16,13 @@ interface BookmarkCardDetailsProps {
   properties: CustomProperty[];
   /** Listing-page key, so fields toggled off in that page's Card Options are hidden. Omitted off listing pages. */
   pageKey?: string;
+  /** Persist a rating-scale value edited inline on the card (only wired when the property is `editableOnCard`). */
+  onSaveRating?: (propertyId: string, value: number) => void;
 }
 
 /** The body of a bookmark card: description, taxonomy badges, tags, and custom-property value badges. */
 export function BookmarkCardDetails({
-  bookmark, properties, pageKey,
+  bookmark, properties, pageKey, onSaveRating,
 }: BookmarkCardDetailsProps) {
   const hidden = useHiddenCardFields(pageKey);
   const byId = new Map(properties.map(property => [property.id, property]));
@@ -30,10 +33,26 @@ export function BookmarkCardDetails({
     c => c.id === bookmark.categoryId && !c.builtIn,
   );
 
+  // Rating-scale values live in numberValues but render as stars rather than a text badge.
+  const ratingEntries = bookmark.numberValues
+    .map((entry) => {
+      const property = byId.get(entry.propertyId);
+      return property && property.type === "ratingScale" && property.showInListings
+        && !hidden.has(entry.propertyId)
+        ? {
+          property,
+          value: entry.value,
+        }
+        : null;
+    })
+    .filter((entry): entry is { property: CustomProperty;
+      value: number; } => entry !== null);
+
   const numberBadges = bookmark.numberValues
     .map((entry) => {
       const property = byId.get(entry.propertyId);
-      return property && property.showInListings
+      // Rating scales render as stars below, not as a number badge.
+      return property && property.showInListings && property.type !== "ratingScale"
         ? {
           id: entry.propertyId,
           label: `${property.name}: ${formatNumber(entry.value, property)}`,
@@ -135,6 +154,38 @@ export function BookmarkCardDetails({
                 <Badge variant="outline">{badge.label}</Badge>
               </li>
             ))}
+          </ul>
+        )
+        : null}
+      {ratingEntries.length > 0
+        ? (
+          <ul className="mt-2 space-y-1">
+            {ratingEntries.map(({
+              property, value,
+            }) => {
+              const editable = property.editableOnCard && onSaveRating !== undefined;
+              return (
+                <li
+                  key={property.id}
+                  className="
+                    flex flex-wrap items-center gap-2 text-sm
+                    text-muted-foreground
+                  "
+                >
+                  <span>{property.name}</span>
+                  <StarRating
+                    value={value}
+                    max={property.ratingMax ?? 5}
+                    allowHalf={property.ratingAllowHalf}
+                    allowZero={property.ratingAllowZero}
+                    readOnly={!editable}
+                    onChange={editable ? next => onSaveRating(property.id, next) : undefined}
+                    label={property.ratingShowLabel ? (property.ratingLabel ?? undefined) : undefined}
+                    size={16}
+                  />
+                </li>
+              );
+            })}
           </ul>
         )
         : null}

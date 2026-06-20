@@ -47,9 +47,17 @@ interface CustomPropertyFiltersProps {
   onPropertyReset: (propertyId: string) => void;
 }
 
-/** Number and calculate properties share the range-slider control; both live in numberValues. */
+/**
+ * Number, calculate, and rating-scale properties share the range-slider control; all live in
+ * numberValues.
+ */
 function isRangeProperty(property: CustomProperty): boolean {
-  return property.type === "number" || property.type === "calculate";
+  return property.type === "number" || property.type === "calculate" || property.type === "ratingScale";
+}
+
+/** Slider step for a property; rating scales step by half when half ratings are allowed. */
+function rangeStep(property: CustomProperty): number {
+  return property.type === "ratingScale" && property.ratingAllowHalf ? 0.5 : 1;
 }
 
 /** Resolve a property's slider bounds, falling back to the data range when a bound is null. */
@@ -57,6 +65,10 @@ function effectiveBounds(
   property: CustomProperty,
   bookmarks: Pick<Bookmark, "numberValues">[],
 ): [number, number] {
+  // Rating scales have fixed bounds: 0/1 up to the configured max.
+  if (property.type === "ratingScale") {
+    return [property.ratingAllowZero ? 0 : 1, property.ratingMax ?? 5];
+  }
   const values = bookmarks
     .flatMap(bookmark => bookmark.numberValues)
     .filter(value => value.propertyId === property.id)
@@ -385,6 +397,7 @@ function NumberFilterControl({
     <RangeSlider
       min={min}
       max={max}
+      step={rangeStep(property)}
       value={range}
       onValueChange={(next) => {
         // Only an actually-narrowed range counts as an active filter.
