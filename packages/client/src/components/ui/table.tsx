@@ -87,7 +87,7 @@ function TableHead({
         `
           h-10 px-3 text-left align-middle font-medium whitespace-nowrap
           text-muted-foreground
-          [&:has([role=checkbox])]:pr-0
+          has-[[role=checkbox]]:pr-0
           *:[[role=checkbox]]:translate-y-[2px]
         `,
         className,
@@ -106,7 +106,7 @@ function TableCell({
       className={cn(
         `
           px-3 py-2 align-middle
-          [&:has([role=checkbox])]:pr-0
+          has-[[role=checkbox]]:pr-0
           *:[[role=checkbox]]:translate-y-[2px]
         `,
         className,
