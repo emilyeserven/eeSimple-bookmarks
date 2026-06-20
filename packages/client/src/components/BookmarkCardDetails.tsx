@@ -7,7 +7,7 @@ import { CategoryPill } from "./CategoryPill";
 import { MediaTypePill } from "./MediaTypePill";
 import { SourcePill } from "./SourcePill";
 import { StarRating } from "./StarRating";
-import { useHiddenCardFields } from "../lib/bookmarkCardFields";
+import { useHiddenCardFields, useHideWebsiteForYouTube } from "../lib/bookmarkCardFields";
 import { buildBookmarkValueItems } from "../lib/bookmarkCardValues";
 
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +34,7 @@ export function BookmarkCardDetails({
 }: BookmarkCardDetailsProps) {
   const pageHidden = useHiddenCardFields(pageKey);
   const hidden = hiddenFields ?? pageHidden;
+  const hideWebsiteForYouTube = useHideWebsiteForYouTube(pageKey);
   const {
     data: allCategories,
   } = useCategories();
@@ -89,7 +90,7 @@ export function BookmarkCardDetails({
   }, [bookmark.description, showDescription]);
 
   const showCategory = !!bookmarkCategory && !hidden.has("category");
-  const showWebsite = !!website && !hidden.has("website");
+  const showWebsite = !!website && !hidden.has("website") && !(youtubeChannel && hideWebsiteForYouTube);
   const showMediaType = !!mediaType && !hidden.has("mediaType");
   const showYoutubeChannel = !!youtubeChannel && !hidden.has("youtubeChannel");
   const showTags = bookmark.tags.length > 0 && !hidden.has("tags");

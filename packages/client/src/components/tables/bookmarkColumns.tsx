@@ -52,6 +52,8 @@ interface UseBookmarkTableColumnsArgs {
   imageMode?: string;
   /** Explicit image visibility, overriding the `pageKey` lookup (homepage sections). */
   imageVisibility?: BookmarkImageVisibility;
+  /** When true, the website pill is hidden on bookmarks that also have a YouTube channel. */
+  hideWebsiteForYouTube?: boolean;
 }
 
 /**
@@ -65,13 +67,18 @@ export function useBookmarkTableColumns({
   hidden: hiddenOverride,
   imageMode: imageModeOverride,
   imageVisibility: imageVisibilityOverride,
+  hideWebsiteForYouTube: hideWebsiteForYouTubeOverride,
 }: UseBookmarkTableColumnsArgs): ColumnDef<Bookmark>[] {
   const pageHidden = useHiddenCardFields(pageKey);
   const pageImageMode = useBookmarkImageMode(pageKey ?? "");
   const pageImageVisibility = useBookmarkImageVisibility(pageKey ?? "");
+  const pageHideWebsiteForYouTube = useUiStore(state =>
+    pageKey ? (state.hideWebsiteForYouTube[pageKey] ?? false) : false,
+  );
   const hidden = hiddenOverride ?? pageHidden;
   const imageMode = imageModeOverride ?? pageImageMode;
   const imageVisibility = imageVisibilityOverride ?? pageImageVisibility;
+  const hideWebsiteForYouTube = hideWebsiteForYouTubeOverride ?? pageHideWebsiteForYouTube;
   const viewClick = useViewPanelClick();
   const modifier = useUiStore(state => state.sidebarOpenModifier);
   const croppedWidth = useUiStore(state => state.croppedWidth);
@@ -195,7 +202,7 @@ export function useBookmarkTableColumns({
               />
             );
           }
-          if (website && !hidden.has("website")) {
+          if (website && !hidden.has("website") && !(youtubeChannel && hideWebsiteForYouTube)) {
             return (
               <SourcePill
                 type="website"
@@ -296,5 +303,6 @@ export function useBookmarkTableColumns({
     croppedWidth,
     croppedHeight,
     customRatios,
+    hideWebsiteForYouTube,
   ]);
 }
