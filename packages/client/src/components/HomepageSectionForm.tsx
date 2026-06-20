@@ -24,6 +24,7 @@ interface HomepageSectionFormValues {
   imageVisibility: BookmarkImageVisibility;
   viewMode: ViewMode;
   hiddenCardFields: string[];
+  cornerOverlays: boolean;
 }
 
 interface HomepageSectionFormProps {
@@ -53,6 +54,7 @@ export function HomepageSectionForm({
     imageVisibility: section?.imageVisibility ?? "shown",
     viewMode: section?.viewMode ?? "cards",
     hiddenCardFields: section?.hiddenCardFields ?? [],
+    cornerOverlays: section?.cornerOverlays ?? true,
   };
 
   const [values, setValues] = useState<HomepageSectionFormValues>(initialValues);
@@ -113,6 +115,7 @@ export function HomepageSectionForm({
           imageVisibility: values.imageVisibility,
           imageLayout: values.imageLayout,
           hiddenCardFields: values.hiddenCardFields,
+          cornerOverlays: values.cornerOverlays,
         }}
         onDisplayChange={setFields}
         hideIfEmpty={values.hideIfEmpty}

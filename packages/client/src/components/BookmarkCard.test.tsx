@@ -104,6 +104,7 @@ const starsProperty: CustomProperty = {
   ratingShowLabel: false,
   ratingLabel: null,
   propertyGroupId: null,
+  cardImageCorner: null,
   createdAt: "2026-06-01T00:00:00.000Z",
 };
 
@@ -148,6 +149,7 @@ const reviewedProperty: CustomProperty = {
   ratingShowLabel: false,
   ratingLabel: null,
   propertyGroupId: null,
+  cardImageCorner: null,
   createdAt: "2026-06-01T00:00:00.000Z",
 };
 

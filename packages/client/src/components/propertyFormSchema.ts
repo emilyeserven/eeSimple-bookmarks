@@ -48,6 +48,7 @@ export const propertySchema = z
     ratingAllowHalf: z.boolean(),
     ratingShowLabel: z.boolean(),
     ratingLabel: z.string(),
+    cardImageCorner: z.enum(["none", "top-left", "top-right", "bottom-left", "bottom-right"]),
   })
   .superRefine((value, ctx) => {
     if (value.type === "calculate" && value.operandIds.length < 2) {
@@ -102,6 +103,7 @@ export const CREATE_DEFAULTS: PropertyFormValues = {
   ratingAllowHalf: false,
   ratingShowLabel: false,
   ratingLabel: "",
+  cardImageCorner: "none",
 };
 
 /**
@@ -163,6 +165,7 @@ export function valuesFromProperty(property: CustomProperty): PropertyFormValues
     ratingAllowHalf: property.ratingAllowHalf,
     ratingShowLabel: property.ratingShowLabel,
     ratingLabel: property.ratingLabel ?? "",
+    cardImageCorner: property.cardImageCorner ?? "none",
   };
 }
 
@@ -216,5 +219,6 @@ export function payloadFromValues(values: PropertyFormValues): CreateCustomPrope
     ratingAllowHalf: isRating ? values.ratingAllowHalf : undefined,
     ratingShowLabel: isRating ? values.ratingShowLabel : undefined,
     ratingLabel: isRating ? trimOrNull(values.ratingLabel) : null,
+    cardImageCorner: values.cardImageCorner === "none" ? null : values.cardImageCorner,
   };
 }

@@ -255,6 +255,18 @@ const migrations: RuntimeMigration[] = [
         AND NOT EXISTS (SELECT 1 FROM "custom_properties" WHERE "slug" = 'runtime')
     `),
   },
+  {
+    // `homepage_sections.corner_overlays` gates whether image-corner custom properties are overlaid
+    // on this section's cards. It is NOT NULL DEFAULT true; adding a NOT NULL column to the populated
+    // table makes drizzle-kit push prompt — the same non-TTY crash as the cases above — so pre-apply
+    // it here to keep push's diff additive-only. (The companion `custom_properties.card_image_corner`
+    // column is nullable text and therefore push-safe — it needs no step.)
+    name: "add homepage_sections.corner_overlays column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "homepage_sections"
+        ADD COLUMN IF NOT EXISTS "corner_overlays" boolean NOT NULL DEFAULT true
+    `),
+  },
 ];
 
 async function main(): Promise<void> {

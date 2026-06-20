@@ -585,6 +585,13 @@ export type DateTimeFormat = "date" | "time" | "datetime";
  */
 export type BooleanLabelPreset = "yes-no" | "true-false" | "enabled-disabled" | "icons" | "stars" | "custom";
 
+/**
+ * Which corner of a bookmark card's image a custom property's value is overlaid in. `null` (no
+ * corner) renders the value as a badge below the image, the default. Honored only when the listing
+ * layout allows image corners and the card actually has an image; otherwise it falls back to a badge.
+ */
+export type CardImageCorner = "top-left" | "top-right" | "bottom-left" | "bottom-right";
+
 /** A user-defined custom property that becomes a dynamic bookmark filter. */
 export interface CustomProperty {
   id: string;
@@ -664,6 +671,8 @@ export interface CustomProperty {
   allowDefault: boolean;
   /** Id of the property group this property belongs to, or `null` when ungrouped. */
   propertyGroupId: string | null;
+  /** Which image corner this property's value is overlaid in on bookmark cards, or `null` for a badge below the image. */
+  cardImageCorner: CardImageCorner | null;
   createdAt: string;
 }
 
@@ -707,6 +716,8 @@ export interface CreateCustomPropertyInput {
   allowDefault?: boolean;
   /** Id of the property group to place this property in, or `null` to leave it ungrouped. */
   propertyGroupId?: string | null;
+  /** Which image corner this property's value is overlaid in on bookmark cards, or `null` for a badge below the image. Defaults to `null`. */
+  cardImageCorner?: CardImageCorner | null;
   /** When true, the property's value badge/row is shown even when the value is false. Defaults to false. */
   showIfFalse?: boolean;
   /** How `true`/`false` values are rendered. Only relevant for `boolean` type. */
@@ -966,6 +977,8 @@ export interface HomepageSection {
   viewMode: ViewMode;
   /** Card field keys hidden for this section (standard field key or custom-property id). */
   hiddenCardFields: string[];
+  /** When true (default), custom properties placed in an image corner are overlaid on this section's card images; when false they fall back to badges. */
+  cornerOverlays: boolean;
   createdAt: string;
 }
 
@@ -988,6 +1001,7 @@ export interface CreateHomepageSectionInput {
   imageVisibility?: BookmarkImageVisibility;
   viewMode?: ViewMode;
   hiddenCardFields?: string[];
+  cornerOverlays?: boolean;
 }
 
 /** Payload for partially updating a homepage section. */

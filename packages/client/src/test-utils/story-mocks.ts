@@ -115,6 +115,7 @@ export const sampleProperties: CustomProperty[] = [
     ratingShowLabel: false,
     ratingLabel: null,
     propertyGroupId: null,
+    cardImageCorner: null,
     createdAt: NOW,
   },
   {
@@ -158,6 +159,7 @@ export const sampleProperties: CustomProperty[] = [
     ratingShowLabel: false,
     ratingLabel: null,
     propertyGroupId: null,
+    cardImageCorner: null,
     createdAt: NOW,
   },
   {
@@ -201,6 +203,7 @@ export const sampleProperties: CustomProperty[] = [
     ratingShowLabel: false,
     ratingLabel: null,
     propertyGroupId: null,
+    cardImageCorner: null,
     createdAt: NOW,
   },
   {
@@ -244,6 +247,7 @@ export const sampleProperties: CustomProperty[] = [
     ratingShowLabel: false,
     ratingLabel: null,
     propertyGroupId: null,
+    cardImageCorner: null,
     createdAt: NOW,
   },
 ];

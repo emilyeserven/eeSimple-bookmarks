@@ -30,6 +30,7 @@ export function HomepageSectionView({
     imageVisibility: section.imageVisibility,
     imageLayout: section.imageLayout,
     hiddenCardFields: section.hiddenCardFields,
+    cornerOverlays: section.cornerOverlays,
   };
 
   return (

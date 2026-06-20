@@ -68,6 +68,9 @@ const createBody = {
         type: "string",
       },
     },
+    cornerOverlays: {
+      type: "boolean",
+    },
   },
 } as const;
 
@@ -114,6 +117,9 @@ const updateBody = {
       items: {
         type: "string",
       },
+    },
+    cornerOverlays: {
+      type: "boolean",
     },
   },
 } as const;

@@ -11,9 +11,12 @@ import { Link } from "@tanstack/react-router";
 
 import { BookmarkCardDetails } from "./BookmarkCardDetails";
 import { BookmarkCardHeader } from "./BookmarkCardHeader";
+import { CardImageOverlays } from "./CardImageOverlays";
 import { useViewPanelClick } from "./panel/useEditPanelClick";
 import { useAutoBookmarkImage, useUpdateBookmark } from "../hooks/useBookmarks";
 import { useCustomAspectRatios } from "../hooks/useCustomAspectRatios";
+import { useHiddenCardFields } from "../lib/bookmarkCardFields";
+import { buildBookmarkValueItems } from "../lib/bookmarkCardValues";
 import { mergeBooleanValue } from "../lib/bookmarkFormat";
 import { bookmarkImageAspectStyle, bookmarkImageClass } from "../lib/bookmarkImage";
 
@@ -41,6 +44,8 @@ interface BookmarkCardProps {
   pageKey?: string;
   /** Explicit hidden field keys, overriding the `pageKey` lookup. Used by DB-backed surfaces (homepage sections). */
   hiddenFields?: Set<string>;
+  /** Whether custom properties placed in an image corner are overlaid on the image. When false they fall back to badges. Defaults to true. */
+  cornerOverlays?: boolean;
 }
 
 /** Replace the entry for `propertyId` with `value`, or append it when the property has no value yet. */
@@ -83,7 +88,7 @@ function mergeDateTimeValue(
 
 export function BookmarkCard({
   bookmark, properties = [], onDelete, imageLeft = false, imageMode = "natural",
-  imageVisibility = "shown", pageKey, hiddenFields,
+  imageVisibility = "shown", pageKey, hiddenFields, cornerOverlays = true,
 }: BookmarkCardProps) {
   const autoImage = useAutoBookmarkImage();
   const updateBookmark = useUpdateBookmark();
@@ -91,6 +96,8 @@ export function BookmarkCard({
   const modifier = useUiStore(state => state.sidebarOpenModifier);
   const croppedWidth = useUiStore(state => state.croppedWidth);
   const croppedHeight = useUiStore(state => state.croppedHeight);
+  const pageHidden = useHiddenCardFields(pageKey);
+  const hidden = hiddenFields ?? pageHidden;
   const {
     data: customRatios = [],
   } = useCustomAspectRatios();
@@ -145,17 +152,29 @@ export function BookmarkCard({
     />
   );
 
-  const imageEl = bookmark.image && imageVisibility !== "off"
+  const hasImage = !!bookmark.image && imageVisibility !== "off";
+
+  // Custom properties placed in an image corner are overlaid only when the listing allows it and the
+  // card has an image; otherwise their values fall back to badges in BookmarkCardDetails.
+  const overlayItems = hasImage && cornerOverlays
+    ? buildBookmarkValueItems(bookmark, properties, hidden).filter(item => item.corner !== null)
+    : [];
+  const cornerPropertyIds = new Set(overlayItems.map(item => item.id));
+
+  const imageEl = hasImage && bookmark.image
     ? (
-      <img
-        src={bookmark.image.url}
-        alt=""
-        loading="lazy"
-        width={bookmark.image.width}
-        height={bookmark.image.height}
-        className={bookmarkImageClass(imageLeft, imageMode)}
-        style={bookmarkImageAspectStyle(imageMode, croppedWidth, croppedHeight, customRatios)}
-      />
+      <div className={imageLeft ? "relative shrink-0 self-start" : "relative"}>
+        <img
+          src={bookmark.image.url}
+          alt=""
+          loading="lazy"
+          width={bookmark.image.width}
+          height={bookmark.image.height}
+          className={bookmarkImageClass(imageLeft, imageMode)}
+          style={bookmarkImageAspectStyle(imageMode, croppedWidth, croppedHeight, customRatios)}
+        />
+        {overlayItems.length > 0 ? <CardImageOverlays items={overlayItems} /> : null}
+      </div>
     )
     : null;
 
@@ -183,6 +202,7 @@ export function BookmarkCard({
       properties={properties}
       pageKey={pageKey}
       hiddenFields={hiddenFields}
+      cornerPropertyIds={cornerPropertyIds}
       onSaveRating={saveNumber}
       onSaveBoolean={saveBoolean}
     />

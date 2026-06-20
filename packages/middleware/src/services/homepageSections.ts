@@ -33,6 +33,7 @@ function toSection(row: SectionRow): HomepageSection {
     imageVisibility: row.imageVisibility as BookmarkImageVisibility,
     viewMode: row.viewMode as ViewMode,
     hiddenCardFields: row.hiddenCardFields ?? [],
+    cornerOverlays: row.cornerOverlays,
     createdAt: row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
   };
 }
@@ -75,6 +76,7 @@ export async function createHomepageSection(
       imageVisibility: input.imageVisibility ?? "shown",
       viewMode: input.viewMode ?? "cards",
       hiddenCardFields: input.hiddenCardFields ?? [],
+      cornerOverlays: input.cornerOverlays ?? true,
     })
     .returning();
   return toSection(row);
@@ -97,6 +99,7 @@ export async function updateHomepageSection(
   if (input.imageVisibility !== undefined) updates.imageVisibility = input.imageVisibility;
   if (input.viewMode !== undefined) updates.viewMode = input.viewMode;
   if (input.hiddenCardFields !== undefined) updates.hiddenCardFields = input.hiddenCardFields;
+  if (input.cornerOverlays !== undefined) updates.cornerOverlays = input.cornerOverlays;
 
   if (Object.keys(updates).length === 0) {
     const [existing] = await db

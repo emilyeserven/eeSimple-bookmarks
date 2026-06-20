@@ -164,6 +164,39 @@ test("POST /api/custom-properties rejects a ratingScale with an unsupported rati
   await app.close();
 });
 
+test("POST /api/custom-properties accepts a cardImageCorner (schema)", async () => {
+  const app = await buildApp();
+  for (const cardImageCorner of ["top-left", "top-right", "bottom-left", "bottom-right", null]) {
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/custom-properties",
+      payload: {
+        name: `Corner ${cardImageCorner}`,
+        type: "number",
+        cardImageCorner,
+      },
+    });
+    // No DB in this test, so the handler may 500; we only assert the schema accepted the value.
+    assert.notEqual(res.statusCode, 400, `cardImageCorner ${cardImageCorner} should pass schema validation`);
+  }
+  await app.close();
+});
+
+test("POST /api/custom-properties rejects an unsupported cardImageCorner", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "POST",
+    url: "/api/custom-properties",
+    payload: {
+      name: "Corner middle",
+      type: "number",
+      cardImageCorner: "middle",
+    },
+  });
+  assert.equal(res.statusCode, 400);
+  await app.close();
+});
+
 test("PATCH /api/custom-properties/:id rejects a non-uuid id", async () => {
   const app = await buildApp();
   const res = await app.inject({
@@ -206,6 +239,7 @@ test("buildUpdatePatch copies every provided field, preserving explicit null", (
       booleanLabelPreset: "custom",
       booleanTrueLabel: "Read",
       booleanFalseLabel: null,
+      cardImageCorner: "top-right",
     },
     undefined,
   );
@@ -227,6 +261,7 @@ test("buildUpdatePatch copies every provided field, preserving explicit null", (
     booleanLabelPreset: "custom",
     booleanTrueLabel: "Read",
     booleanFalseLabel: null,
+    cardImageCorner: "top-right",
   });
 });
 

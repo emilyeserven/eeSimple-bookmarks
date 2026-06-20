@@ -8,7 +8,7 @@ import { Bookmark } from "lucide-react";
 import { InlineCreateModal } from "./InlineCreateModal";
 import { useCustomAspectRatios } from "../hooks/useCustomAspectRatios";
 import { useCreateDisplayPreset, useDisplayPresets } from "../hooks/useDisplayPresets";
-import { COLUMN_OPTIONS, useBookmarkColumns, useBookmarkImageLayout, useBookmarkImageMode, useBookmarkImageVisibility, useViewMode } from "../lib/bookmarkColumns";
+import { COLUMN_OPTIONS, useBookmarkColumns, useBookmarkCornerOverlays, useBookmarkImageLayout, useBookmarkImageMode, useBookmarkImageVisibility, useViewMode } from "../lib/bookmarkColumns";
 import { applyDisplayPreset } from "../lib/displayPresets";
 import { useUiStore } from "../stores/uiStore";
 
@@ -54,6 +54,7 @@ interface DisplaySettingsValue {
   imageMode: string;
   imageVisibility: BookmarkImageVisibility;
   imageLayout: HomepageSectionImageLayout;
+  cornerOverlays: boolean;
 }
 
 interface DisplaySettingsControlsBaseProps {
@@ -63,6 +64,7 @@ interface DisplaySettingsControlsBaseProps {
   onImageModeChange: (value: string) => void;
   onImageVisibilityChange: (value: BookmarkImageVisibility) => void;
   onImageLayoutChange: (value: HomepageSectionImageLayout) => void;
+  onCornerOverlaysChange: (value: boolean) => void;
   showsImages: boolean;
   /** Saved presets to offer in the Apply picker; omit/empty to hide the picker. */
   presets: DisplayPreset[];
@@ -87,6 +89,7 @@ export function DisplaySettingsControlsBase({
   onImageModeChange,
   onImageVisibilityChange,
   onImageLayoutChange,
+  onCornerOverlaysChange,
   showsImages,
   presets,
   onApplyPreset,
@@ -95,7 +98,7 @@ export function DisplaySettingsControlsBase({
   saveErrorMessage,
 }: DisplaySettingsControlsBaseProps) {
   const {
-    viewMode, columns, imageMode, imageVisibility, imageLayout,
+    viewMode, columns, imageMode, imageVisibility, imageLayout, cornerOverlays,
   } = value;
   const croppedWidth = useUiStore(state => state.croppedWidth);
   const croppedHeight = useUiStore(state => state.croppedHeight);
@@ -296,6 +299,42 @@ export function DisplaySettingsControlsBase({
                   </ToggleGroup>
                 </div>
               )}
+
+              {imageVisibility !== "off" && (
+                <div className="flex items-center justify-between gap-4">
+                  <Label className="text-sm font-medium">Image corners</Label>
+                  <ToggleGroup
+                    type="single"
+                    size="sm"
+                    value={cornerOverlays ? "on" : "off"}
+                    className="
+                      gap-0 overflow-hidden rounded-md border border-input
+                    "
+                    onValueChange={(next) => {
+                      if (next) onCornerOverlaysChange(next === "on");
+                    }}
+                  >
+                    <ToggleGroupItem
+                      value="on"
+                      className="
+                        rounded-none border-r border-input
+                        first:rounded-l-sm
+                      "
+                    >
+                      On
+                    </ToggleGroupItem>
+                    <ToggleGroupItem
+                      value="off"
+                      className="
+                        rounded-none
+                        last:rounded-r-sm
+                      "
+                    >
+                      Off
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+                </div>
+              )}
             </>
           )}
         </>
@@ -352,11 +391,13 @@ export function DisplaySettingsControls({
   const imageMode = useBookmarkImageMode(pageKey);
   const imageVisibility = useBookmarkImageVisibility(pageKey);
   const imageLayout = useBookmarkImageLayout(pageKey);
+  const cornerOverlays = useBookmarkCornerOverlays(pageKey);
   const hiddenFields = useUiStore(state => state.hiddenCardFields[pageKey]) ?? [];
   const setBookmarkColumns = useUiStore(state => state.setBookmarkColumns);
   const setBookmarkImageMode = useUiStore(state => state.setBookmarkImageMode);
   const setBookmarkImageVisibility = useUiStore(state => state.setBookmarkImageVisibility);
   const setBookmarkImageLayout = useUiStore(state => state.setBookmarkImageLayout);
+  const setBookmarkCornerOverlays = useUiStore(state => state.setBookmarkCornerOverlays);
   const setHiddenCardFields = useUiStore(state => state.setHiddenCardFields);
 
   const {
@@ -380,12 +421,14 @@ export function DisplaySettingsControls({
         imageMode,
         imageVisibility,
         imageLayout,
+        cornerOverlays,
       }}
       onViewModeChange={value => setViewMode(pageKey, value)}
       onColumnsChange={value => setBookmarkColumns(pageKey, value)}
       onImageModeChange={value => setBookmarkImageMode(pageKey, value)}
       onImageVisibilityChange={value => setBookmarkImageVisibility(pageKey, value)}
       onImageLayoutChange={value => setBookmarkImageLayout(pageKey, value)}
+      onCornerOverlaysChange={value => setBookmarkCornerOverlays(pageKey, value)}
       showsImages={showsImages}
       presets={showPresetPicker ? presets : []}
       onApplyPreset={settings => applyDisplayPreset(pageKey, settings, {

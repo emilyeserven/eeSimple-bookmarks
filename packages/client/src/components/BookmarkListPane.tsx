@@ -30,6 +30,7 @@ interface BookmarkListPaneProps {
   imageVisibility: BookmarkImageVisibility;
   imageLeft: boolean;
   imageMode: string;
+  cornerOverlays: boolean;
   bookmarks: Bookmark[];
   properties: CustomProperty[];
   search: BookmarkSearch;
@@ -49,6 +50,7 @@ export function BookmarkListPane({
   imageVisibility,
   imageLeft,
   imageMode,
+  cornerOverlays,
   bookmarks,
   properties,
   search,
@@ -131,6 +133,7 @@ export function BookmarkListPane({
                   imageLeft={imageLeft}
                   imageMode={imageMode}
                   imageVisibility={imageVisibility}
+                  cornerOverlays={cornerOverlays}
                 />
               </RowCard>
             ))}

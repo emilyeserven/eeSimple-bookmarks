@@ -99,6 +99,30 @@ export const NUMBER_FORMAT_OPTIONS = [
   },
 ];
 
+/** Options for the "Card image corner" select. `"none"` maps to a null `cardImageCorner` (a badge). */
+export const CARD_IMAGE_CORNER_OPTIONS = [
+  {
+    value: "none",
+    label: "None (badge below image)",
+  },
+  {
+    value: "top-left",
+    label: "Top-left",
+  },
+  {
+    value: "top-right",
+    label: "Top-right",
+  },
+  {
+    value: "bottom-left",
+    label: "Bottom-left",
+  },
+  {
+    value: "bottom-right",
+    label: "Bottom-right",
+  },
+];
+
 /** Add or remove `id` from `ids`, returning a new array. */
 export function toggleId(ids: string[], id: string): string[] {
   return ids.includes(id) ? ids.filter(value => value !== id) : [...ids, id];

@@ -109,6 +109,7 @@ export function HomepageSectionBlock({
                       imageMode={imageMode}
                       imageVisibility={imageVisibility}
                       hiddenFields={hiddenFields}
+                      cornerOverlays={section.cornerOverlays}
                     />
                   </RowCard>
                 ))}

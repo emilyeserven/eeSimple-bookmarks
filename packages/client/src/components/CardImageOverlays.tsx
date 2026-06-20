@@ -1,0 +1,69 @@
+import type { BookmarkValueItem } from "../lib/bookmarkCardValues";
+
+import { StarRating } from "./StarRating";
+import { CARD_IMAGE_CORNERS } from "../lib/bookmarkCardValues";
+
+import { Badge } from "@/components/ui/badge";
+
+interface CardImageOverlaysProps {
+  /** Value items whose property has a non-null `corner`. Grouped by corner and positioned over the image. */
+  items: BookmarkValueItem[];
+}
+
+/**
+ * Renders custom-property value items overlaid in the corners of a bookmark card's image. Expects its
+ * parent to be `position: relative`. Each corner stacks its items vertically; badges use a translucent
+ * background for legibility over the image, and rating-scale values render compact stars.
+ */
+export function CardImageOverlays({
+  items,
+}: CardImageOverlaysProps) {
+  return (
+    <>
+      {CARD_IMAGE_CORNERS.map(({
+        corner, className,
+      }) => {
+        const cornerItems = items.filter(item => item.corner === corner);
+        if (cornerItems.length === 0) return null;
+        return (
+          <div
+            key={corner}
+            className={`
+              pointer-events-none absolute flex flex-col gap-1
+              ${className}
+            `}
+          >
+            {cornerItems.map(item =>
+              item.kind === "rating"
+                ? (
+                  <div
+                    key={item.id}
+                    className="
+                      rounded-md bg-background/85 px-1.5 py-0.5 backdrop-blur-sm
+                    "
+                  >
+                    <StarRating
+                      value={item.value}
+                      max={item.property.ratingMax ?? 5}
+                      allowHalf={item.property.ratingAllowHalf}
+                      allowZero={item.property.ratingAllowZero}
+                      readOnly
+                      size={12}
+                    />
+                  </div>
+                )
+                : (
+                  <Badge
+                    key={item.id}
+                    variant="secondary"
+                    className="bg-background/85 backdrop-blur-sm"
+                  >
+                    {item.label}
+                  </Badge>
+                ))}
+          </div>
+        );
+      })}
+    </>
+  );
+}
