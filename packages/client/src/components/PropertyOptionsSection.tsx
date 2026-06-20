@@ -396,7 +396,7 @@ function BooleanOptions({
             )}
           </form.AppField>
           <p className="text-xs text-muted-foreground">
-            When checked, the value can be clicked in the detail view to toggle it without entering edit mode.
+            When checked, the label or value can be clicked on cards and in the detail view to toggle it without entering edit mode.
           </p>
 
           <form.Subscribe selector={state => state.values.booleanLabelPreset}>

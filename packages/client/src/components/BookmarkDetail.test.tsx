@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { BookmarkDetail } from "./BookmarkDetail";
@@ -70,6 +70,33 @@ describe("BookmarkDetail", () => {
     expect(screen.getByText("3 points")).toBeInTheDocument();
     expect(screen.getByText("Yes")).toBeInTheDocument();
     expect(screen.getByText(/calculated/)).toBeInTheDocument();
+  });
+
+  it("toggles a clickable-in-view boolean by clicking its label or value", async () => {
+    const onSaveBoolean = vi.fn();
+    const clickableProperties = sampleProperties.map(property =>
+      (property.id === "prop-reviewed"
+        ? {
+          ...property,
+          clickableInView: true,
+        }
+        : property));
+    await renderDetail(
+      <BookmarkDetail
+        bookmark={sampleBookmark}
+        categories={sampleCategories}
+        properties={clickableProperties}
+        onSaveBoolean={onSaveBoolean}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", {
+      name: "Reviewed:",
+    }));
+    fireEvent.click(screen.getByRole("button", {
+      name: "Yes",
+    }));
+    expect(onSaveBoolean).toHaveBeenCalledTimes(2);
+    expect(onSaveBoolean).toHaveBeenCalledWith("prop-reviewed", false);
   });
 
   it("invokes the edit and delete callbacks", async () => {

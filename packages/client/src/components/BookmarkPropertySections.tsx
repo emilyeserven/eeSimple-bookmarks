@@ -1,4 +1,5 @@
 import type { Bookmark, CustomProperty, PropertyGroup } from "@eesimple/types";
+import type { ReactNode } from "react";
 
 import { StarRating } from "./StarRating";
 
@@ -167,21 +168,26 @@ export function BookmarkPropertySections({
               ))}
               {booleanRows.filter(row => inGroup(row.groupId, section.target)).map((row) => {
                 const isClickable = onSaveBoolean !== undefined && row.clickableInView;
-                const valueEl = isClickable
-                  ? (
-                    <button
-                      className="
-                        cursor-pointer
-                        hover:underline
-                      "
-                      title="Click to toggle"
-                      type="button"
-                      onClick={() => onSaveBoolean(row.id, !row.rawValue)}
-                    >
-                      {row.value}
-                    </button>
-                  )
-                  : row.value;
+                // When clickable, both the label and the value toggle the boolean.
+                const toggle = isClickable
+                  ? () => onSaveBoolean(row.id, !row.rawValue)
+                  : undefined;
+                const wrap = (content: ReactNode): ReactNode =>
+                  toggle
+                    ? (
+                      <button
+                        className="
+                          cursor-pointer
+                          hover:underline
+                        "
+                        title="Click to toggle"
+                        type="button"
+                        onClick={toggle}
+                      >
+                        {content}
+                      </button>
+                    )
+                    : content;
                 return (
                   <div
                     key={row.id}
@@ -190,19 +196,23 @@ export function BookmarkPropertySections({
                     {row.showValueBeforeLabel
                       ? (
                         <>
-                          <dd>{valueEl}</dd>
+                          <dd>{wrap(row.value)}</dd>
                           <dt className="text-muted-foreground">
-                            {row.showLabelColon ? `: ${row.name}` : row.name}
+                            {wrap(row.showLabelColon ? `: ${row.name}` : row.name)}
                           </dt>
                         </>
                       )
                       : (
                         <>
                           <dt className="text-muted-foreground">
-                            {row.name}
-                            {row.showLabelColon ? ":" : ""}
+                            {wrap(
+                              <>
+                                {row.name}
+                                {row.showLabelColon ? ":" : ""}
+                              </>,
+                            )}
                           </dt>
-                          <dd>{valueEl}</dd>
+                          <dd>{wrap(row.value)}</dd>
                         </>
                       )}
                   </div>
