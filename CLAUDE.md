@@ -62,6 +62,20 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
   intra-package imports/re-exports must carry explicit `.js` extensions (e.g.
   `export * from "./conditions.js"`), even though the source files are `.ts`. Omitting them builds
   locally but breaks ESM resolution for consumers.
+- **Validation schemas mirror the `@eesimple/types` unions by hand — update every copy in the same
+  change.** The shared TS union/literal types (e.g. `CustomPropertyType`, the condition
+  `predicate.valueKind`s) are **not** derived by any validator; each forms/runtime schema re-lists
+  the variants manually, and nothing (no test, codegen, or `z.infer`) catches drift — so a forgotten
+  copy silently **rejects** the new variant at the modal/API boundary even though `tsc` passes. When
+  you add or remove a variant, update **all** of its mirrors:
+  - **Client zod / select lists** — `propertyFormSchema.ts` (`type` enum), `AddCustomPropertyModal.tsx`
+    (inline-create enum), and `TYPE_OPTIONS` in `lib/propertyForm.ts`.
+  - **Middleware Fastify JSON Schema route bodies** — `routes/customProperties.ts` (`type` enum) and
+    `routes/conditionSchema.ts` (the `propertyNode` predicate `valueKind` `oneOf` branches).
+
+  Grep for an existing variant string (e.g. `"ratingScale"`) to find every list that needs the new
+  value. (This drifted in PR #341: `image`/`file` reached the union and most schemas but not the
+  inline-create modal or the file-predicate condition branch.)
 - **UI primitives:** before adding a Radix/shadcn primitive, check
   `packages/client/src/components/ui/` — `dialog`, `dropdown-menu`, `popover`, `toggle-group`,
   `command`, etc. already exist (`Dialog` was once reintroduced twice). Reuse the existing one.
