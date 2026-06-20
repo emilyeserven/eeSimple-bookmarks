@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { Star } from "lucide-react";
+import { Star, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -11,7 +11,11 @@ interface StarRatingProps {
   max: number;
   /** Allow half-star (0.5) steps when interactive. */
   allowHalf?: boolean;
-  /** Allow clearing back to 0 by re-clicking the current value. Only relevant when interactive. */
+  /**
+   * Allow setting the rating to 0. When interactive, this both lets the user re-click the current
+   * value to clear it and renders an explicit "Clear rating" X button after the stars. Only
+   * relevant when interactive.
+   */
   allowZero?: boolean;
   /** Render static stars with no interaction. */
   readOnly?: boolean;
@@ -118,6 +122,21 @@ export function StarRating({
           </span>
         );
       })}
+      {!readOnly && allowZero && onChange
+        ? (
+          <button
+            type="button"
+            aria-label="Clear rating"
+            className="
+              ml-1 rounded-sm text-muted-foreground
+              hover:text-foreground
+            "
+            onClick={() => onChange(0)}
+          >
+            <X className="size-3.5" />
+          </button>
+        )
+        : null}
       {label ? <span className="ml-1.5 text-xs text-muted-foreground">{label}</span> : null}
     </span>
   );
