@@ -163,6 +163,10 @@ const createPropertyBody = {
       type: ["number", "null"],
       enum: [1, 1.5, 2, null],
     },
+    cardImageCornerMobileScale: {
+      type: ["number", "null"],
+      enum: [1, 1.5, 2, null],
+    },
     cardImageCornerHideLabel: {
       type: "boolean",
     },
@@ -213,6 +217,7 @@ const updatePropertyBody = {
     ratingLabel: createPropertyBody.properties.ratingLabel,
     cardImageCorner: createPropertyBody.properties.cardImageCorner,
     cardImageCornerScale: createPropertyBody.properties.cardImageCornerScale,
+    cardImageCornerMobileScale: createPropertyBody.properties.cardImageCornerMobileScale,
     cardImageCornerHideLabel: createPropertyBody.properties.cardImageCornerHideLabel,
     propertyGroupId: createPropertyBody.properties.propertyGroupId,
   },

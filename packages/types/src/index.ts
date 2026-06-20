@@ -692,6 +692,8 @@ export interface CustomProperty {
   cardImageCorner: CardImageCorner | null;
   /** Scale factor (1, 1.5, or 2) for the corner overlay; `1` is normal size. Only applies when `cardImageCorner` is set. */
   cardImageCornerScale: number;
+  /** Scale factor (1, 1.5, or 2) for the corner overlay on mobile; `null` inherits `cardImageCornerScale`. Only applies when `cardImageCorner` is set. */
+  cardImageCornerMobileScale: number | null;
   /** When true, the corner overlay shows only the value, dropping the property-name label. Only applies when `cardImageCorner` is set. */
   cardImageCornerHideLabel: boolean;
   createdAt: string;
@@ -745,6 +747,8 @@ export interface CreateCustomPropertyInput {
   cardImageCorner?: CardImageCorner | null;
   /** Scale factor (1, 1.5, or 2) for the corner overlay. Defaults to 1. Only applies when `cardImageCorner` is set. */
   cardImageCornerScale?: number;
+  /** Scale factor (1, 1.5, or 2) for the corner overlay on mobile. `null` inherits `cardImageCornerScale`. Only applies when `cardImageCorner` is set. */
+  cardImageCornerMobileScale?: number | null;
   /** When true, the corner overlay shows only the value, dropping the property-name label. Defaults to false. Only applies when `cardImageCorner` is set. */
   cardImageCornerHideLabel?: boolean;
   /** When true, the property's value badge/row is shown even when the value is false. Defaults to false. */

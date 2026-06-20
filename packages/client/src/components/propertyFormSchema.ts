@@ -52,6 +52,7 @@ export const propertySchema = z
     ratingLabel: z.string(),
     cardImageCorner: z.enum(["none", "top-left", "top-right", "bottom-left", "bottom-right"]),
     cardImageCornerScale: z.enum(["1", "1.5", "2"]),
+    cardImageCornerMobileScale: z.enum(["inherit", "1", "1.5", "2"]),
     cardImageCornerHideLabel: z.boolean(),
   })
   .superRefine((value, ctx) => {
@@ -111,6 +112,7 @@ export const CREATE_DEFAULTS: PropertyFormValues = {
   ratingLabel: "",
   cardImageCorner: "none",
   cardImageCornerScale: "1",
+  cardImageCornerMobileScale: "inherit",
   cardImageCornerHideLabel: false,
 };
 
@@ -181,6 +183,13 @@ export function valuesFromProperty(property: CustomProperty): PropertyFormValues
       : property.cardImageCornerScale === 1.5
         ? "1.5"
         : "1",
+    cardImageCornerMobileScale: property.cardImageCornerMobileScale === 2
+      ? "2"
+      : property.cardImageCornerMobileScale === 1.5
+        ? "1.5"
+        : property.cardImageCornerMobileScale === 1
+          ? "1"
+          : "inherit",
     cardImageCornerHideLabel: property.cardImageCornerHideLabel,
   };
 }
@@ -240,6 +249,10 @@ export function payloadFromValues(values: PropertyFormValues): CreateCustomPrope
     cardImageCorner: values.cardImageCorner === "none" ? null : values.cardImageCorner,
     cardImageCornerScale:
       values.cardImageCorner === "none" ? 1 : Number(values.cardImageCornerScale),
+    cardImageCornerMobileScale:
+      values.cardImageCorner === "none" || values.cardImageCornerMobileScale === "inherit"
+        ? null
+        : Number(values.cardImageCornerMobileScale),
     cardImageCornerHideLabel:
       values.cardImageCorner === "none" ? false : values.cardImageCornerHideLabel,
   };

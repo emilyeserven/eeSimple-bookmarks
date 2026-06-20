@@ -2,7 +2,11 @@ import type { PropertyFormApi } from "./propertyFormSchema";
 
 import { AddPropertyGroupModal } from "./AddPropertyGroupModal";
 import { LabeledSection } from "./LabeledSection";
-import { CARD_IMAGE_CORNER_OPTIONS, CARD_IMAGE_CORNER_SCALE_OPTIONS } from "../lib/propertyForm";
+import {
+  CARD_IMAGE_CORNER_MOBILE_SCALE_OPTIONS,
+  CARD_IMAGE_CORNER_OPTIONS,
+  CARD_IMAGE_CORNER_SCALE_OPTIONS,
+} from "../lib/propertyForm";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -133,6 +137,14 @@ export function PropertyDisplaySection({
                         <field.SelectField
                           label="Overlay size"
                           options={CARD_IMAGE_CORNER_SCALE_OPTIONS}
+                        />
+                      )}
+                    </form.AppField>
+                    <form.AppField name="cardImageCornerMobileScale">
+                      {field => (
+                        <field.SelectField
+                          label="Mobile overlay size"
+                          options={CARD_IMAGE_CORNER_MOBILE_SCALE_OPTIONS}
                         />
                       )}
                     </form.AppField>
