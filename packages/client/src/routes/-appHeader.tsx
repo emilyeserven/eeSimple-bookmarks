@@ -5,9 +5,8 @@ import React from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Info, PanelRight, Plus } from "lucide-react";
 
-import { CardOptionsPopover } from "@/components/CardOptionsPopover";
+import { DisplayOptionsPopover } from "@/components/DisplayOptionsPopover";
 import { FilterLocationPopover } from "@/components/FilterLocationPopover";
-import { LayoutOptionsPopover } from "@/components/LayoutOptionsPopover";
 import { ListingSearchBar } from "@/components/ListingSearchBar";
 import { usePanelControls } from "@/components/panel/usePanelControls";
 import {
@@ -490,19 +489,14 @@ export function AppHeader() {
       node: <FilterLocationPopover />,
     });
   }
-  if (listingPage?.showsCards) {
-    toolbarActions.push({
-      key: "card-options",
-      node: <CardOptionsPopover pageKey={listingPage.key} />,
-    });
-  }
   if (listingPage) {
     toolbarActions.push({
-      key: "layout-options",
+      key: "display-options",
       node: (
-        <LayoutOptionsPopover
+        <DisplayOptionsPopover
           pageKey={listingPage.key}
           showsImages={listingPage.showsImages}
+          showsCards={listingPage.showsCards}
         />
       ),
     });

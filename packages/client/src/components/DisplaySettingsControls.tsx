@@ -5,9 +5,10 @@ import { useState } from "react";
 
 import { Bookmark } from "lucide-react";
 
+import { DisplayPresetSelect } from "./DisplayPresetSelect";
 import { InlineCreateModal } from "./InlineCreateModal";
 import { useCustomAspectRatios } from "../hooks/useCustomAspectRatios";
-import { useCreateDisplayPreset, useDisplayPresets } from "../hooks/useDisplayPresets";
+import { useCreateDisplayPreset } from "../hooks/useDisplayPresets";
 import { COLUMN_OPTIONS, useBookmarkColumns, useBookmarkImageLayout, useBookmarkImageMode, useBookmarkImageVisibility, useViewMode } from "../lib/bookmarkColumns";
 import { useUiStore } from "../stores/uiStore";
 
@@ -25,6 +26,8 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 interface DisplaySettingsControlsProps {
   pageKey: string;
   showsImages: boolean;
+  /** When false, the preset picker is omitted (the host renders it elsewhere, e.g. a popover header). */
+  showPresetPicker?: boolean;
 }
 
 function buildAspectOptions(croppedW: number, croppedH: number, customRatios: CustomAspectRatio[]) {
@@ -52,28 +55,13 @@ function buildAspectOptions(croppedW: number, croppedH: number, customRatios: Cu
   ];
 }
 
-function applyDisplayPreset(
-  pageKey: string,
-  settings: DisplayPresetSettings,
-  setBookmarkColumns: (key: string, v: number) => void,
-  setBookmarkImageVisibility: (key: string, v: BookmarkImageVisibility) => void,
-  setBookmarkImageMode: (key: string, v: string) => void,
-  setBookmarkImageLayout: (key: string, v: HomepageSectionImageLayout) => void,
-) {
-  setBookmarkColumns(pageKey, settings.columns);
-  setBookmarkImageVisibility(pageKey, settings.imageVisibility);
-  const rawMode = settings.imageMode;
-  setBookmarkImageMode(pageKey, typeof rawMode === "boolean" ? (rawMode ? "natural" : "cropped") : rawMode);
-  setBookmarkImageLayout(pageKey, settings.imageLayout);
-}
-
 /**
  * Per-listing display controls: column count, image visibility/aspect/layout, and preset
  * save/apply. Labels sit left of their control; toggle groups use the bordered variant.
- * Reused by LayoutOptionsPopover, the category Display tab, and Settings → Display.
+ * Reused by the DisplayOptionsPopover Layout tab, the category Display tab, and Settings → Display.
  */
 export function DisplaySettingsControls({
-  pageKey, showsImages,
+  pageKey, showsImages, showPresetPicker = true,
 }: DisplaySettingsControlsProps) {
   const viewMode = useViewMode(pageKey);
   const setViewMode = useUiStore(state => state.setViewMode);
@@ -81,6 +69,7 @@ export function DisplaySettingsControls({
   const imageMode = useBookmarkImageMode(pageKey);
   const imageVisibility = useBookmarkImageVisibility(pageKey);
   const imageLayout = useBookmarkImageLayout(pageKey);
+  const hiddenFields = useUiStore(state => state.hiddenCardFields[pageKey]) ?? [];
   const setBookmarkColumns = useUiStore(state => state.setBookmarkColumns);
   const setBookmarkImageMode = useUiStore(state => state.setBookmarkImageMode);
   const setBookmarkImageVisibility = useUiStore(state => state.setBookmarkImageVisibility);
@@ -91,9 +80,6 @@ export function DisplaySettingsControls({
     data: customRatios = [],
   } = useCustomAspectRatios();
 
-  const {
-    data: presets = [],
-  } = useDisplayPresets();
   const createMutation = useCreateDisplayPreset();
   const [saveModalOpen, setSaveModalOpen] = useState(false);
 
@@ -102,6 +88,7 @@ export function DisplaySettingsControls({
     imageVisibility,
     imageMode,
     imageLayout,
+    hiddenFields,
   };
 
   return (
@@ -140,40 +127,7 @@ export function DisplaySettingsControls({
       </div>
 
       {/* Preset picker */}
-      {presets.length > 0 && (
-        <div className="flex items-center justify-between gap-4">
-          <Label className="text-sm font-medium">Preset</Label>
-          <Select
-            value=""
-            onValueChange={(presetId) => {
-              const preset = presets.find(p => p.id === presetId);
-              if (!preset) return;
-              applyDisplayPreset(
-                pageKey,
-                preset.settings,
-                setBookmarkColumns,
-                setBookmarkImageVisibility,
-                setBookmarkImageMode,
-                setBookmarkImageLayout,
-              );
-            }}
-          >
-            <SelectTrigger className="h-7 text-xs">
-              <SelectValue placeholder="Apply a preset…" />
-            </SelectTrigger>
-            <SelectContent>
-              {presets.map(preset => (
-                <SelectItem
-                  key={preset.id}
-                  value={preset.id}
-                >
-                  {preset.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
+      {showPresetPicker && <DisplayPresetSelect pageKey={pageKey} />}
 
       {viewMode === "cards" && (
         <>
