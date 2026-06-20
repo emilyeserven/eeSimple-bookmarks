@@ -150,7 +150,8 @@ export function DataTable<T>({
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => {
                 const canSort = header.column.getCanSort();
-                const canResize = resizable && header.column.getCanResize();
+                const isFill = header.column.columnDef.meta?.fill;
+                const canResize = resizable && !isFill && header.column.getCanResize();
                 return (
                   <TableHead
                     key={header.id}
@@ -158,14 +159,10 @@ export function DataTable<T>({
                       resizable && "relative",
                       canSort && "cursor-pointer select-none",
                     ) || undefined}
-                    style={resizable && !header.column.columnDef.meta?.fill
-                      ? {
-                        width: header.getSize(),
-                      }
-                      : resizable && header.column.columnDef.meta?.fill
-                        ? {
-                          minWidth: header.column.columnDef.minSize,
-                        }
+                    style={resizable && !isFill
+                      ? { width: header.getSize() }
+                      : isFill
+                        ? { minWidth: header.getSize() }
                         : undefined}
                     onClick={canSort ? header.column.getToggleSortingHandler() : undefined}
                   >
@@ -218,13 +215,9 @@ export function DataTable<T>({
                   <TableCell
                     key={cell.id}
                     style={resizable && !cell.column.columnDef.meta?.fill
-                      ? {
-                        width: cell.column.getSize(),
-                      }
-                      : resizable && cell.column.columnDef.meta?.fill
-                        ? {
-                          minWidth: cell.column.columnDef.minSize,
-                        }
+                      ? { width: cell.column.getSize() }
+                      : cell.column.columnDef.meta?.fill
+                        ? { minWidth: cell.column.getSize() }
                         : undefined}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}

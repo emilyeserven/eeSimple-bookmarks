@@ -113,7 +113,7 @@ export function useBookmarkTableColumns({
     cols.push({
       accessorKey: "title",
       header: "Title",
-      size: 280,
+      size: 400,
       minSize: 120,
       meta: { fill: true },
       cell: ({
