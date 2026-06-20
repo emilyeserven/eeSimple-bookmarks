@@ -3,6 +3,7 @@ import type {
   Bookmark,
   BookmarkBooleanValue,
   BookmarkDateTimeValue,
+  BookmarkFileValue,
   BookmarkImage,
   BookmarkMediaType,
   BookmarkNumberValue,
@@ -15,6 +16,7 @@ import { db } from "@/db";
 import {
   bookmarkBooleanValues,
   bookmarkDateTimeValues,
+  bookmarkFileValues,
   bookmarkImages,
   bookmarkNumberValues,
   bookmarkRelationships,
@@ -29,6 +31,7 @@ import {
   youtubeChannels,
 } from "@/db/schema";
 import { bookmarkImageFromRow } from "@/services/bookmarkImages";
+import { bookmarkFileValueFromRow } from "@/services/bookmarkPropertyFiles";
 import { ensureDefaultCategory } from "@/services/categories";
 import { slugify } from "@/utils/slug";
 
@@ -41,6 +44,7 @@ interface BookmarkExtras {
   numberValues: BookmarkNumberValue[];
   booleanValues: BookmarkBooleanValue[];
   dateTimeValues: BookmarkDateTimeValue[];
+  fileValues: BookmarkFileValue[];
   image: BookmarkImage | null;
   relatedBookmarks: BookmarkUrlSummary[];
 }
@@ -53,6 +57,7 @@ const EMPTY_EXTRAS: BookmarkExtras = {
   numberValues: [],
   booleanValues: [],
   dateTimeValues: [],
+  fileValues: [],
   image: null,
   relatedBookmarks: [],
 };
@@ -73,6 +78,7 @@ function toBookmark(row: BookmarkRow, extras: BookmarkExtras, defaultCategoryId:
     numberValues: extras.numberValues,
     booleanValues: extras.booleanValues,
     dateTimeValues: extras.dateTimeValues,
+    fileValues: extras.fileValues,
     relatedBookmarks: extras.relatedBookmarks,
     image: extras.image,
     imageAutoGrabError: (row.imageAutoGrabError as "no_image" | "bad_image" | "blocked" | "server_error" | "fetch_error" | null) ?? null,
@@ -281,6 +287,26 @@ async function dateTimeValuesByBookmarkId(
   return grouped;
 }
 
+/** Load image/file custom-property values for a set of bookmarks, grouped by bookmark id. */
+async function fileValuesByBookmarkId(
+  bookmarkIds: string[],
+): Promise<Map<string, BookmarkFileValue[]>> {
+  const grouped = new Map<string, BookmarkFileValue[]>();
+  if (bookmarkIds.length === 0) return grouped;
+
+  const rows = await db
+    .select()
+    .from(bookmarkFileValues)
+    .where(inArray(bookmarkFileValues.bookmarkId, bookmarkIds));
+
+  for (const row of rows) {
+    const list = grouped.get(row.bookmarkId) ?? [];
+    list.push(bookmarkFileValueFromRow(row));
+    grouped.set(row.bookmarkId, list);
+  }
+  return grouped;
+}
+
 /** Load attached images for a set of bookmarks in a single query, keyed by bookmark id. */
 async function imagesByBookmarkId(bookmarkIds: string[]): Promise<Map<string, BookmarkImage>> {
   const byId = new Map<string, BookmarkImage>();
@@ -364,11 +390,12 @@ async function relatedBookmarksByBookmarkId(
 
 /** Hydrate all custom-property relations for a set of bookmark rows in batched queries. */
 async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, BookmarkExtras>> {
-  const [tagsMap, numberMap, booleanMap, dateTimeMap, imageMap, relatedMap] = await Promise.all([
+  const [tagsMap, numberMap, booleanMap, dateTimeMap, fileMap, imageMap, relatedMap] = await Promise.all([
     tagsByBookmarkId(bookmarkIds),
     numberValuesByBookmarkId(bookmarkIds),
     booleanValuesByBookmarkId(bookmarkIds),
     dateTimeValuesByBookmarkId(bookmarkIds),
+    fileValuesByBookmarkId(bookmarkIds),
     imagesByBookmarkId(bookmarkIds),
     relatedBookmarksByBookmarkId(bookmarkIds),
   ]);
@@ -382,6 +409,7 @@ async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
       numberValues: numberMap.get(id) ?? [],
       booleanValues: booleanMap.get(id) ?? [],
       dateTimeValues: dateTimeMap.get(id) ?? [],
+      fileValues: fileMap.get(id) ?? [],
       image: imageMap.get(id) ?? null,
       relatedBookmarks: relatedMap.get(id) ?? [],
     });

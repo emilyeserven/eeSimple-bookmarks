@@ -145,6 +145,7 @@ type SearchableBookmark = Pick<
   | "numberValues"
   | "booleanValues"
   | "dateTimeValues"
+  | "fileValues"
 >;
 
 /** A multi-select id filter passes when it is empty or contains the bookmark's value. */
@@ -166,7 +167,8 @@ function passesPropertyPresence(bookmark: SearchableBookmark, search: BookmarkSe
     const hasValue
       = bookmark.numberValues.some(v => v.propertyId === propertyId)
         || bookmark.booleanValues.some(v => v.propertyId === propertyId)
-        || bookmark.dateTimeValues.some(v => v.propertyId === propertyId);
+        || bookmark.dateTimeValues.some(v => v.propertyId === propertyId)
+        || bookmark.fileValues.some(v => v.propertyId === propertyId);
     if (!passesPresence(mode, hasValue)) return false;
   }
   return true;

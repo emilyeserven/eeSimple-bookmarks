@@ -77,6 +77,25 @@ test("POST /api/custom-properties accepts the boolean and calculate types (schem
   await app.close();
 });
 
+test("POST /api/custom-properties accepts the image and file types with their flags (schema)", async () => {
+  const app = await buildApp();
+  for (const type of ["image", "file"]) {
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/custom-properties",
+      payload: {
+        name: `Prop ${type}`,
+        type,
+        showInGallery: false,
+        showInDetails: false,
+      },
+    });
+    // No DB in this test, so the handler may 500; we only assert the schema accepted the payload.
+    assert.notEqual(res.statusCode, 400, `type ${type} should pass schema validation`);
+  }
+  await app.close();
+});
+
 test("POST /api/custom-properties accepts the datetime type with a valid dateTimeFormat (schema)", async () => {
   const app = await buildApp();
   for (const dateTimeFormat of ["date", "time", "datetime"]) {
@@ -230,6 +249,8 @@ test("buildUpdatePatch copies every provided field, preserving explicit null", (
       showInForm: true,
       hiddenFromForm: false,
       showInListings: true,
+      showInGallery: false,
+      showInDetails: false,
       allCategories: false,
       enabled: true,
       allowDefault: false,
@@ -252,6 +273,8 @@ test("buildUpdatePatch copies every provided field, preserving explicit null", (
     showInForm: true,
     hiddenFromForm: false,
     showInListings: true,
+    showInGallery: false,
+    showInDetails: false,
     allCategories: false,
     enabled: true,
     allowDefault: false,

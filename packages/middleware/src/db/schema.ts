@@ -523,6 +523,12 @@ export const customProperties = pgTable("custom_properties", {
   hiddenFromForm: boolean("hidden_from_form").notNull().default(false),
   // When true, the property's value is shown on bookmark cards in listings.
   showInListings: boolean("show_in_listings").notNull().default(true),
+  // image/file-specific. When true, an image property's uploaded objects count toward the Gallery /
+  // storage quota manifest. NOT NULL DEFAULT true → pre-applied in migrate.ts to keep push additive.
+  showInGallery: boolean("show_in_gallery").notNull().default(true),
+  // image/file-specific. When true, the property's value renders on the bookmark detail page.
+  // NOT NULL DEFAULT true → pre-applied in migrate.ts to keep push additive.
+  showInDetails: boolean("show_in_details").notNull().default(true),
   // When true, the property applies to every category, including ones created later.
   allCategories: boolean("all_categories").notNull().default(false),
   // When true, the property applies to every media type, including ones created later.
@@ -614,6 +620,38 @@ export const bookmarkDateTimeValues = pgTable("bookmark_datetime_values", {
   // Canonical string encoding for the property's DateTimeFormat:
   // "YYYY-MM-DD" | "HH:MM" | "YYYY-MM-DDTHH:MM" (chosen so it sorts lexicographically).
   value: text("value").notNull(),
+}, table => [
+  primaryKey({
+    columns: [table.bookmarkId, table.propertyId],
+  }),
+]);
+
+/**
+ * `bookmark_file_values` — one image/file value per (bookmark, image/file property). Mirrors
+ * `bookmark_images`: the bytes live in object storage; this table holds only metadata. The composite
+ * PK `(bookmarkId, propertyId)` makes a replace an upsert, and both FKs cascade so the row vanishes
+ * when its bookmark or property is deleted (the object becomes a Gallery orphan, as bookmark images do).
+ */
+export const bookmarkFileValues = pgTable("bookmark_file_values", {
+  bookmarkId: uuid("bookmark_id").notNull().references(() => bookmarks.id, {
+    onDelete: "cascade",
+  }),
+  propertyId: uuid("property_id").notNull().references(() => customProperties.id, {
+    onDelete: "cascade",
+  }),
+  // Object-storage key the bytes are stored under, e.g. "property-files/<bookmarkId>/<propertyId>.webp".
+  objectKey: text("object_key").notNull(),
+  // MIME type: "image/webp" after the resize/encode pipeline for `image`, the original type for `file`.
+  contentType: text("content_type").notNull(),
+  byteSize: integer("byte_size").notNull(),
+  // Original upload filename (used for `file` downloads); nullable.
+  originalFilename: text("original_filename"),
+  // Pixel dimensions — set for `image` values, NULL for `file` values.
+  width: integer("width"),
+  height: integer("height"),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
 }, table => [
   primaryKey({
     columns: [table.bookmarkId, table.propertyId],
@@ -1103,6 +1141,7 @@ export type CustomPropertyRow = typeof customProperties.$inferSelect;
 export type NewCustomPropertyRow = typeof customProperties.$inferInsert;
 export type BookmarkNumberValueRow = typeof bookmarkNumberValues.$inferSelect;
 export type BookmarkBooleanValueRow = typeof bookmarkBooleanValues.$inferSelect;
+export type BookmarkFileValueRow = typeof bookmarkFileValues.$inferSelect;
 export type CalculatePropertyOperandRow = typeof calculatePropertyOperands.$inferSelect;
 export type CategoryRow = typeof categories.$inferSelect;
 export type NewCategoryRow = typeof categories.$inferInsert;

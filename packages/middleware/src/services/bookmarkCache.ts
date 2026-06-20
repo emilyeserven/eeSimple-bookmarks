@@ -5,6 +5,7 @@ import { db } from "@/db";
 import {
   bookmarkBooleanValues,
   bookmarkDateTimeValues,
+  bookmarkFileValues,
   bookmarkNumberValues,
   bookmarks,
   type BookmarkRow,
@@ -96,7 +97,7 @@ async function buildConditionInputs(
   const ids = baseRows.map(row => row.id);
   if (ids.length === 0) return new Map();
 
-  const [tagRows, numberRows, booleanRows, dateTimeRows] = await Promise.all([
+  const [tagRows, numberRows, booleanRows, dateTimeRows, fileRows] = await Promise.all([
     db
       .select({
         bookmarkId: bookmarkTags.bookmarkId,
@@ -128,6 +129,13 @@ async function buildConditionInputs(
       })
       .from(bookmarkDateTimeValues)
       .where(inArray(bookmarkDateTimeValues.bookmarkId, ids)),
+    db
+      .select({
+        bookmarkId: bookmarkFileValues.bookmarkId,
+        propertyId: bookmarkFileValues.propertyId,
+      })
+      .from(bookmarkFileValues)
+      .where(inArray(bookmarkFileValues.bookmarkId, ids)),
   ]);
 
   const tagsByBid = new Map<string, Set<string>>();
@@ -158,6 +166,13 @@ async function buildConditionInputs(
     datesByBid.set(r.bookmarkId, m);
   }
 
+  const filesByBid = new Map<string, Set<string>>();
+  for (const r of fileRows) {
+    const s = filesByBid.get(r.bookmarkId) ?? new Set<string>();
+    s.add(r.propertyId);
+    filesByBid.set(r.bookmarkId, s);
+  }
+
   const result = new Map<string, ConditionInput>();
   for (const row of baseRows) {
     result.set(row.id, {
@@ -170,6 +185,7 @@ async function buildConditionInputs(
       numberValues: numsByBid.get(row.id) ?? new Map(),
       booleanValues: boolsByBid.get(row.id) ?? new Map(),
       dateTimeValues: datesByBid.get(row.id) ?? new Map(),
+      fileValues: filesByBid.get(row.id) ?? new Set(),
     });
   }
   return result;

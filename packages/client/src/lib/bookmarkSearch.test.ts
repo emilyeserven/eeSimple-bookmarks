@@ -245,6 +245,7 @@ describe("bookmarkMatchesSearch", () => {
       propertyId: "p3",
       value: "2026-06-15",
     }],
+    fileValues: [],
   };
 
   it("passes when no filters are active", () => {

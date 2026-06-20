@@ -39,6 +39,8 @@ const property: CustomProperty = {
   showInForm: true,
   hiddenFromForm: false,
   showInListings: true,
+  showInGallery: true,
+  showInDetails: true,
   enabled: true,
   allowDefault: true,
   showIfFalse: false,

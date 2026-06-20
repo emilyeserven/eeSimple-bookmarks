@@ -1,4 +1,5 @@
 import type {
+  Bookmark,
   BookmarkBooleanValue,
   BookmarkDateTimeValue,
   BookmarkNumberValue,
@@ -10,6 +11,7 @@ import { useEffect } from "react";
 import { propertyAppliesToCategory, propertyAppliesToMediaType } from "@eesimple/types";
 
 import { DATE_POSTED_SLUG, RUNTIME_SLUG } from "./bookmarkFormSchema";
+import { BookmarkPropertyFileField } from "./BookmarkPropertyFileField";
 import { DateTimePicker } from "./DateTimePicker";
 import { StarRating } from "./StarRating";
 import { useCategoryDefaults } from "../hooks/useCategories";
@@ -23,6 +25,12 @@ interface CategoryCustomFieldsProps {
   /** The bookmark's selected media type, if any; properties scoped to it also appear (union). */
   mediaTypeId?: string | null;
   properties: CustomProperty[];
+  /**
+   * The bookmark being edited, when one already exists. Required to render `image`/`file` property
+   * fields (their blobs upload against an existing id); on the create form it's omitted and those
+   * fields show a "save first" hint instead.
+   */
+  bookmark?: Bookmark | null;
   /** `default` shows properties flagged to appear in the main form; `advanced` shows the rest. */
   placement: "default" | "advanced";
   /** Extra classes for the root (e.g. a grid `col-span` when rendered in the main form). */
@@ -42,7 +50,7 @@ interface CategoryCustomFieldsProps {
 
 /** Renders the custom-property inputs for the properties assigned to the chosen category. */
 export function CategoryCustomFields({
-  categoryId, mediaTypeId = null, properties, placement, className,
+  categoryId, mediaTypeId = null, properties, bookmark = null, placement, className,
   hiddenSlugs = [RUNTIME_SLUG, DATE_POSTED_SLUG],
   numberInputs, booleanInputs, dateTimeInputs,
   onNumberChange, onBooleanChange, onDateTimeChange,
@@ -159,6 +167,33 @@ export function CategoryCustomFields({
                   ? <p className="text-xs text-muted-foreground">{property.description}</p>
                   : null}
               </div>
+            );
+          }
+          if (property.type === "image" || property.type === "file") {
+            // Blobs upload against an existing bookmark id, so on the create form (no bookmark yet)
+            // show a hint instead of the upload control.
+            if (!bookmark) {
+              return (
+                <div
+                  key={property.id}
+                  className="space-y-1"
+                >
+                  <Label>{property.name}</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Save the bookmark first, then attach a
+                    {property.type === "image" ? "n image" : " file"}
+                    .
+                  </p>
+                </div>
+              );
+            }
+            return (
+              <BookmarkPropertyFileField
+                key={property.id}
+                bookmarkId={bookmark.id}
+                property={property}
+                value={bookmark.fileValues.find(entry => entry.propertyId === property.id)}
+              />
             );
           }
           // calculate: computed server-side; shown read-only so the user knows it exists.

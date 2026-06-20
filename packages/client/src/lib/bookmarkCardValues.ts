@@ -90,6 +90,23 @@ export function buildBookmarkValueItems(
     });
   }
 
+  for (const entry of bookmark.fileValues) {
+    const property = byId.get(entry.propertyId);
+    if (!property || !property.showInListings || hidden.has(entry.propertyId)) continue;
+    // Image/file values render as a text badge on cards (the thumbnail/download link lives in the
+    // detail view). Images show just the property name; files append their original filename.
+    const label = property.type === "image"
+      ? property.name
+      : `${property.name}: ${entry.originalFilename ?? "file"}`;
+    items.push({
+      kind: "badge",
+      id: entry.propertyId,
+      property,
+      corner: property.cardImageCorner ?? null,
+      label,
+    });
+  }
+
   return items;
 }
 

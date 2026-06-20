@@ -7,6 +7,8 @@ export const TYPE_LABELS: Record<CustomPropertyType, string> = {
   calculate: "Calculate (Sum)",
   datetime: "Date / Time",
   ratingScale: "Rating Scale",
+  image: "Image",
+  file: "File",
 };
 
 /** Human labels for what a `datetime` property captures. */

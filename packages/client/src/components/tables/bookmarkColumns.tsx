@@ -36,6 +36,11 @@ function formatPropertyValue(bookmark: Bookmark, property: CustomProperty): stri
     if (!entry.value && !property.showIfFalse) return null;
     return formatBoolean(entry.value, property);
   }
+  if (property.type === "image" || property.type === "file") {
+    const entry = bookmark.fileValues.find(value => value.propertyId === property.id);
+    if (!entry) return null;
+    return property.type === "image" ? "Image" : (entry.originalFilename ?? "File");
+  }
   const entry = bookmark.dateTimeValues.find(value => value.propertyId === property.id);
   return entry ? formatDateTime(entry.value, property) : null;
 }
