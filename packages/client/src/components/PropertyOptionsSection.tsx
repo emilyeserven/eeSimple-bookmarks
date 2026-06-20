@@ -464,9 +464,7 @@ function BooleanOptions({
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-2 text-sm">
                       <span
-                        className="
-                          w-10 shrink-0 text-xs text-muted-foreground
-                        "
+                        className="w-10 shrink-0 text-xs text-muted-foreground"
                       >
                         True
                       </span>
@@ -481,9 +479,7 @@ function BooleanOptions({
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <span
-                        className="
-                          w-10 shrink-0 text-xs text-muted-foreground
-                        "
+                        className="w-10 shrink-0 text-xs text-muted-foreground"
                       >
                         False
                       </span>

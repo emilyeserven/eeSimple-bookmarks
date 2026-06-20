@@ -40,6 +40,12 @@ const settingsSchema = {
       type: "string",
       enum: ["above", "side"],
     },
+    hiddenFields: {
+      type: "array",
+      items: {
+        type: "string",
+      },
+    },
   },
 } as const;
 

@@ -1058,6 +1058,11 @@ export interface DisplayPresetSettings {
   imageVisibility: "shown" | "image-only" | "off";
   imageMode: BookmarkImageMode;
   imageLayout: "above" | "side";
+  /**
+   * Card-field keys hidden by this preset. Undefined on legacy presets saved before column options
+   * were captured (drives the "update preset with column settings" offer).
+   */
+  hiddenFields?: string[];
 }
 
 /** A user-defined named aspect ratio available in the Aspect dropdown. */

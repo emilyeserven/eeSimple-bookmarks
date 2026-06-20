@@ -1,5 +1,6 @@
 import type {
   CreateDisplayPresetInput,
+  UpdateDisplayPresetInput,
 } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -28,6 +29,25 @@ export function useCreateDisplayPreset() {
     },
     onError: (err: Error) => {
       notifyError(err.message || "Failed to save display preset");
+    },
+  });
+}
+
+export function useUpdateDisplayPreset() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id, input,
+    }: { id: string;
+      input: UpdateDisplayPresetInput; }) => displayPresetsApi.update(id, input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: DISPLAY_PRESETS_KEY,
+      });
+      notifySuccess("Display preset updated");
+    },
+    onError: (err: Error) => {
+      notifyError(err.message || "Failed to update display preset");
     },
   });
 }

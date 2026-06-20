@@ -9,6 +9,7 @@ import { InlineCreateModal } from "./InlineCreateModal";
 import { useCustomAspectRatios } from "../hooks/useCustomAspectRatios";
 import { useCreateDisplayPreset, useDisplayPresets } from "../hooks/useDisplayPresets";
 import { COLUMN_OPTIONS, useBookmarkColumns, useBookmarkImageLayout, useBookmarkImageMode, useBookmarkImageVisibility, useViewMode } from "../lib/bookmarkColumns";
+import { applyDisplayPreset } from "../lib/displayPresets";
 import { useUiStore } from "../stores/uiStore";
 
 import { Button } from "@/components/ui/button";
@@ -45,21 +46,6 @@ function buildAspectOptions(croppedW: number, croppedH: number, customRatios: Cu
       label: `${r.name} (${r.width}:${r.height})`,
     })),
   ];
-}
-
-function applyDisplayPreset(
-  pageKey: string,
-  settings: DisplayPresetSettings,
-  setBookmarkColumns: (key: string, v: number) => void,
-  setBookmarkImageVisibility: (key: string, v: BookmarkImageVisibility) => void,
-  setBookmarkImageMode: (key: string, v: string) => void,
-  setBookmarkImageLayout: (key: string, v: HomepageSectionImageLayout) => void,
-) {
-  setBookmarkColumns(pageKey, settings.columns);
-  setBookmarkImageVisibility(pageKey, settings.imageVisibility);
-  const rawMode = settings.imageMode;
-  setBookmarkImageMode(pageKey, typeof rawMode === "boolean" ? (rawMode ? "natural" : "cropped") : rawMode);
-  setBookmarkImageLayout(pageKey, settings.imageLayout);
 }
 
 interface DisplaySettingsValue {
@@ -348,14 +334,17 @@ export function DisplaySettingsControlsBase({
 interface DisplaySettingsControlsProps {
   pageKey: string;
   showsImages: boolean;
+  /** When false, the preset picker is omitted (the host renders it elsewhere, e.g. a popover header). */
+  showPresetPicker?: boolean;
 }
 
 /**
- * Per-listing display controls backed by uiStore. Reused by LayoutOptionsPopover, the category
- * Display tab, and Settings → Display.
+ * Per-listing display controls backed by uiStore. Reused by the DisplayOptionsPopover Layout tab,
+ * the category Display tab, and Settings → Display. Applying or saving a preset also carries the
+ * page's hidden card fields, so column options travel with the layout.
  */
 export function DisplaySettingsControls({
-  pageKey, showsImages,
+  pageKey, showsImages, showPresetPicker = true,
 }: DisplaySettingsControlsProps) {
   const viewMode = useViewMode(pageKey);
   const setViewMode = useUiStore(state => state.setViewMode);
@@ -363,10 +352,12 @@ export function DisplaySettingsControls({
   const imageMode = useBookmarkImageMode(pageKey);
   const imageVisibility = useBookmarkImageVisibility(pageKey);
   const imageLayout = useBookmarkImageLayout(pageKey);
+  const hiddenFields = useUiStore(state => state.hiddenCardFields[pageKey]) ?? [];
   const setBookmarkColumns = useUiStore(state => state.setBookmarkColumns);
   const setBookmarkImageMode = useUiStore(state => state.setBookmarkImageMode);
   const setBookmarkImageVisibility = useUiStore(state => state.setBookmarkImageVisibility);
   const setBookmarkImageLayout = useUiStore(state => state.setBookmarkImageLayout);
+  const setHiddenCardFields = useUiStore(state => state.setHiddenCardFields);
 
   const {
     data: presets = [],
@@ -378,6 +369,7 @@ export function DisplaySettingsControls({
     imageVisibility,
     imageMode,
     imageLayout,
+    hiddenFields,
   };
 
   return (
@@ -395,15 +387,14 @@ export function DisplaySettingsControls({
       onImageVisibilityChange={value => setBookmarkImageVisibility(pageKey, value)}
       onImageLayoutChange={value => setBookmarkImageLayout(pageKey, value)}
       showsImages={showsImages}
-      presets={presets}
-      onApplyPreset={settings => applyDisplayPreset(
-        pageKey,
-        settings,
+      presets={showPresetPicker ? presets : []}
+      onApplyPreset={settings => applyDisplayPreset(pageKey, settings, {
         setBookmarkColumns,
         setBookmarkImageVisibility,
         setBookmarkImageMode,
         setBookmarkImageLayout,
-      )}
+        setHiddenCardFields,
+      })}
       onSaveAsPreset={(name, done) => createMutation.mutate(
         {
           name,

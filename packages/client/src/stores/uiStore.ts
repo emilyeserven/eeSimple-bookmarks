@@ -89,6 +89,11 @@ interface UiState {
   /** Card field keys hidden per listing page (standard field key or custom-property id). Empty/absent = all shown. */
   hiddenCardFields: Record<string, string[]>;
   toggleCardField: (pageKey: string, fieldKey: string) => void;
+  /** Replace the hidden card-field list for a page wholesale (used when applying a display preset). */
+  setHiddenCardFields: (pageKey: string, fieldKeys: string[]) => void;
+  /** The display preset last applied per listing page (drives the "update preset" offer). Keyed by pageKey → preset id. */
+  selectedDisplayPreset: Record<string, string>;
+  setSelectedDisplayPreset: (pageKey: string, presetId: string) => void;
   /** Persisted per-listing table column widths (px), keyed by pageKey → columnId. */
   tableColumnWidths: Record<string, Record<string, number>>;
   setTableColumnWidths: (pageKey: string, widths: Record<string, number>) => void;
@@ -232,6 +237,19 @@ export const useUiStore = create<UiState>()(
           },
         };
       }),
+      setHiddenCardFields: (pageKey, fieldKeys) => set(state => ({
+        hiddenCardFields: {
+          ...state.hiddenCardFields,
+          [pageKey]: fieldKeys,
+        },
+      })),
+      selectedDisplayPreset: {},
+      setSelectedDisplayPreset: (pageKey, presetId) => set(state => ({
+        selectedDisplayPreset: {
+          ...state.selectedDisplayPreset,
+          [pageKey]: presetId,
+        },
+      })),
       tableColumnWidths: {},
       setTableColumnWidths: (pageKey, widths) => set(state => ({
         tableColumnWidths: {
@@ -371,6 +389,7 @@ export const useUiStore = create<UiState>()(
         bookmarkColumns: state.bookmarkColumns,
         viewMode: state.viewMode,
         hiddenCardFields: state.hiddenCardFields,
+        selectedDisplayPreset: state.selectedDisplayPreset,
         panelPinned: state.panelPinned,
         drawerUnpinnedBreakpoints: state.drawerUnpinnedBreakpoints,
         sidebarWidth: state.sidebarWidth,
