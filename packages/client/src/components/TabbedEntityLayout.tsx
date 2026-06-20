@@ -76,8 +76,8 @@ export function TabbedEntityLayout({
       >
         <Collapsible
           className="
-            group/nav shrink-0
-            sm:w-48
+            group/nav shrink-0 rounded-lg border bg-card p-2
+            sm:w-48 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0
           "
         >
           <CollapsibleTrigger
@@ -85,7 +85,6 @@ export function TabbedEntityLayout({
               flex w-full items-center justify-between rounded-md px-3 py-2
               text-xs font-semibold tracking-wide text-muted-foreground
               uppercase transition-colors
-              hover:bg-accent hover:text-accent-foreground
               sm:hidden
             "
           >
