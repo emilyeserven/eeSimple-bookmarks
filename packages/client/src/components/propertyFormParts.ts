@@ -6,6 +6,7 @@ export { CategoryCheckboxList, MediaTypeCheckboxList, OperandCheckboxList } from
 export {
   CREATE_DEFAULTS,
   payloadFromValues,
+  type PropertyFormSection,
   type PropertyFormValues,
   propertySchema,
   valuesFromProperty,

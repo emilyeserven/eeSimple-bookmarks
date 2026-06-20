@@ -1,4 +1,4 @@
-import type { PropertyFormSection } from "./PropertyForm";
+import type { PropertyFormSection } from "./propertyFormSchema";
 import type { CustomProperty } from "@eesimple/types";
 
 import { useNavigate } from "@tanstack/react-router";
