@@ -122,7 +122,6 @@ export function HomepageSectionForm({
         </div>
         <PreviewBookmarksSection
           conditions={values.conditions}
-          tagTree={tagTree ?? []}
         />
       </section>
 

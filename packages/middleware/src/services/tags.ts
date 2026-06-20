@@ -2,6 +2,7 @@ import { asc, eq, isNull, ne, sql } from "drizzle-orm";
 import type { CreateTagInput, Tag, TagNode, UpdateTagInput } from "@eesimple/types";
 import { db } from "@/db";
 import { bookmarkTags, tags, type TagRow } from "@/db/schema";
+import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { slugify, uniqueSlug } from "@/utils/slug";
 
 /** Thrown when a reparent would put a tag under itself or one of its descendants. */
@@ -196,6 +197,8 @@ export async function createTag(input: CreateTagInput): Promise<Tag> {
       parentId: input.parentId ?? null,
     })
     .returning();
+  // The tag tree feeds the cached tag-descendant resolver used by condition matching.
+  invalidateBookmarkCache();
   return toTag(row);
 }
 
@@ -215,6 +218,8 @@ export async function updateTag(id: string, input: UpdateTagInput): Promise<Tag 
   if (input.parentId !== undefined) patch.parentId = input.parentId;
 
   const [row] = await db.update(tags).set(patch).where(eq(tags.id, id)).returning();
+  // A reparent changes tag-descendant resolution; invalidate the condition-matching cache.
+  if (row) invalidateBookmarkCache();
   return row ? toTag(row) : null;
 }
 
@@ -244,5 +249,7 @@ export async function deleteTag(id: string): Promise<boolean> {
   const rows = await db.delete(tags).where(eq(tags.id, id)).returning({
     id: tags.id,
   });
+  // Cascade removes descendant tags and bookmark_tags links — both feed condition matching.
+  if (rows.length > 0) invalidateBookmarkCache();
   return rows.length > 0;
 }

@@ -1,7 +1,6 @@
-import { asc, eq, inArray, sql } from "drizzle-orm";
+import { asc, eq, sql } from "drizzle-orm";
 import type {
   Bookmark,
-  ConditionInput,
   ConditionTree,
   CreateHomepageSectionInput,
   HomepageSection,
@@ -9,23 +8,16 @@ import type {
   UpdateHomepageSectionInput,
 } from "@eesimple/types";
 import type { HomepageSectionImageLayout } from "@eesimple/types";
-import { buildTagDescendants, emptyConditionTree, evaluateConditions } from "@eesimple/types";
+import { emptyConditionTree, evaluateConditions } from "@eesimple/types";
 import { db } from "@/db";
 import {
-  bookmarkBooleanValues,
-  bookmarkDateTimeValues,
-  bookmarkNumberValues,
-  bookmarks,
-  bookmarkTags,
   homepageFilter,
   homepageSections,
 } from "@/db/schema";
-import { ensureDefaultCategory } from "@/services/categories";
+import { getBookmarkEvaluationData } from "@/services/bookmarkCache";
 import { hydrateBookmarkRows } from "@/services/bookmarkHydration";
-import { listTags } from "@/services/tags";
 
 type SectionRow = typeof homepageSections.$inferSelect;
-type BookmarkRow = typeof bookmarks.$inferSelect;
 
 function toSection(row: SectionRow): HomepageSection {
   return {
@@ -143,18 +135,15 @@ export async function listHomepageSectionBookmarks(): Promise<HomepageSectionBoo
   const sections = await listHomepageSections();
   if (sections.length === 0) return [];
 
-  const defaultCategoryId = await ensureDefaultCategory();
-  const tagDescendants = buildTagDescendants(await listTags());
-
-  const baseRows = await db.select().from(bookmarks);
+  const {
+    baseRows, conditionInputs, tagDescendants,
+  } = await getBookmarkEvaluationData();
   if (baseRows.length === 0) {
     return sections.map(section => ({
       section,
       bookmarks: [],
     }));
   }
-
-  const conditionInputs = await buildConditionInputs(baseRows, defaultCategoryId);
 
   const allMatchedIds = new Set<string>();
   const sectionMatches: { section: HomepageSection;
@@ -191,92 +180,6 @@ export async function listHomepageSectionBookmarks(): Promise<HomepageSectionBoo
     section,
     bookmarks: ids.map(id => hydratedById.get(id)).filter((b): b is Bookmark => b !== undefined),
   }));
-}
-
-/** Load per-bookmark condition inputs for in-memory filter evaluation. */
-async function buildConditionInputs(
-  baseRows: BookmarkRow[],
-  defaultCategoryId: string,
-): Promise<Map<string, ConditionInput>> {
-  const ids = baseRows.map(row => row.id);
-
-  const [tagRows, numberRows, booleanRows, dateTimeRows] = await Promise.all([
-    db
-      .select({
-        bookmarkId: bookmarkTags.bookmarkId,
-        tagId: bookmarkTags.tagId,
-      })
-      .from(bookmarkTags)
-      .where(inArray(bookmarkTags.bookmarkId, ids)),
-    db
-      .select({
-        bookmarkId: bookmarkNumberValues.bookmarkId,
-        propertyId: bookmarkNumberValues.propertyId,
-        value: bookmarkNumberValues.value,
-      })
-      .from(bookmarkNumberValues)
-      .where(inArray(bookmarkNumberValues.bookmarkId, ids)),
-    db
-      .select({
-        bookmarkId: bookmarkBooleanValues.bookmarkId,
-        propertyId: bookmarkBooleanValues.propertyId,
-        value: bookmarkBooleanValues.value,
-      })
-      .from(bookmarkBooleanValues)
-      .where(inArray(bookmarkBooleanValues.bookmarkId, ids)),
-    db
-      .select({
-        bookmarkId: bookmarkDateTimeValues.bookmarkId,
-        propertyId: bookmarkDateTimeValues.propertyId,
-        value: bookmarkDateTimeValues.value,
-      })
-      .from(bookmarkDateTimeValues)
-      .where(inArray(bookmarkDateTimeValues.bookmarkId, ids)),
-  ]);
-
-  const tagsByBid = new Map<string, Set<string>>();
-  for (const r of tagRows) {
-    const s = tagsByBid.get(r.bookmarkId) ?? new Set<string>();
-    s.add(r.tagId);
-    tagsByBid.set(r.bookmarkId, s);
-  }
-
-  const numsByBid = new Map<string, Map<string, number>>();
-  for (const r of numberRows) {
-    const m = numsByBid.get(r.bookmarkId) ?? new Map<string, number>();
-    m.set(r.propertyId, r.value);
-    numsByBid.set(r.bookmarkId, m);
-  }
-
-  const boolsByBid = new Map<string, Map<string, boolean>>();
-  for (const r of booleanRows) {
-    const m = boolsByBid.get(r.bookmarkId) ?? new Map<string, boolean>();
-    m.set(r.propertyId, r.value);
-    boolsByBid.set(r.bookmarkId, m);
-  }
-
-  const datesByBid = new Map<string, Map<string, string>>();
-  for (const r of dateTimeRows) {
-    const m = datesByBid.get(r.bookmarkId) ?? new Map<string, string>();
-    m.set(r.propertyId, r.value);
-    datesByBid.set(r.bookmarkId, m);
-  }
-
-  const result = new Map<string, ConditionInput>();
-  for (const row of baseRows) {
-    result.set(row.id, {
-      url: row.url,
-      title: row.title,
-      categoryId: row.categoryId ?? defaultCategoryId,
-      tagIds: tagsByBid.get(row.id) ?? new Set(),
-      youtubeChannelId: row.youtubeChannelId ?? null,
-      mediaTypeId: row.mediaTypeId ?? null,
-      numberValues: numsByBid.get(row.id) ?? new Map(),
-      booleanValues: boolsByBid.get(row.id) ?? new Map(),
-      dateTimeValues: datesByBid.get(row.id) ?? new Map(),
-    });
-  }
-  return result;
 }
 
 /**

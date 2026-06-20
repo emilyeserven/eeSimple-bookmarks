@@ -122,6 +122,51 @@ that matches the surface — don't invent a new structure for a one-off page.
 - Single-tab entities (Tags, YouTube Channels, Media Types, Property Groups) use the full tabbed
   shell for a single "General" tab.
 
+## Data shaping: middleware vs. client
+
+**Default rule:** API endpoints return *render-ready* shapes. Heavy joins, aggregation, grouping,
+tree-building, counting, and condition/relationship derivation belong in the middleware's
+`services/`, **not** in React components/hooks. If a component is joining across query results,
+grouping, aggregating, or building a tree from a flat list, that shape should come from an endpoint
+instead.
+
+**Patterns to mirror** (the middleware already does the heavy lifting — follow these):
+
+- **Counts** — `computeTagBookmarkCounts` (subtree + own counts) in `services/tags.ts`; the category
+  bookmark-count subquery in `services/categories.ts`. The client renders the number; it doesn't
+  tally rows.
+- **Trees** — `buildTagTree` / the media-type tree returned by `/api/tags/tree` and
+  `/api/media-types/tree`. The client only flattens for indentation.
+- **Batched hydration** — `hydrateBookmarkRows` (`services/bookmarkHydration.ts`) joins
+  website/mediaType/channel/tags/property-values/images into a render-ready `Bookmark` with no N+1.
+- **"Load once → evaluate the shared predicate in-memory → hydrate matches"** —
+  `listHomepageSectionBookmarks` (`services/homepageSections.ts`) and `previewAutofillMatches`
+  (`services/autofill.ts`) both load via the **bookmark cache** (below) and run the **shared**
+  `evaluateConditions` from `@eesimple/types`. Server-side processing that shares logic with the
+  client must call the same `@eesimple/types` function — never a re-implementation or a parallel SQL
+  translation of the same predicate.
+
+**Sanctioned exceptions that stay client-side** (don't "fix" these by adding endpoints):
+
+- **Interactive, URL-driven filter/search state** — `lib/bookmarkSearch.ts`
+  (`bookmarkMatchesSearch`) and the range sliders / multi-selects it backs. A round-trip per slider
+  drag would hurt; the bookmarks page deliberately fetches the whole set once and filters in memory.
+- **Presentation formatting** — `lib/bookmarkFormat.ts` (number/boolean/date-time display).
+- **Derivations that are O(n) over data the page already loaded** — slug lookups (`use*BySlug`),
+  facet slider bounds (`effectiveBounds`), and "which rules target this entity"
+  (`lib/autofillRulesFilter.ts`). These are free because the list is already in cache; an endpoint
+  would only duplicate logic.
+
+**Caching / growth path.** When work must move server-side but the logic is shared with the client
+(filtering, condition matching), prefer the **middleware in-memory cache + shared predicate** over
+translating predicates to SQL. `services/bookmarkCache.ts` holds the bookmark rows + per-bookmark
+`ConditionInput`s + tag-descendant resolver, rebuilt on a version bump; it is coherent because the
+gateway runs a single middleware child. **Every write that changes a bookmark's matchable data (the
+bookmark row, its tags, or its custom-property values) — or the tag tree — must call
+`invalidateBookmarkCache()`** (see the calls in `services/bookmarks.ts`, `services/tags.ts`, and
+`services/customProperties.ts`). This keeps one source of truth for the predicate while moving the
+work off the client. SQL-level filtering is the last resort, reserved for genuinely large datasets.
+
 ## Generated files (do not edit)
 
 - `packages/client/src/routeTree.gen.ts` — regenerate with `pnpm --filter=@eesimple/client routeTree`

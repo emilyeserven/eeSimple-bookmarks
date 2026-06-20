@@ -60,7 +60,6 @@ export function AutofillRuleActivationSection({
       >
         <PreviewBookmarksSection
           conditions={conditions}
-          tagTree={tagTree}
         />
       </LabeledSection>
     </>

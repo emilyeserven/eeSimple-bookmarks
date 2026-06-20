@@ -79,7 +79,6 @@ export function AutofillRuleConditionsForm({
       >
         <PreviewBookmarksSection
           conditions={conditions}
-          tagTree={tagTree}
         />
       </LabeledSection>
     </div>

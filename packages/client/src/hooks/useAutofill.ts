@@ -1,4 +1,5 @@
 import type {
+  AutofillPreviewInput,
   CreateAutofillRuleInput,
   UpdateAutofillRuleInput,
 } from "@eesimple/types";
@@ -9,6 +10,13 @@ import { autofillApi } from "../lib/api";
 import { notifySuccess } from "../lib/notifications";
 
 const AUTOFILL_KEY = ["autofill-rules"] as const;
+
+/** Preview which existing bookmarks a condition tree matches, evaluated server-side. */
+export function useAutofillPreview() {
+  return useMutation({
+    mutationFn: (input: AutofillPreviewInput) => autofillApi.preview(input),
+  });
+}
 
 export function useAutofillRules() {
   return useQuery({

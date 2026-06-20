@@ -1,16 +1,11 @@
 import type {
-  Bookmark,
-  ConditionInput,
+  AutofillPreviewEntry,
   ConditionTree,
-  TagNode,
 } from "@eesimple/types";
 
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
-import { buildTagDescendants, evaluateConditions } from "@eesimple/types";
-
-import { useBookmarks } from "../hooks/useBookmarks";
-import { flattenTree } from "../lib/tagTree";
+import { useAutofillPreview } from "../hooks/useAutofill";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,58 +13,53 @@ import { Input } from "@/components/ui/input";
 
 interface PreviewBookmarksSectionProps {
   conditions: ConditionTree;
-  tagTree: TagNode[];
-}
-
-function toConditionInput(bookmark: Bookmark): ConditionInput {
-  return {
-    url: bookmark.url,
-    title: bookmark.title,
-    categoryId: bookmark.categoryId,
-    tagIds: new Set(bookmark.tags.map(t => t.id)),
-    youtubeChannelId: bookmark.youtubeChannel?.id ?? null,
-    mediaTypeId: bookmark.mediaType?.id ?? null,
-    numberValues: new Map(bookmark.numberValues.map(v => [v.propertyId, v.value])),
-    booleanValues: new Map(bookmark.booleanValues.map(v => [v.propertyId, v.value])),
-    dateTimeValues: new Map(bookmark.dateTimeValues.map(v => [v.propertyId, v.value])),
-  };
 }
 
 /** Test which existing bookmarks match a condition tree: a "search all" pass plus a live name check. */
 export function PreviewBookmarksSection({
-  conditions, tagTree,
+  conditions,
 }: PreviewBookmarksSectionProps) {
   const [searched, setSearched] = useState(false);
-  const [matchingBookmarks, setMatchingBookmarks] = useState<Bookmark[]>([]);
+  const [searchResults, setSearchResults] = useState<AutofillPreviewEntry[]>([]);
   const [checkQuery, setCheckQuery] = useState("");
+  const [checkResults, setCheckResults] = useState<AutofillPreviewEntry[]>([]);
 
+  // `mutate` is a stable reference across renders, so it's safe in the effect deps below (the whole
+  // mutation object is not — its identity changes after each call and would re-fire the effect).
   const {
-    data: allBookmarks = [],
-  } = useBookmarks();
-
-  const tagDescendants = useMemo(
-    () => buildTagDescendants(flattenTree(tagTree).map(({
-      node,
-    }) => node)),
-    [tagTree],
-  );
+    mutate: runSearch, isPending: searchPending,
+  } = useAutofillPreview();
+  const {
+    mutate: runCheck,
+  } = useAutofillPreview();
 
   const handleSearch = () => {
-    const matches = allBookmarks.filter(bookmark =>
-      evaluateConditions(conditions, toConditionInput(bookmark), {
-        tagDescendants,
-      }));
-    setMatchingBookmarks(matches.slice(0, 5));
     setSearched(true);
+    runSearch({
+      conditions,
+    }, {
+      onSuccess: result => setSearchResults(result.entries),
+    });
   };
 
-  const checkedBookmarks = useMemo(() => {
-    if (!checkQuery.trim()) return [];
-    const q = checkQuery.toLowerCase();
-    return allBookmarks
-      .filter(b => b.title.toLowerCase().includes(q) || b.url.toLowerCase().includes(q))
-      .slice(0, 5);
-  }, [allBookmarks, checkQuery]);
+  // Debounce the name check: the matching/grouping now happens server-side, so avoid a request per
+  // keystroke.
+  useEffect(() => {
+    const query = checkQuery.trim();
+    if (!query) {
+      setCheckResults([]);
+      return;
+    }
+    const handle = setTimeout(() => {
+      runCheck({
+        conditions,
+        query,
+      }, {
+        onSuccess: result => setCheckResults(result.entries),
+      });
+    }, 300);
+    return () => clearTimeout(handle);
+  }, [checkQuery, conditions, runCheck]);
 
   return (
     <div className="space-y-3">
@@ -78,18 +68,20 @@ export function PreviewBookmarksSection({
         variant="outline"
         size="sm"
         onClick={handleSearch}
+        disabled={searchPending}
       >
         Search
       </Button>
       {searched && (
         <div className="space-y-1">
-          {matchingBookmarks.length === 0
+          {searchResults.length === 0
             ? <p className="text-sm text-muted-foreground">No bookmarks matched.</p>
-            : matchingBookmarks.map(bookmark => (
+            : searchResults.map(entry => (
               <BookmarkPreviewRow
-                key={bookmark.id}
-                bookmark={bookmark}
-                matches
+                key={entry.bookmark.id}
+                title={entry.bookmark.title}
+                url={entry.bookmark.url}
+                matches={entry.matches}
               />
             ))}
         </div>
@@ -103,20 +95,16 @@ export function PreviewBookmarksSection({
         />
         {checkQuery.trim() && (
           <div className="space-y-1">
-            {checkedBookmarks.length === 0
+            {checkResults.length === 0
               ? <p className="text-sm text-muted-foreground">No bookmarks found.</p>
-              : checkedBookmarks.map((bookmark) => {
-                const matches = evaluateConditions(conditions, toConditionInput(bookmark), {
-                  tagDescendants,
-                });
-                return (
-                  <BookmarkPreviewRow
-                    key={bookmark.id}
-                    bookmark={bookmark}
-                    matches={matches}
-                  />
-                );
-              })}
+              : checkResults.map(entry => (
+                <BookmarkPreviewRow
+                  key={entry.bookmark.id}
+                  title={entry.bookmark.title}
+                  url={entry.bookmark.url}
+                  matches={entry.matches}
+                />
+              ))}
           </div>
         )}
       </div>
@@ -125,12 +113,13 @@ export function PreviewBookmarksSection({
 }
 
 interface BookmarkPreviewRowProps {
-  bookmark: Bookmark;
+  title: string;
+  url: string;
   matches: boolean;
 }
 
 function BookmarkPreviewRow({
-  bookmark, matches,
+  title, url, matches,
 }: BookmarkPreviewRowProps) {
   return (
     <div
@@ -139,8 +128,8 @@ function BookmarkPreviewRow({
       "
     >
       <div className="min-w-0 space-y-0.5">
-        <p className="truncate text-sm font-medium">{bookmark.title}</p>
-        <p className="truncate text-xs text-muted-foreground">{bookmark.url}</p>
+        <p className="truncate text-sm font-medium">{title}</p>
+        <p className="truncate text-xs text-muted-foreground">{url}</p>
       </div>
       <Badge
         variant={matches ? "default" : "outline"}
