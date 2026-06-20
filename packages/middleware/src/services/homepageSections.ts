@@ -21,7 +21,7 @@ import {
   homepageSections,
 } from "@/db/schema";
 import { ensureDefaultCategory } from "@/services/categories";
-import { hydrateBookmarkRows } from "@/services/bookmarks";
+import { hydrateBookmarkRows } from "@/services/bookmarkHydration";
 import { listTags } from "@/services/tags";
 
 type SectionRow = typeof homepageSections.$inferSelect;
