@@ -574,9 +574,10 @@ export type DateTimeFormat = "date" | "time" | "datetime";
  * - `true-false` — "True" / "False".
  * - `enabled-disabled` — "Enabled" / "Disabled".
  * - `icons` — "✓" / "✗".
+ * - `stars` — "★" / "☆".
  * - `custom` — user-supplied strings via `booleanTrueLabel` / `booleanFalseLabel`.
  */
-export type BooleanLabelPreset = "yes-no" | "true-false" | "enabled-disabled" | "icons" | "custom";
+export type BooleanLabelPreset = "yes-no" | "true-false" | "enabled-disabled" | "icons" | "stars" | "custom";
 
 /** A user-defined custom property that becomes a dynamic bookmark filter. */
 export interface CustomProperty {
@@ -615,6 +616,10 @@ export interface CustomProperty {
   booleanTrueLabel: string | null;
   /** Custom label for a `false` value; only used when `booleanLabelPreset` is `"custom"`. */
   booleanFalseLabel: string | null;
+  /** When false, the colon after the property name is suppressed in displays. Defaults to true. Only relevant for `boolean` icon presets. */
+  showLabelColon: boolean;
+  /** When true, the value renders before the property name (e.g. "★ Favorite"). Defaults to false. Only relevant for `boolean` icon presets. */
+  showValueBeforeLabel: boolean;
   /** For a `calculate` property: ids of the `number` properties summed to produce its value. */
   operandPropertyIds: string[];
   /** Ids of the categories this property is assigned to (zero, one, or many). */
@@ -690,6 +695,10 @@ export interface CreateCustomPropertyInput {
   booleanTrueLabel?: string | null;
   /** Custom label for a `false` value; only used when `booleanLabelPreset` is `"custom"`. */
   booleanFalseLabel?: string | null;
+  /** When false, the colon after the property name is suppressed. Defaults to true. Only relevant for `boolean` icon presets. */
+  showLabelColon?: boolean;
+  /** When true, the value renders before the property name. Defaults to false. Only relevant for `boolean` icon presets. */
+  showValueBeforeLabel?: boolean;
 }
 
 /** Payload for updating a custom property. Its `type` is immutable. */

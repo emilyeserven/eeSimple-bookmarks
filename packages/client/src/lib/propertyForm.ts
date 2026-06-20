@@ -46,6 +46,10 @@ export const BOOLEAN_LABEL_PRESET_OPTIONS = [
     label: "✓ / ✗",
   },
   {
+    value: "stars",
+    label: "★ / ☆",
+  },
+  {
     value: "custom",
     label: "Custom",
   },
@@ -112,6 +116,8 @@ export function summarizeBooleanOptions(values: {
   booleanLabelPreset: string;
   booleanTrueLabel: string;
   booleanFalseLabel: string;
+  showLabelColon?: boolean;
+  showValueBeforeLabel?: boolean;
 }): string {
   const preset = BOOLEAN_LABEL_PRESET_OPTIONS.find(o => o.value === values.booleanLabelPreset);
   const parts: string[] = [preset?.label ?? "Yes / No"];
@@ -121,6 +127,11 @@ export function summarizeBooleanOptions(values: {
     parts[0] = `${trueText} / ${falseText}`;
   }
   if (values.showIfFalse) parts.push("show if false");
+  const isIconPreset = values.booleanLabelPreset === "icons" || values.booleanLabelPreset === "stars";
+  if (isIconPreset) {
+    if (values.showValueBeforeLabel) parts.push("value first");
+    if (values.showLabelColon === false) parts.push("no colon");
+  }
   return parts.join(" · ");
 }
 

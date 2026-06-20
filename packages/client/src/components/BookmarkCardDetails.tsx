@@ -5,7 +5,7 @@ import { CategoryPill } from "./CategoryPill";
 import { MediaTypePill } from "./MediaTypePill";
 import { SourcePill } from "./SourcePill";
 import { useHiddenCardFields } from "../lib/bookmarkCardFields";
-import { formatBoolean, formatDateTime, formatNumber } from "../lib/bookmarkFormat";
+import { formatBooleanBadge, formatDateTime, formatNumber } from "../lib/bookmarkFormat";
 
 import { Badge } from "@/components/ui/badge";
 import { useCategories } from "@/hooks/useCategories";
@@ -50,7 +50,7 @@ export function BookmarkCardDetails({
       if (!entry.value && !property.showIfFalse) return null;
       return {
         id: entry.propertyId,
-        label: `${property.name}: ${formatBoolean(entry.value, property)}`,
+        label: formatBooleanBadge(entry.value, property),
       };
     })
     .filter((badge): badge is { id: string;
