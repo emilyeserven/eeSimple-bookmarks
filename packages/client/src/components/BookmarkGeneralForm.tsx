@@ -1,36 +1,20 @@
-import type {
-  Bookmark,
-  BookmarkUrlDuplicateResult,
-  YouTubeChannelHint,
-} from "@eesimple/types";
+import type { Bookmark } from "@eesimple/types";
 
-import { useRef, useState } from "react";
+import { Brush } from "lucide-react";
 
-import { Brush, Loader2, Sparkles } from "lucide-react";
-
-import { AddCategoryModal } from "./AddCategoryModal";
 import { BookmarkAutofillOffer } from "./BookmarkAutofillOffer";
-import {
-  bookmarkSchema,
-  computeAutofill,
-  looksLikeYouTube,
-} from "./bookmarkFormSchema";
+import { BookmarkCategoryField } from "./BookmarkCategoryField";
+import { BookmarkDescriptionField } from "./BookmarkDescriptionField";
+import { BookmarkNameField } from "./BookmarkNameField";
 import { GatedTagPicker } from "./BookmarkTagsField";
-import { TitleFetchFeedback } from "./BookmarkTitleFeedback";
 import { BookmarkUrlCleanupBanner } from "./BookmarkUrlCleanupBanner";
 import { UrlCleanupPanel } from "./BookmarkUrlCleanupPanel";
 import { BookmarkUrlDuplicateWarnings } from "./BookmarkUrlDuplicateWarnings";
-import { useBookmarkFormData } from "./useBookmarkFormData";
-import { useBookmarkScanHandlers } from "./useBookmarkScanHandlers";
-import { useBookmarkUrlProcessing } from "./useBookmarkUrlProcessing";
+import { useBookmarkGeneralForm } from "./useBookmarkGeneralForm";
 import { WebsiteLookupBanner } from "./WebsiteLookupBanner";
-import { useAppForm } from "../lib/form";
-import { notifySuccess } from "../lib/notifications";
-import { isFetchableUrl } from "../lib/url";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { CategoryIcon } from "@/lib/icons";
 
 interface BookmarkGeneralFormProps {
   bookmark: Bookmark;
@@ -41,22 +25,15 @@ export function BookmarkGeneralForm({
   bookmark,
 }: BookmarkGeneralFormProps) {
   const {
-    actions: {
-      updateBookmark,
-      fetchTitle,
-      fetchMetadata,
-      websiteLookup,
-      urlDuplicateCheck,
-    },
+    form,
     websites,
     shortenerIgnoreList,
     tagTree,
     categories,
-    autofillRules,
-    autoFetchTitle,
-  } = useBookmarkFormData();
-
-  const {
+    updateBookmark,
+    fetchTitle,
+    fetchMetadata,
+    websiteLookup,
     urlShortener,
     urlCleanup,
     showUrlCleanup,
@@ -64,129 +41,31 @@ export function BookmarkGeneralForm({
     urlCleanupMode,
     setUrlCleanupMode,
     cleanupId,
-    isUrlFetchable,
-    runUrlCleanup: cleanUrl,
-    undoUrlCleanup: undoCleanup,
-    classifyUrlShortener,
-    resolveSubmitUrl,
-  } = useBookmarkUrlProcessing({
-    websites: websites ?? [],
-    ignoreList: shortenerIgnoreList ?? [],
-  });
-
-  const [isReportingTitle, setIsReportingTitle] = useState(false);
-  const [expectedTitle, setExpectedTitle] = useState("");
-  const [websiteSiteName, setWebsiteSiteName] = useState("");
-  const [addCategoryOpen, setAddCategoryOpen] = useState(false);
-  const channelHintRef = useRef<YouTubeChannelHint | null>(null);
-  const [youtubeChannel, setYoutubeChannel] = useState<YouTubeChannelHint | null>(null);
-  const [titleFetch, setTitleFetch] = useState<{ previous: string } | null>(null);
-  const [urlDuplicate, setUrlDuplicate] = useState<BookmarkUrlDuplicateResult | null>(null);
-  const [autofillOfferDismissed, setAutofillOfferDismissed] = useState(false);
-  const touchedRef = useRef<Set<string>>(new Set());
-
-  const form = useAppForm({
-    defaultValues: {
-      url: bookmark.originalUrl ?? bookmark.url,
-      title: bookmark.title,
-      categoryId: bookmark.categoryId ?? "",
-      description: bookmark.description ?? "",
-      tagIds: (bookmark.tags.map(tag => tag.id)) as string[],
-    },
-    validators: {
-      onChange: bookmarkSchema,
-    },
-    onSubmit: async ({
-      value,
-    }) => {
-      const {
-        finalUrl, originalUrl,
-      } = resolveSubmitUrl(value.url, false);
-
-      await updateBookmark.mutateAsync({
-        id: bookmark.id,
-        input: {
-          url: finalUrl,
-          originalUrl,
-          title: value.title,
-          categoryId: value.categoryId,
-          description: value.description || null,
-          tagIds: value.tagIds,
-          ...(channelHintRef.current && {
-            youtubeChannel: channelHintRef.current,
-          }),
-        },
-      });
-      notifySuccess("Changes saved");
-    },
-  });
-
-  function runAutofill(): void {
-    const url = form.getFieldValue("url");
-    const title = form.getFieldValue("title");
-    if (!url && !title) return;
-
-    const result = computeAutofill({
-      url,
-      title,
-    }, autofillRules ?? []);
-
-    if (result.categoryId) {
-      if (!touchedRef.current.has("categoryId")) {
-        form.setFieldValue("categoryId", result.categoryId);
-      }
-    }
-
-    if (result.tagIds.length > 0 && !touchedRef.current.has("tags")) {
-      const current = form.getFieldValue("tagIds");
-      form.setFieldValue("tagIds", [...new Set([...current, ...result.tagIds])]);
-    }
-  }
-
-  const {
-    runFetchTitle,
-    runFetchDescription,
-    runYouTubeEnrichment,
-    runUrlCleanup,
-    undoUrlCleanup,
-    undoTitleFetch,
-    runWebsiteLookup,
-  } = useBookmarkScanHandlers({
-    form,
     channelHintRef,
+    youtubeChannel,
     setYoutubeChannel,
     websiteSiteName,
     setWebsiteSiteName,
+    isReportingTitle,
+    setIsReportingTitle,
+    expectedTitle,
+    setExpectedTitle,
     titleFetch,
     setTitleFetch,
-    fetchTitle,
-    fetchMetadata,
-    websiteLookup,
-    isUrlFetchable,
-    classifyUrlShortener,
-    cleanUrl,
-    undoCleanup,
-  });
-
-  async function performUrlScan(): Promise<void> {
-    runUrlCleanup(form.getFieldValue("url"));
-    const url = form.getFieldValue("url");
-    runAutofill();
-    runWebsiteLookup(url);
-    urlDuplicateCheck.mutate(url, {
-      onSuccess: setUrlDuplicate,
-    });
-    const yt = looksLikeYouTube(url);
-    if (autoFetchTitle && !yt) {
-      await runFetchTitle(url, {
-        force: false,
-      });
-    }
-    await runYouTubeEnrichment(url, {
-      fillTitle: autoFetchTitle,
-      force: false,
-    });
-  }
+    urlDuplicate,
+    addCategoryOpen,
+    setAddCategoryOpen,
+    autofillOfferDismissed,
+    setAutofillOfferDismissed,
+    touchedRef,
+    runAutofill,
+    performUrlScan,
+    runFetchTitle,
+    runFetchDescription,
+    runYouTubeEnrichment,
+    undoUrlCleanup,
+    undoTitleFetch,
+  } = useBookmarkGeneralForm(bookmark);
 
   return (
     <form
@@ -288,81 +167,20 @@ export function BookmarkGeneralForm({
         </div>
 
         <div className="flex flex-col gap-4">
-          <form.Subscribe selector={state => state.values.url}>
-            {url => (
-              <form.AppField name="title">
-                {field => (
-                  <field.TextareaField
-                    label="Name"
-                    rows={1}
-                    inputClassName="min-h-9"
-                    onBlur={runAutofill}
-                    onChange={() => setTitleFetch(null)}
-                    action={(
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        title="Fetch title from URL"
-                        aria-label="Fetch title from URL"
-                        disabled={!isFetchableUrl(url) || fetchTitle.isPending || fetchMetadata.isPending}
-                        onClick={() => {
-                          const yt = looksLikeYouTube(url);
-                          if (!yt) {
-                            void runFetchTitle(url, {
-                              force: true,
-                            });
-                          }
-                          void runYouTubeEnrichment(url, {
-                            fillTitle: true,
-                            force: true,
-                          });
-                        }}
-                      >
-                        {fetchTitle.isPending || fetchMetadata.isPending
-                          ? <Loader2 className="size-4 animate-spin" />
-                          : <Sparkles className="size-4" />}
-                      </Button>
-                    )}
-                  />
-                )}
-              </form.AppField>
-            )}
-          </form.Subscribe>
-
-          {titleFetch && (
-            <p className="text-sm text-muted-foreground">
-              Changed from
-              {" "}
-              <span className="font-mono">{titleFetch.previous}</span>
-              {" · "}
-              <Button
-                type="button"
-                variant="link"
-                size="sm"
-                className="h-auto p-0"
-                onClick={undoTitleFetch}
-              >
-                Undo
-              </Button>
-            </p>
-          )}
-
-          <TitleFetchFeedback
-            isSuccess={fetchTitle.isSuccess}
-            isError={fetchTitle.isError}
-            errorMessage={fetchTitle.error?.message}
-            fetchedTitle={fetchTitle.data?.title}
+          <BookmarkNameField
+            form={form}
+            fetchTitle={fetchTitle}
+            fetchMetadata={fetchMetadata}
+            titleFetch={titleFetch}
+            onTitleEdited={() => setTitleFetch(null)}
+            undoTitleFetch={undoTitleFetch}
+            runFetchTitle={runFetchTitle}
+            runYouTubeEnrichment={runYouTubeEnrichment}
             isReportingTitle={isReportingTitle}
-            onStartReporting={() => setIsReportingTitle(true)}
+            setIsReportingTitle={setIsReportingTitle}
             expectedTitle={expectedTitle}
-            onExpectedTitleChange={setExpectedTitle}
-            onCancelReporting={() => {
-              setIsReportingTitle(false);
-              setExpectedTitle("");
-            }}
-            getFormUrl={() => form.getFieldValue("url")}
-            getFormTitle={() => form.getFieldValue("title")}
+            setExpectedTitle={setExpectedTitle}
+            onNameBlur={runAutofill}
           />
         </div>
       </div>
@@ -381,64 +199,17 @@ export function BookmarkGeneralForm({
         </form.Subscribe>
       )}
 
-      <form.Subscribe selector={state => state.values.url}>
-        {url => (
-          <form.AppField name="description">
-            {field => (
-              <field.TextareaField
-                label="Description"
-                action={(
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    title="Fetch description from URL"
-                    aria-label="Fetch description from URL"
-                    disabled={!isFetchableUrl(url) || fetchMetadata.isPending}
-                    onClick={() => void runFetchDescription(url, {
-                      force: true,
-                    })}
-                  >
-                    {fetchMetadata.isPending
-                      ? <Loader2 className="size-4 animate-spin" />
-                      : <Sparkles className="size-4" />}
-                  </Button>
-                )}
-              />
-            )}
-          </form.AppField>
-        )}
-      </form.Subscribe>
+      <BookmarkDescriptionField
+        form={form}
+        fetchMetadata={fetchMetadata}
+        runFetchDescription={runFetchDescription}
+      />
 
-      <form.AppField name="categoryId">
-        {field => (
-          <field.ComboboxField
-            label="Category"
-            placeholder="Select a category"
-            searchPlaceholder="Search categories…"
-            emptyText="No categories found."
-            createOption={{
-              label: "Create category",
-              onSelect: () => setAddCategoryOpen(true),
-            }}
-            options={(categories ?? []).map(category => ({
-              value: category.id,
-              label: category.name,
-              icon: (
-                <CategoryIcon
-                  name={category.icon}
-                  className="size-4 shrink-0"
-                />
-              ),
-            }))}
-          />
-        )}
-      </form.AppField>
-
-      <AddCategoryModal
-        open={addCategoryOpen}
-        onOpenChange={setAddCategoryOpen}
-        onCreated={category => form.setFieldValue("categoryId", category.id)}
+      <BookmarkCategoryField
+        form={form}
+        categories={categories ?? []}
+        addCategoryOpen={addCategoryOpen}
+        setAddCategoryOpen={setAddCategoryOpen}
       />
 
       <form.Subscribe selector={state => state.values.categoryId}>
