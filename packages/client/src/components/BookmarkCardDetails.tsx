@@ -16,15 +16,18 @@ interface BookmarkCardDetailsProps {
   properties: CustomProperty[];
   /** Listing-page key, so fields toggled off in that page's Card Options are hidden. Omitted off listing pages. */
   pageKey?: string;
+  /** Explicit hidden field keys, overriding the `pageKey` lookup. Used by DB-backed surfaces (homepage sections). */
+  hiddenFields?: Set<string>;
   /** Persist a rating-scale value edited inline on the card (only wired when the property is `editableOnCard`). */
   onSaveRating?: (propertyId: string, value: number) => void;
 }
 
 /** The body of a bookmark card: description, taxonomy badges, tags, and custom-property value badges. */
 export function BookmarkCardDetails({
-  bookmark, properties, pageKey, onSaveRating,
+  bookmark, properties, pageKey, hiddenFields, onSaveRating,
 }: BookmarkCardDetailsProps) {
-  const hidden = useHiddenCardFields(pageKey);
+  const pageHidden = useHiddenCardFields(pageKey);
+  const hidden = hiddenFields ?? pageHidden;
   const byId = new Map(properties.map(property => [property.id, property]));
   const {
     data: allCategories,

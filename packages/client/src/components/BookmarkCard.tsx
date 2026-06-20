@@ -39,6 +39,8 @@ interface BookmarkCardProps {
   imageVisibility?: BookmarkImageVisibility;
   /** Listing-page key, so the card honors that page's Card Options field toggles. Omitted off listing pages. */
   pageKey?: string;
+  /** Explicit hidden field keys, overriding the `pageKey` lookup. Used by DB-backed surfaces (homepage sections). */
+  hiddenFields?: Set<string>;
 }
 
 /** Replace the entry for `propertyId` with `value`, or append it when the property has no value yet. */
@@ -100,7 +102,7 @@ function mergeDateTimeValue(
 
 export function BookmarkCard({
   bookmark, properties = [], onDelete, imageLeft = false, imageMode = "natural",
-  imageVisibility = "shown", pageKey,
+  imageVisibility = "shown", pageKey, hiddenFields,
 }: BookmarkCardProps) {
   const autoImage = useAutoBookmarkImage();
   const updateBookmark = useUpdateBookmark();
@@ -199,6 +201,7 @@ export function BookmarkCard({
       bookmark={bookmark}
       properties={properties}
       pageKey={pageKey}
+      hiddenFields={hiddenFields}
       onSaveRating={saveNumber}
     />
   );

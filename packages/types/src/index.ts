@@ -925,6 +925,12 @@ export type UpdateHomepageFilterInput = HomepageFilter;
 /** Image position for a homepage section's bookmark cards: stacked above content or side-by-side. */
 export type HomepageSectionImageLayout = "above" | "side";
 
+/** Bookmark image visibility on a listing/section: full card, image-only, or no image. */
+export type BookmarkImageVisibility = "shown" | "image-only" | "off";
+
+/** Rendering mode for a listing/section: a card grid (default) or a data table. */
+export type ViewMode = "cards" | "table";
+
 /**
  * Image display mode for bookmark cards. Built-in values: "natural" (unconstrained), "cropped"
  * (uses the user's configured crop ratio), "square" (1:1), "opengraph" (1.91:1). Custom aspect
@@ -946,6 +952,12 @@ export interface HomepageSection {
   imageMode: BookmarkImageMode;
   /** Image position in 2-column layouts: "above" (default) or "side". */
   imageLayout: HomepageSectionImageLayout;
+  /** Image visibility for this section's cards: "shown" (default), "image-only", or "off". */
+  imageVisibility: BookmarkImageVisibility;
+  /** Rendering mode for this section: "cards" (default) or "table". */
+  viewMode: ViewMode;
+  /** Card field keys hidden for this section (standard field key or custom-property id). */
+  hiddenCardFields: string[];
   createdAt: string;
 }
 
@@ -965,6 +977,9 @@ export interface CreateHomepageSectionInput {
   columns?: number;
   imageMode?: BookmarkImageMode;
   imageLayout?: HomepageSectionImageLayout;
+  imageVisibility?: BookmarkImageVisibility;
+  viewMode?: ViewMode;
+  hiddenCardFields?: string[];
 }
 
 /** Payload for partially updating a homepage section. */
