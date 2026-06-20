@@ -39,12 +39,12 @@ const createBody = {
 
 /** CRUD for user-defined named aspect ratios shown in the Aspect dropdown. */
 export async function customAspectRatioRoutes(app: FastifyInstance): Promise<void> {
-  app.get("/custom-aspect-ratios", async () => {
+  app.get("/api/custom-aspect-ratios", async () => {
     return listCustomAspectRatios();
   });
 
   app.post<{ Body: CreateCustomAspectRatioInput }>(
-    "/custom-aspect-ratios",
+    "/api/custom-aspect-ratios",
     {
       schema: {
         body: createBody,
@@ -57,7 +57,7 @@ export async function customAspectRatioRoutes(app: FastifyInstance): Promise<voi
   );
 
   app.delete<{ Params: { id: string } }>(
-    "/custom-aspect-ratios/:id",
+    "/api/custom-aspect-ratios/:id",
     {
       schema: {
         params: idParams,
