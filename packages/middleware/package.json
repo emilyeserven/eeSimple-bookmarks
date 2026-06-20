@@ -19,26 +19,26 @@
     "studio": "dotenv -e .env -- drizzle-kit studio"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "3.1071.0",
+    "@aws-sdk/client-s3": "3.1073.0",
     "@eesimple/types": "workspace:*",
-    "@fastify/cors": "11.1.0",
+    "@fastify/cors": "11.2.0",
     "@fastify/multipart": "10.0.0",
     "@fastify/swagger": "9.7.0",
-    "@fastify/swagger-ui": "5.2.5",
-    "dotenv": "17.2.3",
+    "@fastify/swagger-ui": "6.0.0",
+    "dotenv": "17.4.2",
     "drizzle-kit": "0.31.10",
     "drizzle-orm": "0.45.2",
     "fastify": "5.8.5",
-    "pg": "8.16.3",
-    "sharp": "0.35.1"
+    "pg": "8.22.0",
+    "sharp": "0.35.2"
   },
   "devDependencies": {
-    "@types/node": "24.10.1",
-    "@types/pg": "8.15.6",
+    "@types/node": "26.0.0",
+    "@types/pg": "8.20.0",
     "dotenv-cli": "11.0.0",
     "nodemon": "3.1.14",
-    "tsc-alias": "1.8.16",
-    "tsx": "4.20.6",
+    "tsc-alias": "1.8.17",
+    "tsx": "4.22.4",
     "typescript": "5.9.3"
   }
 }
