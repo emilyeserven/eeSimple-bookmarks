@@ -18,6 +18,7 @@
     "verify:changed": "node scripts/verify-changed.mjs",
     "fallow": "fallow",
     "fallow:sync-skill": "rm -rf .claude/skills/fallow && cp -R node_modules/fallow/skills/fallow .claude/skills/fallow",
+    "fallow:check-skill": "node scripts/check-fallow-skill.mjs",
     "typecheck": "pnpm --filter=@eesimple/types build && pnpm -r --filter=@eesimple/middleware --filter=@eesimple/client run typecheck",
     "studio": "pnpm --filter=@eesimple/middleware run studio",
     "push:dev": "pnpm --filter=@eesimple/middleware run push:dev",
