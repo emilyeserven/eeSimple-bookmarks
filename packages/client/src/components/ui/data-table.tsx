@@ -7,6 +7,14 @@ import type {
 } from "@tanstack/react-table";
 import type { MouseEvent } from "react";
 
+declare module "@tanstack/react-table" {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  interface ColumnMeta<TData, TValue> {
+    /** When true the column has no inline width and expands to fill remaining table space. */
+    fill?: boolean;
+  }
+}
+
 import { useState } from "react";
 
 import {
@@ -142,7 +150,8 @@ export function DataTable<T>({
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => {
                 const canSort = header.column.getCanSort();
-                const canResize = resizable && header.column.getCanResize();
+                const isFill = header.column.columnDef.meta?.fill;
+                const canResize = resizable && !isFill && header.column.getCanResize();
                 return (
                   <TableHead
                     key={header.id}
@@ -150,11 +159,15 @@ export function DataTable<T>({
                       resizable && "relative",
                       canSort && "cursor-pointer select-none",
                     ) || undefined}
-                    style={resizable
+                    style={resizable && !isFill
                       ? {
                         width: header.getSize(),
                       }
-                      : undefined}
+                      : isFill
+                        ? {
+                          minWidth: header.getSize(),
+                        }
+                        : undefined}
                     onClick={canSort ? header.column.getToggleSortingHandler() : undefined}
                   >
                     {header.isPlaceholder
@@ -205,11 +218,15 @@ export function DataTable<T>({
                 {row.getVisibleCells().map(cell => (
                   <TableCell
                     key={cell.id}
-                    style={resizable
+                    style={resizable && !cell.column.columnDef.meta?.fill
                       ? {
                         width: cell.column.getSize(),
                       }
-                      : undefined}
+                      : cell.column.columnDef.meta?.fill
+                        ? {
+                          minWidth: cell.column.getSize(),
+                        }
+                        : undefined}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
