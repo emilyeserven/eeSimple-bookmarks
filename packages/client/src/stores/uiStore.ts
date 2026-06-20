@@ -91,9 +91,9 @@ interface UiState {
   toggleCardField: (pageKey: string, fieldKey: string) => void;
   /** Replace the hidden card-field list for a page wholesale (used when applying a display preset). */
   setHiddenCardFields: (pageKey: string, fieldKeys: string[]) => void;
-  /** When true for a page, the website pill is hidden on bookmarks that also have a YouTube channel. */
-  hideWebsiteForYouTube: Record<string, boolean>;
-  toggleHideWebsiteForYouTube: (pageKey: string) => void;
+  /** When true, the website pill is hidden on any bookmark that also has a YouTube channel. */
+  hideWebsiteForYouTube: boolean;
+  setHideWebsiteForYouTube: (value: boolean) => void;
   /** The display preset last applied per listing page (drives the "update preset" offer). Keyed by pageKey → preset id. */
   selectedDisplayPreset: Record<string, string>;
   setSelectedDisplayPreset: (pageKey: string, presetId: string) => void;
@@ -249,13 +249,10 @@ export const useUiStore = create<UiState>()(
           [pageKey]: fieldKeys,
         },
       })),
-      hideWebsiteForYouTube: {},
-      toggleHideWebsiteForYouTube: pageKey => set(state => ({
-        hideWebsiteForYouTube: {
-          ...state.hideWebsiteForYouTube,
-          [pageKey]: !(state.hideWebsiteForYouTube[pageKey] ?? false),
-        },
-      })),
+      hideWebsiteForYouTube: false,
+      setHideWebsiteForYouTube: value => set({
+        hideWebsiteForYouTube: value,
+      }),
       selectedDisplayPreset: {},
       setSelectedDisplayPreset: (pageKey, presetId) => set(state => ({
         selectedDisplayPreset: {
@@ -381,21 +378,30 @@ export const useUiStore = create<UiState>()(
     }),
     {
       name: "eesimple-ui",
-      version: 1,
+      version: 2,
       migrate: (persistedState: unknown, version: number) => {
+        let s = persistedState as Record<string, unknown>;
         if (version === 0) {
-          const s = persistedState as Record<string, unknown>;
           const old = (s.bookmarkImageMode ?? {}) as Record<string, unknown>;
           const converted: Record<string, string> = {};
           for (const [k, v] of Object.entries(old)) {
             converted[k] = v === true ? "natural" : v === false ? "cropped" : String(v);
           }
-          return {
+          s = {
             ...s,
             bookmarkImageMode: converted,
           };
         }
-        return persistedState;
+        if (version < 2) {
+          // hideWebsiteForYouTube was a per-page Record before v2; coerce to the global boolean.
+          s = {
+            ...s,
+            hideWebsiteForYouTube: typeof s.hideWebsiteForYouTube === "boolean"
+              ? s.hideWebsiteForYouTube
+              : false,
+          };
+        }
+        return s;
       },
       partialize: state => ({
         theme: state.theme,
