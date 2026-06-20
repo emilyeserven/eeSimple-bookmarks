@@ -108,7 +108,8 @@ export function SourceAutofillDefaults({
   return (
     <p
       className="
-        flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground
+        flex flex-wrap items-center gap-1.5 rounded-lg border bg-muted/50 p-4
+        text-sm text-muted-foreground
       "
     >
       <span>{`New bookmarks saved from ${source} are automatically`}</span>
