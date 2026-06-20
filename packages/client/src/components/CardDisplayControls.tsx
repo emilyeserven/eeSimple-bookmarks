@@ -21,7 +21,11 @@ export function CardDisplayControls({
   const properties = useUiStore(state => state.filterContext?.properties) ?? [];
 
   const customFields = properties
-    .filter(property => property.showInListings && property.type !== "calculate")
+    .filter(property =>
+      property.showInListings &&
+      property.type !== "calculate" &&
+      (property.allCategories || property.categoryIds.length > 0)
+    )
     .map(property => ({
       key: property.id,
       label: property.name,
