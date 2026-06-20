@@ -57,6 +57,7 @@ const property: CustomProperty = {
   propertyGroupId: null,
   cardImageCorner: null,
   cardImageCornerScale: 1,
+  cardImageCornerMobileScale: null,
   cardImageCornerHideLabel: false,
   createdAt: "2026-06-01T00:00:00.000Z",
 };

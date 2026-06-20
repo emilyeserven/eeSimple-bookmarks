@@ -91,6 +91,7 @@ function toCustomProperty(
     ratingLabel: row.ratingLabel ?? null,
     cardImageCorner: (row.cardImageCorner as CustomProperty["cardImageCorner"]) ?? null,
     cardImageCornerScale: row.cardImageCornerScale ?? 1,
+    cardImageCornerMobileScale: row.cardImageCornerMobileScale ?? null,
     cardImageCornerHideLabel: row.cardImageCornerHideLabel ?? false,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
@@ -377,6 +378,7 @@ export type UpdatePatch = Partial<
     | "ratingLabel"
     | "cardImageCorner"
     | "cardImageCornerScale"
+    | "cardImageCornerMobileScale"
     | "cardImageCornerHideLabel"
   >
 >;
@@ -430,6 +432,7 @@ const COPYABLE_FIELDS = [
   "ratingLabel",
   "cardImageCorner",
   "cardImageCornerScale",
+  "cardImageCornerMobileScale",
   "cardImageCornerHideLabel",
 ] as const satisfies readonly CopyableField[];
 

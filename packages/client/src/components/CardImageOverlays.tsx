@@ -1,6 +1,7 @@
 import type { BookmarkValueItem } from "../lib/bookmarkCardValues";
 
 import { StarRating } from "./StarRating";
+import { useIsMobile } from "../hooks/use-mobile";
 import { CARD_IMAGE_CORNERS } from "../lib/bookmarkCardValues";
 
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +19,7 @@ interface CardImageOverlaysProps {
 export function CardImageOverlays({
   items,
 }: CardImageOverlaysProps) {
+  const isMobile = useIsMobile();
   return (
     <>
       {CARD_IMAGE_CORNERS.map(({
@@ -34,8 +36,12 @@ export function CardImageOverlays({
             `}
           >
             {cornerItems.map((item) => {
-              // Enlarge the overlay up to 2x, anchored at its corner so it grows inward.
-              const scale = item.property.cardImageCornerScale ?? 1;
+              // Enlarge the overlay up to 2x, anchored at its corner so it grows inward. On mobile
+              // the property's mobile scale takes over when set, otherwise the desktop scale applies.
+              const desktopScale = item.property.cardImageCornerScale ?? 1;
+              const scale = isMobile
+                ? (item.property.cardImageCornerMobileScale ?? desktopScale)
+                : desktopScale;
               const scaleStyle = scale !== 1
                 ? {
                   transform: `scale(${scale})`,

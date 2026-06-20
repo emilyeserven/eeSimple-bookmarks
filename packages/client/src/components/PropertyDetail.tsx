@@ -45,6 +45,9 @@ function cornerPlacement(property: CustomProperty): string {
   if (!property.cardImageCorner) return "None (badge below image)";
   const parts = [CORNER_LABELS[property.cardImageCorner]];
   if (property.cardImageCornerScale !== 1) parts.push(`${property.cardImageCornerScale}× size`);
+  if (property.cardImageCornerMobileScale != null) {
+    parts.push(`${property.cardImageCornerMobileScale}× on mobile`);
+  }
   if (property.cardImageCornerHideLabel) parts.push("label hidden");
   return parts.join(" · ");
 }
