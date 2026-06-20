@@ -795,6 +795,35 @@ export const homepageSections = pgTable("homepage_sections", {
   }).notNull().defaultNow(),
 });
 
+/**
+ * `card_display_rules` — prioritized rules that override per-card display for bookmarks matching a
+ * `conditions` tree. Resolved client-side at render: for each card the highest-priority matching rule
+ * supplies each display attribute (layered merge), falling back to the singleton Default rule
+ * (`is_default`, always matches, lowest priority, fully concrete). Display columns are nullable so a
+ * non-default rule can leave an attribute to "inherit". Unlike `homepage_sections` there are no
+ * `columns`/`view_mode` columns — grid column count and card/table view stay page-level. Push-safe:
+ * a brand-new table with nullable display columns.
+ */
+export const cardDisplayRules = pgTable("card_display_rules", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  description: text("description"),
+  conditions: jsonb("conditions").$type<ConditionTree>().notNull(),
+  // Lower sorts first (higher priority). The Default rule is kept pinned last.
+  sortOrder: integer("sort_order").notNull().default(0),
+  // The singleton baseline rule: always matches, cannot be deleted, carries concrete display values.
+  isDefault: boolean("is_default").notNull().default(false),
+  // Display overrides. NULL = inherit (fall through to a lower-priority rule / the Default).
+  hiddenCardFields: jsonb("hidden_card_fields").$type<string[]>(),
+  imageMode: text("image_mode"),
+  imageVisibility: text("image_visibility"),
+  imageLayout: text("image_layout"),
+  cornerOverlays: boolean("corner_overlays"),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+});
+
 /** `property_categories` join — many-to-many between custom properties and categories. */
 export const propertyCategories = pgTable("property_categories", {
   propertyId: uuid("property_id").notNull().references(() => customProperties.id, {
@@ -1172,24 +1201,6 @@ export type CategoryNumberDefaultRow = typeof categoryNumberDefaults.$inferSelec
 export type CategoryBooleanDefaultRow = typeof categoryBooleanDefaults.$inferSelect;
 export type CategoryDateTimeDefaultRow = typeof categoryDateTimeDefaults.$inferSelect;
 export type SavedFilterRow = typeof savedFilters.$inferSelect;
-
-/**
- * `saved_display_presets` — named snapshots of listing display settings (columns, image
- * visibility/mode/layout) that can be applied to any listing page in one click.
- */
-export const displayPresets = pgTable("saved_display_presets", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  name: text("name").notNull(),
-  description: text("description"),
-  settings: jsonb("settings").$type<import("@eesimple/types").DisplayPresetSettings>().notNull(),
-  createdAt: timestamp("created_at", {
-    withTimezone: true,
-  }).notNull().defaultNow(),
-}, table => [
-  unique("saved_display_presets_name_unique").on(table.name),
-]);
-
-export type DisplayPresetRow = typeof displayPresets.$inferSelect;
 
 /**
  * `custom_aspect_ratios` — user-defined named aspect ratios that appear alongside the built-in

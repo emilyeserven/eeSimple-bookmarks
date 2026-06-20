@@ -495,8 +495,6 @@ export function AppHeader() {
       node: (
         <DisplayOptionsPopover
           pageKey={listingPage.key}
-          showsImages={listingPage.showsImages}
-          showsCards={listingPage.showsCards}
         />
       ),
     });

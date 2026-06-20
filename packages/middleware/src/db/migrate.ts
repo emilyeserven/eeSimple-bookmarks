@@ -281,6 +281,13 @@ const migrations: RuntimeMigration[] = [
         ADD COLUMN IF NOT EXISTS "show_in_details" boolean NOT NULL DEFAULT true
     `),
   },
+  {
+    // Display Presets were removed in favor of Card Display Rules; drop the `saved_display_presets`
+    // table so it doesn't linger. Destructive, so it lives here (push never drops tables). Idempotent
+    // via DROP TABLE IF EXISTS.
+    name: "drop saved_display_presets table",
+    run: db => db.execute(sql`DROP TABLE IF EXISTS "saved_display_presets"`),
+  },
 ];
 
 async function main(): Promise<void> {

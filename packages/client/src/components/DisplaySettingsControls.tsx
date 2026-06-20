@@ -1,18 +1,10 @@
 import type { BookmarkImageVisibility, HomepageSectionImageLayout, ViewMode } from "../lib/bookmarkColumns";
-import type { CustomAspectRatio, DisplayPreset, DisplayPresetSettings } from "@eesimple/types";
 
-import { useState } from "react";
-
-import { Bookmark } from "lucide-react";
-
-import { InlineCreateModal } from "./InlineCreateModal";
 import { useCustomAspectRatios } from "../hooks/useCustomAspectRatios";
-import { useCreateDisplayPreset, useDisplayPresets } from "../hooks/useDisplayPresets";
-import { COLUMN_OPTIONS, useBookmarkColumns, useBookmarkCornerOverlays, useBookmarkImageLayout, useBookmarkImageMode, useBookmarkImageVisibility, useViewMode } from "../lib/bookmarkColumns";
-import { applyDisplayPreset } from "../lib/displayPresets";
+import { buildAspectOptions } from "../lib/aspectOptions";
+import { COLUMN_OPTIONS } from "../lib/bookmarkColumns";
 import { useUiStore } from "../stores/uiStore";
 
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -22,31 +14,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-
-function buildAspectOptions(croppedW: number, croppedH: number, customRatios: CustomAspectRatio[]) {
-  return [
-    {
-      value: "natural",
-      label: "Natural",
-    },
-    {
-      value: "square",
-      label: "Square (1:1)",
-    },
-    {
-      value: "opengraph",
-      label: "OpenGraph (1.91:1)",
-    },
-    {
-      value: "cropped",
-      label: `Cropped (${croppedW}:${croppedH})`,
-    },
-    ...customRatios.map(r => ({
-      value: r.id,
-      label: `${r.name} (${r.width}:${r.height})`,
-    })),
-  ];
-}
 
 interface DisplaySettingsValue {
   viewMode: ViewMode;
@@ -66,21 +33,13 @@ interface DisplaySettingsControlsBaseProps {
   onImageLayoutChange: (value: HomepageSectionImageLayout) => void;
   onCornerOverlaysChange: (value: boolean) => void;
   showsImages: boolean;
-  /** Saved presets to offer in the Apply picker; omit/empty to hide the picker. */
-  presets: DisplayPreset[];
-  /** Apply a saved preset's four layout settings to the current surface. */
-  onApplyPreset: (settings: DisplayPresetSettings) => void;
-  /** Persist the current settings as a named preset; call `done` to close the modal on success. */
-  onSaveAsPreset: (name: string, done: () => void) => void;
-  saveError?: boolean;
-  saveErrorMessage?: string;
 }
 
 /**
- * Controlled display controls: view mode, column count, image visibility/aspect/layout, and preset
- * apply/save. Presentational — callers supply the value, change handlers, and preset infra. Labels
- * sit left of their control; toggle groups use the bordered variant. Reused by the uiStore-backed
- * `DisplaySettingsControls` (listings) and the homepage section form.
+ * Controlled display controls: view mode, column count, and image visibility/aspect/layout/corners.
+ * Presentational — callers supply the value and change handlers. Used by the homepage section form
+ * (which still configures its own per-section card display); listing pages use the leaner
+ * `ListingDisplayControls`, and per-card display elsewhere is governed by Card Display Rules.
  */
 export function DisplaySettingsControlsBase({
   value,
@@ -91,11 +50,6 @@ export function DisplaySettingsControlsBase({
   onImageLayoutChange,
   onCornerOverlaysChange,
   showsImages,
-  presets,
-  onApplyPreset,
-  onSaveAsPreset,
-  saveError,
-  saveErrorMessage,
 }: DisplaySettingsControlsBaseProps) {
   const {
     viewMode, columns, imageMode, imageVisibility, imageLayout, cornerOverlays,
@@ -105,7 +59,6 @@ export function DisplaySettingsControlsBase({
   const {
     data: customRatios = [],
   } = useCustomAspectRatios();
-  const [saveModalOpen, setSaveModalOpen] = useState(false);
 
   return (
     <div className="flex flex-col gap-2.5">
@@ -141,35 +94,6 @@ export function DisplaySettingsControlsBase({
           </ToggleGroupItem>
         </ToggleGroup>
       </div>
-
-      {/* Preset picker */}
-      {presets.length > 0 && (
-        <div className="flex items-center justify-between gap-4">
-          <Label className="text-sm font-medium">Preset</Label>
-          <Select
-            value=""
-            onValueChange={(presetId) => {
-              const preset = presets.find(p => p.id === presetId);
-              if (!preset) return;
-              onApplyPreset(preset.settings);
-            }}
-          >
-            <SelectTrigger className="h-7 text-xs">
-              <SelectValue placeholder="Apply a preset…" />
-            </SelectTrigger>
-            <SelectContent>
-              {presets.map(preset => (
-                <SelectItem
-                  key={preset.id}
-                  value={preset.id}
-                >
-                  {preset.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
 
       {viewMode === "cards" && (
         <>
@@ -339,116 +263,6 @@ export function DisplaySettingsControlsBase({
           )}
         </>
       )}
-
-      {/* Save as preset */}
-      <div className="flex justify-end pt-0.5">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="h-6 gap-1 px-1.5 text-xs text-muted-foreground"
-          onClick={() => setSaveModalOpen(true)}
-        >
-          <Bookmark className="size-3" />
-          Save as preset
-        </Button>
-      </div>
-
-      <InlineCreateModal
-        open={saveModalOpen}
-        onOpenChange={setSaveModalOpen}
-        title="Save display preset"
-        description="Give these display settings a name so you can apply them to any listing page."
-        placeholder="e.g. Compact Grid"
-        submitLabel="Save preset"
-        pendingLabel="Saving…"
-        isError={saveError ?? false}
-        errorMessage={saveErrorMessage}
-        onSubmit={(name, done) => onSaveAsPreset(name, done)}
-      />
     </div>
-  );
-}
-
-interface DisplaySettingsControlsProps {
-  pageKey: string;
-  showsImages: boolean;
-  /** When false, the preset picker is omitted (the host renders it elsewhere, e.g. a popover header). */
-  showPresetPicker?: boolean;
-}
-
-/**
- * Per-listing display controls backed by uiStore. Reused by the DisplayOptionsPopover Layout tab,
- * the category Display tab, and Settings → Display. Applying or saving a preset also carries the
- * page's hidden card fields, so column options travel with the layout.
- */
-export function DisplaySettingsControls({
-  pageKey, showsImages, showPresetPicker = true,
-}: DisplaySettingsControlsProps) {
-  const viewMode = useViewMode(pageKey);
-  const setViewMode = useUiStore(state => state.setViewMode);
-  const columns = useBookmarkColumns(pageKey);
-  const imageMode = useBookmarkImageMode(pageKey);
-  const imageVisibility = useBookmarkImageVisibility(pageKey);
-  const imageLayout = useBookmarkImageLayout(pageKey);
-  const cornerOverlays = useBookmarkCornerOverlays(pageKey);
-  const hiddenFields = useUiStore(state => state.hiddenCardFields[pageKey]) ?? [];
-  const setBookmarkColumns = useUiStore(state => state.setBookmarkColumns);
-  const setBookmarkImageMode = useUiStore(state => state.setBookmarkImageMode);
-  const setBookmarkImageVisibility = useUiStore(state => state.setBookmarkImageVisibility);
-  const setBookmarkImageLayout = useUiStore(state => state.setBookmarkImageLayout);
-  const setBookmarkCornerOverlays = useUiStore(state => state.setBookmarkCornerOverlays);
-  const setHiddenCardFields = useUiStore(state => state.setHiddenCardFields);
-
-  const {
-    data: presets = [],
-  } = useDisplayPresets();
-  const createMutation = useCreateDisplayPreset();
-
-  const currentSettings: DisplayPresetSettings = {
-    columns,
-    imageVisibility,
-    imageMode,
-    imageLayout,
-    hiddenFields,
-  };
-
-  return (
-    <DisplaySettingsControlsBase
-      value={{
-        viewMode,
-        columns,
-        imageMode,
-        imageVisibility,
-        imageLayout,
-        cornerOverlays,
-      }}
-      onViewModeChange={value => setViewMode(pageKey, value)}
-      onColumnsChange={value => setBookmarkColumns(pageKey, value)}
-      onImageModeChange={value => setBookmarkImageMode(pageKey, value)}
-      onImageVisibilityChange={value => setBookmarkImageVisibility(pageKey, value)}
-      onImageLayoutChange={value => setBookmarkImageLayout(pageKey, value)}
-      onCornerOverlaysChange={value => setBookmarkCornerOverlays(pageKey, value)}
-      showsImages={showsImages}
-      presets={showPresetPicker ? presets : []}
-      onApplyPreset={settings => applyDisplayPreset(pageKey, settings, {
-        setBookmarkColumns,
-        setBookmarkImageVisibility,
-        setBookmarkImageMode,
-        setBookmarkImageLayout,
-        setHiddenCardFields,
-      })}
-      onSaveAsPreset={(name, done) => createMutation.mutate(
-        {
-          name,
-          settings: currentSettings,
-        },
-        {
-          onSuccess: done,
-        },
-      )}
-      saveError={createMutation.isError}
-      saveErrorMessage={createMutation.error?.message}
-    />
   );
 }

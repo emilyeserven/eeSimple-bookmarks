@@ -1,4 +1,3 @@
-import type { BookmarkImageVisibility } from "../lib/bookmarkColumns";
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
 import type { Bookmark, CustomProperty } from "@eesimple/types";
 
@@ -11,6 +10,7 @@ import { useTableRowNav } from "./tables/useTableRowNav";
 import { useDeleteBookmark } from "../hooks/useBookmarks";
 import { COLUMN_CLASS, useViewMode } from "../lib/bookmarkColumns";
 import { bookmarkMatchesSearch, hasAnyActiveFilter } from "../lib/bookmarkSearch";
+import { useResolveCardDisplay } from "../lib/cardDisplayRules";
 
 import { RowCard } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
@@ -24,13 +24,9 @@ import { useUiStore } from "@/stores/uiStore";
 const EMPTY_COLUMN_SIZING: Record<string, number> = {};
 
 interface BookmarkListPaneProps {
-  /** Stable listing-page key, so cards can honor that page's Card Options field toggles. */
+  /** Stable listing-page key, used for table column widths and the table view toggle. */
   pageKey: string;
   columns: number;
-  imageVisibility: BookmarkImageVisibility;
-  imageLeft: boolean;
-  imageMode: string;
-  cornerOverlays: boolean;
   bookmarks: Bookmark[];
   properties: CustomProperty[];
   search: BookmarkSearch;
@@ -47,10 +43,6 @@ interface BookmarkListPaneProps {
 export function BookmarkListPane({
   pageKey,
   columns,
-  imageVisibility,
-  imageLeft,
-  imageMode,
-  cornerOverlays,
   bookmarks,
   properties,
   search,
@@ -63,6 +55,7 @@ export function BookmarkListPane({
 }: BookmarkListPaneProps) {
   const deleteBookmark = useDeleteBookmark();
   const viewMode = useViewMode(pageKey);
+  const resolveDisplay = useResolveCardDisplay();
   const tableColumnWidths = useUiStore(state => state.tableColumnWidths[pageKey]) ?? EMPTY_COLUMN_SIZING;
   const setTableColumnWidths = useUiStore(state => state.setTableColumnWidths);
   const tableColumns = useBookmarkTableColumns({
@@ -119,24 +112,31 @@ export function BookmarkListPane({
               ${COLUMN_CLASS[columns]}
             `}
           >
-            {visibleBookmarks.map(bookmark => (
-              <RowCard
-                key={bookmark.id}
-                className="p-4"
-                data-bookmark-card-sample
-              >
-                <BookmarkCard
-                  pageKey={pageKey}
-                  bookmark={bookmark}
-                  properties={properties}
-                  onDelete={id => deleteBookmark.mutate(id)}
-                  imageLeft={imageLeft}
-                  imageMode={imageMode}
-                  imageVisibility={imageVisibility}
-                  cornerOverlays={cornerOverlays}
-                />
-              </RowCard>
-            ))}
+            {visibleBookmarks.map((bookmark) => {
+              // Per-card display comes from the prioritized Card Display Rules (merged over the
+              // Default rule). Column count stays page-level, so "side" image layout only applies at
+              // 1–2 columns.
+              const display = resolveDisplay(bookmark);
+              return (
+                <RowCard
+                  key={bookmark.id}
+                  className="p-4"
+                  data-bookmark-card-sample
+                >
+                  <BookmarkCard
+                    pageKey={pageKey}
+                    bookmark={bookmark}
+                    properties={properties}
+                    onDelete={id => deleteBookmark.mutate(id)}
+                    hiddenFields={new Set(display.hiddenCardFields)}
+                    imageLeft={(columns === 1 || columns === 2) && display.imageLayout === "side"}
+                    imageMode={display.imageMode}
+                    imageVisibility={display.imageVisibility}
+                    cornerOverlays={display.cornerOverlays}
+                  />
+                </RowCard>
+              );
+            })}
           </div>
         )
         : null}

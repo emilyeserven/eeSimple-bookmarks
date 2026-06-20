@@ -85,6 +85,20 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
   re-implement the Dialog + name field + reset — see the **`inline-create-modal`** skill.
 - **Layout/section patterns** are catalogued under **Content hierarchies** below — consult it
   before choosing how a detail/edit page or panel lays out its content.
+- **Card Display Rules** (`Settings → Card Display Rules`) govern **per-card** display — field
+  visibility + image presentation (aspect/visibility/layout/corner overlays) — for bookmark cards on
+  listing pages. A rule is a `conditions` tree + display overrides + `sortOrder`, modeled on
+  `homepage_sections` (inline drag-sortable list, no slug/detail pages). **Precedence is a layered
+  merge**: for each attribute the highest-priority (lowest `sortOrder`) matching rule that sets a
+  non-null value wins; lower rules fill the rest; a seeded, **non-deletable Default rule** (`isDefault`,
+  always matches, pinned last, fully concrete — `ensureDefaultCardDisplayRule()` boot step) is the
+  baseline. This differs from autofill's single-target last-writer merge — don't "fix" it to match.
+  Non-default display columns are **nullable = inherit** (push-safe). Grid **column count** and
+  **card/table view** stay page-level (`ListingDisplayControls`, the `DisplayOptionsPopover`, and
+  Settings → Display "Listing Defaults"); everything else about how a card looks is configured **only**
+  via rules. The old per-page/global field-visibility + image controls and **Display Presets** were
+  removed in favor of this. The `hiddenCardFields` key list (`STANDARD_CARD_FIELDS` +
+  custom-property ids in `lib/bookmarkCardFields.ts`) is shared with homepage sections — keep in sync.
 
 ## Content hierarchies
 
@@ -170,6 +184,13 @@ instead.
   facet slider bounds (`effectiveBounds`), and "which rules target this entity"
   (`lib/autofillRulesFilter.ts`). These are free because the list is already in cache; an endpoint
   would only duplicate logic.
+- **Card Display Rule resolution** — `lib/cardDisplayRules.ts` (`resolveCardDisplay` +
+  `useResolveCardDisplay`) evaluates the shared `evaluateConditions` against each rendered bookmark in
+  the listing grid (`BookmarkListPane`) to decide that card's field visibility + image presentation.
+  It runs client-side because cards render client-side over already-cached rules/tags; there is **no**
+  server bookmark endpoint for rules. The CRUD service (`services/cardDisplayRules.ts`) is therefore
+  CRUD-only, and rules never touch `invalidateBookmarkCache()` (they're display-only, not matchable
+  data).
 
 **Caching / growth path.** When work must move server-side but the logic is shared with the client
 (filtering, condition matching), prefer the **middleware in-memory cache + shared predicate** over

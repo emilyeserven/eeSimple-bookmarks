@@ -4,11 +4,9 @@ import { useState } from "react";
 
 import { Trash2 } from "lucide-react";
 
-import { DisplaySettingsControls } from "./DisplaySettingsControls";
+import { ListingDisplayControls } from "./ListingDisplayControls";
 import { useCategories } from "../hooks/useCategories";
 import { useCreateCustomAspectRatio, useCustomAspectRatios, useDeleteCustomAspectRatio } from "../hooks/useCustomAspectRatios";
-import { useDeleteDisplayPreset, useDisplayPresets } from "../hooks/useDisplayPresets";
-import { summarizeDisplayPreset } from "../lib/displayPresets";
 import { useUiStore } from "../stores/uiStore";
 
 import { Button } from "@/components/ui/button";
@@ -156,72 +154,6 @@ const LISTING_DEFAULTS = [
     showsImages: false,
   },
 ] as const;
-
-function DisplayPresetsCard() {
-  const {
-    data: presets = [], isLoading, error,
-  } = useDisplayPresets();
-  const deleteMutation = useDeleteDisplayPreset();
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Display Presets</CardTitle>
-        <CardDescription>
-          Saved display configurations. Apply them from the layout options popover or from a
-          category&apos;s Display tab.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {isLoading ? <p className="text-sm text-muted-foreground">Loading…</p> : null}
-        {error ? <p className="text-sm text-destructive">{error.message}</p> : null}
-        {!isLoading && !error && presets.length === 0
-          ? (
-            <p className="text-sm text-muted-foreground">
-              No presets yet. Set up a listing page and click &ldquo;Save as preset&rdquo; to create one.
-            </p>
-          )
-          : null}
-        {presets.length > 0
-          ? (
-            <div className="space-y-3">
-              {presets.map(preset => (
-                <RowCard
-                  key={preset.id}
-                  className="flex items-start justify-between gap-4 p-4"
-                >
-                  <div className="min-w-0 space-y-0.5">
-                    <p className="truncate font-medium">{preset.name}</p>
-                    {preset.description
-                      ? <p className="truncate text-sm text-muted-foreground">{preset.description}</p>
-                      : null}
-                    <p className="text-xs text-muted-foreground">
-                      {summarizeDisplayPreset(preset.settings)}
-                    </p>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="
-                      shrink-0 text-muted-foreground
-                      hover:text-destructive
-                    "
-                    disabled={deleteMutation.isPending}
-                    onClick={() => deleteMutation.mutate(preset.id)}
-                  >
-                    <Trash2 className="size-4" />
-                    <span className="sr-only">Delete {preset.name}</span>
-                  </Button>
-                </RowCard>
-              ))}
-            </div>
-          )
-          : null}
-      </CardContent>
-    </Card>
-  );
-}
 
 function ImageAspectRatiosCard() {
   const croppedWidth = useUiStore(state => state.croppedWidth);
@@ -432,14 +364,12 @@ export function DisplaySettings() {
 
   return (
     <div className="space-y-6">
-      <DisplayPresetsCard />
-
       <Card>
         <CardHeader>
           <CardTitle>Listing Defaults</CardTitle>
           <CardDescription>
-            Default display settings for each type of listing page. These apply when no per-page
-            preference has been set, and can be saved as a preset.
+            Default view and column count for each type of listing page. How individual bookmark
+            cards display (fields, images) is set in Card Display Rules.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-0">
@@ -456,10 +386,7 @@ export function DisplaySettings() {
                   <p className="font-medium">{listing.label}</p>
                 </div>
                 <div className="sm:min-w-52">
-                  <DisplaySettingsControls
-                    pageKey={listing.pageKey}
-                    showsImages={listing.showsImages}
-                  />
+                  <ListingDisplayControls pageKey={listing.pageKey} />
                 </div>
               </div>
             </div>

@@ -1061,6 +1061,53 @@ export interface CreateHomepageSectionInput {
 export type UpdateHomepageSectionInput = Partial<CreateHomepageSectionInput>;
 
 /**
+ * A prioritized rule that overrides per-card display for bookmarks matching its `conditions`. Rules
+ * form an ordered list (lower `sortOrder` = higher priority); when several match a card, the display
+ * is built by a layered merge — for each attribute the highest-priority matching rule that sets it
+ * wins, lower rules fill the rest, and the singleton **Default** rule (`isDefault`, always matches,
+ * lowest priority, fully concrete) fills whatever remains. A `null` display attribute means "inherit"
+ * (fall through to a lower-priority rule / the Default). `hiddenCardFields` is `null` to inherit, or an
+ * explicit array (`[]` = hide nothing) to override. Resolved entirely client-side at render time.
+ */
+export interface CardDisplayRule {
+  id: string;
+  name: string;
+  description: string | null;
+  conditions: ConditionTree;
+  /** Lower = higher priority. The Default rule is always pinned last (lowest priority). */
+  sortOrder: number;
+  /** The singleton baseline rule: matches every card regardless of `conditions`; cannot be deleted. */
+  isDefault: boolean;
+  /** Hidden card field keys (`null` = inherit; `[]` = explicitly hide nothing). Concrete on the Default rule. */
+  hiddenCardFields: string[] | null;
+  /** Image display mode, or `null` to inherit. Concrete on the Default rule. */
+  imageMode: BookmarkImageMode | null;
+  /** Image visibility, or `null` to inherit. Concrete on the Default rule. */
+  imageVisibility: BookmarkImageVisibility | null;
+  /** Image layout, or `null` to inherit. Concrete on the Default rule. */
+  imageLayout: HomepageSectionImageLayout | null;
+  /** Image corner overlays, or `null` to inherit. Concrete on the Default rule. */
+  cornerOverlays: boolean | null;
+  createdAt: string;
+}
+
+/** Payload for creating a card display rule. */
+export interface CreateCardDisplayRuleInput {
+  name: string;
+  description?: string | null;
+  conditions: ConditionTree;
+  sortOrder?: number;
+  hiddenCardFields?: string[] | null;
+  imageMode?: BookmarkImageMode | null;
+  imageVisibility?: BookmarkImageVisibility | null;
+  imageLayout?: HomepageSectionImageLayout | null;
+  cornerOverlays?: boolean | null;
+}
+
+/** Payload for partially updating a card display rule. */
+export type UpdateCardDisplayRuleInput = Partial<CreateCardDisplayRuleInput>;
+
+/**
  * Result of fetching metadata for a bookmark URL (`GET /api/fetch-metadata`). Always carries the
  * page title; for recognized YouTube video URLs it also carries the channel, duration, and
  * thumbnail pulled from YouTube's public oEmbed + watch page.
@@ -1119,19 +1166,6 @@ export interface CreateSavedFilterInput {
 
 export type UpdateSavedFilterInput = Partial<CreateSavedFilterInput>;
 
-/** The display settings captured in a display preset (columns, image visibility, mode, layout). */
-export interface DisplayPresetSettings {
-  columns: number;
-  imageVisibility: "shown" | "image-only" | "off";
-  imageMode: BookmarkImageMode;
-  imageLayout: "above" | "side";
-  /**
-   * Card-field keys hidden by this preset. Undefined on legacy presets saved before column options
-   * were captured (drives the "update preset with column settings" offer).
-   */
-  hiddenFields?: string[];
-}
-
 /** A user-defined named aspect ratio available in the Aspect dropdown. */
 export interface CustomAspectRatio {
   id: string;
@@ -1146,23 +1180,6 @@ export interface CreateCustomAspectRatioInput {
   width: number;
   height: number;
 }
-
-/** A named snapshot of listing display settings, reusable across any listing page. */
-export interface DisplayPreset {
-  id: string;
-  name: string;
-  description: string | null;
-  settings: DisplayPresetSettings;
-  createdAt: string;
-}
-
-export interface CreateDisplayPresetInput {
-  name: string;
-  description?: string | null;
-  settings: DisplayPresetSettings;
-}
-
-export type UpdateDisplayPresetInput = Partial<CreateDisplayPresetInput>;
 
 /** Standard error shape returned by the API. */
 export interface ApiError {

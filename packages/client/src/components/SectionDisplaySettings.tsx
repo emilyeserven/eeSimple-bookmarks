@@ -2,7 +2,6 @@ import type { BookmarkImageVisibility, CustomProperty, HomepageSectionImageLayou
 
 import { CardDisplayControlsBase } from "./CardDisplayControls";
 import { DisplaySettingsControlsBase } from "./DisplaySettingsControls";
-import { useCreateDisplayPreset, useDisplayPresets } from "../hooks/useDisplayPresets";
 
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -37,11 +36,6 @@ interface SectionDisplaySettingsProps {
 export function SectionDisplaySettings({
   value, onChange, properties, idPrefix,
 }: SectionDisplaySettingsProps) {
-  const {
-    data: presets = [],
-  } = useDisplayPresets();
-  const createMutation = useCreateDisplayPreset();
-
   function toggleCardField(fieldKey: string): void {
     const next = value.hiddenCardFields.includes(fieldKey)
       ? value.hiddenCardFields.filter(key => key !== fieldKey)
@@ -81,31 +75,6 @@ export function SectionDisplaySettings({
           cornerOverlays,
         })}
         showsImages
-        presets={presets}
-        onApplyPreset={settings => onChange({
-          columns: settings.columns,
-          imageVisibility: settings.imageVisibility,
-          imageMode: typeof settings.imageMode === "boolean"
-            ? (settings.imageMode ? "natural" : "cropped")
-            : settings.imageMode,
-          imageLayout: settings.imageLayout,
-        })}
-        onSaveAsPreset={(name, done) => createMutation.mutate(
-          {
-            name,
-            settings: {
-              columns: value.columns,
-              imageVisibility: value.imageVisibility,
-              imageMode: value.imageMode,
-              imageLayout: value.imageLayout,
-            },
-          },
-          {
-            onSuccess: done,
-          },
-        )}
-        saveError={createMutation.isError}
-        saveErrorMessage={createMutation.error?.message}
       />
 
       <Separator />
