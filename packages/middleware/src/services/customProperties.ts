@@ -347,37 +347,69 @@ export type UpdatePatch = Partial<
   >
 >;
 
+/**
+ * Column keys copied straight from the matching input field by `buildUpdatePatch`. Derived as the
+ * keys shared by the input and the patch whose defined input value is assignable to the column —
+ * so the `satisfies` below turns a miscategorised field (one needing a transform) into a compile
+ * error. Every input field is a plain `T | null` mirror of its column, so an explicit `null` clears
+ * it and `undefined` leaves it untouched; no per-field coercion is needed.
+ */
+type CopyableField = {
+  [K in keyof UpdatePatch & keyof UpdateCustomPropertyInput]:
+  Exclude<UpdateCustomPropertyInput[K], undefined> extends UpdatePatch[K] ? K : never;
+}[keyof UpdatePatch & keyof UpdateCustomPropertyInput];
+
+/** The settable columns. Adding a field is one entry here, not another `if` branch. */
+const COPYABLE_FIELDS = [
+  "name",
+  "numberFormat",
+  "dateTimeFormat",
+  "description",
+  "numberMin",
+  "numberMax",
+  "unitSingular",
+  "unitPlural",
+  "valuePrefix",
+  "zeroLabel",
+  "maxLabel",
+  "showInForm",
+  "hiddenFromForm",
+  "showInListings",
+  "allCategories",
+  "allMediaTypes",
+  "editableOnCard",
+  "enabled",
+  "allowDefault",
+  "propertyGroupId",
+  "showIfFalse",
+  "booleanLabelPreset",
+  "booleanTrueLabel",
+  "booleanFalseLabel",
+  "showLabelColon",
+  "showValueBeforeLabel",
+] as const satisfies readonly CopyableField[];
+
+/**
+ * Copy one settable column when the input set it. Generic over a single `K` so the indexed write
+ * stays sound; `K extends CopyableField` proves the defined value matches the column, so the
+ * narrowing assertion (never `any`) only bridges TS's inability to track that through the index.
+ */
+function copyColumn<K extends CopyableField>(
+  patch: UpdatePatch,
+  input: UpdateCustomPropertyInput,
+  key: K,
+): void {
+  const value = input[key];
+  if (value !== undefined) patch[key] = value as UpdatePatch[K];
+}
+
 export function buildUpdatePatch(input: UpdateCustomPropertyInput, renamedSlug: string | undefined): UpdatePatch {
   const patch: UpdatePatch = {};
-  if (input.name !== undefined) patch.name = input.name;
+  for (const key of COPYABLE_FIELDS) {
+    copyColumn(patch, input, key);
+  }
+  // The slug is derived from a rename rather than sent in the input, so it rides along separately.
   if (renamedSlug !== undefined) patch.slug = renamedSlug;
-  if (input.numberFormat !== undefined) patch.numberFormat = input.numberFormat ?? null;
-  // dateTimeFormat only matters for datetime properties; the client only sends it for those, and
-  // `type` is immutable, so writing it unconditionally when present is safe.
-  if (input.dateTimeFormat !== undefined) patch.dateTimeFormat = input.dateTimeFormat ?? null;
-  if (input.description !== undefined) patch.description = input.description ?? null;
-  if (input.numberMin !== undefined) patch.numberMin = input.numberMin;
-  if (input.numberMax !== undefined) patch.numberMax = input.numberMax;
-  if (input.unitSingular !== undefined) patch.unitSingular = input.unitSingular ?? null;
-  if (input.unitPlural !== undefined) patch.unitPlural = input.unitPlural ?? null;
-  if (input.valuePrefix !== undefined) patch.valuePrefix = input.valuePrefix ?? null;
-  if (input.zeroLabel !== undefined) patch.zeroLabel = input.zeroLabel ?? null;
-  if (input.maxLabel !== undefined) patch.maxLabel = input.maxLabel ?? null;
-  if (input.showInForm !== undefined) patch.showInForm = input.showInForm;
-  if (input.hiddenFromForm !== undefined) patch.hiddenFromForm = input.hiddenFromForm;
-  if (input.showInListings !== undefined) patch.showInListings = input.showInListings;
-  if (input.allCategories !== undefined) patch.allCategories = input.allCategories;
-  if (input.allMediaTypes !== undefined) patch.allMediaTypes = input.allMediaTypes;
-  if (input.editableOnCard !== undefined) patch.editableOnCard = input.editableOnCard;
-  if (input.enabled !== undefined) patch.enabled = input.enabled;
-  if (input.allowDefault !== undefined) patch.allowDefault = input.allowDefault;
-  if (input.propertyGroupId !== undefined) patch.propertyGroupId = input.propertyGroupId ?? null;
-  if (input.showIfFalse !== undefined) patch.showIfFalse = input.showIfFalse ?? null;
-  if (input.booleanLabelPreset !== undefined) patch.booleanLabelPreset = input.booleanLabelPreset ?? null;
-  if (input.booleanTrueLabel !== undefined) patch.booleanTrueLabel = input.booleanTrueLabel ?? null;
-  if (input.booleanFalseLabel !== undefined) patch.booleanFalseLabel = input.booleanFalseLabel ?? null;
-  if (input.showLabelColon !== undefined) patch.showLabelColon = input.showLabelColon ?? null;
-  if (input.showValueBeforeLabel !== undefined) patch.showValueBeforeLabel = input.showValueBeforeLabel ?? null;
   return patch;
 }
 
