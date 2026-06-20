@@ -1,6 +1,7 @@
 import type { CustomProperty } from "@eesimple/types";
 
 import { DateTimePicker } from "./DateTimePicker";
+import { StarRating } from "./StarRating";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -47,6 +48,23 @@ export function RulePropertyField({
           value={dateTimeInputs[property.id] ?? null}
           onChange={value => onDateTimeChange(property.id, value ?? "")}
         />
+      </div>
+    );
+  }
+  if (property.type === "ratingScale") {
+    const raw = numberInputs[property.id];
+    return (
+      <div className="space-y-1">
+        <Label>{property.name}</Label>
+        <div>
+          <StarRating
+            value={raw ? Number(raw) : 0}
+            max={property.ratingMax ?? 5}
+            allowHalf={property.ratingAllowHalf}
+            allowZero={property.ratingAllowZero}
+            onChange={value => onNumberChange(property.id, String(value))}
+          />
+        </div>
       </div>
     );
   }

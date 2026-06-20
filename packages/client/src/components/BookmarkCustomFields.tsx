@@ -11,6 +11,7 @@ import { propertyAppliesToCategory, propertyAppliesToMediaType } from "@eesimple
 
 import { DATE_POSTED_SLUG, RUNTIME_SLUG } from "./bookmarkFormSchema";
 import { DateTimePicker } from "./DateTimePicker";
+import { StarRating } from "./StarRating";
 import { useCategoryDefaults } from "../hooks/useCategories";
 
 import { Checkbox } from "@/components/ui/checkbox";
@@ -131,6 +132,29 @@ export function CategoryCustomFields({
                   value={dateTimeInputs[property.id] ?? null}
                   onChange={value => onDateTimeChange(property.id, value ?? "")}
                 />
+                {property.description
+                  ? <p className="text-xs text-muted-foreground">{property.description}</p>
+                  : null}
+              </div>
+            );
+          }
+          if (property.type === "ratingScale") {
+            const raw = numberInputs[property.id];
+            return (
+              <div
+                key={property.id}
+                className="space-y-1"
+              >
+                <Label>{property.name}</Label>
+                <div>
+                  <StarRating
+                    value={raw ? Number(raw) : 0}
+                    max={property.ratingMax ?? 5}
+                    allowHalf={property.ratingAllowHalf}
+                    allowZero={property.ratingAllowZero}
+                    onChange={value => onNumberChange(property.id, String(value))}
+                  />
+                </div>
                 {property.description
                   ? <p className="text-xs text-muted-foreground">{property.description}</p>
                   : null}

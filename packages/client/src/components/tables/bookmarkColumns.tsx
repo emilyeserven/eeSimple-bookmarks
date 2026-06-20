@@ -18,6 +18,7 @@ import { CategoryPill } from "../CategoryPill";
 import { MediaTypePill } from "../MediaTypePill";
 import { useViewPanelClick } from "../panel/useEditPanelClick";
 import { SourcePill } from "../SourcePill";
+import { StarRating } from "../StarRating";
 
 import { useCategories } from "@/hooks/useCategories";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
@@ -234,6 +235,21 @@ export function useBookmarkTableColumns({
         }) => {
           // On the all-bookmarks page rows span categories: only show the value where it applies.
           if (!propertyAppliesToCategory(property, row.original.categoryId)) return null;
+          if (property.type === "ratingScale") {
+            const entry = row.original.numberValues.find(value => value.propertyId === property.id);
+            return entry
+              ? (
+                <StarRating
+                  value={entry.value}
+                  max={property.ratingMax ?? 5}
+                  allowHalf={property.ratingAllowHalf}
+                  readOnly
+                  label={property.ratingShowLabel ? (property.ratingLabel ?? undefined) : undefined}
+                  size={14}
+                />
+              )
+              : null;
+          }
           const formatted = formatPropertyValue(row.original, property);
           return formatted ? <span className="text-sm">{formatted}</span> : null;
         },

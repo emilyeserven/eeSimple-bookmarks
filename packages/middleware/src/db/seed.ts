@@ -110,6 +110,16 @@ export async function maybeSeed(): Promise<void> {
     type: "boolean",
   }).returning();
 
+  const [rating] = await db.insert(customProperties).values({
+    name: "Rating",
+    type: "ratingScale",
+    ratingMax: 5,
+    ratingAllowHalf: true,
+    ratingShowLabel: true,
+    ratingLabel: "out of 5",
+    editableOnCard: true,
+  }).returning();
+
   await db.insert(bookmarkNumberValues).values([
     {
       bookmarkId: bookmark.id,
@@ -126,6 +136,12 @@ export async function maybeSeed(): Promise<void> {
       bookmarkId: bookmark.id,
       propertyId: score.id,
       value: 11,
+    },
+    // A rating-scale value (stored numerically alongside the other numbers).
+    {
+      bookmarkId: bookmark.id,
+      propertyId: rating.id,
+      value: 4.5,
     },
   ]);
   await db.insert(bookmarkBooleanValues).values([
@@ -167,6 +183,10 @@ export async function maybeSeed(): Promise<void> {
     },
     {
       propertyId: reviewed.id,
+      categoryId: workflow.id,
+    },
+    {
+      propertyId: rating.id,
       categoryId: workflow.id,
     },
   ]);

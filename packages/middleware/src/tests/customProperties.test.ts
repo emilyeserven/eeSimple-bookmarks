@@ -60,7 +60,7 @@ test("POST /api/custom-properties rejects the removed tiered_tags type", async (
 
 test("POST /api/custom-properties accepts the boolean and calculate types (schema)", async () => {
   const app = await buildApp();
-  for (const type of ["number", "boolean", "calculate"]) {
+  for (const type of ["number", "boolean", "calculate", "ratingScale"]) {
     const res = await app.inject({
       method: "POST",
       url: "/api/custom-properties",
@@ -123,6 +123,43 @@ test("POST /api/custom-properties accepts the allCategories and editableOnCard f
   });
   // No DB in this test, so the handler may 500; we only assert the schema accepted the flags.
   assert.notEqual(res.statusCode, 400);
+  await app.close();
+});
+
+test("POST /api/custom-properties accepts a ratingScale with its config (schema)", async () => {
+  const app = await buildApp();
+  for (const ratingMax of [3, 5]) {
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/custom-properties",
+      payload: {
+        name: `Rating ${ratingMax}`,
+        type: "ratingScale",
+        ratingMax,
+        ratingAllowZero: true,
+        ratingAllowHalf: true,
+        ratingShowLabel: true,
+        ratingLabel: `out of ${ratingMax}`,
+      },
+    });
+    // No DB in this test, so the handler may 500; we only assert the schema accepted the payload.
+    assert.notEqual(res.statusCode, 400, `ratingMax ${ratingMax} should pass schema validation`);
+  }
+  await app.close();
+});
+
+test("POST /api/custom-properties rejects a ratingScale with an unsupported ratingMax", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "POST",
+    url: "/api/custom-properties",
+    payload: {
+      name: "Rating 4",
+      type: "ratingScale",
+      ratingMax: 4,
+    },
+  });
+  assert.equal(res.statusCode, 400);
   await app.close();
 });
 

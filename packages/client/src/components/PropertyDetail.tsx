@@ -175,6 +175,22 @@ export function PropertyOptionsFields({
     );
   }
 
+  if (property.type === "ratingScale") {
+    const min = property.ratingAllowZero ? 0 : 1;
+    return (
+      <dl className="space-y-3">
+        <DetailField label="Scale">{`${min} – ${property.ratingMax ?? 5} stars`}</DetailField>
+        <DetailField label="Half ratings">{property.ratingAllowHalf ? "Allowed" : "Whole stars only"}</DetailField>
+        <DetailField label="Label">
+          {property.ratingShowLabel && property.ratingLabel ? property.ratingLabel : null}
+        </DetailField>
+        <DetailField label="Allow default value">
+          {property.allowDefault ? "Allowed" : "Hidden from category defaults"}
+        </DetailField>
+      </dl>
+    );
+  }
+
   return (
     <dl className="space-y-3">
       {isNumeric

@@ -22,10 +22,12 @@ import {
   payloadFromValues,
   PropertyDisplaySection,
   propertySchema,
+  RATING_MAX_OPTIONS,
   summarizeBooleanOptions,
   summarizeCategories,
   summarizeMediaTypes,
   summarizeNumberOptions,
+  summarizeRatingOptions,
   toggleId,
   TYPE_OPTIONS,
   valuesFromProperty,
@@ -546,6 +548,105 @@ export function PropertyForm({
                     )}
                   </form.AppField>
                 </LabeledSection>
+              </>
+            )
+            : null}
+      </form.Subscribe>
+
+      <form.Subscribe selector={state => state.values.type}>
+        {type =>
+          showOptions && type === "ratingScale"
+            ? (
+              <>
+                {full ? <Separator /> : null}
+
+                <CollapsibleFormSection
+                  title="Property options"
+                  description="Configure the star scale and label for this rating."
+                  defaultOpen={mode === "create" || section === "options"}
+                  preview={(
+                    <form.Subscribe
+                      selector={state => ({
+                        ratingMax: state.values.ratingMax,
+                        ratingAllowZero: state.values.ratingAllowZero,
+                        ratingAllowHalf: state.values.ratingAllowHalf,
+                        ratingShowLabel: state.values.ratingShowLabel,
+                        ratingLabel: state.values.ratingLabel,
+                      })}
+                    >
+                      {values => summarizeRatingOptions(values)}
+                    </form.Subscribe>
+                  )}
+                >
+                  <div className="space-y-4">
+                    <form.AppField name="ratingMax">
+                      {field => (
+                        <field.SelectField
+                          label="Scale"
+                          options={RATING_MAX_OPTIONS}
+                        />
+                      )}
+                    </form.AppField>
+
+                    <form.AppField name="ratingAllowZero">
+                      {field => (
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            id={`${idPrefix}-rating-allow-zero`}
+                            checked={field.state.value}
+                            onCheckedChange={checked => field.handleChange(checked === true)}
+                          />
+                          <Label htmlFor={`${idPrefix}-rating-allow-zero`}>Allow a rating of 0</Label>
+                        </div>
+                      )}
+                    </form.AppField>
+
+                    <form.AppField name="ratingAllowHalf">
+                      {field => (
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            id={`${idPrefix}-rating-allow-half`}
+                            checked={field.state.value}
+                            onCheckedChange={checked => field.handleChange(checked === true)}
+                          />
+                          <Label htmlFor={`${idPrefix}-rating-allow-half`}>Allow half ratings</Label>
+                        </div>
+                      )}
+                    </form.AppField>
+
+                    <div className="space-y-2">
+                      <form.AppField name="ratingShowLabel">
+                        {field => (
+                          <div className="flex items-center gap-2">
+                            <Checkbox
+                              id={`${idPrefix}-rating-show-label`}
+                              checked={field.state.value}
+                              onCheckedChange={checked => field.handleChange(checked === true)}
+                            />
+                            <Label htmlFor={`${idPrefix}-rating-show-label`}>Show a label after the stars</Label>
+                          </div>
+                        )}
+                      </form.AppField>
+                      <form.Subscribe selector={state => state.values.ratingShowLabel}>
+                        {showLabel =>
+                          showLabel
+                            ? (
+                              <form.AppField name="ratingLabel">
+                                {field => (
+                                  <field.TextField
+                                    label="Label"
+                                    placeholder="e.g. out of 5"
+                                  />
+                                )}
+                              </form.AppField>
+                            )
+                            : null}
+                      </form.Subscribe>
+                    </div>
+
+                    {allowDefaultBlock("space-y-1")}
+                  </div>
+                </CollapsibleFormSection>
               </>
             )
             : null}

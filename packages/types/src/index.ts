@@ -548,8 +548,14 @@ export interface BulkUrlUpdateResult {
  * - `calculate` — a numeric value derived from other `number` properties (Sum formula);
  *   computed and stored server-side so it filters and sorts like a `number`.
  * - `datetime` — a calendar/clock value (a date, a time, or both; see {@link DateTimeFormat}).
+ * - `ratingScale` — a star rating (e.g. 1–5). Stored as a numeric value in the same
+ *   `bookmarkNumberValues` table as `number`/`calculate`, so it filters/sorts/conditions like a
+ *   `number`; only its presentation (stars) and per-property config differ. See {@link RatingMax}.
  */
-export type CustomPropertyType = "number" | "boolean" | "calculate" | "datetime";
+export type CustomPropertyType = "number" | "boolean" | "calculate" | "datetime" | "ratingScale";
+
+/** The top of a `ratingScale`: a 1–3 or a 1–5 star scale. */
+export type RatingMax = 3 | 5;
 
 /**
  * How a `number`/`calculate` value is rendered:
@@ -620,6 +626,16 @@ export interface CustomProperty {
   showLabelColon: boolean;
   /** When true, the value renders before the property name (e.g. "★ Favorite"). Defaults to false. Only relevant for `boolean` icon presets. */
   showValueBeforeLabel: boolean;
+  /** Top of a `ratingScale` (3 or 5 stars); `null` defaults to 5. Only relevant for `ratingScale`. */
+  ratingMax: RatingMax | null;
+  /** When true, a `ratingScale` may be set to 0 (no stars); otherwise the minimum is 1. Defaults to false. */
+  ratingAllowZero: boolean;
+  /** When true, a `ratingScale` allows half-star (0.5) steps. Defaults to false. */
+  ratingAllowHalf: boolean;
+  /** When true, a `ratingScale` shows its {@link ratingLabel} after the stars. Defaults to false. */
+  ratingShowLabel: boolean;
+  /** Label shown after a `ratingScale`'s stars (e.g. "out of 5"), or `null`. */
+  ratingLabel: string | null;
   /** For a `calculate` property: ids of the `number` properties summed to produce its value. */
   operandPropertyIds: string[];
   /** Ids of the categories this property is assigned to (zero, one, or many). */
@@ -699,6 +715,16 @@ export interface CreateCustomPropertyInput {
   showLabelColon?: boolean;
   /** When true, the value renders before the property name. Defaults to false. Only relevant for `boolean` icon presets. */
   showValueBeforeLabel?: boolean;
+  /** Top of a `ratingScale` (3 or 5). Defaults to 5. Only relevant for `ratingScale`. */
+  ratingMax?: RatingMax | null;
+  /** When true, a `ratingScale` may be set to 0. Defaults to false. */
+  ratingAllowZero?: boolean;
+  /** When true, a `ratingScale` allows half-star steps. Defaults to false. */
+  ratingAllowHalf?: boolean;
+  /** When true, a `ratingScale` shows its `ratingLabel` after the stars. Defaults to false. */
+  ratingShowLabel?: boolean;
+  /** Label shown after a `ratingScale`'s stars (e.g. "out of 5"). */
+  ratingLabel?: string | null;
 }
 
 /** Payload for updating a custom property. Its `type` is immutable. */

@@ -82,6 +82,11 @@ function toCustomProperty(
     booleanFalseLabel: row.booleanFalseLabel ?? null,
     showLabelColon: row.showLabelColon ?? true,
     showValueBeforeLabel: row.showValueBeforeLabel ?? false,
+    ratingMax: (row.ratingMax as CustomProperty["ratingMax"]) ?? null,
+    ratingAllowZero: row.ratingAllowZero ?? false,
+    ratingAllowHalf: row.ratingAllowHalf ?? false,
+    ratingShowLabel: row.ratingShowLabel ?? false,
+    ratingLabel: row.ratingLabel ?? null,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
   };
@@ -259,9 +264,15 @@ async function setCalculateOperands(
   })));
 }
 
+/** Coerce a requested rating max to a supported scale (3 or 5); defaults to 5. */
+function normalizeRatingMax(value: number | null | undefined): 3 | 5 {
+  return value === 3 ? 3 : 5;
+}
+
 export async function createCustomProperty(
   input: CreateCustomPropertyInput,
 ): Promise<CustomProperty> {
+  const isRating = input.type === "ratingScale";
   const slug = uniqueSlug(input.name, await takenSlugs());
   const id = await db.transaction(async (tx) => {
     const [row] = await tx
@@ -295,6 +306,11 @@ export async function createCustomProperty(
         booleanFalseLabel: input.booleanFalseLabel ?? null,
         showLabelColon: input.showLabelColon ?? null,
         showValueBeforeLabel: input.showValueBeforeLabel ?? null,
+        ratingMax: isRating ? normalizeRatingMax(input.ratingMax) : null,
+        ratingAllowZero: isRating ? (input.ratingAllowZero ?? null) : null,
+        ratingAllowHalf: isRating ? (input.ratingAllowHalf ?? null) : null,
+        ratingShowLabel: isRating ? (input.ratingShowLabel ?? null) : null,
+        ratingLabel: isRating ? (input.ratingLabel ?? null) : null,
       })
       .returning({
         id: customProperties.id,
@@ -344,6 +360,11 @@ type UpdatePatch = Partial<
     | "booleanFalseLabel"
     | "showLabelColon"
     | "showValueBeforeLabel"
+    | "ratingMax"
+    | "ratingAllowZero"
+    | "ratingAllowHalf"
+    | "ratingShowLabel"
+    | "ratingLabel"
   >
 >;
 
@@ -378,6 +399,11 @@ function buildUpdatePatch(input: UpdateCustomPropertyInput, renamedSlug: string 
   if (input.booleanFalseLabel !== undefined) patch.booleanFalseLabel = input.booleanFalseLabel ?? null;
   if (input.showLabelColon !== undefined) patch.showLabelColon = input.showLabelColon ?? null;
   if (input.showValueBeforeLabel !== undefined) patch.showValueBeforeLabel = input.showValueBeforeLabel ?? null;
+  if (input.ratingMax !== undefined) patch.ratingMax = normalizeRatingMax(input.ratingMax);
+  if (input.ratingAllowZero !== undefined) patch.ratingAllowZero = input.ratingAllowZero ?? null;
+  if (input.ratingAllowHalf !== undefined) patch.ratingAllowHalf = input.ratingAllowHalf ?? null;
+  if (input.ratingShowLabel !== undefined) patch.ratingShowLabel = input.ratingShowLabel ?? null;
+  if (input.ratingLabel !== undefined) patch.ratingLabel = input.ratingLabel ?? null;
   return patch;
 }
 

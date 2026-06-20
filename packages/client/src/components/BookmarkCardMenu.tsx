@@ -7,6 +7,7 @@ import { Sparkles } from "lucide-react";
 
 import { DateTimePicker } from "./DateTimePicker";
 import { useEditPanelClick } from "./panel/useEditPanelClick";
+import { StarRating } from "./StarRating";
 
 import {
   DropdownMenuCheckboxItem,
@@ -160,6 +161,30 @@ export function BookmarkCardMenu({
                         format={property.dateTimeFormat ?? "date"}
                         value={current}
                         onChange={value => onSaveDateTime(property.id, value ?? "")}
+                      />
+                    </div>
+                  </div>
+                );
+              }
+              if (property.type === "ratingScale") {
+                const current
+                  = bookmark.numberValues.find(entry => entry.propertyId === property.id)?.value ?? 0;
+                return (
+                  <div
+                    key={property.id}
+                    className="px-2 py-1.5"
+                    // Keep clicks/keystrokes on the stars from reaching the menu (which would close it).
+                    onKeyDown={event => event.stopPropagation()}
+                    onClick={event => event.stopPropagation()}
+                  >
+                    <Label className="text-xs text-muted-foreground">{property.name}</Label>
+                    <div className="mt-1">
+                      <StarRating
+                        value={current}
+                        max={property.ratingMax ?? 5}
+                        allowHalf={property.ratingAllowHalf}
+                        allowZero={property.ratingAllowZero}
+                        onChange={value => onSaveNumber(property.id, value)}
                       />
                     </div>
                   </div>

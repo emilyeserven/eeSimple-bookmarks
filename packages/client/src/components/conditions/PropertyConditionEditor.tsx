@@ -24,11 +24,19 @@ interface PropertyConditionEditorProps {
   onChange: (next: PropertyCondition[]) => void;
 }
 
-/** Slider bounds for a number/calculate property, falling back to a sane default span. */
+/** Slider bounds for a number/calculate/rating property, falling back to a sane default span. */
 function numberBounds(property: CustomProperty): [number, number] {
+  if (property.type === "ratingScale") {
+    return [property.ratingAllowZero ? 0 : 1, property.ratingMax ?? 5];
+  }
   const min = property.numberMin ?? 0;
   const max = property.numberMax ?? 100;
   return [min, max > min ? max : min + 1];
+}
+
+/** Slider step; rating scales step by half when half ratings are allowed. */
+function numberStep(property: CustomProperty): number {
+  return property.type === "ratingScale" && property.ratingAllowHalf ? 0.5 : 1;
 }
 
 const NUMBER_MODES = [
@@ -136,7 +144,8 @@ function PropertyNameLabel({
 function PropertyConditionRow({
   property, condition, categories, onChange,
 }: RowProps) {
-  const isNumber = property.type === "number" || property.type === "calculate";
+  const isNumber = property.type === "number" || property.type === "calculate"
+    || property.type === "ratingScale";
 
   if (isNumber) {
     const bounds = numberBounds(property);
@@ -206,6 +215,7 @@ function PropertyConditionRow({
             <RangeSlider
               min={bounds[0]}
               max={bounds[1]}
+              step={numberStep(property)}
               value={range}
               onValueChange={next =>
                 onChange({

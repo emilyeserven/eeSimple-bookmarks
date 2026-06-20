@@ -1,5 +1,7 @@
 import type { Bookmark, CustomProperty, PropertyGroup } from "@eesimple/types";
 
+import { StarRating } from "./StarRating";
+
 import { LabeledSection } from "@/components/LabeledSection";
 import { Separator } from "@/components/ui/separator";
 import { formatBoolean, formatDateTime, formatNumber } from "@/lib/bookmarkFormat";
@@ -26,7 +28,8 @@ export function BookmarkPropertySections({
   const numberRows = bookmark.numberValues
     .map((entry) => {
       const property = byId.get(entry.propertyId);
-      return property
+      // Rating scales live in numberValues but render as stars below, not a formatted number.
+      return property && property.type !== "ratingScale"
         ? {
           id: entry.propertyId,
           name: property.name,
@@ -41,6 +44,29 @@ export function BookmarkPropertySections({
       groupId: string | null;
       isCalculated: boolean;
       value: string; } => row !== null);
+
+  const ratingRows = bookmark.numberValues
+    .map((entry) => {
+      const property = byId.get(entry.propertyId);
+      return property && property.type === "ratingScale"
+        ? {
+          id: entry.propertyId,
+          name: property.name,
+          groupId: property.propertyGroupId,
+          value: entry.value,
+          max: (property.ratingMax ?? 5) as number,
+          allowHalf: property.ratingAllowHalf,
+          label: property.ratingShowLabel ? (property.ratingLabel ?? undefined) : undefined,
+        }
+        : null;
+    })
+    .filter((row): row is { id: string;
+      name: string;
+      groupId: string | null;
+      value: number;
+      max: number;
+      allowHalf: boolean;
+      label: string | undefined; } => row !== null);
 
   const booleanRows = bookmark.booleanValues
     .map((entry) => {
@@ -81,7 +107,8 @@ export function BookmarkPropertySections({
       groupId: string | null;
       value: string; } => row !== null);
 
-  const hasProperties = numberRows.length > 0 || booleanRows.length > 0 || dateTimeRows.length > 0;
+  const hasProperties = numberRows.length > 0 || booleanRows.length > 0
+    || dateTimeRows.length > 0 || ratingRows.length > 0;
   if (!hasProperties) return null;
 
   // Partition the property rows by group. A row belongs to the ungrouped bucket when its `groupId`
@@ -107,7 +134,8 @@ export function BookmarkPropertySections({
   ].filter(section =>
     numberRows.some(row => inGroup(row.groupId, section.target))
     || booleanRows.some(row => inGroup(row.groupId, section.target))
-    || dateTimeRows.some(row => inGroup(row.groupId, section.target)));
+    || dateTimeRows.some(row => inGroup(row.groupId, section.target))
+    || ratingRows.some(row => inGroup(row.groupId, section.target)));
 
   return (
     <>
@@ -166,6 +194,27 @@ export function BookmarkPropertySections({
                     :
                   </dt>
                   <dd>{row.value}</dd>
+                </div>
+              ))}
+              {ratingRows.filter(row => inGroup(row.groupId, section.target)).map(row => (
+                <div
+                  key={row.id}
+                  className="flex items-center gap-2"
+                >
+                  <dt className="text-muted-foreground">
+                    {row.name}
+                    :
+                  </dt>
+                  <dd>
+                    <StarRating
+                      value={row.value}
+                      max={row.max}
+                      allowHalf={row.allowHalf}
+                      readOnly
+                      label={row.label}
+                      size={16}
+                    />
+                  </dd>
                 </div>
               ))}
             </dl>

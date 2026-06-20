@@ -47,6 +47,11 @@ const property: CustomProperty = {
   booleanFalseLabel: null,
   showLabelColon: true,
   showValueBeforeLabel: false,
+  ratingMax: null,
+  ratingAllowZero: false,
+  ratingAllowHalf: false,
+  ratingShowLabel: false,
+  ratingLabel: null,
   propertyGroupId: null,
   createdAt: "2026-06-01T00:00:00.000Z",
 };

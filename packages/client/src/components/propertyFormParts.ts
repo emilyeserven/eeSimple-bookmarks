@@ -14,10 +14,12 @@ export {
   BOOLEAN_LABEL_PRESET_OPTIONS,
   DATE_TIME_FORMAT_OPTIONS,
   NUMBER_FORMAT_OPTIONS,
+  RATING_MAX_OPTIONS,
   summarizeBooleanOptions,
   summarizeCategories,
   summarizeMediaTypes,
   summarizeNumberOptions,
+  summarizeRatingOptions,
   toggleId,
   TYPE_OPTIONS,
 } from "../lib/propertyForm";
