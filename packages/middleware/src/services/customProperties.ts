@@ -314,7 +314,7 @@ export async function createCustomProperty(
   return (await getCustomProperty(id))!;
 }
 
-type UpdatePatch = Partial<
+export type UpdatePatch = Partial<
   Pick<
     CustomPropertyRow,
     | "name"
@@ -347,7 +347,7 @@ type UpdatePatch = Partial<
   >
 >;
 
-function buildUpdatePatch(input: UpdateCustomPropertyInput, renamedSlug: string | undefined): UpdatePatch {
+export function buildUpdatePatch(input: UpdateCustomPropertyInput, renamedSlug: string | undefined): UpdatePatch {
   const patch: UpdatePatch = {};
   if (input.name !== undefined) patch.name = input.name;
   if (renamedSlug !== undefined) patch.slug = renamedSlug;
