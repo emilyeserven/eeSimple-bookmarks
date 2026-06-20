@@ -91,6 +91,9 @@ interface UiState {
   toggleCardField: (pageKey: string, fieldKey: string) => void;
   /** Replace the hidden card-field list for a page wholesale (used when applying a display preset). */
   setHiddenCardFields: (pageKey: string, fieldKeys: string[]) => void;
+  /** When true for a page, the website pill is hidden on bookmarks that also have a YouTube channel. */
+  hideWebsiteForYouTube: Record<string, boolean>;
+  toggleHideWebsiteForYouTube: (pageKey: string) => void;
   /** The display preset last applied per listing page (drives the "update preset" offer). Keyed by pageKey → preset id. */
   selectedDisplayPreset: Record<string, string>;
   setSelectedDisplayPreset: (pageKey: string, presetId: string) => void;
@@ -246,6 +249,13 @@ export const useUiStore = create<UiState>()(
           [pageKey]: fieldKeys,
         },
       })),
+      hideWebsiteForYouTube: {},
+      toggleHideWebsiteForYouTube: pageKey => set(state => ({
+        hideWebsiteForYouTube: {
+          ...state.hideWebsiteForYouTube,
+          [pageKey]: !(state.hideWebsiteForYouTube[pageKey] ?? false),
+        },
+      })),
       selectedDisplayPreset: {},
       setSelectedDisplayPreset: (pageKey, presetId) => set(state => ({
         selectedDisplayPreset: {
@@ -399,6 +409,7 @@ export const useUiStore = create<UiState>()(
         bookmarkColumns: state.bookmarkColumns,
         viewMode: state.viewMode,
         hiddenCardFields: state.hiddenCardFields,
+        hideWebsiteForYouTube: state.hideWebsiteForYouTube,
         selectedDisplayPreset: state.selectedDisplayPreset,
         panelPinned: state.panelPinned,
         drawerUnpinnedBreakpoints: state.drawerUnpinnedBreakpoints,
