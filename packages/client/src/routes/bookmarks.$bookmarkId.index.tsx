@@ -1,7 +1,8 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 
 import { BookmarkDetail } from "../components/BookmarkDetail";
-import { useBookmark } from "../hooks/useBookmarks";
+import { mergeBooleanValue } from "../components/BookmarkCard";
+import { useBookmark, useUpdateBookmark } from "../hooks/useBookmarks";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { usePropertyGroups } from "../hooks/usePropertyGroups";
@@ -26,6 +27,7 @@ function BookmarkDetailPage() {
   const {
     data: propertyGroups,
   } = usePropertyGroups();
+  const updateBookmark = useUpdateBookmark();
 
   if (isLoading) {
     return <p className="text-muted-foreground">Loading bookmark…</p>;
@@ -48,12 +50,22 @@ function BookmarkDetailPage() {
     );
   }
 
+  function saveBoolean(propertyId: string, value: boolean) {
+    updateBookmark.mutate({
+      id: bookmark!.id,
+      input: {
+        booleanValues: mergeBooleanValue(bookmark!.booleanValues, propertyId, value),
+      },
+    });
+  }
+
   return (
     <BookmarkDetail
       bookmark={bookmark}
       categories={categories ?? []}
       properties={properties ?? []}
       propertyGroups={propertyGroups ?? []}
+      onSaveBoolean={saveBoolean}
     />
   );
 }

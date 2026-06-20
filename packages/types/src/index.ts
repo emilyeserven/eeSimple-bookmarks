@@ -628,6 +628,8 @@ export interface CustomProperty {
   showValueBeforeLabel: boolean;
   /** When true, the property name label is omitted; only the value is shown. Defaults to false. Only relevant for `boolean` type. */
   hideLabel: boolean;
+  /** When true, the value in the bookmark detail view is a clickable toggle. Defaults to false. Only relevant for `boolean` type. */
+  clickableInView: boolean;
   /** Top of a `ratingScale` (3 or 5 stars); `null` defaults to 5. Only relevant for `ratingScale`. */
   ratingMax: RatingMax | null;
   /** When true, a `ratingScale` may be set to 0 (no stars); otherwise the minimum is 1. Defaults to false. */
@@ -719,6 +721,8 @@ export interface CreateCustomPropertyInput {
   showValueBeforeLabel?: boolean;
   /** When true, the property name label is omitted; only the value is shown. Defaults to false. Only relevant for `boolean` type. */
   hideLabel?: boolean;
+  /** When true, the value in the bookmark detail view is a clickable toggle. Defaults to false. Only relevant for `boolean` type. */
+  clickableInView?: boolean;
   /** Top of a `ratingScale` (3 or 5). Defaults to 5. Only relevant for `ratingScale`. */
   ratingMax?: RatingMax | null;
   /** When true, a `ratingScale` may be set to 0. Defaults to false. */

@@ -61,7 +61,7 @@ function mergeNumberValue(
 }
 
 /** Replace the entry for `propertyId` with `value`, or append it when the property has no value yet. */
-function mergeBooleanValue(
+export function mergeBooleanValue(
   values: BookmarkBooleanValue[],
   propertyId: string,
   value: boolean,

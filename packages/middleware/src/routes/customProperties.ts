@@ -130,6 +130,9 @@ const createPropertyBody = {
     hideLabel: {
       type: "boolean",
     },
+    clickableInView: {
+      type: "boolean",
+    },
     ratingMax: {
       type: ["number", "null"],
       enum: [3, 5, null],
@@ -183,6 +186,7 @@ const updatePropertyBody = {
     showLabelColon: createPropertyBody.properties.showLabelColon,
     showValueBeforeLabel: createPropertyBody.properties.showValueBeforeLabel,
     hideLabel: createPropertyBody.properties.hideLabel,
+    clickableInView: createPropertyBody.properties.clickableInView,
     ratingMax: createPropertyBody.properties.ratingMax,
     ratingAllowZero: createPropertyBody.properties.ratingAllowZero,
     ratingAllowHalf: createPropertyBody.properties.ratingAllowHalf,

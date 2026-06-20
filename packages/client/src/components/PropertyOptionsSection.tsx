@@ -297,6 +297,7 @@ function BooleanOptions({
               showLabelColon: state.values.showLabelColon,
               showValueBeforeLabel: state.values.showValueBeforeLabel,
               hideLabel: state.values.hideLabel,
+              clickableInView: state.values.clickableInView,
             })}
           >
             {values => summarizeBooleanOptions(values)}
@@ -378,6 +379,24 @@ function BooleanOptions({
           </form.AppField>
           <p className="text-xs text-muted-foreground">
             When checked, the property name is omitted — only the value is shown.
+          </p>
+
+          <form.AppField name="clickableInView">
+            {field => (
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id={`${idPrefix}-clickable-in-view`}
+                  checked={field.state.value}
+                  onCheckedChange={checked => field.handleChange(checked === true)}
+                />
+                <Label htmlFor={`${idPrefix}-clickable-in-view`}>
+                  Clickable in view
+                </Label>
+              </div>
+            )}
+          </form.AppField>
+          <p className="text-xs text-muted-foreground">
+            When checked, the value can be clicked in the detail view to toggle it without entering edit mode.
           </p>
 
           <form.Subscribe selector={state => state.values.booleanLabelPreset}>

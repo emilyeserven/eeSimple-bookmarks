@@ -547,6 +547,8 @@ export const customProperties = pgTable("custom_properties", {
   showValueBeforeLabel: boolean("show_value_before_label"),
   // When true, the property name label is omitted; only the value is shown. null → false.
   hideLabel: boolean("hide_label"),
+  // When true, the value in the bookmark detail view is a clickable toggle. null → false.
+  clickableInView: boolean("clickable_in_view"),
   // Rating-scale display settings. All nullable (additive, push-safe). Ratings store their value
   // in `bookmark_number_values` like numbers, so only this config is rating-specific.
   // ratingMax: 3 | 5 (null → 5). ratingAllowZero/Half/ShowLabel: null → false. ratingLabel after stars.

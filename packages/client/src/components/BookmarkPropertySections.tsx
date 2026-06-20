@@ -12,6 +12,8 @@ interface BookmarkPropertySectionsProps {
   properties: CustomProperty[];
   /** Property groups, used to group property values under their group headings. */
   propertyGroups: PropertyGroup[];
+  /** When provided, boolean properties with `clickableInView` enabled render as toggles. */
+  onSaveBoolean?: (propertyId: string, value: boolean) => void;
 }
 
 /**
@@ -21,7 +23,7 @@ interface BookmarkPropertySectionsProps {
  * bookmark has no resolvable property values.
  */
 export function BookmarkPropertySections({
-  bookmark, properties, propertyGroups,
+  bookmark, properties, propertyGroups, onSaveBoolean,
 }: BookmarkPropertySectionsProps) {
   const byId = new Map(properties.map(property => [property.id, property]));
 
@@ -78,17 +80,21 @@ export function BookmarkPropertySections({
         id: entry.propertyId,
         name: property.name,
         groupId: property.propertyGroupId,
+        rawValue: entry.value,
         value: formatBoolean(entry.value, property),
         showLabelColon: isIconPreset ? property.showLabelColon : true,
         showValueBeforeLabel: isIconPreset ? property.showValueBeforeLabel : false,
+        clickableInView: property.clickableInView,
       };
     })
     .filter((row): row is { id: string;
       name: string;
       groupId: string | null;
+      rawValue: boolean;
       value: string;
       showLabelColon: boolean;
-      showValueBeforeLabel: boolean; } => row !== null);
+      showValueBeforeLabel: boolean;
+      clickableInView: boolean; } => row !== null);
 
   const dateTimeRows = bookmark.dateTimeValues
     .map((entry) => {
@@ -159,31 +165,46 @@ export function BookmarkPropertySections({
                   <dd>{row.value}</dd>
                 </div>
               ))}
-              {booleanRows.filter(row => inGroup(row.groupId, section.target)).map(row => (
-                <div
-                  key={row.id}
-                  className="flex items-baseline gap-2"
-                >
-                  {row.showValueBeforeLabel
-                    ? (
-                      <>
-                        <dd>{row.value}</dd>
-                        <dt className="text-muted-foreground">
-                          {row.showLabelColon ? `: ${row.name}` : row.name}
-                        </dt>
-                      </>
-                    )
-                    : (
-                      <>
-                        <dt className="text-muted-foreground">
-                          {row.name}
-                          {row.showLabelColon ? ":" : ""}
-                        </dt>
-                        <dd>{row.value}</dd>
-                      </>
-                    )}
-                </div>
-              ))}
+              {booleanRows.filter(row => inGroup(row.groupId, section.target)).map((row) => {
+                const isClickable = onSaveBoolean !== undefined && row.clickableInView;
+                const valueEl = isClickable
+                  ? (
+                    <button
+                      className="cursor-pointer hover:underline"
+                      title="Click to toggle"
+                      type="button"
+                      onClick={() => onSaveBoolean(row.id, !row.rawValue)}
+                    >
+                      {row.value}
+                    </button>
+                  )
+                  : row.value;
+                return (
+                  <div
+                    key={row.id}
+                    className="flex items-baseline gap-2"
+                  >
+                    {row.showValueBeforeLabel
+                      ? (
+                        <>
+                          <dd>{valueEl}</dd>
+                          <dt className="text-muted-foreground">
+                            {row.showLabelColon ? `: ${row.name}` : row.name}
+                          </dt>
+                        </>
+                      )
+                      : (
+                        <>
+                          <dt className="text-muted-foreground">
+                            {row.name}
+                            {row.showLabelColon ? ":" : ""}
+                          </dt>
+                          <dd>{valueEl}</dd>
+                        </>
+                      )}
+                  </div>
+                );
+              })}
               {dateTimeRows.filter(row => inGroup(row.groupId, section.target)).map(row => (
                 <div
                   key={row.id}
