@@ -18,6 +18,8 @@ interface BookmarkDetailBodyProps {
   properties: CustomProperty[];
   /** Property groups, used to group property values under their group headings. */
   propertyGroups: PropertyGroup[];
+  /** When provided, boolean properties with `clickableInView` enabled render as toggles. */
+  onSaveBoolean?: (propertyId: string, value: boolean) => void;
 }
 
 /**
@@ -26,7 +28,7 @@ interface BookmarkDetailBodyProps {
  * lean import surface.
  */
 export function BookmarkDetailBody({
-  bookmark, categories, properties, propertyGroups,
+  bookmark, categories, properties, propertyGroups, onSaveBoolean,
 }: BookmarkDetailBodyProps) {
   const category = categories.find(item => item.id === bookmark.categoryId);
 
@@ -161,6 +163,7 @@ export function BookmarkDetailBody({
         bookmark={bookmark}
         properties={properties}
         propertyGroups={propertyGroups}
+        onSaveBoolean={onSaveBoolean}
       />
 
       <Separator />

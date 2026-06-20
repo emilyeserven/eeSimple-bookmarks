@@ -1,15 +1,15 @@
 import type { BookmarkImageVisibility, HomepageSectionImageLayout, ViewMode } from "../lib/bookmarkColumns";
-import type { CustomAspectRatio, DisplayPresetSettings } from "@eesimple/types";
+import type { CustomAspectRatio, DisplayPreset, DisplayPresetSettings } from "@eesimple/types";
 
 import { useState } from "react";
 
 import { Bookmark } from "lucide-react";
 
-import { DisplayPresetSelect } from "./DisplayPresetSelect";
 import { InlineCreateModal } from "./InlineCreateModal";
 import { useCustomAspectRatios } from "../hooks/useCustomAspectRatios";
-import { useCreateDisplayPreset } from "../hooks/useDisplayPresets";
+import { useCreateDisplayPreset, useDisplayPresets } from "../hooks/useDisplayPresets";
 import { COLUMN_OPTIONS, useBookmarkColumns, useBookmarkImageLayout, useBookmarkImageMode, useBookmarkImageVisibility, useViewMode } from "../lib/bookmarkColumns";
+import { applyDisplayPreset } from "../lib/displayPresets";
 import { useUiStore } from "../stores/uiStore";
 
 import { Button } from "@/components/ui/button";
@@ -22,13 +22,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-
-interface DisplaySettingsControlsProps {
-  pageKey: string;
-  showsImages: boolean;
-  /** When false, the preset picker is omitted (the host renders it elsewhere, e.g. a popover header). */
-  showPresetPicker?: boolean;
-}
 
 function buildAspectOptions(croppedW: number, croppedH: number, customRatios: CustomAspectRatio[]) {
   return [
@@ -55,41 +48,61 @@ function buildAspectOptions(croppedW: number, croppedH: number, customRatios: Cu
   ];
 }
 
+interface DisplaySettingsValue {
+  viewMode: ViewMode;
+  columns: number;
+  imageMode: string;
+  imageVisibility: BookmarkImageVisibility;
+  imageLayout: HomepageSectionImageLayout;
+}
+
+interface DisplaySettingsControlsBaseProps {
+  value: DisplaySettingsValue;
+  onViewModeChange: (value: ViewMode) => void;
+  onColumnsChange: (value: number) => void;
+  onImageModeChange: (value: string) => void;
+  onImageVisibilityChange: (value: BookmarkImageVisibility) => void;
+  onImageLayoutChange: (value: HomepageSectionImageLayout) => void;
+  showsImages: boolean;
+  /** Saved presets to offer in the Apply picker; omit/empty to hide the picker. */
+  presets: DisplayPreset[];
+  /** Apply a saved preset's four layout settings to the current surface. */
+  onApplyPreset: (settings: DisplayPresetSettings) => void;
+  /** Persist the current settings as a named preset; call `done` to close the modal on success. */
+  onSaveAsPreset: (name: string, done: () => void) => void;
+  saveError?: boolean;
+  saveErrorMessage?: string;
+}
+
 /**
- * Per-listing display controls: column count, image visibility/aspect/layout, and preset
- * save/apply. Labels sit left of their control; toggle groups use the bordered variant.
- * Reused by the DisplayOptionsPopover Layout tab, the category Display tab, and Settings → Display.
+ * Controlled display controls: view mode, column count, image visibility/aspect/layout, and preset
+ * apply/save. Presentational — callers supply the value, change handlers, and preset infra. Labels
+ * sit left of their control; toggle groups use the bordered variant. Reused by the uiStore-backed
+ * `DisplaySettingsControls` (listings) and the homepage section form.
  */
-export function DisplaySettingsControls({
-  pageKey, showsImages, showPresetPicker = true,
-}: DisplaySettingsControlsProps) {
-  const viewMode = useViewMode(pageKey);
-  const setViewMode = useUiStore(state => state.setViewMode);
-  const columns = useBookmarkColumns(pageKey);
-  const imageMode = useBookmarkImageMode(pageKey);
-  const imageVisibility = useBookmarkImageVisibility(pageKey);
-  const imageLayout = useBookmarkImageLayout(pageKey);
-  const hiddenFields = useUiStore(state => state.hiddenCardFields[pageKey]) ?? [];
-  const setBookmarkColumns = useUiStore(state => state.setBookmarkColumns);
-  const setBookmarkImageMode = useUiStore(state => state.setBookmarkImageMode);
-  const setBookmarkImageVisibility = useUiStore(state => state.setBookmarkImageVisibility);
-  const setBookmarkImageLayout = useUiStore(state => state.setBookmarkImageLayout);
+export function DisplaySettingsControlsBase({
+  value,
+  onViewModeChange,
+  onColumnsChange,
+  onImageModeChange,
+  onImageVisibilityChange,
+  onImageLayoutChange,
+  showsImages,
+  presets,
+  onApplyPreset,
+  onSaveAsPreset,
+  saveError,
+  saveErrorMessage,
+}: DisplaySettingsControlsBaseProps) {
+  const {
+    viewMode, columns, imageMode, imageVisibility, imageLayout,
+  } = value;
   const croppedWidth = useUiStore(state => state.croppedWidth);
   const croppedHeight = useUiStore(state => state.croppedHeight);
   const {
     data: customRatios = [],
   } = useCustomAspectRatios();
-
-  const createMutation = useCreateDisplayPreset();
   const [saveModalOpen, setSaveModalOpen] = useState(false);
-
-  const currentSettings: DisplayPresetSettings = {
-    columns,
-    imageVisibility,
-    imageMode,
-    imageLayout,
-    hiddenFields,
-  };
 
   return (
     <div className="flex flex-col gap-2.5">
@@ -101,8 +114,8 @@ export function DisplaySettingsControls({
           size="sm"
           value={viewMode}
           className="gap-0 overflow-hidden rounded-md border border-input"
-          onValueChange={(value) => {
-            if (value) setViewMode(pageKey, value as ViewMode);
+          onValueChange={(next) => {
+            if (next) onViewModeChange(next as ViewMode);
           }}
         >
           <ToggleGroupItem
@@ -127,7 +140,33 @@ export function DisplaySettingsControls({
       </div>
 
       {/* Preset picker */}
-      {showPresetPicker && <DisplayPresetSelect pageKey={pageKey} />}
+      {presets.length > 0 && (
+        <div className="flex items-center justify-between gap-4">
+          <Label className="text-sm font-medium">Preset</Label>
+          <Select
+            value=""
+            onValueChange={(presetId) => {
+              const preset = presets.find(p => p.id === presetId);
+              if (!preset) return;
+              onApplyPreset(preset.settings);
+            }}
+          >
+            <SelectTrigger className="h-7 text-xs">
+              <SelectValue placeholder="Apply a preset…" />
+            </SelectTrigger>
+            <SelectContent>
+              {presets.map(preset => (
+                <SelectItem
+                  key={preset.id}
+                  value={preset.id}
+                >
+                  {preset.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       {viewMode === "cards" && (
         <>
@@ -136,7 +175,7 @@ export function DisplaySettingsControls({
             <Label className="text-sm font-medium">Columns</Label>
             <Select
               value={String(columns)}
-              onValueChange={value => setBookmarkColumns(pageKey, Number(value))}
+              onValueChange={next => onColumnsChange(Number(next))}
             >
               <SelectTrigger className="h-7 w-16 text-xs">
                 <SelectValue />
@@ -166,8 +205,8 @@ export function DisplaySettingsControls({
                   className="
                     gap-0 overflow-hidden rounded-md border border-input
                   "
-                  onValueChange={(value) => {
-                    if (value) setBookmarkImageVisibility(pageKey, value as BookmarkImageVisibility);
+                  onValueChange={(next) => {
+                    if (next) onImageVisibilityChange(next as BookmarkImageVisibility);
                   }}
                 >
                   <ToggleGroupItem
@@ -203,7 +242,7 @@ export function DisplaySettingsControls({
                   <Label className="text-sm font-medium">Aspect</Label>
                   <Select
                     value={typeof imageMode === "boolean" ? (imageMode ? "natural" : "cropped") : imageMode}
-                    onValueChange={value => setBookmarkImageMode(pageKey, value)}
+                    onValueChange={next => onImageModeChange(next)}
                   >
                     <SelectTrigger className="h-7 text-xs">
                       <SelectValue />
@@ -232,8 +271,8 @@ export function DisplaySettingsControls({
                     className="
                       gap-0 overflow-hidden rounded-md border border-input
                     "
-                    onValueChange={(value) => {
-                      if (value) setBookmarkImageLayout(pageKey, value as HomepageSectionImageLayout);
+                    onValueChange={(next) => {
+                      if (next) onImageLayoutChange(next as HomepageSectionImageLayout);
                     }}
                   >
                     <ToggleGroupItem
@@ -284,20 +323,89 @@ export function DisplaySettingsControls({
         placeholder="e.g. Compact Grid"
         submitLabel="Save preset"
         pendingLabel="Saving…"
-        isError={createMutation.isError}
-        errorMessage={createMutation.error?.message}
-        onSubmit={(name, done) => {
-          createMutation.mutate(
-            {
-              name,
-              settings: currentSettings,
-            },
-            {
-              onSuccess: done,
-            },
-          );
-        }}
+        isError={saveError ?? false}
+        errorMessage={saveErrorMessage}
+        onSubmit={(name, done) => onSaveAsPreset(name, done)}
       />
     </div>
+  );
+}
+
+interface DisplaySettingsControlsProps {
+  pageKey: string;
+  showsImages: boolean;
+  /** When false, the preset picker is omitted (the host renders it elsewhere, e.g. a popover header). */
+  showPresetPicker?: boolean;
+}
+
+/**
+ * Per-listing display controls backed by uiStore. Reused by the DisplayOptionsPopover Layout tab,
+ * the category Display tab, and Settings → Display. Applying or saving a preset also carries the
+ * page's hidden card fields, so column options travel with the layout.
+ */
+export function DisplaySettingsControls({
+  pageKey, showsImages, showPresetPicker = true,
+}: DisplaySettingsControlsProps) {
+  const viewMode = useViewMode(pageKey);
+  const setViewMode = useUiStore(state => state.setViewMode);
+  const columns = useBookmarkColumns(pageKey);
+  const imageMode = useBookmarkImageMode(pageKey);
+  const imageVisibility = useBookmarkImageVisibility(pageKey);
+  const imageLayout = useBookmarkImageLayout(pageKey);
+  const hiddenFields = useUiStore(state => state.hiddenCardFields[pageKey]) ?? [];
+  const setBookmarkColumns = useUiStore(state => state.setBookmarkColumns);
+  const setBookmarkImageMode = useUiStore(state => state.setBookmarkImageMode);
+  const setBookmarkImageVisibility = useUiStore(state => state.setBookmarkImageVisibility);
+  const setBookmarkImageLayout = useUiStore(state => state.setBookmarkImageLayout);
+  const setHiddenCardFields = useUiStore(state => state.setHiddenCardFields);
+
+  const {
+    data: presets = [],
+  } = useDisplayPresets();
+  const createMutation = useCreateDisplayPreset();
+
+  const currentSettings: DisplayPresetSettings = {
+    columns,
+    imageVisibility,
+    imageMode,
+    imageLayout,
+    hiddenFields,
+  };
+
+  return (
+    <DisplaySettingsControlsBase
+      value={{
+        viewMode,
+        columns,
+        imageMode,
+        imageVisibility,
+        imageLayout,
+      }}
+      onViewModeChange={value => setViewMode(pageKey, value)}
+      onColumnsChange={value => setBookmarkColumns(pageKey, value)}
+      onImageModeChange={value => setBookmarkImageMode(pageKey, value)}
+      onImageVisibilityChange={value => setBookmarkImageVisibility(pageKey, value)}
+      onImageLayoutChange={value => setBookmarkImageLayout(pageKey, value)}
+      showsImages={showsImages}
+      presets={showPresetPicker ? presets : []}
+      onApplyPreset={settings => applyDisplayPreset(pageKey, settings, {
+        setBookmarkColumns,
+        setBookmarkImageVisibility,
+        setBookmarkImageMode,
+        setBookmarkImageLayout,
+        setHiddenCardFields,
+      })}
+      onSaveAsPreset={(name, done) => createMutation.mutate(
+        {
+          name,
+          settings: currentSettings,
+        },
+        {
+          onSuccess: done,
+        },
+      )}
+      saveError={createMutation.isError}
+      saveErrorMessage={createMutation.error?.message}
+    />
   );
 }

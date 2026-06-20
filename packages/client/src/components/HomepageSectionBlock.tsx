@@ -1,13 +1,17 @@
 import type { HomepageSectionBookmarks, CustomProperty } from "@eesimple/types";
 
+import { useNavigate } from "@tanstack/react-router";
 import { ChevronDown, ChevronRight } from "lucide-react";
 
 import { BookmarkCard } from "./BookmarkCard";
+import { useBookmarkTableColumns } from "./tables/bookmarkColumns";
+import { useTableRowNav } from "./tables/useTableRowNav";
 import { COLUMN_CLASS } from "../lib/bookmarkColumns";
 import { useUiStore } from "../stores/uiStore";
 
 import { Button } from "@/components/ui/button";
 import { RowCard } from "@/components/ui/card";
+import { DataTable } from "@/components/ui/data-table";
 
 interface HomepageSectionBlockProps {
   data: HomepageSectionBookmarks;
@@ -22,11 +26,22 @@ export function HomepageSectionBlock({
   } = data;
   const columns = section.columns;
   const imageMode = section.imageMode;
+  const imageVisibility = section.imageVisibility;
   const imageLayout = section.imageLayout;
   const imageLeft = columns === 1 || (columns === 2 && imageLayout === "side");
+  const hiddenFields = new Set(section.hiddenCardFields);
   const collapsedIds = useUiStore(state => state.collapsedHomepageSectionIds);
   const toggle = useUiStore(state => state.toggleHomepageSectionCollapsed);
   const isCollapsed = collapsedIds.includes(section.id);
+
+  const navigate = useNavigate();
+  const rowNav = useTableRowNav();
+  const tableColumns = useBookmarkTableColumns({
+    properties: customProperties,
+    hidden: hiddenFields,
+    imageMode,
+    imageVisibility,
+  });
 
   return (
     <section aria-label={section.title}>
@@ -52,34 +67,53 @@ export function HomepageSectionBlock({
       </div>
 
       {!isCollapsed && (
-        bookmarks.length > 0
+        bookmarks.length === 0
           ? (
-            <div
-              className={`
-                grid gap-3
-                ${COLUMN_CLASS[columns]}
-              `}
-            >
-              {bookmarks.map(bookmark => (
-                <RowCard
-                  key={bookmark.id}
-                  className="p-4"
-                >
-                  <BookmarkCard
-                    bookmark={bookmark}
-                    properties={customProperties}
-                    imageLeft={imageLeft}
-                    imageMode={imageMode}
-                  />
-                </RowCard>
-              ))}
-            </div>
-          )
-          : (
             <p className="text-sm text-muted-foreground">
               No bookmarks match this section&rsquo;s filter.
             </p>
           )
+          : section.viewMode === "table"
+            ? (
+              <DataTable
+                columns={tableColumns}
+                data={bookmarks}
+                sortable
+                onRowClick={(bookmark, event) =>
+                  rowNav(event, "bookmark", bookmark.id, () => {
+                    void navigate({
+                      to: "/bookmarks/$bookmarkId",
+                      params: {
+                        bookmarkId: bookmark.id,
+                      },
+                    });
+                  })}
+              />
+            )
+            : (
+              <div
+                className={`
+                  grid gap-3
+                  ${COLUMN_CLASS[columns]}
+                `}
+              >
+                {bookmarks.map(bookmark => (
+                  <RowCard
+                    key={bookmark.id}
+                    className="p-4"
+                  >
+                    <BookmarkCard
+                      bookmark={bookmark}
+                      properties={customProperties}
+                      imageLeft={imageLeft}
+                      imageMode={imageMode}
+                      imageVisibility={imageVisibility}
+                      hiddenFields={hiddenFields}
+                    />
+                  </RowCard>
+                ))}
+              </div>
+            )
       )}
     </section>
   );

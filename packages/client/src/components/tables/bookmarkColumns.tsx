@@ -1,4 +1,4 @@
-import type { Bookmark, CustomProperty } from "@eesimple/types";
+import type { Bookmark, BookmarkImageVisibility, CustomProperty } from "@eesimple/types";
 import type { ColumnDef } from "@tanstack/react-table";
 
 import { useMemo } from "react";
@@ -42,27 +42,40 @@ function formatPropertyValue(bookmark: Bookmark, property: CustomProperty): stri
 
 interface UseBookmarkTableColumnsArgs {
   properties: CustomProperty[];
-  /** Listing-page key, so the table honors that page's Card Options field toggles. */
-  pageKey: string;
+  /** Listing-page key, so the table honors that page's Card Options field toggles. Omitted for DB-backed surfaces. */
+  pageKey?: string;
   /** When the listing is scoped to one category, only that category's applicable properties get columns. */
   categoryId?: string;
+  /** Explicit hidden field keys, overriding the `pageKey` lookup (homepage sections). */
+  hidden?: Set<string>;
+  /** Explicit image aspect mode, overriding the `pageKey` lookup (homepage sections). */
+  imageMode?: string;
+  /** Explicit image visibility, overriding the `pageKey` lookup (homepage sections). */
+  imageVisibility?: BookmarkImageVisibility;
 }
 
 /**
  * Column definitions for a bookmark listing Table view: fixed taxonomy columns plus one column per
  * applicable, listing-visible custom property. Reuses the same pills, formatters, and
- * `hiddenCardFields` toggles as the bookmark cards so the two views stay consistent.
+ * `hiddenCardFields` toggles as the bookmark cards so the two views stay consistent. Display state
+ * comes from `pageKey` (listings) or explicit overrides (DB-backed homepage sections).
  */
 export function useBookmarkTableColumns({
   properties, pageKey, categoryId,
+  hidden: hiddenOverride,
+  imageMode: imageModeOverride,
+  imageVisibility: imageVisibilityOverride,
 }: UseBookmarkTableColumnsArgs): ColumnDef<Bookmark>[] {
-  const hidden = useHiddenCardFields(pageKey);
+  const pageHidden = useHiddenCardFields(pageKey);
+  const pageImageMode = useBookmarkImageMode(pageKey ?? "");
+  const pageImageVisibility = useBookmarkImageVisibility(pageKey ?? "");
+  const hidden = hiddenOverride ?? pageHidden;
+  const imageMode = imageModeOverride ?? pageImageMode;
+  const imageVisibility = imageVisibilityOverride ?? pageImageVisibility;
   const viewClick = useViewPanelClick();
   const modifier = useUiStore(state => state.sidebarOpenModifier);
   const croppedWidth = useUiStore(state => state.croppedWidth);
   const croppedHeight = useUiStore(state => state.croppedHeight);
-  const imageMode = useBookmarkImageMode(pageKey);
-  const imageVisibility = useBookmarkImageVisibility(pageKey);
   const {
     data: customRatios = [],
   } = useCustomAspectRatios();

@@ -153,7 +153,13 @@ export function PropertyOptionsFields({
     const isIconPreset = property.booleanLabelPreset === "icons" || property.booleanLabelPreset === "stars";
     return (
       <dl className="space-y-3">
-        <DetailField label="Display labels">{labelsDisplay}</DetailField>
+        <DetailField label="How Values Display">{labelsDisplay}</DetailField>
+        <DetailField label="Hide label">
+          {property.hideLabel ? "Yes — only the value is shown" : "No — property name is shown"}
+        </DetailField>
+        <DetailField label="Clickable in view">
+          {property.clickableInView ? "Yes — click to toggle in detail view" : "No — read-only in detail view"}
+        </DetailField>
         <DetailField label="Show if false">
           {property.showIfFalse
             ? "Yes — shown even when unchecked"

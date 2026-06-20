@@ -1,4 +1,4 @@
-import type { ConditionTree, HomepageSection, HomepageSectionImageLayout } from "@eesimple/types";
+import type { BookmarkImageVisibility, ConditionTree, HomepageSection, HomepageSectionImageLayout, ViewMode } from "@eesimple/types";
 
 import { useRef, useState } from "react";
 
@@ -21,6 +21,9 @@ interface HomepageSectionFormValues {
   columns: number;
   imageMode: string;
   imageLayout: HomepageSectionImageLayout;
+  imageVisibility: BookmarkImageVisibility;
+  viewMode: ViewMode;
+  hiddenCardFields: string[];
 }
 
 interface HomepageSectionFormProps {
@@ -47,19 +50,28 @@ export function HomepageSectionForm({
     columns: section?.columns ?? 2,
     imageMode: section?.imageMode ?? "natural",
     imageLayout: section?.imageLayout ?? "above",
+    imageVisibility: section?.imageVisibility ?? "shown",
+    viewMode: section?.viewMode ?? "cards",
+    hiddenCardFields: section?.hiddenCardFields ?? [],
   };
 
   const [values, setValues] = useState<HomepageSectionFormValues>(initialValues);
   const valuesRef = useRef<HomepageSectionFormValues>(initialValues);
 
-  function setField<K extends keyof HomepageSectionFormValues>(key: K, value: HomepageSectionFormValues[K]): void {
+  function setFields(patch: Partial<HomepageSectionFormValues>): void {
     const next = {
       ...valuesRef.current,
-      [key]: value,
+      ...patch,
     };
     valuesRef.current = next;
     setValues(next);
     onChange?.(next);
+  }
+
+  function setField<K extends keyof HomepageSectionFormValues>(key: K, value: HomepageSectionFormValues[K]): void {
+    setFields({
+      [key]: value,
+    });
   }
 
   const {
@@ -94,12 +106,15 @@ export function HomepageSectionForm({
         setTitle={v => setField("title", v)}
         description={values.description ?? ""}
         setDescription={v => setField("description", v)}
-        columns={values.columns}
-        setColumns={v => setField("columns", v)}
-        imageMode={values.imageMode}
-        setImageMode={v => setField("imageMode", v)}
-        imageLayout={values.imageLayout}
-        setImageLayout={v => setField("imageLayout", v)}
+        display={{
+          viewMode: values.viewMode,
+          columns: values.columns,
+          imageMode: values.imageMode,
+          imageVisibility: values.imageVisibility,
+          imageLayout: values.imageLayout,
+          hiddenCardFields: values.hiddenCardFields,
+        }}
+        onDisplayChange={setFields}
         hideIfEmpty={values.hideIfEmpty}
         setHideIfEmpty={v => setField("hideIfEmpty", v)}
         conditions={values.conditions}

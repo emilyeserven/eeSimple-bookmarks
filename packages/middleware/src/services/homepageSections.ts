@@ -7,7 +7,7 @@ import type {
   HomepageSectionBookmarks,
   UpdateHomepageSectionInput,
 } from "@eesimple/types";
-import type { HomepageSectionImageLayout } from "@eesimple/types";
+import type { BookmarkImageVisibility, HomepageSectionImageLayout, ViewMode } from "@eesimple/types";
 import { emptyConditionTree, evaluateConditions } from "@eesimple/types";
 import { db } from "@/db";
 import {
@@ -30,6 +30,9 @@ function toSection(row: SectionRow): HomepageSection {
     columns: row.columns,
     imageMode: row.imageCropMode ?? (row.imageMode ? "natural" : "cropped"),
     imageLayout: row.imageLayout as HomepageSectionImageLayout,
+    imageVisibility: row.imageVisibility as BookmarkImageVisibility,
+    viewMode: row.viewMode as ViewMode,
+    hiddenCardFields: row.hiddenCardFields ?? [],
     createdAt: row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
   };
 }
@@ -69,6 +72,9 @@ export async function createHomepageSection(
       columns: input.columns ?? 2,
       imageCropMode: input.imageMode ?? "natural",
       imageLayout: input.imageLayout ?? "above",
+      imageVisibility: input.imageVisibility ?? "shown",
+      viewMode: input.viewMode ?? "cards",
+      hiddenCardFields: input.hiddenCardFields ?? [],
     })
     .returning();
   return toSection(row);
@@ -88,6 +94,9 @@ export async function updateHomepageSection(
   if (input.columns !== undefined) updates.columns = input.columns;
   if (input.imageMode !== undefined) updates.imageCropMode = input.imageMode;
   if (input.imageLayout !== undefined) updates.imageLayout = input.imageLayout;
+  if (input.imageVisibility !== undefined) updates.imageVisibility = input.imageVisibility;
+  if (input.viewMode !== undefined) updates.viewMode = input.viewMode;
+  if (input.hiddenCardFields !== undefined) updates.hiddenCardFields = input.hiddenCardFields;
 
   if (Object.keys(updates).length === 0) {
     const [existing] = await db

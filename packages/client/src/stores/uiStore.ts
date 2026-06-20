@@ -1,5 +1,5 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
-import type { Bookmark, Category, CustomProperty, MediaType, PropertyGroup, TagNode, Website, YouTubeChannel } from "@eesimple/types";
+import type { Bookmark, BookmarkImageVisibility, Category, CustomProperty, MediaType, PropertyGroup, TagNode, ViewMode, Website, YouTubeChannel } from "@eesimple/types";
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
@@ -19,11 +19,12 @@ export type BookmarkDetailImageSize = "small" | "medium" | "large";
 /** Bookmark detail page video size preference: constrained side-by-side or full-width stacked. */
 export type BookmarkDetailVideoSize = "standard" | "fullwidth";
 
-/** Per-listing image visibility on Listings pages: full card, image-only, or no image. */
-export type BookmarkImageVisibility = "shown" | "image-only" | "off";
-
-/** Per-listing rendering mode: card grid (default) or a data table. */
-export type ViewMode = "cards" | "table";
+/**
+ * Per-listing image visibility (full card, image-only, or no image) and rendering mode (card grid
+ * or a data table). Defined once in `@eesimple/types` and re-exported here so existing
+ * `../stores/uiStore` importers keep working.
+ */
+export type { BookmarkImageVisibility, ViewMode };
 
 /** Clamp a requested bookmark column count to the supported 1–4 range. */
 export function clampColumns(columns: number): number {

@@ -1,7 +1,6 @@
 import type { BookmarkImageVisibility } from "../lib/bookmarkColumns";
 import type {
   Bookmark,
-  BookmarkBooleanValue,
   BookmarkDateTimeValue,
   BookmarkNumberValue,
   CustomProperty,
@@ -15,6 +14,7 @@ import { BookmarkCardHeader } from "./BookmarkCardHeader";
 import { useViewPanelClick } from "./panel/useEditPanelClick";
 import { useAutoBookmarkImage, useUpdateBookmark } from "../hooks/useBookmarks";
 import { useCustomAspectRatios } from "../hooks/useCustomAspectRatios";
+import { mergeBooleanValue } from "../lib/bookmarkFormat";
 import { bookmarkImageAspectStyle, bookmarkImageClass } from "../lib/bookmarkImage";
 
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
@@ -39,6 +39,8 @@ interface BookmarkCardProps {
   imageVisibility?: BookmarkImageVisibility;
   /** Listing-page key, so the card honors that page's Card Options field toggles. Omitted off listing pages. */
   pageKey?: string;
+  /** Explicit hidden field keys, overriding the `pageKey` lookup. Used by DB-backed surfaces (homepage sections). */
+  hiddenFields?: Set<string>;
 }
 
 /** Replace the entry for `propertyId` with `value`, or append it when the property has no value yet. */
@@ -47,25 +49,6 @@ function mergeNumberValue(
   propertyId: string,
   value: number,
 ): BookmarkNumberValue[] {
-  return values.some(entry => entry.propertyId === propertyId)
-    ? values.map(entry => (entry.propertyId === propertyId
-      ? {
-        propertyId,
-        value,
-      }
-      : entry))
-    : [...values, {
-      propertyId,
-      value,
-    }];
-}
-
-/** Replace the entry for `propertyId` with `value`, or append it when the property has no value yet. */
-function mergeBooleanValue(
-  values: BookmarkBooleanValue[],
-  propertyId: string,
-  value: boolean,
-): BookmarkBooleanValue[] {
   return values.some(entry => entry.propertyId === propertyId)
     ? values.map(entry => (entry.propertyId === propertyId
       ? {
@@ -100,7 +83,7 @@ function mergeDateTimeValue(
 
 export function BookmarkCard({
   bookmark, properties = [], onDelete, imageLeft = false, imageMode = "natural",
-  imageVisibility = "shown", pageKey,
+  imageVisibility = "shown", pageKey, hiddenFields,
 }: BookmarkCardProps) {
   const autoImage = useAutoBookmarkImage();
   const updateBookmark = useUpdateBookmark();
@@ -199,6 +182,7 @@ export function BookmarkCard({
       bookmark={bookmark}
       properties={properties}
       pageKey={pageKey}
+      hiddenFields={hiddenFields}
       onSaveRating={saveNumber}
     />
   );

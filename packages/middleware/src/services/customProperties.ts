@@ -82,6 +82,8 @@ function toCustomProperty(
     booleanFalseLabel: row.booleanFalseLabel ?? null,
     showLabelColon: row.showLabelColon ?? true,
     showValueBeforeLabel: row.showValueBeforeLabel ?? false,
+    hideLabel: row.hideLabel ?? false,
+    clickableInView: row.clickableInView ?? false,
     ratingMax: (row.ratingMax as CustomProperty["ratingMax"]) ?? null,
     ratingAllowZero: row.ratingAllowZero ?? false,
     ratingAllowHalf: row.ratingAllowHalf ?? false,
@@ -306,6 +308,8 @@ export async function createCustomProperty(
         booleanFalseLabel: input.booleanFalseLabel ?? null,
         showLabelColon: input.showLabelColon ?? null,
         showValueBeforeLabel: input.showValueBeforeLabel ?? null,
+        hideLabel: input.hideLabel ?? null,
+        clickableInView: input.clickableInView ?? null,
         ratingMax: isRating ? normalizeRatingMax(input.ratingMax) : null,
         ratingAllowZero: isRating ? (input.ratingAllowZero ?? null) : null,
         ratingAllowHalf: isRating ? (input.ratingAllowHalf ?? null) : null,
@@ -360,6 +364,8 @@ export type UpdatePatch = Partial<
     | "booleanFalseLabel"
     | "showLabelColon"
     | "showValueBeforeLabel"
+    | "hideLabel"
+    | "clickableInView"
     | "ratingMax"
     | "ratingAllowZero"
     | "ratingAllowHalf"
@@ -408,6 +414,8 @@ const COPYABLE_FIELDS = [
   "booleanFalseLabel",
   "showLabelColon",
   "showValueBeforeLabel",
+  "hideLabel",
+  "clickableInView",
   "ratingMax",
   "ratingAllowZero",
   "ratingAllowHalf",

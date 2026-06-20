@@ -118,7 +118,46 @@ export function MediaTypeCheckboxList({
       </p>
     );
   }
+
+  const childrenByParent = new Map<string, MediaType[]>();
+  const roots: MediaType[] = [];
+  for (const mt of mediaTypes) {
+    if (mt.parentId) {
+      const siblings = childrenByParent.get(mt.parentId) ?? [];
+      siblings.push(mt);
+      childrenByParent.set(mt.parentId, siblings);
+    }
+    else {
+      roots.push(mt);
+    }
+  }
+  const rootIds = new Set(roots.map(r => r.id));
+  const orphans = mediaTypes.filter(mt => mt.parentId && !rootIds.has(mt.parentId));
+
   const allSelected = allMediaTypes || mediaTypes.every(mt => selectedIds.includes(mt.id));
+
+  const renderRow = (mt: MediaType, indent: boolean) => {
+    const inputId = `${idPrefix}-${mt.id}`;
+    return (
+      <div
+        key={mt.id}
+        className="flex items-center gap-2"
+        style={indent
+          ? {
+            paddingLeft: "1.5rem",
+          }
+          : undefined}
+      >
+        <Checkbox
+          id={inputId}
+          checked={allMediaTypes || selectedIds.includes(mt.id)}
+          onCheckedChange={() => onToggle(mt.id)}
+        />
+        <Label htmlFor={inputId}>{mt.name}</Label>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-2">
       {onToggleAll
@@ -138,33 +177,14 @@ export function MediaTypeCheckboxList({
           </div>
         )
         : null}
-      <div
-        className="
-          grid gap-2
-          sm:grid-cols-2
-        "
-      >
-        {mediaTypes.map((mt) => {
-          const inputId = `${idPrefix}-${mt.id}`;
-          return (
-            <div
-              key={mt.id}
-              className="flex items-center gap-2"
-              style={mt.parentId
-                ? {
-                  paddingLeft: "1rem",
-                }
-                : undefined}
-            >
-              <Checkbox
-                id={inputId}
-                checked={allMediaTypes || selectedIds.includes(mt.id)}
-                onCheckedChange={() => onToggle(mt.id)}
-              />
-              <Label htmlFor={inputId}>{mt.name}</Label>
-            </div>
-          );
-        })}
+      <div className="space-y-1">
+        {roots.map(root => (
+          <div key={root.id}>
+            {renderRow(root, false)}
+            {(childrenByParent.get(root.id) ?? []).map(child => renderRow(child, true))}
+          </div>
+        ))}
+        {orphans.map(mt => renderRow(mt, false))}
       </div>
     </div>
   );

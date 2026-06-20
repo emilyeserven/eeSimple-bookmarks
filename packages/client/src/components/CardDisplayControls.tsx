@@ -1,25 +1,30 @@
+import type { CustomProperty } from "@eesimple/types";
+
 import { STANDARD_CARD_FIELDS } from "../lib/bookmarkCardFields";
 import { useUiStore } from "../stores/uiStore";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
-interface CardDisplayControlsProps {
-  pageKey: string;
+interface CardDisplayControlsBaseProps {
+  /** Field keys currently hidden (standard field key or custom-property id). */
+  hidden: string[];
+  /** Toggle a field key on/off. */
+  onToggle: (fieldKey: string) => void;
+  /** Custom properties the surface can show, used to extend the standard field list. */
+  properties: CustomProperty[];
+  /** Stable id prefix so checkbox/label pairs stay unique when multiple instances share a page. */
+  idPrefix?: string;
 }
 
 /**
- * Per-listing toggles for which fields appear on bookmark cards: the standard fields plus each
- * custom property the page can show. Filters card display on top of each property's global
- * `showInListings` flag without changing it.
+ * Controlled toggles for which fields appear on bookmark cards: the standard fields plus each custom
+ * property the surface can show. Presentational — callers supply `hidden`/`onToggle`/`properties`.
+ * Reused by the uiStore-backed `CardDisplayControls` (listings) and the homepage section form.
  */
-export function CardDisplayControls({
-  pageKey,
-}: CardDisplayControlsProps) {
-  const hidden = useUiStore(state => state.hiddenCardFields[pageKey]) ?? [];
-  const toggleCardField = useUiStore(state => state.toggleCardField);
-  const properties = useUiStore(state => state.filterContext?.properties) ?? [];
-
+export function CardDisplayControlsBase({
+  hidden, onToggle, properties, idPrefix = "card-field",
+}: CardDisplayControlsBaseProps) {
   const customFields = properties
     .filter(property =>
       property.showInListings
@@ -40,13 +45,37 @@ export function CardDisplayControls({
           className="flex items-center gap-2"
         >
           <Checkbox
-            id={`card-field-${field.key}`}
+            id={`${idPrefix}-${field.key}`}
             checked={!hidden.includes(field.key)}
-            onCheckedChange={() => toggleCardField(pageKey, field.key)}
+            onCheckedChange={() => onToggle(field.key)}
           />
-          <Label htmlFor={`card-field-${field.key}`}>{field.label}</Label>
+          <Label htmlFor={`${idPrefix}-${field.key}`}>{field.label}</Label>
         </div>
       ))}
     </div>
+  );
+}
+
+interface CardDisplayControlsProps {
+  pageKey: string;
+}
+
+/**
+ * Per-listing toggles for which fields appear on bookmark cards, backed by uiStore. Filters card
+ * display on top of each property's global `showInListings` flag without changing it.
+ */
+export function CardDisplayControls({
+  pageKey,
+}: CardDisplayControlsProps) {
+  const hidden = useUiStore(state => state.hiddenCardFields[pageKey]) ?? [];
+  const toggleCardField = useUiStore(state => state.toggleCardField);
+  const properties = useUiStore(state => state.filterContext?.properties) ?? [];
+
+  return (
+    <CardDisplayControlsBase
+      hidden={hidden}
+      onToggle={fieldKey => toggleCardField(pageKey, fieldKey)}
+      properties={properties}
+    />
   );
 }

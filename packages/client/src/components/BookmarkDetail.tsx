@@ -28,6 +28,8 @@ interface BookmarkDetailProps {
   propertyGroups?: PropertyGroup[];
   onEdit?: () => void;
   onDelete?: () => void;
+  /** When provided, boolean properties with `clickableInView` enabled render as toggles. */
+  onSaveBoolean?: (propertyId: string, value: boolean) => void;
 }
 
 /**
@@ -36,7 +38,7 @@ interface BookmarkDetailProps {
  * Presentational: pass `categories`/`properties` for labels and `onEdit`/`onDelete` for actions.
  */
 export function BookmarkDetail({
-  bookmark, categories = [], properties = [], propertyGroups = [], onEdit, onDelete,
+  bookmark, categories = [], properties = [], propertyGroups = [], onEdit, onDelete, onSaveBoolean,
 }: BookmarkDetailProps) {
   const imageSize = useUiStore(state => state.bookmarkDetailImageSize);
   const videoSize = useUiStore(state => state.bookmarkDetailVideoSize);
@@ -114,6 +116,7 @@ export function BookmarkDetail({
           categories={categories}
           properties={properties}
           propertyGroups={propertyGroups}
+          onSaveBoolean={onSaveBoolean}
         />
       </div>
     </div>

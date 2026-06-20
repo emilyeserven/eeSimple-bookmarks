@@ -45,14 +45,14 @@ export function DisplayPresetSelect({
       onValueChange={(presetId) => {
         const preset = presets.find(p => p.id === presetId);
         if (!preset) return;
-        applyDisplayPreset(pageKey, preset.id, preset.settings, {
+        applyDisplayPreset(pageKey, preset.settings, {
           setBookmarkColumns,
           setBookmarkImageVisibility,
           setBookmarkImageMode,
           setBookmarkImageLayout,
           setHiddenCardFields,
-          setSelectedDisplayPreset,
         });
+        setSelectedDisplayPreset(pageKey, preset.id);
       }}
     >
       <SelectTrigger className={triggerClassName}>

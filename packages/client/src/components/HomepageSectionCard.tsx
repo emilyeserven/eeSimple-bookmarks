@@ -1,4 +1,4 @@
-import type { HomepageSection, HomepageSectionImageLayout } from "@eesimple/types";
+import type { HomepageSection, UpdateHomepageSectionInput } from "@eesimple/types";
 
 import { useEffect, useRef, useState } from "react";
 
@@ -61,11 +61,7 @@ export function HomepageSectionCard({
     }, AUTOSAVE_DELAY_MS);
   }
 
-  function patchDisplay(input: {
-    columns?: number;
-    imageMode?: string;
-    imageLayout?: HomepageSectionImageLayout;
-  }) {
+  function patchDisplay(input: UpdateHomepageSectionInput) {
     update.mutate({
       id: section.id,
       input,

@@ -8,18 +8,17 @@ interface ApplyDisplayPresetSetters {
   setBookmarkImageMode: (pageKey: string, value: string) => void;
   setBookmarkImageLayout: (pageKey: string, value: HomepageSectionImageLayout) => void;
   setHiddenCardFields: (pageKey: string, fieldKeys: string[]) => void;
-  setSelectedDisplayPreset: (pageKey: string, presetId: string) => void;
 }
 
 /**
- * Apply a saved display preset to a listing page: layout settings plus, when the preset records
- * them, the hidden card fields. Records which preset was applied so the popover can later offer to
- * backfill column settings onto a legacy preset. A preset whose `hiddenFields` is undefined leaves
- * the page's current column visibility untouched.
+ * Apply a saved display preset's settings to a listing page: the four layout settings plus, when the
+ * preset records them, the hidden card fields. A preset whose `hiddenFields` is undefined (a legacy
+ * preset saved before column options were captured) leaves the page's current column visibility
+ * untouched. Tracking which preset was applied (for the backfill offer) is the caller's job, done
+ * where the preset id is known — see `DisplayPresetSelect`.
  */
 export function applyDisplayPreset(
   pageKey: string,
-  presetId: string,
   settings: DisplayPresetSettings,
   setters: ApplyDisplayPresetSetters,
 ): void {
@@ -34,7 +33,6 @@ export function applyDisplayPreset(
   if (settings.hiddenFields !== undefined) {
     setters.setHiddenCardFields(pageKey, settings.hiddenFields);
   }
-  setters.setSelectedDisplayPreset(pageKey, presetId);
 }
 
 /**
