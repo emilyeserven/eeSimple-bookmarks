@@ -1,5 +1,7 @@
 import type { Bookmark, CustomProperty } from "@eesimple/types";
 
+import { useEffect, useRef, useState } from "react";
+
 import { BookmarkTagsBox } from "./BookmarkTagsBox";
 import { CategoryPill } from "./CategoryPill";
 import { MediaTypePill } from "./MediaTypePill";
@@ -69,6 +71,23 @@ export function BookmarkCardDetails({
   } = bookmark;
 
   const showDescription = !!bookmark.description && !hidden.has("description");
+
+  // Only fade the description when it's actually clipped by the 4-line box — a short description
+  // shouldn't imply hidden text. Re-measure on width changes (column count / viewport alter how the
+  // text wraps), mirroring the fade-detection in BookmarkTagsBox.
+  const descriptionRef = useRef<HTMLDivElement>(null);
+  const [descriptionOverflows, setDescriptionOverflows] = useState(false);
+
+  useEffect(() => {
+    const el = descriptionRef.current;
+    if (!el) return;
+    const sync = () => setDescriptionOverflows(el.scrollHeight > el.clientHeight + 1);
+    sync();
+    const observer = new ResizeObserver(sync);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [bookmark.description, showDescription]);
+
   const showCategory = !!bookmarkCategory && !hidden.has("category");
   const showWebsite = !!website && !hidden.has("website");
   const showMediaType = !!mediaType && !hidden.has("mediaType");
@@ -79,14 +98,21 @@ export function BookmarkCardDetails({
     <>
       {showDescription
         ? (
-          <div className="relative mt-2 max-h-18 overflow-hidden">
+          <div
+            ref={descriptionRef}
+            className="relative mt-2 max-h-24 overflow-hidden"
+          >
             <p className="text-sm/6 text-foreground">{bookmark.description}</p>
-            <div
-              className="
-                pointer-events-none absolute inset-x-0 bottom-0 h-8
-                bg-linear-to-t from-card to-transparent
-              "
-            />
+            {descriptionOverflows
+              ? (
+                <div
+                  className="
+                    pointer-events-none absolute inset-x-0 bottom-0 h-8
+                    bg-linear-to-t from-card to-transparent
+                  "
+                />
+              )
+              : null}
           </div>
         )
         : null}

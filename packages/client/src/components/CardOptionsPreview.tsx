@@ -5,11 +5,15 @@ import { useRef } from "react";
 import { ExternalLink, ImageIcon } from "lucide-react";
 
 import { BookmarkCardDetails } from "./BookmarkCardDetails";
+import { CardImageOverlays } from "./CardImageOverlays";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomAspectRatios } from "../hooks/useCustomAspectRatios";
 import { useElementHeight, useObservedWidth } from "../hooks/useObservedWidth";
+import { useHiddenCardFields } from "../lib/bookmarkCardFields";
+import { buildBookmarkValueItems } from "../lib/bookmarkCardValues";
 import {
   useBookmarkColumns,
+  useBookmarkCornerOverlays,
   useBookmarkImageLayout,
   useBookmarkImageMode,
   useBookmarkImageVisibility,
@@ -50,6 +54,8 @@ export function CardOptionsPreview({
   const imageVisibility = useBookmarkImageVisibility(pageKey);
   const columns = useBookmarkColumns(pageKey);
   const imageLayout = useBookmarkImageLayout(pageKey);
+  const cornerOverlays = useBookmarkCornerOverlays(pageKey);
+  const hidden = useHiddenCardFields(pageKey);
   const imageLeft = (columns === 1 || columns === 2) && imageLayout === "side";
   const croppedWidth = useUiStore(state => state.croppedWidth);
   const croppedHeight = useUiStore(state => state.croppedHeight);
@@ -109,10 +115,10 @@ export function CardOptionsPreview({
       },
     ],
     numberValues: visibleProperties
-      .filter(p => p.type === "number")
+      .filter(p => p.type === "number" || p.type === "ratingScale")
       .map(p => ({
         propertyId: p.id,
-        value: 42,
+        value: p.type === "ratingScale" ? 4 : 42,
       })),
     booleanValues: visibleProperties
       .filter(p => p.type === "boolean")
@@ -132,20 +138,34 @@ export function CardOptionsPreview({
     createdAt: PREVIEW_CREATED_AT,
   };
 
+  // Mirror the real card: corner-placed properties are overlaid on the image when the listing allows
+  // it and an image is shown; otherwise they fall back to badges in BookmarkCardDetails.
+  const showImage = imageVisibility !== "off";
+  const overlayItems = showImage && cornerOverlays
+    ? buildBookmarkValueItems(dummyBookmark, visibleProperties, hidden).filter(
+      item => item.corner !== null,
+    )
+    : [];
+  const cornerPropertyIds = new Set(overlayItems.map(item => item.id));
+
   // Placeholder stand-in for the bookmark image, sized exactly like the real card's <img>. Real
   // images in "natural" mode set their own height; with no image to size it, give the placeholder a
-  // default aspect so it reads as an image area rather than collapsing to the icon's height.
-  const imageEl = imageVisibility !== "off"
+  // default aspect so it reads as an image area rather than collapsing to the icon's height. The
+  // `relative` wrapper anchors any corner overlays to the image bounds.
+  const imageEl = showImage
     ? (
-      <div
-        className={`
-          flex items-center justify-center bg-muted
-          ${bookmarkImageClass(imageLeft, imageMode)}
-          ${imageMode === "natural" ? "aspect-16/10" : ""}
-        `}
-        style={bookmarkImageAspectStyle(imageMode, croppedWidth, croppedHeight, customRatios)}
-      >
-        <ImageIcon className="size-6 text-muted-foreground" />
+      <div className={imageLeft ? "relative shrink-0 self-start" : "relative"}>
+        <div
+          className={`
+            flex items-center justify-center bg-muted
+            ${bookmarkImageClass(imageLeft, imageMode)}
+            ${imageMode === "natural" ? "aspect-16/10" : ""}
+          `}
+          style={bookmarkImageAspectStyle(imageMode, croppedWidth, croppedHeight, customRatios)}
+        >
+          <ImageIcon className="size-6 text-muted-foreground" />
+        </div>
+        {overlayItems.length > 0 ? <CardImageOverlays items={overlayItems} /> : null}
       </div>
     )
     : null;
@@ -162,6 +182,7 @@ export function CardOptionsPreview({
       bookmark={dummyBookmark}
       properties={visibleProperties}
       pageKey={pageKey}
+      cornerPropertyIds={cornerPropertyIds}
     />
   );
 

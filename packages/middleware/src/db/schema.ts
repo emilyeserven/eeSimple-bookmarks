@@ -572,6 +572,12 @@ export const customProperties = pgTable("custom_properties", {
   // "bottom-left" | "bottom-right". NULL → no corner (rendered as a badge below the image, the
   // default). Nullable/text so it's an additive, push-safe column.
   cardImageCorner: text("card_image_corner"),
+  // Scale factor for a corner overlay (1, 1.5, or 2). NULL → 1 (normal size). Only meaningful when
+  // cardImageCorner is set. Nullable real so it's an additive, push-safe column.
+  cardImageCornerScale: real("card_image_corner_scale"),
+  // When true, a corner overlay shows only the value, dropping the property-name label. NULL →
+  // false. Only meaningful when cardImageCorner is set. Nullable so it's additive, push-safe.
+  cardImageCornerHideLabel: boolean("card_image_corner_hide_label"),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),

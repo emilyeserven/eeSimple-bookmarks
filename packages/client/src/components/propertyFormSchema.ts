@@ -51,6 +51,8 @@ export const propertySchema = z
     ratingShowLabel: z.boolean(),
     ratingLabel: z.string(),
     cardImageCorner: z.enum(["none", "top-left", "top-right", "bottom-left", "bottom-right"]),
+    cardImageCornerScale: z.enum(["1", "1.5", "2"]),
+    cardImageCornerHideLabel: z.boolean(),
   })
   .superRefine((value, ctx) => {
     if (value.type === "calculate" && value.operandIds.length < 2) {
@@ -108,6 +110,8 @@ export const CREATE_DEFAULTS: PropertyFormValues = {
   ratingShowLabel: false,
   ratingLabel: "",
   cardImageCorner: "none",
+  cardImageCornerScale: "1",
+  cardImageCornerHideLabel: false,
 };
 
 /**
@@ -172,6 +176,12 @@ export function valuesFromProperty(property: CustomProperty): PropertyFormValues
     ratingShowLabel: property.ratingShowLabel,
     ratingLabel: property.ratingLabel ?? "",
     cardImageCorner: property.cardImageCorner ?? "none",
+    cardImageCornerScale: property.cardImageCornerScale === 2
+      ? "2"
+      : property.cardImageCornerScale === 1.5
+        ? "1.5"
+        : "1",
+    cardImageCornerHideLabel: property.cardImageCornerHideLabel,
   };
 }
 
@@ -228,5 +238,9 @@ export function payloadFromValues(values: PropertyFormValues): CreateCustomPrope
     ratingShowLabel: isRating ? values.ratingShowLabel : undefined,
     ratingLabel: isRating ? trimOrNull(values.ratingLabel) : null,
     cardImageCorner: values.cardImageCorner === "none" ? null : values.cardImageCorner,
+    cardImageCornerScale:
+      values.cardImageCorner === "none" ? 1 : Number(values.cardImageCornerScale),
+    cardImageCornerHideLabel:
+      values.cardImageCorner === "none" ? false : values.cardImageCornerHideLabel,
   };
 }

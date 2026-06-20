@@ -1,6 +1,6 @@
 import type { Bookmark, CardImageCorner, CustomProperty } from "@eesimple/types";
 
-import { formatBooleanBadge, formatDateTime, formatNumber } from "./bookmarkFormat";
+import { formatBoolean, formatBooleanBadge, formatDateTime, formatNumber } from "./bookmarkFormat";
 
 /**
  * A single custom-property value ready to render on a bookmark card. `kind` discriminates how it is
@@ -41,6 +41,10 @@ export function buildBookmarkValueItems(
   const byId = new Map(properties.map(property => [property.id, property]));
   const items: BookmarkValueItem[] = [];
 
+  // A corner-placed property may drop its name label, showing just the value in the overlay.
+  const hideCornerLabel = (property: CustomProperty): boolean =>
+    property.cardImageCorner != null && property.cardImageCornerHideLabel;
+
   for (const entry of bookmark.numberValues) {
     const property = byId.get(entry.propertyId);
     if (!property || !property.showInListings || hidden.has(entry.propertyId)) continue;
@@ -59,7 +63,9 @@ export function buildBookmarkValueItems(
         id: entry.propertyId,
         property,
         corner: property.cardImageCorner ?? null,
-        label: `${property.name}: ${formatNumber(entry.value, property)}`,
+        label: hideCornerLabel(property)
+          ? formatNumber(entry.value, property)
+          : `${property.name}: ${formatNumber(entry.value, property)}`,
       });
     }
   }
@@ -73,7 +79,9 @@ export function buildBookmarkValueItems(
       id: entry.propertyId,
       property,
       corner: property.cardImageCorner ?? null,
-      label: formatBooleanBadge(entry.value, property),
+      label: hideCornerLabel(property)
+        ? formatBoolean(entry.value, property)
+        : formatBooleanBadge(entry.value, property),
       booleanValue: entry.value,
     });
   }
@@ -86,7 +94,9 @@ export function buildBookmarkValueItems(
       id: entry.propertyId,
       property,
       corner: property.cardImageCorner ?? null,
-      label: `${property.name}: ${formatDateTime(entry.value, property)}`,
+      label: hideCornerLabel(property)
+        ? formatDateTime(entry.value, property)
+        : `${property.name}: ${formatDateTime(entry.value, property)}`,
     });
   }
 
@@ -110,23 +120,31 @@ export function buildBookmarkValueItems(
   return items;
 }
 
-/** The four image corners, in DOM order, paired with their absolute-positioning classes. */
+/**
+ * The four image corners, in DOM order, paired with their absolute-positioning classes and the CSS
+ * `transform-origin` to anchor a scaled overlay at that corner so it grows inward from the edge.
+ */
 export const CARD_IMAGE_CORNERS: { corner: CardImageCorner;
-  className: string; }[] = [
+  className: string;
+  transformOrigin: string; }[] = [
   {
     corner: "top-left",
     className: "left-1 top-1 items-start",
+    transformOrigin: "top left",
   },
   {
     corner: "top-right",
     className: "right-1 top-1 items-end",
+    transformOrigin: "top right",
   },
   {
     corner: "bottom-left",
     className: "bottom-1 left-1 items-start",
+    transformOrigin: "bottom left",
   },
   {
     corner: "bottom-right",
     className: "bottom-1 right-1 items-end",
+    transformOrigin: "bottom right",
   },
 ];

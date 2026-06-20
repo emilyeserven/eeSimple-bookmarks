@@ -159,6 +159,13 @@ const createPropertyBody = {
       type: ["string", "null"],
       enum: ["top-left", "top-right", "bottom-left", "bottom-right", null],
     },
+    cardImageCornerScale: {
+      type: ["number", "null"],
+      enum: [1, 1.5, 2, null],
+    },
+    cardImageCornerHideLabel: {
+      type: "boolean",
+    },
     propertyGroupId: nullableUuid,
   },
 } as const;
@@ -205,6 +212,8 @@ const updatePropertyBody = {
     ratingShowLabel: createPropertyBody.properties.ratingShowLabel,
     ratingLabel: createPropertyBody.properties.ratingLabel,
     cardImageCorner: createPropertyBody.properties.cardImageCorner,
+    cardImageCornerScale: createPropertyBody.properties.cardImageCornerScale,
+    cardImageCornerHideLabel: createPropertyBody.properties.cardImageCornerHideLabel,
     propertyGroupId: createPropertyBody.properties.propertyGroupId,
   },
 } as const;
