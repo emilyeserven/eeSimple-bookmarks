@@ -1,11 +1,11 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 
-import { mergeBooleanValue } from "../components/BookmarkCard";
 import { BookmarkDetail } from "../components/BookmarkDetail";
 import { useBookmark, useUpdateBookmark } from "../hooks/useBookmarks";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { usePropertyGroups } from "../hooks/usePropertyGroups";
+import { mergeBooleanValue } from "../lib/bookmarkFormat";
 
 export const Route = createFileRoute("/bookmarks/$bookmarkId/")({
   component: BookmarkDetailPage,

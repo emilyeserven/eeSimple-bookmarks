@@ -1,4 +1,4 @@
-import type { CustomProperty } from "@eesimple/types";
+import type { BookmarkBooleanValue, CustomProperty } from "@eesimple/types";
 
 import { formatDateTimeValue } from "./datetime";
 
@@ -71,4 +71,23 @@ export function formatBooleanBadge(value: boolean, property: CustomProperty): st
   return property.showValueBeforeLabel
     ? `${formatted}${sep}${property.name}`
     : `${property.name}${sep}${formatted}`;
+}
+
+/** Replace the entry for `propertyId` with `value`, or append it when the property has no value yet. */
+export function mergeBooleanValue(
+  values: BookmarkBooleanValue[],
+  propertyId: string,
+  value: boolean,
+): BookmarkBooleanValue[] {
+  return values.some(entry => entry.propertyId === propertyId)
+    ? values.map(entry => (entry.propertyId === propertyId
+      ? {
+        propertyId,
+        value,
+      }
+      : entry))
+    : [...values, {
+      propertyId,
+      value,
+    }];
 }

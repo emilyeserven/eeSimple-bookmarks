@@ -463,24 +463,36 @@ function BooleanOptions({
                   <p className="text-xs font-medium text-muted-foreground">Preview</p>
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-2 text-sm">
-                      <span className="
-                        w-10 shrink-0 text-xs text-muted-foreground
-                      ">True</span>
-                      <span className="
-                        rounded-sm border bg-background px-2 py-0.5 font-mono
-                        text-xs
-                      ">
+                      <span
+                        className="
+                          w-10 shrink-0 text-xs text-muted-foreground
+                        "
+                      >
+                        True
+                      </span>
+                      <span
+                        className="
+                          rounded-sm border bg-background px-2 py-0.5 font-mono
+                          text-xs
+                        "
+                      >
                         {formatBooleanBadge(true, mock)}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
-                      <span className="
-                        w-10 shrink-0 text-xs text-muted-foreground
-                      ">False</span>
-                      <span className="
-                        rounded-sm border bg-background px-2 py-0.5 font-mono
-                        text-xs
-                      ">
+                      <span
+                        className="
+                          w-10 shrink-0 text-xs text-muted-foreground
+                        "
+                      >
+                        False
+                      </span>
+                      <span
+                        className="
+                          rounded-sm border bg-background px-2 py-0.5 font-mono
+                          text-xs
+                        "
+                      >
                         {formatBooleanBadge(false, mock)}
                       </span>
                     </div>

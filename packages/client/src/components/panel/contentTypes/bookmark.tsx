@@ -11,7 +11,7 @@ import { useBookmarks, useDeleteBookmark, useUpdateBookmark } from "../../../hoo
 import { useCategories } from "../../../hooks/useCategories";
 import { useCustomProperties } from "../../../hooks/useCustomProperties";
 import { usePropertyGroups } from "../../../hooks/usePropertyGroups";
-import { mergeBooleanValue } from "../../BookmarkCard";
+import { mergeBooleanValue } from "../../../lib/bookmarkFormat";
 import { BookmarkDetail } from "../../BookmarkDetail";
 import { BookmarkForm } from "../../BookmarkForm";
 

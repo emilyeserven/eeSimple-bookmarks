@@ -170,7 +170,10 @@ export function BookmarkPropertySections({
                 const valueEl = isClickable
                   ? (
                     <button
-                      className="cursor-pointer hover:underline"
+                      className="
+                        cursor-pointer
+                        hover:underline
+                      "
                       title="Click to toggle"
                       type="button"
                       onClick={() => onSaveBoolean(row.id, !row.rawValue)}
