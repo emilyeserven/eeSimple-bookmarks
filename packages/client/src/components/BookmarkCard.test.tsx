@@ -288,6 +288,69 @@ describe("BookmarkCard", () => {
     });
   });
 
+  it("toggles a clickable-in-view boolean by clicking its card badge", async () => {
+    updateMutate.mockReset();
+    const reviewedClickable = {
+      ...reviewedProperty,
+      clickableInView: true,
+    };
+    await renderWithRouter(
+      <BookmarkCard
+        bookmark={{
+          ...bookmark,
+          booleanValues: [
+            {
+              propertyId: "prop-reviewed",
+              value: true,
+            },
+          ],
+        }}
+        properties={[reviewedClickable]}
+      />,
+      {
+        paths: [DETAIL_PATH],
+      },
+    );
+    fireEvent.click(screen.getByRole("button", {
+      name: "Reviewed: Yes",
+    }));
+    expect(updateMutate).toHaveBeenCalledWith({
+      id: bookmark.id,
+      input: {
+        booleanValues: [
+          {
+            propertyId: "prop-reviewed",
+            value: false,
+          },
+        ],
+      },
+    });
+  });
+
+  it("does not make a boolean card badge clickable when clickableInView is off", async () => {
+    await renderWithRouter(
+      <BookmarkCard
+        bookmark={{
+          ...bookmark,
+          booleanValues: [
+            {
+              propertyId: "prop-reviewed",
+              value: true,
+            },
+          ],
+        }}
+        properties={[reviewedProperty]}
+      />,
+      {
+        paths: [DETAIL_PATH],
+      },
+    );
+    expect(screen.queryByRole("button", {
+      name: "Reviewed: Yes",
+    })).not.toBeInTheDocument();
+    expect(screen.getByText("Reviewed: Yes")).toBeInTheDocument();
+  });
+
   it("edits a number property from the card menu and saves on blur", async () => {
     updateMutate.mockReset();
     const starsOnCard = {

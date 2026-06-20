@@ -184,6 +184,7 @@ export function BookmarkCard({
       pageKey={pageKey}
       hiddenFields={hiddenFields}
       onSaveRating={saveNumber}
+      onSaveBoolean={saveBoolean}
     />
   );
 

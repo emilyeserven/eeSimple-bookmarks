@@ -20,11 +20,13 @@ interface BookmarkCardDetailsProps {
   hiddenFields?: Set<string>;
   /** Persist a rating-scale value edited inline on the card (only wired when the property is `editableOnCard`). */
   onSaveRating?: (propertyId: string, value: number) => void;
+  /** Toggle a boolean value from the card (only wired for properties with `clickableInView`). */
+  onSaveBoolean?: (propertyId: string, value: boolean) => void;
 }
 
 /** The body of a bookmark card: description, taxonomy badges, tags, and custom-property value badges. */
 export function BookmarkCardDetails({
-  bookmark, properties, pageKey, hiddenFields, onSaveRating,
+  bookmark, properties, pageKey, hiddenFields, onSaveRating, onSaveBoolean,
 }: BookmarkCardDetailsProps) {
   const pageHidden = useHiddenCardFields(pageKey);
   const hidden = hiddenFields ?? pageHidden;
@@ -70,13 +72,18 @@ export function BookmarkCardDetails({
       const property = byId.get(entry.propertyId);
       if (!property || !property.showInListings) return null;
       if (!entry.value && !property.showIfFalse) return null;
+      const onToggle = onSaveBoolean && property.clickableInView
+        ? () => onSaveBoolean(entry.propertyId, !entry.value)
+        : undefined;
       return {
         id: entry.propertyId,
         label: formatBooleanBadge(entry.value, property),
+        onToggle,
       };
     })
     .filter((badge): badge is { id: string;
-      label: string; } => badge !== null);
+      label: string;
+      onToggle: (() => void) | undefined; } => badge !== null);
 
   const dateTimeBadges = bookmark.dateTimeValues
     .map((entry) => {
@@ -91,7 +98,9 @@ export function BookmarkCardDetails({
     .filter((badge): badge is { id: string;
       label: string; } => badge !== null);
 
-  const valueBadges = [...numberBadges, ...booleanBadges, ...dateTimeBadges]
+  const valueBadges: { id: string;
+    label: string;
+    onToggle?: () => void; }[] = [...numberBadges, ...booleanBadges, ...dateTimeBadges]
     .filter(badge => !hidden.has(badge.id));
 
   const {
@@ -152,11 +161,39 @@ export function BookmarkCardDetails({
       {valueBadges.length > 0
         ? (
           <ul className="mt-2 flex flex-wrap gap-1">
-            {valueBadges.map(badge => (
-              <li key={badge.id}>
-                <Badge variant="outline">{badge.label}</Badge>
-              </li>
-            ))}
+            {valueBadges.map((badge) => {
+              const {
+                onToggle,
+              } = badge;
+              return (
+                <li key={badge.id}>
+                  {onToggle
+                    ? (
+                      <button
+                        type="button"
+                        title="Click to toggle"
+                        onClick={(event) => {
+                          // Don't let the toggle bubble to any surrounding card navigation.
+                          event.preventDefault();
+                          event.stopPropagation();
+                          onToggle();
+                        }}
+                      >
+                        <Badge
+                          variant="outline"
+                          className="
+                            cursor-pointer
+                            hover:bg-accent
+                          "
+                        >
+                          {badge.label}
+                        </Badge>
+                      </button>
+                    )
+                    : <Badge variant="outline">{badge.label}</Badge>}
+                </li>
+              );
+            })}
           </ul>
         )
         : null}
