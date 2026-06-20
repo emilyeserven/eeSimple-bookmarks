@@ -1,4 +1,4 @@
-import type { Bookmark } from "@eesimple/types";
+import type { Bookmark, CustomProperty } from "@eesimple/types";
 
 import { useRef } from "react";
 
@@ -17,6 +17,12 @@ import {
 import { bookmarkImageAspectStyle, bookmarkImageClass } from "../lib/bookmarkImage";
 import { useUiStore } from "../stores/uiStore";
 
+/**
+ * Stable empty default so the zustand selector never returns a fresh array. A new `[]` each call
+ * makes `useSyncExternalStore` loop ("Maximum update depth exceeded").
+ */
+const EMPTY_PROPERTIES: CustomProperty[] = [];
+
 const PREVIEW_CREATED_AT = "2026-01-15T12:00:00.000Z";
 
 /** Width the preview is scaled down to so it fits beside the field toggles in the popover. */
@@ -34,7 +40,7 @@ export function CardOptionsPreview({
   } = useCategories();
   const dummyCategory = allCategories.find(c => !c.builtIn);
 
-  const filterProperties = useUiStore(state => state.filterContext?.properties ?? []);
+  const filterProperties = useUiStore(state => state.filterContext?.properties) ?? EMPTY_PROPERTIES;
   const visibleProperties = filterProperties.filter(
     p => p.showInListings && p.type !== "calculate",
   );

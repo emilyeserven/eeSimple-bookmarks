@@ -16,6 +16,13 @@ import { RowCard } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
 import { useUiStore } from "@/stores/uiStore";
 
+/**
+ * Stable empty default for a page with no saved column widths. Returning a fresh `{}` from the
+ * zustand selector would make `useSyncExternalStore` see a new snapshot every render and loop
+ * ("Maximum update depth exceeded"), so the fallback must be a shared constant.
+ */
+const EMPTY_COLUMN_SIZING: Record<string, number> = {};
+
 interface BookmarkListPaneProps {
   /** Stable listing-page key, so cards can honor that page's Card Options field toggles. */
   pageKey: string;
@@ -54,7 +61,7 @@ export function BookmarkListPane({
 }: BookmarkListPaneProps) {
   const deleteBookmark = useDeleteBookmark();
   const viewMode = useViewMode(pageKey);
-  const tableColumnWidths = useUiStore(state => state.tableColumnWidths[pageKey] ?? {});
+  const tableColumnWidths = useUiStore(state => state.tableColumnWidths[pageKey]) ?? EMPTY_COLUMN_SIZING;
   const setTableColumnWidths = useUiStore(state => state.setTableColumnWidths);
   const tableColumns = useBookmarkTableColumns({
     properties,
