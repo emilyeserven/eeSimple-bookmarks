@@ -19,6 +19,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { formatBooleanBadge } from "@/lib/bookmarkFormat";
 
 interface PropertyOptionsSectionProps {
   form: PropertyFormApi;
@@ -295,6 +296,8 @@ function BooleanOptions({
               booleanFalseLabel: state.values.booleanFalseLabel,
               showLabelColon: state.values.showLabelColon,
               showValueBeforeLabel: state.values.showValueBeforeLabel,
+              hideLabel: state.values.hideLabel,
+              clickableInView: state.values.clickableInView,
             })}
           >
             {values => summarizeBooleanOptions(values)}
@@ -305,7 +308,7 @@ function BooleanOptions({
           <form.AppField name="booleanLabelPreset">
             {field => (
               <field.SelectField
-                label="Display labels"
+                label="How Values Display"
                 options={BOOLEAN_LABEL_PRESET_OPTIONS}
               />
             )}
@@ -360,6 +363,42 @@ function BooleanOptions({
             When unchecked, the property is hidden from cards and detail pages when its value is false.
           </p>
 
+          <form.AppField name="hideLabel">
+            {field => (
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id={`${idPrefix}-hide-label`}
+                  checked={field.state.value}
+                  onCheckedChange={checked => field.handleChange(checked === true)}
+                />
+                <Label htmlFor={`${idPrefix}-hide-label`}>
+                  Hide label
+                </Label>
+              </div>
+            )}
+          </form.AppField>
+          <p className="text-xs text-muted-foreground">
+            When checked, the property name is omitted — only the value is shown.
+          </p>
+
+          <form.AppField name="clickableInView">
+            {field => (
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id={`${idPrefix}-clickable-in-view`}
+                  checked={field.state.value}
+                  onCheckedChange={checked => field.handleChange(checked === true)}
+                />
+                <Label htmlFor={`${idPrefix}-clickable-in-view`}>
+                  Clickable in view
+                </Label>
+              </div>
+            )}
+          </form.AppField>
+          <p className="text-xs text-muted-foreground">
+            When checked, the value can be clicked in the detail view to toggle it without entering edit mode.
+          </p>
+
           <form.Subscribe selector={state => state.values.booleanLabelPreset}>
             {preset =>
               preset === "icons" || preset === "stars"
@@ -396,6 +435,71 @@ function BooleanOptions({
                   </div>
                 )
                 : null}
+          </form.Subscribe>
+
+          <form.Subscribe
+            selector={state => ({
+              name: state.values.name,
+              booleanLabelPreset: state.values.booleanLabelPreset,
+              booleanTrueLabel: state.values.booleanTrueLabel,
+              booleanFalseLabel: state.values.booleanFalseLabel,
+              showLabelColon: state.values.showLabelColon,
+              showValueBeforeLabel: state.values.showValueBeforeLabel,
+              hideLabel: state.values.hideLabel,
+            })}
+          >
+            {(values) => {
+              const mock = {
+                name: values.name.trim() || "Property",
+                booleanLabelPreset: values.booleanLabelPreset as CustomProperty["booleanLabelPreset"],
+                booleanTrueLabel: values.booleanTrueLabel.trim() || null,
+                booleanFalseLabel: values.booleanFalseLabel.trim() || null,
+                showLabelColon: values.showLabelColon,
+                showValueBeforeLabel: values.showValueBeforeLabel,
+                hideLabel: values.hideLabel,
+              } as CustomProperty;
+              return (
+                <div className="space-y-2 rounded-md border bg-muted/30 p-3">
+                  <p className="text-xs font-medium text-muted-foreground">Preview</p>
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2 text-sm">
+                      <span
+                        className="
+                          w-10 shrink-0 text-xs text-muted-foreground
+                        "
+                      >
+                        True
+                      </span>
+                      <span
+                        className="
+                          rounded-sm border bg-background px-2 py-0.5 font-mono
+                          text-xs
+                        "
+                      >
+                        {formatBooleanBadge(true, mock)}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <span
+                        className="
+                          w-10 shrink-0 text-xs text-muted-foreground
+                        "
+                      >
+                        False
+                      </span>
+                      <span
+                        className="
+                          rounded-sm border bg-background px-2 py-0.5 font-mono
+                          text-xs
+                        "
+                      >
+                        {formatBooleanBadge(false, mock)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            }}
           </form.Subscribe>
 
           <AllowDefaultField

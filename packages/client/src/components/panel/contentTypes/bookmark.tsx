@@ -7,10 +7,11 @@ import { Bookmark } from "lucide-react";
 
 import { usePanelControls, usePanelDismissAfterDelete } from "./panelHelpers";
 import { WithPanelItem } from "./status";
-import { useBookmarks, useDeleteBookmark } from "../../../hooks/useBookmarks";
+import { useBookmarks, useDeleteBookmark, useUpdateBookmark } from "../../../hooks/useBookmarks";
 import { useCategories } from "../../../hooks/useCategories";
 import { useCustomProperties } from "../../../hooks/useCustomProperties";
 import { usePropertyGroups } from "../../../hooks/usePropertyGroups";
+import { mergeBooleanValue } from "../../../lib/bookmarkFormat";
 import { BookmarkDetail } from "../../BookmarkDetail";
 import { BookmarkForm } from "../../BookmarkForm";
 
@@ -54,6 +55,7 @@ function BookmarkView({
   } = usePanelControls();
   const dismiss = usePanelDismissAfterDelete();
   const deleteBookmark = useDeleteBookmark();
+  const updateBookmark = useUpdateBookmark();
 
   return (
     <WithPanelItem
@@ -70,6 +72,12 @@ function BookmarkView({
           onEdit={() => openItem("bookmark", id, "edit")}
           onDelete={() => deleteBookmark.mutate(id, {
             onSuccess: dismiss,
+          })}
+          onSaveBoolean={(propertyId, value) => updateBookmark.mutate({
+            id: bookmark.id,
+            input: {
+              booleanValues: mergeBooleanValue(bookmark.booleanValues, propertyId, value),
+            },
           })}
         />
       )}

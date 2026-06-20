@@ -40,6 +40,8 @@ function property(overrides: Partial<CustomProperty>): CustomProperty {
     booleanFalseLabel: null,
     showLabelColon: true,
     showValueBeforeLabel: false,
+    hideLabel: false,
+    clickableInView: false,
     ratingMax: null,
     ratingAllowZero: false,
     ratingAllowHalf: false,
