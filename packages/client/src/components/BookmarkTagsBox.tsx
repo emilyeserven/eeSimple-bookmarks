@@ -33,7 +33,7 @@ export function BookmarkTagsBox({
         ref={ref}
         onScroll={sync}
         className="
-          flex max-h-20 flex-wrap gap-1 overflow-y-auto rounded-md border p-1
+          flex max-h-20 flex-wrap gap-1 overflow-y-auto rounded-md border px-1 pb-1
         "
       >
         {tags.map(tag => (
