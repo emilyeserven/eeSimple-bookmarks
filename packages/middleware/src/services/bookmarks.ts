@@ -19,6 +19,7 @@ import {
   type BookmarkRow,
   bookmarkTags,
 } from "@/db/schema";
+import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { getBookmarkImageRow } from "@/services/bookmarkImages";
 import {
   captureChannelAvatar,
@@ -264,6 +265,9 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
   void captureWebsiteFavicon(websiteId, "create");
   void captureChannelAvatar(youtubeChannelId, "create");
 
+  // A new bookmark changes what homepage sections / autofill previews match.
+  invalidateBookmarkCache();
+
   // Re-read so callers always get the hydrated shape.
   return (await getBookmark(id))!;
 }
@@ -413,6 +417,8 @@ export async function updateBookmark(
   if (found) {
     void captureWebsiteFavicon(touchedWebsiteId ?? null, "update");
     void captureChannelAvatar(touchedChannelId ?? null, "update");
+    // Edits to a bookmark's matchable fields change homepage / preview matching.
+    invalidateBookmarkCache();
   }
 
   return found ? getBookmark(id) : null;
@@ -422,6 +428,7 @@ export async function deleteBookmark(id: string): Promise<boolean> {
   const rows = await db.delete(bookmarks).where(eq(bookmarks.id, id)).returning({
     id: bookmarks.id,
   });
+  if (rows.length > 0) invalidateBookmarkCache();
   return rows.length > 0;
 }
 

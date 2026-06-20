@@ -227,6 +227,68 @@ test("migrateDomainMatches leaves trees without a domain match untouched", () =>
   assert.equal(result.node, tree);
 });
 
+test("POST /api/autofill-rules/preview rejects a payload missing conditions", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "POST",
+    url: "/api/autofill-rules/preview",
+    payload: {
+      query: "ponzu",
+    },
+  });
+  assert.equal(res.statusCode, 400);
+  await app.close();
+});
+
+test("POST /api/autofill-rules/preview rejects an unknown leaf type", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "POST",
+    url: "/api/autofill-rules/preview",
+    payload: {
+      conditions: {
+        type: "group",
+        combinator: "and",
+        children: [{
+          type: "nonsense",
+        }],
+      },
+    },
+  });
+  assert.equal(res.statusCode, 400);
+  await app.close();
+});
+
+test("POST /api/autofill-rules/preview rejects a limit above the maximum", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "POST",
+    url: "/api/autofill-rules/preview",
+    payload: {
+      conditions: validConditions,
+      limit: 51,
+    },
+  });
+  assert.equal(res.statusCode, 400);
+  await app.close();
+});
+
+test("POST /api/autofill-rules/preview accepts a valid conditions/query/limit (schema)", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "POST",
+    url: "/api/autofill-rules/preview",
+    payload: {
+      conditions: validConditions,
+      query: "ponzu",
+      limit: 10,
+    },
+  });
+  // No DB in this test, so the handler may 500; we only assert the schema accepted the payload.
+  assert.notEqual(res.statusCode, 400);
+  await app.close();
+});
+
 test("PATCH /api/autofill-rules/:id rejects a non-uuid id", async () => {
   const app = await buildApp();
   const res = await app.inject({

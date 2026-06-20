@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import type {
+  AutofillPreviewInput,
   CreateAutofillRuleInput,
   UpdateAutofillRuleInput,
 } from "@eesimple/types";
@@ -8,6 +9,7 @@ import {
   deleteAutofillRule,
   getAutofillRuleBySlug,
   listAutofillRules,
+  previewAutofillMatches,
   updateAutofillRule,
 } from "@/services/autofill";
 
@@ -132,6 +134,25 @@ const slugParams = {
   },
 } as const;
 
+const previewBody = {
+  type: "object",
+  required: ["conditions"],
+  additionalProperties: false,
+  properties: {
+    conditions: {
+      $ref: "conditionTree#",
+    },
+    query: {
+      type: "string",
+    },
+    limit: {
+      type: "integer",
+      minimum: 1,
+      maximum: 50,
+    },
+  },
+} as const;
+
 /** CRUD routes for autofill rules, mounted under `/api/autofill-rules`. */
 export async function autofillRoutes(app: FastifyInstance): Promise<void> {
   app.get("/api/autofill-rules", {
@@ -155,6 +176,13 @@ export async function autofillRoutes(app: FastifyInstance): Promise<void> {
     });
     return rule;
   });
+
+  app.post("/api/autofill-rules/preview", {
+    schema: {
+      tags: ["autofill"],
+      body: previewBody,
+    },
+  }, async req => previewAutofillMatches(req.body as AutofillPreviewInput));
 
   app.post("/api/autofill-rules", {
     schema: {

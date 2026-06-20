@@ -13,6 +13,7 @@ import {
   propertyCategories,
   propertyMediaTypes,
 } from "@/db/schema";
+import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { slugify, uniqueSlug } from "@/utils/slug";
 
 /** Thrown when a custom-property payload is structurally invalid (e.g. a bad calculate config). */
@@ -442,6 +443,8 @@ export async function deleteCustomProperty(id: string): Promise<boolean> {
   const rows = await db.delete(customProperties).where(eq(customProperties.id, id)).returning({
     id: customProperties.id,
   });
+  // The cascade removes this property's stored values, which condition matching reads.
+  if (rows.length > 0) invalidateBookmarkCache();
   return rows.length > 0;
 }
 

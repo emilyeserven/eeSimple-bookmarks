@@ -848,6 +848,35 @@ export interface CreateAutofillRuleInput {
 export type UpdateAutofillRuleInput = Partial<CreateAutofillRuleInput>;
 
 /**
+ * Request body for previewing which existing bookmarks a condition tree would match. The match is
+ * evaluated server-side with the same `evaluateConditions` predicate the autofill engine uses.
+ */
+export interface AutofillPreviewInput {
+  /** The condition tree to test against existing bookmarks. */
+  conditions: ConditionTree;
+  /**
+   * Optional case-insensitive narrowing on bookmark title/url. When set, the result lists the
+   * matching candidates (whether or not they satisfy `conditions`) so the caller can show
+   * match/no-match for a named bookmark; when omitted, only bookmarks that satisfy `conditions`
+   * are returned.
+   */
+  query?: string;
+  /** Maximum number of entries to return (default 5). */
+  limit?: number;
+}
+
+/** A single bookmark in an autofill preview, with whether it satisfies the previewed conditions. */
+export interface AutofillPreviewEntry {
+  bookmark: Bookmark;
+  matches: boolean;
+}
+
+/** Result of an autofill preview. */
+export interface AutofillPreviewResult {
+  entries: AutofillPreviewEntry[];
+}
+
+/**
  * The single, global Homepage filter: the condition tree that decides which bookmarks appear on
  * the homepage. An empty tree selects no bookmarks.
  */
