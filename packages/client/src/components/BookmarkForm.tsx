@@ -1,9 +1,6 @@
 import type { ImageIntent } from "./bookmarkImageIntent";
 import type {
   Bookmark,
-  BookmarkBooleanValue,
-  BookmarkDateTimeValue,
-  BookmarkNumberValue,
   BookmarkUrlDuplicateResult,
   CreateBookmarkInput,
   YouTubeChannelHint,
@@ -17,16 +14,14 @@ import { Brush, Loader2 } from "lucide-react";
 import {
   bookmarkSchema,
   buildCategoryPropertyValues,
-  computeAutofill,
   initialImageIntent,
   looksLikeYouTube,
 } from "./bookmarkFormSchema";
 import { BookmarkRevealedFields } from "./BookmarkRevealedFields";
 import { useBookmarkFormData } from "./useBookmarkFormData";
+import { useBookmarkPropertyPrefill } from "./useBookmarkPropertyPrefill";
 import { useBookmarkScanHandlers } from "./useBookmarkScanHandlers";
 import { useBookmarkUrlProcessing } from "./useBookmarkUrlProcessing";
-import { useUpdateWebsite } from "../hooks/useWebsites";
-import { useUpdateYouTubeChannel } from "../hooks/useYouTubeChannels";
 import { useAppForm } from "../lib/form";
 import { notifySuccess } from "../lib/notifications";
 
@@ -64,6 +59,8 @@ export function BookmarkForm({
       fetchMetadata,
       websiteLookup,
       urlDuplicateCheck,
+      updateWebsite,
+      updateYouTubeChannel,
     },
     websites,
     shortenerIgnoreList,
@@ -76,8 +73,6 @@ export function BookmarkForm({
     autoFetchImage,
   } = useBookmarkFormData();
   const saveBookmark = isEdit ? updateBookmark : createBookmark;
-  const updateWebsite = useUpdateWebsite();
-  const updateYouTubeChannel = useUpdateYouTubeChannel();
 
   // "Set as default" checkbox flags for new sites/channels (create-only).
   const [setWebsiteCategory, setSetWebsiteCategory] = useState(false);
@@ -85,15 +80,6 @@ export function BookmarkForm({
   const [setChannelCategory, setSetChannelCategory] = useState(false);
   const [setChannelTags, setSetChannelTags] = useState(false);
 
-  // Custom-property values live outside the typed form (they're dynamic). A ref
-  // mirrors them so the submit handler always reads the latest entries. When editing,
-  // seed them from the bookmark's existing values (calculate results are ignored on submit).
-  const [numberInputs, setNumberInputs] = useState<Record<string, string>>(() =>
-    Object.fromEntries((bookmark?.numberValues ?? []).map(entry => [entry.propertyId, String(entry.value)])));
-  const [booleanInputs, setBooleanInputs] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries((bookmark?.booleanValues ?? []).map(entry => [entry.propertyId, entry.value])));
-  const [dateTimeInputs, setDateTimeInputs] = useState<Record<string, string>>(() =>
-    Object.fromEntries((bookmark?.dateTimeValues ?? []).map(entry => [entry.propertyId, entry.value])));
   const [isReportingTitle, setIsReportingTitle] = useState(false);
   const [expectedTitle, setExpectedTitle] = useState("");
   const [websiteSiteName, setWebsiteSiteName] = useState("");
@@ -132,16 +118,6 @@ export function BookmarkForm({
   // When the fetch-title button overwrites a non-empty title, record the previous value so the
   // banner can offer an undo. Cleared when the user manually edits the title field.
   const [titleFetch, setTitleFetch] = useState<{ previous: string } | null>(null);
-  const customRef = useRef({
-    numberInputs,
-    booleanInputs,
-    dateTimeInputs,
-  });
-  customRef.current = {
-    numberInputs,
-    booleanInputs,
-    dateTimeInputs,
-  };
 
   // The image control reports its intent here; the form applies it after the bookmark is saved (so
   // it works for both create and edit). `imageFieldKey` remounts the field to clear it on reset.
@@ -160,146 +136,6 @@ export function BookmarkForm({
   // Set by the "Add Now" quick path so the submit handler saves the URL exactly as typed (no
   // shortened-link expansion). Read by the (stale) submit closure.
   const quickAddRef = useRef(false);
-
-  // Precedence when prefilling: user input > autofill rule > category default.
-  // `touchedRef` tracks fields the user edited; `ruleSetRef` tracks property ids an autofill rule
-  // most recently set (so category defaults don't clobber them); `lastAutoCategoryRef` holds the
-  // category we set programmatically so a user's manual pick is never overwritten.
-  const touchedRef = useRef<Set<string>>(new Set());
-  const ruleSetRef = useRef<{ numbers: Set<string>;
-    booleans: Set<string>;
-    dateTimes: Set<string>; }>({
-    numbers: new Set(),
-    booleans: new Set(),
-    dateTimes: new Set(),
-  });
-  const lastAutoCategoryRef = useRef<string>("");
-
-  // Run the autofill rules against the current URL/Title and prefill the form, never overwriting
-  // a value the user has already touched. Called when the URL or Title field loses focus.
-  function runAutofill(): void {
-    const url = form.getFieldValue("url");
-    const title = form.getFieldValue("title");
-    if (!url && !title) return;
-
-    const result = computeAutofill({
-      url,
-      title,
-    }, autofillRules ?? []);
-
-    if (result.categoryId) {
-      const current = form.getFieldValue("categoryId");
-      if (current === "" || current === lastAutoCategoryRef.current) {
-        lastAutoCategoryRef.current = result.categoryId;
-        form.setFieldValue("categoryId", result.categoryId);
-      }
-    }
-
-    if (result.tagIds.length > 0 && !touchedRef.current.has("tags")) {
-      const current = form.getFieldValue("tagIds");
-      form.setFieldValue("tagIds", [...new Set([...current, ...result.tagIds])]);
-    }
-
-    ruleSetRef.current = {
-      numbers: new Set(result.numberValues.map(entry => entry.propertyId)),
-      booleans: new Set(result.booleanValues.map(entry => entry.propertyId)),
-      dateTimes: new Set(result.dateTimeValues.map(entry => entry.propertyId)),
-    };
-    if (result.numberValues.length > 0) {
-      setNumberInputs((current) => {
-        const next = {
-          ...current,
-        };
-        for (const entry of result.numberValues) {
-          if (!touchedRef.current.has(`number:${entry.propertyId}`)) {
-            next[entry.propertyId] = String(entry.value);
-          }
-        }
-        return next;
-      });
-    }
-    if (result.booleanValues.length > 0) {
-      setBooleanInputs((current) => {
-        const next = {
-          ...current,
-        };
-        for (const entry of result.booleanValues) {
-          if (!touchedRef.current.has(`boolean:${entry.propertyId}`)) {
-            next[entry.propertyId] = entry.value;
-          }
-        }
-        return next;
-      });
-    }
-    if (result.dateTimeValues.length > 0) {
-      setDateTimeInputs((current) => {
-        const next = {
-          ...current,
-        };
-        for (const entry of result.dateTimeValues) {
-          if (!touchedRef.current.has(`datetime:${entry.propertyId}`)) {
-            next[entry.propertyId] = entry.value;
-          }
-        }
-        return next;
-      });
-    }
-  }
-
-  // Apply a category's default property values, skipping anything the user touched or an autofill
-  // rule already set (rules win over defaults), and never overwriting a non-empty number input.
-  function applyCategoryDefaults(
-    numberValues: BookmarkNumberValue[],
-    booleanValues: BookmarkBooleanValue[],
-    dateTimeValues: BookmarkDateTimeValue[],
-  ): void {
-    setNumberInputs((current) => {
-      const next = {
-        ...current,
-      };
-      for (const entry of numberValues) {
-        const existing = next[entry.propertyId];
-        if (
-          !touchedRef.current.has(`number:${entry.propertyId}`)
-          && !ruleSetRef.current.numbers.has(entry.propertyId)
-          && (existing === undefined || existing === "")
-        ) {
-          next[entry.propertyId] = String(entry.value);
-        }
-      }
-      return next;
-    });
-    setBooleanInputs((current) => {
-      const next = {
-        ...current,
-      };
-      for (const entry of booleanValues) {
-        if (
-          !touchedRef.current.has(`boolean:${entry.propertyId}`)
-          && !ruleSetRef.current.booleans.has(entry.propertyId)
-        ) {
-          next[entry.propertyId] = entry.value;
-        }
-      }
-      return next;
-    });
-    setDateTimeInputs((current) => {
-      const next = {
-        ...current,
-      };
-      for (const entry of dateTimeValues) {
-        const existing = next[entry.propertyId];
-        if (
-          !touchedRef.current.has(`datetime:${entry.propertyId}`)
-          && !ruleSetRef.current.dateTimes.has(entry.propertyId)
-          && (existing === undefined || existing === "")
-        ) {
-          next[entry.propertyId] = entry.value;
-        }
-      }
-      return next;
-    });
-  }
 
   const form = useAppForm({
     defaultValues: {
@@ -320,7 +156,7 @@ export function BookmarkForm({
       } = buildCategoryPropertyValues(
         customProperties ?? [],
         value.categoryId,
-        customRef.current,
+        prefill.customRef.current,
         bookmark?.mediaType?.id ?? null,
       );
 
@@ -413,11 +249,19 @@ export function BookmarkForm({
     },
   });
 
+  // Custom-property prefill: the dynamic number/boolean/datetime inputs plus the autofill-rule and
+  // category-default precedence machinery. Owns its own state/refs; the submit handler reads the
+  // mirrored `customRef`.
+  const prefill = useBookmarkPropertyPrefill({
+    bookmark,
+    form,
+    autofillRules,
+    categories,
+  });
+
   function handleReset(): void {
     form.reset();
-    setNumberInputs({});
-    setBooleanInputs({});
-    setDateTimeInputs({});
+    prefill.resetPrefill();
     setWebsiteSiteName("");
     channelHintRef.current = null;
     setYoutubeChannel(null);
@@ -438,38 +282,7 @@ export function BookmarkForm({
     setSetChannelCategory(false);
     setSetChannelTags(false);
     quickAddRef.current = false;
-    touchedRef.current = new Set();
-    ruleSetRef.current = {
-      numbers: new Set(),
-      booleans: new Set(),
-      dateTimes: new Set(),
-    };
-    lastAutoCategoryRef.current = "";
     setTitleFetch(null);
-  }
-
-  // Custom-property change handlers, shared by the main-form and Advanced field groups. Marking the
-  // field touched stops autofill/category-defaults from later overwriting the user's entry.
-  function handleNumberChange(id: string, value: string): void {
-    touchedRef.current.add(`number:${id}`);
-    setNumberInputs(current => ({
-      ...current,
-      [id]: value,
-    }));
-  }
-  function handleBooleanChange(id: string, value: boolean): void {
-    touchedRef.current.add(`boolean:${id}`);
-    setBooleanInputs(current => ({
-      ...current,
-      [id]: value,
-    }));
-  }
-  function handleDateTimeChange(id: string, value: string): void {
-    touchedRef.current.add(`datetime:${id}`);
-    setDateTimeInputs(current => ({
-      ...current,
-      [id]: value,
-    }));
   }
 
   // Apply the pending image intent to a saved bookmark. Non-fatal: the bookmark is already saved,
@@ -534,7 +347,7 @@ export function BookmarkForm({
     try {
       runUrlCleanup(form.getFieldValue("url"));
       const url = form.getFieldValue("url");
-      runAutofill();
+      prefill.runAutofill();
       runWebsiteLookup(url);
       urlDuplicateCheck.mutate(url, {
         onSuccess: setUrlDuplicate,
@@ -562,7 +375,7 @@ export function BookmarkForm({
   // the URL's host) and saves the URL exactly as typed — no metadata fetch, no shortened-link
   // expansion (the submit handler honours `quickAddRef`).
   async function handleAddNow(): Promise<void> {
-    runAutofill();
+    prefill.runAutofill();
     if (form.getFieldValue("title").trim() === "") {
       const url = form.getFieldValue("url");
       let fallback = url;
@@ -582,15 +395,6 @@ export function BookmarkForm({
       quickAddRef.current = false;
     }
   }
-
-  // Default the category to the built-in "Default" once categories load.
-  useEffect(() => {
-    if (!categories || categories.length === 0) return;
-    if (form.getFieldValue("categoryId")) return;
-    const fallback = categories.find(category => category.builtIn) ?? categories[0];
-    lastAutoCategoryRef.current = fallback.id;
-    form.setFieldValue("categoryId", fallback.id);
-  }, [categories, form]);
 
   useEffect(() => {
     if (fetchTitle.isPending) {
@@ -681,7 +485,7 @@ export function BookmarkForm({
           onSiteNameBlur={() => void runFetchTitle(form.getFieldValue("url"), {
             force: true,
           })}
-          onTitleBlur={runAutofill}
+          onTitleBlur={prefill.runAutofill}
           onTitleChange={() => setTitleFetch(null)}
           onFetchTitleClick={(url) => {
             // YouTube gets its title from enrichment; skip the strict fetch-title for it.
@@ -715,15 +519,13 @@ export function BookmarkForm({
           tagTree={tagTree ?? []}
           customProperties={customProperties ?? []}
           mediaTypeId={bookmark?.mediaType?.id ?? null}
-          onTagToggle={() => {
-            touchedRef.current.add("tags");
-          }}
-          numberInputs={numberInputs}
-          booleanInputs={booleanInputs}
-          dateTimeInputs={dateTimeInputs}
-          onNumberChange={handleNumberChange}
-          onBooleanChange={handleBooleanChange}
-          onDateTimeChange={handleDateTimeChange}
+          onTagToggle={prefill.markTagsTouched}
+          numberInputs={prefill.numberInputs}
+          booleanInputs={prefill.booleanInputs}
+          dateTimeInputs={prefill.dateTimeInputs}
+          onNumberChange={prefill.handleNumberChange}
+          onBooleanChange={prefill.handleBooleanChange}
+          onDateTimeChange={prefill.handleDateTimeChange}
           categories={categories ?? []}
           addCategoryOpen={addCategoryOpen}
           onAddCategoryOpenChange={setAddCategoryOpen}
@@ -734,7 +536,7 @@ export function BookmarkForm({
           onImageIntentChange={(intent) => {
             imageIntentRef.current = intent;
           }}
-          onApplyCategoryDefaults={applyCategoryDefaults}
+          onApplyCategoryDefaults={prefill.applyCategoryDefaults}
           urlDuplicate={urlDuplicate}
           autofillOfferDismissed={autofillOfferDismissed}
           onAutofillOfferDismiss={() => setAutofillOfferDismissed(true)}

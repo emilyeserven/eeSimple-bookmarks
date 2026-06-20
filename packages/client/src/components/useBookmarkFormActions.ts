@@ -8,13 +8,15 @@ import {
 } from "../hooks/useBookmarks";
 import { useFetchMetadata } from "../hooks/useFetchMetadata";
 import { useFetchTitle } from "../hooks/useFetchTitle";
-import { useWebsiteLookup } from "../hooks/useWebsites";
+import { useUpdateWebsite, useWebsiteLookup } from "../hooks/useWebsites";
+import { useUpdateYouTubeChannel } from "../hooks/useYouTubeChannels";
 
 /**
  * Bundles every side-effecting hook the bookmark form drives: the create/update mutations, the three
- * image mutations, the title + metadata fetchers, and the website lookup. Co-located so `BookmarkForm`
- * imports one module instead of each action hook. Return shapes are inferred so the form keeps the
- * exact mutation/query objects (`mutateAsync`, `isPending`, `data`, `reset`, …) it already uses.
+ * image mutations, the title + metadata fetchers, the website lookup, and the website / YouTube-channel
+ * default updates. Co-located so `BookmarkForm` imports one module instead of each action hook. Return
+ * shapes are inferred so the form keeps the exact mutation/query objects (`mutateAsync`, `isPending`,
+ * `data`, `reset`, …) it already uses.
  */
 export function useBookmarkFormActions() {
   return {
@@ -27,5 +29,7 @@ export function useBookmarkFormActions() {
     fetchMetadata: useFetchMetadata(),
     websiteLookup: useWebsiteLookup(),
     urlDuplicateCheck: useBookmarkUrlDuplicateCheck(),
+    updateWebsite: useUpdateWebsite(),
+    updateYouTubeChannel: useUpdateYouTubeChannel(),
   };
 }
