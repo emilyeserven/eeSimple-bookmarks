@@ -448,8 +448,19 @@ export function isPublicHttpUrl(value: string): boolean {
   return true;
 }
 
-/** Download an image URL into a Buffer, guarded by a timeout, content-type check, and byte cap. */
-export async function downloadImage(url: string): Promise<Buffer | null> {
+/**
+ * Download an image URL into a Buffer, guarded by a timeout and a byte cap.
+ *
+ * Identifies as a real browser (the same `BROWSER_USER_AGENT` used for the HTML fetch) rather than a
+ * bot UA: CDNs in front of high-traffic sites (Cloudflare/Mediavine) routinely 403 non-browser
+ * User-Agents on image assets, which previously surfaced as `bad_image` even though the page parsed
+ * fine. When the calling page's URL is known it's passed as `referer` to defeat hotlink protection.
+ *
+ * The content-type is intentionally *not* gated here: some CDNs serve images as
+ * `application/octet-stream` or omit the header, and `processImage` (sharp) is the real validator
+ * downstream, so a pre-check would only add false negatives.
+ */
+export async function downloadImage(url: string, referer?: string): Promise<Buffer | null> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
@@ -458,12 +469,16 @@ export async function downloadImage(url: string): Promise<Buffer | null> {
       redirect: "follow",
       signal: controller.signal,
       headers: {
-        "User-Agent": "eeSimple-bookmarks/0.1 (+image-fetch)",
-        "Accept": "image/*",
+        "User-Agent": BROWSER_USER_AGENT,
+        "Accept": "image/avif,image/webp,image/png,image/svg+xml,image/*;q=0.8,*/*;q=0.5",
+        ...(referer
+          ? {
+            Referer: referer,
+          }
+          : {}),
       },
     });
     if (!res.ok || !res.body) return null;
-    if (!(res.headers.get("content-type") ?? "").toLowerCase().startsWith("image/")) return null;
 
     const reader = res.body.getReader();
     const chunks: Uint8Array[] = [];
@@ -526,7 +541,7 @@ export async function fetchOgImage(pageUrl: string): Promise<OgImageResult> {
   if (typeof html !== "string") return html;
   const imageUrl = extractImageUrl(html, pageUrl);
   if (!imageUrl || !isPublicHttpUrl(imageUrl)) return "no_image";
-  const bytes = await downloadImage(imageUrl);
+  const bytes = await downloadImage(imageUrl, pageUrl);
   return bytes ?? "bad_image";
 }
 
@@ -571,7 +586,7 @@ export async function fetchFaviconImage(pageUrl: string): Promise<OgImageResult>
   if (candidates.length === 0) return "no_image";
   for (const iconUrl of candidates) {
     if (!isPublicHttpUrl(iconUrl)) continue;
-    const bytes = await downloadImage(iconUrl);
+    const bytes = await downloadImage(iconUrl, pageUrl);
     if (!bytes) continue;
     // Validate the bytes are decodable before returning; skips SVG or corrupted icons so the
     // loop can try the next candidate instead of surfacing bad_image immediately.
