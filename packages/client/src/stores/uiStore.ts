@@ -136,6 +136,9 @@ interface UiState {
   /** Per-listing image layout for 2-column listing pages: "above" (default) or "side". Keyed by a stable page key. */
   bookmarkImageLayout: Record<string, HomepageSectionImageLayout>;
   setBookmarkImageLayout: (pageKey: string, layout: HomepageSectionImageLayout) => void;
+  /** Per-listing toggle (default true) for whether custom properties placed in an image corner are overlaid on card images. Keyed by a stable page key. */
+  bookmarkCornerOverlays: Record<string, boolean>;
+  setBookmarkCornerOverlays: (pageKey: string, value: boolean) => void;
   /** When true, listing pages auto-open filters in the right-hand drawer instead of the left column. */
   filtersInDrawer: boolean;
   setFiltersInDrawer: (value: boolean) => void;
@@ -326,6 +329,13 @@ export const useUiStore = create<UiState>()(
           [pageKey]: layout,
         },
       })),
+      bookmarkCornerOverlays: {},
+      setBookmarkCornerOverlays: (pageKey, value) => set(state => ({
+        bookmarkCornerOverlays: {
+          ...state.bookmarkCornerOverlays,
+          [pageKey]: value,
+        },
+      })),
       filtersInDrawer: false,
       setFiltersInDrawer: value => set({
         filtersInDrawer: value,
@@ -403,6 +413,7 @@ export const useUiStore = create<UiState>()(
         addBookmarkFormOpen: state.addBookmarkFormOpen,
         collapsedHomepageSectionIds: state.collapsedHomepageSectionIds,
         bookmarkImageLayout: state.bookmarkImageLayout,
+        bookmarkCornerOverlays: state.bookmarkCornerOverlays,
         filtersInDrawer: state.filtersInDrawer,
         filtersHidden: state.filtersHidden,
         bookmarkDetailImageSize: state.bookmarkDetailImageSize,

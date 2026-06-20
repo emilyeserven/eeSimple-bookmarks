@@ -72,3 +72,8 @@ export function useBookmarkImageLayout(pageKey: string): HomepageSectionImageLay
   const isMobile = useIsMobile();
   return stored ?? (columns === 1 && !isMobile ? "side" : DEFAULT_BOOKMARK_IMAGE_LAYOUT);
 }
+
+/** Whether custom-property image-corner overlays are allowed on a listing page. Defaults to true. */
+export function useBookmarkCornerOverlays(pageKey: string): boolean {
+  return useUiStore(state => state.bookmarkCornerOverlays?.[pageKey] ?? true);
+}

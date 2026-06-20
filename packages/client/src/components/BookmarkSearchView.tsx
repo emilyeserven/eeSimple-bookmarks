@@ -9,7 +9,7 @@ import { FilterSidebar } from "./FilterSidebar";
 import { usePanelControls } from "./panel/usePanelControls";
 import { useSetListingPage } from "../hooks/useListingPage";
 import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
-import { useBookmarkColumns, useBookmarkImageLayout, useBookmarkImageMode, useBookmarkImageVisibility } from "../lib/bookmarkColumns";
+import { useBookmarkColumns, useBookmarkCornerOverlays, useBookmarkImageLayout, useBookmarkImageMode, useBookmarkImageVisibility } from "../lib/bookmarkColumns";
 import { useUiStore } from "../stores/uiStore";
 
 interface BookmarkSearchViewProps {
@@ -113,6 +113,7 @@ export function BookmarkSearchView({
 
   const imageLayout = useBookmarkImageLayout(pageKey);
   const imageLeft = (columns === 1 || columns === 2) && imageLayout === "side";
+  const cornerOverlays = useBookmarkCornerOverlays(pageKey);
 
   const q = headerSearchQuery.trim().toLowerCase();
   const textFilteredBookmarks = q
@@ -155,6 +156,7 @@ export function BookmarkSearchView({
           imageVisibility={imageVisibility}
           imageLeft={imageLeft}
           imageMode={imageMode}
+          cornerOverlays={cornerOverlays}
           bookmarks={textFilteredBookmarks}
           properties={properties}
           search={search}

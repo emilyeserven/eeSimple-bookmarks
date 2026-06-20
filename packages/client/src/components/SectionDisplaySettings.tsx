@@ -15,6 +15,7 @@ export interface SectionDisplayValue {
   imageVisibility: BookmarkImageVisibility;
   imageLayout: HomepageSectionImageLayout;
   hiddenCardFields: string[];
+  cornerOverlays: boolean;
 }
 
 interface SectionDisplaySettingsProps {
@@ -59,6 +60,7 @@ export function SectionDisplaySettings({
           imageMode: value.imageMode,
           imageVisibility: value.imageVisibility,
           imageLayout: value.imageLayout,
+          cornerOverlays: value.cornerOverlays,
         }}
         onViewModeChange={viewMode => onChange({
           viewMode,
@@ -74,6 +76,9 @@ export function SectionDisplaySettings({
         })}
         onImageLayoutChange={imageLayout => onChange({
           imageLayout,
+        })}
+        onCornerOverlaysChange={cornerOverlays => onChange({
+          cornerOverlays,
         })}
         showsImages
         presets={presets}

@@ -6,7 +6,7 @@ import { MediaTypePill } from "./MediaTypePill";
 import { SourcePill } from "./SourcePill";
 import { StarRating } from "./StarRating";
 import { useHiddenCardFields } from "../lib/bookmarkCardFields";
-import { formatBooleanBadge, formatDateTime, formatNumber } from "../lib/bookmarkFormat";
+import { buildBookmarkValueItems } from "../lib/bookmarkCardValues";
 
 import { Badge } from "@/components/ui/badge";
 import { useCategories } from "@/hooks/useCategories";
@@ -18,6 +18,8 @@ interface BookmarkCardDetailsProps {
   pageKey?: string;
   /** Explicit hidden field keys, overriding the `pageKey` lookup. Used by DB-backed surfaces (homepage sections). */
   hiddenFields?: Set<string>;
+  /** Property ids already rendered as image-corner overlays by the card; excluded here so they don't double up. */
+  cornerPropertyIds?: Set<string>;
   /** Persist a rating-scale value edited inline on the card (only wired when the property is `editableOnCard`). */
   onSaveRating?: (propertyId: string, value: number) => void;
   /** Toggle a boolean value from the card (only wired for properties with `clickableInView`). */
@@ -26,11 +28,10 @@ interface BookmarkCardDetailsProps {
 
 /** The body of a bookmark card: description, taxonomy badges, tags, and custom-property value badges. */
 export function BookmarkCardDetails({
-  bookmark, properties, pageKey, hiddenFields, onSaveRating, onSaveBoolean,
+  bookmark, properties, pageKey, hiddenFields, cornerPropertyIds, onSaveRating, onSaveBoolean,
 }: BookmarkCardDetailsProps) {
   const pageHidden = useHiddenCardFields(pageKey);
   const hidden = hiddenFields ?? pageHidden;
-  const byId = new Map(properties.map(property => [property.id, property]));
   const {
     data: allCategories,
   } = useCategories();
@@ -38,70 +39,30 @@ export function BookmarkCardDetails({
     c => c.id === bookmark.categoryId && !c.builtIn,
   );
 
-  // Rating-scale values live in numberValues but render as stars rather than a text badge.
-  const ratingEntries = bookmark.numberValues
-    .map((entry) => {
-      const property = byId.get(entry.propertyId);
-      return property && property.type === "ratingScale" && property.showInListings
-        && !hidden.has(entry.propertyId)
-        ? {
-          property,
-          value: entry.value,
-        }
-        : null;
-    })
-    .filter((entry): entry is { property: CustomProperty;
-      value: number; } => entry !== null);
+  // Single source of truth for value placement; anything overlaid on the image (cornerPropertyIds)
+  // is excluded here so a corner-placed value isn't also shown as a badge.
+  const items = buildBookmarkValueItems(bookmark, properties, hidden)
+    .filter(item => !cornerPropertyIds?.has(item.id));
 
-  const numberBadges = bookmark.numberValues
-    .map((entry) => {
-      const property = byId.get(entry.propertyId);
-      // Rating scales render as stars below, not as a number badge.
-      return property && property.showInListings && property.type !== "ratingScale"
-        ? {
-          id: entry.propertyId,
-          label: `${property.name}: ${formatNumber(entry.value, property)}`,
-        }
-        : null;
-    })
-    .filter((badge): badge is { id: string;
-      label: string; } => badge !== null);
+  const ratingEntries = items
+    .filter(item => item.kind === "rating")
+    .map(item => ({
+      property: item.property,
+      value: item.value,
+    }));
 
-  const booleanBadges = bookmark.booleanValues
-    .map((entry) => {
-      const property = byId.get(entry.propertyId);
-      if (!property || !property.showInListings) return null;
-      if (!entry.value && !property.showIfFalse) return null;
-      const onToggle = onSaveBoolean && property.clickableInView
-        ? () => onSaveBoolean(entry.propertyId, !entry.value)
+  const valueBadges = items
+    .filter(item => item.kind === "badge")
+    .map((item) => {
+      const onToggle = onSaveBoolean && item.property.clickableInView && item.booleanValue !== undefined
+        ? () => onSaveBoolean(item.id, !item.booleanValue)
         : undefined;
       return {
-        id: entry.propertyId,
-        label: formatBooleanBadge(entry.value, property),
+        id: item.id,
+        label: item.label,
         onToggle,
       };
-    })
-    .filter((badge): badge is { id: string;
-      label: string;
-      onToggle: (() => void) | undefined; } => badge !== null);
-
-  const dateTimeBadges = bookmark.dateTimeValues
-    .map((entry) => {
-      const property = byId.get(entry.propertyId);
-      return property && property.showInListings
-        ? {
-          id: entry.propertyId,
-          label: `${property.name}: ${formatDateTime(entry.value, property)}`,
-        }
-        : null;
-    })
-    .filter((badge): badge is { id: string;
-      label: string; } => badge !== null);
-
-  const valueBadges: { id: string;
-    label: string;
-    onToggle?: () => void; }[] = [...numberBadges, ...booleanBadges, ...dateTimeBadges]
-    .filter(badge => !hidden.has(badge.id));
+    });
 
   const {
     website, mediaType, youtubeChannel,

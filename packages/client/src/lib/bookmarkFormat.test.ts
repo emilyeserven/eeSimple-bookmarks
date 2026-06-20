@@ -48,6 +48,7 @@ function property(overrides: Partial<CustomProperty>): CustomProperty {
     ratingShowLabel: false,
     ratingLabel: null,
     propertyGroupId: null,
+    cardImageCorner: null,
     createdAt: NOW,
     ...overrides,
   };

@@ -2,6 +2,7 @@ import type { PropertyFormApi } from "./propertyFormSchema";
 
 import { AddPropertyGroupModal } from "./AddPropertyGroupModal";
 import { LabeledSection } from "./LabeledSection";
+import { CARD_IMAGE_CORNER_OPTIONS } from "../lib/propertyForm";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -105,6 +106,22 @@ export function PropertyDisplaySection({
               )}
             </form.AppField>
           </div>
+        </div>
+        <div className="space-y-2 border-t pt-3">
+          <span className="text-sm font-medium">Card image corner</span>
+          <form.AppField name="cardImageCorner">
+            {field => (
+              <field.SelectField
+                label="Corner placement"
+                options={CARD_IMAGE_CORNER_OPTIONS}
+              />
+            )}
+          </form.AppField>
+          <p className="text-xs text-muted-foreground">
+            When set, the value is overlaid in that corner of the card&rsquo;s image instead of shown
+            as a badge — provided the listing allows image corners and the bookmark has an image.
+            Otherwise it falls back to a badge.
+          </p>
         </div>
         <form.Subscribe selector={state => state.values.type}>
           {type =>

@@ -562,6 +562,10 @@ export const customProperties = pgTable("custom_properties", {
   propertyGroupId: uuid("property_group_id").references(() => propertyGroups.id, {
     onDelete: "set null",
   }),
+  // Which image corner the value is overlaid in on bookmark cards: "top-left" | "top-right" |
+  // "bottom-left" | "bottom-right". NULL → no corner (rendered as a badge below the image, the
+  // default). Nullable/text so it's an additive, push-safe column.
+  cardImageCorner: text("card_image_corner"),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
@@ -735,6 +739,10 @@ export const homepageSections = pgTable("homepage_sections", {
   imageVisibility: text("image_visibility").notNull().default("shown"),
   viewMode: text("view_mode").notNull().default("cards"),
   hiddenCardFields: jsonb("hidden_card_fields").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+  // When true, custom properties placed in an image corner are overlaid on this section's card
+  // images; when false they fall back to badges. NOT NULL on the populated table → pre-applied in
+  // migrate.ts to keep push additive.
+  cornerOverlays: boolean("corner_overlays").notNull().default(true),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
