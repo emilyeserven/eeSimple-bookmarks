@@ -252,6 +252,30 @@ const propertyNode = {
             predicate: dateTimePredicate,
           },
         },
+        {
+          type: "object",
+          additionalProperties: false,
+          required: ["valueKind", "predicate"],
+          properties: {
+            valueKind: {
+              const: "file",
+            },
+            predicate: {
+              type: "object",
+              additionalProperties: false,
+              required: ["kind", "mode"],
+              properties: {
+                kind: {
+                  const: "presence",
+                },
+                mode: {
+                  type: "string",
+                  enum: ["has", "missing"],
+                },
+              },
+            },
+          },
+        },
       ],
     },
   },
