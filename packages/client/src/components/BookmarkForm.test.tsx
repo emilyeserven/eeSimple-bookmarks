@@ -1,9 +1,10 @@
-import type { Bookmark, Website } from "@eesimple/types";
+import type { AutofillRule, Bookmark, CustomProperty, Website } from "@eesimple/types";
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { BookmarkForm } from "./BookmarkForm";
+import { sampleProperties } from "../test-utils/story-mocks";
 
 // The form pulls data from several query hooks and the UI store; stub them so the
 // test can focus on the reveal / title-fetch / save behavior without a live API or QueryClient.
@@ -19,6 +20,8 @@ let websitesData: Website[] = [];
 let categoriesData: { id: string;
   name: string;
   builtIn: boolean; }[] = [];
+let customPropertiesData: CustomProperty[] = [];
+let autofillRulesData: AutofillRule[] = [];
 
 const createMutateAsync = vi.fn<(args: unknown) => Promise<{ id: string }>>();
 const updateMutateAsync = vi.fn<(args: unknown) => Promise<unknown>>();
@@ -93,12 +96,12 @@ vi.mock("../hooks/useCategories", () => ({
 }));
 vi.mock("../hooks/useCustomProperties", () => ({
   useCustomProperties: () => ({
-    data: [],
+    data: customPropertiesData,
   }),
 }));
 vi.mock("../hooks/useAutofill", () => ({
   useAutofillRules: () => ({
-    data: [],
+    data: autofillRulesData,
   }),
   useCreateAutofillRule: () => ({
     mutateAsync: vi.fn(),
@@ -462,5 +465,142 @@ describe("BookmarkForm editing", () => {
         }),
       }),
     );
+  });
+});
+
+describe("BookmarkForm property prefill", () => {
+  // A number property shown in the main form, scoped to the category used by each test.
+  function ratingProperty(categoryId: string): CustomProperty {
+    return {
+      ...sampleProperties[0],
+      id: "prop-rating",
+      name: "Rating",
+      slug: "rating",
+      categoryIds: [categoryId],
+      showInForm: true,
+    };
+  }
+
+  // A rule that matches any URL containing "example" and sets the Rating property to 7.
+  function ratingRule(): AutofillRule {
+    return {
+      id: "rule-rating",
+      name: "Example rating",
+      slug: "example-rating",
+      description: null,
+      conditions: {
+        type: "group",
+        combinator: "and",
+        children: [
+          {
+            type: "match",
+            field: "url",
+            operator: "contains",
+            pattern: "example",
+          },
+        ],
+      },
+      setCategoryId: null,
+      setMediaTypeId: null,
+      tagIds: [],
+      numberValues: [{
+        propertyId: "prop-rating",
+        value: 7,
+      }],
+      booleanValues: [],
+      dateTimeValues: [],
+      sortOrder: 0,
+      createdAt: "2026-01-01T00:00:00.000Z",
+    };
+  }
+
+  beforeEach(() => {
+    mutateAsync.mockReset();
+    mutateAsync.mockResolvedValue({
+      title: "Example Domain",
+    });
+    createMutateAsync.mockReset();
+    createMutateAsync.mockResolvedValue({
+      id: "new-id",
+    });
+    updateMutateAsync.mockReset();
+    updateMutateAsync.mockResolvedValue(undefined);
+    autoFetchTitle = true;
+    websiteLookupData = undefined;
+    websitesData = [];
+    categoriesData = [{
+      id: "cat-1",
+      name: "Default",
+      builtIn: true,
+    }];
+    customPropertiesData = [];
+    autofillRulesData = [];
+  });
+
+  afterEach(() => {
+    customPropertiesData = [];
+    autofillRulesData = [];
+  });
+
+  it("seeds a property input from the bookmark's stored value when editing", () => {
+    customPropertiesData = [ratingProperty("cat-edit")];
+    const bookmark: Bookmark = {
+      id: "11111111-1111-1111-1111-111111111111",
+      url: "https://example.com",
+      originalUrl: null,
+      title: "Example",
+      description: null,
+      image: null,
+      imageAutoGrabError: null,
+      categoryId: "cat-edit",
+      website: null,
+      mediaType: null,
+      youtubeChannel: null,
+      tags: [],
+      numberValues: [{
+        propertyId: "prop-rating",
+        value: 42,
+      }],
+      booleanValues: [],
+      dateTimeValues: [],
+      relatedBookmarks: [],
+      priority: 0,
+      createdAt: "2026-06-01T00:00:00.000Z",
+    };
+
+    render(<BookmarkForm bookmark={bookmark} />);
+
+    expect(screen.getByLabelText("Rating")).toHaveValue(42);
+  });
+
+  it("prefills a property from a matching autofill rule when the URL is checked", async () => {
+    customPropertiesData = [ratingProperty("cat-1")];
+    autofillRulesData = [ratingRule()];
+    render(<BookmarkForm />);
+
+    await revealForm("https://example.com");
+
+    expect(screen.getByLabelText("Rating")).toHaveValue(7);
+  });
+
+  it("does not let an autofill rule overwrite a property the user edited", async () => {
+    customPropertiesData = [ratingProperty("cat-1")];
+    autofillRulesData = [ratingRule()];
+    render(<BookmarkForm />);
+
+    await revealForm("https://example.com");
+    // The rule's value lands first.
+    expect(screen.getByLabelText("Rating")).toHaveValue(7);
+
+    // The user overrides it, which marks the field touched.
+    fireEvent.change(screen.getByLabelText("Rating"), {
+      target: {
+        value: "99",
+      },
+    });
+    // Re-running autofill (a Name blur) must not clobber the user's entry.
+    fireEvent.blur(screen.getByLabelText("Name"));
+
+    await waitFor(() => expect(screen.getByLabelText("Rating")).toHaveValue(99));
   });
 });

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { buildApp } from "@/app";
-import { sumOperands } from "@/services/bookmarks";
+import { sumOperands } from "@/services/bookmarkWrites";
 
 // Pure-helper tests run without a live database, matching the `tags` test style.
 
