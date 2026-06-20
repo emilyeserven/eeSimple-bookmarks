@@ -56,7 +56,7 @@ export function CardDisplayControlsBase({
           </div>
           {field.key === "website" && !hidden.includes("website") && onToggleHideWebsiteForYoutube
             ? (
-              <div className="ml-6 mt-1 flex items-center gap-2">
+              <div className="mt-1 ml-6 flex items-center gap-2">
                 <Checkbox
                   id={`${idPrefix}-hide-youtube-website`}
                   checked={hideWebsiteForYoutube ?? false}

@@ -72,9 +72,7 @@ export function useBookmarkTableColumns({
   const pageHidden = useHiddenCardFields(pageKey);
   const pageImageMode = useBookmarkImageMode(pageKey ?? "");
   const pageImageVisibility = useBookmarkImageVisibility(pageKey ?? "");
-  const pageHideWebsiteForYouTube = useUiStore(state =>
-    pageKey ? (state.hideWebsiteForYouTube[pageKey] ?? false) : false,
-  );
+  const pageHideWebsiteForYouTube = useUiStore(state => (pageKey ? (state.hideWebsiteForYouTube[pageKey] ?? false) : false));
   const hidden = hiddenOverride ?? pageHidden;
   const imageMode = imageModeOverride ?? pageImageMode;
   const imageVisibility = imageVisibilityOverride ?? pageImageVisibility;
