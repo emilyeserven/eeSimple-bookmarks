@@ -229,6 +229,33 @@ export function hasAnyActiveFilter(search: BookmarkSearch): boolean {
   );
 }
 
+/** Stable, recursively key-sorted JSON so object/record key order doesn't affect equality. */
+function canonicalJson(value: unknown): string {
+  if (Array.isArray(value)) {
+    return `[${value.map(canonicalJson).join(",")}]`;
+  }
+  if (value !== null && typeof value === "object") {
+    const entries = Object.entries(value as Record<string, unknown>)
+      .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+      .map(([k, v]) => `${JSON.stringify(k)}:${canonicalJson(v)}`);
+    return `{${entries.join(",")}}`;
+  }
+  return JSON.stringify(value) ?? "null";
+}
+
+/**
+ * Whether two searches are equivalent after normalization. Both sides are run through
+ * `validateBookmarkSearch` and compared via a key-sorted serialization so that the `num`/`bool`/
+ * `date`/`presence` records (arbitrary key order) don't produce false negatives. Used to detect
+ * which saved filter, if any, matches the currently-applied filters.
+ */
+export function bookmarkSearchEquals(
+  a: Record<string, unknown>,
+  b: Record<string, unknown>,
+): boolean {
+  return canonicalJson(validateBookmarkSearch(a)) === canonicalJson(validateBookmarkSearch(b));
+}
+
 /** Set or clear (when `value` is undefined) a keyed entry, returning a new record or undefined. */
 function patchRecord<V>(
   current: Record<string, V> | undefined,
