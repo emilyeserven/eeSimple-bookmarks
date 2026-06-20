@@ -7,6 +7,14 @@ import type {
 } from "@tanstack/react-table";
 import type { MouseEvent } from "react";
 
+declare module "@tanstack/react-table" {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  interface ColumnMeta<TData, TValue> {
+    /** When true the column has no inline width and expands to fill remaining table space. */
+    fill?: boolean;
+  }
+}
+
 import { useState } from "react";
 
 import {
@@ -150,11 +158,15 @@ export function DataTable<T>({
                       resizable && "relative",
                       canSort && "cursor-pointer select-none",
                     ) || undefined}
-                    style={resizable
+                    style={resizable && !header.column.columnDef.meta?.fill
                       ? {
                         width: header.getSize(),
                       }
-                      : undefined}
+                      : resizable && header.column.columnDef.meta?.fill
+                        ? {
+                          minWidth: header.column.columnDef.minSize,
+                        }
+                        : undefined}
                     onClick={canSort ? header.column.getToggleSortingHandler() : undefined}
                   >
                     {header.isPlaceholder
@@ -205,11 +217,15 @@ export function DataTable<T>({
                 {row.getVisibleCells().map(cell => (
                   <TableCell
                     key={cell.id}
-                    style={resizable
+                    style={resizable && !cell.column.columnDef.meta?.fill
                       ? {
                         width: cell.column.getSize(),
                       }
-                      : undefined}
+                      : resizable && cell.column.columnDef.meta?.fill
+                        ? {
+                          minWidth: cell.column.columnDef.minSize,
+                        }
+                        : undefined}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>

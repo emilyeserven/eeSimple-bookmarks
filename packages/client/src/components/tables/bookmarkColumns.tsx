@@ -115,6 +115,7 @@ export function useBookmarkTableColumns({
       header: "Title",
       size: 280,
       minSize: 120,
+      meta: { fill: true },
       cell: ({
         row,
       }) => (
