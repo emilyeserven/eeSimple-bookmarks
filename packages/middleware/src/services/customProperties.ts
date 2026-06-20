@@ -80,6 +80,8 @@ function toCustomProperty(
     booleanLabelPreset: (row.booleanLabelPreset as CustomProperty["booleanLabelPreset"]) ?? null,
     booleanTrueLabel: row.booleanTrueLabel ?? null,
     booleanFalseLabel: row.booleanFalseLabel ?? null,
+    showLabelColon: row.showLabelColon ?? true,
+    showValueBeforeLabel: row.showValueBeforeLabel ?? false,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
   };
@@ -291,6 +293,8 @@ export async function createCustomProperty(
         booleanLabelPreset: input.booleanLabelPreset ?? null,
         booleanTrueLabel: input.booleanTrueLabel ?? null,
         booleanFalseLabel: input.booleanFalseLabel ?? null,
+        showLabelColon: input.showLabelColon ?? null,
+        showValueBeforeLabel: input.showValueBeforeLabel ?? null,
       })
       .returning({
         id: customProperties.id,
@@ -338,6 +342,8 @@ type UpdatePatch = Partial<
     | "booleanLabelPreset"
     | "booleanTrueLabel"
     | "booleanFalseLabel"
+    | "showLabelColon"
+    | "showValueBeforeLabel"
   >
 >;
 
@@ -370,6 +376,8 @@ function buildUpdatePatch(input: UpdateCustomPropertyInput, renamedSlug: string 
   if (input.booleanLabelPreset !== undefined) patch.booleanLabelPreset = input.booleanLabelPreset ?? null;
   if (input.booleanTrueLabel !== undefined) patch.booleanTrueLabel = input.booleanTrueLabel ?? null;
   if (input.booleanFalseLabel !== undefined) patch.booleanFalseLabel = input.booleanFalseLabel ?? null;
+  if (input.showLabelColon !== undefined) patch.showLabelColon = input.showLabelColon ?? null;
+  if (input.showValueBeforeLabel !== undefined) patch.showValueBeforeLabel = input.showValueBeforeLabel ?? null;
   return patch;
 }
 

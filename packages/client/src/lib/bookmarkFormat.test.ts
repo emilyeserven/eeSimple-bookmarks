@@ -38,6 +38,8 @@ function property(overrides: Partial<CustomProperty>): CustomProperty {
     booleanLabelPreset: null,
     booleanTrueLabel: null,
     booleanFalseLabel: null,
+    showLabelColon: true,
+    showValueBeforeLabel: false,
     propertyGroupId: null,
     createdAt: NOW,
     ...overrides,

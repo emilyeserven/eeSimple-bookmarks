@@ -47,17 +47,22 @@ export function BookmarkPropertySections({
       const property = byId.get(entry.propertyId);
       if (!property) return null;
       if (!entry.value && !property.showIfFalse) return null;
+      const isIconPreset = property.booleanLabelPreset === "icons" || property.booleanLabelPreset === "stars";
       return {
         id: entry.propertyId,
         name: property.name,
         groupId: property.propertyGroupId,
         value: formatBoolean(entry.value, property),
+        showLabelColon: isIconPreset ? property.showLabelColon : true,
+        showValueBeforeLabel: isIconPreset ? property.showValueBeforeLabel : false,
       };
     })
     .filter((row): row is { id: string;
       name: string;
       groupId: string | null;
-      value: string; } => row !== null);
+      value: string;
+      showLabelColon: boolean;
+      showValueBeforeLabel: boolean; } => row !== null);
 
   const dateTimeRows = bookmark.dateTimeValues
     .map((entry) => {
@@ -131,11 +136,24 @@ export function BookmarkPropertySections({
                   key={row.id}
                   className="flex items-baseline gap-2"
                 >
-                  <dt className="text-muted-foreground">
-                    {row.name}
-                    :
-                  </dt>
-                  <dd>{row.value}</dd>
+                  {row.showValueBeforeLabel
+                    ? (
+                      <>
+                        <dd>{row.value}</dd>
+                        <dt className="text-muted-foreground">
+                          {row.showLabelColon ? `: ${row.name}` : row.name}
+                        </dt>
+                      </>
+                    )
+                    : (
+                      <>
+                        <dt className="text-muted-foreground">
+                          {row.name}
+                          {row.showLabelColon ? ":" : ""}
+                        </dt>
+                        <dd>{row.value}</dd>
+                      </>
+                    )}
                 </div>
               ))}
               {dateTimeRows.filter(row => inGroup(row.groupId, section.target)).map(row => (

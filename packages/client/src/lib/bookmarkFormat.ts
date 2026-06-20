@@ -48,10 +48,26 @@ export function formatBoolean(value: boolean, property: CustomProperty): string 
     case "true-false": return value ? "True" : "False";
     case "enabled-disabled": return value ? "Enabled" : "Disabled";
     case "icons": return value ? "✓" : "✗";
+    case "stars": return value ? "★" : "☆";
     case "custom":
       return value
         ? (property.booleanTrueLabel || "Yes")
         : (property.booleanFalseLabel || "No");
     default: return value ? "Yes" : "No";
   }
+}
+
+/**
+ * Build the full badge/label string for a boolean property value, applying `showLabelColon` and
+ * `showValueBeforeLabel` when the preset is icon-like ("icons" or "stars").
+ */
+export function formatBooleanBadge(value: boolean, property: CustomProperty): string {
+  const formatted = formatBoolean(value, property);
+  const isIconPreset = property.booleanLabelPreset === "icons" || property.booleanLabelPreset === "stars";
+  if (!isIconPreset) return `${property.name}: ${formatted}`;
+  const colon = property.showLabelColon !== false;
+  const sep = colon ? ": " : " ";
+  return property.showValueBeforeLabel
+    ? `${formatted}${sep}${property.name}`
+    : `${property.name}${sep}${formatted}`;
 }

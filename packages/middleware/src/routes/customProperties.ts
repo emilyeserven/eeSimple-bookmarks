@@ -113,13 +113,19 @@ const createPropertyBody = {
     },
     booleanLabelPreset: {
       type: ["string", "null"],
-      enum: ["yes-no", "true-false", "enabled-disabled", "icons", "custom", null],
+      enum: ["yes-no", "true-false", "enabled-disabled", "icons", "stars", "custom", null],
     },
     booleanTrueLabel: {
       type: ["string", "null"],
     },
     booleanFalseLabel: {
       type: ["string", "null"],
+    },
+    showLabelColon: {
+      type: "boolean",
+    },
+    showValueBeforeLabel: {
+      type: "boolean",
     },
     propertyGroupId: nullableUuid,
   },
@@ -155,6 +161,8 @@ const updatePropertyBody = {
     booleanLabelPreset: createPropertyBody.properties.booleanLabelPreset,
     booleanTrueLabel: createPropertyBody.properties.booleanTrueLabel,
     booleanFalseLabel: createPropertyBody.properties.booleanFalseLabel,
+    showLabelColon: createPropertyBody.properties.showLabelColon,
+    showValueBeforeLabel: createPropertyBody.properties.showValueBeforeLabel,
     propertyGroupId: createPropertyBody.properties.propertyGroupId,
   },
 } as const;

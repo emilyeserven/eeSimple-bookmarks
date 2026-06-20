@@ -150,6 +150,7 @@ export function PropertyOptionsFields({
     const labelsDisplay = property.booleanLabelPreset === "custom"
       ? `Custom: ${property.booleanTrueLabel || "Yes"} / ${property.booleanFalseLabel || "No"}`
       : (preset?.label ?? "Yes / No");
+    const isIconPreset = property.booleanLabelPreset === "icons" || property.booleanLabelPreset === "stars";
     return (
       <dl className="space-y-3">
         <DetailField label="Display labels">{labelsDisplay}</DetailField>
@@ -158,6 +159,18 @@ export function PropertyOptionsFields({
             ? "Yes — shown even when unchecked"
             : "No — hidden when unchecked"}
         </DetailField>
+        {isIconPreset
+          ? (
+            <>
+              <DetailField label="Colon after label">
+                {property.showLabelColon ? "Yes" : "No"}
+              </DetailField>
+              <DetailField label="Value before label">
+                {property.showValueBeforeLabel ? "Yes" : "No"}
+              </DetailField>
+            </>
+          )
+          : null}
       </dl>
     );
   }
