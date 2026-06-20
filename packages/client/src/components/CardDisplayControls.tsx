@@ -22,10 +22,9 @@ export function CardDisplayControls({
 
   const customFields = properties
     .filter(property =>
-      property.showInListings &&
-      property.type !== "calculate" &&
-      (property.allCategories || property.categoryIds.length > 0)
-    )
+      property.showInListings
+      && property.type !== "calculate"
+      && (property.allCategories || property.categoryIds.length > 0))
     .map(property => ({
       key: property.id,
       label: property.name,
