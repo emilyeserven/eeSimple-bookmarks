@@ -82,9 +82,9 @@ function effectiveBounds(
 }
 
 const collapseWhenInactive = `
-  w-0 min-w-0 overflow-hidden p-0 opacity-0
+  w-0 min-w-0 overflow-hidden px-0 opacity-0
   transition-all duration-150
-  group-hover/presence:w-7 group-hover/presence:opacity-100 group-hover/presence:p-1.5
+  group-hover/presence:w-7 group-hover/presence:opacity-100 group-hover/presence:px-1.5
 `;
 
 interface PresenceControlProps {
