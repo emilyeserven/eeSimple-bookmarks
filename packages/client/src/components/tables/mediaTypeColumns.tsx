@@ -4,8 +4,9 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { useMemo } from "react";
 
 import { Link } from "@tanstack/react-router";
-import { ChevronDown, ChevronRight } from "lucide-react";
 
+import { TreeExpandToggle } from "./cells";
+import { bookmarkCountColumn } from "./columnHelpers";
 import { useViewPanelClick } from "../panel/useEditPanelClick";
 
 import { Badge } from "@/components/ui/badge";
@@ -31,30 +32,7 @@ export function useMediaTypeColumns(): ColumnDef<MediaTypeNode>[] {
               paddingLeft: `${row.depth * 1.25}rem`,
             }}
           >
-            {row.getCanExpand()
-              ? (
-                <button
-                  type="button"
-                  data-no-row-click
-                  aria-label={row.getIsExpanded() ? "Collapse" : "Expand"}
-                  onClick={row.getToggleExpandedHandler()}
-                  className="
-                    flex size-4 items-center justify-center
-                    text-muted-foreground
-                    hover:text-foreground
-                  "
-                >
-                  {row.getIsExpanded()
-                    ? <ChevronDown className="size-4" />
-                    : <ChevronRight className="size-4" />}
-                </button>
-              )
-              : (
-                <span
-                  className="inline-block size-4"
-                  aria-hidden="true"
-                />
-              )}
+            <TreeExpandToggle row={row} />
             <CategoryIcon
               name={row.original.icon}
               className="size-4 shrink-0 text-muted-foreground"
@@ -77,15 +55,7 @@ export function useMediaTypeColumns(): ColumnDef<MediaTypeNode>[] {
           </div>
         ),
       },
-      {
-        accessorKey: "bookmarkCount",
-        header: "Bookmarks",
-        cell: ({
-          row,
-        }) => (row.original.bookmarkCount !== undefined
-          ? <Badge variant="secondary">{row.original.bookmarkCount}</Badge>
-          : null),
-      },
+      bookmarkCountColumn<MediaTypeNode>(),
     ],
     [viewClick, modifier],
   );

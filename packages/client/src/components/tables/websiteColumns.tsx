@@ -6,10 +6,8 @@ import { useMemo } from "react";
 import { Globe } from "lucide-react";
 
 import { EditActionCell, ImageCell } from "./cells";
-import { CategoryPill } from "../CategoryPill";
+import { bookmarkCountColumn, categoryPillColumn } from "./columnHelpers";
 import { useEditPanelClick } from "../panel/useEditPanelClick";
-
-import { Badge } from "@/components/ui/badge";
 
 /** Column definitions for the Websites listing Table view. */
 export function useWebsiteColumns(): ColumnDef<Website>[] {
@@ -38,23 +36,8 @@ export function useWebsiteColumns(): ColumnDef<Website>[] {
           row,
         }) => <span className="text-muted-foreground">{row.original.domain}</span>,
       },
-      {
-        id: "category",
-        header: "Category",
-        enableSorting: false,
-        cell: ({
-          row,
-        }) => (row.original.category ? <CategoryPill category={row.original.category} /> : null),
-      },
-      {
-        accessorKey: "bookmarkCount",
-        header: "Bookmarks",
-        cell: ({
-          row,
-        }) => (row.original.bookmarkCount !== undefined
-          ? <Badge variant="secondary">{row.original.bookmarkCount}</Badge>
-          : null),
-      },
+      categoryPillColumn<Website>(),
+      bookmarkCountColumn<Website>(),
       {
         id: "actions",
         header: "",

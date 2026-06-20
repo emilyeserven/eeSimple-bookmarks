@@ -135,71 +135,45 @@ export function validateBookmarkSearch(search: Record<string, unknown>): Bookmar
   return result;
 }
 
-/** Whether a bookmark satisfies every active filter in `search`. */
-export function bookmarkMatchesSearch(
-  bookmark: Pick<
-    Bookmark,
-    | "categoryId"
-    | "mediaType"
-    | "youtubeChannel"
-    | "website"
-    | "tags"
-    | "numberValues"
-    | "booleanValues"
-    | "dateTimeValues"
-  >,
-  search: BookmarkSearch,
-): boolean {
-  if (
-    search.categories
-    && search.categories.length > 0
-    && !search.categories.includes(bookmark.categoryId)
-  ) {
-    return false;
-  }
+type SearchableBookmark = Pick<
+  Bookmark,
+  | "categoryId"
+  | "mediaType"
+  | "youtubeChannel"
+  | "website"
+  | "tags"
+  | "numberValues"
+  | "booleanValues"
+  | "dateTimeValues"
+>;
 
-  if (
-    search.mediaTypes
-    && search.mediaTypes.length > 0
-    && !(bookmark.mediaType && search.mediaTypes.includes(bookmark.mediaType.id))
-  ) {
-    return false;
-  }
+/** A multi-select id filter passes when it is empty or contains the bookmark's value. */
+function passesIdFilter(selected: string[] | undefined, value: string | null | undefined): boolean {
+  if (!selected || selected.length === 0) return true;
+  return value != null && selected.includes(value);
+}
 
-  if (
-    search.youtubeChannels
-    && search.youtubeChannels.length > 0
-    && !(bookmark.youtubeChannel && search.youtubeChannels.includes(bookmark.youtubeChannel.id))
-  ) {
-    return false;
-  }
+/** A "has"/"missing" presence filter checks whether the dimension is present. */
+function passesPresence(mode: "has" | "missing" | undefined, present: boolean): boolean {
+  if (mode === "has") return present;
+  if (mode === "missing") return !present;
+  return true;
+}
 
-  if (search.youtubeChannelPresence === "has" && !bookmark.youtubeChannel) return false;
-  if (search.youtubeChannelPresence === "missing" && bookmark.youtubeChannel) return false;
-
-  if (
-    search.websites
-    && search.websites.length > 0
-    && !(bookmark.website && search.websites.includes(bookmark.website.id))
-  ) {
-    return false;
-  }
-
-  if (search.websitePresence === "has" && !bookmark.website) return false;
-  if (search.websitePresence === "missing" && bookmark.website) return false;
-
-  if (search.tagPresence === "has" && bookmark.tags.length === 0) return false;
-  if (search.tagPresence === "missing" && bookmark.tags.length > 0) return false;
-
+/** Every per-property presence filter must be satisfied. */
+function passesPropertyPresence(bookmark: SearchableBookmark, search: BookmarkSearch): boolean {
   for (const [propertyId, mode] of Object.entries(search.presence ?? {})) {
-    const hasNum = bookmark.numberValues.some(v => v.propertyId === propertyId);
-    const hasBool = bookmark.booleanValues.some(v => v.propertyId === propertyId);
-    const hasDate = bookmark.dateTimeValues.some(v => v.propertyId === propertyId);
-    const hasValue = hasNum || hasBool || hasDate;
-    if (mode === "has" && !hasValue) return false;
-    if (mode === "missing" && hasValue) return false;
+    const hasValue
+      = bookmark.numberValues.some(v => v.propertyId === propertyId)
+        || bookmark.booleanValues.some(v => v.propertyId === propertyId)
+        || bookmark.dateTimeValues.some(v => v.propertyId === propertyId);
+    if (!passesPresence(mode, hasValue)) return false;
   }
+  return true;
+}
 
+/** Whether a bookmark satisfies the number/boolean/date-time property-value ranges in `search`. */
+function passesValueFilters(bookmark: SearchableBookmark, search: BookmarkSearch): boolean {
   const numberFilters = Object.entries(search.num ?? {}).map(([propertyId, [lo, hi]]) => ({
     propertyId,
     lo,
@@ -215,6 +189,24 @@ export function bookmarkMatchesSearch(
     to,
   }));
   return bookmarkMatchesFilters(bookmark, numberFilters, booleanFilters, dateTimeFilters);
+}
+
+/** Whether a bookmark satisfies every active filter in `search`. */
+export function bookmarkMatchesSearch(
+  bookmark: SearchableBookmark,
+  search: BookmarkSearch,
+): boolean {
+  return (
+    passesIdFilter(search.categories, bookmark.categoryId)
+    && passesIdFilter(search.mediaTypes, bookmark.mediaType?.id)
+    && passesIdFilter(search.youtubeChannels, bookmark.youtubeChannel?.id)
+    && passesPresence(search.youtubeChannelPresence, Boolean(bookmark.youtubeChannel))
+    && passesIdFilter(search.websites, bookmark.website?.id)
+    && passesPresence(search.websitePresence, Boolean(bookmark.website))
+    && passesPresence(search.tagPresence, bookmark.tags.length > 0)
+    && passesPropertyPresence(bookmark, search)
+    && passesValueFilters(bookmark, search)
+  );
 }
 
 /** Whether any filter in `search` is active (used to choose the empty-state message). */
@@ -407,28 +399,29 @@ export function withBooleanFilter(
  * (e.g. "2 categories · 1 tag · 1 property"). Accepts `Record<string, unknown>` so it can be
  * called on the JSONB blob from the API without a cast at the call site.
  */
+/** Format a "<n> <singular|plural>" fragment, or `null` when the count is zero. */
+function countPart(count: number, singular: string, plural: string): string | null {
+  return count > 0 ? `${count} ${count === 1 ? singular : plural}` : null;
+}
+
 export function summarizeBookmarkSearch(raw: Record<string, unknown>): string {
   const search = validateBookmarkSearch(raw);
-  const parts: string[] = [];
-  const categoryCount = search.categories?.length ?? 0;
-  if (categoryCount > 0) parts.push(`${categoryCount} ${categoryCount === 1 ? "category" : "categories"}`);
-  const mediaTypeCount = search.mediaTypes?.length ?? 0;
-  if (mediaTypeCount > 0) parts.push(`${mediaTypeCount} media ${mediaTypeCount === 1 ? "type" : "types"}`);
-  const channelCount = search.youtubeChannels?.length ?? 0;
-  if (channelCount > 0) parts.push(`${channelCount} ${channelCount === 1 ? "channel" : "channels"}`);
-  if (search.youtubeChannelPresence !== undefined) parts.push(`channel: ${search.youtubeChannelPresence}`);
-  const websiteCount = search.websites?.length ?? 0;
-  if (websiteCount > 0) parts.push(`${websiteCount} ${websiteCount === 1 ? "website" : "websites"}`);
-  if (search.websitePresence !== undefined) parts.push(`website: ${search.websitePresence}`);
-  const tagCount = search.tags?.length ?? 0;
-  if (tagCount > 0) parts.push(`${tagCount} ${tagCount === 1 ? "tag" : "tags"}`);
-  if (search.tagPresence !== undefined) parts.push(`tags: ${search.tagPresence}`);
   const propCount
     = Object.keys(search.num ?? {}).length
       + Object.keys(search.bool ?? {}).length
       + Object.keys(search.date ?? {}).length
       + Object.keys(search.presence ?? {}).length;
-  if (propCount > 0) parts.push(`${propCount} ${propCount === 1 ? "property" : "properties"}`);
+  const parts = [
+    countPart(search.categories?.length ?? 0, "category", "categories"),
+    countPart(search.mediaTypes?.length ?? 0, "media type", "media types"),
+    countPart(search.youtubeChannels?.length ?? 0, "channel", "channels"),
+    search.youtubeChannelPresence !== undefined ? `channel: ${search.youtubeChannelPresence}` : null,
+    countPart(search.websites?.length ?? 0, "website", "websites"),
+    search.websitePresence !== undefined ? `website: ${search.websitePresence}` : null,
+    countPart(search.tags?.length ?? 0, "tag", "tags"),
+    search.tagPresence !== undefined ? `tags: ${search.tagPresence}` : null,
+    countPart(propCount, "property", "properties"),
+  ].filter((part): part is string => part !== null);
   return parts.join(" · ") || "No filters";
 }
 
