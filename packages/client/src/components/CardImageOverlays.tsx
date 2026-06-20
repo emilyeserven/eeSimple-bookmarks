@@ -21,7 +21,7 @@ export function CardImageOverlays({
   return (
     <>
       {CARD_IMAGE_CORNERS.map(({
-        corner, className,
+        corner, className, transformOrigin,
       }) => {
         const cornerItems = items.filter(item => item.corner === corner);
         if (cornerItems.length === 0) return null;
@@ -33,14 +33,23 @@ export function CardImageOverlays({
               ${className}
             `}
           >
-            {cornerItems.map(item =>
-              item.kind === "rating"
+            {cornerItems.map((item) => {
+              // Enlarge the overlay up to 2x, anchored at its corner so it grows inward.
+              const scale = item.property.cardImageCornerScale ?? 1;
+              const scaleStyle = scale !== 1
+                ? {
+                  transform: `scale(${scale})`,
+                  transformOrigin,
+                }
+                : undefined;
+              return item.kind === "rating"
                 ? (
                   <div
                     key={item.id}
                     className="
                       rounded-md bg-background/85 px-1.5 py-0.5 backdrop-blur-sm
                     "
+                    style={scaleStyle}
                   >
                     <StarRating
                       value={item.value}
@@ -57,10 +66,12 @@ export function CardImageOverlays({
                     key={item.id}
                     variant="secondary"
                     className="bg-background/85 backdrop-blur-sm"
+                    style={scaleStyle}
                   >
                     {item.label}
                   </Badge>
-                ))}
+                );
+            })}
           </div>
         );
       })}
