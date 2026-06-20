@@ -401,6 +401,10 @@ For each skill, ask:
   remove it.
 - **Now redundant?** If two skills have converged on the same workflow, consolidate them.
 
+`.claude/skills/fallow/` is the one exception — it's **vendored** from the `fallow` npm package, not
+hand-maintained. Don't hand-edit it; instead run `pnpm fallow:check-skill`, and if it reports drift
+(e.g. after a `fallow` bump), re-sync with `pnpm fallow:sync-skill` and commit the result.
+
 ### 5.3 Add, update, or remove skills as needed
 
 - **Add** a new skill when recent commits reveal a repeatable, multi-file workflow that isn't yet

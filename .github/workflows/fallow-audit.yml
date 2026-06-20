@@ -30,6 +30,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Verify vendored fallow skill is in sync
+        # `.claude/skills/fallow` is a committed copy of the skill shipped inside the `fallow`
+        # package. Fail (before the audit gate) if a `fallow` bump drifted it; fix with
+        # `pnpm fallow:sync-skill`.
+        run: pnpm fallow:check-skill
+
       - name: Run Fallow audit
         # The previous step piped `fallow` straight into `tee`, so the pipeline returned tee's exit
         # code (0) and fallow never actually blocked anything. These two gates have clean exit codes:
