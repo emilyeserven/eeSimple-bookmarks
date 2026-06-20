@@ -253,6 +253,7 @@ readiness uses `DB_WAIT_TIMEOUT_MS`).
 | Variable | Where | Purpose |
 |---|---|---|
 | `DATABASE_URL` | middleware / gateway | PostgreSQL connection string |
+| `DOCS_ENABLED` | middleware / gateway | Expose the Swagger/OpenAPI docs at `/docs`. `true`/`1` on, `false`/`0` off; unset defaults to on outside production and off in production. The middleware gates the `@fastify/swagger` registration on it and the gateway gates the `/docs` proxy on it — both parse the flag identically, so set `true` to serve the docs through the production gateway. The API is unauthenticated, so this makes the full surface publicly explorable. |
 | `POSTGRES_USER` | docker-compose | DB user (default: `postgres`) |
 | `POSTGRES_PASSWORD` | docker-compose | DB password (default: `password`) |
 | `POSTGRES_DB` | docker-compose | DB name (default: `bookmarks`) |

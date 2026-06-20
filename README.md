@@ -133,6 +133,10 @@ the runtime-migrations hook (`dist/db/migrate.js`) and then `drizzle-kit push` â
 
    (Coolify can inject the URL of a managed database for you.) The `POSTGRES_*` variables in
    `docker-compose.yml` are only for the local database and are **not** needed in Coolify.
+
+   To browse the API docs on the deployed app, also set `DOCS_ENABLED=true` â€” the gateway then
+   proxies the Swagger UI at `/docs` (it's off in production by default). The API is
+   unauthenticated, so this makes the full surface publicly explorable; enable it deliberately.
 5. **Deploy.** Coolify builds the multi-stage image and starts the gateway. The schema is applied
    automatically on first boot. Visit the app URL and check `GET /healthz` returns `{"status":"ok"}`.
 
