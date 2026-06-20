@@ -34,7 +34,7 @@ export function BookmarkCardDetails({
 }: BookmarkCardDetailsProps) {
   const pageHidden = useHiddenCardFields(pageKey);
   const hidden = hiddenFields ?? pageHidden;
-  const hideWebsiteForYouTube = useHideWebsiteForYouTube(pageKey);
+  const hideWebsiteForYouTube = useHideWebsiteForYouTube();
   const {
     data: allCategories,
   } = useCategories();

@@ -42,9 +42,9 @@ export function useHiddenCardFields(pageKey?: string): Set<string> {
 }
 
 /**
- * Whether the website pill should be hidden on bookmarks that also have a YouTube channel, for
- * the given listing page. Always false when `pageKey` is absent.
+ * Whether the website pill should be hidden on any bookmark that also has a YouTube channel.
+ * Global Display setting (Settings → Display).
  */
-export function useHideWebsiteForYouTube(pageKey?: string): boolean {
-  return useUiStore(state => (pageKey ? (state.hideWebsiteForYouTube[pageKey] ?? false) : false));
+export function useHideWebsiteForYouTube(): boolean {
+  return useUiStore(state => state.hideWebsiteForYouTube);
 }
