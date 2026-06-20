@@ -1,10 +1,11 @@
-import type { Category, ConditionTree, CustomProperty, HomepageSectionImageLayout, TagNode } from "@eesimple/types";
+import type { SectionDisplayValue } from "./SectionDisplaySettings";
+import type { Category, ConditionTree, CustomProperty, TagNode } from "@eesimple/types";
 
 import { CollapsibleFormSection } from "./CollapsibleFormSection";
 import { ConditionsField } from "./conditions/ConditionsField";
 import { conditionsSummaryLabel } from "./conditions/summarizeConditions";
-import { SectionDisplayControls } from "./SectionDisplayControls";
-import { bookmarkImageModeLabel } from "../lib/bookmarkColumns";
+import { SectionDisplaySettings } from "./SectionDisplaySettings";
+import { sectionDisplayPreview } from "../lib/sectionDisplayPreview";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -12,33 +13,14 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 
-function displayPreview(
-  columns: number,
-  imageMode: string,
-  imageLayout: HomepageSectionImageLayout,
-  hideIfEmpty: boolean,
-): string {
-  const parts = [
-    `${columns} ${columns === 1 ? "column" : "columns"}`,
-    bookmarkImageModeLabel(imageMode),
-  ];
-  if (columns === 1 || columns === 2) parts.push(imageLayout === "side" ? "Side" : "Above");
-  if (hideIfEmpty) parts.push("Hidden when empty");
-  return parts.join(" · ");
-}
-
 interface HomepageSectionFieldsProps {
   idPrefix: string;
   title: string;
   setTitle: (value: string) => void;
   description: string;
   setDescription: (value: string) => void;
-  columns: number;
-  setColumns: (value: number) => void;
-  imageMode: string;
-  setImageMode: (value: string) => void;
-  imageLayout: HomepageSectionImageLayout;
-  setImageLayout: (value: HomepageSectionImageLayout) => void;
+  display: SectionDisplayValue;
+  onDisplayChange: (patch: Partial<SectionDisplayValue>) => void;
   hideIfEmpty: boolean;
   setHideIfEmpty: (value: boolean) => void;
   conditions: ConditionTree;
@@ -55,9 +37,7 @@ export function HomepageSectionFields({
   idPrefix,
   title, setTitle,
   description, setDescription,
-  columns, setColumns,
-  imageMode, setImageMode,
-  imageLayout, setImageLayout,
+  display, onDisplayChange,
   hideIfEmpty, setHideIfEmpty,
   conditions, setConditions,
   displayDefaultOpen,
@@ -103,16 +83,13 @@ export function HomepageSectionFields({
         title="Display"
         description="How this section's bookmarks are laid out on the homepage."
         defaultOpen={displayDefaultOpen}
-        preview={displayPreview(columns, imageMode, imageLayout, hideIfEmpty)}
+        preview={sectionDisplayPreview(display, hideIfEmpty)}
       >
-        <SectionDisplayControls
+        <SectionDisplaySettings
           idPrefix={idPrefix}
-          columns={columns}
-          imageMode={imageMode}
-          imageLayout={imageLayout}
-          onColumnsChange={setColumns}
-          onImageModeChange={setImageMode}
-          onImageLayoutChange={setImageLayout}
+          value={display}
+          onChange={onDisplayChange}
+          properties={properties}
         />
 
         <div className="flex items-start gap-2">

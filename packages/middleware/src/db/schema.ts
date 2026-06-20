@@ -732,6 +732,9 @@ export const homepageSections = pgTable("homepage_sections", {
   imageMode: boolean("image_mode").notNull().default(true),
   imageCropMode: text("image_crop_mode"),
   imageLayout: text("image_layout").notNull().default("above"),
+  imageVisibility: text("image_visibility").notNull().default("shown"),
+  viewMode: text("view_mode").notNull().default("cards"),
+  hiddenCardFields: jsonb("hidden_card_fields").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),

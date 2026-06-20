@@ -140,6 +140,21 @@ const migrations: RuntimeMigration[] = [
     `),
   },
   {
+    // `homepage_sections` later gained per-section listing-parity display columns
+    // (`image_visibility`, `view_mode`, `hidden_card_fields`). They are NOT NULL with defaults;
+    // adding NOT NULL columns to the populated table makes drizzle-kit push prompt — the same
+    // non-TTY crash as above — so pre-apply them here. One `ALTER TABLE` with multiple `ADD COLUMN`
+    // clauses is a single statement, safe over the extended protocol. Defaults must match schema.ts:
+    // "shown" visibility, "cards" view mode, empty hidden-fields array.
+    name: "add homepage_sections listing-parity display columns",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "homepage_sections"
+        ADD COLUMN IF NOT EXISTS "image_visibility" text NOT NULL DEFAULT 'shown',
+        ADD COLUMN IF NOT EXISTS "view_mode" text NOT NULL DEFAULT 'cards',
+        ADD COLUMN IF NOT EXISTS "hidden_card_fields" jsonb NOT NULL DEFAULT '[]'::jsonb
+    `),
+  },
+  {
     // `app_settings` gained homepage-content columns (homepage text + Quick Add config). They are
     // NOT NULL with defaults; adding NOT NULL columns to the populated singleton makes drizzle-kit
     // push prompt — the same non-TTY crash as the cases above — so pre-apply them here. One

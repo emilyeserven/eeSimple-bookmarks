@@ -54,6 +54,20 @@ const createBody = {
       type: "string",
       enum: ["above", "side"],
     },
+    imageVisibility: {
+      type: "string",
+      enum: ["shown", "image-only", "off"],
+    },
+    viewMode: {
+      type: "string",
+      enum: ["cards", "table"],
+    },
+    hiddenCardFields: {
+      type: "array",
+      items: {
+        type: "string",
+      },
+    },
   },
 } as const;
 
@@ -86,6 +100,20 @@ const updateBody = {
     imageLayout: {
       type: "string",
       enum: ["above", "side"],
+    },
+    imageVisibility: {
+      type: "string",
+      enum: ["shown", "image-only", "off"],
+    },
+    viewMode: {
+      type: "string",
+      enum: ["cards", "table"],
+    },
+    hiddenCardFields: {
+      type: "array",
+      items: {
+        type: "string",
+      },
     },
   },
 } as const;
