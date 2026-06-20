@@ -132,6 +132,7 @@ export function CardOptionsPreview({
         propertyId: p.id,
         value: PREVIEW_CREATED_AT,
       })),
+    fileValues: [],
     relatedBookmarks: [],
     priority: 0,
     createdAt: PREVIEW_CREATED_AT,

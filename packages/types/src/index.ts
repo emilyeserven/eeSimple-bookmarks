@@ -467,6 +467,12 @@ export interface Bookmark {
   booleanValues: BookmarkBooleanValue[];
   /** Date/time custom property values assigned to this bookmark. */
   dateTimeValues: BookmarkDateTimeValue[];
+  /**
+   * Image/file custom property values assigned to this bookmark. Unlike the scalar value arrays,
+   * these are NOT part of `CreateBookmarkInput`/`UpdateBookmarkInput`: the blobs are uploaded
+   * through dedicated multipart routes, never the bookmark JSON payload.
+   */
+  fileValues: BookmarkFileValue[];
   /** Other bookmarks this bookmark is related to (undirected edges in the Relationships graph). */
   relatedBookmarks: BookmarkUrlSummary[];
   /** Homepage ordering weight; higher values appear first. */
@@ -551,8 +557,15 @@ export interface BulkUrlUpdateResult {
  * - `ratingScale` — a star rating (e.g. 1–5). Stored as a numeric value in the same
  *   `bookmarkNumberValues` table as `number`/`calculate`, so it filters/sorts/conditions like a
  *   `number`; only its presentation (stars) and per-property config differ. See {@link RatingMax}.
+ * - `image` — a single image attached per bookmark. Unlike the scalar types, the value is a binary
+ *   blob in object storage (re-encoded to WebP); the bookmark carries only a {@link BookmarkFileValue}
+ *   with its serving URL. Filtered/matched by presence only ("has a value / missing").
+ * - `file` — a single arbitrary file attached per bookmark (stored as raw bytes, served as a
+ *   download). Like `image`, the value is a blob carried as a {@link BookmarkFileValue} and matched
+ *   by presence only.
  */
-export type CustomPropertyType = "number" | "boolean" | "calculate" | "datetime" | "ratingScale";
+export type CustomPropertyType
+  = "number" | "boolean" | "calculate" | "datetime" | "ratingScale" | "image" | "file";
 
 /** The top of a `ratingScale`: a 1–3 or a 1–5 star scale. */
 export type RatingMax = 3 | 5;
@@ -665,6 +678,10 @@ export interface CustomProperty {
   hiddenFromForm: boolean;
   /** When true, the property's value is shown on bookmark cards in listings. */
   showInListings: boolean;
+  /** When true, an `image` property's uploaded objects are counted in the Gallery/quota manifest. Only relevant for `image`/`file`. */
+  showInGallery: boolean;
+  /** When true, the property's value is shown on the bookmark detail page. Only relevant for `image`/`file`. */
+  showInDetails: boolean;
   /** When false, the property is globally inactive: hidden from filters, conditions, category assignment, and the bookmark form. */
   enabled: boolean;
   /** When false, this property does not appear in the category defaults editor. */
@@ -714,6 +731,10 @@ export interface CreateCustomPropertyInput {
   hiddenFromForm?: boolean;
   /** When true, the property's value is shown on bookmark cards in listings. Defaults to true. */
   showInListings?: boolean;
+  /** When true, an `image` property's uploaded objects count toward the Gallery/quota. Defaults to true. Only relevant for `image`/`file`. */
+  showInGallery?: boolean;
+  /** When true, the property's value is shown on the bookmark detail page. Defaults to true. Only relevant for `image`/`file`. */
+  showInDetails?: boolean;
   /** When false, the property is globally inactive. Defaults to true. */
   enabled?: boolean;
   /** When false, this property is excluded from the category defaults editor. Defaults to true. */
@@ -801,6 +822,26 @@ export interface BookmarkBooleanValue {
 export interface BookmarkDateTimeValue {
   propertyId: string;
   value: string;
+}
+
+/**
+ * An `image`/`file` custom property value carried on a bookmark. The bytes live in object storage;
+ * this carries only the serving metadata (the storage `objectKey` is intentionally not exposed).
+ */
+export interface BookmarkFileValue {
+  propertyId: string;
+  /** Serving URL for the bytes, with a `?v=<createdAt>` cache-bust suffix. */
+  url: string;
+  /** MIME type of the stored bytes (`"image/webp"` for `image`, the original type for `file`). */
+  contentType: string;
+  /** Size of the stored bytes. */
+  byteSize: number;
+  /** Original upload filename (used for `file` downloads), or `null` when unknown. */
+  originalFilename: string | null;
+  /** Pixel width — set for `image` values, `null` for `file` values. */
+  width: number | null;
+  /** Pixel height — set for `image` values, `null` for `file` values. */
+  height: number | null;
 }
 
 /**

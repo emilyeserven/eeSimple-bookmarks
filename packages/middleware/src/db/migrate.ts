@@ -267,6 +267,20 @@ const migrations: RuntimeMigration[] = [
         ADD COLUMN IF NOT EXISTS "corner_overlays" boolean NOT NULL DEFAULT true
     `),
   },
+  {
+    // `custom_properties` gained `show_in_gallery` / `show_in_details` for the image/file property
+    // types (whether an image counts toward the Gallery/quota manifest, and whether the value renders
+    // on the bookmark detail page). Both are NOT NULL DEFAULT true; adding NOT NULL columns to the
+    // populated table makes drizzle-kit push prompt — the same non-TTY crash as the cases above — so
+    // pre-apply them here. One `ALTER TABLE` with two `ADD COLUMN` clauses is a single statement, safe
+    // over the extended protocol. Defaults must match schema.ts (both true).
+    name: "add custom_properties show_in_gallery + show_in_details columns",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "custom_properties"
+        ADD COLUMN IF NOT EXISTS "show_in_gallery" boolean NOT NULL DEFAULT true,
+        ADD COLUMN IF NOT EXISTS "show_in_details" boolean NOT NULL DEFAULT true
+    `),
+  },
 ];
 
 async function main(): Promise<void> {

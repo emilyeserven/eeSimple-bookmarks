@@ -47,7 +47,7 @@ const createPropertyBody = {
     },
     type: {
       type: "string",
-      enum: ["number", "boolean", "calculate", "datetime", "ratingScale"],
+      enum: ["number", "boolean", "calculate", "datetime", "ratingScale", "image", "file"],
     },
     numberFormat: {
       type: ["string", "null"],
@@ -91,6 +91,12 @@ const createPropertyBody = {
       type: "boolean",
     },
     showInListings: {
+      type: "boolean",
+    },
+    showInGallery: {
+      type: "boolean",
+    },
+    showInDetails: {
       type: "boolean",
     },
     allCategories: {
@@ -185,6 +191,8 @@ const updatePropertyBody = {
     showInForm: createPropertyBody.properties.showInForm,
     hiddenFromForm: createPropertyBody.properties.hiddenFromForm,
     showInListings: createPropertyBody.properties.showInListings,
+    showInGallery: createPropertyBody.properties.showInGallery,
+    showInDetails: createPropertyBody.properties.showInDetails,
     allCategories: createPropertyBody.properties.allCategories,
     allMediaTypes: createPropertyBody.properties.allMediaTypes,
     editableOnCard: createPropertyBody.properties.editableOnCard,

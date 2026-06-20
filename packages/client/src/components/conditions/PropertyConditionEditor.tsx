@@ -77,6 +77,21 @@ const DATETIME_MODES = [
   },
 ];
 
+const FILE_MODES = [
+  {
+    value: "none",
+    label: "Any",
+  },
+  {
+    value: "has",
+    label: "Has value",
+  },
+  {
+    value: "missing",
+    label: "Missing",
+  },
+];
+
 const BOOLEAN_MODES = [
   {
     value: "none",
@@ -320,6 +335,53 @@ function PropertyConditionRow({
             />
           )
           : null}
+      </div>
+    );
+  }
+
+  if (property.type === "image" || property.type === "file") {
+    // Image/file values are blobs, so only their presence can be matched.
+    const filePredicate = condition?.predicate.valueKind === "file" ? condition.predicate.predicate : undefined;
+    const fileMode = filePredicate ? filePredicate.mode : "none";
+    return (
+      <div className="flex items-center justify-between gap-2">
+        <PropertyNameLabel
+          property={property}
+          categories={categories}
+        />
+        <Select
+          value={fileMode}
+          onValueChange={(next) => {
+            if (next === "none") onChange(null);
+            else {
+              onChange({
+                type: "property",
+                propertyId: property.id,
+                predicate: {
+                  valueKind: "file",
+                  predicate: {
+                    kind: "presence",
+                    mode: next as "has" | "missing",
+                  },
+                },
+              });
+            }
+          }}
+        >
+          <SelectTrigger className="w-36">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {FILE_MODES.map(option => (
+              <SelectItem
+                key={option.value}
+                value={option.value}
+              >
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
     );
   }

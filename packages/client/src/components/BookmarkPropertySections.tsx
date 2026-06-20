@@ -114,8 +114,30 @@ export function BookmarkPropertySections({
       groupId: string | null;
       value: string; } => row !== null);
 
+  const fileRows = bookmark.fileValues
+    .map((entry) => {
+      const property = byId.get(entry.propertyId);
+      // Only image/file properties opted into the detail view via `showInDetails` render here.
+      return property && property.showInDetails
+        ? {
+          id: entry.propertyId,
+          name: property.name,
+          groupId: property.propertyGroupId,
+          isImage: property.type === "image",
+          url: entry.url,
+          filename: entry.originalFilename,
+        }
+        : null;
+    })
+    .filter((row): row is { id: string;
+      name: string;
+      groupId: string | null;
+      isImage: boolean;
+      url: string;
+      filename: string | null; } => row !== null);
+
   const hasProperties = numberRows.length > 0 || booleanRows.length > 0
-    || dateTimeRows.length > 0 || ratingRows.length > 0;
+    || dateTimeRows.length > 0 || ratingRows.length > 0 || fileRows.length > 0;
   if (!hasProperties) return null;
 
   // Partition the property rows by group. A row belongs to the ungrouped bucket when its `groupId`
@@ -142,7 +164,8 @@ export function BookmarkPropertySections({
     numberRows.some(row => inGroup(row.groupId, section.target))
     || booleanRows.some(row => inGroup(row.groupId, section.target))
     || dateTimeRows.some(row => inGroup(row.groupId, section.target))
-    || ratingRows.some(row => inGroup(row.groupId, section.target)));
+    || ratingRows.some(row => inGroup(row.groupId, section.target))
+    || fileRows.some(row => inGroup(row.groupId, section.target)));
 
   return (
     <>
@@ -248,6 +271,43 @@ export function BookmarkPropertySections({
                       label={row.label}
                       size={16}
                     />
+                  </dd>
+                </div>
+              ))}
+              {fileRows.filter(row => inGroup(row.groupId, section.target)).map(row => (
+                <div
+                  key={row.id}
+                  className="flex items-baseline gap-2"
+                >
+                  <dt className="text-muted-foreground">
+                    {row.name}
+                    :
+                  </dt>
+                  <dd>
+                    {row.isImage
+                      ? (
+                        <a
+                          href={row.url}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          <img
+                            src={row.url}
+                            alt={row.name}
+                            className="max-h-40 rounded-md border"
+                          />
+                        </a>
+                      )
+                      : (
+                        <a
+                          href={row.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-primary underline underline-offset-2"
+                        >
+                          {row.filename ?? "Download"}
+                        </a>
+                      )}
                   </dd>
                 </div>
               ))}

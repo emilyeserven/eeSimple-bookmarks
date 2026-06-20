@@ -73,6 +73,8 @@ function toCustomProperty(
     showInForm: row.showInForm,
     hiddenFromForm: row.hiddenFromForm,
     showInListings: row.showInListings,
+    showInGallery: row.showInGallery,
+    showInDetails: row.showInDetails,
     enabled: row.enabled,
     allowDefault: row.allowDefault,
     propertyGroupId: row.propertyGroupId,
@@ -299,6 +301,8 @@ export async function createCustomProperty(
         showInForm: input.showInForm ?? false,
         hiddenFromForm: input.hiddenFromForm ?? false,
         showInListings: input.showInListings ?? true,
+        showInGallery: input.showInGallery ?? true,
+        showInDetails: input.showInDetails ?? true,
         allCategories: input.allCategories ?? false,
         allMediaTypes: input.allMediaTypes ?? false,
         editableOnCard: input.editableOnCard ?? false,
@@ -356,6 +360,8 @@ export type UpdatePatch = Partial<
     | "showInForm"
     | "hiddenFromForm"
     | "showInListings"
+    | "showInGallery"
+    | "showInDetails"
     | "allCategories"
     | "allMediaTypes"
     | "editableOnCard"
@@ -409,6 +415,8 @@ const COPYABLE_FIELDS = [
   "showInForm",
   "hiddenFromForm",
   "showInListings",
+  "showInGallery",
+  "showInDetails",
   "allCategories",
   "allMediaTypes",
   "editableOnCard",

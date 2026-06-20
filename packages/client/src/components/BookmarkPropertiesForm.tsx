@@ -148,6 +148,7 @@ export function BookmarkPropertiesForm({
         categoryId={bookmark.categoryId ?? ""}
         mediaTypeId={bookmark.mediaType?.id ?? null}
         properties={customProperties ?? []}
+        bookmark={bookmark}
         numberInputs={numberInputs}
         booleanInputs={booleanInputs}
         dateTimeInputs={dateTimeInputs}
@@ -160,6 +161,7 @@ export function BookmarkPropertiesForm({
         categoryId={bookmark.categoryId ?? ""}
         mediaTypeId={bookmark.mediaType?.id ?? null}
         properties={customProperties ?? []}
+        bookmark={bookmark}
         numberInputs={numberInputs}
         booleanInputs={booleanInputs}
         dateTimeInputs={dateTimeInputs}

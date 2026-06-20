@@ -16,6 +16,7 @@ function makeInput(overrides: Partial<ConditionInput> = {}): ConditionInput {
     numberValues: overrides.numberValues ?? new Map<string, number>(),
     booleanValues: overrides.booleanValues ?? new Map<string, boolean>(),
     dateTimeValues: overrides.dateTimeValues ?? new Map<string, string>(),
+    fileValues: overrides.fileValues ?? new Set<string>(),
   };
 }
 
@@ -272,6 +273,46 @@ describe("evaluateConditions — property leaf", () => {
       propertyId: "rating",
       predicate: {
         valueKind: "number",
+        predicate: {
+          kind: "presence",
+          mode: "missing",
+        },
+      },
+    }, missing)).toBe(true);
+  });
+
+  it("evaluates image/file presence (has/missing)", () => {
+    const has = makeInput({
+      fileValues: new Set(["screenshot"]),
+    });
+    const missing = makeInput();
+    expect(evaluateConditions({
+      type: "property",
+      propertyId: "screenshot",
+      predicate: {
+        valueKind: "file",
+        predicate: {
+          kind: "presence",
+          mode: "has",
+        },
+      },
+    }, has)).toBe(true);
+    expect(evaluateConditions({
+      type: "property",
+      propertyId: "screenshot",
+      predicate: {
+        valueKind: "file",
+        predicate: {
+          kind: "presence",
+          mode: "has",
+        },
+      },
+    }, missing)).toBe(false);
+    expect(evaluateConditions({
+      type: "property",
+      propertyId: "screenshot",
+      predicate: {
+        valueKind: "file",
         predicate: {
           kind: "presence",
           mode: "missing",

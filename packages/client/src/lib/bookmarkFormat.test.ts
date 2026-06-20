@@ -30,6 +30,8 @@ function property(overrides: Partial<CustomProperty>): CustomProperty {
     showInForm: false,
     hiddenFromForm: false,
     showInListings: true,
+    showInGallery: true,
+    showInDetails: true,
     allCategories: false,
     editableOnCard: false,
     enabled: true,

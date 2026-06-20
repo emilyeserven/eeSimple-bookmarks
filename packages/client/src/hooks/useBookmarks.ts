@@ -181,6 +181,37 @@ export function useDeleteBookmarkImage() {
   });
 }
 
+/** Upload an image/file value for a bookmark's image/file custom property, replacing any current one. */
+export function useUploadBookmarkPropertyFile() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id, propertyId, file,
+    }: { id: string;
+      propertyId: string;
+      file: File; }) => bookmarksApi.uploadPropertyFile(id, propertyId, file),
+    onSuccess: () => queryClient.invalidateQueries({
+      queryKey: BOOKMARKS_KEY,
+    }),
+    onError: (err: Error) => notifyError(err.message || "Could not upload that file"),
+  });
+}
+
+/** Remove a bookmark's image/file custom property value. */
+export function useDeleteBookmarkPropertyFile() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id, propertyId,
+    }: { id: string;
+      propertyId: string; }) => bookmarksApi.deletePropertyFile(id, propertyId),
+    onSuccess: () => queryClient.invalidateQueries({
+      queryKey: BOOKMARKS_KEY,
+    }),
+    onError: (err: Error) => notifyError(err.message || "Could not remove the file"),
+  });
+}
+
 /** Check if a URL (or its path) already exists as a bookmark. */
 export function useBookmarkUrlDuplicateCheck() {
   return useMutation({

@@ -11,6 +11,7 @@ import type {
   CreateSavedFilterInput,
   SavedFilter,
   UpdateSavedFilterInput,
+  BookmarkFileValue,
   BookmarkImage,
   BookmarkUrlDuplicateResult,
   BookmarkUrlSummary,
@@ -164,6 +165,12 @@ export const bookmarksApi = {
     }),
   deleteImage: (id: string) =>
     request<undefined>(`/bookmarks/${id}/image`, {
+      method: "DELETE",
+    }),
+  uploadPropertyFile: (id: string, propertyId: string, file: File) =>
+    uploadImageFile<BookmarkFileValue>(`/bookmarks/${id}/properties/${propertyId}/file`, file),
+  deletePropertyFile: (id: string, propertyId: string) =>
+    request<undefined>(`/bookmarks/${id}/properties/${propertyId}/file`, {
       method: "DELETE",
     }),
   updateRelationships: (id: string, input: UpdateBookmarkRelationshipsInput) =>

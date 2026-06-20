@@ -2,7 +2,7 @@
 // (create page + right panel) and by the per-tab edit forms (`Property*Form`) so the two stay in sync.
 import type { CustomProperty } from "@eesimple/types";
 
-/** True when the property has a "Property options" section/tab (number/datetime/boolean — not calculate). */
+/** True when the property has a "Property options" section/tab (everything but `calculate`). */
 export function hasPropertyOptions(property: CustomProperty): boolean {
   return property.type !== "calculate";
 }
@@ -28,6 +28,14 @@ export const TYPE_OPTIONS = [
   {
     value: "ratingScale",
     label: "Rating Scale",
+  },
+  {
+    value: "image",
+    label: "Image",
+  },
+  {
+    value: "file",
+    label: "File",
   },
 ];
 

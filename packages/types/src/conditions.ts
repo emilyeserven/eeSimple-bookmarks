@@ -52,6 +52,13 @@ export type DateTimePredicate
     | { kind: "presence";
       mode: "has" | "missing"; };
 
+/**
+ * Predicate applied to an `image`/`file` custom-property value inside a `property` leaf. These values
+ * are binary blobs, so only their presence can be matched (`has` a file / `missing` a file).
+ */
+export interface FilePredicate { kind: "presence";
+  mode: "has" | "missing"; }
+
 /** Leaf: text match against the bookmark's url/title. */
 export interface MatchCondition {
   type: "match";
@@ -112,7 +119,9 @@ export interface PropertyCondition {
       | { valueKind: "boolean";
         predicate: BooleanPredicate; }
         | { valueKind: "datetime";
-          predicate: DateTimePredicate; };
+          predicate: DateTimePredicate; }
+          | { valueKind: "file";
+            predicate: FilePredicate; };
 }
 
 /** Branch: combines its children with `and`/`or`. The only node that nests. */
@@ -163,6 +172,8 @@ export interface ConditionInput {
   booleanValues: Map<string, boolean>;
   /** Date/time custom-property values (canonical string encoding), keyed by property id. */
   dateTimeValues: Map<string, string>;
+  /** Property ids of `image`/`file` properties that have a stored value (presence matching only). */
+  fileValues: Set<string>;
 }
 
 /** Resolves a tag id to the inclusive set of its descendant ids (for cascade matching). */
@@ -337,6 +348,10 @@ function evaluateProperty(condition: PropertyCondition, input: ConditionInput): 
       input.dateTimeValues.has(condition.propertyId),
       input.dateTimeValues.get(condition.propertyId),
     );
+  }
+  if (condition.predicate.valueKind === "file") {
+    const hasValue = input.fileValues.has(condition.propertyId);
+    return condition.predicate.predicate.mode === "has" ? hasValue : !hasValue;
   }
   return evaluateBooleanPredicate(
     condition.predicate.predicate,
