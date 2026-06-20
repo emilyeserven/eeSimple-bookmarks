@@ -1,5 +1,7 @@
 import type {
   AutofillPreviewInput,
+  CreatePinnedSidebarItemInput,
+  PinnedSidebarItem,
   AutofillPreviewResult,
   AutofillRule,
   Bookmark,
@@ -355,6 +357,18 @@ export const cardDisplayRulesApi = {
 };
 
 export const savedFiltersApi = createCrudApi<SavedFilter, CreateSavedFilterInput, UpdateSavedFilterInput>("saved-filters");
+
+export const pinnedSidebarItemsApi = {
+  list: () => request<PinnedSidebarItem[]>("/pinned-sidebar-items"),
+  create: (input: CreatePinnedSidebarItemInput) =>
+    request<PinnedSidebarItem>("/pinned-sidebar-items", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  remove: (id: string) => request<undefined>(`/pinned-sidebar-items/${id}`, {
+    method: "DELETE",
+  }),
+};
 
 export const customAspectRatiosApi = {
   list: () => request<CustomAspectRatio[]>("/custom-aspect-ratios"),

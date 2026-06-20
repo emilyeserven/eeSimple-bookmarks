@@ -1218,3 +1218,21 @@ export const customAspectRatios = pgTable("custom_aspect_ratios", {
 });
 
 export type CustomAspectRatioRow = typeof customAspectRatios.$inferSelect;
+
+/**
+ * `pinned_sidebar_items` — entities and saved filters pinned as quick-access links in the sidebar,
+ * displayed below the Bookmarks link. Composite unique constraint prevents duplicates.
+ */
+export const pinnedSidebarItems = pgTable("pinned_sidebar_items", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  entityType: text("entity_type").notNull(),
+  entityId: text("entity_id").notNull(),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+}, table => [
+  unique("pinned_sidebar_items_entity_unique").on(table.entityType, table.entityId),
+]);
+
+export type PinnedSidebarItemRow = typeof pinnedSidebarItems.$inferSelect;

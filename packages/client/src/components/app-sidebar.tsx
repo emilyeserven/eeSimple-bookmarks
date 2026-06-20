@@ -1,9 +1,13 @@
+import type { PinnedSidebarEntityType, PinnedSidebarItem } from "@eesimple/types";
+
 import * as React from "react";
 
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   Bookmark,
+  ChevronDown,
   Clapperboard,
+  Filter,
   FolderOpen,
   Globe,
   Home,
@@ -22,11 +26,14 @@ import { useBookmarks } from "../hooks/useBookmarks";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useMediaTypes } from "../hooks/useMediaTypes";
+import { usePinnedSidebarItems } from "../hooks/usePinnedSidebarItems";
 import { usePropertyGroups } from "../hooks/usePropertyGroups";
+import { useSavedFilters } from "../hooks/useSavedFilters";
 import { useTags } from "../hooks/useTags";
 import { useWebsites } from "../hooks/useWebsites";
 import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
 import { useUiStore } from "../stores/uiStore";
+import { validateBookmarkSearch } from "../lib/bookmarkSearch";
 
 import { Badge } from "@/components/ui/badge";
 import {
@@ -113,6 +120,15 @@ const customizationItems = [
   },
 ] as const;
 
+interface ResolvedPin {
+  id: string;
+  label: string;
+  icon: React.ReactNode;
+  link: { kind: "path"; path: string } | { kind: "filter"; search: ReturnType<typeof validateBookmarkSearch> };
+  bookmarkCount?: number;
+  isActive: boolean;
+}
+
 export function AppSidebar({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
@@ -149,6 +165,14 @@ export function AppSidebar({
   const {
     data: allAutofillRules,
   } = useAutofillRules();
+  const {
+    data: pinnedItems = [],
+  } = usePinnedSidebarItems();
+  const {
+    data: savedFilters,
+  } = useSavedFilters();
+  const [pinnedExpanded, setPinnedExpanded] = React.useState(false);
+  const [pinnedShowAll, setPinnedShowAll] = React.useState(false);
   const hiddenCategoryIds = useUiStore(s => s.hiddenCategoryIds);
   const hiddenTaxonomyItems = useUiStore(s => s.hiddenTaxonomyItems);
   const hiddenCustomizationItems = useUiStore(s => s.hiddenCustomizationItems);
@@ -185,6 +209,66 @@ export function AppSidebar({
       ...item,
       count: customizationCountByKey[item.key],
     }));
+
+  const resolvedPins = React.useMemo((): ResolvedPin[] => {
+    return pinnedItems.flatMap((pin: PinnedSidebarItem): ResolvedPin[] => {
+      switch (pin.entityType as PinnedSidebarEntityType) {
+        case "category": {
+          const e = (categories ?? []).find(c => c.id === pin.entityId);
+          if (!e) return [];
+          return [{ id: pin.id, label: e.name, icon: <CategoryIcon name={e.icon} />,
+            link: { kind: "path", path: `/categories/${e.slug}` },
+            bookmarkCount: e.bookmarkCount, isActive: pathname === `/categories/${e.slug}` }];
+        }
+        case "tag": {
+          const e = (allTags ?? []).find(t => t.id === pin.entityId);
+          if (!e) return [];
+          return [{ id: pin.id, label: e.name, icon: <Tags />,
+            link: { kind: "path", path: `/tags/${e.slug}` },
+            bookmarkCount: e.bookmarkCount, isActive: pathname === `/tags/${e.slug}` }];
+        }
+        case "website": {
+          const e = (allWebsites ?? []).find(w => w.id === pin.entityId);
+          if (!e) return [];
+          return [{ id: pin.id, label: e.siteName, icon: <Globe />,
+            link: { kind: "path", path: `/taxonomies/websites/${e.slug}` },
+            bookmarkCount: e.bookmarkCount,
+            isActive: pathname.startsWith(`/taxonomies/websites/${e.slug}`) }];
+        }
+        case "media-type": {
+          const e = (allMediaTypes ?? []).find(m => m.id === pin.entityId);
+          if (!e) return [];
+          return [{ id: pin.id, label: e.name, icon: <CategoryIcon name={e.icon} />,
+            link: { kind: "path", path: `/taxonomies/media-types/${e.slug}` },
+            bookmarkCount: e.bookmarkCount,
+            isActive: pathname.startsWith(`/taxonomies/media-types/${e.slug}`) }];
+        }
+        case "youtube-channel": {
+          const e = (allChannels ?? []).find(c => c.id === pin.entityId);
+          if (!e) return [];
+          return [{ id: pin.id, label: e.name, icon: <MonitorPlay />,
+            link: { kind: "path", path: `/taxonomies/youtube-channels/${e.slug}` },
+            bookmarkCount: e.bookmarkCount,
+            isActive: pathname.startsWith(`/taxonomies/youtube-channels/${e.slug}`) }];
+        }
+        case "saved-filter": {
+          const e = (savedFilters ?? []).find(f => f.id === pin.entityId);
+          if (!e) return [];
+          return [{ id: pin.id, label: e.name, icon: <Filter />,
+            link: { kind: "filter", search: validateBookmarkSearch(e.filters) },
+            isActive: pathname === "/bookmarks" || pathname === "/bookmarks/" }];
+        }
+      }
+    });
+  }, [pinnedItems, categories, allTags, allWebsites, allMediaTypes, allChannels, savedFilters, pathname]);
+
+  const PINNED_INITIAL = 5;
+  const PINNED_EXPANDED = 10;
+  const visiblePins = pinnedShowAll
+    ? resolvedPins
+    : resolvedPins.slice(0, pinnedExpanded ? PINNED_EXPANDED : PINNED_INITIAL);
+  const hasShowMore = !pinnedExpanded && !pinnedShowAll && resolvedPins.length > PINNED_INITIAL;
+  const hasSeeAll = pinnedExpanded && !pinnedShowAll && resolvedPins.length > PINNED_EXPANDED;
 
   return (
     <Sidebar
@@ -251,6 +335,82 @@ export function AppSidebar({
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {resolvedPins.length > 0
+          ? (
+            <CollapsibleSection
+              sectionKey="pinned"
+              label="Pinned"
+            >
+              <SidebarMenu>
+                {visiblePins.map((pin) => {
+                  return (
+                    <SidebarMenuItem key={pin.id}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={pin.isActive}
+                        tooltip={pin.label}
+                      >
+                        {pin.link.kind === "path"
+                          ? (
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            <Link to={pin.link.path as any}>
+                              {pin.icon}
+                              <span>{pin.label}</span>
+                            </Link>
+                          )
+                          : (
+                            <Link
+                              to="/bookmarks/"
+                              search={pin.link.search}
+                            >
+                              {pin.icon}
+                              <span>{pin.label}</span>
+                            </Link>
+                          )}
+                      </SidebarMenuButton>
+                      {pin.bookmarkCount != null && state !== "collapsed"
+                        ? (
+                          <SidebarMenuBadge>
+                            <Badge variant="secondary">{pin.bookmarkCount}</Badge>
+                          </SidebarMenuBadge>
+                        )
+                        : null}
+                    </SidebarMenuItem>
+                  );
+                })}
+                {hasShowMore && state !== "collapsed"
+                  ? (
+                    <SidebarMenuItem>
+                      <SidebarMenuButton
+                        tooltip="Show more pinned items"
+                        onClick={() => setPinnedExpanded(true)}
+                        className="text-xs text-muted-foreground"
+                      >
+                        <ChevronDown className="size-4" />
+                        <span>Show More</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )
+                  : null}
+                {hasSeeAll && state !== "collapsed"
+                  ? (
+                    <SidebarMenuItem>
+                      <SidebarMenuButton
+                        tooltip="Show all pinned items"
+                        onClick={() => setPinnedShowAll(true)}
+                        className="text-xs text-muted-foreground"
+                      >
+                        <ChevronDown className="size-4" />
+                        <span>See All</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )
+                  : null}
+              </SidebarMenu>
+            </CollapsibleSection>
+          )
+          : null}
 
         {!hiddenSidebarGroups.includes("categories") && visibleCategories.length > 0
           ? (
