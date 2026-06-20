@@ -1,7 +1,7 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 
-import { BookmarkDetail } from "../components/BookmarkDetail";
 import { mergeBooleanValue } from "../components/BookmarkCard";
+import { BookmarkDetail } from "../components/BookmarkDetail";
 import { useBookmark, useUpdateBookmark } from "../hooks/useBookmarks";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
@@ -51,10 +51,11 @@ function BookmarkDetailPage() {
   }
 
   function saveBoolean(propertyId: string, value: boolean) {
+    if (!bookmark) return;
     updateBookmark.mutate({
-      id: bookmark!.id,
+      id: bookmark.id,
       input: {
-        booleanValues: mergeBooleanValue(bookmark!.booleanValues, propertyId, value),
+        booleanValues: mergeBooleanValue(bookmark.booleanValues, propertyId, value),
       },
     });
   }

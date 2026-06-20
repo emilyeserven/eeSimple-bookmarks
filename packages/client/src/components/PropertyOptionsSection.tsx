@@ -15,11 +15,11 @@ import {
   summarizeRatingOptions,
   toggleId,
 } from "./propertyFormParts";
-import { formatBooleanBadge } from "@/lib/bookmarkFormat";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { formatBooleanBadge } from "@/lib/bookmarkFormat";
 
 interface PropertyOptionsSectionProps {
   form: PropertyFormApi;
@@ -448,7 +448,7 @@ function BooleanOptions({
               hideLabel: state.values.hideLabel,
             })}
           >
-            {values => {
+            {(values) => {
               const mock = {
                 name: values.name.trim() || "Property",
                 booleanLabelPreset: values.booleanLabelPreset as CustomProperty["booleanLabelPreset"],
@@ -459,18 +459,28 @@ function BooleanOptions({
                 hideLabel: values.hideLabel,
               } as CustomProperty;
               return (
-                <div className="rounded-md border bg-muted/30 p-3 space-y-2">
+                <div className="space-y-2 rounded-md border bg-muted/30 p-3">
                   <p className="text-xs font-medium text-muted-foreground">Preview</p>
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-2 text-sm">
-                      <span className="w-10 shrink-0 text-xs text-muted-foreground">True</span>
-                      <span className="rounded border bg-background px-2 py-0.5 font-mono text-xs">
+                      <span className="
+                        w-10 shrink-0 text-xs text-muted-foreground
+                      ">True</span>
+                      <span className="
+                        rounded-sm border bg-background px-2 py-0.5 font-mono
+                        text-xs
+                      ">
                         {formatBooleanBadge(true, mock)}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
-                      <span className="w-10 shrink-0 text-xs text-muted-foreground">False</span>
-                      <span className="rounded border bg-background px-2 py-0.5 font-mono text-xs">
+                      <span className="
+                        w-10 shrink-0 text-xs text-muted-foreground
+                      ">False</span>
+                      <span className="
+                        rounded-sm border bg-background px-2 py-0.5 font-mono
+                        text-xs
+                      ">
                         {formatBooleanBadge(false, mock)}
                       </span>
                     </div>
