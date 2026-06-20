@@ -63,6 +63,7 @@ export function formatBoolean(value: boolean, property: CustomProperty): string 
  */
 export function formatBooleanBadge(value: boolean, property: CustomProperty): string {
   const formatted = formatBoolean(value, property);
+  if (property.hideLabel) return formatted;
   const isIconPreset = property.booleanLabelPreset === "icons" || property.booleanLabelPreset === "stars";
   if (!isIconPreset) return `${property.name}: ${formatted}`;
   const colon = property.showLabelColon !== false;

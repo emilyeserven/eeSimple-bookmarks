@@ -134,6 +134,7 @@ export function summarizeBooleanOptions(values: {
   booleanFalseLabel: string;
   showLabelColon?: boolean;
   showValueBeforeLabel?: boolean;
+  hideLabel?: boolean;
 }): string {
   const preset = BOOLEAN_LABEL_PRESET_OPTIONS.find(o => o.value === values.booleanLabelPreset);
   const parts: string[] = [preset?.label ?? "Yes / No"];
@@ -142,6 +143,7 @@ export function summarizeBooleanOptions(values: {
     const falseText = values.booleanFalseLabel.trim() || "No";
     parts[0] = `${trueText} / ${falseText}`;
   }
+  if (values.hideLabel) parts.push("label hidden");
   if (values.showIfFalse) parts.push("show if false");
   const isIconPreset = values.booleanLabelPreset === "icons" || values.booleanLabelPreset === "stars";
   if (isIconPreset) {

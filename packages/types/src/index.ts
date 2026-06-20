@@ -626,6 +626,8 @@ export interface CustomProperty {
   showLabelColon: boolean;
   /** When true, the value renders before the property name (e.g. "★ Favorite"). Defaults to false. Only relevant for `boolean` icon presets. */
   showValueBeforeLabel: boolean;
+  /** When true, the property name label is omitted; only the value is shown. Defaults to false. Only relevant for `boolean` type. */
+  hideLabel: boolean;
   /** Top of a `ratingScale` (3 or 5 stars); `null` defaults to 5. Only relevant for `ratingScale`. */
   ratingMax: RatingMax | null;
   /** When true, a `ratingScale` may be set to 0 (no stars); otherwise the minimum is 1. Defaults to false. */
@@ -715,6 +717,8 @@ export interface CreateCustomPropertyInput {
   showLabelColon?: boolean;
   /** When true, the value renders before the property name. Defaults to false. Only relevant for `boolean` icon presets. */
   showValueBeforeLabel?: boolean;
+  /** When true, the property name label is omitted; only the value is shown. Defaults to false. Only relevant for `boolean` type. */
+  hideLabel?: boolean;
   /** Top of a `ratingScale` (3 or 5). Defaults to 5. Only relevant for `ratingScale`. */
   ratingMax?: RatingMax | null;
   /** When true, a `ratingScale` may be set to 0. Defaults to false. */
