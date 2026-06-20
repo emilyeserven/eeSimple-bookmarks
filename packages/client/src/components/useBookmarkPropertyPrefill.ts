@@ -8,9 +8,10 @@ import type {
   Category,
 } from "@eesimple/types";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 import { computeAutofill } from "./bookmarkFormSchema";
+import { useSeededPropertyInputs } from "./useSeededPropertyInputs";
 
 interface UseBookmarkPropertyPrefillArgs {
   /** When editing, the bookmark whose stored values seed the inputs. */
@@ -62,26 +63,17 @@ export function useBookmarkPropertyPrefill({
   autofillRules,
   categories,
 }: UseBookmarkPropertyPrefillArgs): BookmarkPropertyPrefill {
-  // Custom-property values live outside the typed form (they're dynamic). A ref
-  // mirrors them so the submit handler always reads the latest entries. When editing,
-  // seed them from the bookmark's existing values (calculate results are ignored on submit).
-  const [numberInputs, setNumberInputs] = useState<Record<string, string>>(() =>
-    Object.fromEntries((bookmark?.numberValues ?? []).map(entry => [entry.propertyId, String(entry.value)])));
-  const [booleanInputs, setBooleanInputs] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries((bookmark?.booleanValues ?? []).map(entry => [entry.propertyId, entry.value])));
-  const [dateTimeInputs, setDateTimeInputs] = useState<Record<string, string>>(() =>
-    Object.fromEntries((bookmark?.dateTimeValues ?? []).map(entry => [entry.propertyId, entry.value])));
-
-  const customRef = useRef<CustomPropertyInputs>({
+  // Custom-property values live outside the typed form (they're dynamic). The shared hook owns the
+  // seeded input maps + the submit-time ref mirror; this hook layers prefill precedence on top.
+  const {
     numberInputs,
     booleanInputs,
     dateTimeInputs,
-  });
-  customRef.current = {
-    numberInputs,
-    booleanInputs,
-    dateTimeInputs,
-  };
+    setNumberInputs,
+    setBooleanInputs,
+    setDateTimeInputs,
+    customRef,
+  } = useSeededPropertyInputs(bookmark);
 
   // Precedence when prefilling: user input > autofill rule > category default.
   // `touchedRef` tracks fields the user edited; `ruleSetRef` tracks property ids an autofill rule

@@ -4,6 +4,9 @@ import { z } from "zod";
 
 import { useAppForm } from "../lib/form";
 
+/** One section of the property form, used to render a single tab on the edit pages. */
+export type PropertyFormSection = "general" | "options" | "categories" | "media-types" | "display";
+
 export const propertySchema = z
   .object({
     name: z.string().trim().min(1, "Name is required"),

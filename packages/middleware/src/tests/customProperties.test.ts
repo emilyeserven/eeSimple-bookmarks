@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { buildApp } from "@/app";
 import { sumOperands } from "@/services/bookmarkWrites";
+import { buildUpdatePatch } from "@/services/customProperties";
 
 // Pure-helper tests run without a live database, matching the `tags` test style.
 
@@ -137,4 +138,79 @@ test("PATCH /api/custom-properties/:id rejects a non-uuid id", async () => {
   });
   assert.equal(res.statusCode, 400);
   await app.close();
+});
+
+// buildUpdatePatch is a pure mapper: every field the client sends is copied to the column patch,
+// fields it omits are left out (so the UPDATE never clears them), and the slug rides along only on
+// a rename. These tests pin that contract before the branch-per-field body is data-driven.
+
+test("buildUpdatePatch omits fields the input does not set", () => {
+  const patch = buildUpdatePatch({}, undefined);
+  assert.deepEqual(patch, {});
+});
+
+test("buildUpdatePatch copies every provided field, preserving explicit null", () => {
+  const patch = buildUpdatePatch(
+    {
+      name: "Priority",
+      numberMin: 0,
+      numberMax: 10,
+      description: null,
+      unitSingular: "point",
+      showInForm: true,
+      hiddenFromForm: false,
+      showInListings: true,
+      allCategories: false,
+      enabled: true,
+      allowDefault: false,
+      propertyGroupId: null,
+      showIfFalse: true,
+      numberFormat: "duration",
+      booleanLabelPreset: "custom",
+      booleanTrueLabel: "Read",
+      booleanFalseLabel: null,
+    },
+    undefined,
+  );
+  assert.deepEqual(patch, {
+    name: "Priority",
+    numberMin: 0,
+    numberMax: 10,
+    description: null,
+    unitSingular: "point",
+    showInForm: true,
+    hiddenFromForm: false,
+    showInListings: true,
+    allCategories: false,
+    enabled: true,
+    allowDefault: false,
+    propertyGroupId: null,
+    showIfFalse: true,
+    numberFormat: "duration",
+    booleanLabelPreset: "custom",
+    booleanTrueLabel: "Read",
+    booleanFalseLabel: null,
+  });
+});
+
+test("buildUpdatePatch writes the slug only when a rename produced one", () => {
+  assert.equal(buildUpdatePatch({
+    name: "New",
+  }, undefined).slug, undefined);
+  assert.equal(buildUpdatePatch({
+    name: "New",
+  }, "new").slug, "new");
+});
+
+test("buildUpdatePatch never includes relation fields (handled separately)", () => {
+  const patch = buildUpdatePatch(
+    {
+      name: "X",
+      categoryIds: ["a"],
+      mediaTypeIds: ["b"],
+      operandPropertyIds: ["c", "d"],
+    },
+    undefined,
+  );
+  assert.deepEqual(Object.keys(patch), ["name"]);
 });
