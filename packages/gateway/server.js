@@ -36,6 +36,17 @@ const SCHEMA_PUSH_ATTEMPTS = Number(process.env.SCHEMA_PUSH_ATTEMPTS ?? 5);
 // Generous by default so modest hardware (e.g. a Raspberry Pi) has time to boot the API.
 const MIDDLEWARE_WAIT_TIMEOUT_MS = Number(process.env.MIDDLEWARE_WAIT_TIMEOUT_MS ?? 60_000);
 
+// Whether to proxy the Swagger/OpenAPI docs (`/docs`) through to the middleware. `DOCS_ENABLED`
+// overrides explicitly (`true`/`1` on, `false`/`0` off); when unset it defaults to on outside
+// production and off in production. The middleware parses this same flag the same way to decide
+// whether to register the docs at all — keep the two in sync (see packages/middleware/src/app.ts).
+function docsEnabled() {
+  const flag = process.env.DOCS_ENABLED;
+  if (flag === undefined || flag === "") return (process.env.NODE_ENV ?? "production") !== "production";
+  return flag === "true" || flag === "1";
+}
+const DOCS_ENABLED = docsEnabled();
+
 let middlewareChild = null;
 let shuttingDown = false;
 let restartDelay = 500;
@@ -223,6 +234,18 @@ async function startGateway() {
     prefix: "/api",
     rewritePrefix: "/api",
   });
+
+  // Swagger UI lives on the middleware at `/docs` (HTML, `/docs/json`, `/docs/yaml`, `/docs/static/*`
+  // all sit under that one prefix). It's only reachable through the gateway when we proxy it, and
+  // only worth proxying when the middleware actually registered it — both are gated on DOCS_ENABLED.
+  // Registering this proxy also means `/docs` no longer falls through to the SPA index.html below.
+  if (DOCS_ENABLED) {
+    await app.register(fastifyHttpProxy, {
+      upstream: MIDDLEWARE_URL,
+      prefix: "/docs",
+      rewritePrefix: "/docs",
+    });
+  }
 
   app.get("/healthz", async () => ({
     status: "ok",

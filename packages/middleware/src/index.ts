@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { buildApp } from "@/app";
+import { buildApp, docsEnabled } from "@/app";
 import { maybeSeed } from "@/db/seed";
 import { ensureAppSettings } from "@/services/appSettings";
 import { ensureAutofillConditions, ensureAutofillSlugs, ensureWebsiteConditions } from "@/services/autofill";
@@ -29,7 +29,9 @@ try {
     port,
     host,
   });
-  app.log.info(`eeSimple Bookmarks API ready on http://${host}:${port} (docs at /docs)`);
+  app.log.info(
+    `eeSimple Bookmarks API ready on http://${host}:${port}${docsEnabled() ? " (docs at /docs)" : ""}`,
+  );
 }
 catch (err) {
   app.log.error(err);
