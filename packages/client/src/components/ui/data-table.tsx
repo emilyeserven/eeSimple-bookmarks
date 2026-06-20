@@ -160,9 +160,13 @@ export function DataTable<T>({
                       canSort && "cursor-pointer select-none",
                     ) || undefined}
                     style={resizable && !isFill
-                      ? { width: header.getSize() }
+                      ? {
+                        width: header.getSize(),
+                      }
                       : isFill
-                        ? { minWidth: header.getSize() }
+                        ? {
+                          minWidth: header.getSize(),
+                        }
                         : undefined}
                     onClick={canSort ? header.column.getToggleSortingHandler() : undefined}
                   >
@@ -215,9 +219,13 @@ export function DataTable<T>({
                   <TableCell
                     key={cell.id}
                     style={resizable && !cell.column.columnDef.meta?.fill
-                      ? { width: cell.column.getSize() }
+                      ? {
+                        width: cell.column.getSize(),
+                      }
                       : cell.column.columnDef.meta?.fill
-                        ? { minWidth: cell.column.getSize() }
+                        ? {
+                          minWidth: cell.column.getSize(),
+                        }
                         : undefined}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
