@@ -1,14 +1,16 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
 import type { Bookmark, Category, CustomProperty, MediaType, PropertyGroup, TagNode, Website, YouTubeChannel } from "@eesimple/types";
 
-import { useState } from "react";
-
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 
 import { FilterSections } from "./FilterSidebarSections";
 import { SavedFiltersSection } from "./SavedFiltersSection";
 
-import { cn } from "@/lib/utils";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 interface FilterSidebarProps {
   tree: TagNode[];
@@ -36,8 +38,6 @@ interface FilterSidebarProps {
 export function FilterSidebar({
   tree, properties, propertyGroups, categories, mediaTypes, youtubeChannels, websites, bookmarks, search, onSearchChange,
 }: FilterSidebarProps) {
-  const [open, setOpen] = useState(false);
-
   // Category data is only supplied on the overall Bookmarks page; category pages render flat.
   const hasCategoryFilter = (categories?.length ?? 0) > 0;
   const hasMediaTypeFilter = (mediaTypes?.length ?? 0) > 0;
@@ -52,60 +52,72 @@ export function FilterSidebar({
     = hasTags || hasProperties || hasCategoryFilter || hasMediaTypeFilter || hasChannelFilter || hasWebsiteFilter;
 
   return (
-    <aside className="space-y-3">
-      {hasFilters
-        ? (
-          <div className="flex items-center justify-between gap-2">
-            <button
-              type="button"
-              onClick={() => setOpen(prev => !prev)}
-              className="
-                flex flex-1 items-center justify-between rounded-md px-2 py-1
-                text-sm font-semibold transition-colors
-                hover:bg-accent
-                lg:hidden
-              "
-            >
-              Filters
-              {open
-                ? <ChevronUp className="size-4" />
-                : <ChevronDown className="size-4" />}
-            </button>
+    <aside>
+      <Collapsible
+        className="
+          group/filters rounded-lg border bg-card p-2
+          lg:rounded-none lg:border-0 lg:bg-transparent lg:p-0
+        "
+      >
+        <CollapsibleTrigger
+          className="
+            flex w-full items-center justify-between rounded-md px-3 py-2
+            text-xs font-semibold tracking-wide text-muted-foreground uppercase
+            transition-colors
+            lg:hidden
+          "
+        >
+          Filters
+          <ChevronDown
+            className="
+              size-4 transition-transform
+              group-data-[state=open]/filters:rotate-180
+            "
+          />
+        </CollapsibleTrigger>
+        <CollapsibleContent
+          forceMount
+          className="
+            hidden
+            data-[state=open]:block
+            lg:block
+          "
+        >
+          <div className="space-y-8">
+            <SavedFiltersSection
+              search={search}
+              onSearchChange={onSearchChange}
+            />
+
+            {hasFilters
+              ? (
+                <>
+                  <h2 className="text-sm font-semibold">Filters</h2>
+
+                  <FilterSections
+                    tree={tree}
+                    enabledProperties={enabledProperties}
+                    propertyGroups={propertyGroups}
+                    categories={categories}
+                    mediaTypes={mediaTypes}
+                    youtubeChannels={youtubeChannels}
+                    websites={websites}
+                    bookmarks={bookmarks}
+                    search={search}
+                    onSearchChange={onSearchChange}
+                    hasTags={hasTags}
+                    hasProperties={hasProperties}
+                    hasCategoryFilter={hasCategoryFilter}
+                    hasMediaTypeFilter={hasMediaTypeFilter}
+                    hasChannelFilter={hasChannelFilter}
+                    hasWebsiteFilter={hasWebsiteFilter}
+                  />
+                </>
+              )
+              : <p className="text-sm text-muted-foreground">No filters available yet.</p>}
           </div>
-        )
-        : null}
-
-      {!hasFilters
-        ? <p className="text-sm text-muted-foreground">No filters available yet.</p>
-        : null}
-
-      <div className={cn("space-y-8", !open && "hidden", "lg:block")}>
-        <SavedFiltersSection
-          search={search}
-          onSearchChange={onSearchChange}
-        />
-
-        {hasFilters ? <h2 className="text-sm font-semibold">Filters</h2> : null}
-
-        <FilterSections
-          tree={tree}
-          enabledProperties={enabledProperties}
-          propertyGroups={propertyGroups}
-          categories={categories}
-          mediaTypes={mediaTypes}
-          youtubeChannels={youtubeChannels}
-          websites={websites}
-          bookmarks={bookmarks}
-          search={search}
-          onSearchChange={onSearchChange}
-          hasTags={hasTags}
-          hasProperties={hasProperties}
-          hasCategoryFilter={hasCategoryFilter}
-          hasMediaTypeFilter={hasMediaTypeFilter}
-          hasChannelFilter={hasChannelFilter}
-          hasWebsiteFilter={hasWebsiteFilter}
-        />
-      </div>
+        </CollapsibleContent>
+      </Collapsible>
     </aside>
   );
 }
