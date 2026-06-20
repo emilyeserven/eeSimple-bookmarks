@@ -123,6 +123,22 @@ export const CARD_IMAGE_CORNER_OPTIONS = [
   },
 ];
 
+/** Options for the "Corner overlay size" select, scaling a corner-placed value up to 2x. */
+export const CARD_IMAGE_CORNER_SCALE_OPTIONS = [
+  {
+    value: "1",
+    label: "1× (normal)",
+  },
+  {
+    value: "1.5",
+    label: "1.5×",
+  },
+  {
+    value: "2",
+    label: "2×",
+  },
+];
+
 /** Add or remove `id` from `ids`, returning a new array. */
 export function toggleId(ids: string[], id: string): string[] {
   return ids.includes(id) ? ids.filter(value => value !== id) : [...ids, id];
