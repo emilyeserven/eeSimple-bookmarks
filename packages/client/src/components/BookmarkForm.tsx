@@ -1,3 +1,4 @@
+import type { BookmarkFormApi } from "./bookmarkFormSchema";
 import type { ImageIntent } from "./bookmarkImageIntent";
 import type {
   Bookmark,
@@ -148,106 +149,127 @@ export function BookmarkForm({
     validators: {
       onChange: bookmarkSchema,
     },
-    onSubmit: async ({
+    onSubmit: ({
       value,
-    }) => {
-      const {
-        numberValues, booleanValues, dateTimeValues,
-      } = buildCategoryPropertyValues(
-        customProperties ?? [],
-        value.categoryId,
-        prefill.customRef.current,
-        bookmark?.mediaType?.id ?? null,
-      );
-
-      // Resolve the URL to save plus the original it was cleaned from (see resolveSubmitUrl).
-      const {
-        finalUrl, originalUrl,
-      } = resolveSubmitUrl(value.url, quickAddRef.current);
-
-      // Media type, video length, and priority are intentionally omitted — the server fills the first
-      // two from the URL's metadata and defaults priority. On edit, omitting them preserves the
-      // existing values (the update patch skips `undefined` fields).
-      const input: CreateBookmarkInput = {
-        url: finalUrl,
-        originalUrl,
-        title: value.title,
-        categoryId: value.categoryId,
-        description: value.description || null,
-        tagIds: value.tagIds,
-        numberValues,
-        booleanValues,
-        dateTimeValues,
-        ...(channelHintRef.current && {
-          youtubeChannel: channelHintRef.current,
-        }),
-      };
-
-      if (bookmark) {
-        await updateBookmark.mutateAsync({
-          id: bookmark.id,
-          input,
-        });
-        await applyImageIntent(bookmark.id, finalUrl);
-        onDone?.();
-        return;
-      }
-
-      const trimmedSiteName = websiteSiteName.trim();
-      const created = await createBookmark.mutateAsync({
-        ...input,
-        ...(trimmedSiteName && {
-          websiteSiteName: trimmedSiteName,
-        }),
-      });
-      await applyImageIntent(created.id, finalUrl);
-
-      // Promote category/tags to entity defaults if the user opted in.
-      if ((setWebsiteCategory || setWebsiteTags) && created.website?.id) {
-        updateWebsite.mutate({
-          id: created.website.id,
-          input: {
-            ...(setWebsiteCategory && {
-              categoryId: value.categoryId || null,
-            }),
-            ...(setWebsiteTags && {
-              tagIds: value.tagIds,
-            }),
-          },
-        });
-      }
-      if ((setChannelCategory || setChannelTags) && created.youtubeChannel?.id) {
-        updateYouTubeChannel.mutate({
-          id: created.youtubeChannel.id,
-          input: {
-            ...(setChannelCategory && {
-              categoryId: value.categoryId || null,
-            }),
-            ...(setChannelTags && {
-              tagIds: value.tagIds,
-            }),
-          },
-        });
-      }
-
-      // Offer a shortcut to refine the chosen category right after saving.
-      const categorySlug = (categories ?? []).find(category => category.id === value.categoryId)?.slug;
-      notifySuccess("Bookmark added", categorySlug
-        ? {
-          action: {
-            label: "Edit category",
-            onClick: () => void navigate({
-              to: "/categories/$categorySlug/edit/general",
-              params: {
-                categorySlug,
-              },
-            }),
-          },
-        }
-        : undefined);
-      handleReset();
-    },
+    }) => void submitForm(value),
   });
+
+  // Persist the form: build the property values + input, then create or update. On create, also
+  // promote category/tags to website/channel defaults (when opted in) and offer the category-edit
+  // shortcut. Declared as a hoisted function so the `onSubmit` config above can reference it while
+  // it still closes over `prefill`/`applyImageIntent`/`handleReset` defined below.
+  async function submitForm(value: {
+    url: string;
+    title: string;
+    categoryId: string;
+    description: string;
+    tagIds: string[];
+  }): Promise<void> {
+    const {
+      numberValues, booleanValues, dateTimeValues,
+    } = buildCategoryPropertyValues(
+      customProperties ?? [],
+      value.categoryId,
+      prefill.customRef.current,
+      bookmark?.mediaType?.id ?? null,
+    );
+
+    // Resolve the URL to save plus the original it was cleaned from (see resolveSubmitUrl).
+    const {
+      finalUrl, originalUrl,
+    } = resolveSubmitUrl(value.url, quickAddRef.current);
+
+    // Media type, video length, and priority are intentionally omitted — the server fills the first
+    // two from the URL's metadata and defaults priority. On edit, omitting them preserves the
+    // existing values (the update patch skips `undefined` fields).
+    const input: CreateBookmarkInput = {
+      url: finalUrl,
+      originalUrl,
+      title: value.title,
+      categoryId: value.categoryId,
+      description: value.description || null,
+      tagIds: value.tagIds,
+      numberValues,
+      booleanValues,
+      dateTimeValues,
+      ...(channelHintRef.current && {
+        youtubeChannel: channelHintRef.current,
+      }),
+    };
+
+    if (bookmark) {
+      await updateBookmark.mutateAsync({
+        id: bookmark.id,
+        input,
+      });
+      await applyImageIntent(bookmark.id, finalUrl);
+      onDone?.();
+      return;
+    }
+
+    const trimmedSiteName = websiteSiteName.trim();
+    const created = await createBookmark.mutateAsync({
+      ...input,
+      ...(trimmedSiteName && {
+        websiteSiteName: trimmedSiteName,
+      }),
+    });
+    await applyImageIntent(created.id, finalUrl);
+
+    promoteSourceDefaults(created, value.categoryId, value.tagIds);
+
+    // Offer a shortcut to refine the chosen category right after saving.
+    const categorySlug = (categories ?? []).find(category => category.id === value.categoryId)?.slug;
+    notifySuccess("Bookmark added", categorySlug
+      ? {
+        action: {
+          label: "Edit category",
+          onClick: () => void navigate({
+            to: "/categories/$categorySlug/edit/general",
+            params: {
+              categorySlug,
+            },
+          }),
+        },
+      }
+      : undefined);
+    handleReset();
+  }
+
+  // Promote the saved bookmark's category/tags to its website's and channel's defaults, for each
+  // "set as default" checkbox the user opted into.
+  function promoteSourceDefaults(
+    created: Awaited<ReturnType<typeof createBookmark.mutateAsync>>,
+    categoryId: string,
+    tagIds: string[],
+  ): void {
+    if ((setWebsiteCategory || setWebsiteTags) && created.website?.id) {
+      updateWebsite.mutate({
+        id: created.website.id,
+        input: {
+          ...(setWebsiteCategory && {
+            categoryId: categoryId || null,
+          }),
+          ...(setWebsiteTags && {
+            tagIds,
+          }),
+        },
+      });
+    }
+    if ((setChannelCategory || setChannelTags) && created.youtubeChannel?.id) {
+      updateYouTubeChannel.mutate({
+        id: created.youtubeChannel.id,
+        input: {
+          ...(setChannelCategory && {
+            categoryId: categoryId || null,
+          }),
+          ...(setChannelTags && {
+            tagIds,
+          }),
+        },
+      });
+    }
+  }
 
   // Custom-property prefill: the dynamic number/boolean/datetime inputs plus the autofill-rule and
   // category-default precedence machinery. Owns its own state/refs; the submit handler reads the
@@ -555,72 +577,120 @@ export function BookmarkForm({
         />
       )}
 
-      <div>
-        <div className="flex items-center gap-2">
-          {scanned
-            ? (
-              <form.AppForm>
-                <form.SubmitButton
-                  label={isEdit ? "Save changes" : "Add Bookmark"}
-                  pendingLabel="Saving…"
-                  disabledWhen={!isEdit && Boolean(urlDuplicate?.exactMatch)}
-                />
-              </form.AppForm>
-            )
-            : (
-              <>
-                <Button
-                  type="button"
-                  disabled={isScanning}
-                  onClick={() => void performUrlScan({
-                    revealing: true,
-                  })}
-                >
-                  {isScanning
-                    ? (
-                      <>
-                        <Loader2 className="size-4 animate-spin" />
-                        Checking…
-                      </>
-                    )
-                    : "Check URL"}
-                </Button>
-                <Button
-                  type="button"
-                  variant="link"
-                  disabled={isScanning || saveBookmark.isPending}
-                  onClick={() => void handleAddNow()}
-                >
-                  Add Now
-                </Button>
-              </>
-            )}
-          {isEdit && onDone
-            ? (
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={onDone}
-              >
-                Cancel
-              </Button>
-            )
-            : null}
-          {!isEdit
-            ? (
-              <Button
-                type="button"
-                variant="ghost"
-                className="ml-auto"
-                onClick={handleReset}
-              >
-                Reset Form
-              </Button>
-            )
-            : null}
-        </div>
-        {saveBookmark.isError ? <p className="mt-2 text-sm text-destructive">{saveBookmark.error?.message}</p> : null}
-      </div>
+      <BookmarkFormFooter
+        form={form}
+        scanned={scanned}
+        isEdit={isEdit}
+        isScanning={isScanning}
+        urlDuplicate={urlDuplicate}
+        saveIsPending={saveBookmark.isPending}
+        saveIsError={saveBookmark.isError}
+        saveErrorMessage={saveBookmark.error?.message}
+        onDone={onDone}
+        onCheckUrl={() => void performUrlScan({
+          revealing: true,
+        })}
+        onAddNow={() => void handleAddNow()}
+        onReset={handleReset}
+      />
     </form>
+  );
+}
+
+interface BookmarkFormFooterProps {
+  form: BookmarkFormApi;
+  scanned: boolean;
+  isEdit: boolean;
+  isScanning: boolean;
+  urlDuplicate: BookmarkUrlDuplicateResult | null;
+  saveIsPending: boolean;
+  saveIsError: boolean;
+  saveErrorMessage?: string;
+  onDone?: () => void;
+  onCheckUrl: () => void;
+  onAddNow: () => void;
+  onReset: () => void;
+}
+
+/** Action row beneath the form: submit (or Check URL / Add Now pre-scan), Cancel, and Reset. */
+function BookmarkFormFooter({
+  form,
+  scanned,
+  isEdit,
+  isScanning,
+  urlDuplicate,
+  saveIsPending,
+  saveIsError,
+  saveErrorMessage,
+  onDone,
+  onCheckUrl,
+  onAddNow,
+  onReset,
+}: BookmarkFormFooterProps) {
+  return (
+    <div>
+      <div className="flex items-center gap-2">
+        {scanned
+          ? (
+            <form.AppForm>
+              <form.SubmitButton
+                label={isEdit ? "Save changes" : "Add Bookmark"}
+                pendingLabel="Saving…"
+                disabledWhen={!isEdit && Boolean(urlDuplicate?.exactMatch)}
+              />
+            </form.AppForm>
+          )
+          : (
+            <>
+              <Button
+                type="button"
+                disabled={isScanning}
+                onClick={onCheckUrl}
+              >
+                {isScanning
+                  ? (
+                    <>
+                      <Loader2 className="size-4 animate-spin" />
+                      Checking…
+                    </>
+                  )
+                  : "Check URL"}
+              </Button>
+              <Button
+                type="button"
+                variant="link"
+                disabled={isScanning || saveIsPending}
+                onClick={onAddNow}
+              >
+                Add Now
+              </Button>
+            </>
+          )}
+        {isEdit && onDone
+          ? (
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={onDone}
+            >
+              Cancel
+            </Button>
+          )
+          : null}
+        {!isEdit
+          ? (
+            <Button
+              type="button"
+              variant="ghost"
+              className="ml-auto"
+              onClick={onReset}
+            >
+              Reset Form
+            </Button>
+          )
+          : null}
+      </div>
+      {saveIsError ? <p className="mt-2 text-sm text-destructive">{saveErrorMessage}</p> : null}
+    </div>
   );
 }
