@@ -190,8 +190,12 @@ that matches the surface — don't invent a new structure for a one-off page.
     + a "Children" subtree), modeled on `routes/tags.$tagSlug._view.hierarchy.tsx`. It is added to
     `viewNav` only (omit it from `VIEW_TO_EDIT` so Edit falls back to General), resolves the node
     *with children* from the `use*Tree()` query (not the flat `use*BySlug`), reuses the generic
-    `findAncestorPath`/`flattenTree` from `lib/tagTree.ts`, and renders the entity's `*TreeList`.
-    Flat taxonomies (Categories, Websites, YouTube Channels, Property Groups) do **not** get one.
+    `findAncestorPath`/`flattenTree` from `lib/tagTree.ts`, and renders the entity's `*TreeList`. The
+    shared **`HierarchyView`** component (`components/HierarchyView.tsx`) renders the "Parents" +
+    "Children" body, and the **`useExpandedSet`** hook (`hooks/useExpandedSet.ts`) tracks expanded
+    nodes — a new tree taxonomy passes its `ancestors`, a `renderAncestorLink`, and its `*TreeList`
+    rather than re-implementing the markup. Flat taxonomies (Categories, Websites, YouTube Channels,
+    Property Groups) do **not** get one.
 - **Flat no-tab detail wrapper** (`packages/client/src/components/TaxonomyDetailLayout.tsx`) — a
   loading/error/not-found wrapper that renders its children flat (a `LabeledSection` stack), no
   tabs. Used by Autofill rules.
