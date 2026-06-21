@@ -50,6 +50,7 @@ function makeRule(overrides: Partial<CardDisplayRule> = {}): CardDisplayRule {
     imageVisibility: null,
     imageLayout: null,
     cornerOverlays: null,
+    hideWebsiteForYouTube: null,
     createdAt: "2026-01-01T00:00:00.000Z",
     ...overrides,
   };
@@ -65,6 +66,7 @@ const DEFAULT_RULE = makeRule({
   imageVisibility: "shown",
   imageLayout: "above",
   cornerOverlays: true,
+  hideWebsiteForYouTube: false,
 });
 
 const noTagDescendants = buildTagDescendants([]);
@@ -181,6 +183,34 @@ describe("resolveCardDisplay — layered merge", () => {
     expect(resolved.provenance.source.imageMode).toBe("low");
     expect(resolved.imageVisibility).toBe("shown");
     expect(resolved.provenance.source.imageVisibility).toBe("default");
+  });
+
+  it("a matching rule supplies hideWebsiteForYouTube, else the Default applies", () => {
+    const rule = makeRule({
+      id: "yt",
+      conditions: {
+        type: "group",
+        combinator: "and",
+        children: [{
+          type: "category",
+          categoryIds: ["cat-1"],
+        }],
+      },
+      hideWebsiteForYouTube: true,
+    });
+    const match = resolveCardDisplay(makeBookmark(), [rule, DEFAULT_RULE], noTagDescendants);
+    expect(match.hideWebsiteForYouTube).toBe(true);
+    expect(match.provenance.source.hideWebsiteForYouTube).toBe("yt");
+
+    const noMatch = resolveCardDisplay(
+      makeBookmark({
+        categoryId: "other",
+      }),
+      [rule, DEFAULT_RULE],
+      noTagDescendants,
+    );
+    expect(noMatch.hideWebsiteForYouTube).toBe(false);
+    expect(noMatch.provenance.source.hideWebsiteForYouTube).toBe("default");
   });
 
   it("an empty condition tree never matches a non-default rule", () => {

@@ -38,6 +38,7 @@ function initialFromRule(rule?: CardDisplayRule): CardDisplayRuleFormValues {
       imageVisibility: rule?.imageVisibility ?? (rule?.isDefault ? "shown" : null),
       imageLayout: rule?.imageLayout ?? (rule?.isDefault ? "above" : null),
       cornerOverlays: rule?.cornerOverlays ?? (rule?.isDefault ? true : null),
+      hideWebsiteForYouTube: rule?.hideWebsiteForYouTube ?? (rule?.isDefault ? false : null),
     },
   };
 }

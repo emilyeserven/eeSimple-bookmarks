@@ -1,3 +1,4 @@
+import { useCardDisplayRules } from "../hooks/useCardDisplayRules";
 import { useUiStore } from "../stores/uiStore";
 
 /**
@@ -42,9 +43,14 @@ export function useHiddenCardFields(pageKey?: string): Set<string> {
 }
 
 /**
- * Whether the website pill should be hidden on any bookmark that also has a YouTube channel.
- * Global Display setting (Settings → Display).
+ * Whether the website pill should be hidden on a bookmark that also has a YouTube channel — the
+ * baseline value from the **Default** card display rule (`Settings → Card Display Rules`). Listing
+ * cards resolve this per-card (a specific rule can override it) and pass it explicitly; other surfaces
+ * (homepage, right panel, table view) use this Default-rule value.
  */
 export function useHideWebsiteForYouTube(): boolean {
-  return useUiStore(state => state.hideWebsiteForYouTube);
+  const {
+    data: rules,
+  } = useCardDisplayRules();
+  return rules?.find(rule => rule.isDefault)?.hideWebsiteForYouTube ?? false;
 }

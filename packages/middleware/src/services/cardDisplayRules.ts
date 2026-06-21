@@ -25,6 +25,7 @@ function toRule(row: RuleRow): CardDisplayRule {
     imageVisibility: (row.imageVisibility as BookmarkImageVisibility | null) ?? null,
     imageLayout: (row.imageLayout as HomepageSectionImageLayout | null) ?? null,
     cornerOverlays: row.cornerOverlays ?? null,
+    hideWebsiteForYouTube: row.hideWebsiteForYouTube ?? null,
     createdAt: row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
   };
 }
@@ -74,6 +75,7 @@ export async function createCardDisplayRule(
       imageVisibility: input.imageVisibility ?? null,
       imageLayout: input.imageLayout ?? null,
       cornerOverlays: input.cornerOverlays ?? null,
+      hideWebsiteForYouTube: input.hideWebsiteForYouTube ?? null,
     })
     .returning();
   return toRule(row);
@@ -97,6 +99,7 @@ export async function updateCardDisplayRule(
   if (input.imageVisibility !== undefined) updates.imageVisibility = input.imageVisibility;
   if (input.imageLayout !== undefined) updates.imageLayout = input.imageLayout;
   if (input.cornerOverlays !== undefined) updates.cornerOverlays = input.cornerOverlays;
+  if (input.hideWebsiteForYouTube !== undefined) updates.hideWebsiteForYouTube = input.hideWebsiteForYouTube;
 
   if (Object.keys(updates).length === 0) {
     const [existing] = await db
@@ -174,5 +177,6 @@ export async function ensureDefaultCardDisplayRule(): Promise<void> {
     imageVisibility: "shown",
     imageLayout: "above",
     cornerOverlays: true,
+    hideWebsiteForYouTube: false,
   });
 }

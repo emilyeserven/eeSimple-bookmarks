@@ -91,9 +91,6 @@ interface UiState {
   toggleCardField: (pageKey: string, fieldKey: string) => void;
   /** Replace the hidden card-field list for a page wholesale (used when applying a display preset). */
   setHiddenCardFields: (pageKey: string, fieldKeys: string[]) => void;
-  /** When true, the website pill is hidden on any bookmark that also has a YouTube channel. */
-  hideWebsiteForYouTube: boolean;
-  setHideWebsiteForYouTube: (value: boolean) => void;
   /** The display preset last applied per listing page (drives the "update preset" offer). Keyed by pageKey → preset id. */
   selectedDisplayPreset: Record<string, string>;
   setSelectedDisplayPreset: (pageKey: string, presetId: string) => void;
@@ -249,10 +246,6 @@ export const useUiStore = create<UiState>()(
           [pageKey]: fieldKeys,
         },
       })),
-      hideWebsiteForYouTube: false,
-      setHideWebsiteForYouTube: value => set({
-        hideWebsiteForYouTube: value,
-      }),
       selectedDisplayPreset: {},
       setSelectedDisplayPreset: (pageKey, presetId) => set(state => ({
         selectedDisplayPreset: {
@@ -392,15 +385,6 @@ export const useUiStore = create<UiState>()(
             bookmarkImageMode: converted,
           };
         }
-        if (version < 2) {
-          // hideWebsiteForYouTube was a per-page Record before v2; coerce to the global boolean.
-          s = {
-            ...s,
-            hideWebsiteForYouTube: typeof s.hideWebsiteForYouTube === "boolean"
-              ? s.hideWebsiteForYouTube
-              : false,
-          };
-        }
         return s;
       },
       partialize: state => ({
@@ -415,7 +399,6 @@ export const useUiStore = create<UiState>()(
         bookmarkColumns: state.bookmarkColumns,
         viewMode: state.viewMode,
         hiddenCardFields: state.hiddenCardFields,
-        hideWebsiteForYouTube: state.hideWebsiteForYouTube,
         selectedDisplayPreset: state.selectedDisplayPreset,
         panelPinned: state.panelPinned,
         drawerUnpinnedBreakpoints: state.drawerUnpinnedBreakpoints,

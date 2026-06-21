@@ -133,6 +133,7 @@ export function BookmarkListPane({
                     imageMode={display.imageMode}
                     imageVisibility={display.imageVisibility}
                     cornerOverlays={display.cornerOverlays}
+                    hideWebsiteForYouTube={display.hideWebsiteForYouTube}
                   />
                 </RowCard>
               );

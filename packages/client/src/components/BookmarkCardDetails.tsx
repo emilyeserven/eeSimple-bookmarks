@@ -20,6 +20,8 @@ interface BookmarkCardDetailsProps {
   pageKey?: string;
   /** Explicit hidden field keys, overriding the `pageKey` lookup. Used by DB-backed surfaces (homepage sections). */
   hiddenFields?: Set<string>;
+  /** Resolved "hide website pill for YouTube" value; when omitted, the Default card display rule applies. */
+  hideWebsiteForYouTube?: boolean;
   /** Property ids already rendered as image-corner overlays by the card; excluded here so they don't double up. */
   cornerPropertyIds?: Set<string>;
   /** Persist a rating-scale value edited inline on the card (only wired when the property is `editableOnCard`). */
@@ -30,11 +32,14 @@ interface BookmarkCardDetailsProps {
 
 /** The body of a bookmark card: description, taxonomy badges, tags, and custom-property value badges. */
 export function BookmarkCardDetails({
-  bookmark, properties, pageKey, hiddenFields, cornerPropertyIds, onSaveRating, onSaveBoolean,
+  bookmark, properties, pageKey, hiddenFields, hideWebsiteForYouTube, cornerPropertyIds,
+  onSaveRating, onSaveBoolean,
 }: BookmarkCardDetailsProps) {
   const pageHidden = useHiddenCardFields(pageKey);
   const hidden = hiddenFields ?? pageHidden;
-  const hideWebsiteForYouTube = useHideWebsiteForYouTube();
+  // Listings pass the rule-resolved value explicitly; other surfaces fall back to the Default rule.
+  const defaultHideWebsiteForYouTube = useHideWebsiteForYouTube();
+  const effectiveHideWebsiteForYouTube = hideWebsiteForYouTube ?? defaultHideWebsiteForYouTube;
   const {
     data: allCategories,
   } = useCategories();
@@ -90,7 +95,7 @@ export function BookmarkCardDetails({
   }, [bookmark.description, showDescription]);
 
   const showCategory = !!bookmarkCategory && !hidden.has("category");
-  const showWebsite = !!website && !hidden.has("website") && !(youtubeChannel && hideWebsiteForYouTube);
+  const showWebsite = !!website && !hidden.has("website") && !(youtubeChannel && effectiveHideWebsiteForYouTube);
   const showMediaType = !!mediaType && !hidden.has("mediaType");
   const showYoutubeChannel = !!youtubeChannel && !hidden.has("youtubeChannel");
   const showTags = bookmark.tags.length > 0 && !hidden.has("tags");

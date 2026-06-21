@@ -819,6 +819,7 @@ export const cardDisplayRules = pgTable("card_display_rules", {
   imageVisibility: text("image_visibility"),
   imageLayout: text("image_layout"),
   cornerOverlays: boolean("corner_overlays"),
+  hideWebsiteForYouTube: boolean("hide_website_for_youtube"),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),

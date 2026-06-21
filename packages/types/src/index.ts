@@ -1088,6 +1088,11 @@ export interface CardDisplayRule {
   imageLayout: HomepageSectionImageLayout | null;
   /** Image corner overlays, or `null` to inherit. Concrete on the Default rule. */
   cornerOverlays: boolean | null;
+  /**
+   * When true, the website pill is hidden on a matching bookmark that also has a YouTube channel
+   * (keeping only the channel pill). `null` to inherit. Concrete on the Default rule.
+   */
+  hideWebsiteForYouTube: boolean | null;
   createdAt: string;
 }
 
@@ -1102,6 +1107,7 @@ export interface CreateCardDisplayRuleInput {
   imageVisibility?: BookmarkImageVisibility | null;
   imageLayout?: HomepageSectionImageLayout | null;
   cornerOverlays?: boolean | null;
+  hideWebsiteForYouTube?: boolean | null;
 }
 
 /** Payload for partially updating a card display rule. */

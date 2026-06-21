@@ -25,6 +25,7 @@ export interface RuleDisplayValue {
   imageVisibility: BookmarkImageVisibility | null;
   imageLayout: HomepageSectionImageLayout | null;
   cornerOverlays: boolean | null;
+  hideWebsiteForYouTube: boolean | null;
 }
 
 /** Defaults applied when a non-default rule first switches an attribute from "inherit" to "override". */
@@ -34,6 +35,7 @@ const OVERRIDE_DEFAULTS = {
   imageVisibility: "shown" as BookmarkImageVisibility,
   imageLayout: "above" as HomepageSectionImageLayout,
   cornerOverlays: true,
+  hideWebsiteForYouTube: false,
 };
 
 interface CardDisplayRuleDisplaySettingsProps {
@@ -215,6 +217,47 @@ export function CardDisplayRuleDisplaySettings({
           onValueChange={(next) => {
             if (next) onChange({
               cornerOverlays: next === "on",
+            });
+          }}
+        >
+          <ToggleGroupItem
+            value="on"
+            className="
+              rounded-none border-r border-input
+              first:rounded-l-sm
+            "
+          >On
+          </ToggleGroupItem>
+          <ToggleGroupItem
+            value="off"
+            className="
+              rounded-none
+              last:rounded-r-sm
+            "
+          >Off
+          </ToggleGroupItem>
+        </ToggleGroup>
+      </OverridableRow>
+
+      <OverridableRow
+        label="Hide website for YouTube"
+        idPrefix={idPrefix}
+        attr="hideWebsiteForYouTube"
+        isDefault={isDefault}
+        isOverridden={value.hideWebsiteForYouTube !== null}
+        onOverrideChange={on => onChange({
+          hideWebsiteForYouTube: on ? OVERRIDE_DEFAULTS.hideWebsiteForYouTube : null,
+        })}
+        hint="Hides the website pill on a card that also has a YouTube channel."
+      >
+        <ToggleGroup
+          type="single"
+          size="sm"
+          value={(value.hideWebsiteForYouTube ?? OVERRIDE_DEFAULTS.hideWebsiteForYouTube) ? "on" : "off"}
+          className="gap-0 overflow-hidden rounded-md border border-input"
+          onValueChange={(next) => {
+            if (next) onChange({
+              hideWebsiteForYouTube: next === "on",
             });
           }}
         >

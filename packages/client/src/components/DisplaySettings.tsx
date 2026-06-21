@@ -341,8 +341,6 @@ export function DisplaySettings() {
   const setTheme = useUiStore(state => state.setTheme);
   const filtersInDrawer = useUiStore(state => state.filtersInDrawer);
   const setFiltersInDrawer = useUiStore(state => state.setFiltersInDrawer);
-  const hideWebsiteForYouTube = useUiStore(state => state.hideWebsiteForYouTube);
-  const setHideWebsiteForYouTube = useUiStore(state => state.setHideWebsiteForYouTube);
   const bookmarkDetailImageSize = useUiStore(state => state.bookmarkDetailImageSize);
   const setBookmarkDetailImageSize = useUiStore(state => state.setBookmarkDetailImageSize);
   const bookmarkDetailVideoSize = useUiStore(state => state.bookmarkDetailVideoSize);
@@ -446,28 +444,6 @@ export function DisplaySettings() {
               onCheckedChange={checked => setFiltersInDrawer(checked === true)}
             />
             <Label htmlFor="filters-in-drawer">Show filters in drawer by default</Label>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Bookmark cards</CardTitle>
-          <CardDescription>
-            When on, a bookmark that has a YouTube channel hides the redundant website
-            (youtube.com) pill, keeping only the channel pill. Applies to card and table views.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="hide-website-for-youtube"
-              checked={hideWebsiteForYouTube}
-              onCheckedChange={checked => setHideWebsiteForYouTube(checked === true)}
-            />
-            <Label htmlFor="hide-website-for-youtube">
-              Hide the website pill when a YouTube channel is shown
-            </Label>
           </div>
         </CardContent>
       </Card>

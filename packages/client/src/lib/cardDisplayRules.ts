@@ -27,6 +27,7 @@ export interface ResolvedCardDisplay {
   imageVisibility: BookmarkImageVisibility;
   imageLayout: HomepageSectionImageLayout;
   cornerOverlays: boolean;
+  hideWebsiteForYouTube: boolean;
   provenance: {
     /** Rule ids that matched this bookmark, in priority order (highest first). */
     matchedRuleIds: string[];
@@ -42,6 +43,7 @@ const BASELINE = {
   imageVisibility: "shown" as BookmarkImageVisibility,
   imageLayout: "above" as HomepageSectionImageLayout,
   cornerOverlays: true,
+  hideWebsiteForYouTube: false,
 };
 
 /**
@@ -95,12 +97,14 @@ export function resolveCardDisplay(
   let imageVisibility: BookmarkImageVisibility | null = null;
   let imageLayout: HomepageSectionImageLayout | null = null;
   let cornerOverlays: boolean | null = null;
+  let hideWebsiteForYouTube: boolean | null = null;
   const source: ResolvedCardDisplay["provenance"]["source"] = {
     hiddenCardFields: null,
     imageMode: null,
     imageVisibility: null,
     imageLayout: null,
     cornerOverlays: null,
+    hideWebsiteForYouTube: null,
   };
 
   for (const rule of rules) {
@@ -126,6 +130,10 @@ export function resolveCardDisplay(
       cornerOverlays = rule.cornerOverlays;
       source.cornerOverlays = rule.id;
     }
+    if (hideWebsiteForYouTube === null && rule.hideWebsiteForYouTube !== null) {
+      hideWebsiteForYouTube = rule.hideWebsiteForYouTube;
+      source.hideWebsiteForYouTube = rule.id;
+    }
   }
 
   return {
@@ -134,6 +142,7 @@ export function resolveCardDisplay(
     imageVisibility: imageVisibility ?? BASELINE.imageVisibility,
     imageLayout: imageLayout ?? BASELINE.imageLayout,
     cornerOverlays: cornerOverlays ?? BASELINE.cornerOverlays,
+    hideWebsiteForYouTube: hideWebsiteForYouTube ?? BASELINE.hideWebsiteForYouTube,
     provenance: {
       matchedRuleIds,
       source,

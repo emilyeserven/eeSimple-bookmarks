@@ -55,6 +55,10 @@ const displayProperties = {
     type: "boolean",
     nullable: true,
   },
+  hideWebsiteForYouTube: {
+    type: "boolean",
+    nullable: true,
+  },
 } as const;
 
 const createBody = {

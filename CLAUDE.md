@@ -96,9 +96,12 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
   Non-default display columns are **nullable = inherit** (push-safe). Grid **column count** and
   **card/table view** stay page-level (`ListingDisplayControls`, the `DisplayOptionsPopover`, and
   Settings → Display "Listing Defaults"); everything else about how a card looks is configured **only**
-  via rules. The old per-page/global field-visibility + image controls and **Display Presets** were
-  removed in favor of this. The `hiddenCardFields` key list (`STANDARD_CARD_FIELDS` +
-  custom-property ids in `lib/bookmarkCardFields.ts`) is shared with homepage sections — keep in sync.
+  via rules — including the **hide-website-pill-for-YouTube** behavior (`useHideWebsiteForYouTube` now
+  reads the Default rule; listing cards resolve it per-card, other surfaces/table use the Default).
+  The old per-page/global field-visibility + image controls, the global "hide website for YouTube"
+  toggle, and **Display Presets** were removed in favor of this. The `hiddenCardFields` key list
+  (`STANDARD_CARD_FIELDS` + custom-property ids in `lib/bookmarkCardFields.ts`) is shared with
+  homepage sections — keep in sync.
 
 ## Content hierarchies
 
