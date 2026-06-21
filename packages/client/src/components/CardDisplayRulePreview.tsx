@@ -238,6 +238,7 @@ export function CardDisplayRulePreview({
   // "This rule over the baseline": inherited (null) attributes fall back to the hardcoded baseline.
   const resolved = {
     fieldZones: display.fieldZones ?? BASELINE.fieldZones,
+    cardZoneLayouts: display.cardZoneLayouts ?? BASELINE.cardZoneLayouts,
     imageMode: display.imageMode ?? BASELINE.imageMode,
     imageVisibility: display.imageVisibility ?? BASELINE.imageVisibility,
     imageLayout: display.imageLayout ?? BASELINE.imageLayout,
@@ -319,6 +320,7 @@ export function CardDisplayRulePreview({
               bookmark={subject}
               properties={properties}
               fieldZones={resolved.fieldZones}
+              cardZoneLayouts={resolved.cardZoneLayouts}
               imageLeft={resolved.imageLayout === "side"}
               imageMode={resolved.imageMode}
               imageVisibility={resolved.imageVisibility}

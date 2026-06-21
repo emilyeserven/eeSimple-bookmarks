@@ -89,13 +89,16 @@ export function BookmarkPropertySections({
       if (!property) return null;
       const display = resolveBooleanDisplay(defaultZones, property.id);
       if (!entry.value && !display.showIfFalse) return null;
-      const isIconPreset = property.booleanLabelPreset === "icons" || property.booleanLabelPreset === "stars";
+      const isIconPreset = !display.hideIcon
+        && (property.booleanLabelPreset === "icons" || property.booleanLabelPreset === "stars");
       return {
         id: entry.propertyId,
         name: property.name,
         groupId: property.propertyGroupId,
         rawValue: entry.value,
-        value: formatBoolean(entry.value, property),
+        value: formatBoolean(entry.value, property, {
+          hideIcon: display.hideIcon,
+        }),
         showLabelColon: isIconPreset ? display.showLabelColon : true,
         showValueBeforeLabel: isIconPreset ? display.showValueBeforeLabel : false,
         clickableInView: display.clickableInView,

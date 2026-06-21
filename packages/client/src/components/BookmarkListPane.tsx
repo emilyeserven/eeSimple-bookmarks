@@ -128,6 +128,7 @@ export function BookmarkListPane({
                     properties={properties}
                     onDelete={id => deleteBookmark.mutate(id)}
                     fieldZones={display.fieldZones}
+                    cardZoneLayouts={display.cardZoneLayouts}
                     imageLeft={(columns === 1 || columns === 2) && display.imageLayout === "side"}
                     imageMode={display.imageMode}
                     imageVisibility={display.imageVisibility}

@@ -6,13 +6,14 @@ import type {
   Bookmark,
   CardDisplayRule,
   CardFieldZones,
+  CardZoneLayouts,
   ConditionInput,
   TagDescendants,
 } from "@eesimple/types";
 
 import { useCallback, useMemo } from "react";
 
-import { buildTagDescendants, emptyCardFieldZones, evaluateConditions } from "@eesimple/types";
+import { buildTagDescendants, defaultCardZoneLayouts, emptyCardFieldZones, evaluateConditions } from "@eesimple/types";
 
 import { STANDARD_CARD_FIELDS } from "./bookmarkCardFieldDefs";
 import { defaultBodyZone } from "./bookmarkCardValues";
@@ -26,6 +27,7 @@ import { useTags } from "../hooks/useTags";
  */
 export interface ResolvedCardDisplay {
   fieldZones: CardFieldZones;
+  cardZoneLayouts: CardZoneLayouts;
   imageMode: string;
   imageVisibility: BookmarkImageVisibility;
   imageLayout: HomepageSectionImageLayout;
@@ -55,6 +57,7 @@ function baselineFieldZones(): CardFieldZones {
 
 export const BASELINE = {
   fieldZones: baselineFieldZones(),
+  cardZoneLayouts: defaultCardZoneLayouts(),
   imageMode: "natural",
   imageVisibility: "shown" as BookmarkImageVisibility,
   imageLayout: "above" as HomepageSectionImageLayout,
@@ -109,12 +112,14 @@ export function resolveCardDisplay(
 
   const matchedRuleIds: string[] = [];
   let fieldZones: CardFieldZones | null = null;
+  let cardZoneLayouts: CardZoneLayouts | null = null;
   let imageMode: string | null = null;
   let imageVisibility: BookmarkImageVisibility | null = null;
   let imageLayout: HomepageSectionImageLayout | null = null;
   let hideWebsiteForYouTube: boolean | null = null;
   const source: ResolvedCardDisplay["provenance"]["source"] = {
     fieldZones: null,
+    cardZoneLayouts: null,
     imageMode: null,
     imageVisibility: null,
     imageLayout: null,
@@ -127,6 +132,10 @@ export function resolveCardDisplay(
     if (fieldZones === null && rule.fieldZones !== null) {
       fieldZones = rule.fieldZones;
       source.fieldZones = rule.id;
+    }
+    if (cardZoneLayouts === null && rule.cardZoneLayouts !== null) {
+      cardZoneLayouts = rule.cardZoneLayouts;
+      source.cardZoneLayouts = rule.id;
     }
     if (imageMode === null && rule.imageMode !== null) {
       imageMode = rule.imageMode;
@@ -148,6 +157,7 @@ export function resolveCardDisplay(
 
   return {
     fieldZones: fieldZones ?? BASELINE.fieldZones,
+    cardZoneLayouts: cardZoneLayouts ?? BASELINE.cardZoneLayouts,
     imageMode: imageMode ?? BASELINE.imageMode,
     imageVisibility: imageVisibility ?? BASELINE.imageVisibility,
     imageLayout: imageLayout ?? BASELINE.imageLayout,
@@ -187,6 +197,10 @@ export const CARD_DISPLAY_ATTRS = [
     key: "fieldZones",
     label: "Card fields",
   },
+  {
+    key: "cardZoneLayouts",
+    label: "Zone layout",
+  },
 ] as const satisfies readonly {
   key: keyof ResolvedCardDisplay["provenance"]["source"];
   label: string;
@@ -197,7 +211,7 @@ export interface RuleAttrInspection {
   key: keyof ResolvedCardDisplay["provenance"]["source"];
   label: string;
   /** The raw value the rule declares for this attribute (formatted for display by the caller). */
-  value: CardFieldZones | string | boolean;
+  value: CardFieldZones | CardZoneLayouts | string | boolean;
   status: "applied" | "overridden";
   /** When overridden, the id of the higher-priority rule that supplied the final value. */
   overriddenBy: string | null;

@@ -41,9 +41,23 @@ export function formatDateTime(value: string, property: CustomProperty): string 
   return formatDateTimeValue(value, property.dateTimeFormat);
 }
 
-/** Format a boolean value for display, honoring the property's `booleanLabelPreset` and custom labels. */
-export function formatBoolean(value: boolean, property: CustomProperty): string {
-  switch (property.booleanLabelPreset ?? "yes-no") {
+/**
+ * Format a boolean value for display, honoring the property's `booleanLabelPreset` and custom labels.
+ * When `opts.hideIcon` is set for an icon-like preset (`icons`/`stars`), the glyph IS the value, so it
+ * falls back to the property's custom labels or "Yes"/"No" text instead of showing nothing.
+ */
+export function formatBoolean(
+  value: boolean,
+  property: CustomProperty,
+  opts: { hideIcon?: boolean } = {},
+): string {
+  const preset = property.booleanLabelPreset ?? "yes-no";
+  if (opts.hideIcon && (preset === "icons" || preset === "stars")) {
+    return value
+      ? (property.booleanTrueLabel || "Yes")
+      : (property.booleanFalseLabel || "No");
+  }
+  switch (preset) {
     case "yes-no": return value ? "Yes" : "No";
     case "true-false": return value ? "True" : "False";
     case "enabled-disabled": return value ? "Enabled" : "Disabled";
@@ -64,6 +78,8 @@ export function formatBoolean(value: boolean, property: CustomProperty): string 
 export interface BooleanBadgeDisplay {
   /** Omit the property name, showing only the value. */
   hideLabel?: boolean;
+  /** Icon presets only: drop the ✓/✗/★/☆ glyph, falling back to the custom/Yes-No text value. */
+  hideIcon?: boolean;
   /** Icon presets only: show the colon after the label. Defaults to true. */
   showLabelColon?: boolean;
   /** Icon presets only: render the value before the label. Defaults to false. */
@@ -80,9 +96,13 @@ export function formatBooleanBadge(
   property: CustomProperty,
   display: BooleanBadgeDisplay = {},
 ): string {
-  const formatted = formatBoolean(value, property);
+  const formatted = formatBoolean(value, property, {
+    hideIcon: display.hideIcon,
+  });
   if (display.hideLabel) return formatted;
-  const isIconPreset = property.booleanLabelPreset === "icons" || property.booleanLabelPreset === "stars";
+  // Once the icon glyph is hidden the value is plain text, so it uses the ordinary `Name: value` form.
+  const isIconPreset = !display.hideIcon
+    && (property.booleanLabelPreset === "icons" || property.booleanLabelPreset === "stars");
   if (!isIconPreset) return `${property.name}: ${formatted}`;
   const colon = display.showLabelColon !== false;
   const sep = colon ? ": " : " ";

@@ -120,6 +120,7 @@ export function fieldPlacementsForCard(
 /** The resolved per-field boolean display knobs, used by non-listing surfaces via the Default rule. */
 export interface ResolvedBooleanDisplay {
   hideLabel: boolean;
+  hideIcon: boolean;
   showIfFalse: boolean;
   clickableInView: boolean;
   showLabelColon: boolean;
@@ -129,6 +130,7 @@ export interface ResolvedBooleanDisplay {
 /** Default boolean-display knobs for a property absent from the (Default) rule's zones. */
 export const DEFAULT_BOOLEAN_DISPLAY: ResolvedBooleanDisplay = {
   hideLabel: false,
+  hideIcon: false,
   showIfFalse: false,
   clickableInView: false,
   showLabelColon: true,
@@ -147,6 +149,7 @@ export function resolveBooleanDisplay(
   if (!placement) return DEFAULT_BOOLEAN_DISPLAY;
   return {
     hideLabel: placement.hideLabel,
+    hideIcon: placement.hideIcon,
     showIfFalse: placement.showIfFalse,
     clickableInView: placement.clickableInView,
     showLabelColon: placement.showLabelColon,
@@ -279,13 +282,18 @@ function booleanValueItem(
     ...placementBase(property, placement),
     kind: "badge",
     label: placement.hideLabel
-      ? formatBoolean(entry.value, property)
+      ? formatBoolean(entry.value, property, {
+        hideIcon: placement.hideIcon,
+      })
       : formatBooleanBadge(entry.value, property, {
+        hideIcon: placement.hideIcon,
         showLabelColon: placement.showLabelColon,
         showValueBeforeLabel: placement.showValueBeforeLabel,
       }),
     name: property.name,
-    value: formatBoolean(entry.value, property),
+    value: formatBoolean(entry.value, property, {
+      hideIcon: placement.hideIcon,
+    }),
     booleanValue: entry.value,
   };
 }
