@@ -2,10 +2,12 @@
 name: overnight-cleanup
 description: >-
   Autonomous overnight codebase health sweep for eeSimple Bookmarks. Runs fallow dead-code removal,
-  duplicate consolidation, complexity reduction, and large-file splitting in a fixed phase order,
-  committing after each successful phase, and looping until the fallow health score reaches 8.0 or
-  higher. Use when asked to "run an overnight cleanup", "bring fallow health up overnight",
-  "clean up the codebase while I sleep", or "run a multi-phase fallow cleanup loop".
+  duplicate consolidation, complexity reduction, large-file splitting, Storybook story coverage for
+  undocumented components, and skill maintenance in a fixed phase order, committing after each
+  successful phase and looping until the fallow health score reaches 8.0 or higher, then opening a
+  PR and subscribing to its activity so CI can be handled automatically. Use when asked to "run an
+  overnight cleanup", "bring fallow health up overnight", "clean up the codebase while I sleep", or
+  "run a multi-phase fallow cleanup loop".
 ---
 
 # Overnight cleanup
@@ -20,7 +22,8 @@ Phase order (always respect this sequence within each loop iteration):
 2. Duplicates
 3. Complexity
 4. Large files / high-import files
-5. Skill maintenance (review recent commits; add/remove repo skills as needed)
+5. Storybook story coverage (add stories for any component that lacks one)
+6. Skill maintenance (review recent commits; add/remove repo skills as needed)
 
 ---
 
@@ -364,14 +367,108 @@ git commit -m "refactor: split large files (Phase 4)"
 
 ---
 
-## Phase 5 — Skill maintenance
+## Phase 5 — Storybook story coverage
+
+Every component should be documented with a Storybook story. This phase finds components that lack
+one and writes it. **Be aggressive: trend toward documenting everything.** A component without a
+story is the default cleanup target — only skip one when there is a concrete reason it cannot be
+rendered in isolation (see 5.4), and record that reason rather than silently passing over it.
+
+Stories live next to their component as `<Component>.stories.tsx` and follow the CSF3 +
+`@storybook/react-vite` convention already used across the repo (see `RangeSlider.stories.tsx`,
+`BookmarkCard.stories.tsx`). Storybook config is `packages/client/.storybook/main.ts` /
+`preview.tsx`.
+
+### 5.1 Find components missing a story
+
+List every component and subtract the ones that already have a co-located `*.stories.tsx`:
+
+```bash
+# Components (exclude existing stories) …
+git ls-files 'packages/client/src/components/**/*.tsx' | grep -v '\.stories\.tsx$'
+# … vs. components that already have a story
+git ls-files 'packages/client/src/components/**/*.stories.tsx'
+```
+
+A component file `Foo.tsx` is covered when `Foo.stories.tsx` sits beside it. Every uncovered
+`*.tsx` that exports a React component is a target. Work through them; don't stop at the first few.
+Include `components/ui/**` primitives — most already have stories, but any new one without is fair
+game. Skip pure non-component modules (a `*.tsx` that only re-exports or holds types/constants and
+renders no component).
+
+### 5.2 Write a story for each uncovered component
+
+Mirror the existing convention exactly:
+
+```tsx
+import type { Meta, StoryObj } from "@storybook/react-vite";
+
+import { Foo } from "./Foo";
+
+const meta = {
+  title: "Components/Foo",
+  component: Foo,
+  args: {
+    /* minimal realistic props */
+  },
+} satisfies Meta<typeof Foo>;
+
+export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+export const Default: Story = {};
+```
+
+Guidelines:
+
+- **Title:** `Components/<Name>` for `components/*`, `UI/<Name>` for `components/ui/*` — match what
+  sibling stories already use in that directory.
+- **Props:** supply the minimal set of realistic `args` (or a `render` fn, as `RangeSlider` does for
+  stateful components) so the component renders meaningfully, not blank.
+- **Add variant stories** when a component has clearly distinct visual states (empty / populated /
+  error, primary / secondary, open / closed). One `Default` is the floor, not the goal — aggressive
+  documentation means covering the states a reviewer would want to eyeball.
+- **Providers:** if the component needs Router/Query/Form context, reuse the decorator/wrapper
+  pattern an existing story for a similar component already uses (e.g. `BookmarkForm.stories.tsx`)
+  rather than inventing a new harness.
+
+### 5.3 Verify and commit
+
+Stories are typechecked and built by Storybook. Run the suite, then build Storybook to catch story
+errors the unit tests miss:
+
+```bash
+pnpm lint:fix
+pnpm typecheck
+pnpm test
+pnpm --filter=@eesimple/client build-storybook
+```
+
+If all pass:
+
+```bash
+git add 'packages/client/src/**/*.stories.tsx'
+git commit -m "docs: add Storybook stories for undocumented components (Phase 5)"
+```
+
+### 5.4 When to skip a component
+
+Only skip — and note the reason in the final report — when a component genuinely cannot be rendered
+in isolation: it is an abstract render-prop/context-only helper with no visual output, or it hard
+-requires live network/runtime state no decorator can stub. "It has a lot of props" is not a reason
+to skip; supply representative args. Default to writing the story.
+
+---
+
+## Phase 6 — Skill maintenance
 
 The repo's own skills (`.claude/skills/`) document the codebase's patterns. As the code evolves,
 those skills drift out of sync — a pattern gets renamed, a new repeatable workflow emerges, or a
 documented pattern is removed entirely. This phase keeps the skill set honest by grounding it in
 what has actually changed.
 
-### 5.1 Review recent commits
+### 6.1 Review recent commits
 
 Read the commits landed since the last overnight run (or, if unsure, the last ~30) to understand
 what changed in the codebase:
@@ -385,7 +482,7 @@ Pay attention to: new entities/components/patterns being introduced, existing pa
 renamed or relocated, files or whole concepts being deleted, and any change that touched several
 files in the same shaped way (a sign of a repeatable workflow worth a skill).
 
-### 5.2 Evaluate the existing skills against the commits
+### 6.2 Evaluate the existing skills against the commits
 
 List the current skills and, for each, judge whether recent commits have made it stale, wrong, or
 redundant:
@@ -405,7 +502,7 @@ For each skill, ask:
 hand-maintained. Don't hand-edit it; instead run `pnpm fallow:check-skill`, and if it reports drift
 (e.g. after a `fallow` bump), re-sync with `pnpm fallow:sync-skill` and commit the result.
 
-### 5.3 Add, update, or remove skills as needed
+### 6.3 Add, update, or remove skills as needed
 
 - **Add** a new skill when recent commits reveal a repeatable, multi-file workflow that isn't yet
   documented (mirror the structure and frontmatter of an existing skill — `name`, `description`
@@ -418,14 +515,14 @@ just because it exists, and do not skip documenting a clearly-recurring new patt
 about whether to remove a skill (e.g. the pattern is rare but still valid), leave it and note it in
 the final report rather than deleting it.
 
-### 5.4 Verify and commit
+### 6.4 Verify and commit
 
 Skill files are Markdown and have no test/typecheck impact, but still run the suite if you changed
 any non-skill file in this phase. Commit skill changes on their own:
 
 ```bash
 git add .claude/skills/
-git commit -m "docs: reconcile repo skills with recent commits (Phase 5)"
+git commit -m "docs: reconcile repo skills with recent commits (Phase 6)"
 ```
 
 Use `docs:` for skill content changes; if you only deleted a skill, `chore:` is also acceptable.
@@ -434,8 +531,9 @@ Use `docs:` for skill content changes; if you only deleted a skill, `chore:` is 
 
 ## Loop control
 
-After completing phases 1–5, check whether the health target has been reached (Phase 5 is
-skill-maintenance and does not affect the health score, but still run it each iteration):
+After completing phases 1–6, check whether the health target has been reached (Phases 5 and 6 are
+story-coverage and skill-maintenance and do not affect the health score, but still run them each
+iteration):
 
 ```bash
 pnpm exec fallow health --format json --quiet 2>/dev/null || true
@@ -502,3 +600,58 @@ Report these final numbers:
 If the health score did not reach 8.0, summarise why: list the specific findings (with file
 paths and metric values) blocking the score and explain what manual refactoring each would
 require. This gives the human a precise next-steps list for a follow-up session.
+
+---
+
+## Open a PR and watch CI (end of work)
+
+This skill runs unattended overnight, so the human is not at the keyboard to open a PR or babysit
+CI. Once the loop has exited and final verification is green, **close out the run by opening a pull
+request and subscribing to its activity** so CI failures and review comments get handled
+automatically while the human sleeps.
+
+Do this only at the very end — after all phases are done, all per-phase commits are made, and the
+branch is pushed. Do not open a PR mid-loop.
+
+### Push the work
+
+Push the development branch with upstream tracking (retry with backoff on network errors, per the
+session's git instructions):
+
+```bash
+git push -u origin <branch-name>
+```
+
+### Open the PR
+
+Create the PR against the default branch using the GitHub MCP tools (`mcp__github__create_pull_request`).
+Requirements that CI enforces — get them right the first time so `lint-title` passes:
+
+- **Title must start with a Conventional Commits prefix** (`refactor:`, `docs:`, `chore:`, `perf:`,
+  etc.) — the `pr-title` workflow lints it independently of the commit messages. Pick the prefix
+  that matches the bulk of the work (usually `refactor:` for a cleanup sweep, e.g.
+  `refactor: overnight codebase health sweep`).
+- **If the PR closes an issue, include the issue number** in the title (e.g. `(#123)`) — `lint-title`
+  requires it for any PR with a closing-issue link.
+- **Body:** summarise the run — per-phase changes, the before/after health score, dead-code and
+  duplication numbers, the Storybook stories added, and any skill changes. Mirror the final report
+  above so a reviewer can scan the outcome.
+
+### Subscribe so CI can be handled automatically
+
+Immediately after the PR is created, subscribe to its activity so this session wakes on CI results
+and review comments:
+
+```
+mcp__github__subscribe_pr_activity   # pass the new PR's number
+```
+
+Then **end the turn** — do not poll with `sleep` or repeated status checks. PR events arrive as
+`<github-webhook-activity>` messages that wake the session. When a CI failure arrives, diagnose and
+push a fix on the same branch (re-running the relevant verification locally first); when a review
+comment is ambiguous, ask the human via `AskUserQuestion` rather than guessing. Keep handling events
+until the PR is **merged or closed**, then stop. (CI success / merge-conflict transitions are not
+delivered as events — if `send_later` is available, schedule a check-in ~an hour out to re-verify
+mergeability, then re-arm or stop once merged.)
+
+Report the PR URL and that the session is now watching it as the final line of the run.
