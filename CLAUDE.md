@@ -124,6 +124,10 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
     `card-single-bottom` (rendered top-to-bottom; the zone decides the field's *form*: full-width row /
     pill / `label : value` table row) — or one of the four `image-*` overlay corners. Order **within**
     a zone matters (the `CardFieldZoneBoard` is sortable; `BookmarkCardDetails` renders in array order).
+    `BookmarkCard` is a thin coordinator: card-body fields render via `BookmarkCardDetails`,
+    image-corner overlays are assembled by `buildCardOverlayItems` (`components/bookmarkCardOverlays.tsx`)
+    and the image element by `BookmarkCardImage.tsx` — keep new per-card rendering in those
+    sub-components rather than re-inlining it into `BookmarkCard`.
     A `CardFieldPlacement` carries `scale`/`mobileScale` (image zones), `hideLabel` (image zones +
     `card-table`), and `hideIcon` (image zones — overlays show the field's icon/image by default).
     The Fastify route body (`routes/cardDisplayRules.ts`) **hand-lists** the zone names + placement
