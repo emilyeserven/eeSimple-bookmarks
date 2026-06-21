@@ -38,7 +38,11 @@ export function SourcePill({
       <img
         src={imageUrl}
         alt=""
-        className="size-3 shrink-0 object-contain"
+        className={
+          type === "youtube-channel"
+            ? "size-3 shrink-0 rounded-full object-contain"
+            : "size-3 shrink-0 object-contain"
+        }
         onError={() => setImgError(true)}
       />
     )
