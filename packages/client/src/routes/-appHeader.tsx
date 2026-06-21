@@ -20,11 +20,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { useAutofillRuleBySlug } from "@/hooks/useAutofill";
 import { useBookmark } from "@/hooks/useBookmarks";
 import { useCategories, useCategoryBySlug } from "@/hooks/useCategories";
+import { usePropertyBySlug } from "@/hooks/useCustomProperties";
 import { useMediaTypeBySlug } from "@/hooks/useMediaTypes";
+import { usePropertyGroupBySlug } from "@/hooks/usePropertyGroups";
 import { useTagTree } from "@/hooks/useTags";
 import { useWebsiteBySlug } from "@/hooks/useWebsites";
+import { useYouTubeChannelBySlug } from "@/hooks/useYouTubeChannels";
 import { findAncestorPath } from "@/lib/tagTree";
 import { useUiStore } from "@/stores/uiStore";
 
@@ -33,81 +37,123 @@ interface BreadcrumbSegment {
   href?: string;
 }
 
-const SETTINGS_SUBLABELS: Record<string, string> = {
-  "display": "Display",
-  "tags": "Tags",
-  "categories": "Categories",
-  "custom-properties": "Custom Properties",
-  "websites": "Websites",
-  "media-types": "Media Types",
+/** Labels for path segments whose human form differs from a plain title-cased slug. */
+const LABEL_OVERRIDES: Record<string, string> = {
   "youtube-channels": "YouTube Channels",
-  "automations": "Automations",
-  "autofill": "Autofill",
-};
-
-const CATEGORY_EDIT_SUBLABELS: Record<string, string> = {
-  "general": "General",
-  "custom-properties": "Custom Properties",
-  "tiered-tags": "Tiered Tags",
-  "autofill": "Autofill",
-};
-
-const WEBSITE_EDIT_SUBLABELS: Record<string, string> = {
-  "general": "General",
-  "shortened-links": "Shortened Links",
-  "param-rules": "Param Rules",
   "autofill": "Autofill Rules",
 };
 
-const TAXONOMY_CRUMBS = [
+/** Title-case a slug segment: `shortened-links` → `Shortened Links`. */
+function titleCaseSegment(segment: string): string {
+  return segment
+    .split("-")
+    .filter(Boolean)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+/** Human label for a single path segment — a settings sub-page, an edit tab, etc. */
+function crumbLabel(segment: string): string {
+  return LABEL_OVERRIDES[segment] ?? titleCaseSegment(segment);
+}
+
+interface TaxonomyDescriptor {
+  /** URL prefix that owns this entity's listing + detail/edit pages. */
+  prefix: string;
+  /** Listing-page label, e.g. `Custom Properties`. */
+  listLabel: string;
+  /** Placeholder shown only while the entity name is still loading. */
+  singular: string;
+  /** Index of the entity slug among the path's non-empty segments. */
+  slugIndex: number;
+}
+
+// Every slug-routed entity whose breadcrumb is `List → Name → [Section]`. Categories and Websites
+// live here too — they share the exact same shape. (Tags and Bookmarks stay bespoke: tags carry an
+// ancestor chain, bookmarks a category + title.) When you add a new slug-routed entity, add its
+// descriptor here AND resolve its name in `AppHeader` below — see the `add-entity` skill.
+const TAXONOMY_DESCRIPTORS: readonly TaxonomyDescriptor[] = [
+  {
+    prefix: "/categories",
+    listLabel: "Categories",
+    singular: "Category",
+    slugIndex: 1,
+  },
+  {
+    prefix: "/taxonomies/websites",
+    listLabel: "Websites",
+    singular: "Website",
+    slugIndex: 2,
+  },
   {
     prefix: "/taxonomies/media-types",
     listLabel: "Media Types",
-    detailLabel: "Media Type",
+    singular: "Media Type",
+    slugIndex: 2,
   },
   {
     prefix: "/taxonomies/youtube-channels",
     listLabel: "YouTube Channels",
-    detailLabel: "Channel",
+    singular: "Channel",
+    slugIndex: 2,
+  },
+  {
+    prefix: "/taxonomies/property-groups",
+    listLabel: "Property Groups",
+    singular: "Property Group",
+    slugIndex: 2,
   },
   {
     prefix: "/custom-properties",
     listLabel: "Custom Properties",
-    detailLabel: "Custom Property",
+    singular: "Custom Property",
+    slugIndex: 1,
   },
   {
     prefix: "/autofill",
     listLabel: "Autofill Rules",
-    detailLabel: "Rule",
+    singular: "Rule",
+    slugIndex: 1,
   },
 ] as const;
 
-function websiteCrumbs(pathname: string, websiteName?: string): BreadcrumbSegment[] {
-  const parts = pathname.split("/").filter(Boolean);
-  // `/taxonomies/websites` — the listing page.
-  if (parts.length === 2) return [{
-    label: "Websites",
+/**
+ * Breadcrumbs for a slug-routed taxonomy entity: `List(link) → Name` on the detail/view tabs, and
+ * `List(link) → Name(link → view) → Section` on edit tabs. `name` is the resolved entity name; the
+ * descriptor's `singular` is only a brief loading placeholder.
+ */
+function taxonomyCrumbs(
+  pathname: string,
+  descriptor: TaxonomyDescriptor,
+  name?: string,
+): BreadcrumbSegment[] {
+  const {
+    prefix, listLabel, singular, slugIndex,
+  } = descriptor;
+  // Listing page.
+  if (pathname === prefix) return [{
+    label: listLabel,
   }];
+  const parts = pathname.split("/").filter(Boolean);
+  const slug = parts[slugIndex] ?? "";
   const listCrumb: BreadcrumbSegment = {
-    label: "Websites",
-    href: "/taxonomies/websites",
+    label: listLabel,
+    href: prefix,
   };
-  const siteLabel = websiteName ?? "Website";
-  // View tabs (no `edit` segment in path)
-  if (parts[3] !== "edit") {
+  const itemLabel = name ?? singular;
+  // The bare detail/browse index and every `_view` tab stop at the name.
+  if (parts[slugIndex + 1] !== "edit") {
     return [listCrumb, {
-      label: siteLabel,
+      label: itemLabel,
     }];
   }
-  // `/taxonomies/websites/$slug/edit/<tab>` — link name back to its view.
-  const sectionLabel = parts.length > 4
-    ? (WEBSITE_EDIT_SUBLABELS[parts[4]] ?? parts[4])
-    : "Edit";
+  // Edit tabs: link the name back to its view, end on the section/tab label.
+  const tab = parts[slugIndex + 2];
   return [listCrumb, {
-    label: siteLabel,
-    href: `/taxonomies/websites/${parts[2]}/general`,
+    label: itemLabel,
+    href: `${prefix}/${slug}/general`,
   }, {
-    label: sectionLabel,
+    label: tab ? crumbLabel(tab) : "Edit",
   }];
 }
 
@@ -116,42 +162,12 @@ function settingsCrumbs(pathname: string): BreadcrumbSegment[] {
   if (!rest) return [{
     label: "Settings",
   }];
-  const parts = rest.split("/");
-  const sub = parts[0];
+  const sub = rest.split("/")[0];
   return [{
     label: "Settings",
     href: "/settings",
   }, {
-    label: SETTINGS_SUBLABELS[sub] ?? sub,
-  }];
-}
-
-function categoryCrumbs(pathname: string, categoryName?: string): BreadcrumbSegment[] {
-  const parts = pathname.split("/").filter(Boolean);
-  // `/categories` — the listing page.
-  if (parts.length === 1) return [{
-    label: "Categories",
-  }];
-  const listCrumb: BreadcrumbSegment = {
-    label: "Categories",
-    href: "/categories",
-  };
-  const catLabel = categoryName ?? "Category";
-  // `/categories/$slug` (bookmark browse) and all `_view` tabs (general, tiered-tags, etc.).
-  if (parts.length === 2 || parts[2] !== "edit") {
-    return [listCrumb, {
-      label: catLabel,
-    }];
-  }
-  // `/categories/$slug/edit/<tab>` — link the name back to its view.
-  const sectionLabel = parts.length > 3
-    ? (CATEGORY_EDIT_SUBLABELS[parts[3]] ?? parts[3])
-    : "Edit";
-  return [listCrumb, {
-    label: catLabel,
-    href: `/categories/${parts[1]}/general`,
-  }, {
-    label: sectionLabel,
+    label: crumbLabel(sub),
   }];
 }
 
@@ -170,7 +186,7 @@ function tagCrumbs(pathname: string, tagAncestors?: TagNode[]): BreadcrumbSegmen
     const fallback: BreadcrumbSegment = isEdit
       ? {
         label: "Tag",
-        href: `/tags/${parts[1]}/settings`,
+        href: `/tags/${parts[1]}/general`,
       }
       : {
         label: "Tag",
@@ -186,7 +202,7 @@ function tagCrumbs(pathname: string, tagAncestors?: TagNode[]): BreadcrumbSegmen
   const currentCrumb: BreadcrumbSegment = isEdit
     ? {
       label: current.name,
-      href: `/tags/${parts[1]}/settings`,
+      href: `/tags/${parts[1]}/general`,
     }
     : {
       label: current.name,
@@ -243,15 +259,15 @@ function bookmarkCrumbs(pathname: string, data?: BookmarkCrumbData): BreadcrumbS
   return [listCrumb, catCrumb, titleCrumb];
 }
 
+interface BreadcrumbContext {
+  tagAncestors?: TagNode[];
+  bookmarkData?: BookmarkCrumbData;
+  /** Resolved entity name keyed by `TaxonomyDescriptor.prefix`. */
+  taxonomyNames?: Record<string, string | undefined>;
+}
+
 /** Derive breadcrumb segments from a pathname. */
-function breadcrumbsForPath(
-  pathname: string,
-  categoryName?: string,
-  tagAncestors?: TagNode[],
-  bookmarkData?: BookmarkCrumbData,
-  websiteName?: string,
-  mediaTypeName?: string,
-): BreadcrumbSegment[] {
+function breadcrumbsForPath(pathname: string, ctx: BreadcrumbContext): BreadcrumbSegment[] {
   if (pathname === "/") return [{
     label: "Home",
   }];
@@ -259,29 +275,16 @@ function breadcrumbsForPath(
     label: "Bookmarks",
   }];
   if (pathname.startsWith("/bookmarks/"))
-    return bookmarkCrumbs(pathname, bookmarkData);
+    return bookmarkCrumbs(pathname, ctx.bookmarkData);
   if (pathname.startsWith("/settings")) return settingsCrumbs(pathname);
-  if (pathname === "/categories" || pathname.startsWith("/categories/"))
-    return categoryCrumbs(pathname, categoryName);
-  if (pathname === "/tags" || pathname.startsWith("/tags/")) return tagCrumbs(pathname, tagAncestors);
-  if (pathname === "/taxonomies/websites" || pathname.startsWith("/taxonomies/websites/"))
-    return websiteCrumbs(pathname, websiteName);
+  if (pathname === "/tags" || pathname.startsWith("/tags/")) return tagCrumbs(pathname, ctx.tagAncestors);
 
-  const taxonomy = TAXONOMY_CRUMBS.find(t => pathname.startsWith(t.prefix));
-  if (taxonomy) {
-    if (pathname === taxonomy.prefix) return [{
-      label: taxonomy.listLabel,
-    }];
-    const itemLabel = (taxonomy.prefix === "/taxonomies/media-types" && mediaTypeName)
-      ? mediaTypeName
-      : taxonomy.detailLabel;
-    return [{
-      label: taxonomy.listLabel,
-      href: taxonomy.prefix,
-    }, {
-      label: itemLabel,
-    }];
-  }
+  const descriptor = TAXONOMY_DESCRIPTORS.find(
+    d => pathname === d.prefix || pathname.startsWith(`${d.prefix}/`),
+  );
+  if (descriptor)
+    return taxonomyCrumbs(pathname, descriptor, ctx.taxonomyNames?.[descriptor.prefix]);
+
   return [{
     label: "eeSimple Bookmarks",
   }];
@@ -392,18 +395,46 @@ export function AppHeader() {
     select: state => state.location.pathname,
   });
 
-  // Category breadcrumbs
-  const categorySlug = pathname.startsWith("/categories/")
-    ? (pathname.split("/").filter(Boolean)[1] ?? "")
-    : "";
+  const pathParts = pathname.split("/").filter(Boolean);
+  /** Slug at `index` when on `prefix`'s pages, else "" (so the by-slug hooks short-circuit). */
+  const slugFor = (prefix: string, index: number): string =>
+    pathname === prefix || pathname.startsWith(`${prefix}/`) ? (pathParts[index] ?? "") : "";
+
+  // Resolve each taxonomy entity's real name for its `List → Name` crumb. Each hook short-circuits
+  // on an empty slug, so only the entity whose page is active actually looks anything up.
   const {
     category,
-  } = useCategoryBySlug(categorySlug);
+  } = useCategoryBySlug(slugFor("/categories", 1));
+  const {
+    website,
+  } = useWebsiteBySlug(slugFor("/taxonomies/websites", 2));
+  const {
+    mediaType,
+  } = useMediaTypeBySlug(slugFor("/taxonomies/media-types", 2));
+  const {
+    channel,
+  } = useYouTubeChannelBySlug(slugFor("/taxonomies/youtube-channels", 2));
+  const {
+    propertyGroup,
+  } = usePropertyGroupBySlug(slugFor("/taxonomies/property-groups", 2));
+  const {
+    property,
+  } = usePropertyBySlug(slugFor("/custom-properties", 1));
+  const {
+    rule,
+  } = useAutofillRuleBySlug(slugFor("/autofill", 1));
+  const taxonomyNames: Record<string, string | undefined> = {
+    "/categories": category?.name,
+    "/taxonomies/websites": website?.siteName,
+    "/taxonomies/media-types": mediaType?.name,
+    "/taxonomies/youtube-channels": channel?.name,
+    "/taxonomies/property-groups": propertyGroup?.name,
+    "/custom-properties": property?.name,
+    "/autofill": rule?.name,
+  };
 
-  // Tag breadcrumbs
-  const tagSlug = pathname.startsWith("/tags/")
-    ? (pathname.split("/").filter(Boolean)[1] ?? "")
-    : "";
+  // Tag breadcrumbs carry the ancestor chain.
+  const tagSlug = slugFor("/tags", 1);
   const {
     data: tagTree,
   } = useTagTree();
@@ -411,26 +442,8 @@ export function AppHeader() {
     ? (findAncestorPath(tagTree, tagSlug) ?? undefined)
     : undefined;
 
-  // Website breadcrumbs
-  const websiteSlug = pathname.startsWith("/taxonomies/websites/")
-    ? (pathname.split("/").filter(Boolean)[2] ?? "")
-    : "";
-  const {
-    website,
-  } = useWebsiteBySlug(websiteSlug);
-
-  // Media type breadcrumbs
-  const mediaTypeSlug = pathname.startsWith("/taxonomies/media-types/")
-    ? (pathname.split("/").filter(Boolean)[2] ?? "")
-    : "";
-  const {
-    mediaType,
-  } = useMediaTypeBySlug(mediaTypeSlug);
-
-  // Bookmark breadcrumbs — extract bookmarkId from /bookmarks/$id[/...]
-  const bookmarkId = pathname.startsWith("/bookmarks/")
-    ? (pathname.split("/").filter(Boolean)[1] ?? "")
-    : "";
+  // Bookmark breadcrumbs carry the bookmark's category + title.
+  const bookmarkId = slugFor("/bookmarks", 1);
   const {
     data: bookmarkForCrumb,
   } = useBookmark(bookmarkId);
@@ -448,14 +461,11 @@ export function AppHeader() {
     }
     : undefined;
 
-  const crumbs = breadcrumbsForPath(
-    pathname,
-    category?.name,
+  const crumbs = breadcrumbsForPath(pathname, {
     tagAncestors,
     bookmarkData,
-    website?.siteName,
-    mediaType?.name,
-  );
+    taxonomyNames,
+  });
 
   // Show Edit button in the header only on the bookmark detail page (not edit pages)
   const isBookmarkDetail = Boolean(bookmarkId)
@@ -464,7 +474,6 @@ export function AppHeader() {
 
   // Taxonomy listing index pages (`/<entity>/<slug>`, the bookmark browse view — not its
   // `_view`/`edit` tabs) surface a header "Info" link to that item's read-only view page.
-  const pathParts = pathname.split("/").filter(Boolean);
   const infoButton = taxonomyInfoButton(pathParts);
 
   const {
