@@ -253,7 +253,10 @@ function PinnedItemsCard() {
     const colonIdx = value.indexOf(":");
     const entityType = value.slice(0, colonIdx) as PinnedSidebarEntityType;
     const entityId = value.slice(colonIdx + 1);
-    addPin.mutate({ entityType, entityId });
+    addPin.mutate({
+      entityType,
+      entityId,
+    });
     setComboValue(undefined);
   }
 
@@ -294,7 +297,12 @@ function PinnedItemsCard() {
                     key={pin.id}
                     className="flex items-center gap-2 py-0.5"
                   >
-                    <span className={cn("flex-1 truncate text-sm", !label && "text-muted-foreground italic")}>
+                    <span
+                      className={cn(
+                        "flex-1 truncate text-sm",
+                        !label && "text-muted-foreground italic",
+                      )}
+                    >
                       {label ?? "(deleted)"}
                     </span>
                     <Button

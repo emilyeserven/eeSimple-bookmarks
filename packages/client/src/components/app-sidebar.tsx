@@ -124,7 +124,13 @@ interface ResolvedPin {
   id: string;
   label: string;
   icon: React.ReactNode;
-  link: { kind: "path"; path: string } | { kind: "filter"; search: ReturnType<typeof validateBookmarkSearch> };
+  link: {
+    kind: "path";
+    path: string;
+  } | {
+    kind: "filter";
+    search: ReturnType<typeof validateBookmarkSearch>;
+  };
   bookmarkCount?: number;
   isActive: boolean;
 }
@@ -216,47 +222,91 @@ export function AppSidebar({
         case "category": {
           const e = (categories ?? []).find(c => c.id === pin.entityId);
           if (!e) return [];
-          return [{ id: pin.id, label: e.name, icon: <CategoryIcon name={e.icon} />,
-            link: { kind: "path", path: `/categories/${e.slug}` },
-            bookmarkCount: e.bookmarkCount, isActive: pathname === `/categories/${e.slug}` }];
+          return [{
+            id: pin.id,
+            label: e.name,
+            icon: <CategoryIcon name={e.icon} />,
+            link: {
+              kind: "path",
+              path: `/categories/${e.slug}`,
+            },
+            bookmarkCount: e.bookmarkCount,
+            isActive: pathname === `/categories/${e.slug}`,
+          }];
         }
         case "tag": {
           const e = (allTags ?? []).find(t => t.id === pin.entityId);
           if (!e) return [];
-          return [{ id: pin.id, label: e.name, icon: <Tags />,
-            link: { kind: "path", path: `/tags/${e.slug}` },
-            bookmarkCount: e.bookmarkCount, isActive: pathname === `/tags/${e.slug}` }];
+          return [{
+            id: pin.id,
+            label: e.name,
+            icon: <Tags />,
+            link: {
+              kind: "path",
+              path: `/tags/${e.slug}`,
+            },
+            bookmarkCount: e.bookmarkCount,
+            isActive: pathname === `/tags/${e.slug}`,
+          }];
         }
         case "website": {
           const e = (allWebsites ?? []).find(w => w.id === pin.entityId);
           if (!e) return [];
-          return [{ id: pin.id, label: e.siteName, icon: <Globe />,
-            link: { kind: "path", path: `/taxonomies/websites/${e.slug}` },
+          return [{
+            id: pin.id,
+            label: e.siteName,
+            icon: <Globe />,
+            link: {
+              kind: "path",
+              path: `/taxonomies/websites/${e.slug}`,
+            },
             bookmarkCount: e.bookmarkCount,
-            isActive: pathname.startsWith(`/taxonomies/websites/${e.slug}`) }];
+            isActive: pathname.startsWith(`/taxonomies/websites/${e.slug}`),
+          }];
         }
         case "media-type": {
           const e = (allMediaTypes ?? []).find(m => m.id === pin.entityId);
           if (!e) return [];
-          return [{ id: pin.id, label: e.name, icon: <CategoryIcon name={e.icon} />,
-            link: { kind: "path", path: `/taxonomies/media-types/${e.slug}` },
+          return [{
+            id: pin.id,
+            label: e.name,
+            icon: <CategoryIcon name={e.icon} />,
+            link: {
+              kind: "path",
+              path: `/taxonomies/media-types/${e.slug}`,
+            },
             bookmarkCount: e.bookmarkCount,
-            isActive: pathname.startsWith(`/taxonomies/media-types/${e.slug}`) }];
+            isActive: pathname.startsWith(`/taxonomies/media-types/${e.slug}`),
+          }];
         }
         case "youtube-channel": {
           const e = (allChannels ?? []).find(c => c.id === pin.entityId);
           if (!e) return [];
-          return [{ id: pin.id, label: e.name, icon: <MonitorPlay />,
-            link: { kind: "path", path: `/taxonomies/youtube-channels/${e.slug}` },
+          return [{
+            id: pin.id,
+            label: e.name,
+            icon: <MonitorPlay />,
+            link: {
+              kind: "path",
+              path: `/taxonomies/youtube-channels/${e.slug}`,
+            },
             bookmarkCount: e.bookmarkCount,
-            isActive: pathname.startsWith(`/taxonomies/youtube-channels/${e.slug}`) }];
+            isActive: pathname.startsWith(`/taxonomies/youtube-channels/${e.slug}`),
+          }];
         }
         case "saved-filter": {
           const e = (savedFilters ?? []).find(f => f.id === pin.entityId);
           if (!e) return [];
-          return [{ id: pin.id, label: e.name, icon: <Filter />,
-            link: { kind: "filter", search: validateBookmarkSearch(e.filters) },
-            isActive: pathname === "/bookmarks" || pathname === "/bookmarks/" }];
+          return [{
+            id: pin.id,
+            label: e.name,
+            icon: <Filter />,
+            link: {
+              kind: "filter",
+              search: validateBookmarkSearch(e.filters),
+            },
+            isActive: pathname === "/bookmarks" || pathname === "/bookmarks/",
+          }];
         }
       }
     });
