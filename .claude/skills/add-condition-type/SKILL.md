@@ -42,9 +42,11 @@ template for a multi-select-of-entity leaf — follow it.
    `summarizeConditions` in `AutofillRuleForm.tsx`.
 5. **Builder UI** — `components/conditions/ConditionsField.tsx`: read the leaf, add a `Section`, and
    extend `commit()` (drop the leaf when empty, like the category/tag leaves). Add an editor
-   component under `components/conditions/` (e.g. `WebsiteConditionEditor.tsx`). For a multi-select
-   reuse `MultiCombobox` (`CategoryConditionEditor` is the template); for websites reuse the website
-   `Combobox` + "Add new website" `Dialog`.
+   component under `components/conditions/` (e.g. `WebsiteConditionEditor.tsx`). For a **flat
+   entity multi-select** (e.g. Media Types, Relationship Types) reuse
+   `EntityMultiSelectCondition` from `components/conditions/EntityMultiSelectCondition.tsx` — it
+   wraps `MultiCombobox` with the standard aria/placeholder props so editors don't duplicate the
+   markup. For websites reuse the website `Combobox` + "Add new website" `Dialog`.
 6. **Default-seed a new rule (optional)** — if an entity page creates rules pre-scoped to itself, the
    panel's `CreateAutofillRule` (`components/panel/AutofillRulePanel.tsx`) resolves the entity from
    the URL slug and passes a `default…` prop; `AutofillRuleForm` seeds the initial `conditions` tree
