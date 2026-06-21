@@ -210,6 +210,31 @@ export const propertyGroups = pgTable("property_groups", {
 ]);
 
 /**
+ * `relationship_types` table — the "Relationship Types" taxonomy (Similar, Parent/child, Opposite, …)
+ * classifying how two bookmarks relate. `directional` types encode a parent→child direction;
+ * symmetric types read the same from either side. Seeded built-ins can't be renamed/deleted; users
+ * may add their own.
+ */
+export const relationshipTypes = pgTable("relationship_types", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  // URL-friendly identifier derived from the name. Nullable for clean `push`; backfilled at boot.
+  slug: text("slug"),
+  // Whether the relationship has a direction (parent→child) rather than being symmetric.
+  directional: boolean("directional").notNull().default(false),
+  // Seeded built-ins (Similar, Parent/child, Opposite) can't be renamed or deleted.
+  builtIn: boolean("built_in").notNull().default(false),
+  // Display ordering; lower sorts first.
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+}, table => [
+  unique("relationship_types_name_unique").on(table.name),
+  unique("relationship_types_slug_unique").on(table.slug),
+]);
+
+/**
  * `youtube_channels` table — the built-in "YouTube Channels" taxonomy. One row per distinct channel;
  * bookmarks for a YouTube video are auto-linked to their channel from the video's fetched metadata.
  */
@@ -357,21 +382,33 @@ export const tagsRelations = relations(tags, ({
 }));
 
 /**
- * `bookmark_relationships` — undirected many-to-many edges between bookmarks. A canonical ordering
- * (`bookmarkAId < bookmarkBId`, enforced in the service layer) ensures each pair is stored once.
- * Both FKs cascade on delete so removing either bookmark removes the edge automatically.
+ * `bookmark_relationships` — typed edges between bookmarks. Each edge carries a `relationshipType`
+ * and an optional free-text `label`. For SYMMETRIC types the pair is canonicalized
+ * (`bookmarkAId < bookmarkBId`, enforced in the service layer) so it's stored once and reads the
+ * same from either side; for DIRECTIONAL types the order encodes direction — `bookmarkAId` is the
+ * parent/source and `bookmarkBId` is the child/target. A surrogate `id` PK plus a unique index on
+ * `(bookmarkAId, bookmarkBId, relationshipTypeId)` lets a pair carry more than one typed edge while
+ * preventing duplicates. All FKs cascade on delete.
  */
 export const bookmarkRelationships = pgTable("bookmark_relationships", {
+  id: uuid("id").primaryKey().defaultRandom(),
   bookmarkAId: uuid("bookmark_a_id").notNull().references(() => bookmarks.id, {
     onDelete: "cascade",
   }),
   bookmarkBId: uuid("bookmark_b_id").notNull().references(() => bookmarks.id, {
     onDelete: "cascade",
   }),
-}, table => [
-  primaryKey({
-    columns: [table.bookmarkAId, table.bookmarkBId],
+  relationshipTypeId: uuid("relationship_type_id").notNull().references(() => relationshipTypes.id, {
+    onDelete: "cascade",
   }),
+  // Optional, more specific free-text label for this edge (e.g. "sequel", "same author").
+  label: text("label"),
+}, table => [
+  unique("bookmark_relationships_pair_type_unique").on(
+    table.bookmarkAId,
+    table.bookmarkBId,
+    table.relationshipTypeId,
+  ),
 ]);
 
 export const bookmarksRelations = relations(bookmarks, ({
@@ -1171,6 +1208,8 @@ export type MediaTypeRow = typeof mediaTypes.$inferSelect;
 export type NewMediaTypeRow = typeof mediaTypes.$inferInsert;
 export type PropertyGroupRow = typeof propertyGroups.$inferSelect;
 export type NewPropertyGroupRow = typeof propertyGroups.$inferInsert;
+export type RelationshipTypeRow = typeof relationshipTypes.$inferSelect;
+export type NewRelationshipTypeRow = typeof relationshipTypes.$inferInsert;
 export type YouTubeChannelRow = typeof youtubeChannels.$inferSelect;
 export type NewYouTubeChannelRow = typeof youtubeChannels.$inferInsert;
 export type YouTubeChannelImageRow = typeof youtubeChannelImages.$inferSelect;

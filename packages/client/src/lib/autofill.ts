@@ -42,6 +42,7 @@ export function matchesRule(rule: AutofillRule, input: AutofillInput): boolean {
     booleanValues: new Map(),
     dateTimeValues: new Map(),
     fileValues: new Set(),
+    relationshipTypeIds: new Set(),
   };
   return evaluateConditions(rule.conditions, projection);
 }

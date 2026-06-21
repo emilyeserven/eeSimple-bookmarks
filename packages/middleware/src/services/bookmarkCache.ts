@@ -1,4 +1,4 @@
-import { inArray } from "drizzle-orm";
+import { inArray, or } from "drizzle-orm";
 import type { ConditionInput, TagDescendants } from "@eesimple/types";
 import { buildTagDescendants } from "@eesimple/types";
 import { db } from "@/db";
@@ -7,6 +7,7 @@ import {
   bookmarkDateTimeValues,
   bookmarkFileValues,
   bookmarkNumberValues,
+  bookmarkRelationships,
   bookmarks,
   type BookmarkRow,
   bookmarkTags,
@@ -97,7 +98,7 @@ async function buildConditionInputs(
   const ids = baseRows.map(row => row.id);
   if (ids.length === 0) return new Map();
 
-  const [tagRows, numberRows, booleanRows, dateTimeRows, fileRows] = await Promise.all([
+  const [tagRows, numberRows, booleanRows, dateTimeRows, fileRows, relationshipRows] = await Promise.all([
     db
       .select({
         bookmarkId: bookmarkTags.bookmarkId,
@@ -136,6 +137,19 @@ async function buildConditionInputs(
       })
       .from(bookmarkFileValues)
       .where(inArray(bookmarkFileValues.bookmarkId, ids)),
+    db
+      .select({
+        bookmarkAId: bookmarkRelationships.bookmarkAId,
+        bookmarkBId: bookmarkRelationships.bookmarkBId,
+        relationshipTypeId: bookmarkRelationships.relationshipTypeId,
+      })
+      .from(bookmarkRelationships)
+      .where(
+        or(
+          inArray(bookmarkRelationships.bookmarkAId, ids),
+          inArray(bookmarkRelationships.bookmarkBId, ids),
+        ),
+      ),
   ]);
 
   const tagsByBid = new Map<string, Set<string>>();
@@ -173,6 +187,20 @@ async function buildConditionInputs(
     filesByBid.set(r.bookmarkId, s);
   }
 
+  // A bookmark "has" a relationship type if it sits on either side of an edge of that type.
+  const idSet = new Set(ids);
+  const relTypesByBid = new Map<string, Set<string>>();
+  const addRelType = (bookmarkId: string, relationshipTypeId: string) => {
+    if (!idSet.has(bookmarkId)) return;
+    const s = relTypesByBid.get(bookmarkId) ?? new Set<string>();
+    s.add(relationshipTypeId);
+    relTypesByBid.set(bookmarkId, s);
+  };
+  for (const r of relationshipRows) {
+    addRelType(r.bookmarkAId, r.relationshipTypeId);
+    addRelType(r.bookmarkBId, r.relationshipTypeId);
+  }
+
   const result = new Map<string, ConditionInput>();
   for (const row of baseRows) {
     result.set(row.id, {
@@ -186,6 +214,7 @@ async function buildConditionInputs(
       booleanValues: boolsByBid.get(row.id) ?? new Map(),
       dateTimeValues: datesByBid.get(row.id) ?? new Map(),
       fileValues: filesByBid.get(row.id) ?? new Set(),
+      relationshipTypeIds: relTypesByBid.get(row.id) ?? new Set(),
     });
   }
   return result;

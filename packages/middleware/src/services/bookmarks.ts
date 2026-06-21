@@ -18,6 +18,7 @@ import {
   bookmarks,
   type BookmarkRow,
   bookmarkTags,
+  relationshipTypes,
 } from "@/db/schema";
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { getBookmarkImageRow } from "@/services/bookmarkImages";
@@ -433,28 +434,76 @@ export async function deleteBookmark(id: string): Promise<boolean> {
 }
 
 /**
- * Replace the full set of undirected relationships for a bookmark. Each pair is stored with the
- * lexicographically smaller UUID in `bookmarkAId` so each edge has exactly one canonical row.
- * Self-references (a bookmark related to itself) are silently ignored.
+ * Replace the full set of relationships touching a bookmark. Each entry carries a relationship type
+ * and an optional label. For SYMMETRIC types the pair is canonicalized (smaller UUID in `bookmarkAId`)
+ * so the edge is stored once; for DIRECTIONAL types the order encodes direction — `bookmarkAId` is the
+ * parent and `bookmarkBId` is the child, derived from the entry's `direction` (the OTHER bookmark's
+ * role relative to the edited one; defaults to `child`). Self-references and entries referencing an
+ * unknown type are silently ignored; duplicate edges collapse. Relationships are matchable data, so
+ * the bookmark evaluation cache is invalidated.
  */
 export async function updateBookmarkRelationships(
   bookmarkId: string,
   {
-    relatedBookmarkIds,
+    relationships,
   }: UpdateBookmarkRelationshipsInput,
 ): Promise<void> {
-  const pairs = relatedBookmarkIds
-    .filter(otherId => otherId !== bookmarkId)
-    .map(otherId =>
-      bookmarkId < otherId
-        ? {
-          bookmarkAId: bookmarkId,
-          bookmarkBId: otherId,
-        }
-        : {
-          bookmarkAId: otherId,
-          bookmarkBId: bookmarkId,
-        });
+  const entries = relationships.filter(entry => entry.bookmarkId !== bookmarkId);
+
+  // Resolve which referenced types are directional so we know whether to canonicalize the pair.
+  const typeIds = [...new Set(entries.map(entry => entry.relationshipTypeId))];
+  const directionalById = new Map<string, boolean>();
+  if (typeIds.length > 0) {
+    const typeRows = await db
+      .select({
+        id: relationshipTypes.id,
+        directional: relationshipTypes.directional,
+      })
+      .from(relationshipTypes)
+      .where(inArray(relationshipTypes.id, typeIds));
+    for (const t of typeRows) directionalById.set(t.id, t.directional);
+  }
+
+  const seen = new Set<string>();
+  const rows: {
+    bookmarkAId: string;
+    bookmarkBId: string;
+    relationshipTypeId: string;
+    label: string | null;
+  }[] = [];
+  for (const entry of entries) {
+    const directional = directionalById.get(entry.relationshipTypeId);
+    if (directional === undefined) continue; // unknown relationship type — skip
+    let bookmarkAId: string;
+    let bookmarkBId: string;
+    if (directional) {
+      // `direction` names the OTHER bookmark's role; the parent is always stored in A.
+      if (entry.direction === "parent") {
+        bookmarkAId = entry.bookmarkId; // the other bookmark is the parent
+        bookmarkBId = bookmarkId;
+      }
+      else {
+        bookmarkAId = bookmarkId; // the edited bookmark is the parent (default)
+        bookmarkBId = entry.bookmarkId;
+      }
+    }
+    else {
+      [bookmarkAId, bookmarkBId]
+        = bookmarkId < entry.bookmarkId
+          ? [bookmarkId, entry.bookmarkId]
+          : [entry.bookmarkId, bookmarkId];
+    }
+    const key = `${bookmarkAId}:${bookmarkBId}:${entry.relationshipTypeId}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const label = entry.label?.trim();
+    rows.push({
+      bookmarkAId,
+      bookmarkBId,
+      relationshipTypeId: entry.relationshipTypeId,
+      label: label && label.length > 0 ? label : null,
+    });
+  }
 
   await db.transaction(async (tx) => {
     await tx
@@ -465,10 +514,11 @@ export async function updateBookmarkRelationships(
           eq(bookmarkRelationships.bookmarkBId, bookmarkId),
         ),
       );
-    if (pairs.length > 0) {
-      await tx.insert(bookmarkRelationships).values(pairs);
+    if (rows.length > 0) {
+      await tx.insert(bookmarkRelationships).values(rows);
     }
   });
+  invalidateBookmarkCache();
 }
 
 /** Check if a URL exactly matches an existing bookmark, or shares the same origin+pathname. */

@@ -19,6 +19,7 @@ import { savedFilterRoutes } from "@/routes/savedFilters";
 import { mediaTypeRoutes } from "@/routes/mediaTypes";
 import { metadataRoutes } from "@/routes/metadata";
 import { propertyGroupRoutes } from "@/routes/propertyGroups";
+import { relationshipTypeRoutes } from "@/routes/relationshipTypes";
 import { tagRoutes } from "@/routes/tags";
 import { websiteRoutes } from "@/routes/websites";
 import { youtubeChannelRoutes } from "@/routes/youtubeChannels";
@@ -158,6 +159,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(youtubeChannelRoutes);
   await app.register(customPropertyRoutes);
   await app.register(propertyGroupRoutes);
+  await app.register(relationshipTypeRoutes);
   await app.register(categoryRoutes);
   await app.register(autofillRoutes);
   await app.register(homepageSectionsRoutes);

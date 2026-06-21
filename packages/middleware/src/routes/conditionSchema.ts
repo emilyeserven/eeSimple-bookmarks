@@ -103,6 +103,18 @@ const mediaTypeNode = {
   },
 } as const;
 
+const relationshipTypeNode = {
+  type: "object",
+  additionalProperties: false,
+  required: ["type", "relationshipTypeIds"],
+  properties: {
+    type: {
+      const: "relationship-type",
+    },
+    relationshipTypeIds: uuidArray,
+  },
+} as const;
+
 const numberPredicate = {
   oneOf: [
     {
@@ -305,7 +317,7 @@ const groupNode = {
 /** Any node in the tree (group or one of the leaf kinds). Self-references for nesting. */
 export const conditionNodeSchema = {
   $id: "conditionNode",
-  oneOf: [groupNode, matchNode, categoryNode, websiteNode, tagNode, youtubeChannelNode, mediaTypeNode, propertyNode],
+  oneOf: [groupNode, matchNode, categoryNode, websiteNode, tagNode, youtubeChannelNode, mediaTypeNode, relationshipTypeNode, propertyNode],
 } as const;
 
 /** The persisted root: always a group. Referenced by request bodies as `conditionTree#`. */
