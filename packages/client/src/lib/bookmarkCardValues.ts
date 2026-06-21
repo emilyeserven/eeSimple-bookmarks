@@ -167,6 +167,102 @@ export type BookmarkValueItem
     value: number;
   });
 
+/** Shared placement fields every value item carries. */
+function placementBase(
+  property: CustomProperty,
+  placement: ResolvedFieldPlacement,
+): BookmarkValueItemBase {
+  return {
+    id: property.id,
+    property,
+    zone: placement.zone,
+    corner: placement.corner,
+    scale: placement.scale,
+    mobileScale: placement.mobileScale,
+    hideLabel: placement.hideLabel,
+    hideIcon: placement.hideIcon,
+  };
+}
+
+/** A number/rating value → a `rating` item for rating-scale props, otherwise a number `badge`. */
+function numberValueItem(
+  entry: Bookmark["numberValues"][number],
+  property: CustomProperty,
+  placement: ResolvedFieldPlacement,
+): BookmarkValueItem {
+  if (property.type === "ratingScale") {
+    return {
+      ...placementBase(property, placement),
+      kind: "rating",
+      value: entry.value,
+    };
+  }
+  const value = formatNumber(entry.value, property);
+  return {
+    ...placementBase(property, placement),
+    kind: "badge",
+    label: placement.hideLabel ? value : `${property.name}: ${value}`,
+    name: property.name,
+    value,
+  };
+}
+
+/** A boolean value → a `badge`, or `null` when it is false and the prop doesn't show false. */
+function booleanValueItem(
+  entry: Bookmark["booleanValues"][number],
+  property: CustomProperty,
+  placement: ResolvedFieldPlacement,
+): BookmarkValueItem | null {
+  if (!entry.value && !property.showIfFalse) return null;
+  return {
+    ...placementBase(property, placement),
+    kind: "badge",
+    label: placement.hideLabel
+      ? formatBoolean(entry.value, property)
+      : formatBooleanBadge(entry.value, property),
+    name: property.name,
+    value: formatBoolean(entry.value, property),
+    booleanValue: entry.value,
+  };
+}
+
+/** A datetime value → a formatted `badge`. */
+function dateTimeValueItem(
+  entry: Bookmark["dateTimeValues"][number],
+  property: CustomProperty,
+  placement: ResolvedFieldPlacement,
+): BookmarkValueItem {
+  const value = formatDateTime(entry.value, property);
+  return {
+    ...placementBase(property, placement),
+    kind: "badge",
+    label: placement.hideLabel ? value : `${property.name}: ${value}`,
+    name: property.name,
+    value,
+  };
+}
+
+/** An image/file value → a `badge`. Image values carry a serving url and show only the prop name. */
+function fileValueItem(
+  entry: Bookmark["fileValues"][number],
+  property: CustomProperty,
+  placement: ResolvedFieldPlacement,
+): BookmarkValueItem {
+  const isImage = property.type === "image";
+  const value = isImage ? "" : (entry.originalFilename ?? "file");
+  const label = isImage
+    ? property.name
+    : (placement.hideLabel ? value : `${property.name}: ${value}`);
+  return {
+    ...placementBase(property, placement),
+    kind: "badge",
+    label,
+    name: property.name,
+    value,
+    imageUrl: isImage ? entry.url : undefined,
+  };
+}
+
 /**
  * Build the ordered list of render-ready custom-property value items for a bookmark, honoring each
  * property's `showInListings` / `showIfFalse` and the rule's `placements` (a property absent from the
@@ -183,94 +279,35 @@ export function buildBookmarkValueItems(
   const byId = new Map(properties.map(property => [property.id, property]));
   const items: BookmarkValueItem[] = [];
 
-  /** Shared placement fields every value item carries. */
-  const base = (
-    property: CustomProperty,
-    placement: ResolvedFieldPlacement,
-  ): BookmarkValueItemBase => ({
-    id: property.id,
-    property,
-    zone: placement.zone,
-    corner: placement.corner,
-    scale: placement.scale,
-    mobileScale: placement.mobileScale,
-    hideLabel: placement.hideLabel,
-    hideIcon: placement.hideIcon,
-  });
+  /** Resolve a value entry to its visible property + placement, or `null` if it should be skipped. */
+  function visible(propertyId: string): { property: CustomProperty;
+    placement: ResolvedFieldPlacement; } | null {
+    const property = byId.get(propertyId);
+    const placement = placements.get(propertyId);
+    if (!property || !property.showInListings || !placement) return null;
+    return {
+      property,
+      placement,
+    };
+  }
 
   for (const entry of bookmark.numberValues) {
-    const property = byId.get(entry.propertyId);
-    const placement = placements.get(entry.propertyId);
-    if (!property || !property.showInListings || !placement) continue;
-    if (property.type === "ratingScale") {
-      items.push({
-        ...base(property, placement),
-        kind: "rating",
-        value: entry.value,
-      });
-    }
-    else {
-      const value = formatNumber(entry.value, property);
-      items.push({
-        ...base(property, placement),
-        kind: "badge",
-        label: placement.hideLabel ? value : `${property.name}: ${value}`,
-        name: property.name,
-        value,
-      });
-    }
+    const ctx = visible(entry.propertyId);
+    if (ctx) items.push(numberValueItem(entry, ctx.property, ctx.placement));
   }
-
   for (const entry of bookmark.booleanValues) {
-    const property = byId.get(entry.propertyId);
-    const placement = placements.get(entry.propertyId);
-    if (!property || !property.showInListings || !placement) continue;
-    if (!entry.value && !property.showIfFalse) continue;
-    items.push({
-      ...base(property, placement),
-      kind: "badge",
-      label: placement.hideLabel
-        ? formatBoolean(entry.value, property)
-        : formatBooleanBadge(entry.value, property),
-      name: property.name,
-      value: formatBoolean(entry.value, property),
-      booleanValue: entry.value,
-    });
+    const ctx = visible(entry.propertyId);
+    if (!ctx) continue;
+    const item = booleanValueItem(entry, ctx.property, ctx.placement);
+    if (item) items.push(item);
   }
-
   for (const entry of bookmark.dateTimeValues) {
-    const property = byId.get(entry.propertyId);
-    const placement = placements.get(entry.propertyId);
-    if (!property || !property.showInListings || !placement) continue;
-    const value = formatDateTime(entry.value, property);
-    items.push({
-      ...base(property, placement),
-      kind: "badge",
-      label: placement.hideLabel ? value : `${property.name}: ${value}`,
-      name: property.name,
-      value,
-    });
+    const ctx = visible(entry.propertyId);
+    if (ctx) items.push(dateTimeValueItem(entry, ctx.property, ctx.placement));
   }
-
   for (const entry of bookmark.fileValues) {
-    const property = byId.get(entry.propertyId);
-    const placement = placements.get(entry.propertyId);
-    if (!property || !property.showInListings || !placement) continue;
-    // Image values show just the property name (their thumbnail can be overlaid); files append the
-    // original filename. The image's serving URL is carried so overlays/table can show a thumbnail.
-    const isImage = property.type === "image";
-    const value = isImage ? "" : (entry.originalFilename ?? "file");
-    const label = isImage
-      ? property.name
-      : (placement.hideLabel ? value : `${property.name}: ${value}`);
-    items.push({
-      ...base(property, placement),
-      kind: "badge",
-      label,
-      name: property.name,
-      value,
-      imageUrl: isImage ? entry.url : undefined,
-    });
+    const ctx = visible(entry.propertyId);
+    if (ctx) items.push(fileValueItem(entry, ctx.property, ctx.placement));
   }
 
   return items;

@@ -5,13 +5,13 @@ import type {
   ConditionNode,
   CustomProperty,
   MediaType,
-  PropertyCondition,
   Tag,
 } from "@eesimple/types";
 
 import { LabeledSection } from "./LabeledSection";
 import { formatDateTime, formatNumber } from "../lib/bookmarkFormat";
 import { summarizeConditions } from "../lib/conditionsSummary";
+import { describePropertyPredicate } from "../lib/describePropertyPredicate";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -22,38 +22,6 @@ const OPERATOR_VERBS: Record<ConditionMatchOperator, string> = {
   regex: "matches",
   domain: "domain is",
 };
-
-function describePropertyPredicate(
-  predicate: PropertyCondition["predicate"],
-  property: CustomProperty | undefined,
-): string {
-  if (predicate.valueKind === "number") {
-    const p = predicate.predicate;
-    if (p.kind === "presence") return p.mode === "has" ? "has a value" : "has no value";
-    const {
-      min, max,
-    } = p;
-    if (min !== null && max !== null) return `between ${min} and ${max}`;
-    if (min !== null) return `at least ${min}`;
-    if (max !== null) return `at most ${max}`;
-    return "any value";
-  }
-  if (predicate.valueKind === "boolean") {
-    const p = predicate.predicate;
-    if (p.kind === "presence") return p.mode === "has" ? "has a value" : "has no value";
-    return p.value ? "Yes" : "No";
-  }
-  const p = predicate.predicate;
-  if (p.kind === "presence") return p.mode === "has" ? "has a value" : "has no value";
-  const fmt = (s: string) => property ? formatDateTime(s, property) : s;
-  const {
-    from, to,
-  } = p;
-  if (from !== null && to !== null) return `from ${fmt(from)} to ${fmt(to)}`;
-  if (from !== null) return `from ${fmt(from)}`;
-  if (to !== null) return `to ${fmt(to)}`;
-  return "any value";
-}
 
 function describeConditionNode(
   node: ConditionNode,

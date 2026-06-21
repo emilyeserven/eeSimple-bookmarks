@@ -277,16 +277,15 @@ export function valuesFromProperty(property: CustomProperty): PropertyFormValues
   };
 }
 
-/** Build the create/update payload from form values (`type` is ignored by the update route). */
-export function payloadFromValues(values: PropertyFormValues): CreateCustomPropertyInput {
+const trimOrNull = (value: string): string | null => (value.trim() ? value.trim() : null);
+
+/** Number/calculate-only fields, nulled out for every other property type. */
+function numberPayloadFields(values: PropertyFormValues): Pick<
+  CreateCustomPropertyInput,
+  "numberMin" | "numberMax" | "unitSingular" | "unitPlural" | "valuePrefix" | "zeroLabel" | "maxLabel" | "numberFormat"
+> {
   const isNumber = values.type === "number";
-  const isRating = values.type === "ratingScale";
-  const trimOrNull = (value: string): string | null => (value.trim() ? value.trim() : null);
   return {
-    name: values.name.trim(),
-    type: values.type,
-    dateTimeFormat: values.type === "datetime" ? values.dateTimeFormat : null,
-    description: trimOrNull(values.description),
     numberMin: isNumber && !values.disableMin ? Number(values.numberMin) : null,
     numberMax: isNumber && !values.disableMax ? Number(values.numberMax) : null,
     unitSingular: isNumber ? trimOrNull(values.unitSingular) : null,
@@ -295,6 +294,51 @@ export function payloadFromValues(values: PropertyFormValues): CreateCustomPrope
     zeroLabel: isNumber ? trimOrNull(values.zeroLabel) : null,
     maxLabel: isNumber ? trimOrNull(values.maxLabel) : null,
     numberFormat: isNumber ? values.numberFormat : null,
+  };
+}
+
+/** Boolean-only label/display fields, left `undefined`/`null` for every other property type. */
+function booleanPayloadFields(values: PropertyFormValues): Pick<
+  CreateCustomPropertyInput,
+  | "showIfFalse" | "booleanLabelPreset" | "booleanTrueLabel" | "booleanFalseLabel"
+  | "showLabelColon" | "showValueBeforeLabel" | "hideLabel" | "clickableInView"
+> {
+  const isBoolean = values.type === "boolean";
+  const isCustom = isBoolean && values.booleanLabelPreset === "custom";
+  return {
+    showIfFalse: isBoolean ? values.showIfFalse : undefined,
+    booleanLabelPreset: isBoolean ? values.booleanLabelPreset : null,
+    booleanTrueLabel: isCustom ? trimOrNull(values.booleanTrueLabel) : null,
+    booleanFalseLabel: isCustom ? trimOrNull(values.booleanFalseLabel) : null,
+    showLabelColon: isBoolean ? values.showLabelColon : undefined,
+    showValueBeforeLabel: isBoolean ? values.showValueBeforeLabel : undefined,
+    hideLabel: isBoolean ? values.hideLabel : undefined,
+    clickableInView: isBoolean ? values.clickableInView : undefined,
+  };
+}
+
+/** Rating-scale-only fields, nulled out / left `undefined` for every other property type. */
+function ratingPayloadFields(values: PropertyFormValues): Pick<
+  CreateCustomPropertyInput,
+  "ratingMax" | "ratingAllowZero" | "ratingAllowHalf" | "ratingShowLabel" | "ratingLabel"
+> {
+  const isRating = values.type === "ratingScale";
+  return {
+    ratingMax: isRating ? (values.ratingMax === "3" ? 3 : 5) : null,
+    ratingAllowZero: isRating ? values.ratingAllowZero : undefined,
+    ratingAllowHalf: isRating ? values.ratingAllowHalf : undefined,
+    ratingShowLabel: isRating ? values.ratingShowLabel : undefined,
+    ratingLabel: isRating ? trimOrNull(values.ratingLabel) : null,
+  };
+}
+
+/** Build the create/update payload from form values (`type` is ignored by the update route). */
+export function payloadFromValues(values: PropertyFormValues): CreateCustomPropertyInput {
+  return {
+    name: values.name.trim(),
+    type: values.type,
+    dateTimeFormat: values.type === "datetime" ? values.dateTimeFormat : null,
+    description: trimOrNull(values.description),
     quickFilterRange: quickFilterRangeFromValues(values),
     operandPropertyIds: values.type === "calculate" ? values.operandIds : undefined,
     categoryIds: values.categoryIds,
@@ -311,24 +355,8 @@ export function payloadFromValues(values: PropertyFormValues): CreateCustomPrope
     enabled: values.enabled,
     allowDefault: values.allowDefault,
     propertyGroupId: values.propertyGroupId || null,
-    showIfFalse: values.type === "boolean" ? values.showIfFalse : undefined,
-    booleanLabelPreset: values.type === "boolean" ? values.booleanLabelPreset : null,
-    booleanTrueLabel:
-      values.type === "boolean" && values.booleanLabelPreset === "custom"
-        ? trimOrNull(values.booleanTrueLabel)
-        : null,
-    booleanFalseLabel:
-      values.type === "boolean" && values.booleanLabelPreset === "custom"
-        ? trimOrNull(values.booleanFalseLabel)
-        : null,
-    showLabelColon: values.type === "boolean" ? values.showLabelColon : undefined,
-    showValueBeforeLabel: values.type === "boolean" ? values.showValueBeforeLabel : undefined,
-    hideLabel: values.type === "boolean" ? values.hideLabel : undefined,
-    clickableInView: values.type === "boolean" ? values.clickableInView : undefined,
-    ratingMax: isRating ? (values.ratingMax === "3" ? 3 : 5) : null,
-    ratingAllowZero: isRating ? values.ratingAllowZero : undefined,
-    ratingAllowHalf: isRating ? values.ratingAllowHalf : undefined,
-    ratingShowLabel: isRating ? values.ratingShowLabel : undefined,
-    ratingLabel: isRating ? trimOrNull(values.ratingLabel) : null,
+    ...numberPayloadFields(values),
+    ...booleanPayloadFields(values),
+    ...ratingPayloadFields(values),
   };
 }

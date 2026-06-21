@@ -7,6 +7,8 @@ import { ExternalLink, Globe } from "lucide-react";
 
 import { LabeledSection } from "./LabeledSection";
 import { useEditPanelClick } from "./panel/useEditPanelClick";
+import { ParamRulesList } from "./ParamRulesList";
+import { ShortenedLinksList } from "./ShortenedLinksList";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -103,28 +105,10 @@ export function WebsiteCard({
         title="Verified shortened links"
         description="Short domains that resolve to this site and how they expand."
       >
-        {website.shortenedLinks.length === 0
-          ? <p className="text-sm text-muted-foreground">None</p>
-          : (
-            <ul className="space-y-2 text-sm">
-              {website.shortenedLinks.map(link => (
-                <li
-                  key={link.domain}
-                  className="rounded-md border p-2"
-                >
-                  <span className="font-mono">{link.domain}</span>
-                  {link.keepShortened || !link.expandTo
-                    ? <span className="text-muted-foreground"> — kept shortened</span>
-                    : (
-                      <>
-                        <span className="text-muted-foreground"> → </span>
-                        <span className="font-mono">{link.expandTo}</span>
-                      </>
-                    )}
-                </li>
-              ))}
-            </ul>
-          )}
+        <ShortenedLinksList
+          links={website.shortenedLinks}
+          emptyText="None"
+        />
       </LabeledSection>
 
       <Separator />
@@ -133,24 +117,10 @@ export function WebsiteCard({
         title="Keep-param rules"
         description="For matching paths, only these query params are kept; the rest are stripped."
       >
-        {website.paramRules.length === 0
-          ? <p className="text-sm text-muted-foreground">None</p>
-          : (
-            <ul className="space-y-2 text-sm">
-              {website.paramRules.map((rule, index) => (
-                <li
-                  key={index}
-                  className="rounded-md border p-2"
-                >
-                  <span className="font-mono">{rule.pathSuffix || "any path"}</span>
-                  <span className="text-muted-foreground"> → </span>
-                  <span className="font-mono">
-                    {rule.params.length > 0 ? rule.params.join(", ") : "(none kept)"}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
+        <ParamRulesList
+          rules={website.paramRules}
+          emptyText="None"
+        />
       </LabeledSection>
     </div>
   );
