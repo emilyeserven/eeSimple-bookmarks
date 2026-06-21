@@ -1,17 +1,17 @@
 import type { CardOverlayItem } from "./CardImageOverlays";
 import type { BookmarkValueItem } from "../lib/bookmarkCardValues";
 import type { BookmarkImageVisibility } from "../lib/bookmarkColumns";
-import type {
-  Bookmark,
+import type { Bookmark,
   BookmarkDateTimeValue,
   BookmarkNumberValue,
   CardFieldZones,
   CustomProperty,
-} from "@eesimple/types";
+  Category } from "@eesimple/types";
 import type { ReactNode } from "react";
 
 import { propertyAppliesToCategory } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
+import { Globe, MonitorPlay } from "lucide-react";
 
 import { BookmarkCardDetails } from "./BookmarkCardDetails";
 import { BookmarkCardHeader } from "./BookmarkCardHeader";
@@ -31,13 +31,83 @@ import { mergeBooleanValue } from "../lib/bookmarkFormat";
 import { bookmarkImageAspectStyle, bookmarkImageClass } from "../lib/bookmarkImage";
 
 import { Badge } from "@/components/ui/badge";
+import { CategoryIcon } from "@/lib/icons";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
 import { useUiStore } from "@/stores/uiStore";
 
-/** Render a custom-property value item as a translucent corner-overlay node (badge or compact stars). */
+/** A translucent corner-overlay badge composing an optional icon/image with optional text. */
+function overlayBadge(icon: ReactNode, text: ReactNode): ReactNode {
+  return (
+    <Badge
+      variant="secondary"
+      className="
+        inline-flex items-center gap-1 bg-background/85 backdrop-blur-sm
+      "
+    >
+      {icon}
+      {text}
+    </Badge>
+  );
+}
+
+/** The icon/image shown for a standard field in an image overlay, or `null` when it has none. */
+function standardFieldOverlayIcon(
+  bookmark: Bookmark,
+  key: string,
+  category: Category | undefined,
+): ReactNode {
+  switch (key) {
+    case "category":
+      return category
+        ? (
+          <CategoryIcon
+            name={category.icon}
+            className="size-3 shrink-0"
+          />
+        )
+        : null;
+    case "website":
+      return bookmark.website?.imageUrl
+        ? (
+          <img
+            src={bookmark.website.imageUrl}
+            alt=""
+            className="size-3 shrink-0 object-contain"
+          />
+        )
+        : <Globe className="size-3 shrink-0" />;
+    case "mediaType":
+      return bookmark.mediaType
+        ? (
+          <CategoryIcon
+            name={bookmark.mediaType.icon}
+            className="size-3 shrink-0"
+          />
+        )
+        : null;
+    case "youtubeChannel":
+      return bookmark.youtubeChannel?.imageUrl
+        ? (
+          <img
+            src={bookmark.youtubeChannel.imageUrl}
+            alt=""
+            className="size-3 shrink-0 rounded-full object-cover"
+          />
+        )
+        : <MonitorPlay className="size-3 shrink-0" />;
+    default:
+      return null;
+  }
+}
+
+/**
+ * Render a custom-property value item as a translucent corner-overlay node. Ratings show compact
+ * stars; image values show a thumbnail (unless `hideIcon`) plus the property name (unless
+ * `hideLabel`); other values show their formatted label. Returns `null` when nothing remains to show.
+ */
 function valueItemOverlayNode(item: BookmarkValueItem): ReactNode {
-  return item.kind === "rating"
-    ? (
+  if (item.kind === "rating") {
+    return (
       <div
         className="rounded-md bg-background/85 px-1.5 py-0.5 backdrop-blur-sm"
       >
@@ -50,27 +120,24 @@ function valueItemOverlayNode(item: BookmarkValueItem): ReactNode {
           size={12}
         />
       </div>
-    )
-    : (
-      <Badge
-        variant="secondary"
-        className="bg-background/85 backdrop-blur-sm"
-      >
-        {item.label}
-      </Badge>
     );
-}
-
-/** Render a standard (non-custom-property) field's text as a translucent corner-overlay badge. */
-function standardFieldOverlayNode(label: string): ReactNode {
-  return (
-    <Badge
-      variant="secondary"
-      className="bg-background/85 backdrop-blur-sm"
-    >
-      {label}
-    </Badge>
-  );
+  }
+  const icon = !item.hideIcon && item.imageUrl
+    ? (
+      <img
+        src={item.imageUrl}
+        alt=""
+        className="size-4 shrink-0 rounded-sm object-cover"
+      />
+    )
+    : null;
+  // For an image value the label is the property name; honor hideLabel. Non-image labels already
+  // reflect hideLabel (built in buildBookmarkValueItems).
+  const text = item.imageUrl
+    ? (item.hideLabel ? null : item.name)
+    : item.label;
+  if (!icon && !text) return null;
+  return overlayBadge(icon, text);
 }
 
 interface BookmarkCardProps {
@@ -215,12 +282,14 @@ export function BookmarkCard({
   if (hasImage) {
     for (const item of valueItems) {
       if (item.corner === null) continue;
+      const node = valueItemOverlayNode(item);
+      if (!node) continue;
       overlayItems.push({
         key: item.id,
         corner: item.corner,
         scale: item.scale,
         mobileScale: item.mobileScale,
-        node: valueItemOverlayNode(item),
+        node,
       });
     }
     for (const field of STANDARD_CARD_FIELDS) {
@@ -228,12 +297,16 @@ export function BookmarkCard({
       if (!placement || placement.corner === null) continue;
       const label = standardFieldOverlayLabel(bookmark, field.key, bookmarkCategory?.name ?? null);
       if (!label) continue;
+      // Icons/images show by default; the rule's per-field checkboxes hide the icon and/or the text.
+      const icon = placement.hideIcon ? null : standardFieldOverlayIcon(bookmark, field.key, bookmarkCategory);
+      const text = placement.hideLabel ? null : label;
+      if (!icon && !text) continue;
       overlayItems.push({
         key: field.key,
         corner: placement.corner,
         scale: placement.scale,
         mobileScale: placement.mobileScale,
-        node: standardFieldOverlayNode(label),
+        node: overlayBadge(icon, text),
       });
     }
   }

@@ -6,22 +6,33 @@ import type {
   CustomProperty,
 } from "@eesimple/types";
 
-import { CARD_FIELD_ZONES, emptyCardFieldZones, zoneToCorner } from "@eesimple/types";
+import { CARD_BODY_ZONES, CARD_FIELD_ZONES, emptyCardFieldZones, zoneToCorner } from "@eesimple/types";
 
 import { eligibleCustomCardFields, STANDARD_CARD_FIELDS } from "./bookmarkCardFieldDefs";
 import { formatBoolean, formatBooleanBadge, formatDateTime, formatNumber } from "./bookmarkFormat";
 
+/**
+ * The card-body sub-zone a field lands in by default: the long-text `description` reads best as a
+ * full-width row (`card-single-top`); everything else uses its pill/badge form in `card-labels`.
+ * Mirrors the middleware's `defaultBodyZone` so seeded/migrated and client-default zones agree.
+ */
+export function defaultBodyZone(key: string): CardFieldZone {
+  return key === "description" ? "card-single-top" : "card-labels";
+}
+
 /** The default concrete zones: every standard field + eligible custom property placed in the card body. */
 export function defaultCardFieldZones(properties: CustomProperty[]): CardFieldZones {
   const zones = emptyCardFieldZones();
-  zones.card = [
-    ...STANDARD_CARD_FIELDS.map(field => ({
+  for (const field of STANDARD_CARD_FIELDS) {
+    zones[defaultBodyZone(field.key)].push({
       key: field.key,
-    })),
-    ...eligibleCustomCardFields(properties).map(field => ({
+    });
+  }
+  for (const field of eligibleCustomCardFields(properties)) {
+    zones[defaultBodyZone(field.key)].push({
       key: field.key,
-    })),
-  ];
+    });
+  }
   return zones;
 }
 
@@ -36,32 +47,36 @@ export interface ResolvedFieldPlacement {
   scale: number;
   mobileScale: number | null;
   hideLabel: boolean;
+  hideIcon: boolean;
 }
 
 /** Build a `fieldKey → placement` lookup from a rule's {@link CardFieldZones}. Unlisted keys are hidden. */
 export function resolveFieldPlacements(zones: CardFieldZones): Map<string, ResolvedFieldPlacement> {
   const map = new Map<string, ResolvedFieldPlacement>();
   for (const zone of CARD_FIELD_ZONES) {
-    for (const placement of zones[zone]) {
+    // A row read before the boot sub-zone backfill can be missing newer keys; treat absent as empty.
+    for (const placement of zones[zone] ?? []) {
       map.set(placement.key, {
         zone,
         corner: zoneToCorner(zone),
         scale: placement.scale ?? 1,
         mobileScale: placement.mobileScale ?? null,
         hideLabel: placement.hideLabel ?? false,
+        hideIcon: placement.hideIcon ?? false,
       });
     }
   }
   return map;
 }
 
-/** A placement meaning "shown in the card body" (no corner, no overlay styling). */
+/** A placement meaning "shown in the card body" (default labels sub-zone, no overlay styling). */
 const CARD_PLACEMENT: ResolvedFieldPlacement = {
-  zone: "card",
+  zone: "card-labels",
   corner: null,
   scale: 1,
   mobileScale: null,
   hideLabel: false,
+  hideIcon: false,
 };
 
 /**
@@ -90,14 +105,25 @@ export function restrictFieldZones(zones: CardFieldZones, hiddenKeys: Set<string
   return next;
 }
 
-/** Collapse all image-corner placements into the card body (used when a surface disables overlays). */
+/**
+ * Collapse the image-corner placements into the card body (used when a surface disables overlays).
+ * The four card-body sub-zones keep their fields/order; corner fields are appended to the labels zone
+ * (their overlay styling dropped).
+ */
 export function flattenFieldZonesToCard(zones: CardFieldZones): CardFieldZones {
-  const next = {} as CardFieldZones;
-  next.card = CARD_FIELD_ZONES.flatMap(zone => zones[zone].map(placement => ({
-    key: placement.key,
-  })));
+  const next = emptyCardFieldZones();
+  for (const zone of CARD_BODY_ZONES) {
+    next[zone] = zones[zone].map(placement => ({
+      ...placement,
+    }));
+  }
   for (const zone of CARD_FIELD_ZONES) {
-    if (zone !== "card") next[zone] = [];
+    if (zoneToCorner(zone) === null) continue;
+    for (const placement of zones[zone]) {
+      next["card-labels"].push({
+        key: placement.key,
+      });
+    }
   }
   return next;
 }
@@ -108,27 +134,38 @@ export function flattenFieldZonesToCard(zones: CardFieldZones): CardFieldZones {
  * `scale`/`mobileScale`) carry the rule's chosen placement so the card can decide between overlaying
  * the value on the image and rendering it in the card body.
  */
+interface BookmarkValueItemBase {
+  id: string;
+  property: CustomProperty;
+  /** The body sub-zone or image corner the value is placed in. */
+  zone: CardFieldZone;
+  corner: CardImageCorner | null;
+  scale: number;
+  mobileScale: number | null;
+  /** Drop the field's name label (overlays + the `card-table` zone). */
+  hideLabel: boolean;
+  /** Drop the field's icon/image from an overlay. */
+  hideIcon: boolean;
+}
+
 export type BookmarkValueItem
-  = | {
+  = | (BookmarkValueItemBase & {
     kind: "badge";
-    id: string;
-    property: CustomProperty;
-    corner: CardImageCorner | null;
-    scale: number;
-    mobileScale: number | null;
+    /** Inline label honoring `hideLabel` ("Name: value" or just "value"); used by the pill/overlay forms. */
     label: string;
+    /** The property's display name (left column of the `card-table` form). */
+    name: string;
+    /** The bare formatted value (right column of the `card-table` form); empty for an image value. */
+    value: string;
+    /** Serving URL for an `image`-type value, so overlays/table can show a thumbnail. */
+    imageUrl?: string;
     /** Present for boolean values, so the card can wire an inline toggle for `clickableInView`. */
     booleanValue?: boolean;
-  }
-  | {
+  })
+  | (BookmarkValueItemBase & {
     kind: "rating";
-    id: string;
-    property: CustomProperty;
-    corner: CardImageCorner | null;
-    scale: number;
-    mobileScale: number | null;
     value: number;
-  };
+  });
 
 /**
  * Build the ordered list of render-ready custom-property value items for a bookmark, honoring each
@@ -146,32 +183,40 @@ export function buildBookmarkValueItems(
   const byId = new Map(properties.map(property => [property.id, property]));
   const items: BookmarkValueItem[] = [];
 
+  /** Shared placement fields every value item carries. */
+  const base = (
+    property: CustomProperty,
+    placement: ResolvedFieldPlacement,
+  ): BookmarkValueItemBase => ({
+    id: property.id,
+    property,
+    zone: placement.zone,
+    corner: placement.corner,
+    scale: placement.scale,
+    mobileScale: placement.mobileScale,
+    hideLabel: placement.hideLabel,
+    hideIcon: placement.hideIcon,
+  });
+
   for (const entry of bookmark.numberValues) {
     const property = byId.get(entry.propertyId);
     const placement = placements.get(entry.propertyId);
     if (!property || !property.showInListings || !placement) continue;
     if (property.type === "ratingScale") {
       items.push({
+        ...base(property, placement),
         kind: "rating",
-        id: entry.propertyId,
-        property,
-        corner: placement.corner,
-        scale: placement.scale,
-        mobileScale: placement.mobileScale,
         value: entry.value,
       });
     }
     else {
+      const value = formatNumber(entry.value, property);
       items.push({
+        ...base(property, placement),
         kind: "badge",
-        id: entry.propertyId,
-        property,
-        corner: placement.corner,
-        scale: placement.scale,
-        mobileScale: placement.mobileScale,
-        label: placement.hideLabel
-          ? formatNumber(entry.value, property)
-          : `${property.name}: ${formatNumber(entry.value, property)}`,
+        label: placement.hideLabel ? value : `${property.name}: ${value}`,
+        name: property.name,
+        value,
       });
     }
   }
@@ -182,15 +227,13 @@ export function buildBookmarkValueItems(
     if (!property || !property.showInListings || !placement) continue;
     if (!entry.value && !property.showIfFalse) continue;
     items.push({
+      ...base(property, placement),
       kind: "badge",
-      id: entry.propertyId,
-      property,
-      corner: placement.corner,
-      scale: placement.scale,
-      mobileScale: placement.mobileScale,
       label: placement.hideLabel
         ? formatBoolean(entry.value, property)
         : formatBooleanBadge(entry.value, property),
+      name: property.name,
+      value: formatBoolean(entry.value, property),
       booleanValue: entry.value,
     });
   }
@@ -199,16 +242,13 @@ export function buildBookmarkValueItems(
     const property = byId.get(entry.propertyId);
     const placement = placements.get(entry.propertyId);
     if (!property || !property.showInListings || !placement) continue;
+    const value = formatDateTime(entry.value, property);
     items.push({
+      ...base(property, placement),
       kind: "badge",
-      id: entry.propertyId,
-      property,
-      corner: placement.corner,
-      scale: placement.scale,
-      mobileScale: placement.mobileScale,
-      label: placement.hideLabel
-        ? formatDateTime(entry.value, property)
-        : `${property.name}: ${formatDateTime(entry.value, property)}`,
+      label: placement.hideLabel ? value : `${property.name}: ${value}`,
+      name: property.name,
+      value,
     });
   }
 
@@ -216,19 +256,20 @@ export function buildBookmarkValueItems(
     const property = byId.get(entry.propertyId);
     const placement = placements.get(entry.propertyId);
     if (!property || !property.showInListings || !placement) continue;
-    // Image/file values render as a text badge on cards (the thumbnail/download link lives in the
-    // detail view). Images show just the property name; files append their original filename.
-    const label = property.type === "image"
+    // Image values show just the property name (their thumbnail can be overlaid); files append the
+    // original filename. The image's serving URL is carried so overlays/table can show a thumbnail.
+    const isImage = property.type === "image";
+    const value = isImage ? "" : (entry.originalFilename ?? "file");
+    const label = isImage
       ? property.name
-      : `${property.name}: ${entry.originalFilename ?? "file"}`;
+      : (placement.hideLabel ? value : `${property.name}: ${value}`);
     items.push({
+      ...base(property, placement),
       kind: "badge",
-      id: entry.propertyId,
-      property,
-      corner: placement.corner,
-      scale: placement.scale,
-      mobileScale: placement.mobileScale,
       label,
+      name: property.name,
+      value,
+      imageUrl: isImage ? entry.url : undefined,
     });
   }
 

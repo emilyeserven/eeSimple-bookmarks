@@ -687,12 +687,20 @@ export type BooleanLabelPreset = "yes-no" | "true-false" | "enabled-disabled" | 
 export type CardImageCorner = "top-left" | "top-right" | "bottom-left" | "bottom-right";
 
 /**
- * Where a bookmark-card field is shown by a {@link CardDisplayRule}: in the card body (`card`) or
- * overlaid in one of the image's four corners. A field key (a standard field key or a custom-property
- * id) that appears in **no** zone is hidden.
+ * Where a bookmark-card field is shown by a {@link CardDisplayRule}: in one of the four card-body
+ * sub-zones (rendered top-to-bottom in {@link CARD_BODY_ZONES} order) or overlaid in one of the
+ * image's four corners. A field key (a standard field key or a custom-property id) that appears in
+ * **no** zone is hidden.
+ *
+ * The body sub-zones decide a field's *form*: `card-single-top`/`card-single-bottom` render it as a
+ * full-width row; `card-labels` renders its pill/badge form; `card-table` renders it as a
+ * `label : value` row in a 2-column table.
  */
 export const CARD_FIELD_ZONES = [
-  "card",
+  "card-single-top",
+  "card-labels",
+  "card-table",
+  "card-single-bottom",
   "image-top-left",
   "image-top-right",
   "image-bottom-left",
@@ -700,7 +708,20 @@ export const CARD_FIELD_ZONES = [
 ] as const;
 export type CardFieldZone = (typeof CARD_FIELD_ZONES)[number];
 
-/** Map an image-* {@link CardFieldZone} to its {@link CardImageCorner}, or `null` for the `card` zone. */
+/** The card-body sub-zones, in the order they render top-to-bottom (above = first). */
+export const CARD_BODY_ZONES = [
+  "card-single-top",
+  "card-labels",
+  "card-table",
+  "card-single-bottom",
+] as const satisfies readonly CardFieldZone[];
+
+/** Whether a {@link CardFieldZone} is a card-body sub-zone (vs. an image-corner overlay). */
+export function isCardBodyZone(zone: CardFieldZone): boolean {
+  return (CARD_BODY_ZONES as readonly CardFieldZone[]).includes(zone);
+}
+
+/** Map an image-* {@link CardFieldZone} to its {@link CardImageCorner}, or `null` for a card-body zone. */
 export function zoneToCorner(zone: CardFieldZone): CardImageCorner | null {
   switch (zone) {
     case "image-top-left": return "top-left";
@@ -713,8 +734,9 @@ export function zoneToCorner(zone: CardFieldZone): CardImageCorner | null {
 
 /**
  * One field placed in a {@link CardFieldZone}. `key` is a standard field key (see the client's
- * `STANDARD_CARD_FIELDS`) or a custom-property id. `scale`/`mobileScale`/`hideLabel` only apply when
- * the field is in an image-* zone (they style the corner overlay).
+ * `STANDARD_CARD_FIELDS`) or a custom-property id. `scale`/`mobileScale` only apply in an image-* zone
+ * (they style the corner overlay); `hideLabel`/`hideIcon` apply in image-* zones and the `card-table`
+ * zone.
  */
 export interface CardFieldPlacement {
   key: string;
@@ -722,8 +744,18 @@ export interface CardFieldPlacement {
   scale?: number;
   /** Mobile overlay scale; `null`/omitted inherits `scale`. Image zones only. */
   mobileScale?: number | null;
-  /** When true, the overlay drops the field's name label, showing only the value. Image zones only. */
+  /**
+   * When true, drop the field's name label, showing only the value. Honored on image-corner overlays
+   * (standard fields and custom properties) and in the `card-table` zone (collapses the 2-column row
+   * to a single value).
+   */
   hideLabel?: boolean;
+  /**
+   * When true, drop the field's icon/image (favicon, media-type/category icon, channel avatar,
+   * image-property thumbnail) from the overlay, leaving text only. Image zones only; icons/images show
+   * by default.
+   */
+  hideIcon?: boolean;
 }
 
 /**
@@ -735,7 +767,10 @@ export type CardFieldZones = Record<CardFieldZone, CardFieldPlacement[]>;
 /** An empty {@link CardFieldZones} with every zone present and empty. */
 export function emptyCardFieldZones(): CardFieldZones {
   return {
-    "card": [],
+    "card-single-top": [],
+    "card-labels": [],
+    "card-table": [],
+    "card-single-bottom": [],
     "image-top-left": [],
     "image-top-right": [],
     "image-bottom-left": [],

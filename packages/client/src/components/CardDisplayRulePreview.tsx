@@ -1,5 +1,13 @@
 import type { RuleDisplayValue } from "./CardDisplayRuleDisplaySettings";
-import type { Bookmark, ConditionTree } from "@eesimple/types";
+import type {
+  Bookmark,
+  BookmarkBooleanValue,
+  BookmarkDateTimeValue,
+  BookmarkFileValue,
+  BookmarkNumberValue,
+  ConditionTree,
+  CustomProperty,
+} from "@eesimple/types";
 
 import { useMemo, useState } from "react";
 
@@ -9,6 +17,7 @@ import { ChevronLeft, ChevronRight, TriangleAlert } from "lucide-react";
 import { BookmarkCard } from "./BookmarkCard";
 import { useBookmarks } from "../hooks/useBookmarks";
 import { useCardDisplayRules } from "../hooks/useCardDisplayRules";
+import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useTags } from "../hooks/useTags";
 import { BASELINE, bookmarkToConditionInput } from "../lib/cardDisplayRules";
@@ -17,9 +26,9 @@ import { Button } from "@/components/ui/button";
 import { RowCard } from "@/components/ui/card";
 
 /**
- * A stand-in bookmark used when no saved bookmark matches the rule, so the display toggles still have
- * something to render. The image is an inline SVG `data:` URI so aspect/layout/corner overlays show
- * without a network fetch (`BookmarkCard` only renders an image when `bookmark.image` is non-null).
+ * A stand-in image used by the generic sample, an inline SVG `data:` URI so aspect/layout/corner
+ * overlays show without a network fetch (`BookmarkCard` only renders an image when `bookmark.image`
+ * is non-null).
  */
 const SAMPLE_IMAGE_SVG
   = "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='1200'%20height='675'%3E"
@@ -29,45 +38,85 @@ const SAMPLE_IMAGE_SVG
     + "%3Ctext%20x='600'%20y='350'%20font-family='sans-serif'%20font-size='64'%20fill='white'"
     + "%20text-anchor='middle'%3ESample%3C/text%3E%3C/svg%3E";
 
-const SAMPLE_BOOKMARK: Bookmark = {
-  id: "__card-display-rule-preview-sample__",
-  url: "https://example.com/sample-bookmark",
-  originalUrl: null,
-  title: "Sample bookmark",
-  description: "A placeholder bookmark shown because no saved bookmark matches this rule yet.",
-  image: {
-    url: SAMPLE_IMAGE_SVG,
-    width: 1200,
-    height: 675,
-    source: "upload",
-  },
-  imageAutoGrabError: null,
-  categoryId: "__sample-category__",
-  website: {
-    id: "__sample-website__",
-    domain: "example.com",
-    siteName: "Example",
-    slug: "example-com",
-    imageUrl: null,
-  },
-  mediaType: null,
-  youtubeChannel: null,
-  tags: [
-    {
-      id: "__sample-tag__",
-      name: "Sample tag",
-      slug: "sample-tag",
-      parentId: null,
-    },
-  ],
-  numberValues: [],
-  booleanValues: [],
-  dateTimeValues: [],
-  fileValues: [],
-  relationships: [],
-  priority: 0,
-  createdAt: new Date().toISOString(),
-};
+const SAMPLE_NOW = "2026-06-01T12:00:00.000Z";
+
+/**
+ * A placeholder value for each custom property type, so the generic sample renders every possible
+ * label. Eligible (shown-in-listings, non-calculate) properties get a representative value; the rule's
+ * field zones still decide which actually render.
+ */
+function samplePropertyValues(properties: CustomProperty[]): {
+  numberValues: BookmarkNumberValue[];
+  booleanValues: BookmarkBooleanValue[];
+  dateTimeValues: BookmarkDateTimeValue[];
+  fileValues: BookmarkFileValue[];
+} {
+  const numberValues: BookmarkNumberValue[] = [];
+  const booleanValues: BookmarkBooleanValue[] = [];
+  const dateTimeValues: BookmarkDateTimeValue[] = [];
+  const fileValues: BookmarkFileValue[] = [];
+
+  for (const property of properties) {
+    if (!property.showInListings) continue;
+    switch (property.type) {
+      case "number":
+        numberValues.push({
+          propertyId: property.id,
+          value: 42,
+        });
+        break;
+      case "ratingScale":
+        numberValues.push({
+          propertyId: property.id,
+          value: Math.min(4, property.ratingMax ?? 5),
+        });
+        break;
+      case "boolean":
+        booleanValues.push({
+          propertyId: property.id,
+          value: true,
+        });
+        break;
+      case "datetime":
+        dateTimeValues.push({
+          propertyId: property.id,
+          value: SAMPLE_NOW,
+        });
+        break;
+      case "image":
+        fileValues.push({
+          propertyId: property.id,
+          url: SAMPLE_IMAGE_SVG,
+          contentType: "image/webp",
+          byteSize: 0,
+          originalFilename: null,
+          width: 1200,
+          height: 675,
+        });
+        break;
+      case "file":
+        fileValues.push({
+          propertyId: property.id,
+          url: "#",
+          contentType: "application/octet-stream",
+          byteSize: 0,
+          originalFilename: "sample.pdf",
+          width: null,
+          height: null,
+        });
+        break;
+      default:
+        break;
+    }
+  }
+
+  return {
+    numberValues,
+    booleanValues,
+    dateTimeValues,
+    fileValues,
+  };
+}
 
 interface CardDisplayRulePreviewProps {
   /** In-progress display values from the form. */
@@ -80,12 +129,15 @@ interface CardDisplayRulePreviewProps {
   currentRuleId?: string;
 }
 
+type PreviewMode = "sample" | "existing";
+
 /**
- * A live preview of how a matching bookmark card looks with this rule's display settings applied. The
- * user can cycle through the bookmarks the rule matches; when none match a synthetic sample card is
- * shown. The display is resolved as **this rule over the baseline** (inherited attributes fall back to
- * baseline defaults, not the full layered rule set) — so when other rules also match the previewed
- * bookmark, an alert warns that the real listing may differ.
+ * A live preview of how a card looks with this rule's display settings applied. Defaults to a generic
+ * **sample** card populated with every standard field + a placeholder value for every custom property,
+ * so all possible labels are visible. Switch to **Existing bookmarks** to cycle through the bookmarks
+ * the rule matches. The display is resolved as **this rule over the baseline** (inherited attributes
+ * fall back to baseline defaults, not the full layered rule set) — so when other rules also match the
+ * previewed (real) bookmark, an alert warns that the real listing may differ.
  */
 export function CardDisplayRulePreview({
   display, conditions, isDefault, currentRuleId,
@@ -102,7 +154,11 @@ export function CardDisplayRulePreview({
   const {
     data: tags = [],
   } = useTags();
+  const {
+    data: categories = [],
+  } = useCategories();
 
+  const [mode, setMode] = useState<PreviewMode>("sample");
   const [index, setIndex] = useState(0);
 
   const tagDescendants = useMemo(
@@ -112,6 +168,59 @@ export function CardDisplayRulePreview({
     }))),
     [tags],
   );
+
+  // The generic sample: every standard field + a placeholder value per custom property. Uses a real
+  // category (so the category pill resolves against the categories cache) when one exists.
+  const sampleBookmark = useMemo<Bookmark>(() => {
+    const realCategory = categories.find(category => !category.builtIn);
+    return {
+      id: "__card-display-rule-preview-sample__",
+      url: "https://example.com/sample-bookmark",
+      originalUrl: null,
+      title: "Sample bookmark",
+      description: "A placeholder bookmark showing every field with sample values.",
+      image: {
+        url: SAMPLE_IMAGE_SVG,
+        width: 1200,
+        height: 675,
+        source: "upload",
+      },
+      imageAutoGrabError: null,
+      categoryId: realCategory?.id ?? "__sample-category__",
+      website: {
+        id: "__sample-website__",
+        domain: "example.com",
+        siteName: "Example",
+        slug: "example-com",
+        imageUrl: null,
+      },
+      mediaType: {
+        id: "__sample-media-type__",
+        name: "Article",
+        slug: "article",
+        icon: null,
+        parentId: null,
+      },
+      youtubeChannel: {
+        id: "__sample-channel__",
+        name: "Sample Channel",
+        slug: "sample-channel",
+        imageUrl: null,
+      },
+      tags: [
+        {
+          id: "__sample-tag__",
+          name: "Sample tag",
+          slug: "sample-tag",
+          parentId: null,
+        },
+      ],
+      ...samplePropertyValues(properties),
+      relationships: [],
+      priority: 0,
+      createdAt: SAMPLE_NOW,
+    };
+  }, [categories, properties]);
 
   // Bookmarks this rule matches: every bookmark for the Default rule, otherwise the condition tree.
   const matches = useMemo(() => {
@@ -123,8 +232,8 @@ export function CardDisplayRulePreview({
   }, [bookmarks, conditions, isDefault, tagDescendants]);
 
   const safeIndex = matches.length > 0 ? Math.min(index, matches.length - 1) : 0;
-  const matchedBookmark = matches[safeIndex] ?? null;
-  const subject = matchedBookmark ?? SAMPLE_BOOKMARK;
+  const matchedBookmark = mode === "existing" ? (matches[safeIndex] ?? null) : null;
+  const subject = mode === "existing" ? matchedBookmark : sampleBookmark;
 
   // "This rule over the baseline": inherited (null) attributes fall back to the hardcoded baseline.
   const resolved = {
@@ -151,12 +260,25 @@ export function CardDisplayRulePreview({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
-        <p className="min-w-0 truncate text-xs text-muted-foreground">
-          {matchedBookmark
-            ? `${safeIndex + 1} of ${matches.length}: ${matchedBookmark.title}`
-            : "No bookmarks match — showing a sample card."}
-        </p>
-        {matches.length > 1 && (
+        <div className="flex shrink-0 items-center gap-1">
+          <Button
+            type="button"
+            variant={mode === "sample" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setMode("sample")}
+          >
+            Sample
+          </Button>
+          <Button
+            type="button"
+            variant={mode === "existing" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setMode("existing")}
+          >
+            Existing
+          </Button>
+        </div>
+        {mode === "existing" && matches.length > 1 && (
           <div className="flex shrink-0 items-center gap-1">
             <Button
               type="button"
@@ -182,19 +304,29 @@ export function CardDisplayRulePreview({
         )}
       </div>
 
-      <div className="max-w-sm">
-        <RowCard className="p-4">
-          <BookmarkCard
-            bookmark={subject}
-            properties={properties}
-            fieldZones={resolved.fieldZones}
-            imageLeft={resolved.imageLayout === "side"}
-            imageMode={resolved.imageMode}
-            imageVisibility={resolved.imageVisibility}
-            hideWebsiteForYouTube={resolved.hideWebsiteForYouTube}
-          />
-        </RowCard>
-      </div>
+      <p className="min-w-0 truncate text-xs text-muted-foreground">
+        {mode === "sample"
+          ? "Generic sample showing every field with placeholder values."
+          : matchedBookmark
+            ? `${safeIndex + 1} of ${matches.length}: ${matchedBookmark.title}`
+            : "No bookmarks match this rule."}
+      </p>
+
+      {subject && (
+        <div className="max-w-sm">
+          <RowCard className="p-4">
+            <BookmarkCard
+              bookmark={subject}
+              properties={properties}
+              fieldZones={resolved.fieldZones}
+              imageLeft={resolved.imageLayout === "side"}
+              imageMode={resolved.imageMode}
+              imageVisibility={resolved.imageVisibility}
+              hideWebsiteForYouTube={resolved.hideWebsiteForYouTube}
+            />
+          </RowCard>
+        </div>
+      )}
 
       {otherMatching.length > 0 && (
         <div

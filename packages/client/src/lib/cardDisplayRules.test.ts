@@ -158,7 +158,7 @@ describe("resolveCardDisplay — layered merge", () => {
       },
       fieldZones: {
         ...emptyCardFieldZones(),
-        card: [{
+        "card-labels": [{
           key: "category",
         }],
       },
@@ -180,7 +180,7 @@ describe("resolveCardDisplay — layered merge", () => {
 
     const resolved = resolveCardDisplay(makeBookmark(), [high, low, DEFAULT_RULE], noTagDescendants);
     // `high` supplies fieldZones; `low` supplies imageMode; Default fills the rest.
-    expect(resolved.fieldZones.card).toEqual([{
+    expect(resolved.fieldZones["card-labels"]).toEqual([{
       key: "category",
     }]);
     expect(resolved.provenance.source.fieldZones).toBe("high");

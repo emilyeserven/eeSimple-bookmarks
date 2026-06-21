@@ -144,12 +144,18 @@ export function CardDisplayRuleInspector() {
         const summarize = (keys: { key: string }[]): string =>
           keys.map(p => fieldLabel.get(p.key) ?? p.key).join(", ");
         const parts: string[] = [];
-        if (zones.card.length > 0) parts.push(`Card: ${summarize(zones.card)}`);
+        const body = [
+          ...(zones["card-single-top"] ?? []),
+          ...(zones["card-labels"] ?? []),
+          ...(zones["card-table"] ?? []),
+          ...(zones["card-single-bottom"] ?? []),
+        ];
+        if (body.length > 0) parts.push(`Card: ${summarize(body)}`);
         const corners = [
-          ...zones["image-top-left"],
-          ...zones["image-top-right"],
-          ...zones["image-bottom-left"],
-          ...zones["image-bottom-right"],
+          ...(zones["image-top-left"] ?? []),
+          ...(zones["image-top-right"] ?? []),
+          ...(zones["image-bottom-left"] ?? []),
+          ...(zones["image-bottom-right"] ?? []),
         ];
         if (corners.length > 0) parts.push(`Corners: ${summarize(corners)}`);
         return parts.length > 0 ? parts.join("; ") : "All fields hidden";

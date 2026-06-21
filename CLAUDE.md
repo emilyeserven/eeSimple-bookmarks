@@ -102,6 +102,17 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
   toggle, and **Display Presets** were removed in favor of this. The `hiddenCardFields` key list
   (`STANDARD_CARD_FIELDS` + custom-property ids in `lib/bookmarkCardFields.ts`) is shared with
   homepage sections — keep in sync.
+  - **Field zones** (`CardFieldZones`, `CARD_FIELD_ZONES` in `@eesimple/types`) place each field into
+    one of four **card-body sub-zones** — `card-single-top`, `card-labels`, `card-table`,
+    `card-single-bottom` (rendered top-to-bottom; the zone decides the field's *form*: full-width row /
+    pill / `label : value` table row) — or one of the four `image-*` overlay corners. Order **within**
+    a zone matters (the `CardFieldZoneBoard` is sortable; `BookmarkCardDetails` renders in array order).
+    A `CardFieldPlacement` carries `scale`/`mobileScale` (image zones), `hideLabel` (image zones +
+    `card-table`), and `hideIcon` (image zones — overlays show the field's icon/image by default).
+    The Fastify route body (`routes/cardDisplayRules.ts`) **hand-lists** the zone names + placement
+    props — keep it mirrored with `CARD_FIELD_ZONES`/`CardFieldPlacement`. The legacy single `card`
+    zone is migrated to `card-labels` by the idempotent boot step `backfillCardDisplayRuleSubZones()`
+    (jsonb, no schema change).
 
 ## Page-header breadcrumbs
 

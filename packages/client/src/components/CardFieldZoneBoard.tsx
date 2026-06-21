@@ -1,15 +1,17 @@
 import type { CardFieldPlacement, CardFieldZone, CardFieldZones, CustomProperty } from "@eesimple/types";
 
 import {
+  closestCorners,
   DndContext,
   KeyboardSensor,
   PointerSensor,
-  useDraggable,
   useDroppable,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { CARD_FIELD_ZONES, emptyCardFieldZones } from "@eesimple/types";
+import { SortableContext, useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { CARD_FIELD_ZONES, emptyCardFieldZones, zoneToCorner } from "@eesimple/types";
 import { GripVertical } from "lucide-react";
 
 import { eligibleCustomCardFields, STANDARD_CARD_FIELDS } from "../lib/bookmarkCardFieldDefs";
@@ -23,37 +25,53 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-/** The droppable target ids for the tray of unplaced (hidden) fields. */
+/** The droppable id for the tray of unplaced (hidden) fields. */
 const TRAY_ID = "zone-tray";
 
-/** The 5 zones in display order (image corners first, then the card body). */
-const ZONE_DEFS: { zone: CardFieldZone;
-  label: string;
-  isImage: boolean; }[] = [
+/** The four image-corner zones, shown as a 2×2 grid (overlays on the card image). */
+const IMAGE_ZONE_DEFS: { zone: CardFieldZone;
+  label: string; }[] = [
   {
     zone: "image-top-left",
     label: "Image top-left",
-    isImage: true,
   },
   {
     zone: "image-top-right",
     label: "Image top-right",
-    isImage: true,
   },
   {
     zone: "image-bottom-left",
     label: "Image bottom-left",
-    isImage: true,
   },
   {
     zone: "image-bottom-right",
     label: "Image bottom-right",
-    isImage: true,
+  },
+];
+
+/** The four card-body sub-zones, stacked full-width in the order they render on the card. */
+const BODY_ZONE_DEFS: { zone: CardFieldZone;
+  label: string;
+  hint: string; }[] = [
+  {
+    zone: "card-single-top",
+    label: "Single column top",
+    hint: "Full-width rows above the rest of the card.",
   },
   {
-    zone: "card",
-    label: "Card",
-    isImage: false,
+    zone: "card-labels",
+    label: "Labels",
+    hint: "Pills and badges in their existing label form.",
+  },
+  {
+    zone: "card-table",
+    label: "Table",
+    hint: "A label : value two-column table.",
+  },
+  {
+    zone: "card-single-bottom",
+    label: "Single column bottom",
+    hint: "Full-width rows below the rest of the card.",
   },
 ];
 
@@ -88,26 +106,40 @@ interface CardFieldZoneBoardProps {
 }
 
 /**
- * The drag-and-drop board for a card display rule's field placement: drag each field (standard field
- * or custom property) onto one of the four image corners, the card body, or the "Available" tray (=
- * hidden). Fields placed in an image corner expose overlay size / mobile size / hide-label controls.
+ * The drag-and-drop board for a card display rule's field placement. Drag each field (standard field
+ * or custom property) into one of the four image corners, the four card-body sub-zones (Single column
+ * top / Labels / Table / Single column bottom), or the "Available" tray (= hidden). Fields can be
+ * reordered within a zone (order matters on the card). Fields in an image corner expose overlay size /
+ * mobile size / hide-icon / hide-label controls; fields in the Table zone expose a hide-label control.
  */
 export function CardFieldZoneBoard({
   value, onChange, properties, idPrefix,
 }: CardFieldZoneBoardProps) {
   const fields = [...STANDARD_CARD_FIELDS, ...eligibleCustomCardFields(properties)];
   const labelByKey = new Map(fields.map(field => [field.key, field.label]));
-  const placedKeys = new Set(CARD_FIELD_ZONES.flatMap(zone => value[zone].map(p => p.key)));
+  const placedKeys = new Set(CARD_FIELD_ZONES.flatMap(zone => (value[zone] ?? []).map(p => p.key)));
   const unplaced = fields.filter(field => !placedKeys.has(field.key));
 
   const sensors = useSensors(useSensor(PointerSensor), useSensor(KeyboardSensor));
 
-  /** Move `key` to `targetZone` (or the tray when `null`), preserving image styling across image zones. */
-  function moveKey(key: string, targetZone: CardFieldZone | null): void {
+  /** The zone currently holding `key`, or `null` when it sits in the tray (unplaced). */
+  function zoneOfKey(key: string): CardFieldZone | null {
+    for (const zone of CARD_FIELD_ZONES) {
+      if ((value[zone] ?? []).some(p => p.key === key)) return zone;
+    }
+    return null;
+  }
+
+  /**
+   * Move `key` into `targetZone` at `targetIndex` (or append when `targetIndex` is omitted), or to the
+   * tray when `targetZone` is `null`. Preserves `hideLabel`/`hideIcon`, and the image overlay
+   * styling (`scale`/`mobileScale`) when the destination is an image zone.
+   */
+  function moveKey(key: string, targetZone: CardFieldZone | null, targetIndex?: number): void {
     let existing: CardFieldPlacement | undefined;
     const next = emptyCardFieldZones();
     for (const zone of CARD_FIELD_ZONES) {
-      next[zone] = value[zone].filter((placement) => {
+      next[zone] = (value[zone] ?? []).filter((placement) => {
         if (placement.key === key) {
           existing = placement;
           return false;
@@ -116,26 +148,28 @@ export function CardFieldZoneBoard({
       });
     }
     if (targetZone) {
-      const placement: CardFieldPlacement = targetZone === "card"
-        ? {
-          key,
-        }
-        : {
-          key,
-          scale: existing?.scale,
-          mobileScale: existing?.mobileScale,
-          hideLabel: existing?.hideLabel,
-        };
-      next[targetZone] = [...next[targetZone], placement];
+      const isImage = zoneToCorner(targetZone) !== null;
+      const placement: CardFieldPlacement = {
+        key,
+      };
+      if (isImage) {
+        placement.scale = existing?.scale;
+        placement.mobileScale = existing?.mobileScale;
+      }
+      if (existing?.hideLabel) placement.hideLabel = true;
+      if (isImage && existing?.hideIcon) placement.hideIcon = true;
+      const list = next[targetZone];
+      const at = targetIndex === undefined ? list.length : Math.min(Math.max(targetIndex, 0), list.length);
+      list.splice(at, 0, placement);
     }
     onChange(next);
   }
 
-  /** Patch the placement for `key` within image `zone` (size / mobile size / hide-label). */
+  /** Patch the placement for `key` within `zone` (size / mobile size / hide-icon / hide-label). */
   function patchPlacement(zone: CardFieldZone, key: string, patch: Partial<CardFieldPlacement>): void {
     const next = emptyCardFieldZones();
     for (const z of CARD_FIELD_ZONES) {
-      next[z] = value[z].map(placement => (z === zone && placement.key === key
+      next[z] = (value[z] ?? []).map(placement => (z === zone && placement.key === key
         ? {
           ...placement,
           ...patch,
@@ -148,6 +182,7 @@ export function CardFieldZoneBoard({
   return (
     <DndContext
       sensors={sensors}
+      collisionDetection={closestCorners}
       onDragEnd={({
         active, over,
       }) => {
@@ -158,46 +193,78 @@ export function CardFieldZoneBoard({
           moveKey(key, null);
           return;
         }
-        const zone = ZONE_DEFS.find(z => `zone-${z.zone}` === overId)?.zone;
-        if (zone) moveKey(key, zone);
+        // Dropped onto a zone container: append to that zone.
+        const overZone = [...IMAGE_ZONE_DEFS, ...BODY_ZONE_DEFS].find(z => `zone-${z.zone}` === overId)?.zone;
+        if (overZone) {
+          moveKey(key, overZone);
+          return;
+        }
+        // Otherwise `over` is another field chip: drop into its zone at its position.
+        const targetZone = zoneOfKey(overId);
+        if (!targetZone || overId === key) return;
+        const withoutActive = (value[targetZone] ?? []).filter(p => p.key !== key);
+        const index = withoutActive.findIndex(p => p.key === overId);
+        moveKey(key, targetZone, index < 0 ? undefined : index);
       }}
     >
       <div className="space-y-3">
         <div className="grid grid-cols-2 gap-2">
-          {ZONE_DEFS.map(def => (
+          {IMAGE_ZONE_DEFS.map(def => (
             <ZoneDropArea
               key={def.zone}
-              id={`zone-${def.zone}`}
+              zone={def.zone}
               label={def.label}
-              className={def.zone === "card" ? "col-span-2" : undefined}
+              items={(value[def.zone] ?? []).map(p => p.key)}
             >
-              {value[def.zone].length === 0
-                ? <p className="text-xs text-muted-foreground">Drop fields here</p>
-                : value[def.zone].map(placement => (
-                  <FieldChip
-                    key={placement.key}
-                    fieldKey={placement.key}
-                    label={labelByKey.get(placement.key) ?? placement.key}
-                    idPrefix={idPrefix}
-                  >
-                    {def.isImage
-                      ? (
-                        <ImagePlacementControls
-                          placement={placement}
-                          idPrefix={`${idPrefix}-${def.zone}-${placement.key}`}
-                          onPatch={patch => patchPlacement(def.zone, placement.key, patch)}
-                        />
-                      )
-                      : null}
-                  </FieldChip>
-                ))}
+              {(value[def.zone] ?? []).map(placement => (
+                <FieldChip
+                  key={placement.key}
+                  fieldKey={placement.key}
+                  label={labelByKey.get(placement.key) ?? placement.key}
+                >
+                  <ImagePlacementControls
+                    placement={placement}
+                    idPrefix={`${idPrefix}-${def.zone}-${placement.key}`}
+                    onPatch={patch => patchPlacement(def.zone, placement.key, patch)}
+                  />
+                </FieldChip>
+              ))}
             </ZoneDropArea>
           ))}
         </div>
 
+        {BODY_ZONE_DEFS.map(def => (
+          <ZoneDropArea
+            key={def.zone}
+            zone={def.zone}
+            label={def.label}
+            hint={def.hint}
+            items={(value[def.zone] ?? []).map(p => p.key)}
+          >
+            {(value[def.zone] ?? []).map(placement => (
+              <FieldChip
+                key={placement.key}
+                fieldKey={placement.key}
+                label={labelByKey.get(placement.key) ?? placement.key}
+              >
+                {def.zone === "card-table"
+                  ? (
+                    <TablePlacementControls
+                      placement={placement}
+                      idPrefix={`${idPrefix}-${def.zone}-${placement.key}`}
+                      onPatch={patch => patchPlacement(def.zone, placement.key, patch)}
+                    />
+                  )
+                  : null}
+              </FieldChip>
+            ))}
+          </ZoneDropArea>
+        ))}
+
         <ZoneDropArea
-          id={TRAY_ID}
+          zone="tray"
           label="Available (hidden)"
+          items={unplaced.map(field => field.key)}
         >
           {unplaced.length === 0
             ? <p className="text-xs text-muted-foreground">All fields are placed.</p>
@@ -206,7 +273,6 @@ export function CardFieldZoneBoard({
                 key={field.key}
                 fieldKey={field.key}
                 label={field.label}
-                idPrefix={idPrefix}
               />
             ))}
         </ZoneDropArea>
@@ -216,20 +282,23 @@ export function CardFieldZoneBoard({
 }
 
 interface ZoneDropAreaProps {
-  id: string;
+  /** A {@link CardFieldZone} or the literal `"tray"` (unplaced fields). */
+  zone: CardFieldZone | "tray";
   label: string;
-  className?: string;
+  hint?: string;
+  /** The field keys this zone holds, in order — the ids the SortableContext reorders. */
+  items: string[];
   children: React.ReactNode;
 }
 
-/** A labeled droppable zone that highlights while a field is dragged over it. */
+/** A labeled droppable + sortable zone that highlights while a field is dragged over it. */
 function ZoneDropArea({
-  id, label, className, children,
+  zone, label, hint, items, children,
 }: ZoneDropAreaProps) {
   const {
     setNodeRef, isOver,
   } = useDroppable({
-    id,
+    id: `zone-${zone}`,
   });
   return (
     <div
@@ -237,11 +306,23 @@ function ZoneDropArea({
       className={`
         rounded-md border border-dashed p-2
         ${isOver ? "border-primary bg-accent" : "border-input"}
-        ${className ?? ""}
       `}
     >
-      <p className="mb-1 text-xs font-medium text-muted-foreground">{label}</p>
-      <div className="flex flex-wrap gap-1.5">{children}</div>
+      <p className="text-xs font-medium text-muted-foreground">{label}</p>
+      {hint
+        ? <p className="mb-1 text-[11px] text-muted-foreground/80">{hint}</p>
+        : (
+          <div
+            className="mb-1"
+          />
+        )}
+      <SortableContext items={items}>
+        <div className="flex flex-wrap gap-1.5">
+          {(Array.isArray(children) ? children.length === 0 : !children)
+            ? <p className="text-xs text-muted-foreground">Drop fields here</p>
+            : children}
+        </div>
+      </SortableContext>
     </div>
   );
 }
@@ -249,22 +330,25 @@ function ZoneDropArea({
 interface FieldChipProps {
   fieldKey: string;
   label: string;
-  idPrefix: string;
   children?: React.ReactNode;
 }
 
-/** A draggable field chip; renders any image-placement controls passed as children. */
+/** A draggable, sortable field chip; renders any per-zone placement controls passed as children. */
 function FieldChip({
   fieldKey, label, children,
 }: FieldChipProps) {
   const {
-    attributes, listeners, setNodeRef, isDragging,
-  } = useDraggable({
+    attributes, listeners, setNodeRef, transform, transition, isDragging,
+  } = useSortable({
     id: fieldKey,
   });
   return (
     <div
       ref={setNodeRef}
+      style={{
+        transform: CSS.Translate.toString(transform),
+        transition,
+      }}
       className={`
         flex flex-col gap-1 rounded-md border bg-card px-2 py-1 text-sm
         ${isDragging ? "opacity-50" : ""}
@@ -287,16 +371,43 @@ function FieldChip({
   );
 }
 
-interface ImagePlacementControlsProps {
+interface PlacementControlsProps {
   placement: CardFieldPlacement;
   idPrefix: string;
   onPatch: (patch: Partial<CardFieldPlacement>) => void;
 }
 
-/** Overlay size / mobile size / hide-label controls for a field placed in an image corner. */
+/** A "Hide label" checkbox (shared by the image and table placement controls). */
+function HideLabelToggle({
+  placement, idPrefix, onPatch,
+}: PlacementControlsProps) {
+  return (
+    <label className="flex items-center gap-1 text-muted-foreground">
+      <Checkbox
+        id={`${idPrefix}-hide-label`}
+        checked={placement.hideLabel ?? false}
+        onCheckedChange={checked => onPatch({
+          hideLabel: checked === true,
+        })}
+      />
+      Hide label
+    </label>
+  );
+}
+
+/** Hide-label control for a field placed in the card-body Table zone. */
+function TablePlacementControls(props: PlacementControlsProps) {
+  return (
+    <div className="flex flex-wrap items-center gap-2 pl-5 text-xs">
+      <HideLabelToggle {...props} />
+    </div>
+  );
+}
+
+/** Overlay size / mobile size / hide-icon / hide-label controls for a field placed in an image corner. */
 function ImagePlacementControls({
   placement, idPrefix, onPatch,
-}: ImagePlacementControlsProps) {
+}: PlacementControlsProps) {
   return (
     <div className="flex flex-wrap items-center gap-2 pl-5 text-xs">
       <Select
@@ -341,14 +452,19 @@ function ImagePlacementControls({
       </Select>
       <label className="flex items-center gap-1 text-muted-foreground">
         <Checkbox
-          id={`${idPrefix}-hide-label`}
-          checked={placement.hideLabel ?? false}
+          id={`${idPrefix}-hide-icon`}
+          checked={placement.hideIcon ?? false}
           onCheckedChange={checked => onPatch({
-            hideLabel: checked === true,
+            hideIcon: checked === true,
           })}
         />
-        Hide label
+        Hide icon/image
       </label>
+      <HideLabelToggle
+        placement={placement}
+        idPrefix={idPrefix}
+        onPatch={onPatch}
+      />
     </div>
   );
 }

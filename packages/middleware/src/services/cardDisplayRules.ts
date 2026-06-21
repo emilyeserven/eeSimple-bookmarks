@@ -8,10 +8,11 @@ import type {
   HomepageSectionImageLayout,
   UpdateCardDisplayRuleInput,
 } from "@eesimple/types";
-import { emptyCardFieldZones, emptyConditionTree } from "@eesimple/types";
+import type { CardFieldZones } from "@eesimple/types";
+import { CARD_FIELD_ZONES, emptyCardFieldZones, emptyConditionTree } from "@eesimple/types";
 import { db } from "@/db";
 import { cardDisplayRules, customProperties, propertyCategories } from "@/db/schema";
-import { defaultFieldZones, STANDARD_CARD_FIELD_KEYS } from "@/services/cardDisplayDefaults";
+import { defaultBodyZone, defaultFieldZones, STANDARD_CARD_FIELD_KEYS } from "@/services/cardDisplayDefaults";
 
 type RuleRow = typeof cardDisplayRules.$inferSelect;
 
@@ -235,11 +236,13 @@ export async function backfillCardDisplayRuleFieldZones(): Promise<void> {
   );
 
   const placements: LegacyPropertyPlacement[] = propRows.map((row) => {
-    const zone = legacyCornerToZone(row.cardImageCorner) ?? "card";
+    // An unset/invalid corner means the property lives in the card body (its label/badge form).
+    const cornerZone = legacyCornerToZone(row.cardImageCorner);
+    const zone = cornerZone ?? defaultBodyZone(row.id);
     const placement: CardFieldPlacement = {
       key: row.id,
     };
-    if (zone !== "card") {
+    if (cornerZone) {
       if (row.cardImageCornerScale != null) placement.scale = row.cardImageCornerScale;
       if (row.cardImageCornerMobileScale != null) placement.mobileScale = row.cardImageCornerMobileScale;
       if (row.cardImageCornerHideLabel) placement.hideLabel = true;
@@ -261,7 +264,7 @@ export async function backfillCardDisplayRuleFieldZones(): Promise<void> {
     const hidden = new Set(rule.hiddenCardFields ?? []);
     const zones = emptyCardFieldZones();
     for (const key of STANDARD_CARD_FIELD_KEYS) {
-      if (!hidden.has(key)) zones.card.push({
+      if (!hidden.has(key)) zones[defaultBodyZone(key)].push({
         key,
       });
     }
@@ -275,5 +278,36 @@ export async function backfillCardDisplayRuleFieldZones(): Promise<void> {
         fieldZones: zones,
       })
       .where(eq(cardDisplayRules.id, rule.id));
+  }
+}
+
+/**
+ * One-time boot backfill: migrate rules whose stored `field_zones` still use the legacy single `card`
+ * body zone into the four sub-zones. All `card` placements move into `card-labels` (the pill form),
+ * preserving order; image-corner zones are kept as-is. Idempotent — a rule with no `card` key is left
+ * untouched. Must run after `ensureDefaultCardDisplayRule`/`backfillCardDisplayRuleFieldZones`.
+ */
+export async function backfillCardDisplayRuleSubZones(): Promise<void> {
+  const rows = await db.select().from(cardDisplayRules);
+  for (const row of rows) {
+    const stored = row.fieldZones as Record<string, CardFieldPlacement[]> | null;
+    // Nothing to migrate: inheriting rule, or already on the new sub-zone shape.
+    if (!stored || !Array.isArray(stored.card)) continue;
+
+    const next = emptyCardFieldZones();
+    // Carry over every zone that already uses the new shape (image corners + any new body zones).
+    for (const zone of CARD_FIELD_ZONES) {
+      if (Array.isArray(stored[zone])) next[zone] = stored[zone];
+    }
+    // Fold the legacy `card` placements into the pill-form `card-labels` zone (the `card` key is
+    // dropped because `emptyCardFieldZones()` no longer includes it).
+    next["card-labels"] = [...next["card-labels"], ...stored.card];
+
+    await db
+      .update(cardDisplayRules)
+      .set({
+        fieldZones: next as CardFieldZones,
+      })
+      .where(eq(cardDisplayRules.id, row.id));
   }
 }

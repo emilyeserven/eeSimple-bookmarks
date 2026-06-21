@@ -89,7 +89,7 @@ export function PreviewBookmarksSection({
       <div className="space-y-2">
         <Input
           type="text"
-          placeholder="Search bookmarks to check…"
+          placeholder="Search bookmarks or category to check…"
           value={checkQuery}
           onChange={e => setCheckQuery(e.target.value)}
         />
