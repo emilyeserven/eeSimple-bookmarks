@@ -2,6 +2,7 @@ import type { BookmarkImageVisibility, CustomProperty, HomepageSectionImageLayou
 import type { ReactNode } from "react";
 
 import { CardDisplayControlsBase } from "./CardDisplayControls";
+import { OnOffToggleGroup } from "./DisplayControlPrimitives";
 import { useCustomAspectRatios } from "../hooks/useCustomAspectRatios";
 import { buildAspectOptions } from "../lib/aspectOptions";
 import { useUiStore } from "../stores/uiStore";
@@ -209,34 +210,12 @@ export function CardDisplayRuleDisplaySettings({
           cornerOverlays: on ? OVERRIDE_DEFAULTS.cornerOverlays : null,
         })}
       >
-        <ToggleGroup
-          type="single"
-          size="sm"
-          value={(value.cornerOverlays ?? OVERRIDE_DEFAULTS.cornerOverlays) ? "on" : "off"}
-          className="gap-0 overflow-hidden rounded-md border border-input"
-          onValueChange={(next) => {
-            if (next) onChange({
-              cornerOverlays: next === "on",
-            });
-          }}
-        >
-          <ToggleGroupItem
-            value="on"
-            className="
-              rounded-none border-r border-input
-              first:rounded-l-sm
-            "
-          >On
-          </ToggleGroupItem>
-          <ToggleGroupItem
-            value="off"
-            className="
-              rounded-none
-              last:rounded-r-sm
-            "
-          >Off
-          </ToggleGroupItem>
-        </ToggleGroup>
+        <OnOffToggleGroup
+          value={value.cornerOverlays ?? OVERRIDE_DEFAULTS.cornerOverlays}
+          onChange={on => onChange({
+            cornerOverlays: on,
+          })}
+        />
       </OverridableRow>
 
       <OverridableRow
@@ -250,34 +229,12 @@ export function CardDisplayRuleDisplaySettings({
         })}
         hint="Hides the website pill on a card that also has a YouTube channel."
       >
-        <ToggleGroup
-          type="single"
-          size="sm"
-          value={(value.hideWebsiteForYouTube ?? OVERRIDE_DEFAULTS.hideWebsiteForYouTube) ? "on" : "off"}
-          className="gap-0 overflow-hidden rounded-md border border-input"
-          onValueChange={(next) => {
-            if (next) onChange({
-              hideWebsiteForYouTube: next === "on",
-            });
-          }}
-        >
-          <ToggleGroupItem
-            value="on"
-            className="
-              rounded-none border-r border-input
-              first:rounded-l-sm
-            "
-          >On
-          </ToggleGroupItem>
-          <ToggleGroupItem
-            value="off"
-            className="
-              rounded-none
-              last:rounded-r-sm
-            "
-          >Off
-          </ToggleGroupItem>
-        </ToggleGroup>
+        <OnOffToggleGroup
+          value={value.hideWebsiteForYouTube ?? OVERRIDE_DEFAULTS.hideWebsiteForYouTube}
+          onChange={on => onChange({
+            hideWebsiteForYouTube: on,
+          })}
+        />
       </OverridableRow>
 
       <Separator />

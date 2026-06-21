@@ -1,8 +1,8 @@
 import type { BookmarkImageVisibility, HomepageSectionImageLayout, ViewMode } from "../lib/bookmarkColumns";
 
+import { ColumnsSelect, ViewModeToggle } from "./DisplayControlPrimitives";
 import { useCustomAspectRatios } from "../hooks/useCustomAspectRatios";
 import { buildAspectOptions } from "../lib/aspectOptions";
-import { COLUMN_OPTIONS } from "../lib/bookmarkColumns";
 import { useUiStore } from "../stores/uiStore";
 
 import { Label } from "@/components/ui/label";
@@ -62,63 +62,17 @@ export function DisplaySettingsControlsBase({
 
   return (
     <div className="flex flex-col gap-2.5">
-      {/* View mode */}
-      <div className="flex items-center justify-between gap-4">
-        <Label className="text-sm font-medium">View</Label>
-        <ToggleGroup
-          type="single"
-          size="sm"
-          value={viewMode}
-          className="gap-0 overflow-hidden rounded-md border border-input"
-          onValueChange={(next) => {
-            if (next) onViewModeChange(next as ViewMode);
-          }}
-        >
-          <ToggleGroupItem
-            value="cards"
-            className="
-              rounded-none border-r border-input
-              first:rounded-l-sm
-            "
-          >
-            Cards
-          </ToggleGroupItem>
-          <ToggleGroupItem
-            value="table"
-            className="
-              rounded-none
-              last:rounded-r-sm
-            "
-          >
-            Table
-          </ToggleGroupItem>
-        </ToggleGroup>
-      </div>
+      <ViewModeToggle
+        value={viewMode}
+        onChange={onViewModeChange}
+      />
 
       {viewMode === "cards" && (
         <>
-          {/* Columns */}
-          <div className="flex items-center justify-between gap-4">
-            <Label className="text-sm font-medium">Columns</Label>
-            <Select
-              value={String(columns)}
-              onValueChange={next => onColumnsChange(Number(next))}
-            >
-              <SelectTrigger className="h-7 w-16 text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {COLUMN_OPTIONS.map(option => (
-                  <SelectItem
-                    key={option}
-                    value={String(option)}
-                  >
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <ColumnsSelect
+            value={columns}
+            onChange={onColumnsChange}
+          />
 
           {showsImages && (
             <>
