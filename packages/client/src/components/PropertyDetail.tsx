@@ -148,7 +148,7 @@ function AllowDefaultField({
   );
 }
 
-/** Boolean option fields: value display, label/visibility toggles, and icon-preset extras. */
+/** Boolean option fields: how `true`/`false` values are displayed. Per-card display lives in rules. */
 function BooleanOptionsFields({
   property,
 }: PropertyOptionsFieldsProps) {
@@ -156,33 +156,12 @@ function BooleanOptionsFields({
   const labelsDisplay = property.booleanLabelPreset === "custom"
     ? `Custom: ${property.booleanTrueLabel || "Yes"} / ${property.booleanFalseLabel || "No"}`
     : (preset?.label ?? "Yes / No");
-  const isIconPreset = property.booleanLabelPreset === "icons" || property.booleanLabelPreset === "stars";
   return (
     <>
       <DetailField label="How Values Display">{labelsDisplay}</DetailField>
-      <DetailField label="Hide label">
-        {property.hideLabel ? "Yes — only the value is shown" : "No — property name is shown"}
+      <DetailField label="Per-card display">
+        Configured per field under Settings → Card Display Rules
       </DetailField>
-      <DetailField label="Clickable in view">
-        {property.clickableInView ? "Yes — click to toggle in detail view" : "No — read-only in detail view"}
-      </DetailField>
-      <DetailField label="Show if false">
-        {property.showIfFalse
-          ? "Yes — shown even when unchecked"
-          : "No — hidden when unchecked"}
-      </DetailField>
-      {isIconPreset
-        ? (
-          <>
-            <DetailField label="Colon after label">
-              {property.showLabelColon ? "Yes" : "No"}
-            </DetailField>
-            <DetailField label="Value before label">
-              {property.showValueBeforeLabel ? "Yes" : "No"}
-            </DetailField>
-          </>
-        )
-        : null}
     </>
   );
 }

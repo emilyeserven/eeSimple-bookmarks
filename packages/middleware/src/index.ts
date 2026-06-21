@@ -3,7 +3,7 @@ import { buildApp, docsEnabled } from "@/app";
 import { maybeSeed } from "@/db/seed";
 import { ensureAppSettings } from "@/services/appSettings";
 import { ensureAutofillConditions, ensureAutofillSlugs, ensureWebsiteConditions } from "@/services/autofill";
-import { backfillCardDisplayRuleFieldZones, backfillCardDisplayRuleSubZones, ensureDefaultCardDisplayRule } from "@/services/cardDisplayRules";
+import { backfillCardDisplayRuleFieldZones, backfillCardDisplayRuleHeaderFields, backfillCardDisplayRuleSubZones, ensureDefaultCardDisplayRule } from "@/services/cardDisplayRules";
 import { ensureDefaultCategory } from "@/services/categories";
 import { backfillCustomPropertySlugs, ensureDatePostedProperty, ensureRuntimeProperty } from "@/services/customProperties";
 import { ensureHomepageFilter } from "@/services/homepageFilter";
@@ -68,6 +68,7 @@ try {
   await ensureDefaultCardDisplayRule();
   await backfillCardDisplayRuleFieldZones();
   await backfillCardDisplayRuleSubZones();
+  await backfillCardDisplayRuleHeaderFields();
   // Create the image bucket if storage is configured; harmless when it already exists.
   if (isObjectStoreConfigured()) await ensureBucket();
 }

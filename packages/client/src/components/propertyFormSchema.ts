@@ -46,14 +46,9 @@ export const propertySchema = z
     enabled: z.boolean(),
     allowDefault: z.boolean(),
     propertyGroupId: z.string(),
-    showIfFalse: z.boolean(),
     booleanLabelPreset: z.enum(["yes-no", "true-false", "enabled-disabled", "icons", "stars", "custom"]),
     booleanTrueLabel: z.string(),
     booleanFalseLabel: z.string(),
-    showLabelColon: z.boolean(),
-    showValueBeforeLabel: z.boolean(),
-    hideLabel: z.boolean(),
-    clickableInView: z.boolean(),
     ratingMax: z.enum(["3", "5"]),
     ratingAllowZero: z.boolean(),
     ratingAllowHalf: z.boolean(),
@@ -107,14 +102,9 @@ export const CREATE_DEFAULTS: PropertyFormValues = {
   enabled: true,
   allowDefault: true,
   propertyGroupId: "",
-  showIfFalse: false,
   booleanLabelPreset: "yes-no",
   booleanTrueLabel: "",
   booleanFalseLabel: "",
-  showLabelColon: true,
-  showValueBeforeLabel: false,
-  hideLabel: false,
-  clickableInView: false,
   ratingMax: "5",
   ratingAllowZero: false,
   ratingAllowHalf: false,
@@ -261,14 +251,9 @@ export function valuesFromProperty(property: CustomProperty): PropertyFormValues
     enabled: property.enabled,
     allowDefault: property.allowDefault ?? true,
     propertyGroupId: property.propertyGroupId ?? "",
-    showIfFalse: property.showIfFalse,
     booleanLabelPreset: property.booleanLabelPreset ?? "yes-no",
     booleanTrueLabel: property.booleanTrueLabel ?? "",
     booleanFalseLabel: property.booleanFalseLabel ?? "",
-    showLabelColon: property.showLabelColon,
-    showValueBeforeLabel: property.showValueBeforeLabel,
-    hideLabel: property.hideLabel,
-    clickableInView: property.clickableInView,
     ratingMax: property.ratingMax === 3 ? "3" : "5",
     ratingAllowZero: property.ratingAllowZero,
     ratingAllowHalf: property.ratingAllowHalf,
@@ -297,23 +282,17 @@ function numberPayloadFields(values: PropertyFormValues): Pick<
   };
 }
 
-/** Boolean-only label/display fields, left `undefined`/`null` for every other property type. */
+/** Boolean-only value-formatting fields, left `null` for every other property type. */
 function booleanPayloadFields(values: PropertyFormValues): Pick<
   CreateCustomPropertyInput,
-  | "showIfFalse" | "booleanLabelPreset" | "booleanTrueLabel" | "booleanFalseLabel"
-  | "showLabelColon" | "showValueBeforeLabel" | "hideLabel" | "clickableInView"
+  "booleanLabelPreset" | "booleanTrueLabel" | "booleanFalseLabel"
 > {
   const isBoolean = values.type === "boolean";
   const isCustom = isBoolean && values.booleanLabelPreset === "custom";
   return {
-    showIfFalse: isBoolean ? values.showIfFalse : undefined,
     booleanLabelPreset: isBoolean ? values.booleanLabelPreset : null,
     booleanTrueLabel: isCustom ? trimOrNull(values.booleanTrueLabel) : null,
     booleanFalseLabel: isCustom ? trimOrNull(values.booleanFalseLabel) : null,
-    showLabelColon: isBoolean ? values.showLabelColon : undefined,
-    showValueBeforeLabel: isBoolean ? values.showValueBeforeLabel : undefined,
-    hideLabel: isBoolean ? values.hideLabel : undefined,
-    clickableInView: isBoolean ? values.clickableInView : undefined,
   };
 }
 

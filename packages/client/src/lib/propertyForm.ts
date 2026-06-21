@@ -107,33 +107,23 @@ export function summarizeNumberOptions(values: {
   return parts.length > 0 ? parts.join(" · ") : "No options set";
 }
 
-/** One-line summary of the boolean options for a collapsed "Property options" preview. */
+/**
+ * One-line summary of the boolean value-formatting options for a collapsed "Property options"
+ * preview. The per-card display knobs (hide label / clickable / show-if-false / colon / value-first)
+ * now live on the Card Display Rule field placements, not here.
+ */
 export function summarizeBooleanOptions(values: {
-  showIfFalse: boolean;
   booleanLabelPreset: string;
   booleanTrueLabel: string;
   booleanFalseLabel: string;
-  showLabelColon?: boolean;
-  showValueBeforeLabel?: boolean;
-  hideLabel?: boolean;
-  clickableInView?: boolean;
 }): string {
   const preset = BOOLEAN_LABEL_PRESET_OPTIONS.find(o => o.value === values.booleanLabelPreset);
-  const parts: string[] = [preset?.label ?? "Yes / No"];
   if (values.booleanLabelPreset === "custom") {
     const trueText = values.booleanTrueLabel.trim() || "Yes";
     const falseText = values.booleanFalseLabel.trim() || "No";
-    parts[0] = `${trueText} / ${falseText}`;
+    return `${trueText} / ${falseText}`;
   }
-  if (values.hideLabel) parts.push("label hidden");
-  if (values.clickableInView) parts.push("clickable in view");
-  if (values.showIfFalse) parts.push("show if false");
-  const isIconPreset = values.booleanLabelPreset === "icons" || values.booleanLabelPreset === "stars";
-  if (isIconPreset) {
-    if (values.showValueBeforeLabel) parts.push("value first");
-    if (values.showLabelColon === false) parts.push("no colon");
-  }
-  return parts.join(" · ");
+  return preset?.label ?? "Yes / No";
 }
 
 /** One-line summary of the rating options for a collapsed "Property options" preview. */

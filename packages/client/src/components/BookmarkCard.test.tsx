@@ -1,3 +1,4 @@
+import { emptyCardFieldZones } from "@eesimple/types";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
@@ -205,10 +206,12 @@ describe("BookmarkCard", () => {
 
   it("toggles a clickable-in-view boolean by clicking its card badge", async () => {
     updateMutate.mockReset();
-    const reviewedClickable = {
-      ...reviewedProperty,
+    // `clickableInView` now lives on the rule's field placement, not the property.
+    const zones = emptyCardFieldZones();
+    zones["card-labels"].push({
+      key: "prop-reviewed",
       clickableInView: true,
-    };
+    });
     await renderWithRouter(
       <BookmarkCard
         bookmark={{
@@ -220,7 +223,8 @@ describe("BookmarkCard", () => {
             },
           ],
         }}
-        properties={[reviewedClickable]}
+        properties={[reviewedProperty]}
+        fieldZones={zones}
       />,
       {
         paths: [DETAIL_PATH],

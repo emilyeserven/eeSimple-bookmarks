@@ -8,6 +8,7 @@ import { BookmarkDetailMedia } from "./BookmarkDetailMedia";
 import { buildBookmarkDetailSections } from "./bookmarkDetailSections";
 import { navLinkClass } from "./TabbedEntityLayout";
 import { useBookmarks } from "../hooks/useBookmarks";
+import { useDefaultFieldZones } from "../lib/bookmarkCardFields";
 import { buildBookmarkHierarchy } from "../lib/bookmarkHierarchy";
 import { flattenTree } from "../lib/tagTree";
 import { useUiStore } from "../stores/uiStore";
@@ -42,6 +43,7 @@ export function BookmarkDetailTabbed({
     data: allBookmarks,
   } = useBookmarks();
   const flatHierarchy = flattenTree(buildBookmarkHierarchy(bookmark.id, allBookmarks ?? []));
+  const defaultFieldZones = useDefaultFieldZones();
 
   const sections = buildBookmarkDetailSections({
     bookmark,
@@ -50,6 +52,7 @@ export function BookmarkDetailTabbed({
     propertyGroups,
     flatHierarchy,
     onSaveBoolean,
+    defaultFieldZones,
   });
 
   const isVideo = Boolean(embedUrl);

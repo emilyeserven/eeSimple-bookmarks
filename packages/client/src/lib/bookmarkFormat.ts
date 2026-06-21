@@ -58,17 +58,35 @@ export function formatBoolean(value: boolean, property: CustomProperty): string 
 }
 
 /**
- * Build the full badge/label string for a boolean property value, applying `showLabelColon` and
- * `showValueBeforeLabel` when the preset is icon-like ("icons" or "stars").
+ * Per-card display knobs for a boolean badge. These used to live on the property; they now come from
+ * the Card Display Rule field placement (or the Default rule for non-listing surfaces).
  */
-export function formatBooleanBadge(value: boolean, property: CustomProperty): string {
+export interface BooleanBadgeDisplay {
+  /** Omit the property name, showing only the value. */
+  hideLabel?: boolean;
+  /** Icon presets only: show the colon after the label. Defaults to true. */
+  showLabelColon?: boolean;
+  /** Icon presets only: render the value before the label. Defaults to false. */
+  showValueBeforeLabel?: boolean;
+}
+
+/**
+ * Build the full badge/label string for a boolean property value, applying `showLabelColon` and
+ * `showValueBeforeLabel` when the preset is icon-like ("icons" or "stars"). The layout knobs come from
+ * the field placement (`display`), not the property.
+ */
+export function formatBooleanBadge(
+  value: boolean,
+  property: CustomProperty,
+  display: BooleanBadgeDisplay = {},
+): string {
   const formatted = formatBoolean(value, property);
-  if (property.hideLabel) return formatted;
+  if (display.hideLabel) return formatted;
   const isIconPreset = property.booleanLabelPreset === "icons" || property.booleanLabelPreset === "stars";
   if (!isIconPreset) return `${property.name}: ${formatted}`;
-  const colon = property.showLabelColon !== false;
+  const colon = display.showLabelColon !== false;
   const sep = colon ? ": " : " ";
-  return property.showValueBeforeLabel
+  return display.showValueBeforeLabel
     ? `${formatted}${sep}${property.name}`
     : `${property.name}${sep}${formatted}`;
 }

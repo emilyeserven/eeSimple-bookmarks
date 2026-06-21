@@ -137,8 +137,10 @@ export function CardDisplayRuleForm({
     </section>
   );
 
-  // On desktop the Card Display controls sit on the left (scrolling when tall) with the live Card
-  // Preview pinned on the right at matching height; they stack on narrow screens.
+  // On desktop the Card Display controls sit on the left and scroll internally; the live Card Preview
+  // is pinned on the right and defines the row height, so the Card Fields list is as tall as the
+  // preview (`md:items-stretch` + the left column's `md:h-full md:min-h-0` lets the overflow scroll
+  // rather than grow the row). They stack on narrow screens.
   const displayWithPreview = (
     <div
       className="
@@ -147,14 +149,14 @@ export function CardDisplayRuleForm({
       "
     >
       <div
-        className="md:max-h-136 md:overflow-y-auto md:pr-2"
+        className="md:h-full md:max-h-184 md:min-h-0 md:overflow-y-auto md:pr-2"
       >
         {displayControls}
       </div>
       <div
         className="
           mt-6
-          md:mt-0 md:h-full
+          md:sticky md:top-4 md:mt-0 md:max-h-184
         "
       >
         {cardPreview}

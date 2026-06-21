@@ -80,14 +80,9 @@ function toCustomProperty(
     enabled: row.enabled,
     allowDefault: row.allowDefault,
     propertyGroupId: row.propertyGroupId,
-    showIfFalse: row.showIfFalse ?? false,
     booleanLabelPreset: (row.booleanLabelPreset as CustomProperty["booleanLabelPreset"]) ?? null,
     booleanTrueLabel: row.booleanTrueLabel ?? null,
     booleanFalseLabel: row.booleanFalseLabel ?? null,
-    showLabelColon: row.showLabelColon ?? true,
-    showValueBeforeLabel: row.showValueBeforeLabel ?? false,
-    hideLabel: row.hideLabel ?? false,
-    clickableInView: row.clickableInView ?? false,
     ratingMax: (row.ratingMax as CustomProperty["ratingMax"]) ?? null,
     ratingAllowZero: row.ratingAllowZero ?? false,
     ratingAllowHalf: row.ratingAllowHalf ?? false,
@@ -357,14 +352,9 @@ export type UpdatePatch = Partial<
     | "enabled"
     | "allowDefault"
     | "propertyGroupId"
-    | "showIfFalse"
     | "booleanLabelPreset"
     | "booleanTrueLabel"
     | "booleanFalseLabel"
-    | "showLabelColon"
-    | "showValueBeforeLabel"
-    | "hideLabel"
-    | "clickableInView"
     | "ratingMax"
     | "ratingAllowZero"
     | "ratingAllowHalf"
@@ -410,14 +400,9 @@ const COPYABLE_FIELDS = [
   "enabled",
   "allowDefault",
   "propertyGroupId",
-  "showIfFalse",
   "booleanLabelPreset",
   "booleanTrueLabel",
   "booleanFalseLabel",
-  "showLabelColon",
-  "showValueBeforeLabel",
-  "hideLabel",
-  "clickableInView",
   "ratingMax",
   "ratingAllowZero",
   "ratingAllowHalf",

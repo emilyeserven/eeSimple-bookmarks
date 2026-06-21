@@ -5,16 +5,30 @@ import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 
 import { CARD_BODY_ZONES } from "@eesimple/types";
+import { Link } from "@tanstack/react-router";
+import { ExternalLink, MoreVertical } from "lucide-react";
 
+import { BookmarkCardMenu } from "./BookmarkCardMenu";
 import { BookmarkTagsBox } from "./BookmarkTagsBox";
 import { CategoryPill } from "./CategoryPill";
 import { MediaTypePill } from "./MediaTypePill";
+import { useViewPanelClick } from "./panel/useEditPanelClick";
 import { SourcePill } from "./SourcePill";
 import { StarRating } from "./StarRating";
 import { useHideWebsiteForYouTube } from "../lib/bookmarkCardFields";
 import { buildBookmarkValueItems } from "../lib/bookmarkCardValues";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
+import { useUiStore } from "@/stores/uiStore";
+
+/** The card header field keys, rendered as a justified header row when co-located in a single zone. */
+const HEADER_FIELD_KEYS = new Set(["title", "externalLink", "more"]);
+
+/** No-op fallback for the optional "More" menu handlers when this surface doesn't wire them. */
+const noop = (): void => undefined;
 
 interface BookmarkCardDetailsProps {
   bookmark: Bookmark;
@@ -25,9 +39,21 @@ interface BookmarkCardDetailsProps {
   bookmarkCategory?: Category;
   /** Resolved "hide website pill for YouTube" value; when omitted, the Default card display rule applies. */
   hideWebsiteForYouTube?: boolean;
+  /** Properties editable from the "More" menu (passed through to {@link BookmarkCardMenu}). */
+  editableProperties?: CustomProperty[];
+  /** Whether an auto-image capture is in flight (for the "More" menu). */
+  autoImagePending?: boolean;
+  /** Trigger an auto-image capture from the "More" menu. */
+  onAutoImage?: () => void;
+  /** Persist a number value edited from the "More" menu. */
+  onSaveNumber?: (propertyId: string, value: number) => void;
+  /** Persist a datetime value edited from the "More" menu. */
+  onSaveDateTime?: (propertyId: string, value: string) => void;
+  /** Delete handler wired into the "More" menu. */
+  onDelete?: (id: string) => void;
   /** Persist a rating-scale value edited inline on the card (only wired when the property is `editableOnCard`). */
   onSaveRating?: (propertyId: string, value: number) => void;
-  /** Toggle a boolean value from the card (only wired for properties with `clickableInView`). */
+  /** Toggle a boolean value from the card (only wired for placements with `clickableInView`). */
   onSaveBoolean?: (propertyId: string, value: boolean) => void;
 }
 
@@ -59,11 +85,76 @@ interface FieldRender {
  */
 export function BookmarkCardDetails({
   bookmark, properties, placements, bookmarkCategory, hideWebsiteForYouTube,
+  editableProperties = [], autoImagePending = false, onAutoImage,
+  onSaveNumber, onSaveDateTime, onDelete,
   onSaveRating, onSaveBoolean,
 }: BookmarkCardDetailsProps) {
   // Listings pass the rule-resolved value explicitly; other surfaces fall back to the Default rule.
   const defaultHideWebsiteForYouTube = useHideWebsiteForYouTube();
   const effectiveHideWebsiteForYouTube = hideWebsiteForYouTube ?? defaultHideWebsiteForYouTube;
+  const viewClick = useViewPanelClick();
+  const sidebarModifier = useUiStore(state => state.sidebarOpenModifier);
+
+  // The card header elements, now placeable fields (title link, open-URL button, "More" menu).
+  const titleNode = (
+    <h3 className="font-semibold">
+      <Link
+        to="/bookmarks/$bookmarkId"
+        params={{
+          bookmarkId: bookmark.id,
+        }}
+        title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[sidebarModifier]} to open in the sidebar)`}
+        onClick={event => viewClick(event, "bookmark", bookmark.id)}
+        className="
+          wrap-break-word text-primary
+          hover:underline
+        "
+      >
+        {bookmark.title}
+      </Link>
+    </h3>
+  );
+  const externalLinkNode = (
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
+      asChild
+    >
+      <a
+        href={bookmark.url}
+        target="_blank"
+        rel="noreferrer"
+        aria-label="Open URL in new tab"
+      >
+        <ExternalLink className="size-4" />
+      </a>
+    </Button>
+  );
+  const moreNode = (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label="More options"
+        >
+          <MoreVertical className="size-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <BookmarkCardMenu
+        bookmark={bookmark}
+        editableProperties={editableProperties}
+        autoImagePending={autoImagePending}
+        onAutoImage={onAutoImage ?? noop}
+        onSaveNumber={onSaveNumber ?? noop}
+        onSaveBoolean={onSaveBoolean ?? noop}
+        onSaveDateTime={onSaveDateTime ?? noop}
+        onDelete={onDelete}
+      />
+    </DropdownMenu>
+  );
 
   // Single source of truth for value placement; corner-placed values (overlaid on the image) are
   // excluded here so a value isn't also shown as a badge.
@@ -113,7 +204,7 @@ export function BookmarkCardDetails({
 
   /** Render a custom-property value badge, wiring an inline toggle for clickable booleans. */
   function badgeNode(item: Extract<BookmarkValueItem, { kind: "badge" }>, text: ReactNode): ReactNode {
-    const onToggle = onSaveBoolean && item.property.clickableInView && item.booleanValue !== undefined
+    const onToggle = onSaveBoolean && item.clickableInView && item.booleanValue !== undefined
       ? () => onSaveBoolean(item.id, !item.booleanValue)
       : undefined;
     if (!onToggle) return <Badge variant="outline">{text}</Badge>;
@@ -160,6 +251,30 @@ export function BookmarkCardDetails({
   /** The render forms for one placed field key, or `null` when it has nothing to show. */
   function describeField(key: string): FieldRender | null {
     switch (key) {
+      case "title": {
+        return {
+          inline: titleNode,
+          block: titleNode,
+          tableName: "Title",
+          tableValue: titleNode,
+        };
+      }
+      case "externalLink": {
+        return {
+          inline: externalLinkNode,
+          block: externalLinkNode,
+          tableName: "Link",
+          tableValue: externalLinkNode,
+        };
+      }
+      case "more": {
+        return {
+          inline: moreNode,
+          block: moreNode,
+          tableName: "",
+          tableValue: moreNode,
+        };
+      }
       case "description": {
         if (!bookmark.description) return null;
         // No inline pill form — falls back to a full-width paragraph in the Labels zone.
@@ -351,13 +466,33 @@ export function BookmarkCardDetails({
       );
     }
 
-    // single-top / single-bottom: every field is a full-width stacked row.
+    // single-top / single-bottom: full-width stacked rows. The header fields (title + action buttons),
+    // when co-located here, render as a justified header row (title left, buttons right) reproducing the
+    // old fixed card header; the remaining fields stack below.
+    const titleEntry = entries.find(entry => entry.key === "title");
+    const actionEntries = entries.filter(entry => entry.key === "externalLink" || entry.key === "more");
+    const restEntries = entries.filter(entry => !HEADER_FIELD_KEYS.has(entry.key));
+    const hasHeader = titleEntry !== undefined || actionEntries.length > 0;
     return (
       <div
         key={zone}
         className="mt-2 space-y-2"
       >
-        {entries.map(entry => (
+        {hasHeader
+          ? (
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">{titleEntry?.render.block}</div>
+              {actionEntries.length > 0
+                ? (
+                  <div className="flex shrink-0 items-center gap-1">
+                    {actionEntries.map(entry => <span key={entry.key}>{entry.render.inline}</span>)}
+                  </div>
+                )
+                : null}
+            </div>
+          )
+          : null}
+        {restEntries.map(entry => (
           <div key={entry.key}>{entry.render.block ?? entry.render.inline}</div>
         ))}
       </div>

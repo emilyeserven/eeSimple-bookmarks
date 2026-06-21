@@ -25,8 +25,15 @@ import { useCategories } from "@/hooks/useCategories";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
 import { useUiStore } from "@/stores/uiStore";
 
-/** Format a single custom-property value for a bookmark, or `null` when it has no displayable value. */
-function formatPropertyValue(bookmark: Bookmark, property: CustomProperty): string | null {
+/**
+ * Format a single custom-property value for a bookmark, or `null` when it has no displayable value.
+ * `showIfFalse` (for booleans) is resolved from the Default card display rule by the caller.
+ */
+function formatPropertyValue(
+  bookmark: Bookmark,
+  property: CustomProperty,
+  showIfFalse: boolean,
+): string | null {
   if (property.type === "number" || property.type === "calculate") {
     const entry = bookmark.numberValues.find(value => value.propertyId === property.id);
     return entry ? formatNumber(entry.value, property) : null;
@@ -34,7 +41,7 @@ function formatPropertyValue(bookmark: Bookmark, property: CustomProperty): stri
   if (property.type === "boolean") {
     const entry = bookmark.booleanValues.find(value => value.propertyId === property.id);
     if (!entry) return null;
-    if (!entry.value && !property.showIfFalse) return null;
+    if (!entry.value && !showIfFalse) return null;
     return formatBoolean(entry.value, property);
   }
   if (property.type === "image" || property.type === "file") {
@@ -282,7 +289,8 @@ export function useBookmarkTableColumns({
               )
               : null;
           }
-          const formatted = formatPropertyValue(row.original, property);
+          const showIfFalse = defaultPlacements?.get(property.id)?.showIfFalse ?? false;
+          const formatted = formatPropertyValue(row.original, property, showIfFalse);
           return formatted ? <span className="text-sm">{formatted}</span> : null;
         },
       });

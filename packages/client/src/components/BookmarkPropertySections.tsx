@@ -4,6 +4,8 @@ import type { ReactNode } from "react";
 
 import { PropertyQuickFilterLink } from "./PropertyQuickFilterLink";
 import { StarRating } from "./StarRating";
+import { useDefaultFieldZones } from "../lib/bookmarkCardFields";
+import { resolveBooleanDisplay } from "../lib/bookmarkCardValues";
 
 import { LabeledSection } from "@/components/LabeledSection";
 import { Separator } from "@/components/ui/separator";
@@ -30,6 +32,9 @@ export function BookmarkPropertySections({
   bookmark, properties, propertyGroups, onSaveBoolean,
 }: BookmarkPropertySectionsProps) {
   const byId = new Map(properties.map(property => [property.id, property]));
+  // The per-card boolean display knobs (show-if-false / colon / value-order / clickable) come from the
+  // Default card display rule on non-listing surfaces like this one.
+  const defaultZones = useDefaultFieldZones();
 
   const numberRows = bookmark.numberValues
     .map((entry) => {
@@ -82,7 +87,8 @@ export function BookmarkPropertySections({
     .map((entry) => {
       const property = byId.get(entry.propertyId);
       if (!property) return null;
-      if (!entry.value && !property.showIfFalse) return null;
+      const display = resolveBooleanDisplay(defaultZones, property.id);
+      if (!entry.value && !display.showIfFalse) return null;
       const isIconPreset = property.booleanLabelPreset === "icons" || property.booleanLabelPreset === "stars";
       return {
         id: entry.propertyId,
@@ -90,9 +96,9 @@ export function BookmarkPropertySections({
         groupId: property.propertyGroupId,
         rawValue: entry.value,
         value: formatBoolean(entry.value, property),
-        showLabelColon: isIconPreset ? property.showLabelColon : true,
-        showValueBeforeLabel: isIconPreset ? property.showValueBeforeLabel : false,
-        clickableInView: property.clickableInView,
+        showLabelColon: isIconPreset ? display.showLabelColon : true,
+        showValueBeforeLabel: isIconPreset ? display.showValueBeforeLabel : false,
+        clickableInView: display.clickableInView,
         search: buildPropertyQuickSearch(property, entry.value),
       };
     })

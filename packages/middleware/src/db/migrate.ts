@@ -311,6 +311,81 @@ const migrations: RuntimeMigration[] = [
     run: db => db.execute(sql`DROP TABLE IF EXISTS "saved_display_presets"`),
   },
   {
+    // The five per-card boolean display knobs (`show_if_false`, `hide_label`, `clickable_in_view`,
+    // `show_label_colon`, `show_value_before_label`) moved off `custom_properties` onto the Card
+    // Display Rule field placements (`CardFieldPlacement`). Before dropping the columns (next step),
+    // carry each boolean property's stored settings into every rule's `field_zones` placement for that
+    // property, so existing per-property config is preserved as the per-field placement value. Runs in
+    // JS (jsonb manipulation), guarded to fire only WHILE the old columns still exist, so it is
+    // idempotent and one-shot (the drop step then makes the guard false forever after).
+    name: "migrate custom_properties boolean display knobs into card_display_rules.field_zones",
+    run: async (db) => {
+      const colCheck = await db.execute(sql`
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'custom_properties' AND column_name = 'show_if_false'
+      `);
+      if (colCheck.rows.length === 0) return;
+
+      const propRows = (await db.execute(sql`
+        SELECT id, show_if_false, hide_label, clickable_in_view, show_label_colon, show_value_before_label
+        FROM custom_properties WHERE type = 'boolean'
+      `)).rows as {
+        id: string;
+        show_if_false: boolean | null;
+        hide_label: boolean | null;
+        clickable_in_view: boolean | null;
+        show_label_colon: boolean | null;
+        show_value_before_label: boolean | null;
+      }[];
+      const flagsById = new Map(propRows.map(row => [row.id, row]));
+      if (flagsById.size === 0) return;
+
+      const ruleRows = (await db.execute(sql`
+        SELECT id, field_zones FROM card_display_rules WHERE field_zones IS NOT NULL
+      `)).rows as { id: string;
+        field_zones: Record<string, Record<string, unknown>[]> | null; }[];
+
+      for (const rule of ruleRows) {
+        const zones = rule.field_zones;
+        if (!zones) continue;
+        let changed = false;
+        for (const placements of Object.values(zones)) {
+          if (!Array.isArray(placements)) continue;
+          for (const placement of placements) {
+            const flags = flagsById.get(placement.key as string);
+            if (!flags) continue;
+            // Only write non-default values to keep the jsonb lean (absent = default).
+            if (flags.show_if_false) placement.showIfFalse = true;
+            if (flags.hide_label) placement.hideLabel = true;
+            if (flags.clickable_in_view) placement.clickableInView = true;
+            if (flags.show_label_colon === false) placement.showLabelColon = false;
+            if (flags.show_value_before_label) placement.showValueBeforeLabel = true;
+            changed = true;
+          }
+        }
+        if (changed) {
+          await db.execute(sql`
+            UPDATE card_display_rules SET field_zones = ${JSON.stringify(zones)}::jsonb WHERE id = ${rule.id}
+          `);
+        }
+      }
+    },
+  },
+  {
+    // …then drop the five now-migrated `custom_properties` boolean display columns. Destructive, so it
+    // lives here (push never drops columns non-interactively). One `ALTER TABLE` with multiple
+    // `DROP COLUMN IF EXISTS` clauses is a single statement, safe over the extended protocol.
+    name: "drop custom_properties per-card boolean display columns",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "custom_properties"
+        DROP COLUMN IF EXISTS "show_if_false",
+        DROP COLUMN IF EXISTS "hide_label",
+        DROP COLUMN IF EXISTS "clickable_in_view",
+        DROP COLUMN IF EXISTS "show_label_colon",
+        DROP COLUMN IF EXISTS "show_value_before_label"
+    `),
+  },
+  {
     // `bookmark_relationships` was reshaped from an untyped, composite-PK edge table
     // (`bookmark_a_id`, `bookmark_b_id`) into a typed one (surrogate `id` PK, `relationship_type_id`,
     // `label`, new unique index). push can't converge that PK/column change non-interactively, so

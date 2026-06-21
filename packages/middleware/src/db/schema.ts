@@ -581,20 +581,13 @@ export const customProperties = pgTable("custom_properties", {
   enabled: boolean("enabled").notNull().default(true),
   // When false, this property is hidden from the category defaults editor.
   allowDefault: boolean("allow_default").notNull().default(true),
-  // Boolean-specific display settings. All nullable (additive, push-safe). null → false / "yes-no".
-  showIfFalse: boolean("show_if_false"),
-  // "yes-no" | "true-false" | "enabled-disabled" | "icons" | "stars" | "custom". null → "yes-no".
+  // Boolean value-formatting. "yes-no" | "true-false" | "enabled-disabled" | "icons" | "stars" |
+  // "custom". null → "yes-no". The per-card display knobs (show-if-false, hide-label, clickable,
+  // colon, value-before-label) moved to the Card Display Rule field placements (`CardFieldPlacement`).
   booleanLabelPreset: text("boolean_label_preset"),
   // Custom labels used only when booleanLabelPreset = "custom".
   booleanTrueLabel: text("boolean_true_label"),
   booleanFalseLabel: text("boolean_false_label"),
-  // Icon-preset layout options. null → true (showLabelColon) / false (showValueBeforeLabel).
-  showLabelColon: boolean("show_label_colon"),
-  showValueBeforeLabel: boolean("show_value_before_label"),
-  // When true, the property name label is omitted; only the value is shown. null → false.
-  hideLabel: boolean("hide_label"),
-  // When true, the value in the bookmark detail view is a clickable toggle. null → false.
-  clickableInView: boolean("clickable_in_view"),
   // Rating-scale display settings. All nullable (additive, push-safe). Ratings store their value
   // in `bookmark_number_values` like numbers, so only this config is rating-specific.
   // ratingMax: 3 | 5 (null → 5). ratingAllowZero/Half/ShowLabel: null → false. ratingLabel after stars.

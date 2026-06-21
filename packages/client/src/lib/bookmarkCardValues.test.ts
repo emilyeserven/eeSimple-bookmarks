@@ -11,6 +11,7 @@ function placementMap(
   key: string,
   corner: CardImageCorner | null,
   hideLabel: boolean,
+  extra: Partial<ResolvedFieldPlacement> = {},
 ): Map<string, ResolvedFieldPlacement> {
   return new Map([[key, {
     zone: corner ? `image-${corner}` as const : "card-labels",
@@ -19,6 +20,11 @@ function placementMap(
     mobileScale: null,
     hideLabel,
     hideIcon: false,
+    showIfFalse: false,
+    clickableInView: false,
+    showLabelColon: true,
+    showValueBeforeLabel: false,
+    ...extra,
   }]]);
 }
 
@@ -98,7 +104,6 @@ describe("buildBookmarkValueItems by value kind", () => {
     const prop = property({
       type: "boolean",
       name: "Read",
-      showIfFalse: false,
     });
     const shown = buildBookmarkValueItems(
       makeBookmark({
@@ -130,7 +135,6 @@ describe("buildBookmarkValueItems by value kind", () => {
   it("keeps a false boolean when showIfFalse is set", () => {
     const prop = property({
       type: "boolean",
-      showIfFalse: true,
     });
     const items = buildBookmarkValueItems(
       makeBookmark({
@@ -140,7 +144,9 @@ describe("buildBookmarkValueItems by value kind", () => {
         }],
       }),
       [prop],
-      placementMap(prop.id, null, false),
+      placementMap(prop.id, null, false, {
+        showIfFalse: true,
+      }),
     );
     expect(items).toHaveLength(1);
   });

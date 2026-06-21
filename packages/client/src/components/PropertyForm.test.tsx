@@ -71,7 +71,8 @@ describe("propertyForm sections", () => {
       "options",
     );
 
-    expect(screen.getByText("Show if false")).toBeInTheDocument();
+    // Per-card display knobs moved to Card Display Rules; only the value-formatting fields remain.
+    expect(screen.getByText("How Values Display")).toBeInTheDocument();
     expect(screen.getByLabelText("True label")).toHaveValue("Read");
     expect(screen.getByLabelText("False label")).toHaveValue("Unread");
   });
