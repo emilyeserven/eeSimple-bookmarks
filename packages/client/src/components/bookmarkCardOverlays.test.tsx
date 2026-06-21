@@ -19,6 +19,10 @@ function cornerPlacement(
     mobileScale: null,
     hideLabel: false,
     hideIcon: false,
+    showIfFalse: false,
+    clickableInView: false,
+    showLabelColon: true,
+    showValueBeforeLabel: false,
     ...overrides,
   };
 }

@@ -1,3 +1,4 @@
+import { emptyCardFieldZones } from "@eesimple/types";
 import { fireEvent, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
@@ -8,6 +9,26 @@ import {
   sampleCategories,
   sampleProperties,
 } from "../test-utils/story-mocks";
+
+// The per-card boolean display knobs (e.g. `clickableInView`) come from the Default card display
+// rule; stub it so the detail view resolves the reviewed property as a clickable toggle.
+vi.mock("../hooks/useCardDisplayRules", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../hooks/useCardDisplayRules")>();
+  const zones = emptyCardFieldZones();
+  zones["card-labels"].push({
+    key: "prop-reviewed",
+    clickableInView: true,
+  });
+  return {
+    ...actual,
+    useCardDisplayRules: () => ({
+      data: [{
+        isDefault: true,
+        fieldZones: zones,
+      }],
+    }),
+  };
+});
 
 const CATEGORY_PATH = "/categories/$categorySlug";
 
@@ -74,18 +95,11 @@ describe("BookmarkDetail", () => {
 
   it("toggles a clickable-in-view boolean by clicking its label or value", async () => {
     const onSaveBoolean = vi.fn();
-    const clickableProperties = sampleProperties.map(property =>
-      (property.id === "prop-reviewed"
-        ? {
-          ...property,
-          clickableInView: true,
-        }
-        : property));
     await renderDetail(
       <BookmarkDetail
         bookmark={sampleBookmark}
         categories={sampleCategories}
-        properties={clickableProperties}
+        properties={sampleProperties}
         onSaveBoolean={onSaveBoolean}
       />,
     );

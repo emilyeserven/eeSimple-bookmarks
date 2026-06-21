@@ -9,7 +9,6 @@ import { propertyAppliesToCategory } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 
 import { BookmarkCardDetails } from "./BookmarkCardDetails";
-import { BookmarkCardHeader } from "./BookmarkCardHeader";
 import { BookmarkCardImage } from "./BookmarkCardImage";
 import { buildCardOverlayItems } from "./bookmarkCardOverlays";
 import { useViewPanelClick } from "./panel/useEditPanelClick";
@@ -132,22 +131,6 @@ export function BookmarkCard({
     });
   }
 
-  const header = (
-    <BookmarkCardHeader
-      bookmark={bookmark}
-      editableProperties={editableProperties}
-      autoImagePending={autoImage.isPending}
-      onAutoImage={() => autoImage.mutate({
-        id: bookmark.id,
-        sourceUrl: bookmark.url,
-      })}
-      onSaveNumber={saveNumber}
-      onSaveBoolean={saveBoolean}
-      onSaveDateTime={saveDateTime}
-      onDelete={onDelete}
-    />
-  );
-
   const hasImage = !!bookmark.image && imageVisibility !== "off";
 
   // Fields placed in an image corner are overlaid only when the card has an image; otherwise they
@@ -194,6 +177,15 @@ export function BookmarkCard({
       placements={placements}
       bookmarkCategory={bookmarkCategory}
       hideWebsiteForYouTube={hideWebsiteForYouTube}
+      editableProperties={editableProperties}
+      autoImagePending={autoImage.isPending}
+      onAutoImage={() => autoImage.mutate({
+        id: bookmark.id,
+        sourceUrl: bookmark.url,
+      })}
+      onSaveNumber={saveNumber}
+      onSaveDateTime={saveDateTime}
+      onDelete={onDelete}
       onSaveRating={saveNumber}
       onSaveBoolean={saveBoolean}
     />
@@ -204,7 +196,6 @@ export function BookmarkCard({
       <div className="flex gap-4">
         {imageEl}
         <div className="min-w-0 flex-1">
-          {header}
           {details}
         </div>
       </div>
@@ -214,7 +205,6 @@ export function BookmarkCard({
   return (
     <div>
       {imageEl}
-      {header}
       {details}
     </div>
   );

@@ -8,6 +8,10 @@ import type { CustomProperty } from "@eesimple/types";
  */
 export const STANDARD_CARD_FIELDS = [
   {
+    key: "title",
+    label: "Title",
+  },
+  {
     key: "description",
     label: "Description",
   },
@@ -31,7 +35,18 @@ export const STANDARD_CARD_FIELDS = [
     key: "tags",
     label: "Tags",
   },
+  {
+    key: "externalLink",
+    label: "Open Link",
+  },
+  {
+    key: "more",
+    label: "More menu",
+  },
 ] as const;
+
+/** The card header field keys (title + action buttons); they default into the `card-single-top` zone. */
+export const HEADER_CARD_FIELD_KEYS = ["title", "externalLink", "more"] as const;
 
 /**
  * The custom properties eligible to appear on bookmark cards (and thus in the rule's field zones):

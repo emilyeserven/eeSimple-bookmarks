@@ -715,8 +715,8 @@ export interface CardFieldPlacement {
   mobileScale?: number | null;
   /**
    * When true, drop the field's name label, showing only the value. Honored on image-corner overlays
-   * (standard fields and custom properties) and in the `card-table` zone (collapses the 2-column row
-   * to a single value).
+   * (standard fields and custom properties), in the `card-table` zone (collapses the 2-column row to a
+   * single value), and on boolean custom-property fields in the body zones (shows only the value).
    */
   hideLabel?: boolean;
   /**
@@ -725,6 +725,26 @@ export interface CardFieldPlacement {
    * by default.
    */
   hideIcon?: boolean;
+  /**
+   * Boolean custom-property fields only. When true, the value renders even when it is `false`
+   * (otherwise a false value hides the field). Defaults to false.
+   */
+  showIfFalse?: boolean;
+  /**
+   * Boolean custom-property fields only. When true, the value can be clicked on the card/detail view to
+   * toggle it without entering edit mode. Defaults to false.
+   */
+  clickableInView?: boolean;
+  /**
+   * Boolean custom-property fields with an icon-like preset (`icons`/`stars`) only. When false, the
+   * colon after the property name is suppressed. **Absent/omitted means true** (the default).
+   */
+  showLabelColon?: boolean;
+  /**
+   * Boolean custom-property fields with an icon-like preset (`icons`/`stars`) only. When true, the
+   * value renders before the property name (e.g. "★ Favorite"). Defaults to false.
+   */
+  showValueBeforeLabel?: boolean;
 }
 
 /**
@@ -783,22 +803,12 @@ export interface CustomProperty {
   zeroLabel: string | null;
   /** Label shown when a `number`/`calculate` value reaches its maximum (e.g. `"Unlimited"`), or `null`. */
   maxLabel: string | null;
-  /** When true, the property's value badge/row is shown even when the value is false. Defaults to false. */
-  showIfFalse: boolean;
   /** How `true`/`false` values are rendered; `null` defaults to `"yes-no"`. Only relevant for `boolean` type. */
   booleanLabelPreset: BooleanLabelPreset | null;
   /** Custom label for a `true` value; only used when `booleanLabelPreset` is `"custom"`. */
   booleanTrueLabel: string | null;
   /** Custom label for a `false` value; only used when `booleanLabelPreset` is `"custom"`. */
   booleanFalseLabel: string | null;
-  /** When false, the colon after the property name is suppressed in displays. Defaults to true. Only relevant for `boolean` icon presets. */
-  showLabelColon: boolean;
-  /** When true, the value renders before the property name (e.g. "★ Favorite"). Defaults to false. Only relevant for `boolean` icon presets. */
-  showValueBeforeLabel: boolean;
-  /** When true, the property name label is omitted; only the value is shown. Defaults to false. Only relevant for `boolean` type. */
-  hideLabel: boolean;
-  /** When true, the value in the bookmark detail view is a clickable toggle. Defaults to false. Only relevant for `boolean` type. */
-  clickableInView: boolean;
   /** Top of a `ratingScale` (3 or 5 stars); `null` defaults to 5. Only relevant for `ratingScale`. */
   ratingMax: RatingMax | null;
   /** When true, a `ratingScale` may be set to 0 (no stars); otherwise the minimum is 1. Defaults to false. */
@@ -886,22 +896,12 @@ export interface CreateCustomPropertyInput {
   allowDefault?: boolean;
   /** Id of the property group to place this property in, or `null` to leave it ungrouped. */
   propertyGroupId?: string | null;
-  /** When true, the property's value badge/row is shown even when the value is false. Defaults to false. */
-  showIfFalse?: boolean;
   /** How `true`/`false` values are rendered. Only relevant for `boolean` type. */
   booleanLabelPreset?: BooleanLabelPreset | null;
   /** Custom label for a `true` value; only used when `booleanLabelPreset` is `"custom"`. */
   booleanTrueLabel?: string | null;
   /** Custom label for a `false` value; only used when `booleanLabelPreset` is `"custom"`. */
   booleanFalseLabel?: string | null;
-  /** When false, the colon after the property name is suppressed. Defaults to true. Only relevant for `boolean` icon presets. */
-  showLabelColon?: boolean;
-  /** When true, the value renders before the property name. Defaults to false. Only relevant for `boolean` icon presets. */
-  showValueBeforeLabel?: boolean;
-  /** When true, the property name label is omitted; only the value is shown. Defaults to false. Only relevant for `boolean` type. */
-  hideLabel?: boolean;
-  /** When true, the value in the bookmark detail view is a clickable toggle. Defaults to false. Only relevant for `boolean` type. */
-  clickableInView?: boolean;
   /** Top of a `ratingScale` (3 or 5). Defaults to 5. Only relevant for `ratingScale`. */
   ratingMax?: RatingMax | null;
   /** When true, a `ratingScale` may be set to 0. Defaults to false. */

@@ -35,25 +35,11 @@ describe("PropertyOptionsFields", () => {
     );
     expect(screen.getByText("How Values Display")).toBeInTheDocument();
     expect(screen.getByText("True / False")).toBeInTheDocument();
-    expect(screen.getByText("Hide label")).toBeInTheDocument();
-    expect(screen.getByText("Clickable in view")).toBeInTheDocument();
-    expect(screen.getByText("Show if false")).toBeInTheDocument();
-    // Plain presets omit the icon-preset extras and the default-allowance row.
-    expect(screen.queryByText("Colon after label")).not.toBeInTheDocument();
+    // Per-card display knobs moved to Card Display Rules; only a pointer row remains here.
+    expect(screen.getByText("Per-card display")).toBeInTheDocument();
+    expect(screen.queryByText("Hide label")).not.toBeInTheDocument();
+    expect(screen.queryByText("Clickable in view")).not.toBeInTheDocument();
     expect(screen.queryByText("Allow default value")).not.toBeInTheDocument();
-  });
-
-  it("renders the icon-preset extras for icons/stars booleans", () => {
-    render(
-      <PropertyOptionsFields
-        property={makeCustomProperty({
-          type: "boolean",
-          booleanLabelPreset: "stars",
-        })}
-      />,
-    );
-    expect(screen.getByText("Colon after label")).toBeInTheDocument();
-    expect(screen.getByText("Value before label")).toBeInTheDocument();
   });
 
   it("renders the rating-scale options", () => {

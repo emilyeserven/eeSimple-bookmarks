@@ -1,6 +1,6 @@
 import type { BookmarkHierarchyNode } from "../lib/bookmarkHierarchy";
 import type { FlatNode } from "../lib/tagTree";
-import type { Bookmark, Category, CustomProperty, PropertyGroup } from "@eesimple/types";
+import type { Bookmark, CardFieldZones, Category, CustomProperty, PropertyGroup } from "@eesimple/types";
 import type { ReactNode } from "react";
 
 import { Link } from "@tanstack/react-router";
@@ -42,6 +42,8 @@ interface BuildArgs {
   flatHierarchy: FlatNode<BookmarkHierarchyNode>[];
   /** When provided, boolean properties with `clickableInView` enabled render as toggles. */
   onSaveBoolean?: (propertyId: string, value: boolean) => void;
+  /** The Default card display rule's field zones, resolving the per-card boolean display knobs. */
+  defaultFieldZones?: CardFieldZones;
 }
 
 /**
@@ -53,7 +55,7 @@ interface BuildArgs {
  * `flattenTree`) and pass it in.
  */
 export function buildBookmarkDetailSections({
-  bookmark, categories, properties, propertyGroups, flatHierarchy, onSaveBoolean,
+  bookmark, categories, properties, propertyGroups, flatHierarchy, onSaveBoolean, defaultFieldZones,
 }: BuildArgs): BookmarkDetailSection[] {
   const category = categories.find(item => item.id === bookmark.categoryId);
   const sections: BookmarkDetailSection[] = [];
@@ -249,7 +251,7 @@ export function buildBookmarkDetailSections({
     });
   }
 
-  if (hasBookmarkPropertyRows(bookmark, properties)) {
+  if (hasBookmarkPropertyRows(bookmark, properties, defaultFieldZones)) {
     sections.push({
       id: "properties",
       label: "Properties",

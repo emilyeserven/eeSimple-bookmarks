@@ -120,25 +120,23 @@ describe("payloadFromValues", () => {
     expect(nonRating.ratingAllowZero).toBeUndefined();
   });
 
-  it("maps boolean display toggles only for boolean properties", () => {
+  it("maps the boolean value-formatting preset only for boolean properties", () => {
     const bool = payloadFromValues({
       ...CREATE_DEFAULTS,
       type: "boolean",
-      showIfFalse: true,
-      hideLabel: true,
-      clickableInView: true,
+      booleanLabelPreset: "custom",
+      booleanTrueLabel: "Read",
+      booleanFalseLabel: "Unread",
     });
-    expect(bool.showIfFalse).toBe(true);
-    expect(bool.hideLabel).toBe(true);
-    expect(bool.clickableInView).toBe(true);
+    expect(bool.booleanLabelPreset).toBe("custom");
+    expect(bool.booleanTrueLabel).toBe("Read");
+    expect(bool.booleanFalseLabel).toBe("Unread");
 
     const number = payloadFromValues({
       ...CREATE_DEFAULTS,
       type: "number",
     });
-    expect(number.showIfFalse).toBeUndefined();
-    expect(number.hideLabel).toBeUndefined();
-    expect(number.clickableInView).toBeUndefined();
+    expect(number.booleanLabelPreset).toBeNull();
   });
 
   it("converts empty propertyGroupId to null and inverts the inForm flag", () => {

@@ -125,11 +125,19 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
     pill / `label : value` table row) — or one of the four `image-*` overlay corners. Order **within**
     a zone matters (the `CardFieldZoneBoard` is sortable; `BookmarkCardDetails` renders in array order).
     A `CardFieldPlacement` carries `scale`/`mobileScale` (image zones), `hideLabel` (image zones +
-    `card-table`), and `hideIcon` (image zones — overlays show the field's icon/image by default).
-    The Fastify route body (`routes/cardDisplayRules.ts`) **hand-lists** the zone names + placement
-    props — keep it mirrored with `CARD_FIELD_ZONES`/`CardFieldPlacement`. The legacy single `card`
-    zone is migrated to `card-labels` by the idempotent boot step `backfillCardDisplayRuleSubZones()`
-    (jsonb, no schema change).
+    `card-table` + boolean body fields), `hideIcon` (image zones — overlays show the field's icon/image
+    by default), and the **boolean per-field knobs** `showIfFalse`/`clickableInView`/`showLabelColon`
+    (absent = true)/`showValueBeforeLabel` (moved off the `CustomProperty` so each rule/zone controls
+    them; non-listing surfaces resolve them from the **Default** rule via `resolveBooleanDisplay`). The
+    **card header** is no longer fixed: `title`, `externalLink`, and `more` are standard placeable
+    fields (in `STANDARD_CARD_FIELDS` / `STANDARD_CARD_FIELD_KEYS`), rendered by `describeField` and laid
+    out as a justified header row when co-located in a single zone; they're kept out of the image
+    corners. The Fastify route body (`routes/cardDisplayRules.ts`) **hand-lists** the zone names +
+    placement props — keep it mirrored with `CARD_FIELD_ZONES`/`CardFieldPlacement`. The legacy single
+    `card` zone is migrated to `card-labels` by the idempotent boot step
+    `backfillCardDisplayRuleSubZones()`; the header fields are injected into existing rules by
+    `backfillCardDisplayRuleHeaderFields()` (both jsonb, no schema change). **To add a field or a
+    per-field knob to this area, see the `card-field-area` skill.**
 
 ## Page-header breadcrumbs
 

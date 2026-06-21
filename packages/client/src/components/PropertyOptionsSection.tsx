@@ -387,19 +387,14 @@ function BooleanOptions({
 
       <CollapsibleFormSection
         title="Property options"
-        description="Configure how the boolean value is displayed."
+        description="Configure how the boolean value is displayed. Per-card display (hide label, clickable, show-if-false, colon, value order) is set per field under Settings → Card Display Rules."
         defaultOpen={defaultOpen}
         preview={(
           <form.Subscribe
             selector={state => ({
-              showIfFalse: state.values.showIfFalse,
               booleanLabelPreset: state.values.booleanLabelPreset,
               booleanTrueLabel: state.values.booleanTrueLabel,
               booleanFalseLabel: state.values.booleanFalseLabel,
-              showLabelColon: state.values.showLabelColon,
-              showValueBeforeLabel: state.values.showValueBeforeLabel,
-              hideLabel: state.values.hideLabel,
-              clickableInView: state.values.clickableInView,
             })}
           >
             {values => summarizeBooleanOptions(values)}
@@ -447,107 +442,12 @@ function BooleanOptions({
                 : null}
           </form.Subscribe>
 
-          <form.AppField name="showIfFalse">
-            {field => (
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id={`${idPrefix}-show-if-false`}
-                  checked={field.state.value}
-                  onCheckedChange={checked => field.handleChange(checked === true)}
-                />
-                <Label htmlFor={`${idPrefix}-show-if-false`}>
-                  Show if false
-                </Label>
-              </div>
-            )}
-          </form.AppField>
-          <p className="text-xs text-muted-foreground">
-            When unchecked, the property is hidden from cards and detail pages when its value is false.
-          </p>
-
-          <form.AppField name="hideLabel">
-            {field => (
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id={`${idPrefix}-hide-label`}
-                  checked={field.state.value}
-                  onCheckedChange={checked => field.handleChange(checked === true)}
-                />
-                <Label htmlFor={`${idPrefix}-hide-label`}>
-                  Hide label
-                </Label>
-              </div>
-            )}
-          </form.AppField>
-          <p className="text-xs text-muted-foreground">
-            When checked, the property name is omitted — only the value is shown.
-          </p>
-
-          <form.AppField name="clickableInView">
-            {field => (
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id={`${idPrefix}-clickable-in-view`}
-                  checked={field.state.value}
-                  onCheckedChange={checked => field.handleChange(checked === true)}
-                />
-                <Label htmlFor={`${idPrefix}-clickable-in-view`}>
-                  Clickable in view
-                </Label>
-              </div>
-            )}
-          </form.AppField>
-          <p className="text-xs text-muted-foreground">
-            When checked, the label or value can be clicked on cards and in the detail view to toggle it without entering edit mode.
-          </p>
-
-          <form.Subscribe selector={state => state.values.booleanLabelPreset}>
-            {preset =>
-              preset === "icons" || preset === "stars"
-                ? (
-                  <div className="space-y-2">
-                    <form.AppField name="showLabelColon">
-                      {field => (
-                        <div className="flex items-center gap-2">
-                          <Checkbox
-                            id={`${idPrefix}-show-label-colon`}
-                            checked={field.state.value}
-                            onCheckedChange={checked => field.handleChange(checked === true)}
-                          />
-                          <Label htmlFor={`${idPrefix}-show-label-colon`}>
-                            Show colon after label
-                          </Label>
-                        </div>
-                      )}
-                    </form.AppField>
-                    <form.AppField name="showValueBeforeLabel">
-                      {field => (
-                        <div className="flex items-center gap-2">
-                          <Checkbox
-                            id={`${idPrefix}-show-value-before-label`}
-                            checked={field.state.value}
-                            onCheckedChange={checked => field.handleChange(checked === true)}
-                          />
-                          <Label htmlFor={`${idPrefix}-show-value-before-label`}>
-                            Show value before label
-                          </Label>
-                        </div>
-                      )}
-                    </form.AppField>
-                  </div>
-                )
-                : null}
-          </form.Subscribe>
-
           <form.Subscribe
             selector={state => ({
               name: state.values.name,
               booleanLabelPreset: state.values.booleanLabelPreset,
               booleanTrueLabel: state.values.booleanTrueLabel,
               booleanFalseLabel: state.values.booleanFalseLabel,
-              showLabelColon: state.values.showLabelColon,
-              showValueBeforeLabel: state.values.showValueBeforeLabel,
-              hideLabel: state.values.hideLabel,
             })}
           >
             {(values) => {
@@ -556,9 +456,6 @@ function BooleanOptions({
                 booleanLabelPreset: values.booleanLabelPreset as CustomProperty["booleanLabelPreset"],
                 booleanTrueLabel: values.booleanTrueLabel.trim() || null,
                 booleanFalseLabel: values.booleanFalseLabel.trim() || null,
-                showLabelColon: values.showLabelColon,
-                showValueBeforeLabel: values.showValueBeforeLabel,
-                hideLabel: values.hideLabel,
               } as CustomProperty;
               return (
                 <div className="space-y-2 rounded-md border bg-muted/30 p-3">

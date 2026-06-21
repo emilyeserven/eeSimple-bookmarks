@@ -71,6 +71,19 @@ const displayProperties = {
               hideIcon: {
                 type: "boolean",
               },
+              // Boolean custom-property fields only (mirror of CardFieldPlacement in @eesimple/types).
+              showIfFalse: {
+                type: "boolean",
+              },
+              clickableInView: {
+                type: "boolean",
+              },
+              showLabelColon: {
+                type: "boolean",
+              },
+              showValueBeforeLabel: {
+                type: "boolean",
+              },
             },
           },
         }],

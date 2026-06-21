@@ -14,7 +14,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { CARD_FIELD_ZONES, emptyCardFieldZones, zoneToCorner } from "@eesimple/types";
 import { GripVertical } from "lucide-react";
 
-import { eligibleCustomCardFields, STANDARD_CARD_FIELDS } from "../lib/bookmarkCardFieldDefs";
+import { eligibleCustomCardFields, HEADER_CARD_FIELD_KEYS, STANDARD_CARD_FIELDS } from "../lib/bookmarkCardFieldDefs";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -117,6 +117,12 @@ export function CardFieldZoneBoard({
 }: CardFieldZoneBoardProps) {
   const fields = [...STANDARD_CARD_FIELDS, ...eligibleCustomCardFields(properties)];
   const labelByKey = new Map(fields.map(field => [field.key, field.label]));
+  const propertyById = new Map(properties.map(property => [property.id, property]));
+  /** The boolean custom property for `key`, or undefined when `key` isn't a boolean property. */
+  function booleanPropertyFor(key: string): CustomProperty | undefined {
+    const property = propertyById.get(key);
+    return property?.type === "boolean" ? property : undefined;
+  }
   const placedKeys = new Set(CARD_FIELD_ZONES.flatMap(zone => (value[zone] ?? []).map(p => p.key)));
   const unplaced = fields.filter(field => !placedKeys.has(field.key));
 
@@ -149,6 +155,11 @@ export function CardFieldZoneBoard({
     }
     if (targetZone) {
       const isImage = zoneToCorner(targetZone) !== null;
+      // The header fields (title / open-link / more menu) have no image-corner overlay form.
+      if (isImage && HEADER_CARD_FIELD_KEYS.includes(key as (typeof HEADER_CARD_FIELD_KEYS)[number])) {
+        onChange(next);
+        return;
+      }
       const placement: CardFieldPlacement = {
         key,
       };
@@ -158,6 +169,11 @@ export function CardFieldZoneBoard({
       }
       if (existing?.hideLabel) placement.hideLabel = true;
       if (isImage && existing?.hideIcon) placement.hideIcon = true;
+      // Preserve the boolean per-field knobs across a move (they apply in every body zone).
+      if (existing?.showIfFalse) placement.showIfFalse = true;
+      if (existing?.clickableInView) placement.clickableInView = true;
+      if (existing?.showLabelColon === false) placement.showLabelColon = false;
+      if (existing?.showValueBeforeLabel) placement.showValueBeforeLabel = true;
       const list = next[targetZone];
       const at = targetIndex === undefined ? list.length : Math.min(Math.max(targetIndex, 0), list.length);
       list.splice(at, 0, placement);
@@ -241,23 +257,38 @@ export function CardFieldZoneBoard({
             hint={def.hint}
             items={(value[def.zone] ?? []).map(p => p.key)}
           >
-            {(value[def.zone] ?? []).map(placement => (
-              <FieldChip
-                key={placement.key}
-                fieldKey={placement.key}
-                label={labelByKey.get(placement.key) ?? placement.key}
-              >
-                {def.zone === "card-table"
-                  ? (
-                    <TablePlacementControls
-                      placement={placement}
-                      idPrefix={`${idPrefix}-${def.zone}-${placement.key}`}
-                      onPatch={patch => patchPlacement(def.zone, placement.key, patch)}
-                    />
-                  )
-                  : null}
-              </FieldChip>
-            ))}
+            {(value[def.zone] ?? []).map((placement) => {
+              const boolProperty = booleanPropertyFor(placement.key);
+              const chipIdPrefix = `${idPrefix}-${def.zone}-${placement.key}`;
+              const onPatch = (patch: Partial<CardFieldPlacement>) =>
+                patchPlacement(def.zone, placement.key, patch);
+              return (
+                <FieldChip
+                  key={placement.key}
+                  fieldKey={placement.key}
+                  label={labelByKey.get(placement.key) ?? placement.key}
+                >
+                  {boolProperty
+                    ? (
+                      <BooleanPlacementControls
+                        property={boolProperty}
+                        placement={placement}
+                        idPrefix={chipIdPrefix}
+                        onPatch={onPatch}
+                      />
+                    )
+                    : def.zone === "card-table"
+                      ? (
+                        <TablePlacementControls
+                          placement={placement}
+                          idPrefix={chipIdPrefix}
+                          onPatch={onPatch}
+                        />
+                      )
+                      : null}
+                </FieldChip>
+              );
+            })}
           </ZoneDropArea>
         ))}
 
@@ -400,6 +431,86 @@ function TablePlacementControls(props: PlacementControlsProps) {
   return (
     <div className="flex flex-wrap items-center gap-2 pl-5 text-xs">
       <HideLabelToggle {...props} />
+    </div>
+  );
+}
+
+/** A labeled checkbox used by the boolean placement controls. */
+function PlacementCheckbox({
+  id, label, checked, onCheckedChange,
+}: {
+  id: string;
+  label: string;
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+}) {
+  return (
+    <label className="flex items-center gap-1 text-muted-foreground">
+      <Checkbox
+        id={id}
+        checked={checked}
+        onCheckedChange={value => onCheckedChange(value === true)}
+      />
+      {label}
+    </label>
+  );
+}
+
+/**
+ * Per-field display controls for a boolean custom property placed in a card-body zone: Hide label,
+ * Show if false, and Clickable in view (plus Colon-after-label / Value-before-label for the icon-like
+ * presets). These knobs moved here from the property's options page.
+ */
+function BooleanPlacementControls({
+  property, placement, idPrefix, onPatch,
+}: PlacementControlsProps & { property: CustomProperty }) {
+  const isIconPreset
+    = property.booleanLabelPreset === "icons" || property.booleanLabelPreset === "stars";
+  return (
+    <div className="flex flex-wrap items-center gap-2 pl-5 text-xs">
+      <HideLabelToggle
+        placement={placement}
+        idPrefix={idPrefix}
+        onPatch={onPatch}
+      />
+      <PlacementCheckbox
+        id={`${idPrefix}-show-if-false`}
+        label="Show if false"
+        checked={placement.showIfFalse ?? false}
+        onCheckedChange={showIfFalse => onPatch({
+          showIfFalse,
+        })}
+      />
+      <PlacementCheckbox
+        id={`${idPrefix}-clickable`}
+        label="Clickable in view"
+        checked={placement.clickableInView ?? false}
+        onCheckedChange={clickableInView => onPatch({
+          clickableInView,
+        })}
+      />
+      {isIconPreset
+        ? (
+          <>
+            <PlacementCheckbox
+              id={`${idPrefix}-colon`}
+              label="Colon after label"
+              checked={placement.showLabelColon ?? true}
+              onCheckedChange={showLabelColon => onPatch({
+                showLabelColon,
+              })}
+            />
+            <PlacementCheckbox
+              id={`${idPrefix}-value-before`}
+              label="Value before label"
+              checked={placement.showValueBeforeLabel ?? false}
+              onCheckedChange={showValueBeforeLabel => onPatch({
+                showValueBeforeLabel,
+              })}
+            />
+          </>
+        )
+        : null}
     </div>
   );
 }

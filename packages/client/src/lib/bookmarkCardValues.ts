@@ -8,16 +8,19 @@ import type {
 
 import { CARD_BODY_ZONES, CARD_FIELD_ZONES, emptyCardFieldZones, zoneToCorner } from "@eesimple/types";
 
-import { eligibleCustomCardFields, STANDARD_CARD_FIELDS } from "./bookmarkCardFieldDefs";
+import { eligibleCustomCardFields, HEADER_CARD_FIELD_KEYS, STANDARD_CARD_FIELDS } from "./bookmarkCardFieldDefs";
 import { formatBoolean, formatBooleanBadge, formatDateTime, formatNumber } from "./bookmarkFormat";
 
 /**
- * The card-body sub-zone a field lands in by default: the long-text `description` reads best as a
- * full-width row (`card-single-top`); everything else uses its pill/badge form in `card-labels`.
- * Mirrors the middleware's `defaultBodyZone` so seeded/migrated and client-default zones agree.
+ * The card-body sub-zone a field lands in by default: the header fields (`title`, `externalLink`,
+ * `more`) and the long-text `description` read best as full-width rows (`card-single-top`); everything
+ * else uses its pill/badge form in `card-labels`. Mirrors the middleware's `defaultBodyZone` so
+ * seeded/migrated and client-default zones agree.
  */
 export function defaultBodyZone(key: string): CardFieldZone {
-  return key === "description" ? "card-single-top" : "card-labels";
+  return key === "description" || (HEADER_CARD_FIELD_KEYS as readonly string[]).includes(key)
+    ? "card-single-top"
+    : "card-labels";
 }
 
 /** The default concrete zones: every standard field + eligible custom property placed in the card body. */
@@ -48,6 +51,14 @@ export interface ResolvedFieldPlacement {
   mobileScale: number | null;
   hideLabel: boolean;
   hideIcon: boolean;
+  /** Boolean fields: render the value even when false (otherwise a false value hides the field). */
+  showIfFalse: boolean;
+  /** Boolean fields: the value can be clicked to toggle it without entering edit mode. */
+  clickableInView: boolean;
+  /** Boolean icon-preset fields: show the colon after the label (defaults to true). */
+  showLabelColon: boolean;
+  /** Boolean icon-preset fields: render the value before the label. */
+  showValueBeforeLabel: boolean;
 }
 
 /** Build a `fieldKey → placement` lookup from a rule's {@link CardFieldZones}. Unlisted keys are hidden. */
@@ -63,27 +74,37 @@ export function resolveFieldPlacements(zones: CardFieldZones): Map<string, Resol
         mobileScale: placement.mobileScale ?? null,
         hideLabel: placement.hideLabel ?? false,
         hideIcon: placement.hideIcon ?? false,
+        showIfFalse: placement.showIfFalse ?? false,
+        clickableInView: placement.clickableInView ?? false,
+        showLabelColon: placement.showLabelColon ?? true,
+        showValueBeforeLabel: placement.showValueBeforeLabel ?? false,
       });
     }
   }
   return map;
 }
 
-/** A placement meaning "shown in the card body" (default labels sub-zone, no overlay styling). */
-const CARD_PLACEMENT: ResolvedFieldPlacement = {
-  zone: "card-labels",
-  corner: null,
-  scale: 1,
-  mobileScale: null,
-  hideLabel: false,
-  hideIcon: false,
-};
+/** A placement meaning "shown in the card body" at `zone`, no overlay styling, all boolean knobs default. */
+function bodyPlacement(zone: CardFieldZone): ResolvedFieldPlacement {
+  return {
+    zone,
+    corner: null,
+    scale: 1,
+    mobileScale: null,
+    hideLabel: false,
+    hideIcon: false,
+    showIfFalse: false,
+    clickableInView: false,
+    showLabelColon: true,
+    showValueBeforeLabel: false,
+  };
+}
 
 /**
  * The placement lookup a card should render with. When `zones` is provided (rule-driven listings),
  * placement is strict — a field absent from every zone is hidden. When omitted (surfaces with no
- * rule, e.g. tests), every standard field and custom property defaults to the card body (show all),
- * preserving the pre-rules behavior.
+ * rule, e.g. tests), every standard field and custom property defaults to its {@link defaultBodyZone}
+ * (show all), preserving the pre-rules behavior (and rendering the header fields as a heading row).
  */
 export function fieldPlacementsForCard(
   zones: CardFieldZones | undefined,
@@ -91,9 +112,46 @@ export function fieldPlacementsForCard(
 ): Map<string, ResolvedFieldPlacement> {
   if (zones) return resolveFieldPlacements(zones);
   const map = new Map<string, ResolvedFieldPlacement>();
-  for (const field of STANDARD_CARD_FIELDS) map.set(field.key, CARD_PLACEMENT);
-  for (const property of properties) map.set(property.id, CARD_PLACEMENT);
+  for (const field of STANDARD_CARD_FIELDS) map.set(field.key, bodyPlacement(defaultBodyZone(field.key)));
+  for (const property of properties) map.set(property.id, bodyPlacement(defaultBodyZone(property.id)));
   return map;
+}
+
+/** The resolved per-field boolean display knobs, used by non-listing surfaces via the Default rule. */
+export interface ResolvedBooleanDisplay {
+  hideLabel: boolean;
+  showIfFalse: boolean;
+  clickableInView: boolean;
+  showLabelColon: boolean;
+  showValueBeforeLabel: boolean;
+}
+
+/** Default boolean-display knobs for a property absent from the (Default) rule's zones. */
+export const DEFAULT_BOOLEAN_DISPLAY: ResolvedBooleanDisplay = {
+  hideLabel: false,
+  showIfFalse: false,
+  clickableInView: false,
+  showLabelColon: true,
+  showValueBeforeLabel: false,
+};
+
+/**
+ * Resolve a boolean property's display knobs from a {@link CardFieldZones} (the **Default** rule for
+ * non-listing surfaces). Returns the defaults when the property isn't placed in any zone.
+ */
+export function resolveBooleanDisplay(
+  zones: CardFieldZones | undefined,
+  propertyId: string,
+): ResolvedBooleanDisplay {
+  const placement = zones ? resolveFieldPlacements(zones).get(propertyId) : undefined;
+  if (!placement) return DEFAULT_BOOLEAN_DISPLAY;
+  return {
+    hideLabel: placement.hideLabel,
+    showIfFalse: placement.showIfFalse,
+    clickableInView: placement.clickableInView,
+    showLabelColon: placement.showLabelColon,
+    showValueBeforeLabel: placement.showValueBeforeLabel,
+  };
 }
 
 /** Remove `hiddenKeys` from every zone (used to layer a surface's own visibility over rule zones). */
@@ -146,6 +204,8 @@ interface BookmarkValueItemBase {
   hideLabel: boolean;
   /** Drop the field's icon/image from an overlay. */
   hideIcon: boolean;
+  /** Boolean fields: the value can be clicked to toggle it (from the placement, not the property). */
+  clickableInView: boolean;
 }
 
 export type BookmarkValueItem
@@ -181,6 +241,7 @@ function placementBase(
     mobileScale: placement.mobileScale,
     hideLabel: placement.hideLabel,
     hideIcon: placement.hideIcon,
+    clickableInView: placement.clickableInView,
   };
 }
 
@@ -213,13 +274,16 @@ function booleanValueItem(
   property: CustomProperty,
   placement: ResolvedFieldPlacement,
 ): BookmarkValueItem | null {
-  if (!entry.value && !property.showIfFalse) return null;
+  if (!entry.value && !placement.showIfFalse) return null;
   return {
     ...placementBase(property, placement),
     kind: "badge",
     label: placement.hideLabel
       ? formatBoolean(entry.value, property)
-      : formatBooleanBadge(entry.value, property),
+      : formatBooleanBadge(entry.value, property, {
+        showLabelColon: placement.showLabelColon,
+        showValueBeforeLabel: placement.showValueBeforeLabel,
+      }),
     name: property.name,
     value: formatBoolean(entry.value, property),
     booleanValue: entry.value,

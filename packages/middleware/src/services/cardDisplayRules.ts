@@ -12,7 +12,7 @@ import type { CardFieldZones } from "@eesimple/types";
 import { CARD_FIELD_ZONES, emptyCardFieldZones, emptyConditionTree } from "@eesimple/types";
 import { db } from "@/db";
 import { cardDisplayRules, customProperties, propertyCategories } from "@/db/schema";
-import { defaultBodyZone, defaultFieldZones, STANDARD_CARD_FIELD_KEYS } from "@/services/cardDisplayDefaults";
+import { defaultBodyZone, defaultFieldZones, HEADER_CARD_FIELD_KEYS, STANDARD_CARD_FIELD_KEYS } from "@/services/cardDisplayDefaults";
 
 type RuleRow = typeof cardDisplayRules.$inferSelect;
 
@@ -307,6 +307,48 @@ export async function backfillCardDisplayRuleSubZones(): Promise<void> {
       .update(cardDisplayRules)
       .set({
         fieldZones: next as CardFieldZones,
+      })
+      .where(eq(cardDisplayRules.id, row.id));
+  }
+}
+
+/**
+ * One-time boot backfill: place the card header fields (`title`, `externalLink`, `more`) into rules
+ * whose stored `field_zones` predate them. Title is prepended to `card-single-top` (the heading row)
+ * and `externalLink` + `more` appended after it, reproducing the old fixed header. Idempotent — a key
+ * already present in any zone is skipped, and inheriting rules (`field_zones IS NULL`) are left
+ * untouched. Must run after `ensureDefaultCardDisplayRule`/`backfillCardDisplayRuleFieldZones`.
+ */
+export async function backfillCardDisplayRuleHeaderFields(): Promise<void> {
+  const rows = await db.select().from(cardDisplayRules);
+  for (const row of rows) {
+    const stored = row.fieldZones as Record<string, CardFieldPlacement[]> | null;
+    if (!stored) continue;
+
+    const placed = new Set(
+      CARD_FIELD_ZONES.flatMap(zone => (stored[zone] ?? []).map(p => p.key)),
+    );
+    const missing = HEADER_CARD_FIELD_KEYS.filter(key => !placed.has(key));
+    if (missing.length === 0) continue;
+
+    const next = emptyCardFieldZones();
+    for (const zone of CARD_FIELD_ZONES) {
+      if (Array.isArray(stored[zone])) next[zone] = [...stored[zone]];
+    }
+    // Title leads the heading row; the action buttons follow it.
+    if (missing.includes("title")) next["card-single-top"].unshift({
+      key: "title",
+    });
+    for (const key of missing.filter(k => k !== "title")) {
+      next["card-single-top"].push({
+        key,
+      });
+    }
+
+    await db
+      .update(cardDisplayRules)
+      .set({
+        fieldZones: next,
       })
       .where(eq(cardDisplayRules.id, row.id));
   }

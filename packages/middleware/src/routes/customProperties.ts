@@ -122,9 +122,6 @@ const createPropertyBody = {
     allowDefault: {
       type: "boolean",
     },
-    showIfFalse: {
-      type: "boolean",
-    },
     booleanLabelPreset: {
       type: ["string", "null"],
       enum: ["yes-no", "true-false", "enabled-disabled", "icons", "stars", "custom", null],
@@ -134,18 +131,6 @@ const createPropertyBody = {
     },
     booleanFalseLabel: {
       type: ["string", "null"],
-    },
-    showLabelColon: {
-      type: "boolean",
-    },
-    showValueBeforeLabel: {
-      type: "boolean",
-    },
-    hideLabel: {
-      type: "boolean",
-    },
-    clickableInView: {
-      type: "boolean",
     },
     ratingMax: {
       type: ["number", "null"],
@@ -196,14 +181,9 @@ const updatePropertyBody = {
     editableOnCard: createPropertyBody.properties.editableOnCard,
     enabled: createPropertyBody.properties.enabled,
     allowDefault: createPropertyBody.properties.allowDefault,
-    showIfFalse: createPropertyBody.properties.showIfFalse,
     booleanLabelPreset: createPropertyBody.properties.booleanLabelPreset,
     booleanTrueLabel: createPropertyBody.properties.booleanTrueLabel,
     booleanFalseLabel: createPropertyBody.properties.booleanFalseLabel,
-    showLabelColon: createPropertyBody.properties.showLabelColon,
-    showValueBeforeLabel: createPropertyBody.properties.showValueBeforeLabel,
-    hideLabel: createPropertyBody.properties.hideLabel,
-    clickableInView: createPropertyBody.properties.clickableInView,
     ratingMax: createPropertyBody.properties.ratingMax,
     ratingAllowZero: createPropertyBody.properties.ratingAllowZero,
     ratingAllowHalf: createPropertyBody.properties.ratingAllowHalf,
