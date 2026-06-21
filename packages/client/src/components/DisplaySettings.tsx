@@ -326,8 +326,6 @@ function PinnedItemsCard() {
   );
 }
 
-
-
 function ImageAspectRatiosCard() {
   const croppedWidth = useUiStore(state => state.croppedWidth);
   const croppedHeight = useUiStore(state => state.croppedHeight);
