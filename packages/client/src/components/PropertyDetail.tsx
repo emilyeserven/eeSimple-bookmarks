@@ -1,4 +1,5 @@
-import type { Category, CustomProperty, MediaType, PropertyGroup } from "@eesimple/types";
+import type { Category, CustomProperty, CustomPropertyType, MediaType, PropertyGroup } from "@eesimple/types";
+import type { FC } from "react";
 
 import { Link } from "@tanstack/react-router";
 import { TriangleAlert } from "lucide-react";
@@ -131,93 +132,144 @@ export function PropertyGeneralFields({
   );
 }
 
-/** The "Property options" section body; renders nothing for calculate properties. */
-export function PropertyOptionsFields({
-  property, allProperties = [],
-}: {
+interface PropertyOptionsFieldsProps {
   property: CustomProperty;
   allProperties?: CustomProperty[];
-}) {
-  const isNumeric = property.type === "number" || property.type === "calculate";
+}
+
+/** The shared "Allow default value" row, shown by every option type except boolean/calculate. */
+function AllowDefaultField({
+  property,
+}: { property: CustomProperty }) {
+  return (
+    <DetailField label="Allow default value">
+      {property.allowDefault ? "Allowed" : "Hidden from category defaults"}
+    </DetailField>
+  );
+}
+
+/** Boolean option fields: value display, label/visibility toggles, and icon-preset extras. */
+function BooleanOptionsFields({
+  property,
+}: PropertyOptionsFieldsProps) {
+  const preset = BOOLEAN_LABEL_PRESET_OPTIONS.find(o => o.value === (property.booleanLabelPreset ?? "yes-no"));
+  const labelsDisplay = property.booleanLabelPreset === "custom"
+    ? `Custom: ${property.booleanTrueLabel || "Yes"} / ${property.booleanFalseLabel || "No"}`
+    : (preset?.label ?? "Yes / No");
+  const isIconPreset = property.booleanLabelPreset === "icons" || property.booleanLabelPreset === "stars";
+  return (
+    <>
+      <DetailField label="How Values Display">{labelsDisplay}</DetailField>
+      <DetailField label="Hide label">
+        {property.hideLabel ? "Yes — only the value is shown" : "No — property name is shown"}
+      </DetailField>
+      <DetailField label="Clickable in view">
+        {property.clickableInView ? "Yes — click to toggle in detail view" : "No — read-only in detail view"}
+      </DetailField>
+      <DetailField label="Show if false">
+        {property.showIfFalse
+          ? "Yes — shown even when unchecked"
+          : "No — hidden when unchecked"}
+      </DetailField>
+      {isIconPreset
+        ? (
+          <>
+            <DetailField label="Colon after label">
+              {property.showLabelColon ? "Yes" : "No"}
+            </DetailField>
+            <DetailField label="Value before label">
+              {property.showValueBeforeLabel ? "Yes" : "No"}
+            </DetailField>
+          </>
+        )
+        : null}
+    </>
+  );
+}
+
+/** Rating-scale option fields: scale bounds, half ratings, label, and default allowance. */
+function RatingOptionsFields({
+  property,
+}: PropertyOptionsFieldsProps) {
+  const min = property.ratingAllowZero ? 0 : 1;
+  return (
+    <>
+      <DetailField label="Scale">{`${min} – ${property.ratingMax ?? 5} stars`}</DetailField>
+      <DetailField label="Half ratings">{property.ratingAllowHalf ? "Allowed" : "Whole stars only"}</DetailField>
+      <DetailField label="Label">
+        {property.ratingShowLabel && property.ratingLabel ? property.ratingLabel : null}
+      </DetailField>
+      <AllowDefaultField property={property} />
+    </>
+  );
+}
+
+/** Number option fields: the numeric fields plus the default allowance. */
+function NumericOptionsFields({
+  property, allProperties = [],
+}: PropertyOptionsFieldsProps) {
   const operandNames = property.operandPropertyIds
     .map(id => allProperties.find(candidate => candidate.id === id)?.name)
     .filter((value): value is string => Boolean(value));
+  return (
+    <>
+      <NumericPropertyFields
+        property={property}
+        operandNames={operandNames}
+      />
+      <AllowDefaultField property={property} />
+    </>
+  );
+}
 
+/** Date-time option fields: what the value captures plus the default allowance. */
+function DateTimeOptionsFields({
+  property,
+}: PropertyOptionsFieldsProps) {
+  return (
+    <>
+      <DetailField label="Captures">
+        {DATE_TIME_FORMAT_LABELS[property.dateTimeFormat ?? "date"]}
+      </DetailField>
+      <AllowDefaultField property={property} />
+    </>
+  );
+}
+
+/** Option fields for types whose only option is the default allowance (image/file). */
+function BasicOptionsFields({
+  property,
+}: PropertyOptionsFieldsProps) {
+  return <AllowDefaultField property={property} />;
+}
+
+/**
+ * Per-type options renderer. Keyed by every `CustomPropertyType` so a newly added type fails `tsc`
+ * here rather than silently rendering no options. `null` means the type has no options section.
+ */
+const OPTIONS_FIELDS: Record<CustomPropertyType, FC<PropertyOptionsFieldsProps> | null> = {
+  number: NumericOptionsFields,
+  calculate: null,
+  boolean: BooleanOptionsFields,
+  datetime: DateTimeOptionsFields,
+  ratingScale: RatingOptionsFields,
+  image: BasicOptionsFields,
+  file: BasicOptionsFields,
+};
+
+/** The "Property options" section body; renders nothing for calculate properties. */
+export function PropertyOptionsFields({
+  property, allProperties = [],
+}: PropertyOptionsFieldsProps) {
   if (!hasPropertyOptions(property)) return null;
-
-  if (property.type === "boolean") {
-    const preset = BOOLEAN_LABEL_PRESET_OPTIONS.find(o => o.value === (property.booleanLabelPreset ?? "yes-no"));
-    const labelsDisplay = property.booleanLabelPreset === "custom"
-      ? `Custom: ${property.booleanTrueLabel || "Yes"} / ${property.booleanFalseLabel || "No"}`
-      : (preset?.label ?? "Yes / No");
-    const isIconPreset = property.booleanLabelPreset === "icons" || property.booleanLabelPreset === "stars";
-    return (
-      <dl className="space-y-3">
-        <DetailField label="How Values Display">{labelsDisplay}</DetailField>
-        <DetailField label="Hide label">
-          {property.hideLabel ? "Yes — only the value is shown" : "No — property name is shown"}
-        </DetailField>
-        <DetailField label="Clickable in view">
-          {property.clickableInView ? "Yes — click to toggle in detail view" : "No — read-only in detail view"}
-        </DetailField>
-        <DetailField label="Show if false">
-          {property.showIfFalse
-            ? "Yes — shown even when unchecked"
-            : "No — hidden when unchecked"}
-        </DetailField>
-        {isIconPreset
-          ? (
-            <>
-              <DetailField label="Colon after label">
-                {property.showLabelColon ? "Yes" : "No"}
-              </DetailField>
-              <DetailField label="Value before label">
-                {property.showValueBeforeLabel ? "Yes" : "No"}
-              </DetailField>
-            </>
-          )
-          : null}
-      </dl>
-    );
-  }
-
-  if (property.type === "ratingScale") {
-    const min = property.ratingAllowZero ? 0 : 1;
-    return (
-      <dl className="space-y-3">
-        <DetailField label="Scale">{`${min} – ${property.ratingMax ?? 5} stars`}</DetailField>
-        <DetailField label="Half ratings">{property.ratingAllowHalf ? "Allowed" : "Whole stars only"}</DetailField>
-        <DetailField label="Label">
-          {property.ratingShowLabel && property.ratingLabel ? property.ratingLabel : null}
-        </DetailField>
-        <DetailField label="Allow default value">
-          {property.allowDefault ? "Allowed" : "Hidden from category defaults"}
-        </DetailField>
-      </dl>
-    );
-  }
-
+  const Fields = OPTIONS_FIELDS[property.type];
+  if (!Fields) return null;
   return (
     <dl className="space-y-3">
-      {isNumeric
-        ? (
-          <NumericPropertyFields
-            property={property}
-            operandNames={operandNames}
-          />
-        )
-        : property.type === "datetime"
-          ? (
-            <DetailField label="Captures">
-              {DATE_TIME_FORMAT_LABELS[property.dateTimeFormat ?? "date"]}
-            </DetailField>
-          )
-          : null}
-      {property.type !== "calculate" && (
-        <DetailField label="Allow default value">
-          {property.allowDefault ? "Allowed" : "Hidden from category defaults"}
-        </DetailField>
-      )}
+      <Fields
+        property={property}
+        allProperties={allProperties}
+      />
     </dl>
   );
 }
