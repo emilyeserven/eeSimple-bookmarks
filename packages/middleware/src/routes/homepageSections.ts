@@ -71,6 +71,9 @@ const createBody = {
     cornerOverlays: {
       type: "boolean",
     },
+    hideWebsiteForYouTube: {
+      type: "boolean",
+    },
   },
 } as const;
 
@@ -119,6 +122,9 @@ const updateBody = {
       },
     },
     cornerOverlays: {
+      type: "boolean",
+    },
+    hideWebsiteForYouTube: {
       type: "boolean",
     },
   },

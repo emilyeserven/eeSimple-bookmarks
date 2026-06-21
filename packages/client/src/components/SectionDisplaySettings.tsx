@@ -1,6 +1,7 @@
 import type { BookmarkImageVisibility, CustomProperty, HomepageSectionImageLayout, ViewMode } from "@eesimple/types";
 
 import { CardDisplayControlsBase } from "./CardDisplayControls";
+import { OnOffToggleGroup } from "./DisplayControlPrimitives";
 import { DisplaySettingsControlsBase } from "./DisplaySettingsControls";
 
 import { Label } from "@/components/ui/label";
@@ -15,6 +16,7 @@ export interface SectionDisplayValue {
   imageLayout: HomepageSectionImageLayout;
   hiddenCardFields: string[];
   cornerOverlays: boolean;
+  hideWebsiteForYouTube: boolean;
 }
 
 interface SectionDisplaySettingsProps {
@@ -76,6 +78,21 @@ export function SectionDisplaySettings({
         })}
         showsImages
       />
+
+      <div className="space-y-1">
+        <div className="flex items-center justify-between gap-4">
+          <Label className="text-sm font-medium">Hide website for YouTube</Label>
+          <OnOffToggleGroup
+            value={value.hideWebsiteForYouTube}
+            onChange={hideWebsiteForYouTube => onChange({
+              hideWebsiteForYouTube,
+            })}
+          />
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Hides the website pill on this section&rsquo;s cards that also have a YouTube channel.
+        </p>
+      </div>
 
       <Separator />
 

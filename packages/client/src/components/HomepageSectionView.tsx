@@ -31,6 +31,7 @@ export function HomepageSectionView({
     imageLayout: section.imageLayout,
     hiddenCardFields: section.hiddenCardFields,
     cornerOverlays: section.cornerOverlays,
+    hideWebsiteForYouTube: section.hideWebsiteForYouTube,
   };
 
   return (

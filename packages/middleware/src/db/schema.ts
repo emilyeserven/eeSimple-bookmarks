@@ -790,6 +790,10 @@ export const homepageSections = pgTable("homepage_sections", {
   // images; when false they fall back to badges. NOT NULL on the populated table → pre-applied in
   // migrate.ts to keep push additive.
   cornerOverlays: boolean("corner_overlays").notNull().default(true),
+  // When true, the website pill is hidden on this section's cards for a bookmark that also has a
+  // YouTube channel. Owned per-section so homepage cards never fall back to the Default card display
+  // rule. NOT NULL DEFAULT false on the populated table → pre-applied in migrate.ts to keep push additive.
+  hideWebsiteForYouTube: boolean("hide_website_for_youtube").notNull().default(false),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),

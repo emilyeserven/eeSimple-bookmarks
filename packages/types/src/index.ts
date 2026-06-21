@@ -1032,6 +1032,8 @@ export interface HomepageSection {
   hiddenCardFields: string[];
   /** When true (default), custom properties placed in an image corner are overlaid on this section's card images; when false they fall back to badges. */
   cornerOverlays: boolean;
+  /** When true, the website pill is hidden on this section's cards for a bookmark that also has a YouTube channel. Defaults to false. Owned per-section so homepage cards never inherit the Default card display rule. */
+  hideWebsiteForYouTube: boolean;
   createdAt: string;
 }
 
@@ -1055,6 +1057,7 @@ export interface CreateHomepageSectionInput {
   viewMode?: ViewMode;
   hiddenCardFields?: string[];
   cornerOverlays?: boolean;
+  hideWebsiteForYouTube?: boolean;
 }
 
 /** Payload for partially updating a homepage section. */

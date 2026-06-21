@@ -25,6 +25,7 @@ interface HomepageSectionFormValues {
   viewMode: ViewMode;
   hiddenCardFields: string[];
   cornerOverlays: boolean;
+  hideWebsiteForYouTube: boolean;
 }
 
 interface HomepageSectionFormProps {
@@ -55,6 +56,7 @@ export function HomepageSectionForm({
     viewMode: section?.viewMode ?? "cards",
     hiddenCardFields: section?.hiddenCardFields ?? [],
     cornerOverlays: section?.cornerOverlays ?? true,
+    hideWebsiteForYouTube: section?.hideWebsiteForYouTube ?? false,
   };
 
   const [values, setValues] = useState<HomepageSectionFormValues>(initialValues);
@@ -116,6 +118,7 @@ export function HomepageSectionForm({
           imageLayout: values.imageLayout,
           hiddenCardFields: values.hiddenCardFields,
           cornerOverlays: values.cornerOverlays,
+          hideWebsiteForYouTube: values.hideWebsiteForYouTube,
         }}
         onDisplayChange={setFields}
         hideIfEmpty={values.hideIfEmpty}
