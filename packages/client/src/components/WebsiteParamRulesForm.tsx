@@ -1,19 +1,22 @@
 import type { ParamRuleDraft } from "../lib/websiteForm";
-import type { Website } from "@eesimple/types";
+import type { UpdateWebsiteInput, Website } from "@eesimple/types";
 
 import { useState } from "react";
 
 import { ParamRulesEditor } from "./WebsiteEditors";
+import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 import { useUpdateWebsite } from "../hooks/useWebsites";
 import { normalizeRules } from "../lib/websiteForm";
 
-import { Button } from "@/components/ui/button";
+const LABELS: Partial<Record<keyof UpdateWebsiteInput, string>> = {
+  paramRules: "Param Rules",
+};
 
 interface Props {
   website: Website;
 }
 
-/** Edit a website's path-scoped query-param whitelist rules. */
+/** Edit a website's path-scoped query-param whitelist rules. Auto-saves on change. */
 export function WebsiteParamRulesForm({
   website,
 }: Props) {
@@ -24,23 +27,23 @@ export function WebsiteParamRulesForm({
       paramsText: rule.params.join(", "),
     })));
 
-  const payloadRules = normalizeRules(rules);
-  const storedRules = normalizeRules(
-    website.paramRules.map(rule => ({
-      pathSuffix: rule.pathSuffix,
-      paramsText: rule.params.join(", "),
-    })),
-  );
-  const dirty = JSON.stringify(payloadRules) !== JSON.stringify(storedRules);
+  const autoSave = useFieldAutoSave<UpdateWebsiteInput>({
+    id: website.id,
+    update: updateWebsite,
+    labels: LABELS,
+    initial: {
+      paramRules: normalizeRules(
+        website.paramRules.map(rule => ({
+          pathSuffix: rule.pathSuffix,
+          paramsText: rule.params.join(", "),
+        })),
+      ),
+    },
+  });
 
-  function save(): void {
-    if (!dirty) return;
-    updateWebsite.mutate({
-      id: website.id,
-      input: {
-        paramRules: payloadRules,
-      },
-    });
+  function handleChange(next: ParamRuleDraft[]): void {
+    setRules(next);
+    autoSave.saveField("paramRules", normalizeRules(next));
   }
 
   return (
@@ -48,22 +51,8 @@ export function WebsiteParamRulesForm({
       <ParamRulesEditor
         idBase={website.id}
         rules={rules}
-        onChange={setRules}
+        onChange={handleChange}
       />
-
-      <div className="flex items-center gap-3">
-        <Button
-          type="button"
-          size="sm"
-          disabled={!dirty || updateWebsite.isPending}
-          onClick={save}
-        >
-          {updateWebsite.isPending ? "Saving…" : "Save changes"}
-        </Button>
-        {updateWebsite.isError
-          ? <p className="text-sm text-destructive">{updateWebsite.error.message}</p>
-          : null}
-      </div>
     </div>
   );
 }

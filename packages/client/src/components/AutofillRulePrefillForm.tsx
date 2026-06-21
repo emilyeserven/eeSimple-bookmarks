@@ -1,4 +1,11 @@
-import type { AutofillRule } from "@eesimple/types";
+import type {
+  AutofillRule,
+  BookmarkBooleanValue,
+  BookmarkDateTimeValue,
+  BookmarkNumberValue,
+  CustomProperty,
+  UpdateAutofillRuleInput,
+} from "@eesimple/types";
 
 import { useState } from "react";
 
@@ -9,16 +16,79 @@ import { AutofillRulePrefillPickers } from "./AutofillRulePrefillPickers";
 import { useUpdateAutofillRule } from "../hooks/useAutofill";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
+import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 import { useMediaTypes } from "../hooks/useMediaTypes";
 import { useTagTree } from "../hooks/useTags";
 
-import { Button } from "@/components/ui/button";
+const LABELS: Partial<Record<keyof UpdateAutofillRuleInput, string>> = {
+  setCategoryId: "Category",
+  setMediaTypeId: "Media Type",
+  tagIds: "Tags",
+  numberValues: "Number values",
+  booleanValues: "Boolean values",
+  dateTimeValues: "Date/Time values",
+};
+
+/** The custom properties that apply to the chosen category (excluding computed `calculate` props). */
+function categoryProperties(properties: CustomProperty[], categoryId: string | null): CustomProperty[] {
+  if (!categoryId) return [];
+  return properties.filter(p => propertyAppliesToCategory(p, categoryId));
+}
+
+function buildNumberValues(
+  props: CustomProperty[],
+  numberInputs: Record<string, string>,
+): BookmarkNumberValue[] {
+  return props
+    .filter(p => p.type === "number")
+    .map(p => ({
+      propertyId: p.id,
+      raw: numberInputs[p.id] ?? "",
+    }))
+    .filter(({
+      raw,
+    }) => raw.trim() !== "" && !Number.isNaN(Number(raw)))
+    .map(({
+      propertyId, raw,
+    }) => ({
+      propertyId,
+      value: Number(raw),
+    }));
+}
+
+function buildBooleanValues(
+  props: CustomProperty[],
+  booleanInputs: Record<string, boolean>,
+): BookmarkBooleanValue[] {
+  return props
+    .filter(p => p.type === "boolean")
+    .map(p => ({
+      propertyId: p.id,
+      value: booleanInputs[p.id] ?? false,
+    }));
+}
+
+function buildDateTimeValues(
+  props: CustomProperty[],
+  dateTimeInputs: Record<string, string>,
+): BookmarkDateTimeValue[] {
+  return props
+    .filter(p => p.type === "datetime")
+    .map(p => ({
+      propertyId: p.id,
+      value: (dateTimeInputs[p.id] ?? "").trim(),
+    }))
+    .filter(e => e.value !== "");
+}
 
 interface Props {
   rule: AutofillRule;
 }
 
-/** Edit an autofill rule's prefill actions: category, tags, and property values. */
+/**
+ * Edit an autofill rule's prefill actions: category, media type, tags, and property values. Each
+ * picker auto-saves its own field on change (no Save button).
+ */
 export function AutofillRulePrefillForm({
   rule,
 }: Props) {
@@ -38,72 +108,80 @@ export function AutofillRulePrefillForm({
 
   const initialCategoryId = rule.setCategoryId ?? NO_CATEGORY;
   const initialMediaTypeId = rule.setMediaTypeId ?? NO_MEDIA_TYPE;
-  const initialTagIds = rule.tagIds;
   const initialNumberInputs = Object.fromEntries(rule.numberValues.map(e => [e.propertyId, String(e.value)]));
   const initialBooleanInputs = Object.fromEntries(rule.booleanValues.map(e => [e.propertyId, e.value]));
   const initialDateTimeInputs = Object.fromEntries(rule.dateTimeValues.map(e => [e.propertyId, e.value]));
 
   const [setCategoryId, setSetCategoryId] = useState(initialCategoryId);
   const [setMediaTypeId, setSetMediaTypeId] = useState(initialMediaTypeId);
-  const [tagIds, setTagIds] = useState<string[]>(initialTagIds);
+  const [tagIds, setTagIds] = useState<string[]>(rule.tagIds);
   const [numberInputs, setNumberInputs] = useState<Record<string, string>>(initialNumberInputs);
   const [booleanInputs, setBooleanInputs] = useState<Record<string, boolean>>(initialBooleanInputs);
   const [dateTimeInputs, setDateTimeInputs] = useState<Record<string, string>>(initialDateTimeInputs);
 
-  const isDirty
-    = setCategoryId !== initialCategoryId
-      || setMediaTypeId !== initialMediaTypeId
-      || JSON.stringify(tagIds) !== JSON.stringify(initialTagIds)
-      || JSON.stringify(numberInputs) !== JSON.stringify(initialNumberInputs)
-      || JSON.stringify(booleanInputs) !== JSON.stringify(initialBooleanInputs)
-      || JSON.stringify(dateTimeInputs) !== JSON.stringify(initialDateTimeInputs);
+  const autoSave = useFieldAutoSave<UpdateAutofillRuleInput>({
+    id: rule.id,
+    update: updateRule,
+    labels: LABELS,
+    initial: {
+      setCategoryId: rule.setCategoryId,
+      setMediaTypeId: rule.setMediaTypeId,
+      tagIds: rule.tagIds,
+      numberValues: rule.numberValues,
+      booleanValues: rule.booleanValues,
+      dateTimeValues: rule.dateTimeValues,
+    },
+  });
 
-  function handleSave() {
-    const categoryId = setCategoryId === NO_CATEGORY ? null : setCategoryId;
-    const mediaTypeId = setMediaTypeId === NO_MEDIA_TYPE ? null : setMediaTypeId;
-    const categoryProps = categoryId
-      ? properties.filter(p => propertyAppliesToCategory(p, categoryId))
-      : [];
-    const numberValues = categoryProps
-      .filter(p => p.type === "number")
-      .map(p => ({
-        propertyId: p.id,
-        raw: numberInputs[p.id] ?? "",
-      }))
-      .filter(({
-        raw,
-      }) => raw.trim() !== "" && !Number.isNaN(Number(raw)))
-      .map(({
-        propertyId, raw,
-      }) => ({
-        propertyId,
-        value: Number(raw),
-      }));
-    const booleanValues = categoryProps
-      .filter(p => p.type === "boolean")
-      .map(p => ({
-        propertyId: p.id,
-        value: booleanInputs[p.id] ?? false,
-      }));
-    const dateTimeValues = categoryProps
-      .filter(p => p.type === "datetime")
-      .map(p => ({
-        propertyId: p.id,
-        value: (dateTimeInputs[p.id] ?? "").trim(),
-      }))
-      .filter(e => e.value !== "");
+  /** Resolve the category id from local sentinel state to the saved `null | id` form. */
+  function resolvedCategoryId(sentinel: string): string | null {
+    return sentinel === NO_CATEGORY ? null : sentinel;
+  }
 
-    updateRule.mutate({
-      id: rule.id,
-      input: {
-        setCategoryId: categoryId,
-        setMediaTypeId: mediaTypeId,
-        tagIds,
-        numberValues,
-        booleanValues,
-        dateTimeValues,
-      },
-    });
+  function handleCategoryChange(value: string) {
+    setSetCategoryId(value);
+    autoSave.saveField("setCategoryId", resolvedCategoryId(value));
+  }
+
+  function handleMediaTypeChange(value: string) {
+    setSetMediaTypeId(value);
+    autoSave.saveField("setMediaTypeId", value === NO_MEDIA_TYPE ? null : value);
+  }
+
+  function handleToggleTag(id: string) {
+    const next = tagIds.includes(id) ? tagIds.filter(t => t !== id) : [...tagIds, id];
+    setTagIds(next);
+    autoSave.saveField("tagIds", next);
+  }
+
+  function handleNumberChange(id: string, value: string) {
+    const next = {
+      ...numberInputs,
+      [id]: value,
+    };
+    setNumberInputs(next);
+    const props = categoryProperties(properties, resolvedCategoryId(setCategoryId));
+    autoSave.saveField("numberValues", buildNumberValues(props, next));
+  }
+
+  function handleBooleanChange(id: string, value: boolean) {
+    const next = {
+      ...booleanInputs,
+      [id]: value,
+    };
+    setBooleanInputs(next);
+    const props = categoryProperties(properties, resolvedCategoryId(setCategoryId));
+    autoSave.saveField("booleanValues", buildBooleanValues(props, next));
+  }
+
+  function handleDateTimeChange(id: string, value: string) {
+    const next = {
+      ...dateTimeInputs,
+      [id]: value,
+    };
+    setDateTimeInputs(next);
+    const props = categoryProperties(properties, resolvedCategoryId(setCategoryId));
+    autoSave.saveField("dateTimeValues", buildDateTimeValues(props, next));
   }
 
   return (
@@ -113,13 +191,11 @@ export function AutofillRulePrefillForm({
         mediaTypes={mediaTypes}
         tagTree={tagTree}
         setCategoryId={setCategoryId}
-        onCategoryChange={setSetCategoryId}
+        onCategoryChange={handleCategoryChange}
         setMediaTypeId={setMediaTypeId}
-        onMediaTypeChange={setSetMediaTypeId}
+        onMediaTypeChange={handleMediaTypeChange}
         tagIds={tagIds}
-        onToggleTag={id =>
-          setTagIds(current =>
-            current.includes(id) ? current.filter(t => t !== id) : [...current, id])}
+        onToggleTag={handleToggleTag}
       />
 
       <RulePropertyFields
@@ -128,31 +204,10 @@ export function AutofillRulePrefillForm({
         numberInputs={numberInputs}
         booleanInputs={booleanInputs}
         dateTimeInputs={dateTimeInputs}
-        onNumberChange={(id, value) => setNumberInputs(cur => ({
-          ...cur,
-          [id]: value,
-        }))}
-        onBooleanChange={(id, value) => setBooleanInputs(cur => ({
-          ...cur,
-          [id]: value,
-        }))}
-        onDateTimeChange={(id, value) => setDateTimeInputs(cur => ({
-          ...cur,
-          [id]: value,
-        }))}
+        onNumberChange={handleNumberChange}
+        onBooleanChange={handleBooleanChange}
+        onDateTimeChange={handleDateTimeChange}
       />
-
-      <Button
-        type="button"
-        size="sm"
-        disabled={!isDirty || updateRule.isPending}
-        onClick={handleSave}
-      >
-        {updateRule.isPending ? "Saving…" : "Save changes"}
-      </Button>
-      {updateRule.isError
-        ? <p className="text-sm text-destructive">{updateRule.error.message}</p>
-        : null}
     </div>
   );
 }

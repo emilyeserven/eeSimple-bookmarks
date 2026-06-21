@@ -2,6 +2,13 @@ import "@testing-library/jest-dom/vitest";
 
 // jsdom lacks a few DOM APIs that Radix UI primitives (Popover/Select) and cmdk
 // rely on. Stub them so component tests can open menus and scroll into view.
+//
+// These stubs let the Radix portal mount, but jsdom still won't deliver the
+// pointer-driven *open* — `fireEvent.pointerDown`/`click` on the trigger does nothing.
+// Open a Radix trigger with a keyboard event instead, then click the revealed item:
+//   fireEvent.keyDown(trigger, { key: "ArrowDown" }); // Select -> role="option"
+//   fireEvent.keyDown(trigger, { key: " " });         // DropdownMenu -> role="menuitem"
+// See components/conditions/PropertyConditionEditor.test.tsx for a worked example.
 if (!Element.prototype.scrollIntoView) {
   Element.prototype.scrollIntoView = () => {
     // no-op: layout/scrolling is irrelevant under jsdom

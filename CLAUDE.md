@@ -92,7 +92,15 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
   `Record<CustomPropertyType, …>` maps (e.g. in `lib/propertyFormat.ts`, `CategoryCustomProperties.tsx`)
   are exhaustive, so a forgotten spot now **fails `tsc`** instead of silently rejecting at the
   modal/API boundary (the PR #341 `image`/`file` drift can no longer happen). Don't reintroduce a
-  literal `["number", "boolean", …]` list anywhere — derive from the tuple.
+  literal `["number", "boolean", …]` list anywhere — derive from the tuple. The bookmark-filter UI
+  dispatches the same way: `components/conditions/PropertyConditionEditor.tsx` routes each property
+  through `propertyValueKind()` to one of the exhaustive `*ConditionRow` sub-components
+  (`Number`/`DateTime`/`File`/`Boolean`) — adding a value kind means adding a branch there too. The
+  same exhaustive-`Record<CustomPropertyType, …>` technique also backs **per-type component
+  dispatch** — `PropertyDetail.tsx`'s `OPTIONS_FIELDS` maps each type to its options sub-component
+  (`BooleanOptionsFields`, `NumericOptionsFields`, …; `null` = no options section), so a new type
+  missing a renderer **fails `tsc`** instead of silently rendering nothing (vs. the named-function
+  routing above, used where per-branch props differ).
 - **UI primitives:** before adding a Radix/shadcn primitive, check
   `packages/client/src/components/ui/` — `dialog`, `dropdown-menu`, `popover`, `toggle-group`,
   `command`, etc. already exist (`Dialog` was once reintroduced twice). Reuse the existing one.
@@ -229,6 +237,62 @@ that matches the surface — don't invent a new structure for a one-off page.
 
 - Single-tab entities (Tags, YouTube Channels, Media Types, Property Groups) use the full tabbed
   shell for a single "General" tab.
+
+## Large-form / over-cap decomposition
+
+When a component or hook trips fallow's cognitive-complexity cap (`maxCognitive: 25`), the cause is
+usually **hook-density, not branching**. fallow scores **each function independently** — nested
+function bodies are **not** rolled into the parent (unlike SonarJS) — so **extracting handler
+functions does not lower a component's score**. What it counts is **+1 per hook call** (`useState` /
+`useRef` / `useEffect` / every custom hook) plus +1 per `??`, `&&`, and ternary (`?.` only affects
+*cyclomatic*). A form that calls ~25 hooks is over the cap before a single `if`. Use
+`pnpm exec fallow health --complexity-breakdown` to see the per-decision contributions.
+
+The remedy is to **spread the hooks**, not the handlers. The reference is the **bookmark form**
+(`BookmarkForm.tsx`, ~250 lines of thin JSX):
+
+- a **controller hook** (`useBookmarkFormController.ts`) owns the `useAppForm` instance, the state,
+  and every create/edit/scan/reset handler — the component just wires its return into JSX;
+- **cohesive state sub-hooks** partition the `useState`s so no one function is hook-dense
+  (`useBookmarkFormUiState`, `useSourceDefaultFlags` in `useBookmarkFormState.ts`);
+- **module-level pure helpers** hold the heaviest self-contained logic and the `??` chains, and are
+  unit-tested directly (`bookmarkSubmit.ts`'s `applyImageIntent` / `promoteSourceDefaults`,
+  `buildBookmarkDefaultValues` in `bookmarkFormSchema.ts`).
+
+This is the **state-orchestration** sibling to **PropertyForm**'s section-component split (see
+**Content hierarchies**): PropertyForm divides the *rendered UI* into section components typed via the
+shared form-API sample type; the bookmark form additionally moves the *state + handlers* out of the
+component. Reach for a controller hook when the cap pressure is hook-density rather than inline JSX
+branching. Don't reintroduce a `// fallow-ignore-next-line complexity` to dodge this.
+
+## Edit-tab auto-save standard
+
+Every slug-routed entity **edit** tab (Categories, Custom Properties, Websites, Media Types, YouTube
+Channels, Tags, Property Groups, Autofill) **auto-saves per field — there is no Save button.** Each
+field persists on its own and fires a toast that **names the field** and is recorded in the
+right-panel Notifications log. The single implementation is `hooks/useFieldAutoSave.ts` (the
+`saveField` engine: single-field PATCH, deep-equal no-op skip, invalid skip, success-only snapshot
+advance) + `lib/autoSave.ts` (`notifyFieldSaved` / `notifyFieldSaveError` wording). **Reference:
+`components/CategoryGeneralForm.tsx`.** The full recipe + rules live in the **`toast-notifications`**
+skill — consult it before building or changing an edit tab. In short:
+
+- **Trigger:** text/textarea save **on blur**; toggles/selects/checkboxes/comboboxes save **on
+  change**. Keep `useAppForm` + the zod schema for field state/validation, but **delete** the `<form
+  onSubmit>` wrapper, `<form.SubmitButton>` / `requireDirty`, and any manual `JSON.stringify` dirty
+  check. The `lib/form.tsx` primitives already expose `onBlur` (text/number) and `onValueChange`
+  (select/combobox) hooks — wire them; don't fork the primitives.
+- **Invalid/failed saves keep the user's input** (never revert); the field-named error toast + the
+  inline field error are the only feedback. An invalid value simply doesn't fire a save.
+- **Name fields drive the slug** — pass `saveField`'s `opts.onSuccess` to navigate to the new slug
+  when it changes (the on-blur trigger keeps this from firing mid-typing).
+- **Multi-key sections** (e.g. `categoryIds` + `allCategories`) call `update.mutate({ … both … })`
+  directly with one `notifyFieldSaved("Categories")` so the user sees a single section toast;
+  association/toggle tabs (`CategoryTieredTags`) just add the `notify*` callbacks to their existing
+  mutation.
+- **Exceptions:** **create** flows (create pages, right-panel create, inline-create modals) keep an
+  explicit submit button — `PropertyForm` (full) and `TagForm` stay submit-driven for create while
+  their per-tab **edit** forms auto-save. **Local-only Zustand prefs** (Display / Sidebar /
+  Automations settings) stay instant with **no toast** (nothing persists server-side).
 
 ## Data shaping: middleware vs. client
 

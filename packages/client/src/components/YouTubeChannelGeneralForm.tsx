@@ -1,13 +1,15 @@
-import type { YouTubeChannel } from "@eesimple/types";
+import type { UpdateYouTubeChannelInput, YouTubeChannel } from "@eesimple/types";
 
 import { useState } from "react";
 
 import { channelUrlFromKey } from "@eesimple/types";
+import { useNavigate } from "@tanstack/react-router";
 import { MonitorPlay } from "lucide-react";
 import { z } from "zod";
 
 import { DefaultTagsField } from "./DefaultTagsField";
 import { EntityImageField } from "./EntityImageField";
+import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -32,14 +34,23 @@ const channelGeneralSchema = z.object({
   mediaTypeId: z.string().nullable(),
 });
 
+const LABELS: Partial<Record<keyof UpdateYouTubeChannelInput, string>> = {
+  name: "Name",
+  selfIds: "Self-identifiers",
+  categoryId: "Category",
+  mediaTypeId: "Media type",
+  tagIds: "Default tags",
+};
+
 interface Props {
   channel: YouTubeChannel;
 }
 
-/** Edit a YouTube channel's display name, category, and self-identifiers. */
+/** Edit a YouTube channel's display name, category, and self-identifiers. Each field auto-saves (no Save button). */
 export function YouTubeChannelGeneralForm({
   channel,
 }: Props) {
+  const navigate = useNavigate();
   const updateChannel = useUpdateYouTubeChannel();
   const uploadAvatar = useUploadYouTubeChannelImage();
   const autoAvatar = useAutoYouTubeChannelImage();
@@ -58,6 +69,19 @@ export function YouTubeChannelGeneralForm({
     data: tagTree,
   } = useTagTree();
 
+  const autoSave = useFieldAutoSave<UpdateYouTubeChannelInput, YouTubeChannel>({
+    id: channel.id,
+    update: updateChannel,
+    labels: LABELS,
+    initial: {
+      name: channel.name,
+      selfIds: channel.selfIds,
+      categoryId: channel.category?.id ?? null,
+      mediaTypeId: channel.mediaTypeId ?? null,
+      tagIds: channel.tagIds ?? [],
+    },
+  });
+
   const form = useAppForm({
     defaultValues: {
       name: channel.name,
@@ -67,21 +91,12 @@ export function YouTubeChannelGeneralForm({
     validators: {
       onChange: channelGeneralSchema,
     },
-    onSubmit: ({
-      value,
-    }) => {
-      updateChannel.mutate({
-        id: channel.id,
-        input: {
-          name: value.name.trim(),
-          selfIds,
-          categoryId: value.categoryId || null,
-          mediaTypeId: value.mediaTypeId || null,
-          tagIds,
-        },
-      });
-    },
   });
+
+  function saveSelfIds(next: string[]): void {
+    setSelfIds(next);
+    autoSave.saveField("selfIds", next);
+  }
 
   function addSelfId(): void {
     const trimmed = newSelfId.trim();
@@ -89,26 +104,44 @@ export function YouTubeChannelGeneralForm({
       setNewSelfId("");
       return;
     }
-    setSelfIds(prev => [...prev, trimmed]);
+    saveSelfIds([...selfIds, trimmed]);
     setNewSelfId("");
   }
 
   function removeSelfId(value: string): void {
-    setSelfIds(prev => prev.filter(id => id !== value));
+    saveSelfIds(selfIds.filter(id => id !== value));
+  }
+
+  function saveTagIds(next: string[]): void {
+    setTagIds(next);
+    autoSave.saveField("tagIds", next);
   }
 
   return (
-    <form
-      className="space-y-4"
-      onSubmit={(event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        void form.handleSubmit();
-      }}
-    >
+    <div className="space-y-4">
       <form.AppField name="name">
         {field => (
-          <field.TextField label="Channel name" />
+          <field.TextField
+            label="Channel name"
+            onBlur={() => autoSave.saveField(
+              "name",
+              field.state.value.trim(),
+              {
+                valid: field.state.meta.errors.length === 0,
+                // Renaming changes the slug; follow it so the edit page keeps resolving.
+                onSuccess: (updated) => {
+                  if (updated.slug && updated.slug !== channel.slug) {
+                    void navigate({
+                      to: "/taxonomies/youtube-channels/$channelSlug/edit/general",
+                      params: {
+                        channelSlug: updated.slug,
+                      },
+                    });
+                  }
+                },
+              },
+            )}
+          />
         )}
       </form.AppField>
 
@@ -147,6 +180,7 @@ export function YouTubeChannelGeneralForm({
                 />
               ),
             }))}
+            onValueChange={value => autoSave.saveField("categoryId", value || null)}
           />
         )}
       </form.AppField>
@@ -168,6 +202,7 @@ export function YouTubeChannelGeneralForm({
                 />
               ),
             }))}
+            onValueChange={value => autoSave.saveField("mediaTypeId", value || null)}
           />
         )}
       </form.AppField>
@@ -228,28 +263,9 @@ export function YouTubeChannelGeneralForm({
       <DefaultTagsField
         tree={tagTree ?? []}
         selectedIds={tagIds}
-        onToggle={id => setTagIds(prev => prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id])}
+        onToggle={id => saveTagIds(tagIds.includes(id) ? tagIds.filter(t => t !== id) : [...tagIds, id])}
         description="Tags applied automatically to bookmarks saved from this channel."
       />
-
-      <form.AppForm>
-        <form.Subscribe selector={state => state.values}>
-          {(values) => {
-            const nameDirty = values.name.trim() !== channel.name;
-            const selfIdsDirty = JSON.stringify(selfIds) !== JSON.stringify(channel.selfIds);
-            const categoryIdDirty = (values.categoryId || null) !== (channel.category?.id ?? null);
-            const mediaTypeIdDirty = (values.mediaTypeId || null) !== (channel.mediaTypeId ?? null);
-            const tagIdsDirty = JSON.stringify([...tagIds].sort()) !== JSON.stringify([...(channel.tagIds ?? [])].sort());
-            return (
-              <form.SubmitButton
-                label="Save changes"
-                size="sm"
-                disabledWhen={!nameDirty && !selfIdsDirty && !categoryIdDirty && !mediaTypeIdDirty && !tagIdsDirty}
-              />
-            );
-          }}
-        </form.Subscribe>
-      </form.AppForm>
-    </form>
+    </div>
   );
 }

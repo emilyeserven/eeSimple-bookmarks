@@ -14,6 +14,7 @@ import {
 } from "../../../hooks/useCustomProperties";
 import { useMediaTypes } from "../../../hooks/useMediaTypes";
 import { usePropertyGroups } from "../../../hooks/usePropertyGroups";
+import { notifySuccess } from "../../../lib/notifications";
 import { PropertyDetail } from "../../PropertyDetail";
 import { PropertyForm } from "../../PropertyForm";
 import { usePanelControls } from "../usePanelControls";
@@ -126,7 +127,10 @@ function PropertyEdit({
                 id,
                 input,
               }, {
-                onSuccess: () => openItem("property", id, "view"),
+                onSuccess: () => {
+                  notifySuccess("Property saved");
+                  openItem("property", id, "view");
+                },
               })}
               submitLabel="Save changes"
               pendingLabel="Saving…"

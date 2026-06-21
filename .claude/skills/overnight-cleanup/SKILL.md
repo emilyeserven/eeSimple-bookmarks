@@ -409,6 +409,26 @@ many conditions inline. Extract sub-components for each conditional region; keep
 coordinator that passes props. Put each extracted sub-component in its **own** co-located file
 (`ComponentName.tsx`), not an inline `const` in the parent — a file-level component is what lets the
 duplicate detector (Phase 3) catch the next copy and what earns it a Storybook story (Phase 6).
+For these, **the score is driven by JSX prop count, not just branching** — a coordinator can score
+60+ with `cyclomatic: 1` purely from the number of props spelled across its JSX, so extracting the
+inline conditionals alone may barely move it. The lever is the **spread-coordinator**: give each
+extracted child a *narrower* prop interface and have the parent delegate by spreading its props bag
+(`<Child {...props} />`) — a wider object is assignable to a narrower prop type via spread, so the
+parent's JSX collapses to a flat list of one-attribute children. `BookmarkRevealedFields` (cognitive
+62 → <25, with the inline-extraction-only step stuck at 61) is the reference.
+
+**Spread the hooks, not just the handlers — fallow scores each function independently.** Nested
+function bodies are **not** rolled into the parent (unlike SonarJS cognitive complexity), so pulling
+handlers/conditions into lambdas or sub-functions of the *same* component **does not lower its
+score** when the cost is **hook-density**: fallow adds **+1 cognitive per hook call** (`useState` /
+`useRef` / `useEffect` / every custom hook), plus +1 per `??` / `&&` / ternary (`?.` is
+cyclomatic-only). A form that calls ~25 hooks is already over `maxCognitive` before any branching.
+Run `pnpm exec fallow health --complexity-breakdown` to confirm the contributions. For an over-cap
+component/hook, **distribute the `useState`/`useRef`/`useEffect` into cohesive sub-hooks**, move a
+controller's state + handlers into a `use*Controller` hook, and lift `??` chains + heavy
+self-contained logic into module-level (unit-testable) helpers — leaving a thin JSX shell. Reference:
+`BookmarkForm` → `useBookmarkFormController` + `useBookmarkFormUiState` / `useSourceDefaultFlags` +
+`bookmarkSubmit.ts` (see CLAUDE.md → **Large-form / over-cap decomposition**).
 
 **Do not add `// fallow-ignore-next-line complexity`** unless you have confirmed the complexity
 is unavoidable (e.g. an exhaustive type-narrowing switch that cannot be split without losing type

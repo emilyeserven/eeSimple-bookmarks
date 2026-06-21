@@ -86,7 +86,7 @@ describe("CategoryCustomProperties", () => {
       name: /Everywhere/,
     }));
 
-    expect(updateMutate).toHaveBeenCalledWith({
+    expect(updateMutate.mock.calls[0][0]).toEqual({
       id: "prop-all",
       input: {
         allCategories: false,
@@ -102,7 +102,7 @@ describe("CategoryCustomProperties", () => {
       name: /Archived/,
     }));
 
-    expect(updateMutate).toHaveBeenCalledWith({
+    expect(updateMutate.mock.calls[0][0]).toEqual({
       id: "prop-unassigned",
       input: {
         allCategories: false,
@@ -118,7 +118,7 @@ describe("CategoryCustomProperties", () => {
       name: /Priority/,
     }));
 
-    expect(updateMutate).toHaveBeenCalledWith({
+    expect(updateMutate.mock.calls[0][0]).toEqual({
       id: "prop-assigned",
       input: {
         allCategories: false,

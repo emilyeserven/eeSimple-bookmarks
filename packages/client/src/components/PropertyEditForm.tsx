@@ -1,29 +1,30 @@
 import type { PropertyFormSection } from "./propertyFormSchema";
 import type { CustomProperty } from "@eesimple/types";
 
-import { useNavigate } from "@tanstack/react-router";
-
-import { PropertyForm } from "./PropertyForm";
+import { PropertyDisplayEditForm } from "./PropertyDisplayEditForm";
+import { PropertyGeneralEditForm } from "./PropertyGeneralEditForm";
+import { PropertyOptionsEditForm } from "./PropertyOptionsEditForm";
+import { PropertyCategoriesEditForm, PropertyMediaTypesEditForm } from "./PropertyScopeEditForms";
 import { useCategories } from "../hooks/useCategories";
-import { useCustomProperties, useUpdateCustomProperty } from "../hooks/useCustomProperties";
+import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useMediaTypes } from "../hooks/useMediaTypes";
 import { usePropertyGroups } from "../hooks/usePropertyGroups";
 
 interface PropertyEditFormProps {
   property: CustomProperty;
-  /** Which section (tab) of the shared form to render. */
+  /** Which tab (section) of the property edit pages to render. */
   section: PropertyFormSection;
 }
 
 /**
- * One custom-property edit tab. Renders a single `section` of the shared `PropertyForm` and saves the
- * whole (prefilled) property on submit — so each tab reuses the canonical form rather than
- * re-implementing its fields.
+ * One custom-property edit tab. Each tab is an **independent auto-saving form** (no Save button): it
+ * owns its own `useAppForm` seeded from the loaded property and persists fields on blur/change via the
+ * edit-tab auto-save standard. This component just loads the taxonomy lists each tab needs and
+ * dispatches to the right per-tab form.
  */
 export function PropertyEditForm({
   property, section,
 }: PropertyEditFormProps) {
-  const navigate = useNavigate();
   const {
     data: categories,
   } = useCategories();
@@ -36,44 +37,42 @@ export function PropertyEditForm({
   const {
     data: propertyGroups,
   } = usePropertyGroups();
-  const updateProperty = useUpdateCustomProperty();
 
   // A calculate property may sum any other number property, but never itself.
   const numberProperties = (properties ?? []).filter(
     candidate => candidate.type === "number" && candidate.id !== property.id,
   );
 
-  return (
-    <PropertyForm
-      mode="edit"
-      section={section}
-      property={property}
-      categories={categories ?? []}
-      mediaTypes={mediaTypes ?? []}
-      numberProperties={numberProperties}
-      propertyGroups={propertyGroups ?? []}
-      onSubmit={({
-        type, ...input
-      }) => updateProperty.mutate({
-        id: property.id,
-        input,
-      }, {
-        // Renaming (only possible on the General tab) can change the slug, so follow it.
-        onSuccess: (updated) => {
-          if (updated.slug !== property.slug) {
-            void navigate({
-              to: "/custom-properties/$propertySlug/edit/general",
-              params: {
-                propertySlug: updated.slug,
-              },
-            });
-          }
-        },
-      })}
-      submitLabel="Save changes"
-      pendingLabel="Saving…"
-      errorMessage={updateProperty.isError ? updateProperty.error.message : undefined}
-      idPrefix={`property-${property.id}-category`}
-    />
-  );
+  switch (section) {
+    case "general":
+      return <PropertyGeneralEditForm property={property} />;
+    case "options":
+      return (
+        <PropertyOptionsEditForm
+          property={property}
+          numberProperties={numberProperties}
+        />
+      );
+    case "categories":
+      return (
+        <PropertyCategoriesEditForm
+          property={property}
+          categories={categories ?? []}
+        />
+      );
+    case "media-types":
+      return (
+        <PropertyMediaTypesEditForm
+          property={property}
+          mediaTypes={mediaTypes ?? []}
+        />
+      );
+    case "display":
+      return (
+        <PropertyDisplayEditForm
+          property={property}
+          propertyGroups={propertyGroups ?? []}
+        />
+      );
+  }
 }

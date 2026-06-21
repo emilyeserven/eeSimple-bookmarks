@@ -48,6 +48,10 @@ export function useUpdateCustomProperty() {
       id, input,
     }: { id: string;
       input: UpdateCustomPropertyInput; }) => customPropertiesApi.update(id, input),
+    // No toast here: the edit tabs auto-save and fire their own per-field/section toast
+    // (`notifyFieldSaved`), so a generic "Property saved" would double up. Callers that mutate as a
+    // single action (the panel edit form, the category-assignment toggle) pass their own success
+    // toast in the per-call options.
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: PROPERTIES_KEY,
@@ -56,9 +60,7 @@ export function useUpdateCustomProperty() {
       void queryClient.invalidateQueries({
         queryKey: BOOKMARKS_KEY,
       });
-      notifySuccess("Property saved");
     },
-    onError: error => notifyError(error.message),
   });
 }
 
