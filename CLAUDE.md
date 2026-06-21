@@ -93,6 +93,16 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
   are exhaustive, so a forgotten spot now **fails `tsc`** instead of silently rejecting at the
   modal/API boundary (the PR #341 `image`/`file` drift can no longer happen). Don't reintroduce a
   literal `["number", "boolean", …]` list anywhere — derive from the tuple.
+- **Custom-property column mapping is data-driven, not per-field.** Both `createCustomProperty`
+  (`buildInsertValues`) and `updateCustomProperty` (`buildUpdatePatch`) in
+  `packages/middleware/src/services/customProperties.ts` map input → row by iterating the shared
+  `COPYABLE_FIELDS` tuple (via `copyColumn`); an unprovided field is **omitted** so the Drizzle
+  column default in `db/schema.ts` applies — those defaults are the single source of per-column
+  defaults. **To add a settable custom-property column: add it to `COPYABLE_FIELDS` (and the shared
+  `Create`/`UpdateCustomPropertyInput` types) — don't reintroduce a flat `input.x ?? <default>`
+  chain** in the insert/update (that flat chain is what pushed `createCustomProperty` to cyclomatic
+  47 in #376). Only genuinely **type-gated** columns (`dateTimeFormat`, the `rating*` set) stay as
+  explicit overrides in `buildInsertValues`.
 - **UI primitives:** before adding a Radix/shadcn primitive, check
   `packages/client/src/components/ui/` — `dialog`, `dropdown-menu`, `popover`, `toggle-group`,
   `command`, etc. already exist (`Dialog` was once reintroduced twice). Reuse the existing one.
