@@ -103,6 +103,36 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
   (`STANDARD_CARD_FIELDS` + custom-property ids in `lib/bookmarkCardFields.ts`) is shared with
   homepage sections — keep in sync.
 
+## Page-header breadcrumbs
+
+The top app-bar breadcrumb trail is built in **one place** —
+`packages/client/src/routes/-appHeader.tsx` (`breadcrumbsForPath()` + its helpers). It derives crumbs
+from the **pathname** and enriches them with real entity names resolved via `use*BySlug` hooks. Don't
+render a page-specific breadcrumb anywhere else; route components only set their own `<h1>`/`<h2>`
+title (see **Content hierarchies**), never a header crumb. (The right-panel trail,
+`components/panel/PanelBreadcrumbs.tsx`, is a **separate, intentionally distinct** system — it
+navigates by `onClick` from a `Browse` root rather than by `<Link>`/pathname. Don't merge them.)
+
+- **Shape:** `List → [ancestors…] → Name → [Section]`. Every crumb except the last is a `<Link>`
+  (`BreadcrumbLink asChild`); the last is the current page (`BreadcrumbPage`, non-link).
+- **Listing page** → one non-link crumb (`Categories`, `Bookmarks`, …). **Detail / `_view` tab** →
+  `List(link) → Name`. **Edit tab** → `List(link) → Name(link → that entity's `…/general` view) →
+  Section`. No bare `Edit` leaf when the entity has tabs — end on the tab's label.
+- **Name resolves the real entity name** via the entity's `use*BySlug` hook — never a generic
+  singular. The descriptor's `singular` is only a brief loading placeholder.
+- **Most slug-routed entities share one builder.** Categories, Websites, Media Types, YouTube
+  Channels, Property Groups, Custom Properties, and Autofill are all driven by `TAXONOMY_DESCRIPTORS`
+  + `taxonomyCrumbs()`. Only **Tags** (ancestor chain), **Bookmarks** (category + title), and
+  **Settings** stay bespoke.
+- **Segment labels** come from the single `crumbLabel()` helper — a small `LABEL_OVERRIDES` map (only
+  where the label differs from a title-cased slug, e.g. `youtube-channels → "YouTube Channels"`,
+  `autofill → "Autofill Rules"`) unioned with a title-case humanizer (`shortened-links → "Shortened
+  Links"`). Don't reintroduce per-section label maps; new tabs get a correct label for free.
+- **Adding a new slug-routed entity** (see the **`add-entity`** skill) means **both**: add its
+  `TAXONOMY_DESCRIPTORS` entry **and** resolve its name in `AppHeader` (a `use*BySlug` call feeding
+  the `taxonomyNames` map). Skipping either falls through to the generic `"eeSimple Bookmarks"`
+  fallback or shows the `singular` placeholder forever.
+
 ## Content hierarchies
 
 The client lays out page and panel content with a small, fixed set of hierarchies. Pick the one
