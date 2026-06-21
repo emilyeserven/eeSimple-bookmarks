@@ -56,7 +56,21 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
   to a valid prefix before expecting `lint-title` to pass. When a PR closes an issue, its title
   must also include the issue number (e.g. `(#102)`) — the `lint-title` workflow enforces this
   for any PR that has a closing-issue link.
-- **Git hooks** (Husky): pre-commit runs `lint-staged`; commit-msg runs commitlint.
+- **Git hooks** (Husky): pre-commit runs `lint-staged`; commit-msg runs commitlint; **pre-push runs
+  the merged-result typecheck** (`scripts/prepush-merged-typecheck.mjs`). CI typechecks the branch
+  *merged with the latest `main`*, so a type change that passes a branch-only `pnpm typecheck` can
+  still break once `main` has moved on (e.g. a new file on `main` referencing a field this branch
+  removed — this is how PR #363 went red). The hook trial-merges `origin/main`, runs `pnpm
+  typecheck`, then restores the tree. It only blocks on a real typecheck failure of the merged tree;
+  offline / dirty tree / already-merged / merge-conflict each just warn and let the push through.
+  Bypass one push with `SKIP_MERGED_TYPECHECK=1 git push`.
+- **Shared test factories** (`packages/client/src/test-utils/factories.ts`): construct full shared
+  entity objects in tests, stories, and MSW mocks with `makeCustomProperty` / `makeBookmark` /
+  `makeCategory` (override only the fields a test cares about) — **never** re-list every field in an
+  inline object literal. Inline literals of these types silently drift when a field is added/removed
+  from the shared type and only surface as a CI typecheck failure (one such stray literal is what
+  reddened PR #363). When you add or remove a field on `CustomProperty` / `Bookmark` / `Category`,
+  update the factory's defaults — that is the single edit point.
 - **Path alias:** the middleware uses `@/*` → `src/*` (resolved at build time by `tsc-alias`).
 - **`.js` import extensions in `@eesimple/types`:** the types package emits native ESM, so its
   intra-package imports/re-exports must carry explicit `.js` extensions (e.g.

@@ -1,60 +1,7 @@
-import type { CustomProperty } from "@eesimple/types";
-
 import { describe, expect, it } from "vitest";
 
 import { formatDuration, formatNumber } from "./bookmarkFormat";
-
-const NOW = "2026-06-01T00:00:00.000Z";
-
-function property(overrides: Partial<CustomProperty>): CustomProperty {
-  return {
-    id: "prop",
-    name: "Prop",
-    slug: "prop",
-    type: "number",
-    builtIn: false,
-    numberFormat: null,
-    dateTimeFormat: null,
-    quickFilterRange: null,
-    description: null,
-    numberMin: null,
-    numberMax: null,
-    unitSingular: null,
-    unitPlural: null,
-    valuePrefix: null,
-    zeroLabel: null,
-    maxLabel: null,
-    operandPropertyIds: [],
-    categoryIds: [],
-    mediaTypeIds: [],
-    allMediaTypes: false,
-    showInForm: false,
-    hiddenFromForm: false,
-    showInListings: true,
-    showInGallery: true,
-    showInDetails: true,
-    allCategories: false,
-    editableOnCard: false,
-    enabled: true,
-    allowDefault: true,
-    showIfFalse: false,
-    booleanLabelPreset: null,
-    booleanTrueLabel: null,
-    booleanFalseLabel: null,
-    showLabelColon: true,
-    showValueBeforeLabel: false,
-    hideLabel: false,
-    clickableInView: false,
-    ratingMax: null,
-    ratingAllowZero: false,
-    ratingAllowHalf: false,
-    ratingShowLabel: false,
-    ratingLabel: null,
-    propertyGroupId: null,
-    createdAt: NOW,
-    ...overrides,
-  };
-}
+import { makeCustomProperty as property } from "../test-utils/factories";
 
 describe("formatNumber", () => {
   it("returns the bare value when the property has no units", () => {

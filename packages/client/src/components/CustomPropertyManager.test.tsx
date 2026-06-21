@@ -1,9 +1,8 @@
-import type { CustomProperty } from "@eesimple/types";
-
 import { fireEvent, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { CustomPropertyManager } from "./CustomPropertyManager";
+import { makeCustomProperty } from "../test-utils/factories";
 import { renderWithRouter } from "../test-utils/router";
 
 const openItem = vi.fn();
@@ -14,52 +13,14 @@ vi.mock("./panel/usePanelControls", () => ({
   }),
 }));
 
-const property: CustomProperty = {
+const property = makeCustomProperty({
   id: "prop-stars",
   name: "Stars",
   slug: "stars",
   type: "number",
-  builtIn: false,
-  numberFormat: null,
-  dateTimeFormat: null,
-  quickFilterRange: null,
-  description: null,
-  numberMin: null,
-  numberMax: null,
-  unitSingular: null,
-  unitPlural: null,
-  valuePrefix: null,
-  zeroLabel: null,
-  maxLabel: null,
-  operandPropertyIds: [],
   categoryIds: ["cat-1"],
-  allCategories: false,
-  mediaTypeIds: [],
-  allMediaTypes: false,
-  editableOnCard: false,
   showInForm: true,
-  hiddenFromForm: false,
-  showInListings: true,
-  showInGallery: true,
-  showInDetails: true,
-  enabled: true,
-  allowDefault: true,
-  showIfFalse: false,
-  booleanLabelPreset: null,
-  booleanTrueLabel: null,
-  booleanFalseLabel: null,
-  showLabelColon: true,
-  showValueBeforeLabel: false,
-  hideLabel: false,
-  clickableInView: false,
-  ratingMax: null,
-  ratingAllowZero: false,
-  ratingAllowHalf: false,
-  ratingShowLabel: false,
-  ratingLabel: null,
-  propertyGroupId: null,
-  createdAt: "2026-06-01T00:00:00.000Z",
-};
+});
 
 vi.mock("../hooks/useCustomProperties", () => ({
   useCustomProperties: () => ({
