@@ -1,14 +1,17 @@
-import { and, asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, isNull, sql } from "drizzle-orm";
 import type {
   BookmarkImageVisibility,
   CardDisplayRule,
+  CardFieldPlacement,
+  CardFieldZone,
   CreateCardDisplayRuleInput,
   HomepageSectionImageLayout,
   UpdateCardDisplayRuleInput,
 } from "@eesimple/types";
-import { emptyConditionTree } from "@eesimple/types";
+import { emptyCardFieldZones, emptyConditionTree } from "@eesimple/types";
 import { db } from "@/db";
-import { cardDisplayRules } from "@/db/schema";
+import { cardDisplayRules, customProperties, propertyCategories } from "@/db/schema";
+import { defaultFieldZones, STANDARD_CARD_FIELD_KEYS } from "@/services/cardDisplayDefaults";
 
 type RuleRow = typeof cardDisplayRules.$inferSelect;
 
@@ -20,11 +23,10 @@ function toRule(row: RuleRow): CardDisplayRule {
     conditions: row.conditions,
     sortOrder: row.sortOrder,
     isDefault: row.isDefault,
-    hiddenCardFields: row.hiddenCardFields ?? null,
+    fieldZones: row.fieldZones ?? null,
     imageMode: row.imageMode ?? null,
     imageVisibility: (row.imageVisibility as BookmarkImageVisibility | null) ?? null,
     imageLayout: (row.imageLayout as HomepageSectionImageLayout | null) ?? null,
-    cornerOverlays: row.cornerOverlays ?? null,
     hideWebsiteForYouTube: row.hideWebsiteForYouTube ?? null,
     createdAt: row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
   };
@@ -70,11 +72,10 @@ export async function createCardDisplayRule(
       conditions: input.conditions,
       sortOrder,
       isDefault: false,
-      hiddenCardFields: input.hiddenCardFields ?? null,
+      fieldZones: input.fieldZones ?? null,
       imageMode: input.imageMode ?? null,
       imageVisibility: input.imageVisibility ?? null,
       imageLayout: input.imageLayout ?? null,
-      cornerOverlays: input.cornerOverlays ?? null,
       hideWebsiteForYouTube: input.hideWebsiteForYouTube ?? null,
     })
     .returning();
@@ -94,11 +95,10 @@ export async function updateCardDisplayRule(
   if (input.description !== undefined) updates.description = input.description ?? null;
   if (input.conditions !== undefined) updates.conditions = input.conditions;
   if (input.sortOrder !== undefined) updates.sortOrder = input.sortOrder;
-  if (input.hiddenCardFields !== undefined) updates.hiddenCardFields = input.hiddenCardFields;
+  if (input.fieldZones !== undefined) updates.fieldZones = input.fieldZones;
   if (input.imageMode !== undefined) updates.imageMode = input.imageMode;
   if (input.imageVisibility !== undefined) updates.imageVisibility = input.imageVisibility;
   if (input.imageLayout !== undefined) updates.imageLayout = input.imageLayout;
-  if (input.cornerOverlays !== undefined) updates.cornerOverlays = input.cornerOverlays;
   if (input.hideWebsiteForYouTube !== undefined) updates.hideWebsiteForYouTube = input.hideWebsiteForYouTube;
 
   if (Object.keys(updates).length === 0) {
@@ -172,11 +172,108 @@ export async function ensureDefaultCardDisplayRule(): Promise<void> {
     // Pinned last regardless; a high sortOrder keeps it last even if isDefault sorting changes.
     sortOrder: 1_000_000,
     isDefault: true,
-    hiddenCardFields: [],
+    fieldZones: defaultFieldZones(),
     imageMode: "natural",
     imageVisibility: "shown",
     imageLayout: "above",
-    cornerOverlays: true,
     hideWebsiteForYouTube: false,
   });
+}
+
+/** Map a legacy `card_image_corner` string to its image {@link CardFieldZone}, or `null` if unset/invalid. */
+function legacyCornerToZone(corner: string | null): CardFieldZone | null {
+  switch (corner) {
+    case "top-left": return "image-top-left";
+    case "top-right": return "image-top-right";
+    case "bottom-left": return "image-bottom-left";
+    case "bottom-right": return "image-bottom-right";
+    default: return null;
+  }
+}
+
+/** A custom property's legacy corner placement + eligibility, read straight from the DB for backfill. */
+interface LegacyPropertyPlacement {
+  id: string;
+  eligible: boolean;
+  zone: CardFieldZone;
+  placement: CardFieldPlacement;
+}
+
+/**
+ * One-time boot backfill: populate `field_zones` for rules that predate it from the legacy
+ * `hidden_card_fields` (rule) + per-property `card_image_corner*` columns. Idempotent — only rules
+ * whose `field_zones IS NULL` are touched; a non-default rule that was inheriting (`hidden_card_fields
+ * = NULL`) stays inheriting (`field_zones` left NULL). Must run after `ensureDefaultCardDisplayRule`.
+ */
+export async function backfillCardDisplayRuleFieldZones(): Promise<void> {
+  const pending = await db
+    .select()
+    .from(cardDisplayRules)
+    .where(isNull(cardDisplayRules.fieldZones));
+  if (pending.length === 0) return;
+
+  // Load each custom property's eligibility (mirrors the client's card-field filter) + legacy corner.
+  const propRows = await db
+    .select({
+      id: customProperties.id,
+      type: customProperties.type,
+      showInListings: customProperties.showInListings,
+      allCategories: customProperties.allCategories,
+      cardImageCorner: customProperties.cardImageCorner,
+      cardImageCornerScale: customProperties.cardImageCornerScale,
+      cardImageCornerMobileScale: customProperties.cardImageCornerMobileScale,
+      cardImageCornerHideLabel: customProperties.cardImageCornerHideLabel,
+    })
+    .from(customProperties);
+  const categorizedIds = new Set(
+    (await db
+      .selectDistinct({
+        propertyId: propertyCategories.propertyId,
+      })
+      .from(propertyCategories))
+      .map(row => row.propertyId),
+  );
+
+  const placements: LegacyPropertyPlacement[] = propRows.map((row) => {
+    const zone = legacyCornerToZone(row.cardImageCorner) ?? "card";
+    const placement: CardFieldPlacement = {
+      key: row.id,
+    };
+    if (zone !== "card") {
+      if (row.cardImageCornerScale != null) placement.scale = row.cardImageCornerScale;
+      if (row.cardImageCornerMobileScale != null) placement.mobileScale = row.cardImageCornerMobileScale;
+      if (row.cardImageCornerHideLabel) placement.hideLabel = true;
+    }
+    return {
+      id: row.id,
+      eligible: row.showInListings
+        && row.type !== "calculate"
+        && (row.allCategories || categorizedIds.has(row.id)),
+      zone,
+      placement,
+    };
+  });
+
+  for (const rule of pending) {
+    // A non-default rule that was inheriting stays inheriting.
+    if (!rule.isDefault && rule.hiddenCardFields == null) continue;
+
+    const hidden = new Set(rule.hiddenCardFields ?? []);
+    const zones = emptyCardFieldZones();
+    for (const key of STANDARD_CARD_FIELD_KEYS) {
+      if (!hidden.has(key)) zones.card.push({
+        key,
+      });
+    }
+    for (const prop of placements) {
+      if (!prop.eligible || hidden.has(prop.id)) continue;
+      zones[prop.zone].push(prop.placement);
+    }
+    await db
+      .update(cardDisplayRules)
+      .set({
+        fieldZones: zones,
+      })
+      .where(eq(cardDisplayRules.id, rule.id));
+  }
 }

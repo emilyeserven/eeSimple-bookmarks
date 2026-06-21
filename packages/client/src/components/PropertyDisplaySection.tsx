@@ -2,11 +2,6 @@ import type { PropertyFormApi } from "./propertyFormSchema";
 
 import { AddPropertyGroupModal } from "./AddPropertyGroupModal";
 import { LabeledSection } from "./LabeledSection";
-import {
-  CARD_IMAGE_CORNER_MOBILE_SCALE_OPTIONS,
-  CARD_IMAGE_CORNER_OPTIONS,
-  CARD_IMAGE_CORNER_SCALE_OPTIONS,
-} from "../lib/propertyForm";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -110,61 +105,6 @@ export function PropertyDisplaySection({
               )}
             </form.AppField>
           </div>
-        </div>
-        <div className="space-y-2 border-t pt-3">
-          <span className="text-sm font-medium">Card image corner</span>
-          <form.AppField name="cardImageCorner">
-            {field => (
-              <field.SelectField
-                label="Corner placement"
-                options={CARD_IMAGE_CORNER_OPTIONS}
-              />
-            )}
-          </form.AppField>
-          <p className="text-xs text-muted-foreground">
-            When set, the value is overlaid in that corner of the card&rsquo;s image instead of shown
-            as a badge — provided the listing allows image corners and the bookmark has an image.
-            Otherwise it falls back to a badge.
-          </p>
-          <form.Subscribe selector={state => state.values.cardImageCorner}>
-            {corner =>
-              corner === "none"
-                ? null
-                : (
-                  <div className="space-y-3 pt-1">
-                    <form.AppField name="cardImageCornerScale">
-                      {field => (
-                        <field.SelectField
-                          label="Overlay size"
-                          options={CARD_IMAGE_CORNER_SCALE_OPTIONS}
-                        />
-                      )}
-                    </form.AppField>
-                    <form.AppField name="cardImageCornerMobileScale">
-                      {field => (
-                        <field.SelectField
-                          label="Mobile overlay size"
-                          options={CARD_IMAGE_CORNER_MOBILE_SCALE_OPTIONS}
-                        />
-                      )}
-                    </form.AppField>
-                    <form.AppField name="cardImageCornerHideLabel">
-                      {field => (
-                        <div className="flex items-center gap-2">
-                          <Checkbox
-                            id={`${idPrefix}-corner-hide-label`}
-                            checked={field.state.value}
-                            onCheckedChange={checked => field.handleChange(checked === true)}
-                          />
-                          <Label htmlFor={`${idPrefix}-corner-hide-label`}>
-                            Hide the property name label
-                          </Label>
-                        </div>
-                      )}
-                    </form.AppField>
-                  </div>
-                )}
-          </form.Subscribe>
         </div>
         <form.Subscribe selector={state => state.values.type}>
           {type =>

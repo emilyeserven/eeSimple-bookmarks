@@ -118,10 +118,6 @@ export const sampleProperties: CustomProperty[] = [
     ratingShowLabel: false,
     ratingLabel: null,
     propertyGroupId: null,
-    cardImageCorner: null,
-    cardImageCornerScale: 1,
-    cardImageCornerMobileScale: null,
-    cardImageCornerHideLabel: false,
     createdAt: NOW,
   },
   {
@@ -168,10 +164,6 @@ export const sampleProperties: CustomProperty[] = [
     ratingShowLabel: false,
     ratingLabel: null,
     propertyGroupId: null,
-    cardImageCorner: null,
-    cardImageCornerScale: 1,
-    cardImageCornerMobileScale: null,
-    cardImageCornerHideLabel: false,
     createdAt: NOW,
   },
   {
@@ -218,10 +210,6 @@ export const sampleProperties: CustomProperty[] = [
     ratingShowLabel: false,
     ratingLabel: null,
     propertyGroupId: null,
-    cardImageCorner: null,
-    cardImageCornerScale: 1,
-    cardImageCornerMobileScale: null,
-    cardImageCornerHideLabel: false,
     createdAt: NOW,
   },
   {
@@ -268,10 +256,6 @@ export const sampleProperties: CustomProperty[] = [
     ratingShowLabel: false,
     ratingLabel: null,
     propertyGroupId: null,
-    cardImageCorner: null,
-    cardImageCornerScale: 1,
-    cardImageCornerMobileScale: null,
-    cardImageCornerHideLabel: false,
     createdAt: NOW,
   },
 ];

@@ -1,4 +1,5 @@
-import type { Bookmark, CustomProperty } from "@eesimple/types";
+import type { ResolvedFieldPlacement } from "../lib/bookmarkCardValues";
+import type { Bookmark, Category, CustomProperty } from "@eesimple/types";
 
 import { useEffect, useRef, useState } from "react";
 
@@ -7,23 +8,20 @@ import { CategoryPill } from "./CategoryPill";
 import { MediaTypePill } from "./MediaTypePill";
 import { SourcePill } from "./SourcePill";
 import { StarRating } from "./StarRating";
-import { useHiddenCardFields, useHideWebsiteForYouTube } from "../lib/bookmarkCardFields";
+import { useHideWebsiteForYouTube } from "../lib/bookmarkCardFields";
 import { buildBookmarkValueItems } from "../lib/bookmarkCardValues";
 
 import { Badge } from "@/components/ui/badge";
-import { useCategories } from "@/hooks/useCategories";
 
 interface BookmarkCardDetailsProps {
   bookmark: Bookmark;
   properties: CustomProperty[];
-  /** Listing-page key, so fields toggled off in that page's Card Options are hidden. Omitted off listing pages. */
-  pageKey?: string;
-  /** Explicit hidden field keys, overriding the `pageKey` lookup. Used by DB-backed surfaces (homepage sections). */
-  hiddenFields?: Set<string>;
+  /** Resolved field placements; a field is shown in the body when its placement's corner is `null`. */
+  placements: Map<string, ResolvedFieldPlacement>;
+  /** The bookmark's resolved (non-built-in) category, used for the category pill. */
+  bookmarkCategory?: Category;
   /** Resolved "hide website pill for YouTube" value; when omitted, the Default card display rule applies. */
   hideWebsiteForYouTube?: boolean;
-  /** Property ids already rendered as image-corner overlays by the card; excluded here so they don't double up. */
-  cornerPropertyIds?: Set<string>;
   /** Persist a rating-scale value edited inline on the card (only wired when the property is `editableOnCard`). */
   onSaveRating?: (propertyId: string, value: number) => void;
   /** Toggle a boolean value from the card (only wired for properties with `clickableInView`). */
@@ -32,25 +30,21 @@ interface BookmarkCardDetailsProps {
 
 /** The body of a bookmark card: description, taxonomy badges, tags, and custom-property value badges. */
 export function BookmarkCardDetails({
-  bookmark, properties, pageKey, hiddenFields, hideWebsiteForYouTube, cornerPropertyIds,
+  bookmark, properties, placements, bookmarkCategory, hideWebsiteForYouTube,
   onSaveRating, onSaveBoolean,
 }: BookmarkCardDetailsProps) {
-  const pageHidden = useHiddenCardFields(pageKey);
-  const hidden = hiddenFields ?? pageHidden;
   // Listings pass the rule-resolved value explicitly; other surfaces fall back to the Default rule.
   const defaultHideWebsiteForYouTube = useHideWebsiteForYouTube();
   const effectiveHideWebsiteForYouTube = hideWebsiteForYouTube ?? defaultHideWebsiteForYouTube;
-  const {
-    data: allCategories,
-  } = useCategories();
-  const bookmarkCategory = (allCategories ?? []).find(
-    c => c.id === bookmark.categoryId && !c.builtIn,
-  );
 
-  // Single source of truth for value placement; anything overlaid on the image (cornerPropertyIds)
-  // is excluded here so a corner-placed value isn't also shown as a badge.
-  const items = buildBookmarkValueItems(bookmark, properties, hidden)
-    .filter(item => !cornerPropertyIds?.has(item.id));
+  // A field is shown in the card body when it's placed in the `card` zone (corner === null); anything
+  // placed in an image corner is overlaid by BookmarkCard, and anything unplaced is hidden.
+  const showField = (key: string): boolean => placements.get(key)?.corner === null;
+
+  // Single source of truth for value placement; corner-placed values (overlaid on the image) are
+  // excluded here so a value isn't also shown as a badge.
+  const items = buildBookmarkValueItems(bookmark, properties, placements)
+    .filter(item => item.corner === null);
 
   const ratingEntries = items
     .filter(item => item.kind === "rating")
@@ -76,7 +70,7 @@ export function BookmarkCardDetails({
     website, mediaType, youtubeChannel,
   } = bookmark;
 
-  const showDescription = !!bookmark.description && !hidden.has("description");
+  const showDescription = !!bookmark.description && showField("description");
 
   // Only fade the description when it's actually clipped by the 4-line box — a short description
   // shouldn't imply hidden text. Re-measure on width changes (column count / viewport alter how the
@@ -94,11 +88,11 @@ export function BookmarkCardDetails({
     return () => observer.disconnect();
   }, [bookmark.description, showDescription]);
 
-  const showCategory = !!bookmarkCategory && !hidden.has("category");
-  const showWebsite = !!website && !hidden.has("website") && !(youtubeChannel && effectiveHideWebsiteForYouTube);
-  const showMediaType = !!mediaType && !hidden.has("mediaType");
-  const showYoutubeChannel = !!youtubeChannel && !hidden.has("youtubeChannel");
-  const showTags = bookmark.tags.length > 0 && !hidden.has("tags");
+  const showCategory = !!bookmarkCategory && showField("category");
+  const showWebsite = !!website && showField("website") && !(youtubeChannel && effectiveHideWebsiteForYouTube);
+  const showMediaType = !!mediaType && showField("mediaType");
+  const showYoutubeChannel = !!youtubeChannel && showField("youtubeChannel");
+  const showTags = bookmark.tags.length > 0 && showField("tags");
 
   return (
     <>

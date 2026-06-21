@@ -124,15 +124,13 @@ export function BookmarkListPane({
                   data-bookmark-card-sample
                 >
                   <BookmarkCard
-                    pageKey={pageKey}
                     bookmark={bookmark}
                     properties={properties}
                     onDelete={id => deleteBookmark.mutate(id)}
-                    hiddenFields={new Set(display.hiddenCardFields)}
+                    fieldZones={display.fieldZones}
                     imageLeft={(columns === 1 || columns === 2) && display.imageLayout === "side"}
                     imageMode={display.imageMode}
                     imageVisibility={display.imageVisibility}
-                    cornerOverlays={display.cornerOverlays}
                     hideWebsiteForYouTube={display.hideWebsiteForYouTube}
                   />
                 </RowCard>

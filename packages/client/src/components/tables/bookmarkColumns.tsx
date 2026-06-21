@@ -9,7 +9,8 @@ import { Globe } from "lucide-react";
 
 import { ImageCell } from "./cells";
 import { useCustomAspectRatios } from "../../hooks/useCustomAspectRatios";
-import { useHiddenCardFields, useHideWebsiteForYouTube } from "../../lib/bookmarkCardFields";
+import { useDefaultFieldZones, useHideWebsiteForYouTube } from "../../lib/bookmarkCardFields";
+import { resolveFieldPlacements } from "../../lib/bookmarkCardValues";
 import { useBookmarkImageMode, useBookmarkImageVisibility } from "../../lib/bookmarkColumns";
 import { formatBoolean, formatDateTime, formatNumber } from "../../lib/bookmarkFormat";
 import { bookmarkImageAspectStyle } from "../../lib/bookmarkImage";
@@ -74,12 +75,14 @@ export function useBookmarkTableColumns({
   imageVisibility: imageVisibilityOverride,
   hideWebsiteForYouTube: hideWebsiteForYouTubeOverride,
 }: UseBookmarkTableColumnsArgs): ColumnDef<Bookmark>[] {
-  const pageHidden = useHiddenCardFields(pageKey);
+  const defaultZones = useDefaultFieldZones();
   const pageImageMode = useBookmarkImageMode(pageKey ?? "");
   const pageImageVisibility = useBookmarkImageVisibility(pageKey ?? "");
   const defaultHideWebsiteForYouTube = useHideWebsiteForYouTube();
   const hideWebsiteForYouTube = hideWebsiteForYouTubeOverride ?? defaultHideWebsiteForYouTube;
-  const hidden = hiddenOverride ?? pageHidden;
+  // Field visibility: an explicit override (homepage sections) wins; otherwise a field is shown when
+  // the Default card display rule places it in any zone (a corner placement still gets a table column).
+  const defaultPlacements = defaultZones ? resolveFieldPlacements(defaultZones) : null;
   const imageMode = imageModeOverride ?? pageImageMode;
   const imageVisibility = imageVisibilityOverride ?? pageImageVisibility;
   const viewClick = useViewPanelClick();
@@ -94,6 +97,12 @@ export function useBookmarkTableColumns({
   } = useCategories();
 
   return useMemo(() => {
+    const fieldHidden = (key: string): boolean =>
+      hiddenOverride
+        ? hiddenOverride.has(key)
+        : defaultPlacements
+          ? !defaultPlacements.has(key)
+          : false;
     const cols: ColumnDef<Bookmark>[] = [];
 
     if (imageVisibility !== "off") {
@@ -166,7 +175,7 @@ export function useBookmarkTableColumns({
       ),
     });
 
-    if (!hidden.has("category")) {
+    if (!fieldHidden("category")) {
       cols.push({
         id: "category",
         header: "Category",
@@ -184,7 +193,7 @@ export function useBookmarkTableColumns({
       });
     }
 
-    if (!hidden.has("website") || !hidden.has("youtubeChannel")) {
+    if (!fieldHidden("website") || !fieldHidden("youtubeChannel")) {
       cols.push({
         id: "source",
         header: "Source",
@@ -197,7 +206,7 @@ export function useBookmarkTableColumns({
           const {
             website, youtubeChannel,
           } = row.original;
-          if (youtubeChannel && !hidden.has("youtubeChannel")) {
+          if (youtubeChannel && !fieldHidden("youtubeChannel")) {
             return (
               <SourcePill
                 type="youtube-channel"
@@ -205,7 +214,7 @@ export function useBookmarkTableColumns({
               />
             );
           }
-          if (website && !hidden.has("website") && !(youtubeChannel && hideWebsiteForYouTube)) {
+          if (website && !fieldHidden("website") && !(youtubeChannel && hideWebsiteForYouTube)) {
             return (
               <SourcePill
                 type="website"
@@ -218,7 +227,7 @@ export function useBookmarkTableColumns({
       });
     }
 
-    if (!hidden.has("mediaType")) {
+    if (!fieldHidden("mediaType")) {
       cols.push({
         id: "mediaType",
         header: "Media Type",
@@ -231,7 +240,7 @@ export function useBookmarkTableColumns({
       });
     }
 
-    if (!hidden.has("tags")) {
+    if (!fieldHidden("tags")) {
       cols.push({
         id: "tags",
         header: "Tags",
@@ -245,7 +254,7 @@ export function useBookmarkTableColumns({
     }
 
     for (const property of properties) {
-      if (!property.showInListings || hidden.has(property.id)) continue;
+      if (!property.showInListings || fieldHidden(property.id)) continue;
       if (categoryId && !propertyAppliesToCategory(property, categoryId)) continue;
       cols.push({
         id: property.id,
@@ -297,7 +306,8 @@ export function useBookmarkTableColumns({
   }, [
     properties,
     categoryId,
-    hidden,
+    hiddenOverride,
+    defaultPlacements,
     viewClick,
     modifier,
     allCategories,

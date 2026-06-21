@@ -30,12 +30,40 @@ const displayProperties = {
   sortOrder: {
     type: "integer",
   },
-  hiddenCardFields: {
-    type: "array",
-    nullable: true,
-    items: {
-      type: "string",
-    },
+  // Per-zone field placements. `null` = inherit. Each zone holds an ordered array of placements; a
+  // field key absent from all zones is hidden. The zone-name set is hand-listed here (mirror of the
+  // `CARD_FIELD_ZONES` union in @eesimple/types — keep in sync).
+  fieldZones: {
+    type: ["object", "null"],
+    additionalProperties: false,
+    properties: Object.fromEntries(
+      ["card", "image-top-left", "image-top-right", "image-bottom-left", "image-bottom-right"].map(
+        zone => [zone, {
+          type: "array",
+          items: {
+            type: "object",
+            required: ["key"],
+            additionalProperties: false,
+            properties: {
+              key: {
+                type: "string",
+              },
+              scale: {
+                type: "number",
+                enum: [1, 1.5, 2],
+              },
+              mobileScale: {
+                type: ["number", "null"],
+                enum: [1, 1.5, 2, null],
+              },
+              hideLabel: {
+                type: "boolean",
+              },
+            },
+          },
+        }],
+      ),
+    ),
   },
   imageMode: {
     type: "string",
@@ -50,10 +78,6 @@ const displayProperties = {
     type: "string",
     nullable: true,
     enum: ["above", "side"],
-  },
-  cornerOverlays: {
-    type: "boolean",
-    nullable: true,
   },
   hideWebsiteForYouTube: {
     type: "boolean",

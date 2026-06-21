@@ -1,6 +1,6 @@
 import { relations, sql } from "drizzle-orm";
 import { type AnyPgColumn, boolean, integer, jsonb, pgTable, primaryKey, real, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
-import type { ConditionTree, ShortenedLink, WebsiteParamRule } from "@eesimple/types";
+import type { CardFieldZones, ConditionTree, ShortenedLink, WebsiteParamRule } from "@eesimple/types";
 
 /** `bookmarks` table — one row per saved bookmark. Tags now live in `bookmark_tags`. */
 export const bookmarks = pgTable("bookmarks", {
@@ -608,18 +608,12 @@ export const customProperties = pgTable("custom_properties", {
   propertyGroupId: uuid("property_group_id").references(() => propertyGroups.id, {
     onDelete: "set null",
   }),
-  // Which image corner the value is overlaid in on bookmark cards: "top-left" | "top-right" |
-  // "bottom-left" | "bottom-right". NULL → no corner (rendered as a badge below the image, the
-  // default). Nullable/text so it's an additive, push-safe column.
+  // DEPRECATED: corner placement + overlay styling moved to card_display_rules.field_zones. These
+  // columns are retained (no longer read/written) so the boot backfill can migrate their values into
+  // the Default rule on first boot and so drizzle-kit push stays additive-only. Drop in a follow-up.
   cardImageCorner: text("card_image_corner"),
-  // Scale factor for a corner overlay (1, 1.5, or 2). NULL → 1 (normal size). Only meaningful when
-  // cardImageCorner is set. Nullable real so it's an additive, push-safe column.
   cardImageCornerScale: real("card_image_corner_scale"),
-  // Scale factor for a corner overlay on mobile (1, 1.5, or 2). NULL → inherit cardImageCornerScale.
-  // Only meaningful when cardImageCorner is set. Nullable real so it's an additive, push-safe column.
   cardImageCornerMobileScale: real("card_image_corner_mobile_scale"),
-  // When true, a corner overlay shows only the value, dropping the property-name label. NULL →
-  // false. Only meaningful when cardImageCorner is set. Nullable so it's additive, push-safe.
   cardImageCornerHideLabel: boolean("card_image_corner_hide_label"),
   createdAt: timestamp("created_at", {
     withTimezone: true,
@@ -860,12 +854,17 @@ export const cardDisplayRules = pgTable("card_display_rules", {
   // The singleton baseline rule: always matches, cannot be deleted, carries concrete display values.
   isDefault: boolean("is_default").notNull().default(false),
   // Display overrides. NULL = inherit (fall through to a lower-priority rule / the Default).
-  hiddenCardFields: jsonb("hidden_card_fields").$type<string[]>(),
+  // Per-zone field placements (card / image corners). A field key absent from all zones is hidden;
+  // supersedes hidden_card_fields + the per-property corner columns. Nullable jsonb = push-safe.
+  fieldZones: jsonb("field_zones").$type<CardFieldZones>(),
   imageMode: text("image_mode"),
   imageVisibility: text("image_visibility"),
   imageLayout: text("image_layout"),
-  cornerOverlays: boolean("corner_overlays"),
   hideWebsiteForYouTube: boolean("hide_website_for_youtube"),
+  // DEPRECATED: superseded by field_zones (which folds in visibility + corner placement). Retained
+  // so the boot backfill can read it and push stays additive-only. Drop in a follow-up.
+  hiddenCardFields: jsonb("hidden_card_fields").$type<string[]>(),
+  cornerOverlays: boolean("corner_overlays"),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),

@@ -58,10 +58,6 @@ export const propertySchema = z
     ratingAllowHalf: z.boolean(),
     ratingShowLabel: z.boolean(),
     ratingLabel: z.string(),
-    cardImageCorner: z.enum(["none", "top-left", "top-right", "bottom-left", "bottom-right"]),
-    cardImageCornerScale: z.enum(["1", "1.5", "2"]),
-    cardImageCornerMobileScale: z.enum(["inherit", "1", "1.5", "2"]),
-    cardImageCornerHideLabel: z.boolean(),
   })
   .superRefine((value, ctx) => {
     if (value.type === "calculate" && value.operandIds.length < 2) {
@@ -123,10 +119,6 @@ export const CREATE_DEFAULTS: PropertyFormValues = {
   ratingAllowHalf: false,
   ratingShowLabel: false,
   ratingLabel: "",
-  cardImageCorner: "none",
-  cardImageCornerScale: "1",
-  cardImageCornerMobileScale: "inherit",
-  cardImageCornerHideLabel: false,
 };
 
 /**
@@ -281,20 +273,6 @@ export function valuesFromProperty(property: CustomProperty): PropertyFormValues
     ratingAllowHalf: property.ratingAllowHalf,
     ratingShowLabel: property.ratingShowLabel,
     ratingLabel: property.ratingLabel ?? "",
-    cardImageCorner: property.cardImageCorner ?? "none",
-    cardImageCornerScale: property.cardImageCornerScale === 2
-      ? "2"
-      : property.cardImageCornerScale === 1.5
-        ? "1.5"
-        : "1",
-    cardImageCornerMobileScale: property.cardImageCornerMobileScale === 2
-      ? "2"
-      : property.cardImageCornerMobileScale === 1.5
-        ? "1.5"
-        : property.cardImageCornerMobileScale === 1
-          ? "1"
-          : "inherit",
-    cardImageCornerHideLabel: property.cardImageCornerHideLabel,
   };
 }
 
@@ -351,14 +329,5 @@ export function payloadFromValues(values: PropertyFormValues): CreateCustomPrope
     ratingAllowHalf: isRating ? values.ratingAllowHalf : undefined,
     ratingShowLabel: isRating ? values.ratingShowLabel : undefined,
     ratingLabel: isRating ? trimOrNull(values.ratingLabel) : null,
-    cardImageCorner: values.cardImageCorner === "none" ? null : values.cardImageCorner,
-    cardImageCornerScale:
-      values.cardImageCorner === "none" ? 1 : Number(values.cardImageCornerScale),
-    cardImageCornerMobileScale:
-      values.cardImageCorner === "none" || values.cardImageCornerMobileScale === "inherit"
-        ? null
-        : Number(values.cardImageCornerMobileScale),
-    cardImageCornerHideLabel:
-      values.cardImageCorner === "none" ? false : values.cardImageCornerHideLabel,
   };
 }

@@ -1,8 +1,24 @@
-import type { Bookmark, CustomProperty } from "@eesimple/types";
+import type { ResolvedFieldPlacement } from "./bookmarkCardValues";
+import type { Bookmark, CardImageCorner, CustomProperty } from "@eesimple/types";
 
 import { describe, expect, it } from "vitest";
 
 import { buildBookmarkValueItems } from "./bookmarkCardValues";
+
+/** Build a single-key placement map for the test property. */
+function placementMap(
+  key: string,
+  corner: CardImageCorner | null,
+  hideLabel: boolean,
+): Map<string, ResolvedFieldPlacement> {
+  return new Map([[key, {
+    zone: corner ? `image-${corner}` as const : "card",
+    corner,
+    scale: 1,
+    mobileScale: null,
+    hideLabel,
+  }]]);
+}
 
 const NOW = "2026-06-01T00:00:00.000Z";
 
@@ -51,10 +67,6 @@ function property(overrides: Partial<CustomProperty>): CustomProperty {
     ratingShowLabel: false,
     ratingLabel: null,
     propertyGroupId: null,
-    cardImageCorner: null,
-    cardImageCornerScale: 1,
-    cardImageCornerMobileScale: null,
-    cardImageCornerHideLabel: false,
     createdAt: NOW,
     ...overrides,
   };
@@ -89,44 +101,34 @@ function bookmarkWithNumber(propertyId: string, value: number): Bookmark {
 
 describe("buildBookmarkValueItems corner hide-label", () => {
   it("includes the property name when the label is not hidden", () => {
-    const prop = property({
-      cardImageCorner: "top-left",
-      cardImageCornerHideLabel: false,
-    });
+    const prop = property({});
     const [item] = buildBookmarkValueItems(
       bookmarkWithNumber(prop.id, 7),
       [prop],
-      new Set(),
+      placementMap(prop.id, "top-left", false),
     );
     expect(item.kind).toBe("badge");
     if (item.kind === "badge") expect(item.label).toBe("Rating: 7");
   });
 
-  it("drops the property name when hide-label is set on a corner property", () => {
-    const prop = property({
-      cardImageCorner: "top-left",
-      cardImageCornerHideLabel: true,
-    });
+  it("drops the property name when hide-label is set on a corner placement", () => {
+    const prop = property({});
     const [item] = buildBookmarkValueItems(
       bookmarkWithNumber(prop.id, 7),
       [prop],
-      new Set(),
+      placementMap(prop.id, "top-left", true),
     );
     expect(item.kind).toBe("badge");
     if (item.kind === "badge") expect(item.label).toBe("7");
   });
 
-  it("keeps the full label when hide-label is set but no corner is chosen", () => {
-    const prop = property({
-      cardImageCorner: null,
-      cardImageCornerHideLabel: true,
-    });
-    const [item] = buildBookmarkValueItems(
+  it("omits a property absent from the placement map (hidden)", () => {
+    const prop = property({});
+    const items = buildBookmarkValueItems(
       bookmarkWithNumber(prop.id, 7),
       [prop],
-      new Set(),
+      new Map(),
     );
-    expect(item.kind).toBe("badge");
-    if (item.kind === "badge") expect(item.label).toBe("Rating: 7");
+    expect(items).toHaveLength(0);
   });
 });

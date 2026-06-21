@@ -33,25 +33,6 @@ function formPlacement(property: CustomProperty): string {
   return "Shown only in the Advanced area";
 }
 
-const CORNER_LABELS: Record<NonNullable<CustomProperty["cardImageCorner"]>, string> = {
-  "top-left": "Top-left",
-  "top-right": "Top-right",
-  "bottom-left": "Bottom-left",
-  "bottom-right": "Bottom-right",
-};
-
-/** Describe a property's image-corner overlay placement, including its size and label options. */
-function cornerPlacement(property: CustomProperty): string {
-  if (!property.cardImageCorner) return "None (badge below image)";
-  const parts = [CORNER_LABELS[property.cardImageCorner]];
-  if (property.cardImageCornerScale !== 1) parts.push(`${property.cardImageCornerScale}× size`);
-  if (property.cardImageCornerMobileScale != null) {
-    parts.push(`${property.cardImageCornerMobileScale}× on mobile`);
-  }
-  if (property.cardImageCornerHideLabel) parts.push("label hidden");
-  return parts.join(" · ");
-}
-
 /**
  * The full read-only view of a single custom property, showing every configured field. Shared by the
  * custom-property detail page and the right panel's property view so the two stay identical; the panel
@@ -331,7 +312,6 @@ export function PropertyDisplayFields({
       <DetailField label="Listings">
         {property.showInListings ? "Shown on bookmark cards" : "Hidden from bookmark cards"}
       </DetailField>
-      <DetailField label="Card image corner">{cornerPlacement(property)}</DetailField>
       {property.type === "calculate"
         ? null
         : (

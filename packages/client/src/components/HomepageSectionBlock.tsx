@@ -6,6 +6,8 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 import { BookmarkCard } from "./BookmarkCard";
 import { useBookmarkTableColumns } from "./tables/bookmarkColumns";
 import { useTableRowNav } from "./tables/useTableRowNav";
+import { useDefaultFieldZones } from "../lib/bookmarkCardFields";
+import { flattenFieldZonesToCard, restrictFieldZones } from "../lib/bookmarkCardValues";
 import { COLUMN_CLASS } from "../lib/bookmarkColumns";
 import { useUiStore } from "../stores/uiStore";
 
@@ -30,6 +32,12 @@ export function HomepageSectionBlock({
   const imageLayout = section.imageLayout;
   const imageLeft = columns === 1 || (columns === 2 && imageLayout === "side");
   const hiddenFields = new Set(section.hiddenCardFields);
+  // Corner placement comes from the Default card display rule; the section's own hidden fields and
+  // corner-overlays toggle layer on top (hide those keys; collapse corners into the body when off).
+  const defaultZones = useDefaultFieldZones();
+  const cardFieldZones = defaultZones
+    ? restrictFieldZones(section.cornerOverlays ? defaultZones : flattenFieldZonesToCard(defaultZones), hiddenFields)
+    : undefined;
   const collapsedIds = useUiStore(state => state.collapsedHomepageSectionIds);
   const toggle = useUiStore(state => state.toggleHomepageSectionCollapsed);
   const isCollapsed = collapsedIds.includes(section.id);
@@ -109,8 +117,7 @@ export function HomepageSectionBlock({
                       imageLeft={imageLeft}
                       imageMode={imageMode}
                       imageVisibility={imageVisibility}
-                      hiddenFields={hiddenFields}
-                      cornerOverlays={section.cornerOverlays}
+                      fieldZones={cardFieldZones}
                       hideWebsiteForYouTube={section.hideWebsiteForYouTube}
                     />
                   </RowCard>

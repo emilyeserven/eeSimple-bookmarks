@@ -2,7 +2,7 @@ import type { Bookmark, CardDisplayRule } from "@eesimple/types";
 
 import { describe, expect, it } from "vitest";
 
-import { buildTagDescendants } from "@eesimple/types";
+import { buildTagDescendants, emptyCardFieldZones } from "@eesimple/types";
 
 import { bookmarkToConditionInput, inspectBookmarkRules, resolveCardDisplay } from "./cardDisplayRules";
 
@@ -45,11 +45,10 @@ function makeRule(overrides: Partial<CardDisplayRule> = {}): CardDisplayRule {
     },
     sortOrder: 0,
     isDefault: false,
-    hiddenCardFields: null,
+    fieldZones: null,
     imageMode: null,
     imageVisibility: null,
     imageLayout: null,
-    cornerOverlays: null,
     hideWebsiteForYouTube: null,
     createdAt: "2026-01-01T00:00:00.000Z",
     ...overrides,
@@ -61,11 +60,10 @@ const DEFAULT_RULE = makeRule({
   name: "Default",
   isDefault: true,
   sortOrder: 1_000_000,
-  hiddenCardFields: [],
+  fieldZones: emptyCardFieldZones(),
   imageMode: "natural",
   imageVisibility: "shown",
   imageLayout: "above",
-  cornerOverlays: true,
   hideWebsiteForYouTube: false,
 });
 
@@ -158,7 +156,12 @@ describe("resolveCardDisplay — layered merge", () => {
           categoryIds: ["cat-1"],
         }],
       },
-      cornerOverlays: false,
+      fieldZones: {
+        ...emptyCardFieldZones(),
+        card: [{
+          key: "category",
+        }],
+      },
     });
     const low = makeRule({
       id: "low",
@@ -172,13 +175,15 @@ describe("resolveCardDisplay — layered merge", () => {
         }],
       },
       imageMode: "square",
-      cornerOverlays: true,
+      fieldZones: emptyCardFieldZones(),
     });
 
     const resolved = resolveCardDisplay(makeBookmark(), [high, low, DEFAULT_RULE], noTagDescendants);
-    // `high` only sets cornerOverlays; `low` supplies imageMode; Default fills the rest.
-    expect(resolved.cornerOverlays).toBe(false);
-    expect(resolved.provenance.source.cornerOverlays).toBe("high");
+    // `high` supplies fieldZones; `low` supplies imageMode; Default fills the rest.
+    expect(resolved.fieldZones.card).toEqual([{
+      key: "category",
+    }]);
+    expect(resolved.provenance.source.fieldZones).toBe("high");
     expect(resolved.imageMode).toBe("square");
     expect(resolved.provenance.source.imageMode).toBe("low");
     expect(resolved.imageVisibility).toBe("shown");
