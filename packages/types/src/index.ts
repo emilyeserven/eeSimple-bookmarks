@@ -184,6 +184,8 @@ export interface AppSettings {
   bookmarkQuickAddDisplay: QuickAddDisplay;
   /** When true, the default "Homepage" title and description are hidden on the homepage. */
   homepageHeaderHidden: boolean;
+  /** When false, the homepage text block is hidden even if homepageText is non-empty. */
+  homepageTextEnabled: boolean;
 }
 
 /** The subset of {@link AppSettings} that drives homepage content (read/written together). */
@@ -195,6 +197,8 @@ export interface HomepageContentSettings {
   bookmarkQuickAddDisplay: QuickAddDisplay;
   /** When true, the default "Homepage" title and description are hidden on the homepage. */
   homepageHeaderHidden: boolean;
+  /** When false, the homepage text block is hidden even if homepageText is non-empty. */
+  homepageTextEnabled: boolean;
 }
 
 /** Payload for replacing the homepage content settings. */

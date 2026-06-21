@@ -282,6 +282,17 @@ const migrations: RuntimeMigration[] = [
     `),
   },
   {
+    // `app_settings.homepage_text_enabled` is NOT NULL DEFAULT true. Adding a NOT NULL column to the
+    // populated singleton makes drizzle-kit push prompt — the same non-TTY crash as above — so
+    // pre-apply it here to keep push's diff additive-only. Default must match schema.ts (true) so
+    // existing installs with homepage text keep showing it.
+    name: "add app_settings.homepage_text_enabled column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "app_settings"
+        ADD COLUMN IF NOT EXISTS "homepage_text_enabled" boolean NOT NULL DEFAULT true
+    `),
+  },
+  {
     // Display Presets were removed in favor of Card Display Rules; drop the `saved_display_presets`
     // table so it doesn't linger. Destructive, so it lives here (push never drops tables). Idempotent
     // via DROP TABLE IF EXISTS.

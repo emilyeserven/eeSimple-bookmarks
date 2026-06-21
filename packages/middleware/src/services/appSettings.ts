@@ -35,6 +35,7 @@ const DEFAULT_HOMEPAGE_CONTENT: HomepageContentSettings = {
   bookmarkQuickAddWidth: "full",
   bookmarkQuickAddDisplay: "collapsible",
   homepageHeaderHidden: false,
+  homepageTextEnabled: true,
 };
 
 /** Coerce a stored width string to the typed union, defaulting to "full". */
@@ -78,6 +79,7 @@ export async function getHomepageContentSettings(): Promise<HomepageContentSetti
       bookmarkQuickAddWidth: appSettings.bookmarkQuickAddWidth,
       bookmarkQuickAddDisplay: appSettings.bookmarkQuickAddDisplay,
       homepageHeaderHidden: appSettings.homepageHeaderHidden,
+      homepageTextEnabled: appSettings.homepageTextEnabled,
     })
     .from(appSettings)
     .where(eq(appSettings.id, ROW_ID));
@@ -89,6 +91,7 @@ export async function getHomepageContentSettings(): Promise<HomepageContentSetti
     bookmarkQuickAddWidth: asWidth(row.bookmarkQuickAddWidth),
     bookmarkQuickAddDisplay: asQuickAddDisplay(row.bookmarkQuickAddDisplay),
     homepageHeaderHidden: row.homepageHeaderHidden,
+    homepageTextEnabled: row.homepageTextEnabled,
   };
 }
 
@@ -103,6 +106,7 @@ export async function updateHomepageContentSettings(
     bookmarkQuickAddWidth: asWidth(input.bookmarkQuickAddWidth),
     bookmarkQuickAddDisplay: asQuickAddDisplay(input.bookmarkQuickAddDisplay),
     homepageHeaderHidden: input.homepageHeaderHidden,
+    homepageTextEnabled: input.homepageTextEnabled,
   };
   await db
     .insert(appSettings)
