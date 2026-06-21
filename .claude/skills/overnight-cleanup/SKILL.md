@@ -409,6 +409,13 @@ many conditions inline. Extract sub-components for each conditional region; keep
 coordinator that passes props. Put each extracted sub-component in its **own** co-located file
 (`ComponentName.tsx`), not an inline `const` in the parent — a file-level component is what lets the
 duplicate detector (Phase 3) catch the next copy and what earns it a Storybook story (Phase 6).
+For these, **the score is driven by JSX prop count, not just branching** — a coordinator can score
+60+ with `cyclomatic: 1` purely from the number of props spelled across its JSX, so extracting the
+inline conditionals alone may barely move it. The lever is the **spread-coordinator**: give each
+extracted child a *narrower* prop interface and have the parent delegate by spreading its props bag
+(`<Child {...props} />`) — a wider object is assignable to a narrower prop type via spread, so the
+parent's JSX collapses to a flat list of one-attribute children. `BookmarkRevealedFields` (cognitive
+62 → <25, with the inline-extraction-only step stuck at 61) is the reference.
 
 **Do not add `// fallow-ignore-next-line complexity`** unless you have confirmed the complexity
 is unavoidable (e.g. an exhaustive type-narrowing switch that cannot be split without losing type
