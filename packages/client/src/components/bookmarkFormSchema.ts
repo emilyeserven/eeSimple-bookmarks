@@ -86,6 +86,30 @@ function _bookmarkFormApiSample(_bookmark?: Bookmark) {
 }
 export type BookmarkFormApi = ReturnType<typeof _bookmarkFormApiSample>;
 
+/**
+ * The bookmark form's `defaultValues`, derived from an optional existing bookmark (edit) and an
+ * optional locked category (create on a category page). Extracted so the controller's `useAppForm`
+ * call stays a single line and the nullish-fallback chain lives in one tested place.
+ */
+export function buildBookmarkDefaultValues(
+  bookmark: Bookmark | undefined,
+  lockedCategoryId: string | undefined,
+): {
+  url: string;
+  title: string;
+  categoryId: string;
+  description: string;
+  tagIds: string[];
+} {
+  return {
+    url: bookmark?.originalUrl ?? bookmark?.url ?? "",
+    title: bookmark?.title ?? "",
+    categoryId: bookmark?.categoryId ?? lockedCategoryId ?? "",
+    description: bookmark?.description ?? "",
+    tagIds: (bookmark?.tags.map(tag => tag.id) ?? []) as string[],
+  };
+}
+
 /** The raw custom-property inputs the submit handler reads off its ref. */
 export interface CustomPropertyInputs {
   numberInputs: Record<string, string>;
