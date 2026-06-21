@@ -1,4 +1,9 @@
 import type { FastifyInstance } from "fastify";
+import {
+  CUSTOM_PROPERTY_TYPES,
+  DATE_TIME_FORMATS,
+  NUMBER_FORMATS,
+} from "@eesimple/types";
 import type {
   CreateCustomPropertyInput,
   UpdateCustomPropertyInput,
@@ -47,15 +52,15 @@ const createPropertyBody = {
     },
     type: {
       type: "string",
-      enum: ["number", "boolean", "calculate", "datetime", "ratingScale", "image", "file"],
+      enum: [...CUSTOM_PROPERTY_TYPES],
     },
     numberFormat: {
       type: ["string", "null"],
-      enum: ["plain", "duration", null],
+      enum: [...NUMBER_FORMATS, null],
     },
     dateTimeFormat: {
       type: ["string", "null"],
-      enum: ["date", "time", "datetime", null],
+      enum: [...DATE_TIME_FORMATS, null],
     },
     quickFilterRange: {
       type: ["number", "null"],

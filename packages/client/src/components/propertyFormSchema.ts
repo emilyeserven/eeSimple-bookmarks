@@ -1,5 +1,6 @@
 import type { CreateCustomPropertyInput, CustomProperty } from "@eesimple/types";
 
+import { CUSTOM_PROPERTY_TYPES, DATE_TIME_FORMATS, NUMBER_FORMATS } from "@eesimple/types";
 import { z } from "zod";
 
 import { useAppForm } from "../lib/form";
@@ -10,8 +11,8 @@ export type PropertyFormSection = "general" | "options" | "categories" | "media-
 export const propertySchema = z
   .object({
     name: z.string().trim().min(1, "Name is required"),
-    type: z.enum(["number", "boolean", "calculate", "datetime", "ratingScale", "image", "file"]),
-    dateTimeFormat: z.enum(["date", "time", "datetime"]),
+    type: z.enum(CUSTOM_PROPERTY_TYPES),
+    dateTimeFormat: z.enum(DATE_TIME_FORMATS),
     description: z.string(),
     numberMin: z.string(),
     numberMax: z.string(),
@@ -22,7 +23,7 @@ export const propertySchema = z
     valuePrefix: z.string(),
     zeroLabel: z.string(),
     maxLabel: z.string(),
-    numberFormat: z.enum(["plain", "duration"]),
+    numberFormat: z.enum(NUMBER_FORMATS),
     // "Quick filter ± range" inputs. `quickFilterRange` holds the plain-number delta; the d/h/m/s
     // fields hold the breakdown for duration numbers (minutes/seconds) and datetime props (all four).
     // They are composed into a single canonical `quickFilterRange` (seconds for duration/datetime).
