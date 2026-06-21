@@ -417,6 +417,19 @@ extracted child a *narrower* prop interface and have the parent delegate by spre
 parent's JSX collapses to a flat list of one-attribute children. `BookmarkRevealedFields` (cognitive
 62 → <25, with the inline-extraction-only step stuck at 61) is the reference.
 
+**Spread the hooks, not just the handlers — fallow scores each function independently.** Nested
+function bodies are **not** rolled into the parent (unlike SonarJS cognitive complexity), so pulling
+handlers/conditions into lambdas or sub-functions of the *same* component **does not lower its
+score** when the cost is **hook-density**: fallow adds **+1 cognitive per hook call** (`useState` /
+`useRef` / `useEffect` / every custom hook), plus +1 per `??` / `&&` / ternary (`?.` is
+cyclomatic-only). A form that calls ~25 hooks is already over `maxCognitive` before any branching.
+Run `pnpm exec fallow health --complexity-breakdown` to confirm the contributions. For an over-cap
+component/hook, **distribute the `useState`/`useRef`/`useEffect` into cohesive sub-hooks**, move a
+controller's state + handlers into a `use*Controller` hook, and lift `??` chains + heavy
+self-contained logic into module-level (unit-testable) helpers — leaving a thin JSX shell. Reference:
+`BookmarkForm` → `useBookmarkFormController` + `useBookmarkFormUiState` / `useSourceDefaultFlags` +
+`bookmarkSubmit.ts` (see CLAUDE.md → **Large-form / over-cap decomposition**).
+
 **Do not add `// fallow-ignore-next-line complexity`** unless you have confirmed the complexity
 is unavoidable (e.g. an exhaustive type-narrowing switch that cannot be split without losing type
 safety). Suppression is a last resort, not a shortcut.
