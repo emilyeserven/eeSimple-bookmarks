@@ -16,10 +16,14 @@ interface AddTagModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreated?: (tag: Tag) => void;
+  /** When false, hide the parent select and fix the parent to `defaultParentId` (header quick-add). */
+  showParent?: boolean;
+  /** Pre-selected / fixed parent id. Used by the header's "New sub-tag" button. */
+  defaultParentId?: string | null;
 }
 
 export function AddTagModal({
-  open, onOpenChange, onCreated,
+  open, onOpenChange, onCreated, showParent = true, defaultParentId = null,
 }: AddTagModalProps) {
   const {
     data: tree,
@@ -33,14 +37,18 @@ export function AddTagModal({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>New tag</DialogTitle>
+          <DialogTitle>{showParent ? "New tag" : "New sub-tag"}</DialogTitle>
           <DialogDescription>
-            Create a root tag or a subtag under an existing parent.
+            {showParent
+              ? "Create a root tag or a subtag under an existing parent."
+              : "Create a subtag under the current tag."}
           </DialogDescription>
         </DialogHeader>
 
         <TagForm
           allTags={tree ?? []}
+          showParent={showParent}
+          defaultParentId={defaultParentId}
           submitLabel="Add tag"
           pendingLabel="Adding…"
           SubmitWrapper={DialogFooter}

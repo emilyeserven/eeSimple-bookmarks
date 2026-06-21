@@ -5,6 +5,7 @@ import React from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Info, PanelRight, Plus } from "lucide-react";
 
+import { AddChildButton } from "@/components/AddChildButton";
 import { BookmarkDetailLayoutPopover } from "@/components/BookmarkDetailLayoutPopover";
 import { DisplayOptionsPopover } from "@/components/DisplayOptionsPopover";
 import { FilterLocationPopover } from "@/components/FilterLocationPopover";
@@ -477,6 +478,25 @@ export function AppHeader() {
   // `_view`/`edit` tabs) surface a header "Info" link to that item's read-only view page.
   const infoButton = taxonomyInfoButton(pathParts);
 
+  // On a hierarchy-taxonomy *detail* page (Tags / Media Types), offer a header button that
+  // quick-creates a child of the current entity. The parent id is the already-resolved entity.
+  const isTagDetail = pathParts[0] === "tags" && pathParts.length >= 2;
+  const isMediaTypeDetail = pathParts[0] === "taxonomies"
+    && pathParts[1] === "media-types"
+    && pathParts.length >= 3;
+  const addChild: { kind: "tag" | "mediaType";
+    parentId: string | undefined; } | null = isTagDetail
+      ? {
+        kind: "tag",
+        parentId: tagAncestors?.[tagAncestors.length - 1]?.id,
+      }
+      : isMediaTypeDetail
+        ? {
+          kind: "mediaType",
+          parentId: mediaType?.id,
+        }
+        : null;
+
   const {
     open,
   } = usePanelControls();
@@ -556,6 +576,17 @@ export function AppHeader() {
         >
           <Plus className="size-4" />
         </Button>
+      ),
+    });
+  }
+  if (addChild) {
+    toolbarActions.push({
+      key: "add-child",
+      node: (
+        <AddChildButton
+          kind={addChild.kind}
+          parentId={addChild.parentId}
+        />
       ),
     });
   }

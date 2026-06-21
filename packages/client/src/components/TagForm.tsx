@@ -84,7 +84,11 @@ export function TagForm({
     }) => {
       onSubmit({
         name: value.name.trim(),
-        parentId: !showParent || value.parent === ROOT ? null : value.parent,
+        // With the parent select hidden, honor the fixed `defaultParentId` (used by the header's
+        // "New sub-X" quick-add); otherwise read the chosen parent, treating ROOT as null.
+        parentId: !showParent
+          ? (defaultParentId ?? null)
+          : value.parent === ROOT ? null : value.parent,
       });
     },
   });
