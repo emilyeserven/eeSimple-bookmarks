@@ -35,6 +35,16 @@ Copy `services/mediaTypes.ts`. It provides the canonical shape:
 - `list*`, `get*`, `get*BySlug`, `create*`, `update*`, `delete*`.
 - Import slug helpers from `@/utils/slug` — **do not re-implement**:
   `slugify(name)` and `uniqueSlug(name, await takenSlugs())` (pass the id to exclude on update).
+- **For `takenSlugs`**, use `takenSlugsOf()` from `@/utils/taxonomySlugs` — **do not copy
+  the query inline**. The one-liner form used by every slug-routed service is:
+  ```ts
+  import { takenSlugsOf } from "@/utils/taxonomySlugs";
+  const takenSlugs = (excludeId?: string) =>
+    takenSlugsOf(myTable, myTable.slug, myTable.id, excludeId);
+  ```
+  Copying the inline `select slug … where id != excludeId` block from `mediaTypes.ts` adds to
+  the fallow duplication budget (already near its ceiling) and caused a CI failure when a fourth
+  service duplicated it.
 - A `backfill*Slugs()` / `ensure*()` boot helper for existing rows.
 
 ### 3. Middleware — routes (`packages/middleware/src/routes/<entity>.ts`)
@@ -51,6 +61,12 @@ explicit `.js` extensions** (ESM) — e.g. `export * from "./conditions.js"`.
 ### 6. Client — data hook (`packages/client/src/hooks/use<Entity>.ts`)
 Copy `hooks/useMediaTypes.ts`: `use<Entities>`, `useCreate*`, `useUpdate*`, `useDelete*`
 (TanStack Query, with `onSuccess` invalidation).
+
+**Only add `use<Entity>BySlug`** if the breadcrumb system will actually resolve this entity's
+name from a slug. Check `TAXONOMY_DESCRIPTORS` in `packages/client/src/routes/-appHeader.tsx` —
+if you're registering the entity there (step below), you'll need the hook. If the entity doesn't
+appear in breadcrumbs (e.g. it's only used as a relation or filter facet), skip the slug lookup
+hook; an unused export adds dead-code overhead that the fallow audit flags.
 
 ### 7. Client — route quartet (`packages/client/src/routes/`)
 File-based routing. Copy the five `taxonomies.media-types.*` files, renaming:
@@ -83,7 +99,13 @@ pnpm --filter=@eesimple/client routeTree   # regenerate route tree (or rely on d
 pnpm typecheck
 pnpm test
 pnpm lint:fix                              # always from repo root
+pnpm exec fallow dupes --format json --quiet   # duplication must stay ≤ 6.25%
 ```
+
+If the fallow duplication check exceeds the budget, look for a shared utility rather than
+copying code — the most common culprit is the `takenSlugs` query (use `takenSlugsOf()`; see
+step 2) or the condition multi-select component (use `EntityMultiSelectCondition`; see
+`add-condition-type` skill).
 
 Then check manually that the entity:
 - has working list / detail / edit pages at its slug routes, and
