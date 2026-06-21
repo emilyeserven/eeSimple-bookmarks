@@ -143,6 +143,7 @@ import { Route as TaxonomiesPropertyGroupsPropertyGroupSlugEditGeneralRouteImpor
 import { Route as TaxonomiesPropertyGroupsPropertyGroupSlugViewGeneralRouteImport } from './routes/taxonomies.property-groups.$propertyGroupSlug._view.general'
 import { Route as TaxonomiesMediaTypesMediaTypeSlugEditGeneralRouteImport } from './routes/taxonomies.media-types.$mediaTypeSlug.edit.general'
 import { Route as TaxonomiesMediaTypesMediaTypeSlugEditAutofillRouteImport } from './routes/taxonomies.media-types.$mediaTypeSlug.edit.autofill'
+import { Route as TaxonomiesMediaTypesMediaTypeSlugViewHierarchyRouteImport } from './routes/taxonomies.media-types.$mediaTypeSlug._view.hierarchy'
 import { Route as TaxonomiesMediaTypesMediaTypeSlugViewGeneralRouteImport } from './routes/taxonomies.media-types.$mediaTypeSlug._view.general'
 import { Route as TaxonomiesMediaTypesMediaTypeSlugViewAutofillRouteImport } from './routes/taxonomies.media-types.$mediaTypeSlug._view.autofill'
 
@@ -896,6 +897,12 @@ const TaxonomiesMediaTypesMediaTypeSlugEditAutofillRoute =
     path: '/autofill',
     getParentRoute: () => TaxonomiesMediaTypesMediaTypeSlugEditRoute,
   } as any)
+const TaxonomiesMediaTypesMediaTypeSlugViewHierarchyRoute =
+  TaxonomiesMediaTypesMediaTypeSlugViewHierarchyRouteImport.update({
+    id: '/hierarchy',
+    path: '/hierarchy',
+    getParentRoute: () => TaxonomiesMediaTypesMediaTypeSlugViewRoute,
+  } as any)
 const TaxonomiesMediaTypesMediaTypeSlugViewGeneralRoute =
   TaxonomiesMediaTypesMediaTypeSlugViewGeneralRouteImport.update({
     id: '/general',
@@ -1018,6 +1025,7 @@ export interface FileRoutesByFullPath {
   '/taxonomies/youtube-channels/$channelSlug/': typeof TaxonomiesYoutubeChannelsChannelSlugIndexRoute
   '/taxonomies/media-types/$mediaTypeSlug/autofill': typeof TaxonomiesMediaTypesMediaTypeSlugViewAutofillRoute
   '/taxonomies/media-types/$mediaTypeSlug/general': typeof TaxonomiesMediaTypesMediaTypeSlugViewGeneralRoute
+  '/taxonomies/media-types/$mediaTypeSlug/hierarchy': typeof TaxonomiesMediaTypesMediaTypeSlugViewHierarchyRoute
   '/taxonomies/media-types/$mediaTypeSlug/edit/autofill': typeof TaxonomiesMediaTypesMediaTypeSlugEditAutofillRoute
   '/taxonomies/media-types/$mediaTypeSlug/edit/general': typeof TaxonomiesMediaTypesMediaTypeSlugEditGeneralRoute
   '/taxonomies/property-groups/$propertyGroupSlug/general': typeof TaxonomiesPropertyGroupsPropertyGroupSlugViewGeneralRoute
@@ -1120,6 +1128,7 @@ export interface FileRoutesByTo {
   '/tags/$tagSlug/edit': typeof TagsTagSlugEditIndexRoute
   '/taxonomies/media-types/$mediaTypeSlug/autofill': typeof TaxonomiesMediaTypesMediaTypeSlugViewAutofillRoute
   '/taxonomies/media-types/$mediaTypeSlug/general': typeof TaxonomiesMediaTypesMediaTypeSlugViewGeneralRoute
+  '/taxonomies/media-types/$mediaTypeSlug/hierarchy': typeof TaxonomiesMediaTypesMediaTypeSlugViewHierarchyRoute
   '/taxonomies/media-types/$mediaTypeSlug/edit/autofill': typeof TaxonomiesMediaTypesMediaTypeSlugEditAutofillRoute
   '/taxonomies/media-types/$mediaTypeSlug/edit/general': typeof TaxonomiesMediaTypesMediaTypeSlugEditGeneralRoute
   '/taxonomies/property-groups/$propertyGroupSlug/general': typeof TaxonomiesPropertyGroupsPropertyGroupSlugViewGeneralRoute
@@ -1259,6 +1268,7 @@ export interface FileRoutesById {
   '/taxonomies/youtube-channels/$channelSlug/': typeof TaxonomiesYoutubeChannelsChannelSlugIndexRoute
   '/taxonomies/media-types/$mediaTypeSlug/_view/autofill': typeof TaxonomiesMediaTypesMediaTypeSlugViewAutofillRoute
   '/taxonomies/media-types/$mediaTypeSlug/_view/general': typeof TaxonomiesMediaTypesMediaTypeSlugViewGeneralRoute
+  '/taxonomies/media-types/$mediaTypeSlug/_view/hierarchy': typeof TaxonomiesMediaTypesMediaTypeSlugViewHierarchyRoute
   '/taxonomies/media-types/$mediaTypeSlug/edit/autofill': typeof TaxonomiesMediaTypesMediaTypeSlugEditAutofillRoute
   '/taxonomies/media-types/$mediaTypeSlug/edit/general': typeof TaxonomiesMediaTypesMediaTypeSlugEditGeneralRoute
   '/taxonomies/property-groups/$propertyGroupSlug/_view/general': typeof TaxonomiesPropertyGroupsPropertyGroupSlugViewGeneralRoute
@@ -1391,6 +1401,7 @@ export interface FileRouteTypes {
     | '/taxonomies/youtube-channels/$channelSlug/'
     | '/taxonomies/media-types/$mediaTypeSlug/autofill'
     | '/taxonomies/media-types/$mediaTypeSlug/general'
+    | '/taxonomies/media-types/$mediaTypeSlug/hierarchy'
     | '/taxonomies/media-types/$mediaTypeSlug/edit/autofill'
     | '/taxonomies/media-types/$mediaTypeSlug/edit/general'
     | '/taxonomies/property-groups/$propertyGroupSlug/general'
@@ -1493,6 +1504,7 @@ export interface FileRouteTypes {
     | '/tags/$tagSlug/edit'
     | '/taxonomies/media-types/$mediaTypeSlug/autofill'
     | '/taxonomies/media-types/$mediaTypeSlug/general'
+    | '/taxonomies/media-types/$mediaTypeSlug/hierarchy'
     | '/taxonomies/media-types/$mediaTypeSlug/edit/autofill'
     | '/taxonomies/media-types/$mediaTypeSlug/edit/general'
     | '/taxonomies/property-groups/$propertyGroupSlug/general'
@@ -1631,6 +1643,7 @@ export interface FileRouteTypes {
     | '/taxonomies/youtube-channels/$channelSlug/'
     | '/taxonomies/media-types/$mediaTypeSlug/_view/autofill'
     | '/taxonomies/media-types/$mediaTypeSlug/_view/general'
+    | '/taxonomies/media-types/$mediaTypeSlug/_view/hierarchy'
     | '/taxonomies/media-types/$mediaTypeSlug/edit/autofill'
     | '/taxonomies/media-types/$mediaTypeSlug/edit/general'
     | '/taxonomies/property-groups/$propertyGroupSlug/_view/general'
@@ -2607,6 +2620,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaxonomiesMediaTypesMediaTypeSlugEditAutofillRouteImport
       parentRoute: typeof TaxonomiesMediaTypesMediaTypeSlugEditRoute
     }
+    '/taxonomies/media-types/$mediaTypeSlug/_view/hierarchy': {
+      id: '/taxonomies/media-types/$mediaTypeSlug/_view/hierarchy'
+      path: '/hierarchy'
+      fullPath: '/taxonomies/media-types/$mediaTypeSlug/hierarchy'
+      preLoaderRoute: typeof TaxonomiesMediaTypesMediaTypeSlugViewHierarchyRouteImport
+      parentRoute: typeof TaxonomiesMediaTypesMediaTypeSlugViewRoute
+    }
     '/taxonomies/media-types/$mediaTypeSlug/_view/general': {
       id: '/taxonomies/media-types/$mediaTypeSlug/_view/general'
       path: '/general'
@@ -3030,6 +3050,7 @@ const TagsRouteWithChildren = TagsRoute._addFileChildren(TagsRouteChildren)
 interface TaxonomiesMediaTypesMediaTypeSlugViewRouteChildren {
   TaxonomiesMediaTypesMediaTypeSlugViewAutofillRoute: typeof TaxonomiesMediaTypesMediaTypeSlugViewAutofillRoute
   TaxonomiesMediaTypesMediaTypeSlugViewGeneralRoute: typeof TaxonomiesMediaTypesMediaTypeSlugViewGeneralRoute
+  TaxonomiesMediaTypesMediaTypeSlugViewHierarchyRoute: typeof TaxonomiesMediaTypesMediaTypeSlugViewHierarchyRoute
 }
 
 const TaxonomiesMediaTypesMediaTypeSlugViewRouteChildren: TaxonomiesMediaTypesMediaTypeSlugViewRouteChildren =
@@ -3038,6 +3059,8 @@ const TaxonomiesMediaTypesMediaTypeSlugViewRouteChildren: TaxonomiesMediaTypesMe
       TaxonomiesMediaTypesMediaTypeSlugViewAutofillRoute,
     TaxonomiesMediaTypesMediaTypeSlugViewGeneralRoute:
       TaxonomiesMediaTypesMediaTypeSlugViewGeneralRoute,
+    TaxonomiesMediaTypesMediaTypeSlugViewHierarchyRoute:
+      TaxonomiesMediaTypesMediaTypeSlugViewHierarchyRoute,
   }
 
 const TaxonomiesMediaTypesMediaTypeSlugViewRouteWithChildren =
