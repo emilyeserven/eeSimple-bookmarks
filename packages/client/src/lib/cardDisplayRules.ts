@@ -156,6 +156,107 @@ function byPriority(a: CardDisplayRule, b: CardDisplayRule): number {
   return a.sortOrder - b.sortOrder;
 }
 
+/** The overridable display attributes, in display order, with the labels used by the rule editor. */
+export const CARD_DISPLAY_ATTRS = [
+  {
+    key: "imageVisibility",
+    label: "Images",
+  },
+  {
+    key: "imageMode",
+    label: "Aspect",
+  },
+  {
+    key: "imageLayout",
+    label: "Layout",
+  },
+  {
+    key: "cornerOverlays",
+    label: "Image corners",
+  },
+  {
+    key: "hideWebsiteForYouTube",
+    label: "Hide website for YouTube",
+  },
+  {
+    key: "hiddenCardFields",
+    label: "Card fields",
+  },
+] as const satisfies readonly {
+  key: keyof ResolvedCardDisplay["provenance"]["source"];
+  label: string;
+}[];
+
+/** A single attribute a rule sets, plus whether its value won or was overridden by a higher rule. */
+export interface RuleAttrInspection {
+  key: keyof ResolvedCardDisplay["provenance"]["source"];
+  label: string;
+  /** The raw value the rule declares for this attribute (formatted for display by the caller). */
+  value: string[] | string | boolean;
+  status: "applied" | "overridden";
+  /** When overridden, the id of the higher-priority rule that supplied the final value. */
+  overriddenBy: string | null;
+}
+
+/** One rule's contribution to a bookmark: whether it matched and which attributes it sets. */
+export interface RuleInspection {
+  rule: CardDisplayRule;
+  matched: boolean;
+  /** Only the attributes this rule sets (non-null), each flagged applied/overridden. */
+  attrs: RuleAttrInspection[];
+}
+
+/** Full breakdown of how the rule set resolves for one bookmark, for the settings inspector. */
+export interface BookmarkRuleInspection {
+  resolved: ResolvedCardDisplay;
+  /** Every rule in priority order (matching the input order), each with its per-attribute status. */
+  rules: RuleInspection[];
+}
+
+/**
+ * Inspect how `rules` resolve for one bookmark: for each rule report whether it matched and, for each
+ * attribute it sets, whether that value was applied or overridden by a higher-priority rule. Built as
+ * a view over {@link resolveCardDisplay}'s provenance so the inspector and the live cards agree.
+ * `rules` must be pre-sorted by priority (highest first; the Default rule last).
+ */
+export function inspectBookmarkRules(
+  bookmark: Bookmark,
+  rules: CardDisplayRule[],
+  tagDescendants: TagDescendants,
+): BookmarkRuleInspection {
+  const resolved = resolveCardDisplay(bookmark, rules, tagDescendants);
+  const input = bookmarkToConditionInput(bookmark);
+
+  const ruleInspections = rules.map((rule): RuleInspection => {
+    const attrs: RuleAttrInspection[] = [];
+    for (const {
+      key, label,
+    } of CARD_DISPLAY_ATTRS) {
+      const value = rule[key];
+      if (value === null) continue;
+      const winner = resolved.provenance.source[key];
+      const applied = winner === rule.id;
+      attrs.push({
+        key,
+        label,
+        value,
+        status: applied ? "applied" : "overridden",
+        overriddenBy: applied ? null : winner,
+      });
+    }
+    return {
+      rule,
+      matched: ruleMatches(rule, input, tagDescendants),
+      attrs,
+    };
+  });
+
+  return {
+    resolved,
+    rules: ruleInspections,
+  };
+}
+
 /**
  * Returns a stable resolver `(bookmark) => ResolvedCardDisplay` for the current rule set. Loads the
  * rules + tags once (already cached by React Query) and builds the tag-cascade resolver a single time.

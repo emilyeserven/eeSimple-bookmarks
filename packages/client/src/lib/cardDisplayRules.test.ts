@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import { buildTagDescendants } from "@eesimple/types";
 
-import { bookmarkToConditionInput, resolveCardDisplay } from "./cardDisplayRules";
+import { bookmarkToConditionInput, inspectBookmarkRules, resolveCardDisplay } from "./cardDisplayRules";
 
 /** Build a Bookmark so tests only specify the fields that matter. */
 function makeBookmark(overrides: Partial<Bookmark> = {}): Bookmark {
@@ -255,5 +255,78 @@ describe("resolveCardDisplay — layered merge", () => {
     });
     const resolved = resolveCardDisplay(bookmark, [rule, DEFAULT_RULE], tagDescendants);
     expect(resolved.imageVisibility).toBe("off");
+  });
+});
+
+describe("inspectBookmarkRules", () => {
+  const catCondition = (categoryId: string) => ({
+    type: "group" as const,
+    combinator: "and" as const,
+    children: [{
+      type: "category" as const,
+      categoryIds: [categoryId],
+    }],
+  });
+
+  it("flags a lower rule's attribute as overridden by the higher rule that won it", () => {
+    const high = makeRule({
+      id: "high",
+      sortOrder: 0,
+      conditions: catCondition("cat-1"),
+      imageMode: "square",
+    });
+    const low = makeRule({
+      id: "low",
+      sortOrder: 1,
+      conditions: catCondition("cat-1"),
+      imageMode: "cropped",
+    });
+
+    const result = inspectBookmarkRules(makeBookmark(), [high, low, DEFAULT_RULE], noTagDescendants);
+
+    const highInspection = result.rules.find(r => r.rule.id === "high");
+    const lowInspection = result.rules.find(r => r.rule.id === "low");
+
+    expect(highInspection?.matched).toBe(true);
+    expect(highInspection?.attrs).toContainEqual(expect.objectContaining({
+      key: "imageMode",
+      status: "applied",
+      overriddenBy: null,
+    }));
+
+    expect(lowInspection?.matched).toBe(true);
+    expect(lowInspection?.attrs).toContainEqual(expect.objectContaining({
+      key: "imageMode",
+      status: "overridden",
+      overriddenBy: "high",
+    }));
+  });
+
+  it("marks a rule whose conditions don't match as not matched, still reporting its set attrs", () => {
+    const rule = makeRule({
+      id: "other",
+      conditions: catCondition("nope"),
+      imageMode: "square",
+    });
+
+    const result = inspectBookmarkRules(makeBookmark(), [rule, DEFAULT_RULE], noTagDescendants);
+    const inspection = result.rules.find(r => r.rule.id === "other");
+
+    expect(inspection?.matched).toBe(false);
+    // It sets imageMode but the Default supplied the resolved value, so it reads as overridden.
+    expect(inspection?.attrs).toContainEqual(expect.objectContaining({
+      key: "imageMode",
+      status: "overridden",
+      overriddenBy: "default",
+    }));
+  });
+
+  it("reports the Default rule's attributes as applied when nothing else matches", () => {
+    const result = inspectBookmarkRules(makeBookmark(), [DEFAULT_RULE], noTagDescendants);
+    const defaultInspection = result.rules.find(r => r.rule.id === "default");
+
+    expect(defaultInspection?.matched).toBe(true);
+    expect(defaultInspection?.attrs.every(attr => attr.status === "applied")).toBe(true);
+    expect(result.resolved.imageMode).toBe("natural");
   });
 });
