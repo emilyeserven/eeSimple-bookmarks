@@ -20,10 +20,11 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Plus, Sparkles } from "lucide-react";
+import { Plus } from "lucide-react";
 
 import { CardDisplayRuleCard } from "./CardDisplayRuleCard";
 import { CardDisplayRuleForm } from "./CardDisplayRuleForm";
+import { CardDisplayRuleInspector } from "./CardDisplayRuleInspector";
 import {
   useCardDisplayRules,
   useCreateCardDisplayRule,
@@ -115,21 +116,14 @@ export function CardDisplayRulesSettings() {
 
   return (
     <div className="space-y-4">
-      <div
-        className="
-          flex items-start gap-2 rounded-lg border border-dashed border-input
-          bg-muted/30 p-3
-        "
-      >
-        <Sparkles className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-        <div className="space-y-0.5 text-sm">
-          <p className="font-medium">Coming soon</p>
-          <p className="text-muted-foreground">
-            You&rsquo;ll be able to search for a bookmark and see exactly which rules apply to it —
-            highlighting what each rule sets and what got overridden by a higher-priority rule.
-          </p>
-        </div>
-      </div>
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Inspect a bookmark</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <CardDisplayRuleInspector />
+        </CardContent>
+      </Card>
 
       <p className="text-sm text-muted-foreground">
         Rules change how bookmark cards display based on their category, media type, website, tags, and
