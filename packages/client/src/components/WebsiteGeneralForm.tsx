@@ -1,12 +1,14 @@
-import type { Website } from "@eesimple/types";
+import type { UpdateWebsiteInput, Website } from "@eesimple/types";
 
 import { useState } from "react";
 
+import { useNavigate } from "@tanstack/react-router";
 import { Globe } from "lucide-react";
 import { z } from "zod";
 
 import { DefaultTagsField } from "./DefaultTagsField";
 import { EntityImageField } from "./EntityImageField";
+import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 
 import { Separator } from "@/components/ui/separator";
 import { useCategories } from "@/hooks/useCategories";
@@ -28,14 +30,23 @@ const websiteGeneralSchema = z.object({
   mediaTypeId: z.string().nullable(),
 });
 
+const LABELS: Partial<Record<keyof UpdateWebsiteInput, string>> = {
+  siteName: "Site name",
+  domain: "Domain",
+  categoryId: "Category",
+  mediaTypeId: "Media type",
+  tagIds: "Default tags",
+};
+
 interface Props {
   website: Website;
 }
 
-/** Edit a website's site name, domain, category, and default tags. */
+/** Edit a website's site name, domain, category, and default tags. Each field auto-saves (no Save button). */
 export function WebsiteGeneralForm({
   website,
 }: Props) {
+  const navigate = useNavigate();
   const updateWebsite = useUpdateWebsite();
   const uploadFavicon = useUploadWebsiteFavicon();
   const autoFavicon = useAutoWebsiteFavicon();
@@ -52,6 +63,19 @@ export function WebsiteGeneralForm({
     data: tagTree,
   } = useTagTree();
 
+  const autoSave = useFieldAutoSave<UpdateWebsiteInput, Website>({
+    id: website.id,
+    update: updateWebsite,
+    labels: LABELS,
+    initial: {
+      siteName: website.siteName,
+      domain: website.domain,
+      categoryId: website.category?.id ?? null,
+      mediaTypeId: website.mediaTypeId ?? null,
+      tagIds: website.tagIds ?? [],
+    },
+  });
+
   const form = useAppForm({
     defaultValues: {
       siteName: website.siteName,
@@ -62,32 +86,15 @@ export function WebsiteGeneralForm({
     validators: {
       onChange: websiteGeneralSchema,
     },
-    onSubmit: ({
-      value,
-    }) => {
-      if (website.builtIn) return;
-      updateWebsite.mutate({
-        id: website.id,
-        input: {
-          siteName: value.siteName.trim(),
-          domain: value.domain.trim(),
-          categoryId: value.categoryId || null,
-          mediaTypeId: value.mediaTypeId || null,
-          tagIds,
-        },
-      });
-    },
   });
 
+  function saveTagIds(next: string[]): void {
+    setTagIds(next);
+    autoSave.saveField("tagIds", next);
+  }
+
   return (
-    <form
-      className="space-y-4"
-      onSubmit={(event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        void form.handleSubmit();
-      }}
-    >
+    <div className="space-y-4">
       {website.builtIn
         ? (
           <p className="text-sm text-muted-foreground">
@@ -107,6 +114,13 @@ export function WebsiteGeneralForm({
             <field.TextField
               label="Site name"
               disabled={website.builtIn}
+              onBlur={() => autoSave.saveField(
+                "siteName",
+                field.state.value.trim(),
+                {
+                  valid: field.state.meta.errors.length === 0,
+                },
+              )}
             />
           )}
         </form.AppField>
@@ -115,6 +129,24 @@ export function WebsiteGeneralForm({
             <field.TextField
               label="Domain"
               disabled={website.builtIn}
+              onBlur={() => autoSave.saveField(
+                "domain",
+                field.state.value.trim(),
+                {
+                  valid: field.state.meta.errors.length === 0,
+                  // Changing the domain may change the slug; follow it so the edit page keeps resolving.
+                  onSuccess: (updated) => {
+                    if (updated.slug && updated.slug !== website.slug) {
+                      void navigate({
+                        to: "/taxonomies/websites/$websiteSlug/edit/general",
+                        params: {
+                          websiteSlug: updated.slug,
+                        },
+                      });
+                    }
+                  },
+                },
+              )}
             />
           )}
         </form.AppField>
@@ -156,6 +188,7 @@ export function WebsiteGeneralForm({
                 />
               ),
             }))}
+            onValueChange={value => autoSave.saveField("categoryId", value || null)}
           />
         )}
       </form.AppField>
@@ -177,6 +210,7 @@ export function WebsiteGeneralForm({
                 />
               ),
             }))}
+            onValueChange={value => autoSave.saveField("mediaTypeId", value || null)}
           />
         )}
       </form.AppField>
@@ -189,32 +223,9 @@ export function WebsiteGeneralForm({
       <DefaultTagsField
         tree={tagTree ?? []}
         selectedIds={tagIds}
-        onToggle={id => setTagIds(prev => prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id])}
+        onToggle={id => saveTagIds(tagIds.includes(id) ? tagIds.filter(t => t !== id) : [...tagIds, id])}
         description="Tags applied automatically to bookmarks saved from this site."
       />
-
-      {!website.builtIn
-        ? (
-          <form.AppForm>
-            <form.Subscribe selector={state => state.values}>
-              {(values) => {
-                const siteNameDirty = values.siteName.trim() !== website.siteName;
-                const domainDirty = values.domain.trim() !== website.domain;
-                const categoryIdDirty = (values.categoryId || null) !== (website.category?.id ?? null);
-                const mediaTypeIdDirty = (values.mediaTypeId || null) !== (website.mediaTypeId ?? null);
-                const tagIdsDirty = JSON.stringify([...tagIds].sort()) !== JSON.stringify([...(website.tagIds ?? [])].sort());
-                return (
-                  <form.SubmitButton
-                    label="Save changes"
-                    size="sm"
-                    disabledWhen={!siteNameDirty && !domainDirty && !categoryIdDirty && !mediaTypeIdDirty && !tagIdsDirty}
-                  />
-                );
-              }}
-            </form.Subscribe>
-          </form.AppForm>
-        )
-        : null}
-    </form>
+    </div>
   );
 }

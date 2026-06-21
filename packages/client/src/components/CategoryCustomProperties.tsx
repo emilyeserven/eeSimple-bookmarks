@@ -15,6 +15,7 @@ import {
   useCustomProperties,
   useUpdateCustomProperty,
 } from "../hooks/useCustomProperties";
+import { notifyFieldSaved, notifyFieldSaveError } from "../lib/autoSave";
 import { toggleId } from "../lib/tag-utils";
 
 import { Badge } from "@/components/ui/badge";
@@ -78,6 +79,9 @@ export function CategoryCustomProperties({
                     allCategories: false,
                     categoryIds: toggleId(property.categoryIds, category.id),
                   },
+                }, {
+                  onSuccess: () => notifyFieldSaved("Assigned properties"),
+                  onError: error => notifyFieldSaveError("Assigned properties", error.message),
                 })}
             />
           );

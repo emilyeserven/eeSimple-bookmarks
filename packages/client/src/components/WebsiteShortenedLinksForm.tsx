@@ -1,4 +1,4 @@
-import type { ShortenedLink, Website } from "@eesimple/types";
+import type { ShortenedLink, UpdateWebsiteInput, Website } from "@eesimple/types";
 
 import { useState } from "react";
 
@@ -6,40 +6,46 @@ import { BulkExpandSection } from "./BulkExpandSection";
 import { LabeledSection } from "./LabeledSection";
 import { LinkPreview } from "./LinkPreview";
 import { ShortenedLinksEditor } from "./WebsiteEditors";
+import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 import { useUpdateWebsite } from "../hooks/useWebsites";
 import { normalizeShortLinks } from "../lib/websiteForm";
 
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+
+const LABELS: Partial<Record<keyof UpdateWebsiteInput, string>> = {
+  shortenedLinks: "Shortened Links",
+};
 
 interface Props {
   website: Website;
 }
 
-/** Edit a website's shortened-link domains, with a link preview and bulk-expand tool. */
+/** Edit a website's shortened-link domains, with a link preview and bulk-expand tool. Auto-saves on change. */
 export function WebsiteShortenedLinksForm({
   website,
 }: Props) {
   const updateWebsite = useUpdateWebsite();
   const [shortLinks, setShortLinks] = useState<ShortenedLink[]>(website.shortenedLinks);
 
+  const autoSave = useFieldAutoSave<UpdateWebsiteInput>({
+    id: website.id,
+    update: updateWebsite,
+    labels: LABELS,
+    initial: {
+      shortenedLinks: normalizeShortLinks(website.shortenedLinks),
+    },
+  });
+
   const payloadShortLinks = normalizeShortLinks(shortLinks);
-  const storedShortLinks = normalizeShortLinks(website.shortenedLinks);
-  const dirty = JSON.stringify(payloadShortLinks) !== JSON.stringify(storedShortLinks);
 
   const editedWebsite: Website = {
     ...website,
     shortenedLinks: payloadShortLinks,
   };
 
-  function save(): void {
-    if (!dirty) return;
-    updateWebsite.mutate({
-      id: website.id,
-      input: {
-        shortenedLinks: payloadShortLinks,
-      },
-    });
+  function handleChange(next: ShortenedLink[]): void {
+    setShortLinks(next);
+    autoSave.saveField("shortenedLinks", normalizeShortLinks(next));
   }
 
   return (
@@ -47,7 +53,7 @@ export function WebsiteShortenedLinksForm({
       <ShortenedLinksEditor
         idBase={website.id}
         links={shortLinks}
-        onChange={setShortLinks}
+        onChange={handleChange}
       />
 
       <Separator />
@@ -63,20 +69,6 @@ export function WebsiteShortenedLinksForm({
           placeholder="Paste a link on this site…"
         />
       </LabeledSection>
-
-      <div className="flex items-center gap-3">
-        <Button
-          type="button"
-          size="sm"
-          disabled={!dirty || updateWebsite.isPending}
-          onClick={save}
-        >
-          {updateWebsite.isPending ? "Saving…" : "Save changes"}
-        </Button>
-        {updateWebsite.isError
-          ? <p className="text-sm text-destructive">{updateWebsite.error.message}</p>
-          : null}
-      </div>
 
       {editedWebsite.shortenedLinks.some(link => link.expandTo && !link.keepShortened)
         ? (

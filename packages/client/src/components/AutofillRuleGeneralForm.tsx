@@ -1,10 +1,11 @@
-import type { AutofillRule } from "@eesimple/types";
+import type { AutofillRule, UpdateAutofillRuleInput } from "@eesimple/types";
 
 import { useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 
-import { useUpdateAutofillRule } from "@/hooks/useAutofill";
-import { useAppForm } from "@/lib/form";
+import { useUpdateAutofillRule } from "../hooks/useAutofill";
+import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
+import { useAppForm } from "../lib/form";
 
 const schema = z.object({
   name: z.string().trim().min(1, "Name is required"),
@@ -12,16 +13,35 @@ const schema = z.object({
   sortOrder: z.number().int(),
 });
 
+const LABELS: Partial<Record<keyof UpdateAutofillRuleInput, string>> = {
+  name: "Name",
+  description: "Description",
+  sortOrder: "Priority",
+};
+
 interface Props {
   rule: AutofillRule;
 }
 
-/** Edit an autofill rule's name, description, and sort order. Navigates to the new slug on rename. */
+/**
+ * Edit an autofill rule's name, description, and sort order. Each field auto-saves (no Save button);
+ * renaming follows the new slug so the edit page keeps resolving.
+ */
 export function AutofillRuleGeneralForm({
   rule,
 }: Props) {
   const navigate = useNavigate();
   const updateRule = useUpdateAutofillRule();
+  const autoSave = useFieldAutoSave<UpdateAutofillRuleInput, AutofillRule>({
+    id: rule.id,
+    update: updateRule,
+    labels: LABELS,
+    initial: {
+      name: rule.name,
+      description: rule.description ?? null,
+      sortOrder: rule.sortOrder,
+    },
+  });
 
   const form = useAppForm({
     defaultValues: {
@@ -32,54 +52,50 @@ export function AutofillRuleGeneralForm({
     validators: {
       onChange: schema,
     },
-    onSubmit: ({
-      value,
-    }) => {
-      updateRule.mutate(
-        {
-          id: rule.id,
-          input: {
-            name: value.name.trim(),
-            description: value.description.trim() || null,
-            sortOrder: value.sortOrder,
-          },
-        },
-        {
-          onSuccess: (updated) => {
-            if (updated.slug !== rule.slug) {
-              void navigate({
-                to: "/autofill/$ruleSlug/edit/general",
-                params: {
-                  ruleSlug: updated.slug,
-                },
-              });
-            }
-          },
-        },
-      );
-    },
   });
 
   return (
-    <form
-      className="space-y-4"
-      onSubmit={(event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        void form.handleSubmit();
-      }}
-    >
+    <div className="space-y-4">
       <form.AppField name="name">
         {field => (
           <field.TextField
             label="Name"
             placeholder="e.g. Recipes from 101 Cookbooks"
+            onBlur={() => autoSave.saveField(
+              "name",
+              field.state.value.trim(),
+              {
+                valid: field.state.meta.errors.length === 0,
+                // Renaming changes the slug; follow it so the edit page keeps resolving.
+                onSuccess: (updated) => {
+                  if (updated.slug !== rule.slug) {
+                    void navigate({
+                      to: "/autofill/$ruleSlug/edit/general",
+                      params: {
+                        ruleSlug: updated.slug,
+                      },
+                    });
+                  }
+                },
+              },
+            )}
           />
         )}
       </form.AppField>
 
       <form.AppField name="description">
-        {field => <field.TextareaField label="Description" />}
+        {field => (
+          <field.TextareaField
+            label="Description"
+            onBlur={() => autoSave.saveField(
+              "description",
+              field.state.value.trim() || null,
+              {
+                valid: field.state.meta.errors.length === 0,
+              },
+            )}
+          />
+        )}
       </form.AppField>
 
       <form.AppField name="sortOrder">
@@ -88,20 +104,16 @@ export function AutofillRuleGeneralForm({
             label="Priority"
             className="max-w-32"
             hint="Higher numbers win when rules conflict on the category."
+            onBlur={() => autoSave.saveField(
+              "sortOrder",
+              field.state.value,
+              {
+                valid: field.state.meta.errors.length === 0,
+              },
+            )}
           />
         )}
       </form.AppField>
-
-      <form.AppForm>
-        <form.SubmitButton
-          label="Save changes"
-          size="sm"
-          requireDirty
-        />
-      </form.AppForm>
-      {updateRule.isError
-        ? <p className="text-sm text-destructive">{updateRule.error.message}</p>
-        : null}
-    </form>
+    </div>
   );
 }

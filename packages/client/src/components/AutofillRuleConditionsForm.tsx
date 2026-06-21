@@ -1,4 +1,4 @@
-import type { AutofillRule, ConditionTree } from "@eesimple/types";
+import type { AutofillRule, ConditionTree, UpdateAutofillRuleInput } from "@eesimple/types";
 
 import { useState } from "react";
 
@@ -7,69 +7,63 @@ import { emptyConditionTree } from "@eesimple/types";
 import { ConditionsField } from "./conditions/ConditionsField";
 import { PreviewBookmarksSection } from "./PreviewBookmarksSection";
 import { useAutofillRuleFormData } from "./useAutofillRuleFormData";
+import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 import { autofillConditionsValidator } from "../lib/conditionsSchema";
 
 import { LabeledSection } from "@/components/LabeledSection";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+
+const LABELS: Partial<Record<keyof UpdateAutofillRuleInput, string>> = {
+  conditions: "Conditions",
+};
 
 interface Props {
   rule: AutofillRule;
 }
 
-/** Edit an autofill rule's activation conditions. Saves only the `conditions` field. */
+/**
+ * Edit an autofill rule's activation conditions. The `conditions` tree auto-saves on change (no Save
+ * button) whenever it is valid; an invalid tree shows an inline error and is not saved.
+ */
 export function AutofillRuleConditionsForm({
   rule,
 }: Props) {
   const {
     categories, properties, tagTree, updateRule,
   } = useAutofillRuleFormData();
+  const autoSave = useFieldAutoSave<UpdateAutofillRuleInput>({
+    id: rule.id,
+    update: updateRule,
+    labels: LABELS,
+    initial: {
+      conditions: rule.conditions ?? emptyConditionTree(),
+    },
+  });
 
   const [conditions, setConditions] = useState<ConditionTree>(rule.conditions ?? emptyConditionTree());
   const [conditionsError, setConditionsError] = useState<string | null>(null);
 
-  const isDirty = JSON.stringify(conditions) !== JSON.stringify(rule.conditions);
-
-  function handleSave() {
-    const parsed = autofillConditionsValidator.safeParse(conditions);
+  function handleChange(next: ConditionTree) {
+    setConditions(next);
+    const parsed = autofillConditionsValidator.safeParse(next);
     if (!parsed.success) {
       setConditionsError(parsed.error.issues.map(i => i.message).join(" "));
       return;
     }
     setConditionsError(null);
-    updateRule.mutate({
-      id: rule.id,
-      input: {
-        conditions,
-      },
-    });
+    autoSave.saveField("conditions", next);
   }
 
   return (
     <div className="space-y-6">
       <ConditionsField
         value={conditions}
-        onChange={(next) => {
-          setConditions(next);
-          setConditionsError(null);
-        }}
+        onChange={handleChange}
         categories={categories}
         properties={properties}
         tagTree={tagTree}
       />
       {conditionsError ? <p className="text-sm text-destructive">{conditionsError}</p> : null}
-
-      <Button
-        type="button"
-        size="sm"
-        disabled={!isDirty || updateRule.isPending}
-        onClick={handleSave}
-      >
-        {updateRule.isPending ? "Saving…" : "Save conditions"}
-      </Button>
-      {updateRule.isError
-        ? <p className="text-sm text-destructive">{updateRule.error.message}</p>
-        : null}
 
       <Separator />
 

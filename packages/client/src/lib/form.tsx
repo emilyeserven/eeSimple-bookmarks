@@ -176,11 +176,13 @@ interface NumberFieldProps {
   disabled?: boolean;
   className?: string;
   hint?: string;
+  /** Extra blur handler (runs after the field's own blur), e.g. auto-save-on-blur. */
+  onBlur?: () => void;
 }
 
 /** Labelled numeric input; empty input maps to 0 to keep the value a number. */
 function NumberField({
-  label, placeholder, disabled, className, hint,
+  label, placeholder, disabled, className, hint, onBlur,
 }: NumberFieldProps) {
   const field = useFieldContext<number>();
   const id = useId();
@@ -195,7 +197,10 @@ function NumberField({
         disabled={disabled}
         className={className}
         value={Number.isNaN(field.state.value) ? "" : field.state.value}
-        onBlur={field.handleBlur}
+        onBlur={() => {
+          field.handleBlur();
+          onBlur?.();
+        }}
         onChange={(event) => {
           const next = event.target.valueAsNumber;
           field.handleChange(Number.isNaN(next) ? 0 : next);
@@ -217,11 +222,13 @@ interface SelectFieldProps {
   className?: string;
   /** Render the select read-only (e.g. an immutable field shown for context). */
   disabled?: boolean;
+  /** Extra change handler (runs after the field's own change), e.g. auto-save-on-change. */
+  onValueChange?: (value: string) => void;
 }
 
 /** Labelled single-select bound to the surrounding field. */
 function SelectField({
-  label, options, placeholder, className, disabled,
+  label, options, placeholder, className, disabled, onValueChange,
 }: SelectFieldProps) {
   const field = useFieldContext<string>();
   const id = useId();
@@ -235,6 +242,7 @@ function SelectField({
         onValueChange={(value) => {
           field.handleChange(value);
           field.handleBlur();
+          onValueChange?.(value);
         }}
       >
         <SelectTrigger
@@ -271,6 +279,8 @@ interface ComboboxFieldProps {
     label: string;
     onSelect: () => void;
   };
+  /** Extra change handler (runs after the field's own change), e.g. auto-save-on-change. */
+  onValueChange?: (value: string) => void;
 }
 
 /**
@@ -278,7 +288,7 @@ interface ComboboxFieldProps {
  * Like `SelectField` but built on `Combobox`, and options may carry a left-aligned `icon`.
  */
 function ComboboxField({
-  label, options, placeholder, searchPlaceholder, emptyText, className, createOption,
+  label, options, placeholder, searchPlaceholder, emptyText, className, createOption, onValueChange,
 }: ComboboxFieldProps) {
   const field = useFieldContext<string>();
   const id = useId();
@@ -294,6 +304,7 @@ function ComboboxField({
         onValueChange={(value) => {
           field.handleChange(value ?? "");
           field.handleBlur();
+          onValueChange?.(value ?? "");
         }}
         placeholder={placeholder}
         searchPlaceholder={searchPlaceholder}
