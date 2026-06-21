@@ -361,7 +361,7 @@ export function AppSidebar({
                           )
                           : (
                             <Link
-                              to="/bookmarks/"
+                              to="/bookmarks"
                               search={pin.link.search}
                             >
                               {pin.icon}

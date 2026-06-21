@@ -41,6 +41,8 @@ export async function deletePinnedSidebarItem(id: string): Promise<boolean> {
   const result = await db
     .delete(pinnedSidebarItems)
     .where(eq(pinnedSidebarItems.id, id))
-    .returning({ id: pinnedSidebarItems.id });
+    .returning({
+      id: pinnedSidebarItems.id,
+    });
   return result.length > 0;
 }

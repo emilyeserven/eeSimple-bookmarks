@@ -17,7 +17,11 @@ export function useAddPinnedSidebarItem() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: CreatePinnedSidebarItemInput) => pinnedSidebarItemsApi.create(input),
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: PINNED_KEY }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: PINNED_KEY,
+      });
+    },
   });
 }
 
@@ -25,6 +29,10 @@ export function useRemovePinnedSidebarItem() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => pinnedSidebarItemsApi.remove(id),
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: PINNED_KEY }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: PINNED_KEY,
+      });
+    },
   });
 }
