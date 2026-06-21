@@ -16,6 +16,10 @@ const viewNav = [
     label: "General",
   },
   {
+    to: "/taxonomies/media-types/$mediaTypeSlug/hierarchy",
+    label: "Hierarchy",
+  },
+  {
     to: "/taxonomies/media-types/$mediaTypeSlug/autofill",
     label: "Autofill Rules",
   },
