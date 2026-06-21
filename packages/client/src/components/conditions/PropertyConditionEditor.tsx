@@ -1,4 +1,5 @@
-import type { Category, CustomProperty, PropertyCondition } from "@eesimple/types";
+import type { Category, ConditionValueKind, CustomProperty, PropertyCondition } from "@eesimple/types";
+import type { ReactNode } from "react";
 
 import { ChevronDown, CircleHelp } from "lucide-react";
 
@@ -155,243 +156,27 @@ function PropertyNameLabel({
   );
 }
 
-/** A single property's condition control (range/presence for numbers, value/presence for booleans). */
-function PropertyConditionRow({
-  property, condition, categories, onChange,
-}: RowProps) {
-  const isNumber = property.type === "number" || property.type === "calculate"
-    || property.type === "ratingScale";
+interface ModeOption {
+  value: string;
+  label: string;
+}
 
-  if (isNumber) {
-    const bounds = numberBounds(property);
-    const predicate = condition?.predicate.valueKind === "number" ? condition.predicate.predicate : undefined;
-    const mode = predicate ? predicate.kind === "range" ? "range" : predicate.mode : "none";
-    const range: [number, number] = predicate?.kind === "range"
-      ? [predicate.min ?? bounds[0], predicate.max ?? bounds[1]]
-      : bounds;
+interface ModeRowProps {
+  property: CustomProperty;
+  categories: Category[];
+  mode: string;
+  modes: ModeOption[];
+  onModeChange: (next: string) => void;
+  /** Extra control rendered below the mode select (range slider / datetime fields). Omit for
+   * presence-only kinds — its presence is what switches the row to the stacked `space-y-2` layout. */
+  children?: ReactNode;
+}
 
-    return (
-      <div className="space-y-2">
-        <div className="flex items-center justify-between gap-2">
-          <PropertyNameLabel
-            property={property}
-            categories={categories}
-          />
-          <Select
-            value={mode}
-            onValueChange={(next) => {
-              if (next === "none") onChange(null);
-              else if (next === "range") {
-                onChange({
-                  type: "property",
-                  propertyId: property.id,
-                  predicate: {
-                    valueKind: "number",
-                    predicate: {
-                      kind: "range",
-                      min: bounds[0],
-                      max: bounds[1],
-                    },
-                  },
-                });
-              }
-              else {
-                onChange({
-                  type: "property",
-                  propertyId: property.id,
-                  predicate: {
-                    valueKind: "number",
-                    predicate: {
-                      kind: "presence",
-                      mode: next as "has" | "missing",
-                    },
-                  },
-                });
-              }
-            }}
-          >
-            <SelectTrigger className="w-36">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {NUMBER_MODES.map(option => (
-                <SelectItem
-                  key={option.value}
-                  value={option.value}
-                >
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        {mode === "range"
-          ? (
-            <RangeSlider
-              min={bounds[0]}
-              max={bounds[1]}
-              step={numberStep(property)}
-              value={range}
-              onValueChange={next =>
-                onChange({
-                  type: "property",
-                  propertyId: property.id,
-                  predicate: {
-                    valueKind: "number",
-                    predicate: {
-                      kind: "range",
-                      min: next[0],
-                      max: next[1],
-                    },
-                  },
-                })}
-            />
-          )
-          : null}
-      </div>
-    );
-  }
-
-  if (property.type === "datetime") {
-    const format = property.dateTimeFormat ?? "date";
-    const predicate = condition?.predicate.valueKind === "datetime" ? condition.predicate.predicate : undefined;
-    const mode = predicate ? predicate.kind === "range" ? "range" : predicate.mode : "none";
-    const range = predicate?.kind === "range"
-      ? {
-        from: predicate.from,
-        to: predicate.to,
-      }
-      : {
-        from: null,
-        to: null,
-      };
-
-    function emitRange(next: { from: string | null;
-      to: string | null; }): void {
-      onChange({
-        type: "property",
-        propertyId: property.id,
-        predicate: {
-          valueKind: "datetime",
-          predicate: {
-            kind: "range",
-            from: next.from,
-            to: next.to,
-          },
-        },
-      });
-    }
-
-    return (
-      <div className="space-y-2">
-        <div className="flex items-center justify-between gap-2">
-          <PropertyNameLabel
-            property={property}
-            categories={categories}
-          />
-          <Select
-            value={mode}
-            onValueChange={(next) => {
-              if (next === "none") onChange(null);
-              else if (next === "range") emitRange(range);
-              else {
-                onChange({
-                  type: "property",
-                  propertyId: property.id,
-                  predicate: {
-                    valueKind: "datetime",
-                    predicate: {
-                      kind: "presence",
-                      mode: next as "has" | "missing",
-                    },
-                  },
-                });
-              }
-            }}
-          >
-            <SelectTrigger className="w-36">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {DATETIME_MODES.map(option => (
-                <SelectItem
-                  key={option.value}
-                  value={option.value}
-                >
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        {mode === "range"
-          ? (
-            <DateTimeRangeFields
-              format={format}
-              from={range.from}
-              to={range.to}
-              layout="grid"
-              onChange={emitRange}
-            />
-          )
-          : null}
-      </div>
-    );
-  }
-
-  if (property.type === "image" || property.type === "file") {
-    // Image/file values are blobs, so only their presence can be matched.
-    const filePredicate = condition?.predicate.valueKind === "file" ? condition.predicate.predicate : undefined;
-    const fileMode = filePredicate ? filePredicate.mode : "none";
-    return (
-      <div className="flex items-center justify-between gap-2">
-        <PropertyNameLabel
-          property={property}
-          categories={categories}
-        />
-        <Select
-          value={fileMode}
-          onValueChange={(next) => {
-            if (next === "none") onChange(null);
-            else {
-              onChange({
-                type: "property",
-                propertyId: property.id,
-                predicate: {
-                  valueKind: "file",
-                  predicate: {
-                    kind: "presence",
-                    mode: next as "has" | "missing",
-                  },
-                },
-              });
-            }
-          }}
-        >
-          <SelectTrigger className="w-36">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {FILE_MODES.map(option => (
-              <SelectItem
-                key={option.value}
-                value={option.value}
-              >
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-    );
-  }
-
-  const predicate = condition?.predicate.valueKind === "boolean" ? condition.predicate.predicate : undefined;
-  const mode = predicate
-    ? predicate.kind === "value" ? predicate.value ? "yes" : "no" : predicate.mode
-    : "none";
-
-  return (
+/** Shared row chrome: the property name label + the mode `Select`, with an optional control below. */
+function PropertyConditionModeRow({
+  property, categories, mode, modes, onModeChange, children,
+}: ModeRowProps) {
+  const row = (
     <div className="flex items-center justify-between gap-2">
       <PropertyNameLabel
         property={property}
@@ -399,41 +184,13 @@ function PropertyConditionRow({
       />
       <Select
         value={mode}
-        onValueChange={(next) => {
-          if (next === "none") onChange(null);
-          else if (next === "yes" || next === "no") {
-            onChange({
-              type: "property",
-              propertyId: property.id,
-              predicate: {
-                valueKind: "boolean",
-                predicate: {
-                  kind: "value",
-                  value: next === "yes",
-                },
-              },
-            });
-          }
-          else {
-            onChange({
-              type: "property",
-              propertyId: property.id,
-              predicate: {
-                valueKind: "boolean",
-                predicate: {
-                  kind: "presence",
-                  mode: next as "has" | "missing",
-                },
-              },
-            });
-          }
-        }}
+        onValueChange={onModeChange}
       >
         <SelectTrigger className="w-36">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          {BOOLEAN_MODES.map(option => (
+          {modes.map(option => (
             <SelectItem
               key={option.value}
               value={option.value}
@@ -445,6 +202,282 @@ function PropertyConditionRow({
       </Select>
     </div>
   );
+
+  if (children === undefined) return row;
+  return (
+    <div className="space-y-2">
+      {row}
+      {children}
+    </div>
+  );
+}
+
+/** Maps a custom-property type to the predicate value kind its condition row edits. Exhaustive over
+ * `ConditionValueKind` — every type that isn't number/datetime/file filters as a boolean. */
+function propertyValueKind(property: CustomProperty): ConditionValueKind {
+  switch (property.type) {
+    case "number":
+    case "calculate":
+    case "ratingScale":
+      return "number";
+    case "datetime":
+      return "datetime";
+    case "image":
+    case "file":
+      return "file";
+    default:
+      return "boolean";
+  }
+}
+
+/** Number/calculate/rating: a range slider (when "In range") plus presence modes. */
+function NumberConditionRow({
+  property, condition, categories, onChange,
+}: RowProps) {
+  const bounds = numberBounds(property);
+  const predicate = condition?.predicate.valueKind === "number" ? condition.predicate.predicate : undefined;
+  const mode = predicate ? predicate.kind === "range" ? "range" : predicate.mode : "none";
+  const range: [number, number] = predicate?.kind === "range"
+    ? [predicate.min ?? bounds[0], predicate.max ?? bounds[1]]
+    : bounds;
+
+  function handleMode(next: string): void {
+    if (next === "none") onChange(null);
+    else if (next === "range") {
+      onChange({
+        type: "property",
+        propertyId: property.id,
+        predicate: {
+          valueKind: "number",
+          predicate: {
+            kind: "range",
+            min: bounds[0],
+            max: bounds[1],
+          },
+        },
+      });
+    }
+    else {
+      onChange({
+        type: "property",
+        propertyId: property.id,
+        predicate: {
+          valueKind: "number",
+          predicate: {
+            kind: "presence",
+            mode: next as "has" | "missing",
+          },
+        },
+      });
+    }
+  }
+
+  return (
+    <PropertyConditionModeRow
+      property={property}
+      categories={categories}
+      mode={mode}
+      modes={NUMBER_MODES}
+      onModeChange={handleMode}
+    >
+      {mode === "range"
+        ? (
+          <RangeSlider
+            min={bounds[0]}
+            max={bounds[1]}
+            step={numberStep(property)}
+            value={range}
+            onValueChange={next =>
+              onChange({
+                type: "property",
+                propertyId: property.id,
+                predicate: {
+                  valueKind: "number",
+                  predicate: {
+                    kind: "range",
+                    min: next[0],
+                    max: next[1],
+                  },
+                },
+              })}
+          />
+        )
+        : null}
+    </PropertyConditionModeRow>
+  );
+}
+
+/** Datetime: a from/to range (when "In range") plus presence modes. */
+function DateTimeConditionRow({
+  property, condition, categories, onChange,
+}: RowProps) {
+  const format = property.dateTimeFormat ?? "date";
+  const predicate = condition?.predicate.valueKind === "datetime" ? condition.predicate.predicate : undefined;
+  const mode = predicate ? predicate.kind === "range" ? "range" : predicate.mode : "none";
+  const range = predicate?.kind === "range"
+    ? {
+      from: predicate.from,
+      to: predicate.to,
+    }
+    : {
+      from: null,
+      to: null,
+    };
+
+  function emitRange(next: { from: string | null;
+    to: string | null; }): void {
+    onChange({
+      type: "property",
+      propertyId: property.id,
+      predicate: {
+        valueKind: "datetime",
+        predicate: {
+          kind: "range",
+          from: next.from,
+          to: next.to,
+        },
+      },
+    });
+  }
+
+  function handleMode(next: string): void {
+    if (next === "none") onChange(null);
+    else if (next === "range") emitRange(range);
+    else {
+      onChange({
+        type: "property",
+        propertyId: property.id,
+        predicate: {
+          valueKind: "datetime",
+          predicate: {
+            kind: "presence",
+            mode: next as "has" | "missing",
+          },
+        },
+      });
+    }
+  }
+
+  return (
+    <PropertyConditionModeRow
+      property={property}
+      categories={categories}
+      mode={mode}
+      modes={DATETIME_MODES}
+      onModeChange={handleMode}
+    >
+      {mode === "range"
+        ? (
+          <DateTimeRangeFields
+            format={format}
+            from={range.from}
+            to={range.to}
+            layout="grid"
+            onChange={emitRange}
+          />
+        )
+        : null}
+    </PropertyConditionModeRow>
+  );
+}
+
+/** Image/file values are blobs, so only their presence can be matched. */
+function FileConditionRow({
+  property, condition, categories, onChange,
+}: RowProps) {
+  const filePredicate = condition?.predicate.valueKind === "file" ? condition.predicate.predicate : undefined;
+  const mode = filePredicate ? filePredicate.mode : "none";
+
+  function handleMode(next: string): void {
+    if (next === "none") onChange(null);
+    else {
+      onChange({
+        type: "property",
+        propertyId: property.id,
+        predicate: {
+          valueKind: "file",
+          predicate: {
+            kind: "presence",
+            mode: next as "has" | "missing",
+          },
+        },
+      });
+    }
+  }
+
+  return (
+    <PropertyConditionModeRow
+      property={property}
+      categories={categories}
+      mode={mode}
+      modes={FILE_MODES}
+      onModeChange={handleMode}
+    />
+  );
+}
+
+/** Boolean: explicit Yes/No value plus presence modes. */
+function BooleanConditionRow({
+  property, condition, categories, onChange,
+}: RowProps) {
+  const predicate = condition?.predicate.valueKind === "boolean" ? condition.predicate.predicate : undefined;
+  const mode = predicate
+    ? predicate.kind === "value" ? predicate.value ? "yes" : "no" : predicate.mode
+    : "none";
+
+  function handleMode(next: string): void {
+    if (next === "none") onChange(null);
+    else if (next === "yes" || next === "no") {
+      onChange({
+        type: "property",
+        propertyId: property.id,
+        predicate: {
+          valueKind: "boolean",
+          predicate: {
+            kind: "value",
+            value: next === "yes",
+          },
+        },
+      });
+    }
+    else {
+      onChange({
+        type: "property",
+        propertyId: property.id,
+        predicate: {
+          valueKind: "boolean",
+          predicate: {
+            kind: "presence",
+            mode: next as "has" | "missing",
+          },
+        },
+      });
+    }
+  }
+
+  return (
+    <PropertyConditionModeRow
+      property={property}
+      categories={categories}
+      mode={mode}
+      modes={BOOLEAN_MODES}
+      onModeChange={handleMode}
+    />
+  );
+}
+
+/** A single property's condition control, dispatched to the editor for its value kind. */
+function PropertyConditionRow(props: RowProps) {
+  switch (propertyValueKind(props.property)) {
+    case "number":
+      return <NumberConditionRow {...props} />;
+    case "datetime":
+      return <DateTimeConditionRow {...props} />;
+    case "file":
+      return <FileConditionRow {...props} />;
+    case "boolean":
+      return <BooleanConditionRow {...props} />;
+  }
 }
 
 /** Custom-property conditions as a flat list, with a collapsible "Other Properties" section for properties not assigned to the active category filter. */
