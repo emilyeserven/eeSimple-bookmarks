@@ -1,6 +1,6 @@
 import { relations, sql } from "drizzle-orm";
 import { type AnyPgColumn, boolean, integer, jsonb, pgTable, primaryKey, real, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
-import type { CardFieldZones, ConditionTree, ShortenedLink, WebsiteParamRule } from "@eesimple/types";
+import type { CardFieldZones, CardZoneLayouts, ConditionTree, ShortenedLink, WebsiteParamRule } from "@eesimple/types";
 
 /** `bookmarks` table — one row per saved bookmark. Tags now live in `bookmark_tags`. */
 export const bookmarks = pgTable("bookmarks", {
@@ -850,6 +850,9 @@ export const cardDisplayRules = pgTable("card_display_rules", {
   // Per-zone field placements (card / image corners). A field key absent from all zones is hidden;
   // supersedes hidden_card_fields + the per-property corner columns. Nullable jsonb = push-safe.
   fieldZones: jsonb("field_zones").$type<CardFieldZones>(),
+  // Per-body-zone layout (flex vs grid). NULL = inherit. Concrete on the Default rule. Nullable jsonb
+  // = push-safe additive.
+  cardZoneLayouts: jsonb("card_zone_layouts").$type<CardZoneLayouts>(),
   imageMode: text("image_mode"),
   imageVisibility: text("image_visibility"),
   imageLayout: text("image_layout"),

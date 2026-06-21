@@ -3,6 +3,7 @@ import type { Bookmark,
   BookmarkDateTimeValue,
   BookmarkNumberValue,
   CardFieldZones,
+  CardZoneLayouts,
   CustomProperty } from "@eesimple/types";
 
 import { propertyAppliesToCategory } from "@eesimple/types";
@@ -42,6 +43,11 @@ interface BookmarkCardProps {
    * Listings pass the rule-resolved zones; when omitted every field defaults to the card body.
    */
   fieldZones?: CardFieldZones;
+  /**
+   * Per-body-zone layout (flex vs grid) for the card-body sub-zones. Listings pass the rule-resolved
+   * layouts; when omitted each zone uses its default arrangement.
+   */
+  cardZoneLayouts?: CardZoneLayouts;
   /** When true, hide the website pill on a bookmark that also has a YouTube channel. When omitted, the Default rule's value applies. */
   hideWebsiteForYouTube?: boolean;
 }
@@ -86,7 +92,7 @@ function mergeDateTimeValue(
 
 export function BookmarkCard({
   bookmark, properties = [], onDelete, imageLeft = false, imageMode = "natural",
-  imageVisibility = "shown", fieldZones, hideWebsiteForYouTube,
+  imageVisibility = "shown", fieldZones, cardZoneLayouts, hideWebsiteForYouTube,
 }: BookmarkCardProps) {
   const autoImage = useAutoBookmarkImage();
   const updateBookmark = useUpdateBookmark();
@@ -175,6 +181,7 @@ export function BookmarkCard({
       bookmark={bookmark}
       properties={properties}
       placements={placements}
+      cardZoneLayouts={cardZoneLayouts}
       bookmarkCategory={bookmarkCategory}
       hideWebsiteForYouTube={hideWebsiteForYouTube}
       editableProperties={editableProperties}

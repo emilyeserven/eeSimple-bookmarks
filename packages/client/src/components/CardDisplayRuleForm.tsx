@@ -3,7 +3,8 @@ import type { CardDisplayRule, ConditionTree } from "@eesimple/types";
 
 import { useRef, useState } from "react";
 
-import { emptyConditionTree } from "@eesimple/types";
+import { defaultCardZoneLayouts, emptyConditionTree } from "@eesimple/types";
+import { Maximize2 } from "lucide-react";
 
 import { CardDisplayRuleDisplaySettings } from "./CardDisplayRuleDisplaySettings";
 import { CardDisplayRulePreview } from "./CardDisplayRulePreview";
@@ -16,6 +17,12 @@ import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useTagTree } from "../hooks/useTags";
 
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -35,6 +42,7 @@ function initialFromRule(rule?: CardDisplayRule): CardDisplayRuleFormValues {
     conditions: rule?.conditions ?? emptyConditionTree(),
     display: {
       fieldZones: rule?.fieldZones ?? null,
+      cardZoneLayouts: rule?.cardZoneLayouts ?? (rule?.isDefault ? defaultCardZoneLayouts() : null),
       imageMode: rule?.imageMode ?? (rule?.isDefault ? "natural" : null),
       imageVisibility: rule?.imageVisibility ?? (rule?.isDefault ? "shown" : null),
       imageLayout: rule?.imageLayout ?? (rule?.isDefault ? "above" : null),
@@ -68,6 +76,9 @@ export function CardDisplayRuleForm({
   const initialValues = initialFromRule(rule);
   const [values, setValues] = useState<CardDisplayRuleFormValues>(initialValues);
   const valuesRef = useRef<CardDisplayRuleFormValues>(initialValues);
+  // Each section can be popped into its own modal for a roomier editing surface.
+  const [displayModalOpen, setDisplayModalOpen] = useState(false);
+  const [ruleModalOpen, setRuleModalOpen] = useState(false);
 
   const {
     data: categories,
@@ -141,27 +152,84 @@ export function CardDisplayRuleForm({
   // is pinned on the right and defines the row height, so the Card Fields list is as tall as the
   // preview (`md:items-stretch` + the left column's `md:h-full md:min-h-0` lets the overflow scroll
   // rather than grow the row). They stack on narrow screens.
-  const displayWithPreview = (
-    <div
-      className="
-        gap-6
-        md:grid md:grid-cols-[1fr_minmax(0,22rem)] md:items-stretch
-      "
-    >
-      <div
-        className="md:h-full md:max-h-184 md:min-h-0 md:overflow-y-auto md:pr-2"
-      >
-        {displayControls}
-      </div>
+  // `maxH` caps the controls/preview columns. Inline it stays under the viewport (minus the app
+  // header + form chrome); the expanded modal gets a taller cap since it owns the whole screen.
+  function buildDisplayWithPreview(maxH: string) {
+    return (
       <div
         className="
-          mt-6
-          md:sticky md:top-4 md:mt-0 md:max-h-184
+          gap-6
+          md:grid md:grid-cols-[1fr_minmax(0,22rem)] md:items-stretch
         "
       >
-        {cardPreview}
+        <div
+          className={`
+            md:h-full md:min-h-0 md:overflow-y-auto md:pr-2
+            ${maxH}
+          `}
+        >
+          {displayControls}
+        </div>
+        <div
+          className={`
+            mt-6
+            md:sticky md:top-4 md:mt-0
+            ${maxH}
+          `}
+        >
+          {cardPreview}
+        </div>
       </div>
-    </div>
+    );
+  }
+
+  const displayWithPreview = buildDisplayWithPreview("md:max-h-[calc(100vh-16rem)]");
+
+  const generalFields = (
+    <>
+      <div className="space-y-1">
+        <Label htmlFor={`${idPrefix}-name`}>Name</Label>
+        <Input
+          id={`${idPrefix}-name`}
+          value={values.name}
+          onChange={e => setFields({
+            name: e.target.value,
+          })}
+          placeholder="Rule name"
+          required
+        />
+      </div>
+      <div className="space-y-1">
+        <Label htmlFor={`${idPrefix}-description`}>Description</Label>
+        <Textarea
+          id={`${idPrefix}-description`}
+          value={values.description ?? ""}
+          onChange={e => setFields({
+            description: e.target.value,
+          })}
+          placeholder="Optional note"
+          rows={2}
+        />
+      </div>
+    </>
+  );
+
+  const whenFields = (
+    <ConditionsField
+      value={values.conditions}
+      onChange={v => setFields({
+        conditions: v,
+      })}
+      categories={categories ?? []}
+      properties={properties ?? []}
+      tagTree={tagTree ?? []}
+    />
+  );
+
+  // A field group renders inline when its modal is closed; while the modal is open the inline copy is
+  // replaced by a note so the same inputs/DnD ids aren't mounted twice.
+  const editingNote = (
+    <p className="text-xs text-muted-foreground">Editing in the expanded view…</p>
   );
 
   return (
@@ -169,93 +237,31 @@ export function CardDisplayRuleForm({
       onSubmit={handleSubmit}
       className="space-y-6"
     >
-      {isDefault
-        ? (
-          <>
-            <p className="text-sm text-muted-foreground">
-              The Default rule is the baseline applied to every bookmark card. Other rules override it
-              for the bookmarks they match.
-            </p>
-            {displayWithPreview}
-          </>
-        )
-        : (
-          <>
-            <CollapsibleFormSection
-              title="General"
-              description="Name and optional note for this rule."
-              defaultOpen
-              preview={values.name.trim() || "Untitled rule"}
-            >
-              <div className="space-y-1">
-                <Label htmlFor={`${idPrefix}-name`}>Name</Label>
-                <Input
-                  id={`${idPrefix}-name`}
-                  value={values.name}
-                  onChange={e => setFields({
-                    name: e.target.value,
-                  })}
-                  placeholder="Rule name"
-                  required
-                />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor={`${idPrefix}-description`}>Description</Label>
-                <Textarea
-                  id={`${idPrefix}-description`}
-                  value={values.description ?? ""}
-                  onChange={e => setFields({
-                    description: e.target.value,
-                  })}
-                  placeholder="Optional note"
-                  rows={2}
-                />
-              </div>
-            </CollapsibleFormSection>
+      <CardDisplayRuleFormSections
+        isDefault={isDefault}
+        displayDefaultOpen={!rule}
+        nameValue={values.name}
+        conditions={values.conditions}
+        displayModalOpen={displayModalOpen}
+        ruleModalOpen={ruleModalOpen}
+        onExpandDisplay={() => setDisplayModalOpen(true)}
+        onExpandRule={() => setRuleModalOpen(true)}
+        editingNote={editingNote}
+        displayWithPreview={displayWithPreview}
+        generalFields={generalFields}
+        whenFields={whenFields}
+      />
 
-            <Separator />
-
-            <CollapsibleFormSection
-              title="When"
-              description="Which bookmarks this rule applies to. Combine conditions with AND/OR."
-              defaultOpen
-              preview={conditionsSummaryLabel(values.conditions)}
-            >
-              <ConditionsField
-                value={values.conditions}
-                onChange={v => setFields({
-                  conditions: v,
-                })}
-                categories={categories ?? []}
-                properties={properties ?? []}
-                tagTree={tagTree ?? []}
-              />
-            </CollapsibleFormSection>
-
-            <Separator />
-
-            <CollapsibleFormSection
-              title="Display"
-              description="How matching bookmark cards are shown. Unset attributes inherit from lower-priority rules."
-              defaultOpen={!rule}
-              preview="Card field & image overrides"
-            >
-              {displayWithPreview}
-            </CollapsibleFormSection>
-
-            <Separator />
-
-            <section className="space-y-3">
-              <div>
-                <h3 className="text-sm font-semibold">Preview Bookmarks</h3>
-                <p className="text-xs text-muted-foreground">
-                  Which existing bookmarks match this rule.
-                </p>
-              </div>
-              <PreviewBookmarksSection conditions={values.conditions} />
-            </section>
-          </>
-        )}
+      <CardDisplayRuleFormModals
+        isDefault={isDefault}
+        displayModalOpen={displayModalOpen}
+        onDisplayOpenChange={setDisplayModalOpen}
+        ruleModalOpen={ruleModalOpen}
+        onRuleOpenChange={setRuleModalOpen}
+        renderDisplay={() => buildDisplayWithPreview("md:max-h-[calc(92vh-8rem)]")}
+        generalFields={generalFields}
+        whenFields={whenFields}
+      />
 
       <Separator />
 
@@ -303,5 +309,198 @@ export function CardDisplayRuleForm({
           : null}
       </div>
     </form>
+  );
+}
+
+/** A small "expand to a modal" button shown on a section header. */
+function ExpandButton({
+  onClick, label,
+}: {
+  onClick: () => void;
+  label: string;
+}) {
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
+      className="size-7"
+      aria-label={label}
+      title={label}
+      onClick={onClick}
+    >
+      <Maximize2 className="size-4" />
+    </Button>
+  );
+}
+
+interface CardDisplayRuleFormSectionsProps {
+  isDefault: boolean;
+  /** Whether the Display section starts open (only when creating a new rule). */
+  displayDefaultOpen: boolean;
+  nameValue: string;
+  conditions: ConditionTree;
+  displayModalOpen: boolean;
+  ruleModalOpen: boolean;
+  onExpandDisplay: () => void;
+  onExpandRule: () => void;
+  editingNote: React.ReactNode;
+  displayWithPreview: React.ReactNode;
+  generalFields: React.ReactNode;
+  whenFields: React.ReactNode;
+}
+
+/**
+ * The form body: the Default rule edits only its display config; a normal rule shows the collapsible
+ * General / When / Display sections plus a live match preview. Split out of the parent form so each
+ * stays a flat wiring component under fallow's complexity cap.
+ */
+function CardDisplayRuleFormSections({
+  isDefault, displayDefaultOpen, nameValue, conditions, displayModalOpen, ruleModalOpen,
+  onExpandDisplay, onExpandRule, editingNote, displayWithPreview, generalFields, whenFields,
+}: CardDisplayRuleFormSectionsProps) {
+  if (isDefault) {
+    return (
+      <>
+        <div className="flex items-start justify-between gap-2">
+          <p className="text-sm text-muted-foreground">
+            The Default rule is the baseline applied to every bookmark card. Other rules override it
+            for the bookmarks they match.
+          </p>
+          <ExpandButton
+            onClick={onExpandDisplay}
+            label="Expand display settings"
+          />
+        </div>
+        {displayModalOpen ? editingNote : displayWithPreview}
+      </>
+    );
+  }
+
+  return (
+    <>
+      <div className="flex items-center justify-end">
+        <ExpandButton
+          onClick={onExpandRule}
+          label="Expand rule settings"
+        />
+      </div>
+
+      <CollapsibleFormSection
+        title="General"
+        description="Name and optional note for this rule."
+        defaultOpen
+        preview={nameValue.trim() || "Untitled rule"}
+      >
+        {ruleModalOpen ? editingNote : generalFields}
+      </CollapsibleFormSection>
+
+      <Separator />
+
+      <CollapsibleFormSection
+        title="When"
+        description="Which bookmarks this rule applies to. Combine conditions with AND/OR."
+        defaultOpen
+        preview={conditionsSummaryLabel(conditions)}
+      >
+        {ruleModalOpen ? editingNote : whenFields}
+      </CollapsibleFormSection>
+
+      <Separator />
+
+      <CollapsibleFormSection
+        title="Display"
+        description="How matching bookmark cards are shown. Unset attributes inherit from lower-priority rules."
+        defaultOpen={displayDefaultOpen}
+        preview="Card field & image overrides"
+      >
+        <div className="mb-2 flex items-center justify-end">
+          <ExpandButton
+            onClick={onExpandDisplay}
+            label="Expand display settings"
+          />
+        </div>
+        {displayModalOpen ? editingNote : displayWithPreview}
+      </CollapsibleFormSection>
+
+      <Separator />
+
+      <section className="space-y-3">
+        <div>
+          <h3 className="text-sm font-semibold">Preview Bookmarks</h3>
+          <p className="text-xs text-muted-foreground">
+            Which existing bookmarks match this rule.
+          </p>
+        </div>
+        <PreviewBookmarksSection conditions={conditions} />
+      </section>
+    </>
+  );
+}
+
+interface CardDisplayRuleFormModalsProps {
+  isDefault: boolean;
+  displayModalOpen: boolean;
+  onDisplayOpenChange: (open: boolean) => void;
+  ruleModalOpen: boolean;
+  onRuleOpenChange: (open: boolean) => void;
+  /** Builds the display controls + preview; only invoked while the display modal is open. */
+  renderDisplay: () => React.ReactNode;
+  generalFields: React.ReactNode;
+  whenFields: React.ReactNode;
+}
+
+/**
+ * The two "expand to a modal" dialogs for the rule form (Display, and General+When). Kept separate so
+ * the parent form stays a flat wiring component. Each dialog renders its body only while open so the
+ * same inputs / DnD ids are never mounted twice (the inline copy shows a placeholder meanwhile).
+ */
+function CardDisplayRuleFormModals({
+  isDefault, displayModalOpen, onDisplayOpenChange, ruleModalOpen, onRuleOpenChange,
+  renderDisplay, generalFields, whenFields,
+}: CardDisplayRuleFormModalsProps) {
+  return (
+    <>
+      <Dialog
+        open={displayModalOpen}
+        onOpenChange={onDisplayOpenChange}
+      >
+        <DialogContent className="max-h-[92vh] max-w-6xl overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Display settings</DialogTitle>
+          </DialogHeader>
+          {displayModalOpen ? renderDisplay() : null}
+        </DialogContent>
+      </Dialog>
+
+      {isDefault
+        ? null
+        : (
+          <Dialog
+            open={ruleModalOpen}
+            onOpenChange={onRuleOpenChange}
+          >
+            <DialogContent className="max-h-[92vh] max-w-3xl overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Rule settings</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-6">
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold">General</h3>
+                  {ruleModalOpen ? generalFields : null}
+                </div>
+                <Separator />
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold">When</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Which bookmarks this rule applies to. Combine conditions with AND/OR.
+                  </p>
+                  {ruleModalOpen ? whenFields : null}
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
+    </>
   );
 }

@@ -685,9 +685,35 @@ export const CARD_BODY_ZONES = [
   "card-single-bottom",
 ] as const satisfies readonly CardFieldZone[];
 
+/** A card-body sub-zone (vs. an image-corner overlay). */
+export type CardBodyZone = (typeof CARD_BODY_ZONES)[number];
+
 /** Whether a {@link CardFieldZone} is a card-body sub-zone (vs. an image-corner overlay). */
 export function isCardBodyZone(zone: CardFieldZone): boolean {
   return (CARD_BODY_ZONES as readonly CardFieldZone[]).includes(zone);
+}
+
+/**
+ * How a card-body sub-zone arranges the fields placed in it: `flex` is the wrapping inline flow (the
+ * historical behavior — pills wrap, full-width fields take a row); `grid` lays the fields out in a
+ * fixed two-column grid. Image-corner zones are unaffected (they always overlay).
+ */
+export type CardZoneLayout = "flex" | "grid";
+
+/** The per-body-zone {@link CardZoneLayout} a {@link CardDisplayRule} declares (`null` = inherit). */
+export type CardZoneLayouts = Record<CardBodyZone, CardZoneLayout>;
+
+/**
+ * The default per-zone layout: every body zone flows inline (`flex`) except the Table zone, whose
+ * natural form is the two-column `label : value` grid.
+ */
+export function defaultCardZoneLayouts(): CardZoneLayouts {
+  return {
+    "card-single-top": "flex",
+    "card-labels": "flex",
+    "card-table": "grid",
+    "card-single-bottom": "flex",
+  };
 }
 
 /** Map an image-* {@link CardFieldZone} to its {@link CardImageCorner}, or `null` for a card-body zone. */
@@ -1223,6 +1249,11 @@ export interface CardDisplayRule {
    * on the Default rule. Supersedes the legacy `hiddenCardFields` + per-property corner placement.
    */
   fieldZones: CardFieldZones | null;
+  /**
+   * Per-body-zone layout (`flex` inline flow vs. `grid` two-column), or `null` to inherit. Concrete on
+   * the Default rule. Only affects the four card-body sub-zones; image corners always overlay.
+   */
+  cardZoneLayouts: CardZoneLayouts | null;
   /** Image display mode, or `null` to inherit. Concrete on the Default rule. */
   imageMode: BookmarkImageMode | null;
   /** Image visibility, or `null` to inherit. Concrete on the Default rule. */
@@ -1244,6 +1275,7 @@ export interface CreateCardDisplayRuleInput {
   conditions: ConditionTree;
   sortOrder?: number;
   fieldZones?: CardFieldZones | null;
+  cardZoneLayouts?: CardZoneLayouts | null;
   imageMode?: BookmarkImageMode | null;
   imageVisibility?: BookmarkImageVisibility | null;
   imageLayout?: HomepageSectionImageLayout | null;

@@ -1,5 +1,5 @@
 import type { BookmarkValueItem, ResolvedFieldPlacement } from "../lib/bookmarkCardValues";
-import type { Bookmark, CardFieldZone, Category, CustomProperty } from "@eesimple/types";
+import type { Bookmark, CardFieldZone, CardZoneLayout, CardZoneLayouts, Category, CustomProperty } from "@eesimple/types";
 import type { ReactNode } from "react";
 
 import { useEffect, useRef, useState } from "react";
@@ -35,6 +35,8 @@ interface BookmarkCardDetailsProps {
   properties: CustomProperty[];
   /** Resolved field placements; a field is shown in the body when its placement's corner is `null`. */
   placements: Map<string, ResolvedFieldPlacement>;
+  /** Resolved per-body-zone layout (flex vs grid); when omitted each zone uses its default arrangement. */
+  cardZoneLayouts?: CardZoneLayouts;
   /** The bookmark's resolved (non-built-in) category, used for the category pill. */
   bookmarkCategory?: Category;
   /** Resolved "hide website pill for YouTube" value; when omitted, the Default card display rule applies. */
@@ -66,6 +68,13 @@ function zoneForm(zone: CardFieldZone): FieldForm {
   return "single";
 }
 
+/** The zone's layout, defaulting to its natural arrangement (Table → grid, others → flex) when unset. */
+function zoneLayout(zone: CardFieldZone, layouts: CardZoneLayouts | undefined): CardZoneLayout {
+  const explicit = layouts?.[zone as keyof CardZoneLayouts];
+  if (explicit) return explicit;
+  return zone === "card-table" ? "grid" : "flex";
+}
+
 /**
  * How one field can render in the card body. `inline` is its compact pill/badge form (the `label`
  * zone); `block` is its full-width form (the `single` zones); `tableName`/`tableValue` are the two
@@ -84,7 +93,7 @@ interface FieldRender {
  * order it sits within the zone (so the rule's field ordering is honored).
  */
 export function BookmarkCardDetails({
-  bookmark, properties, placements, bookmarkCategory, hideWebsiteForYouTube,
+  bookmark, properties, placements, cardZoneLayouts, bookmarkCategory, hideWebsiteForYouTube,
   editableProperties = [], autoImagePending = false, onAutoImage,
   onSaveNumber, onSaveDateTime, onDelete,
   onSaveRating, onSaveBoolean,
@@ -411,7 +420,29 @@ export function BookmarkCardDetails({
     if (entries.length === 0) return null;
 
     const form = zoneForm(zone);
+    const layout = zoneLayout(zone, cardZoneLayouts);
     if (form === "table") {
+      // Grid: the classic two-column `label : value` table. Flex: each pair wraps inline.
+      if (layout === "flex") {
+        return (
+          <div
+            key={zone}
+            className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1"
+          >
+            {entries.map(entry => (
+              <span
+                key={entry.key}
+                className="flex min-w-0 items-center gap-1 text-sm"
+              >
+                {entry.hideLabel
+                  ? null
+                  : <span className="font-medium text-muted-foreground">{entry.render.tableName}</span>}
+                <span className="min-w-0">{entry.render.tableValue}</span>
+              </span>
+            ))}
+          </div>
+        );
+      }
       return (
         <dl
           key={zone}
@@ -444,11 +475,16 @@ export function BookmarkCardDetails({
     }
 
     if (form === "label") {
-      // Inline pills/badges flow in a wrap row; block-only fields (description, tags) take a full row.
+      // Flex: pills/badges flow in a wrap row. Grid: a fixed two-column grid. Block-only fields
+      // (description, tags) span the full width in either layout.
+      const containerClass = layout === "grid"
+        ? "mt-2 grid grid-cols-2 items-center gap-1"
+        : "mt-2 flex flex-wrap items-center gap-1";
+      const blockClass = layout === "grid" ? "col-span-2" : "w-full";
       return (
         <div
           key={zone}
-          className="mt-2 flex flex-wrap items-center gap-1"
+          className={containerClass}
         >
           {entries.map(entry => (
             entry.render.inline
@@ -456,7 +492,7 @@ export function BookmarkCardDetails({
               : (
                 <div
                   key={entry.key}
-                  className="w-full"
+                  className={blockClass}
                 >
                   {entry.render.block}
                 </div>
@@ -473,6 +509,8 @@ export function BookmarkCardDetails({
     const actionEntries = entries.filter(entry => entry.key === "externalLink" || entry.key === "more");
     const restEntries = entries.filter(entry => !HEADER_FIELD_KEYS.has(entry.key));
     const hasHeader = titleEntry !== undefined || actionEntries.length > 0;
+    // Grid arranges the non-header rows in two columns; flex stacks them full-width (the default).
+    const restClass = layout === "grid" ? "grid grid-cols-2 gap-2" : "space-y-2";
     return (
       <div
         key={zone}
@@ -492,9 +530,15 @@ export function BookmarkCardDetails({
             </div>
           )
           : null}
-        {restEntries.map(entry => (
-          <div key={entry.key}>{entry.render.block ?? entry.render.inline}</div>
-        ))}
+        {restEntries.length > 0
+          ? (
+            <div className={restClass}>
+              {restEntries.map(entry => (
+                <div key={entry.key}>{entry.render.block ?? entry.render.inline}</div>
+              ))}
+            </div>
+          )
+          : null}
       </div>
     );
   }

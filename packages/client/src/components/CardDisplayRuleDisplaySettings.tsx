@@ -1,10 +1,15 @@
 import type {
   BookmarkImageVisibility,
+  CardBodyZone,
   CardFieldZones,
+  CardZoneLayout,
+  CardZoneLayouts,
   CustomProperty,
   HomepageSectionImageLayout,
 } from "@eesimple/types";
 import type { ReactNode } from "react";
+
+import { CARD_BODY_ZONES, defaultCardZoneLayouts } from "@eesimple/types";
 
 import { CardFieldZoneBoard } from "./CardFieldZoneBoard";
 import { OnOffToggleGroup } from "./DisplayControlPrimitives";
@@ -28,6 +33,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 /** The per-card display config a rule overrides; `null` on any attribute means "inherit". */
 export interface RuleDisplayValue {
   fieldZones: CardFieldZones | null;
+  cardZoneLayouts: CardZoneLayouts | null;
   imageMode: string | null;
   imageVisibility: BookmarkImageVisibility | null;
   imageLayout: HomepageSectionImageLayout | null;
@@ -251,6 +257,105 @@ export function CardDisplayRuleDisplaySettings({
           )
           : <p className="text-xs text-muted-foreground">Inheriting card fields from lower-priority rules.</p>}
       </div>
+
+      <Separator />
+
+      <div className="space-y-2">
+        <div className="flex items-center justify-between gap-4">
+          <Label className="text-sm font-medium">Section layout</Label>
+          {!isDefault && (
+            <label
+              className="flex items-center gap-2 text-xs text-muted-foreground"
+            >
+              <Checkbox
+                id={`${idPrefix}-override-cardZoneLayouts`}
+                checked={value.cardZoneLayouts !== null}
+                onCheckedChange={checked => onChange({
+                  cardZoneLayouts: checked === true ? defaultCardZoneLayouts() : null,
+                })}
+              />
+              Override
+            </label>
+          )}
+        </div>
+        {value.cardZoneLayouts !== null
+          ? (
+            <>
+              <p className="text-xs text-muted-foreground">
+                How each card-body section arranges its fields: inline flow (Flex) or a two-column grid.
+              </p>
+              <CardZoneLayoutControls
+                value={value.cardZoneLayouts}
+                onChange={layouts => onChange({
+                  cardZoneLayouts: layouts,
+                })}
+              />
+            </>
+          )
+          : <p className="text-xs text-muted-foreground">Inheriting section layout from lower-priority rules.</p>}
+      </div>
+    </div>
+  );
+}
+
+/** Human labels for the four card-body sub-zones, shown beside each Flex/Grid toggle. */
+const BODY_ZONE_LABELS: Record<CardBodyZone, string> = {
+  "card-single-top": "Single column top",
+  "card-labels": "Labels",
+  "card-table": "Table",
+  "card-single-bottom": "Single column bottom",
+};
+
+interface CardZoneLayoutControlsProps {
+  value: CardZoneLayouts;
+  onChange: (layouts: CardZoneLayouts) => void;
+}
+
+/** A Flex/Grid toggle per card-body sub-zone. */
+function CardZoneLayoutControls({
+  value, onChange,
+}: CardZoneLayoutControlsProps) {
+  return (
+    <div className="space-y-2">
+      {CARD_BODY_ZONES.map(zone => (
+        <div
+          key={zone}
+          className="flex items-center justify-between gap-4"
+        >
+          <span className="text-xs text-muted-foreground">{BODY_ZONE_LABELS[zone]}</span>
+          <ToggleGroup
+            type="single"
+            size="sm"
+            value={value[zone]}
+            className="gap-0 overflow-hidden rounded-md border border-input"
+            onValueChange={(next) => {
+              if (next) {
+                onChange({
+                  ...value,
+                  [zone]: next as CardZoneLayout,
+                });
+              }
+            }}
+          >
+            <ToggleGroupItem
+              value="flex"
+              className="
+                rounded-none border-r border-input
+                first:rounded-l-sm
+              "
+            >Flex
+            </ToggleGroupItem>
+            <ToggleGroupItem
+              value="grid"
+              className="
+                rounded-none
+                last:rounded-r-sm
+              "
+            >Grid
+            </ToggleGroupItem>
+          </ToggleGroup>
+        </div>
+      ))}
     </div>
   );
 }

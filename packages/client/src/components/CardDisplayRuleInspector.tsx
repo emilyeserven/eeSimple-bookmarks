@@ -1,5 +1,6 @@
 import type { ComboboxOption } from "./Combobox";
 import type { RuleAttrInspection } from "../lib/cardDisplayRules";
+import type { CardFieldZones, CardZoneLayouts } from "@eesimple/types";
 
 import { useMemo, useState } from "react";
 
@@ -139,8 +140,8 @@ export function CardDisplayRuleInspector() {
       case "hideWebsiteForYouTube":
         return attr.value ? "On" : "Off";
       case "fieldZones": {
-        const zones = attr.value;
-        if (typeof zones !== "object" || Array.isArray(zones)) return String(attr.value);
+        if (typeof attr.value !== "object" || Array.isArray(attr.value)) return String(attr.value);
+        const zones = attr.value as CardFieldZones;
         const summarize = (keys: { key: string }[]): string =>
           keys.map(p => fieldLabel.get(p.key) ?? p.key).join(", ");
         const parts: string[] = [];
@@ -159,6 +160,19 @@ export function CardDisplayRuleInspector() {
         ];
         if (corners.length > 0) parts.push(`Corners: ${summarize(corners)}`);
         return parts.length > 0 ? parts.join("; ") : "All fields hidden";
+      }
+      case "cardZoneLayouts": {
+        if (typeof attr.value !== "object" || Array.isArray(attr.value)) return String(attr.value);
+        const layouts = attr.value as CardZoneLayouts;
+        const ZONE_LABELS: Record<string, string> = {
+          "card-single-top": "Top",
+          "card-labels": "Labels",
+          "card-table": "Table",
+          "card-single-bottom": "Bottom",
+        };
+        return Object.entries(layouts)
+          .map(([zone, layout]) => `${ZONE_LABELS[zone] ?? zone}: ${layout}`)
+          .join(", ");
       }
       default:
         return String(attr.value);

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatDuration, formatNumber } from "./bookmarkFormat";
+import { formatBoolean, formatBooleanBadge, formatDuration, formatNumber } from "./bookmarkFormat";
 import { makeCustomProperty as property } from "../test-utils/factories";
 
 describe("formatNumber", () => {
@@ -84,6 +84,74 @@ describe("formatNumber", () => {
     expect(formatNumber(3723, property({
       numberFormat: "duration",
     }))).toBe("1:02:03");
+  });
+});
+
+describe("formatBoolean hideIcon", () => {
+  it("renders the icon glyph by default and falls back to text when the icon is hidden", () => {
+    const icons = property({
+      type: "boolean",
+      booleanLabelPreset: "icons",
+    });
+    expect(formatBoolean(true, icons)).toBe("✓");
+    expect(formatBoolean(true, icons, {
+      hideIcon: true,
+    })).toBe("Yes");
+    expect(formatBoolean(false, icons, {
+      hideIcon: true,
+    })).toBe("No");
+  });
+
+  it("prefers the property's custom true/false labels when hiding a stars glyph", () => {
+    const stars = property({
+      type: "boolean",
+      booleanLabelPreset: "stars",
+      booleanTrueLabel: "Favorite",
+      booleanFalseLabel: "Skip",
+    });
+    expect(formatBoolean(true, stars)).toBe("★");
+    expect(formatBoolean(true, stars, {
+      hideIcon: true,
+    })).toBe("Favorite");
+    expect(formatBoolean(false, stars, {
+      hideIcon: true,
+    })).toBe("Skip");
+  });
+
+  it("leaves non-icon presets unchanged when hideIcon is set", () => {
+    const yesNo = property({
+      type: "boolean",
+      booleanLabelPreset: "yes-no",
+    });
+    expect(formatBoolean(true, yesNo, {
+      hideIcon: true,
+    })).toBe("Yes");
+  });
+});
+
+describe("formatBooleanBadge hideIcon", () => {
+  it("switches an icon preset to the ordinary `Name: value` form when the icon is hidden", () => {
+    const icons = property({
+      name: "Watched",
+      type: "boolean",
+      booleanLabelPreset: "icons",
+    });
+    expect(formatBooleanBadge(true, icons)).toBe("Watched: ✓");
+    expect(formatBooleanBadge(true, icons, {
+      hideIcon: true,
+    })).toBe("Watched: Yes");
+  });
+
+  it("shows only the text value when both label and icon are hidden", () => {
+    const icons = property({
+      name: "Watched",
+      type: "boolean",
+      booleanLabelPreset: "icons",
+    });
+    expect(formatBooleanBadge(true, icons, {
+      hideLabel: true,
+      hideIcon: true,
+    })).toBe("Yes");
   });
 });
 

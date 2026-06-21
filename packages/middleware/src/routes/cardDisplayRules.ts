@@ -90,6 +90,23 @@ const displayProperties = {
       ),
     ),
   },
+  // Per-body-zone layout (`flex` vs `grid`); `null` = inherit. The body-zone-name set is hand-listed
+  // here (mirror of `CARD_BODY_ZONES` in @eesimple/types — keep in sync).
+  cardZoneLayouts: {
+    type: ["object", "null"],
+    additionalProperties: false,
+    properties: Object.fromEntries(
+      [
+        "card-single-top",
+        "card-labels",
+        "card-table",
+        "card-single-bottom",
+      ].map(zone => [zone, {
+        type: "string",
+        enum: ["flex", "grid"],
+      }]),
+    ),
+  },
   imageMode: {
     type: "string",
     nullable: true,

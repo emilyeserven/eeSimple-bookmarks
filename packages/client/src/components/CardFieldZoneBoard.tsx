@@ -1,5 +1,7 @@
 import type { CardFieldPlacement, CardFieldZone, CardFieldZones, CustomProperty } from "@eesimple/types";
 
+import { useState } from "react";
+
 import {
   closestCorners,
   DndContext,
@@ -12,7 +14,7 @@ import {
 import { SortableContext, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { CARD_FIELD_ZONES, emptyCardFieldZones, zoneToCorner } from "@eesimple/types";
-import { GripVertical } from "lucide-react";
+import { ChevronDown, ChevronRight, GripVertical } from "lucide-react";
 
 import { eligibleCustomCardFields, HEADER_CARD_FIELD_KEYS, STANDARD_CARD_FIELDS } from "../lib/bookmarkCardFieldDefs";
 
@@ -168,7 +170,9 @@ export function CardFieldZoneBoard({
         placement.mobileScale = existing?.mobileScale;
       }
       if (existing?.hideLabel) placement.hideLabel = true;
-      if (isImage && existing?.hideIcon) placement.hideIcon = true;
+      // hideIcon applies to image overlays and to boolean body fields (icon/stars presets), so it is
+      // preserved across any move; fields that don't read it simply ignore it.
+      if (existing?.hideIcon) placement.hideIcon = true;
       // Preserve the boolean per-field knobs across a move (they apply in every body zone).
       if (existing?.showIfFalse) placement.showIfFalse = true;
       if (existing?.clickableInView) placement.clickableInView = true;
@@ -322,15 +326,21 @@ interface ZoneDropAreaProps {
   children: React.ReactNode;
 }
 
-/** A labeled droppable + sortable zone that highlights while a field is dragged over it. */
+/**
+ * A labeled droppable + sortable zone that highlights while a field is dragged over it. The header is a
+ * collapse toggle; when collapsed the chip list is hidden but the droppable container stays mounted so
+ * a field can still be dropped onto it.
+ */
 function ZoneDropArea({
   zone, label, hint, items, children,
 }: ZoneDropAreaProps) {
+  const [collapsed, setCollapsed] = useState(false);
   const {
     setNodeRef, isOver,
   } = useDroppable({
     id: `zone-${zone}`,
   });
+  const count = items.length;
   return (
     <div
       ref={setNodeRef}
@@ -339,21 +349,36 @@ function ZoneDropArea({
         ${isOver ? "border-primary bg-accent" : "border-input"}
       `}
     >
-      <p className="text-xs font-medium text-muted-foreground">{label}</p>
-      {hint
-        ? <p className="mb-1 text-[11px] text-muted-foreground/80">{hint}</p>
+      <button
+        type="button"
+        className="flex w-full items-center gap-1 text-left"
+        aria-expanded={!collapsed}
+        onClick={() => setCollapsed(prev => !prev)}
+      >
+        {collapsed
+          ? <ChevronRight className="size-3.5 shrink-0 text-muted-foreground" />
+          : <ChevronDown className="size-3.5 shrink-0 text-muted-foreground" />}
+        <span className="text-xs font-medium text-muted-foreground">{label}</span>
+        {collapsed && count > 0
+          ? <span className="text-[11px] text-muted-foreground/80">({count})</span>
+          : null}
+      </button>
+      {collapsed
+        ? null
         : (
-          <div
-            className="mb-1"
-          />
+          <>
+            {hint
+              ? <p className="mt-0.5 mb-1 text-[11px] text-muted-foreground/80">{hint}</p>
+              : <div className="mb-1" />}
+            <SortableContext items={items}>
+              <div className="flex flex-wrap gap-1.5">
+                {(Array.isArray(children) ? children.length === 0 : !children)
+                  ? <p className="text-xs text-muted-foreground">Drop fields here</p>
+                  : children}
+              </div>
+            </SortableContext>
+          </>
         )}
-      <SortableContext items={items}>
-        <div className="flex flex-wrap gap-1.5">
-          {(Array.isArray(children) ? children.length === 0 : !children)
-            ? <p className="text-xs text-muted-foreground">Drop fields here</p>
-            : children}
-        </div>
-      </SortableContext>
     </div>
   );
 }
@@ -492,6 +517,14 @@ function BooleanPlacementControls({
       {isIconPreset
         ? (
           <>
+            <PlacementCheckbox
+              id={`${idPrefix}-hide-icon`}
+              label="Hide icon"
+              checked={placement.hideIcon ?? false}
+              onCheckedChange={hideIcon => onPatch({
+                hideIcon,
+              })}
+            />
             <PlacementCheckbox
               id={`${idPrefix}-colon`}
               label="Colon after label"

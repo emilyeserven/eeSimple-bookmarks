@@ -118,7 +118,10 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
   non-null value wins; lower rules fill the rest; a seeded, **non-deletable Default rule** (`isDefault`,
   always matches, pinned last, fully concrete — `ensureDefaultCardDisplayRule()` boot step) is the
   baseline. This differs from autofill's single-target last-writer merge — don't "fix" it to match.
-  Non-default display columns are **nullable = inherit** (push-safe). Grid **column count** and
+  Non-default display columns are **nullable = inherit** (push-safe) — this includes
+  `cardZoneLayouts` (`CardZoneLayouts` in `@eesimple/types`), the per-body-zone **Flex vs Grid**
+  arrangement (`Record<CardBodyZone, "flex" | "grid">`, concrete on the Default rule, resolved by the
+  same layered merge and consumed by `BookmarkCardDetails`'s `renderZone`). Grid **column count** and
   **card/table view** stay page-level (`ListingDisplayControls`, the `DisplayOptionsPopover`, and
   Settings → Display "Listing Defaults"); everything else about how a card looks is configured **only**
   via rules — including the **hide-website-pill-for-YouTube** behavior (`useHideWebsiteForYouTube` now
@@ -134,14 +137,17 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
     a zone matters (the `CardFieldZoneBoard` is sortable; `BookmarkCardDetails` renders in array order).
     A `CardFieldPlacement` carries `scale`/`mobileScale` (image zones), `hideLabel` (image zones +
     `card-table` + boolean body fields), `hideIcon` (image zones — overlays show the field's icon/image
-    by default), and the **boolean per-field knobs** `showIfFalse`/`clickableInView`/`showLabelColon`
+    by default; **also** drops a boolean icon/stars **glyph** in any zone, falling back to the
+    custom/Yes-No text via `formatBoolean`'s `hideIcon` opt), and the **boolean per-field knobs**
+    `showIfFalse`/`clickableInView`/`showLabelColon`
     (absent = true)/`showValueBeforeLabel` (moved off the `CustomProperty` so each rule/zone controls
     them; non-listing surfaces resolve them from the **Default** rule via `resolveBooleanDisplay`). The
     **card header** is no longer fixed: `title`, `externalLink`, and `more` are standard placeable
     fields (in `STANDARD_CARD_FIELDS` / `STANDARD_CARD_FIELD_KEYS`), rendered by `describeField` and laid
     out as a justified header row when co-located in a single zone; they're kept out of the image
     corners. The Fastify route body (`routes/cardDisplayRules.ts`) **hand-lists** the zone names +
-    placement props — keep it mirrored with `CARD_FIELD_ZONES`/`CardFieldPlacement`. The legacy single
+    placement props (and the `cardZoneLayouts` body-zone keys) — keep it mirrored with
+    `CARD_FIELD_ZONES`/`CardFieldPlacement`/`CARD_BODY_ZONES`. The legacy single
     `card` zone is migrated to `card-labels` by the idempotent boot step
     `backfillCardDisplayRuleSubZones()`; the header fields are injected into existing rules by
     `backfillCardDisplayRuleHeaderFields()` (both jsonb, no schema change). **To add a field or a

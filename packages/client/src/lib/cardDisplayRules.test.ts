@@ -2,7 +2,7 @@ import type { Bookmark, CardDisplayRule } from "@eesimple/types";
 
 import { describe, expect, it } from "vitest";
 
-import { buildTagDescendants, emptyCardFieldZones } from "@eesimple/types";
+import { buildTagDescendants, defaultCardZoneLayouts, emptyCardFieldZones } from "@eesimple/types";
 
 import { bookmarkToConditionInput, inspectBookmarkRules, resolveCardDisplay } from "./cardDisplayRules";
 
@@ -46,6 +46,7 @@ function makeRule(overrides: Partial<CardDisplayRule> = {}): CardDisplayRule {
     sortOrder: 0,
     isDefault: false,
     fieldZones: null,
+    cardZoneLayouts: null,
     imageMode: null,
     imageVisibility: null,
     imageLayout: null,
@@ -61,6 +62,7 @@ const DEFAULT_RULE = makeRule({
   isDefault: true,
   sortOrder: 1_000_000,
   fieldZones: emptyCardFieldZones(),
+  cardZoneLayouts: defaultCardZoneLayouts(),
   imageMode: "natural",
   imageVisibility: "shown",
   imageLayout: "above",
@@ -216,6 +218,36 @@ describe("resolveCardDisplay — layered merge", () => {
     );
     expect(noMatch.hideWebsiteForYouTube).toBe(false);
     expect(noMatch.provenance.source.hideWebsiteForYouTube).toBe("default");
+  });
+
+  it("a matching rule supplies cardZoneLayouts, else the Default applies", () => {
+    const gridded = defaultCardZoneLayouts();
+    gridded["card-labels"] = "grid";
+    const rule = makeRule({
+      id: "layout",
+      conditions: {
+        type: "group",
+        combinator: "and",
+        children: [{
+          type: "category",
+          categoryIds: ["cat-1"],
+        }],
+      },
+      cardZoneLayouts: gridded,
+    });
+    const match = resolveCardDisplay(makeBookmark(), [rule, DEFAULT_RULE], noTagDescendants);
+    expect(match.cardZoneLayouts["card-labels"]).toBe("grid");
+    expect(match.provenance.source.cardZoneLayouts).toBe("layout");
+
+    const noMatch = resolveCardDisplay(
+      makeBookmark({
+        categoryId: "other",
+      }),
+      [rule, DEFAULT_RULE],
+      noTagDescendants,
+    );
+    expect(noMatch.cardZoneLayouts["card-labels"]).toBe("flex");
+    expect(noMatch.provenance.source.cardZoneLayouts).toBe("default");
   });
 
   it("an empty condition tree never matches a non-default rule", () => {

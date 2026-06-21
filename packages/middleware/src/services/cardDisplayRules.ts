@@ -9,7 +9,7 @@ import type {
   UpdateCardDisplayRuleInput,
 } from "@eesimple/types";
 import type { CardFieldZones } from "@eesimple/types";
-import { CARD_FIELD_ZONES, emptyCardFieldZones, emptyConditionTree } from "@eesimple/types";
+import { CARD_FIELD_ZONES, defaultCardZoneLayouts, emptyCardFieldZones, emptyConditionTree } from "@eesimple/types";
 import { db } from "@/db";
 import { cardDisplayRules, customProperties, propertyCategories } from "@/db/schema";
 import { defaultBodyZone, defaultFieldZones, HEADER_CARD_FIELD_KEYS, STANDARD_CARD_FIELD_KEYS } from "@/services/cardDisplayDefaults";
@@ -25,6 +25,7 @@ function toRule(row: RuleRow): CardDisplayRule {
     sortOrder: row.sortOrder,
     isDefault: row.isDefault,
     fieldZones: row.fieldZones ?? null,
+    cardZoneLayouts: row.cardZoneLayouts ?? null,
     imageMode: row.imageMode ?? null,
     imageVisibility: (row.imageVisibility as BookmarkImageVisibility | null) ?? null,
     imageLayout: (row.imageLayout as HomepageSectionImageLayout | null) ?? null,
@@ -74,6 +75,7 @@ export async function createCardDisplayRule(
       sortOrder,
       isDefault: false,
       fieldZones: input.fieldZones ?? null,
+      cardZoneLayouts: input.cardZoneLayouts ?? null,
       imageMode: input.imageMode ?? null,
       imageVisibility: input.imageVisibility ?? null,
       imageLayout: input.imageLayout ?? null,
@@ -97,6 +99,7 @@ export async function updateCardDisplayRule(
   if (input.conditions !== undefined) updates.conditions = input.conditions;
   if (input.sortOrder !== undefined) updates.sortOrder = input.sortOrder;
   if (input.fieldZones !== undefined) updates.fieldZones = input.fieldZones;
+  if (input.cardZoneLayouts !== undefined) updates.cardZoneLayouts = input.cardZoneLayouts;
   if (input.imageMode !== undefined) updates.imageMode = input.imageMode;
   if (input.imageVisibility !== undefined) updates.imageVisibility = input.imageVisibility;
   if (input.imageLayout !== undefined) updates.imageLayout = input.imageLayout;
@@ -174,6 +177,7 @@ export async function ensureDefaultCardDisplayRule(): Promise<void> {
     sortOrder: 1_000_000,
     isDefault: true,
     fieldZones: defaultFieldZones(),
+    cardZoneLayouts: defaultCardZoneLayouts(),
     imageMode: "natural",
     imageVisibility: "shown",
     imageLayout: "above",
