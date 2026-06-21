@@ -36,8 +36,11 @@ export interface ResolvedCardDisplay {
   };
 }
 
-/** Hardcoded fallback used only if the Default rule is missing (e.g. before the boot seed runs). */
-const BASELINE = {
+/**
+ * Hardcoded fallback used only if the Default rule is missing (e.g. before the boot seed runs). Also
+ * reused by the rule-editor card preview to fill attributes a rule leaves to "inherit".
+ */
+export const BASELINE = {
   hiddenCardFields: [] as string[],
   imageMode: "natural",
   imageVisibility: "shown" as BookmarkImageVisibility,
