@@ -268,6 +268,17 @@ const migrations: RuntimeMigration[] = [
     `),
   },
   {
+    // `homepage_sections.hide_website_for_youtube` lets a section hide the website pill on cards that
+    // also have a YouTube channel, so homepage cards no longer inherit this from the Default card
+    // display rule. NOT NULL DEFAULT false on the populated table makes drizzle-kit push prompt — the
+    // same non-TTY crash as the cases above — so pre-apply it here to keep push's diff additive-only.
+    name: "add homepage_sections.hide_website_for_youtube column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "homepage_sections"
+        ADD COLUMN IF NOT EXISTS "hide_website_for_youtube" boolean NOT NULL DEFAULT false
+    `),
+  },
+  {
     // `custom_properties` gained `show_in_gallery` / `show_in_details` for the image/file property
     // types (whether an image counts toward the Gallery/quota manifest, and whether the value renders
     // on the bookmark detail page). Both are NOT NULL DEFAULT true; adding NOT NULL columns to the

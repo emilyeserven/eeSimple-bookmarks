@@ -57,6 +57,8 @@ interface UseBookmarkTableColumnsArgs {
   imageMode?: string;
   /** Explicit image visibility, overriding the `pageKey` lookup (homepage sections). */
   imageVisibility?: BookmarkImageVisibility;
+  /** Explicit "hide website pill for YouTube" value, overriding the Default card display rule (homepage sections). */
+  hideWebsiteForYouTube?: boolean;
 }
 
 /**
@@ -70,11 +72,13 @@ export function useBookmarkTableColumns({
   hidden: hiddenOverride,
   imageMode: imageModeOverride,
   imageVisibility: imageVisibilityOverride,
+  hideWebsiteForYouTube: hideWebsiteForYouTubeOverride,
 }: UseBookmarkTableColumnsArgs): ColumnDef<Bookmark>[] {
   const pageHidden = useHiddenCardFields(pageKey);
   const pageImageMode = useBookmarkImageMode(pageKey ?? "");
   const pageImageVisibility = useBookmarkImageVisibility(pageKey ?? "");
-  const hideWebsiteForYouTube = useHideWebsiteForYouTube();
+  const defaultHideWebsiteForYouTube = useHideWebsiteForYouTube();
+  const hideWebsiteForYouTube = hideWebsiteForYouTubeOverride ?? defaultHideWebsiteForYouTube;
   const hidden = hiddenOverride ?? pageHidden;
   const imageMode = imageModeOverride ?? pageImageMode;
   const imageVisibility = imageVisibilityOverride ?? pageImageVisibility;

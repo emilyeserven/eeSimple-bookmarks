@@ -41,6 +41,7 @@ export function HomepageSectionBlock({
     hidden: hiddenFields,
     imageMode,
     imageVisibility,
+    hideWebsiteForYouTube: section.hideWebsiteForYouTube,
   });
 
   return (
@@ -110,6 +111,7 @@ export function HomepageSectionBlock({
                       imageVisibility={imageVisibility}
                       hiddenFields={hiddenFields}
                       cornerOverlays={section.cornerOverlays}
+                      hideWebsiteForYouTube={section.hideWebsiteForYouTube}
                     />
                   </RowCard>
                 ))}

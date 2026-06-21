@@ -34,6 +34,7 @@ function toSection(row: SectionRow): HomepageSection {
     viewMode: row.viewMode as ViewMode,
     hiddenCardFields: row.hiddenCardFields ?? [],
     cornerOverlays: row.cornerOverlays,
+    hideWebsiteForYouTube: row.hideWebsiteForYouTube,
     createdAt: row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
   };
 }
@@ -77,6 +78,7 @@ export async function createHomepageSection(
       viewMode: input.viewMode ?? "cards",
       hiddenCardFields: input.hiddenCardFields ?? [],
       cornerOverlays: input.cornerOverlays ?? true,
+      hideWebsiteForYouTube: input.hideWebsiteForYouTube ?? false,
     })
     .returning();
   return toSection(row);
@@ -100,6 +102,7 @@ export async function updateHomepageSection(
   if (input.viewMode !== undefined) updates.viewMode = input.viewMode;
   if (input.hiddenCardFields !== undefined) updates.hiddenCardFields = input.hiddenCardFields;
   if (input.cornerOverlays !== undefined) updates.cornerOverlays = input.cornerOverlays;
+  if (input.hideWebsiteForYouTube !== undefined) updates.hideWebsiteForYouTube = input.hideWebsiteForYouTube;
 
   if (Object.keys(updates).length === 0) {
     const [existing] = await db
