@@ -15,6 +15,7 @@ function property(overrides: Partial<CustomProperty>): CustomProperty {
     builtIn: false,
     numberFormat: null,
     dateTimeFormat: null,
+    quickFilterRange: null,
     description: null,
     numberMin: null,
     numberMax: null,

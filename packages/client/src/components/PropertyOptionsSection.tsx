@@ -267,6 +267,52 @@ function NumberOptions({
               />
             )}
           </form.AppField>
+          <div className="col-span-full space-y-1">
+            <Label>Quick filter ± range</Label>
+            <p className="text-xs text-muted-foreground">
+              When set, the magnifying-glass quick filter on a bookmark spans the value plus and minus
+              this amount instead of matching it exactly. Leave blank for an exact match.
+            </p>
+            <form.Subscribe selector={state => state.values.numberFormat}>
+              {numberFormat =>
+                numberFormat === "duration"
+                  ? (
+                    <div
+                      className="
+                        grid gap-3
+                        sm:grid-cols-2
+                      "
+                    >
+                      <form.AppField name="quickFilterRangeMinutes">
+                        {field => (
+                          <field.TextField
+                            label="Minutes"
+                            type="number"
+                          />
+                        )}
+                      </form.AppField>
+                      <form.AppField name="quickFilterRangeSeconds">
+                        {field => (
+                          <field.TextField
+                            label="Seconds"
+                            type="number"
+                          />
+                        )}
+                      </form.AppField>
+                    </div>
+                  )
+                  : (
+                    <form.AppField name="quickFilterRange">
+                      {field => (
+                        <field.TextField
+                          label="Range (±)"
+                          type="number"
+                        />
+                      )}
+                    </form.AppField>
+                  )}
+            </form.Subscribe>
+          </div>
           <AllowDefaultField
             form={form}
             idPrefix={idPrefix}
@@ -545,6 +591,52 @@ function DateTimeOptions({
               />
             )}
           </form.AppField>
+          <div className="space-y-1">
+            <Label>Quick filter ± range</Label>
+            <p className="text-xs text-muted-foreground">
+              When set, the magnifying-glass quick filter on a bookmark spans the value plus and minus
+              this amount instead of matching it exactly. Leave blank for an exact match.
+            </p>
+            <div
+              className="
+                grid gap-3
+                sm:grid-cols-2
+              "
+            >
+              <form.AppField name="quickFilterRangeDays">
+                {field => (
+                  <field.TextField
+                    label="Days"
+                    type="number"
+                  />
+                )}
+              </form.AppField>
+              <form.AppField name="quickFilterRangeHours">
+                {field => (
+                  <field.TextField
+                    label="Hours"
+                    type="number"
+                  />
+                )}
+              </form.AppField>
+              <form.AppField name="quickFilterRangeMinutes">
+                {field => (
+                  <field.TextField
+                    label="Minutes"
+                    type="number"
+                  />
+                )}
+              </form.AppField>
+              <form.AppField name="quickFilterRangeSeconds">
+                {field => (
+                  <field.TextField
+                    label="Seconds"
+                    type="number"
+                  />
+                )}
+              </form.AppField>
+            </div>
+          </div>
           <AllowDefaultField
             form={form}
             idPrefix={idPrefix}
