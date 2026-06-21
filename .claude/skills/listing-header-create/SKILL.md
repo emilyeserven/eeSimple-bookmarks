@@ -229,6 +229,28 @@ useSetListingPage("autofill-rules-listing", false, false, false, newRule.openMod
 Then render `{newRule.modal}` in the route's JSX. The panel-based create path still works for
 scoped views (category/website/etc. detail tabs use `newRule.onClick` directly).
 
+## Sibling pattern: "New child" button on hierarchy *detail* pages
+
+The same Plus-left-of-the-PanelRight-toggle slot is also used on the **detail** pages of
+parent/child-tree taxonomies (currently **Tags** and **Media Types** — the ones with a Hierarchy
+tab) to quick-create a **child of the current entity**, with the parent **fixed** to it. This is a
+separate mechanism from the listing `createAction` above — it does **not** go through
+`useSetListingPage`. Instead, `-appHeader.tsx` derives the current detail entity from the path (it
+already resolves `tagAncestors` and `mediaType`) and renders `components/AddChildButton.tsx`
+directly, just before the `open-panel` toolbar action. Detail pages aren't listing pages, so the
+two Plus buttons are mutually exclusive.
+
+- `AddChildButton` (`{ kind: "tag" | "mediaType"; parentId: string | undefined }`) owns its own
+  modal state, disables the button until `parentId` resolves, and on success navigates to the new
+  child's `edit/general`.
+- It reuses the existing modals in name-only mode with a fixed parent: `AddTagModal` with
+  `showParent={false}` + `defaultParentId`, and `AddMediaTypeModal` with `defaultParentId`. Both
+  `CreateTagInput` / `CreateMediaTypeInput` already accept `parentId`. `TagForm` honors
+  `defaultParentId` when `showParent` is false.
+- **To extend to another hierarchy taxonomy:** give its create modal a `defaultParentId` pass-through,
+  add a `kind` to `AddChildButton`, and add a detail-page branch in `-appHeader.tsx` that supplies
+  the resolved current-entity id as `parentId`.
+
 ## Verify
 
 For each entity after implementing:
@@ -243,6 +265,9 @@ For each entity after implementing:
 7. Custom Properties: type selector shows all four types.
 8. YouTube Channels: Channel URL and Name fields both appear.
 9. Autofill Rules: navigates to `edit/conditions` (not `edit/general`).
+10. Tags / Media Types detail pages (e.g. `/tags/<slug>/general`): a Plus button appears left of the
+    PanelRight toggle, opens a name-only modal, and the created entity is a child of the current one
+    (not duplicated on the listing pages, absent on non-hierarchy detail pages).
 
 ```
 pnpm typecheck
