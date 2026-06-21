@@ -21,6 +21,7 @@ function BookmarksPage() {
     mediaTypes,
     youtubeChannels,
     websites,
+    relationshipTypes,
   } = useBookmarksPageData(search.tags);
 
   return (
@@ -34,6 +35,7 @@ function BookmarksPage() {
       mediaTypes={mediaTypes ?? []}
       youtubeChannels={youtubeChannels ?? []}
       websites={websites ?? []}
+      relationshipTypes={relationshipTypes ?? []}
       bookmarks={bookmarks ?? []}
       search={search}
       onSearchChange={next => navigate({

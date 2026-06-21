@@ -380,7 +380,7 @@ export const sampleBookmark: Bookmark = {
   ],
   dateTimeValues: [],
   fileValues: [],
-  relatedBookmarks: [],
+  relationships: [],
   priority: 10,
   createdAt: NOW,
 };

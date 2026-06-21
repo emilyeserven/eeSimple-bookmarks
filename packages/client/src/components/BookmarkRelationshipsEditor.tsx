@@ -1,46 +1,135 @@
 import type { ComboboxOption } from "./Combobox";
-import type { BookmarkUrlSummary } from "@eesimple/types";
+import type { BookmarkRelationship } from "@eesimple/types";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
-import { MultiCombobox } from "./MultiCombobox";
+import { Plus, Trash2 } from "lucide-react";
+
+import { Combobox } from "./Combobox";
 
 import { LabeledSection } from "@/components/LabeledSection";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { useUpdateBookmarkRelationships, useBookmarks } from "@/hooks/useBookmarks";
+import { useRelationshipTypes } from "@/hooks/useRelationshipTypes";
 
 interface BookmarkRelationshipsEditorProps {
   bookmarkId: string;
-  initialRelated: BookmarkUrlSummary[];
+  initialRelationships: BookmarkRelationship[];
   onDone: () => void;
 }
 
+/** A single editable relationship row in the editor's working state. */
+interface RelationshipDraft {
+  /** Local key so React can track rows as they're added/removed. */
+  key: string;
+  bookmarkId: string;
+  relationshipTypeId: string;
+  label: string;
+  /** For directional types, whether the selected bookmark is this bookmark's parent. */
+  otherIsParent: boolean;
+}
+
+let draftCounter = 0;
+function newDraft(): RelationshipDraft {
+  draftCounter += 1;
+  return {
+    key: `draft-${draftCounter}`,
+    bookmarkId: "",
+    relationshipTypeId: "",
+    label: "",
+    otherIsParent: false,
+  };
+}
+
+const LABEL_SUGGESTIONS_ID = "relationship-label-suggestions";
+
 export function BookmarkRelationshipsEditor({
   bookmarkId,
-  initialRelated,
+  initialRelationships,
   onDone,
 }: BookmarkRelationshipsEditorProps) {
-  const [selectedIds, setSelectedIds] = useState<string[]>(
-    initialRelated.map(b => b.id),
-  );
   const {
     data: allBookmarks,
   } = useBookmarks();
+  const {
+    data: relationshipTypes,
+  } = useRelationshipTypes();
   const updateRelationships = useUpdateBookmarkRelationships();
 
-  const options: ComboboxOption[] = (allBookmarks ?? [])
+  const [drafts, setDrafts] = useState<RelationshipDraft[]>(() =>
+    initialRelationships.map((rel, i) => ({
+      key: `initial-${i}`,
+      bookmarkId: rel.bookmark.id,
+      relationshipTypeId: rel.relationshipTypeId,
+      label: rel.label ?? "",
+      otherIsParent: rel.directional && rel.role === "parent",
+    })));
+
+  const bookmarkOptions: ComboboxOption[] = (allBookmarks ?? [])
     .filter(b => b.id !== bookmarkId)
     .map(b => ({
       value: b.id,
       label: b.title,
     }));
 
+  const typeOptions: ComboboxOption[] = (relationshipTypes ?? []).map(rt => ({
+    value: rt.id,
+    label: rt.name,
+  }));
+
+  const directionalTypeIds = useMemo(
+    () => new Set((relationshipTypes ?? []).filter(rt => rt.directional).map(rt => rt.id)),
+    [relationshipTypes],
+  );
+
+  // Distinct labels already in use across all bookmarks — suggestions for the label combobox.
+  const labelSuggestions = useMemo(() => {
+    const set = new Set<string>();
+    for (const b of allBookmarks ?? []) {
+      for (const rel of b.relationships) {
+        if (rel.label) set.add(rel.label);
+      }
+    }
+    return [...set].sort((a, b) => a.localeCompare(b));
+  }, [allBookmarks]);
+
+  function patchDraft(key: string, patch: Partial<RelationshipDraft>) {
+    setDrafts(prev => prev.map(d => (d.key === key
+      ? {
+        ...d,
+        ...patch,
+      }
+      : d)));
+  }
+
+  function removeDraft(key: string) {
+    setDrafts(prev => prev.filter(d => d.key !== key));
+  }
+
   function handleSave() {
+    const relationships = drafts
+      .filter(d => d.bookmarkId !== "" && d.relationshipTypeId !== "")
+      .map((d) => {
+        const directional = directionalTypeIds.has(d.relationshipTypeId);
+        const label = d.label.trim();
+        return {
+          bookmarkId: d.bookmarkId,
+          relationshipTypeId: d.relationshipTypeId,
+          label: label.length > 0 ? label : null,
+          ...(directional
+            ? {
+              direction: d.otherIsParent ? ("parent" as const) : ("child" as const),
+            }
+            : {}),
+        };
+      });
     updateRelationships.mutate(
       {
         id: bookmarkId,
         input: {
-          relatedBookmarkIds: selectedIds,
+          relationships,
         },
       },
       {
@@ -52,17 +141,102 @@ export function BookmarkRelationshipsEditor({
   return (
     <div className="space-y-6">
       <LabeledSection
-        title="Related bookmarks"
-        description="Select bookmarks that are related to this one. Relationships are bidirectional."
+        title="Relationships"
+        description="Link this bookmark to others and classify how they relate. Directional types (e.g. Parent/child) ask which bookmark is the parent and power the Hierarchy view."
       >
-        <MultiCombobox
-          options={options}
-          values={selectedIds}
-          onValuesChange={setSelectedIds}
-          placeholder="Select related bookmarks…"
-          searchPlaceholder="Search bookmarks…"
-          emptyText="No other bookmarks found."
-        />
+        <datalist id={LABEL_SUGGESTIONS_ID}>
+          {labelSuggestions.map(label => (
+            <option
+              key={label}
+              value={label}
+            />
+          ))}
+        </datalist>
+
+        <div className="space-y-3">
+          {drafts.map((draft) => {
+            const directional = directionalTypeIds.has(draft.relationshipTypeId);
+            return (
+              <div
+                key={draft.key}
+                className="
+                  grid grid-cols-1 gap-2 rounded-lg border p-3
+                  sm:grid-cols-2
+                "
+              >
+                <Combobox
+                  options={bookmarkOptions}
+                  value={draft.bookmarkId || undefined}
+                  onValueChange={v => patchDraft(draft.key, {
+                    bookmarkId: v ?? "",
+                  })}
+                  placeholder="Select a bookmark…"
+                  searchPlaceholder="Search bookmarks…"
+                  emptyText="No other bookmarks found."
+                  aria-label="Related bookmark"
+                />
+                <Combobox
+                  options={typeOptions}
+                  value={draft.relationshipTypeId || undefined}
+                  onValueChange={v => patchDraft(draft.key, {
+                    relationshipTypeId: v ?? "",
+                  })}
+                  placeholder="Relationship type…"
+                  searchPlaceholder="Search types…"
+                  emptyText="No relationship types."
+                  aria-label="Relationship type"
+                />
+                <Input
+                  value={draft.label}
+                  list={LABEL_SUGGESTIONS_ID}
+                  placeholder="Optional label (e.g. sequel)"
+                  onChange={e => patchDraft(draft.key, {
+                    label: e.target.value,
+                  })}
+                  aria-label="Relationship label"
+                />
+                <div className="flex items-center justify-between gap-2">
+                  {directional
+                    ? (
+                      <label
+                        className="
+                          flex items-center gap-2 text-sm text-muted-foreground
+                        "
+                      >
+                        <Checkbox
+                          checked={draft.otherIsParent}
+                          onCheckedChange={checked => patchDraft(draft.key, {
+                            otherIsParent: checked === true,
+                          })}
+                          aria-label="The selected bookmark is the parent"
+                        />
+                        Selected bookmark is the parent
+                      </label>
+                    )
+                    : <span />}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeDraft(draft.key)}
+                    aria-label="Remove relationship"
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
+
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setDrafts(prev => [...prev, newDraft()])}
+          >
+            <Plus className="size-4" />
+            Add relationship
+          </Button>
+        </div>
       </LabeledSection>
 
       <div className="flex gap-2">

@@ -3,6 +3,7 @@ import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useMediaTypes } from "../hooks/useMediaTypes";
 import { usePropertyGroups } from "../hooks/usePropertyGroups";
+import { useRelationshipTypes } from "../hooks/useRelationshipTypes";
 import { useTagTree } from "../hooks/useTags";
 import { useWebsites } from "../hooks/useWebsites";
 import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
@@ -36,6 +37,9 @@ export function useCategoryPageData(tags: string[] | undefined) {
   const {
     data: websites,
   } = useWebsites();
+  const {
+    data: relationshipTypes,
+  } = useRelationshipTypes();
 
   return {
     categories,
@@ -49,5 +53,6 @@ export function useCategoryPageData(tags: string[] | undefined) {
     mediaTypes,
     youtubeChannels,
     websites,
+    relationshipTypes,
   };
 }

@@ -34,6 +34,10 @@ function summarizeNode(node: ConditionNode): string {
       return node.mediaTypeIds.length === 1
         ? "media type is (1)"
         : `media type is one of (${node.mediaTypeIds.length})`;
+    case "relationship-type":
+      return node.relationshipTypeIds.length === 1
+        ? "has a relationship of type (1)"
+        : `has a relationship of one of (${node.relationshipTypeIds.length})`;
     case "property":
       return `${node.predicate.valueKind} property condition`;
     default: {

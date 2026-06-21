@@ -293,6 +293,45 @@ export interface UpdatePropertyGroupInput {
 }
 
 /**
+ * A relationship type in the "Relationship Types" taxonomy (Similar, Parent/child, Opposite, …).
+ * Classifies how two bookmarks relate. `directional` types (e.g. Parent/child) encode a from→to
+ * direction (bookmark A is the parent/source, bookmark B is the child/target); symmetric types
+ * (Similar, Opposite) read the same from either side. Built-ins can't be renamed/deleted; users may
+ * add their own.
+ */
+export interface RelationshipType {
+  id: string;
+  /** Display name, e.g. `"Parent/child"`. Unique. */
+  name: string;
+  /** URL-friendly identifier derived from the name. Unique. */
+  slug: string;
+  /** Whether the relationship has a direction (parent→child) rather than being symmetric. */
+  directional: boolean;
+  /** Whether this is a seeded built-in (protected from rename/delete). */
+  builtIn: boolean;
+  /** Display ordering weight; lower sorts first. */
+  sortOrder: number;
+  /** ISO-8601 timestamp of when the relationship type was created. */
+  createdAt: string;
+  /** Number of relationship edges using this type (populated by list endpoints). */
+  relationshipCount?: number;
+}
+
+/** Payload for creating a relationship type. */
+export interface CreateRelationshipTypeInput {
+  name: string;
+  directional?: boolean;
+  sortOrder?: number;
+}
+
+/** Payload for updating a relationship type (rename, toggle direction, and/or reorder). */
+export interface UpdateRelationshipTypeInput {
+  name?: string;
+  directional?: boolean;
+  sortOrder?: number;
+}
+
+/**
  * A channel in the built-in "YouTube Channels" taxonomy. Bookmarks for a YouTube video are
  * auto-linked to their channel from the video's fetched metadata, so videos can be browsed per
  * channel.
@@ -477,8 +516,8 @@ export interface Bookmark {
    * through dedicated multipart routes, never the bookmark JSON payload.
    */
   fileValues: BookmarkFileValue[];
-  /** Other bookmarks this bookmark is related to (undirected edges in the Relationships graph). */
-  relatedBookmarks: BookmarkUrlSummary[];
+  /** Typed relationships from this bookmark to other bookmarks (see {@link BookmarkRelationship}). */
+  relationships: BookmarkRelationship[];
   /** Homepage ordering weight; higher values appear first. */
   priority: number;
   /** ISO-8601 timestamp of when the bookmark was created. */
@@ -518,16 +557,54 @@ export interface CreateBookmarkInput {
 /** Payload for partially updating a bookmark. */
 export type UpdateBookmarkInput = Partial<CreateBookmarkInput>;
 
-/** Payload for replacing the full set of relationships for a bookmark. */
-export interface UpdateBookmarkRelationshipsInput {
-  relatedBookmarkIds: string[];
-}
-
 /** Minimal bookmark shape for the bulk shortened-link expansion review list. */
 export interface BookmarkUrlSummary {
   id: string;
   url: string;
   title: string;
+}
+
+/**
+ * The role of the *other* bookmark in a relationship, relative to the bookmark carrying it:
+ * - `parent` / `child` — for `directional` types (e.g. Parent/child), naming the other end.
+ * - `related` — for symmetric types (Similar, Opposite), where neither end is privileged.
+ */
+export type RelationshipRole = "parent" | "child" | "related";
+
+/** A single typed relationship edge as seen from one bookmark, pointing at the other bookmark. */
+export interface BookmarkRelationship {
+  /** The bookmark on the other end of the edge. */
+  bookmark: BookmarkUrlSummary;
+  /** Id of the relationship type (Similar, Parent/child, …). */
+  relationshipTypeId: string;
+  /** Display name of the relationship type, denormalized for rendering. */
+  relationshipTypeName: string;
+  /** Whether the type is directional (parent→child) rather than symmetric. */
+  directional: boolean;
+  /** Role of `bookmark` relative to the carrying bookmark. */
+  role: RelationshipRole;
+  /** Optional, more specific free-text label for this edge (e.g. "sequel", "same author"). */
+  label: string | null;
+}
+
+/** One entry when replacing a bookmark's relationships: the other bookmark, its type, and a label. */
+export interface UpdateBookmarkRelationshipEntry {
+  /** Id of the bookmark on the other end. */
+  bookmarkId: string;
+  /** Id of the relationship type to apply. */
+  relationshipTypeId: string;
+  /** Optional, more specific free-text label. */
+  label?: string | null;
+  /**
+   * For a directional type, whether `bookmarkId` is the parent or child of the edited bookmark.
+   * Ignored for symmetric types. Defaults to `child` (the edited bookmark is the parent).
+   */
+  direction?: "parent" | "child";
+}
+
+/** Payload for replacing the full set of relationships for a bookmark. */
+export interface UpdateBookmarkRelationshipsInput {
+  relationships: UpdateBookmarkRelationshipEntry[];
 }
 
 /** Result of checking whether a URL (or its path) collides with an existing bookmark. */

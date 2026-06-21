@@ -24,6 +24,7 @@ import { Route as BookmarksIndexRouteImport } from './routes/bookmarks.index'
 import { Route as AutofillIndexRouteImport } from './routes/autofill.index'
 import { Route as TaxonomiesYoutubeChannelsRouteImport } from './routes/taxonomies.youtube-channels'
 import { Route as TaxonomiesWebsitesRouteImport } from './routes/taxonomies.websites'
+import { Route as TaxonomiesRelationshipTypesRouteImport } from './routes/taxonomies.relationship-types'
 import { Route as TaxonomiesPropertyGroupsRouteImport } from './routes/taxonomies.property-groups'
 import { Route as TaxonomiesMediaTypesRouteImport } from './routes/taxonomies.media-types'
 import { Route as TagsTagSlugRouteImport } from './routes/tags.$tagSlug'
@@ -50,6 +51,7 @@ import { Route as BookmarksBookmarkIdRouteImport } from './routes/bookmarks.$boo
 import { Route as AutofillRuleSlugRouteImport } from './routes/autofill.$ruleSlug'
 import { Route as TaxonomiesYoutubeChannelsIndexRouteImport } from './routes/taxonomies.youtube-channels.index'
 import { Route as TaxonomiesWebsitesIndexRouteImport } from './routes/taxonomies.websites.index'
+import { Route as TaxonomiesRelationshipTypesIndexRouteImport } from './routes/taxonomies.relationship-types.index'
 import { Route as TaxonomiesPropertyGroupsIndexRouteImport } from './routes/taxonomies.property-groups.index'
 import { Route as TaxonomiesMediaTypesIndexRouteImport } from './routes/taxonomies.media-types.index'
 import { Route as TagsTagSlugIndexRouteImport } from './routes/tags.$tagSlug.index'
@@ -223,6 +225,12 @@ const TaxonomiesWebsitesRoute = TaxonomiesWebsitesRouteImport.update({
   path: '/taxonomies/websites',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TaxonomiesRelationshipTypesRoute =
+  TaxonomiesRelationshipTypesRouteImport.update({
+    id: '/taxonomies/relationship-types',
+    path: '/taxonomies/relationship-types',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const TaxonomiesPropertyGroupsRoute =
   TaxonomiesPropertyGroupsRouteImport.update({
     id: '/taxonomies/property-groups',
@@ -359,6 +367,12 @@ const TaxonomiesWebsitesIndexRoute = TaxonomiesWebsitesIndexRouteImport.update({
   path: '/',
   getParentRoute: () => TaxonomiesWebsitesRoute,
 } as any)
+const TaxonomiesRelationshipTypesIndexRoute =
+  TaxonomiesRelationshipTypesIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => TaxonomiesRelationshipTypesRoute,
+  } as any)
 const TaxonomiesPropertyGroupsIndexRoute =
   TaxonomiesPropertyGroupsIndexRouteImport.update({
     id: '/',
@@ -948,6 +962,7 @@ export interface FileRoutesByFullPath {
   '/tags/$tagSlug': typeof TagsTagSlugViewRouteWithChildren
   '/taxonomies/media-types': typeof TaxonomiesMediaTypesRouteWithChildren
   '/taxonomies/property-groups': typeof TaxonomiesPropertyGroupsRouteWithChildren
+  '/taxonomies/relationship-types': typeof TaxonomiesRelationshipTypesRouteWithChildren
   '/taxonomies/websites': typeof TaxonomiesWebsitesRouteWithChildren
   '/taxonomies/youtube-channels': typeof TaxonomiesYoutubeChannelsRouteWithChildren
   '/autofill/': typeof AutofillIndexRoute
@@ -972,6 +987,7 @@ export interface FileRoutesByFullPath {
   '/tags/$tagSlug/': typeof TagsTagSlugIndexRoute
   '/taxonomies/media-types/': typeof TaxonomiesMediaTypesIndexRoute
   '/taxonomies/property-groups/': typeof TaxonomiesPropertyGroupsIndexRoute
+  '/taxonomies/relationship-types/': typeof TaxonomiesRelationshipTypesIndexRoute
   '/taxonomies/websites/': typeof TaxonomiesWebsitesIndexRoute
   '/taxonomies/youtube-channels/': typeof TaxonomiesYoutubeChannelsIndexRoute
   '/autofill/$ruleSlug/conditions': typeof AutofillRuleSlugViewConditionsRoute
@@ -1079,6 +1095,7 @@ export interface FileRoutesByTo {
   '/bookmarks/$bookmarkId': typeof BookmarksBookmarkIdIndexRoute
   '/taxonomies/media-types': typeof TaxonomiesMediaTypesIndexRoute
   '/taxonomies/property-groups': typeof TaxonomiesPropertyGroupsIndexRoute
+  '/taxonomies/relationship-types': typeof TaxonomiesRelationshipTypesIndexRoute
   '/taxonomies/websites': typeof TaxonomiesWebsitesIndexRoute
   '/taxonomies/youtube-channels': typeof TaxonomiesYoutubeChannelsIndexRoute
   '/autofill/$ruleSlug/conditions': typeof AutofillRuleSlugViewConditionsRoute
@@ -1183,6 +1200,7 @@ export interface FileRoutesById {
   '/tags/$tagSlug': typeof TagsTagSlugRouteWithChildren
   '/taxonomies/media-types': typeof TaxonomiesMediaTypesRouteWithChildren
   '/taxonomies/property-groups': typeof TaxonomiesPropertyGroupsRouteWithChildren
+  '/taxonomies/relationship-types': typeof TaxonomiesRelationshipTypesRouteWithChildren
   '/taxonomies/websites': typeof TaxonomiesWebsitesRouteWithChildren
   '/taxonomies/youtube-channels': typeof TaxonomiesYoutubeChannelsRouteWithChildren
   '/autofill/': typeof AutofillIndexRoute
@@ -1211,6 +1229,7 @@ export interface FileRoutesById {
   '/tags/$tagSlug/': typeof TagsTagSlugIndexRoute
   '/taxonomies/media-types/': typeof TaxonomiesMediaTypesIndexRoute
   '/taxonomies/property-groups/': typeof TaxonomiesPropertyGroupsIndexRoute
+  '/taxonomies/relationship-types/': typeof TaxonomiesRelationshipTypesIndexRoute
   '/taxonomies/websites/': typeof TaxonomiesWebsitesIndexRoute
   '/taxonomies/youtube-channels/': typeof TaxonomiesYoutubeChannelsIndexRoute
   '/autofill/$ruleSlug/_view/conditions': typeof AutofillRuleSlugViewConditionsRoute
@@ -1324,6 +1343,7 @@ export interface FileRouteTypes {
     | '/tags/$tagSlug'
     | '/taxonomies/media-types'
     | '/taxonomies/property-groups'
+    | '/taxonomies/relationship-types'
     | '/taxonomies/websites'
     | '/taxonomies/youtube-channels'
     | '/autofill/'
@@ -1348,6 +1368,7 @@ export interface FileRouteTypes {
     | '/tags/$tagSlug/'
     | '/taxonomies/media-types/'
     | '/taxonomies/property-groups/'
+    | '/taxonomies/relationship-types/'
     | '/taxonomies/websites/'
     | '/taxonomies/youtube-channels/'
     | '/autofill/$ruleSlug/conditions'
@@ -1455,6 +1476,7 @@ export interface FileRouteTypes {
     | '/bookmarks/$bookmarkId'
     | '/taxonomies/media-types'
     | '/taxonomies/property-groups'
+    | '/taxonomies/relationship-types'
     | '/taxonomies/websites'
     | '/taxonomies/youtube-channels'
     | '/autofill/$ruleSlug/conditions'
@@ -1558,6 +1580,7 @@ export interface FileRouteTypes {
     | '/tags/$tagSlug'
     | '/taxonomies/media-types'
     | '/taxonomies/property-groups'
+    | '/taxonomies/relationship-types'
     | '/taxonomies/websites'
     | '/taxonomies/youtube-channels'
     | '/autofill/'
@@ -1586,6 +1609,7 @@ export interface FileRouteTypes {
     | '/tags/$tagSlug/'
     | '/taxonomies/media-types/'
     | '/taxonomies/property-groups/'
+    | '/taxonomies/relationship-types/'
     | '/taxonomies/websites/'
     | '/taxonomies/youtube-channels/'
     | '/autofill/$ruleSlug/_view/conditions'
@@ -1676,6 +1700,7 @@ export interface RootRouteChildren {
   TagsRoute: typeof TagsRouteWithChildren
   TaxonomiesMediaTypesRoute: typeof TaxonomiesMediaTypesRouteWithChildren
   TaxonomiesPropertyGroupsRoute: typeof TaxonomiesPropertyGroupsRouteWithChildren
+  TaxonomiesRelationshipTypesRoute: typeof TaxonomiesRelationshipTypesRouteWithChildren
   TaxonomiesWebsitesRoute: typeof TaxonomiesWebsitesRouteWithChildren
   TaxonomiesYoutubeChannelsRoute: typeof TaxonomiesYoutubeChannelsRouteWithChildren
 }
@@ -1785,6 +1810,13 @@ declare module '@tanstack/react-router' {
       path: '/taxonomies/websites'
       fullPath: '/taxonomies/websites'
       preLoaderRoute: typeof TaxonomiesWebsitesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/taxonomies/relationship-types': {
+      id: '/taxonomies/relationship-types'
+      path: '/taxonomies/relationship-types'
+      fullPath: '/taxonomies/relationship-types'
+      preLoaderRoute: typeof TaxonomiesRelationshipTypesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/taxonomies/property-groups': {
@@ -1968,6 +2000,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/taxonomies/websites/'
       preLoaderRoute: typeof TaxonomiesWebsitesIndexRouteImport
       parentRoute: typeof TaxonomiesWebsitesRoute
+    }
+    '/taxonomies/relationship-types/': {
+      id: '/taxonomies/relationship-types/'
+      path: '/'
+      fullPath: '/taxonomies/relationship-types/'
+      preLoaderRoute: typeof TaxonomiesRelationshipTypesIndexRouteImport
+      parentRoute: typeof TaxonomiesRelationshipTypesRoute
     }
     '/taxonomies/property-groups/': {
       id: '/taxonomies/property-groups/'
@@ -3195,6 +3234,21 @@ const TaxonomiesPropertyGroupsRouteWithChildren =
     TaxonomiesPropertyGroupsRouteChildren,
   )
 
+interface TaxonomiesRelationshipTypesRouteChildren {
+  TaxonomiesRelationshipTypesIndexRoute: typeof TaxonomiesRelationshipTypesIndexRoute
+}
+
+const TaxonomiesRelationshipTypesRouteChildren: TaxonomiesRelationshipTypesRouteChildren =
+  {
+    TaxonomiesRelationshipTypesIndexRoute:
+      TaxonomiesRelationshipTypesIndexRoute,
+  }
+
+const TaxonomiesRelationshipTypesRouteWithChildren =
+  TaxonomiesRelationshipTypesRoute._addFileChildren(
+    TaxonomiesRelationshipTypesRouteChildren,
+  )
+
 interface TaxonomiesWebsitesWebsiteSlugViewRouteChildren {
   TaxonomiesWebsitesWebsiteSlugViewAutofillRoute: typeof TaxonomiesWebsitesWebsiteSlugViewAutofillRoute
   TaxonomiesWebsitesWebsiteSlugViewGeneralRoute: typeof TaxonomiesWebsitesWebsiteSlugViewGeneralRoute
@@ -3368,6 +3422,8 @@ const rootRouteChildren: RootRouteChildren = {
   TagsRoute: TagsRouteWithChildren,
   TaxonomiesMediaTypesRoute: TaxonomiesMediaTypesRouteWithChildren,
   TaxonomiesPropertyGroupsRoute: TaxonomiesPropertyGroupsRouteWithChildren,
+  TaxonomiesRelationshipTypesRoute:
+    TaxonomiesRelationshipTypesRouteWithChildren,
   TaxonomiesWebsitesRoute: TaxonomiesWebsitesRouteWithChildren,
   TaxonomiesYoutubeChannelsRoute: TaxonomiesYoutubeChannelsRouteWithChildren,
 }

@@ -310,6 +310,29 @@ const migrations: RuntimeMigration[] = [
     name: "drop saved_display_presets table",
     run: db => db.execute(sql`DROP TABLE IF EXISTS "saved_display_presets"`),
   },
+  {
+    // `bookmark_relationships` was reshaped from an untyped, composite-PK edge table
+    // (`bookmark_a_id`, `bookmark_b_id`) into a typed one (surrogate `id` PK, `relationship_type_id`,
+    // `label`, new unique index). push can't converge that PK/column change non-interactively, so
+    // drop the OLD-shaped table here and let push recreate the new shape from schema.ts. The guard
+    // makes this idempotent and one-shot: it fires only while the table exists WITHOUT the new
+    // `relationship_type_id` column, so once push recreates it the step is a no-op forever after
+    // (it never wipes the recreated typed table). One `DO $$…$$` block = a single statement.
+    name: "reshape bookmark_relationships to typed edges",
+    run: db => db.execute(sql`
+      DO $$ BEGIN
+        IF EXISTS (
+          SELECT 1 FROM information_schema.tables
+          WHERE table_name = 'bookmark_relationships'
+        ) AND NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'bookmark_relationships' AND column_name = 'relationship_type_id'
+        ) THEN
+          DROP TABLE "bookmark_relationships";
+        END IF;
+      END $$
+    `),
+  },
 ];
 
 async function main(): Promise<void> {

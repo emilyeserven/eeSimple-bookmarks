@@ -28,6 +28,7 @@ export function FiltersPanel() {
     mediaTypes,
     youtubeChannels,
     websites,
+    relationshipTypes,
     bookmarks,
     search,
     onSearchChange,
@@ -38,6 +39,7 @@ export function FiltersPanel() {
   const hasMediaTypeFilter = (mediaTypes?.length ?? 0) > 0;
   const hasChannelFilter = (youtubeChannels?.length ?? 0) > 0;
   const hasWebsiteFilter = (websites?.length ?? 0) > 0;
+  const hasRelationshipTypeFilter = (relationshipTypes?.length ?? 0) > 0;
   const hasTags = tree.length > 0;
   const hasProperties = enabledProperties.length > 0;
 
@@ -48,7 +50,7 @@ export function FiltersPanel() {
         onSearchChange={onSearchChange}
       />
 
-      {(hasTags || hasProperties || hasCategoryFilter || hasMediaTypeFilter || hasChannelFilter || hasWebsiteFilter)
+      {(hasTags || hasProperties || hasCategoryFilter || hasMediaTypeFilter || hasChannelFilter || hasWebsiteFilter || hasRelationshipTypeFilter)
         ? <Separator />
         : null}
 
@@ -60,6 +62,7 @@ export function FiltersPanel() {
         mediaTypes={mediaTypes}
         youtubeChannels={youtubeChannels}
         websites={websites}
+        relationshipTypes={relationshipTypes}
         bookmarks={bookmarks}
         search={search}
         onSearchChange={onSearchChange}
@@ -69,6 +72,7 @@ export function FiltersPanel() {
         hasMediaTypeFilter={hasMediaTypeFilter}
         hasChannelFilter={hasChannelFilter}
         hasWebsiteFilter={hasWebsiteFilter}
+        hasRelationshipTypeFilter={hasRelationshipTypeFilter}
       />
     </div>
   );

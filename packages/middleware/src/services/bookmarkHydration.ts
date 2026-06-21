@@ -7,10 +7,11 @@ import type {
   BookmarkImage,
   BookmarkMediaType,
   BookmarkNumberValue,
+  BookmarkRelationship,
   BookmarkTag,
-  BookmarkUrlSummary,
   BookmarkWebsite,
   BookmarkYouTubeChannel,
+  RelationshipRole,
 } from "@eesimple/types";
 import { db } from "@/db";
 import {
@@ -24,6 +25,7 @@ import {
   type BookmarkRow,
   bookmarkTags,
   mediaTypes,
+  relationshipTypes,
   tags,
   websiteFavicons,
   websites,
@@ -46,7 +48,7 @@ interface BookmarkExtras {
   dateTimeValues: BookmarkDateTimeValue[];
   fileValues: BookmarkFileValue[];
   image: BookmarkImage | null;
-  relatedBookmarks: BookmarkUrlSummary[];
+  relationships: BookmarkRelationship[];
 }
 
 const EMPTY_EXTRAS: BookmarkExtras = {
@@ -59,7 +61,7 @@ const EMPTY_EXTRAS: BookmarkExtras = {
   dateTimeValues: [],
   fileValues: [],
   image: null,
-  relatedBookmarks: [],
+  relationships: [],
 };
 
 /** Map a DB row plus its hydrated relations to the shared `Bookmark` wire type. */
@@ -79,7 +81,7 @@ function toBookmark(row: BookmarkRow, extras: BookmarkExtras, defaultCategoryId:
     booleanValues: extras.booleanValues,
     dateTimeValues: extras.dateTimeValues,
     fileValues: extras.fileValues,
-    relatedBookmarks: extras.relatedBookmarks,
+    relationships: extras.relationships,
     image: extras.image,
     imageAutoGrabError: (row.imageAutoGrabError as "no_image" | "bad_image" | "blocked" | "server_error" | "fetch_error" | null) ?? null,
     priority: row.priority,
@@ -324,13 +326,15 @@ async function imagesByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
 }
 
 /**
- * Load related bookmarks for a set of bookmark ids, handling both sides of the undirected join.
- * Returns a map of bookmarkId → array of minimal bookmark summaries for its related bookmarks.
+ * Load typed relationships for a set of bookmark ids, handling both sides of each edge. Returns a
+ * map of bookmarkId → its {@link BookmarkRelationship}s, with the other bookmark's role derived from
+ * the edge direction: for a directional type, A is the parent and B the child; symmetric types are
+ * `related`. Each row is joined to its relationship type for the name + `directional` flag.
  */
-async function relatedBookmarksByBookmarkId(
+async function relationshipsByBookmarkId(
   bookmarkIds: string[],
-): Promise<Map<string, BookmarkUrlSummary[]>> {
-  const grouped = new Map<string, BookmarkUrlSummary[]>();
+): Promise<Map<string, BookmarkRelationship[]>> {
+  const grouped = new Map<string, BookmarkRelationship[]>();
   if (bookmarkIds.length === 0) return grouped;
 
   const idSet = new Set(bookmarkIds);
@@ -339,8 +343,16 @@ async function relatedBookmarksByBookmarkId(
     .select({
       bookmarkAId: bookmarkRelationships.bookmarkAId,
       bookmarkBId: bookmarkRelationships.bookmarkBId,
+      relationshipTypeId: bookmarkRelationships.relationshipTypeId,
+      label: bookmarkRelationships.label,
+      typeName: relationshipTypes.name,
+      directional: relationshipTypes.directional,
     })
     .from(bookmarkRelationships)
+    .innerJoin(
+      relationshipTypes,
+      eq(bookmarkRelationships.relationshipTypeId, relationshipTypes.id),
+    )
     .where(
       or(
         inArray(bookmarkRelationships.bookmarkAId, bookmarkIds),
@@ -369,20 +381,33 @@ async function relatedBookmarksByBookmarkId(
   const otherById = new Map(otherRows.map(row => [row.id, row]));
 
   for (const rel of rels) {
-    const addTo = (ownId: string, otherId: string) => {
+    const addTo = (ownId: string, otherId: string, ownIsParent: boolean) => {
       if (!idSet.has(ownId)) return;
       const other = otherById.get(otherId);
       if (!other) return;
+      const role: RelationshipRole = !rel.directional
+        ? "related"
+        : ownIsParent
+          ? "child" // the OTHER bookmark is the child
+          : "parent";
       const list = grouped.get(ownId) ?? [];
       list.push({
-        id: other.id,
-        url: other.url,
-        title: other.title,
+        bookmark: {
+          id: other.id,
+          url: other.url,
+          title: other.title,
+        },
+        relationshipTypeId: rel.relationshipTypeId,
+        relationshipTypeName: rel.typeName,
+        directional: rel.directional,
+        role,
+        label: rel.label,
       });
       grouped.set(ownId, list);
     };
-    addTo(rel.bookmarkAId, rel.bookmarkBId);
-    addTo(rel.bookmarkBId, rel.bookmarkAId);
+    // A is the parent/source, B is the child/target (for directional types).
+    addTo(rel.bookmarkAId, rel.bookmarkBId, true);
+    addTo(rel.bookmarkBId, rel.bookmarkAId, false);
   }
 
   return grouped;
@@ -390,14 +415,14 @@ async function relatedBookmarksByBookmarkId(
 
 /** Hydrate all custom-property relations for a set of bookmark rows in batched queries. */
 async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, BookmarkExtras>> {
-  const [tagsMap, numberMap, booleanMap, dateTimeMap, fileMap, imageMap, relatedMap] = await Promise.all([
+  const [tagsMap, numberMap, booleanMap, dateTimeMap, fileMap, imageMap, relationshipsMap] = await Promise.all([
     tagsByBookmarkId(bookmarkIds),
     numberValuesByBookmarkId(bookmarkIds),
     booleanValuesByBookmarkId(bookmarkIds),
     dateTimeValuesByBookmarkId(bookmarkIds),
     fileValuesByBookmarkId(bookmarkIds),
     imagesByBookmarkId(bookmarkIds),
-    relatedBookmarksByBookmarkId(bookmarkIds),
+    relationshipsByBookmarkId(bookmarkIds),
   ]);
   const grouped = new Map<string, BookmarkExtras>();
   for (const id of bookmarkIds) {
@@ -411,7 +436,7 @@ async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
       dateTimeValues: dateTimeMap.get(id) ?? [],
       fileValues: fileMap.get(id) ?? [],
       image: imageMap.get(id) ?? null,
-      relatedBookmarks: relatedMap.get(id) ?? [],
+      relationships: relationshipsMap.get(id) ?? [],
     });
   }
   return grouped;

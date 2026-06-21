@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Layers, SlidersHorizontal, Wand2 } from "lucide-react";
+import { Layers, Share2, SlidersHorizontal, Wand2 } from "lucide-react";
 
 import {
   Card,
@@ -24,6 +24,12 @@ const CUSTOMIZATION_TILES = [
     description: "Group related custom properties together.",
     icon: Layers,
     to: "/taxonomies/property-groups" as const,
+  },
+  {
+    label: "Relationship Types",
+    description: "Classify how bookmarks relate (Similar, Parent/child, Opposite, …).",
+    icon: Share2,
+    to: "/taxonomies/relationship-types" as const,
   },
   {
     label: "Autofill Rules",

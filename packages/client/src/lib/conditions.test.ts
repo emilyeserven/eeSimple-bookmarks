@@ -17,6 +17,7 @@ function makeInput(overrides: Partial<ConditionInput> = {}): ConditionInput {
     booleanValues: overrides.booleanValues ?? new Map<string, boolean>(),
     dateTimeValues: overrides.dateTimeValues ?? new Map<string, string>(),
     fileValues: overrides.fileValues ?? new Set<string>(),
+    relationshipTypeIds: overrides.relationshipTypeIds ?? new Set<string>(),
   };
 }
 

@@ -66,6 +66,7 @@ export function bookmarkToConditionInput(bookmark: Bookmark): ConditionInput {
     booleanValues: new Map(bookmark.booleanValues.map(v => [v.propertyId, v.value])),
     dateTimeValues: new Map(bookmark.dateTimeValues.map(v => [v.propertyId, v.value])),
     fileValues: new Set(bookmark.fileValues.map(v => v.propertyId)),
+    relationshipTypeIds: new Set(bookmark.relationships.map(r => r.relationshipTypeId)),
   };
 }
 

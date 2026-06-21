@@ -4,6 +4,9 @@ import { Link } from "@tanstack/react-router";
 
 import { BookmarkCategoryLink } from "./BookmarkCategoryLink";
 import { BookmarkPropertySections } from "./BookmarkPropertySections";
+import { useBookmarks } from "../hooks/useBookmarks";
+import { buildBookmarkHierarchy } from "../lib/bookmarkHierarchy";
+import { flattenTree } from "../lib/tagTree";
 
 import { DetailField } from "@/components/DetailField";
 import { LabeledSection } from "@/components/LabeledSection";
@@ -31,6 +34,11 @@ export function BookmarkDetailBody({
   bookmark, categories, properties, propertyGroups, onSaveBoolean,
 }: BookmarkDetailBodyProps) {
   const category = categories.find(item => item.id === bookmark.categoryId);
+  const {
+    data: allBookmarks,
+  } = useBookmarks();
+  const hierarchy = buildBookmarkHierarchy(bookmark.id, allBookmarks ?? []);
+  const flatHierarchy = flattenTree(hierarchy);
 
   return (
     <div className="min-w-0 flex-1 space-y-6">
@@ -130,27 +138,84 @@ export function BookmarkDetailBody({
         )
         : null}
 
-      {bookmark.relatedBookmarks.length > 0
+      {bookmark.relationships.length > 0
         ? (
           <>
             <Separator />
             <LabeledSection title="Relationships">
+              <ul className="space-y-2">
+                {bookmark.relationships.map(rel => (
+                  <li key={`${rel.relationshipTypeId}:${rel.bookmark.id}`}>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Link
+                        to="/bookmarks/$bookmarkId"
+                        params={{
+                          bookmarkId: rel.bookmark.id,
+                        }}
+                        className="
+                          text-sm font-medium
+                          hover:underline
+                        "
+                      >
+                        {rel.bookmark.title}
+                      </Link>
+                      <Badge variant="secondary">{rel.relationshipTypeName}</Badge>
+                      {rel.directional
+                        ? (
+                          <Badge variant="outline">
+                            {rel.role === "child" ? "child" : "parent"}
+                          </Badge>
+                        )
+                        : null}
+                      {rel.label
+                        ? <span className="text-xs text-muted-foreground">“{rel.label}”</span>
+                        : null}
+                    </div>
+                    <p className="truncate text-xs text-muted-foreground">{rel.bookmark.url}</p>
+                  </li>
+                ))}
+              </ul>
+            </LabeledSection>
+          </>
+        )
+        : null}
+
+      {flatHierarchy.length > 0
+        ? (
+          <>
+            <Separator />
+            <LabeledSection
+              title="Hierarchy"
+              description="Parent/child relationships above and below this bookmark."
+            >
               <ul className="space-y-1">
-                {bookmark.relatedBookmarks.map(related => (
-                  <li key={related.id}>
-                    <Link
-                      to="/bookmarks/$bookmarkId"
-                      params={{
-                        bookmarkId: related.id,
-                      }}
-                      className="
-                        text-sm font-medium
-                        hover:underline
-                      "
-                    >
-                      {related.title}
-                    </Link>
-                    <p className="truncate text-xs text-muted-foreground">{related.url}</p>
+                {flatHierarchy.map(({
+                  node, depth,
+                }) => (
+                  <li
+                    key={node.bookmark.id}
+                    style={{
+                      paddingLeft: `${depth * 1.25}rem`,
+                    }}
+                  >
+                    {node.isTarget
+                      ? (
+                        <span className="text-sm font-semibold">{node.bookmark.title}</span>
+                      )
+                      : (
+                        <Link
+                          to="/bookmarks/$bookmarkId"
+                          params={{
+                            bookmarkId: node.bookmark.id,
+                          }}
+                          className="
+                            text-sm
+                            hover:underline
+                          "
+                        >
+                          {node.bookmark.title}
+                        </Link>
+                      )}
                   </li>
                 ))}
               </ul>

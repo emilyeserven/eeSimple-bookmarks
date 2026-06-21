@@ -1,5 +1,5 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
-import type { Bookmark, Category, CustomProperty, MediaType, PropertyGroup, TagNode, Website, YouTubeChannel } from "@eesimple/types";
+import type { Bookmark, Category, CustomProperty, MediaType, PropertyGroup, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
 
 import { ChevronDown } from "lucide-react";
 
@@ -28,6 +28,8 @@ interface FilterSidebarProps {
   youtubeChannels?: YouTubeChannel[];
   /** Websites offered as a multi-select filter; rendered only when non-empty. */
   websites?: Website[];
+  /** Relationship types offered as a multi-select filter; rendered only when non-empty. */
+  relationshipTypes?: RelationshipType[];
   /** Bookmarks in view, used to derive slider bounds when a property has no min/max. */
   bookmarks: Pick<Bookmark, "numberValues">[];
   search: BookmarkSearch;
@@ -36,20 +38,21 @@ interface FilterSidebarProps {
 
 /** Left filter rail for the search pages: tiered tags plus custom-property filters. */
 export function FilterSidebar({
-  tree, properties, propertyGroups, categories, mediaTypes, youtubeChannels, websites, bookmarks, search, onSearchChange,
+  tree, properties, propertyGroups, categories, mediaTypes, youtubeChannels, websites, relationshipTypes, bookmarks, search, onSearchChange,
 }: FilterSidebarProps) {
   // Category data is only supplied on the overall Bookmarks page; category pages render flat.
   const hasCategoryFilter = (categories?.length ?? 0) > 0;
   const hasMediaTypeFilter = (mediaTypes?.length ?? 0) > 0;
   const hasChannelFilter = (youtubeChannels?.length ?? 0) > 0;
   const hasWebsiteFilter = (websites?.length ?? 0) > 0;
+  const hasRelationshipTypeFilter = (relationshipTypes?.length ?? 0) > 0;
 
   const enabledProperties = properties.filter(p => p.enabled);
 
   const hasTags = tree.length > 0;
   const hasProperties = enabledProperties.length > 0;
   const hasFilters
-    = hasTags || hasProperties || hasCategoryFilter || hasMediaTypeFilter || hasChannelFilter || hasWebsiteFilter;
+    = hasTags || hasProperties || hasCategoryFilter || hasMediaTypeFilter || hasChannelFilter || hasWebsiteFilter || hasRelationshipTypeFilter;
 
   return (
     <aside>
@@ -102,6 +105,7 @@ export function FilterSidebar({
                     mediaTypes={mediaTypes}
                     youtubeChannels={youtubeChannels}
                     websites={websites}
+                    relationshipTypes={relationshipTypes}
                     bookmarks={bookmarks}
                     search={search}
                     onSearchChange={onSearchChange}
@@ -111,6 +115,7 @@ export function FilterSidebar({
                     hasMediaTypeFilter={hasMediaTypeFilter}
                     hasChannelFilter={hasChannelFilter}
                     hasWebsiteFilter={hasWebsiteFilter}
+                    hasRelationshipTypeFilter={hasRelationshipTypeFilter}
                   />
                 </>
               )

@@ -1,4 +1,4 @@
-import { asc, eq, isNull, ne } from "drizzle-orm";
+import { asc, eq, isNull } from "drizzle-orm";
 import type {
   CreatePropertyGroupInput,
   PropertyGroup,
@@ -7,6 +7,7 @@ import type {
 import { db } from "@/db";
 import { customProperties, propertyGroups, type PropertyGroupRow } from "@/db/schema";
 import { slugify, uniqueSlug } from "@/utils/slug";
+import { takenSlugsOf } from "@/utils/taxonomySlugs";
 
 /** Thrown when a create/rename collides with an existing property group name. */
 export class DuplicatePropertyGroupError extends Error {
@@ -31,15 +32,8 @@ function toPropertyGroup(row: PropertyGroupRow & { propertyCount?: number }): Pr
 }
 
 /** Existing property-group slugs, optionally excluding one row (when renaming). */
-async function takenSlugs(excludeId?: string): Promise<string[]> {
-  const rows = await db
-    .select({
-      slug: propertyGroups.slug,
-    })
-    .from(propertyGroups)
-    .where(excludeId ? ne(propertyGroups.id, excludeId) : undefined);
-  return rows.map(r => r.slug).filter((s): s is string => s !== null);
-}
+const takenSlugs = (excludeId?: string) =>
+  takenSlugsOf(propertyGroups, propertyGroups.slug, propertyGroups.id, excludeId);
 
 /** List all property groups, ordered by priority then name. */
 export async function listPropertyGroups(): Promise<PropertyGroup[]> {

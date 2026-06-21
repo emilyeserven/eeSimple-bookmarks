@@ -10,6 +10,7 @@ import { ensureHomepageFilter } from "@/services/homepageFilter";
 import { backfillImageCropModes, ensureHomepageSections } from "@/services/homepageSections";
 import { backfillMediaTypeSlugs, ensureBuiltInMediaTypes } from "@/services/mediaTypes";
 import { backfillPropertyGroupSlugs } from "@/services/propertyGroups";
+import { ensureBuiltInRelationshipTypes } from "@/services/relationshipTypes";
 import { backfillTagSlugs } from "@/services/tags";
 import { backfillWebsiteSlugs, ensureBuiltInWebsites } from "@/services/websites";
 import { backfillYouTubeChannelSlugs } from "@/services/youtubeChannels";
@@ -52,6 +53,7 @@ try {
   await backfillMediaTypeSlugs();
   await ensureRuntimeProperty();
   await backfillPropertyGroupSlugs();
+  await ensureBuiltInRelationshipTypes();
   await backfillYouTubeChannelSlugs();
   await backfillTagSlugs();
   await maybeSeed();

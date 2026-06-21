@@ -109,6 +109,15 @@ export interface MediaTypeCondition {
   mediaTypeIds: string[];
 }
 
+/**
+ * Leaf: the bookmark participates in a relationship whose type is one of `relationshipTypeIds`
+ * (regardless of direction or the other bookmark). An empty list never matches.
+ */
+export interface RelationshipTypeCondition {
+  type: "relationship-type";
+  relationshipTypeIds: string[];
+}
+
 /** Leaf: a predicate on a single custom property's value. */
 export interface PropertyCondition {
   type: "property";
@@ -140,6 +149,7 @@ export type ConditionNode
     | TagCondition
     | YouTubeChannelCondition
     | MediaTypeCondition
+    | RelationshipTypeCondition
     | PropertyCondition;
 
 /** The persisted root is always a group, so the AND/OR combinator always has a home. */
@@ -166,6 +176,8 @@ export interface ConditionInput {
   youtubeChannelId: string | null;
   /** The bookmark's media type id, or `null` when not set. */
   mediaTypeId: string | null;
+  /** Type ids of every relationship the bookmark participates in (presence matching). */
+  relationshipTypeIds: Set<string>;
   /** Number/calculate custom-property values, keyed by property id. */
   numberValues: Map<string, number>;
   /** Boolean custom-property values, keyed by property id. */
@@ -334,6 +346,14 @@ function evaluateMediaType(condition: MediaTypeCondition, input: ConditionInput)
   return input.mediaTypeId !== null && condition.mediaTypeIds.includes(input.mediaTypeId);
 }
 
+function evaluateRelationshipType(
+  condition: RelationshipTypeCondition,
+  input: ConditionInput,
+): boolean {
+  if (condition.relationshipTypeIds.length === 0) return false;
+  return condition.relationshipTypeIds.some(id => input.relationshipTypeIds.has(id));
+}
+
 function evaluateProperty(condition: PropertyCondition, input: ConditionInput): boolean {
   if (condition.predicate.valueKind === "number") {
     return evaluateNumberPredicate(
@@ -388,6 +408,8 @@ export function evaluateConditions(
       return evaluateYoutubeChannel(node, input);
     case "media-type":
       return evaluateMediaType(node, input);
+    case "relationship-type":
+      return evaluateRelationshipType(node, input);
     case "property":
       return evaluateProperty(node, input);
     default: {

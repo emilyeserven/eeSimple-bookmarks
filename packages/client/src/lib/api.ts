@@ -28,6 +28,7 @@ import type {
   CreateHomepageSectionInput,
   CreateMediaTypeInput,
   CreatePropertyGroupInput,
+  CreateRelationshipTypeInput,
   CreateTagInput,
   CreateWebsiteInput,
   CustomProperty,
@@ -41,6 +42,7 @@ import type {
   MediaType,
   MediaTypeNode,
   PropertyGroup,
+  RelationshipType,
   Tag,
   TagNode,
   UpdateAutofillRuleInput,
@@ -54,6 +56,7 @@ import type {
   UpdateHomepageSectionInput,
   UpdateMediaTypeInput,
   UpdatePropertyGroupInput,
+  UpdateRelationshipTypeInput,
   UpdateTagInput,
   UpdateWebsiteInput,
   UpdateYouTubeChannelInput,
@@ -283,6 +286,8 @@ export const mediaTypesApi = {
 };
 
 export const propertyGroupsApi = createCrudApi<PropertyGroup, CreatePropertyGroupInput, UpdatePropertyGroupInput>("property-groups");
+
+export const relationshipTypesApi = createCrudApi<RelationshipType, CreateRelationshipTypeInput, UpdateRelationshipTypeInput>("relationship-types");
 
 export const youtubeChannelsApi = {
   list: () => request<YouTubeChannel[]>("/youtube-channels"),
