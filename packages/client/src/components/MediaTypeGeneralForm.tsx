@@ -1,6 +1,9 @@
-import type { MediaType } from "@eesimple/types";
+import type { MediaType, UpdateMediaTypeInput } from "@eesimple/types";
 
+import { useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
+
+import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 
 import { IconPicker } from "@/components/ui/icon-picker";
 import { Label } from "@/components/ui/label";
@@ -17,22 +20,42 @@ const mediaTypeGeneralSchema = z.object({
   parent: z.string(),
 });
 
+const LABELS: Record<keyof UpdateMediaTypeInput, string> = {
+  name: "Name",
+  sortOrder: "Sort order",
+  icon: "Icon",
+  parentId: "Parent",
+};
+
 interface Props {
   mediaType: MediaType;
 }
 
 /**
- * Edit a media type's name, sort order, icon, and parent. Icons/parent are editable for all types;
- * name/sort order are locked on built-ins. Nesting is one level deep, so only root types may be
- * chosen as a parent, and a type that already has children can't itself become a child.
+ * Edit a media type's name, sort order, icon, and parent. Each field auto-saves (no Save button).
+ * Icons/parent are editable for all types; name/sort order are locked on built-ins. Nesting is one
+ * level deep, so only root types may be chosen as a parent, and a type that already has children
+ * can't itself become a child.
  */
 export function MediaTypeGeneralForm({
   mediaType,
 }: Props) {
+  const navigate = useNavigate();
   const updateMediaType = useUpdateMediaType();
   const {
     data: allMediaTypes,
   } = useMediaTypes();
+  const autoSave = useFieldAutoSave<UpdateMediaTypeInput, MediaType>({
+    id: mediaType.id,
+    update: updateMediaType,
+    labels: LABELS,
+    initial: {
+      name: mediaType.name,
+      sortOrder: mediaType.sortOrder,
+      icon: mediaType.icon,
+      parentId: mediaType.parentId,
+    },
+  });
 
   const all = allMediaTypes ?? [];
   const hasChildren = all.some(m => m.parentId === mediaType.id);
@@ -60,30 +83,10 @@ export function MediaTypeGeneralForm({
     validators: {
       onChange: mediaTypeGeneralSchema,
     },
-    onSubmit: ({
-      value,
-    }) => {
-      updateMediaType.mutate({
-        id: mediaType.id,
-        input: {
-          name: value.name.trim(),
-          sortOrder: value.sortOrder,
-          icon: value.icon,
-          parentId: value.parent === ROOT ? null : value.parent,
-        },
-      });
-    },
   });
 
   return (
-    <form
-      className="space-y-4"
-      onSubmit={(event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        void form.handleSubmit();
-      }}
-    >
+    <div className="space-y-4">
       {mediaType.builtIn
         ? (
           <p className="text-sm text-muted-foreground">
@@ -103,6 +106,24 @@ export function MediaTypeGeneralForm({
             <field.TextField
               label="Name"
               disabled={mediaType.builtIn}
+              onBlur={() => autoSave.saveField(
+                "name",
+                field.state.value.trim(),
+                {
+                  valid: field.state.meta.errors.length === 0,
+                  // Renaming changes the slug; follow it so the edit page keeps resolving.
+                  onSuccess: (updated) => {
+                    if (updated.slug !== mediaType.slug) {
+                      void navigate({
+                        to: "/taxonomies/media-types/$mediaTypeSlug/edit/general",
+                        params: {
+                          mediaTypeSlug: updated.slug,
+                        },
+                      });
+                    }
+                  },
+                },
+              )}
             />
           )}
         </form.AppField>
@@ -111,6 +132,13 @@ export function MediaTypeGeneralForm({
             <field.NumberField
               label="Sort order"
               disabled={mediaType.builtIn}
+              onBlur={() => autoSave.saveField(
+                "sortOrder",
+                field.state.value,
+                {
+                  valid: field.state.meta.errors.length === 0,
+                },
+              )}
             />
           )}
         </form.AppField>
@@ -123,6 +151,10 @@ export function MediaTypeGeneralForm({
             options={parentOptions}
             placeholder="Choose a parent"
             disabled={hasChildren}
+            onValueChange={value => autoSave.saveField(
+              "parentId",
+              value === ROOT ? null : value,
+            )}
           />
         )}
       </form.AppField>
@@ -141,19 +173,14 @@ export function MediaTypeGeneralForm({
             <IconPicker
               aria-label={`Icon for ${mediaType.name}`}
               value={field.state.value}
-              onChange={field.handleChange}
+              onChange={(value) => {
+                field.handleChange(value);
+                autoSave.saveField("icon", value);
+              }}
             />
           </div>
         )}
       </form.AppField>
-
-      <form.AppForm>
-        <form.SubmitButton
-          label="Save changes"
-          size="sm"
-          requireDirty
-        />
-      </form.AppForm>
-    </form>
+    </div>
   );
 }

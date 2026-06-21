@@ -4,6 +4,7 @@ import {
   useSetCategoryRootTags,
 } from "../hooks/useCategories";
 import { useTagTree } from "../hooks/useTags";
+import { notifyFieldSaved, notifyFieldSaveError } from "../lib/autoSave";
 import { rootOnly, toggleId } from "../lib/tag-utils";
 
 import { Label } from "@/components/ui/label";
@@ -41,7 +42,10 @@ export function CategoryTieredTags({
         <TagPicker
           tree={roots}
           selectedIds={enabledRootTags}
-          onToggle={id => setRootTags.mutate(toggleId(enabledRootTags, id))}
+          onToggle={id => setRootTags.mutate(toggleId(enabledRootTags, id), {
+            onSuccess: () => notifyFieldSaved("Tiered tags"),
+            onError: error => notifyFieldSaveError("Tiered tags", error.message),
+          })}
         />
       </div>
     </div>

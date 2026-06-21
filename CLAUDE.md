@@ -257,6 +257,35 @@ shared form-API sample type; the bookmark form additionally moves the *state + h
 component. Reach for a controller hook when the cap pressure is hook-density rather than inline JSX
 branching. Don't reintroduce a `// fallow-ignore-next-line complexity` to dodge this.
 
+## Edit-tab auto-save standard
+
+Every slug-routed entity **edit** tab (Categories, Custom Properties, Websites, Media Types, YouTube
+Channels, Tags, Property Groups, Autofill) **auto-saves per field — there is no Save button.** Each
+field persists on its own and fires a toast that **names the field** and is recorded in the
+right-panel Notifications log. The single implementation is `hooks/useFieldAutoSave.ts` (the
+`saveField` engine: single-field PATCH, deep-equal no-op skip, invalid skip, success-only snapshot
+advance) + `lib/autoSave.ts` (`notifyFieldSaved` / `notifyFieldSaveError` wording). **Reference:
+`components/CategoryGeneralForm.tsx`.** The full recipe + rules live in the **`toast-notifications`**
+skill — consult it before building or changing an edit tab. In short:
+
+- **Trigger:** text/textarea save **on blur**; toggles/selects/checkboxes/comboboxes save **on
+  change**. Keep `useAppForm` + the zod schema for field state/validation, but **delete** the `<form
+  onSubmit>` wrapper, `<form.SubmitButton>` / `requireDirty`, and any manual `JSON.stringify` dirty
+  check. The `lib/form.tsx` primitives already expose `onBlur` (text/number) and `onValueChange`
+  (select/combobox) hooks — wire them; don't fork the primitives.
+- **Invalid/failed saves keep the user's input** (never revert); the field-named error toast + the
+  inline field error are the only feedback. An invalid value simply doesn't fire a save.
+- **Name fields drive the slug** — pass `saveField`'s `opts.onSuccess` to navigate to the new slug
+  when it changes (the on-blur trigger keeps this from firing mid-typing).
+- **Multi-key sections** (e.g. `categoryIds` + `allCategories`) call `update.mutate({ … both … })`
+  directly with one `notifyFieldSaved("Categories")` so the user sees a single section toast;
+  association/toggle tabs (`CategoryTieredTags`) just add the `notify*` callbacks to their existing
+  mutation.
+- **Exceptions:** **create** flows (create pages, right-panel create, inline-create modals) keep an
+  explicit submit button — `PropertyForm` (full) and `TagForm` stay submit-driven for create while
+  their per-tab **edit** forms auto-save. **Local-only Zustand prefs** (Display / Sidebar /
+  Automations settings) stay instant with **no toast** (nothing persists server-side).
+
 ## Data shaping: middleware vs. client
 
 **Default rule:** API endpoints return *render-ready* shapes. Heavy joins, aggregation, grouping,

@@ -1,6 +1,9 @@
-import type { PropertyGroup } from "@eesimple/types";
+import type { PropertyGroup, UpdatePropertyGroupInput } from "@eesimple/types";
 
+import { useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
+
+import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 
 import { useUpdatePropertyGroup } from "@/hooks/usePropertyGroups";
 import { useAppForm } from "@/lib/form";
@@ -11,15 +14,32 @@ const propertyGroupGeneralSchema = z.object({
   description: z.string(),
 });
 
+const LABELS: Record<keyof UpdatePropertyGroupInput, string> = {
+  name: "Name",
+  priority: "Priority",
+  description: "Description",
+};
+
 interface Props {
   group: PropertyGroup;
 }
 
-/** Edit a property group's name, priority, and description. */
+/** Edit a property group's name, priority, and description. Each field auto-saves (no Save button). */
 export function PropertyGroupGeneralForm({
   group,
 }: Props) {
+  const navigate = useNavigate();
   const updateGroup = useUpdatePropertyGroup();
+  const autoSave = useFieldAutoSave<UpdatePropertyGroupInput, PropertyGroup>({
+    id: group.id,
+    update: updateGroup,
+    labels: LABELS,
+    initial: {
+      name: group.name,
+      priority: group.priority,
+      description: group.description ?? null,
+    },
+  });
 
   const form = useAppForm({
     defaultValues: {
@@ -30,29 +50,10 @@ export function PropertyGroupGeneralForm({
     validators: {
       onChange: propertyGroupGeneralSchema,
     },
-    onSubmit: ({
-      value,
-    }) => {
-      updateGroup.mutate({
-        id: group.id,
-        input: {
-          name: value.name.trim(),
-          priority: value.priority,
-          description: value.description.trim() || null,
-        },
-      });
-    },
   });
 
   return (
-    <form
-      className="space-y-4"
-      onSubmit={(event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        void form.handleSubmit();
-      }}
-    >
+    <div className="space-y-4">
       <div
         className="
           grid gap-3
@@ -60,13 +61,42 @@ export function PropertyGroupGeneralForm({
         "
       >
         <form.AppField name="name">
-          {field => <field.TextField label="Name" />}
+          {field => (
+            <field.TextField
+              label="Name"
+              onBlur={() => autoSave.saveField(
+                "name",
+                field.state.value.trim(),
+                {
+                  valid: field.state.meta.errors.length === 0,
+                  // Renaming changes the slug; follow it so the edit page keeps resolving.
+                  onSuccess: (updated) => {
+                    if (updated.slug !== group.slug) {
+                      void navigate({
+                        to: "/taxonomies/property-groups/$propertyGroupSlug/edit/general",
+                        params: {
+                          propertyGroupSlug: updated.slug,
+                        },
+                      });
+                    }
+                  },
+                },
+              )}
+            />
+          )}
         </form.AppField>
         <form.AppField name="priority">
           {field => (
             <field.NumberField
               label="Priority"
               hint="Lower sorts first."
+              onBlur={() => autoSave.saveField(
+                "priority",
+                field.state.value,
+                {
+                  valid: field.state.meta.errors.length === 0,
+                },
+              )}
             />
           )}
         </form.AppField>
@@ -77,21 +107,16 @@ export function PropertyGroupGeneralForm({
           <field.TextareaField
             label="Description"
             placeholder="Optional — what this group is for."
+            onBlur={() => autoSave.saveField(
+              "description",
+              field.state.value.trim() || null,
+              {
+                valid: field.state.meta.errors.length === 0,
+              },
+            )}
           />
         )}
       </form.AppField>
-
-      <form.AppForm>
-        <form.SubmitButton
-          label="Save changes"
-          size="sm"
-          requireDirty
-        />
-      </form.AppForm>
-
-      {updateGroup.isError
-        ? <p className="text-sm text-destructive">{updateGroup.error.message}</p>
-        : null}
-    </form>
+    </div>
   );
 }
