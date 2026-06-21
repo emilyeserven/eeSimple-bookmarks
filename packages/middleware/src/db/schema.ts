@@ -505,6 +505,9 @@ export const customProperties = pgTable("custom_properties", {
   // What a `datetime` property captures: "date" | "time" | "datetime". NULL for non-datetime types.
   // Nullable/text so it's an additive, push-safe column.
   dateTimeFormat: text("date_time_format"),
+  // Half-width of the `value ± range` quick-filter window for `number`/`datetime` props, in the
+  // value's own units (seconds for duration/datetime). NULL = exact-value match. Nullable/additive.
+  quickFilterRange: real("quick_filter_range"),
   // Free-text description surfaced as a hint where the property's field is rendered.
   description: text("description"),
   // Range-slider bounds for a `number`/`calculate` property; NULL means no bound / derive from data.

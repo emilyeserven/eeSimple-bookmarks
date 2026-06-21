@@ -56,6 +56,7 @@ function toCustomProperty(
     builtIn: row.builtIn,
     numberFormat: (row.numberFormat as CustomProperty["numberFormat"]) ?? null,
     dateTimeFormat: (row.dateTimeFormat as CustomProperty["dateTimeFormat"]) ?? null,
+    quickFilterRange: row.quickFilterRange ?? null,
     description: row.description,
     numberMin: row.numberMin,
     numberMax: row.numberMax,
@@ -287,6 +288,7 @@ export async function createCustomProperty(
         type: input.type,
         numberFormat: input.numberFormat ?? null,
         dateTimeFormat: input.type === "datetime" ? (input.dateTimeFormat ?? "date") : null,
+        quickFilterRange: input.quickFilterRange ?? null,
         description: input.description ?? null,
         numberMin: input.numberMin ?? null,
         numberMax: input.numberMax ?? null,
@@ -345,6 +347,7 @@ export type UpdatePatch = Partial<
     | "slug"
     | "numberFormat"
     | "dateTimeFormat"
+    | "quickFilterRange"
     | "description"
     | "numberMin"
     | "numberMax"
@@ -397,6 +400,7 @@ const COPYABLE_FIELDS = [
   "name",
   "numberFormat",
   "dateTimeFormat",
+  "quickFilterRange",
   "description",
   "numberMin",
   "numberMax",

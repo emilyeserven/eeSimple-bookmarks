@@ -157,6 +157,13 @@ that matches the surface — don't invent a new structure for a one-off page.
   pane holding `<Outlet/>`. The shell for slug-routed taxonomy entities: Categories, Custom
   Properties, Websites, Media Types, YouTube Channels, Tags. Each tab's body is itself a flat
   `LabeledSection` stack.
+  - **Hierarchy tab rule:** every taxonomy whose schema row has a `parentId` tree — currently
+    **Tags** and **Media Types** — gets a view-only **"Hierarchy"** tab (a "Parents" ancestor chain
+    + a "Children" subtree), modeled on `routes/tags.$tagSlug._view.hierarchy.tsx`. It is added to
+    `viewNav` only (omit it from `VIEW_TO_EDIT` so Edit falls back to General), resolves the node
+    *with children* from the `use*Tree()` query (not the flat `use*BySlug`), reuses the generic
+    `findAncestorPath`/`flattenTree` from `lib/tagTree.ts`, and renders the entity's `*TreeList`.
+    Flat taxonomies (Categories, Websites, YouTube Channels, Property Groups) do **not** get one.
 - **Flat no-tab detail wrapper** (`packages/client/src/components/TaxonomyDetailLayout.tsx`) — a
   loading/error/not-found wrapper that renders its children flat (a `LabeledSection` stack), no
   tabs. Used by Autofill rules.

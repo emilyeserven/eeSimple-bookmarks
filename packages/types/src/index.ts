@@ -679,6 +679,13 @@ export interface CustomProperty {
   numberFormat: NumberFormat | null;
   /** What a `datetime` property captures (`date`/`time`/`datetime`); `null` for non-datetime types. */
   dateTimeFormat: DateTimeFormat | null;
+  /**
+   * Half-width of the "quick filter" window applied when filtering bookmarks from a `number` or
+   * `datetime` value on the detail page: the filter spans `value ± quickFilterRange`. Stored in the
+   * value's own units — raw units for a plain `number`, seconds for a duration `number` and for a
+   * `datetime`. `null` (the default) means the quick filter matches the exact value.
+   */
+  quickFilterRange: number | null;
   /** Free-text description of the property, shown as a hint where its field is rendered, or `null`. */
   description: string | null;
   /** Lower bound of a `number`/`calculate` range slider (`null` = no minimum / derive from data). */
@@ -760,6 +767,8 @@ export interface CreateCustomPropertyInput {
   numberFormat?: NumberFormat | null;
   /** What a `datetime` property captures (`date`/`time`/`datetime`). Required for `datetime`. */
   dateTimeFormat?: DateTimeFormat | null;
+  /** Half-width of the `value ± range` quick-filter window for `number`/`datetime` props (value's own units; seconds for duration/datetime). `null` = exact match. */
+  quickFilterRange?: number | null;
   description?: string | null;
   numberMin?: number | null;
   numberMax?: number | null;
