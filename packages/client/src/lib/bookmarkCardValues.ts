@@ -425,6 +425,7 @@ export function standardFieldOverlayLabel(
   categoryName: string | null,
 ): string | null {
   switch (key) {
+    case "title": return bookmark.title || null;
     case "description": return bookmark.description || null;
     case "category": return categoryName;
     case "website": return bookmark.website?.siteName ?? null;

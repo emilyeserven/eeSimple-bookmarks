@@ -4,12 +4,14 @@ import type {
   CardDisplayRule,
   CardFieldPlacement,
   CardFieldZone,
+  CardZoneLayout,
+  CardZoneLayouts,
   CreateCardDisplayRuleInput,
   HomepageSectionImageLayout,
   UpdateCardDisplayRuleInput,
 } from "@eesimple/types";
 import type { CardFieldZones } from "@eesimple/types";
-import { CARD_FIELD_ZONES, defaultCardZoneLayouts, emptyCardFieldZones, emptyConditionTree } from "@eesimple/types";
+import { CARD_BODY_ZONES, CARD_FIELD_ZONES, defaultCardZoneLayouts, emptyCardFieldZones, emptyConditionTree, normalizeCardZoneLayout } from "@eesimple/types";
 import { db } from "@/db";
 import { cardDisplayRules, customProperties, propertyCategories } from "@/db/schema";
 import { defaultBodyZone, defaultFieldZones, HEADER_CARD_FIELD_KEYS, STANDARD_CARD_FIELD_KEYS } from "@/services/cardDisplayDefaults";
@@ -353,6 +355,33 @@ export async function backfillCardDisplayRuleHeaderFields(): Promise<void> {
       .update(cardDisplayRules)
       .set({
         fieldZones: next,
+      })
+      .where(eq(cardDisplayRules.id, row.id));
+  }
+}
+
+/**
+ * One-time boot backfill: migrate rules whose stored `card_zone_layouts` still use the legacy bare
+ * string form (`"flex"`/`"grid"`) into the `{ mode, gap?, align? }` object shape. Idempotent — rules
+ * that are already fully object-shaped (or inherit via `card_zone_layouts IS NULL`) are left untouched.
+ */
+export async function backfillCardDisplayRuleZoneLayouts(): Promise<void> {
+  const rows = await db.select().from(cardDisplayRules);
+  for (const row of rows) {
+    const stored = row.cardZoneLayouts as Record<string, CardZoneLayout | "flex" | "grid"> | null;
+    if (!stored) continue;
+    // Nothing to migrate when every value is already an object.
+    if (CARD_BODY_ZONES.every(zone => typeof stored[zone] !== "string")) continue;
+
+    const next = {} as CardZoneLayouts;
+    for (const zone of CARD_BODY_ZONES) {
+      next[zone] = normalizeCardZoneLayout(stored[zone], zone === "card-table" ? "grid" : "flex");
+    }
+
+    await db
+      .update(cardDisplayRules)
+      .set({
+        cardZoneLayouts: next,
       })
       .where(eq(cardDisplayRules.id, row.id));
   }

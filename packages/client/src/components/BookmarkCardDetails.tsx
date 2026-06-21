@@ -1,14 +1,13 @@
 import type { BookmarkValueItem, ResolvedFieldPlacement } from "../lib/bookmarkCardValues";
-import type { Bookmark, CardFieldZone, CardZoneLayout, CardZoneLayouts, Category, CustomProperty } from "@eesimple/types";
+import type { Bookmark, CardFieldZone, CardZoneAlign, CardZoneGap, CardZoneLayout, CardZoneLayouts, Category, CustomProperty } from "@eesimple/types";
 import type { ReactNode } from "react";
 
 import { useEffect, useRef, useState } from "react";
 
-import { CARD_BODY_ZONES } from "@eesimple/types";
+import { CARD_BODY_ZONES, normalizeCardZoneLayout } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
-import { ExternalLink, MoreVertical } from "lucide-react";
 
-import { BookmarkCardMenu } from "./BookmarkCardMenu";
+import { BookmarkExternalLinkButton, BookmarkMoreMenu } from "./BookmarkCardActions";
 import { BookmarkTagsBox } from "./BookmarkTagsBox";
 import { CategoryPill } from "./CategoryPill";
 import { MediaTypePill } from "./MediaTypePill";
@@ -19,16 +18,11 @@ import { useHideWebsiteForYouTube } from "../lib/bookmarkCardFields";
 import { buildBookmarkValueItems } from "../lib/bookmarkCardValues";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
 import { useUiStore } from "@/stores/uiStore";
 
 /** The card header field keys, rendered as a justified header row when co-located in a single zone. */
 const HEADER_FIELD_KEYS = new Set(["title", "externalLink", "more"]);
-
-/** No-op fallback for the optional "More" menu handlers when this surface doesn't wire them. */
-const noop = (): void => undefined;
 
 interface BookmarkCardDetailsProps {
   bookmark: Bookmark;
@@ -70,9 +64,34 @@ function zoneForm(zone: CardFieldZone): FieldForm {
 
 /** The zone's layout, defaulting to its natural arrangement (Table → grid, others → flex) when unset. */
 function zoneLayout(zone: CardFieldZone, layouts: CardZoneLayouts | undefined): CardZoneLayout {
-  const explicit = layouts?.[zone as keyof CardZoneLayouts];
-  if (explicit) return explicit;
-  return zone === "card-table" ? "grid" : "flex";
+  return normalizeCardZoneLayout(
+    layouts?.[zone as keyof CardZoneLayouts],
+    zone === "card-table" ? "grid" : "flex",
+  );
+}
+
+// Static Tailwind class maps for the per-zone gap/alignment knobs. These must be whole literal class
+// strings (not interpolated) so Tailwind's content scanner keeps them.
+const GAP_CLASS: Record<CardZoneGap, string> = {
+  sm: "gap-1",
+  md: "gap-2",
+  lg: "gap-4",
+};
+const ALIGN_JUSTIFY: Record<CardZoneAlign, string> = {
+  start: "justify-start",
+  center: "justify-center",
+  end: "justify-end",
+  between: "justify-between",
+};
+
+/** The gap utility class for a zone's resolved layout (defaults to `md`). */
+function gapClass(layout: CardZoneLayout): string {
+  return GAP_CLASS[layout.gap ?? "md"];
+}
+
+/** The flex main-axis justification class for a zone's resolved layout (defaults to `start`). */
+function justifyClass(layout: CardZoneLayout): string {
+  return ALIGN_JUSTIFY[layout.align ?? "start"];
 }
 
 /**
@@ -123,46 +142,18 @@ export function BookmarkCardDetails({
       </Link>
     </h3>
   );
-  const externalLinkNode = (
-    <Button
-      type="button"
-      variant="ghost"
-      size="icon"
-      asChild
-    >
-      <a
-        href={bookmark.url}
-        target="_blank"
-        rel="noreferrer"
-        aria-label="Open URL in new tab"
-      >
-        <ExternalLink className="size-4" />
-      </a>
-    </Button>
-  );
+  const externalLinkNode = <BookmarkExternalLinkButton url={bookmark.url} />;
   const moreNode = (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          aria-label="More options"
-        >
-          <MoreVertical className="size-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <BookmarkCardMenu
-        bookmark={bookmark}
-        editableProperties={editableProperties}
-        autoImagePending={autoImagePending}
-        onAutoImage={onAutoImage ?? noop}
-        onSaveNumber={onSaveNumber ?? noop}
-        onSaveBoolean={onSaveBoolean ?? noop}
-        onSaveDateTime={onSaveDateTime ?? noop}
-        onDelete={onDelete}
-      />
-    </DropdownMenu>
+    <BookmarkMoreMenu
+      bookmark={bookmark}
+      editableProperties={editableProperties}
+      autoImagePending={autoImagePending}
+      onAutoImage={onAutoImage}
+      onSaveNumber={onSaveNumber}
+      onSaveBoolean={onSaveBoolean}
+      onSaveDateTime={onSaveDateTime}
+      onDelete={onDelete}
+    />
   );
 
   // Single source of truth for value placement; corner-placed values (overlaid on the image) are
@@ -423,11 +414,15 @@ export function BookmarkCardDetails({
     const layout = zoneLayout(zone, cardZoneLayouts);
     if (form === "table") {
       // Grid: the classic two-column `label : value` table. Flex: each pair wraps inline.
-      if (layout === "flex") {
+      if (layout.mode === "flex") {
         return (
           <div
             key={zone}
-            className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1"
+            className={`
+              mt-2 flex flex-wrap items-center
+              ${gapClass(layout)}
+              ${justifyClass(layout)}
+            `}
           >
             {entries.map(entry => (
               <span
@@ -446,9 +441,10 @@ export function BookmarkCardDetails({
       return (
         <dl
           key={zone}
-          className="
-            mt-2 grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-1
-          "
+          className={`
+            mt-2 grid grid-cols-[auto_1fr] items-center
+            ${gapClass(layout)}
+          `}
         >
           {entries.map(entry => (
             entry.hideLabel
@@ -477,10 +473,10 @@ export function BookmarkCardDetails({
     if (form === "label") {
       // Flex: pills/badges flow in a wrap row. Grid: a fixed two-column grid. Block-only fields
       // (description, tags) span the full width in either layout.
-      const containerClass = layout === "grid"
-        ? "mt-2 grid grid-cols-2 items-center gap-1"
-        : "mt-2 flex flex-wrap items-center gap-1";
-      const blockClass = layout === "grid" ? "col-span-2" : "w-full";
+      const containerClass = layout.mode === "grid"
+        ? `mt-2 grid grid-cols-2 items-center ${gapClass(layout)}`
+        : `mt-2 flex flex-wrap items-center ${gapClass(layout)} ${justifyClass(layout)}`;
+      const blockClass = layout.mode === "grid" ? "col-span-2" : "w-full";
       return (
         <div
           key={zone}
@@ -510,7 +506,9 @@ export function BookmarkCardDetails({
     const restEntries = entries.filter(entry => !HEADER_FIELD_KEYS.has(entry.key));
     const hasHeader = titleEntry !== undefined || actionEntries.length > 0;
     // Grid arranges the non-header rows in two columns; flex stacks them full-width (the default).
-    const restClass = layout === "grid" ? "grid grid-cols-2 gap-2" : "space-y-2";
+    const restClass = layout.mode === "grid"
+      ? `grid grid-cols-2 ${gapClass(layout)}`
+      : `flex flex-col ${gapClass(layout)}`;
     return (
       <div
         key={zone}

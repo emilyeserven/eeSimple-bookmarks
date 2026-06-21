@@ -117,18 +117,35 @@ function valueItemOverlayNode(item: BookmarkValueItem): ReactNode {
   return overlayBadge(icon, text);
 }
 
+/** Wrap an interactive action node (Open Link / More) in a translucent corner container. */
+function overlayAction(node: ReactNode): ReactNode {
+  return (
+    <div className="rounded-md bg-background/85 backdrop-blur-sm">
+      {node}
+    </div>
+  );
+}
+
+/** The interactive header action nodes a caller can place in image corners. */
+export interface OverlayActionNodes {
+  externalLink?: ReactNode;
+  more?: ReactNode;
+}
+
 /**
  * Assemble the image-corner overlay items for a card: the custom-property values placed in a corner
- * (rendered via {@link valueItemOverlayNode}) followed by the standard fields placed in a corner
- * (icon + label per the rule's `hideIcon`/`hideLabel`). Items that resolve to nothing visible — no
- * corner, no label, or an empty icon+text — are skipped. Caller renders these only when the card has
- * an image; without an image the same fields fall back to the card body via `BookmarkCardDetails`.
+ * (rendered via {@link valueItemOverlayNode}), the standard fields placed in a corner (icon + label per
+ * the rule's `hideIcon`/`hideLabel`), and the interactive header actions (Open Link / More) when their
+ * nodes are supplied and they're placed in a corner. Items that resolve to nothing visible are skipped.
+ * Caller renders these only when the card has an image; without an image the same fields fall back to
+ * the card body via `BookmarkCardDetails`.
  */
 export function buildCardOverlayItems(
   bookmark: Bookmark,
   valueItems: BookmarkValueItem[],
   placements: Map<string, ResolvedFieldPlacement>,
   bookmarkCategory: Category | undefined,
+  actionNodes: OverlayActionNodes = {},
 ): CardOverlayItem[] {
   const overlayItems: CardOverlayItem[] = [];
   for (const item of valueItems) {
@@ -143,9 +160,26 @@ export function buildCardOverlayItems(
       node,
     });
   }
+  // The interactive header actions render as their button/menu node (hideIcon/hideLabel don't apply —
+  // they'd hide the whole control). They're only laid out when their node is wired and placed in a corner.
+  const actionByKey: Record<string, ReactNode> = {
+    externalLink: actionNodes.externalLink,
+    more: actionNodes.more,
+  };
   for (const field of STANDARD_CARD_FIELDS) {
     const placement = placements.get(field.key);
     if (!placement || placement.corner === null) continue;
+    const actionNode = actionByKey[field.key];
+    if (actionNode) {
+      overlayItems.push({
+        key: field.key,
+        corner: placement.corner,
+        scale: placement.scale,
+        mobileScale: placement.mobileScale,
+        node: overlayAction(actionNode),
+      });
+      continue;
+    }
     const label = standardFieldOverlayLabel(bookmark, field.key, bookmarkCategory?.name ?? null);
     if (!label) continue;
     // Icons/images show by default; the rule's per-field checkboxes hide the icon and/or the text.

@@ -14,11 +14,19 @@ import {
 import { SortableContext, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { CARD_FIELD_ZONES, emptyCardFieldZones, zoneToCorner } from "@eesimple/types";
-import { ChevronDown, ChevronRight, GripVertical } from "lucide-react";
+import { ChevronDown, ChevronRight, GripVertical, Move, SlidersHorizontal } from "lucide-react";
 
-import { eligibleCustomCardFields, HEADER_CARD_FIELD_KEYS, STANDARD_CARD_FIELDS } from "../lib/bookmarkCardFieldDefs";
+import { eligibleCustomCardFields, STANDARD_CARD_FIELDS } from "../lib/bookmarkCardFieldDefs";
 
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Select,
   SelectContent,
@@ -77,6 +85,23 @@ const BODY_ZONE_DEFS: { zone: CardFieldZone;
   },
 ];
 
+/** Every drop target offered by a chip's "Move to…" menu: the eight zones plus the hidden tray. */
+const MOVE_TARGETS: { zone: CardFieldZone | null;
+  label: string; }[] = [
+  ...BODY_ZONE_DEFS.map(def => ({
+    zone: def.zone,
+    label: def.label,
+  })),
+  ...IMAGE_ZONE_DEFS.map(def => ({
+    zone: def.zone,
+    label: def.label,
+  })),
+  {
+    zone: null,
+    label: "Available (hidden)",
+  },
+];
+
 const SCALE_OPTIONS = [
   {
     value: "1",
@@ -128,7 +153,19 @@ export function CardFieldZoneBoard({
   const placedKeys = new Set(CARD_FIELD_ZONES.flatMap(zone => (value[zone] ?? []).map(p => p.key)));
   const unplaced = fields.filter(field => !placedKeys.has(field.key));
 
-  const sensors = useSensors(useSensor(PointerSensor), useSensor(KeyboardSensor));
+  // A small distance constraint lets the whole chip be a drag handle while a plain tap on an inner
+  // control (checkbox / select / menu) never crosses the threshold into a drag.
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 4,
+      },
+    }),
+    useSensor(KeyboardSensor),
+  );
+  // The zone currently under the dragged chip — drives the drop highlight even when the pointer is over
+  // a child chip (closestCorners reports the chip, not its zone container, so `isOver` alone misses it).
+  const [overZone, setOverZone] = useState<CardFieldZone | "tray" | null>(null);
 
   /** The zone currently holding `key`, or `null` when it sits in the tray (unplaced). */
   function zoneOfKey(key: string): CardFieldZone | null {
@@ -157,11 +194,6 @@ export function CardFieldZoneBoard({
     }
     if (targetZone) {
       const isImage = zoneToCorner(targetZone) !== null;
-      // The header fields (title / open-link / more menu) have no image-corner overlay form.
-      if (isImage && HEADER_CARD_FIELD_KEYS.includes(key as (typeof HEADER_CARD_FIELD_KEYS)[number])) {
-        onChange(next);
-        return;
-      }
       const placement: CardFieldPlacement = {
         key,
       };
@@ -199,13 +231,27 @@ export function CardFieldZoneBoard({
     onChange(next);
   }
 
+  /** Resolve a drag-over target id to the zone (or `"tray"`) it belongs to, for the drop highlight. */
+  function resolveOverZone(overId: string): CardFieldZone | "tray" | null {
+    if (overId === TRAY_ID) return "tray";
+    const zoneContainer = [...IMAGE_ZONE_DEFS, ...BODY_ZONE_DEFS].find(z => `zone-${z.zone}` === overId)?.zone;
+    if (zoneContainer) return zoneContainer;
+    // `overId` is another field chip — highlight the zone that chip sits in (or the tray when unplaced).
+    return zoneOfKey(overId) ?? "tray";
+  }
+
   return (
     <DndContext
       sensors={sensors}
       collisionDetection={closestCorners}
+      onDragOver={({
+        over,
+      }) => setOverZone(over ? resolveOverZone(String(over.id)) : null)}
+      onDragCancel={() => setOverZone(null)}
       onDragEnd={({
         active, over,
       }) => {
+        setOverZone(null);
         if (!over) return;
         const key = String(active.id);
         const overId = String(over.id);
@@ -214,9 +260,9 @@ export function CardFieldZoneBoard({
           return;
         }
         // Dropped onto a zone container: append to that zone.
-        const overZone = [...IMAGE_ZONE_DEFS, ...BODY_ZONE_DEFS].find(z => `zone-${z.zone}` === overId)?.zone;
-        if (overZone) {
-          moveKey(key, overZone);
+        const overZoneId = [...IMAGE_ZONE_DEFS, ...BODY_ZONE_DEFS].find(z => `zone-${z.zone}` === overId)?.zone;
+        if (overZoneId) {
+          moveKey(key, overZoneId);
           return;
         }
         // Otherwise `over` is another field chip: drop into its zone at its position.
@@ -234,6 +280,7 @@ export function CardFieldZoneBoard({
               key={def.zone}
               zone={def.zone}
               label={def.label}
+              highlight={overZone === def.zone}
               items={(value[def.zone] ?? []).map(p => p.key)}
             >
               {(value[def.zone] ?? []).map(placement => (
@@ -241,6 +288,7 @@ export function CardFieldZoneBoard({
                   key={placement.key}
                   fieldKey={placement.key}
                   label={labelByKey.get(placement.key) ?? placement.key}
+                  onMoveTo={zone => moveKey(placement.key, zone)}
                 >
                   <ImagePlacementControls
                     placement={placement}
@@ -259,6 +307,7 @@ export function CardFieldZoneBoard({
             zone={def.zone}
             label={def.label}
             hint={def.hint}
+            highlight={overZone === def.zone}
             items={(value[def.zone] ?? []).map(p => p.key)}
           >
             {(value[def.zone] ?? []).map((placement) => {
@@ -271,6 +320,7 @@ export function CardFieldZoneBoard({
                   key={placement.key}
                   fieldKey={placement.key}
                   label={labelByKey.get(placement.key) ?? placement.key}
+                  onMoveTo={zone => moveKey(placement.key, zone)}
                 >
                   {boolProperty
                     ? (
@@ -299,6 +349,7 @@ export function CardFieldZoneBoard({
         <ZoneDropArea
           zone="tray"
           label="Available (hidden)"
+          highlight={overZone === "tray"}
           items={unplaced.map(field => field.key)}
         >
           {unplaced.length === 0
@@ -308,6 +359,7 @@ export function CardFieldZoneBoard({
                 key={field.key}
                 fieldKey={field.key}
                 label={field.label}
+                onMoveTo={zone => moveKey(field.key, zone)}
               />
             ))}
         </ZoneDropArea>
@@ -321,6 +373,8 @@ interface ZoneDropAreaProps {
   zone: CardFieldZone | "tray";
   label: string;
   hint?: string;
+  /** Highlight this zone as the active drop target (tracked by the board across child-chip hovers). */
+  highlight?: boolean;
   /** The field keys this zone holds, in order — the ids the SortableContext reorders. */
   items: string[];
   children: React.ReactNode;
@@ -332,7 +386,7 @@ interface ZoneDropAreaProps {
  * a field can still be dropped onto it.
  */
 function ZoneDropArea({
-  zone, label, hint, items, children,
+  zone, label, hint, highlight = false, items, children,
 }: ZoneDropAreaProps) {
   const [collapsed, setCollapsed] = useState(false);
   const {
@@ -346,7 +400,7 @@ function ZoneDropArea({
       ref={setNodeRef}
       className={`
         rounded-md border border-dashed p-2
-        ${isOver ? "border-primary bg-accent" : "border-input"}
+        ${isOver || highlight ? "border-primary bg-accent" : "border-input"}
       `}
     >
       <button
@@ -386,13 +440,23 @@ function ZoneDropArea({
 interface FieldChipProps {
   fieldKey: string;
   label: string;
+  /** Send this chip's field to a zone (or the tray when `null`) from the "Move to…" menu. */
+  onMoveTo: (zone: CardFieldZone | null) => void;
   children?: React.ReactNode;
 }
 
-/** A draggable, sortable field chip; renders any per-zone placement controls passed as children. */
+/** Stop a pointer-down on an interactive control from starting a chip drag. */
+const stopDrag = (event: React.PointerEvent) => event.stopPropagation();
+
+/**
+ * A draggable, sortable field chip. The whole chip is a drag handle (a tap on an inner control never
+ * crosses the sensor's distance threshold); a "Move to…" menu offers tap-to-assign for touch. Any
+ * per-zone placement controls passed as children are collapsible (collapsed by default).
+ */
 function FieldChip({
-  fieldKey, label, children,
+  fieldKey, label, onMoveTo, children,
 }: FieldChipProps) {
+  const [optionsOpen, setOptionsOpen] = useState(false);
   const {
     attributes, listeners, setNodeRef, transform, transition, isDragging,
   } = useSortable({
@@ -406,23 +470,63 @@ function FieldChip({
         transition,
       }}
       className={`
-        flex flex-col gap-1 rounded-md border bg-card px-2 py-1 text-sm
+        flex cursor-grab touch-none flex-col gap-1 rounded-md border bg-card
+        px-2 py-1 text-sm
         ${isDragging ? "opacity-50" : ""}
       `}
+      {...attributes}
+      {...listeners}
     >
       <div className="flex items-center gap-1.5">
-        <button
-          type="button"
-          className="cursor-grab touch-none text-muted-foreground"
-          aria-label={`Drag ${label}`}
-          {...attributes}
-          {...listeners}
-        >
-          <GripVertical className="size-3.5" />
-        </button>
-        <span>{label}</span>
+        <GripVertical
+          className="size-3.5 shrink-0 text-muted-foreground"
+          aria-hidden
+        />
+        <span className="min-w-0 flex-1">{label}</span>
+        {children
+          ? (
+            <button
+              type="button"
+              className="shrink-0 text-muted-foreground"
+              aria-label={`${optionsOpen ? "Hide" : "Show"} ${label} options`}
+              aria-expanded={optionsOpen}
+              onPointerDown={stopDrag}
+              onClick={() => setOptionsOpen(prev => !prev)}
+            >
+              {optionsOpen
+                ? <ChevronDown className="size-3.5" />
+                : <SlidersHorizontal className="size-3.5" />}
+            </button>
+          )
+          : null}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className="shrink-0 text-muted-foreground"
+              aria-label={`Move ${label} to…`}
+              onPointerDown={stopDrag}
+            >
+              <Move className="size-3.5" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Move to…</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {MOVE_TARGETS.map(target => (
+              <DropdownMenuItem
+                key={target.label}
+                onSelect={() => onMoveTo(target.zone)}
+              >
+                {target.label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
-      {children}
+      {children && optionsOpen
+        ? <div onPointerDown={stopDrag}>{children}</div>
+        : null}
     </div>
   );
 }

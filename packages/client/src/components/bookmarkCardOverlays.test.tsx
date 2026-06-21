@@ -118,4 +118,42 @@ describe("buildCardOverlayItems", () => {
 
     expect(buildCardOverlayItems(bookmark, [], placements, undefined)).toHaveLength(0);
   });
+
+  it("overlays the title as text when placed in a corner", () => {
+    const bookmark = makeBookmark({
+      title: "My Bookmark",
+    });
+    const placements = new Map([["title", cornerPlacement("top-left")]]);
+
+    const overlays = buildCardOverlayItems(bookmark, [], placements, undefined);
+
+    expect(overlays).toHaveLength(1);
+    expect(overlays[0]).toMatchObject({
+      key: "title",
+      corner: "top-left",
+    });
+  });
+
+  it("overlays the supplied Open Link / More action nodes when they're placed in a corner", () => {
+    const bookmark = makeBookmark();
+    const placements = new Map([
+      ["externalLink", cornerPlacement("top-right")],
+      ["more", cornerPlacement("bottom-left")],
+    ]);
+
+    const overlays = buildCardOverlayItems(bookmark, [], placements, undefined, {
+      externalLink: <button type="button">link</button>,
+      more: <button type="button">more</button>,
+    });
+
+    expect(overlays.map(o => o.key).sort()).toEqual(["externalLink", "more"]);
+  });
+
+  it("omits header action fields when no action node is supplied for them", () => {
+    const bookmark = makeBookmark();
+    const placements = new Map([["externalLink", cornerPlacement("top-right")]]);
+
+    // Without an action node, `externalLink` has no text label, so nothing is overlaid.
+    expect(buildCardOverlayItems(bookmark, [], placements, undefined)).toHaveLength(0);
+  });
 });

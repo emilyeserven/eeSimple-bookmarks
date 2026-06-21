@@ -43,12 +43,18 @@ properties are added automatically (see `eligibleCustomCardFields`), so this is 
 3. **Render it.** Add a `case` to `describeField(key)` in
    `packages/client/src/components/BookmarkCardDetails.tsx`, returning the four `FieldRender` forms
    (`inline` pill / `block` full-width / `tableName` + `tableValue`). For an image-corner overlay add
-   a branch to `standardFieldOverlayLabel` in `bookmarkCardValues.ts`. If the field needs handlers
-   (clicks, menus), thread them in as props from `BookmarkCard.tsx` (see how `editableProperties` /
-   `onAutoImage` / `onSave*` reach the `more` field) — never re-add a fixed header.
-4. **Restrict zones if needed.** A field with no overlay form (e.g. an action button) should be kept
-   out of the image corners: guard it in `CardFieldZoneBoard.moveKey()` (see the
-   `HEADER_CARD_FIELD_KEYS` check).
+   a branch to `standardFieldOverlayLabel` in `bookmarkCardValues.ts` (text/icon overlays). If the
+   field needs handlers (clicks, menus), thread them in as props from `BookmarkCard.tsx` (see how
+   `editableProperties` / `onAutoImage` / `onSave*` reach the `more` field) — never re-add a fixed
+   header. Reusable action nodes (Open Link / More) live in `BookmarkCardActions.tsx` so the body and
+   the overlay share one implementation.
+4. **Every field can go in every zone.** There is no per-field zone restriction — `Title` / `Open
+   Link` / `More` are placeable in the image corners too. An **interactive** field (a button/menu, no
+   text-overlay form) is rendered in a corner by passing its node through `buildCardOverlayItems`'s
+   `actionNodes` param (`bookmarkCardOverlays.tsx`), built in `BookmarkCard.tsx`. **Corner overlays
+   are `pointer-events-none` on the container** (`CardImageOverlays.tsx`) so the image stays
+   click-through; each item re-enables `pointer-events-auto`, which is what makes an interactive
+   overlay clickable — keep that when adding interactive overlays.
 5. **Boot backfill for existing rules.** "Absent = hidden", so existing rules won't show the new
    field until backfilled. Add an idempotent boot step beside `backfillCardDisplayRuleHeaderFields()`
    / `backfillCardDisplayRuleSubZones()` in `services/cardDisplayRules.ts`, wired into `src/index.ts`
@@ -72,7 +78,10 @@ boolean knobs are the reference):
 4. **Editor control.** Render a control in `CardFieldZoneBoard.tsx` via `patchPlacement(zone, key,
    patch)` — extend `ImagePlacementControls` / `TablePlacementControls`, or add a per-type control
    like `BooleanPlacementControls` (gated on the property `type` via the `properties` prop the board
-   already receives).
+   already receives). These controls render inside a chip's **collapsible options** area (the
+   `SlidersHorizontal`/chevron toggle on the chip, collapsed by default); a chip with no controls
+   shows no toggle. Don't add drag listeners to a control — the **whole chip** is the drag handle, so
+   wrap any new interactive control region with `onPointerDown={stopDrag}` (see the existing usage).
 5. **Consume it.** Read the resolved value in the render path (`buildBookmarkValueItems` /
    `BookmarkCardDetails`). If a formatter needs it (e.g. `formatBooleanBadge`), pass it **in** as an
    argument — don't read it off the `CustomProperty`.

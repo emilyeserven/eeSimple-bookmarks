@@ -698,22 +698,67 @@ export function isCardBodyZone(zone: CardFieldZone): boolean {
  * historical behavior — pills wrap, full-width fields take a row); `grid` lays the fields out in a
  * fixed two-column grid. Image-corner zones are unaffected (they always overlay).
  */
-export type CardZoneLayout = "flex" | "grid";
+export type CardZoneMode = "flex" | "grid";
+
+/** The spacing between fields placed in a card-body sub-zone (absent = `md`). */
+export type CardZoneGap = "sm" | "md" | "lg";
+
+/** How fields are aligned within a card-body sub-zone (absent = `start`). */
+export type CardZoneAlign = "start" | "center" | "end" | "between";
+
+/**
+ * How a card-body sub-zone arranges the fields placed in it: the {@link CardZoneMode} (flex vs. grid)
+ * plus optional {@link CardZoneGap} spacing and {@link CardZoneAlign} alignment. Image-corner zones
+ * are unaffected (they always overlay).
+ */
+export interface CardZoneLayout {
+  mode: CardZoneMode;
+  /** Spacing between fields; absent = `md`. */
+  gap?: CardZoneGap;
+  /** Field alignment within the zone; absent = `start`. */
+  align?: CardZoneAlign;
+}
 
 /** The per-body-zone {@link CardZoneLayout} a {@link CardDisplayRule} declares (`null` = inherit). */
 export type CardZoneLayouts = Record<CardBodyZone, CardZoneLayout>;
 
 /**
  * The default per-zone layout: every body zone flows inline (`flex`) except the Table zone, whose
- * natural form is the two-column `label : value` grid.
+ * natural form is the two-column `label : value` grid. Gap/align omitted = the `md`/`start` defaults.
  */
 export function defaultCardZoneLayouts(): CardZoneLayouts {
   return {
-    "card-single-top": "flex",
-    "card-labels": "flex",
-    "card-table": "grid",
-    "card-single-bottom": "flex",
+    "card-single-top": {
+      mode: "flex",
+    },
+    "card-labels": {
+      mode: "flex",
+    },
+    "card-table": {
+      mode: "grid",
+    },
+    "card-single-bottom": {
+      mode: "flex",
+    },
   };
+}
+
+/**
+ * Normalize a stored layout value into the current {@link CardZoneLayout} object shape. Accepts the
+ * legacy bare-string form (`"flex"`/`"grid"`) and `null`/`undefined` (→ `{ mode: fallback }`). This is
+ * the single backward-compat parse point shared by the client read path and the middleware backfill.
+ */
+export function normalizeCardZoneLayout(
+  value: CardZoneLayout | CardZoneMode | null | undefined,
+  fallback: CardZoneMode,
+): CardZoneLayout {
+  if (value == null) return {
+    mode: fallback,
+  };
+  if (typeof value === "string") return {
+    mode: value,
+  };
+  return value;
 }
 
 /** Map an image-* {@link CardFieldZone} to its {@link CardImageCorner}, or `null` for a card-body zone. */

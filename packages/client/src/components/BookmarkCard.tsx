@@ -9,6 +9,7 @@ import type { Bookmark,
 import { propertyAppliesToCategory } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 
+import { BookmarkExternalLinkButton, BookmarkMoreMenu } from "./BookmarkCardActions";
 import { BookmarkCardDetails } from "./BookmarkCardDetails";
 import { BookmarkCardImage } from "./BookmarkCardImage";
 import { buildCardOverlayItems } from "./bookmarkCardOverlays";
@@ -144,7 +145,24 @@ export function BookmarkCard({
   const valueItems = buildBookmarkValueItems(bookmark, properties, placements);
   const bookmarkCategory = allCategories.find(c => c.id === bookmark.categoryId && !c.builtIn);
   const overlayItems = hasImage
-    ? buildCardOverlayItems(bookmark, valueItems, placements, bookmarkCategory)
+    ? buildCardOverlayItems(bookmark, valueItems, placements, bookmarkCategory, {
+      externalLink: <BookmarkExternalLinkButton url={bookmark.url} />,
+      more: (
+        <BookmarkMoreMenu
+          bookmark={bookmark}
+          editableProperties={editableProperties}
+          autoImagePending={autoImage.isPending}
+          onAutoImage={() => autoImage.mutate({
+            id: bookmark.id,
+            sourceUrl: bookmark.url,
+          })}
+          onSaveNumber={saveNumber}
+          onSaveBoolean={saveBoolean}
+          onSaveDateTime={saveDateTime}
+          onDelete={onDelete}
+        />
+      ),
+    })
     : [];
 
   const imageEl = hasImage
