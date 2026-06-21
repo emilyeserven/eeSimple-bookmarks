@@ -54,8 +54,12 @@ export function CardImageOverlays({
                 }
                 : undefined;
               return (
+                // The corner container is click-through (`pointer-events-none`) so the gaps between
+                // badges don't block the image; each item re-enables pointer events so interactive
+                // overlays (Open Link / More) remain clickable.
                 <div
                   key={item.key}
+                  className="pointer-events-auto"
                   style={scaleStyle}
                 >
                   {item.node}

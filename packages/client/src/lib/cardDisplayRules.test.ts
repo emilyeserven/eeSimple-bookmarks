@@ -222,7 +222,9 @@ describe("resolveCardDisplay — layered merge", () => {
 
   it("a matching rule supplies cardZoneLayouts, else the Default applies", () => {
     const gridded = defaultCardZoneLayouts();
-    gridded["card-labels"] = "grid";
+    gridded["card-labels"] = {
+      mode: "grid",
+    };
     const rule = makeRule({
       id: "layout",
       conditions: {
@@ -236,7 +238,7 @@ describe("resolveCardDisplay — layered merge", () => {
       cardZoneLayouts: gridded,
     });
     const match = resolveCardDisplay(makeBookmark(), [rule, DEFAULT_RULE], noTagDescendants);
-    expect(match.cardZoneLayouts["card-labels"]).toBe("grid");
+    expect(match.cardZoneLayouts["card-labels"].mode).toBe("grid");
     expect(match.provenance.source.cardZoneLayouts).toBe("layout");
 
     const noMatch = resolveCardDisplay(
@@ -246,7 +248,7 @@ describe("resolveCardDisplay — layered merge", () => {
       [rule, DEFAULT_RULE],
       noTagDescendants,
     );
-    expect(noMatch.cardZoneLayouts["card-labels"]).toBe("flex");
+    expect(noMatch.cardZoneLayouts["card-labels"].mode).toBe("flex");
     expect(noMatch.provenance.source.cardZoneLayouts).toBe("default");
   });
 
