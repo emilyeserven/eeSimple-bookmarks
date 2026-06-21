@@ -1,5 +1,6 @@
 import type { CustomProperty, CustomPropertyType } from "@eesimple/types";
 
+import { CUSTOM_PROPERTY_TYPES } from "@eesimple/types";
 import { z } from "zod";
 
 import { useCreateCustomProperty } from "../hooks/useCustomProperties";
@@ -17,7 +18,7 @@ import {
 
 const schema = z.object({
   name: z.string().trim().min(1, "Name is required"),
-  type: z.enum(["number", "boolean", "calculate", "datetime", "ratingScale", "image", "file"]),
+  type: z.enum(CUSTOM_PROPERTY_TYPES),
 });
 
 interface AddCustomPropertyModalProps {

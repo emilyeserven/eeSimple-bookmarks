@@ -118,6 +118,16 @@ export interface RelationshipTypeCondition {
   relationshipTypeIds: string[];
 }
 
+/**
+ * The filterable value kinds a {@link PropertyCondition} predicate can discriminate on. A subset of
+ * the custom-property types — `calculate`/`ratingScale` filter as `number`, and `image` is unfiltered.
+ * Source of truth for the matching JSON-Schema `oneOf` branches in the middleware.
+ */
+export const CONDITION_VALUE_KINDS = ["number", "boolean", "datetime", "file"] as const;
+
+/** The discriminant of a {@link PropertyCondition} predicate. Derived from {@link CONDITION_VALUE_KINDS}. */
+export type ConditionValueKind = typeof CONDITION_VALUE_KINDS[number];
+
 /** Leaf: a predicate on a single custom property's value. */
 export interface PropertyCondition {
   type: "property";

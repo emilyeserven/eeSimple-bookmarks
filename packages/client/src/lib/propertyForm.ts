@@ -1,43 +1,25 @@
 // Shared constants and pure helpers for the custom-property forms — used by the whole `PropertyForm`
 // (create page + right panel) and by the per-tab edit forms (`Property*Form`) so the two stay in sync.
-import type { CustomProperty } from "@eesimple/types";
+import type { CustomProperty, DateTimeFormat } from "@eesimple/types";
+
+import {
+  CUSTOM_PROPERTY_TYPE_LABELS,
+  CUSTOM_PROPERTY_TYPES,
+  DATE_TIME_FORMATS,
+  NUMBER_FORMAT_LABELS,
+  NUMBER_FORMATS,
+} from "@eesimple/types";
 
 /** True when the property has a "Property options" section/tab (everything but `calculate`). */
 export function hasPropertyOptions(property: CustomProperty): boolean {
   return property.type !== "calculate";
 }
 
-/** Type options for the property Type select. */
-export const TYPE_OPTIONS = [
-  {
-    value: "number",
-    label: "Number",
-  },
-  {
-    value: "boolean",
-    label: "Boolean",
-  },
-  {
-    value: "calculate",
-    label: "Calculate (Sum)",
-  },
-  {
-    value: "datetime",
-    label: "Date / Time",
-  },
-  {
-    value: "ratingScale",
-    label: "Rating Scale",
-  },
-  {
-    value: "image",
-    label: "Image",
-  },
-  {
-    value: "file",
-    label: "File",
-  },
-];
+/** Type options for the property Type select. Derived from the shared `@eesimple/types` dictionary. */
+export const TYPE_OPTIONS = CUSTOM_PROPERTY_TYPES.map(value => ({
+  value,
+  label: CUSTOM_PROPERTY_TYPE_LABELS[value],
+}));
 
 /** Supported `ratingScale` maxima (1–3 or 1–5 stars). */
 export const RATING_MAX_OPTIONS = [
@@ -79,33 +61,24 @@ export const BOOLEAN_LABEL_PRESET_OPTIONS = [
   },
 ];
 
-/** What a `datetime` property captures. */
-export const DATE_TIME_FORMAT_OPTIONS = [
-  {
-    value: "date",
-    label: "Date only",
-  },
-  {
-    value: "time",
-    label: "Time only",
-  },
-  {
-    value: "datetime",
-    label: "Date & time",
-  },
-];
+/** Client-facing labels for the `datetime` capture modes (presentation differs from the type docs). */
+const DATE_TIME_FORMAT_LABELS: Record<DateTimeFormat, string> = {
+  date: "Date only",
+  time: "Time only",
+  datetime: "Date & time",
+};
 
-/** How a `number` property's value is displayed. */
-export const NUMBER_FORMAT_OPTIONS = [
-  {
-    value: "plain",
-    label: "Plain",
-  },
-  {
-    value: "duration",
-    label: "Duration",
-  },
-];
+/** What a `datetime` property captures. Derived from the shared `@eesimple/types` variant list. */
+export const DATE_TIME_FORMAT_OPTIONS = DATE_TIME_FORMATS.map(value => ({
+  value,
+  label: DATE_TIME_FORMAT_LABELS[value],
+}));
+
+/** How a `number` property's value is displayed. Derived from the shared `@eesimple/types` dictionary. */
+export const NUMBER_FORMAT_OPTIONS = NUMBER_FORMATS.map(value => ({
+  value,
+  label: NUMBER_FORMAT_LABELS[value],
+}));
 
 /** Add or remove `id` from `ids`, returning a new array. */
 export function toggleId(ids: string[], id: string): string[] {

@@ -8,6 +8,9 @@
  * matches zero branches and is rejected with a 400.
  */
 
+import { CONDITION_VALUE_KINDS } from "@eesimple/types";
+import type { ConditionValueKind } from "@eesimple/types";
+
 const uuidArray = {
   type: "array",
   items: {
@@ -217,6 +220,32 @@ const dateTimePredicate = {
   ],
 } as const;
 
+/** A `has`/`missing` presence predicate, used by `file` value-kind property conditions. */
+const filePresencePredicate = {
+  type: "object",
+  additionalProperties: false,
+  required: ["kind", "mode"],
+  properties: {
+    kind: {
+      const: "presence",
+    },
+    mode: {
+      type: "string",
+      enum: ["has", "missing"],
+    },
+  },
+} as const;
+
+// One predicate sub-schema per filterable value kind. `satisfies Record<ConditionValueKind, …>`
+// makes a `CONDITION_VALUE_KINDS` entry without a predicate (or vice versa) a compile error, so the
+// `oneOf` below can never drift from the shared `@eesimple/types` value-kind list.
+const propertyPredicateByKind = {
+  number: numberPredicate,
+  boolean: booleanPredicate,
+  datetime: dateTimePredicate,
+  file: filePresencePredicate,
+} satisfies Record<ConditionValueKind, unknown>;
+
 const propertyNode = {
   type: "object",
   additionalProperties: false,
@@ -230,65 +259,17 @@ const propertyNode = {
       format: "uuid",
     },
     predicate: {
-      oneOf: [
-        {
-          type: "object",
-          additionalProperties: false,
-          required: ["valueKind", "predicate"],
-          properties: {
-            valueKind: {
-              const: "number",
-            },
-            predicate: numberPredicate,
+      oneOf: CONDITION_VALUE_KINDS.map(kind => ({
+        type: "object",
+        additionalProperties: false,
+        required: ["valueKind", "predicate"],
+        properties: {
+          valueKind: {
+            const: kind,
           },
+          predicate: propertyPredicateByKind[kind],
         },
-        {
-          type: "object",
-          additionalProperties: false,
-          required: ["valueKind", "predicate"],
-          properties: {
-            valueKind: {
-              const: "boolean",
-            },
-            predicate: booleanPredicate,
-          },
-        },
-        {
-          type: "object",
-          additionalProperties: false,
-          required: ["valueKind", "predicate"],
-          properties: {
-            valueKind: {
-              const: "datetime",
-            },
-            predicate: dateTimePredicate,
-          },
-        },
-        {
-          type: "object",
-          additionalProperties: false,
-          required: ["valueKind", "predicate"],
-          properties: {
-            valueKind: {
-              const: "file",
-            },
-            predicate: {
-              type: "object",
-              additionalProperties: false,
-              required: ["kind", "mode"],
-              properties: {
-                kind: {
-                  const: "presence",
-                },
-                mode: {
-                  type: "string",
-                  enum: ["has", "missing"],
-                },
-              },
-            },
-          },
-        },
-      ],
+      })),
     },
   },
 } as const;
