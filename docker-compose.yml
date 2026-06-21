@@ -22,6 +22,8 @@ services:
       - "${GATEWAY_HOST_PORT:-3000}:3000"
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-bookmarks}
+      # Set to true/1 to expose the Swagger docs at /docs and Storybook at /storybook.
+      - DOCS_ENABLED=${DOCS_ENABLED:-}
       - S3_ENDPOINT=${S3_ENDPOINT:-http://garage:3900}
       - S3_REGION=${S3_REGION:-garage}
       - S3_BUCKET=${S3_BUCKET:-bookmarks}

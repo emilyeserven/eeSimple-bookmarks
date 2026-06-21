@@ -48,7 +48,10 @@ RUN pnpm --filter @eesimple/middleware exec tsc -p tsconfig.build.json --noCheck
 FROM build-types AS build-client
 
 COPY packages/client ./packages/client/
-RUN pnpm --filter @eesimple/client build
+# Build the SPA and the Storybook static site. Storybook is always built into the image; whether the
+# gateway actually serves it at /storybook is gated at runtime on DOCS_ENABLED (see server.js).
+RUN pnpm --filter @eesimple/client build \
+ && pnpm --filter @eesimple/client run build-storybook
 
 
 # Production stage — fresh install with only production deps (client ships as static files)
@@ -78,6 +81,7 @@ COPY --from=build-middleware /app/packages/middleware/dist/ ./packages/middlewar
 COPY --from=build-middleware /app/packages/middleware/src/ ./packages/middleware/src/
 COPY --from=build-middleware /app/packages/middleware/drizzle.config.ts ./packages/middleware/drizzle.config.ts
 COPY --from=build-client /app/packages/client/dist/ ./packages/client/dist/
+COPY --from=build-client /app/packages/client/storybook-static/ ./packages/client/storybook-static/
 COPY packages/gateway/server.js ./packages/gateway/server.js
 
 WORKDIR /app/packages/gateway
