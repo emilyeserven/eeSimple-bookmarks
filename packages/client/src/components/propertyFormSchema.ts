@@ -23,6 +23,14 @@ export const propertySchema = z
     zeroLabel: z.string(),
     maxLabel: z.string(),
     numberFormat: z.enum(["plain", "duration"]),
+    // "Quick filter ± range" inputs. `quickFilterRange` holds the plain-number delta; the d/h/m/s
+    // fields hold the breakdown for duration numbers (minutes/seconds) and datetime props (all four).
+    // They are composed into a single canonical `quickFilterRange` (seconds for duration/datetime).
+    quickFilterRange: z.string(),
+    quickFilterRangeDays: z.string(),
+    quickFilterRangeHours: z.string(),
+    quickFilterRangeMinutes: z.string(),
+    quickFilterRangeSeconds: z.string(),
     operandIds: z.array(z.string()),
     categoryIds: z.array(z.string()),
     allCategories: z.boolean(),
@@ -83,6 +91,11 @@ export const CREATE_DEFAULTS: PropertyFormValues = {
   zeroLabel: "",
   maxLabel: "",
   numberFormat: "plain",
+  quickFilterRange: "",
+  quickFilterRangeDays: "",
+  quickFilterRangeHours: "",
+  quickFilterRangeMinutes: "",
+  quickFilterRangeSeconds: "",
   operandIds: [],
   categoryIds: [],
   allCategories: false,
@@ -133,6 +146,96 @@ function _propertyFormApiSample() {
 }
 export type PropertyFormApi = ReturnType<typeof _propertyFormApiSample>;
 
+/** The five flat form fields that back the "Quick filter ± range" inputs. */
+type QuickFilterRangeFields = Pick<
+  PropertyFormValues,
+  | "quickFilterRange"
+  | "quickFilterRangeDays"
+  | "quickFilterRangeHours"
+  | "quickFilterRangeMinutes"
+  | "quickFilterRangeSeconds"
+>;
+
+const EMPTY_QUICK_FILTER_RANGE: QuickFilterRangeFields = {
+  quickFilterRange: "",
+  quickFilterRangeDays: "",
+  quickFilterRangeHours: "",
+  quickFilterRangeMinutes: "",
+  quickFilterRangeSeconds: "",
+};
+
+/** Stringify a positive integer for a breakdown field, leaving `0` blank so the input shows empty. */
+function rangePart(value: number): string {
+  return value > 0 ? String(value) : "";
+}
+
+/**
+ * Decompose a stored `quickFilterRange` (raw units for a plain number, seconds for a duration number
+ * and for a datetime) into the flat form fields for the property's type/format.
+ */
+function quickFilterRangeToFields(property: CustomProperty): QuickFilterRangeFields {
+  const total = property.quickFilterRange;
+  if (total === null) return EMPTY_QUICK_FILTER_RANGE;
+  if (property.type === "number") {
+    if (property.numberFormat === "duration") {
+      const seconds = Math.max(0, Math.round(total));
+      return {
+        ...EMPTY_QUICK_FILTER_RANGE,
+        quickFilterRangeMinutes: rangePart(Math.floor(seconds / 60)),
+        quickFilterRangeSeconds: rangePart(seconds % 60),
+      };
+    }
+    return {
+      ...EMPTY_QUICK_FILTER_RANGE,
+      quickFilterRange: String(total),
+    };
+  }
+  if (property.type === "datetime") {
+    const seconds = Math.max(0, Math.round(total));
+    return {
+      ...EMPTY_QUICK_FILTER_RANGE,
+      quickFilterRangeDays: rangePart(Math.floor(seconds / 86_400)),
+      quickFilterRangeHours: rangePart(Math.floor((seconds % 86_400) / 3600)),
+      quickFilterRangeMinutes: rangePart(Math.floor((seconds % 3600) / 60)),
+      quickFilterRangeSeconds: rangePart(seconds % 60),
+    };
+  }
+  return EMPTY_QUICK_FILTER_RANGE;
+}
+
+/** Parse a breakdown field to a non-negative integer (blank/invalid → 0). */
+function rangeNum(value: string): number {
+  const n = Number(value.trim());
+  return Number.isFinite(n) && n > 0 ? n : 0;
+}
+
+/**
+ * Compose the flat form fields back into a canonical `quickFilterRange` for the API: raw units for a
+ * plain number, seconds for a duration number and for a datetime. Returns `null` (exact match) when
+ * the type has no range or every input is blank.
+ */
+function quickFilterRangeFromValues(values: PropertyFormValues): number | null {
+  if (values.type === "number") {
+    if (values.numberFormat === "duration") {
+      const seconds = rangeNum(values.quickFilterRangeMinutes) * 60
+        + rangeNum(values.quickFilterRangeSeconds);
+      return seconds > 0 ? seconds : null;
+    }
+    const raw = values.quickFilterRange.trim();
+    if (raw === "") return null;
+    const n = Number(raw);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  }
+  if (values.type === "datetime") {
+    const seconds = rangeNum(values.quickFilterRangeDays) * 86_400
+      + rangeNum(values.quickFilterRangeHours) * 3600
+      + rangeNum(values.quickFilterRangeMinutes) * 60
+      + rangeNum(values.quickFilterRangeSeconds);
+    return seconds > 0 ? seconds : null;
+  }
+  return null;
+}
+
 /** Map a saved property to editable form values (null bounds become the "disabled" state). */
 export function valuesFromProperty(property: CustomProperty): PropertyFormValues {
   return {
@@ -150,6 +253,7 @@ export function valuesFromProperty(property: CustomProperty): PropertyFormValues
     zeroLabel: property.zeroLabel ?? "",
     maxLabel: property.maxLabel ?? "",
     numberFormat: property.numberFormat ?? "plain",
+    ...quickFilterRangeToFields(property),
     operandIds: property.operandPropertyIds,
     categoryIds: property.categoryIds,
     allCategories: property.allCategories,
@@ -212,6 +316,7 @@ export function payloadFromValues(values: PropertyFormValues): CreateCustomPrope
     zeroLabel: isNumber ? trimOrNull(values.zeroLabel) : null,
     maxLabel: isNumber ? trimOrNull(values.maxLabel) : null,
     numberFormat: isNumber ? values.numberFormat : null,
+    quickFilterRange: quickFilterRangeFromValues(values),
     operandPropertyIds: values.type === "calculate" ? values.operandIds : undefined,
     categoryIds: values.categoryIds,
     allCategories: values.allCategories,

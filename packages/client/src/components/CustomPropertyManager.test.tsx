@@ -22,6 +22,7 @@ const property: CustomProperty = {
   builtIn: false,
   numberFormat: null,
   dateTimeFormat: null,
+  quickFilterRange: null,
   description: null,
   numberMin: null,
   numberMax: null,

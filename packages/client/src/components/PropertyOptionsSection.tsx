@@ -33,6 +33,73 @@ interface PropertyOptionsSectionProps {
   full: boolean;
 }
 
+const QUICK_FILTER_RANGE_HINT
+  = "When set, the magnifying-glass quick filter on a bookmark spans the value plus and minus this "
+    + "amount instead of matching it exactly. Leave blank for an exact match.";
+
+type QuickFilterRangeFieldName
+  = "quickFilterRange"
+    | "quickFilterRangeDays"
+    | "quickFilterRangeHours"
+    | "quickFilterRangeMinutes"
+    | "quickFilterRangeSeconds";
+
+/**
+ * The shared "Quick filter ± range" label, hint, and numeric unit inputs used by both the Number and
+ * Datetime options. A single field renders on its own; multiple fields (the duration min/sec or the
+ * datetime d/h/m/s breakdown) render in a two-column grid.
+ */
+function QuickFilterRangeFields({
+  form,
+  fields,
+  className,
+}: {
+  form: PropertyFormApi;
+  fields: { name: QuickFilterRangeFieldName;
+    label: string; }[];
+  className: string;
+}) {
+  return (
+    <div className={className}>
+      <Label>Quick filter ± range</Label>
+      <p className="text-xs text-muted-foreground">{QUICK_FILTER_RANGE_HINT}</p>
+      {fields.length === 1
+        ? (
+          <form.AppField name={fields[0].name}>
+            {field => (
+              <field.TextField
+                label={fields[0].label}
+                type="number"
+              />
+            )}
+          </form.AppField>
+        )
+        : (
+          <div
+            className="
+              grid gap-3
+              sm:grid-cols-2
+            "
+          >
+            {fields.map(entry => (
+              <form.AppField
+                key={entry.name}
+                name={entry.name}
+              >
+                {field => (
+                  <field.TextField
+                    label={entry.label}
+                    type="number"
+                  />
+                )}
+              </form.AppField>
+            ))}
+          </div>
+        )}
+    </div>
+  );
+}
+
 /**
  * The type-specific "Property options" section of the property form. Subscribes to the current Type
  * once and renders the matching options (number/boolean/datetime/calculate). Operates on the shared
@@ -267,6 +334,31 @@ function NumberOptions({
               />
             )}
           </form.AppField>
+          <form.Subscribe selector={state => state.values.numberFormat}>
+            {numberFormat => (
+              <QuickFilterRangeFields
+                form={form}
+                className="col-span-full space-y-1"
+                fields={numberFormat === "duration"
+                  ? [
+                    {
+                      name: "quickFilterRangeMinutes",
+                      label: "Minutes",
+                    },
+                    {
+                      name: "quickFilterRangeSeconds",
+                      label: "Seconds",
+                    },
+                  ]
+                  : [
+                    {
+                      name: "quickFilterRange",
+                      label: "Range (±)",
+                    },
+                  ]}
+              />
+            )}
+          </form.Subscribe>
           <AllowDefaultField
             form={form}
             idPrefix={idPrefix}
@@ -545,6 +637,28 @@ function DateTimeOptions({
               />
             )}
           </form.AppField>
+          <QuickFilterRangeFields
+            form={form}
+            className="space-y-1"
+            fields={[
+              {
+                name: "quickFilterRangeDays",
+                label: "Days",
+              },
+              {
+                name: "quickFilterRangeHours",
+                label: "Hours",
+              },
+              {
+                name: "quickFilterRangeMinutes",
+                label: "Minutes",
+              },
+              {
+                name: "quickFilterRangeSeconds",
+                label: "Seconds",
+              },
+            ]}
+          />
           <AllowDefaultField
             form={form}
             idPrefix={idPrefix}

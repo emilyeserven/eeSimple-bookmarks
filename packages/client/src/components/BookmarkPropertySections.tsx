@@ -1,11 +1,14 @@
+import type { BookmarkSearch } from "@/lib/bookmarkSearch";
 import type { Bookmark, CustomProperty, PropertyGroup } from "@eesimple/types";
 import type { ReactNode } from "react";
 
+import { PropertyQuickFilterLink } from "./PropertyQuickFilterLink";
 import { StarRating } from "./StarRating";
 
 import { LabeledSection } from "@/components/LabeledSection";
 import { Separator } from "@/components/ui/separator";
 import { formatBoolean, formatDateTime, formatNumber } from "@/lib/bookmarkFormat";
+import { buildPropertyQuickSearch } from "@/lib/bookmarkPropertyQuickFilter";
 
 interface BookmarkPropertySectionsProps {
   bookmark: Bookmark;
@@ -39,6 +42,7 @@ export function BookmarkPropertySections({
           groupId: property.propertyGroupId,
           isCalculated: property.type === "calculate",
           value: formatNumber(entry.value, property),
+          search: buildPropertyQuickSearch(property, entry.value),
         }
         : null;
     })
@@ -46,7 +50,8 @@ export function BookmarkPropertySections({
       name: string;
       groupId: string | null;
       isCalculated: boolean;
-      value: string; } => row !== null);
+      value: string;
+      search: BookmarkSearch; } => row !== null);
 
   const ratingRows = bookmark.numberValues
     .map((entry) => {
@@ -60,6 +65,7 @@ export function BookmarkPropertySections({
           max: (property.ratingMax ?? 5) as number,
           allowHalf: property.ratingAllowHalf,
           label: property.ratingShowLabel ? (property.ratingLabel ?? undefined) : undefined,
+          search: buildPropertyQuickSearch(property, entry.value),
         }
         : null;
     })
@@ -69,7 +75,8 @@ export function BookmarkPropertySections({
       value: number;
       max: number;
       allowHalf: boolean;
-      label: string | undefined; } => row !== null);
+      label: string | undefined;
+      search: BookmarkSearch; } => row !== null);
 
   const booleanRows = bookmark.booleanValues
     .map((entry) => {
@@ -86,6 +93,7 @@ export function BookmarkPropertySections({
         showLabelColon: isIconPreset ? property.showLabelColon : true,
         showValueBeforeLabel: isIconPreset ? property.showValueBeforeLabel : false,
         clickableInView: property.clickableInView,
+        search: buildPropertyQuickSearch(property, entry.value),
       };
     })
     .filter((row): row is { id: string;
@@ -95,7 +103,8 @@ export function BookmarkPropertySections({
       value: string;
       showLabelColon: boolean;
       showValueBeforeLabel: boolean;
-      clickableInView: boolean; } => row !== null);
+      clickableInView: boolean;
+      search: BookmarkSearch; } => row !== null);
 
   const dateTimeRows = bookmark.dateTimeValues
     .map((entry) => {
@@ -106,13 +115,15 @@ export function BookmarkPropertySections({
           name: property.name,
           groupId: property.propertyGroupId,
           value: formatDateTime(entry.value, property),
+          search: buildPropertyQuickSearch(property, entry.value),
         }
         : null;
     })
     .filter((row): row is { id: string;
       name: string;
       groupId: string | null;
-      value: string; } => row !== null);
+      value: string;
+      search: BookmarkSearch; } => row !== null);
 
   const fileRows = bookmark.fileValues
     .map((entry) => {
@@ -126,6 +137,7 @@ export function BookmarkPropertySections({
           isImage: property.type === "image",
           url: entry.url,
           filename: entry.originalFilename,
+          search: buildPropertyQuickSearch(property, entry.url),
         }
         : null;
     })
@@ -134,7 +146,8 @@ export function BookmarkPropertySections({
       groupId: string | null;
       isImage: boolean;
       url: string;
-      filename: string | null; } => row !== null);
+      filename: string | null;
+      search: BookmarkSearch; } => row !== null);
 
   const hasProperties = numberRows.length > 0 || booleanRows.length > 0
     || dateTimeRows.length > 0 || ratingRows.length > 0 || fileRows.length > 0;
@@ -177,7 +190,7 @@ export function BookmarkPropertySections({
               {numberRows.filter(row => inGroup(row.groupId, section.target)).map(row => (
                 <div
                   key={row.id}
-                  className="flex items-baseline gap-2"
+                  className="group flex items-baseline gap-2"
                 >
                   <dt className="text-muted-foreground">
                     {row.name}
@@ -187,6 +200,10 @@ export function BookmarkPropertySections({
                     :
                   </dt>
                   <dd>{row.value}</dd>
+                  <PropertyQuickFilterLink
+                    search={row.search}
+                    name={row.name}
+                  />
                 </div>
               ))}
               {booleanRows.filter(row => inGroup(row.groupId, section.target)).map((row) => {
@@ -214,7 +231,7 @@ export function BookmarkPropertySections({
                 return (
                   <div
                     key={row.id}
-                    className="flex items-baseline gap-2"
+                    className="group flex items-baseline gap-2"
                   >
                     {row.showValueBeforeLabel
                       ? (
@@ -238,25 +255,33 @@ export function BookmarkPropertySections({
                           <dd>{wrap(row.value)}</dd>
                         </>
                       )}
+                    <PropertyQuickFilterLink
+                      search={row.search}
+                      name={row.name}
+                    />
                   </div>
                 );
               })}
               {dateTimeRows.filter(row => inGroup(row.groupId, section.target)).map(row => (
                 <div
                   key={row.id}
-                  className="flex items-baseline gap-2"
+                  className="group flex items-baseline gap-2"
                 >
                   <dt className="text-muted-foreground">
                     {row.name}
                     :
                   </dt>
                   <dd>{row.value}</dd>
+                  <PropertyQuickFilterLink
+                    search={row.search}
+                    name={row.name}
+                  />
                 </div>
               ))}
               {ratingRows.filter(row => inGroup(row.groupId, section.target)).map(row => (
                 <div
                   key={row.id}
-                  className="flex items-center gap-2"
+                  className="group flex items-center gap-2"
                 >
                   <dt className="text-muted-foreground">
                     {row.name}
@@ -272,12 +297,16 @@ export function BookmarkPropertySections({
                       size={16}
                     />
                   </dd>
+                  <PropertyQuickFilterLink
+                    search={row.search}
+                    name={row.name}
+                  />
                 </div>
               ))}
               {fileRows.filter(row => inGroup(row.groupId, section.target)).map(row => (
                 <div
                   key={row.id}
-                  className="flex items-baseline gap-2"
+                  className="group flex items-baseline gap-2"
                 >
                   <dt className="text-muted-foreground">
                     {row.name}
@@ -309,6 +338,10 @@ export function BookmarkPropertySections({
                         </a>
                       )}
                   </dd>
+                  <PropertyQuickFilterLink
+                    search={row.search}
+                    name={row.name}
+                  />
                 </div>
               ))}
             </dl>

@@ -57,6 +57,9 @@ const createPropertyBody = {
       type: ["string", "null"],
       enum: ["date", "time", "datetime", null],
     },
+    quickFilterRange: {
+      type: ["number", "null"],
+    },
     description: {
       type: ["string", "null"],
     },
@@ -181,6 +184,7 @@ const updatePropertyBody = {
     name: createPropertyBody.properties.name,
     numberFormat: createPropertyBody.properties.numberFormat,
     dateTimeFormat: createPropertyBody.properties.dateTimeFormat,
+    quickFilterRange: createPropertyBody.properties.quickFilterRange,
     description: createPropertyBody.properties.description,
     numberMin: createPropertyBody.properties.numberMin,
     numberMax: createPropertyBody.properties.numberMax,
