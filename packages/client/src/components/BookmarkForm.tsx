@@ -1,443 +1,29 @@
 import type { BookmarkFormApi } from "./bookmarkFormSchema";
-import type { ImageIntent } from "./bookmarkImageIntent";
-import type {
-  Bookmark,
-  BookmarkUrlDuplicateResult,
-  CreateBookmarkInput,
-  YouTubeChannelHint,
-} from "@eesimple/types";
+import type { BookmarkFormProps } from "./useBookmarkFormController";
+import type { BookmarkUrlDuplicateResult } from "@eesimple/types";
 
-import { useEffect, useRef, useState } from "react";
-
-import { useNavigate } from "@tanstack/react-router";
 import { Brush, Loader2 } from "lucide-react";
 
-import {
-  bookmarkSchema,
-  buildCategoryPropertyValues,
-  initialImageIntent,
-  looksLikeYouTube,
-} from "./bookmarkFormSchema";
 import { BookmarkRevealedFields } from "./BookmarkRevealedFields";
-import { useBookmarkFormData } from "./useBookmarkFormData";
-import { useBookmarkPropertyPrefill } from "./useBookmarkPropertyPrefill";
-import { useBookmarkScanHandlers } from "./useBookmarkScanHandlers";
-import { useBookmarkUrlProcessing } from "./useBookmarkUrlProcessing";
-import { useAppForm } from "../lib/form";
-import { notifySuccess } from "../lib/notifications";
+import { useBookmarkFormController } from "./useBookmarkFormController";
 
 import { Button } from "@/components/ui/button";
 
-interface BookmarkFormProps {
-  /** When provided, the form edits this bookmark instead of creating a new one. */
-  bookmark?: Bookmark;
-  /** Called after a successful edit (or on cancel) so the parent can close the form. */
-  onDone?: () => void;
-  /**
-   * When set, the new bookmark is locked to this category and the Category picker is hidden —
-   * used on category pages, where the category is implied by the route.
-   */
-  lockedCategoryId?: string;
-}
-
 /**
  * Bookmark form. Creates a new bookmark by default, or edits `bookmark` when given.
- * Owns its own mutation so the page stays focused on the list.
+ * Owns its own mutation so the page stays focused on the list. All state and handlers live in
+ * `useBookmarkFormController`; this component is the JSX wiring.
  */
-export function BookmarkForm({
-  bookmark, onDone, lockedCategoryId,
-}: BookmarkFormProps = {}) {
-  const isEdit = Boolean(bookmark);
-  const navigate = useNavigate();
+export function BookmarkForm(props: BookmarkFormProps = {}) {
+  const c = useBookmarkFormController(props);
   const {
-    actions: {
-      createBookmark,
-      updateBookmark,
-      uploadImage,
-      autoImage,
-      deleteImage,
-      fetchTitle,
-      fetchMetadata,
-      websiteLookup,
-      urlDuplicateCheck,
-      updateWebsite,
-      updateYouTubeChannel,
-    },
-    websites,
-    shortenerIgnoreList,
-    tagTree,
-    customProperties,
-    categories,
-    autofillRules,
-    youtubeChannels,
-    autoFetchTitle,
-    autoFetchImage,
-  } = useBookmarkFormData();
-  const saveBookmark = isEdit ? updateBookmark : createBookmark;
-
-  // "Set as default" checkbox flags for new sites/channels (create-only).
-  const [setWebsiteCategory, setSetWebsiteCategory] = useState(false);
-  const [setWebsiteTags, setSetWebsiteTags] = useState(false);
-  const [setChannelCategory, setSetChannelCategory] = useState(false);
-  const [setChannelTags, setSetChannelTags] = useState(false);
-
-  const [isReportingTitle, setIsReportingTitle] = useState(false);
-  const [expectedTitle, setExpectedTitle] = useState("");
-  const [websiteSiteName, setWebsiteSiteName] = useState("");
-  // Drives the inline "Create category" modal opened from the Category combobox.
-  const [addCategoryOpen, setAddCategoryOpen] = useState(false);
-  // The channel resolved from a fetched YouTube video, passed on save so the server links/creates it.
-  // The ref is read by the submit handler (stale-closure-safe); the state drives the banner display.
-  const channelHintRef = useRef<YouTubeChannelHint | null>(null);
-  const [youtubeChannel, setYoutubeChannel] = useState<YouTubeChannelHint | null>(null);
-  // True when the detected channel isn't in the existing channels list yet — shows "set defaults" checkboxes.
-  const isNewChannel = youtubeChannel !== null
-    && youtubeChannels !== undefined
-    && !youtubeChannels.some(ch => ch.channelKey === youtubeChannel.key);
-
-  // All URL-string handling (on-blur cleanup, shortener classification, submit-URL resolution) plus the
-  // canonicalize-input refs live in this hook so the form imports one URL module.
-  const {
-    urlShortener,
-    setUrlShortener,
-    urlCleanup,
-    setUrlCleanup,
-    showUrlCleanup,
-    setShowUrlCleanup,
-    urlCleanupMode,
-    setUrlCleanupMode,
-    cleanupId,
-    isUrlFetchable,
-    runUrlCleanup: cleanUrl,
-    undoUrlCleanup: undoCleanup,
-    classifyUrlShortener,
-    resolveSubmitUrl,
-  } = useBookmarkUrlProcessing({
-    websites: websites ?? [],
-    ignoreList: shortenerIgnoreList ?? [],
-  });
-  // When the fetch-title button overwrites a non-empty title, record the previous value so the
-  // banner can offer an undo. Cleared when the user manually edits the title field.
-  const [titleFetch, setTitleFetch] = useState<{ previous: string } | null>(null);
-
-  // The image control reports its intent here; the form applies it after the bookmark is saved (so
-  // it works for both create and edit). `imageFieldKey` remounts the field to clear it on reset.
-  const imageIntentRef = useRef<ImageIntent>(
-    initialImageIntent(!isEdit && autoFetchImage),
-  );
-  const [imageFieldKey, setImageFieldKey] = useState(0);
-
-  // Progressive disclosure for new bookmarks: a fresh form shows only the URL field until the URL is
-  // checked, then reveals the rest. Editing (and the right panel) starts fully expanded. `isScanning`
-  // drives the Check URL button's spinner.
-  const [scanned, setScanned] = useState(isEdit);
-  const [isScanning, setIsScanning] = useState(false);
-  const [urlDuplicate, setUrlDuplicate] = useState<BookmarkUrlDuplicateResult | null>(null);
-  const [autofillOfferDismissed, setAutofillOfferDismissed] = useState(false);
-  // Set by the "Add Now" quick path so the submit handler saves the URL exactly as typed (no
-  // shortened-link expansion). Read by the (stale) submit closure.
-  const quickAddRef = useRef(false);
-
-  const form = useAppForm({
-    defaultValues: {
-      url: bookmark?.originalUrl ?? bookmark?.url ?? "",
-      title: bookmark?.title ?? "",
-      categoryId: bookmark?.categoryId ?? lockedCategoryId ?? "",
-      description: bookmark?.description ?? "",
-      tagIds: (bookmark?.tags.map(tag => tag.id) ?? []) as string[],
-    },
-    validators: {
-      onChange: bookmarkSchema,
-    },
-    onSubmit: ({
-      value,
-    }) => void submitForm(value),
-  });
-
-  // Persist the form: build the property values + input, then create or update. On create, also
-  // promote category/tags to website/channel defaults (when opted in) and offer the category-edit
-  // shortcut. Declared as a hoisted function so the `onSubmit` config above can reference it while
-  // it still closes over `prefill`/`applyImageIntent`/`handleReset` defined below.
-  async function submitForm(value: {
-    url: string;
-    title: string;
-    categoryId: string;
-    description: string;
-    tagIds: string[];
-  }): Promise<void> {
-    const {
-      numberValues, booleanValues, dateTimeValues,
-    } = buildCategoryPropertyValues(
-      customProperties ?? [],
-      value.categoryId,
-      prefill.customRef.current,
-      bookmark?.mediaType?.id ?? null,
-    );
-
-    // Resolve the URL to save plus the original it was cleaned from (see resolveSubmitUrl).
-    const {
-      finalUrl, originalUrl,
-    } = resolveSubmitUrl(value.url, quickAddRef.current);
-
-    // Media type, video length, and priority are intentionally omitted — the server fills the first
-    // two from the URL's metadata and defaults priority. On edit, omitting them preserves the
-    // existing values (the update patch skips `undefined` fields).
-    const input: CreateBookmarkInput = {
-      url: finalUrl,
-      originalUrl,
-      title: value.title,
-      categoryId: value.categoryId,
-      description: value.description || null,
-      tagIds: value.tagIds,
-      numberValues,
-      booleanValues,
-      dateTimeValues,
-      ...(channelHintRef.current && {
-        youtubeChannel: channelHintRef.current,
-      }),
-    };
-
-    if (bookmark) {
-      await updateBookmark.mutateAsync({
-        id: bookmark.id,
-        input,
-      });
-      await applyImageIntent(bookmark.id, finalUrl);
-      onDone?.();
-      return;
-    }
-
-    const trimmedSiteName = websiteSiteName.trim();
-    const created = await createBookmark.mutateAsync({
-      ...input,
-      ...(trimmedSiteName && {
-        websiteSiteName: trimmedSiteName,
-      }),
-    });
-    await applyImageIntent(created.id, finalUrl);
-
-    promoteSourceDefaults(created, value.categoryId, value.tagIds);
-
-    // Offer a shortcut to refine the chosen category right after saving.
-    const categorySlug = (categories ?? []).find(category => category.id === value.categoryId)?.slug;
-    notifySuccess("Bookmark added", categorySlug
-      ? {
-        action: {
-          label: "Edit category",
-          onClick: () => void navigate({
-            to: "/categories/$categorySlug/edit/general",
-            params: {
-              categorySlug,
-            },
-          }),
-        },
-      }
-      : undefined);
-    handleReset();
-  }
-
-  // Promote the saved bookmark's category/tags to its website's and channel's defaults, for each
-  // "set as default" checkbox the user opted into.
-  function promoteSourceDefaults(
-    created: Awaited<ReturnType<typeof createBookmark.mutateAsync>>,
-    categoryId: string,
-    tagIds: string[],
-  ): void {
-    if ((setWebsiteCategory || setWebsiteTags) && created.website?.id) {
-      updateWebsite.mutate({
-        id: created.website.id,
-        input: {
-          ...(setWebsiteCategory && {
-            categoryId: categoryId || null,
-          }),
-          ...(setWebsiteTags && {
-            tagIds,
-          }),
-        },
-      });
-    }
-    if ((setChannelCategory || setChannelTags) && created.youtubeChannel?.id) {
-      updateYouTubeChannel.mutate({
-        id: created.youtubeChannel.id,
-        input: {
-          ...(setChannelCategory && {
-            categoryId: categoryId || null,
-          }),
-          ...(setChannelTags && {
-            tagIds,
-          }),
-        },
-      });
-    }
-  }
-
-  // Custom-property prefill: the dynamic number/boolean/datetime inputs plus the autofill-rule and
-  // category-default precedence machinery. Owns its own state/refs; the submit handler reads the
-  // mirrored `customRef`.
-  const prefill = useBookmarkPropertyPrefill({
-    bookmark,
     form,
-    autofillRules,
-    categories,
-  });
-
-  function handleReset(): void {
-    form.reset();
-    prefill.resetPrefill();
-    setWebsiteSiteName("");
-    channelHintRef.current = null;
-    setYoutubeChannel(null);
-    setUrlShortener({
-      nudge: false,
-      expandedUrl: null,
-    });
-    setUrlCleanup(null);
-    imageIntentRef.current = initialImageIntent(autoFetchImage);
-    setImageFieldKey(key => key + 1);
-    setShowUrlCleanup(false);
-    setUrlCleanupMode("none");
-    setScanned(false);
-    setUrlDuplicate(null);
-    setAutofillOfferDismissed(false);
-    setSetWebsiteCategory(false);
-    setSetWebsiteTags(false);
-    setSetChannelCategory(false);
-    setSetChannelTags(false);
-    quickAddRef.current = false;
-    setTitleFetch(null);
-  }
-
-  // Apply the pending image intent to a saved bookmark. Non-fatal: the bookmark is already saved,
-  // so an image failure just surfaces a toast (from the mutation hooks) without blocking the form.
-  async function applyImageIntent(bookmarkId: string, sourceUrl: string): Promise<void> {
-    const intent = imageIntentRef.current;
-    try {
-      if (intent.file) {
-        await uploadImage.mutateAsync({
-          id: bookmarkId,
-          file: intent.file,
-        });
-      }
-      else if (intent.auto) {
-        await autoImage.mutateAsync({
-          id: bookmarkId,
-          sourceUrl,
-        });
-      }
-      else if (intent.remove) {
-        await deleteImage.mutateAsync(bookmarkId);
-      }
-    }
-    catch {
-      // Surfaced via the mutation hooks' onError toast; nothing else to do here.
-    }
-  }
-
-  const {
-    runFetchTitle,
-    runFetchDescription,
-    runYouTubeEnrichment,
-    runUrlCleanup,
-    undoUrlCleanup,
-    undoTitleFetch,
-    runWebsiteLookup,
-  } = useBookmarkScanHandlers({
-    form,
-    channelHintRef,
-    setYoutubeChannel,
-    websiteSiteName,
-    setWebsiteSiteName,
-    titleFetch,
-    setTitleFetch,
-    fetchTitle,
-    fetchMetadata,
-    websiteLookup,
-    isUrlFetchable,
-    classifyUrlShortener,
-    cleanUrl,
-    undoCleanup,
-  });
-
-  // The full URL scan: clean the URL, apply autofill rules, look up the website, and fetch the
-  // title/metadata. `revealing` is the explicit "Check URL" action — it always attempts the title
-  // fetch and reveals the rest of the form; on later blurs the title fetch honours the autoFetchTitle
-  // setting.
-  async function performUrlScan({
-    revealing,
-  }: { revealing: boolean }): Promise<void> {
-    setIsScanning(true);
-    try {
-      runUrlCleanup(form.getFieldValue("url"));
-      const url = form.getFieldValue("url");
-      prefill.runAutofill();
-      runWebsiteLookup(url);
-      urlDuplicateCheck.mutate(url, {
-        onSuccess: setUrlDuplicate,
-      });
-      const yt = looksLikeYouTube(url);
-      const fillTitle = revealing || autoFetchTitle;
-      // YouTube gets its title from enrichment; non-YouTube uses the strict fetch-title.
-      if (fillTitle && !yt) {
-        await runFetchTitle(url, {
-          force: false,
-        });
-      }
-      await runYouTubeEnrichment(url, {
-        fillTitle,
-        force: false,
-      });
-      if (revealing) setScanned(true);
-    }
-    finally {
-      setIsScanning(false);
-    }
-  }
-
-  // "Add Now" quick path: apply autofill rules and save immediately. Ensures a title (falling back to
-  // the URL's host) and saves the URL exactly as typed — no metadata fetch, no shortened-link
-  // expansion (the submit handler honours `quickAddRef`).
-  async function handleAddNow(): Promise<void> {
-    prefill.runAutofill();
-    if (form.getFieldValue("title").trim() === "") {
-      const url = form.getFieldValue("url");
-      let fallback = url;
-      try {
-        fallback = new URL(url).hostname;
-      }
-      catch {
-        // Not a parseable URL — leave the raw value as the fallback title.
-      }
-      form.setFieldValue("title", fallback);
-    }
-    quickAddRef.current = true;
-    try {
-      await form.handleSubmit();
-    }
-    finally {
-      quickAddRef.current = false;
-    }
-  }
-
-  useEffect(() => {
-    if (fetchTitle.isPending) {
-      setIsReportingTitle(false);
-      setExpectedTitle("");
-    }
-  }, [fetchTitle.isPending]);
+  } = c;
 
   return (
     <form
       className="space-y-4"
-      onKeyDown={(event) => {
-        // Pre-scan, the only field is the URL input: Enter runs "Check URL" rather than submitting
-        // (the empty title would otherwise fail validation and the submit would no-op).
-        if (event.key === "Enter" && !scanned && !isScanning) {
-          event.preventDefault();
-          void performUrlScan({
-            revealing: true,
-          });
-        }
-      }}
+      onKeyDown={c.handleUrlKeyDown}
       onSubmit={(event) => {
         event.preventDefault();
         event.stopPropagation();
@@ -450,23 +36,17 @@ export function BookmarkForm({
           <field.TextField
             label="URL"
             type="url"
-            onBlur={() => {
-              // Re-scan on edit (or after the form is revealed) when the URL changes; a fresh create
-              // form waits for the explicit "Check URL" action instead.
-              if (scanned) void performUrlScan({
-                revealing: false,
-              });
-            }}
-            action={scanned
+            onBlur={c.handleUrlBlur}
+            action={c.scanned
               ? (
                 <Button
                   type="button"
-                  variant={showUrlCleanup ? "secondary" : "ghost"}
+                  variant={c.showUrlCleanup ? "secondary" : "ghost"}
                   size="icon"
                   title="URL cleanup"
                   aria-label="Toggle URL cleanup"
-                  aria-expanded={showUrlCleanup}
-                  onClick={() => setShowUrlCleanup(prev => !prev)}
+                  aria-expanded={c.showUrlCleanup}
+                  onClick={() => c.setShowUrlCleanup(prev => !prev)}
                 >
                   <Brush className="size-4" />
                 </Button>
@@ -476,122 +56,97 @@ export function BookmarkForm({
         )}
       </form.AppField>
 
-      {scanned && (
+      {c.scanned && (
         <BookmarkRevealedFields
           form={form}
-          lockedCategoryId={lockedCategoryId}
-          urlCleanup={urlCleanup}
-          urlShortener={urlShortener}
-          onUndoUrlCleanup={undoUrlCleanup}
-          showUrlCleanup={showUrlCleanup}
-          cleanupId={cleanupId}
-          urlCleanupMode={urlCleanupMode}
-          onUrlCleanupModeChange={setUrlCleanupMode}
-          websites={websites ?? []}
-          ignoreList={shortenerIgnoreList ?? []}
-          websiteLookup={websiteLookup}
-          youtubeChannel={youtubeChannel}
-          onChannelSelfIdsChange={(ids) => {
-            const updated = {
-              ...(youtubeChannel ?? {
-                key: "",
-                name: "",
-              }),
-              selfIds: ids,
-            };
-            channelHintRef.current = updated;
-            setYoutubeChannel(updated);
-          }}
-          websiteSiteName={websiteSiteName}
-          onSiteNameChange={setWebsiteSiteName}
-          onSiteNameBlur={() => void runFetchTitle(form.getFieldValue("url"), {
+          lockedCategoryId={c.lockedCategoryId}
+          urlCleanup={c.urlCleanup}
+          urlShortener={c.urlShortener}
+          onUndoUrlCleanup={c.undoUrlCleanup}
+          showUrlCleanup={c.showUrlCleanup}
+          cleanupId={c.cleanupId}
+          urlCleanupMode={c.urlCleanupMode}
+          onUrlCleanupModeChange={c.setUrlCleanupMode}
+          websites={c.websites ?? []}
+          ignoreList={c.shortenerIgnoreList ?? []}
+          websiteLookup={c.websiteLookup}
+          youtubeChannel={c.youtubeChannel}
+          onChannelSelfIdsChange={c.handleChannelSelfIdsChange}
+          websiteSiteName={c.websiteSiteName}
+          onSiteNameChange={c.setWebsiteSiteName}
+          onSiteNameBlur={() => void c.runFetchTitle(form.getFieldValue("url"), {
             force: true,
           })}
-          onTitleBlur={prefill.runAutofill}
-          onTitleChange={() => setTitleFetch(null)}
-          onFetchTitleClick={(url) => {
-            // YouTube gets its title from enrichment; skip the strict fetch-title for it.
-            const yt = looksLikeYouTube(url);
-            if (!yt) {
-              void runFetchTitle(url, {
-                force: true,
-              });
-            }
-            void runYouTubeEnrichment(url, {
-              fillTitle: true,
-              force: true,
-            });
-          }}
-          isFetchTitlePending={fetchTitle.isPending}
-          isFetchMetadataPending={fetchMetadata.isPending}
-          titleFetch={titleFetch}
-          onUndoTitleFetch={undoTitleFetch}
-          fetchTitleIsSuccess={fetchTitle.isSuccess}
-          fetchTitleIsError={fetchTitle.isError}
-          fetchTitleErrorMessage={fetchTitle.error?.message}
-          fetchedTitle={fetchTitle.data?.title}
-          isReportingTitle={isReportingTitle}
-          onStartReporting={() => setIsReportingTitle(true)}
-          expectedTitle={expectedTitle}
-          onExpectedTitleChange={setExpectedTitle}
-          onCancelReporting={() => {
-            setIsReportingTitle(false);
-            setExpectedTitle("");
-          }}
-          tagTree={tagTree ?? []}
-          customProperties={customProperties ?? []}
-          mediaTypeId={bookmark?.mediaType?.id ?? null}
-          onTagToggle={prefill.markTagsTouched}
-          numberInputs={prefill.numberInputs}
-          booleanInputs={prefill.booleanInputs}
-          dateTimeInputs={prefill.dateTimeInputs}
-          onNumberChange={prefill.handleNumberChange}
-          onBooleanChange={prefill.handleBooleanChange}
-          onDateTimeChange={prefill.handleDateTimeChange}
-          categories={categories ?? []}
-          addCategoryOpen={addCategoryOpen}
-          onAddCategoryOpenChange={setAddCategoryOpen}
-          imageFieldKey={imageFieldKey}
-          existingImageUrl={bookmark?.image?.url ?? null}
-          defaultAuto={!isEdit && autoFetchImage}
-          autoGrabError={bookmark?.imageAutoGrabError ?? null}
+          onTitleBlur={c.prefill.runAutofill}
+          onTitleChange={() => c.setTitleFetch(null)}
+          onFetchTitleClick={c.handleFetchTitleClick}
+          isFetchTitlePending={c.fetchTitle.isPending}
+          isFetchMetadataPending={c.fetchMetadata.isPending}
+          titleFetch={c.titleFetch}
+          onUndoTitleFetch={c.undoTitleFetch}
+          fetchTitleIsSuccess={c.fetchTitle.isSuccess}
+          fetchTitleIsError={c.fetchTitle.isError}
+          fetchTitleErrorMessage={c.fetchTitle.error?.message}
+          fetchedTitle={c.fetchTitle.data?.title}
+          isReportingTitle={c.isReportingTitle}
+          onStartReporting={() => c.setIsReportingTitle(true)}
+          expectedTitle={c.expectedTitle}
+          onExpectedTitleChange={c.setExpectedTitle}
+          onCancelReporting={c.handleCancelReporting}
+          tagTree={c.tagTree ?? []}
+          customProperties={c.customProperties ?? []}
+          mediaTypeId={c.bookmark?.mediaType?.id ?? null}
+          onTagToggle={c.prefill.markTagsTouched}
+          numberInputs={c.prefill.numberInputs}
+          booleanInputs={c.prefill.booleanInputs}
+          dateTimeInputs={c.prefill.dateTimeInputs}
+          onNumberChange={c.prefill.handleNumberChange}
+          onBooleanChange={c.prefill.handleBooleanChange}
+          onDateTimeChange={c.prefill.handleDateTimeChange}
+          categories={c.categories ?? []}
+          addCategoryOpen={c.addCategoryOpen}
+          onAddCategoryOpenChange={c.setAddCategoryOpen}
+          imageFieldKey={c.imageFieldKey}
+          existingImageUrl={c.bookmark?.image?.url ?? null}
+          defaultAuto={!c.isEdit && c.autoFetchImage}
+          autoGrabError={c.bookmark?.imageAutoGrabError ?? null}
           onImageIntentChange={(intent) => {
-            imageIntentRef.current = intent;
+            c.imageIntentRef.current = intent;
           }}
-          onApplyCategoryDefaults={prefill.applyCategoryDefaults}
-          urlDuplicate={urlDuplicate}
-          autofillOfferDismissed={autofillOfferDismissed}
-          onAutofillOfferDismiss={() => setAutofillOfferDismissed(true)}
-          onFetchDescription={url => void runFetchDescription(url, {
+          onApplyCategoryDefaults={c.prefill.applyCategoryDefaults}
+          urlDuplicate={c.urlDuplicate}
+          autofillOfferDismissed={c.autofillOfferDismissed}
+          onAutofillOfferDismiss={() => c.setAutofillOfferDismissed(true)}
+          onFetchDescription={url => void c.runFetchDescription(url, {
             force: true,
           })}
-          isNewChannel={isNewChannel}
-          setWebsiteCategory={setWebsiteCategory}
-          setWebsiteTags={setWebsiteTags}
-          setChannelCategory={setChannelCategory}
-          setChannelTags={setChannelTags}
-          onSetWebsiteCategory={setSetWebsiteCategory}
-          onSetWebsiteTags={setSetWebsiteTags}
-          onSetChannelCategory={setSetChannelCategory}
-          onSetChannelTags={setSetChannelTags}
+          isNewChannel={c.isNewChannel}
+          setWebsiteCategory={c.setWebsiteCategory}
+          setWebsiteTags={c.setWebsiteTags}
+          setChannelCategory={c.setChannelCategory}
+          setChannelTags={c.setChannelTags}
+          onSetWebsiteCategory={c.setSetWebsiteCategory}
+          onSetWebsiteTags={c.setSetWebsiteTags}
+          onSetChannelCategory={c.setSetChannelCategory}
+          onSetChannelTags={c.setSetChannelTags}
         />
       )}
 
       <BookmarkFormFooter
         form={form}
-        scanned={scanned}
-        isEdit={isEdit}
-        isScanning={isScanning}
-        urlDuplicate={urlDuplicate}
-        saveIsPending={saveBookmark.isPending}
-        saveIsError={saveBookmark.isError}
-        saveErrorMessage={saveBookmark.error?.message}
-        onDone={onDone}
-        onCheckUrl={() => void performUrlScan({
+        scanned={c.scanned}
+        isEdit={c.isEdit}
+        isScanning={c.isScanning}
+        urlDuplicate={c.urlDuplicate}
+        saveIsPending={c.saveBookmark.isPending}
+        saveIsError={c.saveBookmark.isError}
+        saveErrorMessage={c.saveBookmark.error?.message}
+        onDone={c.onDone}
+        onCheckUrl={() => void c.performUrlScan({
           revealing: true,
         })}
-        onAddNow={() => void handleAddNow()}
-        onReset={handleReset}
+        onAddNow={() => void c.handleAddNow()}
+        onReset={c.handleReset}
       />
     </form>
   );
