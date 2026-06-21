@@ -92,7 +92,10 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
   `Record<CustomPropertyType, …>` maps (e.g. in `lib/propertyFormat.ts`, `CategoryCustomProperties.tsx`)
   are exhaustive, so a forgotten spot now **fails `tsc`** instead of silently rejecting at the
   modal/API boundary (the PR #341 `image`/`file` drift can no longer happen). Don't reintroduce a
-  literal `["number", "boolean", …]` list anywhere — derive from the tuple.
+  literal `["number", "boolean", …]` list anywhere — derive from the tuple. The bookmark-filter UI
+  dispatches the same way: `components/conditions/PropertyConditionEditor.tsx` routes each property
+  through `propertyValueKind()` to one of the exhaustive `*ConditionRow` sub-components
+  (`Number`/`DateTime`/`File`/`Boolean`) — adding a value kind means adding a branch there too.
 - **UI primitives:** before adding a Radix/shadcn primitive, check
   `packages/client/src/components/ui/` — `dialog`, `dropdown-menu`, `popover`, `toggle-group`,
   `command`, etc. already exist (`Dialog` was once reintroduced twice). Reuse the existing one.
