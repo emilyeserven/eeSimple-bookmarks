@@ -22,6 +22,7 @@ const DEFAULTS: HomepageContent = {
   bookmarkQuickAddWidth: "full",
   bookmarkQuickAddDisplay: "collapsible",
   homepageHeaderHidden: false,
+  homepageTextEnabled: true,
 };
 
 /** Debounce window (ms) before an edit auto-saves. */
@@ -89,7 +90,7 @@ export function HomepageContentSettings() {
     <div className="space-y-6">
       <LabeledSection
         title="Homepage Text"
-        description="Markdown shown at the very top of your homepage. Leave empty to hide it."
+        description="Markdown shown at the very top of your homepage. Uncheck “Show homepage text” to hide it without losing your draft."
       >
         <div className="space-y-3">
           <label className="flex items-center gap-2 text-sm">
@@ -98,6 +99,13 @@ export function HomepageContentSettings() {
               onCheckedChange={checked => setField("homepageHeaderHidden", checked === true)}
             />
             Hide default &ldquo;Homepage&rdquo; title and description
+          </label>
+          <label className="flex items-center gap-2 text-sm">
+            <Checkbox
+              checked={form.homepageTextEnabled}
+              onCheckedChange={checked => setField("homepageTextEnabled", checked === true)}
+            />
+            Show homepage text
           </label>
           <RichTextEditor
             value={form.homepageText}

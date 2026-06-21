@@ -12,6 +12,7 @@ const settings: HomepageContent = {
   bookmarkQuickAddWidth: "full",
   bookmarkQuickAddDisplay: "collapsible",
   homepageHeaderHidden: false,
+  homepageTextEnabled: true,
 };
 
 const updateMutate = vi.fn<(input: HomepageContent, opts?: unknown) => void>();
@@ -63,6 +64,32 @@ describe("HomepageContentSettings", () => {
     expect(screen.getByRole("radio", {
       name: "Expanded",
     })).toBeInTheDocument();
+  });
+
+  it("auto-saves the homepage-text visibility toggle without clearing the text", () => {
+    vi.useFakeTimers();
+    try {
+      render(<HomepageContentSettings />);
+
+      fireEvent.click(screen.getByRole("checkbox", {
+        name: "Show homepage text",
+      }));
+
+      act(() => {
+        vi.runAllTimers();
+      });
+
+      expect(updateMutate).toHaveBeenCalledTimes(1);
+      const [payload] = updateMutate.mock.calls[0];
+      // The toggle goes off but the existing draft text is preserved in the payload.
+      expect(payload).toMatchObject({
+        homepageTextEnabled: false,
+        homepageText: "Welcome",
+      });
+    }
+    finally {
+      vi.useRealTimers();
+    }
   });
 
   it("auto-saves the edited homepage content after a debounce", () => {
