@@ -10,6 +10,7 @@ import {
   customProperties,
   type CustomPropertyRow,
   mediaTypes,
+  type NewCustomPropertyRow,
   propertyCategories,
   propertyMediaTypes,
 } from "@/db/schema";
@@ -274,54 +275,43 @@ function normalizeRatingMax(value: number | null | undefined): 3 | 5 {
   return value === 3 ? 3 : 5;
 }
 
+/**
+ * Assemble the insert row for a new custom property. The bulk of the columns are plain mirrors of
+ * the input, so they reuse the same data-driven mapper as the update path (`buildUpdatePatch` over
+ * `COPYABLE_FIELDS`): a provided field is copied, an omitted one is left off so the Drizzle column
+ * default applies (the old per-field `?? false/true/null` matched those defaults exactly). Only the
+ * required identity columns (`name`/`slug`/`type`) and the type-gated columns (`dateTimeFormat`, the
+ * `rating*` set) need explicit handling.
+ */
+export function buildInsertValues(
+  input: CreateCustomPropertyInput,
+  slug: string,
+): NewCustomPropertyRow {
+  const isRating = input.type === "ratingScale";
+  const base = buildUpdatePatch(input, slug);
+  return {
+    ...base,
+    name: input.name,
+    slug,
+    type: input.type,
+    dateTimeFormat: input.type === "datetime" ? (input.dateTimeFormat ?? "date") : null,
+    ratingMax: isRating ? normalizeRatingMax(input.ratingMax) : null,
+    ratingAllowZero: isRating ? (input.ratingAllowZero ?? null) : null,
+    ratingAllowHalf: isRating ? (input.ratingAllowHalf ?? null) : null,
+    ratingShowLabel: isRating ? (input.ratingShowLabel ?? null) : null,
+    ratingLabel: isRating ? (input.ratingLabel ?? null) : null,
+  };
+}
+
 export async function createCustomProperty(
   input: CreateCustomPropertyInput,
 ): Promise<CustomProperty> {
-  const isRating = input.type === "ratingScale";
   const slug = uniqueSlug(input.name, await takenSlugs());
+  const values = buildInsertValues(input, slug);
   const id = await db.transaction(async (tx) => {
     const [row] = await tx
       .insert(customProperties)
-      .values({
-        name: input.name,
-        slug,
-        type: input.type,
-        numberFormat: input.numberFormat ?? null,
-        dateTimeFormat: input.type === "datetime" ? (input.dateTimeFormat ?? "date") : null,
-        quickFilterRange: input.quickFilterRange ?? null,
-        description: input.description ?? null,
-        numberMin: input.numberMin ?? null,
-        numberMax: input.numberMax ?? null,
-        unitSingular: input.unitSingular ?? null,
-        unitPlural: input.unitPlural ?? null,
-        valuePrefix: input.valuePrefix ?? null,
-        zeroLabel: input.zeroLabel ?? null,
-        maxLabel: input.maxLabel ?? null,
-        showInForm: input.showInForm ?? false,
-        hiddenFromForm: input.hiddenFromForm ?? false,
-        showInListings: input.showInListings ?? true,
-        showInGallery: input.showInGallery ?? true,
-        showInDetails: input.showInDetails ?? true,
-        allCategories: input.allCategories ?? false,
-        allMediaTypes: input.allMediaTypes ?? false,
-        editableOnCard: input.editableOnCard ?? false,
-        enabled: input.enabled ?? true,
-        allowDefault: input.allowDefault ?? true,
-        propertyGroupId: input.propertyGroupId ?? null,
-        showIfFalse: input.showIfFalse ?? null,
-        booleanLabelPreset: input.booleanLabelPreset ?? null,
-        booleanTrueLabel: input.booleanTrueLabel ?? null,
-        booleanFalseLabel: input.booleanFalseLabel ?? null,
-        showLabelColon: input.showLabelColon ?? null,
-        showValueBeforeLabel: input.showValueBeforeLabel ?? null,
-        hideLabel: input.hideLabel ?? null,
-        clickableInView: input.clickableInView ?? null,
-        ratingMax: isRating ? normalizeRatingMax(input.ratingMax) : null,
-        ratingAllowZero: isRating ? (input.ratingAllowZero ?? null) : null,
-        ratingAllowHalf: isRating ? (input.ratingAllowHalf ?? null) : null,
-        ratingShowLabel: isRating ? (input.ratingShowLabel ?? null) : null,
-        ratingLabel: isRating ? (input.ratingLabel ?? null) : null,
-      })
+      .values(values)
       .returning({
         id: customProperties.id,
       });
