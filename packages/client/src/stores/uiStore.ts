@@ -16,8 +16,8 @@ export type HomepageSectionImageLayout = "above" | "side";
 /** Bookmark detail page image size preference. */
 export type BookmarkDetailImageSize = "small" | "medium" | "large";
 
-/** Bookmark detail page video size preference: constrained side-by-side or full-width stacked. */
-export type BookmarkDetailVideoSize = "standard" | "fullwidth";
+/** Bookmark detail page video size preference: constrained side-by-side, half/two-thirds stacked, or full-width stacked. */
+export type BookmarkDetailVideoSize = "standard" | "half" | "twoThirds" | "fullwidth";
 
 /**
  * Per-listing image visibility (full card, image-only, or no image) and rendering mode (card grid

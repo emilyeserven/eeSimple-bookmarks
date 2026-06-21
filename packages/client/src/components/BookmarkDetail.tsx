@@ -15,6 +15,8 @@ const IMAGE_SIZE_CLASS: Record<BookmarkDetailImageSize, string> = {
 
 const VIDEO_SIZE_CLASS: Record<BookmarkDetailVideoSize, string> = {
   standard: "aspect-video w-full overflow-hidden rounded-md border @2xl:w-96 @2xl:shrink-0",
+  half: "aspect-video w-full overflow-hidden rounded-md border @2xl:w-1/2",
+  twoThirds: "aspect-video w-full overflow-hidden rounded-md border @2xl:w-2/3",
   fullwidth: "aspect-video w-full overflow-hidden rounded-md border",
 };
 
@@ -46,8 +48,9 @@ export function BookmarkDetail({
   // For YouTube bookmarks, show a playable embed in place of the static thumbnail.
   const embedUrl = youtubeEmbedUrl(bookmark.url);
 
-  // Fullwidth video stays stacked above the body — suppress side-by-side layout.
-  const outerFlexClass = embedUrl && videoSize === "fullwidth"
+  // Only the constrained "standard" size sits side-by-side with the body; the proportional
+  // (half/two-thirds) and full-width sizes stay stacked above it.
+  const outerFlexClass = embedUrl && videoSize !== "standard"
     ? "flex flex-col gap-6"
     : "flex flex-col gap-6 @2xl:flex-row @2xl:items-start";
 
