@@ -182,9 +182,12 @@ export function BookmarkPropertySections({
 
   return (
     <>
-      {propertySections.map(section => (
+      {propertySections.map((section, index) => (
         <div key={section.key}>
-          <Separator className="mb-6" />
+          {/* The leading divider is owned by the consumer; only separate subsequent groups here. */}
+          {index > 0
+            ? <Separator className="mb-6" />
+            : null}
           <LabeledSection title={section.title}>
             <dl className="space-y-1">
               {numberRows.filter(row => inGroup(row.groupId, section.target)).map(row => (

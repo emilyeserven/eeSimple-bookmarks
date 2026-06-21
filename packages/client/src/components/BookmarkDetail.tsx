@@ -1,24 +1,12 @@
-import type { BookmarkDetailImageSize, BookmarkDetailVideoSize } from "../stores/uiStore";
 import type { Bookmark, Category, CustomProperty, PropertyGroup } from "@eesimple/types";
 
 import { youtubeEmbedUrl } from "@eesimple/types";
 
 import { BookmarkDetailBody } from "./BookmarkDetailBody";
+import { BookmarkDetailMedia } from "./BookmarkDetailMedia";
+import { BookmarkDetailTabbed } from "./BookmarkDetailTabbed";
 import { DetailHeaderActions } from "./DetailHeaderActions";
 import { useUiStore } from "../stores/uiStore";
-
-const IMAGE_SIZE_CLASS: Record<BookmarkDetailImageSize, string> = {
-  small: "max-h-40 w-full rounded-md border object-contain @2xl:w-40 @2xl:shrink-0",
-  medium: "max-h-72 w-full rounded-md border object-contain @2xl:w-72 @2xl:shrink-0",
-  large: "max-h-96 w-full rounded-md border object-contain @2xl:w-96 @2xl:shrink-0",
-};
-
-const VIDEO_SIZE_CLASS: Record<BookmarkDetailVideoSize, string> = {
-  standard: "aspect-video w-full overflow-hidden rounded-md border @2xl:w-96 @2xl:shrink-0",
-  half: "aspect-video w-full overflow-hidden rounded-md border @2xl:w-1/2",
-  twoThirds: "aspect-video w-full overflow-hidden rounded-md border @2xl:w-2/3",
-  fullwidth: "aspect-video w-full overflow-hidden rounded-md border",
-};
 
 interface BookmarkDetailProps {
   bookmark: Bookmark;
@@ -38,11 +26,12 @@ interface BookmarkDetailProps {
  * The full view of a single bookmark, showing every field including each custom-property value.
  * Shared by the bookmark detail page and the right panel's bookmark view so the two stay identical.
  * Presentational: pass `categories`/`properties` for labels and `onEdit`/`onDelete` for actions.
+ * The body renders as a single stacked column or vertical tabs per the `bookmarkDetailLayout` pref.
  */
 export function BookmarkDetail({
   bookmark, categories = [], properties = [], propertyGroups = [], onEdit, onDelete, onSaveBoolean,
 }: BookmarkDetailProps) {
-  const imageSize = useUiStore(state => state.bookmarkDetailImageSize);
+  const layout = useUiStore(state => state.bookmarkDetailLayout);
   const videoSize = useUiStore(state => state.bookmarkDetailVideoSize);
 
   // For YouTube bookmarks, show a playable embed in place of the static thumbnail.
@@ -89,39 +78,32 @@ export function BookmarkDetail({
         />
       </div>
 
-      <div className={outerFlexClass}>
-        {embedUrl
-          ? (
-            <div className={VIDEO_SIZE_CLASS[videoSize]}>
-              <iframe
-                src={embedUrl}
-                title={bookmark.title}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-                loading="lazy"
-                className="size-full"
-              />
-            </div>
-          )
-          : bookmark.image
-            ? (
-              <img
-                src={bookmark.image.url}
-                alt=""
-                loading="lazy"
-                className={IMAGE_SIZE_CLASS[imageSize]}
-              />
-            )
-            : null}
-
-        <BookmarkDetailBody
-          bookmark={bookmark}
-          categories={categories}
-          properties={properties}
-          propertyGroups={propertyGroups}
-          onSaveBoolean={onSaveBoolean}
-        />
-      </div>
+      {layout === "tabbed"
+        ? (
+          <BookmarkDetailTabbed
+            bookmark={bookmark}
+            categories={categories}
+            properties={properties}
+            propertyGroups={propertyGroups}
+            embedUrl={embedUrl}
+            onSaveBoolean={onSaveBoolean}
+          />
+        )
+        : (
+          <div className={outerFlexClass}>
+            <BookmarkDetailMedia
+              bookmark={bookmark}
+              embedUrl={embedUrl}
+            />
+            <BookmarkDetailBody
+              bookmark={bookmark}
+              categories={categories}
+              properties={properties}
+              propertyGroups={propertyGroups}
+              onSaveBoolean={onSaveBoolean}
+            />
+          </div>
+        )}
     </div>
   );
 }

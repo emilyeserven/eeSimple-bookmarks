@@ -19,6 +19,9 @@ export type BookmarkDetailImageSize = "small" | "medium" | "large";
 /** Bookmark detail page video size preference: constrained side-by-side, half/two-thirds stacked, or full-width stacked. */
 export type BookmarkDetailVideoSize = "standard" | "half" | "twoThirds" | "fullwidth";
 
+/** Bookmark detail page layout: single stacked column (default) or vertical-tabbed sections. */
+export type BookmarkDetailLayout = "single" | "tabbed";
+
 /**
  * Per-listing image visibility (full card, image-only, or no image) and rendering mode (card grid
  * or a data table). Defined once in `@eesimple/types` and re-exported here so existing
@@ -152,6 +155,9 @@ interface UiState {
   /** Video embed size on the bookmark detail page/panel: constrained side-by-side (standard) or full-width stacked (fullwidth). */
   bookmarkDetailVideoSize: BookmarkDetailVideoSize;
   setBookmarkDetailVideoSize: (size: BookmarkDetailVideoSize) => void;
+  /** Layout of the bookmark detail page/panel: single stacked column (default) or vertical tabs. */
+  bookmarkDetailLayout: BookmarkDetailLayout;
+  setBookmarkDetailLayout: (layout: BookmarkDetailLayout) => void;
   /** Transient: live filter data from the active listing page. Cleared when leaving a listing page. Never persisted. */
   filterContext: FilterContextData | null;
   setFilterContext: (ctx: FilterContextData | null) => void;
@@ -353,6 +359,10 @@ export const useUiStore = create<UiState>()(
       setBookmarkDetailVideoSize: size => set({
         bookmarkDetailVideoSize: size,
       }),
+      bookmarkDetailLayout: "single",
+      setBookmarkDetailLayout: layout => set({
+        bookmarkDetailLayout: layout,
+      }),
       filterContext: null,
       setFilterContext: ctx => set({
         filterContext: ctx,
@@ -419,6 +429,7 @@ export const useUiStore = create<UiState>()(
         filtersHidden: state.filtersHidden,
         bookmarkDetailImageSize: state.bookmarkDetailImageSize,
         bookmarkDetailVideoSize: state.bookmarkDetailVideoSize,
+        bookmarkDetailLayout: state.bookmarkDetailLayout,
       }),
     },
   ),

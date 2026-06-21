@@ -5,6 +5,7 @@ import React from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Info, PanelRight, Plus } from "lucide-react";
 
+import { BookmarkDetailLayoutPopover } from "@/components/BookmarkDetailLayoutPopover";
 import { DisplayOptionsPopover } from "@/components/DisplayOptionsPopover";
 import { FilterLocationPopover } from "@/components/FilterLocationPopover";
 import { ListingSearchBar } from "@/components/ListingSearchBar";
@@ -506,6 +507,12 @@ export function AppHeader() {
           pageKey={listingPage.key}
         />
       ),
+    });
+  }
+  if (isBookmarkDetail) {
+    toolbarActions.push({
+      key: "bookmark-layout",
+      node: <BookmarkDetailLayoutPopover />,
     });
   }
   if (isBookmarkDetail) {
