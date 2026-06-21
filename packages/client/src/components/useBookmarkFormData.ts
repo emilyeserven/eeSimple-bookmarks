@@ -3,6 +3,7 @@ import { useShortenerIgnoreList } from "../hooks/useAppSettings";
 import { useAutofillRules } from "../hooks/useAutofill";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
+import { useMediaTypes } from "../hooks/useMediaTypes";
 import { useTagTree } from "../hooks/useTags";
 import { useWebsites } from "../hooks/useWebsites";
 import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
@@ -33,6 +34,9 @@ export function useBookmarkFormData() {
     data: categories,
   } = useCategories();
   const {
+    data: mediaTypes,
+  } = useMediaTypes();
+  const {
     data: autofillRules,
   } = useAutofillRules();
   const {
@@ -48,6 +52,7 @@ export function useBookmarkFormData() {
     tagTree,
     customProperties,
     categories,
+    mediaTypes,
     autofillRules,
     youtubeChannels,
     autoFetchTitle,

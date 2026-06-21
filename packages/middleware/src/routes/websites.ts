@@ -165,6 +165,7 @@ export async function websiteRoutes(app: FastifyInstance): Promise<void> {
       domain,
       exists: website !== null,
       siteName: website?.siteName ?? null,
+      mediaTypeId: website?.mediaTypeId ?? null,
       shortener,
     };
     return result;

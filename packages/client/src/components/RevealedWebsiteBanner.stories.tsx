@@ -26,14 +26,14 @@ export const ExistingWebsite: Story = {
         url: "https://example.com",
       }}
     >
-      {form => (
+      {() => (
         <RevealedWebsiteBanner
-          form={form}
           {...makeRevealedProps({
             websiteLookup: makeWebsiteLookup({
               domain: "example.com",
               exists: true,
               siteName: "Example",
+              mediaTypeId: null,
               shortener: null,
             }),
           })}
@@ -50,15 +50,15 @@ export const NewWebsite: Story = {
         url: "https://new-site.com",
       }}
     >
-      {form => (
+      {() => (
         <RevealedWebsiteBanner
-          form={form}
           {...makeRevealedProps({
             websiteSiteName: "New Site",
             websiteLookup: makeWebsiteLookup({
               domain: "new-site.com",
               exists: false,
               siteName: null,
+              mediaTypeId: null,
               shortener: null,
             }),
           })}

@@ -95,7 +95,7 @@ export function BookmarkForm(props: BookmarkFormProps = {}) {
           onCancelReporting={c.handleCancelReporting}
           tagTree={c.tagTree ?? []}
           customProperties={c.customProperties ?? []}
-          mediaTypeId={c.bookmark?.mediaType?.id ?? null}
+          mediaTypes={c.mediaTypes ?? []}
           onTagToggle={c.prefill.markTagsTouched}
           numberInputs={c.prefill.numberInputs}
           booleanInputs={c.prefill.booleanInputs}
@@ -106,6 +106,9 @@ export function BookmarkForm(props: BookmarkFormProps = {}) {
           categories={c.categories ?? []}
           addCategoryOpen={c.addCategoryOpen}
           onAddCategoryOpenChange={c.setAddCategoryOpen}
+          addMediaTypeOpen={c.addMediaTypeOpen}
+          onAddMediaTypeOpenChange={c.setAddMediaTypeOpen}
+          sourceDefaults={c.sourceDefaults}
           imageFieldKey={c.imageFieldKey}
           existingImageUrl={c.bookmark?.image?.url ?? null}
           defaultAuto={!c.isEdit && c.autoFetchImage}
@@ -120,15 +123,6 @@ export function BookmarkForm(props: BookmarkFormProps = {}) {
           onFetchDescription={url => void c.runFetchDescription(url, {
             force: true,
           })}
-          isNewChannel={c.isNewChannel}
-          setWebsiteCategory={c.setWebsiteCategory}
-          setWebsiteTags={c.setWebsiteTags}
-          setChannelCategory={c.setChannelCategory}
-          setChannelTags={c.setChannelTags}
-          onSetWebsiteCategory={c.setSetWebsiteCategory}
-          onSetWebsiteTags={c.setSetWebsiteTags}
-          onSetChannelCategory={c.setSetChannelCategory}
-          onSetChannelTags={c.setSetChannelTags}
         />
       )}
 

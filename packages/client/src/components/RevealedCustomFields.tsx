@@ -5,8 +5,6 @@ import { CategoryCustomFields } from "./BookmarkCustomFields";
 
 export interface RevealedCustomFieldsProps {
   form: BookmarkFormApi;
-  /** The bookmark's media type (when editing); properties scoped to it also appear (union). */
-  mediaTypeId?: string | null;
   customProperties: CustomProperty[];
   numberInputs: Record<string, string>;
   booleanInputs: Record<string, boolean>;
@@ -16,10 +14,12 @@ export interface RevealedCustomFieldsProps {
   onDateTimeChange: (id: string, value: string) => void;
 }
 
-/** The main (non-Advanced) category-scoped custom-property fields, subscribed to the category. */
+/**
+ * The main (non-Advanced) custom-property fields, scoped to the live category AND media-type
+ * selection (union) so they update as the user changes either picker.
+ */
 export function RevealedCustomFields({
   form,
-  mediaTypeId = null,
   customProperties,
   numberInputs,
   booleanInputs,
@@ -29,12 +29,19 @@ export function RevealedCustomFields({
   onDateTimeChange,
 }: RevealedCustomFieldsProps) {
   return (
-    <form.Subscribe selector={state => state.values.categoryId}>
-      {categoryId => (
+    <form.Subscribe
+      selector={state => ({
+        categoryId: state.values.categoryId,
+        mediaTypeId: state.values.mediaTypeId,
+      })}
+    >
+      {({
+        categoryId, mediaTypeId,
+      }) => (
         <CategoryCustomFields
           placement="default"
           categoryId={categoryId}
-          mediaTypeId={mediaTypeId}
+          mediaTypeId={mediaTypeId || null}
           properties={customProperties}
           numberInputs={numberInputs}
           booleanInputs={booleanInputs}

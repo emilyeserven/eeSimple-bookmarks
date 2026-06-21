@@ -99,6 +99,16 @@ vi.mock("../hooks/useCustomProperties", () => ({
     data: customPropertiesData,
   }),
 }));
+vi.mock("../hooks/useMediaTypes", () => ({
+  useMediaTypes: () => ({
+    data: [],
+  }),
+  useCreateMediaType: () => ({
+    mutate: vi.fn(),
+    isError: false,
+    error: null,
+  }),
+}));
 vi.mock("../hooks/useAutofill", () => ({
   useAutofillRules: () => ({
     data: autofillRulesData,
@@ -276,8 +286,9 @@ describe("BookmarkForm progressive disclosure", () => {
       title: "example.com",
       originalUrl: null,
     });
-    // Media type, runtime, and priority are filled by the server, never sent by the form.
-    expect(input).not.toHaveProperty("mediaTypeId");
+    // With no media type picked, the form sends `mediaTypeId: null` and lets the server derive it;
+    // runtime and priority are filled by the server, never sent by the form.
+    expect(input).toHaveProperty("mediaTypeId", null);
     expect(input).not.toHaveProperty("priority");
     // The page-title endpoint is never hit on the quick path.
     expect(mutateAsync).not.toHaveBeenCalled();

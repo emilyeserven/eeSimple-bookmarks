@@ -1,3 +1,4 @@
+import type { SourceDefaults } from "./BookmarkAdvancedSection";
 import type { BookmarkFormApi } from "./bookmarkFormSchema";
 import type { ImageIntent } from "./bookmarkImageIntent";
 import type { useWebsiteLookup } from "../hooks/useWebsites";
@@ -9,6 +10,7 @@ import type {
   BookmarkUrlDuplicateResult,
   Category,
   CustomProperty,
+  MediaType,
   TagNode,
   Website,
   YouTubeChannelHint,
@@ -51,16 +53,8 @@ interface BookmarkRevealedFieldsProps {
   onSiteNameChange: (name: string) => void;
   onSiteNameBlur: () => void;
 
-  // "Set as default" checkboxes for new sites/channels.
-  isNewChannel: boolean;
-  setWebsiteCategory: boolean;
-  setWebsiteTags: boolean;
-  setChannelCategory: boolean;
-  setChannelTags: boolean;
-  onSetWebsiteCategory: (v: boolean) => void;
-  onSetWebsiteTags: (v: boolean) => void;
-  onSetChannelCategory: (v: boolean) => void;
-  onSetChannelTags: (v: boolean) => void;
+  // "Set as default" context for the source-default checkboxes (rendered under their fields).
+  sourceDefaults: SourceDefaults;
 
   // Title field + fetch.
   onTitleBlur: () => void;
@@ -85,8 +79,7 @@ interface BookmarkRevealedFieldsProps {
   // Tags + custom properties.
   tagTree: TagNode[];
   customProperties: CustomProperty[];
-  /** The bookmark's media type (when editing); properties scoped to it also appear (union). */
-  mediaTypeId?: string | null;
+  mediaTypes: MediaType[];
   onTagToggle: (id: string) => void;
   numberInputs: Record<string, string>;
   booleanInputs: Record<string, boolean>;
@@ -99,6 +92,8 @@ interface BookmarkRevealedFieldsProps {
   categories: Category[];
   addCategoryOpen: boolean;
   onAddCategoryOpenChange: (open: boolean) => void;
+  addMediaTypeOpen: boolean;
+  onAddMediaTypeOpenChange: (open: boolean) => void;
   imageFieldKey: number;
   existingImageUrl: string | null;
   defaultAuto: boolean;

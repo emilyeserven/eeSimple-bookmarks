@@ -10,25 +10,33 @@ import { useEffect, useState } from "react";
 export function useSourceDefaultFlags() {
   const [setWebsiteCategory, setSetWebsiteCategory] = useState(false);
   const [setWebsiteTags, setSetWebsiteTags] = useState(false);
+  const [setWebsiteMediaType, setSetWebsiteMediaType] = useState(false);
   const [setChannelCategory, setSetChannelCategory] = useState(false);
   const [setChannelTags, setSetChannelTags] = useState(false);
+  const [setChannelMediaType, setSetChannelMediaType] = useState(false);
 
   function resetFlags(): void {
     setSetWebsiteCategory(false);
     setSetWebsiteTags(false);
+    setSetWebsiteMediaType(false);
     setSetChannelCategory(false);
     setSetChannelTags(false);
+    setSetChannelMediaType(false);
   }
 
   return {
     setWebsiteCategory,
     setWebsiteTags,
+    setWebsiteMediaType,
     setChannelCategory,
     setChannelTags,
+    setChannelMediaType,
     setSetWebsiteCategory,
     setSetWebsiteTags,
+    setSetWebsiteMediaType,
     setSetChannelCategory,
     setSetChannelTags,
+    setSetChannelMediaType,
     resetFlags,
   };
 }
@@ -54,6 +62,8 @@ export function useBookmarkFormUiState({
   const [websiteSiteName, setWebsiteSiteName] = useState("");
   // Drives the inline "Create category" modal opened from the Category combobox.
   const [addCategoryOpen, setAddCategoryOpen] = useState(false);
+  // Drives the inline "Create media type" modal opened from the Media Type combobox.
+  const [addMediaTypeOpen, setAddMediaTypeOpen] = useState(false);
   // When the fetch-title button overwrites a non-empty title, record the previous value so the
   // banner can offer an undo. Cleared when the user manually edits the title field.
   const [titleFetch, setTitleFetch] = useState<{ previous: string } | null>(null);
@@ -95,6 +105,8 @@ export function useBookmarkFormUiState({
     setWebsiteSiteName,
     addCategoryOpen,
     setAddCategoryOpen,
+    addMediaTypeOpen,
+    setAddMediaTypeOpen,
     titleFetch,
     setTitleFetch,
     scanned,

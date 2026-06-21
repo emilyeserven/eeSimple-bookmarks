@@ -50,8 +50,10 @@ export async function applyImageIntent(
 export interface SourceDefaultFlags {
   setWebsiteCategory: boolean;
   setWebsiteTags: boolean;
+  setWebsiteMediaType: boolean;
   setChannelCategory: boolean;
   setChannelTags: boolean;
+  setChannelMediaType: boolean;
 }
 
 /** The website / YouTube-channel default-update mutations `promoteSourceDefaults` drives. */
@@ -61,25 +63,32 @@ interface SourceMutations {
 }
 
 /**
- * Promote the saved bookmark's category/tags to its website's and channel's defaults, for each
- * "set as default" checkbox the user opted into. Extracted from the form so the create save path
- * stays thin and the per-flag promotion is independently testable.
+ * Promote the saved bookmark's category/media-type/tags to its website's and channel's defaults,
+ * for each "set as default" checkbox the user opted into. Extracted from the form so the create
+ * save path stays thin and the per-flag promotion is independently testable.
  */
 export function promoteSourceDefaults(
   created: Awaited<ReturnType<Actions["createBookmark"]["mutateAsync"]>>,
   categoryId: string,
+  mediaTypeId: string,
   tagIds: string[],
   flags: SourceDefaultFlags,
   {
     updateWebsite, updateYouTubeChannel,
   }: SourceMutations,
 ): void {
-  if ((flags.setWebsiteCategory || flags.setWebsiteTags) && created.website?.id) {
+  if (
+    (flags.setWebsiteCategory || flags.setWebsiteTags || flags.setWebsiteMediaType)
+    && created.website?.id
+  ) {
     updateWebsite.mutate({
       id: created.website.id,
       input: {
         ...(flags.setWebsiteCategory && {
           categoryId: categoryId || null,
+        }),
+        ...(flags.setWebsiteMediaType && {
+          mediaTypeId: mediaTypeId || null,
         }),
         ...(flags.setWebsiteTags && {
           tagIds,
@@ -87,12 +96,18 @@ export function promoteSourceDefaults(
       },
     });
   }
-  if ((flags.setChannelCategory || flags.setChannelTags) && created.youtubeChannel?.id) {
+  if (
+    (flags.setChannelCategory || flags.setChannelTags || flags.setChannelMediaType)
+    && created.youtubeChannel?.id
+  ) {
     updateYouTubeChannel.mutate({
       id: created.youtubeChannel.id,
       input: {
         ...(flags.setChannelCategory && {
           categoryId: categoryId || null,
+        }),
+        ...(flags.setChannelMediaType && {
+          mediaTypeId: mediaTypeId || null,
         }),
         ...(flags.setChannelTags && {
           tagIds,

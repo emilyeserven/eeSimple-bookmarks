@@ -36,15 +36,6 @@ export function makeRevealedProps(overrides: Partial<RevealedFixtureProps> = {})
     websiteSiteName: "",
     onSiteNameChange: () => undefined,
     onSiteNameBlur: () => undefined,
-    isNewChannel: false,
-    setWebsiteCategory: false,
-    setWebsiteTags: false,
-    setChannelCategory: false,
-    setChannelTags: false,
-    onSetWebsiteCategory: () => undefined,
-    onSetWebsiteTags: () => undefined,
-    onSetChannelCategory: () => undefined,
-    onSetChannelTags: () => undefined,
 
     // Name field + title fetch + feedback.
     onTitleBlur: () => undefined,
@@ -79,7 +70,6 @@ export function makeRevealedProps(overrides: Partial<RevealedFixtureProps> = {})
     ignoreList: [],
 
     // Custom fields.
-    mediaTypeId: null,
     customProperties: sampleProperties as CustomProperty[],
     numberInputs: {},
     booleanInputs: {},
@@ -99,15 +89,6 @@ export interface RevealedFixtureProps {
   websiteSiteName: string;
   onSiteNameChange: (name: string) => void;
   onSiteNameBlur: () => void;
-  isNewChannel: boolean;
-  setWebsiteCategory: boolean;
-  setWebsiteTags: boolean;
-  setChannelCategory: boolean;
-  setChannelTags: boolean;
-  onSetWebsiteCategory: (v: boolean) => void;
-  onSetWebsiteTags: (v: boolean) => void;
-  onSetChannelCategory: (v: boolean) => void;
-  onSetChannelTags: (v: boolean) => void;
   onTitleBlur: () => void;
   onTitleChange: () => void;
   onFetchTitleClick: (url: string) => void;
@@ -134,7 +115,6 @@ export interface RevealedFixtureProps {
   onUrlCleanupModeChange: (mode: "none" | "trackers" | "all") => void;
   websites: Website[];
   ignoreList: string[];
-  mediaTypeId: string | null;
   customProperties: CustomProperty[];
   numberInputs: Record<string, string>;
   booleanInputs: Record<string, boolean>;
