@@ -5,7 +5,8 @@
 //   2. spawns the middleware API as a child process and respawns it with backoff,
 //   3. proxies `/api/*` to the middleware,
 //   4. serves the client's static build (with SPA fallback),
-//   5. exposes `/healthz` for orchestrators.
+//   5. serves the Storybook static build at `/storybook` when DOCS_ENABLED is on,
+//   6. exposes `/healthz` for orchestrators.
 //
 // The only configuration it needs in production is `DATABASE_URL`.
 import { spawn } from "node:child_process";
@@ -22,6 +23,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const appRoot = join(here, "..", "..");
 const middlewareDir = join(appRoot, "packages", "middleware");
 const clientDist = join(appRoot, "packages", "client", "dist");
+const storybookDist = join(appRoot, "packages", "client", "storybook-static");
 
 const GATEWAY_PORT = Number(process.env.PORT ?? 3000);
 const MIDDLEWARE_PORT = Number(process.env.MIDDLEWARE_PORT ?? 3001);
@@ -36,10 +38,11 @@ const SCHEMA_PUSH_ATTEMPTS = Number(process.env.SCHEMA_PUSH_ATTEMPTS ?? 5);
 // Generous by default so modest hardware (e.g. a Raspberry Pi) has time to boot the API.
 const MIDDLEWARE_WAIT_TIMEOUT_MS = Number(process.env.MIDDLEWARE_WAIT_TIMEOUT_MS ?? 60_000);
 
-// Whether to proxy the Swagger/OpenAPI docs (`/docs`) through to the middleware. `DOCS_ENABLED`
-// overrides explicitly (`true`/`1` on, `false`/`0` off); when unset it defaults to on outside
-// production and off in production. The middleware parses this same flag the same way to decide
-// whether to register the docs at all — keep the two in sync (see packages/middleware/src/app.ts).
+// Whether to proxy the Swagger/OpenAPI docs (`/docs`) through to the middleware, and serve the
+// Storybook static build (`/storybook`) from this gateway. `DOCS_ENABLED` overrides explicitly
+// (`true`/`1` on, `false`/`0` off); when unset it defaults to on outside production and off in
+// production. The middleware parses this same flag the same way to decide whether to register the
+// docs at all — keep the two in sync (see packages/middleware/src/app.ts).
 function docsEnabled() {
   const flag = process.env.DOCS_ENABLED;
   if (flag === undefined || flag === "") return (process.env.NODE_ENV ?? "production") !== "production";
@@ -256,6 +259,21 @@ async function startGateway() {
       root: clientDist,
       wildcard: false,
     });
+
+    // Storybook's static build, served under `/storybook` and gated on DOCS_ENABLED like the docs.
+    // `decorateReply: false` because the client registration above already owns `reply.sendFile`
+    // (used by the SPA fallback). `redirect: true` sends `/storybook` → `/storybook/` so Storybook's
+    // relative asset URLs resolve. Built into the image unconditionally; only the serving is gated.
+    if (DOCS_ENABLED && existsSync(storybookDist)) {
+      await app.register(fastifyStatic, {
+        root: storybookDist,
+        prefix: "/storybook/",
+        decorateReply: false,
+        redirect: true,
+        wildcard: false,
+      });
+    }
+
     // SPA fallback: serve index.html for client-side routes.
     app.setNotFoundHandler((req, reply) => {
       if (req.method === "GET" && !req.url.startsWith("/api")) {
