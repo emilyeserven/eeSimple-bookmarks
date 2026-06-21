@@ -32,8 +32,8 @@ import { useSavedFilters } from "../hooks/useSavedFilters";
 import { useTags } from "../hooks/useTags";
 import { useWebsites } from "../hooks/useWebsites";
 import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
-import { useUiStore } from "../stores/uiStore";
 import { validateBookmarkSearch } from "../lib/bookmarkSearch";
+import { useUiStore } from "../stores/uiStore";
 
 import { Badge } from "@/components/ui/badge";
 import {

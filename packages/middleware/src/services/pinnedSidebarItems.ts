@@ -3,7 +3,7 @@ import type { PinnedSidebarItemRow } from "@/db/schema";
 
 import { asc, eq } from "drizzle-orm";
 
-import { db } from "@/db/client";
+import { db } from "@/db";
 import { pinnedSidebarItems } from "@/db/schema";
 
 function toPinnedSidebarItem(row: PinnedSidebarItemRow): PinnedSidebarItem {

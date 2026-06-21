@@ -165,17 +165,31 @@ const LISTING_DEFAULTS = [
 ] as const;
 
 function PinnedItemsCard() {
-  const { data: pins = [] } = usePinnedSidebarItems();
+  const {
+    data: pins = [],
+  } = usePinnedSidebarItems();
   const addPin = useAddPinnedSidebarItem();
   const removePin = useRemovePinnedSidebarItem();
   const [comboValue, setComboValue] = useState<string | undefined>();
 
-  const { data: categories = [] } = useCategories();
-  const { data: allTags = [] } = useTags();
-  const { data: allWebsites = [] } = useWebsites();
-  const { data: allMediaTypes = [] } = useMediaTypes();
-  const { data: allChannels = [] } = useYouTubeChannels();
-  const { data: savedFilters = [] } = useSavedFilters();
+  const {
+    data: categories = [],
+  } = useCategories();
+  const {
+    data: allTags = [],
+  } = useTags();
+  const {
+    data: allWebsites = [],
+  } = useWebsites();
+  const {
+    data: allMediaTypes = [],
+  } = useMediaTypes();
+  const {
+    data: allChannels = [],
+  } = useYouTubeChannels();
+  const {
+    data: savedFilters = [],
+  } = useSavedFilters();
 
   const pinnedKeys = new Set(pins.map((p: PinnedSidebarItem) => `${p.entityType}:${p.entityId}`));
 
@@ -185,7 +199,12 @@ function PinnedItemsCard() {
       .map(c => ({
         value: `category:${c.id}`,
         label: c.name,
-        icon: <CategoryIcon name={c.icon} className="size-4 shrink-0" />,
+        icon: (
+          <CategoryIcon
+            name={c.icon}
+            className="size-4 shrink-0"
+          />
+        ),
       })),
     ...allTags
       .filter(t => !pinnedKeys.has(`tag:${t.id}`))
@@ -206,7 +225,12 @@ function PinnedItemsCard() {
       .map(m => ({
         value: `media-type:${m.id}`,
         label: m.name,
-        icon: <CategoryIcon name={m.icon} className="size-4 shrink-0" />,
+        icon: (
+          <CategoryIcon
+            name={m.icon}
+            className="size-4 shrink-0"
+          />
+        ),
       })),
     ...allChannels
       .filter(c => !pinnedKeys.has(`youtube-channel:${c.id}`))
@@ -270,7 +294,7 @@ function PinnedItemsCard() {
                     key={pin.id}
                     className="flex items-center gap-2 py-0.5"
                   >
-                    <span className={cn("flex-1 truncate text-sm", !label && "italic text-muted-foreground")}>
+                    <span className={cn("flex-1 truncate text-sm", !label && "text-muted-foreground italic")}>
                       {label ?? "(deleted)"}
                     </span>
                     <Button
