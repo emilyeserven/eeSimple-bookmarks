@@ -1,4 +1,4 @@
-import { asc, eq, isNotNull, isNull, ne } from "drizzle-orm";
+import { asc, eq, isNotNull, isNull } from "drizzle-orm";
 import type {
   CreateMediaTypeInput,
   MediaType,
@@ -8,6 +8,7 @@ import type {
 import { db } from "@/db";
 import { bookmarks, mediaTypes, type MediaTypeRow } from "@/db/schema";
 import { slugify, uniqueSlug } from "@/utils/slug";
+import { takenSlugsOf } from "@/utils/taxonomySlugs";
 
 /** Thrown when a create/rename collides with an existing media type name. */
 export class DuplicateMediaTypeError extends Error {
@@ -169,15 +170,8 @@ export function buildMediaTypeTree(all: MediaType[]): MediaTypeNode[] {
 }
 
 /** Existing media-type slugs, optionally excluding one row (when renaming). */
-async function takenSlugs(excludeId?: string): Promise<string[]> {
-  const rows = await db
-    .select({
-      slug: mediaTypes.slug,
-    })
-    .from(mediaTypes)
-    .where(excludeId ? ne(mediaTypes.id, excludeId) : undefined);
-  return rows.map(r => r.slug).filter((s): s is string => s !== null);
-}
+const takenSlugs = (excludeId?: string) =>
+  takenSlugsOf(mediaTypes, mediaTypes.slug, mediaTypes.id, excludeId);
 
 /**
  * Enforce the single allowed level of nesting: a non-null parent must reference an existing

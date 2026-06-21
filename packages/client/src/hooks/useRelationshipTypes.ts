@@ -17,15 +17,6 @@ export function useRelationshipTypes() {
   });
 }
 
-/** Look up a single relationship type by its slug from the cached list. */
-export function useRelationshipTypeBySlug(slug: string) {
-  const query = useRelationshipTypes();
-  return {
-    ...query,
-    relationshipType: (query.data ?? []).find(item => item.slug === slug),
-  };
-}
-
 export function useCreateRelationshipType() {
   const queryClient = useQueryClient();
   return useMutation({

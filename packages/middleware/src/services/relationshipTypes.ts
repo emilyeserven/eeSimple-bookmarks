@@ -1,4 +1,4 @@
-import { asc, eq, isNull, ne } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import type {
   CreateRelationshipTypeInput,
   RelationshipType,
@@ -11,6 +11,11 @@ import {
   type RelationshipTypeRow,
 } from "@/db/schema";
 import { slugify, uniqueSlug } from "@/utils/slug";
+import { takenSlugsOf } from "@/utils/taxonomySlugs";
+
+/** Existing relationship-type slugs, optionally excluding one row (when renaming). */
+const takenSlugs = (excludeId?: string) =>
+  takenSlugsOf(relationshipTypes, relationshipTypes.slug, relationshipTypes.id, excludeId);
 
 /** Thrown when a create/rename collides with an existing relationship type name. */
 export class DuplicateRelationshipTypeError extends Error {
@@ -70,17 +75,6 @@ function toRelationshipType(
   };
 }
 
-/** Existing relationship-type slugs, optionally excluding one row (when renaming). */
-async function takenSlugs(excludeId?: string): Promise<string[]> {
-  const rows = await db
-    .select({
-      slug: relationshipTypes.slug,
-    })
-    .from(relationshipTypes)
-    .where(excludeId ? ne(relationshipTypes.id, excludeId) : undefined);
-  return rows.map(r => r.slug).filter((s): s is string => s !== null);
-}
-
 /** List all relationship types, ordered by their display order then name, with usage counts. */
 export async function listRelationshipTypes(): Promise<RelationshipType[]> {
   const rows = await db
@@ -100,12 +94,6 @@ export async function listRelationshipTypes(): Promise<RelationshipType[]> {
     .from(relationshipTypes)
     .orderBy(asc(relationshipTypes.sortOrder), asc(relationshipTypes.name));
   return rows.map(toRelationshipType);
-}
-
-/** Fetch a relationship type by its slug, or `null` when absent. */
-export async function getRelationshipTypeBySlug(slug: string): Promise<RelationshipType | null> {
-  const [row] = await db.select().from(relationshipTypes).where(eq(relationshipTypes.slug, slug));
-  return row ? toRelationshipType(row) : null;
 }
 
 /** Add a custom relationship type. Throws `DuplicateRelationshipTypeError` on a name clash. */
@@ -180,7 +168,8 @@ export async function deleteRelationshipType(id: string): Promise<boolean> {
 
 /**
  * Ensure the seeded built-in relationship types exist. Idempotent and safe to call at boot: inserts
- * any missing built-in by slug, and keeps its `directional` flag aligned with the seed.
+ * any missing built-in by slug, and keeps its `directional` flag aligned with the seed. The table is
+ * created with `slug` from the first boot, so every row always has a slug — no backfill is needed.
  */
 export async function ensureBuiltInRelationshipTypes(): Promise<void> {
   let order = 0;
@@ -199,26 +188,5 @@ export async function ensureBuiltInRelationshipTypes(): Promise<void> {
         target: relationshipTypes.slug,
       });
     order += 1;
-  }
-}
-
-/** Fill in slugs for any relationship types missing one (e.g. rows that predate the `slug` column). */
-export async function backfillRelationshipTypeSlugs(): Promise<void> {
-  const missing = await db
-    .select({
-      id: relationshipTypes.id,
-      name: relationshipTypes.name,
-    })
-    .from(relationshipTypes)
-    .where(isNull(relationshipTypes.slug));
-  if (missing.length === 0) return;
-
-  const taken = await takenSlugs();
-  for (const rt of missing) {
-    const slug = uniqueSlug(rt.name, taken);
-    taken.push(slug);
-    await db.update(relationshipTypes).set({
-      slug,
-    }).where(eq(relationshipTypes.id, rt.id));
   }
 }

@@ -1,6 +1,6 @@
 import type { RelationshipTypeCondition } from "@eesimple/types";
 
-import { MultiCombobox } from "../MultiCombobox";
+import { EntityMultiSelectCondition } from "./EntityMultiSelectCondition";
 
 import { useRelationshipTypes } from "@/hooks/useRelationshipTypes";
 
@@ -18,8 +18,8 @@ export function RelationshipTypeConditionEditor({
   } = useRelationshipTypes();
 
   return (
-    <MultiCombobox
-      aria-label="Relationship Types"
+    <EntityMultiSelectCondition
+      ariaLabel="Relationship Types"
       placeholder={isLoading ? "Loading…" : "Any relationship type"}
       searchPlaceholder="Search relationship types…"
       emptyText="No relationship types found."

@@ -1,6 +1,6 @@
 import type { MediaTypeCondition } from "@eesimple/types";
 
-import { MultiCombobox } from "../MultiCombobox";
+import { EntityMultiSelectCondition } from "./EntityMultiSelectCondition";
 
 import { useMediaTypes } from "@/hooks/useMediaTypes";
 
@@ -18,8 +18,8 @@ export function MediaTypeConditionEditor({
   } = useMediaTypes();
 
   return (
-    <MultiCombobox
-      aria-label="Media Types"
+    <EntityMultiSelectCondition
+      ariaLabel="Media Types"
       placeholder={isLoading ? "Loading…" : "Any media type"}
       searchPlaceholder="Search media types…"
       emptyText="No media types found."

@@ -1,9 +1,10 @@
-import { asc, eq, inArray, isNull, ne } from "drizzle-orm";
+import { asc, eq, inArray, isNull } from "drizzle-orm";
 import type { CreateYouTubeChannelInput, UpdateYouTubeChannelInput, YouTubeChannel } from "@eesimple/types";
 import { db } from "@/db";
 import { bookmarks, categories, type YouTubeChannelRow, youtubeChannelImages, youtubeChannelSelfIds, youtubeChannelTags, youtubeChannels } from "@/db/schema";
 import { buildStringMap } from "@/utils/mapUtils";
 import { slugify, uniqueSlug } from "@/utils/slug";
+import { takenSlugsOf } from "@/utils/taxonomySlugs";
 
 /**
  * Build an avatar serving URL (with a `?v=` cache-buster) from a channel id and its avatar's
@@ -162,15 +163,8 @@ function toYouTubeChannel(
 }
 
 /** Existing channel slugs, optionally excluding one row (when renaming). */
-async function takenSlugs(excludeId?: string): Promise<string[]> {
-  const rows = await db
-    .select({
-      slug: youtubeChannels.slug,
-    })
-    .from(youtubeChannels)
-    .where(excludeId ? ne(youtubeChannels.id, excludeId) : undefined);
-  return rows.map(r => r.slug).filter((s): s is string => s !== null);
-}
+const takenSlugs = (excludeId?: string) =>
+  takenSlugsOf(youtubeChannels, youtubeChannels.slug, youtubeChannels.id, excludeId);
 
 /** List all channels, ordered by name. */
 export async function listYouTubeChannels(): Promise<YouTubeChannel[]> {
