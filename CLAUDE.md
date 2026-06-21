@@ -95,7 +95,12 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
   literal `["number", "boolean", …]` list anywhere — derive from the tuple. The bookmark-filter UI
   dispatches the same way: `components/conditions/PropertyConditionEditor.tsx` routes each property
   through `propertyValueKind()` to one of the exhaustive `*ConditionRow` sub-components
-  (`Number`/`DateTime`/`File`/`Boolean`) — adding a value kind means adding a branch there too.
+  (`Number`/`DateTime`/`File`/`Boolean`) — adding a value kind means adding a branch there too. The
+  same exhaustive-`Record<CustomPropertyType, …>` technique also backs **per-type component
+  dispatch** — `PropertyDetail.tsx`'s `OPTIONS_FIELDS` maps each type to its options sub-component
+  (`BooleanOptionsFields`, `NumericOptionsFields`, …; `null` = no options section), so a new type
+  missing a renderer **fails `tsc`** instead of silently rendering nothing (vs. the named-function
+  routing above, used where per-branch props differ).
 - **UI primitives:** before adding a Radix/shadcn primitive, check
   `packages/client/src/components/ui/` — `dialog`, `dropdown-menu`, `popover`, `toggle-group`,
   `command`, etc. already exist (`Dialog` was once reintroduced twice). Reuse the existing one.
