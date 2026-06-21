@@ -1,8 +1,8 @@
 import type { TreeComboboxOption } from "./TreeMultiCombobox";
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
-import type { Bookmark, Category, CustomProperty, MediaType, PropertyGroup, TagNode, Website, YouTubeChannel } from "@eesimple/types";
+import type { Bookmark, Category, CustomProperty, MediaType, PropertyGroup, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
 
-import { ChevronDown, Globe, MonitorPlay, TriangleAlert } from "lucide-react";
+import { ChevronDown, Globe, MonitorPlay, Share2, TriangleAlert } from "lucide-react";
 
 import { CustomPropertyFilters } from "./CustomPropertyFilters";
 import { FacetChips, FacetPresenceToggle } from "./FilterFacetControls";
@@ -17,6 +17,7 @@ import {
   withMediaTypes,
   withNumberFilter,
   withPresenceFilter,
+  withRelationshipTypes,
   withTagPresence,
   withTags,
   withWebsitePresence,
@@ -27,8 +28,8 @@ import {
 
 /** The filter sections themselves, with separators between adjacent groups. */
 export function FilterSections({
-  tree, enabledProperties, propertyGroups, categories, mediaTypes, youtubeChannels, websites, bookmarks, search, onSearchChange,
-  hasTags, hasProperties, hasCategoryFilter, hasMediaTypeFilter, hasChannelFilter, hasWebsiteFilter,
+  tree, enabledProperties, propertyGroups, categories, mediaTypes, youtubeChannels, websites, relationshipTypes, bookmarks, search, onSearchChange,
+  hasTags, hasProperties, hasCategoryFilter, hasMediaTypeFilter, hasChannelFilter, hasWebsiteFilter, hasRelationshipTypeFilter,
 }: {
   tree: TagNode[];
   enabledProperties: CustomProperty[];
@@ -37,6 +38,7 @@ export function FilterSections({
   mediaTypes?: MediaType[];
   youtubeChannels?: YouTubeChannel[];
   websites?: Website[];
+  relationshipTypes?: RelationshipType[];
   bookmarks: Pick<Bookmark, "numberValues">[];
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;
@@ -46,6 +48,7 @@ export function FilterSections({
   hasMediaTypeFilter: boolean;
   hasChannelFilter: boolean;
   hasWebsiteFilter: boolean;
+  hasRelationshipTypeFilter: boolean;
 }) {
   return (
     <>
@@ -59,7 +62,7 @@ export function FilterSections({
         )
         : null}
 
-      {hasTags && (hasCategoryFilter || hasMediaTypeFilter || hasChannelFilter || hasWebsiteFilter || hasProperties)
+      {hasTags && (hasCategoryFilter || hasMediaTypeFilter || hasChannelFilter || hasWebsiteFilter || hasRelationshipTypeFilter || hasProperties)
         ? <Separator />
         : null}
 
@@ -73,7 +76,7 @@ export function FilterSections({
         )
         : null}
 
-      {hasCategoryFilter && (hasMediaTypeFilter || hasChannelFilter || hasWebsiteFilter || hasProperties)
+      {hasCategoryFilter && (hasMediaTypeFilter || hasChannelFilter || hasWebsiteFilter || hasRelationshipTypeFilter || hasProperties)
         ? <Separator />
         : null}
 
@@ -87,7 +90,7 @@ export function FilterSections({
         )
         : null}
 
-      {hasMediaTypeFilter && (hasChannelFilter || hasWebsiteFilter || hasProperties) ? <Separator /> : null}
+      {hasMediaTypeFilter && (hasChannelFilter || hasWebsiteFilter || hasRelationshipTypeFilter || hasProperties) ? <Separator /> : null}
 
       {hasChannelFilter
         ? (
@@ -99,7 +102,7 @@ export function FilterSections({
         )
         : null}
 
-      {hasChannelFilter && (hasWebsiteFilter || hasProperties) ? <Separator /> : null}
+      {hasChannelFilter && (hasWebsiteFilter || hasRelationshipTypeFilter || hasProperties) ? <Separator /> : null}
 
       {hasWebsiteFilter
         ? (
@@ -111,7 +114,19 @@ export function FilterSections({
         )
         : null}
 
-      {hasWebsiteFilter && hasProperties ? <Separator /> : null}
+      {hasWebsiteFilter && (hasRelationshipTypeFilter || hasProperties) ? <Separator /> : null}
+
+      {hasRelationshipTypeFilter
+        ? (
+          <RelationshipTypeFilterSection
+            relationshipTypes={relationshipTypes}
+            search={search}
+            onSearchChange={onSearchChange}
+          />
+        )
+        : null}
+
+      {hasRelationshipTypeFilter && hasProperties ? <Separator /> : null}
 
       {hasProperties
         ? (
@@ -515,6 +530,69 @@ function WebsiteFilterSection({
                 hover:underline
               "
               onClick={() => onSearchChange(withWebsitePresence(withWebsites(search, []), undefined))}
+            >
+              Reset
+            </button>
+          )
+          : null}
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
+/** Multi-select relationship-type filter; rendered wherever relationship types exist. */
+function RelationshipTypeFilterSection({
+  relationshipTypes, search, onSearchChange,
+}: {
+  relationshipTypes?: RelationshipType[];
+  search: BookmarkSearch;
+  onSearchChange: (next: BookmarkSearch) => void;
+}) {
+  const options = (relationshipTypes ?? []).map(rt => ({
+    value: rt.id,
+    label: rt.name,
+    icon: <Share2 className="size-4 shrink-0 text-muted-foreground" />,
+  }));
+  const selected = search.relationshipTypes ?? [];
+
+  return (
+    <Collapsible
+      defaultOpen
+      className="group/relationship-type space-y-3"
+    >
+      <CollapsibleTrigger
+        className="
+          flex items-center gap-1.5 text-sm font-semibold
+          hover:text-foreground
+        "
+      >
+        <ChevronDown
+          className="
+            size-3.5 shrink-0 transition-transform
+            group-data-[state=open]/relationship-type:rotate-180
+          "
+        />
+        Relationship type
+      </CollapsibleTrigger>
+      <CollapsibleContent className="space-y-3">
+        <MultiCombobox
+          options={options}
+          values={selected}
+          onValuesChange={ids => onSearchChange(withRelationshipTypes(search, ids))}
+          placeholder="All relationship types"
+          searchPlaceholder="Search relationship types…"
+          emptyText="No relationship types found."
+          aria-label="Filter by relationship type"
+        />
+        {selected.length > 0
+          ? (
+            <button
+              type="button"
+              className="
+                text-xs text-primary
+                hover:underline
+              "
+              onClick={() => onSearchChange(withRelationshipTypes(search, []))}
             >
               Reset
             </button>

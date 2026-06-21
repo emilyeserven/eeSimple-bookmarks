@@ -488,21 +488,40 @@ export async function bookmarkRoutes(app: FastifyInstance): Promise<void> {
     return reply.code(204).send();
   });
 
-  // Replace the full set of relationships for a bookmark (undirected edges to other bookmarks).
+  // Replace the full set of typed relationships for a bookmark (edges to other bookmarks).
   app.put("/api/bookmarks/:id/relationships", {
     schema: {
       tags: ["bookmarks"],
       params: bookmarkParams,
       body: {
         type: "object",
-        required: ["relatedBookmarkIds"],
+        required: ["relationships"],
         additionalProperties: false,
         properties: {
-          relatedBookmarkIds: {
+          relationships: {
             type: "array",
             items: {
-              type: "string",
-              format: "uuid",
+              type: "object",
+              required: ["bookmarkId", "relationshipTypeId"],
+              additionalProperties: false,
+              properties: {
+                bookmarkId: {
+                  type: "string",
+                  format: "uuid",
+                },
+                relationshipTypeId: {
+                  type: "string",
+                  format: "uuid",
+                },
+                label: {
+                  type: "string",
+                  nullable: true,
+                },
+                direction: {
+                  type: "string",
+                  enum: ["parent", "child"],
+                },
+              },
             },
           },
         },

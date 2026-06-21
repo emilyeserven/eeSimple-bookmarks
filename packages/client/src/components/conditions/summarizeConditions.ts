@@ -15,6 +15,8 @@ export interface ConditionSummary {
   channels: number;
   /** Number of selected media type ids (a single media-type leaf can hold several). */
   mediaTypes: number;
+  /** Number of selected relationship type ids (a single relationship-type leaf can hold several). */
+  relationshipTypes: number;
   properties: number;
   combinator: "and" | "or";
 }
@@ -27,6 +29,7 @@ export function summarizeConditions(tree: ConditionTree): ConditionSummary {
   let tags = 0;
   let channels = 0;
   let mediaTypes = 0;
+  let relationshipTypes = 0;
   let properties = 0;
   for (const child of tree.children) {
     if (child.type === "match") match += 1;
@@ -35,6 +38,7 @@ export function summarizeConditions(tree: ConditionTree): ConditionSummary {
     else if (child.type === "tag") tags += child.tagIds.length;
     else if (child.type === "youtube-channel") channels += child.channelIds.length;
     else if (child.type === "media-type") mediaTypes += child.mediaTypeIds.length;
+    else if (child.type === "relationship-type") relationshipTypes += child.relationshipTypeIds.length;
     else if (child.type === "property") properties += 1;
   }
   return {
@@ -45,6 +49,7 @@ export function summarizeConditions(tree: ConditionTree): ConditionSummary {
     tags,
     channels,
     mediaTypes,
+    relationshipTypes,
     properties,
     combinator: tree.combinator,
   };
@@ -67,6 +72,7 @@ export function conditionsBreakdown(tree: ConditionTree): string[] {
   if (summary.tags > 0) lines.push(`${summary.tags} tag${summary.tags === 1 ? "" : "s"}`);
   if (summary.channels > 0) lines.push(`${summary.channels} YouTube channel${summary.channels === 1 ? "" : "s"}`);
   if (summary.mediaTypes > 0) lines.push(`${summary.mediaTypes} media type${summary.mediaTypes === 1 ? "" : "s"}`);
+  if (summary.relationshipTypes > 0) lines.push(`${summary.relationshipTypes} relationship type${summary.relationshipTypes === 1 ? "" : "s"}`);
   if (summary.properties > 0) lines.push(`${summary.properties} custom propert${summary.properties === 1 ? "y" : "ies"}`);
   return lines;
 }

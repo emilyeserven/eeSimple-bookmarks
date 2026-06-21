@@ -81,11 +81,6 @@ async function takenSlugs(excludeId?: string): Promise<string[]> {
   return rows.map(r => r.slug).filter((s): s is string => s !== null);
 }
 
-/** Count edges using a relationship type (either as a symmetric or directional edge). */
-function relationshipCountFor(typeId: string) {
-  return db.$count(bookmarkRelationships, eq(bookmarkRelationships.relationshipTypeId, typeId));
-}
-
 /** List all relationship types, ordered by their display order then name, with usage counts. */
 export async function listRelationshipTypes(): Promise<RelationshipType[]> {
   const rows = await db
@@ -97,7 +92,10 @@ export async function listRelationshipTypes(): Promise<RelationshipType[]> {
       builtIn: relationshipTypes.builtIn,
       sortOrder: relationshipTypes.sortOrder,
       createdAt: relationshipTypes.createdAt,
-      relationshipCount: relationshipCountFor(relationshipTypes.id),
+      relationshipCount: db.$count(
+        bookmarkRelationships,
+        eq(bookmarkRelationships.relationshipTypeId, relationshipTypes.id),
+      ),
     })
     .from(relationshipTypes)
     .orderBy(asc(relationshipTypes.sortOrder), asc(relationshipTypes.name));

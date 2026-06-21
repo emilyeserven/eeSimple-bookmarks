@@ -247,6 +247,7 @@ describe("bookmarkMatchesSearch", () => {
       value: "2026-06-15",
     }],
     fileValues: [],
+    relationships: [],
   };
 
   it("passes when no filters are active", () => {
@@ -295,6 +296,34 @@ describe("bookmarkMatchesSearch", () => {
       youtubeChannel: null,
     }, {
       youtubeChannels: ["ch-1"],
+    })).toBe(false);
+  });
+
+  it("applies the relationship-type filter", () => {
+    const withRel = {
+      ...bookmark,
+      relationships: [{
+        bookmark: {
+          id: "b2",
+          url: "https://example.com",
+          title: "Other",
+        },
+        relationshipTypeId: "rt-1",
+        relationshipTypeName: "Similar",
+        directional: false,
+        role: "related" as const,
+        label: null,
+      }],
+    };
+    expect(bookmarkMatchesSearch(withRel, {
+      relationshipTypes: ["rt-1"],
+    })).toBe(true);
+    expect(bookmarkMatchesSearch(withRel, {
+      relationshipTypes: ["rt-2"],
+    })).toBe(false);
+    // A bookmark with no relationships never matches a relationship-type filter.
+    expect(bookmarkMatchesSearch(bookmark, {
+      relationshipTypes: ["rt-1"],
     })).toBe(false);
   });
 

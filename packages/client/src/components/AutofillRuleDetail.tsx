@@ -94,6 +94,10 @@ function describeConditionNode(
       return node.mediaTypeIds.length === 1
         ? "media type is (1)"
         : `media type is one of (${node.mediaTypeIds.length})`;
+    case "relationship-type":
+      return node.relationshipTypeIds.length === 1
+        ? "has a relationship of type (1)"
+        : `has a relationship of one of (${node.relationshipTypeIds.length})`;
     case "property": {
       const property = properties.find(p => p.id === node.propertyId);
       const name = property?.name ?? "Unknown property";

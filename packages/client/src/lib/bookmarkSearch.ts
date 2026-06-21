@@ -25,6 +25,8 @@ export interface BookmarkSearch {
   websites?: string[];
   /** Filter bookmarks by whether they have a website ("has") or none ("missing"). */
   websitePresence?: "has" | "missing";
+  /** Restrict to bookmarks that have a relationship of one of these type ids (empty/absent = all). */
+  relationshipTypes?: string[];
   num?: Record<string, [number, number]>;
   bool?: Record<string, boolean>;
   /** `[from, to]` date/time range bounds (canonical strings, either `null`) keyed by property id. */
@@ -120,6 +122,11 @@ export function validateBookmarkSearch(search: Record<string, unknown>): Bookmar
     result.websitePresence = search.websitePresence;
   }
 
+  if (Array.isArray(search.relationshipTypes)) {
+    const ids = search.relationshipTypes.filter((v): v is string => typeof v === "string");
+    if (ids.length > 0) result.relationshipTypes = ids;
+  }
+
   const num = parseNumRecord(search.num);
   if (Object.keys(num).length > 0) result.num = num;
 
@@ -146,7 +153,17 @@ type SearchableBookmark = Pick<
   | "booleanValues"
   | "dateTimeValues"
   | "fileValues"
+  | "relationships"
 >;
+
+/** A multi-select relationship-type filter passes when empty or the bookmark has a matching edge. */
+function passesRelationshipTypeFilter(
+  selected: string[] | undefined,
+  bookmark: SearchableBookmark,
+): boolean {
+  if (!selected || selected.length === 0) return true;
+  return bookmark.relationships.some(rel => selected.includes(rel.relationshipTypeId));
+}
 
 /** A multi-select id filter passes when it is empty or contains the bookmark's value. */
 function passesIdFilter(selected: string[] | undefined, value: string | null | undefined): boolean {
@@ -205,6 +222,7 @@ export function bookmarkMatchesSearch(
     && passesPresence(search.youtubeChannelPresence, Boolean(bookmark.youtubeChannel))
     && passesIdFilter(search.websites, bookmark.website?.id)
     && passesPresence(search.websitePresence, Boolean(bookmark.website))
+    && passesRelationshipTypeFilter(search.relationshipTypes, bookmark)
     && passesPresence(search.tagPresence, bookmark.tags.length > 0)
     && passesPropertyPresence(bookmark, search)
     && passesValueFilters(bookmark, search)
@@ -222,6 +240,7 @@ export function hasAnyActiveFilter(search: BookmarkSearch): boolean {
     || search.youtubeChannelPresence !== undefined
     || (search.websites?.length ?? 0) > 0
     || search.websitePresence !== undefined
+    || (search.relationshipTypes?.length ?? 0) > 0
     || Object.keys(search.num ?? {}).length > 0
     || Object.keys(search.bool ?? {}).length > 0
     || Object.keys(search.date ?? {}).length > 0
@@ -366,6 +385,16 @@ export function withWebsites(search: BookmarkSearch, ids: string[]): BookmarkSea
   return next;
 }
 
+/** Return a copy of `search` with the relationship-type filter set, or cleared when `ids` is empty. */
+export function withRelationshipTypes(search: BookmarkSearch, ids: string[]): BookmarkSearch {
+  const next = {
+    ...search,
+  };
+  if (ids.length === 0) delete next.relationshipTypes;
+  else next.relationshipTypes = ids;
+  return next;
+}
+
 /**
  * Return a copy of `search` with the website-presence filter set or cleared.
  * Setting `"missing"` also clears any specific website selection (selecting one contradicts "none").
@@ -447,6 +476,7 @@ export function summarizeBookmarkSearch(raw: Record<string, unknown>): string {
     search.youtubeChannelPresence !== undefined ? `channel: ${search.youtubeChannelPresence}` : null,
     countPart(search.websites?.length ?? 0, "website", "websites"),
     search.websitePresence !== undefined ? `website: ${search.websitePresence}` : null,
+    countPart(search.relationshipTypes?.length ?? 0, "relationship type", "relationship types"),
     countPart(search.tags?.length ?? 0, "tag", "tags"),
     search.tagPresence !== undefined ? `tags: ${search.tagPresence}` : null,
     countPart(propCount, "property", "properties"),

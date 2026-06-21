@@ -80,7 +80,7 @@ function bookmarkWithNumber(propertyId: string, value: number): Bookmark {
     booleanValues: [],
     dateTimeValues: [],
     fileValues: [],
-    relatedBookmarks: [],
+    relationships: [],
     priority: 0,
     createdAt: NOW,
   };

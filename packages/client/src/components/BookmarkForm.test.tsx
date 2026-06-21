@@ -375,7 +375,7 @@ describe("BookmarkForm editing", () => {
       booleanValues: [],
       dateTimeValues: [],
       fileValues: [],
-      relatedBookmarks: [],
+      relationships: [],
       priority: 0,
       createdAt: "2026-06-01T00:00:00.000Z",
     };
@@ -434,7 +434,7 @@ describe("BookmarkForm editing", () => {
       booleanValues: [],
       dateTimeValues: [],
       fileValues: [],
-      relatedBookmarks: [],
+      relationships: [],
       priority: 0,
       createdAt: "2026-06-01T00:00:00.000Z",
     };
@@ -566,7 +566,7 @@ describe("BookmarkForm property prefill", () => {
       booleanValues: [],
       dateTimeValues: [],
       fileValues: [],
-      relatedBookmarks: [],
+      relationships: [],
       priority: 0,
       createdAt: "2026-06-01T00:00:00.000Z",
     };

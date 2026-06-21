@@ -7,6 +7,7 @@ import type {
   MatchCondition,
   MediaTypeCondition,
   PropertyCondition,
+  RelationshipTypeCondition,
   TagCondition,
   TagNode,
   WebsiteCondition,
@@ -19,6 +20,7 @@ import { CategoryConditionEditor } from "./CategoryConditionEditor";
 import { MatchConditionEditor } from "./MatchConditionEditor";
 import { MediaTypeConditionEditor } from "./MediaTypeConditionEditor";
 import { PropertyConditionEditor } from "./PropertyConditionEditor";
+import { RelationshipTypeConditionEditor } from "./RelationshipTypeConditionEditor";
 import { TagConditionEditor } from "./TagConditionEditor";
 import { WebsiteConditionEditor } from "./WebsiteConditionEditor";
 import { YouTubeChannelConditionEditor } from "./YouTubeChannelConditionEditor";
@@ -93,6 +95,7 @@ export function ConditionsField({
   const tagLeaf = value.children.find((child): child is TagCondition => child.type === "tag");
   const youtubeChannelLeaf = value.children.find((child): child is YouTubeChannelCondition => child.type === "youtube-channel");
   const mediaTypeLeaf = value.children.find((child): child is MediaTypeCondition => child.type === "media-type");
+  const relationshipTypeLeaf = value.children.find((child): child is RelationshipTypeCondition => child.type === "relationship-type");
   const propertyLeaves = value.children.filter((child): child is PropertyCondition => child.type === "property");
   // Preserve any nested groups (not editable in this v1 UI) so the tree round-trips.
   const nestedGroups = value.children.filter(child => child.type === "group");
@@ -104,6 +107,7 @@ export function ConditionsField({
     tag?: TagCondition | null;
     youtubeChannel?: YouTubeChannelCondition | null;
     mediaType?: MediaTypeCondition | null;
+    relationshipType?: RelationshipTypeCondition | null;
     properties?: PropertyCondition[];
   }) {
     const nextMatches = next.matches ?? matches;
@@ -112,6 +116,7 @@ export function ConditionsField({
     const nextTag = next.tag === undefined ? tagLeaf : next.tag;
     const nextYoutubeChannel = next.youtubeChannel === undefined ? youtubeChannelLeaf : next.youtubeChannel;
     const nextMediaType = next.mediaType === undefined ? mediaTypeLeaf : next.mediaType;
+    const nextRelationshipType = next.relationshipType === undefined ? relationshipTypeLeaf : next.relationshipType;
     const nextProperties = next.properties ?? propertyLeaves;
     const children: ConditionNode[] = [
       ...nextMatches,
@@ -120,6 +125,7 @@ export function ConditionsField({
       ...(nextTag && nextTag.tagIds.length > 0 ? [nextTag] : []),
       ...(nextYoutubeChannel && nextYoutubeChannel.channelIds.length > 0 ? [nextYoutubeChannel] : []),
       ...(nextMediaType && nextMediaType.mediaTypeIds.length > 0 ? [nextMediaType] : []),
+      ...(nextRelationshipType && nextRelationshipType.relationshipTypeIds.length > 0 ? [nextRelationshipType] : []),
       ...nextProperties,
       ...nestedGroups,
     ];
@@ -134,6 +140,7 @@ export function ConditionsField({
   const tagCount = tagLeaf?.tagIds.length ?? 0;
   const channelCount = youtubeChannelLeaf?.channelIds.length ?? 0;
   const mediaTypeCount = mediaTypeLeaf?.mediaTypeIds.length ?? 0;
+  const relationshipTypeCount = relationshipTypeLeaf?.relationshipTypeIds.length ?? 0;
 
   return (
     <div className="space-y-3">
@@ -276,6 +283,23 @@ export function ConditionsField({
           onChange={next =>
             commit({
               mediaType: next.mediaTypeIds.length > 0 ? next : null,
+            })}
+        />
+      </Section>
+
+      <Section
+        title="Relationship Type"
+        summary={relationshipTypeCount > 0 ? `${relationshipTypeCount} selected` : undefined}
+        defaultOpen={relationshipTypeCount > 0}
+      >
+        <RelationshipTypeConditionEditor
+          value={relationshipTypeLeaf ?? {
+            type: "relationship-type",
+            relationshipTypeIds: [],
+          }}
+          onChange={next =>
+            commit({
+              relationshipType: next.relationshipTypeIds.length > 0 ? next : null,
             })}
         />
       </Section>

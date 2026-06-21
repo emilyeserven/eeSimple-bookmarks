@@ -33,7 +33,7 @@ function RelationshipsTab() {
   return (
     <BookmarkRelationshipsEditor
       bookmarkId={bookmarkId}
-      initialRelated={bookmark.relatedBookmarks}
+      initialRelationships={bookmark.relationships}
       onDone={backToDetail}
     />
   );

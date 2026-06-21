@@ -1,5 +1,5 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
-import type { Bookmark, Category, CustomProperty, MediaType, PropertyGroup, TagNode, Website, YouTubeChannel } from "@eesimple/types";
+import type { Bookmark, Category, CustomProperty, MediaType, PropertyGroup, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
 import type { ReactNode } from "react";
 
 import { useEffect } from "react";
@@ -30,6 +30,8 @@ interface BookmarkSearchViewProps {
   youtubeChannels?: YouTubeChannel[];
   /** Websites offered as a multi-select filter in the rail. */
   websites?: Website[];
+  /** Relationship types offered as a multi-select filter in the rail. */
+  relationshipTypes?: RelationshipType[];
   /** Bookmarks already narrowed by tag (and category, on category pages). */
   bookmarks: Bookmark[];
   search: BookmarkSearch;
@@ -62,6 +64,7 @@ export function BookmarkSearchView({
   mediaTypes,
   youtubeChannels,
   websites,
+  relationshipTypes,
   bookmarks,
   search,
   onSearchChange,
@@ -93,13 +96,14 @@ export function BookmarkSearchView({
       mediaTypes,
       youtubeChannels,
       websites,
+      relationshipTypes,
       bookmarks,
       search,
       onSearchChange,
     });
     return () => setFilterContext(null);
     // onSearchChange is a new arrow fn each render from the page; stable deps are the data arrays
-  }, [tree, properties, propertyGroups, categories, mediaTypes, youtubeChannels, websites, bookmarks, search, onSearchChange, setFilterContext]);
+  }, [tree, properties, propertyGroups, categories, mediaTypes, youtubeChannels, websites, relationshipTypes, bookmarks, search, onSearchChange, setFilterContext]);
 
   useEffect(() => {
     if (filtersInDrawer && !isOpen) {
@@ -138,6 +142,7 @@ export function BookmarkSearchView({
             mediaTypes={mediaTypes}
             youtubeChannels={youtubeChannels}
             websites={websites}
+            relationshipTypes={relationshipTypes}
             bookmarks={bookmarks}
             search={search}
             onSearchChange={onSearchChange}

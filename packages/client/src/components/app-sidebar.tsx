@@ -14,6 +14,7 @@ import {
   Layers,
   MonitorPlay,
   Settings,
+  Share2,
   SlidersHorizontal,
   Tags,
   Wand2,
@@ -111,6 +112,12 @@ const customizationItems = [
     title: "Property Groups",
     to: "/taxonomies/property-groups",
     icon: Layers,
+  },
+  {
+    key: "relationship-types",
+    title: "Relationship Types",
+    to: "/taxonomies/relationship-types",
+    icon: Share2,
   },
   {
     key: "autofill",

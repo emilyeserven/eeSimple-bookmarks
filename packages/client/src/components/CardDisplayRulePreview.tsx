@@ -64,7 +64,7 @@ const SAMPLE_BOOKMARK: Bookmark = {
   booleanValues: [],
   dateTimeValues: [],
   fileValues: [],
-  relatedBookmarks: [],
+  relationships: [],
   priority: 0,
   createdAt: new Date().toISOString(),
 };
