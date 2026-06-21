@@ -54,6 +54,8 @@ const IMAGE_SIZE_LABELS: Record<BookmarkDetailImageSize, string> = {
 
 const VIDEO_SIZE_LABELS: Record<BookmarkDetailVideoSize, string> = {
   standard: "Standard",
+  half: "Half",
+  twoThirds: "2/3",
   fullwidth: "Full width",
 };
 
