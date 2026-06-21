@@ -2,12 +2,13 @@
 name: overnight-cleanup
 description: >-
   Autonomous overnight codebase health sweep for eeSimple Bookmarks. Runs fallow dead-code removal,
-  duplicate consolidation, complexity reduction, large-file splitting, Storybook story coverage for
-  undocumented components, and skill maintenance in a fixed phase order, committing after each
-  successful phase and looping until the fallow health score reaches 8.0 or higher, then opening a
-  PR and subscribing to its activity so CI can be handled automatically. Use when asked to "run an
-  overnight cleanup", "bring fallow health up overnight", "clean up the codebase while I sleep", or
-  "run a multi-phase fallow cleanup loop".
+  test coverage for under-tested high-risk code, duplicate consolidation, complexity reduction
+  (extracting complicated/nested conditionals into readable structures), large-file splitting,
+  Storybook story coverage for undocumented components, and skill maintenance in a fixed phase order,
+  committing after each successful phase and looping until the fallow health score reaches 8.0 or
+  higher, then opening a PR and subscribing to its activity so CI can be handled automatically. Use
+  when asked to "run an overnight cleanup", "bring fallow health up overnight", "add tests where
+  coverage is poor", "clean up the codebase while I sleep", or "run a multi-phase fallow cleanup loop".
 ---
 
 # Overnight cleanup
@@ -19,18 +20,24 @@ phase that produces a change. Never break passing tests.
 Phase order (always respect this sequence within each loop iteration):
 
 1. Dead code
-2. Duplicates
-3. Complexity
-4. Large files / high-import files
-5. Storybook story coverage (add stories for any component that lacks one)
-6. Skill maintenance (review recent commits; add/remove repo skills as needed)
+2. Test coverage (add tests to under-tested, high-risk code — a safety net before refactoring)
+3. Duplicates
+4. Complexity (extract complicated/nested conditionals; pair each extraction with a test)
+5. Large files / high-import files
+6. Storybook story coverage (add stories for any component that lacks one)
+7. Skill maintenance (review recent commits; add/remove repo skills as needed)
+
+Dead code comes first so you never write tests for code you are about to delete. Test coverage comes
+**before** the refactoring phases (Duplicates, Complexity, Large files) so those refactors land on a
+regression net.
 
 ---
 
 ## 0. Pre-flight stock-taking
 
-Run these before starting any phase. Record the baseline numbers in working memory; compare
-against them at the end of every loop iteration.
+Run these before starting any phase. Record the baseline numbers in working memory **and** append
+them to a scratch run-log file (e.g. `/tmp/overnight-run.md`) so they survive a crash or context
+reset; compare against them at the end of every loop iteration.
 
 ```bash
 # Full health snapshot — the overall score lives at .health_score in the JSON
@@ -54,6 +61,11 @@ Key values to record:
 | Dead-code issues | `.total_issues` (`fallow dead-code` output) | ≤ 31 (baseline) |
 | Duplication % | `.stats.duplication_percentage` (`fallow dupes` output) | < 6.0 % |
 | Complexity findings | `.findings[]` where `kind` contains `"complexity"` | 0 above caps |
+| Untested high-risk files | cross-ref `.refactoring_targets[]` / complexity `.findings[]` against the test-file map (Phase 2.1) | trending down |
+
+There is no coverage percentage in fallow's output and no coverage tooling configured by default —
+the "untested high-risk" metric is a heuristic (risk targets that have no corresponding test file),
+not a precise percentage. That is intentional; see Phase 2.
 
 ---
 
@@ -71,9 +83,11 @@ Key values to record:
    pnpm typecheck
    pnpm test
    ```
-   If any step fails, fix the failure before committing. Do not commit a broken state.
+   If any step fails, fix the failure before committing. Do not commit a broken state. If a phase's
+   change cannot be made green quickly, **revert that phase's diff** (`git restore` / `git stash`)
+   and move on rather than committing red or stalling the whole run.
 4. **Prefer small, targeted commits** — one commit per phase per loop iteration. Use conventional
-   commit format (`refactor: …`, `perf: …`, `chore: …`).
+   commit format (`refactor: …`, `perf: …`, `test: …`, `chore: …`).
 5. **Do not run `fallow watch`** — it is interactive and never exits.
 6. **Always `--dry-run` before `fix`** — preview every auto-fix before applying it.
 7. **Always pass `--format json --quiet 2>/dev/null || true`** to every fallow command.
@@ -156,9 +170,109 @@ If it is greater than 31, you have introduced new dead code; fix before proceedi
 
 ---
 
-## Phase 2 — Duplicates
+## Phase 2 — Test coverage
 
-### 2.1 Inspect the duplication report
+Dead code is gone; now add tests to the riskiest **under-tested** code *before* the refactoring
+phases, so Duplicates / Complexity / Large-files land on a regression net. Adding coverage is also a
+standing goal in its own right. Don't chase a coverage percentage — target the code most likely to
+break silently.
+
+### 2.1 Map source files to their tests
+
+Each package has its **own** test runner — never cross them:
+
+- **client** (`packages/client`): **Vitest** + Testing Library (`vitest run`, jsdom). Tests are
+  `*.test.ts` / `*.test.tsx`, co-located beside the source or under `src/`. Shared harness lives in
+  `packages/client/src/test-utils/` (`setup.ts`). Run `pnpm --filter=@eesimple/client test`.
+- **middleware** (`packages/middleware`): **Node test runner** (`node --test --import tsx`). Tests
+  live in `packages/middleware/src/tests/**/*.test.ts`. Run `pnpm --filter=@eesimple/middleware test`.
+- **types** (`packages/types`): currently has **no test runner and no tests** — yet it owns the
+  shared `evaluateConditions` predicate both client and middleware depend on. See 2.4.
+
+Build the untested-source map:
+
+```bash
+# client — source (excluding tests/stories) vs. existing tests
+git ls-files 'packages/client/src/**/*.ts' 'packages/client/src/**/*.tsx' | grep -vE '\.(test|stories)\.tsx?$'
+git ls-files 'packages/client/src/**/*.test.ts' 'packages/client/src/**/*.test.tsx'
+
+# middleware — source vs. existing tests
+git ls-files 'packages/middleware/src/**/*.ts' | grep -vE '\.test\.ts$'
+git ls-files 'packages/middleware/src/tests/**/*.test.ts'
+```
+
+A source file is "covered" when a test exercises its behavior — usually a co-located `Foo.test.tsx`
+(client) or a `tests/<area>.test.ts` that imports it (middleware). Treat a source file with no
+corresponding test as a coverage gap.
+
+### 2.2 Prioritize by risk, not by count
+
+Cross-reference the untested-source list with the risk signals captured in pre-flight and pick the
+highest-leverage gaps first:
+
+- **`refactoring_targets[]`** (composite complexity + coupling + churn): untested **and** high-churn
+  is the top priority — it changes often and nothing guards it.
+- **complexity `findings[]`**: branchy logic with no test is the single highest-value test to add —
+  it is exactly the code Phase 4 will refactor, so the test you write here is the net for that.
+- **Shared predicates / pure derivations** are cheap to test and high-leverage:
+  - `packages/types/src/conditions.ts` — `evaluateConditions` (see 2.4).
+  - `packages/client/src/lib/*` — e.g. `bookmarkSearch.ts` (`bookmarkMatchesSearch`),
+    `cardDisplayRules.ts` (`resolveCardDisplay`), `bookmarkFormat.ts`, `tagTree.ts`,
+    `autofillRulesFilter.ts`.
+  - `packages/middleware/src/services/*` — counts, tree builders, hydration, condition evaluation.
+- **Prefer pure functions / utilities / services first** (no DOM or HTTP harness needed); component
+  tests second.
+
+### 2.3 Write the tests (match the package's runner)
+
+- Use the runner that belongs to the package — **never** introduce Vitest into middleware or
+  `node:test` into client.
+- Mirror a neighboring test for imports and harness. Client component tests reuse
+  `src/test-utils/`; middleware service/route tests follow `packages/middleware/src/tests/`.
+- Write **behavior** tests: assert observable output for representative *and* edge inputs (empty,
+  boundary, fallback/default arm) — not change-detector snapshots of internals.
+- For pure branchy logic, cover each condition arm plus the default path. This is the same logic
+  Phase 4 may extract, so thorough branch coverage here pays off twice.
+
+### 2.4 The types package has no test harness
+
+`@eesimple/types` ships `evaluateConditions` — per CLAUDE.md the single most important shared
+function in the repo (server and client **must** call the same one) — with **zero tests**. To test
+it you must also stand up a runner: add a `test` script to `packages/types/package.json` and a
+minimal Vitest (or `node:test` + `tsx`) config mirroring middleware, and confirm root `pnpm test`
+(`pnpm run -r test`) picks it up. This is a deliberate multi-file change — do it in its **own**
+commit, only if verification stays green. If standing up the harness is out of scope for the run,
+**record `evaluateConditions` as an untested high-risk gap in the final report** rather than skipping
+it silently.
+
+### 2.5 Verify and commit
+
+```bash
+pnpm lint:fix
+pnpm typecheck
+pnpm test
+```
+
+If all pass:
+
+```bash
+git add -p   # stage the new tests (+ any harness wiring); never unrelated drift
+git commit -m "test: add coverage for under-tested <area> (Phase 2)"
+```
+
+### 2.6 Optional — measure coverage only if tooling is present
+
+Coverage instrumentation is **not** configured by default. If `@vitest/coverage-v8` is already
+installed, you may run `pnpm --filter=@eesimple/client exec vitest run --coverage` for a precise
+client map to refine targeting. Do **not** add the coverage dependency or block on a network install
+just to measure — the file-presence + risk heuristic in 2.1–2.2 is sufficient for prioritization,
+and the remote environment may block installs.
+
+---
+
+## Phase 3 — Duplicates
+
+### 3.1 Inspect the duplication report
 
 ```bash
 pnpm exec fallow dupes --format json --quiet 2>/dev/null || true
@@ -175,7 +289,7 @@ Focus on the `clone_groups` array. Each group has:
 
 Work the largest `token_count` groups first.
 
-### 2.2 Trace a clone group before refactoring
+### 3.2 Trace a clone group before refactoring
 
 ```bash
 pnpm exec fallow dupes --trace dup:<fingerprint> --format json --quiet 2>/dev/null || true
@@ -184,7 +298,7 @@ pnpm exec fallow dupes --trace dup:<fingerprint> --format json --quiet 2>/dev/nu
 The trace returns exact file/line ranges of each instance and a `suggested_name` for an extracted
 function. Read the actual source at those locations before writing any abstraction.
 
-### 2.3 Manual refactoring strategy
+### 3.3 Manual refactoring strategy
 
 Auto-fix is not available for duplicates — all consolidation is manual.
 
@@ -198,13 +312,22 @@ markup: extract to a shared file in the appropriate layer.
 variation: extract a parametrized component into `packages/client/src/components/`. Do not create
 panel-only variants — the panel and main app share components.
 
+**Extract one-off / inline components into their own files to surface *future* duplication.** A
+sub-component defined inline as `const Foo = () => …` inside a parent is invisible to fallow's clone
+detector — when the same shape is later pasted into another file, nothing flags it and it quietly
+becomes a copy-paste source. When you touch a file that buries a non-trivial component inline, lift
+it into its own co-located `Foo.tsx` (named, file-level export) even if it has a single caller today.
+That single change makes the next copy detectable here in Phase 3 and earns the component a Storybook
+story in Phase 6. (Trivial 2–3 line presentational fragments can stay inline; extract once it has
+real structure, props, or branching.)
+
 **Shared hook.** When the same TanStack Query call + options appears in multiple hooks: extract a
 base query or shared `queryOptions` object and call it from each hook.
 
 **Do not consolidate route boilerplate in `packages/middleware/src/routes/**`** — the config
 already excludes that directory, and the repetition is intentional Fastify registration structure.
 
-### 2.4 Verify and commit
+### 3.4 Verify and commit
 
 ```bash
 pnpm lint:fix
@@ -216,23 +339,23 @@ If all pass:
 
 ```bash
 git add -p
-git commit -m "refactor: consolidate duplicate code (Phase 2)"
+git commit -m "refactor: consolidate duplicate code (Phase 3)"
 ```
 
-### 2.5 Confirm budget is respected
+### 3.5 Confirm budget is respected
 
 ```bash
 pnpm exec fallow dupes --format json --quiet 2>/dev/null || true
 ```
 
 `stats.duplication_percentage` must be below 6.0 %. If it remains at or above 6.0 %, the CI
-gate will fail — continue reducing before moving to phase 3.
+gate will fail — continue reducing before moving to phase 4.
 
 ---
 
-## Phase 3 — Complexity
+## Phase 4 — Complexity
 
-### 3.1 Identify complexity hotspots
+### 4.1 Identify complexity hotspots
 
 ```bash
 pnpm exec fallow health --hotspots --targets --file-scores --format json --quiet 2>/dev/null || true
@@ -251,7 +374,28 @@ pnpm exec fallow health --complexity --complexity-breakdown --format json --quie
 The `contributions[]` array in each finding lists every branch, loop, boolean operator, and case
 with its source line and cyclomatic/cognitive weight.
 
-### 3.2 Refactoring patterns
+### 4.2 Refactoring patterns
+
+**Extract complicated or nested conditionals into the most readable structure.** A deeply nested or
+multi-clause conditional is both a complexity-score driver and a readability sink. Don't leave it
+inline — lift it into whichever of these reads clearest for the case:
+- a **named predicate / helper function** (`isEligibleForX(bookmark)`) when it's a boolean test —
+  the name documents intent and removes the inline cognitive load;
+- a **named constant** for a magic threshold or a compound boolean assembled once
+  (`const isArchivable = … ; if (isArchivable) …`);
+- a **lookup dict / `Record` / `Map`** when an `if/else` chain or `switch` maps an input value to a
+  result — replace the branch ladder with a table keyed by the input;
+- an **early-return guard** to flatten `if / else if / else` nesting.
+
+Small, single-use utility helpers are welcome here — a one-off `formatX` / `isY` in the same file
+that names a confusing expression earns its keep even with a single caller. Readability is the goal,
+not reuse.
+
+**Pair every extracted conditional with a test.** If the complicated/nested conditional you pull out
+is **not already covered by a test**, write one in the **same commit** as the extraction, using the
+runner for that package (see Phase 2). The test pins the behavior you just moved, so the refactor is
+provably behavior-preserving. If branchy logic is hard to test in isolation, that's a signal the
+extraction boundary is wrong — fix the seam, don't skip the test.
 
 **Extract sub-functions.** Move a deeply nested block or a long arm of a `switch`/`if`-chain
 into a named helper function in the same file (or shared lib if it generalises). Prefer named
@@ -260,18 +404,17 @@ helpers over anonymous lambdas — they name intent and lower cognitive score.
 **Split switch arms.** Extract each complex case arm into its own function. The dispatcher stays
 simple; handlers hold the logic.
 
-**Simplify early returns.** Replace deeply nested `if/else if/else` with early-return guards.
-Flattens the cognitive nesting score significantly.
-
 **Decompose React components.** A component with high cognitive complexity usually renders too
 many conditions inline. Extract sub-components for each conditional region; keep the parent as a
-coordinator that passes props.
+coordinator that passes props. Put each extracted sub-component in its **own** co-located file
+(`ComponentName.tsx`), not an inline `const` in the parent — a file-level component is what lets the
+duplicate detector (Phase 3) catch the next copy and what earns it a Storybook story (Phase 6).
 
 **Do not add `// fallow-ignore-next-line complexity`** unless you have confirmed the complexity
 is unavoidable (e.g. an exhaustive type-narrowing switch that cannot be split without losing type
 safety). Suppression is a last resort, not a shortcut.
 
-### 3.3 Verify and commit
+### 4.3 Verify and commit
 
 ```bash
 pnpm lint:fix
@@ -279,27 +422,27 @@ pnpm typecheck
 pnpm test
 ```
 
-If all pass:
+If all pass (the commit may include both the refactor and the tests that pin it):
 
 ```bash
 git add -p
-git commit -m "refactor: reduce complexity hotspots (Phase 3)"
+git commit -m "refactor: reduce complexity hotspots (Phase 4)"
 ```
 
-### 3.4 Confirm zero hard violations
+### 4.4 Confirm zero hard violations
 
 ```bash
 pnpm exec fallow health --format json --quiet 2>/dev/null || true
 ```
 
 Scan `findings[]` for any entry with cyclomatic > 30 or cognitive > 25. There should be none.
-If any remain, continue phase 3 before moving to phase 4.
+If any remain, continue phase 4 before moving to phase 5.
 
 ---
 
-## Phase 4 — Large files and high-import files
+## Phase 5 — Large files and high-import files
 
-### 4.1 Identify large files
+### 5.1 Identify large files
 
 ```bash
 pnpm exec fallow health --file-scores --format json --quiet 2>/dev/null || true
@@ -321,7 +464,7 @@ pnpm exec fallow health --targets --format json --quiet 2>/dev/null || true
 `refactoring_targets[]` ranks files by a composite score (complexity + coupling + churn + dead
 code). Prioritise files that appear in both lists.
 
-### 4.2 How to split a large file
+### 5.2 How to split a large file
 
 Read the file and identify its concerns. A file doing more than one thing has a natural seam;
 split on that seam, not on an arbitrary line count.
@@ -348,7 +491,7 @@ split on that seam, not on an arbitrary line count.
 **Do not split a file just to hit a line count.** Split only when there is a genuine separation
 of concerns.
 
-### 4.3 After splitting
+### 5.3 After splitting
 
 Update all import paths in consuming files. Then:
 
@@ -362,24 +505,24 @@ If all pass:
 
 ```bash
 git add -p
-git commit -m "refactor: split large files (Phase 4)"
+git commit -m "refactor: split large files (Phase 5)"
 ```
 
 ---
 
-## Phase 5 — Storybook story coverage
+## Phase 6 — Storybook story coverage
 
 Every component should be documented with a Storybook story. This phase finds components that lack
 one and writes it. **Be aggressive: trend toward documenting everything.** A component without a
 story is the default cleanup target — only skip one when there is a concrete reason it cannot be
-rendered in isolation (see 5.4), and record that reason rather than silently passing over it.
+rendered in isolation (see 6.4), and record that reason rather than silently passing over it.
 
 Stories live next to their component as `<Component>.stories.tsx` and follow the CSF3 +
 `@storybook/react-vite` convention already used across the repo (see `RangeSlider.stories.tsx`,
 `BookmarkCard.stories.tsx`). Storybook config is `packages/client/.storybook/main.ts` /
-`preview.tsx`.
+`preview.tsx`. Components extracted into their own files in Phases 3–5 are prime new targets here.
 
-### 5.1 Find components missing a story
+### 6.1 Find components missing a story
 
 List every component and subtract the ones that already have a co-located `*.stories.tsx`:
 
@@ -396,7 +539,7 @@ Include `components/ui/**` primitives — most already have stories, but any new
 game. Skip pure non-component modules (a `*.tsx` that only re-exports or holds types/constants and
 renders no component).
 
-### 5.2 Write a story for each uncovered component
+### 6.2 Write a story for each uncovered component
 
 Mirror the existing convention exactly:
 
@@ -433,7 +576,7 @@ Guidelines:
   pattern an existing story for a similar component already uses (e.g. `BookmarkForm.stories.tsx`)
   rather than inventing a new harness.
 
-### 5.3 Verify and commit
+### 6.3 Verify and commit
 
 Stories are typechecked and built by Storybook. Run the suite, then build Storybook to catch story
 errors the unit tests miss:
@@ -449,10 +592,10 @@ If all pass:
 
 ```bash
 git add 'packages/client/src/**/*.stories.tsx'
-git commit -m "docs: add Storybook stories for undocumented components (Phase 5)"
+git commit -m "docs: add Storybook stories for undocumented components (Phase 6)"
 ```
 
-### 5.4 When to skip a component
+### 6.4 When to skip a component
 
 Only skip — and note the reason in the final report — when a component genuinely cannot be rendered
 in isolation: it is an abstract render-prop/context-only helper with no visual output, or it hard
@@ -461,14 +604,14 @@ to skip; supply representative args. Default to writing the story.
 
 ---
 
-## Phase 6 — Skill maintenance
+## Phase 7 — Skill maintenance
 
 The repo's own skills (`.claude/skills/`) document the codebase's patterns. As the code evolves,
 those skills drift out of sync — a pattern gets renamed, a new repeatable workflow emerges, or a
 documented pattern is removed entirely. This phase keeps the skill set honest by grounding it in
 what has actually changed.
 
-### 6.1 Review recent commits
+### 7.1 Review recent commits
 
 Read the commits landed since the last overnight run (or, if unsure, the last ~30) to understand
 what changed in the codebase:
@@ -482,7 +625,7 @@ Pay attention to: new entities/components/patterns being introduced, existing pa
 renamed or relocated, files or whole concepts being deleted, and any change that touched several
 files in the same shaped way (a sign of a repeatable workflow worth a skill).
 
-### 6.2 Evaluate the existing skills against the commits
+### 7.2 Evaluate the existing skills against the commits
 
 List the current skills and, for each, judge whether recent commits have made it stale, wrong, or
 redundant:
@@ -502,7 +645,7 @@ For each skill, ask:
 hand-maintained. Don't hand-edit it; instead run `pnpm fallow:check-skill`, and if it reports drift
 (e.g. after a `fallow` bump), re-sync with `pnpm fallow:sync-skill` and commit the result.
 
-### 6.3 Add, update, or remove skills as needed
+### 7.3 Add, update, or remove skills as needed
 
 - **Add** a new skill when recent commits reveal a repeatable, multi-file workflow that isn't yet
   documented (mirror the structure and frontmatter of an existing skill — `name`, `description`
@@ -515,14 +658,14 @@ just because it exists, and do not skip documenting a clearly-recurring new patt
 about whether to remove a skill (e.g. the pattern is rare but still valid), leave it and note it in
 the final report rather than deleting it.
 
-### 6.4 Verify and commit
+### 7.4 Verify and commit
 
 Skill files are Markdown and have no test/typecheck impact, but still run the suite if you changed
 any non-skill file in this phase. Commit skill changes on their own:
 
 ```bash
 git add .claude/skills/
-git commit -m "docs: reconcile repo skills with recent commits (Phase 6)"
+git commit -m "docs: reconcile repo skills with recent commits (Phase 7)"
 ```
 
 Use `docs:` for skill content changes; if you only deleted a skill, `chore:` is also acceptable.
@@ -531,9 +674,10 @@ Use `docs:` for skill content changes; if you only deleted a skill, `chore:` is 
 
 ## Loop control
 
-After completing phases 1–6, check whether the health target has been reached (Phases 5 and 6 are
-story-coverage and skill-maintenance and do not affect the health score, but still run them each
-iteration):
+After completing phases 1–7, check whether the health target has been reached. Phases 2, 6, and 7
+(test coverage, story coverage, skill maintenance) don't directly move the fallow health score —
+but still run them every iteration: Phase 2 is the safety net the refactoring phases depend on, and
+6/7 are standing coverage/documentation goals.
 
 ```bash
 pnpm exec fallow health --format json --quiet 2>/dev/null || true
@@ -552,18 +696,50 @@ If the score is unchanged from the previous iteration (no phase produced any dif
 loop and report the final state. Do not attempt a third consecutive iteration that produces the
 same score — the remaining delta likely requires design decisions, not mechanical cleanup.
 
-### Progress tracking (maintain in working memory)
+### Progress tracking (maintain in working memory *and* the run-log file)
 
-Before each new loop iteration, note:
+Before each new loop iteration, note (and append to the scratch run-log from Pre-flight):
 
 ```
 Iteration N:
   Health score before: X.X
   Dead-code issues: N (baseline 31)
   Duplication %: N.N %
+  Tests added this iteration: N (areas: …)
   Phases with commits: [list phases that produced commits]
   Health score after: X.X
 ```
+
+---
+
+## Robustness for long unattended runs
+
+This skill runs for hours with no human watching, in an **ephemeral** container that is reclaimed on
+inactivity. Build the run so a crash, a reclaim, or a flaky step costs at most one phase — not the
+whole night.
+
+- **Checkpoint by pushing, not just committing.** Commit-per-phase already checkpoints locally, but
+  the container is disposable — **push the branch after every iteration** (`git push -u origin
+  <branch>`, with the session's retry/backoff on network errors), not only at the very end. Unpushed
+  commits die with the container.
+- **Cap the work.** Set a hard ceiling of ~6 loop iterations and stop early on the "same score"
+  rule. Never loop a single phase forever: if a complexity/duplication finding hasn't moved after
+  ~2 attempts, skip it, note it in the final report, and move on.
+- **Resume safely.** At startup, inspect `git log --oneline` on the branch and the scratch run-log to
+  see which phases already committed this run; don't redo completed work or double-commit.
+- **Never leave the tree dirty or red.** If a phase can't be made green quickly, `git restore` /
+  `git stash` that phase's diff and continue — a clean tree at every phase boundary is what makes a
+  crash recoverable.
+- **Treat test flakes as flakes.** Re-run a failing test once before believing it; if it only fails
+  intermittently, note the flaky test rather than "fixing" unrelated code to chase it.
+- **Be install-averse.** The network policy may block installs. If a phase wants a package that
+  isn't present (e.g. a coverage provider, a new test runner for `@eesimple/types`), prefer the
+  zero-dependency path or skip-and-note rather than failing the run on a blocked install.
+- **One PR, not many.** Open exactly one PR at the very end. If a PR already exists for this branch,
+  **update** it (`mcp__github__update_pull_request`) instead of creating a duplicate.
+- **Always produce the final report**, even on an early/budget stop — list health achieved, tests
+  added, remaining gaps (with `file:line`), and what each would need. A precise hand-off is the
+  deliverable when the loop can't reach 8.0 unattended.
 
 ---
 
@@ -594,6 +770,8 @@ Report these final numbers:
 - Health score achieved
 - Dead-code issues remaining (vs. 31 baseline)
 - Final duplication percentage
+- Tests added (count + areas), and any high-risk code still untested (with file paths — e.g. note
+  `evaluateConditions` if its harness wasn't stood up)
 - Total commits made (one per phase per iteration)
 - Any remaining violations that could not be fixed automatically (with file:line references)
 
@@ -625,17 +803,18 @@ git push -u origin <branch-name>
 ### Open the PR
 
 Create the PR against the default branch using the GitHub MCP tools (`mcp__github__create_pull_request`).
+If a PR already exists for this branch, update it instead of opening a second one.
 Requirements that CI enforces — get them right the first time so `lint-title` passes:
 
-- **Title must start with a Conventional Commits prefix** (`refactor:`, `docs:`, `chore:`, `perf:`,
-  etc.) — the `pr-title` workflow lints it independently of the commit messages. Pick the prefix
-  that matches the bulk of the work (usually `refactor:` for a cleanup sweep, e.g.
+- **Title must start with a Conventional Commits prefix** (`refactor:`, `docs:`, `test:`, `chore:`,
+  `perf:`, etc.) — the `pr-title` workflow lints it independently of the commit messages. Pick the
+  prefix that matches the bulk of the work (usually `refactor:` for a cleanup sweep, e.g.
   `refactor: overnight codebase health sweep`).
 - **If the PR closes an issue, include the issue number** in the title (e.g. `(#123)`) — `lint-title`
   requires it for any PR with a closing-issue link.
 - **Body:** summarise the run — per-phase changes, the before/after health score, dead-code and
-  duplication numbers, the Storybook stories added, and any skill changes. Mirror the final report
-  above so a reviewer can scan the outcome.
+  duplication numbers, the tests added (and any high-risk code left untested), the Storybook stories
+  added, and any skill changes. Mirror the final report above so a reviewer can scan the outcome.
 
 ### Subscribe so CI can be handled automatically
 
