@@ -6,6 +6,7 @@ import { useRef, useState } from "react";
 import { emptyConditionTree } from "@eesimple/types";
 
 import { CardDisplayRuleDisplaySettings } from "./CardDisplayRuleDisplaySettings";
+import { CardDisplayRulePreview } from "./CardDisplayRulePreview";
 import { CollapsibleFormSection } from "./CollapsibleFormSection";
 import { ConditionsField } from "./conditions/ConditionsField";
 import { conditionsSummaryLabel } from "./conditions/summarizeConditions";
@@ -120,6 +121,23 @@ export function CardDisplayRuleForm({
     />
   );
 
+  const cardPreview = (
+    <section className="space-y-3">
+      <div>
+        <h3 className="text-sm font-semibold">Card preview</h3>
+        <p className="text-xs text-muted-foreground">
+          How a matching bookmark card looks with these display settings.
+        </p>
+      </div>
+      <CardDisplayRulePreview
+        display={values.display}
+        conditions={values.conditions}
+        isDefault={isDefault}
+        currentRuleId={rule?.id}
+      />
+    </section>
+  );
+
   return (
     <form
       onSubmit={handleSubmit}
@@ -133,6 +151,8 @@ export function CardDisplayRuleForm({
               for the bookmarks they match.
             </p>
             {displayControls}
+            <Separator />
+            {cardPreview}
           </>
         )
         : (
@@ -198,6 +218,10 @@ export function CardDisplayRuleForm({
             >
               {displayControls}
             </CollapsibleFormSection>
+
+            <Separator />
+
+            {cardPreview}
 
             <Separator />
 
