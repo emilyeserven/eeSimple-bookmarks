@@ -157,6 +157,8 @@ export interface WebsiteLookup {
   exists: boolean;
   /** The existing website's site name when `exists`, otherwise `null`. */
   siteName: string | null;
+  /** The existing website's default media type id when `exists` and set, otherwise `null`. */
+  mediaTypeId: string | null;
   /**
    * Whether the looked-up host is a shortened link: `"verified"` when it resolves to a known site,
    * `"generic"` when it's in the shortener ignore list, otherwise `null`.

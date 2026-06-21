@@ -26,11 +26,13 @@ function created(opts: {
   } as PromoteParams[0];
 }
 
-const NO_FLAGS: PromoteParams[3] = {
+const NO_FLAGS: PromoteParams[4] = {
   setWebsiteCategory: false,
   setWebsiteTags: false,
+  setWebsiteMediaType: false,
   setChannelCategory: false,
   setChannelTags: false,
+  setChannelMediaType: false,
 };
 
 function sourceMutations() {
@@ -46,7 +48,7 @@ function sourceMutations() {
     deps: {
       updateWebsite,
       updateYouTubeChannel,
-    } as unknown as PromoteParams[4],
+    } as unknown as PromoteParams[5],
   };
 }
 
@@ -56,7 +58,7 @@ describe("promoteSourceDefaults", () => {
     promoteSourceDefaults(created({
       websiteId: "w1",
       channelId: "c1",
-    }), "cat", ["t1"], NO_FLAGS, m.deps);
+    }), "cat", "mt", ["t1"], NO_FLAGS, m.deps);
     expect(m.updateWebsite.mutate).not.toHaveBeenCalled();
     expect(m.updateYouTubeChannel.mutate).not.toHaveBeenCalled();
   });
@@ -68,6 +70,7 @@ describe("promoteSourceDefaults", () => {
         websiteId: "w1",
       }),
       "cat",
+      "mt",
       ["t1", "t2"],
       {
         ...NO_FLAGS,
@@ -85,6 +88,29 @@ describe("promoteSourceDefaults", () => {
     });
   });
 
+  it("promotes the media type to the website default", () => {
+    const m = sourceMutations();
+    promoteSourceDefaults(
+      created({
+        websiteId: "w1",
+      }),
+      "cat",
+      "mt",
+      ["t1"],
+      {
+        ...NO_FLAGS,
+        setWebsiteMediaType: true,
+      },
+      m.deps,
+    );
+    expect(m.updateWebsite.mutate).toHaveBeenCalledWith({
+      id: "w1",
+      input: {
+        mediaTypeId: "mt",
+      },
+    });
+  });
+
   it("promotes only the opted-in field (category, not tags)", () => {
     const m = sourceMutations();
     promoteSourceDefaults(
@@ -92,6 +118,7 @@ describe("promoteSourceDefaults", () => {
         websiteId: "w1",
       }),
       "cat",
+      "mt",
       ["t1"],
       {
         ...NO_FLAGS,
@@ -114,6 +141,7 @@ describe("promoteSourceDefaults", () => {
         websiteId: "w1",
       }),
       "",
+      "mt",
       [],
       {
         ...NO_FLAGS,
@@ -131,7 +159,7 @@ describe("promoteSourceDefaults", () => {
 
   it("skips promotion when the source has no id even though a flag is set", () => {
     const m = sourceMutations();
-    promoteSourceDefaults(created(), "cat", ["t1"], {
+    promoteSourceDefaults(created(), "cat", "mt", ["t1"], {
       ...NO_FLAGS,
       setWebsiteTags: true,
     }, m.deps);
@@ -145,11 +173,13 @@ describe("promoteSourceDefaults", () => {
         channelId: "c1",
       }),
       "cat",
+      "mt",
       ["t1"],
       {
         ...NO_FLAGS,
         setChannelCategory: true,
         setChannelTags: true,
+        setChannelMediaType: true,
       },
       m.deps,
     );
@@ -158,6 +188,7 @@ describe("promoteSourceDefaults", () => {
       id: "c1",
       input: {
         categoryId: "cat",
+        mediaTypeId: "mt",
         tagIds: ["t1"],
       },
     });

@@ -25,6 +25,7 @@ describe("RevealedAutofillOffer", () => {
                 domain: "example.com",
                 exists: true,
                 siteName: "Example",
+                mediaTypeId: null,
                 shortener: null,
               }),
             })}
@@ -53,6 +54,7 @@ describe("RevealedAutofillOffer", () => {
                 domain: null,
                 exists: false,
                 siteName: null,
+                mediaTypeId: null,
                 shortener: null,
               }),
             })}
@@ -79,6 +81,7 @@ describe("RevealedAutofillOffer", () => {
                 domain: "new-site.com",
                 exists: false,
                 siteName: null,
+                mediaTypeId: null,
                 shortener: null,
               }),
             })}

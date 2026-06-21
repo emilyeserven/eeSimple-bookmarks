@@ -152,17 +152,6 @@ export function BookmarkGeneralForm({
             onSiteNameBlur={() => void runFetchTitle(form.getFieldValue("url"), {
               force: true,
             })}
-            categoryId=""
-            tagIds={[]}
-            isNewChannel={false}
-            setWebsiteCategory={false}
-            setWebsiteTags={false}
-            setChannelCategory={false}
-            setChannelTags={false}
-            onSetWebsiteCategory={() => undefined}
-            onSetWebsiteTags={() => undefined}
-            onSetChannelCategory={() => undefined}
-            onSetChannelTags={() => undefined}
           />
         </div>
 

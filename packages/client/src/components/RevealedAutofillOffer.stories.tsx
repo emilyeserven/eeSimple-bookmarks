@@ -36,6 +36,7 @@ export const NewSiteOffer: Story = {
               domain: "new-site.com",
               exists: false,
               siteName: null,
+              mediaTypeId: null,
               shortener: null,
             }),
           })}

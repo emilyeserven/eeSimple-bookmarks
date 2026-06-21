@@ -70,6 +70,7 @@ export function useBookmarkFormController({
     tagTree,
     customProperties,
     categories,
+    mediaTypes,
     autofillRules,
     youtubeChannels,
     autoFetchTitle,
@@ -100,6 +101,39 @@ export function useBookmarkFormController({
   const isNewChannel = youtubeChannel !== null
     && youtubeChannels !== undefined
     && !youtubeChannels.some(ch => ch.channelKey === youtubeChannel.key);
+
+  // The bookmark's "source" whose defaults the form can promote: the detected YouTube channel for a
+  // youtube.com URL, otherwise the looked-up website. The "set as default category/tags" checkboxes
+  // (now rendered under their fields) show for a *new* source; the "set as default media type" one
+  // shows whenever the source has *no* default media type yet (whether the source is new or not).
+  const lookupData = websiteLookup.data;
+  const isYouTube = lookupData?.domain === "youtube.com";
+  const existingChannel = youtubeChannel
+    ? youtubeChannels?.find(ch => ch.channelKey === youtubeChannel.key)
+    : undefined;
+  const sourceDefaults = isYouTube
+    ? {
+      label: youtubeChannel?.name ?? null,
+      showSourceDefault: isNewChannel,
+      showMediaTypeDefault: youtubeChannel !== null && !existingChannel?.mediaTypeId,
+      setCategory: flags.setChannelCategory,
+      setTags: flags.setChannelTags,
+      setMediaType: flags.setChannelMediaType,
+      onSetCategory: flags.setSetChannelCategory,
+      onSetTags: flags.setSetChannelTags,
+      onSetMediaType: flags.setSetChannelMediaType,
+    }
+    : {
+      label: lookupData?.domain ?? null,
+      showSourceDefault: Boolean(lookupData?.domain) && !lookupData?.exists,
+      showMediaTypeDefault: Boolean(lookupData?.domain) && !lookupData?.mediaTypeId,
+      setCategory: flags.setWebsiteCategory,
+      setTags: flags.setWebsiteTags,
+      setMediaType: flags.setWebsiteMediaType,
+      onSetCategory: flags.setSetWebsiteCategory,
+      onSetTags: flags.setSetWebsiteTags,
+      onSetMediaType: flags.setSetWebsiteMediaType,
+    };
 
   // All URL-string handling (on-blur cleanup, shortener classification, submit-URL resolution) plus the
   // canonicalize-input refs live in this hook so the form imports one URL module.
@@ -152,6 +186,7 @@ export function useBookmarkFormController({
     url: string;
     title: string;
     categoryId: string;
+    mediaTypeId: string;
     description: string;
     tagIds: string[];
   }): Promise<void> {
@@ -161,7 +196,7 @@ export function useBookmarkFormController({
       customProperties ?? [],
       value.categoryId,
       prefill.customRef.current,
-      bookmark?.mediaType?.id ?? null,
+      value.mediaTypeId || null,
     );
 
     // Resolve the URL to save plus the original it was cleaned from (see resolveSubmitUrl).
@@ -169,14 +204,16 @@ export function useBookmarkFormController({
       finalUrl, originalUrl,
     } = resolveSubmitUrl(value.url, quickAddRef.current);
 
-    // Media type, video length, and priority are intentionally omitted — the server fills the first
-    // two from the URL's metadata and defaults priority. On edit, omitting them preserves the
-    // existing values (the update patch skips `undefined` fields).
+    // Video length and priority are intentionally omitted — the server fills video length from the
+    // URL's metadata and defaults priority. Media type is sent when the user picked one; otherwise
+    // the server derives it (channel/website default → "Video"). On edit, omitting a field
+    // preserves the existing value (the update patch skips `undefined` fields).
     const input: CreateBookmarkInput = {
       url: finalUrl,
       originalUrl,
       title: value.title,
       categoryId: value.categoryId,
+      mediaTypeId: value.mediaTypeId || null,
       description: value.description || null,
       tagIds: value.tagIds,
       numberValues,
@@ -214,11 +251,13 @@ export function useBookmarkFormController({
       deleteImage,
     });
 
-    promoteSourceDefaults(created, value.categoryId, value.tagIds, {
+    promoteSourceDefaults(created, value.categoryId, value.mediaTypeId, value.tagIds, {
       setWebsiteCategory: flags.setWebsiteCategory,
       setWebsiteTags: flags.setWebsiteTags,
+      setWebsiteMediaType: flags.setWebsiteMediaType,
       setChannelCategory: flags.setChannelCategory,
       setChannelTags: flags.setChannelTags,
+      setChannelMediaType: flags.setChannelMediaType,
     }, {
       updateWebsite,
       updateYouTubeChannel,
@@ -416,6 +455,7 @@ export function useBookmarkFormController({
     tagTree,
     customProperties,
     categories,
+    mediaTypes,
     websiteLookup,
     autoFetchImage,
     // URL cleanup.
@@ -442,6 +482,9 @@ export function useBookmarkFormController({
     // Category.
     addCategoryOpen: ui.addCategoryOpen,
     setAddCategoryOpen: ui.setAddCategoryOpen,
+    // Media type.
+    addMediaTypeOpen: ui.addMediaTypeOpen,
+    setAddMediaTypeOpen: ui.setAddMediaTypeOpen,
     // Image.
     imageFieldKey,
     imageIntentRef,
@@ -449,15 +492,8 @@ export function useBookmarkFormController({
     urlDuplicate: ui.urlDuplicate,
     autofillOfferDismissed: ui.autofillOfferDismissed,
     setAutofillOfferDismissed: ui.setAutofillOfferDismissed,
-    // "Set as default" flags.
-    setWebsiteCategory: flags.setWebsiteCategory,
-    setWebsiteTags: flags.setWebsiteTags,
-    setChannelCategory: flags.setChannelCategory,
-    setChannelTags: flags.setChannelTags,
-    setSetWebsiteCategory: flags.setSetWebsiteCategory,
-    setSetWebsiteTags: flags.setSetWebsiteTags,
-    setSetChannelCategory: flags.setSetChannelCategory,
-    setSetChannelTags: flags.setSetChannelTags,
+    // "Set as default" context for the source-default checkboxes (rendered under their fields).
+    sourceDefaults,
     // Prefill + scan handlers.
     prefill,
     runFetchTitle,

@@ -21,6 +21,7 @@ export const bookmarkSchema = z.object({
   url: z.string().url("Enter a valid URL"),
   title: z.string().min(1, "Title is required"),
   categoryId: z.string().min(1, "Category is required"),
+  mediaTypeId: z.string(),
   description: z.string(),
   tagIds: z.array(z.string()),
 });
@@ -58,12 +59,14 @@ const SAMPLE_DEFAULT_VALUES: {
   url: string;
   title: string;
   categoryId: string;
+  mediaTypeId: string;
   description: string;
   tagIds: string[];
 } = {
   url: "",
   title: "",
   categoryId: "",
+  mediaTypeId: "",
   description: "",
   tagIds: [],
 };
@@ -98,6 +101,7 @@ export function buildBookmarkDefaultValues(
   url: string;
   title: string;
   categoryId: string;
+  mediaTypeId: string;
   description: string;
   tagIds: string[];
 } {
@@ -105,6 +109,7 @@ export function buildBookmarkDefaultValues(
     url: bookmark?.originalUrl ?? bookmark?.url ?? "",
     title: bookmark?.title ?? "",
     categoryId: bookmark?.categoryId ?? lockedCategoryId ?? "",
+    mediaTypeId: bookmark?.mediaType?.id ?? "",
     description: bookmark?.description ?? "",
     tagIds: (bookmark?.tags.map(tag => tag.id) ?? []) as string[],
   };

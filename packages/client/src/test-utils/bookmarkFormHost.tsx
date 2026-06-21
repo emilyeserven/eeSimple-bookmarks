@@ -8,6 +8,7 @@ interface BookmarkFormHostValues {
   url: string;
   title: string;
   categoryId: string;
+  mediaTypeId: string;
   description: string;
   tagIds: string[];
 }
@@ -34,6 +35,7 @@ export function BookmarkFormHost({
       url: "",
       title: "",
       categoryId: "",
+      mediaTypeId: "",
       description: "",
       tagIds: [],
       ...initialValues,
