@@ -1172,6 +1172,27 @@ export interface CreateSavedFilterInput {
 
 export type UpdateSavedFilterInput = Partial<CreateSavedFilterInput>;
 
+export type PinnedSidebarEntityType
+  = "category"
+    | "tag"
+    | "website"
+    | "media-type"
+    | "youtube-channel"
+    | "saved-filter";
+
+export interface PinnedSidebarItem {
+  id: string;
+  entityType: PinnedSidebarEntityType;
+  entityId: string;
+  sortOrder: number;
+  createdAt: string;
+}
+
+export interface CreatePinnedSidebarItemInput {
+  entityType: PinnedSidebarEntityType;
+  entityId: string;
+}
+
 /** A user-defined named aspect ratio available in the Aspect dropdown. */
 export interface CustomAspectRatio {
   id: string;

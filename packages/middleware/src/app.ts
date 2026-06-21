@@ -14,6 +14,7 @@ import { galleryRoutes } from "@/routes/gallery";
 import { healthRoutes } from "@/routes/health";
 import { homepageSectionsRoutes } from "@/routes/homepageSections";
 import { customAspectRatioRoutes } from "@/routes/customAspectRatios";
+import { pinnedSidebarItemRoutes } from "@/routes/pinnedSidebarItems";
 import { savedFilterRoutes } from "@/routes/savedFilters";
 import { mediaTypeRoutes } from "@/routes/mediaTypes";
 import { metadataRoutes } from "@/routes/metadata";
@@ -109,6 +110,10 @@ export async function buildApp(): Promise<FastifyInstance> {
             description: "Named filter presets that can be applied to any bookmark listing",
           },
           {
+            name: "pinned-sidebar-items",
+            description: "Entities and saved filters pinned as quick-access links in the sidebar",
+          },
+          {
             name: "display-presets",
             description: "Named display presets (columns, image settings) that can be applied to any listing page",
           },
@@ -158,6 +163,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(homepageSectionsRoutes);
   await app.register(cardDisplayRulesRoutes);
   await app.register(savedFilterRoutes);
+  await app.register(pinnedSidebarItemRoutes);
   await app.register(customAspectRatioRoutes);
   await app.register(appSettingsRoutes);
   await app.register(galleryRoutes);
