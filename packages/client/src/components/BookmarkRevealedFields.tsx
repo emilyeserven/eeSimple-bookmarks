@@ -14,19 +14,14 @@ import type {
   YouTubeChannelHint,
 } from "@eesimple/types";
 
-import { Loader2, Sparkles } from "lucide-react";
-
 import { BookmarkAdvancedSection } from "./BookmarkAdvancedSection";
-import { BookmarkAutofillOffer } from "./BookmarkAutofillOffer";
-import { CategoryCustomFields } from "./BookmarkCustomFields";
-import { TitleFetchFeedback } from "./BookmarkTitleFeedback";
 import { BookmarkUrlCleanupBanner } from "./BookmarkUrlCleanupBanner";
-import { UrlCleanupPanel } from "./BookmarkUrlCleanupPanel";
 import { BookmarkUrlDuplicateWarnings } from "./BookmarkUrlDuplicateWarnings";
-import { WebsiteLookupBanner } from "./WebsiteLookupBanner";
-import { isFetchableUrl } from "../lib/url";
-
-import { Button } from "@/components/ui/button";
+import { RevealedAutofillOffer } from "./RevealedAutofillOffer";
+import { RevealedCustomFields } from "./RevealedCustomFields";
+import { RevealedNameField } from "./RevealedNameField";
+import { RevealedUrlCleanupSection } from "./RevealedUrlCleanupSection";
+import { RevealedWebsiteBanner } from "./RevealedWebsiteBanner";
 
 type WebsiteLookupResult = ReturnType<typeof useWebsiteLookup>;
 
@@ -126,330 +121,33 @@ interface BookmarkRevealedFieldsProps {
   onFetchDescription: (url: string) => void;
 }
 
-type RevealedWebsiteBannerProps = Pick<
-  BookmarkRevealedFieldsProps,
-  | "form"
-  | "websiteLookup"
-  | "youtubeChannel"
-  | "onChannelSelfIdsChange"
-  | "websiteSiteName"
-  | "onSiteNameChange"
-  | "onSiteNameBlur"
-  | "isNewChannel"
-  | "setWebsiteCategory"
-  | "setWebsiteTags"
-  | "setChannelCategory"
-  | "setChannelTags"
-  | "onSetWebsiteCategory"
-  | "onSetWebsiteTags"
-  | "onSetChannelCategory"
-  | "onSetChannelTags"
->;
-
-/** Left column: site / shortener info derived from the URL (website + YouTube channel banner). */
-function RevealedWebsiteBanner({
-  form,
-  websiteLookup,
-  youtubeChannel,
-  onChannelSelfIdsChange,
-  websiteSiteName,
-  onSiteNameChange,
-  onSiteNameBlur,
-  isNewChannel,
-  setWebsiteCategory,
-  setWebsiteTags,
-  setChannelCategory,
-  setChannelTags,
-  onSetWebsiteCategory,
-  onSetWebsiteTags,
-  onSetChannelCategory,
-  onSetChannelTags,
-}: RevealedWebsiteBannerProps) {
-  return (
-    <div className="flex flex-col gap-4">
-      <form.Subscribe
-        selector={s => ({
-          categoryId: s.values.categoryId,
-          tagIds: s.values.tagIds,
-        })}
-      >
-        {({
-          categoryId,
-          tagIds,
-        }) => (
-          <WebsiteLookupBanner
-            data={websiteLookup.data}
-            isYouTube={websiteLookup.data?.domain === "youtube.com"}
-            youtubeChannel={youtubeChannel}
-            onChannelSelfIdsChange={onChannelSelfIdsChange}
-            websiteSiteName={websiteSiteName}
-            onSiteNameChange={onSiteNameChange}
-            onSiteNameBlur={onSiteNameBlur}
-            categoryId={categoryId ?? ""}
-            tagIds={tagIds ?? []}
-            isNewChannel={isNewChannel}
-            setWebsiteCategory={setWebsiteCategory}
-            setWebsiteTags={setWebsiteTags}
-            setChannelCategory={setChannelCategory}
-            setChannelTags={setChannelTags}
-            onSetWebsiteCategory={onSetWebsiteCategory}
-            onSetWebsiteTags={onSetWebsiteTags}
-            onSetChannelCategory={onSetChannelCategory}
-            onSetChannelTags={onSetChannelTags}
-          />
-        )}
-      </form.Subscribe>
-    </div>
-  );
-}
-
-type RevealedNameFieldProps = Pick<
-  BookmarkRevealedFieldsProps,
-  | "form"
-  | "onTitleBlur"
-  | "onTitleChange"
-  | "onFetchTitleClick"
-  | "isFetchTitlePending"
-  | "isFetchMetadataPending"
-  | "titleFetch"
-  | "onUndoTitleFetch"
-  | "fetchTitleIsSuccess"
-  | "fetchTitleIsError"
-  | "fetchTitleErrorMessage"
-  | "fetchedTitle"
-  | "isReportingTitle"
-  | "onStartReporting"
-  | "expectedTitle"
-  | "onExpectedTitleChange"
-  | "onCancelReporting"
->;
-
-/** Right column: the Name field with its fetch-title button, undo line, and fetch feedback. */
-function RevealedNameField({
-  form,
-  onTitleBlur,
-  onTitleChange,
-  onFetchTitleClick,
-  isFetchTitlePending,
-  isFetchMetadataPending,
-  titleFetch,
-  onUndoTitleFetch,
-  fetchTitleIsSuccess,
-  fetchTitleIsError,
-  fetchTitleErrorMessage,
-  fetchedTitle,
-  isReportingTitle,
-  onStartReporting,
-  expectedTitle,
-  onExpectedTitleChange,
-  onCancelReporting,
-}: RevealedNameFieldProps) {
-  return (
-    <div className="flex flex-col gap-4">
-      <form.Subscribe selector={state => state.values.url}>
-        {url => (
-          <form.AppField name="title">
-            {field => (
-              <field.TextareaField
-                label="Name"
-                rows={1}
-                inputClassName="min-h-9"
-                onBlur={onTitleBlur}
-                onChange={onTitleChange}
-                action={(
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    title="Fetch title from URL"
-                    aria-label="Fetch title from URL"
-                    disabled={!isFetchableUrl(url) || isFetchTitlePending || isFetchMetadataPending}
-                    onClick={() => onFetchTitleClick(url)}
-                  >
-                    {isFetchTitlePending || isFetchMetadataPending
-                      ? <Loader2 className="size-4 animate-spin" />
-                      : <Sparkles className="size-4" />}
-                  </Button>
-                )}
-              />
-            )}
-          </form.AppField>
-        )}
-      </form.Subscribe>
-
-      {titleFetch && (
-        <p className="text-sm text-muted-foreground">
-          Changed from
-          {" "}
-          <span className="font-mono">{titleFetch.previous}</span>
-          {" · "}
-          <Button
-            type="button"
-            variant="link"
-            size="sm"
-            className="h-auto p-0"
-            onClick={onUndoTitleFetch}
-          >
-            Undo
-          </Button>
-        </p>
-      )}
-
-      <TitleFetchFeedback
-        isSuccess={fetchTitleIsSuccess}
-        isError={fetchTitleIsError}
-        errorMessage={fetchTitleErrorMessage}
-        fetchedTitle={fetchedTitle}
-        isReportingTitle={isReportingTitle}
-        onStartReporting={onStartReporting}
-        expectedTitle={expectedTitle}
-        onExpectedTitleChange={onExpectedTitleChange}
-        onCancelReporting={onCancelReporting}
-        getFormUrl={() => form.getFieldValue("url")}
-        getFormTitle={() => form.getFieldValue("title")}
-      />
-    </div>
-  );
-}
-
-type RevealedAutofillOfferProps = Pick<
-  BookmarkRevealedFieldsProps,
-  | "form"
-  | "websiteLookup"
-  | "lockedCategoryId"
-  | "categories"
-  | "autofillOfferDismissed"
-  | "onAutofillOfferDismiss"
->;
-
-/** Autofill rule offer, shown only for a new site that resolved to a domain. */
-function RevealedAutofillOffer({
-  form,
-  websiteLookup,
-  lockedCategoryId,
-  categories,
-  autofillOfferDismissed,
-  onAutofillOfferDismiss,
-}: RevealedAutofillOfferProps) {
-  if (!(websiteLookup.data?.exists === false && websiteLookup.data.domain)) {
-    return null;
-  }
-  return (
-    <form.Subscribe selector={state => state.values.categoryId}>
-      {categoryId => (
-        <BookmarkAutofillOffer
-          domain={websiteLookup.data?.domain ?? ""}
-          categoryId={categoryId}
-          lockedCategoryId={lockedCategoryId}
-          categories={categories}
-          dismissed={autofillOfferDismissed}
-          onDismiss={onAutofillOfferDismiss}
-        />
-      )}
-    </form.Subscribe>
-  );
-}
-
 /**
  * Everything the bookmark form reveals once the URL has been checked (or always, when editing): the
  * shortened-link banner, the URL cleanup panel, the website/YouTube banner, the Name field with its
  * fetch button and feedback, the main custom-property fields, and the Advanced collapsible (which
  * holds Description, Tags, image, and category). The URL field and the form's primary actions stay
  * in `BookmarkForm`.
+ *
+ * This component is a thin coordinator: each conditional render region lives in its own co-located
+ * `Revealed*` sub-component, keeping this function's cognitive complexity low.
  */
-export function BookmarkRevealedFields({
-  form,
-  lockedCategoryId,
-  urlCleanup,
-  urlShortener,
-  onUndoUrlCleanup,
-  showUrlCleanup,
-  cleanupId,
-  urlCleanupMode,
-  onUrlCleanupModeChange,
-  websites,
-  ignoreList,
-  websiteLookup,
-  youtubeChannel,
-  onChannelSelfIdsChange,
-  websiteSiteName,
-  onSiteNameChange,
-  onSiteNameBlur,
-  isNewChannel,
-  setWebsiteCategory,
-  setWebsiteTags,
-  setChannelCategory,
-  setChannelTags,
-  onSetWebsiteCategory,
-  onSetWebsiteTags,
-  onSetChannelCategory,
-  onSetChannelTags,
-  onTitleBlur,
-  onTitleChange,
-  onFetchTitleClick,
-  isFetchTitlePending,
-  isFetchMetadataPending,
-  titleFetch,
-  onUndoTitleFetch,
-  fetchTitleIsSuccess,
-  fetchTitleIsError,
-  fetchTitleErrorMessage,
-  fetchedTitle,
-  isReportingTitle,
-  onStartReporting,
-  expectedTitle,
-  onExpectedTitleChange,
-  onCancelReporting,
-  tagTree,
-  customProperties,
-  mediaTypeId = null,
-  onTagToggle,
-  numberInputs,
-  booleanInputs,
-  dateTimeInputs,
-  onNumberChange,
-  onBooleanChange,
-  onDateTimeChange,
-  categories,
-  addCategoryOpen,
-  onAddCategoryOpenChange,
-  imageFieldKey,
-  existingImageUrl,
-  defaultAuto,
-  autoGrabError,
-  onImageIntentChange,
-  onApplyCategoryDefaults,
-  urlDuplicate,
-  autofillOfferDismissed,
-  onAutofillOfferDismiss,
-  onFetchDescription,
-}: BookmarkRevealedFieldsProps) {
+export function BookmarkRevealedFields(props: BookmarkRevealedFieldsProps) {
+  // A coordinator: each conditional region is delegated to a `Revealed*` sub-component that picks
+  // the slice of props it needs. Passing the whole bag keeps this function flat and low-complexity;
+  // only the few props that need renaming for a leaf component are spelled out below.
   return (
     <>
       {/* Shortened-link disclosure: full URL shown inline directly below the URL field. */}
       <BookmarkUrlCleanupBanner
-        urlCleanup={urlCleanup}
-        urlShortener={urlShortener}
-        onUndo={onUndoUrlCleanup}
+        urlCleanup={props.urlCleanup}
+        urlShortener={props.urlShortener}
+        onUndo={props.onUndoUrlCleanup}
       />
 
-      {showUrlCleanup && (
-        <form.Subscribe selector={state => state.values.url}>
-          {url => (
-            <UrlCleanupPanel
-              url={url}
-              cleanupId={cleanupId}
-              mode={urlCleanupMode}
-              onModeChange={onUrlCleanupModeChange}
-              websites={websites}
-              ignoreList={ignoreList}
-            />
-          )}
-        </form.Subscribe>
-      )}
+      <RevealedUrlCleanupSection {...props} />
 
       {/* Duplicate URL warnings. */}
-      <BookmarkUrlDuplicateWarnings urlDuplicate={urlDuplicate} />
+      <BookmarkUrlDuplicateWarnings {...props} />
 
       {/* Left: site / shortener info derived from the URL. Right: Name + title feedback. */}
       <div
@@ -458,97 +156,18 @@ export function BookmarkRevealedFields({
           sm:grid-cols-2
         "
       >
-        <RevealedWebsiteBanner
-          form={form}
-          websiteLookup={websiteLookup}
-          youtubeChannel={youtubeChannel}
-          onChannelSelfIdsChange={onChannelSelfIdsChange}
-          websiteSiteName={websiteSiteName}
-          onSiteNameChange={onSiteNameChange}
-          onSiteNameBlur={onSiteNameBlur}
-          isNewChannel={isNewChannel}
-          setWebsiteCategory={setWebsiteCategory}
-          setWebsiteTags={setWebsiteTags}
-          setChannelCategory={setChannelCategory}
-          setChannelTags={setChannelTags}
-          onSetWebsiteCategory={onSetWebsiteCategory}
-          onSetWebsiteTags={onSetWebsiteTags}
-          onSetChannelCategory={onSetChannelCategory}
-          onSetChannelTags={onSetChannelTags}
-        />
-
-        <RevealedNameField
-          form={form}
-          onTitleBlur={onTitleBlur}
-          onTitleChange={onTitleChange}
-          onFetchTitleClick={onFetchTitleClick}
-          isFetchTitlePending={isFetchTitlePending}
-          isFetchMetadataPending={isFetchMetadataPending}
-          titleFetch={titleFetch}
-          onUndoTitleFetch={onUndoTitleFetch}
-          fetchTitleIsSuccess={fetchTitleIsSuccess}
-          fetchTitleIsError={fetchTitleIsError}
-          fetchTitleErrorMessage={fetchTitleErrorMessage}
-          fetchedTitle={fetchedTitle}
-          isReportingTitle={isReportingTitle}
-          onStartReporting={onStartReporting}
-          expectedTitle={expectedTitle}
-          onExpectedTitleChange={onExpectedTitleChange}
-          onCancelReporting={onCancelReporting}
-        />
+        <RevealedWebsiteBanner {...props} />
+        <RevealedNameField {...props} />
       </div>
 
       {/* Autofill rule offer for new sites with a non-default category. */}
-      <RevealedAutofillOffer
-        form={form}
-        websiteLookup={websiteLookup}
-        lockedCategoryId={lockedCategoryId}
-        categories={categories}
-        autofillOfferDismissed={autofillOfferDismissed}
-        onAutofillOfferDismiss={onAutofillOfferDismiss}
-      />
+      <RevealedAutofillOffer {...props} />
 
-      <form.Subscribe selector={state => state.values.categoryId}>
-        {categoryId => (
-          <CategoryCustomFields
-            placement="default"
-            categoryId={categoryId}
-            mediaTypeId={mediaTypeId}
-            properties={customProperties}
-            numberInputs={numberInputs}
-            booleanInputs={booleanInputs}
-            dateTimeInputs={dateTimeInputs}
-            onNumberChange={onNumberChange}
-            onBooleanChange={onBooleanChange}
-            onDateTimeChange={onDateTimeChange}
-          />
-        )}
-      </form.Subscribe>
+      <RevealedCustomFields {...props} />
 
       <BookmarkAdvancedSection
-        form={form}
-        lockedCategoryId={lockedCategoryId}
-        categories={categories}
-        customProperties={customProperties}
-        addCategoryOpen={addCategoryOpen}
-        onAddCategoryOpenChange={onAddCategoryOpenChange}
-        imageFieldKey={imageFieldKey}
-        existingImageUrl={existingImageUrl}
-        defaultAuto={defaultAuto}
-        autoGrabError={autoGrabError}
-        onImageIntentChange={onImageIntentChange}
-        mediaTypeId={mediaTypeId}
-        tagTree={tagTree}
-        onTagToggle={onTagToggle}
-        numberInputs={numberInputs}
-        booleanInputs={booleanInputs}
-        dateTimeInputs={dateTimeInputs}
-        onNumberChange={onNumberChange}
-        onBooleanChange={onBooleanChange}
-        onDateTimeChange={onDateTimeChange}
-        onApplyCategoryDefaults={onApplyCategoryDefaults}
-        onFetchDescription={onFetchDescription}
-        isFetchDescriptionPending={isFetchMetadataPending}
+        {...props}
+        isFetchDescriptionPending={props.isFetchMetadataPending}
       />
     </>
   );
