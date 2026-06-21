@@ -18,7 +18,8 @@ interface HomepageContentBlocksProps {
 export function HomepageContentBlocks({
   content,
 }: HomepageContentBlocksProps) {
-  const homepageText = content.homepageText.trim() ? content.homepageText : "";
+  const homepageText
+    = content.homepageTextEnabled && content.homepageText.trim() ? content.homepageText : "";
 
   return (
     <div className="grid grid-cols-2 gap-4">

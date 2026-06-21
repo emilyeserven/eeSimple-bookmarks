@@ -30,7 +30,9 @@ function HomePage() {
   } = useHomepageContentSettings();
 
   const hasContent = Boolean(
-    content && (content.homepageText.trim() || content.bookmarkQuickAddEnabled),
+    content
+    && ((content.homepageTextEnabled && content.homepageText.trim())
+      || content.bookmarkQuickAddEnabled),
   );
 
   const sectionList = (sections ?? []).filter(

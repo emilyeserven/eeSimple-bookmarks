@@ -30,7 +30,8 @@ export function subtreeIds<T extends { id: string;
  * Walk the tree depth-first to find the node with the given slug.
  * Returns the ordered path [root-ancestor, ..., target], or null if not found.
  */
-export function findAncestorPath(nodes: TagNode[], slug: string): TagNode[] | null {
+export function findAncestorPath<T extends { slug: string;
+  children: T[]; }>(nodes: T[], slug: string): T[] | null {
   for (const node of nodes) {
     if (node.slug === slug) return [node];
     const child = findAncestorPath(node.children, slug);

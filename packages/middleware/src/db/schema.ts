@@ -802,6 +802,8 @@ export const appSettings = pgTable("app_settings", {
   bookmarkQuickAddDisplay: text("bookmark_quick_add_display").notNull().default("collapsible"),
   // When true, the default "Homepage" title and description are hidden on the homepage.
   homepageHeaderHidden: boolean("homepage_header_hidden").notNull().default(false),
+  // When false, the homepage text block is hidden even if homepage_text is non-empty.
+  homepageTextEnabled: boolean("homepage_text_enabled").notNull().default(true),
 });
 
 /**
