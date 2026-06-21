@@ -222,6 +222,33 @@ that matches the surface — don't invent a new structure for a one-off page.
 - Single-tab entities (Tags, YouTube Channels, Media Types, Property Groups) use the full tabbed
   shell for a single "General" tab.
 
+## Large-form / over-cap decomposition
+
+When a component or hook trips fallow's cognitive-complexity cap (`maxCognitive: 25`), the cause is
+usually **hook-density, not branching**. fallow scores **each function independently** — nested
+function bodies are **not** rolled into the parent (unlike SonarJS) — so **extracting handler
+functions does not lower a component's score**. What it counts is **+1 per hook call** (`useState` /
+`useRef` / `useEffect` / every custom hook) plus +1 per `??`, `&&`, and ternary (`?.` only affects
+*cyclomatic*). A form that calls ~25 hooks is over the cap before a single `if`. Use
+`pnpm exec fallow health --complexity-breakdown` to see the per-decision contributions.
+
+The remedy is to **spread the hooks**, not the handlers. The reference is the **bookmark form**
+(`BookmarkForm.tsx`, ~250 lines of thin JSX):
+
+- a **controller hook** (`useBookmarkFormController.ts`) owns the `useAppForm` instance, the state,
+  and every create/edit/scan/reset handler — the component just wires its return into JSX;
+- **cohesive state sub-hooks** partition the `useState`s so no one function is hook-dense
+  (`useBookmarkFormUiState`, `useSourceDefaultFlags` in `useBookmarkFormState.ts`);
+- **module-level pure helpers** hold the heaviest self-contained logic and the `??` chains, and are
+  unit-tested directly (`bookmarkSubmit.ts`'s `applyImageIntent` / `promoteSourceDefaults`,
+  `buildBookmarkDefaultValues` in `bookmarkFormSchema.ts`).
+
+This is the **state-orchestration** sibling to **PropertyForm**'s section-component split (see
+**Content hierarchies**): PropertyForm divides the *rendered UI* into section components typed via the
+shared form-API sample type; the bookmark form additionally moves the *state + handlers* out of the
+component. Reach for a controller hook when the cap pressure is hook-density rather than inline JSX
+branching. Don't reintroduce a `// fallow-ignore-next-line complexity` to dodge this.
+
 ## Data shaping: middleware vs. client
 
 **Default rule:** API endpoints return *render-ready* shapes. Heavy joins, aggregation, grouping,
