@@ -1,10 +1,14 @@
+import type { CardOverlayItem } from "./CardImageOverlays";
+import type { BookmarkValueItem } from "../lib/bookmarkCardValues";
 import type { BookmarkImageVisibility } from "../lib/bookmarkColumns";
 import type {
   Bookmark,
   BookmarkDateTimeValue,
   BookmarkNumberValue,
+  CardFieldZones,
   CustomProperty,
 } from "@eesimple/types";
+import type { ReactNode } from "react";
 
 import { propertyAppliesToCategory } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
@@ -13,15 +17,61 @@ import { BookmarkCardDetails } from "./BookmarkCardDetails";
 import { BookmarkCardHeader } from "./BookmarkCardHeader";
 import { CardImageOverlays } from "./CardImageOverlays";
 import { useViewPanelClick } from "./panel/useEditPanelClick";
+import { StarRating } from "./StarRating";
 import { useAutoBookmarkImage, useUpdateBookmark } from "../hooks/useBookmarks";
+import { useCategories } from "../hooks/useCategories";
 import { useCustomAspectRatios } from "../hooks/useCustomAspectRatios";
-import { useHiddenCardFields } from "../lib/bookmarkCardFields";
-import { buildBookmarkValueItems } from "../lib/bookmarkCardValues";
+import { STANDARD_CARD_FIELDS } from "../lib/bookmarkCardFieldDefs";
+import {
+  buildBookmarkValueItems,
+  fieldPlacementsForCard,
+  standardFieldOverlayLabel,
+} from "../lib/bookmarkCardValues";
 import { mergeBooleanValue } from "../lib/bookmarkFormat";
 import { bookmarkImageAspectStyle, bookmarkImageClass } from "../lib/bookmarkImage";
 
+import { Badge } from "@/components/ui/badge";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
 import { useUiStore } from "@/stores/uiStore";
+
+/** Render a custom-property value item as a translucent corner-overlay node (badge or compact stars). */
+function valueItemOverlayNode(item: BookmarkValueItem): ReactNode {
+  return item.kind === "rating"
+    ? (
+      <div
+        className="rounded-md bg-background/85 px-1.5 py-0.5 backdrop-blur-sm"
+      >
+        <StarRating
+          value={item.value}
+          max={item.property.ratingMax ?? 5}
+          allowHalf={item.property.ratingAllowHalf}
+          allowZero={item.property.ratingAllowZero}
+          readOnly
+          size={12}
+        />
+      </div>
+    )
+    : (
+      <Badge
+        variant="secondary"
+        className="bg-background/85 backdrop-blur-sm"
+      >
+        {item.label}
+      </Badge>
+    );
+}
+
+/** Render a standard (non-custom-property) field's text as a translucent corner-overlay badge. */
+function standardFieldOverlayNode(label: string): ReactNode {
+  return (
+    <Badge
+      variant="secondary"
+      className="bg-background/85 backdrop-blur-sm"
+    >
+      {label}
+    </Badge>
+  );
+}
 
 interface BookmarkCardProps {
   bookmark: Bookmark;
@@ -40,12 +90,11 @@ interface BookmarkCardProps {
    * `"image-only"` (just the image, linked to the bookmark), or `"off"` (content with no image).
    */
   imageVisibility?: BookmarkImageVisibility;
-  /** Listing-page key, so the card honors that page's Card Options field toggles. Omitted off listing pages. */
-  pageKey?: string;
-  /** Explicit hidden field keys, overriding the `pageKey` lookup. Used by DB-backed surfaces (homepage sections). */
-  hiddenFields?: Set<string>;
-  /** Whether custom properties placed in an image corner are overlaid on the image. When false they fall back to badges. Defaults to true. */
-  cornerOverlays?: boolean;
+  /**
+   * Per-zone field placements governing which fields show and where (card body vs. image corners).
+   * Listings pass the rule-resolved zones; when omitted every field defaults to the card body.
+   */
+  fieldZones?: CardFieldZones;
   /** When true, hide the website pill on a bookmark that also has a YouTube channel. When omitted, the Default rule's value applies. */
   hideWebsiteForYouTube?: boolean;
 }
@@ -90,7 +139,7 @@ function mergeDateTimeValue(
 
 export function BookmarkCard({
   bookmark, properties = [], onDelete, imageLeft = false, imageMode = "natural",
-  imageVisibility = "shown", pageKey, hiddenFields, cornerOverlays = true, hideWebsiteForYouTube,
+  imageVisibility = "shown", fieldZones, hideWebsiteForYouTube,
 }: BookmarkCardProps) {
   const autoImage = useAutoBookmarkImage();
   const updateBookmark = useUpdateBookmark();
@@ -98,8 +147,10 @@ export function BookmarkCard({
   const modifier = useUiStore(state => state.sidebarOpenModifier);
   const croppedWidth = useUiStore(state => state.croppedWidth);
   const croppedHeight = useUiStore(state => state.croppedHeight);
-  const pageHidden = useHiddenCardFields(pageKey);
-  const hidden = hiddenFields ?? pageHidden;
+  const placements = fieldPlacementsForCard(fieldZones, properties);
+  const {
+    data: allCategories = [],
+  } = useCategories();
   const {
     data: customRatios = [],
   } = useCustomAspectRatios();
@@ -156,12 +207,36 @@ export function BookmarkCard({
 
   const hasImage = !!bookmark.image && imageVisibility !== "off";
 
-  // Custom properties placed in an image corner are overlaid only when the listing allows it and the
-  // card has an image; otherwise their values fall back to badges in BookmarkCardDetails.
-  const overlayItems = hasImage && cornerOverlays
-    ? buildBookmarkValueItems(bookmark, properties, hidden).filter(item => item.corner !== null)
-    : [];
-  const cornerPropertyIds = new Set(overlayItems.map(item => item.id));
+  // Fields placed in an image corner are overlaid only when the card has an image; otherwise they
+  // fall back to the card body (BookmarkCardDetails reads the same `placements`).
+  const valueItems = buildBookmarkValueItems(bookmark, properties, placements);
+  const bookmarkCategory = allCategories.find(c => c.id === bookmark.categoryId && !c.builtIn);
+  const overlayItems: CardOverlayItem[] = [];
+  if (hasImage) {
+    for (const item of valueItems) {
+      if (item.corner === null) continue;
+      overlayItems.push({
+        key: item.id,
+        corner: item.corner,
+        scale: item.scale,
+        mobileScale: item.mobileScale,
+        node: valueItemOverlayNode(item),
+      });
+    }
+    for (const field of STANDARD_CARD_FIELDS) {
+      const placement = placements.get(field.key);
+      if (!placement || placement.corner === null) continue;
+      const label = standardFieldOverlayLabel(bookmark, field.key, bookmarkCategory?.name ?? null);
+      if (!label) continue;
+      overlayItems.push({
+        key: field.key,
+        corner: placement.corner,
+        scale: placement.scale,
+        mobileScale: placement.mobileScale,
+        node: standardFieldOverlayNode(label),
+      });
+    }
+  }
 
   const imageEl = hasImage && bookmark.image
     ? (
@@ -202,10 +277,9 @@ export function BookmarkCard({
     <BookmarkCardDetails
       bookmark={bookmark}
       properties={properties}
-      pageKey={pageKey}
-      hiddenFields={hiddenFields}
+      placements={placements}
+      bookmarkCategory={bookmarkCategory}
       hideWebsiteForYouTube={hideWebsiteForYouTube}
-      cornerPropertyIds={cornerPropertyIds}
       onSaveRating={saveNumber}
       onSaveBoolean={saveBoolean}
     />

@@ -136,13 +136,23 @@ export function CardDisplayRuleInspector() {
         return IMAGE_LAYOUT_LABELS[String(attr.value)] ?? String(attr.value);
       case "imageMode":
         return aspectLabel.get(String(attr.value)) ?? String(attr.value);
-      case "cornerOverlays":
       case "hideWebsiteForYouTube":
         return attr.value ? "On" : "Off";
-      case "hiddenCardFields": {
-        const keys = Array.isArray(attr.value) ? attr.value : [];
-        if (keys.length === 0) return "Showing all fields";
-        return `Hiding ${keys.map(key => fieldLabel.get(key) ?? key).join(", ")}`;
+      case "fieldZones": {
+        const zones = attr.value;
+        if (typeof zones !== "object" || Array.isArray(zones)) return String(attr.value);
+        const summarize = (keys: { key: string }[]): string =>
+          keys.map(p => fieldLabel.get(p.key) ?? p.key).join(", ");
+        const parts: string[] = [];
+        if (zones.card.length > 0) parts.push(`Card: ${summarize(zones.card)}`);
+        const corners = [
+          ...zones["image-top-left"],
+          ...zones["image-top-right"],
+          ...zones["image-bottom-left"],
+          ...zones["image-bottom-right"],
+        ];
+        if (corners.length > 0) parts.push(`Corners: ${summarize(corners)}`);
+        return parts.length > 0 ? parts.join("; ") : "All fields hidden";
       }
       default:
         return String(attr.value);

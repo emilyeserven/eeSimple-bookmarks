@@ -34,11 +34,10 @@ function initialFromRule(rule?: CardDisplayRule): CardDisplayRuleFormValues {
     description: rule?.description ?? "",
     conditions: rule?.conditions ?? emptyConditionTree(),
     display: {
-      hiddenCardFields: rule?.hiddenCardFields ?? (rule?.isDefault ? [] : null),
+      fieldZones: rule?.fieldZones ?? null,
       imageMode: rule?.imageMode ?? (rule?.isDefault ? "natural" : null),
       imageVisibility: rule?.imageVisibility ?? (rule?.isDefault ? "shown" : null),
       imageLayout: rule?.imageLayout ?? (rule?.isDefault ? "above" : null),
-      cornerOverlays: rule?.cornerOverlays ?? (rule?.isDefault ? true : null),
       hideWebsiteForYouTube: rule?.hideWebsiteForYouTube ?? (rule?.isDefault ? false : null),
     },
   };
@@ -138,6 +137,31 @@ export function CardDisplayRuleForm({
     </section>
   );
 
+  // On desktop the Card Display controls sit on the left (scrolling when tall) with the live Card
+  // Preview pinned on the right at matching height; they stack on narrow screens.
+  const displayWithPreview = (
+    <div
+      className="
+        gap-6
+        md:grid md:grid-cols-[1fr_minmax(0,22rem)] md:items-stretch
+      "
+    >
+      <div
+        className="md:max-h-136 md:overflow-y-auto md:pr-2"
+      >
+        {displayControls}
+      </div>
+      <div
+        className="
+          mt-6
+          md:mt-0 md:h-full
+        "
+      >
+        {cardPreview}
+      </div>
+    </div>
+  );
+
   return (
     <form
       onSubmit={handleSubmit}
@@ -150,9 +174,7 @@ export function CardDisplayRuleForm({
               The Default rule is the baseline applied to every bookmark card. Other rules override it
               for the bookmarks they match.
             </p>
-            {displayControls}
-            <Separator />
-            {cardPreview}
+            {displayWithPreview}
           </>
         )
         : (
@@ -194,7 +216,7 @@ export function CardDisplayRuleForm({
             <CollapsibleFormSection
               title="When"
               description="Which bookmarks this rule applies to. Combine conditions with AND/OR."
-              defaultOpen={(rule?.conditions.children.length ?? 0) > 0}
+              defaultOpen
               preview={conditionsSummaryLabel(values.conditions)}
             >
               <ConditionsField
@@ -216,12 +238,8 @@ export function CardDisplayRuleForm({
               defaultOpen={!rule}
               preview="Card field & image overrides"
             >
-              {displayControls}
+              {displayWithPreview}
             </CollapsibleFormSection>
-
-            <Separator />
-
-            {cardPreview}
 
             <Separator />
 

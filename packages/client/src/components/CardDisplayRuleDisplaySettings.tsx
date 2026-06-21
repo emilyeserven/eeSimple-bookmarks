@@ -1,10 +1,16 @@
-import type { BookmarkImageVisibility, CustomProperty, HomepageSectionImageLayout } from "@eesimple/types";
+import type {
+  BookmarkImageVisibility,
+  CardFieldZones,
+  CustomProperty,
+  HomepageSectionImageLayout,
+} from "@eesimple/types";
 import type { ReactNode } from "react";
 
-import { CardDisplayControlsBase } from "./CardDisplayControls";
+import { CardFieldZoneBoard } from "./CardFieldZoneBoard";
 import { OnOffToggleGroup } from "./DisplayControlPrimitives";
 import { useCustomAspectRatios } from "../hooks/useCustomAspectRatios";
 import { buildAspectOptions } from "../lib/aspectOptions";
+import { defaultCardFieldZones } from "../lib/bookmarkCardValues";
 import { useUiStore } from "../stores/uiStore";
 
 import { Checkbox } from "@/components/ui/checkbox";
@@ -21,21 +27,18 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 /** The per-card display config a rule overrides; `null` on any attribute means "inherit". */
 export interface RuleDisplayValue {
-  hiddenCardFields: string[] | null;
+  fieldZones: CardFieldZones | null;
   imageMode: string | null;
   imageVisibility: BookmarkImageVisibility | null;
   imageLayout: HomepageSectionImageLayout | null;
-  cornerOverlays: boolean | null;
   hideWebsiteForYouTube: boolean | null;
 }
 
 /** Defaults applied when a non-default rule first switches an attribute from "inherit" to "override". */
 const OVERRIDE_DEFAULTS = {
-  hiddenCardFields: [] as string[],
   imageMode: "natural",
   imageVisibility: "shown" as BookmarkImageVisibility,
   imageLayout: "above" as HomepageSectionImageLayout,
-  cornerOverlays: true,
   hideWebsiteForYouTube: false,
 };
 
@@ -69,16 +72,6 @@ export function CardDisplayRuleDisplaySettings({
     data: customRatios = [],
   } = useCustomAspectRatios();
   const aspectOptions = buildAspectOptions(croppedWidth, croppedHeight, customRatios);
-
-  function toggleCardField(fieldKey: string): void {
-    const current = value.hiddenCardFields ?? [];
-    const next = current.includes(fieldKey)
-      ? current.filter(key => key !== fieldKey)
-      : [...current, fieldKey];
-    onChange({
-      hiddenCardFields: next,
-    });
-  }
 
   return (
     <div className="space-y-4">
@@ -201,24 +194,6 @@ export function CardDisplayRuleDisplaySettings({
       </OverridableRow>
 
       <OverridableRow
-        label="Image corners"
-        idPrefix={idPrefix}
-        attr="cornerOverlays"
-        isDefault={isDefault}
-        isOverridden={value.cornerOverlays !== null}
-        onOverrideChange={on => onChange({
-          cornerOverlays: on ? OVERRIDE_DEFAULTS.cornerOverlays : null,
-        })}
-      >
-        <OnOffToggleGroup
-          value={value.cornerOverlays ?? OVERRIDE_DEFAULTS.cornerOverlays}
-          onChange={on => onChange({
-            cornerOverlays: on,
-          })}
-        />
-      </OverridableRow>
-
-      <OverridableRow
         label="Hide website for YouTube"
         idPrefix={idPrefix}
         attr="hideWebsiteForYouTube"
@@ -247,27 +222,30 @@ export function CardDisplayRuleDisplaySettings({
               className="flex items-center gap-2 text-xs text-muted-foreground"
             >
               <Checkbox
-                id={`${idPrefix}-override-hiddenCardFields`}
-                checked={value.hiddenCardFields !== null}
+                id={`${idPrefix}-override-fieldZones`}
+                checked={value.fieldZones !== null}
                 onCheckedChange={checked => onChange({
-                  hiddenCardFields: checked === true ? OVERRIDE_DEFAULTS.hiddenCardFields : null,
+                  fieldZones: checked === true ? defaultCardFieldZones(properties) : null,
                 })}
               />
               Override
             </label>
           )}
         </div>
-        {value.hiddenCardFields !== null
+        {value.fieldZones !== null
           ? (
             <>
               <p className="text-xs text-muted-foreground">
-                Which fields appear on matching bookmark cards.
+                Drag each field onto a zone. Image corners overlay it on the card image; anything left
+                in “Available” is hidden.
               </p>
-              <CardDisplayControlsBase
-                hidden={value.hiddenCardFields}
-                onToggle={toggleCardField}
+              <CardFieldZoneBoard
+                value={value.fieldZones}
+                onChange={zones => onChange({
+                  fieldZones: zones,
+                })}
                 properties={properties}
-                idPrefix={`${idPrefix}-card-field`}
+                idPrefix={`${idPrefix}-zones`}
               />
             </>
           )

@@ -5,14 +5,16 @@ import type {
 import type {
   Bookmark,
   CardDisplayRule,
+  CardFieldZones,
   ConditionInput,
   TagDescendants,
 } from "@eesimple/types";
 
 import { useCallback, useMemo } from "react";
 
-import { buildTagDescendants, evaluateConditions } from "@eesimple/types";
+import { buildTagDescendants, emptyCardFieldZones, evaluateConditions } from "@eesimple/types";
 
+import { STANDARD_CARD_FIELDS } from "./bookmarkCardFieldDefs";
 import { useCardDisplayRules } from "../hooks/useCardDisplayRules";
 import { useTags } from "../hooks/useTags";
 
@@ -22,11 +24,10 @@ import { useTags } from "../hooks/useTags";
  * that matched — surfaced for the future "which rules apply to this bookmark" inspector.
  */
 export interface ResolvedCardDisplay {
-  hiddenCardFields: string[];
+  fieldZones: CardFieldZones;
   imageMode: string;
   imageVisibility: BookmarkImageVisibility;
   imageLayout: HomepageSectionImageLayout;
-  cornerOverlays: boolean;
   hideWebsiteForYouTube: boolean;
   provenance: {
     /** Rule ids that matched this bookmark, in priority order (highest first). */
@@ -40,12 +41,20 @@ export interface ResolvedCardDisplay {
  * Hardcoded fallback used only if the Default rule is missing (e.g. before the boot seed runs). Also
  * reused by the rule-editor card preview to fill attributes a rule leaves to "inherit".
  */
+/** Standard fields placed in the card body — the baseline `fieldZones` when no Default rule exists. */
+function baselineFieldZones(): CardFieldZones {
+  const zones = emptyCardFieldZones();
+  zones.card = STANDARD_CARD_FIELDS.map(field => ({
+    key: field.key,
+  }));
+  return zones;
+}
+
 export const BASELINE = {
-  hiddenCardFields: [] as string[],
+  fieldZones: baselineFieldZones(),
   imageMode: "natural",
   imageVisibility: "shown" as BookmarkImageVisibility,
   imageLayout: "above" as HomepageSectionImageLayout,
-  cornerOverlays: true,
   hideWebsiteForYouTube: false,
 };
 
@@ -95,27 +104,25 @@ export function resolveCardDisplay(
   const input = bookmarkToConditionInput(bookmark);
 
   const matchedRuleIds: string[] = [];
-  let hiddenCardFields: string[] | null = null;
+  let fieldZones: CardFieldZones | null = null;
   let imageMode: string | null = null;
   let imageVisibility: BookmarkImageVisibility | null = null;
   let imageLayout: HomepageSectionImageLayout | null = null;
-  let cornerOverlays: boolean | null = null;
   let hideWebsiteForYouTube: boolean | null = null;
   const source: ResolvedCardDisplay["provenance"]["source"] = {
-    hiddenCardFields: null,
+    fieldZones: null,
     imageMode: null,
     imageVisibility: null,
     imageLayout: null,
-    cornerOverlays: null,
     hideWebsiteForYouTube: null,
   };
 
   for (const rule of rules) {
     if (!ruleMatches(rule, input, tagDescendants)) continue;
     matchedRuleIds.push(rule.id);
-    if (hiddenCardFields === null && rule.hiddenCardFields !== null) {
-      hiddenCardFields = rule.hiddenCardFields;
-      source.hiddenCardFields = rule.id;
+    if (fieldZones === null && rule.fieldZones !== null) {
+      fieldZones = rule.fieldZones;
+      source.fieldZones = rule.id;
     }
     if (imageMode === null && rule.imageMode !== null) {
       imageMode = rule.imageMode;
@@ -129,10 +136,6 @@ export function resolveCardDisplay(
       imageLayout = rule.imageLayout;
       source.imageLayout = rule.id;
     }
-    if (cornerOverlays === null && rule.cornerOverlays !== null) {
-      cornerOverlays = rule.cornerOverlays;
-      source.cornerOverlays = rule.id;
-    }
     if (hideWebsiteForYouTube === null && rule.hideWebsiteForYouTube !== null) {
       hideWebsiteForYouTube = rule.hideWebsiteForYouTube;
       source.hideWebsiteForYouTube = rule.id;
@@ -140,11 +143,10 @@ export function resolveCardDisplay(
   }
 
   return {
-    hiddenCardFields: hiddenCardFields ?? BASELINE.hiddenCardFields,
+    fieldZones: fieldZones ?? BASELINE.fieldZones,
     imageMode: imageMode ?? BASELINE.imageMode,
     imageVisibility: imageVisibility ?? BASELINE.imageVisibility,
     imageLayout: imageLayout ?? BASELINE.imageLayout,
-    cornerOverlays: cornerOverlays ?? BASELINE.cornerOverlays,
     hideWebsiteForYouTube: hideWebsiteForYouTube ?? BASELINE.hideWebsiteForYouTube,
     provenance: {
       matchedRuleIds,
@@ -174,15 +176,11 @@ export const CARD_DISPLAY_ATTRS = [
     label: "Layout",
   },
   {
-    key: "cornerOverlays",
-    label: "Image corners",
-  },
-  {
     key: "hideWebsiteForYouTube",
     label: "Hide website for YouTube",
   },
   {
-    key: "hiddenCardFields",
+    key: "fieldZones",
     label: "Card fields",
   },
 ] as const satisfies readonly {
@@ -195,7 +193,7 @@ export interface RuleAttrInspection {
   key: keyof ResolvedCardDisplay["provenance"]["source"];
   label: string;
   /** The raw value the rule declares for this attribute (formatted for display by the caller). */
-  value: string[] | string | boolean;
+  value: CardFieldZones | string | boolean;
   status: "applied" | "overridden";
   /** When overridden, the id of the higher-priority rule that supplied the final value. */
   overriddenBy: string | null;

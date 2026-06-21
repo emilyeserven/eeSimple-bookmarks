@@ -91,10 +91,6 @@ function toCustomProperty(
     ratingAllowHalf: row.ratingAllowHalf ?? false,
     ratingShowLabel: row.ratingShowLabel ?? false,
     ratingLabel: row.ratingLabel ?? null,
-    cardImageCorner: (row.cardImageCorner as CustomProperty["cardImageCorner"]) ?? null,
-    cardImageCornerScale: row.cardImageCornerScale ?? 1,
-    cardImageCornerMobileScale: row.cardImageCornerMobileScale ?? null,
-    cardImageCornerHideLabel: row.cardImageCornerHideLabel ?? false,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
   };
@@ -323,7 +319,6 @@ export async function createCustomProperty(
         ratingAllowHalf: isRating ? (input.ratingAllowHalf ?? null) : null,
         ratingShowLabel: isRating ? (input.ratingShowLabel ?? null) : null,
         ratingLabel: isRating ? (input.ratingLabel ?? null) : null,
-        cardImageCorner: input.cardImageCorner ?? null,
       })
       .returning({
         id: customProperties.id,
@@ -382,10 +377,6 @@ export type UpdatePatch = Partial<
     | "ratingAllowHalf"
     | "ratingShowLabel"
     | "ratingLabel"
-    | "cardImageCorner"
-    | "cardImageCornerScale"
-    | "cardImageCornerMobileScale"
-    | "cardImageCornerHideLabel"
   >
 >;
 
@@ -438,10 +429,6 @@ const COPYABLE_FIELDS = [
   "ratingAllowHalf",
   "ratingShowLabel",
   "ratingLabel",
-  "cardImageCorner",
-  "cardImageCornerScale",
-  "cardImageCornerMobileScale",
-  "cardImageCornerHideLabel",
 ] as const satisfies readonly CopyableField[];
 
 /**

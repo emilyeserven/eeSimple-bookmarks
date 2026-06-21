@@ -128,11 +128,10 @@ export function CardDisplayRulePreview({
 
   // "This rule over the baseline": inherited (null) attributes fall back to the hardcoded baseline.
   const resolved = {
-    hiddenCardFields: display.hiddenCardFields ?? BASELINE.hiddenCardFields,
+    fieldZones: display.fieldZones ?? BASELINE.fieldZones,
     imageMode: display.imageMode ?? BASELINE.imageMode,
     imageVisibility: display.imageVisibility ?? BASELINE.imageVisibility,
     imageLayout: display.imageLayout ?? BASELINE.imageLayout,
-    cornerOverlays: display.cornerOverlays ?? BASELINE.cornerOverlays,
     hideWebsiteForYouTube: display.hideWebsiteForYouTube ?? BASELINE.hideWebsiteForYouTube,
   };
 
@@ -188,11 +187,10 @@ export function CardDisplayRulePreview({
           <BookmarkCard
             bookmark={subject}
             properties={properties}
-            hiddenFields={new Set(resolved.hiddenCardFields)}
+            fieldZones={resolved.fieldZones}
             imageLeft={resolved.imageLayout === "side"}
             imageMode={resolved.imageMode}
             imageVisibility={resolved.imageVisibility}
-            cornerOverlays={resolved.cornerOverlays}
             hideWebsiteForYouTube={resolved.hideWebsiteForYouTube}
           />
         </RowCard>

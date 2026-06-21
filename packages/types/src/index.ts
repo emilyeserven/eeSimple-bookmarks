@@ -603,11 +603,68 @@ export type DateTimeFormat = "date" | "time" | "datetime";
 export type BooleanLabelPreset = "yes-no" | "true-false" | "enabled-disabled" | "icons" | "stars" | "custom";
 
 /**
- * Which corner of a bookmark card's image a custom property's value is overlaid in. `null` (no
- * corner) renders the value as a badge below the image, the default. Honored only when the listing
- * layout allows image corners and the card actually has an image; otherwise it falls back to a badge.
+ * Which corner of a bookmark card's image a field's value is overlaid in. Honored only when the card
+ * actually has an image; a field placed in an image corner with no image falls back to its in-card
+ * position. The placement now lives on a {@link CardDisplayRule}, not the property.
  */
 export type CardImageCorner = "top-left" | "top-right" | "bottom-left" | "bottom-right";
+
+/**
+ * Where a bookmark-card field is shown by a {@link CardDisplayRule}: in the card body (`card`) or
+ * overlaid in one of the image's four corners. A field key (a standard field key or a custom-property
+ * id) that appears in **no** zone is hidden.
+ */
+export const CARD_FIELD_ZONES = [
+  "card",
+  "image-top-left",
+  "image-top-right",
+  "image-bottom-left",
+  "image-bottom-right",
+] as const;
+export type CardFieldZone = (typeof CARD_FIELD_ZONES)[number];
+
+/** Map an image-* {@link CardFieldZone} to its {@link CardImageCorner}, or `null` for the `card` zone. */
+export function zoneToCorner(zone: CardFieldZone): CardImageCorner | null {
+  switch (zone) {
+    case "image-top-left": return "top-left";
+    case "image-top-right": return "top-right";
+    case "image-bottom-left": return "bottom-left";
+    case "image-bottom-right": return "bottom-right";
+    default: return null;
+  }
+}
+
+/**
+ * One field placed in a {@link CardFieldZone}. `key` is a standard field key (see the client's
+ * `STANDARD_CARD_FIELDS`) or a custom-property id. `scale`/`mobileScale`/`hideLabel` only apply when
+ * the field is in an image-* zone (they style the corner overlay).
+ */
+export interface CardFieldPlacement {
+  key: string;
+  /** Overlay scale factor (1, 1.5, or 2); omitted/`1` is normal size. Image zones only. */
+  scale?: number;
+  /** Mobile overlay scale; `null`/omitted inherits `scale`. Image zones only. */
+  mobileScale?: number | null;
+  /** When true, the overlay drops the field's name label, showing only the value. Image zones only. */
+  hideLabel?: boolean;
+}
+
+/**
+ * The per-zone, ordered field placements a {@link CardDisplayRule} declares. Every zone key is
+ * present (possibly with an empty array); any field key absent from all zones is hidden.
+ */
+export type CardFieldZones = Record<CardFieldZone, CardFieldPlacement[]>;
+
+/** An empty {@link CardFieldZones} with every zone present and empty. */
+export function emptyCardFieldZones(): CardFieldZones {
+  return {
+    "card": [],
+    "image-top-left": [],
+    "image-top-right": [],
+    "image-bottom-left": [],
+    "image-bottom-right": [],
+  };
+}
 
 /** A user-defined custom property that becomes a dynamic bookmark filter. */
 export interface CustomProperty {
@@ -692,14 +749,6 @@ export interface CustomProperty {
   allowDefault: boolean;
   /** Id of the property group this property belongs to, or `null` when ungrouped. */
   propertyGroupId: string | null;
-  /** Which image corner this property's value is overlaid in on bookmark cards, or `null` for a badge below the image. */
-  cardImageCorner: CardImageCorner | null;
-  /** Scale factor (1, 1.5, or 2) for the corner overlay; `1` is normal size. Only applies when `cardImageCorner` is set. */
-  cardImageCornerScale: number;
-  /** Scale factor (1, 1.5, or 2) for the corner overlay on mobile; `null` inherits `cardImageCornerScale`. Only applies when `cardImageCorner` is set. */
-  cardImageCornerMobileScale: number | null;
-  /** When true, the corner overlay shows only the value, dropping the property-name label. Only applies when `cardImageCorner` is set. */
-  cardImageCornerHideLabel: boolean;
   createdAt: string;
 }
 
@@ -747,14 +796,6 @@ export interface CreateCustomPropertyInput {
   allowDefault?: boolean;
   /** Id of the property group to place this property in, or `null` to leave it ungrouped. */
   propertyGroupId?: string | null;
-  /** Which image corner this property's value is overlaid in on bookmark cards, or `null` for a badge below the image. Defaults to `null`. */
-  cardImageCorner?: CardImageCorner | null;
-  /** Scale factor (1, 1.5, or 2) for the corner overlay. Defaults to 1. Only applies when `cardImageCorner` is set. */
-  cardImageCornerScale?: number;
-  /** Scale factor (1, 1.5, or 2) for the corner overlay on mobile. `null` inherits `cardImageCornerScale`. Only applies when `cardImageCorner` is set. */
-  cardImageCornerMobileScale?: number | null;
-  /** When true, the corner overlay shows only the value, dropping the property-name label. Defaults to false. Only applies when `cardImageCorner` is set. */
-  cardImageCornerHideLabel?: boolean;
   /** When true, the property's value badge/row is shown even when the value is false. Defaults to false. */
   showIfFalse?: boolean;
   /** How `true`/`false` values are rendered. Only relevant for `boolean` type. */
@@ -1073,8 +1114,9 @@ export type UpdateHomepageSectionInput = Partial<CreateHomepageSectionInput>;
  * is built by a layered merge — for each attribute the highest-priority matching rule that sets it
  * wins, lower rules fill the rest, and the singleton **Default** rule (`isDefault`, always matches,
  * lowest priority, fully concrete) fills whatever remains. A `null` display attribute means "inherit"
- * (fall through to a lower-priority rule / the Default). `hiddenCardFields` is `null` to inherit, or an
- * explicit array (`[]` = hide nothing) to override. Resolved entirely client-side at render time.
+ * (fall through to a lower-priority rule / the Default). `fieldZones` is `null` to inherit, or a
+ * concrete per-zone placement map to override (a field key absent from all zones is hidden). Resolved
+ * entirely client-side at render time.
  */
 export interface CardDisplayRule {
   id: string;
@@ -1085,16 +1127,18 @@ export interface CardDisplayRule {
   sortOrder: number;
   /** The singleton baseline rule: matches every card regardless of `conditions`; cannot be deleted. */
   isDefault: boolean;
-  /** Hidden card field keys (`null` = inherit; `[]` = explicitly hide nothing). Concrete on the Default rule. */
-  hiddenCardFields: string[] | null;
+  /**
+   * Per-zone field placements (`null` = inherit). A field key (standard field key or custom-property
+   * id) absent from every zone is hidden; image-* zones overlay the field on the card image. Concrete
+   * on the Default rule. Supersedes the legacy `hiddenCardFields` + per-property corner placement.
+   */
+  fieldZones: CardFieldZones | null;
   /** Image display mode, or `null` to inherit. Concrete on the Default rule. */
   imageMode: BookmarkImageMode | null;
   /** Image visibility, or `null` to inherit. Concrete on the Default rule. */
   imageVisibility: BookmarkImageVisibility | null;
   /** Image layout, or `null` to inherit. Concrete on the Default rule. */
   imageLayout: HomepageSectionImageLayout | null;
-  /** Image corner overlays, or `null` to inherit. Concrete on the Default rule. */
-  cornerOverlays: boolean | null;
   /**
    * When true, the website pill is hidden on a matching bookmark that also has a YouTube channel
    * (keeping only the channel pill). `null` to inherit. Concrete on the Default rule.
@@ -1109,11 +1153,10 @@ export interface CreateCardDisplayRuleInput {
   description?: string | null;
   conditions: ConditionTree;
   sortOrder?: number;
-  hiddenCardFields?: string[] | null;
+  fieldZones?: CardFieldZones | null;
   imageMode?: BookmarkImageMode | null;
   imageVisibility?: BookmarkImageVisibility | null;
   imageLayout?: HomepageSectionImageLayout | null;
-  cornerOverlays?: boolean | null;
   hideWebsiteForYouTube?: boolean | null;
 }
 
