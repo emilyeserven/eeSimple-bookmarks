@@ -1,6 +1,5 @@
 import type { BookmarkImageVisibility, HomepageSectionImageLayout, ViewMode } from "../stores/uiStore";
 
-import { useIsMobile } from "../hooks/use-mobile";
 import { useUiStore } from "../stores/uiStore";
 
 /** Default bookmark grid column count for a listing page that has no saved preference. */
@@ -60,20 +59,4 @@ export function useBookmarkImageVisibility(pageKey: string): BookmarkImageVisibi
   return useUiStore(
     state => state.bookmarkImageVisibility?.[pageKey] ?? DEFAULT_BOOKMARK_IMAGE_VISIBILITY,
   );
-}
-
-/** Default image layout for a 2-column listing page. */
-export const DEFAULT_BOOKMARK_IMAGE_LAYOUT: HomepageSectionImageLayout = "above";
-
-/** The resolved image layout for a listing page, incorporating the mobile-default logic. */
-export function useBookmarkImageLayout(pageKey: string): HomepageSectionImageLayout {
-  const columns = useBookmarkColumns(pageKey);
-  const stored = useUiStore(state => state.bookmarkImageLayout[pageKey]);
-  const isMobile = useIsMobile();
-  return stored ?? (columns === 1 && !isMobile ? "side" : DEFAULT_BOOKMARK_IMAGE_LAYOUT);
-}
-
-/** Whether custom-property image-corner overlays are allowed on a listing page. Defaults to true. */
-export function useBookmarkCornerOverlays(pageKey: string): boolean {
-  return useUiStore(state => state.bookmarkCornerOverlays?.[pageKey] ?? true);
 }

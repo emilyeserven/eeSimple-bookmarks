@@ -1,7 +1,6 @@
 import type { CustomProperty } from "@eesimple/types";
 
 import { STANDARD_CARD_FIELDS } from "../lib/bookmarkCardFields";
-import { useUiStore } from "../stores/uiStore";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -53,29 +52,5 @@ export function CardDisplayControlsBase({
         </div>
       ))}
     </div>
-  );
-}
-
-interface CardDisplayControlsProps {
-  pageKey: string;
-}
-
-/**
- * Per-listing toggles for which fields appear on bookmark cards, backed by uiStore. Filters card
- * display on top of each property's global `showInListings` flag without changing it.
- */
-export function CardDisplayControls({
-  pageKey,
-}: CardDisplayControlsProps) {
-  const hidden = useUiStore(state => state.hiddenCardFields[pageKey]) ?? [];
-  const toggleCardField = useUiStore(state => state.toggleCardField);
-  const properties = useUiStore(state => state.filterContext?.properties) ?? [];
-
-  return (
-    <CardDisplayControlsBase
-      hidden={hidden}
-      onToggle={fieldKey => toggleCardField(pageKey, fieldKey)}
-      properties={properties}
-    />
   );
 }

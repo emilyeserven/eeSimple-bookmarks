@@ -4,10 +4,7 @@ import type {
   AutofillRule,
   Bookmark,
   CreateCustomAspectRatioInput,
-  CreateDisplayPresetInput,
   CustomAspectRatio,
-  DisplayPreset,
-  UpdateDisplayPresetInput,
   CreateSavedFilterInput,
   SavedFilter,
   UpdateSavedFilterInput,
@@ -20,8 +17,10 @@ import type {
   Category,
   CategoryPropertyDefaults,
   CheckUrlResult,
+  CardDisplayRule,
   CreateAutofillRuleInput,
   CreateBookmarkInput,
+  CreateCardDisplayRuleInput,
   CreateCategoryInput,
   CreateCustomPropertyInput,
   CreateHomepageSectionInput,
@@ -43,6 +42,7 @@ import type {
   Tag,
   TagNode,
   UpdateAutofillRuleInput,
+  UpdateCardDisplayRuleInput,
   UpdateBookmarkInput,
   UpdateBookmarkRelationshipsInput,
   UpdateCategoryDefaultsInput,
@@ -343,9 +343,18 @@ export const homepageSectionsApi = {
   withBookmarks: () => request<HomepageSectionBookmarks[]>("/bookmarks/homepage-sections"),
 };
 
-export const savedFiltersApi = createCrudApi<SavedFilter, CreateSavedFilterInput, UpdateSavedFilterInput>("saved-filters");
+export const cardDisplayRulesApi = {
+  ...createCrudApi<CardDisplayRule, CreateCardDisplayRuleInput, UpdateCardDisplayRuleInput>("card-display-rules"),
+  reorder: (orderedIds: string[]) =>
+    request<undefined>("/card-display-rules/reorder", {
+      method: "PUT",
+      body: JSON.stringify({
+        orderedIds,
+      }),
+    }),
+};
 
-export const displayPresetsApi = createCrudApi<DisplayPreset, CreateDisplayPresetInput, UpdateDisplayPresetInput>("display-presets");
+export const savedFiltersApi = createCrudApi<SavedFilter, CreateSavedFilterInput, UpdateSavedFilterInput>("saved-filters");
 
 export const customAspectRatiosApi = {
   list: () => request<CustomAspectRatio[]>("/custom-aspect-ratios"),

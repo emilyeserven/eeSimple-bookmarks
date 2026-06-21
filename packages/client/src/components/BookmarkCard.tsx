@@ -46,6 +46,8 @@ interface BookmarkCardProps {
   hiddenFields?: Set<string>;
   /** Whether custom properties placed in an image corner are overlaid on the image. When false they fall back to badges. Defaults to true. */
   cornerOverlays?: boolean;
+  /** When true, hide the website pill on a bookmark that also has a YouTube channel. When omitted, the Default rule's value applies. */
+  hideWebsiteForYouTube?: boolean;
 }
 
 /** Replace the entry for `propertyId` with `value`, or append it when the property has no value yet. */
@@ -88,7 +90,7 @@ function mergeDateTimeValue(
 
 export function BookmarkCard({
   bookmark, properties = [], onDelete, imageLeft = false, imageMode = "natural",
-  imageVisibility = "shown", pageKey, hiddenFields, cornerOverlays = true,
+  imageVisibility = "shown", pageKey, hiddenFields, cornerOverlays = true, hideWebsiteForYouTube,
 }: BookmarkCardProps) {
   const autoImage = useAutoBookmarkImage();
   const updateBookmark = useUpdateBookmark();
@@ -202,6 +204,7 @@ export function BookmarkCard({
       properties={properties}
       pageKey={pageKey}
       hiddenFields={hiddenFields}
+      hideWebsiteForYouTube={hideWebsiteForYouTube}
       cornerPropertyIds={cornerPropertyIds}
       onSaveRating={saveNumber}
       onSaveBoolean={saveBoolean}

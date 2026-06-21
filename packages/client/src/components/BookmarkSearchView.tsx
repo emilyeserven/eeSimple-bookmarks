@@ -9,7 +9,7 @@ import { FilterSidebar } from "./FilterSidebar";
 import { usePanelControls } from "./panel/usePanelControls";
 import { useSetListingPage } from "../hooks/useListingPage";
 import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
-import { useBookmarkColumns, useBookmarkCornerOverlays, useBookmarkImageLayout, useBookmarkImageMode, useBookmarkImageVisibility } from "../lib/bookmarkColumns";
+import { useBookmarkColumns } from "../lib/bookmarkColumns";
 import { useUiStore } from "../stores/uiStore";
 
 interface BookmarkSearchViewProps {
@@ -74,8 +74,6 @@ export function BookmarkSearchView({
   useSetListingPage(pageKey, true, true, true);
   useRegisterHeaderSearch();
   const columns = useBookmarkColumns(pageKey);
-  const imageMode = useBookmarkImageMode(pageKey);
-  const imageVisibility = useBookmarkImageVisibility(pageKey);
   const filtersInDrawer = useUiStore(state => state.filtersInDrawer);
   const filtersHidden = useUiStore(state => state.filtersHidden);
   const setFilterContext = useUiStore(state => state.setFilterContext);
@@ -110,10 +108,6 @@ export function BookmarkSearchView({
   // Only on mount — intentionally omit filtersInDrawer/isOpen/openType to avoid re-running
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const imageLayout = useBookmarkImageLayout(pageKey);
-  const imageLeft = (columns === 1 || columns === 2) && imageLayout === "side";
-  const cornerOverlays = useBookmarkCornerOverlays(pageKey);
 
   const q = headerSearchQuery.trim().toLowerCase();
   const textFilteredBookmarks = q
@@ -153,10 +147,6 @@ export function BookmarkSearchView({
         <BookmarkListPane
           pageKey={pageKey}
           columns={columns}
-          imageVisibility={imageVisibility}
-          imageLeft={imageLeft}
-          imageMode={imageMode}
-          cornerOverlays={cornerOverlays}
           bookmarks={textFilteredBookmarks}
           properties={properties}
           search={search}

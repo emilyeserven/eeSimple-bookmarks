@@ -9,7 +9,7 @@ import { Globe } from "lucide-react";
 
 import { ImageCell } from "./cells";
 import { useCustomAspectRatios } from "../../hooks/useCustomAspectRatios";
-import { useHiddenCardFields } from "../../lib/bookmarkCardFields";
+import { useHiddenCardFields, useHideWebsiteForYouTube } from "../../lib/bookmarkCardFields";
 import { useBookmarkImageMode, useBookmarkImageVisibility } from "../../lib/bookmarkColumns";
 import { formatBoolean, formatDateTime, formatNumber } from "../../lib/bookmarkFormat";
 import { bookmarkImageAspectStyle } from "../../lib/bookmarkImage";
@@ -74,7 +74,7 @@ export function useBookmarkTableColumns({
   const pageHidden = useHiddenCardFields(pageKey);
   const pageImageMode = useBookmarkImageMode(pageKey ?? "");
   const pageImageVisibility = useBookmarkImageVisibility(pageKey ?? "");
-  const hideWebsiteForYouTube = useUiStore(state => state.hideWebsiteForYouTube);
+  const hideWebsiteForYouTube = useHideWebsiteForYouTube();
   const hidden = hiddenOverride ?? pageHidden;
   const imageMode = imageModeOverride ?? pageImageMode;
   const imageVisibility = imageVisibilityOverride ?? pageImageVisibility;

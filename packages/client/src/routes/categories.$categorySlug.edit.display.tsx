@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { CategoryEditTabWrapper } from "../components/CategoryEditTabWrapper";
-import { DisplaySettingsControls } from "../components/DisplaySettingsControls";
+import { ListingDisplayControls } from "../components/ListingDisplayControls";
 
 export const Route = createFileRoute("/categories/$categorySlug/edit/display")({
   component: DisplayTab,
@@ -18,9 +18,8 @@ function DisplayTab() {
       description="How this category's bookmark listing is laid out."
     >
       {() => (
-        <DisplaySettingsControls
+        <ListingDisplayControls
           pageKey={`category:${categorySlug}`}
-          showsImages
         />
       )}
     </CategoryEditTabWrapper>
