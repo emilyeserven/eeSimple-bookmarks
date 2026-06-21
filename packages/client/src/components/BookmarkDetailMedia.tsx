@@ -1,0 +1,63 @@
+import type { BookmarkDetailImageSize, BookmarkDetailVideoSize } from "../stores/uiStore";
+import type { Bookmark } from "@eesimple/types";
+
+import { useUiStore } from "../stores/uiStore";
+
+const IMAGE_SIZE_CLASS: Record<BookmarkDetailImageSize, string> = {
+  small: "max-h-40 w-full rounded-md border object-contain @2xl:w-40 @2xl:shrink-0",
+  medium: "max-h-72 w-full rounded-md border object-contain @2xl:w-72 @2xl:shrink-0",
+  large: "max-h-96 w-full rounded-md border object-contain @2xl:w-96 @2xl:shrink-0",
+};
+
+const VIDEO_SIZE_CLASS: Record<BookmarkDetailVideoSize, string> = {
+  standard: "aspect-video w-full overflow-hidden rounded-md border @2xl:w-96 @2xl:shrink-0",
+  half: "aspect-video w-full overflow-hidden rounded-md border @2xl:w-1/2",
+  twoThirds: "aspect-video w-full overflow-hidden rounded-md border @2xl:w-2/3",
+  fullwidth: "aspect-video w-full overflow-hidden rounded-md border",
+};
+
+interface BookmarkDetailMediaProps {
+  bookmark: Bookmark;
+  /** The YouTube embed URL for this bookmark, or `null` when it isn't a YouTube video. */
+  embedUrl: string | null;
+}
+
+/**
+ * The bookmark detail media element: a playable YouTube embed when the bookmark is a YouTube video,
+ * otherwise its static image, sized by the user's detail image/video size preferences. Renders
+ * `null` when there is no media. Shared by the single-column and tabbed detail layouts.
+ */
+export function BookmarkDetailMedia({
+  bookmark, embedUrl,
+}: BookmarkDetailMediaProps) {
+  const imageSize = useUiStore(state => state.bookmarkDetailImageSize);
+  const videoSize = useUiStore(state => state.bookmarkDetailVideoSize);
+
+  if (embedUrl) {
+    return (
+      <div className={VIDEO_SIZE_CLASS[videoSize]}>
+        <iframe
+          src={embedUrl}
+          title={bookmark.title}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+          loading="lazy"
+          className="size-full"
+        />
+      </div>
+    );
+  }
+
+  if (bookmark.image) {
+    return (
+      <img
+        src={bookmark.image.url}
+        alt=""
+        loading="lazy"
+        className={IMAGE_SIZE_CLASS[imageSize]}
+      />
+    );
+  }
+
+  return null;
+}
