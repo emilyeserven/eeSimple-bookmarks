@@ -1,9 +1,8 @@
-import type { Bookmark, CustomProperty } from "@eesimple/types";
-
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { BookmarkCard } from "./BookmarkCard";
+import { makeBookmark, makeCustomProperty } from "../test-utils/factories";
 import { renderWithRouter } from "../test-utils/router";
 
 // Stub the bookmark hooks so the card-menu editors can assert the update call without a live API.
@@ -29,18 +28,12 @@ function openMoreMenu() {
   });
 }
 
-const bookmark: Bookmark = {
+const bookmark = makeBookmark({
   id: "11111111-1111-1111-1111-111111111111",
   url: "https://github.com",
-  originalUrl: null,
   title: "GitHub",
   description: "Where the code lives.",
-  image: null,
-  imageAutoGrabError: null,
   categoryId: "22222222-2222-2222-2222-222222222222",
-  website: null,
-  mediaType: null,
-  youtubeChannel: null,
   tags: [
     {
       id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
@@ -55,108 +48,23 @@ const bookmark: Bookmark = {
       parentId: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
     },
   ],
-  numberValues: [],
-  booleanValues: [],
-  dateTimeValues: [],
-  fileValues: [],
-  relationships: [],
-  priority: 0,
-  createdAt: "2026-06-01T00:00:00.000Z",
-};
+});
 
-const starsProperty: CustomProperty = {
+const starsProperty = makeCustomProperty({
   id: "prop-stars",
   name: "Stars",
   slug: "stars",
   type: "number",
-  builtIn: false,
-  numberFormat: null,
-  dateTimeFormat: null,
-  quickFilterRange: null,
-  description: null,
-  numberMin: null,
-  numberMax: null,
   unitSingular: "star",
   unitPlural: "stars",
-  valuePrefix: null,
-  zeroLabel: null,
-  maxLabel: null,
-  operandPropertyIds: [],
-  categoryIds: [],
-  showInForm: false,
-  hiddenFromForm: false,
-  showInListings: true,
-  showInGallery: true,
-  showInDetails: true,
-  allCategories: false,
-  mediaTypeIds: [],
-  allMediaTypes: false,
-  editableOnCard: false,
-  enabled: true,
-  allowDefault: true,
-  showIfFalse: false,
-  booleanLabelPreset: null,
-  booleanTrueLabel: null,
-  booleanFalseLabel: null,
-  showLabelColon: true,
-  showValueBeforeLabel: false,
-  hideLabel: false,
-  clickableInView: false,
-  ratingMax: null,
-  ratingAllowZero: false,
-  ratingAllowHalf: false,
-  ratingShowLabel: false,
-  ratingLabel: null,
-  propertyGroupId: null,
-  createdAt: "2026-06-01T00:00:00.000Z",
-};
+});
 
-const reviewedProperty: CustomProperty = {
+const reviewedProperty = makeCustomProperty({
   id: "prop-reviewed",
   name: "Reviewed",
   slug: "reviewed",
   type: "boolean",
-  builtIn: false,
-  numberFormat: null,
-  dateTimeFormat: null,
-  quickFilterRange: null,
-  description: null,
-  numberMin: null,
-  numberMax: null,
-  unitSingular: null,
-  unitPlural: null,
-  valuePrefix: null,
-  zeroLabel: null,
-  maxLabel: null,
-  operandPropertyIds: [],
-  categoryIds: [],
-  showInForm: false,
-  hiddenFromForm: false,
-  showInListings: true,
-  showInGallery: true,
-  showInDetails: true,
-  allCategories: false,
-  mediaTypeIds: [],
-  allMediaTypes: false,
-  editableOnCard: false,
-  enabled: true,
-  allowDefault: true,
-  showIfFalse: false,
-  booleanLabelPreset: null,
-  booleanTrueLabel: null,
-  booleanFalseLabel: null,
-  showLabelColon: true,
-  showValueBeforeLabel: false,
-  hideLabel: false,
-  clickableInView: false,
-  ratingMax: null,
-  ratingAllowZero: false,
-  ratingAllowHalf: false,
-  ratingShowLabel: false,
-  ratingLabel: null,
-  propertyGroupId: null,
-  createdAt: "2026-06-01T00:00:00.000Z",
-};
+});
 
 describe("BookmarkCard", () => {
   it("renders the bookmark title and description", async () => {

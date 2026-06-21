@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { FilterSidebar } from "./FilterSidebar";
+import { makeCustomProperty } from "../test-utils/factories";
 import {
   sampleBookmark,
   sampleCategories,
@@ -43,52 +44,12 @@ export const WithUnassignedProperty: Story = {
   args: {
     properties: [
       ...sampleProperties,
-      {
+      makeCustomProperty({
         id: "prop-orphan",
         name: "Orphaned",
         slug: "orphaned",
-        type: "boolean" as const,
-        builtIn: false,
-        numberFormat: null,
-        dateTimeFormat: null,
-        quickFilterRange: null,
-        description: null,
-        numberMin: null,
-        numberMax: null,
-        unitSingular: null,
-        unitPlural: null,
-        valuePrefix: null,
-        zeroLabel: null,
-        maxLabel: null,
-        operandPropertyIds: [],
-        categoryIds: [],
-        showInForm: false,
-        hiddenFromForm: false,
-        showInListings: true,
-        showInGallery: true,
-        showInDetails: true,
-        allCategories: false,
-        mediaTypeIds: [],
-        allMediaTypes: false,
-        editableOnCard: false,
-        enabled: true,
-        allowDefault: true,
-        showIfFalse: false,
-        booleanLabelPreset: null,
-        booleanTrueLabel: null,
-        booleanFalseLabel: null,
-        showLabelColon: true,
-        showValueBeforeLabel: false,
-        hideLabel: false,
-        clickableInView: false,
-        ratingMax: null,
-        ratingAllowZero: false,
-        ratingAllowHalf: false,
-        ratingShowLabel: false,
-        ratingLabel: null,
-        propertyGroupId: null,
-        createdAt: "2026-06-01T00:00:00.000Z",
-      },
+        type: "boolean",
+      }),
     ],
   },
 };
