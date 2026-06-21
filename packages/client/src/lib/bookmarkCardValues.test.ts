@@ -13,11 +13,12 @@ function placementMap(
   hideLabel: boolean,
 ): Map<string, ResolvedFieldPlacement> {
   return new Map([[key, {
-    zone: corner ? `image-${corner}` as const : "card",
+    zone: corner ? `image-${corner}` as const : "card-labels",
     corner,
     scale: 1,
     mobileScale: null,
     hideLabel,
+    hideIcon: false,
   }]]);
 }
 

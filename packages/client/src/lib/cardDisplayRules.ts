@@ -15,6 +15,7 @@ import { useCallback, useMemo } from "react";
 import { buildTagDescendants, emptyCardFieldZones, evaluateConditions } from "@eesimple/types";
 
 import { STANDARD_CARD_FIELDS } from "./bookmarkCardFieldDefs";
+import { defaultBodyZone } from "./bookmarkCardValues";
 import { useCardDisplayRules } from "../hooks/useCardDisplayRules";
 import { useTags } from "../hooks/useTags";
 
@@ -44,9 +45,11 @@ export interface ResolvedCardDisplay {
 /** Standard fields placed in the card body — the baseline `fieldZones` when no Default rule exists. */
 function baselineFieldZones(): CardFieldZones {
   const zones = emptyCardFieldZones();
-  zones.card = STANDARD_CARD_FIELDS.map(field => ({
-    key: field.key,
-  }));
+  for (const field of STANDARD_CARD_FIELDS) {
+    zones[defaultBodyZone(field.key)].push({
+      key: field.key,
+    });
+  }
   return zones;
 }
 

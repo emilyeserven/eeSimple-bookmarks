@@ -37,7 +37,16 @@ const displayProperties = {
     type: ["object", "null"],
     additionalProperties: false,
     properties: Object.fromEntries(
-      ["card", "image-top-left", "image-top-right", "image-bottom-left", "image-bottom-right"].map(
+      [
+        "card-single-top",
+        "card-labels",
+        "card-table",
+        "card-single-bottom",
+        "image-top-left",
+        "image-top-right",
+        "image-bottom-left",
+        "image-bottom-right",
+      ].map(
         zone => [zone, {
           type: "array",
           items: {
@@ -57,6 +66,9 @@ const displayProperties = {
                 enum: [1, 1.5, 2, null],
               },
               hideLabel: {
+                type: "boolean",
+              },
+              hideIcon: {
                 type: "boolean",
               },
             },

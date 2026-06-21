@@ -27,6 +27,7 @@ import {
 } from "@/db/schema";
 import { getBookmarkEvaluationData } from "@/services/bookmarkCache";
 import { hydrateBookmarkRows } from "@/services/bookmarkHydration";
+import { listCategories } from "@/services/categories";
 import { slugify } from "@/utils/slug";
 
 /** Default number of bookmarks an autofill preview returns when the caller doesn't specify one. */
@@ -372,9 +373,10 @@ function byPriorityThenNewest(a: BookmarkRow, b: BookmarkRow): number {
  * per-bookmark inputs — see `bookmarkCache`). This replaces the client loading the entire bookmark
  * set just to test conditions.
  *
- * With a `query`, the result lists the bookmarks whose title/url contains it — each annotated with
- * whether it matches `conditions` — so the caller can show match/no-match for a named bookmark.
- * Without a `query`, only the bookmarks that satisfy `conditions` are returned (all `matches: true`).
+ * With a `query`, the result lists the bookmarks whose title/url/category name contains it — each
+ * annotated with whether it matches `conditions` — so the caller can show match/no-match for a named
+ * bookmark. Without a `query`, only the bookmarks that satisfy `conditions` are returned (all
+ * `matches: true`).
  */
 export async function previewAutofillMatches(
   input: AutofillPreviewInput,
@@ -393,9 +395,15 @@ export async function previewAutofillMatches(
   };
 
   const query = input.query?.trim().toLowerCase();
+  // Category names so the text search can also match by a bookmark's category (not just title/url).
+  const categoryNameById = query
+    ? new Map((await listCategories()).map(category => [category.id, category.name.toLowerCase()]))
+    : null;
   const candidates = (query
     ? baseRows.filter(row =>
-      row.title.toLowerCase().includes(query) || row.url.toLowerCase().includes(query))
+      row.title.toLowerCase().includes(query)
+      || row.url.toLowerCase().includes(query)
+      || (row.categoryId != null && (categoryNameById?.get(row.categoryId)?.includes(query) ?? false)))
     : baseRows.filter(matches))
     .sort(byPriorityThenNewest)
     .slice(0, limit);

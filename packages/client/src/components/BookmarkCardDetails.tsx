@@ -1,7 +1,10 @@
-import type { ResolvedFieldPlacement } from "../lib/bookmarkCardValues";
-import type { Bookmark, Category, CustomProperty } from "@eesimple/types";
+import type { BookmarkValueItem, ResolvedFieldPlacement } from "../lib/bookmarkCardValues";
+import type { Bookmark, CardFieldZone, Category, CustomProperty } from "@eesimple/types";
+import type { ReactNode } from "react";
 
 import { useEffect, useRef, useState } from "react";
+
+import { CARD_BODY_ZONES } from "@eesimple/types";
 
 import { BookmarkTagsBox } from "./BookmarkTagsBox";
 import { CategoryPill } from "./CategoryPill";
@@ -28,7 +31,32 @@ interface BookmarkCardDetailsProps {
   onSaveBoolean?: (propertyId: string, value: boolean) => void;
 }
 
-/** The body of a bookmark card: description, taxonomy badges, tags, and custom-property value badges. */
+/** The three render forms a card-body sub-zone imposes on the fields placed in it. */
+type FieldForm = "single" | "label" | "table";
+
+function zoneForm(zone: CardFieldZone): FieldForm {
+  if (zone === "card-labels") return "label";
+  if (zone === "card-table") return "table";
+  return "single";
+}
+
+/**
+ * How one field can render in the card body. `inline` is its compact pill/badge form (the `label`
+ * zone); `block` is its full-width form (the `single` zones); `tableName`/`tableValue` are the two
+ * columns of the `table` zone. A form left `null` falls back to the other one.
+ */
+interface FieldRender {
+  inline: ReactNode;
+  block: ReactNode;
+  tableName: string;
+  tableValue: ReactNode;
+}
+
+/**
+ * The body of a bookmark card. Fields render in the four card-body sub-zones (single-top → labels →
+ * table → single-bottom, in that fixed order), each field in the form its zone imposes and in the
+ * order it sits within the zone (so the rule's field ordering is honored).
+ */
 export function BookmarkCardDetails({
   bookmark, properties, placements, bookmarkCategory, hideWebsiteForYouTube,
   onSaveRating, onSaveBoolean,
@@ -37,46 +65,22 @@ export function BookmarkCardDetails({
   const defaultHideWebsiteForYouTube = useHideWebsiteForYouTube();
   const effectiveHideWebsiteForYouTube = hideWebsiteForYouTube ?? defaultHideWebsiteForYouTube;
 
-  // A field is shown in the card body when it's placed in the `card` zone (corner === null); anything
-  // placed in an image corner is overlaid by BookmarkCard, and anything unplaced is hidden.
-  const showField = (key: string): boolean => placements.get(key)?.corner === null;
-
   // Single source of truth for value placement; corner-placed values (overlaid on the image) are
   // excluded here so a value isn't also shown as a badge.
-  const items = buildBookmarkValueItems(bookmark, properties, placements)
+  const valueItems = buildBookmarkValueItems(bookmark, properties, placements)
     .filter(item => item.corner === null);
-
-  const ratingEntries = items
-    .filter(item => item.kind === "rating")
-    .map(item => ({
-      property: item.property,
-      value: item.value,
-    }));
-
-  const valueBadges = items
-    .filter(item => item.kind === "badge")
-    .map((item) => {
-      const onToggle = onSaveBoolean && item.property.clickableInView && item.booleanValue !== undefined
-        ? () => onSaveBoolean(item.id, !item.booleanValue)
-        : undefined;
-      return {
-        id: item.id,
-        label: item.label,
-        onToggle,
-      };
-    });
+  const valueById = new Map(valueItems.map(item => [item.id, item]));
 
   const {
     website, mediaType, youtubeChannel,
   } = bookmark;
 
-  const showDescription = !!bookmark.description && showField("description");
-
-  // Only fade the description when it's actually clipped by the 4-line box — a short description
-  // shouldn't imply hidden text. Re-measure on width changes (column count / viewport alter how the
-  // text wraps), mirroring the fade-detection in BookmarkTagsBox.
+  // Description fade: only fade when the 4-line box actually clips the text. Re-measure on width
+  // changes (column count / viewport alter wrapping), mirroring BookmarkTagsBox.
   const descriptionRef = useRef<HTMLDivElement>(null);
   const [descriptionOverflows, setDescriptionOverflows] = useState(false);
+  const descriptionPlacement = placements.get("description");
+  const showDescription = !!bookmark.description && descriptionPlacement?.corner === null;
 
   useEffect(() => {
     const el = descriptionRef.current;
@@ -88,134 +92,277 @@ export function BookmarkCardDetails({
     return () => observer.disconnect();
   }, [bookmark.description, showDescription]);
 
-  const showCategory = !!bookmarkCategory && showField("category");
-  const showWebsite = !!website && showField("website") && !(youtubeChannel && effectiveHideWebsiteForYouTube);
-  const showMediaType = !!mediaType && showField("mediaType");
-  const showYoutubeChannel = !!youtubeChannel && showField("youtubeChannel");
-  const showTags = bookmark.tags.length > 0 && showField("tags");
-
-  return (
-    <>
-      {showDescription
+  const descriptionNode = (
+    <div
+      ref={descriptionRef}
+      className="relative max-h-24 overflow-hidden"
+    >
+      <p className="text-sm/6 text-foreground">{bookmark.description}</p>
+      {descriptionOverflows
         ? (
           <div
-            ref={descriptionRef}
-            className="relative mt-2 max-h-24 overflow-hidden"
-          >
-            <p className="text-sm/6 text-foreground">{bookmark.description}</p>
-            {descriptionOverflows
-              ? (
-                <div
-                  className="
-                    pointer-events-none absolute inset-x-0 bottom-0 h-8
-                    bg-linear-to-t from-card to-transparent
-                  "
-                />
-              )
-              : null}
-          </div>
+            className="
+              pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-linear-to-t
+              from-card to-transparent
+            "
+          />
         )
         : null}
-      {showCategory || showWebsite || showMediaType || showYoutubeChannel
-        ? (
-          <div className="mt-2 flex flex-wrap items-center gap-1">
-            {showCategory && bookmarkCategory
-              ? <CategoryPill category={bookmarkCategory} />
-              : null}
-            {showWebsite && website
-              ? (
-                <SourcePill
-                  type="website"
-                  data={website}
-                />
-              )
-              : null}
-            {showMediaType && mediaType
-              ? <MediaTypePill mediaType={mediaType} />
-              : null}
-            {showYoutubeChannel && youtubeChannel
-              ? (
-                <SourcePill
-                  type="youtube-channel"
-                  data={youtubeChannel}
-                />
-              )
-              : null}
-          </div>
-        )
-        : null}
-      {showTags ? <BookmarkTagsBox tags={bookmark.tags} /> : null}
-      {valueBadges.length > 0
-        ? (
-          <ul className="mt-2 flex flex-wrap gap-1">
-            {valueBadges.map((badge) => {
-              const {
-                onToggle,
-              } = badge;
-              return (
-                <li key={badge.id}>
-                  {onToggle
-                    ? (
-                      <button
-                        type="button"
-                        title="Click to toggle"
-                        onClick={(event) => {
-                          // Don't let the toggle bubble to any surrounding card navigation.
-                          event.preventDefault();
-                          event.stopPropagation();
-                          onToggle();
-                        }}
-                      >
-                        <Badge
-                          variant="outline"
-                          className="
-                            cursor-pointer
-                            hover:bg-accent
-                          "
-                        >
-                          {badge.label}
-                        </Badge>
-                      </button>
-                    )
-                    : <Badge variant="outline">{badge.label}</Badge>}
-                </li>
-              );
-            })}
-          </ul>
-        )
-        : null}
-      {ratingEntries.length > 0
-        ? (
-          <ul className="mt-2 space-y-1">
-            {ratingEntries.map(({
-              property, value,
-            }) => {
-              const editable = property.editableOnCard && onSaveRating !== undefined;
-              return (
-                <li
-                  key={property.id}
-                  className="
-                    flex flex-wrap items-center gap-2 text-sm
-                    text-muted-foreground
-                  "
-                >
-                  <span>{property.name}</span>
-                  <StarRating
-                    value={value}
-                    max={property.ratingMax ?? 5}
-                    allowHalf={property.ratingAllowHalf}
-                    allowZero={property.ratingAllowZero}
-                    readOnly={!editable}
-                    onChange={editable ? next => onSaveRating(property.id, next) : undefined}
-                    label={property.ratingShowLabel ? (property.ratingLabel ?? undefined) : undefined}
-                    size={16}
-                  />
-                </li>
-              );
-            })}
-          </ul>
-        )
-        : null}
-    </>
+    </div>
   );
+
+  /** Render a custom-property value badge, wiring an inline toggle for clickable booleans. */
+  function badgeNode(item: Extract<BookmarkValueItem, { kind: "badge" }>, text: ReactNode): ReactNode {
+    const onToggle = onSaveBoolean && item.property.clickableInView && item.booleanValue !== undefined
+      ? () => onSaveBoolean(item.id, !item.booleanValue)
+      : undefined;
+    if (!onToggle) return <Badge variant="outline">{text}</Badge>;
+    return (
+      <button
+        type="button"
+        title="Click to toggle"
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          onToggle();
+        }}
+      >
+        <Badge
+          variant="outline"
+          className="
+            cursor-pointer
+            hover:bg-accent
+          "
+        >
+          {text}
+        </Badge>
+      </button>
+    );
+  }
+
+  /** A rating's stars, editable when the property opted in and a save handler is wired. */
+  function ratingStars(item: Extract<BookmarkValueItem, { kind: "rating" }>, withLabel: boolean): ReactNode {
+    const editable = item.property.editableOnCard && onSaveRating !== undefined;
+    return (
+      <StarRating
+        value={item.value}
+        max={item.property.ratingMax ?? 5}
+        allowHalf={item.property.ratingAllowHalf}
+        allowZero={item.property.ratingAllowZero}
+        readOnly={!editable}
+        onChange={editable ? next => onSaveRating(item.property.id, next) : undefined}
+        label={withLabel && item.property.ratingShowLabel ? (item.property.ratingLabel ?? undefined) : undefined}
+        size={16}
+      />
+    );
+  }
+
+  /** The render forms for one placed field key, or `null` when it has nothing to show. */
+  function describeField(key: string): FieldRender | null {
+    switch (key) {
+      case "description": {
+        if (!bookmark.description) return null;
+        // No inline pill form — falls back to a full-width paragraph in the Labels zone.
+        return {
+          inline: null,
+          block: descriptionNode,
+          tableName: "Description",
+          tableValue: <span className="text-sm">{bookmark.description}</span>,
+        };
+      }
+      case "category": {
+        if (!bookmarkCategory) return null;
+        const pill = <CategoryPill category={bookmarkCategory} />;
+        return {
+          inline: pill,
+          block: pill,
+          tableName: "Category",
+          tableValue: <span className="text-sm">{bookmarkCategory.name}</span>,
+        };
+      }
+      case "website": {
+        if (!website || (youtubeChannel && effectiveHideWebsiteForYouTube)) return null;
+        const pill = (
+          <SourcePill
+            type="website"
+            data={website}
+          />
+        );
+        return {
+          inline: pill,
+          block: pill,
+          tableName: "Website",
+          tableValue: <span className="text-sm">{website.siteName}</span>,
+        };
+      }
+      case "mediaType": {
+        if (!mediaType) return null;
+        const pill = <MediaTypePill mediaType={mediaType} />;
+        return {
+          inline: pill,
+          block: pill,
+          tableName: "Media Type",
+          tableValue: <span className="text-sm">{mediaType.name}</span>,
+        };
+      }
+      case "youtubeChannel": {
+        if (!youtubeChannel) return null;
+        const pill = (
+          <SourcePill
+            type="youtube-channel"
+            data={youtubeChannel}
+          />
+        );
+        return {
+          inline: pill,
+          block: pill,
+          tableName: "YouTube Channel",
+          tableValue: <span className="text-sm">{youtubeChannel.name}</span>,
+        };
+      }
+      case "tags": {
+        if (bookmark.tags.length === 0) return null;
+        const box = <BookmarkTagsBox tags={bookmark.tags} />;
+        // The tags box is block-level — full-width in the Labels zone too.
+        return {
+          inline: null,
+          block: box,
+          tableName: "Tags",
+          tableValue: <span className="text-sm">{bookmark.tags.map(tag => tag.name).join(", ")}</span>,
+        };
+      }
+      default: {
+        const item = valueById.get(key);
+        if (!item) return null;
+        if (item.kind === "rating") {
+          const labeled = (
+            <span
+              className="
+                flex flex-wrap items-center gap-2 text-sm text-muted-foreground
+              "
+            >
+              <span>{item.property.name}</span>
+              {ratingStars(item, true)}
+            </span>
+          );
+          return {
+            inline: labeled,
+            block: labeled,
+            tableName: item.property.name,
+            tableValue: ratingStars(item, false),
+          };
+        }
+        // Image values can show their thumbnail; other badges show their formatted value.
+        const thumb = item.imageUrl
+          ? (
+            <img
+              src={item.imageUrl}
+              alt=""
+              className="h-8 w-auto rounded-sm object-cover"
+            />
+          )
+          : null;
+        return {
+          inline: badgeNode(item, item.label),
+          block: badgeNode(item, item.label),
+          tableName: item.name,
+          tableValue: thumb ?? <span className="text-sm">{item.value}</span>,
+        };
+      }
+    }
+  }
+
+  // Group the body-placed keys by their sub-zone, preserving each zone's field order (placements is
+  // built in zone-then-array order, so Map insertion order matches).
+  const keysByZone = new Map<CardFieldZone, string[]>();
+  for (const [key, placement] of placements) {
+    if (placement.corner !== null) continue;
+    const list = keysByZone.get(placement.zone) ?? [];
+    list.push(key);
+    keysByZone.set(placement.zone, list);
+  }
+
+  function renderZone(zone: CardFieldZone): ReactNode {
+    const keys = keysByZone.get(zone) ?? [];
+    const entries = keys
+      .map(key => ({
+        key,
+        render: describeField(key),
+        hideLabel: placements.get(key)?.hideLabel ?? false,
+      }))
+      .filter((entry): entry is { key: string;
+        render: FieldRender;
+        hideLabel: boolean; } => entry.render !== null);
+    if (entries.length === 0) return null;
+
+    const form = zoneForm(zone);
+    if (form === "table") {
+      return (
+        <dl
+          key={zone}
+          className="
+            mt-2 grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-1
+          "
+        >
+          {entries.map(entry => (
+            entry.hideLabel
+              ? (
+                <dd
+                  key={entry.key}
+                  className="col-span-2 min-w-0"
+                >
+                  {entry.render.tableValue}
+                </dd>
+              )
+              : (
+                <div
+                  key={entry.key}
+                  className="contents"
+                >
+                  <dt className="text-sm font-medium text-muted-foreground">{entry.render.tableName}</dt>
+                  <dd className="min-w-0">{entry.render.tableValue}</dd>
+                </div>
+              )
+          ))}
+        </dl>
+      );
+    }
+
+    if (form === "label") {
+      // Inline pills/badges flow in a wrap row; block-only fields (description, tags) take a full row.
+      return (
+        <div
+          key={zone}
+          className="mt-2 flex flex-wrap items-center gap-1"
+        >
+          {entries.map(entry => (
+            entry.render.inline
+              ? <span key={entry.key}>{entry.render.inline}</span>
+              : (
+                <div
+                  key={entry.key}
+                  className="w-full"
+                >
+                  {entry.render.block}
+                </div>
+              )
+          ))}
+        </div>
+      );
+    }
+
+    // single-top / single-bottom: every field is a full-width stacked row.
+    return (
+      <div
+        key={zone}
+        className="mt-2 space-y-2"
+      >
+        {entries.map(entry => (
+          <div key={entry.key}>{entry.render.block ?? entry.render.inline}</div>
+        ))}
+      </div>
+    );
+  }
+
+  return <>{CARD_BODY_ZONES.map(zone => renderZone(zone))}</>;
 }
