@@ -1,39 +1,7 @@
-import type { TagNode } from "@eesimple/types";
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 
-import { fireEvent, render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
-import { TagPanel } from "./TagPanel";
-
-const tree: TagNode[] = [
-  {
-    id: "dev",
-    name: "dev",
-    slug: "dev",
-    parentId: null,
-    createdAt: "2026-06-01T00:00:00.000Z",
-    children: [
-      {
-        id: "tools",
-        name: "tools",
-        slug: "tools",
-        parentId: "dev",
-        createdAt: "2026-06-01T00:00:00.000Z",
-        children: [],
-      },
-    ],
-  },
-];
-
-const openTag = vi.fn();
-const close = vi.fn();
-
-vi.mock("./usePanelControls", () => ({
-  usePanelControls: () => ({
-    openTag,
-    close,
-  }),
-}));
+import { TagCreateForm } from "./TagPanel";
 
 const mutationStub = {
   mutate: vi.fn(),
@@ -41,55 +9,21 @@ const mutationStub = {
   error: null,
 };
 
-vi.mock("../../hooks/useTags", () => ({
-  useTagTree: () => ({
-    data: tree,
-    isLoading: false,
-    error: null,
+vi.mock("./usePanelControls", () => ({
+  usePanelControls: () => ({
+    close: vi.fn(),
   }),
-  useCreateTag: () => mutationStub,
-  useUpdateTag: () => mutationStub,
-  useDeleteTag: () => mutationStub,
 }));
 
-describe("TagPanel", () => {
-  beforeEach(() => {
-    openTag.mockClear();
-    close.mockClear();
-  });
+vi.mock("../../hooks/useTags", () => ({
+  useCreateTag: () => mutationStub,
+}));
 
-  it("shows read-only info and an Edit button by default", () => {
-    render(<TagPanel tagId="dev" />);
-    expect(screen.getByRole("button", {
-      name: "Edit",
-    })).toBeInTheDocument();
-    expect(screen.getByText("(root)")).toBeInTheDocument();
-  });
-
-  it("swaps to the shared auto-save edit form when Edit is clicked", () => {
-    render(<TagPanel tagId="dev" />);
-    fireEvent.click(screen.getByRole("button", {
-      name: "Edit",
-    }));
-    // Edit reuses the main-app `TagGeneralForm`, which auto-saves per field — a Name field, no
-    // Save button, and the header toggle reads "Done".
-    expect(screen.getByLabelText("Name")).toBeInTheDocument();
-    expect(screen.queryByRole("button", {
-      name: "Save",
-    })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", {
-      name: "Done",
-    })).toBeInTheDocument();
-  });
-
-  it("re-targets the panel at a child when its row is clicked", () => {
-    render(<TagPanel tagId="dev" />);
-    fireEvent.click(screen.getByText("tools"));
-    expect(openTag).toHaveBeenCalledWith("tools");
-  });
-
-  it("renders the create form for the new sentinel", () => {
-    render(<TagPanel tagId="new" />);
+// Viewing/editing an existing tag now goes through the shared `EntityWorkbenchPanel` (the
+// `tagWorkbench`); only the create flow keeps its submit form, which is all `TagPanel.tsx` exports.
+describe("TagCreateForm", () => {
+  it("renders the create form with an Add tag button", () => {
+    render(<TagCreateForm />);
     expect(screen.getByRole("button", {
       name: "Add tag",
     })).toBeInTheDocument();

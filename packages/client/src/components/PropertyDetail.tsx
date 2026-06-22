@@ -2,109 +2,20 @@ import type { Category, CustomProperty, CustomPropertyType, MediaType, PropertyG
 import type { FC } from "react";
 
 import { Link } from "@tanstack/react-router";
-import { TriangleAlert } from "lucide-react";
 
-import { DetailHeaderActions } from "./DetailHeaderActions";
-import { LabeledSection } from "./LabeledSection";
 import { hasPropertyOptions } from "../lib/propertyForm";
-import { DATE_TIME_FORMAT_LABELS, NUMBER_FORMAT_LABELS, TYPE_LABELS } from "../lib/propertyFormat";
+import { DATE_TIME_FORMAT_LABELS, NUMBER_FORMAT_LABELS } from "../lib/propertyFormat";
 
 import { DetailField } from "@/components/DetailField";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { CategoryIcon } from "@/lib/icons";
 import { BOOLEAN_LABEL_PRESET_OPTIONS } from "@/lib/propertyForm";
-
-interface PropertyDetailProps {
-  property: CustomProperty;
-  /** All categories, used to resolve the assigned category names/icons. */
-  categories?: Category[];
-  /** All properties, used to resolve a calculate property's operand names. */
-  allProperties?: CustomProperty[];
-  /** All property groups, used to resolve the property's group name/link. */
-  propertyGroups?: PropertyGroup[];
-  onEdit?: () => void;
-  onDelete?: () => void;
-}
 
 /** Where the property's field appears in the bookmark form. */
 function formPlacement(property: CustomProperty): string {
   if (property.hiddenFromForm) return "Hidden from the bookmark form";
   if (property.showInForm) return "Shown in the main bookmark form";
   return "Shown only in the Advanced area";
-}
-
-/**
- * The full read-only view of a single custom property, showing every configured field. Shared by the
- * custom-property detail page and the right panel's property view so the two stay identical; the panel
- * simply renders it in its narrow column. Presentational: pass `categories`/`allProperties` for labels
- * and `onEdit`/`onDelete` for the header actions. The section bodies are also exported individually so
- * the tabbed detail pages can render one section per tab.
- */
-export function PropertyDetail({
-  property, categories = [], allProperties = [], propertyGroups = [], onEdit, onDelete,
-}: PropertyDetailProps) {
-  const assignedCategories = categories.filter(category =>
-    property.categoryIds.includes(category.id));
-
-  return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex min-w-0 flex-wrap items-center gap-2">
-          <h1 className="text-xl font-bold">{property.name}</h1>
-          {assignedCategories.length === 0 && property.enabled && (
-            <TriangleAlert className="size-4 text-amber-500" />
-          )}
-          {property.builtIn && <Badge variant="secondary">Built-in</Badge>}
-          {!property.enabled && <Badge variant="outline">Disabled</Badge>}
-          <Badge variant="secondary">{TYPE_LABELS[property.type]}</Badge>
-        </div>
-        <DetailHeaderActions
-          onEdit={onEdit}
-          onDelete={onDelete}
-        />
-      </div>
-
-      <Separator />
-
-      <LabeledSection title="General">
-        <PropertyGeneralFields property={property} />
-      </LabeledSection>
-
-      {hasPropertyOptions(property)
-        ? (
-          <>
-            <Separator />
-
-            <LabeledSection title="Property options">
-              <PropertyOptionsFields
-                property={property}
-                allProperties={allProperties}
-              />
-            </LabeledSection>
-          </>
-        )
-        : null}
-
-      <Separator />
-
-      <LabeledSection title="Categories">
-        <PropertyCategoriesContent
-          property={property}
-          categories={categories}
-        />
-      </LabeledSection>
-
-      <Separator />
-
-      <LabeledSection title="Display">
-        <PropertyDisplayFields
-          property={property}
-          propertyGroups={propertyGroups}
-        />
-      </LabeledSection>
-    </div>
-  );
 }
 
 /** The "General" section body: status, description, created date. */

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { AutofillRuleConditionsForm } from "../components/AutofillRuleConditionsForm";
-import { AutofillRuleTabWrapper } from "../components/AutofillRuleTabWrapper";
+import { autofillWorkbench } from "../components/workbench/autofill";
+import { WorkbenchRouteTab } from "../components/workbench/WorkbenchRouteTab";
 
 export const Route = createFileRoute("/autofill/$ruleSlug/edit/conditions")({
   component: ConditionsEditTab,
@@ -12,12 +12,11 @@ function ConditionsEditTab() {
     ruleSlug,
   } = Route.useParams();
   return (
-    <AutofillRuleTabWrapper
-      ruleSlug={ruleSlug}
-      title="Activation Conditions"
-      description="Configure when this rule should apply."
-    >
-      {rule => <AutofillRuleConditionsForm rule={rule} />}
-    </AutofillRuleTabWrapper>
+    <WorkbenchRouteTab
+      workbench={autofillWorkbench}
+      tabKey="conditions"
+      mode="edit"
+      slug={ruleSlug}
+    />
   );
 }

@@ -13,14 +13,8 @@ import { useCustomProperties } from "../../../hooks/useCustomProperties";
 import { usePropertyGroups } from "../../../hooks/usePropertyGroups";
 import { mergeBooleanValue } from "../../../lib/bookmarkFormat";
 import { BookmarkDetail } from "../../BookmarkDetail";
-import { BookmarkGeneralForm } from "../../BookmarkGeneralForm";
-import { BookmarkImageEditForm } from "../../BookmarkImageEditForm";
-import { BookmarkPropertiesForm } from "../../BookmarkPropertiesForm";
-import { BookmarkRelationshipsEditor } from "../../BookmarkRelationshipsEditor";
-import { LabeledSection } from "../../LabeledSection";
-import { PanelEntityEditor } from "../PanelEntityEditor";
-
-import { Separator } from "@/components/ui/separator";
+import { bookmarkEditWorkbench } from "../../workbench/bookmark";
+import { EntityWorkbenchPanel } from "../EntityWorkbenchPanel";
 
 function useBookmarkList() {
   const {
@@ -41,7 +35,11 @@ function useBookmarkList() {
   };
 }
 
-/** Read-only bookmark, reusing the same `BookmarkDetail` the full detail page renders. */
+/**
+ * Read-only bookmark, reusing the same `BookmarkDetail` the full detail page renders. A bookmark's
+ * view is a single rich component (not tabbed), so unlike the other content types it stays bespoke
+ * rather than going through the workbench.
+ */
 function BookmarkView({
   id,
 }: {
@@ -93,74 +91,22 @@ function BookmarkView({
 }
 
 /**
- * Edit a bookmark by reusing the **same** per-tab edit forms the main-app edit tabs render
+ * Edit a bookmark with the **same** per-tab edit forms the main-app edit tabs render
  * (`BookmarkGeneralForm` / `BookmarkPropertiesForm` / `BookmarkImageEditForm` /
- * `BookmarkRelationshipsEditor`), stacked since the panel is a single column — not the `BookmarkForm`
- * create form (that stays for create flows). Each section saves independently, like its tab.
+ * `BookmarkRelationshipsEditor`), now in the shared responsive tabbed shell — not the `BookmarkForm`
+ * create form (that stays for create flows).
  */
 function BookmarkEdit({
   id,
 }: {
   id: string;
 }) {
-  const bookmarksQuery = useBookmarks();
-  const {
-    openItem,
-  } = usePanelControls();
-  const deleteBookmark = useDeleteBookmark();
-  const dismiss = usePanelDismissAfterDelete();
-
   return (
-    <WithPanelItem
-      queryResult={bookmarksQuery}
+    <EntityWorkbenchPanel
+      workbench={bookmarkEditWorkbench}
       id={id}
-      notFoundMessage="Bookmark not found."
-    >
-      {bookmark => (
-        <PanelEntityEditor
-          name={bookmark.title}
-          onDelete={() => deleteBookmark.mutate(id, {
-            onSuccess: dismiss,
-          })}
-          deleteIsPending={deleteBookmark.isPending}
-          deleteError={deleteBookmark.isError ? deleteBookmark.error.message : null}
-        >
-          <div className="space-y-6">
-            <LabeledSection
-              title="General"
-              description="URL, name, description, category, and tags."
-            >
-              <BookmarkGeneralForm bookmark={bookmark} />
-            </LabeledSection>
-            <Separator />
-            <LabeledSection
-              title="Properties"
-              description="Custom property values for this bookmark."
-            >
-              <BookmarkPropertiesForm bookmark={bookmark} />
-            </LabeledSection>
-            <Separator />
-            <LabeledSection
-              title="Image"
-              description="Manage the bookmark's thumbnail image."
-            >
-              <BookmarkImageEditForm bookmark={bookmark} />
-            </LabeledSection>
-            <Separator />
-            <LabeledSection
-              title="Relationships"
-              description="Link this bookmark to related bookmarks."
-            >
-              <BookmarkRelationshipsEditor
-                bookmarkId={bookmark.id}
-                initialRelationships={bookmark.relationships}
-                onDone={() => openItem("bookmark", id, "view")}
-              />
-            </LabeledSection>
-          </div>
-        </PanelEntityEditor>
-      )}
-    </WithPanelItem>
+      mode="edit"
+    />
   );
 }
 

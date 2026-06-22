@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { MediaTypeGeneralForm } from "../components/MediaTypeGeneralForm";
-import { MediaTypeTabWrapper } from "../components/MediaTypeTabWrapper";
+import { mediaTypeWorkbench } from "../components/workbench/mediaType";
+import { WorkbenchRouteTab } from "../components/workbench/WorkbenchRouteTab";
 
 export const Route = createFileRoute("/taxonomies/media-types/$mediaTypeSlug/edit/general")({
   component: GeneralEditTab,
@@ -12,12 +12,11 @@ function GeneralEditTab() {
     mediaTypeSlug,
   } = Route.useParams();
   return (
-    <MediaTypeTabWrapper
-      mediaTypeSlug={mediaTypeSlug}
-      title="General"
-      description="Name and sort order."
-    >
-      {mt => <MediaTypeGeneralForm mediaType={mt} />}
-    </MediaTypeTabWrapper>
+    <WorkbenchRouteTab
+      workbench={mediaTypeWorkbench}
+      tabKey="general"
+      mode="edit"
+      slug={mediaTypeSlug}
+    />
   );
 }

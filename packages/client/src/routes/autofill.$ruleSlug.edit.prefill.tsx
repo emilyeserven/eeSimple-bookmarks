@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { AutofillRulePrefillForm } from "../components/AutofillRulePrefillForm";
-import { AutofillRuleTabWrapper } from "../components/AutofillRuleTabWrapper";
+import { autofillWorkbench } from "../components/workbench/autofill";
+import { WorkbenchRouteTab } from "../components/workbench/WorkbenchRouteTab";
 
 export const Route = createFileRoute("/autofill/$ruleSlug/edit/prefill")({
   component: PrefillEditTab,
@@ -12,12 +12,11 @@ function PrefillEditTab() {
     ruleSlug,
   } = Route.useParams();
   return (
-    <AutofillRuleTabWrapper
-      ruleSlug={ruleSlug}
-      title="What Gets Prefilled"
-      description="Configure the category, tags, and property values this rule sets."
-    >
-      {rule => <AutofillRulePrefillForm rule={rule} />}
-    </AutofillRuleTabWrapper>
+    <WorkbenchRouteTab
+      workbench={autofillWorkbench}
+      tabKey="prefill"
+      mode="edit"
+      slug={ruleSlug}
+    />
   );
 }

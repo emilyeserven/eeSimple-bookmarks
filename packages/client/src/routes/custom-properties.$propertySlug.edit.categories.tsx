@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { PropertyEditForm } from "../components/PropertyEditForm";
-import { PropertyTabWrapper } from "../components/PropertyTabWrapper";
+import { propertyWorkbench } from "../components/workbench/property";
+import { WorkbenchRouteTab } from "../components/workbench/WorkbenchRouteTab";
 
 export const Route = createFileRoute("/custom-properties/$propertySlug/edit/categories")({
   component: CategoriesEditTab,
@@ -12,17 +12,11 @@ function CategoriesEditTab() {
     propertySlug,
   } = Route.useParams();
   return (
-    <PropertyTabWrapper
-      propertySlug={propertySlug}
-      title="Categories"
-      description="Choose which categories this property applies to."
-    >
-      {property => (
-        <PropertyEditForm
-          property={property}
-          section="categories"
-        />
-      )}
-    </PropertyTabWrapper>
+    <WorkbenchRouteTab
+      workbench={propertyWorkbench}
+      tabKey="categories"
+      mode="edit"
+      slug={propertySlug}
+    />
   );
 }

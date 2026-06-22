@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { PropertyGroupGeneralForm } from "../components/PropertyGroupGeneralForm";
-import { PropertyGroupTabWrapper } from "../components/PropertyGroupTabWrapper";
+import { propertyGroupWorkbench } from "../components/workbench/propertyGroup";
+import { WorkbenchRouteTab } from "../components/workbench/WorkbenchRouteTab";
 
 export const Route = createFileRoute(
   "/taxonomies/property-groups/$propertyGroupSlug/edit/general",
@@ -14,12 +14,11 @@ function GeneralEditTab() {
     propertyGroupSlug,
   } = Route.useParams();
   return (
-    <PropertyGroupTabWrapper
-      propertyGroupSlug={propertyGroupSlug}
-      title="General"
-      description="Name, priority, and description."
-    >
-      {group => <PropertyGroupGeneralForm group={group} />}
-    </PropertyGroupTabWrapper>
+    <WorkbenchRouteTab
+      workbench={propertyGroupWorkbench}
+      tabKey="general"
+      mode="edit"
+      slug={propertyGroupSlug}
+    />
   );
 }

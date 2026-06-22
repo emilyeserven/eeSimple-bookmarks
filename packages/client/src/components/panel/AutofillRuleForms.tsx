@@ -1,25 +1,15 @@
 import type { CreateAutofillRuleInput } from "@eesimple/types";
 
-import { PanelEntityEditor } from "./PanelEntityEditor";
 import { usePanelControls } from "./usePanelControls";
-import { usePanelDismissAfterDelete } from "./usePanelDismissAfterDelete";
 import {
-  useAutofillRuleById,
   useCreateAutofillRule,
-  useDeleteAutofillRule,
 } from "../../hooks/useAutofill";
 import { useAutofillScopeDefaults } from "../../hooks/useAutofillScopeDefaults";
 import { useCategories } from "../../hooks/useCategories";
 import { useCustomProperties } from "../../hooks/useCustomProperties";
 import { useMediaTypes } from "../../hooks/useMediaTypes";
 import { useTagTree } from "../../hooks/useTags";
-import { AutofillRuleConditionsForm } from "../AutofillRuleConditionsForm";
 import { AutofillRuleForm } from "../AutofillRuleForm";
-import { AutofillRuleGeneralForm } from "../AutofillRuleGeneralForm";
-import { AutofillRulePrefillForm } from "../AutofillRulePrefillForm";
-import { LabeledSection } from "../LabeledSection";
-
-import { Separator } from "@/components/ui/separator";
 
 /** Create form: on success, re-target the panel at the saved rule so editing continues inline. */
 export function CreateAutofillRule() {
@@ -84,63 +74,5 @@ export function CreateAutofillRule() {
         }}
       />
     </div>
-  );
-}
-
-interface EditAutofillRuleProps {
-  ruleId: string;
-}
-
-/**
- * Edit an existing rule by reusing the **same** per-tab auto-save forms the main-app edit tabs render
- * (`AutofillRuleGeneralForm` / `AutofillRuleConditionsForm` / `AutofillRulePrefillForm`), stacked
- * since the panel is a single column — not the monolithic submit `AutofillRuleForm` (that stays for
- * create). A destructive delete closes the panel.
- */
-export function EditAutofillRule({
-  ruleId,
-}: EditAutofillRuleProps) {
-  const dismiss = usePanelDismissAfterDelete();
-  const {
-    rule, isLoading, error,
-  } = useAutofillRuleById(ruleId);
-  const deleteRule = useDeleteAutofillRule();
-
-  if (isLoading) return <p className="text-muted-foreground">Loading…</p>;
-  if (error) return <p className="text-destructive">{error.message}</p>;
-  if (!rule) return <p className="text-destructive">Rule not found.</p>;
-
-  return (
-    <PanelEntityEditor
-      name={rule.name}
-      onDelete={() => deleteRule.mutate(rule.id, {
-        onSuccess: dismiss,
-      })}
-      deleteIsPending={deleteRule.isPending}
-      deleteError={deleteRule.isError ? deleteRule.error.message : null}
-    >
-      <div className="space-y-6">
-        <LabeledSection
-          title="General"
-          description="Name, description, and priority."
-        >
-          <AutofillRuleGeneralForm rule={rule} />
-        </LabeledSection>
-        <Separator />
-        <LabeledSection
-          title="Activation Conditions"
-          description="Configure when this rule should apply."
-        >
-          <AutofillRuleConditionsForm rule={rule} />
-        </LabeledSection>
-        <Separator />
-        <LabeledSection
-          title="What Gets Prefilled"
-          description="Configure the category, tags, and property values this rule sets."
-        >
-          <AutofillRulePrefillForm rule={rule} />
-        </LabeledSection>
-      </div>
-    </PanelEntityEditor>
   );
 }

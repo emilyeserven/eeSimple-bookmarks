@@ -17,7 +17,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
   validateSearch: validateDrawerSearch,
   search: {
     // Carry the panel's drawer params across every navigation so it survives route changes.
-    middlewares: [retainSearchParams(["dOpen", "dCT", "dCId", "dMode"])],
+    middlewares: [retainSearchParams(["dOpen", "dCT", "dCId", "dMode", "dTab"])],
   },
   component: RootLayout,
 });

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { CardDisplayRulesList } from "../components/CardDisplayRulesList";
-import { CategoryEditTabWrapper } from "../components/CategoryEditTabWrapper";
+import { categoryWorkbench } from "../components/workbench/category";
+import { WorkbenchRouteTab } from "../components/workbench/WorkbenchRouteTab";
 
 export const Route = createFileRoute("/categories/$categorySlug/edit/display-rules")({
   component: DisplayRulesEditTab,
@@ -12,12 +12,11 @@ function DisplayRulesEditTab() {
     categorySlug,
   } = Route.useParams();
   return (
-    <CategoryEditTabWrapper
-      categorySlug={categorySlug}
-      title="Display Rules"
-      description="Card display rules whose conditions match this category. New rules created here match this category by default."
-    >
-      {category => <CardDisplayRulesList categoryId={category.id} />}
-    </CategoryEditTabWrapper>
+    <WorkbenchRouteTab
+      workbench={categoryWorkbench}
+      tabKey="display-rules"
+      mode="edit"
+      slug={categorySlug}
+    />
   );
 }

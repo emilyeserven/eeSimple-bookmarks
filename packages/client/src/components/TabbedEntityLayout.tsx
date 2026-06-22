@@ -2,20 +2,11 @@ import type { LinkProps } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
 import { Link, Outlet } from "@tanstack/react-router";
-import { ChevronDown } from "lucide-react";
 
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { TabbedShell, navLinkClass } from "./TabbedShell";
+
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-
-export const navLinkClass = `
-  rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors
-  hover:bg-accent hover:text-accent-foreground
-`;
 
 export interface TabNavItem {
   type?: never;
@@ -33,7 +24,7 @@ export type TabNavEntry = TabNavItem | TabNavGroup;
 
 interface Props {
   header: ReactNode;
-  /** Tab links rendered in the left vertical nav; all share `params`. */
+  /** Tab links rendered in the nav; all share `params`. */
   nav: readonly TabNavEntry[];
   /** Route params shared by every nav link (e.g. `{ websiteSlug }`). */
   params?: LinkProps["params"];
@@ -61,94 +52,65 @@ function NavLink({
   );
 }
 
-/** Shared vertical-tabbed layout shell used by all slug-routed entities. */
+/**
+ * Shared vertical-tabbed layout shell for all slug-routed entity pages. The responsive frame lives in
+ * `TabbedShell` (container-query driven); this wrapper maps the typed `nav` entries to router links
+ * and renders the active child route in the body via `<Outlet/>`.
+ */
 export function TabbedEntityLayout({
   header, nav, params, navAriaLabel,
 }: Props) {
-  return (
-    <section className="space-y-6">
-      {header}
-      <div
-        className="
-          flex flex-col gap-6
-          sm:flex-row
-        "
-      >
-        <Collapsible
+  const navItems = nav.map((entry) => {
+    if ("type" in entry && entry.type === "group") {
+      return (
+        <div
+          key={entry.label}
           className="
-            group/nav shrink-0 rounded-lg border bg-card p-2
-            sm:w-48 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0
+            flex gap-1
+            @2xl/tabs:mt-2 @2xl/tabs:flex-col
           "
         >
-          <CollapsibleTrigger
+          <Separator
             className="
-              flex w-full items-center justify-between rounded-md px-3 py-2
-              text-xs font-semibold tracking-wide text-muted-foreground
-              uppercase transition-colors
-              sm:hidden
+              mb-1 hidden
+              @2xl/tabs:block
+            "
+          />
+          <p
+            className="
+              self-center px-3 text-xs font-semibold tracking-wide
+              text-muted-foreground uppercase
+              @2xl/tabs:self-auto @2xl/tabs:pt-3 @2xl/tabs:pb-0.5
             "
           >
-            Navigation
-            <ChevronDown
-              className="
-                size-4 transition-transform
-                group-data-[state=open]/nav:rotate-180
-              "
+            {entry.label}
+          </p>
+          {entry.items.map(item => (
+            <NavLink
+              key={item.label}
+              item={item}
+              params={params}
             />
-          </CollapsibleTrigger>
-          <CollapsibleContent
-            forceMount
-            className="
-              hidden
-              data-[state=open]:block
-              sm:block
-            "
-          >
-            <nav
-              className="flex flex-col gap-1"
-              aria-label={navAriaLabel}
-            >
-              {nav.map((entry) => {
-                if ("type" in entry && entry.type === "group") {
-                  return (
-                    <div
-                      key={entry.label}
-                      className="mt-2 flex flex-col gap-1"
-                    >
-                      <Separator className="mb-1" />
-                      <p
-                        className="
-                          px-3 pt-3 pb-0.5 text-xs font-semibold tracking-wide
-                          text-muted-foreground uppercase
-                        "
-                      >
-                        {entry.label}
-                      </p>
-                      {entry.items.map(item => (
-                        <NavLink
-                          key={item.label}
-                          item={item}
-                          params={params}
-                        />
-                      ))}
-                    </div>
-                  );
-                }
-                return (
-                  <NavLink
-                    key={entry.label}
-                    item={entry}
-                    params={params}
-                  />
-                );
-              })}
-            </nav>
-          </CollapsibleContent>
-        </Collapsible>
-        <div className="min-w-0 flex-1">
-          <Outlet />
+          ))}
         </div>
-      </div>
-    </section>
+      );
+    }
+    return (
+      <NavLink
+        key={entry.label}
+        item={entry}
+        params={params}
+      />
+    );
+  });
+
+  return (
+    <TabbedShell
+      header={header}
+      nav={navItems}
+      navAriaLabel={navAriaLabel}
+    >
+      <Outlet />
+    </TabbedShell>
   );
 }

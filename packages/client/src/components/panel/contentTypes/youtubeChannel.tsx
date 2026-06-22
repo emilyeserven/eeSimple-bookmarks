@@ -5,11 +5,9 @@ import { useMemo } from "react";
 
 import { MonitorPlay } from "lucide-react";
 
-import { WithPanelItem } from "./status";
 import { useYouTubeChannels } from "../../../hooks/useYouTubeChannels";
-import { YouTubeChannelCard } from "../../YouTubeChannelCard";
-import { YouTubeChannelGeneralForm } from "../../YouTubeChannelGeneralForm";
-import { PanelEntityEditor } from "../PanelEntityEditor";
+import { youtubeChannelWorkbench } from "../../workbench/youtubeChannel";
+import { EntityWorkbenchPanel } from "../EntityWorkbenchPanel";
 
 function useYouTubeChannelList() {
   const {
@@ -30,43 +28,33 @@ function useYouTubeChannelList() {
   };
 }
 
-/** Read-only channel view, reusing the same `YouTubeChannelCard` the view page renders. */
+/** Read-only channel view — the same tabbed bodies + shell the main-app channel pages render. */
 function YouTubeChannelView({
   id,
 }: {
   id: string;
 }) {
-  const query = useYouTubeChannels();
   return (
-    <WithPanelItem
-      queryResult={query}
+    <EntityWorkbenchPanel
+      workbench={youtubeChannelWorkbench}
       id={id}
-      notFoundMessage="Channel not found."
-    >
-      {channel => <YouTubeChannelCard channel={channel} />}
-    </WithPanelItem>
+      mode="view"
+    />
   );
 }
 
-/** Channel editor, reusing the same auto-save `YouTubeChannelGeneralForm` the edit tab renders. */
+/** Channel editor — the same per-tab auto-save forms the main-app edit tabs render. */
 function YouTubeChannelEdit({
   id,
 }: {
   id: string;
 }) {
-  const query = useYouTubeChannels();
   return (
-    <WithPanelItem
-      queryResult={query}
+    <EntityWorkbenchPanel
+      workbench={youtubeChannelWorkbench}
       id={id}
-      notFoundMessage="Channel not found."
-    >
-      {channel => (
-        <PanelEntityEditor name={channel.name}>
-          <YouTubeChannelGeneralForm channel={channel} />
-        </PanelEntityEditor>
-      )}
-    </WithPanelItem>
+      mode="edit"
+    />
   );
 }
 

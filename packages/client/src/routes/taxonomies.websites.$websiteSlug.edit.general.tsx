@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { WebsiteGeneralForm } from "../components/WebsiteGeneralForm";
-import { WebsiteTabWrapper } from "../components/WebsiteTabWrapper";
+import { websiteWorkbench } from "../components/workbench/website";
+import { WorkbenchRouteTab } from "../components/workbench/WorkbenchRouteTab";
 
 export const Route = createFileRoute("/taxonomies/websites/$websiteSlug/edit/general")({
   component: GeneralEditTab,
@@ -12,12 +12,11 @@ function GeneralEditTab() {
     websiteSlug,
   } = Route.useParams();
   return (
-    <WebsiteTabWrapper
-      websiteSlug={websiteSlug}
-      title="General"
-      description="Site name and domain."
-    >
-      {website => <WebsiteGeneralForm website={website} />}
-    </WebsiteTabWrapper>
+    <WorkbenchRouteTab
+      workbench={websiteWorkbench}
+      tabKey="general"
+      mode="edit"
+      slug={websiteSlug}
+    />
   );
 }

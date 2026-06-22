@@ -12,25 +12,13 @@ vi.mock("./usePanelControls", () => ({
   usePanelControls: () => panelState,
 }));
 
-vi.mock("./AutofillRulePanel", () => ({
-  AutofillRulePanel: ({
-    ruleId,
+vi.mock("./EntityWorkbenchPanel", () => ({
+  EntityWorkbenchPanel: ({
+    id, mode,
   }: {
-    ruleId: string;
-  }) => <div>autofill:{ruleId}</div>,
-  ViewAutofillRule: ({
-    ruleId,
-  }: {
-    ruleId: string;
-  }) => <div>autofill-view:{ruleId}</div>,
-}));
-
-vi.mock("./TagPanel", () => ({
-  TagPanel: ({
-    tagId,
-  }: {
-    tagId: string;
-  }) => <div>tag:{tagId}</div>,
+    id: string;
+    mode: string;
+  }) => <div>workbench:{id}:{mode}</div>,
 }));
 
 describe("PanelContent", () => {
@@ -47,18 +35,18 @@ describe("PanelContent", () => {
     expect(screen.getByText("Bookmarks")).toBeInTheDocument();
   });
 
-  it("dispatches to the autofill editor", () => {
+  it("dispatches the autofill editor to the shared workbench panel", () => {
     panelState.dCT = "autofill";
     panelState.dCId = "rule-1";
     panelState.dMode = "edit";
     render(<PanelContent />);
-    expect(screen.getByText("autofill:rule-1")).toBeInTheDocument();
+    expect(screen.getByText("workbench:rule-1:edit")).toBeInTheDocument();
   });
 
-  it("dispatches to the tag editor", () => {
+  it("dispatches the tag view to the shared workbench panel", () => {
     panelState.dCT = "tag";
     panelState.dCId = "tag-1";
     render(<PanelContent />);
-    expect(screen.getByText("tag:tag-1")).toBeInTheDocument();
+    expect(screen.getByText("workbench:tag-1:view")).toBeInTheDocument();
   });
 });

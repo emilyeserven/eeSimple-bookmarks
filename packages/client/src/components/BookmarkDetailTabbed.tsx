@@ -6,7 +6,7 @@ import { useState } from "react";
 
 import { BookmarkDetailMedia } from "./BookmarkDetailMedia";
 import { buildBookmarkDetailSections } from "./bookmarkDetailSections";
-import { navLinkClass } from "./TabbedEntityLayout";
+import { navLinkClass } from "./TabbedShell";
 import { useBookmarks } from "../hooks/useBookmarks";
 import { useDefaultFieldZones } from "../lib/bookmarkCardFields";
 import { buildBookmarkHierarchy } from "../lib/bookmarkHierarchy";

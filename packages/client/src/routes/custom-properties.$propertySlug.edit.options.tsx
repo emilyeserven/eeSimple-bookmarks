@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { PropertyEditForm } from "../components/PropertyEditForm";
-import { PropertyTabWrapper } from "../components/PropertyTabWrapper";
+import { propertyWorkbench } from "../components/workbench/property";
+import { WorkbenchRouteTab } from "../components/workbench/WorkbenchRouteTab";
 
 export const Route = createFileRoute("/custom-properties/$propertySlug/edit/options")({
   component: OptionsEditTab,
@@ -12,17 +12,11 @@ function OptionsEditTab() {
     propertySlug,
   } = Route.useParams();
   return (
-    <PropertyTabWrapper
-      propertySlug={propertySlug}
-      title="Options"
-      description="Type-specific configuration for this property."
-    >
-      {property => (
-        <PropertyEditForm
-          property={property}
-          section="options"
-        />
-      )}
-    </PropertyTabWrapper>
+    <WorkbenchRouteTab
+      workbench={propertyWorkbench}
+      tabKey="options"
+      mode="edit"
+      slug={propertySlug}
+    />
   );
 }

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { CardDisplayRulesList } from "../components/CardDisplayRulesList";
-import { TagTabWrapper } from "../components/TagTabWrapper";
+import { tagWorkbench } from "../components/workbench/tag";
+import { WorkbenchRouteTab } from "../components/workbench/WorkbenchRouteTab";
 
 export const Route = createFileRoute("/tags/$tagSlug/edit/display-rules")({
   component: DisplayRulesEditTab,
@@ -12,12 +12,11 @@ function DisplayRulesEditTab() {
     tagSlug,
   } = Route.useParams();
   return (
-    <TagTabWrapper
-      tagSlug={tagSlug}
-      title="Display Rules"
-      description="Card display rules whose conditions reference this tag. New rules created here reference this tag by default."
-    >
-      {tag => <CardDisplayRulesList tagId={tag.id} />}
-    </TagTabWrapper>
+    <WorkbenchRouteTab
+      workbench={tagWorkbench}
+      tabKey="display-rules"
+      mode="edit"
+      slug={tagSlug}
+    />
   );
 }

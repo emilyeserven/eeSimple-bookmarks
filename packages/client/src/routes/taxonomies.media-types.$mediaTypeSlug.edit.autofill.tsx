@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { AutofillRulesList } from "../components/AutofillRulesList";
-import { EntityAutofillSources } from "../components/EntityAutofillSources";
-import { MediaTypeTabWrapper } from "../components/MediaTypeTabWrapper";
+import { mediaTypeWorkbench } from "../components/workbench/mediaType";
+import { WorkbenchRouteTab } from "../components/workbench/WorkbenchRouteTab";
 
 export const Route = createFileRoute("/taxonomies/media-types/$mediaTypeSlug/edit/autofill")({
   component: AutofillEditTab,
@@ -13,22 +12,11 @@ function AutofillEditTab() {
     mediaTypeSlug,
   } = Route.useParams();
   return (
-    <MediaTypeTabWrapper
-      mediaTypeSlug={mediaTypeSlug}
-      title="Autofill Rules"
-      description="Autofill rules that set this media type on matching bookmarks."
-    >
-      {mediaType => (
-        <div className="space-y-6">
-          <EntityAutofillSources
-            match={{
-              kind: "media-type",
-              mediaTypeId: mediaType.id,
-            }}
-          />
-          <AutofillRulesList mediaTypeId={mediaType.id} />
-        </div>
-      )}
-    </MediaTypeTabWrapper>
+    <WorkbenchRouteTab
+      workbench={mediaTypeWorkbench}
+      tabKey="autofill"
+      mode="edit"
+      slug={mediaTypeSlug}
+    />
   );
 }
