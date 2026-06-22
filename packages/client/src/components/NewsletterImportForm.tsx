@@ -7,6 +7,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { AddNewsletterModal } from "./AddNewsletterModal";
 import { NewsletterFileField } from "./NewsletterFileField";
 import { newsletterImportSchema } from "./newsletterImportFormSchema";
+import { useCategories } from "../hooks/useCategories";
 import {
   useIngestPaste,
   useIngestUpload,
@@ -20,6 +21,7 @@ import { notifyError, notifySuccess } from "../lib/notifications";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { CategoryIcon } from "@/lib/icons";
 
 const SOURCE_OPTIONS: { value: IngestSource;
   label: string; }[] = [
@@ -55,6 +57,9 @@ export function NewsletterImportForm({
   const {
     data: newsletters,
   } = useNewsletters();
+  const {
+    data: categories = [],
+  } = useCategories();
 
   const [source, setSource] = useState<IngestSource>("paste");
   const [file, setFile] = useState<File | null>(null);
@@ -85,6 +90,7 @@ export function NewsletterImportForm({
       pastedContent: "",
       fetchUrl: "",
       newsletterId: initialNewsletterId,
+      categoryId: "",
     },
     validators: {
       onChange: newsletterImportSchema,
@@ -96,25 +102,29 @@ export function NewsletterImportForm({
         pasteMutation: paste, urlMutation: url, uploadMutation: upload, navigate: go,
       }
         = actionsRef.current;
+      const defaultCategoryId = value.categoryId || null;
       try {
         const result = value.source === "paste"
           ? await paste.mutateAsync({
             content: value.pastedContent,
-            kind: "auto",
+            kind: "html",
             enrich: enrichRef.current,
             newsletterId: value.newsletterId,
+            defaultCategoryId,
           })
           : value.source === "url"
             ? await url.mutateAsync({
               url: value.fetchUrl,
               enrich: enrichRef.current,
               newsletterId: value.newsletterId,
+              defaultCategoryId,
             })
             : fileRef.current
               ? await upload.mutateAsync({
                 file: fileRef.current,
                 enrich: enrichRef.current,
                 newsletterId: value.newsletterId,
+                defaultCategoryId,
               })
               : null;
         if (!result) return;
@@ -186,10 +196,9 @@ export function NewsletterImportForm({
         ? (
           <form.AppField name="pastedContent">
             {field => (
-              <field.TextareaField
+              <field.RichTextField
                 label="Newsletter content"
-                placeholder="Paste the newsletter's HTML or plain text…"
-                rows={10}
+                hint="Paste the newsletter here — links are preserved."
               />
             )}
           </form.AppField>
@@ -218,6 +227,27 @@ export function NewsletterImportForm({
           />
         )
         : null}
+
+      <form.AppField name="categoryId">
+        {field => (
+          <field.ComboboxField
+            label="Category for all links (optional)"
+            placeholder="No category"
+            searchPlaceholder="Search categories…"
+            emptyText="No categories found."
+            options={categories.map(category => ({
+              value: category.id,
+              label: category.name,
+              icon: (
+                <CategoryIcon
+                  name={category.icon}
+                  className="size-4 shrink-0"
+                />
+              ),
+            }))}
+          />
+        )}
+      </form.AppField>
 
       <div className="flex items-center gap-2">
         <Checkbox

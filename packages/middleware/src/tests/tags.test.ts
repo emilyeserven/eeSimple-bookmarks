@@ -144,6 +144,32 @@ test("PATCH /api/tags/:id rejects a non-uuid id", async () => {
   await app.close();
 });
 
+test("PUT /api/tags/:id/categories rejects a non-uuid tag id", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "PUT",
+    url: "/api/tags/not-a-uuid/categories",
+    payload: {
+      categoryIds: [],
+    },
+  });
+  assert.equal(res.statusCode, 400);
+  await app.close();
+});
+
+test("PUT /api/tags/:id/categories rejects a non-uuid category id", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "PUT",
+    url: "/api/tags/11111111-1111-1111-1111-111111111111/categories",
+    payload: {
+      categoryIds: ["not-a-uuid"],
+    },
+  });
+  assert.equal(res.statusCode, 400);
+  await app.close();
+});
+
 test("GET /api/bookmarks rejects a non-uuid tag filter", async () => {
   const app = await buildApp();
   const res = await app.inject({

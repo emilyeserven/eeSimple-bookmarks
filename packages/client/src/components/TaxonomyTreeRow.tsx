@@ -16,6 +16,8 @@ export interface TaxonomyTreeNode {
   children: TaxonomyTreeNode[];
   /** Optional Lucide icon name; falls back to the default tag glyph (e.g. flat Tags carry none). */
   icon?: string | null;
+  /** When true, the row shows a "Built-in" badge (e.g. seeded media types). */
+  builtIn?: boolean;
   bookmarkCount?: number | null;
   ownBookmarkCount?: number | null;
 }
@@ -135,6 +137,8 @@ function TaxonomyTreeRow({
         )}
 
       {renderNameLink(node)}
+
+      {node.builtIn ? <Badge variant="outline">Built-in</Badge> : null}
 
       <HoverGhostButton>{renderEditLink(node)}</HoverGhostButton>
       <HoverGhostButton>{renderInfoLink(node)}</HoverGhostButton>

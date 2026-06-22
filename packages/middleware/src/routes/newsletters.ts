@@ -82,6 +82,9 @@ const pasteBody = {
       type: "boolean",
     },
     newsletterId: newsletterIdProp,
+    defaultCategoryId: {
+      type: ["string", "null"],
+    },
   },
 } as const;
 
@@ -98,6 +101,9 @@ const urlBody = {
       type: "boolean",
     },
     newsletterId: newsletterIdProp,
+    defaultCategoryId: {
+      type: ["string", "null"],
+    },
   },
 } as const;
 
@@ -111,6 +117,9 @@ const enrichQuery = {
     newsletterId: {
       type: "string",
       format: "uuid",
+    },
+    defaultCategoryId: {
+      type: "string",
     },
   },
 } as const;
@@ -193,6 +202,9 @@ const updateItemBody = {
     description: {
       type: ["string", "null"],
     },
+    categoryId: {
+      type: ["string", "null"],
+    },
     status: {
       type: "string",
       enum: ["pending", "rejected"],
@@ -217,6 +229,7 @@ export async function newsletterRoutes(app: FastifyInstance): Promise<void> {
       title: body.title ?? null,
       enrich: body.enrich ?? false,
       newsletterId: body.newsletterId ?? null,
+      defaultCategoryId: body.defaultCategoryId ?? null,
     });
   });
 
@@ -248,6 +261,7 @@ export async function newsletterRoutes(app: FastifyInstance): Promise<void> {
       sourceUrl: body.url,
       enrich: body.enrich ?? false,
       newsletterId: body.newsletterId ?? null,
+      defaultCategoryId: body.defaultCategoryId ?? null,
     });
   });
 
@@ -260,9 +274,10 @@ export async function newsletterRoutes(app: FastifyInstance): Promise<void> {
     },
   }, async (req, reply) => {
     const {
-      enrich, newsletterId,
+      enrich, newsletterId, defaultCategoryId,
     } = req.query as { enrich?: boolean;
-      newsletterId?: string; };
+      newsletterId?: string;
+      defaultCategoryId?: string; };
     let filename: string;
     let bytes: Buffer;
     try {
@@ -294,6 +309,7 @@ export async function newsletterRoutes(app: FastifyInstance): Promise<void> {
       title: filename,
       enrich: enrich ?? false,
       newsletterId: newsletterId ?? null,
+      defaultCategoryId: defaultCategoryId ?? null,
     });
   });
 

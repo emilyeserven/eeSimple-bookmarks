@@ -127,10 +127,16 @@ function looksLikeHtml(content: string): boolean {
   return /<a\b|<\/a>|<html|<body|<div|<table|<p[\s>]/i.test(content);
 }
 
-/** Extract candidates from raw content, sniffing HTML vs text when `kind` is "auto". Pure. */
+/** Extract candidates from raw content, sniffing HTML vs text when `kind` is "auto". Pure.
+ *
+ * For HTML we also scan the **tag-stripped text** for bare URLs, so a rich-text paste that contains
+ * a plain `https://…` (not wrapped in an `<a>`) is still caught. Stripping tags first keeps
+ * attribute/tracker URLs out; `filterAndDedupe` collapses any overlap with the real anchors and
+ * keeps the richer anchor text. */
 export function extractCandidates(content: string, kind: "html" | "text" | "auto"): LinkCandidate[] {
   const resolved = kind === "auto" ? (looksLikeHtml(content) ? "html" : "text") : kind;
-  return resolved === "html" ? extractHtmlCandidates(content) : extractTextCandidates(content);
+  if (resolved === "text") return extractTextCandidates(content);
+  return [...extractHtmlCandidates(content), ...extractTextCandidates(content.replace(/<[^>]+>/g, " "))];
 }
 
 /** True when a candidate looks like newsletter chrome (nav/footer/unsubscribe/social/pixel). Pure. */

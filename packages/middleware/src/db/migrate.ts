@@ -472,6 +472,16 @@ const migrations: RuntimeMigration[] = [
       END $$
     `),
   },
+  {
+    // `app_settings.newsletter_blacklist` is NOT NULL jsonb DEFAULT '[]'. Adding a NOT NULL column to
+    // the populated singleton `app_settings` table makes drizzle-kit push prompt (non-TTY crash), so
+    // pre-apply it here to keep push's diff additive-only. Default must match schema.ts exactly.
+    name: "add app_settings.newsletter_blacklist column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "app_settings"
+        ADD COLUMN IF NOT EXISTS "newsletter_blacklist" jsonb NOT NULL DEFAULT '[]'::jsonb
+    `),
+  },
 ];
 
 async function main(): Promise<void> {

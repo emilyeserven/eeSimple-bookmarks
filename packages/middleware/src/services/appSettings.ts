@@ -8,6 +8,7 @@ import type {
   DisplayPreferenceSettings,
   HomepageContentSettings,
   HomepageContentWidth,
+  NewsletterBlacklistEntry,
   QuickAddDisplay,
   SidebarCustomizationSettings,
   SidebarOpenModifier,
@@ -17,6 +18,7 @@ import type {
   UpdateHomepageContentInput,
   UpdateSidebarCustomizationInput,
 } from "@eesimple/types";
+import { normalizeBlacklist } from "@eesimple/types";
 import { db } from "@/db";
 import { appSettings } from "@/db/schema";
 
@@ -243,6 +245,38 @@ export async function updateShortenerIgnoreList(domains: string[]): Promise<stri
       target: appSettings.id,
       set: {
         shortenerIgnoreList: normalized,
+      },
+    });
+  return normalized;
+}
+
+/** Read the newsletter scan blacklist (links matching these are dropped from future scans). */
+export async function getNewsletterBlacklist(): Promise<NewsletterBlacklistEntry[]> {
+  const [row] = await db
+    .select({
+      newsletterBlacklist: appSettings.newsletterBlacklist,
+    })
+    .from(appSettings)
+    .where(eq(appSettings.id, ROW_ID));
+  return row?.newsletterBlacklist ?? [];
+}
+
+/** Replace the newsletter scan blacklist. Entries are normalized + de-duplicated. */
+export async function updateNewsletterBlacklist(
+  entries: NewsletterBlacklistEntry[],
+): Promise<NewsletterBlacklistEntry[]> {
+  const normalized = normalizeBlacklist(entries);
+  await db
+    .insert(appSettings)
+    .values({
+      id: ROW_ID,
+      shortenerIgnoreList: DEFAULT_SHORTENER_IGNORE_LIST,
+      newsletterBlacklist: normalized,
+    })
+    .onConflictDoUpdate({
+      target: appSettings.id,
+      set: {
+        newsletterBlacklist: normalized,
       },
     });
   return normalized;

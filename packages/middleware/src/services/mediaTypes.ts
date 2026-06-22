@@ -45,7 +45,9 @@ interface MediaTypeBookmarkCounts {
 /** A root media type seeded at boot, with optional built-in children nested one level under it. */
 interface BuiltInMediaType {
   name: string;
-  children?: string[];
+  /** Lucide icon name (PascalCase), rendered by the client's `CategoryIcon`. */
+  icon: string;
+  children?: BuiltInMediaType[];
 }
 
 /**
@@ -55,29 +57,55 @@ interface BuiltInMediaType {
 const BUILT_IN_MEDIA_TYPES: BuiltInMediaType[] = [
   {
     name: "Video",
+    icon: "Video",
   },
   {
     name: "Video Game",
+    icon: "Gamepad2",
   },
   {
     name: "Audio",
-    children: ["Podcast", "Music", "Interview"],
+    icon: "AudioLines",
+    children: [
+      {
+        name: "Podcast",
+        icon: "Podcast",
+      },
+      {
+        name: "Music",
+        icon: "Music",
+      },
+      {
+        name: "Interview",
+        icon: "Mic",
+      },
+    ],
   },
   {
     name: "Document",
-    children: ["Article"],
+    icon: "FileText",
+    children: [
+      {
+        name: "Article",
+        icon: "Newspaper",
+      },
+    ],
   },
   {
     name: "Image",
+    icon: "Image",
   },
   {
     name: "Book",
+    icon: "BookOpen",
   },
   {
     name: "Website/App",
+    icon: "Globe",
   },
   {
     name: "Other",
+    icon: "Shapes",
   },
 ];
 
@@ -316,6 +344,7 @@ export async function deleteMediaType(id: string): Promise<boolean> {
 /** Insert a built-in media type by slug if missing, returning the existing or new row's id. */
 async function ensureBuiltIn(
   name: string,
+  icon: string,
   sortOrder: number,
   parentId: string | null,
 ): Promise<string> {
@@ -325,6 +354,7 @@ async function ensureBuiltIn(
     .values({
       name,
       slug,
+      icon,
       builtIn: true,
       sortOrder,
       parentId,
@@ -335,9 +365,20 @@ async function ensureBuiltIn(
   const [row] = await db
     .select({
       id: mediaTypes.id,
+      icon: mediaTypes.icon,
     })
     .from(mediaTypes)
     .where(eq(mediaTypes.slug, slug));
+  // Backfill the icon for legacy built-ins seeded before icons existed. Only when it's still null,
+  // so a user's custom icon choice is never clobbered.
+  if (row.icon === null) {
+    await db
+      .update(mediaTypes)
+      .set({
+        icon,
+      })
+      .where(eq(mediaTypes.id, row.id));
+  }
   return row.id;
 }
 
@@ -352,15 +393,15 @@ export async function ensureBuiltInMediaTypes(): Promise<void> {
   let order = 0;
   const rootIdByName = new Map<string, string>();
   for (const root of BUILT_IN_MEDIA_TYPES) {
-    rootIdByName.set(root.name, await ensureBuiltIn(root.name, order, null));
+    rootIdByName.set(root.name, await ensureBuiltIn(root.name, root.icon, order, null));
     order += 1;
   }
   // Then insert/re-parent children one level under their root.
   for (const root of BUILT_IN_MEDIA_TYPES) {
     if (!root.children) continue;
     const parentId = rootIdByName.get(root.name)!;
-    for (const childName of root.children) {
-      const childId = await ensureBuiltIn(childName, order, parentId);
+    for (const child of root.children) {
+      const childId = await ensureBuiltIn(child.name, child.icon, order, parentId);
       order += 1;
       // Re-parent legacy installs where the child was created as a top-level root.
       await db

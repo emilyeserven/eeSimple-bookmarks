@@ -13,6 +13,10 @@ const editNav = [
     label: "General",
   },
   {
+    to: "/tags/$tagSlug/edit/categories",
+    label: "Categories",
+  },
+  {
     to: "/tags/$tagSlug/edit/autofill",
     label: "Autofill Rules",
   },

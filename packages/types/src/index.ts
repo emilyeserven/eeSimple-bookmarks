@@ -10,6 +10,7 @@ import type { CustomPropertyType, DateTimeFormat, NumberFormat } from "./customP
 
 export * from "./conditions.js";
 export * from "./customProperties.js";
+export * from "./newsletterBlacklist.js";
 export * from "./urlCleanup.js";
 export * from "./youtube.js";
 
@@ -838,6 +839,8 @@ export interface NewsletterImportItem {
   imageUrl: string | null;
   /** The visible anchor text the link was extracted from. */
   anchorText: string | null;
+  /** Per-item category override applied on approval; falls back to the import's default. */
+  categoryId: string | null;
   status: NewsletterImportItemStatus;
   /** When `status === "duplicate"`, the existing bookmark this collided with. */
   duplicateBookmarkId: string | null;
@@ -858,6 +861,8 @@ export interface NewsletterImport {
   sourceUrl: string | null;
   /** The newsletter (publication) this import/issue belongs to, or `null`. */
   newsletterId: string | null;
+  /** Default category applied to every link approved from this import (per-item override wins). */
+  defaultCategoryId: string | null;
   createdAt: string;
   items: NewsletterImportItem[];
 }
@@ -870,6 +875,7 @@ export interface NewsletterImportSummary {
   sourceUrl: string | null;
   /** The newsletter (publication) this import/issue belongs to, or `null`. */
   newsletterId: string | null;
+  defaultCategoryId: string | null;
   createdAt: string;
   /** Total extracted items. */
   itemCount: number;
@@ -889,6 +895,8 @@ export interface IngestPasteInput {
   enrich?: boolean;
   /** The newsletter (publication) this import belongs to, or `null`. */
   newsletterId?: string | null;
+  /** Default category applied to every link approved from this import. */
+  defaultCategoryId?: string | null;
 }
 
 /** Body for the fetch-URL ingest endpoint. */
@@ -898,6 +906,8 @@ export interface IngestUrlInput {
   enrich?: boolean;
   /** The newsletter (publication) this import belongs to, or `null`. */
   newsletterId?: string | null;
+  /** Default category applied to every link approved from this import. */
+  defaultCategoryId?: string | null;
 }
 
 /** Patch for editing a staged candidate before approval. */
@@ -905,6 +915,8 @@ export interface UpdateNewsletterImportItemInput {
   url?: string;
   title?: string | null;
   description?: string | null;
+  /** Per-item category override (null clears it, falling back to the import default). */
+  categoryId?: string | null;
   /** Limited status transitions the user can drive directly (e.g. un-reject). */
   status?: "pending" | "rejected";
 }
@@ -1396,6 +1408,11 @@ export type UpdateCategoryInput = Partial<CreateCategoryInput>;
 /** Payload for replacing a category's enabled root-tag allowlist (empty = all roots enabled). */
 export interface UpdateCategoryRootTagsInput {
   tagIds: string[];
+}
+
+/** Payload for replacing the categories whose root-tag allowlist includes a given (root) tag. */
+export interface UpdateTagCategoriesInput {
+  categoryIds: string[];
 }
 
 /** A category's default custom-property values, applied to new bookmarks added to it. */

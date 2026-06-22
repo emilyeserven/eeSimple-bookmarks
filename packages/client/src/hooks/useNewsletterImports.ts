@@ -61,11 +61,12 @@ export function useIngestUpload() {
   const invalidate = useInvalidateNewsletter();
   return useMutation({
     mutationFn: ({
-      file, enrich, newsletterId,
+      file, enrich, newsletterId, defaultCategoryId,
     }: { file: File;
       enrich: boolean;
-      newsletterId?: string | null; }) =>
-      newsletterApi.ingestUpload(file, enrich, newsletterId),
+      newsletterId?: string | null;
+      defaultCategoryId?: string | null; }) =>
+      newsletterApi.ingestUpload(file, enrich, newsletterId, defaultCategoryId),
     onSuccess: () => invalidate(),
   });
 }
