@@ -1,5 +1,6 @@
+import type { SwitcherSpec } from "@/components/BreadcrumbSwitcher";
 import type { PinContext } from "@/components/HeaderPinButton";
-import type { TagNode } from "@eesimple/types";
+import type { MediaTypeNode, TagNode } from "@eesimple/types";
 
 import React from "react";
 
@@ -8,6 +9,7 @@ import { Info, PanelRight, Plus } from "lucide-react";
 
 import { AddChildButton } from "@/components/AddChildButton";
 import { BookmarkDetailLayoutPopover } from "@/components/BookmarkDetailLayoutPopover";
+import { BreadcrumbSwitcher } from "@/components/BreadcrumbSwitcher";
 import { DisplayOptionsPopover } from "@/components/DisplayOptionsPopover";
 import { FilterLocationPopover } from "@/components/FilterLocationPopover";
 import { HeaderPinButton } from "@/components/HeaderPinButton";
@@ -29,7 +31,7 @@ import { useAutofillRuleBySlug } from "@/hooks/useAutofill";
 import { useBookmark } from "@/hooks/useBookmarks";
 import { useCategories, useCategoryBySlug } from "@/hooks/useCategories";
 import { usePropertyBySlug } from "@/hooks/useCustomProperties";
-import { useMediaTypeBySlug } from "@/hooks/useMediaTypes";
+import { useMediaTypeBySlug, useMediaTypeTree } from "@/hooks/useMediaTypes";
 import { usePropertyGroupBySlug } from "@/hooks/usePropertyGroups";
 import { useRelationshipTypeBySlug } from "@/hooks/useRelationshipTypes";
 import { useTagTree } from "@/hooks/useTags";
@@ -37,11 +39,14 @@ import { useWebsiteBySlug } from "@/hooks/useWebsites";
 import { useYouTubeChannelBySlug } from "@/hooks/useYouTubeChannels";
 import { findSettingsPage } from "@/lib/settingsPages";
 import { findAncestorPath } from "@/lib/tagTree";
+import { cn } from "@/lib/utils";
 import { useUiStore } from "@/stores/uiStore";
 
 interface BreadcrumbSegment {
   label: string;
   href?: string;
+  /** When set, a hover-revealed switcher button beside the label switches to a sibling entity. */
+  switcher?: SwitcherSpec;
 }
 
 /** Labels for path segments whose human form differs from a plain title-cased slug. */
@@ -73,6 +78,12 @@ interface TaxonomyDescriptor {
   singular: string;
   /** Index of the entity slug among the path's non-empty segments. */
   slugIndex: number;
+  /**
+   * Builds the name crumb's sibling-switcher spec from the current slug. Omit to leave the name crumb
+   * a plain (non-switching) crumb. (Media Types are intentionally absent — they get a tree ancestor
+   * chain via `mediaTypeCrumbs`, not the flat name-crumb switcher.)
+   */
+  makeSwitcher?: (slug: string) => SwitcherSpec;
 }
 
 // Every slug-routed entity whose breadcrumb is `List → Name → [Section]`. Categories and Websites
@@ -85,12 +96,21 @@ const TAXONOMY_DESCRIPTORS: readonly TaxonomyDescriptor[] = [
     listLabel: "Categories",
     singular: "Category",
     slugIndex: 1,
+    makeSwitcher: slug => ({
+      kind: "category",
+      currentSlug: slug,
+    }),
   },
   {
     prefix: "/taxonomies/websites",
     listLabel: "Websites",
     singular: "Website",
     slugIndex: 2,
+    makeSwitcher: slug => ({
+      kind: "taxonomy",
+      entity: "website",
+      currentSlug: slug,
+    }),
   },
   {
     prefix: "/taxonomies/media-types",
@@ -103,12 +123,22 @@ const TAXONOMY_DESCRIPTORS: readonly TaxonomyDescriptor[] = [
     listLabel: "YouTube Channels",
     singular: "Channel",
     slugIndex: 2,
+    makeSwitcher: slug => ({
+      kind: "taxonomy",
+      entity: "youtube-channel",
+      currentSlug: slug,
+    }),
   },
   {
     prefix: "/taxonomies/property-groups",
     listLabel: "Property Groups",
     singular: "Property Group",
     slugIndex: 2,
+    makeSwitcher: slug => ({
+      kind: "taxonomy",
+      entity: "property-group",
+      currentSlug: slug,
+    }),
   },
   {
     prefix: "/taxonomies/relationship-types",
@@ -121,12 +151,22 @@ const TAXONOMY_DESCRIPTORS: readonly TaxonomyDescriptor[] = [
     listLabel: "Custom Properties",
     singular: "Custom Property",
     slugIndex: 1,
+    makeSwitcher: slug => ({
+      kind: "taxonomy",
+      entity: "custom-property",
+      currentSlug: slug,
+    }),
   },
   {
     prefix: "/autofill",
     listLabel: "Autofill Rules",
     singular: "Rule",
     slugIndex: 1,
+    makeSwitcher: slug => ({
+      kind: "taxonomy",
+      entity: "autofill",
+      currentSlug: slug,
+    }),
   },
 ] as const;
 
@@ -154,11 +194,14 @@ function taxonomyCrumbs(
     href: prefix,
   };
   const itemLabel = name ?? singular;
-  // The bare detail/browse index and every `_view` tab stop at the name.
+  // The bare detail/browse index and every `_view` tab stop at the name. The name crumb gets a
+  // sibling switcher (when the descriptor defines one and the real name has resolved).
   if (parts[slugIndex + 1] !== "edit") {
-    return [listCrumb, {
+    const nameCrumb: BreadcrumbSegment = {
       label: itemLabel,
-    }];
+      switcher: name ? descriptor.makeSwitcher?.(slug) : undefined,
+    };
+    return [listCrumb, nameCrumb];
   }
   // Edit tabs: link the name back to its view, end on the section/tab label.
   const tab = parts[slugIndex + 2];
@@ -184,25 +227,61 @@ function settingsCrumbs(pathname: string): BreadcrumbSegment[] {
   }];
 }
 
-function tagCrumbs(pathname: string, tagAncestors?: TagNode[]): BreadcrumbSegment[] {
+interface TreeTaxonomyConfig {
+  listLabel: string;
+  /** URL prefix that is both the listing href and the per-node view prefix (e.g. `/tags`). */
+  viewPrefix: string;
+  tree: "tag" | "media-type";
+  /** Index of the entity slug among the path's non-empty segments. */
+  slugIndex: number;
+  /** Placeholder shown before the ancestor chain resolves. */
+  singular: string;
+}
+
+/** Same-parent sibling switcher for a node in a tree taxonomy (its tier / its parent's children). */
+function treeSiblingSwitcher(node: TagNode | MediaTypeNode, tree: "tag" | "media-type"): SwitcherSpec {
+  return {
+    kind: "treeSiblings",
+    tree,
+    parentId: node.parentId ?? null,
+    currentSlug: node.slug,
+  };
+}
+
+/**
+ * Breadcrumbs for a tree (hierarchical) taxonomy with an ancestor chain. On the view chain each
+ * ancestor links to its own page AND carries a same-parent sibling switcher; the leaf is the current
+ * page with a switcher. On the edit chain ancestors link to their `…/general` views and the trail
+ * ends on `Edit` (no switchers). Shared by Tags and Media Types.
+ */
+function treeTaxonomyCrumbs(
+  pathname: string,
+  ancestors: (TagNode | MediaTypeNode)[] | undefined,
+  config: TreeTaxonomyConfig,
+): BreadcrumbSegment[] {
+  const {
+    listLabel, viewPrefix, tree, slugIndex, singular,
+  } = config;
   const parts = pathname.split("/").filter(Boolean);
-  // `/tags` — the listing page.
-  if (parts.length === 1) return [{
-    label: "Tags",
+  // Listing page (no slug segment yet).
+  if (parts.length <= slugIndex) return [{
+    label: listLabel,
   }];
   const listCrumb: BreadcrumbSegment = {
-    label: "Tags",
-    href: "/tags",
+    label: listLabel,
+    href: viewPrefix,
   };
-  const isEdit = parts[2] === "edit";
-  if (!tagAncestors?.length) {
+  const slug = parts[slugIndex] ?? "";
+  const isEdit = parts[slugIndex + 1] === "edit";
+  // Ancestor chain not resolved yet — generic placeholder, no switcher.
+  if (!ancestors?.length) {
     const fallback: BreadcrumbSegment = isEdit
       ? {
-        label: "Tag",
-        href: `/tags/${parts[1]}/general`,
+        label: singular,
+        href: `${viewPrefix}/${slug}/general`,
       }
       : {
-        label: "Tag",
+        label: singular,
       };
     return isEdit
       ? [listCrumb, fallback, {
@@ -210,33 +289,63 @@ function tagCrumbs(pathname: string, tagAncestors?: TagNode[]): BreadcrumbSegmen
       }]
       : [listCrumb, fallback];
   }
-  const parents = tagAncestors.slice(0, -1);
-  const current = tagAncestors[tagAncestors.length - 1];
-  const currentCrumb: BreadcrumbSegment = isEdit
-    ? {
-      label: current.name,
-      href: `/tags/${parts[1]}/general`,
-    }
-    : {
-      label: current.name,
-    };
+  // Edit chain: ancestors (incl. current) link to their `/general` view; end on `Edit`. No switchers.
+  if (isEdit) {
+    return [
+      listCrumb,
+      ...ancestors.map((node): BreadcrumbSegment => ({
+        label: node.name,
+        href: `${viewPrefix}/${node.slug}/general`,
+      })),
+      {
+        label: "Edit",
+      },
+    ];
+  }
+  // View chain: each ancestor links to its page; every crumb switches among its same-parent siblings.
+  const parents = ancestors.slice(0, -1);
+  const current = ancestors[ancestors.length - 1];
   return [
     listCrumb,
-    ...parents.map(t => ({
-      label: t.name,
-      href: `/tags/${t.slug}/general`,
+    ...parents.map((node): BreadcrumbSegment => ({
+      label: node.name,
+      href: `${viewPrefix}/${node.slug}`,
+      switcher: treeSiblingSwitcher(node, tree),
     })),
-    currentCrumb,
-    ...(isEdit
-      ? [{
-        label: "Edit",
-      }]
-      : []),
+    {
+      label: current.name,
+      switcher: treeSiblingSwitcher(current, tree),
+    },
   ];
 }
 
+function tagCrumbs(pathname: string, tagAncestors?: TagNode[]): BreadcrumbSegment[] {
+  return treeTaxonomyCrumbs(pathname, tagAncestors, {
+    listLabel: "Tags",
+    viewPrefix: "/tags",
+    tree: "tag",
+    slugIndex: 1,
+    singular: "Tag",
+  });
+}
+
+function mediaTypeCrumbs(
+  pathname: string,
+  mediaTypeAncestors?: MediaTypeNode[],
+): BreadcrumbSegment[] {
+  return treeTaxonomyCrumbs(pathname, mediaTypeAncestors, {
+    listLabel: "Media Types",
+    viewPrefix: "/taxonomies/media-types",
+    tree: "media-type",
+    slugIndex: 2,
+    singular: "Media Type",
+  });
+}
+
 interface BookmarkCrumbData {
+  id: string;
   title: string;
+  categoryId?: string;
   categoryName?: string;
   categorySlug?: string;
 }
@@ -246,10 +355,18 @@ function bookmarkCrumbs(pathname: string, data?: BookmarkCrumbData): BreadcrumbS
     label: "Bookmarks",
     href: "/bookmarks",
   };
+  // The category crumb keeps its own-page link AND switches among all categories.
+  const catSwitcher: SwitcherSpec | undefined = data?.categorySlug
+    ? {
+      kind: "category",
+      currentSlug: data.categorySlug,
+    }
+    : undefined;
   const catCrumb: BreadcrumbSegment = data?.categorySlug
     ? {
       label: data.categoryName ?? "Category",
       href: `/categories/${data.categorySlug}`,
+      switcher: catSwitcher,
     }
     : {
       label: data?.categoryName ?? "Category",
@@ -260,7 +377,7 @@ function bookmarkCrumbs(pathname: string, data?: BookmarkCrumbData): BreadcrumbS
 
   const isEdit = pathname.includes("/edit");
   if (isEdit) {
-    // link the title back to the detail view
+    // link the title back to the detail view (no switcher on the edit chain)
     const detailHref = pathname.replace(/\/edit.*$/, "");
     return [listCrumb, catCrumb, {
       ...titleCrumb,
@@ -269,11 +386,23 @@ function bookmarkCrumbs(pathname: string, data?: BookmarkCrumbData): BreadcrumbS
       label: "Edit",
     }];
   }
-  return [listCrumb, catCrumb, titleCrumb];
+  // Detail view: the title switches among bookmarks in the same category.
+  const titleSwitcher: SwitcherSpec | undefined = data?.id && data.categoryId
+    ? {
+      kind: "bookmark",
+      categoryId: data.categoryId,
+      currentId: data.id,
+    }
+    : undefined;
+  return [listCrumb, catCrumb, {
+    ...titleCrumb,
+    switcher: titleSwitcher,
+  }];
 }
 
 interface BreadcrumbContext {
   tagAncestors?: TagNode[];
+  mediaTypeAncestors?: MediaTypeNode[];
   bookmarkData?: BookmarkCrumbData;
   /** Resolved entity name keyed by `TaxonomyDescriptor.prefix`. */
   taxonomyNames?: Record<string, string | undefined>;
@@ -291,6 +420,9 @@ function breadcrumbsForPath(pathname: string, ctx: BreadcrumbContext): Breadcrum
     return bookmarkCrumbs(pathname, ctx.bookmarkData);
   if (pathname.startsWith("/settings")) return settingsCrumbs(pathname);
   if (pathname === "/tags" || pathname.startsWith("/tags/")) return tagCrumbs(pathname, ctx.tagAncestors);
+  // Media-type detail/edit pages get a tree ancestor chain (the bare listing stays on the descriptor).
+  if (pathname.startsWith("/taxonomies/media-types/"))
+    return mediaTypeCrumbs(pathname, ctx.mediaTypeAncestors);
 
   const descriptor = TAXONOMY_DESCRIPTORS.find(
     d => pathname === d.prefix || pathname.startsWith(`${d.prefix}/`),
@@ -459,6 +591,15 @@ export function AppHeader() {
     ? (findAncestorPath(tagTree, tagSlug) ?? undefined)
     : undefined;
 
+  // Media-type breadcrumbs carry the ancestor chain too (one level deep), resolved from the tree.
+  const mediaTypeSlug = slugFor("/taxonomies/media-types", 2);
+  const {
+    data: mediaTypeTree,
+  } = useMediaTypeTree();
+  const mediaTypeAncestors = mediaTypeSlug && mediaTypeTree
+    ? (findAncestorPath(mediaTypeTree, mediaTypeSlug) ?? undefined)
+    : undefined;
+
   // Bookmark breadcrumbs carry the bookmark's category + title.
   const bookmarkId = slugFor("/bookmarks", 1);
   const {
@@ -472,7 +613,9 @@ export function AppHeader() {
     : undefined;
   const bookmarkData: BookmarkCrumbData | undefined = bookmarkForCrumb
     ? {
+      id: bookmarkForCrumb.id,
       title: bookmarkForCrumb.title,
+      categoryId: bookmarkForCrumb.categoryId,
       categoryName: bookmarkCategory?.name,
       categorySlug: bookmarkCategory?.slug,
     }
@@ -480,6 +623,7 @@ export function AppHeader() {
 
   const crumbs = breadcrumbsForPath(pathname, {
     tagAncestors,
+    mediaTypeAncestors,
     bookmarkData,
     taxonomyNames,
   });
@@ -684,7 +828,7 @@ export function AppHeader() {
           {crumbs.map((crumb, i) => (
             <React.Fragment key={crumb.label}>
               {i > 0 && <BreadcrumbSeparator />}
-              <BreadcrumbItem>
+              <BreadcrumbItem className={cn(crumb.switcher && "group/crumb")}>
                 {crumb.href
                   ? (
                     <BreadcrumbLink asChild>
@@ -692,6 +836,7 @@ export function AppHeader() {
                     </BreadcrumbLink>
                   )
                   : <BreadcrumbPage>{crumb.label}</BreadcrumbPage>}
+                {crumb.switcher && <BreadcrumbSwitcher spec={crumb.switcher} />}
               </BreadcrumbItem>
             </React.Fragment>
           ))}
