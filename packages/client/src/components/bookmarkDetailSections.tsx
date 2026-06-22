@@ -72,6 +72,14 @@ export function buildBookmarkDetailSections({
               : null}
           </DetailField>
 
+          {bookmark.newsletterContext
+            ? (
+              <DetailField label="Newsletter Context">
+                <p className="text-sm whitespace-pre-wrap text-muted-foreground">{bookmark.newsletterContext}</p>
+              </DetailField>
+            )
+            : null}
+
           <DetailField label="Category">
             {category
               ? <BookmarkCategoryLink category={category} />

@@ -33,6 +33,9 @@ function NewsletterReviewPage() {
           </Link>
         </Button>
         <h2 className="text-xl font-semibold">Review candidates</h2>
+        {newsletter?.title
+          ? <p className="text-sm font-medium text-muted-foreground">{newsletter.title}</p>
+          : null}
         <p className="text-sm text-muted-foreground">
           Approve, edit, or reject each extracted link. Approving creates a bookmark; duplicates are
           flagged automatically.

@@ -16,8 +16,6 @@ import { ApiError } from "../lib/apiError";
 import { useAppForm } from "../lib/form";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import { CategoryIcon } from "@/lib/icons";
 
 const SOURCE_OPTIONS: { value: IngestSource;
@@ -52,13 +50,10 @@ export function NewsletterImportForm() {
 
   const [source, setSource] = useState<IngestSource>("paste");
   const [file, setFile] = useState<File | null>(null);
-  const [enrich, setEnrich] = useState(false);
 
-  // Refs keep the once-created onSubmit closure reading the latest file/enrich/actions.
+  // Refs keep the once-created onSubmit closure reading the latest file/actions.
   const fileRef = useRef(file);
   fileRef.current = file;
-  const enrichRef = useRef(enrich);
-  enrichRef.current = enrich;
   const actionsRef = useRef({
     pasteMutation,
     urlMutation,
@@ -95,19 +90,16 @@ export function NewsletterImportForm() {
           ? await paste.mutateAsync({
             content: value.pastedContent,
             kind: "html",
-            enrich: enrichRef.current,
             defaultCategoryId,
           })
           : value.source === "url"
             ? await url.mutateAsync({
               url: value.fetchUrl,
-              enrich: enrichRef.current,
               defaultCategoryId,
             })
             : fileRef.current
               ? await upload.mutateAsync({
                 file: fileRef.current,
-                enrich: enrichRef.current,
                 defaultCategoryId,
               })
               : null;
@@ -201,20 +193,6 @@ export function NewsletterImportForm() {
           />
         )}
       </form.AppField>
-
-      <div className="flex items-center gap-2">
-        <Checkbox
-          id="enrich"
-          checked={enrich}
-          onCheckedChange={checked => setEnrich(checked === true)}
-        />
-        <Label
-          htmlFor="enrich"
-          className="font-normal"
-        >
-          Fetch titles &amp; previews now (slower)
-        </Label>
-      </div>
 
       <form.AppForm>
         <form.SubmitButton
