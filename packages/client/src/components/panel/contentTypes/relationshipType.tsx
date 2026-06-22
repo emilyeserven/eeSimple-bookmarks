@@ -6,9 +6,14 @@ import { useMemo } from "react";
 import { Link2 } from "lucide-react";
 
 import { WithPanelItem } from "./status";
-import { useRelationshipTypes } from "../../../hooks/useRelationshipTypes";
+import {
+  useDeleteRelationshipType,
+  useRelationshipTypes,
+} from "../../../hooks/useRelationshipTypes";
 import { RelationshipTypeDetail } from "../../RelationshipTypeDetail";
 import { RelationshipTypeGeneralForm } from "../../RelationshipTypeGeneralForm";
+import { PanelEntityEditor } from "../PanelEntityEditor";
+import { usePanelDismissAfterDelete } from "../usePanelDismissAfterDelete";
 
 function useRelationshipTypeList() {
   const {
@@ -52,20 +57,36 @@ function RelationshipTypeView({
   );
 }
 
-/** Inline relationship-type editor, reusing the same auto-save form the edit page uses. */
+/** Relationship-type editor, reusing the same auto-save `RelationshipTypeGeneralForm` the edit tab renders. */
 function RelationshipTypeEdit({
   id,
 }: {
   id: string;
 }) {
   const query = useRelationshipTypes();
+  const deleteRelationshipType = useDeleteRelationshipType();
+  const dismiss = usePanelDismissAfterDelete();
   return (
     <WithPanelItem
       queryResult={query}
       id={id}
       notFoundMessage="Relationship type not found."
     >
-      {relationshipType => <RelationshipTypeGeneralForm relationshipType={relationshipType} />}
+      {relationshipType => (
+        <PanelEntityEditor
+          name={relationshipType.name}
+          builtIn={relationshipType.builtIn}
+          onDelete={relationshipType.builtIn
+            ? undefined
+            : () => deleteRelationshipType.mutate(relationshipType.id, {
+              onSuccess: dismiss,
+            })}
+          deleteIsPending={deleteRelationshipType.isPending}
+          deleteError={deleteRelationshipType.isError ? deleteRelationshipType.error.message : null}
+        >
+          <RelationshipTypeGeneralForm relationshipType={relationshipType} />
+        </PanelEntityEditor>
+      )}
     </WithPanelItem>
   );
 }
