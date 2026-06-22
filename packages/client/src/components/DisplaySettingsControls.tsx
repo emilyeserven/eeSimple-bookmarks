@@ -21,7 +21,8 @@ interface DisplaySettingsValue {
   imageMode: string;
   imageVisibility: BookmarkImageVisibility;
   imageLayout: HomepageSectionImageLayout;
-  cornerOverlays: boolean;
+  /** Legacy corner-overlay toggle. Omit (along with `onCornerOverlaysChange`) to hide the control. */
+  cornerOverlays?: boolean;
 }
 
 interface DisplaySettingsControlsBaseProps {
@@ -31,7 +32,8 @@ interface DisplaySettingsControlsBaseProps {
   onImageModeChange: (value: string) => void;
   onImageVisibilityChange: (value: BookmarkImageVisibility) => void;
   onImageLayoutChange: (value: HomepageSectionImageLayout) => void;
-  onCornerOverlaysChange: (value: boolean) => void;
+  /** When omitted, the "Image corners" toggle is not rendered (placement is configured via zones). */
+  onCornerOverlaysChange?: (value: boolean) => void;
   showsImages: boolean;
 }
 
@@ -178,7 +180,7 @@ export function DisplaySettingsControlsBase({
                 </div>
               )}
 
-              {imageVisibility !== "off" && (
+              {imageVisibility !== "off" && onCornerOverlaysChange && (
                 <div className="flex items-center justify-between gap-4">
                   <Label className="text-sm font-medium">Image corners</Label>
                   <ToggleGroup
