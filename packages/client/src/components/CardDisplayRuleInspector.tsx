@@ -1,6 +1,7 @@
 import type { ComboboxOption } from "./Combobox";
-import type { RuleAttrInspection } from "../lib/cardDisplayRules";
-import type { CardFieldZones, CardZoneLayouts } from "@eesimple/types";
+import type { RuleAttrLabels } from "../lib/cardDisplayRuleAttrFormat";
+import type { BookmarkRuleInspection } from "../lib/cardDisplayRules";
+import type { Bookmark } from "@eesimple/types";
 
 import { useMemo, useState } from "react";
 
@@ -16,6 +17,7 @@ import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useTags } from "../hooks/useTags";
 import { buildAspectOptions } from "../lib/aspectOptions";
 import { STANDARD_CARD_FIELDS } from "../lib/bookmarkCardFields";
+import { formatRuleAttrValue } from "../lib/cardDisplayRuleAttrFormat";
 import { inspectBookmarkRules } from "../lib/cardDisplayRules";
 
 import { Badge } from "@/components/ui/badge";
@@ -26,17 +28,6 @@ import {
 } from "@/components/ui/collapsible";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-
-const IMAGE_VISIBILITY_LABELS: Record<string, string> = {
-  "shown": "Show",
-  "image-only": "Only",
-  "off": "Off",
-};
-
-const IMAGE_LAYOUT_LABELS: Record<string, string> = {
-  above: "Above",
-  side: "Side",
-};
 
 /** Sort rules into priority order: non-default first (lowest sortOrder first), the Default rule last. */
 function byPriority(
@@ -59,12 +50,8 @@ function hostOf(url: string): string {
   }
 }
 
-/**
- * Settings inspector: pick a bookmark and see which card display rules apply to it, what each
- * matching rule sets, and which attributes were overridden by a higher-priority rule. A pure view
- * over the same `resolveCardDisplay` provenance the listing cards use, so the two always agree.
- */
-export function CardDisplayRuleInspector() {
+/** All the loaded data + derived lookups the inspector needs, gathered into one hook to keep the view thin. */
+function useCardRuleInspectorData() {
   const {
     data: bookmarks = [],
   } = useBookmarks();
@@ -82,8 +69,6 @@ export function CardDisplayRuleInspector() {
   } = useCustomAspectRatios();
   const croppedWidth = useCroppedWidth();
   const croppedHeight = useCroppedHeight();
-
-  const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
 
   const options = useMemo<ComboboxOption[]>(
     () => bookmarks.map(bookmark => ({
@@ -107,77 +92,53 @@ export function CardDisplayRuleInspector() {
     [rules],
   );
 
-  const aspectLabel = useMemo(() => {
+  const labels = useMemo<RuleAttrLabels>(() => {
     const aspectOptions = buildAspectOptions(croppedWidth, croppedHeight, customRatios);
-    return new Map(aspectOptions.map(opt => [opt.value, opt.label]));
-  }, [croppedWidth, croppedHeight, customRatios]);
+    const fieldLabel = new Map<string, string>(STANDARD_CARD_FIELDS.map(f => [f.key, f.label]));
+    for (const property of properties) fieldLabel.set(property.id, property.name);
+    return {
+      aspectLabel: new Map(aspectOptions.map(opt => [opt.value, opt.label])),
+      fieldLabel,
+    };
+  }, [croppedWidth, croppedHeight, customRatios, properties]);
 
-  const fieldLabel = useMemo(() => {
-    const map = new Map<string, string>(STANDARD_CARD_FIELDS.map(f => [f.key, f.label]));
-    for (const property of properties) map.set(property.id, property.name);
-    return map;
-  }, [properties]);
+  return {
+    bookmarks,
+    options,
+    sortedRules,
+    tagDescendants,
+    ruleNameById,
+    labels,
+  };
+}
 
-  const selectedBookmark = selectedId
+/**
+ * Settings inspector: pick a bookmark and see which card display rules apply to it, what each
+ * matching rule sets, and which attributes were overridden by a higher-priority rule. A pure view
+ * over the same `resolveCardDisplay` provenance the listing cards use, so the two always agree.
+ */
+export function CardDisplayRuleInspector() {
+  const {
+    bookmarks,
+    options,
+    sortedRules,
+    tagDescendants,
+    ruleNameById,
+    labels,
+  } = useCardRuleInspectorData();
+
+  const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
+
+  const selectedBookmark: Bookmark | undefined = selectedId
     ? bookmarks.find(bookmark => bookmark.id === selectedId)
     : undefined;
 
-  const inspection = useMemo(
+  const inspection: BookmarkRuleInspection | null = useMemo(
     () => (selectedBookmark
       ? inspectBookmarkRules(selectedBookmark, sortedRules, tagDescendants)
       : null),
     [selectedBookmark, sortedRules, tagDescendants],
   );
-
-  function formatAttrValue(attr: RuleAttrInspection): string {
-    switch (attr.key) {
-      case "imageVisibility":
-        return IMAGE_VISIBILITY_LABELS[String(attr.value)] ?? String(attr.value);
-      case "imageLayout":
-        return IMAGE_LAYOUT_LABELS[String(attr.value)] ?? String(attr.value);
-      case "imageMode":
-        return aspectLabel.get(String(attr.value)) ?? String(attr.value);
-      case "hideWebsiteForYouTube":
-        return attr.value ? "On" : "Off";
-      case "fieldZones": {
-        if (typeof attr.value !== "object" || Array.isArray(attr.value)) return String(attr.value);
-        const zones = attr.value as CardFieldZones;
-        const summarize = (keys: { key: string }[]): string =>
-          keys.map(p => fieldLabel.get(p.key) ?? p.key).join(", ");
-        const parts: string[] = [];
-        const body = [
-          ...(zones["card-single-top"] ?? []),
-          ...(zones["card-labels"] ?? []),
-          ...(zones["card-table"] ?? []),
-          ...(zones["card-single-bottom"] ?? []),
-        ];
-        if (body.length > 0) parts.push(`Card: ${summarize(body)}`);
-        const corners = [
-          ...(zones["image-top-left"] ?? []),
-          ...(zones["image-top-right"] ?? []),
-          ...(zones["image-bottom-left"] ?? []),
-          ...(zones["image-bottom-right"] ?? []),
-        ];
-        if (corners.length > 0) parts.push(`Corners: ${summarize(corners)}`);
-        return parts.length > 0 ? parts.join("; ") : "All fields hidden";
-      }
-      case "cardZoneLayouts": {
-        if (typeof attr.value !== "object" || Array.isArray(attr.value)) return String(attr.value);
-        const layouts = attr.value as CardZoneLayouts;
-        const ZONE_LABELS: Record<string, string> = {
-          "card-single-top": "Top",
-          "card-labels": "Labels",
-          "card-table": "Table",
-          "card-single-bottom": "Bottom",
-        };
-        return Object.entries(layouts)
-          .map(([zone, layout]) => `${ZONE_LABELS[zone] ?? zone}: ${layout}`)
-          .join(", ");
-      }
-      default:
-        return String(attr.value);
-    }
-  }
 
   const matchedRules = inspection?.rules.filter(ri => ri.matched) ?? [];
   const unmatchedRules = inspection?.rules.filter(ri => !ri.matched) ?? [];
@@ -240,7 +201,7 @@ export function CardDisplayRuleInspector() {
                           >
                             <span className="font-medium">{attr.label}:</span>
                             {" "}
-                            {formatAttrValue(attr)}
+                            {formatRuleAttrValue(attr, labels)}
                           </span>
                           {attr.status === "applied"
                             ? <Badge className="shrink-0 bg-green-600">Applied</Badge>
