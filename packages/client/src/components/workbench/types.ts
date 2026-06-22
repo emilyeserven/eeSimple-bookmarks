@@ -14,7 +14,8 @@ export interface WorkbenchTab<E> {
   key: string;
   label: string;
   view: WorkbenchPane<E>;
-  edit: WorkbenchPane<E>;
+  /** The edit body; omit for view-only tabs (e.g. a tree entity's "Hierarchy" tab). */
+  edit?: WorkbenchPane<E>;
   /** Hide the tab unless this returns true (e.g. a property's "Options" tab only when it has options). */
   showIf?: (entity: E) => boolean;
 }
@@ -42,6 +43,8 @@ export interface EntityWorkbench<E extends { id: string }> {
     error: Error | null; };
   name: (entity: E) => string;
   isBuiltIn?: (entity: E) => boolean;
+  /** Whether this entity may be deleted (default: true). Built-in taxonomy rows often return false. */
+  canDelete?: (entity: E) => boolean;
   /**
    * Hook returning a delete control for the panel header, or `null` when the entity isn't deletable.
    * Always defined (even as `() => null`) so it can be called unconditionally per the Rules of Hooks.

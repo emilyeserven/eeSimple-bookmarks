@@ -25,6 +25,7 @@ export function WorkbenchRouteTab<E extends { id: string }>({
   } = workbench.useBySlug(slug);
   const tab = workbench.tabs.find(candidate => candidate.key === tabKey);
   const pane = tab ? (mode === "edit" ? tab.edit : tab.view) : undefined;
+  const Body = pane?.render;
 
   return (
     <TabWrapper
@@ -34,11 +35,7 @@ export function WorkbenchRouteTab<E extends { id: string }>({
       title={pane?.title ?? ""}
       description={pane?.description ?? ""}
     >
-      {resolved => (pane
-        ? pane.render({
-          entity: resolved,
-        })
-        : null)}
+      {resolved => (Body ? <Body entity={resolved} /> : null)}
     </TabWrapper>
   );
 }

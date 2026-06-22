@@ -5,12 +5,9 @@ import { useMemo } from "react";
 
 import { Layers } from "lucide-react";
 
-import { WithPanelItem } from "./status";
-import { useDeletePropertyGroup, usePropertyGroups } from "../../../hooks/usePropertyGroups";
-import { PropertyGroupCard } from "../../PropertyGroupCard";
-import { PropertyGroupGeneralForm } from "../../PropertyGroupGeneralForm";
-import { PanelEntityEditor } from "../PanelEntityEditor";
-import { usePanelDismissAfterDelete } from "../usePanelDismissAfterDelete";
+import { usePropertyGroups } from "../../../hooks/usePropertyGroups";
+import { propertyGroupWorkbench } from "../../workbench/propertyGroup";
+import { EntityWorkbenchPanel } from "../EntityWorkbenchPanel";
 
 function usePropertyGroupList() {
   const {
@@ -31,52 +28,33 @@ function usePropertyGroupList() {
   };
 }
 
-/** Read-only property-group view, reusing the same `PropertyGroupCard` the view page renders. */
+/** Read-only property-group view — the same body + shell the main-app property-group pages render. */
 function PropertyGroupView({
   id,
 }: {
   id: string;
 }) {
-  const query = usePropertyGroups();
   return (
-    <WithPanelItem
-      queryResult={query}
+    <EntityWorkbenchPanel
+      workbench={propertyGroupWorkbench}
       id={id}
-      notFoundMessage="Property group not found."
-    >
-      {group => <PropertyGroupCard group={group} />}
-    </WithPanelItem>
+      mode="view"
+    />
   );
 }
 
-/** Property-group editor, reusing the same auto-save `PropertyGroupGeneralForm` the edit tab renders. */
+/** Property-group editor — the same auto-save form the main-app edit tab renders. */
 function PropertyGroupEdit({
   id,
 }: {
   id: string;
 }) {
-  const query = usePropertyGroups();
-  const deleteGroup = useDeletePropertyGroup();
-  const dismiss = usePanelDismissAfterDelete();
   return (
-    <WithPanelItem
-      queryResult={query}
+    <EntityWorkbenchPanel
+      workbench={propertyGroupWorkbench}
       id={id}
-      notFoundMessage="Property group not found."
-    >
-      {group => (
-        <PanelEntityEditor
-          name={group.name}
-          onDelete={() => deleteGroup.mutate(group.id, {
-            onSuccess: dismiss,
-          })}
-          deleteIsPending={deleteGroup.isPending}
-          deleteError={deleteGroup.isError ? deleteGroup.error.message : null}
-        >
-          <PropertyGroupGeneralForm group={group} />
-        </PanelEntityEditor>
-      )}
-    </WithPanelItem>
+      mode="edit"
+    />
   );
 }
 

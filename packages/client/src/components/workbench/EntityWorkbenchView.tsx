@@ -12,15 +12,16 @@ function PaneBody<E>({
   pane: WorkbenchPane<E>;
   entity: E;
 }) {
+  // Render the body as a component (stable module-level identity) so panes can call their own hooks
+  // and get a clean mount/unmount when the active tab changes.
+  const Body = pane.render;
   return (
     <section className="space-y-4">
       <div>
         <h2 className="text-xl font-semibold">{pane.title}</h2>
         <p className="text-sm text-muted-foreground">{pane.description}</p>
       </div>
-      {pane.render({
-        entity,
-      })}
+      <Body entity={entity} />
     </section>
   );
 }
@@ -55,9 +56,11 @@ export function EntityWorkbenchView<E extends { id: string }>({
   if (error) return <p className="text-destructive">{error.message}</p>;
   if (!entity) return <p className="text-destructive">{workbench.notFound}</p>;
 
-  const tabs = workbench.tabs.filter(tab => !tab.showIf || tab.showIf(entity));
+  // In edit mode, only tabs that have an edit body are shown (view-only tabs like "Hierarchy" drop out).
+  const tabs = workbench.tabs.filter(tab => (!tab.showIf || tab.showIf(entity)) && (mode !== "edit" || tab.edit));
   const active = tabs.find(tab => tab.key === activeTab) ?? tabs[0];
-  const pane = mode === "edit" ? active.edit : active.view;
+  const pane = (mode === "edit" ? active.edit : active.view) ?? active.view;
+  const canDelete = del != null && (workbench.canDelete?.(entity) ?? true);
 
   const header = (
     <div className="space-y-2">
@@ -75,7 +78,7 @@ export function EntityWorkbenchView<E extends { id: string }>({
           >
             {mode === "edit" ? "Done" : "Edit"}
           </Button>
-          {del
+          {canDelete && del
             ? (
               <Button
                 type="button"

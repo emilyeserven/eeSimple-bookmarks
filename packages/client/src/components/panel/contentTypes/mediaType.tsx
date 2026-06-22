@@ -5,12 +5,9 @@ import { useMemo } from "react";
 
 import { Clapperboard } from "lucide-react";
 
-import { WithPanelItem } from "./status";
-import { useDeleteMediaType, useMediaTypes } from "../../../hooks/useMediaTypes";
-import { MediaTypeCard } from "../../MediaTypeCard";
-import { MediaTypeGeneralForm } from "../../MediaTypeGeneralForm";
-import { PanelEntityEditor } from "../PanelEntityEditor";
-import { usePanelDismissAfterDelete } from "../usePanelDismissAfterDelete";
+import { useMediaTypes } from "../../../hooks/useMediaTypes";
+import { mediaTypeWorkbench } from "../../workbench/mediaType";
+import { EntityWorkbenchPanel } from "../EntityWorkbenchPanel";
 
 function useMediaTypeList() {
   const {
@@ -31,55 +28,33 @@ function useMediaTypeList() {
   };
 }
 
-/** Read-only media-type view, reusing the same `MediaTypeCard` the view page renders. */
+/** Read-only media-type view — the same tabbed bodies + shell the main-app media-type pages render. */
 function MediaTypeView({
   id,
 }: {
   id: string;
 }) {
-  const query = useMediaTypes();
   return (
-    <WithPanelItem
-      queryResult={query}
+    <EntityWorkbenchPanel
+      workbench={mediaTypeWorkbench}
       id={id}
-      notFoundMessage="Media type not found."
-    >
-      {mediaType => <MediaTypeCard mediaType={mediaType} />}
-    </WithPanelItem>
+      mode="view"
+    />
   );
 }
 
-/** Media-type editor, reusing the same auto-save `MediaTypeGeneralForm` the edit tab renders. */
+/** Media-type editor — the same per-tab auto-save forms the main-app edit tabs render. */
 function MediaTypeEdit({
   id,
 }: {
   id: string;
 }) {
-  const query = useMediaTypes();
-  const deleteMediaType = useDeleteMediaType();
-  const dismiss = usePanelDismissAfterDelete();
   return (
-    <WithPanelItem
-      queryResult={query}
+    <EntityWorkbenchPanel
+      workbench={mediaTypeWorkbench}
       id={id}
-      notFoundMessage="Media type not found."
-    >
-      {mediaType => (
-        <PanelEntityEditor
-          name={mediaType.name}
-          builtIn={mediaType.builtIn}
-          onDelete={mediaType.builtIn
-            ? undefined
-            : () => deleteMediaType.mutate(mediaType.id, {
-              onSuccess: dismiss,
-            })}
-          deleteIsPending={deleteMediaType.isPending}
-          deleteError={deleteMediaType.isError ? deleteMediaType.error.message : null}
-        >
-          <MediaTypeGeneralForm mediaType={mediaType} />
-        </PanelEntityEditor>
-      )}
-    </WithPanelItem>
+      mode="edit"
+    />
   );
 }
 
