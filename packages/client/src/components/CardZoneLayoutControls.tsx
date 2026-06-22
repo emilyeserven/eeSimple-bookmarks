@@ -174,8 +174,10 @@ export function CardZoneLayoutControls({
   }
   return (
     <div className="space-y-3">
-      {CARD_BODY_ZONES.map((zone) => {
-        const layout = normalizeCardZoneLayout(value[zone], zone === "card-table" ? "grid" : "flex");
+      {/* The Table zone is always the fixed two-column `label : value` table — it has no layout rules. */}
+      {CARD_BODY_ZONES.filter(zone => zone !== "card-table").map((zone) => {
+        // The Table zone is filtered out above, so every remaining zone defaults to `flex`.
+        const layout = normalizeCardZoneLayout(value[zone], "flex");
         return (
           <div
             key={zone}

@@ -12,13 +12,19 @@ import { standardFieldOverlayLabel } from "../lib/bookmarkCardValues";
 import { Badge } from "@/components/ui/badge";
 import { CategoryIcon } from "@/lib/icons";
 
-/** A translucent corner-overlay badge composing an optional icon/image with optional text. */
+/**
+ * A translucent corner-overlay badge composing an optional icon/image with optional text. Sized up
+ * from the default `Badge` (which is `text-xs`) so non-link values — especially a bare boolean glyph
+ * like `✓`/`★` — read at a size comparable to the interactive action overlays (Open Link / More).
+ */
 function overlayBadge(icon: ReactNode, text: ReactNode): ReactNode {
   return (
     <Badge
       variant="secondary"
       className="
-        inline-flex items-center gap-1 bg-background/85 backdrop-blur-sm
+        inline-flex items-center gap-1.5 bg-background/85 px-2.5 py-1.5 text-sm
+        backdrop-blur-sm
+        [&>svg]:size-4
       "
     >
       {icon}
@@ -39,7 +45,7 @@ function standardFieldOverlayIcon(
         ? (
           <CategoryIcon
             name={category.icon}
-            className="size-3 shrink-0"
+            className="size-4 shrink-0"
           />
         )
         : null;
@@ -49,16 +55,16 @@ function standardFieldOverlayIcon(
           <img
             src={bookmark.website.imageUrl}
             alt=""
-            className="size-3 shrink-0 object-contain"
+            className="size-4 shrink-0 object-contain"
           />
         )
-        : <Globe className="size-3 shrink-0" />;
+        : <Globe className="size-4 shrink-0" />;
     case "mediaType":
       return bookmark.mediaType
         ? (
           <CategoryIcon
             name={bookmark.mediaType.icon}
-            className="size-3 shrink-0"
+            className="size-4 shrink-0"
           />
         )
         : null;
@@ -68,10 +74,10 @@ function standardFieldOverlayIcon(
           <img
             src={bookmark.youtubeChannel.imageUrl}
             alt=""
-            className="size-3 shrink-0 rounded-full object-cover"
+            className="size-4 shrink-0 rounded-full object-cover"
           />
         )
-        : <MonitorPlay className="size-3 shrink-0" />;
+        : <MonitorPlay className="size-4 shrink-0" />;
     default:
       return null;
   }
@@ -86,7 +92,7 @@ function valueItemOverlayNode(item: BookmarkValueItem): ReactNode {
   if (item.kind === "rating") {
     return (
       <div
-        className="rounded-md bg-background/85 px-1.5 py-0.5 backdrop-blur-sm"
+        className="rounded-md bg-background/85 px-2 py-1 backdrop-blur-sm"
       >
         <StarRating
           value={item.value}
@@ -94,7 +100,7 @@ function valueItemOverlayNode(item: BookmarkValueItem): ReactNode {
           allowHalf={item.property.ratingAllowHalf}
           allowZero={item.property.ratingAllowZero}
           readOnly
-          size={12}
+          size={16}
         />
       </div>
     );
@@ -104,7 +110,7 @@ function valueItemOverlayNode(item: BookmarkValueItem): ReactNode {
       <img
         src={item.imageUrl}
         alt=""
-        className="size-4 shrink-0 rounded-sm object-cover"
+        className="size-5 shrink-0 rounded-sm object-cover"
       />
     )
     : null;
