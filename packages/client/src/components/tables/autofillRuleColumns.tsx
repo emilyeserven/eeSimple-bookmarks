@@ -43,6 +43,16 @@ export function useAutofillRuleColumns(categories: Category[]): ColumnDef<Autofi
           return name ? <Badge variant="secondary">{name}</Badge> : null;
         },
       },
+      {
+        accessorKey: "matchCount",
+        header: "Bookmarks",
+        cell: ({
+          row,
+        }) =>
+          row.original.matchCount !== undefined
+            ? <Badge variant="secondary">{row.original.matchCount}</Badge>
+            : null,
+      },
     ],
     [categories],
   );

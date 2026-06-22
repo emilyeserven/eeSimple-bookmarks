@@ -10,6 +10,7 @@ import { categoryContentType } from "./contentTypes/category";
 import { mediaTypeContentType } from "./contentTypes/mediaType";
 import { propertyContentType } from "./contentTypes/property";
 import { propertyGroupContentType } from "./contentTypes/propertyGroup";
+import { relationshipTypeContentType } from "./contentTypes/relationshipType";
 import { tagContentType } from "./contentTypes/tag";
 import { websiteContentType } from "./contentTypes/website";
 import { youtubeChannelContentType } from "./contentTypes/youtubeChannel";
@@ -26,6 +27,7 @@ export const PANEL_CONTENT_TYPES: PanelContentTypeDef[] = [
   websiteContentType,
   mediaTypeContentType,
   youtubeChannelContentType,
+  relationshipTypeContentType,
   autofillContentType,
 ];
 
