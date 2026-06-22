@@ -7,7 +7,7 @@ import type {
 
 import { useMemo, useState } from "react";
 
-import { blacklistPatternsFor } from "@eesimple/types";
+import { blacklistPatternsFor, isBlacklisted } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 import { Ban, Check, ChevronDown, ExternalLink, Eye, Pencil, X } from "lucide-react";
 
@@ -19,6 +19,7 @@ import {
   useRejectImportItem,
   useUpdateImportItem,
 } from "../hooks/useNewsletterImports";
+import { highlightAnchor } from "../lib/newsletterContext";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
 import { Badge } from "@/components/ui/badge";
@@ -136,6 +137,7 @@ function BlockMenu({
   const updateBlacklist = useUpdateNewsletterBlacklist();
   const patterns = item.url ? blacklistPatternsFor(item.url) : null;
   if (!patterns) return null;
+  const blocked = item.url ? isBlacklisted(item.url, blacklist) : false;
 
   function block(entry: NewsletterBlacklistEntry, message: string) {
     if (blacklist.some(e => e.kind === entry.kind && e.value === entry.value)) {
@@ -152,12 +154,12 @@ function BlockMenu({
       <DropdownMenuTrigger asChild>
         <Button
           size="sm"
-          variant="ghost"
-          className="gap-1 text-muted-foreground"
+          variant={blocked ? "ghost" : "secondary"}
+          className={blocked ? "gap-1 text-muted-foreground" : "gap-1"}
           disabled={updateBlacklist.isPending}
         >
           <Ban className="size-4" />
-          Block
+          {blocked ? "Blocked" : "Block"}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
@@ -467,7 +469,17 @@ function ReviewRow({
                     text-muted-foreground
                   "
                 >
-                  {item.newsletterContext}
+                  {highlightAnchor(item.newsletterContext, item.anchorText).map((segment, index) =>
+                    segment.bold
+                      ? (
+                        <strong
+                          key={index}
+                          className="font-semibold text-foreground"
+                        >
+                          {segment.text}
+                        </strong>
+                      )
+                      : <span key={index}>{segment.text}</span>)}
                 </CollapsibleContent>
               </Collapsible>
             )
