@@ -5,7 +5,7 @@
 
 import { processImage } from "@/utils/image";
 
-const FETCH_TIMEOUT_MS = 5000;
+export const FETCH_TIMEOUT_MS = 5000;
 /** Cap the body we read so a huge response can't exhaust memory. */
 const MAX_BYTES = 512 * 1024;
 /**
@@ -20,7 +20,7 @@ const MAX_BODY_BYTES = 3 * 1024 * 1024;
  * the `og:title`/`<title>` meta tags — to browsers, but a stripped or consent interstitial to bot
  * User-Agents, which has no title to extract. Identifying as a browser gets the real page. See #124.
  */
-const BROWSER_USER_AGENT
+export const BROWSER_USER_AGENT
   = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
     + "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
 
