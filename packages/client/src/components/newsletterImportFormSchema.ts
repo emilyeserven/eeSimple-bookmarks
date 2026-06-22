@@ -12,6 +12,7 @@ export const newsletterImportSchema = z
     source: z.enum(["paste", "url", "upload"]),
     pastedContent: z.string(),
     fetchUrl: z.string(),
+    newsletterId: z.string().nullable(),
   })
   .superRefine((value, ctx) => {
     if (value.source === "paste" && value.pastedContent.trim().length === 0) {

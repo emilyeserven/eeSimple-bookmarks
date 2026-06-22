@@ -51,6 +51,9 @@ import type {
   HomepageSectionBookmarks,
   IngestPasteInput,
   IngestUrlInput,
+  CreateNewsletterInput,
+  Newsletter,
+  UpdateNewsletterInput,
   MediaType,
   MediaTypeNode,
   NewsletterApproveResult,
@@ -213,10 +216,31 @@ export const newsletterApi = {
       method: "POST",
       body: JSON.stringify(input),
     }),
-  ingestUpload: (file: File, enrich: boolean) =>
-    uploadImageFile<NewsletterImport>(`/newsletters/ingest/upload?enrich=${enrich}`, file),
+  ingestUpload: (file: File, enrich: boolean, newsletterId?: string | null) => {
+    const params = new URLSearchParams({
+      enrich: String(enrich),
+    });
+    if (newsletterId) params.set("newsletterId", newsletterId);
+    return uploadImageFile<NewsletterImport>(`/newsletters/ingest/upload?${params.toString()}`, file);
+  },
   listImports: () => request<NewsletterImportSummary[]>("/newsletters/imports"),
   getImport: (id: string) => request<NewsletterImport>(`/newsletters/imports/${id}`),
+  listIssues: (newsletterId: string) =>
+    request<NewsletterImportSummary[]>(`/newsletters/${newsletterId}/issues`),
+  addIssueBookmarks: (importId: string, bookmarkIds: string[]) =>
+    request<undefined>(`/newsletters/imports/${importId}/bookmarks`, {
+      method: "POST",
+      body: JSON.stringify({
+        bookmarkIds,
+      }),
+    }),
+  removeIssueBookmarks: (importId: string, bookmarkIds: string[]) =>
+    request<undefined>(`/newsletters/imports/${importId}/bookmarks`, {
+      method: "DELETE",
+      body: JSON.stringify({
+        bookmarkIds,
+      }),
+    }),
   updateItem: (importId: string, itemId: string, input: UpdateNewsletterImportItemInput) =>
     request<NewsletterImportItem>(`/newsletters/imports/${importId}/items/${itemId}`, {
       method: "PATCH",
@@ -239,6 +263,8 @@ export const newsletterApi = {
       method: "DELETE",
     }),
 };
+
+export const newslettersApi = createCrudApi<Newsletter, CreateNewsletterInput, UpdateNewsletterInput>("newsletters");
 
 export const galleryApi = {
   list: () => request<GalleryCatalog>("/gallery"),

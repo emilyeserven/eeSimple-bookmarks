@@ -18,6 +18,7 @@ import { useBookmark } from "@/hooks/useBookmarks";
 import { useCategories, useCategoryBySlug } from "@/hooks/useCategories";
 import { usePropertyBySlug } from "@/hooks/useCustomProperties";
 import { useMediaTypeBySlug, useMediaTypeTree } from "@/hooks/useMediaTypes";
+import { useNewsletterBySlug } from "@/hooks/useNewsletters";
 import { usePropertyGroupBySlug } from "@/hooks/usePropertyGroups";
 import { useRelationshipTypeBySlug } from "@/hooks/useRelationshipTypes";
 import { useTagTree } from "@/hooks/useTags";
@@ -106,6 +107,12 @@ const TAXONOMY_DESCRIPTORS: readonly TaxonomyDescriptor[] = [
       entity: "youtube-channel",
       currentSlug: slug,
     }),
+  },
+  {
+    prefix: "/taxonomies/newsletters",
+    listLabel: "Newsletters",
+    singular: "Newsletter",
+    slugIndex: 2,
   },
   {
     prefix: "/taxonomies/property-groups",
@@ -439,6 +446,9 @@ export function AppHeader() {
     channel,
   } = useYouTubeChannelBySlug(slugFor("/taxonomies/youtube-channels", 2));
   const {
+    newsletter,
+  } = useNewsletterBySlug(slugFor("/taxonomies/newsletters", 2));
+  const {
     propertyGroup,
   } = usePropertyGroupBySlug(slugFor("/taxonomies/property-groups", 2));
   const {
@@ -455,6 +465,7 @@ export function AppHeader() {
     "/taxonomies/websites": website?.siteName,
     "/taxonomies/media-types": mediaType?.name,
     "/taxonomies/youtube-channels": channel?.name,
+    "/taxonomies/newsletters": newsletter?.name,
     "/taxonomies/property-groups": propertyGroup?.name,
     "/taxonomies/relationship-types": relationshipType?.name,
     "/custom-properties": property?.name,

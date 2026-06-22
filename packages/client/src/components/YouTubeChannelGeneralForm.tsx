@@ -25,8 +25,8 @@ import {
   useUpdateYouTubeChannel,
   useUploadYouTubeChannelImage,
 } from "@/hooks/useYouTubeChannels";
+import { iconComboboxOptions } from "@/lib/comboboxOptions";
 import { useAppForm } from "@/lib/form";
-import { CategoryIcon } from "@/lib/icons";
 
 const channelGeneralSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
@@ -170,16 +170,7 @@ export function YouTubeChannelGeneralForm({
             placeholder="No category"
             searchPlaceholder="Search categories…"
             emptyText="No categories found."
-            options={(categories ?? []).map(category => ({
-              value: category.id,
-              label: category.name,
-              icon: (
-                <CategoryIcon
-                  name={category.icon}
-                  className="size-4 shrink-0"
-                />
-              ),
-            }))}
+            options={iconComboboxOptions(categories ?? [])}
             onValueChange={value => autoSave.saveField("categoryId", value || null)}
           />
         )}
@@ -192,16 +183,7 @@ export function YouTubeChannelGeneralForm({
             placeholder="No media type"
             searchPlaceholder="Search media types…"
             emptyText="No media types found."
-            options={(mediaTypes ?? []).map(mediaType => ({
-              value: mediaType.id,
-              label: mediaType.name,
-              icon: (
-                <CategoryIcon
-                  name={mediaType.icon}
-                  className="size-4 shrink-0"
-                />
-              ),
-            }))}
+            options={iconComboboxOptions(mediaTypes ?? [])}
             onValueChange={value => autoSave.saveField("mediaTypeId", value || null)}
           />
         )}

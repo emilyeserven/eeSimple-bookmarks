@@ -36,6 +36,7 @@ import { useBookmarks } from "../hooks/useBookmarks";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useMediaTypes } from "../hooks/useMediaTypes";
+import { useNewsletters } from "../hooks/useNewsletters";
 import { usePinnedSidebarItems } from "../hooks/usePinnedSidebarItems";
 import { usePropertyGroups } from "../hooks/usePropertyGroups";
 import { useSavedFilters } from "../hooks/useSavedFilters";
@@ -105,6 +106,12 @@ const taxonomyItems = [
     title: "YouTube Channels",
     to: "/taxonomies/youtube-channels",
     icon: MonitorPlay,
+  },
+  {
+    key: "newsletters",
+    title: "Newsletters",
+    to: "/taxonomies/newsletters",
+    icon: Mail,
   },
 ] as const;
 
@@ -184,6 +191,9 @@ export function AppSidebar({
     data: allChannels,
   } = useYouTubeChannels();
   const {
+    data: allNewsletters,
+  } = useNewsletters();
+  const {
     data: allCustomProperties,
   } = useCustomProperties();
   const {
@@ -226,6 +236,7 @@ export function AppSidebar({
     "websites": allWebsites?.length,
     "media-types": allMediaTypes?.length,
     "youtube-channels": allChannels?.length,
+    "newsletters": allNewsletters?.length,
   };
   const visibleTaxonomyItems = taxonomyItems
     .filter(item => !hiddenTaxonomyItems.includes(item.key))
