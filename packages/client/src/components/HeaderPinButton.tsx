@@ -1,14 +1,14 @@
-import type { PinnedSidebarEntityType, PinnedSidebarItem } from "@eesimple/types";
+import type { PinnedSidebarEntityType } from "@eesimple/types";
 
 import { useState } from "react";
 
 import { ChevronDown, Pin, PinOff } from "lucide-react";
 
 import { PinManager } from "./PinManager";
-import { useAddPinnedSidebarItem, usePinnedSidebarItems, useRemovePinnedSidebarItem } from "../hooks/usePinnedSidebarItems";
 
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { usePinToggle } from "@/hooks/usePinToggle";
 
 /** The pinnable entity for the page the header is currently on. */
 export interface PinContext {
@@ -28,30 +28,10 @@ export function HeaderPinButton({
 }: {
   context: PinContext;
 }) {
-  const {
-    data: pins = [],
-  } = usePinnedSidebarItems();
-  const addPin = useAddPinnedSidebarItem();
-  const removePin = useRemovePinnedSidebarItem();
   const [open, setOpen] = useState(false);
-
-  const pinned = pins.find(
-    (p: PinnedSidebarItem) => p.entityType === context.entityType && p.entityId === context.entityId,
-  );
-  const isPinned = Boolean(pinned);
-  const name = context.label ?? "this item";
-
-  function toggle() {
-    if (pinned) {
-      removePin.mutate(pinned.id);
-    }
-    else {
-      addPin.mutate({
-        entityType: context.entityType,
-        entityId: context.entityId,
-      });
-    }
-  }
+  const {
+    isPinned, name, toggle,
+  } = usePinToggle(context);
 
   return (
     <div className="flex items-center">
