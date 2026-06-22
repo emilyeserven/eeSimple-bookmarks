@@ -43,6 +43,7 @@ import {
   setBooleanValues,
   setDateTimeValues,
   setNumberValues,
+  type Tx,
 } from "@/services/bookmarkWrites";
 import { ensureDefaultCategory } from "@/services/categories";
 import { getDescendantIds } from "@/services/tags";
@@ -276,6 +277,85 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
   return (await getBookmark(id))!;
 }
 
+/** The scalar (non-URL-derived) bookmark columns an update may touch. */
+type ScalarBookmarkPatch = Partial<
+  Pick<BookmarkRow, "originalUrl" | "title" | "description" | "categoryId" | "mediaTypeId" | "priority">
+>;
+
+/**
+ * The straight scalar-column part of an update's patch (everything except the URL-derived
+ * `url`/`websiteId`/`youtubeChannelId`, which need async resolution). Pure, so it is unit-testable.
+ * `mediaTypeDefault` is applied only when the caller did not set a media type.
+ */
+export function scalarBookmarkPatch(
+  input: UpdateBookmarkInput,
+  mediaTypeDefault: string | undefined,
+): ScalarBookmarkPatch {
+  const patch: ScalarBookmarkPatch = {};
+  if (input.originalUrl !== undefined) patch.originalUrl = input.originalUrl ?? null;
+  if (input.title !== undefined) patch.title = input.title;
+  if (input.description !== undefined) patch.description = input.description ?? null;
+  if (input.categoryId !== undefined) patch.categoryId = input.categoryId;
+  if (input.mediaTypeId !== undefined) patch.mediaTypeId = input.mediaTypeId ?? null;
+  else if (mediaTypeDefault !== undefined) patch.mediaTypeId = mediaTypeDefault;
+  if (input.priority !== undefined) patch.priority = input.priority;
+  return patch;
+}
+
+/**
+ * Resolve the "Video" media-type default for an update: only when the URL became a YouTube video, the
+ * caller didn't set a media type, and the bookmark doesn't already have one (never overrides a pick).
+ */
+async function resolveVideoMediaTypeDefault(
+  id: string,
+  meta: Awaited<ReturnType<typeof resolveYouTubeMeta>>,
+  input: UpdateBookmarkInput,
+): Promise<string | undefined> {
+  if (!meta || input.mediaTypeId !== undefined) return undefined;
+  const [current] = await db
+    .select({
+      mediaTypeId: bookmarks.mediaTypeId,
+    })
+    .from(bookmarks)
+    .where(eq(bookmarks.id, id));
+  if (!current || current.mediaTypeId != null) return undefined;
+  const videoId = await videoMediaTypeId();
+  if (videoId) {
+    ytLog("info", "update: applied \"Video\" media type");
+    return videoId;
+  }
+  ytLog("warn", "update: \"video\" media type missing; media type left unset");
+  return undefined;
+}
+
+/** Replace the tag / number / boolean / date-time value sets a bookmark update touches. */
+async function applyBookmarkValueUpdates(
+  tx: Tx,
+  id: string,
+  input: UpdateBookmarkInput,
+  resolved: {
+    numberValues?: UpdateBookmarkInput["numberValues"];
+    dateTimeValues?: UpdateBookmarkInput["dateTimeValues"];
+  },
+): Promise<void> {
+  if (input.tagIds !== undefined) {
+    await tx.delete(bookmarkTags).where(eq(bookmarkTags.bookmarkId, id));
+    await linkTags(tx, id, input.tagIds);
+  }
+  if (resolved.numberValues !== undefined) {
+    await tx.delete(bookmarkNumberValues).where(eq(bookmarkNumberValues.bookmarkId, id));
+    await setNumberValues(tx, id, resolved.numberValues);
+  }
+  if (input.booleanValues !== undefined) {
+    await tx.delete(bookmarkBooleanValues).where(eq(bookmarkBooleanValues.bookmarkId, id));
+    await setBooleanValues(tx, id, input.booleanValues);
+  }
+  if (resolved.dateTimeValues !== undefined) {
+    await tx.delete(bookmarkDateTimeValues).where(eq(bookmarkDateTimeValues.bookmarkId, id));
+    await setDateTimeValues(tx, id, resolved.dateTimeValues);
+  }
+}
+
 export async function updateBookmark(
   id: string,
   input: UpdateBookmarkInput,
@@ -301,25 +381,7 @@ export async function updateBookmark(
 
   // Default the media type to "Video" only when the URL becomes a YouTube video, the caller didn't
   // set a media type, and the bookmark doesn't already have one — never overriding an existing pick.
-  let mediaTypeDefault: string | undefined;
-  if (meta && input.mediaTypeId === undefined) {
-    const [current] = await db
-      .select({
-        mediaTypeId: bookmarks.mediaTypeId,
-      })
-      .from(bookmarks)
-      .where(eq(bookmarks.id, id));
-    if (current && current.mediaTypeId == null) {
-      const videoId = await videoMediaTypeId();
-      if (videoId) {
-        mediaTypeDefault = videoId;
-        ytLog("info", "update: applied \"Video\" media type");
-      }
-      else {
-        ytLog("warn", "update: \"video\" media type missing; media type left unset");
-      }
-    }
-  }
+  const mediaTypeDefault = await resolveVideoMediaTypeDefault(id, meta, input);
 
   // Backfill Runtime only when the caller is already managing number values (full form submit),
   // so a partial update that doesn't touch properties is left untouched.
@@ -362,13 +424,7 @@ export async function updateBookmark(
       patch.youtubeChannelId = channelHint ? await ensureYouTubeChannel(tx, channelHint) : null;
       touchedChannelId = patch.youtubeChannelId;
     }
-    if (input.originalUrl !== undefined) patch.originalUrl = input.originalUrl ?? null;
-    if (input.title !== undefined) patch.title = input.title;
-    if (input.description !== undefined) patch.description = input.description ?? null;
-    if (input.categoryId !== undefined) patch.categoryId = input.categoryId;
-    if (input.mediaTypeId !== undefined) patch.mediaTypeId = input.mediaTypeId ?? null;
-    else if (mediaTypeDefault !== undefined) patch.mediaTypeId = mediaTypeDefault;
-    if (input.priority !== undefined) patch.priority = input.priority;
+    Object.assign(patch, scalarBookmarkPatch(input, mediaTypeDefault));
 
     if (Object.keys(patch).length > 0) {
       const [row] = await tx.update(bookmarks).set(patch).where(eq(bookmarks.id, id)).returning({
@@ -383,22 +439,10 @@ export async function updateBookmark(
       if (!row) return false;
     }
 
-    if (input.tagIds !== undefined) {
-      await tx.delete(bookmarkTags).where(eq(bookmarkTags.bookmarkId, id));
-      await linkTags(tx, id, input.tagIds);
-    }
-    if (numberValues !== undefined) {
-      await tx.delete(bookmarkNumberValues).where(eq(bookmarkNumberValues.bookmarkId, id));
-      await setNumberValues(tx, id, numberValues);
-    }
-    if (input.booleanValues !== undefined) {
-      await tx.delete(bookmarkBooleanValues).where(eq(bookmarkBooleanValues.bookmarkId, id));
-      await setBooleanValues(tx, id, input.booleanValues);
-    }
-    if (dateTimeValues !== undefined) {
-      await tx.delete(bookmarkDateTimeValues).where(eq(bookmarkDateTimeValues.bookmarkId, id));
-      await setDateTimeValues(tx, id, dateTimeValues);
-    }
+    await applyBookmarkValueUpdates(tx, id, input, {
+      numberValues,
+      dateTimeValues,
+    });
     // Always recompute last: number-value edits ripple into calculate results.
     await recomputeCalculatedValues(tx, id);
     return true;
