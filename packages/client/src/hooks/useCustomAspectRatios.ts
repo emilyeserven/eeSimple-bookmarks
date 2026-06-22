@@ -3,6 +3,7 @@ import type { CreateCustomAspectRatioInput } from "@eesimple/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { customAspectRatiosApi } from "../lib/api";
+import { describeError } from "../lib/apiError";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
 const CUSTOM_ASPECT_RATIOS_KEY = ["custom-aspect-ratios"] as const;
@@ -25,7 +26,7 @@ export function useCreateCustomAspectRatio() {
       notifySuccess("Aspect ratio saved");
     },
     onError: (err: Error) => {
-      notifyError(err.message || "Failed to save aspect ratio");
+      notifyError(describeError(err, "Failed to save aspect ratio"));
     },
   });
 }
@@ -41,7 +42,7 @@ export function useDeleteCustomAspectRatio() {
       notifySuccess("Aspect ratio deleted");
     },
     onError: (err: Error) => {
-      notifyError(err.message || "Failed to delete aspect ratio");
+      notifyError(describeError(err, "Failed to delete aspect ratio"));
     },
   });
 }

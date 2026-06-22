@@ -1,4 +1,4 @@
-import { ApiError } from "./apiError";
+import { ApiError, describeError } from "./apiError";
 import { notifyError } from "./notifications";
 
 const GITHUB_ISSUES_URL = "https://github.com/emilyeserven/eesimple-bookmarks/issues/new";
@@ -24,20 +24,17 @@ export function notifyImageFetchError(
   sourceUrl?: string,
 ): void {
   const code = err instanceof ApiError ? err.code : undefined;
-  notifyError(err.message || fallback, {
-    action: {
+  // Pass a serializable `link` (not a raw Sonner action) so the "File issue" URL is preserved in the
+  // Notifications log, not lost when the transient toast dismisses.
+  notifyError(describeError(err, fallback), {
+    link: {
       label: "File issue",
-      onClick: () =>
-        window.open(
-          buildGitHubIssueUrl({
-            operation,
-            errorMessage: err.message,
-            errorCode: code,
-            sourceUrl,
-          }),
-          "_blank",
-          "noopener,noreferrer",
-        ),
+      href: buildGitHubIssueUrl({
+        operation,
+        errorMessage: err.message,
+        errorCode: code,
+        sourceUrl,
+      }),
     },
   });
 }

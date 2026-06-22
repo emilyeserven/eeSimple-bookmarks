@@ -5,6 +5,7 @@ import type {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { savedFiltersApi } from "../lib/api";
+import { describeError } from "../lib/apiError";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
 const SAVED_FILTERS_KEY = ["saved-filters"] as const;
@@ -27,7 +28,7 @@ export function useCreateSavedFilter() {
       notifySuccess("Filter saved");
     },
     onError: (err: Error) => {
-      notifyError(err.message || "Failed to save filter");
+      notifyError(describeError(err, "Failed to save filter"));
     },
   });
 }
@@ -43,7 +44,7 @@ export function useDeleteSavedFilter() {
       notifySuccess("Filter deleted");
     },
     onError: (err: Error) => {
-      notifyError(err.message || "Failed to delete filter");
+      notifyError(describeError(err, "Failed to delete filter"));
     },
   });
 }

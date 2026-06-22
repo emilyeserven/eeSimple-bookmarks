@@ -7,6 +7,7 @@ import type {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { homepageSectionsApi } from "../lib/api";
+import { describeError } from "../lib/apiError";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
 const SECTIONS_KEY = ["homepage-sections"] as const;
@@ -82,12 +83,12 @@ export function useReorderHomepageSections() {
         queryKey: SECTIONS_WITH_BOOKMARKS_KEY,
       });
     },
-    onError: () => {
+    onError: (err: Error) => {
       // Revert optimistic local order by re-fetching.
       void queryClient.invalidateQueries({
         queryKey: SECTIONS_KEY,
       });
-      notifyError("Reorder failed");
+      notifyError(describeError(err, "Reorder failed"));
     },
   });
 }
