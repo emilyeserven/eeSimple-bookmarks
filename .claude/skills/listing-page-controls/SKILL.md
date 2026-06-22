@@ -38,6 +38,8 @@ adjustable columns, an accurate filtered count, or sidebar badges.
 | `useSidebar` | same | `state === "collapsed"` — hide badges in icon mode. |
 | `Badge` | `packages/client/src/components/ui/badge` | Already used for the page-header count. |
 | `Input` | `packages/client/src/components/ui/input` | Already used for the search field. |
+| `useHeaderSearchFilter(items, matches)` | `packages/client/src/hooks/useHeaderSearchFilter.ts` | The global header-search query + per-entity filter hook. Returns `{ rawQuery, hasQuery, filtered }`; the `matches(item, query)` predicate receives the already-trimmed/lowercased query. Reuse instead of re-deriving `q`/`filtered` inline. |
+| `ListingStatusMessages` | `packages/client/src/components/ListingStatusMessages.tsx` | The shared "Showing X of Y" / loading / error / empty / no-match block. Reuse instead of re-inlining the five conditionals — that duplication, and the per-page complexity it caused, is exactly what this component removed. |
 
 ---
 
@@ -45,42 +47,40 @@ adjustable columns, an accurate filtered count, or sidebar badges.
 
 ### Pattern
 
-Put the search state inside the Manager component (not the route), so the
-component is self-contained and reusable on Settings pages too.
+These pages bind to the **global header search** (`useRegisterHeaderSearch()` +
+the `uiStore` `headerSearchQuery`), so reach for `useHeaderSearchFilter` for the
+query/filter wiring and `ListingStatusMessages` for the status row rather than
+re-deriving `q`/`filtered` and re-inlining the five status conditionals. (A
+self-contained, page-local `Input` is still fine for a one-off page that isn't
+wired into the header search.)
 
 ```tsx
-import { useState } from "react";
-import { Input } from "@/components/ui/input";
+import { useHeaderSearchFilter } from "../hooks/useHeaderSearchFilter";
+import { ListingStatusMessages } from "./ListingStatusMessages";
 
 export function WidgetsListing() {
   const { data: allWidgets, isLoading, error } = useWidgets();
-  const [search, setSearch] = useState("");
-
-  const q = search.trim().toLowerCase();
-  const filtered = (allWidgets ?? []).filter(w =>
-    !q || w.name.toLowerCase().includes(q)
+  const widgets = allWidgets ?? [];
+  const { rawQuery, hasQuery, filtered } = useHeaderSearchFilter(
+    widgets,
+    (w, query) => w.name.toLowerCase().includes(query),
   );
 
   return (
     <div className="space-y-4">
       {/* optional add-form here */}
 
-      <Input
-        placeholder="Search by name…"
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-        className="max-w-sm"
+      <ListingStatusMessages
+        isLoading={isLoading}
+        error={error}
+        totalCount={widgets.length}
+        filteredCount={filtered.length}
+        rawQuery={rawQuery}
+        hasQuery={hasQuery}
+        loadingLabel="Loading widgets…"
+        entityPlural="widgets"
+        emptyMessage={<p className="text-muted-foreground">No widgets yet.</p>}
       />
-
-      {/* status messages */}
-      {isLoading ? <p className="text-muted-foreground">Loading widgets…</p> : null}
-      {error ? <p className="text-destructive">{error.message}</p> : null}
-      {!isLoading && (allWidgets?.length ?? 0) === 0
-        ? <p className="text-muted-foreground">No widgets yet.</p>
-        : null}
-      {!isLoading && (allWidgets?.length ?? 0) > 0 && filtered.length === 0
-        ? <p className="text-muted-foreground">No widgets match "{search}".</p>
-        : null}
 
       {/* list — see step 2 for the grid version */}
       <ul className="space-y-2">
@@ -91,8 +91,9 @@ export function WidgetsListing() {
 }
 ```
 
-**Reference implementations:** `WebsitesListing`, `MediaTypesListing`,
-`YouTubeChannelsListing` (their Manager files follow exactly this shape).
+**Reference implementations:** `WebsitesListing`, `YouTubeChannelsListing`, and
+`CategoriesListingPage` all render their status row through
+`ListingStatusMessages` and filter through `useHeaderSearchFilter`.
 
 ---
 
