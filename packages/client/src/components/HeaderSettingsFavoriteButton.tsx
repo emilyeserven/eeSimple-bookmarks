@@ -1,15 +1,9 @@
 import type { SettingsPage } from "@/lib/settingsPages";
-import type { FavoriteSettingsPage } from "@eesimple/types";
 
 import { Star } from "lucide-react";
 
-import {
-  useAddFavoriteSettingsPage,
-  useFavoriteSettingsPages,
-  useRemoveFavoriteSettingsPage,
-} from "../hooks/useFavoriteSettingsPages";
-
 import { Button } from "@/components/ui/button";
+import { useSettingsFavorite } from "@/hooks/useSettingsFavorite";
 import { cn } from "@/lib/utils";
 
 /**
@@ -24,24 +18,8 @@ export function HeaderSettingsFavoriteButton({
   page: SettingsPage;
 }) {
   const {
-    data: favorites = [],
-  } = useFavoriteSettingsPages();
-  const addFavorite = useAddFavoriteSettingsPage();
-  const removeFavorite = useRemoveFavoriteSettingsPage();
-
-  const favorited = favorites.find((f: FavoriteSettingsPage) => f.path === page.path);
-  const isFavorited = Boolean(favorited);
-
-  function toggle() {
-    if (favorited) {
-      removeFavorite.mutate(favorited.id);
-    }
-    else {
-      addFavorite.mutate({
-        path: page.path,
-      });
-    }
-  }
+    isFavorited, toggle,
+  } = useSettingsFavorite(page);
 
   return (
     <Button
