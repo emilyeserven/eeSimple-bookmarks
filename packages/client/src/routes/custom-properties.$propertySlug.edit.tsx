@@ -44,6 +44,10 @@ function CustomPropertyEditLayout() {
       to: "/custom-properties/$propertySlug/edit/autofill",
       label: "Autofill Rules",
     },
+    {
+      to: "/custom-properties/$propertySlug/edit/display-rules",
+      label: "Display Rules",
+    },
   ] as const;
 
   return (

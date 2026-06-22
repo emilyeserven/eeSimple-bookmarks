@@ -1,8 +1,9 @@
-import type { Category, ConditionValueKind, CustomProperty, PropertyCondition } from "@eesimple/types";
+import type { Category, CustomProperty, PropertyCondition } from "@eesimple/types";
 import type { ReactNode } from "react";
 
 import { ChevronDown, CircleHelp } from "lucide-react";
 
+import { propertyValueKind } from "../../lib/propertyConditionKind";
 import { DateTimeRangeFields } from "../DateTimePicker";
 import { RangeSlider } from "../RangeSlider";
 
@@ -210,24 +211,6 @@ function PropertyConditionModeRow({
       {children}
     </div>
   );
-}
-
-/** Maps a custom-property type to the predicate value kind its condition row edits. Exhaustive over
- * `ConditionValueKind` — every type that isn't number/datetime/file filters as a boolean. */
-function propertyValueKind(property: CustomProperty): ConditionValueKind {
-  switch (property.type) {
-    case "number":
-    case "calculate":
-    case "ratingScale":
-      return "number";
-    case "datetime":
-      return "datetime";
-    case "image":
-    case "file":
-      return "file";
-    default:
-      return "boolean";
-  }
 }
 
 /** Number/calculate/rating: a range slider (when "In range") plus presence modes. */

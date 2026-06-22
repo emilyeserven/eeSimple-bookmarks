@@ -19,6 +19,7 @@ const VIEW_TO_EDIT = {
   "media-types": "/custom-properties/$propertySlug/edit/media-types",
   "display": "/custom-properties/$propertySlug/edit/display",
   "autofill": "/custom-properties/$propertySlug/edit/autofill",
+  "display-rules": "/custom-properties/$propertySlug/edit/display-rules",
 } as const;
 type PropertyEditRoute = typeof VIEW_TO_EDIT[keyof typeof VIEW_TO_EDIT];
 
@@ -63,6 +64,10 @@ function CustomPropertyViewLayout() {
     {
       to: "/custom-properties/$propertySlug/autofill",
       label: "Autofill Rules",
+    },
+    {
+      to: "/custom-properties/$propertySlug/display-rules",
+      label: "Display Rules",
     },
   ] as const;
 

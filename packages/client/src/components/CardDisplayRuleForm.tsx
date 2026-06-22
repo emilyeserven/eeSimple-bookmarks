@@ -35,11 +35,11 @@ export interface CardDisplayRuleFormValues {
   display: RuleDisplayValue;
 }
 
-function initialFromRule(rule?: CardDisplayRule): CardDisplayRuleFormValues {
+function initialFromRule(rule?: CardDisplayRule, seedConditions?: ConditionTree): CardDisplayRuleFormValues {
   return {
     name: rule?.name ?? "",
     description: rule?.description ?? "",
-    conditions: rule?.conditions ?? emptyConditionTree(),
+    conditions: rule?.conditions ?? seedConditions ?? emptyConditionTree(),
     display: {
       fieldZones: rule?.fieldZones ?? null,
       cardZoneLayouts: rule?.cardZoneLayouts ?? (rule?.isDefault ? defaultCardZoneLayouts() : null),
@@ -53,6 +53,8 @@ function initialFromRule(rule?: CardDisplayRule): CardDisplayRuleFormValues {
 
 interface CardDisplayRuleFormProps {
   rule?: CardDisplayRule;
+  /** Pre-scoped initial conditions for a new rule (create only); ignored when `rule` is set. */
+  seedConditions?: ConditionTree;
   /** Explicit-save mode (create): called when the Save button is clicked. */
   onSave?: (values: CardDisplayRuleFormValues) => void;
   /** Auto-save mode (edit): called on every field change so the parent can debounce + persist. */
@@ -70,10 +72,10 @@ interface CardDisplayRuleFormProps {
  * concrete display config.
  */
 export function CardDisplayRuleForm({
-  rule, onSave, onChange, onCancel, isPending, onDelete, isDeleting,
+  rule, seedConditions, onSave, onChange, onCancel, isPending, onDelete, isDeleting,
 }: CardDisplayRuleFormProps) {
   const isDefault = rule?.isDefault ?? false;
-  const initialValues = initialFromRule(rule);
+  const initialValues = initialFromRule(rule, seedConditions);
   const [values, setValues] = useState<CardDisplayRuleFormValues>(initialValues);
   const valuesRef = useRef<CardDisplayRuleFormValues>(initialValues);
   // Each section can be popped into its own modal for a roomier editing surface.
