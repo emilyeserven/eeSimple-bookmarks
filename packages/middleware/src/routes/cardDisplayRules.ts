@@ -90,8 +90,9 @@ const displayProperties = {
       ),
     ),
   },
-  // Per-body-zone layout; `null` = inherit. Each value is a `{ mode, gap?, align? }` object (mirror of
-  // `CardZoneLayout` in @eesimple/types — keep the enums in sync), but the legacy bare-string form
+  // Per-body-zone layout; `null` = inherit. Each value is a
+  // `{ mode, gap?, align?, alignItems?, direction?, wrap? }` object (mirror of `CardZoneLayout` in
+  // @eesimple/types — keep the enums in sync), but the legacy bare-string form
   // (`"flex"`/`"grid"`) is still accepted so in-flight payloads from older clients validate. The
   // body-zone-name set is hand-listed here (mirror of `CARD_BODY_ZONES`).
   cardZoneLayouts: {
@@ -125,6 +126,18 @@ const displayProperties = {
               align: {
                 type: "string",
                 enum: ["start", "center", "end", "between"],
+              },
+              alignItems: {
+                type: "string",
+                enum: ["start", "center", "end", "stretch"],
+              },
+              direction: {
+                type: "string",
+                enum: ["row", "column"],
+              },
+              wrap: {
+                type: "string",
+                enum: ["wrap", "nowrap"],
               },
             },
           },

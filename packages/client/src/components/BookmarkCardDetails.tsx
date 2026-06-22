@@ -1,5 +1,5 @@
 import type { BookmarkValueItem, ResolvedFieldPlacement } from "../lib/bookmarkCardValues";
-import type { Bookmark, CardFieldZone, CardZoneAlign, CardZoneGap, CardZoneLayout, CardZoneLayouts, Category, CustomProperty } from "@eesimple/types";
+import type { Bookmark, CardFieldZone, CardZoneAlign, CardZoneDirection, CardZoneGap, CardZoneLayout, CardZoneLayouts, CardZoneVerticalAlign, CardZoneWrap, Category, CustomProperty } from "@eesimple/types";
 import type { ReactNode } from "react";
 
 import { useEffect, useRef, useState } from "react";
@@ -83,6 +83,20 @@ const ALIGN_JUSTIFY: Record<CardZoneAlign, string> = {
   end: "justify-end",
   between: "justify-between",
 };
+const ALIGN_ITEMS: Record<CardZoneVerticalAlign, string> = {
+  start: "items-start",
+  center: "items-center",
+  end: "items-end",
+  stretch: "items-stretch",
+};
+const DIRECTION_CLASS: Record<CardZoneDirection, string> = {
+  row: "flex-row",
+  column: "flex-col",
+};
+const WRAP_CLASS: Record<CardZoneWrap, string> = {
+  wrap: "flex-wrap",
+  nowrap: "flex-nowrap",
+};
 
 /** The gap utility class for a zone's resolved layout (defaults to `md`). */
 function gapClass(layout: CardZoneLayout): string {
@@ -92,6 +106,19 @@ function gapClass(layout: CardZoneLayout): string {
 /** The flex main-axis justification class for a zone's resolved layout (defaults to `start`). */
 function justifyClass(layout: CardZoneLayout): string {
   return ALIGN_JUSTIFY[layout.align ?? "start"];
+}
+
+/**
+ * The cross-axis `items-*` class for a zone's resolved layout. `fallback` is the prior hard-coded
+ * default for that container (e.g. `center` for the row zones) so an unset `alignItems` keeps today's look.
+ */
+function alignItemsClass(layout: CardZoneLayout, fallback: CardZoneVerticalAlign): string {
+  return ALIGN_ITEMS[layout.alignItems ?? fallback];
+}
+
+/** The flex direction + wrap classes for a zone's resolved layout (defaults to `row` / `wrap`). */
+function flexFlowClass(layout: CardZoneLayout): string {
+  return `${DIRECTION_CLASS[layout.direction ?? "row"]} ${WRAP_CLASS[layout.wrap ?? "wrap"]}`;
 }
 
 /**
@@ -419,7 +446,9 @@ export function BookmarkCardDetails({
           <div
             key={zone}
             className={`
-              mt-2 flex flex-wrap items-center
+              mt-2 flex
+              ${flexFlowClass(layout)}
+              ${alignItemsClass(layout, "center")}
               ${gapClass(layout)}
               ${justifyClass(layout)}
             `}
@@ -442,7 +471,8 @@ export function BookmarkCardDetails({
         <dl
           key={zone}
           className={`
-            mt-2 grid grid-cols-[auto_1fr] items-center
+            mt-2 grid grid-cols-[auto_1fr]
+            ${alignItemsClass(layout, "center")}
             ${gapClass(layout)}
           `}
         >
@@ -474,8 +504,8 @@ export function BookmarkCardDetails({
       // Flex: pills/badges flow in a wrap row. Grid: a fixed two-column grid. Block-only fields
       // (description, tags) span the full width in either layout.
       const containerClass = layout.mode === "grid"
-        ? `mt-2 grid grid-cols-2 items-center ${gapClass(layout)}`
-        : `mt-2 flex flex-wrap items-center ${gapClass(layout)} ${justifyClass(layout)}`;
+        ? `mt-2 grid grid-cols-2 ${alignItemsClass(layout, "center")} ${gapClass(layout)}`
+        : `mt-2 flex ${flexFlowClass(layout)} ${alignItemsClass(layout, "center")} ${gapClass(layout)} ${justifyClass(layout)}`;
       const blockClass = layout.mode === "grid" ? "col-span-2" : "w-full";
       return (
         <div
@@ -507,8 +537,8 @@ export function BookmarkCardDetails({
     const hasHeader = titleEntry !== undefined || actionEntries.length > 0;
     // Grid arranges the non-header rows in two columns; flex stacks them full-width (the default).
     const restClass = layout.mode === "grid"
-      ? `grid grid-cols-2 ${gapClass(layout)}`
-      : `flex flex-col ${gapClass(layout)}`;
+      ? `grid grid-cols-2 ${alignItemsClass(layout, "stretch")} ${gapClass(layout)}`
+      : `flex flex-col ${alignItemsClass(layout, "stretch")} ${gapClass(layout)}`;
     return (
       <div
         key={zone}

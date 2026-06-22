@@ -1,12 +1,14 @@
+import type { CollisionDetection } from "@dnd-kit/core";
 import type { CardFieldPlacement, CardFieldZone, CardFieldZones, CustomProperty } from "@eesimple/types";
 
 import { useState } from "react";
 
 import {
-  closestCorners,
   DndContext,
   KeyboardSensor,
+  pointerWithin,
   PointerSensor,
+  rectIntersection,
   useDroppable,
   useSensor,
   useSensors,
@@ -37,6 +39,16 @@ import {
 
 /** The droppable id for the tray of unplaced (hidden) fields. */
 const TRAY_ID = "zone-tray";
+
+/**
+ * Prefer the zone the pointer is literally inside, falling back to rectangle intersection. `closestCorners`
+ * mis-resolves an empty zone (its corners bunch at the top) so the short Table / Single-column-bottom
+ * targets never won the drop; this is the dnd-kit-recommended strategy for variable-height containers.
+ */
+const zoneCollisionDetection: CollisionDetection = (args) => {
+  const pointerCollisions = pointerWithin(args);
+  return pointerCollisions.length > 0 ? pointerCollisions : rectIntersection(args);
+};
 
 /** The four image-corner zones, shown as a 2×2 grid (overlays on the card image). */
 const IMAGE_ZONE_DEFS: { zone: CardFieldZone;
@@ -243,7 +255,7 @@ export function CardFieldZoneBoard({
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCorners}
+      collisionDetection={zoneCollisionDetection}
       onDragOver={({
         over,
       }) => setOverZone(over ? resolveOverZone(String(over.id)) : null)}
@@ -558,7 +570,7 @@ function HideLabelToggle({
 /** Hide-label control for a field placed in the card-body Table zone. */
 function TablePlacementControls(props: PlacementControlsProps) {
   return (
-    <div className="flex flex-wrap items-center gap-2 pl-5 text-xs">
+    <div className="flex flex-col items-start gap-1.5 pl-5 text-xs">
       <HideLabelToggle {...props} />
     </div>
   );
@@ -596,7 +608,7 @@ function BooleanPlacementControls({
   const isIconPreset
     = property.booleanLabelPreset === "icons" || property.booleanLabelPreset === "stars";
   return (
-    <div className="flex flex-wrap items-center gap-2 pl-5 text-xs">
+    <div className="flex flex-col items-start gap-1.5 pl-5 text-xs">
       <HideLabelToggle
         placement={placement}
         idPrefix={idPrefix}
@@ -657,7 +669,7 @@ function ImagePlacementControls({
   placement, idPrefix, onPatch,
 }: PlacementControlsProps) {
   return (
-    <div className="flex flex-wrap items-center gap-2 pl-5 text-xs">
+    <div className="flex flex-col items-start gap-1.5 pl-5 text-xs">
       <Select
         value={String(placement.scale ?? 1)}
         onValueChange={next => onPatch({
