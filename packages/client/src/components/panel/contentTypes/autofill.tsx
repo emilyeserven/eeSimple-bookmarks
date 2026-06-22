@@ -8,7 +8,11 @@ import { Sparkles } from "lucide-react";
 
 import { useAutofillRules } from "../../../hooks/useAutofill";
 import { summarizeConditions } from "../../../lib/conditionsSummary";
-import { AutofillRulePanel, ViewAutofillRule } from "../AutofillRulePanel";
+import { autofillWorkbench } from "../../workbench/autofill";
+import { CreateAutofillRule } from "../AutofillRuleForms";
+import { EntityWorkbenchPanel } from "../EntityWorkbenchPanel";
+
+import { NEW_SENTINEL } from "@/lib/drawerSearch";
 
 function useAutofillList() {
   const {
@@ -31,10 +35,26 @@ function useAutofillList() {
 
 const AutofillView: FC<{ id: string }> = ({
   id,
-}) => <ViewAutofillRule ruleId={id} />;
+}) => (
+  <EntityWorkbenchPanel
+    workbench={autofillWorkbench}
+    id={id}
+    mode="view"
+  />
+);
+
+// Creating a rule keeps its monolithic submit form; editing an existing one reuses the workbench.
 const AutofillEdit: FC<{ id: string }> = ({
   id,
-}) => <AutofillRulePanel ruleId={id} />;
+}) => (id === NEW_SENTINEL
+  ? <CreateAutofillRule />
+  : (
+    <EntityWorkbenchPanel
+      workbench={autofillWorkbench}
+      id={id}
+      mode="edit"
+    />
+  ));
 
 export const autofillContentType: PanelContentTypeDef = {
   type: "autofill",

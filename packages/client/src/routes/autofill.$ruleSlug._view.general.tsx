@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { AutofillGeneralFields } from "../components/AutofillRuleDetail";
-import { AutofillRuleTabWrapper } from "../components/AutofillRuleTabWrapper";
+import { autofillWorkbench } from "../components/workbench/autofill";
+import { WorkbenchRouteTab } from "../components/workbench/WorkbenchRouteTab";
 
 export const Route = createFileRoute("/autofill/$ruleSlug/_view/general")({
   component: GeneralViewTab,
@@ -12,12 +12,11 @@ function GeneralViewTab() {
     ruleSlug,
   } = Route.useParams();
   return (
-    <AutofillRuleTabWrapper
-      ruleSlug={ruleSlug}
-      title="General"
-      description="Name, description, and priority."
-    >
-      {rule => <AutofillGeneralFields rule={rule} />}
-    </AutofillRuleTabWrapper>
+    <WorkbenchRouteTab
+      workbench={autofillWorkbench}
+      tabKey="general"
+      mode="view"
+      slug={ruleSlug}
+    />
   );
 }
