@@ -5,7 +5,7 @@ import type { MediaTypeNode, TagNode } from "@eesimple/types";
 import React from "react";
 
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Info, PanelRight, Plus } from "lucide-react";
+import { Info, PanelRight, Plus, Settings } from "lucide-react";
 
 import { AddChildButton } from "@/components/AddChildButton";
 import { BookmarkDetailLayoutPopover } from "@/components/BookmarkDetailLayoutPopover";
@@ -843,6 +843,17 @@ export function AppHeader() {
         </BreadcrumbList>
       </Breadcrumb>
       <div className="-mr-1 ml-auto flex items-center gap-1">
+        <Button
+          asChild
+          variant="ghost"
+          size="icon"
+          className="md:hidden"
+          aria-label="Settings"
+        >
+          <Link to="/settings">
+            <Settings className="size-4" />
+          </Link>
+        </Button>
         {toolbarActions.map((action, i) => (
           <React.Fragment key={action.key}>
             {i > 0 && (
