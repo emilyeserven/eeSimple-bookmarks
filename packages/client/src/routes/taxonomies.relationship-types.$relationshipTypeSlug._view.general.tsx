@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { RelationshipTypeDetail } from "../components/RelationshipTypeDetail";
-import { RelationshipTypeTabWrapper } from "../components/RelationshipTypeTabWrapper";
+import { relationshipTypeWorkbench } from "../components/workbench/relationshipType";
+import { WorkbenchRouteTab } from "../components/workbench/WorkbenchRouteTab";
 
 export const Route = createFileRoute(
   "/taxonomies/relationship-types/$relationshipTypeSlug/_view/general",
@@ -14,12 +14,11 @@ function GeneralViewTab() {
     relationshipTypeSlug,
   } = Route.useParams();
   return (
-    <RelationshipTypeTabWrapper
-      relationshipTypeSlug={relationshipTypeSlug}
-      title="General"
-      description="Direction, usage counts, and metadata."
-    >
-      {relationshipType => <RelationshipTypeDetail relationshipType={relationshipType} />}
-    </RelationshipTypeTabWrapper>
+    <WorkbenchRouteTab
+      workbench={relationshipTypeWorkbench}
+      tabKey="general"
+      mode="view"
+      slug={relationshipTypeSlug}
+    />
   );
 }

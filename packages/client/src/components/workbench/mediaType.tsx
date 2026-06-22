@@ -5,6 +5,7 @@ import type { MediaType } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 
 import { AutofillRulesList } from "../AutofillRulesList";
+import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import { EntityAutofillSources } from "../EntityAutofillSources";
 import { HierarchyView } from "../HierarchyView";
 import { MediaTypeGeneralForm } from "../MediaTypeGeneralForm";
@@ -212,6 +213,24 @@ export const mediaTypeWorkbench: EntityWorkbench<MediaType> = {
         title: "Autofill Rules",
         description: "Autofill rules that set this media type on matching bookmarks.",
         render: MediaTypeAutofillView,
+      },
+    },
+    {
+      key: "display-rules",
+      label: "Display Rules",
+      view: {
+        title: "Display Rules",
+        description: "Card display rules whose conditions reference this media type.",
+        render: ({
+          entity,
+        }) => <CardDisplayRulesList mediaTypeId={entity.id} />,
+      },
+      edit: {
+        title: "Display Rules",
+        description: "Card display rules whose conditions reference this media type. New rules created here reference this media type by default.",
+        render: ({
+          entity,
+        }) => <CardDisplayRulesList mediaTypeId={entity.id} />,
       },
     },
   ],

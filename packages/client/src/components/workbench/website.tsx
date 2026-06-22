@@ -5,6 +5,7 @@ import type { Website } from "@eesimple/types";
 import { ExternalLink, Globe } from "lucide-react";
 
 import { AutofillRulesList } from "../AutofillRulesList";
+import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import { EntityImagePreview } from "../EntityImageField";
 import { ParamRulesList } from "../ParamRulesList";
 import { ShortenedLinksList } from "../ShortenedLinksList";
@@ -200,6 +201,24 @@ export const websiteWorkbench: EntityWorkbench<Website> = {
         title: "Autofill Rules",
         description: "Autofill rules whose conditions target this website. New rules created here target this website by default.",
         render: WebsiteAutofillView,
+      },
+    },
+    {
+      key: "display-rules",
+      label: "Display Rules",
+      view: {
+        title: "Display Rules",
+        description: "Card display rules whose conditions target this website.",
+        render: ({
+          entity,
+        }) => <CardDisplayRulesList websiteId={entity.id} />,
+      },
+      edit: {
+        title: "Display Rules",
+        description: "Card display rules whose conditions target this website. New rules created here target this website by default.",
+        render: ({
+          entity,
+        }) => <CardDisplayRulesList websiteId={entity.id} />,
       },
     },
   ],

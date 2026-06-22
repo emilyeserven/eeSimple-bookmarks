@@ -3,6 +3,7 @@ import type { EntityWorkbench } from "./types";
 import type { Category } from "@eesimple/types";
 
 import { AutofillRulesList } from "../AutofillRulesList";
+import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import { CategoryCustomProperties } from "../CategoryCustomProperties";
 import { CategoryGeneralForm } from "../CategoryGeneralForm";
 import { CategoryGeneralFields } from "../CategoryPreviewCard";
@@ -148,6 +149,24 @@ export const categoryWorkbench: EntityWorkbench<Category> = {
         title: "Autofill Rules",
         description: "Autofill rules that add matching bookmarks to this category. New rules created here target this category by default.",
         render: CategoryAutofillView,
+      },
+    },
+    {
+      key: "display-rules",
+      label: "Display Rules",
+      view: {
+        title: "Display Rules",
+        description: "Card display rules whose conditions match this category.",
+        render: ({
+          entity,
+        }) => <CardDisplayRulesList categoryId={entity.id} />,
+      },
+      edit: {
+        title: "Display Rules",
+        description: "Card display rules whose conditions match this category. New rules created here match this category by default.",
+        render: ({
+          entity,
+        }) => <CardDisplayRulesList categoryId={entity.id} />,
       },
     },
     {

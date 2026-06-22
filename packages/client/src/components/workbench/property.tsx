@@ -4,6 +4,7 @@ import type { PropertyFormSection } from "../propertyFormSchema";
 import type { CustomProperty } from "@eesimple/types";
 
 import { AutofillRulesList } from "../AutofillRulesList";
+import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import {
   PropertyCategoriesContent,
   PropertyDisplayFields,
@@ -223,6 +224,24 @@ export const propertyWorkbench: EntityWorkbench<CustomProperty> = {
         render: ({
           entity,
         }) => <AutofillRulesList propertyId={entity.id} />,
+      },
+    },
+    {
+      key: "display-rules",
+      label: "Display Rules",
+      view: {
+        title: "Display Rules",
+        description: "Card display rules whose conditions reference this property.",
+        render: ({
+          entity,
+        }) => <CardDisplayRulesList propertyId={entity.id} />,
+      },
+      edit: {
+        title: "Display Rules",
+        description: "Card display rules whose conditions reference this property. New rules created here reference this property by default.",
+        render: ({
+          entity,
+        }) => <CardDisplayRulesList propertyId={entity.id} />,
       },
     },
   ],

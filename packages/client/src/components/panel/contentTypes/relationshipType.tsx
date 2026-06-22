@@ -5,10 +5,9 @@ import { useMemo } from "react";
 
 import { Link2 } from "lucide-react";
 
-import { WithPanelItem } from "./status";
 import { useRelationshipTypes } from "../../../hooks/useRelationshipTypes";
-import { RelationshipTypeDetail } from "../../RelationshipTypeDetail";
-import { RelationshipTypeGeneralForm } from "../../RelationshipTypeGeneralForm";
+import { relationshipTypeWorkbench } from "../../workbench/relationshipType";
+import { EntityWorkbenchPanel } from "../EntityWorkbenchPanel";
 
 function useRelationshipTypeList() {
   const {
@@ -29,44 +28,33 @@ function useRelationshipTypeList() {
   };
 }
 
-/** Read-only relationship-type view, reusing the same `RelationshipTypeDetail` the view page renders. */
+/** Read-only relationship-type view — the same body + shell the main-app pages render. */
 function RelationshipTypeView({
   id,
 }: {
   id: string;
 }) {
-  const query = useRelationshipTypes();
   return (
-    <WithPanelItem
-      queryResult={query}
+    <EntityWorkbenchPanel
+      workbench={relationshipTypeWorkbench}
       id={id}
-      notFoundMessage="Relationship type not found."
-    >
-      {relationshipType => (
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">{relationshipType.name}</h2>
-          <RelationshipTypeDetail relationshipType={relationshipType} />
-        </div>
-      )}
-    </WithPanelItem>
+      mode="view"
+    />
   );
 }
 
-/** Inline relationship-type editor, reusing the same auto-save form the edit page uses. */
+/** Relationship-type editor — the same auto-save form the main-app edit tab renders. */
 function RelationshipTypeEdit({
   id,
 }: {
   id: string;
 }) {
-  const query = useRelationshipTypes();
   return (
-    <WithPanelItem
-      queryResult={query}
+    <EntityWorkbenchPanel
+      workbench={relationshipTypeWorkbench}
       id={id}
-      notFoundMessage="Relationship type not found."
-    >
-      {relationshipType => <RelationshipTypeGeneralForm relationshipType={relationshipType} />}
-    </WithPanelItem>
+      mode="edit"
+    />
   );
 }
 

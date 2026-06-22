@@ -5,6 +5,7 @@ import type { TagNode } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 
 import { AutofillRulesList } from "../AutofillRulesList";
+import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import { EntityAutofillSources } from "../EntityAutofillSources";
 import { HierarchyView } from "../HierarchyView";
 import { TagGeneralForm } from "../TagGeneralForm";
@@ -218,6 +219,24 @@ export const tagWorkbench: EntityWorkbench<TagNode> = {
         title: "Autofill Rules",
         description: "Autofill rules that apply this tag to matching bookmarks. New rules created here apply this tag by default.",
         render: TagAutofillView,
+      },
+    },
+    {
+      key: "display-rules",
+      label: "Display Rules",
+      view: {
+        title: "Display Rules",
+        description: "Card display rules whose conditions reference this tag.",
+        render: ({
+          entity,
+        }) => <CardDisplayRulesList tagId={entity.id} />,
+      },
+      edit: {
+        title: "Display Rules",
+        description: "Card display rules whose conditions reference this tag. New rules created here reference this tag by default.",
+        render: ({
+          entity,
+        }) => <CardDisplayRulesList tagId={entity.id} />,
       },
     },
   ],
