@@ -6,13 +6,25 @@ import { randomId } from "@/lib/utils";
 /** Whether a recorded notification reported a success or an error. */
 export type NotificationType = "success" | "error";
 
-/** One recorded toast: what was shown, its kind, and when it fired. */
+/**
+ * A persistent, clickable link recorded alongside a notification (e.g. a pre-filled "File issue"
+ * GitHub URL). Stored as plain data — not a function — so it survives the localStorage round-trip
+ * that the transient Sonner `action.onClick` cannot.
+ */
+export interface NotificationLink {
+  label: string;
+  href: string;
+}
+
+/** One recorded toast: what was shown, its kind, when it fired, and any link to preserve. */
 export interface NotificationRecord {
   id: string;
   type: NotificationType;
   message: string;
   /** ISO 8601 timestamp of when the toast fired. */
   timestamp: string;
+  /** Optional link preserved from the toast's action (e.g. "File issue"). */
+  link?: NotificationLink;
 }
 
 /** Keep the log bounded so localStorage doesn't grow without limit. */

@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useRateLimitCooldown } from "./useRateLimitCooldown";
 import { youtubeChannelsApi } from "../lib/api";
-import { ApiError } from "../lib/apiError";
+import { ApiError, describeError } from "../lib/apiError";
 import { notifyImageFetchError } from "../lib/bugReport";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
@@ -87,7 +87,7 @@ export function useUploadYouTubeChannelImage() {
       });
       notifySuccess("Avatar updated");
     },
-    onError: (err: Error) => notifyError(err.message || "Could not upload the avatar"),
+    onError: (err: Error) => notifyError(describeError(err, "Could not upload the avatar")),
   });
 }
 
@@ -129,6 +129,6 @@ export function useDeleteYouTubeChannelImage() {
       });
       notifySuccess("Avatar removed");
     },
-    onError: (err: Error) => notifyError(err.message || "Could not remove the avatar"),
+    onError: (err: Error) => notifyError(describeError(err, "Could not remove the avatar")),
   });
 }

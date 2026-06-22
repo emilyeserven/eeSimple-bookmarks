@@ -7,6 +7,7 @@ import type {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { cardDisplayRulesApi } from "../lib/api";
+import { describeError } from "../lib/apiError";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
 const RULES_KEY = ["card-display-rules"] as const;
@@ -65,12 +66,12 @@ export function useReorderCardDisplayRules() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (orderedIds: string[]) => cardDisplayRulesApi.reorder(orderedIds),
-    onError: () => {
+    onError: (err: Error) => {
       // Revert the optimistic local order by re-fetching.
       void queryClient.invalidateQueries({
         queryKey: RULES_KEY,
       });
-      notifyError("Reorder failed");
+      notifyError(describeError(err, "Reorder failed"));
     },
   });
 }

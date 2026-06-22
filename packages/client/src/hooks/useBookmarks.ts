@@ -3,6 +3,7 @@ import type { BulkUrlUpdate, CreateBookmarkInput, UpdateBookmarkInput, UpdateBoo
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { bookmarksApi } from "../lib/api";
+import { describeError } from "../lib/apiError";
 import { notifyImageFetchError } from "../lib/bugReport";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
@@ -140,7 +141,7 @@ export function useUploadBookmarkImage() {
     onSuccess: () => queryClient.invalidateQueries({
       queryKey: BOOKMARKS_KEY,
     }),
-    onError: (err: Error) => notifyError(err.message || "Could not upload that image"),
+    onError: (err: Error) => notifyError(describeError(err, "Could not upload that image")),
   });
 }
 
@@ -177,7 +178,7 @@ export function useDeleteBookmarkImage() {
     onSuccess: () => queryClient.invalidateQueries({
       queryKey: BOOKMARKS_KEY,
     }),
-    onError: (err: Error) => notifyError(err.message || "Could not remove the image"),
+    onError: (err: Error) => notifyError(describeError(err, "Could not remove the image")),
   });
 }
 
@@ -193,7 +194,7 @@ export function useUploadBookmarkPropertyFile() {
     onSuccess: () => queryClient.invalidateQueries({
       queryKey: BOOKMARKS_KEY,
     }),
-    onError: (err: Error) => notifyError(err.message || "Could not upload that file"),
+    onError: (err: Error) => notifyError(describeError(err, "Could not upload that file")),
   });
 }
 
@@ -208,7 +209,7 @@ export function useDeleteBookmarkPropertyFile() {
     onSuccess: () => queryClient.invalidateQueries({
       queryKey: BOOKMARKS_KEY,
     }),
-    onError: (err: Error) => notifyError(err.message || "Could not remove the file"),
+    onError: (err: Error) => notifyError(describeError(err, "Could not remove the file")),
   });
 }
 

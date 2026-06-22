@@ -6,6 +6,7 @@ import type {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { customPropertiesApi } from "../lib/api";
+import { describeError } from "../lib/apiError";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
 const PROPERTIES_KEY = ["custom-properties"] as const;
@@ -37,7 +38,7 @@ export function useCreateCustomProperty() {
       });
       notifySuccess("Property created");
     },
-    onError: error => notifyError(error.message),
+    onError: error => notifyError(describeError(error)),
   });
 }
 
@@ -78,6 +79,6 @@ export function useDeleteCustomProperty() {
       });
       notifySuccess("Property deleted");
     },
-    onError: error => notifyError(error.message),
+    onError: error => notifyError(describeError(error)),
   });
 }

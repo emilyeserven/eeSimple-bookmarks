@@ -45,4 +45,24 @@ describe("notificationStore.addNotification", () => {
     expect(notifications[0]!.id).toBeTruthy();
     expect(notifications[0]!.message).toBe("Saved");
   });
+
+  it("preserves an attached link on the record", () => {
+    useNotificationStore.getState().addNotification({
+      type: "error",
+      message: "Could not fetch a preview image",
+      timestamp: new Date().toISOString(),
+      link: {
+        label: "File issue",
+        href: "https://github.com/example/repo/issues/new?title=oops",
+      },
+    });
+
+    const {
+      notifications,
+    } = useNotificationStore.getState();
+    expect(notifications[0]!.link).toEqual({
+      label: "File issue",
+      href: "https://github.com/example/repo/issues/new?title=oops",
+    });
+  });
 });

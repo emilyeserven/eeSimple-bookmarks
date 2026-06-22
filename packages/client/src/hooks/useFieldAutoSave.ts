@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 
+import { describeError } from "../lib/apiError";
 import { notifyFieldSaved, notifyFieldSaveError } from "../lib/autoSave";
 
 /**
@@ -95,7 +96,7 @@ export function useFieldAutoSave<TInput, TEntity = TInput>({
             notifyFieldSaved(label);
             options?.onSuccess?.(data);
           },
-          onError: error => notifyFieldSaveError(label, error.message),
+          onError: error => notifyFieldSaveError(label, describeError(error)),
         },
       );
     },

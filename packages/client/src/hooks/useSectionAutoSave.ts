@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 
+import { describeError } from "../lib/apiError";
 import { notifyFieldSaved, notifyFieldSaveError } from "../lib/autoSave";
 
 /** The `useUpdateX` mutation shape: `mutate({ id, input }, opts?)`; resolves the full `TEntity`. */
@@ -75,7 +76,7 @@ export function useSectionAutoSave<TInput, TEntity = TInput>({
             };
             notifyFieldSaved(label);
           },
-          onError: error => notifyFieldSaveError(label, error.message),
+          onError: error => notifyFieldSaveError(label, describeError(error)),
         },
       );
     },
