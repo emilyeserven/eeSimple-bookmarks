@@ -1,11 +1,12 @@
 import type { TagNode } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
-import { Pencil } from "lucide-react";
+import { Info, Pencil } from "lucide-react";
 
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { TaxonomyTreeList } from "./TaxonomyTreeRow";
 
+import { withTags } from "@/lib/bookmarkSearch";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
 import { useUiStore } from "@/stores/uiStore";
 
@@ -36,12 +37,9 @@ export function TagTreeList({
       columns={columns}
       renderNameLink={node => (
         <Link
-          to="/tags/$tagSlug"
-          params={{
-            tagSlug: node.slug,
-          }}
-          title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-          onClick={event => viewClick(event, "tag", node.id)}
+          to="/bookmarks"
+          search={withTags({}, [node.id])}
+          title={`Show bookmarks tagged ${node.name}`}
           className="
             flex-1 truncate
             hover:underline
@@ -61,6 +59,19 @@ export function TagTreeList({
           onClick={event => editClick(event, "tag", node.id)}
         >
           <Pencil className="size-4" />
+        </Link>
+      )}
+      renderInfoLink={node => (
+        <Link
+          to="/tags/$tagSlug"
+          params={{
+            tagSlug: node.slug,
+          }}
+          aria-label={`View ${node.name}`}
+          title={`Info (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+          onClick={event => viewClick(event, "tag", node.id)}
+        >
+          <Info className="size-4" />
         </Link>
       )}
     />

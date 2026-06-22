@@ -1,6 +1,6 @@
 import type { Website } from "@eesimple/types";
 
-import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { WebsitesListing } from "./WebsiteManager";
@@ -63,6 +63,7 @@ vi.mock("../hooks/useBookmarks", () => ({
 }));
 
 const paths = [
+  "/bookmarks",
   "/taxonomies/websites/$websiteSlug",
   "/taxonomies/websites/$websiteSlug/edit",
 ];
@@ -77,34 +78,27 @@ describe("WebsitesListing", () => {
     expect(openItem).not.toHaveBeenCalled();
   });
 
-  it("opens the panel in view mode when the website row is alt-clicked", async () => {
+  it("opens the panel in view mode when the website's Info button is alt-clicked", async () => {
     openItem.mockClear();
     await renderWithRouter(<WebsitesListing />, {
       paths,
     });
-    fireEvent.click(screen.getByText("GitHub"), {
+    fireEvent.click(screen.getByRole("link", {
+      name: "View GitHub",
+    }), {
       altKey: true,
     });
     expect(openItem).toHaveBeenCalledWith("website", website.id, "view");
   });
 
-  it("opens the panel in edit mode when the row menu's Edit item is alt-clicked", async () => {
+  it("opens the panel in edit mode when the website's Edit button is alt-clicked", async () => {
     openItem.mockClear();
     await renderWithRouter(<WebsitesListing />, {
       paths,
     });
-    // Open the row's "More options" menu. Radix opens on keyboard (Space) in jsdom because
-    // jsdom 26 doesn't implement PointerEvent, making fireEvent.pointerDown useless.
-    fireEvent.keyDown(screen.getByRole("button", {
-      name: "More options for GitHub",
+    fireEvent.click(screen.getByRole("link", {
+      name: "Edit GitHub",
     }), {
-      key: " ",
-    });
-    const editItem = await waitFor(() =>
-      screen.getByRole("menuitem", {
-        name: "Edit",
-      }));
-    fireEvent.click(editItem, {
       altKey: true,
     });
     expect(openItem).toHaveBeenCalledWith("website", website.id, "edit");

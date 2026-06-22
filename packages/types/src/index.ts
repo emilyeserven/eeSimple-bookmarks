@@ -319,6 +319,8 @@ export interface RelationshipType {
   createdAt: string;
   /** Number of relationship edges using this type (populated by list endpoints). */
   relationshipCount?: number;
+  /** Distinct bookmarks having a relationship of this type (populated by list endpoints). */
+  bookmarkCount?: number;
 }
 
 /** Payload for creating a relationship type. */
@@ -1159,6 +1161,8 @@ export interface AutofillRule {
   /** Lower sorts first; later (higher) rules win for single-valued targets when several match. */
   sortOrder: number;
   createdAt: string;
+  /** Existing bookmarks currently matched by this rule's conditions (populated by the list endpoint). */
+  matchCount?: number;
 }
 
 /** Payload for creating an autofill rule. */

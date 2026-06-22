@@ -2,13 +2,14 @@ import type { RelationshipType } from "@eesimple/types";
 
 import { useState } from "react";
 
-import { ArrowRight, Trash2 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { ArrowRight, Info, Link2, Pencil } from "lucide-react";
 
+import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
+import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
 import {
   useCreateRelationshipType,
-  useDeleteRelationshipType,
   useRelationshipTypes,
-  useUpdateRelationshipType,
 } from "../hooks/useRelationshipTypes";
 
 import { Badge } from "@/components/ui/badge";
@@ -17,101 +18,68 @@ import { RowCard } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { withRelationshipTypes } from "@/lib/bookmarkSearch";
+import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
+import { useUiStore } from "@/stores/uiStore";
 
-/** A single editable relationship-type row. */
-function RelationshipTypeRow({
+/** A single relationship-type listing card: body → its filtered bookmarks, with hover Edit / Info. */
+function RelationshipTypeCard({
   relationshipType,
 }: { relationshipType: RelationshipType }) {
-  const update = useUpdateRelationshipType();
-  const remove = useDeleteRelationshipType();
-  const [name, setName] = useState(relationshipType.name);
-  const [error, setError] = useState<string | null>(null);
-
-  function commitName() {
-    const trimmed = name.trim();
-    if (trimmed.length === 0 || trimmed === relationshipType.name) {
-      setName(relationshipType.name);
-      return;
-    }
-    update.mutate(
-      {
-        id: relationshipType.id,
-        input: {
-          name: trimmed,
-        },
-      },
-      {
-        onError: (err) => {
-          setError(err.message);
-          setName(relationshipType.name);
-        },
-        onSuccess: () => setError(null),
-      },
-    );
-  }
-
-  function toggleDirectional(directional: boolean) {
-    update.mutate({
-      id: relationshipType.id,
-      input: {
-        directional,
-      },
-    });
-  }
+  const editClick = useEditPanelClick();
+  const viewClick = useViewPanelClick();
+  const modifier = useUiStore(state => state.sidebarOpenModifier);
 
   return (
-    <RowCard className="flex flex-wrap items-center gap-3 p-4">
-      <div className="min-w-0 flex-1">
-        {relationshipType.builtIn
-          ? (
-            <span className="font-medium">{relationshipType.name}</span>
-          )
-          : (
-            <Input
-              value={name}
-              onChange={e => setName(e.target.value)}
-              onBlur={commitName}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") e.currentTarget.blur();
-              }}
-              className="h-8 max-w-xs"
-              aria-label="Relationship type name"
-            />
-          )}
-        {error ? <p className="mt-1 text-xs text-destructive">{error}</p> : null}
-      </div>
-
-      <label className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Checkbox
-          checked={relationshipType.directional}
-          onCheckedChange={checked => toggleDirectional(checked === true)}
-          aria-label="Directional"
-        />
-        Directional
-      </label>
-
-      {relationshipType.builtIn ? <Badge variant="secondary">Built-in</Badge> : null}
-      {relationshipType.relationshipCount !== undefined
-        ? (
-          <Badge variant="outline">
-            {relationshipType.relationshipCount}
-            {" used"}
-          </Badge>
-        )
-        : null}
-
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        disabled={relationshipType.builtIn || remove.isPending}
-        onClick={() => remove.mutate(relationshipType.id)}
-        aria-label={`Delete ${relationshipType.name}`}
-        title={relationshipType.builtIn ? "Built-in types can't be deleted" : "Delete"}
-      >
-        <Trash2 className="size-4" />
-      </Button>
-    </RowCard>
+    <StandardListingCard
+      icon={<Link2 className="size-5 shrink-0 text-muted-foreground" />}
+      title={relationshipType.name}
+      titleAdornment={relationshipType.builtIn
+        ? <Badge variant="secondary">Built-in</Badge>
+        : undefined}
+      subtitle={relationshipType.directional ? "Directional" : "Symmetric"}
+      count={relationshipType.bookmarkCount}
+      renderPrimaryLink={(className, children) => (
+        <Link
+          to="/bookmarks"
+          search={withRelationshipTypes({}, [relationshipType.id])}
+          title={`Show bookmarks with a ${relationshipType.name} relationship`}
+          className={className}
+        >
+          {children}
+        </Link>
+      )}
+      renderEdit={() => (
+        <HoverIconButton>
+          <Link
+            to="/taxonomies/relationship-types/$relationshipTypeSlug/edit"
+            params={{
+              relationshipTypeSlug: relationshipType.slug,
+            }}
+            title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+            onClick={event => editClick(event, "relationship-type", relationshipType.id)}
+          >
+            <Pencil className="size-4" />
+            <span className="sr-only">Edit {relationshipType.name}</span>
+          </Link>
+        </HoverIconButton>
+      )}
+      renderInfo={() => (
+        <HoverIconButton>
+          <Link
+            to="/taxonomies/relationship-types/$relationshipTypeSlug"
+            params={{
+              relationshipTypeSlug: relationshipType.slug,
+            }}
+            title={`Info (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+            onClick={event => viewClick(event, "relationship-type", relationshipType.id)}
+          >
+            <Info className="size-4" />
+            <span className="sr-only">View {relationshipType.name}</span>
+          </Link>
+        </HoverIconButton>
+      )}
+    />
   );
 }
 
@@ -183,7 +151,7 @@ function AddRelationshipTypeRow() {
   );
 }
 
-/** Browsable, editable relationship-type listing. */
+/** Browsable relationship-type listing. Each card opens its filtered bookmarks; hover to Edit / view Info. */
 export function RelationshipTypesListing() {
   const {
     data: relationshipTypes, isLoading, error,
@@ -204,7 +172,7 @@ export function RelationshipTypesListing() {
 
       <div className="space-y-2">
         {(relationshipTypes ?? []).map(rt => (
-          <RelationshipTypeRow
+          <RelationshipTypeCard
             key={rt.id}
             relationshipType={rt}
           />

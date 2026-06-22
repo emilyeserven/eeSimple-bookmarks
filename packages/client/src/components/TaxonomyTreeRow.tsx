@@ -6,12 +6,16 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { RowCard } from "@/components/ui/card";
 import { COLUMN_CLASS } from "@/lib/bookmarkColumns";
+import { CategoryIcon } from "@/lib/icons";
+import { cn } from "@/lib/utils";
 
 export interface TaxonomyTreeNode {
   id: string;
   name: string;
   slug: string;
   children: TaxonomyTreeNode[];
+  /** Optional Lucide icon name; falls back to the default tag glyph (e.g. flat Tags carry none). */
+  icon?: string | null;
   bookmarkCount?: number | null;
   ownBookmarkCount?: number | null;
 }
@@ -21,15 +25,17 @@ interface TaxonomyTreeListProps {
   expanded: Set<string>;
   onToggle: (id: string) => void;
   columns: number;
-  /** Caller builds the name Link with the correct typed route (className already applied by caller). */
+  /** Caller builds the name Link — the standard card-body link to the filtered `/bookmarks` list. */
   renderNameLink: (node: TaxonomyTreeNode) => ReactNode;
   /** Caller builds the edit Link element (placed inside a hover-revealed ghost Button). */
   renderEditLink: (node: TaxonomyTreeNode) => ReactNode;
+  /** Caller builds the info Link element (to the entity's detail page; hover-revealed ghost Button). */
+  renderInfoLink: (node: TaxonomyTreeNode) => ReactNode;
 }
 
 /** Grid wrapper for a collapsible taxonomy tree. Each root node gets its own RowCard. */
 export function TaxonomyTreeList({
-  tree, expanded, onToggle, columns, renderNameLink, renderEditLink,
+  tree, expanded, onToggle, columns, renderNameLink, renderEditLink, renderInfoLink,
 }: TaxonomyTreeListProps) {
   return (
     <div
@@ -50,6 +56,7 @@ export function TaxonomyTreeList({
             onToggle={onToggle}
             renderNameLink={renderNameLink}
             renderEditLink={renderEditLink}
+            renderInfoLink={renderInfoLink}
           />
         </RowCard>
       ))}
@@ -64,16 +71,45 @@ interface TaxonomyTreeRowProps {
   onToggle: (id: string) => void;
   renderNameLink: (node: TaxonomyTreeNode) => ReactNode;
   renderEditLink: (node: TaxonomyTreeNode) => ReactNode;
+  renderInfoLink: (node: TaxonomyTreeNode) => ReactNode;
+}
+
+/** Standard hover-revealed ghost button for the edit / info controls in a tree row. */
+function HoverGhostButton({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  return (
+    <Button
+      asChild
+      variant="ghost"
+      size="sm"
+      className="
+        opacity-0 transition-opacity
+        group-hover:opacity-100
+        focus-visible:opacity-100
+      "
+    >
+      {children}
+    </Button>
+  );
 }
 
 function TaxonomyTreeRow({
-  node, depth, expanded, onToggle, renderNameLink, renderEditLink,
+  node, depth, expanded, onToggle, renderNameLink, renderEditLink, renderInfoLink,
 }: TaxonomyTreeRowProps) {
   const hasChildren = node.children.length > 0;
   const isOpen = expanded.has(node.id);
+  // Zero-count nodes are de-emphasized (still clickable); each row mutes independently.
+  const muted = node.bookmarkCount === 0;
 
   const rowInner = (
     <>
+      <CategoryIcon
+        name={node.icon ?? null}
+        className="size-4 shrink-0 text-muted-foreground"
+      />
       {hasChildren
         ? (
           <button
@@ -100,18 +136,8 @@ function TaxonomyTreeRow({
 
       {renderNameLink(node)}
 
-      <Button
-        asChild
-        variant="ghost"
-        size="sm"
-        className="
-          opacity-0 transition-opacity
-          group-hover:opacity-100
-          focus-visible:opacity-100
-        "
-      >
-        {renderEditLink(node)}
-      </Button>
+      <HoverGhostButton>{renderEditLink(node)}</HoverGhostButton>
+      <HoverGhostButton>{renderInfoLink(node)}</HoverGhostButton>
 
       {node.bookmarkCount != null
         ? <Badge variant="secondary">{node.bookmarkCount}</Badge>
@@ -143,7 +169,11 @@ function TaxonomyTreeRow({
   if (depth === 0) {
     return (
       <>
-        <div className="group flex items-center gap-2 px-3 py-2">
+        <div
+          className={cn("group flex items-center gap-2 px-3 py-2", muted && `
+            opacity-60
+          `)}
+        >
           {rowInner}
         </div>
         {hasChildren && isOpen
@@ -158,6 +188,7 @@ function TaxonomyTreeRow({
                   onToggle={onToggle}
                   renderNameLink={renderNameLink}
                   renderEditLink={renderEditLink}
+                  renderInfoLink={renderInfoLink}
                 />
               ))}
               {noChildRow(1)}
@@ -171,7 +202,9 @@ function TaxonomyTreeRow({
   return (
     <>
       <li
-        className="group flex items-center gap-2 px-3 py-2"
+        className={cn("group flex items-center gap-2 px-3 py-2", muted && `
+          opacity-60
+        `)}
         style={{
           paddingLeft: `${0.75 + depth * 1.25}rem`,
         }}
@@ -190,6 +223,7 @@ function TaxonomyTreeRow({
                 onToggle={onToggle}
                 renderNameLink={renderNameLink}
                 renderEditLink={renderEditLink}
+                renderInfoLink={renderInfoLink}
               />
             ))}
             {noChildRow(depth + 1)}

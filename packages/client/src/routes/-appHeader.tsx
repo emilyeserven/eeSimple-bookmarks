@@ -31,6 +31,7 @@ import { useCategories, useCategoryBySlug } from "@/hooks/useCategories";
 import { usePropertyBySlug } from "@/hooks/useCustomProperties";
 import { useMediaTypeBySlug } from "@/hooks/useMediaTypes";
 import { usePropertyGroupBySlug } from "@/hooks/usePropertyGroups";
+import { useRelationshipTypeBySlug } from "@/hooks/useRelationshipTypes";
 import { useTagTree } from "@/hooks/useTags";
 import { useWebsiteBySlug } from "@/hooks/useWebsites";
 import { useYouTubeChannelBySlug } from "@/hooks/useYouTubeChannels";
@@ -107,6 +108,12 @@ const TAXONOMY_DESCRIPTORS: readonly TaxonomyDescriptor[] = [
     prefix: "/taxonomies/property-groups",
     listLabel: "Property Groups",
     singular: "Property Group",
+    slugIndex: 2,
+  },
+  {
+    prefix: "/taxonomies/relationship-types",
+    listLabel: "Relationship Types",
+    singular: "Relationship Type",
     slugIndex: 2,
   },
   {
@@ -424,6 +431,9 @@ export function AppHeader() {
     propertyGroup,
   } = usePropertyGroupBySlug(slugFor("/taxonomies/property-groups", 2));
   const {
+    relationshipType,
+  } = useRelationshipTypeBySlug(slugFor("/taxonomies/relationship-types", 2));
+  const {
     property,
   } = usePropertyBySlug(slugFor("/custom-properties", 1));
   const {
@@ -435,6 +445,7 @@ export function AppHeader() {
     "/taxonomies/media-types": mediaType?.name,
     "/taxonomies/youtube-channels": channel?.name,
     "/taxonomies/property-groups": propertyGroup?.name,
+    "/taxonomies/relationship-types": relationshipType?.name,
     "/custom-properties": property?.name,
     "/autofill": rule?.name,
   };
