@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
 
@@ -10,14 +10,12 @@ import { useTableRowNav } from "./tables/useTableRowNav";
 import { useAutofillRules } from "../hooks/useAutofill";
 import { useCategories } from "../hooks/useCategories";
 import { useNewAutofillRule } from "../hooks/useNewAutofillRule";
-import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
 import { useWebsiteDomain } from "../hooks/useWebsiteDomain";
 import { ruleSetsMediaType, ruleSetsProperty, ruleSetsTag, ruleTargetsWebsite, ruleTargetsYoutubeChannel } from "../lib/autofillRulesFilter";
 import { COLUMN_CLASS, useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
 import { summarizeConditions } from "../lib/conditionsSummary";
 
 import { DataTable } from "@/components/ui/data-table";
-import { useUiStore } from "@/stores/uiStore";
 
 interface AutofillRulesListProps {
   /**
@@ -50,6 +48,11 @@ interface AutofillRulesListProps {
    * channel (via a youtube-channel condition) are shown and the category filter is hidden.
    */
   channelId?: string;
+  /** Current text-search query (controlled by the page — from the global header search or the URL). */
+  query: string;
+  /** Current category-dropdown value: `ALL_CATEGORIES`, `NO_CATEGORY`, or a category id. */
+  categoryFilter: string;
+  onCategoryFilterChange: (value: string) => void;
 }
 
 function emptyStateMessage(
@@ -77,7 +80,10 @@ export function AutofillRulesList({
   tagId,
   mediaTypeId,
   channelId,
-}: AutofillRulesListProps = {}) {
+  query,
+  categoryFilter,
+  onCategoryFilterChange,
+}: AutofillRulesListProps) {
   const newRule = useNewAutofillRule();
   const {
     data: rules, isLoading, error,
@@ -85,11 +91,6 @@ export function AutofillRulesList({
   const {
     data: categories,
   } = useCategories();
-
-  const [categoryFilter, setCategoryFilter] = useState(ALL_CATEGORIES);
-  useRegisterHeaderSearch();
-
-  const rawQuery = useUiStore(state => state.headerSearchQuery);
 
   // Whether the list is scoped to a single entity (category / property / website / tag / media type / channel edit/view tab).
   const scoped = Boolean(categoryId) || Boolean(propertyId) || Boolean(websiteId) || Boolean(tagId) || Boolean(mediaTypeId) || Boolean(channelId);
@@ -117,25 +118,25 @@ export function AutofillRulesList({
   }, [rules, categoryId, propertyId, websiteId, websiteDomain, tagId, mediaTypeId, channelId]);
 
   const visibleRules = useMemo(() => {
-    const query = rawQuery.trim().toLowerCase();
+    const normalized = query.trim().toLowerCase();
     return scopedRules.filter((rule) => {
-      const matchesSearch = query === ""
-        || rule.name.toLowerCase().includes(query)
-        || summarizeConditions(rule.conditions).toLowerCase().includes(query);
+      const matchesSearch = normalized === ""
+        || rule.name.toLowerCase().includes(normalized)
+        || summarizeConditions(rule.conditions).toLowerCase().includes(normalized);
       const matchesCategory = categoryFilter === ALL_CATEGORIES
         || (categoryFilter === NO_CATEGORY
           ? rule.setCategoryId === null
           : rule.setCategoryId === categoryFilter);
       return matchesSearch && matchesCategory;
     });
-  }, [scopedRules, rawQuery, categoryFilter]);
+  }, [scopedRules, query, categoryFilter]);
 
   return (
     <section className="space-y-6">
       <AutofillRulesToolbar
         scoped={scoped}
         categoryFilter={categoryFilter}
-        onCategoryFilterChange={setCategoryFilter}
+        onCategoryFilterChange={onCategoryFilterChange}
         categories={categories ?? []}
         onCreateClick={scoped ? newRule.onClick : undefined}
       />

@@ -4,7 +4,6 @@ import type { MediaType } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
 
-import { AutofillRulesList } from "../AutofillRulesList";
 import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import { EntityAutofillSources } from "../EntityAutofillSources";
 import { HierarchyView } from "../HierarchyView";
@@ -121,24 +120,6 @@ function MediaTypeHierarchyView({
   );
 }
 
-function MediaTypeAutofillView({
-  entity: mt,
-}: {
-  entity: MediaType;
-}) {
-  return (
-    <div className="space-y-6">
-      <EntityAutofillSources
-        match={{
-          kind: "media-type",
-          mediaTypeId: mt.id,
-        }}
-      />
-      <AutofillRulesList mediaTypeId={mt.id} />
-    </div>
-  );
-}
-
 /** Single source of truth for a media type's tabbed view/edit UI (main pane routes + right panel). */
 export const mediaTypeWorkbench: EntityWorkbench<MediaType> = {
   useBySlug: (slug) => {
@@ -199,20 +180,6 @@ export const mediaTypeWorkbench: EntityWorkbench<MediaType> = {
         title: "Hierarchy",
         description: "Parent and child media types.",
         render: MediaTypeHierarchyView,
-      },
-    },
-    {
-      key: "autofill",
-      label: "Autofill Rules",
-      view: {
-        title: "Autofill Rules",
-        description: "Autofill rules that set this media type on matching bookmarks.",
-        render: MediaTypeAutofillView,
-      },
-      edit: {
-        title: "Autofill Rules",
-        description: "Autofill rules that set this media type on matching bookmarks.",
-        render: MediaTypeAutofillView,
       },
     },
     {

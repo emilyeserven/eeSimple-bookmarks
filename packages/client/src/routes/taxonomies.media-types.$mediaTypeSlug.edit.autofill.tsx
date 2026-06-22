@@ -1,22 +1,16 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
-import { mediaTypeWorkbench } from "../components/workbench/mediaType";
-import { WorkbenchRouteTab } from "../components/workbench/WorkbenchRouteTab";
-
+/** The per-entity Autofill tab now lives on the consolidated Settings → Autofill page, filtered. */
 export const Route = createFileRoute("/taxonomies/media-types/$mediaTypeSlug/edit/autofill")({
-  component: AutofillEditTab,
+  beforeLoad: ({
+    params,
+  }) => {
+    throw redirect({
+      to: "/settings/autofill",
+      search: {
+        scope: "media-type",
+        scopeSlug: params.mediaTypeSlug,
+      },
+    });
+  },
 });
-
-function AutofillEditTab() {
-  const {
-    mediaTypeSlug,
-  } = Route.useParams();
-  return (
-    <WorkbenchRouteTab
-      workbench={mediaTypeWorkbench}
-      tabKey="autofill"
-      mode="edit"
-      slug={mediaTypeSlug}
-    />
-  );
-}

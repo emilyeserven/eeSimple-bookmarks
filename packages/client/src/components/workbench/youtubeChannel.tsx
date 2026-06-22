@@ -4,7 +4,6 @@ import type { YouTubeChannel } from "@eesimple/types";
 
 import { MonitorPlay } from "lucide-react";
 
-import { AutofillRulesList } from "../AutofillRulesList";
 import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import { EntityImagePreview } from "../EntityImageField";
 import { SourceAutofillDefaults } from "../SourceAutofillDefaults";
@@ -52,24 +51,6 @@ function YouTubeChannelGeneralView({
         mediaTypeId={ch.mediaTypeId}
         tagIds={ch.tagIds}
       />
-    </div>
-  );
-}
-
-function YouTubeChannelAutofillView({
-  entity: ch,
-}: {
-  entity: YouTubeChannel;
-}) {
-  return (
-    <div className="space-y-6">
-      <SourceAutofillDefaults
-        kind="channel"
-        category={ch.category}
-        mediaTypeId={ch.mediaTypeId}
-        tagIds={ch.tagIds}
-      />
-      <AutofillRulesList channelId={ch.id} />
     </div>
   );
 }
@@ -123,20 +104,6 @@ export const youtubeChannelWorkbench: EntityWorkbench<YouTubeChannel> = {
         render: ({
           entity,
         }) => <YouTubeChannelGeneralForm channel={entity} />,
-      },
-    },
-    {
-      key: "autofill",
-      label: "Autofill Rules",
-      view: {
-        title: "Autofill Rules",
-        description: "Autofill rules that target this YouTube channel.",
-        render: YouTubeChannelAutofillView,
-      },
-      edit: {
-        title: "Autofill Rules",
-        description: "Autofill rules that target this YouTube channel. New rules created here target this channel by default.",
-        render: YouTubeChannelAutofillView,
       },
     },
     {
