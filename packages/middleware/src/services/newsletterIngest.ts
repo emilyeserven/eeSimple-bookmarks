@@ -25,8 +25,18 @@ export interface LinkCandidate {
   context: string | null;
 }
 
-/** Image extensions that mark a URL as a tracking pixel / asset rather than an article. */
-const IMAGE_EXT = /\.(?:gif|png|jpe?g|webp|svg|ico|bmp)$/i;
+/** Image/font asset extensions that mark a URL as a tracking pixel / static asset, not an article. */
+const ASSET_EXT = /\.(?:gif|png|jpe?g|webp|svg|ico|bmp|woff2?|ttf|otf|eot)$/i;
+
+/** True when a URL's path points at a static asset (image/font) rather than an article. Pure. */
+export function isAssetUrl(url: string): boolean {
+  try {
+    return ASSET_EXT.test(new URL(url).pathname);
+  }
+  catch {
+    return false;
+  }
+}
 
 /**
  * Anchor-text phrases that mark newsletter chrome (management/legal/footer links). Matched as a
@@ -205,7 +215,7 @@ export function isJunkLink(candidate: LinkCandidate): boolean {
   const anchor = candidate.anchorText.trim().toLowerCase();
 
   // Tracking pixel / asset link.
-  if (IMAGE_EXT.test(path)) return true;
+  if (ASSET_EXT.test(path)) return true;
   // Platform management / legal link.
   if (JUNK_PATH_FRAGMENTS.some(fragment => path.includes(fragment))) return true;
   if (JUNK_ANCHOR_PHRASES.some(phrase => anchor.includes(phrase))) return true;

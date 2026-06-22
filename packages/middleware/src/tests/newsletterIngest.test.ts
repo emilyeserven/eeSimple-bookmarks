@@ -7,6 +7,7 @@ import {
   extractHtmlCandidates,
   extractTextCandidates,
   filterAndDedupe,
+  isAssetUrl,
   isJunkLink,
   type LinkCandidate,
   linkContextFrom,
@@ -133,8 +134,29 @@ test("isJunkLink drops chrome: unsubscribe, tracking pixels, and empty-anchor so
       source: "html-anchor",
       context: null,
     },
+    {
+      rawUrl: "https://cdn.example.com/fonts/roboto.woff",
+      anchorText: "",
+      source: "html-anchor",
+      context: null,
+    },
   ];
   for (const candidate of junk) assert.equal(isJunkLink(candidate), true, candidate.rawUrl);
+});
+
+test("isAssetUrl flags font/image destinations but keeps article URLs", () => {
+  // Fonts (the reported newsletter-import leak) and images, including with a path/query string.
+  for (const url of [
+    "https://fonts.gstatic.com/s/roboto/v30/x.woff2",
+    "https://cdn.example.com/assets/font.woff?v=3",
+    "https://img.example.com/pixel.png",
+    "https://example.com/icon.svg",
+  ]) {
+    assert.equal(isAssetUrl(url), true, url);
+  }
+  // Real articles and unparseable input are not assets.
+  assert.equal(isAssetUrl("https://blog.example.com/great-post"), false);
+  assert.equal(isAssetUrl("not a url"), false);
 });
 
 test("isJunkLink keeps real articles, including a titled link to a social post", () => {
