@@ -71,9 +71,9 @@ export const fieldZonesSchema = {
 
 /**
  * `cardZoneLayouts`: per-body-zone layout; `null` = inherit / fall back. Each value is a
- * `{ mode, gap?, align? }` object (mirror of `CardZoneLayout`), but the legacy bare-string form
- * (`"flex"`/`"grid"`) is still accepted so in-flight payloads from older clients validate. The
- * body-zone-name set mirrors `CARD_BODY_ZONES`.
+ * `{ mode, gap?, align?, alignItems?, direction?, wrap? }` object (mirror of `CardZoneLayout`), but
+ * the legacy bare-string form (`"flex"`/`"grid"`) is still accepted so in-flight payloads from older
+ * clients validate. The body-zone-name set mirrors `CARD_BODY_ZONES`.
  */
 export const cardZoneLayoutsSchema = {
   type: ["object", "null"],
@@ -106,6 +106,18 @@ export const cardZoneLayoutsSchema = {
             align: {
               type: "string",
               enum: ["start", "center", "end", "between"],
+            },
+            alignItems: {
+              type: "string",
+              enum: ["start", "center", "end", "stretch"],
+            },
+            direction: {
+              type: "string",
+              enum: ["row", "column"],
+            },
+            wrap: {
+              type: "string",
+              enum: ["wrap", "nowrap"],
             },
           },
         },

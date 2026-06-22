@@ -705,20 +705,36 @@ export type CardZoneMode = "flex" | "grid";
 /** The spacing between fields placed in a card-body sub-zone (absent = `md`). */
 export type CardZoneGap = "sm" | "md" | "lg";
 
-/** How fields are aligned within a card-body sub-zone (absent = `start`). */
+/** How fields are aligned along a card-body sub-zone's main (horizontal) axis (absent = `start`). */
 export type CardZoneAlign = "start" | "center" | "end" | "between";
+
+/** The flex flow direction of a card-body sub-zone (absent = `row`). Flex mode only. */
+export type CardZoneDirection = "row" | "column";
+
+/** Whether a flex card-body sub-zone wraps its fields (absent = `wrap`). Flex mode only. */
+export type CardZoneWrap = "wrap" | "nowrap";
+
+/** How fields are aligned along a card-body sub-zone's cross (vertical) axis (absent = `start`). */
+export type CardZoneVerticalAlign = "start" | "center" | "end" | "stretch";
 
 /**
  * How a card-body sub-zone arranges the fields placed in it: the {@link CardZoneMode} (flex vs. grid)
- * plus optional {@link CardZoneGap} spacing and {@link CardZoneAlign} alignment. Image-corner zones
- * are unaffected (they always overlay).
+ * plus optional {@link CardZoneGap} spacing, main-axis {@link CardZoneAlign} alignment, cross-axis
+ * {@link CardZoneVerticalAlign} alignment, and (flex only) {@link CardZoneDirection} flow /
+ * {@link CardZoneWrap} wrapping. Image-corner zones are unaffected (they always overlay).
  */
 export interface CardZoneLayout {
   mode: CardZoneMode;
   /** Spacing between fields; absent = `md`. */
   gap?: CardZoneGap;
-  /** Field alignment within the zone; absent = `start`. */
+  /** Main-axis (horizontal) field alignment within the zone; absent = `start`. */
   align?: CardZoneAlign;
+  /** Cross-axis (vertical) field alignment within the zone; absent = `start`. */
+  alignItems?: CardZoneVerticalAlign;
+  /** Flex flow direction; absent = `row`. Ignored in grid mode. */
+  direction?: CardZoneDirection;
+  /** Flex wrapping; absent = `wrap`. Ignored in grid mode. */
+  wrap?: CardZoneWrap;
 }
 
 /** The per-body-zone {@link CardZoneLayout} a {@link CardDisplayRule} declares (`null` = inherit). */

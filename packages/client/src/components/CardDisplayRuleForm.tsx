@@ -149,22 +149,23 @@ export function CardDisplayRuleForm({
   );
 
   // On desktop the Card Display controls sit on the left and scroll internally; the live Card Preview
-  // is pinned on the right and defines the row height, so the Card Fields list is as tall as the
-  // preview (`md:items-stretch` + the left column's `md:h-full md:min-h-0` lets the overflow scroll
-  // rather than grow the row). They stack on narrow screens.
-  // `maxH` caps the controls/preview columns. Inline it stays under the viewport (minus the app
-  // header + form chrome); the expanded modal gets a taller cap since it owns the whole screen.
+  // is pinned on the right (`md:sticky md:top-4`). Both columns align to the top (`md:items-start`) and
+  // the preview is sized to its own content (`md:self-start`) with its own bounded scroll, so a tall
+  // sample card scrolls inside its box rather than stretching to the grid height and bleeding past the
+  // Display section onto the Preview Bookmarks search bar below. They stack on narrow screens.
+  // `maxH` caps both columns. Inline it stays under the viewport (minus the app header + form chrome);
+  // the expanded modal gets a taller cap since it owns the whole screen.
   function buildDisplayWithPreview(maxH: string) {
     return (
       <div
         className="
           gap-6
-          md:grid md:grid-cols-[1fr_minmax(0,22rem)] md:items-stretch
+          md:grid md:grid-cols-[1fr_minmax(0,22rem)] md:items-start
         "
       >
         <div
           className={`
-            md:h-full md:min-h-0 md:overflow-y-auto md:pr-2
+            md:min-h-0 md:overflow-y-auto md:pr-2
             ${maxH}
           `}
         >
@@ -173,7 +174,7 @@ export function CardDisplayRuleForm({
         <div
           className={`
             mt-6
-            md:sticky md:top-4 md:mt-0
+            md:sticky md:top-4 md:mt-0 md:self-start md:overflow-y-auto
             ${maxH}
           `}
         >
