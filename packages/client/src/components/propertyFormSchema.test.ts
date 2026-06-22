@@ -1,6 +1,37 @@
 import { describe, expect, it } from "vitest";
 
-import { CREATE_DEFAULTS, payloadFromValues } from "./propertyFormSchema";
+import { CREATE_DEFAULTS, payloadFromValues, sectionVisibility } from "./propertyFormSchema";
+
+describe("sectionVisibility", () => {
+  it("shows every section in the full form (no section)", () => {
+    expect(sectionVisibility(undefined)).toEqual({
+      full: true,
+      showGeneral: true,
+      showOptions: true,
+      showCategories: true,
+      showMediaTypes: true,
+      showDisplay: true,
+    });
+  });
+
+  it("shows only the named section when a tab is selected", () => {
+    expect(sectionVisibility("categories")).toEqual({
+      full: false,
+      showGeneral: false,
+      showOptions: false,
+      showCategories: true,
+      showMediaTypes: false,
+      showDisplay: false,
+    });
+  });
+
+  it("maps each tab to its own flag", () => {
+    expect(sectionVisibility("general").showGeneral).toBe(true);
+    expect(sectionVisibility("options").showOptions).toBe(true);
+    expect(sectionVisibility("media-types").showMediaTypes).toBe(true);
+    expect(sectionVisibility("display").showDisplay).toBe(true);
+  });
+});
 
 describe("payloadFromValues", () => {
   it("trims the name and passes through the type", () => {
