@@ -3,7 +3,6 @@ import type { EntityWorkbench } from "./types";
 import type { PropertyFormSection } from "../propertyFormSchema";
 import type { CustomProperty } from "@eesimple/types";
 
-import { AutofillRulesList } from "../AutofillRulesList";
 import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import {
   PropertyCategoriesContent,
@@ -206,24 +205,6 @@ export const propertyWorkbench: EntityWorkbench<CustomProperty> = {
         title: "Display",
         description: "Where this property appears and whether it's editable from the card menu.",
         render: editPane("display"),
-      },
-    },
-    {
-      key: "autofill",
-      label: "Autofill Rules",
-      view: {
-        title: "Autofill Rules",
-        description: "Autofill rules that set a value for this property when a matching bookmark is saved.",
-        render: ({
-          entity,
-        }) => <AutofillRulesList propertyId={entity.id} />,
-      },
-      edit: {
-        title: "Autofill Rules",
-        description: "Autofill rules that set a value for this property when a matching bookmark is saved.",
-        render: ({
-          entity,
-        }) => <AutofillRulesList propertyId={entity.id} />,
       },
     },
     {

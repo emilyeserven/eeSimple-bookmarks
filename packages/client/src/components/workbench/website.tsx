@@ -4,7 +4,6 @@ import type { Website } from "@eesimple/types";
 
 import { ExternalLink, Globe } from "lucide-react";
 
-import { AutofillRulesList } from "../AutofillRulesList";
 import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import { EntityImagePreview } from "../EntityImageField";
 import { ParamRulesList } from "../ParamRulesList";
@@ -65,25 +64,6 @@ function WebsiteGeneralView({
         mediaTypeId={website.mediaTypeId}
         tagIds={website.tagIds}
       />
-    </div>
-  );
-}
-
-/** The Autofill tab is read-only on both view and edit (same content): defaults + matching rules. */
-function WebsiteAutofillView({
-  entity: website,
-}: {
-  entity: Website;
-}) {
-  return (
-    <div className="space-y-6">
-      <SourceAutofillDefaults
-        kind="website"
-        category={website.category}
-        mediaTypeId={website.mediaTypeId}
-        tagIds={website.tagIds}
-      />
-      <AutofillRulesList websiteId={website.id} />
     </div>
   );
 }
@@ -187,20 +167,6 @@ export const websiteWorkbench: EntityWorkbench<Website> = {
         render: ({
           entity,
         }) => <WebsiteParamRulesForm website={entity} />,
-      },
-    },
-    {
-      key: "autofill",
-      label: "Autofill Rules",
-      view: {
-        title: "Autofill Rules",
-        description: "Autofill rules whose conditions target this website.",
-        render: WebsiteAutofillView,
-      },
-      edit: {
-        title: "Autofill Rules",
-        description: "Autofill rules whose conditions target this website. New rules created here target this website by default.",
-        render: WebsiteAutofillView,
       },
     },
     {

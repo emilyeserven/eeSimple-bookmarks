@@ -4,7 +4,6 @@ import type { TagNode } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
 
-import { AutofillRulesList } from "../AutofillRulesList";
 import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import { EntityAutofillSources } from "../EntityAutofillSources";
 import { HierarchyView } from "../HierarchyView";
@@ -132,24 +131,6 @@ function TagHierarchyView({
   );
 }
 
-function TagAutofillView({
-  entity: node,
-}: {
-  entity: TagNode;
-}) {
-  return (
-    <div className="space-y-6">
-      <EntityAutofillSources
-        match={{
-          kind: "tag",
-          tagId: node.id,
-        }}
-      />
-      <AutofillRulesList tagId={node.id} />
-    </div>
-  );
-}
-
 /** Single source of truth for a tag's tabbed view/edit UI (main pane routes + right panel). */
 export const tagWorkbench: EntityWorkbench<TagNode> = {
   useBySlug: (slug) => {
@@ -224,20 +205,6 @@ export const tagWorkbench: EntityWorkbench<TagNode> = {
         title: "Hierarchy",
         description: "Parent and child tags.",
         render: TagHierarchyView,
-      },
-    },
-    {
-      key: "autofill",
-      label: "Autofill Rules",
-      view: {
-        title: "Autofill Rules",
-        description: "Autofill rules that apply this tag to matching bookmarks.",
-        render: TagAutofillView,
-      },
-      edit: {
-        title: "Autofill Rules",
-        description: "Autofill rules that apply this tag to matching bookmarks. New rules created here apply this tag by default.",
-        render: TagAutofillView,
       },
     },
     {

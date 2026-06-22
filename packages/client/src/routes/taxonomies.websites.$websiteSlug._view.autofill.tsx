@@ -1,22 +1,16 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
-import { websiteWorkbench } from "../components/workbench/website";
-import { WorkbenchRouteTab } from "../components/workbench/WorkbenchRouteTab";
-
+/** The per-entity Autofill tab now lives on the consolidated Settings → Autofill page, filtered. */
 export const Route = createFileRoute("/taxonomies/websites/$websiteSlug/_view/autofill")({
-  component: AutofillViewTab,
+  beforeLoad: ({
+    params,
+  }) => {
+    throw redirect({
+      to: "/settings/autofill",
+      search: {
+        scope: "website",
+        scopeSlug: params.websiteSlug,
+      },
+    });
+  },
 });
-
-function AutofillViewTab() {
-  const {
-    websiteSlug,
-  } = Route.useParams();
-  return (
-    <WorkbenchRouteTab
-      workbench={websiteWorkbench}
-      tabKey="autofill"
-      mode="view"
-      slug={websiteSlug}
-    />
-  );
-}
