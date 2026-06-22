@@ -34,6 +34,54 @@ interface RuntimeMigration {
   run: (db: NodePgDatabase) => Promise<unknown>;
 }
 
+/** A boolean custom property's legacy per-card display flags (pre-`field_zones` migration). */
+interface BooleanDisplayFlags {
+  show_if_false: boolean | null;
+  hide_label: boolean | null;
+  clickable_in_view: boolean | null;
+  show_label_colon: boolean | null;
+  show_value_before_label: boolean | null;
+}
+
+/** A boolean custom_properties row carrying its id alongside its legacy display flags. */
+interface BooleanPropRow extends BooleanDisplayFlags {
+  id: string;
+}
+
+/** Copy a property's legacy boolean flags onto one card-display placement (only non-default values). */
+function mergePlacementBooleanFlags(
+  placement: Record<string, unknown>,
+  flags: BooleanDisplayFlags,
+): void {
+  // Only write non-default values to keep the jsonb lean (absent = default).
+  if (flags.show_if_false) placement.showIfFalse = true;
+  if (flags.hide_label) placement.hideLabel = true;
+  if (flags.clickable_in_view) placement.clickableInView = true;
+  if (flags.show_label_colon === false) placement.showLabelColon = false;
+  if (flags.show_value_before_label) placement.showValueBeforeLabel = true;
+}
+
+/**
+ * Merge each boolean property's legacy flags into a single rule's `field_zones` placements, mutating
+ * `zones` in place. Returns whether any placement was touched (so the caller can skip an UPDATE).
+ */
+function applyBooleanFlagsToRuleZones(
+  zones: Record<string, Record<string, unknown>[]>,
+  flagsById: Map<string, BooleanDisplayFlags>,
+): boolean {
+  let changed = false;
+  for (const placements of Object.values(zones)) {
+    if (!Array.isArray(placements)) continue;
+    for (const placement of placements) {
+      const flags = flagsById.get(placement.key as string);
+      if (!flags) continue;
+      mergePlacementBooleanFlags(placement, flags);
+      changed = true;
+    }
+  }
+  return changed;
+}
+
 // Ordered list of idempotent, destructive/push-incompatible steps.
 const migrations: RuntimeMigration[] = [
   {
@@ -393,15 +441,8 @@ const migrations: RuntimeMigration[] = [
       const propRows = (await db.execute(sql`
         SELECT id, show_if_false, hide_label, clickable_in_view, show_label_colon, show_value_before_label
         FROM custom_properties WHERE type = 'boolean'
-      `)).rows as {
-        id: string;
-        show_if_false: boolean | null;
-        hide_label: boolean | null;
-        clickable_in_view: boolean | null;
-        show_label_colon: boolean | null;
-        show_value_before_label: boolean | null;
-      }[];
-      const flagsById = new Map(propRows.map(row => [row.id, row]));
+      `)).rows as unknown as BooleanPropRow[];
+      const flagsById = new Map<string, BooleanDisplayFlags>(propRows.map(row => [row.id, row]));
       if (flagsById.size === 0) return;
 
       const ruleRows = (await db.execute(sql`
@@ -412,22 +453,7 @@ const migrations: RuntimeMigration[] = [
       for (const rule of ruleRows) {
         const zones = rule.field_zones;
         if (!zones) continue;
-        let changed = false;
-        for (const placements of Object.values(zones)) {
-          if (!Array.isArray(placements)) continue;
-          for (const placement of placements) {
-            const flags = flagsById.get(placement.key as string);
-            if (!flags) continue;
-            // Only write non-default values to keep the jsonb lean (absent = default).
-            if (flags.show_if_false) placement.showIfFalse = true;
-            if (flags.hide_label) placement.hideLabel = true;
-            if (flags.clickable_in_view) placement.clickableInView = true;
-            if (flags.show_label_colon === false) placement.showLabelColon = false;
-            if (flags.show_value_before_label) placement.showValueBeforeLabel = true;
-            changed = true;
-          }
-        }
-        if (changed) {
+        if (applyBooleanFlagsToRuleZones(zones, flagsById)) {
           await db.execute(sql`
             UPDATE card_display_rules SET field_zones = ${JSON.stringify(zones)}::jsonb WHERE id = ${rule.id}
           `);

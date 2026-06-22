@@ -9,6 +9,7 @@ import { useMediaTypes } from "./useMediaTypes";
 import { useTagBySlug } from "./useTags";
 import { useWebsites } from "./useWebsites";
 import { useYouTubeChannelBySlug } from "./useYouTubeChannels";
+import { resolveAutofillScopeDefaults } from "../lib/autofillPrefill";
 import { NO_CATEGORY } from "../lib/autofillScope";
 
 /**
@@ -63,20 +64,22 @@ export function useAutofillScopeDefaults(): AutofillScopeDefaults {
     channel: preseedChannel,
   } = useYouTubeChannelBySlug(effectiveChannelSlug ?? "");
 
-  return {
-    categoryId: effectiveCategorySlug
-      ? (categories ?? []).find(category => category.slug === effectiveCategorySlug)?.id
-      : undefined,
-    propertyId: effectivePropertySlug
-      ? (properties ?? []).find(p => p.slug === effectivePropertySlug)?.id
-      : undefined,
-    websiteDomain: effectiveWebsiteSlug
-      ? (websites ?? []).find(site => site.slug === effectiveWebsiteSlug)?.domain
-      : undefined,
-    tagIds: effectiveTagSlug && preseedTag ? [preseedTag.id] : undefined,
-    mediaTypeId: effectiveMediaTypeSlug
-      ? (mediaTypes ?? []).find(mt => mt.slug === effectiveMediaTypeSlug)?.id
-      : undefined,
-    channelIds: effectiveChannelSlug && preseedChannel ? [preseedChannel.id] : undefined,
-  };
+  return resolveAutofillScopeDefaults(
+    {
+      category: effectiveCategorySlug,
+      property: effectivePropertySlug,
+      website: effectiveWebsiteSlug,
+      tag: effectiveTagSlug,
+      mediaType: effectiveMediaTypeSlug,
+      channel: effectiveChannelSlug,
+    },
+    {
+      categories: categories ?? [],
+      properties: properties ?? [],
+      websites: websites ?? [],
+      mediaTypes: mediaTypes ?? [],
+      tagId: preseedTag?.id,
+      channelId: preseedChannel?.id,
+    },
+  );
 }

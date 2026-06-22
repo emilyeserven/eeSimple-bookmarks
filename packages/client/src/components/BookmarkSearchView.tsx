@@ -2,16 +2,9 @@ import type { BookmarkSearch } from "../lib/bookmarkSearch";
 import type { Bookmark, Category, CustomProperty, MediaType, PropertyGroup, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
 import type { ReactNode } from "react";
 
-import { useEffect } from "react";
-
 import { BookmarkListPane } from "./BookmarkListPane";
 import { FilterSidebar } from "./FilterSidebar";
-import { usePanelControls } from "./panel/usePanelControls";
-import { useFiltersHidden, useFiltersInDrawer } from "../hooks/useAppSettings";
-import { useSetListingPage } from "../hooks/useListingPage";
-import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
-import { useBookmarkColumns } from "../lib/bookmarkColumns";
-import { useUiStore } from "../stores/uiStore";
+import { useBookmarkSearchView } from "./useBookmarkSearchView";
 
 interface BookmarkSearchViewProps {
   /** Page heading area rendered above the two-column body. */
@@ -75,52 +68,22 @@ export function BookmarkSearchView({
   noMatchMessage,
   addFormCategoryId,
 }: BookmarkSearchViewProps) {
-  useSetListingPage(pageKey, true, true, true);
-  useRegisterHeaderSearch();
-  const columns = useBookmarkColumns(pageKey);
-  const filtersInDrawer = useFiltersInDrawer();
-  const filtersHidden = useFiltersHidden();
-  const setFilterContext = useUiStore(state => state.setFilterContext);
-  const headerSearchQuery = useUiStore(state => state.headerSearchQuery);
   const {
-    isOpen, dCT, openType,
-  } = usePanelControls();
-  const filtersActiveInDrawer = isOpen && dCT === "filters";
-  const hideSidebar = filtersActiveInDrawer || filtersHidden;
-
-  useEffect(() => {
-    setFilterContext({
-      tree,
-      properties,
-      propertyGroups,
-      categories,
-      mediaTypes,
-      youtubeChannels,
-      websites,
-      relationshipTypes,
-      bookmarks,
-      search,
-      onSearchChange,
-    });
-    return () => setFilterContext(null);
-    // onSearchChange is a new arrow fn each render from the page; stable deps are the data arrays
-  }, [tree, properties, propertyGroups, categories, mediaTypes, youtubeChannels, websites, relationshipTypes, bookmarks, search, onSearchChange, setFilterContext]);
-
-  useEffect(() => {
-    if (filtersInDrawer && !isOpen) {
-      openType("filters");
-    }
-  // Only on mount — intentionally omit filtersInDrawer/isOpen/openType to avoid re-running
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const q = headerSearchQuery.trim().toLowerCase();
-  const textFilteredBookmarks = q
-    ? bookmarks.filter(b =>
-      b.title.toLowerCase().includes(q)
-      || b.url.toLowerCase().includes(q)
-      || (b.description ?? "").toLowerCase().includes(q))
-    : bookmarks;
+    columns, hideSidebar, textFilteredBookmarks, textSearchActive,
+  } = useBookmarkSearchView({
+    pageKey,
+    tree,
+    properties,
+    propertyGroups,
+    categories,
+    mediaTypes,
+    youtubeChannels,
+    websites,
+    relationshipTypes,
+    bookmarks,
+    search,
+    onSearchChange,
+  });
 
   return (
     <section className="space-y-8">
@@ -156,7 +119,7 @@ export function BookmarkSearchView({
           bookmarks={textFilteredBookmarks}
           properties={properties}
           search={search}
-          textSearchActive={!!q}
+          textSearchActive={textSearchActive}
           isLoading={isLoading}
           error={error}
           emptyMessage={emptyMessage}
