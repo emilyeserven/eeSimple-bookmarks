@@ -7,7 +7,6 @@
 export {
   canonicalize,
   cleanUrl,
-  TRACKING_PARAMS,
 } from "@eesimple/types";
 export type {
   CanonicalizeData,
