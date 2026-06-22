@@ -814,6 +814,12 @@ export const homepageSections = pgTable("homepage_sections", {
   imageLayout: text("image_layout").notNull().default("above"),
   imageVisibility: text("image_visibility").notNull().default("shown"),
   viewMode: text("view_mode").notNull().default("cards"),
+  // Per-zone field placements for this section's cards (card-body sub-zones + image corners). NULL =
+  // fall back to the Default card display rule (legacy sections); concrete once edited. Supersedes
+  // hidden_card_fields + corner_overlays. Nullable jsonb = push-safe additive.
+  fieldZones: jsonb("field_zones").$type<CardFieldZones>(),
+  // Per-body-zone layout (flex vs grid). NULL = fall back to defaults. Nullable jsonb = push-safe.
+  cardZoneLayouts: jsonb("card_zone_layouts").$type<CardZoneLayouts>(),
   hiddenCardFields: jsonb("hidden_card_fields").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
   // When true, custom properties placed in an image corner are overlaid on this section's card
   // images; when false they fall back to badges. NOT NULL on the populated table → pre-applied in

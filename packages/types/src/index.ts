@@ -1236,9 +1236,21 @@ export interface HomepageSection {
   imageVisibility: BookmarkImageVisibility;
   /** Rendering mode for this section: "cards" (default) or "table". */
   viewMode: ViewMode;
-  /** Card field keys hidden for this section (standard field key or custom-property id). */
+  /**
+   * Per-zone field placements for this section's cards (standard field key or custom-property id;
+   * image-* zones overlay the field on the card image). `null` falls back to the Default card display
+   * rule (legacy sections not yet migrated to the zone board); concrete once the section is edited.
+   * Supersedes the legacy `hiddenCardFields` + `cornerOverlays` model.
+   */
+  fieldZones: CardFieldZones | null;
+  /**
+   * Per-body-zone layout (`flex` inline flow vs. `grid` two-column) for this section's cards, or
+   * `null` to fall back to the defaults. Only affects the four card-body sub-zones.
+   */
+  cardZoneLayouts: CardZoneLayouts | null;
+  /** @deprecated Legacy flat hidden-field list; retained for the render fallback until a section is edited. */
   hiddenCardFields: string[];
-  /** When true (default), custom properties placed in an image corner are overlaid on this section's card images; when false they fall back to badges. */
+  /** @deprecated Legacy corner-overlay toggle; superseded by image-* zone placement on `fieldZones`. */
   cornerOverlays: boolean;
   /** When true, the website pill is hidden on this section's cards for a bookmark that also has a YouTube channel. Defaults to false. Owned per-section so homepage cards never inherit the Default card display rule. */
   hideWebsiteForYouTube: boolean;
@@ -1263,6 +1275,8 @@ export interface CreateHomepageSectionInput {
   imageLayout?: HomepageSectionImageLayout;
   imageVisibility?: BookmarkImageVisibility;
   viewMode?: ViewMode;
+  fieldZones?: CardFieldZones | null;
+  cardZoneLayouts?: CardZoneLayouts | null;
   hiddenCardFields?: string[];
   cornerOverlays?: boolean;
   hideWebsiteForYouTube?: boolean;

@@ -10,6 +10,7 @@ import {
   reorderCardDisplayRules,
   updateCardDisplayRule,
 } from "@/services/cardDisplayRules";
+import { cardZoneLayoutsSchema, fieldZonesSchema } from "@/routes/cardFieldZonesSchema";
 
 const ruleParams = {
   type: "object",
@@ -30,108 +31,9 @@ const displayProperties = {
   sortOrder: {
     type: "integer",
   },
-  // Per-zone field placements. `null` = inherit. Each zone holds an ordered array of placements; a
-  // field key absent from all zones is hidden. The zone-name set is hand-listed here (mirror of the
-  // `CARD_FIELD_ZONES` union in @eesimple/types — keep in sync).
-  fieldZones: {
-    type: ["object", "null"],
-    additionalProperties: false,
-    properties: Object.fromEntries(
-      [
-        "card-single-top",
-        "card-labels",
-        "card-table",
-        "card-single-bottom",
-        "image-top-left",
-        "image-top-right",
-        "image-bottom-left",
-        "image-bottom-right",
-      ].map(
-        zone => [zone, {
-          type: "array",
-          items: {
-            type: "object",
-            required: ["key"],
-            additionalProperties: false,
-            properties: {
-              key: {
-                type: "string",
-              },
-              scale: {
-                type: "number",
-                enum: [1, 1.5, 2],
-              },
-              mobileScale: {
-                type: ["number", "null"],
-                enum: [1, 1.5, 2, null],
-              },
-              hideLabel: {
-                type: "boolean",
-              },
-              hideIcon: {
-                type: "boolean",
-              },
-              // Boolean custom-property fields only (mirror of CardFieldPlacement in @eesimple/types).
-              showIfFalse: {
-                type: "boolean",
-              },
-              clickableInView: {
-                type: "boolean",
-              },
-              showLabelColon: {
-                type: "boolean",
-              },
-              showValueBeforeLabel: {
-                type: "boolean",
-              },
-            },
-          },
-        }],
-      ),
-    ),
-  },
-  // Per-body-zone layout; `null` = inherit. Each value is a `{ mode, gap?, align? }` object (mirror of
-  // `CardZoneLayout` in @eesimple/types — keep the enums in sync), but the legacy bare-string form
-  // (`"flex"`/`"grid"`) is still accepted so in-flight payloads from older clients validate. The
-  // body-zone-name set is hand-listed here (mirror of `CARD_BODY_ZONES`).
-  cardZoneLayouts: {
-    type: ["object", "null"],
-    additionalProperties: false,
-    properties: Object.fromEntries(
-      [
-        "card-single-top",
-        "card-labels",
-        "card-table",
-        "card-single-bottom",
-      ].map(zone => [zone, {
-        oneOf: [
-          {
-            type: "string",
-            enum: ["flex", "grid"],
-          },
-          {
-            type: "object",
-            additionalProperties: false,
-            required: ["mode"],
-            properties: {
-              mode: {
-                type: "string",
-                enum: ["flex", "grid"],
-              },
-              gap: {
-                type: "string",
-                enum: ["sm", "md", "lg"],
-              },
-              align: {
-                type: "string",
-                enum: ["start", "center", "end", "between"],
-              },
-            },
-          },
-        ],
-      }]),
-    ),
-  },
+  // Per-zone field placements + per-body-zone layout. Shared with the homepage-sections routes.
+  fieldZones: fieldZonesSchema,
+  cardZoneLayouts: cardZoneLayoutsSchema,
   imageMode: {
     type: "string",
     nullable: true,
