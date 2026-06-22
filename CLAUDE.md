@@ -234,10 +234,21 @@ that matches the surface — don't invent a new structure for a one-off page.
   `PanelContent.tsx`, `contentTypes.tsx`) — URL-driven (`dOpen`/`dCT`/`dCId`/`dMode`): content-type
   tiles → searchable list → view/edit. It must achieve **feature and component parity** with the
   main app: a single item viewed/edited in the panel reuses the **same** components the main app
-  renders for that entity (e.g. `BookmarkCard`/`BookmarkForm`, `CategoryCard`, `PropertyCard`,
-  `WebsiteRow`), in their narrow/mobile layout — never a panel-only variant. Build entity
+  renders for that entity, in their narrow/mobile layout — never a panel-only variant. Build entity
   views/forms as responsive, reusable components so both surfaces share them, and register each
   content type in `panel/contentTypes.tsx`.
+  - **Edit invariant (do not re-diverge):** a content type's `Edit` **must** render the **same
+    per-field auto-save edit forms the main-app edit tab(s) render** — the entity's `*GeneralForm`
+    (and, for multi-tab entities, its sibling per-tab forms stacked under `LabeledSection` headings),
+    wrapped in `panel/PanelEntityEditor.tsx` (header: name + built-in badge + Delete). It must
+    **never** use a `*Row` inline editor, the monolithic submit **create** form (`PropertyForm` /
+    `BookmarkForm` / `AutofillRuleForm` / `TagForm`), or any other panel-only edit variant — those
+    drift from the edit tabs in field coverage and save semantics (this is the drift that orphaned
+    and removed `WebsiteRow`/`MediaTypeRow`/`YouTubeChannelRow`/`PropertyGroupRow`). The template is
+    `contentTypes/category.tsx` → `CategoryCard` → `CategoryGeneralForm`; the multi-tab pattern is
+    `contentTypes/property.tsx` / `bookmark.tsx` and `panel/AutofillRuleForms.tsx`. **Create** flows
+    (the panel's `NEW_SENTINEL` path, inline-create modals) keep their submit form — only **edit**
+    must reuse the auto-save forms.
 
 **Current divergences (to be reconciled):**
 

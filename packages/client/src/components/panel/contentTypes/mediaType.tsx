@@ -6,9 +6,11 @@ import { useMemo } from "react";
 import { Clapperboard } from "lucide-react";
 
 import { WithPanelItem } from "./status";
-import { useMediaTypes } from "../../../hooks/useMediaTypes";
+import { useDeleteMediaType, useMediaTypes } from "../../../hooks/useMediaTypes";
 import { MediaTypeCard } from "../../MediaTypeCard";
-import { MediaTypeRow } from "../../MediaTypeRow";
+import { MediaTypeGeneralForm } from "../../MediaTypeGeneralForm";
+import { PanelEntityEditor } from "../PanelEntityEditor";
+import { usePanelDismissAfterDelete } from "../usePanelDismissAfterDelete";
 
 function useMediaTypeList() {
   const {
@@ -47,20 +49,36 @@ function MediaTypeView({
   );
 }
 
-/** Inline media-type editor, reusing the same `MediaTypeRow` the settings and edit pages use. */
+/** Media-type editor, reusing the same auto-save `MediaTypeGeneralForm` the edit tab renders. */
 function MediaTypeEdit({
   id,
 }: {
   id: string;
 }) {
   const query = useMediaTypes();
+  const deleteMediaType = useDeleteMediaType();
+  const dismiss = usePanelDismissAfterDelete();
   return (
     <WithPanelItem
       queryResult={query}
       id={id}
       notFoundMessage="Media type not found."
     >
-      {mediaType => <MediaTypeRow mediaType={mediaType} />}
+      {mediaType => (
+        <PanelEntityEditor
+          name={mediaType.name}
+          builtIn={mediaType.builtIn}
+          onDelete={mediaType.builtIn
+            ? undefined
+            : () => deleteMediaType.mutate(mediaType.id, {
+              onSuccess: dismiss,
+            })}
+          deleteIsPending={deleteMediaType.isPending}
+          deleteError={deleteMediaType.isError ? deleteMediaType.error.message : null}
+        >
+          <MediaTypeGeneralForm mediaType={mediaType} />
+        </PanelEntityEditor>
+      )}
     </WithPanelItem>
   );
 }

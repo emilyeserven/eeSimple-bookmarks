@@ -8,7 +8,8 @@ import { MonitorPlay } from "lucide-react";
 import { WithPanelItem } from "./status";
 import { useYouTubeChannels } from "../../../hooks/useYouTubeChannels";
 import { YouTubeChannelCard } from "../../YouTubeChannelCard";
-import { YouTubeChannelRow } from "../../YouTubeChannelRow";
+import { YouTubeChannelGeneralForm } from "../../YouTubeChannelGeneralForm";
+import { PanelEntityEditor } from "../PanelEntityEditor";
 
 function useYouTubeChannelList() {
   const {
@@ -47,7 +48,7 @@ function YouTubeChannelView({
   );
 }
 
-/** Inline channel editor, reusing the same `YouTubeChannelRow` the settings and edit pages use. */
+/** Channel editor, reusing the same auto-save `YouTubeChannelGeneralForm` the edit tab renders. */
 function YouTubeChannelEdit({
   id,
 }: {
@@ -60,7 +61,11 @@ function YouTubeChannelEdit({
       id={id}
       notFoundMessage="Channel not found."
     >
-      {channel => <YouTubeChannelRow channel={channel} />}
+      {channel => (
+        <PanelEntityEditor name={channel.name}>
+          <YouTubeChannelGeneralForm channel={channel} />
+        </PanelEntityEditor>
+      )}
     </WithPanelItem>
   );
 }

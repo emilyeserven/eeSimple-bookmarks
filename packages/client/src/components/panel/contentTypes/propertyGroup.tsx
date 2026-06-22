@@ -6,9 +6,11 @@ import { useMemo } from "react";
 import { Layers } from "lucide-react";
 
 import { WithPanelItem } from "./status";
-import { usePropertyGroups } from "../../../hooks/usePropertyGroups";
+import { useDeletePropertyGroup, usePropertyGroups } from "../../../hooks/usePropertyGroups";
 import { PropertyGroupCard } from "../../PropertyGroupCard";
-import { PropertyGroupRow } from "../../PropertyGroupRow";
+import { PropertyGroupGeneralForm } from "../../PropertyGroupGeneralForm";
+import { PanelEntityEditor } from "../PanelEntityEditor";
+import { usePanelDismissAfterDelete } from "../usePanelDismissAfterDelete";
 
 function usePropertyGroupList() {
   const {
@@ -47,20 +49,33 @@ function PropertyGroupView({
   );
 }
 
-/** Inline property-group editor, reusing the same `PropertyGroupRow` the settings and edit pages use. */
+/** Property-group editor, reusing the same auto-save `PropertyGroupGeneralForm` the edit tab renders. */
 function PropertyGroupEdit({
   id,
 }: {
   id: string;
 }) {
   const query = usePropertyGroups();
+  const deleteGroup = useDeletePropertyGroup();
+  const dismiss = usePanelDismissAfterDelete();
   return (
     <WithPanelItem
       queryResult={query}
       id={id}
       notFoundMessage="Property group not found."
     >
-      {group => <PropertyGroupRow group={group} />}
+      {group => (
+        <PanelEntityEditor
+          name={group.name}
+          onDelete={() => deleteGroup.mutate(group.id, {
+            onSuccess: dismiss,
+          })}
+          deleteIsPending={deleteGroup.isPending}
+          deleteError={deleteGroup.isError ? deleteGroup.error.message : null}
+        >
+          <PropertyGroupGeneralForm group={group} />
+        </PanelEntityEditor>
+      )}
     </WithPanelItem>
   );
 }
