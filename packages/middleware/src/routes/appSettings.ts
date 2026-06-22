@@ -1,12 +1,12 @@
 import type {
-  NewsletterBlacklistEntry,
+  ImportBlacklistEntry,
   UpdateAdvancedSettingsInput,
   UpdateAutomationInput,
   UpdateDisplayPreferenceInput,
   UpdateHomepageContentInput,
   UpdateSidebarCustomizationInput,
 } from "@eesimple/types";
-import { NEWSLETTER_BLACKLIST_KINDS } from "@eesimple/types";
+import { IMPORT_BLACKLIST_KINDS } from "@eesimple/types";
 import type { FastifyInstance } from "fastify";
 import { getDatabaseUsageReport } from "@/services/databaseUsage";
 import {
@@ -14,14 +14,14 @@ import {
   getAutomationSettings,
   getDisplayPreferenceSettings,
   getHomepageContentSettings,
-  getNewsletterBlacklist,
+  getImportBlacklist,
   getShortenerIgnoreList,
   getSidebarCustomizationSettings,
   updateAdvancedSettings,
   updateAutomationSettings,
   updateDisplayPreferenceSettings,
   updateHomepageContentSettings,
-  updateNewsletterBlacklist,
+  updateImportBlacklist,
   updateShortenerIgnoreList,
   updateSidebarCustomizationSettings,
 } from "@/services/appSettings";
@@ -47,7 +47,7 @@ const ignoreListBody = {
   },
 } as const;
 
-const newsletterBlacklistBody = {
+const importBlacklistBody = {
   type: "object",
   required: ["entries"],
   additionalProperties: false,
@@ -61,7 +61,7 @@ const newsletterBlacklistBody = {
         properties: {
           kind: {
             type: "string",
-            enum: [...NEWSLETTER_BLACKLIST_KINDS],
+            enum: [...IMPORT_BLACKLIST_KINDS],
           },
           value: {
             type: "string",
@@ -248,22 +248,22 @@ export async function appSettingsRoutes(app: FastifyInstance): Promise<void> {
     return updateShortenerIgnoreList(domains);
   });
 
-  app.get("/api/app-settings/newsletter-blacklist", {
+  app.get("/api/app-settings/import-blacklist", {
     schema: {
       tags: ["app-settings"],
     },
-  }, async () => getNewsletterBlacklist());
+  }, async () => getImportBlacklist());
 
-  app.put("/api/app-settings/newsletter-blacklist", {
+  app.put("/api/app-settings/import-blacklist", {
     schema: {
       tags: ["app-settings"],
-      body: newsletterBlacklistBody,
+      body: importBlacklistBody,
     },
   }, async (req) => {
     const {
       entries,
-    } = req.body as { entries: NewsletterBlacklistEntry[] };
-    return updateNewsletterBlacklist(entries);
+    } = req.body as { entries: ImportBlacklistEntry[] };
+    return updateImportBlacklist(entries);
   });
 
   app.get("/api/app-settings/homepage-content", {

@@ -1,18 +1,18 @@
-import type { IngestSource } from "./newsletterImportFormSchema";
+import type { IngestSource } from "./importFormSchema";
 
 import { useRef, useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
 
 import { AddNewsletterModal } from "./AddNewsletterModal";
+import { importFormSchema } from "./importFormSchema";
 import { NewsletterFileField } from "./NewsletterFileField";
-import { newsletterImportSchema } from "./newsletterImportFormSchema";
 import { useCategories } from "../hooks/useCategories";
 import {
   useIngestPaste,
   useIngestUpload,
   useIngestUrl,
-} from "../hooks/useNewsletterImports";
+} from "../hooks/useImports";
 import { useNewsletters } from "../hooks/useNewsletters";
 import { ApiError } from "../lib/apiError";
 import { useAppForm } from "../lib/form";
@@ -38,11 +38,10 @@ const SOURCE_OPTIONS: { value: IngestSource;
 ];
 
 /**
- * Submit-style create form for a newsletter import (the create-flow exception — not auto-save). Picks
- * one of three ingest sources, then funnels into the matching ingest mutation and navigates to the new
- * import's review queue.
+ * Submit-style create form for an import (the create-flow exception — not auto-save). Picks one of
+ * three ingest sources, then funnels into the matching ingest mutation and navigates to the Inbox.
  */
-export function NewsletterImportForm({
+export function ImportForm({
   initialNewsletterId = null,
 }: {
   /** Preselect a newsletter (e.g. when arriving from a newsletter's "Import an issue" link). */
@@ -88,7 +87,7 @@ export function NewsletterImportForm({
       categoryId: "",
     },
     validators: {
-      onChange: newsletterImportSchema,
+      onChange: importFormSchema,
     },
     onSubmit: async ({
       value,
@@ -123,14 +122,11 @@ export function NewsletterImportForm({
         const count = result.items.length;
         notifySuccess(`Imported ${count} link${count === 1 ? "" : "s"} for review`);
         void go({
-          to: "/newsletters/$importId",
-          params: {
-            importId: result.id,
-          },
+          to: "/inbox",
         });
       }
       catch (err) {
-        notifyError(err instanceof ApiError ? err.message : "Couldn't import that newsletter.");
+        notifyError(err instanceof ApiError ? err.message : "Couldn't import those links.");
       }
     },
   });

@@ -242,7 +242,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
         mediaTypeId,
         youtubeChannelId,
         newsletterId: input.newsletterId ?? null,
-        newsletterImportId: input.newsletterImportId ?? null,
+        importId: input.importId ?? null,
         priority: input.priority ?? 0,
       })
       .returning({

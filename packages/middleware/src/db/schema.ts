@@ -1,6 +1,6 @@
 import { relations, sql } from "drizzle-orm";
 import { type AnyPgColumn, boolean, integer, jsonb, pgTable, primaryKey, real, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
-import type { CardFieldZones, CardZoneLayouts, ConditionTree, NewsletterBlacklistEntry, ShortenedLink, WebsiteParamRule } from "@eesimple/types";
+import type { CardFieldZones, CardZoneLayouts, ConditionTree, ImportBlacklistEntry, ShortenedLink, WebsiteParamRule } from "@eesimple/types";
 
 /** `bookmarks` table — one row per saved bookmark. Tags now live in `bookmark_tags`. */
 export const bookmarks = pgTable("bookmarks", {
@@ -40,10 +40,10 @@ export const bookmarks = pgTable("bookmarks", {
   newsletterId: uuid("newsletter_id").references((): AnyPgColumn => newsletters.id, {
     onDelete: "set null",
   }),
-  // The newsletter issue (= the import) this bookmark belongs to. Set on approval of a newsletter
-  // import item, or manually from the issue page. Nullable; `set null` so deleting an import/issue is
-  // non-destructive.
-  newsletterImportId: uuid("newsletter_import_id").references((): AnyPgColumn => newsletterImports.id, {
+  // The import event this bookmark was created from. Set on approval of an import item, or manually
+  // from the issue page. Nullable; `set null` so deleting an import is non-destructive. Renamed from
+  // `newsletter_import_id` via a guarded `migrate.ts` step.
+  importId: uuid("import_id").references((): AnyPgColumn => imports.id, {
     onDelete: "set null",
   }),
   priority: integer("priority").notNull().default(0),
@@ -493,9 +493,9 @@ export const bookmarksRelations = relations(bookmarks, ({
     fields: [bookmarks.newsletterId],
     references: [newsletters.id],
   }),
-  newsletterIssue: one(newsletterImports, {
-    fields: [bookmarks.newsletterImportId],
-    references: [newsletterImports.id],
+  import: one(imports, {
+    fields: [bookmarks.importId],
+    references: [imports.id],
   }),
   bookmarkTags: many(bookmarkTags),
   image: one(bookmarkImages),
@@ -859,10 +859,10 @@ export const appSettings = pgTable("app_settings", {
   id: integer("id").primaryKey().default(1),
   // Generic URL-shortener domains (e.g. bit.ly) that can't be expanded to a vendor; always nudge.
   shortenerIgnoreList: jsonb("shortener_ignore_list").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
-  // Newsletter scan blacklist: links matching these entries are dropped from future newsletter
-  // scans. NOT NULL on the populated app_settings table → pre-applied in migrate.ts to keep push
-  // additive (see the ADD COLUMN IF NOT EXISTS step).
-  newsletterBlacklist: jsonb("newsletter_blacklist").$type<NewsletterBlacklistEntry[]>().notNull().default(sql`'[]'::jsonb`),
+  // Imports blacklist: links matching these entries are dropped from future imports. NOT NULL on the
+  // populated app_settings table → pre-applied in migrate.ts to keep push additive (renamed from
+  // `newsletter_blacklist` via a guarded migrate.ts step; see the ADD COLUMN / RENAME steps).
+  importBlacklist: jsonb("import_blacklist").$type<ImportBlacklistEntry[]>().notNull().default(sql`'[]'::jsonb`),
   // Markdown rendered at the top of the homepage.
   homepageText: text("homepage_text").notNull().default(""),
   // Desktop width of the homepage text block: "full" | "half".
@@ -1001,11 +1001,13 @@ export const cardDisplayRules = pgTable("card_display_rules", {
 });
 
 /**
- * `newsletter_imports` — one row per newsletter ingest event (paste / fetched URL / uploaded file).
- * Groups the extracted candidate links (`newsletter_import_items`) so the review queue can show
- * "review this newsletter's N links". A brand-new table → push-safe additive, no migrate.ts step.
+ * `imports` — one row per ingest event (paste / fetched URL / uploaded file). Groups the extracted
+ * candidate links (`import_items`) so the Inbox review queue can show "review this import's N links".
+ * An import optionally belongs to a newsletter publication (its one source today); later sources
+ * (e.g. listicles) reuse the same table with `newsletterId` null. Renamed from `newsletter_imports`
+ * via a guarded `migrate.ts` step.
  */
-export const newsletterImports = pgTable("newsletter_imports", {
+export const imports = pgTable("imports", {
   id: uuid("id").primaryKey().defaultRandom(),
   // "paste" | "url" | "upload" — text so a new ingest source needs no migration (mirrors bookmark_images.source).
   source: text("source").notNull(),
@@ -1030,26 +1032,26 @@ export const newsletterImports = pgTable("newsletter_imports", {
 });
 
 /**
- * `newsletter_import_items` — one extracted candidate article link per row, awaiting review. Nothing
- * here is a real bookmark: approving an item creates one via the bookmark service. Staging-only data,
- * so writes here never touch the bookmark evaluation cache. Push-safe additive (new table; all
- * columns nullable or defaulted; `status`/`source` are text so new states need no migration).
+ * `import_items` — one extracted candidate article link per row, awaiting review in the Inbox.
+ * Nothing here is a real bookmark: approving an item creates one via the bookmark service and flags
+ * the item for deletion. Staging-only data, so writes here never touch the bookmark evaluation cache.
+ * Renamed from `newsletter_import_items` via a guarded `migrate.ts` step.
  */
-export const newsletterImportItems = pgTable("newsletter_import_items", {
+export const importItems = pgTable("import_items", {
   id: uuid("id").primaryKey().defaultRandom(),
-  importId: uuid("import_id").notNull().references(() => newsletterImports.id, {
+  importId: uuid("import_id").notNull().references(() => imports.id, {
     onDelete: "cascade",
   }),
   // The URL we'll save — the original link after redirect-unwrap + canonicalize. NULL when unwrap
   // failed (the row is kept for review with status = "error").
   url: text("url"),
-  // The original (possibly tracker-wrapped) href as extracted from the newsletter.
+  // The original (possibly tracker-wrapped) href as extracted from the source.
   rawUrl: text("raw_url").notNull(),
   // Seed title (anchor text, later overwritten by enrichment or a user edit).
   title: text("title"),
   description: text("description"),
   imageUrl: text("image_url"),
-  // The surrounding newsletter passage (paragraph + nearest heading) the link was found in. Nullable.
+  // The surrounding source passage (paragraph + nearest heading) the link was found in. Nullable.
   newsletterContext: text("newsletter_context"),
   // The visible anchor text the link was extracted from.
   anchorText: text("anchor_text"),
@@ -1057,8 +1059,12 @@ export const newsletterImportItems = pgTable("newsletter_import_items", {
   categoryId: uuid("category_id").references((): AnyPgColumn => categories.id, {
     onDelete: "set null",
   }),
-  // "pending" | "approved" | "rejected" | "duplicate" | "error" — text so new states need no migration.
+  // "pending" | "approved" | "rejected" | "duplicate" | "error" | "blocked" — text so new states need no migration.
   status: text("status").notNull().default("pending"),
+  // Flagged for deletion once a bookmark has been created from it (or it was blocked). The Import
+  // Settings purge sweeps marked-for-deletion + blocked rows. NOT NULL DEFAULT false → pre-applied in
+  // migrate.ts to keep push additive (see the ADD COLUMN IF NOT EXISTS step).
+  markedForDeletion: boolean("marked_for_deletion").notNull().default(false),
   // When status = "duplicate", the existing bookmark this collided with. `set null` so deleting it
   // doesn't cascade away the staged row.
   duplicateBookmarkId: uuid("duplicate_bookmark_id").references((): AnyPgColumn => bookmarks.id, {
@@ -1075,24 +1081,24 @@ export const newsletterImportItems = pgTable("newsletter_import_items", {
   }).notNull().defaultNow(),
 });
 
-export const newsletterImportsRelations = relations(newsletterImports, ({
+export const importsRelations = relations(imports, ({
   one,
   many,
 }) => ({
-  items: many(newsletterImportItems),
+  items: many(importItems),
   newsletter: one(newsletters, {
-    fields: [newsletterImports.newsletterId],
+    fields: [imports.newsletterId],
     references: [newsletters.id],
   }),
   bookmarks: many(bookmarks),
 }));
 
-export const newsletterImportItemsRelations = relations(newsletterImportItems, ({
+export const importItemsRelations = relations(importItems, ({
   one,
 }) => ({
-  import: one(newsletterImports, {
-    fields: [newsletterImportItems.importId],
-    references: [newsletterImports.id],
+  import: one(imports, {
+    fields: [importItems.importId],
+    references: [imports.id],
   }),
 }));
 
@@ -1477,8 +1483,8 @@ export type CategoryNumberDefaultRow = typeof categoryNumberDefaults.$inferSelec
 export type CategoryBooleanDefaultRow = typeof categoryBooleanDefaults.$inferSelect;
 export type CategoryDateTimeDefaultRow = typeof categoryDateTimeDefaults.$inferSelect;
 export type SavedFilterRow = typeof savedFilters.$inferSelect;
-export type NewsletterImportRow = typeof newsletterImports.$inferSelect;
-export type NewsletterImportItemRow = typeof newsletterImportItems.$inferSelect;
+export type ImportRow = typeof imports.$inferSelect;
+export type ImportItemRow = typeof importItems.$inferSelect;
 
 /**
  * `custom_aspect_ratios` — user-defined named aspect ratios that appear alongside the built-in

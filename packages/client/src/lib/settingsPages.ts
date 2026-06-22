@@ -7,6 +7,7 @@ import {
   FolderOpen,
   Globe,
   Image,
+  Inbox,
   Layers,
   LayoutGrid,
   LayoutTemplate,
@@ -81,6 +82,11 @@ export const SETTINGS_PAGES: readonly SettingsPage[] = [
     path: "/settings/link-parsing",
     label: "Link Parsing",
     icon: Link2,
+  },
+  {
+    path: "/settings/imports",
+    label: "Import Settings",
+    icon: Inbox,
   },
   {
     path: "/settings/more-categories",

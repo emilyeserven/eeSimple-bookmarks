@@ -1,10 +1,10 @@
-import type { NewsletterImportItemStatus, NewsletterImportSummary } from "@eesimple/types";
+import type { ImportItemStatus, ImportSummary } from "@eesimple/types";
 
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { Mail, Trash2 } from "lucide-react";
 
 import { StandardListingCard } from "../components/StandardListingCard";
-import { useDeleteNewsletterImport, useNewsletterIssues } from "../hooks/useNewsletterImports";
+import { useDeleteImport, useNewsletterIssues } from "../hooks/useImports";
 import { useNewsletterBySlug } from "../hooks/useNewsletters";
 import { notifySuccess } from "../lib/notifications";
 
@@ -14,17 +14,18 @@ export const Route = createFileRoute("/taxonomies/newsletters/$newsletterSlug/")
   component: NewsletterIssuesPage,
 });
 
-const STATUS_LABELS: Partial<Record<NewsletterImportItemStatus, string>> = {
+const STATUS_LABELS: Partial<Record<ImportItemStatus, string>> = {
   pending: "pending",
   approved: "added",
   duplicate: "duplicate",
   rejected: "rejected",
   error: "error",
+  blocked: "blocked",
 };
 
 /** A short "8 pending · 3 added" summary from an issue's per-status counts. */
-function summaryLine(summary: NewsletterImportSummary): string {
-  const parts = (Object.keys(STATUS_LABELS) as NewsletterImportItemStatus[])
+function summaryLine(summary: ImportSummary): string {
+  const parts = (Object.keys(STATUS_LABELS) as ImportItemStatus[])
     .filter(status => summary.statusCounts[status] > 0)
     .map(status => `${summary.statusCounts[status]} ${STATUS_LABELS[status]}`);
   return parts.length > 0 ? parts.join(" · ") : "No links extracted";
@@ -40,7 +41,7 @@ function NewsletterIssuesPage() {
   const {
     data: issues, isLoading: issuesLoading,
   } = useNewsletterIssues(newsletter?.id ?? "");
-  const removeIssue = useDeleteNewsletterImport();
+  const removeIssue = useDeleteImport();
 
   if (newsletterLoading) return <p className="text-muted-foreground">Loading newsletter…</p>;
   if (!newsletter) return <p className="text-destructive">Newsletter not found.</p>;
@@ -68,7 +69,7 @@ function NewsletterIssuesPage() {
             size="sm"
           >
             <Link
-              to="/newsletters/new"
+              to="/inbox/new"
               search={{
                 newsletterId: newsletter.id,
               }}

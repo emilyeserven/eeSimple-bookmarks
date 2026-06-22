@@ -3,6 +3,7 @@ import {
   Bookmark,
   Filter,
   Image,
+  Inbox,
   LayoutGrid,
   LayoutTemplate,
   Link2,
@@ -69,6 +70,12 @@ const SETTINGS_TILES = [
     description: "Configure URL parsing and link shorteners.",
     icon: Link2,
     to: "/settings/link-parsing" as const,
+  },
+  {
+    label: "Import Settings",
+    description: "Manage the imports blacklist and clear processed inbox items.",
+    icon: Inbox,
+    to: "/settings/imports" as const,
   },
   {
     label: "Categories",

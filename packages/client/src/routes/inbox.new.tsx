@@ -1,18 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 
-import { NewsletterImportForm } from "../components/NewsletterImportForm";
+import { ImportForm } from "../components/ImportForm";
 
 import { Button } from "@/components/ui/button";
 
-export const Route = createFileRoute("/newsletters/new")({
+export const Route = createFileRoute("/inbox/new")({
   validateSearch: (search: Record<string, unknown>): { newsletterId?: string } => ({
     newsletterId: typeof search.newsletterId === "string" ? search.newsletterId : undefined,
   }),
-  component: NewsletterNewPage,
+  component: InboxNewPage,
 });
 
-function NewsletterNewPage() {
+function InboxNewPage() {
   const {
     newsletterId,
   } = Route.useSearch();
@@ -25,19 +25,19 @@ function NewsletterNewPage() {
           size="sm"
           className="-ml-2"
         >
-          <Link to="/newsletters">
+          <Link to="/inbox">
             <ArrowLeft className="size-4" />
-            Back to imports
+            Back to inbox
           </Link>
         </Button>
-        <h2 className="text-xl font-semibold">New newsletter import</h2>
+        <h2 className="text-xl font-semibold">Add import</h2>
         <p className="text-sm text-muted-foreground">
           Paste a newsletter, fetch its public &ldquo;view in browser&rdquo; URL, or upload a saved
-          .eml / .html file. Article links are extracted and tracker redirects resolved for review.
+          .eml / .html file. Links are extracted and tracker redirects resolved for review in your inbox.
         </p>
       </div>
 
-      <NewsletterImportForm initialNewsletterId={newsletterId ?? null} />
+      <ImportForm initialNewsletterId={newsletterId ?? null} />
     </section>
   );
 }

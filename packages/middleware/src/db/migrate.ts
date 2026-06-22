@@ -473,13 +473,93 @@ const migrations: RuntimeMigration[] = [
     `),
   },
   {
-    // `app_settings.newsletter_blacklist` is NOT NULL jsonb DEFAULT '[]'. Adding a NOT NULL column to
-    // the populated singleton `app_settings` table makes drizzle-kit push prompt (non-TTY crash), so
-    // pre-apply it here to keep push's diff additive-only. Default must match schema.ts exactly.
-    name: "add app_settings.newsletter_blacklist column",
+    // The "newsletter scan blacklist" was generalized into the "Imports Blacklist": the column was
+    // renamed `newsletter_blacklist` → `import_blacklist`. Existing installs carry the old column with
+    // data, so RENAME it (preserving entries) before push sees the renamed schema; fresh installs (or
+    // ones that never had the blacklist) get it ADDed. It is NOT NULL jsonb DEFAULT '[]', which would
+    // make push prompt on the populated singleton (non-TTY crash), so pre-apply here either way. Both
+    // executes are single statements and idempotently guarded. Default must match schema.ts exactly.
+    name: "rename/add app_settings.import_blacklist column",
+    run: async (db) => {
+      await db.execute(sql`
+        DO $$ BEGIN
+          IF EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_name = 'app_settings' AND column_name = 'newsletter_blacklist'
+          ) AND NOT EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_name = 'app_settings' AND column_name = 'import_blacklist'
+          ) THEN
+            ALTER TABLE "app_settings" RENAME COLUMN "newsletter_blacklist" TO "import_blacklist";
+          END IF;
+        END $$
+      `);
+      await db.execute(sql`
+        ALTER TABLE IF EXISTS "app_settings"
+          ADD COLUMN IF NOT EXISTS "import_blacklist" jsonb NOT NULL DEFAULT '[]'::jsonb
+      `);
+    },
+  },
+  {
+    // Newsletter Imports were generalized into "Imports": rename the staging tables
+    // `newsletter_imports` → `imports` and `newsletter_import_items` → `import_items`, preserving all
+    // rows. Renames are destructive/push-incompatible (push can't converge them non-interactively), so
+    // do them here before push. Guarded by `to_regclass` so each fires only when the old table exists
+    // and the new one doesn't — a no-op once renamed and on fresh installs (push creates the new names
+    // directly). One `DO $$…$$` block = a single statement. Postgres keeps each table's rows, indexes,
+    // and FK *targets* across a table rename; push then reconciles the auto-generated FK constraint
+    // *names* additively (an FK drop+recreate, which never prompts and preserves data).
+    name: "rename newsletter_imports table to imports",
     run: db => db.execute(sql`
-      ALTER TABLE IF EXISTS "app_settings"
-        ADD COLUMN IF NOT EXISTS "newsletter_blacklist" jsonb NOT NULL DEFAULT '[]'::jsonb
+      DO $$ BEGIN
+        IF to_regclass('public.newsletter_imports') IS NOT NULL
+           AND to_regclass('public.imports') IS NULL THEN
+          ALTER TABLE "newsletter_imports" RENAME TO "imports";
+        END IF;
+      END $$
+    `),
+  },
+  {
+    name: "rename newsletter_import_items table to import_items",
+    run: db => db.execute(sql`
+      DO $$ BEGIN
+        IF to_regclass('public.newsletter_import_items') IS NOT NULL
+           AND to_regclass('public.import_items') IS NULL THEN
+          ALTER TABLE "newsletter_import_items" RENAME TO "import_items";
+        END IF;
+      END $$
+    `),
+  },
+  {
+    // `import_items.marked_for_deletion` flags an item whose bookmark has been created (or that was
+    // blocked) so the Import Settings purge can sweep it. NOT NULL DEFAULT false would make push prompt
+    // on a populated table, so pre-apply here. Runs after the table rename above so `import_items`
+    // exists; on fresh installs the table doesn't exist yet (IF EXISTS skips) and push creates it with
+    // the column from schema.ts.
+    name: "add import_items.marked_for_deletion column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "import_items"
+        ADD COLUMN IF NOT EXISTS "marked_for_deletion" boolean NOT NULL DEFAULT false
+    `),
+  },
+  {
+    // Rename the bookmarks FK column `newsletter_import_id` → `import_id` (the import a bookmark was
+    // created from), preserving values. Guarded so it fires only on existing installs that still carry
+    // the old column; fresh installs get `import_id` from push. push reconciles the FK constraint name
+    // additively afterward.
+    name: "rename bookmarks.newsletter_import_id column to import_id",
+    run: db => db.execute(sql`
+      DO $$ BEGIN
+        IF EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'bookmarks' AND column_name = 'newsletter_import_id'
+        ) AND NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'bookmarks' AND column_name = 'import_id'
+        ) THEN
+          ALTER TABLE "bookmarks" RENAME COLUMN "newsletter_import_id" TO "import_id";
+        END IF;
+      END $$
     `),
   },
 ];

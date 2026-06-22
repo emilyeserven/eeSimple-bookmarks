@@ -403,6 +403,16 @@ function breadcrumbsForPath(pathname: string, ctx: BreadcrumbContext): Breadcrum
   }];
   if (pathname.startsWith("/bookmarks/"))
     return bookmarkCrumbs(pathname, ctx.bookmarkData);
+  if (pathname === "/inbox") return [{
+    label: "Inbox",
+  }];
+  if (pathname === "/inbox/new")
+    return [{
+      label: "Inbox",
+      href: "/inbox",
+    }, {
+      label: "Add import",
+    }];
   if (pathname.startsWith("/settings")) return settingsCrumbs(pathname);
   if (pathname === "/tags" || pathname.startsWith("/tags/")) return tagCrumbs(pathname, ctx.tagAncestors);
   // Media-type detail/edit pages get a tree ancestor chain (the bare listing stays on the descriptor).

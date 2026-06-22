@@ -5,9 +5,9 @@ import type {
   BookmarkDateTimeValue,
   BookmarkFileValue,
   BookmarkImage,
+  BookmarkImport,
   BookmarkMediaType,
   BookmarkNewsletter,
-  BookmarkNewsletterIssue,
   BookmarkNumberValue,
   BookmarkRelationship,
   BookmarkTag,
@@ -26,8 +26,8 @@ import {
   bookmarks,
   type BookmarkRow,
   bookmarkTags,
+  imports,
   mediaTypes,
-  newsletterImports,
   newsletters,
   relationshipTypes,
   tags,
@@ -47,7 +47,7 @@ interface BookmarkExtras {
   mediaType: BookmarkMediaType | null;
   youtubeChannel: BookmarkYouTubeChannel | null;
   newsletter: BookmarkNewsletter | null;
-  newsletterIssue: BookmarkNewsletterIssue | null;
+  import: BookmarkImport | null;
   tags: BookmarkTag[];
   numberValues: BookmarkNumberValue[];
   booleanValues: BookmarkBooleanValue[];
@@ -62,7 +62,7 @@ const EMPTY_EXTRAS: BookmarkExtras = {
   mediaType: null,
   youtubeChannel: null,
   newsletter: null,
-  newsletterIssue: null,
+  import: null,
   tags: [],
   numberValues: [],
   booleanValues: [],
@@ -86,7 +86,7 @@ function toBookmark(row: BookmarkRow, extras: BookmarkExtras, defaultCategoryId:
     mediaType: extras.mediaType,
     youtubeChannel: extras.youtubeChannel,
     newsletter: extras.newsletter,
-    newsletterIssue: extras.newsletterIssue,
+    import: extras.import,
     tags: extras.tags,
     numberValues: extras.numberValues,
     booleanValues: extras.booleanValues,
@@ -213,19 +213,19 @@ async function newslettersById(newsletterIds: string[]): Promise<Map<string, Boo
   return byId;
 }
 
-/** Load newsletter issues (= imports) for a set of import ids, keyed by import id. */
-async function newsletterIssuesById(importIds: string[]): Promise<Map<string, BookmarkNewsletterIssue>> {
-  const byId = new Map<string, BookmarkNewsletterIssue>();
+/** Load import events for a set of import ids, keyed by import id. */
+async function importsById(importIds: string[]): Promise<Map<string, BookmarkImport>> {
+  const byId = new Map<string, BookmarkImport>();
   if (importIds.length === 0) return byId;
 
   const rows = await db
     .select({
-      id: newsletterImports.id,
-      title: newsletterImports.title,
-      createdAt: newsletterImports.createdAt,
+      id: imports.id,
+      title: imports.title,
+      createdAt: imports.createdAt,
     })
-    .from(newsletterImports)
-    .where(inArray(newsletterImports.id, importIds));
+    .from(imports)
+    .where(inArray(imports.id, importIds));
 
   for (const row of rows) {
     byId.set(row.id, {
@@ -490,7 +490,7 @@ async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
       mediaType: null,
       youtubeChannel: null,
       newsletter: null,
-      newsletterIssue: null,
+      import: null,
       tags: tagsMap.get(id) ?? [],
       numberValues: numberMap.get(id) ?? [],
       booleanValues: booleanMap.get(id) ?? [],
@@ -511,14 +511,14 @@ export async function hydrateBookmarkRows(rows: BookmarkRow[]): Promise<Bookmark
   const mediaTypeIds = [...new Set(rows.map(row => row.mediaTypeId).filter((id): id is string => id !== null))];
   const channelIds = [...new Set(rows.map(row => row.youtubeChannelId).filter((id): id is string => id !== null))];
   const newsletterIds = [...new Set(rows.map(row => row.newsletterId).filter((id): id is string => id !== null))];
-  const issueIds = [...new Set(rows.map(row => row.newsletterImportId).filter((id): id is string => id !== null))];
-  const [grouped, websiteMap, mediaTypeMap, channelMap, newsletterMap, issueMap] = await Promise.all([
+  const issueIds = [...new Set(rows.map(row => row.importId).filter((id): id is string => id !== null))];
+  const [grouped, websiteMap, mediaTypeMap, channelMap, newsletterMap, importMap] = await Promise.all([
     extrasByBookmarkId(rows.map(row => row.id)),
     websitesById(websiteIds),
     mediaTypesById(mediaTypeIds),
     channelsById(channelIds),
     newslettersById(newsletterIds),
-    newsletterIssuesById(issueIds),
+    importsById(issueIds),
   ]);
   return rows.map((row) => {
     const extras = grouped.get(row.id) ?? EMPTY_EXTRAS;
@@ -528,7 +528,7 @@ export async function hydrateBookmarkRows(rows: BookmarkRow[]): Promise<Bookmark
       mediaType: row.mediaTypeId ? mediaTypeMap.get(row.mediaTypeId) ?? null : null,
       youtubeChannel: row.youtubeChannelId ? channelMap.get(row.youtubeChannelId) ?? null : null,
       newsletter: row.newsletterId ? newsletterMap.get(row.newsletterId) ?? null : null,
-      newsletterIssue: row.newsletterImportId ? issueMap.get(row.newsletterImportId) ?? null : null,
+      import: row.importId ? importMap.get(row.importId) ?? null : null,
     }, defaultCategoryId);
   });
 }

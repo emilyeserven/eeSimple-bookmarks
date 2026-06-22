@@ -2,7 +2,7 @@ import type { Bookmark } from "@eesimple/types";
 
 import { useMemo, useState } from "react";
 
-import { useAddIssueBookmarks, useRemoveIssueBookmarks } from "../hooks/useNewsletterImports";
+import { useAddIssueBookmarks, useRemoveIssueBookmarks } from "../hooks/useImports";
 import { notifySuccess } from "../lib/notifications";
 
 import { Button } from "@/components/ui/button";

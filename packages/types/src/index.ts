@@ -7,10 +7,11 @@
 
 import type { ConditionMatchField, ConditionMatchOperator, ConditionTree } from "./conditions.js";
 import type { CustomPropertyType, DateTimeFormat, NumberFormat } from "./customProperties.js";
+import type { ImportBlacklistKind } from "./importBlacklist.js";
 
 export * from "./conditions.js";
 export * from "./customProperties.js";
-export * from "./newsletterBlacklist.js";
+export * from "./importBlacklist.js";
 export * from "./urlCleanup.js";
 export * from "./youtube.js";
 
@@ -563,12 +564,12 @@ export type NewsletterCategory = Pick<Category, "id" | "name" | "slug" | "icon">
 /** Lightweight newsletter shape carried on a bookmark. */
 export type BookmarkNewsletter = Pick<Newsletter, "id" | "name" | "slug">;
 
-/** Lightweight newsletter-issue (= import) shape carried on a bookmark. */
-export interface BookmarkNewsletterIssue {
+/** Lightweight import shape carried on a bookmark (the import event it was created from). */
+export interface BookmarkImport {
   id: string;
-  /** The issue label (provided title / source URL / uploaded filename), or `null`. */
+  /** The import label (provided title / source URL / uploaded filename), or `null`. */
   title: string | null;
-  /** ISO-8601 timestamp of when the issue (import) was created. */
+  /** ISO-8601 timestamp of when the import was created. */
   createdAt: string;
 }
 
@@ -702,8 +703,8 @@ export interface Bookmark {
   youtubeChannel: BookmarkYouTubeChannel | null;
   /** The newsletter this bookmark was imported from, or `null`. */
   newsletter: BookmarkNewsletter | null;
-  /** The newsletter issue (= import) this bookmark belongs to, or `null`. */
-  newsletterIssue: BookmarkNewsletterIssue | null;
+  /** The import event this bookmark was created from, or `null`. */
+  import: BookmarkImport | null;
   /** Tags assigned to this bookmark, drawn from the taxonomy. */
   tags: BookmarkTag[];
   /** Number-typed custom property values (includes computed `calculate` results) assigned to this bookmark. */
@@ -758,8 +759,8 @@ export interface CreateBookmarkInput {
   youtubeChannel?: YouTubeChannelHint | null;
   /** Id of the newsletter (publication) this bookmark belongs to, or `null`. */
   newsletterId?: string | null;
-  /** Id of the newsletter issue (= import) this bookmark belongs to, or `null`. */
-  newsletterImportId?: string | null;
+  /** Id of the import event this bookmark was created from, or `null`. */
+  importId?: string | null;
 }
 
 /** Payload for partially updating a bookmark. */
@@ -836,41 +837,47 @@ export interface BulkUrlUpdateResult {
   message?: string;
 }
 
-// --- Newsletter ingest -----------------------------------------------------------------------
+// --- Imports (ingest) ------------------------------------------------------------------------
 
-/** Which ingest source produced a newsletter import. */
-export type NewsletterImportSource = "paste" | "url" | "upload";
+/** Which ingest source produced an import. */
+export type ImportSource = "paste" | "url" | "upload";
 
 /**
- * Status of a single extracted candidate link as it moves through the review queue:
+ * Status of a single extracted candidate link as it moves through the Inbox review queue:
  * - `pending` — extracted and awaiting review.
  * - `approved` — a real bookmark was created from it (`createdBookmarkId` set).
  * - `rejected` — the user dismissed it.
  * - `duplicate` — its URL already exists as a bookmark (`duplicateBookmarkId` set).
  * - `error` — approval failed for a non-duplicate reason (`errorReason` set).
+ * - `blocked` — the user blocked it (its URL was added to the Imports Blacklist).
  */
-export type NewsletterImportItemStatus
-  = "pending" | "approved" | "rejected" | "duplicate" | "error";
+export type ImportItemStatus
+  = "pending" | "approved" | "rejected" | "duplicate" | "error" | "blocked";
 
-/** One extracted candidate article link within a newsletter import. */
-export interface NewsletterImportItem {
+/** One extracted candidate article link within an import. */
+export interface ImportItem {
   id: string;
   importId: string;
   /** The URL we'll save: the original link after redirect-unwrap + canonicalize. */
   url: string | null;
-  /** The original (possibly tracker-wrapped) href as extracted from the newsletter. */
+  /** The original (possibly tracker-wrapped) href as extracted from the source. */
   rawUrl: string;
   /** Seed title — the anchor text, or an enriched page title. */
   title: string | null;
   description: string | null;
   imageUrl: string | null;
-  /** The surrounding newsletter passage (paragraph + nearest heading) the link was found in, or `null`. */
+  /** The surrounding source passage (paragraph + nearest heading) the link was found in, or `null`. */
   newsletterContext: string | null;
   /** The visible anchor text the link was extracted from. */
   anchorText: string | null;
   /** Per-item category override applied on approval; falls back to the import's default. */
   categoryId: string | null;
-  status: NewsletterImportItemStatus;
+  status: ImportItemStatus;
+  /**
+   * Once a bookmark has been created (or the item was blocked), the item is flagged for deletion and
+   * the Import Settings purge action sweeps it away. Stays visible in the Inbox until then.
+   */
+  markedForDeletion: boolean;
   /** When `status === "duplicate"`, the existing bookmark this collided with. */
   duplicateBookmarkId: string | null;
   /** When `status === "approved"`, the bookmark created from this item. */
@@ -880,41 +887,52 @@ export interface NewsletterImportItem {
   createdAt: string;
 }
 
-/** A newsletter import (= a newsletter "issue") with its extracted candidate items. */
-export interface NewsletterImport {
+/** An import event with its extracted candidate items. */
+export interface Import {
   id: string;
-  source: NewsletterImportSource;
+  source: ImportSource;
   /** Optional label (provided title, source post URL, or uploaded filename). */
   title: string | null;
   /** The fetched post URL (source = "url") or null. */
   sourceUrl: string | null;
-  /** The newsletter (publication) this import/issue belongs to, or `null`. */
+  /** The newsletter (publication) this import belongs to, or `null`. */
   newsletterId: string | null;
   /** Default category applied to every link approved from this import (per-item override wins). */
   defaultCategoryId: string | null;
   createdAt: string;
-  items: NewsletterImportItem[];
+  items: ImportItem[];
 }
 
-/** Per-status counts for a newsletter import (= issue), used by the list views (no items). */
-export interface NewsletterImportSummary {
+/** Per-status counts for an import, used by the list views (no items). */
+export interface ImportSummary {
   id: string;
-  source: NewsletterImportSource;
+  source: ImportSource;
   title: string | null;
   sourceUrl: string | null;
-  /** The newsletter (publication) this import/issue belongs to, or `null`. */
+  /** The newsletter (publication) this import belongs to, or `null`. */
   newsletterId: string | null;
   defaultCategoryId: string | null;
   createdAt: string;
   /** Total extracted items. */
   itemCount: number;
-  /** Items by status (`pending`/`approved`/`rejected`/`duplicate`/`error`). */
-  statusCounts: Record<NewsletterImportItemStatus, number>;
+  /** Items by status. */
+  statusCounts: Record<ImportItemStatus, number>;
+}
+
+/**
+ * An import item enriched with its parent import's source context, for the global Inbox list (whose
+ * rows come from many imports). Extends {@link ImportItem} with a human label of where it came from.
+ */
+export interface InboxItem extends ImportItem {
+  /** The import event's ingest source ("paste" | "url" | "upload"). */
+  importSource: ImportSource;
+  /** A short human label for the source — the newsletter name, or the import's title / source url. */
+  sourceLabel: string | null;
 }
 
 /** Body for the paste ingest endpoint. */
 export interface IngestPasteInput {
-  /** Raw newsletter HTML or plain text. */
+  /** Raw HTML or plain text. */
   content: string;
   /** How to parse `content`; defaults to `"auto"` (sniff for HTML tags). */
   kind?: "html" | "text" | "auto";
@@ -928,7 +946,7 @@ export interface IngestPasteInput {
 
 /** Body for the fetch-URL ingest endpoint. */
 export interface IngestUrlInput {
-  /** A public "view in browser" newsletter post URL to fetch and extract links from. */
+  /** A public "view in browser" post URL to fetch and extract links from. */
   url: string;
   /** The newsletter (publication) this import belongs to, or `null`. */
   newsletterId?: string | null;
@@ -937,7 +955,7 @@ export interface IngestUrlInput {
 }
 
 /** Patch for editing a staged candidate before approval. */
-export interface UpdateNewsletterImportItemInput {
+export interface UpdateImportItemInput {
   url?: string;
   title?: string | null;
   description?: string | null;
@@ -947,8 +965,20 @@ export interface UpdateNewsletterImportItemInput {
   status?: "pending" | "rejected";
 }
 
+/** Body for blocking a staged candidate: the blacklist entry to add. */
+export interface BlockImportItemInput {
+  kind: ImportBlacklistKind;
+  value: string;
+}
+
+/** Outcome of the Import Settings "delete processed items" purge. */
+export interface PurgeImportItemsResult {
+  /** Number of import items deleted (marked-for-deletion + blocked). */
+  deleted: number;
+}
+
 /** Per-item outcome of approving a staged candidate (mirrors the bulk-URL result shape). */
-export interface NewsletterApproveResult {
+export interface ImportApproveResult {
   itemId: string;
   status: "approved" | "duplicate" | "error" | "skipped";
   /** The created bookmark id when `status === "approved"`. */

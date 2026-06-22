@@ -1,33 +1,38 @@
 /**
- * Newsletter import orchestration: turn raw newsletter content into a reviewable queue of candidate
- * bookmarks, and approve/reject/edit those candidates. The pure extraction lives in
- * `newsletterIngest.ts` and the redirect resolution in `redirectUnwrap.ts`; this module wires them to
- * the DB and, on approval, to `createBookmark`.
+ * Import orchestration: turn raw content (a pasted/fetched/uploaded newsletter today; other link
+ * sources such as listicles later) into a reviewable Inbox queue of candidate bookmarks, and
+ * approve/reject/block/edit those candidates. The pure extraction lives in `newsletterIngest.ts` and
+ * the redirect resolution in `redirectUnwrap.ts`; this module wires them to the DB and, on approval,
+ * to `createBookmark`.
  *
  * Staging rows are NOT matchable bookmark data, so writes here never call `invalidateBookmarkCache`.
  * Only `createBookmark` (invoked on approve) touches the cache, which it already does internally.
  */
 
-import { and, asc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, or } from "drizzle-orm";
 import type {
-  NewsletterApproveResult,
-  NewsletterImport,
-  NewsletterImportItem,
-  NewsletterImportItemStatus,
-  NewsletterImportSource,
-  NewsletterImportSummary,
-  UpdateNewsletterImportItemInput,
+  ImportApproveResult,
+  ImportBlacklistEntry,
+  ImportItem,
+  ImportItemStatus,
+  ImportSource,
+  ImportSummary,
+  InboxItem,
+  Import as ImportRecord,
+  PurgeImportItemsResult,
+  UpdateImportItemInput,
 } from "@eesimple/types";
 import { canonicalize, isBlacklisted } from "@eesimple/types";
 import { db } from "@/db";
 import {
   bookmarks,
-  type NewsletterImportItemRow,
-  newsletterImportItems,
-  newsletterImports,
-  type NewsletterImportRow,
+  type ImportItemRow,
+  importItems,
+  imports,
+  type ImportRow,
+  newsletters,
 } from "@/db/schema";
-import { getNewsletterBlacklist, getShortenerIgnoreList } from "@/services/appSettings";
+import { addImportBlacklistEntry, getImportBlacklist, getShortenerIgnoreList } from "@/services/appSettings";
 import { checkBookmarkUrlDuplicate, createBookmark, DuplicateUrlError } from "@/services/bookmarks";
 import {
   extractCandidates,
@@ -55,18 +60,19 @@ import { listWebsites } from "@/services/websites";
 const FETCH_CONCURRENCY = 6;
 const ENRICH_CONCURRENCY = 5;
 
-const STATUS_KEYS: NewsletterImportItemStatus[] = [
+const STATUS_KEYS: ImportItemStatus[] = [
   "pending",
   "approved",
   "rejected",
   "duplicate",
   "error",
+  "blocked",
 ];
 
-/** What `ingestNewsletter` needs, regardless of which entry point produced it. */
+/** What `ingestImport` needs, regardless of which entry point produced it. */
 export interface IngestInput {
-  source: NewsletterImportSource;
-  /** Raw newsletter content (HTML or text). For `.eml` the caller extracts the HTML first. */
+  source: ImportSource;
+  /** Raw content (HTML or text). For `.eml` the caller extracts the HTML first. */
   content: string;
   kind: "html" | "text" | "auto";
   /** Explicit/parsed import label (e.g. a provided title or an `.eml` Subject); wins over parsing. */
@@ -74,7 +80,7 @@ export interface IngestInput {
   /** Fallback label (source URL / filename) used only when no title is provided or parsed. */
   titleFallback?: string | null;
   sourceUrl?: string | null;
-  /** The newsletter (publication) this import/issue belongs to, or `null`. */
+  /** The newsletter (publication) this import belongs to, or `null`. */
   newsletterId?: string | null;
   /** Default category applied to every link approved from this import. */
   defaultCategoryId?: string | null;
@@ -84,7 +90,7 @@ function isoOf(value: Date | string): string {
   return value instanceof Date ? value.toISOString() : String(value);
 }
 
-function toItem(row: NewsletterImportItemRow): NewsletterImportItem {
+function toItem(row: ImportItemRow): ImportItem {
   return {
     id: row.id,
     importId: row.importId,
@@ -96,7 +102,8 @@ function toItem(row: NewsletterImportItemRow): NewsletterImportItem {
     newsletterContext: row.newsletterContext,
     anchorText: row.anchorText,
     categoryId: row.categoryId,
-    status: row.status as NewsletterImportItemStatus,
+    status: row.status as ImportItemStatus,
+    markedForDeletion: row.markedForDeletion,
     duplicateBookmarkId: row.duplicateBookmarkId,
     createdBookmarkId: row.createdBookmarkId,
     errorReason: row.errorReason,
@@ -109,9 +116,9 @@ interface ResolvedCandidate {
   rawUrl: string;
   anchorText: string;
   url: string | null;
-  status: NewsletterImportItemStatus;
+  status: ImportItemStatus;
   errorReason: string | null;
-  /** The surrounding newsletter passage (paragraph + nearest heading), carried from extraction. */
+  /** The surrounding source passage (paragraph + nearest heading), carried from extraction. */
   context: string | null;
 }
 
@@ -214,7 +221,7 @@ async function enrichCandidate(
   };
   const image = extractImageUrl(html, item.url);
   return {
-    // Prefer the fetched page title (og:title/<title>); fall back to the newsletter anchor text.
+    // Prefer the fetched page title (og:title/<title>); fall back to the source anchor text.
     title: extractTitle(html) ?? seedTitle,
     description: extractDescription(html),
     imageUrl: image && isPublicHttpUrl(image) ? image : null,
@@ -222,15 +229,15 @@ async function enrichCandidate(
 }
 
 /**
- * Run the full ingest pipeline for one newsletter: extract → unwrap → canonicalize → dedupe →
+ * Run the full ingest pipeline for one import: extract → unwrap → canonicalize → dedupe →
  * pre-mark duplicates → enrich → persist. Returns the created import with its items.
  */
-export async function ingestNewsletter(input: IngestInput): Promise<NewsletterImport> {
+export async function ingestImport(input: IngestInput): Promise<ImportRecord> {
   const candidates = filterAndDedupe(extractCandidates(input.content, input.kind));
   const [websites, ignoreList, blacklist] = await Promise.all([
     listWebsites(),
     getShortenerIgnoreList(),
-    getNewsletterBlacklist(),
+    getImportBlacklist(),
   ]);
   const data = {
     mode: "trackers" as const,
@@ -246,7 +253,7 @@ export async function ingestNewsletter(input: IngestInput): Promise<NewsletterIm
   // Drop blacklisted links AND static-asset destinations (font/image files) AFTER resolution, so a
   // tracker-wrapped link is unwrapped to its real target first — the wrapper's path never ends in
   // `.woff`/`.png`, only the destination does. Dropped links are never staged, so they vanish from
-  // future scans.
+  // future imports.
   const resolved = dedupeResolved(
     resolvedAll.filter(
       item => item.url === null || (!isBlacklisted(item.url, blacklist) && !isAssetUrl(item.url)),
@@ -263,14 +270,14 @@ export async function ingestNewsletter(input: IngestInput): Promise<NewsletterIm
     entry => enrichCandidate(entry.item),
   );
 
-  // Import label: an explicit/parsed title wins, then a title parsed from the newsletter HTML
+  // Import label: an explicit/parsed title wins, then a title parsed from the source HTML
   // (og:title/<title>), then the URL/filename fallback.
   const parsedTitle = input.title == null && input.kind !== "text" ? extractTitle(input.content) : null;
   const title = input.title ?? parsedTitle ?? input.titleFallback ?? null;
 
   const importId = await db.transaction(async (tx) => {
     const [importRow] = await tx
-      .insert(newsletterImports)
+      .insert(imports)
       .values({
         source: input.source,
         title,
@@ -279,11 +286,11 @@ export async function ingestNewsletter(input: IngestInput): Promise<NewsletterIm
         defaultCategoryId: input.defaultCategoryId ?? null,
       })
       .returning({
-        id: newsletterImports.id,
+        id: imports.id,
       });
     const id = importRow!.id;
     if (flagged.length > 0) {
-      await tx.insert(newsletterImportItems).values(
+      await tx.insert(importItems).values(
         flagged.map((entry, i) => ({
           importId: id,
           url: entry.item.url,
@@ -302,7 +309,7 @@ export async function ingestNewsletter(input: IngestInput): Promise<NewsletterIm
     return id;
   });
 
-  return (await getNewsletterImport(importId))!;
+  return (await getImport(importId))!;
 }
 
 /**
@@ -349,17 +356,17 @@ export function contentFromUpload(
   return null;
 }
 
-function summarize(importRow: NewsletterImportRow, items: NewsletterImportItemRow[]): NewsletterImportSummary {
+function summarize(importRow: ImportRow, items: ImportItemRow[]): ImportSummary {
   const statusCounts = Object.fromEntries(
     STATUS_KEYS.map(key => [key, 0]),
-  ) as Record<NewsletterImportItemStatus, number>;
+  ) as Record<ImportItemStatus, number>;
   for (const item of items) {
-    const status = item.status as NewsletterImportItemStatus;
+    const status = item.status as ImportItemStatus;
     if (status in statusCounts) statusCounts[status] += 1;
   }
   return {
     id: importRow.id,
-    source: importRow.source as NewsletterImportSource,
+    source: importRow.source as ImportSource,
     title: importRow.title,
     sourceUrl: importRow.sourceUrl,
     newsletterId: importRow.newsletterId,
@@ -371,14 +378,14 @@ function summarize(importRow: NewsletterImportRow, items: NewsletterImportItemRo
 }
 
 /** List all imports (newest first) with per-status counts, no items. */
-export async function listNewsletterImports(): Promise<NewsletterImportSummary[]> {
-  const importRows = await db.select().from(newsletterImports);
+export async function listImports(): Promise<ImportSummary[]> {
+  const importRows = await db.select().from(imports);
   const itemRows = await db
     .select({
-      importId: newsletterImportItems.importId,
-      status: newsletterImportItems.status,
+      importId: importItems.importId,
+      status: importItems.status,
     })
-    .from(newsletterImportItems);
+    .from(importItems);
   const byImport = new Map<string, { status: string }[]>();
   for (const item of itemRows) {
     const list = byImport.get(item.importId) ?? [];
@@ -388,42 +395,66 @@ export async function listNewsletterImports(): Promise<NewsletterImportSummary[]
     byImport.set(item.importId, list);
   }
   return importRows
-    .map(row => summarize(row, (byImport.get(row.id) ?? []) as NewsletterImportItemRow[]))
-    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0));
-}
-
-/** List the issues (= imports) belonging to one newsletter, newest first, with per-status counts. */
-export async function listNewsletterIssues(newsletterId: string): Promise<NewsletterImportSummary[]> {
-  const importRows = await db
-    .select()
-    .from(newsletterImports)
-    .where(eq(newsletterImports.newsletterId, newsletterId));
-  if (importRows.length === 0) return [];
-  const itemRows = await db
-    .select({
-      importId: newsletterImportItems.importId,
-      status: newsletterImportItems.status,
-    })
-    .from(newsletterImportItems)
-    .where(inArray(newsletterImportItems.importId, importRows.map(r => r.id)));
-  const byImport = new Map<string, { status: string }[]>();
-  for (const item of itemRows) {
-    const list = byImport.get(item.importId) ?? [];
-    list.push({
-      status: item.status,
-    });
-    byImport.set(item.importId, list);
-  }
-  return importRows
-    .map(row => summarize(row, (byImport.get(row.id) ?? []) as NewsletterImportItemRow[]))
+    .map(row => summarize(row, (byImport.get(row.id) ?? []) as ImportItemRow[]))
     .sort((a, b) => (a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0));
 }
 
 /**
- * Manually associate bookmarks with an issue (= import), or disassociate them. `add` points the
- * bookmarks at this import and its newsletter; `remove` clears both (only for bookmarks currently
- * pointing at this import). No condition references a newsletter, so the bookmark evaluation cache is
- * left untouched; the client refetches the bookmark list.
+ * List every import item across all imports (newest first), each enriched with its parent import's
+ * source context. Powers the global Inbox review queue.
+ */
+export async function listInboxItems(): Promise<InboxItem[]> {
+  const rows = await db
+    .select({
+      item: importItems,
+      importSource: imports.source,
+      importTitle: imports.title,
+      importSourceUrl: imports.sourceUrl,
+      newsletterName: newsletters.name,
+    })
+    .from(importItems)
+    .innerJoin(imports, eq(importItems.importId, imports.id))
+    .leftJoin(newsletters, eq(imports.newsletterId, newsletters.id))
+    .orderBy(desc(importItems.createdAt));
+  return rows.map(row => ({
+    ...toItem(row.item),
+    importSource: row.importSource as ImportSource,
+    sourceLabel: row.newsletterName ?? row.importTitle ?? row.importSourceUrl ?? null,
+  }));
+}
+
+/** List the issues (= imports) belonging to one newsletter, newest first, with per-status counts. */
+export async function listNewsletterIssues(newsletterId: string): Promise<ImportSummary[]> {
+  const importRows = await db
+    .select()
+    .from(imports)
+    .where(eq(imports.newsletterId, newsletterId));
+  if (importRows.length === 0) return [];
+  const itemRows = await db
+    .select({
+      importId: importItems.importId,
+      status: importItems.status,
+    })
+    .from(importItems)
+    .where(inArray(importItems.importId, importRows.map(r => r.id)));
+  const byImport = new Map<string, { status: string }[]>();
+  for (const item of itemRows) {
+    const list = byImport.get(item.importId) ?? [];
+    list.push({
+      status: item.status,
+    });
+    byImport.set(item.importId, list);
+  }
+  return importRows
+    .map(row => summarize(row, (byImport.get(row.id) ?? []) as ImportItemRow[]))
+    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0));
+}
+
+/**
+ * Manually associate bookmarks with an import, or disassociate them. `add` points the bookmarks at
+ * this import and its newsletter; `remove` clears both (only for bookmarks currently pointing at this
+ * import). No condition references a newsletter, so the bookmark evaluation cache is left untouched;
+ * the client refetches the bookmark list.
  */
 export async function setIssueBookmarks(
   importId: string,
@@ -435,43 +466,43 @@ export async function setIssueBookmarks(
     await db
       .update(bookmarks)
       .set({
-        newsletterImportId: null,
+        importId: null,
         newsletterId: null,
       })
       .where(and(
-        eq(bookmarks.newsletterImportId, importId),
+        eq(bookmarks.importId, importId),
         inArray(bookmarks.id, bookmarkIds),
       ));
     return;
   }
   const [importRow] = await db
     .select({
-      newsletterId: newsletterImports.newsletterId,
+      newsletterId: imports.newsletterId,
     })
-    .from(newsletterImports)
-    .where(eq(newsletterImports.id, importId));
+    .from(imports)
+    .where(eq(imports.id, importId));
   if (!importRow) return;
   await db
     .update(bookmarks)
     .set({
-      newsletterImportId: importId,
+      importId,
       newsletterId: importRow.newsletterId,
     })
     .where(inArray(bookmarks.id, bookmarkIds));
 }
 
 /** Fetch one import with its items (oldest item first), or null when not found. */
-export async function getNewsletterImport(id: string): Promise<NewsletterImport | null> {
-  const [importRow] = await db.select().from(newsletterImports).where(eq(newsletterImports.id, id));
+export async function getImport(id: string): Promise<ImportRecord | null> {
+  const [importRow] = await db.select().from(imports).where(eq(imports.id, id));
   if (!importRow) return null;
   const itemRows = await db
     .select()
-    .from(newsletterImportItems)
-    .where(eq(newsletterImportItems.importId, id))
-    .orderBy(asc(newsletterImportItems.createdAt));
+    .from(importItems)
+    .where(eq(importItems.importId, id))
+    .orderBy(asc(importItems.createdAt));
   return {
     id: importRow.id,
-    source: importRow.source as NewsletterImportSource,
+    source: importRow.source as ImportSource,
     title: importRow.title,
     sourceUrl: importRow.sourceUrl,
     newsletterId: importRow.newsletterId,
@@ -484,9 +515,9 @@ export async function getNewsletterImport(id: string): Promise<NewsletterImport 
 /** Edit a staged candidate's url/title/description (or un-reject it) before approval. */
 export async function updateImportItem(
   itemId: string,
-  patch: UpdateNewsletterImportItemInput,
-): Promise<NewsletterImportItem | null> {
-  const set: Partial<NewsletterImportItemRow> = {};
+  patch: UpdateImportItemInput,
+): Promise<ImportItem | null> {
+  const set: Partial<ImportItemRow> = {};
   if (patch.url !== undefined) set.url = patch.url;
   if (patch.title !== undefined) set.title = patch.title;
   if (patch.description !== undefined) set.description = patch.description;
@@ -499,25 +530,25 @@ export async function updateImportItem(
     }
   }
   if (Object.keys(set).length === 0) {
-    const [row] = await db.select().from(newsletterImportItems).where(eq(newsletterImportItems.id, itemId));
+    const [row] = await db.select().from(importItems).where(eq(importItems.id, itemId));
     return row ? toItem(row) : null;
   }
   const [row] = await db
-    .update(newsletterImportItems)
+    .update(importItems)
     .set(set)
-    .where(eq(newsletterImportItems.id, itemId))
+    .where(eq(importItems.id, itemId))
     .returning();
   return row ? toItem(row) : null;
 }
 
 /**
- * Resolve the bookmark fields an import contributes to each approved item: the issue link (always
+ * Resolve the bookmark fields an import contributes to each approved item: the import link (always
  * this import) plus, when the import has a newsletter, that newsletter's default category / media
  * type / tags. These ride into `createBookmark` as input fields, so the existing precedence applies
  * (the newsletter's values win over website/channel defaults, matching the user's explicit choice).
  */
 async function importBookmarkDefaults(importId: string): Promise<{
-  newsletterImportId: string;
+  importId: string;
   newsletterId: string | null;
   categoryId?: string;
   mediaTypeId?: string | null;
@@ -525,14 +556,14 @@ async function importBookmarkDefaults(importId: string): Promise<{
 }> {
   const [importRow] = await db
     .select({
-      newsletterId: newsletterImports.newsletterId,
+      newsletterId: imports.newsletterId,
     })
-    .from(newsletterImports)
-    .where(eq(newsletterImports.id, importId));
+    .from(imports)
+    .where(eq(imports.id, importId));
   const newsletterId = importRow?.newsletterId ?? null;
   if (!newsletterId) {
     return {
-      newsletterImportId: importId,
+      importId,
       newsletterId: null,
     };
   }
@@ -542,7 +573,7 @@ async function importBookmarkDefaults(importId: string): Promise<{
     getNewsletterTagIds(newsletterId),
   ]);
   return {
-    newsletterImportId: importId,
+    importId,
     newsletterId,
     ...(categoryId
       ? {
@@ -554,9 +585,13 @@ async function importBookmarkDefaults(importId: string): Promise<{
   };
 }
 
-/** Approve one staged candidate: create a bookmark from it, mirroring the bulk-URL per-item handling. */
-export async function approveImportItem(itemId: string): Promise<NewsletterApproveResult> {
-  const [item] = await db.select().from(newsletterImportItems).where(eq(newsletterImportItems.id, itemId));
+/**
+ * Approve one staged candidate: create a bookmark from it, then flag the item for deletion (the
+ * bookmark now carries the link). The source passage (newsletter context) is saved as the bookmark's
+ * description so the surrounding context survives; the item's own description is the fallback.
+ */
+export async function approveImportItem(itemId: string): Promise<ImportApproveResult> {
+  const [item] = await db.select().from(importItems).where(eq(importItems.id, itemId));
   if (!item) return {
     itemId,
     status: "skipped",
@@ -572,12 +607,12 @@ export async function approveImportItem(itemId: string): Promise<NewsletterAppro
   }
   if (!item.url) {
     await db
-      .update(newsletterImportItems)
+      .update(importItems)
       .set({
         status: "error",
         errorReason: "No resolvable URL.",
       })
-      .where(eq(newsletterImportItems.id, itemId));
+      .where(eq(importItems.id, itemId));
     return {
       itemId,
       status: "error",
@@ -585,7 +620,7 @@ export async function approveImportItem(itemId: string): Promise<NewsletterAppro
     };
   }
 
-  // The issue link + the selected newsletter's default category / media type / tags.
+  // The import link + the selected newsletter's default category / media type / tags.
   const defaults = await importBookmarkDefaults(item.importId);
 
   // Category precedence: per-item override > import default > newsletter default. `undefined` (none
@@ -594,10 +629,10 @@ export async function approveImportItem(itemId: string): Promise<NewsletterAppro
   if (categoryId === undefined) {
     const [importRow] = await db
       .select({
-        defaultCategoryId: newsletterImports.defaultCategoryId,
+        defaultCategoryId: imports.defaultCategoryId,
       })
-      .from(newsletterImports)
-      .where(eq(newsletterImports.id, item.importId));
+      .from(imports)
+      .where(eq(imports.id, item.importId));
     categoryId = importRow?.defaultCategoryId ?? defaults.categoryId ?? undefined;
   }
 
@@ -605,19 +640,22 @@ export async function approveImportItem(itemId: string): Promise<NewsletterAppro
     const bookmark = await createBookmark({
       url: item.url,
       title: item.title?.trim() || item.anchorText?.trim() || item.url,
-      description: item.description ?? null,
+      // Save the source passage (newsletter context) as the description; fall back to the item's own.
+      description: item.newsletterContext ?? item.description ?? null,
       ...defaults,
       newsletterContext: item.newsletterContext ?? null,
       categoryId,
     });
     await db
-      .update(newsletterImportItems)
+      .update(importItems)
       .set({
         status: "approved",
         createdBookmarkId: bookmark.id,
         errorReason: null,
+        // The bookmark exists now, so flag the staged item for the Import Settings purge.
+        markedForDeletion: true,
       })
-      .where(eq(newsletterImportItems.id, itemId));
+      .where(eq(importItems.id, itemId));
     return {
       itemId,
       status: "approved",
@@ -629,12 +667,12 @@ export async function approveImportItem(itemId: string): Promise<NewsletterAppro
       const dup = await checkBookmarkUrlDuplicate(item.url);
       const match = dup.exactMatch ?? dup.pathMatch;
       await db
-        .update(newsletterImportItems)
+        .update(importItems)
         .set({
           status: "duplicate",
           duplicateBookmarkId: match?.id ?? null,
         })
-        .where(eq(newsletterImportItems.id, itemId));
+        .where(eq(importItems.id, itemId));
       return {
         itemId,
         status: "duplicate",
@@ -644,12 +682,12 @@ export async function approveImportItem(itemId: string): Promise<NewsletterAppro
     }
     const message = err instanceof Error ? err.message : String(err);
     await db
-      .update(newsletterImportItems)
+      .update(importItems)
       .set({
         status: "error",
         errorReason: message,
       })
-      .where(eq(newsletterImportItems.id, itemId));
+      .where(eq(importItems.id, itemId));
     return {
       itemId,
       status: "error",
@@ -659,15 +697,15 @@ export async function approveImportItem(itemId: string): Promise<NewsletterAppro
 }
 
 /** Approve every pending item in an import. Per-item results; one failure never aborts the batch. */
-export async function approveImport(importId: string): Promise<NewsletterApproveResult[]> {
+export async function approveImport(importId: string): Promise<ImportApproveResult[]> {
   const items = await db
     .select({
-      id: newsletterImportItems.id,
+      id: importItems.id,
     })
-    .from(newsletterImportItems)
-    .where(eq(newsletterImportItems.importId, importId))
-    .orderBy(asc(newsletterImportItems.createdAt));
-  const results: NewsletterApproveResult[] = [];
+    .from(importItems)
+    .where(eq(importItems.importId, importId))
+    .orderBy(asc(importItems.createdAt));
+  const results: ImportApproveResult[] = [];
   // Sequential: createBookmark auto-creates websites, so concurrent creates could race on the same host.
   for (const item of items) {
     results.push(await approveImportItem(item.id));
@@ -678,24 +716,63 @@ export async function approveImport(importId: string): Promise<NewsletterApprove
 /** Mark a staged candidate as rejected. */
 export async function rejectImportItem(itemId: string): Promise<boolean> {
   const rows = await db
-    .update(newsletterImportItems)
+    .update(importItems)
     .set({
       status: "rejected",
     })
-    .where(eq(newsletterImportItems.id, itemId))
+    .where(eq(importItems.id, itemId))
     .returning({
-      id: newsletterImportItems.id,
+      id: importItems.id,
     });
   return rows.length > 0;
 }
 
+/**
+ * Block a staged candidate: add its URL pattern to the Imports Blacklist (so future imports skip it)
+ * and mark the item `blocked`. The Import Settings purge later sweeps blocked items, but the blacklist
+ * entry is kept. Returns the updated item, or null when the item was not found.
+ */
+export async function blockImportItem(
+  itemId: string,
+  entry: ImportBlacklistEntry,
+): Promise<ImportItem | null> {
+  const [item] = await db.select().from(importItems).where(eq(importItems.id, itemId));
+  if (!item) return null;
+  await addImportBlacklistEntry(entry);
+  const [row] = await db
+    .update(importItems)
+    .set({
+      status: "blocked",
+    })
+    .where(eq(importItems.id, itemId))
+    .returning();
+  return row ? toItem(row) : null;
+}
+
 /** Delete an import and its items (cascade). */
-export async function deleteNewsletterImport(id: string): Promise<boolean> {
+export async function deleteImport(id: string): Promise<boolean> {
   const rows = await db
-    .delete(newsletterImports)
-    .where(eq(newsletterImports.id, id))
+    .delete(imports)
+    .where(eq(imports.id, id))
     .returning({
-      id: newsletterImports.id,
+      id: imports.id,
     });
   return rows.length > 0;
+}
+
+/**
+ * Purge processed items: delete every import item flagged for deletion (a bookmark was created from
+ * it) or `blocked`. The Imports Blacklist is intentionally left untouched, so blocked links stay
+ * skipped on future imports. Returns the number of rows deleted.
+ */
+export async function purgeProcessedItems(): Promise<PurgeImportItemsResult> {
+  const rows = await db
+    .delete(importItems)
+    .where(or(eq(importItems.markedForDeletion, true), eq(importItems.status, "blocked")))
+    .returning({
+      id: importItems.id,
+    });
+  return {
+    deleted: rows.length,
+  };
 }

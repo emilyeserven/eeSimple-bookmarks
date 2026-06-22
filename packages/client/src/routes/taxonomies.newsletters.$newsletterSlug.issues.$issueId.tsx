@@ -6,7 +6,7 @@ import { Mail } from "lucide-react";
 import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
 import { NewsletterIssueBookmarksDialog } from "../components/NewsletterIssueBookmarksDialog";
-import { useNewsletterIssues } from "../hooks/useNewsletterImports";
+import { useNewsletterIssues } from "../hooks/useImports";
 import { useNewsletterBySlug } from "../hooks/useNewsletters";
 import { validateBookmarkSearch } from "../lib/bookmarkSearch";
 
@@ -54,7 +54,7 @@ function NewsletterIssueBookmarksPage() {
   }
 
   const allBookmarks = bookmarks ?? [];
-  const issueBookmarks = allBookmarks.filter(b => b.newsletterIssue?.id === issueId);
+  const issueBookmarks = allBookmarks.filter(b => b.import?.id === issueId);
   const issueLabel = issue?.title || (issue ? new Date(issue.createdAt).toLocaleDateString() : "Issue");
 
   return (

@@ -11,7 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TagsRouteImport } from './routes/tags'
 import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as NewslettersRouteImport } from './routes/newsletters'
+import { Route as InboxRouteImport } from './routes/inbox'
 import { Route as CustomPropertiesRouteImport } from './routes/custom-properties'
 import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as BookmarksRouteImport } from './routes/bookmarks'
@@ -19,7 +19,7 @@ import { Route as AutofillRouteImport } from './routes/autofill'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TagsIndexRouteImport } from './routes/tags.index'
 import { Route as SettingsIndexRouteImport } from './routes/settings.index'
-import { Route as NewslettersIndexRouteImport } from './routes/newsletters.index'
+import { Route as InboxIndexRouteImport } from './routes/inbox.index'
 import { Route as CustomPropertiesIndexRouteImport } from './routes/custom-properties.index'
 import { Route as CategoriesIndexRouteImport } from './routes/categories.index'
 import { Route as BookmarksIndexRouteImport } from './routes/bookmarks.index'
@@ -41,6 +41,7 @@ import { Route as SettingsMoreCategoriesRouteImport } from './routes/settings.mo
 import { Route as SettingsMediaTypesRouteImport } from './routes/settings.media-types'
 import { Route as SettingsMediaManagementRouteImport } from './routes/settings.media-management'
 import { Route as SettingsLinkParsingRouteImport } from './routes/settings.link-parsing'
+import { Route as SettingsImportsRouteImport } from './routes/settings.imports'
 import { Route as SettingsHomepageRouteImport } from './routes/settings.homepage'
 import { Route as SettingsGalleryRouteImport } from './routes/settings.gallery'
 import { Route as SettingsDisplayRouteImport } from './routes/settings.display'
@@ -49,8 +50,7 @@ import { Route as SettingsCardDisplayRulesRouteImport } from './routes/settings.
 import { Route as SettingsAutomationsRouteImport } from './routes/settings.automations'
 import { Route as SettingsAutofillRouteImport } from './routes/settings.autofill'
 import { Route as SettingsAdvancedRouteImport } from './routes/settings.advanced'
-import { Route as NewslettersNewRouteImport } from './routes/newsletters.new'
-import { Route as NewslettersImportIdRouteImport } from './routes/newsletters.$importId'
+import { Route as InboxNewRouteImport } from './routes/inbox.new'
 import { Route as CustomPropertiesNewRouteImport } from './routes/custom-properties.new'
 import { Route as CustomPropertiesPropertySlugRouteImport } from './routes/custom-properties.$propertySlug'
 import { Route as CategoriesCategorySlugRouteImport } from './routes/categories.$categorySlug'
@@ -196,9 +196,9 @@ const SettingsRoute = SettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
-const NewslettersRoute = NewslettersRouteImport.update({
-  id: '/newsletters',
-  path: '/newsletters',
+const InboxRoute = InboxRouteImport.update({
+  id: '/inbox',
+  path: '/inbox',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CustomPropertiesRoute = CustomPropertiesRouteImport.update({
@@ -236,10 +236,10 @@ const SettingsIndexRoute = SettingsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => SettingsRoute,
 } as any)
-const NewslettersIndexRoute = NewslettersIndexRouteImport.update({
+const InboxIndexRoute = InboxIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => NewslettersRoute,
+  getParentRoute: () => InboxRoute,
 } as any)
 const CustomPropertiesIndexRoute = CustomPropertiesIndexRouteImport.update({
   id: '/',
@@ -350,6 +350,11 @@ const SettingsLinkParsingRoute = SettingsLinkParsingRouteImport.update({
   path: '/link-parsing',
   getParentRoute: () => SettingsRoute,
 } as any)
+const SettingsImportsRoute = SettingsImportsRouteImport.update({
+  id: '/imports',
+  path: '/imports',
+  getParentRoute: () => SettingsRoute,
+} as any)
 const SettingsHomepageRoute = SettingsHomepageRouteImport.update({
   id: '/homepage',
   path: '/homepage',
@@ -392,15 +397,10 @@ const SettingsAdvancedRoute = SettingsAdvancedRouteImport.update({
   path: '/advanced',
   getParentRoute: () => SettingsRoute,
 } as any)
-const NewslettersNewRoute = NewslettersNewRouteImport.update({
+const InboxNewRoute = InboxNewRouteImport.update({
   id: '/new',
   path: '/new',
-  getParentRoute: () => NewslettersRoute,
-} as any)
-const NewslettersImportIdRoute = NewslettersImportIdRouteImport.update({
-  id: '/$importId',
-  path: '/$importId',
-  getParentRoute: () => NewslettersRoute,
+  getParentRoute: () => InboxRoute,
 } as any)
 const CustomPropertiesNewRoute = CustomPropertiesNewRouteImport.update({
   id: '/new',
@@ -1189,7 +1189,7 @@ export interface FileRoutesByFullPath {
   '/bookmarks': typeof BookmarksRouteWithChildren
   '/categories': typeof CategoriesRouteWithChildren
   '/custom-properties': typeof CustomPropertiesRouteWithChildren
-  '/newsletters': typeof NewslettersRouteWithChildren
+  '/inbox': typeof InboxRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/tags': typeof TagsRouteWithChildren
   '/autofill/$ruleSlug': typeof AutofillRuleSlugViewRouteWithChildren
@@ -1197,8 +1197,7 @@ export interface FileRoutesByFullPath {
   '/categories/$categorySlug': typeof CategoriesCategorySlugViewRouteWithChildren
   '/custom-properties/$propertySlug': typeof CustomPropertiesPropertySlugViewRouteWithChildren
   '/custom-properties/new': typeof CustomPropertiesNewRoute
-  '/newsletters/$importId': typeof NewslettersImportIdRoute
-  '/newsletters/new': typeof NewslettersNewRoute
+  '/inbox/new': typeof InboxNewRoute
   '/settings/advanced': typeof SettingsAdvancedRoute
   '/settings/autofill': typeof SettingsAutofillRoute
   '/settings/automations': typeof SettingsAutomationsRoute
@@ -1207,6 +1206,7 @@ export interface FileRoutesByFullPath {
   '/settings/display': typeof SettingsDisplayRoute
   '/settings/gallery': typeof SettingsGalleryRoute
   '/settings/homepage': typeof SettingsHomepageRoute
+  '/settings/imports': typeof SettingsImportsRoute
   '/settings/link-parsing': typeof SettingsLinkParsingRoute
   '/settings/media-management': typeof SettingsMediaManagementRoute
   '/settings/media-types': typeof SettingsMediaTypesRoute
@@ -1228,7 +1228,7 @@ export interface FileRoutesByFullPath {
   '/bookmarks/': typeof BookmarksIndexRoute
   '/categories/': typeof CategoriesIndexRoute
   '/custom-properties/': typeof CustomPropertiesIndexRoute
-  '/newsletters/': typeof NewslettersIndexRoute
+  '/inbox/': typeof InboxIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/tags/': typeof TagsIndexRoute
   '/autofill/$ruleSlug/edit': typeof AutofillRuleSlugEditRouteWithChildren
@@ -1354,8 +1354,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/custom-properties/new': typeof CustomPropertiesNewRoute
-  '/newsletters/$importId': typeof NewslettersImportIdRoute
-  '/newsletters/new': typeof NewslettersNewRoute
+  '/inbox/new': typeof InboxNewRoute
   '/settings/advanced': typeof SettingsAdvancedRoute
   '/settings/autofill': typeof SettingsAutofillRoute
   '/settings/automations': typeof SettingsAutomationsRoute
@@ -1364,6 +1363,7 @@ export interface FileRoutesByTo {
   '/settings/display': typeof SettingsDisplayRoute
   '/settings/gallery': typeof SettingsGalleryRoute
   '/settings/homepage': typeof SettingsHomepageRoute
+  '/settings/imports': typeof SettingsImportsRoute
   '/settings/link-parsing': typeof SettingsLinkParsingRoute
   '/settings/media-management': typeof SettingsMediaManagementRoute
   '/settings/media-types': typeof SettingsMediaTypesRoute
@@ -1378,7 +1378,7 @@ export interface FileRoutesByTo {
   '/bookmarks': typeof BookmarksIndexRoute
   '/categories': typeof CategoriesIndexRoute
   '/custom-properties': typeof CustomPropertiesIndexRoute
-  '/newsletters': typeof NewslettersIndexRoute
+  '/inbox': typeof InboxIndexRoute
   '/settings': typeof SettingsIndexRoute
   '/tags': typeof TagsIndexRoute
   '/autofill/$ruleSlug': typeof AutofillRuleSlugIndexRoute
@@ -1491,7 +1491,7 @@ export interface FileRoutesById {
   '/bookmarks': typeof BookmarksRouteWithChildren
   '/categories': typeof CategoriesRouteWithChildren
   '/custom-properties': typeof CustomPropertiesRouteWithChildren
-  '/newsletters': typeof NewslettersRouteWithChildren
+  '/inbox': typeof InboxRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/tags': typeof TagsRouteWithChildren
   '/autofill/$ruleSlug': typeof AutofillRuleSlugRouteWithChildren
@@ -1499,8 +1499,7 @@ export interface FileRoutesById {
   '/categories/$categorySlug': typeof CategoriesCategorySlugRouteWithChildren
   '/custom-properties/$propertySlug': typeof CustomPropertiesPropertySlugRouteWithChildren
   '/custom-properties/new': typeof CustomPropertiesNewRoute
-  '/newsletters/$importId': typeof NewslettersImportIdRoute
-  '/newsletters/new': typeof NewslettersNewRoute
+  '/inbox/new': typeof InboxNewRoute
   '/settings/advanced': typeof SettingsAdvancedRoute
   '/settings/autofill': typeof SettingsAutofillRoute
   '/settings/automations': typeof SettingsAutomationsRoute
@@ -1509,6 +1508,7 @@ export interface FileRoutesById {
   '/settings/display': typeof SettingsDisplayRoute
   '/settings/gallery': typeof SettingsGalleryRoute
   '/settings/homepage': typeof SettingsHomepageRoute
+  '/settings/imports': typeof SettingsImportsRoute
   '/settings/link-parsing': typeof SettingsLinkParsingRoute
   '/settings/media-management': typeof SettingsMediaManagementRoute
   '/settings/media-types': typeof SettingsMediaTypesRoute
@@ -1530,7 +1530,7 @@ export interface FileRoutesById {
   '/bookmarks/': typeof BookmarksIndexRoute
   '/categories/': typeof CategoriesIndexRoute
   '/custom-properties/': typeof CustomPropertiesIndexRoute
-  '/newsletters/': typeof NewslettersIndexRoute
+  '/inbox/': typeof InboxIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/tags/': typeof TagsIndexRoute
   '/autofill/$ruleSlug/_view': typeof AutofillRuleSlugViewRouteWithChildren
@@ -1671,7 +1671,7 @@ export interface FileRouteTypes {
     | '/bookmarks'
     | '/categories'
     | '/custom-properties'
-    | '/newsletters'
+    | '/inbox'
     | '/settings'
     | '/tags'
     | '/autofill/$ruleSlug'
@@ -1679,8 +1679,7 @@ export interface FileRouteTypes {
     | '/categories/$categorySlug'
     | '/custom-properties/$propertySlug'
     | '/custom-properties/new'
-    | '/newsletters/$importId'
-    | '/newsletters/new'
+    | '/inbox/new'
     | '/settings/advanced'
     | '/settings/autofill'
     | '/settings/automations'
@@ -1689,6 +1688,7 @@ export interface FileRouteTypes {
     | '/settings/display'
     | '/settings/gallery'
     | '/settings/homepage'
+    | '/settings/imports'
     | '/settings/link-parsing'
     | '/settings/media-management'
     | '/settings/media-types'
@@ -1710,7 +1710,7 @@ export interface FileRouteTypes {
     | '/bookmarks/'
     | '/categories/'
     | '/custom-properties/'
-    | '/newsletters/'
+    | '/inbox/'
     | '/settings/'
     | '/tags/'
     | '/autofill/$ruleSlug/edit'
@@ -1836,8 +1836,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/custom-properties/new'
-    | '/newsletters/$importId'
-    | '/newsletters/new'
+    | '/inbox/new'
     | '/settings/advanced'
     | '/settings/autofill'
     | '/settings/automations'
@@ -1846,6 +1845,7 @@ export interface FileRouteTypes {
     | '/settings/display'
     | '/settings/gallery'
     | '/settings/homepage'
+    | '/settings/imports'
     | '/settings/link-parsing'
     | '/settings/media-management'
     | '/settings/media-types'
@@ -1860,7 +1860,7 @@ export interface FileRouteTypes {
     | '/bookmarks'
     | '/categories'
     | '/custom-properties'
-    | '/newsletters'
+    | '/inbox'
     | '/settings'
     | '/tags'
     | '/autofill/$ruleSlug'
@@ -1972,7 +1972,7 @@ export interface FileRouteTypes {
     | '/bookmarks'
     | '/categories'
     | '/custom-properties'
-    | '/newsletters'
+    | '/inbox'
     | '/settings'
     | '/tags'
     | '/autofill/$ruleSlug'
@@ -1980,8 +1980,7 @@ export interface FileRouteTypes {
     | '/categories/$categorySlug'
     | '/custom-properties/$propertySlug'
     | '/custom-properties/new'
-    | '/newsletters/$importId'
-    | '/newsletters/new'
+    | '/inbox/new'
     | '/settings/advanced'
     | '/settings/autofill'
     | '/settings/automations'
@@ -1990,6 +1989,7 @@ export interface FileRouteTypes {
     | '/settings/display'
     | '/settings/gallery'
     | '/settings/homepage'
+    | '/settings/imports'
     | '/settings/link-parsing'
     | '/settings/media-management'
     | '/settings/media-types'
@@ -2011,7 +2011,7 @@ export interface FileRouteTypes {
     | '/bookmarks/'
     | '/categories/'
     | '/custom-properties/'
-    | '/newsletters/'
+    | '/inbox/'
     | '/settings/'
     | '/tags/'
     | '/autofill/$ruleSlug/_view'
@@ -2151,7 +2151,7 @@ export interface RootRouteChildren {
   BookmarksRoute: typeof BookmarksRouteWithChildren
   CategoriesRoute: typeof CategoriesRouteWithChildren
   CustomPropertiesRoute: typeof CustomPropertiesRouteWithChildren
-  NewslettersRoute: typeof NewslettersRouteWithChildren
+  InboxRoute: typeof InboxRouteWithChildren
   SettingsRoute: typeof SettingsRouteWithChildren
   TagsRoute: typeof TagsRouteWithChildren
   TaxonomiesMediaTypesRoute: typeof TaxonomiesMediaTypesRouteWithChildren
@@ -2178,11 +2178,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/newsletters': {
-      id: '/newsletters'
-      path: '/newsletters'
-      fullPath: '/newsletters'
-      preLoaderRoute: typeof NewslettersRouteImport
+    '/inbox': {
+      id: '/inbox'
+      path: '/inbox'
+      fullPath: '/inbox'
+      preLoaderRoute: typeof InboxRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/custom-properties': {
@@ -2234,12 +2234,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsIndexRouteImport
       parentRoute: typeof SettingsRoute
     }
-    '/newsletters/': {
-      id: '/newsletters/'
+    '/inbox/': {
+      id: '/inbox/'
       path: '/'
-      fullPath: '/newsletters/'
-      preLoaderRoute: typeof NewslettersIndexRouteImport
-      parentRoute: typeof NewslettersRoute
+      fullPath: '/inbox/'
+      preLoaderRoute: typeof InboxIndexRouteImport
+      parentRoute: typeof InboxRoute
     }
     '/custom-properties/': {
       id: '/custom-properties/'
@@ -2388,6 +2388,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsLinkParsingRouteImport
       parentRoute: typeof SettingsRoute
     }
+    '/settings/imports': {
+      id: '/settings/imports'
+      path: '/imports'
+      fullPath: '/settings/imports'
+      preLoaderRoute: typeof SettingsImportsRouteImport
+      parentRoute: typeof SettingsRoute
+    }
     '/settings/homepage': {
       id: '/settings/homepage'
       path: '/homepage'
@@ -2444,19 +2451,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsAdvancedRouteImport
       parentRoute: typeof SettingsRoute
     }
-    '/newsletters/new': {
-      id: '/newsletters/new'
+    '/inbox/new': {
+      id: '/inbox/new'
       path: '/new'
-      fullPath: '/newsletters/new'
-      preLoaderRoute: typeof NewslettersNewRouteImport
-      parentRoute: typeof NewslettersRoute
-    }
-    '/newsletters/$importId': {
-      id: '/newsletters/$importId'
-      path: '/$importId'
-      fullPath: '/newsletters/$importId'
-      preLoaderRoute: typeof NewslettersImportIdRouteImport
-      parentRoute: typeof NewslettersRoute
+      fullPath: '/inbox/new'
+      preLoaderRoute: typeof InboxNewRouteImport
+      parentRoute: typeof InboxRoute
     }
     '/custom-properties/new': {
       id: '/custom-properties/new'
@@ -3710,21 +3710,17 @@ const CustomPropertiesRouteChildren: CustomPropertiesRouteChildren = {
 const CustomPropertiesRouteWithChildren =
   CustomPropertiesRoute._addFileChildren(CustomPropertiesRouteChildren)
 
-interface NewslettersRouteChildren {
-  NewslettersImportIdRoute: typeof NewslettersImportIdRoute
-  NewslettersNewRoute: typeof NewslettersNewRoute
-  NewslettersIndexRoute: typeof NewslettersIndexRoute
+interface InboxRouteChildren {
+  InboxNewRoute: typeof InboxNewRoute
+  InboxIndexRoute: typeof InboxIndexRoute
 }
 
-const NewslettersRouteChildren: NewslettersRouteChildren = {
-  NewslettersImportIdRoute: NewslettersImportIdRoute,
-  NewslettersNewRoute: NewslettersNewRoute,
-  NewslettersIndexRoute: NewslettersIndexRoute,
+const InboxRouteChildren: InboxRouteChildren = {
+  InboxNewRoute: InboxNewRoute,
+  InboxIndexRoute: InboxIndexRoute,
 }
 
-const NewslettersRouteWithChildren = NewslettersRoute._addFileChildren(
-  NewslettersRouteChildren,
-)
+const InboxRouteWithChildren = InboxRoute._addFileChildren(InboxRouteChildren)
 
 interface SettingsRouteChildren {
   SettingsAdvancedRoute: typeof SettingsAdvancedRoute
@@ -3735,6 +3731,7 @@ interface SettingsRouteChildren {
   SettingsDisplayRoute: typeof SettingsDisplayRoute
   SettingsGalleryRoute: typeof SettingsGalleryRoute
   SettingsHomepageRoute: typeof SettingsHomepageRoute
+  SettingsImportsRoute: typeof SettingsImportsRoute
   SettingsLinkParsingRoute: typeof SettingsLinkParsingRoute
   SettingsMediaManagementRoute: typeof SettingsMediaManagementRoute
   SettingsMediaTypesRoute: typeof SettingsMediaTypesRoute
@@ -3757,6 +3754,7 @@ const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsDisplayRoute: SettingsDisplayRoute,
   SettingsGalleryRoute: SettingsGalleryRoute,
   SettingsHomepageRoute: SettingsHomepageRoute,
+  SettingsImportsRoute: SettingsImportsRoute,
   SettingsLinkParsingRoute: SettingsLinkParsingRoute,
   SettingsMediaManagementRoute: SettingsMediaManagementRoute,
   SettingsMediaTypesRoute: SettingsMediaTypesRoute,
@@ -4322,7 +4320,7 @@ const rootRouteChildren: RootRouteChildren = {
   BookmarksRoute: BookmarksRouteWithChildren,
   CategoriesRoute: CategoriesRouteWithChildren,
   CustomPropertiesRoute: CustomPropertiesRouteWithChildren,
-  NewslettersRoute: NewslettersRouteWithChildren,
+  InboxRoute: InboxRouteWithChildren,
   SettingsRoute: SettingsRouteWithChildren,
   TagsRoute: TagsRouteWithChildren,
   TaxonomiesMediaTypesRoute: TaxonomiesMediaTypesRouteWithChildren,
