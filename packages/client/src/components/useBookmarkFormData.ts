@@ -1,5 +1,9 @@
 import { useBookmarkFormActions } from "./useBookmarkFormActions";
-import { useShortenerIgnoreList } from "../hooks/useAppSettings";
+import {
+  useAutoFetchImage,
+  useAutoFetchTitle,
+  useShortenerIgnoreList,
+} from "../hooks/useAppSettings";
 import { useAutofillRules } from "../hooks/useAutofill";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
@@ -7,7 +11,6 @@ import { useMediaTypes } from "../hooks/useMediaTypes";
 import { useTagTree } from "../hooks/useTags";
 import { useWebsites } from "../hooks/useWebsites";
 import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
-import { useUiStore } from "../stores/uiStore";
 
 /**
  * Loads every read-only query and UI-store flag the bookmark form needs (websites, shortener ignore
@@ -42,8 +45,8 @@ export function useBookmarkFormData() {
   const {
     data: youtubeChannels,
   } = useYouTubeChannels();
-  const autoFetchTitle = useUiStore(state => state.autoFetchTitle);
-  const autoFetchImage = useUiStore(state => state.autoFetchImage);
+  const autoFetchTitle = useAutoFetchTitle();
+  const autoFetchImage = useAutoFetchImage();
 
   return {
     actions,

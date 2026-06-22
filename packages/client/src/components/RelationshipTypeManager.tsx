@@ -7,6 +7,7 @@ import { ArrowRight, Info, Link2, Pencil } from "lucide-react";
 
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
+import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 import {
   useCreateRelationshipType,
   useRelationshipTypes,
@@ -20,7 +21,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { withRelationshipTypes } from "@/lib/bookmarkSearch";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
-import { useUiStore } from "@/stores/uiStore";
 
 /** A single relationship-type listing card: body → its filtered bookmarks, with hover Edit / Info. */
 function RelationshipTypeCard({
@@ -28,7 +28,7 @@ function RelationshipTypeCard({
 }: { relationshipType: RelationshipType }) {
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
-  const modifier = useUiStore(state => state.sidebarOpenModifier);
+  const modifier = useSidebarOpenModifier();
 
   return (
     <StandardListingCard

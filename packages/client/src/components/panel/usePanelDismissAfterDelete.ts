@@ -1,7 +1,7 @@
 import { usePanelControls } from "./usePanelControls";
 
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useUiStore } from "@/stores/uiStore";
+import { usePanelPinned } from "@/hooks/useAppSettings";
 
 /**
  * Returns the callback to run after an item is deleted from the shared right panel. It mirrors
@@ -12,7 +12,7 @@ export function usePanelDismissAfterDelete(): () => void {
   const {
     dCT, openType, close,
   } = usePanelControls();
-  const pinned = useUiStore(state => state.panelPinned);
+  const pinned = usePanelPinned();
   const isMobile = useIsMobile();
 
   return () => {

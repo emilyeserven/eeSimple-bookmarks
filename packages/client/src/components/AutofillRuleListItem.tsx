@@ -5,11 +5,11 @@ import { Pencil, Wand2 } from "lucide-react";
 
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
+import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 import { summarizeConditions } from "../lib/conditionsSummary";
 
 import { Badge } from "@/components/ui/badge";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
-import { useUiStore } from "@/stores/uiStore";
 
 interface RuleListItemProps {
   rule: AutofillRule;
@@ -26,7 +26,7 @@ export function AutofillRuleListItem({
 }: RuleListItemProps) {
   const viewClick = useViewPanelClick();
   const editClick = useEditPanelClick();
-  const modifier = useUiStore(state => state.sidebarOpenModifier);
+  const modifier = useSidebarOpenModifier();
   const categoryName = rule.setCategoryId
     ? categories.find(category => category.id === rule.setCategoryId)?.name
     : null;

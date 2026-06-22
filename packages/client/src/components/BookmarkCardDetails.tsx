@@ -18,8 +18,8 @@ import { useHideWebsiteForYouTube } from "../lib/bookmarkCardFields";
 import { buildBookmarkValueItems } from "../lib/bookmarkCardValues";
 
 import { Badge } from "@/components/ui/badge";
+import { useSidebarOpenModifier } from "@/hooks/useAppSettings";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
-import { useUiStore } from "@/stores/uiStore";
 
 /** The card header field keys, rendered as a justified header row when co-located in a single zone. */
 const HEADER_FIELD_KEYS = new Set(["title", "externalLink", "more"]);
@@ -152,7 +152,7 @@ export function BookmarkCardDetails({
   const defaultHideWebsiteForYouTube = useHideWebsiteForYouTube();
   const effectiveHideWebsiteForYouTube = hideWebsiteForYouTube ?? defaultHideWebsiteForYouTube;
   const viewClick = useViewPanelClick();
-  const sidebarModifier = useUiStore(state => state.sidebarOpenModifier);
+  const sidebarModifier = useSidebarOpenModifier();
 
   // The card header elements, now placeable fields (title link, open-URL button, "More" menu).
   const titleNode = (

@@ -320,15 +320,24 @@ skill — consult it before building or changing an edit tab. In short:
   mutation.
 - **Exceptions:** **create** flows (create pages, right-panel create, inline-create modals) keep an
   explicit submit button — `PropertyForm` (full) and `TagForm` stay submit-driven for create while
-  their per-tab **edit** forms auto-save. **Local-only Zustand prefs** (Display / Sidebar /
-  Automations settings) stay instant with **no toast** (nothing persists server-side). The no-toast
-  carve-out is **only** for *ephemeral, device-local view prefs* in `uiStore`. A setting that must
-  **stick across devices/browsers** belongs in the server-side `app_settings` singleton
-  (`services/appSettings.ts` + `hooks/useAppSettings.ts`), **not** `uiStore` — and once it persists
-  server-side it **does** fire a specific, recorded toast on save like any other persisted setting
-  (e.g. the **Advanced** sidebar-link settings — Coolify/docs/Storybook). Don't misclassify a
-  should-persist setting as a local pref: that's exactly what shipped the Advanced page toast-less
-  (and non-syncing) before it was moved into `app_settings`.
+  their per-tab **edit** forms auto-save. **Local-only Zustand prefs** stay instant with **no toast**
+  (nothing persists server-side). The no-toast carve-out is **only** for *ephemeral, device-local
+  view prefs* in `uiStore` — what now remains there is `theme`, `collapsedSidebarSections`, the
+  physical sizing (`sidebarWidth`/`panelWidth`/`tableColumnWidths`), open/closed state
+  (`addBookmarkFormOpen`/`collapsedHomepageSectionIds`), the page-level listing prefs
+  (`bookmarkColumns`/`viewMode`/`bookmarkImageMode`/…), and the transient filter/header state. A
+  setting that must **stick across devices/browsers** belongs in the server-side `app_settings`
+  singleton (`services/appSettings.ts` + `hooks/useAppSettings.ts`), **not** `uiStore` — and once it
+  persists server-side it **does** fire a specific, recorded toast on save like any other persisted
+  setting. The **Display / Sidebar (Drawer) / Automations** settings pages were migrated this way
+  (issue #410, mirroring the **Advanced** Coolify/docs/Storybook fix): the sidebar-visibility lists,
+  auto-fetch + open-in-drawer modifier, bookmark-detail media sizing/layout, filter placement,
+  drawer pin/breakpoints, and the built-in Cropped W/H are server-backed groups
+  (`/api/app-settings/{sidebar-customization,automation,display-preferences}`), read via convenience
+  hooks (`useSidebarOpenModifier`, `useCroppedWidth`, …) and written with a `notifySuccess` toast —
+  **including the inline popovers** that set the same prefs (filters-location, panel-pin,
+  detail-layout) and the on-blur Cropped W/H inputs. Don't misclassify a should-persist setting as a
+  local pref: that's exactly what shipped those pages toast-less (and non-syncing) before the move.
 
 ## Data shaping: middleware vs. client
 

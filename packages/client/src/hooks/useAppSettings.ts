@@ -1,4 +1,15 @@
-import type { UpdateAdvancedSettingsInput, UpdateHomepageContentInput } from "@eesimple/types";
+import type {
+  BookmarkDetailImageSize,
+  BookmarkDetailLayout,
+  BookmarkDetailVideoSize,
+  SidebarCustomizationSettings,
+  SidebarOpenModifier,
+  UpdateAdvancedSettingsInput,
+  UpdateAutomationInput,
+  UpdateDisplayPreferenceInput,
+  UpdateHomepageContentInput,
+  UpdateSidebarCustomizationInput,
+} from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -7,6 +18,9 @@ import { appSettingsApi } from "../lib/api";
 const SHORTENER_IGNORE_LIST_KEY = ["app-settings", "shortener-ignore-list"] as const;
 const HOMEPAGE_CONTENT_KEY = ["app-settings", "homepage-content"] as const;
 const ADVANCED_KEY = ["app-settings", "advanced"] as const;
+const SIDEBAR_CUSTOMIZATION_KEY = ["app-settings", "sidebar-customization"] as const;
+const AUTOMATION_KEY = ["app-settings", "automation"] as const;
+const DISPLAY_PREFERENCES_KEY = ["app-settings", "display-preferences"] as const;
 
 /** The generic URL-shortener ignore list (e.g. bit.ly) used to nudge for un-expandable links. */
 export function useShortenerIgnoreList() {
@@ -61,4 +75,191 @@ export function useUpdateAdvancedSettings() {
       queryClient.setQueryData(ADVANCED_KEY, saved);
     },
   });
+}
+
+/** Defaults that mirror the former `useUiStore` initial state, used while the query is loading. */
+const SIDEBAR_CUSTOMIZATION_DEFAULTS: SidebarCustomizationSettings = {
+  hiddenCategoryIds: [],
+  hiddenTaxonomyItems: [],
+  hiddenCustomizationItems: [],
+  hiddenManagementItems: [],
+  hiddenSidebarGroups: [],
+};
+
+const AUTOMATION_DEFAULTS = {
+  autoFetchTitle: true,
+  autoFetchImage: true,
+  sidebarOpenModifier: "alt" as SidebarOpenModifier,
+};
+
+const DISPLAY_PREFERENCE_DEFAULTS = {
+  bookmarkDetailImageSize: "medium" as BookmarkDetailImageSize,
+  bookmarkDetailVideoSize: "standard" as BookmarkDetailVideoSize,
+  bookmarkDetailLayout: "single" as BookmarkDetailLayout,
+  filtersInDrawer: false,
+  filtersHidden: false,
+  panelPinned: false,
+  drawerUnpinnedBreakpoints: [768],
+  croppedWidth: 16,
+  croppedHeight: 9,
+};
+
+/** Sidebar-customization settings (group A): which left-sidebar items/groups are hidden. */
+export function useSidebarCustomizationSettings() {
+  return useQuery({
+    queryKey: SIDEBAR_CUSTOMIZATION_KEY,
+    queryFn: appSettingsApi.getSidebarCustomization,
+  });
+}
+
+export function useUpdateSidebarCustomizationSettings() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: UpdateSidebarCustomizationInput) =>
+      appSettingsApi.updateSidebarCustomization(input),
+    onSuccess: (saved) => {
+      queryClient.setQueryData(SIDEBAR_CUSTOMIZATION_KEY, saved);
+    },
+  });
+}
+
+/** The resolved sidebar-customization object, falling back to the empty defaults while loading. */
+export function useSidebarVisibility(): SidebarCustomizationSettings {
+  const {
+    data,
+  } = useSidebarCustomizationSettings();
+  return data ?? SIDEBAR_CUSTOMIZATION_DEFAULTS;
+}
+
+/** Automation settings (group B): auto-fetch title/image + the open-in-drawer modifier. */
+export function useAutomationSettings() {
+  return useQuery({
+    queryKey: AUTOMATION_KEY,
+    queryFn: appSettingsApi.getAutomation,
+  });
+}
+
+export function useUpdateAutomationSettings() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: UpdateAutomationInput) => appSettingsApi.updateAutomation(input),
+    onSuccess: (saved) => {
+      queryClient.setQueryData(AUTOMATION_KEY, saved);
+    },
+  });
+}
+
+/** Whether blurring the bookmark URL field auto-fetches the page title (default true). */
+export function useAutoFetchTitle(): boolean {
+  const {
+    data,
+  } = useAutomationSettings();
+  return data?.autoFetchTitle ?? AUTOMATION_DEFAULTS.autoFetchTitle;
+}
+
+/** Whether the Add Bookmark form auto-fetches the page image on save (default true). */
+export function useAutoFetchImage(): boolean {
+  const {
+    data,
+  } = useAutomationSettings();
+  return data?.autoFetchImage ?? AUTOMATION_DEFAULTS.autoFetchImage;
+}
+
+/** The modifier key that opens an item in the drawer when held during an Edit click (default "alt"). */
+export function useSidebarOpenModifier(): SidebarOpenModifier {
+  const {
+    data,
+  } = useAutomationSettings();
+  return data?.sidebarOpenModifier ?? AUTOMATION_DEFAULTS.sidebarOpenModifier;
+}
+
+/** Display/detail preferences (group C): detail media sizing, filter placement, pin, cropped ratio. */
+export function useDisplayPreferenceSettings() {
+  return useQuery({
+    queryKey: DISPLAY_PREFERENCES_KEY,
+    queryFn: appSettingsApi.getDisplayPreferences,
+  });
+}
+
+export function useUpdateDisplayPreferenceSettings() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: UpdateDisplayPreferenceInput) =>
+      appSettingsApi.updateDisplayPreferences(input),
+    onSuccess: (saved) => {
+      queryClient.setQueryData(DISPLAY_PREFERENCES_KEY, saved);
+    },
+  });
+}
+
+/** Bookmark detail image size (default "medium"). */
+export function useBookmarkDetailImageSize(): BookmarkDetailImageSize {
+  const {
+    data,
+  } = useDisplayPreferenceSettings();
+  return data?.bookmarkDetailImageSize ?? DISPLAY_PREFERENCE_DEFAULTS.bookmarkDetailImageSize;
+}
+
+/** Bookmark detail video size (default "standard"). */
+export function useBookmarkDetailVideoSize(): BookmarkDetailVideoSize {
+  const {
+    data,
+  } = useDisplayPreferenceSettings();
+  return data?.bookmarkDetailVideoSize ?? DISPLAY_PREFERENCE_DEFAULTS.bookmarkDetailVideoSize;
+}
+
+/** Bookmark detail layout (default "single"). */
+export function useBookmarkDetailLayout(): BookmarkDetailLayout {
+  const {
+    data,
+  } = useDisplayPreferenceSettings();
+  return data?.bookmarkDetailLayout ?? DISPLAY_PREFERENCE_DEFAULTS.bookmarkDetailLayout;
+}
+
+/** Whether listing pages open filters in the right-hand drawer by default (default false). */
+export function useFiltersInDrawer(): boolean {
+  const {
+    data,
+  } = useDisplayPreferenceSettings();
+  return data?.filtersInDrawer ?? DISPLAY_PREFERENCE_DEFAULTS.filtersInDrawer;
+}
+
+/** Whether the left filter rail is hidden on listing pages (default false). */
+export function useFiltersHidden(): boolean {
+  const {
+    data,
+  } = useDisplayPreferenceSettings();
+  return data?.filtersHidden ?? DISPLAY_PREFERENCE_DEFAULTS.filtersHidden;
+}
+
+/** Whether the right-hand panel docks as a persistent column by default (default false). */
+export function usePanelPinned(): boolean {
+  const {
+    data,
+  } = useDisplayPreferenceSettings();
+  return data?.panelPinned ?? DISPLAY_PREFERENCE_DEFAULTS.panelPinned;
+}
+
+/** Viewport widths (px) below which the drawer floats even when pinned (default [768]). */
+export function useDrawerUnpinnedBreakpoints(): number[] {
+  const {
+    data,
+  } = useDisplayPreferenceSettings();
+  return data?.drawerUnpinnedBreakpoints ?? DISPLAY_PREFERENCE_DEFAULTS.drawerUnpinnedBreakpoints;
+}
+
+/** Width component of the built-in "Cropped" aspect ratio (default 16). */
+export function useCroppedWidth(): number {
+  const {
+    data,
+  } = useDisplayPreferenceSettings();
+  return data?.croppedWidth ?? DISPLAY_PREFERENCE_DEFAULTS.croppedWidth;
+}
+
+/** Height component of the built-in "Cropped" aspect ratio (default 9). */
+export function useCroppedHeight(): number {
+  const {
+    data,
+  } = useDisplayPreferenceSettings();
+  return data?.croppedHeight ?? DISPLAY_PREFERENCE_DEFAULTS.croppedHeight;
 }

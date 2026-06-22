@@ -6,6 +6,7 @@ import { Info, Pencil } from "lucide-react";
 import { LabeledSection } from "./LabeledSection";
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
+import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,6 @@ import { Separator } from "@/components/ui/separator";
 import { withCategories } from "@/lib/bookmarkSearch";
 import { CategoryIcon } from "@/lib/icons";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
-import { useUiStore } from "@/stores/uiStore";
 
 /**
  * Hover-revealed Edit / See All button group with an always-visible bookmark count to its right.
@@ -25,7 +25,7 @@ function CategoryControls({
   category: Category;
 }) {
   const editClick = useEditPanelClick();
-  const modifier = useUiStore(state => state.sidebarOpenModifier);
+  const modifier = useSidebarOpenModifier();
   return (
     <div className="flex items-center gap-2">
       <div
@@ -90,7 +90,7 @@ export function CategoryPreviewCard({
 }: CategoryPreviewCardProps) {
   const viewClick = useViewPanelClick();
   const editClick = useEditPanelClick();
-  const modifier = useUiStore(state => state.sidebarOpenModifier);
+  const modifier = useSidebarOpenModifier();
   if (variant === "row") {
     return (
       <li>

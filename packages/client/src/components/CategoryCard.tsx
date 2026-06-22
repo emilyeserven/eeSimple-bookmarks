@@ -4,6 +4,7 @@ import { Link } from "@tanstack/react-router";
 
 import { CategoryGeneralForm } from "./CategoryGeneralForm";
 import { useEditPanelClick } from "./panel/useEditPanelClick";
+import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 import { useDeleteCategory } from "../hooks/useCategories";
 
 import { Badge } from "@/components/ui/badge";
@@ -11,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { CategoryIcon } from "@/lib/icons";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
-import { useUiStore } from "@/stores/uiStore";
 
 interface CategoryCardProps {
   category: Category;
@@ -25,7 +25,7 @@ export function CategoryCard({
 }: CategoryCardProps) {
   const deleteCategory = useDeleteCategory();
   const editClick = useEditPanelClick();
-  const modifier = useUiStore(state => state.sidebarOpenModifier);
+  const modifier = useSidebarOpenModifier();
 
   return (
     <div className="space-y-6">

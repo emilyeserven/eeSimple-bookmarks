@@ -7,11 +7,11 @@ import { useState } from "react";
 import { BookmarkDetailMedia } from "./BookmarkDetailMedia";
 import { buildBookmarkDetailSections } from "./bookmarkDetailSections";
 import { navLinkClass } from "./TabbedShell";
+import { useBookmarkDetailVideoSize } from "../hooks/useAppSettings";
 import { useBookmarks } from "../hooks/useBookmarks";
 import { useDefaultFieldZones } from "../lib/bookmarkCardFields";
 import { buildBookmarkHierarchy } from "../lib/bookmarkHierarchy";
 import { flattenTree } from "../lib/tagTree";
-import { useUiStore } from "../stores/uiStore";
 
 import { cn } from "@/lib/utils";
 
@@ -38,7 +38,7 @@ interface BookmarkDetailTabbedProps {
 export function BookmarkDetailTabbed({
   bookmark, categories, properties, propertyGroups, embedUrl, onSaveBoolean,
 }: BookmarkDetailTabbedProps) {
-  const videoSize = useUiStore(state => state.bookmarkDetailVideoSize);
+  const videoSize = useBookmarkDetailVideoSize();
   const {
     data: allBookmarks,
   } = useBookmarks();

@@ -3,9 +3,10 @@ import type { MouseEvent } from "react";
 
 import { useCallback } from "react";
 
+import { useSidebarOpenModifier } from "../../hooks/useAppSettings";
+
 import { usePanelControls } from "@/components/panel/usePanelControls";
 import { hasSidebarModifier } from "@/lib/sidebarModifier";
-import { useUiStore } from "@/stores/uiStore";
 
 /**
  * Click handler for a Table-view row. Mirrors `useViewPanelClick`: holding the configured sidebar
@@ -22,7 +23,7 @@ export function useTableRowNav(): (
   const {
     openItem,
   } = usePanelControls();
-  const modifier = useUiStore(state => state.sidebarOpenModifier);
+  const modifier = useSidebarOpenModifier();
 
   return useCallback(
     (event, ct, id, navigateToPage) => {

@@ -1,9 +1,15 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Trash2 } from "lucide-react";
 
+import {
+  useCroppedHeight,
+  useCroppedWidth,
+  useDisplayPreferenceSettings,
+  useUpdateDisplayPreferenceSettings,
+} from "../hooks/useAppSettings";
 import { useCreateCustomAspectRatio, useCustomAspectRatios, useDeleteCustomAspectRatio } from "../hooks/useCustomAspectRatios";
-import { useUiStore } from "../stores/uiStore";
+import { notifyError, notifySuccess } from "../lib/notifications";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -19,23 +25,65 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 
 /**
- * Settings card for image aspect ratios: edits the built-in "Cropped" ratio (width:height, persisted
- * in the UI store) and manages the list of custom named ratios shown in the aspect picker.
+ * Settings card for image aspect ratios: edits the built-in "Cropped" ratio (width:height,
+ * server-persisted in `app_settings`) and manages the list of custom named ratios shown in the
+ * aspect picker. The Cropped W/H save on blur (one request + recorded toast per commit, not per
+ * keystroke).
  */
 export function ImageAspectRatiosCard() {
-  const croppedWidth = useUiStore(state => state.croppedWidth);
-  const croppedHeight = useUiStore(state => state.croppedHeight);
-  const setCroppedWidth = useUiStore(state => state.setCroppedWidth);
-  const setCroppedHeight = useUiStore(state => state.setCroppedHeight);
+  const croppedWidth = useCroppedWidth();
+  const croppedHeight = useCroppedHeight();
+  const {
+    data: displayData,
+  } = useDisplayPreferenceSettings();
+  const updateDisplay = useUpdateDisplayPreferenceSettings();
   const {
     data: customRatios = [], isLoading, error,
   } = useCustomAspectRatios();
   const deleteMutation = useDeleteCustomAspectRatio();
   const createMutation = useCreateCustomAspectRatio();
 
+  // Local mirrors of the Cropped W/H inputs so typing stays smooth; persisted on blur.
+  const [widthInput, setWidthInput] = useState(String(croppedWidth));
+  const [heightInput, setHeightInput] = useState(String(croppedHeight));
+  useEffect(() => {
+    setWidthInput(String(croppedWidth));
+  }, [croppedWidth]);
+  useEffect(() => {
+    setHeightInput(String(croppedHeight));
+  }, [croppedHeight]);
+
   const [newName, setNewName] = useState("");
   const [newWidth, setNewWidth] = useState("");
   const [newHeight, setNewHeight] = useState("");
+
+  /** Persist a Cropped-ratio change, merging the whole display group, and fire the named toast. */
+  function saveCropped(patch: { croppedWidth: number } | { croppedHeight: number }): void {
+    if (!displayData) return;
+    updateDisplay.mutate({
+      ...displayData,
+      ...patch,
+    }, {
+      onSuccess: () => notifySuccess("Cropped ratio updated"),
+      onError: error => notifyError(error.message),
+    });
+  }
+
+  function commitWidth() {
+    const w = Math.max(1, Math.round(Number(widthInput) || 1));
+    setWidthInput(String(w));
+    if (w !== croppedWidth) saveCropped({
+      croppedWidth: w,
+    });
+  }
+
+  function commitHeight() {
+    const h = Math.max(1, Math.round(Number(heightInput) || 1));
+    setHeightInput(String(h));
+    if (h !== croppedHeight) saveCropped({
+      croppedHeight: h,
+    });
+  }
 
   function handleAdd() {
     const w = parseInt(newWidth, 10);
@@ -76,8 +124,9 @@ export function ImageAspectRatiosCard() {
             <Input
               type="number"
               min={1}
-              value={croppedWidth}
-              onChange={e => setCroppedWidth(Number(e.target.value) || 1)}
+              value={widthInput}
+              onChange={e => setWidthInput(e.target.value)}
+              onBlur={commitWidth}
               className="w-20"
               aria-label="Cropped width"
             />
@@ -85,8 +134,9 @@ export function ImageAspectRatiosCard() {
             <Input
               type="number"
               min={1}
-              value={croppedHeight}
-              onChange={e => setCroppedHeight(Number(e.target.value) || 1)}
+              value={heightInput}
+              onChange={e => setHeightInput(e.target.value)}
+              onBlur={commitHeight}
               className="w-20"
               aria-label="Cropped height"
             />

@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
 
+import { useSidebarOpenModifier } from "./useAppSettings";
 import { useAutofillScopeDefaults } from "./useAutofillScopeDefaults";
 import { AddAutofillRuleModal } from "../components/AddAutofillRuleModal";
 import { usePanelControls } from "../components/panel/usePanelControls";
@@ -11,7 +12,6 @@ import { buildAutofillRulePrefill } from "../lib/autofillPrefill";
 
 import { NEW_SENTINEL } from "@/lib/drawerSearch";
 import { hasSidebarModifier } from "@/lib/sidebarModifier";
-import { useUiStore } from "@/stores/uiStore";
 
 /**
  * Drives every "New autofill rule" button. A normal click opens a name-only modal that creates the
@@ -28,7 +28,7 @@ export function useNewAutofillRule(): {
   const {
     openAutofill,
   } = usePanelControls();
-  const modifier = useUiStore(state => state.sidebarOpenModifier);
+  const modifier = useSidebarOpenModifier();
   const navigate = useNavigate();
   const defaults = useAutofillScopeDefaults();
   const [modalOpen, setModalOpen] = useState(false);

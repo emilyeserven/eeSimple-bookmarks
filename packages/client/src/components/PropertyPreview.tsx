@@ -4,13 +4,13 @@ import { Link } from "@tanstack/react-router";
 import { TriangleAlert } from "lucide-react";
 
 import { useViewPanelClick } from "./panel/useEditPanelClick";
+import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 import { TYPE_LABELS } from "../lib/propertyFormat";
 
 import { Badge } from "@/components/ui/badge";
 import { RowCard } from "@/components/ui/card";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
 import { cn } from "@/lib/utils";
-import { useUiStore } from "@/stores/uiStore";
 
 interface PropertyPreviewProps {
   property: CustomProperty;
@@ -23,7 +23,7 @@ export function PropertyPreview({
   property, allProperties,
 }: PropertyPreviewProps) {
   const viewClick = useViewPanelClick();
-  const modifier = useUiStore(state => state.sidebarOpenModifier);
+  const modifier = useSidebarOpenModifier();
   const operandNames = property.operandPropertyIds
     .map(id => allProperties.find(candidate => candidate.id === id)?.name)
     .filter((value): value is string => Boolean(value));

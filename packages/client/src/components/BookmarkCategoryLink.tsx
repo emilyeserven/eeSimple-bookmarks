@@ -3,10 +3,10 @@ import type { Category } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 
 import { useViewPanelClick } from "./panel/useEditPanelClick";
+import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
 import { CategoryIcon } from "@/lib/icons";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
-import { useUiStore } from "@/stores/uiStore";
 
 /** The bookmark's category rendered as an icon + name link that opens the category (or its panel). */
 export function BookmarkCategoryLink({
@@ -15,7 +15,7 @@ export function BookmarkCategoryLink({
   category: Category;
 }) {
   const viewClick = useViewPanelClick();
-  const modifier = useUiStore(state => state.sidebarOpenModifier);
+  const modifier = useSidebarOpenModifier();
   return (
     <Link
       to="/categories/$categorySlug"

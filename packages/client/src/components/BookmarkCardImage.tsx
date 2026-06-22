@@ -5,7 +5,7 @@ import { CardImageOverlays } from "./CardImageOverlays";
 import { useCustomAspectRatios } from "../hooks/useCustomAspectRatios";
 import { bookmarkImageAspectStyle, bookmarkImageClass } from "../lib/bookmarkImage";
 
-import { useUiStore } from "@/stores/uiStore";
+import { useCroppedHeight, useCroppedWidth } from "@/hooks/useAppSettings";
 
 interface BookmarkCardImageProps {
   bookmark: Bookmark;
@@ -25,8 +25,8 @@ interface BookmarkCardImageProps {
 export function BookmarkCardImage({
   bookmark, imageLeft, imageMode, overlayItems,
 }: BookmarkCardImageProps) {
-  const croppedWidth = useUiStore(state => state.croppedWidth);
-  const croppedHeight = useUiStore(state => state.croppedHeight);
+  const croppedWidth = useCroppedWidth();
+  const croppedHeight = useCroppedHeight();
   const {
     data: customRatios = [],
   } = useCustomAspectRatios();

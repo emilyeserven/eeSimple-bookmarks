@@ -1,7 +1,6 @@
-import type { BookmarkDetailImageSize, BookmarkDetailVideoSize } from "../stores/uiStore";
-import type { Bookmark } from "@eesimple/types";
+import type { Bookmark, BookmarkDetailImageSize, BookmarkDetailVideoSize } from "@eesimple/types";
 
-import { useUiStore } from "../stores/uiStore";
+import { useBookmarkDetailImageSize, useBookmarkDetailVideoSize } from "../hooks/useAppSettings";
 
 const IMAGE_SIZE_CLASS: Record<BookmarkDetailImageSize, string> = {
   small: "max-h-40 w-full rounded-md border object-contain @2xl:w-40 @2xl:shrink-0",
@@ -30,8 +29,8 @@ interface BookmarkDetailMediaProps {
 export function BookmarkDetailMedia({
   bookmark, embedUrl,
 }: BookmarkDetailMediaProps) {
-  const imageSize = useUiStore(state => state.bookmarkDetailImageSize);
-  const videoSize = useUiStore(state => state.bookmarkDetailVideoSize);
+  const imageSize = useBookmarkDetailImageSize();
+  const videoSize = useBookmarkDetailVideoSize();
 
   if (embedUrl) {
     return (

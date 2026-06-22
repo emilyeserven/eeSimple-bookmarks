@@ -1,9 +1,9 @@
 import type { BookmarkImageVisibility, HomepageSectionImageLayout, ViewMode } from "../lib/bookmarkColumns";
 
 import { ColumnsSelect, ViewModeToggle } from "./DisplayControlPrimitives";
+import { useCroppedHeight, useCroppedWidth } from "../hooks/useAppSettings";
 import { useCustomAspectRatios } from "../hooks/useCustomAspectRatios";
 import { buildAspectOptions } from "../lib/aspectOptions";
-import { useUiStore } from "../stores/uiStore";
 
 import { Label } from "@/components/ui/label";
 import {
@@ -56,8 +56,8 @@ export function DisplaySettingsControlsBase({
   const {
     viewMode, columns, imageMode, imageVisibility, imageLayout, cornerOverlays,
   } = value;
-  const croppedWidth = useUiStore(state => state.croppedWidth);
-  const croppedHeight = useUiStore(state => state.croppedHeight);
+  const croppedWidth = useCroppedWidth();
+  const croppedHeight = useCroppedHeight();
   const {
     data: customRatios = [],
   } = useCustomAspectRatios();

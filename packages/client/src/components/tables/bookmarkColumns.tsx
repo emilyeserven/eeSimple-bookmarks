@@ -21,9 +21,13 @@ import { useViewPanelClick } from "../panel/useEditPanelClick";
 import { SourcePill } from "../SourcePill";
 import { StarRating } from "../StarRating";
 
+import {
+  useCroppedHeight,
+  useCroppedWidth,
+  useSidebarOpenModifier,
+} from "@/hooks/useAppSettings";
 import { useCategories } from "@/hooks/useCategories";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
-import { useUiStore } from "@/stores/uiStore";
 
 /**
  * Format a single custom-property value for a bookmark, or `null` when it has no displayable value.
@@ -93,9 +97,9 @@ export function useBookmarkTableColumns({
   const imageMode = imageModeOverride ?? pageImageMode;
   const imageVisibility = imageVisibilityOverride ?? pageImageVisibility;
   const viewClick = useViewPanelClick();
-  const modifier = useUiStore(state => state.sidebarOpenModifier);
-  const croppedWidth = useUiStore(state => state.croppedWidth);
-  const croppedHeight = useUiStore(state => state.croppedHeight);
+  const modifier = useSidebarOpenModifier();
+  const croppedWidth = useCroppedWidth();
+  const croppedHeight = useCroppedHeight();
   const {
     data: customRatios = [],
   } = useCustomAspectRatios();

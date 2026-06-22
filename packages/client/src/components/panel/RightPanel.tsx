@@ -13,7 +13,14 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { useViewportWidth } from "@/hooks/use-mobile";
+import {
+  useDisplayPreferenceSettings,
+  useDrawerUnpinnedBreakpoints,
+  usePanelPinned,
+  useUpdateDisplayPreferenceSettings,
+} from "@/hooks/useAppSettings";
 import { useResizeHandle } from "@/hooks/useResizeHandle";
+import { notifyError, notifySuccess } from "@/lib/notifications";
 import { useUiStore } from "@/stores/uiStore";
 
 /**
@@ -26,8 +33,8 @@ export function RightPanel() {
     isOpen, close,
   } = usePanelControls();
   const viewportWidth = useViewportWidth();
-  const pinned = useUiStore(state => state.panelPinned);
-  const drawerUnpinnedBreakpoints = useUiStore(state => state.drawerUnpinnedBreakpoints);
+  const pinned = usePanelPinned();
+  const drawerUnpinnedBreakpoints = useDrawerUnpinnedBreakpoints();
   const panelWidth = useUiStore(state => state.panelWidth);
   const setPanelWidth = useUiStore(state => state.setPanelWidth);
   const {
@@ -123,8 +130,23 @@ function PanelChrome({
   const {
     close,
   } = usePanelControls();
-  const pinned = useUiStore(state => state.panelPinned);
-  const setPanelPinned = useUiStore(state => state.setPanelPinned);
+  const pinned = usePanelPinned();
+  const {
+    data: displayData,
+  } = useDisplayPreferenceSettings();
+  const update = useUpdateDisplayPreferenceSettings();
+
+  function togglePinned() {
+    if (!displayData) return;
+    const next = !pinned;
+    update.mutate({
+      ...displayData,
+      panelPinned: next,
+    }, {
+      onSuccess: () => notifySuccess(next ? "Drawer pinned" : "Drawer unpinned"),
+      onError: error => notifyError(error.message),
+    });
+  }
 
   return (
     <div className="flex items-center justify-between gap-1 px-4 pt-4">
@@ -139,7 +161,7 @@ function PanelChrome({
           "
           aria-label={pinned ? "Unpin panel" : "Pin panel"}
           aria-pressed={pinned}
-          onClick={() => setPanelPinned(!pinned)}
+          onClick={togglePinned}
         >
           {pinned ? <PinOff className="size-4" /> : <Pin className="size-4" />}
         </Button>
