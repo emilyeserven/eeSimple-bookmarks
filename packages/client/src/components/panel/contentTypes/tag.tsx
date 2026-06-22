@@ -8,7 +8,11 @@ import { Tags } from "lucide-react";
 
 import { useTagTree } from "../../../hooks/useTags";
 import { flattenTree } from "../../../lib/tagTree";
-import { TagPanel } from "../TagPanel";
+import { tagWorkbench } from "../../workbench/tag";
+import { EntityWorkbenchPanel } from "../EntityWorkbenchPanel";
+import { TagCreateForm } from "../TagPanel";
+
+import { NEW_SENTINEL } from "@/lib/drawerSearch";
 
 function useTagList() {
   const {
@@ -34,19 +38,25 @@ function useTagList() {
 const TagView: FC<{ id: string }> = ({
   id,
 }) => (
-  <TagPanel
-    tagId={id}
-    initialMode="view"
+  <EntityWorkbenchPanel
+    workbench={tagWorkbench}
+    id={id}
+    mode="view"
   />
 );
+
+// Creating a tag keeps its submit form; editing an existing one reuses the workbench.
 const TagEdit: FC<{ id: string }> = ({
   id,
-}) => (
-  <TagPanel
-    tagId={id}
-    initialMode="edit"
-  />
-);
+}) => (id === NEW_SENTINEL
+  ? <TagCreateForm />
+  : (
+    <EntityWorkbenchPanel
+      workbench={tagWorkbench}
+      id={id}
+      mode="edit"
+    />
+  ));
 
 export const tagContentType: PanelContentTypeDef = {
   type: "tag",

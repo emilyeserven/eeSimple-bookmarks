@@ -1,48 +1,12 @@
-import type { DrawerMode } from "@/lib/drawerSearch";
-
-import { TagEditor } from "./TagEditor";
 import { usePanelControls } from "./usePanelControls";
-import { useCreateTag, useTagTree } from "../../hooks/useTags";
-import { flattenTree } from "../../lib/tagTree";
+import { useCreateTag } from "../../hooks/useTags";
 import { TagForm } from "../TagForm";
 
-import { NEW_SENTINEL } from "@/lib/drawerSearch";
-
-interface TagPanelProps {
-  /** The tag id to view/edit, or `NEW_SENTINEL` to create a new root tag. */
-  tagId: string;
-  /** Mode the editor opens in (from the panel's `dMode`); defaults to read-only `view`. */
-  initialMode?: DrawerMode;
-}
-
-/** Tag create/view/edit body for the shared panel (was `TagDrawer` / `TagCreateDrawer`). */
-export function TagPanel({
-  tagId, initialMode = "view",
-}: TagPanelProps) {
-  const {
-    data: tree, isLoading, error,
-  } = useTagTree();
-
-  if (tagId === NEW_SENTINEL) return <TagCreateForm />;
-
-  if (isLoading) return <p className="text-muted-foreground">Loading…</p>;
-  if (error) return <p className="text-destructive">{error.message}</p>;
-
-  const allTags = tree ?? [];
-  const node = flattenTree(allTags).find(item => item.node.id === tagId)?.node;
-  if (!node) return <p className="text-destructive">Tag not found.</p>;
-
-  return (
-    <TagEditor
-      node={node}
-      allTags={allTags}
-      initialMode={initialMode}
-    />
-  );
-}
-
-/** Create a new root tag, then close the panel. */
-function TagCreateForm() {
+/**
+ * Create a new root tag in the panel, then close it. Existing tags are viewed/edited through the
+ * shared `EntityWorkbenchPanel` (the `tagWorkbench`); only the create flow keeps its submit form.
+ */
+export function TagCreateForm() {
   const {
     close,
   } = usePanelControls();

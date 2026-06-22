@@ -21,14 +21,6 @@ vi.mock("./EntityWorkbenchPanel", () => ({
   }) => <div>workbench:{id}:{mode}</div>,
 }));
 
-vi.mock("./TagPanel", () => ({
-  TagPanel: ({
-    tagId,
-  }: {
-    tagId: string;
-  }) => <div>tag:{tagId}</div>,
-}));
-
 describe("PanelContent", () => {
   beforeEach(() => {
     panelState.dCT = undefined;
@@ -51,10 +43,10 @@ describe("PanelContent", () => {
     expect(screen.getByText("workbench:rule-1:edit")).toBeInTheDocument();
   });
 
-  it("dispatches to the tag editor", () => {
+  it("dispatches the tag view to the shared workbench panel", () => {
     panelState.dCT = "tag";
     panelState.dCId = "tag-1";
     render(<PanelContent />);
-    expect(screen.getByText("tag:tag-1")).toBeInTheDocument();
+    expect(screen.getByText("workbench:tag-1:view")).toBeInTheDocument();
   });
 });
