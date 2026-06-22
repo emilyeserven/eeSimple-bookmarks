@@ -22,12 +22,17 @@ const viewNav = [
     to: "/tags/$tagSlug/autofill",
     label: "Autofill Rules",
   },
+  {
+    to: "/tags/$tagSlug/display-rules",
+    label: "Display Rules",
+  },
 ] as const;
 
 // "hierarchy" is view-only; clicking Edit from there falls back to "general".
 const VIEW_TO_EDIT = {
-  general: "/tags/$tagSlug/edit/general",
-  autofill: "/tags/$tagSlug/edit/autofill",
+  "general": "/tags/$tagSlug/edit/general",
+  "autofill": "/tags/$tagSlug/edit/autofill",
+  "display-rules": "/tags/$tagSlug/edit/display-rules",
 } as const;
 type TagEditRoute = typeof VIEW_TO_EDIT[keyof typeof VIEW_TO_EDIT];
 

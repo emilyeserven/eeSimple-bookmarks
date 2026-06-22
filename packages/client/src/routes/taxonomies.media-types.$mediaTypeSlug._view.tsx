@@ -23,11 +23,16 @@ const viewNav = [
     to: "/taxonomies/media-types/$mediaTypeSlug/autofill",
     label: "Autofill Rules",
   },
+  {
+    to: "/taxonomies/media-types/$mediaTypeSlug/display-rules",
+    label: "Display Rules",
+  },
 ] as const;
 
 const VIEW_TO_EDIT = {
-  general: "/taxonomies/media-types/$mediaTypeSlug/edit/general",
-  autofill: "/taxonomies/media-types/$mediaTypeSlug/edit/autofill",
+  "general": "/taxonomies/media-types/$mediaTypeSlug/edit/general",
+  "autofill": "/taxonomies/media-types/$mediaTypeSlug/edit/autofill",
+  "display-rules": "/taxonomies/media-types/$mediaTypeSlug/edit/display-rules",
 } as const;
 type MediaTypeEditRoute = typeof VIEW_TO_EDIT[keyof typeof VIEW_TO_EDIT];
 

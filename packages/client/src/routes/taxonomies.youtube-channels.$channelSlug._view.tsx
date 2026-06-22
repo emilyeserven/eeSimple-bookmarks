@@ -18,11 +18,16 @@ const viewNav = [
     to: "/taxonomies/youtube-channels/$channelSlug/autofill",
     label: "Autofill",
   },
+  {
+    to: "/taxonomies/youtube-channels/$channelSlug/display-rules",
+    label: "Display Rules",
+  },
 ] as const;
 
 const VIEW_TO_EDIT = {
-  general: "/taxonomies/youtube-channels/$channelSlug/edit/general",
-  autofill: "/taxonomies/youtube-channels/$channelSlug/edit/autofill",
+  "general": "/taxonomies/youtube-channels/$channelSlug/edit/general",
+  "autofill": "/taxonomies/youtube-channels/$channelSlug/edit/autofill",
+  "display-rules": "/taxonomies/youtube-channels/$channelSlug/edit/display-rules",
 } as const;
 type ChannelEditRoute = typeof VIEW_TO_EDIT[keyof typeof VIEW_TO_EDIT];
 

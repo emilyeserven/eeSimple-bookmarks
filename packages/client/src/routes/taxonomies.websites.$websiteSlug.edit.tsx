@@ -24,6 +24,10 @@ const editNav = [
     to: "/taxonomies/websites/$websiteSlug/edit/autofill",
     label: "Autofill Rules",
   },
+  {
+    to: "/taxonomies/websites/$websiteSlug/edit/display-rules",
+    label: "Display Rules",
+  },
 ] as const;
 
 function WebsiteEditLayout() {
