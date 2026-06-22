@@ -8,8 +8,7 @@ export const Route = createFileRoute("/taxonomies/websites/$websiteSlug/_view/au
     throw redirect({
       to: "/settings/autofill",
       search: {
-        scope: "website",
-        scopeSlug: params.websiteSlug,
+        website: params.websiteSlug,
       },
     });
   },

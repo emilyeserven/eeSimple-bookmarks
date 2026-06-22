@@ -8,8 +8,7 @@ export const Route = createFileRoute("/taxonomies/youtube-channels/$channelSlug/
     throw redirect({
       to: "/settings/autofill",
       search: {
-        scope: "channel",
-        scopeSlug: params.channelSlug,
+        channel: params.channelSlug,
       },
     });
   },

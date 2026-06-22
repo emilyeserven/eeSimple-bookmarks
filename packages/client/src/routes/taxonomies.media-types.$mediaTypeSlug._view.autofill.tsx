@@ -8,8 +8,7 @@ export const Route = createFileRoute("/taxonomies/media-types/$mediaTypeSlug/_vi
     throw redirect({
       to: "/settings/autofill",
       search: {
-        scope: "media-type",
-        scopeSlug: params.mediaTypeSlug,
+        mediaType: params.mediaTypeSlug,
       },
     });
   },

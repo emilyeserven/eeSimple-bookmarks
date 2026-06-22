@@ -1,37 +1,58 @@
 /**
- * URL-persisted filter state for the **Settings → Autofill** listing. `scope` + `scopeSlug` pin the
- * list to a single entity (the taxonomy tab you came from); `category` / `q` mirror the in-page
- * category dropdown and text search so the whole filtered view is a shareable, reload-safe deeplink.
- * Every field is optional — a clean URL carries none of them. TanStack Router's default serializer
- * round-trips this flat object.
+ * URL-persisted filter state for the **Settings → Autofill** listing. Each facet pins the list to a
+ * single entity **by slug**; the facets combine (AND). `category` also accepts the `"none"` sentinel
+ * ("rules that set no category"). `q` mirrors the text search. Every field is optional — a clean URL
+ * carries none of them — so the filtered view is a shareable, reload-safe deeplink. TanStack Router's
+ * default serializer round-trips this flat object.
  */
 
-/** Entity kinds an autofill rule can be scoped to in the Settings → Autofill listing. */
-export const AUTOFILL_SCOPE_TYPES = [
+/** Select sentinel for "every category" / "any X" (omitted from the URL). */
+export const ALL_CATEGORIES = "all";
+
+/** Select sentinel for "rules that set no category" (kept in the URL as `category=none`). */
+export const NO_CATEGORY = "none";
+
+/** The facet filters available on the Settings → Autofill listing (each keyed by a slug in the URL). */
+export const AUTOFILL_FACET_KEYS = [
   "category",
   "property",
   "website",
   "tag",
-  "media-type",
+  "mediaType",
   "channel",
 ] as const;
 
-export type AutofillScopeType = typeof AUTOFILL_SCOPE_TYPES[number];
+export type AutofillFacetKey = typeof AUTOFILL_FACET_KEYS[number];
 
 export interface AutofillListSearch {
-  /** Pin the list to a single entity of this kind (paired with `scopeSlug`). */
-  scope?: AutofillScopeType;
-  /** The slug of the scoped entity (resolved to its id on the page). */
-  scopeSlug?: string;
-  /** Mirror of the category dropdown: a category id, or `"none"` for "no category" (`"all"` is omitted). */
+  /** Pin to a single category by slug, or `"none"` for "sets no category". */
   category?: string;
+  /** Pin to a single custom property by slug. */
+  property?: string;
+  /** Pin to a single website by slug. */
+  website?: string;
+  /** Pin to a single tag by slug. */
+  tag?: string;
+  /** Pin to a single media type by slug. */
+  mediaType?: string;
+  /** Pin to a single YouTube channel by slug. */
+  channel?: string;
   /** Mirror of the text search box. */
   q?: string;
 }
 
-function isScopeType(value: unknown): value is AutofillScopeType {
-  return typeof value === "string" && (AUTOFILL_SCOPE_TYPES as readonly string[]).includes(value);
-}
+/**
+ * Legacy single-scope params (`scope`/`scopeSlug`) the entity tabs used to redirect with. Mapped onto
+ * the matching facet so old bookmarked deeplinks keep working.
+ */
+const LEGACY_SCOPE_TO_FACET: Record<string, AutofillFacetKey> = {
+  "category": "category",
+  "property": "property",
+  "website": "website",
+  "tag": "tag",
+  "media-type": "mediaType",
+  "channel": "channel",
+};
 
 function trimmedString(value: unknown): string | undefined {
   if (typeof value !== "string") return undefined;
@@ -40,17 +61,29 @@ function trimmedString(value: unknown): string | undefined {
 }
 
 /**
- * Validate/normalize raw search params: drop an unknown `scope`, ignore a `scopeSlug` with no
- * `scope`, drop the `"all"` category sentinel, and omit empty strings so the URL stays clean.
+ * Validate/normalize raw search params: keep each facet slug (dropping the category `"all"` sentinel),
+ * migrate a legacy `scope`+`scopeSlug` pair onto its facet, and omit empty strings so the URL stays clean.
  */
 export function validateAutofillListSearch(raw: Record<string, unknown>): AutofillListSearch {
   const result: AutofillListSearch = {};
-  if (isScopeType(raw.scope)) result.scope = raw.scope;
-  const scopeSlug = trimmedString(raw.scopeSlug);
-  // A scopeSlug is only meaningful alongside a scope.
-  if (result.scope && scopeSlug) result.scopeSlug = scopeSlug;
-  const category = trimmedString(raw.category);
-  if (category && category !== "all") result.category = category;
+
+  for (const key of AUTOFILL_FACET_KEYS) {
+    const value = trimmedString(raw[key]);
+    if (!value) continue;
+    // The "all" sentinel means "no filter"; drop it from the URL.
+    if (key === "category" && value === ALL_CATEGORIES) continue;
+    result[key] = value;
+  }
+
+  // Back-compat: a legacy `scope`+`scopeSlug` pair maps onto its facet (only when that facet wasn't
+  // already set by a new-style param).
+  const legacyScope = trimmedString(raw.scope);
+  const legacyScopeSlug = trimmedString(raw.scopeSlug);
+  if (legacyScope && legacyScopeSlug) {
+    const facet = LEGACY_SCOPE_TO_FACET[legacyScope];
+    if (facet && !result[facet]) result[facet] = legacyScopeSlug;
+  }
+
   const q = trimmedString(raw.q);
   if (q) result.q = q;
   return result;

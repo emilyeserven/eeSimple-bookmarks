@@ -8,8 +8,7 @@ export const Route = createFileRoute("/tags/$tagSlug/_view/autofill")({
     throw redirect({
       to: "/settings/autofill",
       search: {
-        scope: "tag",
-        scopeSlug: params.tagSlug,
+        tag: params.tagSlug,
       },
     });
   },

@@ -94,13 +94,22 @@ The shared list component must already accept **entity-scope filter props** (e.g
 
 ## Reference implementation (Autofill → Settings → Autofill)
 
-- `lib/autofillScope.ts` (+ `.test.ts`) — `AutofillScopeType`, `AutofillListSearch`,
-  `validateAutofillListSearch`.
-- `components/AutofillRulesList.tsx` — filter state lifted to controlled props.
+> **Note:** Settings → Autofill has since evolved from a single `scope`/`scopeSlug` + clearable chip to
+> an independent dropdown **per facet** (category / website / tag / media type / channel / property),
+> combining via AND. `lib/autofillScope.ts` now holds per-facet slug params; `hooks/useAutofillScope.ts`
+> exposes `useAutofillFacets`/`resolveAutofillFacets` (combined `listProps` + a `noCategory` flag);
+> `components/AutofillRulesFilterBar.tsx` renders the dropdowns. The single-scope + chip pattern below is
+> still the right starting point for a new consolidation — reach for multi-facet only when the page
+> genuinely needs several simultaneous filters.
+
+- `lib/autofillScope.ts` (+ `.test.ts`) — `AutofillListSearch` (per-facet slug params),
+  `validateAutofillListSearch` (with legacy `scope`/`scopeSlug` migration).
+- `components/AutofillRulesList.tsx` — presentation-only list driven by the resolved facet id props.
+- `components/AutofillRulesFilterBar.tsx` — the text search + per-facet dropdowns (`FacetSelect`).
 - `routes/autofill.index.tsx` — top-level list, unchanged behavior via header search + local state.
-- `hooks/useAutofillScope.ts` — `scope`/`scopeSlug` → list prop + chip label.
-- `routes/settings.autofill.tsx` — `validateSearch`, scope chip, URL-bound search, controlled list.
-- `hooks/useAutofillScopeDefaults.ts` — also reads `scope`/`scopeSlug` from search (create prefill).
+- `hooks/useAutofillScope.ts` — per-facet slugs → combined list props (`useAutofillFacets`).
+- `routes/settings.autofill.tsx` — `validateSearch`, filter bar, URL-bound facets, resolved list.
+- `hooks/useAutofillScopeDefaults.ts` — also reads the per-facet search slugs (create prefill).
 - The 12 redirect routes: `categories.$categorySlug.{_view,edit}.autofill.tsx`,
   `tags.$tagSlug.{_view,edit}.autofill.tsx`,
   `taxonomies.{websites.$websiteSlug,media-types.$mediaTypeSlug,youtube-channels.$channelSlug}.{_view,edit}.autofill.tsx`,

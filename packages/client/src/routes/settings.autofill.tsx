@@ -1,19 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { X } from "lucide-react";
 
+import { AutofillRulesFilterBar } from "../components/AutofillRulesFilterBar";
 import { AutofillRulesList } from "../components/AutofillRulesList";
-import { ALL_CATEGORIES } from "../components/AutofillRulesToolbar";
-import { AUTOFILL_SCOPE_LABELS, useAutofillScope } from "../hooks/useAutofillScope";
+import { useAutofillFacets } from "../hooks/useAutofillScope";
+import { useSetListingPage } from "../hooks/useListingPage";
+import { useNewAutofillRule } from "../hooks/useNewAutofillRule";
 import { validateAutofillListSearch } from "../lib/autofillScope";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-
 /**
- * Settings → Autofill: the single home for autofill rules. Entity "Autofill Rules" tabs redirect
- * here pre-filtered to the entity they came from (`?scope=…&scopeSlug=…`). All filter state — the
- * entity scope, the category dropdown (`?category`), and the text search (`?q`) — lives in the URL so
- * the filtered view is a shareable, reload-safe deeplink.
+ * Settings → Autofill: the single home for autofill rules. A filter bar (text search + one dropdown per
+ * filterable facet: category / website / tag / media type / YouTube channel / custom property) narrows
+ * the list; the facets combine (AND). Entity "Autofill Rules" tabs redirect here pre-filtered to the
+ * facet they came from. All filter state lives in the URL so the filtered view is a shareable,
+ * reload-safe deeplink.
  */
 export const Route = createFileRoute("/settings/autofill")({
   validateSearch: validateAutofillListSearch,
@@ -21,13 +20,13 @@ export const Route = createFileRoute("/settings/autofill")({
 });
 
 function AutofillSettingsPage() {
-  const {
-    scope, scopeSlug, category, q,
-  } = Route.useSearch();
+  const search = Route.useSearch();
   const navigate = Route.useNavigate();
   const {
-    active, label, listProps,
-  } = useAutofillScope(scope, scopeSlug);
+    listProps, noCategory,
+  } = useAutofillFacets(search);
+  const newRule = useNewAutofillRule();
+  useSetListingPage("autofill-rules-listing", false, false, false, newRule.openModal);
 
   return (
     <section className="space-y-6">
@@ -39,67 +38,24 @@ function AutofillSettingsPage() {
         </p>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <Input
-          type="search"
-          value={q ?? ""}
-          placeholder="Search rules…"
-          aria-label="Search autofill rules"
-          className="w-64"
-          onChange={event => navigate({
-            search: prev => ({
-              ...prev,
-              q: event.target.value || undefined,
-            }),
-            replace: true,
-          })}
-        />
-        {active && scope
-          ? (
-            <span
-              className="
-                inline-flex items-center gap-1 rounded-full border bg-muted py-1
-                pr-1 pl-3 text-sm
-              "
-            >
-              <span className="text-muted-foreground">
-                Filtered to {AUTOFILL_SCOPE_LABELS[scope]}:
-              </span>
-              <span className="font-medium">{label ?? scopeSlug}</span>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="size-5 rounded-full"
-                aria-label="Clear filter"
-                onClick={() => navigate({
-                  search: prev => ({
-                    ...prev,
-                    scope: undefined,
-                    scopeSlug: undefined,
-                  }),
-                  replace: true,
-                })}
-              >
-                <X className="size-3.5" />
-              </Button>
-            </span>
-          )
-          : null}
-      </div>
-
-      <AutofillRulesList
-        {...listProps}
-        query={q ?? ""}
-        categoryFilter={category ?? ALL_CATEGORIES}
-        onCategoryFilterChange={value => navigate({
+      <AutofillRulesFilterBar
+        search={search}
+        onChange={patch => navigate({
           search: prev => ({
             ...prev,
-            category: value === ALL_CATEGORIES ? undefined : value,
+            ...patch,
           }),
           replace: true,
         })}
       />
+
+      <AutofillRulesList
+        {...listProps}
+        noCategory={noCategory}
+        query={search.q ?? ""}
+      />
+
+      {newRule.modal}
     </section>
   );
 }
