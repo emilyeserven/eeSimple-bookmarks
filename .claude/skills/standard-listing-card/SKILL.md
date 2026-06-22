@@ -25,7 +25,12 @@ model. New listing pages adopt it from the start; existing ones must not drift b
 3. **Card-body click → the filtered `/bookmarks` list** for that item (`withX({}, [id])`). A plain
    `<Link>` — **not** panel-aware (there's no panel content type for a filtered bookmark list).
 4. **Hover reveals Edit (pencil) + Info buttons** on every item. Edit → the entity's edit page,
-   Info → its detail page. Both are panel-aware (modifier-click opens the right panel).
+   Info → its **General view tab** (`<Link to="/<entity>/$slug/general">`). Both are panel-aware
+   (modifier-click opens the right panel). **The Info link must point at `…/$slug/general`, never the
+   bare index `…/$slug`** — for Tags, Websites, YouTube Channels, and Media Types the bare index route
+   renders a *bookmarks-filtered* `BookmarkSearchView` (a duplicate of the card-body destination), not
+   the detail page; and even where the index `redirect`s to `/general` (Property Groups, Relationship
+   Types) you should link directly to `/general`.
 5. **Always-visible count badge** = bookmarks where the item is applied.
 6. **Zero-count items are de-emphasized** (`opacity-60`) but stay clickable.
 
@@ -118,7 +123,8 @@ own-count sub-row. It renders the icon **first** (`CategoryIcon name={node.icon 
 chevron/spacer, the name link, the hover Edit + Info ghost buttons, and the count badge; each row
 mutes independently (`node.bookmarkCount === 0 → opacity-60`). The wrappers supply three render
 props: `renderNameLink` (now the plain `/bookmarks` link), `renderEditLink`, and `renderInfoLink`
-(the detail page, `viewClick`). `TaxonomyTreeNode` carries an optional `icon?: string | null` (Media
+(the **General view tab** `…/$slug/general`, `viewClick` — never the bare index). `TaxonomyTreeNode`
+carries an optional `icon?: string | null` (Media
 Types thread `node.icon`; flat Tags get the Tag-glyph fallback).
 
 ## The 3 documented exceptions
@@ -186,6 +192,7 @@ pnpm dev                                   # then check each listing page
 ```
 
 Per page: body click → filtered bookmarks (or detail/info for the exceptions); icon far-left; a
-tall/wrapping card centers the icon + buttons; hover shows Edit (+ Info except Autofill);
+tall/wrapping card centers the icon + buttons; hover shows Edit (+ Info except Autofill); the **Info
+icon lands on the entity's General detail tab (`…/$slug/general`), not a bookmarks list**;
 modifier-click on Edit/Info opens the right panel while the body link does not; the count badge is
 always visible; a zero-count item is muted but clickable.
