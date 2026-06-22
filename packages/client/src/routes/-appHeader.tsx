@@ -1,30 +1,14 @@
 import type { SwitcherSpec } from "@/components/BreadcrumbSwitcher";
+import type { BreadcrumbSegment } from "@/components/header/HeaderBreadcrumbs";
 import type { PinContext } from "@/components/HeaderPinButton";
 import type { MediaTypeNode, TagNode } from "@eesimple/types";
 
-import React from "react";
+import { useRouterState } from "@tanstack/react-router";
 
-import { Link, useRouterState } from "@tanstack/react-router";
-import { Info, PanelRight, Plus } from "lucide-react";
-
-import { AddChildButton } from "@/components/AddChildButton";
-import { BookmarkDetailLayoutPopover } from "@/components/BookmarkDetailLayoutPopover";
-import { BreadcrumbSwitcher } from "@/components/BreadcrumbSwitcher";
-import { DisplayOptionsPopover } from "@/components/DisplayOptionsPopover";
-import { FilterLocationPopover } from "@/components/FilterLocationPopover";
-import { HeaderPinButton } from "@/components/HeaderPinButton";
-import { HeaderSettingsFavoriteButton } from "@/components/HeaderSettingsFavoriteButton";
-import { ListingSearchBar } from "@/components/ListingSearchBar";
+import { HeaderBreadcrumbs } from "@/components/header/HeaderBreadcrumbs";
+import { HeaderToolbar } from "@/components/header/HeaderToolbar";
+import { buildToolbarActions } from "@/components/header/toolbarActions";
 import { usePanelControls } from "@/components/panel/usePanelControls";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useAutofillRuleBySlug } from "@/hooks/useAutofill";
@@ -39,15 +23,7 @@ import { useWebsiteBySlug } from "@/hooks/useWebsites";
 import { useYouTubeChannelBySlug } from "@/hooks/useYouTubeChannels";
 import { findSettingsPage } from "@/lib/settingsPages";
 import { findAncestorPath } from "@/lib/tagTree";
-import { cn } from "@/lib/utils";
 import { useUiStore } from "@/stores/uiStore";
-
-interface BreadcrumbSegment {
-  label: string;
-  href?: string;
-  /** When set, a hover-revealed switcher button beside the label switches to a sibling entity. */
-  switcher?: SwitcherSpec;
-}
 
 /** Labels for path segments whose human form differs from a plain title-cased slug. */
 const LABEL_OVERRIDES: Record<string, string> = {
@@ -435,105 +411,6 @@ function breadcrumbsForPath(pathname: string, ctx: BreadcrumbContext): Breadcrum
   }];
 }
 
-/** Ghost icon button wrapping a typed link to a taxonomy item's read-only view page. */
-function InfoLinkButton({
-  children,
-}: { children: React.ReactNode }) {
-  return (
-    <Button
-      type="button"
-      variant="ghost"
-      size="icon"
-      aria-label="View details"
-      title="View details"
-      asChild
-    >
-      {children}
-    </Button>
-  );
-}
-
-/**
- * On a taxonomy listing index page (`/<entity>/<slug>`, not a `_view`/`edit` tab), return an
- * "Info" button linking to that item's read-only view page, or `null` elsewhere.
- */
-function taxonomyInfoButton(pathParts: string[]): React.ReactNode {
-  if (pathParts[0] === "categories" && pathParts.length === 2) {
-    return (
-      <InfoLinkButton>
-        <Link
-          to="/categories/$categorySlug/general"
-          params={{
-            categorySlug: pathParts[1],
-          }}
-        >
-          <Info className="size-4" />
-        </Link>
-      </InfoLinkButton>
-    );
-  }
-  if (pathParts[0] === "tags" && pathParts.length === 2) {
-    return (
-      <InfoLinkButton>
-        <Link
-          to="/tags/$tagSlug/general"
-          params={{
-            tagSlug: pathParts[1],
-          }}
-        >
-          <Info className="size-4" />
-        </Link>
-      </InfoLinkButton>
-    );
-  }
-  if (pathParts[0] === "taxonomies" && pathParts.length === 3) {
-    const slug = pathParts[2];
-    if (pathParts[1] === "websites") {
-      return (
-        <InfoLinkButton>
-          <Link
-            to="/taxonomies/websites/$websiteSlug/general"
-            params={{
-              websiteSlug: slug,
-            }}
-          >
-            <Info className="size-4" />
-          </Link>
-        </InfoLinkButton>
-      );
-    }
-    if (pathParts[1] === "media-types") {
-      return (
-        <InfoLinkButton>
-          <Link
-            to="/taxonomies/media-types/$mediaTypeSlug/general"
-            params={{
-              mediaTypeSlug: slug,
-            }}
-          >
-            <Info className="size-4" />
-          </Link>
-        </InfoLinkButton>
-      );
-    }
-    if (pathParts[1] === "youtube-channels") {
-      return (
-        <InfoLinkButton>
-          <Link
-            to="/taxonomies/youtube-channels/$channelSlug/general"
-            params={{
-              channelSlug: slug,
-            }}
-          >
-            <Info className="size-4" />
-          </Link>
-        </InfoLinkButton>
-      );
-    }
-  }
-  return null;
-}
-
 /** Top app bar: sidebar trigger, breadcrumbs derived from the path, and the panel toggle. */
 export function AppHeader() {
   const pathname = useRouterState({
@@ -633,10 +510,6 @@ export function AppHeader() {
     && !pathname.includes("/edit")
     && pathname.startsWith("/bookmarks/");
 
-  // Taxonomy listing index pages (`/<entity>/<slug>`, the bookmark browse view — not its
-  // `_view`/`edit` tabs) surface a header "Info" link to that item's read-only view page.
-  const infoButton = taxonomyInfoButton(pathParts);
-
   // Settings (and settings-like management) pages get a header star to favorite the current page.
   const settingsPage = findSettingsPage(pathname);
 
@@ -701,118 +574,20 @@ export function AppHeader() {
   const listingPage = useUiStore(state => state.listingPage);
   const headerSearchActive = useUiStore(state => state.headerSearchActive);
 
-  // Right-side toolbar controls, left→right; only present ones render, divided by separators.
-  const toolbarActions: { key: string;
-    node: React.ReactNode; }[] = [];
-  if (headerSearchActive) {
-    toolbarActions.push({
-      key: "search-bar",
-      node: <ListingSearchBar />,
-    });
-  }
-  if (listingPage?.hasFilters) {
-    toolbarActions.push({
-      key: "filter-location",
-      node: <FilterLocationPopover />,
-    });
-  }
-  if (listingPage) {
-    toolbarActions.push({
-      key: "display-options",
-      node: (
-        <DisplayOptionsPopover
-          pageKey={listingPage.key}
-        />
-      ),
-    });
-  }
-  if (isBookmarkDetail) {
-    toolbarActions.push({
-      key: "bookmark-layout",
-      node: <BookmarkDetailLayoutPopover />,
-    });
-  }
-  if (isBookmarkDetail) {
-    toolbarActions.push({
-      key: "edit-bookmark",
-      node: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          asChild
-        >
-          <Link
-            to="/bookmarks/$bookmarkId/edit/general"
-            params={{
-              bookmarkId,
-            }}
-          >
-            Edit
-          </Link>
-        </Button>
-      ),
-    });
-  }
-  if (infoButton) {
-    toolbarActions.push({
-      key: "view-details",
-      node: infoButton,
-    });
-  }
-  if (listingPage?.createAction) {
-    toolbarActions.push({
-      key: "create",
-      node: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          aria-label="New"
-          onClick={listingPage.createAction}
-        >
-          <Plus className="size-4" />
-        </Button>
-      ),
-    });
-  }
-  if (addChild) {
-    toolbarActions.push({
-      key: "add-child",
-      node: (
-        <AddChildButton
-          kind={addChild.kind}
-          parentId={addChild.parentId}
-        />
-      ),
-    });
-  }
-  if (settingsPage) {
-    toolbarActions.push({
-      key: "settings-favorite",
-      node: <HeaderSettingsFavoriteButton page={settingsPage} />,
-    });
-  }
-  toolbarActions.push({
-    key: "open-panel",
-    node: (
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        aria-label="Open panel"
-        onClick={open}
-      >
-        <PanelRight className="size-4" />
-      </Button>
-    ),
+  // Right-side toolbar controls in canonical left→right order. The builder owns ordering and
+  // conditional presence; `HeaderToolbar` renders the inline row on wide screens and collapses
+  // everything but the panel toggle into a More menu on small screens.
+  const toolbarActions = buildToolbarActions({
+    pathParts,
+    headerSearchActive,
+    listingPage,
+    isBookmarkDetail,
+    bookmarkId,
+    addChild,
+    settingsPage,
+    pinContext,
+    openPanel: open,
   });
-  if (pinContext) {
-    toolbarActions.push({
-      key: "pin",
-      node: <HeaderPinButton context={pinContext} />,
-    });
-  }
 
   return (
     <header
@@ -823,38 +598,8 @@ export function AppHeader() {
         orientation="vertical"
         className="mr-2 h-4"
       />
-      <Breadcrumb>
-        <BreadcrumbList>
-          {crumbs.map((crumb, i) => (
-            <React.Fragment key={crumb.label}>
-              {i > 0 && <BreadcrumbSeparator />}
-              <BreadcrumbItem className={cn(crumb.switcher && "group/crumb")}>
-                {crumb.href
-                  ? (
-                    <BreadcrumbLink asChild>
-                      <Link to={crumb.href}>{crumb.label}</Link>
-                    </BreadcrumbLink>
-                  )
-                  : <BreadcrumbPage>{crumb.label}</BreadcrumbPage>}
-                {crumb.switcher && <BreadcrumbSwitcher spec={crumb.switcher} />}
-              </BreadcrumbItem>
-            </React.Fragment>
-          ))}
-        </BreadcrumbList>
-      </Breadcrumb>
-      <div className="-mr-1 ml-auto flex items-center gap-1">
-        {toolbarActions.map((action, i) => (
-          <React.Fragment key={action.key}>
-            {i > 0 && (
-              <Separator
-                orientation="vertical"
-                className="h-4"
-              />
-            )}
-            {action.node}
-          </React.Fragment>
-        ))}
-      </div>
+      <HeaderBreadcrumbs crumbs={crumbs} />
+      <HeaderToolbar actions={toolbarActions} />
     </header>
   );
 }

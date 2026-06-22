@@ -1,10 +1,8 @@
 import { useState } from "react";
 
-import { useNavigate } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 
-import { AddMediaTypeModal } from "./AddMediaTypeModal";
-import { AddTagModal } from "./AddTagModal";
+import { AddChildModal } from "./AddChildModal";
 
 import { Button } from "@/components/ui/button";
 
@@ -24,7 +22,6 @@ export function AddChildButton({
   kind, parentId,
 }: AddChildButtonProps) {
   const [open, setOpen] = useState(false);
-  const navigate = useNavigate();
 
   return (
     <>
@@ -40,38 +37,12 @@ export function AddChildButton({
         <Plus className="size-4" />
       </Button>
 
-      {kind === "tag"
-        ? (
-          <AddTagModal
-            open={open}
-            onOpenChange={setOpen}
-            showParent={false}
-            defaultParentId={parentId}
-            onCreated={(tag) => {
-              void navigate({
-                to: "/tags/$tagSlug/edit/general",
-                params: {
-                  tagSlug: tag.slug,
-                },
-              });
-            }}
-          />
-        )
-        : (
-          <AddMediaTypeModal
-            open={open}
-            onOpenChange={setOpen}
-            defaultParentId={parentId}
-            onCreated={(mediaType) => {
-              void navigate({
-                to: "/taxonomies/media-types/$mediaTypeSlug/edit/general",
-                params: {
-                  mediaTypeSlug: mediaType.slug,
-                },
-              });
-            }}
-          />
-        )}
+      <AddChildModal
+        kind={kind}
+        parentId={parentId}
+        open={open}
+        onOpenChange={setOpen}
+      />
     </>
   );
 }

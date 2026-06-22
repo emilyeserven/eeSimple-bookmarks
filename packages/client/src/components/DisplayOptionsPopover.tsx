@@ -3,23 +3,30 @@ import { Eye } from "lucide-react";
 import { ListingDisplayControls } from "./ListingDisplayControls";
 
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ResponsivePopover } from "@/components/ui/responsive-popover";
 
 interface DisplayOptionsPopoverProps {
   pageKey: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 /**
- * The display-options popover for listing pages: the card/table view toggle and grid column count.
- * Per-card field visibility and image presentation are configured in Settings → Card Display Rules,
- * not here.
+ * The display-options control for listing pages: the card/table view toggle and grid column count.
+ * A popover on desktop, a modal on small screens. Per-card field visibility and image presentation
+ * are configured in Settings → Card Display Rules, not here.
  */
 export function DisplayOptionsPopover({
   pageKey,
+  open,
+  onOpenChange,
 }: DisplayOptionsPopoverProps) {
   return (
-    <Popover>
-      <PopoverTrigger asChild>
+    <ResponsivePopover
+      title="Display"
+      open={open}
+      onOpenChange={onOpenChange}
+      trigger={(
         <Button
           type="button"
           variant="ghost"
@@ -28,14 +35,9 @@ export function DisplayOptionsPopover({
         >
           <Eye className="size-4" />
         </Button>
-      </PopoverTrigger>
-      <PopoverContent
-        align="end"
-        className="w-auto min-w-56"
-      >
-        <p className="mb-3 text-sm font-medium">Layout</p>
-        <ListingDisplayControls pageKey={pageKey} />
-      </PopoverContent>
-    </Popover>
+      )}
+    >
+      <ListingDisplayControls pageKey={pageKey} />
+    </ResponsivePopover>
   );
 }
