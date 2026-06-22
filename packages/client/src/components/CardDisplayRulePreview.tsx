@@ -179,6 +179,7 @@ export function CardDisplayRulePreview({
       originalUrl: null,
       title: "Sample bookmark",
       description: "A placeholder bookmark showing every field with sample values.",
+      newsletterContext: null,
       image: {
         url: SAMPLE_IMAGE_SVG,
         width: 1200,

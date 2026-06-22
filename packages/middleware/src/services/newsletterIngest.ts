@@ -17,6 +17,12 @@ export interface LinkCandidate {
   anchorText: string;
   /** Where the candidate came from — for diagnostics, not gating. */
   source: "html-anchor" | "plain-text";
+  /**
+   * The surrounding newsletter passage — the nearest preceding heading plus the enclosing
+   * paragraph's text — or `null` (always `null` for plain-text candidates). Best-effort context to
+   * help triage and carried onto the created bookmark.
+   */
+  context: string | null;
 }
 
 /** Image extensions that mark a URL as a tracking pixel / asset rather than an article. */
@@ -90,6 +96,49 @@ function isExtractableHref(href: string): boolean {
   return /^https?:\/\//i.test(href.trim());
 }
 
+/** Strip HTML tags from a fragment and normalise to visible text (entity-decoded, whitespace-collapsed). */
+function stripToText(htmlFragment: string): string {
+  return decodeEntities(htmlFragment.replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim();
+}
+
+/** Max characters kept for the captured heading / paragraph, so context stays a short blurb. */
+const CONTEXT_MAX = 600;
+/** Block-level boundaries used to bound the paragraph enclosing an anchor. */
+const BLOCK_BOUNDARY = /<\/?(?:p|div|td|tr|li|ul|ol|table|blockquote|h[1-6]|body|br)\b[^>]*>/gi;
+/** Any heading element, used to find the nearest one preceding an anchor. */
+const HEADING = /<h[1-6]\b[^>]*>([\s\S]*?)<\/h[1-6]>/gi;
+
+/**
+ * Best-effort newsletter context for an anchor at `[start, end)` in `html`: the nearest preceding
+ * heading plus the text of the block (paragraph/cell/list-item) the anchor sits in. Pure; regex-based
+ * to match the rest of this module. Returns `heading\n\nparagraph` (either part may be absent) or
+ * `null` when neither yields usable text.
+ */
+export function linkContextFrom(html: string, start: number, end: number): string | null {
+  // Nearest preceding heading: the last heading match that ends before the anchor begins.
+  let heading = "";
+  for (const match of html.slice(0, start).matchAll(HEADING)) {
+    const text = stripToText(match[1] ?? "");
+    if (text.length > 0) heading = text;
+  }
+
+  // Enclosing paragraph: text between the block boundary just before the anchor and the next one after.
+  let blockStart = 0;
+  for (const match of html.slice(0, start).matchAll(BLOCK_BOUNDARY)) {
+    blockStart = (match.index ?? 0) + match[0].length;
+  }
+  BLOCK_BOUNDARY.lastIndex = end;
+  const after = BLOCK_BOUNDARY.exec(html);
+  BLOCK_BOUNDARY.lastIndex = 0;
+  const blockEnd = after ? after.index : Math.min(html.length, end + CONTEXT_MAX);
+  const paragraph = stripToText(html.slice(blockStart, blockEnd)).slice(0, CONTEXT_MAX);
+
+  const parts: string[] = [];
+  if (heading) parts.push(heading.slice(0, CONTEXT_MAX));
+  if (paragraph && paragraph !== heading) parts.push(paragraph);
+  return parts.length > 0 ? parts.join("\n\n") : null;
+}
+
 /** Extract candidate links from newsletter HTML by scanning `<a …>text</a>`. Pure. */
 export function extractHtmlCandidates(html: string): LinkCandidate[] {
   const candidates: LinkCandidate[] = [];
@@ -97,10 +146,12 @@ export function extractHtmlCandidates(html: string): LinkCandidate[] {
     const attrs = match[1] ?? "";
     const href = /href=["']([^"']*)["']/i.exec(attrs)?.[1];
     if (!href || !isExtractableHref(href)) continue;
+    const start = match.index ?? 0;
     candidates.push({
       rawUrl: decodeEntities(href).trim(),
       anchorText: anchorTextFrom(match[2] ?? ""),
       source: "html-anchor",
+      context: linkContextFrom(html, start, start + match[0].length),
     });
   }
   return candidates;
@@ -117,6 +168,7 @@ export function extractTextCandidates(text: string): LinkCandidate[] {
       rawUrl,
       anchorText: "",
       source: "plain-text",
+      context: null,
     });
   }
   return candidates;
@@ -184,11 +236,14 @@ export function filterAndDedupe(candidates: LinkCandidate[]): LinkCandidate[] {
     if (!existing) {
       byKey.set(key, candidate);
     }
-    else if (candidate.anchorText.length > existing.anchorText.length) {
-      // Keep the first-seen position but adopt the better title seed.
+    else {
+      // Keep the first-seen position but adopt the better title seed and any captured context.
       byKey.set(key, {
         ...existing,
-        anchorText: candidate.anchorText,
+        anchorText: candidate.anchorText.length > existing.anchorText.length
+          ? candidate.anchorText
+          : existing.anchorText,
+        context: existing.context ?? candidate.context,
       });
     }
   }
@@ -287,8 +342,36 @@ function parseMimePart(raw: string): { html: string | null;
   };
 }
 
-/** Extract the best HTML (or plain text) body from raw `.eml` bytes. */
+/** Decode RFC 2047 encoded-words (`=?charset?B|Q?…?=`) in a header value; raw text passes through. */
+export function decodeMimeWords(value: string): string {
+  return value
+    .replace(/=\?([^?]+)\?([BbQq])\?([^?]*)\?=/g, (_m, charset: string, enc: string, text: string) => {
+      const encoding = nodeEncoding(charset);
+      if (enc.toUpperCase() === "B") return Buffer.from(text, "base64").toString(encoding);
+      const bytes = text
+        .replace(/_/g, " ")
+        .replace(/=([0-9A-Fa-f]{2})/g, (_x, hex: string) => String.fromCharCode(Number.parseInt(hex, 16)));
+      return Buffer.from(bytes, "latin1").toString(encoding);
+    })
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** Extract the best HTML (or plain text) body and the decoded Subject from raw `.eml` bytes. */
 export function extractEmlHtml(raw: Buffer): { html: string | null;
-  text: string | null; } {
-  return parseMimePart(raw.toString("latin1"));
+  text: string | null;
+  subject: string | null; } {
+  const str = raw.toString("latin1");
+  const {
+    html, text,
+  } = parseMimePart(str);
+  const splitAt = str.search(/\r?\n\r?\n/);
+  const headers = splitAt === -1 ? new Map<string, string>() : parseHeaders(str.slice(0, splitAt));
+  const rawSubject = headers.get("subject");
+  const subject = rawSubject ? decodeMimeWords(rawSubject) : "";
+  return {
+    html,
+    text,
+    subject: subject.length > 0 ? subject : null,
+  };
 }

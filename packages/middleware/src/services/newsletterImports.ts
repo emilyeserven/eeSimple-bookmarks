@@ -62,9 +62,11 @@ export interface IngestInput {
   /** Raw newsletter content (HTML or text). For `.eml` the caller extracts the HTML first. */
   content: string;
   kind: "html" | "text" | "auto";
+  /** Explicit/parsed import label (e.g. a provided title or an `.eml` Subject); wins over parsing. */
   title?: string | null;
+  /** Fallback label (source URL / filename) used only when no title is provided or parsed. */
+  titleFallback?: string | null;
   sourceUrl?: string | null;
-  enrich?: boolean;
   /** Default category applied to every link approved from this import. */
   defaultCategoryId?: string | null;
 }
@@ -82,6 +84,7 @@ function toItem(row: NewsletterImportItemRow): NewsletterImportItem {
     title: row.title,
     description: row.description,
     imageUrl: row.imageUrl,
+    newsletterContext: row.newsletterContext,
     anchorText: row.anchorText,
     categoryId: row.categoryId,
     status: row.status as NewsletterImportItemStatus,
@@ -99,6 +102,8 @@ interface ResolvedCandidate {
   url: string | null;
   status: NewsletterImportItemStatus;
   errorReason: string | null;
+  /** The surrounding newsletter passage (paragraph + nearest heading), carried from extraction. */
+  context: string | null;
 }
 
 /** Unwrap a candidate's tracker URL and canonicalize the destination. Falls back to the raw URL on a
@@ -118,6 +123,7 @@ async function resolveCandidate(
       url: null,
       status: "error",
       errorReason: "Link redirected to a blocked (private) address.",
+      context: candidate.context,
     };
   }
   const destination = result.kind === "ok" ? result.finalUrl : candidate.rawUrl;
@@ -127,6 +133,7 @@ async function resolveCandidate(
     url: canonicalize(destination, data).url,
     status: "pending",
     errorReason: null,
+    context: candidate.context,
   };
 }
 
@@ -141,10 +148,11 @@ function dedupeResolved(items: ResolvedCandidate[]): ResolvedCandidate[] {
     }
     const existing = byUrl.get(item.url);
     if (!existing) byUrl.set(item.url, item);
-    else if (item.anchorText.length > existing.anchorText.length) {
+    else {
       byUrl.set(item.url, {
         ...existing,
-        anchorText: item.anchorText,
+        anchorText: item.anchorText.length > existing.anchorText.length ? item.anchorText : existing.anchorText,
+        context: existing.context ?? item.context,
       });
     }
   }
@@ -197,7 +205,8 @@ async function enrichCandidate(
   };
   const image = extractImageUrl(html, item.url);
   return {
-    title: seedTitle ?? extractTitle(html),
+    // Prefer the fetched page title (og:title/<title>); fall back to the newsletter anchor text.
+    title: extractTitle(html) ?? seedTitle,
     description: extractDescription(html),
     imageUrl: image && isPublicHttpUrl(image) ? image : null,
   };
@@ -205,7 +214,7 @@ async function enrichCandidate(
 
 /**
  * Run the full ingest pipeline for one newsletter: extract → unwrap → canonicalize → dedupe →
- * pre-mark duplicates → (optionally) enrich → persist. Returns the created import with its items.
+ * pre-mark duplicates → enrich → persist. Returns the created import with its items.
  */
 export async function ingestNewsletter(input: IngestInput): Promise<NewsletterImport> {
   const candidates = filterAndDedupe(extractCandidates(input.content, input.kind));
@@ -233,20 +242,25 @@ export async function ingestNewsletter(input: IngestInput): Promise<NewsletterIm
 
   const flagged = await Promise.all(resolved.map(withDuplicateFlag));
 
-  const enriched = input.enrich
-    ? await mapWithConcurrency(flagged, ENRICH_CONCURRENCY, entry => enrichCandidate(entry.item))
-    : flagged.map(entry => ({
-      title: entry.item.anchorText.trim() || null,
-      description: null as string | null,
-      imageUrl: null as string | null,
-    }));
+  // Always enrich: fetch each candidate's title/description/preview so the review queue and the
+  // created bookmarks have them without an opt-in step.
+  const enriched = await mapWithConcurrency(
+    flagged,
+    ENRICH_CONCURRENCY,
+    entry => enrichCandidate(entry.item),
+  );
+
+  // Import label: an explicit/parsed title wins, then a title parsed from the newsletter HTML
+  // (og:title/<title>), then the URL/filename fallback.
+  const parsedTitle = input.title == null && input.kind !== "text" ? extractTitle(input.content) : null;
+  const title = input.title ?? parsedTitle ?? input.titleFallback ?? null;
 
   const importId = await db.transaction(async (tx) => {
     const [importRow] = await tx
       .insert(newsletterImports)
       .values({
         source: input.source,
-        title: input.title ?? null,
+        title,
         sourceUrl: input.sourceUrl ?? null,
         defaultCategoryId: input.defaultCategoryId ?? null,
       })
@@ -263,6 +277,7 @@ export async function ingestNewsletter(input: IngestInput): Promise<NewsletterIm
           title: enriched[i]!.title,
           description: enriched[i]!.description,
           imageUrl: enriched[i]!.imageUrl,
+          newsletterContext: entry.item.context,
           anchorText: entry.item.anchorText || null,
           status: entry.item.status,
           duplicateBookmarkId: entry.duplicateBookmarkId,
@@ -276,24 +291,30 @@ export async function ingestNewsletter(input: IngestInput): Promise<NewsletterIm
   return (await getNewsletterImport(importId))!;
 }
 
-/** Build candidate content for a `.eml`/`.html` upload, returning the HTML (or text) to ingest. */
+/**
+ * Build candidate content for a `.eml`/`.html` upload, returning the HTML (or text) to ingest plus a
+ * parsed title (the `.eml` Subject) when available — used as the import label.
+ */
 export function contentFromUpload(
   filename: string,
   bytes: Buffer,
 ): { content: string;
-  kind: "html" | "text"; } | null {
+  kind: "html" | "text";
+  title: string | null; } | null {
   const lower = filename.toLowerCase();
   if (lower.endsWith(".eml")) {
     const {
-      html, text,
+      html, text, subject,
     } = extractEmlHtml(bytes);
     if (html) return {
       content: html,
       kind: "html",
+      title: subject,
     };
     if (text) return {
       content: text,
       kind: "text",
+      title: subject,
     };
     return null;
   }
@@ -301,12 +322,14 @@ export function contentFromUpload(
     return {
       content: bytes.toString("utf8"),
       kind: "html",
+      title: null,
     };
   }
   if (lower.endsWith(".txt")) {
     return {
       content: bytes.toString("utf8"),
       kind: "text",
+      title: null,
     };
   }
   return null;
@@ -452,6 +475,7 @@ export async function approveImportItem(itemId: string): Promise<NewsletterAppro
       url: item.url,
       title: item.title?.trim() || item.anchorText?.trim() || item.url,
       description: item.description ?? null,
+      newsletterContext: item.newsletterContext ?? null,
       categoryId,
     });
     await db

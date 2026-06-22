@@ -18,6 +18,7 @@ function makeItem(overrides: Partial<NewsletterImportItem> = {}): NewsletterImpo
     title: LONG_TITLE,
     description: null,
     imageUrl: null,
+    newsletterContext: null,
     anchorText: null,
     categoryId: null,
     status: "pending",
@@ -44,7 +45,7 @@ describe("NewsletterReviewList", () => {
     expect(title.className).not.toContain("truncate");
   });
 
-  it("offers reject-and-block options for an item with a resolvable URL", async () => {
+  it("rejects in one click — the Reject control is a direct button, not a dropdown", async () => {
     await renderWithRouter(
       <NewsletterReviewList
         importId="import-1"
@@ -54,13 +55,50 @@ describe("NewsletterReviewList", () => {
         paths: ["/bookmarks/$bookmarkId"],
       },
     );
+    // A plain action button, so it isn't a dropdown trigger waiting on a second choice.
+    expect(screen.getByLabelText("Reject")).not.toHaveAttribute("aria-haspopup", "menu");
+  });
+
+  it("offers block-by-URL/domain/path only after an item is rejected", async () => {
+    await renderWithRouter(
+      <NewsletterReviewList
+        importId="import-1"
+        items={[makeItem({
+          status: "rejected",
+        })]}
+      />,
+      {
+        paths: ["/bookmarks/$bookmarkId"],
+      },
+    );
     // Radix DropdownMenu opens via keyboard under jsdom (see test-utils/setup.ts).
-    fireEvent.keyDown(screen.getByLabelText("Reject"), {
+    fireEvent.keyDown(screen.getByRole("button", {
+      name: "Block",
+    }), {
       key: " ",
     });
-    expect(await screen.findByText("Reject only")).toBeInTheDocument();
-    expect(screen.getByText("Reject & block this domain")).toBeInTheDocument();
-    expect(screen.getByText("Reject & block this page path")).toBeInTheDocument();
+    expect(await screen.findByText("Block this URL")).toBeInTheDocument();
+    expect(screen.getByText("Block this domain")).toBeInTheDocument();
+    expect(screen.getByText("Block this page path")).toBeInTheDocument();
+  });
+
+  it("reveals the captured newsletter passage in a Newsletter Context expander", async () => {
+    await renderWithRouter(
+      <NewsletterReviewList
+        importId="import-1"
+        items={[makeItem({
+          newsletterContext: "Weekly Roundup\n\nThe surrounding paragraph that mentions the link.",
+        })]}
+      />,
+      {
+        paths: ["/bookmarks/$bookmarkId"],
+      },
+    );
+    fireEvent.click(screen.getByRole("button", {
+      name: /Newsletter Context/,
+    }));
+    expect(await screen.findByText(/The surrounding paragraph that mentions the link\./))
+      .toBeInTheDocument();
   });
 
   it("shows a View bookmark link for an approved item", async () => {

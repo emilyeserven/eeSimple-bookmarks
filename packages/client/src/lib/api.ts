@@ -214,12 +214,11 @@ export const newsletterApi = {
       method: "POST",
       body: JSON.stringify(input),
     }),
-  ingestUpload: (file: File, enrich: boolean, defaultCategoryId?: string | null) => {
-    const params = new URLSearchParams({
-      enrich: String(enrich),
-    });
+  ingestUpload: (file: File, defaultCategoryId?: string | null) => {
+    const params = new URLSearchParams();
     if (defaultCategoryId) params.set("defaultCategoryId", defaultCategoryId);
-    return uploadImageFile<NewsletterImport>(`/newsletters/ingest/upload?${params.toString()}`, file);
+    const qs = params.toString();
+    return uploadImageFile<NewsletterImport>(`/newsletters/ingest/upload${qs ? `?${qs}` : ""}`, file);
   },
   listImports: () => request<NewsletterImportSummary[]>("/newsletters/imports"),
   getImport: (id: string) => request<NewsletterImport>(`/newsletters/imports/${id}`),

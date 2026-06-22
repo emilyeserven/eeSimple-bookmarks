@@ -9,7 +9,7 @@ import { useMemo, useState } from "react";
 
 import { blacklistPatternsFor } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
-import { Check, ExternalLink, Eye, Pencil, X } from "lucide-react";
+import { Ban, Check, ChevronDown, ExternalLink, Eye, Pencil, X } from "lucide-react";
 
 import { useNewsletterBlacklist, useUpdateNewsletterBlacklist } from "../hooks/useAppSettings";
 import { useCategories } from "../hooks/useCategories";
@@ -25,10 +25,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { RowCard } from "@/components/ui/card";
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -101,28 +105,44 @@ function StatusBadge({
   return <Badge variant={meta.variant}>{meta.label}</Badge>;
 }
 
-/** Reject control: a dropdown offering "reject only" plus reject-and-blacklist by URL/domain/path. */
-function RejectMenu({
+/** Reject control: one click rejects the candidate (block offers appear afterward, see `BlockMenu`). */
+function RejectButton({
   importId, item,
 }: { importId: string;
   item: NewsletterImportItem; }) {
   const reject = useRejectImportItem(importId);
+  return (
+    <Button
+      size="icon"
+      variant="ghost"
+      aria-label="Reject"
+      disabled={reject.isPending}
+      onClick={() => reject.mutate(item.id, {
+        onSuccess: () => notifySuccess("Rejected link"),
+      })}
+    >
+      <X className="size-4" />
+    </Button>
+  );
+}
+
+/** Post-rejection control: a dropdown to add this link's URL / domain / page path to the blacklist. */
+function BlockMenu({
+  item,
+}: { item: NewsletterImportItem }) {
   const {
     data: blacklist = [],
   } = useNewsletterBlacklist();
   const updateBlacklist = useUpdateNewsletterBlacklist();
   const patterns = item.url ? blacklistPatternsFor(item.url) : null;
+  if (!patterns) return null;
 
-  function rejectOnly() {
-    reject.mutate(item.id, {
-      onSuccess: () => notifySuccess("Rejected link"),
-    });
-  }
-
-  function blockAndReject(entry: NewsletterBlacklistEntry, message: string) {
-    const exists = blacklist.some(e => e.kind === entry.kind && e.value === entry.value);
-    if (!exists) updateBlacklist.mutate([...blacklist, entry]);
-    reject.mutate(item.id, {
+  function block(entry: NewsletterBlacklistEntry, message: string) {
+    if (blacklist.some(e => e.kind === entry.kind && e.value === entry.value)) {
+      notifySuccess("Already blocked");
+      return;
+    }
+    updateBlacklist.mutate([...blacklist, entry], {
       onSuccess: () => notifySuccess(message),
     });
   }
@@ -131,38 +151,25 @@ function RejectMenu({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
-          size="icon"
+          size="sm"
           variant="ghost"
-          aria-label="Reject"
-          disabled={reject.isPending}
+          className="gap-1 text-muted-foreground"
+          disabled={updateBlacklist.isPending}
         >
-          <X className="size-4" />
+          <Ban className="size-4" />
+          Block
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={rejectOnly}>Reject only</DropdownMenuItem>
-        {patterns
-          ? (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => blockAndReject(patterns.exact, "Rejected & blocked this URL")}
-              >
-                Reject &amp; block this URL
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => blockAndReject(patterns.domain, `Rejected & blocked ${patterns.domain.value}`)}
-              >
-                Reject &amp; block this domain
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => blockAndReject(patterns.pathPrefix, "Rejected & blocked this path")}
-              >
-                Reject &amp; block this page path
-              </DropdownMenuItem>
-            </>
-          )
-          : null}
+        <DropdownMenuItem onClick={() => block(patterns.exact, "Blocked this URL")}>
+          Block this URL
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => block(patterns.domain, `Blocked ${patterns.domain.value}`)}>
+          Block this domain
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => block(patterns.pathPrefix, "Blocked this page path")}>
+          Block this page path
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -299,25 +306,68 @@ function ReviewRowEditor({
   );
 }
 
+/** The per-row action column: approve/edit/reject while pending, block once rejected, or a view link. */
+function RowActions({
+  importId, item, onEdit,
+}: { importId: string;
+  item: NewsletterImportItem;
+  onEdit: () => void; }) {
+  const approve = useApproveImportItem(importId);
+  const resultBookmarkId = item.createdBookmarkId ?? item.duplicateBookmarkId;
+
+  return (
+    <div className="flex shrink-0 items-center gap-1">
+      {item.status === "pending"
+        ? (
+          <>
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => approve.mutate(item.id, {
+                onSuccess: notifyApprove,
+              })}
+              disabled={approve.isPending}
+              aria-label="Approve"
+            >
+              <Check className="size-4" />
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={onEdit}
+              aria-label="Edit"
+            >
+              <Pencil className="size-4" />
+            </Button>
+            <RejectButton
+              importId={importId}
+              item={item}
+            />
+          </>
+        )
+        : null}
+      {item.status === "rejected"
+        ? <BlockMenu item={item} />
+        : null}
+      {item.status !== "pending" && resultBookmarkId
+        ? <ViewBookmarkButton bookmarkId={resultBookmarkId} />
+        : null}
+    </div>
+  );
+}
+
 function ReviewRow({
   importId, item,
 }: { importId: string;
   item: NewsletterImportItem; }) {
-  const approve = useApproveImportItem(importId);
   const {
     data: categories = [],
   } = useCategories();
   const [editing, setEditing] = useState(false);
+  const [contextOpen, setContextOpen] = useState(false);
 
   const muted = item.status === "rejected" || item.status === "approved" || item.status === "duplicate";
   const categoryName = categories.find(c => c.id === item.categoryId)?.name ?? null;
-  const resultBookmarkId = item.createdBookmarkId ?? item.duplicateBookmarkId;
-
-  function onApprove() {
-    approve.mutate(item.id, {
-      onSuccess: notifyApprove,
-    });
-  }
 
   if (editing) {
     return (
@@ -376,39 +426,58 @@ function ReviewRow({
           {item.status === "error" && item.errorReason
             ? <p className="text-xs text-destructive">{item.errorReason}</p>
             : null}
-        </div>
-        <div className="flex shrink-0 items-center gap-1">
-          {item.status === "pending"
+          {item.description
             ? (
-              <>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={onApprove}
-                  disabled={approve.isPending}
-                  aria-label="Approve"
-                >
-                  <Check className="size-4" />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={() => setEditing(true)}
-                  aria-label="Edit"
-                >
-                  <Pencil className="size-4" />
-                </Button>
-                <RejectMenu
-                  importId={importId}
-                  item={item}
-                />
-              </>
+              <p
+                className={`
+                  text-sm text-muted-foreground
+                  ${contextOpen ? "" : "line-clamp-2"}
+                `}
+              >
+                {item.description}
+              </p>
             )
             : null}
-          {item.status !== "pending" && resultBookmarkId
-            ? <ViewBookmarkButton bookmarkId={resultBookmarkId} />
+          {item.newsletterContext
+            ? (
+              <Collapsible
+                open={contextOpen}
+                onOpenChange={setContextOpen}
+              >
+                <CollapsibleTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="
+                      -ml-2 h-auto gap-1 px-2 py-1 text-xs text-muted-foreground
+                    "
+                  >
+                    <ChevronDown
+                      className={`
+                        size-3 transition-transform
+                        ${contextOpen ? "rotate-180" : ""}
+                      `}
+                    />
+                    Newsletter Context
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent
+                  className="
+                    mt-1 rounded-md bg-muted/40 p-2 text-xs whitespace-pre-line
+                    text-muted-foreground
+                  "
+                >
+                  {item.newsletterContext}
+                </CollapsibleContent>
+              </Collapsible>
+            )
             : null}
         </div>
+        <RowActions
+          importId={importId}
+          item={item}
+          onEdit={() => setEditing(true)}
+        />
       </div>
     </RowCard>
   );
