@@ -1,5 +1,12 @@
 import type { FastifyInstance } from "fastify";
-import type { IngestPasteInput, IngestUrlInput, UpdateNewsletterImportItemInput } from "@eesimple/types";
+import type {
+  CreateNewsletterInput,
+  IngestPasteInput,
+  IngestUrlInput,
+  IssueBookmarksInput,
+  UpdateNewsletterImportItemInput,
+  UpdateNewsletterInput,
+} from "@eesimple/types";
 import { fetchBodyHtmlResult, isPublicHttpUrl } from "@/services/metadata";
 import {
   approveImport,
@@ -9,9 +16,19 @@ import {
   getNewsletterImport,
   ingestNewsletter,
   listNewsletterImports,
+  listNewsletterIssues,
   rejectImportItem,
+  setIssueBookmarks,
   updateImportItem,
 } from "@/services/newsletterImports";
+import {
+  createNewsletter,
+  deleteNewsletter,
+  DuplicateNewsletterError,
+  getNewsletter,
+  listNewsletters,
+  updateNewsletter,
+} from "@/services/newsletters";
 import { isValidUrl } from "@/utils/url";
 
 const importParams = {
@@ -40,6 +57,11 @@ const itemParams = {
   },
 } as const;
 
+const newsletterIdProp = {
+  type: ["string", "null"],
+  format: "uuid",
+} as const;
+
 const pasteBody = {
   type: "object",
   required: ["content"],
@@ -56,6 +78,7 @@ const pasteBody = {
     title: {
       type: "string",
     },
+    newsletterId: newsletterIdProp,
     defaultCategoryId: {
       type: ["string", "null"],
     },
@@ -71,6 +94,7 @@ const urlBody = {
       type: "string",
       format: "uri",
     },
+    newsletterId: newsletterIdProp,
     defaultCategoryId: {
       type: ["string", "null"],
     },
@@ -81,8 +105,76 @@ const uploadQuery = {
   type: "object",
   additionalProperties: false,
   properties: {
+    newsletterId: {
+      type: "string",
+      format: "uuid",
+    },
     defaultCategoryId: {
       type: "string",
+    },
+  },
+} as const;
+
+const idParam = {
+  type: "object",
+  required: ["id"],
+  properties: {
+    id: {
+      type: "string",
+      format: "uuid",
+    },
+  },
+} as const;
+
+const createNewsletterBody = {
+  type: "object",
+  required: ["name"],
+  additionalProperties: false,
+  properties: {
+    name: {
+      type: "string",
+      minLength: 1,
+    },
+  },
+} as const;
+
+const updateNewsletterBody = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    name: {
+      type: "string",
+      minLength: 1,
+    },
+    categoryId: {
+      type: ["string", "null"],
+      format: "uuid",
+    },
+    mediaTypeId: {
+      type: ["string", "null"],
+      format: "uuid",
+    },
+    tagIds: {
+      type: "array",
+      items: {
+        type: "string",
+        format: "uuid",
+      },
+    },
+  },
+} as const;
+
+const issueBookmarksBody = {
+  type: "object",
+  required: ["bookmarkIds"],
+  additionalProperties: false,
+  properties: {
+    bookmarkIds: {
+      type: "array",
+      items: {
+        type: "string",
+        format: "uuid",
+      },
     },
   },
 } as const;
@@ -126,6 +218,7 @@ export async function newsletterRoutes(app: FastifyInstance): Promise<void> {
       content: body.content,
       kind: body.kind ?? "auto",
       title: body.title ?? null,
+      newsletterId: body.newsletterId ?? null,
       defaultCategoryId: body.defaultCategoryId ?? null,
     });
   });
@@ -157,6 +250,7 @@ export async function newsletterRoutes(app: FastifyInstance): Promise<void> {
       // Parse the newsletter's own title from the fetched page; fall back to the URL.
       titleFallback: body.url,
       sourceUrl: body.url,
+      newsletterId: body.newsletterId ?? null,
       defaultCategoryId: body.defaultCategoryId ?? null,
     });
   });
@@ -170,8 +264,9 @@ export async function newsletterRoutes(app: FastifyInstance): Promise<void> {
     },
   }, async (req, reply) => {
     const {
-      defaultCategoryId,
-    } = req.query as { defaultCategoryId?: string };
+      newsletterId, defaultCategoryId,
+    } = req.query as { newsletterId?: string;
+      defaultCategoryId?: string; };
     let filename: string;
     let bytes: Buffer;
     try {
@@ -203,8 +298,132 @@ export async function newsletterRoutes(app: FastifyInstance): Promise<void> {
       // The `.eml` Subject (or a parsed HTML title) wins; fall back to the filename.
       title: parsed.title,
       titleFallback: filename,
+      newsletterId: newsletterId ?? null,
       defaultCategoryId: defaultCategoryId ?? null,
     });
+  });
+
+  // --- Newsletter taxonomy CRUD ---------------------------------------------------------------
+
+  // List all newsletters.
+  app.get("/api/newsletters", {
+    schema: {
+      tags: ["newsletters"],
+    },
+  }, () => listNewsletters());
+
+  // Create a newsletter by name.
+  app.post("/api/newsletters", {
+    schema: {
+      tags: ["newsletters"],
+      body: createNewsletterBody,
+    },
+  }, async (req, reply) => {
+    try {
+      return await createNewsletter(req.body as CreateNewsletterInput);
+    }
+    catch (err) {
+      if (err instanceof DuplicateNewsletterError) {
+        return reply.code(409).send({
+          message: err.message,
+        });
+      }
+      throw err;
+    }
+  });
+
+  // List a newsletter's issues (= its imports), newest first.
+  app.get("/api/newsletters/:id/issues", {
+    schema: {
+      tags: ["newsletters"],
+      params: idParam,
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    if (!(await getNewsletter(id))) return reply.code(404).send({
+      message: "Newsletter not found",
+    });
+    return listNewsletterIssues(id);
+  });
+
+  // Update a newsletter (rename / default category / tags / media type).
+  app.patch("/api/newsletters/:id", {
+    schema: {
+      tags: ["newsletters"],
+      params: idParam,
+      body: updateNewsletterBody,
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    try {
+      const updated = await updateNewsletter(id, req.body as UpdateNewsletterInput);
+      if (!updated) return reply.code(404).send({
+        message: "Newsletter not found",
+      });
+      return updated;
+    }
+    catch (err) {
+      if (err instanceof DuplicateNewsletterError) {
+        return reply.code(409).send({
+          message: err.message,
+        });
+      }
+      throw err;
+    }
+  });
+
+  // Delete a newsletter.
+  app.delete("/api/newsletters/:id", {
+    schema: {
+      tags: ["newsletters"],
+      params: idParam,
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    const ok = await deleteNewsletter(id);
+    if (!ok) return reply.code(404).send({
+      message: "Newsletter not found",
+    });
+    return reply.code(204).send();
+  });
+
+  // Manually associate bookmarks with an issue (= import).
+  app.post("/api/newsletters/imports/:id/bookmarks", {
+    schema: {
+      tags: ["newsletters"],
+      params: importParams,
+      body: issueBookmarksBody,
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    if (!(await getNewsletterImport(id))) return reply.code(404).send({
+      message: "Newsletter import not found",
+    });
+    await setIssueBookmarks(id, (req.body as IssueBookmarksInput).bookmarkIds, "add");
+    return reply.code(204).send();
+  });
+
+  // Disassociate bookmarks from an issue (= import).
+  app.delete("/api/newsletters/imports/:id/bookmarks", {
+    schema: {
+      tags: ["newsletters"],
+      params: importParams,
+      body: issueBookmarksBody,
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    await setIssueBookmarks(id, (req.body as IssueBookmarksInput).bookmarkIds, "remove");
+    return reply.code(204).send();
   });
 
   // List all imports with per-status counts.

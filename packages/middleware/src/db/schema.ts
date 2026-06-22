@@ -34,6 +34,18 @@ export const bookmarks = pgTable("bookmarks", {
   youtubeChannelId: uuid("youtube_channel_id").references((): AnyPgColumn => youtubeChannels.id, {
     onDelete: "set null",
   }),
+  // The newsletter (taxonomy) this bookmark was imported from, set when an item is approved from a
+  // newsletter import that has a newsletter selected. Nullable; only set for newsletter-imported
+  // bookmarks. `set null` so deleting a newsletter is non-destructive.
+  newsletterId: uuid("newsletter_id").references((): AnyPgColumn => newsletters.id, {
+    onDelete: "set null",
+  }),
+  // The newsletter issue (= the import) this bookmark belongs to. Set on approval of a newsletter
+  // import item, or manually from the issue page. Nullable; `set null` so deleting an import/issue is
+  // non-destructive.
+  newsletterImportId: uuid("newsletter_import_id").references((): AnyPgColumn => newsletterImports.id, {
+    onDelete: "set null",
+  }),
   priority: integer("priority").notNull().default(0),
   // Specific reason the last image auto-grab attempt failed. Nullable so `drizzle-kit push`
   // applies cleanly to existing rows (push-safe additive change). NULL means never attempted or
@@ -331,6 +343,50 @@ export const youtubeChannelTags = pgTable("youtube_channel_tags", {
   }),
 ]);
 
+/**
+ * `newsletters` table — the "Newsletters" taxonomy. One row per newsletter publication
+ * (e.g. "Smashing Magazine", "The Pragmatic Engineer"). Selected during a newsletter import; its
+ * default category / tags / media type are applied to the bookmarks created on approval. A brand-new
+ * table → push-safe additive, no migrate.ts step.
+ */
+export const newsletters = pgTable("newsletters", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  // Human-friendly publication name; renamable.
+  name: text("name").notNull(),
+  // URL-friendly identifier derived from the name, generated on create.
+  slug: text("slug").notNull(),
+  // Optional default category applied to new bookmarks imported from this newsletter; set null when
+  // the category is deleted.
+  categoryId: uuid("category_id").references((): AnyPgColumn => categories.id, {
+    onDelete: "set null",
+  }),
+  // Optional default media type applied to new bookmarks imported from this newsletter; set null when
+  // the media type is deleted.
+  mediaTypeId: uuid("media_type_id").references((): AnyPgColumn => mediaTypes.id, {
+    onDelete: "set null",
+  }),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+}, table => [
+  unique("newsletters_name_unique").on(table.name),
+  unique("newsletters_slug_unique").on(table.slug),
+]);
+
+/** `newsletter_tags` join — default tags applied to bookmarks imported from a given newsletter. */
+export const newsletterTags = pgTable("newsletter_tags", {
+  newsletterId: uuid("newsletter_id").notNull().references(() => newsletters.id, {
+    onDelete: "cascade",
+  }),
+  tagId: uuid("tag_id").notNull().references((): AnyPgColumn => tags.id, {
+    onDelete: "cascade",
+  }),
+}, table => [
+  primaryKey({
+    columns: [table.newsletterId, table.tagId],
+  }),
+]);
+
 /** `tags` table — a self-referencing tree. `parentId` NULL means a root tag. */
 export const tags = pgTable("tags", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -433,6 +489,14 @@ export const bookmarksRelations = relations(bookmarks, ({
     fields: [bookmarks.youtubeChannelId],
     references: [youtubeChannels.id],
   }),
+  newsletter: one(newsletters, {
+    fields: [bookmarks.newsletterId],
+    references: [newsletters.id],
+  }),
+  newsletterIssue: one(newsletterImports, {
+    fields: [bookmarks.newsletterImportId],
+    references: [newsletterImports.id],
+  }),
   bookmarkTags: many(bookmarkTags),
   image: one(bookmarkImages),
   relationsA: many(bookmarkRelationships, {
@@ -467,6 +531,18 @@ export const youtubeChannelsRelations = relations(youtubeChannels, ({
     references: [categories.id],
   }),
   channelTags: many(youtubeChannelTags),
+}));
+
+export const newslettersRelations = relations(newsletters, ({
+  one,
+  many,
+}) => ({
+  bookmarks: many(bookmarks),
+  category: one(categories, {
+    fields: [newsletters.categoryId],
+    references: [categories.id],
+  }),
+  newsletterTags: many(newsletterTags),
 }));
 
 export const bookmarkImagesRelations = relations(bookmarkImages, ({
@@ -937,6 +1013,12 @@ export const newsletterImports = pgTable("newsletter_imports", {
   title: text("title"),
   // The fetched "view in browser" post URL when source = "url"; NULL otherwise.
   sourceUrl: text("source_url"),
+  // The newsletter (taxonomy) this import belongs to, chosen in the import form. Its default
+  // category / tags / media type are applied to the bookmarks created on approval. Nullable
+  // (push-safe additive); set null when the newsletter is deleted.
+  newsletterId: uuid("newsletter_id").references((): AnyPgColumn => newsletters.id, {
+    onDelete: "set null",
+  }),
   // Default category applied to every link approved from this import (per-item override wins).
   // Nullable FK → push-safe additive, no migrate.ts step.
   defaultCategoryId: uuid("default_category_id").references((): AnyPgColumn => categories.id, {
@@ -994,9 +1076,15 @@ export const newsletterImportItems = pgTable("newsletter_import_items", {
 });
 
 export const newsletterImportsRelations = relations(newsletterImports, ({
+  one,
   many,
 }) => ({
   items: many(newsletterImportItems),
+  newsletter: one(newsletters, {
+    fields: [newsletterImports.newsletterId],
+    references: [newsletters.id],
+  }),
+  bookmarks: many(bookmarks),
 }));
 
 export const newsletterImportItemsRelations = relations(newsletterImportItems, ({
@@ -1357,6 +1445,8 @@ export type NewYouTubeChannelRow = typeof youtubeChannels.$inferInsert;
 export type YouTubeChannelImageRow = typeof youtubeChannelImages.$inferSelect;
 export type NewYouTubeChannelImageRow = typeof youtubeChannelImages.$inferInsert;
 export type YouTubeChannelSelfIdRow = typeof youtubeChannelSelfIds.$inferSelect;
+export type NewsletterRow = typeof newsletters.$inferSelect;
+export type NewNewsletterRow = typeof newsletters.$inferInsert;
 export type TagRow = typeof tags.$inferSelect;
 export type NewTagRow = typeof tags.$inferInsert;
 export type BookmarkTagRow = typeof bookmarkTags.$inferSelect;

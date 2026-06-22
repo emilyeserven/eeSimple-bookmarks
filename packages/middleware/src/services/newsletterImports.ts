@@ -8,7 +8,7 @@
  * Only `createBookmark` (invoked on approve) touches the cache, which it already does internally.
  */
 
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq, inArray } from "drizzle-orm";
 import type {
   NewsletterApproveResult,
   NewsletterImport,
@@ -21,6 +21,7 @@ import type {
 import { canonicalize, isBlacklisted } from "@eesimple/types";
 import { db } from "@/db";
 import {
+  bookmarks,
   type NewsletterImportItemRow,
   newsletterImportItems,
   newsletterImports,
@@ -41,6 +42,11 @@ import {
   fetchHeadHtml,
   isPublicHttpUrl,
 } from "@/services/metadata";
+import {
+  getNewsletterCategoryId,
+  getNewsletterMediaTypeId,
+  getNewsletterTagIds,
+} from "@/services/newsletters";
 import { mapWithConcurrency, unwrapRedirect } from "@/services/redirectUnwrap";
 import { listWebsites } from "@/services/websites";
 
@@ -67,6 +73,8 @@ export interface IngestInput {
   /** Fallback label (source URL / filename) used only when no title is provided or parsed. */
   titleFallback?: string | null;
   sourceUrl?: string | null;
+  /** The newsletter (publication) this import/issue belongs to, or `null`. */
+  newsletterId?: string | null;
   /** Default category applied to every link approved from this import. */
   defaultCategoryId?: string | null;
 }
@@ -262,6 +270,7 @@ export async function ingestNewsletter(input: IngestInput): Promise<NewsletterIm
         source: input.source,
         title,
         sourceUrl: input.sourceUrl ?? null,
+        newsletterId: input.newsletterId ?? null,
         defaultCategoryId: input.defaultCategoryId ?? null,
       })
       .returning({
@@ -348,6 +357,7 @@ function summarize(importRow: NewsletterImportRow, items: NewsletterImportItemRo
     source: importRow.source as NewsletterImportSource,
     title: importRow.title,
     sourceUrl: importRow.sourceUrl,
+    newsletterId: importRow.newsletterId,
     defaultCategoryId: importRow.defaultCategoryId,
     createdAt: isoOf(importRow.createdAt),
     itemCount: items.length,
@@ -377,6 +387,74 @@ export async function listNewsletterImports(): Promise<NewsletterImportSummary[]
     .sort((a, b) => (a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0));
 }
 
+/** List the issues (= imports) belonging to one newsletter, newest first, with per-status counts. */
+export async function listNewsletterIssues(newsletterId: string): Promise<NewsletterImportSummary[]> {
+  const importRows = await db
+    .select()
+    .from(newsletterImports)
+    .where(eq(newsletterImports.newsletterId, newsletterId));
+  if (importRows.length === 0) return [];
+  const itemRows = await db
+    .select({
+      importId: newsletterImportItems.importId,
+      status: newsletterImportItems.status,
+    })
+    .from(newsletterImportItems)
+    .where(inArray(newsletterImportItems.importId, importRows.map(r => r.id)));
+  const byImport = new Map<string, { status: string }[]>();
+  for (const item of itemRows) {
+    const list = byImport.get(item.importId) ?? [];
+    list.push({
+      status: item.status,
+    });
+    byImport.set(item.importId, list);
+  }
+  return importRows
+    .map(row => summarize(row, (byImport.get(row.id) ?? []) as NewsletterImportItemRow[]))
+    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0));
+}
+
+/**
+ * Manually associate bookmarks with an issue (= import), or disassociate them. `add` points the
+ * bookmarks at this import and its newsletter; `remove` clears both (only for bookmarks currently
+ * pointing at this import). No condition references a newsletter, so the bookmark evaluation cache is
+ * left untouched; the client refetches the bookmark list.
+ */
+export async function setIssueBookmarks(
+  importId: string,
+  bookmarkIds: string[],
+  op: "add" | "remove",
+): Promise<void> {
+  if (bookmarkIds.length === 0) return;
+  if (op === "remove") {
+    await db
+      .update(bookmarks)
+      .set({
+        newsletterImportId: null,
+        newsletterId: null,
+      })
+      .where(and(
+        eq(bookmarks.newsletterImportId, importId),
+        inArray(bookmarks.id, bookmarkIds),
+      ));
+    return;
+  }
+  const [importRow] = await db
+    .select({
+      newsletterId: newsletterImports.newsletterId,
+    })
+    .from(newsletterImports)
+    .where(eq(newsletterImports.id, importId));
+  if (!importRow) return;
+  await db
+    .update(bookmarks)
+    .set({
+      newsletterImportId: importId,
+      newsletterId: importRow.newsletterId,
+    })
+    .where(inArray(bookmarks.id, bookmarkIds));
+}
+
 /** Fetch one import with its items (oldest item first), or null when not found. */
 export async function getNewsletterImport(id: string): Promise<NewsletterImport | null> {
   const [importRow] = await db.select().from(newsletterImports).where(eq(newsletterImports.id, id));
@@ -391,6 +469,7 @@ export async function getNewsletterImport(id: string): Promise<NewsletterImport 
     source: importRow.source as NewsletterImportSource,
     title: importRow.title,
     sourceUrl: importRow.sourceUrl,
+    newsletterId: importRow.newsletterId,
     defaultCategoryId: importRow.defaultCategoryId,
     createdAt: isoOf(importRow.createdAt),
     items: itemRows.map(toItem),
@@ -426,6 +505,50 @@ export async function updateImportItem(
   return row ? toItem(row) : null;
 }
 
+/**
+ * Resolve the bookmark fields an import contributes to each approved item: the issue link (always
+ * this import) plus, when the import has a newsletter, that newsletter's default category / media
+ * type / tags. These ride into `createBookmark` as input fields, so the existing precedence applies
+ * (the newsletter's values win over website/channel defaults, matching the user's explicit choice).
+ */
+async function importBookmarkDefaults(importId: string): Promise<{
+  newsletterImportId: string;
+  newsletterId: string | null;
+  categoryId?: string;
+  mediaTypeId?: string | null;
+  tagIds?: string[];
+}> {
+  const [importRow] = await db
+    .select({
+      newsletterId: newsletterImports.newsletterId,
+    })
+    .from(newsletterImports)
+    .where(eq(newsletterImports.id, importId));
+  const newsletterId = importRow?.newsletterId ?? null;
+  if (!newsletterId) {
+    return {
+      newsletterImportId: importId,
+      newsletterId: null,
+    };
+  }
+  const [categoryId, mediaTypeId, tagIds] = await Promise.all([
+    getNewsletterCategoryId(newsletterId),
+    getNewsletterMediaTypeId(newsletterId),
+    getNewsletterTagIds(newsletterId),
+  ]);
+  return {
+    newsletterImportId: importId,
+    newsletterId,
+    ...(categoryId
+      ? {
+        categoryId,
+      }
+      : {}),
+    mediaTypeId,
+    tagIds,
+  };
+}
+
 /** Approve one staged candidate: create a bookmark from it, mirroring the bulk-URL per-item handling. */
 export async function approveImportItem(itemId: string): Promise<NewsletterApproveResult> {
   const [item] = await db.select().from(newsletterImportItems).where(eq(newsletterImportItems.id, itemId));
@@ -457,8 +580,11 @@ export async function approveImportItem(itemId: string): Promise<NewsletterAppro
     };
   }
 
-  // Per-item category wins; otherwise fall back to the import's default. `undefined` (neither set)
-  // preserves createBookmark's website/channel/built-in default precedence.
+  // The issue link + the selected newsletter's default category / media type / tags.
+  const defaults = await importBookmarkDefaults(item.importId);
+
+  // Category precedence: per-item override > import default > newsletter default. `undefined` (none
+  // set) preserves createBookmark's website/channel/built-in default precedence.
   let categoryId = item.categoryId ?? undefined;
   if (categoryId === undefined) {
     const [importRow] = await db
@@ -467,7 +593,7 @@ export async function approveImportItem(itemId: string): Promise<NewsletterAppro
       })
       .from(newsletterImports)
       .where(eq(newsletterImports.id, item.importId));
-    categoryId = importRow?.defaultCategoryId ?? undefined;
+    categoryId = importRow?.defaultCategoryId ?? defaults.categoryId ?? undefined;
   }
 
   try {
@@ -475,6 +601,7 @@ export async function approveImportItem(itemId: string): Promise<NewsletterAppro
       url: item.url,
       title: item.title?.trim() || item.anchorText?.trim() || item.url,
       description: item.description ?? null,
+      ...defaults,
       newsletterContext: item.newsletterContext ?? null,
       categoryId,
     });

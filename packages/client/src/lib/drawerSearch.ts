@@ -22,6 +22,7 @@ export type DrawerContentType
     | "website"
     | "media-type"
     | "youtube-channel"
+    | "newsletter"
     | "relationship-type"
     | "autofill"
     | "notifications"
@@ -43,6 +44,7 @@ export const DRAWER_CONTENT_TYPES: DrawerContentType[] = [
   "website",
   "media-type",
   "youtube-channel",
+  "newsletter",
   "relationship-type",
   "autofill",
   "notifications",

@@ -52,6 +52,9 @@ import type {
   HomepageSectionBookmarks,
   IngestPasteInput,
   IngestUrlInput,
+  CreateNewsletterInput,
+  Newsletter,
+  UpdateNewsletterInput,
   MediaType,
   MediaTypeNode,
   NewsletterApproveResult,
@@ -215,14 +218,35 @@ export const newsletterApi = {
       method: "POST",
       body: JSON.stringify(input),
     }),
-  ingestUpload: (file: File, defaultCategoryId?: string | null) => {
+  ingestUpload: (
+    file: File,
+    newsletterId?: string | null,
+    defaultCategoryId?: string | null,
+  ) => {
     const params = new URLSearchParams();
+    if (newsletterId) params.set("newsletterId", newsletterId);
     if (defaultCategoryId) params.set("defaultCategoryId", defaultCategoryId);
     const qs = params.toString();
     return uploadImageFile<NewsletterImport>(`/newsletters/ingest/upload${qs ? `?${qs}` : ""}`, file);
   },
   listImports: () => request<NewsletterImportSummary[]>("/newsletters/imports"),
   getImport: (id: string) => request<NewsletterImport>(`/newsletters/imports/${id}`),
+  listIssues: (newsletterId: string) =>
+    request<NewsletterImportSummary[]>(`/newsletters/${newsletterId}/issues`),
+  addIssueBookmarks: (importId: string, bookmarkIds: string[]) =>
+    request<undefined>(`/newsletters/imports/${importId}/bookmarks`, {
+      method: "POST",
+      body: JSON.stringify({
+        bookmarkIds,
+      }),
+    }),
+  removeIssueBookmarks: (importId: string, bookmarkIds: string[]) =>
+    request<undefined>(`/newsletters/imports/${importId}/bookmarks`, {
+      method: "DELETE",
+      body: JSON.stringify({
+        bookmarkIds,
+      }),
+    }),
   updateItem: (importId: string, itemId: string, input: UpdateNewsletterImportItemInput) =>
     request<NewsletterImportItem>(`/newsletters/imports/${importId}/items/${itemId}`, {
       method: "PATCH",
@@ -245,6 +269,8 @@ export const newsletterApi = {
       method: "DELETE",
     }),
 };
+
+export const newslettersApi = createCrudApi<Newsletter, CreateNewsletterInput, UpdateNewsletterInput>("newsletters");
 
 export const galleryApi = {
   list: () => request<GalleryCatalog>("/gallery"),

@@ -16,8 +16,8 @@ import { Badge } from "@/components/ui/badge";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
 
 interface SourceAutofillDefaultsProps {
-  /** Wording differs for a website ("this site") vs a YouTube channel ("this channel"). */
-  kind: "website" | "channel";
+  /** Wording differs for a website ("this site") vs a YouTube channel ("this channel") vs a newsletter. */
+  kind: "website" | "channel" | "newsletter";
   /** The source's default category, applied to new bookmarks saved from it. */
   category?: YouTubeChannelCategory | null;
   /** The source's default media type id, applied to new bookmarks saved from it. */
@@ -71,7 +71,11 @@ export function SourceAutofillDefaults({
   const hasTags = resolvedTags.length > 0;
   if (!category && !mediaType && !hasTags) return null;
 
-  const source = kind === "website" ? "this site" : "this channel";
+  const source = kind === "website"
+    ? "this site"
+    : kind === "newsletter"
+      ? "this newsletter"
+      : "this channel";
 
   // Each default contributes a clause; clauses are joined with "and".
   const clauses: ReactNode[] = [];

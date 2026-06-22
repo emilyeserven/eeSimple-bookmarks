@@ -61,10 +61,51 @@ export function useIngestUpload() {
   const invalidate = useInvalidateNewsletter();
   return useMutation({
     mutationFn: ({
-      file, defaultCategoryId,
+      file, newsletterId, defaultCategoryId,
     }: { file: File;
+      newsletterId?: string | null;
       defaultCategoryId?: string | null; }) =>
-      newsletterApi.ingestUpload(file, defaultCategoryId),
+      newsletterApi.ingestUpload(file, newsletterId, defaultCategoryId),
+    onSuccess: () => invalidate(),
+  });
+}
+
+const ISSUES_KEY = ["newsletter-issues"] as const;
+
+/** List the issues (= imports) belonging to one newsletter. */
+export function useNewsletterIssues(newsletterId: string) {
+  return useQuery({
+    queryKey: [...ISSUES_KEY, newsletterId],
+    queryFn: () => newsletterApi.listIssues(newsletterId),
+    enabled: Boolean(newsletterId),
+  });
+}
+
+/** Invalidate the per-newsletter issue lists and the bookmark list. */
+function useInvalidateIssues() {
+  const queryClient = useQueryClient();
+  return () => {
+    void queryClient.invalidateQueries({
+      queryKey: ISSUES_KEY,
+    });
+    void queryClient.invalidateQueries({
+      queryKey: BOOKMARKS_KEY,
+    });
+  };
+}
+
+export function useAddIssueBookmarks(importId: string) {
+  const invalidate = useInvalidateIssues();
+  return useMutation({
+    mutationFn: (bookmarkIds: string[]) => newsletterApi.addIssueBookmarks(importId, bookmarkIds),
+    onSuccess: () => invalidate(),
+  });
+}
+
+export function useRemoveIssueBookmarks(importId: string) {
+  const invalidate = useInvalidateIssues();
+  return useMutation({
+    mutationFn: (bookmarkIds: string[]) => newsletterApi.removeIssueBookmarks(importId, bookmarkIds),
     onSuccess: () => invalidate(),
   });
 }
@@ -119,8 +160,13 @@ export function useRejectImportItem(importId: string) {
 
 export function useDeleteNewsletterImport() {
   const invalidate = useInvalidateNewsletter();
+  const invalidateIssues = useInvalidateIssues();
   return useMutation({
     mutationFn: (id: string) => newsletterApi.deleteImport(id),
-    onSuccess: () => invalidate(),
+    onSuccess: () => {
+      invalidate();
+      // Deleting an import removes it from its newsletter's issue list and nulls its bookmarks' links.
+      invalidateIssues();
+    },
   });
 }

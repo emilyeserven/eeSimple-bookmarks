@@ -208,6 +208,8 @@ export function CardDisplayRulePreview({
         slug: "sample-channel",
         imageUrl: null,
       },
+      newsletter: null,
+      newsletterIssue: null,
       tags: [
         {
           id: "__sample-tag__",

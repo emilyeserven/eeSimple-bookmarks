@@ -535,6 +535,65 @@ export interface UpdateYouTubeChannelInput {
 }
 
 /**
+ * A newsletter publication (e.g. "Smashing Magazine", "The Pragmatic Engineer") in the "Newsletters"
+ * taxonomy. Selected during a newsletter import; its default category / tags / media type are applied
+ * to the bookmarks created on approval. A newsletter has issues (= its imports).
+ */
+export interface Newsletter {
+  id: string;
+  /** Human-friendly publication name; renamable. */
+  name: string;
+  /** URL-friendly identifier derived from the name. Unique. */
+  slug: string;
+  /** ISO-8601 timestamp of when the newsletter was created. */
+  createdAt: string;
+  /** Number of bookmarks associated with this newsletter (populated by list endpoints). */
+  bookmarkCount?: number;
+  /** The category this newsletter has been assigned as a default, or `null` when unassigned. */
+  category?: NewsletterCategory | null;
+  /** Default tag ids applied to bookmarks imported from this newsletter. */
+  tagIds?: string[];
+  /** Default media type id applied to new bookmarks imported from this newsletter, or `null`. */
+  mediaTypeId?: string | null;
+}
+
+/** Lightweight category shape embedded on a newsletter. */
+export type NewsletterCategory = Pick<Category, "id" | "name" | "slug" | "icon">;
+
+/** Lightweight newsletter shape carried on a bookmark. */
+export type BookmarkNewsletter = Pick<Newsletter, "id" | "name" | "slug">;
+
+/** Lightweight newsletter-issue (= import) shape carried on a bookmark. */
+export interface BookmarkNewsletterIssue {
+  id: string;
+  /** The issue label (provided title / source URL / uploaded filename), or `null`. */
+  title: string | null;
+  /** ISO-8601 timestamp of when the issue (import) was created. */
+  createdAt: string;
+}
+
+/** Payload for creating a newsletter (name only). */
+export interface CreateNewsletterInput {
+  name: string;
+}
+
+/** Payload for updating a newsletter (rename and/or default category / tags / media type). */
+export interface UpdateNewsletterInput {
+  name?: string;
+  /** Default category. `null` clears the association; omit to leave unchanged. */
+  categoryId?: string | null;
+  /** Full replacement list of default tag ids. Omit to leave unchanged. */
+  tagIds?: string[];
+  /** Default media type. `null` clears it; omit to leave unchanged. */
+  mediaTypeId?: string | null;
+}
+
+/** Body for the manual issue↔bookmark associate / disassociate endpoints. */
+export interface IssueBookmarksInput {
+  bookmarkIds: string[];
+}
+
+/**
  * The image attached to a bookmark. The bytes live in object storage; this carries only what the
  * UI needs to render it. `url` points at the API serving endpoint (it embeds a `?v=` version param
  * so a replaced image busts the browser cache).
@@ -641,6 +700,10 @@ export interface Bookmark {
   mediaType: BookmarkMediaType | null;
   /** The YouTube channel this bookmark belongs to (auto-linked for YouTube videos), or `null`. */
   youtubeChannel: BookmarkYouTubeChannel | null;
+  /** The newsletter this bookmark was imported from, or `null`. */
+  newsletter: BookmarkNewsletter | null;
+  /** The newsletter issue (= import) this bookmark belongs to, or `null`. */
+  newsletterIssue: BookmarkNewsletterIssue | null;
   /** Tags assigned to this bookmark, drawn from the taxonomy. */
   tags: BookmarkTag[];
   /** Number-typed custom property values (includes computed `calculate` results) assigned to this bookmark. */
@@ -693,6 +756,10 @@ export interface CreateBookmarkInput {
    * recognized YouTube URL, the server resolves it from the video's metadata.
    */
   youtubeChannel?: YouTubeChannelHint | null;
+  /** Id of the newsletter (publication) this bookmark belongs to, or `null`. */
+  newsletterId?: string | null;
+  /** Id of the newsletter issue (= import) this bookmark belongs to, or `null`. */
+  newsletterImportId?: string | null;
 }
 
 /** Payload for partially updating a bookmark. */
@@ -813,7 +880,7 @@ export interface NewsletterImportItem {
   createdAt: string;
 }
 
-/** A newsletter import with its extracted candidate items. */
+/** A newsletter import (= a newsletter "issue") with its extracted candidate items. */
 export interface NewsletterImport {
   id: string;
   source: NewsletterImportSource;
@@ -821,18 +888,22 @@ export interface NewsletterImport {
   title: string | null;
   /** The fetched post URL (source = "url") or null. */
   sourceUrl: string | null;
+  /** The newsletter (publication) this import/issue belongs to, or `null`. */
+  newsletterId: string | null;
   /** Default category applied to every link approved from this import (per-item override wins). */
   defaultCategoryId: string | null;
   createdAt: string;
   items: NewsletterImportItem[];
 }
 
-/** Per-status counts for a newsletter import, used by the list view (no items). */
+/** Per-status counts for a newsletter import (= issue), used by the list views (no items). */
 export interface NewsletterImportSummary {
   id: string;
   source: NewsletterImportSource;
   title: string | null;
   sourceUrl: string | null;
+  /** The newsletter (publication) this import/issue belongs to, or `null`. */
+  newsletterId: string | null;
   defaultCategoryId: string | null;
   createdAt: string;
   /** Total extracted items. */
@@ -849,6 +920,8 @@ export interface IngestPasteInput {
   kind?: "html" | "text" | "auto";
   /** Optional label for the created import. */
   title?: string;
+  /** The newsletter (publication) this import belongs to, or `null`. */
+  newsletterId?: string | null;
   /** Default category applied to every link approved from this import. */
   defaultCategoryId?: string | null;
 }
@@ -857,6 +930,8 @@ export interface IngestPasteInput {
 export interface IngestUrlInput {
   /** A public "view in browser" newsletter post URL to fetch and extract links from. */
   url: string;
+  /** The newsletter (publication) this import belongs to, or `null`. */
+  newsletterId?: string | null;
   /** Default category applied to every link approved from this import. */
   defaultCategoryId?: string | null;
 }

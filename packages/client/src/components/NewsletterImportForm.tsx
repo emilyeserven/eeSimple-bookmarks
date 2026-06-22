@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
 
+import { AddNewsletterModal } from "./AddNewsletterModal";
 import { NewsletterFileField } from "./NewsletterFileField";
 import { newsletterImportSchema } from "./newsletterImportFormSchema";
 import { useCategories } from "../hooks/useCategories";
@@ -12,10 +13,12 @@ import {
   useIngestUpload,
   useIngestUrl,
 } from "../hooks/useNewsletterImports";
+import { useNewsletters } from "../hooks/useNewsletters";
 import { ApiError } from "../lib/apiError";
 import { useAppForm } from "../lib/form";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
+import { Button } from "@/components/ui/button";
 import { CategoryIcon } from "@/lib/icons";
 
 const SOURCE_OPTIONS: { value: IngestSource;
@@ -39,17 +42,26 @@ const SOURCE_OPTIONS: { value: IngestSource;
  * one of three ingest sources, then funnels into the matching ingest mutation and navigates to the new
  * import's review queue.
  */
-export function NewsletterImportForm() {
+export function NewsletterImportForm({
+  initialNewsletterId = null,
+}: {
+  /** Preselect a newsletter (e.g. when arriving from a newsletter's "Import an issue" link). */
+  initialNewsletterId?: string | null;
+}) {
   const navigate = useNavigate();
   const pasteMutation = useIngestPaste();
   const urlMutation = useIngestUrl();
   const uploadMutation = useIngestUpload();
+  const {
+    data: newsletters,
+  } = useNewsletters();
   const {
     data: categories = [],
   } = useCategories();
 
   const [source, setSource] = useState<IngestSource>("paste");
   const [file, setFile] = useState<File | null>(null);
+  const [addNewsletterOpen, setAddNewsletterOpen] = useState(false);
 
   // Refs keep the once-created onSubmit closure reading the latest file/actions.
   const fileRef = useRef(file);
@@ -72,6 +84,7 @@ export function NewsletterImportForm() {
       source: "paste" as IngestSource,
       pastedContent: "",
       fetchUrl: "",
+      newsletterId: initialNewsletterId,
       categoryId: "",
     },
     validators: {
@@ -90,16 +103,19 @@ export function NewsletterImportForm() {
           ? await paste.mutateAsync({
             content: value.pastedContent,
             kind: "html",
+            newsletterId: value.newsletterId,
             defaultCategoryId,
           })
           : value.source === "url"
             ? await url.mutateAsync({
               url: value.fetchUrl,
+              newsletterId: value.newsletterId,
               defaultCategoryId,
             })
             : fileRef.current
               ? await upload.mutateAsync({
                 file: fileRef.current,
+                newsletterId: value.newsletterId,
                 defaultCategoryId,
               })
               : null;
@@ -127,6 +143,37 @@ export function NewsletterImportForm() {
         void form.handleSubmit();
       }}
     >
+      <div className="space-y-2">
+        <form.AppField name="newsletterId">
+          {field => (
+            <field.ComboboxField
+              label="Newsletter"
+              placeholder="No newsletter"
+              searchPlaceholder="Search newsletters…"
+              emptyText="No newsletters found."
+              options={(newsletters ?? []).map(newsletter => ({
+                value: newsletter.id,
+                label: newsletter.name,
+              }))}
+            />
+          )}
+        </form.AppField>
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            Approved bookmarks inherit this newsletter&apos;s default category, tags, and media type, and
+            belong to this issue.
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setAddNewsletterOpen(true)}
+          >
+            New newsletter
+          </Button>
+        </div>
+      </div>
+
       <form.AppField name="source">
         {field => (
           <field.SelectField
@@ -201,6 +248,12 @@ export function NewsletterImportForm() {
           disabledWhen={source === "upload" && !file}
         />
       </form.AppForm>
+
+      <AddNewsletterModal
+        open={addNewsletterOpen}
+        onOpenChange={setAddNewsletterOpen}
+        onCreated={newsletter => form.setFieldValue("newsletterId", newsletter.id)}
+      />
     </form>
   );
 }

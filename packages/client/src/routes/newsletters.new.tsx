@@ -6,10 +6,16 @@ import { NewsletterImportForm } from "../components/NewsletterImportForm";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/newsletters/new")({
+  validateSearch: (search: Record<string, unknown>): { newsletterId?: string } => ({
+    newsletterId: typeof search.newsletterId === "string" ? search.newsletterId : undefined,
+  }),
   component: NewsletterNewPage,
 });
 
 function NewsletterNewPage() {
+  const {
+    newsletterId,
+  } = Route.useSearch();
   return (
     <section className="space-y-6">
       <div className="space-y-1">
@@ -31,7 +37,7 @@ function NewsletterNewPage() {
         </p>
       </div>
 
-      <NewsletterImportForm />
+      <NewsletterImportForm initialNewsletterId={newsletterId ?? null} />
     </section>
   );
 }
