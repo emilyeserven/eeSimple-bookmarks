@@ -410,17 +410,17 @@ function ReviewRow({
                 target="_blank"
                 rel="noopener noreferrer"
                 className="
-                  flex items-center gap-1 truncate text-sm text-muted-foreground
+                  flex items-start gap-1 text-sm text-muted-foreground
                   hover:underline
                 "
               >
-                <ExternalLink className="size-3 shrink-0" />
-                <span className="truncate">{item.url}</span>
+                <ExternalLink className="mt-0.5 size-3 shrink-0" />
+                <span className="min-w-0 break-all">{item.url}</span>
               </a>
             )
             : null}
           {item.url && item.rawUrl !== item.url
-            ? <p className="truncate text-xs text-muted-foreground/70">via {item.rawUrl}</p>
+            ? <p className="text-xs break-all text-muted-foreground/70">via {item.rawUrl}</p>
             : null}
           {categoryName
             ? <p className="text-xs text-muted-foreground">Category: {categoryName}</p>

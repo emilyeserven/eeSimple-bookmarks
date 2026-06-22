@@ -33,6 +33,7 @@ import {
   extractCandidates,
   extractEmlHtml,
   filterAndDedupe,
+  isAssetUrl,
   type LinkCandidate,
 } from "@/services/newsletterIngest";
 import {
@@ -242,10 +243,14 @@ export async function ingestNewsletter(input: IngestInput): Promise<NewsletterIm
     FETCH_CONCURRENCY,
     candidate => resolveCandidate(candidate, data),
   );
-  // Drop blacklisted links AFTER resolution so tracker-wrapped variants are unwrapped to their real
-  // destination first. Blacklisted links are never staged, so they vanish from future scans.
+  // Drop blacklisted links AND static-asset destinations (font/image files) AFTER resolution, so a
+  // tracker-wrapped link is unwrapped to its real target first — the wrapper's path never ends in
+  // `.woff`/`.png`, only the destination does. Dropped links are never staged, so they vanish from
+  // future scans.
   const resolved = dedupeResolved(
-    resolvedAll.filter(item => item.url === null || !isBlacklisted(item.url, blacklist)),
+    resolvedAll.filter(
+      item => item.url === null || (!isBlacklisted(item.url, blacklist) && !isAssetUrl(item.url)),
+    ),
   );
 
   const flagged = await Promise.all(resolved.map(withDuplicateFlag));
