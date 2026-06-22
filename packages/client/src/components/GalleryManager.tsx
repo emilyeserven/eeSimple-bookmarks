@@ -1,26 +1,30 @@
-import type { ImageMode } from "./galleryFormat";
-import type { Bookmark } from "@eesimple/types";
+import type { GalleryLayout, GalleryView } from "./galleryFormat";
+import type { Bookmark, MediaObject } from "@eesimple/types";
 
 import { useState } from "react";
 
-import { Crop, Maximize2, RefreshCw } from "lucide-react";
+import { Images, LayoutGrid, RefreshCw, Square, Table } from "lucide-react";
 
 import { GalleryDialogs } from "./GalleryDialogs";
 import { OrphansGrid, RegisteredGrid, StorageSummary } from "./GalleryGrids";
+import { galleryColumns } from "./tables/galleryColumns";
 import { useBookmarks } from "../hooks/useBookmarks";
 import { useAttachOrphan, useDeleteOrphans, useGallery, useScanBucket } from "../hooks/useGallery";
 
 import { Button } from "@/components/ui/button";
+import { DataTable } from "@/components/ui/data-table";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 interface GalleryToolbarProps {
-  imageMode: ImageMode;
-  onImageModeChange: (mode: ImageMode) => void;
+  view: GalleryView;
+  onViewChange: (view: GalleryView) => void;
+  layout: GalleryLayout;
+  onLayoutChange: (layout: GalleryLayout) => void;
   scan: ReturnType<typeof useScanBucket>;
 }
 
 function GalleryToolbar({
-  imageMode, onImageModeChange, scan,
+  view, onViewChange, layout, onLayoutChange, scan,
 }: GalleryToolbarProps) {
   return (
     <div className="flex flex-wrap items-center gap-3">
@@ -42,23 +46,47 @@ function GalleryToolbar({
 
       <ToggleGroup
         type="single"
-        value={imageMode}
-        onValueChange={value => value && onImageModeChange(value as ImageMode)}
+        value={view}
+        onValueChange={value => value && onViewChange(value as GalleryView)}
         size="sm"
       >
         <ToggleGroupItem
-          value="cover"
-          title="Cropped"
+          value="grid"
+          title="Grid"
         >
-          <Crop className="size-4" />
+          <LayoutGrid className="size-4" />
         </ToggleGroupItem>
         <ToggleGroupItem
-          value="contain"
-          title="Fit"
+          value="table"
+          title="Table"
         >
-          <Maximize2 className="size-4" />
+          <Table className="size-4" />
         </ToggleGroupItem>
       </ToggleGroup>
+
+      {view === "grid"
+        ? (
+          <ToggleGroup
+            type="single"
+            value={layout}
+            onValueChange={value => value && onLayoutChange(value as GalleryLayout)}
+            size="sm"
+          >
+            <ToggleGroupItem
+              value="natural"
+              title="Natural aspect ratio"
+            >
+              <Images className="size-4" />
+            </ToggleGroupItem>
+            <ToggleGroupItem
+              value="square"
+              title="Square"
+            >
+              <Square className="size-4" />
+            </ToggleGroupItem>
+          </ToggleGroup>
+        )
+        : null}
 
       {scan.data
         ? (
@@ -71,10 +99,65 @@ function GalleryToolbar({
   );
 }
 
+interface GalleryContentProps {
+  view: GalleryView;
+  layout: GalleryLayout;
+  registered: MediaObject[];
+  orphans: MediaObject[];
+  onDeleteAll: () => void;
+  onAttach: (key: string) => void;
+  onDelete: (key: string) => void;
+}
+
 /**
- * The Gallery: a catalog of every object in the storage bucket, split into images still linked to a
- * bookmark and orphans (objects with no live bookmark) that can be reclaimed. The bucket is
- * reconciled on demand with "Scan bucket".
+ * The catalog body: one combined data table, or the registered + orphan grids. Extracted from
+ * {@link GalleryListing} so the view-switching conditionals don't inflate its complexity.
+ */
+function GalleryContent({
+  view, layout, registered, orphans, onDeleteAll, onAttach, onDelete,
+}: GalleryContentProps) {
+  if (view === "table") {
+    return (
+      <DataTable
+        columns={galleryColumns({
+          onAttach,
+          onDelete,
+        })}
+        data={[...registered, ...orphans]}
+        sortable
+      />
+    );
+  }
+  return (
+    <>
+      {registered.length > 0
+        ? (
+          <RegisteredGrid
+            registered={registered}
+            layout={layout}
+          />
+        )
+        : null}
+      {orphans.length > 0
+        ? (
+          <OrphansGrid
+            orphans={orphans}
+            layout={layout}
+            onDeleteAll={onDeleteAll}
+            onAttach={onAttach}
+            onDelete={onDelete}
+          />
+        )
+        : null}
+    </>
+  );
+}
+
+/**
+ * The Media Management catalog: every object in the storage bucket, split into images still linked
+ * to a bookmark and orphans (objects with no live bookmark) that can be reclaimed. The bucket is
+ * reconciled on demand with "Scan bucket". Shown either as a thumbnail grid (natural aspect ratio by
+ * default, or uniform squares) or as a data table.
  */
 export function GalleryListing() {
   const {
@@ -87,7 +170,8 @@ export function GalleryListing() {
   const deleteOrphans = useDeleteOrphans();
   const attachOrphan = useAttachOrphan();
 
-  const [imageMode, setImageMode] = useState<ImageMode>("cover");
+  const [view, setView] = useState<GalleryView>("grid");
+  const [layout, setLayout] = useState<GalleryLayout>("natural");
 
   // The pending confirm: one orphan key, or every orphan key for the bulk action.
   const [pending, setPending] = useState<{ keys: string[];
@@ -112,6 +196,13 @@ export function GalleryListing() {
     setAttachTarget(null);
   }
 
+  function requestDelete(key: string): void {
+    setPending({
+      keys: [key],
+      label: key,
+    });
+  }
+
   function confirmAttach(): void {
     if (!attachKey || !attachTarget) return;
     attachOrphan.mutate({
@@ -126,12 +217,15 @@ export function GalleryListing() {
   }
 
   const attachTargetHasImage = attachTarget?.image != null;
+  const hasObjects = registered.length > 0 || orphans.length > 0;
 
   return (
     <div className="space-y-6">
       <GalleryToolbar
-        imageMode={imageMode}
-        onImageModeChange={setImageMode}
+        view={view}
+        onViewChange={setView}
+        layout={layout}
+        onLayoutChange={setLayout}
         scan={scan}
       />
 
@@ -145,10 +239,10 @@ export function GalleryListing() {
         )
         : null}
 
-      {isLoading ? <p className="text-sm text-muted-foreground">Loading gallery…</p> : null}
+      {isLoading ? <p className="text-sm text-muted-foreground">Loading media…</p> : null}
       {error ? <p className="text-sm text-destructive">{error.message}</p> : null}
 
-      {catalog && registered.length === 0 && orphans.length === 0
+      {catalog && !hasObjects
         ? (
           <p className="text-sm text-muted-foreground">
             No images in storage yet. Upload an image to a bookmark, then run a scan.
@@ -156,31 +250,20 @@ export function GalleryListing() {
         )
         : null}
 
-      {registered.length > 0
+      {hasObjects
         ? (
-          <RegisteredGrid
+          <GalleryContent
+            view={view}
+            layout={layout}
             registered={registered}
-            imageMode={imageMode}
-          />
-        )
-        : null}
-
-      {orphans.length > 0
-        ? (
-          <OrphansGrid
             orphans={orphans}
-            imageMode={imageMode}
             onDeleteAll={() =>
               setPending({
                 keys: orphans.map(object => object.objectKey),
                 label: `all ${orphans.length} orphan${orphans.length === 1 ? "" : "s"}`,
               })}
             onAttach={openAttach}
-            onDelete={key =>
-              setPending({
-                keys: [key],
-                label: key,
-              })}
+            onDelete={requestDelete}
           />
         )
         : null}

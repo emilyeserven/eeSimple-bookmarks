@@ -78,9 +78,6 @@ const pasteBody = {
     title: {
       type: "string",
     },
-    enrich: {
-      type: "boolean",
-    },
     newsletterId: newsletterIdProp,
     defaultCategoryId: {
       type: ["string", "null"],
@@ -97,9 +94,6 @@ const urlBody = {
       type: "string",
       format: "uri",
     },
-    enrich: {
-      type: "boolean",
-    },
     newsletterId: newsletterIdProp,
     defaultCategoryId: {
       type: ["string", "null"],
@@ -107,13 +101,10 @@ const urlBody = {
   },
 } as const;
 
-const enrichQuery = {
+const uploadQuery = {
   type: "object",
   additionalProperties: false,
   properties: {
-    enrich: {
-      type: "boolean",
-    },
     newsletterId: {
       type: "string",
       format: "uuid",
@@ -227,7 +218,6 @@ export async function newsletterRoutes(app: FastifyInstance): Promise<void> {
       content: body.content,
       kind: body.kind ?? "auto",
       title: body.title ?? null,
-      enrich: body.enrich ?? false,
       newsletterId: body.newsletterId ?? null,
       defaultCategoryId: body.defaultCategoryId ?? null,
     });
@@ -257,9 +247,9 @@ export async function newsletterRoutes(app: FastifyInstance): Promise<void> {
       source: "url",
       content: result.html,
       kind: "html",
-      title: body.url,
+      // Parse the newsletter's own title from the fetched page; fall back to the URL.
+      titleFallback: body.url,
       sourceUrl: body.url,
-      enrich: body.enrich ?? false,
       newsletterId: body.newsletterId ?? null,
       defaultCategoryId: body.defaultCategoryId ?? null,
     });
@@ -270,13 +260,12 @@ export async function newsletterRoutes(app: FastifyInstance): Promise<void> {
     schema: {
       tags: ["newsletters"],
       consumes: ["multipart/form-data"],
-      querystring: enrichQuery,
+      querystring: uploadQuery,
     },
   }, async (req, reply) => {
     const {
-      enrich, newsletterId, defaultCategoryId,
-    } = req.query as { enrich?: boolean;
-      newsletterId?: string;
+      newsletterId, defaultCategoryId,
+    } = req.query as { newsletterId?: string;
       defaultCategoryId?: string; };
     let filename: string;
     let bytes: Buffer;
@@ -306,8 +295,9 @@ export async function newsletterRoutes(app: FastifyInstance): Promise<void> {
       source: "upload",
       content: parsed.content,
       kind: parsed.kind,
-      title: filename,
-      enrich: enrich ?? false,
+      // The `.eml` Subject (or a parsed HTML title) wins; fall back to the filename.
+      title: parsed.title,
+      titleFallback: filename,
       newsletterId: newsletterId ?? null,
       defaultCategoryId: defaultCategoryId ?? null,
     });

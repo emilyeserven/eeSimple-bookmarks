@@ -11,6 +11,9 @@ export const bookmarks = pgTable("bookmarks", {
   originalUrl: text("original_url"),
   title: text("title").notNull(),
   description: text("description"),
+  // The newsletter passage (surrounding paragraph + nearest heading) this bookmark was sorted from,
+  // captured at newsletter import. Nullable → push-safe additive; NULL for non-newsletter bookmarks.
+  newsletterContext: text("newsletter_context"),
   // Owning category. Nullable at the DB level so `drizzle-kit push` applies cleanly to
   // existing rows; the service layer resolves NULL to the built-in "Default" category.
   categoryId: uuid("category_id").references((): AnyPgColumn => categories.id, {
@@ -1046,6 +1049,8 @@ export const newsletterImportItems = pgTable("newsletter_import_items", {
   title: text("title"),
   description: text("description"),
   imageUrl: text("image_url"),
+  // The surrounding newsletter passage (paragraph + nearest heading) the link was found in. Nullable.
+  newsletterContext: text("newsletter_context"),
   // The visible anchor text the link was extracted from.
   anchorText: text("anchor_text"),
   // Per-item category override applied on approval. Nullable FK → push-safe additive.

@@ -67,6 +67,7 @@ export function makeBookmark(overrides: Partial<Bookmark> = {}): Bookmark {
     originalUrl: null,
     title: "Example",
     description: null,
+    newsletterContext: null,
     image: null,
     imageAutoGrabError: null,
     categoryId: "cat",

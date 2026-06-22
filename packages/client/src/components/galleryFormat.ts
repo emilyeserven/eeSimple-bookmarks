@@ -1,4 +1,8 @@
-export type ImageMode = "cover" | "contain";
+/** How thumbnails are laid out in the grid view: true aspect ratio (masonry) or uniform squares. */
+export type GalleryLayout = "natural" | "square";
+
+/** Which presentation the Media Management page shows: the thumbnail grid or the data table. */
+export type GalleryView = "grid" | "table";
 
 /** Human-readable byte size, or a dash when unknown. */
 export function formatSize(bytes: number | null): string {

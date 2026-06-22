@@ -68,8 +68,8 @@ export const SETTINGS_PAGES: readonly SettingsPage[] = [
     icon: LayoutGrid,
   },
   {
-    path: "/settings/gallery",
-    label: "Gallery",
+    path: "/settings/media-management",
+    label: "Media Management",
     icon: Image,
   },
   {

@@ -1,4 +1,4 @@
-import type { ImageMode } from "./galleryFormat";
+import type { GalleryLayout } from "./galleryFormat";
 import type { MediaObject } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
@@ -34,12 +34,25 @@ export function StorageSummary({
   );
 }
 
-/** A thumbnail tile shared by both grids. */
+/**
+ * A thumbnail tile shared by both grids. In `natural` layout the image keeps its true aspect ratio
+ * (it flows in a masonry column); in `square` layout it's cropped to fill a uniform 1:1 box.
+ */
 export function Thumb({
   object,
-  imageMode,
+  layout,
 }: { object: MediaObject;
-  imageMode: ImageMode; }) {
+  layout: GalleryLayout; }) {
+  if (layout === "natural") {
+    return (
+      <img
+        src={object.url}
+        alt=""
+        loading="lazy"
+        className="h-auto w-full rounded-md border bg-muted/30"
+      />
+    );
+  }
   return (
     <div
       className="
@@ -51,23 +64,34 @@ export function Thumb({
         src={object.url}
         alt=""
         loading="lazy"
-        className={`
-          size-full
-          ${imageMode === "cover"
-      ? "object-cover"
-      : "object-contain"}
-        `}
+        className="size-full object-cover"
       />
     </div>
   );
 }
 
+/** Tailwind classes for the tile container: masonry columns vs. a uniform square grid. */
+function layoutContainerClass(layout: GalleryLayout): string {
+  return layout === "natural"
+    ? "columns-2 gap-3 sm:columns-3 lg:columns-4"
+    : `
+      grid grid-cols-2 gap-3
+      sm:grid-cols-3
+      lg:grid-cols-4
+    `;
+}
+
+/** Tailwind classes for a tile: masonry items must avoid breaking across columns. */
+function layoutItemClass(layout: GalleryLayout): string {
+  return layout === "natural" ? "mb-3 break-inside-avoid space-y-1" : "space-y-1";
+}
+
 /** The grid of images still linked to a live bookmark. */
 export function RegisteredGrid({
   registered,
-  imageMode,
+  layout,
 }: { registered: MediaObject[];
-  imageMode: ImageMode; }) {
+  layout: GalleryLayout; }) {
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
   return (
@@ -76,17 +100,11 @@ export function RegisteredGrid({
         <h2 className="text-lg font-semibold">Registered</h2>
         <Badge variant="secondary">{registered.length}</Badge>
       </div>
-      <ul
-        className="
-          grid grid-cols-2 gap-3
-          sm:grid-cols-3
-          lg:grid-cols-4
-        "
-      >
+      <ul className={layoutContainerClass(layout)}>
         {registered.map(object => (
           <li
             key={object.objectKey}
-            className="space-y-1"
+            className={layoutItemClass(layout)}
           >
             <Link
               to="/bookmarks/$bookmarkId"
@@ -104,7 +122,7 @@ export function RegisteredGrid({
             >
               <Thumb
                 object={object}
-                imageMode={imageMode}
+                layout={layout}
               />
             </Link>
             <p
@@ -123,7 +141,7 @@ export function RegisteredGrid({
 
 interface OrphansGridProps {
   orphans: MediaObject[];
-  imageMode: ImageMode;
+  layout: GalleryLayout;
   onDeleteAll: () => void;
   onAttach: (key: string) => void;
   onDelete: (key: string) => void;
@@ -132,7 +150,7 @@ interface OrphansGridProps {
 /** The grid of objects with no live bookmark, plus their reclaim controls. */
 export function OrphansGrid({
   orphans,
-  imageMode,
+  layout,
   onDeleteAll,
   onAttach,
   onDelete,
@@ -156,21 +174,15 @@ export function OrphansGrid({
           Delete all orphans
         </Button>
       </div>
-      <ul
-        className="
-          grid grid-cols-2 gap-3
-          sm:grid-cols-3
-          lg:grid-cols-4
-        "
-      >
+      <ul className={layoutContainerClass(layout)}>
         {orphans.map(object => (
           <li
             key={object.objectKey}
-            className="space-y-1"
+            className={layoutItemClass(layout)}
           >
             <Thumb
               object={object}
-              imageMode={imageMode}
+              layout={layout}
             />
             <p
               className="truncate text-xs text-muted-foreground"

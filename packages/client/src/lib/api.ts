@@ -1,5 +1,6 @@
 import type {
   AdvancedSettings,
+  DatabaseUsageReport,
   UpdateAdvancedSettingsInput,
   AutomationSettings,
   UpdateAutomationInput,
@@ -219,16 +220,14 @@ export const newsletterApi = {
     }),
   ingestUpload: (
     file: File,
-    enrich: boolean,
     newsletterId?: string | null,
     defaultCategoryId?: string | null,
   ) => {
-    const params = new URLSearchParams({
-      enrich: String(enrich),
-    });
+    const params = new URLSearchParams();
     if (newsletterId) params.set("newsletterId", newsletterId);
     if (defaultCategoryId) params.set("defaultCategoryId", defaultCategoryId);
-    return uploadImageFile<NewsletterImport>(`/newsletters/ingest/upload?${params.toString()}`, file);
+    const qs = params.toString();
+    return uploadImageFile<NewsletterImport>(`/newsletters/ingest/upload${qs ? `?${qs}` : ""}`, file);
   },
   listImports: () => request<NewsletterImportSummary[]>("/newsletters/imports"),
   getImport: (id: string) => request<NewsletterImport>(`/newsletters/imports/${id}`),
@@ -390,6 +389,7 @@ export const appSettingsApi = {
       method: "PUT",
       body: JSON.stringify(input),
     }),
+  getDatabaseUsage: () => request<DatabaseUsageReport>("/app-settings/database-usage"),
   getSidebarCustomization: () =>
     request<SidebarCustomizationSettings>("/app-settings/sidebar-customization"),
   updateSidebarCustomization: (input: UpdateSidebarCustomizationInput) =>

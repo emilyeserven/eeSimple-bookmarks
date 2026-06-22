@@ -39,6 +39,7 @@ import { Route as SettingsMoreTaxonomiesRouteImport } from './routes/settings.mo
 import { Route as SettingsMoreCustomizationRouteImport } from './routes/settings.more-customization'
 import { Route as SettingsMoreCategoriesRouteImport } from './routes/settings.more-categories'
 import { Route as SettingsMediaTypesRouteImport } from './routes/settings.media-types'
+import { Route as SettingsMediaManagementRouteImport } from './routes/settings.media-management'
 import { Route as SettingsLinkParsingRouteImport } from './routes/settings.link-parsing'
 import { Route as SettingsHomepageRouteImport } from './routes/settings.homepage'
 import { Route as SettingsGalleryRouteImport } from './routes/settings.gallery'
@@ -337,6 +338,11 @@ const SettingsMoreCategoriesRoute = SettingsMoreCategoriesRouteImport.update({
 const SettingsMediaTypesRoute = SettingsMediaTypesRouteImport.update({
   id: '/media-types',
   path: '/media-types',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsMediaManagementRoute = SettingsMediaManagementRouteImport.update({
+  id: '/media-management',
+  path: '/media-management',
   getParentRoute: () => SettingsRoute,
 } as any)
 const SettingsLinkParsingRoute = SettingsLinkParsingRouteImport.update({
@@ -1202,6 +1208,7 @@ export interface FileRoutesByFullPath {
   '/settings/gallery': typeof SettingsGalleryRoute
   '/settings/homepage': typeof SettingsHomepageRoute
   '/settings/link-parsing': typeof SettingsLinkParsingRoute
+  '/settings/media-management': typeof SettingsMediaManagementRoute
   '/settings/media-types': typeof SettingsMediaTypesRoute
   '/settings/more-categories': typeof SettingsMoreCategoriesRoute
   '/settings/more-customization': typeof SettingsMoreCustomizationRoute
@@ -1358,6 +1365,7 @@ export interface FileRoutesByTo {
   '/settings/gallery': typeof SettingsGalleryRoute
   '/settings/homepage': typeof SettingsHomepageRoute
   '/settings/link-parsing': typeof SettingsLinkParsingRoute
+  '/settings/media-management': typeof SettingsMediaManagementRoute
   '/settings/media-types': typeof SettingsMediaTypesRoute
   '/settings/more-categories': typeof SettingsMoreCategoriesRoute
   '/settings/more-customization': typeof SettingsMoreCustomizationRoute
@@ -1502,6 +1510,7 @@ export interface FileRoutesById {
   '/settings/gallery': typeof SettingsGalleryRoute
   '/settings/homepage': typeof SettingsHomepageRoute
   '/settings/link-parsing': typeof SettingsLinkParsingRoute
+  '/settings/media-management': typeof SettingsMediaManagementRoute
   '/settings/media-types': typeof SettingsMediaTypesRoute
   '/settings/more-categories': typeof SettingsMoreCategoriesRoute
   '/settings/more-customization': typeof SettingsMoreCustomizationRoute
@@ -1681,6 +1690,7 @@ export interface FileRouteTypes {
     | '/settings/gallery'
     | '/settings/homepage'
     | '/settings/link-parsing'
+    | '/settings/media-management'
     | '/settings/media-types'
     | '/settings/more-categories'
     | '/settings/more-customization'
@@ -1837,6 +1847,7 @@ export interface FileRouteTypes {
     | '/settings/gallery'
     | '/settings/homepage'
     | '/settings/link-parsing'
+    | '/settings/media-management'
     | '/settings/media-types'
     | '/settings/more-categories'
     | '/settings/more-customization'
@@ -1980,6 +1991,7 @@ export interface FileRouteTypes {
     | '/settings/gallery'
     | '/settings/homepage'
     | '/settings/link-parsing'
+    | '/settings/media-management'
     | '/settings/media-types'
     | '/settings/more-categories'
     | '/settings/more-customization'
@@ -2360,6 +2372,13 @@ declare module '@tanstack/react-router' {
       path: '/media-types'
       fullPath: '/settings/media-types'
       preLoaderRoute: typeof SettingsMediaTypesRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/media-management': {
+      id: '/settings/media-management'
+      path: '/media-management'
+      fullPath: '/settings/media-management'
+      preLoaderRoute: typeof SettingsMediaManagementRouteImport
       parentRoute: typeof SettingsRoute
     }
     '/settings/link-parsing': {
@@ -3717,6 +3736,7 @@ interface SettingsRouteChildren {
   SettingsGalleryRoute: typeof SettingsGalleryRoute
   SettingsHomepageRoute: typeof SettingsHomepageRoute
   SettingsLinkParsingRoute: typeof SettingsLinkParsingRoute
+  SettingsMediaManagementRoute: typeof SettingsMediaManagementRoute
   SettingsMediaTypesRoute: typeof SettingsMediaTypesRoute
   SettingsMoreCategoriesRoute: typeof SettingsMoreCategoriesRoute
   SettingsMoreCustomizationRoute: typeof SettingsMoreCustomizationRoute
@@ -3738,6 +3758,7 @@ const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsGalleryRoute: SettingsGalleryRoute,
   SettingsHomepageRoute: SettingsHomepageRoute,
   SettingsLinkParsingRoute: SettingsLinkParsingRoute,
+  SettingsMediaManagementRoute: SettingsMediaManagementRoute,
   SettingsMediaTypesRoute: SettingsMediaTypesRoute,
   SettingsMoreCategoriesRoute: SettingsMoreCategoriesRoute,
   SettingsMoreCustomizationRoute: SettingsMoreCustomizationRoute,

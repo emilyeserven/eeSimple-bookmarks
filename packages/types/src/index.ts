@@ -251,6 +251,26 @@ export interface AdvancedSettings {
 /** Payload for replacing the advanced settings. */
 export type UpdateAdvancedSettingsInput = AdvancedSettings;
 
+/** Space used by a single PostgreSQL table (its data + indexes + TOAST), with an estimated row count. */
+export interface DatabaseTableUsage {
+  /** The table name in the `public` schema. */
+  tableName: string;
+  /** Total on-disk size in bytes (`pg_total_relation_size`: heap + indexes + TOAST). */
+  totalBytes: number;
+  /** Estimated live-row count (`pg_class.reltuples`); approximate and `0` before the table is analyzed. */
+  rowEstimate: number;
+}
+
+/** A read-only snapshot of how much disk space the database is using, surfaced in Advanced settings. */
+export interface DatabaseUsageReport {
+  /** Per-table usage, largest first. */
+  tables: DatabaseTableUsage[];
+  /** Total size of the whole database in bytes (`pg_database_size`). */
+  totalBytes: number;
+  /** ISO timestamp of when the snapshot was taken. */
+  capturedAt: string;
+}
+
 /**
  * The subset of {@link AppSettings} that drives left-sidebar customization (which categories,
  * taxonomy items, customization tools, management pages, and whole groups are shown). Persisted
@@ -663,6 +683,11 @@ export interface Bookmark {
   title: string;
   /** Optional free-form description. */
   description: string | null;
+  /**
+   * The newsletter passage this bookmark was sorted from — the surrounding paragraph plus the
+   * nearest heading — captured at import time. `null` for bookmarks not created from a newsletter.
+   */
+  newsletterContext: string | null;
   /** The image attached to this bookmark, or `null` when none has been set. */
   image: BookmarkImage | null;
   /** Specific reason the last image auto-grab attempt failed, or `null` when not yet attempted or the last attempt succeeded. */
@@ -708,6 +733,8 @@ export interface CreateBookmarkInput {
   originalUrl?: string | null;
   title: string;
   description?: string | null;
+  /** Newsletter passage this bookmark was sorted from (paragraph + nearest heading); usually only set on newsletter approval. */
+  newsletterContext?: string | null;
   /** Id of the category to assign; omit to fall back to the built-in "Default" category. */
   categoryId?: string;
   /** Ids of tags to assign, drawn from the taxonomy. */
@@ -837,6 +864,8 @@ export interface NewsletterImportItem {
   title: string | null;
   description: string | null;
   imageUrl: string | null;
+  /** The surrounding newsletter passage (paragraph + nearest heading) the link was found in, or `null`. */
+  newsletterContext: string | null;
   /** The visible anchor text the link was extracted from. */
   anchorText: string | null;
   /** Per-item category override applied on approval; falls back to the import's default. */
@@ -891,8 +920,6 @@ export interface IngestPasteInput {
   kind?: "html" | "text" | "auto";
   /** Optional label for the created import. */
   title?: string;
-  /** When true, eagerly fetch each candidate's title/description/image at ingest. */
-  enrich?: boolean;
   /** The newsletter (publication) this import belongs to, or `null`. */
   newsletterId?: string | null;
   /** Default category applied to every link approved from this import. */
@@ -903,7 +930,6 @@ export interface IngestPasteInput {
 export interface IngestUrlInput {
   /** A public "view in browser" newsletter post URL to fetch and extract links from. */
   url: string;
-  enrich?: boolean;
   /** The newsletter (publication) this import belongs to, or `null`. */
   newsletterId?: string | null;
   /** Default category applied to every link approved from this import. */
