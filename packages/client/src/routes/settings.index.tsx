@@ -53,10 +53,10 @@ const SETTINGS_TILES = [
     to: "/settings/card-display-rules" as const,
   },
   {
-    label: "Gallery",
-    description: "Settings for the bookmark image gallery.",
+    label: "Media Management",
+    description: "Manage every image stored for your bookmarks.",
     icon: Image,
-    to: "/settings/gallery" as const,
+    to: "/settings/media-management" as const,
   },
   {
     label: "Automations",

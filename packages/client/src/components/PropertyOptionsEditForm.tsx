@@ -64,7 +64,7 @@ const LABELS: Partial<Record<OptionsKey, string>> = {
   ratingLabel: "Rating label",
   allowDefault: "Default value",
   showInDetails: "Show in detail view",
-  showInGallery: "Show in gallery",
+  showInGallery: "Show in Media Management",
 };
 
 /**

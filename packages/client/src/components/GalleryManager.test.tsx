@@ -116,6 +116,63 @@ describe("GalleryListing", () => {
     expect(screen.getByText("bookmarks/orphan.webp")).toBeInTheDocument();
   });
 
+  it("renders the table view with preview, name, bookmark, and size columns", async () => {
+    galleryState = {
+      data: {
+        registered: [
+          makeObject({
+            objectKey: "bookmarks/11111111-1111-1111-1111-111111111111.webp",
+            bookmark: {
+              id: "11111111-1111-1111-1111-111111111111",
+              title: "GitHub",
+            },
+            url: "/api/bookmarks/11111111-1111-1111-1111-111111111111/image",
+          }),
+        ],
+        orphans: [makeObject({
+          objectKey: "bookmarks/orphan.webp",
+        })],
+        storageQuotaBytes: null,
+      },
+      isLoading: false,
+      error: null,
+    };
+    await renderWithRouter(<GalleryListing />, {
+      paths: [DETAIL_PATH],
+    });
+
+    fireEvent.click(screen.getByTitle("Table"));
+
+    expect(screen.getByText("Preview")).toBeInTheDocument();
+    expect(screen.getByText("Name")).toBeInTheDocument();
+    expect(screen.getByText("Bookmark")).toBeInTheDocument();
+    expect(screen.getByText("Size")).toBeInTheDocument();
+    // The associated bookmark, the orphan's name, and the "Orphan" marker all render as rows.
+    expect(screen.getByText("GitHub")).toBeInTheDocument();
+    expect(screen.getByText("bookmarks/orphan.webp")).toBeInTheDocument();
+    expect(screen.getByText("Orphan")).toBeInTheDocument();
+  });
+
+  it("offers a Natural/Square layout toggle in the grid view", async () => {
+    galleryState = {
+      data: {
+        registered: [],
+        orphans: [makeObject({
+          objectKey: "bookmarks/orphan.webp",
+        })],
+        storageQuotaBytes: null,
+      },
+      isLoading: false,
+      error: null,
+    };
+    await renderWithRouter(<GalleryListing />, {
+      paths: [DETAIL_PATH],
+    });
+
+    expect(screen.getByTitle("Natural aspect ratio")).toBeInTheDocument();
+    expect(screen.getByTitle("Square")).toBeInTheDocument();
+  });
+
   it("confirms before deleting a single orphan", async () => {
     galleryState = {
       data: {
