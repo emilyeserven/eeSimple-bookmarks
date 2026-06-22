@@ -35,6 +35,7 @@ import { Route as SettingsYoutubeChannelsRouteImport } from './routes/settings.y
 import { Route as SettingsWebsitesRouteImport } from './routes/settings.websites'
 import { Route as SettingsSidebarRouteImport } from './routes/settings.sidebar'
 import { Route as SettingsSavedFiltersRouteImport } from './routes/settings.saved-filters'
+import { Route as SettingsRelationshipsRouteImport } from './routes/settings.relationships'
 import { Route as SettingsMoreTaxonomiesRouteImport } from './routes/settings.more-taxonomies'
 import { Route as SettingsMoreCustomizationRouteImport } from './routes/settings.more-customization'
 import { Route as SettingsMoreCategoriesRouteImport } from './routes/settings.more-categories'
@@ -317,6 +318,11 @@ const SettingsSidebarRoute = SettingsSidebarRouteImport.update({
 const SettingsSavedFiltersRoute = SettingsSavedFiltersRouteImport.update({
   id: '/saved-filters',
   path: '/saved-filters',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsRelationshipsRoute = SettingsRelationshipsRouteImport.update({
+  id: '/relationships',
+  path: '/relationships',
   getParentRoute: () => SettingsRoute,
 } as any)
 const SettingsMoreTaxonomiesRoute = SettingsMoreTaxonomiesRouteImport.update({
@@ -1213,6 +1219,7 @@ export interface FileRoutesByFullPath {
   '/settings/more-categories': typeof SettingsMoreCategoriesRoute
   '/settings/more-customization': typeof SettingsMoreCustomizationRoute
   '/settings/more-taxonomies': typeof SettingsMoreTaxonomiesRoute
+  '/settings/relationships': typeof SettingsRelationshipsRoute
   '/settings/saved-filters': typeof SettingsSavedFiltersRoute
   '/settings/sidebar': typeof SettingsSidebarRoute
   '/settings/websites': typeof SettingsWebsitesRoute
@@ -1370,6 +1377,7 @@ export interface FileRoutesByTo {
   '/settings/more-categories': typeof SettingsMoreCategoriesRoute
   '/settings/more-customization': typeof SettingsMoreCustomizationRoute
   '/settings/more-taxonomies': typeof SettingsMoreTaxonomiesRoute
+  '/settings/relationships': typeof SettingsRelationshipsRoute
   '/settings/saved-filters': typeof SettingsSavedFiltersRoute
   '/settings/sidebar': typeof SettingsSidebarRoute
   '/settings/websites': typeof SettingsWebsitesRoute
@@ -1515,6 +1523,7 @@ export interface FileRoutesById {
   '/settings/more-categories': typeof SettingsMoreCategoriesRoute
   '/settings/more-customization': typeof SettingsMoreCustomizationRoute
   '/settings/more-taxonomies': typeof SettingsMoreTaxonomiesRoute
+  '/settings/relationships': typeof SettingsRelationshipsRoute
   '/settings/saved-filters': typeof SettingsSavedFiltersRoute
   '/settings/sidebar': typeof SettingsSidebarRoute
   '/settings/websites': typeof SettingsWebsitesRoute
@@ -1695,6 +1704,7 @@ export interface FileRouteTypes {
     | '/settings/more-categories'
     | '/settings/more-customization'
     | '/settings/more-taxonomies'
+    | '/settings/relationships'
     | '/settings/saved-filters'
     | '/settings/sidebar'
     | '/settings/websites'
@@ -1852,6 +1862,7 @@ export interface FileRouteTypes {
     | '/settings/more-categories'
     | '/settings/more-customization'
     | '/settings/more-taxonomies'
+    | '/settings/relationships'
     | '/settings/saved-filters'
     | '/settings/sidebar'
     | '/settings/websites'
@@ -1996,6 +2007,7 @@ export interface FileRouteTypes {
     | '/settings/more-categories'
     | '/settings/more-customization'
     | '/settings/more-taxonomies'
+    | '/settings/relationships'
     | '/settings/saved-filters'
     | '/settings/sidebar'
     | '/settings/websites'
@@ -2344,6 +2356,13 @@ declare module '@tanstack/react-router' {
       path: '/saved-filters'
       fullPath: '/settings/saved-filters'
       preLoaderRoute: typeof SettingsSavedFiltersRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/relationships': {
+      id: '/settings/relationships'
+      path: '/relationships'
+      fullPath: '/settings/relationships'
+      preLoaderRoute: typeof SettingsRelationshipsRouteImport
       parentRoute: typeof SettingsRoute
     }
     '/settings/more-taxonomies': {
@@ -3741,6 +3760,7 @@ interface SettingsRouteChildren {
   SettingsMoreCategoriesRoute: typeof SettingsMoreCategoriesRoute
   SettingsMoreCustomizationRoute: typeof SettingsMoreCustomizationRoute
   SettingsMoreTaxonomiesRoute: typeof SettingsMoreTaxonomiesRoute
+  SettingsRelationshipsRoute: typeof SettingsRelationshipsRoute
   SettingsSavedFiltersRoute: typeof SettingsSavedFiltersRoute
   SettingsSidebarRoute: typeof SettingsSidebarRoute
   SettingsWebsitesRoute: typeof SettingsWebsitesRoute
@@ -3763,6 +3783,7 @@ const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsMoreCategoriesRoute: SettingsMoreCategoriesRoute,
   SettingsMoreCustomizationRoute: SettingsMoreCustomizationRoute,
   SettingsMoreTaxonomiesRoute: SettingsMoreTaxonomiesRoute,
+  SettingsRelationshipsRoute: SettingsRelationshipsRoute,
   SettingsSavedFiltersRoute: SettingsSavedFiltersRoute,
   SettingsSidebarRoute: SettingsSidebarRoute,
   SettingsWebsitesRoute: SettingsWebsitesRoute,
