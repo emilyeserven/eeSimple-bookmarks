@@ -1285,3 +1285,21 @@ export const pinnedSidebarItems = pgTable("pinned_sidebar_items", {
 ]);
 
 export type PinnedSidebarItemRow = typeof pinnedSidebarItems.$inferSelect;
+
+/**
+ * `favorite_settings_pages` — Settings (and settings-like management) pages favorited by the user
+ * for quick access from the sidebar Settings flyout. Keyed by route `path`; the unique constraint
+ * prevents duplicate favorites of the same page.
+ */
+export const favoriteSettingsPages = pgTable("favorite_settings_pages", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  path: text("path").notNull(),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+}, table => [
+  unique("favorite_settings_pages_path_unique").on(table.path),
+]);
+
+export type FavoriteSettingsPageRow = typeof favoriteSettingsPages.$inferSelect;

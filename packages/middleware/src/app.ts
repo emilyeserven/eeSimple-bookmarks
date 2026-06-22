@@ -15,6 +15,7 @@ import { healthRoutes } from "@/routes/health";
 import { homepageSectionsRoutes } from "@/routes/homepageSections";
 import { customAspectRatioRoutes } from "@/routes/customAspectRatios";
 import { pinnedSidebarItemRoutes } from "@/routes/pinnedSidebarItems";
+import { favoriteSettingsPageRoutes } from "@/routes/favoriteSettingsPages";
 import { savedFilterRoutes } from "@/routes/savedFilters";
 import { mediaTypeRoutes } from "@/routes/mediaTypes";
 import { metadataRoutes } from "@/routes/metadata";
@@ -166,6 +167,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(cardDisplayRulesRoutes);
   await app.register(savedFilterRoutes);
   await app.register(pinnedSidebarItemRoutes);
+  await app.register(favoriteSettingsPageRoutes);
   await app.register(customAspectRatioRoutes);
   await app.register(appSettingsRoutes);
   await app.register(galleryRoutes);

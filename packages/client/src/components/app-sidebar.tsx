@@ -13,7 +13,6 @@ import {
   Home,
   Layers,
   MonitorPlay,
-  Settings,
   Share2,
   SlidersHorizontal,
   Tags,
@@ -22,6 +21,7 @@ import {
 
 import { CollapsibleSection, SidebarNavSection, SidebarResizeHandle } from "./app-sidebar-sections";
 import { useViewPanelClick } from "./panel/useEditPanelClick";
+import { SettingsFavoritesFlyout } from "./SettingsFavoritesFlyout";
 import { useAutofillRules } from "../hooks/useAutofill";
 import { useBookmarks } from "../hooks/useBookmarks";
 import { useCategories } from "../hooks/useCategories";
@@ -533,32 +533,7 @@ export function AppSidebar({
           : null}
       </SidebarContent>
       <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              size="lg"
-              asChild
-              isActive={pathname.startsWith("/settings")}
-              tooltip="Settings"
-            >
-              <Link to="/settings">
-                <div
-                  className="
-                    flex aspect-square size-8 items-center justify-center
-                    rounded-lg bg-sidebar-primary
-                    text-sidebar-primary-foreground
-                  "
-                >
-                  <Settings className="size-4" />
-                </div>
-                <div className="grid flex-1 text-left text-sm/tight">
-                  <span className="truncate font-semibold">Settings</span>
-                  <span className="truncate text-xs">Manage preferences</span>
-                </div>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <SettingsFavoritesFlyout pathname={pathname} />
       </SidebarFooter>
       <SidebarResizeHandle />
       <SidebarRail />

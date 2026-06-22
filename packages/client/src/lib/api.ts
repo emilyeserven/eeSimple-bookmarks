@@ -2,6 +2,8 @@ import type {
   AutofillPreviewInput,
   CreatePinnedSidebarItemInput,
   PinnedSidebarItem,
+  CreateFavoriteSettingsPageInput,
+  FavoriteSettingsPage,
   AutofillPreviewResult,
   AutofillRule,
   Bookmark,
@@ -371,6 +373,18 @@ export const pinnedSidebarItemsApi = {
       body: JSON.stringify(input),
     }),
   remove: (id: string) => request<undefined>(`/pinned-sidebar-items/${id}`, {
+    method: "DELETE",
+  }),
+};
+
+export const favoriteSettingsPagesApi = {
+  list: () => request<FavoriteSettingsPage[]>("/favorite-settings-pages"),
+  create: (input: CreateFavoriteSettingsPageInput) =>
+    request<FavoriteSettingsPage>("/favorite-settings-pages", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  remove: (id: string) => request<undefined>(`/favorite-settings-pages/${id}`, {
     method: "DELETE",
   }),
 };
