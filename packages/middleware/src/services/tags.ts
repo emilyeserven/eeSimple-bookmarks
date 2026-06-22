@@ -1,8 +1,9 @@
 import { asc, eq, isNull, ne, sql } from "drizzle-orm";
 import type { CreateTagInput, Tag, TagNode, UpdateTagInput } from "@eesimple/types";
 import { db } from "@/db";
-import { bookmarkTags, tags, type TagRow } from "@/db/schema";
+import { bookmarkTags, categoryRootTags, tags, type TagRow } from "@/db/schema";
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
+import { InvalidRootTagError } from "@/services/categories";
 import { slugify, uniqueSlug } from "@/utils/slug";
 
 /** Thrown when a reparent would put a tag under itself or one of its descendants. */
@@ -252,4 +253,49 @@ export async function deleteTag(id: string): Promise<boolean> {
   // Cascade removes descendant tags and bookmark_tags links — both feed condition matching.
   if (rows.length > 0) invalidateBookmarkCache();
   return rows.length > 0;
+}
+
+/** The categories whose root-tag allowlist includes this tag (the reverse of the Tiered Tags tab). */
+export async function getTagCategories(tagId: string): Promise<string[]> {
+  const rows = await db
+    .select({
+      categoryId: categoryRootTags.categoryId,
+    })
+    .from(categoryRootTags)
+    .where(eq(categoryRootTags.tagId, tagId));
+  return rows.map(row => row.categoryId);
+}
+
+/**
+ * Replace the set of categories whose root-tag allowlist includes this tag. Returns null if the
+ * tag is missing; throws `InvalidRootTagError` if it is not a root tag (only root tags can be
+ * scoped to categories, matching the Tiered Tags allowlist). Display-only — like
+ * `setCategoryRootTags`, it does not touch the bookmark cache.
+ */
+export async function setTagCategories(
+  tagId: string,
+  categoryIds: string[],
+): Promise<string[] | null> {
+  const [tag] = await db
+    .select({
+      id: tags.id,
+      parentId: tags.parentId,
+    })
+    .from(tags)
+    .where(eq(tags.id, tagId));
+  if (!tag) return null;
+  if (tag.parentId !== null) {
+    throw new InvalidRootTagError(`Tag ${tagId} is not a root tag`);
+  }
+
+  await db.transaction(async (tx) => {
+    await tx.delete(categoryRootTags).where(eq(categoryRootTags.tagId, tagId));
+    if (categoryIds.length > 0) {
+      await tx.insert(categoryRootTags).values(categoryIds.map(categoryId => ({
+        categoryId,
+        tagId,
+      })));
+    }
+  });
+  return categoryIds;
 }

@@ -15,6 +15,10 @@ const viewNav = [
     label: "General",
   },
   {
+    to: "/tags/$tagSlug/categories",
+    label: "Categories",
+  },
+  {
     to: "/tags/$tagSlug/hierarchy",
     label: "Hierarchy",
   },
@@ -31,6 +35,7 @@ const viewNav = [
 // "hierarchy" is view-only; clicking Edit from there falls back to "general".
 const VIEW_TO_EDIT = {
   "general": "/tags/$tagSlug/edit/general",
+  "categories": "/tags/$tagSlug/edit/categories",
   "autofill": "/tags/$tagSlug/edit/autofill",
   "display-rules": "/tags/$tagSlug/edit/display-rules",
 } as const;

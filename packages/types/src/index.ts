@@ -1335,6 +1335,11 @@ export interface UpdateCategoryRootTagsInput {
   tagIds: string[];
 }
 
+/** Payload for replacing the categories whose root-tag allowlist includes a given (root) tag. */
+export interface UpdateTagCategoriesInput {
+  categoryIds: string[];
+}
+
 /** A category's default custom-property values, applied to new bookmarks added to it. */
 export interface CategoryPropertyDefaults {
   /** Default number/calculate property values (calculate defaults are ignored on save). */

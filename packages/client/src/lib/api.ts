@@ -305,6 +305,15 @@ export const metadataApi = {
 export const tagsApi = {
   ...createCrudApi<Tag, CreateTagInput, UpdateTagInput>("tags"),
   tree: () => request<TagNode[]>("/tags/tree"),
+  categories: (id: string) =>
+    request<{ categoryIds: string[] }>(`/tags/${id}/categories`),
+  setCategories: (id: string, categoryIds: string[]) =>
+    request<{ categoryIds: string[] }>(`/tags/${id}/categories`, {
+      method: "PUT",
+      body: JSON.stringify({
+        categoryIds,
+      }),
+    }),
 };
 
 export const websitesApi = {

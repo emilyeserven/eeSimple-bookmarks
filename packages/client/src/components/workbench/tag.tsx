@@ -8,6 +8,7 @@ import { AutofillRulesList } from "../AutofillRulesList";
 import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import { EntityAutofillSources } from "../EntityAutofillSources";
 import { HierarchyView } from "../HierarchyView";
+import { TagCategories } from "../TagCategories";
 import { TagGeneralForm } from "../TagGeneralForm";
 import { TagTreeList } from "../TagTreeList";
 
@@ -196,6 +197,24 @@ export const tagWorkbench: EntityWorkbench<TagNode> = {
         title: "General",
         description: "Name and parent tag.",
         render: TagGeneralEdit,
+      },
+    },
+    {
+      key: "categories",
+      label: "Categories",
+      view: {
+        title: "Categories",
+        description: "Categories that offer this tag when tagging bookmarks.",
+        render: ({
+          entity,
+        }) => <TagCategories tag={entity} />,
+      },
+      edit: {
+        title: "Categories",
+        description: "Categories that offer this tag when tagging bookmarks.",
+        render: ({
+          entity,
+        }) => <TagCategories tag={entity} />,
       },
     },
     {

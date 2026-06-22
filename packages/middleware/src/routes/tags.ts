@@ -1,10 +1,17 @@
 import type { FastifyInstance } from "fastify";
-import type { CreateTagInput, UpdateTagInput } from "@eesimple/types";
+import type {
+  CreateTagInput,
+  UpdateTagCategoriesInput,
+  UpdateTagInput,
+} from "@eesimple/types";
+import { InvalidRootTagError } from "@/services/categories";
 import {
   createTag,
   deleteTag,
+  getTagCategories,
   getTagTree,
   listTags,
+  setTagCategories,
   TagCycleError,
   updateTag,
 } from "@/services/tags";
@@ -40,6 +47,21 @@ const updateTagBody = {
   type: "object",
   additionalProperties: false,
   properties: createTagBody.properties,
+} as const;
+
+const categoryIdsBody = {
+  type: "object",
+  required: ["categoryIds"],
+  additionalProperties: false,
+  properties: {
+    categoryIds: {
+      type: "array",
+      items: {
+        type: "string",
+        format: "uuid",
+      },
+    },
+  },
 } as const;
 
 /** CRUD routes for the tag taxonomy, mounted under `/api/tags`. */
@@ -107,5 +129,51 @@ export async function tagRoutes(app: FastifyInstance): Promise<void> {
       message: "Tag not found",
     });
     return reply.code(204).send();
+  });
+
+  app.get("/api/tags/:id/categories", {
+    schema: {
+      tags: ["tags"],
+      params: tagParams,
+    },
+  }, async (req) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    return {
+      categoryIds: await getTagCategories(id),
+    };
+  });
+
+  app.put("/api/tags/:id/categories", {
+    schema: {
+      tags: ["tags"],
+      params: tagParams,
+      body: categoryIdsBody,
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    const {
+      categoryIds,
+    } = req.body as UpdateTagCategoriesInput;
+    try {
+      const result = await setTagCategories(id, categoryIds);
+      if (result === null) return reply.code(404).send({
+        message: "Tag not found",
+      });
+      return {
+        categoryIds: result,
+      };
+    }
+    catch (err) {
+      if (err instanceof InvalidRootTagError) {
+        return reply.code(400).send({
+          message: err.message,
+        });
+      }
+      throw err;
+    }
   });
 }
