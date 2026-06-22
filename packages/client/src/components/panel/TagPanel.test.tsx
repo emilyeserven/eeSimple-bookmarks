@@ -66,14 +66,19 @@ describe("TagPanel", () => {
     expect(screen.getByText("(root)")).toBeInTheDocument();
   });
 
-  it("swaps to the edit form when Edit is clicked", () => {
+  it("swaps to the shared auto-save edit form when Edit is clicked", () => {
     render(<TagPanel tagId="dev" />);
     fireEvent.click(screen.getByRole("button", {
       name: "Edit",
     }));
+    // Edit reuses the main-app `TagGeneralForm`, which auto-saves per field — a Name field, no
+    // Save button, and the header toggle reads "Done".
     expect(screen.getByLabelText("Name")).toBeInTheDocument();
-    expect(screen.getByRole("button", {
+    expect(screen.queryByRole("button", {
       name: "Save",
+    })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", {
+      name: "Done",
     })).toBeInTheDocument();
   });
 

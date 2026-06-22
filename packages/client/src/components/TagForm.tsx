@@ -3,20 +3,12 @@ import type React from "react";
 
 import { Fragment } from "react";
 
-import { z } from "zod";
-
+import { tagSchema } from "./tagFormSchema";
 import { useAppForm } from "../lib/form";
 import { flattenTree } from "../lib/tagTree";
 
 /** Sentinel for the "(root)" option, since Radix Select forbids an empty-string value. */
 const ROOT = "__root__";
-
-// `parent` is always present in the form state (defaulting to ROOT) even when the parent
-// select is hidden, so a single schema covers both the name-only and parented cases.
-const tagSchema = z.object({
-  name: z.string().trim().min(1, "Name is required"),
-  parent: z.string(),
-});
 
 interface TagFormProps {
   /** Full tag tree, used to build the parent select options. */

@@ -13,7 +13,14 @@ import { useCustomProperties } from "../../../hooks/useCustomProperties";
 import { usePropertyGroups } from "../../../hooks/usePropertyGroups";
 import { mergeBooleanValue } from "../../../lib/bookmarkFormat";
 import { BookmarkDetail } from "../../BookmarkDetail";
-import { BookmarkForm } from "../../BookmarkForm";
+import { BookmarkGeneralForm } from "../../BookmarkGeneralForm";
+import { BookmarkImageEditForm } from "../../BookmarkImageEditForm";
+import { BookmarkPropertiesForm } from "../../BookmarkPropertiesForm";
+import { BookmarkRelationshipsEditor } from "../../BookmarkRelationshipsEditor";
+import { LabeledSection } from "../../LabeledSection";
+import { PanelEntityEditor } from "../PanelEntityEditor";
+
+import { Separator } from "@/components/ui/separator";
 
 function useBookmarkList() {
   const {
@@ -85,7 +92,12 @@ function BookmarkView({
   );
 }
 
-/** Edit a bookmark with the same `BookmarkForm` the main app uses. */
+/**
+ * Edit a bookmark by reusing the **same** per-tab edit forms the main-app edit tabs render
+ * (`BookmarkGeneralForm` / `BookmarkPropertiesForm` / `BookmarkImageEditForm` /
+ * `BookmarkRelationshipsEditor`), stacked since the panel is a single column — not the `BookmarkForm`
+ * create form (that stays for create flows). Each section saves independently, like its tab.
+ */
 function BookmarkEdit({
   id,
 }: {
@@ -95,6 +107,8 @@ function BookmarkEdit({
   const {
     openItem,
   } = usePanelControls();
+  const deleteBookmark = useDeleteBookmark();
+  const dismiss = usePanelDismissAfterDelete();
 
   return (
     <WithPanelItem
@@ -103,13 +117,48 @@ function BookmarkEdit({
       notFoundMessage="Bookmark not found."
     >
       {bookmark => (
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Edit bookmark</h2>
-          <BookmarkForm
-            bookmark={bookmark}
-            onDone={() => openItem("bookmark", id, "view")}
-          />
-        </div>
+        <PanelEntityEditor
+          name={bookmark.title}
+          onDelete={() => deleteBookmark.mutate(id, {
+            onSuccess: dismiss,
+          })}
+          deleteIsPending={deleteBookmark.isPending}
+          deleteError={deleteBookmark.isError ? deleteBookmark.error.message : null}
+        >
+          <div className="space-y-6">
+            <LabeledSection
+              title="General"
+              description="URL, name, description, category, and tags."
+            >
+              <BookmarkGeneralForm bookmark={bookmark} />
+            </LabeledSection>
+            <Separator />
+            <LabeledSection
+              title="Properties"
+              description="Custom property values for this bookmark."
+            >
+              <BookmarkPropertiesForm bookmark={bookmark} />
+            </LabeledSection>
+            <Separator />
+            <LabeledSection
+              title="Image"
+              description="Manage the bookmark's thumbnail image."
+            >
+              <BookmarkImageEditForm bookmark={bookmark} />
+            </LabeledSection>
+            <Separator />
+            <LabeledSection
+              title="Relationships"
+              description="Link this bookmark to related bookmarks."
+            >
+              <BookmarkRelationshipsEditor
+                bookmarkId={bookmark.id}
+                initialRelationships={bookmark.relationships}
+                onDone={() => openItem("bookmark", id, "view")}
+              />
+            </LabeledSection>
+          </div>
+        </PanelEntityEditor>
       )}
     </WithPanelItem>
   );

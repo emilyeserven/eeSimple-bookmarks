@@ -1,8 +1,8 @@
 import type { Tag, TagNode, UpdateTagInput } from "@eesimple/types";
 
 import { useNavigate } from "@tanstack/react-router";
-import { z } from "zod";
 
+import { tagSchema } from "./tagFormSchema";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 import { useUpdateTag } from "../hooks/useTags";
 import { useAppForm } from "../lib/form";
@@ -10,11 +10,6 @@ import { flattenTree } from "../lib/tagTree";
 
 /** Sentinel for the "(root)" option, since Radix Select forbids an empty-string value. */
 const ROOT = "__root__";
-
-const tagSchema = z.object({
-  name: z.string().trim().min(1, "Name is required"),
-  parent: z.string(),
-});
 
 const LABELS: Record<keyof UpdateTagInput, string> = {
   name: "Name",

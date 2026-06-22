@@ -1,21 +1,25 @@
 import type { CreateAutofillRuleInput } from "@eesimple/types";
 
+import { PanelEntityEditor } from "./PanelEntityEditor";
 import { usePanelControls } from "./usePanelControls";
 import { usePanelDismissAfterDelete } from "./usePanelDismissAfterDelete";
 import {
   useAutofillRuleById,
   useCreateAutofillRule,
   useDeleteAutofillRule,
-  useUpdateAutofillRule,
 } from "../../hooks/useAutofill";
 import { useAutofillScopeDefaults } from "../../hooks/useAutofillScopeDefaults";
 import { useCategories } from "../../hooks/useCategories";
 import { useCustomProperties } from "../../hooks/useCustomProperties";
 import { useMediaTypes } from "../../hooks/useMediaTypes";
 import { useTagTree } from "../../hooks/useTags";
+import { AutofillRuleConditionsForm } from "../AutofillRuleConditionsForm";
 import { AutofillRuleForm } from "../AutofillRuleForm";
+import { AutofillRuleGeneralForm } from "../AutofillRuleGeneralForm";
+import { AutofillRulePrefillForm } from "../AutofillRulePrefillForm";
+import { LabeledSection } from "../LabeledSection";
 
-import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 /** Create form: on success, re-target the panel at the saved rule so editing continues inline. */
 export function CreateAutofillRule() {
@@ -87,7 +91,12 @@ interface EditAutofillRuleProps {
   ruleId: string;
 }
 
-/** Edit form for an existing rule, plus a destructive delete that closes the panel. */
+/**
+ * Edit an existing rule by reusing the **same** per-tab auto-save forms the main-app edit tabs render
+ * (`AutofillRuleGeneralForm` / `AutofillRuleConditionsForm` / `AutofillRulePrefillForm`), stacked
+ * since the panel is a single column — not the monolithic submit `AutofillRuleForm` (that stays for
+ * create). A destructive delete closes the panel.
+ */
 export function EditAutofillRule({
   ruleId,
 }: EditAutofillRuleProps) {
@@ -95,19 +104,6 @@ export function EditAutofillRule({
   const {
     rule, isLoading, error,
   } = useAutofillRuleById(ruleId);
-  const {
-    data: categories,
-  } = useCategories();
-  const {
-    data: mediaTypes,
-  } = useMediaTypes();
-  const {
-    data: properties,
-  } = useCustomProperties();
-  const {
-    data: tagTree,
-  } = useTagTree();
-  const updateRule = useUpdateAutofillRule();
   const deleteRule = useDeleteAutofillRule();
 
   if (isLoading) return <p className="text-muted-foreground">Loading…</p>;
@@ -115,38 +111,36 @@ export function EditAutofillRule({
   if (!rule) return <p className="text-destructive">Rule not found.</p>;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-xl font-semibold">{rule.name}</h2>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="text-destructive"
-          onClick={() =>
-            deleteRule.mutate(rule.id, {
-              onSuccess: dismiss,
-            })}
+    <PanelEntityEditor
+      name={rule.name}
+      onDelete={() => deleteRule.mutate(rule.id, {
+        onSuccess: dismiss,
+      })}
+      deleteIsPending={deleteRule.isPending}
+      deleteError={deleteRule.isError ? deleteRule.error.message : null}
+    >
+      <div className="space-y-6">
+        <LabeledSection
+          title="General"
+          description="Name, description, and priority."
         >
-          Delete
-        </Button>
+          <AutofillRuleGeneralForm rule={rule} />
+        </LabeledSection>
+        <Separator />
+        <LabeledSection
+          title="Activation Conditions"
+          description="Configure when this rule should apply."
+        >
+          <AutofillRuleConditionsForm rule={rule} />
+        </LabeledSection>
+        <Separator />
+        <LabeledSection
+          title="What Gets Prefilled"
+          description="Configure the category, tags, and property values this rule sets."
+        >
+          <AutofillRulePrefillForm rule={rule} />
+        </LabeledSection>
       </div>
-
-      <AutofillRuleForm
-        rule={rule}
-        categories={categories ?? []}
-        mediaTypes={mediaTypes ?? []}
-        properties={properties ?? []}
-        tagTree={tagTree ?? []}
-        submitLabel="Save changes"
-        isError={updateRule.isError}
-        errorMessage={updateRule.error?.message}
-        onSubmit={input =>
-          updateRule.mutate({
-            id: rule.id,
-            input,
-          })}
-      />
-    </div>
+    </PanelEntityEditor>
   );
 }

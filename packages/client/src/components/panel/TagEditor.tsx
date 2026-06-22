@@ -8,10 +8,10 @@ import { z } from "zod";
 
 import { usePanelControls } from "./usePanelControls";
 import { usePanelDismissAfterDelete } from "./usePanelDismissAfterDelete";
-import { useCreateTag, useDeleteTag, useUpdateTag } from "../../hooks/useTags";
+import { useCreateTag, useDeleteTag } from "../../hooks/useTags";
 import { useAppForm } from "../../lib/form";
 import { flattenTree, subtreeIds } from "../../lib/tagTree";
-import { TagForm } from "../TagForm";
+import { TagGeneralForm } from "../TagGeneralForm";
 
 import { Button } from "@/components/ui/button";
 
@@ -55,7 +55,7 @@ export function TagEditor({
               size="sm"
               onClick={() => setMode("view")}
             >
-              Cancel
+              Done
             </Button>
           )}
       </div>
@@ -68,10 +68,11 @@ export function TagEditor({
           />
         )
         : (
-          <TagEditForm
+          // Reuse the same auto-save form the main-app edit tab renders — not a panel-only editor.
+          <TagGeneralForm
             node={node}
             allTags={allTags}
-            onDone={() => setMode("view")}
+            forbiddenIds={new Set(subtreeIds(node))}
           />
         )}
 
@@ -115,45 +116,6 @@ function TagViewInfo({
       <dt className="text-muted-foreground">Created</dt>
       <dd>{new Date(node.createdAt).toLocaleDateString()}</dd>
     </dl>
-  );
-}
-
-/** Rename + reparent form, shown when the editor is in edit mode. */
-function TagEditForm({
-  node, allTags, onDone,
-}: {
-  node: TagNode;
-  allTags: TagNode[];
-  onDone: () => void;
-}) {
-  const updateTag = useUpdateTag();
-
-  return (
-    <TagForm
-      allTags={allTags}
-      // A tag cannot be reparented under itself or any of its descendants.
-      forbiddenIds={new Set(subtreeIds(node))}
-      defaultName={node.name}
-      defaultParentId={node.parentId}
-      submitLabel="Save"
-      pendingLabel="Saving…"
-      isError={updateTag.isError}
-      errorMessage={updateTag.error?.message}
-      onSubmit={({
-        name, parentId,
-      }) => updateTag.mutate(
-        {
-          id: node.id,
-          input: {
-            name,
-            parentId,
-          },
-        },
-        {
-          onSuccess: onDone,
-        },
-      )}
-    />
   );
 }
 
