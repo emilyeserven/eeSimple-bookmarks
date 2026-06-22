@@ -304,6 +304,22 @@ const migrations: RuntimeMigration[] = [
     `),
   },
   {
+    // `app_settings` gained the opt-in Advanced sidebar-link columns (Coolify link + URL, docs link,
+    // Storybook link), moved off per-device local storage so the choices persist server-side. They
+    // are NOT NULL with defaults; adding NOT NULL columns to the populated singleton makes
+    // drizzle-kit push prompt — the same non-TTY crash as the cases above — so pre-apply them here.
+    // One `ALTER TABLE` with multiple `ADD COLUMN` clauses is a single statement, safe over the
+    // extended protocol. Defaults must match schema.ts exactly.
+    name: "add app_settings advanced sidebar-link columns",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "app_settings"
+        ADD COLUMN IF NOT EXISTS "coolify_link_enabled" boolean NOT NULL DEFAULT false,
+        ADD COLUMN IF NOT EXISTS "coolify_url" text NOT NULL DEFAULT '',
+        ADD COLUMN IF NOT EXISTS "docs_link_enabled" boolean NOT NULL DEFAULT false,
+        ADD COLUMN IF NOT EXISTS "storybook_link_enabled" boolean NOT NULL DEFAULT false
+    `),
+  },
+  {
     // Display Presets were removed in favor of Card Display Rules; drop the `saved_display_presets`
     // table so it doesn't linger. Destructive, so it lives here (push never drops tables). Idempotent
     // via DROP TABLE IF EXISTS.

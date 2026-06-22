@@ -1,41 +1,31 @@
 import type { YouTubeChannel } from "@eesimple/types";
 
-import { channelUrlFromKey } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
-import { MonitorPlay, MoreVertical, Sparkles } from "lucide-react";
+import { Info, MonitorPlay, Pencil } from "lucide-react";
 
 import { CategoryPill } from "./CategoryPill";
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
-import { RowListItem } from "./RowListItem";
+import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
 
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { useEntityImage } from "@/hooks/useEntityImage";
-import { useAutoYouTubeChannelImage } from "@/hooks/useYouTubeChannels";
+import { withYouTubeChannels } from "@/lib/bookmarkSearch";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
 import { useUiStore } from "@/stores/uiStore";
 
-/** A single row in the channel listing: an avatar, a link to the view page, and a "More" menu. */
+/** A single row in the channel listing: an avatar, a body link to the filtered bookmarks, and hover Edit / Info. */
 export function YouTubeChannelListItem({
   channel,
 }: { channel: YouTubeChannel }) {
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useUiStore(state => state.sidebarOpenModifier);
-  const autoAvatar = useAutoYouTubeChannelImage();
   const {
     showImage,
     onError,
   } = useEntityImage(channel.imageUrl);
 
   return (
-    <RowListItem
+    <StandardListingCard
       icon={(
         <span
           className="
@@ -57,74 +47,48 @@ export function YouTubeChannelListItem({
       )}
       title={channel.name}
       subtitle={channel.channelKey}
-      badge={channel.bookmarkCount}
-      renderLink={(className, children) => (
+      count={channel.bookmarkCount}
+      renderPrimaryLink={(className, children) => (
         <Link
-          to="/taxonomies/youtube-channels/$channelSlug"
-          params={{
-            channelSlug: channel.slug,
-          }}
+          to="/bookmarks"
+          search={withYouTubeChannels({}, [channel.id])}
+          title={`Show bookmarks from ${channel.name}`}
           className={className}
-          title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-          onClick={event => viewClick(event, "youtube-channel", channel.id)}
         >
           {children}
         </Link>
       )}
-      menu={(
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              aria-label={`More options for ${channel.name}`}
-              className="
-                shrink-0 opacity-0 transition-opacity
-                group-hover:opacity-100
-                focus-visible:opacity-100
-                data-[state=open]:opacity-100
-              "
-            >
-              <MoreVertical className="size-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem asChild>
-              <Link
-                to="/taxonomies/youtube-channels/$channelSlug/edit"
-                params={{
-                  channelSlug: channel.slug,
-                }}
-                title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-                onClick={event => editClick(event, "youtube-channel", channel.id)}
-              >
-                Edit
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              disabled={autoAvatar.isPending || autoAvatar.cooldown.isOnCooldown}
-              onClick={() => {
-                if (!autoAvatar.cooldown.isOnCooldown) {
-                  autoAvatar.mutate({
-                    id: channel.id,
-                    sourceUrl: channelUrlFromKey(channel.channelKey),
-                  });
-                }
-              }}
-            >
-              <Sparkles className="mr-2 size-4" />
-              {autoAvatar.cooldown.isOnCooldown
-                ? `Try again in ${autoAvatar.cooldown.remaining}s`
-                : channel.imageUrl
-                  ? "Refresh avatar"
-                  : "Get avatar"}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+      renderEdit={() => (
+        <HoverIconButton>
+          <Link
+            to="/taxonomies/youtube-channels/$channelSlug/edit"
+            params={{
+              channelSlug: channel.slug,
+            }}
+            title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+            onClick={event => editClick(event, "youtube-channel", channel.id)}
+          >
+            <Pencil className="size-4" />
+            <span className="sr-only">Edit {channel.name}</span>
+          </Link>
+        </HoverIconButton>
       )}
-      categoryPill={channel.category
+      renderInfo={() => (
+        <HoverIconButton>
+          <Link
+            to="/taxonomies/youtube-channels/$channelSlug"
+            params={{
+              channelSlug: channel.slug,
+            }}
+            title={`Info (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+            onClick={event => viewClick(event, "youtube-channel", channel.id)}
+          >
+            <Info className="size-4" />
+            <span className="sr-only">View {channel.name}</span>
+          </Link>
+        </HoverIconButton>
+      )}
+      footer={channel.category
         ? <CategoryPill category={channel.category} />
         : undefined}
     />

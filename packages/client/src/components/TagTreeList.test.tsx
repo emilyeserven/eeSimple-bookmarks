@@ -34,7 +34,7 @@ const tree: TagNode[] = [
   },
 ];
 
-const paths = ["/tags/$tagSlug", "/tags/$tagSlug/general", "/tags/$tagSlug/edit/general"];
+const paths = ["/bookmarks", "/tags/$tagSlug", "/tags/$tagSlug/general", "/tags/$tagSlug/edit/general"];
 
 describe("TagTreeList", () => {
   it("keeps children hidden when the parent is collapsed", async () => {
@@ -142,7 +142,7 @@ describe("TagTreeList", () => {
     expect(openItem).toHaveBeenCalledWith("tag", "dev", "edit");
   });
 
-  it("does not open the panel on a plain row click (the link navigates to the tag page)", async () => {
+  it("does not open the panel on a plain name click (the link navigates to the filtered bookmarks)", async () => {
     openItem.mockClear();
     await renderWithRouter(
       <TagTreeList
@@ -161,7 +161,7 @@ describe("TagTreeList", () => {
     expect(openItem).not.toHaveBeenCalled();
   });
 
-  it("opens the panel in view mode when the tag row is alt-clicked", async () => {
+  it("opens the panel in view mode when the Info button is alt-clicked", async () => {
     openItem.mockClear();
     await renderWithRouter(
       <TagTreeList
@@ -174,9 +174,7 @@ describe("TagTreeList", () => {
         paths,
       },
     );
-    fireEvent.click(screen.getByRole("link", {
-      name: "dev",
-    }), {
+    fireEvent.click(screen.getByLabelText("View dev"), {
       altKey: true,
     });
     expect(openItem).toHaveBeenCalledWith("tag", "dev", "view");

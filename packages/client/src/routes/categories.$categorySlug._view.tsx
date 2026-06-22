@@ -16,6 +16,7 @@ const VIEW_TO_EDIT = {
   "tiered-tags": "/categories/$categorySlug/edit/tiered-tags",
   "custom-properties": "/categories/$categorySlug/edit/custom-properties",
   "autofill": "/categories/$categorySlug/edit/autofill",
+  "display-rules": "/categories/$categorySlug/edit/display-rules",
 } as const;
 type CategoryEditRoute = typeof VIEW_TO_EDIT[keyof typeof VIEW_TO_EDIT];
 
@@ -35,6 +36,10 @@ const viewNav = [
   {
     to: "/categories/$categorySlug/autofill",
     label: "Autofill Rules",
+  },
+  {
+    to: "/categories/$categorySlug/display-rules",
+    label: "Display Rules",
   },
 ] as const;
 

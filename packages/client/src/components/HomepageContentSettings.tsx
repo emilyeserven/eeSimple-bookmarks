@@ -7,6 +7,7 @@ import {
   useHomepageContentSettings,
   useUpdateHomepageContentSettings,
 } from "../hooks/useAppSettings";
+import { describeError } from "../lib/apiError";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
 import { Checkbox } from "@/components/ui/checkbox";
@@ -66,7 +67,7 @@ export function HomepageContentSettings() {
     saveTimer.current = setTimeout(() => {
       update.mutate(formRef.current, {
         onSuccess: () => notifySuccess("Homepage content saved"),
-        onError: error => notifyError(error.message),
+        onError: error => notifyError(describeError(error)),
       });
     }, AUTOSAVE_DELAY_MS);
   }

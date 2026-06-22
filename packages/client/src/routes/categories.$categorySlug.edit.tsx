@@ -27,6 +27,10 @@ const editNav = [
     label: "Autofill Rules",
   },
   {
+    to: "/categories/$categorySlug/edit/display-rules",
+    label: "Display Rules",
+  },
+  {
     to: "/categories/$categorySlug/edit/display",
     label: "Display",
   },

@@ -1,7 +1,5 @@
 import type { DrawerContentType } from "@/lib/drawerSearch";
 
-import { ChevronLeft } from "lucide-react";
-
 import { getContentType } from "./contentTypes";
 import { usePanelControls } from "./usePanelControls";
 
@@ -13,7 +11,6 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { Button } from "@/components/ui/button";
 import { useCategories } from "@/hooks/useCategories";
 import { useTagTree } from "@/hooks/useTags";
 import { NEW_SENTINEL } from "@/lib/drawerSearch";
@@ -55,16 +52,6 @@ export function PanelBreadcrumbs() {
     const label = dCT === "notifications" ? "Notifications" : "Filters";
     return (
       <div className="flex items-center gap-1 px-4 pb-2">
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="size-7 shrink-0"
-          aria-label="Back to content types"
-          onClick={open}
-        >
-          <ChevronLeft className="size-4" />
-        </Button>
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
@@ -87,25 +74,12 @@ export function PanelBreadcrumbs() {
 
   const def = getContentType(dCT);
 
-  const atList = !dCId;
-  const onBack = atList ? open : () => openType(dCT);
-
   const itemLabel = dCId
     ? (dCId === NEW_SENTINEL ? `New ${def.singular}` : (specificName ?? def.singular))
     : null;
 
   return (
     <div className="flex items-center gap-1 px-4 pb-2">
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        className="size-7 shrink-0"
-        aria-label={atList ? "Back to content types" : `Back to ${def.label}`}
-        onClick={onBack}
-      >
-        <ChevronLeft className="size-4" />
-      </Button>
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>

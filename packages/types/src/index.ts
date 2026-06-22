@@ -190,7 +190,30 @@ export interface AppSettings {
   homepageHeaderHidden: boolean;
   /** When false, the homepage text block is hidden even if homepageText is non-empty. */
   homepageTextEnabled: boolean;
+  /** When on, the left sidebar shows a link to the Coolify instance (opens in a new tab). */
+  coolifyLinkEnabled: boolean;
+  /** URL of the Coolify instance shown in the sidebar when `coolifyLinkEnabled` is on. */
+  coolifyUrl: string;
+  /** When on, the left sidebar shows a link to the Swagger/OpenAPI docs at `/docs`. */
+  docsLinkEnabled: boolean;
+  /** When on, the left sidebar shows a link to the Storybook UI at `/storybook`. */
+  storybookLinkEnabled: boolean;
 }
+
+/**
+ * The subset of {@link AppSettings} that drives the opt-in "Advanced" sidebar links (Coolify, docs,
+ * Storybook), edited on the Advanced settings page. Persisted server-side so the choices stick
+ * across devices and browsers, rather than living only in per-device local storage.
+ */
+export interface AdvancedSettings {
+  coolifyLinkEnabled: boolean;
+  coolifyUrl: string;
+  docsLinkEnabled: boolean;
+  storybookLinkEnabled: boolean;
+}
+
+/** Payload for replacing the advanced settings. */
+export type UpdateAdvancedSettingsInput = AdvancedSettings;
 
 /** The subset of {@link AppSettings} that drives homepage content (read/written together). */
 export interface HomepageContentSettings {
@@ -319,6 +342,8 @@ export interface RelationshipType {
   createdAt: string;
   /** Number of relationship edges using this type (populated by list endpoints). */
   relationshipCount?: number;
+  /** Distinct bookmarks having a relationship of this type (populated by list endpoints). */
+  bookmarkCount?: number;
 }
 
 /** Payload for creating a relationship type. */
@@ -798,7 +823,7 @@ export function zoneToCorner(zone: CardFieldZone): CardImageCorner | null {
  */
 export interface CardFieldPlacement {
   key: string;
-  /** Overlay scale factor (1, 1.5, or 2); omitted/`1` is normal size. Image zones only. */
+  /** Overlay scale factor (0.75, 1, 1.5, or 2); omitted/`1` is normal size. Image zones only. */
   scale?: number;
   /** Mobile overlay scale; `null`/omitted inherits `scale`. Image zones only. */
   mobileScale?: number | null;
@@ -1159,6 +1184,8 @@ export interface AutofillRule {
   /** Lower sorts first; later (higher) rules win for single-valued targets when several match. */
   sortOrder: number;
   createdAt: string;
+  /** Existing bookmarks currently matched by this rule's conditions (populated by the list endpoint). */
+  matchCount?: number;
 }
 
 /** Payload for creating an autofill rule. */

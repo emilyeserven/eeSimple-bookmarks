@@ -1,8 +1,10 @@
 import { eq } from "drizzle-orm";
 import type {
+  AdvancedSettings,
   HomepageContentSettings,
   HomepageContentWidth,
   QuickAddDisplay,
+  UpdateAdvancedSettingsInput,
   UpdateHomepageContentInput,
 } from "@eesimple/types";
 import { db } from "@/db";
@@ -38,6 +40,14 @@ const DEFAULT_HOMEPAGE_CONTENT: HomepageContentSettings = {
   homepageTextEnabled: true,
 };
 
+/** Default advanced settings (all opt-in sidebar links off), used when seeding / when row absent. */
+const DEFAULT_ADVANCED_SETTINGS: AdvancedSettings = {
+  coolifyLinkEnabled: false,
+  coolifyUrl: "",
+  docsLinkEnabled: false,
+  storybookLinkEnabled: false,
+};
+
 /** Coerce a stored width string to the typed union, defaulting to "full". */
 function asWidth(value: string | null | undefined): HomepageContentWidth {
   return value === "half" ? "half" : "full";
@@ -63,6 +73,7 @@ export async function ensureAppSettings(): Promise<void> {
       id: ROW_ID,
       shortenerIgnoreList: DEFAULT_SHORTENER_IGNORE_LIST,
       ...DEFAULT_HOMEPAGE_CONTENT,
+      ...DEFAULT_ADVANCED_SETTINGS,
     })
     .onConflictDoNothing({
       target: appSettings.id,
@@ -158,4 +169,48 @@ export async function updateShortenerIgnoreList(domains: string[]): Promise<stri
       },
     });
   return normalized;
+}
+
+/** Read the opt-in Advanced sidebar-link settings (Coolify, docs, Storybook). */
+export async function getAdvancedSettings(): Promise<AdvancedSettings> {
+  const [row] = await db
+    .select({
+      coolifyLinkEnabled: appSettings.coolifyLinkEnabled,
+      coolifyUrl: appSettings.coolifyUrl,
+      docsLinkEnabled: appSettings.docsLinkEnabled,
+      storybookLinkEnabled: appSettings.storybookLinkEnabled,
+    })
+    .from(appSettings)
+    .where(eq(appSettings.id, ROW_ID));
+  if (!row) return DEFAULT_ADVANCED_SETTINGS;
+  return {
+    coolifyLinkEnabled: row.coolifyLinkEnabled,
+    coolifyUrl: row.coolifyUrl,
+    docsLinkEnabled: row.docsLinkEnabled,
+    storybookLinkEnabled: row.storybookLinkEnabled,
+  };
+}
+
+/** Replace the Advanced sidebar-link settings, upserting the singleton. Returns the stored values. */
+export async function updateAdvancedSettings(
+  input: UpdateAdvancedSettingsInput,
+): Promise<AdvancedSettings> {
+  const next: AdvancedSettings = {
+    coolifyLinkEnabled: input.coolifyLinkEnabled,
+    coolifyUrl: input.coolifyUrl.trim(),
+    docsLinkEnabled: input.docsLinkEnabled,
+    storybookLinkEnabled: input.storybookLinkEnabled,
+  };
+  await db
+    .insert(appSettings)
+    .values({
+      id: ROW_ID,
+      shortenerIgnoreList: DEFAULT_SHORTENER_IGNORE_LIST,
+      ...next,
+    })
+    .onConflictDoUpdate({
+      target: appSettings.id,
+      set: next,
+    });
+  return next;
 }

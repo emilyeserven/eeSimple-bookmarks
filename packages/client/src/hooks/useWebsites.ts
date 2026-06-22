@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useRateLimitCooldown } from "./useRateLimitCooldown";
 import { websitesApi } from "../lib/api";
-import { ApiError } from "../lib/apiError";
+import { ApiError, describeError } from "../lib/apiError";
 import { notifyImageFetchError } from "../lib/bugReport";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
@@ -95,7 +95,7 @@ export function useUploadWebsiteFavicon() {
       });
       notifySuccess("Favicon updated");
     },
-    onError: (err: Error) => notifyError(err.message || "Could not upload the favicon"),
+    onError: (err: Error) => notifyError(describeError(err, "Could not upload the favicon")),
   });
 }
 
@@ -110,7 +110,7 @@ export function useDeleteWebsiteFavicon() {
       });
       notifySuccess("Favicon removed");
     },
-    onError: (err: Error) => notifyError(err.message || "Could not remove the favicon"),
+    onError: (err: Error) => notifyError(describeError(err, "Could not remove the favicon")),
   });
 }
 

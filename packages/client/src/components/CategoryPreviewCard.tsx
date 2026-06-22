@@ -1,14 +1,16 @@
 import type { Category } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
+import { Info, Pencil } from "lucide-react";
 
 import { LabeledSection } from "./LabeledSection";
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
+import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { RowCard } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { withCategories } from "@/lib/bookmarkSearch";
 import { CategoryIcon } from "@/lib/icons";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
 import { useUiStore } from "@/stores/uiStore";
@@ -87,43 +89,65 @@ export function CategoryPreviewCard({
   category, variant = "full",
 }: CategoryPreviewCardProps) {
   const viewClick = useViewPanelClick();
+  const editClick = useEditPanelClick();
   const modifier = useUiStore(state => state.sidebarOpenModifier);
   if (variant === "row") {
     return (
       <li>
-        <RowCard
-          className="
-            group relative transition-colors
-            hover:bg-accent
-          "
-        >
-          <Link
-            to="/categories/$categorySlug/general"
-            params={{
-              categorySlug: category.slug,
-            }}
-            title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-            onClick={event => viewClick(event, "category", category.id)}
-            className="flex items-center gap-3 p-4 pr-44"
-          >
+        <StandardListingCard
+          icon={(
             <CategoryIcon
               name={category.icon}
               className="size-5 shrink-0"
             />
-            <div className="min-w-0 flex-1">
-              <p className="flex items-center gap-2 font-medium">
-                {category.name}
-                {category.builtIn ? <Badge variant="secondary">Built-in</Badge> : null}
-              </p>
-              {category.description
-                ? <p className="truncate text-sm text-muted-foreground">{category.description}</p>
-                : null}
-            </div>
-          </Link>
-          <div className="absolute top-1/2 right-3 -translate-y-1/2">
-            <CategoryControls category={category} />
-          </div>
-        </RowCard>
+          )}
+          title={category.name}
+          titleAdornment={category.builtIn
+            ? <Badge variant="secondary">Built-in</Badge>
+            : undefined}
+          subtitle={category.description ?? undefined}
+          count={category.bookmarkCount ?? 0}
+          renderPrimaryLink={(className, children) => (
+            <Link
+              to="/bookmarks"
+              search={withCategories({}, [category.id])}
+              title={`Show bookmarks in ${category.name}`}
+              className={className}
+            >
+              {children}
+            </Link>
+          )}
+          renderEdit={() => (
+            <HoverIconButton>
+              <Link
+                to="/categories/$categorySlug/edit/general"
+                params={{
+                  categorySlug: category.slug,
+                }}
+                title={`Edit (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+                onClick={event => editClick(event, "category", category.id)}
+              >
+                <Pencil className="size-4" />
+                <span className="sr-only">Edit {category.name}</span>
+              </Link>
+            </HoverIconButton>
+          )}
+          renderInfo={() => (
+            <HoverIconButton>
+              <Link
+                to="/categories/$categorySlug/general"
+                params={{
+                  categorySlug: category.slug,
+                }}
+                title={`Info (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+                onClick={event => viewClick(event, "category", category.id)}
+              >
+                <Info className="size-4" />
+                <span className="sr-only">View {category.name}</span>
+              </Link>
+            </HoverIconButton>
+          )}
+        />
       </li>
     );
   }

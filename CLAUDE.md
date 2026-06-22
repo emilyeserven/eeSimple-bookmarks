@@ -321,7 +321,14 @@ skill — consult it before building or changing an edit tab. In short:
 - **Exceptions:** **create** flows (create pages, right-panel create, inline-create modals) keep an
   explicit submit button — `PropertyForm` (full) and `TagForm` stay submit-driven for create while
   their per-tab **edit** forms auto-save. **Local-only Zustand prefs** (Display / Sidebar /
-  Automations settings) stay instant with **no toast** (nothing persists server-side).
+  Automations settings) stay instant with **no toast** (nothing persists server-side). The no-toast
+  carve-out is **only** for *ephemeral, device-local view prefs* in `uiStore`. A setting that must
+  **stick across devices/browsers** belongs in the server-side `app_settings` singleton
+  (`services/appSettings.ts` + `hooks/useAppSettings.ts`), **not** `uiStore` — and once it persists
+  server-side it **does** fire a specific, recorded toast on save like any other persisted setting
+  (e.g. the **Advanced** sidebar-link settings — Coolify/docs/Storybook). Don't misclassify a
+  should-persist setting as a local pref: that's exactly what shipped the Advanced page toast-less
+  (and non-syncing) before it was moved into `app_settings`.
 
 ## Data shaping: middleware vs. client
 

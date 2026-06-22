@@ -116,6 +116,10 @@ const MOVE_TARGETS: { zone: CardFieldZone | null;
 
 const SCALE_OPTIONS = [
   {
+    value: "0.75",
+    label: "0.75×",
+  },
+  {
     value: "1",
     label: "1×",
   },

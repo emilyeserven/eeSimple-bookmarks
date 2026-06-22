@@ -27,6 +27,10 @@ const viewNav = [
     to: "/taxonomies/websites/$websiteSlug/autofill",
     label: "Autofill Rules",
   },
+  {
+    to: "/taxonomies/websites/$websiteSlug/display-rules",
+    label: "Display Rules",
+  },
 ] as const;
 
 const VIEW_TO_EDIT = {
@@ -34,6 +38,7 @@ const VIEW_TO_EDIT = {
   "shortened-links": "/taxonomies/websites/$websiteSlug/edit/shortened-links",
   "param-rules": "/taxonomies/websites/$websiteSlug/edit/param-rules",
   "autofill": "/taxonomies/websites/$websiteSlug/edit/autofill",
+  "display-rules": "/taxonomies/websites/$websiteSlug/edit/display-rules",
 } as const;
 type WebsiteEditRoute = typeof VIEW_TO_EDIT[keyof typeof VIEW_TO_EDIT];
 

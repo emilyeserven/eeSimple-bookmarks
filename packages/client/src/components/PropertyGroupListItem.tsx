@@ -1,16 +1,19 @@
 import type { PropertyGroup } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
-import { Pencil } from "lucide-react";
+import { Info, Layers, Pencil } from "lucide-react";
 
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
-import { RowListItem } from "./RowListItem";
+import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
 
-import { Button } from "@/components/ui/button";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
 import { useUiStore } from "@/stores/uiStore";
 
-/** A single row in the property-group listing: a link to the view page plus a hover edit button. */
+/**
+ * A single row in the property-group listing. Exception to the standard: a property group has no
+ * "filtered bookmarks" page, so the card body links to the group's detail page and the badge counts
+ * member properties rather than bookmarks. The standard hover Edit + Info buttons still apply.
+ */
 export function PropertyGroupListItem({
   group,
 }: { group: PropertyGroup }) {
@@ -19,34 +22,26 @@ export function PropertyGroupListItem({
   const modifier = useUiStore(state => state.sidebarOpenModifier);
 
   return (
-    <RowListItem
+    <StandardListingCard
+      icon={<Layers className="size-5 shrink-0 text-muted-foreground" />}
       title={group.name}
       subtitle={group.description || `Priority ${group.priority}`}
-      badge={group.propertyCount}
-      renderLink={(className, children) => (
+      count={group.propertyCount}
+      renderPrimaryLink={(className, children) => (
         <Link
           to="/taxonomies/property-groups/$propertyGroupSlug"
           params={{
             propertyGroupSlug: group.slug,
           }}
-          className={className}
           title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
           onClick={event => viewClick(event, "property-group", group.id)}
+          className={className}
         >
           {children}
         </Link>
       )}
-      menu={(
-        <Button
-          asChild
-          variant="ghost"
-          size="icon"
-          className="
-            shrink-0 opacity-0 transition-opacity
-            group-hover:opacity-100
-            focus-visible:opacity-100
-          "
-        >
+      renderEdit={() => (
+        <HoverIconButton>
           <Link
             to="/taxonomies/property-groups/$propertyGroupSlug/edit"
             params={{
@@ -58,7 +53,22 @@ export function PropertyGroupListItem({
             <Pencil className="size-4" />
             <span className="sr-only">Edit {group.name}</span>
           </Link>
-        </Button>
+        </HoverIconButton>
+      )}
+      renderInfo={() => (
+        <HoverIconButton>
+          <Link
+            to="/taxonomies/property-groups/$propertyGroupSlug"
+            params={{
+              propertyGroupSlug: group.slug,
+            }}
+            title={`Info (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+            onClick={event => viewClick(event, "property-group", group.id)}
+          >
+            <Info className="size-4" />
+            <span className="sr-only">View {group.name}</span>
+          </Link>
+        </HoverIconButton>
       )}
     />
   );

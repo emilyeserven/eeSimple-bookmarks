@@ -1,4 +1,4 @@
-import { CheckCircle2, XCircle } from "lucide-react";
+import { CheckCircle2, ExternalLink, XCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useNotificationStore } from "@/stores/notificationStore";
@@ -58,6 +58,23 @@ export function NotificationsPanel() {
                   : <XCircle className="mt-0.5 size-4 shrink-0 text-destructive" />}
                 <div className="min-w-0 space-y-0.5">
                   <p className="text-sm wrap-break-word">{record.message}</p>
+                  {record.link
+                    ? (
+                      <a
+                        href={record.link.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="
+                          inline-flex items-center gap-1 text-xs font-medium
+                          text-primary
+                          hover:underline
+                        "
+                      >
+                        <ExternalLink className="size-3 shrink-0" />
+                        {record.link.label}
+                      </a>
+                    )
+                    : null}
                   <p className="text-xs text-muted-foreground">{formatTimestamp(record.timestamp)}</p>
                 </div>
               </li>

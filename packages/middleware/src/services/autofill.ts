@@ -208,7 +208,31 @@ export async function listAutofillRules(): Promise<AutofillRule[]> {
     .select()
     .from(autofillRules)
     .orderBy(asc(autofillRules.sortOrder), asc(autofillRules.createdAt));
-  return hydrate(rows);
+  const [rules, evaluation] = await Promise.all([
+    hydrate(rows),
+    getBookmarkEvaluationData(),
+  ]);
+
+  // Count how many existing bookmarks each rule currently matches, evaluated with the same shared
+  // predicate the autofill/homepage engines use over the cached per-bookmark inputs (no extra I/O).
+  const {
+    baseRows, conditionInputs, tagDescendants,
+  } = evaluation;
+  return rules.map((rule) => {
+    let matchCount = 0;
+    for (const row of baseRows) {
+      const conditionInput = conditionInputs.get(row.id);
+      if (conditionInput && evaluateConditions(rule.conditions, conditionInput, {
+        tagDescendants,
+      })) {
+        matchCount += 1;
+      }
+    }
+    return {
+      ...rule,
+      matchCount,
+    };
+  });
 }
 
 export async function getAutofillRule(id: string): Promise<AutofillRule | null> {

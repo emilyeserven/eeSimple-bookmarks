@@ -1,11 +1,12 @@
 import type { MediaTypeNode } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
-import { Pencil } from "lucide-react";
+import { Info, Pencil } from "lucide-react";
 
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { TaxonomyTreeList } from "./TaxonomyTreeRow";
 
+import { withMediaTypes } from "@/lib/bookmarkSearch";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
 import { useUiStore } from "@/stores/uiStore";
 
@@ -36,12 +37,9 @@ export function MediaTypeTreeList({
       columns={columns}
       renderNameLink={node => (
         <Link
-          to="/taxonomies/media-types/$mediaTypeSlug"
-          params={{
-            mediaTypeSlug: node.slug,
-          }}
-          title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-          onClick={event => viewClick(event, "media-type", node.id)}
+          to="/bookmarks"
+          search={withMediaTypes({}, [node.id])}
+          title={`Show ${node.name} bookmarks`}
           className="
             flex-1 truncate
             hover:underline
@@ -61,6 +59,19 @@ export function MediaTypeTreeList({
           onClick={event => editClick(event, "media-type", node.id)}
         >
           <Pencil className="size-4" />
+        </Link>
+      )}
+      renderInfoLink={node => (
+        <Link
+          to="/taxonomies/media-types/$mediaTypeSlug"
+          params={{
+            mediaTypeSlug: node.slug,
+          }}
+          aria-label={`View ${node.name}`}
+          title={`Info (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+          onClick={event => viewClick(event, "media-type", node.id)}
+        >
+          <Info className="size-4" />
         </Link>
       )}
     />

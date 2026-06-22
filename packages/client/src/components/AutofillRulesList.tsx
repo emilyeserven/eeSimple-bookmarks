@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 
-import { normalizeDomain } from "@eesimple/types";
 import { useNavigate } from "@tanstack/react-router";
 
 import { NO_CATEGORY } from "./AutofillRuleForm";
@@ -12,7 +11,7 @@ import { useAutofillRules } from "../hooks/useAutofill";
 import { useCategories } from "../hooks/useCategories";
 import { useNewAutofillRule } from "../hooks/useNewAutofillRule";
 import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
-import { useWebsites } from "../hooks/useWebsites";
+import { useWebsiteDomain } from "../hooks/useWebsiteDomain";
 import { ruleSetsMediaType, ruleSetsProperty, ruleSetsTag, ruleTargetsWebsite, ruleTargetsYoutubeChannel } from "../lib/autofillRulesFilter";
 import { COLUMN_CLASS, useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
 import { summarizeConditions } from "../lib/conditionsSummary";
@@ -86,9 +85,6 @@ export function AutofillRulesList({
   const {
     data: categories,
   } = useCategories();
-  const {
-    data: websites,
-  } = useWebsites();
 
   const [categoryFilter, setCategoryFilter] = useState(ALL_CATEGORIES);
   useRegisterHeaderSearch();
@@ -106,11 +102,7 @@ export function AutofillRulesList({
   const navigate = useNavigate();
 
   // The scoping website's normalized domain (rules reference websites by domain, not id).
-  const websiteDomain = useMemo(() => {
-    if (!websiteId) return undefined;
-    const domain = (websites ?? []).find(site => site.id === websiteId)?.domain;
-    return domain ? normalizeDomain(domain) : undefined;
-  }, [websites, websiteId]);
+  const websiteDomain = useWebsiteDomain(websiteId);
 
   // Scope to the entity in context before any search/category filtering.
   const scopedRules = useMemo(() => {

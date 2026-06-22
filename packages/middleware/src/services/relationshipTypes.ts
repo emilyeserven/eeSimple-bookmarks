@@ -10,6 +10,7 @@ import {
   relationshipTypes,
   type RelationshipTypeRow,
 } from "@/db/schema";
+import { getBookmarkEvaluationData } from "@/services/bookmarkCache";
 import { slugify, uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
 
@@ -58,9 +59,10 @@ const BUILT_IN_RELATIONSHIP_TYPES: BuiltInRelationshipType[] = [
   },
 ];
 
-/** Map a DB row (plus optional precomputed count) to the shared `RelationshipType` wire type. */
+/** Map a DB row (plus optional precomputed counts) to the shared `RelationshipType` wire type. */
 function toRelationshipType(
-  row: RelationshipTypeRow & { relationshipCount?: number },
+  row: RelationshipTypeRow & { relationshipCount?: number;
+    bookmarkCount?: number; },
 ): RelationshipType {
   return {
     id: row.id,
@@ -72,28 +74,54 @@ function toRelationshipType(
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     relationshipCount: row.relationshipCount,
+    bookmarkCount: row.bookmarkCount,
   };
+}
+
+/**
+ * Tally distinct bookmarks per relationship type from the in-memory bookmark cache. A bookmark
+ * counts once per type it participates in (either side of an edge), mirroring the
+ * `relationshipTypeIds` set the shared condition predicate reads.
+ */
+async function bookmarkCountsByType(): Promise<Map<string, number>> {
+  const {
+    conditionInputs,
+  } = await getBookmarkEvaluationData();
+  const counts = new Map<string, number>();
+  for (const input of conditionInputs.values()) {
+    for (const typeId of input.relationshipTypeIds) {
+      counts.set(typeId, (counts.get(typeId) ?? 0) + 1);
+    }
+  }
+  return counts;
 }
 
 /** List all relationship types, ordered by their display order then name, with usage counts. */
 export async function listRelationshipTypes(): Promise<RelationshipType[]> {
-  const rows = await db
-    .select({
-      id: relationshipTypes.id,
-      name: relationshipTypes.name,
-      slug: relationshipTypes.slug,
-      directional: relationshipTypes.directional,
-      builtIn: relationshipTypes.builtIn,
-      sortOrder: relationshipTypes.sortOrder,
-      createdAt: relationshipTypes.createdAt,
-      relationshipCount: db.$count(
-        bookmarkRelationships,
-        eq(bookmarkRelationships.relationshipTypeId, relationshipTypes.id),
-      ),
-    })
-    .from(relationshipTypes)
-    .orderBy(asc(relationshipTypes.sortOrder), asc(relationshipTypes.name));
-  return rows.map(toRelationshipType);
+  const [rows, bookmarkCounts] = await Promise.all([
+    db
+      .select({
+        id: relationshipTypes.id,
+        name: relationshipTypes.name,
+        slug: relationshipTypes.slug,
+        directional: relationshipTypes.directional,
+        builtIn: relationshipTypes.builtIn,
+        sortOrder: relationshipTypes.sortOrder,
+        createdAt: relationshipTypes.createdAt,
+        relationshipCount: db.$count(
+          bookmarkRelationships,
+          eq(bookmarkRelationships.relationshipTypeId, relationshipTypes.id),
+        ),
+      })
+      .from(relationshipTypes)
+      .orderBy(asc(relationshipTypes.sortOrder), asc(relationshipTypes.name)),
+    bookmarkCountsByType(),
+  ]);
+  return rows.map(row =>
+    toRelationshipType({
+      ...row,
+      bookmarkCount: bookmarkCounts.get(row.id) ?? 0,
+    }));
 }
 
 /** Add a custom relationship type. Throws `DuplicateRelationshipTypeError` on a name clash. */

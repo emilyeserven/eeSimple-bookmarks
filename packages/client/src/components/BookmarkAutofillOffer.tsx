@@ -3,6 +3,7 @@ import type { Category } from "@eesimple/types";
 import { useState } from "react";
 
 import { useCreateAutofillRule } from "../hooks/useAutofill";
+import { describeError } from "../lib/apiError";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
 import { Button } from "@/components/ui/button";
@@ -59,7 +60,7 @@ export function BookmarkAutofillOffer({
       onDismiss();
     }
     catch (err) {
-      notifyError(err instanceof Error ? err.message : "Could not create autofill rule");
+      notifyError(describeError(err, "Could not create autofill rule"));
     }
     finally {
       setIsPending(false);
