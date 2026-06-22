@@ -20,6 +20,7 @@ const SHORTENER_IGNORE_LIST_KEY = ["app-settings", "shortener-ignore-list"] as c
 const NEWSLETTER_BLACKLIST_KEY = ["app-settings", "newsletter-blacklist"] as const;
 const HOMEPAGE_CONTENT_KEY = ["app-settings", "homepage-content"] as const;
 const ADVANCED_KEY = ["app-settings", "advanced"] as const;
+const DATABASE_USAGE_KEY = ["app-settings", "database-usage"] as const;
 const SIDEBAR_CUSTOMIZATION_KEY = ["app-settings", "sidebar-customization"] as const;
 const AUTOMATION_KEY = ["app-settings", "automation"] as const;
 const DISPLAY_PREFERENCES_KEY = ["app-settings", "display-preferences"] as const;
@@ -95,6 +96,14 @@ export function useUpdateAdvancedSettings() {
     onSuccess: (saved) => {
       queryClient.setQueryData(ADVANCED_KEY, saved);
     },
+  });
+}
+
+/** Read-only snapshot of how much disk space each table and the whole database is using. */
+export function useDatabaseUsage() {
+  return useQuery({
+    queryKey: DATABASE_USAGE_KEY,
+    queryFn: appSettingsApi.getDatabaseUsage,
   });
 }
 

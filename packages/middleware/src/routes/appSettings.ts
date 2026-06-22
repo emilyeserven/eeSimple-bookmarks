@@ -8,6 +8,7 @@ import type {
 } from "@eesimple/types";
 import { NEWSLETTER_BLACKLIST_KINDS } from "@eesimple/types";
 import type { FastifyInstance } from "fastify";
+import { getDatabaseUsageReport } from "@/services/databaseUsage";
 import {
   getAdvancedSettings,
   getAutomationSettings,
@@ -329,4 +330,10 @@ export async function appSettingsRoutes(app: FastifyInstance): Promise<void> {
       body: displayPreferenceBody,
     },
   }, async req => updateDisplayPreferenceSettings(req.body as UpdateDisplayPreferenceInput));
+
+  app.get("/api/app-settings/database-usage", {
+    schema: {
+      tags: ["app-settings"],
+    },
+  }, async () => getDatabaseUsageReport());
 }

@@ -1,5 +1,6 @@
 import type {
   AdvancedSettings,
+  DatabaseUsageReport,
   UpdateAdvancedSettingsInput,
   AutomationSettings,
   UpdateAutomationInput,
@@ -363,6 +364,7 @@ export const appSettingsApi = {
       method: "PUT",
       body: JSON.stringify(input),
     }),
+  getDatabaseUsage: () => request<DatabaseUsageReport>("/app-settings/database-usage"),
   getSidebarCustomization: () =>
     request<SidebarCustomizationSettings>("/app-settings/sidebar-customization"),
   updateSidebarCustomization: (input: UpdateSidebarCustomizationInput) =>

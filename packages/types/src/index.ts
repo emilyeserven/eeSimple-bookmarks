@@ -251,6 +251,26 @@ export interface AdvancedSettings {
 /** Payload for replacing the advanced settings. */
 export type UpdateAdvancedSettingsInput = AdvancedSettings;
 
+/** Space used by a single PostgreSQL table (its data + indexes + TOAST), with an estimated row count. */
+export interface DatabaseTableUsage {
+  /** The table name in the `public` schema. */
+  tableName: string;
+  /** Total on-disk size in bytes (`pg_total_relation_size`: heap + indexes + TOAST). */
+  totalBytes: number;
+  /** Estimated live-row count (`pg_class.reltuples`); approximate and `0` before the table is analyzed. */
+  rowEstimate: number;
+}
+
+/** A read-only snapshot of how much disk space the database is using, surfaced in Advanced settings. */
+export interface DatabaseUsageReport {
+  /** Per-table usage, largest first. */
+  tables: DatabaseTableUsage[];
+  /** Total size of the whole database in bytes (`pg_database_size`). */
+  totalBytes: number;
+  /** ISO timestamp of when the snapshot was taken. */
+  capturedAt: string;
+}
+
 /**
  * The subset of {@link AppSettings} that drives left-sidebar customization (which categories,
  * taxonomy items, customization tools, management pages, and whole groups are shown). Persisted
