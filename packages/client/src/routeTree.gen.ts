@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TagsRouteImport } from './routes/tags'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as NewslettersRouteImport } from './routes/newsletters'
 import { Route as CustomPropertiesRouteImport } from './routes/custom-properties'
 import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as BookmarksRouteImport } from './routes/bookmarks'
@@ -18,6 +19,7 @@ import { Route as AutofillRouteImport } from './routes/autofill'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TagsIndexRouteImport } from './routes/tags.index'
 import { Route as SettingsIndexRouteImport } from './routes/settings.index'
+import { Route as NewslettersIndexRouteImport } from './routes/newsletters.index'
 import { Route as CustomPropertiesIndexRouteImport } from './routes/custom-properties.index'
 import { Route as CategoriesIndexRouteImport } from './routes/categories.index'
 import { Route as BookmarksIndexRouteImport } from './routes/bookmarks.index'
@@ -45,6 +47,8 @@ import { Route as SettingsCardDisplayRulesRouteImport } from './routes/settings.
 import { Route as SettingsAutomationsRouteImport } from './routes/settings.automations'
 import { Route as SettingsAutofillRouteImport } from './routes/settings.autofill'
 import { Route as SettingsAdvancedRouteImport } from './routes/settings.advanced'
+import { Route as NewslettersNewRouteImport } from './routes/newsletters.new'
+import { Route as NewslettersImportIdRouteImport } from './routes/newsletters.$importId'
 import { Route as CustomPropertiesNewRouteImport } from './routes/custom-properties.new'
 import { Route as CustomPropertiesPropertySlugRouteImport } from './routes/custom-properties.$propertySlug'
 import { Route as CategoriesCategorySlugRouteImport } from './routes/categories.$categorySlug'
@@ -179,6 +183,11 @@ const SettingsRoute = SettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NewslettersRoute = NewslettersRouteImport.update({
+  id: '/newsletters',
+  path: '/newsletters',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CustomPropertiesRoute = CustomPropertiesRouteImport.update({
   id: '/custom-properties',
   path: '/custom-properties',
@@ -213,6 +222,11 @@ const SettingsIndexRoute = SettingsIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => SettingsRoute,
+} as any)
+const NewslettersIndexRoute = NewslettersIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => NewslettersRoute,
 } as any)
 const CustomPropertiesIndexRoute = CustomPropertiesIndexRouteImport.update({
   id: '/',
@@ -354,6 +368,16 @@ const SettingsAdvancedRoute = SettingsAdvancedRouteImport.update({
   id: '/advanced',
   path: '/advanced',
   getParentRoute: () => SettingsRoute,
+} as any)
+const NewslettersNewRoute = NewslettersNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => NewslettersRoute,
+} as any)
+const NewslettersImportIdRoute = NewslettersImportIdRouteImport.update({
+  id: '/$importId',
+  path: '/$importId',
+  getParentRoute: () => NewslettersRoute,
 } as any)
 const CustomPropertiesNewRoute = CustomPropertiesNewRouteImport.update({
   id: '/new',
@@ -1077,6 +1101,7 @@ export interface FileRoutesByFullPath {
   '/bookmarks': typeof BookmarksRouteWithChildren
   '/categories': typeof CategoriesRouteWithChildren
   '/custom-properties': typeof CustomPropertiesRouteWithChildren
+  '/newsletters': typeof NewslettersRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/tags': typeof TagsRouteWithChildren
   '/autofill/$ruleSlug': typeof AutofillRuleSlugViewRouteWithChildren
@@ -1084,6 +1109,8 @@ export interface FileRoutesByFullPath {
   '/categories/$categorySlug': typeof CategoriesCategorySlugViewRouteWithChildren
   '/custom-properties/$propertySlug': typeof CustomPropertiesPropertySlugViewRouteWithChildren
   '/custom-properties/new': typeof CustomPropertiesNewRoute
+  '/newsletters/$importId': typeof NewslettersImportIdRoute
+  '/newsletters/new': typeof NewslettersNewRoute
   '/settings/advanced': typeof SettingsAdvancedRoute
   '/settings/autofill': typeof SettingsAutofillRoute
   '/settings/automations': typeof SettingsAutomationsRoute
@@ -1111,6 +1138,7 @@ export interface FileRoutesByFullPath {
   '/bookmarks/': typeof BookmarksIndexRoute
   '/categories/': typeof CategoriesIndexRoute
   '/custom-properties/': typeof CustomPropertiesIndexRoute
+  '/newsletters/': typeof NewslettersIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/tags/': typeof TagsIndexRoute
   '/autofill/$ruleSlug/edit': typeof AutofillRuleSlugEditRouteWithChildren
@@ -1226,6 +1254,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/custom-properties/new': typeof CustomPropertiesNewRoute
+  '/newsletters/$importId': typeof NewslettersImportIdRoute
+  '/newsletters/new': typeof NewslettersNewRoute
   '/settings/advanced': typeof SettingsAdvancedRoute
   '/settings/autofill': typeof SettingsAutofillRoute
   '/settings/automations': typeof SettingsAutomationsRoute
@@ -1247,6 +1277,7 @@ export interface FileRoutesByTo {
   '/bookmarks': typeof BookmarksIndexRoute
   '/categories': typeof CategoriesIndexRoute
   '/custom-properties': typeof CustomPropertiesIndexRoute
+  '/newsletters': typeof NewslettersIndexRoute
   '/settings': typeof SettingsIndexRoute
   '/tags': typeof TagsIndexRoute
   '/autofill/$ruleSlug': typeof AutofillRuleSlugIndexRoute
@@ -1351,6 +1382,7 @@ export interface FileRoutesById {
   '/bookmarks': typeof BookmarksRouteWithChildren
   '/categories': typeof CategoriesRouteWithChildren
   '/custom-properties': typeof CustomPropertiesRouteWithChildren
+  '/newsletters': typeof NewslettersRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/tags': typeof TagsRouteWithChildren
   '/autofill/$ruleSlug': typeof AutofillRuleSlugRouteWithChildren
@@ -1358,6 +1390,8 @@ export interface FileRoutesById {
   '/categories/$categorySlug': typeof CategoriesCategorySlugRouteWithChildren
   '/custom-properties/$propertySlug': typeof CustomPropertiesPropertySlugRouteWithChildren
   '/custom-properties/new': typeof CustomPropertiesNewRoute
+  '/newsletters/$importId': typeof NewslettersImportIdRoute
+  '/newsletters/new': typeof NewslettersNewRoute
   '/settings/advanced': typeof SettingsAdvancedRoute
   '/settings/autofill': typeof SettingsAutofillRoute
   '/settings/automations': typeof SettingsAutomationsRoute
@@ -1385,6 +1419,7 @@ export interface FileRoutesById {
   '/bookmarks/': typeof BookmarksIndexRoute
   '/categories/': typeof CategoriesIndexRoute
   '/custom-properties/': typeof CustomPropertiesIndexRoute
+  '/newsletters/': typeof NewslettersIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/tags/': typeof TagsIndexRoute
   '/autofill/$ruleSlug/_view': typeof AutofillRuleSlugViewRouteWithChildren
@@ -1514,6 +1549,7 @@ export interface FileRouteTypes {
     | '/bookmarks'
     | '/categories'
     | '/custom-properties'
+    | '/newsletters'
     | '/settings'
     | '/tags'
     | '/autofill/$ruleSlug'
@@ -1521,6 +1557,8 @@ export interface FileRouteTypes {
     | '/categories/$categorySlug'
     | '/custom-properties/$propertySlug'
     | '/custom-properties/new'
+    | '/newsletters/$importId'
+    | '/newsletters/new'
     | '/settings/advanced'
     | '/settings/autofill'
     | '/settings/automations'
@@ -1548,6 +1586,7 @@ export interface FileRouteTypes {
     | '/bookmarks/'
     | '/categories/'
     | '/custom-properties/'
+    | '/newsletters/'
     | '/settings/'
     | '/tags/'
     | '/autofill/$ruleSlug/edit'
@@ -1663,6 +1702,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/custom-properties/new'
+    | '/newsletters/$importId'
+    | '/newsletters/new'
     | '/settings/advanced'
     | '/settings/autofill'
     | '/settings/automations'
@@ -1684,6 +1725,7 @@ export interface FileRouteTypes {
     | '/bookmarks'
     | '/categories'
     | '/custom-properties'
+    | '/newsletters'
     | '/settings'
     | '/tags'
     | '/autofill/$ruleSlug'
@@ -1787,6 +1829,7 @@ export interface FileRouteTypes {
     | '/bookmarks'
     | '/categories'
     | '/custom-properties'
+    | '/newsletters'
     | '/settings'
     | '/tags'
     | '/autofill/$ruleSlug'
@@ -1794,6 +1837,8 @@ export interface FileRouteTypes {
     | '/categories/$categorySlug'
     | '/custom-properties/$propertySlug'
     | '/custom-properties/new'
+    | '/newsletters/$importId'
+    | '/newsletters/new'
     | '/settings/advanced'
     | '/settings/autofill'
     | '/settings/automations'
@@ -1821,6 +1866,7 @@ export interface FileRouteTypes {
     | '/bookmarks/'
     | '/categories/'
     | '/custom-properties/'
+    | '/newsletters/'
     | '/settings/'
     | '/tags/'
     | '/autofill/$ruleSlug/_view'
@@ -1949,6 +1995,7 @@ export interface RootRouteChildren {
   BookmarksRoute: typeof BookmarksRouteWithChildren
   CategoriesRoute: typeof CategoriesRouteWithChildren
   CustomPropertiesRoute: typeof CustomPropertiesRouteWithChildren
+  NewslettersRoute: typeof NewslettersRouteWithChildren
   SettingsRoute: typeof SettingsRouteWithChildren
   TagsRoute: typeof TagsRouteWithChildren
   TaxonomiesMediaTypesRoute: typeof TaxonomiesMediaTypesRouteWithChildren
@@ -1972,6 +2019,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/newsletters': {
+      id: '/newsletters'
+      path: '/newsletters'
+      fullPath: '/newsletters'
+      preLoaderRoute: typeof NewslettersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/custom-properties': {
@@ -2022,6 +2076,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/settings/'
       preLoaderRoute: typeof SettingsIndexRouteImport
       parentRoute: typeof SettingsRoute
+    }
+    '/newsletters/': {
+      id: '/newsletters/'
+      path: '/'
+      fullPath: '/newsletters/'
+      preLoaderRoute: typeof NewslettersIndexRouteImport
+      parentRoute: typeof NewslettersRoute
     }
     '/custom-properties/': {
       id: '/custom-properties/'
@@ -2211,6 +2272,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/settings/advanced'
       preLoaderRoute: typeof SettingsAdvancedRouteImport
       parentRoute: typeof SettingsRoute
+    }
+    '/newsletters/new': {
+      id: '/newsletters/new'
+      path: '/new'
+      fullPath: '/newsletters/new'
+      preLoaderRoute: typeof NewslettersNewRouteImport
+      parentRoute: typeof NewslettersRoute
+    }
+    '/newsletters/$importId': {
+      id: '/newsletters/$importId'
+      path: '/$importId'
+      fullPath: '/newsletters/$importId'
+      preLoaderRoute: typeof NewslettersImportIdRouteImport
+      parentRoute: typeof NewslettersRoute
     }
     '/custom-properties/new': {
       id: '/custom-properties/new'
@@ -3387,6 +3462,22 @@ const CustomPropertiesRouteChildren: CustomPropertiesRouteChildren = {
 const CustomPropertiesRouteWithChildren =
   CustomPropertiesRoute._addFileChildren(CustomPropertiesRouteChildren)
 
+interface NewslettersRouteChildren {
+  NewslettersImportIdRoute: typeof NewslettersImportIdRoute
+  NewslettersNewRoute: typeof NewslettersNewRoute
+  NewslettersIndexRoute: typeof NewslettersIndexRoute
+}
+
+const NewslettersRouteChildren: NewslettersRouteChildren = {
+  NewslettersImportIdRoute: NewslettersImportIdRoute,
+  NewslettersNewRoute: NewslettersNewRoute,
+  NewslettersIndexRoute: NewslettersIndexRoute,
+}
+
+const NewslettersRouteWithChildren = NewslettersRoute._addFileChildren(
+  NewslettersRouteChildren,
+)
+
 interface SettingsRouteChildren {
   SettingsAdvancedRoute: typeof SettingsAdvancedRoute
   SettingsAutofillRoute: typeof SettingsAutofillRoute
@@ -3904,6 +3995,7 @@ const rootRouteChildren: RootRouteChildren = {
   BookmarksRoute: BookmarksRouteWithChildren,
   CategoriesRoute: CategoriesRouteWithChildren,
   CustomPropertiesRoute: CustomPropertiesRouteWithChildren,
+  NewslettersRoute: NewslettersRouteWithChildren,
   SettingsRoute: SettingsRouteWithChildren,
   TagsRoute: TagsRouteWithChildren,
   TaxonomiesMediaTypesRoute: TaxonomiesMediaTypesRouteWithChildren,
