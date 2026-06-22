@@ -19,6 +19,7 @@ import { favoriteSettingsPageRoutes } from "@/routes/favoriteSettingsPages";
 import { savedFilterRoutes } from "@/routes/savedFilters";
 import { mediaTypeRoutes } from "@/routes/mediaTypes";
 import { metadataRoutes } from "@/routes/metadata";
+import { newsletterRoutes } from "@/routes/newsletters";
 import { propertyGroupRoutes } from "@/routes/propertyGroups";
 import { relationshipTypeRoutes } from "@/routes/relationshipTypes";
 import { tagRoutes } from "@/routes/tags";
@@ -139,6 +140,10 @@ export async function buildApp(): Promise<FastifyInstance> {
             name: "gallery",
             description: "Storage bucket manifest, scan/reconcile, and orphan cleanup",
           },
+          {
+            name: "newsletters",
+            description: "Newsletter ingest: extract candidate article links into a review queue",
+          },
         ],
       },
     });
@@ -153,6 +158,7 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   await app.register(healthRoutes);
   await app.register(metadataRoutes);
+  await app.register(newsletterRoutes);
   await app.register(bookmarkRoutes);
   await app.register(tagRoutes);
   await app.register(websiteRoutes);

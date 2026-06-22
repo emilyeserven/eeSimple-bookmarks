@@ -10,6 +10,7 @@ import type { CustomPropertyType, DateTimeFormat, NumberFormat } from "./customP
 
 export * from "./conditions.js";
 export * from "./customProperties.js";
+export * from "./urlCleanup.js";
 export * from "./youtube.js";
 
 /** A tag node in the hierarchical taxonomy. `parentId === null` marks a root tag. */
@@ -737,6 +738,109 @@ export interface BulkUrlUpdateResult {
   id: string;
   status: "applied" | "skipped-duplicate" | "skipped-unchanged" | "not-found" | "error";
   /** Human-readable detail when the status isn't `applied`. */
+  message?: string;
+}
+
+// --- Newsletter ingest -----------------------------------------------------------------------
+
+/** Which ingest source produced a newsletter import. */
+export type NewsletterImportSource = "paste" | "url" | "upload";
+
+/**
+ * Status of a single extracted candidate link as it moves through the review queue:
+ * - `pending` — extracted and awaiting review.
+ * - `approved` — a real bookmark was created from it (`createdBookmarkId` set).
+ * - `rejected` — the user dismissed it.
+ * - `duplicate` — its URL already exists as a bookmark (`duplicateBookmarkId` set).
+ * - `error` — approval failed for a non-duplicate reason (`errorReason` set).
+ */
+export type NewsletterImportItemStatus
+  = "pending" | "approved" | "rejected" | "duplicate" | "error";
+
+/** One extracted candidate article link within a newsletter import. */
+export interface NewsletterImportItem {
+  id: string;
+  importId: string;
+  /** The URL we'll save: the original link after redirect-unwrap + canonicalize. */
+  url: string | null;
+  /** The original (possibly tracker-wrapped) href as extracted from the newsletter. */
+  rawUrl: string;
+  /** Seed title — the anchor text, or an enriched page title. */
+  title: string | null;
+  description: string | null;
+  imageUrl: string | null;
+  /** The visible anchor text the link was extracted from. */
+  anchorText: string | null;
+  status: NewsletterImportItemStatus;
+  /** When `status === "duplicate"`, the existing bookmark this collided with. */
+  duplicateBookmarkId: string | null;
+  /** When `status === "approved"`, the bookmark created from this item. */
+  createdBookmarkId: string | null;
+  /** When `status === "error"`, a human-readable reason approval failed. */
+  errorReason: string | null;
+  createdAt: string;
+}
+
+/** A newsletter import with its extracted candidate items. */
+export interface NewsletterImport {
+  id: string;
+  source: NewsletterImportSource;
+  /** Optional label (provided title, source post URL, or uploaded filename). */
+  title: string | null;
+  /** The fetched post URL (source = "url") or null. */
+  sourceUrl: string | null;
+  createdAt: string;
+  items: NewsletterImportItem[];
+}
+
+/** Per-status counts for a newsletter import, used by the list view (no items). */
+export interface NewsletterImportSummary {
+  id: string;
+  source: NewsletterImportSource;
+  title: string | null;
+  sourceUrl: string | null;
+  createdAt: string;
+  /** Total extracted items. */
+  itemCount: number;
+  /** Items by status (`pending`/`approved`/`rejected`/`duplicate`/`error`). */
+  statusCounts: Record<NewsletterImportItemStatus, number>;
+}
+
+/** Body for the paste ingest endpoint. */
+export interface IngestPasteInput {
+  /** Raw newsletter HTML or plain text. */
+  content: string;
+  /** How to parse `content`; defaults to `"auto"` (sniff for HTML tags). */
+  kind?: "html" | "text" | "auto";
+  /** Optional label for the created import. */
+  title?: string;
+  /** When true, eagerly fetch each candidate's title/description/image at ingest. */
+  enrich?: boolean;
+}
+
+/** Body for the fetch-URL ingest endpoint. */
+export interface IngestUrlInput {
+  /** A public "view in browser" newsletter post URL to fetch and extract links from. */
+  url: string;
+  enrich?: boolean;
+}
+
+/** Patch for editing a staged candidate before approval. */
+export interface UpdateNewsletterImportItemInput {
+  url?: string;
+  title?: string | null;
+  description?: string | null;
+  /** Limited status transitions the user can drive directly (e.g. un-reject). */
+  status?: "pending" | "rejected";
+}
+
+/** Per-item outcome of approving a staged candidate (mirrors the bulk-URL result shape). */
+export interface NewsletterApproveResult {
+  itemId: string;
+  status: "approved" | "duplicate" | "error" | "skipped";
+  /** The created bookmark id when `status === "approved"`. */
+  bookmarkId?: string;
+  /** Human-readable detail when the status isn't `approved`. */
   message?: string;
 }
 

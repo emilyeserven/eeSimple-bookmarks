@@ -49,9 +49,16 @@ import type {
   HomepageContentSettings,
   HomepageSection,
   HomepageSectionBookmarks,
+  IngestPasteInput,
+  IngestUrlInput,
   MediaType,
   MediaTypeNode,
+  NewsletterApproveResult,
+  NewsletterImport,
+  NewsletterImportItem,
+  NewsletterImportSummary,
   PropertyGroup,
+  UpdateNewsletterImportItemInput,
   RelationshipType,
   Tag,
   TagNode,
@@ -192,6 +199,44 @@ export const bookmarksApi = {
     request<Bookmark>(`/bookmarks/${id}/relationships`, {
       method: "PUT",
       body: JSON.stringify(input),
+    }),
+};
+
+export const newsletterApi = {
+  ingestPaste: (input: IngestPasteInput) =>
+    request<NewsletterImport>("/newsletters/ingest/paste", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  ingestUrl: (input: IngestUrlInput) =>
+    request<NewsletterImport>("/newsletters/ingest/url", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  ingestUpload: (file: File, enrich: boolean) =>
+    uploadImageFile<NewsletterImport>(`/newsletters/ingest/upload?enrich=${enrich}`, file),
+  listImports: () => request<NewsletterImportSummary[]>("/newsletters/imports"),
+  getImport: (id: string) => request<NewsletterImport>(`/newsletters/imports/${id}`),
+  updateItem: (importId: string, itemId: string, input: UpdateNewsletterImportItemInput) =>
+    request<NewsletterImportItem>(`/newsletters/imports/${importId}/items/${itemId}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  approveItem: (importId: string, itemId: string) =>
+    request<NewsletterApproveResult>(`/newsletters/imports/${importId}/items/${itemId}/approve`, {
+      method: "POST",
+    }),
+  approveImport: (importId: string) =>
+    request<NewsletterApproveResult[]>(`/newsletters/imports/${importId}/approve`, {
+      method: "POST",
+    }),
+  rejectItem: (importId: string, itemId: string) =>
+    request<undefined>(`/newsletters/imports/${importId}/items/${itemId}/reject`, {
+      method: "POST",
+    }),
+  deleteImport: (id: string) =>
+    request<undefined>(`/newsletters/imports/${id}`, {
+      method: "DELETE",
     }),
 };
 

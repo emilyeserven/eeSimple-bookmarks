@@ -13,6 +13,7 @@ import {
   Globe,
   Home,
   Layers,
+  Mail,
   MonitorPlay,
   Palette,
   Server,
@@ -131,6 +132,12 @@ const customizationItems = [
     title: "Autofill Rules",
     to: "/autofill",
     icon: Wand2,
+  },
+  {
+    key: "newsletter-import",
+    title: "Newsletter Import",
+    to: "/newsletters",
+    icon: Mail,
   },
 ] as const;
 

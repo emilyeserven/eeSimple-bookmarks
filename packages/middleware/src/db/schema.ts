@@ -917,6 +917,79 @@ export const cardDisplayRules = pgTable("card_display_rules", {
   }).notNull().defaultNow(),
 });
 
+/**
+ * `newsletter_imports` — one row per newsletter ingest event (paste / fetched URL / uploaded file).
+ * Groups the extracted candidate links (`newsletter_import_items`) so the review queue can show
+ * "review this newsletter's N links". A brand-new table → push-safe additive, no migrate.ts step.
+ */
+export const newsletterImports = pgTable("newsletter_imports", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  // "paste" | "url" | "upload" — text so a new ingest source needs no migration (mirrors bookmark_images.source).
+  source: text("source").notNull(),
+  // Optional human label / uploaded filename for the import.
+  title: text("title"),
+  // The fetched "view in browser" post URL when source = "url"; NULL otherwise.
+  sourceUrl: text("source_url"),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+});
+
+/**
+ * `newsletter_import_items` — one extracted candidate article link per row, awaiting review. Nothing
+ * here is a real bookmark: approving an item creates one via the bookmark service. Staging-only data,
+ * so writes here never touch the bookmark evaluation cache. Push-safe additive (new table; all
+ * columns nullable or defaulted; `status`/`source` are text so new states need no migration).
+ */
+export const newsletterImportItems = pgTable("newsletter_import_items", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  importId: uuid("import_id").notNull().references(() => newsletterImports.id, {
+    onDelete: "cascade",
+  }),
+  // The URL we'll save — the original link after redirect-unwrap + canonicalize. NULL when unwrap
+  // failed (the row is kept for review with status = "error").
+  url: text("url"),
+  // The original (possibly tracker-wrapped) href as extracted from the newsletter.
+  rawUrl: text("raw_url").notNull(),
+  // Seed title (anchor text, later overwritten by enrichment or a user edit).
+  title: text("title"),
+  description: text("description"),
+  imageUrl: text("image_url"),
+  // The visible anchor text the link was extracted from.
+  anchorText: text("anchor_text"),
+  // "pending" | "approved" | "rejected" | "duplicate" | "error" — text so new states need no migration.
+  status: text("status").notNull().default("pending"),
+  // When status = "duplicate", the existing bookmark this collided with. `set null` so deleting it
+  // doesn't cascade away the staged row.
+  duplicateBookmarkId: uuid("duplicate_bookmark_id").references((): AnyPgColumn => bookmarks.id, {
+    onDelete: "set null",
+  }),
+  // When status = "approved", the bookmark created from this item.
+  createdBookmarkId: uuid("created_bookmark_id").references((): AnyPgColumn => bookmarks.id, {
+    onDelete: "set null",
+  }),
+  // Free-text reason when status = "error".
+  errorReason: text("error_reason"),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+});
+
+export const newsletterImportsRelations = relations(newsletterImports, ({
+  many,
+}) => ({
+  items: many(newsletterImportItems),
+}));
+
+export const newsletterImportItemsRelations = relations(newsletterImportItems, ({
+  one,
+}) => ({
+  import: one(newsletterImports, {
+    fields: [newsletterImportItems.importId],
+    references: [newsletterImports.id],
+  }),
+}));
+
 /** `property_categories` join — many-to-many between custom properties and categories. */
 export const propertyCategories = pgTable("property_categories", {
   propertyId: uuid("property_id").notNull().references(() => customProperties.id, {
@@ -1296,6 +1369,8 @@ export type CategoryNumberDefaultRow = typeof categoryNumberDefaults.$inferSelec
 export type CategoryBooleanDefaultRow = typeof categoryBooleanDefaults.$inferSelect;
 export type CategoryDateTimeDefaultRow = typeof categoryDateTimeDefaults.$inferSelect;
 export type SavedFilterRow = typeof savedFilters.$inferSelect;
+export type NewsletterImportRow = typeof newsletterImports.$inferSelect;
+export type NewsletterImportItemRow = typeof newsletterImportItems.$inferSelect;
 
 /**
  * `custom_aspect_ratios` — user-defined named aspect ratios that appear alongside the built-in
