@@ -10,6 +10,10 @@ if [ "${CLAUDE_CODE_REMOTE:-}" != "true" ]; then
   exit 0
 fi
 
+# Run asynchronously: the session starts immediately and the install proceeds in
+# the background, so deps are ready by the time planning ends and work begins.
+echo '{"async": true, "asyncTimeout": 300000}'
+
 cd "$CLAUDE_PROJECT_DIR"
 
 # Ensure pnpm is available. The exact version is pinned via package.json's
