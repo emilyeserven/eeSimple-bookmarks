@@ -1,14 +1,16 @@
-import type { BookmarkImageVisibility, ConditionTree, HomepageSection, HomepageSectionImageLayout, ViewMode } from "@eesimple/types";
+import type { BookmarkImageVisibility, CardFieldZones, CardZoneLayouts, ConditionTree, HomepageSection, HomepageSectionImageLayout, ViewMode } from "@eesimple/types";
 
 import { useRef, useState } from "react";
 
-import { emptyConditionTree } from "@eesimple/types";
+import { defaultCardZoneLayouts, emptyConditionTree } from "@eesimple/types";
 
 import { HomepageSectionFields } from "./HomepageSectionFields";
 import { PreviewBookmarksSection } from "./PreviewBookmarksSection";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useTagTree } from "../hooks/useTags";
+import { useDefaultFieldZones } from "../lib/bookmarkCardFields";
+import { defaultCardFieldZones } from "../lib/bookmarkCardValues";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -23,8 +25,8 @@ interface HomepageSectionFormValues {
   imageLayout: HomepageSectionImageLayout;
   imageVisibility: BookmarkImageVisibility;
   viewMode: ViewMode;
-  hiddenCardFields: string[];
-  cornerOverlays: boolean;
+  fieldZones: CardFieldZones;
+  cardZoneLayouts: CardZoneLayouts;
   hideWebsiteForYouTube: boolean;
 }
 
@@ -44,6 +46,19 @@ interface HomepageSectionFormProps {
 export function HomepageSectionForm({
   section, onSave, onChange, onCancel, isPending, onDelete, isDeleting,
 }: HomepageSectionFormProps) {
+  const {
+    data: categories,
+  } = useCategories();
+  const {
+    data: properties,
+  } = useCustomProperties();
+  const {
+    data: tagTree,
+  } = useTagTree();
+  // Seed the zone board for a section that has none yet (legacy / brand-new): use the Default card
+  // display rule's zones (what the section currently shows), falling back to the standard defaults.
+  const defaultZones = useDefaultFieldZones();
+
   const initialValues: HomepageSectionFormValues = {
     title: section?.title ?? "",
     description: section?.description ?? "",
@@ -54,8 +69,8 @@ export function HomepageSectionForm({
     imageLayout: section?.imageLayout ?? "above",
     imageVisibility: section?.imageVisibility ?? "shown",
     viewMode: section?.viewMode ?? "cards",
-    hiddenCardFields: section?.hiddenCardFields ?? [],
-    cornerOverlays: section?.cornerOverlays ?? true,
+    fieldZones: section?.fieldZones ?? defaultZones ?? defaultCardFieldZones(properties ?? []),
+    cardZoneLayouts: section?.cardZoneLayouts ?? defaultCardZoneLayouts(),
     hideWebsiteForYouTube: section?.hideWebsiteForYouTube ?? false,
   };
 
@@ -77,16 +92,6 @@ export function HomepageSectionForm({
       [key]: value,
     });
   }
-
-  const {
-    data: categories,
-  } = useCategories();
-  const {
-    data: properties,
-  } = useCustomProperties();
-  const {
-    data: tagTree,
-  } = useTagTree();
 
   const isAutoSave = onChange !== undefined;
 
@@ -116,8 +121,8 @@ export function HomepageSectionForm({
           imageMode: values.imageMode,
           imageVisibility: values.imageVisibility,
           imageLayout: values.imageLayout,
-          hiddenCardFields: values.hiddenCardFields,
-          cornerOverlays: values.cornerOverlays,
+          fieldZones: values.fieldZones,
+          cardZoneLayouts: values.cardZoneLayouts,
           hideWebsiteForYouTube: values.hideWebsiteForYouTube,
         }}
         onDisplayChange={setFields}

@@ -157,6 +157,25 @@ export function resolveBooleanDisplay(
   };
 }
 
+/**
+ * The set of known field keys (standard fields + eligible custom properties) **absent** from every
+ * zone — i.e. hidden. Used by surfaces that drive a column list off "what the cards hide" (the
+ * homepage section table view) so the table and the cards agree on visibility.
+ */
+export function hiddenFieldKeysFromZones(
+  zones: CardFieldZones,
+  properties: CustomProperty[],
+): Set<string> {
+  const present = new Set<string>();
+  for (const zone of CARD_FIELD_ZONES) {
+    for (const placement of zones[zone] ?? []) present.add(placement.key);
+  }
+  const hidden = new Set<string>();
+  for (const field of STANDARD_CARD_FIELDS) if (!present.has(field.key)) hidden.add(field.key);
+  for (const field of eligibleCustomCardFields(properties)) if (!present.has(field.key)) hidden.add(field.key);
+  return hidden;
+}
+
 /** Remove `hiddenKeys` from every zone (used to layer a surface's own visibility over rule zones). */
 export function restrictFieldZones(zones: CardFieldZones, hiddenKeys: Set<string>): CardFieldZones {
   const next = {} as CardFieldZones;

@@ -16,7 +16,6 @@ import {
   MonitorPlay,
   Palette,
   Server,
-  Settings,
   Share2,
   SlidersHorizontal,
   Tags,
@@ -25,6 +24,7 @@ import {
 
 import { CollapsibleSection, SidebarNavSection, SidebarResizeHandle } from "./app-sidebar-sections";
 import { useViewPanelClick } from "./panel/useEditPanelClick";
+import { SettingsFavoritesFlyout } from "./SettingsFavoritesFlyout";
 import { useAutofillRules } from "../hooks/useAutofill";
 import { useBookmarks } from "../hooks/useBookmarks";
 import { useCategories } from "../hooks/useCategories";
@@ -396,85 +396,79 @@ export function AppSidebar({
                   </SidebarMenuItem>
                 );
               })}
+              {resolvedPins.length > 0
+                ? (
+                  <>
+                    {visiblePins.map((pin) => {
+                      return (
+                        <SidebarMenuItem key={pin.id}>
+                          <SidebarMenuButton
+                            asChild
+                            isActive={pin.isActive}
+                            tooltip={pin.label}
+                          >
+                            {pin.link.kind === "path"
+                              ? (
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                <Link to={pin.link.path as any}>
+                                  {pin.icon}
+                                  <span>{pin.label}</span>
+                                </Link>
+                              )
+                              : (
+                                <Link
+                                  to="/bookmarks"
+                                  search={pin.link.search}
+                                >
+                                  {pin.icon}
+                                  <span>{pin.label}</span>
+                                </Link>
+                              )}
+                          </SidebarMenuButton>
+                          {pin.bookmarkCount != null && state !== "collapsed"
+                            ? (
+                              <SidebarMenuBadge>
+                                <Badge variant="secondary">{pin.bookmarkCount}</Badge>
+                              </SidebarMenuBadge>
+                            )
+                            : null}
+                        </SidebarMenuItem>
+                      );
+                    })}
+                    {hasShowMore && state !== "collapsed"
+                      ? (
+                        <SidebarMenuItem>
+                          <SidebarMenuButton
+                            tooltip="Show more pinned items"
+                            onClick={() => setPinnedExpanded(true)}
+                            className="text-xs text-muted-foreground"
+                          >
+                            <ChevronDown className="size-4" />
+                            <span>Show More</span>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      )
+                      : null}
+                    {hasSeeAll && state !== "collapsed"
+                      ? (
+                        <SidebarMenuItem>
+                          <SidebarMenuButton
+                            tooltip="Show all pinned items"
+                            onClick={() => setPinnedShowAll(true)}
+                            className="text-xs text-muted-foreground"
+                          >
+                            <ChevronDown className="size-4" />
+                            <span>See All</span>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      )
+                      : null}
+                  </>
+                )
+                : null}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-
-        {resolvedPins.length > 0
-          ? (
-            <CollapsibleSection
-              sectionKey="pinned"
-              label="Pinned"
-            >
-              <SidebarMenu>
-                {visiblePins.map((pin) => {
-                  return (
-                    <SidebarMenuItem key={pin.id}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={pin.isActive}
-                        tooltip={pin.label}
-                      >
-                        {pin.link.kind === "path"
-                          ? (
-                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                            <Link to={pin.link.path as any}>
-                              {pin.icon}
-                              <span>{pin.label}</span>
-                            </Link>
-                          )
-                          : (
-                            <Link
-                              to="/bookmarks"
-                              search={pin.link.search}
-                            >
-                              {pin.icon}
-                              <span>{pin.label}</span>
-                            </Link>
-                          )}
-                      </SidebarMenuButton>
-                      {pin.bookmarkCount != null && state !== "collapsed"
-                        ? (
-                          <SidebarMenuBadge>
-                            <Badge variant="secondary">{pin.bookmarkCount}</Badge>
-                          </SidebarMenuBadge>
-                        )
-                        : null}
-                    </SidebarMenuItem>
-                  );
-                })}
-                {hasShowMore && state !== "collapsed"
-                  ? (
-                    <SidebarMenuItem>
-                      <SidebarMenuButton
-                        tooltip="Show more pinned items"
-                        onClick={() => setPinnedExpanded(true)}
-                        className="text-xs text-muted-foreground"
-                      >
-                        <ChevronDown className="size-4" />
-                        <span>Show More</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  )
-                  : null}
-                {hasSeeAll && state !== "collapsed"
-                  ? (
-                    <SidebarMenuItem>
-                      <SidebarMenuButton
-                        tooltip="Show all pinned items"
-                        onClick={() => setPinnedShowAll(true)}
-                        className="text-xs text-muted-foreground"
-                      >
-                        <ChevronDown className="size-4" />
-                        <span>See All</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  )
-                  : null}
-              </SidebarMenu>
-            </CollapsibleSection>
-          )
-          : null}
 
         {!hiddenSidebarGroups.includes("categories") && visibleCategories.length > 0
           ? (
@@ -540,89 +534,70 @@ export function AppSidebar({
           : null}
       </SidebarContent>
       <SidebarFooter>
-        <SidebarMenu>
-          {coolifyLinkEnabled && coolifyUrl.trim() !== ""
-            ? (
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  tooltip="Coolify"
-                >
-                  <a
-                    href={coolifyUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <Server />
-                    <span>Coolify</span>
-                  </a>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )
-            : null}
-          {docsLinkEnabled
-            ? (
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  tooltip="Docs"
-                >
-                  <a
-                    href="/docs"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <BookOpen />
-                    <span>Docs</span>
-                  </a>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )
-            : null}
-          {storybookLinkEnabled
-            ? (
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  tooltip="Storybook"
-                >
-                  <a
-                    href="/storybook"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <Palette />
-                    <span>Storybook</span>
-                  </a>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )
-            : null}
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              size="lg"
-              asChild
-              isActive={pathname.startsWith("/settings")}
-              tooltip="Settings"
-            >
-              <Link to="/settings">
-                <div
-                  className="
-                    flex aspect-square size-8 items-center justify-center
-                    rounded-lg bg-sidebar-primary
-                    text-sidebar-primary-foreground
-                  "
-                >
-                  <Settings className="size-4" />
-                </div>
-                <div className="grid flex-1 text-left text-sm/tight">
-                  <span className="truncate font-semibold">Settings</span>
-                  <span className="truncate text-xs">Manage preferences</span>
-                </div>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        {(coolifyLinkEnabled && coolifyUrl.trim() !== "") || docsLinkEnabled || storybookLinkEnabled
+          ? (
+            <SidebarMenu>
+              {coolifyLinkEnabled && coolifyUrl.trim() !== ""
+                ? (
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      asChild
+                      tooltip="Coolify"
+                    >
+                      <a
+                        href={coolifyUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <Server />
+                        <span>Coolify</span>
+                      </a>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )
+                : null}
+              {docsLinkEnabled
+                ? (
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      asChild
+                      tooltip="Docs"
+                    >
+                      <a
+                        href="/docs"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <BookOpen />
+                        <span>Docs</span>
+                      </a>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )
+                : null}
+              {storybookLinkEnabled
+                ? (
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      asChild
+                      tooltip="Storybook"
+                    >
+                      <a
+                        href="/storybook"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <Palette />
+                        <span>Storybook</span>
+                      </a>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )
+                : null}
+            </SidebarMenu>
+          )
+          : null}
+        <SettingsFavoritesFlyout pathname={pathname} />
       </SidebarFooter>
       <SidebarResizeHandle />
       <SidebarRail />

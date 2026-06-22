@@ -182,6 +182,11 @@ export function HomepageSectionsSettings() {
                       columns: values.columns,
                       imageMode: values.imageMode,
                       imageLayout: values.imageLayout,
+                      imageVisibility: values.imageVisibility,
+                      viewMode: values.viewMode,
+                      fieldZones: values.fieldZones,
+                      cardZoneLayouts: values.cardZoneLayouts,
+                      hideWebsiteForYouTube: values.hideWebsiteForYouTube,
                     },
                     {
                       onSuccess: () => setAddingNew(false),

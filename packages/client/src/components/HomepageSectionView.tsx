@@ -1,10 +1,14 @@
 import type { SectionDisplayValue } from "./SectionDisplaySettings";
 import type { HomepageSection, UpdateHomepageSectionInput } from "@eesimple/types";
 
+import { defaultCardZoneLayouts } from "@eesimple/types";
+
 import { CollapsibleFormSection } from "./CollapsibleFormSection";
 import { conditionsBreakdown, conditionsSummaryLabel } from "./conditions/summarizeConditions";
 import { SectionDisplaySettings } from "./SectionDisplaySettings";
 import { useCustomProperties } from "../hooks/useCustomProperties";
+import { useDefaultFieldZones } from "../lib/bookmarkCardFields";
+import { defaultCardFieldZones } from "../lib/bookmarkCardValues";
 import { sectionDisplayPreview } from "../lib/sectionDisplayPreview";
 
 import { Separator } from "@/components/ui/separator";
@@ -22,6 +26,7 @@ export function HomepageSectionView({
   const {
     data: properties,
   } = useCustomProperties();
+  const defaultZones = useDefaultFieldZones();
 
   const display: SectionDisplayValue = {
     viewMode: section.viewMode,
@@ -29,8 +34,8 @@ export function HomepageSectionView({
     imageMode: section.imageMode,
     imageVisibility: section.imageVisibility,
     imageLayout: section.imageLayout,
-    hiddenCardFields: section.hiddenCardFields,
-    cornerOverlays: section.cornerOverlays,
+    fieldZones: section.fieldZones ?? defaultZones ?? defaultCardFieldZones(properties ?? []),
+    cardZoneLayouts: section.cardZoneLayouts ?? defaultCardZoneLayouts(),
     hideWebsiteForYouTube: section.hideWebsiteForYouTube,
   };
 

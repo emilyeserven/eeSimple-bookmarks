@@ -32,6 +32,8 @@ function toSection(row: SectionRow): HomepageSection {
     imageLayout: row.imageLayout as HomepageSectionImageLayout,
     imageVisibility: row.imageVisibility as BookmarkImageVisibility,
     viewMode: row.viewMode as ViewMode,
+    fieldZones: row.fieldZones ?? null,
+    cardZoneLayouts: row.cardZoneLayouts ?? null,
     hiddenCardFields: row.hiddenCardFields ?? [],
     cornerOverlays: row.cornerOverlays,
     hideWebsiteForYouTube: row.hideWebsiteForYouTube,
@@ -76,6 +78,8 @@ export async function createHomepageSection(
       imageLayout: input.imageLayout ?? "above",
       imageVisibility: input.imageVisibility ?? "shown",
       viewMode: input.viewMode ?? "cards",
+      fieldZones: input.fieldZones ?? null,
+      cardZoneLayouts: input.cardZoneLayouts ?? null,
       hiddenCardFields: input.hiddenCardFields ?? [],
       cornerOverlays: input.cornerOverlays ?? true,
       hideWebsiteForYouTube: input.hideWebsiteForYouTube ?? false,
@@ -100,6 +104,8 @@ export async function updateHomepageSection(
   if (input.imageLayout !== undefined) updates.imageLayout = input.imageLayout;
   if (input.imageVisibility !== undefined) updates.imageVisibility = input.imageVisibility;
   if (input.viewMode !== undefined) updates.viewMode = input.viewMode;
+  if (input.fieldZones !== undefined) updates.fieldZones = input.fieldZones;
+  if (input.cardZoneLayouts !== undefined) updates.cardZoneLayouts = input.cardZoneLayouts;
   if (input.hiddenCardFields !== undefined) updates.hiddenCardFields = input.hiddenCardFields;
   if (input.cornerOverlays !== undefined) updates.cornerOverlays = input.cornerOverlays;
   if (input.hideWebsiteForYouTube !== undefined) updates.hideWebsiteForYouTube = input.hideWebsiteForYouTube;

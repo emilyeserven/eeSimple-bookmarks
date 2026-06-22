@@ -814,6 +814,12 @@ export const homepageSections = pgTable("homepage_sections", {
   imageLayout: text("image_layout").notNull().default("above"),
   imageVisibility: text("image_visibility").notNull().default("shown"),
   viewMode: text("view_mode").notNull().default("cards"),
+  // Per-zone field placements for this section's cards (card-body sub-zones + image corners). NULL =
+  // fall back to the Default card display rule (legacy sections); concrete once edited. Supersedes
+  // hidden_card_fields + corner_overlays. Nullable jsonb = push-safe additive.
+  fieldZones: jsonb("field_zones").$type<CardFieldZones>(),
+  // Per-body-zone layout (flex vs grid). NULL = fall back to defaults. Nullable jsonb = push-safe.
+  cardZoneLayouts: jsonb("card_zone_layouts").$type<CardZoneLayouts>(),
   hiddenCardFields: jsonb("hidden_card_fields").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
   // When true, custom properties placed in an image corner are overlaid on this section's card
   // images; when false they fall back to badges. NOT NULL on the populated table → pre-applied in
@@ -1279,3 +1285,21 @@ export const pinnedSidebarItems = pgTable("pinned_sidebar_items", {
 ]);
 
 export type PinnedSidebarItemRow = typeof pinnedSidebarItems.$inferSelect;
+
+/**
+ * `favorite_settings_pages` — Settings (and settings-like management) pages favorited by the user
+ * for quick access from the sidebar Settings flyout. Keyed by route `path`; the unique constraint
+ * prevents duplicate favorites of the same page.
+ */
+export const favoriteSettingsPages = pgTable("favorite_settings_pages", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  path: text("path").notNull(),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+}, table => [
+  unique("favorite_settings_pages_path_unique").on(table.path),
+]);
+
+export type FavoriteSettingsPageRow = typeof favoriteSettingsPages.$inferSelect;

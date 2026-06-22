@@ -705,20 +705,36 @@ export type CardZoneMode = "flex" | "grid";
 /** The spacing between fields placed in a card-body sub-zone (absent = `md`). */
 export type CardZoneGap = "sm" | "md" | "lg";
 
-/** How fields are aligned within a card-body sub-zone (absent = `start`). */
+/** How fields are aligned along a card-body sub-zone's main (horizontal) axis (absent = `start`). */
 export type CardZoneAlign = "start" | "center" | "end" | "between";
+
+/** The flex flow direction of a card-body sub-zone (absent = `row`). Flex mode only. */
+export type CardZoneDirection = "row" | "column";
+
+/** Whether a flex card-body sub-zone wraps its fields (absent = `wrap`). Flex mode only. */
+export type CardZoneWrap = "wrap" | "nowrap";
+
+/** How fields are aligned along a card-body sub-zone's cross (vertical) axis (absent = `start`). */
+export type CardZoneVerticalAlign = "start" | "center" | "end" | "stretch";
 
 /**
  * How a card-body sub-zone arranges the fields placed in it: the {@link CardZoneMode} (flex vs. grid)
- * plus optional {@link CardZoneGap} spacing and {@link CardZoneAlign} alignment. Image-corner zones
- * are unaffected (they always overlay).
+ * plus optional {@link CardZoneGap} spacing, main-axis {@link CardZoneAlign} alignment, cross-axis
+ * {@link CardZoneVerticalAlign} alignment, and (flex only) {@link CardZoneDirection} flow /
+ * {@link CardZoneWrap} wrapping. Image-corner zones are unaffected (they always overlay).
  */
 export interface CardZoneLayout {
   mode: CardZoneMode;
   /** Spacing between fields; absent = `md`. */
   gap?: CardZoneGap;
-  /** Field alignment within the zone; absent = `start`. */
+  /** Main-axis (horizontal) field alignment within the zone; absent = `start`. */
   align?: CardZoneAlign;
+  /** Cross-axis (vertical) field alignment within the zone; absent = `start`. */
+  alignItems?: CardZoneVerticalAlign;
+  /** Flex flow direction; absent = `row`. Ignored in grid mode. */
+  direction?: CardZoneDirection;
+  /** Flex wrapping; absent = `wrap`. Ignored in grid mode. */
+  wrap?: CardZoneWrap;
 }
 
 /** The per-body-zone {@link CardZoneLayout} a {@link CardDisplayRule} declares (`null` = inherit). */
@@ -1236,9 +1252,21 @@ export interface HomepageSection {
   imageVisibility: BookmarkImageVisibility;
   /** Rendering mode for this section: "cards" (default) or "table". */
   viewMode: ViewMode;
-  /** Card field keys hidden for this section (standard field key or custom-property id). */
+  /**
+   * Per-zone field placements for this section's cards (standard field key or custom-property id;
+   * image-* zones overlay the field on the card image). `null` falls back to the Default card display
+   * rule (legacy sections not yet migrated to the zone board); concrete once the section is edited.
+   * Supersedes the legacy `hiddenCardFields` + `cornerOverlays` model.
+   */
+  fieldZones: CardFieldZones | null;
+  /**
+   * Per-body-zone layout (`flex` inline flow vs. `grid` two-column) for this section's cards, or
+   * `null` to fall back to the defaults. Only affects the four card-body sub-zones.
+   */
+  cardZoneLayouts: CardZoneLayouts | null;
+  /** @deprecated Legacy flat hidden-field list; retained for the render fallback until a section is edited. */
   hiddenCardFields: string[];
-  /** When true (default), custom properties placed in an image corner are overlaid on this section's card images; when false they fall back to badges. */
+  /** @deprecated Legacy corner-overlay toggle; superseded by image-* zone placement on `fieldZones`. */
   cornerOverlays: boolean;
   /** When true, the website pill is hidden on this section's cards for a bookmark that also has a YouTube channel. Defaults to false. Owned per-section so homepage cards never inherit the Default card display rule. */
   hideWebsiteForYouTube: boolean;
@@ -1263,6 +1291,8 @@ export interface CreateHomepageSectionInput {
   imageLayout?: HomepageSectionImageLayout;
   imageVisibility?: BookmarkImageVisibility;
   viewMode?: ViewMode;
+  fieldZones?: CardFieldZones | null;
+  cardZoneLayouts?: CardZoneLayouts | null;
   hiddenCardFields?: string[];
   cornerOverlays?: boolean;
   hideWebsiteForYouTube?: boolean;
@@ -1410,6 +1440,22 @@ export interface PinnedSidebarItem {
 export interface CreatePinnedSidebarItemInput {
   entityType: PinnedSidebarEntityType;
   entityId: string;
+}
+
+/**
+ * A Settings (or settings-like management) page the user has favorited for quick access from the
+ * sidebar Settings flyout. Keyed by the page's route `path`; the human label is resolved from the
+ * client-side `SETTINGS_PAGES` registry, not stored here.
+ */
+export interface FavoriteSettingsPage {
+  id: string;
+  path: string;
+  sortOrder: number;
+  createdAt: string;
+}
+
+export interface CreateFavoriteSettingsPageInput {
+  path: string;
 }
 
 /** A user-defined named aspect ratio available in the Aspect dropdown. */
