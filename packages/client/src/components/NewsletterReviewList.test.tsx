@@ -45,6 +45,20 @@ describe("NewsletterReviewList", () => {
     expect(title.className).not.toContain("truncate");
   });
 
+  it("renders the full destination URL without a truncation class so it wraps", async () => {
+    await renderWithRouter(
+      <NewsletterReviewList
+        importId="import-1"
+        items={[makeItem()]}
+      />,
+      {
+        paths: ["/bookmarks/$bookmarkId"],
+      },
+    );
+    const url = screen.getByText("https://example.com/articles/the-post");
+    expect(url.className).not.toContain("truncate");
+  });
+
   it("rejects in one click — the Reject control is a direct button, not a dropdown", async () => {
     await renderWithRouter(
       <NewsletterReviewList
