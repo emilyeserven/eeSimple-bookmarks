@@ -10,6 +10,7 @@ import type { CustomPropertyType, DateTimeFormat, NumberFormat } from "./customP
 
 export * from "./conditions.js";
 export * from "./customProperties.js";
+export * from "./newsletterBlacklist.js";
 export * from "./urlCleanup.js";
 export * from "./youtube.js";
 
@@ -771,6 +772,8 @@ export interface NewsletterImportItem {
   imageUrl: string | null;
   /** The visible anchor text the link was extracted from. */
   anchorText: string | null;
+  /** Per-item category override applied on approval; falls back to the import's default. */
+  categoryId: string | null;
   status: NewsletterImportItemStatus;
   /** When `status === "duplicate"`, the existing bookmark this collided with. */
   duplicateBookmarkId: string | null;
@@ -789,6 +792,8 @@ export interface NewsletterImport {
   title: string | null;
   /** The fetched post URL (source = "url") or null. */
   sourceUrl: string | null;
+  /** Default category applied to every link approved from this import (per-item override wins). */
+  defaultCategoryId: string | null;
   createdAt: string;
   items: NewsletterImportItem[];
 }
@@ -799,6 +804,7 @@ export interface NewsletterImportSummary {
   source: NewsletterImportSource;
   title: string | null;
   sourceUrl: string | null;
+  defaultCategoryId: string | null;
   createdAt: string;
   /** Total extracted items. */
   itemCount: number;
@@ -816,6 +822,8 @@ export interface IngestPasteInput {
   title?: string;
   /** When true, eagerly fetch each candidate's title/description/image at ingest. */
   enrich?: boolean;
+  /** Default category applied to every link approved from this import. */
+  defaultCategoryId?: string | null;
 }
 
 /** Body for the fetch-URL ingest endpoint. */
@@ -823,6 +831,8 @@ export interface IngestUrlInput {
   /** A public "view in browser" newsletter post URL to fetch and extract links from. */
   url: string;
   enrich?: boolean;
+  /** Default category applied to every link approved from this import. */
+  defaultCategoryId?: string | null;
 }
 
 /** Patch for editing a staged candidate before approval. */
@@ -830,6 +840,8 @@ export interface UpdateNewsletterImportItemInput {
   url?: string;
   title?: string | null;
   description?: string | null;
+  /** Per-item category override (null clears it, falling back to the import default). */
+  categoryId?: string | null;
   /** Limited status transitions the user can drive directly (e.g. un-reject). */
   status?: "pending" | "rejected";
 }

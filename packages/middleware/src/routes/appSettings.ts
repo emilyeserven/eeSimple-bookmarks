@@ -1,22 +1,26 @@
 import type {
+  NewsletterBlacklistEntry,
   UpdateAdvancedSettingsInput,
   UpdateAutomationInput,
   UpdateDisplayPreferenceInput,
   UpdateHomepageContentInput,
   UpdateSidebarCustomizationInput,
 } from "@eesimple/types";
+import { NEWSLETTER_BLACKLIST_KINDS } from "@eesimple/types";
 import type { FastifyInstance } from "fastify";
 import {
   getAdvancedSettings,
   getAutomationSettings,
   getDisplayPreferenceSettings,
   getHomepageContentSettings,
+  getNewsletterBlacklist,
   getShortenerIgnoreList,
   getSidebarCustomizationSettings,
   updateAdvancedSettings,
   updateAutomationSettings,
   updateDisplayPreferenceSettings,
   updateHomepageContentSettings,
+  updateNewsletterBlacklist,
   updateShortenerIgnoreList,
   updateSidebarCustomizationSettings,
 } from "@/services/appSettings";
@@ -37,6 +41,31 @@ const ignoreListBody = {
       type: "array",
       items: {
         type: "string",
+      },
+    },
+  },
+} as const;
+
+const newsletterBlacklistBody = {
+  type: "object",
+  required: ["entries"],
+  additionalProperties: false,
+  properties: {
+    entries: {
+      type: "array",
+      items: {
+        type: "object",
+        required: ["kind", "value"],
+        additionalProperties: false,
+        properties: {
+          kind: {
+            type: "string",
+            enum: [...NEWSLETTER_BLACKLIST_KINDS],
+          },
+          value: {
+            type: "string",
+          },
+        },
       },
     },
   },
@@ -216,6 +245,24 @@ export async function appSettingsRoutes(app: FastifyInstance): Promise<void> {
       domains,
     } = req.body as { domains: string[] };
     return updateShortenerIgnoreList(domains);
+  });
+
+  app.get("/api/app-settings/newsletter-blacklist", {
+    schema: {
+      tags: ["app-settings"],
+    },
+  }, async () => getNewsletterBlacklist());
+
+  app.put("/api/app-settings/newsletter-blacklist", {
+    schema: {
+      tags: ["app-settings"],
+      body: newsletterBlacklistBody,
+    },
+  }, async (req) => {
+    const {
+      entries,
+    } = req.body as { entries: NewsletterBlacklistEntry[] };
+    return updateNewsletterBlacklist(entries);
   });
 
   app.get("/api/app-settings/homepage-content", {

@@ -1,6 +1,6 @@
 import { relations, sql } from "drizzle-orm";
 import { type AnyPgColumn, boolean, integer, jsonb, pgTable, primaryKey, real, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
-import type { CardFieldZones, CardZoneLayouts, ConditionTree, ShortenedLink, WebsiteParamRule } from "@eesimple/types";
+import type { CardFieldZones, CardZoneLayouts, ConditionTree, NewsletterBlacklistEntry, ShortenedLink, WebsiteParamRule } from "@eesimple/types";
 
 /** `bookmarks` table — one row per saved bookmark. Tags now live in `bookmark_tags`. */
 export const bookmarks = pgTable("bookmarks", {
@@ -780,6 +780,10 @@ export const appSettings = pgTable("app_settings", {
   id: integer("id").primaryKey().default(1),
   // Generic URL-shortener domains (e.g. bit.ly) that can't be expanded to a vendor; always nudge.
   shortenerIgnoreList: jsonb("shortener_ignore_list").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+  // Newsletter scan blacklist: links matching these entries are dropped from future newsletter
+  // scans. NOT NULL on the populated app_settings table → pre-applied in migrate.ts to keep push
+  // additive (see the ADD COLUMN IF NOT EXISTS step).
+  newsletterBlacklist: jsonb("newsletter_blacklist").$type<NewsletterBlacklistEntry[]>().notNull().default(sql`'[]'::jsonb`),
   // Markdown rendered at the top of the homepage.
   homepageText: text("homepage_text").notNull().default(""),
   // Desktop width of the homepage text block: "full" | "half".
@@ -930,6 +934,11 @@ export const newsletterImports = pgTable("newsletter_imports", {
   title: text("title"),
   // The fetched "view in browser" post URL when source = "url"; NULL otherwise.
   sourceUrl: text("source_url"),
+  // Default category applied to every link approved from this import (per-item override wins).
+  // Nullable FK → push-safe additive, no migrate.ts step.
+  defaultCategoryId: uuid("default_category_id").references((): AnyPgColumn => categories.id, {
+    onDelete: "set null",
+  }),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
@@ -957,6 +966,10 @@ export const newsletterImportItems = pgTable("newsletter_import_items", {
   imageUrl: text("image_url"),
   // The visible anchor text the link was extracted from.
   anchorText: text("anchor_text"),
+  // Per-item category override applied on approval. Nullable FK → push-safe additive.
+  categoryId: uuid("category_id").references((): AnyPgColumn => categories.id, {
+    onDelete: "set null",
+  }),
   // "pending" | "approved" | "rejected" | "duplicate" | "error" — text so new states need no migration.
   status: text("status").notNull().default("pending"),
   // When status = "duplicate", the existing bookmark this collided with. `set null` so deleting it

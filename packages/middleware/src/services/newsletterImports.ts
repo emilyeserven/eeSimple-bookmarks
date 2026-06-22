@@ -18,7 +18,7 @@ import type {
   NewsletterImportSummary,
   UpdateNewsletterImportItemInput,
 } from "@eesimple/types";
-import { canonicalize } from "@eesimple/types";
+import { canonicalize, isBlacklisted } from "@eesimple/types";
 import { db } from "@/db";
 import {
   type NewsletterImportItemRow,
@@ -26,7 +26,7 @@ import {
   newsletterImports,
   type NewsletterImportRow,
 } from "@/db/schema";
-import { getShortenerIgnoreList } from "@/services/appSettings";
+import { getNewsletterBlacklist, getShortenerIgnoreList } from "@/services/appSettings";
 import { checkBookmarkUrlDuplicate, createBookmark, DuplicateUrlError } from "@/services/bookmarks";
 import {
   extractCandidates,
@@ -65,6 +65,8 @@ export interface IngestInput {
   title?: string | null;
   sourceUrl?: string | null;
   enrich?: boolean;
+  /** Default category applied to every link approved from this import. */
+  defaultCategoryId?: string | null;
 }
 
 function isoOf(value: Date | string): string {
@@ -81,6 +83,7 @@ function toItem(row: NewsletterImportItemRow): NewsletterImportItem {
     description: row.description,
     imageUrl: row.imageUrl,
     anchorText: row.anchorText,
+    categoryId: row.categoryId,
     status: row.status as NewsletterImportItemStatus,
     duplicateBookmarkId: row.duplicateBookmarkId,
     createdBookmarkId: row.createdBookmarkId,
@@ -206,15 +209,26 @@ async function enrichCandidate(
  */
 export async function ingestNewsletter(input: IngestInput): Promise<NewsletterImport> {
   const candidates = filterAndDedupe(extractCandidates(input.content, input.kind));
-  const [websites, ignoreList] = await Promise.all([listWebsites(), getShortenerIgnoreList()]);
+  const [websites, ignoreList, blacklist] = await Promise.all([
+    listWebsites(),
+    getShortenerIgnoreList(),
+    getNewsletterBlacklist(),
+  ]);
   const data = {
     mode: "trackers" as const,
     websites,
     ignoreList,
   };
 
+  const resolvedAll = await mapWithConcurrency(
+    candidates,
+    FETCH_CONCURRENCY,
+    candidate => resolveCandidate(candidate, data),
+  );
+  // Drop blacklisted links AFTER resolution so tracker-wrapped variants are unwrapped to their real
+  // destination first. Blacklisted links are never staged, so they vanish from future scans.
   const resolved = dedupeResolved(
-    await mapWithConcurrency(candidates, FETCH_CONCURRENCY, candidate => resolveCandidate(candidate, data)),
+    resolvedAll.filter(item => item.url === null || !isBlacklisted(item.url, blacklist)),
   );
 
   const flagged = await Promise.all(resolved.map(withDuplicateFlag));
@@ -234,6 +248,7 @@ export async function ingestNewsletter(input: IngestInput): Promise<NewsletterIm
         source: input.source,
         title: input.title ?? null,
         sourceUrl: input.sourceUrl ?? null,
+        defaultCategoryId: input.defaultCategoryId ?? null,
       })
       .returning({
         id: newsletterImports.id,
@@ -310,6 +325,7 @@ function summarize(importRow: NewsletterImportRow, items: NewsletterImportItemRo
     source: importRow.source as NewsletterImportSource,
     title: importRow.title,
     sourceUrl: importRow.sourceUrl,
+    defaultCategoryId: importRow.defaultCategoryId,
     createdAt: isoOf(importRow.createdAt),
     itemCount: items.length,
     statusCounts,
@@ -352,6 +368,7 @@ export async function getNewsletterImport(id: string): Promise<NewsletterImport 
     source: importRow.source as NewsletterImportSource,
     title: importRow.title,
     sourceUrl: importRow.sourceUrl,
+    defaultCategoryId: importRow.defaultCategoryId,
     createdAt: isoOf(importRow.createdAt),
     items: itemRows.map(toItem),
   };
@@ -366,6 +383,7 @@ export async function updateImportItem(
   if (patch.url !== undefined) set.url = patch.url;
   if (patch.title !== undefined) set.title = patch.title;
   if (patch.description !== undefined) set.description = patch.description;
+  if (patch.categoryId !== undefined) set.categoryId = patch.categoryId;
   if (patch.status !== undefined) {
     set.status = patch.status;
     // Re-opening a row clears any prior error/duplicate annotations.
@@ -416,11 +434,25 @@ export async function approveImportItem(itemId: string): Promise<NewsletterAppro
     };
   }
 
+  // Per-item category wins; otherwise fall back to the import's default. `undefined` (neither set)
+  // preserves createBookmark's website/channel/built-in default precedence.
+  let categoryId = item.categoryId ?? undefined;
+  if (categoryId === undefined) {
+    const [importRow] = await db
+      .select({
+        defaultCategoryId: newsletterImports.defaultCategoryId,
+      })
+      .from(newsletterImports)
+      .where(eq(newsletterImports.id, item.importId));
+    categoryId = importRow?.defaultCategoryId ?? undefined;
+  }
+
   try {
     const bookmark = await createBookmark({
       url: item.url,
       title: item.title?.trim() || item.anchorText?.trim() || item.url,
       description: item.description ?? null,
+      categoryId,
     });
     await db
       .update(newsletterImportItems)

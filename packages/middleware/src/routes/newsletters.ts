@@ -59,6 +59,9 @@ const pasteBody = {
     enrich: {
       type: "boolean",
     },
+    defaultCategoryId: {
+      type: ["string", "null"],
+    },
   },
 } as const;
 
@@ -74,6 +77,9 @@ const urlBody = {
     enrich: {
       type: "boolean",
     },
+    defaultCategoryId: {
+      type: ["string", "null"],
+    },
   },
 } as const;
 
@@ -83,6 +89,9 @@ const enrichQuery = {
   properties: {
     enrich: {
       type: "boolean",
+    },
+    defaultCategoryId: {
+      type: "string",
     },
   },
 } as const;
@@ -99,6 +108,9 @@ const updateItemBody = {
       type: ["string", "null"],
     },
     description: {
+      type: ["string", "null"],
+    },
+    categoryId: {
       type: ["string", "null"],
     },
     status: {
@@ -124,6 +136,7 @@ export async function newsletterRoutes(app: FastifyInstance): Promise<void> {
       kind: body.kind ?? "auto",
       title: body.title ?? null,
       enrich: body.enrich ?? false,
+      defaultCategoryId: body.defaultCategoryId ?? null,
     });
   });
 
@@ -154,6 +167,7 @@ export async function newsletterRoutes(app: FastifyInstance): Promise<void> {
       title: body.url,
       sourceUrl: body.url,
       enrich: body.enrich ?? false,
+      defaultCategoryId: body.defaultCategoryId ?? null,
     });
   });
 
@@ -166,8 +180,9 @@ export async function newsletterRoutes(app: FastifyInstance): Promise<void> {
     },
   }, async (req, reply) => {
     const {
-      enrich,
-    } = req.query as { enrich?: boolean };
+      enrich, defaultCategoryId,
+    } = req.query as { enrich?: boolean;
+      defaultCategoryId?: string; };
     let filename: string;
     let bytes: Buffer;
     try {
@@ -198,6 +213,7 @@ export async function newsletterRoutes(app: FastifyInstance): Promise<void> {
       kind: parsed.kind,
       title: filename,
       enrich: enrich ?? false,
+      defaultCategoryId: defaultCategoryId ?? null,
     });
   });
 
