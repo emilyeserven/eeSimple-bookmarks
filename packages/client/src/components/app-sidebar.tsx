@@ -4,6 +4,7 @@ import * as React from "react";
 
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
+  BookOpen,
   Bookmark,
   ChevronDown,
   Clapperboard,
@@ -13,6 +14,8 @@ import {
   Home,
   Layers,
   MonitorPlay,
+  Palette,
+  Server,
   Settings,
   Share2,
   SlidersHorizontal,
@@ -191,6 +194,10 @@ export function AppSidebar({
   const hiddenCustomizationItems = useUiStore(s => s.hiddenCustomizationItems);
   const hiddenSidebarGroups = useUiStore(s => s.hiddenSidebarGroups);
   const modifier = useUiStore(s => s.sidebarOpenModifier);
+  const coolifyLinkEnabled = useUiStore(s => s.coolifyLinkEnabled);
+  const coolifyUrl = useUiStore(s => s.coolifyUrl);
+  const docsLinkEnabled = useUiStore(s => s.docsLinkEnabled);
+  const storybookLinkEnabled = useUiStore(s => s.storybookLinkEnabled);
   const viewClick = useViewPanelClick();
 
   const visibleCategories = (categories ?? []).filter(
@@ -534,6 +541,63 @@ export function AppSidebar({
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
+          {coolifyLinkEnabled && coolifyUrl.trim() !== ""
+            ? (
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  tooltip="Coolify"
+                >
+                  <a
+                    href={coolifyUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <Server />
+                    <span>Coolify</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )
+            : null}
+          {docsLinkEnabled
+            ? (
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  tooltip="Docs"
+                >
+                  <a
+                    href="/docs"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <BookOpen />
+                    <span>Docs</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )
+            : null}
+          {storybookLinkEnabled
+            ? (
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  tooltip="Storybook"
+                >
+                  <a
+                    href="/storybook"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <Palette />
+                    <span>Storybook</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )
+            : null}
           <SidebarMenuItem>
             <SidebarMenuButton
               size="lg"
