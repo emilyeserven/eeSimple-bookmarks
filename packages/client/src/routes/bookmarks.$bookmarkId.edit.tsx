@@ -24,10 +24,6 @@ const editNav = [
     to: "/bookmarks/$bookmarkId/edit/image",
     label: "Image",
   },
-  {
-    to: "/bookmarks/$bookmarkId/edit/relationships",
-    label: "Relationships",
-  },
 ] as const;
 
 function BookmarkEditLayout() {
