@@ -4,7 +4,6 @@ import type { TagNode } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
 
-import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import { EntityAutofillSources } from "../EntityAutofillSources";
 import { HierarchyView } from "../HierarchyView";
 import { TagCategories } from "../TagCategories";
@@ -205,24 +204,6 @@ export const tagWorkbench: EntityWorkbench<TagNode> = {
         title: "Hierarchy",
         description: "Parent and child tags.",
         render: TagHierarchyView,
-      },
-    },
-    {
-      key: "display-rules",
-      label: "Display Rules",
-      view: {
-        title: "Display Rules",
-        description: "Card display rules whose conditions reference this tag.",
-        render: ({
-          entity,
-        }) => <CardDisplayRulesList tagId={entity.id} />,
-      },
-      edit: {
-        title: "Display Rules",
-        description: "Card display rules whose conditions reference this tag. New rules created here reference this tag by default.",
-        render: ({
-          entity,
-        }) => <CardDisplayRulesList tagId={entity.id} />,
       },
     },
   ],

@@ -3,7 +3,6 @@ import type { EntityWorkbench } from "./types";
 import type { PropertyFormSection } from "../propertyFormSchema";
 import type { CustomProperty } from "@eesimple/types";
 
-import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import {
   PropertyCategoriesContent,
   PropertyDisplayFields,
@@ -205,24 +204,6 @@ export const propertyWorkbench: EntityWorkbench<CustomProperty> = {
         title: "Display",
         description: "Where this property appears and whether it's editable from the card menu.",
         render: editPane("display"),
-      },
-    },
-    {
-      key: "display-rules",
-      label: "Display Rules",
-      view: {
-        title: "Display Rules",
-        description: "Card display rules whose conditions reference this property.",
-        render: ({
-          entity,
-        }) => <CardDisplayRulesList propertyId={entity.id} />,
-      },
-      edit: {
-        title: "Display Rules",
-        description: "Card display rules whose conditions reference this property. New rules created here reference this property by default.",
-        render: ({
-          entity,
-        }) => <CardDisplayRulesList propertyId={entity.id} />,
       },
     },
   ],
