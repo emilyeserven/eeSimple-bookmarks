@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { WebsiteShortenedLinksForm } from "../components/WebsiteShortenedLinksForm";
-import { WebsiteTabWrapper } from "../components/WebsiteTabWrapper";
+import { websiteWorkbench } from "../components/workbench/website";
+import { WorkbenchRouteTab } from "../components/workbench/WorkbenchRouteTab";
 
 export const Route = createFileRoute("/taxonomies/websites/$websiteSlug/edit/shortened-links")({
   component: ShortenedLinksEditTab,
@@ -12,12 +12,11 @@ function ShortenedLinksEditTab() {
     websiteSlug,
   } = Route.useParams();
   return (
-    <WebsiteTabWrapper
-      websiteSlug={websiteSlug}
-      title="Shortened Links"
-      description="Short domains that resolve to this site and how they expand."
-    >
-      {website => <WebsiteShortenedLinksForm website={website} />}
-    </WebsiteTabWrapper>
+    <WorkbenchRouteTab
+      workbench={websiteWorkbench}
+      tabKey="shortened-links"
+      mode="edit"
+      slug={websiteSlug}
+    />
   );
 }

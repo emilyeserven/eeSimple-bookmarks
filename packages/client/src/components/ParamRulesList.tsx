@@ -2,13 +2,13 @@ import type { WebsiteParamRule } from "@eesimple/types";
 
 interface ParamRulesListProps {
   rules: WebsiteParamRule[];
-  /** Text shown when there are no rules (the card and the tab word this differently). */
+  /** Text shown when there are no rules. */
   emptyText: string;
 }
 
 /**
  * Read-only list of a website's keep-param rules — each path suffix and the query params kept for it.
- * Shared by `WebsiteCard` and the Param Rules view tab.
+ * Rendered by the website workbench's Param Rules view tab.
  */
 export function ParamRulesList({
   rules, emptyText,

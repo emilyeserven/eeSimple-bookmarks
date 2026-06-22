@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { ShortenedLinksList } from "../components/ShortenedLinksList";
-import { WebsiteTabWrapper } from "../components/WebsiteTabWrapper";
+import { websiteWorkbench } from "../components/workbench/website";
+import { WorkbenchRouteTab } from "../components/workbench/WorkbenchRouteTab";
 
 export const Route = createFileRoute("/taxonomies/websites/$websiteSlug/_view/shortened-links")({
   component: ShortenedLinksViewTab,
@@ -12,17 +12,11 @@ function ShortenedLinksViewTab() {
     websiteSlug,
   } = Route.useParams();
   return (
-    <WebsiteTabWrapper
-      websiteSlug={websiteSlug}
-      title="Shortened Links"
-      description="Short domains that resolve to this site and how they expand."
-    >
-      {website => (
-        <ShortenedLinksList
-          links={website.shortenedLinks}
-          emptyText="None configured."
-        />
-      )}
-    </WebsiteTabWrapper>
+    <WorkbenchRouteTab
+      workbench={websiteWorkbench}
+      tabKey="shortened-links"
+      mode="view"
+      slug={websiteSlug}
+    />
   );
 }

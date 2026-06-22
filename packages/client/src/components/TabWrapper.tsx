@@ -36,7 +36,7 @@ export function TabWrapper<T>({
 
 /**
  * Build an entity-specific tab wrapper from its by-slug hook. Each slug-routed entity exports a
- * one-line wrapper (e.g. `WebsiteTabWrapper`) so its view/edit tab routes stay thin: the wrapper
+ * one-line wrapper (e.g. `CategoryEditTabWrapper`) so its view/edit tab routes stay thin: the wrapper
  * loads the entity by slug, then renders `TabWrapper` with the entity's not-found message.
  *
  * `slugParam` keeps the consumer-facing prop name entity-specific (e.g. `websiteSlug`) so existing

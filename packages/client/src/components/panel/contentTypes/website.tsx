@@ -5,16 +5,9 @@ import { useMemo } from "react";
 
 import { Globe } from "lucide-react";
 
-import { WithPanelItem } from "./status";
 import { useWebsites } from "../../../hooks/useWebsites";
-import { LabeledSection } from "../../LabeledSection";
-import { WebsiteCard } from "../../WebsiteCard";
-import { WebsiteGeneralForm } from "../../WebsiteGeneralForm";
-import { WebsiteParamRulesForm } from "../../WebsiteParamRulesForm";
-import { WebsiteShortenedLinksForm } from "../../WebsiteShortenedLinksForm";
-import { PanelEntityEditor } from "../PanelEntityEditor";
-
-import { Separator } from "@/components/ui/separator";
+import { websiteWorkbench } from "../../workbench/website";
+import { EntityWorkbenchPanel } from "../EntityWorkbenchPanel";
 
 function useWebsiteList() {
   const {
@@ -35,71 +28,33 @@ function useWebsiteList() {
   };
 }
 
-/** Read-only website view, reusing the same `WebsiteCard` the view page renders. */
+/** Read-only website view — the same tabbed bodies + shell the main-app website pages render. */
 function WebsiteView({
   id,
 }: {
   id: string;
 }) {
-  const query = useWebsites();
   return (
-    <WithPanelItem
-      queryResult={query}
+    <EntityWorkbenchPanel
+      workbench={websiteWorkbench}
       id={id}
-      notFoundMessage="Website not found."
-    >
-      {website => <WebsiteCard website={website} />}
-    </WithPanelItem>
+      mode="view"
+    />
   );
 }
 
-/**
- * Website editor, reusing the same auto-save forms the edit tabs render — stacked here since the
- * panel is a single column. This gives the panel full parity (category / media type / default tags /
- * favicon, plus param rules and shortened links), which the old panel-only `WebsiteRow` lacked.
- */
+/** Website editor — the same per-tab auto-save forms the main-app edit tabs render. */
 function WebsiteEdit({
   id,
 }: {
   id: string;
 }) {
-  const query = useWebsites();
   return (
-    <WithPanelItem
-      queryResult={query}
+    <EntityWorkbenchPanel
+      workbench={websiteWorkbench}
       id={id}
-      notFoundMessage="Website not found."
-    >
-      {website => (
-        <PanelEntityEditor
-          name={website.siteName}
-          builtIn={website.builtIn}
-        >
-          <div className="space-y-6">
-            <LabeledSection
-              title="General"
-              description="Site name and domain."
-            >
-              <WebsiteGeneralForm website={website} />
-            </LabeledSection>
-            <Separator />
-            <LabeledSection
-              title="Param Rules"
-              description="Path-scoped query-param whitelist: only listed params are kept, the rest are stripped."
-            >
-              <WebsiteParamRulesForm website={website} />
-            </LabeledSection>
-            <Separator />
-            <LabeledSection
-              title="Shortened Links"
-              description="Short domains that resolve to this site and how they expand."
-            >
-              <WebsiteShortenedLinksForm website={website} />
-            </LabeledSection>
-          </div>
-        </PanelEntityEditor>
-      )}
-    </WithPanelItem>
+      mode="edit"
+    />
   );
 }
 

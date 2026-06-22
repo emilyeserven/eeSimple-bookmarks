@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { WebsiteParamRulesForm } from "../components/WebsiteParamRulesForm";
-import { WebsiteTabWrapper } from "../components/WebsiteTabWrapper";
+import { websiteWorkbench } from "../components/workbench/website";
+import { WorkbenchRouteTab } from "../components/workbench/WorkbenchRouteTab";
 
 export const Route = createFileRoute("/taxonomies/websites/$websiteSlug/edit/param-rules")({
   component: ParamRulesEditTab,
@@ -12,12 +12,11 @@ function ParamRulesEditTab() {
     websiteSlug,
   } = Route.useParams();
   return (
-    <WebsiteTabWrapper
-      websiteSlug={websiteSlug}
-      title="Param Rules"
-      description="Path-scoped query-param whitelist: only listed params are kept, the rest are stripped."
-    >
-      {website => <WebsiteParamRulesForm website={website} />}
-    </WebsiteTabWrapper>
+    <WorkbenchRouteTab
+      workbench={websiteWorkbench}
+      tabKey="param-rules"
+      mode="edit"
+      slug={websiteSlug}
+    />
   );
 }

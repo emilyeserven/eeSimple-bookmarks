@@ -2,13 +2,13 @@ import type { ShortenedLink } from "@eesimple/types";
 
 interface ShortenedLinksListProps {
   links: ShortenedLink[];
-  /** Text shown when there are no links (the card and the tab word this differently). */
+  /** Text shown when there are no links. */
   emptyText: string;
 }
 
 /**
  * Read-only list of a website's verified shortened links — each short domain and how it expands (or
- * a note that it is kept shortened). Shared by `WebsiteCard` and the Shortened Links view tab.
+ * a note that it is kept shortened). Rendered by the website workbench's Shortened Links view tab.
  */
 export function ShortenedLinksList({
   links, emptyText,

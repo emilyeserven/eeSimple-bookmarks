@@ -6,9 +6,12 @@
  * navigation), so the panel survives page changes and is deep-linkable.
  *
  * The panel has three nested states, each a superset of the previous:
- * - `{ dOpen }`                         → content-type tiles
- * - `{ dOpen, dCT }`                    → a searchable list of that type
- * - `{ dOpen, dCT, dCId, dMode }`       → a single item, viewed or edited
+ * - `{ dOpen }`                            → content-type tiles
+ * - `{ dOpen, dCT }`                       → a searchable list of that type
+ * - `{ dOpen, dCT, dCId, dMode, dTab }`    → a single item, viewed or edited, on the given tab
+ *
+ * `dTab` is the active tab key within a multi-tab entity (e.g. a website's `param-rules`); it is
+ * optional and falls back to the entity's first tab.
  */
 export type DrawerContentType
   = | "bookmark"
@@ -49,6 +52,7 @@ export interface DrawerSearch {
   dCT?: DrawerContentType;
   dCId?: string;
   dMode?: DrawerMode;
+  dTab?: string;
 }
 
 function isContentType(value: unknown): value is DrawerContentType {
@@ -64,6 +68,7 @@ export function validateDrawerSearch(search: Record<string, unknown>): DrawerSea
   const dCT = isContentType(search.dCT) ? search.dCT : undefined;
   const dCId = typeof search.dCId === "string" && search.dCId.length > 0 ? search.dCId : undefined;
   const dMode = search.dMode === "view" || search.dMode === "edit" ? search.dMode : undefined;
+  const dTab = typeof search.dTab === "string" && search.dTab.length > 0 ? search.dTab : undefined;
 
   // The panel is open when explicitly flagged, or whenever it carries content to show.
   const open = search.dOpen === true || search.dOpen === "true" || Boolean(dCT);
@@ -83,5 +88,6 @@ export function validateDrawerSearch(search: Record<string, unknown>): DrawerSea
     dCT,
     dCId,
     dMode: dMode ?? "view",
+    dTab,
   };
 }
