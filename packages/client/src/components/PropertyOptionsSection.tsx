@@ -613,12 +613,12 @@ function ImageFileOptions({
                         checked={field.state.value}
                         onCheckedChange={checked => field.handleChange(checked === true)}
                       />
-                      <Label htmlFor={`${idPrefix}-show-in-gallery`}>Show in gallery</Label>
+                      <Label htmlFor={`${idPrefix}-show-in-gallery`}>Show in Media Management</Label>
                     </div>
                   )}
                 </form.AppField>
                 <p className="text-xs text-muted-foreground">
-                  When checked, images uploaded for this property appear in the Gallery and count toward your storage quota.
+                  When checked, images uploaded for this property appear in Media Management and count toward your storage quota.
                 </p>
               </>
             )

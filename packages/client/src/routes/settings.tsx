@@ -30,8 +30,8 @@ const settingsNav: readonly TabNavEntry[] = [
     label: "Card Display Rules",
   },
   {
-    to: "/settings/gallery",
-    label: "Gallery",
+    to: "/settings/media-management",
+    label: "Media Management",
   },
   {
     to: "/settings/automations",
