@@ -42,6 +42,10 @@ const settingsNav: readonly TabNavEntry[] = [
     label: "Link Parsing",
   },
   {
+    to: "/settings/imports",
+    label: "Import Settings",
+  },
+  {
     type: "group",
     label: "More Settings",
     items: [

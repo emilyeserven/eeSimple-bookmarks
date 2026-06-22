@@ -8,7 +8,7 @@ import type {
   DisplayPreferenceSettings,
   HomepageContentSettings,
   HomepageContentWidth,
-  NewsletterBlacklistEntry,
+  ImportBlacklistEntry,
   QuickAddDisplay,
   SidebarCustomizationSettings,
   SidebarOpenModifier,
@@ -250,36 +250,44 @@ export async function updateShortenerIgnoreList(domains: string[]): Promise<stri
   return normalized;
 }
 
-/** Read the newsletter scan blacklist (links matching these are dropped from future scans). */
-export async function getNewsletterBlacklist(): Promise<NewsletterBlacklistEntry[]> {
+/** Read the imports blacklist (links matching these are dropped from future imports). */
+export async function getImportBlacklist(): Promise<ImportBlacklistEntry[]> {
   const [row] = await db
     .select({
-      newsletterBlacklist: appSettings.newsletterBlacklist,
+      importBlacklist: appSettings.importBlacklist,
     })
     .from(appSettings)
     .where(eq(appSettings.id, ROW_ID));
-  return row?.newsletterBlacklist ?? [];
+  return row?.importBlacklist ?? [];
 }
 
-/** Replace the newsletter scan blacklist. Entries are normalized + de-duplicated. */
-export async function updateNewsletterBlacklist(
-  entries: NewsletterBlacklistEntry[],
-): Promise<NewsletterBlacklistEntry[]> {
+/** Replace the imports blacklist. Entries are normalized + de-duplicated. */
+export async function updateImportBlacklist(
+  entries: ImportBlacklistEntry[],
+): Promise<ImportBlacklistEntry[]> {
   const normalized = normalizeBlacklist(entries);
   await db
     .insert(appSettings)
     .values({
       id: ROW_ID,
       shortenerIgnoreList: DEFAULT_SHORTENER_IGNORE_LIST,
-      newsletterBlacklist: normalized,
+      importBlacklist: normalized,
     })
     .onConflictDoUpdate({
       target: appSettings.id,
       set: {
-        newsletterBlacklist: normalized,
+        importBlacklist: normalized,
       },
     });
   return normalized;
+}
+
+/** Add a single entry to the imports blacklist (normalized + de-duplicated). Returns the new list. */
+export async function addImportBlacklistEntry(
+  entry: ImportBlacklistEntry,
+): Promise<ImportBlacklistEntry[]> {
+  const current = await getImportBlacklist();
+  return updateImportBlacklist([...current, entry]);
 }
 
 /** Read the opt-in Advanced sidebar-link settings (Coolify, docs, Storybook). */

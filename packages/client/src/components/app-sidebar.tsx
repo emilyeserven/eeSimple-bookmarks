@@ -12,6 +12,7 @@ import {
   FolderOpen,
   Globe,
   Home,
+  Inbox,
   Layers,
   Mail,
   MonitorPlay,
@@ -68,6 +69,11 @@ const navItems = [
     title: "Home",
     to: "/",
     icon: Home,
+  },
+  {
+    title: "Inbox",
+    to: "/inbox",
+    icon: Inbox,
   },
   {
     title: "Bookmarks",
@@ -139,12 +145,6 @@ const customizationItems = [
     title: "Autofill Rules",
     to: "/autofill",
     icon: Wand2,
-  },
-  {
-    key: "newsletter-import",
-    title: "Newsletter Import",
-    to: "/newsletters",
-    icon: Mail,
   },
 ] as const;
 

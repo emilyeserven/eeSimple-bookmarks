@@ -3,14 +3,14 @@ import { test } from "node:test";
 import {
   blacklistPatternsFor,
   isBlacklisted,
-  type NewsletterBlacklistEntry,
+  type ImportBlacklistEntry,
   normalizeBlacklist,
 } from "@eesimple/types";
 
 // Pure blacklist matching — no network or database.
 
 test("isBlacklisted matches a whole domain, including subdomains and ignoring www/scheme/query", () => {
-  const entries: NewsletterBlacklistEntry[] = [{
+  const entries: ImportBlacklistEntry[] = [{
     kind: "domain",
     value: "example.com",
   }];
@@ -22,7 +22,7 @@ test("isBlacklisted matches a whole domain, including subdomains and ignoring ww
 });
 
 test("isBlacklisted path-prefix matches the prefix and its sub-paths only, same host", () => {
-  const entries: NewsletterBlacklistEntry[] = [{
+  const entries: ImportBlacklistEntry[] = [{
     kind: "path-prefix",
     value: "example.com/sponsored",
   }];
@@ -35,7 +35,7 @@ test("isBlacklisted path-prefix matches the prefix and its sub-paths only, same 
 });
 
 test("isBlacklisted exact matches host+path, ignoring query/fragment and trailing slash", () => {
-  const entries: NewsletterBlacklistEntry[] = [{
+  const entries: ImportBlacklistEntry[] = [{
     kind: "exact",
     value: "example.com/post",
   }];

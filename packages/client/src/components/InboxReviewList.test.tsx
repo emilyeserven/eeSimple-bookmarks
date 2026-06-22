@@ -1,15 +1,15 @@
-import type { NewsletterImportItem } from "@eesimple/types";
+import type { InboxItem } from "@eesimple/types";
 
 import { fireEvent, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { NewsletterReviewList } from "./NewsletterReviewList";
+import { InboxReviewList } from "./InboxReviewList";
 import { renderWithRouter } from "../test-utils/router";
 
 const LONG_TITLE
-  = "This is a very long newsletter article title that should wrap fully instead of being cut off on mobile screens";
+  = "This is a very long imported article title that should wrap fully instead of being cut off on mobile screens";
 
-function makeItem(overrides: Partial<NewsletterImportItem> = {}): NewsletterImportItem {
+function makeItem(overrides: Partial<InboxItem> = {}): InboxItem {
   return {
     id: "item-1",
     importId: "import-1",
@@ -22,21 +22,21 @@ function makeItem(overrides: Partial<NewsletterImportItem> = {}): NewsletterImpo
     anchorText: null,
     categoryId: null,
     status: "pending",
+    markedForDeletion: false,
     duplicateBookmarkId: null,
     createdBookmarkId: null,
     errorReason: null,
     createdAt: "2026-06-22T00:00:00.000Z",
+    importSource: "paste",
+    sourceLabel: null,
     ...overrides,
   };
 }
 
-describe("NewsletterReviewList", () => {
+describe("InboxReviewList", () => {
   it("renders the full title without a truncation class so it wraps on mobile", async () => {
     await renderWithRouter(
-      <NewsletterReviewList
-        importId="import-1"
-        items={[makeItem()]}
-      />,
+      <InboxReviewList items={[makeItem()]} />,
       {
         paths: ["/bookmarks/$bookmarkId"],
       },
@@ -47,10 +47,7 @@ describe("NewsletterReviewList", () => {
 
   it("renders the full destination URL without a truncation class so it wraps", async () => {
     await renderWithRouter(
-      <NewsletterReviewList
-        importId="import-1"
-        items={[makeItem()]}
-      />,
+      <InboxReviewList items={[makeItem()]} />,
       {
         paths: ["/bookmarks/$bookmarkId"],
       },
@@ -61,10 +58,7 @@ describe("NewsletterReviewList", () => {
 
   it("rejects in one click — the Reject control is a direct button, not a dropdown", async () => {
     await renderWithRouter(
-      <NewsletterReviewList
-        importId="import-1"
-        items={[makeItem()]}
-      />,
+      <InboxReviewList items={[makeItem()]} />,
       {
         paths: ["/bookmarks/$bookmarkId"],
       },
@@ -73,14 +67,9 @@ describe("NewsletterReviewList", () => {
     expect(screen.getByLabelText("Reject")).not.toHaveAttribute("aria-haspopup", "menu");
   });
 
-  it("offers block-by-URL/domain/path only after an item is rejected", async () => {
+  it("offers block-by-URL/domain/path from the Block dropdown", async () => {
     await renderWithRouter(
-      <NewsletterReviewList
-        importId="import-1"
-        items={[makeItem({
-          status: "rejected",
-        })]}
-      />,
+      <InboxReviewList items={[makeItem()]} />,
       {
         paths: ["/bookmarks/$bookmarkId"],
       },
@@ -96,10 +85,9 @@ describe("NewsletterReviewList", () => {
     expect(screen.getByText("Block this page path")).toBeInTheDocument();
   });
 
-  it("reveals the captured newsletter passage in a Newsletter Context expander", async () => {
+  it("reveals the captured passage in a Context expander", async () => {
     await renderWithRouter(
-      <NewsletterReviewList
-        importId="import-1"
+      <InboxReviewList
         items={[makeItem({
           newsletterContext: "Weekly Roundup\n\nThe surrounding paragraph that mentions the link.",
         })]}
@@ -109,7 +97,7 @@ describe("NewsletterReviewList", () => {
       },
     );
     fireEvent.click(screen.getByRole("button", {
-      name: /Newsletter Context/,
+      name: /Context/,
     }));
     expect(await screen.findByText(/The surrounding paragraph that mentions the link\./))
       .toBeInTheDocument();
@@ -117,11 +105,11 @@ describe("NewsletterReviewList", () => {
 
   it("shows a View bookmark link for an approved item", async () => {
     await renderWithRouter(
-      <NewsletterReviewList
-        importId="import-1"
+      <InboxReviewList
         items={[makeItem({
           status: "approved",
           createdBookmarkId: "bookmark-9",
+          markedForDeletion: true,
         })]}
       />,
       {
@@ -129,5 +117,21 @@ describe("NewsletterReviewList", () => {
       },
     );
     expect(screen.getByLabelText("View bookmark")).toBeInTheDocument();
+  });
+
+  it("flags an approved item as marked for deletion", async () => {
+    await renderWithRouter(
+      <InboxReviewList
+        items={[makeItem({
+          status: "approved",
+          createdBookmarkId: "bookmark-9",
+          markedForDeletion: true,
+        })]}
+      />,
+      {
+        paths: ["/bookmarks/$bookmarkId"],
+      },
+    );
+    expect(screen.getByText("Will be deleted")).toBeInTheDocument();
   });
 });

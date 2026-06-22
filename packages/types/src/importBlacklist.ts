@@ -1,16 +1,16 @@
 /**
- * Newsletter scan blacklist — shared, pure matching helpers used on both sides of the wire.
+ * Imports blacklist — shared, pure matching helpers used on both sides of the wire.
  *
- * When a user rejects a parsed newsletter link they can also blacklist it so it (or similar links)
- * is dropped from FUTURE scans. The middleware filters resolved candidates through `isBlacklisted`
- * during ingest; the client's reject UI derives the three candidate entries with
- * `blacklistPatternsFor`. Keeping both here means one definition of "matches" for both surfaces.
+ * When a user blocks a parsed import link they also blacklist it so it (or similar links) is dropped
+ * from FUTURE imports. The middleware filters resolved candidates through `isBlacklisted` during
+ * ingest; the client's block UI derives the three candidate entries with `blacklistPatternsFor`.
+ * Keeping both here means one definition of "matches" for both surfaces.
  */
 
 /** How a blacklist entry matches a URL. */
-export const NEWSLETTER_BLACKLIST_KINDS = ["exact", "domain", "path-prefix"] as const;
+export const IMPORT_BLACKLIST_KINDS = ["exact", "domain", "path-prefix"] as const;
 
-export type NewsletterBlacklistKind = typeof NEWSLETTER_BLACKLIST_KINDS[number];
+export type ImportBlacklistKind = typeof IMPORT_BLACKLIST_KINDS[number];
 
 /**
  * One blacklist rule. `value` is normalized for its kind:
@@ -18,8 +18,8 @@ export type NewsletterBlacklistKind = typeof NEWSLETTER_BLACKLIST_KINDS[number];
  * - `domain`      → bare host (lower-cased, leading `www.` stripped).
  * - `path-prefix` → `host + pathname`, trailing slash trimmed.
  */
-export interface NewsletterBlacklistEntry {
-  kind: NewsletterBlacklistKind;
+export interface ImportBlacklistEntry {
+  kind: ImportBlacklistKind;
   value: string;
 }
 
@@ -47,7 +47,7 @@ function hostMatchesDomain(host: string, base: string): boolean {
 }
 
 /** Whether a resolved URL is blocked by any blacklist entry. Pure; bad URLs never match. */
-export function isBlacklisted(url: string, entries: NewsletterBlacklistEntry[]): boolean {
+export function isBlacklisted(url: string, entries: ImportBlacklistEntry[]): boolean {
   let parsed: URL;
   try {
     parsed = new URL(url);
@@ -68,11 +68,11 @@ export function isBlacklisted(url: string, entries: NewsletterBlacklistEntry[]):
   });
 }
 
-/** The three candidate blacklist entries derived from a resolved URL (for the reject UI). */
+/** The three candidate blacklist entries derived from a resolved URL (for the block UI). */
 export function blacklistPatternsFor(url: string): {
-  exact: NewsletterBlacklistEntry;
-  domain: NewsletterBlacklistEntry;
-  pathPrefix: NewsletterBlacklistEntry;
+  exact: ImportBlacklistEntry;
+  domain: ImportBlacklistEntry;
+  pathPrefix: ImportBlacklistEntry;
 } {
   const parsed = new URL(url);
   const host = normalizeHost(parsed.hostname);
@@ -94,11 +94,11 @@ export function blacklistPatternsFor(url: string): {
 }
 
 /** Normalize + de-dupe a blacklist (trim, lower-case, host-strip, drop empties). Pure. */
-export function normalizeBlacklist(entries: NewsletterBlacklistEntry[]): NewsletterBlacklistEntry[] {
+export function normalizeBlacklist(entries: ImportBlacklistEntry[]): ImportBlacklistEntry[] {
   const seen = new Set<string>();
-  const out: NewsletterBlacklistEntry[] = [];
+  const out: ImportBlacklistEntry[] = [];
   for (const entry of entries) {
-    if (!NEWSLETTER_BLACKLIST_KINDS.includes(entry.kind)) continue;
+    if (!IMPORT_BLACKLIST_KINDS.includes(entry.kind)) continue;
     const raw = entry.value.trim().toLowerCase();
     const value = entry.kind === "domain" ? normalizeHost(raw) : trimTrailingSlash(raw);
     if (value.length === 0) continue;

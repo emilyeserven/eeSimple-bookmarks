@@ -209,7 +209,7 @@ export function CardDisplayRulePreview({
         imageUrl: null,
       },
       newsletter: null,
-      newsletterIssue: null,
+      import: null,
       tags: [
         {
           id: "__sample-tag__",

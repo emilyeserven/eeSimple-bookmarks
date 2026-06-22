@@ -1,24 +1,23 @@
 import type {
-  NewsletterApproveResult,
-  NewsletterBlacklistEntry,
-  NewsletterImportItem,
-  NewsletterImportItemStatus,
+  ImportApproveResult,
+  ImportItem,
+  ImportItemStatus,
+  InboxItem,
 } from "@eesimple/types";
 
 import { useMemo, useState } from "react";
 
-import { blacklistPatternsFor, isBlacklisted } from "@eesimple/types";
+import { blacklistPatternsFor } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
-import { Ban, Check, ChevronDown, ExternalLink, Eye, Pencil, X } from "lucide-react";
+import { Ban, Check, ChevronDown, ExternalLink, Eye, Pencil, Trash2, X } from "lucide-react";
 
-import { useNewsletterBlacklist, useUpdateNewsletterBlacklist } from "../hooks/useAppSettings";
 import { useCategories } from "../hooks/useCategories";
 import {
-  useApproveImport,
   useApproveImportItem,
+  useBlockImportItem,
   useRejectImportItem,
   useUpdateImportItem,
-} from "../hooks/useNewsletterImports";
+} from "../hooks/useImports";
 import { highlightAnchor } from "../lib/newsletterContext";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
@@ -51,7 +50,7 @@ type ReviewFilter = "all" | "pending" | "issues";
 /** Sentinel for the "no category" Select option (Radix forbids an empty-string item value). */
 const NO_CATEGORY = "__none__";
 
-const STATUS_META: Record<NewsletterImportItemStatus, { label: string;
+const STATUS_META: Record<ImportItemStatus, { label: string;
   variant: "secondary" | "default" | "destructive" | "outline"; }> = {
   pending: {
     label: "Pending",
@@ -73,10 +72,14 @@ const STATUS_META: Record<NewsletterImportItemStatus, { label: string;
     label: "Error",
     variant: "destructive",
   },
+  blocked: {
+    label: "Blocked",
+    variant: "outline",
+  },
 };
 
 /** Surface the outcome of an approve call (one item or a bulk run) as a recorded toast. */
-function notifyApprove(result: NewsletterApproveResult): void {
+function notifyApprove(result: ImportApproveResult): void {
   if (result.status === "approved") notifySuccess("Bookmark added");
   else if (result.status === "duplicate") notifyError(result.message ?? "Already saved as a bookmark");
   else if (result.status === "error") notifyError(result.message ?? "Couldn't add bookmark");
@@ -84,7 +87,7 @@ function notifyApprove(result: NewsletterApproveResult): void {
 
 function StatusBadge({
   item,
-}: { item: NewsletterImportItem }) {
+}: { item: ImportItem }) {
   const meta = STATUS_META[item.status];
   const bookmarkId = item.createdBookmarkId ?? item.duplicateBookmarkId;
   if (bookmarkId) {
@@ -106,12 +109,11 @@ function StatusBadge({
   return <Badge variant={meta.variant}>{meta.label}</Badge>;
 }
 
-/** Reject control: one click rejects the candidate (block offers appear afterward, see `BlockMenu`). */
+/** Reject control: one click rejects the candidate (block offers a separate dropdown, see `BlockMenu`). */
 function RejectButton({
-  importId, item,
-}: { importId: string;
-  item: NewsletterImportItem; }) {
-  const reject = useRejectImportItem(importId);
+  item,
+}: { item: ImportItem }) {
+  const reject = useRejectImportItem();
   return (
     <Button
       size="icon"
@@ -127,25 +129,26 @@ function RejectButton({
   );
 }
 
-/** Post-rejection control: a dropdown to add this link's URL / domain / page path to the blacklist. */
+/**
+ * Block control: a dropdown to add this link's URL / domain / page path to the Imports Blacklist.
+ * Blocking also marks the item `blocked` so the Import Settings purge can sweep it later.
+ */
 function BlockMenu({
   item,
-}: { item: NewsletterImportItem }) {
-  const {
-    data: blacklist = [],
-  } = useNewsletterBlacklist();
-  const updateBlacklist = useUpdateNewsletterBlacklist();
+}: { item: ImportItem }) {
+  const block = useBlockImportItem();
   const patterns = item.url ? blacklistPatternsFor(item.url) : null;
   if (!patterns) return null;
-  const blocked = item.url ? isBlacklisted(item.url, blacklist) : false;
+  const blocked = item.status === "blocked";
 
-  function block(entry: NewsletterBlacklistEntry, message: string) {
-    if (blacklist.some(e => e.kind === entry.kind && e.value === entry.value)) {
-      notifySuccess("Already blocked");
-      return;
-    }
-    updateBlacklist.mutate([...blacklist, entry], {
+  function blockWith(entry: { kind: "exact" | "domain" | "path-prefix";
+    value: string; }, message: string) {
+    block.mutate({
+      itemId: item.id,
+      entry,
+    }, {
       onSuccess: () => notifySuccess(message),
+      onError: () => notifyError("Couldn't block this link"),
     });
   }
 
@@ -156,20 +159,20 @@ function BlockMenu({
           size="sm"
           variant={blocked ? "ghost" : "secondary"}
           className={blocked ? "gap-1 text-muted-foreground" : "gap-1"}
-          disabled={updateBlacklist.isPending}
+          disabled={block.isPending}
         >
           <Ban className="size-4" />
           {blocked ? "Blocked" : "Block"}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => block(patterns.exact, "Blocked this URL")}>
+        <DropdownMenuItem onClick={() => blockWith(patterns.exact, "Blocked this URL")}>
           Block this URL
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => block(patterns.domain, `Blocked ${patterns.domain.value}`)}>
+        <DropdownMenuItem onClick={() => blockWith(patterns.domain, `Blocked ${patterns.domain.value}`)}>
           Block this domain
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => block(patterns.pathPrefix, "Blocked this page path")}>
+        <DropdownMenuItem onClick={() => blockWith(patterns.pathPrefix, "Blocked this page path")}>
           Block this page path
         </DropdownMenuItem>
       </DropdownMenuContent>
@@ -202,11 +205,10 @@ function ViewBookmarkButton({
 
 /** The expanded edit form for one candidate (url/title/description/category). Owns its own draft. */
 function ReviewRowEditor({
-  importId, item, onDone,
-}: { importId: string;
-  item: NewsletterImportItem;
+  item, onDone,
+}: { item: ImportItem;
   onDone: () => void; }) {
-  const update = useUpdateImportItem(importId);
+  const update = useUpdateImportItem();
   const {
     data: categories = [],
   } = useCategories();
@@ -308,13 +310,12 @@ function ReviewRowEditor({
   );
 }
 
-/** The per-row action column: approve/edit/reject while pending, block once rejected, or a view link. */
+/** The per-row action column: approve/edit/reject/block while pending, block once rejected, or a view link. */
 function RowActions({
-  importId, item, onEdit,
-}: { importId: string;
-  item: NewsletterImportItem;
+  item, onEdit,
+}: { item: ImportItem;
   onEdit: () => void; }) {
-  const approve = useApproveImportItem(importId);
+  const approve = useApproveImportItem();
   const resultBookmarkId = item.createdBookmarkId ?? item.duplicateBookmarkId;
 
   return (
@@ -341,10 +342,8 @@ function RowActions({
             >
               <Pencil className="size-4" />
             </Button>
-            <RejectButton
-              importId={importId}
-              item={item}
-            />
+            <RejectButton item={item} />
+            <BlockMenu item={item} />
           </>
         )
         : null}
@@ -359,22 +358,21 @@ function RowActions({
 }
 
 function ReviewRow({
-  importId, item,
-}: { importId: string;
-  item: NewsletterImportItem; }) {
+  item,
+}: { item: InboxItem }) {
   const {
     data: categories = [],
   } = useCategories();
   const [editing, setEditing] = useState(false);
   const [contextOpen, setContextOpen] = useState(false);
 
-  const muted = item.status === "rejected" || item.status === "approved" || item.status === "duplicate";
+  const muted = item.status === "rejected" || item.status === "approved"
+    || item.status === "duplicate" || item.status === "blocked";
   const categoryName = categories.find(c => c.id === item.categoryId)?.name ?? null;
 
   if (editing) {
     return (
       <ReviewRowEditor
-        importId={importId}
         item={item}
         onDone={() => setEditing(false)}
       />
@@ -402,7 +400,21 @@ function ReviewRow({
           <div className="flex items-start gap-2">
             <p className="min-w-0 font-medium wrap-break-word">{item.title || item.anchorText || item.url || item.rawUrl}</p>
             <StatusBadge item={item} />
+            {item.markedForDeletion
+              ? (
+                <Badge
+                  variant="outline"
+                  className="gap-1 text-muted-foreground"
+                >
+                  <Trash2 className="size-3" />
+                  Will be deleted
+                </Badge>
+              )
+              : null}
           </div>
+          {item.sourceLabel
+            ? <p className="text-xs text-muted-foreground/70">From {item.sourceLabel}</p>
+            : null}
           {item.url
             ? (
               <a
@@ -460,7 +472,7 @@ function ReviewRow({
                         ${contextOpen ? "rotate-180" : ""}
                       `}
                     />
-                    Newsletter Context
+                    Context
                   </Button>
                 </CollapsibleTrigger>
                 <CollapsibleContent
@@ -486,7 +498,6 @@ function ReviewRow({
             : null}
         </div>
         <RowActions
-          importId={importId}
           item={item}
           onEdit={() => setEditing(true)}
         />
@@ -495,16 +506,19 @@ function ReviewRow({
   );
 }
 
-/** The review queue: filterable list of candidate items + a bulk "approve all pending" action. */
-export function NewsletterReviewList({
-  importId,
+/**
+ * The Inbox review queue: a filterable list of import candidates from every import, plus a bulk
+ * "approve all pending" action. Each row's actions are item-scoped, so the list can mix items from
+ * different imports.
+ */
+export function InboxReviewList({
   items,
 }: {
-  importId: string;
-  items: NewsletterImportItem[];
+  items: InboxItem[];
 }) {
-  const approveAll = useApproveImport(importId);
+  const approve = useApproveImportItem();
   const [filter, setFilter] = useState<ReviewFilter>("all");
+  const [bulkRunning, setBulkRunning] = useState(false);
 
   const pendingCount = useMemo(() => items.filter(i => i.status === "pending").length, [items]);
   const filtered = useMemo(() => items.filter((item) => {
@@ -513,14 +527,21 @@ export function NewsletterReviewList({
     return true;
   }), [items, filter]);
 
-  function onApproveAll() {
-    approveAll.mutate(undefined, {
-      onSuccess: (results) => {
-        const added = results.filter(r => r.status === "approved").length;
-        notifySuccess(`Added ${added} bookmark${added === 1 ? "" : "s"}`);
-      },
-      onError: () => notifyError("Couldn't approve all candidates"),
-    });
+  async function onApproveAll() {
+    // Sequential: createBookmark auto-creates websites, so concurrent approvals could race on a host.
+    setBulkRunning(true);
+    let added = 0;
+    for (const item of items.filter(i => i.status === "pending")) {
+      try {
+        const result = await approve.mutateAsync(item.id);
+        if (result.status === "approved") added += 1;
+      }
+      catch {
+        // Keep going; per-item failures are surfaced on their rows after the list refreshes.
+      }
+    }
+    setBulkRunning(false);
+    notifySuccess(`Added ${added} bookmark${added === 1 ? "" : "s"}`);
   }
 
   return (
@@ -541,22 +562,19 @@ export function NewsletterReviewList({
         <Button
           size="sm"
           onClick={onApproveAll}
-          disabled={approveAll.isPending || pendingCount === 0}
+          disabled={bulkRunning || pendingCount === 0}
         >
-          {approveAll.isPending ? "Approving…" : `Approve all pending (${pendingCount})`}
+          {bulkRunning ? "Approving…" : `Approve all pending (${pendingCount})`}
         </Button>
       </div>
 
       {filtered.length === 0
-        ? <p className="text-sm text-muted-foreground">No candidates to show.</p>
+        ? <p className="text-sm text-muted-foreground">No items to show.</p>
         : (
           <ul className="space-y-2">
             {filtered.map(item => (
               <li key={item.id}>
-                <ReviewRow
-                  importId={importId}
-                  item={item}
-                />
+                <ReviewRow item={item} />
               </li>
             ))}
           </ul>

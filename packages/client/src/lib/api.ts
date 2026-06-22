@@ -50,6 +50,13 @@ import type {
   HomepageContentSettings,
   HomepageSection,
   HomepageSectionBookmarks,
+  BlockImportItemInput,
+  Import,
+  ImportApproveResult,
+  ImportBlacklistEntry,
+  ImportItem,
+  ImportSummary,
+  InboxItem,
   IngestPasteInput,
   IngestUrlInput,
   CreateNewsletterInput,
@@ -57,13 +64,9 @@ import type {
   UpdateNewsletterInput,
   MediaType,
   MediaTypeNode,
-  NewsletterApproveResult,
-  NewsletterBlacklistEntry,
-  NewsletterImport,
-  NewsletterImportItem,
-  NewsletterImportSummary,
   PropertyGroup,
-  UpdateNewsletterImportItemInput,
+  PurgeImportItemsResult,
+  UpdateImportItemInput,
   RelationshipType,
   Tag,
   TagNode,
@@ -207,14 +210,14 @@ export const bookmarksApi = {
     }),
 };
 
-export const newsletterApi = {
+export const importApi = {
   ingestPaste: (input: IngestPasteInput) =>
-    request<NewsletterImport>("/newsletters/ingest/paste", {
+    request<Import>("/imports/ingest/paste", {
       method: "POST",
       body: JSON.stringify(input),
     }),
   ingestUrl: (input: IngestUrlInput) =>
-    request<NewsletterImport>("/newsletters/ingest/url", {
+    request<Import>("/imports/ingest/url", {
       method: "POST",
       body: JSON.stringify(input),
     }),
@@ -227,45 +230,57 @@ export const newsletterApi = {
     if (newsletterId) params.set("newsletterId", newsletterId);
     if (defaultCategoryId) params.set("defaultCategoryId", defaultCategoryId);
     const qs = params.toString();
-    return uploadImageFile<NewsletterImport>(`/newsletters/ingest/upload${qs ? `?${qs}` : ""}`, file);
+    return uploadImageFile<Import>(`/imports/ingest/upload${qs ? `?${qs}` : ""}`, file);
   },
-  listImports: () => request<NewsletterImportSummary[]>("/newsletters/imports"),
-  getImport: (id: string) => request<NewsletterImport>(`/newsletters/imports/${id}`),
+  listImports: () => request<ImportSummary[]>("/imports"),
+  getImport: (id: string) => request<Import>(`/imports/${id}`),
+  /** All import items across all imports, for the Inbox review queue. */
+  listInboxItems: () => request<InboxItem[]>("/imports/items"),
   listIssues: (newsletterId: string) =>
-    request<NewsletterImportSummary[]>(`/newsletters/${newsletterId}/issues`),
+    request<ImportSummary[]>(`/newsletters/${newsletterId}/issues`),
   addIssueBookmarks: (importId: string, bookmarkIds: string[]) =>
-    request<undefined>(`/newsletters/imports/${importId}/bookmarks`, {
+    request<undefined>(`/imports/${importId}/bookmarks`, {
       method: "POST",
       body: JSON.stringify({
         bookmarkIds,
       }),
     }),
   removeIssueBookmarks: (importId: string, bookmarkIds: string[]) =>
-    request<undefined>(`/newsletters/imports/${importId}/bookmarks`, {
+    request<undefined>(`/imports/${importId}/bookmarks`, {
       method: "DELETE",
       body: JSON.stringify({
         bookmarkIds,
       }),
     }),
-  updateItem: (importId: string, itemId: string, input: UpdateNewsletterImportItemInput) =>
-    request<NewsletterImportItem>(`/newsletters/imports/${importId}/items/${itemId}`, {
+  updateItem: (itemId: string, input: UpdateImportItemInput) =>
+    request<ImportItem>(`/imports/items/${itemId}`, {
       method: "PATCH",
       body: JSON.stringify(input),
     }),
-  approveItem: (importId: string, itemId: string) =>
-    request<NewsletterApproveResult>(`/newsletters/imports/${importId}/items/${itemId}/approve`, {
+  approveItem: (itemId: string) =>
+    request<ImportApproveResult>(`/imports/items/${itemId}/approve`, {
       method: "POST",
     }),
   approveImport: (importId: string) =>
-    request<NewsletterApproveResult[]>(`/newsletters/imports/${importId}/approve`, {
+    request<ImportApproveResult[]>(`/imports/${importId}/approve`, {
       method: "POST",
     }),
-  rejectItem: (importId: string, itemId: string) =>
-    request<undefined>(`/newsletters/imports/${importId}/items/${itemId}/reject`, {
+  rejectItem: (itemId: string) =>
+    request<undefined>(`/imports/items/${itemId}/reject`, {
       method: "POST",
+    }),
+  blockItem: (itemId: string, entry: BlockImportItemInput) =>
+    request<ImportItem>(`/imports/items/${itemId}/block`, {
+      method: "POST",
+      body: JSON.stringify(entry),
     }),
   deleteImport: (id: string) =>
-    request<undefined>(`/newsletters/imports/${id}`, {
+    request<undefined>(`/imports/${id}`, {
+      method: "DELETE",
+    }),
+  /** Delete every processed item (approved/marked-for-deletion + blocked). Keeps the blacklist. */
+  purgeProcessed: () =>
+    request<PurgeImportItemsResult>("/imports/items/processed", {
       method: "DELETE",
     }),
 };
@@ -367,10 +382,10 @@ export const appSettingsApi = {
         domains,
       }),
     }),
-  getNewsletterBlacklist: () =>
-    request<NewsletterBlacklistEntry[]>("/app-settings/newsletter-blacklist"),
-  updateNewsletterBlacklist: (entries: NewsletterBlacklistEntry[]) =>
-    request<NewsletterBlacklistEntry[]>("/app-settings/newsletter-blacklist", {
+  getImportBlacklist: () =>
+    request<ImportBlacklistEntry[]>("/app-settings/import-blacklist"),
+  updateImportBlacklist: (entries: ImportBlacklistEntry[]) =>
+    request<ImportBlacklistEntry[]>("/app-settings/import-blacklist", {
       method: "PUT",
       body: JSON.stringify({
         entries,

@@ -13,6 +13,7 @@ import { customPropertyRoutes } from "@/routes/customProperties";
 import { galleryRoutes } from "@/routes/gallery";
 import { healthRoutes } from "@/routes/health";
 import { homepageSectionsRoutes } from "@/routes/homepageSections";
+import { importRoutes } from "@/routes/imports";
 import { customAspectRatioRoutes } from "@/routes/customAspectRatios";
 import { pinnedSidebarItemRoutes } from "@/routes/pinnedSidebarItems";
 import { favoriteSettingsPageRoutes } from "@/routes/favoriteSettingsPages";
@@ -142,7 +143,11 @@ export async function buildApp(): Promise<FastifyInstance> {
           },
           {
             name: "newsletters",
-            description: "Newsletter ingest: extract candidate article links into a review queue",
+            description: "Newsletters publication taxonomy: CRUD and a newsletter's issues",
+          },
+          {
+            name: "imports",
+            description: "Imports: ingest links into the Inbox review queue, approve/reject/block, purge",
           },
         ],
       },
@@ -159,6 +164,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(healthRoutes);
   await app.register(metadataRoutes);
   await app.register(newsletterRoutes);
+  await app.register(importRoutes);
   await app.register(bookmarkRoutes);
   await app.register(tagRoutes);
   await app.register(websiteRoutes);
