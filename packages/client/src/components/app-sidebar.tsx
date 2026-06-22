@@ -25,6 +25,7 @@ import {
 import { CollapsibleSection, SidebarNavSection, SidebarResizeHandle } from "./app-sidebar-sections";
 import { useViewPanelClick } from "./panel/useEditPanelClick";
 import { SettingsFavoritesFlyout } from "./SettingsFavoritesFlyout";
+import { useAdvancedSettings } from "../hooks/useAppSettings";
 import { useAutofillRules } from "../hooks/useAutofill";
 import { useBookmarks } from "../hooks/useBookmarks";
 import { useCategories } from "../hooks/useCategories";
@@ -194,10 +195,13 @@ export function AppSidebar({
   const hiddenCustomizationItems = useUiStore(s => s.hiddenCustomizationItems);
   const hiddenSidebarGroups = useUiStore(s => s.hiddenSidebarGroups);
   const modifier = useUiStore(s => s.sidebarOpenModifier);
-  const coolifyLinkEnabled = useUiStore(s => s.coolifyLinkEnabled);
-  const coolifyUrl = useUiStore(s => s.coolifyUrl);
-  const docsLinkEnabled = useUiStore(s => s.docsLinkEnabled);
-  const storybookLinkEnabled = useUiStore(s => s.storybookLinkEnabled);
+  const {
+    data: advancedSettings,
+  } = useAdvancedSettings();
+  const coolifyLinkEnabled = advancedSettings?.coolifyLinkEnabled ?? false;
+  const coolifyUrl = advancedSettings?.coolifyUrl ?? "";
+  const docsLinkEnabled = advancedSettings?.docsLinkEnabled ?? false;
+  const storybookLinkEnabled = advancedSettings?.storybookLinkEnabled ?? false;
   const viewClick = useViewPanelClick();
 
   const visibleCategories = (categories ?? []).filter(
@@ -532,71 +536,77 @@ export function AppSidebar({
             />
           )
           : null}
-      </SidebarContent>
-      <SidebarFooter>
+
         {(coolifyLinkEnabled && coolifyUrl.trim() !== "") || docsLinkEnabled || storybookLinkEnabled
           ? (
-            <SidebarMenu>
-              {coolifyLinkEnabled && coolifyUrl.trim() !== ""
-                ? (
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      asChild
-                      tooltip="Coolify"
-                    >
-                      <a
-                        href={coolifyUrl}
-                        target="_blank"
-                        rel="noreferrer"
+            <CollapsibleSection
+              sectionKey="advanced"
+              label="Advanced"
+            >
+              <SidebarMenu>
+                {coolifyLinkEnabled && coolifyUrl.trim() !== ""
+                  ? (
+                    <SidebarMenuItem>
+                      <SidebarMenuButton
+                        asChild
+                        tooltip="Coolify"
                       >
-                        <Server />
-                        <span>Coolify</span>
-                      </a>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )
-                : null}
-              {docsLinkEnabled
-                ? (
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      asChild
-                      tooltip="Docs"
-                    >
-                      <a
-                        href="/docs"
-                        target="_blank"
-                        rel="noreferrer"
+                        <a
+                          href={coolifyUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          <Server />
+                          <span>Coolify</span>
+                        </a>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )
+                  : null}
+                {docsLinkEnabled
+                  ? (
+                    <SidebarMenuItem>
+                      <SidebarMenuButton
+                        asChild
+                        tooltip="Docs"
                       >
-                        <BookOpen />
-                        <span>Docs</span>
-                      </a>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )
-                : null}
-              {storybookLinkEnabled
-                ? (
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      asChild
-                      tooltip="Storybook"
-                    >
-                      <a
-                        href="/storybook"
-                        target="_blank"
-                        rel="noreferrer"
+                        <a
+                          href="/docs"
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          <BookOpen />
+                          <span>Docs</span>
+                        </a>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )
+                  : null}
+                {storybookLinkEnabled
+                  ? (
+                    <SidebarMenuItem>
+                      <SidebarMenuButton
+                        asChild
+                        tooltip="Storybook"
                       >
-                        <Palette />
-                        <span>Storybook</span>
-                      </a>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )
-                : null}
-            </SidebarMenu>
+                        <a
+                          href="/storybook"
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          <Palette />
+                          <span>Storybook</span>
+                        </a>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )
+                  : null}
+              </SidebarMenu>
+            </CollapsibleSection>
           )
           : null}
+      </SidebarContent>
+      <SidebarFooter>
         <SettingsFavoritesFlyout pathname={pathname} />
       </SidebarFooter>
       <SidebarResizeHandle />

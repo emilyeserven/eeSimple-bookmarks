@@ -237,6 +237,12 @@ export const apiHandlers = [
   })),
   http.get("/api/media-types", () => HttpResponse.json(sampleMediaTypes)),
   http.get("/api/youtube-channels", () => HttpResponse.json(sampleChannels)),
+  http.get("/api/app-settings/advanced", () => HttpResponse.json({
+    coolifyLinkEnabled: true,
+    coolifyUrl: "https://coolify.example.com",
+    docsLinkEnabled: true,
+    storybookLinkEnabled: true,
+  })),
   http.get("/api/bookmarks/homepage", () => HttpResponse.json([sampleBookmark])),
   http.post("/api/bookmarks", () => HttpResponse.json(sampleBookmark, {
     status: 201,
