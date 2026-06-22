@@ -2,6 +2,7 @@ import type { AdvancedSettings as AdvancedSettingsValues } from "@eesimple/types
 
 import { useEffect, useState } from "react";
 
+import { DatabaseUsageCard } from "./DatabaseUsageCard";
 import { useAdvancedSettings, useUpdateAdvancedSettings } from "../hooks/useAppSettings";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
@@ -168,6 +169,8 @@ export function AdvancedSettings() {
           </div>
         </CardContent>
       </Card>
+
+      <DatabaseUsageCard />
     </div>
   );
 }
