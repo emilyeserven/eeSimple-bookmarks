@@ -60,6 +60,10 @@ export const SETTINGS_PAGES: readonly SettingsPage[] = [
     path: "/settings/more-customization",
     label: "Customization",
   },
+  {
+    path: "/settings/advanced",
+    label: "Advanced",
+  },
   // Management / customization pages outside the /settings/ route
   {
     path: "/categories",

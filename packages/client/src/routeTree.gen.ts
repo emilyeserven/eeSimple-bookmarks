@@ -44,6 +44,7 @@ import { Route as SettingsCustomPropertiesRouteImport } from './routes/settings.
 import { Route as SettingsCardDisplayRulesRouteImport } from './routes/settings.card-display-rules'
 import { Route as SettingsAutomationsRouteImport } from './routes/settings.automations'
 import { Route as SettingsAutofillRouteImport } from './routes/settings.autofill'
+import { Route as SettingsAdvancedRouteImport } from './routes/settings.advanced'
 import { Route as CustomPropertiesNewRouteImport } from './routes/custom-properties.new'
 import { Route as CustomPropertiesPropertySlugRouteImport } from './routes/custom-properties.$propertySlug'
 import { Route as CategoriesCategorySlugRouteImport } from './routes/categories.$categorySlug'
@@ -328,6 +329,11 @@ const SettingsAutomationsRoute = SettingsAutomationsRouteImport.update({
 const SettingsAutofillRoute = SettingsAutofillRouteImport.update({
   id: '/autofill',
   path: '/autofill',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsAdvancedRoute = SettingsAdvancedRouteImport.update({
+  id: '/advanced',
+  path: '/advanced',
   getParentRoute: () => SettingsRoute,
 } as any)
 const CustomPropertiesNewRoute = CustomPropertiesNewRouteImport.update({
@@ -943,6 +949,7 @@ export interface FileRoutesByFullPath {
   '/categories/$categorySlug': typeof CategoriesCategorySlugViewRouteWithChildren
   '/custom-properties/$propertySlug': typeof CustomPropertiesPropertySlugViewRouteWithChildren
   '/custom-properties/new': typeof CustomPropertiesNewRoute
+  '/settings/advanced': typeof SettingsAdvancedRoute
   '/settings/autofill': typeof SettingsAutofillRoute
   '/settings/automations': typeof SettingsAutomationsRoute
   '/settings/card-display-rules': typeof SettingsCardDisplayRulesRoute
@@ -1066,6 +1073,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/custom-properties/new': typeof CustomPropertiesNewRoute
+  '/settings/advanced': typeof SettingsAdvancedRoute
   '/settings/autofill': typeof SettingsAutofillRoute
   '/settings/automations': typeof SettingsAutomationsRoute
   '/settings/card-display-rules': typeof SettingsCardDisplayRulesRoute
@@ -1181,6 +1189,7 @@ export interface FileRoutesById {
   '/categories/$categorySlug': typeof CategoriesCategorySlugRouteWithChildren
   '/custom-properties/$propertySlug': typeof CustomPropertiesPropertySlugRouteWithChildren
   '/custom-properties/new': typeof CustomPropertiesNewRoute
+  '/settings/advanced': typeof SettingsAdvancedRoute
   '/settings/autofill': typeof SettingsAutofillRoute
   '/settings/automations': typeof SettingsAutomationsRoute
   '/settings/card-display-rules': typeof SettingsCardDisplayRulesRoute
@@ -1324,6 +1333,7 @@ export interface FileRouteTypes {
     | '/categories/$categorySlug'
     | '/custom-properties/$propertySlug'
     | '/custom-properties/new'
+    | '/settings/advanced'
     | '/settings/autofill'
     | '/settings/automations'
     | '/settings/card-display-rules'
@@ -1447,6 +1457,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/custom-properties/new'
+    | '/settings/advanced'
     | '/settings/autofill'
     | '/settings/automations'
     | '/settings/card-display-rules'
@@ -1561,6 +1572,7 @@ export interface FileRouteTypes {
     | '/categories/$categorySlug'
     | '/custom-properties/$propertySlug'
     | '/custom-properties/new'
+    | '/settings/advanced'
     | '/settings/autofill'
     | '/settings/automations'
     | '/settings/card-display-rules'
@@ -1950,6 +1962,13 @@ declare module '@tanstack/react-router' {
       path: '/autofill'
       fullPath: '/settings/autofill'
       preLoaderRoute: typeof SettingsAutofillRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/advanced': {
+      id: '/settings/advanced'
+      path: '/advanced'
+      fullPath: '/settings/advanced'
+      preLoaderRoute: typeof SettingsAdvancedRouteImport
       parentRoute: typeof SettingsRoute
     }
     '/custom-properties/new': {
@@ -2983,6 +3002,7 @@ const CustomPropertiesRouteWithChildren =
   CustomPropertiesRoute._addFileChildren(CustomPropertiesRouteChildren)
 
 interface SettingsRouteChildren {
+  SettingsAdvancedRoute: typeof SettingsAdvancedRoute
   SettingsAutofillRoute: typeof SettingsAutofillRoute
   SettingsAutomationsRoute: typeof SettingsAutomationsRoute
   SettingsCardDisplayRulesRoute: typeof SettingsCardDisplayRulesRoute
@@ -3003,6 +3023,7 @@ interface SettingsRouteChildren {
 }
 
 const SettingsRouteChildren: SettingsRouteChildren = {
+  SettingsAdvancedRoute: SettingsAdvancedRoute,
   SettingsAutofillRoute: SettingsAutofillRoute,
   SettingsAutomationsRoute: SettingsAutomationsRoute,
   SettingsCardDisplayRulesRoute: SettingsCardDisplayRulesRoute,

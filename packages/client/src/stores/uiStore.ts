@@ -172,6 +172,18 @@ interface UiState {
     hasFilters: boolean;
     showsCards: boolean;
     createAction?: () => void; } | null) => void;
+  /** When on, the left sidebar footer shows a link to the Coolify instance (opens in a new tab). */
+  coolifyLinkEnabled: boolean;
+  setCoolifyLinkEnabled: (value: boolean) => void;
+  /** URL of the Coolify instance shown in the sidebar when `coolifyLinkEnabled` is on. */
+  coolifyUrl: string;
+  setCoolifyUrl: (value: string) => void;
+  /** When on, the left sidebar footer shows a link to the Swagger/OpenAPI docs at `/docs`. */
+  docsLinkEnabled: boolean;
+  setDocsLinkEnabled: (value: boolean) => void;
+  /** When on, the left sidebar footer shows a link to the Storybook UI at `/storybook`. */
+  storybookLinkEnabled: boolean;
+  setStorybookLinkEnabled: (value: boolean) => void;
   /** Transient: true while a listing page with header-search support is mounted. Never persisted. */
   headerSearchActive: boolean;
   setHeaderSearchActive: (active: boolean) => void;
@@ -371,6 +383,22 @@ export const useUiStore = create<UiState>()(
       setListingPage: page => set({
         listingPage: page,
       }),
+      coolifyLinkEnabled: false,
+      setCoolifyLinkEnabled: value => set({
+        coolifyLinkEnabled: value,
+      }),
+      coolifyUrl: "",
+      setCoolifyUrl: value => set({
+        coolifyUrl: value,
+      }),
+      docsLinkEnabled: false,
+      setDocsLinkEnabled: value => set({
+        docsLinkEnabled: value,
+      }),
+      storybookLinkEnabled: false,
+      setStorybookLinkEnabled: value => set({
+        storybookLinkEnabled: value,
+      }),
       headerSearchActive: false,
       setHeaderSearchActive: active => set({
         headerSearchActive: active,
@@ -430,6 +458,10 @@ export const useUiStore = create<UiState>()(
         bookmarkDetailImageSize: state.bookmarkDetailImageSize,
         bookmarkDetailVideoSize: state.bookmarkDetailVideoSize,
         bookmarkDetailLayout: state.bookmarkDetailLayout,
+        coolifyLinkEnabled: state.coolifyLinkEnabled,
+        coolifyUrl: state.coolifyUrl,
+        docsLinkEnabled: state.docsLinkEnabled,
+        storybookLinkEnabled: state.storybookLinkEnabled,
       }),
     },
   ),

@@ -57,6 +57,10 @@ const settingsNav: readonly TabNavEntry[] = [
         to: "/settings/more-customization",
         label: "Customization",
       },
+      {
+        to: "/settings/advanced",
+        label: "Advanced",
+      },
     ],
   },
 ] as const;
