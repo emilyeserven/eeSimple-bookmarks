@@ -11,6 +11,7 @@ import {
   reorderHomepageSections,
   updateHomepageSection,
 } from "@/services/homepageSections";
+import { cardZoneLayoutsSchema, fieldZonesSchema } from "@/routes/cardFieldZonesSchema";
 
 const sectionParams = {
   type: "object",
@@ -62,6 +63,8 @@ const createBody = {
       type: "string",
       enum: ["cards", "table"],
     },
+    fieldZones: fieldZonesSchema,
+    cardZoneLayouts: cardZoneLayoutsSchema,
     hiddenCardFields: {
       type: "array",
       items: {
@@ -115,6 +118,8 @@ const updateBody = {
       type: "string",
       enum: ["cards", "table"],
     },
+    fieldZones: fieldZonesSchema,
+    cardZoneLayouts: cardZoneLayoutsSchema,
     hiddenCardFields: {
       type: "array",
       items: {
