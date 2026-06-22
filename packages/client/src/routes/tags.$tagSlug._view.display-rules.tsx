@@ -1,22 +1,16 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
-import { tagWorkbench } from "../components/workbench/tag";
-import { WorkbenchRouteTab } from "../components/workbench/WorkbenchRouteTab";
-
+/** The per-entity Display Rules tab now lives on the consolidated Settings → Card Display Rules page, filtered. */
 export const Route = createFileRoute("/tags/$tagSlug/_view/display-rules")({
-  component: DisplayRulesViewTab,
+  beforeLoad: ({
+    params,
+  }) => {
+    throw redirect({
+      to: "/settings/card-display-rules",
+      search: {
+        scope: "tag",
+        scopeSlug: params.tagSlug,
+      },
+    });
+  },
 });
-
-function DisplayRulesViewTab() {
-  const {
-    tagSlug,
-  } = Route.useParams();
-  return (
-    <WorkbenchRouteTab
-      workbench={tagWorkbench}
-      tabKey="display-rules"
-      mode="view"
-      slug={tagSlug}
-    />
-  );
-}

@@ -107,6 +107,27 @@ The shared list component must already accept **entity-scope filter props** (e.g
   `custom-properties.$propertySlug.{_view,edit}.autofill.tsx`.
 - The 6 workbench descriptors: `components/workbench/{category,tag,website,mediaType,youtubeChannel,property}.tsx`.
 
+## Reference implementation (Card Display Rules → Settings → Card Display Rules)
+
+A second, **simpler** application of this pattern (see the `display-rules-tab` skill). The shared list
+(`components/CardDisplayRulesList.tsx`) **already** accepted the scope props (`categoryId`/`propertyId`/
+`websiteId`/`tagId`/`mediaTypeId`/`channelId`), resolved website→domain & property→valueKind itself,
+and self-seeded scoped creation — so there was **no in-page filter state to lift** and **no category /
+text filter to carry**. The URL search is therefore just `{ scope?, scopeSlug? }` (no `category`/`q`),
+and step 6 (create-prefill hook) is unneeded (the list seeds from its own props).
+
+- `lib/cardDisplayScope.ts` (+ `.test.ts`) — `CardDisplayScopeType`, `CardDisplayListSearch`,
+  `validateCardDisplayListSearch`.
+- `hooks/useCardDisplayScope.ts` (+ `.test.ts`) — `resolveCardDisplayScope` (pure) + hook →
+  `{ active, label, listProps }`, `CARD_DISPLAY_SCOPE_LABELS`.
+- `routes/settings.card-display-rules.tsx` — `validateSearch`; unscoped → the drag-sortable
+  `CardDisplayRulesSettings`; scoped → clearable chip + `CardDisplayRulesList {...listProps}`.
+- The 12 redirect routes: `categories.$categorySlug.{_view,edit}.display-rules.tsx`,
+  `tags.$tagSlug.{_view,edit}.display-rules.tsx`,
+  `taxonomies.{websites.$websiteSlug,media-types.$mediaTypeSlug,youtube-channels.$channelSlug}.{_view,edit}.display-rules.tsx`,
+  `custom-properties.$propertySlug.{_view,edit}.display-rules.tsx`.
+- The 6 workbench descriptors: `components/workbench/{category,tag,website,mediaType,youtubeChannel,property}.tsx`.
+
 ## Verify
 
 ```

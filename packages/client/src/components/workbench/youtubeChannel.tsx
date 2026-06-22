@@ -4,7 +4,6 @@ import type { YouTubeChannel } from "@eesimple/types";
 
 import { MonitorPlay } from "lucide-react";
 
-import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import { EntityImagePreview } from "../EntityImageField";
 import { SourceAutofillDefaults } from "../SourceAutofillDefaults";
 import { YouTubeChannelGeneralForm } from "../YouTubeChannelGeneralForm";
@@ -104,24 +103,6 @@ export const youtubeChannelWorkbench: EntityWorkbench<YouTubeChannel> = {
         render: ({
           entity,
         }) => <YouTubeChannelGeneralForm channel={entity} />,
-      },
-    },
-    {
-      key: "display-rules",
-      label: "Display Rules",
-      view: {
-        title: "Display Rules",
-        description: "Card display rules whose conditions target this YouTube channel.",
-        render: ({
-          entity,
-        }) => <CardDisplayRulesList channelId={entity.id} />,
-      },
-      edit: {
-        title: "Display Rules",
-        description: "Card display rules whose conditions target this YouTube channel. New rules created here target this channel by default.",
-        render: ({
-          entity,
-        }) => <CardDisplayRulesList channelId={entity.id} />,
       },
     },
   ],

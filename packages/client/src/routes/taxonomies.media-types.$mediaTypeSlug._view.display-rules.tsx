@@ -1,22 +1,16 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
-import { mediaTypeWorkbench } from "../components/workbench/mediaType";
-import { WorkbenchRouteTab } from "../components/workbench/WorkbenchRouteTab";
-
+/** The per-entity Display Rules tab now lives on the consolidated Settings → Card Display Rules page, filtered. */
 export const Route = createFileRoute("/taxonomies/media-types/$mediaTypeSlug/_view/display-rules")({
-  component: DisplayRulesViewTab,
+  beforeLoad: ({
+    params,
+  }) => {
+    throw redirect({
+      to: "/settings/card-display-rules",
+      search: {
+        scope: "media-type",
+        scopeSlug: params.mediaTypeSlug,
+      },
+    });
+  },
 });
-
-function DisplayRulesViewTab() {
-  const {
-    mediaTypeSlug,
-  } = Route.useParams();
-  return (
-    <WorkbenchRouteTab
-      workbench={mediaTypeWorkbench}
-      tabKey="display-rules"
-      mode="view"
-      slug={mediaTypeSlug}
-    />
-  );
-}
