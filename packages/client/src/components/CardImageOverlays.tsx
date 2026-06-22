@@ -9,7 +9,7 @@ export interface CardOverlayItem {
   /** Stable key (standard field key or custom-property id). */
   key: string;
   corner: CardImageCorner;
-  /** Desktop overlay scale (1, 1.5, or 2). */
+  /** Desktop overlay scale (0.75, 1, 1.5, or 2). */
   scale: number;
   /** Mobile overlay scale; `null` inherits `scale`. */
   mobileScale: number | null;

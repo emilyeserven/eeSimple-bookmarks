@@ -37,11 +37,11 @@ export const fieldZonesSchema = {
             },
             scale: {
               type: "number",
-              enum: [1, 1.5, 2],
+              enum: [0.75, 1, 1.5, 2],
             },
             mobileScale: {
               type: ["number", "null"],
-              enum: [1, 1.5, 2, null],
+              enum: [0.75, 1, 1.5, 2, null],
             },
             hideLabel: {
               type: "boolean",

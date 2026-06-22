@@ -798,7 +798,7 @@ export function zoneToCorner(zone: CardFieldZone): CardImageCorner | null {
  */
 export interface CardFieldPlacement {
   key: string;
-  /** Overlay scale factor (1, 1.5, or 2); omitted/`1` is normal size. Image zones only. */
+  /** Overlay scale factor (0.75, 1, 1.5, or 2); omitted/`1` is normal size. Image zones only. */
   scale?: number;
   /** Mobile overlay scale; `null`/omitted inherits `scale`. Image zones only. */
   mobileScale?: number | null;

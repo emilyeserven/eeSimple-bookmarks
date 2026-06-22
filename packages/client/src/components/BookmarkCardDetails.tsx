@@ -116,9 +116,13 @@ function alignItemsClass(layout: CardZoneLayout, fallback: CardZoneVerticalAlign
   return ALIGN_ITEMS[layout.alignItems ?? fallback];
 }
 
-/** The flex direction + wrap classes for a zone's resolved layout (defaults to `row` / `wrap`). */
-function flexFlowClass(layout: CardZoneLayout): string {
-  return `${DIRECTION_CLASS[layout.direction ?? "row"]} ${WRAP_CLASS[layout.wrap ?? "wrap"]}`;
+/**
+ * The flex direction + wrap classes for a zone's resolved layout. `fallbackDirection` is the prior
+ * hard-coded direction for that container (`row` for the label/table zones, `column` for the
+ * single-column zones) so an unset `direction` keeps today's look.
+ */
+function flexFlowClass(layout: CardZoneLayout, fallbackDirection: CardZoneDirection = "row"): string {
+  return `${DIRECTION_CLASS[layout.direction ?? fallbackDirection]} ${WRAP_CLASS[layout.wrap ?? "wrap"]}`;
 }
 
 /**
@@ -440,41 +444,11 @@ export function BookmarkCardDetails({
     const form = zoneForm(zone);
     const layout = zoneLayout(zone, cardZoneLayouts);
     if (form === "table") {
-      // Grid: the classic two-column `label : value` table. Flex: each pair wraps inline.
-      if (layout.mode === "flex") {
-        return (
-          <div
-            key={zone}
-            className={`
-              mt-2 flex
-              ${flexFlowClass(layout)}
-              ${alignItemsClass(layout, "center")}
-              ${gapClass(layout)}
-              ${justifyClass(layout)}
-            `}
-          >
-            {entries.map(entry => (
-              <span
-                key={entry.key}
-                className="flex min-w-0 items-center gap-1 text-sm"
-              >
-                {entry.hideLabel
-                  ? null
-                  : <span className="font-medium text-muted-foreground">{entry.render.tableName}</span>}
-                <span className="min-w-0">{entry.render.tableValue}</span>
-              </span>
-            ))}
-          </div>
-        );
-      }
+      // The Table zone is always the fixed two-column `label : value` table — it has no layout rules.
       return (
         <dl
           key={zone}
-          className={`
-            mt-2 grid grid-cols-[auto_1fr]
-            ${alignItemsClass(layout, "center")}
-            ${gapClass(layout)}
-          `}
+          className="mt-2 grid grid-cols-[auto_1fr] items-center gap-2"
         >
           {entries.map(entry => (
             entry.hideLabel
@@ -535,10 +509,11 @@ export function BookmarkCardDetails({
     const actionEntries = entries.filter(entry => entry.key === "externalLink" || entry.key === "more");
     const restEntries = entries.filter(entry => !HEADER_FIELD_KEYS.has(entry.key));
     const hasHeader = titleEntry !== undefined || actionEntries.length > 0;
-    // Grid arranges the non-header rows in two columns; flex stacks them full-width (the default).
+    // Grid arranges the non-header rows in two columns; flex honors the zone's resolved layout
+    // (direction defaults to `column` so an unset layout still stacks full-width like before).
     const restClass = layout.mode === "grid"
       ? `grid grid-cols-2 ${alignItemsClass(layout, "stretch")} ${gapClass(layout)}`
-      : `flex flex-col ${alignItemsClass(layout, "stretch")} ${gapClass(layout)}`;
+      : `flex ${flexFlowClass(layout, "column")} ${alignItemsClass(layout, "stretch")} ${justifyClass(layout)} ${gapClass(layout)}`;
     return (
       <div
         key={zone}
@@ -546,7 +521,12 @@ export function BookmarkCardDetails({
       >
         {hasHeader
           ? (
-            <div className="flex items-start justify-between gap-4">
+            <div
+              className={`
+                flex items-start justify-between
+                ${gapClass(layout)}
+              `}
+            >
               <div className="min-w-0">{titleEntry?.render.block}</div>
               {actionEntries.length > 0
                 ? (
