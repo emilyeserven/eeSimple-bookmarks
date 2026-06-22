@@ -1,6 +1,9 @@
 import type { TreeComboboxOption } from "./TreeMultiCombobox";
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
 import type { Bookmark, Category, CustomProperty, MediaType, PropertyGroup, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
+import type { ReactNode } from "react";
+
+import { Fragment } from "react";
 
 import { ChevronDown, Globe, MonitorPlay, Share2, TriangleAlert } from "lucide-react";
 
@@ -51,96 +54,115 @@ export function FilterSections({
   hasRelationshipTypeFilter: boolean;
 }) {
   return (
+    <SeparatedSections
+      sections={[
+        {
+          key: "tags",
+          show: hasTags,
+          node: (
+            <TagsFilterSection
+              tree={tree}
+              search={search}
+              onSearchChange={onSearchChange}
+            />
+          ),
+        },
+        {
+          key: "categories",
+          show: hasCategoryFilter,
+          node: (
+            <CategoryFilterSection
+              categories={categories}
+              search={search}
+              onSearchChange={onSearchChange}
+            />
+          ),
+        },
+        {
+          key: "media-types",
+          show: hasMediaTypeFilter,
+          node: (
+            <MediaTypeFilterSection
+              mediaTypes={mediaTypes}
+              search={search}
+              onSearchChange={onSearchChange}
+            />
+          ),
+        },
+        {
+          key: "channels",
+          show: hasChannelFilter,
+          node: (
+            <YouTubeChannelFilterSection
+              youtubeChannels={youtubeChannels}
+              search={search}
+              onSearchChange={onSearchChange}
+            />
+          ),
+        },
+        {
+          key: "websites",
+          show: hasWebsiteFilter,
+          node: (
+            <WebsiteFilterSection
+              websites={websites}
+              search={search}
+              onSearchChange={onSearchChange}
+            />
+          ),
+        },
+        {
+          key: "relationship-types",
+          show: hasRelationshipTypeFilter,
+          node: (
+            <RelationshipTypeFilterSection
+              relationshipTypes={relationshipTypes}
+              search={search}
+              onSearchChange={onSearchChange}
+            />
+          ),
+        },
+        {
+          key: "properties",
+          show: hasProperties,
+          node: (
+            <PropertiesFilterSection
+              enabledProperties={enabledProperties}
+              propertyGroups={propertyGroups}
+              categories={categories}
+              bookmarks={bookmarks}
+              search={search}
+              onSearchChange={onSearchChange}
+              hasCategoryFilter={hasCategoryFilter}
+            />
+          ),
+        },
+      ]}
+    />
+  );
+}
+
+interface FilterSectionEntry {
+  key: string;
+  show: boolean;
+  node: ReactNode;
+}
+
+/** Render the shown sections in order, inserting a `<Separator />` before each one after the first. */
+function SeparatedSections({
+  sections,
+}: {
+  sections: FilterSectionEntry[];
+}) {
+  const shown = sections.filter(section => section.show);
+  return (
     <>
-      {hasTags
-        ? (
-          <TagsFilterSection
-            tree={tree}
-            search={search}
-            onSearchChange={onSearchChange}
-          />
-        )
-        : null}
-
-      {hasTags && (hasCategoryFilter || hasMediaTypeFilter || hasChannelFilter || hasWebsiteFilter || hasRelationshipTypeFilter || hasProperties)
-        ? <Separator />
-        : null}
-
-      {hasCategoryFilter
-        ? (
-          <CategoryFilterSection
-            categories={categories}
-            search={search}
-            onSearchChange={onSearchChange}
-          />
-        )
-        : null}
-
-      {hasCategoryFilter && (hasMediaTypeFilter || hasChannelFilter || hasWebsiteFilter || hasRelationshipTypeFilter || hasProperties)
-        ? <Separator />
-        : null}
-
-      {hasMediaTypeFilter
-        ? (
-          <MediaTypeFilterSection
-            mediaTypes={mediaTypes}
-            search={search}
-            onSearchChange={onSearchChange}
-          />
-        )
-        : null}
-
-      {hasMediaTypeFilter && (hasChannelFilter || hasWebsiteFilter || hasRelationshipTypeFilter || hasProperties) ? <Separator /> : null}
-
-      {hasChannelFilter
-        ? (
-          <YouTubeChannelFilterSection
-            youtubeChannels={youtubeChannels}
-            search={search}
-            onSearchChange={onSearchChange}
-          />
-        )
-        : null}
-
-      {hasChannelFilter && (hasWebsiteFilter || hasRelationshipTypeFilter || hasProperties) ? <Separator /> : null}
-
-      {hasWebsiteFilter
-        ? (
-          <WebsiteFilterSection
-            websites={websites}
-            search={search}
-            onSearchChange={onSearchChange}
-          />
-        )
-        : null}
-
-      {hasWebsiteFilter && (hasRelationshipTypeFilter || hasProperties) ? <Separator /> : null}
-
-      {hasRelationshipTypeFilter
-        ? (
-          <RelationshipTypeFilterSection
-            relationshipTypes={relationshipTypes}
-            search={search}
-            onSearchChange={onSearchChange}
-          />
-        )
-        : null}
-
-      {hasRelationshipTypeFilter && hasProperties ? <Separator /> : null}
-
-      {hasProperties
-        ? (
-          <PropertiesFilterSection
-            enabledProperties={enabledProperties}
-            propertyGroups={propertyGroups}
-            categories={categories}
-            bookmarks={bookmarks}
-            search={search}
-            onSearchChange={onSearchChange}
-            hasCategoryFilter={hasCategoryFilter}
-          />
-        )
-        : null}
+      {shown.map((section, index) => (
+        <Fragment key={section.key}>
+          {index > 0 ? <Separator /> : null}
+          {section.node}
+        </Fragment>
+      ))}
     </>
   );
 }

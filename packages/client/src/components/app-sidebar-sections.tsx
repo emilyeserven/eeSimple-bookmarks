@@ -1,10 +1,11 @@
+import type { SidebarAdvanced } from "./useAppSidebarData";
 import type { LinkProps } from "@tanstack/react-router";
 import type { LucideIcon } from "lucide-react";
 
 import * as React from "react";
 
 import { Link, useRouterState } from "@tanstack/react-router";
-import { ChevronDown } from "lucide-react";
+import { BookOpen, ChevronDown, Palette, Server } from "lucide-react";
 
 import { useResizeHandle } from "../hooks/useResizeHandle";
 import { useUiStore } from "../stores/uiStore";
@@ -131,6 +132,85 @@ export function SidebarNavSection({
         })}
       </SidebarMenu>
     </CollapsibleSection>
+  );
+}
+
+/** External-link "Advanced" group (Coolify / Docs / Storybook), each independently gated. */
+export function SidebarAdvancedSection({
+  advanced,
+}: {
+  advanced: SidebarAdvanced;
+}) {
+  const {
+    coolifyLinkEnabled, coolifyUrl, docsLinkEnabled, storybookLinkEnabled,
+  } = advanced;
+  const showCoolify = coolifyLinkEnabled && coolifyUrl.trim() !== "";
+  if (!showCoolify && !docsLinkEnabled && !storybookLinkEnabled) return null;
+
+  return (
+    <CollapsibleSection
+      sectionKey="advanced"
+      label="Advanced"
+    >
+      <SidebarMenu>
+        {showCoolify
+          ? (
+            <SidebarExternalLink
+              href={coolifyUrl}
+              label="Coolify"
+              icon={<Server />}
+            />
+          )
+          : null}
+        {docsLinkEnabled
+          ? (
+            <SidebarExternalLink
+              href="/docs"
+              label="Docs"
+              icon={<BookOpen />}
+            />
+          )
+          : null}
+        {storybookLinkEnabled
+          ? (
+            <SidebarExternalLink
+              href="/storybook"
+              label="Storybook"
+              icon={<Palette />}
+            />
+          )
+          : null}
+      </SidebarMenu>
+    </CollapsibleSection>
+  );
+}
+
+/** A single external (`target="_blank"`) link row in a sidebar menu. */
+function SidebarExternalLink({
+  href,
+  label,
+  icon,
+}: {
+  href: string;
+  label: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton
+        asChild
+        tooltip={label}
+      >
+        <a
+          href={href}
+          target="_blank"
+          rel="noreferrer"
+        >
+          {icon}
+          <span>{label}</span>
+        </a>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
   );
 }
 

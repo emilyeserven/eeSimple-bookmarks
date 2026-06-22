@@ -1,0 +1,103 @@
+import type { BookmarkSearch } from "../lib/bookmarkSearch";
+import type { Bookmark, Category, CustomProperty, MediaType, PropertyGroup, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
+
+import { useEffect } from "react";
+
+import { usePanelControls } from "./panel/usePanelControls";
+import { useFiltersHidden, useFiltersInDrawer } from "../hooks/useAppSettings";
+import { useSetListingPage } from "../hooks/useListingPage";
+import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
+import { useBookmarkColumns } from "../lib/bookmarkColumns";
+import { useUiStore } from "../stores/uiStore";
+
+/** The filter-context payload shared with the drawer's FiltersPanel via the UI store. */
+export interface BookmarkSearchViewData {
+  pageKey: string;
+  tree: TagNode[];
+  properties: CustomProperty[];
+  propertyGroups?: PropertyGroup[];
+  categories?: Category[];
+  mediaTypes?: MediaType[];
+  youtubeChannels?: YouTubeChannel[];
+  websites?: Website[];
+  relationshipTypes?: RelationshipType[];
+  bookmarks: Bookmark[];
+  search: BookmarkSearch;
+  onSearchChange: (next: BookmarkSearch) => void;
+}
+
+export interface BookmarkSearchViewState {
+  /** Per-page column count for the listing grid. */
+  columns: number;
+  /** True when the left filter rail should be hidden (filters live in the drawer or are off). */
+  hideSidebar: boolean;
+  /** Bookmarks after applying the header quick-search text filter. */
+  textFilteredBookmarks: Bookmark[];
+  /** True when the header quick-search has a non-empty query. */
+  textSearchActive: boolean;
+}
+
+/**
+ * Owns the hook-dense state orchestration for {@link BookmarkSearchView}: the listing-page
+ * registration, header search wiring, settings reads, the drawer filter-context publish/cleanup
+ * effect, and the header text filter — leaving the view component a thin render shell.
+ */
+export function useBookmarkSearchView(data: BookmarkSearchViewData): BookmarkSearchViewState {
+  const {
+    pageKey, tree, properties, propertyGroups, categories, mediaTypes, youtubeChannels,
+    websites, relationshipTypes, bookmarks, search, onSearchChange,
+  } = data;
+
+  useSetListingPage(pageKey, true, true, true);
+  useRegisterHeaderSearch();
+  const columns = useBookmarkColumns(pageKey);
+  const filtersInDrawer = useFiltersInDrawer();
+  const filtersHidden = useFiltersHidden();
+  const setFilterContext = useUiStore(state => state.setFilterContext);
+  const headerSearchQuery = useUiStore(state => state.headerSearchQuery);
+  const {
+    isOpen, dCT, openType,
+  } = usePanelControls();
+  const filtersActiveInDrawer = isOpen && dCT === "filters";
+  const hideSidebar = filtersActiveInDrawer || filtersHidden;
+
+  useEffect(() => {
+    setFilterContext({
+      tree,
+      properties,
+      propertyGroups,
+      categories,
+      mediaTypes,
+      youtubeChannels,
+      websites,
+      relationshipTypes,
+      bookmarks,
+      search,
+      onSearchChange,
+    });
+    return () => setFilterContext(null);
+    // onSearchChange is a new arrow fn each render from the page; stable deps are the data arrays
+  }, [tree, properties, propertyGroups, categories, mediaTypes, youtubeChannels, websites, relationshipTypes, bookmarks, search, onSearchChange, setFilterContext]);
+
+  // Only on mount — intentionally omit filtersInDrawer/isOpen/openType to avoid re-running.
+  useEffect(() => {
+    if (filtersInDrawer && !isOpen) {
+      openType("filters");
+    }
+  }, []);
+
+  const q = headerSearchQuery.trim().toLowerCase();
+  const textFilteredBookmarks = q
+    ? bookmarks.filter(b =>
+      b.title.toLowerCase().includes(q)
+      || b.url.toLowerCase().includes(q)
+      || (b.description ?? "").toLowerCase().includes(q))
+    : bookmarks;
+
+  return {
+    columns,
+    hideSidebar,
+    textFilteredBookmarks,
+    textSearchActive: Boolean(q),
+  };
+}

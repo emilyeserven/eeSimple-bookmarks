@@ -8,6 +8,32 @@ import { useAppForm } from "../lib/form";
 /** One section of the property form, used to render a single tab on the edit pages. */
 export type PropertyFormSection = "general" | "options" | "categories" | "media-types" | "display";
 
+/** Which property-form sections render: all of them in the full form, or just the one named tab. */
+export interface PropertySectionVisibility {
+  full: boolean;
+  showGeneral: boolean;
+  showOptions: boolean;
+  showCategories: boolean;
+  showMediaTypes: boolean;
+  showDisplay: boolean;
+}
+
+/**
+ * Resolve which sections to show from the optional `section` tab. Extracted as a pure helper so the
+ * five `full || section === …` derivations stay out of the component (keeping it under the cap).
+ */
+export function sectionVisibility(section?: PropertyFormSection): PropertySectionVisibility {
+  const full = section === undefined;
+  return {
+    full,
+    showGeneral: full || section === "general",
+    showOptions: full || section === "options",
+    showCategories: full || section === "categories",
+    showMediaTypes: full || section === "media-types",
+    showDisplay: full || section === "display",
+  };
+}
+
 export const propertySchema = z
   .object({
     name: z.string().trim().min(1, "Name is required"),

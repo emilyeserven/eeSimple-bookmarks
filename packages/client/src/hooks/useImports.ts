@@ -15,23 +15,6 @@ const ISSUES_KEY = ["newsletter-issues"] as const;
 const BOOKMARKS_KEY = ["bookmarks"] as const;
 const IMPORT_BLACKLIST_KEY = ["app-settings", "import-blacklist"] as const;
 
-/** List all imports with per-status counts (newest first). */
-export function useImports() {
-  return useQuery({
-    queryKey: IMPORTS_KEY,
-    queryFn: importApi.listImports,
-  });
-}
-
-/** One import with its candidate items. */
-export function useImport(id: string) {
-  return useQuery({
-    queryKey: [...IMPORTS_KEY, id],
-    queryFn: () => importApi.getImport(id),
-    enabled: Boolean(id),
-  });
-}
-
 /** Every import item across all imports — the Inbox review queue. */
 export function useInboxItems() {
   return useQuery({
@@ -137,20 +120,6 @@ export function useApproveImportItem() {
   const invalidate = useInvalidateInbox();
   return useMutation({
     mutationFn: (itemId: string) => importApi.approveItem(itemId),
-    onSuccess: () => {
-      invalidate();
-      void queryClient.invalidateQueries({
-        queryKey: BOOKMARKS_KEY,
-      });
-    },
-  });
-}
-
-export function useApproveImport(importId: string) {
-  const queryClient = useQueryClient();
-  const invalidate = useInvalidateInbox();
-  return useMutation({
-    mutationFn: () => importApi.approveImport(importId),
     onSuccess: () => {
       invalidate();
       void queryClient.invalidateQueries({

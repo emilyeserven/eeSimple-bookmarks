@@ -84,131 +84,161 @@ export function CategoryCustomFields({
           sm:grid-cols-2
         "
       >
-        {categoryProps.map((property) => {
-          if (property.type === "number") {
-            return (
-              <div
-                key={property.id}
-                className="space-y-1"
-              >
-                <Label htmlFor={`property-${property.id}`}>
-                  {property.name}
-                  {property.unitPlural ? ` (${property.unitPlural})` : ""}
-                </Label>
-                <Input
-                  id={`property-${property.id}`}
-                  type="number"
-                  value={numberInputs[property.id] ?? ""}
-                  onChange={event => onNumberChange(property.id, event.target.value)}
-                />
-                {property.description
-                  ? <p className="text-xs text-muted-foreground">{property.description}</p>
-                  : null}
-              </div>
-            );
-          }
-          if (property.type === "boolean") {
-            return (
-              <div
-                key={property.id}
-                className="space-y-1 self-end"
-              >
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id={`property-${property.id}`}
-                    checked={booleanInputs[property.id] ?? false}
-                    onCheckedChange={checked => onBooleanChange(property.id, checked === true)}
-                  />
-                  <Label htmlFor={`property-${property.id}`}>{property.name}</Label>
-                </div>
-                {property.description
-                  ? <p className="text-xs text-muted-foreground">{property.description}</p>
-                  : null}
-              </div>
-            );
-          }
-          if (property.type === "datetime") {
-            return (
-              <div
-                key={property.id}
-                className="space-y-1"
-              >
-                <Label htmlFor={`property-${property.id}`}>{property.name}</Label>
-                <DateTimePicker
-                  id={`property-${property.id}`}
-                  format={property.dateTimeFormat ?? "date"}
-                  value={dateTimeInputs[property.id] ?? null}
-                  onChange={value => onDateTimeChange(property.id, value ?? "")}
-                />
-                {property.description
-                  ? <p className="text-xs text-muted-foreground">{property.description}</p>
-                  : null}
-              </div>
-            );
-          }
-          if (property.type === "ratingScale") {
-            const raw = numberInputs[property.id];
-            return (
-              <div
-                key={property.id}
-                className="space-y-1"
-              >
-                <Label>{property.name}</Label>
-                <div>
-                  <StarRating
-                    value={raw ? Number(raw) : 0}
-                    max={property.ratingMax ?? 5}
-                    allowHalf={property.ratingAllowHalf}
-                    allowZero={property.ratingAllowZero}
-                    onChange={value => onNumberChange(property.id, String(value))}
-                  />
-                </div>
-                {property.description
-                  ? <p className="text-xs text-muted-foreground">{property.description}</p>
-                  : null}
-              </div>
-            );
-          }
-          if (property.type === "image" || property.type === "file") {
-            // Blobs upload against an existing bookmark id, so on the create form (no bookmark yet)
-            // show a hint instead of the upload control.
-            if (!bookmark) {
-              return (
-                <div
-                  key={property.id}
-                  className="space-y-1"
-                >
-                  <Label>{property.name}</Label>
-                  <p className="text-xs text-muted-foreground">
-                    Save the bookmark first, then attach a
-                    {property.type === "image" ? "n image" : " file"}
-                    .
-                  </p>
-                </div>
-              );
-            }
-            return (
-              <BookmarkPropertyFileField
-                key={property.id}
-                bookmarkId={bookmark.id}
-                property={property}
-                value={bookmark.fileValues.find(entry => entry.propertyId === property.id)}
-              />
-            );
-          }
-          // calculate: computed server-side; shown read-only so the user knows it exists.
-          return (
-            <div
-              key={property.id}
-              className="space-y-1"
-            >
-              <Label>{property.name}</Label>
-              <p className="text-xs text-muted-foreground">Calculated automatically when saved.</p>
-            </div>
-          );
-        })}
+        {categoryProps.map(property => (
+          <CategoryPropertyField
+            key={property.id}
+            property={property}
+            bookmark={bookmark}
+            numberInputs={numberInputs}
+            booleanInputs={booleanInputs}
+            dateTimeInputs={dateTimeInputs}
+            onNumberChange={onNumberChange}
+            onBooleanChange={onBooleanChange}
+            onDateTimeChange={onDateTimeChange}
+          />
+        ))}
       </div>
     </div>
+  );
+}
+
+/** The optional muted description line shown under most property fields. */
+function FieldDescription({
+  text,
+}: {
+  text: string | null | undefined;
+}) {
+  if (!text) return null;
+  return <p className="text-xs text-muted-foreground">{text}</p>;
+}
+
+interface CategoryPropertyFieldProps {
+  property: CustomProperty;
+  bookmark: Bookmark | null;
+  numberInputs: Record<string, string>;
+  booleanInputs: Record<string, boolean>;
+  dateTimeInputs: Record<string, string>;
+  onNumberChange: (propertyId: string, value: string) => void;
+  onBooleanChange: (propertyId: string, value: boolean) => void;
+  onDateTimeChange: (propertyId: string, value: string) => void;
+}
+
+/** Renders the single input appropriate to one custom property's type. */
+function CategoryPropertyField({
+  property, bookmark, numberInputs, booleanInputs, dateTimeInputs,
+  onNumberChange, onBooleanChange, onDateTimeChange,
+}: CategoryPropertyFieldProps) {
+  const fieldId = `property-${property.id}`;
+
+  if (property.type === "number") {
+    return (
+      <div className="space-y-1">
+        <Label htmlFor={fieldId}>
+          {property.name}
+          {property.unitPlural ? ` (${property.unitPlural})` : ""}
+        </Label>
+        <Input
+          id={fieldId}
+          type="number"
+          value={numberInputs[property.id] ?? ""}
+          onChange={event => onNumberChange(property.id, event.target.value)}
+        />
+        <FieldDescription text={property.description} />
+      </div>
+    );
+  }
+  if (property.type === "boolean") {
+    return (
+      <div className="space-y-1 self-end">
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id={fieldId}
+            checked={booleanInputs[property.id] ?? false}
+            onCheckedChange={checked => onBooleanChange(property.id, checked === true)}
+          />
+          <Label htmlFor={fieldId}>{property.name}</Label>
+        </div>
+        <FieldDescription text={property.description} />
+      </div>
+    );
+  }
+  if (property.type === "datetime") {
+    return (
+      <div className="space-y-1">
+        <Label htmlFor={fieldId}>{property.name}</Label>
+        <DateTimePicker
+          id={fieldId}
+          format={property.dateTimeFormat ?? "date"}
+          value={dateTimeInputs[property.id] ?? null}
+          onChange={value => onDateTimeChange(property.id, value ?? "")}
+        />
+        <FieldDescription text={property.description} />
+      </div>
+    );
+  }
+  if (property.type === "ratingScale") {
+    const raw = numberInputs[property.id];
+    return (
+      <div className="space-y-1">
+        <Label>{property.name}</Label>
+        <div>
+          <StarRating
+            value={raw ? Number(raw) : 0}
+            max={property.ratingMax ?? 5}
+            allowHalf={property.ratingAllowHalf}
+            allowZero={property.ratingAllowZero}
+            onChange={value => onNumberChange(property.id, String(value))}
+          />
+        </div>
+        <FieldDescription text={property.description} />
+      </div>
+    );
+  }
+  if (property.type === "image" || property.type === "file") {
+    return (
+      <CategoryPropertyFileField
+        property={property}
+        bookmark={bookmark}
+      />
+    );
+  }
+  // calculate: computed server-side; shown read-only so the user knows it exists.
+  return (
+    <div className="space-y-1">
+      <Label>{property.name}</Label>
+      <p className="text-xs text-muted-foreground">Calculated automatically when saved.</p>
+    </div>
+  );
+}
+
+/**
+ * An `image`/`file` property field. Blobs upload against an existing bookmark id, so on the create
+ * form (no bookmark yet) it shows a "save first" hint instead of the upload control.
+ */
+function CategoryPropertyFileField({
+  property, bookmark,
+}: {
+  property: CustomProperty;
+  bookmark: Bookmark | null;
+}) {
+  if (!bookmark) {
+    return (
+      <div className="space-y-1">
+        <Label>{property.name}</Label>
+        <p className="text-xs text-muted-foreground">
+          Save the bookmark first, then attach a
+          {property.type === "image" ? "n image" : " file"}
+          .
+        </p>
+      </div>
+    );
+  }
+  return (
+    <BookmarkPropertyFileField
+      bookmarkId={bookmark.id}
+      property={property}
+      value={bookmark.fileValues.find(entry => entry.propertyId === property.id)}
+    />
   );
 }
 

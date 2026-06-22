@@ -15,6 +15,7 @@ import {
   payloadFromValues,
   PropertyDisplaySection,
   propertySchema,
+  sectionVisibility,
   TYPE_OPTIONS,
   valuesFromProperty,
 } from "./propertyFormParts";
@@ -58,6 +59,15 @@ interface PropertyFormProps {
   section?: PropertyFormSection;
 }
 
+/** Renders a `<Separator />` only in the full form (omitted when a single tab is shown). */
+function FormSeparator({
+  show,
+}: {
+  show: boolean;
+}) {
+  return show ? <Separator /> : null;
+}
+
 /** Shared create/edit form for a custom property, used by the settings page and the right panel. */
 export function PropertyForm({
   mode,
@@ -85,12 +95,9 @@ export function PropertyForm({
     }));
   // When `section` is set we render a single tab; the dividers/collapsibles only make sense in the
   // full form, and a section's collapsible defaults to open.
-  const full = section === undefined;
-  const showGeneral = full || section === "general";
-  const showOptions = full || section === "options";
-  const showCategories = full || section === "categories";
-  const showMediaTypes = full || section === "media-types";
-  const showDisplay = full || section === "display";
+  const {
+    full, showGeneral, showOptions, showCategories, showMediaTypes, showDisplay,
+  } = sectionVisibility(section);
   const form = useAppForm({
     defaultValues: property ? valuesFromProperty(property) : CREATE_DEFAULTS,
     validators: {
@@ -187,7 +194,7 @@ export function PropertyForm({
         )
         : null}
 
-      {full ? <Separator /> : null}
+      <FormSeparator show={full} />
 
       {showCategories && (
         <PropertyCategoriesSection
@@ -199,7 +206,7 @@ export function PropertyForm({
         />
       )}
 
-      {full ? <Separator /> : null}
+      <FormSeparator show={full} />
 
       {showMediaTypes && (
         <PropertyMediaTypesSection
@@ -210,7 +217,7 @@ export function PropertyForm({
         />
       )}
 
-      {full ? <Separator /> : null}
+      <FormSeparator show={full} />
 
       {showDisplay
         ? (
@@ -224,7 +231,7 @@ export function PropertyForm({
         )
         : null}
 
-      {full ? <Separator /> : null}
+      <FormSeparator show={full} />
 
       <div className="flex items-center gap-2">
         <form.AppForm>

@@ -1,10 +1,11 @@
 import type { SwitcherSpec } from "@/components/BreadcrumbSwitcher";
 import type { BreadcrumbSegment } from "@/components/header/HeaderBreadcrumbs";
-import type { PinContext } from "@/components/HeaderPinButton";
 import type { MediaTypeNode, TagNode } from "@eesimple/types";
 
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Settings } from "lucide-react";
+
+import { resolveAddChild, resolvePinContext, slugFor, useTaxonomyCrumbData } from "./-appHeaderData";
 
 import { HeaderBreadcrumbs } from "@/components/header/HeaderBreadcrumbs";
 import { HeaderToolbar } from "@/components/header/HeaderToolbar";
@@ -13,17 +14,10 @@ import { usePanelControls } from "@/components/panel/usePanelControls";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { useAutofillRuleBySlug } from "@/hooks/useAutofill";
 import { useBookmark } from "@/hooks/useBookmarks";
-import { useCategories, useCategoryBySlug } from "@/hooks/useCategories";
-import { usePropertyBySlug } from "@/hooks/useCustomProperties";
-import { useMediaTypeBySlug, useMediaTypeTree } from "@/hooks/useMediaTypes";
-import { useNewsletterBySlug } from "@/hooks/useNewsletters";
-import { usePropertyGroupBySlug } from "@/hooks/usePropertyGroups";
-import { useRelationshipTypeBySlug } from "@/hooks/useRelationshipTypes";
+import { useCategories } from "@/hooks/useCategories";
+import { useMediaTypeTree } from "@/hooks/useMediaTypes";
 import { useTagTree } from "@/hooks/useTags";
-import { useWebsiteBySlug } from "@/hooks/useWebsites";
-import { useYouTubeChannelBySlug } from "@/hooks/useYouTubeChannels";
 import { findSettingsPage } from "@/lib/settingsPages";
 import { findAncestorPath } from "@/lib/tagTree";
 import { useUiStore } from "@/stores/uiStore";
@@ -437,53 +431,15 @@ export function AppHeader() {
   });
 
   const pathParts = pathname.split("/").filter(Boolean);
-  /** Slug at `index` when on `prefix`'s pages, else "" (so the by-slug hooks short-circuit). */
-  const slugFor = (prefix: string, index: number): string =>
-    pathname === prefix || pathname.startsWith(`${prefix}/`) ? (pathParts[index] ?? "") : "";
 
-  // Resolve each taxonomy entity's real name for its `List → Name` crumb. Each hook short-circuits
-  // on an empty slug, so only the entity whose page is active actually looks anything up.
+  // Resolve each taxonomy entity's real name for its `List → Name` crumb (and the few raw entities
+  // the pin / add-child controls need). Bundled into one hook to keep this component under the cap.
   const {
-    category,
-  } = useCategoryBySlug(slugFor("/categories", 1));
-  const {
-    website,
-  } = useWebsiteBySlug(slugFor("/taxonomies/websites", 2));
-  const {
-    mediaType,
-  } = useMediaTypeBySlug(slugFor("/taxonomies/media-types", 2));
-  const {
-    channel,
-  } = useYouTubeChannelBySlug(slugFor("/taxonomies/youtube-channels", 2));
-  const {
-    newsletter,
-  } = useNewsletterBySlug(slugFor("/taxonomies/newsletters", 2));
-  const {
-    propertyGroup,
-  } = usePropertyGroupBySlug(slugFor("/taxonomies/property-groups", 2));
-  const {
-    relationshipType,
-  } = useRelationshipTypeBySlug(slugFor("/taxonomies/relationship-types", 2));
-  const {
-    property,
-  } = usePropertyBySlug(slugFor("/custom-properties", 1));
-  const {
-    rule,
-  } = useAutofillRuleBySlug(slugFor("/autofill", 1));
-  const taxonomyNames: Record<string, string | undefined> = {
-    "/categories": category?.name,
-    "/taxonomies/websites": website?.siteName,
-    "/taxonomies/media-types": mediaType?.name,
-    "/taxonomies/youtube-channels": channel?.name,
-    "/taxonomies/newsletters": newsletter?.name,
-    "/taxonomies/property-groups": propertyGroup?.name,
-    "/taxonomies/relationship-types": relationshipType?.name,
-    "/custom-properties": property?.name,
-    "/autofill": rule?.name,
-  };
+    taxonomyNames, category, website, mediaType, channel,
+  } = useTaxonomyCrumbData(pathname, pathParts);
 
   // Tag breadcrumbs carry the ancestor chain.
-  const tagSlug = slugFor("/tags", 1);
+  const tagSlug = slugFor(pathname, pathParts, "/tags", 1);
   const {
     data: tagTree,
   } = useTagTree();
@@ -492,7 +448,7 @@ export function AppHeader() {
     : undefined;
 
   // Media-type breadcrumbs carry the ancestor chain too (one level deep), resolved from the tree.
-  const mediaTypeSlug = slugFor("/taxonomies/media-types", 2);
+  const mediaTypeSlug = slugFor(pathname, pathParts, "/taxonomies/media-types", 2);
   const {
     data: mediaTypeTree,
   } = useMediaTypeTree();
@@ -501,7 +457,7 @@ export function AppHeader() {
     : undefined;
 
   // Bookmark breadcrumbs carry the bookmark's category + title.
-  const bookmarkId = slugFor("/bookmarks", 1);
+  const bookmarkId = slugFor(pathname, pathParts, "/bookmarks", 1);
   const {
     data: bookmarkForCrumb,
   } = useBookmark(bookmarkId);
@@ -536,59 +492,19 @@ export function AppHeader() {
   // Settings (and settings-like management) pages get a header star to favorite the current page.
   const settingsPage = findSettingsPage(pathname);
 
-  // On a hierarchy-taxonomy *detail* page (Tags / Media Types), offer a header button that
-  // quick-creates a child of the current entity. The parent id is the already-resolved entity.
-  const isTagDetail = pathParts[0] === "tags" && pathParts.length >= 2;
-  const isMediaTypeDetail = pathParts[0] === "taxonomies"
-    && pathParts[1] === "media-types"
-    && pathParts.length >= 3;
-  const addChild: { kind: "tag" | "mediaType";
-    parentId: string | undefined; } | null = isTagDetail
-      ? {
-        kind: "tag",
-        parentId: tagAncestors?.[tagAncestors.length - 1]?.id,
-      }
-      : isMediaTypeDetail
-        ? {
-          kind: "mediaType",
-          parentId: mediaType?.id,
-        }
-        : null;
-
-  // The pinnable entity for the current detail page, if any. Each by-slug hook is non-null only on
-  // its own detail page, so at most one branch matches; tag uses the resolved ancestor chain's leaf.
   const currentTag = tagAncestors?.[tagAncestors.length - 1];
-  const pinContext: PinContext | null = category
-    ? {
-      entityType: "category",
-      entityId: category.id,
-      label: category.name,
-    }
-    : website
-      ? {
-        entityType: "website",
-        entityId: website.id,
-        label: website.siteName,
-      }
-      : mediaType
-        ? {
-          entityType: "media-type",
-          entityId: mediaType.id,
-          label: mediaType.name,
-        }
-        : channel
-          ? {
-            entityType: "youtube-channel",
-            entityId: channel.id,
-            label: channel.name,
-          }
-          : currentTag
-            ? {
-              entityType: "tag",
-              entityId: currentTag.id,
-              label: currentTag.name,
-            }
-            : null;
+  const addChild = resolveAddChild({
+    pathParts,
+    tagParentId: currentTag?.id,
+    mediaTypeId: mediaType?.id,
+  });
+  const pinContext = resolvePinContext({
+    category,
+    website,
+    mediaType,
+    channel,
+    currentTag,
+  });
 
   const {
     open,

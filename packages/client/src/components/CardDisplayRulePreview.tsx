@@ -8,6 +8,7 @@ import type {
   ConditionTree,
   CustomProperty,
 } from "@eesimple/types";
+import type { Dispatch, SetStateAction } from "react";
 
 import { useMemo, useState } from "react";
 
@@ -131,17 +132,51 @@ interface CardDisplayRulePreviewProps {
 
 type PreviewMode = "sample" | "existing";
 
+interface ResolvedDisplay {
+  fieldZones: typeof BASELINE.fieldZones;
+  cardZoneLayouts: typeof BASELINE.cardZoneLayouts;
+  imageMode: typeof BASELINE.imageMode;
+  imageVisibility: typeof BASELINE.imageVisibility;
+  imageLayout: typeof BASELINE.imageLayout;
+  hideWebsiteForYouTube: typeof BASELINE.hideWebsiteForYouTube;
+}
+
 /**
- * A live preview of how a card looks with this rule's display settings applied. Defaults to a generic
- * **sample** card populated with every standard field + a placeholder value for every custom property,
- * so all possible labels are visible. Switch to **Existing bookmarks** to cycle through the bookmarks
- * the rule matches. The display is resolved as **this rule over the baseline** (inherited attributes
- * fall back to baseline defaults, not the full layered rule set) — so when other rules also match the
- * previewed (real) bookmark, an alert warns that the real listing may differ.
+ * "This rule over the baseline": each inherited (null) attribute falls back to the hardcoded baseline
+ * default, rather than the full layered rule set. Pure, so the preview hook stays under the cap.
  */
-export function CardDisplayRulePreview({
+function resolveDisplayOverBaseline(display: RuleDisplayValue): ResolvedDisplay {
+  return {
+    fieldZones: display.fieldZones ?? BASELINE.fieldZones,
+    cardZoneLayouts: display.cardZoneLayouts ?? BASELINE.cardZoneLayouts,
+    imageMode: display.imageMode ?? BASELINE.imageMode,
+    imageVisibility: display.imageVisibility ?? BASELINE.imageVisibility,
+    imageLayout: display.imageLayout ?? BASELINE.imageLayout,
+    hideWebsiteForYouTube: display.hideWebsiteForYouTube ?? BASELINE.hideWebsiteForYouTube,
+  };
+}
+
+interface CardDisplayRulePreviewModel {
+  mode: PreviewMode;
+  setMode: (mode: PreviewMode) => void;
+  setIndex: Dispatch<SetStateAction<number>>;
+  matches: Bookmark[];
+  safeIndex: number;
+  matchedBookmark: Bookmark | null;
+  subject: Bookmark | null;
+  properties: CustomProperty[];
+  resolved: ResolvedDisplay;
+  otherMatching: { name: string }[];
+}
+
+/**
+ * Owns the preview's data-fetching and derivation: the entity caches, the matched-bookmark set, the
+ * selected subject (sample vs. existing), the baseline-resolved display, and the "other rules also
+ * apply" warning. Bundling the ~11 hooks here keeps the component under the complexity cap.
+ */
+function useCardDisplayRulePreview({
   display, conditions, isDefault, currentRuleId,
-}: CardDisplayRulePreviewProps) {
+}: CardDisplayRulePreviewProps): CardDisplayRulePreviewModel {
   const {
     data: bookmarks = [],
   } = useBookmarks();
@@ -238,15 +273,7 @@ export function CardDisplayRulePreview({
   const matchedBookmark = mode === "existing" ? (matches[safeIndex] ?? null) : null;
   const subject = mode === "existing" ? matchedBookmark : sampleBookmark;
 
-  // "This rule over the baseline": inherited (null) attributes fall back to the hardcoded baseline.
-  const resolved = {
-    fieldZones: display.fieldZones ?? BASELINE.fieldZones,
-    cardZoneLayouts: display.cardZoneLayouts ?? BASELINE.cardZoneLayouts,
-    imageMode: display.imageMode ?? BASELINE.imageMode,
-    imageVisibility: display.imageVisibility ?? BASELINE.imageVisibility,
-    imageLayout: display.imageLayout ?? BASELINE.imageLayout,
-    hideWebsiteForYouTube: display.hideWebsiteForYouTube ?? BASELINE.hideWebsiteForYouTube,
-  };
+  const resolved = resolveDisplayOverBaseline(display);
 
   // Other rules that also apply to the previewed (real) bookmark — they may override these settings on
   // the real listing, where the full layered resolution runs instead of this baseline-only preview.
@@ -260,6 +287,34 @@ export function CardDisplayRulePreview({
         tagDescendants,
       }));
   }, [matchedBookmark, rules, currentRuleId, tagDescendants]);
+
+  return {
+    mode,
+    setMode,
+    setIndex,
+    matches,
+    safeIndex,
+    matchedBookmark,
+    subject,
+    properties,
+    resolved,
+    otherMatching,
+  };
+}
+
+/**
+ * A live preview of how a card looks with this rule's display settings applied. Defaults to a generic
+ * **sample** card populated with every standard field + a placeholder value for every custom property,
+ * so all possible labels are visible. Switch to **Existing bookmarks** to cycle through the bookmarks
+ * the rule matches. The display is resolved as **this rule over the baseline** (inherited attributes
+ * fall back to baseline defaults, not the full layered rule set) — so when other rules also match the
+ * previewed (real) bookmark, an alert warns that the real listing may differ.
+ */
+export function CardDisplayRulePreview(props: CardDisplayRulePreviewProps) {
+  const {
+    mode, setMode, setIndex, matches, safeIndex, matchedBookmark, subject,
+    properties, resolved, otherMatching,
+  } = useCardDisplayRulePreview(props);
 
   return (
     <div className="space-y-3">

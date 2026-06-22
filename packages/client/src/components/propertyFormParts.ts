@@ -9,6 +9,7 @@ export {
   type PropertyFormSection,
   type PropertyFormValues,
   propertySchema,
+  sectionVisibility,
   valuesFromProperty,
 } from "./propertyFormSchema";
 export {
