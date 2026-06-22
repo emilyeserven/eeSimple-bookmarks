@@ -18,6 +18,7 @@ import {
 import { z } from "zod";
 
 import { AutofillRuleActivationSection } from "./AutofillRuleActivationSection";
+import { buildAutofillRuleDefaultValues, NO_MEDIA_TYPE } from "./autofillRuleForm";
 import { CollapsibleFormSection } from "./CollapsibleFormSection";
 import { RulePropertyField } from "./RulePropertyField";
 import { RuleTagsField } from "./RuleTagsField";
@@ -29,11 +30,9 @@ import { buildNumberValuesFromInputs } from "../lib/propertyValues";
 
 import { Separator } from "@/components/ui/separator";
 
-/** Re-exported for the form's consumers; the canonical definition lives in `lib/autofillScope`. */
+/** Re-exported for the form's consumers; the canonical definitions live in `lib/autofillScope` / `./autofillRuleForm`. */
 export { NO_CATEGORY };
-
-/** Sentinel select value standing in for "no media type" (Radix selects can't hold an empty value). */
-export const NO_MEDIA_TYPE = "none";
+export { NO_MEDIA_TYPE };
 
 const ruleSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
@@ -93,14 +92,11 @@ export function AutofillRuleForm({
     Object.fromEntries((rule?.dateTimeValues ?? []).map(entry => [entry.propertyId, entry.value])));
 
   const form = useAppForm({
-    defaultValues: {
-      name: rule?.name ?? "",
-      description: rule?.description ?? "",
-      setCategoryId: rule?.setCategoryId ?? defaultCategoryId ?? NO_CATEGORY,
-      setMediaTypeId: rule?.setMediaTypeId ?? defaultMediaTypeId ?? NO_MEDIA_TYPE,
-      tagIds: rule?.tagIds ?? defaultTagIds ?? ([] as string[]),
-      sortOrder: rule?.sortOrder ?? 0,
-    },
+    defaultValues: buildAutofillRuleDefaultValues(rule, {
+      defaultCategoryId,
+      defaultMediaTypeId,
+      defaultTagIds,
+    }),
     validators: {
       onChange: ruleSchema,
     },

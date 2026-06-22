@@ -1,34 +1,18 @@
-import type { BookmarkImageVisibility, CardFieldZones, CardZoneLayouts, ConditionTree, HomepageSection, HomepageSectionImageLayout, ViewMode } from "@eesimple/types";
+import type { HomepageSectionFormValues } from "./homepageSectionForm";
+import type { HomepageSection } from "@eesimple/types";
 
 import { useRef, useState } from "react";
 
-import { defaultCardZoneLayouts, emptyConditionTree } from "@eesimple/types";
-
 import { HomepageSectionFields } from "./HomepageSectionFields";
+import { buildHomepageSectionInitialValues } from "./homepageSectionForm";
 import { PreviewBookmarksSection } from "./PreviewBookmarksSection";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useTagTree } from "../hooks/useTags";
 import { useDefaultFieldZones } from "../lib/bookmarkCardFields";
-import { defaultCardFieldZones } from "../lib/bookmarkCardValues";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-
-interface HomepageSectionFormValues {
-  title: string;
-  description: string | null;
-  conditions: ConditionTree;
-  hideIfEmpty: boolean;
-  columns: number;
-  imageMode: string;
-  imageLayout: HomepageSectionImageLayout;
-  imageVisibility: BookmarkImageVisibility;
-  viewMode: ViewMode;
-  fieldZones: CardFieldZones;
-  cardZoneLayouts: CardZoneLayouts;
-  hideWebsiteForYouTube: boolean;
-}
 
 interface HomepageSectionFormProps {
   section?: HomepageSection;
@@ -59,20 +43,7 @@ export function HomepageSectionForm({
   // display rule's zones (what the section currently shows), falling back to the standard defaults.
   const defaultZones = useDefaultFieldZones();
 
-  const initialValues: HomepageSectionFormValues = {
-    title: section?.title ?? "",
-    description: section?.description ?? "",
-    conditions: section?.conditions ?? emptyConditionTree(),
-    hideIfEmpty: section?.hideIfEmpty ?? false,
-    columns: section?.columns ?? 2,
-    imageMode: section?.imageMode ?? "natural",
-    imageLayout: section?.imageLayout ?? "above",
-    imageVisibility: section?.imageVisibility ?? "shown",
-    viewMode: section?.viewMode ?? "cards",
-    fieldZones: section?.fieldZones ?? defaultZones ?? defaultCardFieldZones(properties ?? []),
-    cardZoneLayouts: section?.cardZoneLayouts ?? defaultCardZoneLayouts(),
-    hideWebsiteForYouTube: section?.hideWebsiteForYouTube ?? false,
-  };
+  const initialValues = buildHomepageSectionInitialValues(section, defaultZones, properties);
 
   const [values, setValues] = useState<HomepageSectionFormValues>(initialValues);
   const valuesRef = useRef<HomepageSectionFormValues>(initialValues);

@@ -51,6 +51,24 @@ function initialFromRule(rule?: CardDisplayRule, seedConditions?: ConditionTree)
   };
 }
 
+/** The three entity lists the form needs, each defaulted to an empty array so the JSX stays terse. */
+function useCardDisplayRuleFormData() {
+  const {
+    data: categories,
+  } = useCategories();
+  const {
+    data: properties,
+  } = useCustomProperties();
+  const {
+    data: tagTree,
+  } = useTagTree();
+  return {
+    categories: categories ?? [],
+    properties: properties ?? [],
+    tagTree: tagTree ?? [],
+  };
+}
+
 interface CardDisplayRuleFormProps {
   rule?: CardDisplayRule;
   /** Pre-scoped initial conditions for a new rule (create only); ignored when `rule` is set. */
@@ -83,14 +101,8 @@ export function CardDisplayRuleForm({
   const [ruleModalOpen, setRuleModalOpen] = useState(false);
 
   const {
-    data: categories,
-  } = useCategories();
-  const {
-    data: properties,
-  } = useCustomProperties();
-  const {
-    data: tagTree,
-  } = useTagTree();
+    categories, properties, tagTree,
+  } = useCardDisplayRuleFormData();
 
   function setFields(patch: Partial<CardDisplayRuleFormValues>): void {
     const next = {
@@ -128,7 +140,7 @@ export function CardDisplayRuleForm({
       idPrefix={idPrefix}
       value={values.display}
       onChange={setDisplay}
-      properties={properties ?? []}
+      properties={properties}
       isDefault={isDefault}
     />
   );
@@ -223,9 +235,9 @@ export function CardDisplayRuleForm({
       onChange={v => setFields({
         conditions: v,
       })}
-      categories={categories ?? []}
-      properties={properties ?? []}
-      tagTree={tagTree ?? []}
+      categories={categories}
+      properties={properties}
+      tagTree={tagTree}
     />
   );
 
