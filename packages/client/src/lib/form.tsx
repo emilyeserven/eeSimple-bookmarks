@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InputAddon, InputGroup } from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
+import { RichTextEditor } from "@/components/ui/RichTextEditor";
 import {
   Select,
   SelectContent,
@@ -165,6 +166,38 @@ function TextareaField({
           </InputGroup>
         )
         : textarea}
+      {field.state.meta.isTouched && <FieldErrors errors={field.state.meta.errors} />}
+    </div>
+  );
+}
+
+interface RichTextFieldProps {
+  label: string;
+  /** Guidance shown beneath the label (the editor has no in-canvas placeholder). */
+  hint?: string;
+}
+
+/**
+ * Labelled rich-text editor bound to the surrounding field, emitting **HTML**. Used where pasted
+ * rich text must keep its `<a href>` anchors (the newsletter import paste source). Built on the
+ * shared `RichTextEditor` primitive in HTML output mode.
+ */
+function RichTextField({
+  label, hint,
+}: RichTextFieldProps) {
+  const field = useFieldContext<string>();
+  const id = useId();
+
+  return (
+    <div className="space-y-1">
+      <Label htmlFor={id}>{label}</Label>
+      {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
+      <RichTextEditor
+        output="html"
+        value={field.state.value}
+        onChange={value => field.handleChange(value)}
+        onBlur={() => field.handleBlur()}
+      />
       {field.state.meta.isTouched && <FieldErrors errors={field.state.meta.errors} />}
     </div>
   );
@@ -362,6 +395,7 @@ export const {
   fieldComponents: {
     TextField,
     TextareaField,
+    RichTextField,
     NumberField,
     SelectField,
     ComboboxField,

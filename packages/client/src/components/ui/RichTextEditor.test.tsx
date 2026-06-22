@@ -23,6 +23,23 @@ describe("RichTextEditor", () => {
     })).toBeNull();
   });
 
+  it("renders provided HTML content (links preserved) in html output mode", () => {
+    const {
+      container,
+    } = render(
+      <RichTextEditor
+        output="html"
+        value={"<p>See <a href=\"https://example.com/a\">this article</a></p>"}
+        onChange={vi.fn()}
+      />,
+    );
+
+    const anchor = container.querySelector("a");
+    expect(anchor).not.toBeNull();
+    expect(anchor?.getAttribute("href")).toBe("https://example.com/a");
+    expect(anchor?.textContent).toBe("this article");
+  });
+
   it("shows the formatting toolbar in editable mode", () => {
     render(
       <RichTextEditor

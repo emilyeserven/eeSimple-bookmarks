@@ -56,6 +56,22 @@ test("extractCandidates sniffs html vs plain text in auto mode", () => {
   assert.equal(extractCandidates("see https://x.com/1 for more", "auto")[0]?.source, "plain-text");
 });
 
+test("extractCandidates in html mode also catches bare URLs in visible text, not in attributes", () => {
+  const html
+    = "<p><a href=\"https://example.com/a\">Article A</a></p>"
+      + "<p>Also worth a read: https://example.com/b</p>";
+  const result = extractCandidates(html, "html");
+  // Anchor + bare-text URL both found (the href URL isn't double-listed as a separate text match).
+  assert.deepEqual(result.map(c => c.rawUrl).sort(), [
+    "https://example.com/a",
+    "https://example.com/b",
+  ]);
+  // After dedupe the anchor keeps its title and the bare URL stays anchor-less.
+  const deduped = filterAndDedupe(result);
+  assert.equal(deduped.find(c => c.rawUrl === "https://example.com/a")?.anchorText, "Article A");
+  assert.equal(deduped.find(c => c.rawUrl === "https://example.com/b")?.anchorText, "");
+});
+
 test("isJunkLink drops chrome: unsubscribe, tracking pixels, and empty-anchor social buttons", () => {
   const junk: LinkCandidate[] = [
     {
