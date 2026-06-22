@@ -2,13 +2,15 @@
 name: overnight-cleanup
 description: >-
   Autonomous overnight codebase health sweep for eeSimple Bookmarks. Runs fallow dead-code removal,
-  test coverage for under-tested high-risk code, duplicate consolidation, complexity reduction
+  test coverage for under-tested high-risk code (plus hardening existing tests to run faster and less
+  flaky without weakening them), duplicate consolidation, complexity reduction
   (extracting complicated/nested conditionals into readable structures), large-file splitting,
   Storybook story coverage for undocumented components, and skill maintenance in a fixed phase order,
   committing after each successful phase and looping until the fallow health score reaches 8.0 or
   higher, then opening a PR and subscribing to its activity so CI can be handled automatically. Use
   when asked to "run an overnight cleanup", "bring fallow health up overnight", "add tests where
-  coverage is poor", "clean up the codebase while I sleep", or "run a multi-phase fallow cleanup loop".
+  coverage is poor", "make the test suite faster", "de-flake the tests", "clean up the codebase while
+  I sleep", or "run a multi-phase fallow cleanup loop".
 ---
 
 # Overnight cleanup
@@ -20,7 +22,8 @@ phase that produces a change. Never break passing tests.
 Phase order (always respect this sequence within each loop iteration):
 
 1. Dead code
-2. Test coverage (add tests to under-tested, high-risk code — a safety net before refactoring)
+2. Test coverage & test health (add tests to under-tested, high-risk code — a safety net before
+   refactoring — and make existing tests faster / less flaky without weakening them)
 3. Duplicates
 4. Complexity (extract complicated/nested conditionals; pair each extraction with a test)
 5. Large files / high-import files
@@ -170,12 +173,13 @@ If it is greater than 31, you have introduced new dead code; fix before proceedi
 
 ---
 
-## Phase 2 — Test coverage
+## Phase 2 — Test coverage and test health
 
 Dead code is gone; now add tests to the riskiest **under-tested** code *before* the refactoring
 phases, so Duplicates / Complexity / Large-files land on a regression net. Adding coverage is also a
 standing goal in its own right. Don't chase a coverage percentage — target the code most likely to
-break silently.
+break silently. This phase has a **second, behavior-preserving goal**: make the tests that already
+exist faster and less flaky (2.7) — without ever weakening the safety net they provide.
 
 ### 2.1 Map source files to their tests
 
@@ -267,6 +271,90 @@ installed, you may run `pnpm --filter=@eesimple/client exec vitest run --coverag
 client map to refine targeting. Do **not** add the coverage dependency or block on a network install
 just to measure — the file-presence + risk heuristic in 2.1–2.2 is sufficient for prioritization,
 and the remote environment may block installs.
+
+### 2.7 Make existing tests faster and less flaky
+
+Beyond adding coverage, harden the tests already in the suite so they run faster and stop flaking.
+This is a **standing, behavior-preserving** goal — it must **never weaken the safety net**.
+
+**Guardrail (non-negotiable).** This step only makes a test *more reliable or faster while asserting
+the exact same behavior*. Do **not** delete a test, mark it `.skip` / `it.only`, relax or loosen an
+assertion, bump a `waitFor` timeout to paper over a race, or add a retry to hide a flake — those
+trade the regression net away, which is the opposite of why Phase 2 exists. If a test cannot be
+de-flaked without weakening what it asserts, **leave it and record it in the final report** rather
+than touching it.
+
+**Find the slow tests (cheap — read durations, don't re-run repeatedly).** Vitest already prints
+per-file and per-test durations:
+
+```bash
+pnpm --filter=@eesimple/client exec vitest run --reporter=verbose 2>/dev/null || true
+```
+
+The middleware's `node --test` runner reports per-test durations too. Target the few slowest files
+(the large mock-heavy ones — e.g. `BookmarkForm.test.tsx`), not the whole suite.
+
+**Find the flaky tests (static signals first, bounded re-run second).** Don't repeat the full suite
+to hunt flakes — it burns the overnight budget. Look for the structural causes instead:
+
+- **Real timers / arbitrary waits** — `setTimeout`, `await new Promise(r => setTimeout(r, …))`, or a
+  raw `sleep` inside a test is a race waiting to happen. Replace it with fake timers
+  (`vi.useFakeTimers()` + `vi.advanceTimersByTimeAsync(…)`, restored in a `try/finally` with
+  `vi.useRealTimers()`), mirroring `packages/client/src/components/HomepageContentSettings.test.tsx`.
+  There are **none** in the suite today — keep it that way.
+- **Non-deterministic inputs** — a test that calls `new Date()` / `Date.now()` / `Math.random()` (or
+  asserts on output that does) drifts with wall-clock / locale. Pin it with `vi.setSystemTime(…)` or
+  the shared factory's fixed `NOW` (`packages/client/src/test-utils/factories.ts`). The live
+  `new Date().toISOString()` in `packages/client/src/stores/notificationStore.test.ts` is the kind of
+  input to pin.
+- **Broad `waitFor` / `findBy*`** — one that wraps a synchronous assertion, or polls on several
+  things at once, is slow and racy. Narrow it to the single observable you actually wait on; **do not
+  raise the timeout.**
+- **Shared mutable state / order dependence** — a test that passes alone but fails in suite usually
+  leaks state. Ensure `beforeEach` / `afterEach` reset stores, clear mocks (`vi.clearAllMocks()`),
+  and unstub globals (`vi.unstubAllGlobals()`). References: `RightPanel.test.tsx`,
+  `BookmarkImageField.test.tsx`.
+- **Bounded confirmation only** — to confirm a fix (or a suspicion), re-run *just the suspect file* a
+  few times, never the whole suite:
+
+  ```bash
+  pnpm --filter=@eesimple/client exec vitest run <suspect-file> 2>/dev/null || true   # repeat ~3×
+  ```
+
+**Speed levers (all behavior-preserving).**
+
+- Replace an inline fixture builder with the shared factories (`makeBookmark` / `makeCategory` /
+  `makeCustomProperty`) — this trims per-test setup *and* removes type-skew risk. The inline
+  `youtubeWebsite()` fixture in `BookmarkForm.test.tsx` is the kind to migrate.
+- Hoist a **truly static** fixture out of `beforeEach` so it is built once — only when no test ever
+  mutates it (never share mutable state to save time).
+- Prefer fake timers over a real-time debounce wait.
+- **Do not** add a `retry`, `pool`, or relaxed-timeout setting to the Vitest config to make the suite
+  "pass" — that masks flakes instead of fixing them. The config (`packages/client/vite.config.ts`)
+  intentionally has no `retry`; keep it so.
+
+**Verify and commit.** Run the full suite and confirm it still passes **and the test count did not
+drop** (nothing was silently removed or skipped):
+
+```bash
+pnpm lint:fix
+pnpm typecheck
+pnpm test
+```
+
+If all pass, commit the test hardening on its own:
+
+```bash
+git add -p   # stage only the test changes
+git commit -m "test: speed up and de-flake existing tests (Phase 2)"
+```
+
+**Scope and budget.** This is opportunistic and bounded — fix the few highest-value slow/flaky tests,
+not the whole suite. If a test hasn't improved after ~2 attempts, note it in the final report and
+move on. Like coverage, stories, and skill maintenance, it does **not** move the fallow health score,
+so run it **once per run** rather than every loop iteration — unless the tests you *added* in 2.1–2.5
+this iteration introduced new slowness or flakiness, in which case clean those up before committing
+them.
 
 ---
 
@@ -750,8 +838,11 @@ whole night.
 - **Never leave the tree dirty or red.** If a phase can't be made green quickly, `git restore` /
   `git stash` that phase's diff and continue — a clean tree at every phase boundary is what makes a
   crash recoverable.
-- **Treat test flakes as flakes.** Re-run a failing test once before believing it; if it only fails
-  intermittently, note the flaky test rather than "fixing" unrelated code to chase it.
+- **Treat test flakes as flakes during verification.** When a test fails mid-run, re-run it once
+  before believing it; if it only fails intermittently, note the flaky test and move on rather than
+  "fixing" unrelated code to chase it. (Proactively *hardening* a flaky test — fake timers, pinned
+  dates, state isolation — is the deliberate Phase 2.7 activity, done from a green tree; this bullet
+  is only about not letting a flake derail the rest of the run.)
 - **Be install-averse.** The network policy may block installs. If a phase wants a package that
   isn't present (e.g. a coverage provider, a new test runner for `@eesimple/types`), prefer the
   zero-dependency path or skip-and-note rather than failing the run on a blocked install.
@@ -792,6 +883,8 @@ Report these final numbers:
 - Final duplication percentage
 - Tests added (count + areas), and any high-risk code still untested (with file paths — e.g. note
   `evaluateConditions` if its harness wasn't stood up)
+- Existing tests sped up / de-flaked (count + areas), and any slow or flaky tests deliberately left
+  as-is (with the reason they couldn't be hardened without weakening them)
 - Total commits made (one per phase per iteration)
 - Any remaining violations that could not be fixed automatically (with file:line references)
 
