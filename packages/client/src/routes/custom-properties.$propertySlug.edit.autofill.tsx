@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { AutofillRulesList } from "../components/AutofillRulesList";
-import { PropertyTabWrapper } from "../components/PropertyTabWrapper";
+import { propertyWorkbench } from "../components/workbench/property";
+import { WorkbenchRouteTab } from "../components/workbench/WorkbenchRouteTab";
 
 export const Route = createFileRoute("/custom-properties/$propertySlug/edit/autofill")({
   component: AutofillEditTab,
@@ -12,12 +12,11 @@ function AutofillEditTab() {
     propertySlug,
   } = Route.useParams();
   return (
-    <PropertyTabWrapper
-      propertySlug={propertySlug}
-      title="Autofill Rules"
-      description="Autofill rules that set a value for this property when a matching bookmark is saved."
-    >
-      {property => <AutofillRulesList propertyId={property.id} />}
-    </PropertyTabWrapper>
+    <WorkbenchRouteTab
+      workbench={propertyWorkbench}
+      tabKey="autofill"
+      mode="edit"
+      slug={propertySlug}
+    />
   );
 }

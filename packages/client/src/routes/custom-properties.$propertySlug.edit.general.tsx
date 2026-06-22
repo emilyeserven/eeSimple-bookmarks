@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { PropertyEditForm } from "../components/PropertyEditForm";
-import { PropertyTabWrapper } from "../components/PropertyTabWrapper";
+import { propertyWorkbench } from "../components/workbench/property";
+import { WorkbenchRouteTab } from "../components/workbench/WorkbenchRouteTab";
 
 export const Route = createFileRoute("/custom-properties/$propertySlug/edit/general")({
   component: GeneralEditTab,
@@ -12,17 +12,11 @@ function GeneralEditTab() {
     propertySlug,
   } = Route.useParams();
   return (
-    <PropertyTabWrapper
-      propertySlug={propertySlug}
-      title="General"
-      description="Name, status, and description."
-    >
-      {property => (
-        <PropertyEditForm
-          property={property}
-          section="general"
-        />
-      )}
-    </PropertyTabWrapper>
+    <WorkbenchRouteTab
+      workbench={propertyWorkbench}
+      tabKey="general"
+      mode="edit"
+      slug={propertySlug}
+    />
   );
 }

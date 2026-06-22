@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { PropertyEditForm } from "../components/PropertyEditForm";
-import { PropertyTabWrapper } from "../components/PropertyTabWrapper";
+import { propertyWorkbench } from "../components/workbench/property";
+import { WorkbenchRouteTab } from "../components/workbench/WorkbenchRouteTab";
 
 export const Route = createFileRoute("/custom-properties/$propertySlug/edit/display")({
   component: DisplayEditTab,
@@ -12,17 +12,11 @@ function DisplayEditTab() {
     propertySlug,
   } = Route.useParams();
   return (
-    <PropertyTabWrapper
-      propertySlug={propertySlug}
-      title="Display"
-      description="Where this property appears and whether it's editable from the card menu."
-    >
-      {property => (
-        <PropertyEditForm
-          property={property}
-          section="display"
-        />
-      )}
-    </PropertyTabWrapper>
+    <WorkbenchRouteTab
+      workbench={propertyWorkbench}
+      tabKey="display"
+      mode="edit"
+      slug={propertySlug}
+    />
   );
 }

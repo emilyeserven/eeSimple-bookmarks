@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { PropertyEditForm } from "../components/PropertyEditForm";
-import { PropertyTabWrapper } from "../components/PropertyTabWrapper";
+import { propertyWorkbench } from "../components/workbench/property";
+import { WorkbenchRouteTab } from "../components/workbench/WorkbenchRouteTab";
 
 export const Route = createFileRoute("/custom-properties/$propertySlug/edit/media-types")({
   component: MediaTypesEditTab,
@@ -12,17 +12,11 @@ function MediaTypesEditTab() {
     propertySlug,
   } = Route.useParams();
   return (
-    <PropertyTabWrapper
-      propertySlug={propertySlug}
-      title="Media Types"
-      description="Also show this property on bookmarks of the chosen media types (in addition to its categories)."
-    >
-      {property => (
-        <PropertyEditForm
-          property={property}
-          section="media-types"
-        />
-      )}
-    </PropertyTabWrapper>
+    <WorkbenchRouteTab
+      workbench={propertyWorkbench}
+      tabKey="media-types"
+      mode="edit"
+      slug={propertySlug}
+    />
   );
 }
