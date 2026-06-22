@@ -2,6 +2,7 @@ import type {
   BookmarkDetailImageSize,
   BookmarkDetailLayout,
   BookmarkDetailVideoSize,
+  NewsletterBlacklistEntry,
   SidebarCustomizationSettings,
   SidebarOpenModifier,
   UpdateAdvancedSettingsInput,
@@ -16,6 +17,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { appSettingsApi } from "../lib/api";
 
 const SHORTENER_IGNORE_LIST_KEY = ["app-settings", "shortener-ignore-list"] as const;
+const NEWSLETTER_BLACKLIST_KEY = ["app-settings", "newsletter-blacklist"] as const;
 const HOMEPAGE_CONTENT_KEY = ["app-settings", "homepage-content"] as const;
 const ADVANCED_KEY = ["app-settings", "advanced"] as const;
 const SIDEBAR_CUSTOMIZATION_KEY = ["app-settings", "sidebar-customization"] as const;
@@ -36,6 +38,25 @@ export function useUpdateShortenerIgnoreList() {
     mutationFn: (domains: string[]) => appSettingsApi.updateShortenerIgnoreList(domains),
     onSuccess: (saved) => {
       queryClient.setQueryData(SHORTENER_IGNORE_LIST_KEY, saved);
+    },
+  });
+}
+
+/** The newsletter scan blacklist — links matching these are dropped from future newsletter scans. */
+export function useNewsletterBlacklist() {
+  return useQuery({
+    queryKey: NEWSLETTER_BLACKLIST_KEY,
+    queryFn: appSettingsApi.getNewsletterBlacklist,
+  });
+}
+
+export function useUpdateNewsletterBlacklist() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (entries: NewsletterBlacklistEntry[]) =>
+      appSettingsApi.updateNewsletterBlacklist(entries),
+    onSuccess: (saved) => {
+      queryClient.setQueryData(NEWSLETTER_BLACKLIST_KEY, saved);
     },
   });
 }

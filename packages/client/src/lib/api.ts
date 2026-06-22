@@ -54,6 +54,7 @@ import type {
   MediaType,
   MediaTypeNode,
   NewsletterApproveResult,
+  NewsletterBlacklistEntry,
   NewsletterImport,
   NewsletterImportItem,
   NewsletterImportSummary,
@@ -213,8 +214,13 @@ export const newsletterApi = {
       method: "POST",
       body: JSON.stringify(input),
     }),
-  ingestUpload: (file: File, enrich: boolean) =>
-    uploadImageFile<NewsletterImport>(`/newsletters/ingest/upload?enrich=${enrich}`, file),
+  ingestUpload: (file: File, enrich: boolean, defaultCategoryId?: string | null) => {
+    const params = new URLSearchParams({
+      enrich: String(enrich),
+    });
+    if (defaultCategoryId) params.set("defaultCategoryId", defaultCategoryId);
+    return uploadImageFile<NewsletterImport>(`/newsletters/ingest/upload?${params.toString()}`, file);
+  },
   listImports: () => request<NewsletterImportSummary[]>("/newsletters/imports"),
   getImport: (id: string) => request<NewsletterImport>(`/newsletters/imports/${id}`),
   updateItem: (importId: string, itemId: string, input: UpdateNewsletterImportItemInput) =>
@@ -324,6 +330,15 @@ export const appSettingsApi = {
       method: "PUT",
       body: JSON.stringify({
         domains,
+      }),
+    }),
+  getNewsletterBlacklist: () =>
+    request<NewsletterBlacklistEntry[]>("/app-settings/newsletter-blacklist"),
+  updateNewsletterBlacklist: (entries: NewsletterBlacklistEntry[]) =>
+    request<NewsletterBlacklistEntry[]>("/app-settings/newsletter-blacklist", {
+      method: "PUT",
+      body: JSON.stringify({
+        entries,
       }),
     }),
   getHomepageContent: () =>
