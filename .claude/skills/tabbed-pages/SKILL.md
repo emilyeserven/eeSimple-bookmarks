@@ -11,9 +11,21 @@ description: >-
 
 # Convert detail/edit pages to a vertical-tabbed layout
 
+> **Read first — the tab bodies now come from a shared `EntityWorkbench` descriptor.** Every
+> slug-routed entity's tabs (view + edit bodies, titles, descriptions) live in one
+> `components/workbench/<entity>.tsx` descriptor (typed by `workbench/types.ts`). The main-pane route
+> bodies are one-line `WorkbenchRouteTab`s and the **right panel renders the same descriptor** via
+> `EntityWorkbenchView` (so view/edit parity + the responsive `TabbedShell` are automatic — see the
+> **`add-entity`** skill's step 9 and the **URL-driven right panel** bullet in CLAUDE.md). The
+> per-entity `createTabWrapper` / `<Entity>TabWrapper` pattern below is **superseded** for new tabbed
+> entities — only `BookmarkEditTabWrapper` still uses it. Prefer a descriptor; the rest of this skill
+> documents the layout-route shell (`_view.tsx` / `edit.tsx` with `nav` + `TabbedEntityLayout`), which
+> is unchanged, and the historical wrapper approach for context.
+
 Categories and Settings render a left **vertical nav** beside an `<Outlet/>`; each tab is its own
 file-based route. This skill restructures an entity that currently has one long detail page and one
-long edit form into that shape. Seven entities already use it, so copy whichever is closest:
+long edit form into that shape. The layout shell is the container-query-responsive `TabbedShell`
+(wide → vertical nav, narrow/drawer → horizontal strip). Copy whichever entity is closest:
 
 - **Custom Properties** — the most complete (read-only View *and* Edit, a **conditional** tab, plus a
   scoped Autofill tab).

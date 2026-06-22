@@ -80,22 +80,28 @@ File-based routing. Copy the five `taxonomies.media-types.*` files, renaming:
 `pnpm --filter=@eesimple/client routeTree` (or let the Vite plugin regenerate it on `dev`/`build`).
 
 ### 8. Client — manager component (`packages/client/src/components/<Entity>Manager.tsx`)
-Copy `MediaTypeManager.tsx`. Export a **`<Entity>Card`** (read-only view) — the component both the
-listing pages and the right panel's `View` reuse. Do not wrap internals in `Card`; let the parent
-own the card chrome. The **edit** UI is the auto-save **`<Entity>GeneralForm`** you build for the
-edit tab (see the `tabbed-pages` / `toast-notifications` skills); the panel reuses that **same**
-form — do **not** create a panel-only `<Entity>Row` inline editor or reuse the submit create form
-for edit (right-panel Edit invariant in CLAUDE.md).
+Copy `MediaTypeManager.tsx`. The **edit** UI is the auto-save **`<Entity>GeneralForm`** you build for
+the edit tab (see the `tabbed-pages` / `toast-notifications` skills), and the read-only **view body**
+is a small **`<Entity>GeneralView`** (or the inline `<dl>` you lift into the workbench). Both surfaces
+render these — do **not** create a panel-only `<Entity>Row` inline editor, a panel-only view card, or
+reuse the submit create form for edit (right-panel parity invariant in CLAUDE.md).
 
-### 9. Panel registration (`packages/client/src/components/panel/contentTypes.tsx`)
-- Add the type string to the `DrawerContentType` union **and** `DRAWER_CONTENT_TYPES` array in
-  `packages/client/src/lib/drawerSearch.ts`.
-- Add a `use<Entity>List` adapter, a `View` (reusing `<Entity>Card`), and an `Edit` that wraps the
-  auto-save **`<Entity>GeneralForm`** in `panel/PanelEntityEditor.tsx` (header: name + built-in badge
-  + Delete) — **never** a `<Entity>Row` or the submit create form. For a multi-tab entity, stack its
-  per-tab edit forms under `LabeledSection` headings (see `contentTypes/property.tsx` /
-  `contentTypes/website.tsx`). Then append an entry to `PANEL_CONTENT_TYPES` with `type`, `label`,
-  `singular`, a `lucide-react` `icon`, `useList`, `View`, `Edit`.
+### 9. Workbench descriptor + panel registration
+- **Workbench descriptor** (`packages/client/src/components/workbench/<entity>.tsx`): copy
+  `workbench/mediaType.tsx`. Export an `EntityWorkbench<Entity>` (typed by `workbench/types.ts`):
+  `useBySlug`/`useById` loaders, `name`/`isBuiltIn`/`canDelete`, a `useDelete` control, and a `tabs`
+  array where each tab has a `view` and/or `edit` `WorkbenchPane` (title + description + a body
+  component). This is the **single source** both the main pane and the panel render.
+- **Main-pane routes**: each `_view.*` / `edit.*` route body is a one-line `WorkbenchRouteTab`
+  (`workbench={<entity>Workbench}` + `tabKey` + `mode` + `slug`) — see `routes/taxonomies.media-types.*`.
+- **Panel registration** (`packages/client/src/components/panel/contentTypes.tsx`):
+  - Add the type string to the `DrawerContentType` union **and** `DRAWER_CONTENT_TYPES` array in
+    `packages/client/src/lib/drawerSearch.ts`.
+  - Add a `use<Entity>List` adapter and `View`/`Edit` that each render
+    `<EntityWorkbenchPanel workbench={<entity>Workbench} id={id} mode="view"|"edit" />` — **never** a
+    `<Entity>Row`, a panel-only view card, or the submit create form. Then append an entry to
+    `PANEL_CONTENT_TYPES` with `type`, `label`, `singular`, a `lucide-react` `icon`, `useList`,
+    `View`, `Edit`. Create flows (the `NEW_SENTINEL` path) keep their submit form.
 
 ## Verify
 
@@ -114,6 +120,7 @@ step 2) or the condition multi-select component (use `EntityMultiSelectCondition
 
 Then check manually that the entity:
 - has working list / detail / edit pages at its slug routes, and
-- appears in the right panel's type tiles and is browsable there — `View` reuses `<Entity>Card`, and
-  `Edit` reuses the **same** auto-save `<Entity>GeneralForm` the edit tab uses (wrapped in
-  `PanelEntityEditor`), not a panel-only editor.
+- appears in the right panel's type tiles and is browsable there — the panel's `View`/`Edit` render
+  the **same** tabbed bodies + responsive shell as the main pane via `EntityWorkbenchView` (from the
+  `<entity>Workbench` descriptor), not a panel-only editor or view card. Drag the docked drawer narrow
+  to confirm the tab nav collapses to the horizontal strip.

@@ -202,10 +202,16 @@ that matches the surface — don't invent a new structure for a one-off page.
   benefits from collapsing (e.g. autofill activation conditions, property options). Refs:
   `AutofillRuleForm`, `PropertyForm`, `HomepageSectionForm`.
 - **Vertical-tabbed sidebar + `<Outlet/>`** (`packages/client/src/components/TabbedEntityLayout.tsx`,
-  with the `TabWrapper.tsx` `createTabWrapper` factory and the shared `navLinkClass`) — a `header`
-  over a left vertical `nav` (`sm:w-48`, active link highlighted) and a `min-w-0 flex-1` content
-  pane holding `<Outlet/>`. The shell for slug-routed taxonomy entities: Categories, Custom
-  Properties, Websites, Media Types, YouTube Channels, Tags. Each tab's body is itself a flat
+  over the shared **`TabbedShell.tsx`** + `navLinkClass`) — a `header` over a tab `nav` and a
+  `min-w-0 flex-1` content pane holding `<Outlet/>`. The shell is **container-query responsive**
+  (`@container/tabs`): a wide container shows the left vertical nav (`@2xl/tabs:w-48`), a narrow one (a
+  phone, or the right drawer) collapses to a horizontal scrollable tab strip — so the same component
+  serves the page, mobile, and the panel. The shell for slug-routed entities: Categories, Custom
+  Properties, Websites, Media Types, YouTube Channels, Tags, Property Groups, Autofill. Each tab's
+  body comes from the entity's **`EntityWorkbench` descriptor** (see the right-panel bullet under
+  **Content hierarchies → URL-driven right panel**): the route renders one tab via
+  `workbench/WorkbenchRouteTab.tsx`, and the right panel renders all tabs via
+  `workbench/EntityWorkbenchView.tsx` — one source for both surfaces. Each tab body is itself a flat
   `LabeledSection` stack.
   - **Hierarchy tab rule:** every taxonomy whose schema row has a `parentId` tree — currently
     **Tags** and **Media Types** — gets a view-only **"Hierarchy"** tab (a "Parents" ancestor chain
@@ -231,29 +237,35 @@ that matches the surface — don't invent a new structure for a one-off page.
     (`DisplaySettings`, `SidebarSettings`, `AutomationsSettings`, `LinkParsingSettings`,
     `HomepageSectionsSettings`).
 - **URL-driven right panel** (`packages/client/src/components/panel/` — `RightPanel.tsx`,
-  `PanelContent.tsx`, `contentTypes.tsx`) — URL-driven (`dOpen`/`dCT`/`dCId`/`dMode`): content-type
-  tiles → searchable list → view/edit. It must achieve **feature and component parity** with the
-  main app: a single item viewed/edited in the panel reuses the **same** components the main app
-  renders for that entity, in their narrow/mobile layout — never a panel-only variant. Build entity
-  views/forms as responsive, reusable components so both surfaces share them, and register each
-  content type in `panel/contentTypes.tsx`.
-  - **Edit invariant (do not re-diverge):** a content type's `Edit` **must** render the **same
-    per-field auto-save edit forms the main-app edit tab(s) render** — the entity's `*GeneralForm`
-    (and, for multi-tab entities, its sibling per-tab forms stacked under `LabeledSection` headings),
-    wrapped in `panel/PanelEntityEditor.tsx` (header: name + built-in badge + Delete). It must
-    **never** use a `*Row` inline editor, the monolithic submit **create** form (`PropertyForm` /
-    `BookmarkForm` / `AutofillRuleForm` / `TagForm`), or any other panel-only edit variant — those
-    drift from the edit tabs in field coverage and save semantics (this is the drift that orphaned
-    and removed `WebsiteRow`/`MediaTypeRow`/`YouTubeChannelRow`/`PropertyGroupRow`). The template is
-    `contentTypes/category.tsx` → `CategoryCard` → `CategoryGeneralForm`; the multi-tab pattern is
-    `contentTypes/property.tsx` / `bookmark.tsx` and `panel/AutofillRuleForms.tsx`. **Create** flows
-    (the panel's `NEW_SENTINEL` path, inline-create modals) keep their submit form — only **edit**
-    must reuse the auto-save forms.
-
-**Current divergences (to be reconciled):**
-
-- Single-tab entities (Tags, YouTube Channels, Media Types, Property Groups) use the full tabbed
-  shell for a single "General" tab.
+  `PanelContent.tsx`, `contentTypes.tsx`) — URL-driven (`dOpen`/`dCT`/`dCId`/`dMode`/`dTab`):
+  content-type tiles → searchable list → view/edit (`dTab` = active tab within a multi-tab entity).
+  It must achieve **feature and component parity** with the main app: a single item viewed/edited in
+  the panel renders the **exact same view/edit bodies and the same tabbed shell** the main-app pages
+  render — never a panel-only variant.
+  - **One source of truth per entity = its `EntityWorkbench` descriptor** (`components/workbench/<entity>.tsx`,
+    typed by `workbench/types.ts`). The descriptor lists the entity's tabs, each with a `view` and/or
+    `edit` `WorkbenchPane` (title + description + a body component), the load hooks (`useBySlug` for
+    routes, `useById` for the panel), `name`/`isBuiltIn`/`canDelete`, and a `useDelete` control. **Both**
+    surfaces render from it: the main pane via `WorkbenchRouteTab` (one tab per route, selected by the
+    router `<Outlet/>`) and the right panel via `EntityWorkbenchView` (all tabs with a controlled
+    active tab, driven by `dTab`), wrapped for the drawer by `panel/EntityWorkbenchPanel.tsx`. So the
+    view bodies, the edit forms (the auto-save `*GeneralForm`/per-tab forms), and the responsive
+    `TabbedShell` are all shared — add/rename a tab in exactly one place. **Never** reintroduce a
+    panel-only `*Row` inline editor, a panel-only view card (`*Card`/`TagViewInfo`), or the monolithic
+    submit **create** form for edit. **Create** flows (the panel's `NEW_SENTINEL` path, inline-create
+    modals) keep their submit form — `CreateAutofillRule` / `TagCreateForm` / `PropertyForm` /
+    `BookmarkForm` stay submit-driven for create only.
+  - **The responsive tabbed shell is `components/TabbedShell.tsx`** — container-query driven
+    (`@container/tabs`): a wide container (a full-width page) gets the left vertical nav, a narrow one
+    (a phone, or the right drawer) collapses to a horizontal scrollable tab strip. Both the main-pane
+    `TabbedEntityLayout` and the panel's `EntityWorkbenchView` render through it, so the panel is
+    tab-for-tab identical to the page and the main pane is mobile-friendly for free. A single-tab (or
+    tab-less) surface drops the nav column.
+  - **Bookmarks are the one asymmetric case:** a bookmark's *view* is one rich component
+    (`BookmarkDetail`, shared by the detail page and the panel View directly, not via the workbench),
+    while its *edit* is tabbed via a **panel-only** `bookmarkEditWorkbench` (the main-app bookmark edit
+    tabs stay router-driven). The relationships pane resolves its surface-specific "done" through
+    `usePanelControls`.
 
 ## Large-form / over-cap decomposition
 
