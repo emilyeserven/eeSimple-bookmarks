@@ -7,15 +7,15 @@ import { Link } from "@tanstack/react-router";
 
 import { TreeExpandToggle } from "./cells";
 import { bookmarkCountColumn } from "./columnHelpers";
+import { useSidebarOpenModifier } from "../../hooks/useAppSettings";
 import { useViewPanelClick } from "../panel/useEditPanelClick";
 
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
-import { useUiStore } from "@/stores/uiStore";
 
 /** Column definitions for the Tags listing Table view (a flattened, expandable tree). */
 export function useTagColumns(): ColumnDef<TagNode>[] {
   const viewClick = useViewPanelClick();
-  const modifier = useUiStore(state => state.sidebarOpenModifier);
+  const modifier = useSidebarOpenModifier();
   return useMemo(
     () => [
       {

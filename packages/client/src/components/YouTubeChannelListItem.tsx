@@ -6,11 +6,11 @@ import { Info, MonitorPlay, Pencil } from "lucide-react";
 import { CategoryPill } from "./CategoryPill";
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
+import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
 import { useEntityImage } from "@/hooks/useEntityImage";
 import { withYouTubeChannels } from "@/lib/bookmarkSearch";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
-import { useUiStore } from "@/stores/uiStore";
 
 /** A single row in the channel listing: an avatar, a body link to the filtered bookmarks, and hover Edit / Info. */
 export function YouTubeChannelListItem({
@@ -18,7 +18,7 @@ export function YouTubeChannelListItem({
 }: { channel: YouTubeChannel }) {
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
-  const modifier = useUiStore(state => state.sidebarOpenModifier);
+  const modifier = useSidebarOpenModifier();
   const {
     showImage,
     onError,

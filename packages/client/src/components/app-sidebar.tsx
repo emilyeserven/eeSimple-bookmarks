@@ -25,7 +25,11 @@ import {
 import { CollapsibleSection, SidebarNavSection, SidebarResizeHandle } from "./app-sidebar-sections";
 import { useViewPanelClick } from "./panel/useEditPanelClick";
 import { SettingsFavoritesFlyout } from "./SettingsFavoritesFlyout";
-import { useAdvancedSettings } from "../hooks/useAppSettings";
+import {
+  useAdvancedSettings,
+  useSidebarOpenModifier,
+  useSidebarVisibility,
+} from "../hooks/useAppSettings";
 import { useAutofillRules } from "../hooks/useAutofill";
 import { useBookmarks } from "../hooks/useBookmarks";
 import { useCategories } from "../hooks/useCategories";
@@ -38,7 +42,6 @@ import { useTags } from "../hooks/useTags";
 import { useWebsites } from "../hooks/useWebsites";
 import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
 import { validateBookmarkSearch } from "../lib/bookmarkSearch";
-import { useUiStore } from "../stores/uiStore";
 
 import { Badge } from "@/components/ui/badge";
 import {
@@ -190,11 +193,13 @@ export function AppSidebar({
   } = useSavedFilters();
   const [pinnedExpanded, setPinnedExpanded] = React.useState(false);
   const [pinnedShowAll, setPinnedShowAll] = React.useState(false);
-  const hiddenCategoryIds = useUiStore(s => s.hiddenCategoryIds);
-  const hiddenTaxonomyItems = useUiStore(s => s.hiddenTaxonomyItems);
-  const hiddenCustomizationItems = useUiStore(s => s.hiddenCustomizationItems);
-  const hiddenSidebarGroups = useUiStore(s => s.hiddenSidebarGroups);
-  const modifier = useUiStore(s => s.sidebarOpenModifier);
+  const {
+    hiddenCategoryIds,
+    hiddenTaxonomyItems,
+    hiddenCustomizationItems,
+    hiddenSidebarGroups,
+  } = useSidebarVisibility();
+  const modifier = useSidebarOpenModifier();
   const {
     data: advancedSettings,
   } = useAdvancedSettings();

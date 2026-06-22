@@ -6,11 +6,11 @@ import { Globe, Info, Pencil } from "lucide-react";
 import { CategoryPill } from "./CategoryPill";
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
+import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
 import { useEntityImage } from "@/hooks/useEntityImage";
 import { withWebsites } from "@/lib/bookmarkSearch";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
-import { useUiStore } from "@/stores/uiStore";
 
 /** A single row in the website listing: a favicon, a body link to the filtered bookmarks, and hover Edit / Info. */
 export function WebsiteListItem({
@@ -18,7 +18,7 @@ export function WebsiteListItem({
 }: { website: Website }) {
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
-  const modifier = useUiStore(state => state.sidebarOpenModifier);
+  const modifier = useSidebarOpenModifier();
   const {
     showImage,
     onError,

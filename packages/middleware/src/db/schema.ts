@@ -802,6 +802,43 @@ export const appSettings = pgTable("app_settings", {
   docsLinkEnabled: boolean("docs_link_enabled").notNull().default(false),
   // When on, the left sidebar shows a link to the Storybook UI at /storybook.
   storybookLinkEnabled: boolean("storybook_link_enabled").notNull().default(false),
+  // --- Sidebar customization (group A): which left-sidebar items/groups are hidden. ---
+  // Category IDs hidden in the left sidebar. Empty = all visible.
+  hiddenCategoryIds: jsonb("hidden_category_ids").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+  // Taxonomy item keys hidden in the left sidebar.
+  hiddenTaxonomyItems: jsonb("hidden_taxonomy_items").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+  // Customization item keys hidden in the left sidebar.
+  hiddenCustomizationItems: jsonb("hidden_customization_items").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+  // Management item keys hidden in the left sidebar.
+  hiddenManagementItems: jsonb("hidden_management_items").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+  // Group keys for entire sidebar sections that are disabled.
+  hiddenSidebarGroups: jsonb("hidden_sidebar_groups").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+  // --- Automation & behavior (group B). ---
+  // When on, blurring the bookmark URL field auto-fetches the page title.
+  autoFetchTitle: boolean("auto_fetch_title").notNull().default(true),
+  // When on, the Add Bookmark Images section starts collapsed and the page image is fetched on save.
+  autoFetchImage: boolean("auto_fetch_image").notNull().default(true),
+  // Modifier held while clicking Edit to open the item in the drawer: "alt" | "ctrl" | "shift" | "meta".
+  sidebarOpenModifier: text("sidebar_open_modifier").notNull().default("alt"),
+  // --- Display & detail preferences (group C). ---
+  // Bookmark detail image size: "small" | "medium" | "large".
+  bookmarkDetailImageSize: text("bookmark_detail_image_size").notNull().default("medium"),
+  // Bookmark detail video size: "standard" | "half" | "twoThirds" | "fullwidth".
+  bookmarkDetailVideoSize: text("bookmark_detail_video_size").notNull().default("standard"),
+  // Bookmark detail layout: "single" | "tabbed".
+  bookmarkDetailLayout: text("bookmark_detail_layout").notNull().default("single"),
+  // When true, listing pages open filters in the right-hand drawer by default.
+  filtersInDrawer: boolean("filters_in_drawer").notNull().default(false),
+  // When true, the left filter rail is hidden on listing pages.
+  filtersHidden: boolean("filters_hidden").notNull().default(false),
+  // When true, the right-hand panel docks as a persistent column by default.
+  panelPinned: boolean("panel_pinned").notNull().default(false),
+  // Viewport widths (px) below which the drawer floats even when pinned. Default [768].
+  drawerUnpinnedBreakpoints: jsonb("drawer_unpinned_breakpoints").$type<number[]>().notNull().default(sql`'[768]'::jsonb`),
+  // Width component of the built-in "Cropped" aspect ratio (default 16).
+  croppedWidth: integer("cropped_width").notNull().default(16),
+  // Height component of the built-in "Cropped" aspect ratio (default 9).
+  croppedHeight: integer("cropped_height").notNull().default(9),
 });
 
 /**

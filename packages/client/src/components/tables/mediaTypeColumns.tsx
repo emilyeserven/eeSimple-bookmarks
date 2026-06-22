@@ -7,17 +7,17 @@ import { Link } from "@tanstack/react-router";
 
 import { TreeExpandToggle } from "./cells";
 import { bookmarkCountColumn } from "./columnHelpers";
+import { useSidebarOpenModifier } from "../../hooks/useAppSettings";
 import { useViewPanelClick } from "../panel/useEditPanelClick";
 
 import { Badge } from "@/components/ui/badge";
 import { CategoryIcon } from "@/lib/icons";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
-import { useUiStore } from "@/stores/uiStore";
 
 /** Column definitions for the Media Types listing Table view (a flattened, expandable tree). */
 export function useMediaTypeColumns(): ColumnDef<MediaTypeNode>[] {
   const viewClick = useViewPanelClick();
-  const modifier = useUiStore(state => state.sidebarOpenModifier);
+  const modifier = useSidebarOpenModifier();
   return useMemo(
     () => [
       {

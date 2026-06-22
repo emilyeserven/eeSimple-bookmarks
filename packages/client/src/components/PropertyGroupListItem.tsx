@@ -5,9 +5,9 @@ import { Info, Layers, Pencil } from "lucide-react";
 
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
+import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
-import { useUiStore } from "@/stores/uiStore";
 
 /**
  * A single row in the property-group listing. Exception to the standard: a property group has no
@@ -19,7 +19,7 @@ export function PropertyGroupListItem({
 }: { group: PropertyGroup }) {
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
-  const modifier = useUiStore(state => state.sidebarOpenModifier);
+  const modifier = useSidebarOpenModifier();
 
   return (
     <StandardListingCard

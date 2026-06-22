@@ -1,6 +1,12 @@
 import type {
   AdvancedSettings,
   UpdateAdvancedSettingsInput,
+  AutomationSettings,
+  UpdateAutomationInput,
+  DisplayPreferenceSettings,
+  UpdateDisplayPreferenceInput,
+  SidebarCustomizationSettings,
+  UpdateSidebarCustomizationInput,
   AutofillPreviewInput,
   CreatePinnedSidebarItemInput,
   PinnedSidebarItem,
@@ -285,6 +291,26 @@ export const appSettingsApi = {
   getAdvanced: () => request<AdvancedSettings>("/app-settings/advanced"),
   updateAdvanced: (input: UpdateAdvancedSettingsInput) =>
     request<AdvancedSettings>("/app-settings/advanced", {
+      method: "PUT",
+      body: JSON.stringify(input),
+    }),
+  getSidebarCustomization: () =>
+    request<SidebarCustomizationSettings>("/app-settings/sidebar-customization"),
+  updateSidebarCustomization: (input: UpdateSidebarCustomizationInput) =>
+    request<SidebarCustomizationSettings>("/app-settings/sidebar-customization", {
+      method: "PUT",
+      body: JSON.stringify(input),
+    }),
+  getAutomation: () => request<AutomationSettings>("/app-settings/automation"),
+  updateAutomation: (input: UpdateAutomationInput) =>
+    request<AutomationSettings>("/app-settings/automation", {
+      method: "PUT",
+      body: JSON.stringify(input),
+    }),
+  getDisplayPreferences: () =>
+    request<DisplayPreferenceSettings>("/app-settings/display-preferences"),
+  updateDisplayPreferences: (input: UpdateDisplayPreferenceInput) =>
+    request<DisplayPreferenceSettings>("/app-settings/display-preferences", {
       method: "PUT",
       body: JSON.stringify(input),
     }),

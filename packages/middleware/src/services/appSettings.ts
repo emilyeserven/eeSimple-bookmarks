@@ -1,11 +1,21 @@
 import { eq } from "drizzle-orm";
 import type {
   AdvancedSettings,
+  AutomationSettings,
+  BookmarkDetailImageSize,
+  BookmarkDetailLayout,
+  BookmarkDetailVideoSize,
+  DisplayPreferenceSettings,
   HomepageContentSettings,
   HomepageContentWidth,
   QuickAddDisplay,
+  SidebarCustomizationSettings,
+  SidebarOpenModifier,
   UpdateAdvancedSettingsInput,
+  UpdateAutomationInput,
+  UpdateDisplayPreferenceInput,
   UpdateHomepageContentInput,
+  UpdateSidebarCustomizationInput,
 } from "@eesimple/types";
 import { db } from "@/db";
 import { appSettings } from "@/db/schema";
@@ -48,6 +58,35 @@ const DEFAULT_ADVANCED_SETTINGS: AdvancedSettings = {
   storybookLinkEnabled: false,
 };
 
+/** Default sidebar-customization settings (nothing hidden), used when seeding / when row absent. */
+const DEFAULT_SIDEBAR_CUSTOMIZATION: SidebarCustomizationSettings = {
+  hiddenCategoryIds: [],
+  hiddenTaxonomyItems: [],
+  hiddenCustomizationItems: [],
+  hiddenManagementItems: [],
+  hiddenSidebarGroups: [],
+};
+
+/** Default automation settings (auto-fetch on, Alt modifier), used when seeding / when row absent. */
+const DEFAULT_AUTOMATION: AutomationSettings = {
+  autoFetchTitle: true,
+  autoFetchImage: true,
+  sidebarOpenModifier: "alt",
+};
+
+/** Default display/detail preferences, used when seeding / when row absent. */
+const DEFAULT_DISPLAY_PREFERENCES: DisplayPreferenceSettings = {
+  bookmarkDetailImageSize: "medium",
+  bookmarkDetailVideoSize: "standard",
+  bookmarkDetailLayout: "single",
+  filtersInDrawer: false,
+  filtersHidden: false,
+  panelPinned: false,
+  drawerUnpinnedBreakpoints: [768],
+  croppedWidth: 16,
+  croppedHeight: 9,
+};
+
 /** Coerce a stored width string to the typed union, defaulting to "full". */
 function asWidth(value: string | null | undefined): HomepageContentWidth {
   return value === "half" ? "half" : "full";
@@ -56,6 +95,41 @@ function asWidth(value: string | null | undefined): HomepageContentWidth {
 /** Coerce a stored display string to the typed union, defaulting to "collapsible". */
 function asQuickAddDisplay(value: string | null | undefined): QuickAddDisplay {
   return value === "expanded" ? "expanded" : "collapsible";
+}
+
+/** Coerce a stored modifier string to the typed union, defaulting to "alt". */
+function asModifier(value: string | null | undefined): SidebarOpenModifier {
+  return value === "ctrl" || value === "shift" || value === "meta" ? value : "alt";
+}
+
+/** Coerce a stored detail-image-size string to the typed union, defaulting to "medium". */
+function asImageSize(value: string | null | undefined): BookmarkDetailImageSize {
+  return value === "small" || value === "large" ? value : "medium";
+}
+
+/** Coerce a stored detail-video-size string to the typed union, defaulting to "standard". */
+function asVideoSize(value: string | null | undefined): BookmarkDetailVideoSize {
+  return value === "half" || value === "twoThirds" || value === "fullwidth" ? value : "standard";
+}
+
+/** Coerce a stored detail-layout string to the typed union, defaulting to "single". */
+function asDetailLayout(value: string | null | undefined): BookmarkDetailLayout {
+  return value === "tabbed" ? "tabbed" : "single";
+}
+
+/** Clamp a stored cropped dimension to a positive integer (mirrors the old client setter). */
+function asCropped(value: number | null | undefined, fallback: number): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) return fallback;
+  return Math.max(1, Math.round(value));
+}
+
+/** Coerce breakpoints to a deduped, sorted array of positive integers. */
+function asBreakpoints(value: number[] | null | undefined): number[] {
+  if (!Array.isArray(value)) return [...DEFAULT_DISPLAY_PREFERENCES.drawerUnpinnedBreakpoints];
+  const cleaned = value
+    .filter(n => typeof n === "number" && Number.isFinite(n) && n > 0)
+    .map(n => Math.round(n));
+  return [...new Set(cleaned)].sort((a, b) => a - b);
 }
 
 /** Idempotently seed the settings singleton on first boot. Safe to call on every start. */
@@ -74,6 +148,9 @@ export async function ensureAppSettings(): Promise<void> {
       shortenerIgnoreList: DEFAULT_SHORTENER_IGNORE_LIST,
       ...DEFAULT_HOMEPAGE_CONTENT,
       ...DEFAULT_ADVANCED_SETTINGS,
+      ...DEFAULT_SIDEBAR_CUSTOMIZATION,
+      ...DEFAULT_AUTOMATION,
+      ...DEFAULT_DISPLAY_PREFERENCES,
     })
     .onConflictDoNothing({
       target: appSettings.id,
@@ -200,6 +277,153 @@ export async function updateAdvancedSettings(
     coolifyUrl: input.coolifyUrl.trim(),
     docsLinkEnabled: input.docsLinkEnabled,
     storybookLinkEnabled: input.storybookLinkEnabled,
+  };
+  await db
+    .insert(appSettings)
+    .values({
+      id: ROW_ID,
+      shortenerIgnoreList: DEFAULT_SHORTENER_IGNORE_LIST,
+      ...next,
+    })
+    .onConflictDoUpdate({
+      target: appSettings.id,
+      set: next,
+    });
+  return next;
+}
+
+/** Read the left-sidebar customization settings (group A). */
+export async function getSidebarCustomizationSettings(): Promise<SidebarCustomizationSettings> {
+  const [row] = await db
+    .select({
+      hiddenCategoryIds: appSettings.hiddenCategoryIds,
+      hiddenTaxonomyItems: appSettings.hiddenTaxonomyItems,
+      hiddenCustomizationItems: appSettings.hiddenCustomizationItems,
+      hiddenManagementItems: appSettings.hiddenManagementItems,
+      hiddenSidebarGroups: appSettings.hiddenSidebarGroups,
+    })
+    .from(appSettings)
+    .where(eq(appSettings.id, ROW_ID));
+  if (!row) return DEFAULT_SIDEBAR_CUSTOMIZATION;
+  return {
+    hiddenCategoryIds: row.hiddenCategoryIds ?? [],
+    hiddenTaxonomyItems: row.hiddenTaxonomyItems ?? [],
+    hiddenCustomizationItems: row.hiddenCustomizationItems ?? [],
+    hiddenManagementItems: row.hiddenManagementItems ?? [],
+    hiddenSidebarGroups: row.hiddenSidebarGroups ?? [],
+  };
+}
+
+/** Replace the sidebar-customization settings, upserting the singleton. Returns the stored values. */
+export async function updateSidebarCustomizationSettings(
+  input: UpdateSidebarCustomizationInput,
+): Promise<SidebarCustomizationSettings> {
+  const next: SidebarCustomizationSettings = {
+    hiddenCategoryIds: [...input.hiddenCategoryIds],
+    hiddenTaxonomyItems: [...input.hiddenTaxonomyItems],
+    hiddenCustomizationItems: [...input.hiddenCustomizationItems],
+    hiddenManagementItems: [...input.hiddenManagementItems],
+    hiddenSidebarGroups: [...input.hiddenSidebarGroups],
+  };
+  await db
+    .insert(appSettings)
+    .values({
+      id: ROW_ID,
+      shortenerIgnoreList: DEFAULT_SHORTENER_IGNORE_LIST,
+      ...next,
+    })
+    .onConflictDoUpdate({
+      target: appSettings.id,
+      set: next,
+    });
+  return next;
+}
+
+/** Read the automation/behavior settings (group B). */
+export async function getAutomationSettings(): Promise<AutomationSettings> {
+  const [row] = await db
+    .select({
+      autoFetchTitle: appSettings.autoFetchTitle,
+      autoFetchImage: appSettings.autoFetchImage,
+      sidebarOpenModifier: appSettings.sidebarOpenModifier,
+    })
+    .from(appSettings)
+    .where(eq(appSettings.id, ROW_ID));
+  if (!row) return DEFAULT_AUTOMATION;
+  return {
+    autoFetchTitle: row.autoFetchTitle,
+    autoFetchImage: row.autoFetchImage,
+    sidebarOpenModifier: asModifier(row.sidebarOpenModifier),
+  };
+}
+
+/** Replace the automation settings, upserting the singleton. Returns the stored values. */
+export async function updateAutomationSettings(
+  input: UpdateAutomationInput,
+): Promise<AutomationSettings> {
+  const next: AutomationSettings = {
+    autoFetchTitle: input.autoFetchTitle,
+    autoFetchImage: input.autoFetchImage,
+    sidebarOpenModifier: asModifier(input.sidebarOpenModifier),
+  };
+  await db
+    .insert(appSettings)
+    .values({
+      id: ROW_ID,
+      shortenerIgnoreList: DEFAULT_SHORTENER_IGNORE_LIST,
+      ...next,
+    })
+    .onConflictDoUpdate({
+      target: appSettings.id,
+      set: next,
+    });
+  return next;
+}
+
+/** Read the display/detail preferences (group C). */
+export async function getDisplayPreferenceSettings(): Promise<DisplayPreferenceSettings> {
+  const [row] = await db
+    .select({
+      bookmarkDetailImageSize: appSettings.bookmarkDetailImageSize,
+      bookmarkDetailVideoSize: appSettings.bookmarkDetailVideoSize,
+      bookmarkDetailLayout: appSettings.bookmarkDetailLayout,
+      filtersInDrawer: appSettings.filtersInDrawer,
+      filtersHidden: appSettings.filtersHidden,
+      panelPinned: appSettings.panelPinned,
+      drawerUnpinnedBreakpoints: appSettings.drawerUnpinnedBreakpoints,
+      croppedWidth: appSettings.croppedWidth,
+      croppedHeight: appSettings.croppedHeight,
+    })
+    .from(appSettings)
+    .where(eq(appSettings.id, ROW_ID));
+  if (!row) return DEFAULT_DISPLAY_PREFERENCES;
+  return {
+    bookmarkDetailImageSize: asImageSize(row.bookmarkDetailImageSize),
+    bookmarkDetailVideoSize: asVideoSize(row.bookmarkDetailVideoSize),
+    bookmarkDetailLayout: asDetailLayout(row.bookmarkDetailLayout),
+    filtersInDrawer: row.filtersInDrawer,
+    filtersHidden: row.filtersHidden,
+    panelPinned: row.panelPinned,
+    drawerUnpinnedBreakpoints: asBreakpoints(row.drawerUnpinnedBreakpoints),
+    croppedWidth: asCropped(row.croppedWidth, DEFAULT_DISPLAY_PREFERENCES.croppedWidth),
+    croppedHeight: asCropped(row.croppedHeight, DEFAULT_DISPLAY_PREFERENCES.croppedHeight),
+  };
+}
+
+/** Replace the display/detail preferences, upserting the singleton. Returns the stored values. */
+export async function updateDisplayPreferenceSettings(
+  input: UpdateDisplayPreferenceInput,
+): Promise<DisplayPreferenceSettings> {
+  const next: DisplayPreferenceSettings = {
+    bookmarkDetailImageSize: asImageSize(input.bookmarkDetailImageSize),
+    bookmarkDetailVideoSize: asVideoSize(input.bookmarkDetailVideoSize),
+    bookmarkDetailLayout: asDetailLayout(input.bookmarkDetailLayout),
+    filtersInDrawer: input.filtersInDrawer,
+    filtersHidden: input.filtersHidden,
+    panelPinned: input.panelPinned,
+    drawerUnpinnedBreakpoints: asBreakpoints(input.drawerUnpinnedBreakpoints),
+    croppedWidth: asCropped(input.croppedWidth, DEFAULT_DISPLAY_PREFERENCES.croppedWidth),
+    croppedHeight: asCropped(input.croppedHeight, DEFAULT_DISPLAY_PREFERENCES.croppedHeight),
   };
   await db
     .insert(appSettings)

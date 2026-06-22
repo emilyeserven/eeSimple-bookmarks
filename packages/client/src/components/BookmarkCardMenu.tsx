@@ -8,6 +8,7 @@ import { Sparkles } from "lucide-react";
 import { DateTimePicker } from "./DateTimePicker";
 import { useEditPanelClick } from "./panel/useEditPanelClick";
 import { StarRating } from "./StarRating";
+import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
 import {
   DropdownMenuCheckboxItem,
@@ -19,7 +20,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
-import { useUiStore } from "@/stores/uiStore";
 
 const IMAGE_GRAB_ERROR_LABELS: Record<string, string> = {
   no_image: "No preview image on this page",
@@ -104,7 +104,7 @@ export function BookmarkCardMenu({
   onSaveNumber, onSaveBoolean, onSaveDateTime, onDelete,
 }: BookmarkCardMenuProps) {
   const editClick = useEditPanelClick();
-  const modifier = useUiStore(state => state.sidebarOpenModifier);
+  const modifier = useSidebarOpenModifier();
 
   return (
     <DropdownMenuContent align="end">

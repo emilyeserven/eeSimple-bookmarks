@@ -14,13 +14,13 @@ import { BookmarkCardDetails } from "./BookmarkCardDetails";
 import { BookmarkCardImage } from "./BookmarkCardImage";
 import { buildCardOverlayItems } from "./bookmarkCardOverlays";
 import { useViewPanelClick } from "./panel/useEditPanelClick";
+import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 import { useAutoBookmarkImage, useUpdateBookmark } from "../hooks/useBookmarks";
 import { useCategories } from "../hooks/useCategories";
 import { buildBookmarkValueItems, fieldPlacementsForCard } from "../lib/bookmarkCardValues";
 import { mergeBooleanValue } from "../lib/bookmarkFormat";
 
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
-import { useUiStore } from "@/stores/uiStore";
 
 interface BookmarkCardProps {
   bookmark: Bookmark;
@@ -98,7 +98,7 @@ export function BookmarkCard({
   const autoImage = useAutoBookmarkImage();
   const updateBookmark = useUpdateBookmark();
   const viewClick = useViewPanelClick();
-  const modifier = useUiStore(state => state.sidebarOpenModifier);
+  const modifier = useSidebarOpenModifier();
   const placements = fieldPlacementsForCard(fieldZones, properties);
   const {
     data: allCategories = [],

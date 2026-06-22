@@ -168,12 +168,8 @@ vi.mock("../hooks/useAppSettings", () => ({
   useShortenerIgnoreList: () => ({
     data: [],
   }),
-}));
-vi.mock("../stores/uiStore", () => ({
-  useUiStore: (selector: (state: { autoFetchTitle: boolean }) => unknown) =>
-    selector({
-      autoFetchTitle,
-    }),
+  useAutoFetchTitle: () => autoFetchTitle,
+  useAutoFetchImage: () => true,
 }));
 
 /** Type a URL and click "Check URL" to reveal the rest of a fresh (create) form. */

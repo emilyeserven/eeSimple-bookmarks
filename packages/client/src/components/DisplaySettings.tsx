@@ -1,9 +1,22 @@
-import type { BookmarkDetailImageSize, BookmarkDetailVideoSize, Theme } from "../stores/uiStore";
+import type { Theme } from "../stores/uiStore";
+import type {
+  BookmarkDetailImageSize,
+  BookmarkDetailVideoSize,
+  DisplayPreferenceSettings,
+  SidebarCustomizationSettings,
+} from "@eesimple/types";
 
 import { ImageAspectRatiosCard } from "./ImageAspectRatiosCard";
 import { ListingDisplayControls } from "./ListingDisplayControls";
 import { PinnedItemsCard } from "./PinnedItemsCard";
+import {
+  useDisplayPreferenceSettings,
+  useSidebarVisibility,
+  useUpdateDisplayPreferenceSettings,
+  useUpdateSidebarCustomizationSettings,
+} from "../hooks/useAppSettings";
 import { useCategories } from "../hooks/useCategories";
+import { notifyError, notifySuccess } from "../lib/notifications";
 import { useUiStore } from "../stores/uiStore";
 
 import {
@@ -151,26 +164,90 @@ const LISTING_DEFAULTS = [
   },
 ] as const;
 
+const DISPLAY_DEFAULTS: DisplayPreferenceSettings = {
+  bookmarkDetailImageSize: "medium",
+  bookmarkDetailVideoSize: "standard",
+  bookmarkDetailLayout: "single",
+  filtersInDrawer: false,
+  filtersHidden: false,
+  panelPinned: false,
+  drawerUnpinnedBreakpoints: [768],
+  croppedWidth: 16,
+  croppedHeight: 9,
+};
+
 /** Display preferences — a theme switcher (light / dark / system) and sidebar section toggles. */
 export function DisplaySettings() {
+  // Theme stays a device-local pref (often dark-on-phone / light-on-desktop), so it remains in uiStore.
   const theme = useUiStore(state => state.theme);
   const setTheme = useUiStore(state => state.setTheme);
-  const filtersInDrawer = useUiStore(state => state.filtersInDrawer);
-  const setFiltersInDrawer = useUiStore(state => state.setFiltersInDrawer);
-  const bookmarkDetailImageSize = useUiStore(state => state.bookmarkDetailImageSize);
-  const setBookmarkDetailImageSize = useUiStore(state => state.setBookmarkDetailImageSize);
-  const bookmarkDetailVideoSize = useUiStore(state => state.bookmarkDetailVideoSize);
-  const setBookmarkDetailVideoSize = useUiStore(state => state.setBookmarkDetailVideoSize);
-  const hiddenCategoryIds = useUiStore(state => state.hiddenCategoryIds);
-  const toggleCategoryVisibility = useUiStore(state => state.toggleCategoryVisibility);
-  const hiddenTaxonomyItems = useUiStore(state => state.hiddenTaxonomyItems);
-  const toggleTaxonomyItem = useUiStore(state => state.toggleTaxonomyItem);
-  const hiddenCustomizationItems = useUiStore(state => state.hiddenCustomizationItems);
-  const toggleCustomizationItem = useUiStore(state => state.toggleCustomizationItem);
-  const hiddenManagementItems = useUiStore(state => state.hiddenManagementItems);
-  const toggleManagementItem = useUiStore(state => state.toggleManagementItem);
-  const hiddenSidebarGroups = useUiStore(state => state.hiddenSidebarGroups);
-  const toggleSidebarGroup = useUiStore(state => state.toggleSidebarGroup);
+
+  const sidebar = useSidebarVisibility();
+  const updateSidebar = useUpdateSidebarCustomizationSettings();
+  const {
+    data: displayData,
+  } = useDisplayPreferenceSettings();
+  const updateDisplay = useUpdateDisplayPreferenceSettings();
+  const display = displayData ?? DISPLAY_DEFAULTS;
+
+  const {
+    hiddenCategoryIds,
+    hiddenTaxonomyItems,
+    hiddenCustomizationItems,
+    hiddenManagementItems,
+    hiddenSidebarGroups,
+  } = sidebar;
+  const filtersInDrawer = display.filtersInDrawer;
+  const bookmarkDetailImageSize = display.bookmarkDetailImageSize;
+  const bookmarkDetailVideoSize = display.bookmarkDetailVideoSize;
+
+  /** Toggle a value in one of the sidebar hidden-lists, persist the whole group, and toast. */
+  function toggleSidebarKey(key: keyof SidebarCustomizationSettings, value: string): void {
+    const current = sidebar[key];
+    const next = current.includes(value)
+      ? current.filter(x => x !== value)
+      : [...current, value];
+    updateSidebar.mutate({
+      ...sidebar,
+      [key]: next,
+    }, {
+      onSuccess: () => notifySuccess("Sidebar updated"),
+      onError: error => notifyError(error.message),
+    });
+  }
+
+  const toggleCategoryVisibility = (id: string) => toggleSidebarKey("hiddenCategoryIds", id);
+  const toggleTaxonomyItem = (key: string) => toggleSidebarKey("hiddenTaxonomyItems", key);
+  const toggleCustomizationItem = (key: string) => toggleSidebarKey("hiddenCustomizationItems", key);
+  const toggleManagementItem = (key: string) => toggleSidebarKey("hiddenManagementItems", key);
+  const toggleSidebarGroup = (group: string) => toggleSidebarKey("hiddenSidebarGroups", group);
+
+  /** Persist a single display-preference field and fire the named toast. */
+  function saveDisplay(patch: Partial<DisplayPreferenceSettings>, message: string): void {
+    updateDisplay.mutate({
+      ...display,
+      ...patch,
+    }, {
+      onSuccess: () => notifySuccess(message),
+      onError: error => notifyError(error.message),
+    });
+  }
+
+  const setFiltersInDrawer = (value: boolean) =>
+    saveDisplay(
+      {
+        filtersInDrawer: value,
+      },
+      value ? "Filters open in drawer" : "Filters open in sidebar",
+    );
+  const setBookmarkDetailImageSize = (size: BookmarkDetailImageSize) =>
+    saveDisplay({
+      bookmarkDetailImageSize: size,
+    }, "Detail image size updated");
+  const setBookmarkDetailVideoSize = (size: BookmarkDetailVideoSize) =>
+    saveDisplay({
+      bookmarkDetailVideoSize: size,
+    }, "Detail video size updated");
 
   const {
     data: categories,

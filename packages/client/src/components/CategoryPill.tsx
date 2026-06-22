@@ -3,18 +3,18 @@ import type { YouTubeChannelCategory } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 
 import { useViewPanelClick } from "./panel/useEditPanelClick";
+import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
 import { Badge } from "@/components/ui/badge";
 import { CategoryIcon } from "@/lib/icons";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
-import { useUiStore } from "@/stores/uiStore";
 
 /** A clickable pill showing a category's icon and name. Navigates to the category page; holds the modifier key to open in the sidebar. */
 export function CategoryPill({
   category,
 }: { category: YouTubeChannelCategory }) {
   const viewClick = useViewPanelClick();
-  const modifier = useUiStore(state => state.sidebarOpenModifier);
+  const modifier = useSidebarOpenModifier();
   return (
     <Link
       to="/categories/$categorySlug"

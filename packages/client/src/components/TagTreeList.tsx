@@ -5,10 +5,10 @@ import { Info, Pencil } from "lucide-react";
 
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { TaxonomyTreeList } from "./TaxonomyTreeRow";
+import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
 import { withTags } from "@/lib/bookmarkSearch";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
-import { useUiStore } from "@/stores/uiStore";
 
 interface TagTreeListProps {
   /** The root tags to render. */
@@ -27,7 +27,7 @@ export function TagTreeList({
 }: TagTreeListProps) {
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
-  const modifier = useUiStore(state => state.sidebarOpenModifier);
+  const modifier = useSidebarOpenModifier();
 
   return (
     <TaxonomyTreeList

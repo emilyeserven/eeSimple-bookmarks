@@ -6,7 +6,7 @@ import { BookmarkDetailBody } from "./BookmarkDetailBody";
 import { BookmarkDetailMedia } from "./BookmarkDetailMedia";
 import { BookmarkDetailTabbed } from "./BookmarkDetailTabbed";
 import { DetailHeaderActions } from "./DetailHeaderActions";
-import { useUiStore } from "../stores/uiStore";
+import { useBookmarkDetailLayout, useBookmarkDetailVideoSize } from "../hooks/useAppSettings";
 
 interface BookmarkDetailProps {
   bookmark: Bookmark;
@@ -31,8 +31,8 @@ interface BookmarkDetailProps {
 export function BookmarkDetail({
   bookmark, categories = [], properties = [], propertyGroups = [], onEdit, onDelete, onSaveBoolean,
 }: BookmarkDetailProps) {
-  const layout = useUiStore(state => state.bookmarkDetailLayout);
-  const videoSize = useUiStore(state => state.bookmarkDetailVideoSize);
+  const layout = useBookmarkDetailLayout();
+  const videoSize = useBookmarkDetailVideoSize();
 
   // For YouTube bookmarks, show a playable embed in place of the static thumbnail.
   const embedUrl = youtubeEmbedUrl(bookmark.url);

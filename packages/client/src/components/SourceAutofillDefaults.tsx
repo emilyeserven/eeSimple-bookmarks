@@ -8,12 +8,12 @@ import { Link } from "@tanstack/react-router";
 import { CategoryPill } from "./CategoryPill";
 import { MediaTypePill } from "./MediaTypePill";
 import { useViewPanelClick } from "./panel/useEditPanelClick";
+import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 import { useMediaTypes } from "../hooks/useMediaTypes";
 import { useTags } from "../hooks/useTags";
 
 import { Badge } from "@/components/ui/badge";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
-import { useUiStore } from "@/stores/uiStore";
 
 interface SourceAutofillDefaultsProps {
   /** Wording differs for a website ("this site") vs a YouTube channel ("this channel"). */
@@ -31,7 +31,7 @@ function TagPill({
   tag,
 }: { tag: Tag }) {
   const viewClick = useViewPanelClick();
-  const modifier = useUiStore(state => state.sidebarOpenModifier);
+  const modifier = useSidebarOpenModifier();
   return (
     <Link
       to="/tags/$tagSlug"

@@ -1,6 +1,13 @@
+import type { BookmarkDetailLayout } from "@eesimple/types";
+
 import { Columns2 } from "lucide-react";
 
-import { useUiStore } from "../stores/uiStore";
+import {
+  useBookmarkDetailLayout,
+  useDisplayPreferenceSettings,
+  useUpdateDisplayPreferenceSettings,
+} from "../hooks/useAppSettings";
+import { notifyError, notifySuccess } from "../lib/notifications";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -9,11 +16,26 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 /**
  * Header control for the bookmark detail page: switches its body between a single stacked column and
- * a vertical-tabbed layout. The choice is a global, persisted preference (`bookmarkDetailLayout`).
+ * a vertical-tabbed layout. The choice is a global, server-persisted preference
+ * (`bookmarkDetailLayout`) and fires a recorded toast on change.
  */
 export function BookmarkDetailLayoutPopover() {
-  const layout = useUiStore(state => state.bookmarkDetailLayout);
-  const setLayout = useUiStore(state => state.setBookmarkDetailLayout);
+  const layout = useBookmarkDetailLayout();
+  const {
+    data,
+  } = useDisplayPreferenceSettings();
+  const update = useUpdateDisplayPreferenceSettings();
+
+  function setLayout(next: BookmarkDetailLayout) {
+    if (!data) return;
+    update.mutate({
+      ...data,
+      bookmarkDetailLayout: next,
+    }, {
+      onSuccess: () => notifySuccess(next === "tabbed" ? "Detail layout: tabbed" : "Detail layout: single"),
+      onError: error => notifyError(error.message),
+    });
+  }
 
   return (
     <Popover>

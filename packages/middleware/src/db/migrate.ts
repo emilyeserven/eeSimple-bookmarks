@@ -320,6 +320,54 @@ const migrations: RuntimeMigration[] = [
     `),
   },
   {
+    // `app_settings` gained the sidebar-customization columns (group A of issue #410): the hidden
+    // category/taxonomy/customization/management item lists + hidden sidebar groups, moved off
+    // per-device local storage so the customized sidebar persists server-side. NOT NULL jsonb arrays
+    // default to '[]'; adding NOT NULL columns to the populated singleton makes drizzle-kit push
+    // prompt (non-TTY crash), so pre-apply them here. Defaults must match schema.ts exactly.
+    name: "add app_settings sidebar-customization columns",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "app_settings"
+        ADD COLUMN IF NOT EXISTS "hidden_category_ids" jsonb NOT NULL DEFAULT '[]'::jsonb,
+        ADD COLUMN IF NOT EXISTS "hidden_taxonomy_items" jsonb NOT NULL DEFAULT '[]'::jsonb,
+        ADD COLUMN IF NOT EXISTS "hidden_customization_items" jsonb NOT NULL DEFAULT '[]'::jsonb,
+        ADD COLUMN IF NOT EXISTS "hidden_management_items" jsonb NOT NULL DEFAULT '[]'::jsonb,
+        ADD COLUMN IF NOT EXISTS "hidden_sidebar_groups" jsonb NOT NULL DEFAULT '[]'::jsonb
+    `),
+  },
+  {
+    // `app_settings` gained the automation/behavior columns (group B of issue #410): auto-fetch
+    // title/image + the open-in-drawer modifier, moved off per-device local storage. NOT NULL with
+    // defaults matching schema.ts (auto-fetch on by default, modifier "alt"); pre-apply to keep
+    // push's diff additive-only.
+    name: "add app_settings automation columns",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "app_settings"
+        ADD COLUMN IF NOT EXISTS "auto_fetch_title" boolean NOT NULL DEFAULT true,
+        ADD COLUMN IF NOT EXISTS "auto_fetch_image" boolean NOT NULL DEFAULT true,
+        ADD COLUMN IF NOT EXISTS "sidebar_open_modifier" text NOT NULL DEFAULT 'alt'
+    `),
+  },
+  {
+    // `app_settings` gained the display/detail-preference columns (group C of issue #410): bookmark
+    // detail media sizing/layout, filter placement, right-panel pin behavior, and the built-in
+    // "Cropped" aspect ratio, moved off per-device local storage. NOT NULL with defaults matching
+    // schema.ts; pre-apply to keep push's diff additive-only.
+    name: "add app_settings display-preference columns",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "app_settings"
+        ADD COLUMN IF NOT EXISTS "bookmark_detail_image_size" text NOT NULL DEFAULT 'medium',
+        ADD COLUMN IF NOT EXISTS "bookmark_detail_video_size" text NOT NULL DEFAULT 'standard',
+        ADD COLUMN IF NOT EXISTS "bookmark_detail_layout" text NOT NULL DEFAULT 'single',
+        ADD COLUMN IF NOT EXISTS "filters_in_drawer" boolean NOT NULL DEFAULT false,
+        ADD COLUMN IF NOT EXISTS "filters_hidden" boolean NOT NULL DEFAULT false,
+        ADD COLUMN IF NOT EXISTS "panel_pinned" boolean NOT NULL DEFAULT false,
+        ADD COLUMN IF NOT EXISTS "drawer_unpinned_breakpoints" jsonb NOT NULL DEFAULT '[768]'::jsonb,
+        ADD COLUMN IF NOT EXISTS "cropped_width" integer NOT NULL DEFAULT 16,
+        ADD COLUMN IF NOT EXISTS "cropped_height" integer NOT NULL DEFAULT 9
+    `),
+  },
+  {
     // Display Presets were removed in favor of Card Display Rules; drop the `saved_display_presets`
     // table so it doesn't linger. Destructive, so it lives here (push never drops tables). Idempotent
     // via DROP TABLE IF EXISTS.

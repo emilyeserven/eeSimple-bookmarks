@@ -1,6 +1,16 @@
-import type { SidebarOpenModifier } from "../stores/uiStore";
+import type {
+  AutomationSettings,
+  DisplayPreferenceSettings,
+  SidebarOpenModifier,
+} from "@eesimple/types";
 
-import { useUiStore } from "../stores/uiStore";
+import {
+  useAutomationSettings,
+  useDisplayPreferenceSettings,
+  useUpdateAutomationSettings,
+  useUpdateDisplayPreferenceSettings,
+} from "../hooks/useAppSettings";
+import { notifyError, notifySuccess } from "../lib/notifications";
 import { usePanelControls } from "./panel/usePanelControls";
 
 import {
@@ -44,24 +54,81 @@ const BREAKPOINT_OPTIONS = [
   },
 ] as const;
 
+const DISPLAY_DEFAULTS: DisplayPreferenceSettings = {
+  bookmarkDetailImageSize: "medium",
+  bookmarkDetailVideoSize: "standard",
+  bookmarkDetailLayout: "single",
+  filtersInDrawer: false,
+  filtersHidden: false,
+  panelPinned: false,
+  drawerUnpinnedBreakpoints: [768],
+  croppedWidth: 16,
+  croppedHeight: 9,
+};
+
+const AUTOMATION_DEFAULTS: AutomationSettings = {
+  autoFetchTitle: true,
+  autoFetchImage: true,
+  sidebarOpenModifier: "alt",
+};
+
 /** Drawer preferences — pin behaviour, responsive breakpoints, and modifier key. */
 export function SidebarSettings() {
-  const sidebarOpenModifier = useUiStore(state => state.sidebarOpenModifier);
-  const setSidebarOpenModifier = useUiStore(state => state.setSidebarOpenModifier);
-  const panelPinned = useUiStore(state => state.panelPinned);
-  const setPanelPinned = useUiStore(state => state.setPanelPinned);
-  const drawerUnpinnedBreakpoints = useUiStore(state => state.drawerUnpinnedBreakpoints);
-  const setDrawerUnpinnedBreakpoints = useUiStore(state => state.setDrawerUnpinnedBreakpoints);
+  const {
+    data: displayData,
+  } = useDisplayPreferenceSettings();
+  const {
+    data: automationData,
+  } = useAutomationSettings();
+  const updateDisplay = useUpdateDisplayPreferenceSettings();
+  const updateAutomation = useUpdateAutomationSettings();
+  const display = displayData ?? DISPLAY_DEFAULTS;
+  const automation = automationData ?? AUTOMATION_DEFAULTS;
   const {
     open, isOpen,
   } = usePanelControls();
 
-  function toggleBreakpoint(px: number) {
-    setDrawerUnpinnedBreakpoints(
-      drawerUnpinnedBreakpoints.includes(px)
-        ? drawerUnpinnedBreakpoints.filter(b => b !== px)
-        : [...drawerUnpinnedBreakpoints, px],
+  /** Persist a single display-preference field and fire the named toast. */
+  function saveDisplay(patch: Partial<DisplayPreferenceSettings>, message: string): void {
+    updateDisplay.mutate({
+      ...display,
+      ...patch,
+    }, {
+      onSuccess: () => notifySuccess(message),
+      onError: error => notifyError(error.message),
+    });
+  }
+
+  function setPanelPinned(isPinned: boolean) {
+    saveDisplay(
+      {
+        panelPinned: isPinned,
+      },
+      isPinned ? "Drawer pinned by default" : "Drawer unpinned by default",
     );
+    if (isPinned && !isOpen) open();
+  }
+
+  function toggleBreakpoint(px: number) {
+    const next = display.drawerUnpinnedBreakpoints.includes(px)
+      ? display.drawerUnpinnedBreakpoints.filter(b => b !== px)
+      : [...display.drawerUnpinnedBreakpoints, px];
+    saveDisplay(
+      {
+        drawerUnpinnedBreakpoints: next,
+      },
+      "Drawer breakpoints updated",
+    );
+  }
+
+  function setSidebarOpenModifier(value: SidebarOpenModifier) {
+    updateAutomation.mutate({
+      ...automation,
+      sidebarOpenModifier: value,
+    }, {
+      onSuccess: () => notifySuccess("Open-in-drawer key updated"),
+      onError: error => notifyError(error.message),
+    });
   }
 
   return (
@@ -78,19 +145,15 @@ export function SidebarSettings() {
           <div className="flex items-center gap-2">
             <Checkbox
               id="panel-pinned"
-              checked={panelPinned}
-              onCheckedChange={(checked) => {
-                const isPinned = checked === true;
-                setPanelPinned(isPinned);
-                if (isPinned && !isOpen) open();
-              }}
+              checked={display.panelPinned}
+              onCheckedChange={checked => setPanelPinned(checked === true)}
             />
             <Label htmlFor="panel-pinned">Pin the drawer by default</Label>
           </div>
         </CardContent>
       </Card>
 
-      {panelPinned && (
+      {display.panelPinned && (
         <Card>
           <CardHeader>
             <CardTitle>Unpin below viewport width</CardTitle>
@@ -110,7 +173,7 @@ export function SidebarSettings() {
               >
                 <Checkbox
                   id={`breakpoint-${px}`}
-                  checked={drawerUnpinnedBreakpoints.includes(px)}
+                  checked={display.drawerUnpinnedBreakpoints.includes(px)}
                   onCheckedChange={() => toggleBreakpoint(px)}
                 />
                 <Label htmlFor={`breakpoint-${px}`}>
@@ -133,7 +196,7 @@ export function SidebarSettings() {
         <CardContent className="space-y-1">
           <Label htmlFor="sidebar-modifier-select">Modifier key</Label>
           <Select
-            value={sidebarOpenModifier}
+            value={automation.sidebarOpenModifier}
             onValueChange={value => setSidebarOpenModifier(value as SidebarOpenModifier)}
           >
             <SelectTrigger

@@ -1,13 +1,32 @@
-import type { UpdateAdvancedSettingsInput, UpdateHomepageContentInput } from "@eesimple/types";
+import type {
+  UpdateAdvancedSettingsInput,
+  UpdateAutomationInput,
+  UpdateDisplayPreferenceInput,
+  UpdateHomepageContentInput,
+  UpdateSidebarCustomizationInput,
+} from "@eesimple/types";
 import type { FastifyInstance } from "fastify";
 import {
   getAdvancedSettings,
+  getAutomationSettings,
+  getDisplayPreferenceSettings,
   getHomepageContentSettings,
   getShortenerIgnoreList,
+  getSidebarCustomizationSettings,
   updateAdvancedSettings,
+  updateAutomationSettings,
+  updateDisplayPreferenceSettings,
   updateHomepageContentSettings,
   updateShortenerIgnoreList,
+  updateSidebarCustomizationSettings,
 } from "@/services/appSettings";
+
+const stringArray = {
+  type: "array",
+  items: {
+    type: "string",
+  },
+} as const;
 
 const ignoreListBody = {
   type: "object",
@@ -88,6 +107,97 @@ const advancedBody = {
   },
 } as const;
 
+const sidebarCustomizationBody = {
+  type: "object",
+  required: [
+    "hiddenCategoryIds",
+    "hiddenTaxonomyItems",
+    "hiddenCustomizationItems",
+    "hiddenManagementItems",
+    "hiddenSidebarGroups",
+  ],
+  additionalProperties: false,
+  properties: {
+    hiddenCategoryIds: stringArray,
+    hiddenTaxonomyItems: stringArray,
+    hiddenCustomizationItems: stringArray,
+    hiddenManagementItems: stringArray,
+    hiddenSidebarGroups: stringArray,
+  },
+} as const;
+
+const automationBody = {
+  type: "object",
+  required: ["autoFetchTitle", "autoFetchImage", "sidebarOpenModifier"],
+  additionalProperties: false,
+  properties: {
+    autoFetchTitle: {
+      type: "boolean",
+    },
+    autoFetchImage: {
+      type: "boolean",
+    },
+    sidebarOpenModifier: {
+      type: "string",
+      enum: ["alt", "ctrl", "shift", "meta"],
+    },
+  },
+} as const;
+
+const displayPreferenceBody = {
+  type: "object",
+  required: [
+    "bookmarkDetailImageSize",
+    "bookmarkDetailVideoSize",
+    "bookmarkDetailLayout",
+    "filtersInDrawer",
+    "filtersHidden",
+    "panelPinned",
+    "drawerUnpinnedBreakpoints",
+    "croppedWidth",
+    "croppedHeight",
+  ],
+  additionalProperties: false,
+  properties: {
+    bookmarkDetailImageSize: {
+      type: "string",
+      enum: ["small", "medium", "large"],
+    },
+    bookmarkDetailVideoSize: {
+      type: "string",
+      enum: ["standard", "half", "twoThirds", "fullwidth"],
+    },
+    bookmarkDetailLayout: {
+      type: "string",
+      enum: ["single", "tabbed"],
+    },
+    filtersInDrawer: {
+      type: "boolean",
+    },
+    filtersHidden: {
+      type: "boolean",
+    },
+    panelPinned: {
+      type: "boolean",
+    },
+    drawerUnpinnedBreakpoints: {
+      type: "array",
+      items: {
+        type: "integer",
+        minimum: 1,
+      },
+    },
+    croppedWidth: {
+      type: "integer",
+      minimum: 1,
+    },
+    croppedHeight: {
+      type: "integer",
+      minimum: 1,
+    },
+  },
+} as const;
+
 /** Global app-settings endpoints, mounted under `/api/app-settings`. */
 export async function appSettingsRoutes(app: FastifyInstance): Promise<void> {
   app.get("/api/app-settings/shortener-ignore-list", {
@@ -133,4 +243,43 @@ export async function appSettingsRoutes(app: FastifyInstance): Promise<void> {
       body: advancedBody,
     },
   }, async req => updateAdvancedSettings(req.body as UpdateAdvancedSettingsInput));
+
+  app.get("/api/app-settings/sidebar-customization", {
+    schema: {
+      tags: ["app-settings"],
+    },
+  }, async () => getSidebarCustomizationSettings());
+
+  app.put("/api/app-settings/sidebar-customization", {
+    schema: {
+      tags: ["app-settings"],
+      body: sidebarCustomizationBody,
+    },
+  }, async req => updateSidebarCustomizationSettings(req.body as UpdateSidebarCustomizationInput));
+
+  app.get("/api/app-settings/automation", {
+    schema: {
+      tags: ["app-settings"],
+    },
+  }, async () => getAutomationSettings());
+
+  app.put("/api/app-settings/automation", {
+    schema: {
+      tags: ["app-settings"],
+      body: automationBody,
+    },
+  }, async req => updateAutomationSettings(req.body as UpdateAutomationInput));
+
+  app.get("/api/app-settings/display-preferences", {
+    schema: {
+      tags: ["app-settings"],
+    },
+  }, async () => getDisplayPreferenceSettings());
+
+  app.put("/api/app-settings/display-preferences", {
+    schema: {
+      tags: ["app-settings"],
+      body: displayPreferenceBody,
+    },
+  }, async req => updateDisplayPreferenceSettings(req.body as UpdateDisplayPreferenceInput));
 }

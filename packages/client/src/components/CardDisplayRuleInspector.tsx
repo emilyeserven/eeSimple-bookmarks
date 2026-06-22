@@ -8,6 +8,7 @@ import { buildTagDescendants } from "@eesimple/types";
 import { ChevronDown } from "lucide-react";
 
 import { Combobox } from "./Combobox";
+import { useCroppedHeight, useCroppedWidth } from "../hooks/useAppSettings";
 import { useBookmarks } from "../hooks/useBookmarks";
 import { useCardDisplayRules } from "../hooks/useCardDisplayRules";
 import { useCustomAspectRatios } from "../hooks/useCustomAspectRatios";
@@ -16,7 +17,6 @@ import { useTags } from "../hooks/useTags";
 import { buildAspectOptions } from "../lib/aspectOptions";
 import { STANDARD_CARD_FIELDS } from "../lib/bookmarkCardFields";
 import { inspectBookmarkRules } from "../lib/cardDisplayRules";
-import { useUiStore } from "../stores/uiStore";
 
 import { Badge } from "@/components/ui/badge";
 import {
@@ -80,8 +80,8 @@ export function CardDisplayRuleInspector() {
   const {
     data: customRatios = [],
   } = useCustomAspectRatios();
-  const croppedWidth = useUiStore(state => state.croppedWidth);
-  const croppedHeight = useUiStore(state => state.croppedHeight);
+  const croppedWidth = useCroppedWidth();
+  const croppedHeight = useCroppedHeight();
 
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
 

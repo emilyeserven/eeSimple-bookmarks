@@ -1,5 +1,5 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
-import type { Bookmark, BookmarkImageVisibility, Category, CustomProperty, MediaType, PropertyGroup, RelationshipType, TagNode, ViewMode, Website, YouTubeChannel } from "@eesimple/types";
+import type { Bookmark, BookmarkDetailImageSize, BookmarkDetailLayout, BookmarkDetailVideoSize, BookmarkImageVisibility, Category, CustomProperty, MediaType, PropertyGroup, RelationshipType, SidebarOpenModifier, TagNode, ViewMode, Website, YouTubeChannel } from "@eesimple/types";
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
@@ -7,27 +7,22 @@ import { persist } from "zustand/middleware";
 /** The user's theme preference. `system` follows the OS `prefers-color-scheme`. */
 export type Theme = "light" | "dark" | "system";
 
-/** Modifier key that, held while clicking an Edit button, opens the item in the right-hand sidebar. */
-export type SidebarOpenModifier = "alt" | "ctrl" | "shift" | "meta";
-
 /** Per-section image layout preference for 2-column homepage sections. */
 export type HomepageSectionImageLayout = "above" | "side";
 
-/** Bookmark detail page image size preference. */
-export type BookmarkDetailImageSize = "small" | "medium" | "large";
-
-/** Bookmark detail page video size preference: constrained side-by-side, half/two-thirds stacked, or full-width stacked. */
-export type BookmarkDetailVideoSize = "standard" | "half" | "twoThirds" | "fullwidth";
-
-/** Bookmark detail page layout: single stacked column (default) or vertical-tabbed sections. */
-export type BookmarkDetailLayout = "single" | "tabbed";
-
 /**
- * Per-listing image visibility (full card, image-only, or no image) and rendering mode (card grid
- * or a data table). Defined once in `@eesimple/types` and re-exported here so existing
- * `../stores/uiStore` importers keep working.
+ * UI-pref unions defined once in `@eesimple/types` and re-exported here so existing
+ * `../stores/uiStore` importers keep working. `SidebarOpenModifier` and the bookmark-detail sizing
+ * unions now drive server-persisted settings but are still re-exported for back-compat.
  */
-export type { BookmarkImageVisibility, ViewMode };
+export type {
+  BookmarkDetailImageSize,
+  BookmarkDetailLayout,
+  BookmarkDetailVideoSize,
+  BookmarkImageVisibility,
+  SidebarOpenModifier,
+  ViewMode,
+};
 
 /** Clamp a requested bookmark column count to the supported 1–4 range. */
 export function clampColumns(columns: number): number {
@@ -63,24 +58,9 @@ interface UiState {
   /** The selected theme; persisted to localStorage so it survives reloads. */
   theme: Theme;
   setTheme: (theme: Theme) => void;
-  /** Modifier held while clicking an Edit button to open the item in the sidebar instead of its page. */
-  sidebarOpenModifier: SidebarOpenModifier;
-  setSidebarOpenModifier: (value: SidebarOpenModifier) => void;
-  /** When on, blurring the bookmark URL field auto-fetches the page title. */
-  autoFetchTitle: boolean;
-  setAutoFetchTitle: (value: boolean) => void;
-  /** When on, the Images section of the Add Bookmark form starts collapsed and the page image is fetched automatically on save. */
-  autoFetchImage: boolean;
-  setAutoFetchImage: (value: boolean) => void;
   /** Per-listing image display mode: "natural", "cropped", "square", "opengraph", or a custom ratio UUID. Keyed by a stable page key. */
   bookmarkImageMode: Record<string, string>;
   setBookmarkImageMode: (pageKey: string, mode: string) => void;
-  /** Width component of the "Cropped" built-in aspect ratio (default 16). */
-  croppedWidth: number;
-  setCroppedWidth: (value: number) => void;
-  /** Height component of the "Cropped" built-in aspect ratio (default 9). */
-  croppedHeight: number;
-  setCroppedHeight: (value: number) => void;
   /** Per-listing image visibility ("shown" | "image-only" | "off"), keyed by a stable page key. */
   bookmarkImageVisibility: Record<string, BookmarkImageVisibility>;
   setBookmarkImageVisibility: (pageKey: string, value: BookmarkImageVisibility) => void;
@@ -101,33 +81,12 @@ interface UiState {
   /** Persisted per-listing table column widths (px), keyed by pageKey → columnId. */
   tableColumnWidths: Record<string, Record<string, number>>;
   setTableColumnWidths: (pageKey: string, widths: Record<string, number>) => void;
-  /** When pinned, the right-hand panel docks as a persistent column instead of a floating drawer. */
-  panelPinned: boolean;
-  setPanelPinned: (value: boolean) => void;
-  /** Viewport widths (px) below which the drawer is unpinned (floats) even when panelPinned is true. Default [768] matches the original mobile cutoff. */
-  drawerUnpinnedBreakpoints: number[];
-  setDrawerUnpinnedBreakpoints: (breakpoints: number[]) => void;
   /** Left sidebar width in rem (10–28). Persisted so the user's drag preference survives reloads. */
   sidebarWidth: number;
   setSidebarWidth: (value: number) => void;
   /** Docked right panel width in rem (18–40). Only applies when the panel is pinned. */
   panelWidth: number;
   setPanelWidth: (value: number) => void;
-  /** Category IDs hidden in the left sidebar. Empty = all visible. */
-  hiddenCategoryIds: string[];
-  toggleCategoryVisibility: (id: string) => void;
-  /** Taxonomy item keys hidden in the left sidebar ("tags" | "websites" | "media-types" | "youtube-channels"). Empty = all visible. */
-  hiddenTaxonomyItems: string[];
-  toggleTaxonomyItem: (key: string) => void;
-  /** Customization item keys hidden in the left sidebar ("custom-properties" | "autofill"). Empty = all visible. */
-  hiddenCustomizationItems: string[];
-  toggleCustomizationItem: (key: string) => void;
-  /** Management item keys hidden from the left sidebar ("categories" | "tags"). Empty = all visible. */
-  hiddenManagementItems: string[];
-  toggleManagementItem: (key: string) => void;
-  /** Group keys for entire sidebar sections that are disabled ("categories" | "taxonomies" | "customization" | "management"). Empty = all enabled. */
-  hiddenSidebarGroups: string[];
-  toggleSidebarGroup: (group: string) => void;
   /** Section keys currently collapsed in the left sidebar ("categories" | "taxonomies" | "customization" | "management"). */
   collapsedSidebarSections: string[];
   toggleSidebarSection: (section: string) => void;
@@ -143,21 +102,6 @@ interface UiState {
   /** Per-listing toggle (default true) for whether custom properties placed in an image corner are overlaid on card images. Keyed by a stable page key. */
   bookmarkCornerOverlays: Record<string, boolean>;
   setBookmarkCornerOverlays: (pageKey: string, value: boolean) => void;
-  /** When true, listing pages auto-open filters in the right-hand drawer instead of the left column. */
-  filtersInDrawer: boolean;
-  setFiltersInDrawer: (value: boolean) => void;
-  /** When true, the left filter rail is hidden on listing pages; a Show-filters toggle appears in the header. */
-  filtersHidden: boolean;
-  setFiltersHidden: (value: boolean) => void;
-  /** Image size on the bookmark detail page/panel: small (160px), medium (288px, default), or large (384px). */
-  bookmarkDetailImageSize: BookmarkDetailImageSize;
-  setBookmarkDetailImageSize: (size: BookmarkDetailImageSize) => void;
-  /** Video embed size on the bookmark detail page/panel: constrained side-by-side (standard) or full-width stacked (fullwidth). */
-  bookmarkDetailVideoSize: BookmarkDetailVideoSize;
-  setBookmarkDetailVideoSize: (size: BookmarkDetailVideoSize) => void;
-  /** Layout of the bookmark detail page/panel: single stacked column (default) or vertical tabs. */
-  bookmarkDetailLayout: BookmarkDetailLayout;
-  setBookmarkDetailLayout: (layout: BookmarkDetailLayout) => void;
   /** Transient: live filter data from the active listing page. Cleared when leaving a listing page. Never persisted. */
   filterContext: FilterContextData | null;
   setFilterContext: (ctx: FilterContextData | null) => void;
@@ -187,18 +131,6 @@ export const useUiStore = create<UiState>()(
       setTheme: theme => set({
         theme,
       }),
-      sidebarOpenModifier: "alt",
-      setSidebarOpenModifier: value => set({
-        sidebarOpenModifier: value,
-      }),
-      autoFetchTitle: true,
-      setAutoFetchTitle: value => set({
-        autoFetchTitle: value,
-      }),
-      autoFetchImage: true,
-      setAutoFetchImage: value => set({
-        autoFetchImage: value,
-      }),
       bookmarkImageMode: {},
       setBookmarkImageMode: (pageKey, mode) => set(state => ({
         bookmarkImageMode: {
@@ -206,14 +138,6 @@ export const useUiStore = create<UiState>()(
           [pageKey]: mode,
         },
       })),
-      croppedWidth: 16,
-      setCroppedWidth: value => set({
-        croppedWidth: Math.max(1, Math.round(value)),
-      }),
-      croppedHeight: 9,
-      setCroppedHeight: value => set({
-        croppedHeight: Math.max(1, Math.round(value)),
-      }),
       bookmarkImageVisibility: {},
       setBookmarkImageVisibility: (pageKey, value) => set(state => ({
         bookmarkImageVisibility: {
@@ -267,14 +191,6 @@ export const useUiStore = create<UiState>()(
           [pageKey]: widths,
         },
       })),
-      panelPinned: false,
-      setPanelPinned: value => set({
-        panelPinned: value,
-      }),
-      drawerUnpinnedBreakpoints: [768],
-      setDrawerUnpinnedBreakpoints: breakpoints => set({
-        drawerUnpinnedBreakpoints: breakpoints,
-      }),
       sidebarWidth: 16,
       setSidebarWidth: value => set({
         sidebarWidth: clampSidebarWidth(value),
@@ -283,36 +199,6 @@ export const useUiStore = create<UiState>()(
       setPanelWidth: value => set({
         panelWidth: clampPanelWidth(value),
       }),
-      hiddenCategoryIds: [],
-      toggleCategoryVisibility: id => set(state => ({
-        hiddenCategoryIds: state.hiddenCategoryIds.includes(id)
-          ? state.hiddenCategoryIds.filter(x => x !== id)
-          : [...state.hiddenCategoryIds, id],
-      })),
-      hiddenTaxonomyItems: [],
-      toggleTaxonomyItem: key => set(state => ({
-        hiddenTaxonomyItems: state.hiddenTaxonomyItems.includes(key)
-          ? state.hiddenTaxonomyItems.filter(x => x !== key)
-          : [...state.hiddenTaxonomyItems, key],
-      })),
-      hiddenCustomizationItems: [],
-      toggleCustomizationItem: key => set(state => ({
-        hiddenCustomizationItems: state.hiddenCustomizationItems.includes(key)
-          ? state.hiddenCustomizationItems.filter(x => x !== key)
-          : [...state.hiddenCustomizationItems, key],
-      })),
-      hiddenManagementItems: [],
-      toggleManagementItem: key => set(state => ({
-        hiddenManagementItems: state.hiddenManagementItems.includes(key)
-          ? state.hiddenManagementItems.filter(x => x !== key)
-          : [...state.hiddenManagementItems, key],
-      })),
-      hiddenSidebarGroups: [],
-      toggleSidebarGroup: group => set(state => ({
-        hiddenSidebarGroups: state.hiddenSidebarGroups.includes(group)
-          ? state.hiddenSidebarGroups.filter(x => x !== group)
-          : [...state.hiddenSidebarGroups, group],
-      })),
       collapsedSidebarSections: [],
       toggleSidebarSection: section => set(state => ({
         collapsedSidebarSections: state.collapsedSidebarSections.includes(section)
@@ -343,26 +229,6 @@ export const useUiStore = create<UiState>()(
           [pageKey]: value,
         },
       })),
-      filtersInDrawer: false,
-      setFiltersInDrawer: value => set({
-        filtersInDrawer: value,
-      }),
-      filtersHidden: false,
-      setFiltersHidden: value => set({
-        filtersHidden: value,
-      }),
-      bookmarkDetailImageSize: "medium",
-      setBookmarkDetailImageSize: size => set({
-        bookmarkDetailImageSize: size,
-      }),
-      bookmarkDetailVideoSize: "standard",
-      setBookmarkDetailVideoSize: size => set({
-        bookmarkDetailVideoSize: size,
-      }),
-      bookmarkDetailLayout: "single",
-      setBookmarkDetailLayout: layout => set({
-        bookmarkDetailLayout: layout,
-      }),
       filterContext: null,
       setFilterContext: ctx => set({
         filterContext: ctx,
@@ -400,36 +266,19 @@ export const useUiStore = create<UiState>()(
       },
       partialize: state => ({
         theme: state.theme,
-        sidebarOpenModifier: state.sidebarOpenModifier,
-        autoFetchTitle: state.autoFetchTitle,
-        autoFetchImage: state.autoFetchImage,
         bookmarkImageMode: state.bookmarkImageMode,
-        croppedWidth: state.croppedWidth,
-        croppedHeight: state.croppedHeight,
         bookmarkImageVisibility: state.bookmarkImageVisibility,
         bookmarkColumns: state.bookmarkColumns,
         viewMode: state.viewMode,
         hiddenCardFields: state.hiddenCardFields,
         selectedDisplayPreset: state.selectedDisplayPreset,
-        panelPinned: state.panelPinned,
-        drawerUnpinnedBreakpoints: state.drawerUnpinnedBreakpoints,
         sidebarWidth: state.sidebarWidth,
         panelWidth: state.panelWidth,
-        hiddenCategoryIds: state.hiddenCategoryIds,
-        hiddenTaxonomyItems: state.hiddenTaxonomyItems,
-        hiddenCustomizationItems: state.hiddenCustomizationItems,
-        hiddenManagementItems: state.hiddenManagementItems,
-        hiddenSidebarGroups: state.hiddenSidebarGroups,
         collapsedSidebarSections: state.collapsedSidebarSections,
         addBookmarkFormOpen: state.addBookmarkFormOpen,
         collapsedHomepageSectionIds: state.collapsedHomepageSectionIds,
         bookmarkImageLayout: state.bookmarkImageLayout,
         bookmarkCornerOverlays: state.bookmarkCornerOverlays,
-        filtersInDrawer: state.filtersInDrawer,
-        filtersHidden: state.filtersHidden,
-        bookmarkDetailImageSize: state.bookmarkDetailImageSize,
-        bookmarkDetailVideoSize: state.bookmarkDetailVideoSize,
-        bookmarkDetailLayout: state.bookmarkDetailLayout,
       }),
     },
   ),

@@ -4,9 +4,9 @@ import type { MouseEvent } from "react";
 import { useCallback } from "react";
 
 import { usePanelControls } from "./usePanelControls";
+import { useSidebarOpenModifier } from "../../hooks/useAppSettings";
 
 import { hasSidebarModifier } from "@/lib/sidebarModifier";
-import { useUiStore } from "@/stores/uiStore";
 
 /**
  * Returns a click handler for a navigation affordance. A normal click falls through to the
@@ -22,7 +22,7 @@ function useOpenInPanelClick(mode: DrawerMode): (
   const {
     openItem,
   } = usePanelControls();
-  const modifier = useUiStore(state => state.sidebarOpenModifier);
+  const modifier = useSidebarOpenModifier();
 
   return useCallback(
     (event: MouseEvent, ct: DrawerContentType, id: string) => {

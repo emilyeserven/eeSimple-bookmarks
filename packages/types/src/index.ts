@@ -198,6 +198,40 @@ export interface AppSettings {
   docsLinkEnabled: boolean;
   /** When on, the left sidebar shows a link to the Storybook UI at `/storybook`. */
   storybookLinkEnabled: boolean;
+  /** Category IDs hidden in the left sidebar. Empty = all visible. */
+  hiddenCategoryIds: string[];
+  /** Taxonomy item keys hidden in the left sidebar (tags / websites / media-types / youtube-channels). */
+  hiddenTaxonomyItems: string[];
+  /** Customization item keys hidden in the left sidebar (custom-properties / property-groups / autofill). */
+  hiddenCustomizationItems: string[];
+  /** Management item keys hidden in the left sidebar (categories / tags). */
+  hiddenManagementItems: string[];
+  /** Group keys for entire sidebar sections that are disabled (categories / taxonomies / customization / management). */
+  hiddenSidebarGroups: string[];
+  /** When on, blurring the bookmark URL field auto-fetches the page title. */
+  autoFetchTitle: boolean;
+  /** When on, the Add Bookmark Images section starts collapsed and the page image is fetched on save. */
+  autoFetchImage: boolean;
+  /** Modifier held while clicking an Edit button to open the item in the drawer instead of its page. */
+  sidebarOpenModifier: SidebarOpenModifier;
+  /** Image size on the bookmark detail page/panel. */
+  bookmarkDetailImageSize: BookmarkDetailImageSize;
+  /** Video embed size on the bookmark detail page/panel. */
+  bookmarkDetailVideoSize: BookmarkDetailVideoSize;
+  /** Layout of the bookmark detail page/panel: single stacked column or vertical tabs. */
+  bookmarkDetailLayout: BookmarkDetailLayout;
+  /** When true, listing pages auto-open filters in the right-hand drawer instead of the left column. */
+  filtersInDrawer: boolean;
+  /** When true, the left filter rail is hidden on listing pages; a Show-filters toggle appears in the header. */
+  filtersHidden: boolean;
+  /** When pinned, the right-hand panel docks as a persistent column instead of a floating drawer. */
+  panelPinned: boolean;
+  /** Viewport widths (px) below which the drawer is unpinned (floats) even when panelPinned is true. */
+  drawerUnpinnedBreakpoints: number[];
+  /** Width component of the built-in "Cropped" aspect ratio. */
+  croppedWidth: number;
+  /** Height component of the built-in "Cropped" aspect ratio. */
+  croppedHeight: number;
 }
 
 /**
@@ -214,6 +248,55 @@ export interface AdvancedSettings {
 
 /** Payload for replacing the advanced settings. */
 export type UpdateAdvancedSettingsInput = AdvancedSettings;
+
+/**
+ * The subset of {@link AppSettings} that drives left-sidebar customization (which categories,
+ * taxonomy items, customization tools, management pages, and whole groups are shown). Persisted
+ * server-side so the customized sidebar follows the user across devices.
+ */
+export interface SidebarCustomizationSettings {
+  hiddenCategoryIds: string[];
+  hiddenTaxonomyItems: string[];
+  hiddenCustomizationItems: string[];
+  hiddenManagementItems: string[];
+  hiddenSidebarGroups: string[];
+}
+
+/** Payload for replacing the sidebar-customization settings. */
+export type UpdateSidebarCustomizationInput = SidebarCustomizationSettings;
+
+/**
+ * The subset of {@link AppSettings} that drives add-bookmark automation and the open-in-drawer
+ * modifier. Persisted server-side so the behavior choices follow the user across devices.
+ */
+export interface AutomationSettings {
+  autoFetchTitle: boolean;
+  autoFetchImage: boolean;
+  sidebarOpenModifier: SidebarOpenModifier;
+}
+
+/** Payload for replacing the automation settings. */
+export type UpdateAutomationInput = AutomationSettings;
+
+/**
+ * The subset of {@link AppSettings} that drives display/detail preferences: bookmark detail media
+ * sizing + layout, filter placement, right-panel pin behavior, and the built-in "Cropped" aspect
+ * ratio. Persisted server-side so the display choices follow the user across devices.
+ */
+export interface DisplayPreferenceSettings {
+  bookmarkDetailImageSize: BookmarkDetailImageSize;
+  bookmarkDetailVideoSize: BookmarkDetailVideoSize;
+  bookmarkDetailLayout: BookmarkDetailLayout;
+  filtersInDrawer: boolean;
+  filtersHidden: boolean;
+  panelPinned: boolean;
+  drawerUnpinnedBreakpoints: number[];
+  croppedWidth: number;
+  croppedHeight: number;
+}
+
+/** Payload for replacing the display-preference settings. */
+export type UpdateDisplayPreferenceInput = DisplayPreferenceSettings;
 
 /** The subset of {@link AppSettings} that drives homepage content (read/written together). */
 export interface HomepageContentSettings {
@@ -1253,6 +1336,18 @@ export type BookmarkImageVisibility = "shown" | "image-only" | "off";
 
 /** Rendering mode for a listing/section: a card grid (default) or a data table. */
 export type ViewMode = "cards" | "table";
+
+/** Modifier key that, held while clicking an Edit button, opens the item in the right-hand drawer. */
+export type SidebarOpenModifier = "alt" | "ctrl" | "shift" | "meta";
+
+/** Bookmark detail page image size preference. */
+export type BookmarkDetailImageSize = "small" | "medium" | "large";
+
+/** Bookmark detail page video size: constrained side-by-side, half/two-thirds stacked, or full-width stacked. */
+export type BookmarkDetailVideoSize = "standard" | "half" | "twoThirds" | "fullwidth";
+
+/** Bookmark detail page layout: single stacked column (default) or vertical-tabbed sections. */
+export type BookmarkDetailLayout = "single" | "tabbed";
 
 /**
  * Image display mode for bookmark cards. Built-in values: "natural" (unconstrained), "cropped"

@@ -1,4 +1,7 @@
-import { useUiStore } from "../stores/uiStore";
+import type { AutomationSettings } from "@eesimple/types";
+
+import { useAutomationSettings, useUpdateAutomationSettings } from "../hooks/useAppSettings";
+import { notifyError, notifySuccess } from "../lib/notifications";
 
 import {
   Card,
@@ -10,12 +13,34 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
-/** Automation preferences for auto-fetching bookmark metadata. */
+const DEFAULTS: AutomationSettings = {
+  autoFetchTitle: true,
+  autoFetchImage: true,
+  sidebarOpenModifier: "alt",
+};
+
+/**
+ * Automation preferences for auto-fetching bookmark metadata. Persisted server-side (the
+ * `app_settings` singleton) so the choices stick across devices, and each change fires a recorded
+ * toast. The open-in-drawer modifier lives in the same server group but is edited on the Drawer page.
+ */
 export function AutomationsSettings() {
-  const autoFetchTitle = useUiStore(state => state.autoFetchTitle);
-  const setAutoFetchTitle = useUiStore(state => state.setAutoFetchTitle);
-  const autoFetchImage = useUiStore(state => state.autoFetchImage);
-  const setAutoFetchImage = useUiStore(state => state.setAutoFetchImage);
+  const {
+    data,
+  } = useAutomationSettings();
+  const update = useUpdateAutomationSettings();
+  const settings = data ?? DEFAULTS;
+
+  /** Persist a single-field change and fire the named toast. */
+  function save(patch: Partial<AutomationSettings>, message: string): void {
+    update.mutate({
+      ...settings,
+      ...patch,
+    }, {
+      onSuccess: () => notifySuccess(message),
+      onError: error => notifyError(error.message),
+    });
+  }
 
   return (
     <>
@@ -31,8 +56,16 @@ export function AutomationsSettings() {
           <div className="flex items-center gap-2">
             <Checkbox
               id="auto-fetch-title"
-              checked={autoFetchTitle}
-              onCheckedChange={checked => setAutoFetchTitle(checked === true)}
+              checked={settings.autoFetchTitle}
+              onCheckedChange={(checked) => {
+                const enabled = checked === true;
+                save(
+                  {
+                    autoFetchTitle: enabled,
+                  },
+                  enabled ? "Auto-fetch title on" : "Auto-fetch title off",
+                );
+              }}
             />
             <Label htmlFor="auto-fetch-title">Fetch the title when the URL field loses focus</Label>
           </div>
@@ -52,8 +85,16 @@ export function AutomationsSettings() {
           <div className="flex items-center gap-2">
             <Checkbox
               id="auto-fetch-image"
-              checked={autoFetchImage}
-              onCheckedChange={checked => setAutoFetchImage(checked === true)}
+              checked={settings.autoFetchImage}
+              onCheckedChange={(checked) => {
+                const enabled = checked === true;
+                save(
+                  {
+                    autoFetchImage: enabled,
+                  },
+                  enabled ? "Auto-fetch image on" : "Auto-fetch image off",
+                );
+              }}
             />
             <Label htmlFor="auto-fetch-image">Fetch the image when a bookmark is saved</Label>
           </div>

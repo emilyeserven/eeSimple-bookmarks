@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { BookmarkListPane } from "./BookmarkListPane";
 import { FilterSidebar } from "./FilterSidebar";
 import { usePanelControls } from "./panel/usePanelControls";
+import { useFiltersHidden, useFiltersInDrawer } from "../hooks/useAppSettings";
 import { useSetListingPage } from "../hooks/useListingPage";
 import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
 import { useBookmarkColumns } from "../lib/bookmarkColumns";
@@ -77,8 +78,8 @@ export function BookmarkSearchView({
   useSetListingPage(pageKey, true, true, true);
   useRegisterHeaderSearch();
   const columns = useBookmarkColumns(pageKey);
-  const filtersInDrawer = useUiStore(state => state.filtersInDrawer);
-  const filtersHidden = useUiStore(state => state.filtersHidden);
+  const filtersInDrawer = useFiltersInDrawer();
+  const filtersHidden = useFiltersHidden();
   const setFilterContext = useUiStore(state => state.setFilterContext);
   const headerSearchQuery = useUiStore(state => state.headerSearchQuery);
   const {

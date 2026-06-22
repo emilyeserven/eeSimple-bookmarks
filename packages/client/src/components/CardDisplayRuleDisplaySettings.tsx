@@ -12,10 +12,10 @@ import { defaultCardZoneLayouts } from "@eesimple/types";
 import { CardFieldZoneBoard } from "./CardFieldZoneBoard";
 import { CardZoneLayoutControls } from "./CardZoneLayoutControls";
 import { OnOffToggleGroup } from "./DisplayControlPrimitives";
+import { useCroppedHeight, useCroppedWidth } from "../hooks/useAppSettings";
 import { useCustomAspectRatios } from "../hooks/useCustomAspectRatios";
 import { buildAspectOptions } from "../lib/aspectOptions";
 import { defaultCardFieldZones } from "../lib/bookmarkCardValues";
-import { useUiStore } from "../stores/uiStore";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -71,8 +71,8 @@ interface CardDisplayRuleDisplaySettingsProps {
 export function CardDisplayRuleDisplaySettings({
   value, onChange, properties, idPrefix, isDefault = false,
 }: CardDisplayRuleDisplaySettingsProps) {
-  const croppedWidth = useUiStore(state => state.croppedWidth);
-  const croppedHeight = useUiStore(state => state.croppedHeight);
+  const croppedWidth = useCroppedWidth();
+  const croppedHeight = useCroppedHeight();
   const {
     data: customRatios = [],
   } = useCustomAspectRatios();

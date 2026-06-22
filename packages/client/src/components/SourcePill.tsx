@@ -6,10 +6,10 @@ import { Link } from "@tanstack/react-router";
 import { Globe, MonitorPlay } from "lucide-react";
 
 import { useViewPanelClick } from "./panel/useEditPanelClick";
+import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
 import { Badge } from "@/components/ui/badge";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
-import { useUiStore } from "@/stores/uiStore";
 
 type Props
   = {
@@ -28,7 +28,7 @@ export function SourcePill({
 }: Props) {
   const [imgError, setImgError] = useState(false);
   const viewClick = useViewPanelClick();
-  const modifier = useUiStore(state => state.sidebarOpenModifier);
+  const modifier = useSidebarOpenModifier();
 
   const imageUrl = data.imageUrl;
   const showImage = !!imageUrl && !imgError;

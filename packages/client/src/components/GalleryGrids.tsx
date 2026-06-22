@@ -6,11 +6,11 @@ import { Trash2 } from "lucide-react";
 
 import { formatSize } from "./galleryFormat";
 import { useViewPanelClick } from "./panel/useEditPanelClick";
+import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
-import { useUiStore } from "@/stores/uiStore";
 
 /** The storage-used (and optional quota) summary line shown above the grids. */
 export function StorageSummary({
@@ -69,7 +69,7 @@ export function RegisteredGrid({
 }: { registered: MediaObject[];
   imageMode: ImageMode; }) {
   const viewClick = useViewPanelClick();
-  const modifier = useUiStore(state => state.sidebarOpenModifier);
+  const modifier = useSidebarOpenModifier();
   return (
     <section className="space-y-3">
       <div className="flex items-center gap-2">
