@@ -25,13 +25,25 @@ export interface LinkCandidate {
   context: string | null;
 }
 
-/** Image/font asset extensions that mark a URL as a tracking pixel / static asset, not an article. */
-const ASSET_EXT = /\.(?:gif|png|jpe?g|webp|svg|ico|bmp|woff2?|ttf|otf|eot)$/i;
+/** Image/font/stylesheet asset extensions that mark a URL as a tracking pixel / static asset. */
+const ASSET_EXT = /\.(?:gif|png|jpe?g|webp|svg|ico|bmp|woff2?|ttf|otf|eot|css)$/i;
 
-/** True when a URL's path points at a static asset (image/font) rather than an article. Pure. */
+/** Hosts that only ever serve stylesheets/fonts, never articles. Matched by normalized host. */
+const ASSET_HOSTS = new Set([
+  "fonts.googleapis.com",
+  "fonts.gstatic.com",
+]);
+
+/** Extension-less stylesheet endpoints (Google Fonts serves CSS at /css and /css2). */
+const STYLESHEET_PATH = /^\/css2?$/i;
+
+/** True when a URL points at a static asset (image/font/stylesheet) rather than an article. Pure. */
 export function isAssetUrl(url: string): boolean {
   try {
-    return ASSET_EXT.test(new URL(url).pathname);
+    const parsed = new URL(url);
+    return ASSET_HOSTS.has(normalizeHost(parsed))
+      || ASSET_EXT.test(parsed.pathname)
+      || STYLESHEET_PATH.test(parsed.pathname);
   }
   catch {
     return false;
@@ -189,6 +201,17 @@ function looksLikeHtml(content: string): boolean {
   return /<a\b|<\/a>|<html|<body|<div|<table|<p[\s>]/i.test(content);
 }
 
+/**
+ * Remove `<style>…</style>` and `<script>…</script>` blocks (tag + body) so CSS/JS-embedded URLs
+ * (font `@import`/`url(…)`, tracking scripts) never become text candidates when the tags are
+ * stripped to scan visible text. Pure.
+ */
+function stripNonContentBlocks(html: string): string {
+  return html
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, " ")
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, " ");
+}
+
 /** Extract candidates from raw content, sniffing HTML vs text when `kind` is "auto". Pure.
  *
  * For HTML we also scan the **tag-stripped text** for bare URLs, so a rich-text paste that contains
@@ -198,7 +221,10 @@ function looksLikeHtml(content: string): boolean {
 export function extractCandidates(content: string, kind: "html" | "text" | "auto"): LinkCandidate[] {
   const resolved = kind === "auto" ? (looksLikeHtml(content) ? "html" : "text") : kind;
   if (resolved === "text") return extractTextCandidates(content);
-  return [...extractHtmlCandidates(content), ...extractTextCandidates(content.replace(/<[^>]+>/g, " "))];
+  return [
+    ...extractHtmlCandidates(content),
+    ...extractTextCandidates(stripNonContentBlocks(content).replace(/<[^>]+>/g, " ")),
+  ];
 }
 
 /** True when a candidate looks like newsletter chrome (nav/footer/unsubscribe/social/pixel). Pure. */
@@ -214,8 +240,8 @@ export function isJunkLink(candidate: LinkCandidate): boolean {
   const path = parsed.pathname.toLowerCase();
   const anchor = candidate.anchorText.trim().toLowerCase();
 
-  // Tracking pixel / asset link.
-  if (ASSET_EXT.test(path)) return true;
+  // Tracking pixel / font / stylesheet asset link (host, extension, or Google-Fonts /css path).
+  if (isAssetUrl(candidate.rawUrl)) return true;
   // Platform management / legal link.
   if (JUNK_PATH_FRAGMENTS.some(fragment => path.includes(fragment))) return true;
   if (JUNK_ANCHOR_PHRASES.some(phrase => anchor.includes(phrase))) return true;

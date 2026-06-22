@@ -64,6 +64,21 @@ test("extractTitle prefers og:title / twitter:title over the <title> suffix", ()
   );
 });
 
+test("extractTitle skips a CDATA-wrapped <title> (feed artifact) but uses other sources", () => {
+  // A feed channel <title> is wrapped in CDATA — treat it as no title, never as the label.
+  assert.equal(extractTitle("<title><![CDATA[jarango.com Archive Feed]]></title>"), null);
+  // A plain <title> is unaffected.
+  assert.equal(extractTitle("<title>Real Title</title>"), "Real Title");
+  // og:title still wins when present alongside a CDATA <title>.
+  assert.equal(
+    extractTitle(
+      "<head><meta property=\"og:title\" content=\"Clean Name\">"
+      + "<title><![CDATA[jarango.com Archive Feed]]></title></head>",
+    ),
+    "Clean Name",
+  );
+});
+
 test("decodeEntities decodes the common named and numeric entities", () => {
   assert.equal(decodeEntities("Tom &amp; Jerry"), "Tom & Jerry");
   assert.equal(decodeEntities("&lt;tag&gt;"), "<tag>");
