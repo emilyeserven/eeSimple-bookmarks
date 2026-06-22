@@ -108,6 +108,17 @@ test("extractCandidates in html mode also catches bare URLs in visible text, not
   assert.equal(deduped.find(c => c.rawUrl === "https://example.com/b")?.anchorText, "");
 });
 
+test("extractCandidates ignores URLs inside <style>/<script> blocks but keeps real links", () => {
+  const html
+    = "<p><a href=\"https://example.com/a\">Article A</a></p>"
+      + "<style>@import url(https://fonts.googleapis.com/css?family=Droid+Sans);</style>"
+      + "<script>track(\"https://tracker.example.com/p\")</script>"
+      + "<p>Also worth a read: https://example.com/b</p>";
+  const urls = extractCandidates(html, "html").map(c => c.rawUrl).sort();
+  // The font @import and the tracking-script URL are gone; the anchor + bare-text article remain.
+  assert.deepEqual(urls, ["https://example.com/a", "https://example.com/b"]);
+});
+
 test("isJunkLink drops chrome: unsubscribe, tracking pixels, and empty-anchor social buttons", () => {
   const junk: LinkCandidate[] = [
     {
@@ -157,6 +168,28 @@ test("isAssetUrl flags font/image destinations but keeps article URLs", () => {
   // Real articles and unparseable input are not assets.
   assert.equal(isAssetUrl("https://blog.example.com/great-post"), false);
   assert.equal(isAssetUrl("not a url"), false);
+});
+
+test("isAssetUrl flags Google Fonts stylesheet URLs (css + css2) and .css files", () => {
+  // The two reported newsletter-import leaks: extension-less Google Fonts /css and /css2 endpoints.
+  for (const url of [
+    "https://fonts.googleapis.com/css?family=Droid+Sans:300,400,500,700",
+    "https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;1,700&display=swap",
+    "https://cdn.example.com/styles/main.css",
+  ]) {
+    assert.equal(isAssetUrl(url), true, url);
+  }
+  // An article whose path merely starts with "css" is not a stylesheet (anchored regex).
+  assert.equal(isAssetUrl("https://example.com/css-tricks-guide"), false);
+});
+
+test("isJunkLink drops Google Fonts stylesheet links pre-resolution", () => {
+  assert.equal(isJunkLink({
+    rawUrl: "https://fonts.googleapis.com/css?family=Droid+Sans:300,400,500,700",
+    anchorText: "",
+    source: "plain-text",
+    context: null,
+  }), true);
 });
 
 test("isJunkLink keeps real articles, including a titled link to a social post", () => {

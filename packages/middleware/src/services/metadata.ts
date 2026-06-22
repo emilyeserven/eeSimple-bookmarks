@@ -62,7 +62,11 @@ export function decodeEntities(value: string): string {
 /** Pull the raw `<title>` element text out of an HTML document, or undefined when absent. */
 function titleTag(html: string): string | undefined {
   const match = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(html);
-  return match ? match[1] : undefined;
+  if (!match) return undefined;
+  const inner = match[1] ?? "";
+  // A CDATA-wrapped <title> is a feed/XML artifact, not a usable page title — skip it.
+  if (/<!\[CDATA\[[\s\S]*?\]\]>/.test(inner)) return undefined;
+  return inner;
 }
 
 /**
