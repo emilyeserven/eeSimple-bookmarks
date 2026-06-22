@@ -1,3 +1,4 @@
+import type { PinContext } from "@/components/HeaderPinButton";
 import type { TagNode } from "@eesimple/types";
 
 import React from "react";
@@ -9,6 +10,7 @@ import { AddChildButton } from "@/components/AddChildButton";
 import { BookmarkDetailLayoutPopover } from "@/components/BookmarkDetailLayoutPopover";
 import { DisplayOptionsPopover } from "@/components/DisplayOptionsPopover";
 import { FilterLocationPopover } from "@/components/FilterLocationPopover";
+import { HeaderPinButton } from "@/components/HeaderPinButton";
 import { ListingSearchBar } from "@/components/ListingSearchBar";
 import { usePanelControls } from "@/components/panel/usePanelControls";
 import {
@@ -497,6 +499,41 @@ export function AppHeader() {
         }
         : null;
 
+  // The pinnable entity for the current detail page, if any. Each by-slug hook is non-null only on
+  // its own detail page, so at most one branch matches; tag uses the resolved ancestor chain's leaf.
+  const currentTag = tagAncestors?.[tagAncestors.length - 1];
+  const pinContext: PinContext | null = category
+    ? {
+      entityType: "category",
+      entityId: category.id,
+      label: category.name,
+    }
+    : website
+      ? {
+        entityType: "website",
+        entityId: website.id,
+        label: website.siteName,
+      }
+      : mediaType
+        ? {
+          entityType: "media-type",
+          entityId: mediaType.id,
+          label: mediaType.name,
+        }
+        : channel
+          ? {
+            entityType: "youtube-channel",
+            entityId: channel.id,
+            label: channel.name,
+          }
+          : currentTag
+            ? {
+              entityType: "tag",
+              entityId: currentTag.id,
+              label: currentTag.name,
+            }
+            : null;
+
   const {
     open,
   } = usePanelControls();
@@ -604,6 +641,12 @@ export function AppHeader() {
       </Button>
     ),
   });
+  if (pinContext) {
+    toolbarActions.push({
+      key: "pin",
+      node: <HeaderPinButton context={pinContext} />,
+    });
+  }
 
   return (
     <header
