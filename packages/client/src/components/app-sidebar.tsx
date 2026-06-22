@@ -389,85 +389,79 @@ export function AppSidebar({
                   </SidebarMenuItem>
                 );
               })}
+              {resolvedPins.length > 0
+                ? (
+                  <>
+                    {visiblePins.map((pin) => {
+                      return (
+                        <SidebarMenuItem key={pin.id}>
+                          <SidebarMenuButton
+                            asChild
+                            isActive={pin.isActive}
+                            tooltip={pin.label}
+                          >
+                            {pin.link.kind === "path"
+                              ? (
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                <Link to={pin.link.path as any}>
+                                  {pin.icon}
+                                  <span>{pin.label}</span>
+                                </Link>
+                              )
+                              : (
+                                <Link
+                                  to="/bookmarks"
+                                  search={pin.link.search}
+                                >
+                                  {pin.icon}
+                                  <span>{pin.label}</span>
+                                </Link>
+                              )}
+                          </SidebarMenuButton>
+                          {pin.bookmarkCount != null && state !== "collapsed"
+                            ? (
+                              <SidebarMenuBadge>
+                                <Badge variant="secondary">{pin.bookmarkCount}</Badge>
+                              </SidebarMenuBadge>
+                            )
+                            : null}
+                        </SidebarMenuItem>
+                      );
+                    })}
+                    {hasShowMore && state !== "collapsed"
+                      ? (
+                        <SidebarMenuItem>
+                          <SidebarMenuButton
+                            tooltip="Show more pinned items"
+                            onClick={() => setPinnedExpanded(true)}
+                            className="text-xs text-muted-foreground"
+                          >
+                            <ChevronDown className="size-4" />
+                            <span>Show More</span>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      )
+                      : null}
+                    {hasSeeAll && state !== "collapsed"
+                      ? (
+                        <SidebarMenuItem>
+                          <SidebarMenuButton
+                            tooltip="Show all pinned items"
+                            onClick={() => setPinnedShowAll(true)}
+                            className="text-xs text-muted-foreground"
+                          >
+                            <ChevronDown className="size-4" />
+                            <span>See All</span>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      )
+                      : null}
+                  </>
+                )
+                : null}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-
-        {resolvedPins.length > 0
-          ? (
-            <CollapsibleSection
-              sectionKey="pinned"
-              label="Pinned"
-            >
-              <SidebarMenu>
-                {visiblePins.map((pin) => {
-                  return (
-                    <SidebarMenuItem key={pin.id}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={pin.isActive}
-                        tooltip={pin.label}
-                      >
-                        {pin.link.kind === "path"
-                          ? (
-                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                            <Link to={pin.link.path as any}>
-                              {pin.icon}
-                              <span>{pin.label}</span>
-                            </Link>
-                          )
-                          : (
-                            <Link
-                              to="/bookmarks"
-                              search={pin.link.search}
-                            >
-                              {pin.icon}
-                              <span>{pin.label}</span>
-                            </Link>
-                          )}
-                      </SidebarMenuButton>
-                      {pin.bookmarkCount != null && state !== "collapsed"
-                        ? (
-                          <SidebarMenuBadge>
-                            <Badge variant="secondary">{pin.bookmarkCount}</Badge>
-                          </SidebarMenuBadge>
-                        )
-                        : null}
-                    </SidebarMenuItem>
-                  );
-                })}
-                {hasShowMore && state !== "collapsed"
-                  ? (
-                    <SidebarMenuItem>
-                      <SidebarMenuButton
-                        tooltip="Show more pinned items"
-                        onClick={() => setPinnedExpanded(true)}
-                        className="text-xs text-muted-foreground"
-                      >
-                        <ChevronDown className="size-4" />
-                        <span>Show More</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  )
-                  : null}
-                {hasSeeAll && state !== "collapsed"
-                  ? (
-                    <SidebarMenuItem>
-                      <SidebarMenuButton
-                        tooltip="Show all pinned items"
-                        onClick={() => setPinnedShowAll(true)}
-                        className="text-xs text-muted-foreground"
-                      >
-                        <ChevronDown className="size-4" />
-                        <span>See All</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  )
-                  : null}
-              </SidebarMenu>
-            </CollapsibleSection>
-          )
-          : null}
 
         {!hiddenSidebarGroups.includes("categories") && visibleCategories.length > 0
           ? (
