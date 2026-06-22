@@ -63,7 +63,7 @@ export function MediaTypeTreeList({
       )}
       renderInfoLink={node => (
         <Link
-          to="/taxonomies/media-types/$mediaTypeSlug"
+          to="/taxonomies/media-types/$mediaTypeSlug/general"
           params={{
             mediaTypeSlug: node.slug,
           }}

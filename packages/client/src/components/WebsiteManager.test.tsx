@@ -65,6 +65,7 @@ vi.mock("../hooks/useBookmarks", () => ({
 const paths = [
   "/bookmarks",
   "/taxonomies/websites/$websiteSlug",
+  "/taxonomies/websites/$websiteSlug/general",
   "/taxonomies/websites/$websiteSlug/edit",
 ];
 

@@ -76,7 +76,7 @@ export function YouTubeChannelListItem({
       renderInfo={() => (
         <HoverIconButton>
           <Link
-            to="/taxonomies/youtube-channels/$channelSlug"
+            to="/taxonomies/youtube-channels/$channelSlug/general"
             params={{
               channelSlug: channel.slug,
             }}

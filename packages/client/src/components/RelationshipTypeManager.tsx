@@ -67,7 +67,7 @@ function RelationshipTypeCard({
       renderInfo={() => (
         <HoverIconButton>
           <Link
-            to="/taxonomies/relationship-types/$relationshipTypeSlug"
+            to="/taxonomies/relationship-types/$relationshipTypeSlug/general"
             params={{
               relationshipTypeSlug: relationshipType.slug,
             }}
