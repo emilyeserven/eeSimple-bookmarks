@@ -3,12 +3,14 @@ import type { BreadcrumbSegment } from "@/components/header/HeaderBreadcrumbs";
 import type { PinContext } from "@/components/HeaderPinButton";
 import type { MediaTypeNode, TagNode } from "@eesimple/types";
 
-import { useRouterState } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
+import { Settings } from "lucide-react";
 
 import { HeaderBreadcrumbs } from "@/components/header/HeaderBreadcrumbs";
 import { HeaderToolbar } from "@/components/header/HeaderToolbar";
 import { buildToolbarActions } from "@/components/header/toolbarActions";
 import { usePanelControls } from "@/components/panel/usePanelControls";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useAutofillRuleBySlug } from "@/hooks/useAutofill";
@@ -599,6 +601,20 @@ export function AppHeader() {
         className="mr-2 h-4"
       />
       <HeaderBreadcrumbs crumbs={crumbs} />
+      <Button
+        asChild
+        variant="ghost"
+        size="icon"
+        className="
+          ml-auto
+          md:hidden
+        "
+        aria-label="Settings"
+      >
+        <Link to="/settings">
+          <Settings className="size-4" />
+        </Link>
+      </Button>
       <HeaderToolbar actions={toolbarActions} />
     </header>
   );

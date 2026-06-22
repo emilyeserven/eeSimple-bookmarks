@@ -209,7 +209,11 @@ function Sidebar({
             <SheetTitle>Sidebar</SheetTitle>
             <SheetDescription>Displays the mobile sidebar.</SheetDescription>
           </SheetHeader>
-          <div className="flex size-full flex-col">{children}</div>
+          <div
+            className="flex size-full flex-col pb-[env(safe-area-inset-bottom)]"
+          >
+            {children}
+          </div>
         </SheetContent>
       </Sheet>
     );
