@@ -1,8 +1,12 @@
+import { RefreshCw } from "lucide-react";
+
 import { formatSize } from "./galleryFormat";
 import { useDatabaseUsage } from "../hooks/useAppSettings";
 
+import { Button } from "@/components/ui/button";
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -25,7 +29,7 @@ import {
  */
 export function DatabaseUsageCard() {
   const {
-    data, isLoading, isError, error,
+    data, isLoading, isError, error, isFetching, refetch,
   } = useDatabaseUsage();
 
   return (
@@ -36,6 +40,23 @@ export function DatabaseUsageCard() {
           Disk space used by each table in the PostgreSQL database (including its indexes). Row
           counts are estimates.
         </CardDescription>
+        <CardAction>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={isFetching}
+            onClick={() => void refetch()}
+          >
+            <RefreshCw
+              className={`
+                size-4
+                ${isFetching ? "animate-spin" : ""}
+              `}
+            />
+            {isFetching ? "Refreshing…" : "Refresh"}
+          </Button>
+        </CardAction>
       </CardHeader>
       <CardContent>
         {isLoading
@@ -47,37 +68,50 @@ export function DatabaseUsageCard() {
               </p>
             )
             : data && (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Table</TableHead>
-                    <TableHead className="text-right">Rows (est.)</TableHead>
-                    <TableHead className="text-right">Size</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {data.tables.map(table => (
-                    <TableRow key={table.tableName}>
-                      <TableCell className="font-medium">{table.tableName}</TableCell>
+              <div className="space-y-4">
+                <div
+                  className="
+                    flex items-baseline justify-between gap-4 rounded-md border
+                    bg-muted/40 px-4 py-3
+                  "
+                >
+                  <span className="text-sm font-medium">Total (whole database)</span>
+                  <span className="text-lg font-semibold tabular-nums">
+                    {formatSize(data.totalBytes)}
+                  </span>
+                </div>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Table</TableHead>
+                      <TableHead className="text-right">Rows (est.)</TableHead>
+                      <TableHead className="text-right">Size</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {data.tables.map(table => (
+                      <TableRow key={table.tableName}>
+                        <TableCell className="font-medium">{table.tableName}</TableCell>
+                        <TableCell className="text-right tabular-nums">
+                          {table.rowEstimate.toLocaleString()}
+                        </TableCell>
+                        <TableCell className="text-right tabular-nums">
+                          {formatSize(table.totalBytes)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                  <TableFooter>
+                    <TableRow>
+                      <TableCell>Total (whole database)</TableCell>
+                      <TableCell />
                       <TableCell className="text-right tabular-nums">
-                        {table.rowEstimate.toLocaleString()}
-                      </TableCell>
-                      <TableCell className="text-right tabular-nums">
-                        {formatSize(table.totalBytes)}
+                        {formatSize(data.totalBytes)}
                       </TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-                <TableFooter>
-                  <TableRow>
-                    <TableCell>Total (whole database)</TableCell>
-                    <TableCell />
-                    <TableCell className="text-right tabular-nums">
-                      {formatSize(data.totalBytes)}
-                    </TableCell>
-                  </TableRow>
-                </TableFooter>
-              </Table>
+                  </TableFooter>
+                </Table>
+              </div>
             )}
       </CardContent>
     </Card>
