@@ -162,6 +162,15 @@ export function BookmarkRevealedFields(props: BookmarkRevealedFieldsProps) {
 
       <BookmarkAdvancedSection
         {...props}
+        customFields={{
+          numberInputs: props.numberInputs,
+          booleanInputs: props.booleanInputs,
+          dateTimeInputs: props.dateTimeInputs,
+          onNumberChange: props.onNumberChange,
+          onBooleanChange: props.onBooleanChange,
+          onDateTimeChange: props.onDateTimeChange,
+          onApplyCategoryDefaults: props.onApplyCategoryDefaults,
+        }}
         isFetchDescriptionPending={props.isFetchMetadataPending}
       />
     </>

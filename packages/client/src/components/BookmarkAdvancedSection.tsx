@@ -50,6 +50,21 @@ export interface SourceDefaults {
   onSetMediaType: (v: boolean) => void;
 }
 
+/** The custom-property field state + handlers, grouped so the section's prop list stays cohesive. */
+export interface BookmarkCustomFieldControls {
+  numberInputs: Record<string, string>;
+  booleanInputs: Record<string, boolean>;
+  dateTimeInputs: Record<string, string>;
+  onNumberChange: (id: string, value: string) => void;
+  onBooleanChange: (id: string, value: boolean) => void;
+  onDateTimeChange: (id: string, value: string) => void;
+  onApplyCategoryDefaults: (
+    numberValues: BookmarkNumberValue[],
+    booleanValues: BookmarkBooleanValue[],
+    dateTimeValues: BookmarkDateTimeValue[],
+  ) => void;
+}
+
 interface BookmarkAdvancedSectionProps {
   form: BookmarkFormApi;
   lockedCategoryId?: string;
@@ -69,17 +84,8 @@ interface BookmarkAdvancedSectionProps {
   onImageIntentChange: (intent: ImageIntent) => void;
   tagTree: TagNode[];
   onTagToggle: (id: string) => void;
-  numberInputs: Record<string, string>;
-  booleanInputs: Record<string, boolean>;
-  dateTimeInputs: Record<string, string>;
-  onNumberChange: (id: string, value: string) => void;
-  onBooleanChange: (id: string, value: boolean) => void;
-  onDateTimeChange: (id: string, value: string) => void;
-  onApplyCategoryDefaults: (
-    numberValues: BookmarkNumberValue[],
-    booleanValues: BookmarkBooleanValue[],
-    dateTimeValues: BookmarkDateTimeValue[],
-  ) => void;
+  /** Custom-property inputs + change handlers (grouped). */
+  customFields: BookmarkCustomFieldControls;
   /** Called when the user clicks the description sparkle; receives the current URL. */
   onFetchDescription?: (url: string) => void;
   /** Whether a description fetch is in-flight (drives the spinner on the sparkle button). */
@@ -110,13 +116,7 @@ export function BookmarkAdvancedSection({
   onImageIntentChange,
   tagTree,
   onTagToggle,
-  numberInputs,
-  booleanInputs,
-  dateTimeInputs,
-  onNumberChange,
-  onBooleanChange,
-  onDateTimeChange,
-  onApplyCategoryDefaults,
+  customFields,
   onFetchDescription,
   isFetchDescriptionPending,
 }: BookmarkAdvancedSectionProps) {
@@ -355,19 +355,19 @@ export function BookmarkAdvancedSection({
             <>
               <CategoryDefaultsApplier
                 categoryId={categoryId}
-                onApply={onApplyCategoryDefaults}
+                onApply={customFields.onApplyCategoryDefaults}
               />
               <CategoryCustomFields
                 placement="advanced"
                 categoryId={categoryId}
                 mediaTypeId={mediaTypeId || null}
                 properties={customProperties}
-                numberInputs={numberInputs}
-                booleanInputs={booleanInputs}
-                dateTimeInputs={dateTimeInputs}
-                onNumberChange={onNumberChange}
-                onBooleanChange={onBooleanChange}
-                onDateTimeChange={onDateTimeChange}
+                numberInputs={customFields.numberInputs}
+                booleanInputs={customFields.booleanInputs}
+                dateTimeInputs={customFields.dateTimeInputs}
+                onNumberChange={customFields.onNumberChange}
+                onBooleanChange={customFields.onBooleanChange}
+                onDateTimeChange={customFields.onDateTimeChange}
               />
             </>
           )}
