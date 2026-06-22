@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { CategoryEditTabWrapper } from "../components/CategoryEditTabWrapper";
-import { CategoryGeneralFields } from "../components/CategoryPreviewCard";
-import { EntityAutofillSources } from "../components/EntityAutofillSources";
+import { categoryWorkbench } from "../components/workbench/category";
+import { WorkbenchRouteTab } from "../components/workbench/WorkbenchRouteTab";
 
 export const Route = createFileRoute("/categories/$categorySlug/_view/general")({
   component: GeneralViewTab,
@@ -13,22 +12,11 @@ function GeneralViewTab() {
     categorySlug,
   } = Route.useParams();
   return (
-    <CategoryEditTabWrapper
-      categorySlug={categorySlug}
-      title="General"
-      description="Name, icon, description, and other details."
-    >
-      {category => (
-        <div className="space-y-6">
-          <CategoryGeneralFields category={category} />
-          <EntityAutofillSources
-            match={{
-              kind: "category",
-              categoryId: category.id,
-            }}
-          />
-        </div>
-      )}
-    </CategoryEditTabWrapper>
+    <WorkbenchRouteTab
+      workbench={categoryWorkbench}
+      tabKey="general"
+      mode="view"
+      slug={categorySlug}
+    />
   );
 }

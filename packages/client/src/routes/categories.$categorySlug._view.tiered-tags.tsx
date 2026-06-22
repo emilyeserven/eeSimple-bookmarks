@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { CategoryEditTabWrapper } from "../components/CategoryEditTabWrapper";
-import { CategoryTieredTags } from "../components/CategoryTieredTags";
+import { categoryWorkbench } from "../components/workbench/category";
+import { WorkbenchRouteTab } from "../components/workbench/WorkbenchRouteTab";
 
 export const Route = createFileRoute("/categories/$categorySlug/_view/tiered-tags")({
   component: TieredTagsViewTab,
@@ -12,12 +12,11 @@ function TieredTagsViewTab() {
     categorySlug,
   } = Route.useParams();
   return (
-    <CategoryEditTabWrapper
-      categorySlug={categorySlug}
-      title="Tiered Tags"
-      description="Tiered (parent) tags scoped to this category."
-    >
-      {category => <CategoryTieredTags categoryId={category.id} />}
-    </CategoryEditTabWrapper>
+    <WorkbenchRouteTab
+      workbench={categoryWorkbench}
+      tabKey="tiered-tags"
+      mode="view"
+      slug={categorySlug}
+    />
   );
 }

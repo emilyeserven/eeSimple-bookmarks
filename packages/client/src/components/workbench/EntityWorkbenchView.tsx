@@ -56,11 +56,16 @@ export function EntityWorkbenchView<E extends { id: string }>({
   if (error) return <p className="text-destructive">{error.message}</p>;
   if (!entity) return <p className="text-destructive">{workbench.notFound}</p>;
 
-  // In edit mode, only tabs that have an edit body are shown (view-only tabs like "Hierarchy" drop out).
-  const tabs = workbench.tabs.filter(tab => (!tab.showIf || tab.showIf(entity)) && (mode !== "edit" || tab.edit));
+  // Show only the tabs that have a body for the current mode (a view-only "Hierarchy" tab drops out
+  // of edit; an edit-only bookmark tab drops out of view).
+  const tabs = workbench.tabs.filter(
+    tab => (!tab.showIf || tab.showIf(entity)) && (mode === "edit" ? tab.edit : tab.view),
+  );
   const active = tabs.find(tab => tab.key === activeTab) ?? tabs[0];
-  const pane = (mode === "edit" ? active.edit : active.view) ?? active.view;
+  const pane = mode === "edit" ? active?.edit : active?.view;
   const canDelete = del != null && (workbench.canDelete?.(entity) ?? true);
+
+  if (!active || !pane) return <p className="text-muted-foreground">Nothing to show.</p>;
 
   const header = (
     <div className="space-y-2">
@@ -101,20 +106,22 @@ export function EntityWorkbenchView<E extends { id: string }>({
     </div>
   );
 
-  const nav = tabs.map(tab => (
-    <button
-      key={tab.key}
-      type="button"
-      onClick={() => onTabChange(tab.key)}
-      className={cn(
-        navLinkClass,
-        "text-left",
-        tab.key === active.key && "bg-accent text-accent-foreground",
-      )}
-    >
-      {tab.label}
-    </button>
-  ));
+  const nav = tabs.length > 1
+    ? tabs.map(tab => (
+      <button
+        key={tab.key}
+        type="button"
+        onClick={() => onTabChange(tab.key)}
+        className={cn(
+          navLinkClass,
+          "text-left",
+          tab.key === active.key && "bg-accent text-accent-foreground",
+        )}
+      >
+        {tab.label}
+      </button>
+    ))
+    : null;
 
   return (
     <TabbedShell

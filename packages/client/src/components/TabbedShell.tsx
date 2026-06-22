@@ -13,7 +13,7 @@ export const navLinkClass = `
 interface Props {
   /** Optional title/actions block rendered above the tab nav + body. */
   header?: ReactNode;
-  /** The rendered nav items (router `<Link>`s on a page, `<button>`s in the panel). */
+  /** The rendered nav items (router `<Link>`s on a page, `<button>`s in the panel), or null to omit. */
   nav: ReactNode;
   navAriaLabel: string;
   /** The active tab's body. */
@@ -31,6 +31,16 @@ interface Props {
 export function TabbedShell({
   header, nav, navAriaLabel, children,
 }: Props) {
+  // A single-tab (or tab-less) surface drops the nav column entirely — no point in a one-item nav.
+  if (nav == null) {
+    return (
+      <section className="@container/tabs space-y-6">
+        {header}
+        <div className="min-w-0">{children}</div>
+      </section>
+    );
+  }
+
   return (
     <section className="@container/tabs space-y-6">
       {header}

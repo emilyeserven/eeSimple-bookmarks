@@ -9,11 +9,15 @@ export interface WorkbenchPane<E> {
   render: (props: { entity: E }) => ReactNode;
 }
 
-/** A single tab in an entity's view/edit UI, with separate view and edit bodies. */
+/**
+ * A single tab in an entity's view/edit UI. At least one of `view` / `edit` must be set; a tab with
+ * only one appears solely in that mode (a view-only "Hierarchy" tab, or an edit-only bookmark tab).
+ */
 export interface WorkbenchTab<E> {
   key: string;
   label: string;
-  view: WorkbenchPane<E>;
+  /** The read-only body; omit for edit-only tabs. */
+  view?: WorkbenchPane<E>;
   /** The edit body; omit for view-only tabs (e.g. a tree entity's "Hierarchy" tab). */
   edit?: WorkbenchPane<E>;
   /** Hide the tab unless this returns true (e.g. a property's "Options" tab only when it has options). */

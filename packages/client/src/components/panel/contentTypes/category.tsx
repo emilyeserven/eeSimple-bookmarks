@@ -5,11 +5,9 @@ import { useMemo } from "react";
 
 import { Folder } from "lucide-react";
 
-import { WithPanelItem } from "./status";
 import { useCategories } from "../../../hooks/useCategories";
-import { CategoryCard } from "../../CategoryCard";
-import { CategoryPreviewCard } from "../../CategoryPreviewCard";
-import { usePanelDismissAfterDelete } from "../usePanelDismissAfterDelete";
+import { categoryWorkbench } from "../../workbench/category";
+import { EntityWorkbenchPanel } from "../EntityWorkbenchPanel";
 
 function useCategoryList() {
   const {
@@ -30,45 +28,33 @@ function useCategoryList() {
   };
 }
 
-/** Read-only category view, reusing the same `CategoryPreviewCard` the single category page renders. */
+/** Read-only category view — the same tabbed bodies + shell the main-app category pages render. */
 function CategoryView({
   id,
 }: {
   id: string;
 }) {
-  const query = useCategories();
   return (
-    <WithPanelItem
-      queryResult={query}
+    <EntityWorkbenchPanel
+      workbench={categoryWorkbench}
       id={id}
-      notFoundMessage="Category not found."
-    >
-      {category => <CategoryPreviewCard category={category} />}
-    </WithPanelItem>
+      mode="view"
+    />
   );
 }
 
-/** Editable category, reusing the settings `CategoryCard` (inline-editable, links to full edit). */
+/** Category editor — the same per-tab auto-save forms the main-app edit tabs render. */
 function CategoryEdit({
   id,
 }: {
   id: string;
 }) {
-  const query = useCategories();
-  const dismiss = usePanelDismissAfterDelete();
   return (
-    <WithPanelItem
-      queryResult={query}
+    <EntityWorkbenchPanel
+      workbench={categoryWorkbench}
       id={id}
-      notFoundMessage="Category not found."
-    >
-      {category => (
-        <CategoryCard
-          category={category}
-          onDeleted={dismiss}
-        />
-      )}
-    </WithPanelItem>
+      mode="edit"
+    />
   );
 }
 
