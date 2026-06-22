@@ -3,16 +3,17 @@ import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 
 import { AddYouTubeChannelModal } from "./AddYouTubeChannelModal";
+import { ListingStatusMessages } from "./ListingStatusMessages";
 import { useTableRowNav } from "./tables/useTableRowNav";
 import { useYouTubeChannelColumns } from "./tables/youtubeChannelColumns";
 import { YouTubeChannelListItem } from "./YouTubeChannelListItem";
+import { useHeaderSearchFilter } from "../hooks/useHeaderSearchFilter";
 import { useSetListingPage } from "../hooks/useListingPage";
 import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
 import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
 import { COLUMN_CLASS, useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
 
 import { DataTable } from "@/components/ui/data-table";
-import { useUiStore } from "@/stores/uiStore";
 
 /** Browsable, searchable channel listing with add modal. Shared by the YouTube Channels taxonomy page and the Settings page. */
 export function YouTubeChannelsListing() {
@@ -28,39 +29,31 @@ export function YouTubeChannelsListing() {
   const rowNav = useTableRowNav();
   const navigate = useNavigate();
 
-  const rawQuery = useUiStore(state => state.headerSearchQuery);
-  const q = rawQuery.trim().toLowerCase();
-  const filtered = (allChannels ?? []).filter((c) => {
-    if (!q) return true;
-    return c.name.toLowerCase().includes(q) || c.channelKey.toLowerCase().includes(q);
-  });
+  const channels = allChannels ?? [];
+  const {
+    rawQuery, hasQuery, filtered,
+  } = useHeaderSearchFilter(
+    channels,
+    (c, query) => c.name.toLowerCase().includes(query) || c.channelKey.toLowerCase().includes(query),
+  );
 
   return (
     <div className="space-y-4">
-      {q && filtered.length < (allChannels?.length ?? 0)
-        ? (
-          <p className="text-sm text-muted-foreground">
-            Showing {filtered.length} of {allChannels?.length ?? 0}
-          </p>
-        )
-        : null}
-
-      {isLoading ? <p className="text-muted-foreground">Loading channels…</p> : null}
-      {error ? <p className="text-destructive">{error.message}</p> : null}
-      {!isLoading && (allChannels?.length ?? 0) === 0
-        ? (
+      <ListingStatusMessages
+        isLoading={isLoading}
+        error={error}
+        totalCount={channels.length}
+        filteredCount={filtered.length}
+        rawQuery={rawQuery}
+        hasQuery={hasQuery}
+        loadingLabel="Loading channels…"
+        entityPlural="channels"
+        emptyMessage={(
           <p className="text-muted-foreground">
             No channels yet. Add one above or they&apos;re created automatically when you add YouTube bookmarks.
           </p>
-        )
-        : null}
-      {!isLoading && (allChannels?.length ?? 0) > 0 && filtered.length === 0
-        ? (
-          <p className="text-muted-foreground">
-            No channels match &ldquo;{rawQuery}&rdquo;.
-          </p>
-        )
-        : null}
+        )}
+      />
 
       {filtered.length > 0 && viewMode === "table"
         ? (

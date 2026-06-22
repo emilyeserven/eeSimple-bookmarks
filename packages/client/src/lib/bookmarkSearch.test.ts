@@ -104,11 +104,61 @@ describe("validateBookmarkSearch", () => {
     });
   });
 
+  it("keeps a valid relationshipTypes array and drops malformed entries", () => {
+    expect(validateBookmarkSearch({
+      relationshipTypes: ["rt-1", 2, null, "rt-2"],
+    })).toEqual({
+      relationshipTypes: ["rt-1", "rt-2"],
+    });
+    expect(validateBookmarkSearch({
+      relationshipTypes: [],
+    })).toEqual({});
+  });
+
+  it("narrows presence enums and drops invalid values", () => {
+    expect(validateBookmarkSearch({
+      tagPresence: "has",
+      youtubeChannelPresence: "missing",
+      websitePresence: "nonsense",
+    })).toEqual({
+      tagPresence: "has",
+      youtubeChannelPresence: "missing",
+    });
+  });
+
+  it("keeps well-formed date and presence records and drops malformed entries", () => {
+    expect(validateBookmarkSearch({
+      date: {
+        d1: ["2020-01-01", null],
+        bad: [1, 2],
+        empty: [null, null],
+      },
+      presence: {
+        p1: "has",
+        p2: "missing",
+        p3: "maybe",
+      },
+    })).toEqual({
+      date: {
+        d1: ["2020-01-01", null],
+      },
+      presence: {
+        p1: "has",
+        p2: "missing",
+      },
+    });
+  });
+
   it("omits empty filter records", () => {
     expect(validateBookmarkSearch({
       num: {},
       bool: {},
     })).toEqual({});
+  });
+
+  it("returns an object with no undefined-valued keys for a fully empty search", () => {
+    const result = validateBookmarkSearch({});
+    expect(Object.keys(result)).toEqual([]);
   });
 });
 

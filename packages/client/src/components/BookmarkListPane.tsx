@@ -1,27 +1,11 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
 import type { Bookmark, CustomProperty } from "@eesimple/types";
 
-import { useNavigate } from "@tanstack/react-router";
-
 import { AddBookmarkCollapsible } from "./AddBookmarkCollapsible";
-import { BookmarkCard } from "./BookmarkCard";
-import { useBookmarkTableColumns } from "./tables/bookmarkColumns";
-import { useTableRowNav } from "./tables/useTableRowNav";
-import { useDeleteBookmark } from "../hooks/useBookmarks";
-import { COLUMN_CLASS, useViewMode } from "../lib/bookmarkColumns";
+import { BookmarkCardGrid } from "./BookmarkCardGrid";
+import { BookmarkTableView } from "./BookmarkTableView";
+import { useViewMode } from "../lib/bookmarkColumns";
 import { bookmarkMatchesSearch, hasAnyActiveFilter } from "../lib/bookmarkSearch";
-import { useResolveCardDisplay } from "../lib/cardDisplayRules";
-
-import { RowCard } from "@/components/ui/card";
-import { DataTable } from "@/components/ui/data-table";
-import { useUiStore } from "@/stores/uiStore";
-
-/**
- * Stable empty default for a page with no saved column widths. Returning a fresh `{}` from the
- * zustand selector would make `useSyncExternalStore` see a new snapshot every render and loop
- * ("Maximum update depth exceeded"), so the fallback must be a shared constant.
- */
-const EMPTY_COLUMN_SIZING: Record<string, number> = {};
 
 interface BookmarkListPaneProps {
   /** Stable listing-page key, used for table column widths and the table view toggle. */
@@ -39,7 +23,7 @@ interface BookmarkListPaneProps {
   addFormCategoryId?: string;
 }
 
-/** Right column of the search view: the add form and the matching bookmark grid. */
+/** Right column of the search view: the add form and the matching bookmarks, as a grid or table. */
 export function BookmarkListPane({
   pageKey,
   columns,
@@ -53,18 +37,7 @@ export function BookmarkListPane({
   noMatchMessage,
   addFormCategoryId,
 }: BookmarkListPaneProps) {
-  const deleteBookmark = useDeleteBookmark();
   const viewMode = useViewMode(pageKey);
-  const resolveDisplay = useResolveCardDisplay();
-  const tableColumnWidths = useUiStore(state => state.tableColumnWidths[pageKey]) ?? EMPTY_COLUMN_SIZING;
-  const setTableColumnWidths = useUiStore(state => state.setTableColumnWidths);
-  const tableColumns = useBookmarkTableColumns({
-    properties,
-    pageKey,
-    categoryId: addFormCategoryId,
-  });
-  const rowNav = useTableRowNav();
-  const navigate = useNavigate();
   const visibleBookmarks = bookmarks.filter(bookmark => bookmarkMatchesSearch(bookmark, search));
   const hasActiveFilters = hasAnyActiveFilter(search) || textSearchActive;
 
@@ -84,60 +57,22 @@ export function BookmarkListPane({
 
       {visibleBookmarks.length > 0 && viewMode === "table"
         ? (
-          <DataTable
-            resizable
-            columnSizing={tableColumnWidths}
-            onColumnSizingChange={widths => setTableColumnWidths(pageKey, widths)}
-            columns={tableColumns}
-            data={visibleBookmarks}
-            sortable
-            onRowClick={(bookmark, event) =>
-              rowNav(event, "bookmark", bookmark.id, () => {
-                void navigate({
-                  to: "/bookmarks/$bookmarkId",
-                  params: {
-                    bookmarkId: bookmark.id,
-                  },
-                });
-              })}
+          <BookmarkTableView
+            pageKey={pageKey}
+            bookmarks={visibleBookmarks}
+            properties={properties}
+            categoryId={addFormCategoryId}
           />
         )
         : null}
 
       {visibleBookmarks.length > 0 && viewMode !== "table"
         ? (
-          <div
-            className={`
-              grid gap-3
-              ${COLUMN_CLASS[columns]}
-            `}
-          >
-            {visibleBookmarks.map((bookmark) => {
-              // Per-card display comes from the prioritized Card Display Rules (merged over the
-              // Default rule). Column count stays page-level, so "side" image layout only applies at
-              // 1–2 columns.
-              const display = resolveDisplay(bookmark);
-              return (
-                <RowCard
-                  key={bookmark.id}
-                  className="p-4"
-                  data-bookmark-card-sample
-                >
-                  <BookmarkCard
-                    bookmark={bookmark}
-                    properties={properties}
-                    onDelete={id => deleteBookmark.mutate(id)}
-                    fieldZones={display.fieldZones}
-                    cardZoneLayouts={display.cardZoneLayouts}
-                    imageLeft={(columns === 1 || columns === 2) && display.imageLayout === "side"}
-                    imageMode={display.imageMode}
-                    imageVisibility={display.imageVisibility}
-                    hideWebsiteForYouTube={display.hideWebsiteForYouTube}
-                  />
-                </RowCard>
-              );
-            })}
-          </div>
+          <BookmarkCardGrid
+            bookmarks={visibleBookmarks}
+            properties={properties}
+            columns={columns}
+          />
         )
         : null}
     </div>

@@ -4,6 +4,9 @@ import { useNotificationStore } from "./notificationStore";
 
 import { randomId } from "@/lib/utils";
 
+/** A fixed timestamp so the tests don't depend on the wall clock (the records under test ignore it). */
+const FIXED_TIMESTAMP = "2026-01-01T00:00:00.000Z";
+
 afterEach(() => {
   vi.unstubAllGlobals();
   useNotificationStore.getState().clearNotifications();
@@ -35,7 +38,7 @@ describe("notificationStore.addNotification", () => {
     useNotificationStore.getState().addNotification({
       type: "success",
       message: "Saved",
-      timestamp: new Date().toISOString(),
+      timestamp: FIXED_TIMESTAMP,
     });
 
     const {
@@ -50,7 +53,7 @@ describe("notificationStore.addNotification", () => {
     useNotificationStore.getState().addNotification({
       type: "error",
       message: "Could not fetch a preview image",
-      timestamp: new Date().toISOString(),
+      timestamp: FIXED_TIMESTAMP,
       link: {
         label: "File issue",
         href: "https://github.com/example/repo/issues/new?title=oops",

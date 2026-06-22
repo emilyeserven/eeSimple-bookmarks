@@ -4,16 +4,17 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 import { AddCategoryModal } from "../components/AddCategoryModal";
 import { CategoryPreviewCard } from "../components/CategoryPreviewCard";
+import { ListingStatusMessages } from "../components/ListingStatusMessages";
 import { useCategoryColumns } from "../components/tables/categoryColumns";
 import { useTableRowNav } from "../components/tables/useTableRowNav";
 import { useCategories } from "../hooks/useCategories";
+import { useHeaderSearchFilter } from "../hooks/useHeaderSearchFilter";
 import { useSetListingPage } from "../hooks/useListingPage";
 import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
 import { COLUMN_CLASS, useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
 
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/ui/data-table";
-import { useUiStore } from "@/stores/uiStore";
 
 export const Route = createFileRoute("/categories/")({
   component: CategoriesListingPage,
@@ -33,13 +34,14 @@ function CategoriesListingPage() {
   const categoryColumns = useCategoryColumns();
   const rowNav = useTableRowNav();
 
-  const rawQuery = useUiStore(state => state.headerSearchQuery);
-  const q = rawQuery.trim().toLowerCase();
-  const filtered = (categories ?? []).filter((category) => {
-    if (!q) return true;
-    return category.name.toLowerCase().includes(q)
-      || (category.description ?? "").toLowerCase().includes(q);
-  });
+  const allCategories = categories ?? [];
+  const {
+    rawQuery, hasQuery, filtered,
+  } = useHeaderSearchFilter(
+    allCategories,
+    (category, query) => category.name.toLowerCase().includes(query)
+      || (category.description ?? "").toLowerCase().includes(query),
+  );
 
   return (
     <section className="space-y-6">
@@ -57,26 +59,17 @@ function CategoriesListingPage() {
       </div>
 
       <div className="space-y-4">
-        {q && filtered.length < (categories?.length ?? 0)
-          ? (
-            <p className="text-sm text-muted-foreground">
-              Showing {filtered.length} of {categories?.length ?? 0}
-            </p>
-          )
-          : null}
-
-        {isLoading ? <p className="text-muted-foreground">Loading categories…</p> : null}
-        {error ? <p className="text-destructive">{error.message}</p> : null}
-        {!isLoading && (categories?.length ?? 0) === 0
-          ? <p className="text-muted-foreground">No categories yet.</p>
-          : null}
-        {!isLoading && (categories?.length ?? 0) > 0 && filtered.length === 0
-          ? (
-            <p className="text-muted-foreground">
-              No categories match &ldquo;{rawQuery}&rdquo;.
-            </p>
-          )
-          : null}
+        <ListingStatusMessages
+          isLoading={isLoading}
+          error={error}
+          totalCount={allCategories.length}
+          filteredCount={filtered.length}
+          rawQuery={rawQuery}
+          hasQuery={hasQuery}
+          loadingLabel="Loading categories…"
+          entityPlural="categories"
+          emptyMessage={<p className="text-muted-foreground">No categories yet.</p>}
+        />
 
         {filtered.length > 0 && viewMode === "table"
           ? (

@@ -97,6 +97,47 @@ function ruleMatches(
   });
 }
 
+/** The overridable display attributes resolved by the layered merge — each nullable on a non-default rule. */
+const MERGE_KEYS = [
+  "fieldZones",
+  "cardZoneLayouts",
+  "imageMode",
+  "imageVisibility",
+  "imageLayout",
+  "hideWebsiteForYouTube",
+] as const;
+type MergeKey = (typeof MERGE_KEYS)[number];
+type MergedAttrs = Pick<CardDisplayRule, MergeKey>;
+
+/** Fresh accumulator with every mergeable attribute unset (null). */
+function emptyMergedAttrs(): MergedAttrs {
+  return {
+    fieldZones: null,
+    cardZoneLayouts: null,
+    imageMode: null,
+    imageVisibility: null,
+    imageLayout: null,
+    hideWebsiteForYouTube: null,
+  };
+}
+
+/**
+ * Layered-merge step for one attribute: the first matching rule to set a non-null value wins it, and
+ * records that rule's id as the provenance source. Generic over the key so `merged[key]`/`rule[key]`
+ * stay the same type and assignment is checked.
+ */
+function takeFirstAttr<K extends MergeKey>(
+  merged: MergedAttrs,
+  source: Record<MergeKey, string | null>,
+  rule: CardDisplayRule,
+  key: K,
+): void {
+  if (merged[key] === null && rule[key] !== null) {
+    merged[key] = rule[key];
+    source[key] = rule.id;
+  }
+}
+
 /**
  * Resolve a bookmark's per-card display by layering the matching rules. `rules` must be pre-sorted by
  * priority (highest first; the Default rule last). For each attribute the first matching rule that
@@ -111,12 +152,7 @@ export function resolveCardDisplay(
   const input = bookmarkToConditionInput(bookmark);
 
   const matchedRuleIds: string[] = [];
-  let fieldZones: CardFieldZones | null = null;
-  let cardZoneLayouts: CardZoneLayouts | null = null;
-  let imageMode: string | null = null;
-  let imageVisibility: BookmarkImageVisibility | null = null;
-  let imageLayout: HomepageSectionImageLayout | null = null;
-  let hideWebsiteForYouTube: boolean | null = null;
+  const merged = emptyMergedAttrs();
   const source: ResolvedCardDisplay["provenance"]["source"] = {
     fieldZones: null,
     cardZoneLayouts: null,
@@ -129,39 +165,16 @@ export function resolveCardDisplay(
   for (const rule of rules) {
     if (!ruleMatches(rule, input, tagDescendants)) continue;
     matchedRuleIds.push(rule.id);
-    if (fieldZones === null && rule.fieldZones !== null) {
-      fieldZones = rule.fieldZones;
-      source.fieldZones = rule.id;
-    }
-    if (cardZoneLayouts === null && rule.cardZoneLayouts !== null) {
-      cardZoneLayouts = rule.cardZoneLayouts;
-      source.cardZoneLayouts = rule.id;
-    }
-    if (imageMode === null && rule.imageMode !== null) {
-      imageMode = rule.imageMode;
-      source.imageMode = rule.id;
-    }
-    if (imageVisibility === null && rule.imageVisibility !== null) {
-      imageVisibility = rule.imageVisibility;
-      source.imageVisibility = rule.id;
-    }
-    if (imageLayout === null && rule.imageLayout !== null) {
-      imageLayout = rule.imageLayout;
-      source.imageLayout = rule.id;
-    }
-    if (hideWebsiteForYouTube === null && rule.hideWebsiteForYouTube !== null) {
-      hideWebsiteForYouTube = rule.hideWebsiteForYouTube;
-      source.hideWebsiteForYouTube = rule.id;
-    }
+    for (const key of MERGE_KEYS) takeFirstAttr(merged, source, rule, key);
   }
 
   return {
-    fieldZones: fieldZones ?? BASELINE.fieldZones,
-    cardZoneLayouts: cardZoneLayouts ?? BASELINE.cardZoneLayouts,
-    imageMode: imageMode ?? BASELINE.imageMode,
-    imageVisibility: imageVisibility ?? BASELINE.imageVisibility,
-    imageLayout: imageLayout ?? BASELINE.imageLayout,
-    hideWebsiteForYouTube: hideWebsiteForYouTube ?? BASELINE.hideWebsiteForYouTube,
+    fieldZones: merged.fieldZones ?? BASELINE.fieldZones,
+    cardZoneLayouts: merged.cardZoneLayouts ?? BASELINE.cardZoneLayouts,
+    imageMode: merged.imageMode ?? BASELINE.imageMode,
+    imageVisibility: merged.imageVisibility ?? BASELINE.imageVisibility,
+    imageLayout: merged.imageLayout ?? BASELINE.imageLayout,
+    hideWebsiteForYouTube: merged.hideWebsiteForYouTube ?? BASELINE.hideWebsiteForYouTube,
     provenance: {
       matchedRuleIds,
       source,

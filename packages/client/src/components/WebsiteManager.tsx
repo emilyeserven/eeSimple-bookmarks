@@ -3,16 +3,17 @@ import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 
 import { AddWebsiteModal } from "./AddWebsiteModal";
+import { ListingStatusMessages } from "./ListingStatusMessages";
 import { useTableRowNav } from "./tables/useTableRowNav";
 import { useWebsiteColumns } from "./tables/websiteColumns";
 import { WebsiteListItem } from "./WebsiteListItem";
+import { useHeaderSearchFilter } from "../hooks/useHeaderSearchFilter";
 import { useSetListingPage } from "../hooks/useListingPage";
 import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
 import { useWebsites } from "../hooks/useWebsites";
 import { COLUMN_CLASS, useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
 
 import { DataTable } from "@/components/ui/data-table";
-import { useUiStore } from "@/stores/uiStore";
 
 /** Browsable, searchable website listing with add modal. Shared by the Websites taxonomy page and the Settings Websites page. */
 export function WebsitesListing() {
@@ -28,40 +29,32 @@ export function WebsitesListing() {
   const rowNav = useTableRowNav();
   const navigate = useNavigate();
 
-  const rawQuery = useUiStore(state => state.headerSearchQuery);
-  const q = rawQuery.trim().toLowerCase();
-  const filtered = (allWebsites ?? []).filter((w) => {
-    if (!q) return true;
-    return w.siteName.toLowerCase().includes(q) || w.domain.toLowerCase().includes(q);
-  });
+  const websites = allWebsites ?? [];
+  const {
+    rawQuery, hasQuery, filtered,
+  } = useHeaderSearchFilter(
+    websites,
+    (w, query) => w.siteName.toLowerCase().includes(query) || w.domain.toLowerCase().includes(query),
+  );
 
   return (
     <div className="space-y-4">
       <div className="space-y-4">
-        {q && filtered.length < (allWebsites?.length ?? 0)
-          ? (
-            <p className="text-sm text-muted-foreground">
-              Showing {filtered.length} of {allWebsites?.length ?? 0}
-            </p>
-          )
-          : null}
-
-        {isLoading ? <p className="text-muted-foreground">Loading websites…</p> : null}
-        {error ? <p className="text-destructive">{error.message}</p> : null}
-        {!isLoading && (allWebsites?.length ?? 0) === 0
-          ? (
+        <ListingStatusMessages
+          isLoading={isLoading}
+          error={error}
+          totalCount={websites.length}
+          filteredCount={filtered.length}
+          rawQuery={rawQuery}
+          hasQuery={hasQuery}
+          loadingLabel="Loading websites…"
+          entityPlural="websites"
+          emptyMessage={(
             <p className="text-muted-foreground">
               No websites yet. They&apos;re created automatically when you add bookmarks.
             </p>
-          )
-          : null}
-        {!isLoading && (allWebsites?.length ?? 0) > 0 && filtered.length === 0
-          ? (
-            <p className="text-muted-foreground">
-              No websites match &ldquo;{rawQuery}&rdquo;.
-            </p>
-          )
-          : null}
+          )}
+        />
 
         {filtered.length > 0 && viewMode === "table"
           ? (

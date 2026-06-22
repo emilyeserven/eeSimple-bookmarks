@@ -81,65 +81,47 @@ function parseDateRecord(raw: unknown): Record<string, [string | null, string | 
   return result;
 }
 
-/** Narrow an unknown search record into a `BookmarkSearch`, dropping anything malformed. */
+/** Keep a value only if it is a non-empty array of strings, dropping non-string entries. */
+function validStringList(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const ids = value.filter((v): v is string => typeof v === "string");
+  return ids.length > 0 ? ids : undefined;
+}
+
+/** Narrow a presence value to the `"has" | "missing"` enum, or `undefined` if malformed. */
+function validPresence(value: unknown): "has" | "missing" | undefined {
+  return value === "has" || value === "missing" ? value : undefined;
+}
+
+/** Keep a parsed record only if it has at least one entry (an empty record is not an active filter). */
+function nonEmptyRecord<T extends Record<string, unknown>>(record: T): T | undefined {
+  return Object.keys(record).length > 0 ? record : undefined;
+}
+
+/** Narrow an unknown search record into a `BookmarkSearch`, dropping anything malformed or absent. */
 export function validateBookmarkSearch(search: Record<string, unknown>): BookmarkSearch {
-  const result: BookmarkSearch = {};
+  const candidates: BookmarkSearch = {
+    tags: validStringList(search.tags),
+    tagPresence: validPresence(search.tagPresence),
+    categories: validStringList(search.categories),
+    mediaTypes: validStringList(search.mediaTypes),
+    youtubeChannels: validStringList(search.youtubeChannels),
+    youtubeChannelPresence: validPresence(search.youtubeChannelPresence),
+    websites: validStringList(search.websites),
+    websitePresence: validPresence(search.websitePresence),
+    relationshipTypes: validStringList(search.relationshipTypes),
+    num: nonEmptyRecord(parseNumRecord(search.num)),
+    bool: nonEmptyRecord(parseBoolRecord(search.bool)),
+    date: nonEmptyRecord(parseDateRecord(search.date)),
+    presence: nonEmptyRecord(parsePresenceRecord(search.presence)),
+  };
 
-  if (Array.isArray(search.tags)) {
-    const tagIds = search.tags.filter((v): v is string => typeof v === "string");
-    if (tagIds.length > 0) result.tags = tagIds;
+  // Drop the keys that came back undefined so the result has no empty/absent filter entries.
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(candidates)) {
+    if (value !== undefined) result[key] = value;
   }
-
-  if (search.tagPresence === "has" || search.tagPresence === "missing") {
-    result.tagPresence = search.tagPresence;
-  }
-
-  if (Array.isArray(search.categories)) {
-    const cats = search.categories.filter((v): v is string => typeof v === "string");
-    if (cats.length > 0) result.categories = cats;
-  }
-
-  if (Array.isArray(search.mediaTypes)) {
-    const ids = search.mediaTypes.filter((v): v is string => typeof v === "string");
-    if (ids.length > 0) result.mediaTypes = ids;
-  }
-
-  if (Array.isArray(search.youtubeChannels)) {
-    const ids = search.youtubeChannels.filter((v): v is string => typeof v === "string");
-    if (ids.length > 0) result.youtubeChannels = ids;
-  }
-
-  if (search.youtubeChannelPresence === "has" || search.youtubeChannelPresence === "missing") {
-    result.youtubeChannelPresence = search.youtubeChannelPresence;
-  }
-
-  if (Array.isArray(search.websites)) {
-    const ids = search.websites.filter((v): v is string => typeof v === "string");
-    if (ids.length > 0) result.websites = ids;
-  }
-
-  if (search.websitePresence === "has" || search.websitePresence === "missing") {
-    result.websitePresence = search.websitePresence;
-  }
-
-  if (Array.isArray(search.relationshipTypes)) {
-    const ids = search.relationshipTypes.filter((v): v is string => typeof v === "string");
-    if (ids.length > 0) result.relationshipTypes = ids;
-  }
-
-  const num = parseNumRecord(search.num);
-  if (Object.keys(num).length > 0) result.num = num;
-
-  const bool = parseBoolRecord(search.bool);
-  if (Object.keys(bool).length > 0) result.bool = bool;
-
-  const date = parseDateRecord(search.date);
-  if (Object.keys(date).length > 0) result.date = date;
-
-  const presence = parsePresenceRecord(search.presence);
-  if (Object.keys(presence).length > 0) result.presence = presence;
-
-  return result;
+  return result as BookmarkSearch;
 }
 
 type SearchableBookmark = Pick<
