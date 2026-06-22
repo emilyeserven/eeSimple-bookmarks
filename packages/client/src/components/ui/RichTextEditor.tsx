@@ -19,12 +19,20 @@ function getMarkdown(editor: Editor): string | undefined {
 }
 
 interface RichTextEditorProps {
-  /** Current content as Markdown. */
+  /** Current content as Markdown (or HTML when `output="html"`). */
   value: string;
-  /** Called with the serialized Markdown on every edit. Omit for read-only rendering. */
-  onChange?: (markdown: string) => void;
+  /** Called with the serialized content on every edit. Omit for read-only rendering. */
+  onChange?: (value: string) => void;
   /** When false, renders the content read-only with no toolbar. Defaults to true. */
   editable?: boolean;
+  /**
+   * Serialization format emitted by `onChange` and synced from `value`. `"markdown"` (default) reads
+   * and writes Markdown via the Markdown extension; `"html"` reads and writes raw HTML — used by the
+   * newsletter paste field so pasted `<a href>` anchors survive into the ingest pipeline.
+   */
+  output?: "markdown" | "html";
+  /** Called when the editor loses focus (e.g. to mark a bound form field touched). */
+  onBlur?: () => void;
   /** Placeholder text width hint; forwarded to the wrapper. */
   className?: string;
 }
@@ -36,7 +44,7 @@ interface RichTextEditorProps {
  * rich-text primitive — reuse it for future Markdown fields rather than adding another editor.
  */
 export function RichTextEditor({
-  value, onChange, editable = true, className,
+  value, onChange, editable = true, output = "markdown", onBlur, className,
 }: RichTextEditorProps) {
   const editor = useEditor({
     editable,
@@ -46,17 +54,26 @@ export function RichTextEditor({
           levels: [2, 3],
         },
       }),
-      Markdown.configure({
-        linkify: true,
-      }),
+      // Markdown (de)serialization only applies in markdown mode; in html mode the value is HTML, so
+      // omitting it lets string content/sync parse as HTML rather than as markdown source.
+      ...(output === "markdown"
+        ? [Markdown.configure({
+          linkify: true,
+        })]
+        : []),
     ],
     content: value,
     onUpdate: ({
       editor: instance,
     }) => {
+      if (output === "html") {
+        onChange?.(instance.getHTML());
+        return;
+      }
       const md = getMarkdown(instance);
       if (md !== undefined) onChange?.(md);
     },
+    onBlur: () => onBlur?.(),
     editorProps: {
       attributes: {
         class: cn(PROSE_CLASS, editable && "min-h-32 px-3 py-2"),
@@ -67,12 +84,12 @@ export function RichTextEditor({
   // Keep the editor in sync when `value` changes from the outside (e.g. data loads after mount).
   useEffect(() => {
     if (!editor) return;
-    const current = getMarkdown(editor);
+    const current = output === "html" ? editor.getHTML() : getMarkdown(editor);
     if (current === undefined || value === current) return;
     editor.commands.setContent(value, {
       emitUpdate: false,
     });
-  }, [editor, value]);
+  }, [editor, value, output]);
 
   // Reflect prop changes to editability after mount.
   useEffect(() => {

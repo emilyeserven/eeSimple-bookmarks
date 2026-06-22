@@ -94,7 +94,7 @@ export function NewsletterImportForm() {
         const result = value.source === "paste"
           ? await paste.mutateAsync({
             content: value.pastedContent,
-            kind: "auto",
+            kind: "html",
             enrich: enrichRef.current,
             defaultCategoryId,
           })
@@ -149,10 +149,9 @@ export function NewsletterImportForm() {
         ? (
           <form.AppField name="pastedContent">
             {field => (
-              <field.TextareaField
+              <field.RichTextField
                 label="Newsletter content"
-                placeholder="Paste the newsletter's HTML or plain text…"
-                rows={10}
+                hint="Paste the newsletter here — links are preserved."
               />
             )}
           </form.AppField>
