@@ -8,8 +8,7 @@ export const Route = createFileRoute("/custom-properties/$propertySlug/_view/aut
     throw redirect({
       to: "/settings/autofill",
       search: {
-        scope: "property",
-        scopeSlug: params.propertySlug,
+        property: params.propertySlug,
       },
     });
   },

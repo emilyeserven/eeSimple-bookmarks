@@ -2,14 +2,17 @@ import { useState } from "react";
 
 import { createFileRoute } from "@tanstack/react-router";
 
+import { FacetSelect } from "../components/AutofillRulesFilterBar";
 import { AutofillRulesList } from "../components/AutofillRulesList";
-import { ALL_CATEGORIES } from "../components/AutofillRulesToolbar";
 import { useAutofillRules } from "../hooks/useAutofill";
+import { useCategories } from "../hooks/useCategories";
 import { useSetListingPage } from "../hooks/useListingPage";
 import { useNewAutofillRule } from "../hooks/useNewAutofillRule";
 import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
+import { NO_CATEGORY } from "../lib/autofillScope";
 
 import { Badge } from "@/components/ui/badge";
+import { SelectItem } from "@/components/ui/select";
 import { useUiStore } from "@/stores/uiStore";
 
 export const Route = createFileRoute("/autofill/")({
@@ -20,14 +23,18 @@ function AutofillListPage() {
   const {
     data: rules,
   } = useAutofillRules();
+  const {
+    data: categories = [],
+  } = useCategories();
   const newRule = useNewAutofillRule();
   useSetListingPage("autofill-rules-listing", false, false, false, newRule.openModal);
 
   // The top-level listing keeps its filters ephemeral: text from the global header search, category
-  // from local state (the deeplinkable variant lives on Settings → Autofill).
+  // from local state (the deeplinkable, multi-facet variant lives on Settings → Autofill).
   useRegisterHeaderSearch();
   const query = useUiStore(state => state.headerSearchQuery);
-  const [categoryFilter, setCategoryFilter] = useState(ALL_CATEGORIES);
+  // Holds a category id, the NO_CATEGORY sentinel, or undefined for "all".
+  const [category, setCategory] = useState<string | undefined>(undefined);
 
   return (
     <section className="space-y-6">
@@ -44,10 +51,24 @@ function AutofillListPage() {
         </p>
       </div>
 
+      <div className="flex flex-wrap items-center gap-3">
+        <FacetSelect
+          label="categories"
+          value={category}
+          options={categories.map(item => ({
+            value: item.id,
+            label: item.name,
+          }))}
+          onChange={setCategory}
+        >
+          <SelectItem value={NO_CATEGORY}>No category</SelectItem>
+        </FacetSelect>
+      </div>
+
       <AutofillRulesList
         query={query}
-        categoryFilter={categoryFilter}
-        onCategoryFilterChange={setCategoryFilter}
+        categoryId={category && category !== NO_CATEGORY ? category : undefined}
+        noCategory={category === NO_CATEGORY}
       />
 
       {newRule.modal}

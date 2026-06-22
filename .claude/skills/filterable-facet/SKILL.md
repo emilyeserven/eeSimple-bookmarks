@@ -97,8 +97,8 @@ On the entity's `_view/general` tab, add a "New Autofill Rule" button:
   path, step B.1's `useParams({ strict: false })` preseeds the panel automatically — no extra args
   needed on `openAutofill`.
 
-The existing `AutofillRulesToolbar` "New Autofill Rule" button uses this exact `openAutofill(
-NEW_SENTINEL)` call — reference it.
+The `useNewAutofillRule` hook's "New autofill rule" flow uses this exact `openAutofill(
+NEW_SENTINEL)` call (when the sidebar modifier is held) — reference it.
 
 ## Verify
 

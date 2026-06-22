@@ -1,4 +1,5 @@
 import type { AutofillScopeDefaults } from "../lib/autofillPrefill";
+import type { AutofillListSearch } from "../lib/autofillScope";
 
 import { useParams, useSearch } from "@tanstack/react-router";
 
@@ -8,13 +9,15 @@ import { useMediaTypes } from "./useMediaTypes";
 import { useTagBySlug } from "./useTags";
 import { useWebsites } from "./useWebsites";
 import { useYouTubeChannelBySlug } from "./useYouTubeChannels";
+import { NO_CATEGORY } from "../lib/autofillScope";
 
 /**
  * Resolves the scope defaults for a new autofill rule from the current route. When the user is on a
  * category's / property's / website's / tag's / media type's / channel's autofill tab the slug is
- * still in the route path; the Settings → Autofill page instead carries it in the URL search
- * (`?scope=…&scopeSlug=…`). Either way we preselect that entity so the new rule shows up in the
- * scoped list and arrives pre-populated. Every field is undefined on other surfaces (e.g. `/autofill`).
+ * still in the route path; the Settings → Autofill page instead carries it in the URL search as a
+ * per-facet slug (`?website=…`, `?tag=…`, …). Either way we preselect that entity so the new rule
+ * shows up in the filtered list and arrives pre-populated. Every field is undefined on other surfaces
+ * (e.g. `/autofill`).
  */
 export function useAutofillScopeDefaults(): AutofillScopeDefaults {
   const {
@@ -29,17 +32,16 @@ export function useAutofillScopeDefaults(): AutofillScopeDefaults {
   });
   const search = useSearch({
     strict: false,
-  }) as { scope?: string;
-    scopeSlug?: string; };
-  // Prefer the route-path slug; fall back to the Settings → Autofill `scope`/`scopeSlug` search pair.
-  const slugFor = (kind: string, pathSlug: string | undefined): string | undefined =>
-    pathSlug ?? (search.scope === kind ? search.scopeSlug : undefined);
-  const effectiveCategorySlug = slugFor("category", categorySlug);
-  const effectivePropertySlug = slugFor("property", propertySlug);
-  const effectiveWebsiteSlug = slugFor("website", websiteSlug);
-  const effectiveTagSlug = slugFor("tag", tagSlug);
-  const effectiveMediaTypeSlug = slugFor("media-type", mediaTypeSlug);
-  const effectiveChannelSlug = slugFor("channel", channelSlug);
+  }) as Partial<AutofillListSearch>;
+  // Prefer the route-path slug; fall back to the Settings → Autofill per-facet search slug.
+  // The `none` category sentinel is a filter ("sets no category"), not an entity to preselect.
+  const facetCategory = search.category === NO_CATEGORY ? undefined : search.category;
+  const effectiveCategorySlug = categorySlug ?? facetCategory;
+  const effectivePropertySlug = propertySlug ?? search.property;
+  const effectiveWebsiteSlug = websiteSlug ?? search.website;
+  const effectiveTagSlug = tagSlug ?? search.tag;
+  const effectiveMediaTypeSlug = mediaTypeSlug ?? search.mediaType;
+  const effectiveChannelSlug = channelSlug ?? search.channel;
 
   const {
     data: categories,

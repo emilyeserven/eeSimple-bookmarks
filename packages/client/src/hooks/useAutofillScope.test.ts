@@ -1,107 +1,123 @@
 import { describe, expect, it } from "vitest";
 
-import { resolveAutofillScope } from "./useAutofillScope";
+import { resolveAutofillFacets } from "./useAutofillScope";
 
 const data = {
   categories: [{
     id: "cat-1",
     slug: "recipes",
-    name: "Recipes",
   }],
   properties: [{
     id: "prop-1",
     slug: "rating",
-    name: "Rating",
   }],
   websites: [{
     id: "web-1",
     slug: "youtube",
-    siteName: "YouTube",
   }],
   mediaTypes: [{
     id: "mt-1",
     slug: "video",
-    name: "Video",
   }],
-  tag: {
+  tags: [{
     id: "tag-1",
-    name: "Cooking",
-  },
-  channel: {
+    slug: "cooking",
+  }],
+  channels: [{
     id: "ch-1",
-    name: "Chef Jane",
-  },
+    slug: "chef-jane",
+  }],
 };
 
-describe("resolveAutofillScope", () => {
-  it("is inactive with no scope or no slug", () => {
-    expect(resolveAutofillScope(undefined, undefined, data)).toEqual({
-      active: false,
-      label: undefined,
+describe("resolveAutofillFacets", () => {
+  it("is empty with no facets", () => {
+    expect(resolveAutofillFacets({}, data)).toEqual({
       listProps: {},
-    });
-    expect(resolveAutofillScope("category", undefined, data)).toEqual({
-      active: false,
-      label: undefined,
-      listProps: {},
+      noCategory: false,
     });
   });
 
-  it("maps each scope kind to its list prop + label", () => {
-    expect(resolveAutofillScope("category", "recipes", data)).toEqual({
-      active: true,
-      label: "Recipes",
+  it("maps each facet slug to its list prop", () => {
+    expect(resolveAutofillFacets({
+      category: "recipes",
+    }, data)).toEqual({
       listProps: {
         categoryId: "cat-1",
       },
+      noCategory: false,
     });
-    expect(resolveAutofillScope("property", "rating", data)).toEqual({
-      active: true,
-      label: "Rating",
+    expect(resolveAutofillFacets({
+      property: "rating",
+    }, data)).toEqual({
       listProps: {
         propertyId: "prop-1",
       },
+      noCategory: false,
     });
-    expect(resolveAutofillScope("website", "youtube", data)).toEqual({
-      active: true,
-      label: "YouTube",
+    expect(resolveAutofillFacets({
+      website: "youtube",
+    }, data)).toEqual({
       listProps: {
         websiteId: "web-1",
       },
+      noCategory: false,
     });
-    expect(resolveAutofillScope("media-type", "video", data)).toEqual({
-      active: true,
-      label: "Video",
+    expect(resolveAutofillFacets({
+      mediaType: "video",
+    }, data)).toEqual({
       listProps: {
         mediaTypeId: "mt-1",
       },
+      noCategory: false,
     });
-    expect(resolveAutofillScope("tag", "cooking", data)).toEqual({
-      active: true,
-      label: "Cooking",
+    expect(resolveAutofillFacets({
+      tag: "cooking",
+    }, data)).toEqual({
       listProps: {
         tagId: "tag-1",
       },
+      noCategory: false,
     });
-    expect(resolveAutofillScope("channel", "chef-jane", data)).toEqual({
-      active: true,
-      label: "Chef Jane",
+    expect(resolveAutofillFacets({
+      channel: "chef-jane",
+    }, data)).toEqual({
       listProps: {
         channelId: "ch-1",
       },
+      noCategory: false,
     });
   });
 
-  it("stays active but unresolved when the entity isn't found (e.g. still loading)", () => {
-    expect(resolveAutofillScope("category", "missing", {
-      ...data,
-      categories: [],
-    })).toEqual({
-      active: true,
-      label: undefined,
+  it("combines multiple facets (AND)", () => {
+    expect(resolveAutofillFacets({
+      category: "recipes",
+      tag: "cooking",
+      website: "youtube",
+    }, data)).toEqual({
       listProps: {
-        categoryId: undefined,
+        categoryId: "cat-1",
+        tagId: "tag-1",
+        websiteId: "web-1",
       },
+      noCategory: false,
+    });
+  });
+
+  it("treats the 'none' category sentinel as the no-category flag", () => {
+    expect(resolveAutofillFacets({
+      category: "none",
+    }, data)).toEqual({
+      listProps: {},
+      noCategory: true,
+    });
+  });
+
+  it("contributes no filter for an unresolved slug (e.g. still loading)", () => {
+    expect(resolveAutofillFacets({
+      category: "missing",
+    }, data)).toEqual({
+      listProps: {},
+      noCategory: false,
     });
   });
 });

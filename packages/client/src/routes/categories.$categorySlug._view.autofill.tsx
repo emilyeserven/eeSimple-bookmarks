@@ -8,8 +8,7 @@ export const Route = createFileRoute("/categories/$categorySlug/_view/autofill")
     throw redirect({
       to: "/settings/autofill",
       search: {
-        scope: "category",
-        scopeSlug: params.categorySlug,
+        category: params.categorySlug,
       },
     });
   },

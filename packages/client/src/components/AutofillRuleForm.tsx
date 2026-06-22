@@ -1,4 +1,4 @@
-// This module pairs the autofill rule form with the `NO_CATEGORY` sentinel its consumers reuse.
+// This module pairs the autofill rule form with the `NO_CATEGORY` sentinel it re-exports for consumers.
 
 import type {
   AutofillRule,
@@ -22,14 +22,15 @@ import { CollapsibleFormSection } from "./CollapsibleFormSection";
 import { RulePropertyField } from "./RulePropertyField";
 import { RuleTagsField } from "./RuleTagsField";
 import { seedConditions } from "../lib/autofillPrefill";
+import { NO_CATEGORY } from "../lib/autofillScope";
 import { autofillConditionsValidator } from "../lib/conditionsSchema";
 import { useAppForm } from "../lib/form";
 import { buildNumberValuesFromInputs } from "../lib/propertyValues";
 
 import { Separator } from "@/components/ui/separator";
 
-/** Sentinel select value standing in for "no category" (Radix selects can't hold an empty value). */
-export const NO_CATEGORY = "none";
+/** Re-exported for the form's consumers; the canonical definition lives in `lib/autofillScope`. */
+export { NO_CATEGORY };
 
 /** Sentinel select value standing in for "no media type" (Radix selects can't hold an empty value). */
 export const NO_MEDIA_TYPE = "none";

@@ -2,14 +2,11 @@ import { useMemo } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
 
-import { NO_CATEGORY } from "./AutofillRuleForm";
 import { AutofillRuleListItem } from "./AutofillRuleListItem";
-import { ALL_CATEGORIES, AutofillRulesToolbar } from "./AutofillRulesToolbar";
 import { useAutofillRuleColumns } from "./tables/autofillRuleColumns";
 import { useTableRowNav } from "./tables/useTableRowNav";
 import { useAutofillRules } from "../hooks/useAutofill";
 import { useCategories } from "../hooks/useCategories";
-import { useNewAutofillRule } from "../hooks/useNewAutofillRule";
 import { useWebsiteDomain } from "../hooks/useWebsiteDomain";
 import { ruleSetsMediaType, ruleSetsProperty, ruleSetsTag, ruleTargetsWebsite, ruleTargetsYoutubeChannel } from "../lib/autofillRulesFilter";
 import { COLUMN_CLASS, useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
@@ -18,61 +15,25 @@ import { summarizeConditions } from "../lib/conditionsSummary";
 import { DataTable } from "@/components/ui/data-table";
 
 interface AutofillRulesListProps {
-  /**
-   * When set, scopes the list to a single category: only rules that set this category are
-   * shown and the category filter is hidden.
-   */
+  /** Show only rules that set this category. */
   categoryId?: string;
-  /**
-   * When set, scopes the list to a single custom property: only rules that set a value for this
-   * property (number / boolean / datetime) are shown and the category filter is hidden.
-   */
+  /** Show only rules that set a value (number / boolean / datetime) for this custom property. */
   propertyId?: string;
-  /**
-   * When set, scopes the list to a single website: only rules whose conditions target this website
-   * (via a Website condition) are shown and the category filter is hidden.
-   */
+  /** Show only rules whose conditions target this website (via a Website condition). */
   websiteId?: string;
-  /**
-   * When set, scopes the list to a single tag: only rules that apply this tag are shown and the
-   * category filter is hidden.
-   */
+  /** Show only rules that apply this tag. */
   tagId?: string;
-  /**
-   * When set, scopes the list to a single media type: only rules that set this media type are shown
-   * and the category filter is hidden.
-   */
+  /** Show only rules that set this media type. */
   mediaTypeId?: string;
-  /**
-   * When set, scopes the list to a single YouTube channel: only rules whose conditions target this
-   * channel (via a youtube-channel condition) are shown and the category filter is hidden.
-   */
+  /** Show only rules whose conditions target this YouTube channel (via a youtube-channel condition). */
   channelId?: string;
-  /** Current text-search query (controlled by the page — from the global header search or the URL). */
+  /** Show only rules that set no category. */
+  noCategory?: boolean;
+  /** Current text-search query (matched against the rule name + its conditions summary). */
   query: string;
-  /** Current category-dropdown value: `ALL_CATEGORIES`, `NO_CATEGORY`, or a category id. */
-  categoryFilter: string;
-  onCategoryFilterChange: (value: string) => void;
 }
 
-function emptyStateMessage(
-  categoryId: string | undefined,
-  propertyId: string | undefined,
-  websiteId: string | undefined,
-  tagId: string | undefined,
-  mediaTypeId: string | undefined,
-  channelId: string | undefined,
-): string {
-  if (categoryId) return "No autofill rules add bookmarks to this category yet. Create one above.";
-  if (propertyId) return "No autofill rules set this property yet. Create one above.";
-  if (websiteId) return "No autofill rules target this website yet. Create one above.";
-  if (tagId) return "No autofill rules apply this tag yet. Create one above.";
-  if (mediaTypeId) return "No autofill rules set this media type yet. Create one above.";
-  if (channelId) return "No autofill rules target this channel yet. Create one above.";
-  return "No autofill rules yet. Create one above.";
-}
-
-/** Read-only, searchable/filterable list of autofill rules; selecting one opens it in the panel. */
+/** Read-only, filterable list of autofill rules; selecting one opens it in the panel. */
 export function AutofillRulesList({
   categoryId,
   propertyId,
@@ -80,11 +41,9 @@ export function AutofillRulesList({
   tagId,
   mediaTypeId,
   channelId,
+  noCategory,
   query,
-  categoryFilter,
-  onCategoryFilterChange,
 }: AutofillRulesListProps) {
-  const newRule = useNewAutofillRule();
   const {
     data: rules, isLoading, error,
   } = useAutofillRules();
@@ -92,10 +51,6 @@ export function AutofillRulesList({
     data: categories,
   } = useCategories();
 
-  // Whether the list is scoped to a single entity (category / property / website / tag / media type / channel edit/view tab).
-  const scoped = Boolean(categoryId) || Boolean(propertyId) || Boolean(websiteId) || Boolean(tagId) || Boolean(mediaTypeId) || Boolean(channelId);
-
-  // Read column count for the unscoped listing page (always call hook to keep hooks order stable).
   const columns = useBookmarkColumns("autofill-rules-listing");
   const viewMode = useViewMode("autofill-rules-listing");
   const ruleColumns = useAutofillRuleColumns(categories ?? []);
@@ -105,53 +60,41 @@ export function AutofillRulesList({
   // The scoping website's normalized domain (rules reference websites by domain, not id).
   const websiteDomain = useWebsiteDomain(websiteId);
 
-  // Scope to the entity in context before any search/category filtering.
-  const scopedRules = useMemo(() => {
+  // Apply the active facet filters (they combine — AND) before the text search.
+  const filteredRules = useMemo(() => {
     let list = rules ?? [];
     if (categoryId) list = list.filter(rule => rule.setCategoryId === categoryId);
+    if (noCategory) list = list.filter(rule => rule.setCategoryId === null);
     if (propertyId) list = list.filter(rule => ruleSetsProperty(rule, propertyId));
     if (websiteId) list = websiteDomain ? list.filter(rule => ruleTargetsWebsite(rule, websiteDomain)) : [];
     if (tagId) list = list.filter(rule => ruleSetsTag(rule, tagId));
     if (mediaTypeId) list = list.filter(rule => ruleSetsMediaType(rule, mediaTypeId));
     if (channelId) list = list.filter(rule => ruleTargetsYoutubeChannel(rule, channelId));
     return list;
-  }, [rules, categoryId, propertyId, websiteId, websiteDomain, tagId, mediaTypeId, channelId]);
+  }, [rules, categoryId, noCategory, propertyId, websiteId, websiteDomain, tagId, mediaTypeId, channelId]);
 
   const visibleRules = useMemo(() => {
     const normalized = query.trim().toLowerCase();
-    return scopedRules.filter((rule) => {
-      const matchesSearch = normalized === ""
-        || rule.name.toLowerCase().includes(normalized)
-        || summarizeConditions(rule.conditions).toLowerCase().includes(normalized);
-      const matchesCategory = categoryFilter === ALL_CATEGORIES
-        || (categoryFilter === NO_CATEGORY
-          ? rule.setCategoryId === null
-          : rule.setCategoryId === categoryFilter);
-      return matchesSearch && matchesCategory;
-    });
-  }, [scopedRules, query, categoryFilter]);
+    if (normalized === "") return filteredRules;
+    return filteredRules.filter(rule =>
+      rule.name.toLowerCase().includes(normalized)
+      || summarizeConditions(rule.conditions).toLowerCase().includes(normalized));
+  }, [filteredRules, query]);
+
+  const hasRules = (rules?.length ?? 0) > 0;
 
   return (
     <section className="space-y-6">
-      <AutofillRulesToolbar
-        scoped={scoped}
-        categoryFilter={categoryFilter}
-        onCategoryFilterChange={onCategoryFilterChange}
-        categories={categories ?? []}
-        onCreateClick={scoped ? newRule.onClick : undefined}
-      />
-      {scoped ? newRule.modal : null}
-
       {isLoading ? <p className="text-muted-foreground">Loading rules…</p> : null}
       {error ? <p className="text-destructive">{error.message}</p> : null}
-      {!isLoading && scopedRules.length === 0
-        ? <p className="text-muted-foreground">{emptyStateMessage(categoryId, propertyId, websiteId, tagId, mediaTypeId, channelId)}</p>
+      {!isLoading && !hasRules
+        ? <p className="text-muted-foreground">No autofill rules yet. Create one to get started.</p>
         : null}
-      {!isLoading && scopedRules.length > 0 && visibleRules.length === 0
+      {!isLoading && hasRules && visibleRules.length === 0
         ? <p className="text-muted-foreground">No rules match these filters.</p>
         : null}
 
-      {!scoped && viewMode === "table"
+      {viewMode === "table"
         ? (
           <DataTable
             columns={ruleColumns}
@@ -170,14 +113,10 @@ export function AutofillRulesList({
         )
         : (
           <div
-            className={
-              scoped
-                ? "space-y-3"
-                : `
-                  grid gap-3
-                  ${COLUMN_CLASS[columns]}
-                `
-            }
+            className={`
+              grid gap-3
+              ${COLUMN_CLASS[columns]}
+            `}
           >
             {visibleRules.map(rule => (
               <AutofillRuleListItem

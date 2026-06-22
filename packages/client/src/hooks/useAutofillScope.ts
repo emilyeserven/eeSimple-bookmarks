@@ -1,13 +1,14 @@
-import type { AutofillScopeType } from "../lib/autofillScope";
+import type { AutofillListSearch } from "../lib/autofillScope";
 
 import { useCategories } from "./useCategories";
 import { useCustomProperties } from "./useCustomProperties";
 import { useMediaTypes } from "./useMediaTypes";
-import { useTagBySlug } from "./useTags";
+import { useTags } from "./useTags";
 import { useWebsites } from "./useWebsites";
-import { useYouTubeChannelBySlug } from "./useYouTubeChannels";
+import { useYouTubeChannels } from "./useYouTubeChannels";
+import { NO_CATEGORY } from "../lib/autofillScope";
 
-/** The scope prop spread onto `AutofillRulesList` (e.g. `{ categoryId }`). Empty when no scope. */
+/** The filter props spread onto `AutofillRulesList` — one entity id per active facet. */
 export interface AutofillScopeListProps {
   categoryId?: string;
   propertyId?: string;
@@ -17,122 +18,70 @@ export interface AutofillScopeListProps {
   channelId?: string;
 }
 
-/** A resolved entity scope for the Settings → Autofill list: the filter prop + a chip label. */
-export interface ResolvedAutofillScope {
-  /** Whether a scope is active (a `scope` + `scopeSlug` were present in the URL). */
-  active: boolean;
-  /** Human label for the filter chip (e.g. "Recipes"). Undefined while the entity is still resolving. */
-  label: string | undefined;
+/** Resolved facet filters for the Settings → Autofill list: the list props + the "no category" flag. */
+export interface ResolvedAutofillFacets {
   listProps: AutofillScopeListProps;
+  /** True when the category facet is the "no category" sentinel (rules that set no category). */
+  noCategory: boolean;
 }
 
-/** The minimal entity slices `resolveAutofillScope` needs (the cached lists / resolved single rows). */
-export interface AutofillScopeData {
+/** The minimal entity slices `resolveAutofillFacets` needs — the cached flat lists (id + slug). */
+export interface AutofillFacetData {
   categories: readonly { id: string;
-    slug: string;
-    name: string; }[];
+    slug: string; }[];
   properties: readonly { id: string;
-    slug: string;
-    name: string; }[];
+    slug: string; }[];
   websites: readonly { id: string;
-    slug: string;
-    siteName: string; }[];
+    slug: string; }[];
   mediaTypes: readonly { id: string;
-    slug: string;
-    name: string; }[];
-  tag: { id: string;
-    name: string; } | undefined;
-  channel: { id: string;
-    name: string; } | undefined;
-}
-
-const INACTIVE: ResolvedAutofillScope = {
-  active: false,
-  label: undefined,
-  listProps: {},
-};
-
-/**
- * Pure mapping from the URL scope (`scope` + `scopeSlug`) to the matching `AutofillRulesList` filter
- * prop (entity id) and a display label. Mirrors `useAutofillScopeDefaults`'s slug resolution but
- * produces the *filter* shape rather than the create-prefill shape. Extracted from the hook so the
- * per-type branching is unit-testable without router/query context.
- */
-export function resolveAutofillScope(
-  scope: AutofillScopeType | undefined,
-  scopeSlug: string | undefined,
-  data: AutofillScopeData,
-): ResolvedAutofillScope {
-  if (!scope || !scopeSlug) return INACTIVE;
-
-  switch (scope) {
-    case "category": {
-      const entity = data.categories.find(c => c.slug === scopeSlug);
-      return {
-        active: true,
-        label: entity?.name,
-        listProps: {
-          categoryId: entity?.id,
-        },
-      };
-    }
-    case "property": {
-      const entity = data.properties.find(p => p.slug === scopeSlug);
-      return {
-        active: true,
-        label: entity?.name,
-        listProps: {
-          propertyId: entity?.id,
-        },
-      };
-    }
-    case "website": {
-      const entity = data.websites.find(w => w.slug === scopeSlug);
-      return {
-        active: true,
-        label: entity?.siteName,
-        listProps: {
-          websiteId: entity?.id,
-        },
-      };
-    }
-    case "media-type": {
-      const entity = data.mediaTypes.find(m => m.slug === scopeSlug);
-      return {
-        active: true,
-        label: entity?.name,
-        listProps: {
-          mediaTypeId: entity?.id,
-        },
-      };
-    }
-    case "tag":
-      return {
-        active: true,
-        label: data.tag?.name,
-        listProps: {
-          tagId: data.tag?.id,
-        },
-      };
-    case "channel":
-      return {
-        active: true,
-        label: data.channel?.name,
-        listProps: {
-          channelId: data.channel?.id,
-        },
-      };
-  }
+    slug: string; }[];
+  tags: readonly { id: string;
+    slug: string; }[];
+  channels: readonly { id: string;
+    slug: string; }[];
 }
 
 /**
- * Resolves the URL scope of the Settings → Autofill listing to the matching `AutofillRulesList`
- * filter prop and a display label, from the cached entity lists.
+ * Pure mapping from the URL facet slugs to the matching `AutofillRulesList` filter props (entity ids).
+ * Each facet resolves independently from the cached flat lists and the props combine (the list ANDs
+ * them). An unresolved slug (e.g. still loading, or stale) simply contributes no filter. Extracted from
+ * the hook so the per-facet branching is unit-testable without router/query context.
  */
-export function useAutofillScope(
-  scope: AutofillScopeType | undefined,
-  scopeSlug: string | undefined,
-): ResolvedAutofillScope {
+export function resolveAutofillFacets(
+  search: AutofillListSearch,
+  data: AutofillFacetData,
+): ResolvedAutofillFacets {
+  const idForSlug = (list: readonly { id: string;
+    slug: string; }[], slug: string | undefined): string | undefined =>
+    slug ? list.find(item => item.slug === slug)?.id : undefined;
+
+  const noCategory = search.category === NO_CATEGORY;
+  const listProps: AutofillScopeListProps = {};
+
+  const categoryId = noCategory ? undefined : idForSlug(data.categories, search.category);
+  if (categoryId) listProps.categoryId = categoryId;
+  const propertyId = idForSlug(data.properties, search.property);
+  if (propertyId) listProps.propertyId = propertyId;
+  const websiteId = idForSlug(data.websites, search.website);
+  if (websiteId) listProps.websiteId = websiteId;
+  const tagId = idForSlug(data.tags, search.tag);
+  if (tagId) listProps.tagId = tagId;
+  const mediaTypeId = idForSlug(data.mediaTypes, search.mediaType);
+  if (mediaTypeId) listProps.mediaTypeId = mediaTypeId;
+  const channelId = idForSlug(data.channels, search.channel);
+  if (channelId) listProps.channelId = channelId;
+
+  return {
+    listProps,
+    noCategory,
+  };
+}
+
+/**
+ * Resolves the URL facet filters of the Settings → Autofill listing to the matching `AutofillRulesList`
+ * filter props, from the cached entity lists.
+ */
+export function useAutofillFacets(search: AutofillListSearch): ResolvedAutofillFacets {
   const {
     data: categories,
   } = useCategories();
@@ -145,30 +94,19 @@ export function useAutofillScope(
   const {
     data: mediaTypes,
   } = useMediaTypes();
-  // Safe to call unconditionally (return undefined for an empty slug).
   const {
-    tag,
-  } = useTagBySlug(scope === "tag" ? scopeSlug ?? "" : "");
+    data: tags,
+  } = useTags();
   const {
-    channel,
-  } = useYouTubeChannelBySlug(scope === "channel" ? scopeSlug ?? "" : "");
+    data: channels,
+  } = useYouTubeChannels();
 
-  return resolveAutofillScope(scope, scopeSlug, {
+  return resolveAutofillFacets(search, {
     categories: categories ?? [],
     properties: properties ?? [],
     websites: websites ?? [],
     mediaTypes: mediaTypes ?? [],
-    tag,
-    channel,
+    tags: tags ?? [],
+    channels: channels ?? [],
   });
 }
-
-/** Human-readable noun for each scope type, used in the filter chip. */
-export const AUTOFILL_SCOPE_LABELS: Record<AutofillScopeType, string> = {
-  "category": "category",
-  "property": "property",
-  "website": "website",
-  "tag": "tag",
-  "media-type": "media type",
-  "channel": "channel",
-};

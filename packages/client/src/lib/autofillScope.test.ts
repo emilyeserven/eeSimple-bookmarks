@@ -10,24 +10,60 @@ describe("validateAutofillListSearch", () => {
     })).toEqual({});
   });
 
-  it("keeps a known scope + slug pair", () => {
+  it("keeps each facet slug", () => {
     expect(validateAutofillListSearch({
-      scope: "category",
-      scopeSlug: "recipes",
+      website: "youtube",
+      tag: "cooking",
+      mediaType: "video",
+      channel: "chef-jane",
+      property: "rating",
     })).toEqual({
-      scope: "category",
-      scopeSlug: "recipes",
-    });
-    expect(validateAutofillListSearch({
-      scope: "media-type",
-      scopeSlug: "video",
-    })).toEqual({
-      scope: "media-type",
-      scopeSlug: "video",
+      website: "youtube",
+      tag: "cooking",
+      mediaType: "video",
+      channel: "chef-jane",
+      property: "rating",
     });
   });
 
-  it("drops an unknown scope and an orphan scopeSlug", () => {
+  it("keeps a category slug and the 'none' sentinel but drops 'all'", () => {
+    expect(validateAutofillListSearch({
+      category: "recipes",
+    })).toEqual({
+      category: "recipes",
+    });
+    expect(validateAutofillListSearch({
+      category: "none",
+    })).toEqual({
+      category: "none",
+    });
+    expect(validateAutofillListSearch({
+      category: "all",
+    })).toEqual({});
+  });
+
+  it("migrates a legacy scope + scopeSlug pair onto its facet", () => {
+    expect(validateAutofillListSearch({
+      scope: "website",
+      scopeSlug: "youtube",
+    })).toEqual({
+      website: "youtube",
+    });
+    expect(validateAutofillListSearch({
+      scope: "media-type",
+      scopeSlug: "video",
+    })).toEqual({
+      mediaType: "video",
+    });
+    expect(validateAutofillListSearch({
+      scope: "category",
+      scopeSlug: "recipes",
+    })).toEqual({
+      category: "recipes",
+    });
+  });
+
+  it("drops an unknown legacy scope and an orphan scopeSlug", () => {
     expect(validateAutofillListSearch({
       scope: "bogus",
       scopeSlug: "recipes",
@@ -38,38 +74,33 @@ describe("validateAutofillListSearch", () => {
     })).toEqual({});
   });
 
-  it("passes through category (except the 'all' sentinel) and trims/omits empty strings", () => {
+  it("prefers a new-style facet param over a legacy scope for the same facet", () => {
     expect(validateAutofillListSearch({
-      category: "cat-1",
+      website: "current",
+      scope: "website",
+      scopeSlug: "legacy",
     })).toEqual({
-      category: "cat-1",
+      website: "current",
     });
-    expect(validateAutofillListSearch({
-      category: "none",
-    })).toEqual({
-      category: "none",
-    });
-    expect(validateAutofillListSearch({
-      category: "all",
-    })).toEqual({});
-    expect(validateAutofillListSearch({
-      category: "   ",
-      q: "",
-    })).toEqual({});
   });
 
-  it("keeps a trimmed search query", () => {
+  it("keeps a trimmed search query and omits empty strings", () => {
     expect(validateAutofillListSearch({
       q: "  recipe  ",
     })).toEqual({
       q: "recipe",
     });
+    expect(validateAutofillListSearch({
+      category: "   ",
+      website: "",
+      q: "",
+    })).toEqual({});
   });
 
   it("ignores non-string values", () => {
     expect(validateAutofillListSearch({
-      scope: 3,
-      scopeSlug: 7,
+      website: 3,
+      tag: 7,
       category: {},
       q: [],
     })).toEqual({});
