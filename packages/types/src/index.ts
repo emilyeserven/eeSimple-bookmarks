@@ -190,7 +190,30 @@ export interface AppSettings {
   homepageHeaderHidden: boolean;
   /** When false, the homepage text block is hidden even if homepageText is non-empty. */
   homepageTextEnabled: boolean;
+  /** When on, the left sidebar shows a link to the Coolify instance (opens in a new tab). */
+  coolifyLinkEnabled: boolean;
+  /** URL of the Coolify instance shown in the sidebar when `coolifyLinkEnabled` is on. */
+  coolifyUrl: string;
+  /** When on, the left sidebar shows a link to the Swagger/OpenAPI docs at `/docs`. */
+  docsLinkEnabled: boolean;
+  /** When on, the left sidebar shows a link to the Storybook UI at `/storybook`. */
+  storybookLinkEnabled: boolean;
 }
+
+/**
+ * The subset of {@link AppSettings} that drives the opt-in "Advanced" sidebar links (Coolify, docs,
+ * Storybook), edited on the Advanced settings page. Persisted server-side so the choices stick
+ * across devices and browsers, rather than living only in per-device local storage.
+ */
+export interface AdvancedSettings {
+  coolifyLinkEnabled: boolean;
+  coolifyUrl: string;
+  docsLinkEnabled: boolean;
+  storybookLinkEnabled: boolean;
+}
+
+/** Payload for replacing the advanced settings. */
+export type UpdateAdvancedSettingsInput = AdvancedSettings;
 
 /** The subset of {@link AppSettings} that drives homepage content (read/written together). */
 export interface HomepageContentSettings {

@@ -1,4 +1,6 @@
 import type {
+  AdvancedSettings,
+  UpdateAdvancedSettingsInput,
   AutofillPreviewInput,
   CreatePinnedSidebarItemInput,
   PinnedSidebarItem,
@@ -277,6 +279,12 @@ export const appSettingsApi = {
     request<HomepageContentSettings>("/app-settings/homepage-content"),
   updateHomepageContent: (input: UpdateHomepageContentInput) =>
     request<HomepageContentSettings>("/app-settings/homepage-content", {
+      method: "PUT",
+      body: JSON.stringify(input),
+    }),
+  getAdvanced: () => request<AdvancedSettings>("/app-settings/advanced"),
+  updateAdvanced: (input: UpdateAdvancedSettingsInput) =>
+    request<AdvancedSettings>("/app-settings/advanced", {
       method: "PUT",
       body: JSON.stringify(input),
     }),

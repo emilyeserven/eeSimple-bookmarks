@@ -4,17 +4,27 @@ import { findSettingsPage, SETTINGS_PAGES } from "./settingsPages";
 
 describe("settingsPages registry", () => {
   it("resolves a /settings sub-page by exact path", () => {
-    expect(findSettingsPage("/settings/display")).toEqual({
+    const page = findSettingsPage("/settings/display");
+    expect(page).toMatchObject({
       path: "/settings/display",
       label: "Display",
     });
+    expect(page?.icon).toBeDefined();
   });
 
   it("resolves a management page that lives outside /settings", () => {
-    expect(findSettingsPage("/custom-properties")).toEqual({
+    const page = findSettingsPage("/custom-properties");
+    expect(page).toMatchObject({
       path: "/custom-properties",
       label: "Custom Properties",
     });
+    expect(page?.icon).toBeDefined();
+  });
+
+  it("assigns every page an icon", () => {
+    for (const page of SETTINGS_PAGES) {
+      expect(page.icon).toBeDefined();
+    }
   });
 
   it("returns undefined for non-settings pages", () => {

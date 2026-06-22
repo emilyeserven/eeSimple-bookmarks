@@ -136,6 +136,14 @@ Rules (decided once, applied everywhere):
 inline-create modals — submit explicitly. **Local-only Zustand prefs** (Display/Sidebar/Automations
 settings) stay instant with **no toast** (nothing persists server-side).
 
+> **Local-pref vs. server setting — classify first.** The no-toast carve-out is **only** for
+> ephemeral, device-local view prefs in `uiStore`. If a setting must **persist across devices/browsers**,
+> it belongs in the server-side `app_settings` singleton (`services/appSettings.ts` +
+> `hooks/useAppSettings.ts`), **not** `uiStore` — and once it's server-persisted it **does** fire a
+> specific, recorded `notifySuccess(...)` on save like any other persisted setting (e.g. the
+> **Advanced** sidebar-link settings). Misclassifying a should-persist setting as a local pref is how
+> the Advanced page shipped both toast-less and non-syncing.
+
 ## Add a new entry point to the Notifications panel (rarely needed)
 
 The panel content type `"notifications"` is already registered: it lives in the `DrawerContentType`

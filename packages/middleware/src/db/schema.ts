@@ -794,6 +794,14 @@ export const appSettings = pgTable("app_settings", {
   homepageHeaderHidden: boolean("homepage_header_hidden").notNull().default(false),
   // When false, the homepage text block is hidden even if homepage_text is non-empty.
   homepageTextEnabled: boolean("homepage_text_enabled").notNull().default(true),
+  // When on, the left sidebar shows a link to the Coolify instance (opens in a new tab).
+  coolifyLinkEnabled: boolean("coolify_link_enabled").notNull().default(false),
+  // URL of the Coolify instance shown in the sidebar when coolify_link_enabled is on.
+  coolifyUrl: text("coolify_url").notNull().default(""),
+  // When on, the left sidebar shows a link to the Swagger/OpenAPI docs at /docs.
+  docsLinkEnabled: boolean("docs_link_enabled").notNull().default(false),
+  // When on, the left sidebar shows a link to the Storybook UI at /storybook.
+  storybookLinkEnabled: boolean("storybook_link_enabled").notNull().default(false),
 });
 
 /**

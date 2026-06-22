@@ -1,8 +1,10 @@
-import type { UpdateHomepageContentInput } from "@eesimple/types";
+import type { UpdateAdvancedSettingsInput, UpdateHomepageContentInput } from "@eesimple/types";
 import type { FastifyInstance } from "fastify";
 import {
+  getAdvancedSettings,
   getHomepageContentSettings,
   getShortenerIgnoreList,
+  updateAdvancedSettings,
   updateHomepageContentSettings,
   updateShortenerIgnoreList,
 } from "@/services/appSettings";
@@ -61,6 +63,31 @@ const homepageContentBody = {
   },
 } as const;
 
+const advancedBody = {
+  type: "object",
+  required: [
+    "coolifyLinkEnabled",
+    "coolifyUrl",
+    "docsLinkEnabled",
+    "storybookLinkEnabled",
+  ],
+  additionalProperties: false,
+  properties: {
+    coolifyLinkEnabled: {
+      type: "boolean",
+    },
+    coolifyUrl: {
+      type: "string",
+    },
+    docsLinkEnabled: {
+      type: "boolean",
+    },
+    storybookLinkEnabled: {
+      type: "boolean",
+    },
+  },
+} as const;
+
 /** Global app-settings endpoints, mounted under `/api/app-settings`. */
 export async function appSettingsRoutes(app: FastifyInstance): Promise<void> {
   app.get("/api/app-settings/shortener-ignore-list", {
@@ -93,4 +120,17 @@ export async function appSettingsRoutes(app: FastifyInstance): Promise<void> {
       body: homepageContentBody,
     },
   }, async req => updateHomepageContentSettings(req.body as UpdateHomepageContentInput));
+
+  app.get("/api/app-settings/advanced", {
+    schema: {
+      tags: ["app-settings"],
+    },
+  }, async () => getAdvancedSettings());
+
+  app.put("/api/app-settings/advanced", {
+    schema: {
+      tags: ["app-settings"],
+      body: advancedBody,
+    },
+  }, async req => updateAdvancedSettings(req.body as UpdateAdvancedSettingsInput));
 }
