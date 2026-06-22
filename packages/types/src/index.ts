@@ -1442,6 +1442,22 @@ export interface CreatePinnedSidebarItemInput {
   entityId: string;
 }
 
+/**
+ * A Settings (or settings-like management) page the user has favorited for quick access from the
+ * sidebar Settings flyout. Keyed by the page's route `path`; the human label is resolved from the
+ * client-side `SETTINGS_PAGES` registry, not stored here.
+ */
+export interface FavoriteSettingsPage {
+  id: string;
+  path: string;
+  sortOrder: number;
+  createdAt: string;
+}
+
+export interface CreateFavoriteSettingsPageInput {
+  path: string;
+}
+
 /** A user-defined named aspect ratio available in the Aspect dropdown. */
 export interface CustomAspectRatio {
   id: string;

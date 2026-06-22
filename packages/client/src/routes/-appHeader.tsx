@@ -11,6 +11,7 @@ import { BookmarkDetailLayoutPopover } from "@/components/BookmarkDetailLayoutPo
 import { DisplayOptionsPopover } from "@/components/DisplayOptionsPopover";
 import { FilterLocationPopover } from "@/components/FilterLocationPopover";
 import { HeaderPinButton } from "@/components/HeaderPinButton";
+import { HeaderSettingsFavoriteButton } from "@/components/HeaderSettingsFavoriteButton";
 import { ListingSearchBar } from "@/components/ListingSearchBar";
 import { usePanelControls } from "@/components/panel/usePanelControls";
 import {
@@ -33,6 +34,7 @@ import { usePropertyGroupBySlug } from "@/hooks/usePropertyGroups";
 import { useTagTree } from "@/hooks/useTags";
 import { useWebsiteBySlug } from "@/hooks/useWebsites";
 import { useYouTubeChannelBySlug } from "@/hooks/useYouTubeChannels";
+import { findSettingsPage } from "@/lib/settingsPages";
 import { findAncestorPath } from "@/lib/tagTree";
 import { useUiStore } from "@/stores/uiStore";
 
@@ -480,6 +482,9 @@ export function AppHeader() {
   // `_view`/`edit` tabs) surface a header "Info" link to that item's read-only view page.
   const infoButton = taxonomyInfoButton(pathParts);
 
+  // Settings (and settings-like management) pages get a header star to favorite the current page.
+  const settingsPage = findSettingsPage(pathname);
+
   // On a hierarchy-taxonomy *detail* page (Tags / Media Types), offer a header button that
   // quick-creates a child of the current entity. The parent id is the already-resolved entity.
   const isTagDetail = pathParts[0] === "tags" && pathParts.length >= 2;
@@ -625,6 +630,12 @@ export function AppHeader() {
           parentId={addChild.parentId}
         />
       ),
+    });
+  }
+  if (settingsPage) {
+    toolbarActions.push({
+      key: "settings-favorite",
+      node: <HeaderSettingsFavoriteButton page={settingsPage} />,
     });
   }
   toolbarActions.push({
