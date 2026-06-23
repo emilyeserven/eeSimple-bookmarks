@@ -16,6 +16,7 @@ import { Route as InboxRouteImport } from './routes/inbox'
 import { Route as ImportRulesRouteImport } from './routes/import-rules'
 import { Route as CustomPropertiesRouteImport } from './routes/custom-properties'
 import { Route as CategoriesRouteImport } from './routes/categories'
+import { Route as CardDisplayRulesRouteImport } from './routes/card-display-rules'
 import { Route as BookmarksRouteImport } from './routes/bookmarks'
 import { Route as AutofillRouteImport } from './routes/autofill'
 import { Route as IndexRouteImport } from './routes/index'
@@ -242,6 +243,11 @@ const CustomPropertiesRoute = CustomPropertiesRouteImport.update({
 const CategoriesRoute = CategoriesRouteImport.update({
   id: '/categories',
   path: '/categories',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CardDisplayRulesRoute = CardDisplayRulesRouteImport.update({
+  id: '/card-display-rules',
+  path: '/card-display-rules',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BookmarksRoute = BookmarksRouteImport.update({
@@ -1336,6 +1342,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/autofill': typeof AutofillRouteWithChildren
   '/bookmarks': typeof BookmarksRouteWithChildren
+  '/card-display-rules': typeof CardDisplayRulesRoute
   '/categories': typeof CategoriesRouteWithChildren
   '/custom-properties': typeof CustomPropertiesRouteWithChildren
   '/import-rules': typeof ImportRulesRouteWithChildren
@@ -1523,6 +1530,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/card-display-rules': typeof CardDisplayRulesRoute
   '/quick-add': typeof QuickAddRoute
   '/custom-properties/new': typeof CustomPropertiesNewRoute
   '/inbox/new': typeof InboxNewRoute
@@ -1675,6 +1683,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/autofill': typeof AutofillRouteWithChildren
   '/bookmarks': typeof BookmarksRouteWithChildren
+  '/card-display-rules': typeof CardDisplayRulesRoute
   '/categories': typeof CategoriesRouteWithChildren
   '/custom-properties': typeof CustomPropertiesRouteWithChildren
   '/import-rules': typeof ImportRulesRouteWithChildren
@@ -1878,6 +1887,7 @@ export interface FileRouteTypes {
     | '/'
     | '/autofill'
     | '/bookmarks'
+    | '/card-display-rules'
     | '/categories'
     | '/custom-properties'
     | '/import-rules'
@@ -2065,6 +2075,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/card-display-rules'
     | '/quick-add'
     | '/custom-properties/new'
     | '/inbox/new'
@@ -2216,6 +2227,7 @@ export interface FileRouteTypes {
     | '/'
     | '/autofill'
     | '/bookmarks'
+    | '/card-display-rules'
     | '/categories'
     | '/custom-properties'
     | '/import-rules'
@@ -2418,6 +2430,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AutofillRoute: typeof AutofillRouteWithChildren
   BookmarksRoute: typeof BookmarksRouteWithChildren
+  CardDisplayRulesRoute: typeof CardDisplayRulesRoute
   CategoriesRoute: typeof CategoriesRouteWithChildren
   CustomPropertiesRoute: typeof CustomPropertiesRouteWithChildren
   ImportRulesRoute: typeof ImportRulesRouteWithChildren
@@ -2483,6 +2496,13 @@ declare module '@tanstack/react-router' {
       path: '/categories'
       fullPath: '/categories'
       preLoaderRoute: typeof CategoriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/card-display-rules': {
+      id: '/card-display-rules'
+      path: '/card-display-rules'
+      fullPath: '/card-display-rules'
+      preLoaderRoute: typeof CardDisplayRulesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/bookmarks': {
@@ -4887,6 +4907,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AutofillRoute: AutofillRouteWithChildren,
   BookmarksRoute: BookmarksRouteWithChildren,
+  CardDisplayRulesRoute: CardDisplayRulesRoute,
   CategoriesRoute: CategoriesRouteWithChildren,
   CustomPropertiesRoute: CustomPropertiesRouteWithChildren,
   ImportRulesRoute: ImportRulesRouteWithChildren,

@@ -65,7 +65,7 @@ export const SETTINGS_PAGES: readonly SettingsPage[] = [
     icon: LayoutTemplate,
   },
   {
-    path: "/settings/card-display-rules",
+    path: "/card-display-rules",
     label: "Card Display Rules",
     icon: LayoutGrid,
   },

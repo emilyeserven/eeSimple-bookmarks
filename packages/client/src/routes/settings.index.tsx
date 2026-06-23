@@ -4,7 +4,6 @@ import {
   Filter,
   Image,
   Inbox,
-  LayoutGrid,
   LayoutTemplate,
   Link2,
   Monitor,
@@ -47,12 +46,6 @@ const SETTINGS_TILES = [
     description: "Configure the homepage sections and layout.",
     icon: LayoutTemplate,
     to: "/settings/homepage" as const,
-  },
-  {
-    label: "Card Display Rules",
-    description: "Control per-card field visibility and image presentation.",
-    icon: LayoutGrid,
-    to: "/settings/card-display-rules" as const,
   },
   {
     label: "Media Management",

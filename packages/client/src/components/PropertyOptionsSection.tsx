@@ -387,7 +387,7 @@ function BooleanOptions({
 
       <CollapsibleFormSection
         title="Property options"
-        description="Configure how the boolean value is displayed. Per-card display (hide label, clickable, show-if-false, colon, value order) is set per field under Settings → Card Display Rules."
+        description="Configure how the boolean value is displayed. Per-card display (hide label, clickable, show-if-false, colon, value order) is set per field under Card Display Rules."
         defaultOpen={defaultOpen}
         preview={(
           <form.Subscribe

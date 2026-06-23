@@ -1,12 +1,12 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
-/** The per-entity Autofill tab now lives on the consolidated Settings → Autofill page, filtered. */
+/** The per-entity Autofill tab redirects to the consolidated Autofill Rules page, filtered. */
 export const Route = createFileRoute("/tags/$tagSlug/edit/autofill")({
   beforeLoad: ({
     params,
   }) => {
     throw redirect({
-      to: "/settings/autofill",
+      to: "/autofill",
       search: {
         tag: params.tagSlug,
       },
