@@ -67,6 +67,7 @@ import type {
   MediaTypeNode,
   PropertyGroup,
   PurgeImportItemsResult,
+  RejectPendingItemsResult,
   UpdateImportItemInput,
   RelationshipType,
   Tag,
@@ -285,6 +286,11 @@ export const importApi = {
   purgeProcessed: () =>
     request<PurgeImportItemsResult>("/imports/items/processed", {
       method: "DELETE",
+    }),
+  /** Reject every pending candidate across all imports (the Inbox "reject all pending" action). */
+  rejectPending: () =>
+    request<RejectPendingItemsResult>("/imports/items/pending/reject", {
+      method: "POST",
     }),
 };
 

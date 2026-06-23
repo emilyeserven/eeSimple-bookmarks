@@ -245,3 +245,12 @@ export function usePurgeProcessedItems() {
     onSuccess: () => invalidate(),
   });
 }
+
+/** Reject every pending candidate across all imports (the Inbox "reject all pending" action). */
+export function useRejectPendingItems() {
+  const invalidate = useInvalidateInbox();
+  return useMutation({
+    mutationFn: () => importApi.rejectPending(),
+    onSuccess: () => invalidate(),
+  });
+}
