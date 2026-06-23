@@ -9,13 +9,14 @@ import { useMemo, useState } from "react";
 
 import { blacklistPatternsFor } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
-import { Ban, Check, ChevronDown, ExternalLink, Eye, Pencil, RotateCcw, Trash2, X } from "lucide-react";
+import { Ban, Check, ChevronDown, ExternalLink, Eye, Pencil, RotateCcw, ShieldBan, Trash2, X } from "lucide-react";
 
 import { useCategories } from "../hooks/useCategories";
 import {
   useApproveImportItem,
   useBlockImportItem,
   useDeleteRejectedItems,
+  useRecheckPendingItems,
   useRejectImportItem,
   useRejectPendingItems,
   useUnrejectImportItem,
@@ -546,6 +547,7 @@ export function InboxReviewList({
 }) {
   const approve = useApproveImportItem();
   const rejectPending = useRejectPendingItems();
+  const recheckPending = useRecheckPendingItems();
   const deleteRejected = useDeleteRejectedItems();
   const [filter, setFilter] = useState<ReviewFilter>("all");
   const [bulkRunning, setBulkRunning] = useState(false);
@@ -584,6 +586,19 @@ export function InboxReviewList({
     });
   }
 
+  function onRecheckBlocklist() {
+    recheckPending.mutate(undefined, {
+      onSuccess: ({
+        blocked,
+      }) => notifySuccess(
+        blocked === 0
+          ? "No pending items matched the block list."
+          : `Blocked ${blocked} item${blocked === 1 ? "" : "s"} from the block list.`,
+      ),
+      onError: () => notifyError("Couldn't recheck the pending items."),
+    });
+  }
+
   function onDeleteRejected() {
     deleteRejected.mutate(undefined, {
       onSuccess: ({
@@ -609,6 +624,15 @@ export function InboxReviewList({
           ))}
         </div>
         <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onRecheckBlocklist}
+            disabled={bulkRunning || recheckPending.isPending || pendingCount === 0}
+          >
+            <ShieldBan className="size-4" />
+            {recheckPending.isPending ? "Rechecking…" : `Recheck block list (${pendingCount})`}
+          </Button>
           <Button
             size="sm"
             variant="outline"

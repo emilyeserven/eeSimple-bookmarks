@@ -1027,6 +1027,12 @@ export interface RejectPendingItemsResult {
   rejected: number;
 }
 
+/** Outcome of the Inbox "recheck pending against the block list" bulk action. */
+export interface RecheckPendingItemsResult {
+  /** Number of pending import items that matched the block list and were moved to `blocked`. */
+  blocked: number;
+}
+
 /** Counts of orphaned records eligible for the Advanced "clean up orphaned items" sweep. */
 export interface OrphanCounts {
   /** Bookmarks with no category (`categoryId IS NULL`). */

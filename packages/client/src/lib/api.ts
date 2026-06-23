@@ -69,6 +69,7 @@ import type {
   OrphanDeleteResult,
   PropertyGroup,
   PurgeImportItemsResult,
+  RecheckPendingItemsResult,
   RejectPendingItemsResult,
   UpdateImportItemInput,
   RelationshipType,
@@ -297,6 +298,11 @@ export const importApi = {
   /** Reject every pending candidate across all imports (the Inbox "reject all pending" action). */
   rejectPending: () =>
     request<RejectPendingItemsResult>("/imports/items/pending/reject", {
+      method: "POST",
+    }),
+  /** Re-check every pending candidate against the block list, blocking the matches. */
+  recheckPending: () =>
+    request<RecheckPendingItemsResult>("/imports/items/pending/recheck", {
       method: "POST",
     }),
   /** Delete every rejected candidate across all imports (the Inbox "delete all rejected" action). */
