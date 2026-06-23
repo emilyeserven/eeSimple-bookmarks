@@ -22,6 +22,7 @@ import type {
   InboxItem,
   Import as ImportRecord,
   PurgeImportItemsResult,
+  RejectPendingItemsResult,
   UpdateImportItemInput,
 } from "@eesimple/types";
 import { canonicalize, isBlacklisted } from "@eesimple/types";
@@ -921,8 +922,29 @@ export async function blockImportItem(
   return row ? toItem(row) : null;
 }
 
-/** Delete an import and its items (cascade). */
+/** Reject every pending candidate across all imports. Returns the number of rows rejected. */
+export async function rejectPendingItems(): Promise<RejectPendingItemsResult> {
+  const rows = await db
+    .update(importItems)
+    .set({
+      status: "rejected",
+    })
+    .where(eq(importItems.status, "pending"))
+    .returning({
+      id: importItems.id,
+    });
+  return {
+    rejected: rows.length,
+  };
+}
+
+/**
+ * Delete an import and its items. The schema FK declares `onDelete: "cascade"`, but we delete the
+ * items explicitly first so the Inbox is cleared even where the live constraint predates the
+ * cascade. Created bookmarks survive (their `importId` FK is `set null`).
+ */
 export async function deleteImport(id: string): Promise<boolean> {
+  await db.delete(importItems).where(eq(importItems.importId, id));
   const rows = await db
     .delete(imports)
     .where(eq(imports.id, id))

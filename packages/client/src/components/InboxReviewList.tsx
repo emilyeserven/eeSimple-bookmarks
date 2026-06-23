@@ -16,6 +16,7 @@ import {
   useApproveImportItem,
   useBlockImportItem,
   useRejectImportItem,
+  useRejectPendingItems,
   useUpdateImportItem,
 } from "../hooks/useImports";
 import { highlightAnchor } from "../lib/newsletterContext";
@@ -517,6 +518,7 @@ export function InboxReviewList({
   items: InboxItem[];
 }) {
   const approve = useApproveImportItem();
+  const rejectPending = useRejectPendingItems();
   const [filter, setFilter] = useState<ReviewFilter>("all");
   const [bulkRunning, setBulkRunning] = useState(false);
 
@@ -544,6 +546,15 @@ export function InboxReviewList({
     notifySuccess(`Added ${added} bookmark${added === 1 ? "" : "s"}`);
   }
 
+  function onRejectAll() {
+    rejectPending.mutate(undefined, {
+      onSuccess: ({
+        rejected,
+      }) => notifySuccess(`Rejected ${rejected} item${rejected === 1 ? "" : "s"}`),
+      onError: () => notifyError("Couldn't reject the pending items."),
+    });
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -559,13 +570,23 @@ export function InboxReviewList({
             </Button>
           ))}
         </div>
-        <Button
-          size="sm"
-          onClick={onApproveAll}
-          disabled={bulkRunning || pendingCount === 0}
-        >
-          {bulkRunning ? "Approving…" : `Approve all pending (${pendingCount})`}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onRejectAll}
+            disabled={bulkRunning || rejectPending.isPending || pendingCount === 0}
+          >
+            {rejectPending.isPending ? "Rejecting…" : `Reject all pending (${pendingCount})`}
+          </Button>
+          <Button
+            size="sm"
+            onClick={onApproveAll}
+            disabled={bulkRunning || rejectPending.isPending || pendingCount === 0}
+          >
+            {bulkRunning ? "Approving…" : `Approve all pending (${pendingCount})`}
+          </Button>
+        </div>
       </div>
 
       {filtered.length === 0

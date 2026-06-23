@@ -1021,6 +1021,12 @@ export interface PurgeImportItemsResult {
   deleted: number;
 }
 
+/** Outcome of the Inbox "reject all pending" bulk action. */
+export interface RejectPendingItemsResult {
+  /** Number of pending import items moved to `rejected`. */
+  rejected: number;
+}
+
 /** Per-item outcome of approving a staged candidate (mirrors the bulk-URL result shape). */
 export interface ImportApproveResult {
   itemId: string;

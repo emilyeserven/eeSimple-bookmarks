@@ -21,6 +21,7 @@ import {
   purgeProcessedItems,
   queueImport,
   rejectImportItem,
+  rejectPendingItems,
   setIssueBookmarks,
   updateImportItem,
 } from "@/services/imports";
@@ -344,6 +345,13 @@ export async function importRoutes(app: FastifyInstance): Promise<void> {
     });
     return updated;
   });
+
+  // Reject every pending candidate across all imports (the Inbox "reject all pending" action).
+  app.post("/api/imports/items/pending/reject", {
+    schema: {
+      tags: ["imports"],
+    },
+  }, () => rejectPendingItems());
 
   // Delete every processed item: marked-for-deletion (approved) + blocked. Keeps the blacklist.
   app.delete("/api/imports/items/processed", {

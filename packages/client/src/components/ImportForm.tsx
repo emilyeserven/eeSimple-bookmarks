@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
 
+import { AddCategoryModal } from "./AddCategoryModal";
 import { AddNewsletterModal } from "./AddNewsletterModal";
 import { importFormSchema } from "./importFormSchema";
 import { NewsletterFileField } from "./NewsletterFileField";
@@ -61,6 +62,7 @@ export function ImportForm({
   const [source, setSource] = useState<IngestSource>("paste");
   const [file, setFile] = useState<File | null>(null);
   const [addNewsletterOpen, setAddNewsletterOpen] = useState(false);
+  const [addCategoryOpen, setAddCategoryOpen] = useState(false);
 
   // Refs keep the once-created onSubmit closure reading the latest file/actions.
   const fileRef = useRef(file);
@@ -217,26 +219,38 @@ export function ImportForm({
         )
         : null}
 
-      <form.AppField name="categoryId">
-        {field => (
-          <field.ComboboxField
-            label="Category for all links (optional)"
-            placeholder="No category"
-            searchPlaceholder="Search categories…"
-            emptyText="No categories found."
-            options={categories.map(category => ({
-              value: category.id,
-              label: category.name,
-              icon: (
-                <CategoryIcon
-                  name={category.icon}
-                  className="size-4 shrink-0"
-                />
-              ),
-            }))}
-          />
-        )}
-      </form.AppField>
+      <div className="space-y-2">
+        <form.AppField name="categoryId">
+          {field => (
+            <field.ComboboxField
+              label="Category for all links (optional)"
+              placeholder="No category"
+              searchPlaceholder="Search categories…"
+              emptyText="No categories found."
+              options={categories.map(category => ({
+                value: category.id,
+                label: category.name,
+                icon: (
+                  <CategoryIcon
+                    name={category.icon}
+                    className="size-4 shrink-0"
+                  />
+                ),
+              }))}
+            />
+          )}
+        </form.AppField>
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setAddCategoryOpen(true)}
+          >
+            New category
+          </Button>
+        </div>
+      </div>
 
       <form.AppForm>
         <form.SubmitButton
@@ -250,6 +264,12 @@ export function ImportForm({
         open={addNewsletterOpen}
         onOpenChange={setAddNewsletterOpen}
         onCreated={newsletter => form.setFieldValue("newsletterId", newsletter.id)}
+      />
+
+      <AddCategoryModal
+        open={addCategoryOpen}
+        onOpenChange={setAddCategoryOpen}
+        onCreated={category => form.setFieldValue("categoryId", category.id)}
       />
     </form>
   );

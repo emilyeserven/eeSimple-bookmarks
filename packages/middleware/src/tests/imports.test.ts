@@ -79,6 +79,18 @@ test("PATCH /api/imports/items/:itemId rejects a non-uuid id", async () => {
   await app.close();
 });
 
+test("POST /api/imports/items/pending/reject isn't captured by the :itemId route", async () => {
+  // The static `pending` path must out-rank `:itemId`, so this never reaches the uuid param guard.
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "POST",
+    url: "/api/imports/items/pending/reject",
+  });
+  assert.notEqual(res.statusCode, 400);
+  assert.notEqual(res.statusCode, 404);
+  await app.close();
+});
+
 test("POST /api/imports/items/:itemId/block rejects a missing entry body", async () => {
   const app = await buildApp();
   const res = await app.inject({
