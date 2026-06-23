@@ -103,6 +103,9 @@ vi.mock("../hooks/useMediaTypes", () => ({
   useMediaTypes: () => ({
     data: [],
   }),
+  useMediaTypeTree: () => ({
+    data: [],
+  }),
   useCreateMediaType: () => ({
     mutate: vi.fn(),
     isError: false,

@@ -70,6 +70,9 @@ vi.mock("@/hooks/useMediaTypes", () => ({
   useMediaTypes: () => ({
     data: [],
   }),
+  useMediaTypeTree: () => ({
+    data: [],
+  }),
 }));
 vi.mock("@/hooks/useTags", () => ({
   useTagTree: () => ({
