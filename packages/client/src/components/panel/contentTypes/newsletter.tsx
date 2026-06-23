@@ -59,8 +59,8 @@ function NewsletterEdit({
 
 export const newsletterContentType: PanelContentTypeDef = {
   type: "newsletter",
-  label: "Newsletters",
-  singular: "Newsletter",
+  label: "Imports",
+  singular: "Import",
   icon: Mail,
   useList: useNewsletterList,
   View: NewsletterView,

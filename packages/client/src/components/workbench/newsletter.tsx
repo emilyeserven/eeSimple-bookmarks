@@ -70,20 +70,20 @@ export const newsletterWorkbench: EntityWorkbench<Newsletter> = {
       }),
     };
   },
-  notFound: "Newsletter not found.",
-  navAriaLabel: "Newsletter sections",
+  notFound: "Import not found.",
+  navAriaLabel: "Import sections",
   tabs: [
     {
       key: "general",
       label: "General",
       view: {
         title: "General",
-        description: "Newsletter details and defaults.",
+        description: "Import details and defaults.",
         render: NewsletterGeneralView,
       },
       edit: {
         title: "General",
-        description: "Newsletter name and the default category, tags, and media type applied to imported bookmarks.",
+        description: "Import name and the default category, tags, and media type applied to imported bookmarks.",
         render: ({
           entity,
         }) => <NewsletterGeneralForm newsletter={entity} />,

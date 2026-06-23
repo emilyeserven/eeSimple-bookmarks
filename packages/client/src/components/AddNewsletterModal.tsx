@@ -10,7 +10,7 @@ interface AddNewsletterModalProps {
   onCreated?: (newsletter: Newsletter) => void;
 }
 
-/** Minimal name-only modal to create a newsletter inline (e.g. from the import form's combobox). */
+/** Minimal name-only modal to create an import inline (e.g. from the import form's combobox). */
 export function AddNewsletterModal({
   open, onOpenChange, onCreated,
 }: AddNewsletterModalProps) {
@@ -20,10 +20,10 @@ export function AddNewsletterModal({
     <InlineCreateModal
       open={open}
       onOpenChange={onOpenChange}
-      title="New newsletter"
-      description="Give the newsletter a name — you can set its default category, tags, and media type later from its edit page."
+      title="New import"
+      description="Give the import a name — you can set its default category, tags, and media type later from its edit page."
       placeholder="e.g. The Pragmatic Engineer"
-      submitLabel="Add newsletter"
+      submitLabel="Add import"
       isError={createNewsletter.isError}
       errorMessage={createNewsletter.error?.message}
       onSubmit={(name, done) => {

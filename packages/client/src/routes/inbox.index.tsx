@@ -1,8 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 
 import { InboxReviewList } from "../components/InboxReviewList";
 import { useInboxItems } from "../hooks/useImports";
+import { useUiStore } from "../stores/uiStore";
 
 import { Button } from "@/components/ui/button";
 
@@ -14,6 +15,7 @@ function InboxPage() {
   const {
     data: items, isLoading, error,
   } = useInboxItems();
+  const setAddImportModalOpen = useUiStore(s => s.setAddImportModalOpen);
 
   return (
     <section className="space-y-6">
@@ -26,11 +28,9 @@ function InboxPage() {
             automatically.
           </p>
         </div>
-        <Button asChild>
-          <Link to="/inbox/new">
-            <Plus className="size-4" />
-            Add import
-          </Link>
+        <Button onClick={() => setAddImportModalOpen(true)}>
+          <Plus className="size-4" />
+          Add import
         </Button>
       </div>
 
@@ -39,7 +39,7 @@ function InboxPage() {
       {items && items.length === 0
         ? (
           <p className="text-sm text-muted-foreground">
-            Your inbox is empty. Use “Add import” to import links from a newsletter.
+            Your inbox is empty. Use &ldquo;Add import&rdquo; to import links.
           </p>
         )
         : null}

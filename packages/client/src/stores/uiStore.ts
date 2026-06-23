@@ -94,6 +94,12 @@ interface UiState {
   /** Whether the Add Bookmark accordion is expanded on Listings pages. Shared across all listing pages. */
   addBookmarkFormOpen: boolean;
   setAddBookmarkFormOpen: (open: boolean) => void;
+  /** Whether the Add Import modal is open. */
+  addImportModalOpen: boolean;
+  setAddImportModalOpen: (open: boolean) => void;
+  /** Newsletter id to pre-select when the Add Import modal opens (cleared on close). */
+  importModalInitialNewsletterId: string | null;
+  setImportModalInitialNewsletterId: (id: string | null) => void;
   /** Section IDs whose bookmark grid is collapsed on the homepage. */
   collapsedHomepageSectionIds: string[];
   toggleHomepageSectionCollapsed: (id: string) => void;
@@ -209,6 +215,14 @@ export const useUiStore = create<UiState>()(
       addBookmarkFormOpen: true,
       setAddBookmarkFormOpen: open => set({
         addBookmarkFormOpen: open,
+      }),
+      addImportModalOpen: false,
+      setAddImportModalOpen: open => set({
+        addImportModalOpen: open,
+      }),
+      importModalInitialNewsletterId: null,
+      setImportModalInitialNewsletterId: id => set({
+        importModalInitialNewsletterId: id,
       }),
       collapsedHomepageSectionIds: [],
       toggleHomepageSectionCollapsed: id => set(state => ({

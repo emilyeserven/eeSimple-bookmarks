@@ -106,8 +106,8 @@ const TAXONOMY_DESCRIPTORS: readonly TaxonomyDescriptor[] = [
   },
   {
     prefix: "/taxonomies/newsletters",
-    listLabel: "Newsletters",
-    singular: "Newsletter",
+    listLabel: "Imports",
+    singular: "Import",
     slugIndex: 2,
   },
   {

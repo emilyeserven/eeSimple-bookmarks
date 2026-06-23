@@ -39,11 +39,11 @@ export function NewslettersListing() {
         filteredCount={filtered.length}
         rawQuery={rawQuery}
         hasQuery={hasQuery}
-        loadingLabel="Loading newsletters…"
-        entityPlural="newsletters"
+        loadingLabel="Loading imports…"
+        entityPlural="imports"
         emptyMessage={(
           <p className="text-muted-foreground">
-            No newsletters yet. Add one above, then select it when importing a newsletter edition.
+            No imports yet. Add one above, then select it when adding an import.
           </p>
         )}
       />

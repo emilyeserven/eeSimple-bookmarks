@@ -6,6 +6,7 @@ import { useNavigate } from "@tanstack/react-router";
 
 import { AddCategoryModal } from "./AddCategoryModal";
 import { AddNewsletterModal } from "./AddNewsletterModal";
+import { CollapsibleFormSection } from "./CollapsibleFormSection";
 import { importFormSchema } from "./importFormSchema";
 import { NewsletterFileField } from "./NewsletterFileField";
 import { useCategories } from "../hooks/useCategories";
@@ -40,13 +41,17 @@ const SOURCE_OPTIONS: { value: IngestSource;
 
 /**
  * Submit-style create form for an import (the create-flow exception — not auto-save). Picks one of
- * three ingest sources, then funnels into the matching ingest mutation and navigates to the Inbox.
+ * three ingest sources, then funnels into the matching ingest mutation and either calls
+ * `onComplete` (modal mode) or navigates to the Inbox (page mode).
  */
 export function ImportForm({
   initialNewsletterId = null,
+  onComplete,
 }: {
-  /** Preselect a newsletter (e.g. when arriving from a newsletter's "Import an issue" link). */
+  /** Preselect an import group (e.g. when arriving from an import group's "Add import group" button). */
   initialNewsletterId?: string | null;
+  /** Called after a successful import. When provided, navigation to /inbox is skipped. */
+  onComplete?: () => void;
 }) {
   const navigate = useNavigate();
   const pasteMutation = useIngestPaste();
@@ -72,12 +77,14 @@ export function ImportForm({
     urlMutation,
     uploadMutation,
     navigate,
+    onComplete,
   });
   actionsRef.current = {
     pasteMutation,
     urlMutation,
     uploadMutation,
     navigate,
+    onComplete,
   };
 
   const form = useAppForm({
@@ -95,9 +102,12 @@ export function ImportForm({
       value,
     }) => {
       const {
-        pasteMutation: paste, urlMutation: url, uploadMutation: upload, navigate: go,
-      }
-        = actionsRef.current;
+        pasteMutation: paste,
+        urlMutation: url,
+        uploadMutation: upload,
+        navigate: go,
+        onComplete: done,
+      } = actionsRef.current;
       const defaultCategoryId = value.categoryId || null;
       try {
         const result = value.source === "paste"
@@ -124,9 +134,14 @@ export function ImportForm({
         // Ingest is queued and processed in the background — the links appear in the Inbox as the
         // worker finishes (a per-import completion toast fires then, and progress shows in the header).
         notifySuccess("Import queued — links will appear in your Inbox as they're processed.");
-        void go({
-          to: "/inbox",
-        });
+        if (done) {
+          done();
+        }
+        else {
+          void go({
+            to: "/inbox",
+          });
+        }
       }
       catch (err) {
         notifyError(err instanceof ApiError ? err.message : "Couldn't import those links.");
@@ -134,45 +149,17 @@ export function ImportForm({
     },
   });
 
+  const selectedNewsletter = newsletters?.find(n => n.id === form.state.values.newsletterId);
+  const advancedPreview = selectedNewsletter?.name ?? "None";
+
   return (
     <form
-      className="max-w-2xl space-y-4"
+      className="space-y-4"
       onSubmit={(event) => {
         event.preventDefault();
         void form.handleSubmit();
       }}
     >
-      <div className="space-y-2">
-        <form.AppField name="newsletterId">
-          {field => (
-            <field.ComboboxField
-              label="Newsletter"
-              placeholder="No newsletter"
-              searchPlaceholder="Search newsletters…"
-              emptyText="No newsletters found."
-              options={(newsletters ?? []).map(newsletter => ({
-                value: newsletter.id,
-                label: newsletter.name,
-              }))}
-            />
-          )}
-        </form.AppField>
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
-            Approved bookmarks inherit this newsletter&apos;s default category, tags, and media type, and
-            belong to this issue.
-          </p>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setAddNewsletterOpen(true)}
-          >
-            New newsletter
-          </Button>
-        </div>
-      </div>
-
       <form.AppField name="source">
         {field => (
           <field.SelectField
@@ -188,7 +175,7 @@ export function ImportForm({
           <form.AppField name="pastedContent">
             {field => (
               <field.RichTextField
-                label="Pasted content"
+                label="Content"
                 hint="Paste a newsletter or article here — links are preserved."
               />
             )}
@@ -201,7 +188,7 @@ export function ImportForm({
           <form.AppField name="fetchUrl">
             {field => (
               <field.TextField
-                label="Webpage or newsletter URL"
+                label="Content"
                 type="url"
                 placeholder="https://… (an article page, or a view-in-browser link)"
               />
@@ -219,38 +206,72 @@ export function ImportForm({
         )
         : null}
 
-      <div className="space-y-2">
-        <form.AppField name="categoryId">
-          {field => (
-            <field.ComboboxField
-              label="Category for all links (optional)"
-              placeholder="No category"
-              searchPlaceholder="Search categories…"
-              emptyText="No categories found."
-              options={categories.map(category => ({
-                value: category.id,
-                label: category.name,
-                icon: (
-                  <CategoryIcon
-                    name={category.icon}
-                    className="size-4 shrink-0"
-                  />
-                ),
-              }))}
-            />
-          )}
-        </form.AppField>
-        <div className="flex justify-end">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setAddCategoryOpen(true)}
-          >
-            New category
-          </Button>
+      <CollapsibleFormSection
+        title="Advanced"
+        description="Approved bookmarks inherit the import group's default category, tags, and media type."
+        preview={advancedPreview}
+        defaultOpen={!!initialNewsletterId}
+      >
+        <div className="space-y-2">
+          <form.AppField name="newsletterId">
+            {field => (
+              <field.ComboboxField
+                label="Import Group"
+                placeholder="No import group"
+                searchPlaceholder="Search import groups…"
+                emptyText="No import groups found."
+                options={(newsletters ?? []).map(newsletter => ({
+                  value: newsletter.id,
+                  label: newsletter.name,
+                }))}
+              />
+            )}
+          </form.AppField>
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setAddNewsletterOpen(true)}
+            >
+              New import group
+            </Button>
+          </div>
         </div>
-      </div>
+
+        <div className="space-y-2">
+          <form.AppField name="categoryId">
+            {field => (
+              <field.ComboboxField
+                label="Category for all links (optional)"
+                placeholder="No category"
+                searchPlaceholder="Search categories…"
+                emptyText="No categories found."
+                options={categories.map(category => ({
+                  value: category.id,
+                  label: category.name,
+                  icon: (
+                    <CategoryIcon
+                      name={category.icon}
+                      className="size-4 shrink-0"
+                    />
+                  ),
+                }))}
+              />
+            )}
+          </form.AppField>
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setAddCategoryOpen(true)}
+            >
+              New category
+            </Button>
+          </div>
+        </div>
+      </CollapsibleFormSection>
 
       <form.AppForm>
         <form.SubmitButton
