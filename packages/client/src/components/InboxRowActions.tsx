@@ -4,13 +4,16 @@ import type {
   ImportItemStatus,
 } from "@eesimple/types";
 
+import { useState } from "react";
+
 import { blacklistPatternsFor } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
-import { Ban, Check, Eye, Pencil, RotateCcw, X } from "lucide-react";
+import { Ban, Check, Eye, FolderInput, MoreHorizontal, Pencil, RotateCcw, X } from "lucide-react";
 
 import {
   useApproveImportItem,
   useBlockImportItem,
+  useIngestUrl,
   useRejectImportItem,
   useUnrejectImportItem,
 } from "../hooks/useImports";
@@ -19,11 +22,21 @@ import { notifyError, notifySuccess } from "../lib/notifications";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 
 const STATUS_META: Record<ImportItemStatus, { label: string;
   variant: "secondary" | "default" | "destructive" | "outline"; }> = {
@@ -125,16 +138,18 @@ function UnrejectButton({
 }
 
 /**
- * Block control: a dropdown to add this link's URL / domain / page path to the Imports Blacklist.
- * Blocking also marks the item `blocked` so the Import Settings purge can sweep it later.
+ * The three block menu items (URL / domain / page-path) plus the path-prefix dialog.
+ * Extracted so `BlockMenu` (its own DropdownMenu) and `MobileMoreMenu` (embeds inline)
+ * can both use them without nesting dropdowns.
  */
-function BlockMenu({
+export function BlockMenuItems({
   item,
 }: { item: ImportItem }) {
   const block = useBlockImportItem();
+  const [pathPrefixDialog, setPathPrefixDialog] = useState<string | null>(null);
+
   const patterns = item.url ? blacklistPatternsFor(item.url) : null;
   if (!patterns) return null;
-  const blocked = item.status === "blocked";
 
   function blockWith(entry: { kind: "exact" | "domain" | "path-prefix";
     value: string; }, message: string) {
@@ -148,28 +163,93 @@ function BlockMenu({
   }
 
   return (
+    <>
+      <DropdownMenuItem onClick={() => blockWith(patterns.exact, "Blocked this URL")}>
+        Block this URL
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={() => blockWith(patterns.domain, `Blocked ${patterns.domain.value}`)}>
+        Block this domain
+      </DropdownMenuItem>
+      <DropdownMenuItem
+        onSelect={(e) => {
+          // Prevent Radix from auto-closing the dropdown before the dialog can take focus.
+          e.preventDefault();
+          setPathPrefixDialog(patterns.pathPrefix.value);
+        }}
+      >
+        Block this page path
+      </DropdownMenuItem>
+
+      <Dialog
+        open={pathPrefixDialog !== null}
+        onOpenChange={(open) => {
+          if (!open) setPathPrefixDialog(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Block page path</DialogTitle>
+            <DialogDescription>
+              Block any URL whose path starts with this prefix (including the host). Shorten
+              the path to block a wider set of URLs from the same site.
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            value={pathPrefixDialog ?? ""}
+            onChange={e => setPathPrefixDialog(e.target.value)}
+            aria-label="Path prefix"
+          />
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => setPathPrefixDialog(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              disabled={!pathPrefixDialog || block.isPending}
+              onClick={() => {
+                if (!pathPrefixDialog) return;
+                blockWith({
+                  kind: "path-prefix",
+                  value: pathPrefixDialog,
+                }, "Blocked this page path");
+                setPathPrefixDialog(null);
+              }}
+            >
+              Block
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
+/**
+ * Block control: a dropdown to add this link's URL / domain / page path to the Imports Blacklist.
+ * Blocking also marks the item `blocked` so the Import Settings purge can sweep it later.
+ */
+function BlockMenu({
+  item,
+}: { item: ImportItem }) {
+  if (!item.url) return null;
+  const blocked = item.status === "blocked";
+
+  return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
           size="sm"
           variant={blocked ? "ghost" : "secondary"}
           className={blocked ? "gap-1 text-muted-foreground" : "gap-1"}
-          disabled={block.isPending}
         >
           <Ban className="size-4" />
           {blocked ? "Blocked" : "Block"}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => blockWith(patterns.exact, "Blocked this URL")}>
-          Block this URL
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => blockWith(patterns.domain, `Blocked ${patterns.domain.value}`)}>
-          Block this domain
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => blockWith(patterns.pathPrefix, "Blocked this page path")}>
-          Block this page path
-        </DropdownMenuItem>
+        <BlockMenuItems item={item} />
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -195,6 +275,86 @@ function ViewBookmarkButton({
         <Eye className="size-4" />
       </Link>
     </Button>
+  );
+}
+
+/** Queue this item's URL as a new import so its links can be extracted and reviewed. */
+function IngestImportButton({
+  item,
+}: { item: ImportItem }) {
+  const ingest = useIngestUrl();
+  const url = item.url;
+  if (!url) return null;
+  return (
+    <Button
+      size="icon"
+      variant="ghost"
+      aria-label="Import links from this URL"
+      disabled={ingest.isPending}
+      onClick={() =>
+        ingest.mutate({
+          url,
+        }, {
+          onSuccess: () => notifySuccess("Queued as new import group"),
+          onError: () => notifyError("Couldn't queue this URL for import"),
+        })}
+    >
+      <FolderInput className="size-4" />
+    </Button>
+  );
+}
+
+/** DropdownMenuItem variant of `IngestImportButton` — for embedding inside an existing dropdown. */
+export function IngestImportMenuItem({
+  item,
+}: { item: ImportItem }) {
+  const ingest = useIngestUrl();
+  const url = item.url;
+  if (!url) return null;
+  return (
+    <DropdownMenuItem
+      disabled={ingest.isPending}
+      onClick={() =>
+        ingest.mutate({
+          url,
+        }, {
+          onSuccess: () => notifySuccess("Queued as new import group"),
+          onError: () => notifyError("Couldn't queue this URL for import"),
+        })}
+    >
+      <FolderInput className="size-4" />
+      Import links from this URL
+    </DropdownMenuItem>
+  );
+}
+
+/** Secondary actions for the mobile pending card: Edit, Block options, and Import links. */
+export function MobileMoreMenu({
+  item, onEdit,
+}: { item: ImportItem;
+  onEdit: () => void; }) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          size="icon"
+          variant="ghost"
+          aria-label="More actions"
+        >
+          <MoreHorizontal className="size-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={onEdit}>
+          <Pencil className="size-4" />
+          Edit
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <BlockMenuItems item={item} />
+        <DropdownMenuSeparator />
+        <IngestImportMenuItem item={item} />
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
@@ -246,6 +406,7 @@ export function RowActions({
       {item.status !== "pending" && resultBookmarkId
         ? <ViewBookmarkButton bookmarkId={resultBookmarkId} />
         : null}
+      <IngestImportButton item={item} />
     </div>
   );
 }

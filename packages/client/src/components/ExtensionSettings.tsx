@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Copy } from "lucide-react";
 
-import { notifyError, notifySuccess } from "../lib/notifications";
+import { notifySuccess } from "../lib/notifications";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
 
 /** Build the bookmarklet `javascript:` source that opens the quick-add popup for the current tab. */
 function buildBookmarklet(origin: string): string {
@@ -35,69 +36,188 @@ export function ExtensionSettings() {
   const origin = typeof window === "undefined" ? "" : window.location.origin;
   const bookmarklet = useMemo(() => buildBookmarklet(origin), [origin]);
   const linkRef = useRef<HTMLAnchorElement>(null);
+  const [showBookmarklet, setShowBookmarklet] = useState(false);
 
   useEffect(() => {
     if (linkRef.current) linkRef.current.setAttribute("href", bookmarklet);
   }, [bookmarklet]);
 
   async function copy(): Promise<void> {
+    setShowBookmarklet(true);
     try {
       await navigator.clipboard.writeText(bookmarklet);
       notifySuccess("Bookmarklet copied to clipboard");
     }
     catch {
-      notifyError("Couldn’t copy — copy it manually instead");
+      // Clipboard API unavailable (HTTP context) — the textarea below lets the user copy manually.
     }
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Add to eeSimple bookmarklet</CardTitle>
-        <CardDescription>
-          Drag the button below to your browser’s bookmarks bar. On any page, click it to open a
-          popup with the Add Bookmark form pre-filled and scanned — pick a category and save. The
-          popup closes itself after 5 seconds if you don’t interact with it.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex flex-wrap items-center gap-3">
-          {/* The href is a `javascript:` bookmarklet, assigned via a ref because React 19 strips
-              inline javascript: URLs. The placeholder href is replaced on mount. */}
-          <a
-            ref={linkRef}
-            href="#"
-            draggable
-            onClick={event => event.preventDefault()}
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Add to eeSimple bookmarklet</CardTitle>
+          <CardDescription>
+            Drag the button below to your browser’s bookmarks bar. On any page, click it to open a
+            popup with the Add Bookmark form pre-filled and scanned — pick a category and save. The
+            popup closes itself after 5 seconds if you don’t interact with it.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-wrap items-center gap-3">
+            {/* The href is a `javascript:` bookmarklet, assigned via a ref because React 19 strips
+                inline javascript: URLs. The placeholder href is replaced on mount. */}
+            <a
+              ref={linkRef}
+              href="#"
+              draggable
+              onClick={event => event.preventDefault()}
+              className="
+                inline-flex cursor-grab items-center gap-2 rounded-md border
+                bg-primary px-4 py-2 text-sm font-medium text-primary-foreground
+                hover:bg-primary/90
+              "
+            >
+              + Add to eeSimple
+            </a>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => void copy()}
+            >
+              <Copy className="size-4" />
+              Copy bookmarklet
+            </Button>
+          </div>
+          {showBookmarklet && (
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground">Select all and copy:</p>
+              <Textarea
+                readOnly
+                value={bookmarklet}
+                className="font-mono text-xs break-all"
+              />
+            </div>
+          )}
+          <p className="text-sm text-muted-foreground">
+            If your browser hides the bookmarks bar, enable it first (usually
+            {" "}
+            <kbd className="rounded-sm border px-1">Ctrl/Cmd</kbd>
+            {" + "}
+            <kbd className="rounded-sm border px-1">Shift</kbd>
+            {" + "}
+            <kbd className="rounded-sm border px-1">B</kbd>
+            ), then drag the button onto it. You can also copy the bookmarklet and paste it as the
+            URL of a new bookmark created by hand.
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Browser Extension (Chrome · Edge)</CardTitle>
+          <CardDescription>
+            A one-click extension that opens the quick-add popup for any page — no bookmarks bar
+            needed.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-1">
+            <p className="text-sm font-medium">Your server URL</p>
+            <p className="text-sm text-muted-foreground">
+              You’ll paste this into the extension on first use.
+            </p>
+            <code className="block rounded-md bg-muted px-3 py-2 text-sm">{origin}</code>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Extension files</p>
+            <p className="text-sm text-muted-foreground">
+              Download all three files into a new folder (e.g.
+              {" "}
+              <code className="rounded-sm bg-muted px-1 text-xs">eesimple-extension/</code>
+              ):
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {[
+                {
+                  file: "manifest.json",
+                  label: "manifest.json",
+                },
+                {
+                  file: "popup.html",
+                  label: "popup.html",
+                },
+                {
+                  file: "popup.js",
+                  label: "popup.js",
+                },
+              ].map(({
+                file, label,
+              }) => (
+                <a
+                  key={file}
+                  href={`/extension/${file}`}
+                  download={file}
+                  className="
+                    inline-flex items-center gap-1 rounded-md border bg-card
+                    px-3 py-1.5 text-sm
+                    hover:bg-accent hover:text-accent-foreground
+                  "
+                >
+                  {label}
+                </a>
+              ))}
+            </div>
+          </div>
+
+          <ol
             className="
-              inline-flex cursor-grab items-center gap-2 rounded-md border
-              bg-primary px-4 py-2 text-sm font-medium text-primary-foreground
-              hover:bg-primary/90
+              space-y-1 text-sm text-muted-foreground [counter-reset:steps]
+              [&>li]:flex [&>li]:gap-2 [&>li]:[counter-increment:steps]
+              [&>li]:before:[content:counter(steps)’.’]
             "
           >
-            + Add to eeSimple
-          </a>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => void copy()}
-          >
-            <Copy className="size-4" />
-            Copy bookmarklet
-          </Button>
-        </div>
-        <p className="text-sm text-muted-foreground">
-          If your browser hides the bookmarks bar, enable it first (usually
-          {" "}
-          <kbd className="rounded-sm border px-1">Ctrl/Cmd</kbd>
-          {" + "}
-          <kbd className="rounded-sm border px-1">Shift</kbd>
-          {" + "}
-          <kbd className="rounded-sm border px-1">B</kbd>
-          ), then drag the button onto it. You can also copy the bookmarklet and paste it as the URL
-          of a new bookmark created by hand.
-        </p>
-      </CardContent>
-    </Card>
+            <li>
+              Download the three files above into a single folder.
+            </li>
+            <li>
+              Open
+              {" "}
+              <code className="rounded-sm bg-muted px-1 text-xs">chrome://extensions</code>
+              {" "}
+              (or
+              {" "}
+              <code className="rounded-sm bg-muted px-1 text-xs">edge://extensions</code>
+              ).
+            </li>
+            <li>
+              Enable
+              {" "}
+              <strong>Developer mode</strong>
+              {" "}
+              (toggle, top-right).
+            </li>
+            <li>
+              Click
+              {" "}
+              <strong>Load unpacked</strong>
+              {" "}
+              and select the folder you created.
+            </li>
+            <li>
+              Pin the eeSimple extension via the puzzle-piece icon, then click it.
+            </li>
+            <li>
+              On first click: paste the server URL shown above and click
+              {" "}
+              <strong>Save &amp; Open</strong>
+              .
+            </li>
+          </ol>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

@@ -6,6 +6,7 @@ import { AutofillRuleConditionsForm } from "../AutofillRuleConditionsForm";
 import { AutofillConditionsFields, AutofillGeneralFields, AutofillPrefillFields } from "../AutofillRuleDetail";
 import { AutofillRuleGeneralForm } from "../AutofillRuleGeneralForm";
 import { AutofillRulePrefillForm } from "../AutofillRulePrefillForm";
+import { CopyJsonButton } from "../CopyJsonButton";
 
 import { useAutofillRuleById, useAutofillRuleBySlug, useDeleteAutofillRule } from "@/hooks/useAutofill";
 import { useCategories } from "@/hooks/useCategories";
@@ -33,6 +34,19 @@ function ConditionsView({
       categories={categories}
       tags={tags}
       properties={properties}
+    />
+  );
+}
+
+function DebugView({
+  entity: rule,
+}: {
+  entity: AutofillRule;
+}) {
+  return (
+    <CopyJsonButton
+      data={rule}
+      label="Copy Rule JSON"
     />
   );
 }
@@ -148,6 +162,15 @@ export const autofillWorkbench: EntityWorkbench<AutofillRule> = {
         render: ({
           entity,
         }) => <AutofillRulePrefillForm rule={entity} />,
+      },
+    },
+    {
+      key: "debug",
+      label: "Debug",
+      view: {
+        title: "Debug",
+        description: "Raw rule JSON for debugging rule matching with Claude.",
+        render: DebugView,
       },
     },
   ],

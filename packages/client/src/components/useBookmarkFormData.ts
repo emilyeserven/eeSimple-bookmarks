@@ -8,7 +8,7 @@ import { useAuthors } from "../hooks/useAuthors";
 import { useAutofillRules } from "../hooks/useAutofill";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
-import { useMediaTypes } from "../hooks/useMediaTypes";
+import { useMediaTypeTree } from "../hooks/useMediaTypes";
 import { useTagTree } from "../hooks/useTags";
 import { useWebsites } from "../hooks/useWebsites";
 import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
@@ -39,7 +39,7 @@ export function useBookmarkFormData() {
   } = useCategories();
   const {
     data: mediaTypes,
-  } = useMediaTypes();
+  } = useMediaTypeTree();
   const {
     data: autofillRules,
   } = useAutofillRules();

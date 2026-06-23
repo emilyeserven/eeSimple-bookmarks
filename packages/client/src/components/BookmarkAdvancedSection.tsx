@@ -7,7 +7,7 @@ import type {
   BookmarkNumberValue,
   Category,
   CustomProperty,
-  MediaType,
+  MediaTypeNode,
   TagNode,
 } from "@eesimple/types";
 
@@ -70,7 +70,7 @@ interface BookmarkAdvancedSectionProps {
   lockedCategoryId?: string;
   categories: Category[];
   customProperties: CustomProperty[];
-  mediaTypes: MediaType[];
+  mediaTypes: MediaTypeNode[];
   sourceDefaults: SourceDefaults;
   addCategoryOpen: boolean;
   onAddCategoryOpenChange: (open: boolean) => void;
