@@ -17,9 +17,12 @@
     "build": "tsc -b tsconfig.build.json",
     "clean": "rm -rf dist tsconfig.build.tsbuildinfo",
     "dev": "tsc -b tsconfig.build.json --watch --preserveWatchOutput",
+    "test": "node --test --import tsx \"./src/**/*.test.ts\"",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {
+    "@types/node": "26.0.0",
+    "tsx": "4.22.4",
     "typescript": "5.9.3"
   }
 }
