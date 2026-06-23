@@ -13,12 +13,18 @@ const editNav = [
     label: "General",
   },
   {
-    to: "/taxonomies/media-types/$mediaTypeSlug/edit/autofill",
-    label: "Autofill Rules",
-  },
-  {
-    to: "/taxonomies/media-types/$mediaTypeSlug/edit/display-rules",
-    label: "Display Rules",
+    type: "group",
+    label: "Filtered Settings",
+    items: [
+      {
+        to: "/taxonomies/media-types/$mediaTypeSlug/edit/autofill",
+        label: "Autofill Rules",
+      },
+      {
+        to: "/taxonomies/media-types/$mediaTypeSlug/edit/display-rules",
+        label: "Display Rules",
+      },
+    ],
   },
 ] as const;
 

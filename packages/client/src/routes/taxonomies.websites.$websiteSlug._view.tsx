@@ -24,12 +24,18 @@ const viewNav = [
     label: "Param Rules",
   },
   {
-    to: "/taxonomies/websites/$websiteSlug/autofill",
-    label: "Autofill Rules",
-  },
-  {
-    to: "/taxonomies/websites/$websiteSlug/display-rules",
-    label: "Display Rules",
+    type: "group",
+    label: "Filtered Settings",
+    items: [
+      {
+        to: "/taxonomies/websites/$websiteSlug/autofill",
+        label: "Autofill Rules",
+      },
+      {
+        to: "/taxonomies/websites/$websiteSlug/display-rules",
+        label: "Display Rules",
+      },
+    ],
   },
 ] as const;
 

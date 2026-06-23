@@ -21,12 +21,18 @@ const editNav = [
     label: "Param Rules",
   },
   {
-    to: "/taxonomies/websites/$websiteSlug/edit/autofill",
-    label: "Autofill Rules",
-  },
-  {
-    to: "/taxonomies/websites/$websiteSlug/edit/display-rules",
-    label: "Display Rules",
+    type: "group",
+    label: "Filtered Settings",
+    items: [
+      {
+        to: "/taxonomies/websites/$websiteSlug/edit/autofill",
+        label: "Autofill Rules",
+      },
+      {
+        to: "/taxonomies/websites/$websiteSlug/edit/display-rules",
+        label: "Display Rules",
+      },
+    ],
   },
 ] as const;
 

@@ -34,12 +34,18 @@ const viewNav = [
     label: "Custom Properties",
   },
   {
-    to: "/categories/$categorySlug/autofill",
-    label: "Autofill Rules",
-  },
-  {
-    to: "/categories/$categorySlug/display-rules",
-    label: "Display Rules",
+    type: "group",
+    label: "Filtered Settings",
+    items: [
+      {
+        to: "/categories/$categorySlug/autofill",
+        label: "Autofill Rules",
+      },
+      {
+        to: "/categories/$categorySlug/display-rules",
+        label: "Display Rules",
+      },
+    ],
   },
 ] as const;
 

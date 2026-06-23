@@ -41,12 +41,18 @@ function CustomPropertyEditLayout() {
       label: "Display",
     },
     {
-      to: "/custom-properties/$propertySlug/edit/autofill",
-      label: "Autofill Rules",
-    },
-    {
-      to: "/custom-properties/$propertySlug/edit/display-rules",
-      label: "Display Rules",
+      type: "group",
+      label: "Filtered Settings",
+      items: [
+        {
+          to: "/custom-properties/$propertySlug/edit/autofill",
+          label: "Autofill Rules",
+        },
+        {
+          to: "/custom-properties/$propertySlug/edit/display-rules",
+          label: "Display Rules",
+        },
+      ],
     },
   ] as const;
 

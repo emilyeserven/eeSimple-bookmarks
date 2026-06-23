@@ -17,12 +17,18 @@ const editNav = [
     label: "Categories",
   },
   {
-    to: "/tags/$tagSlug/edit/autofill",
-    label: "Autofill Rules",
-  },
-  {
-    to: "/tags/$tagSlug/edit/display-rules",
-    label: "Display Rules",
+    type: "group",
+    label: "Filtered Settings",
+    items: [
+      {
+        to: "/tags/$tagSlug/edit/autofill",
+        label: "Autofill Rules",
+      },
+      {
+        to: "/tags/$tagSlug/edit/display-rules",
+        label: "Display Rules",
+      },
+    ],
   },
 ] as const;
 

@@ -62,12 +62,18 @@ function CustomPropertyViewLayout() {
       label: "Display",
     },
     {
-      to: "/custom-properties/$propertySlug/autofill",
-      label: "Autofill Rules",
-    },
-    {
-      to: "/custom-properties/$propertySlug/display-rules",
-      label: "Display Rules",
+      type: "group",
+      label: "Filtered Settings",
+      items: [
+        {
+          to: "/custom-properties/$propertySlug/autofill",
+          label: "Autofill Rules",
+        },
+        {
+          to: "/custom-properties/$propertySlug/display-rules",
+          label: "Display Rules",
+        },
+      ],
     },
   ] as const;
 

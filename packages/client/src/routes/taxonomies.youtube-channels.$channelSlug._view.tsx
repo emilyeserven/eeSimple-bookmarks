@@ -15,12 +15,18 @@ const viewNav = [
     label: "General",
   },
   {
-    to: "/taxonomies/youtube-channels/$channelSlug/autofill",
-    label: "Autofill",
-  },
-  {
-    to: "/taxonomies/youtube-channels/$channelSlug/display-rules",
-    label: "Display Rules",
+    type: "group",
+    label: "Filtered Settings",
+    items: [
+      {
+        to: "/taxonomies/youtube-channels/$channelSlug/autofill",
+        label: "Autofill",
+      },
+      {
+        to: "/taxonomies/youtube-channels/$channelSlug/display-rules",
+        label: "Display Rules",
+      },
+    ],
   },
 ] as const;
 
