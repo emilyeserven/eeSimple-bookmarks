@@ -5,7 +5,7 @@ import type {
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { customPropertiesApi } from "../lib/api";
+import { customPropertiesApi } from "../lib/api/taxonomies";
 import { describeError } from "../lib/apiError";
 import { notifyError, notifySuccess } from "../lib/notifications";
 

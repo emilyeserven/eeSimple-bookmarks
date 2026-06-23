@@ -2,7 +2,7 @@ import type { CreateMediaTypeInput, UpdateMediaTypeInput } from "@eesimple/types
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { mediaTypesApi } from "../lib/api";
+import { mediaTypesApi } from "../lib/api/taxonomies";
 
 const MEDIA_TYPES_KEY = ["media-types"] as const;
 const BOOKMARKS_KEY = ["bookmarks"] as const;

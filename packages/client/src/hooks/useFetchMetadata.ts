@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 
-import { metadataApi } from "../lib/api";
+import { metadataApi } from "../lib/api/metadata";
 
 /**
  * Fetches rich metadata for a URL via the middleware: the page title for any URL, plus the channel,

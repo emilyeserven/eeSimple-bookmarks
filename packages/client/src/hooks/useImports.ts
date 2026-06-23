@@ -10,7 +10,7 @@ import { useEffect, useRef } from "react";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { importApi } from "../lib/api";
+import { importApi } from "../lib/api/imports";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
 const IMPORTS_KEY = ["imports"] as const;

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { maintenanceApi } from "../lib/api";
+import { maintenanceApi } from "../lib/api/imports";
 
 const ORPHANS_KEY = ["maintenance", "orphans"] as const;
 const BOOKMARKS_KEY = ["bookmarks"] as const;

@@ -2,7 +2,7 @@ import type { CreatePropertyGroupInput, UpdatePropertyGroupInput } from "@eesimp
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { propertyGroupsApi } from "../lib/api";
+import { propertyGroupsApi } from "../lib/api/taxonomies";
 
 const PROPERTY_GROUPS_KEY = ["property-groups"] as const;
 const CUSTOM_PROPERTIES_KEY = ["custom-properties"] as const;

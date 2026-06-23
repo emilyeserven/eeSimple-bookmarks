@@ -6,7 +6,7 @@ import type {
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { autofillApi } from "../lib/api";
+import { autofillApi } from "../lib/api/autofill";
 import { notifySuccess } from "../lib/notifications";
 
 const AUTOFILL_KEY = ["autofill-rules"] as const;

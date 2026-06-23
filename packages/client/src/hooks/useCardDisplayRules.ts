@@ -6,7 +6,7 @@ import type {
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { cardDisplayRulesApi } from "../lib/api";
+import { cardDisplayRulesApi } from "../lib/api/settings";
 import { describeError } from "../lib/apiError";
 import { notifyError, notifySuccess } from "../lib/notifications";
 

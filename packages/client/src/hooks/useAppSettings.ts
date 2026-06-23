@@ -14,7 +14,7 @@ import type {
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { appSettingsApi } from "../lib/api";
+import { appSettingsApi } from "../lib/api/settings";
 
 const SHORTENER_IGNORE_LIST_KEY = ["app-settings", "shortener-ignore-list"] as const;
 const IMPORT_BLACKLIST_KEY = ["app-settings", "import-blacklist"] as const;

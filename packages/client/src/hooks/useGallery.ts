@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { galleryApi } from "../lib/api";
+import { galleryApi } from "../lib/api/imports";
 
 const GALLERY_KEY = ["gallery"] as const;
 
