@@ -10,7 +10,7 @@ import type {
   BookmarkUrlDuplicateResult,
   Category,
   CustomProperty,
-  MediaType,
+  MediaTypeNode,
   TagNode,
   Website,
   YouTubeChannelHint,
@@ -79,7 +79,7 @@ interface BookmarkRevealedFieldsProps {
   // Tags + custom properties.
   tagTree: TagNode[];
   customProperties: CustomProperty[];
-  mediaTypes: MediaType[];
+  mediaTypes: MediaTypeNode[];
   onTagToggle: (id: string) => void;
   numberInputs: Record<string, string>;
   booleanInputs: Record<string, boolean>;
