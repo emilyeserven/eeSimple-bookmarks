@@ -2,7 +2,7 @@ import type { ComboboxOption } from "./Combobox";
 
 import * as React from "react";
 
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +14,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 interface MultiComboboxProps {
@@ -27,6 +28,15 @@ interface MultiComboboxProps {
   /** Id applied to the trigger button so an external `<Label htmlFor>` can target it. */
   "id"?: string;
   "aria-label"?: string;
+  /**
+   * Optional action pinned to the bottom of the dropdown (e.g. "Create category…"). Rendered outside
+   * the filtered list so it stays visible regardless of the search query; selecting it closes the
+   * popover and runs `onSelect`.
+   */
+  "createOption"?: {
+    label: string;
+    onSelect: () => void;
+  };
 }
 
 /**
@@ -43,6 +53,7 @@ export function MultiCombobox({
   className,
   id,
   "aria-label": ariaLabel,
+  createOption,
 }: MultiComboboxProps) {
   const [open, setOpen] = React.useState(false);
   const selectedSet = new Set(values);
@@ -118,6 +129,27 @@ export function MultiCombobox({
               ))}
             </CommandGroup>
           </CommandList>
+          {createOption
+            ? (
+              <>
+                <Separator />
+                <button
+                  type="button"
+                  className="
+                    flex w-full items-center gap-2 p-2 text-sm font-medium
+                    hover:bg-accent hover:text-accent-foreground
+                  "
+                  onClick={() => {
+                    setOpen(false);
+                    createOption.onSelect();
+                  }}
+                >
+                  <Plus className="size-4 shrink-0" />
+                  {createOption.label}
+                </button>
+              </>
+            )
+            : null}
         </Command>
       </PopoverContent>
     </Popover>

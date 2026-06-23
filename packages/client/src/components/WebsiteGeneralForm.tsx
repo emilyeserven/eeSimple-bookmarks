@@ -6,13 +6,15 @@ import { useNavigate } from "@tanstack/react-router";
 import { Globe } from "lucide-react";
 import { z } from "zod";
 
+import { AddCategoryModal } from "./AddCategoryModal";
+import { AddMediaTypeModal } from "./AddMediaTypeModal";
 import { DefaultTagsField } from "./DefaultTagsField";
 import { EntityImageField } from "./EntityImageField";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 
 import { Separator } from "@/components/ui/separator";
 import { useCategories } from "@/hooks/useCategories";
-import { useMediaTypes } from "@/hooks/useMediaTypes";
+import { useMediaTypeTree } from "@/hooks/useMediaTypes";
 import { useTagTree } from "@/hooks/useTags";
 import {
   useAutoWebsiteFavicon,
@@ -20,8 +22,8 @@ import {
   useUpdateWebsite,
   useUploadWebsiteFavicon,
 } from "@/hooks/useWebsites";
+import { iconComboboxOptions, mediaTypeTreeComboboxOptions } from "@/lib/comboboxOptions";
 import { useAppForm } from "@/lib/form";
-import { CategoryIcon } from "@/lib/icons";
 
 const websiteGeneralSchema = z.object({
   siteName: z.string().trim().min(1, "Site name is required"),
@@ -53,12 +55,14 @@ export function WebsiteGeneralForm({
   const deleteFavicon = useDeleteWebsiteFavicon();
   const faviconBusy = uploadFavicon.isPending || autoFavicon.isPending || deleteFavicon.isPending;
   const [tagIds, setTagIds] = useState<string[]>(website.tagIds ?? []);
+  const [addCategoryOpen, setAddCategoryOpen] = useState(false);
+  const [addMediaTypeOpen, setAddMediaTypeOpen] = useState(false);
   const {
     data: categories,
   } = useCategories();
   const {
-    data: mediaTypes,
-  } = useMediaTypes();
+    data: mediaTypeTree,
+  } = useMediaTypeTree();
   const {
     data: tagTree,
   } = useTagTree();
@@ -178,20 +182,20 @@ export function WebsiteGeneralForm({
             placeholder="No category"
             searchPlaceholder="Search categories…"
             emptyText="No categories found."
-            options={(categories ?? []).map(category => ({
-              value: category.id,
-              label: category.name,
-              icon: (
-                <CategoryIcon
-                  name={category.icon}
-                  className="size-4 shrink-0"
-                />
-              ),
-            }))}
+            options={iconComboboxOptions(categories ?? [])}
+            createOption={{
+              label: "Create category",
+              onSelect: () => setAddCategoryOpen(true),
+            }}
             onValueChange={value => autoSave.saveField("categoryId", value || null)}
           />
         )}
       </form.AppField>
+      <AddCategoryModal
+        open={addCategoryOpen}
+        onOpenChange={setAddCategoryOpen}
+        onCreated={category => form.setFieldValue("categoryId", category.id)}
+      />
 
       <form.AppField name="mediaTypeId">
         {field => (
@@ -200,20 +204,20 @@ export function WebsiteGeneralForm({
             placeholder="No media type"
             searchPlaceholder="Search media types…"
             emptyText="No media types found."
-            options={(mediaTypes ?? []).map(mediaType => ({
-              value: mediaType.id,
-              label: mediaType.name,
-              icon: (
-                <CategoryIcon
-                  name={mediaType.icon}
-                  className="size-4 shrink-0"
-                />
-              ),
-            }))}
+            options={mediaTypeTreeComboboxOptions(mediaTypeTree ?? [])}
+            createOption={{
+              label: "Create media type",
+              onSelect: () => setAddMediaTypeOpen(true),
+            }}
             onValueChange={value => autoSave.saveField("mediaTypeId", value || null)}
           />
         )}
       </form.AppField>
+      <AddMediaTypeModal
+        open={addMediaTypeOpen}
+        onOpenChange={setAddMediaTypeOpen}
+        onCreated={mediaType => form.setFieldValue("mediaTypeId", mediaType.id)}
+      />
       <p className="text-sm text-muted-foreground">
         Media type applied automatically to bookmarks saved from this site.
       </p>

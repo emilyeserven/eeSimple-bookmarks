@@ -5,15 +5,17 @@ import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 
+import { AddCategoryModal } from "./AddCategoryModal";
+import { AddMediaTypeModal } from "./AddMediaTypeModal";
 import { DefaultTagsField } from "./DefaultTagsField";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 import { useUpdateNewsletter } from "../hooks/useNewsletters";
 
 import { Separator } from "@/components/ui/separator";
 import { useCategories } from "@/hooks/useCategories";
-import { useMediaTypes } from "@/hooks/useMediaTypes";
+import { useMediaTypeTree } from "@/hooks/useMediaTypes";
 import { useTagTree } from "@/hooks/useTags";
-import { iconComboboxOptions } from "@/lib/comboboxOptions";
+import { iconComboboxOptions, mediaTypeTreeComboboxOptions } from "@/lib/comboboxOptions";
 import { useAppForm } from "@/lib/form";
 
 const newsletterGeneralSchema = z.object({
@@ -40,12 +42,14 @@ export function NewsletterGeneralForm({
   const navigate = useNavigate();
   const updateNewsletter = useUpdateNewsletter();
   const [tagIds, setTagIds] = useState<string[]>(newsletter.tagIds ?? []);
+  const [addCategoryOpen, setAddCategoryOpen] = useState(false);
+  const [addMediaTypeOpen, setAddMediaTypeOpen] = useState(false);
   const {
     data: categories,
   } = useCategories();
   const {
-    data: mediaTypes,
-  } = useMediaTypes();
+    data: mediaTypeTree,
+  } = useMediaTypeTree();
   const {
     data: tagTree,
   } = useTagTree();
@@ -114,10 +118,19 @@ export function NewsletterGeneralForm({
             searchPlaceholder="Search categories…"
             emptyText="No categories found."
             options={iconComboboxOptions(categories ?? [])}
+            createOption={{
+              label: "Create category",
+              onSelect: () => setAddCategoryOpen(true),
+            }}
             onValueChange={value => autoSave.saveField("categoryId", value || null)}
           />
         )}
       </form.AppField>
+      <AddCategoryModal
+        open={addCategoryOpen}
+        onOpenChange={setAddCategoryOpen}
+        onCreated={category => form.setFieldValue("categoryId", category.id)}
+      />
 
       <form.AppField name="mediaTypeId">
         {field => (
@@ -126,11 +139,20 @@ export function NewsletterGeneralForm({
             placeholder="No media type"
             searchPlaceholder="Search media types…"
             emptyText="No media types found."
-            options={iconComboboxOptions(mediaTypes ?? [])}
+            options={mediaTypeTreeComboboxOptions(mediaTypeTree ?? [])}
+            createOption={{
+              label: "Create media type",
+              onSelect: () => setAddMediaTypeOpen(true),
+            }}
             onValueChange={value => autoSave.saveField("mediaTypeId", value || null)}
           />
         )}
       </form.AppField>
+      <AddMediaTypeModal
+        open={addMediaTypeOpen}
+        onOpenChange={setAddMediaTypeOpen}
+        onCreated={mediaType => form.setFieldValue("mediaTypeId", mediaType.id)}
+      />
       <p className="text-sm text-muted-foreground">
         Category and media type applied automatically to bookmarks imported from this newsletter.
       </p>

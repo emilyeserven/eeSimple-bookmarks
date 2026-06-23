@@ -1,15 +1,15 @@
 import type { SourceDefaults } from "./BookmarkAdvancedSection";
 import type { BookmarkFormApi } from "./bookmarkFormSchema";
-import type { MediaType } from "@eesimple/types";
+import type { MediaTypeNode } from "@eesimple/types";
 
 import { AddMediaTypeModal } from "./AddMediaTypeModal";
 import { SourceDefaultCheckbox } from "./BookmarkSourceDefaultCheckbox";
 
-import { CategoryIcon } from "@/lib/icons";
+import { mediaTypeTreeComboboxOptions } from "@/lib/comboboxOptions";
 
 interface BookmarkAdvancedMediaTypeFieldProps {
   form: BookmarkFormApi;
-  mediaTypes: MediaType[];
+  mediaTypes: MediaTypeNode[];
   sourceDefaults: SourceDefaults;
   addMediaTypeOpen: boolean;
   onAddMediaTypeOpenChange: (open: boolean) => void;
@@ -35,16 +35,7 @@ export function BookmarkAdvancedMediaTypeField({
               label: "Create media type",
               onSelect: () => onAddMediaTypeOpenChange(true),
             }}
-            options={mediaTypes.map(mediaType => ({
-              value: mediaType.id,
-              label: mediaType.name,
-              icon: (
-                <CategoryIcon
-                  name={mediaType.icon}
-                  className="size-4 shrink-0"
-                />
-              ),
-            }))}
+            options={mediaTypeTreeComboboxOptions(mediaTypes)}
           />
         )}
       </form.AppField>
