@@ -20,7 +20,6 @@ export function formatAdded(createdAt: string): string {
 /** Column definitions for the Inbox review-queue Table view. */
 export function useInboxColumns(
   categories: Category[],
-  onEdit: (item: InboxItem) => void,
 ): ColumnDef<InboxItem>[] {
   return useMemo(
     () => [
@@ -98,14 +97,11 @@ export function useInboxColumns(
             className="flex justify-end"
             data-no-row-click
           >
-            <RowActions
-              item={row.original}
-              onEdit={() => onEdit(row.original)}
-            />
+            <RowActions item={row.original} />
           </div>
         ),
       },
     ],
-    [categories, onEdit],
+    [categories],
   );
 }

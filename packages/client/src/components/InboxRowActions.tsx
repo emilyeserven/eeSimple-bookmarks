@@ -8,7 +8,7 @@ import { useState } from "react";
 
 import { blacklistPatternsFor } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
-import { Ban, Check, Eye, FolderInput, MoreHorizontal, Pencil, RotateCcw, X } from "lucide-react";
+import { Ban, Check, ChevronDown, Eye, FolderInput, MoreHorizontal, RotateCcw, X } from "lucide-react";
 
 import {
   useApproveImportItem,
@@ -227,25 +227,25 @@ export function BlockMenuItems({
 }
 
 /**
- * Block control: a dropdown to add this link's URL / domain / page path to the Imports Blacklist.
- * Blocking also marks the item `blocked` so the Import Settings purge can sweep it later.
+ * Slim dropdown trigger for block options (URL / domain / page path). Sits to the right of the
+ * Reject button as a narrow chevron-only button so it doesn't crowd the action bar.
  */
-function BlockMenu({
+function BlockDropdown({
   item,
 }: { item: ImportItem }) {
   if (!item.url) return null;
-  const blocked = item.status === "blocked";
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
           size="sm"
-          variant={blocked ? "ghost" : "secondary"}
-          className={blocked ? "gap-1 text-muted-foreground" : "gap-1"}
+          variant="ghost"
+          className="px-1"
+          aria-label="Block options"
         >
-          <Ban className="size-4" />
-          {blocked ? "Blocked" : "Block"}
+          <Ban className="size-3 text-muted-foreground" />
+          <ChevronDown className="size-3 text-muted-foreground" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
@@ -287,9 +287,8 @@ function IngestImportButton({
   if (!url) return null;
   return (
     <Button
-      size="icon"
+      size="sm"
       variant="ghost"
-      aria-label="Import links from this URL"
       disabled={ingest.isPending}
       onClick={() =>
         ingest.mutate({
@@ -300,6 +299,7 @@ function IngestImportButton({
         })}
     >
       <FolderInput className="size-4" />
+      Queue for Import
     </Button>
   );
 }
@@ -328,11 +328,10 @@ export function IngestImportMenuItem({
   );
 }
 
-/** Secondary actions for the mobile pending card: Edit, Block options, and Import links. */
+/** Secondary actions for the mobile pending card: Block options and Queue for Import. */
 export function MobileMoreMenu({
-  item, onEdit,
-}: { item: ImportItem;
-  onEdit: () => void; }) {
+  item,
+}: { item: ImportItem }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -345,11 +344,6 @@ export function MobileMoreMenu({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={onEdit}>
-          <Pencil className="size-4" />
-          Edit
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
         <BlockMenuItems item={item} />
         <DropdownMenuSeparator />
         <IngestImportMenuItem item={item} />
@@ -358,11 +352,10 @@ export function MobileMoreMenu({
   );
 }
 
-/** The per-row action column: approve/edit/reject/block while pending, unreject/block once rejected, or a view link. */
+/** The per-row action column: approve/reject/block while pending, unreject/block once rejected, or a view link. */
 export function RowActions({
-  item, onEdit,
-}: { item: ImportItem;
-  onEdit: () => void; }) {
+  item,
+}: { item: ImportItem }) {
   const approve = useApproveImportItem();
   const resultBookmarkId = item.createdBookmarkId ?? item.duplicateBookmarkId;
 
@@ -382,16 +375,8 @@ export function RowActions({
             >
               <Check className="size-4" />
             </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={onEdit}
-              aria-label="Edit"
-            >
-              <Pencil className="size-4" />
-            </Button>
             <RejectButton item={item} />
-            <BlockMenu item={item} />
+            <BlockDropdown item={item} />
           </>
         )
         : null}
@@ -399,7 +384,7 @@ export function RowActions({
         ? (
           <>
             <UnrejectButton item={item} />
-            <BlockMenu item={item} />
+            <BlockDropdown item={item} />
           </>
         )
         : null}

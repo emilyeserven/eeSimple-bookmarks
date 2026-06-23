@@ -87,7 +87,7 @@ describe("InboxReviewList", () => {
     );
     // Radix DropdownMenu opens via keyboard under jsdom (see test-utils/setup.ts).
     fireEvent.keyDown(screen.getByRole("button", {
-      name: "Block",
+      name: "Block options",
     }), {
       key: " ",
     });
