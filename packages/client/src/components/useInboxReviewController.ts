@@ -22,7 +22,7 @@ import { useUiStore } from "@/stores/uiStore";
  * `InboxReviewList` component itself stays a thin JSX shell. Spreading the hooks out here keeps the
  * component below fallow's hook-density complexity cap (see CLAUDE.md → Large-form decomposition).
  */
-export function useInboxReviewController(items: InboxItem[]) {
+export function useInboxReviewController(items: InboxItem[], isFetching: boolean) {
   const approve = useApproveImportItem();
   const rejectPending = useRejectPendingItems();
   const recheckPending = useRecheckPendingItems();
@@ -46,6 +46,18 @@ export function useInboxReviewController(items: InboxItem[]) {
   const classifiedRef = useRef<Set<string>>(new Set());
   const [pendingSectionIds, setPendingSectionIds] = useState<Set<string>>(new Set());
 
+  // On fresh navigation the query may serve stale cache first (isFetching=true) and then correct
+  // data. This one-shot effect re-snapshots once on the first fresh data arrival so items that are
+  // no longer pending don't remain in the Pending section. After the first resort, subsequent
+  // isFetching transitions (from mutations) are ignored, preserving the freeze-in-place behaviour.
+  const hasDoneInitialResortRef = useRef(false);
+  useEffect(() => {
+    if (isFetching || hasDoneInitialResortRef.current) return;
+    hasDoneInitialResortRef.current = true;
+    classifiedRef.current = new Set(items.map(i => i.id));
+    setPendingSectionIds(new Set(items.filter(i => i.status === "pending").map(i => i.id)));
+  }, [isFetching, items]);
+
   useEffect(() => {
     const newlyPending: string[] = [];
     for (const item of items) {
@@ -66,6 +78,14 @@ export function useInboxReviewController(items: InboxItem[]) {
     () => items.filter(i => !pendingSectionIds.has(i.id)),
     [items, pendingSectionIds],
   );
+
+  function dismissItem(id: string) {
+    setPendingSectionIds((prev) => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+  }
 
   function resortNow() {
     classifiedRef.current = new Set(items.map(i => i.id));
@@ -134,6 +154,7 @@ export function useInboxReviewController(items: InboxItem[]) {
     pendingItems,
     processedItems,
     resortNow,
+    dismissItem,
     bulkRunning,
     rejectPendingIsPending: rejectPending.isPending,
     recheckPendingIsPending: recheckPending.isPending,

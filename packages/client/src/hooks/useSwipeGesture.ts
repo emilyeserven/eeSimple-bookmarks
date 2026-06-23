@@ -27,9 +27,16 @@ export function useSwipeGesture(onSwipeRight: () => void, onSwipeLeft: () => voi
   }
 
   function onTouchEnd() {
-    if (displacement >= THRESHOLD) onSwipeRight();
-    else if (displacement <= -THRESHOLD) onSwipeLeft();
-    setDisplacement(0);
+    if (displacement >= THRESHOLD) {
+      onSwipeRight();
+      // Leave displacement in place; the item will be removed from the list so no snap-back occurs.
+    }
+    else if (displacement <= -THRESHOLD) {
+      onSwipeLeft();
+    }
+    else {
+      setDisplacement(0);
+    }
     startX.current = null;
     startY.current = null;
   }
