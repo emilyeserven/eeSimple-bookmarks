@@ -1,7 +1,7 @@
 import type { AutofillRule, Category } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
-import { Pencil, Wand2 } from "lucide-react";
+import { Pencil } from "lucide-react";
 
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
@@ -33,7 +33,6 @@ export function AutofillRuleListItem({
 
   return (
     <StandardListingCard
-      icon={<Wand2 className="size-5 shrink-0 text-muted-foreground" />}
       title={rule.name}
       titleAdornment={categoryName ? <Badge variant="secondary">{categoryName}</Badge> : undefined}
       subtitle={summarizeConditions(rule.conditions)}
