@@ -142,6 +142,7 @@ vi.mock("../hooks/useFetchMetadata", () => ({
       channel: null,
       durationSeconds: null,
       thumbnailUrl: null,
+      authorNames: null,
     }),
     isPending: false,
   }),
@@ -177,6 +178,9 @@ vi.mock("../hooks/useAppSettings", () => ({
 vi.mock("../hooks/useAuthors", () => ({
   useAuthors: () => ({
     data: [],
+  }),
+  useCreateAuthor: () => ({
+    mutateAsync: vi.fn(),
   }),
 }));
 
