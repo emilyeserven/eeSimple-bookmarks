@@ -7,7 +7,7 @@ import type {
   UpdateImportItemInput,
 } from "@eesimple/types";
 import { IMPORT_BLACKLIST_KINDS } from "@eesimple/types";
-import { fetchBodyHtmlResult, isPublicHttpUrl } from "@/services/metadata";
+import { isPublicHttpUrl } from "@/services/metadata";
 import {
   approveImport,
   approveImportItem,
@@ -15,10 +15,11 @@ import {
   contentFromUpload,
   deleteImport,
   getImport,
-  ingestImport,
+  listActiveImports,
   listImports,
   listInboxItems,
   purgeProcessedItems,
+  queueImport,
   rejectImportItem,
   setIssueBookmarks,
   updateImportItem,
@@ -170,7 +171,7 @@ export async function importRoutes(app: FastifyInstance): Promise<void> {
     },
   }, async (req) => {
     const body = req.body as IngestPasteInput;
-    return ingestImport({
+    return queueImport({
       source: "paste",
       content: body.content,
       kind: body.kind ?? "auto",
@@ -180,7 +181,8 @@ export async function importRoutes(app: FastifyInstance): Promise<void> {
     });
   });
 
-  // Fetch a public "view in browser" post and extract its article links.
+  // Queue a public webpage (article or "view in browser" newsletter): the page is fetched and its
+  // article links extracted by the background worker, so this returns the queued import immediately.
   app.post("/api/imports/ingest/url", {
     schema: {
       tags: ["imports"],
@@ -193,18 +195,13 @@ export async function importRoutes(app: FastifyInstance): Promise<void> {
         message: "url must be a valid public http(s) URL",
       });
     }
-    const result = await fetchBodyHtmlResult(body.url, /<\/body>/i);
-    if (result.kind !== "ok") {
-      return reply.code(502).send({
-        message: "Could not fetch that page.",
-        reason: result.kind,
-      });
-    }
-    return ingestImport({
+    return queueImport({
       source: "url",
-      content: result.html,
+      content: "",
+      // The worker fetches this page off the request path.
+      fetchUrl: body.url,
       kind: "html",
-      // Parse the page's own title from the fetched HTML; fall back to the URL.
+      // Refined to the page's own title once fetched; falls back to the URL.
       titleFallback: body.url,
       sourceUrl: body.url,
       newsletterId: body.newsletterId ?? null,
@@ -248,7 +245,7 @@ export async function importRoutes(app: FastifyInstance): Promise<void> {
         message: "Unsupported file — upload an .eml, .html, or .txt file",
       });
     }
-    return ingestImport({
+    return queueImport({
       source: "upload",
       content: parsed.content,
       kind: parsed.kind,
@@ -266,6 +263,14 @@ export async function importRoutes(app: FastifyInstance): Promise<void> {
       tags: ["imports"],
     },
   }, () => listImports());
+
+  // List the imports currently in flight (queued/processing) with live progress — polled by the
+  // header progress indicator.
+  app.get("/api/imports/active", {
+    schema: {
+      tags: ["imports"],
+    },
+  }, () => listActiveImports());
 
   // List every import item across all imports (the Inbox), newest first.
   app.get("/api/imports/items", {

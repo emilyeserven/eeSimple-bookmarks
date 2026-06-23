@@ -1,19 +1,27 @@
 import type {
+  ActiveImport,
   BlockImportItemInput,
   IngestPasteInput,
   IngestUrlInput,
   UpdateImportItemInput,
 } from "@eesimple/types";
 
+import { useEffect, useRef } from "react";
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { importApi } from "../lib/api";
+import { notifyError, notifySuccess } from "../lib/notifications";
 
 const IMPORTS_KEY = ["imports"] as const;
+const ACTIVE_KEY = ["imports", "active"] as const;
 const INBOX_KEY = ["inbox-items"] as const;
 const ISSUES_KEY = ["newsletter-issues"] as const;
 const BOOKMARKS_KEY = ["bookmarks"] as const;
 const IMPORT_BLACKLIST_KEY = ["app-settings", "import-blacklist"] as const;
+
+/** How often (ms) to poll active imports while any are in flight. */
+const ACTIVE_POLL_MS = 1500;
 
 /** Every import item across all imports — the Inbox review queue. */
 export function useInboxItems() {
@@ -21,6 +29,62 @@ export function useInboxItems() {
     queryKey: INBOX_KEY,
     queryFn: importApi.listInboxItems,
   });
+}
+
+/**
+ * Poll the in-flight imports (queued/processing) for the header progress indicator. Self-stopping:
+ * it only refetches on an interval while at least one import is active, then idles until an ingest
+ * invalidates the key. Ingest mutations invalidate this key, so polling kicks off on submit.
+ */
+export function useActiveImports() {
+  return useQuery({
+    queryKey: ACTIVE_KEY,
+    queryFn: importApi.listActive,
+    refetchInterval: query =>
+      (query.state.data && query.state.data.length > 0 ? ACTIVE_POLL_MS : false),
+  });
+}
+
+/**
+ * Watch the active-import poll and fire a toast when each import leaves the queue (completed or
+ * failed), refreshing the Inbox so the newly-staged links appear. Mount once (the header indicator);
+ * it tracks the previously-active set in a ref to detect transitions.
+ */
+export function useImportCompletionToasts(active: ActiveImport[] | undefined) {
+  const queryClient = useQueryClient();
+  const previous = useRef<Map<string, ActiveImport>>(new Map());
+  useEffect(() => {
+    const current = new Map((active ?? []).map(item => [item.id, item]));
+    for (const [id, item] of previous.current) {
+      if (current.has(id)) continue;
+      // This import just left the active set — resolve its final state and toast accordingly.
+      void importApi.getImport(id).then((record) => {
+        const label = item.sourceLabel ? ` from ${item.sourceLabel}` : "";
+        if (record.status === "failed") {
+          notifyError(`Import${label} failed${record.errorReason ? `: ${record.errorReason}` : "."}`);
+          return;
+        }
+        const count = record.items.length;
+        notifySuccess(`Imported ${count} link${count === 1 ? "" : "s"}${label} for review`, {
+          link: {
+            href: "/inbox",
+            label: "Review in Inbox",
+          },
+        });
+      }).catch(() => {
+        // Best-effort notification; the Inbox refresh below still surfaces the links.
+      });
+    }
+    if (current.size !== previous.current.size || [...current.keys()].some(id => !previous.current.has(id))) {
+      void queryClient.invalidateQueries({
+        queryKey: INBOX_KEY,
+      });
+      void queryClient.invalidateQueries({
+        queryKey: IMPORTS_KEY,
+      });
+    }
+    previous.current = current;
+  }, [active, queryClient]);
 }
 
 /** Invalidate the Inbox queue and the import summaries (their counts move together). */
@@ -32,6 +96,10 @@ function useInvalidateInbox() {
     });
     void queryClient.invalidateQueries({
       queryKey: IMPORTS_KEY,
+    });
+    // Kick the active-import poll so the header indicator picks up the just-queued import.
+    void queryClient.invalidateQueries({
+      queryKey: ACTIVE_KEY,
     });
   };
 }

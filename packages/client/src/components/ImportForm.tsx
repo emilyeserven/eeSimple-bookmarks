@@ -119,8 +119,9 @@ export function ImportForm({
               })
               : null;
         if (!result) return;
-        const count = result.items.length;
-        notifySuccess(`Imported ${count} link${count === 1 ? "" : "s"} for review`);
+        // Ingest is queued and processed in the background — the links appear in the Inbox as the
+        // worker finishes (a per-import completion toast fires then, and progress shows in the header).
+        notifySuccess("Import queued — links will appear in your Inbox as they're processed.");
         void go({
           to: "/inbox",
         });
@@ -185,8 +186,8 @@ export function ImportForm({
           <form.AppField name="pastedContent">
             {field => (
               <field.RichTextField
-                label="Newsletter content"
-                hint="Paste the newsletter here — links are preserved."
+                label="Pasted content"
+                hint="Paste a newsletter or article here — links are preserved."
               />
             )}
           </form.AppField>
@@ -198,9 +199,9 @@ export function ImportForm({
           <form.AppField name="fetchUrl">
             {field => (
               <field.TextField
-                label="Newsletter URL"
+                label="Webpage or newsletter URL"
                 type="url"
-                placeholder="https://…/the-view-in-browser-link"
+                placeholder="https://… (an article page, or a view-in-browser link)"
               />
             )}
           </form.AppField>
@@ -239,8 +240,8 @@ export function ImportForm({
 
       <form.AppForm>
         <form.SubmitButton
-          label="Extract links"
-          pendingLabel="Extracting…"
+          label="Import links"
+          pendingLabel="Queuing…"
           disabledWhen={source === "upload" && !file}
         />
       </form.AppForm>

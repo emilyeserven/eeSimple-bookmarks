@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
   decodeMimeWords,
+  extractArticleBody,
   extractCandidates,
   extractEmlHtml,
   extractHtmlCandidates,
@@ -324,4 +325,41 @@ test("extractEmlHtml returns text when there is no html part", () => {
   } = extractEmlHtml(Buffer.from(eml, "utf8"));
   assert.equal(html, null);
   assert.match(text ?? "", /https:\/\/example\.com\/c/);
+});
+
+test("extractArticleBody returns the inner HTML of <article>, handling nested divs", () => {
+  const html = "<body><nav><a href=\"/nav\">Home</a></nav>"
+    + "<article><div class=\"wrap\"><p><a href=\"https://example.com/a\">Real</a></p></div></article>"
+    + "<footer><a href=\"/foot\">Foot</a></footer></body>";
+  const body = extractArticleBody(html);
+  assert.ok(body);
+  assert.match(body, /https:\/\/example\.com\/a/);
+  assert.doesNotMatch(body, /\/nav|\/foot/);
+});
+
+test("extractArticleBody falls back to <main>, then role=main, then a content class", () => {
+  assert.match(extractArticleBody("<main><p>x</p></main>") ?? "", /<p>x<\/p>/);
+  assert.match(extractArticleBody("<section role=\"main\"><p>y</p></section>") ?? "", /<p>y<\/p>/);
+  assert.match(
+    extractArticleBody("<div class=\"post entry-content\"><p>z</p></div>") ?? "",
+    /<p>z<\/p>/,
+  );
+});
+
+test("extractArticleBody returns null for a newsletter email with no article region", () => {
+  const newsletter = "<table><tr><td><a href=\"https://example.com/a\">A</a></td></tr></table>";
+  assert.equal(extractArticleBody(newsletter), null);
+});
+
+test("scoping extraction to the article body drops site nav / footer links", () => {
+  const page = "<html><body>"
+    + "<header><a href=\"https://site.example/about\">About</a></header>"
+    + "<article>"
+    + "<p><a href=\"https://example.com/story\">The story</a></p>"
+    + "</article>"
+    + "<aside><a href=\"https://site.example/related\">Related</a></aside>"
+    + "</body></html>";
+  const scoped = extractArticleBody(page) ?? page;
+  const urls = filterAndDedupe(extractCandidates(scoped, "html")).map(c => c.rawUrl);
+  assert.deepEqual(urls, ["https://example.com/story"]);
 });

@@ -161,6 +161,69 @@ export function linkContextFrom(html: string, start: number, end: number): strin
   return parts.length > 0 ? parts.join("\n\n") : null;
 }
 
+/**
+ * Walk `<tag …>` / `</tag>` occurrences from `openTagStart` (the index of the element's opening
+ * `<`), counting depth, and return the element's **inner HTML** (between the open tag's `>` and its
+ * matching `</tag>`). Depth-aware so nested same-name elements don't end the slice early. Returns
+ * `null` when the open tag is malformed or never closed. Dependency-free (no HTML parser), matching
+ * the rest of this module. Pure.
+ */
+function sliceBalancedElement(html: string, openTagStart: number, tagName: string): string | null {
+  const openEnd = html.indexOf(">", openTagStart);
+  if (openEnd === -1) return null;
+  const innerStart = openEnd + 1;
+  const tag = tagName.toLowerCase();
+  // Match an opening `<tag` (with a following space, `>`, or `/`) or a closing `</tag>`.
+  const scanner = new RegExp(`<(/?)${tag}(?=[\\s/>])`, "gi");
+  scanner.lastIndex = innerStart;
+  let depth = 1;
+  let match: RegExpExecArray | null;
+  while ((match = scanner.exec(html)) !== null) {
+    if (match[1] === "/") {
+      depth -= 1;
+      if (depth === 0) return html.slice(innerStart, match.index);
+    }
+    else {
+      depth += 1;
+    }
+  }
+  return null;
+}
+
+/** Content-container `class`/`id` patterns used to find an article body when there's no semantic tag. */
+const CONTENT_CLASS = /\b(?:entry-content|post-content|article-content|article-body|post-body|content-area)\b/i;
+
+/**
+ * Find the main article body of a full webpage and return its inner HTML, so link extraction can be
+ * scoped to it (dropping site nav / sidebar / footer / related-posts links). Detection order:
+ * `<article>` → `<main>` → `role="main"` → a container with a content `class`/`id`. Returns `null`
+ * when none match (e.g. a newsletter email), so callers fall back to the whole document. Pure.
+ */
+export function extractArticleBody(html: string): string | null {
+  // Semantic <article> / <main> elements first.
+  for (const tag of ["article", "main"] as const) {
+    const open = new RegExp(`<${tag}(?=[\\s/>])`, "i").exec(html);
+    if (open) {
+      const inner = sliceBalancedElement(html, open.index, tag);
+      if (inner !== null) return inner;
+    }
+  }
+  // Any element carrying role="main".
+  const roleMain = /<([a-z][a-z0-9]*)\b[^>]*\brole=["']main["'][^>]*>/i.exec(html);
+  if (roleMain) {
+    const inner = sliceBalancedElement(html, roleMain.index, roleMain[1] ?? "div");
+    if (inner !== null) return inner;
+  }
+  // A container whose class/id marks it as the post body (e.g. WordPress `entry-content`).
+  for (const open of html.matchAll(/<([a-z][a-z0-9]*)\b([^>]*)>/gi)) {
+    if (CONTENT_CLASS.test(open[2] ?? "")) {
+      const inner = sliceBalancedElement(html, open.index ?? 0, open[1] ?? "div");
+      if (inner !== null) return inner;
+    }
+  }
+  return null;
+}
+
 /** Extract candidate links from newsletter HTML by scanning `<a …>text</a>`. Pure. */
 export function extractHtmlCandidates(html: string): LinkCandidate[] {
   const candidates: LinkCandidate[] = [];
