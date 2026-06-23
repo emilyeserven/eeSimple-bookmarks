@@ -2,6 +2,8 @@ import type { BookmarkFormApi } from "./bookmarkFormSchema";
 import type { BookmarkFormProps } from "./useBookmarkFormController";
 import type { BookmarkUrlDuplicateResult } from "@eesimple/types";
 
+import { useEffect, useRef } from "react";
+
 import { Brush, Loader2 } from "lucide-react";
 
 import { BookmarkRevealedFields } from "./BookmarkRevealedFields";
@@ -9,16 +11,36 @@ import { useBookmarkFormController } from "./useBookmarkFormController";
 
 import { Button } from "@/components/ui/button";
 
+interface BookmarkFormComponentProps extends BookmarkFormProps {
+  /** When true, the form runs the URL scan on mount (e.g. the quick-add popup). Create-mode only. */
+  autoScan?: boolean;
+}
+
 /**
  * Bookmark form. Creates a new bookmark by default, or edits `bookmark` when given.
  * Owns its own mutation so the page stays focused on the list. All state and handlers live in
  * `useBookmarkFormController`; this component is the JSX wiring.
  */
-export function BookmarkForm(props: BookmarkFormProps = {}) {
+export function BookmarkForm({
+  autoScan, ...props
+}: BookmarkFormComponentProps = {}) {
   const c = useBookmarkFormController(props);
   const {
     form,
   } = c;
+
+  // Quick-add popup: reveal + scan the seeded URL once, exactly like clicking "Check URL". The ref
+  // guards against re-running (StrictMode double-mount / re-renders). The scan effect lives here
+  // rather than in the hook-dense controller to keep its complexity score flat.
+  const autoScannedRef = useRef(false);
+  useEffect(() => {
+    if (autoScan && !c.isEdit && !autoScannedRef.current && form.getFieldValue("url").trim() !== "") {
+      autoScannedRef.current = true;
+      void c.performUrlScan({
+        revealing: true,
+      });
+    }
+  }, [autoScan, c, form]);
 
   return (
     <form

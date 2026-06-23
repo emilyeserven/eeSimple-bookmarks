@@ -15,6 +15,7 @@ import {
   Monitor,
   MonitorPlay,
   PanelRight,
+  Puzzle,
   Share2,
   SlidersHorizontal,
   Tags,
@@ -87,6 +88,11 @@ export const SETTINGS_PAGES: readonly SettingsPage[] = [
     path: "/settings/imports",
     label: "Import Settings",
     icon: Inbox,
+  },
+  {
+    path: "/settings/extension",
+    label: "Extension",
+    icon: Puzzle,
   },
   {
     path: "/settings/more-categories",

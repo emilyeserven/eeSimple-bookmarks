@@ -46,6 +46,10 @@ const settingsNav: readonly TabNavEntry[] = [
     label: "Import Settings",
   },
   {
+    to: "/settings/extension",
+    label: "Extension",
+  },
+  {
     type: "group",
     label: "More Settings",
     items: [

@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 
-import { Outlet } from "@tanstack/react-router";
+import { Outlet, useRouterState } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { Toaster } from "sonner";
 
@@ -17,6 +17,25 @@ import { useUiStore } from "@/stores/uiStore";
 export function RootLayout() {
   const theme = useUiStore(state => state.theme);
   const sidebarWidth = useUiStore(state => state.sidebarWidth);
+  // The quick-add popup is chrome-less: it renders the bare form (no sidebar/header/right panel) so
+  // it fits a small popup window.
+  const isQuickAdd = useRouterState({
+    select: state => state.location.pathname.startsWith("/quick-add"),
+  });
+
+  if (isQuickAdd) {
+    return (
+      <>
+        <Outlet />
+        <Toaster
+          richColors
+          expand
+          theme={theme}
+        />
+        {import.meta.env.DEV ? <TanStackRouterDevtools /> : null}
+      </>
+    );
+  }
 
   return (
     <SidebarProvider

@@ -1,27 +1,24 @@
 import type {
-  ImportApproveResult,
   ImportItem,
-  ImportItemStatus,
   InboxItem,
 } from "@eesimple/types";
 
 import { useMemo, useState } from "react";
 
-import { blacklistPatternsFor } from "@eesimple/types";
-import { Link } from "@tanstack/react-router";
-import { Ban, Check, ChevronDown, ExternalLink, Eye, Pencil, RotateCcw, ShieldBan, Trash2, X } from "lucide-react";
+import { ChevronDown, ExternalLink, ShieldBan, Trash2 } from "lucide-react";
 
+import { ViewModeToggle } from "./DisplayControlPrimitives";
+import { RowActions, StatusBadge } from "./InboxRowActions";
+import { formatAdded, useInboxColumns } from "./tables/inboxColumns";
 import { useCategories } from "../hooks/useCategories";
 import {
   useApproveImportItem,
-  useBlockImportItem,
   useDeleteRejectedItems,
   useRecheckPendingItems,
-  useRejectImportItem,
   useRejectPendingItems,
-  useUnrejectImportItem,
   useUpdateImportItem,
 } from "../hooks/useImports";
+import { useViewMode } from "../lib/bookmarkColumns";
 import { highlightAnchor } from "../lib/newsletterContext";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
@@ -33,12 +30,13 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { DataTable } from "@/components/ui/data-table";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -48,184 +46,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useUiStore } from "@/stores/uiStore";
 
 type ReviewFilter = "all" | "pending" | "issues";
 
 /** Sentinel for the "no category" Select option (Radix forbids an empty-string item value). */
 const NO_CATEGORY = "__none__";
-
-const STATUS_META: Record<ImportItemStatus, { label: string;
-  variant: "secondary" | "default" | "destructive" | "outline"; }> = {
-  pending: {
-    label: "Pending",
-    variant: "secondary",
-  },
-  approved: {
-    label: "Added",
-    variant: "default",
-  },
-  duplicate: {
-    label: "Already saved",
-    variant: "outline",
-  },
-  rejected: {
-    label: "Rejected",
-    variant: "outline",
-  },
-  error: {
-    label: "Error",
-    variant: "destructive",
-  },
-  blocked: {
-    label: "Blocked",
-    variant: "outline",
-  },
-};
-
-/** Surface the outcome of an approve call (one item or a bulk run) as a recorded toast. */
-function notifyApprove(result: ImportApproveResult): void {
-  if (result.status === "approved") notifySuccess("Bookmark added");
-  else if (result.status === "duplicate") notifyError(result.message ?? "Already saved as a bookmark");
-  else if (result.status === "error") notifyError(result.message ?? "Couldn't add bookmark");
-}
-
-function StatusBadge({
-  item,
-}: { item: ImportItem }) {
-  const meta = STATUS_META[item.status];
-  const bookmarkId = item.createdBookmarkId ?? item.duplicateBookmarkId;
-  if (bookmarkId) {
-    return (
-      <Link
-        to="/bookmarks/$bookmarkId"
-        params={{
-          bookmarkId,
-        }}
-      >
-        <Badge
-          variant={meta.variant}
-          className="cursor-pointer"
-        >{meta.label}
-        </Badge>
-      </Link>
-    );
-  }
-  return <Badge variant={meta.variant}>{meta.label}</Badge>;
-}
-
-/** Reject control: one click rejects the candidate (block offers a separate dropdown, see `BlockMenu`). */
-function RejectButton({
-  item,
-}: { item: ImportItem }) {
-  const reject = useRejectImportItem();
-  return (
-    <Button
-      size="icon"
-      variant="ghost"
-      aria-label="Reject"
-      disabled={reject.isPending}
-      onClick={() => reject.mutate(item.id, {
-        onSuccess: () => notifySuccess("Rejected link"),
-      })}
-    >
-      <X className="size-4" />
-    </Button>
-  );
-}
-
-/** Unreject control: restore a rejected candidate to pending so it can be reviewed again. */
-function UnrejectButton({
-  item,
-}: { item: ImportItem }) {
-  const unreject = useUnrejectImportItem();
-  return (
-    <Button
-      size="icon"
-      variant="ghost"
-      aria-label="Unreject"
-      disabled={unreject.isPending}
-      onClick={() => unreject.mutate(item.id, {
-        onSuccess: () => notifySuccess("Restored to pending"),
-      })}
-    >
-      <RotateCcw className="size-4" />
-    </Button>
-  );
-}
-
-/**
- * Block control: a dropdown to add this link's URL / domain / page path to the Imports Blacklist.
- * Blocking also marks the item `blocked` so the Import Settings purge can sweep it later.
- */
-function BlockMenu({
-  item,
-}: { item: ImportItem }) {
-  const block = useBlockImportItem();
-  const patterns = item.url ? blacklistPatternsFor(item.url) : null;
-  if (!patterns) return null;
-  const blocked = item.status === "blocked";
-
-  function blockWith(entry: { kind: "exact" | "domain" | "path-prefix";
-    value: string; }, message: string) {
-    block.mutate({
-      itemId: item.id,
-      entry,
-    }, {
-      onSuccess: () => notifySuccess(message),
-      onError: () => notifyError("Couldn't block this link"),
-    });
-  }
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          size="sm"
-          variant={blocked ? "ghost" : "secondary"}
-          className={blocked ? "gap-1 text-muted-foreground" : "gap-1"}
-          disabled={block.isPending}
-        >
-          <Ban className="size-4" />
-          {blocked ? "Blocked" : "Block"}
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => blockWith(patterns.exact, "Blocked this URL")}>
-          Block this URL
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => blockWith(patterns.domain, `Blocked ${patterns.domain.value}`)}>
-          Block this domain
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => blockWith(patterns.pathPrefix, "Blocked this page path")}>
-          Block this page path
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
-
-/** A "View bookmark" link button shown on approved/duplicate rows. */
-function ViewBookmarkButton({
-  bookmarkId,
-}: { bookmarkId: string }) {
-  return (
-    <Button
-      asChild
-      size="icon"
-      variant="ghost"
-      aria-label="View bookmark"
-    >
-      <Link
-        to="/bookmarks/$bookmarkId"
-        params={{
-          bookmarkId,
-        }}
-      >
-        <Eye className="size-4" />
-      </Link>
-    </Button>
-  );
-}
 
 /** The expanded edit form for one candidate (url/title/description/category). Owns its own draft. */
 function ReviewRowEditor({
@@ -334,58 +160,6 @@ function ReviewRowEditor({
   );
 }
 
-/** The per-row action column: approve/edit/reject/block while pending, unreject/block once rejected, or a view link. */
-function RowActions({
-  item, onEdit,
-}: { item: ImportItem;
-  onEdit: () => void; }) {
-  const approve = useApproveImportItem();
-  const resultBookmarkId = item.createdBookmarkId ?? item.duplicateBookmarkId;
-
-  return (
-    <div className="flex shrink-0 items-center gap-1">
-      {item.status === "pending"
-        ? (
-          <>
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={() => approve.mutate(item.id, {
-                onSuccess: notifyApprove,
-              })}
-              disabled={approve.isPending}
-              aria-label="Approve"
-            >
-              <Check className="size-4" />
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={onEdit}
-              aria-label="Edit"
-            >
-              <Pencil className="size-4" />
-            </Button>
-            <RejectButton item={item} />
-            <BlockMenu item={item} />
-          </>
-        )
-        : null}
-      {item.status === "rejected"
-        ? (
-          <>
-            <UnrejectButton item={item} />
-            <BlockMenu item={item} />
-          </>
-        )
-        : null}
-      {item.status !== "pending" && resultBookmarkId
-        ? <ViewBookmarkButton bookmarkId={resultBookmarkId} />
-        : null}
-    </div>
-  );
-}
-
 function ReviewRow({
   item,
 }: { item: InboxItem }) {
@@ -444,6 +218,7 @@ function ReviewRow({
           {item.sourceLabel
             ? <p className="text-xs text-muted-foreground/70">From {item.sourceLabel}</p>
             : null}
+          <p className="text-xs text-muted-foreground/70">Added {formatAdded(item.createdAt)}</p>
           {item.url
             ? (
               <a
@@ -538,7 +313,7 @@ function ReviewRow({
 /**
  * The Inbox review queue: a filterable list of import candidates from every import, plus a bulk
  * "approve all pending" action. Each row's actions are item-scoped, so the list can mix items from
- * different imports.
+ * different imports. Renders as cards or a sortable table, remembered per page in `uiStore`.
  */
 export function InboxReviewList({
   items,
@@ -549,8 +324,16 @@ export function InboxReviewList({
   const rejectPending = useRejectPendingItems();
   const recheckPending = useRecheckPendingItems();
   const deleteRejected = useDeleteRejectedItems();
+  const {
+    data: categories = [],
+  } = useCategories();
   const [filter, setFilter] = useState<ReviewFilter>("all");
   const [bulkRunning, setBulkRunning] = useState(false);
+  const [editingItem, setEditingItem] = useState<InboxItem | null>(null);
+
+  const viewMode = useViewMode("inbox");
+  const setViewMode = useUiStore(state => state.setViewMode);
+  const columns = useInboxColumns(categories, setEditingItem);
 
   const pendingCount = useMemo(() => items.filter(i => i.status === "pending").length, [items]);
   const rejectedCount = useMemo(() => items.filter(i => i.status === "rejected").length, [items]);
@@ -611,17 +394,23 @@ export function InboxReviewList({
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex gap-1">
-          {(["all", "pending", "issues"] as const).map(value => (
-            <Button
-              key={value}
-              size="sm"
-              variant={filter === value ? "secondary" : "ghost"}
-              onClick={() => setFilter(value)}
-            >
-              {value === "all" ? "All" : value === "pending" ? "Pending" : "Issues"}
-            </Button>
-          ))}
+        <div className="flex items-center gap-2">
+          <div className="flex gap-1">
+            {(["all", "pending", "issues"] as const).map(value => (
+              <Button
+                key={value}
+                size="sm"
+                variant={filter === value ? "secondary" : "ghost"}
+                onClick={() => setFilter(value)}
+              >
+                {value === "all" ? "All" : value === "pending" ? "Pending" : "Issues"}
+              </Button>
+            ))}
+          </div>
+          <ViewModeToggle
+            value={viewMode}
+            onChange={mode => setViewMode("inbox", mode)}
+          />
         </div>
         <div className="flex gap-2">
           <Button
@@ -660,17 +449,47 @@ export function InboxReviewList({
         </div>
       </div>
 
-      {filtered.length === 0
-        ? <p className="text-sm text-muted-foreground">No items to show.</p>
-        : (
-          <ul className="space-y-2">
-            {filtered.map(item => (
-              <li key={item.id}>
-                <ReviewRow item={item} />
-              </li>
-            ))}
-          </ul>
-        )}
+      {viewMode === "table"
+        ? (
+          <DataTable
+            columns={columns}
+            data={filtered}
+            sortable
+            emptyMessage="No items to show."
+          />
+        )
+        : filtered.length === 0
+          ? <p className="text-sm text-muted-foreground">No items to show.</p>
+          : (
+            <ul className="space-y-2">
+              {filtered.map(item => (
+                <li key={item.id}>
+                  <ReviewRow item={item} />
+                </li>
+              ))}
+            </ul>
+          )}
+
+      <Dialog
+        open={editingItem !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditingItem(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit candidate</DialogTitle>
+          </DialogHeader>
+          {editingItem
+            ? (
+              <ReviewRowEditor
+                item={editingItem}
+                onDone={() => setEditingItem(null)}
+              />
+            )
+            : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
