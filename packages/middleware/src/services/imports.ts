@@ -1084,6 +1084,7 @@ export async function recheckPendingItemsAgainstBlacklist(): Promise<RecheckPend
 
   return {
     blocked: blacklistMatchedIds.length + ruleBlockedIds.length,
+    rejected: toRejectIds.length,
   };
 }
 

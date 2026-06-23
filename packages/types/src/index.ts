@@ -1055,8 +1055,10 @@ export interface RejectPendingItemsResult {
 
 /** Outcome of the Inbox "recheck pending against the block list" bulk action. */
 export interface RecheckPendingItemsResult {
-  /** Number of pending import items that matched the block list and were moved to `blocked`. */
+  /** Number of pending import items that matched the block list or a block rule and were moved to `blocked`. */
   blocked: number;
+  /** Number of pending import items that matched a reject rule and were moved to `rejected`. */
+  rejected: number;
 }
 
 /** Counts of orphaned records eligible for the Advanced "clean up orphaned items" sweep. */
