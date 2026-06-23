@@ -9,6 +9,7 @@ import {
   Link2,
   Monitor,
   PanelRight,
+  Puzzle,
   SlidersHorizontal,
   Tags,
   Wand2,
@@ -76,6 +77,12 @@ const SETTINGS_TILES = [
     description: "Manage the imports blacklist and clear processed inbox items.",
     icon: Inbox,
     to: "/settings/imports" as const,
+  },
+  {
+    label: "Extension",
+    description: "Install a bookmarklet to save the current page.",
+    icon: Puzzle,
+    to: "/settings/extension" as const,
   },
   {
     label: "Categories",

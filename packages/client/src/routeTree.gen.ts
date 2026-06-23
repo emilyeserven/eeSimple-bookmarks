@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TagsRouteImport } from './routes/tags'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as QuickAddRouteImport } from './routes/quick-add'
 import { Route as InboxRouteImport } from './routes/inbox'
 import { Route as CustomPropertiesRouteImport } from './routes/custom-properties'
 import { Route as CategoriesRouteImport } from './routes/categories'
@@ -45,6 +46,7 @@ import { Route as SettingsLinkParsingRouteImport } from './routes/settings.link-
 import { Route as SettingsImportsRouteImport } from './routes/settings.imports'
 import { Route as SettingsHomepageRouteImport } from './routes/settings.homepage'
 import { Route as SettingsGalleryRouteImport } from './routes/settings.gallery'
+import { Route as SettingsExtensionRouteImport } from './routes/settings.extension'
 import { Route as SettingsDisplayRouteImport } from './routes/settings.display'
 import { Route as SettingsCustomPropertiesRouteImport } from './routes/settings.custom-properties'
 import { Route as SettingsCardDisplayRulesRouteImport } from './routes/settings.card-display-rules'
@@ -195,6 +197,11 @@ const TagsRoute = TagsRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuickAddRoute = QuickAddRouteImport.update({
+  id: '/quick-add',
+  path: '/quick-add',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InboxRoute = InboxRouteImport.update({
@@ -369,6 +376,11 @@ const SettingsHomepageRoute = SettingsHomepageRouteImport.update({
 const SettingsGalleryRoute = SettingsGalleryRouteImport.update({
   id: '/gallery',
   path: '/gallery',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsExtensionRoute = SettingsExtensionRouteImport.update({
+  id: '/extension',
+  path: '/extension',
   getParentRoute: () => SettingsRoute,
 } as any)
 const SettingsDisplayRoute = SettingsDisplayRouteImport.update({
@@ -1196,6 +1208,7 @@ export interface FileRoutesByFullPath {
   '/categories': typeof CategoriesRouteWithChildren
   '/custom-properties': typeof CustomPropertiesRouteWithChildren
   '/inbox': typeof InboxRouteWithChildren
+  '/quick-add': typeof QuickAddRoute
   '/settings': typeof SettingsRouteWithChildren
   '/tags': typeof TagsRouteWithChildren
   '/autofill/$ruleSlug': typeof AutofillRuleSlugViewRouteWithChildren
@@ -1210,6 +1223,7 @@ export interface FileRoutesByFullPath {
   '/settings/card-display-rules': typeof SettingsCardDisplayRulesRoute
   '/settings/custom-properties': typeof SettingsCustomPropertiesRoute
   '/settings/display': typeof SettingsDisplayRoute
+  '/settings/extension': typeof SettingsExtensionRoute
   '/settings/gallery': typeof SettingsGalleryRoute
   '/settings/homepage': typeof SettingsHomepageRoute
   '/settings/imports': typeof SettingsImportsRoute
@@ -1360,6 +1374,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/quick-add': typeof QuickAddRoute
   '/custom-properties/new': typeof CustomPropertiesNewRoute
   '/inbox/new': typeof InboxNewRoute
   '/settings/advanced': typeof SettingsAdvancedRoute
@@ -1368,6 +1383,7 @@ export interface FileRoutesByTo {
   '/settings/card-display-rules': typeof SettingsCardDisplayRulesRoute
   '/settings/custom-properties': typeof SettingsCustomPropertiesRoute
   '/settings/display': typeof SettingsDisplayRoute
+  '/settings/extension': typeof SettingsExtensionRoute
   '/settings/gallery': typeof SettingsGalleryRoute
   '/settings/homepage': typeof SettingsHomepageRoute
   '/settings/imports': typeof SettingsImportsRoute
@@ -1500,6 +1516,7 @@ export interface FileRoutesById {
   '/categories': typeof CategoriesRouteWithChildren
   '/custom-properties': typeof CustomPropertiesRouteWithChildren
   '/inbox': typeof InboxRouteWithChildren
+  '/quick-add': typeof QuickAddRoute
   '/settings': typeof SettingsRouteWithChildren
   '/tags': typeof TagsRouteWithChildren
   '/autofill/$ruleSlug': typeof AutofillRuleSlugRouteWithChildren
@@ -1514,6 +1531,7 @@ export interface FileRoutesById {
   '/settings/card-display-rules': typeof SettingsCardDisplayRulesRoute
   '/settings/custom-properties': typeof SettingsCustomPropertiesRoute
   '/settings/display': typeof SettingsDisplayRoute
+  '/settings/extension': typeof SettingsExtensionRoute
   '/settings/gallery': typeof SettingsGalleryRoute
   '/settings/homepage': typeof SettingsHomepageRoute
   '/settings/imports': typeof SettingsImportsRoute
@@ -1681,6 +1699,7 @@ export interface FileRouteTypes {
     | '/categories'
     | '/custom-properties'
     | '/inbox'
+    | '/quick-add'
     | '/settings'
     | '/tags'
     | '/autofill/$ruleSlug'
@@ -1695,6 +1714,7 @@ export interface FileRouteTypes {
     | '/settings/card-display-rules'
     | '/settings/custom-properties'
     | '/settings/display'
+    | '/settings/extension'
     | '/settings/gallery'
     | '/settings/homepage'
     | '/settings/imports'
@@ -1845,6 +1865,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/quick-add'
     | '/custom-properties/new'
     | '/inbox/new'
     | '/settings/advanced'
@@ -1853,6 +1874,7 @@ export interface FileRouteTypes {
     | '/settings/card-display-rules'
     | '/settings/custom-properties'
     | '/settings/display'
+    | '/settings/extension'
     | '/settings/gallery'
     | '/settings/homepage'
     | '/settings/imports'
@@ -1984,6 +2006,7 @@ export interface FileRouteTypes {
     | '/categories'
     | '/custom-properties'
     | '/inbox'
+    | '/quick-add'
     | '/settings'
     | '/tags'
     | '/autofill/$ruleSlug'
@@ -1998,6 +2021,7 @@ export interface FileRouteTypes {
     | '/settings/card-display-rules'
     | '/settings/custom-properties'
     | '/settings/display'
+    | '/settings/extension'
     | '/settings/gallery'
     | '/settings/homepage'
     | '/settings/imports'
@@ -2164,6 +2188,7 @@ export interface RootRouteChildren {
   CategoriesRoute: typeof CategoriesRouteWithChildren
   CustomPropertiesRoute: typeof CustomPropertiesRouteWithChildren
   InboxRoute: typeof InboxRouteWithChildren
+  QuickAddRoute: typeof QuickAddRoute
   SettingsRoute: typeof SettingsRouteWithChildren
   TagsRoute: typeof TagsRouteWithChildren
   TaxonomiesMediaTypesRoute: typeof TaxonomiesMediaTypesRouteWithChildren
@@ -2188,6 +2213,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quick-add': {
+      id: '/quick-add'
+      path: '/quick-add'
+      fullPath: '/quick-add'
+      preLoaderRoute: typeof QuickAddRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/inbox': {
@@ -2426,6 +2458,13 @@ declare module '@tanstack/react-router' {
       path: '/gallery'
       fullPath: '/settings/gallery'
       preLoaderRoute: typeof SettingsGalleryRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/extension': {
+      id: '/settings/extension'
+      path: '/extension'
+      fullPath: '/settings/extension'
+      preLoaderRoute: typeof SettingsExtensionRouteImport
       parentRoute: typeof SettingsRoute
     }
     '/settings/display': {
@@ -3748,6 +3787,7 @@ interface SettingsRouteChildren {
   SettingsCardDisplayRulesRoute: typeof SettingsCardDisplayRulesRoute
   SettingsCustomPropertiesRoute: typeof SettingsCustomPropertiesRoute
   SettingsDisplayRoute: typeof SettingsDisplayRoute
+  SettingsExtensionRoute: typeof SettingsExtensionRoute
   SettingsGalleryRoute: typeof SettingsGalleryRoute
   SettingsHomepageRoute: typeof SettingsHomepageRoute
   SettingsImportsRoute: typeof SettingsImportsRoute
@@ -3772,6 +3812,7 @@ const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsCardDisplayRulesRoute: SettingsCardDisplayRulesRoute,
   SettingsCustomPropertiesRoute: SettingsCustomPropertiesRoute,
   SettingsDisplayRoute: SettingsDisplayRoute,
+  SettingsExtensionRoute: SettingsExtensionRoute,
   SettingsGalleryRoute: SettingsGalleryRoute,
   SettingsHomepageRoute: SettingsHomepageRoute,
   SettingsImportsRoute: SettingsImportsRoute,
@@ -4342,6 +4383,7 @@ const rootRouteChildren: RootRouteChildren = {
   CategoriesRoute: CategoriesRouteWithChildren,
   CustomPropertiesRoute: CustomPropertiesRouteWithChildren,
   InboxRoute: InboxRouteWithChildren,
+  QuickAddRoute: QuickAddRoute,
   SettingsRoute: SettingsRouteWithChildren,
   TagsRoute: TagsRouteWithChildren,
   TaxonomiesMediaTypesRoute: TaxonomiesMediaTypesRouteWithChildren,
