@@ -1,18 +1,29 @@
 import type {
+  ImportApproveResult,
   ImportItem,
   InboxItem,
 } from "@eesimple/types";
 
 import { useState } from "react";
 
-import { ChevronDown, ExternalLink, ShieldBan, Trash2 } from "lucide-react";
+import { ChevronDown, ExternalLink, Trash2 } from "lucide-react";
 
 import { ViewModeToggle } from "./DisplayControlPrimitives";
-import { RowActions, StatusBadge } from "./InboxRowActions";
+import {
+  MobileMoreMenu,
+  RowActions,
+  StatusBadge,
+} from "./InboxRowActions";
 import { formatAdded } from "./tables/inboxColumns";
 import { useInboxReviewController } from "./useInboxReviewController";
+import { useIsMobile } from "../hooks/use-mobile";
 import { useCategories } from "../hooks/useCategories";
-import { useUpdateImportItem } from "../hooks/useImports";
+import {
+  useApproveImportItem,
+  useRejectImportItem,
+  useUpdateImportItem,
+} from "../hooks/useImports";
+import { useSwipeGesture } from "../hooks/useSwipeGesture";
 import { highlightAnchor } from "../lib/newsletterContext";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
@@ -31,6 +42,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -43,6 +61,12 @@ import { Textarea } from "@/components/ui/textarea";
 
 /** Sentinel for the "no category" Select option (Radix forbids an empty-string item value). */
 const NO_CATEGORY = "__none__";
+
+function notifyApprove(result: ImportApproveResult): void {
+  if (result.status === "approved") notifySuccess("Bookmark added");
+  else if (result.status === "duplicate") notifyError(result.message ?? "Already saved as a bookmark");
+  else if (result.status === "error") notifyError(result.message ?? "Couldn't add bookmark");
+}
 
 /** The expanded edit form for one candidate (url/title/description/category). Owns its own draft. */
 function ReviewRowEditor({
@@ -159,6 +183,19 @@ function ReviewRow({
   } = useCategories();
   const [editing, setEditing] = useState(false);
   const [contextOpen, setContextOpen] = useState(false);
+  const isMobile = useIsMobile();
+  const approve = useApproveImportItem();
+  const reject = useRejectImportItem();
+  const {
+    displacement, onTouchStart, onTouchMove, onTouchEnd,
+  } = useSwipeGesture(
+    () => approve.mutate(item.id, {
+      onSuccess: notifyApprove,
+    }),
+    () => reject.mutate(item.id, {
+      onSuccess: () => notifySuccess("Rejected link"),
+    }),
+  );
 
   const muted = item.status === "rejected" || item.status === "approved"
     || item.status === "duplicate" || item.status === "blocked";
@@ -170,6 +207,179 @@ function ReviewRow({
         item={item}
         onDone={() => setEditing(false)}
       />
+    );
+  }
+
+  if (isMobile && item.status === "pending") {
+    const swipeRight = displacement >= 80;
+    const swipeLeft = displacement <= -80;
+
+    return (
+      <div
+        className="relative overflow-hidden rounded-lg"
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
+        <div
+          className={`
+            absolute inset-0 transition-colors
+            ${swipeRight ? "bg-green-500/20" : swipeLeft ? "bg-red-500/20" : ""}
+          `}
+        />
+        <RowCard
+          className="relative z-10 p-4"
+          style={{
+            transform: `translateX(${displacement}px)`,
+            transition: displacement === 0 ? "transform 0.2s ease" : "none",
+          }}
+        >
+          <div
+            className="mb-2 flex justify-between text-xs text-muted-foreground"
+          >
+            <span className={swipeLeft ? "font-medium text-red-500" : ""}>← Reject</span>
+            <span className={swipeRight ? "font-medium text-green-500" : ""}>Accept →</span>
+          </div>
+
+          <div className="flex items-start gap-3">
+            {item.imageUrl
+              ? (
+                <img
+                  src={item.imageUrl}
+                  alt=""
+                  className="size-12 shrink-0 rounded-sm object-cover"
+                />
+              )
+              : null}
+            <div className="min-w-0 flex-1 space-y-1">
+              <div className="flex items-start gap-2">
+                <p className="min-w-0 font-medium wrap-break-word">{item.title || item.anchorText || item.url || item.rawUrl}</p>
+                <StatusBadge item={item} />
+                {item.markedForDeletion
+                  ? (
+                    <Badge
+                      variant="outline"
+                      className="gap-1 text-muted-foreground"
+                    >
+                      <Trash2 className="size-3" />
+                      Will be deleted
+                    </Badge>
+                  )
+                  : null}
+              </div>
+              {item.sourceLabel
+                ? <p className="text-xs text-muted-foreground/70">From {item.sourceLabel}</p>
+                : null}
+              <p className="text-xs text-muted-foreground/70">Added {formatAdded(item.createdAt)}</p>
+              {item.url
+                ? (
+                  <a
+                    href={item.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="
+                      flex items-start gap-1 text-sm text-muted-foreground
+                      hover:underline
+                    "
+                  >
+                    <ExternalLink className="mt-0.5 size-3 shrink-0" />
+                    <span className="min-w-0 break-all">{item.url}</span>
+                  </a>
+                )
+                : null}
+              {item.url && item.rawUrl !== item.url
+                ? <p className="text-xs break-all text-muted-foreground/70">via {item.rawUrl}</p>
+                : null}
+              {categoryName
+                ? <p className="text-xs text-muted-foreground">Category: {categoryName}</p>
+                : null}
+              {item.description
+                ? (
+                  <p
+                    className={`
+                      text-sm text-muted-foreground
+                      ${contextOpen ? "" : "line-clamp-2"}
+                    `}
+                  >
+                    {item.description}
+                  </p>
+                )
+                : null}
+              {item.newsletterContext
+                ? (
+                  <Collapsible
+                    open={contextOpen}
+                    onOpenChange={setContextOpen}
+                  >
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="
+                          -ml-2 h-auto gap-1 px-2 py-1 text-xs
+                          text-muted-foreground
+                        "
+                      >
+                        <ChevronDown
+                          className={`
+                            size-3 transition-transform
+                            ${contextOpen ? "rotate-180" : ""}
+                          `}
+                        />
+                        Context
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent
+                      className="
+                        mt-1 rounded-md bg-muted/40 p-2 text-xs
+                        whitespace-pre-line text-muted-foreground
+                      "
+                    >
+                      {highlightAnchor(item.newsletterContext, item.anchorText).map((segment, index) =>
+                        segment.bold
+                          ? (
+                            <strong
+                              key={index}
+                              className="font-semibold text-foreground"
+                            >
+                              {segment.text}
+                            </strong>
+                          )
+                          : <span key={index}>{segment.text}</span>)}
+                    </CollapsibleContent>
+                  </Collapsible>
+                )
+                : null}
+            </div>
+            <MobileMoreMenu
+              item={item}
+              onEdit={() => setEditing(true)}
+            />
+          </div>
+
+          <div className="mt-3 flex gap-2">
+            <Button
+              className="flex-1"
+              variant="outline"
+              disabled={reject.isPending}
+              onClick={() => reject.mutate(item.id, {
+                onSuccess: () => notifySuccess("Rejected link"),
+              })}
+            >
+              Reject
+            </Button>
+            <Button
+              className="flex-1"
+              disabled={approve.isPending}
+              onClick={() => approve.mutate(item.id, {
+                onSuccess: notifyApprove,
+              })}
+            >
+              Accept
+            </Button>
+          </div>
+        </RowCard>
+      </div>
     );
   }
 
@@ -353,41 +563,44 @@ export function InboxReviewList({
             onChange={mode => setViewMode("inbox", mode)}
           />
         </div>
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={onRecheckBlocklist}
-            disabled={bulkRunning || recheckPendingIsPending || pendingCount === 0}
-          >
-            <ShieldBan className="size-4" />
-            {recheckPendingIsPending ? "Rechecking…" : `Recheck block list (${pendingCount})`}
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={onDeleteRejected}
-            disabled={bulkRunning || deleteRejectedIsPending || rejectedCount === 0}
-          >
-            <Trash2 className="size-4" />
-            {deleteRejectedIsPending ? "Deleting…" : `Delete all rejected (${rejectedCount})`}
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={onRejectAll}
-            disabled={bulkRunning || rejectPendingIsPending || pendingCount === 0}
-          >
-            {rejectPendingIsPending ? "Rejecting…" : `Reject all pending (${pendingCount})`}
-          </Button>
-          <Button
-            size="sm"
-            onClick={onApproveAll}
-            disabled={bulkRunning || rejectPendingIsPending || pendingCount === 0}
-          >
-            {bulkRunning ? "Approving…" : `Approve all pending (${pendingCount})`}
-          </Button>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              size="sm"
+              variant="outline"
+            >
+              Bulk Actions
+              <ChevronDown className="size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              disabled={pendingCount === 0 || bulkRunning || rejectPendingIsPending}
+              onClick={onApproveAll}
+            >
+              {bulkRunning ? "Approving…" : `Approve all pending (${pendingCount})`}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              disabled={pendingCount === 0 || rejectPendingIsPending || bulkRunning}
+              onClick={onRejectAll}
+            >
+              {rejectPendingIsPending ? "Rejecting…" : `Reject all pending (${pendingCount})`}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              disabled={rejectedCount === 0 || deleteRejectedIsPending}
+              onClick={onDeleteRejected}
+            >
+              {deleteRejectedIsPending ? "Deleting…" : `Delete all rejected (${rejectedCount})`}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              disabled={pendingCount === 0 || recheckPendingIsPending || bulkRunning}
+              onClick={onRecheckBlocklist}
+            >
+              {recheckPendingIsPending ? "Rechecking…" : `Recheck block list (${pendingCount})`}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {viewMode === "table"
