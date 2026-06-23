@@ -50,6 +50,7 @@ import type {
   HomepageContentSettings,
   HomepageSection,
   HomepageSectionBookmarks,
+  ActiveImport,
   BlockImportItemInput,
   Import,
   ImportApproveResult,
@@ -233,6 +234,8 @@ export const importApi = {
     return uploadImageFile<Import>(`/imports/ingest/upload${qs ? `?${qs}` : ""}`, file);
   },
   listImports: () => request<ImportSummary[]>("/imports"),
+  /** Imports currently in flight (queued/processing) with live progress, for the header indicator. */
+  listActive: () => request<ActiveImport[]>("/imports/active"),
   getImport: (id: string) => request<Import>(`/imports/${id}`),
   /** All import items across all imports, for the Inbox review queue. */
   listInboxItems: () => request<InboxItem[]>("/imports/items"),

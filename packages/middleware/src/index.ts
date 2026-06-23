@@ -7,6 +7,7 @@ import { backfillCardDisplayRuleFieldZones, backfillCardDisplayRuleHeaderFields,
 import { ensureDefaultCategory } from "@/services/categories";
 import { backfillCustomPropertySlugs, ensureDatePostedProperty, ensureRuntimeProperty } from "@/services/customProperties";
 import { ensureHomepageFilter } from "@/services/homepageFilter";
+import { resetStalledImports } from "@/services/imports";
 import { backfillImageCropModes, ensureHomepageSections } from "@/services/homepageSections";
 import { backfillMediaTypeSlugs, ensureBuiltInMediaTypes } from "@/services/mediaTypes";
 import { backfillPropertyGroupSlugs } from "@/services/propertyGroups";
@@ -70,6 +71,8 @@ try {
   await backfillCardDisplayRuleSubZones();
   await backfillCardDisplayRuleHeaderFields();
   await backfillCardDisplayRuleZoneLayouts();
+  // A restart abandons any in-process import worker, so fail anything left queued/processing.
+  await resetStalledImports();
   // Create the image bucket if storage is configured; harmless when it already exists.
   if (isObjectStoreConfigured()) await ensureBucket();
 }

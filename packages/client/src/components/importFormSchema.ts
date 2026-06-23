@@ -25,7 +25,7 @@ export const importFormSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["pastedContent"],
-        message: "Paste some newsletter content.",
+        message: "Paste some content.",
       });
     }
     if (value.source === "url") {

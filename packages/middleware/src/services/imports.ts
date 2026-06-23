@@ -11,11 +11,13 @@
 
 import { and, asc, desc, eq, inArray, or } from "drizzle-orm";
 import type {
+  ActiveImport,
   ImportApproveResult,
   ImportBlacklistEntry,
   ImportItem,
   ImportItemStatus,
   ImportSource,
+  ImportStatus,
   ImportSummary,
   InboxItem,
   Import as ImportRecord,
@@ -34,7 +36,9 @@ import {
 } from "@/db/schema";
 import { addImportBlacklistEntry, getImportBlacklist, getShortenerIgnoreList } from "@/services/appSettings";
 import { checkBookmarkUrlDuplicate, createBookmark, DuplicateUrlError } from "@/services/bookmarks";
+import { enqueueImportJob } from "@/services/importQueue";
 import {
+  extractArticleBody,
   extractCandidates,
   extractEmlHtml,
   filterAndDedupe,
@@ -45,6 +49,7 @@ import {
   extractDescription,
   extractImageUrl,
   extractTitle,
+  fetchBodyHtmlResult,
   fetchHeadHtml,
   isPublicHttpUrl,
 } from "@/services/metadata";
@@ -69,11 +74,14 @@ const STATUS_KEYS: ImportItemStatus[] = [
   "blocked",
 ];
 
-/** What `ingestImport` needs, regardless of which entry point produced it. */
+/** What the ingest pipeline needs, regardless of which entry point produced it. */
 export interface IngestInput {
   source: ImportSource;
-  /** Raw content (HTML or text). For `.eml` the caller extracts the HTML first. */
+  /** Raw content (HTML or text). For `.eml` the caller extracts the HTML first. Empty for `url`
+   * imports until the worker fetches `fetchUrl`. */
   content: string;
+  /** For `source === "url"`: the public page to fetch in the background worker (off the request path). */
+  fetchUrl?: string | null;
   kind: "html" | "text" | "auto";
   /** Explicit/parsed import label (e.g. a provided title or an `.eml` Subject); wins over parsing. */
   title?: string | null;
@@ -228,88 +236,196 @@ async function enrichCandidate(
   };
 }
 
+/** How often (every Nth enriched link) the worker flushes `processedCount` to the DB. */
+const PROGRESS_FLUSH_EVERY = 3;
+
+/** Mark an import as failed with a human-readable reason (best-effort; never throws). */
+async function markImportFailed(importId: string, reason: string): Promise<void> {
+  await db
+    .update(imports)
+    .set({
+      status: "failed",
+      errorReason: reason,
+    })
+    .where(eq(imports.id, importId));
+}
+
 /**
- * Run the full ingest pipeline for one import: extract → unwrap → canonicalize → dedupe →
- * pre-mark duplicates → enrich → persist. Returns the created import with its items.
+ * Create the `imports` row immediately with `status === "queued"` and no items, returning the queued
+ * record so the request can respond instantly. The links are extracted later by `processImport` on
+ * the background queue (see `queueImport`).
  */
-export async function ingestImport(input: IngestInput): Promise<ImportRecord> {
-  const candidates = filterAndDedupe(extractCandidates(input.content, input.kind));
-  const [websites, ignoreList, blacklist] = await Promise.all([
-    listWebsites(),
-    getShortenerIgnoreList(),
-    getImportBlacklist(),
-  ]);
-  const data = {
-    mode: "trackers" as const,
-    websites,
-    ignoreList,
-  };
-
-  const resolvedAll = await mapWithConcurrency(
-    candidates,
-    FETCH_CONCURRENCY,
-    candidate => resolveCandidate(candidate, data),
-  );
-  // Drop blacklisted links AND static-asset destinations (font/image files) AFTER resolution, so a
-  // tracker-wrapped link is unwrapped to its real target first — the wrapper's path never ends in
-  // `.woff`/`.png`, only the destination does. Dropped links are never staged, so they vanish from
-  // future imports.
-  const resolved = dedupeResolved(
-    resolvedAll.filter(
-      item => item.url === null || (!isBlacklisted(item.url, blacklist) && !isAssetUrl(item.url)),
-    ),
-  );
-
-  const flagged = await Promise.all(resolved.map(withDuplicateFlag));
-
-  // Always enrich: fetch each candidate's title/description/preview so the review queue and the
-  // created bookmarks have them without an opt-in step.
-  const enriched = await mapWithConcurrency(
-    flagged,
-    ENRICH_CONCURRENCY,
-    entry => enrichCandidate(entry.item),
-  );
-
-  // Import label: an explicit/parsed title wins, then a title parsed from the source HTML
-  // (og:title/<title>), then the URL/filename fallback.
-  const parsedTitle = input.title == null && input.kind !== "text" ? extractTitle(input.content) : null;
+export async function createQueuedImport(input: IngestInput): Promise<ImportRecord> {
+  // Provisional label: an explicit/parsed title, then a title parsed from any content we already have
+  // (paste/upload), then the URL/filename fallback. `url` imports refine this once the page is fetched.
+  const parsedTitle = input.title == null && input.kind !== "text" && input.content
+    ? extractTitle(input.content)
+    : null;
   const title = input.title ?? parsedTitle ?? input.titleFallback ?? null;
+  const [importRow] = await db
+    .insert(imports)
+    .values({
+      source: input.source,
+      title,
+      sourceUrl: input.sourceUrl ?? null,
+      newsletterId: input.newsletterId ?? null,
+      defaultCategoryId: input.defaultCategoryId ?? null,
+      status: "queued",
+    })
+    .returning({
+      id: imports.id,
+    });
+  return (await getImport(importRow!.id))!;
+}
 
-  const importId = await db.transaction(async (tx) => {
-    const [importRow] = await tx
-      .insert(imports)
-      .values({
-        source: input.source,
-        title,
-        sourceUrl: input.sourceUrl ?? null,
-        newsletterId: input.newsletterId ?? null,
-        defaultCategoryId: input.defaultCategoryId ?? null,
+/**
+ * Run the full ingest pipeline for one queued import: (fetch for `url`) → extract → unwrap →
+ * canonicalize → dedupe → pre-mark duplicates → enrich → persist, advancing the import's
+ * `status`/`totalCount`/`processedCount` as it goes. Records its own failure (`status === "failed"`)
+ * rather than throwing — it runs detached on the background queue.
+ */
+export async function processImport(importId: string, input: IngestInput): Promise<void> {
+  try {
+    await db
+      .update(imports)
+      .set({
+        status: "processing",
       })
-      .returning({
-        id: imports.id,
-      });
-    const id = importRow!.id;
-    if (flagged.length > 0) {
-      await tx.insert(importItems).values(
-        flagged.map((entry, i) => ({
-          importId: id,
-          url: entry.item.url,
-          rawUrl: entry.item.rawUrl,
-          title: enriched[i]!.title,
-          description: enriched[i]!.description,
-          imageUrl: enriched[i]!.imageUrl,
-          newsletterContext: entry.item.context,
-          anchorText: entry.item.anchorText || null,
-          status: entry.item.status,
-          duplicateBookmarkId: entry.duplicateBookmarkId,
-          errorReason: entry.item.errorReason,
-        })),
-      );
-    }
-    return id;
-  });
+      .where(eq(imports.id, importId));
 
-  return (await getImport(importId))!;
+    // For a `url` import, fetch the page now — off the request path — so a slow/blocking server never
+    // holds the user's submit open.
+    let content = input.content;
+    if (input.source === "url" && input.fetchUrl) {
+      const result = await fetchBodyHtmlResult(input.fetchUrl, /<\/body>/i);
+      if (result.kind !== "ok") {
+        await markImportFailed(importId, `Could not fetch that page (${result.kind}).`);
+        return;
+      }
+      content = result.html;
+      // Now that we have the page, refine the import label from its <title>/og:title.
+      const refined = input.title ?? extractTitle(content) ?? input.titleFallback ?? null;
+      if (refined) {
+        await db.update(imports).set({
+          title: refined,
+        }).where(eq(imports.id, importId));
+      }
+    }
+
+    // Scope link extraction to the main article body when present (a full webpage), so site
+    // nav/sidebar/footer/related-posts links are dropped; fall back to the whole document when no
+    // article region is found (a newsletter email — unchanged behavior).
+    const scoped = input.kind !== "text" ? (extractArticleBody(content) ?? content) : content;
+    const candidates = filterAndDedupe(extractCandidates(scoped, input.kind));
+    await db
+      .update(imports)
+      .set({
+        totalCount: candidates.length,
+        processedCount: 0,
+      })
+      .where(eq(imports.id, importId));
+
+    const [websites, ignoreList, blacklist] = await Promise.all([
+      listWebsites(),
+      getShortenerIgnoreList(),
+      getImportBlacklist(),
+    ]);
+    const data = {
+      mode: "trackers" as const,
+      websites,
+      ignoreList,
+    };
+
+    const resolvedAll = await mapWithConcurrency(
+      candidates,
+      FETCH_CONCURRENCY,
+      candidate => resolveCandidate(candidate, data),
+    );
+    // Drop blacklisted links AND static-asset destinations (font/image files) AFTER resolution, so a
+    // tracker-wrapped link is unwrapped to its real target first — the wrapper's path never ends in
+    // `.woff`/`.png`, only the destination does. Dropped links are never staged, so they vanish from
+    // future imports.
+    const resolved = dedupeResolved(
+      resolvedAll.filter(
+        item => item.url === null || (!isBlacklisted(item.url, blacklist) && !isAssetUrl(item.url)),
+      ),
+    );
+
+    const flagged = await Promise.all(resolved.map(withDuplicateFlag));
+    // Refine the progress denominator to the real number of items now that dedupe/filtering is done.
+    await db
+      .update(imports)
+      .set({
+        totalCount: flagged.length,
+      })
+      .where(eq(imports.id, importId));
+
+    // Always enrich: fetch each candidate's title/description/preview so the review queue and the
+    // created bookmarks have them without an opt-in step. Advance `processedCount` as we go (throttled).
+    let processed = 0;
+    const enriched = await mapWithConcurrency(
+      flagged,
+      ENRICH_CONCURRENCY,
+      async (entry) => {
+        const out = await enrichCandidate(entry.item);
+        processed += 1;
+        if (processed === flagged.length || processed % PROGRESS_FLUSH_EVERY === 0) {
+          // Best-effort progress write — a transient failure here must not fail the whole import
+          // (the final count is set authoritatively in the persist transaction below).
+          try {
+            await db.update(imports).set({
+              processedCount: processed,
+            }).where(eq(imports.id, importId));
+          }
+          catch {
+            // Ignore; progress is advisory.
+          }
+        }
+        return out;
+      },
+    );
+
+    await db.transaction(async (tx) => {
+      if (flagged.length > 0) {
+        await tx.insert(importItems).values(
+          flagged.map((entry, i) => ({
+            importId,
+            url: entry.item.url,
+            rawUrl: entry.item.rawUrl,
+            title: enriched[i]!.title,
+            description: enriched[i]!.description,
+            imageUrl: enriched[i]!.imageUrl,
+            newsletterContext: entry.item.context,
+            anchorText: entry.item.anchorText || null,
+            status: entry.item.status,
+            duplicateBookmarkId: entry.duplicateBookmarkId,
+            errorReason: entry.item.errorReason,
+          })),
+        );
+      }
+      await tx
+        .update(imports)
+        .set({
+          status: "complete",
+          processedCount: flagged.length,
+        })
+        .where(eq(imports.id, importId));
+    });
+  }
+  catch (err) {
+    await markImportFailed(importId, err instanceof Error ? err.message : String(err));
+  }
+}
+
+/**
+ * Create a queued import and enqueue its background processing, returning the queued record at once.
+ * The route responds immediately; the Inbox fills as the worker (`processImport`) runs. This is the
+ * single entry point the ingest routes call.
+ */
+export async function queueImport(input: IngestInput): Promise<ImportRecord> {
+  const record = await createQueuedImport(input);
+  enqueueImportJob(() => processImport(record.id, input));
+  return record;
 }
 
 /**
@@ -372,6 +488,10 @@ function summarize(importRow: ImportRow, items: ImportItemRow[]): ImportSummary 
     newsletterId: importRow.newsletterId,
     defaultCategoryId: importRow.defaultCategoryId,
     createdAt: isoOf(importRow.createdAt),
+    status: importRow.status as ImportStatus | null,
+    totalCount: importRow.totalCount,
+    processedCount: importRow.processedCount,
+    errorReason: importRow.errorReason,
     itemCount: items.length,
     statusCounts,
   };
@@ -397,6 +517,54 @@ export async function listImports(): Promise<ImportSummary[]> {
   return importRows
     .map(row => summarize(row, (byImport.get(row.id) ?? []) as ImportItemRow[]))
     .sort((a, b) => (a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0));
+}
+
+/**
+ * List the imports currently in flight (`queued`/`processing`), newest first, with live progress.
+ * Powers the header progress indicator, which polls this endpoint while any import is active.
+ */
+export async function listActiveImports(): Promise<ActiveImport[]> {
+  const rows = await db
+    .select({
+      id: imports.id,
+      source: imports.source,
+      title: imports.title,
+      sourceUrl: imports.sourceUrl,
+      status: imports.status,
+      totalCount: imports.totalCount,
+      processedCount: imports.processedCount,
+      newsletterName: newsletters.name,
+    })
+    .from(imports)
+    .leftJoin(newsletters, eq(imports.newsletterId, newsletters.id))
+    .where(inArray(imports.status, ["queued", "processing"]))
+    .orderBy(desc(imports.createdAt));
+  return rows.map(row => ({
+    id: row.id,
+    source: row.source as ImportSource,
+    sourceLabel: row.newsletterName ?? row.title ?? row.sourceUrl ?? null,
+    status: row.status as ImportStatus,
+    totalCount: row.totalCount,
+    processedCount: row.processedCount,
+  }));
+}
+
+/**
+ * Mark any import left `queued`/`processing` as `failed` on boot — a restart abandons the in-process
+ * worker, so those rows can never finish on their own. Idempotent; safe to run every boot.
+ */
+export async function resetStalledImports(): Promise<number> {
+  const rows = await db
+    .update(imports)
+    .set({
+      status: "failed",
+      errorReason: "Import interrupted by a server restart.",
+    })
+    .where(inArray(imports.status, ["queued", "processing"]))
+    .returning({
+      id: imports.id,
+    });
+  return rows.length;
 }
 
 /**
@@ -508,6 +676,10 @@ export async function getImport(id: string): Promise<ImportRecord | null> {
     newsletterId: importRow.newsletterId,
     defaultCategoryId: importRow.defaultCategoryId,
     createdAt: isoOf(importRow.createdAt),
+    status: importRow.status as ImportStatus | null,
+    totalCount: importRow.totalCount,
+    processedCount: importRow.processedCount,
+    errorReason: importRow.errorReason,
     items: itemRows.map(toItem),
   };
 }

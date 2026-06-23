@@ -854,6 +854,17 @@ export type ImportSource = "paste" | "url" | "upload";
 export type ImportItemStatus
   = "pending" | "approved" | "rejected" | "duplicate" | "error" | "blocked";
 
+/**
+ * Processing status of a whole import as it moves through the background queue:
+ * - `queued` — created, waiting for the worker to pick it up.
+ * - `processing` — the worker is fetching/extracting/enriching its links.
+ * - `complete` — all links extracted and staged in the Inbox.
+ * - `failed` — the import errored (page fetch failed, etc.); see `errorReason`.
+ *
+ * Legacy imports created before queuing have `status === null` and are treated as `complete`.
+ */
+export type ImportStatus = "queued" | "processing" | "complete" | "failed";
+
 /** One extracted candidate article link within an import. */
 export interface ImportItem {
   id: string;
@@ -900,6 +911,14 @@ export interface Import {
   /** Default category applied to every link approved from this import (per-item override wins). */
   defaultCategoryId: string | null;
   createdAt: string;
+  /** Background-queue status; `null` for legacy imports created before queuing (treat as complete). */
+  status: ImportStatus | null;
+  /** Total links the worker will process (set once extraction completes), or `null` while queued. */
+  totalCount: number | null;
+  /** Links processed so far (advances during the enrich pass), or `null` while queued. */
+  processedCount: number | null;
+  /** Human-readable reason when `status === "failed"`. */
+  errorReason: string | null;
   items: ImportItem[];
 }
 
@@ -913,10 +932,35 @@ export interface ImportSummary {
   newsletterId: string | null;
   defaultCategoryId: string | null;
   createdAt: string;
+  /** Background-queue status; `null` for legacy imports (treat as complete). */
+  status: ImportStatus | null;
+  /** Total links the worker will process, or `null` while queued. */
+  totalCount: number | null;
+  /** Links processed so far, or `null` while queued. */
+  processedCount: number | null;
+  /** Human-readable reason when `status === "failed"`. */
+  errorReason: string | null;
   /** Total extracted items. */
   itemCount: number;
   /** Items by status. */
   statusCounts: Record<ImportItemStatus, number>;
+}
+
+/**
+ * A queued/in-flight import as surfaced by `GET /api/imports/active` — the minimal shape the header
+ * progress indicator needs: where it came from plus live progress. Dropped from the list once it
+ * reaches `complete`/`failed`.
+ */
+export interface ActiveImport {
+  id: string;
+  source: ImportSource;
+  /** A short human label for the source — the newsletter name, the import title, or the source URL. */
+  sourceLabel: string | null;
+  status: ImportStatus;
+  /** Total links to process, or `null` until extraction finishes. */
+  totalCount: number | null;
+  /** Links processed so far. */
+  processedCount: number | null;
 }
 
 /**

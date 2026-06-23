@@ -1026,6 +1026,16 @@ export const imports = pgTable("imports", {
   defaultCategoryId: uuid("default_category_id").references((): AnyPgColumn => categories.id, {
     onDelete: "set null",
   }),
+  // Background-queue status: "queued" | "processing" | "complete" | "failed". Text so new states
+  // need no migration (mirrors `source`). Nullable → push-safe additive; NULL = legacy import
+  // created before queuing, treated as complete.
+  status: text("status"),
+  // Live progress filled in by the worker: total links to process and how many are done. Nullable
+  // integers → push-safe additive, no migrate.ts step.
+  totalCount: integer("total_count"),
+  processedCount: integer("processed_count"),
+  // Free-text reason when status = "failed" (e.g. the page fetch failed).
+  errorReason: text("error_reason"),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
