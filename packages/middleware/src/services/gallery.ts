@@ -5,9 +5,9 @@
  */
 
 import type { DeleteOrphansResult, GalleryCatalog, GalleryScanResult, MediaObject } from "@eesimple/types";
-import { eq, inArray, lt } from "drizzle-orm";
+import { and, count, eq, inArray, isNull, lt } from "drizzle-orm";
 import { db } from "@/db";
-import { bookmarks, mediaObjects, type MediaObjectRow } from "@/db/schema";
+import { bookmarkImages, bookmarks, mediaObjects, type MediaObjectRow } from "@/db/schema";
 import { deleteObject, listObjects } from "@/utils/objectStore";
 
 /** The managed prefix all bookmark images live under; also guards the by-key serving route. */
@@ -87,6 +87,18 @@ function mediaObjectFromRow(
   };
 }
 
+/** Count bookmarks eligible for bulk auto-fetch: no existing image and no prior error. */
+export async function countEligibleForAutoFetch(): Promise<number> {
+  const [row] = await db
+    .select({
+      n: count(),
+    })
+    .from(bookmarks)
+    .leftJoin(bookmarkImages, eq(bookmarkImages.bookmarkId, bookmarks.id))
+    .where(and(isNull(bookmarkImages.bookmarkId), isNull(bookmarks.imageAutoGrabError)));
+  return row?.n ?? 0;
+}
+
 /** Read the manifest (joined to bookmarks) and split it into registered vs. orphaned objects. */
 export async function getCatalog(): Promise<GalleryCatalog> {
   const rows = await db
@@ -113,11 +125,13 @@ export async function getCatalog(): Promise<GalleryCatalog> {
 
   const rawQuota = process.env.STORAGE_QUOTA_BYTES;
   const storageQuotaBytes = rawQuota ? (parseInt(rawQuota, 10) || null) : null;
+  const pendingAutoFetchCount = await countEligibleForAutoFetch();
 
   return {
     registered,
     orphans,
     storageQuotaBytes,
+    pendingAutoFetchCount,
   };
 }
 

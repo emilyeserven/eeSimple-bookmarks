@@ -1,6 +1,7 @@
 import type {
   ActiveImport,
   BlockImportItemInput,
+  BulkAutoFetchResult,
   CreateNewsletterInput,
   DeleteOrphansResult,
   GalleryCatalog,
@@ -156,5 +157,9 @@ export const galleryApi = {
         key,
         bookmarkId,
       }),
+    }),
+  autoFetch: () =>
+    request<BulkAutoFetchResult>("/gallery/auto-fetch", {
+      method: "POST",
     }),
 };
