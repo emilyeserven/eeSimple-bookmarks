@@ -6,7 +6,7 @@ import type {
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { categoriesApi } from "../lib/api";
+import { categoriesApi } from "../lib/api/taxonomies";
 import { notifySuccess } from "../lib/notifications";
 
 const CATEGORIES_KEY = ["categories"] as const;

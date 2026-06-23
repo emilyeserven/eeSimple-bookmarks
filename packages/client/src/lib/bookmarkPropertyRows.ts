@@ -1,0 +1,184 @@
+import type { BookmarkSearch } from "./bookmarkSearch";
+import type { Bookmark, CardFieldZones, CustomProperty } from "@eesimple/types";
+
+import { resolveBooleanDisplay } from "./bookmarkCardValues";
+import { formatBoolean, formatDateTime, formatNumber } from "./bookmarkFormat";
+import { buildPropertyQuickSearch } from "./bookmarkPropertyQuickFilter";
+
+export interface NumberPropertyRow {
+  id: string;
+  name: string;
+  groupId: string | null;
+  isCalculated: boolean;
+  value: string;
+  search: BookmarkSearch;
+}
+
+export interface RatingPropertyRow {
+  id: string;
+  name: string;
+  groupId: string | null;
+  value: number;
+  max: number;
+  allowHalf: boolean;
+  label: string | undefined;
+  search: BookmarkSearch;
+}
+
+export interface BooleanPropertyRow {
+  id: string;
+  name: string;
+  groupId: string | null;
+  rawValue: boolean;
+  value: string;
+  showLabelColon: boolean;
+  showValueBeforeLabel: boolean;
+  clickableInView: boolean;
+  search: BookmarkSearch;
+}
+
+export interface DateTimePropertyRow {
+  id: string;
+  name: string;
+  groupId: string | null;
+  value: string;
+  search: BookmarkSearch;
+}
+
+export interface FilePropertyRow {
+  id: string;
+  name: string;
+  groupId: string | null;
+  isImage: boolean;
+  url: string;
+  filename: string | null;
+  search: BookmarkSearch;
+}
+
+export interface BookmarkPropertyRows {
+  numberRows: NumberPropertyRow[];
+  ratingRows: RatingPropertyRow[];
+  booleanRows: BooleanPropertyRow[];
+  dateTimeRows: DateTimePropertyRow[];
+  fileRows: FilePropertyRow[];
+}
+
+/** True when at least one property row across all kinds is present. */
+export function hasAnyPropertyRow(rows: BookmarkPropertyRows): boolean {
+  return rows.numberRows.length > 0 || rows.ratingRows.length > 0
+    || rows.booleanRows.length > 0 || rows.dateTimeRows.length > 0 || rows.fileRows.length > 0;
+}
+
+/**
+ * Derive the render-ready, typed custom-property rows of a bookmark, partitioned by value kind.
+ * Pure: `defaultZones` (the Default card display rule's field zones, resolving the per-card boolean
+ * display knobs on non-listing surfaces) is passed in rather than read from a hook. Extracted from
+ * `BookmarkPropertySections` so the derivation is unit-tested independently of its rendering.
+ */
+export function buildBookmarkPropertyRows(
+  bookmark: Bookmark,
+  properties: CustomProperty[],
+  defaultZones: CardFieldZones | undefined,
+): BookmarkPropertyRows {
+  const byId = new Map(properties.map(property => [property.id, property]));
+
+  const numberRows = bookmark.numberValues
+    .map((entry): NumberPropertyRow | null => {
+      const property = byId.get(entry.propertyId);
+      // Rating scales live in numberValues but render as stars, not a formatted number.
+      return property && property.type !== "ratingScale"
+        ? {
+          id: entry.propertyId,
+          name: property.name,
+          groupId: property.propertyGroupId,
+          isCalculated: property.type === "calculate",
+          value: formatNumber(entry.value, property),
+          search: buildPropertyQuickSearch(property, entry.value),
+        }
+        : null;
+    })
+    .filter((row): row is NumberPropertyRow => row !== null);
+
+  const ratingRows = bookmark.numberValues
+    .map((entry): RatingPropertyRow | null => {
+      const property = byId.get(entry.propertyId);
+      return property && property.type === "ratingScale"
+        ? {
+          id: entry.propertyId,
+          name: property.name,
+          groupId: property.propertyGroupId,
+          value: entry.value,
+          max: (property.ratingMax ?? 5) as number,
+          allowHalf: property.ratingAllowHalf,
+          label: property.ratingShowLabel ? (property.ratingLabel ?? undefined) : undefined,
+          search: buildPropertyQuickSearch(property, entry.value),
+        }
+        : null;
+    })
+    .filter((row): row is RatingPropertyRow => row !== null);
+
+  const booleanRows = bookmark.booleanValues
+    .map((entry): BooleanPropertyRow | null => {
+      const property = byId.get(entry.propertyId);
+      if (!property) return null;
+      const display = resolveBooleanDisplay(defaultZones, property.id);
+      if (!entry.value && !display.showIfFalse) return null;
+      const isIconPreset = !display.hideIcon
+        && (property.booleanLabelPreset === "icons" || property.booleanLabelPreset === "stars");
+      return {
+        id: entry.propertyId,
+        name: property.name,
+        groupId: property.propertyGroupId,
+        rawValue: entry.value,
+        value: formatBoolean(entry.value, property, {
+          hideIcon: display.hideIcon,
+        }),
+        showLabelColon: isIconPreset ? display.showLabelColon : true,
+        showValueBeforeLabel: isIconPreset ? display.showValueBeforeLabel : false,
+        clickableInView: display.clickableInView,
+        search: buildPropertyQuickSearch(property, entry.value),
+      };
+    })
+    .filter((row): row is BooleanPropertyRow => row !== null);
+
+  const dateTimeRows = bookmark.dateTimeValues
+    .map((entry): DateTimePropertyRow | null => {
+      const property = byId.get(entry.propertyId);
+      return property
+        ? {
+          id: entry.propertyId,
+          name: property.name,
+          groupId: property.propertyGroupId,
+          value: formatDateTime(entry.value, property),
+          search: buildPropertyQuickSearch(property, entry.value),
+        }
+        : null;
+    })
+    .filter((row): row is DateTimePropertyRow => row !== null);
+
+  const fileRows = bookmark.fileValues
+    .map((entry): FilePropertyRow | null => {
+      const property = byId.get(entry.propertyId);
+      // Only image/file properties opted into the detail view via `showInDetails` render here.
+      return property && property.showInDetails
+        ? {
+          id: entry.propertyId,
+          name: property.name,
+          groupId: property.propertyGroupId,
+          isImage: property.type === "image",
+          url: entry.url,
+          filename: entry.originalFilename,
+          search: buildPropertyQuickSearch(property, entry.url),
+        }
+        : null;
+    })
+    .filter((row): row is FilePropertyRow => row !== null);
+
+  return {
+    numberRows,
+    ratingRows,
+    booleanRows,
+    dateTimeRows,
+    fileRows,
+  };
+}

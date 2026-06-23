@@ -2,7 +2,7 @@ import type { CreateCustomAspectRatioInput } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { customAspectRatiosApi } from "../lib/api";
+import { customAspectRatiosApi } from "../lib/api/settings";
 import { describeError } from "../lib/apiError";
 import { notifyError, notifySuccess } from "../lib/notifications";
 

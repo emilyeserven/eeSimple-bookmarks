@@ -2,7 +2,7 @@ import type { CreateNewsletterInput, UpdateNewsletterInput } from "@eesimple/typ
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { newslettersApi } from "../lib/api";
+import { newslettersApi } from "../lib/api/imports";
 
 const NEWSLETTERS_KEY = ["newsletters"] as const;
 const BOOKMARKS_KEY = ["bookmarks"] as const;

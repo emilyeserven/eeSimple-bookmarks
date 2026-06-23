@@ -2,7 +2,7 @@ import type { CreatePinnedSidebarItemInput } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { pinnedSidebarItemsApi } from "../lib/api";
+import { pinnedSidebarItemsApi } from "../lib/api/settings";
 
 const PINNED_KEY = ["pinned-sidebar-items"] as const;
 

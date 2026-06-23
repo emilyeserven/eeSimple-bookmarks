@@ -132,258 +132,261 @@ function taxonomyViewLink(pathParts: string[], children: React.ReactNode): React
   return null;
 }
 
-/**
- * The canonical, ordered header toolbar actions (left → right). The array order is the single source
- * of button order, applied identically to the desktop row and the small-screen More menu. Only
- * present ones render; the panel toggle is always last (the rightmost control).
- */
-export function buildToolbarActions(ctx: ToolbarContext): ToolbarAction[] {
-  const actions: ToolbarAction[] = [];
+function searchAction(ctx: ToolbarContext): ToolbarAction | null {
+  if (!ctx.headerSearchActive) return null;
+  return {
+    key: "search-bar",
+    desktop: <ListingSearchBar />,
+    mobile: {
+      kind: "modal",
+      icon: Search,
+      label: "Search",
+      renderModal: (open, onOpenChange) => (
+        <ResponsivePopover
+          title="Search"
+          open={open}
+          onOpenChange={onOpenChange}
+        >
+          <SearchControls />
+        </ResponsivePopover>
+      ),
+    },
+  };
+}
 
-  if (ctx.headerSearchActive) {
-    actions.push({
-      key: "search-bar",
-      desktop: <ListingSearchBar />,
-      mobile: {
-        kind: "modal",
-        icon: Search,
-        label: "Search",
-        renderModal: (open, onOpenChange) => (
-          <ResponsivePopover
-            title="Search"
-            open={open}
-            onOpenChange={onOpenChange}
-          >
-            <SearchControls />
-          </ResponsivePopover>
-        ),
-      },
-    });
-  }
+function filterLocationAction(ctx: ToolbarContext): ToolbarAction | null {
+  if (!ctx.listingPage?.hasFilters) return null;
+  return {
+    key: "filter-location",
+    desktop: <FilterLocationPopover />,
+    mobile: {
+      kind: "modal",
+      icon: Filter,
+      label: "Filters",
+      renderModal: (open, onOpenChange) => (
+        <ResponsivePopover
+          title="Filters"
+          open={open}
+          onOpenChange={onOpenChange}
+        >
+          <FilterLocationControls />
+        </ResponsivePopover>
+      ),
+    },
+  };
+}
 
-  if (ctx.listingPage?.hasFilters) {
-    actions.push({
-      key: "filter-location",
-      desktop: <FilterLocationPopover />,
-      mobile: {
-        kind: "modal",
-        icon: Filter,
-        label: "Filters",
-        renderModal: (open, onOpenChange) => (
-          <ResponsivePopover
-            title="Filters"
-            open={open}
-            onOpenChange={onOpenChange}
-          >
-            <FilterLocationControls />
-          </ResponsivePopover>
-        ),
-      },
-    });
-  }
+function displayOptionsAction(ctx: ToolbarContext): ToolbarAction | null {
+  if (!ctx.listingPage) return null;
+  const pageKey = ctx.listingPage.key;
+  return {
+    key: "display-options",
+    desktop: <DisplayOptionsPopover pageKey={pageKey} />,
+    mobile: {
+      kind: "modal",
+      icon: Eye,
+      label: "Display",
+      renderModal: (open, onOpenChange) => (
+        <ResponsivePopover
+          title="Display"
+          open={open}
+          onOpenChange={onOpenChange}
+        >
+          <ListingDisplayControls pageKey={pageKey} />
+        </ResponsivePopover>
+      ),
+    },
+  };
+}
 
-  if (ctx.listingPage) {
-    const pageKey = ctx.listingPage.key;
-    actions.push({
-      key: "display-options",
-      desktop: <DisplayOptionsPopover pageKey={pageKey} />,
-      mobile: {
-        kind: "modal",
-        icon: Eye,
-        label: "Display",
-        renderModal: (open, onOpenChange) => (
-          <ResponsivePopover
-            title="Display"
-            open={open}
-            onOpenChange={onOpenChange}
-          >
-            <ListingDisplayControls pageKey={pageKey} />
-          </ResponsivePopover>
-        ),
-      },
-    });
-  }
+function bookmarkLayoutAction(ctx: ToolbarContext): ToolbarAction | null {
+  if (!ctx.isBookmarkDetail) return null;
+  return {
+    key: "bookmark-layout",
+    desktop: <BookmarkDetailLayoutPopover />,
+    mobile: {
+      kind: "modal",
+      icon: Columns2,
+      label: "Layout",
+      renderModal: (open, onOpenChange) => (
+        <ResponsivePopover
+          title="Layout"
+          open={open}
+          onOpenChange={onOpenChange}
+        >
+          <BookmarkDetailLayoutControls />
+        </ResponsivePopover>
+      ),
+    },
+  };
+}
 
-  if (ctx.isBookmarkDetail) {
-    actions.push({
-      key: "bookmark-layout",
-      desktop: <BookmarkDetailLayoutPopover />,
-      mobile: {
-        kind: "modal",
-        icon: Columns2,
-        label: "Layout",
-        renderModal: (open, onOpenChange) => (
-          <ResponsivePopover
-            title="Layout"
-            open={open}
-            onOpenChange={onOpenChange}
-          >
-            <BookmarkDetailLayoutControls />
-          </ResponsivePopover>
-        ),
-      },
-    });
-  }
-
+function viewDetailsAction(ctx: ToolbarContext): ToolbarAction | null {
   const viewDesktopLink = taxonomyViewLink(
     ctx.pathParts,
     <Info
       className="size-4"
     />,
   );
-  if (viewDesktopLink) {
-    actions.push({
-      key: "view-details",
-      desktop: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          aria-label="View details"
-          title="View details"
-          asChild
-        >
-          {viewDesktopLink}
-        </Button>
+  if (!viewDesktopLink) return null;
+  return {
+    key: "view-details",
+    desktop: (
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        aria-label="View details"
+        title="View details"
+        asChild
+      >
+        {viewDesktopLink}
+      </Button>
+    ),
+    mobile: {
+      kind: "menuItem",
+      node: (
+        <DropdownMenuItem asChild>
+          {taxonomyViewLink(
+            ctx.pathParts, (
+              <>
+                <Info className="size-4" />
+                View details
+              </>
+            ),
+          )}
+        </DropdownMenuItem>
       ),
-      mobile: {
-        kind: "menuItem",
-        node: (
-          <DropdownMenuItem asChild>
-            {taxonomyViewLink(
-              ctx.pathParts, (
-                <>
-                  <Info className="size-4" />
-                  View details
-                </>
-              ),
-            )}
-          </DropdownMenuItem>
-        ),
-      },
-    });
-  }
+    },
+  };
+}
 
-  if (ctx.isBookmarkDetail) {
-    const bookmarkId = ctx.bookmarkId;
-    actions.push({
-      key: "edit-bookmark",
-      desktop: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          asChild
+function editBookmarkAction(ctx: ToolbarContext): ToolbarAction | null {
+  if (!ctx.isBookmarkDetail) return null;
+  const bookmarkId = ctx.bookmarkId;
+  return {
+    key: "edit-bookmark",
+    desktop: (
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        asChild
+      >
+        <Link
+          to="/bookmarks/$bookmarkId/edit/general"
+          params={{
+            bookmarkId,
+          }}
         >
+          Edit
+        </Link>
+      </Button>
+    ),
+    mobile: {
+      kind: "menuItem",
+      node: (
+        <DropdownMenuItem asChild>
           <Link
             to="/bookmarks/$bookmarkId/edit/general"
             params={{
               bookmarkId,
             }}
           >
+            <Pencil className="size-4" />
             Edit
           </Link>
-        </Button>
+        </DropdownMenuItem>
       ),
-      mobile: {
-        kind: "menuItem",
-        node: (
-          <DropdownMenuItem asChild>
-            <Link
-              to="/bookmarks/$bookmarkId/edit/general"
-              params={{
-                bookmarkId,
-              }}
-            >
-              <Pencil className="size-4" />
-              Edit
-            </Link>
-          </DropdownMenuItem>
-        ),
-      },
-    });
-  }
+    },
+  };
+}
 
-  if (ctx.addChild) {
-    const addChild = ctx.addChild;
-    const label = addChild.kind === "tag" ? "New sub-tag" : "New sub-type";
-    actions.push({
-      key: "add-child",
-      desktop: (
-        <AddChildButton
+function addChildAction(ctx: ToolbarContext): ToolbarAction | null {
+  if (!ctx.addChild) return null;
+  const addChild = ctx.addChild;
+  const label = addChild.kind === "tag" ? "New sub-tag" : "New sub-type";
+  return {
+    key: "add-child",
+    desktop: (
+      <AddChildButton
+        kind={addChild.kind}
+        parentId={addChild.parentId}
+      />
+    ),
+    mobile: {
+      kind: "modal",
+      icon: Plus,
+      label,
+      disabled: !addChild.parentId,
+      renderModal: (open, onOpenChange) => (
+        <AddChildModal
           kind={addChild.kind}
           parentId={addChild.parentId}
+          open={open}
+          onOpenChange={onOpenChange}
         />
       ),
-      mobile: {
-        kind: "modal",
-        icon: Plus,
-        label,
-        disabled: !addChild.parentId,
-        renderModal: (open, onOpenChange) => (
-          <AddChildModal
-            kind={addChild.kind}
-            parentId={addChild.parentId}
-            open={open}
-            onOpenChange={onOpenChange}
-          />
-        ),
-      },
-    });
-  }
+    },
+  };
+}
 
-  if (ctx.listingPage?.createAction) {
-    const createAction = ctx.listingPage.createAction;
-    actions.push({
-      key: "create",
-      desktop: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          aria-label="New"
-          onClick={createAction}
-        >
+function createListingAction(ctx: ToolbarContext): ToolbarAction | null {
+  if (!ctx.listingPage?.createAction) return null;
+  const createAction = ctx.listingPage.createAction;
+  return {
+    key: "create",
+    desktop: (
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        aria-label="New"
+        onClick={createAction}
+      >
+        <Plus className="size-4" />
+      </Button>
+    ),
+    mobile: {
+      kind: "menuItem",
+      node: (
+        <DropdownMenuItem onSelect={() => createAction()}>
           <Plus className="size-4" />
-        </Button>
+          New
+        </DropdownMenuItem>
       ),
-      mobile: {
-        kind: "menuItem",
-        node: (
-          <DropdownMenuItem onSelect={() => createAction()}>
-            <Plus className="size-4" />
-            New
-          </DropdownMenuItem>
-        ),
-      },
-    });
-  }
+    },
+  };
+}
 
-  if (ctx.settingsPage) {
-    const settingsPage = ctx.settingsPage;
-    actions.push({
-      key: "settings-favorite",
-      desktop: <HeaderSettingsFavoriteButton page={settingsPage} />,
-      mobile: {
-        kind: "menuItem",
-        node: <FavoriteMenuItem page={settingsPage} />,
-      },
-    });
-  }
+function settingsFavoriteAction(ctx: ToolbarContext): ToolbarAction | null {
+  if (!ctx.settingsPage) return null;
+  const settingsPage = ctx.settingsPage;
+  return {
+    key: "settings-favorite",
+    desktop: <HeaderSettingsFavoriteButton page={settingsPage} />,
+    mobile: {
+      kind: "menuItem",
+      node: <FavoriteMenuItem page={settingsPage} />,
+    },
+  };
+}
 
-  if (ctx.pinContext) {
-    const pinContext = ctx.pinContext;
-    actions.push({
-      key: "pin",
-      desktop: <HeaderPinButton context={pinContext} />,
-      mobile: {
-        kind: "menuItem",
-        node: <PinMenuItem context={pinContext} />,
-      },
-    });
-  }
+function pinAction(ctx: ToolbarContext): ToolbarAction | null {
+  if (!ctx.pinContext) return null;
+  const pinContext = ctx.pinContext;
+  return {
+    key: "pin",
+    desktop: <HeaderPinButton context={pinContext} />,
+    mobile: {
+      kind: "menuItem",
+      node: <PinMenuItem context={pinContext} />,
+    },
+  };
+}
 
-  actions.push({
+function openPanelAction(ctx: ToolbarContext): ToolbarAction {
+  return {
     key: "open-panel",
     desktop: (
       <Button
@@ -399,7 +402,26 @@ export function buildToolbarActions(ctx: ToolbarContext): ToolbarAction[] {
     mobile: {
       kind: "standalone",
     },
-  });
+  };
+}
 
-  return actions;
+/**
+ * The canonical, ordered header toolbar actions (left → right). The array order is the single source
+ * of button order, applied identically to the desktop row and the small-screen More menu. Only
+ * present ones render; the panel toggle is always last (the rightmost control).
+ */
+export function buildToolbarActions(ctx: ToolbarContext): ToolbarAction[] {
+  return [
+    searchAction(ctx),
+    filterLocationAction(ctx),
+    displayOptionsAction(ctx),
+    bookmarkLayoutAction(ctx),
+    viewDetailsAction(ctx),
+    editBookmarkAction(ctx),
+    addChildAction(ctx),
+    createListingAction(ctx),
+    settingsFavoriteAction(ctx),
+    pinAction(ctx),
+    openPanelAction(ctx),
+  ].filter((action): action is ToolbarAction => action !== null);
 }

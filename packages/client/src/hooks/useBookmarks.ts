@@ -2,7 +2,7 @@ import type { BulkUrlUpdate, CreateBookmarkInput, UpdateBookmarkInput, UpdateBoo
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { bookmarksApi } from "../lib/api";
+import { bookmarksApi } from "../lib/api/bookmarks";
 import { describeError } from "../lib/apiError";
 import { notifyImageFetchError } from "../lib/bugReport";
 import { notifyError, notifySuccess } from "../lib/notifications";

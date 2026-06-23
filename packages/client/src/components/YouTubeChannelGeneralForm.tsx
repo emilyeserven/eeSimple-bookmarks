@@ -9,12 +9,9 @@ import { z } from "zod";
 
 import { DefaultTagsField } from "./DefaultTagsField";
 import { EntityImageField } from "./EntityImageField";
+import { SelfIdsField } from "./SelfIdsField";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useCategories } from "@/hooks/useCategories";
 import { useMediaTypes } from "@/hooks/useMediaTypes";
@@ -194,51 +191,14 @@ export function YouTubeChannelGeneralForm({
 
       <Separator />
 
-      <div className="space-y-2">
-        <Label className="block">Self-identifiers</Label>
-        <p className="text-sm text-muted-foreground">
-          Short names this channel appends to video titles (e.g. &quot;SNL&quot;). Stripped automatically when a bookmark title is fetched.
-        </p>
-        {selfIds.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {selfIds.map(id => (
-              <Badge
-                key={id}
-                variant="secondary"
-                className="cursor-pointer gap-1"
-                onClick={() => removeSelfId(id)}
-                title={`Remove "${id}"`}
-              >
-                {id}
-                <span aria-hidden>×</span>
-              </Badge>
-            ))}
-          </div>
-        )}
-        <div className="flex gap-2">
-          <Input
-            value={newSelfId}
-            onChange={e => setNewSelfId(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                addSelfId();
-              }
-            }}
-            placeholder="e.g. SNL"
-            className="h-8 text-sm"
-          />
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            onClick={addSelfId}
-            disabled={!newSelfId.trim()}
-          >
-            Add
-          </Button>
-        </div>
-      </div>
+      <SelfIdsField
+        selfIds={selfIds}
+        newSelfId={newSelfId}
+        onNewSelfIdChange={setNewSelfId}
+        onAdd={addSelfId}
+        onRemove={removeSelfId}
+        description="Short names this channel appends to video titles (e.g. “SNL”). Stripped automatically when a bookmark title is fetched."
+      />
 
       <Separator />
 

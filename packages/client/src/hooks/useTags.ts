@@ -2,7 +2,7 @@ import type { CreateTagInput, UpdateTagInput } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { tagsApi } from "../lib/api";
+import { tagsApi } from "../lib/api/taxonomies";
 import { notifySuccess } from "../lib/notifications";
 import { flattenTree } from "../lib/tagTree";
 

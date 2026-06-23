@@ -2,7 +2,7 @@ import type { CreateFavoriteSettingsPageInput } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { favoriteSettingsPagesApi } from "../lib/api";
+import { favoriteSettingsPagesApi } from "../lib/api/settings";
 
 const FAVORITE_SETTINGS_KEY = ["favorite-settings-pages"] as const;
 

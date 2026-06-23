@@ -3,7 +3,7 @@ import type { CreateWebsiteInput, UpdateWebsiteInput } from "@eesimple/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useRateLimitCooldown } from "./useRateLimitCooldown";
-import { websitesApi } from "../lib/api";
+import { websitesApi } from "../lib/api/taxonomies";
 import { ApiError, describeError } from "../lib/apiError";
 import { notifyImageFetchError } from "../lib/bugReport";
 import { notifyError, notifySuccess } from "../lib/notifications";

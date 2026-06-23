@@ -5,7 +5,7 @@ import type {
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { relationshipTypesApi } from "../lib/api";
+import { relationshipTypesApi } from "../lib/api/taxonomies";
 
 const RELATIONSHIP_TYPES_KEY = ["relationship-types"] as const;
 const BOOKMARKS_KEY = ["bookmarks"] as const;

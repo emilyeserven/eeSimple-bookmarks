@@ -9,6 +9,7 @@ import type {
 import { ImageAspectRatiosCard } from "./ImageAspectRatiosCard";
 import { ListingDisplayControls } from "./ListingDisplayControls";
 import { PinnedItemsCard } from "./PinnedItemsCard";
+import { SidebarItemsCard } from "./SidebarItemsCard";
 import {
   useDisplayPreferenceSettings,
   useSidebarVisibility,
@@ -481,87 +482,36 @@ export function DisplaySettings() {
           )}
 
           {!hiddenSidebarGroups.includes("taxonomies") && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Taxonomies</CardTitle>
-                <CardDescription>
-                  Choose which taxonomy browsers appear in the left sidebar.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {TAXONOMY_ITEMS.map(item => (
-                    <div
-                      key={item.key}
-                      className="flex items-center gap-2"
-                    >
-                      <Checkbox
-                        id={`show-taxonomy-${item.key}`}
-                        checked={!hiddenTaxonomyItems.includes(item.key)}
-                        onCheckedChange={() => toggleTaxonomyItem(item.key)}
-                      />
-                      <Label htmlFor={`show-taxonomy-${item.key}`}>{item.label}</Label>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <SidebarItemsCard
+              title="Taxonomies"
+              description="Choose which taxonomy browsers appear in the left sidebar."
+              items={TAXONOMY_ITEMS}
+              hiddenItems={hiddenTaxonomyItems}
+              onToggle={toggleTaxonomyItem}
+              idPrefix="taxonomy"
+            />
           )}
 
           {!hiddenSidebarGroups.includes("customization") && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Customization</CardTitle>
-                <CardDescription>
-                  Choose which customization tools appear in the left sidebar.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {CUSTOMIZATION_ITEMS.map(item => (
-                    <div
-                      key={item.key}
-                      className="flex items-center gap-2"
-                    >
-                      <Checkbox
-                        id={`show-customization-${item.key}`}
-                        checked={!hiddenCustomizationItems.includes(item.key)}
-                        onCheckedChange={() => toggleCustomizationItem(item.key)}
-                      />
-                      <Label htmlFor={`show-customization-${item.key}`}>{item.label}</Label>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <SidebarItemsCard
+              title="Customization"
+              description="Choose which customization tools appear in the left sidebar."
+              items={CUSTOMIZATION_ITEMS}
+              hiddenItems={hiddenCustomizationItems}
+              onToggle={toggleCustomizationItem}
+              idPrefix="customization"
+            />
           )}
 
           {!hiddenSidebarGroups.includes("management") && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Management</CardTitle>
-                <CardDescription>
-                  Choose which management pages appear in the left sidebar.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {MANAGEMENT_ITEMS.map(item => (
-                    <div
-                      key={item.key}
-                      className="flex items-center gap-2"
-                    >
-                      <Checkbox
-                        id={`show-management-${item.key}`}
-                        checked={!hiddenManagementItems.includes(item.key)}
-                        onCheckedChange={() => toggleManagementItem(item.key)}
-                      />
-                      <Label htmlFor={`show-management-${item.key}`}>{item.label}</Label>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <SidebarItemsCard
+              title="Management"
+              description="Choose which management pages appear in the left sidebar."
+              items={MANAGEMENT_ITEMS}
+              hiddenItems={hiddenManagementItems}
+              onToggle={toggleManagementItem}
+              idPrefix="management"
+            />
           )}
         </div>
       </div>

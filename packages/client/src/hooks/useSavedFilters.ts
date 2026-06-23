@@ -4,7 +4,7 @@ import type {
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { savedFiltersApi } from "../lib/api";
+import { savedFiltersApi } from "../lib/api/settings";
 import { describeError } from "../lib/apiError";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
