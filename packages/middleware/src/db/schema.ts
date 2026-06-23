@@ -498,6 +498,7 @@ export const bookmarksRelations = relations(bookmarks, ({
     references: [imports.id],
   }),
   bookmarkTags: many(bookmarkTags),
+  bookmarkAuthors: many(bookmarkAuthors),
   image: one(bookmarkImages),
   relationsA: many(bookmarkRelationships, {
     relationName: "bookmark_relation_a",
@@ -1547,3 +1548,52 @@ export const favoriteSettingsPages = pgTable("favorite_settings_pages", {
 ]);
 
 export type FavoriteSettingsPageRow = typeof favoriteSettingsPages.$inferSelect;
+
+/** `authors` table — people or entities credited as creators of bookmarked items. */
+export const authors = pgTable("authors", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  // URL-friendly identifier derived from the name. Nullable for clean `push`; backfilled at boot.
+  slug: text("slug"),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+}, table => [
+  unique("authors_name_unique").on(table.name),
+  unique("authors_slug_unique").on(table.slug),
+]);
+
+export type AuthorRow = typeof authors.$inferSelect;
+
+/** `bookmark_authors` join — many-to-many between bookmarks and authors. */
+export const bookmarkAuthors = pgTable("bookmark_authors", {
+  bookmarkId: uuid("bookmark_id").notNull().references(() => bookmarks.id, {
+    onDelete: "cascade",
+  }),
+  authorId: uuid("author_id").notNull().references((): AnyPgColumn => authors.id, {
+    onDelete: "cascade",
+  }),
+}, table => [
+  primaryKey({
+    columns: [table.bookmarkId, table.authorId],
+  }),
+]);
+
+export const authorsRelations = relations(authors, ({
+  many,
+}) => ({
+  bookmarkAuthors: many(bookmarkAuthors),
+}));
+
+export const bookmarkAuthorsRelations = relations(bookmarkAuthors, ({
+  one,
+}) => ({
+  bookmark: one(bookmarks, {
+    fields: [bookmarkAuthors.bookmarkId],
+    references: [bookmarks.id],
+  }),
+  author: one(authors, {
+    fields: [bookmarkAuthors.authorId],
+    references: [authors.id],
+  }),
+}));

@@ -4,6 +4,7 @@ import {
   useAutoFetchTitle,
   useShortenerIgnoreList,
 } from "../hooks/useAppSettings";
+import { useAuthors } from "../hooks/useAuthors";
 import { useAutofillRules } from "../hooks/useAutofill";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
@@ -45,6 +46,9 @@ export function useBookmarkFormData() {
   const {
     data: youtubeChannels,
   } = useYouTubeChannels();
+  const {
+    data: authors,
+  } = useAuthors();
   const autoFetchTitle = useAutoFetchTitle();
   const autoFetchImage = useAutoFetchImage();
 
@@ -58,6 +62,7 @@ export function useBookmarkFormData() {
     mediaTypes,
     autofillRules,
     youtubeChannels,
+    authors,
     autoFetchTitle,
     autoFetchImage,
   };

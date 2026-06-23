@@ -4,6 +4,7 @@
 import type { PanelContentTypeDef } from "./contentTypes/types";
 import type { DrawerContentType } from "@/lib/drawerSearch";
 
+import { authorContentType } from "./contentTypes/author";
 import { autofillContentType } from "./contentTypes/autofill";
 import { bookmarkContentType } from "./contentTypes/bookmark";
 import { categoryContentType } from "./contentTypes/category";
@@ -29,6 +30,7 @@ export const PANEL_CONTENT_TYPES: PanelContentTypeDef[] = [
   mediaTypeContentType,
   youtubeChannelContentType,
   newsletterContentType,
+  authorContentType,
   relationshipTypeContentType,
   autofillContentType,
 ];

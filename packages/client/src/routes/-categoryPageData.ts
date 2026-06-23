@@ -1,3 +1,4 @@
+import { useAuthors } from "../hooks/useAuthors";
 import { useBookmarks } from "../hooks/useBookmarks";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
@@ -40,6 +41,9 @@ export function useCategoryPageData(tags: string[] | undefined) {
   const {
     data: relationshipTypes,
   } = useRelationshipTypes();
+  const {
+    data: authors,
+  } = useAuthors();
 
   return {
     categories,
@@ -54,5 +58,6 @@ export function useCategoryPageData(tags: string[] | undefined) {
     youtubeChannels,
     websites,
     relationshipTypes,
+    authors,
   };
 }

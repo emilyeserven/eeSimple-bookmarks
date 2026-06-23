@@ -28,6 +28,7 @@ function CategoryPage() {
     youtubeChannels,
     websites,
     relationshipTypes,
+    authors,
   } = useCategoryPageData(search.tags);
 
   const category = (categories ?? []).find(item => item.slug === categorySlug);
@@ -71,6 +72,7 @@ function CategoryPage() {
       youtubeChannels={youtubeChannels ?? []}
       websites={websites ?? []}
       relationshipTypes={relationshipTypes ?? []}
+      authors={authors ?? []}
       bookmarks={categoryBookmarks}
       search={search}
       onSearchChange={next => navigate({

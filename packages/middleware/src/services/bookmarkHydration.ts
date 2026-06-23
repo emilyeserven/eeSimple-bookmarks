@@ -1,6 +1,7 @@
 import { eq, inArray, or } from "drizzle-orm";
 import type {
   Bookmark,
+  BookmarkAuthor,
   BookmarkBooleanValue,
   BookmarkDateTimeValue,
   BookmarkFileValue,
@@ -17,6 +18,8 @@ import type {
 } from "@eesimple/types";
 import { db } from "@/db";
 import {
+  authors,
+  bookmarkAuthors,
   bookmarkBooleanValues,
   bookmarkDateTimeValues,
   bookmarkFileValues,
@@ -49,6 +52,7 @@ interface BookmarkExtras {
   newsletter: BookmarkNewsletter | null;
   import: BookmarkImport | null;
   tags: BookmarkTag[];
+  authors: BookmarkAuthor[];
   numberValues: BookmarkNumberValue[];
   booleanValues: BookmarkBooleanValue[];
   dateTimeValues: BookmarkDateTimeValue[];
@@ -64,6 +68,7 @@ const EMPTY_EXTRAS: BookmarkExtras = {
   newsletter: null,
   import: null,
   tags: [],
+  authors: [],
   numberValues: [],
   booleanValues: [],
   dateTimeValues: [],
@@ -88,6 +93,7 @@ function toBookmark(row: BookmarkRow, extras: BookmarkExtras, defaultCategoryId:
     newsletter: extras.newsletter,
     import: extras.import,
     tags: extras.tags,
+    authors: extras.authors,
     numberValues: extras.numberValues,
     booleanValues: extras.booleanValues,
     dateTimeValues: extras.dateTimeValues,
@@ -235,6 +241,34 @@ async function importsById(importIds: string[]): Promise<Map<string, BookmarkImp
     });
   }
   return byId;
+}
+
+/** Load authors for a set of bookmark ids in a single query, grouped by bookmark id. */
+async function authorsByBookmarkId(bookmarkIds: string[]): Promise<Map<string, BookmarkAuthor[]>> {
+  const grouped = new Map<string, BookmarkAuthor[]>();
+  if (bookmarkIds.length === 0) return grouped;
+
+  const rows = await db
+    .select({
+      bookmarkId: bookmarkAuthors.bookmarkId,
+      id: authors.id,
+      name: authors.name,
+      slug: authors.slug,
+    })
+    .from(bookmarkAuthors)
+    .innerJoin(authors, eq(bookmarkAuthors.authorId, authors.id))
+    .where(inArray(bookmarkAuthors.bookmarkId, bookmarkIds));
+
+  for (const row of rows) {
+    const list = grouped.get(row.bookmarkId) ?? [];
+    list.push({
+      id: row.id,
+      name: row.name,
+      slug: row.slug ?? slugify(row.name),
+    });
+    grouped.set(row.bookmarkId, list);
+  }
+  return grouped;
 }
 
 /** Load tags for a set of bookmark ids in a single query, grouped by bookmark id. */
@@ -474,8 +508,9 @@ async function relationshipsByBookmarkId(
 
 /** Hydrate all custom-property relations for a set of bookmark rows in batched queries. */
 async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, BookmarkExtras>> {
-  const [tagsMap, numberMap, booleanMap, dateTimeMap, fileMap, imageMap, relationshipsMap] = await Promise.all([
+  const [tagsMap, authorsMap, numberMap, booleanMap, dateTimeMap, fileMap, imageMap, relationshipsMap] = await Promise.all([
     tagsByBookmarkId(bookmarkIds),
+    authorsByBookmarkId(bookmarkIds),
     numberValuesByBookmarkId(bookmarkIds),
     booleanValuesByBookmarkId(bookmarkIds),
     dateTimeValuesByBookmarkId(bookmarkIds),
@@ -492,6 +527,7 @@ async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
       newsletter: null,
       import: null,
       tags: tagsMap.get(id) ?? [],
+      authors: authorsMap.get(id) ?? [],
       numberValues: numberMap.get(id) ?? [],
       booleanValues: booleanMap.get(id) ?? [],
       dateTimeValues: dateTimeMap.get(id) ?? [],

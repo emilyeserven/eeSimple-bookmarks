@@ -6,6 +6,7 @@ import type {
 } from "@eesimple/types";
 import { db } from "@/db";
 import {
+  bookmarkAuthors,
   bookmarkBooleanValues,
   bookmarkDateTimeValues,
   bookmarkNumberValues,
@@ -23,6 +24,15 @@ export async function linkTags(tx: Tx, bookmarkId: string, tagIds: string[] | un
   await tx.insert(bookmarkTags).values(tagIds.map(tagId => ({
     bookmarkId,
     tagId,
+  })));
+}
+
+/** Insert join rows linking a bookmark to the given author ids (no-op when empty). */
+export async function linkAuthors(tx: Tx, bookmarkId: string, authorIds: string[] | undefined): Promise<void> {
+  if (!authorIds || authorIds.length === 0) return;
+  await tx.insert(bookmarkAuthors).values(authorIds.map(authorId => ({
+    bookmarkId,
+    authorId,
   })));
 }
 

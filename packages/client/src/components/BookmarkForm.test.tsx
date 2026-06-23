@@ -171,6 +171,11 @@ vi.mock("../hooks/useAppSettings", () => ({
   useAutoFetchTitle: () => autoFetchTitle,
   useAutoFetchImage: () => true,
 }));
+vi.mock("../hooks/useAuthors", () => ({
+  useAuthors: () => ({
+    data: [],
+  }),
+}));
 
 /** Type a URL and click "Check URL" to reveal the rest of a fresh (create) form. */
 async function revealForm(url: string): Promise<void> {
@@ -385,6 +390,7 @@ describe("BookmarkForm editing", () => {
       booleanValues: [],
       dateTimeValues: [],
       fileValues: [],
+      authors: [],
       relationships: [],
       priority: 0,
       createdAt: "2026-06-01T00:00:00.000Z",
@@ -447,6 +453,7 @@ describe("BookmarkForm editing", () => {
       booleanValues: [],
       dateTimeValues: [],
       fileValues: [],
+      authors: [],
       relationships: [],
       priority: 0,
       createdAt: "2026-06-01T00:00:00.000Z",
@@ -582,6 +589,7 @@ describe("BookmarkForm property prefill", () => {
       booleanValues: [],
       dateTimeValues: [],
       fileValues: [],
+      authors: [],
       relationships: [],
       priority: 0,
       createdAt: "2026-06-01T00:00:00.000Z",

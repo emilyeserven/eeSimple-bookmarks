@@ -81,6 +81,7 @@ export function makeBookmark(overrides: Partial<Bookmark> = {}): Bookmark {
     booleanValues: [],
     dateTimeValues: [],
     fileValues: [],
+    authors: [],
     relationships: [],
     priority: 0,
     createdAt: NOW,

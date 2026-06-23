@@ -1,4 +1,4 @@
-import type { Bookmark } from "@eesimple/types";
+import type { Bookmark, BookmarkAuthor } from "@eesimple/types";
 
 import { bookmarkMatchesFilters } from "./customPropertyFilter";
 
@@ -27,6 +27,8 @@ export interface BookmarkSearch {
   websitePresence?: "has" | "missing";
   /** Restrict to bookmarks that have a relationship of one of these type ids (empty/absent = all). */
   relationshipTypes?: string[];
+  /** Restrict to bookmarks whose author list overlaps with these ids (empty/absent = all). */
+  authors?: string[];
   num?: Record<string, [number, number]>;
   bool?: Record<string, boolean>;
   /** `[from, to]` date/time range bounds (canonical strings, either `null`) keyed by property id. */
@@ -110,6 +112,7 @@ export function validateBookmarkSearch(search: Record<string, unknown>): Bookmar
     websites: validStringList(search.websites),
     websitePresence: validPresence(search.websitePresence),
     relationshipTypes: validStringList(search.relationshipTypes),
+    authors: validStringList(search.authors),
     num: nonEmptyRecord(parseNumRecord(search.num)),
     bool: nonEmptyRecord(parseBoolRecord(search.bool)),
     date: nonEmptyRecord(parseDateRecord(search.date)),
@@ -131,6 +134,7 @@ type SearchableBookmark = Pick<
   | "youtubeChannel"
   | "website"
   | "tags"
+  | "authors"
   | "numberValues"
   | "booleanValues"
   | "dateTimeValues"
@@ -145,6 +149,12 @@ function passesRelationshipTypeFilter(
 ): boolean {
   if (!selected || selected.length === 0) return true;
   return bookmark.relationships.some(rel => selected.includes(rel.relationshipTypeId));
+}
+
+/** A multi-select author filter passes when empty or the bookmark has at least one matching author. */
+function passesAuthorsFilter(selected: string[] | undefined, authors: BookmarkAuthor[]): boolean {
+  if (!selected || selected.length === 0) return true;
+  return authors.some(a => selected.includes(a.id));
 }
 
 /** A multi-select id filter passes when it is empty or contains the bookmark's value. */
@@ -205,6 +215,7 @@ export function bookmarkMatchesSearch(
     && passesIdFilter(search.websites, bookmark.website?.id)
     && passesPresence(search.websitePresence, Boolean(bookmark.website))
     && passesRelationshipTypeFilter(search.relationshipTypes, bookmark)
+    && passesAuthorsFilter(search.authors, bookmark.authors)
     && passesPresence(search.tagPresence, bookmark.tags.length > 0)
     && passesPropertyPresence(bookmark, search)
     && passesValueFilters(bookmark, search)
@@ -223,6 +234,7 @@ export function hasAnyActiveFilter(search: BookmarkSearch): boolean {
     || (search.websites?.length ?? 0) > 0
     || search.websitePresence !== undefined
     || (search.relationshipTypes?.length ?? 0) > 0
+    || (search.authors?.length ?? 0) > 0
     || Object.keys(search.num ?? {}).length > 0
     || Object.keys(search.bool ?? {}).length > 0
     || Object.keys(search.date ?? {}).length > 0
@@ -367,6 +379,16 @@ export function withWebsites(search: BookmarkSearch, ids: string[]): BookmarkSea
   return next;
 }
 
+/** Return a copy of `search` with the author filter set, or cleared when `ids` is empty. */
+export function withAuthors(search: BookmarkSearch, ids: string[]): BookmarkSearch {
+  const next = {
+    ...search,
+  };
+  if (ids.length === 0) delete next.authors;
+  else next.authors = ids;
+  return next;
+}
+
 /** Return a copy of `search` with the relationship-type filter set, or cleared when `ids` is empty. */
 export function withRelationshipTypes(search: BookmarkSearch, ids: string[]): BookmarkSearch {
   const next = {
@@ -459,6 +481,7 @@ export function summarizeBookmarkSearch(raw: Record<string, unknown>): string {
     countPart(search.websites?.length ?? 0, "website", "websites"),
     search.websitePresence !== undefined ? `website: ${search.websitePresence}` : null,
     countPart(search.relationshipTypes?.length ?? 0, "relationship type", "relationship types"),
+    countPart(search.authors?.length ?? 0, "author", "authors"),
     countPart(search.tags?.length ?? 0, "tag", "tags"),
     search.tagPresence !== undefined ? `tags: ${search.tagPresence}` : null,
     countPart(propCount, "property", "properties"),

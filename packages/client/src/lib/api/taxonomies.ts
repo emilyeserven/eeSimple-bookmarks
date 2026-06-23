@@ -1,6 +1,8 @@
 import type {
+  Author,
   Category,
   CategoryPropertyDefaults,
+  CreateAuthorInput,
   CreateCategoryInput,
   CreateCustomPropertyInput,
   CreateMediaTypeInput,
@@ -16,6 +18,7 @@ import type {
   RelationshipType,
   Tag,
   TagNode,
+  UpdateAuthorInput,
   UpdateCategoryDefaultsInput,
   UpdateCategoryInput,
   UpdateCustomPropertyInput,
@@ -31,6 +34,8 @@ import type {
 } from "@eesimple/types";
 
 import { createCrudApi, request, uploadImageFile } from "./client";
+
+export const authorsApi = createCrudApi<Author, CreateAuthorInput, UpdateAuthorInput>("authors");
 
 export const tagsApi = {
   ...createCrudApi<Tag, CreateTagInput, UpdateTagInput>("tags"),

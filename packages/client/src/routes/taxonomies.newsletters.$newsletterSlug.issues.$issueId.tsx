@@ -36,6 +36,7 @@ function NewsletterIssueBookmarksPage() {
     mediaTypes,
     youtubeChannels,
     relationshipTypes,
+    authors,
   } = useCategoryPageData(search.tags);
 
   const {
@@ -99,6 +100,7 @@ function NewsletterIssueBookmarksPage() {
         mediaTypes={mediaTypes ?? []}
         youtubeChannels={youtubeChannels ?? []}
         relationshipTypes={relationshipTypes ?? []}
+        authors={authors ?? []}
         bookmarks={issueBookmarks}
         search={search}
         onSearchChange={next => navigate({

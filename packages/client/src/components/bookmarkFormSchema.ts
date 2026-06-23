@@ -24,6 +24,7 @@ export const bookmarkSchema = z.object({
   mediaTypeId: z.string(),
   description: z.string(),
   tagIds: z.array(z.string()),
+  authorIds: z.array(z.string()),
 });
 
 /** Slug of the built-in "Runtime" property, hidden from the form (filled server-side). */
@@ -62,6 +63,7 @@ const SAMPLE_DEFAULT_VALUES: {
   mediaTypeId: string;
   description: string;
   tagIds: string[];
+  authorIds: string[];
 } = {
   url: "",
   title: "",
@@ -69,6 +71,7 @@ const SAMPLE_DEFAULT_VALUES: {
   mediaTypeId: "",
   description: "",
   tagIds: [],
+  authorIds: [],
 };
 
 /**
@@ -115,6 +118,7 @@ export function buildBookmarkDefaultValues(
   mediaTypeId: string;
   description: string;
   tagIds: string[];
+  authorIds: string[];
 } {
   return {
     url: bookmark?.originalUrl ?? bookmark?.url ?? initial.url ?? "",
@@ -123,6 +127,7 @@ export function buildBookmarkDefaultValues(
     mediaTypeId: bookmark?.mediaType?.id ?? "",
     description: bookmark?.description ?? "",
     tagIds: (bookmark?.tags.map(tag => tag.id) ?? []) as string[],
+    authorIds: (bookmark?.authors.map(a => a.id) ?? []) as string[],
   };
 }
 

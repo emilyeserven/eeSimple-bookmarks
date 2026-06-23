@@ -2,6 +2,7 @@ import "dotenv/config";
 import { buildApp, docsEnabled } from "@/app";
 import { maybeSeed } from "@/db/seed";
 import { ensureAppSettings } from "@/services/appSettings";
+import { backfillAuthorSlugs } from "@/services/authors";
 import { ensureAutofillConditions, ensureAutofillSlugs, ensureWebsiteConditions } from "@/services/autofill";
 import { backfillCardDisplayRuleFieldZones, backfillCardDisplayRuleHeaderFields, backfillCardDisplayRuleSubZones, backfillCardDisplayRuleZoneLayouts, ensureDefaultCardDisplayRule } from "@/services/cardDisplayRules";
 import { ensureDefaultCategory } from "@/services/categories";
@@ -57,6 +58,7 @@ try {
   await ensureBuiltInRelationshipTypes();
   await backfillYouTubeChannelSlugs();
   await backfillTagSlugs();
+  await backfillAuthorSlugs();
   await maybeSeed();
   // Backfill condition trees for legacy autofill rules and seed the homepage filter from the
   // previous is-homepage / homepage-tags mechanism on first boot.

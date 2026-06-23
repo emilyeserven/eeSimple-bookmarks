@@ -1,6 +1,7 @@
 import type { BookmarkFormApi } from "./bookmarkFormSchema";
 import type { ImageIntent } from "./bookmarkImageIntent";
 import type {
+  Author,
   BookmarkBooleanValue,
   BookmarkDateTimeValue,
   BookmarkNumberValue,
@@ -18,6 +19,7 @@ import { CategoryCustomFields, CategoryDefaultsApplier } from "./BookmarkCustomF
 import { BookmarkImageField } from "./BookmarkImageField";
 import { SourceDefaultCheckbox } from "./BookmarkSourceDefaultCheckbox";
 import { GatedTagPicker } from "./BookmarkTagsField";
+import { MultiCombobox } from "./MultiCombobox";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -82,6 +84,7 @@ interface BookmarkAdvancedSectionProps {
   onImageIntentChange: (intent: ImageIntent) => void;
   tagTree: TagNode[];
   onTagToggle: (id: string) => void;
+  authors?: Author[];
   /** Custom-property inputs + change handlers (grouped). */
   customFields: BookmarkCustomFieldControls;
   /** Called when the user clicks the description sparkle; receives the current URL. */
@@ -114,6 +117,7 @@ export function BookmarkAdvancedSection({
   onImageIntentChange,
   tagTree,
   onTagToggle,
+  authors,
   customFields,
   onFetchDescription,
   isFetchDescriptionPending,
@@ -228,6 +232,27 @@ export function BookmarkAdvancedSection({
             )}
           </form.Subscribe>
         </div>
+
+        {(authors?.length ?? 0) > 0 && (
+          <form.Field name="authorIds">
+            {field => (
+              <div className="space-y-1">
+                <Label>Authors</Label>
+                <MultiCombobox
+                  options={(authors ?? []).map(a => ({
+                    value: a.id,
+                    label: a.name,
+                  }))}
+                  values={field.state.value}
+                  onValuesChange={field.handleChange}
+                  placeholder="Select authors…"
+                  searchPlaceholder="Search authors…"
+                  emptyText="No authors found."
+                />
+              </div>
+            )}
+          </form.Field>
+        )}
 
         <form.Subscribe selector={state => state.values.url}>
           {url => (

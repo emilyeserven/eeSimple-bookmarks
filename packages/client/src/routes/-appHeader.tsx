@@ -110,6 +110,12 @@ const TAXONOMY_DESCRIPTORS: readonly TaxonomyDescriptor[] = [
     slugIndex: 2,
   },
   {
+    prefix: "/taxonomies/authors",
+    listLabel: "Authors",
+    singular: "Author",
+    slugIndex: 2,
+  },
+  {
     prefix: "/taxonomies/property-groups",
     listLabel: "Property Groups",
     singular: "Property Group",

@@ -28,6 +28,7 @@ function YouTubeChannelBookmarksPage() {
     tagTree,
     mediaTypes,
     relationshipTypes,
+    authors,
   } = useCategoryPageData(search.tags);
 
   const {
@@ -64,6 +65,7 @@ function YouTubeChannelBookmarksPage() {
       categories={categories ?? []}
       mediaTypes={mediaTypes ?? []}
       relationshipTypes={relationshipTypes ?? []}
+      authors={authors ?? []}
       bookmarks={channelBookmarks}
       search={search}
       onSearchChange={next => navigate({

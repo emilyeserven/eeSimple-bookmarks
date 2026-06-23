@@ -29,6 +29,7 @@ export function FiltersPanel() {
     youtubeChannels,
     websites,
     relationshipTypes,
+    authors,
     bookmarks,
     search,
     onSearchChange,
@@ -40,6 +41,7 @@ export function FiltersPanel() {
   const hasChannelFilter = (youtubeChannels?.length ?? 0) > 0;
   const hasWebsiteFilter = (websites?.length ?? 0) > 0;
   const hasRelationshipTypeFilter = (relationshipTypes?.length ?? 0) > 0;
+  const hasAuthorFilter = (authors?.length ?? 0) > 0;
   const hasTags = tree.length > 0;
   const hasProperties = enabledProperties.length > 0;
 
@@ -50,7 +52,7 @@ export function FiltersPanel() {
         onSearchChange={onSearchChange}
       />
 
-      {(hasTags || hasProperties || hasCategoryFilter || hasMediaTypeFilter || hasChannelFilter || hasWebsiteFilter || hasRelationshipTypeFilter)
+      {(hasTags || hasProperties || hasCategoryFilter || hasMediaTypeFilter || hasChannelFilter || hasWebsiteFilter || hasRelationshipTypeFilter || hasAuthorFilter)
         ? <Separator />
         : null}
 
@@ -63,6 +65,7 @@ export function FiltersPanel() {
         youtubeChannels={youtubeChannels}
         websites={websites}
         relationshipTypes={relationshipTypes}
+        authors={authors}
         bookmarks={bookmarks}
         search={search}
         onSearchChange={onSearchChange}
@@ -73,6 +76,7 @@ export function FiltersPanel() {
         hasChannelFilter={hasChannelFilter}
         hasWebsiteFilter={hasWebsiteFilter}
         hasRelationshipTypeFilter={hasRelationshipTypeFilter}
+        hasAuthorFilter={hasAuthorFilter}
       />
     </div>
   );
