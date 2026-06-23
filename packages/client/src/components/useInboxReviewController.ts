@@ -31,11 +31,10 @@ export function useInboxReviewController(items: InboxItem[]) {
     data: categories = [],
   } = useCategories();
   const [bulkRunning, setBulkRunning] = useState(false);
-  const [editingItem, setEditingItem] = useState<InboxItem | null>(null);
 
   const viewMode = useViewMode("inbox");
   const setViewMode = useUiStore(state => state.setViewMode);
-  const columns = useInboxColumns(categories, setEditingItem);
+  const columns = useInboxColumns(categories);
 
   const pendingCount = useMemo(() => items.filter(i => i.status === "pending").length, [items]);
   const rejectedCount = useMemo(() => items.filter(i => i.status === "rejected").length, [items]);
@@ -135,8 +134,6 @@ export function useInboxReviewController(items: InboxItem[]) {
     pendingItems,
     processedItems,
     resortNow,
-    editingItem,
-    setEditingItem,
     bulkRunning,
     rejectPendingIsPending: rejectPending.isPending,
     recheckPendingIsPending: recheckPending.isPending,

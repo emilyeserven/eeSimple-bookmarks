@@ -1,6 +1,5 @@
 import type {
   ImportApproveResult,
-  ImportItem,
   InboxItem,
   ViewMode,
 } from "@eesimple/types";
@@ -23,7 +22,6 @@ import { useCategories } from "../hooks/useCategories";
 import {
   useApproveImportItem,
   useRejectImportItem,
-  useUpdateImportItem,
 } from "../hooks/useImports";
 import { useSwipeGesture } from "../hooks/useSwipeGesture";
 import { highlightAnchor } from "../lib/newsletterContext";
@@ -39,142 +37,17 @@ import {
 } from "@/components/ui/collapsible";
 import { DataTable } from "@/components/ui/data-table";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-
-/** Sentinel for the "no category" Select option (Radix forbids an empty-string item value). */
-const NO_CATEGORY = "__none__";
 
 function notifyApprove(result: ImportApproveResult): void {
   if (result.status === "approved") notifySuccess("Bookmark added");
   else if (result.status === "duplicate") notifyError(result.message ?? "Already saved as a bookmark");
   else if (result.status === "error") notifyError(result.message ?? "Couldn't add bookmark");
-}
-
-/** The expanded edit form for one candidate (url/title/description/category). Owns its own draft. */
-function ReviewRowEditor({
-  item, onDone,
-}: { item: ImportItem;
-  onDone: () => void; }) {
-  const update = useUpdateImportItem();
-  const {
-    data: categories = [],
-  } = useCategories();
-  const [draft, setDraft] = useState({
-    url: item.url ?? "",
-    title: item.title ?? "",
-    description: item.description ?? "",
-    categoryId: item.categoryId ?? "",
-  });
-
-  function onSave() {
-    update.mutate(
-      {
-        itemId: item.id,
-        input: {
-          url: draft.url,
-          title: draft.title || null,
-          description: draft.description || null,
-          categoryId: draft.categoryId || null,
-        },
-      },
-      {
-        onSuccess: () => {
-          notifySuccess("Updated candidate");
-          onDone();
-        },
-        onError: () => notifyError("Couldn't save candidate"),
-      },
-    );
-  }
-
-  return (
-    <RowCard className="space-y-2 p-4">
-      <Input
-        value={draft.url}
-        onChange={event => setDraft(d => ({
-          ...d,
-          url: event.target.value,
-        }))}
-        placeholder="URL"
-        aria-label="URL"
-      />
-      <Input
-        value={draft.title}
-        onChange={event => setDraft(d => ({
-          ...d,
-          title: event.target.value,
-        }))}
-        placeholder="Title"
-        aria-label="Title"
-      />
-      <Textarea
-        value={draft.description}
-        onChange={event => setDraft(d => ({
-          ...d,
-          description: event.target.value,
-        }))}
-        placeholder="Description"
-        rows={2}
-        aria-label="Description"
-      />
-      <Select
-        value={draft.categoryId || NO_CATEGORY}
-        onValueChange={value => setDraft(d => ({
-          ...d,
-          categoryId: value === NO_CATEGORY ? "" : value,
-        }))}
-      >
-        <SelectTrigger aria-label="Category">
-          <SelectValue placeholder="Category (optional)" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value={NO_CATEGORY}>No category</SelectItem>
-          {categories.map(category => (
-            <SelectItem
-              key={category.id}
-              value={category.id}
-            >
-              {category.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <div className="flex gap-2">
-        <Button
-          size="sm"
-          onClick={onSave}
-          disabled={update.isPending}
-        >Save
-        </Button>
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={onDone}
-        >Cancel
-        </Button>
-      </div>
-    </RowCard>
-  );
 }
 
 function ReviewRow({
@@ -183,7 +56,6 @@ function ReviewRow({
   const {
     data: categories = [],
   } = useCategories();
-  const [editing, setEditing] = useState(false);
   const [contextOpen, setContextOpen] = useState(false);
   const isMobile = useIsMobile();
   const approve = useApproveImportItem();
@@ -202,15 +74,6 @@ function ReviewRow({
   const muted = item.status === "rejected" || item.status === "approved"
     || item.status === "duplicate" || item.status === "blocked";
   const categoryName = categories.find(c => c.id === item.categoryId)?.name ?? null;
-
-  if (editing) {
-    return (
-      <ReviewRowEditor
-        item={item}
-        onDone={() => setEditing(false)}
-      />
-    );
-  }
 
   if (isMobile && item.status === "pending") {
     const swipeRight = displacement >= 80;
@@ -353,10 +216,7 @@ function ReviewRow({
                 )
                 : null}
             </div>
-            <MobileMoreMenu
-              item={item}
-              onEdit={() => setEditing(true)}
-            />
+            <MobileMoreMenu item={item} />
           </div>
 
           <div className="mt-3 flex gap-2">
@@ -505,10 +365,7 @@ function ReviewRow({
             : null}
         </div>
         <div className="flex shrink-0 items-start gap-1">
-          <RowActions
-            item={item}
-            onEdit={() => setEditing(true)}
-          />
+          <RowActions item={item} />
         </div>
       </div>
     </RowCard>
@@ -639,8 +496,6 @@ export function InboxReviewList({
     pendingItems,
     processedItems,
     resortNow,
-    editingItem,
-    setEditingItem,
   } = controller;
 
   return (
@@ -682,26 +537,6 @@ export function InboxReviewList({
         />
       </section>
 
-      <Dialog
-        open={editingItem !== null}
-        onOpenChange={(open) => {
-          if (!open) setEditingItem(null);
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit candidate</DialogTitle>
-          </DialogHeader>
-          {editingItem
-            ? (
-              <ReviewRowEditor
-                item={editingItem}
-                onDone={() => setEditingItem(null)}
-              />
-            )
-            : null}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
