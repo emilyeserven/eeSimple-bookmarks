@@ -70,6 +70,7 @@ export function useBookmarkFormController({
       urlDuplicateCheck,
       updateWebsite,
       updateYouTubeChannel,
+      createAuthor,
     },
     websites,
     shortenerIgnoreList,
@@ -326,6 +327,7 @@ export function useBookmarkFormController({
   const {
     runFetchTitle,
     runFetchDescription,
+    runFetchAuthors,
     runYouTubeEnrichment,
     runUrlCleanup,
     undoUrlCleanup,
@@ -346,6 +348,10 @@ export function useBookmarkFormController({
     classifyUrlShortener,
     cleanUrl,
     undoCleanup,
+    authors,
+    getAuthorIds: () => form.getFieldValue("authorIds") as string[],
+    setAuthorIds: (ids: string[]) => form.setFieldValue("authorIds", ids),
+    createAuthor,
   });
 
   // The full URL scan: clean the URL, apply autofill rules, look up the website, and fetch the
@@ -367,10 +373,14 @@ export function useBookmarkFormController({
       const yt = looksLikeYouTube(url);
       const fillTitle = revealing || autoFetchTitle;
       // YouTube gets its title from enrichment; non-YouTube uses the strict fetch-title.
+      // Author detection runs in parallel with the title fetch for non-YouTube URLs.
       if (fillTitle && !yt) {
-        await runFetchTitle(url, {
-          force: false,
-        });
+        await Promise.all([
+          runFetchTitle(url, {
+            force: false,
+          }),
+          runFetchAuthors(url),
+        ]);
       }
       await runYouTubeEnrichment(url, {
         fillTitle,

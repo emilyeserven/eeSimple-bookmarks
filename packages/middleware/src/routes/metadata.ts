@@ -2,6 +2,7 @@ import type { FastifyBaseLogger, FastifyInstance } from "fastify";
 import type { FetchMetadataResult } from "@eesimple/types";
 import {
   checkUrl,
+  extractAuthorNames,
   extractDescription,
   extractTitle,
   fetchHeadHtml,
@@ -81,6 +82,7 @@ async function buildYouTubeMetadataResult(
     durationSeconds: meta?.durationSeconds ?? null,
     datePosted: meta?.datePosted ?? null,
     thumbnailUrl: meta?.thumbnailUrl ?? null,
+    authorNames: null,
     ...(warnings.length > 0 && {
       diagnostics: warnings,
     }),
@@ -112,6 +114,7 @@ async function buildGenericMetadataResult(
     durationSeconds: null,
     datePosted: null,
     thumbnailUrl: null,
+    authorNames: html ? extractAuthorNames(html) : null,
   };
 }
 

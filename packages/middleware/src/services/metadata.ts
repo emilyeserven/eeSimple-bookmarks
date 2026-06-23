@@ -327,6 +327,29 @@ export function extractDescription(html: string): string | null {
 }
 
 /**
+ * Pull author name(s) from an HTML document's `<head>`. Reads the Open Graph article author
+ * (`og:article:author`) and the standard `<meta name="author">`. Returns a deduplicated list of
+ * non-empty names, or an empty array when none are found. Pure — unit-testable like `extractTitle`.
+ */
+export function extractAuthorNames(html: string): string[] {
+  const candidates = [
+    metaContent(html, /(?:property|name)=["']og:article:author["']/i),
+    metaContent(html, /name=["']author["']/i),
+  ];
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const raw of candidates) {
+    if (!raw) continue;
+    const name = decodeEntities(raw).replace(/\s+/g, " ").trim();
+    if (name.length > 0 && !seen.has(name)) {
+      seen.add(name);
+      result.push(name);
+    }
+  }
+  return result;
+}
+
+/**
  * Pull a representative image URL out of an HTML document's `<head>`: prefers Open Graph and
  * Twitter-card images, falling back to a declared icon. Relative URLs are resolved against
  * `pageUrl`. Returns an absolute http(s) URL or null. Pure — unit-testable like `extractTitle`.

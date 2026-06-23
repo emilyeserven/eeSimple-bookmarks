@@ -1,6 +1,6 @@
 import type { useBookmarkFormActions } from "./useBookmarkFormActions";
 import type { useBookmarkUrlProcessing } from "./useBookmarkUrlProcessing";
-import type { YouTubeChannelHint } from "@eesimple/types";
+import type { Author, YouTubeChannelHint } from "@eesimple/types";
 import type { Dispatch, RefObject, SetStateAction } from "react";
 
 import { looksLikeYouTube, stripSelfId } from "./bookmarkFormSchema";
@@ -38,6 +38,14 @@ interface UseBookmarkScanHandlersParams {
   cleanUrl: UrlProcessing["runUrlCleanup"];
   /** The URL-string cleanup undo from `useBookmarkUrlProcessing` (its `undoUrlCleanup`). */
   undoCleanup: UrlProcessing["undoUrlCleanup"];
+  /** Loaded author list — when provided, enables `runFetchAuthors`. */
+  authors?: Author[];
+  /** Read the current author IDs from the form — when provided, enables `runFetchAuthors`. */
+  getAuthorIds?: () => string[];
+  /** Write author IDs back to the form after detection — when provided, enables `runFetchAuthors`. */
+  setAuthorIds?: (ids: string[]) => void;
+  /** Create-author mutation — when provided, enables creating new authors discovered in metadata. */
+  createAuthor?: Actions["createAuthor"];
 }
 
 /**
@@ -62,6 +70,10 @@ export function useBookmarkScanHandlers({
   classifyUrlShortener,
   cleanUrl,
   undoCleanup,
+  authors,
+  getAuthorIds,
+  setAuthorIds,
+  createAuthor,
 }: UseBookmarkScanHandlersParams) {
   // Fetch the page title for the current URL and write it into the Title field.
   // `force` (manual button) always overwrites; the on-blur path only fills a blank title.
@@ -212,6 +224,44 @@ export function useBookmarkScanHandlers({
     setTitleFetch(null);
   }
 
+  // For a non-YouTube URL, pull author names from page metadata and resolve them to author IDs:
+  // existing authors are matched case-insensitively; unknown names are created. Only runs when no
+  // authors have been selected yet, and only when the author params are provided (create form only).
+  async function runFetchAuthors(url: string): Promise<void> {
+    if (!setAuthorIds || !getAuthorIds || !isUrlFetchable(url) || looksLikeYouTube(url)) return;
+    if ((getAuthorIds()).length > 0) return;
+    try {
+      const meta = await fetchMetadata.mutateAsync({
+        url,
+      });
+      if (!meta.authorNames || meta.authorNames.length === 0) return;
+      const existingAuthors = authors ?? [];
+      const ids: string[] = [];
+      for (const name of meta.authorNames) {
+        const normalName = name.toLowerCase();
+        const match = existingAuthors.find(a => a.name.toLowerCase() === normalName);
+        if (match) {
+          ids.push(match.id);
+        }
+        else if (createAuthor) {
+          try {
+            const created = await createAuthor.mutateAsync({
+              name,
+            });
+            ids.push(created.id);
+          }
+          catch {
+            // Skip authors that can't be created (e.g. duplicate race).
+          }
+        }
+      }
+      if (ids.length > 0) setAuthorIds(ids);
+    }
+    catch {
+      // Non-fatal: best-effort convenience layered on the metadata fetch.
+    }
+  }
+
   // Check whether the URL's site is already on record so the banner can say whether a new
   // website will be created. Read-only — the site is created only when the bookmark is saved.
   function runWebsiteLookup(url: string): void {
@@ -238,6 +288,7 @@ export function useBookmarkScanHandlers({
   return {
     runFetchTitle,
     runFetchDescription,
+    runFetchAuthors,
     runYouTubeEnrichment,
     runUrlCleanup,
     undoUrlCleanup,
