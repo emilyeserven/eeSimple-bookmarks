@@ -9,7 +9,7 @@ import { useViewPanelClick } from "./panel/useEditPanelClick";
 import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
 import { Badge } from "@/components/ui/badge";
-import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
+import { entityLinkTitle } from "@/lib/sidebarModifier";
 
 type Props
   = {
@@ -67,8 +67,8 @@ export function SourcePill({
         params={{
           websiteSlug: data.slug,
         }}
-        title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-        onClick={event => viewClick(event, "website", data.id)}
+        title={entityLinkTitle(modifier)}
+        onClick={event => viewClick(event, "website", data.id, data.slug)}
       >
         {badge}
       </Link>
@@ -81,8 +81,8 @@ export function SourcePill({
       params={{
         channelSlug: data.slug,
       }}
-      title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-      onClick={event => viewClick(event, "youtube-channel", data.id)}
+      title={entityLinkTitle(modifier)}
+      onClick={event => viewClick(event, "youtube-channel", data.id, data.slug)}
     >
       {badge}
     </Link>

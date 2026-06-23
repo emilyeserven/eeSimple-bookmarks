@@ -10,7 +10,7 @@ import { bookmarkCountColumn } from "./columnHelpers";
 import { useSidebarOpenModifier } from "../../hooks/useAppSettings";
 import { useViewPanelClick } from "../panel/useEditPanelClick";
 
-import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
+import { entityLinkTitle } from "@/lib/sidebarModifier";
 
 /** Column definitions for the Tags listing Table view (a flattened, expandable tree). */
 export function useTagColumns(): ColumnDef<TagNode>[] {
@@ -36,8 +36,8 @@ export function useTagColumns(): ColumnDef<TagNode>[] {
               params={{
                 tagSlug: row.original.slug,
               }}
-              title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-              onClick={event => viewClick(event, "tag", row.original.id)}
+              title={entityLinkTitle(modifier)}
+              onClick={event => viewClick(event, "tag", row.original.id, row.original.slug)}
               className="
                 font-medium
                 hover:underline

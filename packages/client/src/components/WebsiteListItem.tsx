@@ -10,7 +10,7 @@ import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
 import { useEntityImage } from "@/hooks/useEntityImage";
 import { withWebsites } from "@/lib/bookmarkSearch";
-import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
+import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
 
 /** A single row in the website listing: a favicon, a body link to the filtered bookmarks, and hover Edit / Info. */
 export function WebsiteListItem({
@@ -80,8 +80,8 @@ export function WebsiteListItem({
             params={{
               websiteSlug: website.slug,
             }}
-            title={`Info (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-            onClick={event => viewClick(event, "website", website.id)}
+            title={entityLinkTitle(modifier)}
+            onClick={event => viewClick(event, "website", website.id, website.slug)}
           >
             <Info className="size-4" />
             <span className="sr-only">View {website.siteName}</span>

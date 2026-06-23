@@ -67,6 +67,13 @@ export function CustomPropertyManager() {
                     propertySlug: property.slug,
                   },
                 });
+              }, () => {
+                void navigate({
+                  to: "/custom-properties/$propertySlug/edit/general",
+                  params: {
+                    propertySlug: property.slug,
+                  },
+                });
               })}
           />
         )

@@ -108,6 +108,13 @@ export function AutofillRulesList({
                     ruleSlug: rule.slug,
                   },
                 });
+              }, () => {
+                void navigate({
+                  to: "/autofill/$ruleSlug/edit/general",
+                  params: {
+                    ruleSlug: rule.slug,
+                  },
+                });
               })}
           />
         )

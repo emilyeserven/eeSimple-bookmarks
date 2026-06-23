@@ -2,7 +2,13 @@ import type { BookmarkTag } from "@eesimple/types";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { Link } from "@tanstack/react-router";
+
+import { useViewPanelClick } from "./panel/useEditPanelClick";
+import { useSidebarOpenModifier } from "../hooks/useAppSettings";
+
 import { Badge } from "@/components/ui/badge";
+import { entityLinkTitle } from "@/lib/sidebarModifier";
 
 interface TagsBoxProps {
   tags: BookmarkTag[];
@@ -15,6 +21,8 @@ export function BookmarkTagsBox({
   const ref = useRef<HTMLUListElement>(null);
   const [showTop, setShowTop] = useState(false);
   const [showBottom, setShowBottom] = useState(false);
+  const viewClick = useViewPanelClick();
+  const modifier = useSidebarOpenModifier();
 
   const sync = useCallback(() => {
     const el = ref.current;
@@ -38,7 +46,16 @@ export function BookmarkTagsBox({
       >
         {tags.map(tag => (
           <li key={tag.id}>
-            <Badge variant="secondary">{tag.name}</Badge>
+            <Link
+              to="/tags/$tagSlug/general"
+              params={{
+                tagSlug: tag.slug,
+              }}
+              title={entityLinkTitle(modifier)}
+              onClick={event => viewClick(event, "tag", tag.id, tag.slug)}
+            >
+              <Badge variant="secondary">{tag.name}</Badge>
+            </Link>
           </li>
         ))}
       </ul>

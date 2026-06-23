@@ -7,7 +7,7 @@ import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
 import { Badge } from "@/components/ui/badge";
 import { CategoryIcon } from "@/lib/icons";
-import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
+import { entityLinkTitle } from "@/lib/sidebarModifier";
 
 /** A clickable pill showing a category's icon and name. Navigates to the category page; holds the modifier key to open in the sidebar. */
 export function CategoryPill({
@@ -21,8 +21,8 @@ export function CategoryPill({
       params={{
         categorySlug: category.slug,
       }}
-      title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-      onClick={event => viewClick(event, "category", category.id)}
+      title={entityLinkTitle(modifier)}
+      onClick={event => viewClick(event, "category", category.id, category.slug)}
     >
       <Badge
         variant="secondary"

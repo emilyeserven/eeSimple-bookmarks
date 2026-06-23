@@ -70,6 +70,13 @@ export function WebsitesListing() {
                       websiteSlug: website.slug,
                     },
                   });
+                }, () => {
+                  void navigate({
+                    to: "/taxonomies/websites/$websiteSlug/edit/general",
+                    params: {
+                      websiteSlug: website.slug,
+                    },
+                  });
                 })}
             />
           )

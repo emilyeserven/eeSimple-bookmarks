@@ -13,12 +13,17 @@ import { hasSidebarModifier } from "@/lib/sidebarModifier";
  * modifier opens the item in the right-hand panel in view mode; otherwise the supplied
  * `navigateToPage` callback runs (a typed router `navigate(...)` to the item's full page). Passing
  * navigation as a callback keeps TanStack Router's route/param typing at the call site.
+ *
+ * Two additional hardcoded modifier shortcuts (priority over sidebar modifier):
+ * - **Cmd/Meta**: navigate to the item's detail page (`navigateToPage`), same tab.
+ * - **Shift**: navigate to the item's edit page (`navigateToEdit`), if provided.
  */
 export function useTableRowNav(): (
   event: MouseEvent,
   ct: DrawerContentType,
   id: string,
   navigateToPage: () => void,
+  navigateToEdit?: () => void,
 ) => void {
   const {
     openItem,
@@ -26,7 +31,15 @@ export function useTableRowNav(): (
   const modifier = useSidebarOpenModifier();
 
   return useCallback(
-    (event, ct, id, navigateToPage) => {
+    (event, ct, id, navigateToPage, navigateToEdit?: () => void) => {
+      if (event.metaKey) {
+        navigateToPage();
+        return;
+      }
+      if (event.shiftKey) {
+        navigateToEdit?.();
+        return;
+      }
       if (hasSidebarModifier(event, modifier)) {
         event.preventDefault();
         openItem(ct, id, "view");

@@ -19,7 +19,7 @@ import { buildBookmarkValueItems } from "../lib/bookmarkCardValues";
 
 import { Badge } from "@/components/ui/badge";
 import { useSidebarOpenModifier } from "@/hooks/useAppSettings";
-import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
+import { entityLinkTitle } from "@/lib/sidebarModifier";
 
 /** The card header field keys, rendered as a justified header row when co-located in a single zone. */
 const HEADER_FIELD_KEYS = new Set(["title", "externalLink", "more"]);
@@ -162,8 +162,8 @@ export function BookmarkCardDetails({
         params={{
           bookmarkId: bookmark.id,
         }}
-        title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[sidebarModifier]} to open in the sidebar)`}
-        onClick={event => viewClick(event, "bookmark", bookmark.id)}
+        title={entityLinkTitle(sidebarModifier)}
+        onClick={event => viewClick(event, "bookmark", bookmark.id, bookmark.id)}
         className="
           wrap-break-word text-primary
           hover:underline

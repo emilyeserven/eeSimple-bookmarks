@@ -10,7 +10,7 @@ import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
 import { useEntityImage } from "@/hooks/useEntityImage";
 import { withYouTubeChannels } from "@/lib/bookmarkSearch";
-import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
+import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
 
 /** A single row in the channel listing: an avatar, a body link to the filtered bookmarks, and hover Edit / Info. */
 export function YouTubeChannelListItem({
@@ -80,8 +80,8 @@ export function YouTubeChannelListItem({
             params={{
               channelSlug: channel.slug,
             }}
-            title={`Info (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-            onClick={event => viewClick(event, "youtube-channel", channel.id)}
+            title={entityLinkTitle(modifier)}
+            onClick={event => viewClick(event, "youtube-channel", channel.id, channel.slug)}
           >
             <Info className="size-4" />
             <span className="sr-only">View {channel.name}</span>

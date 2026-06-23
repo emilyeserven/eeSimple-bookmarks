@@ -7,7 +7,7 @@ import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick"
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
 import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
-import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
+import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
 
 /**
  * A single row in the property-group listing. Exception to the standard: a property group has no
@@ -33,8 +33,8 @@ export function PropertyGroupListItem({
           params={{
             propertyGroupSlug: group.slug,
           }}
-          title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-          onClick={event => viewClick(event, "property-group", group.id)}
+          title={entityLinkTitle(modifier)}
+          onClick={event => viewClick(event, "property-group", group.id, group.slug)}
           className={className}
         >
           {children}
@@ -62,8 +62,8 @@ export function PropertyGroupListItem({
             params={{
               propertyGroupSlug: group.slug,
             }}
-            title={`Info (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-            onClick={event => viewClick(event, "property-group", group.id)}
+            title={entityLinkTitle(modifier)}
+            onClick={event => viewClick(event, "property-group", group.id, group.slug)}
           >
             <Info className="size-4" />
             <span className="sr-only">View {group.name}</span>

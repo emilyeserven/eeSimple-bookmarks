@@ -8,7 +8,7 @@ import { TaxonomyTreeList } from "./TaxonomyTreeRow";
 import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
 import { withTags } from "@/lib/bookmarkSearch";
-import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
+import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
 
 interface TagTreeListProps {
   /** The root tags to render. */
@@ -68,8 +68,8 @@ export function TagTreeList({
             tagSlug: node.slug,
           }}
           aria-label={`View ${node.name}`}
-          title={`Info (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-          onClick={event => viewClick(event, "tag", node.id)}
+          title={entityLinkTitle(modifier)}
+          onClick={event => viewClick(event, "tag", node.id, node.slug)}
         >
           <Info className="size-4" />
         </Link>

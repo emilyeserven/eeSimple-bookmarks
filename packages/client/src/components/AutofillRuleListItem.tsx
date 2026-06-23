@@ -9,7 +9,7 @@ import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 import { summarizeConditions } from "../lib/conditionsSummary";
 
 import { Badge } from "@/components/ui/badge";
-import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
+import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
 
 interface RuleListItemProps {
   rule: AutofillRule;
@@ -44,8 +44,8 @@ export function AutofillRuleListItem({
           params={{
             ruleSlug: rule.slug,
           }}
-          title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-          onClick={event => viewClick(event, "autofill", rule.id)}
+          title={entityLinkTitle(modifier)}
+          onClick={event => viewClick(event, "autofill", rule.id, rule.slug)}
           className={className}
         >
           {children}

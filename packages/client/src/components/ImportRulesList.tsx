@@ -63,6 +63,13 @@ export function ImportRulesList({
                     ruleSlug: rule.slug,
                   },
                 });
+              }, () => {
+                void navigate({
+                  to: "/import-rules/$ruleSlug/edit/general",
+                  params: {
+                    ruleSlug: rule.slug,
+                  },
+                });
               })}
           />
         )
