@@ -23,16 +23,22 @@ const editNav = [
     label: "Custom Properties",
   },
   {
-    to: "/categories/$categorySlug/edit/autofill",
-    label: "Autofill Rules",
-  },
-  {
-    to: "/categories/$categorySlug/edit/display-rules",
-    label: "Display Rules",
-  },
-  {
     to: "/categories/$categorySlug/edit/display",
     label: "Display",
+  },
+  {
+    type: "group",
+    label: "Filtered Settings",
+    items: [
+      {
+        to: "/categories/$categorySlug/edit/autofill",
+        label: "Autofill Rules",
+      },
+      {
+        to: "/categories/$categorySlug/edit/display-rules",
+        label: "Display Rules",
+      },
+    ],
   },
 ] as const;
 

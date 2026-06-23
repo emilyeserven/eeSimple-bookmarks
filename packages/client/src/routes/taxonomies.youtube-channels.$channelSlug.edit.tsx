@@ -13,12 +13,18 @@ const editNav = [
     label: "General",
   },
   {
-    to: "/taxonomies/youtube-channels/$channelSlug/edit/autofill",
-    label: "Autofill",
-  },
-  {
-    to: "/taxonomies/youtube-channels/$channelSlug/edit/display-rules",
-    label: "Display Rules",
+    type: "group",
+    label: "Filtered Settings",
+    items: [
+      {
+        to: "/taxonomies/youtube-channels/$channelSlug/edit/autofill",
+        label: "Autofill",
+      },
+      {
+        to: "/taxonomies/youtube-channels/$channelSlug/edit/display-rules",
+        label: "Display Rules",
+      },
+    ],
   },
 ] as const;
 

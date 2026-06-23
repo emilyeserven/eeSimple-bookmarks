@@ -23,12 +23,18 @@ const viewNav = [
     label: "Hierarchy",
   },
   {
-    to: "/tags/$tagSlug/autofill",
-    label: "Autofill Rules",
-  },
-  {
-    to: "/tags/$tagSlug/display-rules",
-    label: "Display Rules",
+    type: "group",
+    label: "Filtered Settings",
+    items: [
+      {
+        to: "/tags/$tagSlug/autofill",
+        label: "Autofill Rules",
+      },
+      {
+        to: "/tags/$tagSlug/display-rules",
+        label: "Display Rules",
+      },
+    ],
   },
 ] as const;
 
