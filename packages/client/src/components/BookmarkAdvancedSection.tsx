@@ -9,25 +9,23 @@ import type {
   MediaType,
   TagNode,
 } from "@eesimple/types";
-import type { ReactNode } from "react";
 
 import { ChevronDown, Loader2, Sparkles } from "lucide-react";
 
-import { AddCategoryModal } from "./AddCategoryModal";
-import { AddMediaTypeModal } from "./AddMediaTypeModal";
+import { BookmarkAdvancedCategoryField } from "./BookmarkAdvancedCategoryField";
+import { BookmarkAdvancedMediaTypeField } from "./BookmarkAdvancedMediaTypeField";
 import { CategoryCustomFields, CategoryDefaultsApplier } from "./BookmarkCustomFields";
 import { BookmarkImageField } from "./BookmarkImageField";
+import { SourceDefaultCheckbox } from "./BookmarkSourceDefaultCheckbox";
 import { GatedTagPicker } from "./BookmarkTagsField";
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Label } from "@/components/ui/label";
-import { CategoryIcon } from "@/lib/icons";
 import { isFetchableUrl } from "@/lib/url";
 
 /**
@@ -137,121 +135,22 @@ export function BookmarkAdvancedSection({
         Advanced
       </CollapsibleTrigger>
       <CollapsibleContent className="space-y-4">
-        {lockedCategoryId
-          ? (
-            <p
-              className="
-                rounded-md border bg-muted px-3 py-2 text-xs
-                text-muted-foreground
-              "
-            >
-              Category is pre-filled (
-              <span className="font-medium">
-                {categories.find(c => c.id === lockedCategoryId)?.name ?? "a specific category"}
-              </span>
-              ) — open from any other view to change it.
-            </p>
-          )
-          : (
-            <form.AppField name="categoryId">
-              {field => (
-                <field.ComboboxField
-                  label="Category"
-                  placeholder="Select a category"
-                  searchPlaceholder="Search categories…"
-                  emptyText="No categories found."
-                  createOption={{
-                    label: "Create category",
-                    onSelect: () => onAddCategoryOpenChange(true),
-                  }}
-                  options={categories.map(category => ({
-                    value: category.id,
-                    label: category.name,
-                    icon: (
-                      <CategoryIcon
-                        name={category.icon}
-                        className="size-4 shrink-0"
-                      />
-                    ),
-                  }))}
-                />
-              )}
-            </form.AppField>
-          )}
-
-        <AddCategoryModal
-          open={addCategoryOpen}
-          onOpenChange={onAddCategoryOpenChange}
-          onCreated={category => form.setFieldValue("categoryId", category.id)}
+        <BookmarkAdvancedCategoryField
+          form={form}
+          lockedCategoryId={lockedCategoryId}
+          categories={categories}
+          sourceDefaults={sourceDefaults}
+          addCategoryOpen={addCategoryOpen}
+          onAddCategoryOpenChange={onAddCategoryOpenChange}
         />
 
-        {/* "Set as default category for <source>" — directly under the Category combobox. */}
-        {sourceDefaults.showSourceDefault && (
-          <form.Subscribe selector={state => state.values.categoryId}>
-            {categoryId => (categoryId
-              ? (
-                <SourceDefaultCheckbox
-                  checked={sourceDefaults.setCategory}
-                  onCheckedChange={sourceDefaults.onSetCategory}
-                >
-                  Set as default category for
-                  {" "}
-                  {sourceDefaults.label}
-                </SourceDefaultCheckbox>
-              )
-              : null)}
-          </form.Subscribe>
-        )}
-
-        {/* Media type, directly under Category — with inline create and its own default checkbox. */}
-        <form.AppField name="mediaTypeId">
-          {field => (
-            <field.ComboboxField
-              label="Media type"
-              placeholder="No media type"
-              searchPlaceholder="Search media types…"
-              emptyText="No media types found."
-              createOption={{
-                label: "Create media type",
-                onSelect: () => onAddMediaTypeOpenChange(true),
-              }}
-              options={mediaTypes.map(mediaType => ({
-                value: mediaType.id,
-                label: mediaType.name,
-                icon: (
-                  <CategoryIcon
-                    name={mediaType.icon}
-                    className="size-4 shrink-0"
-                  />
-                ),
-              }))}
-            />
-          )}
-        </form.AppField>
-
-        <AddMediaTypeModal
-          open={addMediaTypeOpen}
-          onOpenChange={onAddMediaTypeOpenChange}
-          onCreated={mediaType => form.setFieldValue("mediaTypeId", mediaType.id)}
+        <BookmarkAdvancedMediaTypeField
+          form={form}
+          mediaTypes={mediaTypes}
+          sourceDefaults={sourceDefaults}
+          addMediaTypeOpen={addMediaTypeOpen}
+          onAddMediaTypeOpenChange={onAddMediaTypeOpenChange}
         />
-
-        {/* "Set as default media type for <source>" — shown when the source has none yet. */}
-        {sourceDefaults.showMediaTypeDefault && (
-          <form.Subscribe selector={state => state.values.mediaTypeId}>
-            {mediaTypeId => (mediaTypeId
-              ? (
-                <SourceDefaultCheckbox
-                  checked={sourceDefaults.setMediaType}
-                  onCheckedChange={sourceDefaults.onSetMediaType}
-                >
-                  Set as default media type for
-                  {" "}
-                  {sourceDefaults.label}
-                </SourceDefaultCheckbox>
-              )
-              : null)}
-          </form.Subscribe>
-        )}
 
         {/* Description and Tags side by side, stretched to a matching height. */}
         <div
@@ -374,24 +273,5 @@ export function BookmarkAdvancedSection({
         </form.Subscribe>
       </CollapsibleContent>
     </Collapsible>
-  );
-}
-
-/** A "set as default for <source>" checkbox row, shared by the category / media-type / tags fields. */
-function SourceDefaultCheckbox({
-  checked, onCheckedChange, children,
-}: {
-  checked: boolean;
-  onCheckedChange: (v: boolean) => void;
-  children: ReactNode;
-}) {
-  return (
-    <label className="flex cursor-pointer items-center gap-2 text-sm">
-      <Checkbox
-        checked={checked}
-        onCheckedChange={v => onCheckedChange(Boolean(v))}
-      />
-      {children}
-    </label>
   );
 }
