@@ -5,7 +5,7 @@ import type {
 
 import { useMemo, useState } from "react";
 
-import { ChevronDown, ExternalLink, Trash2 } from "lucide-react";
+import { ChevronDown, ExternalLink, ShieldBan, Trash2 } from "lucide-react";
 
 import { ViewModeToggle } from "./DisplayControlPrimitives";
 import { RowActions, StatusBadge } from "./InboxRowActions";
@@ -14,6 +14,7 @@ import { useCategories } from "../hooks/useCategories";
 import {
   useApproveImportItem,
   useDeleteRejectedItems,
+  useRecheckPendingItems,
   useRejectPendingItems,
   useUpdateImportItem,
 } from "../hooks/useImports";
@@ -321,6 +322,7 @@ export function InboxReviewList({
 }) {
   const approve = useApproveImportItem();
   const rejectPending = useRejectPendingItems();
+  const recheckPending = useRecheckPendingItems();
   const deleteRejected = useDeleteRejectedItems();
   const {
     data: categories = [],
@@ -367,6 +369,19 @@ export function InboxReviewList({
     });
   }
 
+  function onRecheckBlocklist() {
+    recheckPending.mutate(undefined, {
+      onSuccess: ({
+        blocked,
+      }) => notifySuccess(
+        blocked === 0
+          ? "No pending items matched the block list."
+          : `Blocked ${blocked} item${blocked === 1 ? "" : "s"} from the block list.`,
+      ),
+      onError: () => notifyError("Couldn't recheck the pending items."),
+    });
+  }
+
   function onDeleteRejected() {
     deleteRejected.mutate(undefined, {
       onSuccess: ({
@@ -398,6 +413,15 @@ export function InboxReviewList({
           />
         </div>
         <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onRecheckBlocklist}
+            disabled={bulkRunning || recheckPending.isPending || pendingCount === 0}
+          >
+            <ShieldBan className="size-4" />
+            {recheckPending.isPending ? "Rechecking…" : `Recheck block list (${pendingCount})`}
+          </Button>
           <Button
             size="sm"
             variant="outline"

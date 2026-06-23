@@ -263,6 +263,15 @@ export function useRejectPendingItems() {
   });
 }
 
+/** Re-check every pending candidate against the block list (the Inbox "recheck block list" action). */
+export function useRecheckPendingItems() {
+  const invalidate = useInvalidateInbox();
+  return useMutation({
+    mutationFn: () => importApi.recheckPending(),
+    onSuccess: () => invalidate(),
+  });
+}
+
 /** Delete every rejected candidate across all imports (the Inbox "delete all rejected" action). */
 export function useDeleteRejectedItems() {
   const invalidate = useInvalidateInbox();

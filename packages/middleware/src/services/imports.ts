@@ -23,6 +23,7 @@ import type {
   Import as ImportRecord,
   OrphanDeleteResult,
   PurgeImportItemsResult,
+  RecheckPendingItemsResult,
   RejectPendingItemsResult,
   UpdateImportItemInput,
 } from "@eesimple/types";
@@ -937,6 +938,40 @@ export async function blockImportItem(
     .where(eq(importItems.id, itemId))
     .returning();
   return row ? toItem(row) : null;
+}
+
+/**
+ * Re-evaluate every pending candidate against the *current* Imports Blacklist and mark the matches
+ * `blocked`. Ingest filters candidates against the blacklist before staging, so a blacklist entry
+ * added *after* an import never catches its already-staged pending items — this sweep closes that
+ * gap (e.g. after the user blocks a domain, recheck the queue to block the rest from it). Returns
+ * the number of items newly blocked.
+ */
+export async function recheckPendingItemsAgainstBlacklist(): Promise<RecheckPendingItemsResult> {
+  const blacklist = await getImportBlacklist();
+  if (blacklist.length === 0) {
+    return {
+      blocked: 0,
+    };
+  }
+  const rows = await db.select().from(importItems).where(eq(importItems.status, "pending"));
+  const matchedIds = rows
+    .filter(row => row.url !== null && isBlacklisted(row.url, blacklist))
+    .map(row => row.id);
+  if (matchedIds.length === 0) {
+    return {
+      blocked: 0,
+    };
+  }
+  await db
+    .update(importItems)
+    .set({
+      status: "blocked",
+    })
+    .where(inArray(importItems.id, matchedIds));
+  return {
+    blocked: matchedIds.length,
+  };
 }
 
 /** Reject every pending candidate across all imports. Returns the number of rows rejected. */
