@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import {
+  CHOICES_DISPLAY_TYPES,
   CUSTOM_PROPERTY_TYPES,
   DATE_TIME_FORMATS,
   NUMBER_FORMATS,
@@ -148,6 +149,32 @@ const createPropertyBody = {
     ratingLabel: {
       type: ["string", "null"],
     },
+    choicesItems: {
+      type: "array",
+      items: {
+        type: "object",
+        required: ["label", "value"],
+        additionalProperties: false,
+        properties: {
+          label: {
+            type: "string",
+          },
+          value: {
+            type: "string",
+          },
+          isDefault: {
+            type: "boolean",
+          },
+        },
+      },
+    },
+    choicesDisplay: {
+      type: ["string", "null"],
+      enum: [...CHOICES_DISPLAY_TYPES, null],
+    },
+    choicesMultiple: {
+      type: "boolean",
+    },
     propertyGroupId: nullableUuid,
   },
 } as const;
@@ -189,6 +216,9 @@ const updatePropertyBody = {
     ratingAllowHalf: createPropertyBody.properties.ratingAllowHalf,
     ratingShowLabel: createPropertyBody.properties.ratingShowLabel,
     ratingLabel: createPropertyBody.properties.ratingLabel,
+    choicesItems: createPropertyBody.properties.choicesItems,
+    choicesDisplay: createPropertyBody.properties.choicesDisplay,
+    choicesMultiple: createPropertyBody.properties.choicesMultiple,
     propertyGroupId: createPropertyBody.properties.propertyGroupId,
   },
 } as const;

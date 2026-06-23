@@ -1,6 +1,7 @@
 import type { Category, CustomProperty, CustomPropertyType, MediaType, PropertyGroup } from "@eesimple/types";
 import type { FC } from "react";
 
+import { CHOICES_DISPLAY_LABELS } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 
 import { hasPropertyOptions } from "../lib/propertyForm";
@@ -133,6 +134,44 @@ function BasicOptionsFields({
   return <AllowDefaultField property={property} />;
 }
 
+/** Choices option fields: display type, selection mode, and the defined choices. */
+function ChoicesOptionsFields({
+  property,
+}: PropertyOptionsFieldsProps) {
+  return (
+    <>
+      <DetailField label="Display">
+        {CHOICES_DISPLAY_LABELS[property.choicesDisplay ?? "radio"]}
+      </DetailField>
+      <DetailField label="Selection">
+        {property.choicesMultiple ? "Multiple" : "Single"}
+      </DetailField>
+      <DetailField label="Choices">
+        {property.choicesItems.length > 0
+          ? (
+            <ul className="space-y-1">
+              {property.choicesItems.map(item => (
+                <li
+                  key={item.value}
+                  className="flex items-center gap-1.5 text-sm"
+                >
+                  {item.label}
+                  {item.isDefault
+                    ? (
+                      <Badge variant="secondary">Default</Badge>
+                    )
+                    : null}
+                </li>
+              ))}
+            </ul>
+          )
+          : null}
+      </DetailField>
+      <AllowDefaultField property={property} />
+    </>
+  );
+}
+
 /**
  * Per-type options renderer. Keyed by every `CustomPropertyType` so a newly added type fails `tsc`
  * here rather than silently rendering no options. `null` means the type has no options section.
@@ -145,6 +184,7 @@ const OPTIONS_FIELDS: Record<CustomPropertyType, FC<PropertyOptionsFieldsProps> 
   ratingScale: RatingOptionsFields,
   image: BasicOptionsFields,
   file: BasicOptionsFields,
+  choices: ChoicesOptionsFields,
 };
 
 /** The "Property options" section body; renders nothing for calculate properties. */

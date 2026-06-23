@@ -74,9 +74,11 @@ export function makeRevealedProps(overrides: Partial<RevealedFixtureProps> = {})
     numberInputs: {},
     booleanInputs: {},
     dateTimeInputs: {},
+    choicesInputs: {},
     onNumberChange: () => undefined,
     onBooleanChange: () => undefined,
     onDateTimeChange: () => undefined,
+    onChoicesChange: () => undefined,
 
     ...overrides,
   };
@@ -119,7 +121,9 @@ export interface RevealedFixtureProps {
   numberInputs: Record<string, string>;
   booleanInputs: Record<string, boolean>;
   dateTimeInputs: Record<string, string>;
+  choicesInputs: Record<string, string[]>;
   onNumberChange: (id: string, value: string) => void;
   onBooleanChange: (id: string, value: boolean) => void;
   onDateTimeChange: (id: string, value: string) => void;
+  onChoicesChange: (id: string, values: string[]) => void;
 }

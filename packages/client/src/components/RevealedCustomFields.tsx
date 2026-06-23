@@ -9,9 +9,11 @@ export interface RevealedCustomFieldsProps {
   numberInputs: Record<string, string>;
   booleanInputs: Record<string, boolean>;
   dateTimeInputs: Record<string, string>;
+  choicesInputs: Record<string, string[]>;
   onNumberChange: (id: string, value: string) => void;
   onBooleanChange: (id: string, value: boolean) => void;
   onDateTimeChange: (id: string, value: string) => void;
+  onChoicesChange: (id: string, values: string[]) => void;
 }
 
 /**
@@ -24,9 +26,11 @@ export function RevealedCustomFields({
   numberInputs,
   booleanInputs,
   dateTimeInputs,
+  choicesInputs,
   onNumberChange,
   onBooleanChange,
   onDateTimeChange,
+  onChoicesChange,
 }: RevealedCustomFieldsProps) {
   return (
     <form.Subscribe
@@ -46,9 +50,11 @@ export function RevealedCustomFields({
           numberInputs={numberInputs}
           booleanInputs={booleanInputs}
           dateTimeInputs={dateTimeInputs}
+          choicesInputs={choicesInputs}
           onNumberChange={onNumberChange}
           onBooleanChange={onBooleanChange}
           onDateTimeChange={onDateTimeChange}
+          onChoicesChange={onChoicesChange}
         />
       )}
     </form.Subscribe>

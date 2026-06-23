@@ -62,5 +62,10 @@ export function describePropertyPredicate(
       return describeDateTimePredicate(predicate.predicate, property);
     case "file":
       return describePresence(predicate.predicate.mode);
+    case "choices": {
+      const pred = predicate.predicate;
+      if (pred.kind === "presence") return describePresence(pred.mode);
+      return pred.values.length === 0 ? "any value" : `includes ${pred.values.join(", ")}`;
+    }
   }
 }

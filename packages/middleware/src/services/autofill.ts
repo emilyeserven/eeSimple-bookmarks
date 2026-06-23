@@ -270,6 +270,7 @@ export async function suggestAutofillForBookmark(input: {
     dateTimeValues: new Map(),
     fileValues: new Set(),
     relationshipTypeIds: new Set(),
+    choicesValues: new Map(),
   };
 
   for (const rule of rules) {

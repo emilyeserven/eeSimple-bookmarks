@@ -110,6 +110,15 @@ function propertyPresenceLeaf(propertyId: string, valueKind: ConditionValueKind)
           predicate: presence,
         },
       };
+    case "choices":
+      return {
+        type: "property",
+        propertyId,
+        predicate: {
+          valueKind: "choices",
+          predicate: presence,
+        },
+      };
   }
 }
 

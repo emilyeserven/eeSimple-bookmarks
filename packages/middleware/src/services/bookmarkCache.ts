@@ -4,6 +4,7 @@ import { buildTagDescendants } from "@eesimple/types";
 import { db } from "@/db";
 import {
   bookmarkBooleanValues,
+  bookmarkChoicesValues,
   bookmarkDateTimeValues,
   bookmarkFileValues,
   bookmarkNumberValues,
@@ -98,7 +99,7 @@ async function buildConditionInputs(
   const ids = baseRows.map(row => row.id);
   if (ids.length === 0) return new Map();
 
-  const [tagRows, numberRows, booleanRows, dateTimeRows, fileRows, relationshipRows] = await Promise.all([
+  const [tagRows, numberRows, booleanRows, dateTimeRows, choicesRows, fileRows, relationshipRows] = await Promise.all([
     db
       .select({
         bookmarkId: bookmarkTags.bookmarkId,
@@ -130,6 +131,14 @@ async function buildConditionInputs(
       })
       .from(bookmarkDateTimeValues)
       .where(inArray(bookmarkDateTimeValues.bookmarkId, ids)),
+    db
+      .select({
+        bookmarkId: bookmarkChoicesValues.bookmarkId,
+        propertyId: bookmarkChoicesValues.propertyId,
+        values: bookmarkChoicesValues.values,
+      })
+      .from(bookmarkChoicesValues)
+      .where(inArray(bookmarkChoicesValues.bookmarkId, ids)),
     db
       .select({
         bookmarkId: bookmarkFileValues.bookmarkId,
@@ -180,6 +189,13 @@ async function buildConditionInputs(
     datesByBid.set(r.bookmarkId, m);
   }
 
+  const choicesByBid = new Map<string, Map<string, string[]>>();
+  for (const r of choicesRows) {
+    const m = choicesByBid.get(r.bookmarkId) ?? new Map<string, string[]>();
+    m.set(r.propertyId, r.values as string[]);
+    choicesByBid.set(r.bookmarkId, m);
+  }
+
   const filesByBid = new Map<string, Set<string>>();
   for (const r of fileRows) {
     const s = filesByBid.get(r.bookmarkId) ?? new Set<string>();
@@ -213,6 +229,7 @@ async function buildConditionInputs(
       numberValues: numsByBid.get(row.id) ?? new Map(),
       booleanValues: boolsByBid.get(row.id) ?? new Map(),
       dateTimeValues: datesByBid.get(row.id) ?? new Map(),
+      choicesValues: choicesByBid.get(row.id) ?? new Map(),
       fileValues: filesByBid.get(row.id) ?? new Set(),
       relationshipTypeIds: relTypesByBid.get(row.id) ?? new Set(),
     });

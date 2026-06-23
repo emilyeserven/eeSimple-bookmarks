@@ -86,9 +86,11 @@ interface BookmarkRevealedFieldsProps {
   numberInputs: Record<string, string>;
   booleanInputs: Record<string, boolean>;
   dateTimeInputs: Record<string, string>;
+  choicesInputs: Record<string, string[]>;
   onNumberChange: (id: string, value: string) => void;
   onBooleanChange: (id: string, value: boolean) => void;
   onDateTimeChange: (id: string, value: string) => void;
+  onChoicesChange: (id: string, values: string[]) => void;
 
   // Advanced section.
   categories: Category[];
@@ -168,9 +170,11 @@ export function BookmarkRevealedFields(props: BookmarkRevealedFieldsProps) {
           numberInputs: props.numberInputs,
           booleanInputs: props.booleanInputs,
           dateTimeInputs: props.dateTimeInputs,
+          choicesInputs: props.choicesInputs,
           onNumberChange: props.onNumberChange,
           onBooleanChange: props.onBooleanChange,
           onDateTimeChange: props.onDateTimeChange,
+          onChoicesChange: props.onChoicesChange,
           onApplyCategoryDefaults: props.onApplyCategoryDefaults,
         }}
         isFetchDescriptionPending={props.isFetchMetadataPending}

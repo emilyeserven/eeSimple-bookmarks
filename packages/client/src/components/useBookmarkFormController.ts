@@ -14,6 +14,7 @@ import {
   bookmarkSchema,
   buildBookmarkDefaultValues,
   buildCategoryPropertyValues,
+  buildChoicesValuesFromInputs,
   initialImageIntent,
   looksLikeYouTube,
 } from "./bookmarkFormSchema";
@@ -209,6 +210,12 @@ export function useBookmarkFormController({
       prefill.customRef.current,
       value.mediaTypeId || null,
     );
+    const choicesValues = buildChoicesValuesFromInputs(
+      customProperties ?? [],
+      value.categoryId,
+      prefill.customRef.current.choicesInputs,
+      value.mediaTypeId || null,
+    );
 
     // Resolve the URL to save plus the original it was cleaned from (see resolveSubmitUrl).
     const {
@@ -231,6 +238,7 @@ export function useBookmarkFormController({
       numberValues,
       booleanValues,
       dateTimeValues,
+      choicesValues,
       ...(channelHintRef.current && {
         youtubeChannel: channelHintRef.current,
       }),

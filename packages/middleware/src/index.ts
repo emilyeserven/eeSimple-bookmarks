@@ -6,7 +6,7 @@ import { backfillAuthorSlugs } from "@/services/authors";
 import { ensureAutofillConditions, ensureAutofillSlugs, ensureWebsiteConditions } from "@/services/autofill";
 import { backfillCardDisplayRuleFieldZones, backfillCardDisplayRuleHeaderFields, backfillCardDisplayRuleSubZones, backfillCardDisplayRuleZoneLayouts, ensureDefaultCardDisplayRule } from "@/services/cardDisplayRules";
 import { ensureDefaultCategory } from "@/services/categories";
-import { backfillCustomPropertySlugs, ensureDatePostedProperty, ensureRuntimeProperty } from "@/services/customProperties";
+import { backfillCustomPropertySlugs, ensureContentStatusProperty, ensureDatePostedProperty, ensureRuntimeProperty } from "@/services/customProperties";
 import { ensureHomepageFilter } from "@/services/homepageFilter";
 import { resetStalledImports } from "@/services/imports";
 import { ensureImportRuleSlugs } from "@/services/importRules";
@@ -52,6 +52,7 @@ try {
   await backfillWebsiteSlugs();
   await backfillCustomPropertySlugs();
   await ensureDatePostedProperty();
+  await ensureContentStatusProperty();
   await ensureBuiltInMediaTypes();
   await backfillMediaTypeSlugs();
   await ensureRuntimeProperty();

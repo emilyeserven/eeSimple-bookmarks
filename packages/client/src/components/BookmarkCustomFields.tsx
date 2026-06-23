@@ -19,6 +19,13 @@ import { useCategoryDefaults } from "../hooks/useCategories";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface CategoryCustomFieldsProps {
   categoryId: string;
@@ -43,17 +50,19 @@ interface CategoryCustomFieldsProps {
   numberInputs: Record<string, string>;
   booleanInputs: Record<string, boolean>;
   dateTimeInputs: Record<string, string>;
+  choicesInputs: Record<string, string[]>;
   onNumberChange: (propertyId: string, value: string) => void;
   onBooleanChange: (propertyId: string, value: boolean) => void;
   onDateTimeChange: (propertyId: string, value: string) => void;
+  onChoicesChange: (propertyId: string, values: string[]) => void;
 }
 
 /** Renders the custom-property inputs for the properties assigned to the chosen category. */
 export function CategoryCustomFields({
   categoryId, mediaTypeId = null, properties, bookmark = null, placement, className,
   hiddenSlugs = [RUNTIME_SLUG, DATE_POSTED_SLUG],
-  numberInputs, booleanInputs, dateTimeInputs,
-  onNumberChange, onBooleanChange, onDateTimeChange,
+  numberInputs, booleanInputs, dateTimeInputs, choicesInputs,
+  onNumberChange, onBooleanChange, onDateTimeChange, onChoicesChange,
 }: CategoryCustomFieldsProps) {
   const categoryProps = properties.filter((property) => {
     // Union scoping: a property shows if it applies to the bookmark's category OR its media type.
@@ -92,9 +101,11 @@ export function CategoryCustomFields({
             numberInputs={numberInputs}
             booleanInputs={booleanInputs}
             dateTimeInputs={dateTimeInputs}
+            choicesInputs={choicesInputs}
             onNumberChange={onNumberChange}
             onBooleanChange={onBooleanChange}
             onDateTimeChange={onDateTimeChange}
+            onChoicesChange={onChoicesChange}
           />
         ))}
       </div>
@@ -118,15 +129,17 @@ interface CategoryPropertyFieldProps {
   numberInputs: Record<string, string>;
   booleanInputs: Record<string, boolean>;
   dateTimeInputs: Record<string, string>;
+  choicesInputs: Record<string, string[]>;
   onNumberChange: (propertyId: string, value: string) => void;
   onBooleanChange: (propertyId: string, value: boolean) => void;
   onDateTimeChange: (propertyId: string, value: string) => void;
+  onChoicesChange: (propertyId: string, values: string[]) => void;
 }
 
 /** Renders the single input appropriate to one custom property's type. */
 function CategoryPropertyField({
-  property, bookmark, numberInputs, booleanInputs, dateTimeInputs,
-  onNumberChange, onBooleanChange, onDateTimeChange,
+  property, bookmark, numberInputs, booleanInputs, dateTimeInputs, choicesInputs,
+  onNumberChange, onBooleanChange, onDateTimeChange, onChoicesChange,
 }: CategoryPropertyFieldProps) {
   const fieldId = `property-${property.id}`;
 
@@ -202,11 +215,177 @@ function CategoryPropertyField({
       />
     );
   }
+  if (property.type === "choices") {
+    return (
+      <ChoicesPropertyField
+        property={property}
+        selectedValues={choicesInputs[property.id] ?? []}
+        onChange={values => onChoicesChange(property.id, values)}
+      />
+    );
+  }
   // calculate: computed server-side; shown read-only so the user knows it exists.
   return (
     <div className="space-y-1">
       <Label>{property.name}</Label>
       <p className="text-xs text-muted-foreground">Calculated automatically when saved.</p>
+    </div>
+  );
+}
+
+function ChoicesPropertyField({
+  property, selectedValues, onChange,
+}: {
+  property: CustomProperty;
+  selectedValues: string[];
+  onChange: (values: string[]) => void;
+}) {
+  const display = property.choicesDisplay ?? "radio";
+  const multiple = property.choicesMultiple;
+  const items = property.choicesItems;
+  const fieldId = `property-${property.id}`;
+
+  // Checkbox: multi-select list
+  if (display === "checkbox") {
+    return (
+      <div className="col-span-full space-y-1">
+        <Label>{property.name}</Label>
+        <div className="space-y-1.5">
+          {items.map(item => (
+            <div
+              key={item.value}
+              className="flex items-center gap-2"
+            >
+              <Checkbox
+                id={`${fieldId}-${item.value}`}
+                checked={selectedValues.includes(item.value)}
+                onCheckedChange={(checked) => {
+                  onChange(
+                    checked
+                      ? [...selectedValues, item.value]
+                      : selectedValues.filter(v => v !== item.value),
+                  );
+                }}
+              />
+              <Label
+                htmlFor={`${fieldId}-${item.value}`}
+                className="font-normal"
+              >{item.label}
+              </Label>
+            </div>
+          ))}
+        </div>
+        <FieldDescription text={property.description} />
+      </div>
+    );
+  }
+
+  // Radio: single-select with clear option
+  if (display === "radio") {
+    return (
+      <div className="col-span-full space-y-1">
+        <Label>{property.name}</Label>
+        <div className="space-y-1.5">
+          {items.map(item => (
+            <div
+              key={item.value}
+              className="flex items-center gap-2"
+            >
+              <input
+                type="radio"
+                id={`${fieldId}-${item.value}`}
+                name={fieldId}
+                value={item.value}
+                checked={selectedValues[0] === item.value}
+                onChange={() => onChange([item.value])}
+                className="size-4"
+              />
+              <Label
+                htmlFor={`${fieldId}-${item.value}`}
+                className="font-normal"
+              >{item.label}
+              </Label>
+            </div>
+          ))}
+          {selectedValues.length > 0 && (
+            <div className="flex items-center gap-2">
+              <input
+                type="radio"
+                id={`${fieldId}-none`}
+                name={fieldId}
+                checked={false}
+                onChange={() => onChange([])}
+                className="size-4"
+              />
+              <Label
+                htmlFor={`${fieldId}-none`}
+                className="font-normal text-muted-foreground"
+              >Clear
+              </Label>
+            </div>
+          )}
+        </div>
+        <FieldDescription text={property.description} />
+      </div>
+    );
+  }
+
+  // Dropdown / combobox: Select for single, checkbox list for multiple
+  if (multiple) {
+    return (
+      <div className="col-span-full space-y-1">
+        <Label>{property.name}</Label>
+        <div className="space-y-1.5">
+          {items.map(item => (
+            <div
+              key={item.value}
+              className="flex items-center gap-2"
+            >
+              <Checkbox
+                id={`${fieldId}-${item.value}`}
+                checked={selectedValues.includes(item.value)}
+                onCheckedChange={(checked) => {
+                  onChange(
+                    checked
+                      ? [...selectedValues, item.value]
+                      : selectedValues.filter(v => v !== item.value),
+                  );
+                }}
+              />
+              <Label
+                htmlFor={`${fieldId}-${item.value}`}
+                className="font-normal"
+              >{item.label}
+              </Label>
+            </div>
+          ))}
+        </div>
+        <FieldDescription text={property.description} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-1">
+      <Label htmlFor={fieldId}>{property.name}</Label>
+      <Select
+        value={selectedValues[0] ?? ""}
+        onValueChange={value => onChange(value ? [value] : [])}
+      >
+        <SelectTrigger id={fieldId}>
+          <SelectValue placeholder="Select…" />
+        </SelectTrigger>
+        <SelectContent>
+          {items.map(item => (
+            <SelectItem
+              key={item.value}
+              value={item.value}
+            >{item.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <FieldDescription text={property.description} />
     </div>
   );
 }

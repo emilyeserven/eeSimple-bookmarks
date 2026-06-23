@@ -55,9 +55,11 @@ export interface BookmarkCustomFieldControls {
   numberInputs: Record<string, string>;
   booleanInputs: Record<string, boolean>;
   dateTimeInputs: Record<string, string>;
+  choicesInputs: Record<string, string[]>;
   onNumberChange: (id: string, value: string) => void;
   onBooleanChange: (id: string, value: boolean) => void;
   onDateTimeChange: (id: string, value: string) => void;
+  onChoicesChange: (id: string, values: string[]) => void;
   onApplyCategoryDefaults: (
     numberValues: BookmarkNumberValue[],
     booleanValues: BookmarkBooleanValue[],
@@ -289,9 +291,11 @@ export function BookmarkAdvancedSection({
                 numberInputs={customFields.numberInputs}
                 booleanInputs={customFields.booleanInputs}
                 dateTimeInputs={customFields.dateTimeInputs}
+                choicesInputs={customFields.choicesInputs}
                 onNumberChange={customFields.onNumberChange}
                 onBooleanChange={customFields.onBooleanChange}
                 onDateTimeChange={customFields.onDateTimeChange}
+                onChoicesChange={customFields.onChoicesChange}
               />
             </>
           )}

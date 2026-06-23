@@ -4,6 +4,7 @@ import type {
   AutofillRule,
   Bookmark,
   BookmarkBooleanValue,
+  BookmarkChoicesValue,
   BookmarkDateTimeValue,
   BookmarkNumberValue,
   CustomProperty,
@@ -136,6 +137,7 @@ export interface CustomPropertyInputs {
   numberInputs: Record<string, string>;
   booleanInputs: Record<string, boolean>;
   dateTimeInputs: Record<string, string>;
+  choicesInputs: Record<string, string[]>;
 }
 
 /** The category-scoped, validated property values built for a bookmark's create/update payload. */
@@ -162,6 +164,32 @@ export function initialImageIntent(autoFetchImage: boolean): ImageIntent {
       remove: false,
     }
     : EMPTY_IMAGE_INTENT;
+}
+
+/**
+ * Build the typed choices-property values for the submit payload: only enabled choices properties
+ * scoped to the chosen category or media type, with non-empty selections.
+ */
+export function buildChoicesValuesFromInputs(
+  customProperties: CustomProperty[],
+  categoryId: string,
+  choicesInputs: Record<string, string[]>,
+  mediaTypeId: string | null = null,
+): BookmarkChoicesValue[] {
+  const categoryProps = customProperties.filter(property =>
+    (propertyAppliesToCategory(property, categoryId)
+      || propertyAppliesToMediaType(property, mediaTypeId))
+    && property.enabled
+    && property.type === "choices");
+  return categoryProps.flatMap((property) => {
+    const values = choicesInputs[property.id] ?? [];
+    return values.length > 0
+      ? [{
+        propertyId: property.id,
+        values,
+      }]
+      : [];
+  });
 }
 
 /**

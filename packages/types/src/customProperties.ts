@@ -24,9 +24,11 @@
  * - `file` — a single arbitrary file attached per bookmark (stored as raw bytes, served as a
  *   download). Like `image`, the value is a blob carried as a {@link BookmarkFileValue} and matched
  *   by presence only.
+ * - `choices` — a user-defined list of labeled options; bookmarks store the selected value(s).
+ *   Rendered as checkbox, radio button, combobox, or dropdown depending on {@link ChoicesDisplayType}.
  */
 export const CUSTOM_PROPERTY_TYPES = [
-  "number", "boolean", "calculate", "datetime", "ratingScale", "image", "file",
+  "number", "boolean", "calculate", "datetime", "ratingScale", "image", "file", "choices",
 ] as const;
 
 /** The kind of a user-defined custom property. Derived from {@link CUSTOM_PROPERTY_TYPES}. */
@@ -41,7 +43,38 @@ export const CUSTOM_PROPERTY_TYPE_LABELS: Record<CustomPropertyType, string> = {
   ratingScale: "Rating Scale",
   image: "Image",
   file: "File",
+  choices: "Choices",
 };
+
+/**
+ * How a `choices` property is rendered in the bookmark form:
+ * - `checkbox` — a list of checkboxes (forces multi-select).
+ * - `radio` — a radio button group (forces single-select).
+ * - `combobox` — a searchable popover; single or multi-select controlled by `choicesMultiple`.
+ * - `dropdown` — a select element; single or multi-select controlled by `choicesMultiple`.
+ */
+export const CHOICES_DISPLAY_TYPES = ["checkbox", "radio", "combobox", "dropdown"] as const;
+
+/** How a `choices` property is rendered in the bookmark form. Derived from {@link CHOICES_DISPLAY_TYPES}. */
+export type ChoicesDisplayType = typeof CHOICES_DISPLAY_TYPES[number];
+
+/** Human-friendly label for each choices display type. */
+export const CHOICES_DISPLAY_LABELS: Record<ChoicesDisplayType, string> = {
+  checkbox: "Checkbox",
+  radio: "Radio Button",
+  combobox: "Combobox",
+  dropdown: "Dropdown",
+};
+
+/** A single selectable option in a `choices` custom property. */
+export interface ChoicesItem {
+  /** Human-readable label shown to the user. */
+  label: string;
+  /** Slugified key stored in the bookmark value; unique within the property. */
+  value: string;
+  /** When `true`, this option is pre-selected in the bookmark form. Only one item should be default. */
+  isDefault?: boolean;
+}
 
 /**
  * How a `number`/`calculate` value is rendered:

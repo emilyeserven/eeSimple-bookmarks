@@ -33,11 +33,12 @@ export function BookmarkPropertySections({
   const defaultZones = useDefaultFieldZones();
 
   const {
-    numberRows, ratingRows, booleanRows, dateTimeRows, fileRows,
+    numberRows, ratingRows, booleanRows, dateTimeRows, fileRows, choicesRows,
   } = buildBookmarkPropertyRows(bookmark, properties, defaultZones);
 
   const hasProperties = numberRows.length > 0 || booleanRows.length > 0
-    || dateTimeRows.length > 0 || ratingRows.length > 0 || fileRows.length > 0;
+    || dateTimeRows.length > 0 || ratingRows.length > 0 || fileRows.length > 0
+    || choicesRows.length > 0;
   if (!hasProperties) return null;
 
   // Partition the property rows by group. A row belongs to the ungrouped bucket when its `groupId`
@@ -65,7 +66,8 @@ export function BookmarkPropertySections({
     || booleanRows.some(row => inGroup(row.groupId, section.target))
     || dateTimeRows.some(row => inGroup(row.groupId, section.target))
     || ratingRows.some(row => inGroup(row.groupId, section.target))
-    || fileRows.some(row => inGroup(row.groupId, section.target)));
+    || fileRows.some(row => inGroup(row.groupId, section.target))
+    || choicesRows.some(row => inGroup(row.groupId, section.target)));
 
   return (
     <>
@@ -234,6 +236,38 @@ export function BookmarkPropertySections({
                   />
                 </div>
               ))}
+              {choicesRows.filter(row => inGroup(row.groupId, section.target)).map((row) => {
+                const selectedLabels = row.selectedValues
+                  .map(val => row.items.find(item => item.value === val)?.label ?? val);
+                return (
+                  <div
+                    key={row.id}
+                    className="group flex items-baseline gap-2"
+                  >
+                    <dt className="text-muted-foreground">
+                      {row.name}
+                      :
+                    </dt>
+                    <dd className="flex flex-wrap gap-1">
+                      {selectedLabels.map(label => (
+                        <span
+                          key={label}
+                          className="
+                            rounded-sm bg-secondary px-1.5 py-0.5 text-xs
+                            text-secondary-foreground
+                          "
+                        >
+                          {label}
+                        </span>
+                      ))}
+                    </dd>
+                    <PropertyQuickFilterLink
+                      search={row.search}
+                      name={row.name}
+                    />
+                  </div>
+                );
+              })}
             </dl>
           </LabeledSection>
         </div>

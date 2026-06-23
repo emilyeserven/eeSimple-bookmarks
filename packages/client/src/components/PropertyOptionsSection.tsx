@@ -1,5 +1,5 @@
-import type { PropertyFormApi, PropertyFormSection } from "./propertyFormSchema";
-import type { CustomProperty } from "@eesimple/types";
+import type { PropertyFormApi, PropertyFormSection, PropertyFormValues } from "./propertyFormSchema";
+import type { ChoicesItem, CustomProperty } from "@eesimple/types";
 
 import { AllowDefaultField } from "./AllowDefaultField";
 import { CollapsibleFormSection } from "./CollapsibleFormSection";
@@ -16,10 +16,13 @@ import {
   toggleId,
 } from "./propertyFormParts";
 
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { formatBooleanBadge } from "@/lib/bookmarkFormat";
+import { CHOICES_DISPLAY_OPTIONS } from "@/lib/propertyForm";
 
 interface PropertyOptionsSectionProps {
   form: PropertyFormApi;
@@ -172,6 +175,16 @@ export function PropertyOptionsSection({
               form={form}
               idPrefix={idPrefix}
               isImage={type === "image"}
+              full={full}
+            />
+          );
+        }
+        if (type === "choices") {
+          return (
+            <ChoicesOptions
+              form={form}
+              idPrefix={idPrefix}
+              defaultOpen={defaultOpen}
               full={full}
             />
           );
@@ -774,5 +787,206 @@ function RatingOptions({
         </div>
       </CollapsibleFormSection>
     </>
+  );
+}
+
+function slugifyChoice(text: string): string {
+  const slug = text.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  return slug || "option";
+}
+
+function deduplicateValue(items: ChoicesItem[], base: string, excludeIndex: number): string {
+  const existing = new Set(items.filter((_, i) => i !== excludeIndex).map(item => item.value));
+  if (!existing.has(base)) return base;
+  let n = 2;
+  while (existing.has(`${base}-${n}`)) n++;
+  return `${base}-${n}`;
+}
+
+function updateChoicesItems(items: ChoicesItem[], index: number, patch: Partial<ChoicesItem>): ChoicesItem[] {
+  return items.map((item, i) => (i === index
+    ? {
+      ...item,
+      ...patch,
+    }
+    : item));
+}
+
+interface ChoicesOptionsProps {
+  form: PropertyFormApi;
+  idPrefix: string;
+  defaultOpen: boolean;
+  full: boolean;
+}
+
+function ChoicesOptions({
+  form, idPrefix, defaultOpen, full,
+}: ChoicesOptionsProps) {
+  return (
+    <form.AppField name="choicesItems">
+      {itemsField => (
+        <form.Subscribe
+          selector={state => ({
+            choicesDisplay: state.values.choicesDisplay,
+            choicesItems: state.values.choicesItems,
+          })}
+        >
+          {({
+            choicesDisplay, choicesItems,
+          }) => {
+            const preview = choicesItems.length === 0
+              ? "No choices defined"
+              : `${choicesItems.length} choice${choicesItems.length === 1 ? "" : "s"}`;
+            return (
+              <>
+                {full ? <Separator /> : null}
+                <CollapsibleFormSection
+                  title="Choices Options"
+                  description="Define the list of choices and how they display."
+                  preview={preview}
+                  defaultOpen={defaultOpen}
+                >
+                  <div className="space-y-4">
+                    <form.AppField name="choicesDisplay">
+                      {field => (
+                        <field.SelectField
+                          label="Display"
+                          options={CHOICES_DISPLAY_OPTIONS}
+                          onValueChange={(value) => {
+                            field.handleChange(value as PropertyFormValues["choicesDisplay"]);
+                            if (value === "checkbox") {
+                              form.setFieldValue("choicesMultiple", true);
+                            }
+                            else if (value === "radio") {
+                              form.setFieldValue("choicesMultiple", false);
+                            }
+                          }}
+                        />
+                      )}
+                    </form.AppField>
+
+                    <form.AppField name="choicesMultiple">
+                      {(field) => {
+                        const locked = choicesDisplay === "checkbox" || choicesDisplay === "radio";
+                        return (
+                          <div className="flex items-center gap-2">
+                            <Checkbox
+                              id={`${idPrefix}-choices-multiple`}
+                              checked={field.state.value}
+                              disabled={locked}
+                              onCheckedChange={checked => field.handleChange(Boolean(checked))}
+                            />
+                            <Label htmlFor={`${idPrefix}-choices-multiple`}>
+                              Allow multiple selections
+                              {locked ? " (set by display type)" : ""}
+                            </Label>
+                          </div>
+                        );
+                      }}
+                    </form.AppField>
+
+                    <Separator />
+
+                    <div className="space-y-2">
+                      <Label>Choices</Label>
+                      {choicesItems.length > 0 && (
+                        <ul className="space-y-2">
+                          {choicesItems.map((item, index) => (
+                            <li
+                              key={item.value}
+                              className="flex items-center gap-2"
+                            >
+                              <Input
+                                value={item.label}
+                                placeholder="Label"
+                                className="flex-1"
+                                onChange={(e) => {
+                                  itemsField.handleChange(
+                                    updateChoicesItems(choicesItems, index, {
+                                      label: e.target.value,
+                                    }),
+                                  );
+                                }}
+                                onBlur={(e) => {
+                                  const base = slugifyChoice(e.target.value);
+                                  const deduped = deduplicateValue(choicesItems, base, index);
+                                  itemsField.handleChange(
+                                    updateChoicesItems(choicesItems, index, {
+                                      value: deduped,
+                                    }),
+                                  );
+                                }}
+                              />
+                              <div
+                                className="flex shrink-0 items-center gap-1.5"
+                              >
+                                <input
+                                  type="radio"
+                                  name={`${idPrefix}-choices-default`}
+                                  id={`${idPrefix}-choices-default-${index}`}
+                                  checked={item.isDefault ?? false}
+                                  onChange={() => {
+                                    itemsField.handleChange(
+                                      choicesItems.map((it, i) => ({
+                                        ...it,
+                                        isDefault: i === index ? true : undefined,
+                                      })),
+                                    );
+                                  }}
+                                />
+                                <Label
+                                  htmlFor={`${idPrefix}-choices-default-${index}`}
+                                  className="text-xs text-muted-foreground"
+                                >
+                                  Default
+                                </Label>
+                              </div>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  itemsField.handleChange(choicesItems.filter((_, i) => i !== index));
+                                }}
+                              >
+                                Remove
+                              </Button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const base = slugifyChoice(`Option ${choicesItems.length + 1}`);
+                          const deduped = deduplicateValue(choicesItems, base, -1);
+                          itemsField.handleChange([
+                            ...choicesItems,
+                            {
+                              label: `Option ${choicesItems.length + 1}`,
+                              value: deduped,
+                            },
+                          ]);
+                        }}
+                      >
+                        Add choice
+                      </Button>
+                    </div>
+
+                    <AllowDefaultField
+                      form={form}
+                      idPrefix={idPrefix}
+                      className="space-y-1"
+                    />
+                  </div>
+                </CollapsibleFormSection>
+              </>
+            );
+          }}
+        </form.Subscribe>
+      )}
+    </form.AppField>
   );
 }

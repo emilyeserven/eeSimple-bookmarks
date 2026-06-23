@@ -9,6 +9,7 @@ export const TYPE_LABELS: Record<CustomPropertyType, string> = {
   ratingScale: "Rating Scale",
   image: "Image",
   file: "File",
+  choices: "Choices",
 };
 
 /** Human labels for what a `datetime` property captures. */

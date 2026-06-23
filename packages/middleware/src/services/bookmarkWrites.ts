@@ -1,6 +1,7 @@
 import { and, eq, inArray } from "drizzle-orm";
 import type {
   BookmarkBooleanValue,
+  BookmarkChoicesValue,
   BookmarkDateTimeValue,
   BookmarkNumberValue,
 } from "@eesimple/types";
@@ -8,6 +9,7 @@ import { db } from "@/db";
 import {
   bookmarkAuthors,
   bookmarkBooleanValues,
+  bookmarkChoicesValues,
   bookmarkDateTimeValues,
   bookmarkNumberValues,
   bookmarkTags,
@@ -75,6 +77,20 @@ export async function setDateTimeValues(
     bookmarkId,
     propertyId: entry.propertyId,
     value: entry.value,
+  })));
+}
+
+/** Insert choices custom-property values for a bookmark (no-op when empty). */
+export async function setChoicesValues(
+  tx: Tx,
+  bookmarkId: string,
+  choicesValues: BookmarkChoicesValue[] | undefined,
+): Promise<void> {
+  if (!choicesValues || choicesValues.length === 0) return;
+  await tx.insert(bookmarkChoicesValues).values(choicesValues.map(entry => ({
+    bookmarkId,
+    propertyId: entry.propertyId,
+    values: entry.values,
   })));
 }
 

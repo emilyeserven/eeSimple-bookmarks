@@ -29,11 +29,13 @@ export interface BookmarkPropertyPrefill {
   numberInputs: Record<string, string>;
   booleanInputs: Record<string, boolean>;
   dateTimeInputs: Record<string, string>;
+  choicesInputs: Record<string, string[]>;
   /** Mirror of the current inputs; read by the submit handler (stale-closure-safe). */
   customRef: React.MutableRefObject<CustomPropertyInputs>;
   handleNumberChange: (id: string, value: string) => void;
   handleBooleanChange: (id: string, value: boolean) => void;
   handleDateTimeChange: (id: string, value: string) => void;
+  handleChoicesChange: (id: string, values: string[]) => void;
   /** Run the autofill rules against the current URL/Title and prefill the form. */
   runAutofill: () => void;
   /** Apply a category's default property values (rules and user edits win). */
@@ -69,9 +71,11 @@ export function useBookmarkPropertyPrefill({
     numberInputs,
     booleanInputs,
     dateTimeInputs,
+    choicesInputs,
     setNumberInputs,
     setBooleanInputs,
     setDateTimeInputs,
+    setChoicesInputs,
     customRef,
   } = useSeededPropertyInputs(bookmark);
 
@@ -238,6 +242,13 @@ export function useBookmarkPropertyPrefill({
       [id]: value,
     }));
   }
+  function handleChoicesChange(id: string, values: string[]): void {
+    touchedRef.current.add(`choices:${id}`);
+    setChoicesInputs(current => ({
+      ...current,
+      [id]: values,
+    }));
+  }
 
   function markTagsTouched(): void {
     touchedRef.current.add("tags");
@@ -247,6 +258,7 @@ export function useBookmarkPropertyPrefill({
     setNumberInputs({});
     setBooleanInputs({});
     setDateTimeInputs({});
+    setChoicesInputs({});
     touchedRef.current = new Set();
     ruleSetRef.current = {
       numbers: new Set(),
@@ -269,10 +281,12 @@ export function useBookmarkPropertyPrefill({
     numberInputs,
     booleanInputs,
     dateTimeInputs,
+    choicesInputs,
     customRef,
     handleNumberChange,
     handleBooleanChange,
     handleDateTimeChange,
+    handleChoicesChange,
     runAutofill,
     applyCategoryDefaults,
     markTagsTouched,

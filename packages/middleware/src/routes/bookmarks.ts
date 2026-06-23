@@ -151,6 +151,26 @@ const createBookmarkBody = {
         },
       },
     },
+    choicesValues: {
+      type: "array",
+      items: {
+        type: "object",
+        required: ["propertyId", "values"],
+        additionalProperties: false,
+        properties: {
+          propertyId: {
+            type: "string",
+            format: "uuid",
+          },
+          values: {
+            type: "array",
+            items: {
+              type: "string",
+            },
+          },
+        },
+      },
+    },
     priority: {
       type: "integer",
     },

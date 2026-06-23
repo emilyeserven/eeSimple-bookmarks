@@ -7,6 +7,7 @@ import { propertyValueKind } from "../../lib/propertyConditionKind";
 import { DateTimeRangeFields } from "../DateTimePicker";
 import { RangeSlider } from "../RangeSlider";
 
+import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Label } from "@/components/ui/label";
 import {
@@ -449,6 +450,120 @@ function BooleanConditionRow({
   );
 }
 
+const CHOICES_MODES = [
+  {
+    value: "none",
+    label: "Any",
+  },
+  {
+    value: "has",
+    label: "Has value",
+  },
+  {
+    value: "missing",
+    label: "Missing",
+  },
+  {
+    value: "includes",
+    label: "Includes",
+  },
+];
+
+/** Choices: presence modes + an "Includes" multi-select list. */
+function ChoicesConditionRow({
+  property, condition, categories, onChange,
+}: RowProps) {
+  const predicate = condition?.predicate.valueKind === "choices" ? condition.predicate.predicate : undefined;
+  const mode = predicate
+    ? predicate.kind === "includes" ? "includes" : predicate.mode
+    : "none";
+  const selectedValues: string[] = predicate?.kind === "includes" ? predicate.values : [];
+
+  function handleMode(next: string): void {
+    if (next === "none") {
+      onChange(null);
+    }
+    else if (next === "includes") {
+      onChange({
+        type: "property",
+        propertyId: property.id,
+        predicate: {
+          valueKind: "choices",
+          predicate: {
+            kind: "includes",
+            values: [],
+          },
+        },
+      });
+    }
+    else {
+      onChange({
+        type: "property",
+        propertyId: property.id,
+        predicate: {
+          valueKind: "choices",
+          predicate: {
+            kind: "presence",
+            mode: next as "has" | "missing",
+          },
+        },
+      });
+    }
+  }
+
+  function toggleValue(value: string): void {
+    const next = selectedValues.includes(value)
+      ? selectedValues.filter(v => v !== value)
+      : [...selectedValues, value];
+    onChange({
+      type: "property",
+      propertyId: property.id,
+      predicate: {
+        valueKind: "choices",
+        predicate: {
+          kind: "includes",
+          values: next,
+        },
+      },
+    });
+  }
+
+  return (
+    <PropertyConditionModeRow
+      property={property}
+      categories={categories}
+      mode={mode}
+      modes={CHOICES_MODES}
+      onModeChange={handleMode}
+    >
+      {mode === "includes" && property.choicesItems.length > 0
+        ? (
+          <div className="space-y-1 pl-1">
+            {property.choicesItems.map(item => (
+              <div
+                key={item.value}
+                className="flex items-center gap-2"
+              >
+                <Checkbox
+                  id={`choices-cond-${property.id}-${item.value}`}
+                  checked={selectedValues.includes(item.value)}
+                  onCheckedChange={() => toggleValue(item.value)}
+                />
+                <Label
+                  htmlFor={`choices-cond-${property.id}-${item.value}`}
+                  className="text-sm font-normal"
+                >
+                  {item.label}
+                </Label>
+              </div>
+            ))}
+          </div>
+        )
+        : null}
+    </PropertyConditionModeRow>
+  );
+}
+
 /** A single property's condition control, dispatched to the editor for its value kind. */
 function PropertyConditionRow(props: RowProps) {
   switch (propertyValueKind(props.property)) {
@@ -460,6 +575,8 @@ function PropertyConditionRow(props: RowProps) {
       return <FileConditionRow {...props} />;
     case "boolean":
       return <BooleanConditionRow {...props} />;
+    case "choices":
+      return <ChoicesConditionRow {...props} />;
   }
 }
 
