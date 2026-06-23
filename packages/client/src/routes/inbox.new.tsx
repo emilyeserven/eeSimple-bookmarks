@@ -1,43 +1,34 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft } from "lucide-react";
+import { useEffect } from "react";
 
-import { ImportForm } from "../components/ImportForm";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
-import { Button } from "@/components/ui/button";
+import { useUiStore } from "../stores/uiStore";
 
 export const Route = createFileRoute("/inbox/new")({
   validateSearch: (search: Record<string, unknown>): { newsletterId?: string } => ({
     newsletterId: typeof search.newsletterId === "string" ? search.newsletterId : undefined,
   }),
-  component: InboxNewPage,
+  component: InboxNewRedirect,
 });
 
-function InboxNewPage() {
+/** Redirect legacy /inbox/new links to /inbox and open the Add Import modal. */
+function InboxNewRedirect() {
   const {
     newsletterId,
   } = Route.useSearch();
-  return (
-    <section className="space-y-6">
-      <div className="space-y-1">
-        <Button
-          asChild
-          variant="ghost"
-          size="sm"
-          className="-ml-2"
-        >
-          <Link to="/inbox">
-            <ArrowLeft className="size-4" />
-            Back to inbox
-          </Link>
-        </Button>
-        <h2 className="text-xl font-semibold">Add import</h2>
-        <p className="text-sm text-muted-foreground">
-          Paste a newsletter, fetch its public &ldquo;view in browser&rdquo; URL, or upload a saved
-          .eml / .html file. Links are extracted and tracker redirects resolved for review in your inbox.
-        </p>
-      </div>
+  const navigate = useNavigate();
+  const setOpen = useUiStore(s => s.setAddImportModalOpen);
+  const setInitialId = useUiStore(s => s.setImportModalInitialNewsletterId);
 
-      <ImportForm initialNewsletterId={newsletterId ?? null} />
-    </section>
-  );
+  useEffect(() => {
+    if (newsletterId) setInitialId(newsletterId);
+    setOpen(true);
+    void navigate({
+      to: "/inbox",
+      replace: true,
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return null;
 }

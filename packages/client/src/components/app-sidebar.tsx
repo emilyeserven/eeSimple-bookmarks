@@ -97,7 +97,7 @@ const taxonomyItems = [
   },
   {
     key: "newsletters",
-    title: "Newsletters",
+    title: "Imports",
     to: "/taxonomies/newsletters",
     icon: Mail,
   },

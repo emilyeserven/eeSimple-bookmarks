@@ -7,6 +7,7 @@ import { StandardListingCard } from "../components/StandardListingCard";
 import { useDeleteImport, useNewsletterIssues } from "../hooks/useImports";
 import { useNewsletterBySlug } from "../hooks/useNewsletters";
 import { notifySuccess } from "../lib/notifications";
+import { useUiStore } from "../stores/uiStore";
 
 import { Button } from "@/components/ui/button";
 
@@ -23,7 +24,7 @@ const STATUS_LABELS: Partial<Record<ImportItemStatus, string>> = {
   blocked: "blocked",
 };
 
-/** A short "8 pending · 3 added" summary from an issue's per-status counts. */
+/** A short "8 pending · 3 added" summary from an import group's per-status counts. */
 function summaryLine(summary: ImportSummary): string {
   const parts = (Object.keys(STATUS_LABELS) as ImportItemStatus[])
     .filter(status => summary.statusCounts[status] > 0)
@@ -42,9 +43,18 @@ function NewsletterIssuesPage() {
     data: issues, isLoading: issuesLoading,
   } = useNewsletterIssues(newsletter?.id ?? "");
   const removeIssue = useDeleteImport();
+  const setAddImportModalOpen = useUiStore(s => s.setAddImportModalOpen);
+  const setImportModalInitialNewsletterId = useUiStore(s => s.setImportModalInitialNewsletterId);
 
-  if (newsletterLoading) return <p className="text-muted-foreground">Loading newsletter…</p>;
-  if (!newsletter) return <p className="text-destructive">Newsletter not found.</p>;
+  if (newsletterLoading) return <p className="text-muted-foreground">Loading…</p>;
+  if (!newsletter) return <p className="text-destructive">Import not found.</p>;
+
+  const newsletterId = newsletter.id;
+
+  function openImportModal() {
+    setImportModalInitialNewsletterId(newsletterId);
+    setAddImportModalOpen(true);
+  }
 
   return (
     <section className="space-y-6">
@@ -56,7 +66,7 @@ function NewsletterIssuesPage() {
             hover:text-foreground
           "
         >
-          ← Back to newsletters
+          ← Back to imports
         </Link>
         <div className="flex items-start justify-between gap-4">
           <h1 className="flex items-center gap-2 text-2xl font-bold">
@@ -64,31 +74,24 @@ function NewsletterIssuesPage() {
             {newsletter.name}
           </h1>
           <Button
-            asChild
             variant="outline"
             size="sm"
+            onClick={openImportModal}
           >
-            <Link
-              to="/inbox/new"
-              search={{
-                newsletterId: newsletter.id,
-              }}
-            >
-              Import an issue
-            </Link>
+            Add import group
           </Button>
         </div>
         <p className="text-sm text-muted-foreground">
-          Issues imported for this newsletter. Open an issue to see its bookmarks.
+          Import groups for this import. Open an import group to see its bookmarks.
         </p>
       </div>
 
       {issuesLoading
-        ? <p className="text-sm text-muted-foreground">Loading issues…</p>
+        ? <p className="text-sm text-muted-foreground">Loading import groups…</p>
         : !issues || issues.length === 0
           ? (
             <p className="text-sm text-muted-foreground">
-              No issues yet. Use “Import an issue” to paste, fetch, or upload a newsletter edition.
+              No import groups yet. Use &ldquo;Add import group&rdquo; to paste, fetch, or upload content.
             </p>
           )
           : (
@@ -122,9 +125,9 @@ function NewsletterIssuesPage() {
                           focus-visible:opacity-100
                         "
                         onClick={() => removeIssue.mutate(issue.id, {
-                          onSuccess: () => notifySuccess("Issue deleted"),
+                          onSuccess: () => notifySuccess("Import group deleted"),
                         })}
-                        aria-label="Delete issue"
+                        aria-label="Delete import group"
                       >
                         <Trash2 className="size-4" />
                       </Button>

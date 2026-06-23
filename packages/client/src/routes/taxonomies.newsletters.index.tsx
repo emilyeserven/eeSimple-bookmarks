@@ -19,7 +19,7 @@ function NewslettersTaxonomyPage() {
     <section className="space-y-6">
       <div className="space-y-1">
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold">Newsletters</h1>
+          <h1 className="text-2xl font-bold">Imports</h1>
           {allNewsletters
             ? (
               <Badge variant="secondary">
@@ -29,9 +29,8 @@ function NewslettersTaxonomyPage() {
             : null}
         </div>
         <p className="text-sm text-muted-foreground">
-          Browse the Newsletters taxonomy. Create a newsletter, set its default category, tags, and
-          media type, then select it when importing a newsletter edition. Click a newsletter to browse
-          its issues.
+          Browse the Imports taxonomy. Create an import, set its default category, tags, and media
+          type, then select it when adding an import. Click an import to browse its import groups.
         </p>
       </div>
 
