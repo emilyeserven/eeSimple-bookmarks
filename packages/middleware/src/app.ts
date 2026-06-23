@@ -15,6 +15,7 @@ import { galleryRoutes } from "@/routes/gallery";
 import { healthRoutes } from "@/routes/health";
 import { homepageSectionsRoutes } from "@/routes/homepageSections";
 import { importRoutes } from "@/routes/imports";
+import { importRulesRoutes } from "@/routes/importRules";
 import { customAspectRatioRoutes } from "@/routes/customAspectRatios";
 import { pinnedSidebarItemRoutes } from "@/routes/pinnedSidebarItems";
 import { favoriteSettingsPageRoutes } from "@/routes/favoriteSettingsPages";
@@ -182,6 +183,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(relationshipTypeRoutes);
   await app.register(categoryRoutes);
   await app.register(autofillRoutes);
+  await app.register(importRulesRoutes);
   await app.register(homepageSectionsRoutes);
   await app.register(cardDisplayRulesRoutes);
   await app.register(savedFilterRoutes);

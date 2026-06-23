@@ -5,6 +5,7 @@ import {
   Bookmark,
   ChevronDown,
   Clapperboard,
+  Filter,
   FolderOpen,
   Globe,
   Home,
@@ -126,6 +127,12 @@ const customizationItems = [
     title: "Autofill Rules",
     to: "/autofill",
     icon: Wand2,
+  },
+  {
+    key: "import-rules",
+    title: "Import Rules",
+    to: "/import-rules",
+    icon: Filter,
   },
 ] as const;
 

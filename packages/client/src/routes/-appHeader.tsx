@@ -27,6 +27,7 @@ import { useUiStore } from "@/stores/uiStore";
 const LABEL_OVERRIDES: Record<string, string> = {
   "youtube-channels": "YouTube Channels",
   "autofill": "Autofill Rules",
+  "import-rules": "Import Rules",
 };
 
 /** Title-case a slug segment: `shortened-links` → `Shortened Links`. */
@@ -151,6 +152,17 @@ const TAXONOMY_DESCRIPTORS: readonly TaxonomyDescriptor[] = [
     makeSwitcher: slug => ({
       kind: "taxonomy",
       entity: "autofill",
+      currentSlug: slug,
+    }),
+  },
+  {
+    prefix: "/import-rules",
+    listLabel: "Import Rules",
+    singular: "Rule",
+    slugIndex: 1,
+    makeSwitcher: slug => ({
+      kind: "taxonomy",
+      entity: "import-rule",
       currentSlug: slug,
     }),
   },

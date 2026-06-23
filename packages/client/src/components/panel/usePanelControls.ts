@@ -21,6 +21,8 @@ export interface PanelControls {
   openItem: (ct: DrawerContentType, id: string, mode?: DrawerMode) => void;
   /** Open the autofill editor for a rule id, or `NEW_SENTINEL` to create one. */
   openAutofill: (id: string) => void;
+  /** Open an import rule for a rule id, or `NEW_SENTINEL` to create one. */
+  openImportRule: (id: string) => void;
   /** Open a tag for a tag id, or `NEW_SENTINEL` to create one. */
   openTag: (id: string) => void;
   /** Switch the open item between view and edit, keeping the active tab. */
@@ -92,6 +94,13 @@ export function usePanelControls(): PanelControls {
     openAutofill: id => setContent({
       dOpen: true,
       dCT: "autofill",
+      dCId: id,
+      dMode: id === NEW_SENTINEL ? "edit" : "view",
+    }),
+    // Import rules open in view mode for existing rules; new ones open the editor.
+    openImportRule: id => setContent({
+      dOpen: true,
+      dCT: "import-rule",
       dCId: id,
       dMode: id === NEW_SENTINEL ? "edit" : "view",
     }),

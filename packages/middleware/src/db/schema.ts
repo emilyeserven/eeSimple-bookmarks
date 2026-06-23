@@ -1238,6 +1238,24 @@ export const autofillRuleDateTimeValues = pgTable("autofill_rule_datetime_values
   }),
 ]);
 
+/** `import_rules` — ordered rules evaluated against each candidate URL during inbox ingestion. */
+export const importRules = pgTable("import_rules", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull(),
+  description: text("description"),
+  conditions: jsonb("conditions").$type<ConditionTree>().notNull(),
+  action: text("action").notNull().default("reject"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+}, table => [
+  unique("import_rules_slug_unique").on(table.slug),
+]);
+
+export type ImportRuleRow = typeof importRules.$inferSelect;
+
 /** `category_number_defaults` — default number property values for new bookmarks in a category. */
 export const categoryNumberDefaults = pgTable("category_number_defaults", {
   categoryId: uuid("category_id").notNull().references(() => categories.id, {

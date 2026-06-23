@@ -8,6 +8,7 @@ import { authorContentType } from "./contentTypes/author";
 import { autofillContentType } from "./contentTypes/autofill";
 import { bookmarkContentType } from "./contentTypes/bookmark";
 import { categoryContentType } from "./contentTypes/category";
+import { importRuleContentType } from "./contentTypes/importRule";
 import { mediaTypeContentType } from "./contentTypes/mediaType";
 import { newsletterContentType } from "./contentTypes/newsletter";
 import { propertyContentType } from "./contentTypes/property";
@@ -33,6 +34,7 @@ export const PANEL_CONTENT_TYPES: PanelContentTypeDef[] = [
   authorContentType,
   relationshipTypeContentType,
   autofillContentType,
+  importRuleContentType,
 ];
 
 /** Look up a content type's definition. */

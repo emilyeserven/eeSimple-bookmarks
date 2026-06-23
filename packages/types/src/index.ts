@@ -1636,6 +1636,33 @@ export interface CreateAutofillRuleInput {
 /** Payload for partially updating an autofill rule. */
 export type UpdateAutofillRuleInput = Partial<CreateAutofillRuleInput>;
 
+/** The action an import rule fires when its conditions match a candidate URL. */
+export type ImportRuleAction = "approve" | "reject" | "block";
+
+/** A single import rule: a condition tree + action applied to each ingest candidate. */
+export interface ImportRule {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  conditions: ConditionTree;
+  action: ImportRuleAction;
+  sortOrder: number;
+  createdAt: string;
+}
+
+/** Payload for creating a new import rule. */
+export interface CreateImportRuleInput {
+  name: string;
+  description?: string | null;
+  conditions: ConditionTree;
+  action: ImportRuleAction;
+  sortOrder?: number;
+}
+
+/** Payload for partially updating an import rule. */
+export type UpdateImportRuleInput = Partial<CreateImportRuleInput>;
+
 /**
  * Request body for previewing which existing bookmarks a condition tree would match. The match is
  * evaluated server-side with the same `evaluateConditions` predicate the autofill engine uses.

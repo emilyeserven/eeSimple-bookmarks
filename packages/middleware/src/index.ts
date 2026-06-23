@@ -9,6 +9,7 @@ import { ensureDefaultCategory } from "@/services/categories";
 import { backfillCustomPropertySlugs, ensureDatePostedProperty, ensureRuntimeProperty } from "@/services/customProperties";
 import { ensureHomepageFilter } from "@/services/homepageFilter";
 import { resetStalledImports } from "@/services/imports";
+import { ensureImportRuleSlugs } from "@/services/importRules";
 import { backfillImageCropModes, ensureHomepageSections } from "@/services/homepageSections";
 import { backfillMediaTypeSlugs, ensureBuiltInMediaTypes } from "@/services/mediaTypes";
 import { backfillPropertyGroupSlugs } from "@/services/propertyGroups";
@@ -65,6 +66,7 @@ try {
   await ensureAutofillConditions();
   await ensureWebsiteConditions();
   await ensureAutofillSlugs();
+  await ensureImportRuleSlugs();
   await ensureHomepageFilter();
   await ensureHomepageSections();
   await backfillImageCropModes();
