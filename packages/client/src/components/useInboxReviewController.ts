@@ -1,7 +1,8 @@
-import type { ReviewFilter } from "./inboxReviewFilter";
 import type { InboxItem } from "@eesimple/types";
 
-import { useMemo, useState } from "react";
+import {
+  useEffect, useMemo, useRef, useState,
+} from "react";
 
 import { useInboxColumns } from "./tables/inboxColumns";
 import { useCategories } from "../hooks/useCategories";
@@ -29,7 +30,6 @@ export function useInboxReviewController(items: InboxItem[]) {
   const {
     data: categories = [],
   } = useCategories();
-  const [filter, setFilter] = useState<ReviewFilter>("all");
   const [bulkRunning, setBulkRunning] = useState(false);
   const [editingItem, setEditingItem] = useState<InboxItem | null>(null);
 
@@ -39,11 +39,39 @@ export function useInboxReviewController(items: InboxItem[]) {
 
   const pendingCount = useMemo(() => items.filter(i => i.status === "pending").length, [items]);
   const rejectedCount = useMemo(() => items.filter(i => i.status === "rejected").length, [items]);
-  const filtered = useMemo(() => items.filter((item) => {
-    if (filter === "pending") return item.status === "pending";
-    if (filter === "issues") return item.status === "error" || item.status === "duplicate";
-    return true;
-  }), [items, filter]);
+
+  // The Pending/Processed split is *frozen by snapshot*, not derived live from status: an item keeps
+  // its section even after it's approved/rejected so it doesn't jump out from under the user. Each
+  // item is classified once (the first time it's seen); a still-pending newcomer joins Pending, and
+  // "Sort now" re-snapshots everything to the current statuses.
+  const classifiedRef = useRef<Set<string>>(new Set());
+  const [pendingSectionIds, setPendingSectionIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const newlyPending: string[] = [];
+    for (const item of items) {
+      if (classifiedRef.current.has(item.id)) continue;
+      classifiedRef.current.add(item.id);
+      if (item.status === "pending") newlyPending.push(item.id);
+    }
+    if (newlyPending.length > 0) {
+      setPendingSectionIds(prev => new Set([...prev, ...newlyPending]));
+    }
+  }, [items]);
+
+  const pendingItems = useMemo(
+    () => items.filter(i => pendingSectionIds.has(i.id)),
+    [items, pendingSectionIds],
+  );
+  const processedItems = useMemo(
+    () => items.filter(i => !pendingSectionIds.has(i.id)),
+    [items, pendingSectionIds],
+  );
+
+  function resortNow() {
+    classifiedRef.current = new Set(items.map(i => i.id));
+    setPendingSectionIds(new Set(items.filter(i => i.status === "pending").map(i => i.id)));
+  }
 
   async function onApproveAll() {
     // Sequential: createBookmark auto-creates websites, so concurrent approvals could race on a host.
@@ -94,14 +122,14 @@ export function useInboxReviewController(items: InboxItem[]) {
   }
 
   return {
-    filter,
-    setFilter,
     viewMode,
     setViewMode,
     columns,
     pendingCount,
     rejectedCount,
-    filtered,
+    pendingItems,
+    processedItems,
+    resortNow,
     editingItem,
     setEditingItem,
     bulkRunning,

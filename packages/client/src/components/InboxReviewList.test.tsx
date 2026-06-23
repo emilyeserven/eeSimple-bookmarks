@@ -1,5 +1,7 @@
 import type { InboxItem } from "@eesimple/types";
 
+import { useState } from "react";
+
 import { fireEvent, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 
@@ -213,6 +215,94 @@ describe("InboxReviewList", () => {
     })).toBeInTheDocument();
     // The item's title still renders, now as a table cell.
     expect(screen.getByText(LONG_TITLE)).toBeInTheDocument();
+  });
+
+  it("splits items into Pending and Processed sections with accurate counts", async () => {
+    await renderWithRouter(
+      <InboxReviewList
+        items={[
+          makeItem({
+            id: "p1",
+            title: "Pending one",
+          }),
+          makeItem({
+            id: "a1",
+            title: "Approved one",
+            status: "approved",
+            createdBookmarkId: "bk-1",
+          }),
+        ]}
+      />,
+      {
+        paths: ["/bookmarks/$bookmarkId"],
+      },
+    );
+    expect(screen.getByRole("heading", {
+      name: "Pending (1)",
+    })).toBeInTheDocument();
+    expect(screen.getByRole("heading", {
+      name: "Processed (1)",
+    })).toBeInTheDocument();
+    expect(screen.getByText("Pending one")).toBeInTheDocument();
+    expect(screen.getByText("Approved one")).toBeInTheDocument();
+  });
+
+  it("keeps a processed item in Pending until Sort now is clicked (no immediate move)", async () => {
+    // A harness whose own state mimics a refetch: "Process it" flips the same item to approved, the
+    // way the inbox query would after an approve mutation. The frozen split must keep it in Pending.
+    function FreezeHarness() {
+      const [items, setItems] = useState<InboxItem[]>([makeItem({
+        id: "x1",
+        title: "Freeze me",
+      })]);
+      return (
+        <>
+          <button
+            type="button"
+            onClick={() => setItems([makeItem({
+              id: "x1",
+              title: "Freeze me",
+              status: "approved",
+              createdBookmarkId: "bk-9",
+            })])}
+          >
+            Process it
+          </button>
+          <InboxReviewList items={items} />
+        </>
+      );
+    }
+
+    await renderWithRouter(<FreezeHarness />, {
+      paths: ["/bookmarks/$bookmarkId"],
+    });
+    expect(screen.getByRole("heading", {
+      name: "Pending (1)",
+    })).toBeInTheDocument();
+
+    // The item comes back from the "refetch" now approved — it must NOT jump sections.
+    fireEvent.click(screen.getByRole("button", {
+      name: "Process it",
+    }));
+    expect(screen.getByRole("heading", {
+      name: "Pending (1)",
+    })).toBeInTheDocument();
+    expect(screen.getByRole("heading", {
+      name: "Processed (0)",
+    })).toBeInTheDocument();
+    // Its status badge reflects the new state even while it stays in Pending.
+    expect(screen.getByText("Added")).toBeInTheDocument();
+
+    // Sort now re-partitions: the approved item moves to Processed.
+    fireEvent.click(screen.getByRole("button", {
+      name: "Sort now",
+    }));
+    expect(screen.getByRole("heading", {
+      name: "Pending (0)",
+    })).toBeInTheDocument();
+    expect(screen.getByRole("heading", {
+      name: "Processed (1)",
+    })).toBeInTheDocument();
   });
 
   it("flags an approved item as marked for deletion", async () => {

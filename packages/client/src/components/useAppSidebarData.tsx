@@ -223,7 +223,7 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
     setPinnedShowAll,
     pagination,
     allBookmarks: data.allBookmarks,
-    inboxCount: data.inboxItems?.length,
+    inboxCount: data.inboxItems?.filter(item => item.status === "pending").length,
     currentBookmarkCategories,
     modifier,
     viewClick,
