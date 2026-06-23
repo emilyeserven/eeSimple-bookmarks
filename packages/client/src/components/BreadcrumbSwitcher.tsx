@@ -3,6 +3,7 @@ import type {
   Bookmark,
   Category,
   CustomProperty,
+  ImportRule,
   MediaTypeNode,
   PropertyGroup,
   TagNode,
@@ -28,6 +29,7 @@ import { useAutofillRules } from "@/hooks/useAutofill";
 import { useBookmarks } from "@/hooks/useBookmarks";
 import { useCategories } from "@/hooks/useCategories";
 import { useCustomProperties } from "@/hooks/useCustomProperties";
+import { useImportRules } from "@/hooks/useImportRules";
 import { useMediaTypeTree } from "@/hooks/useMediaTypes";
 import { usePropertyGroups } from "@/hooks/usePropertyGroups";
 import { useTagTree } from "@/hooks/useTags";
@@ -42,7 +44,8 @@ export type TaxonomyEntity
     | "youtube-channel"
     | "custom-property"
     | "property-group"
-    | "autofill";
+    | "autofill"
+    | "import-rule";
 
 /**
  * Describes what a switchable breadcrumb crumb switches among. Builders in `-appHeader.tsx` attach a
@@ -81,6 +84,7 @@ const TAXONOMY_HREF_PREFIX: Record<TaxonomyEntity, string> = {
   "custom-property": "/custom-properties",
   "property-group": "/taxonomies/property-groups",
   "autofill": "/autofill",
+  "import-rule": "/import-rules",
 };
 
 function categoryOptions(categories: Category[] | undefined): SwitcherOption[] {
@@ -125,6 +129,7 @@ interface TaxonomyLists {
   properties: CustomProperty[] | undefined;
   groups: PropertyGroup[] | undefined;
   rules: AutofillRule[] | undefined;
+  importRules: ImportRule[] | undefined;
 }
 
 function taxonomyOptions(entity: TaxonomyEntity, lists: TaxonomyLists): SwitcherOption[] {
@@ -160,6 +165,12 @@ function taxonomyOptions(entity: TaxonomyEntity, lists: TaxonomyLists): Switcher
         label: r.name,
         href: `${prefix}/${r.slug}`,
       }));
+    case "import-rule":
+      return (lists.importRules ?? []).map(r => ({
+        value: r.slug,
+        label: r.name,
+        href: `${prefix}/${r.slug}`,
+      }));
   }
 }
 
@@ -182,6 +193,7 @@ function useSwitcherOptions(spec: SwitcherSpec): {
   const properties = useCustomProperties();
   const groups = usePropertyGroups();
   const rules = useAutofillRules();
+  const importRules = useImportRules();
 
   switch (spec.kind) {
     case "category":
@@ -211,6 +223,7 @@ function useSwitcherOptions(spec: SwitcherSpec): {
         "custom-property": properties.isLoading,
         "property-group": groups.isLoading,
         "autofill": rules.isLoading,
+        "import-rule": importRules.isLoading,
       };
       return {
         options: taxonomyOptions(spec.entity, {
@@ -219,6 +232,7 @@ function useSwitcherOptions(spec: SwitcherSpec): {
           properties: properties.data,
           groups: groups.data,
           rules: rules.data,
+          importRules: importRules.data,
         }),
         currentValue: spec.currentSlug,
         isLoading: loadingByEntity[spec.entity],

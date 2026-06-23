@@ -26,6 +26,7 @@ export type DrawerContentType
     | "author"
     | "relationship-type"
     | "autofill"
+    | "import-rule"
     | "notifications"
     | "filters";
 
@@ -49,6 +50,7 @@ export const DRAWER_CONTENT_TYPES: DrawerContentType[] = [
   "author",
   "relationship-type",
   "autofill",
+  "import-rule",
   "notifications",
   "filters",
 ];

@@ -38,6 +38,7 @@ import {
   newsletters,
 } from "@/db/schema";
 import { addImportBlacklistEntry, getImportBlacklist, getShortenerIgnoreList } from "@/services/appSettings";
+import { applyImportRules } from "@/services/importRules";
 import { checkBookmarkUrlDuplicate, createBookmark, DuplicateUrlError } from "@/services/bookmarks";
 import { enqueueImportJob } from "@/services/importQueue";
 import {
@@ -388,23 +389,59 @@ export async function processImport(importId: string, input: IngestInput): Promi
       },
     );
 
+    // Evaluate import rules for each pending item (non-pending items keep their existing status).
+    const ruleActions = await Promise.all(
+      flagged.map((entry, i) => {
+        if (entry.item.status !== "pending" || entry.item.url === null) return Promise.resolve(null);
+        return applyImportRules({
+          url: entry.item.url,
+          title: enriched[i]!.title,
+        });
+      }),
+    );
+
+    const toApproveIds: string[] = [];
+    const toBlockUrls: string[] = [];
+
     await db.transaction(async (tx) => {
       if (flagged.length > 0) {
-        await tx.insert(importItems).values(
-          flagged.map((entry, i) => ({
-            importId,
-            url: entry.item.url,
-            rawUrl: entry.item.rawUrl,
-            title: enriched[i]!.title,
-            description: enriched[i]!.description,
-            imageUrl: enriched[i]!.imageUrl,
-            newsletterContext: entry.item.context,
-            anchorText: entry.item.anchorText || null,
-            status: entry.item.status,
-            duplicateBookmarkId: entry.duplicateBookmarkId,
-            errorReason: entry.item.errorReason,
-          })),
-        );
+        const inserted = await tx.insert(importItems).values(
+          flagged.map((entry, i) => {
+            const action = ruleActions[i];
+            let status = entry.item.status;
+            if (status === "pending") {
+              if (action === "reject") status = "rejected";
+              else if (action === "block") status = "blocked";
+              // action === "approve" → keep pending; approveImportItem runs after the transaction
+            }
+            return {
+              importId,
+              url: entry.item.url,
+              rawUrl: entry.item.rawUrl,
+              title: enriched[i]!.title,
+              description: enriched[i]!.description,
+              imageUrl: enriched[i]!.imageUrl,
+              newsletterContext: entry.item.context,
+              anchorText: entry.item.anchorText || null,
+              status,
+              duplicateBookmarkId: entry.duplicateBookmarkId,
+              errorReason: entry.item.errorReason,
+            };
+          }),
+        ).returning({
+          id: importItems.id,
+        });
+
+        for (let i = 0; i < flagged.length; i++) {
+          const action = ruleActions[i];
+          const entry = flagged[i]!;
+          if (entry.item.status !== "pending") continue;
+          if (action === "block" && entry.item.url !== null) toBlockUrls.push(entry.item.url);
+          else if (action === "approve") {
+            const row = inserted[i];
+            if (row) toApproveIds.push(row.id);
+          }
+        }
       }
       await tx
         .update(imports)
@@ -414,6 +451,30 @@ export async function processImport(importId: string, input: IngestInput): Promi
         })
         .where(eq(imports.id, importId));
     });
+
+    // Post-transaction: add domain-level blacklist entries for rule-blocked URLs.
+    for (const url of toBlockUrls) {
+      try {
+        const host = new URL(url).hostname.replace(/^www\./i, "").toLowerCase();
+        await addImportBlacklistEntry({
+          kind: "domain",
+          value: host,
+        });
+      }
+      catch {
+        // Unparseable URL — skip blacklist entry.
+      }
+    }
+
+    // Post-transaction: auto-approve matched items. One failure must not abort the rest.
+    for (const id of toApproveIds) {
+      try {
+        await approveImportItem(id);
+      }
+      catch {
+        // Approval failures are non-fatal; the item stays pending for manual review.
+      }
+    }
   }
   catch (err) {
     await markImportFailed(importId, err instanceof Error ? err.message : String(err));
@@ -952,28 +1013,77 @@ export async function blockImportItem(
  */
 export async function recheckPendingItemsAgainstBlacklist(): Promise<RecheckPendingItemsResult> {
   const blacklist = await getImportBlacklist();
-  if (blacklist.length === 0) {
-    return {
-      blocked: 0,
-    };
-  }
   const rows = await db.select().from(importItems).where(eq(importItems.status, "pending"));
-  const matchedIds = rows
+
+  // Pass 1: blacklist check (same as before).
+  const blacklistMatchedIds = rows
     .filter(row => row.url !== null && isBlacklisted(row.url, blacklist))
     .map(row => row.id);
-  if (matchedIds.length === 0) {
-    return {
-      blocked: 0,
-    };
+  if (blacklistMatchedIds.length > 0) {
+    await db
+      .update(importItems)
+      .set({
+        status: "blocked",
+      })
+      .where(inArray(importItems.id, blacklistMatchedIds));
   }
-  await db
-    .update(importItems)
-    .set({
+
+  // Pass 2: import rules — evaluate the remaining pending rows.
+  const blacklistMatchedSet = new Set(blacklistMatchedIds);
+  const stillPending = rows.filter(row => !blacklistMatchedSet.has(row.id));
+  const toApproveIds: string[] = [];
+  const toBlockUrls: string[] = [];
+  const toRejectIds: string[] = [];
+
+  for (const row of stillPending) {
+    if (row.url === null) continue;
+    const action = await applyImportRules({
+      url: row.url,
+      title: row.title,
+    });
+    if (action === "reject") toRejectIds.push(row.id);
+    else if (action === "block") toBlockUrls.push(row.url);
+    else if (action === "approve") toApproveIds.push(row.id);
+  }
+
+  if (toRejectIds.length > 0) {
+    await db.update(importItems).set({
+      status: "rejected",
+    }).where(inArray(importItems.id, toRejectIds));
+  }
+
+  const ruleBlockedIds: string[] = [];
+  for (const url of toBlockUrls) {
+    const row = stillPending.find(r => r.url === url);
+    if (row) ruleBlockedIds.push(row.id);
+    try {
+      const host = new URL(url).hostname.replace(/^www\./i, "").toLowerCase();
+      await addImportBlacklistEntry({
+        kind: "domain",
+        value: host,
+      });
+    }
+    catch {
+      // Unparseable URL — skip.
+    }
+  }
+  if (ruleBlockedIds.length > 0) {
+    await db.update(importItems).set({
       status: "blocked",
-    })
-    .where(inArray(importItems.id, matchedIds));
+    }).where(inArray(importItems.id, ruleBlockedIds));
+  }
+
+  for (const id of toApproveIds) {
+    try {
+      await approveImportItem(id);
+    }
+    catch {
+      // One failure must not abort the rest.
+    }
+  }
+
   return {
-    blocked: matchedIds.length,
+    blocked: blacklistMatchedIds.length + ruleBlockedIds.length,
   };
 }
 
