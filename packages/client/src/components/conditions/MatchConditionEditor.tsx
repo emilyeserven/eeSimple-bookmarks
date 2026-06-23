@@ -1,5 +1,7 @@
 import type { MatchCondition } from "@eesimple/types";
 
+import { useEffect, useState } from "react";
+
 import { OPERATOR_OPTIONS } from "./matchOptions";
 
 import { Input } from "@/components/ui/input";
@@ -25,6 +27,12 @@ interface MatchConditionEditorProps {
 export function MatchConditionEditor({
   value, onChange,
 }: MatchConditionEditorProps) {
+  const [localPattern, setLocalPattern] = useState(value.pattern);
+
+  useEffect(() => {
+    setLocalPattern(value.pattern);
+  }, [value.pattern]);
+
   return (
     <div
       className="
@@ -41,6 +49,7 @@ export function MatchConditionEditor({
               ...value,
               field: "title",
               operator: operator as MatchCondition["operator"],
+              pattern: localPattern,
             })}
         >
           <SelectTrigger className="w-full">
@@ -67,13 +76,17 @@ export function MatchConditionEditor({
       >
         <Label>Pattern</Label>
         <Input
-          value={value.pattern}
+          value={localPattern}
           placeholder="e.g. Ponzu"
-          onChange={event =>
-            onChange({
-              ...value,
-              pattern: event.target.value,
-            })}
+          onChange={event => setLocalPattern(event.target.value)}
+          onBlur={() => {
+            if (localPattern !== value.pattern) {
+              onChange({
+                ...value,
+                pattern: localPattern,
+              });
+            }
+          }}
         />
       </div>
     </div>
