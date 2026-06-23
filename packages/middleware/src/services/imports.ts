@@ -585,7 +585,9 @@ export async function listInboxItems(): Promise<InboxItem[]> {
     .from(importItems)
     .innerJoin(imports, eq(importItems.importId, imports.id))
     .leftJoin(newsletters, eq(imports.newsletterId, newsletters.id))
-    .orderBy(desc(importItems.createdAt));
+    // Tiebreak on the (unique) id so a batch of items sharing one createdAt keeps a stable order;
+    // without it, re-querying after an interaction reshuffles the tied rows unpredictably.
+    .orderBy(desc(importItems.createdAt), desc(importItems.id));
   return rows.map(row => ({
     ...toItem(row.item),
     importSource: row.importSource as ImportSource,

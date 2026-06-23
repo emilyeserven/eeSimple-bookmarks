@@ -1,10 +1,19 @@
 import type { InboxItem } from "@eesimple/types";
 
 import { fireEvent, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import { InboxReviewList } from "./InboxReviewList";
 import { renderWithRouter } from "../test-utils/router";
+
+import { useUiStore } from "@/stores/uiStore";
+
+afterEach(() => {
+  // The Cards/Table toggle persists per page key in the shared store; reset so tests don't leak.
+  useUiStore.setState({
+    viewMode: {},
+  });
+});
 
 const LONG_TITLE
   = "This is a very long imported article title that should wrap fully instead of being cut off on mobile screens";
@@ -161,6 +170,37 @@ describe("InboxReviewList", () => {
     expect(screen.getByRole("button", {
       name: /Delete all rejected \(0\)/,
     })).toBeDisabled();
+  });
+
+  it("shows the add date on each item listing", async () => {
+    await renderWithRouter(
+      <InboxReviewList items={[makeItem()]} />,
+      {
+        paths: ["/bookmarks/$bookmarkId"],
+      },
+    );
+    // Date formatting is locale/timezone-dependent, so assert on the stable "Added " prefix.
+    expect(screen.getByText(/^Added /)).toBeInTheDocument();
+  });
+
+  it("renders a sortable table with an Added column when the Table view is selected", async () => {
+    useUiStore.setState({
+      viewMode: {
+        inbox: "table",
+      },
+    });
+    await renderWithRouter(
+      <InboxReviewList items={[makeItem()]} />,
+      {
+        paths: ["/bookmarks/$bookmarkId"],
+      },
+    );
+    expect(screen.getByRole("table")).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", {
+      name: /Added/,
+    })).toBeInTheDocument();
+    // The item's title still renders, now as a table cell.
+    expect(screen.getByText(LONG_TITLE)).toBeInTheDocument();
   });
 
   it("flags an approved item as marked for deletion", async () => {
