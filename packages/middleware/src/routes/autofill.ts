@@ -11,8 +11,11 @@ import {
   deleteAutofillRule,
   getAutofillBackfillEntries,
   getAutofillRuleBySlug,
+  getGlobalBackfill,
   listAutofillRules,
   previewAutofillMatches,
+  removeAutofillExempt,
+  setAutofillExempt,
   updateAutofillRule,
 } from "@/services/autofill";
 
@@ -187,6 +190,12 @@ export async function autofillRoutes(app: FastifyInstance): Promise<void> {
     },
   }, async req => previewAutofillMatches(req.body as AutofillPreviewInput));
 
+  app.get("/api/autofill-rules/backfill", {
+    schema: {
+      tags: ["autofill"],
+    },
+  }, async () => getGlobalBackfill());
+
   app.post("/api/autofill-rules", {
     schema: {
       tags: ["autofill"],
@@ -277,5 +286,63 @@ export async function autofillRoutes(app: FastifyInstance): Promise<void> {
       message: "Autofill rule not found",
     });
     return result;
+  });
+
+  const exemptBody = {
+    type: "object",
+    required: ["bookmarkId"],
+    additionalProperties: false,
+    properties: {
+      bookmarkId: {
+        type: "string",
+        format: "uuid",
+      },
+    },
+  } as const;
+
+  const exemptParams = {
+    type: "object",
+    required: ["id", "bookmarkId"],
+    properties: {
+      id: {
+        type: "string",
+        format: "uuid",
+      },
+      bookmarkId: {
+        type: "string",
+        format: "uuid",
+      },
+    },
+  } as const;
+
+  app.post("/api/autofill-rules/:id/exempt", {
+    schema: {
+      tags: ["autofill"],
+      params: ruleParams,
+      body: exemptBody,
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    const {
+      bookmarkId,
+    } = req.body as { bookmarkId: string };
+    await setAutofillExempt(id, bookmarkId);
+    return reply.code(204).send();
+  });
+
+  app.delete("/api/autofill-rules/:id/exempt/:bookmarkId", {
+    schema: {
+      tags: ["autofill"],
+      params: exemptParams,
+    },
+  }, async (req, reply) => {
+    const {
+      id, bookmarkId,
+    } = req.params as { id: string;
+      bookmarkId: string; };
+    await removeAutofillExempt(id, bookmarkId);
+    return reply.code(204).send();
   });
 }

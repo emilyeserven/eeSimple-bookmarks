@@ -63,6 +63,7 @@ import { Route as CustomPropertiesNewRouteImport } from './routes/custom-propert
 import { Route as CustomPropertiesPropertySlugRouteImport } from './routes/custom-properties.$propertySlug'
 import { Route as CategoriesCategorySlugRouteImport } from './routes/categories.$categorySlug'
 import { Route as BookmarksBookmarkIdRouteImport } from './routes/bookmarks.$bookmarkId'
+import { Route as AutofillBackfillRouteImport } from './routes/autofill.backfill'
 import { Route as AutofillRuleSlugRouteImport } from './routes/autofill.$ruleSlug'
 import { Route as TaxonomiesYoutubeChannelsIndexRouteImport } from './routes/taxonomies.youtube-channels.index'
 import { Route as TaxonomiesWebsitesIndexRouteImport } from './routes/taxonomies.websites.index'
@@ -487,6 +488,11 @@ const BookmarksBookmarkIdRoute = BookmarksBookmarkIdRouteImport.update({
   id: '/$bookmarkId',
   path: '/$bookmarkId',
   getParentRoute: () => BookmarksRoute,
+} as any)
+const AutofillBackfillRoute = AutofillBackfillRouteImport.update({
+  id: '/backfill',
+  path: '/backfill',
+  getParentRoute: () => AutofillRoute,
 } as any)
 const AutofillRuleSlugRoute = AutofillRuleSlugRouteImport.update({
   id: '/$ruleSlug',
@@ -1358,6 +1364,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRouteWithChildren
   '/tags': typeof TagsRouteWithChildren
   '/autofill/$ruleSlug': typeof AutofillRuleSlugRouteWithChildren
+  '/autofill/backfill': typeof AutofillBackfillRoute
   '/bookmarks/$bookmarkId': typeof BookmarksBookmarkIdRouteWithChildren
   '/categories/$categorySlug': typeof CategoriesCategorySlugRouteWithChildren
   '/custom-properties/$propertySlug': typeof CustomPropertiesPropertySlugRouteWithChildren
@@ -1540,6 +1547,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/card-display-rules': typeof CardDisplayRulesRoute
   '/quick-add': typeof QuickAddRoute
+  '/autofill/backfill': typeof AutofillBackfillRoute
   '/custom-properties/new': typeof CustomPropertiesNewRoute
   '/inbox/new': typeof InboxNewRoute
   '/settings/advanced': typeof SettingsAdvancedRoute
@@ -1701,6 +1709,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRouteWithChildren
   '/tags': typeof TagsRouteWithChildren
   '/autofill/$ruleSlug': typeof AutofillRuleSlugRouteWithChildren
+  '/autofill/backfill': typeof AutofillBackfillRoute
   '/bookmarks/$bookmarkId': typeof BookmarksBookmarkIdRouteWithChildren
   '/categories/$categorySlug': typeof CategoriesCategorySlugRouteWithChildren
   '/custom-properties/$propertySlug': typeof CustomPropertiesPropertySlugRouteWithChildren
@@ -1906,6 +1915,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/tags'
     | '/autofill/$ruleSlug'
+    | '/autofill/backfill'
     | '/bookmarks/$bookmarkId'
     | '/categories/$categorySlug'
     | '/custom-properties/$propertySlug'
@@ -2088,6 +2098,7 @@ export interface FileRouteTypes {
     | '/'
     | '/card-display-rules'
     | '/quick-add'
+    | '/autofill/backfill'
     | '/custom-properties/new'
     | '/inbox/new'
     | '/settings/advanced'
@@ -2248,6 +2259,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/tags'
     | '/autofill/$ruleSlug'
+    | '/autofill/backfill'
     | '/bookmarks/$bookmarkId'
     | '/categories/$categorySlug'
     | '/custom-properties/$propertySlug'
@@ -2839,6 +2851,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/bookmarks/$bookmarkId'
       preLoaderRoute: typeof BookmarksBookmarkIdRouteImport
       parentRoute: typeof BookmarksRoute
+    }
+    '/autofill/backfill': {
+      id: '/autofill/backfill'
+      path: '/backfill'
+      fullPath: '/autofill/backfill'
+      preLoaderRoute: typeof AutofillBackfillRouteImport
+      parentRoute: typeof AutofillRoute
     }
     '/autofill/$ruleSlug': {
       id: '/autofill/$ruleSlug'
@@ -3925,11 +3944,13 @@ const AutofillRuleSlugRouteWithChildren =
 
 interface AutofillRouteChildren {
   AutofillRuleSlugRoute: typeof AutofillRuleSlugRouteWithChildren
+  AutofillBackfillRoute: typeof AutofillBackfillRoute
   AutofillIndexRoute: typeof AutofillIndexRoute
 }
 
 const AutofillRouteChildren: AutofillRouteChildren = {
   AutofillRuleSlugRoute: AutofillRuleSlugRouteWithChildren,
+  AutofillBackfillRoute: AutofillBackfillRoute,
   AutofillIndexRoute: AutofillIndexRoute,
 }
 

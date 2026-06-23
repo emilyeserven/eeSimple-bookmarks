@@ -1,6 +1,6 @@
 import type { AutofillListSearch } from "../lib/autofillScope";
 
-import { createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { X } from "lucide-react";
 
 import { FacetSelect } from "../components/AutofillRulesFilterBar";
@@ -203,6 +203,14 @@ function AutofillListPage() {
           {rules
             ? <Badge variant="secondary">{rules.length}</Badge>
             : null}
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="ml-auto"
+          >
+            <Link to="/autofill/backfill">Backfill</Link>
+          </Button>
         </div>
         <p className="text-sm text-muted-foreground">
           Define rules that match a bookmark&apos;s title or website and prefill its category, tags, and

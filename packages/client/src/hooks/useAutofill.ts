@@ -107,8 +107,69 @@ export function useApplyAutofillBackfill() {
       void queryClient.invalidateQueries({
         queryKey: AUTOFILL_KEY,
       });
+      void queryClient.invalidateQueries({
+        queryKey: [...AUTOFILL_KEY, "global-backfill"],
+      });
       notifySuccess(`Applied to ${result.applied} bookmark${result.applied === 1 ? "" : "s"}`);
     },
     onError: () => notifyError("Failed to apply rule"),
+  });
+}
+
+const GLOBAL_BACKFILL_KEY = [...AUTOFILL_KEY, "global-backfill"] as const;
+
+/** Fetch the cross-rule backfill overview: all rules with bookmarks that need backfill or are exempt. */
+export function useGlobalAutofillBackfill() {
+  return useQuery({
+    queryKey: GLOBAL_BACKFILL_KEY,
+    queryFn: autofillApi.getGlobalBackfill,
+  });
+}
+
+/** Mark a bookmark as exempt from a specific rule's backfill. */
+export function useSetAutofillExempt() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      ruleId, bookmarkId,
+    }: { ruleId: string;
+      bookmarkId: string; }) =>
+      autofillApi.setExempt(ruleId, bookmarkId),
+    onSuccess: (_data, {
+      ruleId,
+    }) => {
+      void queryClient.invalidateQueries({
+        queryKey: [...AUTOFILL_KEY, ruleId, "backfill"],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: GLOBAL_BACKFILL_KEY,
+      });
+      notifySuccess("Bookmark exempted from rule");
+    },
+    onError: () => notifyError("Failed to set exemption"),
+  });
+}
+
+/** Remove a bookmark's exemption from a specific rule's backfill. */
+export function useRemoveAutofillExempt() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      ruleId, bookmarkId,
+    }: { ruleId: string;
+      bookmarkId: string; }) =>
+      autofillApi.removeExempt(ruleId, bookmarkId),
+    onSuccess: (_data, {
+      ruleId,
+    }) => {
+      void queryClient.invalidateQueries({
+        queryKey: [...AUTOFILL_KEY, ruleId, "backfill"],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: GLOBAL_BACKFILL_KEY,
+      });
+      notifySuccess("Exemption removed");
+    },
+    onError: () => notifyError("Failed to remove exemption"),
   });
 }
