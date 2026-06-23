@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 
 import { Copy } from "lucide-react";
 
+import { AutofillBackfillView } from "../AutofillBackfillView";
 import { AutofillRuleConditionsForm } from "../AutofillRuleConditionsForm";
 import { AutofillConditionsFields, AutofillGeneralFields, AutofillPrefillFields } from "../AutofillRuleDetail";
 import { AutofillRuleGeneralForm } from "../AutofillRuleGeneralForm";
@@ -247,6 +248,17 @@ export const autofillWorkbench: EntityWorkbench<AutofillRule> = {
         title: "Debug",
         description: "Rule and bookmark JSON for debugging rule matching with Claude.",
         render: DebugView,
+      },
+    },
+    {
+      key: "backfill",
+      label: "Backfill",
+      view: {
+        title: "Backfill",
+        description: "Find matching bookmarks missing this rule's properties and apply them.",
+        render: ({
+          entity,
+        }) => <AutofillBackfillView rule={entity} />,
       },
     },
   ],

@@ -1,9 +1,14 @@
 import { asc, eq, inArray, isNull, ne } from "drizzle-orm";
 import type {
+  AutofillApplyInput,
+  AutofillApplyResult,
+  AutofillBackfillEntry,
+  AutofillBackfillResult,
   AutofillPreviewEntry,
   AutofillPreviewInput,
   AutofillPreviewResult,
   AutofillRule,
+  Bookmark,
   BookmarkBooleanValue,
   BookmarkDateTimeValue,
   BookmarkNumberValue,
@@ -23,10 +28,16 @@ import {
   autofillRules,
   type AutofillRuleRow,
   autofillRuleTags,
+  bookmarkBooleanValues,
+  bookmarkDateTimeValues,
+  bookmarkNumberValues,
+  bookmarks,
+  bookmarkTags,
   type BookmarkRow,
 } from "@/db/schema";
-import { getBookmarkEvaluationData } from "@/services/bookmarkCache";
+import { getBookmarkEvaluationData, invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { hydrateBookmarkRows } from "@/services/bookmarkHydration";
+import { recomputeCalculatedValues } from "@/services/bookmarkWrites";
 import { listCategories } from "@/services/categories";
 import { slugify } from "@/utils/slug";
 
@@ -448,6 +459,217 @@ export async function previewAutofillMatches(
   }
   return {
     entries,
+  };
+}
+
+/** True when applying the rule would change at least one field on the bookmark. */
+function computeNeedsBackfill(rule: AutofillRule, bookmark: Bookmark): boolean {
+  const hasPrefill
+    = rule.setCategoryId != null
+      || rule.setMediaTypeId != null
+      || rule.tagIds.length > 0
+      || rule.numberValues.length > 0
+      || rule.booleanValues.length > 0
+      || rule.dateTimeValues.length > 0;
+  if (!hasPrefill) return false;
+
+  if (rule.setCategoryId && bookmark.categoryId !== rule.setCategoryId) return true;
+  if (rule.setMediaTypeId && bookmark.mediaType?.id !== rule.setMediaTypeId) return true;
+
+  const existingTagIds = new Set(bookmark.tags.map(t => t.id));
+  if (rule.tagIds.some(id => !existingTagIds.has(id))) return true;
+
+  const numById = new Map(bookmark.numberValues.map(v => [v.propertyId, v.value]));
+  if (rule.numberValues.some(v => numById.get(v.propertyId) !== v.value)) return true;
+
+  const boolById = new Map(bookmark.booleanValues.map(v => [v.propertyId, v.value]));
+  if (rule.booleanValues.some(v => boolById.get(v.propertyId) !== v.value)) return true;
+
+  const dtById = new Map(bookmark.dateTimeValues.map(v => [v.propertyId, v.value]));
+  if (rule.dateTimeValues.some(v => dtById.get(v.propertyId) !== v.value)) return true;
+
+  return false;
+}
+
+/**
+ * Return all bookmarks currently matching the rule's conditions, each annotated with whether the
+ * rule's prefill values are already applied. No pagination — the bookmark cache is in memory.
+ */
+export async function getAutofillBackfillEntries(ruleId: string): Promise<AutofillBackfillResult | null> {
+  const rule = await getAutofillRule(ruleId);
+  if (!rule) return null;
+
+  const {
+    baseRows, conditionInputs, tagDescendants,
+  } = await getBookmarkEvaluationData();
+
+  const matchingRows = baseRows.filter((row) => {
+    const ci = conditionInputs.get(row.id);
+    return ci
+      ? evaluateConditions(rule.conditions, ci, {
+        tagDescendants,
+      })
+      : false;
+  });
+  matchingRows.sort(byPriorityThenNewest);
+
+  const hydrated = await hydrateBookmarkRows(matchingRows);
+  const hydratedById = new Map(hydrated.map(b => [b.id, b]));
+
+  const entries: AutofillBackfillEntry[] = [];
+  for (const row of matchingRows) {
+    const bookmark = hydratedById.get(row.id);
+    if (!bookmark) continue;
+    entries.push({
+      bookmark,
+      needsBackfill: computeNeedsBackfill(rule, bookmark),
+    });
+  }
+  return {
+    entries,
+  };
+}
+
+/**
+ * Apply the rule's prefill values to the given bookmarks. Re-validates conditions at apply time;
+ * bookmarks that no longer match are counted as skipped.
+ *
+ * Apply semantics: tags are additive (INSERT ON CONFLICT DO NOTHING); category, media type, and
+ * property values override whatever the bookmark currently has.
+ */
+export async function applyAutofillBackfill(
+  ruleId: string,
+  input: AutofillApplyInput,
+): Promise<AutofillApplyResult | null> {
+  if (input.bookmarkIds.length === 0) return {
+    applied: 0,
+    skipped: 0,
+  };
+
+  const rule = await getAutofillRule(ruleId);
+  if (!rule) return null;
+
+  const {
+    baseRows, conditionInputs, tagDescendants,
+  } = await getBookmarkEvaluationData();
+
+  const requestedSet = new Set(input.bookmarkIds);
+  const baseRowById = new Map(baseRows.map(r => [r.id, r]));
+
+  const toApply: string[] = [];
+  let skipped = 0;
+  for (const id of input.bookmarkIds) {
+    const row = baseRowById.get(id);
+    if (!row) {
+      skipped += 1;
+      continue;
+    }
+    const ci = conditionInputs.get(id);
+    if (!ci || !evaluateConditions(rule.conditions, ci, {
+      tagDescendants,
+    })) {
+      skipped += 1;
+    }
+    else {
+      toApply.push(id);
+    }
+  }
+
+  if (toApply.length === 0) return {
+    applied: 0,
+    skipped,
+  };
+
+  const matchingRows = baseRows.filter(r => requestedSet.has(r.id) && toApply.includes(r.id));
+  const hydrated = await hydrateBookmarkRows(matchingRows);
+  let applied = 0;
+
+  for (const bookmark of hydrated) {
+    if (!computeNeedsBackfill(rule, bookmark)) {
+      skipped += 1;
+      continue;
+    }
+
+    await db.transaction(async (tx) => {
+      const patch: Partial<{ categoryId: string;
+        mediaTypeId: string | null; }> = {};
+      if (rule.setCategoryId) patch.categoryId = rule.setCategoryId;
+      if (rule.setMediaTypeId !== undefined) patch.mediaTypeId = rule.setMediaTypeId;
+      if (Object.keys(patch).length > 0) {
+        await tx.update(bookmarks).set(patch).where(eq(bookmarks.id, bookmark.id));
+      }
+
+      if (rule.tagIds.length > 0) {
+        await tx
+          .insert(bookmarkTags)
+          .values(rule.tagIds.map(tagId => ({
+            bookmarkId: bookmark.id,
+            tagId,
+          })))
+          .onConflictDoNothing();
+      }
+
+      for (const entry of rule.numberValues) {
+        await tx
+          .insert(bookmarkNumberValues)
+          .values({
+            bookmarkId: bookmark.id,
+            propertyId: entry.propertyId,
+            value: entry.value,
+          })
+          .onConflictDoUpdate({
+            target: [bookmarkNumberValues.bookmarkId, bookmarkNumberValues.propertyId],
+            set: {
+              value: entry.value,
+            },
+          });
+      }
+
+      for (const entry of rule.booleanValues) {
+        await tx
+          .insert(bookmarkBooleanValues)
+          .values({
+            bookmarkId: bookmark.id,
+            propertyId: entry.propertyId,
+            value: entry.value,
+          })
+          .onConflictDoUpdate({
+            target: [bookmarkBooleanValues.bookmarkId, bookmarkBooleanValues.propertyId],
+            set: {
+              value: entry.value,
+            },
+          });
+      }
+
+      for (const entry of rule.dateTimeValues) {
+        await tx
+          .insert(bookmarkDateTimeValues)
+          .values({
+            bookmarkId: bookmark.id,
+            propertyId: entry.propertyId,
+            value: entry.value,
+          })
+          .onConflictDoUpdate({
+            target: [bookmarkDateTimeValues.bookmarkId, bookmarkDateTimeValues.propertyId],
+            set: {
+              value: entry.value,
+            },
+          });
+      }
+
+      if (rule.numberValues.length > 0) {
+        await recomputeCalculatedValues(tx, bookmark.id);
+      }
+    });
+
+    applied += 1;
+  }
+
+  if (applied > 0) invalidateBookmarkCache();
+
+  return {
+    applied,
+    skipped,
   };
 }
 

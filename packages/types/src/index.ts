@@ -1692,6 +1692,32 @@ export interface AutofillPreviewResult {
   entries: AutofillPreviewEntry[];
 }
 
+/** A single bookmark in an autofill backfill list, with whether applying the rule would change it. */
+export interface AutofillBackfillEntry {
+  bookmark: Bookmark;
+  /** True if applying the rule would change at least one field on this bookmark. */
+  needsBackfill: boolean;
+}
+
+/** Result of `GET /api/autofill-rules/:id/backfill` — all matching bookmarks with backfill status. */
+export interface AutofillBackfillResult {
+  entries: AutofillBackfillEntry[];
+}
+
+/** Body for `POST /api/autofill-rules/:id/backfill/apply`. */
+export interface AutofillApplyInput {
+  /** Bookmark ids to apply the rule to. Server re-validates conditions; non-matching ids are skipped. */
+  bookmarkIds: string[];
+}
+
+/** Result of applying an autofill rule's prefill to a set of bookmarks. */
+export interface AutofillApplyResult {
+  /** How many bookmarks were actually updated. */
+  applied: number;
+  /** How many were skipped (didn't match conditions or already up to date). */
+  skipped: number;
+}
+
 /**
  * The single, global Homepage filter: the condition tree that decides which bookmarks appear on
  * the homepage. An empty tree selects no bookmarks.
