@@ -4,7 +4,7 @@
  */
 
 import type { BookmarkImage, BulkAutoFetchResult } from "@eesimple/types";
-import { and, count, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { db } from "@/db";
 import { bookmarkImages, type BookmarkImageRow, bookmarks } from "@/db/schema";
 import { forgetManifestObject, recordManifestObject } from "@/services/gallery";
@@ -95,18 +95,6 @@ export async function setBookmarkImage(
     imageAutoGrabError: null,
   }).where(eq(bookmarks.id, bookmarkId));
   return bookmarkImageFromRow(row);
-}
-
-/** Count bookmarks eligible for bulk auto-fetch: no existing image and no prior error. */
-export async function countEligibleForAutoFetch(): Promise<number> {
-  const [row] = await db
-    .select({
-      n: count(),
-    })
-    .from(bookmarks)
-    .leftJoin(bookmarkImages, eq(bookmarkImages.bookmarkId, bookmarks.id))
-    .where(and(isNull(bookmarkImages.bookmarkId), isNull(bookmarks.imageAutoGrabError)));
-  return row?.n ?? 0;
 }
 
 /**
