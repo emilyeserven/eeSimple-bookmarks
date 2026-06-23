@@ -3,8 +3,8 @@
  * (`utils/objectStore`), and the `bookmark_images` table together so the routes stay thin.
  */
 
-import type { BookmarkImage } from "@eesimple/types";
-import { eq } from "drizzle-orm";
+import type { BookmarkImage, BulkAutoFetchResult } from "@eesimple/types";
+import { and, count, eq, isNull } from "drizzle-orm";
 import { db } from "@/db";
 import { bookmarkImages, type BookmarkImageRow, bookmarks } from "@/db/schema";
 import { forgetManifestObject, recordManifestObject } from "@/services/gallery";
@@ -95,6 +95,51 @@ export async function setBookmarkImage(
     imageAutoGrabError: null,
   }).where(eq(bookmarks.id, bookmarkId));
   return bookmarkImageFromRow(row);
+}
+
+/** Count bookmarks eligible for bulk auto-fetch: no existing image and no prior error. */
+export async function countEligibleForAutoFetch(): Promise<number> {
+  const [row] = await db
+    .select({
+      n: count(),
+    })
+    .from(bookmarks)
+    .leftJoin(bookmarkImages, eq(bookmarkImages.bookmarkId, bookmarks.id))
+    .where(and(isNull(bookmarkImages.bookmarkId), isNull(bookmarks.imageAutoGrabError)));
+  return row?.n ?? 0;
+}
+
+/**
+ * Auto-fetch og:images for all eligible bookmarks (no image, no error) in batches of 3 concurrent
+ * requests to avoid hammering external servers. Returns how many succeeded vs. failed.
+ */
+export async function bulkAutoFetchImages(): Promise<BulkAutoFetchResult> {
+  const eligible = await db
+    .select({
+      id: bookmarks.id,
+    })
+    .from(bookmarks)
+    .leftJoin(bookmarkImages, eq(bookmarkImages.bookmarkId, bookmarks.id))
+    .where(and(isNull(bookmarkImages.bookmarkId), isNull(bookmarks.imageAutoGrabError)));
+
+  let fetched = 0;
+  let failed = 0;
+  const BATCH = 3;
+  for (let i = 0; i < eligible.length; i += BATCH) {
+    const results = await Promise.allSettled(
+      eligible.slice(i, i + BATCH).map(({
+        id,
+      }) => fetchAndStoreOgImage(id)),
+    );
+    for (const r of results) {
+      if (r.status === "fulfilled" && typeof r.value !== "string") fetched++;
+      else failed++;
+    }
+  }
+  return {
+    fetched,
+    failed,
+  };
 }
 
 /** Delete a bookmark's image (object + row). Returns whether one existed. */

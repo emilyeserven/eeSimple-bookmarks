@@ -36,6 +36,19 @@ export function useDeleteOrphans() {
   });
 }
 
+/** Bulk auto-fetch og:images for all eligible bookmarks (no image, no error), then refresh. */
+export function useAutoFetchImages() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => galleryApi.autoFetch(),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: GALLERY_KEY,
+      });
+    },
+  });
+}
+
 /** Attach an orphaned object to a bookmark, then refetch the catalog. */
 export function useAttachOrphan() {
   const queryClient = useQueryClient();

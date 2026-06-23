@@ -3,17 +3,20 @@ import type { Bookmark, MediaObject } from "@eesimple/types";
 
 import { useState } from "react";
 
-import { Images, LayoutGrid, RefreshCw, Square, Table } from "lucide-react";
+import { Download, Images, LayoutGrid, RefreshCw, Square, Table } from "lucide-react";
 
 import { GalleryDialogs } from "./GalleryDialogs";
+import { formatSize } from "./galleryFormat";
 import { OrphansGrid, RegisteredGrid, StorageSummary } from "./GalleryGrids";
 import { galleryColumns } from "./tables/galleryColumns";
 import { useBookmarks } from "../hooks/useBookmarks";
-import { useAttachOrphan, useDeleteOrphans, useGallery, useScanBucket } from "../hooks/useGallery";
+import { useAttachOrphan, useAutoFetchImages, useDeleteOrphans, useGallery, useScanBucket } from "../hooks/useGallery";
 
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+
+const BYTES_PER_IMAGE_ESTIMATE = 200 * 1024;
 
 interface GalleryToolbarProps {
   view: GalleryView;
@@ -21,10 +24,12 @@ interface GalleryToolbarProps {
   layout: GalleryLayout;
   onLayoutChange: (layout: GalleryLayout) => void;
   scan: ReturnType<typeof useScanBucket>;
+  autoFetch: ReturnType<typeof useAutoFetchImages>;
+  pendingAutoFetchCount: number;
 }
 
 function GalleryToolbar({
-  view, onViewChange, layout, onLayoutChange, scan,
+  view, onViewChange, layout, onLayoutChange, scan, autoFetch, pendingAutoFetchCount,
 }: GalleryToolbarProps) {
   return (
     <div className="flex flex-wrap items-center gap-3">
@@ -43,6 +48,26 @@ function GalleryToolbar({
         />
         {scan.isPending ? "Scanning…" : "Scan bucket"}
       </Button>
+
+      {pendingAutoFetchCount > 0
+        ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={autoFetch.isPending}
+            onClick={() => autoFetch.mutate()}
+          >
+            <Download
+              className={`
+                size-4
+                ${autoFetch.isPending ? "animate-bounce" : ""}
+              `}
+            />
+            {autoFetch.isPending ? "Fetching…" : "Fetch missing images"}
+          </Button>
+        )
+        : null}
 
       <ToggleGroup
         type="single"
@@ -85,6 +110,22 @@ function GalleryToolbar({
               <Square className="size-4" />
             </ToggleGroupItem>
           </ToggleGroup>
+        )
+        : null}
+
+      {pendingAutoFetchCount > 0 && !autoFetch.data
+        ? (
+          <p className="text-sm text-muted-foreground">
+            {`${pendingAutoFetchCount} missing (~${formatSize(pendingAutoFetchCount * BYTES_PER_IMAGE_ESTIMATE)} est.)`}
+          </p>
+        )
+        : null}
+
+      {autoFetch.data
+        ? (
+          <p className="text-sm text-muted-foreground">
+            {`Fetched ${autoFetch.data.fetched}, failed ${autoFetch.data.failed}.`}
+          </p>
         )
         : null}
 
@@ -167,6 +208,7 @@ export function GalleryListing() {
     data: allBookmarks = [],
   } = useBookmarks();
   const scan = useScanBucket();
+  const autoFetch = useAutoFetchImages();
   const deleteOrphans = useDeleteOrphans();
   const attachOrphan = useAttachOrphan();
 
@@ -227,6 +269,8 @@ export function GalleryListing() {
         layout={layout}
         onLayoutChange={setLayout}
         scan={scan}
+        autoFetch={autoFetch}
+        pendingAutoFetchCount={catalog?.pendingAutoFetchCount ?? 0}
       />
 
       {catalog

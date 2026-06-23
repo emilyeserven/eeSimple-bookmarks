@@ -5,6 +5,7 @@
  */
 
 import type { DeleteOrphansResult, GalleryCatalog, GalleryScanResult, MediaObject } from "@eesimple/types";
+import { countEligibleForAutoFetch } from "@/services/bookmarkImages";
 import { eq, inArray, lt } from "drizzle-orm";
 import { db } from "@/db";
 import { bookmarks, mediaObjects, type MediaObjectRow } from "@/db/schema";
@@ -113,11 +114,13 @@ export async function getCatalog(): Promise<GalleryCatalog> {
 
   const rawQuota = process.env.STORAGE_QUOTA_BYTES;
   const storageQuotaBytes = rawQuota ? (parseInt(rawQuota, 10) || null) : null;
+  const pendingAutoFetchCount = await countEligibleForAutoFetch();
 
   return {
     registered,
     orphans,
     storageQuotaBytes,
+    pendingAutoFetchCount,
   };
 }
 

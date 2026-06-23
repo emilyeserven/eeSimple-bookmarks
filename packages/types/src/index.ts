@@ -668,6 +668,14 @@ export interface GalleryCatalog {
    * environment variable; used by the gallery UI to show used vs. total space.
    */
   storageQuotaBytes: number | null;
+  /** Bookmarks with no image and no prior auto-grab error — eligible for bulk auto-fetch. */
+  pendingAutoFetchCount: number;
+}
+
+/** Result of a bulk auto-fetch run: how many images were stored vs. how many failed. */
+export interface BulkAutoFetchResult {
+  fetched: number;
+  failed: number;
 }
 
 /** Payload for attaching an orphaned object to an existing bookmark. */

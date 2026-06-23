@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { setBookmarkImage } from "@/services/bookmarkImages";
+import { bulkAutoFetchImages, setBookmarkImage } from "@/services/bookmarkImages";
 import { deleteOrphans, forgetManifestObject, getCatalog, MANAGED_PREFIX, scanBucket, verifyIsOrphan } from "@/services/gallery";
 import { deleteObject, getObjectBytes, getObjectStream, isObjectStoreConfigured } from "@/utils/objectStore";
 
@@ -138,6 +138,16 @@ export async function galleryRoutes(app: FastifyInstance): Promise<void> {
     }
 
     return result;
+  });
+
+  // Bulk auto-fetch: fetch og:images for all bookmarks that have no image and no prior error.
+  app.post("/api/gallery/auto-fetch", {
+    schema: {
+      tags: ["gallery"],
+    },
+  }, async (_req, reply) => {
+    if (!isObjectStoreConfigured()) return reply.code(503).send(notConfigured);
+    return bulkAutoFetchImages();
   });
 
   // Serve an arbitrary object by key so orphan thumbnails (which have no bookmark) can be previewed.
