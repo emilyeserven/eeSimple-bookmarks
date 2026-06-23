@@ -205,6 +205,14 @@ export function useRejectImportItem() {
   });
 }
 
+export function useUnrejectImportItem() {
+  const invalidate = useInvalidateInbox();
+  return useMutation({
+    mutationFn: (itemId: string) => importApi.unrejectItem(itemId),
+    onSuccess: () => invalidate(),
+  });
+}
+
 export function useBlockImportItem() {
   const queryClient = useQueryClient();
   const invalidate = useInvalidateInbox();
