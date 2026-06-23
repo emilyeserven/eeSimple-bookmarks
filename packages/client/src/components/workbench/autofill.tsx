@@ -21,6 +21,7 @@ import { useCategories } from "@/hooks/useCategories";
 import { useCustomProperties } from "@/hooks/useCustomProperties";
 import { useMediaTypes } from "@/hooks/useMediaTypes";
 import { useTags } from "@/hooks/useTags";
+import { copyText } from "@/lib/clipboard";
 import { notifyError, notifySuccess } from "@/lib/notifications";
 
 function ConditionsView({
@@ -84,7 +85,7 @@ function DebugView({
       "```",
     ].join("\n");
     try {
-      await navigator.clipboard.writeText(text);
+      await copyText(text);
       notifySuccess("Copied to clipboard");
     }
     catch {

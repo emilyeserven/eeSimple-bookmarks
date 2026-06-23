@@ -1,5 +1,6 @@
 import { Copy } from "lucide-react";
 
+import { copyText } from "../lib/clipboard";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,7 @@ export function CopyJsonButton({
   label?: string; }) {
   async function handleCopy() {
     try {
-      await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+      await copyText(JSON.stringify(data, null, 2));
       notifySuccess("Copied to clipboard");
     }
     catch {

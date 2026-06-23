@@ -102,12 +102,17 @@ export function useInboxReviewController(items: InboxItem[]) {
   function onRecheckBlocklist() {
     recheckPending.mutate(undefined, {
       onSuccess: ({
-        blocked,
-      }) => notifySuccess(
-        blocked === 0
-          ? "No pending items matched the block list."
-          : `Blocked ${blocked} item${blocked === 1 ? "" : "s"} from the block list.`,
-      ),
+        blocked, rejected,
+      }) => {
+        const parts: string[] = [];
+        if (blocked > 0) parts.push(`Blocked ${blocked} item${blocked === 1 ? "" : "s"}`);
+        if (rejected > 0) parts.push(`rejected ${rejected} item${rejected === 1 ? "" : "s"}`);
+        notifySuccess(
+          parts.length === 0
+            ? "No pending items matched any rules."
+            : `${parts.join(", ")}.`,
+        );
+      },
       onError: () => notifyError("Couldn't recheck the pending items."),
     });
   }
