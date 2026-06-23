@@ -1,8 +1,17 @@
+import type { AutoFetchJobStatus } from "@eesimple/types";
+
+import { useEffect, useRef } from "react";
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { galleryApi } from "../lib/api/imports";
+import { notifySuccess } from "../lib/notifications";
 
 const GALLERY_KEY = ["gallery"] as const;
+const AUTO_FETCH_STATUS_KEY = ["gallery", "auto-fetch-status"] as const;
+
+/** How often (ms) to poll the auto-fetch job while it is running. */
+const AUTO_FETCH_POLL_MS = 1500;
 
 /** The storage-bucket catalog: registered images plus orphaned objects. */
 export function useGallery() {
@@ -10,6 +19,51 @@ export function useGallery() {
     queryKey: GALLERY_KEY,
     queryFn: galleryApi.list,
   });
+}
+
+/**
+ * Poll the background image auto-fetch job status. Self-stopping: only refetches while running,
+ * then idles until a start mutation invalidates the key.
+ */
+export function useAutoFetchStatus() {
+  return useQuery({
+    queryKey: AUTO_FETCH_STATUS_KEY,
+    queryFn: galleryApi.autoFetchStatus,
+    refetchInterval: query =>
+      (query.state.data?.status === "running" ? AUTO_FETCH_POLL_MS : false),
+  });
+}
+
+/**
+ * Watch the auto-fetch status and fire a completion toast when the job transitions from running to
+ * done, then refresh the gallery catalog. Mount once (the header indicator).
+ */
+export function useAutoFetchCompletionToast(status: AutoFetchJobStatus | undefined) {
+  const queryClient = useQueryClient();
+  const previous = useRef<AutoFetchJobStatus | undefined>(undefined);
+  useEffect(() => {
+    if (
+      previous.current?.status === "running"
+      && status?.status === "done"
+    ) {
+      const {
+        fetched, failed,
+      } = status;
+      notifySuccess(
+        `Fetched ${fetched} image${fetched === 1 ? "" : "s"}${failed > 0 ? `, ${failed} failed` : ""}.`,
+        {
+          link: {
+            href: "/settings/media-management",
+            label: "View in Media Management",
+          },
+        },
+      );
+      void queryClient.invalidateQueries({
+        queryKey: GALLERY_KEY,
+      });
+    }
+    previous.current = status;
+  }, [status, queryClient]);
 }
 
 /** Reconcile the manifest against the live bucket, then refresh the cached catalog with the result. */
@@ -36,15 +90,13 @@ export function useDeleteOrphans() {
   });
 }
 
-/** Bulk auto-fetch og:images for all eligible bookmarks (no image, no error), then refresh. */
+/** Start a background bulk auto-fetch job. Kicks the status poll so the indicator appears. */
 export function useAutoFetchImages() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () => galleryApi.autoFetch(),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: GALLERY_KEY,
-      });
+    onSuccess: (data) => {
+      queryClient.setQueryData(AUTO_FETCH_STATUS_KEY, data);
     },
   });
 }

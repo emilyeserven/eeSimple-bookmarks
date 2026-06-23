@@ -10,6 +10,7 @@ import { resolveAddChild, resolvePinContext, slugFor, useTaxonomyCrumbData } fro
 import { HeaderBreadcrumbs } from "@/components/header/HeaderBreadcrumbs";
 import { HeaderToolbar } from "@/components/header/HeaderToolbar";
 import { buildToolbarActions } from "@/components/header/toolbarActions";
+import { ImageFetchProgressIndicator } from "@/components/ImageFetchProgressIndicator";
 import { ImportProgressIndicator } from "@/components/ImportProgressIndicator";
 import { usePanelControls } from "@/components/panel/usePanelControls";
 import { Button } from "@/components/ui/button";
@@ -560,6 +561,7 @@ export function AppHeader() {
         className="mr-2 h-4"
       />
       <HeaderBreadcrumbs crumbs={crumbs} />
+      <ImageFetchProgressIndicator />
       <ImportProgressIndicator />
       <Button
         asChild

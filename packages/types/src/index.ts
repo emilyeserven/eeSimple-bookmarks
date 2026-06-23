@@ -678,6 +678,16 @@ export interface BulkAutoFetchResult {
   failed: number;
 }
 
+/** Live status of the in-progress (or just-completed) background image auto-fetch job. */
+export type AutoFetchJobStatus
+  = | { status: "idle" }
+    | { status: "running";
+      totalCount: number;
+      processedCount: number; }
+      | { status: "done";
+        fetched: number;
+        failed: number; };
+
 /** Payload for attaching an orphaned object to an existing bookmark. */
 export interface AttachOrphanInput {
   /** Object-storage key of the orphan (must be currently unlinked in the manifest). */
