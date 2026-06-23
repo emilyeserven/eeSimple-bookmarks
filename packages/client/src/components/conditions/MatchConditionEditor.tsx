@@ -47,7 +47,6 @@ export function MatchConditionEditor({
           onValueChange={operator =>
             onChange({
               ...value,
-              field: "title",
               operator: operator as MatchCondition["operator"],
               pattern: localPattern,
             })}
