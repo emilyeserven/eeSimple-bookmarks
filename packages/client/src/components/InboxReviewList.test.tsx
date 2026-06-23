@@ -103,6 +103,22 @@ describe("InboxReviewList", () => {
       .toBeInTheDocument();
   });
 
+  it("offers an Unreject control on a rejected item to restore it to pending", async () => {
+    await renderWithRouter(
+      <InboxReviewList
+        items={[makeItem({
+          status: "rejected",
+        })]}
+      />,
+      {
+        paths: ["/bookmarks/$bookmarkId"],
+      },
+    );
+    expect(screen.getByLabelText("Unreject")).toBeInTheDocument();
+    // The pending-only controls are gone once rejected.
+    expect(screen.queryByLabelText("Approve")).not.toBeInTheDocument();
+  });
+
   it("shows a View bookmark link for an approved item", async () => {
     await renderWithRouter(
       <InboxReviewList

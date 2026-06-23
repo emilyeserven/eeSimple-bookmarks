@@ -1027,6 +1027,20 @@ export interface RejectPendingItemsResult {
   rejected: number;
 }
 
+/** Counts of orphaned records eligible for the Advanced "clean up orphaned items" sweep. */
+export interface OrphanCounts {
+  /** Bookmarks with no category (`categoryId IS NULL`). */
+  bookmarks: number;
+  /** Inbox items whose import has no newsletter (`imports.newsletterId IS NULL`). */
+  inboxItems: number;
+}
+
+/** Outcome of an orphan-cleanup delete. */
+export interface OrphanDeleteResult {
+  /** Number of records deleted. */
+  deleted: number;
+}
+
 /** Per-item outcome of approving a staged candidate (mirrors the bulk-URL result shape). */
 export interface ImportApproveResult {
   itemId: string;

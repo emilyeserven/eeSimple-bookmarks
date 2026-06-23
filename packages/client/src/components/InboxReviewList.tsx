@@ -9,7 +9,7 @@ import { useMemo, useState } from "react";
 
 import { blacklistPatternsFor } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
-import { Ban, Check, ChevronDown, ExternalLink, Eye, Pencil, Trash2, X } from "lucide-react";
+import { Ban, Check, ChevronDown, ExternalLink, Eye, Pencil, RotateCcw, Trash2, X } from "lucide-react";
 
 import { useCategories } from "../hooks/useCategories";
 import {
@@ -17,6 +17,7 @@ import {
   useBlockImportItem,
   useRejectImportItem,
   useRejectPendingItems,
+  useUnrejectImportItem,
   useUpdateImportItem,
 } from "../hooks/useImports";
 import { highlightAnchor } from "../lib/newsletterContext";
@@ -126,6 +127,26 @@ function RejectButton({
       })}
     >
       <X className="size-4" />
+    </Button>
+  );
+}
+
+/** Unreject control: restore a rejected candidate to pending so it can be reviewed again. */
+function UnrejectButton({
+  item,
+}: { item: ImportItem }) {
+  const unreject = useUnrejectImportItem();
+  return (
+    <Button
+      size="icon"
+      variant="ghost"
+      aria-label="Unreject"
+      disabled={unreject.isPending}
+      onClick={() => unreject.mutate(item.id, {
+        onSuccess: () => notifySuccess("Restored to pending"),
+      })}
+    >
+      <RotateCcw className="size-4" />
     </Button>
   );
 }
@@ -311,7 +332,7 @@ function ReviewRowEditor({
   );
 }
 
-/** The per-row action column: approve/edit/reject/block while pending, block once rejected, or a view link. */
+/** The per-row action column: approve/edit/reject/block while pending, unreject/block once rejected, or a view link. */
 function RowActions({
   item, onEdit,
 }: { item: ImportItem;
@@ -349,7 +370,12 @@ function RowActions({
         )
         : null}
       {item.status === "rejected"
-        ? <BlockMenu item={item} />
+        ? (
+          <>
+            <UnrejectButton item={item} />
+            <BlockMenu item={item} />
+          </>
+        )
         : null}
       {item.status !== "pending" && resultBookmarkId
         ? <ViewBookmarkButton bookmarkId={resultBookmarkId} />

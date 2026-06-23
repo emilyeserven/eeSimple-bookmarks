@@ -65,6 +65,8 @@ import type {
   UpdateNewsletterInput,
   MediaType,
   MediaTypeNode,
+  OrphanCounts,
+  OrphanDeleteResult,
   PropertyGroup,
   PurgeImportItemsResult,
   RejectPendingItemsResult,
@@ -273,6 +275,11 @@ export const importApi = {
     request<undefined>(`/imports/items/${itemId}/reject`, {
       method: "POST",
     }),
+  /** Restore a rejected candidate to pending for re-review. */
+  unrejectItem: (itemId: string) =>
+    request<undefined>(`/imports/items/${itemId}/unreject`, {
+      method: "POST",
+    }),
   blockItem: (itemId: string, entry: BlockImportItemInput) =>
     request<ImportItem>(`/imports/items/${itemId}/block`, {
       method: "POST",
@@ -291,6 +298,19 @@ export const importApi = {
   rejectPending: () =>
     request<RejectPendingItemsResult>("/imports/items/pending/reject", {
       method: "POST",
+    }),
+};
+
+/** Housekeeping: report and sweep orphaned records (bookmarks with no category, newsletter-less inbox items). */
+export const maintenanceApi = {
+  getOrphanCounts: () => request<OrphanCounts>("/maintenance/orphans"),
+  deleteOrphanBookmarks: () =>
+    request<OrphanDeleteResult>("/maintenance/orphan-bookmarks", {
+      method: "DELETE",
+    }),
+  deleteOrphanInboxItems: () =>
+    request<OrphanDeleteResult>("/maintenance/orphan-inbox-items", {
+      method: "DELETE",
     }),
 };
 

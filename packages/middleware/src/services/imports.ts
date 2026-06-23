@@ -9,7 +9,7 @@
  * Only `createBookmark` (invoked on approve) touches the cache, which it already does internally.
  */
 
-import { and, asc, desc, eq, inArray, or } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, isNull, or } from "drizzle-orm";
 import type {
   ActiveImport,
   ImportApproveResult,
@@ -21,6 +21,7 @@ import type {
   ImportSummary,
   InboxItem,
   Import as ImportRecord,
+  OrphanDeleteResult,
   PurgeImportItemsResult,
   RejectPendingItemsResult,
   UpdateImportItemInput,
@@ -900,6 +901,20 @@ export async function rejectImportItem(itemId: string): Promise<boolean> {
   return rows.length > 0;
 }
 
+/** Restore a rejected candidate to `pending` so it can be reviewed again. No-op on other statuses. */
+export async function unrejectImportItem(itemId: string): Promise<boolean> {
+  const rows = await db
+    .update(importItems)
+    .set({
+      status: "pending",
+    })
+    .where(and(eq(importItems.id, itemId), eq(importItems.status, "rejected")))
+    .returning({
+      id: importItems.id,
+    });
+  return rows.length > 0;
+}
+
 /**
  * Block a staged candidate: add its URL pattern to the Imports Blacklist (so future imports skip it)
  * and mark the item `blocked`. The Import Settings purge later sweeps blocked items, but the blacklist
@@ -963,6 +978,40 @@ export async function purgeProcessedItems(): Promise<PurgeImportItemsResult> {
   const rows = await db
     .delete(importItems)
     .where(or(eq(importItems.markedForDeletion, true), eq(importItems.status, "blocked")))
+    .returning({
+      id: importItems.id,
+    });
+  return {
+    deleted: rows.length,
+  };
+}
+
+/** Subquery selecting every import id that has no associated newsletter. */
+function newsletterlessImportIds() {
+  return db.select({
+    id: imports.id,
+  }).from(imports).where(isNull(imports.newsletterId));
+}
+
+/** Count import items whose parent import has no newsletter (the Inbox orphans). */
+export async function countOrphanedImportItems(): Promise<number> {
+  const [row] = await db
+    .select({
+      value: count(),
+    })
+    .from(importItems)
+    .where(inArray(importItems.importId, newsletterlessImportIds()));
+  return row?.value ?? 0;
+}
+
+/**
+ * Delete every import item whose parent import has no newsletter, regardless of status. Created
+ * bookmarks survive (their `importId` FK is `set null`). Returns the number of rows deleted.
+ */
+export async function deleteOrphanedImportItems(): Promise<OrphanDeleteResult> {
+  const rows = await db
+    .delete(importItems)
+    .where(inArray(importItems.importId, newsletterlessImportIds()))
     .returning({
       id: importItems.id,
     });

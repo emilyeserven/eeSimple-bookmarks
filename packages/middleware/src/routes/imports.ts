@@ -23,6 +23,7 @@ import {
   rejectImportItem,
   rejectPendingItems,
   setIssueBookmarks,
+  unrejectImportItem,
   updateImportItem,
 } from "@/services/imports";
 import { isValidUrl } from "@/utils/url";
@@ -322,6 +323,23 @@ export async function importRoutes(app: FastifyInstance): Promise<void> {
       itemId,
     } = req.params as { itemId: string };
     const ok = await rejectImportItem(itemId);
+    if (!ok) return reply.code(404).send({
+      message: "Item not found",
+    });
+    return reply.code(204).send();
+  });
+
+  // Unreject one candidate → restore it to pending for re-review.
+  app.post("/api/imports/items/:itemId/unreject", {
+    schema: {
+      tags: ["imports"],
+      params: itemParams,
+    },
+  }, async (req, reply) => {
+    const {
+      itemId,
+    } = req.params as { itemId: string };
+    const ok = await unrejectImportItem(itemId);
     if (!ok) return reply.code(404).send({
       message: "Item not found",
     });

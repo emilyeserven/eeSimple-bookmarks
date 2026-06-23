@@ -91,6 +91,16 @@ test("POST /api/imports/items/pending/reject isn't captured by the :itemId route
   await app.close();
 });
 
+test("POST /api/imports/items/:itemId/unreject rejects a non-uuid id", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "POST",
+    url: "/api/imports/items/not-a-uuid/unreject",
+  });
+  assert.equal(res.statusCode, 400);
+  await app.close();
+});
+
 test("POST /api/imports/items/:itemId/block rejects a missing entry body", async () => {
   const app = await buildApp();
   const res = await app.inject({

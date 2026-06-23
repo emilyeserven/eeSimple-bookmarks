@@ -1,4 +1,4 @@
-import { and, desc, eq, ilike, inArray, like, ne, or } from "drizzle-orm";
+import { and, count, desc, eq, ilike, inArray, isNull, like, ne, or } from "drizzle-orm";
 import type {
   Bookmark,
   BookmarkUrlDuplicateResult,
@@ -6,6 +6,7 @@ import type {
   BulkUrlUpdate,
   BulkUrlUpdateResult,
   CreateBookmarkInput,
+  OrphanDeleteResult,
   UpdateBookmarkInput,
   UpdateBookmarkRelationshipsInput,
 } from "@eesimple/types";
@@ -478,6 +479,31 @@ export async function deleteBookmark(id: string): Promise<boolean> {
   });
   if (rows.length > 0) invalidateBookmarkCache();
   return rows.length > 0;
+}
+
+/** Count bookmarks with no category (`categoryId IS NULL`). */
+export async function countOrphanedBookmarks(): Promise<number> {
+  const [row] = await db
+    .select({
+      value: count(),
+    })
+    .from(bookmarks)
+    .where(isNull(bookmarks.categoryId));
+  return row?.value ?? 0;
+}
+
+/** Delete every bookmark with no category. Returns the number of rows deleted. */
+export async function deleteOrphanedBookmarks(): Promise<OrphanDeleteResult> {
+  const rows = await db
+    .delete(bookmarks)
+    .where(isNull(bookmarks.categoryId))
+    .returning({
+      id: bookmarks.id,
+    });
+  if (rows.length > 0) invalidateBookmarkCache();
+  return {
+    deleted: rows.length,
+  };
 }
 
 /**
