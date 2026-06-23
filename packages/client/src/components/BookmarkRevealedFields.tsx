@@ -4,6 +4,7 @@ import type { ImageIntent } from "./bookmarkImageIntent";
 import type { useWebsiteLookup } from "../hooks/useWebsites";
 import type { UrlCleanupMode } from "../lib/urlCleanup";
 import type {
+  Author,
   BookmarkBooleanValue,
   BookmarkDateTimeValue,
   BookmarkNumberValue,
@@ -80,6 +81,7 @@ interface BookmarkRevealedFieldsProps {
   tagTree: TagNode[];
   customProperties: CustomProperty[];
   mediaTypes: MediaTypeNode[];
+  authors?: Author[];
   onTagToggle: (id: string) => void;
   numberInputs: Record<string, string>;
   booleanInputs: Record<string, boolean>;

@@ -1,5 +1,5 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
-import type { Bookmark, Category, CustomProperty, MediaType, PropertyGroup, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
+import type { Author, Bookmark, Category, CustomProperty, MediaType, PropertyGroup, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
 
 import { useEffect } from "react";
 
@@ -21,6 +21,7 @@ export interface BookmarkSearchViewData {
   youtubeChannels?: YouTubeChannel[];
   websites?: Website[];
   relationshipTypes?: RelationshipType[];
+  authors?: Author[];
   bookmarks: Bookmark[];
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;
@@ -45,7 +46,7 @@ export interface BookmarkSearchViewState {
 export function useBookmarkSearchView(data: BookmarkSearchViewData): BookmarkSearchViewState {
   const {
     pageKey, tree, properties, propertyGroups, categories, mediaTypes, youtubeChannels,
-    websites, relationshipTypes, bookmarks, search, onSearchChange,
+    websites, relationshipTypes, authors, bookmarks, search, onSearchChange,
   } = data;
 
   useSetListingPage(pageKey, true, true, true);
@@ -71,13 +72,14 @@ export function useBookmarkSearchView(data: BookmarkSearchViewData): BookmarkSea
       youtubeChannels,
       websites,
       relationshipTypes,
+      authors,
       bookmarks,
       search,
       onSearchChange,
     });
     return () => setFilterContext(null);
     // onSearchChange is a new arrow fn each render from the page; stable deps are the data arrays
-  }, [tree, properties, propertyGroups, categories, mediaTypes, youtubeChannels, websites, relationshipTypes, bookmarks, search, onSearchChange, setFilterContext]);
+  }, [tree, properties, propertyGroups, categories, mediaTypes, youtubeChannels, websites, relationshipTypes, authors, bookmarks, search, onSearchChange, setFilterContext]);
 
   // Only on mount — intentionally omit filtersInDrawer/isOpen/openType to avoid re-running.
   useEffect(() => {

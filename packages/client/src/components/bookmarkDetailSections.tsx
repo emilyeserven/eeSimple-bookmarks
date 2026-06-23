@@ -120,6 +120,29 @@ function generalSection(bookmark: Bookmark, category: Category | undefined): Boo
               )
               : null}
           </DetailField>
+
+          {bookmark.authors.length > 0
+            ? (
+              <DetailField label="Author">
+                <span className="flex flex-wrap gap-x-1">
+                  {bookmark.authors.map((author, i) => (
+                    <span key={author.id}>
+                      {i > 0 && <span className="mr-1">,</span>}
+                      <Link
+                        to="/taxonomies/authors/$authorSlug"
+                        params={{
+                          authorSlug: author.slug,
+                        }}
+                        className="hover:underline"
+                      >
+                        {author.name}
+                      </Link>
+                    </span>
+                  ))}
+                </span>
+              </DetailField>
+            )
+            : null}
         </dl>
       </LabeledSection>
     ),

@@ -12,6 +12,7 @@ import type {
 } from "@eesimple/types";
 import { db } from "@/db";
 import {
+  bookmarkAuthors,
   bookmarkBooleanValues,
   bookmarkDateTimeValues,
   bookmarkNumberValues,
@@ -39,6 +40,7 @@ import {
 } from "@/services/bookmarkEnrichment";
 import { hydrateBookmarkRows } from "@/services/bookmarkHydration";
 import {
+  linkAuthors,
   linkTags,
   recomputeCalculatedValues,
   setBooleanValues,
@@ -251,6 +253,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
         id: bookmarks.id,
       });
     await linkTags(tx, row.id, mergedTagIds);
+    await linkAuthors(tx, row.id, input.authorIds);
     await setNumberValues(tx, row.id, numberValues);
     await setBooleanValues(tx, row.id, input.booleanValues);
     await setDateTimeValues(tx, row.id, dateTimeValues);
@@ -342,6 +345,10 @@ async function applyBookmarkValueUpdates(
   if (input.tagIds !== undefined) {
     await tx.delete(bookmarkTags).where(eq(bookmarkTags.bookmarkId, id));
     await linkTags(tx, id, input.tagIds);
+  }
+  if (input.authorIds !== undefined) {
+    await tx.delete(bookmarkAuthors).where(eq(bookmarkAuthors.bookmarkId, id));
+    await linkAuthors(tx, id, input.authorIds);
   }
   if (resolved.numberValues !== undefined) {
     await tx.delete(bookmarkNumberValues).where(eq(bookmarkNumberValues.bookmarkId, id));

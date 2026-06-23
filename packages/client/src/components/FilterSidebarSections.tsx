@@ -1,6 +1,6 @@
 import type { TreeComboboxOption } from "./TreeMultiCombobox";
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
-import type { Bookmark, Category, CustomProperty, MediaType, PropertyGroup, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
+import type { Author, Bookmark, Category, CustomProperty, MediaType, PropertyGroup, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
 import type { ReactNode } from "react";
 
 import { Fragment } from "react";
@@ -14,6 +14,7 @@ import { TreeMultiCombobox } from "./TreeMultiCombobox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 import { Separator } from "./ui/separator";
 import {
+  withAuthors,
   withBooleanFilter,
   withCategories,
   withDateTimeFilter,
@@ -31,8 +32,8 @@ import {
 
 /** The filter sections themselves, with separators between adjacent groups. */
 export function FilterSections({
-  tree, enabledProperties, propertyGroups, categories, mediaTypes, youtubeChannels, websites, relationshipTypes, bookmarks, search, onSearchChange,
-  hasTags, hasProperties, hasCategoryFilter, hasMediaTypeFilter, hasChannelFilter, hasWebsiteFilter, hasRelationshipTypeFilter,
+  tree, enabledProperties, propertyGroups, categories, mediaTypes, youtubeChannels, websites, relationshipTypes, authors, bookmarks, search, onSearchChange,
+  hasTags, hasProperties, hasCategoryFilter, hasMediaTypeFilter, hasChannelFilter, hasWebsiteFilter, hasRelationshipTypeFilter, hasAuthorFilter,
 }: {
   tree: TagNode[];
   enabledProperties: CustomProperty[];
@@ -42,6 +43,7 @@ export function FilterSections({
   youtubeChannels?: YouTubeChannel[];
   websites?: Website[];
   relationshipTypes?: RelationshipType[];
+  authors?: Author[];
   bookmarks: Pick<Bookmark, "numberValues">[];
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;
@@ -52,6 +54,7 @@ export function FilterSections({
   hasChannelFilter: boolean;
   hasWebsiteFilter: boolean;
   hasRelationshipTypeFilter: boolean;
+  hasAuthorFilter: boolean;
 }) {
   return (
     <SeparatedSections
@@ -117,6 +120,17 @@ export function FilterSections({
           node: (
             <RelationshipTypeFilterSection
               relationshipTypes={relationshipTypes}
+              search={search}
+              onSearchChange={onSearchChange}
+            />
+          ),
+        },
+        {
+          key: "authors",
+          show: hasAuthorFilter,
+          node: (
+            <AuthorFilterSection
+              authors={authors}
               search={search}
               onSearchChange={onSearchChange}
             />
@@ -615,6 +629,68 @@ function RelationshipTypeFilterSection({
                 hover:underline
               "
               onClick={() => onSearchChange(withRelationshipTypes(search, []))}
+            >
+              Reset
+            </button>
+          )
+          : null}
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
+/** Multi-select author filter; rendered wherever authors exist. */
+function AuthorFilterSection({
+  authors, search, onSearchChange,
+}: {
+  authors?: Author[];
+  search: BookmarkSearch;
+  onSearchChange: (next: BookmarkSearch) => void;
+}) {
+  const options = (authors ?? []).map(author => ({
+    value: author.id,
+    label: author.name,
+  }));
+  const selected = search.authors ?? [];
+
+  return (
+    <Collapsible
+      defaultOpen
+      className="group/author space-y-3"
+    >
+      <CollapsibleTrigger
+        className="
+          flex items-center gap-1.5 text-sm font-semibold
+          hover:text-foreground
+        "
+      >
+        <ChevronDown
+          className="
+            size-3.5 shrink-0 transition-transform
+            group-data-[state=open]/author:rotate-180
+          "
+        />
+        Author
+      </CollapsibleTrigger>
+      <CollapsibleContent className="space-y-3">
+        <MultiCombobox
+          options={options}
+          values={selected}
+          onValuesChange={ids => onSearchChange(withAuthors(search, ids))}
+          placeholder="All authors"
+          searchPlaceholder="Search authors…"
+          emptyText="No authors found."
+          aria-label="Filter by author"
+        />
+        {selected.length > 0
+          ? (
+            <button
+              type="button"
+              className="
+                text-xs text-primary
+                hover:underline
+              "
+              onClick={() => onSearchChange(withAuthors(search, []))}
             >
               Reset
             </button>

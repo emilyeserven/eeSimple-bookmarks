@@ -28,6 +28,7 @@ function makeBookmark(overrides: Partial<Bookmark> = {}): Bookmark {
     booleanValues: [],
     dateTimeValues: [],
     fileValues: [],
+    authors: [],
     relationships: [],
     priority: 0,
     createdAt: "2026-01-01T00:00:00.000Z",

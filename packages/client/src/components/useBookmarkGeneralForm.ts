@@ -71,11 +71,12 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
       url: bookmark.originalUrl ?? bookmark.url,
       title: bookmark.title,
       categoryId: bookmark.categoryId ?? "",
-      // Carried for schema parity with the add form; this surface has no media-type picker, so it is
-      // never sent on submit (the patch omits it, preserving the existing value).
+      // Carried for schema parity with the add form; this surface has no media-type or author pickers,
+      // so these are never sent on submit (the patch omits them, preserving the existing values).
       mediaTypeId: bookmark.mediaType?.id ?? "",
       description: bookmark.description ?? "",
       tagIds: (bookmark.tags.map(tag => tag.id)) as string[],
+      authorIds: (bookmark.authors.map(a => a.id)) as string[],
     },
     validators: {
       onChange: bookmarkSchema,

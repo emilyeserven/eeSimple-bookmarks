@@ -79,6 +79,7 @@ export function useBookmarkFormController({
     mediaTypes,
     autofillRules,
     youtubeChannels,
+    authors,
     autoFetchTitle,
     autoFetchImage,
   } = useBookmarkFormData();
@@ -198,6 +199,7 @@ export function useBookmarkFormController({
     mediaTypeId: string;
     description: string;
     tagIds: string[];
+    authorIds: string[];
   }): Promise<void> {
     const {
       numberValues, booleanValues, dateTimeValues,
@@ -225,6 +227,7 @@ export function useBookmarkFormController({
       mediaTypeId: value.mediaTypeId || null,
       description: value.description || null,
       tagIds: value.tagIds,
+      authorIds: value.authorIds,
       numberValues,
       booleanValues,
       dateTimeValues,
@@ -466,6 +469,7 @@ export function useBookmarkFormController({
     customProperties,
     categories,
     mediaTypes,
+    authors,
     websiteLookup,
     autoFetchImage,
     // URL cleanup.

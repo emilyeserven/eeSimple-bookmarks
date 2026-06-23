@@ -564,6 +564,28 @@ export type NewsletterCategory = Pick<Category, "id" | "name" | "slug" | "icon">
 /** Lightweight newsletter shape carried on a bookmark. */
 export type BookmarkNewsletter = Pick<Newsletter, "id" | "name" | "slug">;
 
+/** A person or entity credited as the creator of a bookmarked item. */
+export interface Author {
+  id: string;
+  name: string;
+  slug: string;
+  createdAt: string;
+  bookmarkCount?: number;
+}
+
+/** Lightweight author shape carried on a bookmark. */
+export type BookmarkAuthor = Pick<Author, "id" | "name" | "slug">;
+
+/** Payload for creating a new author. */
+export interface CreateAuthorInput {
+  name: string;
+}
+
+/** Payload for partially updating an author. */
+export interface UpdateAuthorInput {
+  name?: string;
+}
+
 /** Lightweight import shape carried on a bookmark (the import event it was created from). */
 export interface BookmarkImport {
   id: string;
@@ -707,6 +729,8 @@ export interface Bookmark {
   import: BookmarkImport | null;
   /** Tags assigned to this bookmark, drawn from the taxonomy. */
   tags: BookmarkTag[];
+  /** Authors credited for this bookmarked item. */
+  authors: BookmarkAuthor[];
   /** Number-typed custom property values (includes computed `calculate` results) assigned to this bookmark. */
   numberValues: BookmarkNumberValue[];
   /** Boolean custom property values assigned to this bookmark. */
@@ -740,6 +764,8 @@ export interface CreateBookmarkInput {
   categoryId?: string;
   /** Ids of tags to assign, drawn from the taxonomy. */
   tagIds?: string[];
+  /** Ids of authors to credit for this item. */
+  authorIds?: string[];
   /** Number custom property values to assign (calculate results are computed server-side). */
   numberValues?: BookmarkNumberValue[];
   /** Boolean custom property values to assign. */

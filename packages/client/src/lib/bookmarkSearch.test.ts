@@ -297,6 +297,7 @@ describe("bookmarkMatchesSearch", () => {
       value: "2026-06-15",
     }],
     fileValues: [],
+    authors: [],
     relationships: [],
   };
 

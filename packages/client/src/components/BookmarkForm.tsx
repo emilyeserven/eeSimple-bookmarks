@@ -118,6 +118,7 @@ export function BookmarkForm({
           tagTree={c.tagTree ?? []}
           customProperties={c.customProperties ?? []}
           mediaTypes={c.mediaTypes ?? []}
+          authors={c.authors ?? []}
           onTagToggle={c.prefill.markTagsTouched}
           numberInputs={c.prefill.numberInputs}
           booleanInputs={c.prefill.booleanInputs}

@@ -1,5 +1,6 @@
 import type { PinContext } from "@/components/HeaderPinButton";
 
+import { useAuthorBySlug } from "@/hooks/useAuthors";
 import { useAutofillRuleBySlug } from "@/hooks/useAutofill";
 import { useCategoryBySlug } from "@/hooks/useCategories";
 import { usePropertyBySlug } from "@/hooks/useCustomProperties";
@@ -56,6 +57,9 @@ export function useTaxonomyCrumbData(pathname: string, pathParts: string[]): Tax
     newsletter,
   } = useNewsletterBySlug(slugFor(pathname, pathParts, "/taxonomies/newsletters", 2));
   const {
+    author,
+  } = useAuthorBySlug(slugFor(pathname, pathParts, "/taxonomies/authors", 2));
+  const {
     propertyGroup,
   } = usePropertyGroupBySlug(slugFor(pathname, pathParts, "/taxonomies/property-groups", 2));
   const {
@@ -75,6 +79,7 @@ export function useTaxonomyCrumbData(pathname: string, pathParts: string[]): Tax
       "/taxonomies/media-types": mediaType?.name,
       "/taxonomies/youtube-channels": channel?.name,
       "/taxonomies/newsletters": newsletter?.name,
+      "/taxonomies/authors": author?.name,
       "/taxonomies/property-groups": propertyGroup?.name,
       "/taxonomies/relationship-types": relationshipType?.name,
       "/custom-properties": property?.name,
