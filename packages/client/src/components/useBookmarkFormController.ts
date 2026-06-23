@@ -36,6 +36,12 @@ export interface BookmarkFormProps {
    * used on category pages, where the category is implied by the route.
    */
   lockedCategoryId?: string;
+  /** Create-mode seed for the URL field (e.g. from the quick-add popup). Ignored on edit. */
+  initialUrl?: string;
+  /** Create-mode seed for the Title field (e.g. from the quick-add popup). Ignored on edit. */
+  initialTitle?: string;
+  /** Called with the freshly created bookmark after a successful create (e.g. to close the popup). */
+  onCreated?: (bookmark: Bookmark) => void;
 }
 
 /**
@@ -47,7 +53,7 @@ export interface BookmarkFormProps {
  * complexity cap.
  */
 export function useBookmarkFormController({
-  bookmark, onDone, lockedCategoryId,
+  bookmark, onDone, lockedCategoryId, initialUrl, initialTitle, onCreated,
 }: BookmarkFormProps = {}) {
   const isEdit = Boolean(bookmark);
   const navigate = useNavigate();
@@ -169,7 +175,10 @@ export function useBookmarkFormController({
   const quickAddRef = useRef(false);
 
   const form = useAppForm({
-    defaultValues: buildBookmarkDefaultValues(bookmark, lockedCategoryId),
+    defaultValues: buildBookmarkDefaultValues(bookmark, lockedCategoryId, {
+      url: initialUrl,
+      title: initialTitle,
+    }),
     validators: {
       onChange: bookmarkSchema,
     },
@@ -279,6 +288,7 @@ export function useBookmarkFormController({
       }
       : undefined);
     handleReset();
+    onCreated?.(created);
   }
 
   // Custom-property prefill: the dynamic number/boolean/datetime inputs plus the autofill-rule and

@@ -90,13 +90,24 @@ function _bookmarkFormApiSample(_bookmark?: Bookmark) {
 export type BookmarkFormApi = ReturnType<typeof _bookmarkFormApiSample>;
 
 /**
+ * Initial create-mode values for the bookmark form, e.g. the URL/title handed in by the quick-add
+ * popup. Ignored in edit mode (the existing bookmark's values take precedence).
+ */
+export interface BookmarkInitialValues {
+  url?: string;
+  title?: string;
+}
+
+/**
  * The bookmark form's `defaultValues`, derived from an optional existing bookmark (edit) and an
- * optional locked category (create on a category page). Extracted so the controller's `useAppForm`
- * call stays a single line and the nullish-fallback chain lives in one tested place.
+ * optional locked category (create on a category page). In create mode, `initial` seeds the
+ * URL/title (used by the quick-add popup). Extracted so the controller's `useAppForm` call stays a
+ * single line and the nullish-fallback chain lives in one tested place.
  */
 export function buildBookmarkDefaultValues(
   bookmark: Bookmark | undefined,
   lockedCategoryId: string | undefined,
+  initial: BookmarkInitialValues = {},
 ): {
   url: string;
   title: string;
@@ -106,8 +117,8 @@ export function buildBookmarkDefaultValues(
   tagIds: string[];
 } {
   return {
-    url: bookmark?.originalUrl ?? bookmark?.url ?? "",
-    title: bookmark?.title ?? "",
+    url: bookmark?.originalUrl ?? bookmark?.url ?? initial.url ?? "",
+    title: bookmark?.title ?? initial.title ?? "",
     categoryId: bookmark?.categoryId ?? lockedCategoryId ?? "",
     mediaTypeId: bookmark?.mediaType?.id ?? "",
     description: bookmark?.description ?? "",
