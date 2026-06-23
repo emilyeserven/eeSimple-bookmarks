@@ -68,19 +68,29 @@ function Section({
 export function ImportConditionsField({
   value, onChange,
 }: ImportConditionsFieldProps) {
-  const matches = value.children.filter((child): child is MatchCondition => child.type === "match");
+  const urlMatches = value.children.filter(
+    (child): child is MatchCondition => child.type === "match" && child.field === "url",
+  );
+  const titleMatches = value.children.filter(
+    (child): child is MatchCondition => child.type === "match" && child.field === "title",
+  );
   const websiteLeaf = value.children.find((child): child is WebsiteCondition => child.type === "website");
   // Preserve other node types so the tree round-trips without data loss.
   const otherChildren = value.children.filter(
     child => child.type !== "match" && child.type !== "website",
   );
 
-  function commit(next: { matches?: MatchCondition[];
-    website?: WebsiteCondition | null; }) {
-    const nextMatches = next.matches ?? matches;
+  function commit(next: {
+    urlMatches?: MatchCondition[];
+    titleMatches?: MatchCondition[];
+    website?: WebsiteCondition | null;
+  }) {
+    const nextUrlMatches = next.urlMatches ?? urlMatches;
+    const nextTitleMatches = next.titleMatches ?? titleMatches;
     const nextWebsite = next.website === undefined ? websiteLeaf : next.website;
     const children: ConditionNode[] = [
-      ...nextMatches,
+      ...nextUrlMatches,
+      ...nextTitleMatches,
       ...(nextWebsite && nextWebsite.domains.length > 0 ? [nextWebsite] : []),
       ...otherChildren,
     ];
@@ -90,12 +100,53 @@ export function ImportConditionsField({
     });
   }
 
+  function renderMatchRows(
+    matches: MatchCondition[],
+    updateMatches: (next: MatchCondition[]) => void,
+    addNew: MatchCondition,
+    addLabel: string,
+  ) {
+    return (
+      <div className="space-y-3">
+        {matches.map((match, index) => (
+          <div
+            key={index}
+            className="space-y-2 rounded-md border p-2"
+          >
+            <div className="flex justify-end">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => updateMatches(matches.filter((_, i) => i !== index))}
+              >
+                Remove
+              </Button>
+            </div>
+            <MatchConditionEditor
+              value={match}
+              onChange={next => updateMatches(matches.map((existing, i) => (i === index ? next : existing)))}
+            />
+          </div>
+        ))}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => updateMatches([...matches, addNew])}
+        >
+          {addLabel}
+        </Button>
+      </div>
+    );
+  }
+
   const websiteCount = websiteLeaf?.domains.length ?? 0;
 
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-3">
-        <span className="text-sm text-muted-foreground">URL must match</span>
+        <span className="text-sm text-muted-foreground">Bookmark must match</span>
         <ToggleGroup
           type="single"
           size="sm"
@@ -116,55 +167,43 @@ export function ImportConditionsField({
       </div>
 
       <Section
-        title="URL / Title"
-        summary={matches.length > 0 ? `${matches.length}` : undefined}
-        defaultOpen={matches.length > 0}
+        title="URL"
+        summary={urlMatches.length > 0 ? `${urlMatches.length}` : undefined}
+        defaultOpen={urlMatches.length > 0}
       >
-        <div className="space-y-3">
-          {matches.map((match, index) => (
-            <div
-              key={index}
-              className="space-y-2 rounded-md border p-2"
-            >
-              <div className="flex justify-end">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() =>
-                    commit({
-                      matches: matches.filter((_, current) => current !== index),
-                    })}
-                >
-                  Remove
-                </Button>
-              </div>
-              <MatchConditionEditor
-                value={match}
-                onChange={next =>
-                  commit({
-                    matches: matches.map((existing, current) => (current === index ? next : existing)),
-                  })}
-              />
-            </div>
-          ))}
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() =>
-              commit({
-                matches: [...matches, {
-                  type: "match",
-                  field: "url",
-                  operator: "contains",
-                  pattern: "",
-                }],
-              })}
-          >
-            Add URL condition
-          </Button>
-        </div>
+        {renderMatchRows(
+          urlMatches,
+          next => commit({
+            urlMatches: next,
+          }),
+          {
+            type: "match",
+            field: "url",
+            operator: "contains",
+            pattern: "",
+          },
+          "Add URL condition",
+        )}
+      </Section>
+
+      <Section
+        title="Title"
+        summary={titleMatches.length > 0 ? `${titleMatches.length}` : undefined}
+        defaultOpen={titleMatches.length > 0}
+      >
+        {renderMatchRows(
+          titleMatches,
+          next => commit({
+            titleMatches: next,
+          }),
+          {
+            type: "match",
+            field: "title",
+            operator: "contains",
+            pattern: "",
+          },
+          "Add Title condition",
+        )}
       </Section>
 
       <Section
