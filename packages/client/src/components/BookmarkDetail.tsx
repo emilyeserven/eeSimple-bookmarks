@@ -5,8 +5,12 @@ import { youtubeEmbedUrl } from "@eesimple/types";
 import { BookmarkDetailBody } from "./BookmarkDetailBody";
 import { BookmarkDetailMedia } from "./BookmarkDetailMedia";
 import { BookmarkDetailTabbed } from "./BookmarkDetailTabbed";
+import { CopyJsonButton } from "./CopyJsonButton";
 import { DetailHeaderActions } from "./DetailHeaderActions";
 import { useBookmarkDetailLayout, useBookmarkDetailVideoSize } from "../hooks/useAppSettings";
+import { bookmarkToConditionInputJson } from "../lib/debugJson";
+
+import { Separator } from "@/components/ui/separator";
 
 interface BookmarkDetailProps {
   bookmark: Bookmark;
@@ -104,6 +108,21 @@ export function BookmarkDetail({
             />
           </div>
         )}
+
+      <Separator />
+      <div className="space-y-2">
+        <p className="text-xs font-medium text-muted-foreground">Debug</p>
+        <div className="flex flex-wrap gap-2">
+          <CopyJsonButton
+            data={bookmark}
+            label="Copy Bookmark JSON"
+          />
+          <CopyJsonButton
+            data={bookmarkToConditionInputJson(bookmark)}
+            label="Copy Condition Input JSON"
+          />
+        </div>
+      </div>
     </div>
   );
 }
