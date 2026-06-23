@@ -15,7 +15,7 @@ import { useHeaderSearchFilter } from "../hooks/useHeaderSearchFilter";
 import { useSetListingPage } from "../hooks/useListingPage";
 import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
 import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
-import { SIDEBAR_MODIFIER_LABELS } from "../lib/sidebarModifier";
+import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "../lib/sidebarModifier";
 
 /** A single row in the author listing: name, bookmark count, and hover Edit / Info. */
 function AuthorListItem({
@@ -73,8 +73,8 @@ function AuthorListItem({
             params={{
               authorSlug: author.slug,
             }}
-            title={`Info (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-            onClick={event => viewClick(event, "author", author.id)}
+            title={entityLinkTitle(modifier)}
+            onClick={event => viewClick(event, "author", author.id, author.slug)}
           >
             <Info className="size-4" />
             <span className="sr-only">View {author.name}</span>

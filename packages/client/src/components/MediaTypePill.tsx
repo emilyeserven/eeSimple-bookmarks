@@ -7,7 +7,7 @@ import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
 import { Badge } from "@/components/ui/badge";
 import { CategoryIcon } from "@/lib/icons";
-import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
+import { entityLinkTitle } from "@/lib/sidebarModifier";
 
 /** A clickable pill showing a media type's icon and name. Navigates to the media type page; hold the modifier key to open in the sidebar. */
 export function MediaTypePill({
@@ -21,8 +21,8 @@ export function MediaTypePill({
       params={{
         mediaTypeSlug: mediaType.slug,
       }}
-      title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-      onClick={event => viewClick(event, "media-type", mediaType.id)}
+      title={entityLinkTitle(modifier)}
+      onClick={event => viewClick(event, "media-type", mediaType.id, mediaType.slug)}
     >
       <Badge
         variant="secondary"

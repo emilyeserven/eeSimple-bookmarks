@@ -9,7 +9,7 @@ import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 import { summarizeConditions } from "../lib/conditionsSummary";
 
 import { Badge } from "@/components/ui/badge";
-import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
+import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
 
 const ACTION_BADGE_VARIANTS: Record<ImportRuleAction, "default" | "secondary" | "destructive" | "outline"> = {
   approve: "default",
@@ -50,8 +50,8 @@ export function ImportRuleListItem({
           params={{
             ruleSlug: rule.slug,
           }}
-          title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-          onClick={event => viewClick(event, "import-rule", rule.id)}
+          title={entityLinkTitle(modifier)}
+          onClick={event => viewClick(event, "import-rule", rule.id, rule.slug)}
           className={className}
         >
           {children}

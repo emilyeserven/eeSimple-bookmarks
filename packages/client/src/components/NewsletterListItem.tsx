@@ -8,7 +8,7 @@ import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick"
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
 import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
-import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
+import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
 
 /** A single row in the newsletter listing: an icon, a body link to its issues, and hover Edit / Info. */
 export function NewsletterListItem({
@@ -66,8 +66,8 @@ export function NewsletterListItem({
             params={{
               newsletterSlug: newsletter.slug,
             }}
-            title={`Info (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-            onClick={event => viewClick(event, "newsletter", newsletter.id)}
+            title={entityLinkTitle(modifier)}
+            onClick={event => viewClick(event, "newsletter", newsletter.id, newsletter.slug)}
           >
             <Info className="size-4" />
             <span className="sr-only">View {newsletter.name}</span>

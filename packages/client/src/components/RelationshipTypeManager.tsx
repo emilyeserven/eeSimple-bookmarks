@@ -20,7 +20,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { withRelationshipTypes } from "@/lib/bookmarkSearch";
-import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
+import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
 
 /** A single relationship-type listing card: body → its filtered bookmarks, with hover Edit / Info. */
 function RelationshipTypeCard({
@@ -71,8 +71,8 @@ function RelationshipTypeCard({
             params={{
               relationshipTypeSlug: relationshipType.slug,
             }}
-            title={`Info (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-            onClick={event => viewClick(event, "relationship-type", relationshipType.id)}
+            title={entityLinkTitle(modifier)}
+            onClick={event => viewClick(event, "relationship-type", relationshipType.id, relationshipType.slug)}
           >
             <Info className="size-4" />
             <span className="sr-only">View {relationshipType.name}</span>

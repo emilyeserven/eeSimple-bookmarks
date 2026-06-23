@@ -27,7 +27,7 @@ import {
   useSidebarOpenModifier,
 } from "@/hooks/useAppSettings";
 import { useCategories } from "@/hooks/useCategories";
-import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
+import { entityLinkTitle } from "@/lib/sidebarModifier";
 
 /**
  * Format a single custom-property value for a bookmark, or `null` when it has no displayable value.
@@ -170,8 +170,8 @@ export function useBookmarkTableColumns({
           params={{
             bookmarkId: row.original.id,
           }}
-          title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-          onClick={event => viewClick(event, "bookmark", row.original.id)}
+          title={entityLinkTitle(modifier)}
+          onClick={event => viewClick(event, "bookmark", row.original.id, row.original.id)}
           className="
             flex items-center gap-2 font-medium
             hover:underline

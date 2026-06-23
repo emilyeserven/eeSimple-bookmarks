@@ -13,7 +13,7 @@ import { useMediaTypes } from "../hooks/useMediaTypes";
 import { useTags } from "../hooks/useTags";
 
 import { Badge } from "@/components/ui/badge";
-import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
+import { entityLinkTitle } from "@/lib/sidebarModifier";
 
 interface SourceAutofillDefaultsProps {
   /** Wording differs for a website ("this site") vs a YouTube channel ("this channel") vs a newsletter. */
@@ -38,8 +38,8 @@ function TagPill({
       params={{
         tagSlug: tag.slug,
       }}
-      title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-      onClick={event => viewClick(event, "tag", tag.id)}
+      title={entityLinkTitle(modifier)}
+      onClick={event => viewClick(event, "tag", tag.id, tag.slug)}
     >
       <Badge variant="secondary">{tag.name}</Badge>
     </Link>

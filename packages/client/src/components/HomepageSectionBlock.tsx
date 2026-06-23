@@ -104,6 +104,13 @@ export function HomepageSectionBlock({
                         bookmarkId: bookmark.id,
                       },
                     });
+                  }, () => {
+                    void navigate({
+                      to: "/bookmarks/$bookmarkId/edit/general",
+                      params: {
+                        bookmarkId: bookmark.id,
+                      },
+                    });
                   })}
               />
             )

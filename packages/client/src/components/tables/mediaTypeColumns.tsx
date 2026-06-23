@@ -12,7 +12,7 @@ import { useViewPanelClick } from "../panel/useEditPanelClick";
 
 import { Badge } from "@/components/ui/badge";
 import { CategoryIcon } from "@/lib/icons";
-import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
+import { entityLinkTitle } from "@/lib/sidebarModifier";
 
 /** Column definitions for the Media Types listing Table view (a flattened, expandable tree). */
 export function useMediaTypeColumns(): ColumnDef<MediaTypeNode>[] {
@@ -42,8 +42,8 @@ export function useMediaTypeColumns(): ColumnDef<MediaTypeNode>[] {
               params={{
                 mediaTypeSlug: row.original.slug,
               }}
-              title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-              onClick={event => viewClick(event, "media-type", row.original.id)}
+              title={entityLinkTitle(modifier)}
+              onClick={event => viewClick(event, "media-type", row.original.id, row.original.slug)}
               className="
                 font-medium
                 hover:underline

@@ -20,7 +20,7 @@ import { useCategories } from "../hooks/useCategories";
 import { buildBookmarkValueItems, fieldPlacementsForCard } from "../lib/bookmarkCardValues";
 import { mergeBooleanValue } from "../lib/bookmarkFormat";
 
-import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
+import { entityLinkTitle } from "@/lib/sidebarModifier";
 
 interface BookmarkCardProps {
   bookmark: Bookmark;
@@ -185,8 +185,8 @@ export function BookmarkCard({
         params={{
           bookmarkId: bookmark.id,
         }}
-        title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-        onClick={event => viewClick(event, "bookmark", bookmark.id)}
+        title={entityLinkTitle(modifier)}
+        onClick={event => viewClick(event, "bookmark", bookmark.id, bookmark.id)}
         className="block"
       >
         {imageEl}

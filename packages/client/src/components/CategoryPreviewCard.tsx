@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { withCategories } from "@/lib/bookmarkSearch";
 import { CategoryIcon } from "@/lib/icons";
-import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
+import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
 
 /**
  * Hover-revealed Edit / See All button group with an always-visible bookmark count to its right.
@@ -139,8 +139,8 @@ export function CategoryPreviewCard({
                 params={{
                   categorySlug: category.slug,
                 }}
-                title={`Info (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-                onClick={event => viewClick(event, "category", category.id)}
+                title={entityLinkTitle(modifier)}
+                onClick={event => viewClick(event, "category", category.id, category.slug)}
               >
                 <Info className="size-4" />
                 <span className="sr-only">View {category.name}</span>

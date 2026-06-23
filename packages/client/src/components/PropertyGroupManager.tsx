@@ -64,6 +64,13 @@ export function PropertyGroupsListing() {
                     propertyGroupSlug: group.slug,
                   },
                 });
+              }, () => {
+                void navigate({
+                  to: "/taxonomies/property-groups/$propertyGroupSlug/edit/general",
+                  params: {
+                    propertyGroupSlug: group.slug,
+                  },
+                });
               })}
           />
         )

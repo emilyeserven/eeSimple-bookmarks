@@ -6,7 +6,7 @@ import { useViewPanelClick } from "./panel/useEditPanelClick";
 import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
 import { CategoryIcon } from "@/lib/icons";
-import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
+import { entityLinkTitle } from "@/lib/sidebarModifier";
 
 /** The bookmark's category rendered as an icon + name link that opens the category (or its panel). */
 export function BookmarkCategoryLink({
@@ -22,8 +22,8 @@ export function BookmarkCategoryLink({
       params={{
         categorySlug: category.slug,
       }}
-      title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-      onClick={event => viewClick(event, "category", category.id)}
+      title={entityLinkTitle(modifier)}
+      onClick={event => viewClick(event, "category", category.id, category.slug)}
       className="
         inline-flex items-center gap-1.5 text-primary
         hover:underline

@@ -9,7 +9,7 @@ import { TYPE_LABELS } from "../lib/propertyFormat";
 
 import { Badge } from "@/components/ui/badge";
 import { RowCard } from "@/components/ui/card";
-import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
+import { entityLinkTitle } from "@/lib/sidebarModifier";
 import { cn } from "@/lib/utils";
 
 interface PropertyPreviewProps {
@@ -52,8 +52,8 @@ export function PropertyPreview({
         params={{
           propertySlug: property.slug,
         }}
-        title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
-        onClick={event => viewClick(event, "property", property.id)}
+        title={entityLinkTitle(modifier)}
+        onClick={event => viewClick(event, "property", property.id, property.slug)}
         className="flex flex-col gap-1 p-4"
       >
         <div className="flex flex-wrap items-center gap-2">

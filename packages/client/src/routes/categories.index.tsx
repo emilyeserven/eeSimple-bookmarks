@@ -85,6 +85,13 @@ function CategoriesListingPage() {
                       categorySlug: category.slug,
                     },
                   });
+                }, () => {
+                  void navigate({
+                    to: "/categories/$categorySlug/edit/general",
+                    params: {
+                      categorySlug: category.slug,
+                    },
+                  });
                 })}
             />
           )

@@ -10,7 +10,7 @@ import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
+import { entityLinkTitle } from "@/lib/sidebarModifier";
 
 /** The storage-used (and optional quota) summary line shown above the grids. */
 export function StorageSummary({
@@ -111,12 +111,10 @@ export function RegisteredGrid({
               params={{
                 bookmarkId: object.bookmark?.id ?? "",
               }}
-              title={object.bookmark
-                ? `Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`
-                : undefined}
+              title={object.bookmark ? entityLinkTitle(modifier) : undefined}
               onClick={(event) => {
                 const id = object.bookmark?.id;
-                if (id) viewClick(event, "bookmark", id);
+                if (id) viewClick(event, "bookmark", id, id);
               }}
               className="block"
             >

@@ -69,6 +69,13 @@ export function YouTubeChannelsListing() {
                     channelSlug: channel.slug,
                   },
                 });
+              }, () => {
+                void navigate({
+                  to: "/taxonomies/youtube-channels/$channelSlug/edit/general",
+                  params: {
+                    channelSlug: channel.slug,
+                  },
+                });
               })}
           />
         )
