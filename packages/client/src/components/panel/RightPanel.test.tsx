@@ -26,12 +26,56 @@ vi.mock("@/hooks/use-mobile", () => ({
 vi.mock("@/hooks/useTags", () => ({
   useTagTree: () => ({
     data: undefined,
+    isLoading: false,
   }),
 }));
 
 vi.mock("@/hooks/useCategories", () => ({
   useCategories: () => ({
     data: undefined,
+    isLoading: false,
+  }),
+}));
+
+vi.mock("@/hooks/useWebsites", () => ({
+  useWebsites: () => ({
+    data: undefined,
+    isLoading: false,
+  }),
+}));
+
+vi.mock("@/hooks/useMediaTypes", () => ({
+  useMediaTypeTree: () => ({
+    data: undefined,
+    isLoading: false,
+  }),
+}));
+
+vi.mock("@/hooks/useYouTubeChannels", () => ({
+  useYouTubeChannels: () => ({
+    data: undefined,
+    isLoading: false,
+  }),
+}));
+
+vi.mock("@/hooks/useCustomProperties", () => ({
+  useCustomProperties: () => ({
+    data: undefined,
+    isLoading: false,
+  }),
+}));
+
+vi.mock("@/hooks/usePropertyGroups", () => ({
+  usePropertyGroups: () => ({
+    data: undefined,
+    isLoading: false,
+  }),
+}));
+
+vi.mock("@/hooks/useAutofill", () => ({
+  useAutofillRules: () => ({
+    data: undefined,
+    isLoading: false,
   }),
 }));
 
