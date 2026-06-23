@@ -31,7 +31,7 @@ export function BookmarkCategoryLink({
     >
       <CategoryIcon
         name={category.icon}
-        className="size-4 shrink-0"
+        className="size-3.5 shrink-0"
       />
       {category.name}
     </Link>
