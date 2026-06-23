@@ -4,6 +4,54 @@ All notable changes to this project are documented in this file. Versioning and 
 managed automatically by [release-please](https://github.com/googleapis/release-please) from
 [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [0.1.3](https://github.com/emilyeserven/eeSimple-bookmarks/compare/v0.1.2...v0.1.3) (2026-06-23)
+
+
+### Features
+
+* accept rich-text paste in newsletter import via TipTap ([#419](https://github.com/emilyeserven/eeSimple-bookmarks/issues/419)) ([32f81f1](https://github.com/emilyeserven/eeSimple-bookmarks/commit/32f81f192def96e82b342502b496a24e572df66d))
+* add "Delete all rejected" bulk action to inbox ([#443](https://github.com/emilyeserven/eeSimple-bookmarks/issues/443)) ([4d3c181](https://github.com/emilyeserven/eeSimple-bookmarks/commit/4d3c181a21fe70b1f532642543110f8894c9039e))
+* add 0.75× scale option and refine overlay sizing ([#404](https://github.com/emilyeserven/eeSimple-bookmarks/issues/404)) ([2bab6a5](https://github.com/emilyeserven/eeSimple-bookmarks/commit/2bab6a558915e429d87df28ecf5efb32551492c7))
+* add category scoping for root tags ([#421](https://github.com/emilyeserven/eeSimple-bookmarks/issues/421)) ([1bf2ea4](https://github.com/emilyeserven/eeSimple-bookmarks/commit/1bf2ea40286d5a29e6b20a16c7f88434a535714a))
+* add database usage reporting to Advanced settings ([#423](https://github.com/emilyeserven/eeSimple-bookmarks/issues/423)) ([df43e36](https://github.com/emilyeserven/eeSimple-bookmarks/commit/df43e368b6d99a35fdc5bc5cae1805828c574546))
+* add Display Rules tab to filterable entities ([#403](https://github.com/emilyeserven/eeSimple-bookmarks/issues/403)) ([d897356](https://github.com/emilyeserven/eeSimple-bookmarks/commit/d89735637f67ec3f7768adf56031e939a0568e5f))
+* add favorite settings pages with sidebar flyout ([#399](https://github.com/emilyeserven/eeSimple-bookmarks/issues/399)) ([1d481ca](https://github.com/emilyeserven/eeSimple-bookmarks/commit/1d481ca40813d2153ec9a0968b0bd2d060fdc07c))
+* add icon support to built-in media types ([#420](https://github.com/emilyeserven/eeSimple-bookmarks/issues/420)) ([cad6478](https://github.com/emilyeserven/eeSimple-bookmarks/commit/cad64786396ee32d9c9a61135ca88fa0a6551004))
+* add inbox Table view with sortable columns and stable add-date ordering ([#446](https://github.com/emilyeserven/eeSimple-bookmarks/issues/446)) ([917801b](https://github.com/emilyeserven/eeSimple-bookmarks/commit/917801b2d50325da14854fb16947044d7e1f4e0d))
+* add Newsletters taxonomy with CRUD and issue management ([#422](https://github.com/emilyeserven/eeSimple-bookmarks/issues/422)) ([e28636d](https://github.com/emilyeserven/eeSimple-bookmarks/commit/e28636d61b87882682006924743ce25a08070849))
+* add orphan cleanup UI and maintenance endpoints ([#442](https://github.com/emilyeserven/eeSimple-bookmarks/issues/442)) ([d6cd01a](https://github.com/emilyeserven/eeSimple-bookmarks/commit/d6cd01ad2941d5ed2e21e4a41554e09a88f30d72))
+* add recheck pending items against block list action ([#444](https://github.com/emilyeserven/eeSimple-bookmarks/issues/444)) ([128bba0](https://github.com/emilyeserven/eeSimple-bookmarks/commit/128bba04c59a6d76289be48b892d00d9e52ebc06))
+* add refresh button and total summary to DatabaseUsageCard ([#435](https://github.com/emilyeserven/eeSimple-bookmarks/issues/435)) ([023f177](https://github.com/emilyeserven/eeSimple-bookmarks/commit/023f177133c1dca4934dfbaa80dc30d21f87e06c))
+* add reject all pending and create category from import form ([#441](https://github.com/emilyeserven/eeSimple-bookmarks/issues/441)) ([02e7a0f](https://github.com/emilyeserven/eeSimple-bookmarks/commit/02e7a0f5a23c3a2ac4ceb3c92141bb37f83899de))
+* add Settings &gt; Extension bookmarklet to save the current page ([#445](https://github.com/emilyeserven/eeSimple-bookmarks/issues/445)) ([eeba5de](https://github.com/emilyeserven/eeSimple-bookmarks/commit/eeba5deb7a3b43bf70dedc9693046348d6e786c1))
+* add settings index page with navigation tiles and advanced settings ([#400](https://github.com/emilyeserven/eeSimple-bookmarks/issues/400)) ([46b34bd](https://github.com/emilyeserven/eeSimple-bookmarks/commit/46b34bd5e8d4132b3aeff76290421041b6c81b32))
+* add table view and layout options to Media Management ([#424](https://github.com/emilyeserven/eeSimple-bookmarks/issues/424)) ([4d5c2d4](https://github.com/emilyeserven/eeSimple-bookmarks/commit/4d5c2d4fa6ddb2a1e213cfcda2c487ca3e801e98))
+* add Vercel-style breadcrumb sibling switchers ([#408](https://github.com/emilyeserven/eeSimple-bookmarks/issues/408)) ([8754f6d](https://github.com/emilyeserven/eeSimple-bookmarks/commit/8754f6dca0daf4825727fbffd08daf2eb761cd06))
+* add vertical alignment, direction, and wrap controls to card zones ([#397](https://github.com/emilyeserven/eeSimple-bookmarks/issues/397)) ([00528e0](https://github.com/emilyeserven/eeSimple-bookmarks/commit/00528e0ba0154389b4adffc1ee1a09581a2a1db8))
+* background queue for import processing with live progress ([#434](https://github.com/emilyeserven/eeSimple-bookmarks/issues/434)) ([#440](https://github.com/emilyeserven/eeSimple-bookmarks/issues/440)) ([1117ce7](https://github.com/emilyeserven/eeSimple-bookmarks/commit/1117ce70cd2e32a43bea049c74e2807f383d0b2c))
+* capture newsletter context and simplify reject/block workflow ([#425](https://github.com/emilyeserven/eeSimple-bookmarks/issues/425)) ([8a6d909](https://github.com/emilyeserven/eeSimple-bookmarks/commit/8a6d90957ffc8825b75c13271794d97ac0dbb14d))
+* consolidate bookmark relationships editor to settings page ([#433](https://github.com/emilyeserven/eeSimple-bookmarks/issues/433)) ([fffb33b](https://github.com/emilyeserven/eeSimple-bookmarks/commit/fffb33b509e56fd7585aa1969d3b57f05e620c6e))
+* consolidate Card Display Rules into Settings page with entity scoping ([#431](https://github.com/emilyeserven/eeSimple-bookmarks/issues/431)) ([2b64e82](https://github.com/emilyeserven/eeSimple-bookmarks/commit/2b64e827aff3ad29078a35ce009bdbed8a0a0b93))
+* consolidate per-entity autofill tabs into single filtered settings page ([#426](https://github.com/emilyeserven/eeSimple-bookmarks/issues/426)) ([650a9a9](https://github.com/emilyeserven/eeSimple-bookmarks/commit/650a9a95ef5540c9bcb76b9824885ff88fa1f37c))
+* generalize newsletter imports into Imports with an Inbox ([#438](https://github.com/emilyeserven/eeSimple-bookmarks/issues/438)) ([3bd9d0a](https://github.com/emilyeserven/eeSimple-bookmarks/commit/3bd9d0af4c9772e4093359b61727ed4347efa268))
+* highlight anchor text in newsletter context passages ([#427](https://github.com/emilyeserven/eeSimple-bookmarks/issues/427)) ([2f88281](https://github.com/emilyeserven/eeSimple-bookmarks/commit/2f882813dfd67e783dde7a8c967ba92a7c9d292e))
+* migrate sidebar, automation, and display settings to server persistence ([#410](https://github.com/emilyeserven/eeSimple-bookmarks/issues/410)) ([#413](https://github.com/emilyeserven/eeSimple-bookmarks/issues/413)) ([7736d75](https://github.com/emilyeserven/eeSimple-bookmarks/commit/7736d75708efbd8128638dae9fccf0b20369194f))
+* newsletter article ingest backend ([#417](https://github.com/emilyeserven/eeSimple-bookmarks/issues/417)) ([0e84eb7](https://github.com/emilyeserven/eeSimple-bookmarks/commit/0e84eb70a0787a8e8de5ff4b3e4f2ee7302dcbc8))
+* newsletter scan blacklist, per-link categories, and review polish ([#418](https://github.com/emilyeserven/eeSimple-bookmarks/issues/418)) ([1252af7](https://github.com/emilyeserven/eeSimple-bookmarks/commit/1252af7f3764817dbef6dc721a9ca0f5c12a0de6))
+* persist Advanced sidebar links in the DB and rework the Settings flyover ([#407](https://github.com/emilyeserven/eeSimple-bookmarks/issues/407)) ([d0de8e7](https://github.com/emilyeserven/eeSimple-bookmarks/commit/d0de8e7e59cac59346c2fc2e26c57ec84d00b65b))
+* persist notification links in history and display them in panel ([#405](https://github.com/emilyeserven/eeSimple-bookmarks/issues/405)) ([ed70df2](https://github.com/emilyeserven/eeSimple-bookmarks/commit/ed70df24cec0e808730c873a7730d8aa3e7612f0))
+* replace single-scope filter with independent per-facet dropdowns ([#429](https://github.com/emilyeserven/eeSimple-bookmarks/issues/429)) ([588eb4a](https://github.com/emilyeserven/eeSimple-bookmarks/commit/588eb4a03aea0c866ce1bbc3484f8d823009800f))
+* responsive app header for small screens ([#415](https://github.com/emilyeserven/eeSimple-bookmarks/issues/415)) ([859e287](https://github.com/emilyeserven/eeSimple-bookmarks/commit/859e2870be0b89085e38825a4ee6fa59bc4e46eb))
+* standardize entity listing cards onto a shared StandardListingCard ([#406](https://github.com/emilyeserven/eeSimple-bookmarks/issues/406)) ([9639e0e](https://github.com/emilyeserven/eeSimple-bookmarks/commit/9639e0ea4769ccb1205e0b12638c4789e57cd303))
+
+
+### Bug Fixes
+
+* exclude stylesheet/font URLs from newsletter link extraction ([#432](https://github.com/emilyeserven/eeSimple-bookmarks/issues/432)) ([f28421b](https://github.com/emilyeserven/eeSimple-bookmarks/commit/f28421ba7d3695d0ed45b0abea8ebbc188d5006a))
+* filter static assets from newsletter imports ([#430](https://github.com/emilyeserven/eeSimple-bookmarks/issues/430)) ([5f377b6](https://github.com/emilyeserven/eeSimple-bookmarks/commit/5f377b6c28e07384b8d63e17266010c1dbe2708c))
+* link listing-card info icons to entity General view ([#428](https://github.com/emilyeserven/eeSimple-bookmarks/issues/428)) ([bad7462](https://github.com/emilyeserven/eeSimple-bookmarks/commit/bad74628db7c4201e8f9b19a01fef58b1cdbb44b))
+* surface Settings entry on mobile ([#416](https://github.com/emilyeserven/eeSimple-bookmarks/issues/416)) ([e409a61](https://github.com/emilyeserven/eeSimple-bookmarks/commit/e409a61667c79856f6e3128f3b1c492706969f58))
+
 ## [0.1.2](https://github.com/emilyeserven/eeSimple-bookmarks/compare/v0.1.1...v0.1.2) (2026-06-22)
 
 
