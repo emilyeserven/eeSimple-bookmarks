@@ -135,6 +135,34 @@ describe("InboxReviewList", () => {
     expect(screen.getByLabelText("View bookmark")).toBeInTheDocument();
   });
 
+  it("enables the Delete all rejected button only when a rejected item is present", async () => {
+    await renderWithRouter(
+      <InboxReviewList
+        items={[makeItem({
+          status: "rejected",
+        })]}
+      />,
+      {
+        paths: ["/bookmarks/$bookmarkId"],
+      },
+    );
+    expect(screen.getByRole("button", {
+      name: /Delete all rejected \(1\)/,
+    })).toBeEnabled();
+  });
+
+  it("disables the Delete all rejected button when nothing is rejected", async () => {
+    await renderWithRouter(
+      <InboxReviewList items={[makeItem()]} />,
+      {
+        paths: ["/bookmarks/$bookmarkId"],
+      },
+    );
+    expect(screen.getByRole("button", {
+      name: /Delete all rejected \(0\)/,
+    })).toBeDisabled();
+  });
+
   it("flags an approved item as marked for deletion", async () => {
     await renderWithRouter(
       <InboxReviewList

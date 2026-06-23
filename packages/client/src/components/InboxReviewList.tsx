@@ -15,6 +15,7 @@ import { useCategories } from "../hooks/useCategories";
 import {
   useApproveImportItem,
   useBlockImportItem,
+  useDeleteRejectedItems,
   useRejectImportItem,
   useRejectPendingItems,
   useUnrejectImportItem,
@@ -545,10 +546,12 @@ export function InboxReviewList({
 }) {
   const approve = useApproveImportItem();
   const rejectPending = useRejectPendingItems();
+  const deleteRejected = useDeleteRejectedItems();
   const [filter, setFilter] = useState<ReviewFilter>("all");
   const [bulkRunning, setBulkRunning] = useState(false);
 
   const pendingCount = useMemo(() => items.filter(i => i.status === "pending").length, [items]);
+  const rejectedCount = useMemo(() => items.filter(i => i.status === "rejected").length, [items]);
   const filtered = useMemo(() => items.filter((item) => {
     if (filter === "pending") return item.status === "pending";
     if (filter === "issues") return item.status === "error" || item.status === "duplicate";
@@ -581,6 +584,15 @@ export function InboxReviewList({
     });
   }
 
+  function onDeleteRejected() {
+    deleteRejected.mutate(undefined, {
+      onSuccess: ({
+        deleted,
+      }) => notifySuccess(`Deleted ${deleted} rejected item${deleted === 1 ? "" : "s"}`),
+      onError: () => notifyError("Couldn't delete the rejected items."),
+    });
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -597,6 +609,15 @@ export function InboxReviewList({
           ))}
         </div>
         <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onDeleteRejected}
+            disabled={bulkRunning || deleteRejected.isPending || rejectedCount === 0}
+          >
+            <Trash2 className="size-4" />
+            {deleteRejected.isPending ? "Deleting…" : `Delete all rejected (${rejectedCount})`}
+          </Button>
           <Button
             size="sm"
             variant="outline"

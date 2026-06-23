@@ -299,6 +299,11 @@ export const importApi = {
     request<RejectPendingItemsResult>("/imports/items/pending/reject", {
       method: "POST",
     }),
+  /** Delete every rejected candidate across all imports (the Inbox "delete all rejected" action). */
+  deleteRejected: () =>
+    request<PurgeImportItemsResult>("/imports/items/rejected", {
+      method: "DELETE",
+    }),
 };
 
 /** Housekeeping: report and sweep orphaned records (bookmarks with no category, newsletter-less inbox items). */

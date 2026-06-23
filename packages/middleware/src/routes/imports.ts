@@ -14,6 +14,7 @@ import {
   blockImportItem,
   contentFromUpload,
   deleteImport,
+  deleteRejectedItems,
   getImport,
   listActiveImports,
   listImports,
@@ -377,6 +378,13 @@ export async function importRoutes(app: FastifyInstance): Promise<void> {
       tags: ["imports"],
     },
   }, () => purgeProcessedItems());
+
+  // Delete every rejected candidate across all imports (the Inbox "delete all rejected" action).
+  app.delete("/api/imports/items/rejected", {
+    schema: {
+      tags: ["imports"],
+    },
+  }, () => deleteRejectedItems());
 
   // Approve every pending candidate in an import.
   app.post("/api/imports/:id/approve", {
