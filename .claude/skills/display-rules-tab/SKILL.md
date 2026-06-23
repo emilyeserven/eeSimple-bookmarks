@@ -21,7 +21,7 @@ reference that entity — the card-display sibling of the **Autofill Rules** tab
 **This is no longer an inline tab.** It was consolidated (via the `tab-to-filtered-page` skill) so the
 scoped list lives in **one** place: `Settings → Card Display Rules`. Each entity keeps a "Display
 Rules" tab in its nav, but the tab route is a `beforeLoad` **redirect** to
-`/settings/card-display-rules?scope=<type>&scopeSlug=<slug>`. The Settings page resolves the scope to
+`/card-display-rules?scope=<type>&scopeSlug=<slug>`. The Settings page resolves the scope to
 the matching `CardDisplayRulesList` scope prop, shows a **clearable chip**, and renders the same inline
 auto-saving editor. Editing a rule there updates it everywhere; the right panel no longer carries a
 per-entity Display Rules tab.
@@ -63,7 +63,7 @@ A rule "applies to" an entity iff its `conditions` tree contains a leaf referenc
   `<CardDisplayRulesSettings />`; with a scope it renders the clearable chip above
   `<CardDisplayRulesList {...listProps} />`.
 - **Redirect routes** — each `<entity>.$<slug>.{_view,edit}.display-rules.tsx` is a `beforeLoad` that
-  throws `redirect({ to: "/settings/card-display-rules", search: { scope, scopeSlug: params.<slug> } })`.
+  throws `redirect({ to: "/card-display-rules", search: { scope, scopeSlug: params.<slug> } })`.
 - **Nav kept, workbench tab removed** — the `viewNav`/`editNav` "Display Rules" entries + the
   `VIEW_TO_EDIT` `display-rules` map entries stay (the tab link redirects); the `{ key: "display-rules"
   }` object was removed from the 6 `components/workbench/<entity>.tsx` descriptors (so the panel drops
@@ -110,7 +110,7 @@ pnpm fallow health   # CardDisplayRulesList stays under the cognitive-complexity
 ```
 
 Then `pnpm dev`: visiting an entity's **Display Rules** tab (View or Edit) redirects to
-`/settings/card-display-rules?scope=…&scopeSlug=…`; the page shows a "Filtered to <type>: <name>" chip
+`/card-display-rules?scope=…&scopeSlug=…`; the page shows a "Filtered to <type>: <name>" chip
 and lists only the non-Default rules referencing that item; expanding a card auto-saves (toast fires)
 and the same edit shows on the unscoped Settings page; "Add display rule" creates a rule pre-scoped to
 the item; clearing the chip returns to the full drag-sortable list; a rule referencing a *different*

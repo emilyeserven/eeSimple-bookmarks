@@ -1,80 +1,17 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { X } from "lucide-react";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
-import { CardDisplayRulesList } from "../components/CardDisplayRulesList";
-import { CardDisplayRulesSettings } from "../components/CardDisplayRulesSettings";
-import { CARD_DISPLAY_SCOPE_LABELS, useCardDisplayScope } from "../hooks/useCardDisplayScope";
 import { validateCardDisplayListSearch } from "../lib/cardDisplayScope";
 
-import { Button } from "@/components/ui/button";
-
-/**
- * Settings → Card Display Rules: the single home for card display rules. Entity "Display Rules" tabs
- * redirect here pre-filtered to the entity they came from (`?scope=…&scopeSlug=…`); the scope lives in
- * the URL so the filtered view is a shareable, reload-safe deeplink. With no scope the full
- * drag-sortable rule list shows; with a scope a clearable chip sits above the scoped, non-sortable
- * list (reordering a filtered subset is meaningless — priority is global).
- */
+/** Card Display Rules moved to /card-display-rules — redirect old bookmark/entity-tab links. */
 export const Route = createFileRoute("/settings/card-display-rules")({
   validateSearch: validateCardDisplayListSearch,
-  component: CardDisplayRulesPage,
+  beforeLoad: ({
+    search,
+  }) => {
+    throw redirect({
+      to: "/card-display-rules",
+      search,
+      replace: true,
+    });
+  },
 });
-
-function CardDisplayRulesPage() {
-  const {
-    scope, scopeSlug,
-  } = Route.useSearch();
-  const navigate = Route.useNavigate();
-  const {
-    active, label, listProps,
-  } = useCardDisplayScope(scope, scopeSlug);
-
-  return (
-    <section className="space-y-6">
-      <div>
-        <h2 className="text-xl font-semibold">Card Display Rules</h2>
-        <p className="text-sm text-muted-foreground">
-          Control how bookmark cards display, based on prioritized rules. Drag to set priority.
-        </p>
-      </div>
-
-      {active && scope
-        ? (
-          <>
-            <div className="flex flex-wrap items-center gap-3">
-              <span
-                className="
-                  inline-flex items-center gap-1 rounded-full border bg-muted
-                  py-1 pr-1 pl-3 text-sm
-                "
-              >
-                <span className="text-muted-foreground">
-                  Filtered to {CARD_DISPLAY_SCOPE_LABELS[scope]}:
-                </span>
-                <span className="font-medium">{label ?? scopeSlug}</span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="size-5 rounded-full"
-                  aria-label="Clear filter"
-                  onClick={() => navigate({
-                    search: prev => ({
-                      ...prev,
-                      scope: undefined,
-                      scopeSlug: undefined,
-                    }),
-                    replace: true,
-                  })}
-                >
-                  <X className="size-3.5" />
-                </Button>
-              </span>
-            </div>
-            <CardDisplayRulesList {...listProps} />
-          </>
-        )
-        : <CardDisplayRulesSettings />}
-    </section>
-  );
-}

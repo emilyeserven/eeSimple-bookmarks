@@ -11,6 +11,7 @@ import {
   Home,
   Inbox,
   Layers,
+  LayoutGrid,
   Mail,
   MonitorPlay,
   Share2,
@@ -127,6 +128,12 @@ const customizationItems = [
     title: "Autofill Rules",
     to: "/autofill",
     icon: Wand2,
+  },
+  {
+    key: "card-display-rules",
+    title: "Card Display Rules",
+    to: "/card-display-rules",
+    icon: LayoutGrid,
   },
   {
     key: "import-rules",

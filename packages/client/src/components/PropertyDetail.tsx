@@ -71,7 +71,7 @@ function BooleanOptionsFields({
     <>
       <DetailField label="How Values Display">{labelsDisplay}</DetailField>
       <DetailField label="Per-card display">
-        Configured per field under Settings → Card Display Rules
+        Configured per field under Card Display Rules
       </DetailField>
     </>
   );

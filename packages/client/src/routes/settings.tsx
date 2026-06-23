@@ -26,10 +26,6 @@ const settingsNav: readonly TabNavEntry[] = [
     label: "Homepage",
   },
   {
-    to: "/settings/card-display-rules",
-    label: "Card Display Rules",
-  },
-  {
     to: "/settings/media-management",
     label: "Media Management",
   },
