@@ -7,6 +7,7 @@ import { useState } from "react";
 
 import { ChevronDown, ExternalLink, ShieldBan, Trash2 } from "lucide-react";
 
+import { CopyJsonButton } from "./CopyJsonButton";
 import { ViewModeToggle } from "./DisplayControlPrimitives";
 import { RowActions, StatusBadge } from "./InboxRowActions";
 import { formatAdded } from "./tables/inboxColumns";
@@ -292,10 +293,16 @@ function ReviewRow({
             )
             : null}
         </div>
-        <RowActions
-          item={item}
-          onEdit={() => setEditing(true)}
-        />
+        <div className="flex shrink-0 items-start gap-1">
+          <CopyJsonButton
+            data={item}
+            label="Copy JSON"
+          />
+          <RowActions
+            item={item}
+            onEdit={() => setEditing(true)}
+          />
+        </div>
       </div>
     </RowCard>
   );

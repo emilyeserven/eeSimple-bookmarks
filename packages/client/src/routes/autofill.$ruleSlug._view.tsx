@@ -43,6 +43,10 @@ function AutofillRuleViewLayout() {
       to: "/autofill/$ruleSlug/prefill",
       label: "Prefill",
     },
+    {
+      to: "/autofill/$ruleSlug/debug",
+      label: "Debug",
+    },
   ] as const;
 
   return (
