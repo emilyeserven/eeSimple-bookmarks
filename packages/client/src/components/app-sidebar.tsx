@@ -17,6 +17,7 @@ import {
   Share2,
   SlidersHorizontal,
   Tags,
+  UserRound,
   Wand2,
 } from "lucide-react";
 
@@ -101,6 +102,12 @@ const taxonomyItems = [
     title: "Imports",
     to: "/taxonomies/newsletters",
     icon: Mail,
+  },
+  {
+    key: "authors",
+    title: "Authors",
+    to: "/taxonomies/authors",
+    icon: UserRound,
   },
 ] as const;
 
