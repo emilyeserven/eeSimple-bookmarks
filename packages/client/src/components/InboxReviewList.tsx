@@ -2,7 +2,9 @@ import type {
   ImportApproveResult,
   ImportItem,
   InboxItem,
+  ViewMode,
 } from "@eesimple/types";
+import type { ColumnDef } from "@tanstack/react-table";
 
 import { useState } from "react";
 
@@ -519,117 +521,171 @@ function ReviewRow({
 }
 
 /**
- * The Inbox review queue: a filterable list of import candidates from every import, plus a bulk
- * "approve all pending" action. Each row's actions are item-scoped, so the list can mix items from
- * different imports. Renders as cards or a sortable table, remembered per page in `uiStore`.
+ * Renders one Inbox section's items as either a sortable table or a stack of cards (remembered per
+ * page in `uiStore`). An empty section shows a message rather than a `DataTable`, so an empty
+ * Processed/Pending section doesn't render a stray table header.
+ */
+function InboxItemsView({
+  items, viewMode, columns, emptyMessage,
+}: {
+  items: InboxItem[];
+  viewMode: ViewMode;
+  columns: ColumnDef<InboxItem>[];
+  emptyMessage: string;
+}) {
+  if (items.length === 0) {
+    return <p className="text-sm text-muted-foreground">{emptyMessage}</p>;
+  }
+  if (viewMode === "table") {
+    return (
+      <DataTable
+        columns={columns}
+        data={items}
+        sortable
+        emptyMessage={emptyMessage}
+      />
+    );
+  }
+  return (
+    <ul className="space-y-2">
+      {items.map(item => (
+        <li key={item.id}>
+          <ReviewRow item={item} />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** The "Bulk Actions" dropdown: approve/reject all pending, delete all rejected, recheck blocklist. */
+function InboxBulkActions({
+  pendingCount,
+  rejectedCount,
+  bulkRunning,
+  rejectPendingIsPending,
+  recheckPendingIsPending,
+  deleteRejectedIsPending,
+  onApproveAll,
+  onRejectAll,
+  onRecheckBlocklist,
+  onDeleteRejected,
+}: Pick<
+  ReturnType<typeof useInboxReviewController>,
+  | "pendingCount"
+  | "rejectedCount"
+  | "bulkRunning"
+  | "rejectPendingIsPending"
+  | "recheckPendingIsPending"
+  | "deleteRejectedIsPending"
+  | "onApproveAll"
+  | "onRejectAll"
+  | "onRecheckBlocklist"
+  | "onDeleteRejected"
+>) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          size="sm"
+          variant="outline"
+        >
+          Bulk Actions
+          <ChevronDown className="size-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem
+          disabled={pendingCount === 0 || bulkRunning || rejectPendingIsPending}
+          onClick={onApproveAll}
+        >
+          {bulkRunning ? "Approving…" : `Approve all pending (${pendingCount})`}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          disabled={pendingCount === 0 || rejectPendingIsPending || bulkRunning}
+          onClick={onRejectAll}
+        >
+          {rejectPendingIsPending ? "Rejecting…" : `Reject all pending (${pendingCount})`}
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          disabled={rejectedCount === 0 || deleteRejectedIsPending}
+          onClick={onDeleteRejected}
+        >
+          {deleteRejectedIsPending ? "Deleting…" : `Delete all rejected (${rejectedCount})`}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          disabled={pendingCount === 0 || recheckPendingIsPending || bulkRunning}
+          onClick={onRecheckBlocklist}
+        >
+          {recheckPendingIsPending ? "Rechecking…" : `Recheck block list (${pendingCount})`}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+/**
+ * The Inbox review queue: import candidates from every import, split into a **Pending** and a
+ * **Processed** section, plus a bulk "approve all pending" action. The split is frozen by snapshot
+ * so a processed item doesn't jump sections immediately — "Sort now" re-partitions on demand. Each
+ * row's actions are item-scoped, so the list can mix items from different imports. Renders as cards
+ * or a sortable table, remembered per page in `uiStore`.
  */
 export function InboxReviewList({
   items,
 }: {
   items: InboxItem[];
 }) {
+  const controller = useInboxReviewController(items);
   const {
-    filter,
-    setFilter,
     viewMode,
     setViewMode,
     columns,
-    pendingCount,
-    rejectedCount,
-    filtered,
+    pendingItems,
+    processedItems,
+    resortNow,
     editingItem,
     setEditingItem,
-    bulkRunning,
-    rejectPendingIsPending,
-    recheckPendingIsPending,
-    deleteRejectedIsPending,
-    onApproveAll,
-    onRejectAll,
-    onRecheckBlocklist,
-    onDeleteRejected,
-  } = useInboxReviewController(items);
+  } = controller;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <div className="flex gap-1">
-            {(["all", "pending", "issues"] as const).map(value => (
-              <Button
-                key={value}
-                size="sm"
-                variant={filter === value ? "secondary" : "ghost"}
-                onClick={() => setFilter(value)}
-              >
-                {value === "all" ? "All" : value === "pending" ? "Pending" : "Issues"}
-              </Button>
-            ))}
-          </div>
           <ViewModeToggle
             value={viewMode}
             onChange={mode => setViewMode("inbox", mode)}
           />
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={resortNow}
+          >
+            Sort now
+          </Button>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              size="sm"
-              variant="outline"
-            >
-              Bulk Actions
-              <ChevronDown className="size-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              disabled={pendingCount === 0 || bulkRunning || rejectPendingIsPending}
-              onClick={onApproveAll}
-            >
-              {bulkRunning ? "Approving…" : `Approve all pending (${pendingCount})`}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              disabled={pendingCount === 0 || rejectPendingIsPending || bulkRunning}
-              onClick={onRejectAll}
-            >
-              {rejectPendingIsPending ? "Rejecting…" : `Reject all pending (${pendingCount})`}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              disabled={rejectedCount === 0 || deleteRejectedIsPending}
-              onClick={onDeleteRejected}
-            >
-              {deleteRejectedIsPending ? "Deleting…" : `Delete all rejected (${rejectedCount})`}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              disabled={pendingCount === 0 || recheckPendingIsPending || bulkRunning}
-              onClick={onRecheckBlocklist}
-            >
-              {recheckPendingIsPending ? "Rechecking…" : `Recheck block list (${pendingCount})`}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <InboxBulkActions {...controller} />
       </div>
 
-      {viewMode === "table"
-        ? (
-          <DataTable
-            columns={columns}
-            data={filtered}
-            sortable
-            emptyMessage="No items to show."
-          />
-        )
-        : filtered.length === 0
-          ? <p className="text-sm text-muted-foreground">No items to show.</p>
-          : (
-            <ul className="space-y-2">
-              {filtered.map(item => (
-                <li key={item.id}>
-                  <ReviewRow item={item} />
-                </li>
-              ))}
-            </ul>
-          )}
+      <section className="space-y-2">
+        <h2 className="text-sm font-semibold">Pending ({pendingItems.length})</h2>
+        <InboxItemsView
+          items={pendingItems}
+          viewMode={viewMode}
+          columns={columns}
+          emptyMessage="No pending items."
+        />
+      </section>
+
+      <section className="space-y-2">
+        <h2 className="text-sm font-semibold">Processed ({processedItems.length})</h2>
+        <InboxItemsView
+          items={processedItems}
+          viewMode={viewMode}
+          columns={columns}
+          emptyMessage="No processed items."
+        />
+      </section>
 
       <Dialog
         open={editingItem !== null}
