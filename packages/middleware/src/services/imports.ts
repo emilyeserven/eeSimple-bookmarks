@@ -500,15 +500,16 @@ function summarize(importRow: ImportRow, items: ImportItemRow[]): ImportSummary 
   };
 }
 
-/** List all imports (newest first) with per-status counts, no items. */
-export async function listImports(): Promise<ImportSummary[]> {
-  const importRows = await db.select().from(imports);
-  const itemRows = await db
-    .select({
-      importId: importItems.importId,
-      status: importItems.status,
-    })
-    .from(importItems);
+/**
+ * Group `{ importId, status }` item rows under their parent import and produce one sorted
+ * (newest-first) {@link ImportSummary} per import. Shared by {@link listImports} and
+ * {@link listNewsletterIssues}, which differ only in how they fetch the rows.
+ */
+function summarizeImportsWithItems(
+  importRows: ImportRow[],
+  itemRows: { importId: string;
+    status: string; }[],
+): ImportSummary[] {
   const byImport = new Map<string, { status: string }[]>();
   for (const item of itemRows) {
     const list = byImport.get(item.importId) ?? [];
@@ -520,6 +521,18 @@ export async function listImports(): Promise<ImportSummary[]> {
   return importRows
     .map(row => summarize(row, (byImport.get(row.id) ?? []) as ImportItemRow[]))
     .sort((a, b) => (a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0));
+}
+
+/** List all imports (newest first) with per-status counts, no items. */
+export async function listImports(): Promise<ImportSummary[]> {
+  const importRows = await db.select().from(imports);
+  const itemRows = await db
+    .select({
+      importId: importItems.importId,
+      status: importItems.status,
+    })
+    .from(importItems);
+  return summarizeImportsWithItems(importRows, itemRows);
 }
 
 /**
@@ -610,17 +623,7 @@ export async function listNewsletterIssues(newsletterId: string): Promise<Import
     })
     .from(importItems)
     .where(inArray(importItems.importId, importRows.map(r => r.id)));
-  const byImport = new Map<string, { status: string }[]>();
-  for (const item of itemRows) {
-    const list = byImport.get(item.importId) ?? [];
-    list.push({
-      status: item.status,
-    });
-    byImport.set(item.importId, list);
-  }
-  return importRows
-    .map(row => summarize(row, (byImport.get(row.id) ?? []) as ImportItemRow[]))
-    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0));
+  return summarizeImportsWithItems(importRows, itemRows);
 }
 
 /**
