@@ -6,6 +6,7 @@ import type {
   AutofillPreviewResult,
   AutofillRule,
   CreateAutofillRuleInput,
+  GlobalAutofillBackfillResult,
   UpdateAutofillRuleInput,
 } from "@eesimple/types";
 
@@ -27,4 +28,20 @@ export const autofillApi = {
       method: "POST",
       body: JSON.stringify(input),
     }),
+  getGlobalBackfill: () =>
+    request<GlobalAutofillBackfillResult>("/autofill-rules/backfill"),
+  setExempt: (ruleId: string, bookmarkId: string) =>
+    request<undefined>(`/autofill-rules/${encodeURIComponent(ruleId)}/exempt`, {
+      method: "POST",
+      body: JSON.stringify({
+        bookmarkId,
+      }),
+    }),
+  removeExempt: (ruleId: string, bookmarkId: string) =>
+    request<undefined>(
+      `/autofill-rules/${encodeURIComponent(ruleId)}/exempt/${encodeURIComponent(bookmarkId)}`,
+      {
+        method: "DELETE",
+      },
+    ),
 };

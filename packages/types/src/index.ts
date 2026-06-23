@@ -1699,6 +1699,8 @@ export interface AutofillBackfillEntry {
   bookmark: Bookmark;
   /** True if applying the rule would change at least one field on this bookmark. */
   needsBackfill: boolean;
+  /** True if the user has explicitly opted this bookmark out of backfill for this rule. */
+  isExempt: boolean;
 }
 
 /** Result of `GET /api/autofill-rules/:id/backfill` — all matching bookmarks with backfill status. */
@@ -1718,6 +1720,23 @@ export interface AutofillApplyResult {
   applied: number;
   /** How many were skipped (didn't match conditions or already up to date). */
   skipped: number;
+}
+
+/** Per-rule group in the global backfill overview. Only rules with ≥1 qualifying entry are included. */
+export interface GlobalAutofillBackfillGroup {
+  rule: { id: string;
+    name: string;
+    slug: string; };
+  /** Entries where needsBackfill is true or isExempt is true. */
+  entries: AutofillBackfillEntry[];
+  needsBackfillCount: number;
+  exemptCount: number;
+}
+
+/** Result of `GET /api/autofill-rules/backfill` — cross-rule backfill overview. */
+export interface GlobalAutofillBackfillResult {
+  groups: GlobalAutofillBackfillGroup[];
+  totalNeedsBackfill: number;
 }
 
 /**

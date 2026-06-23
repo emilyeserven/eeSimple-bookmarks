@@ -1238,6 +1238,23 @@ export const autofillRuleDateTimeValues = pgTable("autofill_rule_datetime_values
   }),
 ]);
 
+/** `autofill_rule_exemptions` — bookmarks the user has opted out of backfill for a specific rule. */
+export const autofillRuleExemptions = pgTable("autofill_rule_exemptions", {
+  ruleId: uuid("rule_id").notNull().references(() => autofillRules.id, {
+    onDelete: "cascade",
+  }),
+  bookmarkId: uuid("bookmark_id").notNull().references(() => bookmarks.id, {
+    onDelete: "cascade",
+  }),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+}, table => [
+  primaryKey({
+    columns: [table.ruleId, table.bookmarkId],
+  }),
+]);
+
 /** `import_rules` — ordered rules evaluated against each candidate URL during inbox ingestion. */
 export const importRules = pgTable("import_rules", {
   id: uuid("id").primaryKey().defaultRandom(),

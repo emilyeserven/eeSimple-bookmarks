@@ -1,4 +1,4 @@
-import { asc, eq, inArray, isNull, ne } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull, ne } from "drizzle-orm";
 import type {
   AutofillApplyInput,
   AutofillApplyResult,
@@ -17,6 +17,8 @@ import type {
   ConditionNode,
   ConditionTree,
   CreateAutofillRuleInput,
+  GlobalAutofillBackfillGroup,
+  GlobalAutofillBackfillResult,
   UpdateAutofillRuleInput,
 } from "@eesimple/types";
 import { emptyConditionTree, evaluateConditions, normalizeDomain } from "@eesimple/types";
@@ -24,6 +26,7 @@ import { db } from "@/db";
 import {
   autofillRuleBooleanValues,
   autofillRuleDateTimeValues,
+  autofillRuleExemptions,
   autofillRuleNumberValues,
   autofillRules,
   type AutofillRuleRow,
@@ -513,6 +516,12 @@ export async function getAutofillBackfillEntries(ruleId: string): Promise<Autofi
   });
   matchingRows.sort(byPriorityThenNewest);
 
+  const exemptRows = await db
+    .select()
+    .from(autofillRuleExemptions)
+    .where(eq(autofillRuleExemptions.ruleId, ruleId));
+  const exemptSet = new Set(exemptRows.map(r => r.bookmarkId));
+
   const hydrated = await hydrateBookmarkRows(matchingRows);
   const hydratedById = new Map(hydrated.map(b => [b.id, b]));
 
@@ -520,9 +529,11 @@ export async function getAutofillBackfillEntries(ruleId: string): Promise<Autofi
   for (const row of matchingRows) {
     const bookmark = hydratedById.get(row.id);
     if (!bookmark) continue;
+    const isExempt = exemptSet.has(row.id);
     entries.push({
       bookmark,
-      needsBackfill: computeNeedsBackfill(rule, bookmark),
+      needsBackfill: !isExempt && computeNeedsBackfill(rule, bookmark),
+      isExempt,
     });
   }
   return {
@@ -549,9 +560,13 @@ export async function applyAutofillBackfill(
   const rule = await getAutofillRule(ruleId);
   if (!rule) return null;
 
-  const {
+  const [{
     baseRows, conditionInputs, tagDescendants,
-  } = await getBookmarkEvaluationData();
+  }, exemptRows] = await Promise.all([
+    getBookmarkEvaluationData(),
+    db.select().from(autofillRuleExemptions).where(eq(autofillRuleExemptions.ruleId, ruleId)),
+  ]);
+  const exemptSet = new Set(exemptRows.map(r => r.bookmarkId));
 
   const requestedSet = new Set(input.bookmarkIds);
   const baseRowById = new Map(baseRows.map(r => [r.id, r]));
@@ -559,6 +574,10 @@ export async function applyAutofillBackfill(
   const toApply: string[] = [];
   let skipped = 0;
   for (const id of input.bookmarkIds) {
+    if (exemptSet.has(id)) {
+      skipped += 1;
+      continue;
+    }
     const row = baseRowById.get(id);
     if (!row) {
       skipped += 1;
@@ -671,6 +690,104 @@ export async function applyAutofillBackfill(
     applied,
     skipped,
   };
+}
+
+/**
+ * Cross-rule backfill overview: for every rule, return the bookmarks that either need backfill or
+ * have been explicitly exempted. Rules with no qualifying entries are omitted.
+ */
+export async function getGlobalBackfill(): Promise<GlobalAutofillBackfillResult> {
+  const [rules, {
+    baseRows, conditionInputs, tagDescendants,
+  }, allExemptions] = await Promise.all([
+    listAutofillRules(),
+    getBookmarkEvaluationData(),
+    db.select().from(autofillRuleExemptions),
+  ]);
+
+  const exemptsByRule = new Map<string, Set<string>>();
+  for (const e of allExemptions) {
+    if (!exemptsByRule.has(e.ruleId)) exemptsByRule.set(e.ruleId, new Set());
+    exemptsByRule.get(e.ruleId)!.add(e.bookmarkId);
+  }
+
+  const groups: GlobalAutofillBackfillGroup[] = [];
+  let totalNeedsBackfill = 0;
+
+  for (const rule of rules) {
+    const exemptSet = exemptsByRule.get(rule.id) ?? new Set<string>();
+    const matchingRows = baseRows.filter((row) => {
+      const ci = conditionInputs.get(row.id);
+      return ci
+        ? evaluateConditions(rule.conditions, ci, {
+          tagDescendants,
+        })
+        : false;
+    });
+    matchingRows.sort(byPriorityThenNewest);
+
+    const hydrated = await hydrateBookmarkRows(matchingRows);
+    const hydratedById = new Map(hydrated.map(b => [b.id, b]));
+
+    const entries: AutofillBackfillEntry[] = [];
+    for (const row of matchingRows) {
+      const bookmark = hydratedById.get(row.id);
+      if (!bookmark) continue;
+      const isExempt = exemptSet.has(row.id);
+      const needsBackfill = !isExempt && computeNeedsBackfill(rule, bookmark);
+      if (needsBackfill || isExempt) {
+        entries.push({
+          bookmark,
+          needsBackfill,
+          isExempt,
+        });
+      }
+    }
+
+    if (entries.length > 0) {
+      const needsBackfillCount = entries.filter(e => e.needsBackfill).length;
+      const exemptCount = entries.filter(e => e.isExempt).length;
+      totalNeedsBackfill += needsBackfillCount;
+      groups.push({
+        rule: {
+          id: rule.id,
+          name: rule.name,
+          slug: rule.slug,
+        },
+        entries,
+        needsBackfillCount,
+        exemptCount,
+      });
+    }
+  }
+
+  return {
+    groups,
+    totalNeedsBackfill,
+  };
+}
+
+/** Mark a bookmark as exempt from backfill for a specific rule. Idempotent. */
+export async function setAutofillExempt(ruleId: string, bookmarkId: string): Promise<void> {
+  await db
+    .insert(autofillRuleExemptions)
+    .values({
+      ruleId,
+      bookmarkId,
+    })
+    .onConflictDoNothing();
+}
+
+/** Remove a bookmark's exemption from a specific rule's backfill. */
+export async function removeAutofillExempt(ruleId: string, bookmarkId: string): Promise<void> {
+  await db
+    .delete(autofillRuleExemptions)
+    .where(
+      and(
+        eq(autofillRuleExemptions.ruleId, ruleId),
+        eq(autofillRuleExemptions.bookmarkId, bookmarkId),
+      ),
+    );
 }
 
 /**

@@ -2,7 +2,12 @@ import type { AutofillBackfillEntry, AutofillRule } from "@eesimple/types";
 
 import { useEffect, useState } from "react";
 
-import { useApplyAutofillBackfill, useAutofillBackfill } from "../hooks/useAutofill";
+import {
+  useApplyAutofillBackfill,
+  useAutofillBackfill,
+  useRemoveAutofillExempt,
+  useSetAutofillExempt,
+} from "../hooks/useAutofill";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,7 +28,7 @@ export function AutofillBackfillView({
 
   useEffect(() => {
     if (!data) return;
-    setSelected(new Set(data.entries.filter(e => e.needsBackfill).map(e => e.bookmark.id)));
+    setSelected(new Set(data.entries.filter(e => e.needsBackfill && !e.isExempt).map(e => e.bookmark.id)));
   }, [data]);
 
   const hasPrefill
@@ -79,7 +84,7 @@ export function AutofillBackfillView({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setSelected(new Set(entries.filter(e => e.needsBackfill).map(e => e.bookmark.id)))}
+            onClick={() => setSelected(new Set(entries.filter(e => e.needsBackfill && !e.isExempt).map(e => e.bookmark.id)))}
           >
             Select needing backfill
           </Button>
@@ -119,6 +124,7 @@ export function AutofillBackfillView({
               <BackfillRow
                 key={entry.bookmark.id}
                 entry={entry}
+                ruleId={rule.id}
                 checked={selected.has(entry.bookmark.id)}
                 onToggle={() => toggleOne(entry.bookmark.id)}
               />
@@ -130,19 +136,23 @@ export function AutofillBackfillView({
 }
 
 function BackfillRow({
-  entry, checked, onToggle,
+  entry, ruleId, checked, onToggle,
 }: {
   entry: AutofillBackfillEntry;
+  ruleId: string;
   checked: boolean;
   onToggle: () => void;
 }) {
+  const setExempt = useSetAutofillExempt();
+  const removeExempt = useRemoveAutofillExempt();
+  const exemptPending = setExempt.isPending || removeExempt.isPending;
+
   return (
-    <div
-      className="flex items-start gap-3 rounded-md border px-3 py-2"
-    >
+    <div className="flex items-start gap-3 rounded-md border px-3 py-2">
       <Checkbox
         checked={checked}
         onCheckedChange={onToggle}
+        disabled={entry.isExempt}
         className="mt-0.5 shrink-0"
         aria-label={`Select ${entry.bookmark.title}`}
       />
@@ -150,19 +160,56 @@ function BackfillRow({
         <p className="truncate text-sm font-medium">{entry.bookmark.title}</p>
         <p className="truncate text-xs text-muted-foreground">{entry.bookmark.url}</p>
       </div>
-      <Badge
-        variant={entry.needsBackfill ? "default" : "outline"}
-        className={
-          entry.needsBackfill
-            ? `
-              shrink-0 bg-amber-600
-              hover:bg-amber-600
-            `
-            : "shrink-0 text-muted-foreground"
-        }
+      {entry.isExempt
+        ? (
+          <Badge
+            variant="secondary"
+            className="shrink-0"
+          >
+            Exempt
+          </Badge>
+        )
+        : entry.needsBackfill
+          ? (
+            <Badge
+              variant="default"
+              className="
+                shrink-0 bg-amber-600
+                hover:bg-amber-600
+              "
+            >
+              Needs backfill
+            </Badge>
+          )
+          : (
+            <Badge
+              variant="outline"
+              className="shrink-0 text-muted-foreground"
+            >
+              Up to date
+            </Badge>
+          )}
+      <Button
+        variant="ghost"
+        size="sm"
+        disabled={exemptPending}
+        onClick={() => {
+          if (entry.isExempt) {
+            removeExempt.mutate({
+              ruleId,
+              bookmarkId: entry.bookmark.id,
+            });
+          }
+          else {
+            setExempt.mutate({
+              ruleId,
+              bookmarkId: entry.bookmark.id,
+            });
+          }
+        }}
       >
-        {entry.needsBackfill ? "Needs backfill" : "Up to date"}
-      </Badge>
+        {entry.isExempt ? "Un-exempt" : "Exempt"}
+      </Button>
     </div>
   );
 }
