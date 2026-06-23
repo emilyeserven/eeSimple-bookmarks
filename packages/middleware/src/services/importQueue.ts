@@ -18,10 +18,3 @@ export function enqueueImportJob(job: () => Promise<void>): void {
     // A job's own error handling is its responsibility; never let a rejection break the chain.
   });
 }
-
-/** Test/shutdown helper: resolves once every currently-enqueued job has settled. */
-export async function drainImportQueue(): Promise<void> {
-  await tail.catch(() => {
-    // Swallow: callers only care that the chain has drained, not whether a job failed.
-  });
-}
