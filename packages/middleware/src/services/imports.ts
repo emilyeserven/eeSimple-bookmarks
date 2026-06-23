@@ -953,6 +953,19 @@ export async function rejectPendingItems(): Promise<RejectPendingItemsResult> {
   };
 }
 
+/** Delete every rejected candidate across all imports. Returns the number of rows deleted. */
+export async function deleteRejectedItems(): Promise<PurgeImportItemsResult> {
+  const rows = await db
+    .delete(importItems)
+    .where(eq(importItems.status, "rejected"))
+    .returning({
+      id: importItems.id,
+    });
+  return {
+    deleted: rows.length,
+  };
+}
+
 /**
  * Delete an import and its items. The schema FK declares `onDelete: "cascade"`, but we delete the
  * items explicitly first so the Inbox is cleared even where the live constraint predates the

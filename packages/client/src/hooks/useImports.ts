@@ -262,3 +262,12 @@ export function useRejectPendingItems() {
     onSuccess: () => invalidate(),
   });
 }
+
+/** Delete every rejected candidate across all imports (the Inbox "delete all rejected" action). */
+export function useDeleteRejectedItems() {
+  const invalidate = useInvalidateInbox();
+  return useMutation({
+    mutationFn: () => importApi.deleteRejected(),
+    onSuccess: () => invalidate(),
+  });
+}
