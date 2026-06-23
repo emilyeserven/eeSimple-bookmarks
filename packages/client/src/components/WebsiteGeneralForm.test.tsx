@@ -67,6 +67,11 @@ vi.mock("@/hooks/useCategories", () => ({
   useCategories: () => ({
     data: [],
   }),
+  useCreateCategory: () => ({
+    mutate: vi.fn(),
+    isError: false,
+    error: null,
+  }),
 }));
 vi.mock("@/hooks/useMediaTypes", () => ({
   useMediaTypes: () => ({
@@ -74,6 +79,11 @@ vi.mock("@/hooks/useMediaTypes", () => ({
   }),
   useMediaTypeTree: () => ({
     data: [],
+  }),
+  useCreateMediaType: () => ({
+    mutate: vi.fn(),
+    isError: false,
+    error: null,
   }),
 }));
 vi.mock("@/hooks/useTags", () => ({
