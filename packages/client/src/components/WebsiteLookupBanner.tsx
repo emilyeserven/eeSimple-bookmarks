@@ -2,8 +2,9 @@ import type { YouTubeChannelHint } from "@eesimple/types";
 
 import { useState } from "react";
 
+import { SelfIdsField } from "./SelfIdsField";
+
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -89,53 +90,15 @@ export function WebsiteLookupBanner({
                   <Badge variant="secondary">YouTube channel</Badge>
                   <span>{youtubeChannel.name}</span>
                 </p>
-                <div>
-                  <Label className="mb-1 block text-sm">
-                    Channel self-identifiers
-                  </Label>
-                  <p className="mb-2 text-xs text-muted-foreground">
-                    Short names this channel appends to video titles (e.g. &quot;SNL&quot;). They are stripped from the bookmark title automatically.
-                  </p>
-                  {(youtubeChannel.selfIds ?? []).length > 0 && (
-                    <div className="mb-2 flex flex-wrap gap-1">
-                      {(youtubeChannel.selfIds ?? []).map(id => (
-                        <Badge
-                          key={id}
-                          variant="secondary"
-                          className="cursor-pointer gap-1"
-                          onClick={() => removeSelfId(id)}
-                          title={`Remove "${id}"`}
-                        >
-                          {id}
-                          <span aria-hidden>×</span>
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-                  <div className="flex gap-2">
-                    <Input
-                      value={newSelfId}
-                      onChange={e => setNewSelfId(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          addSelfId();
-                        }
-                      }}
-                      placeholder="e.g. SNL"
-                      className="h-8 text-sm"
-                    />
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      onClick={addSelfId}
-                      disabled={!newSelfId.trim()}
-                    >
-                      Add
-                    </Button>
-                  </div>
-                </div>
+                <SelfIdsField
+                  label="Channel self-identifiers"
+                  description="Short names this channel appends to video titles (e.g. “SNL”). They are stripped from the bookmark title automatically."
+                  selfIds={youtubeChannel.selfIds ?? []}
+                  newSelfId={newSelfId}
+                  onNewSelfIdChange={setNewSelfId}
+                  onAdd={addSelfId}
+                  onRemove={removeSelfId}
+                />
               </div>
             )
             : null
