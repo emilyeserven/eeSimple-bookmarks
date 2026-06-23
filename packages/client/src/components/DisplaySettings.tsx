@@ -75,6 +75,10 @@ const TAXONOMY_ITEMS = [
     key: "youtube-channels",
     label: "YouTube Channels",
   },
+  {
+    key: "authors",
+    label: "Authors",
+  },
 ] as const;
 
 const CUSTOMIZATION_ITEMS = [

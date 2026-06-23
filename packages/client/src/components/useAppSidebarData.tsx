@@ -11,6 +11,7 @@ import {
   useSidebarOpenModifier,
   useSidebarVisibility,
 } from "../hooks/useAppSettings";
+import { useAuthors } from "../hooks/useAuthors";
 import { useAutofillRules } from "../hooks/useAutofill";
 import { useBookmarks } from "../hooks/useBookmarks";
 import { useCategories } from "../hooks/useCategories";
@@ -85,6 +86,7 @@ function useSidebarEntityData() {
     allMediaTypes: useMediaTypes().data,
     allChannels: useYouTubeChannels().data,
     allNewsletters: useNewsletters().data,
+    allAuthors: useAuthors().data,
     allCustomProperties: useCustomProperties().data,
     allPropertyGroups: usePropertyGroups().data,
     allAutofillRules: useAutofillRules().data,
@@ -197,6 +199,7 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
     "media-types": data.allMediaTypes?.length,
     "youtube-channels": data.allChannels?.length,
     "newsletters": data.allNewsletters?.length,
+    "authors": data.allAuthors?.length,
   });
 
   const visibleCustomizationItems = withVisibleCounts(customizationItems, hiddenCustomizationItems, {
