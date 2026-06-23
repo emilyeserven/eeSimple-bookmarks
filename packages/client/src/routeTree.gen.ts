@@ -170,6 +170,7 @@ import { Route as AutofillRuleSlugViewPrefillRouteImport } from './routes/autofi
 import { Route as AutofillRuleSlugViewGeneralRouteImport } from './routes/autofill.$ruleSlug._view.general'
 import { Route as AutofillRuleSlugViewDebugRouteImport } from './routes/autofill.$ruleSlug._view.debug'
 import { Route as AutofillRuleSlugViewConditionsRouteImport } from './routes/autofill.$ruleSlug._view.conditions'
+import { Route as AutofillRuleSlugViewBackfillRouteImport } from './routes/autofill.$ruleSlug._view.backfill'
 import { Route as TaxonomiesYoutubeChannelsChannelSlugEditIndexRouteImport } from './routes/taxonomies.youtube-channels.$channelSlug.edit.index'
 import { Route as TaxonomiesWebsitesWebsiteSlugEditIndexRouteImport } from './routes/taxonomies.websites.$websiteSlug.edit.index'
 import { Route as TaxonomiesRelationshipTypesRelationshipTypeSlugEditIndexRouteImport } from './routes/taxonomies.relationship-types.$relationshipTypeSlug.edit.index'
@@ -1100,6 +1101,12 @@ const AutofillRuleSlugViewConditionsRoute =
     path: '/conditions',
     getParentRoute: () => AutofillRuleSlugViewRoute,
   } as any)
+const AutofillRuleSlugViewBackfillRoute =
+  AutofillRuleSlugViewBackfillRouteImport.update({
+    id: '/backfill',
+    path: '/backfill',
+    getParentRoute: () => AutofillRuleSlugViewRoute,
+  } as any)
 const TaxonomiesYoutubeChannelsChannelSlugEditIndexRoute =
   TaxonomiesYoutubeChannelsChannelSlugEditIndexRouteImport.update({
     id: '/',
@@ -1413,6 +1420,7 @@ export interface FileRoutesByFullPath {
   '/taxonomies/relationship-types/': typeof TaxonomiesRelationshipTypesIndexRoute
   '/taxonomies/websites/': typeof TaxonomiesWebsitesIndexRoute
   '/taxonomies/youtube-channels/': typeof TaxonomiesYoutubeChannelsIndexRoute
+  '/autofill/$ruleSlug/backfill': typeof AutofillRuleSlugViewBackfillRoute
   '/autofill/$ruleSlug/conditions': typeof AutofillRuleSlugViewConditionsRoute
   '/autofill/$ruleSlug/debug': typeof AutofillRuleSlugViewDebugRoute
   '/autofill/$ruleSlug/general': typeof AutofillRuleSlugViewGeneralRoute
@@ -1568,6 +1576,7 @@ export interface FileRoutesByTo {
   '/taxonomies/relationship-types': typeof TaxonomiesRelationshipTypesIndexRoute
   '/taxonomies/websites': typeof TaxonomiesWebsitesIndexRoute
   '/taxonomies/youtube-channels': typeof TaxonomiesYoutubeChannelsIndexRoute
+  '/autofill/$ruleSlug/backfill': typeof AutofillRuleSlugViewBackfillRoute
   '/autofill/$ruleSlug/conditions': typeof AutofillRuleSlugViewConditionsRoute
   '/autofill/$ruleSlug/debug': typeof AutofillRuleSlugViewDebugRoute
   '/autofill/$ruleSlug/general': typeof AutofillRuleSlugViewGeneralRoute
@@ -1757,6 +1766,7 @@ export interface FileRoutesById {
   '/taxonomies/relationship-types/': typeof TaxonomiesRelationshipTypesIndexRoute
   '/taxonomies/websites/': typeof TaxonomiesWebsitesIndexRoute
   '/taxonomies/youtube-channels/': typeof TaxonomiesYoutubeChannelsIndexRoute
+  '/autofill/$ruleSlug/_view/backfill': typeof AutofillRuleSlugViewBackfillRoute
   '/autofill/$ruleSlug/_view/conditions': typeof AutofillRuleSlugViewConditionsRoute
   '/autofill/$ruleSlug/_view/debug': typeof AutofillRuleSlugViewDebugRoute
   '/autofill/$ruleSlug/_view/general': typeof AutofillRuleSlugViewGeneralRoute
@@ -1955,6 +1965,7 @@ export interface FileRouteTypes {
     | '/taxonomies/relationship-types/'
     | '/taxonomies/websites/'
     | '/taxonomies/youtube-channels/'
+    | '/autofill/$ruleSlug/backfill'
     | '/autofill/$ruleSlug/conditions'
     | '/autofill/$ruleSlug/debug'
     | '/autofill/$ruleSlug/general'
@@ -2110,6 +2121,7 @@ export interface FileRouteTypes {
     | '/taxonomies/relationship-types'
     | '/taxonomies/websites'
     | '/taxonomies/youtube-channels'
+    | '/autofill/$ruleSlug/backfill'
     | '/autofill/$ruleSlug/conditions'
     | '/autofill/$ruleSlug/debug'
     | '/autofill/$ruleSlug/general'
@@ -2298,6 +2310,7 @@ export interface FileRouteTypes {
     | '/taxonomies/relationship-types/'
     | '/taxonomies/websites/'
     | '/taxonomies/youtube-channels/'
+    | '/autofill/$ruleSlug/_view/backfill'
     | '/autofill/$ruleSlug/_view/conditions'
     | '/autofill/$ruleSlug/_view/debug'
     | '/autofill/$ruleSlug/_view/general'
@@ -3563,6 +3576,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AutofillRuleSlugViewConditionsRouteImport
       parentRoute: typeof AutofillRuleSlugViewRoute
     }
+    '/autofill/$ruleSlug/_view/backfill': {
+      id: '/autofill/$ruleSlug/_view/backfill'
+      path: '/backfill'
+      fullPath: '/autofill/$ruleSlug/backfill'
+      preLoaderRoute: typeof AutofillRuleSlugViewBackfillRouteImport
+      parentRoute: typeof AutofillRuleSlugViewRoute
+    }
     '/taxonomies/youtube-channels/$channelSlug/edit/': {
       id: '/taxonomies/youtube-channels/$channelSlug/edit/'
       path: '/'
@@ -3833,6 +3853,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AutofillRuleSlugViewRouteChildren {
+  AutofillRuleSlugViewBackfillRoute: typeof AutofillRuleSlugViewBackfillRoute
   AutofillRuleSlugViewConditionsRoute: typeof AutofillRuleSlugViewConditionsRoute
   AutofillRuleSlugViewDebugRoute: typeof AutofillRuleSlugViewDebugRoute
   AutofillRuleSlugViewGeneralRoute: typeof AutofillRuleSlugViewGeneralRoute
@@ -3840,6 +3861,7 @@ interface AutofillRuleSlugViewRouteChildren {
 }
 
 const AutofillRuleSlugViewRouteChildren: AutofillRuleSlugViewRouteChildren = {
+  AutofillRuleSlugViewBackfillRoute: AutofillRuleSlugViewBackfillRoute,
   AutofillRuleSlugViewConditionsRoute: AutofillRuleSlugViewConditionsRoute,
   AutofillRuleSlugViewDebugRoute: AutofillRuleSlugViewDebugRoute,
   AutofillRuleSlugViewGeneralRoute: AutofillRuleSlugViewGeneralRoute,

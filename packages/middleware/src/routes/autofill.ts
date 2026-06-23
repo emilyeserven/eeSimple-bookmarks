@@ -1,12 +1,15 @@
 import type { FastifyInstance } from "fastify";
 import type {
+  AutofillApplyInput,
   AutofillPreviewInput,
   CreateAutofillRuleInput,
   UpdateAutofillRuleInput,
 } from "@eesimple/types";
 import {
+  applyAutofillBackfill,
   createAutofillRule,
   deleteAutofillRule,
+  getAutofillBackfillEntries,
   getAutofillRuleBySlug,
   listAutofillRules,
   previewAutofillMatches,
@@ -225,5 +228,54 @@ export async function autofillRoutes(app: FastifyInstance): Promise<void> {
       message: "Autofill rule not found",
     });
     return reply.code(204).send();
+  });
+
+  app.get("/api/autofill-rules/:id/backfill", {
+    schema: {
+      tags: ["autofill"],
+      params: ruleParams,
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    const result = await getAutofillBackfillEntries(id);
+    if (!result) return reply.code(404).send({
+      message: "Autofill rule not found",
+    });
+    return result;
+  });
+
+  const applyBackfillBody = {
+    type: "object",
+    required: ["bookmarkIds"],
+    additionalProperties: false,
+    properties: {
+      bookmarkIds: {
+        type: "array",
+        items: {
+          type: "string",
+          format: "uuid",
+        },
+        minItems: 1,
+      },
+    },
+  } as const;
+
+  app.post("/api/autofill-rules/:id/backfill/apply", {
+    schema: {
+      tags: ["autofill"],
+      params: ruleParams,
+      body: applyBackfillBody,
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    const result = await applyAutofillBackfill(id, req.body as AutofillApplyInput);
+    if (!result) return reply.code(404).send({
+      message: "Autofill rule not found",
+    });
+    return result;
   });
 }
