@@ -12,6 +12,7 @@ import type {
   BookmarkBooleanValue,
   BookmarkDateTimeValue,
   BookmarkNumberValue,
+  ConditionInput,
   ConditionMatchField,
   ConditionMatchOperator,
   ConditionNode,
@@ -212,6 +213,89 @@ async function hydrate(rows: AutofillRuleRow[]): Promise<AutofillRule[]> {
       booleanMap.get(row.id) ?? [],
       dateTimeMap.get(row.id) ?? [],
     ));
+}
+
+/**
+ * Evaluate all autofill rules against the given URL and title (the only fields known before a
+ * bookmark is created) and return the union of all matching rules' suggested values. Mirrors the
+ * client-side `applyAutofill` so that server-side bookmark creation (e.g. Inbox approval) applies
+ * the same rules the form would have.
+ */
+export async function suggestAutofillForBookmark(input: {
+  url: string;
+  title: string;
+}): Promise<{
+  categoryId: string | null;
+  mediaTypeId: string | null;
+  tagIds: string[];
+  numberValues: BookmarkNumberValue[];
+  booleanValues: BookmarkBooleanValue[];
+  dateTimeValues: BookmarkDateTimeValue[];
+}> {
+  const rows = await db
+    .select()
+    .from(autofillRules)
+    .orderBy(asc(autofillRules.sortOrder), asc(autofillRules.createdAt));
+  if (rows.length === 0) {
+    return {
+      categoryId: null,
+      mediaTypeId: null,
+      tagIds: [],
+      numberValues: [],
+      booleanValues: [],
+      dateTimeValues: [],
+    };
+  }
+  const rules = await hydrate(rows);
+
+  let categoryId: string | null = null;
+  let mediaTypeId: string | null = null;
+  const tagIds = new Set<string>();
+  const numberByProperty = new Map<string, number>();
+  const booleanByProperty = new Map<string, boolean>();
+  const dateTimeByProperty = new Map<string, string>();
+
+  const projection: ConditionInput = {
+    url: input.url,
+    title: input.title,
+    categoryId: "",
+    tagIds: new Set(),
+    youtubeChannelId: null,
+    mediaTypeId: null,
+    numberValues: new Map(),
+    booleanValues: new Map(),
+    dateTimeValues: new Map(),
+    fileValues: new Set(),
+    relationshipTypeIds: new Set(),
+  };
+
+  for (const rule of rules) {
+    if (!evaluateConditions(rule.conditions, projection)) continue;
+    if (rule.setCategoryId) categoryId = rule.setCategoryId;
+    if (rule.setMediaTypeId) mediaTypeId = rule.setMediaTypeId;
+    for (const tagId of rule.tagIds) tagIds.add(tagId);
+    for (const entry of rule.numberValues) numberByProperty.set(entry.propertyId, entry.value);
+    for (const entry of rule.booleanValues) booleanByProperty.set(entry.propertyId, entry.value);
+    for (const entry of rule.dateTimeValues) dateTimeByProperty.set(entry.propertyId, entry.value);
+  }
+
+  return {
+    categoryId,
+    mediaTypeId,
+    tagIds: [...tagIds],
+    numberValues: [...numberByProperty].map(([propertyId, value]) => ({
+      propertyId,
+      value,
+    })),
+    booleanValues: [...booleanByProperty].map(([propertyId, value]) => ({
+      propertyId,
+      value,
+    })),
+    dateTimeValues: [...dateTimeByProperty].map(([propertyId, value]) => ({
+      propertyId,
+      value,
+    })),
+  };
 }
 
 export async function listAutofillRules(): Promise<AutofillRule[]> {

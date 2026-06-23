@@ -39,6 +39,7 @@ import {
 } from "@/db/schema";
 import { addImportBlacklistEntry, getImportBlacklist, getShortenerIgnoreList } from "@/services/appSettings";
 import { applyImportRules } from "@/services/importRules";
+import { suggestAutofillForBookmark } from "@/services/autofill";
 import { checkBookmarkUrlDuplicate, createBookmark, DuplicateUrlError } from "@/services/bookmarks";
 import { enqueueImportJob } from "@/services/importQueue";
 import {
@@ -864,8 +865,16 @@ export async function approveImportItem(itemId: string): Promise<ImportApproveRe
   // The import link + the selected newsletter's default category / media type / tags.
   const defaults = await importBookmarkDefaults(item.importId);
 
-  // Category precedence: per-item override > import default > newsletter default. `undefined` (none
-  // set) preserves createBookmark's website/channel/built-in default precedence.
+  // Evaluate autofill rules against the URL and title (same fields available at creation time on
+  // the client form) so approved items pick up the same tags/category/values the form would apply.
+  const title = item.title?.trim() || item.anchorText?.trim() || item.url;
+  const autofill = await suggestAutofillForBookmark({
+    url: item.url,
+    title,
+  });
+
+  // Category precedence: per-item override > import default > newsletter default > autofill.
+  // `undefined` (none set) preserves createBookmark's website/channel/built-in default precedence.
   let categoryId = item.categoryId ?? undefined;
   if (categoryId === undefined) {
     const [importRow] = await db
@@ -874,16 +883,21 @@ export async function approveImportItem(itemId: string): Promise<ImportApproveRe
       })
       .from(imports)
       .where(eq(imports.id, item.importId));
-    categoryId = importRow?.defaultCategoryId ?? defaults.categoryId ?? undefined;
+    categoryId = importRow?.defaultCategoryId ?? defaults.categoryId ?? autofill.categoryId ?? undefined;
   }
 
   try {
     const bookmark = await createBookmark({
       url: item.url,
-      title: item.title?.trim() || item.anchorText?.trim() || item.url,
+      title,
       // Save the source passage (newsletter context) as the description; fall back to the item's own.
       description: item.newsletterContext ?? item.description ?? null,
       ...defaults,
+      tagIds: [...new Set([...(defaults.tagIds ?? []), ...autofill.tagIds])],
+      mediaTypeId: defaults.mediaTypeId ?? autofill.mediaTypeId,
+      numberValues: autofill.numberValues,
+      booleanValues: autofill.booleanValues,
+      dateTimeValues: autofill.dateTimeValues,
       newsletterContext: item.newsletterContext ?? null,
       categoryId,
     });
