@@ -15,6 +15,7 @@ import { useAutofillRules } from "../hooks/useAutofill";
 import { useBookmarks } from "../hooks/useBookmarks";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
+import { useInboxItems } from "../hooks/useImports";
 import { useMediaTypes } from "../hooks/useMediaTypes";
 import { useNewsletters } from "../hooks/useNewsletters";
 import { usePinnedSidebarItems } from "../hooks/usePinnedSidebarItems";
@@ -23,7 +24,7 @@ import { useSavedFilters } from "../hooks/useSavedFilters";
 import { useTags } from "../hooks/useTags";
 import { useWebsites } from "../hooks/useWebsites";
 import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
-import { validateBookmarkSearch } from "../lib/bookmarkSearch";
+import { bookmarkMatchesSearch, validateBookmarkSearch } from "../lib/bookmarkSearch";
 
 import { CategoryIcon } from "@/lib/icons";
 
@@ -77,6 +78,7 @@ export function paginatePins(resolvedPins: ResolvedPin[], state: PinPaginationSt
 function useSidebarEntityData() {
   return {
     allBookmarks: useBookmarks().data,
+    inboxItems: useInboxItems().data,
     categories: useCategories().data,
     allTags: useTags().data,
     allWebsites: useWebsites().data,
@@ -144,6 +146,8 @@ export interface AppSidebarData<T extends SidebarNavItem, C extends SidebarNavIt
   setPinnedShowAll: (v: boolean) => void;
   pagination: PinPagination;
   allBookmarks: ReturnType<typeof useBookmarks>["data"];
+  inboxCount: number | undefined;
+  currentBookmarkCategories: string[];
   modifier: ReturnType<typeof useSidebarOpenModifier>;
   viewClick: ReturnType<typeof useViewPanelClick>;
   hiddenSidebarGroups: string[];
@@ -162,6 +166,12 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
 ): AppSidebarData<T, C> {
   const pathname = useRouterState({
     select: state => state.location.pathname,
+  });
+  const currentBookmarkCategories = useRouterState({
+    select: state =>
+      state.location.pathname.startsWith("/bookmarks")
+        ? (validateBookmarkSearch(state.location.search).categories ?? [])
+        : [],
   });
   const data = useSidebarEntityData();
   const [pinnedExpanded, setPinnedExpanded] = React.useState(false);
@@ -195,7 +205,7 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
     "autofill": data.allAutofillRules?.length,
   });
 
-  const resolvedPins = useResolvedPins(data, pathname);
+  const resolvedPins = useResolvedPins(data, pathname, currentBookmarkCategories);
   const pagination = paginatePins(resolvedPins, {
     pinnedExpanded,
     pinnedShowAll,
@@ -213,6 +223,8 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
     setPinnedShowAll,
     pagination,
     allBookmarks: data.allBookmarks,
+    inboxCount: data.inboxItems?.length,
+    currentBookmarkCategories,
     modifier,
     viewClick,
     hiddenSidebarGroups,
@@ -224,9 +236,11 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
 function useResolvedPins(
   data: ReturnType<typeof useSidebarEntityData>,
   pathname: string,
+  currentBookmarkCategories: string[],
 ): ResolvedPin[] {
   const {
     categories, allTags, allWebsites, allMediaTypes, allChannels, savedFilters, pinnedItems,
+    allBookmarks,
   } = data;
   return React.useMemo((): ResolvedPin[] => {
     return pinnedItems.flatMap((pin: PinnedSidebarItem): ResolvedPin[] => {
@@ -239,11 +253,13 @@ function useResolvedPins(
             label: e.name,
             icon: <CategoryIcon name={e.icon} />,
             link: {
-              kind: "path",
-              path: `/categories/${e.slug}`,
+              kind: "filter",
+              search: validateBookmarkSearch({
+                categories: [e.id],
+              }),
             },
             bookmarkCount: e.bookmarkCount,
-            isActive: pathname === `/categories/${e.slug}`,
+            isActive: currentBookmarkCategories.includes(e.id),
           }];
         }
         case "tag": {
@@ -309,18 +325,22 @@ function useResolvedPins(
         case "saved-filter": {
           const e = (savedFilters ?? []).find(f => f.id === pin.entityId);
           if (!e) return [];
+          const search = validateBookmarkSearch(e.filters);
+          const bookmarkCount = (allBookmarks ?? []).filter(b => bookmarkMatchesSearch(b, search)).length;
           return [{
             id: pin.id,
             label: e.name,
             icon: <Filter />,
             link: {
               kind: "filter",
-              search: validateBookmarkSearch(e.filters),
+              search,
             },
+            bookmarkCount,
             isActive: pathname === "/bookmarks" || pathname === "/bookmarks/",
           }];
         }
       }
     });
-  }, [pinnedItems, categories, allTags, allWebsites, allMediaTypes, allChannels, savedFilters, pathname]);
+  }, [pinnedItems, categories, allTags, allWebsites, allMediaTypes, allChannels, savedFilters,
+    allBookmarks, pathname, currentBookmarkCategories]);
 }

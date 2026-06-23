@@ -145,6 +145,8 @@ export function AppSidebar({
     setPinnedShowAll,
     pagination,
     allBookmarks,
+    inboxCount,
+    currentBookmarkCategories,
     modifier,
     viewClick,
     hiddenSidebarGroups,
@@ -206,6 +208,13 @@ export function AppSidebar({
                         <span>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
+                    {item.to === "/inbox" && inboxCount != null && state !== "collapsed"
+                      ? (
+                        <SidebarMenuBadge>
+                          <Badge variant="secondary">{inboxCount}</Badge>
+                        </SidebarMenuBadge>
+                      )
+                      : null}
                     {item.to === "/bookmarks" && allBookmarks != null && state !== "collapsed"
                       ? (
                         <SidebarMenuBadge>
@@ -298,7 +307,7 @@ export function AppSidebar({
             >
               <SidebarMenu>
                 {visibleCategories.map((category) => {
-                  const isActive = pathname === `/categories/${category.slug}`;
+                  const isActive = currentBookmarkCategories.includes(category.id);
                   return (
                     <SidebarMenuItem key={category.id}>
                       <SidebarMenuButton
@@ -307,9 +316,9 @@ export function AppSidebar({
                         tooltip={category.name}
                       >
                         <Link
-                          to="/categories/$categorySlug"
-                          params={{
-                            categorySlug: category.slug,
+                          to="/bookmarks"
+                          search={{
+                            categories: [category.id],
                           }}
                           title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
                           onClick={event => viewClick(event, "category", category.id)}
