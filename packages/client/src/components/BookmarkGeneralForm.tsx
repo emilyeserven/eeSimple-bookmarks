@@ -2,6 +2,7 @@ import type { Bookmark } from "@eesimple/types";
 
 import { Brush } from "lucide-react";
 
+import { AddMediaTypeModal } from "./AddMediaTypeModal";
 import { BookmarkAutofillOffer } from "./BookmarkAutofillOffer";
 import { BookmarkCategoryField } from "./BookmarkCategoryField";
 import { BookmarkDescriptionField } from "./BookmarkDescriptionField";
@@ -15,6 +16,7 @@ import { WebsiteLookupBanner } from "./WebsiteLookupBanner";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { mediaTypeTreeComboboxOptions } from "@/lib/comboboxOptions";
 
 interface BookmarkGeneralFormProps {
   bookmark: Bookmark;
@@ -30,6 +32,7 @@ export function BookmarkGeneralForm({
     shortenerIgnoreList,
     tagTree,
     categories,
+    mediaTypes,
     updateBookmark,
     fetchTitle,
     fetchMetadata,
@@ -55,6 +58,8 @@ export function BookmarkGeneralForm({
     urlDuplicate,
     addCategoryOpen,
     setAddCategoryOpen,
+    addMediaTypeOpen,
+    setAddMediaTypeOpen,
     autofillOfferDismissed,
     setAutofillOfferDismissed,
     touchedRef,
@@ -199,6 +204,27 @@ export function BookmarkGeneralForm({
         categories={categories ?? []}
         addCategoryOpen={addCategoryOpen}
         setAddCategoryOpen={setAddCategoryOpen}
+      />
+
+      <form.AppField name="mediaTypeId">
+        {field => (
+          <field.ComboboxField
+            label="Media type"
+            placeholder="No media type"
+            searchPlaceholder="Search media types…"
+            emptyText="No media types found."
+            createOption={{
+              label: "Create media type",
+              onSelect: () => setAddMediaTypeOpen(true),
+            }}
+            options={mediaTypeTreeComboboxOptions(mediaTypes ?? [])}
+          />
+        )}
+      </form.AppField>
+      <AddMediaTypeModal
+        open={addMediaTypeOpen}
+        onOpenChange={setAddMediaTypeOpen}
+        onCreated={mediaType => form.setFieldValue("mediaTypeId", mediaType.id)}
       />
 
       <form.Subscribe selector={state => state.values.categoryId}>
