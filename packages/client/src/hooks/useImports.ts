@@ -3,7 +3,6 @@ import type {
   BlockImportItemInput,
   IngestPasteInput,
   IngestUrlInput,
-  UpdateImportItemInput,
 } from "@eesimple/types";
 
 import { useEffect, useRef } from "react";
@@ -167,18 +166,6 @@ export function useRemoveIssueBookmarks(importId: string) {
   const invalidate = useInvalidateIssues();
   return useMutation({
     mutationFn: (bookmarkIds: string[]) => importApi.removeIssueBookmarks(importId, bookmarkIds),
-    onSuccess: () => invalidate(),
-  });
-}
-
-export function useUpdateImportItem() {
-  const invalidate = useInvalidateInbox();
-  return useMutation({
-    mutationFn: ({
-      itemId, input,
-    }: { itemId: string;
-      input: UpdateImportItemInput; }) =>
-      importApi.updateItem(itemId, input),
     onSuccess: () => invalidate(),
   });
 }

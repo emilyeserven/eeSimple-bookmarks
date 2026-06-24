@@ -42,12 +42,6 @@ export async function listAuthors(): Promise<Author[]> {
   return rows.map(row => toAuthor(row, countMap.get(row.id) ?? 0));
 }
 
-/** Fetch an author by its slug, or `null` when absent. */
-export async function getAuthorBySlug(slug: string): Promise<Author | null> {
-  const [row] = await db.select().from(authors).where(eq(authors.slug, slug));
-  return row ? toAuthor(row) : null;
-}
-
 /** Add a new author. Throws `DuplicateAuthorError` on a name clash. */
 export async function createAuthor(input: CreateAuthorInput): Promise<Author> {
   const name = input.name.trim();
