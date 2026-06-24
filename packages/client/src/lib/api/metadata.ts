@@ -1,4 +1,4 @@
-import type { CheckUrlResult, FetchMetadataResult } from "@eesimple/types";
+import type { CheckUrlResult, FetchMetadataResult, ResolveUrlResult } from "@eesimple/types";
 
 import { request } from "./client";
 
@@ -34,4 +34,8 @@ export const metadataApi = {
     url,
   }: { url: string }) =>
     request<CheckUrlResult>(`/check-url?url=${encodeURIComponent(url)}`),
+  resolveUrl: ({
+    url,
+  }: { url: string }) =>
+    request<ResolveUrlResult>(`/resolve-url?url=${encodeURIComponent(url)}`),
 };

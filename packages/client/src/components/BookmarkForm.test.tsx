@@ -183,6 +183,17 @@ vi.mock("../hooks/useAuthors", () => ({
     mutateAsync: vi.fn(),
   }),
 }));
+vi.mock("../lib/api/metadata", () => ({
+  metadataApi: {
+    resolveUrl: vi.fn().mockImplementation(({
+      url,
+    }: { url: string }) =>
+      Promise.resolve({
+        finalUrl: url,
+        redirected: false,
+      })),
+  },
+}));
 
 /** Type a URL and click "Check URL" to reveal the rest of a fresh (create) form. */
 async function revealForm(url: string): Promise<void> {

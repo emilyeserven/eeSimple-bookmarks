@@ -8,6 +8,7 @@ import {
   fetchHeadHtml,
   fetchPageTitle,
 } from "@/services/metadata";
+import { unwrapRedirect } from "@/services/redirectUnwrap";
 import { lookupWebsiteByUrl, stripSiteNameSuffix } from "@/services/websites";
 import { fetchYouTubeMetadata, isYouTubeVideoUrl } from "@/services/youtube";
 import { channelKeyFromUrl, getYouTubeChannelByKey } from "@/services/youtubeChannels";
@@ -210,6 +211,38 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
       ...(result.kind !== "ok" && {
         reason: result.kind,
       }),
+    };
+  });
+
+  // Follow a URL's redirect chain to its real destination. Returns the final URL (or the original on
+  // any non-blocking failure — this is best-effort). Used by the bookmark form to resolve tracker
+  // and click-redirect URLs before saving, mirroring the newsletter import pipeline's behavior.
+  app.get("/api/resolve-url", {
+    schema: {
+      tags: ["metadata"],
+      querystring: fetchTitleQuery,
+    },
+  }, async (req, reply) => {
+    const {
+      url,
+    } = req.query as { url: string };
+    if (!isValidUrl(url)) {
+      return reply.code(400).send({
+        message: "url must be a valid http(s) URL",
+      });
+    }
+    const result = await unwrapRedirect(url);
+    if (result.kind === "ok") {
+      return {
+        finalUrl: result.finalUrl,
+        redirected: result.redirected,
+      };
+    }
+    // Any failure (blocked SSRF hop, timeout, HTTP error, network error) — fall back to the
+    // original URL so the form keeps working even if the tracker server is unreachable.
+    return {
+      finalUrl: url,
+      redirected: false,
     };
   });
 

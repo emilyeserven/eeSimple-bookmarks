@@ -2,6 +2,7 @@ import type { BookmarkFormApi } from "./bookmarkFormSchema";
 import type { CustomProperty } from "@eesimple/types";
 
 import { CategoryCustomFields } from "./BookmarkCustomFields";
+import { CONTENT_STATUS_SLUG, DATE_POSTED_SLUG, RUNTIME_SLUG } from "./bookmarkFormSchema";
 
 export interface RevealedCustomFieldsProps {
   form: BookmarkFormApi;
@@ -52,6 +53,7 @@ export function RevealedCustomFields({
           categoryId={categoryId}
           mediaTypeId={mediaTypeId || null}
           properties={customProperties}
+          hiddenSlugs={[RUNTIME_SLUG, DATE_POSTED_SLUG, CONTENT_STATUS_SLUG]}
           numberInputs={numberInputs}
           booleanInputs={booleanInputs}
           dateTimeInputs={dateTimeInputs}

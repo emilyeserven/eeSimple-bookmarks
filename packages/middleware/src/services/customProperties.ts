@@ -836,6 +836,20 @@ export async function ensurePageProgressProperty(): Promise<string> {
   return readPropertyIdBySlug(PAGE_PROGRESS_SLUG);
 }
 
+/**
+ * Look up the built-in "Content Status" property id at request time, or `null` when it hasn't been
+ * seeded yet. Used by the bookmark service to apply the default "Not Started" value on create.
+ */
+export async function getContentStatusPropertyId(): Promise<string | null> {
+  const [row] = await db
+    .select({
+      id: customProperties.id,
+    })
+    .from(customProperties)
+    .where(eq(customProperties.slug, CONTENT_STATUS_SLUG));
+  return row?.id ?? null;
+}
+
 /** Fill in slugs for any properties missing one (e.g. rows that predate the `slug` column). */
 export async function backfillCustomPropertySlugs(): Promise<void> {
   const missing = await db

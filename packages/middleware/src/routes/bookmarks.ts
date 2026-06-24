@@ -23,6 +23,7 @@ import {
   updateBookmark,
   updateBookmarkRelationships,
 } from "@/services/bookmarks";
+import { ensureInboxCategory } from "@/services/categories";
 import { getObjectStream, isObjectStoreConfigured } from "@/utils/objectStore";
 import { isValidUrl } from "@/utils/url";
 
@@ -325,6 +326,55 @@ export async function bookmarkRoutes(app: FastifyInstance): Promise<void> {
       items,
     } = req.body as { items: BulkUrlUpdate[] };
     return bulkUpdateBookmarkUrls(items);
+  });
+
+  // Quick-save endpoint for the browser extension context-menu: accepts only url + optional
+  // title, forces the Inbox built-in category, and skips no other bookmark logic.
+  app.post("/api/bookmarks/inbox", {
+    schema: {
+      tags: ["bookmarks"],
+      body: {
+        type: "object",
+        required: ["url"],
+        additionalProperties: false,
+        properties: {
+          url: {
+            type: "string",
+            format: "uri",
+          },
+          title: {
+            type: "string",
+          },
+        },
+      },
+    },
+  }, async (req, reply) => {
+    const {
+      url, title,
+    } = req.body as { url: string;
+      title?: string; };
+    if (!isValidUrl(url)) {
+      return reply.code(400).send({
+        message: "url must be a valid http(s) URL",
+      });
+    }
+    try {
+      const categoryId = await ensureInboxCategory();
+      const bookmark = await createBookmark({
+        url,
+        title: title?.trim() || url,
+        categoryId,
+      });
+      return reply.code(201).send(bookmark);
+    }
+    catch (err) {
+      if (err instanceof DuplicateUrlError) {
+        return reply.code(409).send({
+          message: err.message,
+        });
+      }
+      throw err;
+    }
   });
 
   app.get("/api/bookmarks/:id", {
