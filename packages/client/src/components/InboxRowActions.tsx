@@ -8,8 +8,9 @@ import { useState } from "react";
 
 import { blacklistPatternsFor } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
-import { Ban, Check, ChevronDown, Eye, FolderInput, MoreHorizontal, RefreshCw, RotateCcw, X } from "lucide-react";
+import { Ban, Check, ChevronDown, Eye, FolderInput, MoreHorizontal, RefreshCw, RotateCcw, Scissors, X } from "lucide-react";
 
+import { MarkAsShortenerDialog } from "./MarkAsShortenerDialog";
 import {
   useApproveImportItem,
   useBlockImportItem,
@@ -329,28 +330,126 @@ export function IngestImportMenuItem({
   );
 }
 
+type ShortenerMode = "ignore-list" | "website";
+
+/**
+ * The two shortener menu items (ignore list / associate with website). Extracted so both
+ * `ShortenerDropdown` (desktop) and `MobileMoreMenu` can embed them without nesting dropdowns.
+ */
+export function ShortenerMenuItems({
+  item,
+  onSelect,
+}: {
+  item: ImportItem;
+  onSelect: (mode: ShortenerMode) => void;
+}) {
+  if (!item.url) return null;
+  return (
+    <>
+      <DropdownMenuItem
+        onSelect={(e) => {
+          e.preventDefault();
+          onSelect("ignore-list");
+        }}
+      >
+        Add to shortener ignore list
+      </DropdownMenuItem>
+      <DropdownMenuItem
+        onSelect={(e) => {
+          e.preventDefault();
+          onSelect("website");
+        }}
+      >
+        Associate with website
+      </DropdownMenuItem>
+    </>
+  );
+}
+
+/**
+ * Slim dropdown trigger for marking an inbox item's domain as a link shortener.
+ * Mirrors the shape of `BlockDropdown`.
+ */
+function ShortenerDropdown({
+  item,
+}: { item: ImportItem }) {
+  const [mode, setMode] = useState<ShortenerMode | null>(null);
+  if (!item.url) return null;
+
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="px-1"
+            aria-label="Mark as link shortener"
+          >
+            <Scissors className="size-3 text-muted-foreground" />
+            <ChevronDown className="size-3 text-muted-foreground" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <ShortenerMenuItems
+            item={item}
+            onSelect={m => setMode(m)}
+          />
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      {mode !== null && (
+        <MarkAsShortenerDialog
+          item={item}
+          open
+          initialMode={mode}
+          onClose={() => setMode(null)}
+        />
+      )}
+    </>
+  );
+}
+
 /** Secondary actions for the mobile pending card: Block options, Recheck link, and Queue for Import. */
 export function MobileMoreMenu({
   item,
 }: { item: ImportItem }) {
+  const [shortenerMode, setShortenerMode] = useState<ShortenerMode | null>(null);
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          size="icon"
-          variant="ghost"
-          aria-label="More actions"
-        >
-          <MoreHorizontal className="size-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <BlockMenuItems item={item} />
-        <DropdownMenuSeparator />
-        <RecheckLinkMenuItem item={item} />
-        <IngestImportMenuItem item={item} />
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            size="icon"
+            variant="ghost"
+            aria-label="More actions"
+          >
+            <MoreHorizontal className="size-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <BlockMenuItems item={item} />
+          <DropdownMenuSeparator />
+          <ShortenerMenuItems
+            item={item}
+            onSelect={m => setShortenerMode(m)}
+          />
+          <DropdownMenuSeparator />
+          <RecheckLinkMenuItem item={item} />
+          <IngestImportMenuItem item={item} />
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      {shortenerMode !== null && (
+        <MarkAsShortenerDialog
+          item={item}
+          open
+          initialMode={shortenerMode}
+          onClose={() => setShortenerMode(null)}
+        />
+      )}
+    </>
   );
 }
 
@@ -432,6 +531,7 @@ export function RowActions({
             </Button>
             <RejectButton item={item} />
             <BlockDropdown item={item} />
+            <ShortenerDropdown item={item} />
           </>
         )
         : null}
@@ -440,6 +540,7 @@ export function RowActions({
           <>
             <UnrejectButton item={item} />
             <BlockDropdown item={item} />
+            <ShortenerDropdown item={item} />
           </>
         )
         : null}

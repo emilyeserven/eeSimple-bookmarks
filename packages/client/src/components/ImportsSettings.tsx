@@ -3,13 +3,13 @@ import type { ImportBlacklistEntry, ImportBlacklistKind } from "@eesimple/types"
 import { useState } from "react";
 
 import { blacklistPatternsFor } from "@eesimple/types";
-import { Plus, Trash2, X } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 
+import { KIND_LABEL, importBlacklistColumns } from "./tables/importBlacklistColumns";
 import { useImportBlacklist, useUpdateImportBlacklist } from "../hooks/useAppSettings";
 import { usePurgeProcessedItems } from "../hooks/useImports";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -18,6 +18,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { DataTable } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -26,13 +27,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-/** Human label for each blacklist match kind, shown on the entry badges + kind picker. */
-const KIND_LABEL: Record<ImportBlacklistKind, string> = {
-  "exact": "url",
-  "domain": "domain",
-  "path-prefix": "path",
-};
 
 /** Derive a normalized blacklist entry from free text (a URL or bare host) for the chosen kind. */
 function entryFromInput(kind: ImportBlacklistKind, raw: string): ImportBlacklistEntry {
@@ -104,30 +98,6 @@ function ImportsBlacklistCard() {
           ? <p className="text-sm text-muted-foreground">Loading…</p>
           : (
             <>
-              {entries.length > 0
-                ? (
-                  <div className="flex flex-wrap gap-2">
-                    {entries.map(entry => (
-                      <Badge
-                        key={`${entry.kind}:${entry.value}`}
-                        variant="secondary"
-                        className="flex items-center gap-1"
-                      >
-                        <span className="text-muted-foreground">{KIND_LABEL[entry.kind]}:</span>
-                        {entry.value}
-                        <button
-                          type="button"
-                          onClick={() => remove(entry)}
-                          aria-label={`Remove ${entry.value}`}
-                          className="hover:opacity-70"
-                        >
-                          <X className="size-3" />
-                        </button>
-                      </Badge>
-                    ))}
-                  </div>
-                )
-                : <p className="text-sm text-muted-foreground">No blocked links yet.</p>}
               <div className="flex max-w-xl flex-wrap gap-2">
                 <Select
                   value={kind}
@@ -166,6 +136,11 @@ function ImportsBlacklistCard() {
                   Add
                 </Button>
               </div>
+              <DataTable<ImportBlacklistEntry>
+                columns={importBlacklistColumns(remove)}
+                data={entries}
+                emptyMessage="No blocked links yet."
+              />
             </>
           )}
       </CardContent>

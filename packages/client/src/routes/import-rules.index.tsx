@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 
 import { AddImportRuleModal } from "../components/AddImportRuleModal";
 import { ImportRulesList } from "../components/ImportRulesList";
@@ -37,6 +37,15 @@ function ImportRulesListPage() {
         <p className="text-sm text-muted-foreground">
           Define rules that evaluate each inbox candidate&apos;s URL. The first matching rule
           automatically approves, rejects, or blocks the item. Unmatched items stay pending.
+          {" "}
+          See also
+          {" "}
+          <Link
+            to="/settings/imports"
+            className="underline"
+          >Import Settings
+          </Link>
+          .
         </p>
       </div>
 
