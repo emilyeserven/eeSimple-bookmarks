@@ -3,6 +3,7 @@ import type {
   BulkDeleteResult,
   CreatePublisherInput,
   Publisher,
+  SocialLink,
   UpdatePublisherInput,
 } from "@eesimple/types";
 import { db } from "@/db";
@@ -34,6 +35,7 @@ function toPublisher(
     website: website ?? null,
     createdAt: row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount,
+    socialLinks: (row.socialLinks as SocialLink[] | null) ?? [],
   };
 }
 
@@ -154,6 +156,9 @@ export async function updatePublisher(id: string, input: UpdatePublisherInput): 
   }
   if ("websiteId" in input) {
     updates.websiteId = input.websiteId ?? null;
+  }
+  if ("socialLinks" in input) {
+    updates.socialLinks = input.socialLinks ?? [];
   }
 
   await db.update(publishers).set(updates).where(eq(publishers.id, id));

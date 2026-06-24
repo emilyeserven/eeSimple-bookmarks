@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import type { CreateAuthorInput, UpdateAuthorInput } from "@eesimple/types";
+import { SOCIAL_MEDIA_PLATFORMS } from "@eesimple/types";
 import {
   fetchAndStoreAuthorImage,
   getAuthorImageRow,
@@ -46,6 +47,25 @@ const createAuthorBody = {
   },
 } as const;
 
+const socialLinksSchema = {
+  type: "array",
+  items: {
+    type: "object",
+    required: ["platform", "url"],
+    additionalProperties: false,
+    properties: {
+      platform: {
+        type: "string",
+        enum: SOCIAL_MEDIA_PLATFORMS,
+      },
+      url: {
+        type: "string",
+        minLength: 1,
+      },
+    },
+  },
+} as const;
+
 const updateAuthorBody = {
   type: "object",
   additionalProperties: false,
@@ -60,6 +80,7 @@ const updateAuthorBody = {
     biographyUrl: {
       type: ["string", "null"],
     },
+    socialLinks: socialLinksSchema,
   },
 } as const;
 

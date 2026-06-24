@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import type { CreateWebsiteInput, UpdateWebsiteInput, WebsiteLookup } from "@eesimple/types";
+import { SOCIAL_MEDIA_PLATFORMS } from "@eesimple/types";
 import {
   fetchAndStoreWebsiteFavicon,
   getWebsiteFaviconRow,
@@ -111,6 +112,25 @@ const createWebsiteBody = {
   },
 } as const;
 
+const socialLinksSchema = {
+  type: "array",
+  items: {
+    type: "object",
+    required: ["platform", "url"],
+    additionalProperties: false,
+    properties: {
+      platform: {
+        type: "string",
+        enum: SOCIAL_MEDIA_PLATFORMS,
+      },
+      url: {
+        type: "string",
+        minLength: 1,
+      },
+    },
+  },
+} as const;
+
 const updateWebsiteBody = {
   type: "object",
   additionalProperties: false,
@@ -139,6 +159,14 @@ const updateWebsiteBody = {
     mediaTypeId: {
       type: ["string", "null"],
       format: "uuid",
+    },
+    socialLinks: socialLinksSchema,
+    youtubeChannelIds: {
+      type: "array",
+      items: {
+        type: "string",
+        format: "uuid",
+      },
     },
   },
 } as const;

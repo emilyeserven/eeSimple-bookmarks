@@ -5,6 +5,7 @@ import type { Publisher } from "@eesimple/types";
 import { PublisherGeneralForm } from "../PublisherGeneralForm";
 
 import { useDeletePublisher, usePublisherBySlug, usePublishers } from "@/hooks/usePublishers";
+import { SOCIAL_MEDIA_PLATFORM_LABELS } from "@/lib/socialLinks";
 
 function PublisherGeneralView({
   entity: publisher,
@@ -37,6 +38,26 @@ function PublisherGeneralView({
           </>
         )
         : null}
+      {publisher.socialLinks.map(link => (
+        <>
+          <dt
+            key={`${link.platform}-label`}
+            className="text-muted-foreground"
+          >
+            {SOCIAL_MEDIA_PLATFORM_LABELS[link.platform]}
+          </dt>
+          <dd key={`${link.platform}-value`}>
+            <a
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline"
+            >
+              {link.url}
+            </a>
+          </dd>
+        </>
+      ))}
     </dl>
   );
 }

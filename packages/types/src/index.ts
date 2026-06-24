@@ -8,10 +8,12 @@
 import type { ConditionMatchField, ConditionMatchOperator, ConditionTree } from "./conditions.js";
 import type { BookmarkSectionsValue, ChoicesDisplayType, ChoicesItem, CustomPropertyType, DateTimeFormat, NumberFormat, SectionEntryType } from "./customProperties.js";
 import type { ImportBlacklistKind } from "./importBlacklist.js";
+import type { SocialLink } from "./socialMedia.js";
 
 export * from "./conditions.js";
 export * from "./customProperties.js";
 export * from "./importBlacklist.js";
+export * from "./socialMedia.js";
 export * from "./urlCleanup.js";
 export * from "./youtube.js";
 
@@ -121,6 +123,10 @@ export interface Website {
   tagIds?: string[];
   /** Default media type id applied to new bookmarks saved from this website, or `null` when unset. */
   mediaTypeId?: string | null;
+  /** Social media links for this website. */
+  socialLinks: SocialLink[];
+  /** Ids of YouTube channels associated with this website. */
+  youtubeChannelIds?: string[];
 }
 
 /** Lightweight website shape carried on a bookmark. */
@@ -150,6 +156,10 @@ export interface UpdateWebsiteInput {
   tagIds?: string[];
   /** Default media type to apply to new bookmarks from this website. `null` clears it; omit to leave unchanged. */
   mediaTypeId?: string | null;
+  /** Social media links for this website. Replaces the full list; omit to leave unchanged. */
+  socialLinks?: SocialLink[];
+  /** Full replacement list of associated YouTube channel ids. Omit to leave unchanged. */
+  youtubeChannelIds?: string[];
 }
 
 /** Result of looking up the website for a URL without creating one — powers the form banner. */
@@ -419,6 +429,8 @@ export interface Publisher {
   createdAt: string;
   /** Distinct bookmarks with this publisher (populated by list endpoints). */
   bookmarkCount?: number;
+  /** Social media links for this publisher. */
+  socialLinks: SocialLink[];
 }
 
 /** Lightweight publisher shape carried on a bookmark. */
@@ -436,6 +448,8 @@ export interface UpdatePublisherInput {
   name?: string;
   /** Id of the website to associate with this publisher; null to clear it. */
   websiteId?: string | null;
+  /** Social media links for this publisher. Replaces the full list; omit to leave unchanged. */
+  socialLinks?: SocialLink[];
 }
 
 /**
@@ -622,6 +636,8 @@ export interface Author {
   authorWebsiteUrl: string | null;
   biographyUrl: string | null;
   imageUrl: string | null;
+  /** Social media links for this author. */
+  socialLinks: SocialLink[];
 }
 
 /** Lightweight author shape carried on a bookmark. */
@@ -637,6 +653,8 @@ export interface UpdateAuthorInput {
   name?: string;
   authorWebsiteUrl?: string | null;
   biographyUrl?: string | null;
+  /** Social media links for this author. Replaces the full list; omit to leave unchanged. */
+  socialLinks?: SocialLink[];
 }
 
 /** Lightweight import shape carried on a bookmark (the import event it was created from). */

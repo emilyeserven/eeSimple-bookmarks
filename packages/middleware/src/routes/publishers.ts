@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import type { CreatePublisherInput, UpdatePublisherInput } from "@eesimple/types";
+import { SOCIAL_MEDIA_PLATFORMS } from "@eesimple/types";
 import {
   bulkDeletePublishers,
   createPublisher,
@@ -48,10 +49,32 @@ const createPublisherBody = {
   },
 } as const;
 
+const socialLinksSchema = {
+  type: "array",
+  items: {
+    type: "object",
+    required: ["platform", "url"],
+    additionalProperties: false,
+    properties: {
+      platform: {
+        type: "string",
+        enum: SOCIAL_MEDIA_PLATFORMS,
+      },
+      url: {
+        type: "string",
+        minLength: 1,
+      },
+    },
+  },
+} as const;
+
 const updatePublisherBody = {
   type: "object",
   additionalProperties: false,
-  properties: createPublisherBody.properties,
+  properties: {
+    ...createPublisherBody.properties,
+    socialLinks: socialLinksSchema,
+  },
 } as const;
 
 /** Routes for the Publishers taxonomy, mounted under `/api/publishers`. */

@@ -1,5 +1,5 @@
 import { asc, count, eq, isNull } from "drizzle-orm";
-import type { Author, CreateAuthorInput, UpdateAuthorInput } from "@eesimple/types";
+import type { Author, CreateAuthorInput, SocialLink, UpdateAuthorInput } from "@eesimple/types";
 import { db } from "@/db";
 import { authorImages, authors, bookmarkAuthors, type AuthorRow } from "@/db/schema";
 import { getAuthorImageRow } from "@/services/authorImages";
@@ -34,6 +34,7 @@ function toAuthor(
     authorWebsiteUrl: row.authorWebsiteUrl ?? null,
     biographyUrl: row.biographyUrl ?? null,
     imageUrl: avatarUrlFrom(row.id, row.avatarCreatedAt ?? null),
+    socialLinks: (row.socialLinks as SocialLink[] | null) ?? [],
   };
 }
 
@@ -50,6 +51,7 @@ export async function listAuthors(): Promise<Author[]> {
       slug: authors.slug,
       authorWebsiteUrl: authors.authorWebsiteUrl,
       biographyUrl: authors.biographyUrl,
+      socialLinks: authors.socialLinks,
       createdAt: authors.createdAt,
       avatarCreatedAt: authorImages.createdAt,
     })
@@ -91,7 +93,7 @@ export async function updateAuthor(id: string, input: UpdateAuthorInput): Promis
   const [existing] = await db.select().from(authors).where(eq(authors.id, id));
   if (!existing) return null;
 
-  const patch: Partial<Pick<AuthorRow, "name" | "slug" | "authorWebsiteUrl" | "biographyUrl">> = {};
+  const patch: Partial<Pick<AuthorRow, "name" | "slug" | "authorWebsiteUrl" | "biographyUrl" | "socialLinks">> = {};
   if (input.name !== undefined && input.name.trim() !== existing.name) {
     const name = input.name.trim();
     const [clash] = await db.select({
@@ -103,6 +105,7 @@ export async function updateAuthor(id: string, input: UpdateAuthorInput): Promis
   }
   if ("authorWebsiteUrl" in input) patch.authorWebsiteUrl = input.authorWebsiteUrl ?? null;
   if ("biographyUrl" in input) patch.biographyUrl = input.biographyUrl ?? null;
+  if ("socialLinks" in input) patch.socialLinks = input.socialLinks ?? [];
 
   if (Object.keys(patch).length === 0) {
     const imageRow = await getAuthorImageRow(id);

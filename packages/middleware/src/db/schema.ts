@@ -1,6 +1,6 @@
 import { relations, sql } from "drizzle-orm";
 import { type AnyPgColumn, boolean, integer, jsonb, pgTable, primaryKey, real, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
-import type { CardFieldZones, CardZoneLayouts, ConditionTree, ImportBlacklistEntry, ShortenedLink, WebsiteParamRule } from "@eesimple/types";
+import type { CardFieldZones, CardZoneLayouts, ConditionTree, ImportBlacklistEntry, ShortenedLink, SocialLink, WebsiteParamRule } from "@eesimple/types";
 
 /** `bookmarks` table — one row per saved bookmark. Tags now live in `bookmark_tags`. */
 export const bookmarks = pgTable("bookmarks", {
@@ -169,6 +169,8 @@ export const websites = pgTable("websites", {
   // applies cleanly to existing rows (push-safe additive change). NULL means never attempted or
   // the last attempt succeeded.
   faviconAutoGrabError: text("favicon_auto_grab_error"),
+  // Social media profile links (X, Instagram, Facebook, …). NOT NULL; pre-applied in migrate.ts.
+  socialLinks: jsonb("social_links").$type<SocialLink[]>().notNull().default(sql`'[]'::jsonb`),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
@@ -220,6 +222,8 @@ export const publishers = pgTable("publishers", {
   websiteId: uuid("website_id").references((): AnyPgColumn => websites.id, {
     onDelete: "set null",
   }),
+  // Social media profile links. NOT NULL; pre-applied in migrate.ts.
+  socialLinks: jsonb("social_links").$type<SocialLink[]>().notNull().default(sql`'[]'::jsonb`),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
@@ -368,6 +372,20 @@ export const youtubeChannelTags = pgTable("youtube_channel_tags", {
 }, table => [
   primaryKey({
     columns: [table.channelId, table.tagId],
+  }),
+]);
+
+/** `website_youtube_channels` join — YouTube channels associated with a website. Brand-new table; push-safe additive. */
+export const websiteYoutubeChannels = pgTable("website_youtube_channels", {
+  websiteId: uuid("website_id").notNull().references(() => websites.id, {
+    onDelete: "cascade",
+  }),
+  channelId: uuid("channel_id").notNull().references(() => youtubeChannels.id, {
+    onDelete: "cascade",
+  }),
+}, table => [
+  primaryKey({
+    columns: [table.websiteId, table.channelId],
   }),
 ]);
 
@@ -1709,6 +1727,8 @@ export const authors = pgTable("authors", {
   slug: text("slug"),
   authorWebsiteUrl: text("author_website_url"),
   biographyUrl: text("biography_url"),
+  // Social media profile links. NOT NULL; pre-applied in migrate.ts.
+  socialLinks: jsonb("social_links").$type<SocialLink[]>().notNull().default(sql`'[]'::jsonb`),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
