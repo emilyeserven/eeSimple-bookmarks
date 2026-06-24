@@ -3,7 +3,7 @@ import type { Category, ConditionTree, CustomProperty, TagNode } from "@eesimple
 
 import { CollapsibleFormSection } from "./CollapsibleFormSection";
 import { ConditionsField } from "./conditions/ConditionsField";
-import { conditionsSummaryLabel } from "./conditions/summarizeConditions";
+import { conditionsDetailedLabel } from "./conditions/summarizeConditions";
 import { SectionDisplaySettings } from "./SectionDisplaySettings";
 import { sectionDisplayPreview } from "../lib/sectionDisplayPreview";
 
@@ -118,7 +118,7 @@ export function HomepageSectionFields({
         title="Filter"
         description="Choose which bookmarks appear in this section. Combine conditions with AND/OR."
         defaultOpen={filterDefaultOpen}
-        preview={conditionsSummaryLabel(conditions)}
+        preview={conditionsDetailedLabel(conditions)}
       >
         <ConditionsField
           value={conditions}

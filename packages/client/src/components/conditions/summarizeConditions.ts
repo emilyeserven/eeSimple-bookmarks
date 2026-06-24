@@ -62,6 +62,16 @@ export function conditionsSummaryLabel(tree: ConditionTree): string {
   return `${total} filter condition${total === 1 ? "" : "s"} (${tree.combinator.toUpperCase()})`;
 }
 
+/**
+ * One-line per-type breakdown label, e.g. `"2 title matches · 3 categories"`.
+ * Falls back to `"No conditions set"` for an empty tree.
+ * Matches the Autofill-style collapsed preview.
+ */
+export function conditionsDetailedLabel(tree: ConditionTree): string {
+  const parts = conditionsBreakdown(tree);
+  return parts.length > 0 ? parts.join(" · ") : "No conditions set";
+}
+
 /** Human-readable per-type breakdown lines (only non-empty types), e.g. `["2 match", "3 categories"]`. */
 export function conditionsBreakdown(tree: ConditionTree): string[] {
   const summary = summarizeConditions(tree);
