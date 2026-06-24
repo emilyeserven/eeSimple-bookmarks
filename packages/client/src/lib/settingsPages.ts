@@ -12,6 +12,7 @@ import {
   LayoutGrid,
   LayoutTemplate,
   Link2,
+  Link2Off,
   Monitor,
   MonitorPlay,
   PanelRight,
@@ -89,6 +90,11 @@ export const SETTINGS_PAGES: readonly SettingsPage[] = [
     path: "/settings/link-parsing",
     label: "Link Parsing",
     icon: Link2,
+  },
+  {
+    path: "/settings/redirect-failures",
+    label: "Redirect Failures",
+    icon: Link2Off,
   },
   {
     path: "/settings/imports",

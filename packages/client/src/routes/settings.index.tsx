@@ -6,6 +6,7 @@ import {
   Inbox,
   LayoutTemplate,
   Link2,
+  Link2Off,
   Monitor,
   PanelRight,
   Puzzle,
@@ -71,6 +72,12 @@ const SETTINGS_TILES = [
     description: "Configure URL parsing and link shorteners.",
     icon: Link2,
     to: "/settings/link-parsing" as const,
+  },
+  {
+    label: "Redirect Failures",
+    description: "Fix bookmarks from sites with unreliable redirect resolution.",
+    icon: Link2Off,
+    to: "/settings/redirect-failures" as const,
   },
   {
     label: "Import Settings",

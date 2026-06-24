@@ -171,6 +171,9 @@ export const websites = pgTable("websites", {
   faviconAutoGrabError: text("favicon_auto_grab_error"),
   // Social media profile links (X, Instagram, Facebook, …). NOT NULL; pre-applied in migrate.ts.
   socialLinks: jsonb("social_links").$type<SocialLink[]>().notNull().default(sql`'[]'::jsonb`),
+  // Flags this site as having unreliable redirect resolution. When true, its bookmarks appear in
+  // Settings → Redirect Failures for URL correction. NOT NULL; pre-applied in migrate.ts.
+  redirectResolutionFailure: boolean("redirect_resolution_failure").notNull().default(false),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),

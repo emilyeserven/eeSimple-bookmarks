@@ -1,9 +1,9 @@
 import { and, asc, eq, inArray, isNull, ne, or, sql } from "drizzle-orm";
-import type { BulkDeleteResult, CreateWebsiteInput, ShortenedLink, SocialLink, UpdateWebsiteInput, Website, WebsiteParamRule } from "@eesimple/types";
+import type { BulkDeleteResult, CreateWebsiteInput, RedirectFailureBookmark, RedirectFailureWebsite, ShortenedLink, SocialLink, UpdateWebsiteInput, Website, WebsiteParamRule } from "@eesimple/types";
 import { getShortenerIgnoreList } from "@/services/appSettings";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { db } from "@/db";
-import { bookmarks, categories, websiteFavicons, websiteTags, websites, websiteYoutubeChannels, type WebsiteRow } from "@/db/schema";
+import { bookmarkImages, bookmarks, categories, websiteFavicons, websiteTags, websites, websiteYoutubeChannels, type WebsiteRow } from "@/db/schema";
 import { buildStringMap } from "@/utils/mapUtils";
 import { slugify } from "@/utils/slug";
 
@@ -209,6 +209,7 @@ function toWebsite(
     mediaTypeId: row.mediaTypeId ?? null,
     socialLinks: (row.socialLinks as SocialLink[] | null) ?? [],
     youtubeChannelIds,
+    redirectResolutionFailure: row.redirectResolutionFailure ?? false,
   };
 }
 
@@ -226,6 +227,7 @@ const websiteSelect = {
   categoryId: websites.categoryId,
   mediaTypeId: websites.mediaTypeId,
   faviconAutoGrabError: websites.faviconAutoGrabError,
+  redirectResolutionFailure: websites.redirectResolutionFailure,
   faviconCreatedAt: websiteFavicons.createdAt,
   categoryName: categories.name,
   categorySlug: categories.slug,
@@ -507,7 +509,7 @@ export async function updateWebsite(
     }
   }
 
-  const patch: Partial<Pick<WebsiteRow, "domain" | "siteName" | "slug" | "shortenedLinks" | "paramRules" | "categoryId" | "mediaTypeId" | "socialLinks">> = {};
+  const patch: Partial<Pick<WebsiteRow, "domain" | "siteName" | "slug" | "shortenedLinks" | "paramRules" | "categoryId" | "mediaTypeId" | "socialLinks" | "redirectResolutionFailure">> = {};
   if (input.siteName !== undefined) patch.siteName = input.siteName;
   // Rule fields stay editable even on built-ins (only rename/move/delete are blocked above).
   if (input.shortenedLinks !== undefined) patch.shortenedLinks = input.shortenedLinks;
@@ -531,6 +533,9 @@ export async function updateWebsite(
   }
   if ("socialLinks" in input) {
     patch.socialLinks = input.socialLinks ?? [];
+  }
+  if ("redirectResolutionFailure" in input) {
+    patch.redirectResolutionFailure = input.redirectResolutionFailure ?? false;
   }
 
   if (Object.keys(patch).length > 0) {
@@ -612,6 +617,60 @@ export async function ensureBuiltInWebsites(): Promise<void> {
         sql`${websites.paramRules} = '[]'::jsonb`,
       ));
   }
+}
+
+/**
+ * Return websites flagged for redirect resolution failure, each with their associated bookmarks
+ * (id, url, title, description, imageUrl). Ordered by site name; bookmarks ordered by title.
+ */
+export async function listRedirectFailureWebsites(): Promise<RedirectFailureWebsite[]> {
+  const flaggedRows = await db
+    .select(websiteSelect)
+    .from(websites)
+    .leftJoin(websiteFavicons, eq(websiteFavicons.websiteId, websites.id))
+    .leftJoin(categories, eq(categories.id, websites.categoryId))
+    .where(eq(websites.redirectResolutionFailure, true))
+    .orderBy(asc(websites.siteName));
+
+  if (flaggedRows.length === 0) return [];
+
+  const websiteIds = flaggedRows.map(r => r.id);
+  const bookmarkRows = await db
+    .select({
+      id: bookmarks.id,
+      url: bookmarks.url,
+      title: bookmarks.title,
+      description: bookmarks.description,
+      websiteId: bookmarks.websiteId,
+      imageObjectKey: bookmarkImages.objectKey,
+    })
+    .from(bookmarks)
+    .leftJoin(bookmarkImages, eq(bookmarkImages.bookmarkId, bookmarks.id))
+    .where(inArray(bookmarks.websiteId, websiteIds))
+    .orderBy(asc(bookmarks.title));
+
+  const bookmarksByWebsite = new Map<string, RedirectFailureBookmark[]>();
+  for (const bm of bookmarkRows) {
+    if (!bm.websiteId) continue;
+    const list = bookmarksByWebsite.get(bm.websiteId) ?? [];
+    list.push({
+      id: bm.id,
+      url: bm.url,
+      title: bm.title,
+      description: bm.description,
+      imageUrl: bm.imageObjectKey ? `/api/bookmarks/${bm.id}/image` : null,
+    });
+    bookmarksByWebsite.set(bm.websiteId, list);
+  }
+
+  return flaggedRows.map(site => ({
+    id: site.id,
+    domain: site.domain,
+    siteName: site.siteName,
+    slug: site.slug ?? slugFromDomain(site.domain),
+    imageUrl: faviconUrlFrom(site.id, site.faviconCreatedAt ?? null),
+    bookmarks: bookmarksByWebsite.get(site.id) ?? [],
+  }));
 }
 
 /** Fill in slugs for any websites missing one (e.g. rows that predate the `slug` column). */

@@ -14,6 +14,7 @@ import {
   deleteWebsite,
   DuplicateDomainError,
   InvalidDomainError,
+  listRedirectFailureWebsites,
   listWebsites,
   lookupWebsiteByUrl,
   updateWebsite,
@@ -168,6 +169,9 @@ const updateWebsiteBody = {
         format: "uuid",
       },
     },
+    redirectResolutionFailure: {
+      type: "boolean",
+    },
   },
 } as const;
 
@@ -202,6 +206,12 @@ export async function websiteRoutes(app: FastifyInstance): Promise<void> {
     };
     return result;
   });
+
+  app.get("/api/websites/redirect-failures", {
+    schema: {
+      tags: ["websites"],
+    },
+  }, async () => listRedirectFailureWebsites());
 
   app.post("/api/websites", {
     schema: {

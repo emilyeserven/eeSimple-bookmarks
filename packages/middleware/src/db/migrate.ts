@@ -656,6 +656,17 @@ const migrations: RuntimeMigration[] = [
         ADD COLUMN IF NOT EXISTS "ai_summarization_prompt" text NOT NULL DEFAULT ''
     `),
   },
+  {
+    // `websites.redirect_resolution_failure` flags sites whose redirect chains resolve unreliably.
+    // NOT NULL DEFAULT false on the populated `websites` table makes drizzle-kit push prompt (the
+    // same non-TTY crash as the other NOT NULL column cases above), so pre-apply it here to keep
+    // push's diff additive-only.
+    name: "add websites.redirect_resolution_failure column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "websites"
+        ADD COLUMN IF NOT EXISTS "redirect_resolution_failure" boolean NOT NULL DEFAULT false
+    `),
+  },
 ];
 
 async function main(): Promise<void> {
