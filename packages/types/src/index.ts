@@ -757,6 +757,8 @@ export interface Bookmark {
   dateTimeValues: BookmarkDateTimeValue[];
   /** Choices custom property values assigned to this bookmark. */
   choicesValues: BookmarkChoicesValue[];
+  /** Item-in-items custom property values assigned to this bookmark. */
+  progressValues: BookmarkProgressValue[];
   /**
    * Image/file custom property values assigned to this bookmark. Unlike the scalar value arrays,
    * these are NOT part of `CreateBookmarkInput`/`UpdateBookmarkInput`: the blobs are uploaded
@@ -794,6 +796,8 @@ export interface CreateBookmarkInput {
   dateTimeValues?: BookmarkDateTimeValue[];
   /** Choices custom property values to assign. */
   choicesValues?: BookmarkChoicesValue[];
+  /** Item-in-items custom property values to assign. */
+  progressValues?: BookmarkProgressValue[];
   /** Homepage ordering weight; higher values appear first. */
   priority?: number;
   /** Friendly name for the website when it doesn't exist yet; ignored for existing sites. */
@@ -1417,6 +1421,12 @@ export interface CustomProperty {
   choicesDisplay: ChoicesDisplayType | null;
   /** When true, a `choices` property allows selecting multiple values. Only relevant for `choices`. */
   choicesMultiple: boolean;
+  /** Text shown before the `current` number for an `itemInItems` property (e.g. `""`). */
+  itemInItemsBeforeText: string | null;
+  /** Text shown between the `current` and `total` numbers for an `itemInItems` property (e.g. `" of "`). */
+  itemInItemsBetweenText: string | null;
+  /** Text shown after the `total` number for an `itemInItems` property (e.g. `" pages"`). */
+  itemInItemsAfterText: string | null;
   createdAt: string;
 }
 
@@ -1488,6 +1498,12 @@ export interface CreateCustomPropertyInput {
   choicesDisplay?: ChoicesDisplayType | null;
   /** When true, a `choices` property allows selecting multiple values. Defaults to false. */
   choicesMultiple?: boolean;
+  /** Text shown before the `current` number for an `itemInItems` property. */
+  itemInItemsBeforeText?: string | null;
+  /** Text shown between the `current` and `total` numbers for an `itemInItems` property. */
+  itemInItemsBetweenText?: string | null;
+  /** Text shown after the `total` number for an `itemInItems` property. */
+  itemInItemsAfterText?: string | null;
 }
 
 /** Payload for updating a custom property. Its `type` is immutable. */
@@ -1564,6 +1580,15 @@ export interface BookmarkChoicesValue {
   propertyId: string;
   /** The selected choice values (slugified keys from {@link ChoicesItem.value}). */
   values: string[];
+}
+
+/** An `itemInItems` custom property value carried on a bookmark (e.g. "10 of 100 pages"). */
+export interface BookmarkProgressValue {
+  propertyId: string;
+  /** The "current" count (e.g. pages read). */
+  current: number;
+  /** The "total" count (e.g. total pages). */
+  total: number;
 }
 
 /**

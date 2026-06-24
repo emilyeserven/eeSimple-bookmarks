@@ -134,6 +134,24 @@ function BasicOptionsFields({
   return <AllowDefaultField property={property} />;
 }
 
+/** Item-in-items option fields: the configured text segments shown around the two numbers. */
+function ItemInItemsOptionsFields({
+  property,
+}: PropertyOptionsFieldsProps) {
+  const before = property.itemInItemsBeforeText ?? "";
+  const between = property.itemInItemsBetweenText ?? " of ";
+  const after = property.itemInItemsAfterText ?? "";
+  return (
+    <>
+      <DetailField label="Format preview">{`${before}10${between}100${after}`}</DetailField>
+      {before ? <DetailField label="Text before">{before}</DetailField> : null}
+      <DetailField label="Text between">{between}</DetailField>
+      {after ? <DetailField label="Text after">{after}</DetailField> : null}
+      <AllowDefaultField property={property} />
+    </>
+  );
+}
+
 /** Choices option fields: display type, selection mode, and the defined choices. */
 function ChoicesOptionsFields({
   property,
@@ -185,6 +203,7 @@ const OPTIONS_FIELDS: Record<CustomPropertyType, FC<PropertyOptionsFieldsProps> 
   image: BasicOptionsFields,
   file: BasicOptionsFields,
   choices: ChoicesOptionsFields,
+  itemInItems: ItemInItemsOptionsFields,
 };
 
 /** The "Property options" section body; renders nothing for calculate properties. */

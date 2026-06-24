@@ -1,4 +1,4 @@
-import type { Bookmark } from "@eesimple/types";
+import type { Bookmark, BookmarkProgressValue } from "@eesimple/types";
 
 /** An active number-range filter for one number/calculate custom property. */
 export interface NumberFilter {
@@ -33,10 +33,13 @@ export function bookmarkMatchesFilters(
   numberFilters: NumberFilter[],
   booleanFilters: BooleanFilter[],
   dateTimeFilters: DateTimeFilter[] = [],
+  progressValues: BookmarkProgressValue[] = [],
 ): boolean {
   for (const filter of numberFilters) {
     const entry = bookmark.numberValues.find(value => value.propertyId === filter.propertyId);
-    if (!entry || entry.value < filter.lo || entry.value > filter.hi) return false;
+    // Fall back to progress `current` for itemInItems properties.
+    const value = entry?.value ?? progressValues.find(v => v.propertyId === filter.propertyId)?.current;
+    if (value === undefined || value < filter.lo || value > filter.hi) return false;
   }
 
   for (const filter of booleanFilters) {

@@ -11,6 +11,7 @@ export function propertyValueKind(property: CustomProperty): ConditionValueKind 
     case "number":
     case "calculate":
     case "ratingScale":
+    case "itemInItems":
       return "number";
     case "datetime":
       return "datetime";

@@ -28,7 +28,7 @@
  *   Rendered as checkbox, radio button, combobox, or dropdown depending on {@link ChoicesDisplayType}.
  */
 export const CUSTOM_PROPERTY_TYPES = [
-  "number", "boolean", "calculate", "datetime", "ratingScale", "image", "file", "choices",
+  "number", "boolean", "calculate", "datetime", "ratingScale", "image", "file", "choices", "itemInItems",
 ] as const;
 
 /** The kind of a user-defined custom property. Derived from {@link CUSTOM_PROPERTY_TYPES}. */
@@ -44,6 +44,7 @@ export const CUSTOM_PROPERTY_TYPE_LABELS: Record<CustomPropertyType, string> = {
   image: "Image",
   file: "File",
   choices: "Choices",
+  itemInItems: "Item in Items",
 };
 
 /**

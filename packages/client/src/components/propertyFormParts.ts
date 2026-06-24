@@ -19,6 +19,7 @@ export {
   RATING_MAX_OPTIONS,
   summarizeBooleanOptions,
   summarizeCategories,
+  summarizeItemInItemsOptions,
   summarizeMediaTypes,
   summarizeNumberOptions,
   summarizeRatingOptions,

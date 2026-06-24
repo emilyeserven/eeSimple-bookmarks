@@ -4,6 +4,7 @@ import type { Bookmark, CardFieldZones, ChoicesItem, ChoicesDisplayType, CustomP
 import { resolveBooleanDisplay } from "./bookmarkCardValues";
 import { formatBoolean, formatDateTime, formatNumber } from "./bookmarkFormat";
 import { buildPropertyQuickSearch } from "./bookmarkPropertyQuickFilter";
+import { formatProgressValue } from "./propertyFormat";
 
 export interface NumberPropertyRow {
   id: string;
@@ -65,6 +66,16 @@ export interface ChoicesPropertyRow {
   search: BookmarkSearch;
 }
 
+export interface ProgressPropertyRow {
+  id: string;
+  name: string;
+  groupId: string | null;
+  current: number;
+  total: number;
+  formatted: string;
+  search: BookmarkSearch;
+}
+
 export interface BookmarkPropertyRows {
   numberRows: NumberPropertyRow[];
   ratingRows: RatingPropertyRow[];
@@ -72,13 +83,14 @@ export interface BookmarkPropertyRows {
   dateTimeRows: DateTimePropertyRow[];
   fileRows: FilePropertyRow[];
   choicesRows: ChoicesPropertyRow[];
+  progressRows: ProgressPropertyRow[];
 }
 
 /** True when at least one property row across all kinds is present. */
 export function hasAnyPropertyRow(rows: BookmarkPropertyRows): boolean {
   return rows.numberRows.length > 0 || rows.ratingRows.length > 0
     || rows.booleanRows.length > 0 || rows.dateTimeRows.length > 0 || rows.fileRows.length > 0
-    || rows.choicesRows.length > 0;
+    || rows.choicesRows.length > 0 || rows.progressRows.length > 0;
 }
 
 /**
@@ -203,6 +215,23 @@ export function buildBookmarkPropertyRows(
     })
     .filter((row): row is ChoicesPropertyRow => row !== null);
 
+  const progressRows = bookmark.progressValues
+    .map((entry): ProgressPropertyRow | null => {
+      const property = byId.get(entry.propertyId);
+      return property && property.type === "itemInItems"
+        ? {
+          id: entry.propertyId,
+          name: property.name,
+          groupId: property.propertyGroupId,
+          current: entry.current,
+          total: entry.total,
+          formatted: formatProgressValue(entry, property),
+          search: buildPropertyQuickSearch(property, formatProgressValue(entry, property)),
+        }
+        : null;
+    })
+    .filter((row): row is ProgressPropertyRow => row !== null);
+
   return {
     numberRows,
     ratingRows,
@@ -210,5 +239,6 @@ export function buildBookmarkPropertyRows(
     dateTimeRows,
     fileRows,
     choicesRows,
+    progressRows,
   };
 }

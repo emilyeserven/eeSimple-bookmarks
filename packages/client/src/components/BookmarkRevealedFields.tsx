@@ -87,10 +87,13 @@ interface BookmarkRevealedFieldsProps {
   booleanInputs: Record<string, boolean>;
   dateTimeInputs: Record<string, string>;
   choicesInputs: Record<string, string[]>;
+  progressInputs: Record<string, { current: string;
+    total: string; }>;
   onNumberChange: (id: string, value: string) => void;
   onBooleanChange: (id: string, value: boolean) => void;
   onDateTimeChange: (id: string, value: string) => void;
   onChoicesChange: (id: string, values: string[]) => void;
+  onProgressChange: (id: string, field: "current" | "total", value: string) => void;
 
   // Advanced section.
   categories: Category[];
@@ -171,10 +174,12 @@ export function BookmarkRevealedFields(props: BookmarkRevealedFieldsProps) {
           booleanInputs: props.booleanInputs,
           dateTimeInputs: props.dateTimeInputs,
           choicesInputs: props.choicesInputs,
+          progressInputs: props.progressInputs,
           onNumberChange: props.onNumberChange,
           onBooleanChange: props.onBooleanChange,
           onDateTimeChange: props.onDateTimeChange,
           onChoicesChange: props.onChoicesChange,
+          onProgressChange: props.onProgressChange,
           onApplyCategoryDefaults: props.onApplyCategoryDefaults,
         }}
         isFetchDescriptionPending={props.isFetchMetadataPending}

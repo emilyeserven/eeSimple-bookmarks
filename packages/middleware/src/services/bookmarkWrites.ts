@@ -4,6 +4,7 @@ import type {
   BookmarkChoicesValue,
   BookmarkDateTimeValue,
   BookmarkNumberValue,
+  BookmarkProgressValue,
 } from "@eesimple/types";
 import { db } from "@/db";
 import {
@@ -12,6 +13,7 @@ import {
   bookmarkChoicesValues,
   bookmarkDateTimeValues,
   bookmarkNumberValues,
+  bookmarkProgressValues,
   bookmarkTags,
   calculatePropertyOperands,
   customProperties,
@@ -91,6 +93,21 @@ export async function setChoicesValues(
     bookmarkId,
     propertyId: entry.propertyId,
     values: entry.values,
+  })));
+}
+
+/** Insert item-in-items custom-property values for a bookmark (no-op when empty). */
+export async function setProgressValues(
+  tx: Tx,
+  bookmarkId: string,
+  progressValues: BookmarkProgressValue[] | undefined,
+): Promise<void> {
+  if (!progressValues || progressValues.length === 0) return;
+  await tx.insert(bookmarkProgressValues).values(progressValues.map(entry => ({
+    bookmarkId,
+    propertyId: entry.propertyId,
+    current: entry.current,
+    total: entry.total,
   })));
 }
 

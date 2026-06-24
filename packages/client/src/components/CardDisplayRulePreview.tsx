@@ -6,6 +6,7 @@ import type {
   BookmarkDateTimeValue,
   BookmarkFileValue,
   BookmarkNumberValue,
+  BookmarkProgressValue,
   ConditionTree,
   CustomProperty,
 } from "@eesimple/types";
@@ -53,12 +54,14 @@ function samplePropertyValues(properties: CustomProperty[]): {
   dateTimeValues: BookmarkDateTimeValue[];
   fileValues: BookmarkFileValue[];
   choicesValues: BookmarkChoicesValue[];
+  progressValues: BookmarkProgressValue[];
 } {
   const numberValues: BookmarkNumberValue[] = [];
   const booleanValues: BookmarkBooleanValue[] = [];
   const dateTimeValues: BookmarkDateTimeValue[] = [];
   const fileValues: BookmarkFileValue[] = [];
   const choicesValues: BookmarkChoicesValue[] = [];
+  const progressValues: BookmarkProgressValue[] = [];
 
   for (const property of properties) {
     if (!property.showInListings) continue;
@@ -117,6 +120,13 @@ function samplePropertyValues(properties: CustomProperty[]): {
           });
         }
         break;
+      case "itemInItems":
+        progressValues.push({
+          propertyId: property.id,
+          current: 10,
+          total: 100,
+        });
+        break;
       default:
         break;
     }
@@ -128,6 +138,7 @@ function samplePropertyValues(properties: CustomProperty[]): {
     dateTimeValues,
     fileValues,
     choicesValues,
+    progressValues,
   };
 }
 

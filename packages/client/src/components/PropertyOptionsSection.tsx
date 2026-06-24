@@ -11,6 +11,7 @@ import {
   OperandCheckboxList,
   RATING_MAX_OPTIONS,
   summarizeBooleanOptions,
+  summarizeItemInItemsOptions,
   summarizeNumberOptions,
   summarizeRatingOptions,
   toggleId,
@@ -182,6 +183,16 @@ export function PropertyOptionsSection({
         if (type === "choices") {
           return (
             <ChoicesOptions
+              form={form}
+              idPrefix={idPrefix}
+              defaultOpen={defaultOpen}
+              full={full}
+            />
+          );
+        }
+        if (type === "itemInItems") {
+          return (
+            <ItemInItemsOptions
               form={form}
               idPrefix={idPrefix}
               defaultOpen={defaultOpen}
@@ -779,6 +790,73 @@ function RatingOptions({
             </form.Subscribe>
           </div>
 
+          <AllowDefaultField
+            form={form}
+            idPrefix={idPrefix}
+            className="space-y-1"
+          />
+        </div>
+      </CollapsibleFormSection>
+    </>
+  );
+}
+
+function ItemInItemsOptions({
+  form,
+  idPrefix,
+  defaultOpen,
+  full,
+}: {
+  form: PropertyFormApi;
+  idPrefix: string;
+  defaultOpen: boolean;
+  full: boolean;
+}) {
+  return (
+    <>
+      {full ? <Separator /> : null}
+
+      <CollapsibleFormSection
+        title="Property options"
+        description="Configure the text shown before, between, and after the two numbers."
+        defaultOpen={defaultOpen}
+        preview={(
+          <form.Subscribe
+            selector={state => ({
+              itemInItemsBeforeText: state.values.itemInItemsBeforeText,
+              itemInItemsBetweenText: state.values.itemInItemsBetweenText,
+              itemInItemsAfterText: state.values.itemInItemsAfterText,
+            })}
+          >
+            {values => summarizeItemInItemsOptions(values)}
+          </form.Subscribe>
+        )}
+      >
+        <div className="space-y-4">
+          <form.AppField name="itemInItemsBeforeText">
+            {field => (
+              <field.TextField
+                label="Text before current"
+                placeholder="e.g. Page (leave blank for none)"
+              />
+            )}
+          </form.AppField>
+          <form.AppField name="itemInItemsBetweenText">
+            {field => (
+              <field.TextField
+                label="Text between numbers"
+                placeholder="e.g. &#32;of&#32;"
+              />
+            )}
+          </form.AppField>
+          <form.AppField name="itemInItemsAfterText">
+            {field => (
+              <field.TextField
+                label="Text after total"
+                placeholder="e.g. &#32;pages"
+              />
+            )}
+          </form.AppField>
           <AllowDefaultField
             form={form}
             idPrefix={idPrefix}

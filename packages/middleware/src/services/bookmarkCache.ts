@@ -8,6 +8,7 @@ import {
   bookmarkDateTimeValues,
   bookmarkFileValues,
   bookmarkNumberValues,
+  bookmarkProgressValues,
   bookmarkRelationships,
   bookmarks,
   type BookmarkRow,
@@ -99,7 +100,7 @@ async function buildConditionInputs(
   const ids = baseRows.map(row => row.id);
   if (ids.length === 0) return new Map();
 
-  const [tagRows, numberRows, booleanRows, dateTimeRows, choicesRows, fileRows, relationshipRows] = await Promise.all([
+  const [tagRows, numberRows, booleanRows, dateTimeRows, choicesRows, fileRows, progressRows, relationshipRows] = await Promise.all([
     db
       .select({
         bookmarkId: bookmarkTags.bookmarkId,
@@ -146,6 +147,14 @@ async function buildConditionInputs(
       })
       .from(bookmarkFileValues)
       .where(inArray(bookmarkFileValues.bookmarkId, ids)),
+    db
+      .select({
+        bookmarkId: bookmarkProgressValues.bookmarkId,
+        propertyId: bookmarkProgressValues.propertyId,
+        current: bookmarkProgressValues.current,
+      })
+      .from(bookmarkProgressValues)
+      .where(inArray(bookmarkProgressValues.bookmarkId, ids)),
     db
       .select({
         bookmarkAId: bookmarkRelationships.bookmarkAId,
@@ -201,6 +210,13 @@ async function buildConditionInputs(
     const s = filesByBid.get(r.bookmarkId) ?? new Set<string>();
     s.add(r.propertyId);
     filesByBid.set(r.bookmarkId, s);
+  }
+
+  // Merge progress `current` values into numberValues so itemInItems filters like a number.
+  for (const r of progressRows) {
+    const m = numsByBid.get(r.bookmarkId) ?? new Map<string, number>();
+    m.set(r.propertyId, r.current);
+    numsByBid.set(r.bookmarkId, m);
   }
 
   // A bookmark "has" a relationship type if it sits on either side of an edge of that type.
