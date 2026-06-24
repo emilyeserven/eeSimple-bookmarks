@@ -130,6 +130,33 @@ export function PropertyDisplaySection({
                 </div>
               )}
         </form.Subscribe>
+        <form.Subscribe selector={state => state.values.type}>
+          {type =>
+            ["calculate", "image", "file", "itemInItems", "sections"].includes(type)
+              ? null
+              : (
+                <div className="space-y-2 border-t pt-3">
+                  <span className="text-sm font-medium">Inbox</span>
+                  <form.AppField name="enabledInInbox">
+                    {field => (
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          id={`${idPrefix}-enabled-in-inbox`}
+                          checked={field.state.value}
+                          onCheckedChange={checked => field.handleChange(checked === true)}
+                        />
+                        <Label htmlFor={`${idPrefix}-enabled-in-inbox`}>
+                          Inbox pre-fill defaults
+                        </Label>
+                      </div>
+                    )}
+                  </form.AppField>
+                  <p className="text-xs text-muted-foreground">
+                    Lets you pre-fill this property&apos;s value in the Inbox review page.
+                  </p>
+                </div>
+              )}
+        </form.Subscribe>
       </LabeledSection>
 
       <AddPropertyGroupModal

@@ -11,6 +11,7 @@ import type {
   ImportItem,
   ImportSummary,
   InboxItem,
+  InboxPreFillDefaults,
   IngestPasteInput,
   IngestUrlInput,
   Newsletter,
@@ -75,9 +76,16 @@ export const importApi = {
       method: "PATCH",
       body: JSON.stringify(input),
     }),
-  approveItem: (itemId: string) =>
+  approveItem: (itemId: string, preFill?: InboxPreFillDefaults) =>
     request<ImportApproveResult>(`/imports/items/${itemId}/approve`, {
       method: "POST",
+      ...(preFill
+        ? {
+          body: JSON.stringify({
+            preFill,
+          }),
+        }
+        : {}),
     }),
   approveImport: (importId: string) =>
     request<ImportApproveResult[]>(`/imports/${importId}/approve`, {

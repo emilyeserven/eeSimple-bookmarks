@@ -1,6 +1,7 @@
 import type {
   ImportApproveResult,
   InboxItem,
+  InboxPreFillDefaults,
   ViewMode,
 } from "@eesimple/types";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -10,6 +11,7 @@ import { useState } from "react";
 
 import { ChevronDown, ExternalLink, Trash2 } from "lucide-react";
 
+import { InboxPreFillBox } from "./InboxPreFillBox";
 import {
   RowActions,
   StatusBadge,
@@ -52,8 +54,10 @@ function notifyApprove(result: ImportApproveResult): void {
 function ReviewRow({
   item,
   onDismiss,
+  preFill,
 }: { item: InboxItem;
-  onDismiss?: (id: string) => void; }) {
+  onDismiss?: (id: string) => void;
+  preFill?: InboxPreFillDefaults; }) {
   const {
     data: categories = [],
   } = useCategories();
@@ -66,7 +70,10 @@ function ReviewRow({
   } = useSwipeGesture(
     () => {
       onDismiss?.(item.id);
-      approve.mutate(item.id, {
+      approve.mutate({
+        itemId: item.id,
+        preFill,
+      }, {
         onSuccess: notifyApprove,
       });
     },
@@ -81,6 +88,12 @@ function ReviewRow({
   const muted = item.status === "rejected" || item.status === "approved"
     || item.status === "duplicate" || item.status === "blocked";
   const categoryName = categories.find(c => c.id === item.categoryId)?.name ?? null;
+  const rowActions = (
+    <RowActions
+      item={item}
+      preFill={preFill}
+    />
+  );
 
   if (isMobile && item.status === "pending") {
     const swipeRight = displacement >= 80;
@@ -111,7 +124,7 @@ function ReviewRow({
             categoryName={categoryName}
             contextOpen={contextOpen}
             onContextOpenChange={setContextOpen}
-            trailing={<RowActions item={item} />}
+            trailing={rowActions}
           />
         </RowCard>
       </div>
@@ -130,7 +143,7 @@ function ReviewRow({
         categoryName={categoryName}
         contextOpen={contextOpen}
         onContextOpenChange={setContextOpen}
-        trailing={<RowActions item={item} />}
+        trailing={rowActions}
       />
     </RowCard>
   );
@@ -300,13 +313,14 @@ function NewsletterContextBlock({
  * Processed/Pending section doesn't render a stray table header.
  */
 function InboxItemsView({
-  items, viewMode, columns, emptyMessage, onDismiss,
+  items, viewMode, columns, emptyMessage, onDismiss, preFill,
 }: {
   items: InboxItem[];
   viewMode: ViewMode;
   columns: ColumnDef<InboxItem>[];
   emptyMessage: string;
   onDismiss?: (id: string) => void;
+  preFill?: InboxPreFillDefaults;
 }) {
   if (items.length === 0) {
     return <p className="text-sm text-muted-foreground">{emptyMessage}</p>;
@@ -328,6 +342,7 @@ function InboxItemsView({
           <ReviewRow
             item={item}
             onDismiss={onDismiss}
+            preFill={preFill}
           />
         </li>
       ))}
@@ -447,10 +462,18 @@ export function InboxReviewList({
     dismissItem,
     processedHidden,
     toggleProcessedHidden,
+    preFill,
+    setPreFill,
+    resetPreFill,
   } = controller;
 
   return (
     <div className="space-y-6">
+      <InboxPreFillBox
+        preFill={preFill}
+        setPreFill={setPreFill}
+        onReset={resetPreFill}
+      />
       <section className="space-y-2">
         <h2 className="text-sm font-semibold">Pending ({pendingItems.length})</h2>
         <InboxItemsView
@@ -459,6 +482,7 @@ export function InboxReviewList({
           columns={columns}
           emptyMessage="No pending items."
           onDismiss={dismissItem}
+          preFill={preFill}
         />
       </section>
 

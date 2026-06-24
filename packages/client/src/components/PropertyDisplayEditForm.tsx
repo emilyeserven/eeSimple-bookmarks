@@ -14,12 +14,13 @@ const LABELS: Partial<Record<keyof UpdateCustomPropertyInput, string>> = {
   showInForm: "Show outside Advanced area",
   showInListings: "Bookmark listings",
   editableOnCard: "Card editing",
+  enabledInInbox: "Inbox pre-fill",
 };
 
 /** The display form values that auto-save, mapped to their `UpdateCustomPropertyInput` payload key. */
 type DisplayWatched = Pick<
   ReturnType<typeof valuesFromProperty>,
-  "propertyGroupId" | "inForm" | "showOutsideAdvanced" | "showInListings" | "editableOnCard"
+  "propertyGroupId" | "inForm" | "showOutsideAdvanced" | "showInListings" | "editableOnCard" | "enabledInInbox"
 >;
 
 /**
@@ -44,6 +45,7 @@ function DisplayAutoSaver({
     save("showInForm", values.showOutsideAdvanced);
     save("showInListings", values.showInListings);
     save("editableOnCard", values.editableOnCard);
+    save("enabledInInbox", values.enabledInInbox);
     // The per-field no-op guard means only the changed key actually persists.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(values)]);
@@ -74,6 +76,7 @@ export function PropertyDisplayEditForm({
       showInForm: property.showInForm,
       showInListings: property.showInListings,
       editableOnCard: property.editableOnCard,
+      enabledInInbox: property.enabledInInbox,
     },
   });
 
@@ -107,6 +110,7 @@ export function PropertyDisplayEditForm({
           showOutsideAdvanced: state.values.showOutsideAdvanced,
           showInListings: state.values.showInListings,
           editableOnCard: state.values.editableOnCard,
+          enabledInInbox: state.values.enabledInInbox,
         })}
       >
         {values => (

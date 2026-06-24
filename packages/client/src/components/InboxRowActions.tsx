@@ -2,6 +2,7 @@ import type {
   ImportApproveResult,
   ImportItem,
   ImportItemStatus,
+  InboxPreFillDefaults,
 } from "@eesimple/types";
 
 import { useState } from "react";
@@ -39,6 +40,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const STATUS_META: Record<ImportItemStatus, { label: string;
   variant: "secondary" | "default" | "destructive" | "outline"; }> = {
@@ -105,17 +111,22 @@ function RejectButton({
 }: { item: ImportItem }) {
   const reject = useRejectImportItem();
   return (
-    <Button
-      size="icon"
-      variant="ghost"
-      aria-label="Reject"
-      disabled={reject.isPending}
-      onClick={() => reject.mutate(item.id, {
-        onSuccess: () => notifySuccess("Rejected link"),
-      })}
-    >
-      <X className="size-4" />
-    </Button>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          size="icon"
+          variant="ghost"
+          aria-label="Reject"
+          disabled={reject.isPending}
+          onClick={() => reject.mutate(item.id, {
+            onSuccess: () => notifySuccess("Rejected link"),
+          })}
+        >
+          <X className="size-4" />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>Reject</TooltipContent>
+    </Tooltip>
   );
 }
 
@@ -125,17 +136,22 @@ function UnrejectButton({
 }: { item: ImportItem }) {
   const unreject = useUnrejectImportItem();
   return (
-    <Button
-      size="icon"
-      variant="ghost"
-      aria-label="Unreject"
-      disabled={unreject.isPending}
-      onClick={() => unreject.mutate(item.id, {
-        onSuccess: () => notifySuccess("Restored to pending"),
-      })}
-    >
-      <RotateCcw className="size-4" />
-    </Button>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          size="icon"
+          variant="ghost"
+          aria-label="Restore to pending"
+          disabled={unreject.isPending}
+          onClick={() => unreject.mutate(item.id, {
+            onSuccess: () => notifySuccess("Restored to pending"),
+          })}
+        >
+          <RotateCcw className="size-4" />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>Restore to pending</TooltipContent>
+    </Tooltip>
   );
 }
 
@@ -238,22 +254,27 @@ function BlockDropdown({
   if (!item.url) return null;
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          size="sm"
-          variant="ghost"
-          className="px-1"
-          aria-label="Block options"
-        >
-          <Ban className="size-3 text-muted-foreground" />
-          <ChevronDown className="size-3 text-muted-foreground" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <BlockMenuItems item={item} />
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <Tooltip>
+      <DropdownMenu>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="px-1"
+              aria-label="Block URL"
+            >
+              <Ban className="size-3 text-muted-foreground" />
+              <ChevronDown className="size-3 text-muted-foreground" />
+            </Button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <DropdownMenuContent align="end">
+          <BlockMenuItems item={item} />
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <TooltipContent>Block URL</TooltipContent>
+    </Tooltip>
   );
 }
 
@@ -262,21 +283,26 @@ function ViewBookmarkButton({
   bookmarkId,
 }: { bookmarkId: string }) {
   return (
-    <Button
-      asChild
-      size="icon"
-      variant="ghost"
-      aria-label="View bookmark"
-    >
-      <Link
-        to="/bookmarks/$bookmarkId"
-        params={{
-          bookmarkId,
-        }}
-      >
-        <Eye className="size-4" />
-      </Link>
-    </Button>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          asChild
+          size="icon"
+          variant="ghost"
+          aria-label="View bookmark"
+        >
+          <Link
+            to="/bookmarks/$bookmarkId"
+            params={{
+              bookmarkId,
+            }}
+          >
+            <Eye className="size-4" />
+          </Link>
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>View bookmark</TooltipContent>
+    </Tooltip>
   );
 }
 
@@ -288,21 +314,26 @@ function IngestImportButton({
   const url = item.url;
   if (!url) return null;
   return (
-    <Button
-      size="sm"
-      variant="ghost"
-      disabled={ingest.isPending}
-      onClick={() =>
-        ingest.mutate({
-          url,
-        }, {
-          onSuccess: () => notifySuccess("Queued as new import group"),
-          onError: () => notifyError("Couldn't queue this URL for import"),
-        })}
-    >
-      <FolderInput className="size-4" />
-      Queue for Import
-    </Button>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          size="icon"
+          variant="ghost"
+          aria-label="Import links from this URL"
+          disabled={ingest.isPending}
+          onClick={() =>
+            ingest.mutate({
+              url,
+            }, {
+              onSuccess: () => notifySuccess("Queued as new import group"),
+              onError: () => notifyError("Couldn't queue this URL for import"),
+            })}
+        >
+          <FolderInput className="size-4" />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>Import links from this URL</TooltipContent>
+    </Tooltip>
   );
 }
 
@@ -378,25 +409,30 @@ function ShortenerDropdown({
 
   return (
     <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            size="sm"
-            variant="ghost"
-            className="px-1"
-            aria-label="Mark as link shortener"
-          >
-            <Scissors className="size-3 text-muted-foreground" />
-            <ChevronDown className="size-3 text-muted-foreground" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <ShortenerMenuItems
-            item={item}
-            onSelect={m => setMode(m)}
-          />
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <Tooltip>
+        <DropdownMenu>
+          <TooltipTrigger asChild>
+            <DropdownMenuTrigger asChild>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="px-1"
+                aria-label="Mark as link shortener"
+              >
+                <Scissors className="size-3 text-muted-foreground" />
+                <ChevronDown className="size-3 text-muted-foreground" />
+              </Button>
+            </DropdownMenuTrigger>
+          </TooltipTrigger>
+          <DropdownMenuContent align="end">
+            <ShortenerMenuItems
+              item={item}
+              onSelect={m => setMode(m)}
+            />
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <TooltipContent>Mark as link shortener</TooltipContent>
+      </Tooltip>
 
       {mode !== null && (
         <MarkAsShortenerDialog
@@ -459,27 +495,32 @@ function RecheckLinkButton({
 }: { item: ImportItem }) {
   const recheck = useRecheckImportItemUrl();
   return (
-    <Button
-      size="icon"
-      variant="ghost"
-      aria-label="Recheck link"
-      disabled={recheck.isPending}
-      onClick={() =>
-        recheck.mutate(item.id, {
-          onSuccess: ({
-            updated,
-          }) =>
-            updated ? notifySuccess("Link resolved") : notifySuccess("No change"),
-          onError: () => notifyError("Couldn't recheck this link"),
-        })}
-    >
-      <RefreshCw
-        className={`
-          size-4
-          ${recheck.isPending ? "animate-spin" : ""}
-        `}
-      />
-    </Button>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          size="icon"
+          variant="ghost"
+          aria-label="Recheck link URL"
+          disabled={recheck.isPending}
+          onClick={() =>
+            recheck.mutate(item.id, {
+              onSuccess: ({
+                updated,
+              }) =>
+                updated ? notifySuccess("Link resolved") : notifySuccess("No change"),
+              onError: () => notifyError("Couldn't recheck this link"),
+            })}
+        >
+          <RefreshCw
+            className={`
+              size-4
+              ${recheck.isPending ? "animate-spin" : ""}
+            `}
+          />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>Recheck link URL</TooltipContent>
+    </Tooltip>
   );
 }
 
@@ -509,7 +550,9 @@ export function RecheckLinkMenuItem({
 /** The per-row action column: approve/reject/block while pending, unreject/block once rejected, or a view link. */
 export function RowActions({
   item,
-}: { item: ImportItem }) {
+  preFill,
+}: { item: ImportItem;
+  preFill?: InboxPreFillDefaults; }) {
   const approve = useApproveImportItem();
   const resultBookmarkId = item.createdBookmarkId ?? item.duplicateBookmarkId;
 
@@ -518,17 +561,25 @@ export function RowActions({
       {item.status === "pending"
         ? (
           <>
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={() => approve.mutate(item.id, {
-                onSuccess: notifyApprove,
-              })}
-              disabled={approve.isPending}
-              aria-label="Approve"
-            >
-              <Check className="size-4" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => approve.mutate({
+                    itemId: item.id,
+                    preFill,
+                  }, {
+                    onSuccess: notifyApprove,
+                  })}
+                  disabled={approve.isPending}
+                  aria-label="Approve – save as bookmark"
+                >
+                  <Check className="size-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Approve – save as bookmark</TooltipContent>
+            </Tooltip>
             <RejectButton item={item} />
             <BlockDropdown item={item} />
             <ShortenerDropdown item={item} />

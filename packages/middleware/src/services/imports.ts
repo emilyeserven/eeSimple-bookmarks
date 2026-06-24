@@ -20,6 +20,7 @@ import type {
   ImportStatus,
   ImportSummary,
   InboxItem,
+  InboxPreFillDefaults,
   Import as ImportRecord,
   OrphanDeleteResult,
   PurgeImportItemsResult,
@@ -877,7 +878,7 @@ async function importBookmarkDefaults(importId: string): Promise<{
  * bookmark now carries the link). The source passage (newsletter context) is saved as the bookmark's
  * description so the surrounding context survives; the item's own description is the fallback.
  */
-export async function approveImportItem(itemId: string): Promise<ImportApproveResult> {
+export async function approveImportItem(itemId: string, preFill?: InboxPreFillDefaults): Promise<ImportApproveResult> {
   const [item] = await db.select().from(importItems).where(eq(importItems.id, itemId));
   if (!item) return {
     itemId,
@@ -918,7 +919,7 @@ export async function approveImportItem(itemId: string): Promise<ImportApproveRe
     title,
   });
 
-  // Category precedence: per-item override > import default > newsletter default > autofill.
+  // Category precedence: per-item override > preFill > import default > newsletter default > autofill.
   // `undefined` (none set) preserves createBookmark's website/channel/built-in default precedence.
   let categoryId = item.categoryId ?? undefined;
   if (categoryId === undefined) {
@@ -928,8 +929,28 @@ export async function approveImportItem(itemId: string): Promise<ImportApproveRe
       })
       .from(imports)
       .where(eq(imports.id, item.importId));
-    categoryId = importRow?.defaultCategoryId ?? defaults.categoryId ?? autofill.categoryId ?? undefined;
+    categoryId = preFill?.categoryId ?? importRow?.defaultCategoryId ?? defaults.categoryId ?? autofill.categoryId ?? undefined;
   }
+
+  // Merge pre-fill custom property values with autofill values: autofill wins for any property it
+  // already sets; pre-fill fills in the rest.
+  const autofillPropertyIds = new Set([
+    ...(autofill.numberValues?.map(v => v.propertyId) ?? []),
+    ...(autofill.booleanValues?.map(v => v.propertyId) ?? []),
+    ...(autofill.dateTimeValues?.map(v => v.propertyId) ?? []),
+  ]);
+  const mergedNumberValues = [
+    ...(autofill.numberValues ?? []),
+    ...(preFill?.numberValues?.filter(v => !autofillPropertyIds.has(v.propertyId)) ?? []),
+  ];
+  const mergedBooleanValues = [
+    ...(autofill.booleanValues ?? []),
+    ...(preFill?.booleanValues?.filter(v => !autofillPropertyIds.has(v.propertyId)) ?? []),
+  ];
+  const mergedDateTimeValues = [
+    ...(autofill.dateTimeValues ?? []),
+    ...(preFill?.dateTimeValues?.filter(v => !autofillPropertyIds.has(v.propertyId)) ?? []),
+  ];
 
   try {
     const bookmark = await createBookmark({
@@ -938,11 +959,14 @@ export async function approveImportItem(itemId: string): Promise<ImportApproveRe
       // Save the source passage (newsletter context) as the description; fall back to the item's own.
       description: item.newsletterContext ?? item.description ?? null,
       ...defaults,
-      tagIds: [...new Set([...(defaults.tagIds ?? []), ...autofill.tagIds])],
-      mediaTypeId: defaults.mediaTypeId ?? autofill.mediaTypeId,
-      numberValues: autofill.numberValues,
-      booleanValues: autofill.booleanValues,
-      dateTimeValues: autofill.dateTimeValues,
+      tagIds: [...new Set([...(defaults.tagIds ?? []), ...(preFill?.tagIds ?? []), ...autofill.tagIds])],
+      mediaTypeId: preFill?.mediaTypeId ?? defaults.mediaTypeId ?? autofill.mediaTypeId,
+      authorIds: preFill?.authorIds,
+      publisherId: preFill?.publisherId ?? undefined,
+      numberValues: mergedNumberValues.length > 0 ? mergedNumberValues : undefined,
+      booleanValues: mergedBooleanValues.length > 0 ? mergedBooleanValues : undefined,
+      dateTimeValues: mergedDateTimeValues.length > 0 ? mergedDateTimeValues : undefined,
+      choicesValues: preFill?.choicesValues,
       newsletterContext: item.newsletterContext ?? null,
       categoryId,
     });

@@ -1223,6 +1223,23 @@ export interface OrphanDeleteResult {
   deleted: number;
 }
 
+/** Default values the user sets in the Inbox pre-fill box, applied when approving items. */
+export interface InboxPreFillDefaults {
+  categoryId?: string | null;
+  tagIds?: string[];
+  mediaTypeId?: string | null;
+  authorIds?: string[];
+  publisherId?: string | null;
+  numberValues?: { propertyId: string;
+    value: number; }[];
+  booleanValues?: { propertyId: string;
+    value: boolean; }[];
+  dateTimeValues?: { propertyId: string;
+    value: string; }[];
+  choicesValues?: { propertyId: string;
+    values: string[]; }[];
+}
+
 /** Per-item outcome of approving a staged candidate (mirrors the bulk-URL result shape). */
 export interface ImportApproveResult {
   itemId: string;
@@ -1527,6 +1544,8 @@ export interface CustomProperty {
   hiddenFromForm: boolean;
   /** When true, the property's value is shown on bookmark cards in listings. */
   showInListings: boolean;
+  /** When true, the property appears in the Inbox pre-fill defaults box so a batch value can be set before approving items. */
+  enabledInInbox: boolean;
   /** When true, an `image` property's uploaded objects are counted in the Gallery/quota manifest. Only relevant for `image`/`file`. */
   showInGallery: boolean;
   /** When true, the property's value is shown on the bookmark detail page. Only relevant for `image`/`file`. */
@@ -1592,6 +1611,8 @@ export interface CreateCustomPropertyInput {
   hiddenFromForm?: boolean;
   /** When true, the property's value is shown on bookmark cards in listings. Defaults to true. */
   showInListings?: boolean;
+  /** When true, the property appears in the Inbox pre-fill defaults box. Defaults to false. */
+  enabledInInbox?: boolean;
   /** When true, an `image` property's uploaded objects count toward the Gallery/quota. Defaults to true. Only relevant for `image`/`file`. */
   showInGallery?: boolean;
   /** When true, the property's value is shown on the bookmark detail page. Defaults to true. Only relevant for `image`/`file`. */

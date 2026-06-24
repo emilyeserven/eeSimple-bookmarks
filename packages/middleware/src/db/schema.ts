@@ -702,6 +702,8 @@ export const customProperties = pgTable("custom_properties", {
   allMediaTypes: boolean("all_media_types").notNull().default(false),
   // When true, the property's value can be edited inline from a bookmark card's "More" menu.
   editableOnCard: boolean("editable_on_card").notNull().default(false),
+  // When true, the property appears in the Inbox pre-fill defaults box. Nullable/additive (push-safe).
+  enabledInInbox: boolean("enabled_in_inbox"),
   // When false, the property is globally inactive: hidden from filters, conditions, category
   // assignment, and the bookmark form. Existing rows default to true via the column default.
   enabled: boolean("enabled").notNull().default(true),

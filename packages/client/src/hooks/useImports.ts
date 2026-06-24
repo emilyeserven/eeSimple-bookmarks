@@ -1,6 +1,7 @@
 import type {
   ActiveImport,
   BlockImportItemInput,
+  InboxPreFillDefaults,
   IngestPasteInput,
   IngestUrlInput,
 } from "@eesimple/types";
@@ -174,7 +175,11 @@ export function useApproveImportItem() {
   const queryClient = useQueryClient();
   const invalidate = useInvalidateInbox();
   return useMutation({
-    mutationFn: (itemId: string) => importApi.approveItem(itemId),
+    mutationFn: ({
+      itemId, preFill,
+    }: { itemId: string;
+      preFill?: InboxPreFillDefaults; }) =>
+      importApi.approveItem(itemId, preFill),
     onSuccess: () => {
       invalidate();
       void queryClient.invalidateQueries({
