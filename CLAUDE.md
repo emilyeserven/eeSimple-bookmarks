@@ -101,6 +101,17 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
   (`BooleanOptionsFields`, `NumericOptionsFields`, …; `null` = no options section), so a new type
   missing a renderer **fails `tsc`** instead of silently rendering nothing (vs. the named-function
   routing above, used where per-branch props differ).
+- **Built-in custom properties and the Add Bookmark form:** when a new built-in property is seeded
+  via an `ensure*Property` boot step in the middleware, it should **not** appear in the Add Bookmark
+  form by default — the form is for quick creation and detail properties (progress, ranges, sections,
+  ratings) are better filled after creation. To hide a built-in slug:
+  1. Export a `*_SLUG` constant for it in `packages/client/src/components/bookmarkFormSchema.ts`
+     (alongside `RUNTIME_SLUG`, `DATE_POSTED_SLUG`, `CONTENT_STATUS_SLUG`, `PAGE_PROGRESS_SLUG`,
+     `PAGE_RANGE_SLUG`, `PAGE_SECTIONS_SLUG`).
+  2. Add it to the `hiddenSlugs` array in `RevealedCustomFields.tsx`.
+  The `BookmarkPropertiesForm` (edit-mode properties tab) does **not** use this list — hidden-from-create
+  properties remain editable after creation. Only omit a slug from `hiddenSlugs` when the property is
+  genuinely useful at bookmark creation time (e.g. a required classification field).
 - **UI primitives:** before adding a Radix/shadcn primitive, check
   `packages/client/src/components/ui/` — `dialog`, `dropdown-menu`, `popover`, `toggle-group`,
   `command`, etc. already exist (`Dialog` was once reintroduced twice). Reuse the existing one.

@@ -22,7 +22,7 @@ import { useAppForm } from "../lib/form";
 import { buildNumberValuesFromInputs } from "../lib/propertyValues";
 
 export const bookmarkSchema = z.object({
-  url: z.union([z.string().url("Enter a valid URL"), z.literal("")]),
+  url: z.string(),
   title: z.string().min(1, "Title is required"),
   categoryId: z.string().min(1, "Category is required"),
   mediaTypeId: z.string(),
@@ -40,6 +40,14 @@ export const DATE_POSTED_SLUG = "date-posted";
 
 /** Slug of the built-in "Content Status" property, hidden from the Add Bookmark form. */
 export const CONTENT_STATUS_SLUG = "content-status";
+
+/**
+ * Slugs for built-in page-tracking properties hidden from the Add Bookmark form.
+ * These are better filled after creation in the edit/properties view.
+ */
+export const PAGE_PROGRESS_SLUG = "page-progress";
+export const PAGE_RANGE_SLUG = "page-range";
+export const PAGE_SECTIONS_SLUG = "page-sections";
 
 /** Cheap client-side check so we only hit the richer metadata endpoint for YouTube URLs. */
 export function looksLikeYouTube(url: string): boolean {
