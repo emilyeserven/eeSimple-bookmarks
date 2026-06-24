@@ -44,6 +44,14 @@ export const appSettingsApi = {
         domains,
       }),
     }),
+  getCustomStripParams: () => request<string[]>("/app-settings/custom-strip-params"),
+  updateCustomStripParams: (params: string[]) =>
+    request<string[]>("/app-settings/custom-strip-params", {
+      method: "PUT",
+      body: JSON.stringify({
+        params,
+      }),
+    }),
   getRedirectIgnoreList: () => request<string[]>("/app-settings/redirect-ignore-list"),
   updateRedirectIgnoreList: (domains: string[]) =>
     request<string[]>("/app-settings/redirect-ignore-list", {

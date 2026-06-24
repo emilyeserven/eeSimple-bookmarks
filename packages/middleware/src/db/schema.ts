@@ -1008,6 +1008,8 @@ export const appSettings = pgTable("app_settings", {
   // Domains whose redirect chains should never be followed (e.g. docs.google.com). The redirect
   // resolver skips these when scanning a bookmark URL or processing newsletter imports.
   redirectIgnoreList: jsonb("redirect_ignore_list").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+  // User-defined query params to strip in addition to TRACKING_PARAMS (e.g. "ref", "source").
+  customStripParams: jsonb("custom_strip_params").$type<string[]>(),
   // Imports blacklist: links matching these entries are dropped from future imports. NOT NULL on the
   // populated app_settings table → pre-applied in migrate.ts to keep push additive (renamed from
   // `newsletter_blacklist` via a guarded migrate.ts step; see the ADD COLUMN / RENAME steps).

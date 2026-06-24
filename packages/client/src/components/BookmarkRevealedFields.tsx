@@ -46,6 +46,7 @@ interface BookmarkRevealedFieldsProps {
   onUrlCleanupModeChange: (mode: UrlCleanupMode) => void;
   websites: Website[];
   ignoreList: string[];
+  customStripParams?: string[];
 
   // Website / YouTube banner.
   websiteLookup: WebsiteLookupResult;

@@ -295,6 +295,45 @@ export async function updateShortenerIgnoreList(domains: string[]): Promise<stri
   return normalized;
 }
 
+/** Read the user-defined query params to strip in addition to the built-in TRACKING_PARAMS. */
+export async function getCustomStripParams(): Promise<string[]> {
+  const [row] = await db
+    .select({
+      customStripParams: appSettings.customStripParams,
+    })
+    .from(appSettings)
+    .where(eq(appSettings.id, ROW_ID));
+  return row?.customStripParams ?? [];
+}
+
+/**
+ * Replace the custom strip-params list. Params are normalized (trimmed, lower-cased) and
+ * de-duplicated; empties are dropped. Returns the stored list.
+ */
+export async function updateCustomStripParams(params: string[]): Promise<string[]> {
+  const normalized = [
+    ...new Set(
+      params
+        .map(p => p.trim().toLowerCase())
+        .filter(p => p.length > 0),
+    ),
+  ];
+  await db
+    .insert(appSettings)
+    .values({
+      id: ROW_ID,
+      shortenerIgnoreList: DEFAULT_SHORTENER_IGNORE_LIST,
+      customStripParams: normalized,
+    })
+    .onConflictDoUpdate({
+      target: appSettings.id,
+      set: {
+        customStripParams: normalized,
+      },
+    });
+  return normalized;
+}
+
 /** Read the redirect ignore list (domains whose redirect chains are never followed). */
 export async function getRedirectIgnoreList(): Promise<string[]> {
   const [row] = await db

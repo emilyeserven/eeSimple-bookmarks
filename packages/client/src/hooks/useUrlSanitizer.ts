@@ -1,4 +1,4 @@
-import { useShortenerIgnoreList } from "./useAppSettings";
+import { useCustomStripParams, useShortenerIgnoreList } from "./useAppSettings";
 import { useWebsites } from "./useWebsites";
 import { cleanUrl } from "../lib/urlCleanup";
 
@@ -16,10 +16,14 @@ export function useUrlSanitizer(): (url: string) => string {
   const {
     data: ignoreList = [],
   } = useShortenerIgnoreList();
+  const {
+    data: customStripParams = [],
+  } = useCustomStripParams();
   return (url: string) =>
     cleanUrl(url.trim(), {
       mode: "trackers",
       websites,
       ignoreList,
+      customStripParams,
     });
 }

@@ -33,6 +33,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     },
     websites,
     shortenerIgnoreList,
+    customStripParams,
     tagTree,
     categories,
     mediaTypes,
@@ -56,6 +57,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
   } = useBookmarkUrlProcessing({
     websites: websites ?? [],
     ignoreList: shortenerIgnoreList ?? [],
+    customStripParams: customStripParams ?? [],
   });
 
   const [addMediaTypeOpen, setAddMediaTypeOpen] = useState(false);
@@ -199,6 +201,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     // data
     websites,
     shortenerIgnoreList,
+    customStripParams,
     tagTree,
     categories,
     mediaTypes,

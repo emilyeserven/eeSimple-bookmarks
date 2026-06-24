@@ -12,6 +12,7 @@ export interface RevealedUrlCleanupSectionProps {
   onUrlCleanupModeChange: (mode: UrlCleanupMode) => void;
   websites: Website[];
   ignoreList: string[];
+  customStripParams?: string[];
 }
 
 /** The URL cleanup panel, gated on `showUrlCleanup` and subscribed to the current URL. */
@@ -23,6 +24,7 @@ export function RevealedUrlCleanupSection({
   onUrlCleanupModeChange,
   websites,
   ignoreList,
+  customStripParams,
 }: RevealedUrlCleanupSectionProps) {
   if (!showUrlCleanup) {
     return null;
@@ -37,6 +39,7 @@ export function RevealedUrlCleanupSection({
           onModeChange={onUrlCleanupModeChange}
           websites={websites}
           ignoreList={ignoreList}
+          customStripParams={customStripParams}
         />
       )}
     </form.Subscribe>

@@ -14,6 +14,7 @@ import {
   getAdvancedSettings,
   getAiSummarizationSettings,
   getAutomationSettings,
+  getCustomStripParams,
   getDisplayPreferenceSettings,
   getHomepageContentSettings,
   getImportBlacklist,
@@ -23,6 +24,7 @@ import {
   updateAdvancedSettings,
   updateAiSummarizationSettings,
   updateAutomationSettings,
+  updateCustomStripParams,
   updateDisplayPreferenceSettings,
   updateHomepageContentSettings,
   updateImportBlacklist,
@@ -257,6 +259,36 @@ export async function appSettingsRoutes(app: FastifyInstance): Promise<void> {
       domains,
     } = req.body as { domains: string[] };
     return updateShortenerIgnoreList(domains);
+  });
+
+  app.get("/api/app-settings/custom-strip-params", {
+    schema: {
+      tags: ["app-settings"],
+    },
+  }, async () => getCustomStripParams());
+
+  app.put("/api/app-settings/custom-strip-params", {
+    schema: {
+      tags: ["app-settings"],
+      body: {
+        type: "object",
+        required: ["params"],
+        additionalProperties: false,
+        properties: {
+          params: {
+            type: "array",
+            items: {
+              type: "string",
+            },
+          },
+        },
+      },
+    },
+  }, async (req) => {
+    const {
+      params,
+    } = req.body as { params: string[] };
+    return updateCustomStripParams(params);
   });
 
   app.get("/api/app-settings/redirect-ignore-list", {
