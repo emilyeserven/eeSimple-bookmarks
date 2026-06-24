@@ -11,6 +11,7 @@ import {
 import { useCategories } from "../../hooks/useCategories";
 import { useMediaTypes } from "../../hooks/useMediaTypes";
 import { useTagTree } from "../../hooks/useTags";
+import { CONTENT_STATUS_SLUG } from "../bookmarkFormSchema";
 import { Combobox } from "../Combobox";
 import { TagPickerWithCreate } from "../TagPickerWithCreate";
 
@@ -455,6 +456,8 @@ export function BookmarkBulkActions({
     data: mediaTypes = [],
   } = useMediaTypes();
 
+  const contentStatusProperty = properties.find(p => p.slug === CONTENT_STATUS_SLUG);
+
   return (
     <>
       <SetComboboxDialog
@@ -491,6 +494,25 @@ export function BookmarkBulkActions({
           mediaTypeId: value,
         })}
       />
+      {contentStatusProperty && (
+        <SetComboboxDialog
+          ids={selectedIds}
+          onDone={onDone}
+          triggerLabel="Set reading status"
+          title="Set reading status"
+          placeholder="Select a status"
+          options={contentStatusProperty.choicesItems.map(item => ({
+            value: item.value,
+            label: item.label,
+          }))}
+          toPatch={value => ({
+            choicesValues: [{
+              propertyId: contentStatusProperty.id,
+              values: [value],
+            }],
+          })}
+        />
+      )}
       <BulkTagsButton
         ids={selectedIds}
         onDone={onDone}
