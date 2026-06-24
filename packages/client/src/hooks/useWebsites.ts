@@ -1,4 +1,4 @@
-import type { CreateWebsiteInput, UpdateWebsiteInput } from "@eesimple/types";
+import type { CreateWebsiteInput, RedirectFailureWebsite, UpdateWebsiteInput } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -11,6 +11,7 @@ import { notifyError, notifySuccess } from "../lib/notifications";
 
 const WEBSITES_KEY = ["websites"] as const;
 const BOOKMARKS_KEY = ["bookmarks"] as const;
+export const REDIRECT_FAILURES_KEY = ["websites", "redirect-failures"] as const;
 
 export function useWebsites() {
   return useQuery({
@@ -63,7 +64,21 @@ export function useUpdateWebsite() {
       void queryClient.invalidateQueries({
         queryKey: BOOKMARKS_KEY,
       });
+      // Toggling redirectResolutionFailure adds/removes the site from the failures list.
+      void queryClient.invalidateQueries({
+        queryKey: REDIRECT_FAILURES_KEY,
+      });
     },
+  });
+}
+
+/** List websites flagged for redirect resolution failure, with their associated bookmarks. */
+export function useRedirectFailureWebsites(): { data: RedirectFailureWebsite[] | undefined;
+  isLoading: boolean;
+  isError: boolean; } {
+  return useQuery({
+    queryKey: REDIRECT_FAILURES_KEY,
+    queryFn: websitesApi.redirectFailures,
   });
 }
 

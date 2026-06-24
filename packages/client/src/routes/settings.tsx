@@ -42,6 +42,10 @@ const settingsNav: readonly TabNavEntry[] = [
     label: "Link Parsing",
   },
   {
+    to: "/settings/redirect-failures",
+    label: "Redirect Failures",
+  },
+  {
     to: "/settings/imports",
     label: "Import Settings",
   },

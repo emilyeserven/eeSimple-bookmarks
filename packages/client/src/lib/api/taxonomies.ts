@@ -18,6 +18,7 @@ import type {
   MediaTypeNode,
   PropertyGroup,
   Publisher,
+  RedirectFailureWebsite,
   RelationshipType,
   Tag,
   TagNode,
@@ -74,6 +75,8 @@ export const websitesApi = {
   ...createCrudApi<Website, CreateWebsiteInput, UpdateWebsiteInput>("websites"),
   lookup: (url: string) =>
     request<WebsiteLookup>(`/websites/lookup?url=${encodeURIComponent(url)}`),
+  redirectFailures: () =>
+    request<RedirectFailureWebsite[]>("/websites/redirect-failures"),
   uploadImage: (id: string, file: File) =>
     uploadImageFile<{ imageUrl: string }>(`/websites/${id}/image`, file),
   autoImage: (id: string) =>

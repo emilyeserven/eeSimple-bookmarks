@@ -42,6 +42,7 @@ import { Route as SettingsWebsitesRouteImport } from './routes/settings.websites
 import { Route as SettingsSidebarRouteImport } from './routes/settings.sidebar'
 import { Route as SettingsSavedFiltersRouteImport } from './routes/settings.saved-filters'
 import { Route as SettingsRelationshipsRouteImport } from './routes/settings.relationships'
+import { Route as SettingsRedirectFailuresRouteImport } from './routes/settings.redirect-failures'
 import { Route as SettingsMoreTaxonomiesRouteImport } from './routes/settings.more-taxonomies'
 import { Route as SettingsMoreCustomizationRouteImport } from './routes/settings.more-customization'
 import { Route as SettingsMoreCategoriesRouteImport } from './routes/settings.more-categories'
@@ -389,6 +390,12 @@ const SettingsRelationshipsRoute = SettingsRelationshipsRouteImport.update({
   path: '/relationships',
   getParentRoute: () => SettingsRoute,
 } as any)
+const SettingsRedirectFailuresRoute =
+  SettingsRedirectFailuresRouteImport.update({
+    id: '/redirect-failures',
+    path: '/redirect-failures',
+    getParentRoute: () => SettingsRoute,
+  } as any)
 const SettingsMoreTaxonomiesRoute = SettingsMoreTaxonomiesRouteImport.update({
   id: '/more-taxonomies',
   path: '/more-taxonomies',
@@ -1448,6 +1455,7 @@ export interface FileRoutesByFullPath {
   '/settings/more-categories': typeof SettingsMoreCategoriesRoute
   '/settings/more-customization': typeof SettingsMoreCustomizationRoute
   '/settings/more-taxonomies': typeof SettingsMoreTaxonomiesRoute
+  '/settings/redirect-failures': typeof SettingsRedirectFailuresRoute
   '/settings/relationships': typeof SettingsRelationshipsRoute
   '/settings/saved-filters': typeof SettingsSavedFiltersRoute
   '/settings/sidebar': typeof SettingsSidebarRoute
@@ -1635,6 +1643,7 @@ export interface FileRoutesByTo {
   '/settings/more-categories': typeof SettingsMoreCategoriesRoute
   '/settings/more-customization': typeof SettingsMoreCustomizationRoute
   '/settings/more-taxonomies': typeof SettingsMoreTaxonomiesRoute
+  '/settings/redirect-failures': typeof SettingsRedirectFailuresRoute
   '/settings/relationships': typeof SettingsRelationshipsRoute
   '/settings/saved-filters': typeof SettingsSavedFiltersRoute
   '/settings/sidebar': typeof SettingsSidebarRoute
@@ -1807,6 +1816,7 @@ export interface FileRoutesById {
   '/settings/more-categories': typeof SettingsMoreCategoriesRoute
   '/settings/more-customization': typeof SettingsMoreCustomizationRoute
   '/settings/more-taxonomies': typeof SettingsMoreTaxonomiesRoute
+  '/settings/redirect-failures': typeof SettingsRedirectFailuresRoute
   '/settings/relationships': typeof SettingsRelationshipsRoute
   '/settings/saved-filters': typeof SettingsSavedFiltersRoute
   '/settings/sidebar': typeof SettingsSidebarRoute
@@ -2022,6 +2032,7 @@ export interface FileRouteTypes {
     | '/settings/more-categories'
     | '/settings/more-customization'
     | '/settings/more-taxonomies'
+    | '/settings/redirect-failures'
     | '/settings/relationships'
     | '/settings/saved-filters'
     | '/settings/sidebar'
@@ -2209,6 +2220,7 @@ export interface FileRouteTypes {
     | '/settings/more-categories'
     | '/settings/more-customization'
     | '/settings/more-taxonomies'
+    | '/settings/redirect-failures'
     | '/settings/relationships'
     | '/settings/saved-filters'
     | '/settings/sidebar'
@@ -2380,6 +2392,7 @@ export interface FileRouteTypes {
     | '/settings/more-categories'
     | '/settings/more-customization'
     | '/settings/more-taxonomies'
+    | '/settings/redirect-failures'
     | '/settings/relationships'
     | '/settings/saved-filters'
     | '/settings/sidebar'
@@ -2810,6 +2823,13 @@ declare module '@tanstack/react-router' {
       path: '/relationships'
       fullPath: '/settings/relationships'
       preLoaderRoute: typeof SettingsRelationshipsRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/redirect-failures': {
+      id: '/settings/redirect-failures'
+      path: '/redirect-failures'
+      fullPath: '/settings/redirect-failures'
+      preLoaderRoute: typeof SettingsRedirectFailuresRouteImport
       parentRoute: typeof SettingsRoute
     }
     '/settings/more-taxonomies': {
@@ -4473,6 +4493,7 @@ interface SettingsRouteChildren {
   SettingsMoreCategoriesRoute: typeof SettingsMoreCategoriesRoute
   SettingsMoreCustomizationRoute: typeof SettingsMoreCustomizationRoute
   SettingsMoreTaxonomiesRoute: typeof SettingsMoreTaxonomiesRoute
+  SettingsRedirectFailuresRoute: typeof SettingsRedirectFailuresRoute
   SettingsRelationshipsRoute: typeof SettingsRelationshipsRoute
   SettingsSavedFiltersRoute: typeof SettingsSavedFiltersRoute
   SettingsSidebarRoute: typeof SettingsSidebarRoute
@@ -4499,6 +4520,7 @@ const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsMoreCategoriesRoute: SettingsMoreCategoriesRoute,
   SettingsMoreCustomizationRoute: SettingsMoreCustomizationRoute,
   SettingsMoreTaxonomiesRoute: SettingsMoreTaxonomiesRoute,
+  SettingsRedirectFailuresRoute: SettingsRedirectFailuresRoute,
   SettingsRelationshipsRoute: SettingsRelationshipsRoute,
   SettingsSavedFiltersRoute: SettingsSavedFiltersRoute,
   SettingsSidebarRoute: SettingsSidebarRoute,
