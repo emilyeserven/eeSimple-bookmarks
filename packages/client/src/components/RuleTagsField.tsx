@@ -1,6 +1,6 @@
 import type { TagNode } from "@eesimple/types";
 
-import { TagPicker } from "./TagPicker";
+import { TagPickerWithCreate } from "./TagPickerWithCreate";
 
 import { Label } from "@/components/ui/label";
 
@@ -17,7 +17,7 @@ export function RuleTagsField({
   return (
     <div className="space-y-1">
       <Label>Apply tags</Label>
-      <TagPicker
+      <TagPickerWithCreate
         tree={tagTree}
         selectedIds={selectedIds}
         onToggle={onToggle}

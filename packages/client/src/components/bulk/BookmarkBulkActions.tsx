@@ -12,7 +12,7 @@ import { useCategories } from "../../hooks/useCategories";
 import { useMediaTypes } from "../../hooks/useMediaTypes";
 import { useTagTree } from "../../hooks/useTags";
 import { Combobox } from "../Combobox";
-import { TagPicker } from "../TagPicker";
+import { TagPickerWithCreate } from "../TagPickerWithCreate";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -232,7 +232,7 @@ function BulkTagsButton({
             .
           </DialogDescription>
         </DialogHeader>
-        <TagPicker
+        <TagPickerWithCreate
           tree={tagTree}
           selectedIds={selectedTagIds}
           onToggle={id => setSelectedTagIds(current =>

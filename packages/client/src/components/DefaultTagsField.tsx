@@ -1,6 +1,6 @@
 import type { TagNode } from "@eesimple/types";
 
-import { TagPicker } from "./TagPicker";
+import { TagPickerWithCreate } from "./TagPickerWithCreate";
 
 import { Label } from "@/components/ui/label";
 
@@ -26,7 +26,7 @@ export function DefaultTagsField({
     <div className="space-y-2">
       <Label className="block">Default tags</Label>
       <p className="text-sm text-muted-foreground">{description}</p>
-      <TagPicker
+      <TagPickerWithCreate
         tree={tree}
         selectedIds={selectedIds}
         onToggle={onToggle}
