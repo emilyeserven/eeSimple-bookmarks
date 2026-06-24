@@ -205,7 +205,7 @@ export function BookmarkGeneralForm({
         {categoryId => (
           <form.Field name="tagIds">
             {field => (
-              <div className="flex flex-col gap-1">
+              <div className="space-y-1">
                 <Label>Tags</Label>
                 <GatedTagPicker
                   categoryId={categoryId}

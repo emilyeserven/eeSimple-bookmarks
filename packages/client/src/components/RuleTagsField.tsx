@@ -17,13 +17,11 @@ export function RuleTagsField({
   return (
     <div className="space-y-1">
       <Label>Apply tags</Label>
-      <div className="rounded-md border p-2">
-        <TagPicker
-          tree={tagTree}
-          selectedIds={selectedIds}
-          onToggle={onToggle}
-        />
-      </div>
+      <TagPicker
+        tree={tagTree}
+        selectedIds={selectedIds}
+        onToggle={onToggle}
+      />
     </div>
   );
 }

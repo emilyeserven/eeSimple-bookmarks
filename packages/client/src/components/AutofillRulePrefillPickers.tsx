@@ -77,13 +77,11 @@ export function AutofillRulePrefillPickers({
 
       <div className="space-y-1">
         <Label>Apply tags</Label>
-        <div className="rounded-md border p-2">
-          <TagPicker
-            tree={tagTree}
-            selectedIds={tagIds}
-            onToggle={onToggleTag}
-          />
-        </div>
+        <TagPicker
+          tree={tagTree}
+          selectedIds={tagIds}
+          onToggle={onToggleTag}
+        />
       </div>
     </>
   );

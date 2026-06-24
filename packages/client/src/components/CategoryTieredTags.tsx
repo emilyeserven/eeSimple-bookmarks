@@ -39,16 +39,14 @@ export function CategoryTieredTags({
         Limit which root tags are offered when tagging a bookmark in this category. Leave all
         unchecked to allow every tag.
       </p>
-      <div className="rounded-md border p-2">
-        <TagPicker
-          tree={roots}
-          selectedIds={enabledRootTags}
-          onToggle={id => setRootTags.mutate(toggleId(enabledRootTags, id), {
-            onSuccess: () => notifyFieldSaved("Tiered tags"),
-            onError: error => notifyFieldSaveError("Tiered tags", describeError(error)),
-          })}
-        />
-      </div>
+      <TagPicker
+        tree={roots}
+        selectedIds={enabledRootTags}
+        onToggle={id => setRootTags.mutate(toggleId(enabledRootTags, id), {
+          onSuccess: () => notifyFieldSaved("Tiered tags"),
+          onError: error => notifyFieldSaveError("Tiered tags", describeError(error)),
+        })}
+      />
     </div>
   );
 }

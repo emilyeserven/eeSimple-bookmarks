@@ -1,3 +1,4 @@
+import type { TreeComboboxOption } from "@/components/TreeMultiCombobox";
 import type { TagNode } from "@eesimple/types";
 
 /** A tree node paired with its depth in the tree, for indented flat rendering. */
@@ -24,6 +25,15 @@ export function flattenTree<T extends { children: T[] }>(nodes: T[], depth = 0):
 export function subtreeIds<T extends { id: string;
   children: T[]; }>(node: T): string[] {
   return [node.id, ...node.children.flatMap(subtreeIds)];
+}
+
+/** Convert a TagNode tree into TreeComboboxOption format for use with TreeMultiCombobox. */
+export function tagNodesToOptions(nodes: TagNode[]): TreeComboboxOption[] {
+  return nodes.map(n => ({
+    value: n.id,
+    label: n.name,
+    children: tagNodesToOptions(n.children),
+  }));
 }
 
 /**

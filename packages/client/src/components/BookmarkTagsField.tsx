@@ -8,13 +8,11 @@ interface GatedTagPickerProps {
   tree: TagNode[];
   selectedIds: string[];
   onToggle: (id: string) => void;
-  /** Extra classes for the bordered box (e.g. `flex-1` to fill an equal-height grid cell). */
-  className?: string;
 }
 
 /** TagPicker limited to the selected category's enabled root tags (empty allowlist = all). */
 export function GatedTagPicker({
-  categoryId, tree, selectedIds, onToggle, className,
+  categoryId, tree, selectedIds, onToggle,
 }: GatedTagPickerProps) {
   const {
     data: allowedRootIds,
@@ -25,12 +23,10 @@ export function GatedTagPicker({
     : tree;
 
   return (
-    <div className={`rounded-md border p-2 ${className ?? ""}`.trim()}>
-      <TagPicker
-        tree={gated}
-        selectedIds={selectedIds}
-        onToggle={onToggle}
-      />
-    </div>
+    <TagPicker
+      tree={gated}
+      selectedIds={selectedIds}
+      onToggle={onToggle}
+    />
   );
 }
