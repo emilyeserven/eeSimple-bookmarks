@@ -91,6 +91,11 @@ vi.mock("@/hooks/useTags", () => ({
   useTagTree: () => ({
     data: [],
   }),
+  useCreateTag: () => ({
+    mutate: vi.fn(),
+    isError: false,
+    error: null,
+  }),
 }));
 
 const notifyFieldSaved = vi.fn<(label: string) => void>();
