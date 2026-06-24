@@ -1704,14 +1704,15 @@ export interface CreateCustomPropertyInput {
 export type UpdateCustomPropertyInput = Partial<Omit<CreateCustomPropertyInput, "type">>;
 
 /**
- * Whether a property is assigned to a given category. A property with `allCategories` set applies to
- * every category (including ones created after it); otherwise it applies only to its `categoryIds`.
+ * Whether a property is assigned to a given category. A property with `allCategories` set, or with
+ * no explicit category assignments, applies to every category; otherwise it applies only to its
+ * `categoryIds`.
  */
 export function propertyAppliesToCategory(
   property: Pick<CustomProperty, "allCategories" | "categoryIds">,
   categoryId: string,
 ): boolean {
-  return property.allCategories || property.categoryIds.includes(categoryId);
+  return property.allCategories || property.categoryIds.length === 0 || property.categoryIds.includes(categoryId);
 }
 
 /**

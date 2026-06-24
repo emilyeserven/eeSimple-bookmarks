@@ -234,9 +234,8 @@ export function PropertyCategoriesContent({
 }) {
   const assignedCategories = categories.filter(category =>
     property.categoryIds.includes(category.id));
-  if (property.allCategories) return <Badge variant="secondary">All categories</Badge>;
-  if (assignedCategories.length === 0) {
-    return <span className="text-sm text-muted-foreground">None</span>;
+  if (property.allCategories || property.categoryIds.length === 0) {
+    return <Badge variant="secondary">All categories</Badge>;
   }
   return (
     <ul className="flex flex-wrap gap-1">

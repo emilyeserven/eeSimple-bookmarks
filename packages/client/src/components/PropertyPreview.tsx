@@ -1,7 +1,6 @@
 import type { CustomProperty } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
-import { TriangleAlert } from "lucide-react";
 
 import { useViewPanelClick } from "./panel/useEditPanelClick";
 import { useSidebarOpenModifier } from "../hooks/useAppSettings";
@@ -44,14 +43,14 @@ export function PropertyPreview({
   }
 
   const categoryCount = property.categoryIds.length;
-  const isUncategorized = categoryCount === 0 && property.enabled;
+  const isAllCategories = property.allCategories || categoryCount === 0;
 
   return (
     <RowCard
       className={cn(`
         group relative transition-colors
         hover:bg-accent
-      `, isUncategorized && "opacity-60", selected && "ring-2 ring-primary")}
+      `, selected && "ring-2 ring-primary")}
     >
       {(inSelectionMode && selectable)
         ? (
@@ -63,11 +62,6 @@ export function PropertyPreview({
           >
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-medium">{property.name}</span>
-              {isUncategorized && (
-                <TriangleAlert
-                  className="size-4 text-amber-500"
-                />
-              )}
               {property.builtIn && <Badge variant="secondary">Built-in</Badge>}
               {!property.enabled && <Badge variant="outline">Disabled</Badge>}
               <Badge variant="secondary">{TYPE_LABELS[property.type]}</Badge>
@@ -77,8 +71,8 @@ export function PropertyPreview({
               ? <p className="truncate text-sm text-muted-foreground">{property.description}</p>
               : null}
             <p className="text-xs text-muted-foreground">
-              {categoryCount === 0
-                ? "No categories"
+              {isAllCategories
+                ? "All categories"
                 : `${categoryCount} ${categoryCount === 1 ? "category" : "categories"}`}
             </p>
           </button>
@@ -95,11 +89,6 @@ export function PropertyPreview({
           >
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-medium">{property.name}</span>
-              {isUncategorized && (
-                <TriangleAlert
-                  className="size-4 text-amber-500"
-                />
-              )}
               {property.builtIn && <Badge variant="secondary">Built-in</Badge>}
               {!property.enabled && <Badge variant="outline">Disabled</Badge>}
               <Badge variant="secondary">{TYPE_LABELS[property.type]}</Badge>
@@ -109,8 +98,8 @@ export function PropertyPreview({
               ? <p className="truncate text-sm text-muted-foreground">{property.description}</p>
               : null}
             <p className="text-xs text-muted-foreground">
-              {categoryCount === 0
-                ? "No categories"
+              {isAllCategories
+                ? "All categories"
                 : `${categoryCount} ${categoryCount === 1 ? "category" : "categories"}`}
             </p>
           </Link>

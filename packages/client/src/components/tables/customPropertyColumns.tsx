@@ -42,11 +42,9 @@ export function useCustomPropertyColumns(): ColumnDef<CustomProperty>[] {
           row,
         }) => (
           <span className="text-muted-foreground">
-            {row.original.allCategories
+            {row.original.allCategories || row.original.categoryIds.length === 0
               ? "All"
-              : row.original.categoryIds.length === 0
-                ? "None"
-                : `${row.original.categoryIds.length}`}
+              : `${row.original.categoryIds.length}`}
           </span>
         ),
       },
