@@ -100,8 +100,11 @@ export async function setBookmarkImage(
 /**
  * Auto-fetch og:images for all eligible bookmarks (no image, no error) in batches of 3 concurrent
  * requests to avoid hammering external servers. Returns how many succeeded vs. failed.
+ * `onProgress` is called after each batch with the running total of processed items.
  */
-export async function bulkAutoFetchImages(): Promise<BulkAutoFetchResult> {
+export async function bulkAutoFetchImages(
+  onProgress?: (processed: number, total: number) => void,
+): Promise<BulkAutoFetchResult> {
   const eligible = await db
     .select({
       id: bookmarks.id,
@@ -112,6 +115,7 @@ export async function bulkAutoFetchImages(): Promise<BulkAutoFetchResult> {
 
   let fetched = 0;
   let failed = 0;
+  let processed = 0;
   const BATCH = 3;
   for (let i = 0; i < eligible.length; i += BATCH) {
     const results = await Promise.allSettled(
@@ -122,7 +126,9 @@ export async function bulkAutoFetchImages(): Promise<BulkAutoFetchResult> {
     for (const r of results) {
       if (r.status === "fulfilled" && typeof r.value !== "string") fetched++;
       else failed++;
+      processed++;
     }
+    onProgress?.(processed, eligible.length);
   }
   return {
     fetched,

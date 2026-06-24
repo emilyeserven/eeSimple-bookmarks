@@ -28,6 +28,11 @@ vi.mock("../hooks/useGallery", () => ({
     isPending: false,
     data: undefined,
   }),
+  useAutoFetchStatus: () => ({
+    data: {
+      status: "idle",
+    },
+  }),
   useDeleteOrphans: () => ({
     mutate: deleteMutate,
     isPending: false,

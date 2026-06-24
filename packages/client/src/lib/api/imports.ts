@@ -1,7 +1,7 @@
 import type {
   ActiveImport,
+  AutoFetchJobStatus,
   BlockImportItemInput,
-  BulkAutoFetchResult,
   CreateNewsletterInput,
   DeleteOrphansResult,
   GalleryCatalog,
@@ -159,7 +159,8 @@ export const galleryApi = {
       }),
     }),
   autoFetch: () =>
-    request<BulkAutoFetchResult>("/gallery/auto-fetch", {
+    request<AutoFetchJobStatus>("/gallery/auto-fetch", {
       method: "POST",
     }),
+  autoFetchStatus: () => request<AutoFetchJobStatus>("/gallery/auto-fetch/status"),
 };

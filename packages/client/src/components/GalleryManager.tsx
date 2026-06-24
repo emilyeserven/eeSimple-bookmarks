@@ -10,7 +10,7 @@ import { formatSize } from "./galleryFormat";
 import { OrphansGrid, RegisteredGrid, StorageSummary } from "./GalleryGrids";
 import { galleryColumns } from "./tables/galleryColumns";
 import { useBookmarks } from "../hooks/useBookmarks";
-import { useAttachOrphan, useAutoFetchImages, useDeleteOrphans, useGallery, useScanBucket } from "../hooks/useGallery";
+import { useAttachOrphan, useAutoFetchImages, useAutoFetchStatus, useDeleteOrphans, useGallery, useScanBucket } from "../hooks/useGallery";
 
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
@@ -25,11 +25,12 @@ interface GalleryToolbarProps {
   onLayoutChange: (layout: GalleryLayout) => void;
   scan: ReturnType<typeof useScanBucket>;
   autoFetch: ReturnType<typeof useAutoFetchImages>;
+  autoFetchRunning: boolean;
   pendingAutoFetchCount: number;
 }
 
 function GalleryToolbar({
-  view, onViewChange, layout, onLayoutChange, scan, autoFetch, pendingAutoFetchCount,
+  view, onViewChange, layout, onLayoutChange, scan, autoFetch, autoFetchRunning, pendingAutoFetchCount,
 }: GalleryToolbarProps) {
   return (
     <div className="flex flex-wrap items-center gap-3">
@@ -55,16 +56,11 @@ function GalleryToolbar({
             type="button"
             variant="outline"
             size="sm"
-            disabled={autoFetch.isPending}
+            disabled={autoFetch.isPending || autoFetchRunning}
             onClick={() => autoFetch.mutate()}
           >
-            <Download
-              className={`
-                size-4
-                ${autoFetch.isPending ? "animate-bounce" : ""}
-              `}
-            />
-            {autoFetch.isPending ? "Fetching…" : "Fetch missing images"}
+            <Download className="size-4" />
+            {autoFetchRunning ? "Fetching…" : "Fetch missing images"}
           </Button>
         )
         : null}
@@ -113,18 +109,10 @@ function GalleryToolbar({
         )
         : null}
 
-      {pendingAutoFetchCount > 0 && !autoFetch.data
+      {pendingAutoFetchCount > 0 && !autoFetchRunning
         ? (
           <p className="text-sm text-muted-foreground">
             {`${pendingAutoFetchCount} missing (~${formatSize(pendingAutoFetchCount * BYTES_PER_IMAGE_ESTIMATE)} est.)`}
-          </p>
-        )
-        : null}
-
-      {autoFetch.data
-        ? (
-          <p className="text-sm text-muted-foreground">
-            {`Fetched ${autoFetch.data.fetched}, failed ${autoFetch.data.failed}.`}
           </p>
         )
         : null}
@@ -209,6 +197,10 @@ export function GalleryListing() {
   } = useBookmarks();
   const scan = useScanBucket();
   const autoFetch = useAutoFetchImages();
+  const {
+    data: autoFetchStatus,
+  } = useAutoFetchStatus();
+  const autoFetchRunning = autoFetchStatus?.status === "running";
   const deleteOrphans = useDeleteOrphans();
   const attachOrphan = useAttachOrphan();
 
@@ -270,6 +262,7 @@ export function GalleryListing() {
         onLayoutChange={setLayout}
         scan={scan}
         autoFetch={autoFetch}
+        autoFetchRunning={autoFetchRunning}
         pendingAutoFetchCount={catalog?.pendingAutoFetchCount ?? 0}
       />
 
