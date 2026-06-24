@@ -35,6 +35,7 @@ import {
   getChannelTagIds,
   resolveYouTubeMeta,
   videoMediaTypeId,
+  withContentStatusDefault,
   withDatePosted,
   withRuntime,
   ytLog,
@@ -229,6 +230,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
 
   const numberValues = await withRuntime(input.numberValues ?? [], meta, "create");
   const dateTimeValues = await withDatePosted(input.dateTimeValues ?? [], meta, "create");
+  const choicesValues = await withContentStatusDefault(input.choicesValues ?? []);
 
   const {
     id, websiteId, youtubeChannelId,
@@ -259,7 +261,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
     await setNumberValues(tx, row.id, numberValues);
     await setBooleanValues(tx, row.id, input.booleanValues);
     await setDateTimeValues(tx, row.id, dateTimeValues);
-    await setChoicesValues(tx, row.id, input.choicesValues);
+    await setChoicesValues(tx, row.id, choicesValues);
     await recomputeCalculatedValues(tx, row.id);
     return {
       id: row.id,
