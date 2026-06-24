@@ -26,6 +26,8 @@ interface CustomPropertyFiltersProps {
    * collapsed, and moved to the bottom. Global properties (no categoryIds) are unaffected.
    */
   selectedCategoryIds?: string[];
+  /** When provided, only properties whose name contains this substring (case-insensitive) are shown. */
+  nameFilter?: string;
   /** Bookmarks in view, used to derive slider bounds when a property has no min/max. */
   bookmarks: Pick<Bookmark, "numberValues">[];
   /** Active number-range filters keyed by property id (absent = no filter / full range). */
@@ -178,6 +180,7 @@ export function CustomPropertyFilters({
   onPresenceFilterChange,
   onChoicesFilterChange,
   onPropertyReset,
+  nameFilter,
 }: CustomPropertyFiltersProps) {
   if (properties.length === 0) return null;
 
@@ -205,6 +208,11 @@ export function CustomPropertyFilters({
       return aActive ? -1 : 1;
     })
     : properties;
+
+  // Apply name filter when provided by the sidebar search box.
+  const visible = nameFilter
+    ? sorted.filter(p => p.name.toLowerCase().includes(nameFilter.toLowerCase()))
+    : sorted;
 
   /** Render one property's collapsible filter control (unchanged from the flat layout). */
   function renderProperty(property: CustomProperty) {
@@ -356,10 +364,10 @@ export function CustomPropertyFilters({
     .map(group => ({
       key: group.id,
       title: group.name,
-      items: sorted.filter(property => inGroup(property, group.id)),
+      items: visible.filter(property => inGroup(property, group.id)),
     }))
     .filter(section => section.items.length > 0);
-  const ungrouped = sorted.filter(property => inGroup(property, null));
+  const ungrouped = visible.filter(property => inGroup(property, null));
 
   // No groups in play → render the original flat list.
   if (groupSections.length === 0) {
