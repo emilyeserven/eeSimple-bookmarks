@@ -34,6 +34,9 @@ export const RUNTIME_SLUG = "runtime";
 /** Slug of the built-in "Date Posted" property, hidden from the form (filled server-side). */
 export const DATE_POSTED_SLUG = "date-posted";
 
+/** Slug of the built-in "Content Status" property, hidden from the Add Bookmark form. */
+export const CONTENT_STATUS_SLUG = "content-status";
+
 /** Cheap client-side check so we only hit the richer metadata endpoint for YouTube URLs. */
 export function looksLikeYouTube(url: string): boolean {
   return /(?:youtube\.com|youtu\.be)/i.test(url);

@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import type {
+  BookmarkChoicesValue,
   BookmarkDateTimeValue,
   BookmarkNumberValue,
   YouTubeChannelHint,
@@ -7,7 +8,7 @@ import type {
 import { db } from "@/db";
 import { youtubeChannels, youtubeChannelTags } from "@/db/schema";
 import { fetchAndStoreOgImage } from "@/services/bookmarkImages";
-import { getDatePostedPropertyId, getRuntimePropertyId } from "@/services/customProperties";
+import { getContentStatusPropertyId, getDatePostedPropertyId, getRuntimePropertyId } from "@/services/customProperties";
 import { getMediaTypeBySlug } from "@/services/mediaTypes";
 import { fetchAndStoreWebsiteFavicon, getWebsiteFaviconRow } from "@/services/websiteFavicons";
 import { fetchYouTubeMetadata, isYouTubeVideoUrl, parseYouTubeVideo, type YouTubeMetadata } from "@/services/youtube";
@@ -118,6 +119,23 @@ export async function withDatePosted(
       value: meta.datePosted,
     },
   ];
+}
+
+/**
+ * Ensure the built-in "Content Status" property has a value when creating a bookmark, defaulting
+ * to "not-started" if the caller didn't supply one. A user-supplied value (e.g. from an autofill
+ * rule) always wins. Returns the (possibly extended) array.
+ */
+export async function withContentStatusDefault(
+  choicesValues: BookmarkChoicesValue[],
+): Promise<BookmarkChoicesValue[]> {
+  const propId = await getContentStatusPropertyId();
+  if (!propId) return choicesValues;
+  if (choicesValues.some(value => value.propertyId === propId)) return choicesValues;
+  return [...choicesValues, {
+    propertyId: propId,
+    values: ["not-started"],
+  }];
 }
 
 /**
