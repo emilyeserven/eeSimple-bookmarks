@@ -47,7 +47,7 @@ function BulkExpandShortened({
   const items = bookmarks
     .map(bookmark => ({
       ...bookmark,
-      after: canonicalize(bookmark.url, {
+      after: canonicalize(bookmark.url ?? "", {
         mode: "none",
         websites: [website],
         ignoreList: [],

@@ -13,6 +13,7 @@ import { mediaTypeContentType } from "./contentTypes/mediaType";
 import { newsletterContentType } from "./contentTypes/newsletter";
 import { propertyContentType } from "./contentTypes/property";
 import { propertyGroupContentType } from "./contentTypes/propertyGroup";
+import { publisherContentType } from "./contentTypes/publisher";
 import { relationshipTypeContentType } from "./contentTypes/relationshipType";
 import { tagContentType } from "./contentTypes/tag";
 import { websiteContentType } from "./contentTypes/website";
@@ -32,6 +33,7 @@ export const PANEL_CONTENT_TYPES: PanelContentTypeDef[] = [
   youtubeChannelContentType,
   newsletterContentType,
   authorContentType,
+  publisherContentType,
   relationshipTypeContentType,
   autofillContentType,
   importRuleContentType,

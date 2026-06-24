@@ -22,13 +22,14 @@ import { useAppForm } from "../lib/form";
 import { buildNumberValuesFromInputs } from "../lib/propertyValues";
 
 export const bookmarkSchema = z.object({
-  url: z.string().url("Enter a valid URL"),
+  url: z.union([z.string().url("Enter a valid URL"), z.literal("")]),
   title: z.string().min(1, "Title is required"),
   categoryId: z.string().min(1, "Category is required"),
   mediaTypeId: z.string(),
   description: z.string(),
   tagIds: z.array(z.string()),
   authorIds: z.array(z.string()),
+  publisherId: z.string(),
 });
 
 /** Slug of the built-in "Runtime" property, hidden from the form (filled server-side). */
@@ -43,6 +44,11 @@ export const CONTENT_STATUS_SLUG = "content-status";
 /** Cheap client-side check so we only hit the richer metadata endpoint for YouTube URLs. */
 export function looksLikeYouTube(url: string): boolean {
   return /(?:youtube\.com|youtu\.be)/i.test(url);
+}
+
+/** Client-side check: returns true when value looks like a fetchable URL. */
+export function looksLikeUrl(value: string): boolean {
+  return z.string().url().safeParse(value.trim()).success;
 }
 
 /** Client-side mirror of the server's stripSiteNameSuffix for user-entered selfIds. */
@@ -71,6 +77,7 @@ const SAMPLE_DEFAULT_VALUES: {
   description: string;
   tagIds: string[];
   authorIds: string[];
+  publisherId: string;
 } = {
   url: "",
   title: "",
@@ -79,6 +86,7 @@ const SAMPLE_DEFAULT_VALUES: {
   description: "",
   tagIds: [],
   authorIds: [],
+  publisherId: "",
 };
 
 /**
@@ -126,6 +134,7 @@ export function buildBookmarkDefaultValues(
   description: string;
   tagIds: string[];
   authorIds: string[];
+  publisherId: string;
 } {
   return {
     url: bookmark?.originalUrl ?? bookmark?.url ?? initial.url ?? "",
@@ -135,6 +144,7 @@ export function buildBookmarkDefaultValues(
     description: bookmark?.description ?? "",
     tagIds: (bookmark?.tags.map(tag => tag.id) ?? []) as string[],
     authorIds: (bookmark?.authors.map(a => a.id) ?? []) as string[],
+    publisherId: bookmark?.publisher?.id ?? "",
   };
 }
 

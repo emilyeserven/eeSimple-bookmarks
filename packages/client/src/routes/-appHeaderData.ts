@@ -8,6 +8,7 @@ import { useImportRuleBySlug } from "@/hooks/useImportRules";
 import { useMediaTypeBySlug } from "@/hooks/useMediaTypes";
 import { useNewsletterBySlug } from "@/hooks/useNewsletters";
 import { usePropertyGroupBySlug } from "@/hooks/usePropertyGroups";
+import { usePublisherBySlug } from "@/hooks/usePublishers";
 import { useRelationshipTypeBySlug } from "@/hooks/useRelationshipTypes";
 import { useWebsiteBySlug } from "@/hooks/useWebsites";
 import { useYouTubeChannelBySlug } from "@/hooks/useYouTubeChannels";
@@ -61,6 +62,9 @@ export function useTaxonomyCrumbData(pathname: string, pathParts: string[]): Tax
     author,
   } = useAuthorBySlug(slugFor(pathname, pathParts, "/taxonomies/authors", 2));
   const {
+    publisher,
+  } = usePublisherBySlug(slugFor(pathname, pathParts, "/taxonomies/publishers", 2));
+  const {
     propertyGroup,
   } = usePropertyGroupBySlug(slugFor(pathname, pathParts, "/taxonomies/property-groups", 2));
   const {
@@ -84,6 +88,7 @@ export function useTaxonomyCrumbData(pathname: string, pathParts: string[]): Tax
       "/taxonomies/youtube-channels": channel?.name,
       "/taxonomies/newsletters": newsletter?.name,
       "/taxonomies/authors": author?.name,
+      "/taxonomies/publishers": publisher?.name,
       "/taxonomies/property-groups": propertyGroup?.name,
       "/taxonomies/relationship-types": relationshipType?.name,
       "/custom-properties": property?.name,

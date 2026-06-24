@@ -146,7 +146,7 @@ export function BookmarkCard({
   const bookmarkCategory = allCategories.find(c => c.id === bookmark.categoryId && !c.builtIn);
   const overlayItems = hasImage
     ? buildCardOverlayItems(bookmark, valueItems, placements, bookmarkCategory, {
-      externalLink: <BookmarkExternalLinkButton url={bookmark.url} />,
+      externalLink: <BookmarkExternalLinkButton url={bookmark.url ?? ""} />,
       more: (
         <BookmarkMoreMenu
           bookmark={bookmark}
@@ -154,7 +154,7 @@ export function BookmarkCard({
           autoImagePending={autoImage.isPending}
           onAutoImage={() => autoImage.mutate({
             id: bookmark.id,
-            sourceUrl: bookmark.url,
+            sourceUrl: bookmark.url ?? "",
           })}
           onSaveNumber={saveNumber}
           onSaveBoolean={saveBoolean}
@@ -206,7 +206,7 @@ export function BookmarkCard({
       autoImagePending={autoImage.isPending}
       onAutoImage={() => autoImage.mutate({
         id: bookmark.id,
-        sourceUrl: bookmark.url,
+        sourceUrl: bookmark.url ?? "",
       })}
       onSaveNumber={saveNumber}
       onSaveDateTime={saveDateTime}

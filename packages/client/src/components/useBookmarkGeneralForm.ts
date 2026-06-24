@@ -70,13 +70,14 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
 
   const form = useAppForm({
     defaultValues: {
-      url: bookmark.originalUrl ?? bookmark.url,
+      url: bookmark.originalUrl ?? bookmark.url ?? "",
       title: bookmark.title,
       categoryId: bookmark.categoryId ?? "",
       mediaTypeId: bookmark.mediaType?.id ?? "",
       description: bookmark.description ?? "",
       tagIds: (bookmark.tags.map(tag => tag.id)) as string[],
       authorIds: (bookmark.authors.map(a => a.id)) as string[],
+      publisherId: bookmark.publisher?.id ?? "",
     },
     validators: {
       onChange: bookmarkSchema,

@@ -71,7 +71,7 @@ export const BASELINE = {
  */
 export function bookmarkToConditionInput(bookmark: Bookmark): ConditionInput {
   return {
-    url: bookmark.url,
+    url: bookmark.url ?? "",
     title: bookmark.title,
     categoryId: bookmark.categoryId,
     tagIds: new Set(bookmark.tags.map(tag => tag.id)),

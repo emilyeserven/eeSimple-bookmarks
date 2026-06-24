@@ -10,6 +10,7 @@ import { useAutofillRules } from "../hooks/useAutofill";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useMediaTypeTree } from "../hooks/useMediaTypes";
+import { usePublishers } from "../hooks/usePublishers";
 import { useTagTree } from "../hooks/useTags";
 import { useWebsites } from "../hooks/useWebsites";
 import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
@@ -53,6 +54,9 @@ export function useBookmarkFormData() {
   const {
     data: authors,
   } = useAuthors();
+  const {
+    data: publishers,
+  } = usePublishers();
   const autoFetchTitle = useAutoFetchTitle();
   const autoFetchImage = useAutoFetchImage();
 
@@ -68,6 +72,7 @@ export function useBookmarkFormData() {
     autofillRules,
     youtubeChannels,
     authors,
+    publishers,
     autoFetchTitle,
     autoFetchImage,
   };

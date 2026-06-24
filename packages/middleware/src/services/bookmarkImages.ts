@@ -157,6 +157,7 @@ export async function fetchAndStoreOgImage(bookmarkId: string): Promise<AutoImag
     url: bookmarks.url,
   }).from(bookmarks).where(eq(bookmarks.id, bookmarkId));
   if (!bookmark) return "not_found";
+  if (!bookmark.url) return "no_image";
 
   // YouTube serves a known, high-quality thumbnail via oEmbed — prefer it over scraping og:image,
   // falling back to the generic page-image path when the thumbnail can't be fetched.

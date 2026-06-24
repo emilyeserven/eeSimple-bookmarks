@@ -395,6 +395,46 @@ export interface UpdateMediaTypeInput {
 }
 
 /**
+ * A publisher in the "Publishers" taxonomy. Links a publishing house or individual
+ * to their optional website, so bookmarks (especially offline/book items) can carry
+ * publisher info.
+ */
+export interface Publisher {
+  id: string;
+  /** Display name, e.g. "O'Reilly Media". Unique. */
+  name: string;
+  /** URL-friendly identifier derived from the name. Unique. */
+  slug: string;
+  /** Id of the website this publisher is associated with, or null when unset. */
+  websiteId: string | null;
+  /** The associated website, populated by list/get endpoints. */
+  website?: { id: string;
+    domain: string;
+    siteName: string; } | null;
+  /** ISO-8601 timestamp of when the publisher was created. */
+  createdAt: string;
+  /** Distinct bookmarks with this publisher (populated by list endpoints). */
+  bookmarkCount?: number;
+}
+
+/** Lightweight publisher shape carried on a bookmark. */
+export type BookmarkPublisher = Pick<Publisher, "id" | "name" | "slug">;
+
+/** Payload for creating a publisher. */
+export interface CreatePublisherInput {
+  name: string;
+  /** Id of the website to associate with this publisher; null to leave unset. */
+  websiteId?: string | null;
+}
+
+/** Payload for updating a publisher. */
+export interface UpdatePublisherInput {
+  name?: string;
+  /** Id of the website to associate with this publisher; null to clear it. */
+  websiteId?: string | null;
+}
+
+/**
  * A Property Group — an optional grouping for custom properties. A property may belong to one group;
  * grouped properties render together (under the group's heading) on bookmark detail pages and in the
  * listings filter sidebar. Groups carry a `priority` (lower sorts first) and an optional description.
@@ -726,7 +766,7 @@ export interface DeleteOrphansResult {
 export interface Bookmark {
   id: string;
   /** The bookmarked URL (http/https), possibly cleaned of tracking/query params. */
-  url: string;
+  url: string | null;
   /** Original URL before any cleanup was applied, or `null` when no cleanup was performed. */
   originalUrl: string | null;
   /** Human-friendly title, e.g. "GitHub". */
@@ -752,6 +792,8 @@ export interface Bookmark {
   youtubeChannel: BookmarkYouTubeChannel | null;
   /** The newsletter this bookmark was imported from, or `null`. */
   newsletter: BookmarkNewsletter | null;
+  /** The publisher of this bookmarked item, or null when unset. */
+  publisher: BookmarkPublisher | null;
   /** The import event this bookmark was created from, or `null`. */
   import: BookmarkImport | null;
   /** Tags assigned to this bookmark, drawn from the taxonomy. */
@@ -786,7 +828,7 @@ export interface Bookmark {
 
 /** Payload for creating a bookmark. */
 export interface CreateBookmarkInput {
-  url: string;
+  url?: string | null;
   /** Original URL before cleanup; omit when no cleanup was applied. */
   originalUrl?: string | null;
   title: string;
@@ -826,6 +868,8 @@ export interface CreateBookmarkInput {
   newsletterId?: string | null;
   /** Id of the import event this bookmark was created from, or `null`. */
   importId?: string | null;
+  /** Id of the publisher to assign; null to clear. Omit to leave unchanged. */
+  publisherId?: string | null;
 }
 
 /** Payload for partially updating a bookmark. */
@@ -834,7 +878,7 @@ export type UpdateBookmarkInput = Partial<CreateBookmarkInput>;
 /** Minimal bookmark shape for the bulk shortened-link expansion review list. */
 export interface BookmarkUrlSummary {
   id: string;
-  url: string;
+  url: string | null;
   title: string;
 }
 

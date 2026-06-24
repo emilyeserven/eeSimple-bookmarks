@@ -117,7 +117,7 @@ export async function listBookmarksOnHost(domain: string): Promise<BookmarkUrlSu
     .from(bookmarks)
     .where(ilike(bookmarks.url, `%${host}%`))
     .orderBy(desc(bookmarks.createdAt));
-  return rows.filter(row => normalizeDomain(row.url) === host);
+  return rows.filter(row => row.url != null && normalizeDomain(row.url) === host);
 }
 
 /**
@@ -363,20 +363,22 @@ async function resolveCreateMediaTypeId(
 }
 
 export async function createBookmark(input: CreateBookmarkInput): Promise<Bookmark> {
-  const existing = await db.select({
-    id: bookmarks.id,
-  }).from(bookmarks).where(eq(bookmarks.url, input.url));
-  if (existing.length > 0) throw new DuplicateUrlError(input.url);
+  if (input.url) {
+    const existing = await db.select({
+      id: bookmarks.id,
+    }).from(bookmarks).where(eq(bookmarks.url, input.url));
+    if (existing.length > 0) throw new DuplicateUrlError(input.url);
+  }
 
   const defaultId = await ensureDefaultCategory();
 
   // Resolve YouTube metadata once (network) before opening the transaction, then reuse it for the
   // channel, the "Video" media-type default, and the Video Length backfill below.
-  const meta = await resolveYouTubeMeta(input.url, "create");
+  const meta = await resolveYouTubeMeta(input.url ?? "", "create");
   const channelHint = channelHintFrom(input.youtubeChannel, meta);
 
   // Load site defaults (category + tags) once before the transaction for reuse below.
-  const domain = normalizeDomain(input.url);
+  const domain = input.url ? normalizeDomain(input.url) : null;
   const siteData = domain ? await getWebsiteByAnyDomain(domain) : null;
 
   const categoryId = await resolveCreateCategoryId(input, defaultId, channelHint, siteData);
@@ -390,12 +392,12 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
   const {
     id, websiteId, youtubeChannelId,
   } = await db.transaction(async (tx) => {
-    const websiteId = await ensureWebsiteForUrl(tx, input.url, input.websiteSiteName);
+    const websiteId = input.url ? await ensureWebsiteForUrl(tx, input.url, input.websiteSiteName) : null;
     const youtubeChannelId = channelHint ? await ensureYouTubeChannel(tx, channelHint) : null;
     const [row] = await tx
       .insert(bookmarks)
       .values({
-        url: input.url,
+        url: input.url ?? null,
         originalUrl: input.originalUrl ?? null,
         title: input.title,
         description: input.description ?? null,
@@ -406,6 +408,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
         youtubeChannelId,
         newsletterId: input.newsletterId ?? null,
         importId: input.importId ?? null,
+        publisherId: input.publisherId ?? null,
         priority: input.priority ?? 0,
       })
       .returning({
@@ -445,7 +448,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
 
 /** The scalar (non-URL-derived) bookmark columns an update may touch. */
 type ScalarBookmarkPatch = Partial<
-  Pick<BookmarkRow, "originalUrl" | "title" | "description" | "categoryId" | "mediaTypeId" | "priority">
+  Pick<BookmarkRow, "originalUrl" | "title" | "description" | "categoryId" | "mediaTypeId" | "publisherId" | "priority">
 >;
 
 /**
@@ -464,6 +467,7 @@ export function scalarBookmarkPatch(
   if (input.categoryId !== undefined) patch.categoryId = input.categoryId;
   if (input.mediaTypeId !== undefined) patch.mediaTypeId = input.mediaTypeId ?? null;
   else if (mediaTypeDefault !== undefined) patch.mediaTypeId = mediaTypeDefault;
+  if (input.publisherId !== undefined) patch.publisherId = input.publisherId ?? null;
   if (input.priority !== undefined) patch.priority = input.priority;
   return patch;
 }
@@ -542,7 +546,7 @@ export async function updateBookmark(
   id: string,
   input: UpdateBookmarkInput,
 ): Promise<Bookmark | null> {
-  if (input.url !== undefined) {
+  if (input.url != null) {
     const clash = await db
       .select({
         id: bookmarks.id,
@@ -555,7 +559,7 @@ export async function updateBookmark(
   // When the URL changes, resolve YouTube metadata once and reuse it for the channel, the "Video"
   // media-type default, and the Video Length backfill. A channel-only change still re-resolves the
   // channel from the supplied hint.
-  const meta = input.url !== undefined ? await resolveYouTubeMeta(input.url, "update") : null;
+  const meta = input.url != null ? await resolveYouTubeMeta(input.url, "update") : null;
   const channelHint
     = input.url !== undefined || input.youtubeChannel !== undefined
       ? channelHintFrom(input.youtubeChannel, meta)
@@ -591,13 +595,14 @@ export async function updateBookmark(
         | "websiteId"
         | "mediaTypeId"
         | "youtubeChannelId"
+        | "publisherId"
         | "priority"
       >
     > = {};
     if (input.url !== undefined) {
-      patch.url = input.url;
+      patch.url = input.url ?? null;
       // Re-derive the website and YouTube channel whenever the URL changes.
-      patch.websiteId = await ensureWebsiteForUrl(tx, input.url);
+      patch.websiteId = input.url ? await ensureWebsiteForUrl(tx, input.url) : null;
       patch.youtubeChannelId = channelHint ? await ensureYouTubeChannel(tx, channelHint) : null;
       touchedWebsiteId = patch.websiteId;
       touchedChannelId = patch.youtubeChannelId;
@@ -813,6 +818,7 @@ export async function checkBookmarkUrlDuplicate(url: string): Promise<BookmarkUr
     .where(like(bookmarks.url, `${basePath}%`));
 
   const pathCandidates = candidates.filter((b) => {
+    if (!b.url) return false;
     try {
       const p = new URL(b.url);
       return p.origin + p.pathname === basePath;
@@ -847,6 +853,7 @@ export async function checkBookmarkUrlDuplicate(url: string): Promise<BookmarkUr
   // Only flag a candidate as a path-match when all identity params also match.
   const newParamValues = matchingRule.params.map(p => parsed.searchParams.get(p) ?? "");
   const pathMatch = pathCandidates.find((b) => {
+    if (!b.url) return false;
     try {
       const bp = new URL(b.url);
       return matchingRule.params.every((p, i) => (bp.searchParams.get(p) ?? "") === newParamValues[i]);

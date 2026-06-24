@@ -23,9 +23,7 @@ test("POST /api/bookmarks rejects a payload missing required fields", async () =
   const res = await app.inject({
     method: "POST",
     url: "/api/bookmarks",
-    payload: {
-      title: "x",
-    },
+    payload: {},
   });
   assert.equal(res.statusCode, 400);
   await app.close();

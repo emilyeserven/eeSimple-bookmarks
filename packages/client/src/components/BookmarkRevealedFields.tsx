@@ -12,6 +12,7 @@ import type {
   Category,
   CustomProperty,
   MediaTypeNode,
+  Publisher,
   TagNode,
   Website,
   YouTubeChannelHint,
@@ -105,6 +106,9 @@ interface BookmarkRevealedFieldsProps {
   onAddCategoryOpenChange: (open: boolean) => void;
   addMediaTypeOpen: boolean;
   onAddMediaTypeOpenChange: (open: boolean) => void;
+  publishers?: Publisher[];
+  addPublisherOpen: boolean;
+  onAddPublisherOpenChange: (open: boolean) => void;
   imageFieldKey: number;
   existingImageUrl: string | null;
   defaultAuto: boolean;

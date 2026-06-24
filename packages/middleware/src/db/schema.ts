@@ -5,7 +5,7 @@ import type { CardFieldZones, CardZoneLayouts, ConditionTree, ImportBlacklistEnt
 /** `bookmarks` table — one row per saved bookmark. Tags now live in `bookmark_tags`. */
 export const bookmarks = pgTable("bookmarks", {
   id: uuid("id").primaryKey().defaultRandom(),
-  url: text("url").notNull(),
+  url: text("url"),
   // Original URL before any cleanup was applied; NULL when no cleanup was performed.
   // Nullable so `drizzle-kit push` applies cleanly to existing rows.
   originalUrl: text("original_url"),
@@ -44,6 +44,10 @@ export const bookmarks = pgTable("bookmarks", {
   // from the issue page. Nullable; `set null` so deleting an import is non-destructive. Renamed from
   // `newsletter_import_id` via a guarded `migrate.ts` step.
   importId: uuid("import_id").references((): AnyPgColumn => imports.id, {
+    onDelete: "set null",
+  }),
+  // The publisher (taxonomy) this bookmark is attributed to. Nullable; set null when publisher is deleted.
+  publisherId: uuid("publisher_id").references((): AnyPgColumn => publishers.id, {
     onDelete: "set null",
   }),
   priority: integer("priority").notNull().default(0),
@@ -201,6 +205,30 @@ export const mediaTypes = pgTable("media_types", {
   unique("media_types_name_unique").on(table.name),
   unique("media_types_slug_unique").on(table.slug),
 ]);
+
+/**
+ * `publishers` table — taxonomy of publishing houses and individuals. Bookmarks
+ * (especially books / offline items) may be attributed to a publisher. Optionally
+ * linked to a website in the Websites taxonomy.
+ */
+export const publishers = pgTable("publishers", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  // Nullable so drizzle-kit push applies cleanly to any future rows; backfilled at boot.
+  slug: text("slug"),
+  // Optional link to an existing website entry. set null when the website is deleted.
+  websiteId: uuid("website_id").references((): AnyPgColumn => websites.id, {
+    onDelete: "set null",
+  }),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+}, table => [
+  unique("publishers_name_unique").on(table.name),
+  unique("publishers_slug_unique").on(table.slug),
+]);
+
+export type PublisherRow = typeof publishers.$inferSelect;
 
 /**
  * `property_groups` table — optional groupings for custom properties. A property may belong to one

@@ -142,6 +142,9 @@ export function BookmarkForm({
           onAddCategoryOpenChange={c.setAddCategoryOpen}
           addMediaTypeOpen={c.addMediaTypeOpen}
           onAddMediaTypeOpenChange={c.setAddMediaTypeOpen}
+          publishers={c.publishers ?? []}
+          addPublisherOpen={c.addPublisherOpen}
+          onAddPublisherOpenChange={c.setAddPublisherOpen}
           sourceDefaults={c.sourceDefaults}
           imageFieldKey={c.imageFieldKey}
           existingImageUrl={c.bookmark?.image?.url ?? null}
@@ -165,6 +168,7 @@ export function BookmarkForm({
         scanned={c.scanned}
         isEdit={c.isEdit}
         isScanning={c.isScanning}
+        isOfflineMode={c.isOfflineMode}
         urlDuplicate={c.urlDuplicate}
         saveIsPending={c.saveBookmark.isPending}
         saveIsError={c.saveBookmark.isError}
@@ -174,6 +178,7 @@ export function BookmarkForm({
           revealing: true,
         })}
         onAddNow={() => void c.handleAddNow()}
+        onAddOfflineBookmark={() => void c.handleAddOfflineBookmark()}
         onReset={c.handleReset}
       />
     </form>
@@ -185,6 +190,7 @@ interface BookmarkFormFooterProps {
   scanned: boolean;
   isEdit: boolean;
   isScanning: boolean;
+  isOfflineMode: boolean;
   urlDuplicate: BookmarkUrlDuplicateResult | null;
   saveIsPending: boolean;
   saveIsError: boolean;
@@ -192,6 +198,7 @@ interface BookmarkFormFooterProps {
   onDone?: () => void;
   onCheckUrl: () => void;
   onAddNow: () => void;
+  onAddOfflineBookmark: () => void;
   onReset: () => void;
 }
 
@@ -201,6 +208,7 @@ function BookmarkFormFooter({
   scanned,
   isEdit,
   isScanning,
+  isOfflineMode,
   urlDuplicate,
   saveIsPending,
   saveIsError,
@@ -208,6 +216,7 @@ function BookmarkFormFooter({
   onDone,
   onCheckUrl,
   onAddNow,
+  onAddOfflineBookmark,
   onReset,
 }: BookmarkFormFooterProps) {
   return (
@@ -223,32 +232,41 @@ function BookmarkFormFooter({
               />
             </form.AppForm>
           )
-          : (
-            <>
+          : isOfflineMode
+            ? (
               <Button
                 type="button"
-                disabled={isScanning}
-                onClick={onCheckUrl}
+                onClick={onAddOfflineBookmark}
               >
-                {isScanning
-                  ? (
-                    <>
-                      <Loader2 className="size-4 animate-spin" />
-                      Checking…
-                    </>
-                  )
-                  : "Check URL"}
+                Add Offline Bookmark
               </Button>
-              <Button
-                type="button"
-                variant="link"
-                disabled={isScanning || saveIsPending}
-                onClick={onAddNow}
-              >
-                Add Now
-              </Button>
-            </>
-          )}
+            )
+            : (
+              <>
+                <Button
+                  type="button"
+                  disabled={isScanning}
+                  onClick={onCheckUrl}
+                >
+                  {isScanning
+                    ? (
+                      <>
+                        <Loader2 className="size-4 animate-spin" />
+                        Checking…
+                      </>
+                    )
+                    : "Check URL"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="link"
+                  disabled={isScanning || saveIsPending}
+                  onClick={onAddNow}
+                >
+                  Add Now
+                </Button>
+              </>
+            )}
         {isEdit && onDone
           ? (
             <Button

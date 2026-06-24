@@ -8,6 +8,7 @@ import type {
   CreateCustomPropertyInput,
   CreateMediaTypeInput,
   CreatePropertyGroupInput,
+  CreatePublisherInput,
   CreateRelationshipTypeInput,
   CreateTagInput,
   CreateWebsiteInput,
@@ -16,6 +17,7 @@ import type {
   MediaType,
   MediaTypeNode,
   PropertyGroup,
+  Publisher,
   RelationshipType,
   Tag,
   TagNode,
@@ -25,6 +27,7 @@ import type {
   UpdateCustomPropertyInput,
   UpdateMediaTypeInput,
   UpdatePropertyGroupInput,
+  UpdatePublisherInput,
   UpdateRelationshipTypeInput,
   UpdateTagInput,
   UpdateWebsiteInput,
@@ -127,6 +130,8 @@ export const youtubeChannelsApi = {
 };
 
 export const customPropertiesApi = createCrudApi<CustomProperty, CreateCustomPropertyInput, UpdateCustomPropertyInput>("custom-properties");
+
+export const publishersApi = createCrudApi<Publisher, CreatePublisherInput, UpdatePublisherInput>("publishers");
 
 export const categoriesApi = {
   ...createCrudApi<Category, CreateCategoryInput, UpdateCategoryInput>("categories"),

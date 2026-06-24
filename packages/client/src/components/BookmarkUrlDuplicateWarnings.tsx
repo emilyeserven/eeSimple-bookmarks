@@ -40,7 +40,7 @@ export function BookmarkUrlDuplicateWarnings({
               type="button"
               size="sm"
               variant="outline"
-              onClick={() => window.open(exactMatch.url, "_blank")}
+              onClick={() => window.open(exactMatch.url ?? undefined, "_blank")}
             >
               Open in new tab
             </Button>
@@ -69,7 +69,7 @@ export function BookmarkUrlDuplicateWarnings({
               type="button"
               size="sm"
               variant="outline"
-              onClick={() => window.open(pathMatch.url, "_blank")}
+              onClick={() => window.open(pathMatch.url ?? undefined, "_blank")}
             >
               Open in new tab
             </Button>

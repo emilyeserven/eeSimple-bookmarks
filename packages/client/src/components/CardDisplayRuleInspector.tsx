@@ -73,7 +73,7 @@ function useCardRuleInspectorData() {
   const options = useMemo<ComboboxOption[]>(
     () => bookmarks.map(bookmark => ({
       value: bookmark.id,
-      label: `${bookmark.title || bookmark.url} — ${hostOf(bookmark.url)}`,
+      label: `${bookmark.title || bookmark.url || ""} — ${hostOf(bookmark.url ?? "")}`,
     })),
     [bookmarks],
   );
