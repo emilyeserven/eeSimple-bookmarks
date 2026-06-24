@@ -5,7 +5,7 @@ import { ensureAppSettings } from "@/services/appSettings";
 import { backfillAuthorSlugs } from "@/services/authors";
 import { ensureAutofillConditions, ensureAutofillSlugs, ensureWebsiteConditions } from "@/services/autofill";
 import { backfillCardDisplayRuleFieldZones, backfillCardDisplayRuleHeaderFields, backfillCardDisplayRuleSubZones, backfillCardDisplayRuleZoneLayouts, ensureDefaultCardDisplayRule } from "@/services/cardDisplayRules";
-import { ensureDefaultCategory } from "@/services/categories";
+import { ensureDefaultCategory, ensureInboxCategory } from "@/services/categories";
 import { backfillCustomPropertySlugs, ensureContentStatusProperty, ensureDatePostedProperty, ensureRuntimeProperty } from "@/services/customProperties";
 import { ensureHomepageFilter } from "@/services/homepageFilter";
 import { resetStalledImports } from "@/services/imports";
@@ -44,9 +44,10 @@ catch (err) {
 }
 
 try {
-  // Runs in every environment: guarantees the built-in "Default" category and
-  // backfills any bookmarks left without a category.
+  // Runs in every environment: guarantees the built-in "Default" and "Inbox" categories.
+  // Default also backfills any bookmarks left without a category.
   await ensureDefaultCategory();
+  await ensureInboxCategory();
   await ensureAppSettings();
   await ensureBuiltInWebsites();
   await backfillWebsiteSlugs();
