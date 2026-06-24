@@ -749,6 +749,14 @@ const CONTENT_STATUS_DEFAULT_ITEMS: ChoicesItem[] = [
     label: "Finished",
     value: "finished",
   },
+  {
+    label: "AI Summary Queue",
+    value: "ai-summary-queue",
+  },
+  {
+    label: "Summarized by AI",
+    value: "summarized-by-ai",
+  },
 ];
 
 /**
@@ -799,6 +807,33 @@ export async function ensureContentStatusProperty(): Promise<string> {
 
   // Lost a concurrent insert race — re-read the row the other writer created.
   return readPropertyIdBySlug(CONTENT_STATUS_SLUG);
+}
+
+/**
+ * Append any missing Content Status choices (e.g. "AI Summary Queue", "Summarized by AI") to an
+ * existing installation. Idempotent: each value is only added when absent, preserving user edits.
+ */
+export async function backfillContentStatusOptions(): Promise<void> {
+  const [row] = await db
+    .select({
+      id: customProperties.id,
+      choicesItems: customProperties.choicesItems,
+    })
+    .from(customProperties)
+    .where(eq(customProperties.slug, CONTENT_STATUS_SLUG));
+  if (!row) return;
+
+  const existing = (row.choicesItems ?? []) as ChoicesItem[];
+  const existingValues = new Set(existing.map(item => item.value));
+  const missing = CONTENT_STATUS_DEFAULT_ITEMS.filter(item => !existingValues.has(item.value));
+  if (missing.length === 0) return;
+
+  await db
+    .update(customProperties)
+    .set({
+      choicesItems: [...existing, ...missing],
+    })
+    .where(eq(customProperties.id, row.id));
 }
 
 /**

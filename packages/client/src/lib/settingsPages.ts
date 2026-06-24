@@ -18,6 +18,7 @@ import {
   Puzzle,
   Share2,
   SlidersHorizontal,
+  Sparkles,
   Tags,
   Wand2,
   Wrench,
@@ -78,6 +79,11 @@ export const SETTINGS_PAGES: readonly SettingsPage[] = [
     path: "/settings/automations",
     label: "Automations",
     icon: Wand2,
+  },
+  {
+    path: "/settings/ai-summarization",
+    label: "AI Summarization",
+    icon: Sparkles,
   },
   {
     path: "/settings/link-parsing",

@@ -646,6 +646,16 @@ const migrations: RuntimeMigration[] = [
         ADD COLUMN IF NOT EXISTS "social_links" jsonb NOT NULL DEFAULT '[]'::jsonb
     `),
   },
+  {
+    // `app_settings.ai_summarization_prompt` stores the user's AI summarization prompt. NOT NULL
+    // DEFAULT '' on the populated singleton makes drizzle-kit push prompt (non-TTY crash), so
+    // pre-apply it here to keep push's diff additive-only.
+    name: "add app_settings.ai_summarization_prompt column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "app_settings"
+        ADD COLUMN IF NOT EXISTS "ai_summarization_prompt" text NOT NULL DEFAULT ''
+    `),
+  },
 ];
 
 async function main(): Promise<void> {

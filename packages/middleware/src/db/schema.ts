@@ -1052,6 +1052,8 @@ export const appSettings = pgTable("app_settings", {
   croppedWidth: integer("cropped_width").notNull().default(16),
   // Height component of the built-in "Cropped" aspect ratio (default 9).
   croppedHeight: integer("cropped_height").notNull().default(9),
+  // Prompt text used to instruct an AI to summarize bookmarks in the AI Summary Queue.
+  aiSummarizationPrompt: text("ai_summarization_prompt").notNull().default(""),
 });
 
 /**

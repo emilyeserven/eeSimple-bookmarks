@@ -10,6 +10,7 @@ import {
   PanelRight,
   Puzzle,
   SlidersHorizontal,
+  Sparkles,
   Tags,
   Wand2,
   Wrench,
@@ -58,6 +59,12 @@ const SETTINGS_TILES = [
     description: "Configure automatic behaviors when saving bookmarks.",
     icon: Wand2,
     to: "/settings/automations" as const,
+  },
+  {
+    label: "AI Summarization",
+    description: "Store a summarization prompt and mark queued bookmarks as summarized.",
+    icon: Sparkles,
+    to: "/settings/ai-summarization" as const,
   },
   {
     label: "Link Parsing",

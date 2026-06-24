@@ -7,7 +7,7 @@ import { backfillPublisherSlugs } from "@/services/publishers";
 import { ensureAutofillConditions, ensureAutofillSlugs, ensureWebsiteConditions } from "@/services/autofill";
 import { backfillCardDisplayRuleFieldZones, backfillCardDisplayRuleHeaderFields, backfillCardDisplayRuleSubZones, backfillCardDisplayRuleZoneLayouts, ensureDefaultCardDisplayRule } from "@/services/cardDisplayRules";
 import { ensureDefaultCategory, ensureInboxCategory } from "@/services/categories";
-import { backfillCustomPropertySlugs, ensureChaptersProperty, ensureContentStatusProperty, ensureDatePostedProperty, ensurePageProgressProperty, ensurePageRangeProperty, ensurePageSectionsProperty, ensureRuntimeProperty, ensureUrlSectionsProperty } from "@/services/customProperties";
+import { backfillContentStatusOptions, backfillCustomPropertySlugs, ensureChaptersProperty, ensureContentStatusProperty, ensureDatePostedProperty, ensurePageProgressProperty, ensurePageRangeProperty, ensurePageSectionsProperty, ensureRuntimeProperty, ensureUrlSectionsProperty } from "@/services/customProperties";
 import { ensureHomepageFilter } from "@/services/homepageFilter";
 import { resetStalledImports } from "@/services/imports";
 import { ensureImportRuleSlugs } from "@/services/importRules";
@@ -55,6 +55,7 @@ try {
   await backfillCustomPropertySlugs();
   await ensureDatePostedProperty();
   await ensureContentStatusProperty();
+  await backfillContentStatusOptions();
   await ensureBuiltInMediaTypes();
   await backfillMediaTypeSlugs();
   await backfillPublisherSlugs();
