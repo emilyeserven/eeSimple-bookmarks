@@ -282,7 +282,7 @@ export function useBookmarkFormController({
         id: bookmark.id,
         input,
       });
-      await applyImageIntent(bookmark.id, finalUrl, imageIntentRef.current, {
+      await applyImageIntent(bookmark.id, finalUrl ?? "", imageIntentRef.current, {
         uploadImage,
         autoImage,
         deleteImage,
@@ -298,7 +298,7 @@ export function useBookmarkFormController({
         websiteSiteName: trimmedSiteName,
       }),
     });
-    await applyImageIntent(created.id, finalUrl, imageIntentRef.current, {
+    await applyImageIntent(created.id, finalUrl ?? "", imageIntentRef.current, {
       uploadImage,
       autoImage,
       deleteImage,
