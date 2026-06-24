@@ -371,23 +371,21 @@ function ReviewRow({
             )
             : null}
         </div>
-        <div
-          className="
-            hidden shrink-0 items-start gap-1
-            md:flex
-          "
-        >
-          <RowActions item={item} />
-        </div>
+        {!isMobile
+          ? (
+            <div className="flex shrink-0 items-start gap-1">
+              <RowActions item={item} />
+            </div>
+          )
+          : null}
       </div>
-      <div
-        className="
-          mt-3 flex gap-1
-          md:hidden
-        "
-      >
-        <RowActions item={item} />
-      </div>
+      {isMobile
+        ? (
+          <div className="mt-3 flex gap-1">
+            <RowActions item={item} />
+          </div>
+        )
+        : null}
     </RowCard>
   );
 }
