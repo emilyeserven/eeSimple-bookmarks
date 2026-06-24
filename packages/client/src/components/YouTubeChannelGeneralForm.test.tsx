@@ -25,6 +25,9 @@ function makeChannel(overrides: Partial<YouTubeChannel> = {}): YouTubeChannel {
     category: null,
     tagIds: [],
     mediaTypeId: null,
+    authorIds: [],
+    websiteIds: [],
+    publisherIds: [],
     ...overrides,
   };
 }

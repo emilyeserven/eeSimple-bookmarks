@@ -157,6 +157,9 @@ export const sampleChannels: YouTubeChannel[] = [
     selfIds: [],
     createdAt: NOW,
     bookmarkCount: 3,
+    authorIds: [],
+    websiteIds: [],
+    publisherIds: [],
   },
   {
     id: "channel-fireship",
@@ -166,6 +169,9 @@ export const sampleChannels: YouTubeChannel[] = [
     selfIds: [],
     createdAt: NOW,
     bookmarkCount: 5,
+    authorIds: [],
+    websiteIds: [],
+    publisherIds: [],
   },
 ];
 

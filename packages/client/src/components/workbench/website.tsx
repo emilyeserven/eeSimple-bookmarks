@@ -8,10 +8,14 @@ import { EntityImagePreview } from "../EntityImageField";
 import { ParamRulesList } from "../ParamRulesList";
 import { ShortenedLinksList } from "../ShortenedLinksList";
 import { SourceAutofillDefaults } from "../SourceAutofillDefaults";
+import { WebsiteAuthorsForm, WebsiteAuthorsView } from "../WebsiteAuthorsForm";
 import { WebsiteGeneralForm } from "../WebsiteGeneralForm";
 import { WebsiteParamRulesForm } from "../WebsiteParamRulesForm";
+import { WebsitePublishersForm, WebsitePublishersView } from "../WebsitePublishersForm";
 import { WebsiteShortenedLinksForm } from "../WebsiteShortenedLinksForm";
 
+import { useAuthors } from "@/hooks/useAuthors";
+import { usePublishers } from "@/hooks/usePublishers";
 import { useDeleteWebsite, useWebsiteBySlug, useWebsites } from "@/hooks/useWebsites";
 import { useYouTubeChannels } from "@/hooks/useYouTubeChannels";
 import { SOCIAL_MEDIA_PLATFORM_LABELS } from "@/lib/socialLinks";
@@ -24,9 +28,17 @@ function WebsiteGeneralView({
   const {
     data: allChannels,
   } = useYouTubeChannels();
+  const {
+    data: authors,
+  } = useAuthors();
+  const {
+    data: publishers,
+  } = usePublishers();
   const associatedChannels = (allChannels ?? []).filter(
     ch => (website.youtubeChannelIds ?? []).includes(ch.id),
   );
+  const connectedAuthors = (authors ?? []).filter(a => website.authorIds.includes(a.id));
+  const connectedPublishers = (publishers ?? []).filter(pub => website.publisherIds.includes(pub.id));
 
   return (
     <div className="space-y-4">
@@ -73,6 +85,26 @@ function WebsiteGeneralView({
             >YouTube Channel
             </dt>
             <dd key={`ch-value-${ch.id}`}>{ch.name}</dd>
+          </>
+        ))}
+        {connectedAuthors.map(a => (
+          <>
+            <dt
+              key={`author-label-${a.id}`}
+              className="text-muted-foreground"
+            >Author
+            </dt>
+            <dd key={`author-value-${a.id}`}>{a.name}</dd>
+          </>
+        ))}
+        {connectedPublishers.map(pub => (
+          <>
+            <dt
+              key={`pub-label-${pub.id}`}
+              className="text-muted-foreground"
+            >Publisher
+            </dt>
+            <dd key={`pub-value-${pub.id}`}>{pub.name}</dd>
           </>
         ))}
         {website.socialLinks.map(link => (
@@ -205,6 +237,42 @@ export const websiteWorkbench: EntityWorkbench<Website> = {
         render: ({
           entity,
         }) => <WebsiteParamRulesForm website={entity} />,
+      },
+    },
+    {
+      key: "authors",
+      label: "Authors",
+      view: {
+        title: "Authors",
+        description: "Authors associated with this website.",
+        render: ({
+          entity,
+        }) => <WebsiteAuthorsView website={entity} />,
+      },
+      edit: {
+        title: "Authors",
+        description: "Connect authors to this website.",
+        render: ({
+          entity,
+        }) => <WebsiteAuthorsForm website={entity} />,
+      },
+    },
+    {
+      key: "publishers",
+      label: "Publishers",
+      view: {
+        title: "Publishers",
+        description: "Publishers associated with this website.",
+        render: ({
+          entity,
+        }) => <WebsitePublishersView website={entity} />,
+      },
+      edit: {
+        title: "Publishers",
+        description: "Connect publishers to this website.",
+        render: ({
+          entity,
+        }) => <WebsitePublishersForm website={entity} />,
       },
     },
   ],

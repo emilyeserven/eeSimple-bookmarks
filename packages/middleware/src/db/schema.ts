@@ -578,6 +578,8 @@ export const youtubeChannelsRelations = relations(youtubeChannels, ({
     references: [categories.id],
   }),
   channelTags: many(youtubeChannelTags),
+  authorYoutubeChannels: many(authorYoutubeChannels),
+  youtubeChannelPublishers: many(youtubeChannelPublishers),
 }));
 
 export const newslettersRelations = relations(newsletters, ({
@@ -611,6 +613,8 @@ export const websitesRelations = relations(websites, ({
     references: [categories.id],
   }),
   websiteTags: many(websiteTags),
+  authorWebsites: many(authorWebsites),
+  websitePublishers: many(websitePublishers),
 }));
 
 export const mediaObjectsRelations = relations(mediaObjects, ({
@@ -1819,6 +1823,38 @@ export const authorPublishers = pgTable("author_publishers", {
 
 export type AuthorPublisherRow = typeof authorPublishers.$inferSelect;
 
+/** `youtube_channel_publishers` join — M:M between YouTube channels and publishers. */
+export const youtubeChannelPublishers = pgTable("youtube_channel_publishers", {
+  channelId: uuid("channel_id").notNull().references(() => youtubeChannels.id, {
+    onDelete: "cascade",
+  }),
+  publisherId: uuid("publisher_id").notNull().references(() => publishers.id, {
+    onDelete: "cascade",
+  }),
+}, table => [
+  primaryKey({
+    columns: [table.channelId, table.publisherId],
+  }),
+]);
+
+export type YoutubeChannelPublisherRow = typeof youtubeChannelPublishers.$inferSelect;
+
+/** `website_publishers` join — M:M between websites and publishers. */
+export const websitePublishers = pgTable("website_publishers", {
+  websiteId: uuid("website_id").notNull().references(() => websites.id, {
+    onDelete: "cascade",
+  }),
+  publisherId: uuid("publisher_id").notNull().references(() => publishers.id, {
+    onDelete: "cascade",
+  }),
+}, table => [
+  primaryKey({
+    columns: [table.websiteId, table.publisherId],
+  }),
+]);
+
+export type WebsitePublisherRow = typeof websitePublishers.$inferSelect;
+
 /**
  * `card_field_templates` — user-saved named configurations of card field zone placements.
  * Reusable across card display rules: save once, apply to any rule's Card Fields override.
@@ -1893,6 +1929,32 @@ export const authorPublishersRelations = relations(authorPublishers, ({
   }),
   publisher: one(publishers, {
     fields: [authorPublishers.publisherId],
+    references: [publishers.id],
+  }),
+}));
+
+export const youtubeChannelPublishersRelations = relations(youtubeChannelPublishers, ({
+  one,
+}) => ({
+  channel: one(youtubeChannels, {
+    fields: [youtubeChannelPublishers.channelId],
+    references: [youtubeChannels.id],
+  }),
+  publisher: one(publishers, {
+    fields: [youtubeChannelPublishers.publisherId],
+    references: [publishers.id],
+  }),
+}));
+
+export const websitePublishersRelations = relations(websitePublishers, ({
+  one,
+}) => ({
+  website: one(websites, {
+    fields: [websitePublishers.websiteId],
+    references: [websites.id],
+  }),
+  publisher: one(publishers, {
+    fields: [websitePublishers.publisherId],
     references: [publishers.id],
   }),
 }));

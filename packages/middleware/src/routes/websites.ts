@@ -168,6 +168,20 @@ const updateWebsiteBody = {
         format: "uuid",
       },
     },
+    authorIds: {
+      type: "array",
+      items: {
+        type: "string",
+        format: "uuid",
+      },
+    },
+    publisherIds: {
+      type: "array",
+      items: {
+        type: "string",
+        format: "uuid",
+      },
+    },
   },
 } as const;
 

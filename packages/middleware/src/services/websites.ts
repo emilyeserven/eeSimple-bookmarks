@@ -3,7 +3,7 @@ import type { BulkDeleteResult, CreateWebsiteInput, ShortenedLink, SocialLink, U
 import { getShortenerIgnoreList } from "@/services/appSettings";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { db } from "@/db";
-import { bookmarks, categories, websiteFavicons, websiteTags, websites, websiteYoutubeChannels, type WebsiteRow } from "@/db/schema";
+import { authorWebsites, bookmarks, categories, websiteFavicons, websitePublishers, websiteTags, websites, websiteYoutubeChannels, type WebsiteRow } from "@/db/schema";
 import { buildStringMap } from "@/utils/mapUtils";
 import { slugify } from "@/utils/slug";
 
@@ -172,6 +172,62 @@ async function setWebsiteChannels(
   }
 }
 
+/** Load associated author ids for a set of website ids as a map of id → string[]. */
+async function loadWebsiteAuthorMap(websiteIds: string[]): Promise<Map<string, string[]>> {
+  if (websiteIds.length === 0) return new Map();
+  const rows = await db
+    .select({
+      websiteId: authorWebsites.websiteId,
+      authorId: authorWebsites.authorId,
+    })
+    .from(authorWebsites)
+    .where(inArray(authorWebsites.websiteId, websiteIds));
+  return buildStringMap(rows, r => r.websiteId, r => r.authorId);
+}
+
+/** Load associated publisher ids for a set of website ids as a map of id → string[]. */
+async function loadWebsitePublisherMap(websiteIds: string[]): Promise<Map<string, string[]>> {
+  if (websiteIds.length === 0) return new Map();
+  const rows = await db
+    .select({
+      websiteId: websitePublishers.websiteId,
+      publisherId: websitePublishers.publisherId,
+    })
+    .from(websitePublishers)
+    .where(inArray(websitePublishers.websiteId, websiteIds));
+  return buildStringMap(rows, r => r.websiteId, r => r.publisherId);
+}
+
+/** Replace the full set of associated authors for a website (delete-then-insert). */
+async function setWebsiteAuthors(
+  txOrDb: Tx | typeof db,
+  websiteId: string,
+  authorIds: string[],
+): Promise<void> {
+  await txOrDb.delete(authorWebsites).where(eq(authorWebsites.websiteId, websiteId));
+  if (authorIds.length > 0) {
+    await txOrDb.insert(authorWebsites).values(authorIds.map(authorId => ({
+      websiteId,
+      authorId,
+    })));
+  }
+}
+
+/** Replace the full set of associated publishers for a website (delete-then-insert). */
+async function setWebsitePublishers(
+  txOrDb: Tx | typeof db,
+  websiteId: string,
+  publisherIds: string[],
+): Promise<void> {
+  await txOrDb.delete(websitePublishers).where(eq(websitePublishers.websiteId, websiteId));
+  if (publisherIds.length > 0) {
+    await txOrDb.insert(websitePublishers).values(publisherIds.map(publisherId => ({
+      websiteId,
+      publisherId,
+    })));
+  }
+}
+
 /** Map a DB row to the shared `Website` wire type. */
 function toWebsite(
   row: WebsiteRow & {
@@ -183,6 +239,8 @@ function toWebsite(
   },
   tagIds: string[] = [],
   youtubeChannelIds: string[] = [],
+  authorIds: string[] = [],
+  publisherIds: string[] = [],
 ): Website {
   return {
     id: row.id,
@@ -209,6 +267,8 @@ function toWebsite(
     mediaTypeId: row.mediaTypeId ?? null,
     socialLinks: (row.socialLinks as SocialLink[] | null) ?? [],
     youtubeChannelIds,
+    authorIds,
+    publisherIds,
   };
 }
 
@@ -312,33 +372,57 @@ export async function listWebsites(): Promise<Website[]> {
     .leftJoin(categories, eq(categories.id, websites.categoryId))
     .orderBy(asc(websites.siteName));
   const ids = rows.map(r => r.id);
-  const [tagsMap, channelsMap] = await Promise.all([
+  const [tagsMap, channelsMap, authorsMap, publishersMap] = await Promise.all([
     loadWebsiteTagsMap(ids),
     loadWebsiteChannelsMap(ids),
+    loadWebsiteAuthorMap(ids),
+    loadWebsitePublisherMap(ids),
   ]);
-  return rows.map(row => toWebsite(row, tagsMap.get(row.id) ?? [], channelsMap.get(row.id) ?? []));
+  return rows.map(row => toWebsite(
+    row,
+    tagsMap.get(row.id) ?? [],
+    channelsMap.get(row.id) ?? [],
+    authorsMap.get(row.id) ?? [],
+    publishersMap.get(row.id) ?? [],
+  ));
 }
 
 /** Fetch a single website by id, or `null` when absent. */
 export async function getWebsite(id: string): Promise<Website | null> {
   const [row] = await websiteBaseQuery().where(eq(websites.id, id));
   if (!row) return null;
-  const [tagsMap, channelsMap] = await Promise.all([
+  const [tagsMap, channelsMap, authorsMap, publishersMap] = await Promise.all([
     loadWebsiteTagsMap([row.id]),
     loadWebsiteChannelsMap([row.id]),
+    loadWebsiteAuthorMap([row.id]),
+    loadWebsitePublisherMap([row.id]),
   ]);
-  return toWebsite(row, tagsMap.get(row.id) ?? [], channelsMap.get(row.id) ?? []);
+  return toWebsite(
+    row,
+    tagsMap.get(row.id) ?? [],
+    channelsMap.get(row.id) ?? [],
+    authorsMap.get(row.id) ?? [],
+    publishersMap.get(row.id) ?? [],
+  );
 }
 
 /** Fetch a website by its normalized domain, or `null` when absent. */
 export async function getWebsiteByDomain(domain: string): Promise<Website | null> {
   const [row] = await websiteBaseQuery().where(eq(websites.domain, domain));
   if (!row) return null;
-  const [tagsMap, channelsMap] = await Promise.all([
+  const [tagsMap, channelsMap, authorsMap, publishersMap] = await Promise.all([
     loadWebsiteTagsMap([row.id]),
     loadWebsiteChannelsMap([row.id]),
+    loadWebsiteAuthorMap([row.id]),
+    loadWebsitePublisherMap([row.id]),
   ]);
-  return toWebsite(row, tagsMap.get(row.id) ?? [], channelsMap.get(row.id) ?? []);
+  return toWebsite(
+    row,
+    tagsMap.get(row.id) ?? [],
+    channelsMap.get(row.id) ?? [],
+    authorsMap.get(row.id) ?? [],
+    publishersMap.get(row.id) ?? [],
+  );
 }
 
 /**
@@ -348,11 +432,19 @@ export async function getWebsiteByDomain(domain: string): Promise<Website | null
 export async function getWebsiteByAnyDomain(domain: string): Promise<Website | null> {
   const [row] = await websiteBaseQuery().where(matchesAnyDomain(domain));
   if (!row) return null;
-  const [tagsMap, channelsMap] = await Promise.all([
+  const [tagsMap, channelsMap, authorsMap, publishersMap] = await Promise.all([
     loadWebsiteTagsMap([row.id]),
     loadWebsiteChannelsMap([row.id]),
+    loadWebsiteAuthorMap([row.id]),
+    loadWebsitePublisherMap([row.id]),
   ]);
-  return toWebsite(row, tagsMap.get(row.id) ?? [], channelsMap.get(row.id) ?? []);
+  return toWebsite(
+    row,
+    tagsMap.get(row.id) ?? [],
+    channelsMap.get(row.id) ?? [],
+    authorsMap.get(row.id) ?? [],
+    publishersMap.get(row.id) ?? [],
+  );
 }
 
 /**
@@ -542,6 +634,12 @@ export async function updateWebsite(
   }
   if (input.youtubeChannelIds !== undefined) {
     await setWebsiteChannels(db, id, input.youtubeChannelIds);
+  }
+  if (input.authorIds !== undefined) {
+    await setWebsiteAuthors(db, id, input.authorIds);
+  }
+  if (input.publisherIds !== undefined) {
+    await setWebsitePublishers(db, id, input.publisherIds);
   }
 
   return getWebsite(id);

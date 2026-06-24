@@ -127,6 +127,10 @@ export interface Website {
   socialLinks: SocialLink[];
   /** Ids of YouTube channels associated with this website. */
   youtubeChannelIds?: string[];
+  /** IDs of authors associated with this website. */
+  authorIds: string[];
+  /** IDs of publishers associated with this website. */
+  publisherIds: string[];
 }
 
 /** Lightweight website shape carried on a bookmark. */
@@ -160,6 +164,10 @@ export interface UpdateWebsiteInput {
   socialLinks?: SocialLink[];
   /** Full replacement list of associated YouTube channel ids. Omit to leave unchanged. */
   youtubeChannelIds?: string[];
+  /** Full replacement list of associated author ids. Omit to leave unchanged. */
+  authorIds?: string[];
+  /** Full replacement list of associated publisher ids. Omit to leave unchanged. */
+  publisherIds?: string[];
 }
 
 /** Result of looking up the website for a URL without creating one — powers the form banner. */
@@ -558,6 +566,12 @@ export interface YouTubeChannel {
   tagIds?: string[];
   /** Default media type id applied to new bookmarks saved from this channel, or `null` when unset. */
   mediaTypeId?: string | null;
+  /** IDs of authors associated with this channel. */
+  authorIds: string[];
+  /** IDs of websites associated with this channel. */
+  websiteIds: string[];
+  /** IDs of publishers associated with this channel. */
+  publisherIds: string[];
 }
 
 /** Lightweight channel shape carried on a bookmark. */
@@ -595,6 +609,12 @@ export interface UpdateYouTubeChannelInput {
   tagIds?: string[];
   /** Default media type to apply to new bookmarks from this channel. `null` clears it; omit to leave unchanged. */
   mediaTypeId?: string | null;
+  /** Full replacement list of associated author ids. Omit to leave unchanged. */
+  authorIds?: string[];
+  /** Full replacement list of associated website ids. Omit to leave unchanged. */
+  websiteIds?: string[];
+  /** Full replacement list of associated publisher ids. Omit to leave unchanged. */
+  publisherIds?: string[];
 }
 
 /**
