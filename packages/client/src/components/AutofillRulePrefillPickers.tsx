@@ -1,7 +1,7 @@
 import type { Category, MediaType, TagNode } from "@eesimple/types";
 
 import { NO_CATEGORY, NO_MEDIA_TYPE } from "./AutofillRuleForm";
-import { TagPicker } from "./TagPicker";
+import { TagPickerWithCreate } from "./TagPickerWithCreate";
 
 import { Label } from "@/components/ui/label";
 import {
@@ -77,7 +77,7 @@ export function AutofillRulePrefillPickers({
 
       <div className="space-y-1">
         <Label>Apply tags</Label>
-        <TagPicker
+        <TagPickerWithCreate
           tree={tagTree}
           selectedIds={tagIds}
           onToggle={onToggleTag}

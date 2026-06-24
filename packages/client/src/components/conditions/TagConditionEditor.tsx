@@ -1,6 +1,6 @@
 import type { TagCondition, TagNode } from "@eesimple/types";
 
-import { TagPicker } from "../TagPicker";
+import { TagPickerWithCreate } from "../TagPickerWithCreate";
 
 interface TagConditionEditorProps {
   value: TagCondition;
@@ -14,7 +14,7 @@ export function TagConditionEditor({
 }: TagConditionEditorProps) {
   return (
     <div className="space-y-2">
-      <TagPicker
+      <TagPickerWithCreate
         tree={tagTree}
         selectedIds={value.tagIds}
         onToggle={(id) => {

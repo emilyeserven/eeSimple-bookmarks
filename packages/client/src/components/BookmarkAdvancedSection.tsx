@@ -12,8 +12,11 @@ import type {
   TagNode,
 } from "@eesimple/types";
 
+import { useState } from "react";
+
 import { ChevronDown, Loader2, Sparkles } from "lucide-react";
 
+import { AddTagModal } from "./AddTagModal";
 import { BookmarkAdvancedCategoryField } from "./BookmarkAdvancedCategoryField";
 import { BookmarkAdvancedMediaTypeField } from "./BookmarkAdvancedMediaTypeField";
 import { BookmarkAdvancedPublisherField } from "./BookmarkAdvancedPublisherField";
@@ -139,6 +142,8 @@ export function BookmarkAdvancedSection({
   onFetchDescription,
   isFetchDescriptionPending,
 }: BookmarkAdvancedSectionProps) {
+  const [addTagOpen, setAddTagOpen] = useState(false);
+
   return (
     <Collapsible className="group/advanced space-y-3">
       <CollapsibleTrigger
@@ -237,6 +242,10 @@ export function BookmarkAdvancedSection({
                             : [...current, id],
                         );
                       }}
+                      createOption={{
+                        label: "Create tag",
+                        onSelect: () => setAddTagOpen(true),
+                      }}
                     />
                     {/* "Apply selected tags as defaults for <source>" — under the Tags picker. */}
                     {sourceDefaults.showSourceDefault && field.state.value.length > 0 && (
@@ -249,6 +258,17 @@ export function BookmarkAdvancedSection({
                         {sourceDefaults.label}
                       </SourceDefaultCheckbox>
                     )}
+                    <AddTagModal
+                      open={addTagOpen}
+                      onOpenChange={setAddTagOpen}
+                      onCreated={(tag) => {
+                        const current = field.state.value;
+                        if (!current.includes(tag.id)) {
+                          onTagToggle(tag.id);
+                          field.handleChange([...current, tag.id]);
+                        }
+                      }}
+                    />
                   </div>
                 )}
               </form.Field>

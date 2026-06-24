@@ -4,7 +4,7 @@ import { X } from "lucide-react";
 
 import { Combobox } from "./Combobox";
 import { MultiCombobox } from "./MultiCombobox";
-import { TagPicker } from "./TagPicker";
+import { TagPickerWithCreate } from "./TagPickerWithCreate";
 import { useAuthors } from "../hooks/useAuthors";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
@@ -409,7 +409,7 @@ export function InboxPreFillBox({
               ))}
             </div>
           )}
-          <TagPicker
+          <TagPickerWithCreate
             tree={tagTree as TagNode[]}
             selectedIds={selectedTagIds}
             onToggle={(id) => {
