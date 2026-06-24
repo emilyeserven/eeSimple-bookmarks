@@ -2,7 +2,9 @@ import type {
   AdvancedSettings,
   AutomationSettings,
   CardDisplayRule,
+  CardFieldTemplate,
   CreateCardDisplayRuleInput,
+  CreateCardFieldTemplateInput,
   CreateCustomAspectRatioInput,
   CreateFavoriteSettingsPageInput,
   CreateHomepageSectionInput,
@@ -150,6 +152,18 @@ export const customAspectRatiosApi = {
       body: JSON.stringify(input),
     }),
   remove: (id: string) => request<undefined>(`/custom-aspect-ratios/${id}`, {
+    method: "DELETE",
+  }),
+};
+
+export const cardFieldTemplatesApi = {
+  list: () => request<CardFieldTemplate[]>("/card-field-templates"),
+  create: (input: CreateCardFieldTemplateInput) =>
+    request<CardFieldTemplate>("/card-field-templates", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  remove: (id: string) => request<undefined>(`/card-field-templates/${id}`, {
     method: "DELETE",
   }),
 };

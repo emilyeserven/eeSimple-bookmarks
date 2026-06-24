@@ -1997,6 +1997,22 @@ export interface CreateCardDisplayRuleInput {
 /** Payload for partially updating a card display rule. */
 export type UpdateCardDisplayRuleInput = Partial<CreateCardDisplayRuleInput>;
 
+/** A saved named configuration of card field zone placements, reusable across display rules. */
+export interface CardFieldTemplate {
+  id: string;
+  name: string;
+  description: string | null;
+  fieldZones: CardFieldZones;
+  createdAt: string;
+}
+
+/** Payload for creating a card field template. */
+export interface CreateCardFieldTemplateInput {
+  name: string;
+  description?: string | null;
+  fieldZones: CardFieldZones;
+}
+
 /**
  * Result of fetching metadata for a bookmark URL (`GET /api/fetch-metadata`). Always carries the
  * page title; for recognized YouTube video URLs it also carries the channel, duration, and
