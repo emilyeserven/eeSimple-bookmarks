@@ -25,6 +25,7 @@ const website: Website = {
   createdAt: "2026-06-01T00:00:00.000Z",
   bookmarkCount: 2,
   socialLinks: [],
+  alternateNames: [],
 };
 
 vi.mock("../hooks/useWebsites", () => ({

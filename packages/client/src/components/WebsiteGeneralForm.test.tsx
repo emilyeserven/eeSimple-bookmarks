@@ -28,6 +28,7 @@ function makeWebsite(overrides: Partial<Website> = {}): Website {
     tagIds: [],
     mediaTypeId: null,
     socialLinks: [],
+    alternateNames: [],
     ...overrides,
   };
 }

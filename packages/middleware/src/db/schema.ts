@@ -171,6 +171,9 @@ export const websites = pgTable("websites", {
   faviconAutoGrabError: text("favicon_auto_grab_error"),
   // Social media profile links (X, Instagram, Facebook, …). NOT NULL; pre-applied in migrate.ts.
   socialLinks: jsonb("social_links").$type<SocialLink[]>().notNull().default(sql`'[]'::jsonb`),
+  // Extra names this site appends to bookmark titles (e.g. "GH" for GitHub). Used to strip title
+  // suffixes during metadata fetch, mirroring YouTube channel selfIds. Nullable (push-safe additive).
+  alternateNames: jsonb("alternate_names").$type<string[]>(),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),

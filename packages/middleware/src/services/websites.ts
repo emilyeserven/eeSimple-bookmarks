@@ -209,6 +209,7 @@ function toWebsite(
     mediaTypeId: row.mediaTypeId ?? null,
     socialLinks: (row.socialLinks as SocialLink[] | null) ?? [],
     youtubeChannelIds,
+    alternateNames: (row.alternateNames as string[] | null) ?? [],
   };
 }
 
@@ -222,6 +223,7 @@ const websiteSelect = {
   shortenedLinks: websites.shortenedLinks,
   paramRules: websites.paramRules,
   socialLinks: websites.socialLinks,
+  alternateNames: websites.alternateNames,
   createdAt: websites.createdAt,
   categoryId: websites.categoryId,
   mediaTypeId: websites.mediaTypeId,
@@ -507,7 +509,7 @@ export async function updateWebsite(
     }
   }
 
-  const patch: Partial<Pick<WebsiteRow, "domain" | "siteName" | "slug" | "shortenedLinks" | "paramRules" | "categoryId" | "mediaTypeId" | "socialLinks">> = {};
+  const patch: Partial<Pick<WebsiteRow, "domain" | "siteName" | "slug" | "shortenedLinks" | "paramRules" | "categoryId" | "mediaTypeId" | "socialLinks" | "alternateNames">> = {};
   if (input.siteName !== undefined) patch.siteName = input.siteName;
   // Rule fields stay editable even on built-ins (only rename/move/delete are blocked above).
   if (input.shortenedLinks !== undefined) patch.shortenedLinks = input.shortenedLinks;
@@ -531,6 +533,9 @@ export async function updateWebsite(
   }
   if ("socialLinks" in input) {
     patch.socialLinks = input.socialLinks ?? [];
+  }
+  if (input.alternateNames !== undefined) {
+    patch.alternateNames = input.alternateNames;
   }
 
   if (Object.keys(patch).length > 0) {

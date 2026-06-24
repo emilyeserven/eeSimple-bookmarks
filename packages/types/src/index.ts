@@ -127,6 +127,8 @@ export interface Website {
   socialLinks: SocialLink[];
   /** Ids of YouTube channels associated with this website. */
   youtubeChannelIds?: string[];
+  /** Extra names this site appends to titles (e.g. "GH"); stripped during title fetch. */
+  alternateNames: string[];
 }
 
 /** Lightweight website shape carried on a bookmark. */
@@ -160,6 +162,8 @@ export interface UpdateWebsiteInput {
   socialLinks?: SocialLink[];
   /** Full replacement list of associated YouTube channel ids. Omit to leave unchanged. */
   youtubeChannelIds?: string[];
+  /** Full replacement list of extra site-name aliases used for title stripping. Omit to leave unchanged. */
+  alternateNames?: string[];
 }
 
 /** Result of looking up the website for a URL without creating one — powers the form banner. */

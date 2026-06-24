@@ -102,13 +102,25 @@ async function buildGenericMetadataResult(
     lookupWebsiteByUrl(url),
   ]);
   const rawTitle = html ? extractTitle(html) : null;
+  let title = rawTitle
+    ? stripSiteNameSuffix(rawTitle, {
+      siteName: siteNameHint ?? website?.siteName,
+      domain,
+    })
+    : null;
+  if (title && title === rawTitle && website?.alternateNames && website.alternateNames.length > 0) {
+    for (const altName of website.alternateNames) {
+      const alt = stripSiteNameSuffix(title, {
+        siteName: altName,
+      });
+      if (alt !== title) {
+        title = alt;
+        break;
+      }
+    }
+  }
   return {
-    title: rawTitle
-      ? stripSiteNameSuffix(rawTitle, {
-        siteName: siteNameHint ?? website?.siteName,
-        domain,
-      })
-      : null,
+    title,
     description: html ? extractDescription(html) : null,
     isYouTube: false,
     channel: null,
@@ -180,11 +192,23 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
     const {
       domain, website,
     } = await lookupWebsiteByUrl(url);
+    let title = stripSiteNameSuffix(result.title, {
+      siteName: siteNameHint ?? website?.siteName,
+      domain,
+    });
+    if (title === result.title && website?.alternateNames && website.alternateNames.length > 0) {
+      for (const altName of website.alternateNames) {
+        const alt = stripSiteNameSuffix(title, {
+          siteName: altName,
+        });
+        if (alt !== title) {
+          title = alt;
+          break;
+        }
+      }
+    }
     return {
-      title: stripSiteNameSuffix(result.title, {
-        siteName: siteNameHint ?? website?.siteName,
-        domain,
-      }),
+      title,
     };
   });
 
