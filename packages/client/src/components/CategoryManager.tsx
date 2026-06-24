@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
-import { Plus } from "lucide-react";
+import { CheckSquare, Plus } from "lucide-react";
 
 import { AddCategoryModal } from "./AddCategoryModal";
 import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
@@ -11,7 +11,6 @@ import { useListSelection } from "../lib/useListSelection";
 
 import { Button } from "@/components/ui/button";
 import { RowCard } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 
 /** Create and list categories; each row links to a category's full edit page. */
@@ -27,7 +26,15 @@ export function CategoryManager() {
 
   return (
     <section className="space-y-6">
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
+        <Button
+          variant={selection.mode ? "secondary" : "outline"}
+          size="sm"
+          onClick={() => selection.setMode(!selection.mode)}
+        >
+          <CheckSquare className="size-4" />
+          {selection.mode ? "Done selecting" : "Select"}
+        </Button>
         <Button
           type="button"
           size="sm"
@@ -61,24 +68,14 @@ export function CategoryManager() {
                 ring-2 ring-primary
               `)}
             >
-              {!category.builtIn
+              {(selection.mode && !category.builtIn)
                 ? (
-                  <div
-                    className={cn(
-                      `
-                        absolute top-3 left-3 z-10 opacity-0 transition-opacity
-                        group-hover:opacity-100
-                        focus-within:opacity-100
-                      `,
-                      selected && "opacity-100",
-                    )}
-                  >
-                    <Checkbox
-                      aria-label={`Select ${category.name}`}
-                      checked={selected}
-                      onCheckedChange={() => selection.toggle(category.id)}
-                    />
-                  </div>
+                  <button
+                    type="button"
+                    className="absolute inset-0 z-10 cursor-pointer"
+                    aria-label={selected ? `Deselect ${category.name}` : `Select ${category.name}`}
+                    onClick={() => selection.toggle(category.id)}
+                  />
                 )
                 : null}
               <CategoryCard category={category} />

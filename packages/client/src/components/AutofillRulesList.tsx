@@ -3,6 +3,7 @@ import type { AutofillRule } from "@eesimple/types";
 import { useMemo } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
+import { CheckSquare } from "lucide-react";
 
 import { AutofillRuleListItem } from "./AutofillRuleListItem";
 import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
@@ -17,6 +18,7 @@ import { COLUMN_CLASS, useBookmarkColumns, useViewMode } from "../lib/bookmarkCo
 import { summarizeConditions } from "../lib/conditionsSummary";
 import { useListSelection } from "../lib/useListSelection";
 
+import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 
 interface AutofillRulesListProps {
@@ -102,6 +104,21 @@ export function AutofillRulesList({
         ? <p className="text-muted-foreground">No rules match these filters.</p>
         : null}
 
+      {viewMode !== "table"
+        ? (
+          <div className="flex justify-end">
+            <Button
+              variant={selection.mode ? "secondary" : "outline"}
+              size="sm"
+              onClick={() => selection.setMode(!selection.mode)}
+            >
+              <CheckSquare className="size-4" />
+              {selection.mode ? "Done selecting" : "Select"}
+            </Button>
+          </div>
+        )
+        : null}
+
       <TaxonomyBulkBar
         selection={selection}
         totalSelectable={deletableIds.length}
@@ -113,7 +130,7 @@ export function AutofillRulesList({
         ? (
           <DataTable
             columns={[
-              listingSelectionColumn<AutofillRule>(selection, rule => rule.id),
+              ...(selection.mode ? [listingSelectionColumn<AutofillRule>(selection, rule => rule.id)] : []),
               ...ruleColumns,
             ]}
             data={visibleRules}
@@ -151,6 +168,7 @@ export function AutofillRulesList({
                 selectable
                 selected={selection.isSelected(rule.id)}
                 onSelectToggle={() => selection.toggle(rule.id)}
+                inSelectionMode={selection.mode}
               />
             ))}
           </div>

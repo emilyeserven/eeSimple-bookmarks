@@ -3,6 +3,7 @@ import type { CustomProperty } from "@eesimple/types";
 import { useMemo, useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
+import { CheckSquare } from "lucide-react";
 
 import { AddCustomPropertyModal } from "./AddCustomPropertyModal";
 import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
@@ -17,6 +18,7 @@ import { COLUMN_CLASS, useBookmarkColumns, useViewMode } from "../lib/bookmarkCo
 import { TYPE_LABELS } from "../lib/propertyFormat";
 import { useListSelection } from "../lib/useListSelection";
 
+import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { useUiStore } from "@/stores/uiStore";
 
@@ -62,6 +64,21 @@ export function CustomPropertyManager() {
         )
         : null}
 
+      {viewMode !== "table"
+        ? (
+          <div className="flex justify-end">
+            <Button
+              variant={selection.mode ? "secondary" : "outline"}
+              size="sm"
+              onClick={() => selection.setMode(!selection.mode)}
+            >
+              <CheckSquare className="size-4" />
+              {selection.mode ? "Done selecting" : "Select"}
+            </Button>
+          </div>
+        )
+        : null}
+
       <TaxonomyBulkBar
         selection={selection}
         totalSelectable={deletableIds.length}
@@ -73,7 +90,7 @@ export function CustomPropertyManager() {
         ? (
           <DataTable
             columns={[
-              listingSelectionColumn<CustomProperty>(selection, p => p.id, p => !p.builtIn),
+              ...(selection.mode ? [listingSelectionColumn<CustomProperty>(selection, p => p.id, p => !p.builtIn)] : []),
               ...propertyColumns,
             ]}
             data={filtered}
@@ -114,6 +131,7 @@ export function CustomPropertyManager() {
                 selectable={!property.builtIn}
                 selected={selection.isSelected(property.id)}
                 onSelectToggle={() => selection.toggle(property.id)}
+                inSelectionMode={selection.mode}
               />
             ))}
           </div>

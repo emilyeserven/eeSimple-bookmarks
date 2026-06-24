@@ -3,6 +3,7 @@ import type { YouTubeChannel } from "@eesimple/types";
 import { useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
+import { CheckSquare } from "lucide-react";
 
 import { AddYouTubeChannelModal } from "./AddYouTubeChannelModal";
 import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
@@ -18,6 +19,7 @@ import { useBulkDeleteYouTubeChannels, useYouTubeChannels } from "../hooks/useYo
 import { COLUMN_CLASS, useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
 import { useListSelection } from "../lib/useListSelection";
 
+import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 
 /** Browsable, searchable channel listing with add modal. Shared by the YouTube Channels taxonomy page and the Settings page. */
@@ -64,6 +66,21 @@ export function YouTubeChannelsListing() {
         )}
       />
 
+      {viewMode !== "table"
+        ? (
+          <div className="flex justify-end">
+            <Button
+              variant={selection.mode ? "secondary" : "outline"}
+              size="sm"
+              onClick={() => selection.setMode(!selection.mode)}
+            >
+              <CheckSquare className="size-4" />
+              {selection.mode ? "Done selecting" : "Select"}
+            </Button>
+          </div>
+        )
+        : null}
+
       <TaxonomyBulkBar
         selection={selection}
         totalSelectable={deletableIds.length}
@@ -75,7 +92,7 @@ export function YouTubeChannelsListing() {
         ? (
           <DataTable
             columns={[
-              listingSelectionColumn<YouTubeChannel>(selection, c => c.id),
+              ...(selection.mode ? [listingSelectionColumn<YouTubeChannel>(selection, c => c.id)] : []),
               ...channelColumns,
             ]}
             data={filtered}
@@ -115,6 +132,7 @@ export function YouTubeChannelsListing() {
                 selectable
                 selected={selection.isSelected(channel.id)}
                 onSelectToggle={() => selection.toggle(channel.id)}
+                inSelectionMode={selection.mode}
               />
             ))}
           </div>

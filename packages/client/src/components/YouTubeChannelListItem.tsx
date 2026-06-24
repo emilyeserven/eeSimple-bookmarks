@@ -17,6 +17,7 @@ interface YouTubeChannelListItemProps {
   selectable?: boolean;
   selected?: boolean;
   onSelectToggle?: () => void;
+  inSelectionMode?: boolean;
 }
 
 /** A single row in the channel listing: an avatar, a body link to the filtered bookmarks, and hover Edit / Info. */
@@ -25,6 +26,7 @@ export function YouTubeChannelListItem({
   selectable,
   selected,
   onSelectToggle,
+  inSelectionMode,
 }: YouTubeChannelListItemProps) {
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
@@ -39,6 +41,7 @@ export function YouTubeChannelListItem({
       selectable={selectable}
       selected={selected}
       onSelectToggle={onSelectToggle}
+      inSelectionMode={inSelectionMode}
       icon={(
         <span
           className="

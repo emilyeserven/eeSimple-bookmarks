@@ -17,6 +17,7 @@ interface RuleListItemProps {
   selectable?: boolean;
   selected?: boolean;
   onSelectToggle?: () => void;
+  inSelectionMode?: boolean;
 }
 
 /**
@@ -25,7 +26,7 @@ interface RuleListItemProps {
  * bookmarks the rule currently matches (`matchCount`).
  */
 export function AutofillRuleListItem({
-  rule, categories, selectable, selected, onSelectToggle,
+  rule, categories, selectable, selected, onSelectToggle, inSelectionMode,
 }: RuleListItemProps) {
   const viewClick = useViewPanelClick();
   const editClick = useEditPanelClick();
@@ -39,6 +40,7 @@ export function AutofillRuleListItem({
       selectable={selectable}
       selected={selected}
       onSelectToggle={onSelectToggle}
+      inSelectionMode={inSelectionMode}
       title={rule.name}
       titleAdornment={categoryName ? <Badge variant="secondary">{categoryName}</Badge> : undefined}
       subtitle={summarizeConditions(rule.conditions)}
