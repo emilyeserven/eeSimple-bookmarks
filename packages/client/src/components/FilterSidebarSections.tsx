@@ -17,6 +17,7 @@ import {
   withAuthors,
   withBooleanFilter,
   withCategories,
+  withChoicesFilter,
   withDateTimeFilter,
   withMediaTypes,
   withNumberFilter,
@@ -727,12 +728,18 @@ function PropertiesFilterSection({
     onSearchChange(withDateTimeFilter(search, propertyId, range));
   const presenceFilterChange = (propertyId: string, mode: "has" | "missing" | undefined) =>
     onSearchChange(withPresenceFilter(search, propertyId, mode));
+  const choicesFilterChange = (propertyId: string, values: string[]) =>
+    onSearchChange(withChoicesFilter(search, propertyId, values));
   const propertyReset = (propertyId: string) =>
     onSearchChange(
-      withDateTimeFilter(
-        withNumberFilter(
-          withBooleanFilter(
-            withPresenceFilter(search, propertyId, undefined),
+      withChoicesFilter(
+        withDateTimeFilter(
+          withNumberFilter(
+            withBooleanFilter(
+              withPresenceFilter(search, propertyId, undefined),
+              propertyId,
+              undefined,
+            ),
             propertyId,
             undefined,
           ),
@@ -740,7 +747,7 @@ function PropertiesFilterSection({
           undefined,
         ),
         propertyId,
-        undefined,
+        [],
       ),
     );
 
@@ -757,10 +764,12 @@ function PropertiesFilterSection({
         booleanValues={search.bool ?? {}}
         dateTimeValues={search.date ?? {}}
         presenceValues={search.presence ?? {}}
+        choicesValues={search.choices ?? {}}
         onNumberFilterChange={numberFilterChange}
         onBooleanFilterChange={booleanFilterChange}
         onDateTimeFilterChange={dateTimeFilterChange}
         onPresenceFilterChange={presenceFilterChange}
+        onChoicesFilterChange={choicesFilterChange}
         onPropertyReset={propertyReset}
       />
       {unassignedProperties.length > 0

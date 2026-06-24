@@ -24,10 +24,12 @@ const meta = {
     booleanValues: {},
     dateTimeValues: {},
     presenceValues: {},
+    choicesValues: {},
     onNumberFilterChange: () => {},
     onBooleanFilterChange: () => {},
     onDateTimeFilterChange: () => {},
     onPresenceFilterChange: () => {},
+    onChoicesFilterChange: () => {},
     onPropertyReset: () => {},
   },
 } satisfies Meta<typeof CustomPropertyFilters>;
