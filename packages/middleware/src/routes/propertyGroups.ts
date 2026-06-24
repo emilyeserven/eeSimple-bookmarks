@@ -1,12 +1,14 @@
 import type { FastifyInstance } from "fastify";
 import type { CreatePropertyGroupInput, UpdatePropertyGroupInput } from "@eesimple/types";
 import {
+  bulkDeletePropertyGroups,
   createPropertyGroup,
   deletePropertyGroup,
   DuplicatePropertyGroupError,
   listPropertyGroups,
   updatePropertyGroup,
 } from "@/services/propertyGroups";
+import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 
 const propertyGroupParams = {
   type: "object",
@@ -56,6 +58,8 @@ const updatePropertyGroupBody = {
 
 /** CRUD routes for property groups, mounted under `/api/property-groups`. */
 export async function propertyGroupRoutes(app: FastifyInstance): Promise<void> {
+  registerBulkDelete(app, "/api/property-groups", "property-groups", bulkDeletePropertyGroups);
+
   app.get("/api/property-groups", {
     schema: {
       tags: ["property-groups"],

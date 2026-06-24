@@ -7,6 +7,7 @@ import type {
 } from "@eesimple/types";
 import {
   applyAutofillBackfill,
+  bulkDeleteAutofillRules,
   createAutofillRule,
   deleteAutofillRule,
   getAutofillBackfillEntries,
@@ -18,6 +19,7 @@ import {
   setAutofillExempt,
   updateAutofillRule,
 } from "@/services/autofill";
+import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 
 const ruleParams = {
   type: "object",
@@ -161,6 +163,8 @@ const previewBody = {
 
 /** CRUD routes for autofill rules, mounted under `/api/autofill-rules`. */
 export async function autofillRoutes(app: FastifyInstance): Promise<void> {
+  registerBulkDelete(app, "/api/autofill-rules", "autofill", bulkDeleteAutofillRules);
+
   app.get("/api/autofill-rules", {
     schema: {
       tags: ["autofill"],

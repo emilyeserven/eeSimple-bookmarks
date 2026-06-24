@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import type { BulkUrlUpdate, CreateBookmarkInput, UpdateBookmarkInput, UpdateBookmarkRelationshipsInput } from "@eesimple/types";
+import type { BulkBookmarkTagOp, BulkUrlUpdate, CreateBookmarkInput, UpdateBookmarkInput, UpdateBookmarkRelationshipsInput } from "@eesimple/types";
 import {
   fetchAndStoreOgImage,
   getBookmarkImageRow,
@@ -12,6 +12,9 @@ import {
   setBookmarkPropertyFile,
 } from "@/services/bookmarkPropertyFiles";
 import {
+  bulkDeleteBookmarks,
+  bulkUpdateBookmarks,
+  bulkUpdateBookmarkTags,
   bulkUpdateBookmarkUrls,
   checkBookmarkUrlDuplicate,
   createBookmark,
@@ -275,6 +278,54 @@ const bulkUrlBody = {
   },
 } as const;
 
+const idArray = {
+  type: "array",
+  minItems: 1,
+  items: {
+    type: "string",
+    format: "uuid",
+  },
+} as const;
+
+const bulkIdsBody = {
+  type: "object",
+  required: ["ids"],
+  additionalProperties: false,
+  properties: {
+    ids: idArray,
+  },
+} as const;
+
+const bulkUpdateBody = {
+  type: "object",
+  required: ["ids", "patch"],
+  additionalProperties: false,
+  properties: {
+    ids: idArray,
+    patch: updateBookmarkBody,
+  },
+} as const;
+
+const bulkTagsBody = {
+  type: "object",
+  required: ["ids", "tagIds", "op"],
+  additionalProperties: false,
+  properties: {
+    ids: idArray,
+    tagIds: {
+      type: "array",
+      items: {
+        type: "string",
+        format: "uuid",
+      },
+    },
+    op: {
+      type: "string",
+      enum: ["add", "remove"],
+    },
+  },
+} as const;
+
 /** CRUD routes for bookmarks, mounted under `/api/bookmarks`. */
 export async function bookmarkRoutes(app: FastifyInstance): Promise<void> {
   app.get("/api/bookmarks", {
@@ -326,6 +377,45 @@ export async function bookmarkRoutes(app: FastifyInstance): Promise<void> {
       items,
     } = req.body as { items: BulkUrlUpdate[] };
     return bulkUpdateBookmarkUrls(items);
+  });
+
+  app.post("/api/bookmarks/bulk-delete", {
+    schema: {
+      tags: ["bookmarks"],
+      body: bulkIdsBody,
+    },
+  }, async (req) => {
+    const {
+      ids,
+    } = req.body as { ids: string[] };
+    return bulkDeleteBookmarks(ids);
+  });
+
+  app.post("/api/bookmarks/bulk", {
+    schema: {
+      tags: ["bookmarks"],
+      body: bulkUpdateBody,
+    },
+  }, async (req) => {
+    const {
+      ids, patch,
+    } = req.body as { ids: string[];
+      patch: UpdateBookmarkInput; };
+    return bulkUpdateBookmarks(ids, patch);
+  });
+
+  app.post("/api/bookmarks/bulk-tags", {
+    schema: {
+      tags: ["bookmarks"],
+      body: bulkTagsBody,
+    },
+  }, async (req) => {
+    const {
+      ids, tagIds, op,
+    } = req.body as { ids: string[];
+      tagIds: string[];
+      op: BulkBookmarkTagOp; };
+    return bulkUpdateBookmarkTags(ids, tagIds, op);
   });
 
   // Quick-save endpoint for the browser extension context-menu: accepts only url + optional

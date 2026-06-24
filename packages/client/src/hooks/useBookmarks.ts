@@ -1,10 +1,12 @@
-import type { BulkUrlUpdate, CreateBookmarkInput, UpdateBookmarkInput, UpdateBookmarkRelationshipsInput } from "@eesimple/types";
+import type { BulkBookmarkTagOp, BulkUrlUpdate, CreateBookmarkInput, UpdateBookmarkInput, UpdateBookmarkRelationshipsInput } from "@eesimple/types";
+import type { QueryClient } from "@tanstack/react-query";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { bookmarksApi } from "../lib/api/bookmarks";
 import { describeError } from "../lib/apiError";
 import { notifyImageFetchError } from "../lib/bugReport";
+import { notifyBulkResult } from "../lib/bulkResults";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
@@ -12,6 +14,16 @@ const CATEGORIES_KEY = ["categories"] as const;
 const MEDIA_TYPES_KEY = ["media-types"] as const;
 const WEBSITES_KEY = ["websites"] as const;
 const YOUTUBE_CHANNELS_KEY = ["youtube-channels"] as const;
+const TAGS_KEY = ["tags"] as const;
+
+/** Invalidate every query whose data a bookmark write can change (the list + all source counts). */
+function invalidateBookmarkRelatedQueries(queryClient: QueryClient): void {
+  for (const key of [BOOKMARKS_KEY, CATEGORIES_KEY, MEDIA_TYPES_KEY, WEBSITES_KEY, YOUTUBE_CHANNELS_KEY]) {
+    void queryClient.invalidateQueries({
+      queryKey: key,
+    });
+  }
+}
 
 /** Bookmarks whose URL host equals `domain` — powers the bulk shortened-link expansion review. */
 export function useBookmarksOnHost(domain: string | null) {
@@ -126,6 +138,52 @@ export function useDeleteBookmark() {
         queryKey: YOUTUBE_CHANNELS_KEY,
       });
       notifySuccess("Bookmark deleted");
+    },
+  });
+}
+
+/** Delete many bookmarks at once; fires one summarizing toast. */
+export function useBulkDeleteBookmarks() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (ids: string[]) => bookmarksApi.bulkDelete(ids),
+    onSuccess: (results) => {
+      invalidateBookmarkRelatedQueries(queryClient);
+      notifyBulkResult(results, "deleted");
+    },
+  });
+}
+
+/** Apply one partial patch (category / media type / property value) to many bookmarks at once. */
+export function useBulkUpdateBookmarks() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      ids, patch,
+    }: { ids: string[];
+      patch: UpdateBookmarkInput; }) => bookmarksApi.bulkUpdate(ids, patch),
+    onSuccess: (results) => {
+      invalidateBookmarkRelatedQueries(queryClient);
+      notifyBulkResult(results, "updated");
+    },
+  });
+}
+
+/** Add or remove a set of tags across many bookmarks at once. */
+export function useBulkBookmarkTags() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      ids, tagIds, op,
+    }: { ids: string[];
+      tagIds: string[];
+      op: BulkBookmarkTagOp; }) => bookmarksApi.bulkTags(ids, tagIds, op),
+    onSuccess: (results) => {
+      invalidateBookmarkRelatedQueries(queryClient);
+      void queryClient.invalidateQueries({
+        queryKey: TAGS_KEY,
+      });
+      notifyBulkResult(results, "updated");
     },
   });
 }

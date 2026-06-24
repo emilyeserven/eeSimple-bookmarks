@@ -1,17 +1,22 @@
+import type { YouTubeChannel } from "@eesimple/types";
+
 import { useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
 
 import { AddYouTubeChannelModal } from "./AddYouTubeChannelModal";
+import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
 import { ListingStatusMessages } from "./ListingStatusMessages";
+import { listingSelectionColumn } from "./tables/selectionColumn";
 import { useTableRowNav } from "./tables/useTableRowNav";
 import { useYouTubeChannelColumns } from "./tables/youtubeChannelColumns";
 import { YouTubeChannelListItem } from "./YouTubeChannelListItem";
 import { useHeaderSearchFilter } from "../hooks/useHeaderSearchFilter";
 import { useSetListingPage } from "../hooks/useListingPage";
 import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
-import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
+import { useBulkDeleteYouTubeChannels, useYouTubeChannels } from "../hooks/useYouTubeChannels";
 import { COLUMN_CLASS, useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
+import { useListSelection } from "../lib/useListSelection";
 
 import { DataTable } from "@/components/ui/data-table";
 
@@ -37,6 +42,10 @@ export function YouTubeChannelsListing() {
     (c, query) => c.name.toLowerCase().includes(query) || c.channelKey.toLowerCase().includes(query),
   );
 
+  const deletableIds = filtered.map(c => c.id);
+  const selection = useListSelection("youtube-channels-listing", deletableIds);
+  const bulkDelete = useBulkDeleteYouTubeChannels();
+
   return (
     <div className="space-y-4">
       <ListingStatusMessages
@@ -55,10 +64,20 @@ export function YouTubeChannelsListing() {
         )}
       />
 
+      <TaxonomyBulkBar
+        selection={selection}
+        totalSelectable={deletableIds.length}
+        bulkDelete={bulkDelete}
+        noun={["channel", "channels"]}
+      />
+
       {filtered.length > 0 && viewMode === "table"
         ? (
           <DataTable
-            columns={channelColumns}
+            columns={[
+              listingSelectionColumn<YouTubeChannel>(selection, c => c.id),
+              ...channelColumns,
+            ]}
             data={filtered}
             sortable
             onRowClick={(channel, event) =>
@@ -93,6 +112,9 @@ export function YouTubeChannelsListing() {
               <YouTubeChannelListItem
                 key={channel.id}
                 channel={channel}
+                selectable
+                selected={selection.isSelected(channel.id)}
+                onSelectToggle={() => selection.toggle(channel.id)}
               />
             ))}
           </div>

@@ -4,6 +4,8 @@ import type {
   BookmarkImage,
   BookmarkUrlDuplicateResult,
   BookmarkUrlSummary,
+  BulkBookmarkResult,
+  BulkBookmarkTagOp,
   BulkUrlUpdate,
   BulkUrlUpdateResult,
   CreateBookmarkInput,
@@ -41,6 +43,30 @@ export const bookmarksApi = {
       method: "POST",
       body: JSON.stringify({
         items,
+      }),
+    }),
+  bulkDelete: (ids: string[]) =>
+    request<BulkBookmarkResult[]>("/bookmarks/bulk-delete", {
+      method: "POST",
+      body: JSON.stringify({
+        ids,
+      }),
+    }),
+  bulkUpdate: (ids: string[], patch: UpdateBookmarkInput) =>
+    request<BulkBookmarkResult[]>("/bookmarks/bulk", {
+      method: "POST",
+      body: JSON.stringify({
+        ids,
+        patch,
+      }),
+    }),
+  bulkTags: (ids: string[], tagIds: string[], op: BulkBookmarkTagOp) =>
+    request<BulkBookmarkResult[]>("/bookmarks/bulk-tags", {
+      method: "POST",
+      body: JSON.stringify({
+        ids,
+        tagIds,
+        op,
       }),
     }),
   urlCheck: (url: string) =>

@@ -1,5 +1,6 @@
 import { and, asc, eq, inArray, isNull, ne, or } from "drizzle-orm";
 import type {
+  BulkDeleteResult,
   Category,
   CategoryPropertyDefaults,
   CreateCategoryInput,
@@ -7,6 +8,7 @@ import type {
   UpdateCategoryInput,
 } from "@eesimple/types";
 import { db } from "@/db";
+import { bulkDeleteEntities } from "@/services/bulkDelete";
 import {
   bookmarks,
   categories,
@@ -164,6 +166,11 @@ export async function deleteCategory(id: string): Promise<boolean> {
     }).where(isNull(bookmarks.categoryId));
   }
   return rows.length > 0;
+}
+
+/** Delete many categories, reporting per-item outcomes (built-ins are skipped). */
+export function bulkDeleteCategories(ids: string[]): Promise<BulkDeleteResult[]> {
+  return bulkDeleteEntities(ids, deleteCategory, err => err instanceof BuiltInCategoryError);
 }
 
 // Resolved once per process — the built-in category id never changes after creation.

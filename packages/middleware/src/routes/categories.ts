@@ -6,6 +6,7 @@ import type {
   UpdateCategoryRootTagsInput,
 } from "@eesimple/types";
 import {
+  bulkDeleteCategories,
   BuiltInCategoryError,
   createCategory,
   deleteCategory,
@@ -17,6 +18,7 @@ import {
   setCategoryRootTags,
   updateCategory,
 } from "@/services/categories";
+import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 
 const categoryParams = {
   type: "object",
@@ -132,6 +134,8 @@ const defaultsBody = {
 
 /** CRUD routes for categories plus homepage/root-tag config, under `/api`. */
 export async function categoryRoutes(app: FastifyInstance): Promise<void> {
+  registerBulkDelete(app, "/api/categories", "categories", bulkDeleteCategories);
+
   app.get("/api/categories", {
     schema: {
       tags: ["categories"],

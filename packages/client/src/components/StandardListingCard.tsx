@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { RowCard } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 
 /**
@@ -51,6 +52,10 @@ interface StandardListingCardProps {
   renderInfo?: () => ReactNode;
   /** Optional content rendered below the main row (e.g. a CategoryPill). */
   footer?: ReactNode;
+  /** When true, a far-left selection checkbox is shown (revealed on hover / when selected). */
+  selectable?: boolean;
+  selected?: boolean;
+  onSelectToggle?: () => void;
 }
 
 /**
@@ -64,6 +69,7 @@ interface StandardListingCardProps {
 export function StandardListingCard({
   icon, title, subtitle, titleAdornment, count,
   renderPrimaryLink, renderEdit, renderInfo, footer,
+  selectable = false, selected = false, onSelectToggle,
 }: StandardListingCardProps) {
   // Zero-count items are de-emphasized but stay clickable. Items without a count are not muted.
   const muted = count === 0;
@@ -91,10 +97,31 @@ export function StandardListingCard({
           hover:bg-accent
         `,
         muted && "opacity-60",
+        selected && "ring-2 ring-primary",
       )}
     >
       {/* items-center keeps the icon + controls vertically centered even on tall/wrapping cards. */}
       <div className="flex items-center gap-1">
+        {selectable
+          ? (
+            <div
+              className={cn(
+                `
+                  flex items-center pl-4 opacity-0 transition-opacity
+                  group-hover:opacity-100
+                  focus-within:opacity-100
+                `,
+                selected && "opacity-100",
+              )}
+            >
+              <Checkbox
+                aria-label={`Select ${title}`}
+                checked={selected}
+                onCheckedChange={() => onSelectToggle?.()}
+              />
+            </div>
+          )
+          : null}
         {renderPrimaryLink("flex min-w-0 flex-1 items-center gap-3 p-4", linkChildren)}
         <div className="flex shrink-0 items-center gap-1 pr-4">
           {renderEdit()}

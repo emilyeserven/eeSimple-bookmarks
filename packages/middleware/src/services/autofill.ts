@@ -12,6 +12,7 @@ import type {
   BookmarkBooleanValue,
   BookmarkDateTimeValue,
   BookmarkNumberValue,
+  BulkDeleteResult,
   ConditionInput,
   ConditionMatchField,
   ConditionMatchOperator,
@@ -41,6 +42,7 @@ import {
 } from "@/db/schema";
 import { getBookmarkEvaluationData, invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { hydrateBookmarkRows } from "@/services/bookmarkHydration";
+import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { recomputeCalculatedValues } from "@/services/bookmarkWrites";
 import { listCategories } from "@/services/categories";
 import { slugify } from "@/utils/slug";
@@ -475,6 +477,11 @@ export async function deleteAutofillRule(id: string): Promise<boolean> {
     id: autofillRules.id,
   });
   return rows.length > 0;
+}
+
+/** Delete many autofill rules, reporting per-item outcomes. */
+export function bulkDeleteAutofillRules(ids: string[]): Promise<BulkDeleteResult[]> {
+  return bulkDeleteEntities(ids, deleteAutofillRule);
 }
 
 export async function getAutofillRuleBySlug(slug: string): Promise<AutofillRule | null> {

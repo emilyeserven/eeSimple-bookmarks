@@ -143,7 +143,7 @@ export function DataTable<T>({
   const rows = table.getRowModel().rows;
 
   return (
-    <div className="overflow-x-auto rounded-md border">
+    <div className="group/seltable overflow-x-auto rounded-md border">
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map(headerGroup => (

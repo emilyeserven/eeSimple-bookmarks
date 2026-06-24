@@ -10,6 +10,7 @@ import type {
   UpdateCustomPropertyInput,
 } from "@eesimple/types";
 import {
+  bulkDeleteCustomProperties,
   BuiltInPropertyError,
   createCustomProperty,
   CustomPropertyValidationError,
@@ -17,6 +18,7 @@ import {
   listCustomProperties,
   updateCustomProperty,
 } from "@/services/customProperties";
+import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 
 const propertyParams = {
   type: "object",
@@ -237,6 +239,8 @@ const updatePropertyBody = {
 
 /** CRUD routes for custom properties, mounted under `/api/custom-properties`. */
 export async function customPropertyRoutes(app: FastifyInstance): Promise<void> {
+  registerBulkDelete(app, "/api/custom-properties", "custom-properties", bulkDeleteCustomProperties);
+
   app.get("/api/custom-properties", {
     schema: {
       tags: ["custom-properties"],

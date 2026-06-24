@@ -2,6 +2,7 @@ import type { CreatePropertyGroupInput, UpdatePropertyGroupInput } from "@eesimp
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useBulkDeleteEntity } from "./useBulkDeleteEntity";
 import { propertyGroupsApi } from "../lib/api/taxonomies";
 
 const PROPERTY_GROUPS_KEY = ["property-groups"] as const;
@@ -66,4 +67,8 @@ export function useDeletePropertyGroup() {
     mutationFn: (id: string) => propertyGroupsApi.remove(id),
     onSuccess: invalidate,
   });
+}
+
+export function useBulkDeletePropertyGroups() {
+  return useBulkDeleteEntity(propertyGroupsApi.bulkDelete, useInvalidateGroupConsumers());
 }

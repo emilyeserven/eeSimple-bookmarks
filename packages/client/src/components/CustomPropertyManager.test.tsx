@@ -32,6 +32,10 @@ vi.mock("../hooks/useCustomProperties", () => ({
     mutate: vi.fn(),
     isPending: false,
   }),
+  useBulkDeleteCustomProperties: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+  }),
 }));
 
 const paths = ["/custom-properties/$propertySlug", "/custom-properties/new"];

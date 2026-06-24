@@ -2,6 +2,7 @@ import type { CreateYouTubeChannelInput, UpdateYouTubeChannelInput } from "@eesi
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useBulkDeleteEntity } from "./useBulkDeleteEntity";
 import { useRateLimitCooldown } from "./useRateLimitCooldown";
 import { youtubeChannelsApi } from "../lib/api/taxonomies";
 import { ApiError, describeError } from "../lib/apiError";
@@ -70,6 +71,18 @@ export function useDeleteYouTubeChannel() {
         queryKey: BOOKMARKS_KEY,
       });
     },
+  });
+}
+
+export function useBulkDeleteYouTubeChannels() {
+  const queryClient = useQueryClient();
+  return useBulkDeleteEntity(youtubeChannelsApi.bulkDelete, () => {
+    void queryClient.invalidateQueries({
+      queryKey: CHANNELS_KEY,
+    });
+    void queryClient.invalidateQueries({
+      queryKey: BOOKMARKS_KEY,
+    });
   });
 }
 

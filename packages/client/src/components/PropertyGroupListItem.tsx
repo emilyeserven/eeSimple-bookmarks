@@ -16,13 +16,24 @@ import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier"
  */
 export function PropertyGroupListItem({
   group,
-}: { group: PropertyGroup }) {
+  selectable,
+  selected,
+  onSelectToggle,
+}: {
+  group: PropertyGroup;
+  selectable?: boolean;
+  selected?: boolean;
+  onSelectToggle?: () => void;
+}) {
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
 
   return (
     <StandardListingCard
+      selectable={selectable}
+      selected={selected}
+      onSelectToggle={onSelectToggle}
       icon={<Layers className="size-5 shrink-0 text-muted-foreground" />}
       title={group.name}
       subtitle={group.description || `Priority ${group.priority}`}

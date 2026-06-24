@@ -14,6 +14,9 @@ import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier"
 interface RuleListItemProps {
   rule: AutofillRule;
   categories: Category[];
+  selectable?: boolean;
+  selected?: boolean;
+  onSelectToggle?: () => void;
 }
 
 /**
@@ -22,7 +25,7 @@ interface RuleListItemProps {
  * bookmarks the rule currently matches (`matchCount`).
  */
 export function AutofillRuleListItem({
-  rule, categories,
+  rule, categories, selectable, selected, onSelectToggle,
 }: RuleListItemProps) {
   const viewClick = useViewPanelClick();
   const editClick = useEditPanelClick();
@@ -33,6 +36,9 @@ export function AutofillRuleListItem({
 
   return (
     <StandardListingCard
+      selectable={selectable}
+      selected={selected}
+      onSelectToggle={onSelectToggle}
       title={rule.name}
       titleAdornment={categoryName ? <Badge variant="secondary">{categoryName}</Badge> : undefined}
       subtitle={summarizeConditions(rule.conditions)}

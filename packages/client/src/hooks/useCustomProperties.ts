@@ -5,6 +5,7 @@ import type {
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useBulkDeleteEntity } from "./useBulkDeleteEntity";
 import { customPropertiesApi } from "../lib/api/taxonomies";
 import { describeError } from "../lib/apiError";
 import { notifyError, notifySuccess } from "../lib/notifications";
@@ -80,5 +81,17 @@ export function useDeleteCustomProperty() {
       notifySuccess("Property deleted");
     },
     onError: error => notifyError(describeError(error)),
+  });
+}
+
+export function useBulkDeleteCustomProperties() {
+  const queryClient = useQueryClient();
+  return useBulkDeleteEntity(customPropertiesApi.bulkDelete, () => {
+    void queryClient.invalidateQueries({
+      queryKey: PROPERTIES_KEY,
+    });
+    void queryClient.invalidateQueries({
+      queryKey: BOOKMARKS_KEY,
+    });
   });
 }

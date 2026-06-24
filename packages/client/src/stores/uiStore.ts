@@ -129,6 +129,13 @@ interface UiState {
   /** Transient: the live text query from the header search bar. Cleared when leaving the page. Never persisted. */
   headerSearchQuery: string;
   setHeaderSearchQuery: (query: string) => void;
+  /** Transient: selected entity ids per listing pageKey, for bulk editing. Never persisted. */
+  selection: Record<string, string[]>;
+  setSelection: (pageKey: string, ids: string[]) => void;
+  clearSelection: (pageKey: string) => void;
+  /** Transient: whether card-view selection mode is active per listing pageKey. Never persisted. */
+  selectionMode: Record<string, boolean>;
+  setSelectionMode: (pageKey: string, on: boolean) => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -260,6 +267,33 @@ export const useUiStore = create<UiState>()(
       setHeaderSearchQuery: query => set({
         headerSearchQuery: query,
       }),
+      selection: {},
+      setSelection: (pageKey, ids) => set(state => ({
+        selection: {
+          ...state.selection,
+          [pageKey]: ids,
+        },
+      })),
+      clearSelection: pageKey => set(state => ({
+        selection: {
+          ...state.selection,
+          [pageKey]: [],
+        },
+      })),
+      selectionMode: {},
+      // Turning selection mode off also clears the page's selection so a re-enter starts fresh.
+      setSelectionMode: (pageKey, on) => set(state => ({
+        selectionMode: {
+          ...state.selectionMode,
+          [pageKey]: on,
+        },
+        selection: on
+          ? state.selection
+          : {
+            ...state.selection,
+            [pageKey]: [],
+          },
+      })),
     }),
     {
       name: "eesimple-ui",

@@ -2,6 +2,7 @@ import type { CreateWebsiteInput, UpdateWebsiteInput } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useBulkDeleteEntity } from "./useBulkDeleteEntity";
 import { useRateLimitCooldown } from "./useRateLimitCooldown";
 import { websitesApi } from "../lib/api/taxonomies";
 import { ApiError, describeError } from "../lib/apiError";
@@ -78,6 +79,18 @@ export function useDeleteWebsite() {
         queryKey: BOOKMARKS_KEY,
       });
     },
+  });
+}
+
+export function useBulkDeleteWebsites() {
+  const queryClient = useQueryClient();
+  return useBulkDeleteEntity(websitesApi.bulkDelete, () => {
+    void queryClient.invalidateQueries({
+      queryKey: WEBSITES_KEY,
+    });
+    void queryClient.invalidateQueries({
+      queryKey: BOOKMARKS_KEY,
+    });
   });
 }
 

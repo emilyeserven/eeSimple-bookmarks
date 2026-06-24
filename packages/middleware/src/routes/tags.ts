@@ -4,8 +4,10 @@ import type {
   UpdateTagCategoriesInput,
   UpdateTagInput,
 } from "@eesimple/types";
+import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 import { InvalidRootTagError } from "@/services/categories";
 import {
+  bulkDeleteTags,
   createTag,
   deleteTag,
   getTagCategories,
@@ -66,6 +68,8 @@ const categoryIdsBody = {
 
 /** CRUD routes for the tag taxonomy, mounted under `/api/tags`. */
 export async function tagRoutes(app: FastifyInstance): Promise<void> {
+  registerBulkDelete(app, "/api/tags", "tags", bulkDeleteTags);
+
   app.get("/api/tags", {
     schema: {
       tags: ["tags"],

@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import type { CreateMediaTypeInput, UpdateMediaTypeInput } from "@eesimple/types";
 import {
+  bulkDeleteMediaTypes,
   BuiltInMediaTypeError,
   createMediaType,
   deleteMediaType,
@@ -10,6 +11,7 @@ import {
   MediaTypeNestingError,
   updateMediaType,
 } from "@/services/mediaTypes";
+import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 
 const mediaTypeParams = {
   type: "object",
@@ -71,6 +73,8 @@ const updateMediaTypeBody = {
 
 /** Routes for the built-in Media Types taxonomy, mounted under `/api/media-types`. */
 export async function mediaTypeRoutes(app: FastifyInstance): Promise<void> {
+  registerBulkDelete(app, "/api/media-types", "media-types", bulkDeleteMediaTypes);
+
   app.get("/api/media-types", {
     schema: {
       tags: ["media-types"],

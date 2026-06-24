@@ -2,6 +2,7 @@ import type { CreateTagInput, UpdateTagInput } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useBulkDeleteEntity } from "./useBulkDeleteEntity";
 import { tagsApi } from "../lib/api/taxonomies";
 import { notifySuccess } from "../lib/notifications";
 import { flattenTree } from "../lib/tagTree";
@@ -79,6 +80,10 @@ export function useDeleteTag() {
       notifySuccess("Tag deleted");
     },
   });
+}
+
+export function useBulkDeleteTags() {
+  return useBulkDeleteEntity(tagsApi.bulkDelete, useTagInvalidation());
 }
 
 /** The categories whose root-tag allowlist includes this tag (reverse of the Tiered Tags tab). */

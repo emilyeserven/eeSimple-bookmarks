@@ -5,6 +5,7 @@ import type {
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useBulkDeleteEntity } from "./useBulkDeleteEntity";
 import { relationshipTypesApi } from "../lib/api/taxonomies";
 
 const RELATIONSHIP_TYPES_KEY = ["relationship-types"] as const;
@@ -69,5 +70,17 @@ export function useDeleteRelationshipType() {
         queryKey: BOOKMARKS_KEY,
       });
     },
+  });
+}
+
+export function useBulkDeleteRelationshipTypes() {
+  const queryClient = useQueryClient();
+  return useBulkDeleteEntity(relationshipTypesApi.bulkDelete, () => {
+    void queryClient.invalidateQueries({
+      queryKey: RELATIONSHIP_TYPES_KEY,
+    });
+    void queryClient.invalidateQueries({
+      queryKey: BOOKMARKS_KEY,
+    });
   });
 }

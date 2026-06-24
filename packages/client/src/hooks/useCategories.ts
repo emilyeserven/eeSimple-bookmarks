@@ -6,6 +6,7 @@ import type {
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useBulkDeleteEntity } from "./useBulkDeleteEntity";
 import { categoriesApi } from "../lib/api/taxonomies";
 import { notifySuccess } from "../lib/notifications";
 
@@ -76,6 +77,10 @@ export function useDeleteCategory() {
       notifySuccess("Category deleted");
     },
   });
+}
+
+export function useBulkDeleteCategories() {
+  return useBulkDeleteEntity(categoriesApi.bulkDelete, useCategoryInvalidation());
 }
 
 /** The enabled root-tag allowlist for a category (empty = all root tags enabled). */

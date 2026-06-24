@@ -1,6 +1,7 @@
 import { asc, eq, inArray, isNull } from "drizzle-orm";
-import type { CreateYouTubeChannelInput, UpdateYouTubeChannelInput, YouTubeChannel } from "@eesimple/types";
+import type { BulkDeleteResult, CreateYouTubeChannelInput, UpdateYouTubeChannelInput, YouTubeChannel } from "@eesimple/types";
 import { db } from "@/db";
+import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { bookmarks, categories, type YouTubeChannelRow, youtubeChannelImages, youtubeChannelSelfIds, youtubeChannelTags, youtubeChannels } from "@/db/schema";
 import { buildStringMap } from "@/utils/mapUtils";
 import { slugify, uniqueSlug } from "@/utils/slug";
@@ -363,6 +364,11 @@ export async function deleteYouTubeChannel(id: string): Promise<boolean> {
     id: youtubeChannels.id,
   });
   return rows.length > 0;
+}
+
+/** Delete many YouTube channels, reporting per-item outcomes. */
+export function bulkDeleteYouTubeChannels(ids: string[]): Promise<BulkDeleteResult[]> {
+  return bulkDeleteEntities(ids, deleteYouTubeChannel);
 }
 
 /**

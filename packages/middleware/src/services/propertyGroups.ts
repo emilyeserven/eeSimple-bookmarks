@@ -1,10 +1,12 @@
 import { asc, eq, isNull } from "drizzle-orm";
 import type {
+  BulkDeleteResult,
   CreatePropertyGroupInput,
   PropertyGroup,
   UpdatePropertyGroupInput,
 } from "@eesimple/types";
 import { db } from "@/db";
+import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { customProperties, propertyGroups, type PropertyGroupRow } from "@/db/schema";
 import { slugify, uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
@@ -104,6 +106,11 @@ export async function deletePropertyGroup(id: string): Promise<boolean> {
     id: propertyGroups.id,
   });
   return rows.length > 0;
+}
+
+/** Delete many property groups, reporting per-item outcomes. */
+export function bulkDeletePropertyGroups(ids: string[]): Promise<BulkDeleteResult[]> {
+  return bulkDeleteEntities(ids, deletePropertyGroup);
 }
 
 /** Fill in slugs for any property groups missing one (e.g. rows that predate the `slug` column). */

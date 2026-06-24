@@ -2,6 +2,7 @@ import type { CreateMediaTypeInput, UpdateMediaTypeInput } from "@eesimple/types
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useBulkDeleteEntity } from "./useBulkDeleteEntity";
 import { mediaTypesApi } from "../lib/api/taxonomies";
 
 const MEDIA_TYPES_KEY = ["media-types"] as const;
@@ -74,5 +75,17 @@ export function useDeleteMediaType() {
         queryKey: BOOKMARKS_KEY,
       });
     },
+  });
+}
+
+export function useBulkDeleteMediaTypes() {
+  const queryClient = useQueryClient();
+  return useBulkDeleteEntity(mediaTypesApi.bulkDelete, () => {
+    void queryClient.invalidateQueries({
+      queryKey: MEDIA_TYPES_KEY,
+    });
+    void queryClient.invalidateQueries({
+      queryKey: BOOKMARKS_KEY,
+    });
   });
 }

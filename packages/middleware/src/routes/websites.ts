@@ -7,6 +7,7 @@ import {
   setWebsiteFaviconFromBytes,
 } from "@/services/websiteFavicons";
 import {
+  bulkDeleteWebsites,
   BuiltInWebsiteError,
   createWebsite,
   deleteWebsite,
@@ -16,6 +17,7 @@ import {
   lookupWebsiteByUrl,
   updateWebsite,
 } from "@/services/websites";
+import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 import { deleteObject, getObjectStream, isObjectStoreConfigured } from "@/utils/objectStore";
 
 /** User-facing messages for the typed grab failures shared by the entity-image auto routes. */
@@ -143,6 +145,8 @@ const updateWebsiteBody = {
 
 /** Routes for the built-in Websites taxonomy, mounted under `/api/websites`. */
 export async function websiteRoutes(app: FastifyInstance): Promise<void> {
+  registerBulkDelete(app, "/api/websites", "websites", bulkDeleteWebsites);
+
   app.get("/api/websites", {
     schema: {
       tags: ["websites"],

@@ -1,16 +1,21 @@
+import type { CustomProperty } from "@eesimple/types";
+
 import { useMemo, useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
 
 import { AddCustomPropertyModal } from "./AddCustomPropertyModal";
+import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
 import { PropertyPreview } from "./PropertyPreview";
 import { useCustomPropertyColumns } from "./tables/customPropertyColumns";
+import { listingSelectionColumn } from "./tables/selectionColumn";
 import { useTableRowNav } from "./tables/useTableRowNav";
-import { useCustomProperties } from "../hooks/useCustomProperties";
+import { useBulkDeleteCustomProperties, useCustomProperties } from "../hooks/useCustomProperties";
 import { useSetListingPage } from "../hooks/useListingPage";
 import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
 import { COLUMN_CLASS, useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
 import { TYPE_LABELS } from "../lib/propertyFormat";
+import { useListSelection } from "../lib/useListSelection";
 
 import { DataTable } from "@/components/ui/data-table";
 import { useUiStore } from "@/stores/uiStore";
@@ -39,6 +44,10 @@ export function CustomPropertyManager() {
       || TYPE_LABELS[property.type].toLowerCase().includes(needle));
   }, [properties, rawQuery]);
 
+  const deletableIds = filtered.filter(p => !p.builtIn).map(p => p.id);
+  const selection = useListSelection("custom-properties-listing", deletableIds);
+  const bulkDelete = useBulkDeleteCustomProperties();
+
   return (
     <section className="space-y-4">
       {isLoading ? <p className="text-muted-foreground">Loading custom properties…</p> : null}
@@ -53,10 +62,20 @@ export function CustomPropertyManager() {
         )
         : null}
 
+      <TaxonomyBulkBar
+        selection={selection}
+        totalSelectable={deletableIds.length}
+        bulkDelete={bulkDelete}
+        noun={["property", "properties"]}
+      />
+
       {filtered.length > 0 && viewMode === "table"
         ? (
           <DataTable
-            columns={propertyColumns}
+            columns={[
+              listingSelectionColumn<CustomProperty>(selection, p => p.id, p => !p.builtIn),
+              ...propertyColumns,
+            ]}
             data={filtered}
             sortable
             onRowClick={(property, event) =>
@@ -92,6 +111,9 @@ export function CustomPropertyManager() {
                 key={property.id}
                 property={property}
                 allProperties={properties ?? []}
+                selectable={!property.builtIn}
+                selected={selection.isSelected(property.id)}
+                onSelectToggle={() => selection.toggle(property.id)}
               />
             ))}
           </div>
