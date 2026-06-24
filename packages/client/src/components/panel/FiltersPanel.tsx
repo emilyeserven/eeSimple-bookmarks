@@ -44,6 +44,7 @@ export function FiltersPanel() {
   const hasAuthorFilter = (authors?.length ?? 0) > 0;
   const hasTags = tree.length > 0;
   const hasProperties = enabledProperties.length > 0;
+  const hasSectionsFilter = enabledProperties.some(p => p.type === "sections");
 
   return (
     <div className="space-y-8">
@@ -52,7 +53,7 @@ export function FiltersPanel() {
         onSearchChange={onSearchChange}
       />
 
-      {(hasTags || hasProperties || hasCategoryFilter || hasMediaTypeFilter || hasChannelFilter || hasWebsiteFilter || hasRelationshipTypeFilter || hasAuthorFilter)
+      {(hasTags || hasProperties || hasSectionsFilter || hasCategoryFilter || hasMediaTypeFilter || hasChannelFilter || hasWebsiteFilter || hasRelationshipTypeFilter || hasAuthorFilter)
         ? <Separator />
         : null}
 
@@ -77,6 +78,7 @@ export function FiltersPanel() {
         hasWebsiteFilter={hasWebsiteFilter}
         hasRelationshipTypeFilter={hasRelationshipTypeFilter}
         hasAuthorFilter={hasAuthorFilter}
+        hasSectionsFilter={hasSectionsFilter}
       />
     </div>
   );

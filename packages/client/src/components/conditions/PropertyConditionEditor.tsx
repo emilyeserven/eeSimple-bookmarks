@@ -1,6 +1,7 @@
-import type { Category, CustomProperty, PropertyCondition } from "@eesimple/types";
+import type { Category, CustomProperty, PropertyCondition, SectionEntryType } from "@eesimple/types";
 import type { ReactNode } from "react";
 
+import { SECTION_ENTRY_TYPE_LABELS, SECTION_ENTRY_TYPES } from "@eesimple/types";
 import { ChevronDown, CircleHelp } from "lucide-react";
 
 import { propertyValueKind } from "../../lib/propertyConditionKind";
@@ -564,6 +565,167 @@ function ChoicesConditionRow({
   );
 }
 
+const SECTIONS_MODES = [
+  {
+    value: "none",
+    label: "Any",
+  },
+  {
+    value: "has",
+    label: "Has sections",
+  },
+  {
+    value: "missing",
+    label: "No sections",
+  },
+  {
+    value: "sectionType",
+    label: "By section type",
+  },
+  {
+    value: "exhaustive",
+    label: "Exhaustive",
+  },
+];
+
+/** Sections: presence, exhaustive toggle, or section-type multi-select. */
+function SectionsConditionRow({
+  property, condition, categories, onChange,
+}: RowProps) {
+  const predicate = condition?.predicate.valueKind === "sections" ? condition.predicate.predicate : undefined;
+  const mode = predicate
+    ? predicate.kind === "presence" ? predicate.mode : predicate.kind
+    : "none";
+  const selectedTypes: SectionEntryType[] = predicate?.kind === "sectionType" ? predicate.types : [];
+  const exhaustiveValue = predicate?.kind === "exhaustive" ? predicate.value : true;
+
+  function handleMode(next: string): void {
+    if (next === "none") {
+      onChange(null);
+    }
+    else if (next === "has" || next === "missing") {
+      onChange({
+        type: "property",
+        propertyId: property.id,
+        predicate: {
+          valueKind: "sections",
+          predicate: {
+            kind: "presence",
+            mode: next,
+          },
+        },
+      });
+    }
+    else if (next === "sectionType") {
+      onChange({
+        type: "property",
+        propertyId: property.id,
+        predicate: {
+          valueKind: "sections",
+          predicate: {
+            kind: "sectionType",
+            types: [],
+          },
+        },
+      });
+    }
+    else if (next === "exhaustive") {
+      onChange({
+        type: "property",
+        propertyId: property.id,
+        predicate: {
+          valueKind: "sections",
+          predicate: {
+            kind: "exhaustive",
+            value: true,
+          },
+        },
+      });
+    }
+  }
+
+  function toggleType(type: SectionEntryType): void {
+    const next = selectedTypes.includes(type)
+      ? selectedTypes.filter(t => t !== type)
+      : [...selectedTypes, type];
+    onChange({
+      type: "property",
+      propertyId: property.id,
+      predicate: {
+        valueKind: "sections",
+        predicate: {
+          kind: "sectionType",
+          types: next,
+        },
+      },
+    });
+  }
+
+  return (
+    <PropertyConditionModeRow
+      property={property}
+      categories={categories}
+      mode={mode}
+      modes={SECTIONS_MODES}
+      onModeChange={handleMode}
+    >
+      {mode === "sectionType"
+        ? (
+          <div className="space-y-1 pl-1">
+            {SECTION_ENTRY_TYPES.map(type => (
+              <div
+                key={type}
+                className="flex items-center gap-2"
+              >
+                <Checkbox
+                  id={`sections-cond-${property.id}-${type}`}
+                  checked={selectedTypes.includes(type)}
+                  onCheckedChange={() => toggleType(type)}
+                />
+                <Label
+                  htmlFor={`sections-cond-${property.id}-${type}`}
+                  className="text-sm font-normal"
+                >
+                  {SECTION_ENTRY_TYPE_LABELS[type]}
+                </Label>
+              </div>
+            ))}
+          </div>
+        )
+        : mode === "exhaustive"
+          ? (
+            <div className="pl-1">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id={`sections-cond-${property.id}-exhaustive`}
+                  checked={exhaustiveValue}
+                  onCheckedChange={checked =>
+                    onChange({
+                      type: "property",
+                      propertyId: property.id,
+                      predicate: {
+                        valueKind: "sections",
+                        predicate: {
+                          kind: "exhaustive",
+                          value: Boolean(checked),
+                        },
+                      },
+                    })}
+                />
+                <Label
+                  htmlFor={`sections-cond-${property.id}-exhaustive`}
+                  className="text-sm font-normal"
+                >
+                  Is exhaustive
+                </Label>
+              </div>
+            </div>
+          )
+          : null}
+    </PropertyConditionModeRow>
+  );
+}
+
 /** A single property's condition control, dispatched to the editor for its value kind. */
 function PropertyConditionRow(props: RowProps) {
   switch (propertyValueKind(props.property)) {
@@ -577,6 +739,8 @@ function PropertyConditionRow(props: RowProps) {
       return <BooleanConditionRow {...props} />;
     case "choices":
       return <ChoicesConditionRow {...props} />;
+    case "sections":
+      return <SectionsConditionRow {...props} />;
   }
 }
 

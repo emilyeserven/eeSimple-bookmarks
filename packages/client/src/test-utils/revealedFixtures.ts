@@ -76,11 +76,13 @@ export function makeRevealedProps(overrides: Partial<RevealedFixtureProps> = {})
     dateTimeInputs: {},
     choicesInputs: {},
     progressInputs: {},
+    sectionsInputs: {},
     onNumberChange: () => undefined,
     onBooleanChange: () => undefined,
     onDateTimeChange: () => undefined,
     onChoicesChange: () => undefined,
     onProgressChange: () => undefined,
+    onSectionsChange: () => undefined,
 
     ...overrides,
   };
@@ -126,9 +128,13 @@ export interface RevealedFixtureProps {
   choicesInputs: Record<string, string[]>;
   progressInputs: Record<string, { current: string;
     total: string; }>;
+  sectionsInputs: Record<string, { exhaustive: boolean;
+    sections: import("@eesimple/types").SectionEntry[]; }>;
   onNumberChange: (id: string, value: string) => void;
   onBooleanChange: (id: string, value: boolean) => void;
   onDateTimeChange: (id: string, value: string) => void;
   onChoicesChange: (id: string, values: string[]) => void;
   onProgressChange: (id: string, field: "current" | "total", value: string) => void;
+  onSectionsChange: (id: string, value: { exhaustive: boolean;
+    sections: import("@eesimple/types").SectionEntry[]; }) => void;
 }

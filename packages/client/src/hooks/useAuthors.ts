@@ -2,7 +2,11 @@ import type { CreateAuthorInput, UpdateAuthorInput } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useRateLimitCooldown } from "./useRateLimitCooldown";
 import { authorsApi } from "../lib/api/taxonomies";
+import { ApiError, describeError } from "../lib/apiError";
+import { notifyImageFetchError } from "../lib/bugReport";
+import { notifyError, notifySuccess } from "../lib/notifications";
 
 const AUTHORS_KEY = ["authors"] as const;
 const BOOKMARKS_KEY = ["bookmarks"] as const;
@@ -75,5 +79,66 @@ export function useDeleteAuthor() {
         queryKey: BOOKMARKS_KEY,
       });
     },
+  });
+}
+
+export function useUploadAuthorImage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id, file,
+    }: { id: string;
+      file: File; }) =>
+      authorsApi.uploadImage(id, file),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: AUTHORS_KEY,
+      });
+      notifySuccess("Avatar updated");
+    },
+    onError: (err: Error) => notifyError(describeError(err, "Could not upload the avatar")),
+  });
+}
+
+export function useAutoAuthorImage() {
+  const queryClient = useQueryClient();
+  const cooldown = useRateLimitCooldown(60_000);
+  const mutation = useMutation({
+    mutationFn: ({
+      id, source,
+    }: { id: string;
+      source: "website" | "biography";
+      sourceUrl?: string; }) =>
+      authorsApi.autoImage(id, source),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: AUTHORS_KEY,
+      });
+      notifySuccess("Avatar fetched");
+    },
+    onError: (err: Error, {
+      sourceUrl,
+    }) => {
+      if (err instanceof ApiError && err.code === "blocked") cooldown.startCooldown();
+      notifyImageFetchError(err, "author avatar", "Could not fetch an avatar", sourceUrl);
+    },
+  });
+  return {
+    ...mutation,
+    cooldown,
+  };
+}
+
+export function useDeleteAuthorImage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => authorsApi.deleteImage(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: AUTHORS_KEY,
+      });
+      notifySuccess("Avatar removed");
+    },
+    onError: (err: Error) => notifyError(describeError(err, "Could not remove the avatar")),
   });
 }

@@ -90,11 +90,15 @@ interface BookmarkRevealedFieldsProps {
   choicesInputs: Record<string, string[]>;
   progressInputs: Record<string, { current: string;
     total: string; }>;
+  sectionsInputs: Record<string, { exhaustive: boolean;
+    sections: import("@eesimple/types").SectionEntry[]; }>;
   onNumberChange: (id: string, value: string) => void;
   onBooleanChange: (id: string, value: boolean) => void;
   onDateTimeChange: (id: string, value: string) => void;
   onChoicesChange: (id: string, values: string[]) => void;
   onProgressChange: (id: string, field: "current" | "total", value: string) => void;
+  onSectionsChange: (id: string, value: { exhaustive: boolean;
+    sections: import("@eesimple/types").SectionEntry[]; }) => void;
 
   // Advanced section.
   categories: Category[];
@@ -179,11 +183,13 @@ export function BookmarkRevealedFields(props: BookmarkRevealedFieldsProps) {
           dateTimeInputs: props.dateTimeInputs,
           choicesInputs: props.choicesInputs,
           progressInputs: props.progressInputs,
+          sectionsInputs: props.sectionsInputs,
           onNumberChange: props.onNumberChange,
           onBooleanChange: props.onBooleanChange,
           onDateTimeChange: props.onDateTimeChange,
           onChoicesChange: props.onChoicesChange,
           onProgressChange: props.onProgressChange,
+          onSectionsChange: props.onSectionsChange,
           onApplyCategoryDefaults: props.onApplyCategoryDefaults,
         }}
         isFetchDescriptionPending={props.isFetchMetadataPending}

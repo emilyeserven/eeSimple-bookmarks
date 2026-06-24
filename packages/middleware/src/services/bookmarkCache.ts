@@ -1,5 +1,5 @@
 import { inArray, or } from "drizzle-orm";
-import type { ConditionInput, TagDescendants } from "@eesimple/types";
+import type { BookmarkSectionsValue, ConditionInput, SectionEntry, TagDescendants } from "@eesimple/types";
 import { buildTagDescendants } from "@eesimple/types";
 import { db } from "@/db";
 import {
@@ -9,6 +9,7 @@ import {
   bookmarkFileValues,
   bookmarkNumberValues,
   bookmarkProgressValues,
+  bookmarkSectionsValues,
   bookmarkRelationships,
   bookmarks,
   type BookmarkRow,
@@ -131,7 +132,7 @@ async function buildConditionInputs(
   const ids = baseRows.map(row => row.id);
   if (ids.length === 0) return new Map();
 
-  const [tagRows, numberRows, booleanRows, dateTimeRows, choicesRows, fileRows, progressRows, relationshipRows] = await Promise.all([
+  const [tagRows, numberRows, booleanRows, dateTimeRows, choicesRows, fileRows, progressRows, sectionsRows, relationshipRows] = await Promise.all([
     db
       .select({
         bookmarkId: bookmarkTags.bookmarkId,
@@ -188,6 +189,15 @@ async function buildConditionInputs(
       .where(inArray(bookmarkProgressValues.bookmarkId, ids)),
     db
       .select({
+        bookmarkId: bookmarkSectionsValues.bookmarkId,
+        propertyId: bookmarkSectionsValues.propertyId,
+        exhaustive: bookmarkSectionsValues.exhaustive,
+        sections: bookmarkSectionsValues.sections,
+      })
+      .from(bookmarkSectionsValues)
+      .where(inArray(bookmarkSectionsValues.bookmarkId, ids)),
+    db
+      .select({
         bookmarkAId: bookmarkRelationships.bookmarkAId,
         bookmarkBId: bookmarkRelationships.bookmarkBId,
         relationshipTypeId: bookmarkRelationships.relationshipTypeId,
@@ -213,6 +223,17 @@ async function buildConditionInputs(
     const m = numsByBid.get(r.bookmarkId) ?? new Map<string, number>();
     m.set(r.propertyId, r.current);
     numsByBid.set(r.bookmarkId, m);
+  }
+
+  const sectionsByBid = new Map<string, Map<string, BookmarkSectionsValue>>();
+  for (const r of sectionsRows) {
+    const m = sectionsByBid.get(r.bookmarkId) ?? new Map<string, BookmarkSectionsValue>();
+    m.set(r.propertyId, {
+      propertyId: r.propertyId,
+      exhaustive: r.exhaustive,
+      sections: r.sections as SectionEntry[],
+    });
+    sectionsByBid.set(r.bookmarkId, m);
   }
 
   // A bookmark "has" a relationship type if it sits on either side of an edge of that type.
@@ -242,6 +263,7 @@ async function buildConditionInputs(
       booleanValues: boolsByBid.get(row.id) ?? new Map(),
       dateTimeValues: datesByBid.get(row.id) ?? new Map(),
       choicesValues: choicesByBid.get(row.id) ?? new Map(),
+      sectionsValues: sectionsByBid.get(row.id) ?? new Map(),
       fileValues: filesByBid.get(row.id) ?? new Set(),
       relationshipTypeIds: relTypesByBid.get(row.id) ?? new Set(),
     });

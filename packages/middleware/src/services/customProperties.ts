@@ -48,6 +48,9 @@ export const CONTENT_STATUS_SLUG = "content-status";
 /** Reserved slug + spec of the built-in "Page Progress" itemInItems property, seeded at boot. */
 export const PAGE_PROGRESS_SLUG = "page-progress";
 
+/** Reserved slug + spec of the built-in "Page Range" itemInItems property, seeded at boot. */
+export const PAGE_RANGE_SLUG = "page-range";
+
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 /** Map a DB row plus its hydrated relations to the shared `CustomProperty` wire type. */
@@ -103,6 +106,8 @@ function toCustomProperty(
     itemInItemsBeforeText: row.itemInItemsBeforeText ?? null,
     itemInItemsBetweenText: row.itemInItemsBetweenText ?? null,
     itemInItemsAfterText: row.itemInItemsAfterText ?? null,
+    sectionsDefaultType: (row.sectionsDefaultType as CustomProperty["sectionsDefaultType"]) ?? null,
+    sectionsAllowedTypes: (row.sectionsAllowedTypes as CustomProperty["sectionsAllowedTypes"]) ?? null,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
   };
@@ -381,6 +386,8 @@ export type UpdatePatch = Partial<
     | "itemInItemsBeforeText"
     | "itemInItemsBetweenText"
     | "itemInItemsAfterText"
+    | "sectionsDefaultType"
+    | "sectionsAllowedTypes"
   >
 >;
 
@@ -435,6 +442,8 @@ const COPYABLE_FIELDS = [
   "itemInItemsBeforeText",
   "itemInItemsBetweenText",
   "itemInItemsAfterText",
+  "sectionsDefaultType",
+  "sectionsAllowedTypes",
 ] as const satisfies readonly CopyableField[];
 
 /**
@@ -841,6 +850,299 @@ export async function ensurePageProgressProperty(): Promise<string> {
 
   // Lost a concurrent insert race — re-read the row the other writer created.
   return readPropertyIdBySlug(PAGE_PROGRESS_SLUG);
+}
+
+/**
+ * Ensure the built-in "Page Range" itemInItems property exists and is scoped to the "Book" media
+ * type. Idempotent and safe to call at boot — must run after ensureBuiltInMediaTypes so the "book"
+ * slug row is present. Renders as "Pages <first>-<last>".
+ */
+export async function ensurePageRangeProperty(): Promise<string> {
+  const [existing] = await db
+    .select({
+      id: customProperties.id,
+    })
+    .from(customProperties)
+    .where(eq(customProperties.slug, PAGE_RANGE_SLUG));
+
+  let propertyId: string;
+  if (existing) {
+    await db
+      .update(customProperties)
+      .set({
+        builtIn: true,
+        enabled: true,
+        allCategories: false,
+        itemInItemsBeforeText: "Pages ",
+        itemInItemsBetweenText: "-",
+        itemInItemsAfterText: null,
+      })
+      .where(eq(customProperties.id, existing.id));
+    propertyId = existing.id;
+  }
+  else {
+    const [row] = await db
+      .insert(customProperties)
+      .values({
+        name: "Page Range",
+        slug: PAGE_RANGE_SLUG,
+        type: "itemInItems",
+        builtIn: true,
+        allCategories: false,
+        showInForm: true,
+        showInListings: true,
+        itemInItemsBeforeText: "Pages ",
+        itemInItemsBetweenText: "-",
+        itemInItemsAfterText: null,
+      })
+      .onConflictDoNothing({
+        target: customProperties.slug,
+      })
+      .returning({
+        id: customProperties.id,
+      });
+    propertyId = row ? row.id : await readPropertyIdBySlug(PAGE_RANGE_SLUG);
+  }
+
+  // Scope to the "Book" media type — mirrors the ensureRuntimeProperty pattern.
+  const [bookRow] = await db
+    .select({
+      id: mediaTypes.id,
+    })
+    .from(mediaTypes)
+    .where(eq(mediaTypes.slug, "book"));
+  if (bookRow) {
+    await db
+      .delete(propertyMediaTypes)
+      .where(eq(propertyMediaTypes.propertyId, propertyId));
+    await db
+      .insert(propertyMediaTypes)
+      .values([{
+        propertyId,
+        mediaTypeId: bookRow.id,
+      }]);
+  }
+
+  return propertyId;
+}
+
+/** Reserved slug for the built-in "Chapters" sections property (timestamps for video/audio). */
+export const CHAPTERS_SLUG = "chapters";
+
+/** Reserved slug for the built-in "Page Sections" sections property (books). */
+export const PAGE_SECTIONS_SLUG = "page-sections";
+
+/** Reserved slug for the built-in "URL Sections" sections property (websites/apps). */
+export const URL_SECTIONS_SLUG = "url-sections";
+
+/**
+ * Ensure the built-in "Chapters" sections property exists and is scoped to the Video and Audio
+ * media types (and their children). Idempotent — safe to call at boot. Default type: timestamp.
+ */
+export async function ensureChaptersProperty(): Promise<string> {
+  const [existing] = await db
+    .select({
+      id: customProperties.id,
+    })
+    .from(customProperties)
+    .where(eq(customProperties.slug, CHAPTERS_SLUG));
+
+  let propertyId: string;
+  if (existing) {
+    await db
+      .update(customProperties)
+      .set({
+        builtIn: true,
+        enabled: true,
+        allCategories: false,
+        sectionsDefaultType: "timestamp",
+        sectionsAllowedTypes: null,
+      })
+      .where(eq(customProperties.id, existing.id));
+    propertyId = existing.id;
+  }
+  else {
+    const [row] = await db
+      .insert(customProperties)
+      .values({
+        name: "Chapters",
+        slug: CHAPTERS_SLUG,
+        type: "sections",
+        builtIn: true,
+        allCategories: false,
+        showInForm: true,
+        showInListings: false,
+        sectionsDefaultType: "timestamp",
+        sectionsAllowedTypes: null,
+        description: "Timestamps or chapters in this video or audio content.",
+      })
+      .onConflictDoNothing({
+        target: customProperties.slug,
+      })
+      .returning({
+        id: customProperties.id,
+      });
+    propertyId = row ? row.id : await readPropertyIdBySlug(CHAPTERS_SLUG);
+  }
+
+  // Scope to Video + Audio roots and all their children (mirrors ensureRuntimeProperty).
+  const rootRows = await db
+    .select({
+      id: mediaTypes.id,
+    })
+    .from(mediaTypes)
+    .where(inArray(mediaTypes.slug, ["video", "audio"]));
+  if (rootRows.length > 0) {
+    const rootIds = rootRows.map(r => r.id);
+    const childRows = await db
+      .select({
+        id: mediaTypes.id,
+      })
+      .from(mediaTypes)
+      .where(inArray(mediaTypes.parentId, rootIds));
+    const allMediaTypeIds = [...rootIds, ...childRows.map(r => r.id)];
+    await db.delete(propertyMediaTypes).where(eq(propertyMediaTypes.propertyId, propertyId));
+    await db.insert(propertyMediaTypes).values(allMediaTypeIds.map(mediaTypeId => ({
+      propertyId,
+      mediaTypeId,
+    })));
+  }
+
+  return propertyId;
+}
+
+/**
+ * Ensure the built-in "Page Sections" sections property exists and is scoped to the Book media
+ * type. Idempotent — safe to call at boot. Default type: page.
+ */
+export async function ensurePageSectionsProperty(): Promise<string> {
+  const [existing] = await db
+    .select({
+      id: customProperties.id,
+    })
+    .from(customProperties)
+    .where(eq(customProperties.slug, PAGE_SECTIONS_SLUG));
+
+  let propertyId: string;
+  if (existing) {
+    await db
+      .update(customProperties)
+      .set({
+        builtIn: true,
+        enabled: true,
+        allCategories: false,
+        sectionsDefaultType: "page",
+        sectionsAllowedTypes: null,
+      })
+      .where(eq(customProperties.id, existing.id));
+    propertyId = existing.id;
+  }
+  else {
+    const [row] = await db
+      .insert(customProperties)
+      .values({
+        name: "Page Sections",
+        slug: PAGE_SECTIONS_SLUG,
+        type: "sections",
+        builtIn: true,
+        allCategories: false,
+        showInForm: true,
+        showInListings: false,
+        sectionsDefaultType: "page",
+        sectionsAllowedTypes: null,
+        description: "Page number ranges for chapters or sections in this book.",
+      })
+      .onConflictDoNothing({
+        target: customProperties.slug,
+      })
+      .returning({
+        id: customProperties.id,
+      });
+    propertyId = row ? row.id : await readPropertyIdBySlug(PAGE_SECTIONS_SLUG);
+  }
+
+  const [bookRow] = await db
+    .select({
+      id: mediaTypes.id,
+    })
+    .from(mediaTypes)
+    .where(eq(mediaTypes.slug, "book"));
+  if (bookRow) {
+    await db.delete(propertyMediaTypes).where(eq(propertyMediaTypes.propertyId, propertyId));
+    await db.insert(propertyMediaTypes).values([{
+      propertyId,
+      mediaTypeId: bookRow.id,
+    }]);
+  }
+
+  return propertyId;
+}
+
+/**
+ * Ensure the built-in "URL Sections" sections property exists and is scoped to the Website/App
+ * media type. Idempotent — safe to call at boot. Default type: url.
+ */
+export async function ensureUrlSectionsProperty(): Promise<string> {
+  const [existing] = await db
+    .select({
+      id: customProperties.id,
+    })
+    .from(customProperties)
+    .where(eq(customProperties.slug, URL_SECTIONS_SLUG));
+
+  let propertyId: string;
+  if (existing) {
+    await db
+      .update(customProperties)
+      .set({
+        builtIn: true,
+        enabled: true,
+        allCategories: false,
+        sectionsDefaultType: "url",
+        sectionsAllowedTypes: null,
+      })
+      .where(eq(customProperties.id, existing.id));
+    propertyId = existing.id;
+  }
+  else {
+    const [row] = await db
+      .insert(customProperties)
+      .values({
+        name: "URL Sections",
+        slug: URL_SECTIONS_SLUG,
+        type: "sections",
+        builtIn: true,
+        allCategories: false,
+        showInForm: true,
+        showInListings: false,
+        sectionsDefaultType: "url",
+        sectionsAllowedTypes: null,
+        description: "URL-based sections or anchor links within this website or app.",
+      })
+      .onConflictDoNothing({
+        target: customProperties.slug,
+      })
+      .returning({
+        id: customProperties.id,
+      });
+    propertyId = row ? row.id : await readPropertyIdBySlug(URL_SECTIONS_SLUG);
+  }
+
+  const [websiteRow] = await db
+    .select({
+      id: mediaTypes.id,
+    })
+    .from(mediaTypes)
+    .where(eq(mediaTypes.slug, "website-app"));
+  if (websiteRow) {
+    await db.delete(propertyMediaTypes).where(eq(propertyMediaTypes.propertyId, propertyId));
+    await db.insert(propertyMediaTypes).values([{
+      propertyId,
+      mediaTypeId: websiteRow.id,
+    }]);
+  }
+
+  return propertyId;
 }
 
 /**

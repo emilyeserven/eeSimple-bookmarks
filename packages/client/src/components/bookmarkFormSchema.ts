@@ -8,7 +8,9 @@ import type {
   BookmarkDateTimeValue,
   BookmarkNumberValue,
   BookmarkProgressValue,
+  BookmarkSectionsValue,
   CustomProperty,
+  SectionEntry,
 } from "@eesimple/types";
 
 import { propertyAppliesToCategory, propertyAppliesToMediaType } from "@eesimple/types";
@@ -154,6 +156,8 @@ export interface CustomPropertyInputs {
   choicesInputs: Record<string, string[]>;
   progressInputs: Record<string, { current: string;
     total: string; }>;
+  sectionsInputs: Record<string, { exhaustive: boolean;
+    sections: SectionEntry[]; }>;
 }
 
 /** The category-scoped, validated property values built for a bookmark's create/update payload. */
@@ -237,6 +241,33 @@ export function buildChoicesValuesFromInputs(
         values,
       }]
       : [];
+  });
+}
+
+/**
+ * Build the typed sections-property values for the submit payload: only enabled sections properties
+ * scoped to the chosen category or media type, with non-empty sections arrays.
+ */
+export function buildSectionsValuesFromInputs(
+  customProperties: CustomProperty[],
+  categoryId: string,
+  sectionsInputs: Record<string, { exhaustive: boolean;
+    sections: SectionEntry[]; }>,
+  mediaTypeId: string | null = null,
+): BookmarkSectionsValue[] {
+  const categoryProps = customProperties.filter(property =>
+    (propertyAppliesToCategory(property, categoryId)
+      || propertyAppliesToMediaType(property, mediaTypeId))
+    && property.enabled
+    && property.type === "sections");
+  return categoryProps.flatMap((property) => {
+    const entry = sectionsInputs[property.id];
+    if (!entry) return [];
+    return [{
+      propertyId: property.id,
+      exhaustive: entry.exhaustive,
+      sections: entry.sections,
+    }];
   });
 }
 

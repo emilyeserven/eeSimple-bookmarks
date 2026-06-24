@@ -721,6 +721,9 @@ export const customProperties = pgTable("custom_properties", {
   itemInItemsBeforeText: text("item_in_items_before_text"),
   itemInItemsBetweenText: text("item_in_items_between_text"),
   itemInItemsAfterText: text("item_in_items_after_text"),
+  // sections-type config (all nullable → push-safe additive columns).
+  sectionsDefaultType: text("sections_default_type"),
+  sectionsAllowedTypes: jsonb("sections_allowed_types"),
   // DEPRECATED: corner placement + overlay styling moved to card_display_rules.field_zones. These
   // columns are retained (no longer read/written) so the boot backfill can migrate their values into
   // the Default rule on first boot and so drizzle-kit push stays additive-only. Drop in a follow-up.
@@ -849,6 +852,24 @@ export const bookmarkProgressValues = pgTable("bookmark_progress_values", {
   }),
   current: real("current").notNull(),
   total: real("total").notNull(),
+}, table => [
+  primaryKey({
+    columns: [table.bookmarkId, table.propertyId],
+  }),
+]);
+
+/**
+ * `bookmark_sections_values` — section entries list + exhaustive flag per (bookmark, sections property).
+ */
+export const bookmarkSectionsValues = pgTable("bookmark_sections_values", {
+  bookmarkId: uuid("bookmark_id").notNull().references(() => bookmarks.id, {
+    onDelete: "cascade",
+  }),
+  propertyId: uuid("property_id").notNull().references(() => customProperties.id, {
+    onDelete: "cascade",
+  }),
+  exhaustive: boolean("exhaustive").notNull().default(false),
+  sections: jsonb("sections").notNull().default([]),
 }, table => [
   primaryKey({
     columns: [table.bookmarkId, table.propertyId],
@@ -1676,6 +1697,8 @@ export const authors = pgTable("authors", {
   name: text("name").notNull(),
   // URL-friendly identifier derived from the name. Nullable for clean `push`; backfilled at boot.
   slug: text("slug"),
+  authorWebsiteUrl: text("author_website_url"),
+  biographyUrl: text("biography_url"),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
@@ -1685,6 +1708,24 @@ export const authors = pgTable("authors", {
 ]);
 
 export type AuthorRow = typeof authors.$inferSelect;
+
+/** `author_images` — avatar stored in object storage; one row per author (1:1). */
+export const authorImages = pgTable("author_images", {
+  authorId: uuid("author_id").primaryKey().references(() => authors.id, {
+    onDelete: "cascade",
+  }),
+  objectKey: text("object_key").notNull(),
+  contentType: text("content_type").notNull(),
+  width: integer("width").notNull(),
+  height: integer("height").notNull(),
+  byteSize: integer("byte_size").notNull(),
+  source: text("source").notNull(), // "upload" | "website" | "biography"
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+});
+
+export type AuthorImageRow = typeof authorImages.$inferSelect;
 
 /** `bookmark_authors` join — many-to-many between bookmarks and authors. */
 export const bookmarkAuthors = pgTable("bookmark_authors", {
@@ -1699,6 +1740,23 @@ export const bookmarkAuthors = pgTable("bookmark_authors", {
     columns: [table.bookmarkId, table.authorId],
   }),
 ]);
+
+/**
+ * `card_field_templates` — user-saved named configurations of card field zone placements.
+ * Reusable across card display rules: save once, apply to any rule's Card Fields override.
+ * Push-safe: brand-new table, all non-nullable columns have defaults.
+ */
+export const cardFieldTemplates = pgTable("card_field_templates", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  description: text("description"),
+  fieldZones: jsonb("field_zones").$type<CardFieldZones>().notNull(),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+});
+
+export type CardFieldTemplateRow = typeof cardFieldTemplates.$inferSelect;
 
 export const authorsRelations = relations(authors, ({
   many,

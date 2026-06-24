@@ -39,7 +39,22 @@ import type {
 
 import { createCrudApi, request, uploadImageFile } from "./client";
 
-export const authorsApi = createCrudApi<Author, CreateAuthorInput, UpdateAuthorInput>("authors");
+export const authorsApi = {
+  ...createCrudApi<Author, CreateAuthorInput, UpdateAuthorInput>("authors"),
+  uploadImage: (id: string, file: File) =>
+    uploadImageFile<{ imageUrl: string }>(`/authors/${id}/image`, file),
+  autoImage: (id: string, source: "website" | "biography") =>
+    request<{ imageUrl: string }>(`/authors/${id}/image/auto`, {
+      method: "POST",
+      body: JSON.stringify({
+        source,
+      }),
+    }),
+  deleteImage: (id: string) =>
+    request<undefined>(`/authors/${id}/image`, {
+      method: "DELETE",
+    }),
+};
 
 export const tagsApi = {
   ...createCrudApi<Tag, CreateTagInput, UpdateTagInput>("tags"),

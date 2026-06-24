@@ -9,6 +9,7 @@ import type { ReactNode } from "react";
 
 import { defaultCardZoneLayouts } from "@eesimple/types";
 
+import { LoadTemplateDropdown, SaveTemplatePopover } from "./CardFieldTemplateControls";
 import { CardFieldZoneBoard } from "./CardFieldZoneBoard";
 import { CardZoneLayoutControls } from "./CardZoneLayoutControls";
 import { OnOffToggleGroup } from "./DisplayControlPrimitives";
@@ -240,10 +241,20 @@ export function CardDisplayRuleDisplaySettings({
         {value.fieldZones !== null
           ? (
             <>
-              <p className="text-xs text-muted-foreground">
-                Drag each field onto a zone. Image corners overlay it on the card image; anything left
-                in “Available” is hidden.
-              </p>
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-xs text-muted-foreground">
+                  Drag each field onto a zone. Image corners overlay it on the card image; anything left
+                  in &ldquo;Available&rdquo; is hidden.
+                </p>
+                <div className="flex shrink-0 items-center gap-1">
+                  <LoadTemplateDropdown
+                    onLoad={zones => onChange({
+                      fieldZones: zones,
+                    })}
+                  />
+                  <SaveTemplatePopover fieldZones={value.fieldZones} />
+                </div>
+              </div>
               <CardFieldZoneBoard
                 value={value.fieldZones}
                 onChange={zones => onChange({

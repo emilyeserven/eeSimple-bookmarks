@@ -33,6 +33,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     shortenerIgnoreList,
     tagTree,
     categories,
+    mediaTypes,
     autofillRules,
     autoFetchTitle,
   } = useBookmarkFormData();
@@ -55,6 +56,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     ignoreList: shortenerIgnoreList ?? [],
   });
 
+  const [addMediaTypeOpen, setAddMediaTypeOpen] = useState(false);
   const [isReportingTitle, setIsReportingTitle] = useState(false);
   const [expectedTitle, setExpectedTitle] = useState("");
   const [websiteSiteName, setWebsiteSiteName] = useState("");
@@ -71,8 +73,6 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
       url: bookmark.originalUrl ?? bookmark.url ?? "",
       title: bookmark.title,
       categoryId: bookmark.categoryId ?? "",
-      // Carried for schema parity with the add form; this surface has no media-type, publisher, or
-      // author pickers, so these are never sent on submit (the patch omits them, preserving the existing values).
       mediaTypeId: bookmark.mediaType?.id ?? "",
       description: bookmark.description ?? "",
       tagIds: (bookmark.tags.map(tag => tag.id)) as string[],
@@ -96,6 +96,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
           originalUrl,
           title: value.title,
           categoryId: value.categoryId,
+          mediaTypeId: value.mediaTypeId || null,
           description: value.description || null,
           tagIds: value.tagIds,
           ...(channelHintRef.current && {
@@ -182,7 +183,10 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     shortenerIgnoreList,
     tagTree,
     categories,
+    mediaTypes,
     updateBookmark,
+    addMediaTypeOpen,
+    setAddMediaTypeOpen,
     fetchTitle,
     fetchMetadata,
     websiteLookup,

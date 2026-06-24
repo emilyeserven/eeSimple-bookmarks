@@ -1,4 +1,6 @@
-import type { CustomProperty, CustomPropertyType, DateTimeFormat, NumberFormat, BookmarkProgressValue } from "@eesimple/types";
+import type { BookmarkProgressValue, BookmarkSectionsValue, CustomProperty, CustomPropertyType, DateTimeFormat, NumberFormat, SectionEntry } from "@eesimple/types";
+
+import { SECTION_ENTRY_TYPE_LABELS } from "@eesimple/types";
 
 /** Human labels for each custom-property type, shared by the detail view and listing previews. */
 export const TYPE_LABELS: Record<CustomPropertyType, string> = {
@@ -11,6 +13,7 @@ export const TYPE_LABELS: Record<CustomPropertyType, string> = {
   file: "File",
   choices: "Choices",
   itemInItems: "Item in Items",
+  sections: "Sections",
 };
 
 /** Format an itemInItems value using the property's configured text segments. */
@@ -33,3 +36,17 @@ export const NUMBER_FORMAT_LABELS: Record<NumberFormat, string> = {
   plain: "Plain",
   duration: "Duration",
 };
+
+/** Format a single section entry as a one-line summary (e.g. "Chapter 1: pp. 1–10" or "Intro: 0:00–5:30"). */
+export function formatSectionEntry(entry: SectionEntry): string {
+  const typeSuffix = SECTION_ENTRY_TYPE_LABELS[entry.type];
+  const range = entry.endValue ? `${entry.startValue}–${entry.endValue}` : entry.startValue;
+  return `${entry.name}: ${range} (${typeSuffix})`;
+}
+
+/** Format a sections value as a compact summary (e.g. "3 sections (exhaustive)"). */
+export function formatSectionsValue(value: BookmarkSectionsValue): string {
+  const count = value.sections.length;
+  const label = count === 1 ? "1 section" : `${count} sections`;
+  return value.exhaustive ? `${label} (exhaustive)` : label;
+}

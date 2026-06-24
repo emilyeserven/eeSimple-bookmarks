@@ -1,7 +1,8 @@
 import { asc, count, eq, isNull } from "drizzle-orm";
 import type { Author, CreateAuthorInput, UpdateAuthorInput } from "@eesimple/types";
 import { db } from "@/db";
-import { authors, bookmarkAuthors, type AuthorRow } from "@/db/schema";
+import { authorImages, authors, bookmarkAuthors, type AuthorRow } from "@/db/schema";
+import { getAuthorImageRow } from "@/services/authorImages";
 import { slugify, uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
 
@@ -13,14 +14,26 @@ export class DuplicateAuthorError extends Error {
   }
 }
 
+function avatarUrlFrom(authorId: string, createdAt: Date | string | null): string | null {
+  if (!createdAt) return null;
+  const time = (createdAt instanceof Date ? createdAt : new Date(createdAt)).getTime();
+  return `/api/authors/${authorId}/image?v=${time}`;
+}
+
 /** Map a DB row to the shared `Author` wire type. */
-function toAuthor(row: AuthorRow, bookmarkCount?: number): Author {
+function toAuthor(
+  row: AuthorRow & { avatarCreatedAt?: Date | string | null },
+  bookmarkCount?: number,
+): Author {
   return {
     id: row.id,
     name: row.name,
     slug: row.slug ?? slugify(row.name),
     createdAt: row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount,
+    authorWebsiteUrl: row.authorWebsiteUrl ?? null,
+    biographyUrl: row.biographyUrl ?? null,
+    imageUrl: avatarUrlFrom(row.id, row.avatarCreatedAt ?? null),
   };
 }
 
@@ -30,7 +43,20 @@ const takenSlugs = (excludeId?: string) =>
 
 /** List all authors, ordered by name, with bookmark counts. */
 export async function listAuthors(): Promise<Author[]> {
-  const rows = await db.select().from(authors).orderBy(asc(authors.name));
+  const rows = await db
+    .select({
+      id: authors.id,
+      name: authors.name,
+      slug: authors.slug,
+      authorWebsiteUrl: authors.authorWebsiteUrl,
+      biographyUrl: authors.biographyUrl,
+      createdAt: authors.createdAt,
+      avatarCreatedAt: authorImages.createdAt,
+    })
+    .from(authors)
+    .leftJoin(authorImages, eq(authorImages.authorId, authors.id))
+    .orderBy(asc(authors.name));
+
   const counts = await db
     .select({
       authorId: bookmarkAuthors.authorId,
@@ -60,12 +86,12 @@ export async function createAuthor(input: CreateAuthorInput): Promise<Author> {
   return toAuthor(row);
 }
 
-/** Rename an author. Throws `DuplicateAuthorError` on a name clash. */
+/** Update an author's name and/or URL fields. Throws `DuplicateAuthorError` on a name clash. */
 export async function updateAuthor(id: string, input: UpdateAuthorInput): Promise<Author | null> {
   const [existing] = await db.select().from(authors).where(eq(authors.id, id));
   if (!existing) return null;
 
-  const patch: Partial<Pick<AuthorRow, "name" | "slug">> = {};
+  const patch: Partial<Pick<AuthorRow, "name" | "slug" | "authorWebsiteUrl" | "biographyUrl">> = {};
   if (input.name !== undefined && input.name.trim() !== existing.name) {
     const name = input.name.trim();
     const [clash] = await db.select({
@@ -75,10 +101,24 @@ export async function updateAuthor(id: string, input: UpdateAuthorInput): Promis
     patch.name = name;
     patch.slug = uniqueSlug(name, await takenSlugs(id));
   }
-  if (Object.keys(patch).length === 0) return toAuthor(existing);
+  if ("authorWebsiteUrl" in input) patch.authorWebsiteUrl = input.authorWebsiteUrl ?? null;
+  if ("biographyUrl" in input) patch.biographyUrl = input.biographyUrl ?? null;
+
+  if (Object.keys(patch).length === 0) {
+    const imageRow = await getAuthorImageRow(id);
+    return toAuthor({
+      ...existing,
+      avatarCreatedAt: imageRow?.createdAt ?? null,
+    });
+  }
 
   const [row] = await db.update(authors).set(patch).where(eq(authors.id, id)).returning();
-  return row ? toAuthor(row) : null;
+  if (!row) return null;
+  const imageRow = await getAuthorImageRow(id);
+  return toAuthor({
+    ...row,
+    avatarCreatedAt: imageRow?.createdAt ?? null,
+  });
 }
 
 /** Delete an author. Bookmark join rows are removed via cascade. Returns false when not found. */

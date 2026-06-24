@@ -20,6 +20,8 @@ export function propertyValueKind(property: CustomProperty): ConditionValueKind 
       return "file";
     case "choices":
       return "choices";
+    case "sections":
+      return "sections";
     default:
       return "boolean";
   }

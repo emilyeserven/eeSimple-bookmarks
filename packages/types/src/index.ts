@@ -6,7 +6,7 @@
  */
 
 import type { ConditionMatchField, ConditionMatchOperator, ConditionTree } from "./conditions.js";
-import type { ChoicesDisplayType, ChoicesItem, CustomPropertyType, DateTimeFormat, NumberFormat } from "./customProperties.js";
+import type { BookmarkSectionsValue, ChoicesDisplayType, ChoicesItem, CustomPropertyType, DateTimeFormat, NumberFormat, SectionEntryType } from "./customProperties.js";
 import type { ImportBlacklistKind } from "./importBlacklist.js";
 
 export * from "./conditions.js";
@@ -615,6 +615,9 @@ export interface Author {
   slug: string;
   createdAt: string;
   bookmarkCount?: number;
+  authorWebsiteUrl: string | null;
+  biographyUrl: string | null;
+  imageUrl: string | null;
 }
 
 /** Lightweight author shape carried on a bookmark. */
@@ -628,6 +631,8 @@ export interface CreateAuthorInput {
 /** Payload for partially updating an author. */
 export interface UpdateAuthorInput {
   name?: string;
+  authorWebsiteUrl?: string | null;
+  biographyUrl?: string | null;
 }
 
 /** Lightweight import shape carried on a bookmark (the import event it was created from). */
@@ -805,6 +810,8 @@ export interface Bookmark {
   choicesValues: BookmarkChoicesValue[];
   /** Item-in-items custom property values assigned to this bookmark. */
   progressValues: BookmarkProgressValue[];
+  /** Sections custom property values (chapters, page ranges, URL anchors) assigned to this bookmark. */
+  sectionsValues: BookmarkSectionsValue[];
   /**
    * Image/file custom property values assigned to this bookmark. Unlike the scalar value arrays,
    * these are NOT part of `CreateBookmarkInput`/`UpdateBookmarkInput`: the blobs are uploaded
@@ -844,6 +851,8 @@ export interface CreateBookmarkInput {
   choicesValues?: BookmarkChoicesValue[];
   /** Item-in-items custom property values to assign. */
   progressValues?: BookmarkProgressValue[];
+  /** Sections custom property values to assign. */
+  sectionsValues?: BookmarkSectionsValue[];
   /** Homepage ordering weight; higher values appear first. */
   priority?: number;
   /** Friendly name for the website when it doesn't exist yet; ignored for existing sites. */
@@ -1494,6 +1503,10 @@ export interface CustomProperty {
   itemInItemsBetweenText: string | null;
   /** Text shown after the `total` number for an `itemInItems` property (e.g. `" pages"`). */
   itemInItemsAfterText: string | null;
+  /** Default section entry type for a `sections` property; `null` means no preference (any type). */
+  sectionsDefaultType: SectionEntryType | null;
+  /** Allowed section entry types for a `sections` property; `null` means all types are allowed. */
+  sectionsAllowedTypes: SectionEntryType[] | null;
   createdAt: string;
 }
 
@@ -1571,6 +1584,10 @@ export interface CreateCustomPropertyInput {
   itemInItemsBetweenText?: string | null;
   /** Text shown after the `total` number for an `itemInItems` property. */
   itemInItemsAfterText?: string | null;
+  /** Default section entry type for a `sections` property. */
+  sectionsDefaultType?: SectionEntryType | null;
+  /** Allowed section entry types for a `sections` property; `null` means all types. */
+  sectionsAllowedTypes?: SectionEntryType[] | null;
 }
 
 /** Payload for updating a custom property. Its `type` is immutable. */
@@ -2040,6 +2057,22 @@ export interface CreateCardDisplayRuleInput {
 
 /** Payload for partially updating a card display rule. */
 export type UpdateCardDisplayRuleInput = Partial<CreateCardDisplayRuleInput>;
+
+/** A saved named configuration of card field zone placements, reusable across display rules. */
+export interface CardFieldTemplate {
+  id: string;
+  name: string;
+  description: string | null;
+  fieldZones: CardFieldZones;
+  createdAt: string;
+}
+
+/** Payload for creating a card field template. */
+export interface CreateCardFieldTemplateInput {
+  name: string;
+  description?: string | null;
+  fieldZones: CardFieldZones;
+}
 
 /**
  * Result of fetching metadata for a bookmark URL (`GET /api/fetch-metadata`). Always carries the

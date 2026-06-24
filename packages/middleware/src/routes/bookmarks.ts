@@ -194,6 +194,49 @@ const createBookmarkBody = {
         },
       },
     },
+    sectionsValues: {
+      type: "array",
+      items: {
+        type: "object",
+        required: ["propertyId", "exhaustive", "sections"],
+        additionalProperties: false,
+        properties: {
+          propertyId: {
+            type: "string",
+            format: "uuid",
+          },
+          exhaustive: {
+            type: "boolean",
+          },
+          sections: {
+            type: "array",
+            items: {
+              type: "object",
+              required: ["id", "name", "type", "startValue"],
+              additionalProperties: false,
+              properties: {
+                id: {
+                  type: "string",
+                },
+                name: {
+                  type: "string",
+                },
+                type: {
+                  type: "string",
+                  enum: ["url", "page", "timestamp"],
+                },
+                startValue: {
+                  type: "string",
+                },
+                endValue: {
+                  type: "string",
+                },
+              },
+            },
+          },
+        },
+      },
+    },
     priority: {
       type: "integer",
     },

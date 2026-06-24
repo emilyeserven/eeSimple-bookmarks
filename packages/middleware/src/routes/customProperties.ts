@@ -187,6 +187,17 @@ const createPropertyBody = {
     itemInItemsAfterText: {
       type: ["string", "null"],
     },
+    sectionsDefaultType: {
+      type: ["string", "null"],
+      enum: ["url", "page", "timestamp", null],
+    },
+    sectionsAllowedTypes: {
+      type: ["array", "null"],
+      items: {
+        type: "string",
+        enum: ["url", "page", "timestamp"],
+      },
+    },
   },
 } as const;
 
@@ -234,6 +245,8 @@ const updatePropertyBody = {
     itemInItemsBeforeText: createPropertyBody.properties.itemInItemsBeforeText,
     itemInItemsBetweenText: createPropertyBody.properties.itemInItemsBetweenText,
     itemInItemsAfterText: createPropertyBody.properties.itemInItemsAfterText,
+    sectionsDefaultType: createPropertyBody.properties.sectionsDefaultType,
+    sectionsAllowedTypes: createPropertyBody.properties.sectionsAllowedTypes,
   },
 } as const;
 
