@@ -129,6 +129,9 @@ const CONTEXT_MAX = 600;
 const BLOCK_BOUNDARY = /<\/?(?:p|div|td|tr|li|ul|ol|table|blockquote|h[1-6]|body|br)\b[^>]*>/gi;
 /** Any heading element, used to find the nearest one preceding an anchor. */
 const HEADING = /<h[1-6]\b[^>]*>([\s\S]*?)<\/h[1-6]>/gi;
+/** Opening tags for hard block containers that bound the prose window for context extraction.
+ * Excludes <p> and <br> so the window spans across paragraph breaks within an article block. */
+const CONTEXT_CONTAINER = /<(?:div|td|th|tr|li|ul|ol|table|blockquote|article|section|body)\b[^>]*>/gi;
 
 /**
  * Best-effort newsletter context for an anchor at `[start, end)` in `html`: the nearest preceding
@@ -139,21 +142,32 @@ const HEADING = /<h[1-6]\b[^>]*>([\s\S]*?)<\/h[1-6]>/gi;
 export function linkContextFrom(html: string, start: number, end: number): string | null {
   // Nearest preceding heading: the last heading match that ends before the anchor begins.
   let heading = "";
+  let headingEnd = 0;
   for (const match of html.slice(0, start).matchAll(HEADING)) {
     const text = stripToText(match[1] ?? "");
-    if (text.length > 0) heading = text;
+    if (text.length > 0) {
+      heading = text;
+      headingEnd = (match.index ?? 0) + match[0].length;
+    }
   }
 
-  // Enclosing paragraph: text between the block boundary just before the anchor and the next one after.
-  let blockStart = 0;
-  for (const match of html.slice(0, start).matchAll(BLOCK_BOUNDARY)) {
-    blockStart = (match.index ?? 0) + match[0].length;
+  // Prose window start: end of the last hard container opening tag before the anchor.
+  // Using only hard container tags (not <p>/<br>) lets the window span multiple sibling
+  // paragraphs so a standalone "Read more" link also captures its description paragraph.
+  let proseStart = 0;
+  for (const match of html.slice(0, start).matchAll(CONTEXT_CONTAINER)) {
+    proseStart = (match.index ?? 0) + match[0].length;
   }
+  // Advance past the last heading so heading text is not duplicated in the paragraph.
+  if (headingEnd > proseStart) proseStart = headingEnd;
+
+  // Block end: first block-level boundary after the anchor (unchanged).
   BLOCK_BOUNDARY.lastIndex = end;
   const after = BLOCK_BOUNDARY.exec(html);
   BLOCK_BOUNDARY.lastIndex = 0;
   const blockEnd = after ? after.index : Math.min(html.length, end + CONTEXT_MAX);
-  const paragraph = stripToText(html.slice(blockStart, blockEnd)).slice(0, CONTEXT_MAX);
+  // Take the LAST CONTEXT_MAX visible chars so the anchor is always near the end of the excerpt.
+  const paragraph = stripToText(html.slice(proseStart, blockEnd)).slice(-CONTEXT_MAX);
 
   const parts: string[] = [];
   if (heading) parts.push(heading.slice(0, CONTEXT_MAX));
