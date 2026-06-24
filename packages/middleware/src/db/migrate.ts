@@ -614,6 +614,13 @@ const migrations: RuntimeMigration[] = [
       )
     `),
   },
+  {
+    name: "bookmarks-url-nullable",
+    async run(db) {
+      // Make the url column nullable so offline (title-only) bookmarks can be created without a URL.
+      await db.execute(sql`ALTER TABLE bookmarks ALTER COLUMN url DROP NOT NULL`);
+    },
+  },
 ];
 
 async function main(): Promise<void> {

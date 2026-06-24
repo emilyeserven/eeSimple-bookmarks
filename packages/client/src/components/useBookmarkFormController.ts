@@ -8,6 +8,7 @@ import type { KeyboardEvent } from "react";
 
 import { useRef, useState } from "react";
 
+import { useStore } from "@tanstack/react-form";
 import { useNavigate } from "@tanstack/react-router";
 
 import {
@@ -16,6 +17,7 @@ import {
   buildCategoryPropertyValues,
   buildChoicesValuesFromInputs,
   initialImageIntent,
+  looksLikeUrl,
   looksLikeYouTube,
 } from "./bookmarkFormSchema";
 import { applyImageIntent, promoteSourceDefaults } from "./bookmarkSubmit";
@@ -96,6 +98,7 @@ export function useBookmarkFormController({
     autofillRules,
     youtubeChannels,
     authors,
+    publishers,
     autoFetchTitle,
     autoFetchImage,
   } = useBookmarkFormData();
@@ -205,6 +208,9 @@ export function useBookmarkFormController({
     }) => void submitForm(value),
   });
 
+  const rawUrl = useStore(form.store, s => s.values.url);
+  const isOfflineMode = rawUrl.trim() !== "" && !looksLikeUrl(rawUrl);
+
   // Persist the form: build the property values + input, then create or update. On create, also
   // promote category/tags to website/channel defaults (when opted in) and offer the category-edit
   // shortcut. Declared as a hoisted function so the `onSubmit` config above can reference it while
@@ -217,6 +223,7 @@ export function useBookmarkFormController({
     description: string;
     tagIds: string[];
     authorIds: string[];
+    publisherId: string;
   }): Promise<void> {
     const {
       numberValues, booleanValues, dateTimeValues, progressValues,
@@ -251,6 +258,7 @@ export function useBookmarkFormController({
       description: value.description || null,
       tagIds: value.tagIds,
       authorIds: value.authorIds,
+      publisherId: form.getFieldValue("publisherId") || null,
       numberValues,
       booleanValues,
       dateTimeValues,
@@ -463,6 +471,17 @@ export function useBookmarkFormController({
     }
   }
 
+  async function handleAddOfflineBookmark(): Promise<void> {
+    const title = form.getFieldValue("url").trim();
+    form.setFieldValue("url", "");
+    form.setFieldValue("title", title);
+    const bookMediaType = mediaTypes?.find(mt => mt.name === "Book");
+    if (bookMediaType) {
+      form.setFieldValue("mediaTypeId", bookMediaType.id);
+    }
+    setScanned(true);
+  }
+
   // Pre-scan, the only field is the URL input: Enter runs "Check URL" rather than submitting (the
   // empty title would otherwise fail validation and the submit would no-op).
   function handleUrlKeyDown(event: KeyboardEvent<HTMLFormElement>): void {
@@ -512,6 +531,7 @@ export function useBookmarkFormController({
   return {
     form,
     isEdit,
+    isOfflineMode,
     isNewChannel,
     scanned,
     isScanning: ui.isScanning,
@@ -554,6 +574,10 @@ export function useBookmarkFormController({
     // Media type.
     addMediaTypeOpen: ui.addMediaTypeOpen,
     setAddMediaTypeOpen: ui.setAddMediaTypeOpen,
+    // Publisher.
+    publishers,
+    addPublisherOpen: ui.addPublisherOpen,
+    setAddPublisherOpen: ui.setAddPublisherOpen,
     // Image.
     imageFieldKey,
     imageIntentRef,
@@ -578,6 +602,7 @@ export function useBookmarkFormController({
     submitForm,
     performUrlScan,
     handleAddNow,
+    handleAddOfflineBookmark,
     handleReset,
     handleUrlKeyDown,
     handleUrlBlur,

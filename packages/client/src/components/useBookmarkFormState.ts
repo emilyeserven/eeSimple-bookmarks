@@ -64,6 +64,8 @@ export function useBookmarkFormUiState({
   const [addCategoryOpen, setAddCategoryOpen] = useState(false);
   // Drives the inline "Create media type" modal opened from the Media Type combobox.
   const [addMediaTypeOpen, setAddMediaTypeOpen] = useState(false);
+  // Drives the inline "Create publisher" modal opened from the Publisher combobox.
+  const [addPublisherOpen, setAddPublisherOpen] = useState(false);
   // When the fetch-title button overwrites a non-empty title, record the previous value so the
   // banner can offer an undo. Cleared when the user manually edits the title field.
   const [titleFetch, setTitleFetch] = useState<{ previous: string } | null>(null);
@@ -109,6 +111,8 @@ export function useBookmarkFormUiState({
     setAddCategoryOpen,
     addMediaTypeOpen,
     setAddMediaTypeOpen,
+    addPublisherOpen,
+    setAddPublisherOpen,
     titleFetch,
     setTitleFetch,
     scanned,

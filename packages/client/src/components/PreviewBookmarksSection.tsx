@@ -80,7 +80,7 @@ export function PreviewBookmarksSection({
               <BookmarkPreviewRow
                 key={entry.bookmark.id}
                 title={entry.bookmark.title}
-                url={entry.bookmark.url}
+                url={entry.bookmark.url ?? ""}
                 matches={entry.matches}
               />
             ))}
@@ -101,7 +101,7 @@ export function PreviewBookmarksSection({
                 <BookmarkPreviewRow
                   key={entry.bookmark.id}
                   title={entry.bookmark.title}
-                  url={entry.bookmark.url}
+                  url={entry.bookmark.url ?? ""}
                   matches={entry.matches}
                 />
               ))}

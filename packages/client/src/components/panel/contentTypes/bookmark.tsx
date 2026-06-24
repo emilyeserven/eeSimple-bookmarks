@@ -24,7 +24,7 @@ function useBookmarkList() {
     () => (data ?? []).map(bookmark => ({
       id: bookmark.id,
       label: bookmark.title,
-      sublabel: bookmark.url,
+      sublabel: bookmark.url ?? undefined,
     })),
     [data],
   );

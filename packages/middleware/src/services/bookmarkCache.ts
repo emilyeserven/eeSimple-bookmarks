@@ -232,7 +232,7 @@ async function buildConditionInputs(
   const result = new Map<string, ConditionInput>();
   for (const row of baseRows) {
     result.set(row.id, {
-      url: row.url,
+      url: row.url ?? "",
       title: row.title,
       categoryId: row.categoryId ?? defaultCategoryId,
       tagIds: tagsByBid.get(row.id) ?? new Set(),

@@ -279,6 +279,7 @@ function useCardDisplayRulePreview({
       ...samplePropertyValues(properties),
       authors: [],
       relationships: [],
+      publisher: null,
       priority: 0,
       createdAt: SAMPLE_NOW,
     };

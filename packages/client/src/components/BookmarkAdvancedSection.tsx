@@ -8,6 +8,7 @@ import type {
   Category,
   CustomProperty,
   MediaTypeNode,
+  Publisher,
   TagNode,
 } from "@eesimple/types";
 
@@ -15,6 +16,7 @@ import { ChevronDown, Loader2, Sparkles } from "lucide-react";
 
 import { BookmarkAdvancedCategoryField } from "./BookmarkAdvancedCategoryField";
 import { BookmarkAdvancedMediaTypeField } from "./BookmarkAdvancedMediaTypeField";
+import { BookmarkAdvancedPublisherField } from "./BookmarkAdvancedPublisherField";
 import { CategoryCustomFields, CategoryDefaultsApplier } from "./BookmarkCustomFields";
 import { BookmarkImageField } from "./BookmarkImageField";
 import { SourceDefaultCheckbox } from "./BookmarkSourceDefaultCheckbox";
@@ -81,6 +83,9 @@ interface BookmarkAdvancedSectionProps {
   onAddCategoryOpenChange: (open: boolean) => void;
   addMediaTypeOpen: boolean;
   onAddMediaTypeOpenChange: (open: boolean) => void;
+  publishers?: Publisher[];
+  addPublisherOpen: boolean;
+  onAddPublisherOpenChange: (open: boolean) => void;
   /** Remount key for the image field so a form reset clears it. */
   imageFieldKey: number;
   existingImageUrl: string | null;
@@ -115,6 +120,9 @@ export function BookmarkAdvancedSection({
   onAddCategoryOpenChange,
   addMediaTypeOpen,
   onAddMediaTypeOpenChange,
+  publishers,
+  addPublisherOpen,
+  onAddPublisherOpenChange,
   imageFieldKey,
   existingImageUrl,
   defaultAuto,
@@ -159,6 +167,13 @@ export function BookmarkAdvancedSection({
           sourceDefaults={sourceDefaults}
           addMediaTypeOpen={addMediaTypeOpen}
           onAddMediaTypeOpenChange={onAddMediaTypeOpenChange}
+        />
+
+        <BookmarkAdvancedPublisherField
+          form={form}
+          publishers={publishers ?? []}
+          addPublisherOpen={addPublisherOpen}
+          onAddPublisherOpenChange={onAddPublisherOpenChange}
         />
 
         {/* Description and Tags side by side, stretched to a matching height. */}

@@ -44,7 +44,7 @@ export function NewsletterIssueBookmarksDialog({
     const q = query.trim().toLowerCase();
     if (!q) return allBookmarks;
     return allBookmarks.filter(b =>
-      b.title.toLowerCase().includes(q) || b.url.toLowerCase().includes(q));
+      b.title.toLowerCase().includes(q) || (b.url?.toLowerCase() ?? "").includes(q));
   }, [allBookmarks, query]);
 
   function toggle(id: string): void {

@@ -72,12 +72,11 @@ const listQuery = {
 
 const createBookmarkBody = {
   type: "object",
-  required: ["url", "title"],
+  required: ["title"],
   additionalProperties: false,
   properties: {
     url: {
-      type: "string",
-      format: "uri",
+      type: ["string", "null"],
     },
     title: {
       type: "string",
@@ -230,6 +229,10 @@ const createBookmarkBody = {
     },
     originalUrl: {
       type: ["string", "null"],
+    },
+    publisherId: {
+      type: ["string", "null"],
+      format: "uuid",
     },
   },
 } as const;
@@ -490,7 +493,7 @@ export async function bookmarkRoutes(app: FastifyInstance): Promise<void> {
     },
   }, async (req, reply) => {
     const input = req.body as CreateBookmarkInput;
-    if (!isValidUrl(input.url)) {
+    if (input.url != null && !isValidUrl(input.url)) {
       return reply.code(400).send({
         message: "url must be a valid http(s) URL",
       });
@@ -523,7 +526,7 @@ export async function bookmarkRoutes(app: FastifyInstance): Promise<void> {
         id,
       } = req.params as { id: string };
       const input = req.body as UpdateBookmarkInput;
-      if (input.url !== undefined && !isValidUrl(input.url)) {
+      if (input.url != null && !isValidUrl(input.url)) {
         return reply.code(400).send({
           message: "url must be a valid http(s) URL",
         });

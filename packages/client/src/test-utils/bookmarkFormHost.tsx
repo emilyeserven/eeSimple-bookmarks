@@ -12,6 +12,7 @@ interface BookmarkFormHostValues {
   description: string;
   tagIds: string[];
   authorIds: string[];
+  publisherId: string;
 }
 
 interface BookmarkFormHostProps {
@@ -40,6 +41,7 @@ export function BookmarkFormHost({
       description: "",
       tagIds: [],
       authorIds: [],
+      publisherId: "",
       ...initialValues,
     },
     validators: {

@@ -186,6 +186,14 @@ vi.mock("../hooks/useAuthors", () => ({
     mutateAsync: vi.fn(),
   }),
 }));
+vi.mock("../hooks/usePublishers", () => ({
+  usePublishers: () => ({
+    data: [],
+  }),
+  useCreatePublisher: () => ({
+    mutateAsync: vi.fn(),
+  }),
+}));
 vi.mock("../lib/api/metadata", () => ({
   metadataApi: {
     resolveUrl: vi.fn().mockImplementation(({
@@ -415,6 +423,7 @@ describe("BookmarkForm editing", () => {
       progressValues: [],
       authors: [],
       relationships: [],
+      publisher: null,
       priority: 0,
       createdAt: "2026-06-01T00:00:00.000Z",
     };
@@ -480,6 +489,7 @@ describe("BookmarkForm editing", () => {
       progressValues: [],
       authors: [],
       relationships: [],
+      publisher: null,
       priority: 0,
       createdAt: "2026-06-01T00:00:00.000Z",
     };
@@ -618,6 +628,7 @@ describe("BookmarkForm property prefill", () => {
       progressValues: [],
       authors: [],
       relationships: [],
+      publisher: null,
       priority: 0,
       createdAt: "2026-06-01T00:00:00.000Z",
     };

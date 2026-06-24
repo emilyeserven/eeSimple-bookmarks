@@ -147,7 +147,7 @@ export function BookmarkPropertiesForm({
 
   const runtimeProp = (customProperties ?? []).find(p => p.slug === RUNTIME_SLUG);
   const datePostedProp = (customProperties ?? []).find(p => p.slug === DATE_POSTED_SLUG);
-  const isYouTubeBookmark = looksLikeYouTube(bookmark.url);
+  const isYouTubeBookmark = looksLikeYouTube(bookmark.url ?? "");
 
   if (!hasEditableProperties(customProperties ?? [], bookmark, runtimeProp, datePostedProp, isYouTubeBookmark)) {
     return (

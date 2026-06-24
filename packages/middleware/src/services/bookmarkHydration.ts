@@ -12,6 +12,7 @@ import type {
   BookmarkNewsletter,
   BookmarkNumberValue,
   BookmarkProgressValue,
+  BookmarkPublisher,
   BookmarkRelationship,
   BookmarkTag,
   BookmarkWebsite,
@@ -36,6 +37,7 @@ import {
   imports,
   mediaTypes,
   newsletters,
+  publishers,
   relationshipTypes,
   tags,
   websiteFavicons,
@@ -54,6 +56,7 @@ interface BookmarkExtras {
   mediaType: BookmarkMediaType | null;
   youtubeChannel: BookmarkYouTubeChannel | null;
   newsletter: BookmarkNewsletter | null;
+  publisher: BookmarkPublisher | null;
   import: BookmarkImport | null;
   tags: BookmarkTag[];
   authors: BookmarkAuthor[];
@@ -72,6 +75,7 @@ const EMPTY_EXTRAS: BookmarkExtras = {
   mediaType: null,
   youtubeChannel: null,
   newsletter: null,
+  publisher: null,
   import: null,
   tags: [],
   authors: [],
@@ -99,6 +103,7 @@ function toBookmark(row: BookmarkRow, extras: BookmarkExtras, defaultCategoryId:
     mediaType: extras.mediaType,
     youtubeChannel: extras.youtubeChannel,
     newsletter: extras.newsletter,
+    publisher: extras.publisher,
     import: extras.import,
     tags: extras.tags,
     authors: extras.authors,
@@ -218,6 +223,30 @@ async function newslettersById(newsletterIds: string[]): Promise<Map<string, Boo
     })
     .from(newsletters)
     .where(inArray(newsletters.id, newsletterIds));
+
+  for (const row of rows) {
+    byId.set(row.id, {
+      id: row.id,
+      name: row.name,
+      slug: row.slug ?? row.id,
+    });
+  }
+  return byId;
+}
+
+/** Load publishers for a set of publisher ids in a single query, keyed by publisher id. */
+async function publishersById(publisherIds: string[]): Promise<Map<string, BookmarkPublisher>> {
+  const byId = new Map<string, BookmarkPublisher>();
+  if (publisherIds.length === 0) return byId;
+
+  const rows = await db
+    .select({
+      id: publishers.id,
+      name: publishers.name,
+      slug: publishers.slug,
+    })
+    .from(publishers)
+    .where(inArray(publishers.id, publisherIds));
 
   for (const row of rows) {
     byId.set(row.id, {
@@ -553,7 +582,7 @@ async function relationshipsByBookmarkId(
       list.push({
         bookmark: {
           id: other.id,
-          url: other.url,
+          url: other.url ?? null,
           title: other.title,
         },
         relationshipTypeId: rel.relationshipTypeId,
@@ -593,6 +622,7 @@ async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
       mediaType: null,
       youtubeChannel: null,
       newsletter: null,
+      publisher: null,
       import: null,
       tags: tagsMap.get(id) ?? [],
       authors: authorsMap.get(id) ?? [],
@@ -617,13 +647,15 @@ export async function hydrateBookmarkRows(rows: BookmarkRow[]): Promise<Bookmark
   const mediaTypeIds = [...new Set(rows.map(row => row.mediaTypeId).filter((id): id is string => id !== null))];
   const channelIds = [...new Set(rows.map(row => row.youtubeChannelId).filter((id): id is string => id !== null))];
   const newsletterIds = [...new Set(rows.map(row => row.newsletterId).filter((id): id is string => id !== null))];
+  const publisherIds = [...new Set(rows.map(row => row.publisherId).filter((id): id is string => id !== null))];
   const issueIds = [...new Set(rows.map(row => row.importId).filter((id): id is string => id !== null))];
-  const [grouped, websiteMap, mediaTypeMap, channelMap, newsletterMap, importMap] = await Promise.all([
+  const [grouped, websiteMap, mediaTypeMap, channelMap, newsletterMap, publisherMap, importMap] = await Promise.all([
     extrasByBookmarkId(rows.map(row => row.id)),
     websitesById(websiteIds),
     mediaTypesById(mediaTypeIds),
     channelsById(channelIds),
     newslettersById(newsletterIds),
+    publishersById(publisherIds),
     importsById(issueIds),
   ]);
   return rows.map((row) => {
@@ -634,6 +666,7 @@ export async function hydrateBookmarkRows(rows: BookmarkRow[]): Promise<Bookmark
       mediaType: row.mediaTypeId ? mediaTypeMap.get(row.mediaTypeId) ?? null : null,
       youtubeChannel: row.youtubeChannelId ? channelMap.get(row.youtubeChannelId) ?? null : null,
       newsletter: row.newsletterId ? newsletterMap.get(row.newsletterId) ?? null : null,
+      publisher: row.publisherId ? publisherMap.get(row.publisherId) ?? null : null,
       import: row.importId ? importMap.get(row.importId) ?? null : null,
     }, defaultCategoryId);
   });

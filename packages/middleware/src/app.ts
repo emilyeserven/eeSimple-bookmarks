@@ -24,6 +24,7 @@ import { maintenanceRoutes } from "@/routes/maintenance";
 import { mediaTypeRoutes } from "@/routes/mediaTypes";
 import { metadataRoutes } from "@/routes/metadata";
 import { newsletterRoutes } from "@/routes/newsletters";
+import { publisherRoutes } from "@/routes/publishers";
 import { propertyGroupRoutes } from "@/routes/propertyGroups";
 import { relationshipTypeRoutes } from "@/routes/relationshipTypes";
 import { tagRoutes } from "@/routes/tags";
@@ -172,6 +173,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(metadataRoutes);
   await app.register(authorRoutes);
   await app.register(newsletterRoutes);
+  await app.register(publisherRoutes);
   await app.register(importRoutes);
   await app.register(bookmarkRoutes);
   await app.register(tagRoutes);

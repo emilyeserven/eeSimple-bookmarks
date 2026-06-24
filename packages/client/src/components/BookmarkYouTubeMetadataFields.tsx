@@ -55,7 +55,7 @@ export function BookmarkYouTubeMetadataFields({
   ): Promise<void> {
     try {
       const meta = await fetchMetadata.mutateAsync({
-        url: bookmark.url,
+        url: bookmark.url ?? "",
       });
       if (!apply(meta)) {
         notifyError(metadataErrorMessage(label, meta.diagnostics));

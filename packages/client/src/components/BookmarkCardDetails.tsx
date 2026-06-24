@@ -173,7 +173,7 @@ export function BookmarkCardDetails({
       </Link>
     </h3>
   );
-  const externalLinkNode = <BookmarkExternalLinkButton url={bookmark.url} />;
+  const externalLinkNode = <BookmarkExternalLinkButton url={bookmark.url ?? ""} />;
   const moreNode = (
     <BookmarkMoreMenu
       bookmark={bookmark}

@@ -39,7 +39,7 @@ export function BookmarkDetail({
   const videoSize = useBookmarkDetailVideoSize();
 
   // For YouTube bookmarks, show a playable embed in place of the static thumbnail.
-  const embedUrl = youtubeEmbedUrl(bookmark.url);
+  const embedUrl = youtubeEmbedUrl(bookmark.url ?? "");
 
   // Only the constrained "standard" size sits side-by-side with the body; the proportional
   // (half/two-thirds) and full-width sizes stay stacked above it.
@@ -53,7 +53,7 @@ export function BookmarkDetail({
         <div className="min-w-0 space-y-1">
           <h1 className="text-xl font-bold">
             <a
-              href={bookmark.url}
+              href={bookmark.url ?? undefined}
               target="_blank"
               rel="noreferrer"
               className="
@@ -65,7 +65,7 @@ export function BookmarkDetail({
             </a>
           </h1>
           <a
-            href={bookmark.url}
+            href={bookmark.url ?? undefined}
             target="_blank"
             rel="noreferrer"
             className="

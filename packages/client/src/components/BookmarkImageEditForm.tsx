@@ -44,7 +44,7 @@ export function BookmarkImageEditForm({
       else if (intent.auto) {
         await autoImage.mutateAsync({
           id: bookmark.id,
-          sourceUrl: bookmark.url,
+          sourceUrl: bookmark.url ?? "",
         });
       }
       else if (intent.remove) {
@@ -73,7 +73,7 @@ export function BookmarkImageEditForm({
       <BookmarkImageField
         key={imageFieldKey}
         existingImageUrl={bookmark.image?.url ?? null}
-        pageUrl={bookmark.url}
+        pageUrl={bookmark.url ?? ""}
         defaultAuto={false}
         autoGrabError={bookmark.imageAutoGrabError ?? null}
         onChange={(intent) => {

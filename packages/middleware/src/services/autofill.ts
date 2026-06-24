@@ -532,7 +532,7 @@ export async function previewAutofillMatches(
   const candidates = (query
     ? baseRows.filter(row =>
       row.title.toLowerCase().includes(query)
-      || row.url.toLowerCase().includes(query)
+      || (row.url?.toLowerCase() ?? "").includes(query)
       || (row.categoryId != null && (categoryNameById?.get(row.categoryId)?.includes(query) ?? false)))
     : baseRows.filter(matches))
     .sort(byPriorityThenNewest)

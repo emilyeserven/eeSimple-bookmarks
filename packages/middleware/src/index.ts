@@ -3,6 +3,7 @@ import { buildApp, docsEnabled } from "@/app";
 import { maybeSeed } from "@/db/seed";
 import { ensureAppSettings } from "@/services/appSettings";
 import { backfillAuthorSlugs } from "@/services/authors";
+import { backfillPublisherSlugs } from "@/services/publishers";
 import { ensureAutofillConditions, ensureAutofillSlugs, ensureWebsiteConditions } from "@/services/autofill";
 import { backfillCardDisplayRuleFieldZones, backfillCardDisplayRuleHeaderFields, backfillCardDisplayRuleSubZones, backfillCardDisplayRuleZoneLayouts, ensureDefaultCardDisplayRule } from "@/services/cardDisplayRules";
 import { ensureDefaultCategory, ensureInboxCategory } from "@/services/categories";
@@ -56,6 +57,7 @@ try {
   await ensureContentStatusProperty();
   await ensureBuiltInMediaTypes();
   await backfillMediaTypeSlugs();
+  await backfillPublisherSlugs();
   await ensureRuntimeProperty();
   await ensurePageProgressProperty();
   await backfillPropertyGroupSlugs();
