@@ -1,8 +1,9 @@
 import { useState } from "react";
 
-import { Plus, X } from "lucide-react";
+import { Plus } from "lucide-react";
 
 import { LinkPreview } from "./LinkPreview";
+import { domainListColumns } from "./tables/domainListColumns";
 import {
   useRedirectIgnoreList,
   useShortenerIgnoreList,
@@ -11,7 +12,6 @@ import {
 } from "../hooks/useAppSettings";
 import { useWebsites } from "../hooks/useWebsites";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -20,6 +20,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { DataTable } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 
 /** Settings for URL parsing: the generic-shortener ignore list, redirect ignore list, and a link-preview tool. */
@@ -82,29 +83,6 @@ export function LinkParsingSettings() {
             ? <p className="text-sm text-muted-foreground">Loading…</p>
             : (
               <>
-                {ignoreList.length > 0
-                  ? (
-                    <div className="flex flex-wrap gap-2">
-                      {ignoreList.map(domain => (
-                        <Badge
-                          key={domain}
-                          variant="secondary"
-                          className="flex items-center gap-1"
-                        >
-                          {domain}
-                          <button
-                            type="button"
-                            onClick={() => remove(domain)}
-                            aria-label={`Remove ${domain}`}
-                            className="hover:opacity-70"
-                          >
-                            <X className="size-3" />
-                          </button>
-                        </Badge>
-                      ))}
-                    </div>
-                  )
-                  : <p className="text-sm text-muted-foreground">No shorteners configured.</p>}
                 <div className="flex max-w-sm gap-2">
                   <Input
                     placeholder="e.g. bit.ly"
@@ -126,6 +104,11 @@ export function LinkParsingSettings() {
                     Add
                   </Button>
                 </div>
+                <DataTable<string>
+                  columns={domainListColumns(remove)}
+                  data={ignoreList}
+                  emptyMessage="No shorteners configured."
+                />
               </>
             )}
         </CardContent>
@@ -145,29 +128,6 @@ export function LinkParsingSettings() {
             ? <p className="text-sm text-muted-foreground">Loading…</p>
             : (
               <>
-                {redirectIgnoreList.length > 0
-                  ? (
-                    <div className="flex flex-wrap gap-2">
-                      {redirectIgnoreList.map(domain => (
-                        <Badge
-                          key={domain}
-                          variant="secondary"
-                          className="flex items-center gap-1"
-                        >
-                          {domain}
-                          <button
-                            type="button"
-                            onClick={() => removeRedirect(domain)}
-                            aria-label={`Remove ${domain}`}
-                            className="hover:opacity-70"
-                          >
-                            <X className="size-3" />
-                          </button>
-                        </Badge>
-                      ))}
-                    </div>
-                  )
-                  : <p className="text-sm text-muted-foreground">No domains configured.</p>}
                 <div className="flex max-w-sm gap-2">
                   <Input
                     placeholder="e.g. docs.google.com"
@@ -189,6 +149,11 @@ export function LinkParsingSettings() {
                     Add
                   </Button>
                 </div>
+                <DataTable<string>
+                  columns={domainListColumns(removeRedirect)}
+                  data={redirectIgnoreList}
+                  emptyMessage="No domains configured."
+                />
               </>
             )}
         </CardContent>
