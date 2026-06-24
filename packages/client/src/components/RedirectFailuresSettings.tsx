@@ -8,6 +8,7 @@ import { ExternalLink, Loader2, Pencil } from "lucide-react";
 
 import { useUpdateBookmark } from "../hooks/useBookmarks";
 import { useFetchMetadata } from "../hooks/useFetchMetadata";
+import { useUrlSanitizer } from "../hooks/useUrlSanitizer";
 import { useRedirectFailureWebsites, REDIRECT_FAILURES_KEY } from "../hooks/useWebsites";
 
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,8 @@ interface BookmarkRowProps {
   bookmark: RedirectFailureBookmark;
   siteName: string;
   expanded: boolean;
+  /** Canonicalize a pasted URL on blur (strip trackers, expand verified shortened links). */
+  sanitizeUrl: (url: string) => string;
   onExpand: () => void;
   onCollapse: () => void;
   onFixed: () => void;
@@ -37,6 +40,7 @@ function BookmarkUrlFixRow({
   bookmark,
   siteName,
   expanded,
+  sanitizeUrl,
   onExpand,
   onCollapse,
   onFixed,
@@ -128,6 +132,10 @@ function BookmarkUrlFixRow({
           <Input
             value={urlInput}
             onChange={e => setUrlInput(e.target.value)}
+            onBlur={() => {
+              const cleaned = sanitizeUrl(urlInput);
+              if (cleaned !== urlInput) setUrlInput(cleaned);
+            }}
             placeholder="https://example.com/real-url"
             className="flex-1"
           />
@@ -216,6 +224,7 @@ function BookmarkUrlFixRow({
 interface SiteGroupProps {
   site: RedirectFailureWebsite;
   expandedBookmarkId: string | null;
+  sanitizeUrl: (url: string) => string;
   onExpand: (id: string) => void;
   onCollapse: () => void;
   onFixed: () => void;
@@ -224,6 +233,7 @@ interface SiteGroupProps {
 function SiteGroup({
   site,
   expandedBookmarkId,
+  sanitizeUrl,
   onExpand,
   onCollapse,
   onFixed,
@@ -271,6 +281,7 @@ function SiteGroup({
               bookmark={bm}
               siteName={site.siteName}
               expanded={expandedBookmarkId === bm.id}
+              sanitizeUrl={sanitizeUrl}
               onExpand={() => onExpand(bm.id)}
               onCollapse={onCollapse}
               onFixed={onFixed}
@@ -287,6 +298,7 @@ export function RedirectFailuresSettings() {
   const {
     data: sites = [], isLoading,
   } = useRedirectFailureWebsites();
+  const sanitizeUrl = useUrlSanitizer();
   const [expandedBookmarkId, setExpandedBookmarkId] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
@@ -322,6 +334,7 @@ export function RedirectFailuresSettings() {
           key={site.id}
           site={site}
           expandedBookmarkId={expandedBookmarkId}
+          sanitizeUrl={sanitizeUrl}
           onExpand={id => setExpandedBookmarkId(id)}
           onCollapse={() => setExpandedBookmarkId(null)}
           onFixed={handleFixed}
