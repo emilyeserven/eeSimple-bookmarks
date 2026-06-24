@@ -4,6 +4,60 @@ All notable changes to this project are documented in this file. Versioning and 
 managed automatically by [release-please](https://github.com/googleapis/release-please) from
 [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [0.1.4](https://github.com/emilyeserven/eeSimple-bookmarks/compare/v0.1.3...v0.1.4) (2026-06-24)
+
+
+### Features
+
+* add "See More" category expansion mode to sidebar ([#498](https://github.com/emilyeserven/eeSimple-bookmarks/issues/498)) ([1d7b0a4](https://github.com/emilyeserven/eeSimple-bookmarks/commit/1d7b0a4cb89e77b10a01e7c7bc3a054a33f18e2b))
+* add author avatar management with auto-fetch from URLs ([#505](https://github.com/emilyeserven/eeSimple-bookmarks/issues/505)) ([b5a6c17](https://github.com/emilyeserven/eeSimple-bookmarks/commit/b5a6c170340920fd19d6d27a25d8c23bb33db141))
+* add Authors taxonomy for crediting bookmark creators ([#456](https://github.com/emilyeserven/eeSimple-bookmarks/issues/456)) ([78cf0b0](https://github.com/emilyeserven/eeSimple-bookmarks/commit/78cf0b0aeaac97b0201d0c9acee401055e15006f))
+* add Authors taxonomy support ([#473](https://github.com/emilyeserven/eeSimple-bookmarks/issues/473)) ([43a4915](https://github.com/emilyeserven/eeSimple-bookmarks/commit/43a491503f9efadcff01ca0b469cbd6b1d25a1a9))
+* add autofill backfill UI to apply rules to matching bookmarks ([#464](https://github.com/emilyeserven/eeSimple-bookmarks/issues/464)) ([bd62fa6](https://github.com/emilyeserven/eeSimple-bookmarks/commit/bd62fa64b0f7e73a232c8c6ec1eb9b631dae739a))
+* add background image auto-fetch with progress indicator ([#475](https://github.com/emilyeserven/eeSimple-bookmarks/issues/475)) ([6195809](https://github.com/emilyeserven/eeSimple-bookmarks/commit/6195809645c63ab4d6ea32318ce957b56b7094c5))
+* add bookmark selection to autofill rule debug view ([#459](https://github.com/emilyeserven/eeSimple-bookmarks/issues/459)) ([1cb47a7](https://github.com/emilyeserven/eeSimple-bookmarks/commit/1cb47a793a3073f818d265239363b5c60e911be8))
+* add bookmark taxonomy quick-edit to command palette ([#489](https://github.com/emilyeserven/eeSimple-bookmarks/issues/489)) ([c3f61ad](https://github.com/emilyeserven/eeSimple-bookmarks/commit/c3f61ad95d62618a716010ff9f130b7e340b033e))
+* add browser extension context menu to save links to inbox ([#481](https://github.com/emilyeserven/eeSimple-bookmarks/issues/481)) ([b2d3202](https://github.com/emilyeserven/eeSimple-bookmarks/commit/b2d320219aa43221c8e705d31466a37b8bd67317))
+* add built-in "Page Range" itemInItems property for books ([#502](https://github.com/emilyeserven/eeSimple-bookmarks/issues/502)) ([500d3ea](https://github.com/emilyeserven/eeSimple-bookmarks/commit/500d3eaa18c0604412faa9dcc8fd6b3988ab81e8))
+* add bulk auto-fetch for missing bookmark images ([#472](https://github.com/emilyeserven/eeSimple-bookmarks/issues/472)) ([315de74](https://github.com/emilyeserven/eeSimple-bookmarks/commit/315de74b25fcad7fc777f24cc73da74d5a315eff))
+* add bulk editing to the Bookmarks page and taxonomy listings ([#494](https://github.com/emilyeserven/eeSimple-bookmarks/issues/494)) ([790ecae](https://github.com/emilyeserven/eeSimple-bookmarks/commit/790ecaefda8488467f84543a1c5b255a0ebcb7dd))
+* add card field template save/load UI and backend ([#503](https://github.com/emilyeserven/eeSimple-bookmarks/issues/503)) ([4b94318](https://github.com/emilyeserven/eeSimple-bookmarks/commit/4b943188ff823c3df8f17867ebd416412b22726f))
+* add choices custom property type with Content Status built-in ([#476](https://github.com/emilyeserven/eeSimple-bookmarks/issues/476)) ([74f1945](https://github.com/emilyeserven/eeSimple-bookmarks/commit/74f19454401ba7543b833efa56d82d2a697c2041))
+* add choices property filter to bookmark filter sidebar ([#491](https://github.com/emilyeserven/eeSimple-bookmarks/issues/491)) ([a10845c](https://github.com/emilyeserven/eeSimple-bookmarks/commit/a10845c7a77b08d8d35b7910022bdc51e567d33f))
+* add Chrome/Edge browser extension for quick-add popup ([#453](https://github.com/emilyeserven/eeSimple-bookmarks/issues/453)) ([cb409f6](https://github.com/emilyeserven/eeSimple-bookmarks/commit/cb409f6318b3ad1cc94195762ae5de89632fafcf))
+* add clipboard utility and expand recheck pending results ([#467](https://github.com/emilyeserven/eeSimple-bookmarks/issues/467)) ([3c3a718](https://github.com/emilyeserven/eeSimple-bookmarks/commit/3c3a71892dbbcf035612851024c3ae0ea0e97f6a))
+* add command palette for quick navigation ([#480](https://github.com/emilyeserven/eeSimple-bookmarks/issues/480)) ([8ee800d](https://github.com/emilyeserven/eeSimple-bookmarks/commit/8ee800d3286e36c4d97669fba5fc3b1c2e8d0ff4))
+* add debug tab for autofill rules with JSON export ([#454](https://github.com/emilyeserven/eeSimple-bookmarks/issues/454)) ([ce38069](https://github.com/emilyeserven/eeSimple-bookmarks/commit/ce3806951b7d62bad112816fa9cfa3b5b1d407d8))
+* add delete button to autofill rule edit page ([#484](https://github.com/emilyeserven/eeSimple-bookmarks/issues/484)) ([be9672b](https://github.com/emilyeserven/eeSimple-bookmarks/commit/be9672b6aaf1c76a398dd31402488cb9c3b75912))
+* add filter input to TagPicker component ([#488](https://github.com/emilyeserven/eeSimple-bookmarks/issues/488)) ([c202d6a](https://github.com/emilyeserven/eeSimple-bookmarks/commit/c202d6a3ee5e1a17124ed536800421e15a61e585))
+* add global autofill backfill overview and exemption management ([#471](https://github.com/emilyeserven/eeSimple-bookmarks/issues/471)) ([87b7ce6](https://github.com/emilyeserven/eeSimple-bookmarks/commit/87b7ce6181a6f1498089ae2632c85e728d2d6822))
+* add import rules system for automated inbox item processing ([#458](https://github.com/emilyeserven/eeSimple-bookmarks/issues/458)) ([722cc61](https://github.com/emilyeserven/eeSimple-bookmarks/commit/722cc6177fa7032f81363f5c634b18498ea69f42))
+* add inline create modals to combobox selectors ([#452](https://github.com/emilyeserven/eeSimple-bookmarks/issues/452)) ([0c3b2aa](https://github.com/emilyeserven/eeSimple-bookmarks/commit/0c3b2aa699c8d5ecfc51190a2d229cfc6b413d1c))
+* add inline extension file viewer and copy functionality ([#486](https://github.com/emilyeserven/eeSimple-bookmarks/issues/486)) ([36cef25](https://github.com/emilyeserven/eeSimple-bookmarks/commit/36cef256930f07a00a3c709564d272d16b1c759a))
+* add item switcher to panel breadcrumbs ([#455](https://github.com/emilyeserven/eeSimple-bookmarks/issues/455)) ([4141112](https://github.com/emilyeserven/eeSimple-bookmarks/commit/41411129da2a37a37f98ce9d6ee713c02ebe1fbb))
+* add itemInItems custom property type for progress tracking ([#487](https://github.com/emilyeserven/eeSimple-bookmarks/issues/487)) ([d850934](https://github.com/emilyeserven/eeSimple-bookmarks/commit/d850934b30d4407230de549baeca609b4adbbab0))
+* add keyboard shortcuts for detail/edit navigation in entity links ([#466](https://github.com/emilyeserven/eeSimple-bookmarks/issues/466)) ([e589b3b](https://github.com/emilyeserven/eeSimple-bookmarks/commit/e589b3be149120fce36b78fa9c9dc69976fe63dc))
+* add media type picker to bookmark general form ([#504](https://github.com/emilyeserven/eeSimple-bookmarks/issues/504)) ([a37de09](https://github.com/emilyeserven/eeSimple-bookmarks/commit/a37de0935ffc55cac0c3d07c246dee86e3af14e6))
+* add mobile swipe gestures and bulk actions menu for inbox review ([#449](https://github.com/emilyeserven/eeSimple-bookmarks/issues/449)) ([6765cf7](https://github.com/emilyeserven/eeSimple-bookmarks/commit/6765cf792988e826910f64ad45574201f6fb48e2))
+* add Publishers taxonomy with full CRUD and bookmark integration ([#507](https://github.com/emilyeserven/eeSimple-bookmarks/issues/507)) ([e7334cf](https://github.com/emilyeserven/eeSimple-bookmarks/commit/e7334cf611e7a26ede9b65f2eec45bc2edd15846))
+* add quick bookmark creation from command palette ([#482](https://github.com/emilyeserven/eeSimple-bookmarks/issues/482)) ([b563a5c](https://github.com/emilyeserven/eeSimple-bookmarks/commit/b563a5c233b894b665de9ce711e93f9e894107ba))
+* add redirect resolution ignore list to link-parsing settings ([#492](https://github.com/emilyeserven/eeSimple-bookmarks/issues/492)) ([6d0f3b9](https://github.com/emilyeserven/eeSimple-bookmarks/commit/6d0f3b9fe4ec2f39fd7986ff28d820d502bcc2e3))
+* add search box to filter sidebar sections ([#496](https://github.com/emilyeserven/eeSimple-bookmarks/issues/496)) ([97b02af](https://github.com/emilyeserven/eeSimple-bookmarks/commit/97b02af0fa10ac25978ff668063a4985f4036236))
+* add sections custom property type for structured content ranges ([#506](https://github.com/emilyeserven/eeSimple-bookmarks/issues/506)) ([c3ac09e](https://github.com/emilyeserven/eeSimple-bookmarks/commit/c3ac09e61a9974b47910becdeb16e779e70fee26))
+* apply autofill rules to server-side bookmark creation ([#468](https://github.com/emilyeserven/eeSimple-bookmarks/issues/468)) ([e64abff](https://github.com/emilyeserven/eeSimple-bookmarks/commit/e64abfff209ce9096e40d2d8bac9a8f47f1632bc))
+* auto-detect and assign authors from page metadata ([#474](https://github.com/emilyeserven/eeSimple-bookmarks/issues/474)) ([857d370](https://github.com/emilyeserven/eeSimple-bookmarks/commit/857d370bde6f2ea9f0432009033d9409c5e12ced))
+* auto-populate "Content Status" default on bookmark create ([#483](https://github.com/emilyeserven/eeSimple-bookmarks/issues/483)) ([1b08ca5](https://github.com/emilyeserven/eeSimple-bookmarks/commit/1b08ca527c71eb6b5a8fb681eec85cd996c22888))
+* inbox improvements — layout, per-item recheck, hide processed, delete added/blocked ([#497](https://github.com/emilyeserven/eeSimple-bookmarks/issues/497)) ([8ec8ae7](https://github.com/emilyeserven/eeSimple-bookmarks/commit/8ec8ae734a414bfbe24c34ce44ae806dd7ccfef5))
+* migrate category navigation to dedicated route ([#479](https://github.com/emilyeserven/eeSimple-bookmarks/issues/479)) ([bbdf977](https://github.com/emilyeserven/eeSimple-bookmarks/commit/bbdf977a6216a3b8877d88ad3cfb17896c0f643c))
+* resolve redirect chains before saving bookmarks ([#485](https://github.com/emilyeserven/eeSimple-bookmarks/issues/485)) ([6c1f101](https://github.com/emilyeserven/eeSimple-bookmarks/commit/6c1f101cb34d141c3a4e43afadca5444020d4c57))
+* surface URL redirect resolution errors to users ([#500](https://github.com/emilyeserven/eeSimple-bookmarks/issues/500)) ([32cb491](https://github.com/emilyeserven/eeSimple-bookmarks/commit/32cb49111bafc96f5bd65729a49936b4c6a99b51))
+
+
+### Bug Fixes
+
+* improve newsletter link context extraction for multi-paragraph blocks ([#508](https://github.com/emilyeserven/eeSimple-bookmarks/issues/508)) ([a2f6141](https://github.com/emilyeserven/eeSimple-bookmarks/commit/a2f6141f7f2bc6e766405f443e0affc1a9bcacba))
+* **inbox:** correct stale-cache misclassification, mobile layout, swipe UX ([#477](https://github.com/emilyeserven/eeSimple-bookmarks/issues/477)) ([b39a680](https://github.com/emilyeserven/eeSimple-bookmarks/commit/b39a680dbd1a174c8eea1a534c084aabeb8bac00))
+
 ## [0.1.3](https://github.com/emilyeserven/eeSimple-bookmarks/compare/v0.1.2...v0.1.3) (2026-06-23)
 
 
