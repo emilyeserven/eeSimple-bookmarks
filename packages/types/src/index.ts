@@ -1937,6 +1937,8 @@ export interface FetchMetadataResult {
   datePosted: string | null;
   /** A preview/thumbnail image URL (YouTube only), or `null`. */
   thumbnailUrl: string | null;
+  /** Author name(s) parsed from page metadata (non-YouTube only), or `null` when none were found. */
+  authorNames: string[] | null;
   /**
    * Human-readable reasons a YouTube field could not be resolved (e.g. the watch-page fetch failed
    * or a value was absent/unparseable). Present and non-empty only when something went wrong;

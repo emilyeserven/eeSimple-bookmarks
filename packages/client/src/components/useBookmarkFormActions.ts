@@ -1,3 +1,4 @@
+import { useCreateAuthor } from "../hooks/useAuthors";
 import {
   useAutoBookmarkImage,
   useBookmarkUrlDuplicateCheck,
@@ -31,5 +32,6 @@ export function useBookmarkFormActions() {
     urlDuplicateCheck: useBookmarkUrlDuplicateCheck(),
     updateWebsite: useUpdateWebsite(),
     updateYouTubeChannel: useUpdateYouTubeChannel(),
+    createAuthor: useCreateAuthor(),
   };
 }
