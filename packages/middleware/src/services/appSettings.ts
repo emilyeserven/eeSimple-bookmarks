@@ -63,6 +63,7 @@ const DEFAULT_ADVANCED_SETTINGS: AdvancedSettings = {
 /** Default sidebar-customization settings (nothing hidden), used when seeding / when row absent. */
 const DEFAULT_SIDEBAR_CUSTOMIZATION: SidebarCustomizationSettings = {
   hiddenCategoryIds: [],
+  seeMoreCategoryIds: [],
   hiddenTaxonomyItems: [],
   hiddenCustomizationItems: [],
   hiddenManagementItems: [],
@@ -378,6 +379,7 @@ export async function getSidebarCustomizationSettings(): Promise<SidebarCustomiz
   const [row] = await db
     .select({
       hiddenCategoryIds: appSettings.hiddenCategoryIds,
+      seeMoreCategoryIds: appSettings.seeMoreCategoryIds,
       hiddenTaxonomyItems: appSettings.hiddenTaxonomyItems,
       hiddenCustomizationItems: appSettings.hiddenCustomizationItems,
       hiddenManagementItems: appSettings.hiddenManagementItems,
@@ -388,6 +390,7 @@ export async function getSidebarCustomizationSettings(): Promise<SidebarCustomiz
   if (!row) return DEFAULT_SIDEBAR_CUSTOMIZATION;
   return {
     hiddenCategoryIds: row.hiddenCategoryIds ?? [],
+    seeMoreCategoryIds: row.seeMoreCategoryIds ?? [],
     hiddenTaxonomyItems: row.hiddenTaxonomyItems ?? [],
     hiddenCustomizationItems: row.hiddenCustomizationItems ?? [],
     hiddenManagementItems: row.hiddenManagementItems ?? [],
@@ -401,6 +404,7 @@ export async function updateSidebarCustomizationSettings(
 ): Promise<SidebarCustomizationSettings> {
   const next: SidebarCustomizationSettings = {
     hiddenCategoryIds: [...input.hiddenCategoryIds],
+    seeMoreCategoryIds: [...input.seeMoreCategoryIds],
     hiddenTaxonomyItems: [...input.hiddenTaxonomyItems],
     hiddenCustomizationItems: [...input.hiddenCustomizationItems],
     hiddenManagementItems: [...input.hiddenManagementItems],

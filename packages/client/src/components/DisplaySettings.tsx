@@ -6,6 +6,8 @@ import type {
   SidebarCustomizationSettings,
 } from "@eesimple/types";
 
+import { Link } from "@tanstack/react-router";
+
 import { ImageAspectRatiosCard } from "./ImageAspectRatiosCard";
 import { ListingDisplayControls } from "./ListingDisplayControls";
 import { PinnedItemsCard } from "./PinnedItemsCard";
@@ -20,6 +22,7 @@ import { useCategories } from "../hooks/useCategories";
 import { notifyError, notifySuccess } from "../lib/notifications";
 import { useUiStore } from "../stores/uiStore";
 
+import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -38,6 +41,8 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { CategoryIcon } from "@/lib/icons";
+
+type CategoryDisplayMode = "visible" | "see-more" | "hidden";
 
 const THEME_LABELS: Record<Theme, string> = {
   light: "Light",
@@ -91,8 +96,20 @@ const CUSTOMIZATION_ITEMS = [
     label: "Property Groups",
   },
   {
+    key: "relationship-types",
+    label: "Relationship Types",
+  },
+  {
     key: "autofill",
     label: "Autofill Rules",
+  },
+  {
+    key: "card-display-rules",
+    label: "Card Display Rules",
+  },
+  {
+    key: "import-rules",
+    label: "Import Rules",
   },
 ] as const;
 
@@ -197,6 +214,7 @@ export function DisplaySettings() {
 
   const {
     hiddenCategoryIds,
+    seeMoreCategoryIds,
     hiddenTaxonomyItems,
     hiddenCustomizationItems,
     hiddenManagementItems,
@@ -221,7 +239,21 @@ export function DisplaySettings() {
     });
   }
 
-  const toggleCategoryVisibility = (id: string) => toggleSidebarKey("hiddenCategoryIds", id);
+  function setCategoryMode(id: string, mode: CategoryDisplayMode): void {
+    updateSidebar.mutate({
+      ...sidebar,
+      hiddenCategoryIds: mode === "hidden"
+        ? [...hiddenCategoryIds.filter(x => x !== id), id]
+        : hiddenCategoryIds.filter(x => x !== id),
+      seeMoreCategoryIds: mode === "see-more"
+        ? [...seeMoreCategoryIds.filter(x => x !== id), id]
+        : seeMoreCategoryIds.filter(x => x !== id),
+    }, {
+      onSuccess: () => notifySuccess("Sidebar updated"),
+      onError: error => notifyError(error.message),
+    });
+  }
+
   const toggleTaxonomyItem = (key: string) => toggleSidebarKey("hiddenTaxonomyItems", key);
   const toggleCustomizationItem = (key: string) => toggleSidebarKey("hiddenCustomizationItems", key);
   const toggleManagementItem = (key: string) => toggleSidebarKey("hiddenManagementItems", key);
@@ -450,32 +482,44 @@ export function DisplaySettings() {
               <CardHeader>
                 <CardTitle>Categories</CardTitle>
                 <CardDescription>
-                  Choose which categories appear as shortcuts in the left sidebar.
+                  Choose how each category appears in the left sidebar.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 {categories && categories.length > 0
                   ? (
-                    <div className="space-y-2">
-                      {categories.map(category => (
-                        <div
-                          key={category.id}
-                          className="flex items-center gap-2"
-                        >
-                          <Checkbox
-                            id={`show-category-${category.id}`}
-                            checked={!hiddenCategoryIds.includes(category.id)}
-                            onCheckedChange={() => toggleCategoryVisibility(category.id)}
-                          />
-                          <Label
-                            htmlFor={`show-category-${category.id}`}
-                            className="flex items-center gap-1.5"
+                    <div className="space-y-3">
+                      {categories.map((category) => {
+                        const mode: CategoryDisplayMode = hiddenCategoryIds.includes(category.id)
+                          ? "hidden"
+                          : seeMoreCategoryIds.includes(category.id)
+                            ? "see-more"
+                            : "visible";
+                        return (
+                          <div
+                            key={category.id}
+                            className="flex items-center justify-between gap-2"
                           >
-                            <CategoryIcon name={category.icon} />
-                            {category.name}
-                          </Label>
-                        </div>
-                      ))}
+                            <span className="flex items-center gap-1.5 text-sm">
+                              <CategoryIcon name={category.icon} />
+                              {category.name}
+                            </span>
+                            <Select
+                              value={mode}
+                              onValueChange={value => setCategoryMode(category.id, value as CategoryDisplayMode)}
+                            >
+                              <SelectTrigger className="w-36">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="visible">Default</SelectItem>
+                                <SelectItem value="see-more">See More</SelectItem>
+                                <SelectItem value="hidden">Listing only</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        );
+                      })}
                     </div>
                   )
                   : (
@@ -517,6 +561,26 @@ export function DisplaySettings() {
               idPrefix="management"
             />
           )}
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Advanced Sidebar Links</CardTitle>
+              <CardDescription>
+                Configure opt-in links to Coolify, the API docs, and Storybook shown in the
+                sidebar&rsquo;s Advanced section.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Link
+                to="/settings/advanced"
+                className={buttonVariants({
+                  variant: "outline",
+                })}
+              >
+                Go to Advanced Settings
+              </Link>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

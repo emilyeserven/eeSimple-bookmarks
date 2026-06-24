@@ -159,6 +159,9 @@ export function AppSidebar({
   const {
     pathname,
     visibleCategories,
+    seeMoreCategories,
+    categoriesExpanded,
+    setCategoriesExpanded,
     visibleTaxonomyItems,
     visibleCustomizationItems,
     resolvedPins,
@@ -319,7 +322,7 @@ export function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {!hiddenSidebarGroups.includes("categories") && visibleCategories.length > 0
+        {!hiddenSidebarGroups.includes("categories") && (visibleCategories.length > 0 || seeMoreCategories.length > 0)
           ? (
             <CollapsibleSection
               sectionKey="categories"
@@ -357,6 +360,53 @@ export function AppSidebar({
                     </SidebarMenuItem>
                   );
                 })}
+                {seeMoreCategories.length > 0 && !categoriesExpanded && state !== "collapsed"
+                  ? (
+                    <SidebarMenuItem>
+                      <SidebarMenuButton
+                        tooltip="Show more categories"
+                        onClick={() => setCategoriesExpanded(true)}
+                        className="text-xs text-muted-foreground"
+                      >
+                        <ChevronDown className="size-4" />
+                        <span>See More</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )
+                  : null}
+                {categoriesExpanded
+                  ? seeMoreCategories.map((category) => {
+                    const isActive = pathname.startsWith(`/categories/${category.slug}`);
+                    return (
+                      <SidebarMenuItem key={category.id}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={isActive}
+                          tooltip={category.name}
+                        >
+                          <Link
+                            to="/categories/$categorySlug"
+                            params={{
+                              categorySlug: category.slug,
+                            }}
+                            title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
+                            onClick={event => viewClick(event, "category", category.id)}
+                          >
+                            <CategoryIcon name={category.icon} />
+                            <span>{category.name}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                        {category.bookmarkCount != null && state !== "collapsed"
+                          ? (
+                            <SidebarMenuBadge>
+                              <Badge variant="secondary">{category.bookmarkCount}</Badge>
+                            </SidebarMenuBadge>
+                          )
+                          : null}
+                      </SidebarMenuItem>
+                    );
+                  })
+                  : null}
               </SidebarMenu>
             </CollapsibleSection>
           )

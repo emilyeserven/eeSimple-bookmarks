@@ -143,6 +143,7 @@ const sidebarCustomizationBody = {
   type: "object",
   required: [
     "hiddenCategoryIds",
+    "seeMoreCategoryIds",
     "hiddenTaxonomyItems",
     "hiddenCustomizationItems",
     "hiddenManagementItems",
@@ -151,6 +152,7 @@ const sidebarCustomizationBody = {
   additionalProperties: false,
   properties: {
     hiddenCategoryIds: stringArray,
+    seeMoreCategoryIds: stringArray,
     hiddenTaxonomyItems: stringArray,
     hiddenCustomizationItems: stringArray,
     hiddenManagementItems: stringArray,
