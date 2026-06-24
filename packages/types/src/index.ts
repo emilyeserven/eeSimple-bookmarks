@@ -281,6 +281,8 @@ export interface DatabaseUsageReport {
  */
 export interface SidebarCustomizationSettings {
   hiddenCategoryIds: string[];
+  /** Category IDs shown under a "See More" expansion in the sidebar (not hidden outright). */
+  seeMoreCategoryIds: string[];
   hiddenTaxonomyItems: string[];
   hiddenCustomizationItems: string[];
   hiddenManagementItems: string[];

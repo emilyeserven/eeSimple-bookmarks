@@ -945,6 +945,8 @@ export const appSettings = pgTable("app_settings", {
   // --- Sidebar customization (group A): which left-sidebar items/groups are hidden. ---
   // Category IDs hidden in the left sidebar. Empty = all visible.
   hiddenCategoryIds: jsonb("hidden_category_ids").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+  // Category IDs shown under "See More" in the left sidebar (not hidden outright).
+  seeMoreCategoryIds: jsonb("see_more_category_ids").$type<string[]>(),
   // Taxonomy item keys hidden in the left sidebar.
   hiddenTaxonomyItems: jsonb("hidden_taxonomy_items").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
   // Customization item keys hidden in the left sidebar.

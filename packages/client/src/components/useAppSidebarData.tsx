@@ -139,6 +139,9 @@ interface SidebarNavItem {
 export interface AppSidebarData<T extends SidebarNavItem, C extends SidebarNavItem> {
   pathname: string;
   visibleCategories: NonNullable<ReturnType<typeof useCategories>["data"]>;
+  seeMoreCategories: NonNullable<ReturnType<typeof useCategories>["data"]>;
+  categoriesExpanded: boolean;
+  setCategoriesExpanded: (v: boolean) => void;
   visibleTaxonomyItems: (T & { count: number | undefined })[];
   visibleCustomizationItems: (C & { count: number | undefined })[];
   resolvedPins: ResolvedPin[];
@@ -178,8 +181,10 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
   const data = useSidebarEntityData();
   const [pinnedExpanded, setPinnedExpanded] = React.useState(false);
   const [pinnedShowAll, setPinnedShowAll] = React.useState(false);
+  const [categoriesExpanded, setCategoriesExpanded] = React.useState(false);
   const {
     hiddenCategoryIds,
+    seeMoreCategoryIds,
     hiddenTaxonomyItems,
     hiddenCustomizationItems,
     hiddenSidebarGroups,
@@ -189,7 +194,11 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
   const viewClick = useViewPanelClick();
 
   const visibleCategories = (data.categories ?? []).filter(
-    c => !hiddenCategoryIds.includes(c.id),
+    c => !hiddenCategoryIds.includes(c.id) && !seeMoreCategoryIds.includes(c.id),
+  );
+
+  const seeMoreCategories = (data.categories ?? []).filter(
+    c => !hiddenCategoryIds.includes(c.id) && seeMoreCategoryIds.includes(c.id),
   );
 
   const visibleTaxonomyItems = withVisibleCounts(taxonomyItems, hiddenTaxonomyItems, {
@@ -217,6 +226,9 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
   return {
     pathname,
     visibleCategories,
+    seeMoreCategories,
+    categoriesExpanded,
+    setCategoriesExpanded,
     visibleTaxonomyItems,
     visibleCustomizationItems,
     resolvedPins,
