@@ -1648,6 +1648,8 @@ export const authors = pgTable("authors", {
   name: text("name").notNull(),
   // URL-friendly identifier derived from the name. Nullable for clean `push`; backfilled at boot.
   slug: text("slug"),
+  authorWebsiteUrl: text("author_website_url"),
+  biographyUrl: text("biography_url"),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
@@ -1657,6 +1659,24 @@ export const authors = pgTable("authors", {
 ]);
 
 export type AuthorRow = typeof authors.$inferSelect;
+
+/** `author_images` — avatar stored in object storage; one row per author (1:1). */
+export const authorImages = pgTable("author_images", {
+  authorId: uuid("author_id").primaryKey().references(() => authors.id, {
+    onDelete: "cascade",
+  }),
+  objectKey: text("object_key").notNull(),
+  contentType: text("content_type").notNull(),
+  width: integer("width").notNull(),
+  height: integer("height").notNull(),
+  byteSize: integer("byte_size").notNull(),
+  source: text("source").notNull(), // "upload" | "website" | "biography"
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+});
+
+export type AuthorImageRow = typeof authorImages.$inferSelect;
 
 /** `bookmark_authors` join — many-to-many between bookmarks and authors. */
 export const bookmarkAuthors = pgTable("bookmark_authors", {
