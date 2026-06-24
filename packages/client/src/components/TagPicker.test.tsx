@@ -1,6 +1,6 @@
 import type { TagNode } from "@eesimple/types";
 
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { TagPicker } from "./TagPicker";
@@ -26,7 +26,7 @@ const tree: TagNode[] = [
 ];
 
 describe("TagPicker", () => {
-  it("renders every tag in the tree, including nested ones", () => {
+  it("renders the trigger button with placeholder when nothing is selected", () => {
     render(
       <TagPicker
         tree={tree}
@@ -34,11 +34,11 @@ describe("TagPicker", () => {
         onToggle={vi.fn()}
       />,
     );
-    expect(screen.getByLabelText("dev")).toBeInTheDocument();
-    expect(screen.getByLabelText("tools")).toBeInTheDocument();
+    expect(screen.getByRole("combobox")).toBeInTheDocument();
+    expect(screen.getByRole("combobox")).toHaveTextContent("Select tags…");
   });
 
-  it("marks selected tags as checked", () => {
+  it("trigger summarises the selected tag name", () => {
     render(
       <TagPicker
         tree={tree}
@@ -46,11 +46,10 @@ describe("TagPicker", () => {
         onToggle={vi.fn()}
       />,
     );
-    expect(screen.getByLabelText("tools")).toBeChecked();
-    expect(screen.getByLabelText("dev")).not.toBeChecked();
+    expect(screen.getByRole("combobox")).toHaveTextContent("tools");
   });
 
-  it("calls onToggle with the tag id when a checkbox is clicked", () => {
+  it("calls onToggle with the tag id when an item is selected", () => {
     const onToggle = vi.fn();
     render(
       <TagPicker
@@ -59,7 +58,22 @@ describe("TagPicker", () => {
         onToggle={onToggle}
       />,
     );
-    screen.getByLabelText("dev").click();
+    fireEvent.click(screen.getByRole("combobox"));
+    fireEvent.click(screen.getByRole("option", {
+      name: "dev",
+    }));
     expect(onToggle).toHaveBeenCalledWith("dev");
+  });
+
+  it("shows empty state when tree is empty", () => {
+    render(
+      <TagPicker
+        tree={[]}
+        selectedIds={[]}
+        onToggle={vi.fn()}
+      />,
+    );
+    expect(screen.getByText("No tags yet. Create some on the Tags page.")).toBeInTheDocument();
+    expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
   });
 });

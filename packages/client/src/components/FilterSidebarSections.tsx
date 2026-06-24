@@ -11,6 +11,7 @@ import { CustomPropertyFilters } from "./CustomPropertyFilters";
 import { FacetChips, FacetPresenceToggle } from "./FilterFacetControls";
 import { MultiCombobox } from "./MultiCombobox";
 import { TreeMultiCombobox } from "./TreeMultiCombobox";
+import { tagNodesToOptions } from "../lib/tagTree";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 import { Separator } from "./ui/separator";
 import {
@@ -180,14 +181,6 @@ function SeparatedSections({
       ))}
     </>
   );
-}
-
-function tagNodesToOptions(nodes: TagNode[]): TreeComboboxOption[] {
-  return nodes.map(n => ({
-    value: n.id,
-    label: n.name,
-    children: tagNodesToOptions(n.children),
-  }));
 }
 
 /** Tiered-tag filter: a presence toggle plus a multi-select tree combobox, both driving `search`. */

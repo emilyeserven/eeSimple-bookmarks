@@ -203,10 +203,9 @@ export function BookmarkAdvancedSection({
             {categoryId => (
               <form.Field name="tagIds">
                 {field => (
-                  <div className="flex h-full flex-col gap-1">
+                  <div className="space-y-1">
                     <Label>Tags</Label>
                     <GatedTagPicker
-                      className="flex-1 overflow-auto"
                       categoryId={categoryId}
                       tree={tagTree}
                       selectedIds={field.state.value}

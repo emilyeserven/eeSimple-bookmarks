@@ -23,7 +23,7 @@ export const Default: Story = {
   render: () => {
     const [selected, setSelected] = useState<string[]>(["tag-cli"]);
     return (
-      <div className="w-64 rounded-md border p-2">
+      <div className="w-64">
         <TagPicker
           tree={sampleTagTree}
           selectedIds={selected}

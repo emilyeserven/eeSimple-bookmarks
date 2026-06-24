@@ -26,13 +26,11 @@ export function DefaultTagsField({
     <div className="space-y-2">
       <Label className="block">Default tags</Label>
       <p className="text-sm text-muted-foreground">{description}</p>
-      <div className="rounded-md border p-2">
-        <TagPicker
-          tree={tree}
-          selectedIds={selectedIds}
-          onToggle={onToggle}
-        />
-      </div>
+      <TagPicker
+        tree={tree}
+        selectedIds={selectedIds}
+        onToggle={onToggle}
+      />
     </div>
   );
 }

@@ -14,21 +14,19 @@ export function TagConditionEditor({
 }: TagConditionEditorProps) {
   return (
     <div className="space-y-2">
-      <div className="rounded-md border p-2">
-        <TagPicker
-          tree={tagTree}
-          selectedIds={value.tagIds}
-          onToggle={(id) => {
-            const next = value.tagIds.includes(id)
-              ? value.tagIds.filter(tagId => tagId !== id)
-              : [...value.tagIds, id];
-            onChange({
-              ...value,
-              tagIds: next,
-            });
-          }}
-        />
-      </div>
+      <TagPicker
+        tree={tagTree}
+        selectedIds={value.tagIds}
+        onToggle={(id) => {
+          const next = value.tagIds.includes(id)
+            ? value.tagIds.filter(tagId => tagId !== id)
+            : [...value.tagIds, id];
+          onChange({
+            ...value,
+            tagIds: next,
+          });
+        }}
+      />
       <p className="text-xs text-muted-foreground">
         Selecting a parent tag also matches bookmarks with its child tags.
       </p>
