@@ -44,13 +44,13 @@ describe("SidebarItemsCard", () => {
         onSetMode={vi.fn()}
       />,
     );
-    expect(screen.getAllByRole("button", {
+    expect(screen.getAllByRole("radio", {
       name: "Default",
     })).toHaveLength(1);
-    expect(screen.queryByRole("button", {
+    expect(screen.queryByRole("radio", {
       name: "See More",
     })).not.toBeInTheDocument();
-    expect(screen.getAllByRole("button", {
+    expect(screen.getAllByRole("radio", {
       name: "Listing only",
     })).toHaveLength(1);
   });
@@ -69,13 +69,13 @@ describe("SidebarItemsCard", () => {
         onSetMode={vi.fn()}
       />,
     );
-    expect(screen.getByRole("button", {
+    expect(screen.getByRole("radio", {
       name: "Default",
     })).toBeInTheDocument();
-    expect(screen.getByRole("button", {
+    expect(screen.getByRole("radio", {
       name: "See More",
     })).toBeInTheDocument();
-    expect(screen.getByRole("button", {
+    expect(screen.getByRole("radio", {
       name: "Listing only",
     })).toBeInTheDocument();
   });
@@ -91,11 +91,11 @@ describe("SidebarItemsCard", () => {
         onSetMode={vi.fn()}
       />,
     );
-    const listingOnlyButtons = screen.getAllByRole("button", {
+    const listingOnlyButtons = screen.getAllByRole("radio", {
       name: "Listing only",
     });
     expect(listingOnlyButtons[1]).toHaveAttribute("data-state", "on");
-    const defaultButtons = screen.getAllByRole("button", {
+    const defaultButtons = screen.getAllByRole("radio", {
       name: "Default",
     });
     expect(defaultButtons[0]).toHaveAttribute("data-state", "on");
@@ -116,7 +116,7 @@ describe("SidebarItemsCard", () => {
         onSetMode={onSetMode}
       />,
     );
-    fireEvent.click(screen.getByRole("button", {
+    fireEvent.click(screen.getByRole("radio", {
       name: "Listing only",
     }));
     expect(onSetMode).toHaveBeenCalledWith("websites", "hidden");
