@@ -8,6 +8,8 @@ import { useInboxColumns } from "./tables/inboxColumns";
 import { useCategories } from "../hooks/useCategories";
 import {
   useApproveImportItem,
+  useDeleteAddedItems,
+  useDeleteBlockedItems,
   useDeleteRejectedItems,
   useRecheckPendingItems,
   useRejectPendingItems,
@@ -27,10 +29,13 @@ export function useInboxReviewController(items: InboxItem[], isFetching: boolean
   const rejectPending = useRejectPendingItems();
   const recheckPending = useRecheckPendingItems();
   const deleteRejected = useDeleteRejectedItems();
+  const deleteAdded = useDeleteAddedItems();
+  const deleteBlocked = useDeleteBlockedItems();
   const {
     data: categories = [],
   } = useCategories();
   const [bulkRunning, setBulkRunning] = useState(false);
+  const [processedHidden, setProcessedHidden] = useState(false);
 
   const viewMode = useViewMode("inbox");
   const setViewMode = useUiStore(state => state.setViewMode);
@@ -38,6 +43,8 @@ export function useInboxReviewController(items: InboxItem[], isFetching: boolean
 
   const pendingCount = useMemo(() => items.filter(i => i.status === "pending").length, [items]);
   const rejectedCount = useMemo(() => items.filter(i => i.status === "rejected").length, [items]);
+  const addedCount = useMemo(() => items.filter(i => i.markedForDeletion).length, [items]);
+  const blockedCount = useMemo(() => items.filter(i => i.status === "blocked").length, [items]);
 
   // The Pending/Processed split is *frozen by snapshot*, not derived live from status: an item keeps
   // its section even after it's approved/rejected so it doesn't jump out from under the user. Each
@@ -145,12 +152,36 @@ export function useInboxReviewController(items: InboxItem[], isFetching: boolean
     });
   }
 
+  function onDeleteAdded() {
+    deleteAdded.mutate(undefined, {
+      onSuccess: ({
+        deleted,
+      }) => notifySuccess(`Deleted ${deleted} added item${deleted === 1 ? "" : "s"}`),
+      onError: () => notifyError("Couldn't delete the added items."),
+    });
+  }
+
+  function onDeleteBlocked() {
+    deleteBlocked.mutate(undefined, {
+      onSuccess: ({
+        deleted,
+      }) => notifySuccess(`Deleted ${deleted} blocked item${deleted === 1 ? "" : "s"}`),
+      onError: () => notifyError("Couldn't delete the blocked items."),
+    });
+  }
+
+  function toggleProcessedHidden() {
+    setProcessedHidden(h => !h);
+  }
+
   return {
     viewMode,
     setViewMode,
     columns,
     pendingCount,
     rejectedCount,
+    addedCount,
+    blockedCount,
     pendingItems,
     processedItems,
     resortNow,
@@ -159,9 +190,15 @@ export function useInboxReviewController(items: InboxItem[], isFetching: boolean
     rejectPendingIsPending: rejectPending.isPending,
     recheckPendingIsPending: recheckPending.isPending,
     deleteRejectedIsPending: deleteRejected.isPending,
+    deleteAddedIsPending: deleteAdded.isPending,
+    deleteBlockedIsPending: deleteBlocked.isPending,
+    processedHidden,
+    toggleProcessedHidden,
     onApproveAll,
     onRejectAll,
     onRecheckBlocklist,
     onDeleteRejected,
+    onDeleteAdded,
+    onDeleteBlocked,
   };
 }

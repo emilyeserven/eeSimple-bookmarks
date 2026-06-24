@@ -1173,6 +1173,90 @@ export async function deleteImport(id: string): Promise<boolean> {
 }
 
 /**
+ * Re-run redirect unwrap + canonicalize for a single item's `rawUrl`. Updates `url`, `status`, and
+ * `errorReason` if the result differs. Useful when a link's tracker redirect was unreachable at
+ * ingest time (network hiccup, redeploy) and the user wants to retry. Returns the new resolved URL
+ * and whether the item was actually updated.
+ */
+export async function recheckImportItemUrl(
+  itemId: string,
+): Promise<{ url: string | null;
+  updated: boolean; } | null> {
+  const [item] = await db.select().from(importItems).where(eq(importItems.id, itemId));
+  if (!item) return null;
+  if (!item.rawUrl) return {
+    url: item.url,
+    updated: false,
+  };
+
+  const [websites, ignoreList, redirectIgnoreList] = await Promise.all([
+    listWebsites(),
+    getShortenerIgnoreList(),
+    getRedirectIgnoreList(),
+  ]);
+  const data = {
+    mode: "trackers" as const,
+    websites,
+    ignoreList,
+    redirectIgnoreList,
+  };
+  const resolved = await resolveCandidate(
+    {
+      rawUrl: item.rawUrl,
+      anchorText: item.anchorText ?? "",
+      source: "html-anchor",
+      context: item.newsletterContext,
+    },
+    data,
+  );
+
+  if (resolved.url === item.url && resolved.status === item.status) {
+    return {
+      url: resolved.url,
+      updated: false,
+    };
+  }
+  await db
+    .update(importItems)
+    .set({
+      url: resolved.url,
+      status: resolved.status,
+      errorReason: resolved.errorReason,
+    })
+    .where(eq(importItems.id, itemId));
+  return {
+    url: resolved.url,
+    updated: true,
+  };
+}
+
+/** Delete every approved item (markedForDeletion = true). Keeps blocked items. */
+export async function deleteAddedItems(): Promise<PurgeImportItemsResult> {
+  const rows = await db
+    .delete(importItems)
+    .where(eq(importItems.markedForDeletion, true))
+    .returning({
+      id: importItems.id,
+    });
+  return {
+    deleted: rows.length,
+  };
+}
+
+/** Delete every blocked item. The Imports Blacklist is intentionally left untouched. */
+export async function deleteBlockedItems(): Promise<PurgeImportItemsResult> {
+  const rows = await db
+    .delete(importItems)
+    .where(eq(importItems.status, "blocked"))
+    .returning({
+      id: importItems.id,
+    });
+  return {
+    deleted: rows.length,
+  };
+}
+
+/**
  * Purge processed items: delete every import item flagged for deletion (a bookmark was created from
  * it) or `blocked`. The Imports Blacklist is intentionally left untouched, so blocked links stay
  * skipped on future imports. Returns the number of rows deleted.

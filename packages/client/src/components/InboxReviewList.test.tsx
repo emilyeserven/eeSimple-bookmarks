@@ -6,9 +6,19 @@ import { fireEvent, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { InboxReviewList } from "./InboxReviewList";
+import { useInboxReviewController } from "./useInboxReviewController";
 import { renderWithRouter } from "../test-utils/router";
 
 import { useUiStore } from "@/stores/uiStore";
+
+/** Thin wrapper that calls the controller at the test-component level and passes it down. */
+function ReviewListWrapper({
+  items, isFetching,
+}: { items: InboxItem[];
+  isFetching: boolean; }) {
+  const controller = useInboxReviewController(items, isFetching);
+  return <InboxReviewList controller={controller} />;
+}
 
 afterEach(() => {
   // The Cards/Table toggle persists per page key in the shared store; reset so tests don't leak.
@@ -47,7 +57,7 @@ function makeItem(overrides: Partial<InboxItem> = {}): InboxItem {
 describe("InboxReviewList", () => {
   it("renders the full title without a truncation class so it wraps on mobile", async () => {
     await renderWithRouter(
-      <InboxReviewList
+      <ReviewListWrapper
         items={[makeItem()]}
         isFetching={false}
       />,
@@ -61,7 +71,7 @@ describe("InboxReviewList", () => {
 
   it("renders the full destination URL without a truncation class so it wraps", async () => {
     await renderWithRouter(
-      <InboxReviewList
+      <ReviewListWrapper
         items={[makeItem()]}
         isFetching={false}
       />,
@@ -75,7 +85,7 @@ describe("InboxReviewList", () => {
 
   it("rejects in one click — the Reject control is a direct button, not a dropdown", async () => {
     await renderWithRouter(
-      <InboxReviewList
+      <ReviewListWrapper
         items={[makeItem()]}
         isFetching={false}
       />,
@@ -89,7 +99,7 @@ describe("InboxReviewList", () => {
 
   it("offers block-by-URL/domain/path from the Block dropdown", async () => {
     await renderWithRouter(
-      <InboxReviewList
+      <ReviewListWrapper
         items={[makeItem()]}
         isFetching={false}
       />,
@@ -110,7 +120,7 @@ describe("InboxReviewList", () => {
 
   it("reveals the captured passage in a Context expander", async () => {
     await renderWithRouter(
-      <InboxReviewList
+      <ReviewListWrapper
         items={[makeItem({
           newsletterContext: "Weekly Roundup\n\nThe surrounding paragraph that mentions the link.",
         })]}
@@ -129,7 +139,7 @@ describe("InboxReviewList", () => {
 
   it("offers an Unreject control on a rejected item to restore it to pending", async () => {
     await renderWithRouter(
-      <InboxReviewList
+      <ReviewListWrapper
         items={[makeItem({
           status: "rejected",
         })]}
@@ -146,7 +156,7 @@ describe("InboxReviewList", () => {
 
   it("shows a View bookmark link for an approved item", async () => {
     await renderWithRouter(
-      <InboxReviewList
+      <ReviewListWrapper
         items={[makeItem({
           status: "approved",
           createdBookmarkId: "bookmark-9",
@@ -163,7 +173,7 @@ describe("InboxReviewList", () => {
 
   it("enables the Delete all rejected menu item only when a rejected item is present", async () => {
     await renderWithRouter(
-      <InboxReviewList
+      <ReviewListWrapper
         items={[makeItem({
           status: "rejected",
         })]}
@@ -186,7 +196,7 @@ describe("InboxReviewList", () => {
 
   it("disables the Delete all rejected menu item when nothing is rejected", async () => {
     await renderWithRouter(
-      <InboxReviewList
+      <ReviewListWrapper
         items={[makeItem()]}
         isFetching={false}
       />,
@@ -207,7 +217,7 @@ describe("InboxReviewList", () => {
 
   it("shows the add date on each item listing", async () => {
     await renderWithRouter(
-      <InboxReviewList
+      <ReviewListWrapper
         items={[makeItem()]}
         isFetching={false}
       />,
@@ -226,7 +236,7 @@ describe("InboxReviewList", () => {
       },
     });
     await renderWithRouter(
-      <InboxReviewList
+      <ReviewListWrapper
         items={[makeItem()]}
         isFetching={false}
       />,
@@ -244,7 +254,7 @@ describe("InboxReviewList", () => {
 
   it("splits items into Pending and Processed sections with accurate counts", async () => {
     await renderWithRouter(
-      <InboxReviewList
+      <ReviewListWrapper
         items={[
           makeItem({
             id: "p1",
@@ -281,6 +291,7 @@ describe("InboxReviewList", () => {
         id: "x1",
         title: "Freeze me",
       })]);
+      const controller = useInboxReviewController(items, false);
       return (
         <>
           <button
@@ -294,10 +305,12 @@ describe("InboxReviewList", () => {
           >
             Process it
           </button>
-          <InboxReviewList
-            items={items}
-            isFetching={false}
-          />
+          <button
+            type="button"
+            onClick={controller.resortNow}
+          >Sort now
+          </button>
+          <InboxReviewList controller={controller} />
         </>
       );
     }
@@ -336,7 +349,7 @@ describe("InboxReviewList", () => {
 
   it("flags an approved item as marked for deletion", async () => {
     await renderWithRouter(
-      <InboxReviewList
+      <ReviewListWrapper
         items={[makeItem({
           status: "approved",
           createdBookmarkId: "bookmark-9",

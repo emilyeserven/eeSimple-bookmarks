@@ -121,6 +121,22 @@ export const importApi = {
     request<PurgeImportItemsResult>("/imports/items/rejected", {
       method: "DELETE",
     }),
+  /** Delete every approved (marked-for-deletion) item. Keeps blocked items. */
+  deleteAdded: () =>
+    request<PurgeImportItemsResult>("/imports/items/added", {
+      method: "DELETE",
+    }),
+  /** Delete every blocked item. The Imports Blacklist is left untouched. */
+  deleteBlocked: () =>
+    request<PurgeImportItemsResult>("/imports/items/blocked", {
+      method: "DELETE",
+    }),
+  /** Re-run redirect unwrap for a single item's rawUrl. */
+  recheckItemUrl: (itemId: string) =>
+    request<{ url: string | null;
+      updated: boolean; }>(`/imports/items/${itemId}/recheck-url`, {
+      method: "POST",
+    }),
 };
 
 /** Housekeeping: report and sweep orphaned records (bookmarks with no category, newsletter-less inbox items). */
