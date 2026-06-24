@@ -2,7 +2,7 @@ import { asc, eq, inArray, isNull } from "drizzle-orm";
 import type { BulkDeleteResult, CreateYouTubeChannelInput, UpdateYouTubeChannelInput, YouTubeChannel } from "@eesimple/types";
 import { db } from "@/db";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
-import { bookmarks, categories, type YouTubeChannelRow, youtubeChannelImages, youtubeChannelSelfIds, youtubeChannelTags, youtubeChannels } from "@/db/schema";
+import { bookmarks, categories, websiteYoutubeChannels, type YouTubeChannelRow, youtubeChannelImages, youtubeChannelSelfIds, youtubeChannelTags, youtubeChannels } from "@/db/schema";
 import { buildStringMap } from "@/utils/mapUtils";
 import { slugify, uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
@@ -113,6 +113,34 @@ async function setChannelTags(
   }
 }
 
+/** Load associated website ids for a set of channel ids as a map of id → string[]. */
+async function loadChannelWebsitesMap(channelIds: string[]): Promise<Map<string, string[]>> {
+  if (channelIds.length === 0) return new Map();
+  const rows = await db
+    .select({
+      channelId: websiteYoutubeChannels.channelId,
+      websiteId: websiteYoutubeChannels.websiteId,
+    })
+    .from(websiteYoutubeChannels)
+    .where(inArray(websiteYoutubeChannels.channelId, channelIds));
+  return buildStringMap(rows, r => r.channelId, r => r.websiteId);
+}
+
+/** Replace the full set of associated websites for a channel (delete-then-insert). */
+async function setChannelWebsites(
+  txOrDb: Tx | typeof db,
+  channelId: string,
+  websiteIds: string[],
+): Promise<void> {
+  await txOrDb.delete(websiteYoutubeChannels).where(eq(websiteYoutubeChannels.channelId, channelId));
+  if (websiteIds.length > 0) {
+    await txOrDb.insert(websiteYoutubeChannels).values(websiteIds.map(websiteId => ({
+      websiteId,
+      channelId,
+    })));
+  }
+}
+
 /** Load self-identifiers for a set of channel ids as a map of id → string[]. */
 async function loadSelfIdsMap(channelIds: string[]): Promise<Map<string, string[]>> {
   if (channelIds.length === 0) return new Map();
@@ -139,6 +167,7 @@ function toYouTubeChannel(
   },
   selfIds: string[] = [],
   tagIds: string[] = [],
+  websiteIds: string[] = [],
 ): YouTubeChannel {
   return {
     id: row.id,
@@ -160,6 +189,7 @@ function toYouTubeChannel(
       : null,
     tagIds,
     mediaTypeId: row.mediaTypeId ?? null,
+    websiteIds,
   };
 }
 
@@ -190,8 +220,13 @@ export async function listYouTubeChannels(): Promise<YouTubeChannel[]> {
     .orderBy(asc(youtubeChannels.name));
 
   const ids = rows.map(r => r.id);
-  const [selfIdsMap, tagsMap] = await Promise.all([loadSelfIdsMap(ids), loadChannelTagsMap(ids)]);
-  return rows.map(row => toYouTubeChannel(row, selfIdsMap.get(row.id) ?? [], tagsMap.get(row.id) ?? []));
+  const [selfIdsMap, tagsMap, websitesMap] = await Promise.all([
+    loadSelfIdsMap(ids),
+    loadChannelTagsMap(ids),
+    loadChannelWebsitesMap(ids),
+  ]);
+  return rows.map(row =>
+    toYouTubeChannel(row, selfIdsMap.get(row.id) ?? [], tagsMap.get(row.id) ?? [], websitesMap.get(row.id) ?? []));
 }
 
 /** Shared select shape for single-channel lookups (includes category join). */
@@ -209,10 +244,14 @@ const channelSelect = {
   mediaTypeId: youtubeChannels.mediaTypeId,
 };
 
-/** Load self-ids + tags for a single channel row and map it to the wire type. */
+/** Load self-ids + tags + associated websites for a single channel row and map it to the wire type. */
 async function hydrateChannelRow(row: Parameters<typeof toYouTubeChannel>[0]): Promise<YouTubeChannel> {
-  const [selfIdsMap, tagsMap] = await Promise.all([loadSelfIdsMap([row.id]), loadChannelTagsMap([row.id])]);
-  return toYouTubeChannel(row, selfIdsMap.get(row.id) ?? [], tagsMap.get(row.id) ?? []);
+  const [selfIdsMap, tagsMap, websitesMap] = await Promise.all([
+    loadSelfIdsMap([row.id]),
+    loadChannelTagsMap([row.id]),
+    loadChannelWebsitesMap([row.id]),
+  ]);
+  return toYouTubeChannel(row, selfIdsMap.get(row.id) ?? [], tagsMap.get(row.id) ?? [], websitesMap.get(row.id) ?? []);
 }
 
 /** Fetch a single channel by id, or `null` when absent. */
@@ -353,6 +392,10 @@ export async function updateYouTubeChannel(
 
   if (input.tagIds !== undefined) {
     await setChannelTags(db, id, input.tagIds);
+  }
+
+  if (input.websiteIds !== undefined) {
+    await setChannelWebsites(db, id, input.websiteIds);
   }
 
   return getYouTubeChannel(id);

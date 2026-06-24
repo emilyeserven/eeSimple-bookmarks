@@ -69,6 +69,13 @@ const updateChannelBody = {
       type: ["string", "null"],
       format: "uuid",
     },
+    websiteIds: {
+      type: "array",
+      items: {
+        type: "string",
+        format: "uuid",
+      },
+    },
   },
 } as const;
 

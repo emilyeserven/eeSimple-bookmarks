@@ -98,6 +98,19 @@ test("PATCH /api/youtube-channels/:id rejects a non-uuid tagId", async () => {
   await app.close();
 });
 
+test("PATCH /api/youtube-channels/:id rejects a non-uuid websiteId", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "PATCH",
+    url: "/api/youtube-channels/11111111-1111-1111-1111-111111111111",
+    payload: {
+      websiteIds: ["not-a-uuid"],
+    },
+  });
+  assert.equal(res.statusCode, 400);
+  await app.close();
+});
+
 test("PATCH /api/youtube-channels/:id rejects an empty name", async () => {
   const app = await buildApp();
   const res = await app.inject({

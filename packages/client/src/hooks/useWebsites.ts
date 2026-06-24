@@ -11,6 +11,7 @@ import { notifyError, notifySuccess } from "../lib/notifications";
 
 const WEBSITES_KEY = ["websites"] as const;
 const BOOKMARKS_KEY = ["bookmarks"] as const;
+const CHANNELS_KEY = ["youtube-channels"] as const;
 export const REDIRECT_FAILURES_KEY = ["websites", "redirect-failures"] as const;
 
 export function useWebsites() {
@@ -67,6 +68,11 @@ export function useUpdateWebsite() {
       // Toggling redirectResolutionFailure adds/removes the site from the failures list.
       void queryClient.invalidateQueries({
         queryKey: REDIRECT_FAILURES_KEY,
+      });
+      // Editing the site's associated channels mutates the shared website↔channel join, so the
+      // channels' `websiteIds` go stale until refetched.
+      void queryClient.invalidateQueries({
+        queryKey: CHANNELS_KEY,
       });
     },
   });
