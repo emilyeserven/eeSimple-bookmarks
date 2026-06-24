@@ -130,11 +130,13 @@ export function BookmarkForm({
           dateTimeInputs={c.prefill.dateTimeInputs}
           choicesInputs={c.prefill.choicesInputs}
           progressInputs={c.prefill.progressInputs}
+          sectionsInputs={c.prefill.sectionsInputs}
           onNumberChange={c.prefill.handleNumberChange}
           onBooleanChange={c.prefill.handleBooleanChange}
           onDateTimeChange={c.prefill.handleDateTimeChange}
           onChoicesChange={c.prefill.handleChoicesChange}
           onProgressChange={c.prefill.handleProgressChange}
+          onSectionsChange={c.prefill.handleSectionsChange}
           categories={c.categories ?? []}
           addCategoryOpen={c.addCategoryOpen}
           onAddCategoryOpenChange={c.setAddCategoryOpen}

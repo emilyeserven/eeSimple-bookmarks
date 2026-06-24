@@ -23,6 +23,8 @@ function makeInput(overrides: Partial<ConditionInput> = {}): ConditionInput {
     booleanValues: new Map(),
     dateTimeValues: new Map(),
     fileValues: new Set(),
+    choicesValues: new Map(),
+    sectionsValues: new Map(),
     ...overrides,
   };
 }

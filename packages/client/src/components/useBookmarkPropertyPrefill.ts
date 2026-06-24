@@ -32,6 +32,8 @@ export interface BookmarkPropertyPrefill {
   choicesInputs: Record<string, string[]>;
   progressInputs: Record<string, { current: string;
     total: string; }>;
+  sectionsInputs: Record<string, { exhaustive: boolean;
+    sections: import("@eesimple/types").SectionEntry[]; }>;
   /** Mirror of the current inputs; read by the submit handler (stale-closure-safe). */
   customRef: React.MutableRefObject<CustomPropertyInputs>;
   handleNumberChange: (id: string, value: string) => void;
@@ -39,6 +41,8 @@ export interface BookmarkPropertyPrefill {
   handleDateTimeChange: (id: string, value: string) => void;
   handleChoicesChange: (id: string, values: string[]) => void;
   handleProgressChange: (id: string, field: "current" | "total", value: string) => void;
+  handleSectionsChange: (id: string, value: { exhaustive: boolean;
+    sections: import("@eesimple/types").SectionEntry[]; }) => void;
   /** Run the autofill rules against the current URL/Title and prefill the form. */
   runAutofill: () => void;
   /** Apply a category's default property values (rules and user edits win). */
@@ -76,11 +80,13 @@ export function useBookmarkPropertyPrefill({
     dateTimeInputs,
     choicesInputs,
     progressInputs,
+    sectionsInputs,
     setNumberInputs,
     setBooleanInputs,
     setDateTimeInputs,
     setChoicesInputs,
     setProgressInputs,
+    setSectionsInputs,
     customRef,
   } = useSeededPropertyInputs(bookmark);
 
@@ -267,6 +273,13 @@ export function useBookmarkPropertyPrefill({
       },
     }));
   }
+  function handleSectionsChange(id: string, value: { exhaustive: boolean;
+    sections: import("@eesimple/types").SectionEntry[]; }): void {
+    setSectionsInputs(current => ({
+      ...current,
+      [id]: value,
+    }));
+  }
 
   function markTagsTouched(): void {
     touchedRef.current.add("tags");
@@ -302,12 +315,14 @@ export function useBookmarkPropertyPrefill({
     dateTimeInputs,
     choicesInputs,
     progressInputs,
+    sectionsInputs,
     customRef,
     handleNumberChange,
     handleBooleanChange,
     handleDateTimeChange,
     handleChoicesChange,
     handleProgressChange,
+    handleSectionsChange,
     runAutofill,
     applyCategoryDefaults,
     markTagsTouched,

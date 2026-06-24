@@ -30,6 +30,7 @@ function makeBookmark(overrides: Partial<Bookmark> = {}): Bookmark {
     fileValues: [],
     choicesValues: [],
     progressValues: [],
+    sectionsValues: [],
     authors: [],
     relationships: [],
     priority: 0,

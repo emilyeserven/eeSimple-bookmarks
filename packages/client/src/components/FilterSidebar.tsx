@@ -59,8 +59,9 @@ export function FilterSidebar({
 
   const hasTags = tree.length > 0;
   const hasProperties = enabledProperties.length > 0;
+  const hasSectionsFilter = enabledProperties.some(p => p.type === "sections");
   const hasFilters
-    = hasTags || hasProperties || hasCategoryFilter || hasMediaTypeFilter || hasChannelFilter || hasWebsiteFilter || hasRelationshipTypeFilter || hasAuthorFilter;
+    = hasTags || hasProperties || hasSectionsFilter || hasCategoryFilter || hasMediaTypeFilter || hasChannelFilter || hasWebsiteFilter || hasRelationshipTypeFilter || hasAuthorFilter;
 
   return (
     <aside>
@@ -157,6 +158,7 @@ export function FilterSidebar({
                     hasWebsiteFilter={hasWebsiteFilter}
                     hasRelationshipTypeFilter={hasRelationshipTypeFilter}
                     hasAuthorFilter={hasAuthorFilter}
+                    hasSectionsFilter={hasSectionsFilter}
                     sectionFilter={sectionFilter}
                   />
                 </>

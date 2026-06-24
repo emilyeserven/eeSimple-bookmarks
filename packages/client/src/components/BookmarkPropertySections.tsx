@@ -1,10 +1,11 @@
-import type { Bookmark, CustomProperty, PropertyGroup } from "@eesimple/types";
+import type { Bookmark, CustomProperty, PropertyGroup, SectionEntry } from "@eesimple/types";
 import type { ReactNode } from "react";
 
 import { PropertyQuickFilterLink } from "./PropertyQuickFilterLink";
 import { StarRating } from "./StarRating";
 import { useDefaultFieldZones } from "../lib/bookmarkCardFields";
 import { buildBookmarkPropertyRows } from "../lib/bookmarkPropertyRows";
+import { formatSectionEntry } from "../lib/propertyFormat";
 
 import { LabeledSection } from "@/components/LabeledSection";
 import { Separator } from "@/components/ui/separator";
@@ -33,12 +34,12 @@ export function BookmarkPropertySections({
   const defaultZones = useDefaultFieldZones();
 
   const {
-    numberRows, ratingRows, booleanRows, dateTimeRows, fileRows, choicesRows, progressRows,
+    numberRows, ratingRows, booleanRows, dateTimeRows, fileRows, choicesRows, progressRows, sectionsRows,
   } = buildBookmarkPropertyRows(bookmark, properties, defaultZones);
 
   const hasProperties = numberRows.length > 0 || booleanRows.length > 0
     || dateTimeRows.length > 0 || ratingRows.length > 0 || fileRows.length > 0
-    || choicesRows.length > 0 || progressRows.length > 0;
+    || choicesRows.length > 0 || progressRows.length > 0 || sectionsRows.length > 0;
   if (!hasProperties) return null;
 
   // Partition the property rows by group. A row belongs to the ungrouped bucket when its `groupId`
@@ -68,7 +69,8 @@ export function BookmarkPropertySections({
     || ratingRows.some(row => inGroup(row.groupId, section.target))
     || fileRows.some(row => inGroup(row.groupId, section.target))
     || choicesRows.some(row => inGroup(row.groupId, section.target))
-    || progressRows.some(row => inGroup(row.groupId, section.target)));
+    || progressRows.some(row => inGroup(row.groupId, section.target))
+    || sectionsRows.some(row => inGroup(row.groupId, section.target)));
 
   return (
     <>
@@ -279,6 +281,35 @@ export function BookmarkPropertySections({
                     :
                   </dt>
                   <dd>{row.formatted}</dd>
+                  <PropertyQuickFilterLink
+                    search={row.search}
+                    name={row.name}
+                  />
+                </div>
+              ))}
+              {sectionsRows.filter(row => inGroup(row.groupId, section.target)).map(row => (
+                <div
+                  key={row.id}
+                  className="group flex flex-col gap-1"
+                >
+                  <dt className="text-muted-foreground">
+                    {row.name}
+                    {row.exhaustive
+                      ? <span className="ml-1 text-xs">(exhaustive)</span>
+                      : null}
+                    :
+                  </dt>
+                  <dd>
+                    {row.sections.length === 0
+                      ? <span className="text-xs text-muted-foreground">No sections</span>
+                      : (
+                        <ul className="space-y-0.5 text-sm">
+                          {row.sections.map((entry: SectionEntry) => (
+                            <li key={entry.id}>{formatSectionEntry(entry)}</li>
+                          ))}
+                        </ul>
+                      )}
+                  </dd>
                   <PropertyQuickFilterLink
                     search={row.search}
                     name={row.name}

@@ -302,6 +302,7 @@ describe("bookmarkMatchesSearch", () => {
     fileValues: [],
     progressValues: [],
     choicesValues: [],
+    sectionsValues: [],
     authors: [],
     relationships: [],
   };

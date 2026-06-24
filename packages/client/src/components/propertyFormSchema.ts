@@ -1,6 +1,6 @@
 import type { CreateCustomPropertyInput, CustomProperty } from "@eesimple/types";
 
-import { CHOICES_DISPLAY_TYPES, CUSTOM_PROPERTY_TYPES, DATE_TIME_FORMATS, NUMBER_FORMATS } from "@eesimple/types";
+import { CHOICES_DISPLAY_TYPES, CUSTOM_PROPERTY_TYPES, DATE_TIME_FORMATS, NUMBER_FORMATS, SECTION_ENTRY_TYPES } from "@eesimple/types";
 import { z } from "zod";
 
 import { useAppForm } from "../lib/form";
@@ -90,6 +90,8 @@ export const propertySchema = z
     itemInItemsBeforeText: z.string(),
     itemInItemsBetweenText: z.string(),
     itemInItemsAfterText: z.string(),
+    sectionsDefaultType: z.enum(SECTION_ENTRY_TYPES).nullable(),
+    sectionsAllowedTypes: z.array(z.enum(SECTION_ENTRY_TYPES)),
   })
   .superRefine((value, ctx) => {
     if (value.type === "calculate" && value.operandIds.length < 2) {
@@ -152,6 +154,8 @@ export const CREATE_DEFAULTS: PropertyFormValues = {
   itemInItemsBeforeText: "",
   itemInItemsBetweenText: " of ",
   itemInItemsAfterText: "",
+  sectionsDefaultType: null,
+  sectionsAllowedTypes: [],
 };
 
 /**
@@ -307,6 +311,8 @@ export function valuesFromProperty(property: CustomProperty): PropertyFormValues
     itemInItemsBeforeText: property.itemInItemsBeforeText ?? "",
     itemInItemsBetweenText: property.itemInItemsBetweenText ?? " of ",
     itemInItemsAfterText: property.itemInItemsAfterText ?? "",
+    sectionsDefaultType: property.sectionsDefaultType ?? null,
+    sectionsAllowedTypes: property.sectionsAllowedTypes ?? [],
   };
 }
 
@@ -385,6 +391,20 @@ function itemInItemsPayloadFields(values: PropertyFormValues): Pick<
   };
 }
 
+/** Sections-only config fields, nulled out for every other property type. */
+function sectionsPayloadFields(values: PropertyFormValues): Pick<
+  CreateCustomPropertyInput,
+  "sectionsDefaultType" | "sectionsAllowedTypes"
+> {
+  const isSections = values.type === "sections";
+  return {
+    sectionsDefaultType: isSections ? (values.sectionsDefaultType ?? null) : null,
+    sectionsAllowedTypes: isSections && values.sectionsAllowedTypes.length > 0
+      ? values.sectionsAllowedTypes
+      : null,
+  };
+}
+
 /** Build the create/update payload from form values (`type` is ignored by the update route). */
 export function payloadFromValues(values: PropertyFormValues): CreateCustomPropertyInput {
   return {
@@ -413,5 +433,6 @@ export function payloadFromValues(values: PropertyFormValues): CreateCustomPrope
     ...ratingPayloadFields(values),
     ...choicesPayloadFields(values),
     ...itemInItemsPayloadFields(values),
+    ...sectionsPayloadFields(values),
   };
 }

@@ -19,6 +19,7 @@ function makeInput(overrides: Partial<ConditionInput> = {}): ConditionInput {
     fileValues: overrides.fileValues ?? new Set<string>(),
     relationshipTypeIds: overrides.relationshipTypeIds ?? new Set<string>(),
     choicesValues: overrides.choicesValues ?? new Map<string, string[]>(),
+    sectionsValues: overrides.sectionsValues ?? new Map(),
   };
 }
 

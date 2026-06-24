@@ -1,4 +1,4 @@
-import type { Bookmark, BookmarkAuthor } from "@eesimple/types";
+import type { Bookmark, BookmarkAuthor, SectionEntryType } from "@eesimple/types";
 
 import { bookmarkMatchesFilters } from "./customPropertyFilter";
 
@@ -37,6 +37,10 @@ export interface BookmarkSearch {
   presence?: Record<string, "has" | "missing">;
   /** Filter bookmarks by selected choices values keyed by property id; a bookmark passes if any selected value matches (OR semantics). */
   choices?: Record<string, string[]>;
+  /** Filter bookmarks by whether they have any sections entries ("has") or none ("missing"). */
+  sectionsPresence?: "has" | "missing";
+  /** Filter bookmarks to those with at least one section entry of one of these types (OR semantics). */
+  sectionTypes?: SectionEntryType[];
 }
 
 function parseNumRecord(raw: unknown): Record<string, [number, number]> {
@@ -114,6 +118,15 @@ function nonEmptyRecord<T extends Record<string, unknown>>(record: T): T | undef
   return Object.keys(record).length > 0 ? record : undefined;
 }
 
+const VALID_SECTION_TYPES = new Set(["url", "page", "timestamp"]);
+
+/** Narrow an unknown value to a `SectionEntryType[]`, dropping invalid entries. */
+function validSectionTypes(value: unknown): SectionEntryType[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const valid = value.filter((v): v is SectionEntryType => typeof v === "string" && VALID_SECTION_TYPES.has(v));
+  return valid.length > 0 ? valid : undefined;
+}
+
 /** Narrow an unknown search record into a `BookmarkSearch`, dropping anything malformed or absent. */
 export function validateBookmarkSearch(search: Record<string, unknown>): BookmarkSearch {
   const candidates: BookmarkSearch = {
@@ -132,6 +145,8 @@ export function validateBookmarkSearch(search: Record<string, unknown>): Bookmar
     date: nonEmptyRecord(parseDateRecord(search.date)),
     presence: nonEmptyRecord(parsePresenceRecord(search.presence)),
     choices: nonEmptyRecord(parseChoicesRecord(search.choices)),
+    sectionsPresence: validPresence(search.sectionsPresence),
+    sectionTypes: validSectionTypes(search.sectionTypes),
   };
 
   // Drop the keys that came back undefined so the result has no empty/absent filter entries.
@@ -156,6 +171,7 @@ type SearchableBookmark = Pick<
   | "fileValues"
   | "progressValues"
   | "choicesValues"
+  | "sectionsValues"
   | "relationships"
 >;
 
@@ -187,6 +203,19 @@ function passesPresence(mode: "has" | "missing" | undefined, present: boolean): 
   return true;
 }
 
+/** Whether a bookmark passes the sections-presence filter. */
+function passesSectionsPresence(bookmark: SearchableBookmark, mode: "has" | "missing" | undefined): boolean {
+  if (!mode) return true;
+  const hasSections = bookmark.sectionsValues.some(v => v.sections.length > 0);
+  return mode === "has" ? hasSections : !hasSections;
+}
+
+/** Whether a bookmark passes the section-type filter (at least one entry of the required types). */
+function passesSectionTypes(bookmark: SearchableBookmark, types: SectionEntryType[] | undefined): boolean {
+  if (!types || types.length === 0) return true;
+  return bookmark.sectionsValues.some(sv => sv.sections.some(e => types.includes(e.type)));
+}
+
 /** Every per-property presence filter must be satisfied. */
 function passesPropertyPresence(bookmark: SearchableBookmark, search: BookmarkSearch): boolean {
   for (const [propertyId, mode] of Object.entries(search.presence ?? {})) {
@@ -196,7 +225,8 @@ function passesPropertyPresence(bookmark: SearchableBookmark, search: BookmarkSe
         || bookmark.dateTimeValues.some(v => v.propertyId === propertyId)
         || bookmark.fileValues.some(v => v.propertyId === propertyId)
         || bookmark.progressValues.some(v => v.propertyId === propertyId)
-        || bookmark.choicesValues.some(v => v.propertyId === propertyId && v.values.length > 0);
+        || bookmark.choicesValues.some(v => v.propertyId === propertyId && v.values.length > 0)
+        || bookmark.sectionsValues.some(v => v.propertyId === propertyId && v.sections.length > 0);
     if (!passesPresence(mode, hasValue)) return false;
   }
   return true;
@@ -250,6 +280,8 @@ export function bookmarkMatchesSearch(
     && passesPropertyPresence(bookmark, search)
     && passesValueFilters(bookmark, search)
     && passesChoicesFilters(bookmark, search)
+    && passesSectionsPresence(bookmark, search.sectionsPresence)
+    && passesSectionTypes(bookmark, search.sectionTypes)
   );
 }
 
@@ -281,6 +313,8 @@ export function hasAnyActiveFilter(search: BookmarkSearch): boolean {
     || hasEntries(search.date)
     || hasEntries(search.presence)
     || hasEntries(search.choices)
+    || search.sectionsPresence !== undefined
+    || hasItems(search.sectionTypes)
   );
 }
 
@@ -474,6 +508,29 @@ export function withChoicesFilter(
   };
 }
 
+/** Return a copy of `search` with the sections-presence filter set or cleared. */
+export function withSectionsPresence(
+  search: BookmarkSearch,
+  mode: "has" | "missing" | undefined,
+): BookmarkSearch {
+  const next = {
+    ...search,
+  };
+  if (mode === undefined) delete next.sectionsPresence;
+  else next.sectionsPresence = mode;
+  return next;
+}
+
+/** Return a copy of `search` with the section-type filter set, or cleared when `types` is empty. */
+export function withSectionTypes(search: BookmarkSearch, types: SectionEntryType[]): BookmarkSearch {
+  const next = {
+    ...search,
+  };
+  if (types.length === 0) delete next.sectionTypes;
+  else next.sectionTypes = types;
+  return next;
+}
+
 /** Return a copy of `search` with a property-presence filter set or cleared. */
 export function withPresenceFilter(
   search: BookmarkSearch,
@@ -540,6 +597,8 @@ export function summarizeBookmarkSearch(raw: Record<string, unknown>): string {
     countPart(search.tags?.length ?? 0, "tag", "tags"),
     search.tagPresence !== undefined ? `tags: ${search.tagPresence}` : null,
     countPart(propCount, "property", "properties"),
+    search.sectionsPresence !== undefined ? `sections: ${search.sectionsPresence}` : null,
+    search.sectionTypes && search.sectionTypes.length > 0 ? `section types: ${search.sectionTypes.join(", ")}` : null,
   ].filter((part): part is string => part !== null);
   return parts.join(" · ") || "No filters";
 }

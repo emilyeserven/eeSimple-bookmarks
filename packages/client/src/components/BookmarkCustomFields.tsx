@@ -4,11 +4,13 @@ import type {
   BookmarkDateTimeValue,
   BookmarkNumberValue,
   CustomProperty,
+  SectionEntry,
+  SectionEntryType,
 } from "@eesimple/types";
 
 import { useEffect } from "react";
 
-import { propertyAppliesToCategory, propertyAppliesToMediaType } from "@eesimple/types";
+import { SECTION_ENTRY_TYPES, SECTION_ENTRY_TYPE_LABELS, propertyAppliesToCategory, propertyAppliesToMediaType } from "@eesimple/types";
 
 import { DATE_POSTED_SLUG, RUNTIME_SLUG } from "./bookmarkFormSchema";
 import { BookmarkPropertyFileField } from "./BookmarkPropertyFileField";
@@ -53,19 +55,23 @@ interface CategoryCustomFieldsProps {
   choicesInputs: Record<string, string[]>;
   progressInputs: Record<string, { current: string;
     total: string; }>;
+  sectionsInputs: Record<string, { exhaustive: boolean;
+    sections: SectionEntry[]; }>;
   onNumberChange: (propertyId: string, value: string) => void;
   onBooleanChange: (propertyId: string, value: boolean) => void;
   onDateTimeChange: (propertyId: string, value: string) => void;
   onChoicesChange: (propertyId: string, values: string[]) => void;
   onProgressChange: (propertyId: string, field: "current" | "total", value: string) => void;
+  onSectionsChange: (propertyId: string, value: { exhaustive: boolean;
+    sections: SectionEntry[]; }) => void;
 }
 
 /** Renders the custom-property inputs for the properties assigned to the chosen category. */
 export function CategoryCustomFields({
   categoryId, mediaTypeId = null, properties, bookmark = null, placement, className,
   hiddenSlugs = [RUNTIME_SLUG, DATE_POSTED_SLUG],
-  numberInputs, booleanInputs, dateTimeInputs, choicesInputs, progressInputs,
-  onNumberChange, onBooleanChange, onDateTimeChange, onChoicesChange, onProgressChange,
+  numberInputs, booleanInputs, dateTimeInputs, choicesInputs, progressInputs, sectionsInputs,
+  onNumberChange, onBooleanChange, onDateTimeChange, onChoicesChange, onProgressChange, onSectionsChange,
 }: CategoryCustomFieldsProps) {
   const categoryProps = properties.filter((property) => {
     // Union scoping: a property shows if it applies to the bookmark's category OR its media type.
@@ -106,11 +112,13 @@ export function CategoryCustomFields({
             dateTimeInputs={dateTimeInputs}
             choicesInputs={choicesInputs}
             progressInputs={progressInputs}
+            sectionsInputs={sectionsInputs}
             onNumberChange={onNumberChange}
             onBooleanChange={onBooleanChange}
             onDateTimeChange={onDateTimeChange}
             onChoicesChange={onChoicesChange}
             onProgressChange={onProgressChange}
+            onSectionsChange={onSectionsChange}
           />
         ))}
       </div>
@@ -137,17 +145,22 @@ interface CategoryPropertyFieldProps {
   choicesInputs: Record<string, string[]>;
   progressInputs: Record<string, { current: string;
     total: string; }>;
+  sectionsInputs: Record<string, { exhaustive: boolean;
+    sections: SectionEntry[]; }>;
   onNumberChange: (propertyId: string, value: string) => void;
   onBooleanChange: (propertyId: string, value: boolean) => void;
   onDateTimeChange: (propertyId: string, value: string) => void;
   onChoicesChange: (propertyId: string, values: string[]) => void;
   onProgressChange: (propertyId: string, field: "current" | "total", value: string) => void;
+  onSectionsChange: (propertyId: string, value: { exhaustive: boolean;
+    sections: SectionEntry[]; }) => void;
 }
 
 /** Renders the single input appropriate to one custom property's type. */
 function CategoryPropertyField({
   property, bookmark, numberInputs, booleanInputs, dateTimeInputs, choicesInputs, progressInputs,
-  onNumberChange, onBooleanChange, onDateTimeChange, onChoicesChange, onProgressChange,
+  sectionsInputs, onNumberChange, onBooleanChange, onDateTimeChange, onChoicesChange, onProgressChange,
+  onSectionsChange,
 }: CategoryPropertyFieldProps) {
   const fieldId = `property-${property.id}`;
 
@@ -209,6 +222,17 @@ function CategoryPropertyField({
           property={property}
           progress={progressInputs[property.id]}
           onChange={(field, value) => onProgressChange(property.id, field, value)}
+        />
+      );
+    case "sections":
+      return (
+        <SectionsPropertyField
+          property={property}
+          value={sectionsInputs[property.id] ?? {
+            exhaustive: false,
+            sections: [],
+          }}
+          onChange={value => onSectionsChange(property.id, value)}
         />
       );
     default:
@@ -512,6 +536,176 @@ function ChoicesPropertyField({
           ))}
         </SelectContent>
       </Select>
+      <FieldDescription text={property.description} />
+    </div>
+  );
+}
+
+function SectionsPropertyField({
+  property, value, onChange,
+}: {
+  property: CustomProperty;
+  value: { exhaustive: boolean;
+    sections: SectionEntry[]; };
+  onChange: (value: { exhaustive: boolean;
+    sections: SectionEntry[]; }) => void;
+}) {
+  const allowedTypes = property.sectionsAllowedTypes ?? [...SECTION_ENTRY_TYPES];
+  const defaultType: SectionEntryType = (property.sectionsDefaultType ?? allowedTypes[0] ?? "url") as SectionEntryType;
+
+  function addSection(): void {
+    onChange({
+      ...value,
+      sections: [
+        ...value.sections,
+        {
+          id: crypto.randomUUID(),
+          name: "",
+          type: defaultType,
+          startValue: "",
+          endValue: undefined,
+        },
+      ],
+    });
+  }
+
+  function updateEntry(id: string, patch: Partial<SectionEntry>): void {
+    onChange({
+      ...value,
+      sections: value.sections.map(entry => entry.id === id
+        ? {
+          ...entry,
+          ...patch,
+        }
+        : entry),
+    });
+  }
+
+  function removeEntry(id: string): void {
+    onChange({
+      ...value,
+      sections: value.sections.filter(entry => entry.id !== id),
+    });
+  }
+
+  const fieldId = `property-${property.id}`;
+  const startPlaceholder = (type: SectionEntryType) =>
+    type === "page" ? "Start page" : type === "timestamp" ? "Start time" : "URL";
+  const endPlaceholder = (type: SectionEntryType) =>
+    type === "page" ? "End page" : type === "timestamp" ? "End time" : "End URL (optional)";
+
+  return (
+    <div className="col-span-full space-y-2">
+      <Label>{property.name}</Label>
+      {value.sections.length > 0 && (
+        <div className="space-y-2">
+          {value.sections.map(entry => (
+            <div
+              key={entry.id}
+              className="grid items-start gap-2"
+              style={{
+                gridTemplateColumns: "1fr auto",
+              }}
+            >
+              <div className="grid grid-cols-2 gap-2">
+                <Input
+                  placeholder="Name"
+                  value={entry.name}
+                  onChange={e => updateEntry(entry.id, {
+                    name: e.target.value,
+                  })}
+                />
+                {allowedTypes.length > 1
+                  ? (
+                    <Select
+                      value={entry.type}
+                      onValueChange={type => updateEntry(entry.id, {
+                        type: type as SectionEntryType,
+                      })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {allowedTypes.map(type => (
+                          <SelectItem
+                            key={type}
+                            value={type}
+                          >{SECTION_ENTRY_TYPE_LABELS[type]}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )
+                  : (
+                    <span
+                      className="
+                        flex items-center text-sm text-muted-foreground
+                      "
+                    >
+                      {SECTION_ENTRY_TYPE_LABELS[entry.type]}
+                    </span>
+                  )}
+                <Input
+                  placeholder={startPlaceholder(entry.type)}
+                  value={entry.startValue}
+                  type={entry.type === "page" ? "number" : "text"}
+                  onChange={e => updateEntry(entry.id, {
+                    startValue: e.target.value,
+                  })}
+                />
+                <Input
+                  placeholder={endPlaceholder(entry.type)}
+                  value={entry.endValue ?? ""}
+                  type={entry.type === "page" ? "number" : "text"}
+                  onChange={e => updateEntry(entry.id, {
+                    endValue: e.target.value || undefined,
+                  })}
+                />
+              </div>
+              <button
+                type="button"
+                className="
+                  mt-1 text-lg leading-none text-muted-foreground
+                  hover:text-destructive
+                "
+                aria-label="Remove section"
+                onClick={() => removeEntry(entry.id)}
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="flex items-center gap-4">
+        <button
+          type="button"
+          className="
+            text-sm text-primary
+            hover:underline
+          "
+          onClick={addSection}
+        >
+          + Add section
+        </button>
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id={`${fieldId}-exhaustive`}
+            checked={value.exhaustive}
+            onCheckedChange={checked => onChange({
+              ...value,
+              exhaustive: checked === true,
+            })}
+          />
+          <Label
+            htmlFor={`${fieldId}-exhaustive`}
+            className="text-sm font-normal"
+          >
+            Exhaustive
+          </Label>
+        </div>
+      </div>
       <FieldDescription text={property.description} />
     </div>
   );
