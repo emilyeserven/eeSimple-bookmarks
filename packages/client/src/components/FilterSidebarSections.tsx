@@ -35,6 +35,7 @@ import {
 export function FilterSections({
   tree, enabledProperties, propertyGroups, categories, mediaTypes, youtubeChannels, websites, relationshipTypes, authors, bookmarks, search, onSearchChange,
   hasTags, hasProperties, hasCategoryFilter, hasMediaTypeFilter, hasChannelFilter, hasWebsiteFilter, hasRelationshipTypeFilter, hasAuthorFilter,
+  sectionFilter,
 }: {
   tree: TagNode[];
   enabledProperties: CustomProperty[];
@@ -56,13 +57,24 @@ export function FilterSections({
   hasWebsiteFilter: boolean;
   hasRelationshipTypeFilter: boolean;
   hasAuthorFilter: boolean;
+  sectionFilter?: string;
 }) {
+  const filter = (sectionFilter ?? "").toLowerCase().trim();
+  const sectionMatch = (label: string) => !filter || label.toLowerCase().includes(filter);
+
+  const propertiesLabelMatch = sectionMatch("Properties");
+  const matchingProps = filter && !propertiesLabelMatch
+    ? enabledProperties.filter(p => p.name.toLowerCase().includes(filter))
+    : enabledProperties;
+  const showProperties = hasProperties && (propertiesLabelMatch || matchingProps.length > 0);
+  const propertyNameFilter = filter && !propertiesLabelMatch ? filter : undefined;
+
   return (
     <SeparatedSections
       sections={[
         {
           key: "tags",
-          show: hasTags,
+          show: hasTags && sectionMatch("Tags"),
           node: (
             <TagsFilterSection
               tree={tree}
@@ -73,7 +85,7 @@ export function FilterSections({
         },
         {
           key: "categories",
-          show: hasCategoryFilter,
+          show: hasCategoryFilter && sectionMatch("Category"),
           node: (
             <CategoryFilterSection
               categories={categories}
@@ -84,7 +96,7 @@ export function FilterSections({
         },
         {
           key: "media-types",
-          show: hasMediaTypeFilter,
+          show: hasMediaTypeFilter && sectionMatch("Media type"),
           node: (
             <MediaTypeFilterSection
               mediaTypes={mediaTypes}
@@ -95,7 +107,7 @@ export function FilterSections({
         },
         {
           key: "channels",
-          show: hasChannelFilter,
+          show: hasChannelFilter && sectionMatch("YouTube channel"),
           node: (
             <YouTubeChannelFilterSection
               youtubeChannels={youtubeChannels}
@@ -106,7 +118,7 @@ export function FilterSections({
         },
         {
           key: "websites",
-          show: hasWebsiteFilter,
+          show: hasWebsiteFilter && sectionMatch("Website"),
           node: (
             <WebsiteFilterSection
               websites={websites}
@@ -117,7 +129,7 @@ export function FilterSections({
         },
         {
           key: "relationship-types",
-          show: hasRelationshipTypeFilter,
+          show: hasRelationshipTypeFilter && sectionMatch("Relationship type"),
           node: (
             <RelationshipTypeFilterSection
               relationshipTypes={relationshipTypes}
@@ -128,7 +140,7 @@ export function FilterSections({
         },
         {
           key: "authors",
-          show: hasAuthorFilter,
+          show: hasAuthorFilter && sectionMatch("Author"),
           node: (
             <AuthorFilterSection
               authors={authors}
@@ -139,7 +151,7 @@ export function FilterSections({
         },
         {
           key: "properties",
-          show: hasProperties,
+          show: showProperties,
           node: (
             <PropertiesFilterSection
               enabledProperties={enabledProperties}
@@ -149,6 +161,7 @@ export function FilterSections({
               search={search}
               onSearchChange={onSearchChange}
               hasCategoryFilter={hasCategoryFilter}
+              nameFilter={propertyNameFilter}
             />
           ),
         },
@@ -704,7 +717,7 @@ function AuthorFilterSection({
 
 /** Custom-property filters plus a warning for properties with no category assignment. */
 function PropertiesFilterSection({
-  enabledProperties, propertyGroups, categories, bookmarks, search, onSearchChange, hasCategoryFilter,
+  enabledProperties, propertyGroups, categories, bookmarks, search, onSearchChange, hasCategoryFilter, nameFilter,
 }: {
   enabledProperties: CustomProperty[];
   propertyGroups?: PropertyGroup[];
@@ -713,6 +726,7 @@ function PropertiesFilterSection({
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;
   hasCategoryFilter: boolean;
+  nameFilter?: string;
 }) {
   const selectedCategories = search.categories ?? [];
   // A property assigned to no category is almost certainly orphaned; flag it as an error.
@@ -759,6 +773,7 @@ function PropertiesFilterSection({
         propertyGroups={propertyGroups}
         categories={categories}
         selectedCategoryIds={selectedCategories}
+        nameFilter={nameFilter}
         bookmarks={bookmarks}
         numberValues={search.num ?? {}}
         booleanValues={search.bool ?? {}}

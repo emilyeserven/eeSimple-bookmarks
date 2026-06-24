@@ -1,7 +1,9 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
 import type { Author, Bookmark, Category, CustomProperty, MediaType, PropertyGroup, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
 
-import { ChevronDown } from "lucide-react";
+import { useState } from "react";
+
+import { ChevronDown, Search, X } from "lucide-react";
 
 import { FilterSections } from "./FilterSidebarSections";
 import { SavedFiltersSection } from "./SavedFiltersSection";
@@ -11,6 +13,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { Input } from "@/components/ui/input";
 
 interface FilterSidebarProps {
   tree: TagNode[];
@@ -42,6 +45,8 @@ interface FilterSidebarProps {
 export function FilterSidebar({
   tree, properties, propertyGroups, categories, mediaTypes, youtubeChannels, websites, relationshipTypes, authors, bookmarks, search, onSearchChange,
 }: FilterSidebarProps) {
+  const [sectionFilter, setSectionFilter] = useState("");
+
   // Category data is only supplied on the overall Bookmarks page; category pages render flat.
   const hasCategoryFilter = (categories?.length ?? 0) > 0;
   const hasMediaTypeFilter = (mediaTypes?.length ?? 0) > 0;
@@ -100,6 +105,37 @@ export function FilterSidebar({
                 <>
                   <h2 className="text-sm font-semibold">Filters</h2>
 
+                  <div className="relative flex items-center">
+                    <Search
+                      className="
+                        pointer-events-none absolute left-2.5 size-3.5 shrink-0
+                        text-muted-foreground
+                      "
+                    />
+                    <Input
+                      type="text"
+                      value={sectionFilter}
+                      onChange={e => setSectionFilter(e.target.value)}
+                      placeholder="Search filters…"
+                      className="h-8 pr-7 pl-8 text-xs"
+                    />
+                    {sectionFilter
+                      ? (
+                        <button
+                          type="button"
+                          aria-label="Clear filter search"
+                          onClick={() => setSectionFilter("")}
+                          className="
+                            absolute right-2 text-muted-foreground
+                            hover:text-foreground
+                          "
+                        >
+                          <X className="size-3.5" />
+                        </button>
+                      )
+                      : null}
+                  </div>
+
                   <FilterSections
                     tree={tree}
                     enabledProperties={enabledProperties}
@@ -121,6 +157,7 @@ export function FilterSidebar({
                     hasWebsiteFilter={hasWebsiteFilter}
                     hasRelationshipTypeFilter={hasRelationshipTypeFilter}
                     hasAuthorFilter={hasAuthorFilter}
+                    sectionFilter={sectionFilter}
                   />
                 </>
               )
