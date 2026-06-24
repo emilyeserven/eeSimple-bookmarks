@@ -3,6 +3,7 @@ import * as React from "react";
 import { Link } from "@tanstack/react-router";
 import {
   Bookmark,
+  Building2,
   ChevronDown,
   Clapperboard,
   Filter,
@@ -24,7 +25,6 @@ import {
 import {
   CollapsibleSection,
   SidebarAdvancedSection,
-  SidebarNavSection,
   SidebarResizeHandle,
 } from "./app-sidebar-sections";
 import { SettingsFavoritesFlyout } from "./SettingsFavoritesFlyout";
@@ -109,6 +109,12 @@ const taxonomyItems = [
     to: "/taxonomies/authors",
     icon: UserRound,
   },
+  {
+    key: "publishers",
+    title: "Publishers",
+    to: "/taxonomies/publishers",
+    icon: Building2,
+  },
 ] as const;
 
 const customizationItems = [
@@ -163,7 +169,13 @@ export function AppSidebar({
     categoriesExpanded,
     setCategoriesExpanded,
     visibleTaxonomyItems,
+    seeMoreTaxonomyItemsList,
+    taxonomiesExpanded,
+    setTaxonomiesExpanded,
     visibleCustomizationItems,
+    seeMoreCustomizationItemsList,
+    customizationExpanded,
+    setCustomizationExpanded,
     resolvedPins,
     setPinnedExpanded,
     setPinnedShowAll,
@@ -412,23 +424,155 @@ export function AppSidebar({
           )
           : null}
 
-        {!hiddenSidebarGroups.includes("taxonomies") && visibleTaxonomyItems.length > 0
+        {!hiddenSidebarGroups.includes("taxonomies") && (visibleTaxonomyItems.length > 0 || seeMoreTaxonomyItemsList.length > 0)
           ? (
-            <SidebarNavSection
+            <CollapsibleSection
               sectionKey="taxonomies"
               label="Taxonomies"
-              items={visibleTaxonomyItems}
-            />
+            >
+              <SidebarMenu>
+                {visibleTaxonomyItems.map((item) => {
+                  const isActive = pathname.startsWith(item.to);
+                  return (
+                    <SidebarMenuItem key={item.key}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive}
+                        tooltip={item.title}
+                      >
+                        <Link to={item.to}>
+                          <item.icon />
+                          <span>{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                      {item.count !== undefined && state !== "collapsed"
+                        ? (
+                          <SidebarMenuBadge>
+                            <Badge variant="secondary">{item.count}</Badge>
+                          </SidebarMenuBadge>
+                        )
+                        : null}
+                    </SidebarMenuItem>
+                  );
+                })}
+                {seeMoreTaxonomyItemsList.length > 0 && !taxonomiesExpanded && state !== "collapsed"
+                  ? (
+                    <SidebarMenuItem>
+                      <SidebarMenuButton
+                        tooltip="Show more taxonomy links"
+                        onClick={() => setTaxonomiesExpanded(true)}
+                        className="text-xs text-muted-foreground"
+                      >
+                        <ChevronDown className="size-4" />
+                        <span>See More</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )
+                  : null}
+                {taxonomiesExpanded
+                  ? seeMoreTaxonomyItemsList.map((item) => {
+                    const isActive = pathname.startsWith(item.to);
+                    return (
+                      <SidebarMenuItem key={item.key}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={isActive}
+                          tooltip={item.title}
+                        >
+                          <Link to={item.to}>
+                            <item.icon />
+                            <span>{item.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                        {item.count !== undefined && state !== "collapsed"
+                          ? (
+                            <SidebarMenuBadge>
+                              <Badge variant="secondary">{item.count}</Badge>
+                            </SidebarMenuBadge>
+                          )
+                          : null}
+                      </SidebarMenuItem>
+                    );
+                  })
+                  : null}
+              </SidebarMenu>
+            </CollapsibleSection>
           )
           : null}
 
-        {!hiddenSidebarGroups.includes("customization") && visibleCustomizationItems.length > 0
+        {!hiddenSidebarGroups.includes("customization") && (visibleCustomizationItems.length > 0 || seeMoreCustomizationItemsList.length > 0)
           ? (
-            <SidebarNavSection
+            <CollapsibleSection
               sectionKey="customization"
               label="Customization"
-              items={visibleCustomizationItems}
-            />
+            >
+              <SidebarMenu>
+                {visibleCustomizationItems.map((item) => {
+                  const isActive = pathname.startsWith(item.to);
+                  return (
+                    <SidebarMenuItem key={item.key}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive}
+                        tooltip={item.title}
+                      >
+                        <Link to={item.to}>
+                          <item.icon />
+                          <span>{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                      {item.count !== undefined && state !== "collapsed"
+                        ? (
+                          <SidebarMenuBadge>
+                            <Badge variant="secondary">{item.count}</Badge>
+                          </SidebarMenuBadge>
+                        )
+                        : null}
+                    </SidebarMenuItem>
+                  );
+                })}
+                {seeMoreCustomizationItemsList.length > 0 && !customizationExpanded && state !== "collapsed"
+                  ? (
+                    <SidebarMenuItem>
+                      <SidebarMenuButton
+                        tooltip="Show more customization links"
+                        onClick={() => setCustomizationExpanded(true)}
+                        className="text-xs text-muted-foreground"
+                      >
+                        <ChevronDown className="size-4" />
+                        <span>See More</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )
+                  : null}
+                {customizationExpanded
+                  ? seeMoreCustomizationItemsList.map((item) => {
+                    const isActive = pathname.startsWith(item.to);
+                    return (
+                      <SidebarMenuItem key={item.key}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={isActive}
+                          tooltip={item.title}
+                        >
+                          <Link to={item.to}>
+                            <item.icon />
+                            <span>{item.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                        {item.count !== undefined && state !== "collapsed"
+                          ? (
+                            <SidebarMenuBadge>
+                              <Badge variant="secondary">{item.count}</Badge>
+                            </SidebarMenuBadge>
+                          )
+                          : null}
+                      </SidebarMenuItem>
+                    );
+                  })
+                  : null}
+              </SidebarMenu>
+            </CollapsibleSection>
           )
           : null}
 

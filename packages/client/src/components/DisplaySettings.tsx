@@ -40,6 +40,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { CategoryIcon } from "@/lib/icons";
 
 type CategoryDisplayMode = "visible" | "see-more" | "hidden";
@@ -83,6 +84,10 @@ const TAXONOMY_ITEMS = [
   {
     key: "authors",
     label: "Authors",
+  },
+  {
+    key: "publishers",
+    label: "Publishers",
   },
 ] as const;
 
@@ -216,7 +221,9 @@ export function DisplaySettings() {
     hiddenCategoryIds,
     seeMoreCategoryIds,
     hiddenTaxonomyItems,
+    seeMoreTaxonomyItems,
     hiddenCustomizationItems,
+    seeMoreCustomizationItems,
     hiddenManagementItems,
     hiddenSidebarGroups,
   } = sidebar;
@@ -254,9 +261,48 @@ export function DisplaySettings() {
     });
   }
 
-  const toggleTaxonomyItem = (key: string) => toggleSidebarKey("hiddenTaxonomyItems", key);
-  const toggleCustomizationItem = (key: string) => toggleSidebarKey("hiddenCustomizationItems", key);
-  const toggleManagementItem = (key: string) => toggleSidebarKey("hiddenManagementItems", key);
+  function setTaxonomyItemMode(key: string, mode: CategoryDisplayMode): void {
+    updateSidebar.mutate({
+      ...sidebar,
+      hiddenTaxonomyItems: mode === "hidden"
+        ? [...hiddenTaxonomyItems.filter(x => x !== key), key]
+        : hiddenTaxonomyItems.filter(x => x !== key),
+      seeMoreTaxonomyItems: mode === "see-more"
+        ? [...seeMoreTaxonomyItems.filter(x => x !== key), key]
+        : seeMoreTaxonomyItems.filter(x => x !== key),
+    }, {
+      onSuccess: () => notifySuccess("Sidebar updated"),
+      onError: error => notifyError(error.message),
+    });
+  }
+
+  function setCustomizationItemMode(key: string, mode: CategoryDisplayMode): void {
+    updateSidebar.mutate({
+      ...sidebar,
+      hiddenCustomizationItems: mode === "hidden"
+        ? [...hiddenCustomizationItems.filter(x => x !== key), key]
+        : hiddenCustomizationItems.filter(x => x !== key),
+      seeMoreCustomizationItems: mode === "see-more"
+        ? [...seeMoreCustomizationItems.filter(x => x !== key), key]
+        : seeMoreCustomizationItems.filter(x => x !== key),
+    }, {
+      onSuccess: () => notifySuccess("Sidebar updated"),
+      onError: error => notifyError(error.message),
+    });
+  }
+
+  function setManagementItemMode(key: string, mode: "visible" | "hidden"): void {
+    updateSidebar.mutate({
+      ...sidebar,
+      hiddenManagementItems: mode === "hidden"
+        ? [...hiddenManagementItems.filter(x => x !== key), key]
+        : hiddenManagementItems.filter(x => x !== key),
+    }, {
+      onSuccess: () => notifySuccess("Sidebar updated"),
+      onError: error => notifyError(error.message),
+    });
+  }
+
   const toggleSidebarGroup = (group: string) => toggleSidebarKey("hiddenSidebarGroups", group);
 
   /** Persist a single display-preference field and fire the named toast. */
@@ -488,7 +534,7 @@ export function DisplaySettings() {
               <CardContent>
                 {categories && categories.length > 0
                   ? (
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                       {categories.map((category) => {
                         const mode: CategoryDisplayMode = hiddenCategoryIds.includes(category.id)
                           ? "hidden"
@@ -500,23 +546,24 @@ export function DisplaySettings() {
                             key={category.id}
                             className="flex items-center justify-between gap-2"
                           >
-                            <span className="flex items-center gap-1.5 text-sm">
+                            <span
+                              className="
+                                flex items-center gap-1.5 truncate text-sm
+                              "
+                            >
                               <CategoryIcon name={category.icon} />
                               {category.name}
                             </span>
-                            <Select
+                            <ToggleGroup
+                              type="single"
+                              size="sm"
                               value={mode}
-                              onValueChange={value => setCategoryMode(category.id, value as CategoryDisplayMode)}
+                              onValueChange={value => value && setCategoryMode(category.id, value as CategoryDisplayMode)}
                             >
-                              <SelectTrigger className="w-36">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="visible">Default</SelectItem>
-                                <SelectItem value="see-more">See More</SelectItem>
-                                <SelectItem value="hidden">Listing only</SelectItem>
-                              </SelectContent>
-                            </Select>
+                              <ToggleGroupItem value="visible">Default</ToggleGroupItem>
+                              <ToggleGroupItem value="see-more">See More</ToggleGroupItem>
+                              <ToggleGroupItem value="hidden">Listing only</ToggleGroupItem>
+                            </ToggleGroup>
                           </div>
                         );
                       })}
@@ -532,22 +579,22 @@ export function DisplaySettings() {
           {!hiddenSidebarGroups.includes("taxonomies") && (
             <SidebarItemsCard
               title="Taxonomies"
-              description="Choose which taxonomy browsers appear in the left sidebar."
+              description="Choose how each taxonomy browser appears in the left sidebar."
               items={TAXONOMY_ITEMS}
               hiddenItems={hiddenTaxonomyItems}
-              onToggle={toggleTaxonomyItem}
-              idPrefix="taxonomy"
+              seeMoreItems={seeMoreTaxonomyItems}
+              onSetMode={setTaxonomyItemMode}
             />
           )}
 
           {!hiddenSidebarGroups.includes("customization") && (
             <SidebarItemsCard
               title="Customization"
-              description="Choose which customization tools appear in the left sidebar."
+              description="Choose how each customization tool appears in the left sidebar."
               items={CUSTOMIZATION_ITEMS}
               hiddenItems={hiddenCustomizationItems}
-              onToggle={toggleCustomizationItem}
-              idPrefix="customization"
+              seeMoreItems={seeMoreCustomizationItems}
+              onSetMode={setCustomizationItemMode}
             />
           )}
 
@@ -557,8 +604,7 @@ export function DisplaySettings() {
               description="Choose which management pages appear in the left sidebar."
               items={MANAGEMENT_ITEMS}
               hiddenItems={hiddenManagementItems}
-              onToggle={toggleManagementItem}
-              idPrefix="management"
+              onSetMode={(key, mode) => setManagementItemMode(key, mode === "hidden" ? "hidden" : "visible")}
             />
           )}
 

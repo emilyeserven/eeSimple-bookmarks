@@ -65,7 +65,9 @@ const DEFAULT_SIDEBAR_CUSTOMIZATION: SidebarCustomizationSettings = {
   hiddenCategoryIds: [],
   seeMoreCategoryIds: [],
   hiddenTaxonomyItems: [],
+  seeMoreTaxonomyItems: [],
   hiddenCustomizationItems: [],
+  seeMoreCustomizationItems: [],
   hiddenManagementItems: [],
   hiddenSidebarGroups: [],
 };
@@ -381,7 +383,9 @@ export async function getSidebarCustomizationSettings(): Promise<SidebarCustomiz
       hiddenCategoryIds: appSettings.hiddenCategoryIds,
       seeMoreCategoryIds: appSettings.seeMoreCategoryIds,
       hiddenTaxonomyItems: appSettings.hiddenTaxonomyItems,
+      seeMoreTaxonomyItems: appSettings.seeMoreTaxonomyItems,
       hiddenCustomizationItems: appSettings.hiddenCustomizationItems,
+      seeMoreCustomizationItems: appSettings.seeMoreCustomizationItems,
       hiddenManagementItems: appSettings.hiddenManagementItems,
       hiddenSidebarGroups: appSettings.hiddenSidebarGroups,
     })
@@ -392,7 +396,9 @@ export async function getSidebarCustomizationSettings(): Promise<SidebarCustomiz
     hiddenCategoryIds: row.hiddenCategoryIds ?? [],
     seeMoreCategoryIds: row.seeMoreCategoryIds ?? [],
     hiddenTaxonomyItems: row.hiddenTaxonomyItems ?? [],
+    seeMoreTaxonomyItems: row.seeMoreTaxonomyItems ?? [],
     hiddenCustomizationItems: row.hiddenCustomizationItems ?? [],
+    seeMoreCustomizationItems: row.seeMoreCustomizationItems ?? [],
     hiddenManagementItems: row.hiddenManagementItems ?? [],
     hiddenSidebarGroups: row.hiddenSidebarGroups ?? [],
   };
@@ -406,7 +412,9 @@ export async function updateSidebarCustomizationSettings(
     hiddenCategoryIds: [...input.hiddenCategoryIds],
     seeMoreCategoryIds: [...input.seeMoreCategoryIds],
     hiddenTaxonomyItems: [...input.hiddenTaxonomyItems],
+    seeMoreTaxonomyItems: [...input.seeMoreTaxonomyItems],
     hiddenCustomizationItems: [...input.hiddenCustomizationItems],
+    seeMoreCustomizationItems: [...input.seeMoreCustomizationItems],
     hiddenManagementItems: [...input.hiddenManagementItems],
     hiddenSidebarGroups: [...input.hiddenSidebarGroups],
   };

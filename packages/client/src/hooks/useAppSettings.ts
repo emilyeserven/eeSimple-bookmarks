@@ -131,7 +131,9 @@ const SIDEBAR_CUSTOMIZATION_DEFAULTS: SidebarCustomizationSettings = {
   hiddenCategoryIds: [],
   seeMoreCategoryIds: [],
   hiddenTaxonomyItems: [],
+  seeMoreTaxonomyItems: [],
   hiddenCustomizationItems: [],
+  seeMoreCustomizationItems: [],
   hiddenManagementItems: [],
   hiddenSidebarGroups: [],
 };
