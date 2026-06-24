@@ -5,19 +5,27 @@ import { useState } from "react";
 import { fireEvent, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { InboxReviewList } from "./InboxReviewList";
+import { InboxBulkActions, InboxReviewList } from "./InboxReviewList";
 import { useInboxReviewController } from "./useInboxReviewController";
 import { renderWithRouter } from "../test-utils/router";
 
 import { useUiStore } from "@/stores/uiStore";
 
-/** Thin wrapper that calls the controller at the test-component level and passes it down. */
+/**
+ * Thin wrapper that mirrors the page-level layout: controller owned here, both
+ * InboxBulkActions and InboxReviewList rendered so tests can reach bulk-action controls.
+ */
 function ReviewListWrapper({
   items, isFetching,
 }: { items: InboxItem[];
   isFetching: boolean; }) {
   const controller = useInboxReviewController(items, isFetching);
-  return <InboxReviewList controller={controller} />;
+  return (
+    <>
+      <InboxBulkActions {...controller} />
+      <InboxReviewList controller={controller} />
+    </>
+  );
 }
 
 afterEach(() => {
