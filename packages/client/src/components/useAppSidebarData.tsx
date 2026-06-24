@@ -21,6 +21,7 @@ import { useMediaTypes } from "../hooks/useMediaTypes";
 import { useNewsletters } from "../hooks/useNewsletters";
 import { usePinnedSidebarItems } from "../hooks/usePinnedSidebarItems";
 import { usePropertyGroups } from "../hooks/usePropertyGroups";
+import { usePublishers } from "../hooks/usePublishers";
 import { useSavedFilters } from "../hooks/useSavedFilters";
 import { useTags } from "../hooks/useTags";
 import { useWebsites } from "../hooks/useWebsites";
@@ -87,6 +88,7 @@ function useSidebarEntityData() {
     allChannels: useYouTubeChannels().data,
     allNewsletters: useNewsletters().data,
     allAuthors: useAuthors().data,
+    allPublishers: usePublishers().data,
     allCustomProperties: useCustomProperties().data,
     allPropertyGroups: usePropertyGroups().data,
     allAutofillRules: useAutofillRules().data,
@@ -143,7 +145,13 @@ export interface AppSidebarData<T extends SidebarNavItem, C extends SidebarNavIt
   categoriesExpanded: boolean;
   setCategoriesExpanded: (v: boolean) => void;
   visibleTaxonomyItems: (T & { count: number | undefined })[];
+  seeMoreTaxonomyItemsList: (T & { count: number | undefined })[];
+  taxonomiesExpanded: boolean;
+  setTaxonomiesExpanded: (v: boolean) => void;
   visibleCustomizationItems: (C & { count: number | undefined })[];
+  seeMoreCustomizationItemsList: (C & { count: number | undefined })[];
+  customizationExpanded: boolean;
+  setCustomizationExpanded: (v: boolean) => void;
   resolvedPins: ResolvedPin[];
   pinnedExpanded: boolean;
   setPinnedExpanded: (v: boolean) => void;
@@ -186,12 +194,16 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
     hiddenCategoryIds,
     seeMoreCategoryIds,
     hiddenTaxonomyItems,
+    seeMoreTaxonomyItems,
     hiddenCustomizationItems,
+    seeMoreCustomizationItems,
     hiddenSidebarGroups,
   } = useSidebarVisibility();
   const modifier = useSidebarOpenModifier();
   const advanced = useSidebarAdvanced();
   const viewClick = useViewPanelClick();
+  const [taxonomiesExpanded, setTaxonomiesExpanded] = React.useState(false);
+  const [customizationExpanded, setCustomizationExpanded] = React.useState(false);
 
   const visibleCategories = (data.categories ?? []).filter(
     c => !hiddenCategoryIds.includes(c.id) && !seeMoreCategoryIds.includes(c.id),
@@ -201,7 +213,7 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
     c => !hiddenCategoryIds.includes(c.id) && seeMoreCategoryIds.includes(c.id),
   );
 
-  const visibleTaxonomyItems = withVisibleCounts(taxonomyItems, hiddenTaxonomyItems, {
+  const taxonomyCounts = {
     "categories": data.categories?.length,
     "tags": data.allTags?.length,
     "websites": data.allWebsites?.length,
@@ -209,13 +221,38 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
     "youtube-channels": data.allChannels?.length,
     "newsletters": data.allNewsletters?.length,
     "authors": data.allAuthors?.length,
-  });
+    "publishers": data.allPublishers?.length,
+  };
 
-  const visibleCustomizationItems = withVisibleCounts(customizationItems, hiddenCustomizationItems, {
+  const visibleTaxonomyItems = withVisibleCounts(
+    taxonomyItems,
+    [...hiddenTaxonomyItems, ...seeMoreTaxonomyItems],
+    taxonomyCounts,
+  );
+
+  const seeMoreTaxonomyItemsList = withVisibleCounts(
+    taxonomyItems,
+    hiddenTaxonomyItems,
+    taxonomyCounts,
+  ).filter(item => seeMoreTaxonomyItems.includes(item.key));
+
+  const customizationCounts = {
     "custom-properties": data.allCustomProperties?.length,
     "property-groups": data.allPropertyGroups?.length,
     "autofill": data.allAutofillRules?.length,
-  });
+  };
+
+  const visibleCustomizationItems = withVisibleCounts(
+    customizationItems,
+    [...hiddenCustomizationItems, ...seeMoreCustomizationItems],
+    customizationCounts,
+  );
+
+  const seeMoreCustomizationItemsList = withVisibleCounts(
+    customizationItems,
+    hiddenCustomizationItems,
+    customizationCounts,
+  ).filter(item => seeMoreCustomizationItems.includes(item.key));
 
   const resolvedPins = useResolvedPins(data, pathname, currentBookmarkCategories);
   const pagination = paginatePins(resolvedPins, {
@@ -230,7 +267,13 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
     categoriesExpanded,
     setCategoriesExpanded,
     visibleTaxonomyItems,
+    seeMoreTaxonomyItemsList,
+    taxonomiesExpanded,
+    setTaxonomiesExpanded,
     visibleCustomizationItems,
+    seeMoreCustomizationItemsList,
+    customizationExpanded,
+    setCustomizationExpanded,
     resolvedPins,
     pinnedExpanded,
     setPinnedExpanded,

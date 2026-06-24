@@ -998,8 +998,12 @@ export const appSettings = pgTable("app_settings", {
   seeMoreCategoryIds: jsonb("see_more_category_ids").$type<string[]>(),
   // Taxonomy item keys hidden in the left sidebar.
   hiddenTaxonomyItems: jsonb("hidden_taxonomy_items").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+  // Taxonomy item keys shown under "See More" in the left sidebar (not hidden outright).
+  seeMoreTaxonomyItems: jsonb("see_more_taxonomy_items").$type<string[]>(),
   // Customization item keys hidden in the left sidebar.
   hiddenCustomizationItems: jsonb("hidden_customization_items").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+  // Customization item keys shown under "See More" in the left sidebar (not hidden outright).
+  seeMoreCustomizationItems: jsonb("see_more_customization_items").$type<string[]>(),
   // Management item keys hidden in the left sidebar.
   hiddenManagementItems: jsonb("hidden_management_items").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
   // Group keys for entire sidebar sections that are disabled.

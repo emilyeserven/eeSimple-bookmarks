@@ -15,55 +15,23 @@ const items = [
 ];
 
 describe("SidebarItemsCard", () => {
-  it("renders the title, description, and one checkbox per item", () => {
+  it("renders the title, description, and item labels", () => {
     render(
       <SidebarItemsCard
         title="Taxonomies"
         description="Pick which browsers show."
         items={items}
         hiddenItems={[]}
-        onToggle={vi.fn()}
-        idPrefix="taxonomy"
+        onSetMode={vi.fn()}
       />,
     );
     expect(screen.getByText("Taxonomies")).toBeInTheDocument();
     expect(screen.getByText("Pick which browsers show.")).toBeInTheDocument();
-    expect(screen.getByLabelText("Tags")).toBeInTheDocument();
-    expect(screen.getByLabelText("Websites")).toBeInTheDocument();
+    expect(screen.getByText("Tags")).toBeInTheDocument();
+    expect(screen.getByText("Websites")).toBeInTheDocument();
   });
 
-  it("checks items that are NOT in hiddenItems and unchecks the hidden ones", () => {
-    render(
-      <SidebarItemsCard
-        title="Taxonomies"
-        description="d"
-        items={items}
-        hiddenItems={["websites"]}
-        onToggle={vi.fn()}
-        idPrefix="taxonomy"
-      />,
-    );
-    expect(screen.getByLabelText("Tags")).toBeChecked();
-    expect(screen.getByLabelText("Websites")).not.toBeChecked();
-  });
-
-  it("calls onToggle with the item key when a checkbox is clicked", () => {
-    const onToggle = vi.fn();
-    render(
-      <SidebarItemsCard
-        title="Taxonomies"
-        description="d"
-        items={items}
-        hiddenItems={[]}
-        onToggle={onToggle}
-        idPrefix="taxonomy"
-      />,
-    );
-    fireEvent.click(screen.getByLabelText("Websites"));
-    expect(onToggle).toHaveBeenCalledWith("websites");
-  });
-
-  it("namespaces checkbox ids by idPrefix", () => {
+  it("shows Default/Listing only options without seeMoreItems (2-state)", () => {
     render(
       <SidebarItemsCard
         title="Management"
@@ -73,10 +41,84 @@ describe("SidebarItemsCard", () => {
           label: "Tags",
         }]}
         hiddenItems={[]}
-        onToggle={vi.fn()}
-        idPrefix="management"
+        onSetMode={vi.fn()}
       />,
     );
-    expect(screen.getByLabelText("Tags")).toHaveAttribute("id", "show-management-tags");
+    expect(screen.getAllByRole("button", {
+      name: "Default",
+    })).toHaveLength(1);
+    expect(screen.queryByRole("button", {
+      name: "See More",
+    })).not.toBeInTheDocument();
+    expect(screen.getAllByRole("button", {
+      name: "Listing only",
+    })).toHaveLength(1);
+  });
+
+  it("shows Default/See More/Listing only options when seeMoreItems is provided (3-state)", () => {
+    render(
+      <SidebarItemsCard
+        title="Taxonomies"
+        description="d"
+        items={[{
+          key: "tags",
+          label: "Tags",
+        }]}
+        hiddenItems={[]}
+        seeMoreItems={[]}
+        onSetMode={vi.fn()}
+      />,
+    );
+    expect(screen.getByRole("button", {
+      name: "Default",
+    })).toBeInTheDocument();
+    expect(screen.getByRole("button", {
+      name: "See More",
+    })).toBeInTheDocument();
+    expect(screen.getByRole("button", {
+      name: "Listing only",
+    })).toBeInTheDocument();
+  });
+
+  it("activates 'Listing only' for items in hiddenItems", () => {
+    render(
+      <SidebarItemsCard
+        title="Taxonomies"
+        description="d"
+        items={items}
+        hiddenItems={["websites"]}
+        seeMoreItems={[]}
+        onSetMode={vi.fn()}
+      />,
+    );
+    const listingOnlyButtons = screen.getAllByRole("button", {
+      name: "Listing only",
+    });
+    expect(listingOnlyButtons[1]).toHaveAttribute("data-state", "on");
+    const defaultButtons = screen.getAllByRole("button", {
+      name: "Default",
+    });
+    expect(defaultButtons[0]).toHaveAttribute("data-state", "on");
+  });
+
+  it("calls onSetMode with the item key and mode when a toggle is clicked", () => {
+    const onSetMode = vi.fn();
+    render(
+      <SidebarItemsCard
+        title="Taxonomies"
+        description="d"
+        items={[{
+          key: "websites",
+          label: "Websites",
+        }]}
+        hiddenItems={[]}
+        seeMoreItems={[]}
+        onSetMode={onSetMode}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", {
+      name: "Listing only",
+    }));
+    expect(onSetMode).toHaveBeenCalledWith("websites", "hidden");
   });
 });

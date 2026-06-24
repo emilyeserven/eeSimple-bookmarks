@@ -1,33 +1,46 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 export interface SidebarToggleItem {
   key: string;
   label: string;
 }
 
+type SidebarItemMode = "visible" | "see-more" | "hidden";
+
 interface SidebarItemsCardProps {
   title: string;
   description: string;
-  /** The selectable items shown as checkboxes. */
+  /** The selectable items shown as rows in the matrix. */
   items: readonly SidebarToggleItem[];
-  /** Keys currently hidden — a checkbox is checked when its key is NOT in this list. */
+  /** Keys currently hidden — determines the current mode per item. */
   hiddenItems: string[];
-  /** Toggle one item's visibility by key. */
-  onToggle: (key: string) => void;
-  /** Distinguishes checkbox ids across cards, e.g. `taxonomy` → `show-taxonomy-<key>`. */
-  idPrefix: string;
+  /**
+   * When provided, a third "See More" option is shown between Default and Listing only.
+   * Keys in this list appear under a "See More" expansion in the sidebar.
+   */
+  seeMoreItems?: string[];
+  /** Set an item's display mode. */
+  onSetMode: (key: string, mode: SidebarItemMode) => void;
 }
 
 /**
- * A titled settings card listing visibility checkboxes for a fixed set of sidebar items. Backs the
- * Taxonomies / Customization / Management cards in `DisplaySettings`, which differ only in their
- * title, copy, and item list.
+ * A titled settings card with a radio toggle matrix for sidebar item visibility. Backs the
+ * Taxonomies / Customization / Management cards in `DisplaySettings`. When `seeMoreItems` is
+ * provided the matrix shows three options (Default / See More / Listing only); otherwise two
+ * (Default / Listing only).
  */
 export function SidebarItemsCard({
-  title, description, items, hiddenItems, onToggle, idPrefix,
+  title, description, items, hiddenItems, seeMoreItems, onSetMode,
 }: SidebarItemsCardProps) {
+  const hasThreeStates = seeMoreItems !== undefined;
+
+  function modeFor(key: string): SidebarItemMode {
+    if (hiddenItems.includes(key)) return "hidden";
+    if (hasThreeStates && seeMoreItems?.includes(key)) return "see-more";
+    return "visible";
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -39,14 +52,21 @@ export function SidebarItemsCard({
           {items.map(item => (
             <div
               key={item.key}
-              className="flex items-center gap-2"
+              className="flex items-center justify-between gap-2"
             >
-              <Checkbox
-                id={`show-${idPrefix}-${item.key}`}
-                checked={!hiddenItems.includes(item.key)}
-                onCheckedChange={() => onToggle(item.key)}
-              />
-              <Label htmlFor={`show-${idPrefix}-${item.key}`}>{item.label}</Label>
+              <span className="truncate text-sm">{item.label}</span>
+              <ToggleGroup
+                type="single"
+                size="sm"
+                value={modeFor(item.key)}
+                onValueChange={value => value && onSetMode(item.key, value as SidebarItemMode)}
+              >
+                <ToggleGroupItem value="visible">Default</ToggleGroupItem>
+                {hasThreeStates && (
+                  <ToggleGroupItem value="see-more">See More</ToggleGroupItem>
+                )}
+                <ToggleGroupItem value="hidden">Listing only</ToggleGroupItem>
+              </ToggleGroup>
             </div>
           ))}
         </div>

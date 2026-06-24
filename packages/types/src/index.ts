@@ -284,7 +284,11 @@ export interface SidebarCustomizationSettings {
   /** Category IDs shown under a "See More" expansion in the sidebar (not hidden outright). */
   seeMoreCategoryIds: string[];
   hiddenTaxonomyItems: string[];
+  /** Taxonomy item keys shown under a "See More" expansion in the sidebar (not hidden outright). */
+  seeMoreTaxonomyItems: string[];
   hiddenCustomizationItems: string[];
+  /** Customization item keys shown under a "See More" expansion in the sidebar (not hidden outright). */
+  seeMoreCustomizationItems: string[];
   hiddenManagementItems: string[];
   hiddenSidebarGroups: string[];
 }
