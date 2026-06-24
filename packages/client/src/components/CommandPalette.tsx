@@ -6,9 +6,12 @@ import {
   FolderIcon,
   HomeIcon,
   InboxIcon,
+  PlusIcon,
   SettingsIcon,
   TagIcon,
 } from "lucide-react";
+
+import { AddBookmarkModal } from "./AddBookmarkModal";
 
 import {
   Command,
@@ -177,6 +180,8 @@ const SETTINGS = [
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
+  const [addBookmarkOpen, setAddBookmarkOpen] = useState(false);
+  const [pendingUrl, setPendingUrl] = useState("");
   const navigate = useNavigate();
   const {
     data: bookmarks = [],
@@ -205,94 +210,148 @@ export function CommandPalette() {
     });
   };
 
+  const handleAddBookmark = (url = "") => {
+    handleOpenChange(false);
+    setPendingUrl(url);
+    setAddBookmarkOpen(true);
+  };
+
+  const looksLikeUrl
+    = inputValue.startsWith("http://")
+      || inputValue.startsWith("https://")
+      || inputValue.startsWith("www.");
+
   return (
-    <Dialog
-      open={open}
-      onOpenChange={handleOpenChange}
-    >
-      <DialogContent className="max-w-2xl gap-0 overflow-hidden p-0">
-        <DialogTitle className="sr-only">Command palette</DialogTitle>
-        <Command>
-          <CommandInput
-            placeholder="Search pages and bookmarks…"
-            value={inputValue}
-            onValueChange={setInputValue}
-          />
-          <CommandList className="max-h-[500px]">
-            <CommandEmpty>No results found.</CommandEmpty>
+    <>
+      <Dialog
+        open={open}
+        onOpenChange={handleOpenChange}
+      >
+        <DialogContent className="max-w-2xl gap-0 overflow-hidden p-0">
+          <DialogTitle className="sr-only">Command palette</DialogTitle>
+          <Command>
+            <CommandInput
+              placeholder="Search pages and bookmarks…"
+              value={inputValue}
+              onValueChange={setInputValue}
+            />
+            <CommandList className="max-h-[500px]">
+              <CommandEmpty>No results found.</CommandEmpty>
 
-            <CommandGroup heading="Pages">
-              {PAGES.map(({
-                label, path, icon: Icon,
-              }) => (
-                <CommandItem
-                  key={path}
-                  value={label}
-                  onSelect={() => handleSelect(path)}
-                >
-                  <Icon />
-                  {label}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-
-            <CommandSeparator />
-
-            <CommandGroup heading="Taxonomies">
-              {TAXONOMIES.map(({
-                label, path,
-              }) => (
-                <CommandItem
-                  key={path}
-                  value={label}
-                  onSelect={() => handleSelect(path)}
-                >
-                  <TagIcon />
-                  {label}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-
-            <CommandSeparator />
-
-            <CommandGroup heading="Settings">
-              {SETTINGS.map(({
-                label, path,
-              }) => (
-                <CommandItem
-                  key={path}
-                  value={`Settings ${label}`}
-                  onSelect={() => handleSelect(path)}
-                >
-                  <SettingsIcon />
-                  {label}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-
-            {inputValue && (
-              <>
-                <CommandSeparator />
-                <CommandGroup heading="Bookmarks">
-                  {bookmarks.map(bookmark => (
+              {looksLikeUrl && (
+                <>
+                  <CommandGroup heading="Quick Add">
                     <CommandItem
-                      key={bookmark.id}
-                      value={`${bookmark.title} ${bookmark.url}`}
-                      onSelect={() => handleSelect(`/bookmarks/${bookmark.id}`)}
+                      value={inputValue}
+                      onSelect={() => handleAddBookmark(inputValue)}
                     >
-                      <FolderIcon />
-                      <span className="flex min-w-0 flex-col gap-0.5">
-                        <span className="truncate">{bookmark.title}</span>
-                        <span className="truncate text-xs text-muted-foreground">{bookmark.url}</span>
+                      <PlusIcon />
+                      <span>
+                        Add bookmark:
+                        {" "}
+                        <span className="text-muted-foreground">{inputValue}</span>
                       </span>
                     </CommandItem>
-                  ))}
-                </CommandGroup>
-              </>
-            )}
-          </CommandList>
-        </Command>
-      </DialogContent>
-    </Dialog>
+                  </CommandGroup>
+                  <CommandSeparator />
+                </>
+              )}
+
+              <CommandGroup heading="Actions">
+                <CommandItem
+                  value="Add Bookmark"
+                  onSelect={() => handleAddBookmark()}
+                >
+                  <PlusIcon />
+                  Add Bookmark
+                </CommandItem>
+              </CommandGroup>
+
+              <CommandSeparator />
+
+              <CommandGroup heading="Pages">
+                {PAGES.map(({
+                  label, path, icon: Icon,
+                }) => (
+                  <CommandItem
+                    key={path}
+                    value={label}
+                    onSelect={() => handleSelect(path)}
+                  >
+                    <Icon />
+                    {label}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+
+              <CommandSeparator />
+
+              <CommandGroup heading="Taxonomies">
+                {TAXONOMIES.map(({
+                  label, path,
+                }) => (
+                  <CommandItem
+                    key={path}
+                    value={label}
+                    onSelect={() => handleSelect(path)}
+                  >
+                    <TagIcon />
+                    {label}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+
+              <CommandSeparator />
+
+              <CommandGroup heading="Settings">
+                {SETTINGS.map(({
+                  label, path,
+                }) => (
+                  <CommandItem
+                    key={path}
+                    value={`Settings ${label}`}
+                    onSelect={() => handleSelect(path)}
+                  >
+                    <SettingsIcon />
+                    {label}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+
+              {inputValue && (
+                <>
+                  <CommandSeparator />
+                  <CommandGroup heading="Bookmarks">
+                    {bookmarks.map(bookmark => (
+                      <CommandItem
+                        key={bookmark.id}
+                        value={`${bookmark.title} ${bookmark.url}`}
+                        onSelect={() => handleSelect(`/bookmarks/${bookmark.id}`)}
+                      >
+                        <FolderIcon />
+                        <span className="flex min-w-0 flex-col gap-0.5">
+                          <span className="truncate">{bookmark.title}</span>
+                          <span
+                            className="truncate text-xs text-muted-foreground"
+                          >{bookmark.url}
+                          </span>
+                        </span>
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </>
+              )}
+            </CommandList>
+          </Command>
+        </DialogContent>
+      </Dialog>
+
+      <AddBookmarkModal
+        open={addBookmarkOpen}
+        onOpenChange={setAddBookmarkOpen}
+        initialUrl={pendingUrl}
+        autoScan={Boolean(pendingUrl)}
+      />
+    </>
   );
 }
