@@ -253,24 +253,34 @@ export function bookmarkMatchesSearch(
   );
 }
 
+/** A non-empty array filter. */
+function hasItems(value: readonly unknown[] | undefined): boolean {
+  return (value?.length ?? 0) > 0;
+}
+
+/** A record filter with at least one keyed entry. */
+function hasEntries(value: Record<string, unknown> | undefined): boolean {
+  return Object.keys(value ?? {}).length > 0;
+}
+
 /** Whether any filter in `search` is active (used to choose the empty-state message). */
 export function hasAnyActiveFilter(search: BookmarkSearch): boolean {
   return (
-    (search.tags?.length ?? 0) > 0
+    hasItems(search.tags)
     || search.tagPresence !== undefined
-    || (search.categories?.length ?? 0) > 0
-    || (search.mediaTypes?.length ?? 0) > 0
-    || (search.youtubeChannels?.length ?? 0) > 0
+    || hasItems(search.categories)
+    || hasItems(search.mediaTypes)
+    || hasItems(search.youtubeChannels)
     || search.youtubeChannelPresence !== undefined
-    || (search.websites?.length ?? 0) > 0
+    || hasItems(search.websites)
     || search.websitePresence !== undefined
-    || (search.relationshipTypes?.length ?? 0) > 0
-    || (search.authors?.length ?? 0) > 0
-    || Object.keys(search.num ?? {}).length > 0
-    || Object.keys(search.bool ?? {}).length > 0
-    || Object.keys(search.date ?? {}).length > 0
-    || Object.keys(search.presence ?? {}).length > 0
-    || Object.keys(search.choices ?? {}).length > 0
+    || hasItems(search.relationshipTypes)
+    || hasItems(search.authors)
+    || hasEntries(search.num)
+    || hasEntries(search.bool)
+    || hasEntries(search.date)
+    || hasEntries(search.presence)
+    || hasEntries(search.choices)
   );
 }
 

@@ -4,6 +4,7 @@ import type {
   ViewMode,
 } from "@eesimple/types";
 import type { ColumnDef } from "@tanstack/react-table";
+import type { ReactNode } from "react";
 
 import { useState } from "react";
 
@@ -107,117 +108,12 @@ function ReviewRow({
             transition: displacement === 0 ? "transform 0.2s ease" : "none",
           }}
         >
-          <div className="flex items-start gap-3">
-            {item.imageUrl
-              ? (
-                <img
-                  src={item.imageUrl}
-                  alt=""
-                  className="size-12 shrink-0 rounded-sm object-cover"
-                />
-              )
-              : null}
-            <div className="min-w-0 flex-1 space-y-1">
-              <div className="flex items-start gap-2">
-                <p className="min-w-0 font-medium wrap-break-word">{item.title || item.anchorText || item.url || item.rawUrl}</p>
-                <StatusBadge item={item} />
-                {item.markedForDeletion
-                  ? (
-                    <Badge
-                      variant="outline"
-                      className="gap-1 text-muted-foreground"
-                    >
-                      <Trash2 className="size-3" />
-                      Will be deleted
-                    </Badge>
-                  )
-                  : null}
-              </div>
-              {item.sourceLabel
-                ? <p className="text-xs text-muted-foreground/70">From {item.sourceLabel}</p>
-                : null}
-              <p className="text-xs text-muted-foreground/70">Added {formatAdded(item.createdAt)}</p>
-              {item.url
-                ? (
-                  <a
-                    href={item.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="
-                      flex items-start gap-1 text-sm text-muted-foreground
-                      hover:underline
-                    "
-                  >
-                    <ExternalLink className="mt-0.5 size-3 shrink-0" />
-                    <span className="min-w-0 break-all">{item.url}</span>
-                  </a>
-                )
-                : null}
-              {item.url && item.rawUrl !== item.url
-                ? <p className="text-xs break-all text-muted-foreground/70">via {item.rawUrl}</p>
-                : null}
-              {categoryName
-                ? <p className="text-xs text-muted-foreground">Category: {categoryName}</p>
-                : null}
-              {item.description
-                ? (
-                  <p
-                    className={`
-                      text-sm text-muted-foreground
-                      ${contextOpen ? "" : "line-clamp-2"}
-                    `}
-                  >
-                    {item.description}
-                  </p>
-                )
-                : null}
-              {item.newsletterContext
-                ? (
-                  <Collapsible
-                    open={contextOpen}
-                    onOpenChange={setContextOpen}
-                  >
-                    <CollapsibleTrigger asChild>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="
-                          -ml-2 h-auto gap-1 px-2 py-1 text-xs
-                          text-muted-foreground
-                        "
-                      >
-                        <ChevronDown
-                          className={`
-                            size-3 transition-transform
-                            ${contextOpen ? "rotate-180" : ""}
-                          `}
-                        />
-                        Context
-                      </Button>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent
-                      className="
-                        mt-1 rounded-md bg-muted/40 p-2 text-xs
-                        whitespace-pre-line text-muted-foreground
-                      "
-                    >
-                      {highlightAnchor(item.newsletterContext, item.anchorText).map((segment, index) =>
-                        segment.bold
-                          ? (
-                            <strong
-                              key={index}
-                              className="font-semibold text-foreground"
-                            >
-                              {segment.text}
-                            </strong>
-                          )
-                          : <span key={index}>{segment.text}</span>)}
-                    </CollapsibleContent>
-                  </Collapsible>
-                )
-                : null}
-            </div>
-          </div>
+          <ReviewItemBody
+            item={item}
+            categoryName={categoryName}
+            contextOpen={contextOpen}
+            onContextOpenChange={setContextOpen}
+          />
 
           <div className="mt-3 flex items-center gap-2">
             <Button
@@ -259,126 +155,19 @@ function ReviewRow({
         ${muted ? "opacity-60" : ""}
       `}
     >
-      <div className="flex items-start gap-3">
-        {item.imageUrl
-          ? (
-            <img
-              src={item.imageUrl}
-              alt=""
-              className="size-12 shrink-0 rounded-sm object-cover"
-            />
-          )
-          : null}
-        <div className="min-w-0 flex-1 space-y-1">
-          <div className="flex items-start gap-2">
-            <p className="min-w-0 font-medium wrap-break-word">{item.title || item.anchorText || item.url || item.rawUrl}</p>
-            <StatusBadge item={item} />
-            {(item.markedForDeletion || item.status === "rejected")
-              ? (
-                <Badge
-                  variant="outline"
-                  className="gap-1 text-muted-foreground"
-                >
-                  <Trash2 className="size-3" />
-                  Will be deleted
-                </Badge>
-              )
-              : null}
-          </div>
-          {item.sourceLabel
-            ? <p className="text-xs text-muted-foreground/70">From {item.sourceLabel}</p>
-            : null}
-          <p className="text-xs text-muted-foreground/70">Added {formatAdded(item.createdAt)}</p>
-          {item.url
-            ? (
-              <a
-                href={item.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="
-                  flex items-start gap-1 text-sm text-muted-foreground
-                  hover:underline
-                "
-              >
-                <ExternalLink className="mt-0.5 size-3 shrink-0" />
-                <span className="min-w-0 break-all">{item.url}</span>
-              </a>
-            )
-            : null}
-          {item.url && item.rawUrl !== item.url
-            ? <p className="text-xs break-all text-muted-foreground/70">via {item.rawUrl}</p>
-            : null}
-          {categoryName
-            ? <p className="text-xs text-muted-foreground">Category: {categoryName}</p>
-            : null}
-          {item.status === "error" && item.errorReason
-            ? <p className="text-xs text-destructive">{item.errorReason}</p>
-            : null}
-          {item.description
-            ? (
-              <p
-                className={`
-                  text-sm text-muted-foreground
-                  ${contextOpen ? "" : "line-clamp-2"}
-                `}
-              >
-                {item.description}
-              </p>
-            )
-            : null}
-          {item.newsletterContext
-            ? (
-              <Collapsible
-                open={contextOpen}
-                onOpenChange={setContextOpen}
-              >
-                <CollapsibleTrigger asChild>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="
-                      -ml-2 h-auto gap-1 px-2 py-1 text-xs text-muted-foreground
-                    "
-                  >
-                    <ChevronDown
-                      className={`
-                        size-3 transition-transform
-                        ${contextOpen ? "rotate-180" : ""}
-                      `}
-                    />
-                    Context
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent
-                  className="
-                    mt-1 rounded-md bg-muted/40 p-2 text-xs whitespace-pre-line
-                    text-muted-foreground
-                  "
-                >
-                  {highlightAnchor(item.newsletterContext, item.anchorText).map((segment, index) =>
-                    segment.bold
-                      ? (
-                        <strong
-                          key={index}
-                          className="font-semibold text-foreground"
-                        >
-                          {segment.text}
-                        </strong>
-                      )
-                      : <span key={index}>{segment.text}</span>)}
-                </CollapsibleContent>
-              </Collapsible>
-            )
-            : null}
-        </div>
-        {!isMobile
+      <ReviewItemBody
+        item={item}
+        categoryName={categoryName}
+        contextOpen={contextOpen}
+        onContextOpenChange={setContextOpen}
+        trailing={!isMobile
           ? (
             <div className="flex shrink-0 items-start gap-1">
               <RowActions item={item} />
             </div>
           )
           : null}
-      </div>
+      />
       {isMobile
         ? (
           <div className="mt-3 flex gap-1">
@@ -387,6 +176,151 @@ function ReviewRow({
         )
         : null}
     </RowCard>
+  );
+}
+
+/** The image + metadata column shared by the mobile-swipe and desktop review-row layouts. */
+function ReviewItemBody({
+  item, categoryName, contextOpen, onContextOpenChange, trailing,
+}: {
+  item: InboxItem;
+  categoryName: string | null;
+  contextOpen: boolean;
+  onContextOpenChange: (open: boolean) => void;
+  trailing?: ReactNode;
+}) {
+  return (
+    <div className="flex items-start gap-3">
+      {item.imageUrl
+        ? (
+          <img
+            src={item.imageUrl}
+            alt=""
+            className="size-12 shrink-0 rounded-sm object-cover"
+          />
+        )
+        : null}
+      <div className="min-w-0 flex-1 space-y-1">
+        <div className="flex items-start gap-2">
+          <p className="min-w-0 font-medium wrap-break-word">{item.title || item.anchorText || item.url || item.rawUrl}</p>
+          <StatusBadge item={item} />
+          {(item.markedForDeletion || item.status === "rejected")
+            ? (
+              <Badge
+                variant="outline"
+                className="gap-1 text-muted-foreground"
+              >
+                <Trash2 className="size-3" />
+                Will be deleted
+              </Badge>
+            )
+            : null}
+        </div>
+        {item.sourceLabel
+          ? <p className="text-xs text-muted-foreground/70">From {item.sourceLabel}</p>
+          : null}
+        <p className="text-xs text-muted-foreground/70">Added {formatAdded(item.createdAt)}</p>
+        {item.url
+          ? (
+            <a
+              href={item.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="
+                flex items-start gap-1 text-sm text-muted-foreground
+                hover:underline
+              "
+            >
+              <ExternalLink className="mt-0.5 size-3 shrink-0" />
+              <span className="min-w-0 break-all">{item.url}</span>
+            </a>
+          )
+          : null}
+        {item.url && item.rawUrl !== item.url
+          ? <p className="text-xs break-all text-muted-foreground/70">via {item.rawUrl}</p>
+          : null}
+        {categoryName
+          ? <p className="text-xs text-muted-foreground">Category: {categoryName}</p>
+          : null}
+        {item.status === "error" && item.errorReason
+          ? <p className="text-xs text-destructive">{item.errorReason}</p>
+          : null}
+        {item.description
+          ? (
+            <p
+              className={`
+                text-sm text-muted-foreground
+                ${contextOpen ? "" : "line-clamp-2"}
+              `}
+            >
+              {item.description}
+            </p>
+          )
+          : null}
+        {item.newsletterContext
+          ? (
+            <NewsletterContextBlock
+              context={item.newsletterContext}
+              anchorText={item.anchorText}
+              open={contextOpen}
+              onOpenChange={onContextOpenChange}
+            />
+          )
+          : null}
+      </div>
+      {trailing}
+    </div>
+  );
+}
+
+/** The collapsible captured-passage block, with the link's anchor text bolded. */
+function NewsletterContextBlock({
+  context, anchorText, open, onOpenChange,
+}: {
+  context: string;
+  anchorText: string | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  return (
+    <Collapsible
+      open={open}
+      onOpenChange={onOpenChange}
+    >
+      <CollapsibleTrigger asChild>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="-ml-2 h-auto gap-1 px-2 py-1 text-xs text-muted-foreground"
+        >
+          <ChevronDown
+            className={`
+              size-3 transition-transform
+              ${open ? "rotate-180" : ""}
+            `}
+          />
+          Context
+        </Button>
+      </CollapsibleTrigger>
+      <CollapsibleContent
+        className="
+          mt-1 rounded-md bg-muted/40 p-2 text-xs whitespace-pre-line
+          text-muted-foreground
+        "
+      >
+        {highlightAnchor(context, anchorText).map((segment, index) =>
+          segment.bold
+            ? (
+              <strong
+                key={index}
+                className="font-semibold text-foreground"
+              >
+                {segment.text}
+              </strong>
+            )
+            : <span key={index}>{segment.text}</span>)}
+      </CollapsibleContent>
+    </Collapsible>
   );
 }
 

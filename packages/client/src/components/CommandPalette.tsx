@@ -182,11 +182,49 @@ const SETTINGS = [
 
 type TaxonomyMode = "category" | "media-type" | "tags" | "authors";
 
-export function CommandPalette() {
+/** Open/input state for the palette plus the global ⌘K / Ctrl+K toggle. */
+function useCommandPaletteShell() {
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setOpen(prev => !prev);
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, []);
+
+  return {
+    open,
+    setOpen,
+    inputValue,
+    setInputValue,
+  };
+}
+
+/** The "add a bookmark" modal draft (open flag + the URL prefilled from the query). */
+function useAddBookmarkDraft() {
   const [addBookmarkOpen, setAddBookmarkOpen] = useState(false);
   const [pendingUrl, setPendingUrl] = useState("");
+  return {
+    addBookmarkOpen,
+    setAddBookmarkOpen,
+    pendingUrl,
+    setPendingUrl,
+  };
+}
+
+export function CommandPalette() {
+  const {
+    open, setOpen, inputValue, setInputValue,
+  } = useCommandPaletteShell();
+  const {
+    addBookmarkOpen, setAddBookmarkOpen, pendingUrl, setPendingUrl,
+  } = useAddBookmarkDraft();
   const [taxonomyMode, setTaxonomyMode] = useState<TaxonomyMode | null>(null);
   const [pendingTagIds, setPendingTagIds] = useState<string[]>([]);
   const [pendingAuthorIds, setPendingAuthorIds] = useState<string[]>([]);
@@ -204,17 +242,6 @@ export function CommandPalette() {
     authors,
     updateBookmark,
   } = useBookmarkTaxonomyContext();
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-        e.preventDefault();
-        setOpen(prev => !prev);
-      }
-    };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
-  }, []);
 
   const handleOpenChange = (value: boolean) => {
     setOpen(value);

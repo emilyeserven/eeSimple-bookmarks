@@ -93,6 +93,37 @@ async function loadEvaluationData(): Promise<BookmarkEvaluationData> {
 }
 
 /** Load per-bookmark condition inputs for in-memory filter evaluation, batched to avoid N+1. */
+/** Group rows into `Map<bookmarkId, Set<value>>`. */
+function groupToSets<T>(
+  rows: readonly T[],
+  bid: (row: T) => string,
+  value: (row: T) => string,
+): Map<string, Set<string>> {
+  const out = new Map<string, Set<string>>();
+  for (const row of rows) {
+    const set = out.get(bid(row)) ?? new Set<string>();
+    set.add(value(row));
+    out.set(bid(row), set);
+  }
+  return out;
+}
+
+/** Group rows into `Map<bookmarkId, Map<propertyId, value>>`. */
+function groupToMaps<T, V>(
+  rows: readonly T[],
+  bid: (row: T) => string,
+  key: (row: T) => string,
+  value: (row: T) => V,
+): Map<string, Map<string, V>> {
+  const out = new Map<string, Map<string, V>>();
+  for (const row of rows) {
+    const map = out.get(bid(row)) ?? new Map<string, V>();
+    map.set(key(row), value(row));
+    out.set(bid(row), map);
+  }
+  return out;
+}
+
 async function buildConditionInputs(
   baseRows: BookmarkRow[],
   defaultCategoryId: string,
@@ -170,47 +201,12 @@ async function buildConditionInputs(
       ),
   ]);
 
-  const tagsByBid = new Map<string, Set<string>>();
-  for (const r of tagRows) {
-    const s = tagsByBid.get(r.bookmarkId) ?? new Set<string>();
-    s.add(r.tagId);
-    tagsByBid.set(r.bookmarkId, s);
-  }
-
-  const numsByBid = new Map<string, Map<string, number>>();
-  for (const r of numberRows) {
-    const m = numsByBid.get(r.bookmarkId) ?? new Map<string, number>();
-    m.set(r.propertyId, r.value);
-    numsByBid.set(r.bookmarkId, m);
-  }
-
-  const boolsByBid = new Map<string, Map<string, boolean>>();
-  for (const r of booleanRows) {
-    const m = boolsByBid.get(r.bookmarkId) ?? new Map<string, boolean>();
-    m.set(r.propertyId, r.value);
-    boolsByBid.set(r.bookmarkId, m);
-  }
-
-  const datesByBid = new Map<string, Map<string, string>>();
-  for (const r of dateTimeRows) {
-    const m = datesByBid.get(r.bookmarkId) ?? new Map<string, string>();
-    m.set(r.propertyId, r.value);
-    datesByBid.set(r.bookmarkId, m);
-  }
-
-  const choicesByBid = new Map<string, Map<string, string[]>>();
-  for (const r of choicesRows) {
-    const m = choicesByBid.get(r.bookmarkId) ?? new Map<string, string[]>();
-    m.set(r.propertyId, r.values as string[]);
-    choicesByBid.set(r.bookmarkId, m);
-  }
-
-  const filesByBid = new Map<string, Set<string>>();
-  for (const r of fileRows) {
-    const s = filesByBid.get(r.bookmarkId) ?? new Set<string>();
-    s.add(r.propertyId);
-    filesByBid.set(r.bookmarkId, s);
-  }
+  const tagsByBid = groupToSets(tagRows, r => r.bookmarkId, r => r.tagId);
+  const numsByBid = groupToMaps(numberRows, r => r.bookmarkId, r => r.propertyId, r => r.value);
+  const boolsByBid = groupToMaps(booleanRows, r => r.bookmarkId, r => r.propertyId, r => r.value);
+  const datesByBid = groupToMaps(dateTimeRows, r => r.bookmarkId, r => r.propertyId, r => r.value);
+  const choicesByBid = groupToMaps(choicesRows, r => r.bookmarkId, r => r.propertyId, r => r.values as string[]);
+  const filesByBid = groupToSets(fileRows, r => r.bookmarkId, r => r.propertyId);
 
   // Merge progress `current` values into numberValues so itemInItems filters like a number.
   for (const r of progressRows) {

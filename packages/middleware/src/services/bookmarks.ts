@@ -297,25 +297,18 @@ export async function bulkUpdateBookmarkTags(
   return results;
 }
 
-export async function createBookmark(input: CreateBookmarkInput): Promise<Bookmark> {
-  const existing = await db.select({
-    id: bookmarks.id,
-  }).from(bookmarks).where(eq(bookmarks.url, input.url));
-  if (existing.length > 0) throw new DuplicateUrlError(input.url);
+type ChannelHint = ReturnType<typeof channelHintFrom>;
+type SiteData = Awaited<ReturnType<typeof getWebsiteByAnyDomain>>;
+type YouTubeMeta = Awaited<ReturnType<typeof resolveYouTubeMeta>>;
 
-  const defaultId = await ensureDefaultCategory();
+/** Category precedence: user-provided > channel default > website default > Default. */
+async function resolveCreateCategoryId(
+  input: CreateBookmarkInput,
+  defaultId: string,
+  channelHint: ChannelHint,
+  siteData: SiteData,
+): Promise<string> {
   let categoryId = input.categoryId ?? defaultId;
-
-  // Resolve YouTube metadata once (network) before opening the transaction, then reuse it for the
-  // channel, the "Video" media-type default, and the Video Length backfill below.
-  const meta = await resolveYouTubeMeta(input.url, "create");
-  const channelHint = channelHintFrom(input.youtubeChannel, meta);
-
-  // Load site defaults (category + tags) once before the transaction for reuse below.
-  const domain = normalizeDomain(input.url);
-  const siteData = domain ? await getWebsiteByAnyDomain(domain) : null;
-
-  // Category precedence: user-provided > channel > website > Default.
   if (channelHint && categoryId === defaultId) {
     const channelCategoryId = await getChannelCategoryId(channelHint.key);
     if (channelCategoryId) categoryId = channelCategoryId;
@@ -323,16 +316,30 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
   if (siteData?.category?.id && categoryId === defaultId) {
     categoryId = siteData.category.id;
   }
+  return categoryId;
+}
 
-  // Tags: union user-provided + website defaults + channel defaults.
+/** Tags: union of user-provided + website defaults + channel defaults (deduped). */
+async function mergeCreateTagIds(
+  input: CreateBookmarkInput,
+  channelHint: ChannelHint,
+  siteData: SiteData,
+): Promise<string[]> {
   const defaultTagIds: string[] = [...(siteData?.tagIds ?? [])];
   if (channelHint) {
     const channelTagIds = await getChannelTagIds(channelHint.key);
     defaultTagIds.push(...channelTagIds);
   }
-  const mergedTagIds = [...new Set([...(input.tagIds ?? []), ...defaultTagIds])];
+  return [...new Set([...(input.tagIds ?? []), ...defaultTagIds])];
+}
 
-  // Media-type precedence: user-provided > channel default > website default > "Video" (for YouTube).
+/** Media-type precedence: user-provided > channel default > website default > "Video" (YouTube). */
+async function resolveCreateMediaTypeId(
+  input: CreateBookmarkInput,
+  channelHint: ChannelHint,
+  siteData: SiteData,
+  meta: YouTubeMeta,
+): Promise<string | null> {
   let mediaTypeId = input.mediaTypeId ?? null;
   if (!mediaTypeId && channelHint) {
     mediaTypeId = await getChannelMediaTypeId(channelHint.key);
@@ -350,6 +357,29 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
       ytLog("warn", "create: \"video\" media type missing; media type left unset");
     }
   }
+  return mediaTypeId;
+}
+
+export async function createBookmark(input: CreateBookmarkInput): Promise<Bookmark> {
+  const existing = await db.select({
+    id: bookmarks.id,
+  }).from(bookmarks).where(eq(bookmarks.url, input.url));
+  if (existing.length > 0) throw new DuplicateUrlError(input.url);
+
+  const defaultId = await ensureDefaultCategory();
+
+  // Resolve YouTube metadata once (network) before opening the transaction, then reuse it for the
+  // channel, the "Video" media-type default, and the Video Length backfill below.
+  const meta = await resolveYouTubeMeta(input.url, "create");
+  const channelHint = channelHintFrom(input.youtubeChannel, meta);
+
+  // Load site defaults (category + tags) once before the transaction for reuse below.
+  const domain = normalizeDomain(input.url);
+  const siteData = domain ? await getWebsiteByAnyDomain(domain) : null;
+
+  const categoryId = await resolveCreateCategoryId(input, defaultId, channelHint, siteData);
+  const mergedTagIds = await mergeCreateTagIds(input, channelHint, siteData);
+  const mediaTypeId = await resolveCreateMediaTypeId(input, channelHint, siteData, meta);
 
   const numberValues = await withRuntime(input.numberValues ?? [], meta, "create");
   const dateTimeValues = await withDatePosted(input.dateTimeValues ?? [], meta, "create");

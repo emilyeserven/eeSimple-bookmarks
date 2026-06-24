@@ -1,8 +1,11 @@
+import type { BookmarkSearch } from "./bookmarkSearch";
+
 import { describe, expect, it } from "vitest";
 
 import {
   bookmarkMatchesSearch,
   bookmarkSearchEquals,
+  hasAnyActiveFilter,
   validateBookmarkSearch,
   withBooleanFilter,
   withCategories,
@@ -501,5 +504,98 @@ describe("bookmarkSearchEquals", () => {
     expect(bookmarkSearchEquals({
       tags: ["t1"],
     }, {})).toBe(false);
+  });
+});
+
+describe("hasAnyActiveFilter", () => {
+  it("returns false for an empty search", () => {
+    expect(hasAnyActiveFilter({})).toBe(false);
+  });
+
+  it("treats empty collections and empty filter records as inactive", () => {
+    expect(hasAnyActiveFilter({
+      tags: [],
+      categories: [],
+      mediaTypes: [],
+      youtubeChannels: [],
+      websites: [],
+      relationshipTypes: [],
+      authors: [],
+      num: {},
+      bool: {},
+      date: {},
+      presence: {},
+      choices: {},
+    })).toBe(false);
+  });
+
+  const activeCases: [string, BookmarkSearch][] = [
+    ["tags", {
+      tags: ["t1"],
+    }],
+    ["tagPresence", {
+      tagPresence: "has",
+    }],
+    ["categories", {
+      categories: ["c1"],
+    }],
+    ["mediaTypes", {
+      mediaTypes: ["m1"],
+    }],
+    ["youtubeChannels", {
+      youtubeChannels: ["y1"],
+    }],
+    ["youtubeChannelPresence", {
+      youtubeChannelPresence: "missing",
+    }],
+    ["websites", {
+      websites: ["w1"],
+    }],
+    ["websitePresence", {
+      websitePresence: "has",
+    }],
+    ["relationshipTypes", {
+      relationshipTypes: ["r1"],
+    }],
+    ["authors", {
+      authors: ["a1"],
+    }],
+    ["num", {
+      num: {
+        "prop-1": [1, 10],
+      },
+    }],
+    ["bool", {
+      bool: {
+        "prop-1": true,
+      },
+    }],
+    ["date", {
+      date: {
+        "prop-1": ["2024-01-01", null],
+      },
+    }],
+    ["presence", {
+      presence: {
+        "prop-1": "has",
+      },
+    }],
+    ["choices", {
+      choices: {
+        "prop-1": ["x"],
+      },
+    }],
+  ];
+
+  it.each(activeCases)("returns true when only %s is active", (_label, search) => {
+    expect(hasAnyActiveFilter(search)).toBe(true);
+  });
+
+  it("treats a presence flag set to undefined as inactive", () => {
+    expect(hasAnyActiveFilter({
+      tagPresence: undefined,
+      websitePresence: undefined,
+      youtubeChannelPresence: undefined,
+    })).toBe(false);
   });
 });
