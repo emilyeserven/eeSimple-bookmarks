@@ -2,6 +2,7 @@ import { useBookmarkFormActions } from "./useBookmarkFormActions";
 import {
   useAutoFetchImage,
   useAutoFetchTitle,
+  useRedirectIgnoreList,
   useShortenerIgnoreList,
 } from "../hooks/useAppSettings";
 import { useAuthors } from "../hooks/useAuthors";
@@ -28,6 +29,9 @@ export function useBookmarkFormData() {
   const {
     data: shortenerIgnoreList,
   } = useShortenerIgnoreList();
+  const {
+    data: redirectIgnoreList,
+  } = useRedirectIgnoreList();
   const {
     data: tagTree,
   } = useTagTree();
@@ -56,6 +60,7 @@ export function useBookmarkFormData() {
     actions,
     websites,
     shortenerIgnoreList,
+    redirectIgnoreList,
     tagTree,
     customProperties,
     categories,

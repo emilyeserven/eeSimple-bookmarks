@@ -172,6 +172,9 @@ vi.mock("../hooks/useAppSettings", () => ({
   useShortenerIgnoreList: () => ({
     data: [],
   }),
+  useRedirectIgnoreList: () => ({
+    data: [],
+  }),
   useAutoFetchTitle: () => autoFetchTitle,
   useAutoFetchImage: () => true,
 }));

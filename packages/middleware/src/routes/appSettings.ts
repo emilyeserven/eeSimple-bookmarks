@@ -15,6 +15,7 @@ import {
   getDisplayPreferenceSettings,
   getHomepageContentSettings,
   getImportBlacklist,
+  getRedirectIgnoreList,
   getShortenerIgnoreList,
   getSidebarCustomizationSettings,
   updateAdvancedSettings,
@@ -22,6 +23,7 @@ import {
   updateDisplayPreferenceSettings,
   updateHomepageContentSettings,
   updateImportBlacklist,
+  updateRedirectIgnoreList,
   updateShortenerIgnoreList,
   updateSidebarCustomizationSettings,
 } from "@/services/appSettings";
@@ -246,6 +248,24 @@ export async function appSettingsRoutes(app: FastifyInstance): Promise<void> {
       domains,
     } = req.body as { domains: string[] };
     return updateShortenerIgnoreList(domains);
+  });
+
+  app.get("/api/app-settings/redirect-ignore-list", {
+    schema: {
+      tags: ["app-settings"],
+    },
+  }, async () => getRedirectIgnoreList());
+
+  app.put("/api/app-settings/redirect-ignore-list", {
+    schema: {
+      tags: ["app-settings"],
+      body: ignoreListBody,
+    },
+  }, async (req) => {
+    const {
+      domains,
+    } = req.body as { domains: string[] };
+    return updateRedirectIgnoreList(domains);
   });
 
   app.get("/api/app-settings/import-blacklist", {

@@ -250,6 +250,45 @@ export async function updateShortenerIgnoreList(domains: string[]): Promise<stri
   return normalized;
 }
 
+/** Read the redirect ignore list (domains whose redirect chains are never followed). */
+export async function getRedirectIgnoreList(): Promise<string[]> {
+  const [row] = await db
+    .select({
+      redirectIgnoreList: appSettings.redirectIgnoreList,
+    })
+    .from(appSettings)
+    .where(eq(appSettings.id, ROW_ID));
+  return row?.redirectIgnoreList ?? [];
+}
+
+/**
+ * Replace the redirect ignore list. Domains are normalized (trimmed, lower-cased, leading `www.`
+ * stripped) and de-duplicated; empties are dropped. Returns the stored list.
+ */
+export async function updateRedirectIgnoreList(domains: string[]): Promise<string[]> {
+  const normalized = [
+    ...new Set(
+      domains
+        .map(d => d.trim().replace(/^www\./i, "").toLowerCase())
+        .filter(d => d.length > 0),
+    ),
+  ];
+  await db
+    .insert(appSettings)
+    .values({
+      id: ROW_ID,
+      shortenerIgnoreList: DEFAULT_SHORTENER_IGNORE_LIST,
+      redirectIgnoreList: normalized,
+    })
+    .onConflictDoUpdate({
+      target: appSettings.id,
+      set: {
+        redirectIgnoreList: normalized,
+      },
+    });
+  return normalized;
+}
+
 /** Read the imports blacklist (links matching these are dropped from future imports). */
 export async function getImportBlacklist(): Promise<ImportBlacklistEntry[]> {
   const [row] = await db

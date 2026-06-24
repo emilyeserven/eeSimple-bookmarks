@@ -179,6 +179,8 @@ export type QuickAddDisplay = "collapsible" | "expanded";
 export interface AppSettings {
   /** Generic URL-shortener domains (e.g. `bit.ly`) that can't be expanded — always nudge. */
   shortenerIgnoreList: string[];
+  /** Domains whose redirect chains should never be followed (e.g. `docs.google.com`). */
+  redirectIgnoreList: string[];
   /** Markdown shown at the top of the homepage (edited via the rich-text editor in settings). */
   homepageText: string;
   /** Desktop width of the homepage text block. */
