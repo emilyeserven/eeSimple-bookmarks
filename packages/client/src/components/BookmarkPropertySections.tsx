@@ -1,3 +1,4 @@
+import type { IsbnLink } from "../lib/isbnLinks";
 import type { Bookmark, CustomProperty, PropertyGroup, SectionEntry } from "@eesimple/types";
 import type { ReactNode } from "react";
 
@@ -9,6 +10,29 @@ import { formatSectionEntry } from "../lib/propertyFormat";
 
 import { LabeledSection } from "@/components/LabeledSection";
 import { Separator } from "@/components/ui/separator";
+
+function IsbnLinksPanel({
+  links,
+}: { links: IsbnLink[] }) {
+  return (
+    <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-sm">
+      {links.map(link => (
+        <a
+          key={link.label}
+          href={link.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="
+            text-primary underline-offset-2
+            hover:underline
+          "
+        >
+          {link.label}
+        </a>
+      ))}
+    </div>
+  );
+}
 
 interface BookmarkPropertySectionsProps {
   bookmark: Bookmark;
@@ -34,12 +58,13 @@ export function BookmarkPropertySections({
   const defaultZones = useDefaultFieldZones();
 
   const {
-    numberRows, ratingRows, booleanRows, dateTimeRows, fileRows, choicesRows, progressRows, sectionsRows,
+    numberRows, ratingRows, booleanRows, dateTimeRows, fileRows, choicesRows, progressRows, sectionsRows, textRows,
   } = buildBookmarkPropertyRows(bookmark, properties, defaultZones);
 
   const hasProperties = numberRows.length > 0 || booleanRows.length > 0
     || dateTimeRows.length > 0 || ratingRows.length > 0 || fileRows.length > 0
-    || choicesRows.length > 0 || progressRows.length > 0 || sectionsRows.length > 0;
+    || choicesRows.length > 0 || progressRows.length > 0 || sectionsRows.length > 0
+    || textRows.length > 0;
   if (!hasProperties) return null;
 
   // Partition the property rows by group. A row belongs to the ungrouped bucket when its `groupId`
@@ -70,7 +95,8 @@ export function BookmarkPropertySections({
     || fileRows.some(row => inGroup(row.groupId, section.target))
     || choicesRows.some(row => inGroup(row.groupId, section.target))
     || progressRows.some(row => inGroup(row.groupId, section.target))
-    || sectionsRows.some(row => inGroup(row.groupId, section.target)));
+    || sectionsRows.some(row => inGroup(row.groupId, section.target))
+    || textRows.some(row => inGroup(row.groupId, section.target)));
 
   return (
     <>
@@ -314,6 +340,23 @@ export function BookmarkPropertySections({
                     search={row.search}
                     name={row.name}
                   />
+                </div>
+              ))}
+              {textRows.filter(row => inGroup(row.groupId, section.target)).map(row => (
+                <div
+                  key={row.id}
+                  className="flex flex-col gap-1"
+                >
+                  <dt className="text-muted-foreground">
+                    {row.name}
+                    :
+                  </dt>
+                  <dd>
+                    <span className="font-mono text-sm">{row.value}</span>
+                    {row.links.length > 0 && (
+                      <IsbnLinksPanel links={row.links} />
+                    )}
+                  </dd>
                 </div>
               ))}
             </dl>

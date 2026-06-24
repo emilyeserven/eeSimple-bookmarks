@@ -14,6 +14,7 @@ export const TYPE_LABELS: Record<CustomPropertyType, string> = {
   choices: "Choices",
   itemInItems: "Item in Items",
   sections: "Sections",
+  text: "Text",
 };
 
 /** Format an itemInItems value using the property's configured text segments. */

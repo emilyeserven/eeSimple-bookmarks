@@ -92,6 +92,7 @@ interface BookmarkRevealedFieldsProps {
     total: string; }>;
   sectionsInputs: Record<string, { exhaustive: boolean;
     sections: import("@eesimple/types").SectionEntry[]; }>;
+  textInputs: Record<string, string>;
   onNumberChange: (id: string, value: string) => void;
   onBooleanChange: (id: string, value: boolean) => void;
   onDateTimeChange: (id: string, value: string) => void;
@@ -99,6 +100,7 @@ interface BookmarkRevealedFieldsProps {
   onProgressChange: (id: string, field: "current" | "total", value: string) => void;
   onSectionsChange: (id: string, value: { exhaustive: boolean;
     sections: import("@eesimple/types").SectionEntry[]; }) => void;
+  onTextChange: (id: string, value: string) => void;
 
   // Advanced section.
   categories: Category[];
@@ -129,6 +131,10 @@ interface BookmarkRevealedFieldsProps {
 
   // Description fetch sparkle.
   onFetchDescription: (url: string) => void;
+
+  // ISBN metadata fetch.
+  onIsbnFetch?: (isbn: string) => void;
+  isIsbnFetchPending?: boolean;
 }
 
 /**
@@ -184,12 +190,14 @@ export function BookmarkRevealedFields(props: BookmarkRevealedFieldsProps) {
           choicesInputs: props.choicesInputs,
           progressInputs: props.progressInputs,
           sectionsInputs: props.sectionsInputs,
+          textInputs: props.textInputs,
           onNumberChange: props.onNumberChange,
           onBooleanChange: props.onBooleanChange,
           onDateTimeChange: props.onDateTimeChange,
           onChoicesChange: props.onChoicesChange,
           onProgressChange: props.onProgressChange,
           onSectionsChange: props.onSectionsChange,
+          onTextChange: props.onTextChange,
           onApplyCategoryDefaults: props.onApplyCategoryDefaults,
         }}
         isFetchDescriptionPending={props.isFetchMetadataPending}

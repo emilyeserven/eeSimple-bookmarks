@@ -196,6 +196,17 @@ vi.mock("../hooks/usePublishers", () => ({
     mutateAsync: vi.fn(),
   }),
 }));
+vi.mock("../hooks/useFetchIsbnMetadata", () => ({
+  useFetchIsbnMetadata: () => ({
+    mutate: vi.fn(),
+    mutateAsync: vi.fn(),
+    isPending: false,
+    isError: false,
+    error: null,
+    data: undefined,
+    reset: vi.fn(),
+  }),
+}));
 vi.mock("../lib/api/metadata", () => ({
   metadataApi: {
     resolveUrl: vi.fn().mockImplementation(({
@@ -424,6 +435,7 @@ describe("BookmarkForm editing", () => {
       choicesValues: [],
       progressValues: [],
       sectionsValues: [],
+      textValues: [],
       authors: [],
       relationships: [],
       publisher: null,
@@ -491,6 +503,7 @@ describe("BookmarkForm editing", () => {
       choicesValues: [],
       progressValues: [],
       sectionsValues: [],
+      textValues: [],
       authors: [],
       relationships: [],
       publisher: null,
@@ -631,6 +644,7 @@ describe("BookmarkForm property prefill", () => {
       choicesValues: [],
       progressValues: [],
       sectionsValues: [],
+      textValues: [],
       authors: [],
       relationships: [],
       publisher: null,

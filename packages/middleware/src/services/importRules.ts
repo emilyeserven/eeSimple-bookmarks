@@ -164,6 +164,7 @@ export async function applyImportRules(
     fileValues: new Set<string>(),
     choicesValues: new Map<string, string[]>(),
     sectionsValues: new Map(),
+    textValues: new Map<string, string>(),
   };
 
   for (const rule of rules) {

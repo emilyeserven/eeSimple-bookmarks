@@ -4,7 +4,7 @@ import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 
 import { useRef, useState } from "react";
 
-/** The number/boolean/datetime/choices/progress/sections input maps plus a ref mirror, seeded from a bookmark's stored values. */
+/** The number/boolean/datetime/choices/progress/sections/text input maps plus a ref mirror, seeded from a bookmark's stored values. */
 export interface SeededPropertyInputs {
   numberInputs: Record<string, string>;
   booleanInputs: Record<string, boolean>;
@@ -14,6 +14,7 @@ export interface SeededPropertyInputs {
     total: string; }>;
   sectionsInputs: Record<string, { exhaustive: boolean;
     sections: SectionEntry[]; }>;
+  textInputs: Record<string, string>;
   setNumberInputs: Dispatch<SetStateAction<Record<string, string>>>;
   setBooleanInputs: Dispatch<SetStateAction<Record<string, boolean>>>;
   setDateTimeInputs: Dispatch<SetStateAction<Record<string, string>>>;
@@ -22,6 +23,7 @@ export interface SeededPropertyInputs {
     total: string; }>>>;
   setSectionsInputs: Dispatch<SetStateAction<Record<string, { exhaustive: boolean;
     sections: SectionEntry[]; }>>>;
+  setTextInputs: Dispatch<SetStateAction<Record<string, string>>>;
   /** Mirror of the current inputs; read by submit handlers so they always see the latest entries. */
   customRef: MutableRefObject<CustomPropertyInputs>;
 }
@@ -60,6 +62,8 @@ export function useSeededPropertyInputs(bookmark?: Bookmark): SeededPropertyInpu
         sections: entry.sections,
       },
     ])));
+  const [textInputs, setTextInputs] = useState<Record<string, string>>(() =>
+    Object.fromEntries((bookmark?.textValues ?? []).map(entry => [entry.propertyId, entry.value])));
 
   const customRef = useRef<CustomPropertyInputs>({
     numberInputs,
@@ -68,6 +72,7 @@ export function useSeededPropertyInputs(bookmark?: Bookmark): SeededPropertyInpu
     choicesInputs,
     progressInputs,
     sectionsInputs,
+    textInputs,
   });
   customRef.current = {
     numberInputs,
@@ -76,6 +81,7 @@ export function useSeededPropertyInputs(bookmark?: Bookmark): SeededPropertyInpu
     choicesInputs,
     progressInputs,
     sectionsInputs,
+    textInputs,
   };
 
   return {
@@ -85,12 +91,14 @@ export function useSeededPropertyInputs(bookmark?: Bookmark): SeededPropertyInpu
     choicesInputs,
     progressInputs,
     sectionsInputs,
+    textInputs,
     setNumberInputs,
     setBooleanInputs,
     setDateTimeInputs,
     setChoicesInputs,
     setProgressInputs,
     setSectionsInputs,
+    setTextInputs,
     customRef,
   };
 }

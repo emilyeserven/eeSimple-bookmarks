@@ -11,13 +11,15 @@ import type {
 import { useEffect } from "react";
 
 import { SECTION_ENTRY_TYPES, SECTION_ENTRY_TYPE_LABELS, propertyAppliesToCategory, propertyAppliesToMediaType } from "@eesimple/types";
+import { Loader2, Sparkles } from "lucide-react";
 
-import { DATE_POSTED_SLUG, RUNTIME_SLUG } from "./bookmarkFormSchema";
+import { DATE_POSTED_SLUG, ISBN_SLUG, RUNTIME_SLUG } from "./bookmarkFormSchema";
 import { BookmarkPropertyFileField } from "./BookmarkPropertyFileField";
 import { DateTimePicker } from "./DateTimePicker";
 import { StarRating } from "./StarRating";
 import { useCategoryDefaults } from "../hooks/useCategories";
 
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,6 +59,7 @@ interface CategoryCustomFieldsProps {
     total: string; }>;
   sectionsInputs: Record<string, { exhaustive: boolean;
     sections: SectionEntry[]; }>;
+  textInputs: Record<string, string>;
   onNumberChange: (propertyId: string, value: string) => void;
   onBooleanChange: (propertyId: string, value: boolean) => void;
   onDateTimeChange: (propertyId: string, value: string) => void;
@@ -64,14 +67,19 @@ interface CategoryCustomFieldsProps {
   onProgressChange: (propertyId: string, field: "current" | "total", value: string) => void;
   onSectionsChange: (propertyId: string, value: { exhaustive: boolean;
     sections: SectionEntry[]; }) => void;
+  onTextChange: (propertyId: string, value: string) => void;
+  /** Called when the user clicks "Fetch metadata" on the ISBN field. */
+  onIsbnFetch?: (isbn: string) => void;
+  isIsbnFetchPending?: boolean;
 }
 
 /** Renders the custom-property inputs for the properties assigned to the chosen category. */
 export function CategoryCustomFields({
   categoryId, mediaTypeId = null, properties, bookmark = null, placement, className,
   hiddenSlugs = [RUNTIME_SLUG, DATE_POSTED_SLUG],
-  numberInputs, booleanInputs, dateTimeInputs, choicesInputs, progressInputs, sectionsInputs,
-  onNumberChange, onBooleanChange, onDateTimeChange, onChoicesChange, onProgressChange, onSectionsChange,
+  numberInputs, booleanInputs, dateTimeInputs, choicesInputs, progressInputs, sectionsInputs, textInputs,
+  onNumberChange, onBooleanChange, onDateTimeChange, onChoicesChange, onProgressChange, onSectionsChange, onTextChange,
+  onIsbnFetch, isIsbnFetchPending,
 }: CategoryCustomFieldsProps) {
   const categoryProps = properties.filter((property) => {
     // Union scoping: a property shows if it applies to the bookmark's category OR its media type.
@@ -113,12 +121,16 @@ export function CategoryCustomFields({
             choicesInputs={choicesInputs}
             progressInputs={progressInputs}
             sectionsInputs={sectionsInputs}
+            textInputs={textInputs}
             onNumberChange={onNumberChange}
             onBooleanChange={onBooleanChange}
             onDateTimeChange={onDateTimeChange}
             onChoicesChange={onChoicesChange}
             onProgressChange={onProgressChange}
             onSectionsChange={onSectionsChange}
+            onTextChange={onTextChange}
+            onIsbnFetch={onIsbnFetch}
+            isIsbnFetchPending={isIsbnFetchPending}
           />
         ))}
       </div>
@@ -147,6 +159,7 @@ interface CategoryPropertyFieldProps {
     total: string; }>;
   sectionsInputs: Record<string, { exhaustive: boolean;
     sections: SectionEntry[]; }>;
+  textInputs: Record<string, string>;
   onNumberChange: (propertyId: string, value: string) => void;
   onBooleanChange: (propertyId: string, value: boolean) => void;
   onDateTimeChange: (propertyId: string, value: string) => void;
@@ -154,13 +167,16 @@ interface CategoryPropertyFieldProps {
   onProgressChange: (propertyId: string, field: "current" | "total", value: string) => void;
   onSectionsChange: (propertyId: string, value: { exhaustive: boolean;
     sections: SectionEntry[]; }) => void;
+  onTextChange: (propertyId: string, value: string) => void;
+  onIsbnFetch?: (isbn: string) => void;
+  isIsbnFetchPending?: boolean;
 }
 
 /** Renders the single input appropriate to one custom property's type. */
 function CategoryPropertyField({
   property, bookmark, numberInputs, booleanInputs, dateTimeInputs, choicesInputs, progressInputs,
-  sectionsInputs, onNumberChange, onBooleanChange, onDateTimeChange, onChoicesChange, onProgressChange,
-  onSectionsChange,
+  sectionsInputs, textInputs, onNumberChange, onBooleanChange, onDateTimeChange, onChoicesChange,
+  onProgressChange, onSectionsChange, onTextChange, onIsbnFetch, isIsbnFetchPending,
 }: CategoryPropertyFieldProps) {
   const fieldId = `property-${property.id}`;
 
@@ -233,6 +249,17 @@ function CategoryPropertyField({
             sections: [],
           }}
           onChange={value => onSectionsChange(property.id, value)}
+        />
+      );
+    case "text":
+      return (
+        <TextPropertyField
+          property={property}
+          fieldId={fieldId}
+          value={textInputs[property.id] ?? ""}
+          onChange={value => onTextChange(property.id, value)}
+          onFetch={property.slug === ISBN_SLUG ? onIsbnFetch : undefined}
+          isFetchPending={property.slug === ISBN_SLUG ? isIsbnFetchPending : undefined}
         />
       );
     default:
@@ -705,6 +732,47 @@ function SectionsPropertyField({
             Exhaustive
           </Label>
         </div>
+      </div>
+      <FieldDescription text={property.description} />
+    </div>
+  );
+}
+
+function TextPropertyField({
+  property, fieldId, value, onChange, onFetch, isFetchPending,
+}: {
+  property: CustomProperty;
+  fieldId: string;
+  value: string;
+  onChange: (value: string) => void;
+  onFetch?: (value: string) => void;
+  isFetchPending?: boolean;
+}) {
+  return (
+    <div className="space-y-1">
+      <Label htmlFor={fieldId}>{property.name}</Label>
+      <div className="flex gap-1">
+        <Input
+          id={fieldId}
+          type="text"
+          value={value}
+          onChange={event => onChange(event.target.value)}
+        />
+        {onFetch && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            title="Fetch metadata from Open Library"
+            aria-label="Fetch metadata from Open Library"
+            disabled={!value.trim() || isFetchPending}
+            onClick={() => onFetch(value)}
+          >
+            {isFetchPending
+              ? <Loader2 className="size-4 animate-spin" />
+              : <Sparkles className="size-4" />}
+          </Button>
+        )}
       </div>
       <FieldDescription text={property.description} />
     </div>

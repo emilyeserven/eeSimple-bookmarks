@@ -1,4 +1,4 @@
-import type { CheckUrlResult, FetchMetadataResult, ResolveUrlResult } from "@eesimple/types";
+import type { CheckUrlResult, FetchIsbnMetadataResult, FetchMetadataResult, ResolveUrlResult } from "@eesimple/types";
 
 import { request } from "./client";
 
@@ -38,4 +38,8 @@ export const metadataApi = {
     url,
   }: { url: string }) =>
     request<ResolveUrlResult>(`/resolve-url?url=${encodeURIComponent(url)}`),
+  fetchIsbnMetadata: ({
+    isbn,
+  }: { isbn: string }) =>
+    request<FetchIsbnMetadataResult>(`/fetch-isbn-metadata?isbn=${encodeURIComponent(isbn)}`),
 };

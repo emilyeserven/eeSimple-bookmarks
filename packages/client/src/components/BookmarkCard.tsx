@@ -19,6 +19,7 @@ import { useAutoBookmarkImage, useUpdateBookmark } from "../hooks/useBookmarks";
 import { useCategories } from "../hooks/useCategories";
 import { buildBookmarkValueItems, fieldPlacementsForCard } from "../lib/bookmarkCardValues";
 import { mergeBooleanValue } from "../lib/bookmarkFormat";
+import { buildIsbnLinks } from "../lib/isbnLinks";
 
 import { entityLinkTitle } from "@/lib/sidebarModifier";
 
@@ -140,6 +141,14 @@ export function BookmarkCard({
 
   const hasImage = !!bookmark.image && imageVisibility !== "off";
 
+  // Compact Amazon links for any text-typed properties with a non-empty value (e.g. ISBN/ASIN).
+  const propById = new Map(properties.map(p => [p.id, p]));
+  const isbnLinks = bookmark.textValues.flatMap((entry) => {
+    const prop = propById.get(entry.propertyId);
+    if (!prop || prop.type !== "text" || !entry.value.trim()) return [];
+    return buildIsbnLinks(entry.value).slice(0, 2);
+  });
+
   // Fields placed in an image corner are overlaid only when the card has an image; otherwise they
   // fall back to the card body (BookmarkCardDetails reads the same `placements`).
   const valueItems = buildBookmarkValueItems(bookmark, properties, placements);
@@ -216,12 +225,35 @@ export function BookmarkCard({
     />
   );
 
+  const isbnLinksEl = isbnLinks.length > 0
+    ? (
+      <div className="flex flex-wrap gap-x-2 gap-y-1 px-3 pb-2 text-xs">
+        {isbnLinks.map(link => (
+          <a
+            key={link.label}
+            href={link.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="
+              text-muted-foreground underline-offset-2
+              hover:text-foreground hover:underline
+            "
+            onClick={e => e.stopPropagation()}
+          >
+            {link.label}
+          </a>
+        ))}
+      </div>
+    )
+    : null;
+
   if (imageLeft) {
     return (
       <div className="flex gap-4">
         {imageEl}
         <div className="min-w-0 flex-1">
           {details}
+          {isbnLinksEl}
         </div>
       </div>
     );
@@ -231,6 +263,7 @@ export function BookmarkCard({
     <div>
       {imageEl}
       {details}
+      {isbnLinksEl}
     </div>
   );
 }

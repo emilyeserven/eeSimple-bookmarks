@@ -131,12 +131,14 @@ export function BookmarkForm({
           choicesInputs={c.prefill.choicesInputs}
           progressInputs={c.prefill.progressInputs}
           sectionsInputs={c.prefill.sectionsInputs}
+          textInputs={c.prefill.textInputs}
           onNumberChange={c.prefill.handleNumberChange}
           onBooleanChange={c.prefill.handleBooleanChange}
           onDateTimeChange={c.prefill.handleDateTimeChange}
           onChoicesChange={c.prefill.handleChoicesChange}
           onProgressChange={c.prefill.handleProgressChange}
           onSectionsChange={c.prefill.handleSectionsChange}
+          onTextChange={c.prefill.handleTextChange}
           categories={c.categories ?? []}
           addCategoryOpen={c.addCategoryOpen}
           onAddCategoryOpenChange={c.setAddCategoryOpen}
@@ -160,6 +162,8 @@ export function BookmarkForm({
           onFetchDescription={url => void c.runFetchDescription(url, {
             force: true,
           })}
+          onIsbnFetch={isbn => void c.handleIsbnFetch(isbn)}
+          isIsbnFetchPending={c.isbnFetch.isPending}
         />
       )}
 

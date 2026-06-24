@@ -17,6 +17,7 @@ import {
   buildCategoryPropertyValues,
   buildChoicesValuesFromInputs,
   buildSectionsValuesFromInputs,
+  buildTextValuesFromInputs,
   initialImageIntent,
   looksLikeUrl,
   looksLikeYouTube,
@@ -27,6 +28,7 @@ import { useBookmarkFormUiState, useSourceDefaultFlags } from "./useBookmarkForm
 import { useBookmarkPropertyPrefill } from "./useBookmarkPropertyPrefill";
 import { useBookmarkScanHandlers } from "./useBookmarkScanHandlers";
 import { useBookmarkUrlProcessing } from "./useBookmarkUrlProcessing";
+import { useFetchIsbnMetadata } from "../hooks/useFetchIsbnMetadata";
 import { metadataApi } from "../lib/api/metadata";
 import { useAppForm } from "../lib/form";
 import { notifySuccess } from "../lib/notifications";
@@ -246,6 +248,12 @@ export function useBookmarkFormController({
       prefill.customRef.current.sectionsInputs,
       value.mediaTypeId || null,
     );
+    const textValues = buildTextValuesFromInputs(
+      customProperties ?? [],
+      value.categoryId,
+      prefill.customRef.current.textInputs,
+      value.mediaTypeId || null,
+    );
 
     // Resolve the URL to save plus the original it was cleaned from (see resolveSubmitUrl).
     const {
@@ -272,6 +280,7 @@ export function useBookmarkFormController({
       choicesValues,
       progressValues,
       sectionsValues,
+      textValues,
       ...(channelHintRef.current && {
         youtubeChannel: channelHintRef.current,
       }),
@@ -362,6 +371,20 @@ export function useBookmarkFormController({
     flags.resetFlags();
     quickAddRef.current = false;
     ui.resetUiState();
+  }
+
+  const isbnFetch = useFetchIsbnMetadata();
+
+  async function handleIsbnFetch(isbn: string): Promise<void> {
+    const result = await isbnFetch.mutateAsync({
+      isbn,
+    });
+    if (result.title && !form.getFieldValue("title").trim()) {
+      form.setFieldValue("title", result.title);
+    }
+    if (result.description && !form.getFieldValue("description").trim()) {
+      form.setFieldValue("description", result.description);
+    }
   }
 
   const {
@@ -603,6 +626,9 @@ export function useBookmarkFormController({
     runYouTubeEnrichment,
     undoUrlCleanup,
     undoTitleFetch,
+    // ISBN metadata fetch.
+    isbnFetch,
+    handleIsbnFetch,
     // Save mutation (footer state).
     saveBookmark,
     onDone,

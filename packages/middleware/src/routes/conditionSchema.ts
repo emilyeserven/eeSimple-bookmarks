@@ -320,6 +320,38 @@ const sectionsPredicate = {
   ],
 } as const;
 
+const textPredicate = {
+  oneOf: [
+    {
+      type: "object",
+      additionalProperties: false,
+      required: ["kind", "mode"],
+      properties: {
+        kind: {
+          const: "presence",
+        },
+        mode: {
+          type: "string",
+          enum: ["has", "missing"],
+        },
+      },
+    },
+    {
+      type: "object",
+      additionalProperties: false,
+      required: ["kind", "pattern"],
+      properties: {
+        kind: {
+          const: "contains",
+        },
+        pattern: {
+          type: "string",
+        },
+      },
+    },
+  ],
+} as const;
+
 // One predicate sub-schema per filterable value kind. `satisfies Record<ConditionValueKind, …>`
 // makes a `CONDITION_VALUE_KINDS` entry without a predicate (or vice versa) a compile error, so the
 // `oneOf` below can never drift from the shared `@eesimple/types` value-kind list.
@@ -330,6 +362,7 @@ const propertyPredicateByKind = {
   file: filePresencePredicate,
   choices: choicesPredicate,
   sections: sectionsPredicate,
+  text: textPredicate,
 } satisfies Record<ConditionValueKind, unknown>;
 
 const propertyNode = {

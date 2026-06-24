@@ -10,6 +10,7 @@ import {
   bookmarkNumberValues,
   bookmarkProgressValues,
   bookmarkSectionsValues,
+  bookmarkTextValues,
   bookmarkRelationships,
   bookmarks,
   type BookmarkRow,
@@ -132,7 +133,7 @@ async function buildConditionInputs(
   const ids = baseRows.map(row => row.id);
   if (ids.length === 0) return new Map();
 
-  const [tagRows, numberRows, booleanRows, dateTimeRows, choicesRows, fileRows, progressRows, sectionsRows, relationshipRows] = await Promise.all([
+  const [tagRows, numberRows, booleanRows, dateTimeRows, choicesRows, fileRows, progressRows, sectionsRows, textRows, relationshipRows] = await Promise.all([
     db
       .select({
         bookmarkId: bookmarkTags.bookmarkId,
@@ -198,6 +199,14 @@ async function buildConditionInputs(
       .where(inArray(bookmarkSectionsValues.bookmarkId, ids)),
     db
       .select({
+        bookmarkId: bookmarkTextValues.bookmarkId,
+        propertyId: bookmarkTextValues.propertyId,
+        value: bookmarkTextValues.value,
+      })
+      .from(bookmarkTextValues)
+      .where(inArray(bookmarkTextValues.bookmarkId, ids)),
+    db
+      .select({
         bookmarkAId: bookmarkRelationships.bookmarkAId,
         bookmarkBId: bookmarkRelationships.bookmarkBId,
         relationshipTypeId: bookmarkRelationships.relationshipTypeId,
@@ -217,6 +226,7 @@ async function buildConditionInputs(
   const datesByBid = groupToMaps(dateTimeRows, r => r.bookmarkId, r => r.propertyId, r => r.value);
   const choicesByBid = groupToMaps(choicesRows, r => r.bookmarkId, r => r.propertyId, r => r.values as string[]);
   const filesByBid = groupToSets(fileRows, r => r.bookmarkId, r => r.propertyId);
+  const textsByBid = groupToMaps(textRows, r => r.bookmarkId, r => r.propertyId, r => r.value);
 
   // Merge progress `current` values into numberValues so itemInItems filters like a number.
   for (const r of progressRows) {
@@ -265,6 +275,7 @@ async function buildConditionInputs(
       choicesValues: choicesByBid.get(row.id) ?? new Map(),
       sectionsValues: sectionsByBid.get(row.id) ?? new Map(),
       fileValues: filesByBid.get(row.id) ?? new Set(),
+      textValues: textsByBid.get(row.id) ?? new Map(),
       relationshipTypeIds: relTypesByBid.get(row.id) ?? new Set(),
     });
   }

@@ -22,6 +22,8 @@ export function propertyValueKind(property: CustomProperty): ConditionValueKind 
       return "choices";
     case "sections":
       return "sections";
+    case "text":
+      return "text";
     default:
       return "boolean";
   }

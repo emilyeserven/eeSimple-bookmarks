@@ -16,6 +16,7 @@ import type {
   BookmarkRelationship,
   BookmarkSectionsValue,
   BookmarkTag,
+  BookmarkTextValue,
   BookmarkWebsite,
   BookmarkYouTubeChannel,
   RelationshipRole,
@@ -33,6 +34,7 @@ import {
   bookmarkNumberValues,
   bookmarkProgressValues,
   bookmarkSectionsValues,
+  bookmarkTextValues,
   bookmarkRelationships,
   bookmarks,
   type BookmarkRow,
@@ -69,6 +71,7 @@ interface BookmarkExtras {
   choicesValues: BookmarkChoicesValue[];
   progressValues: BookmarkProgressValue[];
   sectionsValues: BookmarkSectionsValue[];
+  textValues: BookmarkTextValue[];
   fileValues: BookmarkFileValue[];
   image: BookmarkImage | null;
   relationships: BookmarkRelationship[];
@@ -89,6 +92,7 @@ const EMPTY_EXTRAS: BookmarkExtras = {
   choicesValues: [],
   progressValues: [],
   sectionsValues: [],
+  textValues: [],
   fileValues: [],
   image: null,
   relationships: [],
@@ -118,6 +122,7 @@ function toBookmark(row: BookmarkRow, extras: BookmarkExtras, defaultCategoryId:
     choicesValues: extras.choicesValues,
     progressValues: extras.progressValues,
     sectionsValues: extras.sectionsValues,
+    textValues: extras.textValues,
     fileValues: extras.fileValues,
     relationships: extras.relationships,
     image: extras.image,
@@ -512,6 +517,33 @@ async function sectionsValuesByBookmarkId(
   return grouped;
 }
 
+/** Load text custom-property values for a set of bookmarks, grouped by bookmark id. */
+async function textValuesByBookmarkId(
+  bookmarkIds: string[],
+): Promise<Map<string, BookmarkTextValue[]>> {
+  const grouped = new Map<string, BookmarkTextValue[]>();
+  if (bookmarkIds.length === 0) return grouped;
+
+  const rows = await db
+    .select({
+      bookmarkId: bookmarkTextValues.bookmarkId,
+      propertyId: bookmarkTextValues.propertyId,
+      value: bookmarkTextValues.value,
+    })
+    .from(bookmarkTextValues)
+    .where(inArray(bookmarkTextValues.bookmarkId, bookmarkIds));
+
+  for (const row of rows) {
+    const list = grouped.get(row.bookmarkId) ?? [];
+    list.push({
+      propertyId: row.propertyId,
+      value: row.value,
+    });
+    grouped.set(row.bookmarkId, list);
+  }
+  return grouped;
+}
+
 /** Load image/file custom-property values for a set of bookmarks, grouped by bookmark id. */
 async function fileValuesByBookmarkId(
   bookmarkIds: string[],
@@ -638,7 +670,7 @@ async function relationshipsByBookmarkId(
 
 /** Hydrate all custom-property relations for a set of bookmark rows in batched queries. */
 async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, BookmarkExtras>> {
-  const [tagsMap, authorsMap, numberMap, booleanMap, dateTimeMap, choicesMap, progressMap, sectionsMap, fileMap, imageMap, relationshipsMap] = await Promise.all([
+  const [tagsMap, authorsMap, numberMap, booleanMap, dateTimeMap, choicesMap, progressMap, sectionsMap, textMap, fileMap, imageMap, relationshipsMap] = await Promise.all([
     tagsByBookmarkId(bookmarkIds),
     authorsByBookmarkId(bookmarkIds),
     numberValuesByBookmarkId(bookmarkIds),
@@ -647,6 +679,7 @@ async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
     choicesValuesByBookmarkId(bookmarkIds),
     progressValuesByBookmarkId(bookmarkIds),
     sectionsValuesByBookmarkId(bookmarkIds),
+    textValuesByBookmarkId(bookmarkIds),
     fileValuesByBookmarkId(bookmarkIds),
     imagesByBookmarkId(bookmarkIds),
     relationshipsByBookmarkId(bookmarkIds),
@@ -668,6 +701,7 @@ async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
       choicesValues: choicesMap.get(id) ?? [],
       progressValues: progressMap.get(id) ?? [],
       sectionsValues: sectionsMap.get(id) ?? [],
+      textValues: textMap.get(id) ?? [],
       fileValues: fileMap.get(id) ?? [],
       image: imageMap.get(id) ?? null,
       relationships: relationshipsMap.get(id) ?? [],
