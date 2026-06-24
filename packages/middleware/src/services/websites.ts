@@ -1,9 +1,9 @@
 import { and, asc, eq, inArray, isNull, ne, or, sql } from "drizzle-orm";
-import type { BulkDeleteResult, CreateWebsiteInput, ShortenedLink, UpdateWebsiteInput, Website, WebsiteParamRule } from "@eesimple/types";
+import type { BulkDeleteResult, CreateWebsiteInput, ShortenedLink, SocialLink, UpdateWebsiteInput, Website, WebsiteParamRule } from "@eesimple/types";
 import { getShortenerIgnoreList } from "@/services/appSettings";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { db } from "@/db";
-import { bookmarks, categories, websiteFavicons, websiteTags, websites, type WebsiteRow } from "@/db/schema";
+import { bookmarks, categories, websiteFavicons, websiteTags, websites, websiteYoutubeChannels, type WebsiteRow } from "@/db/schema";
 import { buildStringMap } from "@/utils/mapUtils";
 import { slugify } from "@/utils/slug";
 
@@ -144,6 +144,34 @@ async function setWebsiteTags(
   }
 }
 
+/** Load associated YouTube channel ids for a set of website ids as a map of id → string[]. */
+async function loadWebsiteChannelsMap(websiteIds: string[]): Promise<Map<string, string[]>> {
+  if (websiteIds.length === 0) return new Map();
+  const rows = await db
+    .select({
+      websiteId: websiteYoutubeChannels.websiteId,
+      channelId: websiteYoutubeChannels.channelId,
+    })
+    .from(websiteYoutubeChannels)
+    .where(inArray(websiteYoutubeChannels.websiteId, websiteIds));
+  return buildStringMap(rows, r => r.websiteId, r => r.channelId);
+}
+
+/** Replace the full set of associated YouTube channels for a website (delete-then-insert). */
+async function setWebsiteChannels(
+  txOrDb: Tx | typeof db,
+  websiteId: string,
+  channelIds: string[],
+): Promise<void> {
+  await txOrDb.delete(websiteYoutubeChannels).where(eq(websiteYoutubeChannels.websiteId, websiteId));
+  if (channelIds.length > 0) {
+    await txOrDb.insert(websiteYoutubeChannels).values(channelIds.map(channelId => ({
+      websiteId,
+      channelId,
+    })));
+  }
+}
+
 /** Map a DB row to the shared `Website` wire type. */
 function toWebsite(
   row: WebsiteRow & {
@@ -154,6 +182,7 @@ function toWebsite(
     categoryIcon?: string | null;
   },
   tagIds: string[] = [],
+  youtubeChannelIds: string[] = [],
 ): Website {
   return {
     id: row.id,
@@ -178,6 +207,8 @@ function toWebsite(
       : null,
     tagIds,
     mediaTypeId: row.mediaTypeId ?? null,
+    socialLinks: (row.socialLinks as SocialLink[] | null) ?? [],
+    youtubeChannelIds,
   };
 }
 
@@ -190,6 +221,7 @@ const websiteSelect = {
   builtIn: websites.builtIn,
   shortenedLinks: websites.shortenedLinks,
   paramRules: websites.paramRules,
+  socialLinks: websites.socialLinks,
   createdAt: websites.createdAt,
   categoryId: websites.categoryId,
   mediaTypeId: websites.mediaTypeId,
@@ -279,24 +311,34 @@ export async function listWebsites(): Promise<Website[]> {
     .leftJoin(websiteFavicons, eq(websiteFavicons.websiteId, websites.id))
     .leftJoin(categories, eq(categories.id, websites.categoryId))
     .orderBy(asc(websites.siteName));
-  const tagsMap = await loadWebsiteTagsMap(rows.map(r => r.id));
-  return rows.map(row => toWebsite(row, tagsMap.get(row.id) ?? []));
+  const ids = rows.map(r => r.id);
+  const [tagsMap, channelsMap] = await Promise.all([
+    loadWebsiteTagsMap(ids),
+    loadWebsiteChannelsMap(ids),
+  ]);
+  return rows.map(row => toWebsite(row, tagsMap.get(row.id) ?? [], channelsMap.get(row.id) ?? []));
 }
 
 /** Fetch a single website by id, or `null` when absent. */
 export async function getWebsite(id: string): Promise<Website | null> {
   const [row] = await websiteBaseQuery().where(eq(websites.id, id));
   if (!row) return null;
-  const tagsMap = await loadWebsiteTagsMap([row.id]);
-  return toWebsite(row, tagsMap.get(row.id) ?? []);
+  const [tagsMap, channelsMap] = await Promise.all([
+    loadWebsiteTagsMap([row.id]),
+    loadWebsiteChannelsMap([row.id]),
+  ]);
+  return toWebsite(row, tagsMap.get(row.id) ?? [], channelsMap.get(row.id) ?? []);
 }
 
 /** Fetch a website by its normalized domain, or `null` when absent. */
 export async function getWebsiteByDomain(domain: string): Promise<Website | null> {
   const [row] = await websiteBaseQuery().where(eq(websites.domain, domain));
   if (!row) return null;
-  const tagsMap = await loadWebsiteTagsMap([row.id]);
-  return toWebsite(row, tagsMap.get(row.id) ?? []);
+  const [tagsMap, channelsMap] = await Promise.all([
+    loadWebsiteTagsMap([row.id]),
+    loadWebsiteChannelsMap([row.id]),
+  ]);
+  return toWebsite(row, tagsMap.get(row.id) ?? [], channelsMap.get(row.id) ?? []);
 }
 
 /**
@@ -306,8 +348,11 @@ export async function getWebsiteByDomain(domain: string): Promise<Website | null
 export async function getWebsiteByAnyDomain(domain: string): Promise<Website | null> {
   const [row] = await websiteBaseQuery().where(matchesAnyDomain(domain));
   if (!row) return null;
-  const tagsMap = await loadWebsiteTagsMap([row.id]);
-  return toWebsite(row, tagsMap.get(row.id) ?? []);
+  const [tagsMap, channelsMap] = await Promise.all([
+    loadWebsiteTagsMap([row.id]),
+    loadWebsiteChannelsMap([row.id]),
+  ]);
+  return toWebsite(row, tagsMap.get(row.id) ?? [], channelsMap.get(row.id) ?? []);
 }
 
 /**
@@ -462,7 +507,7 @@ export async function updateWebsite(
     }
   }
 
-  const patch: Partial<Pick<WebsiteRow, "domain" | "siteName" | "slug" | "shortenedLinks" | "paramRules" | "categoryId" | "mediaTypeId">> = {};
+  const patch: Partial<Pick<WebsiteRow, "domain" | "siteName" | "slug" | "shortenedLinks" | "paramRules" | "categoryId" | "mediaTypeId" | "socialLinks">> = {};
   if (input.siteName !== undefined) patch.siteName = input.siteName;
   // Rule fields stay editable even on built-ins (only rename/move/delete are blocked above).
   if (input.shortenedLinks !== undefined) patch.shortenedLinks = input.shortenedLinks;
@@ -484,6 +529,9 @@ export async function updateWebsite(
   if ("mediaTypeId" in input) {
     patch.mediaTypeId = input.mediaTypeId ?? null;
   }
+  if ("socialLinks" in input) {
+    patch.socialLinks = input.socialLinks ?? [];
+  }
 
   if (Object.keys(patch).length > 0) {
     await db.update(websites).set(patch).where(eq(websites.id, id));
@@ -491,6 +539,9 @@ export async function updateWebsite(
 
   if (input.tagIds !== undefined) {
     await setWebsiteTags(db, id, input.tagIds);
+  }
+  if (input.youtubeChannelIds !== undefined) {
+    await setWebsiteChannels(db, id, input.youtubeChannelIds);
   }
 
   return getWebsite(id);

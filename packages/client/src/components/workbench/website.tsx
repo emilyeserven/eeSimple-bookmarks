@@ -13,12 +13,21 @@ import { WebsiteParamRulesForm } from "../WebsiteParamRulesForm";
 import { WebsiteShortenedLinksForm } from "../WebsiteShortenedLinksForm";
 
 import { useDeleteWebsite, useWebsiteBySlug, useWebsites } from "@/hooks/useWebsites";
+import { useYouTubeChannels } from "@/hooks/useYouTubeChannels";
+import { SOCIAL_MEDIA_PLATFORM_LABELS } from "@/lib/socialLinks";
 
 function WebsiteGeneralView({
   entity: website,
 }: {
   entity: Website;
 }) {
+  const {
+    data: allChannels,
+  } = useYouTubeChannels();
+  const associatedChannels = (allChannels ?? []).filter(
+    ch => (website.youtubeChannelIds ?? []).includes(ch.id),
+  );
+
   return (
     <div className="space-y-4">
       <EntityImagePreview
@@ -56,6 +65,36 @@ function WebsiteGeneralView({
             </>
           )
           : null}
+        {associatedChannels.map(ch => (
+          <>
+            <dt
+              key={`ch-label-${ch.id}`}
+              className="text-muted-foreground"
+            >YouTube Channel
+            </dt>
+            <dd key={`ch-value-${ch.id}`}>{ch.name}</dd>
+          </>
+        ))}
+        {website.socialLinks.map(link => (
+          <>
+            <dt
+              key={`${link.platform}-label`}
+              className="text-muted-foreground"
+            >
+              {SOCIAL_MEDIA_PLATFORM_LABELS[link.platform]}
+            </dt>
+            <dd key={`${link.platform}-value`}>
+              <a
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline"
+              >
+                {link.url}
+              </a>
+            </dd>
+          </>
+        ))}
       </dl>
       <SourceAutofillDefaults
         kind="website"

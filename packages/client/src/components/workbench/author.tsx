@@ -8,6 +8,7 @@ import { AuthorGeneralForm } from "../AuthorGeneralForm";
 import { EntityImagePreview } from "../EntityImageField";
 
 import { useAuthorById, useAuthorBySlug, useDeleteAuthor } from "@/hooks/useAuthors";
+import { SOCIAL_MEDIA_PLATFORM_LABELS } from "@/lib/socialLinks";
 
 function AuthorGeneralView({
   entity: author,
@@ -68,6 +69,26 @@ function AuthorGeneralView({
             </>
           )
           : null}
+        {author.socialLinks.map(link => (
+          <>
+            <dt
+              key={`${link.platform}-label`}
+              className="text-muted-foreground"
+            >
+              {SOCIAL_MEDIA_PLATFORM_LABELS[link.platform]}
+            </dt>
+            <dd key={`${link.platform}-value`}>
+              <a
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline"
+              >
+                {link.url}
+              </a>
+            </dd>
+          </>
+        ))}
       </dl>
     </div>
   );

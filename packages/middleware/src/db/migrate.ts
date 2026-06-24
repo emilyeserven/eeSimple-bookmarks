@@ -621,6 +621,31 @@ const migrations: RuntimeMigration[] = [
       await db.execute(sql`ALTER TABLE bookmarks ALTER COLUMN url DROP NOT NULL`);
     },
   },
+  {
+    // `authors.social_links` is NOT NULL DEFAULT '[]'::jsonb. Adding a NOT NULL column to a
+    // populated table makes drizzle-kit push prompt non-interactively (crash). Pre-apply here.
+    name: "add authors.social_links column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "authors"
+        ADD COLUMN IF NOT EXISTS "social_links" jsonb NOT NULL DEFAULT '[]'::jsonb
+    `),
+  },
+  {
+    // `publishers.social_links` — same reason as authors.social_links above.
+    name: "add publishers.social_links column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "publishers"
+        ADD COLUMN IF NOT EXISTS "social_links" jsonb NOT NULL DEFAULT '[]'::jsonb
+    `),
+  },
+  {
+    // `websites.social_links` — same reason as authors.social_links above.
+    name: "add websites.social_links column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "websites"
+        ADD COLUMN IF NOT EXISTS "social_links" jsonb NOT NULL DEFAULT '[]'::jsonb
+    `),
+  },
 ];
 
 async function main(): Promise<void> {

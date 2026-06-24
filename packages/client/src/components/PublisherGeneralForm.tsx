@@ -1,4 +1,4 @@
-import type { Publisher, UpdatePublisherInput } from "@eesimple/types";
+import type { Publisher, SocialLink, UpdatePublisherInput } from "@eesimple/types";
 
 import { useState } from "react";
 
@@ -7,19 +7,25 @@ import { Globe } from "lucide-react";
 import { z } from "zod";
 
 import { AddWebsiteModal } from "./AddWebsiteModal";
+import { SocialLinksField } from "./SocialLinksField";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 import { useUpdatePublisher } from "../hooks/usePublishers";
 import { useWebsites } from "../hooks/useWebsites";
 import { useAppForm } from "../lib/form";
+import { socialLinkSchema } from "../lib/socialLinks";
+
+import { Separator } from "@/components/ui/separator";
 
 const publisherGeneralSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
   websiteId: z.string().nullable(),
+  socialLinks: z.array(socialLinkSchema),
 });
 
 const LABELS: Partial<Record<keyof UpdatePublisherInput, string>> = {
   name: "Name",
   websiteId: "Website",
+  socialLinks: "Social media links",
 };
 
 interface Props {
@@ -44,6 +50,7 @@ export function PublisherGeneralForm({
     initial: {
       name: publisher.name,
       websiteId: publisher.websiteId ?? null,
+      socialLinks: publisher.socialLinks,
     },
   });
 
@@ -113,6 +120,13 @@ export function PublisherGeneralForm({
         open={addWebsiteOpen}
         onOpenChange={setAddWebsiteOpen}
         onCreated={website => form.setFieldValue("websiteId", website.id)}
+      />
+
+      <Separator />
+
+      <SocialLinksField
+        socialLinks={publisher.socialLinks}
+        onChange={(links: SocialLink[]) => autoSave.saveField("socialLinks", links)}
       />
     </div>
   );

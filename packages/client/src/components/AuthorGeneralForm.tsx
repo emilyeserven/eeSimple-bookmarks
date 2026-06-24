@@ -1,26 +1,31 @@
-import type { Author, UpdateAuthorInput } from "@eesimple/types";
+import type { Author, SocialLink, UpdateAuthorInput } from "@eesimple/types";
 
 import { useNavigate } from "@tanstack/react-router";
 import { UserCircle, Sparkles } from "lucide-react";
 import { z } from "zod";
 
 import { EntityImageField } from "./EntityImageField";
+import { SocialLinksField } from "./SocialLinksField";
 import { useAutoAuthorImage, useDeleteAuthorImage, useUpdateAuthor, useUploadAuthorImage } from "../hooks/useAuthors";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 import { useAppForm } from "../lib/form";
+import { socialLinkSchema } from "../lib/socialLinks";
 
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 const authorGeneralSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
   authorWebsiteUrl: z.string(),
   biographyUrl: z.string(),
+  socialLinks: z.array(socialLinkSchema),
 });
 
 const LABELS: Partial<Record<keyof UpdateAuthorInput, string>> = {
   name: "Name",
   authorWebsiteUrl: "Author website",
   biographyUrl: "Biography URL",
+  socialLinks: "Social media links",
 };
 
 interface Props {
@@ -46,6 +51,7 @@ export function AuthorGeneralForm({
       name: author.name,
       authorWebsiteUrl: author.authorWebsiteUrl,
       biographyUrl: author.biographyUrl,
+      socialLinks: author.socialLinks,
     },
   });
 
@@ -159,6 +165,13 @@ export function AuthorGeneralForm({
           Fetch from Biography
         </Button>
       </div>
+
+      <Separator />
+
+      <SocialLinksField
+        socialLinks={author.socialLinks}
+        onChange={(links: SocialLink[]) => autoSave.saveField("socialLinks", links)}
+      />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import type { UpdateWebsiteInput, Website } from "@eesimple/types";
+import type { SocialLink, UpdateWebsiteInput, Website } from "@eesimple/types";
 
 import { useState } from "react";
 
@@ -10,6 +10,8 @@ import { AddCategoryModal } from "./AddCategoryModal";
 import { AddMediaTypeModal } from "./AddMediaTypeModal";
 import { DefaultTagsField } from "./DefaultTagsField";
 import { EntityImageField } from "./EntityImageField";
+import { SocialLinksField } from "./SocialLinksField";
+import { WebsiteYouTubeChannelsField } from "./WebsiteYouTubeChannelsField";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 
 import { Separator } from "@/components/ui/separator";
@@ -22,14 +24,17 @@ import {
   useUpdateWebsite,
   useUploadWebsiteFavicon,
 } from "@/hooks/useWebsites";
+import { useYouTubeChannels } from "@/hooks/useYouTubeChannels";
 import { iconComboboxOptions, mediaTypeTreeComboboxOptions } from "@/lib/comboboxOptions";
 import { useAppForm } from "@/lib/form";
+import { socialLinkSchema } from "@/lib/socialLinks";
 
 const websiteGeneralSchema = z.object({
   siteName: z.string().trim().min(1, "Site name is required"),
   domain: z.string().trim().min(1, "Domain is required"),
   categoryId: z.string().nullable(),
   mediaTypeId: z.string().nullable(),
+  socialLinks: z.array(socialLinkSchema),
 });
 
 const LABELS: Partial<Record<keyof UpdateWebsiteInput, string>> = {
@@ -38,6 +43,8 @@ const LABELS: Partial<Record<keyof UpdateWebsiteInput, string>> = {
   categoryId: "Category",
   mediaTypeId: "Media type",
   tagIds: "Default tags",
+  socialLinks: "Social media links",
+  youtubeChannelIds: "YouTube channels",
 };
 
 interface Props {
@@ -66,6 +73,9 @@ export function WebsiteGeneralForm({
   const {
     data: tagTree,
   } = useTagTree();
+  const {
+    data: youtubeChannels,
+  } = useYouTubeChannels();
 
   const autoSave = useFieldAutoSave<UpdateWebsiteInput, Website>({
     id: website.id,
@@ -77,6 +87,8 @@ export function WebsiteGeneralForm({
       categoryId: website.category?.id ?? null,
       mediaTypeId: website.mediaTypeId ?? null,
       tagIds: website.tagIds ?? [],
+      socialLinks: website.socialLinks,
+      youtubeChannelIds: website.youtubeChannelIds ?? [],
     },
   });
 
@@ -229,6 +241,21 @@ export function WebsiteGeneralForm({
         selectedIds={tagIds}
         onToggle={id => saveTagIds(tagIds.includes(id) ? tagIds.filter(t => t !== id) : [...tagIds, id])}
         description="Tags applied automatically to bookmarks saved from this site."
+      />
+
+      <Separator />
+
+      <WebsiteYouTubeChannelsField
+        channels={youtubeChannels ?? []}
+        selectedIds={website.youtubeChannelIds ?? []}
+        onChange={ids => autoSave.saveField("youtubeChannelIds", ids)}
+      />
+
+      <Separator />
+
+      <SocialLinksField
+        socialLinks={website.socialLinks}
+        onChange={(links: SocialLink[]) => autoSave.saveField("socialLinks", links)}
       />
     </div>
   );
