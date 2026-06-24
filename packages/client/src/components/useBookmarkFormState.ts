@@ -73,6 +73,7 @@ export function useBookmarkFormUiState({
   const [isScanning, setIsScanning] = useState(false);
   const [urlDuplicate, setUrlDuplicate] = useState<BookmarkUrlDuplicateResult | null>(null);
   const [autofillOfferDismissed, setAutofillOfferDismissed] = useState(false);
+  const [urlResolveError, setUrlResolveError] = useState<string | null>(null);
 
   function handleCancelReporting(): void {
     setIsReportingTitle(false);
@@ -87,6 +88,7 @@ export function useBookmarkFormUiState({
     setUrlDuplicate(null);
     setAutofillOfferDismissed(false);
     setTitleFetch(null);
+    setUrlResolveError(null);
   }
 
   useEffect(() => {
@@ -117,6 +119,8 @@ export function useBookmarkFormUiState({
     setUrlDuplicate,
     autofillOfferDismissed,
     setAutofillOfferDismissed,
+    urlResolveError,
+    setUrlResolveError,
     handleCancelReporting,
     resetUiState,
   };

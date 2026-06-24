@@ -7,6 +7,7 @@ import { useEffect, useRef } from "react";
 import { Brush, Loader2 } from "lucide-react";
 
 import { BookmarkRevealedFields } from "./BookmarkRevealedFields";
+import { BookmarkUrlResolveFeedback } from "./BookmarkUrlResolveFeedback";
 import { useBookmarkFormController } from "./useBookmarkFormController";
 
 import { Button } from "@/components/ui/button";
@@ -77,6 +78,10 @@ export function BookmarkForm({
           />
         )}
       </form.AppField>
+
+      {c.urlResolveError && (
+        <BookmarkUrlResolveFeedback error={c.urlResolveError} />
+      )}
 
       {c.scanned && (
         <BookmarkRevealedFields

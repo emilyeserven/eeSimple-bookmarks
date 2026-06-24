@@ -2046,6 +2046,11 @@ export interface ResolveUrlResult {
   finalUrl: string;
   /** Whether at least one redirect hop was followed to reach `finalUrl`. */
   redirected: boolean;
+  /**
+   * A user-facing message describing why the redirect chain couldn't be followed, present only
+   * when resolution failed. `finalUrl` is still the original URL in this case.
+   */
+  resolveError?: string;
 }
 
 /** A named snapshot of bookmark listing filter state, reusable on any listing page. */

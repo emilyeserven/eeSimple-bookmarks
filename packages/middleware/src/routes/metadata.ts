@@ -238,11 +238,27 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
         redirected: result.redirected,
       };
     }
-    // Any failure (blocked SSRF hop, timeout, HTTP error, network error) — fall back to the
-    // original URL so the form keeps working even if the tracker server is unreachable.
+    // Any failure — fall back to the original URL so the form keeps working, but surface a
+    // user-facing message so the client can tell the user why the redirect wasn't followed.
+    let resolveError: string;
+    switch (result.kind) {
+      case "blocked":
+        resolveError = "That URL redirects to a private or restricted address and couldn't be followed.";
+        break;
+      case "timeout":
+        resolveError = "The redirect timed out — the link may be slow or temporarily unavailable.";
+        break;
+      case "http_error":
+        resolveError = `The redirect server returned HTTP ${result.status} — this link may be expired or one-time-use (common with email tracking links).`;
+        break;
+      case "network_error":
+        resolveError = "Could not connect to follow this redirect. The server may be down or unreachable.";
+        break;
+    }
     return {
       finalUrl: url,
       redirected: false,
+      resolveError,
     };
   });
 
