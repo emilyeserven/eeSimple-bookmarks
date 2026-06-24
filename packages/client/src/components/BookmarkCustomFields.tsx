@@ -757,6 +757,7 @@ function TextPropertyField({
           type="text"
           value={value}
           onChange={event => onChange(event.target.value)}
+          onBlur={onFetch && value.trim() ? () => onFetch(value) : undefined}
         />
         {onFetch && (
           <Button

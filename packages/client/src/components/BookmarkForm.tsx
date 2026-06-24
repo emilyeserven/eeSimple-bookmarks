@@ -31,16 +31,21 @@ export function BookmarkForm({
     form,
   } = c;
 
-  // Quick-add popup: reveal + scan the seeded URL once, exactly like clicking "Check URL". The ref
-  // guards against re-running (StrictMode double-mount / re-renders). The scan effect lives here
-  // rather than in the hook-dense controller to keep its complexity score flat.
+  // Quick-add popup: reveal + scan the seeded URL once, exactly like clicking "Check URL" / "Look up
+  // ISBN". The ref guards against re-running (StrictMode double-mount / re-renders). The scan effect
+  // lives here rather than in the hook-dense controller to keep its complexity score flat.
   const autoScannedRef = useRef(false);
   useEffect(() => {
     if (autoScan && !c.isEdit && !autoScannedRef.current && form.getFieldValue("url").trim() !== "") {
       autoScannedRef.current = true;
-      void c.performUrlScan({
-        revealing: true,
-      });
+      if (c.inputType === "isbn") {
+        void c.handleLookupIsbn();
+      }
+      else {
+        void c.performUrlScan({
+          revealing: true,
+        });
+      }
     }
   }, [autoScan, c, form]);
 
