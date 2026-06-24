@@ -176,6 +176,15 @@ const createPropertyBody = {
       type: "boolean",
     },
     propertyGroupId: nullableUuid,
+    itemInItemsBeforeText: {
+      type: ["string", "null"],
+    },
+    itemInItemsBetweenText: {
+      type: ["string", "null"],
+    },
+    itemInItemsAfterText: {
+      type: ["string", "null"],
+    },
   },
 } as const;
 
@@ -220,6 +229,9 @@ const updatePropertyBody = {
     choicesDisplay: createPropertyBody.properties.choicesDisplay,
     choicesMultiple: createPropertyBody.properties.choicesMultiple,
     propertyGroupId: createPropertyBody.properties.propertyGroupId,
+    itemInItemsBeforeText: createPropertyBody.properties.itemInItemsBeforeText,
+    itemInItemsBetweenText: createPropertyBody.properties.itemInItemsBetweenText,
+    itemInItemsAfterText: createPropertyBody.properties.itemInItemsAfterText,
   },
 } as const;
 

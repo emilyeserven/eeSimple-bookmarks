@@ -51,18 +51,21 @@ interface CategoryCustomFieldsProps {
   booleanInputs: Record<string, boolean>;
   dateTimeInputs: Record<string, string>;
   choicesInputs: Record<string, string[]>;
+  progressInputs: Record<string, { current: string;
+    total: string; }>;
   onNumberChange: (propertyId: string, value: string) => void;
   onBooleanChange: (propertyId: string, value: boolean) => void;
   onDateTimeChange: (propertyId: string, value: string) => void;
   onChoicesChange: (propertyId: string, values: string[]) => void;
+  onProgressChange: (propertyId: string, field: "current" | "total", value: string) => void;
 }
 
 /** Renders the custom-property inputs for the properties assigned to the chosen category. */
 export function CategoryCustomFields({
   categoryId, mediaTypeId = null, properties, bookmark = null, placement, className,
   hiddenSlugs = [RUNTIME_SLUG, DATE_POSTED_SLUG],
-  numberInputs, booleanInputs, dateTimeInputs, choicesInputs,
-  onNumberChange, onBooleanChange, onDateTimeChange, onChoicesChange,
+  numberInputs, booleanInputs, dateTimeInputs, choicesInputs, progressInputs,
+  onNumberChange, onBooleanChange, onDateTimeChange, onChoicesChange, onProgressChange,
 }: CategoryCustomFieldsProps) {
   const categoryProps = properties.filter((property) => {
     // Union scoping: a property shows if it applies to the bookmark's category OR its media type.
@@ -102,10 +105,12 @@ export function CategoryCustomFields({
             booleanInputs={booleanInputs}
             dateTimeInputs={dateTimeInputs}
             choicesInputs={choicesInputs}
+            progressInputs={progressInputs}
             onNumberChange={onNumberChange}
             onBooleanChange={onBooleanChange}
             onDateTimeChange={onDateTimeChange}
             onChoicesChange={onChoicesChange}
+            onProgressChange={onProgressChange}
           />
         ))}
       </div>
@@ -130,16 +135,19 @@ interface CategoryPropertyFieldProps {
   booleanInputs: Record<string, boolean>;
   dateTimeInputs: Record<string, string>;
   choicesInputs: Record<string, string[]>;
+  progressInputs: Record<string, { current: string;
+    total: string; }>;
   onNumberChange: (propertyId: string, value: string) => void;
   onBooleanChange: (propertyId: string, value: boolean) => void;
   onDateTimeChange: (propertyId: string, value: string) => void;
   onChoicesChange: (propertyId: string, values: string[]) => void;
+  onProgressChange: (propertyId: string, field: "current" | "total", value: string) => void;
 }
 
 /** Renders the single input appropriate to one custom property's type. */
 function CategoryPropertyField({
-  property, bookmark, numberInputs, booleanInputs, dateTimeInputs, choicesInputs,
-  onNumberChange, onBooleanChange, onDateTimeChange, onChoicesChange,
+  property, bookmark, numberInputs, booleanInputs, dateTimeInputs, choicesInputs, progressInputs,
+  onNumberChange, onBooleanChange, onDateTimeChange, onChoicesChange, onProgressChange,
 }: CategoryPropertyFieldProps) {
   const fieldId = `property-${property.id}`;
 
@@ -222,6 +230,44 @@ function CategoryPropertyField({
         selectedValues={choicesInputs[property.id] ?? []}
         onChange={values => onChoicesChange(property.id, values)}
       />
+    );
+  }
+  if (property.type === "itemInItems") {
+    const progress = progressInputs[property.id] ?? {
+      current: "",
+      total: "",
+    };
+    const before = property.itemInItemsBeforeText ?? "";
+    const between = property.itemInItemsBetweenText ?? " of ";
+    const after = property.itemInItemsAfterText ?? "";
+    return (
+      <div className="col-span-full space-y-1">
+        <Label>{property.name}</Label>
+        <div className="flex flex-wrap items-center gap-1.5">
+          {before
+            ? <span className="text-sm text-muted-foreground">{before}</span>
+            : null}
+          <Input
+            type="number"
+            className="w-24"
+            placeholder="Current"
+            value={progress.current}
+            onChange={event => onProgressChange(property.id, "current", event.target.value)}
+          />
+          <span className="text-sm text-muted-foreground">{between}</span>
+          <Input
+            type="number"
+            className="w-24"
+            placeholder="Total"
+            value={progress.total}
+            onChange={event => onProgressChange(property.id, "total", event.target.value)}
+          />
+          {after
+            ? <span className="text-sm text-muted-foreground">{after}</span>
+            : null}
+        </div>
+        <FieldDescription text={property.description} />
+      </div>
     );
   }
   // calculate: computed server-side; shown read-only so the user knows it exists.

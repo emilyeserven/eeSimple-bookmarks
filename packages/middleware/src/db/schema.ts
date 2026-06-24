@@ -688,6 +688,11 @@ export const customProperties = pgTable("custom_properties", {
   choicesItems: jsonb("choices_items"),
   choicesDisplay: text("choices_display"),
   choicesMultiple: boolean("choices_multiple"),
+  // itemInItems-type config (all nullable → push-safe additive columns for non-itemInItems properties).
+  // Text segments wrapping the two numbers: {beforeText}{current}{betweenText}{total}{afterText}.
+  itemInItemsBeforeText: text("item_in_items_before_text"),
+  itemInItemsBetweenText: text("item_in_items_between_text"),
+  itemInItemsAfterText: text("item_in_items_after_text"),
   // DEPRECATED: corner placement + overlay styling moved to card_display_rules.field_zones. These
   // columns are retained (no longer read/written) so the boot backfill can migrate their values into
   // the Default rule on first boot and so drizzle-kit push stays additive-only. Drop in a follow-up.
@@ -796,6 +801,26 @@ export const bookmarkChoicesValues = pgTable("bookmark_choices_values", {
   }),
   // JSON array of selected choice value slugs, e.g. ["reading", "shortlist"].
   values: jsonb("values").notNull(),
+}, table => [
+  primaryKey({
+    columns: [table.bookmarkId, table.propertyId],
+  }),
+]);
+
+/**
+ * `bookmark_progress_values` — the `current` and `total` counts for an `itemInItems` custom
+ * property on a bookmark (e.g. "10 of 100 pages"). The composite PK makes upsert idempotent;
+ * both FKs cascade so the row vanishes when its bookmark or property is deleted.
+ */
+export const bookmarkProgressValues = pgTable("bookmark_progress_values", {
+  bookmarkId: uuid("bookmark_id").notNull().references(() => bookmarks.id, {
+    onDelete: "cascade",
+  }),
+  propertyId: uuid("property_id").notNull().references(() => customProperties.id, {
+    onDelete: "cascade",
+  }),
+  current: real("current").notNull(),
+  total: real("total").notNull(),
 }, table => [
   primaryKey({
     columns: [table.bookmarkId, table.propertyId],

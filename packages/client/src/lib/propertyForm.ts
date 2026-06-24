@@ -149,6 +149,18 @@ export function summarizeRatingOptions(values: {
   return parts.join(" · ");
 }
 
+/** One-line summary of the itemInItems text-segment options for a collapsed "Property options" preview. */
+export function summarizeItemInItemsOptions(values: {
+  itemInItemsBeforeText: string;
+  itemInItemsBetweenText: string;
+  itemInItemsAfterText: string;
+}): string {
+  const before = values.itemInItemsBeforeText || "";
+  const between = values.itemInItemsBetweenText || " of ";
+  const after = values.itemInItemsAfterText || "";
+  return `${before}10${between}100${after}`;
+}
+
 /** One-line summary of the category selection for a collapsed "Categories" preview. */
 export function summarizeCategories(allCategories: boolean, selectedIds: string[]): string {
   if (allCategories) return "All categories";

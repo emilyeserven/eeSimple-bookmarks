@@ -77,7 +77,10 @@ export function bookmarkToConditionInput(bookmark: Bookmark): ConditionInput {
     tagIds: new Set(bookmark.tags.map(tag => tag.id)),
     youtubeChannelId: bookmark.youtubeChannel?.id ?? null,
     mediaTypeId: bookmark.mediaType?.id ?? null,
-    numberValues: new Map(bookmark.numberValues.map(v => [v.propertyId, v.value])),
+    numberValues: new Map([
+      ...bookmark.numberValues.map(v => [v.propertyId, v.value] as const),
+      ...bookmark.progressValues.map(v => [v.propertyId, v.current] as const),
+    ]),
     booleanValues: new Map(bookmark.booleanValues.map(v => [v.propertyId, v.value])),
     dateTimeValues: new Map(bookmark.dateTimeValues.map(v => [v.propertyId, v.value])),
     fileValues: new Set(bookmark.fileValues.map(v => v.propertyId)),

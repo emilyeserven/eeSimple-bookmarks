@@ -139,6 +139,7 @@ type SearchableBookmark = Pick<
   | "booleanValues"
   | "dateTimeValues"
   | "fileValues"
+  | "progressValues"
   | "relationships"
 >;
 
@@ -177,7 +178,8 @@ function passesPropertyPresence(bookmark: SearchableBookmark, search: BookmarkSe
       = bookmark.numberValues.some(v => v.propertyId === propertyId)
         || bookmark.booleanValues.some(v => v.propertyId === propertyId)
         || bookmark.dateTimeValues.some(v => v.propertyId === propertyId)
-        || bookmark.fileValues.some(v => v.propertyId === propertyId);
+        || bookmark.fileValues.some(v => v.propertyId === propertyId)
+        || bookmark.progressValues.some(v => v.propertyId === propertyId);
     if (!passesPresence(mode, hasValue)) return false;
   }
   return true;
@@ -199,7 +201,7 @@ function passesValueFilters(bookmark: SearchableBookmark, search: BookmarkSearch
     from,
     to,
   }));
-  return bookmarkMatchesFilters(bookmark, numberFilters, booleanFilters, dateTimeFilters);
+  return bookmarkMatchesFilters(bookmark, numberFilters, booleanFilters, dateTimeFilters, bookmark.progressValues);
 }
 
 /** Whether a bookmark satisfies every active filter in `search`. */

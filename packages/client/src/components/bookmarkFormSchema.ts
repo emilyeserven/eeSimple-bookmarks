@@ -7,6 +7,7 @@ import type {
   BookmarkChoicesValue,
   BookmarkDateTimeValue,
   BookmarkNumberValue,
+  BookmarkProgressValue,
   CustomProperty,
 } from "@eesimple/types";
 
@@ -138,6 +139,8 @@ export interface CustomPropertyInputs {
   booleanInputs: Record<string, boolean>;
   dateTimeInputs: Record<string, string>;
   choicesInputs: Record<string, string[]>;
+  progressInputs: Record<string, { current: string;
+    total: string; }>;
 }
 
 /** The category-scoped, validated property values built for a bookmark's create/update payload. */
@@ -145,6 +148,7 @@ export interface CategoryPropertyValues {
   numberValues: BookmarkNumberValue[];
   booleanValues: BookmarkBooleanValue[];
   dateTimeValues: BookmarkDateTimeValue[];
+  progressValues: BookmarkProgressValue[];
 }
 
 /** Run the autofill rules against the current URL/Title and return the suggested values. */
@@ -164,6 +168,37 @@ export function initialImageIntent(autoFetchImage: boolean): ImageIntent {
       remove: false,
     }
     : EMPTY_IMAGE_INTENT;
+}
+
+/**
+ * Build the typed progress-property values for the submit payload: only enabled itemInItems
+ * properties scoped to the chosen category or media type, with at least one non-empty input.
+ */
+export function buildProgressValuesFromInputs(
+  customProperties: CustomProperty[],
+  categoryId: string,
+  progressInputs: Record<string, { current: string;
+    total: string; }>,
+  mediaTypeId: string | null = null,
+): BookmarkProgressValue[] {
+  const categoryProps = customProperties.filter(property =>
+    (propertyAppliesToCategory(property, categoryId)
+      || propertyAppliesToMediaType(property, mediaTypeId))
+    && property.enabled
+    && property.type === "itemInItems");
+  return categoryProps.flatMap((property) => {
+    const entry = progressInputs[property.id];
+    if (!entry) return [];
+    const current = Number(entry.current);
+    const total = Number(entry.total);
+    if (!Number.isFinite(current) || !Number.isFinite(total)) return [];
+    if (entry.current === "" && entry.total === "") return [];
+    return [{
+      propertyId: property.id,
+      current,
+      total,
+    }];
+  });
 }
 
 /**
@@ -204,7 +239,7 @@ export function buildCategoryPropertyValues(
   mediaTypeId: string | null = null,
 ): CategoryPropertyValues {
   const {
-    numberInputs: numbers, booleanInputs: booleans, dateTimeInputs: dateTimes,
+    numberInputs: numbers, booleanInputs: booleans, dateTimeInputs: dateTimes, progressInputs: progress,
   } = inputs;
   // Only persist values for properties scoped to the chosen category or media type, and enabled.
   const categoryProps = customProperties.filter(property =>
@@ -225,9 +260,11 @@ export function buildCategoryPropertyValues(
       value: (dateTimes[property.id] ?? "").trim(),
     }))
     .filter(entry => entry.value !== "");
+  const progressValues = buildProgressValuesFromInputs(customProperties, categoryId, progress, mediaTypeId);
   return {
     numberValues,
     booleanValues,
     dateTimeValues,
+    progressValues,
   };
 }

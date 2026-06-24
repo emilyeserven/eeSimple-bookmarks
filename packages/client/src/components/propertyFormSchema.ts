@@ -87,6 +87,9 @@ export const propertySchema = z
     })),
     choicesDisplay: z.enum(CHOICES_DISPLAY_TYPES),
     choicesMultiple: z.boolean(),
+    itemInItemsBeforeText: z.string(),
+    itemInItemsBetweenText: z.string(),
+    itemInItemsAfterText: z.string(),
   })
   .superRefine((value, ctx) => {
     if (value.type === "calculate" && value.operandIds.length < 2) {
@@ -146,6 +149,9 @@ export const CREATE_DEFAULTS: PropertyFormValues = {
   choicesItems: [],
   choicesDisplay: "radio",
   choicesMultiple: false,
+  itemInItemsBeforeText: "",
+  itemInItemsBetweenText: " of ",
+  itemInItemsAfterText: "",
 };
 
 /**
@@ -298,6 +304,9 @@ export function valuesFromProperty(property: CustomProperty): PropertyFormValues
     choicesItems: property.choicesItems,
     choicesDisplay: property.choicesDisplay ?? "radio",
     choicesMultiple: property.choicesMultiple,
+    itemInItemsBeforeText: property.itemInItemsBeforeText ?? "",
+    itemInItemsBetweenText: property.itemInItemsBetweenText ?? " of ",
+    itemInItemsAfterText: property.itemInItemsAfterText ?? "",
   };
 }
 
@@ -363,6 +372,19 @@ function choicesPayloadFields(values: PropertyFormValues): Pick<
   };
 }
 
+/** itemInItems-only text-segment fields, nulled out for every other property type. */
+function itemInItemsPayloadFields(values: PropertyFormValues): Pick<
+  CreateCustomPropertyInput,
+  "itemInItemsBeforeText" | "itemInItemsBetweenText" | "itemInItemsAfterText"
+> {
+  const isItemInItems = values.type === "itemInItems";
+  return {
+    itemInItemsBeforeText: isItemInItems ? (values.itemInItemsBeforeText || null) : null,
+    itemInItemsBetweenText: isItemInItems ? (values.itemInItemsBetweenText || null) : null,
+    itemInItemsAfterText: isItemInItems ? (values.itemInItemsAfterText || null) : null,
+  };
+}
+
 /** Build the create/update payload from form values (`type` is ignored by the update route). */
 export function payloadFromValues(values: PropertyFormValues): CreateCustomPropertyInput {
   return {
@@ -390,5 +412,6 @@ export function payloadFromValues(values: PropertyFormValues): CreateCustomPrope
     ...booleanPayloadFields(values),
     ...ratingPayloadFields(values),
     ...choicesPayloadFields(values),
+    ...itemInItemsPayloadFields(values),
   };
 }

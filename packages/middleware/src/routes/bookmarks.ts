@@ -171,6 +171,26 @@ const createBookmarkBody = {
         },
       },
     },
+    progressValues: {
+      type: "array",
+      items: {
+        type: "object",
+        required: ["propertyId", "current", "total"],
+        additionalProperties: false,
+        properties: {
+          propertyId: {
+            type: "string",
+            format: "uuid",
+          },
+          current: {
+            type: "number",
+          },
+          total: {
+            type: "number",
+          },
+        },
+      },
+    },
     priority: {
       type: "integer",
     },

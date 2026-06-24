@@ -43,6 +43,9 @@ export const DATE_POSTED_SLUG = "date-posted";
 /** Reserved slug + spec of the built-in "Content Status" choices property, seeded at boot. */
 export const CONTENT_STATUS_SLUG = "content-status";
 
+/** Reserved slug + spec of the built-in "Page Progress" itemInItems property, seeded at boot. */
+export const PAGE_PROGRESS_SLUG = "page-progress";
+
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 /** Map a DB row plus its hydrated relations to the shared `CustomProperty` wire type. */
@@ -95,13 +98,16 @@ function toCustomProperty(
     choicesItems: (row.choicesItems as ChoicesItem[] | null) ?? [],
     choicesDisplay: (row.choicesDisplay as CustomProperty["choicesDisplay"]) ?? null,
     choicesMultiple: row.choicesMultiple ?? false,
+    itemInItemsBeforeText: row.itemInItemsBeforeText ?? null,
+    itemInItemsBetweenText: row.itemInItemsBetweenText ?? null,
+    itemInItemsAfterText: row.itemInItemsAfterText ?? null,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
   };
 }
 
 /** Slugs reserved for real sub-routes + built-ins, so a property can never shadow them. */
-const RESERVED_SLUGS = ["new", RUNTIME_SLUG, CONTENT_STATUS_SLUG];
+const RESERVED_SLUGS = ["new", RUNTIME_SLUG, CONTENT_STATUS_SLUG, PAGE_PROGRESS_SLUG];
 
 /** Existing property slugs plus reserved route words, optionally excluding one id (when renaming). */
 async function takenSlugs(excludeId?: string): Promise<string[]> {
@@ -370,6 +376,9 @@ export type UpdatePatch = Partial<
     | "choicesItems"
     | "choicesDisplay"
     | "choicesMultiple"
+    | "itemInItemsBeforeText"
+    | "itemInItemsBetweenText"
+    | "itemInItemsAfterText"
   >
 >;
 
@@ -421,6 +430,9 @@ const COPYABLE_FIELDS = [
   "choicesItems",
   "choicesDisplay",
   "choicesMultiple",
+  "itemInItemsBeforeText",
+  "itemInItemsBetweenText",
+  "itemInItemsAfterText",
 ] as const satisfies readonly CopyableField[];
 
 /**
@@ -771,6 +783,57 @@ export async function ensureContentStatusProperty(): Promise<string> {
 
   // Lost a concurrent insert race — re-read the row the other writer created.
   return readPropertyIdBySlug(CONTENT_STATUS_SLUG);
+}
+
+/**
+ * Ensure the built-in "Page Progress" itemInItems property exists. Idempotent and safe to call at
+ * boot in every environment. Pre-configured as `{current} of {total} pages`.
+ */
+export async function ensurePageProgressProperty(): Promise<string> {
+  const [existing] = await db
+    .select({
+      id: customProperties.id,
+    })
+    .from(customProperties)
+    .where(eq(customProperties.slug, PAGE_PROGRESS_SLUG));
+  if (existing) {
+    await db
+      .update(customProperties)
+      .set({
+        builtIn: true,
+        enabled: true,
+        allCategories: true,
+        itemInItemsBetweenText: " of ",
+        itemInItemsAfterText: " pages",
+      })
+      .where(eq(customProperties.id, existing.id));
+    return existing.id;
+  }
+
+  const [row] = await db
+    .insert(customProperties)
+    .values({
+      name: "Page Progress",
+      slug: PAGE_PROGRESS_SLUG,
+      type: "itemInItems",
+      builtIn: true,
+      allCategories: true,
+      showInForm: true,
+      showInListings: true,
+      itemInItemsBeforeText: null,
+      itemInItemsBetweenText: " of ",
+      itemInItemsAfterText: " pages",
+    })
+    .onConflictDoNothing({
+      target: customProperties.slug,
+    })
+    .returning({
+      id: customProperties.id,
+    });
+  if (row) return row.id;
+
+  // Lost a concurrent insert race — re-read the row the other writer created.
+  return readPropertyIdBySlug(PAGE_PROGRESS_SLUG);
 }
 
 /** Fill in slugs for any properties missing one (e.g. rows that predate the `slug` column). */

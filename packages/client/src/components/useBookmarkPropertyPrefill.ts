@@ -30,12 +30,15 @@ export interface BookmarkPropertyPrefill {
   booleanInputs: Record<string, boolean>;
   dateTimeInputs: Record<string, string>;
   choicesInputs: Record<string, string[]>;
+  progressInputs: Record<string, { current: string;
+    total: string; }>;
   /** Mirror of the current inputs; read by the submit handler (stale-closure-safe). */
   customRef: React.MutableRefObject<CustomPropertyInputs>;
   handleNumberChange: (id: string, value: string) => void;
   handleBooleanChange: (id: string, value: boolean) => void;
   handleDateTimeChange: (id: string, value: string) => void;
   handleChoicesChange: (id: string, values: string[]) => void;
+  handleProgressChange: (id: string, field: "current" | "total", value: string) => void;
   /** Run the autofill rules against the current URL/Title and prefill the form. */
   runAutofill: () => void;
   /** Apply a category's default property values (rules and user edits win). */
@@ -72,10 +75,12 @@ export function useBookmarkPropertyPrefill({
     booleanInputs,
     dateTimeInputs,
     choicesInputs,
+    progressInputs,
     setNumberInputs,
     setBooleanInputs,
     setDateTimeInputs,
     setChoicesInputs,
+    setProgressInputs,
     customRef,
   } = useSeededPropertyInputs(bookmark);
 
@@ -249,6 +254,19 @@ export function useBookmarkPropertyPrefill({
       [id]: values,
     }));
   }
+  function handleProgressChange(id: string, field: "current" | "total", value: string): void {
+    touchedRef.current.add(`progress:${id}`);
+    setProgressInputs(current => ({
+      ...current,
+      [id]: {
+        ...(current[id] ?? {
+          current: "",
+          total: "",
+        }),
+        [field]: value,
+      },
+    }));
+  }
 
   function markTagsTouched(): void {
     touchedRef.current.add("tags");
@@ -259,6 +277,7 @@ export function useBookmarkPropertyPrefill({
     setBooleanInputs({});
     setDateTimeInputs({});
     setChoicesInputs({});
+    setProgressInputs({});
     touchedRef.current = new Set();
     ruleSetRef.current = {
       numbers: new Set(),
@@ -282,11 +301,13 @@ export function useBookmarkPropertyPrefill({
     booleanInputs,
     dateTimeInputs,
     choicesInputs,
+    progressInputs,
     customRef,
     handleNumberChange,
     handleBooleanChange,
     handleDateTimeChange,
     handleChoicesChange,
+    handleProgressChange,
     runAutofill,
     applyCategoryDefaults,
     markTagsTouched,

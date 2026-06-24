@@ -204,7 +204,7 @@ export function useBookmarkFormController({
     authorIds: string[];
   }): Promise<void> {
     const {
-      numberValues, booleanValues, dateTimeValues,
+      numberValues, booleanValues, dateTimeValues, progressValues,
     } = buildCategoryPropertyValues(
       customProperties ?? [],
       value.categoryId,
@@ -240,6 +240,7 @@ export function useBookmarkFormController({
       booleanValues,
       dateTimeValues,
       choicesValues,
+      progressValues,
       ...(channelHintRef.current && {
         youtubeChannel: channelHintRef.current,
       }),
