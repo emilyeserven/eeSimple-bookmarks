@@ -1992,6 +1992,14 @@ export interface CheckUrlResult {
   reason?: "timeout" | "http_error" | "network_error";
 }
 
+/** Result of following a URL's redirect chain to its final destination (`GET /api/resolve-url`). */
+export interface ResolveUrlResult {
+  /** The resolved destination URL, or the original when no redirect was followed (or on failure). */
+  finalUrl: string;
+  /** Whether at least one redirect hop was followed to reach `finalUrl`. */
+  redirected: boolean;
+}
+
 /** A named snapshot of bookmark listing filter state, reusable on any listing page. */
 export interface SavedFilter {
   id: string;
