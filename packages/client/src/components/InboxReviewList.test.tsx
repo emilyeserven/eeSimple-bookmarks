@@ -117,7 +117,7 @@ describe("InboxReviewList", () => {
     );
     // Radix DropdownMenu opens via keyboard under jsdom (see test-utils/setup.ts).
     fireEvent.keyDown(screen.getByRole("button", {
-      name: "Block options",
+      name: "Block URL",
     }), {
       key: " ",
     });
@@ -157,9 +157,9 @@ describe("InboxReviewList", () => {
         paths: ["/bookmarks/$bookmarkId"],
       },
     );
-    expect(screen.getByLabelText("Unreject")).toBeInTheDocument();
+    expect(screen.getByLabelText("Restore to pending")).toBeInTheDocument();
     // The pending-only controls are gone once rejected.
-    expect(screen.queryByLabelText("Approve")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Approve – save as bookmark")).not.toBeInTheDocument();
   });
 
   it("shows a View bookmark link for an approved item", async () => {
