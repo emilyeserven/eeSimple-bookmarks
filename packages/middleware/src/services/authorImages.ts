@@ -9,10 +9,10 @@
 
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { authorImages, authors, type AuthorImageRow } from "@/db/schema";
+import { authorImages, authors, type AuthorImageRow, websiteFavicons, youtubeChannelImages } from "@/db/schema";
 import { type EntityImageResult, fetchOgImage, withTransientRetry } from "@/services/metadata";
 import { processImage } from "@/utils/image";
-import { deleteObject, putObject } from "@/utils/objectStore";
+import { deleteObject, getObjectBytes, putObject } from "@/utils/objectStore";
 
 function objectKeyFor(authorId: string): string {
   return `author-images/${authorId}.webp`;
@@ -38,7 +38,7 @@ export async function getAuthorImageRow(authorId: string): Promise<AuthorImageRo
 async function setAuthorImage(
   authorId: string,
   rawBytes: Buffer,
-  source: "upload" | "website" | "biography",
+  source: "upload" | "website" | "biography" | "channel" | "website-favicon",
 ): Promise<{ imageUrl: string } | "not_found" | "bad_image"> {
   const [author] = await db
     .select({
@@ -111,4 +111,48 @@ export async function fetchAndStoreAuthorImage(
   const result = await withTransientRetry(() => fetchOgImage(url));
   if (typeof result === "string") return result;
   return setAuthorImage(authorId, result, source);
+}
+
+/**
+ * Copy a connected YouTube channel's stored avatar to the author's own avatar.
+ * The channel must already have an avatar stored in object storage.
+ */
+export async function adoptChannelImageForAuthor(
+  authorId: string,
+  channelId: string,
+): Promise<{ imageUrl: string } | "not_found" | "no_image"> {
+  const [imageRow] = await db
+    .select()
+    .from(youtubeChannelImages)
+    .where(eq(youtubeChannelImages.youtubeChannelId, channelId));
+  if (!imageRow) return "no_image";
+
+  const bytes = await getObjectBytes(imageRow.objectKey);
+  if (!bytes) return "no_image";
+
+  const result = await setAuthorImage(authorId, bytes, "channel");
+  if (result === "not_found" || result === "bad_image") return result === "not_found" ? "not_found" : "no_image";
+  return result;
+}
+
+/**
+ * Copy a connected website's stored favicon to the author's own avatar.
+ * The website must already have a favicon stored in object storage.
+ */
+export async function adoptWebsiteFaviconForAuthor(
+  authorId: string,
+  websiteId: string,
+): Promise<{ imageUrl: string } | "not_found" | "no_image"> {
+  const [faviconRow] = await db
+    .select()
+    .from(websiteFavicons)
+    .where(eq(websiteFavicons.websiteId, websiteId));
+  if (!faviconRow) return "no_image";
+
+  const bytes = await getObjectBytes(faviconRow.objectKey);
+  if (!bytes) return "no_image";
+
+  const result = await setAuthorImage(authorId, bytes, "website-favicon");
+  if (result === "not_found" || result === "bad_image") return result === "not_found" ? "not_found" : "no_image";
+  return result;
 }

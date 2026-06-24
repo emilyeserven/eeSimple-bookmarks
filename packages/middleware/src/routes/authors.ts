@@ -2,6 +2,8 @@ import type { FastifyInstance } from "fastify";
 import type { CreateAuthorInput, UpdateAuthorInput } from "@eesimple/types";
 import { SOCIAL_MEDIA_PLATFORMS } from "@eesimple/types";
 import {
+  adoptChannelImageForAuthor,
+  adoptWebsiteFaviconForAuthor,
   fetchAndStoreAuthorImage,
   getAuthorImageRow,
   removeAuthorImage,
@@ -81,6 +83,27 @@ const updateAuthorBody = {
       type: ["string", "null"],
     },
     socialLinks: socialLinksSchema,
+    youtubeChannelIds: {
+      type: "array",
+      items: {
+        type: "string",
+        format: "uuid",
+      },
+    },
+    websiteIds: {
+      type: "array",
+      items: {
+        type: "string",
+        format: "uuid",
+      },
+    },
+    publisherIds: {
+      type: "array",
+      items: {
+        type: "string",
+        format: "uuid",
+      },
+    },
   },
 } as const;
 
@@ -284,5 +307,83 @@ export async function authorRoutes(app: FastifyInstance): Promise<void> {
     reply.header("Content-Type", row.contentType);
     reply.header("Cache-Control", "public, max-age=31536000, immutable");
     return reply.send(object.body);
+  });
+
+  // Adopt a connected YouTube channel's stored avatar as the author's own avatar.
+  app.post("/api/authors/:id/image/from-channel", {
+    schema: {
+      tags: ["authors"],
+      params: authorParams,
+      body: {
+        type: "object",
+        required: ["channelId"],
+        additionalProperties: false,
+        properties: {
+          channelId: {
+            type: "string",
+            format: "uuid",
+          },
+        },
+      },
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    const {
+      channelId,
+    } = req.body as { channelId: string };
+    if (!isObjectStoreConfigured()) {
+      return reply.code(503).send({
+        message: "Image storage is not configured",
+      });
+    }
+    const result = await adoptChannelImageForAuthor(id, channelId);
+    if (result === "not_found") return reply.code(404).send({
+      message: "Author or channel not found",
+    });
+    if (result === "no_image") return reply.code(404).send({
+      message: "Channel has no stored avatar",
+    });
+    return reply.code(201).send(result);
+  });
+
+  // Adopt a connected website's stored favicon as the author's own avatar.
+  app.post("/api/authors/:id/image/from-website", {
+    schema: {
+      tags: ["authors"],
+      params: authorParams,
+      body: {
+        type: "object",
+        required: ["websiteId"],
+        additionalProperties: false,
+        properties: {
+          websiteId: {
+            type: "string",
+            format: "uuid",
+          },
+        },
+      },
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    const {
+      websiteId,
+    } = req.body as { websiteId: string };
+    if (!isObjectStoreConfigured()) {
+      return reply.code(503).send({
+        message: "Image storage is not configured",
+      });
+    }
+    const result = await adoptWebsiteFaviconForAuthor(id, websiteId);
+    if (result === "not_found") return reply.code(404).send({
+      message: "Author or website not found",
+    });
+    if (result === "no_image") return reply.code(404).send({
+      message: "Website has no stored favicon",
+    });
+    return reply.code(201).send(result);
   });
 }

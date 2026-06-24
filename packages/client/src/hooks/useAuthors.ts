@@ -142,3 +142,39 @@ export function useDeleteAuthorImage() {
     onError: (err: Error) => notifyError(describeError(err, "Could not remove the avatar")),
   });
 }
+
+export function useAdoptChannelImageForAuthor() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id, channelId,
+    }: { id: string;
+      channelId: string; }) =>
+      authorsApi.adoptChannelImage(id, channelId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: AUTHORS_KEY,
+      });
+      notifySuccess("Avatar updated");
+    },
+    onError: (err: Error) => notifyError(describeError(err, "Could not copy the channel avatar")),
+  });
+}
+
+export function useAdoptWebsiteFaviconForAuthor() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id, websiteId,
+    }: { id: string;
+      websiteId: string; }) =>
+      authorsApi.adoptWebsiteFavicon(id, websiteId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: AUTHORS_KEY,
+      });
+      notifySuccess("Avatar updated");
+    },
+    onError: (err: Error) => notifyError(describeError(err, "Could not copy the website favicon")),
+  });
+}

@@ -54,6 +54,20 @@ export const authorsApi = {
     request<undefined>(`/authors/${id}/image`, {
       method: "DELETE",
     }),
+  adoptChannelImage: (id: string, channelId: string) =>
+    request<{ imageUrl: string }>(`/authors/${id}/image/from-channel`, {
+      method: "POST",
+      body: JSON.stringify({
+        channelId,
+      }),
+    }),
+  adoptWebsiteFavicon: (id: string, websiteId: string) =>
+    request<{ imageUrl: string }>(`/authors/${id}/image/from-website`, {
+      method: "POST",
+      body: JSON.stringify({
+        websiteId,
+      }),
+    }),
 };
 
 export const tagsApi = {
