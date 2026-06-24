@@ -48,6 +48,9 @@ export const CONTENT_STATUS_SLUG = "content-status";
 /** Reserved slug + spec of the built-in "Page Progress" itemInItems property, seeded at boot. */
 export const PAGE_PROGRESS_SLUG = "page-progress";
 
+/** Reserved slug + spec of the built-in "Page Range" itemInItems property, seeded at boot. */
+export const PAGE_RANGE_SLUG = "page-range";
+
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 /** Map a DB row plus its hydrated relations to the shared `CustomProperty` wire type. */
@@ -841,6 +844,80 @@ export async function ensurePageProgressProperty(): Promise<string> {
 
   // Lost a concurrent insert race — re-read the row the other writer created.
   return readPropertyIdBySlug(PAGE_PROGRESS_SLUG);
+}
+
+/**
+ * Ensure the built-in "Page Range" itemInItems property exists and is scoped to the "Book" media
+ * type. Idempotent and safe to call at boot — must run after ensureBuiltInMediaTypes so the "book"
+ * slug row is present. Renders as "Pages <first>-<last>".
+ */
+export async function ensurePageRangeProperty(): Promise<string> {
+  const [existing] = await db
+    .select({
+      id: customProperties.id,
+    })
+    .from(customProperties)
+    .where(eq(customProperties.slug, PAGE_RANGE_SLUG));
+
+  let propertyId: string;
+  if (existing) {
+    await db
+      .update(customProperties)
+      .set({
+        builtIn: true,
+        enabled: true,
+        allCategories: false,
+        itemInItemsBeforeText: "Pages ",
+        itemInItemsBetweenText: "-",
+        itemInItemsAfterText: null,
+      })
+      .where(eq(customProperties.id, existing.id));
+    propertyId = existing.id;
+  }
+  else {
+    const [row] = await db
+      .insert(customProperties)
+      .values({
+        name: "Page Range",
+        slug: PAGE_RANGE_SLUG,
+        type: "itemInItems",
+        builtIn: true,
+        allCategories: false,
+        showInForm: true,
+        showInListings: true,
+        itemInItemsBeforeText: "Pages ",
+        itemInItemsBetweenText: "-",
+        itemInItemsAfterText: null,
+      })
+      .onConflictDoNothing({
+        target: customProperties.slug,
+      })
+      .returning({
+        id: customProperties.id,
+      });
+    propertyId = row ? row.id : await readPropertyIdBySlug(PAGE_RANGE_SLUG);
+  }
+
+  // Scope to the "Book" media type — mirrors the ensureRuntimeProperty pattern.
+  const [bookRow] = await db
+    .select({
+      id: mediaTypes.id,
+    })
+    .from(mediaTypes)
+    .where(eq(mediaTypes.slug, "book"));
+  if (bookRow) {
+    await db
+      .delete(propertyMediaTypes)
+      .where(eq(propertyMediaTypes.propertyId, propertyId));
+    await db
+      .insert(propertyMediaTypes)
+      .values([{
+        propertyId,
+        mediaTypeId: bookRow.id,
+      }]);
+  }
+
+  return propertyId;
 }
 
 /**
