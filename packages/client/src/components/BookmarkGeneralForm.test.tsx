@@ -124,4 +124,20 @@ describe("bookmarkGeneralForm", () => {
     });
     expect(resolveSubmitUrl).toHaveBeenCalledWith("https://github.com", false);
   });
+
+  it("includes authors and publisher in the update payload (editable post-create)", async () => {
+    updateMutateAsync.mockResolvedValue(undefined);
+    await renderWithRouter(<BookmarkGeneralForm bookmark={sampleBookmark} />);
+
+    fireEvent.click(screen.getByRole("button", {
+      name: "Save changes",
+    }));
+
+    await waitFor(() => expect(updateMutateAsync).toHaveBeenCalledTimes(1));
+    const {
+      input,
+    } = updateMutateAsync.mock.calls[0][0] as { input: Record<string, unknown> };
+    expect(input).toHaveProperty("authorIds");
+    expect(input).toHaveProperty("publisherId");
+  });
 });

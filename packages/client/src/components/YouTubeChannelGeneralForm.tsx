@@ -9,6 +9,7 @@ import { z } from "zod";
 
 import { AddCategoryModal } from "./AddCategoryModal";
 import { AddMediaTypeModal } from "./AddMediaTypeModal";
+import { ChannelWebsitesField } from "./ChannelWebsitesField";
 import { DefaultTagsField } from "./DefaultTagsField";
 import { EntityImageField } from "./EntityImageField";
 import { SelfIdsField } from "./SelfIdsField";
@@ -18,6 +19,7 @@ import { Separator } from "@/components/ui/separator";
 import { useCategories } from "@/hooks/useCategories";
 import { useMediaTypeTree } from "@/hooks/useMediaTypes";
 import { useTagTree } from "@/hooks/useTags";
+import { useWebsites } from "@/hooks/useWebsites";
 import {
   useAutoYouTubeChannelImage,
   useDeleteYouTubeChannelImage,
@@ -39,6 +41,7 @@ const LABELS: Partial<Record<keyof UpdateYouTubeChannelInput, string>> = {
   categoryId: "Category",
   mediaTypeId: "Media type",
   tagIds: "Default tags",
+  websiteIds: "Websites",
 };
 
 interface Props {
@@ -69,6 +72,9 @@ export function YouTubeChannelGeneralForm({
   const {
     data: tagTree,
   } = useTagTree();
+  const {
+    data: websites,
+  } = useWebsites();
 
   const autoSave = useFieldAutoSave<UpdateYouTubeChannelInput, YouTubeChannel>({
     id: channel.id,
@@ -80,6 +86,7 @@ export function YouTubeChannelGeneralForm({
       categoryId: channel.category?.id ?? null,
       mediaTypeId: channel.mediaTypeId ?? null,
       tagIds: channel.tagIds ?? [],
+      websiteIds: channel.websiteIds ?? [],
     },
   });
 
@@ -229,6 +236,14 @@ export function YouTubeChannelGeneralForm({
         selectedIds={tagIds}
         onToggle={id => saveTagIds(tagIds.includes(id) ? tagIds.filter(t => t !== id) : [...tagIds, id])}
         description="Tags applied automatically to bookmarks saved from this channel."
+      />
+
+      <Separator />
+
+      <ChannelWebsitesField
+        websites={websites ?? []}
+        selectedIds={channel.websiteIds ?? []}
+        onChange={ids => autoSave.saveField("websiteIds", ids)}
       />
     </div>
   );

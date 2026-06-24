@@ -31,6 +31,8 @@ type WebsiteLookupResult = ReturnType<typeof useWebsiteLookup>;
 
 interface BookmarkRevealedFieldsProps {
   form: BookmarkFormApi;
+  /** Hide the Name field — set for plain-text entries, where the typed text is already the name. */
+  hideNameField?: boolean;
   lockedCategoryId?: string;
 
   // URL cleanup banner + panel.
@@ -173,7 +175,7 @@ export function BookmarkRevealedFields(props: BookmarkRevealedFieldsProps) {
         "
       >
         <RevealedWebsiteBanner {...props} />
-        <RevealedNameField {...props} />
+        {!props.hideNameField && <RevealedNameField {...props} />}
       </div>
 
       {/* Autofill rule offer for new sites with a non-default category. */}

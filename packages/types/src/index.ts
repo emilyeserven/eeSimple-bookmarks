@@ -593,6 +593,8 @@ export interface YouTubeChannel {
   tagIds?: string[];
   /** Default media type id applied to new bookmarks saved from this channel, or `null` when unset. */
   mediaTypeId?: string | null;
+  /** Ids of websites this channel is associated with. Populated by list/get endpoints. */
+  websiteIds?: string[];
 }
 
 /** Lightweight channel shape carried on a bookmark. */
@@ -630,6 +632,8 @@ export interface UpdateYouTubeChannelInput {
   tagIds?: string[];
   /** Default media type to apply to new bookmarks from this channel. `null` clears it; omit to leave unchanged. */
   mediaTypeId?: string | null;
+  /** Full replacement list of associated website ids. Omit to leave unchanged. */
+  websiteIds?: string[];
 }
 
 /**

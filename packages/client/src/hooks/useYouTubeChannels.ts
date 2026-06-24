@@ -11,6 +11,7 @@ import { notifyError, notifySuccess } from "../lib/notifications";
 
 const CHANNELS_KEY = ["youtube-channels"] as const;
 const BOOKMARKS_KEY = ["bookmarks"] as const;
+const WEBSITES_KEY = ["websites"] as const;
 
 export function useYouTubeChannels() {
   return useQuery({
@@ -54,6 +55,11 @@ export function useUpdateYouTubeChannel() {
       });
       void queryClient.invalidateQueries({
         queryKey: BOOKMARKS_KEY,
+      });
+      // Editing the channel's associated websites mutates the shared website↔channel join, so the
+      // websites' `youtubeChannelIds` go stale until refetched.
+      void queryClient.invalidateQueries({
+        queryKey: WEBSITES_KEY,
       });
     },
   });

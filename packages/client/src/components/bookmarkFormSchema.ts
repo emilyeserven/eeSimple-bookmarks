@@ -63,6 +63,46 @@ export function looksLikeUrl(value: string): boolean {
   return z.string().url().safeParse(value.trim()).success;
 }
 
+/** The kind of value the Add Bookmark primary input holds. */
+export type BookmarkInputType = "url" | "isbn" | "text";
+
+/**
+ * Normalize an ISBN-like string: strip spaces and dashes, then accept an ISBN-13 (13 digits) or an
+ * ISBN-10 (9 digits + a trailing digit or `X`). Returns the compact form (uppercased `X`), or `null`
+ * when it isn't a syntactic ISBN. The checksum is intentionally not verified — the metadata lookup is
+ * the real validator and a permissive client-side hint is fine.
+ */
+export function normalizeIsbn(value: string): string | null {
+  const compact = value.replace(/[\s-]/g, "").toUpperCase();
+  if (/^\d{13}$/.test(compact)) return compact;
+  if (/^\d{9}[\dX]$/.test(compact)) return compact;
+  return null;
+}
+
+/**
+ * Classify the Add Bookmark primary input as a fetchable URL, an ISBN (10 or 13, dashed or not), or
+ * plain text. URL is checked first (unambiguous); an empty value is treated as `"url"` — the neutral
+ * default that keeps the normal Check URL / Add Now actions.
+ */
+export function detectBookmarkInputType(value: string): BookmarkInputType {
+  const trimmed = value.trim();
+  if (trimmed === "" || looksLikeUrl(trimmed)) return "url";
+  if (normalizeIsbn(trimmed) !== null) return "isbn";
+  return "text";
+}
+
+/**
+ * A short, human-readable label for the detected input type, shown under the input, or `null` when
+ * the input is empty. The ISBN case distinguishes the 10- vs 13-digit form.
+ */
+export function bookmarkInputHint(value: string): string | null {
+  if (value.trim() === "") return null;
+  const type = detectBookmarkInputType(value);
+  if (type === "url") return "Web link";
+  if (type === "isbn") return normalizeIsbn(value)?.length === 13 ? "ISBN-13" : "ISBN-10";
+  return "Text — saved as the name";
+}
+
 /** Client-side mirror of the server's stripSiteNameSuffix for user-entered selfIds. */
 export function stripSelfId(title: string, selfId: string): string {
   const escaped = selfId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

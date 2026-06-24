@@ -30,6 +30,9 @@ interface BookmarkPropertiesFormProps {
 /**
  * Whether any property is editable for this bookmark: a YouTube built-in (Runtime/Date Posted) on a
  * YouTube URL, or any enabled, form-visible property scoped to the bookmark's category or media type.
+ * On a non-YouTube bookmark, Runtime/Date Posted render as ordinary fields (not the metadata-fetch
+ * fields), so they count here too — they're only excluded for YouTube bookmarks, where the dedicated
+ * metadata fields handle them.
  */
 function hasEditableProperties(
   customProperties: CustomProperty[],
@@ -39,15 +42,15 @@ function hasEditableProperties(
   isYouTubeBookmark: boolean,
 ): boolean {
   if ((runtimeProp !== undefined || datePostedProp !== undefined) && isYouTubeBookmark) return true;
-  return customProperties.some(
-    property =>
-      property.enabled
+  return customProperties.some((property) => {
+    if (isYouTubeBookmark && (property.slug === RUNTIME_SLUG || property.slug === DATE_POSTED_SLUG)) {
+      return false;
+    }
+    return property.enabled
       && !property.hiddenFromForm
-      && property.slug !== RUNTIME_SLUG
-      && property.slug !== DATE_POSTED_SLUG
       && (propertyAppliesToCategory(property, bookmark.categoryId ?? "")
-        || propertyAppliesToMediaType(property, bookmark.mediaType?.id ?? null)),
-  );
+        || propertyAppliesToMediaType(property, bookmark.mediaType?.id ?? null));
+  });
 }
 
 /** Edit a bookmark's custom property values. */
@@ -181,6 +184,10 @@ export function BookmarkPropertiesForm({
   const runtimeProp = (customProperties ?? []).find(p => p.slug === RUNTIME_SLUG);
   const datePostedProp = (customProperties ?? []).find(p => p.slug === DATE_POSTED_SLUG);
   const isYouTubeBookmark = looksLikeYouTube(bookmark.url ?? "");
+  // On YouTube bookmarks Runtime/Date Posted are edited via the metadata-fetch fields above, so keep
+  // them out of the generic property list there. On every other bookmark they render as ordinary
+  // number/date fields so their values stay editable.
+  const builtInHiddenSlugs = isYouTubeBookmark ? [RUNTIME_SLUG, DATE_POSTED_SLUG] : [];
 
   if (!hasEditableProperties(customProperties ?? [], bookmark, runtimeProp, datePostedProp, isYouTubeBookmark)) {
     return (
@@ -213,6 +220,7 @@ export function BookmarkPropertiesForm({
         mediaTypeId={bookmark.mediaType?.id ?? null}
         properties={customProperties ?? []}
         bookmark={bookmark}
+        hiddenSlugs={builtInHiddenSlugs}
         numberInputs={numberInputs}
         booleanInputs={booleanInputs}
         dateTimeInputs={dateTimeInputs}
@@ -234,6 +242,7 @@ export function BookmarkPropertiesForm({
         mediaTypeId={bookmark.mediaType?.id ?? null}
         properties={customProperties ?? []}
         bookmark={bookmark}
+        hiddenSlugs={builtInHiddenSlugs}
         numberInputs={numberInputs}
         booleanInputs={booleanInputs}
         dateTimeInputs={dateTimeInputs}
