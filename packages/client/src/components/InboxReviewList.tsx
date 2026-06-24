@@ -11,7 +11,6 @@ import { useState } from "react";
 import { ChevronDown, ExternalLink, Trash2 } from "lucide-react";
 
 import {
-  MobileMoreMenu,
   RowActions,
   StatusBadge,
 } from "./InboxRowActions";
@@ -112,36 +111,8 @@ function ReviewRow({
             categoryName={categoryName}
             contextOpen={contextOpen}
             onContextOpenChange={setContextOpen}
+            trailing={<RowActions item={item} />}
           />
-
-          <div className="mt-3 flex items-center gap-2">
-            <Button
-              className="flex-1"
-              variant="outline"
-              disabled={reject.isPending}
-              onClick={() => {
-                reject.mutate(item.id, {
-                  onSuccess: () => notifySuccess("Rejected link"),
-                });
-                onDismiss?.(item.id);
-              }}
-            >
-              Reject
-            </Button>
-            <Button
-              className="flex-1"
-              disabled={approve.isPending}
-              onClick={() => {
-                approve.mutate(item.id, {
-                  onSuccess: notifyApprove,
-                });
-                onDismiss?.(item.id);
-              }}
-            >
-              Accept
-            </Button>
-            <MobileMoreMenu item={item} />
-          </div>
         </RowCard>
       </div>
     );
@@ -159,21 +130,8 @@ function ReviewRow({
         categoryName={categoryName}
         contextOpen={contextOpen}
         onContextOpenChange={setContextOpen}
-        trailing={!isMobile
-          ? (
-            <div className="flex shrink-0 items-start gap-1">
-              <RowActions item={item} />
-            </div>
-          )
-          : null}
+        trailing={<RowActions item={item} />}
       />
-      {isMobile
-        ? (
-          <div className="mt-3 flex gap-1">
-            <RowActions item={item} />
-          </div>
-        )
-        : null}
     </RowCard>
   );
 }
@@ -199,26 +157,35 @@ function ReviewItemBody({
           />
         )
         : null}
-      <div className="min-w-0 flex-1 space-y-1">
-        <div className="flex items-start gap-2">
-          <p className="min-w-0 font-medium wrap-break-word">{item.title || item.anchorText || item.url || item.rawUrl}</p>
-          <StatusBadge item={item} />
-          {(item.markedForDeletion || item.status === "rejected")
-            ? (
-              <Badge
-                variant="outline"
-                className="gap-1 text-muted-foreground"
-              >
-                <Trash2 className="size-3" />
-                Will be deleted
-              </Badge>
-            )
+      <div className="min-w-0 flex-1 space-y-2">
+        {/* Row 1: Title + From | Buttons */}
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0 space-y-0.5">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <p className="min-w-0 font-medium wrap-break-word">{item.title || item.anchorText || item.url || item.rawUrl}</p>
+              <StatusBadge item={item} />
+              {(item.markedForDeletion || item.status === "rejected")
+                ? (
+                  <Badge
+                    variant="outline"
+                    className="gap-1 text-muted-foreground"
+                  >
+                    <Trash2 className="size-3" />
+                    Will be deleted
+                  </Badge>
+                )
+                : null}
+            </div>
+            {item.sourceLabel
+              ? <p className="text-xs text-muted-foreground/70">From {item.sourceLabel}</p>
+              : null}
+          </div>
+          {trailing
+            ? <div className="flex shrink-0 items-start">{trailing}</div>
             : null}
         </div>
-        {item.sourceLabel
-          ? <p className="text-xs text-muted-foreground/70">From {item.sourceLabel}</p>
-          : null}
-        <p className="text-xs text-muted-foreground/70">Added {formatAdded(item.createdAt)}</p>
+
+        {/* Row 2: Link */}
         {item.url
           ? (
             <a
@@ -238,6 +205,8 @@ function ReviewItemBody({
         {item.url && item.rawUrl !== item.url
           ? <p className="text-xs break-all text-muted-foreground/70">via {item.rawUrl}</p>
           : null}
+
+        {/* Row 3: Context */}
         {categoryName
           ? <p className="text-xs text-muted-foreground">Category: {categoryName}</p>
           : null}
@@ -266,8 +235,10 @@ function ReviewItemBody({
             />
           )
           : null}
+
+        {/* Row 4: Date added */}
+        <p className="text-xs text-muted-foreground/70">Added {formatAdded(item.createdAt)}</p>
       </div>
-      {trailing}
     </div>
   );
 }
