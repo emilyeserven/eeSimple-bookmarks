@@ -35,6 +35,8 @@ export interface BookmarkSearch {
   date?: Record<string, [string | null, string | null]>;
   /** Filter bookmarks by whether a property value is present or absent, keyed by property id. */
   presence?: Record<string, "has" | "missing">;
+  /** Filter bookmarks by selected choices values keyed by property id; a bookmark passes if any selected value matches (OR semantics). */
+  choices?: Record<string, string[]>;
 }
 
 function parseNumRecord(raw: unknown): Record<string, [number, number]> {
@@ -83,6 +85,18 @@ function parseDateRecord(raw: unknown): Record<string, [string | null, string | 
   return result;
 }
 
+function parseChoicesRecord(raw: unknown): Record<string, string[]> {
+  if (raw === null || typeof raw !== "object") return {};
+  const result: Record<string, string[]> = {};
+  for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+    if (Array.isArray(value)) {
+      const strings = value.filter((v): v is string => typeof v === "string");
+      if (strings.length > 0) result[key] = strings;
+    }
+  }
+  return result;
+}
+
 /** Keep a value only if it is a non-empty array of strings, dropping non-string entries. */
 function validStringList(value: unknown): string[] | undefined {
   if (!Array.isArray(value)) return undefined;
@@ -117,6 +131,7 @@ export function validateBookmarkSearch(search: Record<string, unknown>): Bookmar
     bool: nonEmptyRecord(parseBoolRecord(search.bool)),
     date: nonEmptyRecord(parseDateRecord(search.date)),
     presence: nonEmptyRecord(parsePresenceRecord(search.presence)),
+    choices: nonEmptyRecord(parseChoicesRecord(search.choices)),
   };
 
   // Drop the keys that came back undefined so the result has no empty/absent filter entries.
@@ -140,6 +155,7 @@ type SearchableBookmark = Pick<
   | "dateTimeValues"
   | "fileValues"
   | "progressValues"
+  | "choicesValues"
   | "relationships"
 >;
 
@@ -179,8 +195,20 @@ function passesPropertyPresence(bookmark: SearchableBookmark, search: BookmarkSe
         || bookmark.booleanValues.some(v => v.propertyId === propertyId)
         || bookmark.dateTimeValues.some(v => v.propertyId === propertyId)
         || bookmark.fileValues.some(v => v.propertyId === propertyId)
-        || bookmark.progressValues.some(v => v.propertyId === propertyId);
+        || bookmark.progressValues.some(v => v.propertyId === propertyId)
+        || bookmark.choicesValues.some(v => v.propertyId === propertyId && v.values.length > 0);
     if (!passesPresence(mode, hasValue)) return false;
+  }
+  return true;
+}
+
+/** Every choices filter must match: a bookmark passes if any of its selected values for the property overlaps the required set. */
+function passesChoicesFilters(bookmark: SearchableBookmark, search: BookmarkSearch): boolean {
+  for (const [propertyId, required] of Object.entries(search.choices ?? {})) {
+    if (required.length === 0) continue;
+    const entry = bookmark.choicesValues.find(v => v.propertyId === propertyId);
+    const bookmarkValues = entry?.values ?? [];
+    if (!required.some(v => bookmarkValues.includes(v))) return false;
   }
   return true;
 }
@@ -221,6 +249,7 @@ export function bookmarkMatchesSearch(
     && passesPresence(search.tagPresence, bookmark.tags.length > 0)
     && passesPropertyPresence(bookmark, search)
     && passesValueFilters(bookmark, search)
+    && passesChoicesFilters(bookmark, search)
   );
 }
 
@@ -241,6 +270,7 @@ export function hasAnyActiveFilter(search: BookmarkSearch): boolean {
     || Object.keys(search.bool ?? {}).length > 0
     || Object.keys(search.date ?? {}).length > 0
     || Object.keys(search.presence ?? {}).length > 0
+    || Object.keys(search.choices ?? {}).length > 0
   );
 }
 
@@ -422,6 +452,18 @@ export function withWebsitePresence(
   return next;
 }
 
+/** Return a copy of `search` with a choices filter set, or cleared when `values` is empty. */
+export function withChoicesFilter(
+  search: BookmarkSearch,
+  propertyId: string,
+  values: string[],
+): BookmarkSearch {
+  return {
+    ...search,
+    choices: patchRecord(search.choices, propertyId, values.length > 0 ? values : undefined),
+  };
+}
+
 /** Return a copy of `search` with a property-presence filter set or cleared. */
 export function withPresenceFilter(
   search: BookmarkSearch,
@@ -474,7 +516,8 @@ export function summarizeBookmarkSearch(raw: Record<string, unknown>): string {
     = Object.keys(search.num ?? {}).length
       + Object.keys(search.bool ?? {}).length
       + Object.keys(search.date ?? {}).length
-      + Object.keys(search.presence ?? {}).length;
+      + Object.keys(search.presence ?? {}).length
+      + Object.keys(search.choices ?? {}).length;
   const parts = [
     countPart(search.categories?.length ?? 0, "category", "categories"),
     countPart(search.mediaTypes?.length ?? 0, "media type", "media types"),

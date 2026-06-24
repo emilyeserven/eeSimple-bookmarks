@@ -5,6 +5,7 @@ import { Ban, ChevronDown, Circle, CircleDot, CircleHelp } from "lucide-react";
 
 import { Combobox } from "./Combobox";
 import { DateTimeRangeFields } from "./DateTimePicker";
+import { MultiCombobox } from "./MultiCombobox";
 import { RangeSlider } from "./RangeSlider";
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -35,6 +36,8 @@ interface CustomPropertyFiltersProps {
   dateTimeValues: Record<string, [string | null, string | null]>;
   /** Active presence filters keyed by property id (absent = no filter). */
   presenceValues: Record<string, "has" | "missing">;
+  /** Active choices filters keyed by property id; value is an array of selected choice slugs. */
+  choicesValues: Record<string, string[]>;
   /** Report a number filter (or `undefined` to clear it when back at full range). */
   onNumberFilterChange: (propertyId: string, range: [number, number] | undefined) => void;
   /** Report a boolean filter (`true`/`false`, or `undefined` to clear it). */
@@ -43,7 +46,9 @@ interface CustomPropertyFiltersProps {
   onDateTimeFilterChange: (propertyId: string, range: [string | null, string | null] | undefined) => void;
   /** Report a presence filter (`"has"`/`"missing"`, or `undefined` to clear it). */
   onPresenceFilterChange: (propertyId: string, mode: "has" | "missing" | undefined) => void;
-  /** Clear all filter types (num, bool, presence) for a property in one navigation. */
+  /** Report a choices filter (array of selected choice slugs, or empty to clear). */
+  onChoicesFilterChange: (propertyId: string, values: string[]) => void;
+  /** Clear all filter types (num, bool, presence, choices) for a property in one navigation. */
   onPropertyReset: (propertyId: string) => void;
 }
 
@@ -166,10 +171,12 @@ export function CustomPropertyFilters({
   booleanValues,
   dateTimeValues,
   presenceValues,
+  choicesValues,
   onNumberFilterChange,
   onBooleanFilterChange,
   onDateTimeFilterChange,
   onPresenceFilterChange,
+  onChoicesFilterChange,
   onPropertyReset,
 }: CustomPropertyFiltersProps) {
   if (properties.length === 0) return null;
@@ -207,7 +214,8 @@ export function CustomPropertyFilters({
       = numberValues[property.id] !== undefined
         || booleanValues[property.id] !== undefined
         || dateTimeValues[property.id] !== undefined
-        || presenceValue !== undefined;
+        || presenceValue !== undefined
+        || (choicesValues[property.id]?.length ?? 0) > 0;
 
     function handleReset() {
       onPropertyReset(property.id);
@@ -300,6 +308,16 @@ export function CustomPropertyFilters({
                 property={property}
                 value={booleanValues[property.id]}
                 onChange={onBooleanFilterChange}
+              />
+            )
+            : null}
+
+          {presenceValue !== "missing" && property.type === "choices"
+            ? (
+              <ChoicesFilterControl
+                property={property}
+                value={choicesValues[property.id]}
+                onChange={onChoicesFilterChange}
               />
             )
             : null}
@@ -438,6 +456,31 @@ function BooleanFilterControl({
       aria-label={`Filter by ${property.name}`}
       onValueChange={next =>
         onChange(property.id, next === undefined ? undefined : next === "true")}
+    />
+  );
+}
+
+interface ChoicesControlProps {
+  property: CustomProperty;
+  /** Current selected choice slugs from the URL, or undefined when the filter is inactive. */
+  value: string[] | undefined;
+  onChange: (propertyId: string, values: string[]) => void;
+}
+
+function ChoicesFilterControl({
+  property, value, onChange,
+}: ChoicesControlProps) {
+  const options = (property.choicesItems ?? []).map(item => ({
+    value: item.value,
+    label: item.label,
+  }));
+  return (
+    <MultiCombobox
+      options={options}
+      values={value ?? []}
+      onValuesChange={values => onChange(property.id, values)}
+      placeholder={`Filter by ${property.name}…`}
+      aria-label={`Filter by ${property.name}`}
     />
   );
 }
