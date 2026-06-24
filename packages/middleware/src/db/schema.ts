@@ -913,6 +913,9 @@ export const appSettings = pgTable("app_settings", {
   id: integer("id").primaryKey().default(1),
   // Generic URL-shortener domains (e.g. bit.ly) that can't be expanded to a vendor; always nudge.
   shortenerIgnoreList: jsonb("shortener_ignore_list").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+  // Domains whose redirect chains should never be followed (e.g. docs.google.com). The redirect
+  // resolver skips these when scanning a bookmark URL or processing newsletter imports.
+  redirectIgnoreList: jsonb("redirect_ignore_list").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
   // Imports blacklist: links matching these entries are dropped from future imports. NOT NULL on the
   // populated app_settings table → pre-applied in migrate.ts to keep push additive (renamed from
   // `newsletter_blacklist` via a guarded migrate.ts step; see the ADD COLUMN / RENAME steps).

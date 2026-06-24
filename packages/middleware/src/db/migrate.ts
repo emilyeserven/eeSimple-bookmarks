@@ -589,6 +589,17 @@ const migrations: RuntimeMigration[] = [
     `),
   },
   {
+    // `app_settings.redirect_ignore_list` stores domains whose redirect chains should never be
+    // followed. It is NOT NULL jsonb DEFAULT '[]'; adding a NOT NULL column to the populated
+    // singleton makes drizzle-kit push prompt (non-TTY crash), so pre-apply it here. Default must
+    // match schema.ts exactly.
+    name: "add app_settings.redirect_ignore_list column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "app_settings"
+        ADD COLUMN IF NOT EXISTS "redirect_ignore_list" jsonb NOT NULL DEFAULT '[]'::jsonb
+    `),
+  },
+  {
     // `bookmark_choices_values` has a NOT NULL `values` column. Adding a new table with NOT NULL
     // columns that references an already-populated table makes drizzle-kit push prompt ("do you want
     // to truncate?"), which crashes the non-TTY deploy. Pre-create the table here with

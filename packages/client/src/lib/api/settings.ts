@@ -40,6 +40,14 @@ export const appSettingsApi = {
         domains,
       }),
     }),
+  getRedirectIgnoreList: () => request<string[]>("/app-settings/redirect-ignore-list"),
+  updateRedirectIgnoreList: (domains: string[]) =>
+    request<string[]>("/app-settings/redirect-ignore-list", {
+      method: "PUT",
+      body: JSON.stringify({
+        domains,
+      }),
+    }),
   getImportBlacklist: () =>
     request<ImportBlacklistEntry[]>("/app-settings/import-blacklist"),
   updateImportBlacklist: (entries: ImportBlacklistEntry[]) =>

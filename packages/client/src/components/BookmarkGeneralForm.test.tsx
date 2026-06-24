@@ -45,6 +45,7 @@ vi.mock("./useBookmarkFormData", () => ({
     },
     websites: [],
     shortenerIgnoreList: [],
+    redirectIgnoreList: [],
     tagTree: [],
     categories: sampleCategories,
     autofillRules: [],

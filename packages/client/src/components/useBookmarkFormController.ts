@@ -28,6 +28,18 @@ import { metadataApi } from "../lib/api/metadata";
 import { useAppForm } from "../lib/form";
 import { notifySuccess } from "../lib/notifications";
 
+/** True when `url`'s hostname (minus leading www.) matches any entry in `ignoreList`. */
+function isRedirectIgnored(url: string, ignoreList: string[]): boolean {
+  if (ignoreList.length === 0) return false;
+  try {
+    const hostname = new URL(url).hostname.replace(/^www\./i, "").toLowerCase();
+    return ignoreList.some(d => hostname === d || hostname.endsWith(`.${d}`));
+  }
+  catch {
+    return false;
+  }
+}
+
 export interface BookmarkFormProps {
   /** When provided, the form edits this bookmark instead of creating a new one. */
   bookmark?: Bookmark;
@@ -76,6 +88,7 @@ export function useBookmarkFormController({
     },
     websites,
     shortenerIgnoreList,
+    redirectIgnoreList,
     tagTree,
     customProperties,
     categories,
@@ -378,7 +391,7 @@ export function useBookmarkFormController({
       let url = form.getFieldValue("url");
       // Follow the redirect chain (tracker/newsletter links → real destination). Falls back to the
       // current URL on any failure, so a slow or unreachable server doesn't break the scan.
-      if (isUrlFetchable(url)) {
+      if (isUrlFetchable(url) && !isRedirectIgnored(url, redirectIgnoreList ?? [])) {
         const resolved = await metadataApi.resolveUrl({
           url,
         });

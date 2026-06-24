@@ -17,6 +17,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { appSettingsApi } from "../lib/api/settings";
 
 const SHORTENER_IGNORE_LIST_KEY = ["app-settings", "shortener-ignore-list"] as const;
+const REDIRECT_IGNORE_LIST_KEY = ["app-settings", "redirect-ignore-list"] as const;
 const IMPORT_BLACKLIST_KEY = ["app-settings", "import-blacklist"] as const;
 const HOMEPAGE_CONTENT_KEY = ["app-settings", "homepage-content"] as const;
 const ADVANCED_KEY = ["app-settings", "advanced"] as const;
@@ -39,6 +40,24 @@ export function useUpdateShortenerIgnoreList() {
     mutationFn: (domains: string[]) => appSettingsApi.updateShortenerIgnoreList(domains),
     onSuccess: (saved) => {
       queryClient.setQueryData(SHORTENER_IGNORE_LIST_KEY, saved);
+    },
+  });
+}
+
+/** Domains whose redirect chains should never be followed when scanning a bookmark URL. */
+export function useRedirectIgnoreList() {
+  return useQuery({
+    queryKey: REDIRECT_IGNORE_LIST_KEY,
+    queryFn: appSettingsApi.getRedirectIgnoreList,
+  });
+}
+
+export function useUpdateRedirectIgnoreList() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (domains: string[]) => appSettingsApi.updateRedirectIgnoreList(domains),
+    onSuccess: (saved) => {
+      queryClient.setQueryData(REDIRECT_IGNORE_LIST_KEY, saved);
     },
   });
 }

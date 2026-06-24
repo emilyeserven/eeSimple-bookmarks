@@ -37,7 +37,7 @@ import {
   type ImportRow,
   newsletters,
 } from "@/db/schema";
-import { addImportBlacklistEntry, getImportBlacklist, getShortenerIgnoreList } from "@/services/appSettings";
+import { addImportBlacklistEntry, getImportBlacklist, getRedirectIgnoreList, getShortenerIgnoreList } from "@/services/appSettings";
 import { applyImportRules } from "@/services/importRules";
 import { suggestAutofillForBookmark } from "@/services/autofill";
 import { checkBookmarkUrlDuplicate, createBookmark, DuplicateUrlError } from "@/services/bookmarks";
@@ -135,15 +135,38 @@ interface ResolvedCandidate {
   context: string | null;
 }
 
+/** True when `url`'s hostname (minus leading www.) matches any entry in `ignoreList`. */
+function isRedirectIgnored(url: string, ignoreList: string[]): boolean {
+  if (ignoreList.length === 0) return false;
+  try {
+    const hostname = new URL(url).hostname.replace(/^www\./i, "").toLowerCase();
+    return ignoreList.some(d => hostname === d || hostname.endsWith(`.${d}`));
+  }
+  catch {
+    return false;
+  }
+}
+
 /** Unwrap a candidate's tracker URL and canonicalize the destination. Falls back to the raw URL on a
  * non-security failure so a slow/blocking article server doesn't drop the link; only an SSRF block
- * marks the row as an error. */
+ * marks the row as an error. Skips unwrapping if the URL's domain is in `redirectIgnoreList`. */
 async function resolveCandidate(
   candidate: LinkCandidate,
   data: { mode: "trackers";
     websites: Awaited<ReturnType<typeof listWebsites>>;
-    ignoreList: string[]; },
+    ignoreList: string[];
+    redirectIgnoreList: string[]; },
 ): Promise<ResolvedCandidate> {
+  if (isRedirectIgnored(candidate.rawUrl, data.redirectIgnoreList)) {
+    return {
+      rawUrl: candidate.rawUrl,
+      anchorText: candidate.anchorText,
+      url: canonicalize(candidate.rawUrl, data).url,
+      status: "pending",
+      errorReason: null,
+      context: candidate.context,
+    };
+  }
   const result = await unwrapRedirect(candidate.rawUrl);
   if (result.kind === "blocked") {
     return {
@@ -330,15 +353,17 @@ export async function processImport(importId: string, input: IngestInput): Promi
       })
       .where(eq(imports.id, importId));
 
-    const [websites, ignoreList, blacklist] = await Promise.all([
+    const [websites, ignoreList, redirectIgnoreList, blacklist] = await Promise.all([
       listWebsites(),
       getShortenerIgnoreList(),
+      getRedirectIgnoreList(),
       getImportBlacklist(),
     ]);
     const data = {
       mode: "trackers" as const,
       websites,
       ignoreList,
+      redirectIgnoreList,
     };
 
     const resolvedAll = await mapWithConcurrency(
