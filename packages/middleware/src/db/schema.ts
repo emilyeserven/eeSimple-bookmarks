@@ -1775,6 +1775,54 @@ export const bookmarkAuthors = pgTable("bookmark_authors", {
   }),
 ]);
 
+/** `author_youtube_channels` join — M:M between authors and YouTube channels. */
+export const authorYoutubeChannels = pgTable("author_youtube_channels", {
+  authorId: uuid("author_id").notNull().references(() => authors.id, {
+    onDelete: "cascade",
+  }),
+  channelId: uuid("channel_id").notNull().references(() => youtubeChannels.id, {
+    onDelete: "cascade",
+  }),
+}, table => [
+  primaryKey({
+    columns: [table.authorId, table.channelId],
+  }),
+]);
+
+export type AuthorYoutubeChannelRow = typeof authorYoutubeChannels.$inferSelect;
+
+/** `author_websites` join — M:M between authors and websites. */
+export const authorWebsites = pgTable("author_websites", {
+  authorId: uuid("author_id").notNull().references(() => authors.id, {
+    onDelete: "cascade",
+  }),
+  websiteId: uuid("website_id").notNull().references(() => websites.id, {
+    onDelete: "cascade",
+  }),
+}, table => [
+  primaryKey({
+    columns: [table.authorId, table.websiteId],
+  }),
+]);
+
+export type AuthorWebsiteRow = typeof authorWebsites.$inferSelect;
+
+/** `author_publishers` join — M:M between authors and publishers. */
+export const authorPublishers = pgTable("author_publishers", {
+  authorId: uuid("author_id").notNull().references(() => authors.id, {
+    onDelete: "cascade",
+  }),
+  publisherId: uuid("publisher_id").notNull().references(() => publishers.id, {
+    onDelete: "cascade",
+  }),
+}, table => [
+  primaryKey({
+    columns: [table.authorId, table.publisherId],
+  }),
+]);
+
+export type AuthorPublisherRow = typeof authorPublishers.$inferSelect;
+
 /**
  * `card_field_templates` — user-saved named configurations of card field zone placements.
  * Reusable across card display rules: save once, apply to any rule's Card Fields override.
@@ -1796,6 +1844,9 @@ export const authorsRelations = relations(authors, ({
   many,
 }) => ({
   bookmarkAuthors: many(bookmarkAuthors),
+  authorYoutubeChannels: many(authorYoutubeChannels),
+  authorWebsites: many(authorWebsites),
+  authorPublishers: many(authorPublishers),
 }));
 
 export const bookmarkAuthorsRelations = relations(bookmarkAuthors, ({
@@ -1808,5 +1859,44 @@ export const bookmarkAuthorsRelations = relations(bookmarkAuthors, ({
   author: one(authors, {
     fields: [bookmarkAuthors.authorId],
     references: [authors.id],
+  }),
+}));
+
+export const authorYoutubeChannelsRelations = relations(authorYoutubeChannels, ({
+  one,
+}) => ({
+  author: one(authors, {
+    fields: [authorYoutubeChannels.authorId],
+    references: [authors.id],
+  }),
+  channel: one(youtubeChannels, {
+    fields: [authorYoutubeChannels.channelId],
+    references: [youtubeChannels.id],
+  }),
+}));
+
+export const authorWebsitesRelations = relations(authorWebsites, ({
+  one,
+}) => ({
+  author: one(authors, {
+    fields: [authorWebsites.authorId],
+    references: [authors.id],
+  }),
+  website: one(websites, {
+    fields: [authorWebsites.websiteId],
+    references: [websites.id],
+  }),
+}));
+
+export const authorPublishersRelations = relations(authorPublishers, ({
+  one,
+}) => ({
+  author: one(authors, {
+    fields: [authorPublishers.authorId],
+    references: [authors.id],
+  }),
+  publisher: one(publishers, {
+    fields: [authorPublishers.publisherId],
+    references: [publishers.id],
   }),
 }));

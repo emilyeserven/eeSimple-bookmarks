@@ -1,13 +1,22 @@
 import type { Author, SocialLink, UpdateAuthorInput } from "@eesimple/types";
 
 import { useNavigate } from "@tanstack/react-router";
-import { UserCircle, Sparkles } from "lucide-react";
+import { Globe, MonitorPlay, Sparkles, UserCircle } from "lucide-react";
 import { z } from "zod";
 
 import { EntityImageField } from "./EntityImageField";
 import { SocialLinksField } from "./SocialLinksField";
-import { useAutoAuthorImage, useDeleteAuthorImage, useUpdateAuthor, useUploadAuthorImage } from "../hooks/useAuthors";
+import {
+  useAdoptChannelImageForAuthor,
+  useAdoptWebsiteFaviconForAuthor,
+  useAutoAuthorImage,
+  useDeleteAuthorImage,
+  useUpdateAuthor,
+  useUploadAuthorImage,
+} from "../hooks/useAuthors";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
+import { useWebsites } from "../hooks/useWebsites";
+import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
 import { useAppForm } from "../lib/form";
 import { socialLinkSchema } from "../lib/socialLinks";
 
@@ -41,7 +50,28 @@ export function AuthorGeneralForm({
   const uploadAvatar = useUploadAuthorImage();
   const autoAvatar = useAutoAuthorImage();
   const deleteAvatar = useDeleteAuthorImage();
-  const avatarBusy = uploadAvatar.isPending || autoAvatar.isPending || deleteAvatar.isPending;
+  const adoptChannel = useAdoptChannelImageForAuthor();
+  const adoptWebsite = useAdoptWebsiteFaviconForAuthor();
+  const avatarBusy
+    = uploadAvatar.isPending
+      || autoAvatar.isPending
+      || deleteAvatar.isPending
+      || adoptChannel.isPending
+      || adoptWebsite.isPending;
+
+  const {
+    data: channels,
+  } = useYouTubeChannels();
+  const {
+    data: websites,
+  } = useWebsites();
+
+  const connectedChannelsWithImage = (channels ?? []).filter(
+    ch => author.youtubeChannelIds.includes(ch.id) && ch.imageUrl,
+  );
+  const connectedWebsitesWithImage = (websites ?? []).filter(
+    site => author.websiteIds.includes(site.id) && site.imageUrl,
+  );
 
   const autoSave = useFieldAutoSave<UpdateAuthorInput, Author>({
     id: author.id,
@@ -164,6 +194,42 @@ export function AuthorGeneralForm({
           <Sparkles className="size-4" />
           Fetch from Biography
         </Button>
+        {connectedChannelsWithImage.map(ch => (
+          <Button
+            key={ch.id}
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={avatarBusy}
+            onClick={() => adoptChannel.mutate({
+              id: author.id,
+              channelId: ch.id,
+            })}
+          >
+            <MonitorPlay className="size-4" />
+            Use &ldquo;
+            {ch.name}
+            &rdquo; photo
+          </Button>
+        ))}
+        {connectedWebsitesWithImage.map(site => (
+          <Button
+            key={site.id}
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={avatarBusy}
+            onClick={() => adoptWebsite.mutate({
+              id: author.id,
+              websiteId: site.id,
+            })}
+          >
+            <Globe className="size-4" />
+            Use &ldquo;
+            {site.siteName}
+            &rdquo; favicon
+          </Button>
+        ))}
       </div>
 
       <Separator />

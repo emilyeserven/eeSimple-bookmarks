@@ -646,6 +646,12 @@ export interface Author {
   imageUrl: string | null;
   /** Social media links for this author. */
   socialLinks: SocialLink[];
+  /** IDs of YouTube channels associated with this author. */
+  youtubeChannelIds: string[];
+  /** IDs of websites associated with this author. */
+  websiteIds: string[];
+  /** IDs of publishers associated with this author. */
+  publisherIds: string[];
 }
 
 /** Lightweight author shape carried on a bookmark. */
@@ -663,6 +669,12 @@ export interface UpdateAuthorInput {
   biographyUrl?: string | null;
   /** Social media links for this author. Replaces the full list; omit to leave unchanged. */
   socialLinks?: SocialLink[];
+  /** IDs of YouTube channels to associate; replaces the full set. Omit to leave unchanged. */
+  youtubeChannelIds?: string[];
+  /** IDs of websites to associate; replaces the full set. Omit to leave unchanged. */
+  websiteIds?: string[];
+  /** IDs of publishers to associate; replaces the full set. Omit to leave unchanged. */
+  publisherIds?: string[];
 }
 
 /** Lightweight import shape carried on a bookmark (the import event it was created from). */
