@@ -32,6 +32,20 @@ function summaryLine(summary: ImportSummary): string {
   return parts.length > 0 ? parts.join(" · ") : "No links extracted";
 }
 
+/**
+ * A persistent URL disposition line showing how URLs were ultimately handled (survives item purges).
+ * Pending comes from live items; allowed/blocked/rejected are stored on the import row.
+ */
+function urlDispositionLine(summary: ImportSummary): string {
+  const parts: string[] = [
+    summary.allowedUrls.length > 0 ? `${summary.allowedUrls.length} allowed` : "",
+    summary.blockedUrls.length > 0 ? `${summary.blockedUrls.length} blocked` : "",
+    summary.rejectedUrls.length > 0 ? `${summary.rejectedUrls.length} rejected` : "",
+    summary.pendingUrls.length > 0 ? `${summary.pendingUrls.length} pending` : "",
+  ].filter(Boolean);
+  return parts.join(" · ");
+}
+
 function NewsletterIssuesPage() {
   const {
     newsletterSlug,
@@ -101,7 +115,7 @@ function NewsletterIssuesPage() {
                   <StandardListingCard
                     icon={<Mail className="size-4 text-muted-foreground" />}
                     title={issue.title || new Date(issue.createdAt).toLocaleDateString()}
-                    subtitle={summaryLine(issue)}
+                    subtitle={[summaryLine(issue), urlDispositionLine(issue)].filter(Boolean).join(" | ")}
                     count={issue.statusCounts.approved}
                     renderPrimaryLink={(className, children) => (
                       <Link

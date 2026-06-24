@@ -1,3 +1,5 @@
+import type { ImportSummary } from "@eesimple/types";
+
 import { useState } from "react";
 
 import { Link, createFileRoute } from "@tanstack/react-router";
@@ -90,6 +92,7 @@ function NewsletterIssueBookmarksPage() {
               </Button>
             </div>
             <p className="text-sm text-muted-foreground">{newsletter.name}</p>
+            {issue && <IssueUrlDisposition issue={issue} />}
           </div>
         )}
         pageKey={`newsletter-issue:${issueId}`}
@@ -121,5 +124,55 @@ function NewsletterIssueBookmarksPage() {
         onOpenChange={setManageOpen}
       />
     </>
+  );
+}
+
+const DISPOSITION_ITEMS: { key: keyof Pick<ImportSummary, "allowedUrls" | "blockedUrls" | "rejectedUrls" | "pendingUrls">;
+  label: string; }[] = [
+  {
+    key: "allowedUrls",
+    label: "allowed",
+  },
+  {
+    key: "blockedUrls",
+    label: "blocked",
+  },
+  {
+    key: "rejectedUrls",
+    label: "rejected",
+  },
+  {
+    key: "pendingUrls",
+    label: "pending",
+  },
+];
+
+function IssueUrlDisposition({
+  issue,
+}: { issue: ImportSummary }) {
+  const parts = DISPOSITION_ITEMS
+    .map(({
+      key, label,
+    }) => ({
+      count: issue[key].length,
+      label,
+    }))
+    .filter(({
+      count,
+    }) => count > 0);
+  if (parts.length === 0) return null;
+  return (
+    <p className="text-sm text-muted-foreground">
+      {parts.map(({
+        count, label,
+      }, i) => (
+        <span key={label}>
+          {i > 0 && <span className="mx-1">·</span>}
+          <span className="font-medium">{count}</span>
+          {" "}
+          {label}
+        </span>
+      ))}
+    </p>
   );
 }

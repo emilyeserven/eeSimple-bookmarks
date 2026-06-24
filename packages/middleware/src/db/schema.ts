@@ -1144,6 +1144,12 @@ export const imports = pgTable("imports", {
   processedCount: integer("processed_count"),
   // Free-text reason when status = "failed" (e.g. the page fetch failed).
   errorReason: text("error_reason"),
+  // Accumulated URLs of items that were approved, blocked, or rejected (appended on each transition).
+  // Nullable text[] columns → push-safe additive; NULL coalesces to [] in the service layer.
+  // Populated so the URL history survives the Import Settings purge and can later drive rule suggestions.
+  allowedUrls: text("allowed_urls").array(),
+  blockedUrls: text("blocked_urls").array(),
+  rejectedUrls: text("rejected_urls").array(),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
