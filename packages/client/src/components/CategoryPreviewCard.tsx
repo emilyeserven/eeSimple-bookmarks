@@ -11,7 +11,6 @@ import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { withCategories } from "@/lib/bookmarkSearch";
 import { CategoryIcon } from "@/lib/icons";
 import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
 
@@ -109,9 +108,11 @@ export function CategoryPreviewCard({
           count={category.bookmarkCount ?? 0}
           renderPrimaryLink={(className, children) => (
             <Link
-              to="/bookmarks"
-              search={withCategories({}, [category.id])}
-              title={`Show bookmarks in ${category.name}`}
+              to="/categories/$categorySlug"
+              params={{
+                categorySlug: category.slug,
+              }}
+              title={`View ${category.name}`}
               className={className}
             >
               {children}

@@ -167,7 +167,6 @@ export function AppSidebar({
     pagination,
     allBookmarks,
     inboxCount,
-    currentBookmarkCategories,
     modifier,
     viewClick,
     hiddenSidebarGroups,
@@ -328,7 +327,7 @@ export function AppSidebar({
             >
               <SidebarMenu>
                 {visibleCategories.map((category) => {
-                  const isActive = currentBookmarkCategories.includes(category.id);
+                  const isActive = pathname.startsWith(`/categories/${category.slug}`);
                   return (
                     <SidebarMenuItem key={category.id}>
                       <SidebarMenuButton
@@ -337,9 +336,9 @@ export function AppSidebar({
                         tooltip={category.name}
                       >
                         <Link
-                          to="/bookmarks"
-                          search={{
-                            categories: [category.id],
+                          to="/categories/$categorySlug"
+                          params={{
+                            categorySlug: category.slug,
                           }}
                           title={`Open (hold ${SIDEBAR_MODIFIER_LABELS[modifier]} to open in the sidebar)`}
                           onClick={event => viewClick(event, "category", category.id)}
