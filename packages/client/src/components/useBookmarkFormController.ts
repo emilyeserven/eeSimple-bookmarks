@@ -18,9 +18,11 @@ import {
   buildChoicesValuesFromInputs,
   buildSectionsValuesFromInputs,
   buildTextValuesFromInputs,
+  detectBookmarkInputType,
   initialImageIntent,
-  looksLikeUrl,
+  ISBN_SLUG,
   looksLikeYouTube,
+  normalizeIsbn,
 } from "./bookmarkFormSchema";
 import { applyImageIntent, promoteSourceDefaults } from "./bookmarkSubmit";
 import { useBookmarkFormData } from "./useBookmarkFormData";
@@ -121,6 +123,8 @@ export function useBookmarkFormController({
     setIsScanning,
     setUrlDuplicate,
     setUrlResolveError,
+    hideNameField,
+    setHideNameField,
   } = ui;
 
   // The channel resolved from a fetched YouTube video, passed on save so the server links/creates it.
@@ -212,7 +216,10 @@ export function useBookmarkFormController({
   });
 
   const rawUrl = useStore(form.store, s => s.values.url);
-  const isOfflineMode = rawUrl.trim() !== "" && !looksLikeUrl(rawUrl);
+  // What the primary input holds: a URL (the normal flow), an ISBN, or plain text (offline). Drives
+  // the live hint + the pre-scan action button. `isOfflineMode` keeps its meaning (plain text only).
+  const inputType = detectBookmarkInputType(rawUrl);
+  const isOfflineMode = inputType === "text";
 
   // Persist the form: build the property values + input, then create or update. On create, also
   // promote category/tags to website/channel defaults (when opted in) and offer the category-edit
@@ -387,6 +394,23 @@ export function useBookmarkFormController({
     }
   }
 
+  // ISBN entry path: the primary input is an ISBN, not a URL. Clear the URL, store the ISBN on its
+  // built-in property so it persists, default the media type to Book, reveal the form, and fetch the
+  // book's metadata (title/description/cover). Mirrors handleAddOfflineBookmark, but the Name field
+  // stays visible (books have titles).
+  async function handleLookupIsbn(): Promise<void> {
+    const isbn = normalizeIsbn(form.getFieldValue("url"));
+    if (!isbn) return;
+    form.setFieldValue("url", "");
+    const isbnProp = (customProperties ?? []).find(p => p.slug === ISBN_SLUG);
+    if (isbnProp) prefill.handleTextChange(isbnProp.id, isbn);
+    const bookMediaType = mediaTypes?.find(mt => mt.name === "Book");
+    if (bookMediaType) form.setFieldValue("mediaTypeId", bookMediaType.id);
+    setHideNameField(false);
+    setScanned(true);
+    await handleIsbnFetch(isbn);
+  }
+
   const {
     runFetchTitle,
     runFetchDescription,
@@ -510,6 +534,8 @@ export function useBookmarkFormController({
     if (bookMediaType) {
       form.setFieldValue("mediaTypeId", bookMediaType.id);
     }
+    // The typed text became the name, so hide the separate Name field for this entry.
+    setHideNameField(true);
     setScanned(true);
   }
 
@@ -563,6 +589,8 @@ export function useBookmarkFormController({
     form,
     isEdit,
     isOfflineMode,
+    inputType,
+    hideNameField,
     isNewChannel,
     scanned,
     isScanning: ui.isScanning,
@@ -629,6 +657,7 @@ export function useBookmarkFormController({
     // ISBN metadata fetch.
     isbnFetch,
     handleIsbnFetch,
+    handleLookupIsbn,
     // Save mutation (footer state).
     saveBookmark,
     onDone,

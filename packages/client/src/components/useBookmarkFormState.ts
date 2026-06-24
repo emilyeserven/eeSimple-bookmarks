@@ -76,6 +76,9 @@ export function useBookmarkFormUiState({
   const [urlDuplicate, setUrlDuplicate] = useState<BookmarkUrlDuplicateResult | null>(null);
   const [autofillOfferDismissed, setAutofillOfferDismissed] = useState(false);
   const [urlResolveError, setUrlResolveError] = useState<string | null>(null);
+  // Set when the form is revealed from a plain-text entry: the typed text became the bookmark's name,
+  // so the separate Name field is hidden. Stays false for URL/ISBN entries.
+  const [hideNameField, setHideNameField] = useState(false);
 
   function handleCancelReporting(): void {
     setIsReportingTitle(false);
@@ -91,6 +94,7 @@ export function useBookmarkFormUiState({
     setAutofillOfferDismissed(false);
     setTitleFetch(null);
     setUrlResolveError(null);
+    setHideNameField(false);
   }
 
   useEffect(() => {
@@ -125,6 +129,8 @@ export function useBookmarkFormUiState({
     setAutofillOfferDismissed,
     urlResolveError,
     setUrlResolveError,
+    hideNameField,
+    setHideNameField,
     handleCancelReporting,
     resetUiState,
   };

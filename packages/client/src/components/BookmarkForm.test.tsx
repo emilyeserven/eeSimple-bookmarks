@@ -221,7 +221,7 @@ vi.mock("../lib/api/metadata", () => ({
 
 /** Type a URL and click "Check URL" to reveal the rest of a fresh (create) form. */
 async function revealForm(url: string): Promise<void> {
-  fireEvent.change(screen.getByLabelText("URL"), {
+  fireEvent.change(screen.getByLabelText("URL, ISBN, or text"), {
     target: {
       value: url,
     },
@@ -253,7 +253,7 @@ describe("BookmarkForm progressive disclosure", () => {
   it("shows only the URL field until the URL is checked", () => {
     render(<BookmarkForm />);
 
-    expect(screen.getByLabelText("URL")).toBeInTheDocument();
+    expect(screen.getByLabelText("URL, ISBN, or text")).toBeInTheDocument();
     expect(screen.getByRole("button", {
       name: "Check URL",
     })).toBeInTheDocument();
@@ -313,7 +313,7 @@ describe("BookmarkForm progressive disclosure", () => {
   it("Add Now saves with a host-fallback title and omits server-filled fields", async () => {
     render(<BookmarkForm />);
 
-    fireEvent.change(screen.getByLabelText("URL"), {
+    fireEvent.change(screen.getByLabelText("URL, ISBN, or text"), {
       target: {
         value: "https://example.com",
       },
@@ -376,7 +376,7 @@ describe("BookmarkForm progressive disclosure", () => {
     render(<BookmarkForm />);
 
     const typed = "https://www.youtube.com/watch?v=4d9RSxd7Soo&list=PL123&index=96";
-    fireEvent.change(screen.getByLabelText("URL"), {
+    fireEvent.change(screen.getByLabelText("URL, ISBN, or text"), {
       target: {
         value: typed,
       },
@@ -387,14 +387,14 @@ describe("BookmarkForm progressive disclosure", () => {
 
     // Re-query the URL input after revealing: gaining the cleanup-toggle action remounts it.
     await waitFor(() =>
-      expect(screen.getByLabelText("URL")).toHaveValue("https://www.youtube.com/watch?v=4d9RSxd7Soo"));
+      expect(screen.getByLabelText("URL, ISBN, or text")).toHaveValue("https://www.youtube.com/watch?v=4d9RSxd7Soo"));
 
     const undo = await screen.findByRole("button", {
       name: "Undo",
     });
     fireEvent.click(undo);
 
-    expect(screen.getByLabelText("URL")).toHaveValue(typed);
+    expect(screen.getByLabelText("URL, ISBN, or text")).toHaveValue(typed);
   });
 });
 
@@ -452,7 +452,7 @@ describe("BookmarkForm editing", () => {
 
     // No URL-only gate when editing: Name is present from the start.
     expect(screen.getByLabelText("Name")).toHaveValue("GitHub");
-    expect(screen.getByLabelText("URL")).toHaveValue("https://github.com");
+    expect(screen.getByLabelText("URL, ISBN, or text")).toHaveValue("https://github.com");
 
     fireEvent.change(screen.getByLabelText("Name"), {
       target: {
@@ -513,7 +513,7 @@ describe("BookmarkForm editing", () => {
 
     render(<BookmarkForm bookmark={bookmark} />);
 
-    const urlInput = screen.getByLabelText("URL");
+    const urlInput = screen.getByLabelText("URL, ISBN, or text");
     const typed = "https://www.youtube.com/watch?v=4d9RSxd7Soo&list=PL123&index=96";
     fireEvent.change(urlInput, {
       target: {

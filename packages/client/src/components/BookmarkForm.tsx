@@ -1,4 +1,4 @@
-import type { BookmarkFormApi } from "./bookmarkFormSchema";
+import type { BookmarkFormApi, BookmarkInputType } from "./bookmarkFormSchema";
 import type { BookmarkFormProps } from "./useBookmarkFormController";
 import type { BookmarkUrlDuplicateResult } from "@eesimple/types";
 
@@ -6,6 +6,7 @@ import { useEffect, useRef } from "react";
 
 import { Brush, Loader2 } from "lucide-react";
 
+import { bookmarkInputHint } from "./bookmarkFormSchema";
 import { BookmarkRevealedFields } from "./BookmarkRevealedFields";
 import { BookmarkUrlResolveFeedback } from "./BookmarkUrlResolveFeedback";
 import { useBookmarkFormController } from "./useBookmarkFormController";
@@ -53,12 +54,13 @@ export function BookmarkForm({
         void form.handleSubmit();
       }}
     >
-      {/* URL — full width, always shown. The cleanup toggle appears only once the form is revealed. */}
+      {/* Primary input — accepts a URL, an ISBN, or plain text. Full width, always shown. The cleanup
+          toggle appears only once the form is revealed. */}
       <form.AppField name="url">
         {field => (
           <field.TextField
-            label="URL"
-            type="url"
+            label="URL, ISBN, or text"
+            type="text"
             onBlur={c.handleUrlBlur}
             action={c.scanned
               ? (
@@ -79,6 +81,24 @@ export function BookmarkForm({
         )}
       </form.AppField>
 
+      {/* Live "what am I adding?" hint, shown before the form is revealed. */}
+      {!c.scanned && (
+        <form.Subscribe selector={state => state.values.url}>
+          {(url) => {
+            const hint = bookmarkInputHint(url);
+            return hint
+              ? (
+                <p className="text-xs text-muted-foreground">
+                  Detected:
+                  {" "}
+                  {hint}
+                </p>
+              )
+              : null;
+          }}
+        </form.Subscribe>
+      )}
+
       {c.urlResolveError && (
         <BookmarkUrlResolveFeedback error={c.urlResolveError} />
       )}
@@ -86,6 +106,7 @@ export function BookmarkForm({
       {c.scanned && (
         <BookmarkRevealedFields
           form={form}
+          hideNameField={c.hideNameField}
           lockedCategoryId={c.lockedCategoryId}
           urlCleanup={c.urlCleanup}
           urlShortener={c.urlShortener}
@@ -172,7 +193,7 @@ export function BookmarkForm({
         scanned={c.scanned}
         isEdit={c.isEdit}
         isScanning={c.isScanning}
-        isOfflineMode={c.isOfflineMode}
+        inputType={c.inputType}
         urlDuplicate={c.urlDuplicate}
         saveIsPending={c.saveBookmark.isPending}
         saveIsError={c.saveBookmark.isError}
@@ -183,6 +204,7 @@ export function BookmarkForm({
         })}
         onAddNow={() => void c.handleAddNow()}
         onAddOfflineBookmark={() => void c.handleAddOfflineBookmark()}
+        onLookupIsbn={() => void c.handleLookupIsbn()}
         onReset={c.handleReset}
       />
     </form>
@@ -194,7 +216,7 @@ interface BookmarkFormFooterProps {
   scanned: boolean;
   isEdit: boolean;
   isScanning: boolean;
-  isOfflineMode: boolean;
+  inputType: BookmarkInputType;
   urlDuplicate: BookmarkUrlDuplicateResult | null;
   saveIsPending: boolean;
   saveIsError: boolean;
@@ -203,16 +225,21 @@ interface BookmarkFormFooterProps {
   onCheckUrl: () => void;
   onAddNow: () => void;
   onAddOfflineBookmark: () => void;
+  onLookupIsbn: () => void;
   onReset: () => void;
 }
 
-/** Action row beneath the form: submit (or Check URL / Add Now pre-scan), Cancel, and Reset. */
+/**
+ * Action row beneath the form. Pre-scan the primary action depends on what was typed: Check URL / Add
+ * Now for a URL, Look up ISBN for an ISBN, Add Offline Bookmark for plain text. Once revealed it's the
+ * submit button. Cancel (edit) and Reset (create) sit alongside.
+ */
 function BookmarkFormFooter({
   form,
   scanned,
   isEdit,
   isScanning,
-  isOfflineMode,
+  inputType,
   urlDuplicate,
   saveIsPending,
   saveIsError,
@@ -221,6 +248,7 @@ function BookmarkFormFooter({
   onCheckUrl,
   onAddNow,
   onAddOfflineBookmark,
+  onLookupIsbn,
   onReset,
 }: BookmarkFormFooterProps) {
   return (
@@ -236,41 +264,17 @@ function BookmarkFormFooter({
               />
             </form.AppForm>
           )
-          : isOfflineMode
-            ? (
-              <Button
-                type="button"
-                onClick={onAddOfflineBookmark}
-              >
-                Add Offline Bookmark
-              </Button>
-            )
-            : (
-              <>
-                <Button
-                  type="button"
-                  disabled={isScanning}
-                  onClick={onCheckUrl}
-                >
-                  {isScanning
-                    ? (
-                      <>
-                        <Loader2 className="size-4 animate-spin" />
-                        Checking…
-                      </>
-                    )
-                    : "Check URL"}
-                </Button>
-                <Button
-                  type="button"
-                  variant="link"
-                  disabled={isScanning || saveIsPending}
-                  onClick={onAddNow}
-                >
-                  Add Now
-                </Button>
-              </>
-            )}
+          : (
+            <PrescanActions
+              inputType={inputType}
+              isScanning={isScanning}
+              saveIsPending={saveIsPending}
+              onCheckUrl={onCheckUrl}
+              onAddNow={onAddNow}
+              onAddOfflineBookmark={onAddOfflineBookmark}
+              onLookupIsbn={onLookupIsbn}
+            />
+          )}
         {isEdit && onDone
           ? (
             <Button
@@ -297,5 +301,73 @@ function BookmarkFormFooter({
       </div>
       {saveIsError ? <p className="mt-2 text-sm text-destructive">{saveErrorMessage}</p> : null}
     </div>
+  );
+}
+
+interface PrescanActionsProps {
+  inputType: BookmarkInputType;
+  isScanning: boolean;
+  saveIsPending: boolean;
+  onCheckUrl: () => void;
+  onAddNow: () => void;
+  onAddOfflineBookmark: () => void;
+  onLookupIsbn: () => void;
+}
+
+/** The pre-scan primary action(s), chosen by what the user typed into the primary input. */
+function PrescanActions({
+  inputType,
+  isScanning,
+  saveIsPending,
+  onCheckUrl,
+  onAddNow,
+  onAddOfflineBookmark,
+  onLookupIsbn,
+}: PrescanActionsProps) {
+  if (inputType === "text") {
+    return (
+      <Button
+        type="button"
+        onClick={onAddOfflineBookmark}
+      >
+        Add Offline Bookmark
+      </Button>
+    );
+  }
+  if (inputType === "isbn") {
+    return (
+      <Button
+        type="button"
+        onClick={onLookupIsbn}
+      >
+        Look up ISBN
+      </Button>
+    );
+  }
+  return (
+    <>
+      <Button
+        type="button"
+        disabled={isScanning}
+        onClick={onCheckUrl}
+      >
+        {isScanning
+          ? (
+            <>
+              <Loader2 className="size-4 animate-spin" />
+              Checking…
+            </>
+          )
+          : "Check URL"}
+      </Button>
+      <Button
+        type="button"
+        variant="link"
+        disabled={isScanning || saveIsPending}
+        onClick={onAddNow}
+      >
+        Add Now
+      </Button>
+    </>
   );
 }
