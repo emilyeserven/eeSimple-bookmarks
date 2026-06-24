@@ -15,6 +15,8 @@ import { SocialLinksField } from "./SocialLinksField";
 import { WebsiteYouTubeChannelsField } from "./WebsiteYouTubeChannelsField";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useCategories } from "@/hooks/useCategories";
 import { useMediaTypeTree } from "@/hooks/useMediaTypes";
@@ -47,6 +49,7 @@ const LABELS: Partial<Record<keyof UpdateWebsiteInput, string>> = {
   socialLinks: "Social media links",
   youtubeChannelIds: "YouTube channels",
   alternateNames: "Alternate names",
+  redirectResolutionFailure: "Redirect resolution failure",
 };
 
 interface Props {
@@ -94,6 +97,7 @@ export function WebsiteGeneralForm({
       socialLinks: website.socialLinks,
       youtubeChannelIds: website.youtubeChannelIds ?? [],
       alternateNames: website.alternateNames,
+      redirectResolutionFailure: website.redirectResolutionFailure ?? false,
     },
   });
 
@@ -287,6 +291,23 @@ export function WebsiteGeneralForm({
         socialLinks={website.socialLinks}
         onChange={(links: SocialLink[]) => autoSave.saveField("socialLinks", links)}
       />
+
+      <Separator />
+
+      <div className="flex items-start gap-3">
+        <Checkbox
+          id="redirect-resolution-failure"
+          checked={website.redirectResolutionFailure ?? false}
+          onCheckedChange={checked => autoSave.saveField("redirectResolutionFailure", checked === true)}
+        />
+        <div className="space-y-1">
+          <Label htmlFor="redirect-resolution-failure">Redirect resolution failure</Label>
+          <p className="text-sm text-muted-foreground">
+            Flag this site when its redirects resolve unreliably. Flagged bookmarks appear in
+            Settings → Redirect Failures for URL correction.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

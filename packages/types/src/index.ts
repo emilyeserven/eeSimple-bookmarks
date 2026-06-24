@@ -129,6 +129,8 @@ export interface Website {
   youtubeChannelIds?: string[];
   /** Extra names this site appends to titles (e.g. "GH"); stripped during title fetch. */
   alternateNames: string[];
+  /** When true, redirect chains from this site resolve unreliably; its bookmarks appear in Settings → Redirect Failures. */
+  redirectResolutionFailure?: boolean;
 }
 
 /** Lightweight website shape carried on a bookmark. */
@@ -164,6 +166,27 @@ export interface UpdateWebsiteInput {
   youtubeChannelIds?: string[];
   /** Full replacement list of extra site-name aliases used for title stripping. Omit to leave unchanged. */
   alternateNames?: string[];
+  /** When true, flags this site's redirect chains as unreliable. Omit to leave unchanged. */
+  redirectResolutionFailure?: boolean;
+}
+
+/** A bookmark stub returned by the redirect-failures endpoint. */
+export interface RedirectFailureBookmark {
+  id: string;
+  url: string | null;
+  title: string;
+  description: string | null;
+  imageUrl: string | null;
+}
+
+/** A website flagged for redirect resolution failure, with its associated bookmarks. */
+export interface RedirectFailureWebsite {
+  id: string;
+  domain: string;
+  siteName: string;
+  slug: string;
+  imageUrl: string | null;
+  bookmarks: RedirectFailureBookmark[];
 }
 
 /** Result of looking up the website for a URL without creating one — powers the form banner. */

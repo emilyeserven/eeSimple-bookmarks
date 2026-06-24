@@ -174,6 +174,9 @@ export const websites = pgTable("websites", {
   // Extra names this site appends to bookmark titles (e.g. "GH" for GitHub). Used to strip title
   // suffixes during metadata fetch, mirroring YouTube channel selfIds. Nullable (push-safe additive).
   alternateNames: jsonb("alternate_names").$type<string[]>(),
+  // Flags this site as having unreliable redirect resolution. When true, its bookmarks appear in
+  // Settings → Redirect Failures for URL correction. NOT NULL; pre-applied in migrate.ts.
+  redirectResolutionFailure: boolean("redirect_resolution_failure").notNull().default(false),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
