@@ -19,11 +19,13 @@ export function PropertyGroupListItem({
   selectable,
   selected,
   onSelectToggle,
+  inSelectionMode,
 }: {
   group: PropertyGroup;
   selectable?: boolean;
   selected?: boolean;
   onSelectToggle?: () => void;
+  inSelectionMode?: boolean;
 }) {
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
@@ -34,6 +36,7 @@ export function PropertyGroupListItem({
       selectable={selectable}
       selected={selected}
       onSelectToggle={onSelectToggle}
+      inSelectionMode={inSelectionMode}
       icon={<Layers className="size-5 shrink-0 text-muted-foreground" />}
       title={group.name}
       subtitle={group.description || `Priority ${group.priority}`}

@@ -3,7 +3,7 @@ import type { RelationshipType } from "@eesimple/types";
 import { useState } from "react";
 
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Info, Link2, Pencil } from "lucide-react";
+import { ArrowRight, CheckSquare, Info, Link2, Pencil } from "lucide-react";
 
 import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
@@ -31,11 +31,13 @@ function RelationshipTypeCard({
   selectable,
   selected,
   onSelectToggle,
+  inSelectionMode,
 }: {
   relationshipType: RelationshipType;
   selectable?: boolean;
   selected?: boolean;
   onSelectToggle?: () => void;
+  inSelectionMode?: boolean;
 }) {
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
@@ -46,6 +48,7 @@ function RelationshipTypeCard({
       selectable={selectable}
       selected={selected}
       onSelectToggle={onSelectToggle}
+      inSelectionMode={inSelectionMode}
       icon={<Link2 className="size-5 shrink-0 text-muted-foreground" />}
       title={relationshipType.name}
       titleAdornment={relationshipType.builtIn
@@ -187,6 +190,17 @@ export function RelationshipTypesListing() {
       {isLoading ? <p className="text-muted-foreground">Loading relationship types…</p> : null}
       {error ? <p className="text-destructive">{error.message}</p> : null}
 
+      <div className="flex justify-end">
+        <Button
+          variant={selection.mode ? "secondary" : "outline"}
+          size="sm"
+          onClick={() => selection.setMode(!selection.mode)}
+        >
+          <CheckSquare className="size-4" />
+          {selection.mode ? "Done selecting" : "Select"}
+        </Button>
+      </div>
+
       <TaxonomyBulkBar
         selection={selection}
         totalSelectable={deletableIds.length}
@@ -202,6 +216,7 @@ export function RelationshipTypesListing() {
             selectable={!rt.builtIn}
             selected={selection.isSelected(rt.id)}
             onSelectToggle={() => selection.toggle(rt.id)}
+            inSelectionMode={selection.mode}
           />
         ))}
       </div>

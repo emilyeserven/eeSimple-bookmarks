@@ -17,6 +17,7 @@ interface WebsiteListItemProps {
   selectable?: boolean;
   selected?: boolean;
   onSelectToggle?: () => void;
+  inSelectionMode?: boolean;
 }
 
 /** A single row in the website listing: a favicon, a body link to the filtered bookmarks, and hover Edit / Info. */
@@ -25,6 +26,7 @@ export function WebsiteListItem({
   selectable,
   selected,
   onSelectToggle,
+  inSelectionMode,
 }: WebsiteListItemProps) {
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
@@ -39,6 +41,7 @@ export function WebsiteListItem({
       selectable={selectable}
       selected={selected}
       onSelectToggle={onSelectToggle}
+      inSelectionMode={inSelectionMode}
       icon={(
         <span
           className="

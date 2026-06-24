@@ -3,6 +3,7 @@ import type { Website } from "@eesimple/types";
 import { useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
+import { CheckSquare } from "lucide-react";
 
 import { AddWebsiteModal } from "./AddWebsiteModal";
 import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
@@ -18,6 +19,7 @@ import { useBulkDeleteWebsites, useWebsites } from "../hooks/useWebsites";
 import { COLUMN_CLASS, useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
 import { useListSelection } from "../lib/useListSelection";
 
+import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 
 /** Browsable, searchable website listing with add modal. Shared by the Websites taxonomy page and the Settings Websites page. */
@@ -65,6 +67,21 @@ export function WebsitesListing() {
           )}
         />
 
+        {viewMode !== "table"
+          ? (
+            <div className="flex justify-end">
+              <Button
+                variant={selection.mode ? "secondary" : "outline"}
+                size="sm"
+                onClick={() => selection.setMode(!selection.mode)}
+              >
+                <CheckSquare className="size-4" />
+                {selection.mode ? "Done selecting" : "Select"}
+              </Button>
+            </div>
+          )
+          : null}
+
         <TaxonomyBulkBar
           selection={selection}
           totalSelectable={deletableIds.length}
@@ -76,7 +93,7 @@ export function WebsitesListing() {
           ? (
             <DataTable
               columns={[
-                listingSelectionColumn<Website>(selection, w => w.id, w => !w.builtIn),
+                ...(selection.mode ? [listingSelectionColumn<Website>(selection, w => w.id, w => !w.builtIn)] : []),
                 ...websiteColumns,
               ]}
               data={filtered}
@@ -116,6 +133,7 @@ export function WebsitesListing() {
                   selectable={!website.builtIn}
                   selected={selection.isSelected(website.id)}
                   onSelectToggle={() => selection.toggle(website.id)}
+                  inSelectionMode={selection.mode}
                 />
               ))}
             </div>
