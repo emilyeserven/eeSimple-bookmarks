@@ -64,35 +64,39 @@ function usePanelItemLabel(dCT: DrawerContentType | null, dCId: string | null): 
 
   if (!dCId || dCId === NEW_SENTINEL || !dCT) return null;
 
-  if (dCT === "tag") {
-    return flattenTree(tagTree ?? []).find(({
-      node,
-    }) => node.id === dCId)?.node.name ?? null;
-  }
-  if (dCT === "category") {
-    return categories?.find(c => c.id === dCId)?.name ?? null;
-  }
-  if (dCT === "website") {
-    return websites?.find(w => w.id === dCId)?.siteName ?? null;
-  }
-  if (dCT === "media-type") {
-    return flattenTree(mediaTypeTree ?? []).find(({
-      node,
-    }) => node.id === dCId)?.node.name ?? null;
-  }
-  if (dCT === "youtube-channel") {
-    return channels?.find(c => c.id === dCId)?.name ?? null;
-  }
-  if (dCT === "property") {
-    return properties?.find(p => p.id === dCId)?.name ?? null;
-  }
-  if (dCT === "property-group") {
-    return groups?.find(g => g.id === dCId)?.name ?? null;
-  }
-  if (dCT === "autofill") {
-    return rules?.find(r => r.id === dCId)?.name ?? null;
-  }
-  return null;
+  const resolvers: Partial<Record<DrawerContentType, () => string | null>> = {
+    "tag": () => treeNodeName(tagTree, dCId),
+    "category": () => flatItemName(categories, dCId),
+    "website": () => websites?.find(w => w.id === dCId)?.siteName ?? null,
+    "media-type": () => treeNodeName(mediaTypeTree, dCId),
+    "youtube-channel": () => flatItemName(channels, dCId),
+    "property": () => flatItemName(properties, dCId),
+    "property-group": () => flatItemName(groups, dCId),
+    "autofill": () => flatItemName(rules, dCId),
+  };
+
+  return resolvers[dCT]?.() ?? null;
+}
+
+/** Name of a flat-list entity matched by id, or null. */
+function flatItemName(
+  items: readonly { id: string;
+    name: string; }[] | undefined,
+  id: string,
+): string | null {
+  return items?.find(item => item.id === id)?.name ?? null;
+}
+
+/** Name of a tree node matched by id (searches the flattened subtree), or null. */
+function treeNodeName<T extends { id: string;
+  name: string;
+  children: T[]; }>(
+  tree: T[] | undefined,
+  id: string,
+): string | null {
+  return flattenTree(tree ?? []).find(({
+    node,
+  }) => node.id === id)?.node.name ?? null;
 }
 
 interface SwitcherItem {
