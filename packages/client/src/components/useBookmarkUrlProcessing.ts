@@ -34,6 +34,7 @@ export interface ResolvedSubmitUrl {
 export function useBookmarkUrlProcessing(canonData: {
   websites: Website[];
   ignoreList: string[];
+  customStripParams?: string[];
 }) {
   // Shortened-link info for the current URL, computed on blur: whether to nudge and the expansion.
   const [urlShortener, setUrlShortener] = useState<UrlShortenerState>({
@@ -54,13 +55,16 @@ export function useBookmarkUrlProcessing(canonData: {
   // Mirror the canonicalize inputs into a ref so the (potentially stale) submit closure reads fresh
   // websites + ignore-list data.
   const canonDataRef = useRef<{ websites: Website[];
-    ignoreList: string[]; }>({
+    ignoreList: string[];
+    customStripParams: string[]; }>({
     websites: [],
     ignoreList: [],
+    customStripParams: [],
   });
   canonDataRef.current = {
     websites: canonData.websites,
     ignoreList: canonData.ignoreList,
+    customStripParams: canonData.customStripParams ?? [],
   };
   const cleanupId = useId();
 
@@ -86,6 +90,7 @@ export function useBookmarkUrlProcessing(canonData: {
       mode: urlCleanupModeRef.current,
       websites: canonDataRef.current.websites,
       ignoreList: canonDataRef.current.ignoreList,
+      customStripParams: canonDataRef.current.customStripParams,
     }).url;
     if (cleaned === url) {
       setUrlCleanup(null);
@@ -176,6 +181,7 @@ export function useBookmarkUrlProcessing(canonData: {
       mode: urlCleanupModeRef.current,
       websites: canonDataRef.current.websites,
       ignoreList: canonDataRef.current.ignoreList,
+      customStripParams: canonDataRef.current.customStripParams,
     }).url;
     return {
       finalUrl,

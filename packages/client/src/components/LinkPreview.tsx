@@ -17,6 +17,8 @@ interface LinkPreviewProps {
   websites: Website[];
   /** Generic shortener domains that trigger a nudge. */
   ignoreList: string[];
+  /** User-defined params to strip in addition to the built-in tracking params. */
+  customStripParams?: string[];
   /** Optional label above the input. */
   label?: string;
   /** Placeholder for the URL input. */
@@ -28,7 +30,7 @@ interface LinkPreviewProps {
  * expansion or nudge, and the resulting URL (openable in a new tab to confirm it resolves).
  */
 export function LinkPreview({
-  websites, ignoreList, label = "Check a link", placeholder = "https://…",
+  websites, ignoreList, customStripParams = [], label = "Check a link", placeholder = "https://…",
 }: LinkPreviewProps) {
   const [url, setUrl] = useState("");
   const trimmed = url.trim();
@@ -37,6 +39,7 @@ export function LinkPreview({
       mode: "none",
       websites,
       ignoreList,
+      customStripParams,
     })
     : null;
 

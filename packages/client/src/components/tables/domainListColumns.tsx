@@ -4,13 +4,12 @@ import { Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
-/** Column definitions for a plain string[] domain list (shortener ignore + redirect ignore). */
-export function domainListColumns(onDelete: (domain: string) => void): ColumnDef<string>[] {
+export function makeStringListColumns(id: string, header: string, onDelete: (item: string) => void): ColumnDef<string>[] {
   return [
     {
-      id: "domain",
+      id,
       accessorFn: row => row,
-      header: "Domain",
+      header,
       meta: {
         fill: true,
       },
@@ -34,4 +33,9 @@ export function domainListColumns(onDelete: (domain: string) => void): ColumnDef
       ),
     },
   ];
+}
+
+/** Column definitions for a plain string[] domain list (shortener ignore + redirect ignore). */
+export function domainListColumns(onDelete: (domain: string) => void): ColumnDef<string>[] {
+  return makeStringListColumns("domain", "Domain", onDelete);
 }

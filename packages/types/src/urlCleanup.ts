@@ -23,6 +23,9 @@ export interface CanonicalizeData {
   mode: UrlCleanupMode;
   websites: Website[];
   ignoreList: string[];
+  /** User-defined query params to strip in addition to the built-in TRACKING_PARAMS. Applied in any
+   * mode (including "none") unless the matched website has its own paramRules. */
+  customStripParams?: string[];
 }
 
 /** Outcome of canonicalizing a URL against the website rules. */
@@ -101,7 +104,7 @@ function applyParamRules(parsed: URL, rules: WebsiteParamRule[]): void {
  * Pure. Returns the input unchanged (and an empty result) when it isn't a parseable URL.
  */
 export function canonicalize(url: string, {
-  mode, websites, ignoreList,
+  mode, websites, ignoreList, customStripParams = [],
 }: CanonicalizeData): CanonicalizeResult {
   let parsed: URL;
   try {
@@ -149,21 +152,29 @@ export function canonicalize(url: string, {
 
   const rules = matchedWebsite?.paramRules ?? [];
   const hasRules = rules.length > 0;
+  const customSet = new Set(customStripParams);
+  let customStripped = false;
   if (hasRules) {
     applyParamRules(parsed, rules);
   }
   else if (mode === "all") {
     parsed.search = "";
   }
-  else if (mode === "trackers") {
+  else {
     for (const key of [...parsed.searchParams.keys()]) {
-      if (TRACKING_PARAMS.has(key)) parsed.searchParams.delete(key);
+      if (mode === "trackers" && TRACKING_PARAMS.has(key)) {
+        parsed.searchParams.delete(key);
+      }
+      else if (customSet.has(key)) {
+        parsed.searchParams.delete(key);
+        customStripped = true;
+      }
     }
   }
 
   // Only re-serialize when something actually changed, so a `none`-mode no-op preserves the raw URL
   // (and doesn't introduce a spurious `originalUrl` diff via URL normalization).
-  const changed = expanded || hasRules || mode === "all" || mode === "trackers";
+  const changed = expanded || hasRules || mode === "all" || mode === "trackers" || customStripped;
   return {
     url: changed ? parsed.toString() : url,
     matchedWebsite,

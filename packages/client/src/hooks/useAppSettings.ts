@@ -19,6 +19,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { appSettingsApi } from "../lib/api/settings";
 
 const SHORTENER_IGNORE_LIST_KEY = ["app-settings", "shortener-ignore-list"] as const;
+const CUSTOM_STRIP_PARAMS_KEY = ["app-settings", "custom-strip-params"] as const;
 const REDIRECT_IGNORE_LIST_KEY = ["app-settings", "redirect-ignore-list"] as const;
 const IMPORT_BLACKLIST_KEY = ["app-settings", "import-blacklist"] as const;
 const HOMEPAGE_CONTENT_KEY = ["app-settings", "homepage-content"] as const;
@@ -43,6 +44,24 @@ export function useUpdateShortenerIgnoreList() {
     mutationFn: (domains: string[]) => appSettingsApi.updateShortenerIgnoreList(domains),
     onSuccess: (saved) => {
       queryClient.setQueryData(SHORTENER_IGNORE_LIST_KEY, saved);
+    },
+  });
+}
+
+/** User-defined query params to strip in addition to the built-in TRACKING_PARAMS. */
+export function useCustomStripParams() {
+  return useQuery({
+    queryKey: CUSTOM_STRIP_PARAMS_KEY,
+    queryFn: appSettingsApi.getCustomStripParams,
+  });
+}
+
+export function useUpdateCustomStripParams() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (params: string[]) => appSettingsApi.updateCustomStripParams(params),
+    onSuccess: (saved) => {
+      queryClient.setQueryData(CUSTOM_STRIP_PARAMS_KEY, saved);
     },
   });
 }

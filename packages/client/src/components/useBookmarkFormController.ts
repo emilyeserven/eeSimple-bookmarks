@@ -95,6 +95,7 @@ export function useBookmarkFormController({
     },
     websites,
     shortenerIgnoreList,
+    customStripParams,
     redirectIgnoreList,
     tagTree,
     customProperties,
@@ -189,6 +190,7 @@ export function useBookmarkFormController({
   } = useBookmarkUrlProcessing({
     websites: websites ?? [],
     ignoreList: shortenerIgnoreList ?? [],
+    customStripParams: customStripParams ?? [],
   });
 
   // The image control reports its intent here; the form applies it after the bookmark is saved (so
@@ -599,6 +601,7 @@ export function useBookmarkFormController({
     // Data (still possibly undefined — the JSX defaults to []).
     websites,
     shortenerIgnoreList,
+    customStripParams,
     tagTree,
     customProperties,
     categories,

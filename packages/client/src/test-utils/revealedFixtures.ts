@@ -68,6 +68,7 @@ export function makeRevealedProps(overrides: Partial<RevealedFixtureProps> = {})
     onUrlCleanupModeChange: () => undefined,
     websites: [],
     ignoreList: [],
+    customStripParams: [],
 
     // Custom fields.
     customProperties: sampleProperties as CustomProperty[],
@@ -123,6 +124,7 @@ export interface RevealedFixtureProps {
   onUrlCleanupModeChange: (mode: "none" | "trackers" | "all") => void;
   websites: Website[];
   ignoreList: string[];
+  customStripParams: string[];
   customProperties: CustomProperty[];
   numberInputs: Record<string, string>;
   booleanInputs: Record<string, boolean>;

@@ -17,16 +17,18 @@ interface UrlCleanupPanelProps {
   onModeChange: (mode: UrlCleanupMode) => void;
   websites: Website[];
   ignoreList: string[];
+  customStripParams?: string[];
 }
 
 /** Radio-group + live URL preview for the URL cleanup options. */
 export function UrlCleanupPanel({
-  url, cleanupId, mode, onModeChange, websites, ignoreList,
+  url, cleanupId, mode, onModeChange, websites, ignoreList, customStripParams = [],
 }: UrlCleanupPanelProps) {
   const preview = canonicalize(url, {
     mode,
     websites,
     ignoreList,
+    customStripParams,
   }).url;
   return (
     <div

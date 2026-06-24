@@ -33,6 +33,7 @@ export function BookmarkGeneralForm({
     form,
     websites,
     shortenerIgnoreList,
+    customStripParams,
     tagTree,
     categories,
     mediaTypes,
@@ -130,6 +131,7 @@ export function BookmarkGeneralForm({
               onModeChange={setUrlCleanupMode}
               websites={websites ?? []}
               ignoreList={shortenerIgnoreList ?? []}
+              customStripParams={customStripParams ?? []}
             />
           )}
         </form.Subscribe>

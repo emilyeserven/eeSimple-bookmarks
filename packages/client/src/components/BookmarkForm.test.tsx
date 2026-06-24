@@ -177,6 +177,9 @@ vi.mock("../hooks/useAppSettings", () => ({
   useRedirectIgnoreList: () => ({
     data: [],
   }),
+  useCustomStripParams: () => ({
+    data: [],
+  }),
   useAutoFetchTitle: () => autoFetchTitle,
   useAutoFetchImage: () => true,
 }));

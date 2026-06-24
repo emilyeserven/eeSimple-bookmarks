@@ -38,7 +38,7 @@ import {
   type ImportRow,
   newsletters,
 } from "@/db/schema";
-import { addImportBlacklistEntry, getImportBlacklist, getRedirectIgnoreList, getShortenerIgnoreList } from "@/services/appSettings";
+import { addImportBlacklistEntry, getCustomStripParams, getImportBlacklist, getRedirectIgnoreList, getShortenerIgnoreList } from "@/services/appSettings";
 import { applyImportRules } from "@/services/importRules";
 import { suggestAutofillForBookmark } from "@/services/autofill";
 import { checkBookmarkUrlDuplicate, createBookmark, DuplicateUrlError } from "@/services/bookmarks";
@@ -156,7 +156,8 @@ async function resolveCandidate(
   data: { mode: "trackers";
     websites: Awaited<ReturnType<typeof listWebsites>>;
     ignoreList: string[];
-    redirectIgnoreList: string[]; },
+    redirectIgnoreList: string[];
+    customStripParams: string[]; },
 ): Promise<ResolvedCandidate> {
   if (isRedirectIgnored(candidate.rawUrl, data.redirectIgnoreList)) {
     return {
@@ -354,17 +355,19 @@ export async function processImport(importId: string, input: IngestInput): Promi
       })
       .where(eq(imports.id, importId));
 
-    const [websites, ignoreList, redirectIgnoreList, blacklist] = await Promise.all([
+    const [websites, ignoreList, redirectIgnoreList, blacklist, customStripParams] = await Promise.all([
       listWebsites(),
       getShortenerIgnoreList(),
       getRedirectIgnoreList(),
       getImportBlacklist(),
+      getCustomStripParams(),
     ]);
     const data = {
       mode: "trackers" as const,
       websites,
       ignoreList,
       redirectIgnoreList,
+      customStripParams,
     };
 
     const resolvedAll = await mapWithConcurrency(
@@ -1327,16 +1330,18 @@ export async function recheckImportItemUrl(
     updated: false,
   };
 
-  const [websites, ignoreList, redirectIgnoreList] = await Promise.all([
+  const [websites, ignoreList, redirectIgnoreList, customStripParams] = await Promise.all([
     listWebsites(),
     getShortenerIgnoreList(),
     getRedirectIgnoreList(),
+    getCustomStripParams(),
   ]);
   const data = {
     mode: "trackers" as const,
     websites,
     ignoreList,
     redirectIgnoreList,
+    customStripParams,
   };
   const resolved = await resolveCandidate(
     {

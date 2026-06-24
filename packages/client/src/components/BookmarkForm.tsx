@@ -117,6 +117,7 @@ export function BookmarkForm({
           onUrlCleanupModeChange={c.setUrlCleanupMode}
           websites={c.websites ?? []}
           ignoreList={c.shortenerIgnoreList ?? []}
+          customStripParams={c.customStripParams ?? []}
           websiteLookup={c.websiteLookup}
           youtubeChannel={c.youtubeChannel}
           onChannelSelfIdsChange={c.handleChannelSelfIdsChange}

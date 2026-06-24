@@ -4,9 +4,12 @@ import { Plus } from "lucide-react";
 
 import { LinkPreview } from "./LinkPreview";
 import { domainListColumns } from "./tables/domainListColumns";
+import { paramListColumns } from "./tables/paramListColumns";
 import {
+  useCustomStripParams,
   useRedirectIgnoreList,
   useShortenerIgnoreList,
+  useUpdateCustomStripParams,
   useUpdateRedirectIgnoreList,
   useUpdateShortenerIgnoreList,
 } from "../hooks/useAppSettings";
@@ -23,7 +26,7 @@ import {
 import { DataTable } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 
-/** Settings for URL parsing: the generic-shortener ignore list, redirect ignore list, and a link-preview tool. */
+/** Settings for URL parsing: the generic-shortener ignore list, redirect ignore list, custom strip params, and a link-preview tool. */
 export function LinkParsingSettings() {
   const {
     data: ignoreList = [], isLoading,
@@ -39,6 +42,12 @@ export function LinkParsingSettings() {
   } = useRedirectIgnoreList();
   const updateRedirectList = useUpdateRedirectIgnoreList();
   const [newRedirectDomain, setNewRedirectDomain] = useState("");
+
+  const {
+    data: customStripParams = [], isLoading: isLoadingCustomParams,
+  } = useCustomStripParams();
+  const updateCustomParams = useUpdateCustomStripParams();
+  const [newParam, setNewParam] = useState("");
 
   function add(): void {
     const domain = newDomain.trim().replace(/^www\./i, "").toLowerCase();
@@ -66,6 +75,20 @@ export function LinkParsingSettings() {
 
   function removeRedirect(domain: string): void {
     updateRedirectList.mutate(redirectIgnoreList.filter(d => d !== domain));
+  }
+
+  function addParam(): void {
+    const param = newParam.trim().toLowerCase();
+    if (!param || customStripParams.includes(param)) {
+      setNewParam("");
+      return;
+    }
+    updateCustomParams.mutate([...customStripParams, param]);
+    setNewParam("");
+  }
+
+  function removeParam(param: string): void {
+    updateCustomParams.mutate(customStripParams.filter(p => p !== param));
   }
 
   return (
@@ -161,6 +184,58 @@ export function LinkParsingSettings() {
 
       <Card>
         <CardHeader>
+          <CardTitle>Additional params to strip</CardTitle>
+          <CardDescription>
+            Query parameters to remove from every URL regardless of site rules — in addition to
+            the built-in tracking params (UTM, fbclid, etc.). Use this for site-specific params
+            not already covered (e.g.
+            {" "}
+            <code className="font-mono text-xs">ref</code>
+            ,
+            {" "}
+            <code className="font-mono text-xs">source</code>
+            ). Applies in &ldquo;Just trackers&rdquo; mode
+            and when no per-site param rules exist.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {isLoadingCustomParams
+            ? <p className="text-sm text-muted-foreground">Loading…</p>
+            : (
+              <>
+                <div className="flex max-w-sm gap-2">
+                  <Input
+                    placeholder="e.g. ref"
+                    value={newParam}
+                    onChange={event => setNewParam(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        addParam();
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    onClick={addParam}
+                    disabled={updateCustomParams.isPending}
+                  >
+                    <Plus className="mr-1 size-4" />
+                    Add
+                  </Button>
+                </div>
+                <DataTable<string>
+                  columns={paramListColumns(removeParam)}
+                  data={customStripParams}
+                  emptyMessage="No custom params configured."
+                />
+              </>
+            )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>Check a link</CardTitle>
           <CardDescription>
             Paste any URL to see which site it resolves to and how it would be canonicalized when
@@ -171,6 +246,7 @@ export function LinkParsingSettings() {
           <LinkPreview
             websites={websites}
             ignoreList={ignoreList}
+            customStripParams={customStripParams}
             label="URL"
             placeholder="https://www.youtube.com/watch?v=…"
           />
