@@ -75,6 +75,18 @@ test("linkContextFrom returns heading + paragraph, or null when there is no surr
   assert.equal(linkContextFrom(bare, 0, bare.length), null);
 });
 
+test("linkContextFrom captures the preceding sibling paragraph when the link is in a standalone block", () => {
+  // The classic newsletter pattern: description in one <p>, CTA link in the next.
+  const html
+    = "<td><p>Article description paragraph here.</p>"
+      + "<p><a href=\"https://example.com/a\">Read more</a></p></td>";
+  const start = html.indexOf("<a");
+  const end = html.indexOf("</a>") + "</a>".length;
+  const context = linkContextFrom(html, start, end);
+  assert.match(context ?? "", /Article description paragraph here/);
+  assert.match(context ?? "", /Read more/);
+});
+
 test("extractTextCandidates finds bare URLs and trims trailing punctuation", () => {
   const text = "Read https://example.com/a, then visit https://example.com/b). No link here.";
   assert.deepEqual(extractTextCandidates(text).map(c => c.rawUrl), [
