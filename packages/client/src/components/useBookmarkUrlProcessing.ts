@@ -21,7 +21,7 @@ export interface UrlShortenerState {
 
 /** Resolved URL to persist plus the typed original it was cleaned from (null when unchanged). */
 export interface ResolvedSubmitUrl {
-  finalUrl: string;
+  finalUrl: string | null;
   originalUrl: string | null;
 }
 
@@ -146,6 +146,12 @@ export function useBookmarkUrlProcessing(canonData: {
    * fall back to canonicalizing the field on submit. `quickAdd` deliberately skips expansion.
    */
   function resolveSubmitUrl(rawUrl: string, quickAdd: boolean): ResolvedSubmitUrl {
+    if (rawUrl.trim() === "") {
+      return {
+        finalUrl: null,
+        originalUrl: null,
+      };
+    }
     const cleanup = urlCleanupRef.current;
     if (quickAdd) {
       // "Add Now" deliberately skips shortened-link expansion: save the URL exactly as typed.
