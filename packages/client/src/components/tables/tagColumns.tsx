@@ -7,15 +7,11 @@ import { Link } from "@tanstack/react-router";
 
 import { TreeExpandToggle } from "./cells";
 import { bookmarkCountColumn } from "./columnHelpers";
-import { useSidebarOpenModifier } from "../../hooks/useAppSettings";
 import { useViewPanelClick } from "../panel/useEditPanelClick";
-
-import { entityLinkTitle } from "@/lib/sidebarModifier";
 
 /** Column definitions for the Tags listing Table view (a flattened, expandable tree). */
 export function useTagColumns(): ColumnDef<TagNode>[] {
   const viewClick = useViewPanelClick();
-  const modifier = useSidebarOpenModifier();
   return useMemo(
     () => [
       {
@@ -32,11 +28,11 @@ export function useTagColumns(): ColumnDef<TagNode>[] {
           >
             <TreeExpandToggle row={row} />
             <Link
-              to="/tags/$tagSlug/general"
+              to="/tags/$tagSlug"
               params={{
                 tagSlug: row.original.slug,
               }}
-              title={entityLinkTitle(modifier)}
+              title={`Browse bookmarks tagged ${row.original.name}`}
               onClick={event => viewClick(event, "tag", row.original.id, row.original.slug)}
               className="
                 font-medium
@@ -50,6 +46,6 @@ export function useTagColumns(): ColumnDef<TagNode>[] {
       },
       bookmarkCountColumn<TagNode>(),
     ],
-    [viewClick, modifier],
+    [viewClick],
   );
 }

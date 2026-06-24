@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Tag as TagIcon } from "lucide-react";
 
 import { useCategoryPageData } from "./-categoryPageData";
@@ -51,11 +51,35 @@ function TagBookmarksPage() {
   return (
     <BookmarkSearchView
       header={(
-        <div className="space-y-1">
+        <div className="space-y-2">
           <h1 className="flex items-center gap-2 text-2xl font-bold">
             <TagIcon className="size-6 shrink-0" />
             {tag.name}
           </h1>
+          {tag.children.length > 0 && (
+            <div
+              className="
+                flex flex-wrap items-center gap-2 text-sm text-muted-foreground
+              "
+            >
+              <span>Sub-tags:</span>
+              {tag.children.map(child => (
+                <Link
+                  key={child.id}
+                  to="/tags/$tagSlug"
+                  params={{
+                    tagSlug: child.slug,
+                  }}
+                  className="
+                    rounded-full border px-2.5 py-0.5 font-medium
+                    hover:bg-accent
+                  "
+                >
+                  {child.name}
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       )}
       pageKey={`tag:${tagSlug}`}

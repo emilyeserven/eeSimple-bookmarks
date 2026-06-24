@@ -7,7 +7,6 @@ import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick"
 import { TaxonomyTreeList } from "./TaxonomyTreeRow";
 import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
-import { withTags } from "@/lib/bookmarkSearch";
 import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
 
 interface TagTreeListProps {
@@ -37,9 +36,11 @@ export function TagTreeList({
       columns={columns}
       renderNameLink={node => (
         <Link
-          to="/bookmarks"
-          search={withTags({}, [node.id])}
-          title={`Show bookmarks tagged ${node.name}`}
+          to="/tags/$tagSlug"
+          params={{
+            tagSlug: node.slug,
+          }}
+          title={`Browse bookmarks tagged ${node.name}`}
           className="
             flex-1 truncate
             hover:underline
