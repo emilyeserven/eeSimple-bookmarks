@@ -127,6 +127,8 @@ export interface Website {
   socialLinks: SocialLink[];
   /** Ids of YouTube channels associated with this website. */
   youtubeChannelIds?: string[];
+  /** Extra names this site appends to titles (e.g. "GH"); stripped during title fetch. */
+  alternateNames: string[];
   /** When true, redirect chains from this site resolve unreliably; its bookmarks appear in Settings → Redirect Failures. */
   redirectResolutionFailure?: boolean;
 }
@@ -162,6 +164,8 @@ export interface UpdateWebsiteInput {
   socialLinks?: SocialLink[];
   /** Full replacement list of associated YouTube channel ids. Omit to leave unchanged. */
   youtubeChannelIds?: string[];
+  /** Full replacement list of extra site-name aliases used for title stripping. Omit to leave unchanged. */
+  alternateNames?: string[];
   /** When true, flags this site's redirect chains as unreliable. Omit to leave unchanged. */
   redirectResolutionFailure?: boolean;
 }

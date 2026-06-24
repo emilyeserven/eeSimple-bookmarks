@@ -10,6 +10,7 @@ import { AddCategoryModal } from "./AddCategoryModal";
 import { AddMediaTypeModal } from "./AddMediaTypeModal";
 import { DefaultTagsField } from "./DefaultTagsField";
 import { EntityImageField } from "./EntityImageField";
+import { SelfIdsField } from "./SelfIdsField";
 import { SocialLinksField } from "./SocialLinksField";
 import { WebsiteYouTubeChannelsField } from "./WebsiteYouTubeChannelsField";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
@@ -47,6 +48,7 @@ const LABELS: Partial<Record<keyof UpdateWebsiteInput, string>> = {
   tagIds: "Default tags",
   socialLinks: "Social media links",
   youtubeChannelIds: "YouTube channels",
+  alternateNames: "Alternate names",
   redirectResolutionFailure: "Redirect resolution failure",
 };
 
@@ -65,6 +67,8 @@ export function WebsiteGeneralForm({
   const deleteFavicon = useDeleteWebsiteFavicon();
   const faviconBusy = uploadFavicon.isPending || autoFavicon.isPending || deleteFavicon.isPending;
   const [tagIds, setTagIds] = useState<string[]>(website.tagIds ?? []);
+  const [alternateNames, setAlternateNames] = useState<string[]>(website.alternateNames ?? []);
+  const [newAlternateName, setNewAlternateName] = useState("");
   const [addCategoryOpen, setAddCategoryOpen] = useState(false);
   const [addMediaTypeOpen, setAddMediaTypeOpen] = useState(false);
   const {
@@ -92,6 +96,7 @@ export function WebsiteGeneralForm({
       tagIds: website.tagIds ?? [],
       socialLinks: website.socialLinks,
       youtubeChannelIds: website.youtubeChannelIds ?? [],
+      alternateNames: website.alternateNames,
       redirectResolutionFailure: website.redirectResolutionFailure ?? false,
     },
   });
@@ -111,6 +116,21 @@ export function WebsiteGeneralForm({
   function saveTagIds(next: string[]): void {
     setTagIds(next);
     autoSave.saveField("tagIds", next);
+  }
+
+  function addAlternateName(): void {
+    const trimmed = newAlternateName.trim();
+    if (!trimmed || alternateNames.includes(trimmed)) return;
+    const next = [...alternateNames, trimmed];
+    setAlternateNames(next);
+    setNewAlternateName("");
+    autoSave.saveField("alternateNames", next);
+  }
+
+  function removeAlternateName(name: string): void {
+    const next = alternateNames.filter(n => n !== name);
+    setAlternateNames(next);
+    autoSave.saveField("alternateNames", next);
   }
 
   return (
@@ -171,6 +191,16 @@ export function WebsiteGeneralForm({
           )}
         </form.AppField>
       </div>
+
+      <SelfIdsField
+        selfIds={alternateNames}
+        newSelfId={newAlternateName}
+        onNewSelfIdChange={setNewAlternateName}
+        onAdd={addAlternateName}
+        onRemove={removeAlternateName}
+        label="Alternate Names"
+        description='Extra names this site appends to titles (e.g. "Example", "EN"). Stripped automatically when a bookmark title is fetched.'
+      />
 
       <EntityImageField
         label="Favicon"

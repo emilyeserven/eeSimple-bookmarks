@@ -57,6 +57,14 @@ function WebsiteGeneralView({
         <dd className="font-mono">{website.slug}</dd>
         <dt className="text-muted-foreground">Built-in</dt>
         <dd>{website.builtIn ? "Yes — name & domain are fixed" : "No"}</dd>
+        {website.alternateNames.length > 0
+          ? (
+            <>
+              <dt className="text-muted-foreground">Alternate Names</dt>
+              <dd>{website.alternateNames.join(", ")}</dd>
+            </>
+          )
+          : null}
         {website.bookmarkCount != null
           ? (
             <>

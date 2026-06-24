@@ -113,6 +113,14 @@ const createWebsiteBody = {
   },
 } as const;
 
+const alternateNamesSchema = {
+  type: "array",
+  items: {
+    type: "string",
+    minLength: 1,
+  },
+} as const;
+
 const socialLinksSchema = {
   type: "array",
   items: {
@@ -169,6 +177,7 @@ const updateWebsiteBody = {
         format: "uuid",
       },
     },
+    alternateNames: alternateNamesSchema,
     redirectResolutionFailure: {
       type: "boolean",
     },
