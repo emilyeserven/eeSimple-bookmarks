@@ -47,7 +47,10 @@ function makeItem(overrides: Partial<InboxItem> = {}): InboxItem {
 describe("InboxReviewList", () => {
   it("renders the full title without a truncation class so it wraps on mobile", async () => {
     await renderWithRouter(
-      <InboxReviewList items={[makeItem()]} />,
+      <InboxReviewList
+        items={[makeItem()]}
+        isFetching={false}
+      />,
       {
         paths: ["/bookmarks/$bookmarkId"],
       },
@@ -58,7 +61,10 @@ describe("InboxReviewList", () => {
 
   it("renders the full destination URL without a truncation class so it wraps", async () => {
     await renderWithRouter(
-      <InboxReviewList items={[makeItem()]} />,
+      <InboxReviewList
+        items={[makeItem()]}
+        isFetching={false}
+      />,
       {
         paths: ["/bookmarks/$bookmarkId"],
       },
@@ -69,7 +75,10 @@ describe("InboxReviewList", () => {
 
   it("rejects in one click — the Reject control is a direct button, not a dropdown", async () => {
     await renderWithRouter(
-      <InboxReviewList items={[makeItem()]} />,
+      <InboxReviewList
+        items={[makeItem()]}
+        isFetching={false}
+      />,
       {
         paths: ["/bookmarks/$bookmarkId"],
       },
@@ -80,7 +89,10 @@ describe("InboxReviewList", () => {
 
   it("offers block-by-URL/domain/path from the Block dropdown", async () => {
     await renderWithRouter(
-      <InboxReviewList items={[makeItem()]} />,
+      <InboxReviewList
+        items={[makeItem()]}
+        isFetching={false}
+      />,
       {
         paths: ["/bookmarks/$bookmarkId"],
       },
@@ -102,6 +114,7 @@ describe("InboxReviewList", () => {
         items={[makeItem({
           newsletterContext: "Weekly Roundup\n\nThe surrounding paragraph that mentions the link.",
         })]}
+        isFetching={false}
       />,
       {
         paths: ["/bookmarks/$bookmarkId"],
@@ -120,6 +133,7 @@ describe("InboxReviewList", () => {
         items={[makeItem({
           status: "rejected",
         })]}
+        isFetching={false}
       />,
       {
         paths: ["/bookmarks/$bookmarkId"],
@@ -138,6 +152,7 @@ describe("InboxReviewList", () => {
           createdBookmarkId: "bookmark-9",
           markedForDeletion: true,
         })]}
+        isFetching={false}
       />,
       {
         paths: ["/bookmarks/$bookmarkId"],
@@ -152,6 +167,7 @@ describe("InboxReviewList", () => {
         items={[makeItem({
           status: "rejected",
         })]}
+        isFetching={false}
       />,
       {
         paths: ["/bookmarks/$bookmarkId"],
@@ -170,7 +186,10 @@ describe("InboxReviewList", () => {
 
   it("disables the Delete all rejected menu item when nothing is rejected", async () => {
     await renderWithRouter(
-      <InboxReviewList items={[makeItem()]} />,
+      <InboxReviewList
+        items={[makeItem()]}
+        isFetching={false}
+      />,
       {
         paths: ["/bookmarks/$bookmarkId"],
       },
@@ -188,7 +207,10 @@ describe("InboxReviewList", () => {
 
   it("shows the add date on each item listing", async () => {
     await renderWithRouter(
-      <InboxReviewList items={[makeItem()]} />,
+      <InboxReviewList
+        items={[makeItem()]}
+        isFetching={false}
+      />,
       {
         paths: ["/bookmarks/$bookmarkId"],
       },
@@ -204,7 +226,10 @@ describe("InboxReviewList", () => {
       },
     });
     await renderWithRouter(
-      <InboxReviewList items={[makeItem()]} />,
+      <InboxReviewList
+        items={[makeItem()]}
+        isFetching={false}
+      />,
       {
         paths: ["/bookmarks/$bookmarkId"],
       },
@@ -232,6 +257,7 @@ describe("InboxReviewList", () => {
             createdBookmarkId: "bk-1",
           }),
         ]}
+        isFetching={false}
       />,
       {
         paths: ["/bookmarks/$bookmarkId"],
@@ -268,7 +294,10 @@ describe("InboxReviewList", () => {
           >
             Process it
           </button>
-          <InboxReviewList items={items} />
+          <InboxReviewList
+            items={items}
+            isFetching={false}
+          />
         </>
       );
     }
@@ -313,6 +342,7 @@ describe("InboxReviewList", () => {
           createdBookmarkId: "bookmark-9",
           markedForDeletion: true,
         })]}
+        isFetching={false}
       />,
       {
         paths: ["/bookmarks/$bookmarkId"],

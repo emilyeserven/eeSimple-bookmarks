@@ -52,7 +52,9 @@ function notifyApprove(result: ImportApproveResult): void {
 
 function ReviewRow({
   item,
-}: { item: InboxItem }) {
+  onDismiss,
+}: { item: InboxItem;
+  onDismiss?: (id: string) => void; }) {
   const {
     data: categories = [],
   } = useCategories();
@@ -63,12 +65,18 @@ function ReviewRow({
   const {
     displacement, onTouchStart, onTouchMove, onTouchEnd,
   } = useSwipeGesture(
-    () => approve.mutate(item.id, {
-      onSuccess: notifyApprove,
-    }),
-    () => reject.mutate(item.id, {
-      onSuccess: () => notifySuccess("Rejected link"),
-    }),
+    () => {
+      onDismiss?.(item.id);
+      approve.mutate(item.id, {
+        onSuccess: notifyApprove,
+      });
+    },
+    () => {
+      onDismiss?.(item.id);
+      reject.mutate(item.id, {
+        onSuccess: () => notifySuccess("Rejected link"),
+      });
+    },
   );
 
   const muted = item.status === "rejected" || item.status === "approved"
@@ -99,13 +107,6 @@ function ReviewRow({
             transition: displacement === 0 ? "transform 0.2s ease" : "none",
           }}
         >
-          <div
-            className="mb-2 flex justify-between text-xs text-muted-foreground"
-          >
-            <span className={swipeLeft ? "font-medium text-red-500" : ""}>← Reject</span>
-            <span className={swipeRight ? "font-medium text-green-500" : ""}>Accept →</span>
-          </div>
-
           <div className="flex items-start gap-3">
             {item.imageUrl
               ? (
@@ -224,18 +225,24 @@ function ReviewRow({
               className="flex-1"
               variant="outline"
               disabled={reject.isPending}
-              onClick={() => reject.mutate(item.id, {
-                onSuccess: () => notifySuccess("Rejected link"),
-              })}
+              onClick={() => {
+                reject.mutate(item.id, {
+                  onSuccess: () => notifySuccess("Rejected link"),
+                });
+                onDismiss?.(item.id);
+              }}
             >
               Reject
             </Button>
             <Button
               className="flex-1"
               disabled={approve.isPending}
-              onClick={() => approve.mutate(item.id, {
-                onSuccess: notifyApprove,
-              })}
+              onClick={() => {
+                approve.mutate(item.id, {
+                  onSuccess: notifyApprove,
+                });
+                onDismiss?.(item.id);
+              }}
             >
               Accept
             </Button>
@@ -266,7 +273,7 @@ function ReviewRow({
           <div className="flex items-start gap-2">
             <p className="min-w-0 font-medium wrap-break-word">{item.title || item.anchorText || item.url || item.rawUrl}</p>
             <StatusBadge item={item} />
-            {item.markedForDeletion
+            {(item.markedForDeletion || item.status === "rejected")
               ? (
                 <Badge
                   variant="outline"
@@ -378,12 +385,13 @@ function ReviewRow({
  * Processed/Pending section doesn't render a stray table header.
  */
 function InboxItemsView({
-  items, viewMode, columns, emptyMessage,
+  items, viewMode, columns, emptyMessage, onDismiss,
 }: {
   items: InboxItem[];
   viewMode: ViewMode;
   columns: ColumnDef<InboxItem>[];
   emptyMessage: string;
+  onDismiss?: (id: string) => void;
 }) {
   if (items.length === 0) {
     return <p className="text-sm text-muted-foreground">{emptyMessage}</p>;
@@ -402,7 +410,10 @@ function InboxItemsView({
     <ul className="space-y-2">
       {items.map(item => (
         <li key={item.id}>
-          <ReviewRow item={item} />
+          <ReviewRow
+            item={item}
+            onDismiss={onDismiss}
+          />
         </li>
       ))}
     </ul>
@@ -485,10 +496,12 @@ function InboxBulkActions({
  */
 export function InboxReviewList({
   items,
+  isFetching,
 }: {
   items: InboxItem[];
+  isFetching: boolean;
 }) {
-  const controller = useInboxReviewController(items);
+  const controller = useInboxReviewController(items, isFetching);
   const {
     viewMode,
     setViewMode,
@@ -496,6 +509,7 @@ export function InboxReviewList({
     pendingItems,
     processedItems,
     resortNow,
+    dismissItem,
   } = controller;
 
   return (
@@ -524,6 +538,7 @@ export function InboxReviewList({
           viewMode={viewMode}
           columns={columns}
           emptyMessage="No pending items."
+          onDismiss={dismissItem}
         />
       </section>
 

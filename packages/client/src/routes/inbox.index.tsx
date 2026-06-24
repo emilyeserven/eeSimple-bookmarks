@@ -13,25 +13,28 @@ export const Route = createFileRoute("/inbox/")({
 
 function InboxPage() {
   const {
-    data: items, isLoading, error,
+    data: items, isLoading, error, isFetching,
   } = useInboxItems();
   const setAddImportModalOpen = useUiStore(s => s.setAddImportModalOpen);
 
   return (
     <section className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div className="space-y-1">
+      <div className="space-y-1">
+        <div className="flex items-center justify-between gap-2">
           <h1 className="text-2xl font-bold">Inbox</h1>
-          <p className="text-sm text-muted-foreground">
-            Review imported links. Approve to save a bookmark (the import item is then marked for
-            deletion), reject, or block. Approve, edit, or reject each link; duplicates are flagged
-            automatically.
-          </p>
+          <Button
+            className="shrink-0"
+            onClick={() => setAddImportModalOpen(true)}
+          >
+            <Plus className="size-4" />
+            Add import
+          </Button>
         </div>
-        <Button onClick={() => setAddImportModalOpen(true)}>
-          <Plus className="size-4" />
-          Add import
-        </Button>
+        <p className="text-sm text-muted-foreground">
+          Review imported links. Approve to save a bookmark (the import item is then marked for
+          deletion), reject, or block. Approve, edit, or reject each link; duplicates are flagged
+          automatically.
+        </p>
       </div>
 
       {isLoading ? <p className="text-sm text-muted-foreground">Loading…</p> : null}
@@ -43,7 +46,14 @@ function InboxPage() {
           </p>
         )
         : null}
-      {items && items.length > 0 ? <InboxReviewList items={items} /> : null}
+      {items && items.length > 0
+        ? (
+          <InboxReviewList
+            items={items}
+            isFetching={isFetching}
+          />
+        )
+        : null}
     </section>
   );
 }
