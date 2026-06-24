@@ -1,6 +1,7 @@
 import type {
   ImportBlacklistEntry,
   UpdateAdvancedSettingsInput,
+  UpdateAiSummarizationInput,
   UpdateAutomationInput,
   UpdateDisplayPreferenceInput,
   UpdateHomepageContentInput,
@@ -11,6 +12,7 @@ import type { FastifyInstance } from "fastify";
 import { getDatabaseUsageReport } from "@/services/databaseUsage";
 import {
   getAdvancedSettings,
+  getAiSummarizationSettings,
   getAutomationSettings,
   getDisplayPreferenceSettings,
   getHomepageContentSettings,
@@ -19,6 +21,7 @@ import {
   getShortenerIgnoreList,
   getSidebarCustomizationSettings,
   updateAdvancedSettings,
+  updateAiSummarizationSettings,
   updateAutomationSettings,
   updateDisplayPreferenceSettings,
   updateHomepageContentSettings,
@@ -362,4 +365,26 @@ export async function appSettingsRoutes(app: FastifyInstance): Promise<void> {
       tags: ["app-settings"],
     },
   }, async () => getDatabaseUsageReport());
+
+  app.get("/api/app-settings/ai-summarization", {
+    schema: {
+      tags: ["app-settings"],
+    },
+  }, async () => getAiSummarizationSettings());
+
+  app.put("/api/app-settings/ai-summarization", {
+    schema: {
+      tags: ["app-settings"],
+      body: {
+        type: "object",
+        required: ["aiSummarizationPrompt"],
+        additionalProperties: false,
+        properties: {
+          aiSummarizationPrompt: {
+            type: "string",
+          },
+        },
+      },
+    },
+  }, async req => updateAiSummarizationSettings(req.body as UpdateAiSummarizationInput));
 }

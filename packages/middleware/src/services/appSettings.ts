@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import type {
   AdvancedSettings,
+  AiSummarizationSettings,
   AutomationSettings,
   BookmarkDetailImageSize,
   BookmarkDetailLayout,
@@ -13,6 +14,7 @@ import type {
   SidebarCustomizationSettings,
   SidebarOpenModifier,
   UpdateAdvancedSettingsInput,
+  UpdateAiSummarizationInput,
   UpdateAutomationInput,
   UpdateDisplayPreferenceInput,
   UpdateHomepageContentInput,
@@ -77,6 +79,11 @@ const DEFAULT_AUTOMATION: AutomationSettings = {
   autoFetchTitle: true,
   autoFetchImage: true,
   sidebarOpenModifier: "alt",
+};
+
+/** Default AI summarization settings (empty prompt), used when seeding / when row absent. */
+const DEFAULT_AI_SUMMARIZATION: AiSummarizationSettings = {
+  aiSummarizationPrompt: "",
 };
 
 /** Default display/detail preferences, used when seeding / when row absent. */
@@ -156,6 +163,7 @@ export async function ensureAppSettings(): Promise<void> {
       ...DEFAULT_SIDEBAR_CUSTOMIZATION,
       ...DEFAULT_AUTOMATION,
       ...DEFAULT_DISPLAY_PREFERENCES,
+      ...DEFAULT_AI_SUMMARIZATION,
     })
     .onConflictDoNothing({
       target: appSettings.id,
@@ -206,6 +214,40 @@ export async function updateHomepageContentSettings(
     .values({
       id: ROW_ID,
       shortenerIgnoreList: DEFAULT_SHORTENER_IGNORE_LIST,
+      ...next,
+    })
+    .onConflictDoUpdate({
+      target: appSettings.id,
+      set: next,
+    });
+  return next;
+}
+
+/** Read the AI summarization settings. */
+export async function getAiSummarizationSettings(): Promise<AiSummarizationSettings> {
+  const [row] = await db
+    .select({
+      aiSummarizationPrompt: appSettings.aiSummarizationPrompt,
+    })
+    .from(appSettings)
+    .where(eq(appSettings.id, ROW_ID));
+  if (!row) return DEFAULT_AI_SUMMARIZATION;
+  return {
+    aiSummarizationPrompt: row.aiSummarizationPrompt,
+  };
+}
+
+/** Replace the AI summarization settings, upserting the singleton. Returns the stored values. */
+export async function updateAiSummarizationSettings(
+  input: UpdateAiSummarizationInput,
+): Promise<AiSummarizationSettings> {
+  const next: AiSummarizationSettings = {
+    aiSummarizationPrompt: input.aiSummarizationPrompt,
+  };
+  await db
+    .insert(appSettings)
+    .values({
+      id: ROW_ID,
       ...next,
     })
     .onConflictDoUpdate({

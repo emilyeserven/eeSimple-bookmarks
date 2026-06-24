@@ -355,6 +355,14 @@ export interface HomepageContentSettings {
 /** Payload for replacing the homepage content settings. */
 export type UpdateHomepageContentInput = HomepageContentSettings;
 
+/** The AI summarization settings: a stored prompt used to summarize queued bookmarks. */
+export interface AiSummarizationSettings {
+  aiSummarizationPrompt: string;
+}
+
+/** Payload for replacing the AI summarization settings. */
+export type UpdateAiSummarizationInput = AiSummarizationSettings;
+
 /**
  * A media type in the built-in "Media Types" taxonomy (Video, Article, Podcast, …). Classifies what
  * a bookmark is; chosen in the form or auto-set from fetched metadata. Built-ins can't be

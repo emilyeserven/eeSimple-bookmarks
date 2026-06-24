@@ -1,4 +1,5 @@
 import type {
+  AiSummarizationSettings,
   BookmarkDetailImageSize,
   BookmarkDetailLayout,
   BookmarkDetailVideoSize,
@@ -6,6 +7,7 @@ import type {
   SidebarCustomizationSettings,
   SidebarOpenModifier,
   UpdateAdvancedSettingsInput,
+  UpdateAiSummarizationInput,
   UpdateAutomationInput,
   UpdateDisplayPreferenceInput,
   UpdateHomepageContentInput,
@@ -25,6 +27,7 @@ const DATABASE_USAGE_KEY = ["app-settings", "database-usage"] as const;
 const SIDEBAR_CUSTOMIZATION_KEY = ["app-settings", "sidebar-customization"] as const;
 const AUTOMATION_KEY = ["app-settings", "automation"] as const;
 const DISPLAY_PREFERENCES_KEY = ["app-settings", "display-preferences"] as const;
+const AI_SUMMARIZATION_KEY = ["app-settings", "ai-summarization"] as const;
 
 /** The generic URL-shortener ignore list (e.g. bit.ly) used to nudge for un-expandable links. */
 export function useShortenerIgnoreList() {
@@ -315,3 +318,28 @@ export function useCroppedHeight(): number {
   } = useDisplayPreferenceSettings();
   return data?.croppedHeight ?? DISPLAY_PREFERENCE_DEFAULTS.croppedHeight;
 }
+
+const AI_SUMMARIZATION_DEFAULTS: AiSummarizationSettings = {
+  aiSummarizationPrompt: "",
+};
+
+/** The stored AI summarization prompt and related settings. */
+export function useAiSummarizationSettings() {
+  return useQuery({
+    queryKey: AI_SUMMARIZATION_KEY,
+    queryFn: appSettingsApi.getAiSummarization,
+  });
+}
+
+export function useUpdateAiSummarizationSettings() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: UpdateAiSummarizationInput) =>
+      appSettingsApi.updateAiSummarization(input),
+    onSuccess: (saved) => {
+      queryClient.setQueryData(AI_SUMMARIZATION_KEY, saved);
+    },
+  });
+}
+
+export { AI_SUMMARIZATION_DEFAULTS };

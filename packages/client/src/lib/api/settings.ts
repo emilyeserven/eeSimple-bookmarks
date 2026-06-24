@@ -1,5 +1,6 @@
 import type {
   AdvancedSettings,
+  AiSummarizationSettings,
   AutomationSettings,
   CardDisplayRule,
   CardFieldTemplate,
@@ -22,6 +23,7 @@ import type {
   SavedFilter,
   SidebarCustomizationSettings,
   UpdateAdvancedSettingsInput,
+  UpdateAiSummarizationInput,
   UpdateAutomationInput,
   UpdateCardDisplayRuleInput,
   UpdateDisplayPreferenceInput,
@@ -92,6 +94,20 @@ export const appSettingsApi = {
     request<DisplayPreferenceSettings>("/app-settings/display-preferences", {
       method: "PUT",
       body: JSON.stringify(input),
+    }),
+  getAiSummarization: () =>
+    request<AiSummarizationSettings>("/app-settings/ai-summarization"),
+  updateAiSummarization: (input: UpdateAiSummarizationInput) =>
+    request<AiSummarizationSettings>("/app-settings/ai-summarization", {
+      method: "PUT",
+      body: JSON.stringify(input),
+    }),
+};
+
+export const aiSummarizationApi = {
+  markSummarized: () =>
+    request<{ count: number }>("/ai-summarization/mark-summarized", {
+      method: "POST",
     }),
 };
 
