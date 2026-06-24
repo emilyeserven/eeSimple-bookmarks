@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { Check, ChevronRight, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronRight, ChevronsUpDown, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -11,6 +11,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 export interface TreeComboboxOption {
@@ -31,6 +32,15 @@ interface TreeMultiComboboxProps {
   /** Id applied to the trigger button so an external `<Label htmlFor>` can target it. */
   "id"?: string;
   "aria-label"?: string;
+  /**
+   * Optional action pinned to the bottom of the dropdown (e.g. "Create tag…"). Rendered outside
+   * the filtered list so it stays visible regardless of the search query; selecting it closes the
+   * popover and runs `onSelect`.
+   */
+  "createOption"?: {
+    label: string;
+    onSelect: () => void;
+  };
 }
 
 function flattenOptions(nodes: TreeComboboxOption[]): TreeComboboxOption[] {
@@ -52,6 +62,7 @@ export function TreeMultiCombobox({
   className,
   id,
   "aria-label": ariaLabel,
+  createOption,
 }: TreeMultiComboboxProps) {
   const [open, setOpen] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState("");
@@ -221,6 +232,27 @@ export function TreeMultiCombobox({
                 </CommandGroup>
               )}
           </CommandList>
+          {createOption
+            ? (
+              <>
+                <Separator />
+                <button
+                  type="button"
+                  className="
+                    flex w-full items-center gap-2 p-2 text-sm font-medium
+                    hover:bg-accent hover:text-accent-foreground
+                  "
+                  onClick={() => {
+                    setOpen(false);
+                    createOption.onSelect();
+                  }}
+                >
+                  <Plus className="size-4 shrink-0" />
+                  {createOption.label}
+                </button>
+              </>
+            )
+            : null}
         </Command>
       </PopoverContent>
     </Popover>

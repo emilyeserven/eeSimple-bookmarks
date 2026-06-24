@@ -10,6 +10,8 @@ import {
 import { useBookmarkFormData } from "./useBookmarkFormData";
 import { useBookmarkScanHandlers } from "./useBookmarkScanHandlers";
 import { useBookmarkUrlProcessing } from "./useBookmarkUrlProcessing";
+import { describeError } from "../lib/apiError";
+import { notifyFieldSaved, notifyFieldSaveError } from "../lib/autoSave";
 import { useAppForm } from "../lib/form";
 import { notifySuccess } from "../lib/notifications";
 
@@ -57,6 +59,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
   });
 
   const [addMediaTypeOpen, setAddMediaTypeOpen] = useState(false);
+  const [addTagOpen, setAddTagOpen] = useState(false);
   const [isReportingTitle, setIsReportingTitle] = useState(false);
   const [expectedTitle, setExpectedTitle] = useState("");
   const [websiteSiteName, setWebsiteSiteName] = useState("");
@@ -107,6 +110,21 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
       notifySuccess("Changes saved");
     },
   });
+
+  function saveTags(tagIds: string[]): void {
+    updateBookmark.mutate(
+      {
+        id: bookmark.id,
+        input: {
+          tagIds,
+        },
+      },
+      {
+        onSuccess: () => notifyFieldSaved("Tags"),
+        onError: e => notifyFieldSaveError("Tags", describeError(e)),
+      },
+    );
+  }
 
   function runAutofill(): void {
     const url = form.getFieldValue("url");
@@ -187,6 +205,9 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     updateBookmark,
     addMediaTypeOpen,
     setAddMediaTypeOpen,
+    addTagOpen,
+    setAddTagOpen,
+    saveTags,
     fetchTitle,
     fetchMetadata,
     websiteLookup,
