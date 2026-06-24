@@ -24,6 +24,7 @@ import { useBookmarkFormUiState, useSourceDefaultFlags } from "./useBookmarkForm
 import { useBookmarkPropertyPrefill } from "./useBookmarkPropertyPrefill";
 import { useBookmarkScanHandlers } from "./useBookmarkScanHandlers";
 import { useBookmarkUrlProcessing } from "./useBookmarkUrlProcessing";
+import { metadataApi } from "../lib/api/metadata";
 import { useAppForm } from "../lib/form";
 import { notifySuccess } from "../lib/notifications";
 
@@ -371,8 +372,25 @@ export function useBookmarkFormController({
   }: { revealing: boolean }): Promise<void> {
     setIsScanning(true);
     try {
-      runUrlCleanup(form.getFieldValue("url"));
-      const url = form.getFieldValue("url");
+      const urlBeforeCleanup = form.getFieldValue("url");
+      runUrlCleanup(urlBeforeCleanup);
+      let url = form.getFieldValue("url");
+      // Follow the redirect chain (tracker/newsletter links → real destination). Falls back to the
+      // current URL on any failure, so a slow or unreachable server doesn't break the scan.
+      if (isUrlFetchable(url)) {
+        const resolved = await metadataApi.resolveUrl({
+          url,
+        });
+        if (resolved.redirected) {
+          form.setFieldValue("url", resolved.finalUrl);
+          setUrlCleanup({
+            original: urlBeforeCleanup,
+            cleaned: resolved.finalUrl,
+            applied: true,
+          });
+          url = resolved.finalUrl;
+        }
+      }
       prefill.runAutofill();
       runWebsiteLookup(url);
       urlDuplicateCheck.mutate(url, {
