@@ -681,6 +681,13 @@ export const customProperties = pgTable("custom_properties", {
   propertyGroupId: uuid("property_group_id").references(() => propertyGroups.id, {
     onDelete: "set null",
   }),
+  // choices-type config (all nullable → push-safe additive columns for non-choices properties).
+  // choicesItems: the property's defined selectable options, stored as a ChoicesItem[] JSON array.
+  // choicesDisplay: "checkbox" | "radio" | "combobox" | "dropdown" — how the field renders.
+  // choicesMultiple: when true, the user may select more than one value per bookmark.
+  choicesItems: jsonb("choices_items"),
+  choicesDisplay: text("choices_display"),
+  choicesMultiple: boolean("choices_multiple"),
   // DEPRECATED: corner placement + overlay styling moved to card_display_rules.field_zones. These
   // columns are retained (no longer read/written) so the boot backfill can migrate their values into
   // the Default rule on first boot and so drizzle-kit push stays additive-only. Drop in a follow-up.
@@ -768,6 +775,27 @@ export const bookmarkFileValues = pgTable("bookmark_file_values", {
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
+}, table => [
+  primaryKey({
+    columns: [table.bookmarkId, table.propertyId],
+  }),
+]);
+
+/**
+ * `bookmark_choices_values` — selected option values for a `choices` custom property on a bookmark.
+ * `values` is a JSON array of selected choice value slugs from the property's `choicesItems`.
+ * The composite PK `(bookmarkId, propertyId)` makes a replace an upsert, and both FKs cascade so
+ * the row vanishes when its bookmark or property is deleted.
+ */
+export const bookmarkChoicesValues = pgTable("bookmark_choices_values", {
+  bookmarkId: uuid("bookmark_id").notNull().references(() => bookmarks.id, {
+    onDelete: "cascade",
+  }),
+  propertyId: uuid("property_id").notNull().references(() => customProperties.id, {
+    onDelete: "cascade",
+  }),
+  // JSON array of selected choice value slugs, e.g. ["reading", "shortlist"].
+  values: jsonb("values").notNull(),
 }, table => [
   primaryKey({
     columns: [table.bookmarkId, table.propertyId],

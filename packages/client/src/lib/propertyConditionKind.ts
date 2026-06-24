@@ -17,6 +17,8 @@ export function propertyValueKind(property: CustomProperty): ConditionValueKind 
     case "image":
     case "file":
       return "file";
+    case "choices":
+      return "choices";
     default:
       return "boolean";
   }

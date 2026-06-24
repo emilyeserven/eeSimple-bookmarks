@@ -2,6 +2,7 @@ import type { RuleDisplayValue } from "./CardDisplayRuleDisplaySettings";
 import type {
   Bookmark,
   BookmarkBooleanValue,
+  BookmarkChoicesValue,
   BookmarkDateTimeValue,
   BookmarkFileValue,
   BookmarkNumberValue,
@@ -51,11 +52,13 @@ function samplePropertyValues(properties: CustomProperty[]): {
   booleanValues: BookmarkBooleanValue[];
   dateTimeValues: BookmarkDateTimeValue[];
   fileValues: BookmarkFileValue[];
+  choicesValues: BookmarkChoicesValue[];
 } {
   const numberValues: BookmarkNumberValue[] = [];
   const booleanValues: BookmarkBooleanValue[] = [];
   const dateTimeValues: BookmarkDateTimeValue[] = [];
   const fileValues: BookmarkFileValue[] = [];
+  const choicesValues: BookmarkChoicesValue[] = [];
 
   for (const property of properties) {
     if (!property.showInListings) continue;
@@ -106,6 +109,14 @@ function samplePropertyValues(properties: CustomProperty[]): {
           height: null,
         });
         break;
+      case "choices":
+        if (property.choicesItems.length > 0) {
+          choicesValues.push({
+            propertyId: property.id,
+            values: [property.choicesItems[0].value],
+          });
+        }
+        break;
       default:
         break;
     }
@@ -116,6 +127,7 @@ function samplePropertyValues(properties: CustomProperty[]): {
     booleanValues,
     dateTimeValues,
     fileValues,
+    choicesValues,
   };
 }
 

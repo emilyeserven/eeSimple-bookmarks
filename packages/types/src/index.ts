@@ -6,7 +6,7 @@
  */
 
 import type { ConditionMatchField, ConditionMatchOperator, ConditionTree } from "./conditions.js";
-import type { CustomPropertyType, DateTimeFormat, NumberFormat } from "./customProperties.js";
+import type { ChoicesDisplayType, ChoicesItem, CustomPropertyType, DateTimeFormat, NumberFormat } from "./customProperties.js";
 import type { ImportBlacklistKind } from "./importBlacklist.js";
 
 export * from "./conditions.js";
@@ -755,6 +755,8 @@ export interface Bookmark {
   booleanValues: BookmarkBooleanValue[];
   /** Date/time custom property values assigned to this bookmark. */
   dateTimeValues: BookmarkDateTimeValue[];
+  /** Choices custom property values assigned to this bookmark. */
+  choicesValues: BookmarkChoicesValue[];
   /**
    * Image/file custom property values assigned to this bookmark. Unlike the scalar value arrays,
    * these are NOT part of `CreateBookmarkInput`/`UpdateBookmarkInput`: the blobs are uploaded
@@ -790,6 +792,8 @@ export interface CreateBookmarkInput {
   booleanValues?: BookmarkBooleanValue[];
   /** Date/time custom property values to assign. */
   dateTimeValues?: BookmarkDateTimeValue[];
+  /** Choices custom property values to assign. */
+  choicesValues?: BookmarkChoicesValue[];
   /** Homepage ordering weight; higher values appear first. */
   priority?: number;
   /** Friendly name for the website when it doesn't exist yet; ignored for existing sites. */
@@ -1407,6 +1411,12 @@ export interface CustomProperty {
   allowDefault: boolean;
   /** Id of the property group this property belongs to, or `null` when ungrouped. */
   propertyGroupId: string | null;
+  /** The selectable options for a `choices` property; empty for non-choices types. */
+  choicesItems: ChoicesItem[];
+  /** How a `choices` property is rendered in the bookmark form; `null` for non-choices types. */
+  choicesDisplay: ChoicesDisplayType | null;
+  /** When true, a `choices` property allows selecting multiple values. Only relevant for `choices`. */
+  choicesMultiple: boolean;
   createdAt: string;
 }
 
@@ -1472,6 +1482,12 @@ export interface CreateCustomPropertyInput {
   ratingShowLabel?: boolean;
   /** Label shown after a `ratingScale`'s stars (e.g. "out of 5"). */
   ratingLabel?: string | null;
+  /** Selectable options for a `choices` property. Required when `type` is `"choices"`. */
+  choicesItems?: ChoicesItem[];
+  /** How a `choices` property is rendered in the bookmark form. Defaults to `"radio"`. */
+  choicesDisplay?: ChoicesDisplayType | null;
+  /** When true, a `choices` property allows selecting multiple values. Defaults to false. */
+  choicesMultiple?: boolean;
 }
 
 /** Payload for updating a custom property. Its `type` is immutable. */
@@ -1543,6 +1559,13 @@ export interface BookmarkFileValue {
   height: number | null;
 }
 
+/** A choices custom property value carried on a bookmark. */
+export interface BookmarkChoicesValue {
+  propertyId: string;
+  /** The selected choice values (slugified keys from {@link ChoicesItem.value}). */
+  values: string[];
+}
+
 /**
  * A category groups custom properties and owns each bookmark assigned to it.
  * Properties may belong to zero, one, or many categories; each category carries an
@@ -1595,6 +1618,8 @@ export interface CategoryPropertyDefaults {
   booleanValues: BookmarkBooleanValue[];
   /** Default date/time property values. */
   dateTimeValues: BookmarkDateTimeValue[];
+  /** Default choices property values. */
+  choicesValues?: BookmarkChoicesValue[];
 }
 
 /** Payload for replacing a category's default custom-property values. */

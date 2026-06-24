@@ -162,6 +162,7 @@ export async function applyImportRules(
     booleanValues: new Map<string, boolean>(),
     dateTimeValues: new Map<string, string>(),
     fileValues: new Set<string>(),
+    choicesValues: new Map<string, string[]>(),
   };
 
   for (const rule of rules) {

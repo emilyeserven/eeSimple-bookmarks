@@ -588,6 +588,21 @@ const migrations: RuntimeMigration[] = [
       END $$
     `),
   },
+  {
+    // `bookmark_choices_values` has a NOT NULL `values` column. Adding a new table with NOT NULL
+    // columns that references an already-populated table makes drizzle-kit push prompt ("do you want
+    // to truncate?"), which crashes the non-TTY deploy. Pre-create the table here with
+    // CREATE TABLE IF NOT EXISTS so push's diff for this table is always empty.
+    name: "create bookmark_choices_values table",
+    run: db => db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "bookmark_choices_values" (
+        "bookmark_id" uuid NOT NULL REFERENCES "bookmarks"("id") ON DELETE CASCADE,
+        "property_id" uuid NOT NULL REFERENCES "custom_properties"("id") ON DELETE CASCADE,
+        "values" jsonb NOT NULL,
+        PRIMARY KEY ("bookmark_id", "property_id")
+      )
+    `),
+  },
 ];
 
 async function main(): Promise<void> {

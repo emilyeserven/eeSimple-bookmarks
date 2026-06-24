@@ -1,5 +1,6 @@
 import { asc, eq, inArray, isNull, ne } from "drizzle-orm";
 import type {
+  ChoicesItem,
   CreateCustomPropertyInput,
   CustomProperty,
   UpdateCustomPropertyInput,
@@ -38,6 +39,9 @@ export const RUNTIME_SLUG = "runtime";
 
 /** Reserved slug + spec of the built-in "Date Posted" property, seeded at boot. */
 export const DATE_POSTED_SLUG = "date-posted";
+
+/** Reserved slug + spec of the built-in "Content Status" choices property, seeded at boot. */
+export const CONTENT_STATUS_SLUG = "content-status";
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
@@ -88,13 +92,16 @@ function toCustomProperty(
     ratingAllowHalf: row.ratingAllowHalf ?? false,
     ratingShowLabel: row.ratingShowLabel ?? false,
     ratingLabel: row.ratingLabel ?? null,
+    choicesItems: (row.choicesItems as ChoicesItem[] | null) ?? [],
+    choicesDisplay: (row.choicesDisplay as CustomProperty["choicesDisplay"]) ?? null,
+    choicesMultiple: row.choicesMultiple ?? false,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
   };
 }
 
 /** Slugs reserved for real sub-routes + built-ins, so a property can never shadow them. */
-const RESERVED_SLUGS = ["new", RUNTIME_SLUG];
+const RESERVED_SLUGS = ["new", RUNTIME_SLUG, CONTENT_STATUS_SLUG];
 
 /** Existing property slugs plus reserved route words, optionally excluding one id (when renaming). */
 async function takenSlugs(excludeId?: string): Promise<string[]> {
@@ -360,6 +367,9 @@ export type UpdatePatch = Partial<
     | "ratingAllowHalf"
     | "ratingShowLabel"
     | "ratingLabel"
+    | "choicesItems"
+    | "choicesDisplay"
+    | "choicesMultiple"
   >
 >;
 
@@ -408,6 +418,9 @@ const COPYABLE_FIELDS = [
   "ratingAllowHalf",
   "ratingShowLabel",
   "ratingLabel",
+  "choicesItems",
+  "choicesDisplay",
+  "choicesMultiple",
 ] as const satisfies readonly CopyableField[];
 
 /**
@@ -680,6 +693,84 @@ export async function getDatePostedPropertyId(): Promise<string | null> {
     .from(customProperties)
     .where(eq(customProperties.slug, DATE_POSTED_SLUG));
   return row?.id ?? null;
+}
+
+const CONTENT_STATUS_DEFAULT_ITEMS: ChoicesItem[] = [
+  {
+    label: "Not Started",
+    value: "not-started",
+    isDefault: true,
+  },
+  {
+    label: "Reading",
+    value: "reading",
+  },
+  {
+    label: "Shortlist",
+    value: "shortlist",
+  },
+  {
+    label: "Paused",
+    value: "paused",
+  },
+  {
+    label: "Dropped",
+    value: "dropped",
+  },
+  {
+    label: "Finished",
+    value: "finished",
+  },
+];
+
+/**
+ * Ensure the built-in "Content Status" choices property exists. Idempotent and safe to call at boot
+ * in every environment: a single-select radio choices property available in every category.
+ */
+export async function ensureContentStatusProperty(): Promise<string> {
+  const [existing] = await db
+    .select({
+      id: customProperties.id,
+    })
+    .from(customProperties)
+    .where(eq(customProperties.slug, CONTENT_STATUS_SLUG));
+  if (existing) {
+    await db
+      .update(customProperties)
+      .set({
+        builtIn: true,
+        enabled: true,
+        allCategories: true,
+      })
+      .where(eq(customProperties.id, existing.id));
+    return existing.id;
+  }
+
+  const [row] = await db
+    .insert(customProperties)
+    .values({
+      name: "Content Status",
+      slug: CONTENT_STATUS_SLUG,
+      type: "choices",
+      builtIn: true,
+      choicesItems: CONTENT_STATUS_DEFAULT_ITEMS,
+      choicesDisplay: "radio",
+      choicesMultiple: false,
+      allCategories: true,
+      showInForm: true,
+      showInListings: true,
+      allowDefault: true,
+    })
+    .onConflictDoNothing({
+      target: customProperties.slug,
+    })
+    .returning({
+      id: customProperties.id,
+    });
+  if (row) return row.id;
+
+  // Lost a concurrent insert race — re-read the row the other writer created.
+  return readPropertyIdBySlug(CONTENT_STATUS_SLUG);
 }
 
 /** Fill in slugs for any properties missing one (e.g. rows that predate the `slug` column). */

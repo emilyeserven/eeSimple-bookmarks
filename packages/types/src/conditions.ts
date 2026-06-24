@@ -59,6 +59,17 @@ export type DateTimePredicate
 export interface FilePredicate { kind: "presence";
   mode: "has" | "missing"; }
 
+/**
+ * Predicate applied to a `choices` custom-property value inside a `property` leaf:
+ * - `includes` — the bookmark has at least one of the listed values selected.
+ * - `presence` — whether any value is selected (`has`) or none is selected (`missing`).
+ */
+export type ChoicesPredicate
+  = | { kind: "includes";
+    values: string[]; }
+    | { kind: "presence";
+      mode: "has" | "missing"; };
+
 /** Leaf: text match against the bookmark's url/title. */
 export interface MatchCondition {
   type: "match";
@@ -123,7 +134,7 @@ export interface RelationshipTypeCondition {
  * the custom-property types — `calculate`/`ratingScale` filter as `number`, and `image` is unfiltered.
  * Source of truth for the matching JSON-Schema `oneOf` branches in the middleware.
  */
-export const CONDITION_VALUE_KINDS = ["number", "boolean", "datetime", "file"] as const;
+export const CONDITION_VALUE_KINDS = ["number", "boolean", "datetime", "file", "choices"] as const;
 
 /** The discriminant of a {@link PropertyCondition} predicate. Derived from {@link CONDITION_VALUE_KINDS}. */
 export type ConditionValueKind = typeof CONDITION_VALUE_KINDS[number];
@@ -140,7 +151,9 @@ export interface PropertyCondition {
         | { valueKind: "datetime";
           predicate: DateTimePredicate; }
           | { valueKind: "file";
-            predicate: FilePredicate; };
+            predicate: FilePredicate; }
+            | { valueKind: "choices";
+              predicate: ChoicesPredicate; };
 }
 
 /** Branch: combines its children with `and`/`or`. The only node that nests. */
@@ -196,6 +209,8 @@ export interface ConditionInput {
   dateTimeValues: Map<string, string>;
   /** Property ids of `image`/`file` properties that have a stored value (presence matching only). */
   fileValues: Set<string>;
+  /** Choices custom-property selected values, keyed by property id. */
+  choicesValues: Map<string, string[]>;
 }
 
 /** Resolves a tag id to the inclusive set of its descendant ids (for cascade matching). */
@@ -364,6 +379,16 @@ function evaluateRelationshipType(
   return condition.relationshipTypeIds.some(id => input.relationshipTypeIds.has(id));
 }
 
+function evaluateChoicesPredicate(
+  predicate: ChoicesPredicate,
+  values: string[],
+): boolean {
+  if (predicate.kind === "presence") {
+    return predicate.mode === "has" ? values.length > 0 : values.length === 0;
+  }
+  return predicate.values.some(v => values.includes(v));
+}
+
 function evaluateProperty(condition: PropertyCondition, input: ConditionInput): boolean {
   if (condition.predicate.valueKind === "number") {
     return evaluateNumberPredicate(
@@ -382,6 +407,12 @@ function evaluateProperty(condition: PropertyCondition, input: ConditionInput): 
   if (condition.predicate.valueKind === "file") {
     const hasValue = input.fileValues.has(condition.propertyId);
     return condition.predicate.predicate.mode === "has" ? hasValue : !hasValue;
+  }
+  if (condition.predicate.valueKind === "choices") {
+    return evaluateChoicesPredicate(
+      condition.predicate.predicate,
+      input.choicesValues.get(condition.propertyId) ?? [],
+    );
   }
   return evaluateBooleanPredicate(
     condition.predicate.predicate,

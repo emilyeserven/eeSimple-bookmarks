@@ -1,5 +1,5 @@
 import type { BookmarkSearch } from "./bookmarkSearch";
-import type { Bookmark, CardFieldZones, CustomProperty } from "@eesimple/types";
+import type { Bookmark, CardFieldZones, ChoicesItem, ChoicesDisplayType, CustomProperty } from "@eesimple/types";
 
 import { resolveBooleanDisplay } from "./bookmarkCardValues";
 import { formatBoolean, formatDateTime, formatNumber } from "./bookmarkFormat";
@@ -55,18 +55,30 @@ export interface FilePropertyRow {
   search: BookmarkSearch;
 }
 
+export interface ChoicesPropertyRow {
+  id: string;
+  name: string;
+  groupId: string | null;
+  items: ChoicesItem[];
+  selectedValues: string[];
+  displayMode: ChoicesDisplayType;
+  search: BookmarkSearch;
+}
+
 export interface BookmarkPropertyRows {
   numberRows: NumberPropertyRow[];
   ratingRows: RatingPropertyRow[];
   booleanRows: BooleanPropertyRow[];
   dateTimeRows: DateTimePropertyRow[];
   fileRows: FilePropertyRow[];
+  choicesRows: ChoicesPropertyRow[];
 }
 
 /** True when at least one property row across all kinds is present. */
 export function hasAnyPropertyRow(rows: BookmarkPropertyRows): boolean {
   return rows.numberRows.length > 0 || rows.ratingRows.length > 0
-    || rows.booleanRows.length > 0 || rows.dateTimeRows.length > 0 || rows.fileRows.length > 0;
+    || rows.booleanRows.length > 0 || rows.dateTimeRows.length > 0 || rows.fileRows.length > 0
+    || rows.choicesRows.length > 0;
 }
 
 /**
@@ -174,11 +186,29 @@ export function buildBookmarkPropertyRows(
     })
     .filter((row): row is FilePropertyRow => row !== null);
 
+  const choicesRows = bookmark.choicesValues
+    .map((entry): ChoicesPropertyRow | null => {
+      const property = byId.get(entry.propertyId);
+      return property && property.type === "choices" && entry.values.length > 0
+        ? {
+          id: entry.propertyId,
+          name: property.name,
+          groupId: property.propertyGroupId,
+          items: property.choicesItems,
+          selectedValues: entry.values,
+          displayMode: property.choicesDisplay ?? "radio",
+          search: buildPropertyQuickSearch(property, entry.values.join(", ")),
+        }
+        : null;
+    })
+    .filter((row): row is ChoicesPropertyRow => row !== null);
+
   return {
     numberRows,
     ratingRows,
     booleanRows,
     dateTimeRows,
     fileRows,
+    choicesRows,
   };
 }

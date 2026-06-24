@@ -7,6 +7,7 @@ import { propertyAppliesToCategory, propertyAppliesToMediaType } from "@eesimple
 import { CategoryCustomFields } from "./BookmarkCustomFields";
 import {
   buildCategoryPropertyValues,
+  buildChoicesValuesFromInputs,
   DATE_POSTED_SLUG,
   looksLikeYouTube,
   RUNTIME_SLUG,
@@ -61,9 +62,11 @@ export function BookmarkPropertiesForm({
     numberInputs,
     booleanInputs,
     dateTimeInputs,
+    choicesInputs,
     setNumberInputs,
     setBooleanInputs,
     setDateTimeInputs,
+    setChoicesInputs,
     customRef,
   } = useSeededPropertyInputs(bookmark);
   const [isPending, setIsPending] = useState(false);
@@ -86,6 +89,12 @@ export function BookmarkPropertiesForm({
       [id]: value,
     }));
   }
+  function handleChoicesChange(id: string, values: string[]): void {
+    setChoicesInputs(current => ({
+      ...current,
+      [id]: values,
+    }));
+  }
 
   async function handleSubmit(event: React.FormEvent): Promise<void> {
     event.preventDefault();
@@ -99,12 +108,19 @@ export function BookmarkPropertiesForm({
         customRef.current,
         bookmark.mediaType?.id ?? null,
       );
+      const choicesValues = buildChoicesValuesFromInputs(
+        customProperties ?? [],
+        bookmark.categoryId ?? "",
+        choicesInputs,
+        bookmark.mediaType?.id ?? null,
+      );
       await updateBookmark.mutateAsync({
         id: bookmark.id,
         input: {
           numberValues,
           booleanValues,
           dateTimeValues,
+          choicesValues,
         },
       });
       notifySuccess("Changes saved");
@@ -152,9 +168,11 @@ export function BookmarkPropertiesForm({
         numberInputs={numberInputs}
         booleanInputs={booleanInputs}
         dateTimeInputs={dateTimeInputs}
+        choicesInputs={choicesInputs}
         onNumberChange={handleNumberChange}
         onBooleanChange={handleBooleanChange}
         onDateTimeChange={handleDateTimeChange}
+        onChoicesChange={handleChoicesChange}
       />
       <CategoryCustomFields
         placement="advanced"
@@ -165,9 +183,11 @@ export function BookmarkPropertiesForm({
         numberInputs={numberInputs}
         booleanInputs={booleanInputs}
         dateTimeInputs={dateTimeInputs}
+        choicesInputs={choicesInputs}
         onNumberChange={handleNumberChange}
         onBooleanChange={handleBooleanChange}
         onDateTimeChange={handleDateTimeChange}
+        onChoicesChange={handleChoicesChange}
       />
       <div>
         <Button

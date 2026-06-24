@@ -1,6 +1,6 @@
 import type { CreateCustomPropertyInput, CustomProperty } from "@eesimple/types";
 
-import { CUSTOM_PROPERTY_TYPES, DATE_TIME_FORMATS, NUMBER_FORMATS } from "@eesimple/types";
+import { CHOICES_DISPLAY_TYPES, CUSTOM_PROPERTY_TYPES, DATE_TIME_FORMATS, NUMBER_FORMATS } from "@eesimple/types";
 import { z } from "zod";
 
 import { useAppForm } from "../lib/form";
@@ -80,6 +80,13 @@ export const propertySchema = z
     ratingAllowHalf: z.boolean(),
     ratingShowLabel: z.boolean(),
     ratingLabel: z.string(),
+    choicesItems: z.array(z.object({
+      label: z.string(),
+      value: z.string(),
+      isDefault: z.boolean().optional(),
+    })),
+    choicesDisplay: z.enum(CHOICES_DISPLAY_TYPES),
+    choicesMultiple: z.boolean(),
   })
   .superRefine((value, ctx) => {
     if (value.type === "calculate" && value.operandIds.length < 2) {
@@ -136,6 +143,9 @@ export const CREATE_DEFAULTS: PropertyFormValues = {
   ratingAllowHalf: false,
   ratingShowLabel: false,
   ratingLabel: "",
+  choicesItems: [],
+  choicesDisplay: "radio",
+  choicesMultiple: false,
 };
 
 /**
@@ -285,6 +295,9 @@ export function valuesFromProperty(property: CustomProperty): PropertyFormValues
     ratingAllowHalf: property.ratingAllowHalf,
     ratingShowLabel: property.ratingShowLabel,
     ratingLabel: property.ratingLabel ?? "",
+    choicesItems: property.choicesItems,
+    choicesDisplay: property.choicesDisplay ?? "radio",
+    choicesMultiple: property.choicesMultiple,
   };
 }
 
@@ -337,6 +350,19 @@ function ratingPayloadFields(values: PropertyFormValues): Pick<
   };
 }
 
+/** Choices-only fields, nulled out / left undefined for every other property type. */
+function choicesPayloadFields(values: PropertyFormValues): Pick<
+  CreateCustomPropertyInput,
+  "choicesItems" | "choicesDisplay" | "choicesMultiple"
+> {
+  const isChoices = values.type === "choices";
+  return {
+    choicesItems: isChoices ? values.choicesItems : undefined,
+    choicesDisplay: isChoices ? values.choicesDisplay : undefined,
+    choicesMultiple: isChoices ? values.choicesMultiple : undefined,
+  };
+}
+
 /** Build the create/update payload from form values (`type` is ignored by the update route). */
 export function payloadFromValues(values: PropertyFormValues): CreateCustomPropertyInput {
   return {
@@ -363,5 +389,6 @@ export function payloadFromValues(values: PropertyFormValues): CreateCustomPrope
     ...numberPayloadFields(values),
     ...booleanPayloadFields(values),
     ...ratingPayloadFields(values),
+    ...choicesPayloadFields(values),
   };
 }

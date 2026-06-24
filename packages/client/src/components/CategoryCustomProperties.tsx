@@ -39,6 +39,7 @@ const TYPE_LABELS: Record<CustomPropertyType, string> = {
   ratingScale: "Rating Scale",
   image: "Image",
   file: "File",
+  choices: "Choices",
 };
 
 interface CategoryCustomPropertiesProps {

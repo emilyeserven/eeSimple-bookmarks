@@ -3,6 +3,8 @@
 import type { CustomProperty, DateTimeFormat } from "@eesimple/types";
 
 import {
+  CHOICES_DISPLAY_LABELS,
+  CHOICES_DISPLAY_TYPES,
   CUSTOM_PROPERTY_TYPE_LABELS,
   CUSTOM_PROPERTY_TYPES,
   DATE_TIME_FORMATS,
@@ -78,6 +80,12 @@ export const DATE_TIME_FORMAT_OPTIONS = DATE_TIME_FORMATS.map(value => ({
 export const NUMBER_FORMAT_OPTIONS = NUMBER_FORMATS.map(value => ({
   value,
   label: NUMBER_FORMAT_LABELS[value],
+}));
+
+/** Display mode options for a `choices` property. Derived from the shared `@eesimple/types` dictionary. */
+export const CHOICES_DISPLAY_OPTIONS = CHOICES_DISPLAY_TYPES.map(value => ({
+  value,
+  label: CHOICES_DISPLAY_LABELS[value],
 }));
 
 /** Add or remove `id` from `ids`, returning a new array. */

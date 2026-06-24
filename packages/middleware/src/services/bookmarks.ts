@@ -14,6 +14,7 @@ import { db } from "@/db";
 import {
   bookmarkAuthors,
   bookmarkBooleanValues,
+  bookmarkChoicesValues,
   bookmarkDateTimeValues,
   bookmarkNumberValues,
   bookmarkRelationships,
@@ -44,6 +45,7 @@ import {
   linkTags,
   recomputeCalculatedValues,
   setBooleanValues,
+  setChoicesValues,
   setDateTimeValues,
   setNumberValues,
   type Tx,
@@ -257,6 +259,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
     await setNumberValues(tx, row.id, numberValues);
     await setBooleanValues(tx, row.id, input.booleanValues);
     await setDateTimeValues(tx, row.id, dateTimeValues);
+    await setChoicesValues(tx, row.id, input.choicesValues);
     await recomputeCalculatedValues(tx, row.id);
     return {
       id: row.id,
@@ -361,6 +364,10 @@ async function applyBookmarkValueUpdates(
   if (resolved.dateTimeValues !== undefined) {
     await tx.delete(bookmarkDateTimeValues).where(eq(bookmarkDateTimeValues.bookmarkId, id));
     await setDateTimeValues(tx, id, resolved.dateTimeValues);
+  }
+  if (input.choicesValues !== undefined) {
+    await tx.delete(bookmarkChoicesValues).where(eq(bookmarkChoicesValues.bookmarkId, id));
+    await setChoicesValues(tx, id, input.choicesValues);
   }
 }
 
