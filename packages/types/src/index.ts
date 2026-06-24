@@ -575,6 +575,9 @@ export interface Author {
   slug: string;
   createdAt: string;
   bookmarkCount?: number;
+  authorWebsiteUrl: string | null;
+  biographyUrl: string | null;
+  imageUrl: string | null;
 }
 
 /** Lightweight author shape carried on a bookmark. */
@@ -588,6 +591,8 @@ export interface CreateAuthorInput {
 /** Payload for partially updating an author. */
 export interface UpdateAuthorInput {
   name?: string;
+  authorWebsiteUrl?: string | null;
+  biographyUrl?: string | null;
 }
 
 /** Lightweight import shape carried on a bookmark (the import event it was created from). */

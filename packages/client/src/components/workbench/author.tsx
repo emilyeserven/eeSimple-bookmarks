@@ -2,7 +2,10 @@
 import type { EntityWorkbench } from "./types";
 import type { Author } from "@eesimple/types";
 
+import { UserCircle } from "lucide-react";
+
 import { AuthorGeneralForm } from "../AuthorGeneralForm";
+import { EntityImagePreview } from "../EntityImageField";
 
 import { useAuthorById, useAuthorBySlug, useDeleteAuthor } from "@/hooks/useAuthors";
 
@@ -12,20 +15,61 @@ function AuthorGeneralView({
   entity: Author;
 }) {
   return (
-    <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
-      <dt className="text-muted-foreground">Added</dt>
-      <dd>{new Date(author.createdAt).toLocaleDateString()}</dd>
-      <dt className="text-muted-foreground">Slug</dt>
-      <dd className="font-mono">{author.slug}</dd>
-      {author.bookmarkCount != null
-        ? (
-          <>
-            <dt className="text-muted-foreground">Bookmarks</dt>
-            <dd>{author.bookmarkCount}</dd>
-          </>
-        )
-        : null}
-    </dl>
+    <div className="space-y-3">
+      <EntityImagePreview
+        imageUrl={author.imageUrl}
+        shape="circle"
+        fallback={<UserCircle className="size-6" />}
+      />
+      <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
+        <dt className="text-muted-foreground">Added</dt>
+        <dd>{new Date(author.createdAt).toLocaleDateString()}</dd>
+        <dt className="text-muted-foreground">Slug</dt>
+        <dd className="font-mono">{author.slug}</dd>
+        {author.bookmarkCount != null
+          ? (
+            <>
+              <dt className="text-muted-foreground">Bookmarks</dt>
+              <dd>{author.bookmarkCount}</dd>
+            </>
+          )
+          : null}
+        {author.authorWebsiteUrl != null
+          ? (
+            <>
+              <dt className="text-muted-foreground">Website</dt>
+              <dd>
+                <a
+                  href={author.authorWebsiteUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline"
+                >
+                  {author.authorWebsiteUrl}
+                </a>
+              </dd>
+            </>
+          )
+          : null}
+        {author.biographyUrl != null
+          ? (
+            <>
+              <dt className="text-muted-foreground">Biography</dt>
+              <dd>
+                <a
+                  href={author.biographyUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline"
+                >
+                  {author.biographyUrl}
+                </a>
+              </dd>
+            </>
+          )
+          : null}
+      </dl>
+    </div>
   );
 }
 
@@ -74,7 +118,7 @@ export const authorWorkbench: EntityWorkbench<Author> = {
       },
       edit: {
         title: "General",
-        description: "Edit the author's name.",
+        description: "Edit the author's name, URLs, and avatar.",
         render: ({
           entity,
         }) => <AuthorGeneralForm author={entity} />,
