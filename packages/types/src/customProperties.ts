@@ -44,7 +44,7 @@ export const CUSTOM_PROPERTY_TYPE_LABELS: Record<CustomPropertyType, string> = {
   image: "Image",
   file: "File",
   choices: "Choices",
-  itemInItems: "Item in Items",
+  itemInItems: "Two Numbers",
 };
 
 /**
