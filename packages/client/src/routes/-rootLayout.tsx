@@ -8,6 +8,7 @@ import { AppHeader } from "./-appHeader";
 
 import { AddImportModal } from "@/components/AddImportModal";
 import { AppSidebar } from "@/components/app-sidebar";
+import { CommandPalette } from "@/components/CommandPalette";
 import { RightPanel } from "@/components/panel/RightPanel";
 import {
   SidebarInset,
@@ -53,6 +54,7 @@ export function RootLayout() {
       </SidebarInset>
       <RightPanel />
       <AddImportModal />
+      <CommandPalette />
       <Toaster
         richColors
         expand
