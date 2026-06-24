@@ -22,6 +22,7 @@ export interface RevealedCustomFieldsProps {
     total: string; }>;
   sectionsInputs: Record<string, { exhaustive: boolean;
     sections: import("@eesimple/types").SectionEntry[]; }>;
+  textInputs: Record<string, string>;
   onNumberChange: (id: string, value: string) => void;
   onBooleanChange: (id: string, value: boolean) => void;
   onDateTimeChange: (id: string, value: string) => void;
@@ -29,6 +30,9 @@ export interface RevealedCustomFieldsProps {
   onProgressChange: (id: string, field: "current" | "total", value: string) => void;
   onSectionsChange: (id: string, value: { exhaustive: boolean;
     sections: import("@eesimple/types").SectionEntry[]; }) => void;
+  onTextChange: (id: string, value: string) => void;
+  onIsbnFetch?: (isbn: string) => void;
+  isIsbnFetchPending?: boolean;
 }
 
 /**
@@ -44,12 +48,16 @@ export function RevealedCustomFields({
   choicesInputs,
   progressInputs,
   sectionsInputs,
+  textInputs,
   onNumberChange,
   onBooleanChange,
   onDateTimeChange,
   onChoicesChange,
   onProgressChange,
   onSectionsChange,
+  onTextChange,
+  onIsbnFetch,
+  isIsbnFetchPending,
 }: RevealedCustomFieldsProps) {
   return (
     <form.Subscribe
@@ -80,12 +88,16 @@ export function RevealedCustomFields({
           choicesInputs={choicesInputs}
           progressInputs={progressInputs}
           sectionsInputs={sectionsInputs}
+          textInputs={textInputs}
           onNumberChange={onNumberChange}
           onBooleanChange={onBooleanChange}
           onDateTimeChange={onDateTimeChange}
           onChoicesChange={onChoicesChange}
           onProgressChange={onProgressChange}
           onSectionsChange={onSectionsChange}
+          onTextChange={onTextChange}
+          onIsbnFetch={onIsbnFetch}
+          isIsbnFetchPending={isIsbnFetchPending}
         />
       )}
     </form.Subscribe>

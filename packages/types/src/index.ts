@@ -6,7 +6,7 @@
  */
 
 import type { ConditionMatchField, ConditionMatchOperator, ConditionTree } from "./conditions.js";
-import type { BookmarkSectionsValue, ChoicesDisplayType, ChoicesItem, CustomPropertyType, DateTimeFormat, NumberFormat, SectionEntryType } from "./customProperties.js";
+import type { BookmarkSectionsValue, BookmarkTextValue, ChoicesDisplayType, ChoicesItem, CustomPropertyType, DateTimeFormat, NumberFormat, SectionEntryType } from "./customProperties.js";
 import type { ImportBlacklistKind } from "./importBlacklist.js";
 import type { SocialLink } from "./socialMedia.js";
 
@@ -842,6 +842,8 @@ export interface Bookmark {
   progressValues: BookmarkProgressValue[];
   /** Sections custom property values (chapters, page ranges, URL anchors) assigned to this bookmark. */
   sectionsValues: BookmarkSectionsValue[];
+  /** Plain text custom property values assigned to this bookmark. */
+  textValues: BookmarkTextValue[];
   /**
    * Image/file custom property values assigned to this bookmark. Unlike the scalar value arrays,
    * these are NOT part of `CreateBookmarkInput`/`UpdateBookmarkInput`: the blobs are uploaded
@@ -883,6 +885,8 @@ export interface CreateBookmarkInput {
   progressValues?: BookmarkProgressValue[];
   /** Sections custom property values to assign. */
   sectionsValues?: BookmarkSectionsValue[];
+  /** Plain text custom property values to assign. */
+  textValues?: BookmarkTextValue[];
   /** Homepage ordering weight; higher values appear first. */
   priority?: number;
   /** Friendly name for the website when it doesn't exist yet; ignored for existing sites. */
@@ -2195,6 +2199,22 @@ export interface ResolveUrlResult {
    * when resolution failed. `finalUrl` is still the original URL in this case.
    */
   resolveError?: string;
+}
+
+/** Result of fetching book metadata for an ISBN/ASIN from Open Library (`GET /api/fetch-isbn-metadata`). */
+export interface FetchIsbnMetadataResult {
+  /** Book title, or `null` when not found. */
+  title: string | null;
+  /** Book description/synopsis, or `null` when unavailable. */
+  description: string | null;
+  /** URL of the book's cover image (large preferred), or `null` when unavailable. */
+  coverUrl: string | null;
+  /** Author names for the book. */
+  authors: string[];
+  /** Publication year string (e.g. `"1979"`), or `null` when unavailable. */
+  year: string | null;
+  /** Canonical Open Library URL for this book, or `null` when unavailable. */
+  openLibraryUrl: string | null;
 }
 
 /** A named snapshot of bookmark listing filter state, reusable on any listing page. */

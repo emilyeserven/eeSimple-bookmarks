@@ -77,12 +77,14 @@ export function makeRevealedProps(overrides: Partial<RevealedFixtureProps> = {})
     choicesInputs: {},
     progressInputs: {},
     sectionsInputs: {},
+    textInputs: {},
     onNumberChange: () => undefined,
     onBooleanChange: () => undefined,
     onDateTimeChange: () => undefined,
     onChoicesChange: () => undefined,
     onProgressChange: () => undefined,
     onSectionsChange: () => undefined,
+    onTextChange: () => undefined,
 
     ...overrides,
   };
@@ -130,6 +132,7 @@ export interface RevealedFixtureProps {
     total: string; }>;
   sectionsInputs: Record<string, { exhaustive: boolean;
     sections: import("@eesimple/types").SectionEntry[]; }>;
+  textInputs: Record<string, string>;
   onNumberChange: (id: string, value: string) => void;
   onBooleanChange: (id: string, value: boolean) => void;
   onDateTimeChange: (id: string, value: string) => void;
@@ -137,4 +140,5 @@ export interface RevealedFixtureProps {
   onProgressChange: (id: string, field: "current" | "total", value: string) => void;
   onSectionsChange: (id: string, value: { exhaustive: boolean;
     sections: import("@eesimple/types").SectionEntry[]; }) => void;
+  onTextChange: (id: string, value: string) => void;
 }

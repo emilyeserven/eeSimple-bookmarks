@@ -897,6 +897,23 @@ export const bookmarkSectionsValues = pgTable("bookmark_sections_values", {
 ]);
 
 /**
+ * `bookmark_text_values` — plain-text value per (bookmark, text property).
+ */
+export const bookmarkTextValues = pgTable("bookmark_text_values", {
+  bookmarkId: uuid("bookmark_id").notNull().references(() => bookmarks.id, {
+    onDelete: "cascade",
+  }),
+  propertyId: uuid("property_id").notNull().references(() => customProperties.id, {
+    onDelete: "cascade",
+  }),
+  value: text("value").notNull(),
+}, table => [
+  primaryKey({
+    columns: [table.bookmarkId, table.propertyId],
+  }),
+]);
+
+/**
  * `calculate_property_operands` — for a `calculate` property, the `number` properties
  * whose values are summed to produce it. `propertyId` is the calculate property.
  */

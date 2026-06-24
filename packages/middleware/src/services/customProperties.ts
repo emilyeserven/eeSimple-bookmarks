@@ -51,6 +51,9 @@ export const PAGE_PROGRESS_SLUG = "page-progress";
 /** Reserved slug + spec of the built-in "Page Range" itemInItems property, seeded at boot. */
 export const PAGE_RANGE_SLUG = "page-range";
 
+/** Reserved slug for the built-in "ISBN / ASIN" text property, seeded at boot. */
+export const ISBN_SLUG = "isbn";
+
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 /** Map a DB row plus its hydrated relations to the shared `CustomProperty` wire type. */
@@ -115,7 +118,7 @@ function toCustomProperty(
 }
 
 /** Slugs reserved for real sub-routes + built-ins, so a property can never shadow them. */
-const RESERVED_SLUGS = ["new", RUNTIME_SLUG, CONTENT_STATUS_SLUG, PAGE_PROGRESS_SLUG];
+const RESERVED_SLUGS = ["new", RUNTIME_SLUG, CONTENT_STATUS_SLUG, PAGE_PROGRESS_SLUG, ISBN_SLUG];
 
 /** Existing property slugs plus reserved route words, optionally excluding one id (when renaming). */
 async function takenSlugs(excludeId?: string): Promise<string[]> {
@@ -1216,4 +1219,54 @@ export async function backfillCustomPropertySlugs(): Promise<void> {
       slug,
     }).where(eq(customProperties.id, property.id));
   }
+}
+
+/**
+ * Ensure the built-in "ISBN / ASIN" text property exists. Available in all categories so users
+ * can store an ISBN or ASIN on any bookmark and have the client generate lookup links from it.
+ * Idempotent — safe to call at boot.
+ */
+export async function ensureIsbnProperty(): Promise<string> {
+  const [existing] = await db
+    .select({
+      id: customProperties.id,
+    })
+    .from(customProperties)
+    .where(eq(customProperties.slug, ISBN_SLUG));
+  if (existing) {
+    await db
+      .update(customProperties)
+      .set({
+        builtIn: true,
+        enabled: true,
+        allCategories: true,
+        hiddenFromForm: false,
+      })
+      .where(eq(customProperties.id, existing.id));
+    return existing.id;
+  }
+
+  const [row] = await db
+    .insert(customProperties)
+    .values({
+      name: "ISBN / ASIN",
+      slug: ISBN_SLUG,
+      type: "text",
+      builtIn: true,
+      description: "ISBN (books) or ASIN (Amazon products). Used to auto-generate lookup links.",
+      allCategories: true,
+      hiddenFromForm: false,
+      showInListings: false,
+      showInDetails: true,
+    })
+    .onConflictDoNothing({
+      target: customProperties.slug,
+    })
+    .returning({
+      id: customProperties.id,
+    });
+  if (row) return row.id;
+
+  // Lost a concurrent insert race — re-read the row the other writer created.
+  return readPropertyIdBySlug(ISBN_SLUG);
 }

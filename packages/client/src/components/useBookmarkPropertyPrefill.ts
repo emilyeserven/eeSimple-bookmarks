@@ -34,6 +34,7 @@ export interface BookmarkPropertyPrefill {
     total: string; }>;
   sectionsInputs: Record<string, { exhaustive: boolean;
     sections: import("@eesimple/types").SectionEntry[]; }>;
+  textInputs: Record<string, string>;
   /** Mirror of the current inputs; read by the submit handler (stale-closure-safe). */
   customRef: React.MutableRefObject<CustomPropertyInputs>;
   handleNumberChange: (id: string, value: string) => void;
@@ -43,6 +44,7 @@ export interface BookmarkPropertyPrefill {
   handleProgressChange: (id: string, field: "current" | "total", value: string) => void;
   handleSectionsChange: (id: string, value: { exhaustive: boolean;
     sections: import("@eesimple/types").SectionEntry[]; }) => void;
+  handleTextChange: (id: string, value: string) => void;
   /** Run the autofill rules against the current URL/Title and prefill the form. */
   runAutofill: () => void;
   /** Apply a category's default property values (rules and user edits win). */
@@ -81,12 +83,14 @@ export function useBookmarkPropertyPrefill({
     choicesInputs,
     progressInputs,
     sectionsInputs,
+    textInputs,
     setNumberInputs,
     setBooleanInputs,
     setDateTimeInputs,
     setChoicesInputs,
     setProgressInputs,
     setSectionsInputs,
+    setTextInputs,
     customRef,
   } = useSeededPropertyInputs(bookmark);
 
@@ -280,6 +284,13 @@ export function useBookmarkPropertyPrefill({
       [id]: value,
     }));
   }
+  function handleTextChange(id: string, value: string): void {
+    touchedRef.current.add(`text:${id}`);
+    setTextInputs(current => ({
+      ...current,
+      [id]: value,
+    }));
+  }
 
   function markTagsTouched(): void {
     touchedRef.current.add("tags");
@@ -291,6 +302,7 @@ export function useBookmarkPropertyPrefill({
     setDateTimeInputs({});
     setChoicesInputs({});
     setProgressInputs({});
+    setTextInputs({});
     touchedRef.current = new Set();
     ruleSetRef.current = {
       numbers: new Set(),
@@ -316,6 +328,7 @@ export function useBookmarkPropertyPrefill({
     choicesInputs,
     progressInputs,
     sectionsInputs,
+    textInputs,
     customRef,
     handleNumberChange,
     handleBooleanChange,
@@ -323,6 +336,7 @@ export function useBookmarkPropertyPrefill({
     handleChoicesChange,
     handleProgressChange,
     handleSectionsChange,
+    handleTextChange,
     runAutofill,
     applyCategoryDefaults,
     markTagsTouched,

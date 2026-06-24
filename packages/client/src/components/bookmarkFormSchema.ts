@@ -9,6 +9,7 @@ import type {
   BookmarkNumberValue,
   BookmarkProgressValue,
   BookmarkSectionsValue,
+  BookmarkTextValue,
   CustomProperty,
   SectionEntry,
 } from "@eesimple/types";
@@ -48,6 +49,9 @@ export const CONTENT_STATUS_SLUG = "content-status";
 export const PAGE_PROGRESS_SLUG = "page-progress";
 export const PAGE_RANGE_SLUG = "page-range";
 export const PAGE_SECTIONS_SLUG = "page-sections";
+
+/** Slug of the built-in "ISBN / ASIN" property — shown in the Add Bookmark form. */
+export const ISBN_SLUG = "isbn";
 
 /** Cheap client-side check so we only hit the richer metadata endpoint for YouTube URLs. */
 export function looksLikeYouTube(url: string): boolean {
@@ -166,6 +170,7 @@ export interface CustomPropertyInputs {
     total: string; }>;
   sectionsInputs: Record<string, { exhaustive: boolean;
     sections: SectionEntry[]; }>;
+  textInputs: Record<string, string>;
 }
 
 /** The category-scoped, validated property values built for a bookmark's create/update payload. */
@@ -276,6 +281,32 @@ export function buildSectionsValuesFromInputs(
       exhaustive: entry.exhaustive,
       sections: entry.sections,
     }];
+  });
+}
+
+/**
+ * Build the typed text-property values for the submit payload: only enabled text properties scoped
+ * to the chosen category or media type, with non-empty values.
+ */
+export function buildTextValuesFromInputs(
+  customProperties: CustomProperty[],
+  categoryId: string,
+  textInputs: Record<string, string>,
+  mediaTypeId: string | null = null,
+): BookmarkTextValue[] {
+  const categoryProps = customProperties.filter(property =>
+    (propertyAppliesToCategory(property, categoryId)
+      || propertyAppliesToMediaType(property, mediaTypeId))
+    && property.enabled
+    && property.type === "text");
+  return categoryProps.flatMap((property) => {
+    const value = (textInputs[property.id] ?? "").trim();
+    return value
+      ? [{
+        propertyId: property.id,
+        value,
+      }]
+      : [];
   });
 }
 

@@ -62,6 +62,7 @@ export interface BookmarkCustomFieldControls {
     total: string; }>;
   sectionsInputs: Record<string, { exhaustive: boolean;
     sections: import("@eesimple/types").SectionEntry[]; }>;
+  textInputs: Record<string, string>;
   onNumberChange: (id: string, value: string) => void;
   onBooleanChange: (id: string, value: boolean) => void;
   onDateTimeChange: (id: string, value: string) => void;
@@ -69,6 +70,7 @@ export interface BookmarkCustomFieldControls {
   onProgressChange: (id: string, field: "current" | "total", value: string) => void;
   onSectionsChange: (id: string, value: { exhaustive: boolean;
     sections: import("@eesimple/types").SectionEntry[]; }) => void;
+  onTextChange: (id: string, value: string) => void;
   onApplyCategoryDefaults: (
     numberValues: BookmarkNumberValue[],
     booleanValues: BookmarkBooleanValue[],
@@ -105,6 +107,9 @@ interface BookmarkAdvancedSectionProps {
   onFetchDescription?: (url: string) => void;
   /** Whether a description fetch is in-flight (drives the spinner on the sparkle button). */
   isFetchDescriptionPending?: boolean;
+  /** Called when the user clicks "Fetch metadata" on the ISBN field. */
+  onIsbnFetch?: (isbn: string) => void;
+  isIsbnFetchPending?: boolean;
 }
 
 /**
@@ -138,6 +143,8 @@ export function BookmarkAdvancedSection({
   customFields,
   onFetchDescription,
   isFetchDescriptionPending,
+  onIsbnFetch,
+  isIsbnFetchPending,
 }: BookmarkAdvancedSectionProps) {
   return (
     <Collapsible className="group/advanced space-y-3">
@@ -315,12 +322,16 @@ export function BookmarkAdvancedSection({
                 choicesInputs={customFields.choicesInputs}
                 progressInputs={customFields.progressInputs}
                 sectionsInputs={customFields.sectionsInputs}
+                textInputs={customFields.textInputs}
                 onNumberChange={customFields.onNumberChange}
                 onBooleanChange={customFields.onBooleanChange}
                 onDateTimeChange={customFields.onDateTimeChange}
                 onChoicesChange={customFields.onChoicesChange}
                 onProgressChange={customFields.onProgressChange}
                 onSectionsChange={customFields.onSectionsChange}
+                onTextChange={customFields.onTextChange}
+                onIsbnFetch={onIsbnFetch}
+                isIsbnFetchPending={isIsbnFetchPending}
               />
             </>
           )}

@@ -205,6 +205,7 @@ const OPTIONS_FIELDS: Record<CustomPropertyType, FC<PropertyOptionsFieldsProps> 
   choices: ChoicesOptionsFields,
   itemInItems: ItemInItemsOptionsFields,
   sections: null,
+  text: null,
 };
 
 /** The "Property options" section body; renders nothing for calculate properties. */

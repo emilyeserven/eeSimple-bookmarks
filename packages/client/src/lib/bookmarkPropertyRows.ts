@@ -1,9 +1,11 @@
 import type { BookmarkSearch } from "./bookmarkSearch";
+import type { IsbnLink } from "./isbnLinks";
 import type { Bookmark, BookmarkSectionsValue, CardFieldZones, ChoicesDisplayType, ChoicesItem, CustomProperty, SectionEntry } from "@eesimple/types";
 
 import { resolveBooleanDisplay } from "./bookmarkCardValues";
 import { formatBoolean, formatDateTime, formatNumber } from "./bookmarkFormat";
 import { buildPropertyQuickSearch } from "./bookmarkPropertyQuickFilter";
+import { buildIsbnLinks } from "./isbnLinks";
 import { formatProgressValue, formatSectionsValue } from "./propertyFormat";
 
 export interface NumberPropertyRow {
@@ -86,6 +88,14 @@ export interface SectionsPropertyRow {
   search: BookmarkSearch;
 }
 
+export interface TextPropertyRow {
+  id: string;
+  name: string;
+  groupId: string | null;
+  value: string;
+  links: IsbnLink[];
+}
+
 export interface BookmarkPropertyRows {
   numberRows: NumberPropertyRow[];
   ratingRows: RatingPropertyRow[];
@@ -95,13 +105,15 @@ export interface BookmarkPropertyRows {
   choicesRows: ChoicesPropertyRow[];
   progressRows: ProgressPropertyRow[];
   sectionsRows: SectionsPropertyRow[];
+  textRows: TextPropertyRow[];
 }
 
 /** True when at least one property row across all kinds is present. */
 export function hasAnyPropertyRow(rows: BookmarkPropertyRows): boolean {
   return rows.numberRows.length > 0 || rows.ratingRows.length > 0
     || rows.booleanRows.length > 0 || rows.dateTimeRows.length > 0 || rows.fileRows.length > 0
-    || rows.choicesRows.length > 0 || rows.progressRows.length > 0 || rows.sectionsRows.length > 0;
+    || rows.choicesRows.length > 0 || rows.progressRows.length > 0 || rows.sectionsRows.length > 0
+    || rows.textRows.length > 0;
 }
 
 /**
@@ -260,6 +272,21 @@ export function buildBookmarkPropertyRows(
     })
     .filter((row): row is SectionsPropertyRow => row !== null);
 
+  const textRows = bookmark.textValues
+    .map((entry): TextPropertyRow | null => {
+      const property = byId.get(entry.propertyId);
+      return property && property.type === "text"
+        ? {
+          id: entry.propertyId,
+          name: property.name,
+          groupId: property.propertyGroupId,
+          value: entry.value,
+          links: buildIsbnLinks(entry.value),
+        }
+        : null;
+    })
+    .filter((row): row is TextPropertyRow => row !== null);
+
   return {
     numberRows,
     ratingRows,
@@ -269,5 +296,6 @@ export function buildBookmarkPropertyRows(
     choicesRows,
     progressRows,
     sectionsRows,
+    textRows,
   };
 }

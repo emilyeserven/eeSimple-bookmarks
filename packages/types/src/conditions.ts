@@ -136,10 +136,21 @@ export interface RelationshipTypeCondition {
  * the custom-property types — `calculate`/`ratingScale` filter as `number`, and `image` is unfiltered.
  * Source of truth for the matching JSON-Schema `oneOf` branches in the middleware.
  */
-export const CONDITION_VALUE_KINDS = ["number", "boolean", "datetime", "file", "choices", "sections"] as const;
+export const CONDITION_VALUE_KINDS = ["number", "boolean", "datetime", "file", "choices", "sections", "text"] as const;
 
 /** The discriminant of a {@link PropertyCondition} predicate. Derived from {@link CONDITION_VALUE_KINDS}. */
 export type ConditionValueKind = typeof CONDITION_VALUE_KINDS[number];
+
+/**
+ * Predicate applied to a `text` custom-property value inside a `property` leaf:
+ * - `presence` — whether a non-empty value is stored (`has`) or none/empty (`missing`).
+ * - `contains` — value contains the given pattern (case-insensitive).
+ */
+export type TextPredicate
+  = | { kind: "presence";
+    mode: "has" | "missing"; }
+    | { kind: "contains";
+      pattern: string; };
 
 /**
  * Predicate applied to a `sections` custom-property value inside a `property` leaf:
@@ -171,7 +182,9 @@ export interface PropertyCondition {
             | { valueKind: "choices";
               predicate: ChoicesPredicate; }
               | { valueKind: "sections";
-                predicate: SectionsPredicate; };
+                predicate: SectionsPredicate; }
+                | { valueKind: "text";
+                  predicate: TextPredicate; };
 }
 
 /** Branch: combines its children with `and`/`or`. The only node that nests. */
@@ -231,6 +244,8 @@ export interface ConditionInput {
   choicesValues: Map<string, string[]>;
   /** Sections custom-property values, keyed by property id. */
   sectionsValues: Map<string, BookmarkSectionsValue>;
+  /** Text custom-property values (plain strings), keyed by property id. */
+  textValues: Map<string, string>;
 }
 
 /** Resolves a tag id to the inclusive set of its descendant ids (for cascade matching). */
@@ -455,6 +470,15 @@ function evaluateProperty(condition: PropertyCondition, input: ConditionInput): 
       condition.predicate.predicate,
       input.sectionsValues.get(condition.propertyId),
     );
+  }
+  if (condition.predicate.valueKind === "text") {
+    const value = input.textValues.get(condition.propertyId);
+    const hasValue = value !== undefined && value.length > 0;
+    if (condition.predicate.predicate.kind === "presence") {
+      return condition.predicate.predicate.mode === "has" ? hasValue : !hasValue;
+    }
+    if (!hasValue || value === undefined) return false;
+    return value.toLowerCase().includes(condition.predicate.predicate.pattern.toLowerCase());
   }
   return evaluateBooleanPredicate(
     condition.predicate.predicate,

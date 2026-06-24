@@ -31,6 +31,7 @@ function makeBookmark(overrides: Partial<Bookmark> = {}): Bookmark {
     choicesValues: [],
     progressValues: [],
     sectionsValues: [],
+    textValues: [],
     authors: [],
     relationships: [],
     publisher: null,

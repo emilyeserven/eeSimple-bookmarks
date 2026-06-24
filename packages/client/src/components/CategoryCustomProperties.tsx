@@ -42,6 +42,7 @@ const TYPE_LABELS: Record<CustomPropertyType, string> = {
   choices: "Choices",
   itemInItems: "Two Numbers",
   sections: "Sections",
+  text: "Text",
 };
 
 interface CategoryCustomPropertiesProps {

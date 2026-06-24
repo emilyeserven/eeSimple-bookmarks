@@ -93,6 +93,7 @@ export function makeBookmark(overrides: Partial<Bookmark> = {}): Bookmark {
     progressValues: [],
     sectionsValues: [],
     fileValues: [],
+    textValues: [],
     authors: [],
     publisher: null,
     relationships: [],

@@ -20,6 +20,7 @@ function makeInput(overrides: Partial<ConditionInput> = {}): ConditionInput {
     relationshipTypeIds: overrides.relationshipTypeIds ?? new Set<string>(),
     choicesValues: overrides.choicesValues ?? new Map<string, string[]>(),
     sectionsValues: overrides.sectionsValues ?? new Map(),
+    textValues: overrides.textValues ?? new Map<string, string>(),
   };
 }
 

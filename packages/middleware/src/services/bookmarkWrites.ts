@@ -6,6 +6,7 @@ import type {
   BookmarkNumberValue,
   BookmarkProgressValue,
   BookmarkSectionsValue,
+  BookmarkTextValue,
 } from "@eesimple/types";
 import { db } from "@/db";
 import {
@@ -16,6 +17,7 @@ import {
   bookmarkNumberValues,
   bookmarkProgressValues,
   bookmarkSectionsValues,
+  bookmarkTextValues,
   bookmarkTags,
   calculatePropertyOperands,
   customProperties,
@@ -125,6 +127,20 @@ export async function setSectionsValues(
     propertyId: entry.propertyId,
     exhaustive: entry.exhaustive,
     sections: entry.sections,
+  })));
+}
+
+/** Insert text custom-property values for a bookmark (no-op when empty). */
+export async function setTextValues(
+  tx: Tx,
+  bookmarkId: string,
+  textValues: BookmarkTextValue[] | undefined,
+): Promise<void> {
+  if (!textValues || textValues.length === 0) return;
+  await tx.insert(bookmarkTextValues).values(textValues.map(entry => ({
+    bookmarkId,
+    propertyId: entry.propertyId,
+    value: entry.value,
   })));
 }
 

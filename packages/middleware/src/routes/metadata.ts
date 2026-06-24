@@ -1,5 +1,5 @@
 import type { FastifyBaseLogger, FastifyInstance } from "fastify";
-import type { FetchMetadataResult } from "@eesimple/types";
+import type { FetchIsbnMetadataResult, FetchMetadataResult } from "@eesimple/types";
 import {
   checkUrl,
   extractAuthorNames,
@@ -259,6 +259,77 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
       finalUrl: url,
       redirected: false,
       resolveError,
+    };
+  });
+
+  // Look up book/product metadata from the Open Library API by ISBN or ASIN.
+  app.get("/api/fetch-isbn-metadata", {
+    schema: {
+      tags: ["metadata"],
+      querystring: {
+        type: "object",
+        required: ["isbn"],
+        additionalProperties: false,
+        properties: {
+          isbn: {
+            type: "string",
+            minLength: 10,
+          },
+        },
+      },
+    },
+  }, async (req, reply): Promise<FetchIsbnMetadataResult> => {
+    const {
+      isbn,
+    } = req.query as { isbn: string };
+    const apiUrl = `https://openlibrary.org/api/books?bibkeys=ISBN:${encodeURIComponent(isbn)}&format=json&jscmd=data`;
+    let rawJson: Record<string, unknown>;
+    try {
+      const response = await fetch(apiUrl, {
+        headers: {
+          "User-Agent": "eeSimple-bookmarks/1.0",
+        },
+        signal: AbortSignal.timeout(10_000),
+      });
+      if (!response.ok) {
+        return reply.code(502).send({
+          error: "Open Library request failed",
+        }) as unknown as FetchIsbnMetadataResult;
+      }
+      rawJson = (await response.json()) as Record<string, unknown>;
+    }
+    catch {
+      return reply.code(502).send({
+        error: "Could not reach Open Library",
+      }) as unknown as FetchIsbnMetadataResult;
+    }
+
+    const key = `ISBN:${isbn}`;
+    const data = rawJson[key] as Record<string, unknown> | undefined;
+    if (!data) {
+      return reply.code(404).send({
+        error: "ISBN not found",
+      }) as unknown as FetchIsbnMetadataResult;
+    }
+
+    const descRaw = data.description as { value?: string } | string | undefined;
+    const description = typeof descRaw === "string"
+      ? descRaw
+      : typeof descRaw === "object" && descRaw !== null
+        ? (descRaw.value ?? null)
+        : null;
+
+    const coversRaw = data.cover as { large?: string;
+      medium?: string; } | undefined;
+    const authorsRaw = data.authors as { name?: string }[] | undefined;
+
+    return {
+      title: typeof data.title === "string" ? data.title : null,
+      description: description as string | null,
+      coverUrl: coversRaw?.large ?? coversRaw?.medium ?? null,
+      authors: authorsRaw?.map(a => a.name ?? "").filter(Boolean) ?? [],
+      year: typeof data.publish_date === "string" ? data.publish_date : null,
+      openLibraryUrl: typeof data.url === "string" ? data.url : null,
     };
   });
 

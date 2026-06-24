@@ -21,6 +21,7 @@ import {
   bookmarkNumberValues,
   bookmarkProgressValues,
   bookmarkSectionsValues,
+  bookmarkTextValues,
   bookmarkRelationships,
   bookmarks,
   type BookmarkRow,
@@ -56,6 +57,7 @@ import {
   setNumberValues,
   setProgressValues,
   setSectionsValues,
+  setTextValues,
   type Tx,
 } from "@/services/bookmarkWrites";
 import { ensureDefaultCategory } from "@/services/categories";
@@ -422,6 +424,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
     await setChoicesValues(tx, row.id, choicesValues);
     await setProgressValues(tx, row.id, input.progressValues);
     await setSectionsValues(tx, row.id, input.sectionsValues);
+    await setTextValues(tx, row.id, input.textValues);
     await recomputeCalculatedValues(tx, row.id);
     return {
       id: row.id,
@@ -539,6 +542,10 @@ async function applyBookmarkValueUpdates(
   if (input.sectionsValues !== undefined) {
     await tx.delete(bookmarkSectionsValues).where(eq(bookmarkSectionsValues.bookmarkId, id));
     await setSectionsValues(tx, id, input.sectionsValues);
+  }
+  if (input.textValues !== undefined) {
+    await tx.delete(bookmarkTextValues).where(eq(bookmarkTextValues.bookmarkId, id));
+    await setTextValues(tx, id, input.textValues);
   }
 }
 

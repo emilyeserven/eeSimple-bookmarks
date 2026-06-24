@@ -10,6 +10,7 @@ import { RangeSlider } from "../RangeSlider";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -726,6 +727,98 @@ function SectionsConditionRow({
   );
 }
 
+const TEXT_MODES = [
+  {
+    value: "none",
+    label: "Any",
+  },
+  {
+    value: "has",
+    label: "Has value",
+  },
+  {
+    value: "missing",
+    label: "Missing",
+  },
+  {
+    value: "contains",
+    label: "Contains",
+  },
+];
+
+/** Text: presence modes plus a free-text "Contains" pattern input. */
+function TextConditionRow({
+  property, condition, categories, onChange,
+}: RowProps) {
+  const predicate = condition?.predicate.valueKind === "text" ? condition.predicate.predicate : undefined;
+  const mode = predicate ? predicate.kind === "contains" ? "contains" : predicate.mode : "none";
+  const pattern = predicate?.kind === "contains" ? predicate.pattern : "";
+
+  function handleMode(next: string): void {
+    if (next === "none") {
+      onChange(null);
+    }
+    else if (next === "contains") {
+      onChange({
+        type: "property",
+        propertyId: property.id,
+        predicate: {
+          valueKind: "text",
+          predicate: {
+            kind: "contains",
+            pattern: "",
+          },
+        },
+      });
+    }
+    else {
+      onChange({
+        type: "property",
+        propertyId: property.id,
+        predicate: {
+          valueKind: "text",
+          predicate: {
+            kind: "presence",
+            mode: next as "has" | "missing",
+          },
+        },
+      });
+    }
+  }
+
+  return (
+    <PropertyConditionModeRow
+      property={property}
+      categories={categories}
+      mode={mode}
+      modes={TEXT_MODES}
+      onModeChange={handleMode}
+    >
+      {mode === "contains"
+        ? (
+          <Input
+            type="text"
+            placeholder="Pattern…"
+            value={pattern}
+            onChange={e =>
+              onChange({
+                type: "property",
+                propertyId: property.id,
+                predicate: {
+                  valueKind: "text",
+                  predicate: {
+                    kind: "contains",
+                    pattern: e.target.value,
+                  },
+                },
+              })}
+          />
+        )
+        : null}
+    </PropertyConditionModeRow>
+  );
+}
+
 /** A single property's condition control, dispatched to the editor for its value kind. */
 function PropertyConditionRow(props: RowProps) {
   switch (propertyValueKind(props.property)) {
@@ -741,6 +834,8 @@ function PropertyConditionRow(props: RowProps) {
       return <ChoicesConditionRow {...props} />;
     case "sections":
       return <SectionsConditionRow {...props} />;
+    case "text":
+      return <TextConditionRow {...props} />;
   }
 }
 

@@ -28,7 +28,7 @@
  *   Rendered as checkbox, radio button, combobox, or dropdown depending on {@link ChoicesDisplayType}.
  */
 export const CUSTOM_PROPERTY_TYPES = [
-  "number", "boolean", "calculate", "datetime", "ratingScale", "image", "file", "choices", "itemInItems", "sections",
+  "number", "boolean", "calculate", "datetime", "ratingScale", "image", "file", "choices", "itemInItems", "sections", "text",
 ] as const;
 
 /** The kind of a user-defined custom property. Derived from {@link CUSTOM_PROPERTY_TYPES}. */
@@ -46,6 +46,7 @@ export const CUSTOM_PROPERTY_TYPE_LABELS: Record<CustomPropertyType, string> = {
   choices: "Choices",
   itemInItems: "Two Numbers",
   sections: "Sections",
+  text: "Text",
 };
 
 /**
@@ -128,4 +129,10 @@ export interface BookmarkSectionsValue {
   propertyId: string;
   exhaustive: boolean;
   sections: SectionEntry[];
+}
+
+/** A plain text custom property value carried on a bookmark. */
+export interface BookmarkTextValue {
+  propertyId: string;
+  value: string;
 }
