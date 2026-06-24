@@ -1,10 +1,11 @@
 import type { TreeComboboxOption } from "./TreeMultiCombobox";
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
-import type { Author, Bookmark, Category, CustomProperty, MediaType, PropertyGroup, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
+import type { Author, Bookmark, Category, CustomProperty, MediaType, PropertyGroup, RelationshipType, SectionEntryType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
 import type { ReactNode } from "react";
 
 import { Fragment } from "react";
 
+import { SECTION_ENTRY_TYPE_LABELS, SECTION_ENTRY_TYPES } from "@eesimple/types";
 import { ChevronDown, Globe, MonitorPlay, Share2, TriangleAlert } from "lucide-react";
 
 import { CustomPropertyFilters } from "./CustomPropertyFilters";
@@ -24,6 +25,8 @@ import {
   withNumberFilter,
   withPresenceFilter,
   withRelationshipTypes,
+  withSectionTypes,
+  withSectionsPresence,
   withTagPresence,
   withTags,
   withWebsitePresence,
@@ -35,7 +38,7 @@ import {
 /** The filter sections themselves, with separators between adjacent groups. */
 export function FilterSections({
   tree, enabledProperties, propertyGroups, categories, mediaTypes, youtubeChannels, websites, relationshipTypes, authors, bookmarks, search, onSearchChange,
-  hasTags, hasProperties, hasCategoryFilter, hasMediaTypeFilter, hasChannelFilter, hasWebsiteFilter, hasRelationshipTypeFilter, hasAuthorFilter,
+  hasTags, hasProperties, hasSectionsFilter, hasCategoryFilter, hasMediaTypeFilter, hasChannelFilter, hasWebsiteFilter, hasRelationshipTypeFilter, hasAuthorFilter,
   sectionFilter,
 }: {
   tree: TagNode[];
@@ -52,6 +55,7 @@ export function FilterSections({
   onSearchChange: (next: BookmarkSearch) => void;
   hasTags: boolean;
   hasProperties: boolean;
+  hasSectionsFilter: boolean;
   hasCategoryFilter: boolean;
   hasMediaTypeFilter: boolean;
   hasChannelFilter: boolean;
@@ -145,6 +149,16 @@ export function FilterSections({
           node: (
             <AuthorFilterSection
               authors={authors}
+              search={search}
+              onSearchChange={onSearchChange}
+            />
+          ),
+        },
+        {
+          key: "sections",
+          show: hasSectionsFilter && sectionMatch("Sections"),
+          node: (
+            <SectionsFilterSection
               search={search}
               onSearchChange={onSearchChange}
             />
@@ -797,5 +811,89 @@ function PropertiesFilterSection({
         )
         : null}
     </div>
+  );
+}
+
+/** Presence toggle plus section-type checkboxes for bookmarks with sections properties. */
+function SectionsFilterSection({
+  search, onSearchChange,
+}: {
+  search: BookmarkSearch;
+  onSearchChange: (next: BookmarkSearch) => void;
+}) {
+  const selectedTypes: SectionEntryType[] = search.sectionTypes ?? [];
+  const filterActive = search.sectionsPresence !== undefined || selectedTypes.length > 0;
+
+  function toggleType(type: SectionEntryType): void {
+    const next = selectedTypes.includes(type)
+      ? selectedTypes.filter(t => t !== type)
+      : [...selectedTypes, type];
+    onSearchChange(withSectionTypes(search, next));
+  }
+
+  return (
+    <Collapsible
+      defaultOpen
+      className="group/sections space-y-3"
+    >
+      <div className="flex items-center justify-between">
+        <CollapsibleTrigger
+          className="
+            flex items-center gap-1.5 text-sm font-semibold
+            hover:text-foreground
+          "
+        >
+          <ChevronDown
+            className="
+              size-3.5 shrink-0 transition-transform
+              group-data-[state=open]/sections:rotate-180
+            "
+          />
+          Sections
+        </CollapsibleTrigger>
+        <FacetPresenceToggle
+          value={search.sectionsPresence}
+          onChange={mode => onSearchChange(withSectionsPresence(search, mode))}
+          hasLabel="Has sections"
+          missingLabel="No sections"
+        />
+      </div>
+      <CollapsibleContent className="space-y-2">
+        {search.sectionsPresence !== "missing"
+          ? (
+            <div className="space-y-1.5">
+              {SECTION_ENTRY_TYPES.map(type => (
+                <label
+                  key={type}
+                  className="flex cursor-pointer items-center gap-2 text-sm"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedTypes.includes(type)}
+                    onChange={() => toggleType(type)}
+                    className="rounded-sm"
+                  />
+                  {SECTION_ENTRY_TYPE_LABELS[type]}
+                </label>
+              ))}
+            </div>
+          )
+          : null}
+        {filterActive
+          ? (
+            <button
+              type="button"
+              className="
+                text-xs text-primary
+                hover:underline
+              "
+              onClick={() => onSearchChange(withSectionTypes(withSectionsPresence(search, undefined), []))}
+            >
+              Reset
+            </button>
+          )
+          : null}
+      </CollapsibleContent>
+    </Collapsible>
   );
 }

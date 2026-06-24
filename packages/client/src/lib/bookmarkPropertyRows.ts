@@ -1,10 +1,10 @@
 import type { BookmarkSearch } from "./bookmarkSearch";
-import type { Bookmark, CardFieldZones, ChoicesItem, ChoicesDisplayType, CustomProperty } from "@eesimple/types";
+import type { Bookmark, BookmarkSectionsValue, CardFieldZones, ChoicesDisplayType, ChoicesItem, CustomProperty, SectionEntry } from "@eesimple/types";
 
 import { resolveBooleanDisplay } from "./bookmarkCardValues";
 import { formatBoolean, formatDateTime, formatNumber } from "./bookmarkFormat";
 import { buildPropertyQuickSearch } from "./bookmarkPropertyQuickFilter";
-import { formatProgressValue } from "./propertyFormat";
+import { formatProgressValue, formatSectionsValue } from "./propertyFormat";
 
 export interface NumberPropertyRow {
   id: string;
@@ -76,6 +76,16 @@ export interface ProgressPropertyRow {
   search: BookmarkSearch;
 }
 
+export interface SectionsPropertyRow {
+  id: string;
+  name: string;
+  groupId: string | null;
+  exhaustive: boolean;
+  sections: SectionEntry[];
+  formatted: string;
+  search: BookmarkSearch;
+}
+
 export interface BookmarkPropertyRows {
   numberRows: NumberPropertyRow[];
   ratingRows: RatingPropertyRow[];
@@ -84,13 +94,14 @@ export interface BookmarkPropertyRows {
   fileRows: FilePropertyRow[];
   choicesRows: ChoicesPropertyRow[];
   progressRows: ProgressPropertyRow[];
+  sectionsRows: SectionsPropertyRow[];
 }
 
 /** True when at least one property row across all kinds is present. */
 export function hasAnyPropertyRow(rows: BookmarkPropertyRows): boolean {
   return rows.numberRows.length > 0 || rows.ratingRows.length > 0
     || rows.booleanRows.length > 0 || rows.dateTimeRows.length > 0 || rows.fileRows.length > 0
-    || rows.choicesRows.length > 0 || rows.progressRows.length > 0;
+    || rows.choicesRows.length > 0 || rows.progressRows.length > 0 || rows.sectionsRows.length > 0;
 }
 
 /**
@@ -232,6 +243,23 @@ export function buildBookmarkPropertyRows(
     })
     .filter((row): row is ProgressPropertyRow => row !== null);
 
+  const sectionsRows = bookmark.sectionsValues
+    .map((entry): SectionsPropertyRow | null => {
+      const property = byId.get(entry.propertyId);
+      return property && property.type === "sections"
+        ? {
+          id: entry.propertyId,
+          name: property.name,
+          groupId: property.propertyGroupId,
+          exhaustive: entry.exhaustive,
+          sections: entry.sections as SectionEntry[],
+          formatted: formatSectionsValue(entry as BookmarkSectionsValue),
+          search: buildPropertyQuickSearch(property, formatSectionsValue(entry as BookmarkSectionsValue)),
+        }
+        : null;
+    })
+    .filter((row): row is SectionsPropertyRow => row !== null);
+
   return {
     numberRows,
     ratingRows,
@@ -240,5 +268,6 @@ export function buildBookmarkPropertyRows(
     fileRows,
     choicesRows,
     progressRows,
+    sectionsRows,
   };
 }

@@ -28,7 +28,7 @@
  *   Rendered as checkbox, radio button, combobox, or dropdown depending on {@link ChoicesDisplayType}.
  */
 export const CUSTOM_PROPERTY_TYPES = [
-  "number", "boolean", "calculate", "datetime", "ratingScale", "image", "file", "choices", "itemInItems",
+  "number", "boolean", "calculate", "datetime", "ratingScale", "image", "file", "choices", "itemInItems", "sections",
 ] as const;
 
 /** The kind of a user-defined custom property. Derived from {@link CUSTOM_PROPERTY_TYPES}. */
@@ -45,6 +45,7 @@ export const CUSTOM_PROPERTY_TYPE_LABELS: Record<CustomPropertyType, string> = {
   file: "File",
   choices: "Choices",
   itemInItems: "Two Numbers",
+  sections: "Sections",
 };
 
 /**
@@ -105,3 +106,26 @@ export const DATE_TIME_FORMATS = ["date", "time", "datetime"] as const;
 
 /** What a `datetime` property captures. Derived from {@link DATE_TIME_FORMATS}. */
 export type DateTimeFormat = typeof DATE_TIME_FORMATS[number];
+
+export const SECTION_ENTRY_TYPES = ["url", "page", "timestamp"] as const;
+export type SectionEntryType = typeof SECTION_ENTRY_TYPES[number];
+
+export const SECTION_ENTRY_TYPE_LABELS: Record<SectionEntryType, string> = {
+  url: "URL",
+  page: "Page",
+  timestamp: "Timestamp",
+};
+
+export interface SectionEntry {
+  id: string;
+  name: string;
+  type: SectionEntryType;
+  startValue: string;
+  endValue?: string;
+}
+
+export interface BookmarkSectionsValue {
+  propertyId: string;
+  exhaustive: boolean;
+  sections: SectionEntry[];
+}

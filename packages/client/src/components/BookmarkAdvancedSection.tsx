@@ -58,11 +58,15 @@ export interface BookmarkCustomFieldControls {
   choicesInputs: Record<string, string[]>;
   progressInputs: Record<string, { current: string;
     total: string; }>;
+  sectionsInputs: Record<string, { exhaustive: boolean;
+    sections: import("@eesimple/types").SectionEntry[]; }>;
   onNumberChange: (id: string, value: string) => void;
   onBooleanChange: (id: string, value: boolean) => void;
   onDateTimeChange: (id: string, value: string) => void;
   onChoicesChange: (id: string, values: string[]) => void;
   onProgressChange: (id: string, field: "current" | "total", value: string) => void;
+  onSectionsChange: (id: string, value: { exhaustive: boolean;
+    sections: import("@eesimple/types").SectionEntry[]; }) => void;
   onApplyCategoryDefaults: (
     numberValues: BookmarkNumberValue[],
     booleanValues: BookmarkBooleanValue[],
@@ -295,11 +299,13 @@ export function BookmarkAdvancedSection({
                 dateTimeInputs={customFields.dateTimeInputs}
                 choicesInputs={customFields.choicesInputs}
                 progressInputs={customFields.progressInputs}
+                sectionsInputs={customFields.sectionsInputs}
                 onNumberChange={customFields.onNumberChange}
                 onBooleanChange={customFields.onBooleanChange}
                 onDateTimeChange={customFields.onDateTimeChange}
                 onChoicesChange={customFields.onChoicesChange}
                 onProgressChange={customFields.onProgressChange}
+                onSectionsChange={customFields.onSectionsChange}
               />
             </>
           )}

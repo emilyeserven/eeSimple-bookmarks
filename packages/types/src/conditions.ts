@@ -1,3 +1,5 @@
+import type { BookmarkSectionsValue, SectionEntryType } from "./customProperties.js";
+
 /**
  * Composable condition tree — a serializable predicate model shared by the Autofill rule
  * "when" and the Homepage filter.
@@ -134,10 +136,24 @@ export interface RelationshipTypeCondition {
  * the custom-property types — `calculate`/`ratingScale` filter as `number`, and `image` is unfiltered.
  * Source of truth for the matching JSON-Schema `oneOf` branches in the middleware.
  */
-export const CONDITION_VALUE_KINDS = ["number", "boolean", "datetime", "file", "choices"] as const;
+export const CONDITION_VALUE_KINDS = ["number", "boolean", "datetime", "file", "choices", "sections"] as const;
 
 /** The discriminant of a {@link PropertyCondition} predicate. Derived from {@link CONDITION_VALUE_KINDS}. */
 export type ConditionValueKind = typeof CONDITION_VALUE_KINDS[number];
+
+/**
+ * Predicate applied to a `sections` custom-property value inside a `property` leaf:
+ * - `presence` — whether any sections exist (`has`) or none (`missing`).
+ * - `sectionType` — at least one section has one of the listed types.
+ * - `exhaustive` — the exhaustive flag equals `value`.
+ */
+export type SectionsPredicate
+  = | { kind: "presence";
+    mode: "has" | "missing"; }
+    | { kind: "sectionType";
+      types: SectionEntryType[]; }
+      | { kind: "exhaustive";
+        value: boolean; };
 
 /** Leaf: a predicate on a single custom property's value. */
 export interface PropertyCondition {
@@ -153,7 +169,9 @@ export interface PropertyCondition {
           | { valueKind: "file";
             predicate: FilePredicate; }
             | { valueKind: "choices";
-              predicate: ChoicesPredicate; };
+              predicate: ChoicesPredicate; }
+              | { valueKind: "sections";
+                predicate: SectionsPredicate; };
 }
 
 /** Branch: combines its children with `and`/`or`. The only node that nests. */
@@ -211,6 +229,8 @@ export interface ConditionInput {
   fileValues: Set<string>;
   /** Choices custom-property selected values, keyed by property id. */
   choicesValues: Map<string, string[]>;
+  /** Sections custom-property values, keyed by property id. */
+  sectionsValues: Map<string, BookmarkSectionsValue>;
 }
 
 /** Resolves a tag id to the inclusive set of its descendant ids (for cascade matching). */
@@ -389,6 +409,22 @@ function evaluateChoicesPredicate(
   return predicate.values.some(v => values.includes(v));
 }
 
+function evaluateSectionsPredicate(
+  predicate: SectionsPredicate,
+  value: BookmarkSectionsValue | undefined,
+): boolean {
+  if (predicate.kind === "presence") {
+    const has = value !== undefined && value.sections.length > 0;
+    return predicate.mode === "has" ? has : !has;
+  }
+  if (predicate.kind === "sectionType") {
+    if (!value || value.sections.length === 0) return false;
+    return predicate.types.some(t => value.sections.some(s => s.type === t));
+  }
+  // exhaustive
+  return value !== undefined && value.exhaustive === predicate.value;
+}
+
 function evaluateProperty(condition: PropertyCondition, input: ConditionInput): boolean {
   if (condition.predicate.valueKind === "number") {
     return evaluateNumberPredicate(
@@ -412,6 +448,12 @@ function evaluateProperty(condition: PropertyCondition, input: ConditionInput): 
     return evaluateChoicesPredicate(
       condition.predicate.predicate,
       input.choicesValues.get(condition.propertyId) ?? [],
+    );
+  }
+  if (condition.predicate.valueKind === "sections") {
+    return evaluateSectionsPredicate(
+      condition.predicate.predicate,
+      input.sectionsValues.get(condition.propertyId),
     );
   }
   return evaluateBooleanPredicate(

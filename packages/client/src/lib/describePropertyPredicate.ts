@@ -67,5 +67,11 @@ export function describePropertyPredicate(
       if (pred.kind === "presence") return describePresence(pred.mode);
       return pred.values.length === 0 ? "any value" : `includes ${pred.values.join(", ")}`;
     }
+    case "sections": {
+      const pred = predicate.predicate;
+      if (pred.kind === "presence") return describePresence(pred.mode);
+      if (pred.kind === "exhaustive") return pred.value ? "all sections listed" : "not all sections listed";
+      return pred.types.length === 0 ? "any section type" : `has ${pred.types.join(", ")} sections`;
+    }
   }
 }

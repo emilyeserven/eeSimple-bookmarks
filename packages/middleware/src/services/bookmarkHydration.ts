@@ -13,10 +13,12 @@ import type {
   BookmarkNumberValue,
   BookmarkProgressValue,
   BookmarkRelationship,
+  BookmarkSectionsValue,
   BookmarkTag,
   BookmarkWebsite,
   BookmarkYouTubeChannel,
   RelationshipRole,
+  SectionEntry,
 } from "@eesimple/types";
 import { db } from "@/db";
 import {
@@ -29,6 +31,7 @@ import {
   bookmarkImages,
   bookmarkNumberValues,
   bookmarkProgressValues,
+  bookmarkSectionsValues,
   bookmarkRelationships,
   bookmarks,
   type BookmarkRow,
@@ -62,6 +65,7 @@ interface BookmarkExtras {
   dateTimeValues: BookmarkDateTimeValue[];
   choicesValues: BookmarkChoicesValue[];
   progressValues: BookmarkProgressValue[];
+  sectionsValues: BookmarkSectionsValue[];
   fileValues: BookmarkFileValue[];
   image: BookmarkImage | null;
   relationships: BookmarkRelationship[];
@@ -80,6 +84,7 @@ const EMPTY_EXTRAS: BookmarkExtras = {
   dateTimeValues: [],
   choicesValues: [],
   progressValues: [],
+  sectionsValues: [],
   fileValues: [],
   image: null,
   relationships: [],
@@ -107,6 +112,7 @@ function toBookmark(row: BookmarkRow, extras: BookmarkExtras, defaultCategoryId:
     dateTimeValues: extras.dateTimeValues,
     choicesValues: extras.choicesValues,
     progressValues: extras.progressValues,
+    sectionsValues: extras.sectionsValues,
     fileValues: extras.fileValues,
     relationships: extras.relationships,
     image: extras.image,
@@ -448,6 +454,35 @@ async function progressValuesByBookmarkId(
   return grouped;
 }
 
+/** Load sections custom-property values for a set of bookmarks, grouped by bookmark id. */
+async function sectionsValuesByBookmarkId(
+  bookmarkIds: string[],
+): Promise<Map<string, BookmarkSectionsValue[]>> {
+  const grouped = new Map<string, BookmarkSectionsValue[]>();
+  if (bookmarkIds.length === 0) return grouped;
+
+  const rows = await db
+    .select({
+      bookmarkId: bookmarkSectionsValues.bookmarkId,
+      propertyId: bookmarkSectionsValues.propertyId,
+      exhaustive: bookmarkSectionsValues.exhaustive,
+      sections: bookmarkSectionsValues.sections,
+    })
+    .from(bookmarkSectionsValues)
+    .where(inArray(bookmarkSectionsValues.bookmarkId, bookmarkIds));
+
+  for (const row of rows) {
+    const list = grouped.get(row.bookmarkId) ?? [];
+    list.push({
+      propertyId: row.propertyId,
+      exhaustive: row.exhaustive,
+      sections: row.sections as SectionEntry[],
+    });
+    grouped.set(row.bookmarkId, list);
+  }
+  return grouped;
+}
+
 /** Load image/file custom-property values for a set of bookmarks, grouped by bookmark id. */
 async function fileValuesByBookmarkId(
   bookmarkIds: string[],
@@ -574,7 +609,7 @@ async function relationshipsByBookmarkId(
 
 /** Hydrate all custom-property relations for a set of bookmark rows in batched queries. */
 async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, BookmarkExtras>> {
-  const [tagsMap, authorsMap, numberMap, booleanMap, dateTimeMap, choicesMap, progressMap, fileMap, imageMap, relationshipsMap] = await Promise.all([
+  const [tagsMap, authorsMap, numberMap, booleanMap, dateTimeMap, choicesMap, progressMap, sectionsMap, fileMap, imageMap, relationshipsMap] = await Promise.all([
     tagsByBookmarkId(bookmarkIds),
     authorsByBookmarkId(bookmarkIds),
     numberValuesByBookmarkId(bookmarkIds),
@@ -582,6 +617,7 @@ async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
     dateTimeValuesByBookmarkId(bookmarkIds),
     choicesValuesByBookmarkId(bookmarkIds),
     progressValuesByBookmarkId(bookmarkIds),
+    sectionsValuesByBookmarkId(bookmarkIds),
     fileValuesByBookmarkId(bookmarkIds),
     imagesByBookmarkId(bookmarkIds),
     relationshipsByBookmarkId(bookmarkIds),
@@ -601,6 +637,7 @@ async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
       dateTimeValues: dateTimeMap.get(id) ?? [],
       choicesValues: choicesMap.get(id) ?? [],
       progressValues: progressMap.get(id) ?? [],
+      sectionsValues: sectionsMap.get(id) ?? [],
       fileValues: fileMap.get(id) ?? [],
       image: imageMap.get(id) ?? null,
       relationships: relationshipsMap.get(id) ?? [],

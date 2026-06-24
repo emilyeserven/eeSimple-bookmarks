@@ -6,7 +6,7 @@ import { backfillAuthorSlugs } from "@/services/authors";
 import { ensureAutofillConditions, ensureAutofillSlugs, ensureWebsiteConditions } from "@/services/autofill";
 import { backfillCardDisplayRuleFieldZones, backfillCardDisplayRuleHeaderFields, backfillCardDisplayRuleSubZones, backfillCardDisplayRuleZoneLayouts, ensureDefaultCardDisplayRule } from "@/services/cardDisplayRules";
 import { ensureDefaultCategory, ensureInboxCategory } from "@/services/categories";
-import { backfillCustomPropertySlugs, ensureContentStatusProperty, ensureDatePostedProperty, ensurePageProgressProperty, ensurePageRangeProperty, ensureRuntimeProperty } from "@/services/customProperties";
+import { backfillCustomPropertySlugs, ensureChaptersProperty, ensureContentStatusProperty, ensureDatePostedProperty, ensurePageProgressProperty, ensurePageRangeProperty, ensurePageSectionsProperty, ensureRuntimeProperty, ensureUrlSectionsProperty } from "@/services/customProperties";
 import { ensureHomepageFilter } from "@/services/homepageFilter";
 import { resetStalledImports } from "@/services/imports";
 import { ensureImportRuleSlugs } from "@/services/importRules";
@@ -59,6 +59,9 @@ try {
   await ensureRuntimeProperty();
   await ensurePageProgressProperty();
   await ensurePageRangeProperty();
+  await ensureChaptersProperty();
+  await ensurePageSectionsProperty();
+  await ensureUrlSectionsProperty();
   await backfillPropertyGroupSlugs();
   await ensureBuiltInRelationshipTypes();
   await backfillYouTubeChannelSlugs();
