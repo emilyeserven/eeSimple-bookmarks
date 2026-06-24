@@ -1,7 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { Copy } from "lucide-react";
+import { ChevronDown, ChevronRight, Copy } from "lucide-react";
 
+// Extension file contents inlined at build time so they can be shown/copied even when the
+// browser blocks or fails the native file download.
+import backgroundJsRaw from "../../public/extension/background.js?raw";
+import manifestJsonRaw from "../../public/extension/manifest.json?raw";
+import popupHtmlRaw from "../../public/extension/popup.html?raw";
+import popupJsRaw from "../../public/extension/popup.js?raw";
 import { notifySuccess } from "../lib/notifications";
 
 import { Button } from "@/components/ui/button";
@@ -13,6 +19,25 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+
+const EXTENSION_FILES = [
+  {
+    file: "manifest.json",
+    content: manifestJsonRaw,
+  },
+  {
+    file: "popup.html",
+    content: popupHtmlRaw,
+  },
+  {
+    file: "popup.js",
+    content: popupJsRaw,
+  },
+  {
+    file: "background.js",
+    content: backgroundJsRaw,
+  },
+] as const;
 
 /** Build the bookmarklet `javascript:` source that opens the quick-add popup for the current tab. */
 function buildBookmarklet(origin: string): string {
@@ -37,6 +62,7 @@ export function ExtensionSettings() {
   const bookmarklet = useMemo(() => buildBookmarklet(origin), [origin]);
   const linkRef = useRef<HTMLAnchorElement>(null);
   const [showBookmarklet, setShowBookmarklet] = useState(false);
+  const [expandedFiles, setExpandedFiles] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (linkRef.current) linkRef.current.setAttribute("href", bookmarklet);
@@ -50,6 +76,25 @@ export function ExtensionSettings() {
     }
     catch {
       // Clipboard API unavailable (HTTP context) — the textarea below lets the user copy manually.
+    }
+  }
+
+  function toggleFile(file: string): void {
+    setExpandedFiles((prev) => {
+      const next = new Set(prev);
+      if (next.has(file)) next.delete(file);
+      else next.add(file);
+      return next;
+    });
+  }
+
+  async function copyFileContent(file: string, content: string): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(content);
+      notifySuccess(`${file} copied to clipboard`);
+    }
+    catch {
+      // Clipboard API unavailable.
     }
   }
 
@@ -134,41 +179,88 @@ export function ExtensionSettings() {
           <div className="space-y-2">
             <p className="text-sm font-medium">Extension files</p>
             <p className="text-sm text-muted-foreground">
-              Download all three files into a new folder (e.g.
+              Save all four files into a new folder (e.g.
               {" "}
               <code className="rounded-sm bg-muted px-1 text-xs">eesimple-extension/</code>
-              ):
+              ). Use
+              {" "}
+              <strong>Download</strong>
+              {" "}
+              or click a filename to view the contents and copy them manually.
             </p>
-            <div className="flex flex-wrap gap-2">
-              {[
-                {
-                  file: "manifest.json",
-                  label: "manifest.json",
-                },
-                {
-                  file: "popup.html",
-                  label: "popup.html",
-                },
-                {
-                  file: "popup.js",
-                  label: "popup.js",
-                },
-              ].map(({
-                file, label,
-              }) => (
-                <a
-                  key={file}
-                  href={`/extension/${file}`}
-                  download={file}
-                  className="
-                    inline-flex items-center gap-1 rounded-md border bg-card
-                    px-3 py-1.5 text-sm
-                    hover:bg-accent hover:text-accent-foreground
-                  "
-                >
-                  {label}
-                </a>
-              ))}
+            <div className="space-y-1.5">
+              {EXTENSION_FILES.map(({
+                file, content,
+              }) => {
+                const isExpanded = expandedFiles.has(file);
+                return (
+                  <div
+                    key={file}
+                    className="rounded-md border"
+                  >
+                    <div className="flex items-center gap-1 px-2 py-1.5">
+                      <button
+                        type="button"
+                        onClick={() => toggleFile(file)}
+                        className="
+                          flex flex-1 items-center gap-1.5 rounded-sm px-1
+                          py-0.5 text-left font-mono text-sm
+                          hover:bg-accent hover:text-accent-foreground
+                        "
+                      >
+                        {isExpanded
+                          ? (
+                            <ChevronDown
+                              className="
+                                size-3.5 shrink-0 text-muted-foreground
+                              "
+                            />
+                          )
+                          : (
+                            <ChevronRight
+                              className="
+                                size-3.5 shrink-0 text-muted-foreground
+                              "
+                            />
+                          )}
+                        {file}
+                      </button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 gap-1 px-2 text-xs"
+                        onClick={() => void copyFileContent(file, content)}
+                      >
+                        <Copy className="size-3.5" />
+                        Copy
+                      </Button>
+                      <a
+                        href={`/extension/${file}`}
+                        download={file}
+                        className="
+                          inline-flex h-7 items-center rounded-md border bg-card
+                          px-2 text-xs
+                          hover:bg-accent hover:text-accent-foreground
+                        "
+                      >
+                        Download
+                      </a>
+                    </div>
+                    {isExpanded && (
+                      <pre
+                        className="
+                          max-h-64 overflow-auto border-t bg-muted/50 px-4 py-3
+                          font-mono text-xs/relaxed break-all
+                          whitespace-pre-wrap
+                        "
+                      >
+                        {content}
+                      </pre>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
 
@@ -180,7 +272,7 @@ export function ExtensionSettings() {
             "
           >
             <li>
-              Download the three files above into a single folder.
+              Save the four files above into a single folder (download or copy each).
             </li>
             <li>
               Open
