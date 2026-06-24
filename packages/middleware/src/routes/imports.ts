@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import type {
   BlockImportItemInput,
+  InboxPreFillDefaults,
   IngestPasteInput,
   IngestUrlInput,
   IssueBookmarksInput,
@@ -309,12 +310,107 @@ export async function importRoutes(app: FastifyInstance): Promise<void> {
     schema: {
       tags: ["imports"],
       params: itemParams,
+      body: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          preFill: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              categoryId: {
+                type: ["string", "null"],
+              },
+              tagIds: {
+                type: "array",
+                items: {
+                  type: "string",
+                },
+              },
+              mediaTypeId: {
+                type: ["string", "null"],
+              },
+              authorIds: {
+                type: "array",
+                items: {
+                  type: "string",
+                },
+              },
+              publisherId: {
+                type: ["string", "null"],
+              },
+              numberValues: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    propertyId: {
+                      type: "string",
+                    },
+                    value: {
+                      type: "number",
+                    },
+                  },
+                },
+              },
+              booleanValues: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    propertyId: {
+                      type: "string",
+                    },
+                    value: {
+                      type: "boolean",
+                    },
+                  },
+                },
+              },
+              dateTimeValues: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    propertyId: {
+                      type: "string",
+                    },
+                    value: {
+                      type: "string",
+                    },
+                  },
+                },
+              },
+              choicesValues: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    propertyId: {
+                      type: "string",
+                    },
+                    values: {
+                      type: "array",
+                      items: {
+                        type: "string",
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     },
   }, async (req) => {
     const {
       itemId,
     } = req.params as { itemId: string };
-    return approveImportItem(itemId);
+    const {
+      preFill,
+    } = (req.body ?? {}) as { preFill?: InboxPreFillDefaults };
+    return approveImportItem(itemId, preFill);
   });
 
   // Reject one candidate.

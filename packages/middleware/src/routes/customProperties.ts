@@ -119,6 +119,9 @@ const createPropertyBody = {
     editableOnCard: {
       type: "boolean",
     },
+    enabledInInbox: {
+      type: "boolean",
+    },
     enabled: {
       type: "boolean",
     },
@@ -228,6 +231,7 @@ const updatePropertyBody = {
     allCategories: createPropertyBody.properties.allCategories,
     allMediaTypes: createPropertyBody.properties.allMediaTypes,
     editableOnCard: createPropertyBody.properties.editableOnCard,
+    enabledInInbox: createPropertyBody.properties.enabledInInbox,
     enabled: createPropertyBody.properties.enabled,
     allowDefault: createPropertyBody.properties.allowDefault,
     booleanLabelPreset: createPropertyBody.properties.booleanLabelPreset,

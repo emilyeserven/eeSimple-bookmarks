@@ -321,6 +321,13 @@ export function PropertyDisplayFields({
             {property.editableOnCard ? "Editable from the card menu" : "Not editable from the card menu"}
           </DetailField>
         )}
+      {!["calculate", "image", "file", "itemInItems", "sections"].includes(property.type)
+        ? (
+          <DetailField label="Inbox pre-fill">
+            {property.enabledInInbox ? "Shown in the Inbox pre-fill box" : "Not shown in the Inbox pre-fill box"}
+          </DetailField>
+        )
+        : null}
     </dl>
   );
 }

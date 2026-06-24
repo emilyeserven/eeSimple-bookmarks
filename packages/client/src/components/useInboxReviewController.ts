@@ -1,4 +1,4 @@
-import type { InboxItem } from "@eesimple/types";
+import type { InboxItem, InboxPreFillDefaults } from "@eesimple/types";
 
 import {
   useEffect, useMemo, useRef, useState,
@@ -36,6 +36,7 @@ export function useInboxReviewController(items: InboxItem[], isFetching: boolean
   } = useCategories();
   const [bulkRunning, setBulkRunning] = useState(false);
   const [processedHidden, setProcessedHidden] = useState(false);
+  const [preFill, setPreFill] = useState<InboxPreFillDefaults>({});
 
   const viewMode = useViewMode("inbox");
   const setViewMode = useUiStore(state => state.setViewMode);
@@ -105,7 +106,10 @@ export function useInboxReviewController(items: InboxItem[], isFetching: boolean
     let added = 0;
     for (const item of items.filter(i => i.status === "pending")) {
       try {
-        const result = await approve.mutateAsync(item.id);
+        const result = await approve.mutateAsync({
+          itemId: item.id,
+          preFill,
+        });
         if (result.status === "approved") added += 1;
       }
       catch {
@@ -174,6 +178,10 @@ export function useInboxReviewController(items: InboxItem[], isFetching: boolean
     setProcessedHidden(h => !h);
   }
 
+  function resetPreFill() {
+    setPreFill({});
+  }
+
   return {
     viewMode,
     setViewMode,
@@ -192,6 +200,9 @@ export function useInboxReviewController(items: InboxItem[], isFetching: boolean
     deleteRejectedIsPending: deleteRejected.isPending,
     deleteAddedIsPending: deleteAdded.isPending,
     deleteBlockedIsPending: deleteBlocked.isPending,
+    preFill,
+    setPreFill,
+    resetPreFill,
     processedHidden,
     toggleProcessedHidden,
     onApproveAll,
