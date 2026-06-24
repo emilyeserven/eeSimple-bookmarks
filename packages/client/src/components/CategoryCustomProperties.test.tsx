@@ -66,9 +66,10 @@ describe("CategoryCustomProperties", () => {
     expect(screen.getByRole("checkbox", {
       name: /Priority/,
     })).toBeChecked();
+    // A property with no category assignments is available for all categories (including this one).
     expect(screen.getByRole("checkbox", {
       name: /Archived/,
-    })).not.toBeChecked();
+    })).toBeChecked();
   });
 
   it("shows an 'all categories' property as assigned to this category", () => {
@@ -95,7 +96,7 @@ describe("CategoryCustomProperties", () => {
     });
   });
 
-  it("assigns the category when an unassigned property is toggled", () => {
+  it("pins a globally-available property to this category when toggled", () => {
     render(<CategoryCustomProperties category={category} />);
 
     fireEvent.click(screen.getByRole("checkbox", {
