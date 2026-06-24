@@ -1672,6 +1672,23 @@ export const bookmarkAuthors = pgTable("bookmark_authors", {
   }),
 ]);
 
+/**
+ * `card_field_templates` — user-saved named configurations of card field zone placements.
+ * Reusable across card display rules: save once, apply to any rule's Card Fields override.
+ * Push-safe: brand-new table, all non-nullable columns have defaults.
+ */
+export const cardFieldTemplates = pgTable("card_field_templates", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  description: text("description"),
+  fieldZones: jsonb("field_zones").$type<CardFieldZones>().notNull(),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+});
+
+export type CardFieldTemplateRow = typeof cardFieldTemplates.$inferSelect;
+
 export const authorsRelations = relations(authors, ({
   many,
 }) => ({
