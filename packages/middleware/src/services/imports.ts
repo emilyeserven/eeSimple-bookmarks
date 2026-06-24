@@ -9,7 +9,7 @@
  * Only `createBookmark` (invoked on approve) touches the cache, which it already does internally.
  */
 
-import { and, asc, count, desc, eq, inArray, isNull, or } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import type {
   ActiveImport,
   ImportApproveResult,
@@ -562,7 +562,8 @@ export function contentFromUpload(
   return null;
 }
 
-function summarize(importRow: ImportRow, items: ImportItemRow[]): ImportSummary {
+function summarize(importRow: ImportRow, items: { status: string;
+  url?: string | null; }[]): ImportSummary {
   const statusCounts = Object.fromEntries(
     STATUS_KEYS.map(key => [key, 0]),
   ) as Record<ImportItemStatus, number>;
@@ -570,6 +571,9 @@ function summarize(importRow: ImportRow, items: ImportItemRow[]): ImportSummary 
     const status = item.status as ImportItemStatus;
     if (status in statusCounts) statusCounts[status] += 1;
   }
+  const pendingUrls = items
+    .filter(i => i.status === "pending" && i.url != null)
+    .map(i => i.url!);
   return {
     id: importRow.id,
     source: importRow.source as ImportSource,
@@ -584,6 +588,10 @@ function summarize(importRow: ImportRow, items: ImportItemRow[]): ImportSummary 
     errorReason: importRow.errorReason,
     itemCount: items.length,
     statusCounts,
+    allowedUrls: importRow.allowedUrls ?? [],
+    blockedUrls: importRow.blockedUrls ?? [],
+    rejectedUrls: importRow.rejectedUrls ?? [],
+    pendingUrls,
   };
 }
 
@@ -595,18 +603,21 @@ function summarize(importRow: ImportRow, items: ImportItemRow[]): ImportSummary 
 function summarizeImportsWithItems(
   importRows: ImportRow[],
   itemRows: { importId: string;
-    status: string; }[],
+    status: string;
+    url: string | null; }[],
 ): ImportSummary[] {
-  const byImport = new Map<string, { status: string }[]>();
+  const byImport = new Map<string, { status: string;
+    url: string | null; }[]>();
   for (const item of itemRows) {
     const list = byImport.get(item.importId) ?? [];
     list.push({
       status: item.status,
+      url: item.url,
     });
     byImport.set(item.importId, list);
   }
   return importRows
-    .map(row => summarize(row, (byImport.get(row.id) ?? []) as ImportItemRow[]))
+    .map(row => summarize(row, byImport.get(row.id) ?? []))
     .sort((a, b) => (a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0));
 }
 
@@ -617,6 +628,7 @@ export async function listImports(): Promise<ImportSummary[]> {
     .select({
       importId: importItems.importId,
       status: importItems.status,
+      url: importItems.url,
     })
     .from(importItems);
   return summarizeImportsWithItems(importRows, itemRows);
@@ -707,6 +719,7 @@ export async function listNewsletterIssues(newsletterId: string): Promise<Import
     .select({
       importId: importItems.importId,
       status: importItems.status,
+      url: importItems.url,
     })
     .from(importItems)
     .where(inArray(importItems.importId, importRows.map(r => r.id)));
@@ -763,6 +776,9 @@ export async function getImport(id: string): Promise<ImportRecord | null> {
     .from(importItems)
     .where(eq(importItems.importId, id))
     .orderBy(asc(importItems.createdAt));
+  const pendingUrls = itemRows
+    .filter(r => r.status === "pending" && r.url != null)
+    .map(r => r.url!);
   return {
     id: importRow.id,
     source: importRow.source as ImportSource,
@@ -775,6 +791,10 @@ export async function getImport(id: string): Promise<ImportRecord | null> {
     totalCount: importRow.totalCount,
     processedCount: importRow.processedCount,
     errorReason: importRow.errorReason,
+    allowedUrls: importRow.allowedUrls ?? [],
+    blockedUrls: importRow.blockedUrls ?? [],
+    rejectedUrls: importRow.rejectedUrls ?? [],
+    pendingUrls,
     items: itemRows.map(toItem),
   };
 }
@@ -936,6 +956,13 @@ export async function approveImportItem(itemId: string): Promise<ImportApproveRe
         markedForDeletion: true,
       })
       .where(eq(importItems.id, itemId));
+    // Persist the approved URL on the parent import so the list survives item purges.
+    await db
+      .update(imports)
+      .set({
+        allowedUrls: sql`array_append(COALESCE(${imports.allowedUrls}, ARRAY[]::text[]), ${item.url})`,
+      })
+      .where(eq(imports.id, item.importId));
     return {
       itemId,
       status: "approved",
@@ -1003,8 +1030,20 @@ export async function rejectImportItem(itemId: string): Promise<boolean> {
     .where(eq(importItems.id, itemId))
     .returning({
       id: importItems.id,
+      url: importItems.url,
+      importId: importItems.importId,
     });
-  return rows.length > 0;
+  if (rows.length === 0) return false;
+  const [row] = rows;
+  if (row.url) {
+    await db
+      .update(imports)
+      .set({
+        rejectedUrls: sql`array_append(COALESCE(${imports.rejectedUrls}, ARRAY[]::text[]), ${row.url})`,
+      })
+      .where(eq(imports.id, row.importId));
+  }
+  return true;
 }
 
 /** Restore a rejected candidate to `pending` so it can be reviewed again. No-op on other statuses. */
@@ -1040,7 +1079,43 @@ export async function blockImportItem(
     })
     .where(eq(importItems.id, itemId))
     .returning();
+  if (row && item.url) {
+    await db
+      .update(imports)
+      .set({
+        blockedUrls: sql`array_append(COALESCE(${imports.blockedUrls}, ARRAY[]::text[]), ${item.url})`,
+      })
+      .where(eq(imports.id, item.importId));
+  }
   return row ? toItem(row) : null;
+}
+
+/**
+ * Append a batch of `{ importId, url }` pairs to one of the three URL-list columns on the parent
+ * import rows. Groups by `importId` so each import gets one update instead of one per URL.
+ */
+async function appendUrlsToImports(
+  pairs: { importId: string;
+    url: string; }[],
+  column: "allowedUrls" | "blockedUrls" | "rejectedUrls",
+): Promise<void> {
+  const byImport = new Map<string, string[]>();
+  for (const {
+    importId, url,
+  } of pairs) {
+    const list = byImport.get(importId) ?? [];
+    list.push(url);
+    byImport.set(importId, list);
+  }
+  const col = imports[column];
+  for (const [importId, urls] of byImport) {
+    await db
+      .update(imports)
+      .set({
+        [column]: sql`COALESCE(${col}, ARRAY[]::text[]) || ${urls}::text[]`,
+      })
+      .where(eq(imports.id, importId));
+  }
 }
 
 /**
@@ -1055,9 +1130,8 @@ export async function recheckPendingItemsAgainstBlacklist(): Promise<RecheckPend
   const rows = await db.select().from(importItems).where(eq(importItems.status, "pending"));
 
   // Pass 1: blacklist check (same as before).
-  const blacklistMatchedIds = rows
-    .filter(row => row.url !== null && isBlacklisted(row.url, blacklist))
-    .map(row => row.id);
+  const blacklistMatched = rows.filter(row => row.url !== null && isBlacklisted(row.url, blacklist));
+  const blacklistMatchedIds = blacklistMatched.map(row => row.id);
   if (blacklistMatchedIds.length > 0) {
     await db
       .update(importItems)
@@ -1065,6 +1139,13 @@ export async function recheckPendingItemsAgainstBlacklist(): Promise<RecheckPend
         status: "blocked",
       })
       .where(inArray(importItems.id, blacklistMatchedIds));
+    await appendUrlsToImports(
+      blacklistMatched.map(r => ({
+        importId: r.importId,
+        url: r.url!,
+      })),
+      "blockedUrls",
+    );
   }
 
   // Pass 2: import rules — evaluate the remaining pending rows.
@@ -1089,6 +1170,13 @@ export async function recheckPendingItemsAgainstBlacklist(): Promise<RecheckPend
     await db.update(importItems).set({
       status: "rejected",
     }).where(inArray(importItems.id, toRejectIds));
+    const ruleRejectedPairs = stillPending
+      .filter(r => toRejectIds.includes(r.id) && r.url != null)
+      .map(r => ({
+        importId: r.importId,
+        url: r.url!,
+      }));
+    await appendUrlsToImports(ruleRejectedPairs, "rejectedUrls");
   }
 
   const ruleBlockedIds: string[] = [];
@@ -1110,6 +1198,13 @@ export async function recheckPendingItemsAgainstBlacklist(): Promise<RecheckPend
     await db.update(importItems).set({
       status: "blocked",
     }).where(inArray(importItems.id, ruleBlockedIds));
+    const ruleBlockedPairs = stillPending
+      .filter(r => ruleBlockedIds.includes(r.id) && r.url != null)
+      .map(r => ({
+        importId: r.importId,
+        url: r.url!,
+      }));
+    await appendUrlsToImports(ruleBlockedPairs, "blockedUrls");
   }
 
   for (const id of toApproveIds) {
@@ -1137,7 +1232,26 @@ export async function rejectPendingItems(): Promise<RejectPendingItemsResult> {
     .where(eq(importItems.status, "pending"))
     .returning({
       id: importItems.id,
+      url: importItems.url,
+      importId: importItems.importId,
     });
+  // Group URLs by import and append in bulk so each import gets one update.
+  const byImport = new Map<string, string[]>();
+  for (const row of rows) {
+    if (row.url) {
+      const list = byImport.get(row.importId) ?? [];
+      list.push(row.url);
+      byImport.set(row.importId, list);
+    }
+  }
+  for (const [importId, urls] of byImport) {
+    await db
+      .update(imports)
+      .set({
+        rejectedUrls: sql`COALESCE(${imports.rejectedUrls}, ARRAY[]::text[]) || ${urls}::text[]`,
+      })
+      .where(eq(imports.id, importId));
+  }
   return {
     rejected: rows.length,
   };

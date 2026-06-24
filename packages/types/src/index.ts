@@ -1047,6 +1047,14 @@ export interface Import {
   processedCount: number | null;
   /** Human-readable reason when `status === "failed"`. */
   errorReason: string | null;
+  /** URLs of items approved from this import (persisted so the list survives item purges). */
+  allowedUrls: string[];
+  /** URLs of items blocked from this import (persisted so the list survives item purges). */
+  blockedUrls: string[];
+  /** URLs of items rejected from this import (persisted so the list survives item purges). */
+  rejectedUrls: string[];
+  /** URLs of items still awaiting review (derived live from remaining pending items). */
+  pendingUrls: string[];
   items: ImportItem[];
 }
 
@@ -1072,6 +1080,14 @@ export interface ImportSummary {
   itemCount: number;
   /** Items by status. */
   statusCounts: Record<ImportItemStatus, number>;
+  /** URLs of items approved from this import (persisted so the list survives item purges). */
+  allowedUrls: string[];
+  /** URLs of items blocked from this import (persisted so the list survives item purges). */
+  blockedUrls: string[];
+  /** URLs of items rejected from this import (persisted so the list survives item purges). */
+  rejectedUrls: string[];
+  /** URLs of items still awaiting review (derived live from remaining pending items). */
+  pendingUrls: string[];
 }
 
 /**
