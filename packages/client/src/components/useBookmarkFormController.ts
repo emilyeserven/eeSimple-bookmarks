@@ -541,14 +541,20 @@ export function useBookmarkFormController({
     setScanned(true);
   }
 
-  // Pre-scan, the only field is the URL input: Enter runs "Check URL" rather than submitting (the
-  // empty title would otherwise fail validation and the submit would no-op).
+  // Pre-scan, the only field is the URL input: Enter runs the appropriate action rather than
+  // submitting (the empty title would otherwise fail validation and the submit would no-op).
+  // ISBNs route to the ISBN lookup path; everything else runs the URL scan.
   function handleUrlKeyDown(event: KeyboardEvent<HTMLFormElement>): void {
     if (event.key === "Enter" && !scanned && !ui.isScanning) {
       event.preventDefault();
-      void performUrlScan({
-        revealing: true,
-      });
+      if (inputType === "isbn") {
+        void handleLookupIsbn();
+      }
+      else {
+        void performUrlScan({
+          revealing: true,
+        });
+      }
     }
   }
 
