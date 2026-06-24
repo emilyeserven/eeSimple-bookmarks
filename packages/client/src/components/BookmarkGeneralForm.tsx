@@ -4,6 +4,7 @@ import { Brush } from "lucide-react";
 
 import { AddMediaTypeModal } from "./AddMediaTypeModal";
 import { AddTagModal } from "./AddTagModal";
+import { BookmarkAdvancedPublisherField } from "./BookmarkAdvancedPublisherField";
 import { BookmarkAutofillOffer } from "./BookmarkAutofillOffer";
 import { BookmarkCategoryField } from "./BookmarkCategoryField";
 import { BookmarkDescriptionField } from "./BookmarkDescriptionField";
@@ -12,6 +13,7 @@ import { GatedTagPicker } from "./BookmarkTagsField";
 import { BookmarkUrlCleanupBanner } from "./BookmarkUrlCleanupBanner";
 import { UrlCleanupPanel } from "./BookmarkUrlCleanupPanel";
 import { BookmarkUrlDuplicateWarnings } from "./BookmarkUrlDuplicateWarnings";
+import { MultiCombobox } from "./MultiCombobox";
 import { useBookmarkGeneralForm } from "./useBookmarkGeneralForm";
 import { WebsiteLookupBanner } from "./WebsiteLookupBanner";
 
@@ -34,6 +36,10 @@ export function BookmarkGeneralForm({
     tagTree,
     categories,
     mediaTypes,
+    authors,
+    publishers,
+    addPublisherOpen,
+    setAddPublisherOpen,
     updateBookmark,
     fetchTitle,
     fetchMetadata,
@@ -272,6 +278,34 @@ export function BookmarkGeneralForm({
             saveTags(newTagIds);
           }
         }}
+      />
+
+      {(authors?.length ?? 0) > 0 && (
+        <form.Field name="authorIds">
+          {field => (
+            <div className="space-y-1">
+              <Label>Authors</Label>
+              <MultiCombobox
+                options={(authors ?? []).map(a => ({
+                  value: a.id,
+                  label: a.name,
+                }))}
+                values={field.state.value}
+                onValuesChange={field.handleChange}
+                placeholder="Select authors…"
+                searchPlaceholder="Search authors…"
+                emptyText="No authors found."
+              />
+            </div>
+          )}
+        </form.Field>
+      )}
+
+      <BookmarkAdvancedPublisherField
+        form={form}
+        publishers={publishers ?? []}
+        addPublisherOpen={addPublisherOpen}
+        onAddPublisherOpenChange={setAddPublisherOpen}
       />
 
       <form.AppForm>

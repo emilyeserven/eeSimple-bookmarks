@@ -38,6 +38,8 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     mediaTypes,
     autofillRules,
     autoFetchTitle,
+    authors,
+    publishers,
   } = useBookmarkFormData();
 
   const {
@@ -64,6 +66,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
   const [expectedTitle, setExpectedTitle] = useState("");
   const [websiteSiteName, setWebsiteSiteName] = useState("");
   const [addCategoryOpen, setAddCategoryOpen] = useState(false);
+  const [addPublisherOpen, setAddPublisherOpen] = useState(false);
   const channelHintRef = useRef<YouTubeChannelHint | null>(null);
   const [youtubeChannel, setYoutubeChannel] = useState<YouTubeChannelHint | null>(null);
   const [titleFetch, setTitleFetch] = useState<{ previous: string } | null>(null);
@@ -102,6 +105,8 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
           mediaTypeId: value.mediaTypeId || null,
           description: value.description || null,
           tagIds: value.tagIds,
+          authorIds: value.authorIds,
+          publisherId: value.publisherId || null,
           ...(channelHintRef.current && {
             youtubeChannel: channelHintRef.current,
           }),
@@ -202,9 +207,13 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     tagTree,
     categories,
     mediaTypes,
+    authors,
+    publishers,
     updateBookmark,
     addMediaTypeOpen,
     setAddMediaTypeOpen,
+    addPublisherOpen,
+    setAddPublisherOpen,
     addTagOpen,
     setAddTagOpen,
     saveTags,
