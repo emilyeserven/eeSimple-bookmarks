@@ -10,23 +10,6 @@ import { useSidebarOpenModifier } from "../../hooks/useAppSettings";
 
 import { hasSidebarModifier } from "@/lib/sidebarModifier";
 
-/** Path builders for each entity's detail (view) page, keyed by DrawerContentType. */
-const VIEW_PATHS: Partial<Record<DrawerContentType, (slug: string) => string>> = {
-  "bookmark": id => `/bookmarks/${id}`,
-  "tag": slug => `/tags/${slug}`,
-  "category": slug => `/categories/${slug}`,
-  "property": slug => `/custom-properties/${slug}`,
-  "property-group": slug => `/taxonomies/property-groups/${slug}`,
-  "website": slug => `/taxonomies/websites/${slug}`,
-  "media-type": slug => `/taxonomies/media-types/${slug}`,
-  "youtube-channel": slug => `/taxonomies/youtube-channels/${slug}`,
-  "newsletter": slug => `/taxonomies/newsletters/${slug}`,
-  "author": slug => `/taxonomies/authors/${slug}`,
-  "relationship-type": slug => `/taxonomies/relationship-types/${slug}`,
-  "autofill": slug => `/autofill/${slug}`,
-  "import-rule": slug => `/import-rules/${slug}`,
-};
-
 /** Path builders for each entity's edit page, keyed by DrawerContentType. */
 const EDIT_PATHS: Partial<Record<DrawerContentType, (slug: string) => string>> = {
   "bookmark": id => `/bookmarks/${id}/edit/general`,
@@ -87,12 +70,10 @@ export function useEditPanelClick(): (
 /**
  * Click handler for a view/navigation affordance (a listing row, title, or cross-reference link).
  *
- * Three modifier shortcuts (checked in priority order):
- * - **Cmd/Meta**: navigate to the entity's detail page in the same tab (overrides panel if meta
- *   is the configured modifier). Pass `slug` to enable this shortcut.
+ * Two modifier shortcuts (checked in priority order):
  * - **Shift**: navigate to the entity's edit page in the same tab. Pass `slug` to enable.
  * - **Configured sidebar modifier** (default Alt): open the item in the right-hand panel.
- * - **No modifier**: the underlying `<Link>` navigates normally to the detail page.
+ * - **No modifier / Cmd**: the underlying `<Link>` navigates normally (detail page same tab / new tab).
  */
 export function useViewPanelClick(): (
   event: MouseEvent,
@@ -108,17 +89,6 @@ export function useViewPanelClick(): (
 
   return useCallback(
     (event: MouseEvent, ct: DrawerContentType, id: string, slug?: string) => {
-      if (event.metaKey) {
-        const path = slug ? VIEW_PATHS[ct]?.(slug) : undefined;
-        if (path) {
-          event.preventDefault();
-          void navigate({
-            href: path,
-          });
-        }
-        // If no path is registered, fall through — the browser handles meta+click (new tab).
-        return;
-      }
       if (event.shiftKey) {
         const path = slug ? EDIT_PATHS[ct]?.(slug) : undefined;
         if (path) {

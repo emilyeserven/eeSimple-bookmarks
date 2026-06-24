@@ -26,5 +26,5 @@ export const SIDEBAR_MODIFIER_LABELS: Record<SidebarOpenModifier, string> = {
 
 /** Tooltip title for an entity link that supports Cmd, Shift, and the configured sidebar modifier. */
 export function entityLinkTitle(modifier: SidebarOpenModifier): string {
-  return `Open · Cmd: detail · Shift: edit · ${SIDEBAR_MODIFIER_LABELS[modifier]}: sidebar`;
+  return `Open · Shift: edit · ${SIDEBAR_MODIFIER_LABELS[modifier]}: sidebar`;
 }

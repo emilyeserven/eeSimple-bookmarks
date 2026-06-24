@@ -14,8 +14,7 @@ import { hasSidebarModifier } from "@/lib/sidebarModifier";
  * `navigateToPage` callback runs (a typed router `navigate(...)` to the item's full page). Passing
  * navigation as a callback keeps TanStack Router's route/param typing at the call site.
  *
- * Two additional hardcoded modifier shortcuts (priority over sidebar modifier):
- * - **Cmd/Meta**: navigate to the item's detail page (`navigateToPage`), same tab.
+ * One additional hardcoded modifier shortcut (priority over sidebar modifier):
  * - **Shift**: navigate to the item's edit page (`navigateToEdit`), if provided.
  */
 export function useTableRowNav(): (
@@ -32,10 +31,6 @@ export function useTableRowNav(): (
 
   return useCallback(
     (event, ct, id, navigateToPage, navigateToEdit?: () => void) => {
-      if (event.metaKey) {
-        navigateToPage();
-        return;
-      }
       if (event.shiftKey) {
         navigateToEdit?.();
         return;
