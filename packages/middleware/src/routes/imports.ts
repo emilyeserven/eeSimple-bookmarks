@@ -13,6 +13,8 @@ import {
   approveImportItem,
   blockImportItem,
   contentFromUpload,
+  deleteAddedItems,
+  deleteBlockedItems,
   deleteImport,
   deleteRejectedItems,
   getImport,
@@ -21,6 +23,7 @@ import {
   listInboxItems,
   purgeProcessedItems,
   queueImport,
+  recheckImportItemUrl,
   recheckPendingItemsAgainstBlacklist,
   rejectImportItem,
   rejectPendingItems,
@@ -393,6 +396,37 @@ export async function importRoutes(app: FastifyInstance): Promise<void> {
       tags: ["imports"],
     },
   }, () => deleteRejectedItems());
+
+  // Delete every approved (marked-for-deletion) item. Keeps blocked items and the blacklist.
+  app.delete("/api/imports/items/added", {
+    schema: {
+      tags: ["imports"],
+    },
+  }, () => deleteAddedItems());
+
+  // Delete every blocked item. The Imports Blacklist is intentionally left untouched.
+  app.delete("/api/imports/items/blocked", {
+    schema: {
+      tags: ["imports"],
+    },
+  }, () => deleteBlockedItems());
+
+  // Re-run redirect unwrap for a single item's rawUrl (retry after a network hiccup at ingest time).
+  app.post("/api/imports/items/:itemId/recheck-url", {
+    schema: {
+      tags: ["imports"],
+      params: itemParams,
+    },
+  }, async (req, reply) => {
+    const {
+      itemId,
+    } = req.params as { itemId: string };
+    const result = await recheckImportItemUrl(itemId);
+    if (result === null) return reply.code(404).send({
+      message: "Item not found",
+    });
+    return result;
+  });
 
   // Approve every pending candidate in an import.
   app.post("/api/imports/:id/approve", {

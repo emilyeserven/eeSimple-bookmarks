@@ -8,12 +8,13 @@ import { useState } from "react";
 
 import { blacklistPatternsFor } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
-import { Ban, Check, ChevronDown, Eye, FolderInput, MoreHorizontal, RotateCcw, X } from "lucide-react";
+import { Ban, Check, ChevronDown, Eye, FolderInput, MoreHorizontal, RefreshCw, RotateCcw, X } from "lucide-react";
 
 import {
   useApproveImportItem,
   useBlockImportItem,
   useIngestUrl,
+  useRecheckImportItemUrl,
   useRejectImportItem,
   useUnrejectImportItem,
 } from "../hooks/useImports";
@@ -328,7 +329,7 @@ export function IngestImportMenuItem({
   );
 }
 
-/** Secondary actions for the mobile pending card: Block options and Queue for Import. */
+/** Secondary actions for the mobile pending card: Block options, Recheck link, and Queue for Import. */
 export function MobileMoreMenu({
   item,
 }: { item: ImportItem }) {
@@ -346,9 +347,63 @@ export function MobileMoreMenu({
       <DropdownMenuContent align="end">
         <BlockMenuItems item={item} />
         <DropdownMenuSeparator />
+        <RecheckLinkMenuItem item={item} />
         <IngestImportMenuItem item={item} />
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+}
+
+/** Re-run redirect unwrap for this item's rawUrl (retry after a failed resolution at ingest time). */
+function RecheckLinkButton({
+  item,
+}: { item: ImportItem }) {
+  const recheck = useRecheckImportItemUrl();
+  return (
+    <Button
+      size="icon"
+      variant="ghost"
+      aria-label="Recheck link"
+      disabled={recheck.isPending}
+      onClick={() =>
+        recheck.mutate(item.id, {
+          onSuccess: ({
+            updated,
+          }) =>
+            updated ? notifySuccess("Link resolved") : notifySuccess("No change"),
+          onError: () => notifyError("Couldn't recheck this link"),
+        })}
+    >
+      <RefreshCw
+        className={`
+          size-4
+          ${recheck.isPending ? "animate-spin" : ""}
+        `}
+      />
+    </Button>
+  );
+}
+
+/** DropdownMenuItem variant of `RecheckLinkButton` — for embedding inside an existing dropdown. */
+export function RecheckLinkMenuItem({
+  item,
+}: { item: ImportItem }) {
+  const recheck = useRecheckImportItemUrl();
+  return (
+    <DropdownMenuItem
+      disabled={recheck.isPending}
+      onClick={() =>
+        recheck.mutate(item.id, {
+          onSuccess: ({
+            updated,
+          }) =>
+            updated ? notifySuccess("Link resolved") : notifySuccess("No change"),
+          onError: () => notifyError("Couldn't recheck this link"),
+        })}
+    >
+      <RefreshCw className="size-4" />
+      Recheck link
+    </DropdownMenuItem>
   );
 }
 
@@ -391,6 +446,7 @@ export function RowActions({
       {item.status !== "pending" && resultBookmarkId
         ? <ViewBookmarkButton bookmarkId={resultBookmarkId} />
         : null}
+      <RecheckLinkButton item={item} />
       <IngestImportButton item={item} />
     </div>
   );

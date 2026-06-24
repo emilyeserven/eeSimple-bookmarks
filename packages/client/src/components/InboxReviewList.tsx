@@ -10,7 +10,6 @@ import { useState } from "react";
 
 import { ChevronDown, ExternalLink, Trash2 } from "lucide-react";
 
-import { ViewModeToggle } from "./DisplayControlPrimitives";
 import {
   MobileMoreMenu,
   RowActions,
@@ -366,29 +365,41 @@ function InboxItemsView({
 }
 
 /** The "Bulk Actions" dropdown: approve/reject all pending, delete all rejected, recheck blocklist. */
-function InboxBulkActions({
+export function InboxBulkActions({
   pendingCount,
   rejectedCount,
+  addedCount,
+  blockedCount,
   bulkRunning,
   rejectPendingIsPending,
   recheckPendingIsPending,
   deleteRejectedIsPending,
+  deleteAddedIsPending,
+  deleteBlockedIsPending,
   onApproveAll,
   onRejectAll,
   onRecheckBlocklist,
   onDeleteRejected,
+  onDeleteAdded,
+  onDeleteBlocked,
 }: Pick<
   ReturnType<typeof useInboxReviewController>,
   | "pendingCount"
   | "rejectedCount"
+  | "addedCount"
+  | "blockedCount"
   | "bulkRunning"
   | "rejectPendingIsPending"
   | "recheckPendingIsPending"
   | "deleteRejectedIsPending"
+  | "deleteAddedIsPending"
+  | "deleteBlockedIsPending"
   | "onApproveAll"
   | "onRejectAll"
   | "onRecheckBlocklist"
   | "onDeleteRejected"
+  | "onDeleteAdded"
+  | "onDeleteBlocked"
 >) {
   return (
     <DropdownMenu>
@@ -422,6 +433,19 @@ function InboxBulkActions({
           {deleteRejectedIsPending ? "Deleting…" : `Delete all rejected (${rejectedCount})`}
         </DropdownMenuItem>
         <DropdownMenuItem
+          disabled={addedCount === 0 || deleteAddedIsPending}
+          onClick={onDeleteAdded}
+        >
+          {deleteAddedIsPending ? "Deleting…" : `Delete all added (${addedCount})`}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          disabled={blockedCount === 0 || deleteBlockedIsPending}
+          onClick={onDeleteBlocked}
+        >
+          {deleteBlockedIsPending ? "Deleting…" : `Delete all blocked (${blockedCount})`}
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
           disabled={pendingCount === 0 || recheckPendingIsPending || bulkRunning}
           onClick={onRecheckBlocklist}
         >
@@ -433,49 +457,29 @@ function InboxBulkActions({
 }
 
 /**
- * The Inbox review queue: import candidates from every import, split into a **Pending** and a
- * **Processed** section, plus a bulk "approve all pending" action. The split is frozen by snapshot
- * so a processed item doesn't jump sections immediately — "Sort now" re-partitions on demand. Each
- * row's actions are item-scoped, so the list can mix items from different imports. Renders as cards
- * or a sortable table, remembered per page in `uiStore`.
+ * The Inbox review queue: Pending and Processed sections rendered from a controller that is owned
+ * by the parent page (so the page can hoist the controls into its title bar). The split is frozen
+ * by snapshot so a processed item doesn't jump sections immediately — "Sort now" re-partitions on
+ * demand. Each row's actions are item-scoped, so the list can mix items from different imports.
+ * Renders as cards or a sortable table, remembered per page in `uiStore`.
  */
 export function InboxReviewList({
-  items,
-  isFetching,
+  controller,
 }: {
-  items: InboxItem[];
-  isFetching: boolean;
+  controller: ReturnType<typeof useInboxReviewController>;
 }) {
-  const controller = useInboxReviewController(items, isFetching);
   const {
     viewMode,
-    setViewMode,
     columns,
     pendingItems,
     processedItems,
-    resortNow,
     dismissItem,
+    processedHidden,
+    toggleProcessedHidden,
   } = controller;
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <ViewModeToggle
-            value={viewMode}
-            onChange={mode => setViewMode("inbox", mode)}
-          />
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={resortNow}
-          >
-            Sort now
-          </Button>
-        </div>
-        <InboxBulkActions {...controller} />
-      </div>
-
       <section className="space-y-2">
         <h2 className="text-sm font-semibold">Pending ({pendingItems.length})</h2>
         <InboxItemsView
@@ -488,15 +492,26 @@ export function InboxReviewList({
       </section>
 
       <section className="space-y-2">
-        <h2 className="text-sm font-semibold">Processed ({processedItems.length})</h2>
-        <InboxItemsView
-          items={processedItems}
-          viewMode={viewMode}
-          columns={columns}
-          emptyMessage="No processed items."
-        />
+        <div className="flex items-center gap-2">
+          <h2 className="text-sm font-semibold">Processed ({processedItems.length})</h2>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-auto px-2 py-0.5 text-xs text-muted-foreground"
+            onClick={toggleProcessedHidden}
+          >
+            {processedHidden ? "Show" : "Hide"}
+          </Button>
+        </div>
+        {!processedHidden && (
+          <InboxItemsView
+            items={processedItems}
+            viewMode={viewMode}
+            columns={columns}
+            emptyMessage="No processed items."
+          />
+        )}
       </section>
-
     </div>
   );
 }

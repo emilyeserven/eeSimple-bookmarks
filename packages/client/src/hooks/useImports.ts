@@ -267,3 +267,30 @@ export function useDeleteRejectedItems() {
     onSuccess: () => invalidate(),
   });
 }
+
+/** Delete every approved (marked-for-deletion) item, keeping blocked items. */
+export function useDeleteAddedItems() {
+  const invalidate = useInvalidateInbox();
+  return useMutation({
+    mutationFn: () => importApi.deleteAdded(),
+    onSettled: () => invalidate(),
+  });
+}
+
+/** Delete every blocked item, leaving the Imports Blacklist untouched. */
+export function useDeleteBlockedItems() {
+  const invalidate = useInvalidateInbox();
+  return useMutation({
+    mutationFn: () => importApi.deleteBlocked(),
+    onSettled: () => invalidate(),
+  });
+}
+
+/** Re-run redirect unwrap for a single item's rawUrl (retry after a network hiccup at ingest time). */
+export function useRecheckImportItemUrl() {
+  const invalidate = useInvalidateInbox();
+  return useMutation({
+    mutationFn: (itemId: string) => importApi.recheckItemUrl(itemId),
+    onSettled: () => invalidate(),
+  });
+}
