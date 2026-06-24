@@ -65,7 +65,7 @@ describe("TagPicker", () => {
     expect(onToggle).toHaveBeenCalledWith("dev");
   });
 
-  it("shows empty state when tree is empty", () => {
+  it("renders the combobox with placeholder when tree is empty", () => {
     render(
       <TagPicker
         tree={[]}
@@ -73,7 +73,7 @@ describe("TagPicker", () => {
         onToggle={vi.fn()}
       />,
     );
-    expect(screen.getByText("No tags yet. Create some on the Tags page.")).toBeInTheDocument();
-    expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
+    expect(screen.getByRole("combobox")).toBeInTheDocument();
+    expect(screen.getByRole("combobox")).toHaveTextContent("Select tags…");
   });
 });

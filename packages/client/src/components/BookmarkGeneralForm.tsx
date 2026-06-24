@@ -3,6 +3,7 @@ import type { Bookmark } from "@eesimple/types";
 import { Brush } from "lucide-react";
 
 import { AddMediaTypeModal } from "./AddMediaTypeModal";
+import { AddTagModal } from "./AddTagModal";
 import { BookmarkAutofillOffer } from "./BookmarkAutofillOffer";
 import { BookmarkCategoryField } from "./BookmarkCategoryField";
 import { BookmarkDescriptionField } from "./BookmarkDescriptionField";
@@ -60,6 +61,9 @@ export function BookmarkGeneralForm({
     setAddCategoryOpen,
     addMediaTypeOpen,
     setAddMediaTypeOpen,
+    addTagOpen,
+    setAddTagOpen,
+    saveTags,
     autofillOfferDismissed,
     setAutofillOfferDismissed,
     touchedRef,
@@ -240,11 +244,15 @@ export function BookmarkGeneralForm({
                   onToggle={(id) => {
                     touchedRef.current.add("tags");
                     const current = field.state.value;
-                    field.handleChange(
-                      current.includes(id)
-                        ? current.filter(tagId => tagId !== id)
-                        : [...current, id],
-                    );
+                    const newTagIds = current.includes(id)
+                      ? current.filter(tagId => tagId !== id)
+                      : [...current, id];
+                    field.handleChange(newTagIds);
+                    saveTags(newTagIds);
+                  }}
+                  createOption={{
+                    label: "Create tag",
+                    onSelect: () => setAddTagOpen(true),
                   }}
                 />
               </div>
@@ -252,6 +260,19 @@ export function BookmarkGeneralForm({
           </form.Field>
         )}
       </form.Subscribe>
+      <AddTagModal
+        open={addTagOpen}
+        onOpenChange={setAddTagOpen}
+        onCreated={(tag) => {
+          touchedRef.current.add("tags");
+          const current = form.getFieldValue("tagIds");
+          if (!current.includes(tag.id)) {
+            const newTagIds = [...current, tag.id];
+            form.setFieldValue("tagIds", newTagIds);
+            saveTags(newTagIds);
+          }
+        }}
+      />
 
       <form.AppForm>
         <form.SubmitButton

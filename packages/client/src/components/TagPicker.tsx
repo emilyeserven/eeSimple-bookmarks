@@ -1,28 +1,22 @@
 import type { TagNode } from "@eesimple/types";
+import type { ComponentProps } from "react";
 
 import { TreeMultiCombobox } from "./TreeMultiCombobox";
-import { flattenTree, tagNodesToOptions } from "../lib/tagTree";
+import { tagNodesToOptions } from "../lib/tagTree";
+
+type CreateOption = ComponentProps<typeof TreeMultiCombobox>["createOption"];
 
 interface TagPickerProps {
   tree: TagNode[];
   selectedIds: string[];
   onToggle: (id: string) => void;
+  createOption?: CreateOption;
 }
 
 /** Combobox multi-select for assigning a bookmark to any tier of the tag taxonomy. */
 export function TagPicker({
-  tree, selectedIds, onToggle,
+  tree, selectedIds, onToggle, createOption,
 }: TagPickerProps) {
-  const flat = flattenTree(tree);
-
-  if (flat.length === 0) {
-    return (
-      <p className="text-xs text-muted-foreground">
-        No tags yet. Create some on the Tags page.
-      </p>
-    );
-  }
-
   function handleValuesChange(next: string[]) {
     const prev = new Set(selectedIds);
     const added = next.find(id => !prev.has(id));
@@ -41,7 +35,8 @@ export function TagPicker({
       onValuesChange={handleValuesChange}
       placeholder="Select tags…"
       searchPlaceholder="Search tags…"
-      emptyText="No matching tags."
+      emptyText="No tags yet."
+      createOption={createOption}
     />
   );
 }
