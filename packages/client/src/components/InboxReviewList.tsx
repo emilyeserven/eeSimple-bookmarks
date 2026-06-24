@@ -217,10 +217,9 @@ function ReviewRow({
                 )
                 : null}
             </div>
-            <MobileMoreMenu item={item} />
           </div>
 
-          <div className="mt-3 flex gap-2">
+          <div className="mt-3 flex items-center gap-2">
             <Button
               className="flex-1"
               variant="outline"
@@ -246,6 +245,7 @@ function ReviewRow({
             >
               Accept
             </Button>
+            <MobileMoreMenu item={item} />
           </div>
         </RowCard>
       </div>
@@ -371,10 +371,21 @@ function ReviewRow({
             )
             : null}
         </div>
-        <div className="flex shrink-0 items-start gap-1">
-          <RowActions item={item} />
-        </div>
+        {!isMobile
+          ? (
+            <div className="flex shrink-0 items-start gap-1">
+              <RowActions item={item} />
+            </div>
+          )
+          : null}
       </div>
+      {isMobile
+        ? (
+          <div className="mt-3 flex gap-1">
+            <RowActions item={item} />
+          </div>
+        )
+        : null}
     </RowCard>
   );
 }
