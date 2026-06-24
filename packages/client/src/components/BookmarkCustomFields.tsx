@@ -151,130 +151,211 @@ function CategoryPropertyField({
 }: CategoryPropertyFieldProps) {
   const fieldId = `property-${property.id}`;
 
-  if (property.type === "number") {
-    return (
-      <div className="space-y-1">
-        <Label htmlFor={fieldId}>
-          {property.name}
-          {property.unitPlural ? ` (${property.unitPlural})` : ""}
-        </Label>
-        <Input
-          id={fieldId}
-          type="number"
+  switch (property.type) {
+    case "number":
+      return (
+        <NumberPropertyField
+          property={property}
+          fieldId={fieldId}
           value={numberInputs[property.id] ?? ""}
-          onChange={event => onNumberChange(property.id, event.target.value)}
+          onChange={value => onNumberChange(property.id, value)}
         />
-        <FieldDescription text={property.description} />
-      </div>
-    );
-  }
-  if (property.type === "boolean") {
-    return (
-      <div className="space-y-1 self-end">
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id={fieldId}
-            checked={booleanInputs[property.id] ?? false}
-            onCheckedChange={checked => onBooleanChange(property.id, checked === true)}
-          />
-          <Label htmlFor={fieldId}>{property.name}</Label>
-        </div>
-        <FieldDescription text={property.description} />
-      </div>
-    );
-  }
-  if (property.type === "datetime") {
-    return (
-      <div className="space-y-1">
-        <Label htmlFor={fieldId}>{property.name}</Label>
-        <DateTimePicker
-          id={fieldId}
-          format={property.dateTimeFormat ?? "date"}
+      );
+    case "boolean":
+      return (
+        <BooleanPropertyField
+          property={property}
+          fieldId={fieldId}
+          checked={booleanInputs[property.id] ?? false}
+          onChange={value => onBooleanChange(property.id, value)}
+        />
+      );
+    case "datetime":
+      return (
+        <DateTimePropertyField
+          property={property}
+          fieldId={fieldId}
           value={dateTimeInputs[property.id] ?? null}
-          onChange={value => onDateTimeChange(property.id, value ?? "")}
+          onChange={value => onDateTimeChange(property.id, value)}
         />
-        <FieldDescription text={property.description} />
-      </div>
-    );
-  }
-  if (property.type === "ratingScale") {
-    const raw = numberInputs[property.id];
-    return (
-      <div className="space-y-1">
-        <Label>{property.name}</Label>
-        <div>
-          <StarRating
-            value={raw ? Number(raw) : 0}
-            max={property.ratingMax ?? 5}
-            allowHalf={property.ratingAllowHalf}
-            allowZero={property.ratingAllowZero}
-            onChange={value => onNumberChange(property.id, String(value))}
-          />
+      );
+    case "ratingScale":
+      return (
+        <RatingScalePropertyField
+          property={property}
+          raw={numberInputs[property.id]}
+          onChange={value => onNumberChange(property.id, value)}
+        />
+      );
+    case "image":
+    case "file":
+      return (
+        <CategoryPropertyFileField
+          property={property}
+          bookmark={bookmark}
+        />
+      );
+    case "choices":
+      return (
+        <ChoicesPropertyField
+          property={property}
+          selectedValues={choicesInputs[property.id] ?? []}
+          onChange={values => onChoicesChange(property.id, values)}
+        />
+      );
+    case "itemInItems":
+      return (
+        <ItemInItemsPropertyField
+          property={property}
+          progress={progressInputs[property.id]}
+          onChange={(field, value) => onProgressChange(property.id, field, value)}
+        />
+      );
+    default:
+      // calculate: computed server-side; shown read-only so the user knows it exists.
+      return (
+        <div className="space-y-1">
+          <Label>{property.name}</Label>
+          <p className="text-xs text-muted-foreground">Calculated automatically when saved.</p>
         </div>
-        <FieldDescription text={property.description} />
-      </div>
-    );
+      );
   }
-  if (property.type === "image" || property.type === "file") {
-    return (
-      <CategoryPropertyFileField
-        property={property}
-        bookmark={bookmark}
+}
+
+function NumberPropertyField({
+  property, fieldId, value, onChange,
+}: {
+  property: CustomProperty;
+  fieldId: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="space-y-1">
+      <Label htmlFor={fieldId}>
+        {property.name}
+        {property.unitPlural ? ` (${property.unitPlural})` : ""}
+      </Label>
+      <Input
+        id={fieldId}
+        type="number"
+        value={value}
+        onChange={event => onChange(event.target.value)}
       />
-    );
-  }
-  if (property.type === "choices") {
-    return (
-      <ChoicesPropertyField
-        property={property}
-        selectedValues={choicesInputs[property.id] ?? []}
-        onChange={values => onChoicesChange(property.id, values)}
-      />
-    );
-  }
-  if (property.type === "itemInItems") {
-    const progress = progressInputs[property.id] ?? {
-      current: "",
-      total: "",
-    };
-    const before = property.itemInItemsBeforeText ?? "";
-    const between = property.itemInItemsBetweenText ?? " of ";
-    const after = property.itemInItemsAfterText ?? "";
-    return (
-      <div className="col-span-full space-y-1">
-        <Label>{property.name}</Label>
-        <div className="flex flex-wrap items-center gap-1.5">
-          {before
-            ? <span className="text-sm text-muted-foreground">{before}</span>
-            : null}
-          <Input
-            type="number"
-            className="w-24"
-            placeholder="Current"
-            value={progress.current}
-            onChange={event => onProgressChange(property.id, "current", event.target.value)}
-          />
-          <span className="text-sm text-muted-foreground">{between}</span>
-          <Input
-            type="number"
-            className="w-24"
-            placeholder="Total"
-            value={progress.total}
-            onChange={event => onProgressChange(property.id, "total", event.target.value)}
-          />
-          {after
-            ? <span className="text-sm text-muted-foreground">{after}</span>
-            : null}
-        </div>
-        <FieldDescription text={property.description} />
+      <FieldDescription text={property.description} />
+    </div>
+  );
+}
+
+function BooleanPropertyField({
+  property, fieldId, checked, onChange,
+}: {
+  property: CustomProperty;
+  fieldId: string;
+  checked: boolean;
+  onChange: (value: boolean) => void;
+}) {
+  return (
+    <div className="space-y-1 self-end">
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id={fieldId}
+          checked={checked}
+          onCheckedChange={value => onChange(value === true)}
+        />
+        <Label htmlFor={fieldId}>{property.name}</Label>
       </div>
-    );
-  }
-  // calculate: computed server-side; shown read-only so the user knows it exists.
+      <FieldDescription text={property.description} />
+    </div>
+  );
+}
+
+function DateTimePropertyField({
+  property, fieldId, value, onChange,
+}: {
+  property: CustomProperty;
+  fieldId: string;
+  value: string | null;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="space-y-1">
+      <Label htmlFor={fieldId}>{property.name}</Label>
+      <DateTimePicker
+        id={fieldId}
+        format={property.dateTimeFormat ?? "date"}
+        value={value}
+        onChange={next => onChange(next ?? "")}
+      />
+      <FieldDescription text={property.description} />
+    </div>
+  );
+}
+
+function RatingScalePropertyField({
+  property, raw, onChange,
+}: {
+  property: CustomProperty;
+  raw: string | undefined;
+  onChange: (value: string) => void;
+}) {
   return (
     <div className="space-y-1">
       <Label>{property.name}</Label>
-      <p className="text-xs text-muted-foreground">Calculated automatically when saved.</p>
+      <div>
+        <StarRating
+          value={raw ? Number(raw) : 0}
+          max={property.ratingMax ?? 5}
+          allowHalf={property.ratingAllowHalf}
+          allowZero={property.ratingAllowZero}
+          onChange={value => onChange(String(value))}
+        />
+      </div>
+      <FieldDescription text={property.description} />
+    </div>
+  );
+}
+
+function ItemInItemsPropertyField({
+  property, progress, onChange,
+}: {
+  property: CustomProperty;
+  progress: { current: string;
+    total: string; } | undefined;
+  onChange: (field: "current" | "total", value: string) => void;
+}) {
+  const current = progress?.current ?? "";
+  const total = progress?.total ?? "";
+  const before = property.itemInItemsBeforeText ?? "";
+  const between = property.itemInItemsBetweenText ?? " of ";
+  const after = property.itemInItemsAfterText ?? "";
+  return (
+    <div className="col-span-full space-y-1">
+      <Label>{property.name}</Label>
+      <div className="flex flex-wrap items-center gap-1.5">
+        {before
+          ? <span className="text-sm text-muted-foreground">{before}</span>
+          : null}
+        <Input
+          type="number"
+          className="w-24"
+          placeholder="Current"
+          value={current}
+          onChange={event => onChange("current", event.target.value)}
+        />
+        <span className="text-sm text-muted-foreground">{between}</span>
+        <Input
+          type="number"
+          className="w-24"
+          placeholder="Total"
+          value={total}
+          onChange={event => onChange("total", event.target.value)}
+        />
+        {after
+          ? <span className="text-sm text-muted-foreground">{after}</span>
+          : null}
+      </div>
+      <FieldDescription text={property.description} />
     </div>
   );
 }
