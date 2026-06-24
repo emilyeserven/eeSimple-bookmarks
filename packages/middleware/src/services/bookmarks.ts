@@ -3,6 +3,8 @@ import type {
   Bookmark,
   BookmarkUrlDuplicateResult,
   BookmarkUrlSummary,
+  BulkBookmarkResult,
+  BulkBookmarkTagOp,
   BulkUrlUpdate,
   BulkUrlUpdateResult,
   CreateBookmarkInput,
@@ -26,6 +28,7 @@ import {
 } from "@/db/schema";
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { getBookmarkImageRow } from "@/services/bookmarkImages";
+import { hasValuePatch, mergeBookmarkValues } from "@/services/bookmarkValueMerge";
 import {
   captureChannelAvatar,
   captureWebsiteFavicon,
@@ -171,6 +174,124 @@ export async function bulkUpdateBookmarkUrls(items: BulkUrlUpdate[]): Promise<Bu
           message: err instanceof Error ? err.message : String(err),
         });
       }
+    }
+  }
+  return results;
+}
+
+/**
+ * Delete many bookmarks in one statement, reporting per-item outcomes. Ids that didn't exist are
+ * marked `not-found`; everything that was removed is `deleted`. The cache is invalidated once.
+ */
+export async function bulkDeleteBookmarks(ids: string[]): Promise<BulkBookmarkResult[]> {
+  if (ids.length === 0) return [];
+  const rows = await db
+    .delete(bookmarks)
+    .where(inArray(bookmarks.id, ids))
+    .returning({
+      id: bookmarks.id,
+    });
+  const deleted = new Set(rows.map(row => row.id));
+  if (deleted.size > 0) invalidateBookmarkCache();
+  return ids.map(id => ({
+    id,
+    status: deleted.has(id) ? "deleted" : "not-found",
+  }));
+}
+
+/**
+ * Apply the same partial patch to many bookmarks, reporting per-item outcomes. Each item reuses
+ * `updateBookmark` so website / channel re-derivation and calculate recompute stay correct. When the
+ * patch sets custom-property values, they are *merged* into each bookmark's existing values (see
+ * {@link mergeBookmarkValues}) so untouched properties of the same kind aren't wiped.
+ */
+export async function bulkUpdateBookmarks(
+  ids: string[],
+  patch: UpdateBookmarkInput,
+): Promise<BulkBookmarkResult[]> {
+  const results: BulkBookmarkResult[] = [];
+  const mergesValues = hasValuePatch(patch);
+  for (const id of ids) {
+    try {
+      let effective = patch;
+      if (mergesValues) {
+        const existing = await getBookmark(id);
+        if (!existing) {
+          results.push({
+            id,
+            status: "not-found",
+          });
+          continue;
+        }
+        effective = {
+          ...patch,
+          ...mergeBookmarkValues(existing, patch),
+        };
+      }
+      const updated = await updateBookmark(id, effective);
+      results.push(
+        updated
+          ? {
+            id,
+            status: "applied",
+          }
+          : {
+            id,
+            status: "not-found",
+          },
+      );
+    }
+    catch (err) {
+      results.push({
+        id,
+        status: "error",
+        message: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+  return results;
+}
+
+/**
+ * Add or remove a fixed set of tags across many bookmarks, reporting per-item outcomes. Tags are
+ * unioned (add) or differenced (remove) against each bookmark's current tags, then persisted via
+ * `updateBookmark` so the resulting set replaces the old one.
+ */
+export async function bulkUpdateBookmarkTags(
+  ids: string[],
+  tagIds: string[],
+  op: BulkBookmarkTagOp,
+): Promise<BulkBookmarkResult[]> {
+  const results: BulkBookmarkResult[] = [];
+  const removeSet = new Set(tagIds);
+  for (const id of ids) {
+    try {
+      const existing = await getBookmark(id);
+      if (!existing) {
+        results.push({
+          id,
+          status: "not-found",
+        });
+        continue;
+      }
+      const current = existing.tags.map(tag => tag.id);
+      const next = op === "add"
+        ? [...new Set([...current, ...tagIds])]
+        : current.filter(tagId => !removeSet.has(tagId));
+      await updateBookmark(id, {
+        tagIds: next,
+      });
+      results.push({
+        id,
+        status: "applied",
+      });
+    }
+    catch (err) {
+      results.push({
+        id,
+        status: "error",
+        message: err instanceof Error ? err.message : String(err),
+      });
     }
   }
   return results;

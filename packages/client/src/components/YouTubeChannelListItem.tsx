@@ -12,10 +12,20 @@ import { useEntityImage } from "@/hooks/useEntityImage";
 import { withYouTubeChannels } from "@/lib/bookmarkSearch";
 import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
 
+interface YouTubeChannelListItemProps {
+  channel: YouTubeChannel;
+  selectable?: boolean;
+  selected?: boolean;
+  onSelectToggle?: () => void;
+}
+
 /** A single row in the channel listing: an avatar, a body link to the filtered bookmarks, and hover Edit / Info. */
 export function YouTubeChannelListItem({
   channel,
-}: { channel: YouTubeChannel }) {
+  selectable,
+  selected,
+  onSelectToggle,
+}: YouTubeChannelListItemProps) {
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
@@ -26,6 +36,9 @@ export function YouTubeChannelListItem({
 
   return (
     <StandardListingCard
+      selectable={selectable}
+      selected={selected}
+      onSelectToggle={onSelectToggle}
       icon={(
         <span
           className="

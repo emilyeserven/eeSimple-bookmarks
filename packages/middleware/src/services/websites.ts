@@ -1,6 +1,7 @@
 import { and, asc, eq, inArray, isNull, ne, or, sql } from "drizzle-orm";
-import type { CreateWebsiteInput, ShortenedLink, UpdateWebsiteInput, Website, WebsiteParamRule } from "@eesimple/types";
+import type { BulkDeleteResult, CreateWebsiteInput, ShortenedLink, UpdateWebsiteInput, Website, WebsiteParamRule } from "@eesimple/types";
 import { getShortenerIgnoreList } from "@/services/appSettings";
+import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { db } from "@/db";
 import { bookmarks, categories, websiteFavicons, websiteTags, websites, type WebsiteRow } from "@/db/schema";
 import { buildStringMap } from "@/utils/mapUtils";
@@ -506,6 +507,11 @@ export async function deleteWebsite(id: string): Promise<boolean> {
     id: websites.id,
   });
   return rows.length > 0;
+}
+
+/** Delete many websites, reporting per-item outcomes (built-ins are skipped). */
+export function bulkDeleteWebsites(ids: string[]): Promise<BulkDeleteResult[]> {
+  return bulkDeleteEntities(ids, deleteWebsite, err => err instanceof BuiltInWebsiteError);
 }
 
 /**

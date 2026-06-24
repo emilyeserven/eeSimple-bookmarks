@@ -1,8 +1,9 @@
 import { asc, eq, isNull, ne, sql } from "drizzle-orm";
-import type { CreateTagInput, Tag, TagNode, UpdateTagInput } from "@eesimple/types";
+import type { BulkDeleteResult, CreateTagInput, Tag, TagNode, UpdateTagInput } from "@eesimple/types";
 import { db } from "@/db";
 import { bookmarkTags, categoryRootTags, tags, type TagRow } from "@/db/schema";
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
+import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { InvalidRootTagError } from "@/services/categories";
 import { slugify, uniqueSlug } from "@/utils/slug";
 
@@ -253,6 +254,14 @@ export async function deleteTag(id: string): Promise<boolean> {
   // Cascade removes descendant tags and bookmark_tags links — both feed condition matching.
   if (rows.length > 0) invalidateBookmarkCache();
   return rows.length > 0;
+}
+
+/**
+ * Delete many tags, reporting per-item outcomes. Deleting a parent cascades to its descendants, so a
+ * descendant also passed in the same batch may already be gone and report `not-found`.
+ */
+export function bulkDeleteTags(ids: string[]): Promise<BulkDeleteResult[]> {
+  return bulkDeleteEntities(ids, deleteTag);
 }
 
 /** The categories whose root-tag allowlist includes this tag (the reverse of the Tiered Tags tab). */

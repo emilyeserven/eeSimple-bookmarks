@@ -1,12 +1,17 @@
+import type { PropertyGroup } from "@eesimple/types";
+
 import { useNavigate } from "@tanstack/react-router";
 
+import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
 import { PropertyGroupListItem } from "./PropertyGroupListItem";
 import { usePropertyGroupColumns } from "./tables/propertyGroupColumns";
+import { listingSelectionColumn } from "./tables/selectionColumn";
 import { useTableRowNav } from "./tables/useTableRowNav";
 import { useSetListingPage } from "../hooks/useListingPage";
-import { usePropertyGroups } from "../hooks/usePropertyGroups";
+import { useBulkDeletePropertyGroups, usePropertyGroups } from "../hooks/usePropertyGroups";
 import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
 import { COLUMN_CLASS, useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
+import { useListSelection } from "../lib/useListSelection";
 
 import { DataTable } from "@/components/ui/data-table";
 import { useUiStore } from "@/stores/uiStore";
@@ -31,6 +36,10 @@ export function PropertyGroupsListing() {
     return g.name.toLowerCase().includes(q) || g.slug.toLowerCase().includes(q);
   });
 
+  const deletableIds = filtered.map(g => g.id);
+  const selection = useListSelection("property-groups-listing", deletableIds);
+  const bulkDelete = useBulkDeletePropertyGroups();
+
   return (
     <div className="space-y-4">
       {isLoading ? <p className="text-muted-foreground">Loading property groups…</p> : null}
@@ -50,10 +59,20 @@ export function PropertyGroupsListing() {
         )
         : null}
 
+      <TaxonomyBulkBar
+        selection={selection}
+        totalSelectable={deletableIds.length}
+        bulkDelete={bulkDelete}
+        noun={["property group", "property groups"]}
+      />
+
       {filtered.length > 0 && viewMode === "table"
         ? (
           <DataTable
-            columns={groupColumns}
+            columns={[
+              listingSelectionColumn<PropertyGroup>(selection, g => g.id),
+              ...groupColumns,
+            ]}
             data={filtered}
             sortable
             onRowClick={(group, event) =>
@@ -88,6 +107,9 @@ export function PropertyGroupsListing() {
               <PropertyGroupListItem
                 key={group.id}
                 group={group}
+                selectable
+                selected={selection.isSelected(group.id)}
+                onSelectToggle={() => selection.toggle(group.id)}
               />
             ))}
           </div>

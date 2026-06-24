@@ -1,17 +1,22 @@
+import type { Website } from "@eesimple/types";
+
 import { useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
 
 import { AddWebsiteModal } from "./AddWebsiteModal";
+import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
 import { ListingStatusMessages } from "./ListingStatusMessages";
+import { listingSelectionColumn } from "./tables/selectionColumn";
 import { useTableRowNav } from "./tables/useTableRowNav";
 import { useWebsiteColumns } from "./tables/websiteColumns";
 import { WebsiteListItem } from "./WebsiteListItem";
 import { useHeaderSearchFilter } from "../hooks/useHeaderSearchFilter";
 import { useSetListingPage } from "../hooks/useListingPage";
 import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
-import { useWebsites } from "../hooks/useWebsites";
+import { useBulkDeleteWebsites, useWebsites } from "../hooks/useWebsites";
 import { COLUMN_CLASS, useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
+import { useListSelection } from "../lib/useListSelection";
 
 import { DataTable } from "@/components/ui/data-table";
 
@@ -37,6 +42,10 @@ export function WebsitesListing() {
     (w, query) => w.siteName.toLowerCase().includes(query) || w.domain.toLowerCase().includes(query),
   );
 
+  const deletableIds = filtered.filter(w => !w.builtIn).map(w => w.id);
+  const selection = useListSelection("websites-listing", deletableIds);
+  const bulkDelete = useBulkDeleteWebsites();
+
   return (
     <div className="space-y-4">
       <div className="space-y-4">
@@ -56,10 +65,20 @@ export function WebsitesListing() {
           )}
         />
 
+        <TaxonomyBulkBar
+          selection={selection}
+          totalSelectable={deletableIds.length}
+          bulkDelete={bulkDelete}
+          noun={["website", "websites"]}
+        />
+
         {filtered.length > 0 && viewMode === "table"
           ? (
             <DataTable
-              columns={websiteColumns}
+              columns={[
+                listingSelectionColumn<Website>(selection, w => w.id, w => !w.builtIn),
+                ...websiteColumns,
+              ]}
               data={filtered}
               sortable
               onRowClick={(website, event) =>
@@ -94,6 +113,9 @@ export function WebsitesListing() {
                 <WebsiteListItem
                   key={website.id}
                   website={website}
+                  selectable={!website.builtIn}
+                  selected={selection.isSelected(website.id)}
+                  onSelectToggle={() => selection.toggle(website.id)}
                 />
               ))}
             </div>

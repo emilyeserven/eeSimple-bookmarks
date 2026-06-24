@@ -1,10 +1,12 @@
 import { asc, eq } from "drizzle-orm";
 import type {
+  BulkDeleteResult,
   CreateRelationshipTypeInput,
   RelationshipType,
   UpdateRelationshipTypeInput,
 } from "@eesimple/types";
 import { db } from "@/db";
+import { bulkDeleteEntities } from "@/services/bulkDelete";
 import {
   bookmarkRelationships,
   relationshipTypes,
@@ -192,6 +194,15 @@ export async function deleteRelationshipType(id: string): Promise<boolean> {
     id: relationshipTypes.id,
   });
   return rows.length > 0;
+}
+
+/** Delete many relationship types, reporting per-item outcomes (built-ins are skipped). */
+export function bulkDeleteRelationshipTypes(ids: string[]): Promise<BulkDeleteResult[]> {
+  return bulkDeleteEntities(
+    ids,
+    deleteRelationshipType,
+    err => err instanceof BuiltInRelationshipTypeError,
+  );
 }
 
 /**

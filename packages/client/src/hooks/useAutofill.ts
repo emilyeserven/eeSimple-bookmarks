@@ -7,6 +7,7 @@ import type {
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useBulkDeleteEntity } from "./useBulkDeleteEntity";
 import { autofillApi } from "../lib/api/autofill";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
@@ -77,6 +78,15 @@ export function useDeleteAutofillRule() {
       });
       notifySuccess("Autofill rule deleted");
     },
+  });
+}
+
+export function useBulkDeleteAutofillRules() {
+  const queryClient = useQueryClient();
+  return useBulkDeleteEntity(autofillApi.bulkDelete, () => {
+    void queryClient.invalidateQueries({
+      queryKey: AUTOFILL_KEY,
+    });
   });
 }
 

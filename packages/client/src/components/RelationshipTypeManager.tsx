@@ -5,13 +5,16 @@ import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Info, Link2, Pencil } from "lucide-react";
 
+import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
 import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 import {
+  useBulkDeleteRelationshipTypes,
   useCreateRelationshipType,
   useRelationshipTypes,
 } from "../hooks/useRelationshipTypes";
+import { useListSelection } from "../lib/useListSelection";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,13 +28,24 @@ import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier"
 /** A single relationship-type listing card: body → its filtered bookmarks, with hover Edit / Info. */
 function RelationshipTypeCard({
   relationshipType,
-}: { relationshipType: RelationshipType }) {
+  selectable,
+  selected,
+  onSelectToggle,
+}: {
+  relationshipType: RelationshipType;
+  selectable?: boolean;
+  selected?: boolean;
+  onSelectToggle?: () => void;
+}) {
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
 
   return (
     <StandardListingCard
+      selectable={selectable}
+      selected={selected}
+      onSelectToggle={onSelectToggle}
       icon={<Link2 className="size-5 shrink-0 text-muted-foreground" />}
       title={relationshipType.name}
       titleAdornment={relationshipType.builtIn
@@ -156,6 +170,9 @@ export function RelationshipTypesListing() {
   const {
     data: relationshipTypes, isLoading, error,
   } = useRelationshipTypes();
+  const deletableIds = (relationshipTypes ?? []).filter(rt => !rt.builtIn).map(rt => rt.id);
+  const selection = useListSelection("relationship-types-listing", deletableIds);
+  const bulkDelete = useBulkDeleteRelationshipTypes();
 
   return (
     <div className="space-y-4">
@@ -170,11 +187,21 @@ export function RelationshipTypesListing() {
       {isLoading ? <p className="text-muted-foreground">Loading relationship types…</p> : null}
       {error ? <p className="text-destructive">{error.message}</p> : null}
 
+      <TaxonomyBulkBar
+        selection={selection}
+        totalSelectable={deletableIds.length}
+        bulkDelete={bulkDelete}
+        noun={["relationship type", "relationship types"]}
+      />
+
       <div className="space-y-2">
         {(relationshipTypes ?? []).map(rt => (
           <RelationshipTypeCard
             key={rt.id}
             relationshipType={rt}
+            selectable={!rt.builtIn}
+            selected={selection.isSelected(rt.id)}
+            onSelectToggle={() => selection.toggle(rt.id)}
           />
         ))}
       </div>

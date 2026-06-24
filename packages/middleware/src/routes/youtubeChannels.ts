@@ -7,6 +7,7 @@ import {
   setYouTubeChannelImageFromBytes,
 } from "@/services/youtubeChannelImages";
 import {
+  bulkDeleteYouTubeChannels,
   createYouTubeChannel,
   deleteYouTubeChannel,
   DuplicateChannelKeyError,
@@ -15,6 +16,7 @@ import {
   listYouTubeChannels,
   updateYouTubeChannel,
 } from "@/services/youtubeChannels";
+import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 import { deleteObject, getObjectStream, isObjectStoreConfigured } from "@/utils/objectStore";
 
 /** User-facing messages for the typed grab failures shared by the entity-image auto routes. */
@@ -88,6 +90,8 @@ const createChannelBody = {
 
 /** Routes for the built-in YouTube Channels taxonomy, mounted under `/api/youtube-channels`. */
 export async function youtubeChannelRoutes(app: FastifyInstance): Promise<void> {
+  registerBulkDelete(app, "/api/youtube-channels", "youtube-channels", bulkDeleteYouTubeChannels);
+
   app.get("/api/youtube-channels", {
     schema: {
       tags: ["youtube-channels"],

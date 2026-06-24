@@ -1,11 +1,13 @@
 import { asc, eq, isNotNull, isNull } from "drizzle-orm";
 import type {
+  BulkDeleteResult,
   CreateMediaTypeInput,
   MediaType,
   MediaTypeNode,
   UpdateMediaTypeInput,
 } from "@eesimple/types";
 import { db } from "@/db";
+import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { bookmarks, mediaTypes, type MediaTypeRow } from "@/db/schema";
 import { slugify, uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
@@ -339,6 +341,11 @@ export async function deleteMediaType(id: string): Promise<boolean> {
     id: mediaTypes.id,
   });
   return rows.length > 0;
+}
+
+/** Delete many media types, reporting per-item outcomes (built-ins are skipped). */
+export function bulkDeleteMediaTypes(ids: string[]): Promise<BulkDeleteResult[]> {
+  return bulkDeleteEntities(ids, deleteMediaType, err => err instanceof BuiltInMediaTypeError);
 }
 
 /** Insert a built-in media type by slug if missing, returning the existing or new row's id. */

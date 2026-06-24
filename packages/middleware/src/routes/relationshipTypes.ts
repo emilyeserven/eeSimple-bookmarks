@@ -4,6 +4,7 @@ import type {
   UpdateRelationshipTypeInput,
 } from "@eesimple/types";
 import {
+  bulkDeleteRelationshipTypes,
   BuiltInRelationshipTypeError,
   createRelationshipType,
   deleteRelationshipType,
@@ -11,6 +12,7 @@ import {
   listRelationshipTypes,
   updateRelationshipType,
 } from "@/services/relationshipTypes";
+import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 
 const relationshipTypeParams = {
   type: "object",
@@ -60,6 +62,13 @@ const updateRelationshipTypeBody = {
 
 /** Routes for the "Relationship Types" taxonomy, mounted under `/api/relationship-types`. */
 export async function relationshipTypeRoutes(app: FastifyInstance): Promise<void> {
+  registerBulkDelete(
+    app,
+    "/api/relationship-types",
+    "relationship-types",
+    bulkDeleteRelationshipTypes,
+  );
+
   app.get("/api/relationship-types", {
     schema: {
       tags: ["relationship-types"],

@@ -12,10 +12,20 @@ import { useEntityImage } from "@/hooks/useEntityImage";
 import { withWebsites } from "@/lib/bookmarkSearch";
 import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
 
+interface WebsiteListItemProps {
+  website: Website;
+  selectable?: boolean;
+  selected?: boolean;
+  onSelectToggle?: () => void;
+}
+
 /** A single row in the website listing: a favicon, a body link to the filtered bookmarks, and hover Edit / Info. */
 export function WebsiteListItem({
   website,
-}: { website: Website }) {
+  selectable,
+  selected,
+  onSelectToggle,
+}: WebsiteListItemProps) {
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
@@ -26,6 +36,9 @@ export function WebsiteListItem({
 
   return (
     <StandardListingCard
+      selectable={selectable}
+      selected={selected}
+      onSelectToggle={onSelectToggle}
       icon={(
         <span
           className="

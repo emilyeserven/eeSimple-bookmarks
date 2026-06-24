@@ -1,16 +1,21 @@
+import type { AutofillRule } from "@eesimple/types";
+
 import { useMemo } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
 
 import { AutofillRuleListItem } from "./AutofillRuleListItem";
+import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
 import { useAutofillRuleColumns } from "./tables/autofillRuleColumns";
+import { listingSelectionColumn } from "./tables/selectionColumn";
 import { useTableRowNav } from "./tables/useTableRowNav";
-import { useAutofillRules } from "../hooks/useAutofill";
+import { useAutofillRules, useBulkDeleteAutofillRules } from "../hooks/useAutofill";
 import { useCategories } from "../hooks/useCategories";
 import { useWebsiteDomain } from "../hooks/useWebsiteDomain";
 import { ruleSetsMediaType, ruleSetsProperty, ruleSetsTag, ruleTargetsWebsite, ruleTargetsYoutubeChannel } from "../lib/autofillRulesFilter";
 import { COLUMN_CLASS, useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
 import { summarizeConditions } from "../lib/conditionsSummary";
+import { useListSelection } from "../lib/useListSelection";
 
 import { DataTable } from "@/components/ui/data-table";
 
@@ -82,6 +87,9 @@ export function AutofillRulesList({
   }, [filteredRules, query]);
 
   const hasRules = (rules?.length ?? 0) > 0;
+  const deletableIds = visibleRules.map(rule => rule.id);
+  const selection = useListSelection("autofill-rules-listing", deletableIds);
+  const bulkDelete = useBulkDeleteAutofillRules();
 
   return (
     <section className="space-y-6">
@@ -94,10 +102,20 @@ export function AutofillRulesList({
         ? <p className="text-muted-foreground">No rules match these filters.</p>
         : null}
 
+      <TaxonomyBulkBar
+        selection={selection}
+        totalSelectable={deletableIds.length}
+        bulkDelete={bulkDelete}
+        noun={["rule", "rules"]}
+      />
+
       {viewMode === "table"
         ? (
           <DataTable
-            columns={ruleColumns}
+            columns={[
+              listingSelectionColumn<AutofillRule>(selection, rule => rule.id),
+              ...ruleColumns,
+            ]}
             data={visibleRules}
             sortable
             onRowClick={(rule, event) =>
@@ -130,6 +148,9 @@ export function AutofillRulesList({
                 key={rule.id}
                 rule={rule}
                 categories={categories ?? []}
+                selectable
+                selected={selection.isSelected(rule.id)}
+                onSelectToggle={() => selection.toggle(rule.id)}
               />
             ))}
           </div>

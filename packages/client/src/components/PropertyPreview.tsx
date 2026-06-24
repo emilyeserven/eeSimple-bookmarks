@@ -9,6 +9,7 @@ import { TYPE_LABELS } from "../lib/propertyFormat";
 
 import { Badge } from "@/components/ui/badge";
 import { RowCard } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { entityLinkTitle } from "@/lib/sidebarModifier";
 import { cn } from "@/lib/utils";
 
@@ -16,11 +17,14 @@ interface PropertyPreviewProps {
   property: CustomProperty;
   /** All properties, used to resolve a calculate property's operand names. */
   allProperties: CustomProperty[];
+  selectable?: boolean;
+  selected?: boolean;
+  onSelectToggle?: () => void;
 }
 
 /** A compact, clickable preview of one property; links to its full view page. */
 export function PropertyPreview({
-  property, allProperties,
+  property, allProperties, selectable = false, selected = false, onSelectToggle,
 }: PropertyPreviewProps) {
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
@@ -43,10 +47,30 @@ export function PropertyPreview({
   return (
     <RowCard
       className={cn(`
-        transition-colors
+        group relative transition-colors
         hover:bg-accent
-      `, isUncategorized && "opacity-60")}
+      `, isUncategorized && "opacity-60", selected && "ring-2 ring-primary")}
     >
+      {selectable
+        ? (
+          <div
+            className={cn(
+              `
+                absolute top-3 left-3 z-10 opacity-0 transition-opacity
+                group-hover:opacity-100
+                focus-within:opacity-100
+              `,
+              selected && "opacity-100",
+            )}
+          >
+            <Checkbox
+              aria-label={`Select ${property.name}`}
+              checked={selected}
+              onCheckedChange={() => onSelectToggle?.()}
+            />
+          </div>
+        )
+        : null}
       <Link
         to="/custom-properties/$propertySlug"
         params={{

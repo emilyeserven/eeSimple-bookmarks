@@ -3,6 +3,7 @@ import type { Bookmark, CustomProperty } from "@eesimple/types";
 import { useNavigate } from "@tanstack/react-router";
 
 import { useBookmarkTableColumns } from "./tables/bookmarkColumns";
+import { selectionColumn } from "./tables/selectionColumn";
 import { useTableRowNav } from "./tables/useTableRowNav";
 
 import { DataTable } from "@/components/ui/data-table";
@@ -22,6 +23,12 @@ interface BookmarkTableViewProps {
   properties: CustomProperty[];
   /** Locked category for the add form / column context, when listing within a category. */
   categoryId?: string;
+  /** Bulk-selection wiring (prepends a left checkbox column when provided). */
+  isSelected?: (id: string) => boolean;
+  onToggleSelect?: (id: string) => void;
+  allSelected?: boolean;
+  anySelected?: boolean;
+  onToggleAll?: () => void;
 }
 
 /** The data-table view of a bookmark listing, with resizable, per-page persisted column widths. */
@@ -30,16 +37,35 @@ export function BookmarkTableView({
   bookmarks,
   properties,
   categoryId,
+  isSelected,
+  onToggleSelect,
+  allSelected = false,
+  anySelected = false,
+  onToggleAll,
 }: BookmarkTableViewProps) {
   const tableColumnWidths = useUiStore(state => state.tableColumnWidths[pageKey]) ?? EMPTY_COLUMN_SIZING;
   const setTableColumnWidths = useUiStore(state => state.setTableColumnWidths);
-  const tableColumns = useBookmarkTableColumns({
+  const baseColumns = useBookmarkTableColumns({
     properties,
     pageKey,
     categoryId,
   });
   const rowNav = useTableRowNav();
   const navigate = useNavigate();
+
+  const tableColumns = isSelected && onToggleSelect && onToggleAll
+    ? [
+      selectionColumn<Bookmark>({
+        getId: bookmark => bookmark.id,
+        isSelected,
+        toggle: onToggleSelect,
+        allSelected,
+        anySelected,
+        onToggleAll,
+      }),
+      ...baseColumns,
+    ]
+    : baseColumns;
 
   return (
     <DataTable

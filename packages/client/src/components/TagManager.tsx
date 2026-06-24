@@ -1,9 +1,15 @@
+import type { TagNode } from "@eesimple/types";
+
 import { useState } from "react";
 
+import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
+import { listingSelectionColumn } from "./tables/selectionColumn";
 import { useTagColumns } from "./tables/tagColumns";
 import { TagTreeList } from "./TagTreeList";
-import { useTagTree } from "../hooks/useTags";
+import { useBulkDeleteTags, useTagTree } from "../hooks/useTags";
 import { useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
+import { flattenTree } from "../lib/tagTree";
+import { useListSelection } from "../lib/useListSelection";
 
 import { DataTable } from "@/components/ui/data-table";
 
@@ -24,6 +30,11 @@ export function TagManager({
   const columns = useBookmarkColumns("tags-listing");
   const viewMode = useViewMode("tags-listing");
   const tagColumns = useTagColumns();
+  const deletableIds = flattenTree(tree ?? []).map(({
+    node,
+  }) => node.id);
+  const selection = useListSelection("tags-listing", deletableIds);
+  const bulkDelete = useBulkDeleteTags();
 
   function toggle(id: string) {
     setExpanded((current) => {
@@ -56,10 +67,20 @@ export function TagManager({
         )
         : null}
 
+      <TaxonomyBulkBar
+        selection={selection}
+        totalSelectable={deletableIds.length}
+        bulkDelete={bulkDelete}
+        noun={["tag", "tags"]}
+      />
+
       {tree && tree.length > 0 && viewMode === "table"
         ? (
           <DataTable
-            columns={tagColumns}
+            columns={[
+              listingSelectionColumn<TagNode>(selection, n => n.id),
+              ...tagColumns,
+            ]}
             data={tree}
             getSubRows={node => node.children}
           />

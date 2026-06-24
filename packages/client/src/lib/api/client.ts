@@ -1,3 +1,5 @@
+import type { BulkDeleteResult } from "@eesimple/types";
+
 import { ApiError } from "../apiError";
 
 const BASE = "/api";
@@ -56,6 +58,13 @@ export function createCrudApi<T, C, U>(endpoint: string) {
     remove: (id: string) =>
       request<undefined>(`/${endpoint}/${id}`, {
         method: "DELETE",
+      }),
+    bulkDelete: (ids: string[]) =>
+      request<BulkDeleteResult[]>(`/${endpoint}/bulk-delete`, {
+        method: "POST",
+        body: JSON.stringify({
+          ids,
+        }),
       }),
   };
 }

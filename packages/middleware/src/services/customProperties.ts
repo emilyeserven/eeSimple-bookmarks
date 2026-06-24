@@ -1,5 +1,6 @@
 import { asc, eq, inArray, isNull, ne } from "drizzle-orm";
 import type {
+  BulkDeleteResult,
   ChoicesItem,
   CreateCustomPropertyInput,
   CustomProperty,
@@ -16,6 +17,7 @@ import {
   propertyMediaTypes,
 } from "@/db/schema";
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
+import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { slugify, uniqueSlug } from "@/utils/slug";
 
 /** Thrown when a custom-property payload is structurally invalid (e.g. a bad calculate config). */
@@ -532,6 +534,11 @@ export async function deleteCustomProperty(id: string): Promise<boolean> {
   // The cascade removes this property's stored values, which condition matching reads.
   if (rows.length > 0) invalidateBookmarkCache();
   return rows.length > 0;
+}
+
+/** Delete many custom properties, reporting per-item outcomes (built-ins are skipped). */
+export function bulkDeleteCustomProperties(ids: string[]): Promise<BulkDeleteResult[]> {
+  return bulkDeleteEntities(ids, deleteCustomProperty, err => err instanceof BuiltInPropertyError);
 }
 
 /** Re-read a built-in property's id by its slug after a concurrent-insert race. */

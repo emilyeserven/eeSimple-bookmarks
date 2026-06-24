@@ -40,6 +40,10 @@ vi.mock("../hooks/useWebsites", () => ({
     mutate: vi.fn(),
     isPending: false,
   }),
+  useBulkDeleteWebsites: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+  }),
   useAutoWebsiteFavicon: () => ({
     mutate: vi.fn(),
     isPending: false,

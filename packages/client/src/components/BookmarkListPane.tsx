@@ -1,11 +1,104 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
 import type { Bookmark, CustomProperty } from "@eesimple/types";
 
+import { useMemo } from "react";
+
+import { CheckSquare } from "lucide-react";
+
 import { AddBookmarkCollapsible } from "./AddBookmarkCollapsible";
 import { BookmarkCardGrid } from "./BookmarkCardGrid";
 import { BookmarkTableView } from "./BookmarkTableView";
+import { BookmarkBulkActions } from "./bulk/BookmarkBulkActions";
+import { BulkActionBar } from "./bulk/BulkActionBar";
 import { useViewMode } from "../lib/bookmarkColumns";
 import { bookmarkMatchesSearch, hasAnyActiveFilter } from "../lib/bookmarkSearch";
+import { useListSelection } from "../lib/useListSelection";
+
+import { Button } from "@/components/ui/button";
+
+interface BookmarkListContentProps {
+  pageKey: string;
+  columns: number;
+  /** The already filter-matched bookmarks to render (non-empty). */
+  visibleBookmarks: Bookmark[];
+  properties: CustomProperty[];
+  addFormCategoryId?: string;
+}
+
+/**
+ * The matching-bookmarks renderer: owns the view mode + bulk selection, and shows the card-view
+ * select toggle, the contextual bulk-action bar, and either the table or the card grid. Split out of
+ * `BookmarkListPane` so each component stays under the complexity cap.
+ */
+function BookmarkListContent({
+  pageKey,
+  columns,
+  visibleBookmarks,
+  properties,
+  addFormCategoryId,
+}: BookmarkListContentProps) {
+  const viewMode = useViewMode(pageKey);
+  const visibleIds = useMemo(() => visibleBookmarks.map(b => b.id), [visibleBookmarks]);
+  const selection = useListSelection(pageKey, visibleIds);
+  const onToggleAll = () => (selection.allSelected ? selection.clear() : selection.selectAll());
+
+  return (
+    <>
+      {/* The card-view "Select" mode toggle: table view uses hover checkboxes instead. */}
+      {viewMode !== "table"
+        ? (
+          <Button
+            variant={selection.mode ? "secondary" : "outline"}
+            size="sm"
+            onClick={() => selection.setMode(!selection.mode)}
+          >
+            <CheckSquare className="size-4" />
+            {selection.mode ? "Done selecting" : "Select"}
+          </Button>
+        )
+        : null}
+
+      <BulkActionBar
+        count={selection.count}
+        totalSelectable={visibleIds.length}
+        allSelected={selection.allSelected}
+        onSelectAll={selection.selectAll}
+        onClear={selection.clear}
+      >
+        <BookmarkBulkActions
+          selectedIds={selection.selectedIds}
+          properties={properties}
+          onDone={selection.clear}
+        />
+      </BulkActionBar>
+
+      {viewMode === "table"
+        ? (
+          <BookmarkTableView
+            pageKey={pageKey}
+            bookmarks={visibleBookmarks}
+            properties={properties}
+            categoryId={addFormCategoryId}
+            isSelected={selection.isSelected}
+            onToggleSelect={selection.toggle}
+            allSelected={selection.allSelected}
+            anySelected={selection.count > 0}
+            onToggleAll={onToggleAll}
+          />
+        )
+        : (
+          <BookmarkCardGrid
+            bookmarks={visibleBookmarks}
+            properties={properties}
+            columns={columns}
+            selectionMode={selection.mode}
+            isSelected={selection.isSelected}
+            onToggleSelect={selection.toggle}
+          />
+        )}
+    </>
+  );
+}
 
 interface BookmarkListPaneProps {
   /** Stable listing-page key, used for table column widths and the table view toggle. */
@@ -37,7 +130,6 @@ export function BookmarkListPane({
   noMatchMessage,
   addFormCategoryId,
 }: BookmarkListPaneProps) {
-  const viewMode = useViewMode(pageKey);
   const visibleBookmarks = bookmarks.filter(bookmark => bookmarkMatchesSearch(bookmark, search));
   const hasActiveFilters = hasAnyActiveFilter(search) || textSearchActive;
 
@@ -55,23 +147,14 @@ export function BookmarkListPane({
         )
         : null}
 
-      {visibleBookmarks.length > 0 && viewMode === "table"
+      {visibleBookmarks.length > 0
         ? (
-          <BookmarkTableView
+          <BookmarkListContent
             pageKey={pageKey}
-            bookmarks={visibleBookmarks}
-            properties={properties}
-            categoryId={addFormCategoryId}
-          />
-        )
-        : null}
-
-      {visibleBookmarks.length > 0 && viewMode !== "table"
-        ? (
-          <BookmarkCardGrid
-            bookmarks={visibleBookmarks}
-            properties={properties}
             columns={columns}
+            visibleBookmarks={visibleBookmarks}
+            properties={properties}
+            addFormCategoryId={addFormCategoryId}
           />
         )
         : null}

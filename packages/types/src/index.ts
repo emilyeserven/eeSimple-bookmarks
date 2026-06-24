@@ -891,6 +891,25 @@ export interface BulkUrlUpdateResult {
   message?: string;
 }
 
+/** Per-item outcome of a bulk bookmark update/delete (set category, tags, property value, …). */
+export interface BulkBookmarkResult {
+  id: string;
+  status: "applied" | "deleted" | "not-found" | "error";
+  /** Human-readable detail when the status isn't `applied`/`deleted`. */
+  message?: string;
+}
+
+/** Whether a bulk tag operation adds the given tags to, or removes them from, each bookmark. */
+export type BulkBookmarkTagOp = "add" | "remove";
+
+/** Per-item outcome of a bulk entity delete (bookmarks or any taxonomy listing). */
+export interface BulkDeleteResult {
+  id: string;
+  status: "deleted" | "skipped-built-in" | "not-found" | "error";
+  /** Human-readable detail when the status isn't `deleted`. */
+  message?: string;
+}
+
 // --- Imports (ingest) ------------------------------------------------------------------------
 
 /** Which ingest source produced an import. */

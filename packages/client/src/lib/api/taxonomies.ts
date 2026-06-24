@@ -1,5 +1,6 @@
 import type {
   Author,
+  BulkDeleteResult,
   Category,
   CategoryPropertyDefaults,
   CreateAuthorInput,
@@ -91,6 +92,13 @@ export const youtubeChannelsApi = {
   remove: (id: string) => request<undefined>(`/youtube-channels/${id}`, {
     method: "DELETE",
   }),
+  bulkDelete: (ids: string[]) =>
+    request<BulkDeleteResult[]>("/youtube-channels/bulk-delete", {
+      method: "POST",
+      body: JSON.stringify({
+        ids,
+      }),
+    }),
   uploadImage: (id: string, file: File) =>
     uploadImageFile<{ imageUrl: string }>(`/youtube-channels/${id}/image`, file),
   autoImage: (id: string) =>

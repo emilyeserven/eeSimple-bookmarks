@@ -6,11 +6,17 @@ import { COLUMN_CLASS } from "../lib/bookmarkColumns";
 import { useResolveCardDisplay } from "../lib/cardDisplayRules";
 
 import { RowCard } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { cn } from "@/lib/utils";
 
 interface BookmarkCardGridProps {
   bookmarks: Bookmark[];
   properties: CustomProperty[];
   columns: number;
+  /** When true, clicking a card selects it (instead of navigating) via an overlay. */
+  selectionMode?: boolean;
+  isSelected?: (id: string) => boolean;
+  onToggleSelect?: (id: string) => void;
 }
 
 /**
@@ -22,6 +28,9 @@ export function BookmarkCardGrid({
   bookmarks,
   properties,
   columns,
+  selectionMode = false,
+  isSelected,
+  onToggleSelect,
 }: BookmarkCardGridProps) {
   const deleteBookmark = useDeleteBookmark();
   const resolveDisplay = useResolveCardDisplay();
@@ -35,24 +44,49 @@ export function BookmarkCardGrid({
     >
       {bookmarks.map((bookmark) => {
         const display = resolveDisplay(bookmark);
+        const selected = isSelected?.(bookmark.id) ?? false;
         return (
-          <RowCard
+          <div
             key={bookmark.id}
-            className="p-4"
-            data-bookmark-card-sample
+            className="relative"
           >
-            <BookmarkCard
-              bookmark={bookmark}
-              properties={properties}
-              onDelete={id => deleteBookmark.mutate(id)}
-              fieldZones={display.fieldZones}
-              cardZoneLayouts={display.cardZoneLayouts}
-              imageLeft={(columns === 1 || columns === 2) && display.imageLayout === "side"}
-              imageMode={display.imageMode}
-              imageVisibility={display.imageVisibility}
-              hideWebsiteForYouTube={display.hideWebsiteForYouTube}
-            />
-          </RowCard>
+            <RowCard
+              className={cn("p-4", selected && "ring-2 ring-primary")}
+              data-bookmark-card-sample
+            >
+              <BookmarkCard
+                bookmark={bookmark}
+                properties={properties}
+                onDelete={id => deleteBookmark.mutate(id)}
+                fieldZones={display.fieldZones}
+                cardZoneLayouts={display.cardZoneLayouts}
+                imageLeft={(columns === 1 || columns === 2) && display.imageLayout === "side"}
+                imageMode={display.imageMode}
+                imageVisibility={display.imageVisibility}
+                hideWebsiteForYouTube={display.hideWebsiteForYouTube}
+              />
+            </RowCard>
+            {/* In selection mode an overlay swallows card clicks so the whole card toggles. */}
+            {selectionMode
+              ? (
+                <>
+                  <button
+                    type="button"
+                    aria-label={`Select ${bookmark.title}`}
+                    aria-pressed={selected}
+                    className="absolute inset-0 z-10 cursor-pointer rounded-xl"
+                    onClick={() => onToggleSelect?.(bookmark.id)}
+                  />
+                  <div className="absolute top-3 left-3 z-20">
+                    <Checkbox
+                      checked={selected}
+                      onCheckedChange={() => onToggleSelect?.(bookmark.id)}
+                    />
+                  </div>
+                </>
+              )
+              : null}
+          </div>
         );
       })}
     </div>
