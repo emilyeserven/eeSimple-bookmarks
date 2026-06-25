@@ -40,6 +40,7 @@ import {
 } from "@/db/schema";
 import { addImportBlacklistEntry, getCustomStripParams, getImportBlacklist, getRedirectIgnoreList, getShortenerIgnoreList } from "@/services/appSettings";
 import { applyImportRules } from "@/services/importRules";
+import { approvalTitle, mergeApprovalPropertyValues, mergeApprovalTagIds } from "@/services/importApproval";
 import { suggestAutofillForBookmark } from "@/services/autofill";
 import { checkBookmarkUrlDuplicate, createBookmark, DuplicateUrlError } from "@/services/bookmarks";
 import { enqueueImportJob } from "@/services/importQueue";
@@ -916,7 +917,11 @@ export async function approveImportItem(itemId: string, preFill?: InboxPreFillDe
 
   // Evaluate autofill rules against the URL and title (same fields available at creation time on
   // the client form) so approved items pick up the same tags/category/values the form would apply.
-  const title = item.title?.trim() || item.anchorText?.trim() || item.url;
+  const title = approvalTitle({
+    title: item.title,
+    anchorText: item.anchorText,
+    url: item.url,
+  });
   const autofill = await suggestAutofillForBookmark({
     url: item.url,
     title,
@@ -937,23 +942,11 @@ export async function approveImportItem(itemId: string, preFill?: InboxPreFillDe
 
   // Merge pre-fill custom property values with autofill values: autofill wins for any property it
   // already sets; pre-fill fills in the rest.
-  const autofillPropertyIds = new Set([
-    ...(autofill.numberValues?.map(v => v.propertyId) ?? []),
-    ...(autofill.booleanValues?.map(v => v.propertyId) ?? []),
-    ...(autofill.dateTimeValues?.map(v => v.propertyId) ?? []),
-  ]);
-  const mergedNumberValues = [
-    ...(autofill.numberValues ?? []),
-    ...(preFill?.numberValues?.filter(v => !autofillPropertyIds.has(v.propertyId)) ?? []),
-  ];
-  const mergedBooleanValues = [
-    ...(autofill.booleanValues ?? []),
-    ...(preFill?.booleanValues?.filter(v => !autofillPropertyIds.has(v.propertyId)) ?? []),
-  ];
-  const mergedDateTimeValues = [
-    ...(autofill.dateTimeValues ?? []),
-    ...(preFill?.dateTimeValues?.filter(v => !autofillPropertyIds.has(v.propertyId)) ?? []),
-  ];
+  const {
+    numberValues: mergedNumberValues,
+    booleanValues: mergedBooleanValues,
+    dateTimeValues: mergedDateTimeValues,
+  } = mergeApprovalPropertyValues(autofill, preFill);
 
   try {
     const bookmark = await createBookmark({
@@ -962,7 +955,7 @@ export async function approveImportItem(itemId: string, preFill?: InboxPreFillDe
       // Save the source passage (newsletter context) as the description; fall back to the item's own.
       description: item.newsletterContext ?? item.description ?? null,
       ...defaults,
-      tagIds: [...new Set([...(defaults.tagIds ?? []), ...(preFill?.tagIds ?? []), ...autofill.tagIds])],
+      tagIds: mergeApprovalTagIds(defaults.tagIds, preFill?.tagIds, autofill.tagIds),
       mediaTypeId: preFill?.mediaTypeId ?? defaults.mediaTypeId ?? autofill.mediaTypeId,
       authorIds: preFill?.authorIds,
       publisherId: preFill?.publisherId ?? undefined,
