@@ -1,5 +1,5 @@
 import type { BookmarkValueItem, ResolvedFieldPlacement } from "../lib/bookmarkCardValues";
-import type { Bookmark, BookmarkTag, CardFieldZone, CardZoneAlign, CardZoneDirection, CardZoneGap, CardZoneLayout, CardZoneLayouts, CardZoneVerticalAlign, CardZoneWrap, Category, CustomProperty } from "@eesimple/types";
+import type { Bookmark, BookmarkTag, CardFieldZone, CardZoneAlign, CardZoneDirection, CardZoneGap, CardZoneLayout, CardZoneLayouts, CardZoneVerticalAlign, CardZoneWrap, Category, CustomProperty, MediaType } from "@eesimple/types";
 import type { ReactNode } from "react";
 
 import { useEffect, useRef, useState } from "react";
@@ -39,6 +39,10 @@ interface BookmarkCardDetailsProps {
   editableProperties?: CustomProperty[];
   /** Tags opted into quick-toggle from the "More" menu (passed through to {@link BookmarkCardMenu}). */
   editableTags?: BookmarkTag[];
+  /** Categories marked as quick-select options from the "More" menu. */
+  editableCategories?: Category[];
+  /** Media types marked as quick-select options from the "More" menu. */
+  editableMediaTypes?: MediaType[];
   /** Whether an auto-image capture is in flight (for the "More" menu). */
   autoImagePending?: boolean;
   /** Trigger an auto-image capture from the "More" menu. */
@@ -57,6 +61,10 @@ interface BookmarkCardDetailsProps {
   onSaveChoices?: (propertyId: string, values: string[]) => void;
   /** Persist an updated tag list edited from the "More" menu. */
   onSaveTags?: (tagIds: string[]) => void;
+  /** Persist an updated category from the "More" menu quick-select. */
+  onSaveCategory?: (categoryId: string) => void;
+  /** Persist an updated media type from the "More" menu quick-select. */
+  onSaveMediaType?: (mediaTypeId: string | null) => void;
 }
 
 /** The three render forms a card-body sub-zone imposes on the fields placed in it. */
@@ -150,9 +158,10 @@ interface FieldRender {
  */
 export function BookmarkCardDetails({
   bookmark, properties, placements, cardZoneLayouts, bookmarkCategory, hideWebsiteForYouTube,
-  editableProperties = [], editableTags = [], autoImagePending = false, onAutoImage,
+  editableProperties = [], editableTags = [], editableCategories = [], editableMediaTypes = [],
+  autoImagePending = false, onAutoImage,
   onSaveNumber, onSaveDateTime, onDelete,
-  onSaveRating, onSaveBoolean, onSaveChoices, onSaveTags,
+  onSaveRating, onSaveBoolean, onSaveChoices, onSaveTags, onSaveCategory, onSaveMediaType,
 }: BookmarkCardDetailsProps) {
   // Listings pass the rule-resolved value explicitly; other surfaces fall back to the Default rule.
   const defaultHideWebsiteForYouTube = useHideWebsiteForYouTube();
@@ -185,6 +194,8 @@ export function BookmarkCardDetails({
       bookmark={bookmark}
       editableProperties={editableProperties}
       editableTags={editableTags}
+      editableCategories={editableCategories}
+      editableMediaTypes={editableMediaTypes}
       autoImagePending={autoImagePending}
       onAutoImage={onAutoImage}
       onSaveNumber={onSaveNumber}
@@ -192,6 +203,8 @@ export function BookmarkCardDetails({
       onSaveDateTime={onSaveDateTime}
       onSaveChoices={onSaveChoices}
       onSaveTags={onSaveTags}
+      onSaveCategory={onSaveCategory}
+      onSaveMediaType={onSaveMediaType}
       onDelete={onDelete}
     />
   );

@@ -49,6 +49,9 @@ const createCategoryBody = {
     isHomepage: {
       type: "boolean",
     },
+    editableOnCard: {
+      type: "boolean",
+    },
   },
 } as const;
 

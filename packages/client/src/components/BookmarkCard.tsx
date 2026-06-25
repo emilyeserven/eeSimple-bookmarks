@@ -15,6 +15,7 @@ import { useViewPanelClick } from "./panel/useEditPanelClick";
 import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 import { useAutoBookmarkImage, useUpdateBookmark } from "../hooks/useBookmarks";
 import { useCategories } from "../hooks/useCategories";
+import { useMediaTypes } from "../hooks/useMediaTypes";
 import { buildBookmarkValueItems, fieldPlacementsForCard } from "../lib/bookmarkCardValues";
 import { mergeBooleanValue } from "../lib/bookmarkFormat";
 import { buildIsbnLinks } from "../lib/isbnLinks";
@@ -74,6 +75,9 @@ export function BookmarkCard({
   const {
     data: allCategories = [],
   } = useCategories();
+  const {
+    data: allMediaTypes = [],
+  } = useMediaTypes();
 
   // Properties opted into inline editing from this card, limited to ones that apply to its category.
   // Calculate properties are computed server-side, so they are never editable here.
@@ -84,6 +88,9 @@ export function BookmarkCard({
 
   // Tags opted into the bookmark card's "More" menu quick-toggle.
   const editableTags = bookmark.tags.filter(t => t.editableOnCard);
+  // Categories and media types opted into the card's quick-select sub-menu.
+  const editableCategories = allCategories.filter(c => c.editableOnCard && !c.builtIn);
+  const editableMediaTypes = allMediaTypes.filter(m => m.editableOnCard);
 
   function saveNumber(propertyId: string, value: number) {
     updateBookmark.mutate({
@@ -139,6 +146,24 @@ export function BookmarkCard({
     });
   }
 
+  function saveCategory(categoryId: string) {
+    updateBookmark.mutate({
+      id: bookmark.id,
+      input: {
+        categoryId,
+      },
+    });
+  }
+
+  function saveMediaType(mediaTypeId: string | null) {
+    updateBookmark.mutate({
+      id: bookmark.id,
+      input: {
+        mediaTypeId,
+      },
+    });
+  }
+
   const hasImage = !!bookmark.image && imageVisibility !== "off";
 
   // Compact Amazon links for any text-typed properties with a non-empty value (e.g. ISBN/ASIN).
@@ -161,6 +186,8 @@ export function BookmarkCard({
           bookmark={bookmark}
           editableProperties={editableProperties}
           editableTags={editableTags}
+          editableCategories={editableCategories}
+          editableMediaTypes={editableMediaTypes}
           autoImagePending={autoImage.isPending}
           onAutoImage={() => autoImage.mutate({
             id: bookmark.id,
@@ -171,6 +198,8 @@ export function BookmarkCard({
           onSaveDateTime={saveDateTime}
           onSaveChoices={saveChoices}
           onSaveTags={saveTags}
+          onSaveCategory={saveCategory}
+          onSaveMediaType={saveMediaType}
           onDelete={onDelete}
         />
       ),
@@ -216,6 +245,8 @@ export function BookmarkCard({
       hideWebsiteForYouTube={hideWebsiteForYouTube}
       editableProperties={editableProperties}
       editableTags={editableTags}
+      editableCategories={editableCategories}
+      editableMediaTypes={editableMediaTypes}
       autoImagePending={autoImage.isPending}
       onAutoImage={() => autoImage.mutate({
         id: bookmark.id,
@@ -228,6 +259,8 @@ export function BookmarkCard({
       onSaveBoolean={saveBoolean}
       onSaveChoices={saveChoices}
       onSaveTags={saveTags}
+      onSaveCategory={saveCategory}
+      onSaveMediaType={saveMediaType}
     />
   );
 

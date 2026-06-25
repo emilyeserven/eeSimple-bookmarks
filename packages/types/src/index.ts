@@ -434,6 +434,8 @@ export interface MediaType {
   bookmarkCount?: number;
   /** Bookmarks with this media type directly, excluding its children (the "No Child" bucket). */
   ownBookmarkCount?: number;
+  /** When true, this media type appears as a quick-select option in the bookmark card's "More" menu. */
+  editableOnCard?: boolean;
 }
 
 /** A media type with its children populated — used to render the taxonomy tree. */
@@ -460,6 +462,7 @@ export interface UpdateMediaTypeInput {
   icon?: string | null;
   /** Parent media type id; `null` to make it a root. */
   parentId?: string | null;
+  editableOnCard?: boolean;
 }
 
 /**
@@ -1830,6 +1833,8 @@ export interface Category {
   createdAt: string;
   /** Number of bookmarks in this category (populated by list endpoints). */
   bookmarkCount?: number;
+  /** When true, this category appears as a quick-select option in the bookmark card's "More" menu. */
+  editableOnCard?: boolean;
 }
 
 /** Payload for creating a category. */
@@ -1838,6 +1843,7 @@ export interface CreateCategoryInput {
   description?: string | null;
   icon?: string | null;
   isHomepage?: boolean;
+  editableOnCard?: boolean;
 }
 
 /** Payload for partially updating a category. */
