@@ -9,7 +9,7 @@ import { useState } from "react";
 
 import { blacklistPatternsFor } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
-import { Ban, Check, ChevronDown, Eye, FolderInput, MoreHorizontal, RefreshCw, RotateCcw, Scissors, X } from "lucide-react";
+import { Ban, Check, ChevronDown, Eye, FolderInput, RefreshCw, RotateCcw, Scissors, X } from "lucide-react";
 
 import { MarkAsShortenerDialog } from "./MarkAsShortenerDialog";
 import {
@@ -36,7 +36,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -157,8 +156,7 @@ function UnrejectButton({
 
 /**
  * The three block menu items (URL / domain / page-path) plus the path-prefix dialog.
- * Extracted so `BlockMenu` (its own DropdownMenu) and `MobileMoreMenu` (embeds inline)
- * can both use them without nesting dropdowns.
+ * Extracted so `BlockMenu` (its own DropdownMenu) can use them without nesting dropdowns.
  */
 export function BlockMenuItems({
   item,
@@ -337,35 +335,11 @@ function IngestImportButton({
   );
 }
 
-/** DropdownMenuItem variant of `IngestImportButton` — for embedding inside an existing dropdown. */
-export function IngestImportMenuItem({
-  item,
-}: { item: ImportItem }) {
-  const ingest = useIngestUrl();
-  const url = item.url;
-  if (!url) return null;
-  return (
-    <DropdownMenuItem
-      disabled={ingest.isPending}
-      onClick={() =>
-        ingest.mutate({
-          url,
-        }, {
-          onSuccess: () => notifySuccess("Queued as new import group"),
-          onError: () => notifyError("Couldn't queue this URL for import"),
-        })}
-    >
-      <FolderInput className="size-4" />
-      Import links from this URL
-    </DropdownMenuItem>
-  );
-}
-
 type ShortenerMode = "ignore-list" | "website";
 
 /**
- * The two shortener menu items (ignore list / associate with website). Extracted so both
- * `ShortenerDropdown` (desktop) and `MobileMoreMenu` can embed them without nesting dropdowns.
+ * The two shortener menu items (ignore list / associate with website). Extracted so
+ * `ShortenerDropdown` (desktop) can embed them without nesting dropdowns.
  */
 export function ShortenerMenuItems({
   item,
@@ -446,49 +420,6 @@ function ShortenerDropdown({
   );
 }
 
-/** Secondary actions for the mobile pending card: Block options, Recheck link, and Queue for Import. */
-export function MobileMoreMenu({
-  item,
-}: { item: ImportItem }) {
-  const [shortenerMode, setShortenerMode] = useState<ShortenerMode | null>(null);
-
-  return (
-    <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            size="icon"
-            variant="ghost"
-            aria-label="More actions"
-          >
-            <MoreHorizontal className="size-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <BlockMenuItems item={item} />
-          <DropdownMenuSeparator />
-          <ShortenerMenuItems
-            item={item}
-            onSelect={m => setShortenerMode(m)}
-          />
-          <DropdownMenuSeparator />
-          <RecheckLinkMenuItem item={item} />
-          <IngestImportMenuItem item={item} />
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      {shortenerMode !== null && (
-        <MarkAsShortenerDialog
-          item={item}
-          open
-          initialMode={shortenerMode}
-          onClose={() => setShortenerMode(null)}
-        />
-      )}
-    </>
-  );
-}
-
 /** Re-run redirect unwrap for this item's rawUrl (retry after a failed resolution at ingest time). */
 function RecheckLinkButton({
   item,
@@ -521,29 +452,6 @@ function RecheckLinkButton({
       </TooltipTrigger>
       <TooltipContent>Recheck link URL</TooltipContent>
     </Tooltip>
-  );
-}
-
-/** DropdownMenuItem variant of `RecheckLinkButton` — for embedding inside an existing dropdown. */
-export function RecheckLinkMenuItem({
-  item,
-}: { item: ImportItem }) {
-  const recheck = useRecheckImportItemUrl();
-  return (
-    <DropdownMenuItem
-      disabled={recheck.isPending}
-      onClick={() =>
-        recheck.mutate(item.id, {
-          onSuccess: ({
-            updated,
-          }) =>
-            updated ? notifySuccess("Link resolved") : notifySuccess("No change"),
-          onError: () => notifyError("Couldn't recheck this link"),
-        })}
-    >
-      <RefreshCw className="size-4" />
-      Recheck link
-    </DropdownMenuItem>
   );
 }
 

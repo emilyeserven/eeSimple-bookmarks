@@ -1,23 +1,18 @@
 import type { SidebarAdvanced } from "./useAppSidebarData";
-import type { LinkProps } from "@tanstack/react-router";
-import type { LucideIcon } from "lucide-react";
 
 import * as React from "react";
 
-import { Link, useRouterState } from "@tanstack/react-router";
 import { BookOpen, ChevronDown, Palette, Server } from "lucide-react";
 
 import { useResizeHandle } from "../hooks/useResizeHandle";
 import { useUiStore } from "../stores/uiStore";
 
-import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
-  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
@@ -72,66 +67,6 @@ export function CollapsibleSection({
         </CollapsibleContent>
       </SidebarGroup>
     </Collapsible>
-  );
-}
-
-interface SidebarNavSectionItem {
-  key: string;
-  title: string;
-  to: NonNullable<LinkProps["to"]>;
-  icon: LucideIcon;
-  count?: number;
-}
-
-/** A collapsible group of static nav links, active when the path is under each link. */
-export function SidebarNavSection({
-  sectionKey,
-  label,
-  items,
-}: {
-  sectionKey: string;
-  label: string;
-  items: readonly SidebarNavSectionItem[];
-}) {
-  const pathname = useRouterState({
-    select: state => state.location.pathname,
-  });
-  const {
-    state,
-  } = useSidebar();
-
-  return (
-    <CollapsibleSection
-      sectionKey={sectionKey}
-      label={label}
-    >
-      <SidebarMenu>
-        {items.map((item) => {
-          const isActive = pathname.startsWith(item.to);
-          return (
-            <SidebarMenuItem key={item.key}>
-              <SidebarMenuButton
-                asChild
-                isActive={isActive}
-                tooltip={item.title}
-              >
-                <Link to={item.to}>
-                  <item.icon />
-                  <span>{item.title}</span>
-                </Link>
-              </SidebarMenuButton>
-              {item.count !== undefined && state !== "collapsed"
-                ? (
-                  <SidebarMenuBadge>
-                    <Badge variant="secondary">{item.count}</Badge>
-                  </SidebarMenuBadge>
-                )
-                : null}
-            </SidebarMenuItem>
-          );
-        })}
-      </SidebarMenu>
-    </CollapsibleSection>
   );
 }
 

@@ -218,29 +218,30 @@ const { data: allChannels } = useYouTubeChannels();
 // categories is already fetched for the categories collapsible section
 ```
 
-Add counts to the plain `navItems` links (Bookmarks) if a `useBookmarks` count
-hook exists, or pass counts to `SidebarNavSection` via a new `counts` prop (see
-below).
+Add counts to the nav links by rendering a `SidebarMenuBadge` next to each item.
+`AppSidebar` builds its nav sections with the `CollapsibleSection` wrapper from
+`app-sidebar-sections.tsx` and maps the `taxonomyItems` / `customizationItems`
+arrays to inline `SidebarMenuItem` / `SidebarMenuButton` rows directly in
+`app-sidebar.tsx` — there is no separate `SidebarNavSection` component, so the
+count badge goes into that inline map.
 
-### In `app-sidebar-sections.tsx`
+### In `app-sidebar.tsx`
 
-Extend `SidebarNavSectionItem` to accept an optional count, then render a
-`SidebarMenuBadge` inside each `SidebarMenuItem`:
+Add an optional `count` to the nav item arrays, then render a `SidebarMenuBadge`
+inside the existing `SidebarMenuItem` map (hidden in icon/collapsed mode):
 
 ```tsx
 import { SidebarMenuBadge, useSidebar } from "@/components/ui/sidebar";
 
-interface SidebarNavSectionItem {
-  key: string;
-  title: string;
-  to: NonNullable<LinkProps["to"]>;
-  icon: LucideIcon;
-  count?: number;          // ← add this
-}
-
-// inside the map:
 const { state } = useSidebar();
 
+const taxonomyItems = [
+  { key: "categories", title: "Categories", to: "/categories", icon: Folder, count: categories?.length },
+  { key: "websites", title: "Websites", to: "/taxonomies/websites", icon: Globe, count: allWebsites?.length },
+  // …Media Types, YouTube Channels, etc.
+];
+
+// inside the existing map over the items:
 <SidebarMenuItem key={item.key}>
   <SidebarMenuButton asChild isActive={isActive} tooltip={item.title}>
     <Link to={item.to}>
@@ -253,21 +254,6 @@ const { state } = useSidebar();
     : null}
 </SidebarMenuItem>
 ```
-
-Then wire counts into the `taxonomyItems` and `customizationItems` arrays in
-`app-sidebar.tsx`:
-
-```tsx
-const taxonomyItemsWithCounts = [
-  { ...taxonomyItems[0], count: categories?.length },   // Categories
-  { ...taxonomyItems[1] },                              // Tags — count separately if desired
-  { ...taxonomyItems[2], count: allWebsites?.length },  // Websites
-  { ...taxonomyItems[3], count: allMediaTypes?.length },// Media Types
-  { ...taxonomyItems[4], count: allChannels?.length },  // YouTube Channels
-];
-```
-
-Pass to `SidebarNavSection` with the updated item type.
 
 ---
 
