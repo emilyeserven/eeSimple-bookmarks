@@ -451,6 +451,7 @@ export const tags = pgTable("tags", {
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
+  editableOnCard: boolean("editable_on_card").notNull().default(false),
 }, table => [
   // Sibling names are unique within a parent. NULL parents are distinct in
   // Postgres, so root-level uniqueness is enforced in the service layer instead.

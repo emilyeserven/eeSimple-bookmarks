@@ -1,5 +1,5 @@
 import type { BookmarkValueItem, ResolvedFieldPlacement } from "../lib/bookmarkCardValues";
-import type { Bookmark, CardFieldZone, CardZoneAlign, CardZoneDirection, CardZoneGap, CardZoneLayout, CardZoneLayouts, CardZoneVerticalAlign, CardZoneWrap, Category, CustomProperty } from "@eesimple/types";
+import type { Bookmark, BookmarkTag, CardFieldZone, CardZoneAlign, CardZoneDirection, CardZoneGap, CardZoneLayout, CardZoneLayouts, CardZoneVerticalAlign, CardZoneWrap, Category, CustomProperty } from "@eesimple/types";
 import type { ReactNode } from "react";
 
 import { useEffect, useRef, useState } from "react";
@@ -37,6 +37,8 @@ interface BookmarkCardDetailsProps {
   hideWebsiteForYouTube?: boolean;
   /** Properties editable from the "More" menu (passed through to {@link BookmarkCardMenu}). */
   editableProperties?: CustomProperty[];
+  /** Tags opted into quick-toggle from the "More" menu (passed through to {@link BookmarkCardMenu}). */
+  editableTags?: BookmarkTag[];
   /** Whether an auto-image capture is in flight (for the "More" menu). */
   autoImagePending?: boolean;
   /** Trigger an auto-image capture from the "More" menu. */
@@ -53,6 +55,8 @@ interface BookmarkCardDetailsProps {
   onSaveBoolean?: (propertyId: string, value: boolean) => void;
   /** Persist a choices value edited from the "More" menu. */
   onSaveChoices?: (propertyId: string, values: string[]) => void;
+  /** Persist an updated tag list edited from the "More" menu. */
+  onSaveTags?: (tagIds: string[]) => void;
 }
 
 /** The three render forms a card-body sub-zone imposes on the fields placed in it. */
@@ -146,9 +150,9 @@ interface FieldRender {
  */
 export function BookmarkCardDetails({
   bookmark, properties, placements, cardZoneLayouts, bookmarkCategory, hideWebsiteForYouTube,
-  editableProperties = [], autoImagePending = false, onAutoImage,
+  editableProperties = [], editableTags = [], autoImagePending = false, onAutoImage,
   onSaveNumber, onSaveDateTime, onDelete,
-  onSaveRating, onSaveBoolean, onSaveChoices,
+  onSaveRating, onSaveBoolean, onSaveChoices, onSaveTags,
 }: BookmarkCardDetailsProps) {
   // Listings pass the rule-resolved value explicitly; other surfaces fall back to the Default rule.
   const defaultHideWebsiteForYouTube = useHideWebsiteForYouTube();
@@ -180,12 +184,14 @@ export function BookmarkCardDetails({
     <BookmarkMoreMenu
       bookmark={bookmark}
       editableProperties={editableProperties}
+      editableTags={editableTags}
       autoImagePending={autoImagePending}
       onAutoImage={onAutoImage}
       onSaveNumber={onSaveNumber}
       onSaveBoolean={onSaveBoolean}
       onSaveDateTime={onSaveDateTime}
       onSaveChoices={onSaveChoices}
+      onSaveTags={onSaveTags}
       onDelete={onDelete}
     />
   );

@@ -1,4 +1,4 @@
-import type { Bookmark, CustomProperty } from "@eesimple/types";
+import type { Bookmark, BookmarkTag, CustomProperty } from "@eesimple/types";
 
 import { ExternalLink, MoreVertical } from "lucide-react";
 
@@ -36,19 +36,21 @@ export function BookmarkExternalLinkButton({
 interface BookmarkMoreMenuProps {
   bookmark: Bookmark;
   editableProperties?: CustomProperty[];
+  editableTags?: BookmarkTag[];
   autoImagePending?: boolean;
   onAutoImage?: () => void;
   onSaveNumber?: (propertyId: string, value: number) => void;
   onSaveBoolean?: (propertyId: string, value: boolean) => void;
   onSaveDateTime?: (propertyId: string, value: string) => void;
   onSaveChoices?: (propertyId: string, values: string[]) => void;
+  onSaveTags?: (tagIds: string[]) => void;
   onDelete?: (id: string) => void;
 }
 
 /** The "More options" menu (trigger + {@link BookmarkCardMenu}) — a placeable card field and overlay. */
 export function BookmarkMoreMenu({
-  bookmark, editableProperties = [], autoImagePending = false, onAutoImage,
-  onSaveNumber, onSaveBoolean, onSaveDateTime, onSaveChoices, onDelete,
+  bookmark, editableProperties = [], editableTags = [], autoImagePending = false, onAutoImage,
+  onSaveNumber, onSaveBoolean, onSaveDateTime, onSaveChoices, onSaveTags, onDelete,
 }: BookmarkMoreMenuProps) {
   return (
     <DropdownMenu>
@@ -65,12 +67,14 @@ export function BookmarkMoreMenu({
       <BookmarkCardMenu
         bookmark={bookmark}
         editableProperties={editableProperties}
+        editableTags={editableTags}
         autoImagePending={autoImagePending}
         onAutoImage={onAutoImage ?? noop}
         onSaveNumber={onSaveNumber ?? noop}
         onSaveBoolean={onSaveBoolean ?? noop}
         onSaveDateTime={onSaveDateTime ?? noop}
         onSaveChoices={onSaveChoices ?? noop}
+        onSaveTags={onSaveTags ?? noop}
         onDelete={onDelete}
       />
     </DropdownMenu>

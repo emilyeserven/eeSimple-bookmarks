@@ -37,6 +37,11 @@ export interface Tag {
    * bucket surfaced as a "No Child" entry. Equals {@link bookmarkCount} for leaf tags.
    */
   ownBookmarkCount?: number;
+  /**
+   * When `true`, the tag appears as a quick-toggle checkbox in the bookmark card's "More" menu,
+   * letting users tag/untag bookmarks inline without opening the full edit page.
+   */
+  editableOnCard?: boolean;
 }
 
 /** A tag with its children populated — used to render the taxonomy tree. */
@@ -45,7 +50,7 @@ export interface TagNode extends Tag {
 }
 
 /** Lightweight tag shape carried on a bookmark (enough to render and group). */
-export type BookmarkTag = Pick<Tag, "id" | "name" | "slug" | "parentId">;
+export type BookmarkTag = Pick<Tag, "id" | "name" | "slug" | "parentId" | "editableOnCard">;
 
 /** Payload for creating a tag. */
 export interface CreateTagInput {
@@ -58,6 +63,7 @@ export interface CreateTagInput {
 export interface UpdateTagInput {
   name?: string;
   parentId?: string | null;
+  editableOnCard?: boolean;
 }
 
 /**

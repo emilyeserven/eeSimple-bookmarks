@@ -48,6 +48,26 @@ function flattenOptions(nodes: TreeComboboxOption[]): TreeComboboxOption[] {
 }
 
 /**
+ * Return the set of node values that must be expanded so every selected item is
+ * visible in the tree (i.e. all ancestor nodes of any selected item).
+ */
+function ancestorIdsForSelected(
+  nodes: TreeComboboxOption[],
+  selectedSet: Set<string>,
+): Set<string> {
+  const result = new Set<string>();
+
+  function visit(node: TreeComboboxOption): boolean {
+    const childHasSelected = (node.children ?? []).some(child => visit(child));
+    if (childHasSelected) result.add(node.value);
+    return selectedSet.has(node.value) || childHasSelected;
+  }
+
+  for (const node of nodes) visit(node);
+  return result;
+}
+
+/**
  * Searchable multi-select built from shadcn `Popover` + `Command`, with collapsible parent groups.
  * In tree mode (no search term) parent nodes show a chevron to expand/collapse their children.
  * In search mode all nodes matching the term are shown as a flat list.
@@ -69,6 +89,16 @@ export function TreeMultiCombobox({
   const [expandedIds, setExpandedIds] = React.useState<Set<string>>(new Set());
 
   const selectedSet = new Set(values);
+
+  function handleOpenChange(nextOpen: boolean) {
+    if (nextOpen) {
+      const ancestors = ancestorIdsForSelected(options, selectedSet);
+      if (ancestors.size > 0) {
+        setExpandedIds(prev => new Set([...prev, ...ancestors]));
+      }
+    }
+    setOpen(nextOpen);
+  }
   const allNodes = React.useMemo(() => flattenOptions(options), [options]);
   const selectedOptions = allNodes.filter(node => selectedSet.has(node.value));
 
@@ -189,7 +219,7 @@ export function TreeMultiCombobox({
   return (
     <Popover
       open={open}
-      onOpenChange={setOpen}
+      onOpenChange={handleOpenChange}
     >
       <PopoverTrigger asChild>
         <Button

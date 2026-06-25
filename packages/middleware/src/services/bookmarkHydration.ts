@@ -333,6 +333,7 @@ async function tagsByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Book
       name: tags.name,
       slug: tags.slug,
       parentId: tags.parentId,
+      editableOnCard: tags.editableOnCard,
     })
     .from(bookmarkTags)
     .innerJoin(tags, eq(bookmarkTags.tagId, tags.id))
@@ -345,6 +346,7 @@ async function tagsByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Book
       name: row.name,
       slug: row.slug ?? slugify(row.name),
       parentId: row.parentId,
+      editableOnCard: row.editableOnCard,
     });
     grouped.set(row.bookmarkId, list);
   }

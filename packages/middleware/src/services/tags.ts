@@ -35,6 +35,7 @@ function toTag(row: TagRow, counts?: TagBookmarkCounts): Tag {
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount: counts?.subtree,
     ownBookmarkCount: counts?.own,
+    editableOnCard: row.editableOnCard,
   };
 }
 
@@ -153,6 +154,7 @@ export async function listTags(): Promise<Tag[]> {
       slug: tags.slug,
       parentId: tags.parentId,
       createdAt: tags.createdAt,
+      editableOnCard: tags.editableOnCard,
     })
     .from(tags)
     .orderBy(asc(tags.name));
@@ -211,13 +213,14 @@ export async function updateTag(id: string, input: UpdateTagInput): Promise<Tag 
     if (wouldCreateCycle(all, id, input.parentId)) throw new TagCycleError();
   }
 
-  const patch: Partial<Pick<TagRow, "name" | "slug" | "parentId">> = {};
+  const patch: Partial<Pick<TagRow, "name" | "slug" | "parentId" | "editableOnCard">> = {};
   if (input.name !== undefined) patch.name = input.name;
   // Keep the slug in sync when the name changes.
   if (input.name !== undefined) {
     patch.slug = uniqueSlug(input.name, await takenTagSlugs(id));
   }
   if (input.parentId !== undefined) patch.parentId = input.parentId;
+  if (input.editableOnCard !== undefined) patch.editableOnCard = input.editableOnCard;
 
   const [row] = await db.update(tags).set(patch).where(eq(tags.id, id)).returning();
   // A reparent changes tag-descendant resolution; invalidate the condition-matching cache.
