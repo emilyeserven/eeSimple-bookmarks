@@ -6,12 +6,11 @@ import { useNavigate } from "@tanstack/react-router";
 import { Globe } from "lucide-react";
 import { z } from "zod";
 
-import { AddCategoryModal } from "./AddCategoryModal";
-import { AddMediaTypeModal } from "./AddMediaTypeModal";
 import { DefaultTagsField } from "./DefaultTagsField";
 import { EntityImageField } from "./EntityImageField";
 import { SelfIdsField } from "./SelfIdsField";
 import { SocialLinksField } from "./SocialLinksField";
+import { SourceDefaultFields } from "./SourceDefaultFields";
 import { WebsiteYouTubeChannelsField } from "./WebsiteYouTubeChannelsField";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 
@@ -35,8 +34,6 @@ import { socialLinkSchema } from "@/lib/socialLinks";
 const websiteGeneralSchema = z.object({
   siteName: z.string().trim().min(1, "Site name is required"),
   domain: z.string().trim().min(1, "Domain is required"),
-  categoryId: z.string().nullable(),
-  mediaTypeId: z.string().nullable(),
   socialLinks: z.array(socialLinkSchema),
 });
 
@@ -69,8 +66,6 @@ export function WebsiteGeneralForm({
   const [tagIds, setTagIds] = useState<string[]>(website.tagIds ?? []);
   const [alternateNames, setAlternateNames] = useState<string[]>(website.alternateNames ?? []);
   const [newAlternateName, setNewAlternateName] = useState("");
-  const [addCategoryOpen, setAddCategoryOpen] = useState(false);
-  const [addMediaTypeOpen, setAddMediaTypeOpen] = useState(false);
   const {
     data: categories,
   } = useCategories();
@@ -105,8 +100,6 @@ export function WebsiteGeneralForm({
     defaultValues: {
       siteName: website.siteName,
       domain: website.domain,
-      categoryId: website.category?.id ?? null,
-      mediaTypeId: website.mediaTypeId ?? null,
     },
     validators: {
       onChange: websiteGeneralSchema,
@@ -221,52 +214,15 @@ export function WebsiteGeneralForm({
         onRemove={() => deleteFavicon.mutate(website.id)}
       />
 
-      <form.AppField name="categoryId">
-        {field => (
-          <field.ComboboxField
-            label="Category"
-            placeholder="No category"
-            searchPlaceholder="Search categories…"
-            emptyText="No categories found."
-            options={iconComboboxOptions(categories ?? [])}
-            createOption={{
-              label: "Create category",
-              onSelect: () => setAddCategoryOpen(true),
-            }}
-            onValueChange={value => autoSave.saveField("categoryId", value || null)}
-          />
-        )}
-      </form.AppField>
-      <AddCategoryModal
-        open={addCategoryOpen}
-        onOpenChange={setAddCategoryOpen}
-        onCreated={category => form.setFieldValue("categoryId", category.id)}
+      <SourceDefaultFields
+        initialCategoryId={website.category?.id ?? null}
+        initialMediaTypeId={website.mediaTypeId ?? null}
+        categoryOptions={iconComboboxOptions(categories ?? [])}
+        mediaTypeOptions={mediaTypeTreeComboboxOptions(mediaTypeTree ?? [])}
+        onCategoryChange={id => autoSave.saveField("categoryId", id)}
+        onMediaTypeChange={id => autoSave.saveField("mediaTypeId", id)}
+        note="Media type applied automatically to bookmarks saved from this site."
       />
-
-      <form.AppField name="mediaTypeId">
-        {field => (
-          <field.ComboboxField
-            label="Media type"
-            placeholder="No media type"
-            searchPlaceholder="Search media types…"
-            emptyText="No media types found."
-            options={mediaTypeTreeComboboxOptions(mediaTypeTree ?? [])}
-            createOption={{
-              label: "Create media type",
-              onSelect: () => setAddMediaTypeOpen(true),
-            }}
-            onValueChange={value => autoSave.saveField("mediaTypeId", value || null)}
-          />
-        )}
-      </form.AppField>
-      <AddMediaTypeModal
-        open={addMediaTypeOpen}
-        onOpenChange={setAddMediaTypeOpen}
-        onCreated={mediaType => form.setFieldValue("mediaTypeId", mediaType.id)}
-      />
-      <p className="text-sm text-muted-foreground">
-        Media type applied automatically to bookmarks saved from this site.
-      </p>
 
       <Separator />
 
