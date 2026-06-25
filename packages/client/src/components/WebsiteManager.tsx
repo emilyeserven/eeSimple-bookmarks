@@ -6,7 +6,8 @@ import { useNavigate } from "@tanstack/react-router";
 import { CheckSquare } from "lucide-react";
 
 import { AddWebsiteModal } from "./AddWebsiteModal";
-import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
+import { BulkActionBar } from "./bulk/BulkActionBar";
+import { WebsiteBulkActions } from "./bulk/WebsiteBulkActions";
 import { ListingStatusMessages } from "./ListingStatusMessages";
 import { listingSelectionColumn } from "./tables/selectionColumn";
 import { useTableRowNav } from "./tables/useTableRowNav";
@@ -15,7 +16,7 @@ import { WebsiteListItem } from "./WebsiteListItem";
 import { useHeaderSearchFilter } from "../hooks/useHeaderSearchFilter";
 import { useSetListingPage } from "../hooks/useListingPage";
 import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
-import { useBulkDeleteWebsites, useWebsites } from "../hooks/useWebsites";
+import { useWebsites } from "../hooks/useWebsites";
 import { COLUMN_CLASS, useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
 import { useListSelection } from "../lib/useListSelection";
 
@@ -46,7 +47,6 @@ export function WebsitesListing() {
 
   const deletableIds = filtered.filter(w => !w.builtIn).map(w => w.id);
   const selection = useListSelection("websites-listing", deletableIds);
-  const bulkDelete = useBulkDeleteWebsites();
 
   return (
     <div className="space-y-4">
@@ -82,12 +82,18 @@ export function WebsitesListing() {
           )
           : null}
 
-        <TaxonomyBulkBar
-          selection={selection}
+        <BulkActionBar
+          count={selection.count}
           totalSelectable={deletableIds.length}
-          bulkDelete={bulkDelete}
-          noun={["website", "websites"]}
-        />
+          onSelectAll={selection.selectAll}
+          onClear={selection.clear}
+          allSelected={selection.allSelected}
+        >
+          <WebsiteBulkActions
+            selectedIds={selection.selectedIds}
+            onDone={selection.clear}
+          />
+        </BulkActionBar>
 
         {filtered.length > 0 && viewMode === "table"
           ? (

@@ -1,5 +1,6 @@
 import type {
   Author,
+  BulkBookmarkResult,
   BulkDeleteResult,
   Category,
   CategoryPropertyDefaults,
@@ -107,6 +108,23 @@ export const websitesApi = {
   deleteImage: (id: string) =>
     request<undefined>(`/websites/${id}/image`, {
       method: "DELETE",
+    }),
+  bulkUpdate: (ids: string[], patch: UpdateWebsiteInput) =>
+    request<BulkBookmarkResult[]>("/websites/bulk", {
+      method: "POST",
+      body: JSON.stringify({
+        ids,
+        patch,
+      }),
+    }),
+  bulkTags: (ids: string[], tagIds: string[], op: "add" | "remove") =>
+    request<BulkBookmarkResult[]>("/websites/bulk-tags", {
+      method: "POST",
+      body: JSON.stringify({
+        ids,
+        tagIds,
+        op,
+      }),
     }),
 };
 

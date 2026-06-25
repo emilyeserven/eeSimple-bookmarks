@@ -10,10 +10,13 @@ import {
 } from "../../hooks/useBookmarks";
 import { useCategories } from "../../hooks/useCategories";
 import { useMediaTypes } from "../../hooks/useMediaTypes";
-import { useTagTree } from "../../hooks/useTags";
 import { CONTENT_STATUS_SLUG } from "../bookmarkFormSchema";
 import { Combobox } from "../Combobox";
-import { TagPickerWithCreate } from "../TagPickerWithCreate";
+import {
+  BulkComboboxDialog,
+  BulkConfirmDeleteDialog,
+  BulkTagsDialog,
+} from "./BulkActionDialogs";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -44,59 +47,6 @@ interface BulkActionProps {
   onDone: () => void;
 }
 
-/** Confirm-then-delete the selected bookmarks. */
-function BulkDeleteButton({
-  ids, onDone,
-}: BulkActionProps) {
-  const [open, setOpen] = useState(false);
-  const bulkDelete = useBulkDeleteBookmarks();
-  return (
-    <Dialog
-      open={open}
-      onOpenChange={setOpen}
-    >
-      <DialogTrigger asChild>
-        <Button
-          variant="destructive"
-          size="sm"
-        >
-          Delete
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>
-            Delete
-            {" "}
-            {ids.length}
-            {" "}
-            {ids.length === 1 ? "bookmark" : "bookmarks"}
-            ?
-          </DialogTitle>
-          <DialogDescription>This cannot be undone.</DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
-          </DialogClose>
-          <Button
-            variant="destructive"
-            disabled={bulkDelete.isPending}
-            onClick={() => bulkDelete.mutate(ids, {
-              onSuccess: () => {
-                setOpen(false);
-                onDone();
-              },
-            })}
-          >
-            Delete
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
 interface SetComboboxDialogProps extends BulkActionProps {
   triggerLabel: string;
   title: string;
@@ -106,156 +56,25 @@ interface SetComboboxDialogProps extends BulkActionProps {
   toPatch: (value: string) => UpdateBookmarkInput;
 }
 
-/** A dialog that picks one option and applies it to every selected bookmark. */
 function SetComboboxDialog({
-  ids,
-  onDone,
-  triggerLabel,
-  title,
-  options,
-  placeholder,
-  toPatch,
+  ids, onDone, triggerLabel, title, options, placeholder, toPatch,
 }: SetComboboxDialogProps) {
-  const [open, setOpen] = useState(false);
-  const [value, setValue] = useState<string | undefined>(undefined);
   const bulkUpdate = useBulkUpdateBookmarks();
   return (
-    <Dialog
-      open={open}
-      onOpenChange={setOpen}
-    >
-      <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-        >
-          {triggerLabel}
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>
-            Applies to
-            {" "}
-            {ids.length}
-            {" "}
-            selected
-            {" "}
-            {ids.length === 1 ? "bookmark" : "bookmarks"}
-            .
-          </DialogDescription>
-        </DialogHeader>
-        <Combobox
-          options={options}
-          value={value}
-          onValueChange={setValue}
-          placeholder={placeholder}
-        />
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
-          </DialogClose>
-          <Button
-            disabled={value === undefined || bulkUpdate.isPending}
-            onClick={() => {
-              if (value === undefined) return;
-              bulkUpdate.mutate({
-                ids,
-                patch: toPatch(value),
-              }, {
-                onSuccess: () => {
-                  setOpen(false);
-                  setValue(undefined);
-                  onDone();
-                },
-              });
-            }}
-          >
-            Apply
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-/** Add or remove a set of tags across the selected bookmarks. */
-function BulkTagsButton({
-  ids, onDone,
-}: BulkActionProps) {
-  const [open, setOpen] = useState(false);
-  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
-  const {
-    data: tagTree = [],
-  } = useTagTree();
-  const bulkTags = useBulkBookmarkTags();
-
-  function apply(op: "add" | "remove") {
-    if (selectedTagIds.length === 0) return;
-    bulkTags.mutate({
-      ids,
-      tagIds: selectedTagIds,
-      op,
-    }, {
-      onSuccess: () => {
-        setOpen(false);
-        setSelectedTagIds([]);
-        onDone();
-      },
-    });
-  }
-
-  return (
-    <Dialog
-      open={open}
-      onOpenChange={setOpen}
-    >
-      <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-        >
-          Tags
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Add or remove tags</DialogTitle>
-          <DialogDescription>
-            Choose tags, then add or remove them across
-            {" "}
-            {ids.length}
-            {" "}
-            selected
-            {" "}
-            {ids.length === 1 ? "bookmark" : "bookmarks"}
-            .
-          </DialogDescription>
-        </DialogHeader>
-        <TagPickerWithCreate
-          tree={tagTree}
-          selectedIds={selectedTagIds}
-          onToggle={id => setSelectedTagIds(current =>
-            current.includes(id) ? current.filter(x => x !== id) : [...current, id])}
-        />
-        <DialogFooter>
-          <Button
-            variant="outline"
-            disabled={selectedTagIds.length === 0 || bulkTags.isPending}
-            onClick={() => apply("remove")}
-          >
-            Remove
-          </Button>
-          <Button
-            disabled={selectedTagIds.length === 0 || bulkTags.isPending}
-            onClick={() => apply("add")}
-          >
-            Add
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <BulkComboboxDialog
+      ids={ids}
+      onDone={onDone}
+      triggerLabel={triggerLabel}
+      title={title}
+      options={options}
+      placeholder={placeholder}
+      noun="bookmark"
+      isPending={bulkUpdate.isPending}
+      onApply={(value, cb) => bulkUpdate.mutate({
+        ids,
+        patch: toPatch(value),
+      }, cb)}
+    />
   );
 }
 
@@ -329,8 +148,7 @@ function BulkSetPropertyButton({
         <Button
           variant="outline"
           size="sm"
-        >
-          Set property
+        >Set property
         </Button>
       </DialogTrigger>
       <DialogContent>
@@ -380,8 +198,7 @@ function BulkSetPropertyButton({
           <Button
             disabled={!property || bulkUpdate.isPending}
             onClick={apply}
-          >
-            Apply
+          >Apply
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -455,7 +272,8 @@ export function BookmarkBulkActions({
   const {
     data: mediaTypes = [],
   } = useMediaTypes();
-
+  const bulkTags = useBulkBookmarkTags();
+  const bulkDelete = useBulkDeleteBookmarks();
   const contentStatusProperty = properties.find(p => p.slug === CONTENT_STATUS_SLUG);
 
   return (
@@ -513,18 +331,29 @@ export function BookmarkBulkActions({
           })}
         />
       )}
-      <BulkTagsButton
+      <BulkTagsDialog
         ids={selectedIds}
         onDone={onDone}
+        noun="bookmark"
+        title="Add or remove tags"
+        isPending={bulkTags.isPending}
+        onApply={(tagIds, op, cb) => bulkTags.mutate({
+          ids: selectedIds,
+          tagIds,
+          op,
+        }, cb)}
       />
       <BulkSetPropertyButton
         ids={selectedIds}
         properties={properties}
         onDone={onDone}
       />
-      <BulkDeleteButton
+      <BulkConfirmDeleteDialog
         ids={selectedIds}
         onDone={onDone}
+        noun="bookmark"
+        isPending={bulkDelete.isPending}
+        onDelete={cb => bulkDelete.mutate(selectedIds, cb)}
       />
     </>
   );

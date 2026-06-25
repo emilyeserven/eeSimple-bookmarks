@@ -1,5 +1,5 @@
 import { and, asc, eq, inArray, isNull, ne, or, sql } from "drizzle-orm";
-import type { BulkDeleteResult, CreateWebsiteInput, RedirectFailureBookmark, RedirectFailureWebsite, ShortenedLink, SocialLink, UpdateWebsiteInput, Website, WebsiteNode, WebsiteParamRule } from "@eesimple/types";
+import type { BulkBookmarkResult, BulkDeleteResult, CreateWebsiteInput, RedirectFailureBookmark, RedirectFailureWebsite, ShortenedLink, SocialLink, UpdateWebsiteInput, Website, WebsiteNode, WebsiteParamRule } from "@eesimple/types";
 import { getShortenerIgnoreList } from "@/services/appSettings";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { db } from "@/db";
@@ -612,6 +612,77 @@ export async function deleteWebsite(id: string): Promise<boolean> {
 /** Delete many websites, reporting per-item outcomes (built-ins are skipped). */
 export function bulkDeleteWebsites(ids: string[]): Promise<BulkDeleteResult[]> {
   return bulkDeleteEntities(ids, deleteWebsite, err => err instanceof BuiltInWebsiteError);
+}
+
+/** Apply a patch to many websites, reporting per-item outcomes. */
+export async function bulkUpdateWebsites(
+  ids: string[],
+  patch: UpdateWebsiteInput,
+): Promise<BulkBookmarkResult[]> {
+  const results: BulkBookmarkResult[] = [];
+  for (const id of ids) {
+    try {
+      const updated = await updateWebsite(id, patch);
+      results.push(updated
+        ? {
+          id,
+          status: "applied",
+        }
+        : {
+          id,
+          status: "not-found",
+        });
+    }
+    catch (err) {
+      results.push({
+        id,
+        status: "error",
+        message: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+  return results;
+}
+
+/** Add or remove a fixed set of default tags across many websites, reporting per-item outcomes. */
+export async function bulkUpdateWebsiteTags(
+  ids: string[],
+  tagIds: string[],
+  op: "add" | "remove",
+): Promise<BulkBookmarkResult[]> {
+  const results: BulkBookmarkResult[] = [];
+  const removeSet = new Set(tagIds);
+  for (const id of ids) {
+    try {
+      const existing = await getWebsite(id);
+      if (!existing) {
+        results.push({
+          id,
+          status: "not-found",
+        });
+        continue;
+      }
+      const current = existing.tagIds ?? [];
+      const next = op === "add"
+        ? [...new Set([...current, ...tagIds])]
+        : current.filter(tagId => !removeSet.has(tagId));
+      await updateWebsite(id, {
+        tagIds: next,
+      });
+      results.push({
+        id,
+        status: "applied",
+      });
+    }
+    catch (err) {
+      results.push({
+        id,
+        status: "error",
+        message: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+  return results;
 }
 
 /**
