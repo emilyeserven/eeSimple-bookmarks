@@ -667,6 +667,17 @@ const migrations: RuntimeMigration[] = [
         ADD COLUMN IF NOT EXISTS "redirect_resolution_failure" boolean NOT NULL DEFAULT false
     `),
   },
+  {
+    // `saved_filters.viewable_online` flags filters surfaced as quick-access shortcuts in the app
+    // sidebar (handy in the installed PWA). NOT NULL DEFAULT false on the populated `saved_filters`
+    // table makes drizzle-kit push prompt (the same non-TTY crash as the other NOT NULL column cases
+    // above), so pre-apply it here to keep push's diff additive-only.
+    name: "add saved_filters.viewable_online column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "saved_filters"
+        ADD COLUMN IF NOT EXISTS "viewable_online" boolean NOT NULL DEFAULT false
+    `),
+  },
 ];
 
 async function main(): Promise<void> {

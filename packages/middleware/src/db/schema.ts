@@ -1633,6 +1633,7 @@ export const savedFilters = pgTable("saved_filters", {
   name: text("name").notNull(),
   description: text("description"),
   filters: jsonb("filters").$type<Record<string, unknown>>().notNull(),
+  viewableOnline: boolean("viewable_online").notNull().default(false),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),

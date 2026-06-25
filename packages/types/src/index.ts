@@ -2283,6 +2283,8 @@ export interface SavedFilter {
   description: string | null;
   /** Serialized `BookmarkSearch` — typed generically so the middleware stays decoupled from the client's URL-state type. */
   filters: Record<string, unknown>;
+  /** Surface this filter as a quick-access shortcut in the app sidebar (handy in the installed PWA). */
+  viewableOnline: boolean;
   createdAt: string;
 }
 
@@ -2290,6 +2292,7 @@ export interface CreateSavedFilterInput {
   name: string;
   description?: string | null;
   filters: Record<string, unknown>;
+  viewableOnline?: boolean;
 }
 
 export type UpdateSavedFilterInput = Partial<CreateSavedFilterInput>;

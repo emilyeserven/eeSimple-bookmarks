@@ -36,6 +36,9 @@ const createBody = {
     filters: {
       type: "object",
     },
+    viewableOnline: {
+      type: "boolean",
+    },
   },
 } as const;
 
@@ -52,6 +55,9 @@ const updateBody = {
     },
     filters: {
       type: "object",
+    },
+    viewableOnline: {
+      type: "boolean",
     },
   },
 } as const;

@@ -13,6 +13,7 @@ function toSavedFilter(row: SavedFilterRow): SavedFilter {
     name: row.name,
     description: row.description,
     filters: row.filters,
+    viewableOnline: row.viewableOnline,
     createdAt: row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
   };
 }
@@ -40,6 +41,7 @@ export async function createSavedFilter(input: CreateSavedFilterInput): Promise<
       name: input.name,
       description: input.description ?? null,
       filters: input.filters,
+      viewableOnline: input.viewableOnline ?? false,
     })
     .returning();
   return toSavedFilter(row);
@@ -53,6 +55,7 @@ export async function updateSavedFilter(
   if (input.name !== undefined) updates.name = input.name;
   if (input.description !== undefined) updates.description = input.description ?? null;
   if (input.filters !== undefined) updates.filters = input.filters;
+  if (input.viewableOnline !== undefined) updates.viewableOnline = input.viewableOnline;
 
   if (Object.keys(updates).length === 0) {
     return getSavedFilterById(id);

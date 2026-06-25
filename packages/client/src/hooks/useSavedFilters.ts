@@ -1,5 +1,6 @@
 import type {
   CreateSavedFilterInput,
+  UpdateSavedFilterInput,
 } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -29,6 +30,24 @@ export function useCreateSavedFilter() {
     },
     onError: (err: Error) => {
       notifyError(describeError(err, "Failed to save filter"));
+    },
+  });
+}
+
+export function useUpdateSavedFilter() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id, input,
+    }: { id: string;
+      input: UpdateSavedFilterInput; }) => savedFiltersApi.update(id, input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: SAVED_FILTERS_KEY,
+      });
+    },
+    onError: (err: Error) => {
+      notifyError(describeError(err, "Failed to update filter"));
     },
   });
 }
