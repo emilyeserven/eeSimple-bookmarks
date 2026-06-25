@@ -177,6 +177,7 @@ export function AppSidebar({
     customizationExpanded,
     setCustomizationExpanded,
     resolvedPins,
+    viewableFilters,
     setPinnedExpanded,
     setPinnedShowAll,
     pagination,
@@ -333,6 +334,42 @@ export function AppSidebar({
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {viewableFilters.length > 0
+          ? (
+            <CollapsibleSection
+              sectionKey="saved-filters"
+              label="Saved Filters"
+            >
+              <SidebarMenu>
+                {viewableFilters.map(filter => (
+                  <SidebarMenuItem key={filter.id}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={filter.isActive}
+                      tooltip={filter.label}
+                    >
+                      <Link
+                        to="/bookmarks"
+                        search={filter.link.kind === "filter" ? filter.link.search : undefined}
+                      >
+                        {filter.icon}
+                        <span>{filter.label}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                    {filter.bookmarkCount != null && state !== "collapsed"
+                      ? (
+                        <SidebarMenuBadge>
+                          <Badge variant="secondary">{filter.bookmarkCount}</Badge>
+                        </SidebarMenuBadge>
+                      )
+                      : null}
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </CollapsibleSection>
+          )
+          : null}
 
         {!hiddenSidebarGroups.includes("categories") && (visibleCategories.length > 0 || seeMoreCategories.length > 0)
           ? (

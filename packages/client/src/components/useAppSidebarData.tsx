@@ -153,6 +153,7 @@ export interface AppSidebarData<T extends SidebarNavItem, C extends SidebarNavIt
   customizationExpanded: boolean;
   setCustomizationExpanded: (v: boolean) => void;
   resolvedPins: ResolvedPin[];
+  viewableFilters: ResolvedPin[];
   pinnedExpanded: boolean;
   setPinnedExpanded: (v: boolean) => void;
   pinnedShowAll: boolean;
@@ -255,6 +256,7 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
   ).filter(item => seeMoreCustomizationItems.includes(item.key));
 
   const resolvedPins = useResolvedPins(data, pathname, currentBookmarkCategories);
+  const viewableFilters = useViewableFilters(data, pathname);
   const pagination = paginatePins(resolvedPins, {
     pinnedExpanded,
     pinnedShowAll,
@@ -275,6 +277,7 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
     customizationExpanded,
     setCustomizationExpanded,
     resolvedPins,
+    viewableFilters,
     pinnedExpanded,
     setPinnedExpanded,
     pinnedShowAll,
@@ -401,4 +404,37 @@ function useResolvedPins(
     });
   }, [pinnedItems, categories, allTags, allWebsites, allMediaTypes, allChannels, savedFilters,
     allBookmarks, pathname, currentBookmarkCategories]);
+}
+
+/**
+ * Resolve the saved filters the user marked "viewable online" to sidebar filter-link shapes. These
+ * surface as quick-access shortcuts in their own sidebar group (handy in the installed PWA), separate
+ * from the manually-ordered pinned items.
+ */
+function useViewableFilters(
+  data: ReturnType<typeof useSidebarEntityData>,
+  pathname: string,
+): ResolvedPin[] {
+  const {
+    savedFilters, allBookmarks,
+  } = data;
+  return React.useMemo((): ResolvedPin[] => {
+    return (savedFilters ?? [])
+      .filter(filter => filter.viewableOnline)
+      .map((filter): ResolvedPin => {
+        const search = validateBookmarkSearch(filter.filters);
+        const bookmarkCount = (allBookmarks ?? []).filter(b => bookmarkMatchesSearch(b, search)).length;
+        return {
+          id: filter.id,
+          label: filter.name,
+          icon: <Filter />,
+          link: {
+            kind: "filter",
+            search,
+          },
+          bookmarkCount,
+          isActive: pathname === "/bookmarks" || pathname === "/bookmarks/",
+        };
+      });
+  }, [savedFilters, allBookmarks, pathname]);
 }

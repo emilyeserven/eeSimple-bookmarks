@@ -44,6 +44,21 @@ test("POST /api/saved-filters rejects a non-object filters value", async () => {
   await app.close();
 });
 
+test("POST /api/saved-filters rejects a non-boolean viewableOnline", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "POST",
+    url: "/api/saved-filters",
+    payload: {
+      name: "Mine",
+      filters: {},
+      viewableOnline: "yes",
+    },
+  });
+  assert.equal(res.statusCode, 400);
+  await app.close();
+});
+
 test("PATCH /api/saved-filters/:id rejects a non-uuid id", async () => {
   const app = await buildApp();
   const res = await app.inject({
