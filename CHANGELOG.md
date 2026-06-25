@@ -4,6 +4,46 @@ All notable changes to this project are documented in this file. Versioning and 
 managed automatically by [release-please](https://github.com/googleapis/release-please) from
 [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [0.1.5](https://github.com/emilyeserven/eeSimple-bookmarks/compare/v0.1.4...v0.1.5) (2026-06-25)
+
+
+### Features
+
+* add AI summarization settings and bulk mark-as-summarized action ([#520](https://github.com/emilyeserven/eeSimple-bookmarks/issues/520)) ([2e67578](https://github.com/emilyeserven/eeSimple-bookmarks/commit/2e67578571a54f7fd3d1bd9b21df2eadbd1312eb))
+* add alternate names for website title stripping ([#525](https://github.com/emilyeserven/eeSimple-bookmarks/issues/525)) ([022e8b0](https://github.com/emilyeserven/eeSimple-bookmarks/commit/022e8b0428135f9844638ac196da7a24a198600f))
+* add author creation modal to bookmark form ([#536](https://github.com/emilyeserven/eeSimple-bookmarks/issues/536)) ([8617167](https://github.com/emilyeserven/eeSimple-bookmarks/commit/8617167e1162f73a15d9e475311fe03b2e66dae1))
+* add bulk reading status action to BookmarkBulkActions ([#532](https://github.com/emilyeserven/eeSimple-bookmarks/issues/532)) ([037ee6b](https://github.com/emilyeserven/eeSimple-bookmarks/commit/037ee6b829c43ba2a24f65196b7c661ee2fdd84e))
+* add bulk update and tag operations for websites ([#541](https://github.com/emilyeserven/eeSimple-bookmarks/issues/541)) ([eb71303](https://github.com/emilyeserven/eeSimple-bookmarks/commit/eb713030268f6357c681b31216b58e0436f9c205))
+* add choices property support to bookmark card quick-edit menu ([#537](https://github.com/emilyeserven/eeSimple-bookmarks/issues/537)) ([bd312dc](https://github.com/emilyeserven/eeSimple-bookmarks/commit/bd312dc71d2a65aa73d99cd9b1a2839c97de5fcf))
+* add custom query parameter stripping for URL cleanup ([#530](https://github.com/emilyeserven/eeSimple-bookmarks/issues/530)) ([b479018](https://github.com/emilyeserven/eeSimple-bookmarks/commit/b479018d2329a42fa6dd9e3e6d92513bf73708c6))
+* add dialog to mark domains as link shorteners ([#512](https://github.com/emilyeserven/eeSimple-bookmarks/issues/512)) ([4ab44ba](https://github.com/emilyeserven/eeSimple-bookmarks/commit/4ab44bab213cec2d2cc9db47c5eeb35e3cdd8bb1))
+* add inbox pre-fill defaults for batch bookmark approval ([#521](https://github.com/emilyeserven/eeSimple-bookmarks/issues/521)) ([0c2f390](https://github.com/emilyeserven/eeSimple-bookmarks/commit/0c2f390ca1e4a296c28e22fd5362053cb52f4ee6))
+* add inline tag creation to bookmark form ([#519](https://github.com/emilyeserven/eeSimple-bookmarks/issues/519)) ([213704b](https://github.com/emilyeserven/eeSimple-bookmarks/commit/213704bc118cb279dc3e87cce32bdabbd77e68eb))
+* add Publishers taxonomy and "See More" expansion for taxonomies/customization ([#514](https://github.com/emilyeserven/eeSimple-bookmarks/issues/514)) ([c8ffcab](https://github.com/emilyeserven/eeSimple-bookmarks/commit/c8ffcab03cce96ba7cbcd24d0e02fecf3628c484))
+* add redirect-failures settings page for fixing bookmarks ([#524](https://github.com/emilyeserven/eeSimple-bookmarks/issues/524)) ([f88cc29](https://github.com/emilyeserven/eeSimple-bookmarks/commit/f88cc2913459ffa3566c8d9b73548c33129b816b))
+* add social media links and YouTube channel associations ([#516](https://github.com/emilyeserven/eeSimple-bookmarks/issues/516)) ([4e41e35](https://github.com/emilyeserven/eeSimple-bookmarks/commit/4e41e35c73cba596efcf78d386b97cb9ecbf1c3f))
+* add tag creation to tag pickers across the app ([#523](https://github.com/emilyeserven/eeSimple-bookmarks/issues/523)) ([3f4a652](https://github.com/emilyeserven/eeSimple-bookmarks/commit/3f4a65260e009cfa6be9eb0bc0c40286764b67b8))
+* add template save/load controls to card field zone settings ([#510](https://github.com/emilyeserven/eeSimple-bookmarks/issues/510)) ([a8e3ed1](https://github.com/emilyeserven/eeSimple-bookmarks/commit/a8e3ed17daf494200f27287b9eba0af7cb9ea438))
+* add text custom property type with ISBN metadata lookup ([#526](https://github.com/emilyeserven/eeSimple-bookmarks/issues/526)) ([97ffa34](https://github.com/emilyeserven/eeSimple-bookmarks/commit/97ffa344a6e5e1d8d7c320b070f0d9a0852087b3))
+* add URL sanitizer hook for redirect failures form ([#527](https://github.com/emilyeserven/eeSimple-bookmarks/issues/527)) ([89d5988](https://github.com/emilyeserven/eeSimple-bookmarks/commit/89d5988f36752fbce14d083aa12083b1e94a6d62))
+* add website hierarchy view showing parent domains and subdomains ([#542](https://github.com/emilyeserven/eeSimple-bookmarks/issues/542)) ([dae9060](https://github.com/emilyeserven/eeSimple-bookmarks/commit/dae9060ece17c318e26ac2275b270fee53c7a8f4))
+* add YouTube channels, websites, and publishers associations to authors ([#522](https://github.com/emilyeserven/eeSimple-bookmarks/issues/522)) ([d940d61](https://github.com/emilyeserven/eeSimple-bookmarks/commit/d940d61d860f62bc313e13348c53d30c2bec246e))
+* auto-populate authors and publisher from ISBN metadata ([#533](https://github.com/emilyeserven/eeSimple-bookmarks/issues/533)) ([fe02257](https://github.com/emilyeserven/eeSimple-bookmarks/commit/fe0225767e09e41040333bd25d106bc978800325))
+* detect social profile links from author websites ([#538](https://github.com/emilyeserven/eeSimple-bookmarks/issues/538)) ([5133c99](https://github.com/emilyeserven/eeSimple-bookmarks/commit/5133c99981202097059853d3642fe524acf6a7cc))
+* hide page-tracking properties from Add Bookmark form ([#509](https://github.com/emilyeserven/eeSimple-bookmarks/issues/509)) ([018d665](https://github.com/emilyeserven/eeSimple-bookmarks/commit/018d665e65cbf544e1dea44e7a615f2a21ef0ee7))
+* move choices quick-edit into a submenu in the bookmark card menu ([#539](https://github.com/emilyeserven/eeSimple-bookmarks/issues/539)) ([f3ebf13](https://github.com/emilyeserven/eeSimple-bookmarks/commit/f3ebf135c3a5e3ff6691ef74883ed8186a78afe9))
+* persist import item URL dispositions on import rows ([#513](https://github.com/emilyeserven/eeSimple-bookmarks/issues/513)) ([0fce5ee](https://github.com/emilyeserven/eeSimple-bookmarks/commit/0fce5eea6fffdcea29784d1923cddb3b10cefe3f))
+* show AI Summary Queue bookmarks in prompt builder ([#534](https://github.com/emilyeserven/eeSimple-bookmarks/issues/534)) ([f010d1b](https://github.com/emilyeserven/eeSimple-bookmarks/commit/f010d1b7dd0bf13b8a63697a6d933dcd93ed02f4))
+* support ISBN and plain-text entries in Add Bookmark form ([#529](https://github.com/emilyeserven/eeSimple-bookmarks/issues/529)) ([192be09](https://github.com/emilyeserven/eeSimple-bookmarks/commit/192be09d060b0c38e157c381d6d993c7dc3f60a5))
+* support ISBN lookup in quick-add and Enter key handling ([#531](https://github.com/emilyeserven/eeSimple-bookmarks/issues/531)) ([92e89bc](https://github.com/emilyeserven/eeSimple-bookmarks/commit/92e89bc18f862e478d7ac71c89be6be6e0aad83f))
+
+
+### Bug Fixes
+
+* handle empty URLs in bookmark form submission ([#518](https://github.com/emilyeserven/eeSimple-bookmarks/issues/518)) ([62ea425](https://github.com/emilyeserven/eeSimple-bookmarks/commit/62ea4252f7d267dc1b55d287170bcc7334ad5ef4))
+* preserve scroll position on search input changes ([#535](https://github.com/emilyeserven/eeSimple-bookmarks/issues/535)) ([d893f13](https://github.com/emilyeserven/eeSimple-bookmarks/commit/d893f138dbe25d7d03609672820f24ffb103ec18))
+* raise BulkActionBar z-index above card selection overlays ([#540](https://github.com/emilyeserven/eeSimple-bookmarks/issues/540)) ([8bdbb18](https://github.com/emilyeserven/eeSimple-bookmarks/commit/8bdbb180a9da209d972e4540fec0e43308c9c154))
+
 ## [0.1.4](https://github.com/emilyeserven/eeSimple-bookmarks/compare/v0.1.3...v0.1.4) (2026-06-24)
 
 
