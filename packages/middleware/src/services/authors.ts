@@ -11,6 +11,7 @@ import {
   type AuthorRow,
 } from "@/db/schema";
 import { getAuthorImageRow } from "@/services/authorImages";
+import { extractSocialProfileLinks, fetchBodyHtmlResult } from "@/services/metadata";
 import { buildStringMap } from "@/utils/mapUtils";
 import { slugify, uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
@@ -280,6 +281,29 @@ export async function updateAuthor(id: string, input: UpdateAuthorInput): Promis
       publisherMap.get(id) ?? [],
     );
   });
+}
+
+/**
+ * Fetch the author's website and scan it for GitHub, Goodreads, and Bluesky profile links. Returns
+ * the detected links, or a typed reason detection couldn't proceed.
+ */
+export async function detectAuthorSocialLinksFromWebsite(
+  id: string,
+): Promise<SocialLink[] | "not_found" | "no_url" | "fetch_error"> {
+  const [row] = await db
+    .select({
+      authorWebsiteUrl: authors.authorWebsiteUrl,
+    })
+    .from(authors)
+    .where(eq(authors.id, id));
+
+  if (!row) return "not_found";
+  if (!row.authorWebsiteUrl) return "no_url";
+
+  const result = await fetchBodyHtmlResult(row.authorWebsiteUrl, /<\/body>/i);
+  if (result.kind !== "ok") return "fetch_error";
+
+  return extractSocialProfileLinks(result.html, row.authorWebsiteUrl);
 }
 
 /** Delete an author. Bookmark join rows are removed via cascade. Returns false when not found. */

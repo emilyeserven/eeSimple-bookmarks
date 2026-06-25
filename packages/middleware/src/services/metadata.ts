@@ -3,6 +3,8 @@
  * pages (CORS), so the title lookup for a bookmark URL has to happen here.
  */
 
+import type { SocialLink } from "@eesimple/types";
+
 import { processImage } from "@/utils/image";
 
 export const FETCH_TIMEOUT_MS = 5000;
@@ -622,4 +624,66 @@ export async function fetchFaviconImage(pageUrl: string): Promise<OgImageResult>
     return bytes;
   }
   return "bad_image";
+}
+
+/** GitHub path segments that are system pages, not user profiles. */
+const GITHUB_SYSTEM_PATHS = new Set([
+  "features", "pricing", "enterprise", "about", "marketplace", "topics",
+  "trending", "collections", "events", "sponsors", "organizations", "orgs",
+  "team", "contact", "login", "signup", "issues", "pulls", "search",
+  "explore", "notifications", "gists", "security", "settings", "apps",
+  "docs", "blog", "new", "account", "dashboard", "codespaces",
+]);
+
+/**
+ * Scan an HTML document for `<a href>` links to GitHub, Goodreads, and Bluesky and return the
+ * first match for each as a `SocialLink`. Relative URLs are resolved against `pageUrl`. Pure —
+ * unit-testable like `extractTitle`.
+ */
+export function extractSocialProfileLinks(html: string, pageUrl: string): SocialLink[] {
+  const links: SocialLink[] = [];
+  const seen = new Set<string>();
+
+  for (const [, rawHref] of html.matchAll(/href=["']([^"']+)["']/gi)) {
+    if (!rawHref) continue;
+    if (seen.size >= 3) break;
+    let url: URL;
+    try {
+      url = new URL(rawHref, pageUrl);
+    }
+    catch {
+      continue;
+    }
+    if (url.protocol !== "http:" && url.protocol !== "https:") continue;
+
+    const host = url.hostname.toLowerCase().replace(/^www\./, "");
+    const segments = url.pathname.replace(/\/$/, "").split("/").filter(Boolean);
+
+    if (host === "github.com" && !seen.has("github") && segments.length === 1) {
+      const username = segments[0]!;
+      if (!GITHUB_SYSTEM_PATHS.has(username.toLowerCase())) {
+        links.push({
+          platform: "github",
+          url: `https://github.com/${username}`,
+        });
+        seen.add("github");
+      }
+    }
+    else if (host === "goodreads.com" && !seen.has("goodreads") && segments.length >= 1) {
+      links.push({
+        platform: "goodreads",
+        url: url.origin + url.pathname,
+      });
+      seen.add("goodreads");
+    }
+    else if (host === "bsky.app" && !seen.has("bluesky") && segments[0] === "profile" && segments.length >= 2) {
+      links.push({
+        platform: "bluesky",
+        url: `https://bsky.app/profile/${segments[1]}`,
+      });
+      seen.add("bluesky");
+    }
+  }
+
+  return links;
 }

@@ -4,6 +4,7 @@ import type {
   Category,
   CategoryPropertyDefaults,
   CreateAuthorInput,
+  SocialLink,
   CreateCategoryInput,
   CreateCustomPropertyInput,
   CreateMediaTypeInput,
@@ -68,6 +69,10 @@ export const authorsApi = {
       body: JSON.stringify({
         websiteId,
       }),
+    }),
+  detectSocialLinks: (id: string) =>
+    request<{ detected: SocialLink[] }>(`/authors/${id}/social-links/detect`, {
+      method: "POST",
     }),
 };
 

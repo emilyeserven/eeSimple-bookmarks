@@ -178,3 +178,10 @@ export function useAdoptWebsiteFaviconForAuthor() {
     onError: (err: Error) => notifyError(describeError(err, "Could not copy the website favicon")),
   });
 }
+
+export function useDetectAuthorSocialLinks() {
+  return useMutation({
+    mutationFn: (id: string) => authorsApi.detectSocialLinks(id),
+    onError: (err: Error) => notifyError(describeError(err, "Could not detect social links")),
+  });
+}
