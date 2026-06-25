@@ -317,14 +317,14 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
       });
       if (!response.ok) {
         return reply.code(502).send({
-          error: "Open Library request failed",
+          message: "Couldn't reach Open Library. Check your connection and try again.",
         }) as unknown as FetchIsbnMetadataResult;
       }
       rawJson = (await response.json()) as Record<string, unknown>;
     }
     catch {
       return reply.code(502).send({
-        error: "Could not reach Open Library",
+        message: "Couldn't reach Open Library. Check your connection and try again.",
       }) as unknown as FetchIsbnMetadataResult;
     }
 
@@ -332,7 +332,7 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
     const data = rawJson[key] as Record<string, unknown> | undefined;
     if (!data) {
       return reply.code(404).send({
-        error: "ISBN not found",
+        message: "No book found for that ISBN in Open Library. Check the ISBN and try again.",
       }) as unknown as FetchIsbnMetadataResult;
     }
 
@@ -346,12 +346,14 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
     const coversRaw = data.cover as { large?: string;
       medium?: string; } | undefined;
     const authorsRaw = data.authors as { name?: string }[] | undefined;
+    const publishersRaw = data.publishers as { name?: string }[] | undefined;
 
     return {
       title: typeof data.title === "string" ? data.title : null,
       description: description as string | null,
       coverUrl: coversRaw?.large ?? coversRaw?.medium ?? null,
       authors: authorsRaw?.map(a => a.name ?? "").filter(Boolean) ?? [],
+      publisher: publishersRaw?.[0]?.name ?? null,
       year: typeof data.publish_date === "string" ? data.publish_date : null,
       openLibraryUrl: typeof data.url === "string" ? data.url : null,
     };

@@ -32,8 +32,9 @@ import { useBookmarkScanHandlers } from "./useBookmarkScanHandlers";
 import { useBookmarkUrlProcessing } from "./useBookmarkUrlProcessing";
 import { useFetchIsbnMetadata } from "../hooks/useFetchIsbnMetadata";
 import { metadataApi } from "../lib/api/metadata";
+import { describeError } from "../lib/apiError";
 import { useAppForm } from "../lib/form";
-import { notifySuccess } from "../lib/notifications";
+import { notifyError, notifySuccess } from "../lib/notifications";
 
 /** True when `url`'s hostname (minus leading www.) matches any entry in `ignoreList`. */
 function isRedirectIgnored(url: string, ignoreList: string[]): boolean {
@@ -92,6 +93,7 @@ export function useBookmarkFormController({
       updateWebsite,
       updateYouTubeChannel,
       createAuthor,
+      createPublisher,
     },
     websites,
     shortenerIgnoreList,
@@ -385,14 +387,65 @@ export function useBookmarkFormController({
   const isbnFetch = useFetchIsbnMetadata();
 
   async function handleIsbnFetch(isbn: string): Promise<void> {
-    const result = await isbnFetch.mutateAsync({
-      isbn,
-    });
+    let result;
+    try {
+      result = await isbnFetch.mutateAsync({
+        isbn,
+      });
+    }
+    catch (err) {
+      notifyError(describeError(err, "Could not fetch book metadata"));
+      return;
+    }
     if (result.title && !form.getFieldValue("title").trim()) {
       form.setFieldValue("title", result.title);
     }
     if (result.description && !form.getFieldValue("description").trim()) {
       form.setFieldValue("description", result.description);
+    }
+    // Populate authors: match existing by name (case-insensitive) or create new ones.
+    if (result.authors.length > 0 && (form.getFieldValue("authorIds") as string[]).length === 0) {
+      const existingAuthors = authors ?? [];
+      const ids: string[] = [];
+      for (const name of result.authors) {
+        const normalName = name.toLowerCase();
+        const match = existingAuthors.find(a => a.name.toLowerCase() === normalName);
+        if (match) {
+          ids.push(match.id);
+        }
+        else {
+          try {
+            const created = await createAuthor.mutateAsync({
+              name,
+            });
+            ids.push(created.id);
+          }
+          catch {
+            // Skip authors that can't be created (e.g. duplicate race).
+          }
+        }
+      }
+      if (ids.length > 0) form.setFieldValue("authorIds", ids);
+    }
+    // Populate publisher: match existing by name (case-insensitive) or create a new one.
+    if (result.publisher && !form.getFieldValue("publisherId")) {
+      const existingPublishers = publishers ?? [];
+      const normalName = result.publisher.toLowerCase();
+      const match = existingPublishers.find(p => p.name.toLowerCase() === normalName);
+      if (match) {
+        form.setFieldValue("publisherId", match.id);
+      }
+      else {
+        try {
+          const created = await createPublisher.mutateAsync({
+            name: result.publisher,
+          });
+          form.setFieldValue("publisherId", created.id);
+        }
+        catch {
+          // Skip publisher that can't be created (e.g. duplicate race).
+        }
+      }
     }
   }
 
