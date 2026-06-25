@@ -7,6 +7,7 @@ import { useRateLimitCooldown } from "./useRateLimitCooldown";
 import { websitesApi } from "../lib/api/taxonomies";
 import { ApiError, describeError } from "../lib/apiError";
 import { notifyImageFetchError } from "../lib/bugReport";
+import { notifyBulkResult } from "../lib/bulkResults";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
 const WEBSITES_KEY = ["websites"] as const;
@@ -112,6 +113,45 @@ export function useBulkDeleteWebsites() {
     void queryClient.invalidateQueries({
       queryKey: BOOKMARKS_KEY,
     });
+  });
+}
+
+export function useBulkUpdateWebsites() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      ids, patch,
+    }: { ids: string[];
+      patch: UpdateWebsiteInput; }) => websitesApi.bulkUpdate(ids, patch),
+    onSuccess: (results) => {
+      void queryClient.invalidateQueries({
+        queryKey: WEBSITES_KEY,
+      });
+      void queryClient.invalidateQueries({
+        queryKey: BOOKMARKS_KEY,
+      });
+      notifyBulkResult(results, "updated");
+    },
+  });
+}
+
+export function useBulkWebsiteTags() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      ids, tagIds, op,
+    }: { ids: string[];
+      tagIds: string[];
+      op: "add" | "remove"; }) => websitesApi.bulkTags(ids, tagIds, op),
+    onSuccess: (results) => {
+      void queryClient.invalidateQueries({
+        queryKey: WEBSITES_KEY,
+      });
+      void queryClient.invalidateQueries({
+        queryKey: BOOKMARKS_KEY,
+      });
+      notifyBulkResult(results, "updated");
+    },
   });
 }
 

@@ -9,6 +9,8 @@ import {
 } from "@/services/websiteFavicons";
 import {
   bulkDeleteWebsites,
+  bulkUpdateWebsites,
+  bulkUpdateWebsiteTags,
   BuiltInWebsiteError,
   createWebsite,
   deleteWebsite,
@@ -184,9 +186,68 @@ const updateWebsiteBody = {
   },
 } as const;
 
+const idArray = {
+  type: "array",
+  items: {
+    type: "string",
+    format: "uuid",
+  },
+} as const;
+
+const bulkUpdateBody = {
+  type: "object",
+  required: ["ids", "patch"],
+  additionalProperties: false,
+  properties: {
+    ids: idArray,
+    patch: updateWebsiteBody,
+  },
+} as const;
+
+const bulkTagsBody = {
+  type: "object",
+  required: ["ids", "tagIds", "op"],
+  additionalProperties: false,
+  properties: {
+    ids: idArray,
+    tagIds: idArray,
+    op: {
+      type: "string",
+      enum: ["add", "remove"],
+    },
+  },
+} as const;
+
 /** Routes for the built-in Websites taxonomy, mounted under `/api/websites`. */
 export async function websiteRoutes(app: FastifyInstance): Promise<void> {
   registerBulkDelete(app, "/api/websites", "websites", bulkDeleteWebsites);
+
+  app.post("/api/websites/bulk", {
+    schema: {
+      tags: ["websites"],
+      body: bulkUpdateBody,
+    },
+  }, async (req) => {
+    const {
+      ids, patch,
+    } = req.body as { ids: string[];
+      patch: UpdateWebsiteInput; };
+    return bulkUpdateWebsites(ids, patch);
+  });
+
+  app.post("/api/websites/bulk-tags", {
+    schema: {
+      tags: ["websites"],
+      body: bulkTagsBody,
+    },
+  }, async (req) => {
+    const {
+      ids, tagIds, op,
+    } = req.body as { ids: string[];
+      tagIds: string[];
+      op: "add" | "remove"; };
+    return bulkUpdateWebsiteTags(ids, tagIds, op);
+  });
 
   app.get("/api/websites", {
     schema: {
