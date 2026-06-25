@@ -48,10 +48,17 @@ RUN pnpm --filter @eesimple/middleware exec tsc -p tsconfig.build.json --noCheck
 FROM build-types AS build-client
 
 COPY packages/client ./packages/client/
-# Build the SPA and the Storybook static site. Storybook is always built into the image; whether the
-# gateway actually serves it at /storybook is gated at runtime on DOCS_ENABLED (see server.js).
+# Build the SPA, then the Storybook static site. Storybook is an optional /storybook artifact, gated
+# at runtime on DOCS_ENABLED (see server.js, which also tolerates it being absent). The Storybook
+# build is memory-heavy (~1.5 GB) and was repeatedly OOM-killed on modest Coolify build hosts,
+# failing the whole deploy. It is therefore best-effort here — a failure must NOT block the deploy —
+# and `mkdir -p` guarantees the COPY target exists even when the build is skipped. CI builds
+# Storybook on a roomy runner (.github/workflows/ci.yml) to catch real regressions, so masking a
+# failure here does not lose the regression gate.
 RUN pnpm --filter @eesimple/client build \
- && pnpm --filter @eesimple/client run build-storybook
+ && (pnpm --filter @eesimple/client run build-storybook \
+     || echo "::warning:: Storybook build failed; deploying without /storybook (CI gates Storybook regressions)") \
+ && mkdir -p packages/client/storybook-static
 
 
 # Production stage — fresh install with only production deps (client ships as static files)

@@ -45,3 +45,9 @@ jobs:
       - uses: ./.github/actions/setup-pnpm
       - name: Build
         run: pnpm build
+      # The production Docker build (Dockerfile) treats the memory-heavy Storybook build as
+      # best-effort so a modest Coolify host can't OOM-kill the deploy. This step is the real
+      # regression gate for Storybook, on a roomy runner. `pnpm build` already built types/dist,
+      # which the Storybook build resolves @eesimple/types from.
+      - name: Build Storybook
+        run: pnpm --filter=@eesimple/client run build-storybook
