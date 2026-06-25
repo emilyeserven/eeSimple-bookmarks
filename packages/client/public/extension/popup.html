@@ -4,8 +4,10 @@
   <meta charset="UTF-8">
   <style>
     body {
+      position: relative;
       width: 260px;
       padding: 14px;
+      padding-bottom: 18px;
       font-family: system-ui, sans-serif;
       font-size: 13px;
       margin: 0;
@@ -32,18 +34,62 @@
       font-size: 13px;
     }
     button:hover { background: #1d4ed8; }
-    #status { margin-top: 6px; font-size: 12px; color: #555; }
-    #opening { color: #555; }
+    button:disabled { background: #93b4f5; cursor: default; }
+    .hidden { display: none; }
+    #status, #formError {
+      margin-top: 6px;
+      font-size: 12px;
+      min-height: 14px;
+    }
+    #status { color: #555; }
+    #formError { color: #b91c1c; }
+    #successMsg { font-weight: 600; }
+
+    /* bottom countdown bar — duration (5000ms) must match the setTimeout in popup.js */
+    #progress {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 4px;
+      background: #e5e7eb;
+    }
+    #progressBar {
+      height: 100%;
+      width: 100%;
+      background: #2563eb;
+      transform-origin: left center;
+    }
+    #progressBar.run {
+      animation: countdown 5000ms linear forwards;
+    }
+    @keyframes countdown {
+      from { transform: scaleX(1); }
+      to { transform: scaleX(0); }
+    }
   </style>
 </head>
 <body>
-  <div id="setup" style="display:none">
+  <div id="setup" class="hidden">
     <p>Enter your eeSimple server URL:</p>
     <input type="url" id="serverUrl" placeholder="http://eserve-raspi:3000">
-    <button id="saveBtn">Save &amp; Open</button>
+    <button id="saveBtn">Save</button>
     <div id="status"></div>
   </div>
-  <div id="opening">Opening eeSimple&hellip;</div>
+
+  <div id="form" class="hidden">
+    <p>Add to Inbox:</p>
+    <input type="url" id="bmUrl" placeholder="https://...">
+    <button id="addBtn">Add</button>
+    <div id="formError"></div>
+  </div>
+
+  <div id="success" class="hidden">
+    <p id="successMsg">Saved to Inbox.</p>
+    <button id="editBtn">Edit</button>
+  </div>
+
+  <div id="progress" class="hidden"><div id="progressBar"></div></div>
   <script src="popup.js"></script>
 </body>
 </html>
