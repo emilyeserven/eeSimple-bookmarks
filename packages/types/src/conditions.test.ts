@@ -25,6 +25,7 @@ function makeInput(overrides: Partial<ConditionInput> = {}): ConditionInput {
     fileValues: new Set(),
     choicesValues: new Map(),
     sectionsValues: new Map(),
+    textValues: new Map(),
     ...overrides,
   };
 }
@@ -396,6 +397,177 @@ test("property file predicate: presence only", () => {
   };
   assert.equal(evaluateConditions(has, input), true);
   assert.equal(evaluateConditions(missing, input), true);
+});
+
+test("property choices predicate: includes any listed value, and presence", () => {
+  const input = makeInput({
+    choicesValues: new Map([["c", ["red", "green"]]]),
+  });
+  const includesMatch: ConditionNode = {
+    type: "property",
+    propertyId: "c",
+    predicate: {
+      valueKind: "choices",
+      predicate: {
+        kind: "includes",
+        values: ["blue", "green"],
+      },
+    },
+  };
+  const includesMiss: ConditionNode = {
+    type: "property",
+    propertyId: "c",
+    predicate: {
+      valueKind: "choices",
+      predicate: {
+        kind: "includes",
+        values: ["blue", "yellow"],
+      },
+    },
+  };
+  const presentHas: ConditionNode = {
+    type: "property",
+    propertyId: "c",
+    predicate: {
+      valueKind: "choices",
+      predicate: {
+        kind: "presence",
+        mode: "has",
+      },
+    },
+  };
+  const presentMissingOnEmpty: ConditionNode = {
+    type: "property",
+    propertyId: "empty",
+    predicate: {
+      valueKind: "choices",
+      predicate: {
+        kind: "presence",
+        mode: "missing",
+      },
+    },
+  };
+  assert.equal(evaluateConditions(includesMatch, input), true);
+  assert.equal(evaluateConditions(includesMiss, input), false);
+  assert.equal(evaluateConditions(presentHas, input), true);
+  assert.equal(evaluateConditions(presentMissingOnEmpty, input), true);
+});
+
+test("property sections predicate: presence, sectionType, and exhaustive", () => {
+  const input = makeInput({
+    sectionsValues: new Map([["s", {
+      propertyId: "s",
+      exhaustive: true,
+      sections: [{
+        id: "x",
+        name: "Intro",
+        type: "page",
+        startValue: "1",
+      }],
+    }]]),
+  });
+  const present: ConditionNode = {
+    type: "property",
+    propertyId: "s",
+    predicate: {
+      valueKind: "sections",
+      predicate: {
+        kind: "presence",
+        mode: "has",
+      },
+    },
+  };
+  const matchingType: ConditionNode = {
+    type: "property",
+    propertyId: "s",
+    predicate: {
+      valueKind: "sections",
+      predicate: {
+        kind: "sectionType",
+        types: ["page"],
+      },
+    },
+  };
+  const otherType: ConditionNode = {
+    type: "property",
+    propertyId: "s",
+    predicate: {
+      valueKind: "sections",
+      predicate: {
+        kind: "sectionType",
+        types: ["timestamp"],
+      },
+    },
+  };
+  const exhaustive: ConditionNode = {
+    type: "property",
+    propertyId: "s",
+    predicate: {
+      valueKind: "sections",
+      predicate: {
+        kind: "exhaustive",
+        value: true,
+      },
+    },
+  };
+  assert.equal(evaluateConditions(present, input), true);
+  assert.equal(evaluateConditions(matchingType, input), true);
+  assert.equal(evaluateConditions(otherType, input), false);
+  assert.equal(evaluateConditions(exhaustive, input), true);
+});
+
+test("property text predicate: presence and case-insensitive contains", () => {
+  const input = makeInput({
+    textValues: new Map([["t", "Hello World"]]),
+  });
+  const present: ConditionNode = {
+    type: "property",
+    propertyId: "t",
+    predicate: {
+      valueKind: "text",
+      predicate: {
+        kind: "presence",
+        mode: "has",
+      },
+    },
+  };
+  const missingOnEmpty: ConditionNode = {
+    type: "property",
+    propertyId: "blank",
+    predicate: {
+      valueKind: "text",
+      predicate: {
+        kind: "presence",
+        mode: "missing",
+      },
+    },
+  };
+  const containsMatch: ConditionNode = {
+    type: "property",
+    propertyId: "t",
+    predicate: {
+      valueKind: "text",
+      predicate: {
+        kind: "contains",
+        pattern: "world",
+      },
+    },
+  };
+  const containsMiss: ConditionNode = {
+    type: "property",
+    propertyId: "t",
+    predicate: {
+      valueKind: "text",
+      predicate: {
+        kind: "contains",
+        pattern: "goodbye",
+      },
+    },
+  };
+  assert.equal(evaluateConditions(present, input), true);
+  assert.equal(evaluateConditions(missingOnEmpty, input), true);
+  assert.equal(evaluateConditions(containsMatch, input), true);
+  assert.equal(evaluateConditions(containsMiss, input), false);
 });
 
 test("normalizeDomain lowercases and strips a leading www.", () => {
