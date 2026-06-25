@@ -68,6 +68,9 @@ const updateMediaTypeBody = {
       format: "uuid",
       nullable: true,
     },
+    editableOnCard: {
+      type: "boolean",
+    },
   },
 } as const;
 

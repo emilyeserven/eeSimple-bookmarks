@@ -54,6 +54,7 @@ function toCategory(row: CategoryRow & { bookmarkCount?: number }): Category {
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount: row.bookmarkCount,
+    editableOnCard: row.editableOnCard,
   };
 }
 
@@ -79,6 +80,7 @@ export async function listCategories(): Promise<Category[]> {
       builtIn: categories.builtIn,
       isHomepage: categories.isHomepage,
       createdAt: categories.createdAt,
+      editableOnCard: categories.editableOnCard,
       // A correlated subquery built with the query builder so the column
       // references stay table-qualified — a bare `sql` template renders them
       // unqualified, which silently resolves them against the inner `bookmarks`
@@ -126,7 +128,7 @@ export async function updateCategory(
     throw new BuiltInCategoryError("The built-in category cannot be renamed");
   }
 
-  const patch: Partial<Pick<CategoryRow, "name" | "slug" | "description" | "icon" | "isHomepage">>
+  const patch: Partial<Pick<CategoryRow, "name" | "slug" | "description" | "icon" | "isHomepage" | "editableOnCard">>
     = {};
   if (input.name !== undefined) patch.name = input.name;
   // Keep the slug in sync when the name changes (built-ins can't be renamed, so "default" sticks).
@@ -136,6 +138,7 @@ export async function updateCategory(
   if (input.description !== undefined) patch.description = input.description ?? null;
   if (input.icon !== undefined) patch.icon = input.icon ?? null;
   if (input.isHomepage !== undefined) patch.isHomepage = input.isHomepage;
+  if (input.editableOnCard !== undefined) patch.editableOnCard = input.editableOnCard;
 
   if (Object.keys(patch).length === 0) return toCategory(existing);
 

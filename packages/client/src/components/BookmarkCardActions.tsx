@@ -1,4 +1,4 @@
-import type { Bookmark, BookmarkTag, CustomProperty } from "@eesimple/types";
+import type { Bookmark, BookmarkTag, Category, CustomProperty, MediaType } from "@eesimple/types";
 
 import { ExternalLink, MoreVertical } from "lucide-react";
 
@@ -37,6 +37,8 @@ interface BookmarkMoreMenuProps {
   bookmark: Bookmark;
   editableProperties?: CustomProperty[];
   editableTags?: BookmarkTag[];
+  editableCategories?: Category[];
+  editableMediaTypes?: MediaType[];
   autoImagePending?: boolean;
   onAutoImage?: () => void;
   onSaveNumber?: (propertyId: string, value: number) => void;
@@ -44,13 +46,17 @@ interface BookmarkMoreMenuProps {
   onSaveDateTime?: (propertyId: string, value: string) => void;
   onSaveChoices?: (propertyId: string, values: string[]) => void;
   onSaveTags?: (tagIds: string[]) => void;
+  onSaveCategory?: (categoryId: string) => void;
+  onSaveMediaType?: (mediaTypeId: string | null) => void;
   onDelete?: (id: string) => void;
 }
 
 /** The "More options" menu (trigger + {@link BookmarkCardMenu}) — a placeable card field and overlay. */
 export function BookmarkMoreMenu({
-  bookmark, editableProperties = [], editableTags = [], autoImagePending = false, onAutoImage,
-  onSaveNumber, onSaveBoolean, onSaveDateTime, onSaveChoices, onSaveTags, onDelete,
+  bookmark, editableProperties = [], editableTags = [], editableCategories = [],
+  editableMediaTypes = [], autoImagePending = false, onAutoImage,
+  onSaveNumber, onSaveBoolean, onSaveDateTime, onSaveChoices, onSaveTags,
+  onSaveCategory, onSaveMediaType, onDelete,
 }: BookmarkMoreMenuProps) {
   return (
     <DropdownMenu>
@@ -68,6 +74,8 @@ export function BookmarkMoreMenu({
         bookmark={bookmark}
         editableProperties={editableProperties}
         editableTags={editableTags}
+        editableCategories={editableCategories}
+        editableMediaTypes={editableMediaTypes}
         autoImagePending={autoImagePending}
         onAutoImage={onAutoImage ?? noop}
         onSaveNumber={onSaveNumber ?? noop}
@@ -75,6 +83,8 @@ export function BookmarkMoreMenu({
         onSaveDateTime={onSaveDateTime ?? noop}
         onSaveChoices={onSaveChoices ?? noop}
         onSaveTags={onSaveTags ?? noop}
+        onSaveCategory={onSaveCategory ?? noop}
+        onSaveMediaType={onSaveMediaType ?? noop}
         onDelete={onDelete}
       />
     </DropdownMenu>

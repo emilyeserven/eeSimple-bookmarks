@@ -7,6 +7,7 @@ import { useUpdateCategory } from "../hooks/useCategories";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 import { useAppForm } from "../lib/form";
 
+import { Checkbox } from "@/components/ui/checkbox";
 import { IconPicker } from "@/components/ui/icon-picker";
 import { Label } from "@/components/ui/label";
 
@@ -20,6 +21,7 @@ const LABELS: Partial<Record<keyof UpdateCategoryInput, string>> = {
   name: "Name",
   description: "Description",
   icon: "Icon",
+  editableOnCard: "Editable on card",
 };
 
 interface CategoryGeneralFormProps {
@@ -40,6 +42,7 @@ export function CategoryGeneralForm({
       name: category.name,
       description: category.description ?? null,
       icon: category.icon,
+      editableOnCard: category.editableOnCard ?? false,
     },
   });
 
@@ -117,6 +120,14 @@ export function CategoryGeneralForm({
             />
           )}
         </form.AppField>
+      </div>
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id="category-editable-on-card"
+          checked={category.editableOnCard ?? false}
+          onCheckedChange={checked => autoSave.saveField("editableOnCard", checked === true)}
+        />
+        <Label htmlFor="category-editable-on-card">Show as quick select on bookmark cards</Label>
       </div>
     </div>
   );

@@ -209,6 +209,7 @@ export const mediaTypes = pgTable("media_types", {
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
+  editableOnCard: boolean("editable_on_card").notNull().default(false),
 }, table => [
   unique("media_types_name_unique").on(table.name),
   unique("media_types_slug_unique").on(table.slug),
@@ -955,6 +956,7 @@ export const categories = pgTable("categories", {
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
+  editableOnCard: boolean("editable_on_card").notNull().default(false),
 }, table => [
   unique("categories_name_unique").on(table.name),
   unique("categories_slug_unique").on(table.slug),

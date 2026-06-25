@@ -1,4 +1,4 @@
-import type { Bookmark, BookmarkTag, CustomProperty } from "@eesimple/types";
+import type { Bookmark, BookmarkTag, Category, CustomProperty, MediaType } from "@eesimple/types";
 
 import { useEffect, useState } from "react";
 
@@ -97,6 +97,10 @@ interface BookmarkCardMenuProps {
   editableProperties: CustomProperty[];
   /** Tags opted into inline toggle from the card's "More" menu. */
   editableTags: BookmarkTag[];
+  /** Categories marked as quick-select options from the card's "More" menu. */
+  editableCategories: Category[];
+  /** Media types marked as quick-select options from the card's "More" menu. */
+  editableMediaTypes: MediaType[];
   autoImagePending: boolean;
   onAutoImage: () => void;
   onSaveNumber: (propertyId: string, value: number) => void;
@@ -104,13 +108,17 @@ interface BookmarkCardMenuProps {
   onSaveDateTime: (propertyId: string, value: string) => void;
   onSaveChoices: (propertyId: string, values: string[]) => void;
   onSaveTags: (tagIds: string[]) => void;
+  onSaveCategory: (categoryId: string) => void;
+  onSaveMediaType: (mediaTypeId: string | null) => void;
   onDelete?: (id: string) => void;
 }
 
 /** The dropdown menu content for a bookmark card: edit link, quick-edit properties, image grab, delete. */
 export function BookmarkCardMenu({
-  bookmark, editableProperties, editableTags, autoImagePending, onAutoImage,
-  onSaveNumber, onSaveBoolean, onSaveDateTime, onSaveChoices, onSaveTags, onDelete,
+  bookmark, editableProperties, editableTags, editableCategories, editableMediaTypes,
+  autoImagePending, onAutoImage,
+  onSaveNumber, onSaveBoolean, onSaveDateTime, onSaveChoices, onSaveTags,
+  onSaveCategory, onSaveMediaType, onDelete,
 }: BookmarkCardMenuProps) {
   const editClick = useEditPanelClick();
   const modifier = useSidebarOpenModifier();
@@ -129,13 +137,68 @@ export function BookmarkCardMenu({
           Edit
         </Link>
       </DropdownMenuItem>
-      {(editableTags.length > 0 || editableProperties.length > 0)
+      {(editableCategories.length > 0 || editableMediaTypes.length > 0
+        || editableTags.length > 0 || editableProperties.length > 0)
         ? (
           <>
             <DropdownMenuSeparator />
             <DropdownMenuLabel className="text-xs text-muted-foreground">
               Quick edit
             </DropdownMenuLabel>
+            {editableCategories.length > 0 && (
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  <span className="flex min-w-0 flex-col">
+                    <span>Category</span>
+                    <span className="truncate text-xs text-muted-foreground">
+                      {editableCategories.find(c => c.id === bookmark.categoryId)?.name ?? "–"}
+                    </span>
+                  </span>
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  <DropdownMenuRadioGroup
+                    value={bookmark.categoryId}
+                    onValueChange={onSaveCategory}
+                  >
+                    {editableCategories.map(c => (
+                      <DropdownMenuRadioItem
+                        key={c.id}
+                        value={c.id}
+                      >
+                        {c.name}
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+            )}
+            {editableMediaTypes.length > 0 && (
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  <span className="flex min-w-0 flex-col">
+                    <span>Media type</span>
+                    <span className="truncate text-xs text-muted-foreground">
+                      {editableMediaTypes.find(m => m.id === bookmark.mediaType?.id)?.name ?? "–"}
+                    </span>
+                  </span>
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  <DropdownMenuRadioGroup
+                    value={bookmark.mediaType?.id ?? ""}
+                    onValueChange={value => onSaveMediaType(value || null)}
+                  >
+                    {editableMediaTypes.map(m => (
+                      <DropdownMenuRadioItem
+                        key={m.id}
+                        value={m.id}
+                      >
+                        {m.name}
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+            )}
             {editableTags.map((tag) => {
               const checked = bookmark.tags.some(t => t.id === tag.id);
               return (

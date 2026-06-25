@@ -128,6 +128,7 @@ function toMediaType(
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount: counts?.subtree,
     ownBookmarkCount: counts?.own,
+    editableOnCard: row.editableOnCard,
   };
 }
 
@@ -297,7 +298,7 @@ export async function updateMediaType(
     throw new BuiltInMediaTypeError("A built-in media type cannot be renamed");
   }
 
-  const patch: Partial<Pick<MediaTypeRow, "name" | "slug" | "sortOrder" | "icon" | "parentId">> = {};
+  const patch: Partial<Pick<MediaTypeRow, "name" | "slug" | "sortOrder" | "icon" | "parentId" | "editableOnCard">> = {};
   if (input.name !== undefined && input.name.trim() !== existing.name) {
     const name = input.name.trim();
     const [clash] = await db.select({
@@ -324,6 +325,7 @@ export async function updateMediaType(
     }
     patch.parentId = parentId;
   }
+  if (input.editableOnCard !== undefined) patch.editableOnCard = input.editableOnCard;
   if (Object.keys(patch).length === 0) return toMediaType(existing);
 
   const [row] = await db.update(mediaTypes).set(patch).where(eq(mediaTypes.id, id)).returning();

@@ -689,6 +689,20 @@ const migrations: RuntimeMigration[] = [
         ADD COLUMN IF NOT EXISTS "editable_on_card" boolean NOT NULL DEFAULT false
     `),
   },
+  {
+    name: "add categories.editable_on_card column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "categories"
+        ADD COLUMN IF NOT EXISTS "editable_on_card" boolean NOT NULL DEFAULT false
+    `),
+  },
+  {
+    name: "add media_types.editable_on_card column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "media_types"
+        ADD COLUMN IF NOT EXISTS "editable_on_card" boolean NOT NULL DEFAULT false
+    `),
+  },
 ];
 
 async function main(): Promise<void> {

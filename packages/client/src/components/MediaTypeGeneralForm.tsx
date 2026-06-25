@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 
+import { Checkbox } from "@/components/ui/checkbox";
 import { IconPicker } from "@/components/ui/icon-picker";
 import { Label } from "@/components/ui/label";
 import { useMediaTypes, useUpdateMediaType } from "@/hooks/useMediaTypes";
@@ -25,6 +26,7 @@ const LABELS: Record<keyof UpdateMediaTypeInput, string> = {
   sortOrder: "Sort order",
   icon: "Icon",
   parentId: "Parent",
+  editableOnCard: "Editable on card",
 };
 
 interface Props {
@@ -54,6 +56,7 @@ export function MediaTypeGeneralForm({
       sortOrder: mediaType.sortOrder,
       icon: mediaType.icon,
       parentId: mediaType.parentId,
+      editableOnCard: mediaType.editableOnCard ?? false,
     },
   });
 
@@ -181,6 +184,15 @@ export function MediaTypeGeneralForm({
           </div>
         )}
       </form.AppField>
+
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id="media-type-editable-on-card"
+          checked={mediaType.editableOnCard ?? false}
+          onCheckedChange={checked => autoSave.saveField("editableOnCard", checked === true)}
+        />
+        <Label htmlFor="media-type-editable-on-card">Show as quick select on bookmark cards</Label>
+      </div>
     </div>
   );
 }
