@@ -1,12 +1,15 @@
 import { useEffect, useRef } from "react";
 
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 import { BookmarkForm } from "../components/BookmarkForm";
+import { parseSharedInput } from "../lib/shareTarget";
 
 /**
- * Search params for the quick-add popup: the page URL/title the bookmarklet hands in. Each route
- * parses the full query independently, so these survive the root's drawer-only `validateSearch`.
+ * Search params for the quick-add popup: the page URL/title the bookmarklet hands in, or the
+ * `url`/`title`/`text` the Android share sheet hands the PWA `share_target` (see vite.config.ts).
+ * Each route parses the full query independently, so these survive the root's drawer-only
+ * `validateSearch`. `parseSharedInput` collapses the share shapes into `{ url, title }`.
  */
 interface QuickAddSearch {
   url?: string;
@@ -14,10 +17,11 @@ interface QuickAddSearch {
 }
 
 function validateQuickAddSearch(search: Record<string, unknown>): QuickAddSearch {
-  return {
-    url: typeof search.url === "string" && search.url.length > 0 ? search.url : undefined,
-    title: typeof search.title === "string" && search.title.length > 0 ? search.title : undefined,
-  };
+  return parseSharedInput({
+    url: typeof search.url === "string" ? search.url : undefined,
+    title: typeof search.title === "string" ? search.title : undefined,
+    text: typeof search.text === "string" ? search.text : undefined,
+  });
 }
 
 export const Route = createFileRoute("/quick-add")({
@@ -38,6 +42,7 @@ function QuickAddPage() {
   const {
     url, title,
   } = Route.useSearch();
+  const navigate = useNavigate();
 
   usePopupAutoClose();
 
@@ -49,7 +54,13 @@ function QuickAddPage() {
         initialTitle={title}
         autoScan
         onCreated={() => {
+          // Popup (bookmarklet) → close it. Installed PWA share target (no opener) →
+          // there's nothing to close, so move the user into the app instead of leaving
+          // them on a now-stale form.
           if (window.opener) window.close();
+          else void navigate({
+            to: "/",
+          });
         }}
       />
     </main>
