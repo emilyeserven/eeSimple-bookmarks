@@ -22,10 +22,9 @@ import { RowCard } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { withRelationshipTypes } from "@/lib/bookmarkSearch";
 import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
 
-/** A single relationship-type listing card: body → its filtered bookmarks, with hover Edit / Info. */
+/** A single relationship-type listing card: body → its detail page, with hover Edit / Info. */
 function RelationshipTypeCard({
   relationshipType,
   selectable,
@@ -58,9 +57,12 @@ function RelationshipTypeCard({
       count={relationshipType.bookmarkCount}
       renderPrimaryLink={(className, children) => (
         <Link
-          to="/bookmarks"
-          search={withRelationshipTypes({}, [relationshipType.id])}
-          title={`Show bookmarks with a ${relationshipType.name} relationship`}
+          to="/taxonomies/relationship-types/$relationshipTypeSlug/general"
+          params={{
+            relationshipTypeSlug: relationshipType.slug,
+          }}
+          title={entityLinkTitle(modifier)}
+          onClick={event => viewClick(event, "relationship-type", relationshipType.id, relationshipType.slug)}
           className={className}
         >
           {children}
@@ -168,7 +170,7 @@ function AddRelationshipTypeRow() {
   );
 }
 
-/** Browsable relationship-type listing. Each card opens its filtered bookmarks; hover to Edit / view Info. */
+/** Browsable relationship-type listing. Each card opens its detail page; hover to Edit / view Info. */
 export function RelationshipTypesListing() {
   const {
     data: relationshipTypes, isLoading, error,

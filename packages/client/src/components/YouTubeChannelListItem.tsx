@@ -9,7 +9,6 @@ import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
 import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
 import { useEntityImage } from "@/hooks/useEntityImage";
-import { withYouTubeChannels } from "@/lib/bookmarkSearch";
 import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
 
 interface YouTubeChannelListItemProps {
@@ -20,7 +19,7 @@ interface YouTubeChannelListItemProps {
   inSelectionMode?: boolean;
 }
 
-/** A single row in the channel listing: an avatar, a body link to the filtered bookmarks, and hover Edit / Info. */
+/** A single row in the channel listing: an avatar, a body link to the channel's own bookmarks page, and hover Edit / Info. */
 export function YouTubeChannelListItem({
   channel,
   selectable,
@@ -66,8 +65,10 @@ export function YouTubeChannelListItem({
       count={channel.bookmarkCount}
       renderPrimaryLink={(className, children) => (
         <Link
-          to="/bookmarks"
-          search={withYouTubeChannels({}, [channel.id])}
+          to="/taxonomies/youtube-channels/$channelSlug"
+          params={{
+            channelSlug: channel.slug,
+          }}
           title={`Show bookmarks from ${channel.name}`}
           className={className}
         >
