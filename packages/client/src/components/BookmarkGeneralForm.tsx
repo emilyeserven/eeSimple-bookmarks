@@ -247,27 +247,24 @@ export function BookmarkGeneralForm({
         {categoryId => (
           <form.Field name="tagIds">
             {field => (
-              <div className="space-y-1">
-                <Label>Tags</Label>
-                <GatedTagPicker
-                  categoryId={categoryId}
-                  tree={tagTree ?? []}
-                  selectedIds={field.state.value}
-                  onToggle={(id) => {
-                    touchedRef.current.add("tags");
-                    const current = field.state.value;
-                    const newTagIds = current.includes(id)
-                      ? current.filter(tagId => tagId !== id)
-                      : [...current, id];
-                    field.handleChange(newTagIds);
-                    saveTags(newTagIds);
-                  }}
-                  createOption={{
-                    label: "Create tag",
-                    onSelect: () => setAddTagOpen(true),
-                  }}
-                />
-              </div>
+              <GatedTagPicker
+                categoryId={categoryId}
+                tree={tagTree ?? []}
+                selectedIds={field.state.value}
+                onToggle={(id) => {
+                  touchedRef.current.add("tags");
+                  const current = field.state.value;
+                  const newTagIds = current.includes(id)
+                    ? current.filter(tagId => tagId !== id)
+                    : [...current, id];
+                  field.handleChange(newTagIds);
+                  saveTags(newTagIds);
+                }}
+                createOption={{
+                  label: "Create tag",
+                  onSelect: () => setAddTagOpen(true),
+                }}
+              />
             )}
           </form.Field>
         )}
