@@ -80,7 +80,8 @@ export function TagForm({
         // "New sub-X" quick-add); otherwise read the chosen parent, treating ROOT as null.
         parentId: !showParent
           ? (defaultParentId ?? null)
-          : value.parent === ROOT ? null : value.parent,
+          // ComboboxField can clear to "" (re-selecting the active option); treat that as "(root)".
+          : value.parent === ROOT || value.parent === "" ? null : value.parent,
       });
     },
   });
@@ -107,10 +108,12 @@ export function TagForm({
         ? (
           <form.AppField name="parent">
             {field => (
-              <field.SelectField
+              <field.ComboboxField
                 label="Parent"
                 options={parentOptions}
                 placeholder="Choose a parent"
+                searchPlaceholder="Search tags…"
+                emptyText="No tags found."
               />
             )}
           </form.AppField>
