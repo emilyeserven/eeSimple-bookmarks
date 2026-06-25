@@ -71,6 +71,7 @@ function YouTubeChannelBookmarksPage() {
       onSearchChange={next => navigate({
         search: next,
         replace: true,
+        resetScroll: false,
       })}
       isLoading={bookmarksLoading}
       error={error}

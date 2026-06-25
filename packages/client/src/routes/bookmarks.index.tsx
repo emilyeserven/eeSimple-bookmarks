@@ -43,6 +43,7 @@ function BookmarksPage() {
       onSearchChange={next => navigate({
         search: next,
         replace: true,
+        resetScroll: false,
       })}
       isLoading={isLoading}
       error={error}
