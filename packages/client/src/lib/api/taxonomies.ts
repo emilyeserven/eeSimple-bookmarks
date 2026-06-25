@@ -5,6 +5,7 @@ import type {
   Category,
   CategoryPropertyDefaults,
   CreateAuthorInput,
+  SocialLink,
   CreateCategoryInput,
   CreateCustomPropertyInput,
   CreateMediaTypeInput,
@@ -36,6 +37,7 @@ import type {
   UpdateYouTubeChannelInput,
   Website,
   WebsiteLookup,
+  WebsiteNode,
   YouTubeChannel,
 } from "@eesimple/types";
 
@@ -70,6 +72,10 @@ export const authorsApi = {
         websiteId,
       }),
     }),
+  detectSocialLinks: (id: string) =>
+    request<{ detected: SocialLink[] }>(`/authors/${id}/social-links/detect`, {
+      method: "POST",
+    }),
 };
 
 export const tagsApi = {
@@ -92,6 +98,7 @@ export const websitesApi = {
     request<WebsiteLookup>(`/websites/lookup?url=${encodeURIComponent(url)}`),
   redirectFailures: () =>
     request<RedirectFailureWebsite[]>("/websites/redirect-failures"),
+  tree: () => request<WebsiteNode[]>("/websites/tree"),
   uploadImage: (id: string, file: File) =>
     uploadImageFile<{ imageUrl: string }>(`/websites/${id}/image`, file),
   autoImage: (id: string) =>

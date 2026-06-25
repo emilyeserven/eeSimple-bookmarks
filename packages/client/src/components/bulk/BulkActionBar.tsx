@@ -33,7 +33,7 @@ export function BulkActionBar({
   return (
     <div
       className="
-        sticky top-0 z-10 flex flex-wrap items-center gap-2 rounded-md border
+        sticky top-0 z-30 flex flex-wrap items-center gap-2 rounded-md border
         bg-card p-2 shadow-sm
       "
     >

@@ -12,6 +12,7 @@ import {
 import {
   createAuthor,
   deleteAuthor,
+  detectAuthorSocialLinksFromWebsite,
   DuplicateAuthorError,
   listAuthors,
   updateAuthor,
@@ -346,6 +347,31 @@ export async function authorRoutes(app: FastifyInstance): Promise<void> {
       message: "Channel has no stored avatar",
     });
     return reply.code(201).send(result);
+  });
+
+  // Scan the author's website for GitHub, Goodreads, and Bluesky profile links.
+  app.post("/api/authors/:id/social-links/detect", {
+    schema: {
+      tags: ["authors"],
+      params: authorParams,
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    const result = await detectAuthorSocialLinksFromWebsite(id);
+    if (result === "not_found") return reply.code(404).send({
+      message: "Author not found",
+    });
+    if (result === "no_url") return reply.code(400).send({
+      message: "No website URL configured for this author",
+    });
+    if (result === "fetch_error") return reply.code(502).send({
+      message: "Could not fetch the author's website",
+    });
+    return {
+      detected: result,
+    };
   });
 
   // Adopt a connected website's stored favicon as the author's own avatar.

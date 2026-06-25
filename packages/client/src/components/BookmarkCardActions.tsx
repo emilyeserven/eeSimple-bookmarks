@@ -41,13 +41,14 @@ interface BookmarkMoreMenuProps {
   onSaveNumber?: (propertyId: string, value: number) => void;
   onSaveBoolean?: (propertyId: string, value: boolean) => void;
   onSaveDateTime?: (propertyId: string, value: string) => void;
+  onSaveChoices?: (propertyId: string, values: string[]) => void;
   onDelete?: (id: string) => void;
 }
 
 /** The "More options" menu (trigger + {@link BookmarkCardMenu}) — a placeable card field and overlay. */
 export function BookmarkMoreMenu({
   bookmark, editableProperties = [], autoImagePending = false, onAutoImage,
-  onSaveNumber, onSaveBoolean, onSaveDateTime, onDelete,
+  onSaveNumber, onSaveBoolean, onSaveDateTime, onSaveChoices, onDelete,
 }: BookmarkMoreMenuProps) {
   return (
     <DropdownMenu>
@@ -69,6 +70,7 @@ export function BookmarkMoreMenu({
         onSaveNumber={onSaveNumber ?? noop}
         onSaveBoolean={onSaveBoolean ?? noop}
         onSaveDateTime={onSaveDateTime ?? noop}
+        onSaveChoices={onSaveChoices ?? noop}
         onDelete={onDelete}
       />
     </DropdownMenu>

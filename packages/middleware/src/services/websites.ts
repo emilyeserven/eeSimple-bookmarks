@@ -1,5 +1,5 @@
 import { and, asc, eq, inArray, isNull, ne, or, sql } from "drizzle-orm";
-import type { BulkBookmarkResult, BulkDeleteResult, CreateWebsiteInput, RedirectFailureBookmark, RedirectFailureWebsite, ShortenedLink, SocialLink, UpdateWebsiteInput, Website, WebsiteParamRule } from "@eesimple/types";
+import type { BulkBookmarkResult, BulkDeleteResult, CreateWebsiteInput, RedirectFailureBookmark, RedirectFailureWebsite, ShortenedLink, SocialLink, UpdateWebsiteInput, Website, WebsiteNode, WebsiteParamRule } from "@eesimple/types";
 import { getShortenerIgnoreList } from "@/services/appSettings";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { db } from "@/db";
@@ -321,6 +321,45 @@ export async function listWebsites(): Promise<Website[]> {
     loadWebsiteChannelsMap(ids),
   ]);
   return rows.map(row => toWebsite(row, tagsMap.get(row.id) ?? [], channelsMap.get(row.id) ?? []));
+}
+
+/**
+ * Find the parent domain of a domain in the given domain set: the longest-suffix candidate that
+ * exists as a website (e.g. `blog.example.com` → `example.com`). Pure — no DB access.
+ */
+function findParentDomain(domain: string, domainSet: Set<string>): string | null {
+  const parts = domain.split(".");
+  for (let i = 1; i < parts.length - 1; i++) {
+    const candidate = parts.slice(i).join(".");
+    if (domainSet.has(candidate)) return candidate;
+  }
+  return null;
+}
+
+/**
+ * Build a nested tree from a flat website list, grouping subdomains under their parent domains.
+ * Pure — kept separate from DB access so it can be unit-tested.
+ */
+export function buildWebsiteTree(all: Website[]): WebsiteNode[] {
+  const domainSet = new Set(all.map(w => w.domain));
+  const byDomain = new Map<string, WebsiteNode>(
+    all.map(w => [w.domain, {
+      ...w,
+      children: [],
+    }]),
+  );
+  const roots: WebsiteNode[] = [];
+  for (const node of byDomain.values()) {
+    const parentDomain = findParentDomain(node.domain, domainSet);
+    const parent = parentDomain ? byDomain.get(parentDomain) : undefined;
+    if (parent) parent.children.push(node);
+    else roots.push(node);
+  }
+  return roots;
+}
+
+export async function getWebsiteTree(): Promise<WebsiteNode[]> {
+  return buildWebsiteTree(await listWebsites());
 }
 
 /** Fetch a single website by id, or `null` when absent. */

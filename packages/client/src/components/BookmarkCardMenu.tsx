@@ -15,7 +15,12 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -95,13 +100,14 @@ interface BookmarkCardMenuProps {
   onSaveNumber: (propertyId: string, value: number) => void;
   onSaveBoolean: (propertyId: string, value: boolean) => void;
   onSaveDateTime: (propertyId: string, value: string) => void;
+  onSaveChoices: (propertyId: string, values: string[]) => void;
   onDelete?: (id: string) => void;
 }
 
 /** The dropdown menu content for a bookmark card: edit link, quick-edit properties, image grab, delete. */
 export function BookmarkCardMenu({
   bookmark, editableProperties, autoImagePending, onAutoImage,
-  onSaveNumber, onSaveBoolean, onSaveDateTime, onDelete,
+  onSaveNumber, onSaveBoolean, onSaveDateTime, onSaveChoices, onDelete,
 }: BookmarkCardMenuProps) {
   const editClick = useEditPanelClick();
   const modifier = useSidebarOpenModifier();
@@ -128,6 +134,74 @@ export function BookmarkCardMenu({
               Quick edit
             </DropdownMenuLabel>
             {editableProperties.map((property) => {
+              if (property.type === "choices") {
+                const current
+                  = bookmark.choicesValues.find(entry => entry.propertyId === property.id)?.values
+                    ?? [];
+                const selectedLabels = current
+                  .map(v => property.choicesItems.find(item => item.value === v)?.label)
+                  .filter((l): l is string => l !== undefined);
+                const triggerHint = selectedLabels.length > 0
+                  ? selectedLabels.join(", ")
+                  : "None";
+                if (property.choicesMultiple) {
+                  return (
+                    <DropdownMenuSub key={property.id}>
+                      <DropdownMenuSubTrigger>
+                        <span className="flex min-w-0 flex-col">
+                          <span>{property.name}</span>
+                          <span
+                            className="truncate text-xs text-muted-foreground"
+                          >{triggerHint}
+                          </span>
+                        </span>
+                      </DropdownMenuSubTrigger>
+                      <DropdownMenuSubContent>
+                        {property.choicesItems.map(item => (
+                          <DropdownMenuCheckboxItem
+                            key={item.value}
+                            checked={current.includes(item.value)}
+                            onSelect={event => event.preventDefault()}
+                            onCheckedChange={(checked) => {
+                              const next = checked
+                                ? [...current, item.value]
+                                : current.filter(v => v !== item.value);
+                              onSaveChoices(property.id, next);
+                            }}
+                          >
+                            {item.label}
+                          </DropdownMenuCheckboxItem>
+                        ))}
+                      </DropdownMenuSubContent>
+                    </DropdownMenuSub>
+                  );
+                }
+                return (
+                  <DropdownMenuSub key={property.id}>
+                    <DropdownMenuSubTrigger>
+                      <span className="flex min-w-0 flex-col">
+                        <span>{property.name}</span>
+                        <span className="truncate text-xs text-muted-foreground">{triggerHint}</span>
+                      </span>
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent>
+                      <DropdownMenuRadioGroup
+                        value={current[0] ?? ""}
+                        onValueChange={value => onSaveChoices(property.id, value ? [value] : [])}
+                      >
+                        {property.choicesItems.map(item => (
+                          <DropdownMenuRadioItem
+                            key={item.value}
+                            value={item.value}
+                          >
+                            {item.label}
+                          </DropdownMenuRadioItem>
+                        ))}
+                      </DropdownMenuRadioGroup>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
+                );
+              }
               if (property.type === "boolean") {
                 const checked
                   = bookmark.booleanValues.find(entry => entry.propertyId === property.id)?.value

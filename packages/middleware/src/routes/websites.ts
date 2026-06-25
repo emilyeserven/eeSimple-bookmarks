@@ -15,6 +15,7 @@ import {
   createWebsite,
   deleteWebsite,
   DuplicateDomainError,
+  getWebsiteTree,
   InvalidDomainError,
   listRedirectFailureWebsites,
   listWebsites,
@@ -254,6 +255,12 @@ export async function websiteRoutes(app: FastifyInstance): Promise<void> {
       tags: ["websites"],
     },
   }, async () => listWebsites());
+
+  app.get("/api/websites/tree", {
+    schema: {
+      tags: ["websites"],
+    },
+  }, async () => getWebsiteTree());
 
   app.get("/api/websites/lookup", {
     schema: {
