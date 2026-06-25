@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { DatabaseUsageCard } from "./DatabaseUsageCard";
 import { OrphanCleanupCard } from "./OrphanCleanupCard";
+import { PwaUpdateCard } from "./PwaUpdateCard";
 import { useAdvancedSettings, useUpdateAdvancedSettings } from "../hooks/useAppSettings";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
@@ -170,6 +171,8 @@ export function AdvancedSettings() {
           </div>
         </CardContent>
       </Card>
+
+      <PwaUpdateCard />
 
       <OrphanCleanupCard />
 
