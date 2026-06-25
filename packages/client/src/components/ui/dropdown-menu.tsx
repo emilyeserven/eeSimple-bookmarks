@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
-import { Check } from "lucide-react";
+import { Check, Circle } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -108,6 +108,46 @@ function DropdownMenuCheckboxItem({
   );
 }
 
+function DropdownMenuRadioGroup({
+  ...props
+}: React.ComponentProps<typeof DropdownMenuPrimitive.RadioGroup>) {
+  return (
+    <DropdownMenuPrimitive.RadioGroup
+      data-slot="dropdown-menu-radio-group"
+      {...props}
+    />
+  );
+}
+
+function DropdownMenuRadioItem({
+  className, children, ...props
+}: React.ComponentProps<typeof DropdownMenuPrimitive.RadioItem>) {
+  return (
+    <DropdownMenuPrimitive.RadioItem
+      data-slot="dropdown-menu-radio-item"
+      className={cn(
+        `
+          relative flex cursor-default items-center gap-2 rounded-sm py-1.5 pr-2
+          pl-8 text-sm transition-colors outline-none select-none
+          focus:bg-accent focus:text-accent-foreground
+          data-disabled:pointer-events-none data-disabled:opacity-50
+        `,
+        className,
+      )}
+      {...props}
+    >
+      <span
+        className="absolute left-2 flex size-3.5 items-center justify-center"
+      >
+        <DropdownMenuPrimitive.ItemIndicator>
+          <Circle className="size-2 fill-current" />
+        </DropdownMenuPrimitive.ItemIndicator>
+      </span>
+      {children}
+    </DropdownMenuPrimitive.RadioItem>
+  );
+}
+
 function DropdownMenuLabel({
   className, ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Label>) {
@@ -138,6 +178,8 @@ export {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 };

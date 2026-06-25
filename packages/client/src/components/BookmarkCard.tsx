@@ -1,5 +1,6 @@
 import type { BookmarkImageVisibility } from "../lib/bookmarkColumns";
 import type { Bookmark,
+  BookmarkChoicesValue,
   BookmarkDateTimeValue,
   BookmarkNumberValue,
   CardFieldZones,
@@ -73,6 +74,25 @@ function mergeNumberValue(
     }];
 }
 
+/** Replace the entry for `propertyId` with `values`, or append it when the property has no value yet. */
+function mergeChoicesValue(
+  values: BookmarkChoicesValue[],
+  propertyId: string,
+  next: string[],
+): BookmarkChoicesValue[] {
+  return values.some(entry => entry.propertyId === propertyId)
+    ? values.map(entry => (entry.propertyId === propertyId
+      ? {
+        propertyId,
+        values: next,
+      }
+      : entry))
+    : [...values, {
+      propertyId,
+      values: next,
+    }];
+}
+
 /** Replace the entry for `propertyId` with `value`, or append it when the property has no value yet. */
 function mergeDateTimeValue(
   values: BookmarkDateTimeValue[],
@@ -139,6 +159,15 @@ export function BookmarkCard({
     });
   }
 
+  function saveChoices(propertyId: string, values: string[]) {
+    updateBookmark.mutate({
+      id: bookmark.id,
+      input: {
+        choicesValues: mergeChoicesValue(bookmark.choicesValues, propertyId, values),
+      },
+    });
+  }
+
   const hasImage = !!bookmark.image && imageVisibility !== "off";
 
   // Compact Amazon links for any text-typed properties with a non-empty value (e.g. ISBN/ASIN).
@@ -168,6 +197,7 @@ export function BookmarkCard({
           onSaveNumber={saveNumber}
           onSaveBoolean={saveBoolean}
           onSaveDateTime={saveDateTime}
+          onSaveChoices={saveChoices}
           onDelete={onDelete}
         />
       ),
@@ -222,6 +252,7 @@ export function BookmarkCard({
       onDelete={onDelete}
       onSaveRating={saveNumber}
       onSaveBoolean={saveBoolean}
+      onSaveChoices={saveChoices}
     />
   );
 
