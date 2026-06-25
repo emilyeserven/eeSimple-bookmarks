@@ -9,7 +9,6 @@ import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
 import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
 import { useEntityImage } from "@/hooks/useEntityImage";
-import { withWebsites } from "@/lib/bookmarkSearch";
 import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
 
 interface WebsiteListItemProps {
@@ -20,7 +19,7 @@ interface WebsiteListItemProps {
   inSelectionMode?: boolean;
 }
 
-/** A single row in the website listing: a favicon, a body link to the filtered bookmarks, and hover Edit / Info. */
+/** A single row in the website listing: a favicon, a body link to the website's own bookmarks page, and hover Edit / Info. */
 export function WebsiteListItem({
   website,
   selectable,
@@ -66,8 +65,10 @@ export function WebsiteListItem({
       count={website.bookmarkCount}
       renderPrimaryLink={(className, children) => (
         <Link
-          to="/bookmarks"
-          search={withWebsites({}, [website.id])}
+          to="/taxonomies/websites/$websiteSlug"
+          params={{
+            websiteSlug: website.slug,
+          }}
           title={`Show bookmarks from ${website.siteName}`}
           className={className}
         >

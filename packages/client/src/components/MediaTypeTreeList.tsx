@@ -7,7 +7,6 @@ import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick"
 import { TaxonomyTreeList } from "./TaxonomyTreeRow";
 import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 
-import { withMediaTypes } from "@/lib/bookmarkSearch";
 import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
 
 interface MediaTypeTreeListProps {
@@ -37,8 +36,10 @@ export function MediaTypeTreeList({
       columns={columns}
       renderNameLink={node => (
         <Link
-          to="/bookmarks"
-          search={withMediaTypes({}, [node.id])}
+          to="/taxonomies/media-types/$mediaTypeSlug"
+          params={{
+            mediaTypeSlug: node.slug,
+          }}
           title={`Show ${node.name} bookmarks`}
           className="
             flex-1 truncate

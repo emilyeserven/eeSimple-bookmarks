@@ -3,12 +3,13 @@ name: standard-listing-card
 description: >-
   Standardize an entity listing page's row/card onto the shared StandardListingCard look +
   interaction model in eeSimple Bookmarks: image far-left, vertically centered, a card-body link to
-  the filtered /bookmarks list, hover Edit (pencil) + Info buttons, an always-visible bookmark-count
-  badge, and zero-count de-emphasis. Use when asked to "standardize a listing card", "make X's
-  listing match the others", "add the standard hover Edit/Info buttons to a listing", "make a listing
-  card link to its filtered bookmarks", "add a count badge / de-emphasize empty items on a listing",
-  or when adding a new listing page that should adopt the standard. Mirrors Categories, Websites,
-  YouTube Channels, Media Types, Tags, Property Groups, Relationship Types, and Autofill.
+  the term's own page (its own bookmarks page or, for non-listable entities, its detail page), hover
+  Edit (pencil) + Info buttons, an always-visible bookmark-count badge, and zero-count de-emphasis.
+  Use when asked to "standardize a listing card", "make X's listing match the others", "add the
+  standard hover Edit/Info buttons to a listing", "make a listing card link to the term's own page",
+  "add a count badge / de-emphasize empty items on a listing", or when adding a new listing page that
+  should adopt the standard. Mirrors Categories, Websites, YouTube Channels, Media Types, Tags,
+  Property Groups, Relationship Types, Publishers, Authors, and Autofill.
 ---
 
 # Standard listing card
@@ -22,15 +23,24 @@ model. New listing pages adopt it from the start; existing ones must not drift b
 1. **Image/icon always far left**, then an info column (Name + optional subtitle).
 2. **Vertically centered** — the icon and the hover controls sit at the row's vertical middle even
    on tall/wrapping cards (`flex items-center`, **not** absolute positioning).
-3. **Card-body click → the filtered `/bookmarks` list** for that item (`withX({}, [id])`). A plain
-   `<Link>` — **not** panel-aware (there's no panel content type for a filtered bookmark list).
+3. **Card-body click → the term's own page** — **never** the global `/bookmarks?…=id` filter list.
+   Two cases, decided by whether the entity has its own per-term bookmarks page:
+   - **Listable entities** (Categories, Tags, Websites, YouTube Channels, Media Types) link the body
+     to their **own `$slug` index route** — `/categories/$slug`, `/tags/$slug`,
+     `/taxonomies/websites/$slug`, etc. — which renders that term's bookmarks under a term-specific
+     header. A **plain `<Link>`** (no `viewClick`): there's no panel content type for a bookmark list.
+   - **Non-listable entities** (Property Groups, Relationship Types, Publishers, Authors, Autofill,
+     Custom Properties) have no per-term bookmarks page, so the body links to the entity's **General
+     detail tab** (`<Link to="/<entity>/$slug/general">`) and **is** panel-aware (`viewClick`).
+   Don't reintroduce a `<Link to="/bookmarks" search={withX(...)}>` body link — `withX` now backs only
+   the filter sidebar facets, not listing cards.
 4. **Hover reveals Edit (pencil) + Info buttons** on every item. Edit → the entity's edit page,
    Info → its **General view tab** (`<Link to="/<entity>/$slug/general">`). Both are panel-aware
    (modifier-click opens the right panel). **The Info link must point at `…/$slug/general`, never the
    bare index `…/$slug`** — for Tags, Websites, YouTube Channels, and Media Types the bare index route
-   renders a *bookmarks-filtered* `BookmarkSearchView` (a duplicate of the card-body destination), not
-   the detail page; and even where the index `redirect`s to `/general` (Property Groups, Relationship
-   Types) you should link directly to `/general`.
+   renders a *bookmarks* `BookmarkSearchView` (the listable body destination), not the detail page; and
+   even where the index `redirect`s to `/general` (Property Groups, Relationship Types, Publishers,
+   Authors) you should link directly to `/general`.
 5. **Always-visible count badge** = bookmarks where the item is applied.
 6. **Zero-count items are de-emphasized** (`opacity-60`) but stay clickable.
 
@@ -40,7 +50,7 @@ model. New listing pages adopt it from the start; existing ones must not drift b
 |---|---|---|
 | `StandardListingCard` | `components/StandardListingCard.tsx` | The card shell. Props below. |
 | `HoverIconButton` | same | Ghost icon button with the hover-opacity classes; wrap a typed `<Link>`. |
-| `withCategories` / `withTags` / `withWebsites` / `withMediaTypes` / `withYouTubeChannels` / `withRelationshipTypes` | `lib/bookmarkSearch.ts` | Build the `/bookmarks` filter: `<Link to="/bookmarks" search={withX({}, [id])}>`. |
+| `withCategories` / `withTags` / `withWebsites` / `withMediaTypes` / `withYouTubeChannels` / `withRelationshipTypes` | `lib/bookmarkSearch.ts` | Build a `/bookmarks` filter — used by the **filter sidebar facets** (`FilterSidebarSections.tsx`), **not** listing-card body links anymore. |
 | `useEditPanelClick` / `useViewPanelClick` | `components/panel/useEditPanelClick.ts` | Panel-aware `onClick={e => editClick(e, ct, id)}` for the hover Edit/Info links. |
 | `useUiStore(s => s.sidebarOpenModifier)` + `SIDEBAR_MODIFIER_LABELS` | `stores/uiStore`, `lib/sidebarModifier` | The "(hold ⌥ to open in the sidebar)" title hint. |
 | `CategoryIcon` | `lib/icons.tsx` | Lucide icon by stored name; falls back to a Tag glyph when null. |
@@ -63,11 +73,14 @@ interface StandardListingCardProps {
 }
 ```
 
-Two click models: the **body** link is a plain `<Link to="/bookmarks" search={…}>` (no `viewClick`);
-the **Edit/Info** links are `HoverIconButton`-wrapped typed `<Link>`s with `onClick={e =>
-editClick(e, ct, id)}` / `viewClick`. The body builds the icon + title via the `renderPrimaryLink`
-children; the cluster (`renderEdit()`, `renderInfo?.()`, count badge) is a sibling `items-center`
-group, so it stays vertically centered. `count === 0` toggles `opacity-60` on the whole card.
+Two body click models (by entity, per invariant 3): a **listable** entity's body is a plain `<Link
+to="/<entity>/$slug">` to its own bookmarks page (no `viewClick`); a **non-listable** entity's body
+is a panel-aware `<Link to="/<entity>/$slug/general">` with `onClick={e => viewClick(e, ct, id,
+slug)}`. The **Edit/Info** hover links are always `HoverIconButton`-wrapped typed `<Link>`s with
+`onClick={e => editClick(e, ct, id)}` / `viewClick`. The body builds the icon + title via the
+`renderPrimaryLink` children; the cluster (`renderEdit()`, `renderInfo?.()`, count badge) is a sibling
+`items-center` group, so it stays vertically centered. `count === 0` toggles `opacity-60` on the whole
+card.
 
 ## Per-entity recipe
 
@@ -79,8 +92,9 @@ group, so it stays vertically centered. `count === 0` toggles `opacity-60` on th
   subtitle={category.description ?? undefined}
   count={category.bookmarkCount ?? 0}
   renderPrimaryLink={(className, children) => (
-    <Link to="/bookmarks" search={withCategories({}, [category.id])}
-      title={`Show bookmarks in ${category.name}`} className={className}>
+    // Listable entity → plain link to its OWN bookmarks page (not /bookmarks?…). No viewClick.
+    <Link to="/categories/$categorySlug" params={{ categorySlug: category.slug }}
+      title={`View ${category.name}`} className={className}>
       {children}
     </Link>
   )}
@@ -107,14 +121,16 @@ group, so it stays vertically centered. `count === 0` toggles `opacity-60` on th
 
 | Entity | File | Icon | Body link | Count |
 |---|---|---|---|---|
-| Categories | `CategoryPreviewCard.tsx` (row branch) | `CategoryIcon` | `withCategories` | `bookmarkCount` |
-| Websites | `WebsiteListItem.tsx` | favicon `imageUrl`→`Globe` | `withWebsites` | `bookmarkCount` |
-| YouTube Channels | `YouTubeChannelListItem.tsx` | avatar `imageUrl`→`MonitorPlay` | `withYouTubeChannels` | `bookmarkCount` |
-| Tags (tree) | `TagTreeList.tsx` | `CategoryIcon` (none → Tag glyph) | `withTags` | `bookmarkCount` |
-| Media Types (tree) | `MediaTypeTreeList.tsx` | `CategoryIcon name={node.icon}` | `withMediaTypes` | `bookmarkCount` |
-| Property Groups *(exc.)* | `PropertyGroupListItem.tsx` | `Layers` | **detail page** (not bookmarks) | `propertyCount` |
-| Relationship Types | `RelationshipTypeManager.tsx` | `Link2` | `withRelationshipTypes` | `bookmarkCount` |
-| Autofill *(exc.)* | `AutofillRuleListItem.tsx` | `Wand2` | **info page**, no Info button | `matchCount` |
+| Categories | `CategoryPreviewCard.tsx` (row branch) | `CategoryIcon` | own page `/categories/$slug` (plain) | `bookmarkCount` |
+| Websites | `WebsiteListItem.tsx` | favicon `imageUrl`→`Globe` | own page `/taxonomies/websites/$slug` (plain) | `bookmarkCount` |
+| YouTube Channels | `YouTubeChannelListItem.tsx` | avatar `imageUrl`→`MonitorPlay` | own page `/taxonomies/youtube-channels/$slug` (plain) | `bookmarkCount` |
+| Tags (tree) | `TagTreeList.tsx` | `CategoryIcon` (none → Tag glyph) | own page `/tags/$slug` (plain) | `bookmarkCount` |
+| Media Types (tree) | `MediaTypeTreeList.tsx` | `CategoryIcon name={node.icon}` | own page `/taxonomies/media-types/$slug` (plain) | `bookmarkCount` |
+| Property Groups *(detail)* | `PropertyGroupListItem.tsx` | `Layers` | detail `…/$slug/general` (`viewClick`) | `propertyCount` |
+| Relationship Types *(detail)* | `RelationshipTypeManager.tsx` | `Link2` | detail `…/$slug/general` (`viewClick`) | `bookmarkCount` |
+| Publishers *(detail)* | `PublisherManager.tsx` | `BookOpen` | detail `…/$slug/general` (`viewClick`) | `bookmarkCount` |
+| Authors *(detail)* | `AuthorManager.tsx` | `UserRound` | detail `…/$slug/general` (`viewClick`) | `bookmarkCount` |
+| Autofill *(detail, no Info)* | `AutofillRuleListItem.tsx` | `Wand2` | info `/autofill/$slug` (`viewClick`), no Info button | `matchCount` |
 
 ## Tree taxonomies (Tags, Media Types)
 
@@ -122,18 +138,20 @@ group, so it stays vertically centered. `count === 0` toggles `opacity-60` on th
 own-count sub-row. It renders the icon **first** (`CategoryIcon name={node.icon ?? null}`), then the
 chevron/spacer, the name link, the hover Edit + Info ghost buttons, and the count badge; each row
 mutes independently (`node.bookmarkCount === 0 → opacity-60`). The wrappers supply three render
-props: `renderNameLink` (now the plain `/bookmarks` link), `renderEditLink`, and `renderInfoLink`
+props: `renderNameLink` (the plain link to the term's **own bookmarks page** — `/tags/$slug`,
+`/taxonomies/media-types/$slug`), `renderEditLink`, and `renderInfoLink`
 (the **General view tab** `…/$slug/general`, `viewClick` — never the bare index). `TaxonomyTreeNode`
 carries an optional `icon?: string | null` (Media
 Types thread `node.icon`; flat Tags get the Tag-glyph fallback).
 
-## The 3 documented exceptions
+## Non-listable entities + other notes
 
-- **Property Groups** — no "bookmarks in this group" filter exists, so the body links to the group's
-  **detail page** (panel-aware `viewClick`) and the badge counts member **properties**
-  (`propertyCount`). Edit + Info are still shown (Info also → detail).
-- **Autofill** — the body links to the rule's **info page** (`viewClick`); there is **no Info
-  button** (`renderInfo` omitted). The badge is `matchCount` (bookmarks the rule matches).
+- **Property Groups / Publishers / Authors** — no per-term bookmarks page exists, so the body links
+  to the entity's **General detail tab** (`…/$slug/general`, panel-aware `viewClick`). Property
+  Groups' badge counts member **properties** (`propertyCount`); the others use `bookmarkCount`. Edit +
+  Info are still shown (Info also → `…/general`).
+- **Autofill** — the body links to the rule's **info page** (`/autofill/$slug`, `viewClick`); there is
+  **no Info button** (`renderInfo` omitted). The badge is `matchCount` (bookmarks the rule matches).
 - **Tree "No Child" sub-row** — the parent-only `ownBookmarkCount` bucket keeps its `Badge
   variant="outline"` row; that's a tree-only extra, not part of the flat card.
 
@@ -191,8 +209,11 @@ pnpm lint:fix                              # always from repo root
 pnpm dev                                   # then check each listing page
 ```
 
-Per page: body click → filtered bookmarks (or detail/info for the exceptions); icon far-left; a
-tall/wrapping card centers the icon + buttons; hover shows Edit (+ Info except Autofill); the **Info
-icon lands on the entity's General detail tab (`…/$slug/general`), not a bookmarks list**;
-modifier-click on Edit/Info opens the right panel while the body link does not; the count badge is
-always visible; a zero-count item is muted but clickable.
+Per page: body click → **the term's own page** — its own bookmarks page for listable entities
+(Categories, Tags, Websites, YouTube Channels, Media Types), or its General detail tab for
+non-listable ones (Property Groups, Relationship Types, Publishers, Authors, Autofill) — and **never**
+the global `/bookmarks?…=id` list; icon far-left; a tall/wrapping card centers the icon + buttons;
+hover shows Edit (+ Info except Autofill); the **Info icon lands on the entity's General detail tab
+(`…/$slug/general`), not a bookmarks list**; modifier-click on Edit/Info opens the right panel; for a
+listable entity the plain body link does not open the panel, while a non-listable entity's body link
+does (it's `viewClick`); the count badge is always visible; a zero-count item is muted but clickable.
