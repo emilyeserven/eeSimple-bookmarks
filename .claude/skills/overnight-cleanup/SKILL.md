@@ -7,7 +7,9 @@ description: >-
   (extracting complicated/nested conditionals into readable structures), large-file splitting,
   Storybook story coverage for undocumented components, and skill maintenance in a fixed phase order,
   committing after each successful phase and looping until the fallow health score reaches 8.0 or
-  higher, then opening a PR and subscribing to its activity so CI can be handled automatically. Use
+  higher, then opening a PR for the sweep — plus a separate branch/PR off the latest main for each
+  item too risky to bundle — subscribing to each, and doing at least one proactive round of CI
+  follow-up before going event-driven so CI can be handled automatically. Use
   when asked to "run an overnight cleanup", "bring fallow health up overnight", "add tests where
   coverage is poor", "make the test suite faster", "de-flake the tests", "clean up the codebase while
   I sleep", or "run a multi-phase fallow cleanup loop".
@@ -846,8 +848,14 @@ whole night.
 - **Be install-averse.** The network policy may block installs. If a phase wants a package that
   isn't present (e.g. a coverage provider, a new test runner for `@eesimple/types`), prefer the
   zero-dependency path or skip-and-note rather than failing the run on a blocked install.
-- **One PR, not many.** Open exactly one PR at the very end. If a PR already exists for this branch,
-  **update** it (`mcp__github__update_pull_request`) instead of creating a duplicate.
+- **One PR for the sweep — but split risky items into their own PRs.** Open exactly one PR for the
+  mechanical sweep (the safe phases) at the end. **Anything too risky to fold into that sweep** — a
+  large-file or large-function split, a complex-component decomposition, a half-applied feature to
+  finish, or any change with real blast radius — gets its **own branch cut off the latest `main`** and
+  its **own PR**, one item per branch (see **Risky items get their own branch and PR** below). Don't
+  bundle a risky refactor into the sweep PR, and don't pile several unrelated risky changes onto one
+  branch. If a PR already exists for a branch, **update** it (`mcp__github__update_pull_request`)
+  instead of creating a duplicate.
 - **Always produce the final report**, even on an early/budget stop — list health achieved, tests
   added, remaining gaps (with `file:line`), and what each would need. A precise hand-off is the
   deliverable when the loop can't reach 8.0 unattended.
@@ -904,6 +912,29 @@ automatically while the human sleeps.
 Do this only at the very end — after all phases are done, all per-phase commits are made, and the
 branch is pushed. Do not open a PR mid-loop.
 
+### Risky items get their own branch and PR
+
+The end-of-run PR covers the **mechanical sweep**. Any change too risky to bundle there — a
+large-function or large-file split, a complex-component decomposition, finishing a half-applied
+feature, or anything with real blast radius — is handled **one at a time, each on its own branch and
+its own PR**, never folded into the sweep:
+
+1. Cut the branch off the **latest `main`** — `git fetch origin main && git checkout -b <topic-branch>
+   origin/main` — **not** off the sweep branch, so each risky PR is independent and reviewable on its
+   own.
+2. Make the single focused change, add a test that pins the behavior (Phase 2 rules apply), and verify
+   green (`pnpm lint:fix && pnpm typecheck && pnpm test`). If it can't be made green quickly, abandon
+   that branch and note it — don't leave a half-done risky change.
+3. Commit, push, open a PR with a Conventional-Commits title scoped to that **one** item, and
+   subscribe to it (see below).
+4. Repeat for the next risky item, **re-cutting off the latest `main`** each time (earlier risky PRs —
+   or unrelated changes — may have merged in the meantime; a stale base is how the merged-result
+   typecheck goes red).
+
+Keeping them separate means each is reviewable on its own and a risky change can be reverted in
+isolation without losing the rest of the night's work. List every risky item you split out — with its
+PR — in the final report.
+
 ### Push the work
 
 Push the development branch with upstream tracking (retry with backoff on network errors, per the
@@ -938,8 +969,16 @@ and review comments:
 mcp__github__subscribe_pr_activity   # pass the new PR's number
 ```
 
-Then **end the turn** — do not poll with `sleep` or repeated status checks. PR events arrive as
-`<github-webhook-activity>` messages that wake the session. When a CI failure arrives, diagnose and
+**Always do at least one round of follow-up before ending the turn.** Don't open (and subscribe to)
+the PR(s) and immediately go idle. Do one proactive pass first: check each PR's CI status at least
+once (`mcp__github__pull_request_read` with `method: "get_status"`), and act on anything actionable
+from that first round — a `lint-title` miss, an obvious lint/type failure, a flagged conflict — rather
+than waiting on a webhook for what you can already see. (Webhooks don't deliver CI *success* or
+merge-conflict transitions, so the first manual check is also how you catch a PR that's already
+mergeable or already red.) Only after that first round is clear do you settle into event-driven mode.
+
+Then keep the session **event-driven** — do not poll with `sleep` in a loop. Further PR events arrive
+as `<github-webhook-activity>` messages that wake the session. When a CI failure arrives, diagnose and
 push a fix on the same branch (re-running the relevant verification locally first); when a review
 comment is ambiguous, ask the human via `AskUserQuestion` rather than guessing. Keep handling events
 until the PR is **merged or closed**, then stop. (CI success / merge-conflict transitions are not
