@@ -36,8 +36,8 @@ export function CategoryTieredTags({
     <div className="space-y-1">
       <Label>Enabled parent tags</Label>
       <p className="text-xs text-muted-foreground">
-        Limit which root tags are offered when tagging a bookmark in this category. Leave all
-        unchecked to allow every tag.
+        Choose which root tags are available when tagging bookmarks in this category. Leave all
+        unchecked to hide the tag picker entirely for this category.
       </p>
       <TagPicker
         tree={roots}

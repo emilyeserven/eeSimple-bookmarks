@@ -234,8 +234,7 @@ export function BookmarkAdvancedSection({
             {categoryId => (
               <form.Field name="tagIds">
                 {field => (
-                  <div className="space-y-1">
-                    <Label>Tags</Label>
+                  <>
                     <GatedTagPicker
                       categoryId={categoryId}
                       tree={tagTree}
@@ -253,18 +252,19 @@ export function BookmarkAdvancedSection({
                         label: "Create tag",
                         onSelect: () => setAddTagOpen(true),
                       }}
+                      below={sourceDefaults.showSourceDefault && field.state.value.length > 0
+                        ? (
+                          <SourceDefaultCheckbox
+                            checked={sourceDefaults.setTags}
+                            onCheckedChange={sourceDefaults.onSetTags}
+                          >
+                            Apply selected tags as defaults for
+                            {" "}
+                            {sourceDefaults.label}
+                          </SourceDefaultCheckbox>
+                        )
+                        : null}
                     />
-                    {/* "Apply selected tags as defaults for <source>" — under the Tags picker. */}
-                    {sourceDefaults.showSourceDefault && field.state.value.length > 0 && (
-                      <SourceDefaultCheckbox
-                        checked={sourceDefaults.setTags}
-                        onCheckedChange={sourceDefaults.onSetTags}
-                      >
-                        Apply selected tags as defaults for
-                        {" "}
-                        {sourceDefaults.label}
-                      </SourceDefaultCheckbox>
-                    )}
                     <AddTagModal
                       open={addTagOpen}
                       onOpenChange={setAddTagOpen}
@@ -276,7 +276,7 @@ export function BookmarkAdvancedSection({
                         }
                       }}
                     />
-                  </div>
+                  </>
                 )}
               </form.Field>
             )}
