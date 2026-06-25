@@ -1,15 +1,22 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 
-/** The per-entity Autofill tab redirects to the consolidated Autofill Rules page, filtered. */
+import { WorkbenchRouteTab } from "../components/workbench/WorkbenchRouteTab";
+import { youtubeChannelWorkbench } from "../components/workbench/youtubeChannel";
+
 export const Route = createFileRoute("/taxonomies/youtube-channels/$channelSlug/_view/autofill")({
-  beforeLoad: ({
-    params,
-  }) => {
-    throw redirect({
-      to: "/autofill",
-      search: {
-        channel: params.channelSlug,
-      },
-    });
-  },
+  component: AutofillViewTab,
 });
+
+function AutofillViewTab() {
+  const {
+    channelSlug,
+  } = Route.useParams();
+  return (
+    <WorkbenchRouteTab
+      workbench={youtubeChannelWorkbench}
+      tabKey="autofill"
+      mode="view"
+      slug={channelSlug}
+    />
+  );
+}

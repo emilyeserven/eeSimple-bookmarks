@@ -5,6 +5,8 @@ import type { Website } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 import { ExternalLink, Globe } from "lucide-react";
 
+import { AutofillRulesList } from "../AutofillRulesList";
+import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import { EntityImagePreview } from "../EntityImageField";
 import { HierarchyView } from "../HierarchyView";
 import { ParamRulesList } from "../ParamRulesList";
@@ -276,6 +278,52 @@ export const websiteWorkbench: EntityWorkbench<Website> = {
         title: "Hierarchy",
         description: "Parent domain and subdomain children.",
         render: WebsiteHierarchyView,
+      },
+    },
+    {
+      key: "autofill",
+      label: "Autofill Rules",
+      view: {
+        title: "Autofill Rules",
+        description: "Autofill rules whose conditions target this website.",
+        render: ({
+          entity,
+        }) => (
+          <AutofillRulesList
+            websiteId={entity.id}
+            query=""
+          />
+        ),
+      },
+      edit: {
+        title: "Autofill Rules",
+        description: "Autofill rules whose conditions target this website.",
+        render: ({
+          entity,
+        }) => (
+          <AutofillRulesList
+            websiteId={entity.id}
+            query=""
+          />
+        ),
+      },
+    },
+    {
+      key: "display-rules",
+      label: "Display Rules",
+      view: {
+        title: "Display Rules",
+        description: "Card display rules whose conditions reference this website.",
+        render: ({
+          entity,
+        }) => <CardDisplayRulesList websiteId={entity.id} />,
+      },
+      edit: {
+        title: "Display Rules",
+        description: "Card display rules whose conditions reference this website.",
+        render: ({
+          entity,
+        }) => <CardDisplayRulesList websiteId={entity.id} />,
       },
     },
   ],

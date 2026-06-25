@@ -14,11 +14,11 @@ const editNav = [
   },
   {
     type: "group",
-    label: "Filtered Settings",
+    label: "Rules",
     items: [
       {
         to: "/taxonomies/youtube-channels/$channelSlug/edit/autofill",
-        label: "Autofill",
+        label: "Autofill Rules",
       },
       {
         to: "/taxonomies/youtube-channels/$channelSlug/edit/display-rules",

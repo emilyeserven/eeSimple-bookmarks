@@ -14,7 +14,7 @@ const editNav = [
   },
   {
     type: "group",
-    label: "Filtered Settings",
+    label: "Rules",
     items: [
       {
         to: "/taxonomies/media-types/$mediaTypeSlug/edit/autofill",

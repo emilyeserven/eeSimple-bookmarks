@@ -22,7 +22,7 @@ const editNav = [
   },
   {
     type: "group",
-    label: "Filtered Settings",
+    label: "Rules",
     items: [
       {
         to: "/taxonomies/websites/$websiteSlug/edit/autofill",

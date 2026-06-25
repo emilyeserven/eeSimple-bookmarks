@@ -1,16 +1,22 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 
-/** The per-entity Display Rules tab redirects to the consolidated Card Display Rules page, filtered. */
+import { mediaTypeWorkbench } from "../components/workbench/mediaType";
+import { WorkbenchRouteTab } from "../components/workbench/WorkbenchRouteTab";
+
 export const Route = createFileRoute("/taxonomies/media-types/$mediaTypeSlug/edit/display-rules")({
-  beforeLoad: ({
-    params,
-  }) => {
-    throw redirect({
-      to: "/card-display-rules",
-      search: {
-        scope: "media-type",
-        scopeSlug: params.mediaTypeSlug,
-      },
-    });
-  },
+  component: DisplayRulesEditTab,
 });
+
+function DisplayRulesEditTab() {
+  const {
+    mediaTypeSlug,
+  } = Route.useParams();
+  return (
+    <WorkbenchRouteTab
+      workbench={mediaTypeWorkbench}
+      tabKey="display-rules"
+      mode="edit"
+      slug={mediaTypeSlug}
+    />
+  );
+}

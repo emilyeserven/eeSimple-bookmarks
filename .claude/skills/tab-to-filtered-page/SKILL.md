@@ -25,6 +25,14 @@ This is the inverse of the `scope-autofill` / `display-rules-tab` skills (which 
 scoped tabs). Reach for those to add the underlying scope filtering; reach for *this* one to
 consolidate existing scoped tabs into a single page.
 
+> **Status note.** The per-entity **Autofill Rules** and **Display Rules** tabs were moved **back to
+> inline** (they now render `AutofillRulesList` / `CardDisplayRulesList` directly on the entity's
+> view/edit pages via the workbench descriptor — see `scope-autofill` / `display-rules-tab`). The
+> central `/autofill` and `/card-display-rules` pages and their scope deeplinks (`lib/autofillScope.ts`,
+> `lib/cardDisplayScope.ts`) **remain** as the global filtered view. So this skill is no longer what
+> governs those two tabs; keep it as the general technique for consolidating *other* scoped tabs into a
+> deeplinkable page.
+
 ## Prerequisite
 
 The shared list component must already accept **entity-scope filter props** (e.g.

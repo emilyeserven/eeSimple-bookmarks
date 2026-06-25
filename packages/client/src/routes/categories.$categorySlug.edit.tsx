@@ -28,7 +28,7 @@ const editNav = [
   },
   {
     type: "group",
-    label: "Filtered Settings",
+    label: "Rules",
     items: [
       {
         to: "/categories/$categorySlug/edit/autofill",

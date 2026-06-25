@@ -1,15 +1,22 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 
-/** The per-entity Autofill tab redirects to the consolidated Autofill Rules page, filtered. */
+import { categoryWorkbench } from "../components/workbench/category";
+import { WorkbenchRouteTab } from "../components/workbench/WorkbenchRouteTab";
+
 export const Route = createFileRoute("/categories/$categorySlug/_view/autofill")({
-  beforeLoad: ({
-    params,
-  }) => {
-    throw redirect({
-      to: "/autofill",
-      search: {
-        category: params.categorySlug,
-      },
-    });
-  },
+  component: AutofillViewTab,
 });
+
+function AutofillViewTab() {
+  const {
+    categorySlug,
+  } = Route.useParams();
+  return (
+    <WorkbenchRouteTab
+      workbench={categoryWorkbench}
+      tabKey="autofill"
+      mode="view"
+      slug={categorySlug}
+    />
+  );
+}

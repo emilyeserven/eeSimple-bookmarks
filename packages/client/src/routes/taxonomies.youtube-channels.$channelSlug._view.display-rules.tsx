@@ -1,16 +1,22 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 
-/** The per-entity Display Rules tab redirects to the consolidated Card Display Rules page, filtered. */
+import { WorkbenchRouteTab } from "../components/workbench/WorkbenchRouteTab";
+import { youtubeChannelWorkbench } from "../components/workbench/youtubeChannel";
+
 export const Route = createFileRoute("/taxonomies/youtube-channels/$channelSlug/_view/display-rules")({
-  beforeLoad: ({
-    params,
-  }) => {
-    throw redirect({
-      to: "/card-display-rules",
-      search: {
-        scope: "channel",
-        scopeSlug: params.channelSlug,
-      },
-    });
-  },
+  component: DisplayRulesViewTab,
 });
+
+function DisplayRulesViewTab() {
+  const {
+    channelSlug,
+  } = Route.useParams();
+  return (
+    <WorkbenchRouteTab
+      workbench={youtubeChannelWorkbench}
+      tabKey="display-rules"
+      mode="view"
+      slug={channelSlug}
+    />
+  );
+}
