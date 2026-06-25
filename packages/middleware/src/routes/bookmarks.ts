@@ -389,8 +389,8 @@ const bulkTagsBody = {
   },
 } as const;
 
-/** CRUD routes for bookmarks, mounted under `/api/bookmarks`. */
-export async function bookmarkRoutes(app: FastifyInstance): Promise<void> {
+/** Read/query routes: list, on-host filter, and url duplicate check. */
+function registerBookmarkQueryRoutes(app: FastifyInstance): void {
   app.get("/api/bookmarks", {
     schema: {
       tags: ["bookmarks"],
@@ -429,7 +429,10 @@ export async function bookmarkRoutes(app: FastifyInstance): Promise<void> {
     });
     return checkBookmarkUrlDuplicate(url);
   });
+}
 
+/** Bulk operations over many bookmarks: url rewrite, delete, update, and tag add/remove. */
+function registerBookmarkBulkRoutes(app: FastifyInstance): void {
   app.post("/api/bookmarks/bulk-url", {
     schema: {
       tags: ["bookmarks"],
@@ -480,7 +483,10 @@ export async function bookmarkRoutes(app: FastifyInstance): Promise<void> {
       op: BulkBookmarkTagOp; };
     return bulkUpdateBookmarkTags(ids, tagIds, op);
   });
+}
 
+/** Single-bookmark CRUD: inbox quick-save, get, create, update, and delete. */
+function registerBookmarkCrudRoutes(app: FastifyInstance): void {
   // Quick-save endpoint for the browser extension context-menu: accepts only url + optional
   // title, forces the Inbox built-in category, and skips no other bookmark logic.
   app.post("/api/bookmarks/inbox", {
@@ -624,7 +630,10 @@ export async function bookmarkRoutes(app: FastifyInstance): Promise<void> {
     });
     return reply.code(204).send();
   });
+}
 
+/** Bookmark image upload, auto-capture, and removal. */
+function registerBookmarkImageRoutes(app: FastifyInstance): void {
   // Upload an image for a bookmark (multipart). Replaces any existing image.
   app.post("/api/bookmarks/:id/image", {
     schema: {
@@ -737,7 +746,10 @@ export async function bookmarkRoutes(app: FastifyInstance): Promise<void> {
     }
     return reply.code(204).send();
   });
+}
 
+/** Bookmark relationship edges and the image download endpoint. */
+function registerBookmarkRelationshipRoutes(app: FastifyInstance): void {
   // Replace the full set of typed relationships for a bookmark (edges to other bookmarks).
   app.put("/api/bookmarks/:id/relationships", {
     schema: {
@@ -819,7 +831,10 @@ export async function bookmarkRoutes(app: FastifyInstance): Promise<void> {
     reply.header("Cache-Control", "public, max-age=31536000, immutable");
     return reply.send(object.body);
   });
+}
 
+/** Custom-property image/file value upload, removal, and download. */
+function registerBookmarkPropertyFileRoutes(app: FastifyInstance): void {
   // Upload an image/file value for a bookmark's image/file custom property (multipart). Replaces any
   // existing value. Mirrors the bookmark-image upload route, keyed additionally by propertyId.
   app.post("/api/bookmarks/:id/properties/:propertyId/file", {
@@ -934,4 +949,14 @@ export async function bookmarkRoutes(app: FastifyInstance): Promise<void> {
     }
     return reply.send(object.body);
   });
+}
+
+/** CRUD routes for bookmarks, mounted under `/api/bookmarks`. */
+export async function bookmarkRoutes(app: FastifyInstance): Promise<void> {
+  registerBookmarkQueryRoutes(app);
+  registerBookmarkBulkRoutes(app);
+  registerBookmarkCrudRoutes(app);
+  registerBookmarkImageRoutes(app);
+  registerBookmarkRelationshipRoutes(app);
+  registerBookmarkPropertyFileRoutes(app);
 }
