@@ -1,6 +1,7 @@
 import type {
   AdvancedSettings,
   AiSummarizationSettings,
+  AiSummaryQueueItem,
   AutomationSettings,
   CardDisplayRule,
   CardFieldTemplate,
@@ -113,6 +114,7 @@ export const appSettingsApi = {
 };
 
 export const aiSummarizationApi = {
+  getQueue: () => request<AiSummaryQueueItem[]>("/ai-summarization/queue"),
   markSummarized: () =>
     request<{ count: number }>("/ai-summarization/mark-summarized", {
       method: "POST",
