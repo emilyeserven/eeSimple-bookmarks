@@ -1,4 +1,13 @@
 import type { StorybookConfig } from "@storybook/react-vite";
+import type { PluginOption } from "vite";
+
+// VitePWA's plugins (vite.config.ts) are named `vite-plugin-pwa…`. Storybook nests plugins, so flatten.
+const isPwaPlugin = (plugin: PluginOption): boolean =>
+  Boolean(plugin)
+  && typeof plugin === "object"
+  && "name" in plugin
+  && typeof plugin.name === "string"
+  && plugin.name.startsWith("vite-plugin-pwa");
 
 const config: StorybookConfig = {
   stories: ["../src/**/*.stories.@(ts|tsx)"],
@@ -8,20 +17,15 @@ const config: StorybookConfig = {
   },
   // Serve the MSW service worker (used by data-driven component stories).
   staticDirs: ["../public"],
-  // Storybook reuses the app's vite.config.ts, which registers VitePWA. The PWA plugin's
-  // Workbox precache step fails the Storybook build because Storybook's own manager runtime
-  // (sb-manager/globals-runtime.js, ~3.2 MB) exceeds the 2 MiB precache limit — and a docs
-  // build needs no service worker anyway. Strip VitePWA from the Storybook build only.
-  viteFinal(viteConfig) {
-    // VitePWA() contributes a nested array of plugins, so flatten before filtering them out.
-    const flatPlugins = (viteConfig.plugins ?? []).flat(Infinity);
-    return {
-      ...viteConfig,
-      plugins: flatPlugins.filter((plugin) => {
-        const name = (plugin as { name?: string } | null | undefined)?.name;
-        return name === undefined || !name.startsWith("vite-plugin-pwa");
-      }),
-    };
+  // Storybook inherits the app's vite.config.ts, which registers VitePWA. Generating a PWA service
+  // worker over Storybook's own bundle is pointless and fails the build: Storybook's manager runtime
+  // (`sb-manager/globals-runtime.js`, ~3.2 MB) exceeds Workbox's 2 MiB precache limit and throws.
+  // Strip the PWA plugins out of the Storybook build.
+  viteFinal: async (viteConfig) => {
+    viteConfig.plugins = (viteConfig.plugins ?? []).filter(
+      plugin => !(Array.isArray(plugin) ? plugin.some(isPwaPlugin) : isPwaPlugin(plugin)),
+    );
+    return viteConfig;
   },
 };
 
