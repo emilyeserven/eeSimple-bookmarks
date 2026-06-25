@@ -1,8 +1,5 @@
 import type { BookmarkImageVisibility } from "../lib/bookmarkColumns";
 import type { Bookmark,
-  BookmarkChoicesValue,
-  BookmarkDateTimeValue,
-  BookmarkNumberValue,
   CardFieldZones,
   CardZoneLayouts,
   CustomProperty } from "@eesimple/types";
@@ -55,61 +52,14 @@ interface BookmarkCardProps {
   hideWebsiteForYouTube?: boolean;
 }
 
-/** Replace the entry for `propertyId` with `value`, or append it when the property has no value yet. */
-function mergeNumberValue(
-  values: BookmarkNumberValue[],
-  propertyId: string,
-  value: number,
-): BookmarkNumberValue[] {
-  return values.some(entry => entry.propertyId === propertyId)
-    ? values.map(entry => (entry.propertyId === propertyId
-      ? {
-        propertyId,
-        value,
-      }
-      : entry))
-    : [...values, {
-      propertyId,
-      value,
-    }];
-}
-
-/** Replace the entry for `propertyId` with `values`, or append it when the property has no value yet. */
-function mergeChoicesValue(
-  values: BookmarkChoicesValue[],
-  propertyId: string,
-  next: string[],
-): BookmarkChoicesValue[] {
-  return values.some(entry => entry.propertyId === propertyId)
-    ? values.map(entry => (entry.propertyId === propertyId
-      ? {
-        propertyId,
-        values: next,
-      }
-      : entry))
-    : [...values, {
-      propertyId,
-      values: next,
-    }];
-}
-
-/** Replace the entry for `propertyId` with `value`, or append it when the property has no value yet. */
-function mergeDateTimeValue(
-  values: BookmarkDateTimeValue[],
-  propertyId: string,
-  value: string,
-): BookmarkDateTimeValue[] {
-  return values.some(entry => entry.propertyId === propertyId)
-    ? values.map(entry => (entry.propertyId === propertyId
-      ? {
-        propertyId,
-        value,
-      }
-      : entry))
-    : [...values, {
-      propertyId,
-      value,
-    }];
+/** Replace the entry for `propertyId` in a typed value array, or append it when missing. */
+function mergePropertyEntry<T extends { propertyId: string }>(entries: T[], next: T): T[] {
+  const {
+    propertyId,
+  } = next;
+  return entries.some(e => e.propertyId === propertyId)
+    ? entries.map(e => (e.propertyId === propertyId ? next : e))
+    : [...entries, next];
 }
 
 export function BookmarkCard({
@@ -136,7 +86,10 @@ export function BookmarkCard({
     updateBookmark.mutate({
       id: bookmark.id,
       input: {
-        numberValues: mergeNumberValue(bookmark.numberValues, propertyId, value),
+        numberValues: mergePropertyEntry(bookmark.numberValues, {
+          propertyId,
+          value,
+        }),
       },
     });
   }
@@ -154,7 +107,10 @@ export function BookmarkCard({
     updateBookmark.mutate({
       id: bookmark.id,
       input: {
-        dateTimeValues: mergeDateTimeValue(bookmark.dateTimeValues, propertyId, value),
+        dateTimeValues: mergePropertyEntry(bookmark.dateTimeValues, {
+          propertyId,
+          value,
+        }),
       },
     });
   }
@@ -163,7 +119,10 @@ export function BookmarkCard({
     updateBookmark.mutate({
       id: bookmark.id,
       input: {
-        choicesValues: mergeChoicesValue(bookmark.choicesValues, propertyId, values),
+        choicesValues: mergePropertyEntry(bookmark.choicesValues, {
+          propertyId,
+          values,
+        }),
       },
     });
   }
