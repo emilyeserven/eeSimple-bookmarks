@@ -2,6 +2,8 @@
 import type { EntityWorkbench } from "./types";
 import type { Category } from "@eesimple/types";
 
+import { AutofillRulesList } from "../AutofillRulesList";
+import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import { CategoryCustomProperties } from "../CategoryCustomProperties";
 import { CategoryGeneralForm } from "../CategoryGeneralForm";
 import { CategoryGeneralFields } from "../CategoryPreviewCard";
@@ -126,6 +128,52 @@ export const categoryWorkbench: EntityWorkbench<Category> = {
         render: ({
           entity,
         }) => <ListingDisplayControls pageKey={`category:${entity.slug}`} />,
+      },
+    },
+    {
+      key: "autofill",
+      label: "Autofill Rules",
+      view: {
+        title: "Autofill Rules",
+        description: "Autofill rules that set this category.",
+        render: ({
+          entity,
+        }) => (
+          <AutofillRulesList
+            categoryId={entity.id}
+            query=""
+          />
+        ),
+      },
+      edit: {
+        title: "Autofill Rules",
+        description: "Autofill rules that set this category.",
+        render: ({
+          entity,
+        }) => (
+          <AutofillRulesList
+            categoryId={entity.id}
+            query=""
+          />
+        ),
+      },
+    },
+    {
+      key: "display-rules",
+      label: "Display Rules",
+      view: {
+        title: "Display Rules",
+        description: "Card display rules whose conditions target this category.",
+        render: ({
+          entity,
+        }) => <CardDisplayRulesList categoryId={entity.id} />,
+      },
+      edit: {
+        title: "Display Rules",
+        description: "Card display rules whose conditions target this category.",
+        render: ({
+          entity,
+        }) => <CardDisplayRulesList categoryId={entity.id} />,
       },
     },
   ],

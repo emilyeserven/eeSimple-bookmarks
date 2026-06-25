@@ -40,7 +40,9 @@ This skill focuses on the autofill/condition plumbing. For the surrounding verti
    (`packages/client/src/components/panel/AutofillRulePanel.tsx`) reads the entity slug from the URL
    via `useParams({ strict: false })` and passes a `default<Entity>Id` to `AutofillRuleForm`, which
    seeds the relevant form field. Mirror that.
-3. Render `<AutofillRulesList <scope>={entity.id} />` inside the entity's view + edit autofill tabs.
+3. Render `<AutofillRulesList <scope>={entity.id} query="" />` inside the entity's view + edit autofill
+   tabs (the tab is wired via the workbench descriptor — see "Route files" below). `AutofillRulesList`
+   requires a `query` prop; pass `query=""` inline (the text search lives only on the central page).
 
 ## B. Condition-based scoping (rule matches the entity) — the Website pattern
 
@@ -59,12 +61,17 @@ Condition-based scoping has two halves:
 
 ## Route files (both A and B)
 
-Add the two tab routes (mirror `categories.$categorySlug._view.autofill.tsx` /
-`…edit.autofill.tsx`) and the nav entries — see `tabbed-pages` §6:
-- `<entity>.$<slug>._view.autofill.tsx` and `<entity>.$<slug>.edit.autofill.tsx`, each a thin
-  `<Entity>TabWrapper` → `<AutofillRulesList <scope>={entity.id} />`.
-- Add an "Autofill Rules" entry to the `viewNav` / `editNav` arrays in the entity's `_view.tsx` /
-  `edit.tsx` layouts.
+The Autofill Rules tab is an **inline** tab driven by the entity's `EntityWorkbench` descriptor (same
+source for the main pane and the right panel) — see `tabbed-pages` §6:
+- **Workbench tab** — add a `{ key: "autofill", label: "Autofill Rules" }` tab to the entity's
+  `components/workbench/<entity>.tsx`, both `view` and `edit` panes rendering
+  `<AutofillRulesList <scope>={entity.id} query="" />`.
+- **Route tabs** — `<entity>.$<slug>._view.autofill.tsx` and `<entity>.$<slug>.edit.autofill.tsx`, each
+  a thin `WorkbenchRouteTab` delegation (`tabKey="autofill"`, `mode="view"|"edit"`) — mirror the
+  entity's `…general` route pair.
+- **Nav** — add an `{ to: ".../autofill", label: "Autofill Rules" }` entry to the `"Rules"` group in the
+  `viewNav` / `editNav` arrays in the entity's `_view.tsx` / `edit.tsx` layouts, plus an `"autofill"`
+  entry in the View file's `VIEW_TO_EDIT` map.
 - Regenerate the route tree: `pnpm --filter=@eesimple/client routeTree` (never hand-edit
   `routeTree.gen.ts`).
 

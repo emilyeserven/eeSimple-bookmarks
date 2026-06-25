@@ -18,7 +18,7 @@ const editNav = [
   },
   {
     type: "group",
-    label: "Filtered Settings",
+    label: "Rules",
     items: [
       {
         to: "/tags/$tagSlug/edit/autofill",

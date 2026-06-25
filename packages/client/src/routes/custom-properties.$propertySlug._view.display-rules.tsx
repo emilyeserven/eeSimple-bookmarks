@@ -1,16 +1,22 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 
-/** The per-entity Display Rules tab redirects to the consolidated Card Display Rules page, filtered. */
+import { propertyWorkbench } from "../components/workbench/property";
+import { WorkbenchRouteTab } from "../components/workbench/WorkbenchRouteTab";
+
 export const Route = createFileRoute("/custom-properties/$propertySlug/_view/display-rules")({
-  beforeLoad: ({
-    params,
-  }) => {
-    throw redirect({
-      to: "/card-display-rules",
-      search: {
-        scope: "property",
-        scopeSlug: params.propertySlug,
-      },
-    });
-  },
+  component: DisplayRulesViewTab,
 });
+
+function DisplayRulesViewTab() {
+  const {
+    propertySlug,
+  } = Route.useParams();
+  return (
+    <WorkbenchRouteTab
+      workbench={propertyWorkbench}
+      tabKey="display-rules"
+      mode="view"
+      slug={propertySlug}
+    />
+  );
+}

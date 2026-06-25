@@ -24,7 +24,7 @@ const viewNav = [
   },
   {
     type: "group",
-    label: "Filtered Settings",
+    label: "Rules",
     items: [
       {
         to: "/tags/$tagSlug/autofill",

@@ -63,7 +63,7 @@ function CustomPropertyViewLayout() {
     },
     {
       type: "group",
-      label: "Filtered Settings",
+      label: "Rules",
       items: [
         {
           to: "/custom-properties/$propertySlug/autofill",

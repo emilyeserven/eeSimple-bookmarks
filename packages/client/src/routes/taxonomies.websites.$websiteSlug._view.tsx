@@ -25,7 +25,7 @@ const viewNav = [
   },
   {
     type: "group",
-    label: "Filtered Settings",
+    label: "Rules",
     items: [
       {
         to: "/taxonomies/websites/$websiteSlug/autofill",
