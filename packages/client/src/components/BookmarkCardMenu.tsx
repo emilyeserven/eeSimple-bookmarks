@@ -18,6 +18,9 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -135,54 +138,68 @@ export function BookmarkCardMenu({
                 const current
                   = bookmark.choicesValues.find(entry => entry.propertyId === property.id)?.values
                     ?? [];
+                const selectedLabels = current
+                  .map(v => property.choicesItems.find(item => item.value === v)?.label)
+                  .filter((l): l is string => l !== undefined);
+                const triggerHint = selectedLabels.length > 0
+                  ? selectedLabels.join(", ")
+                  : "None";
                 if (property.choicesMultiple) {
                   return (
-                    <div key={property.id}>
-                      <DropdownMenuLabel
-                        className="text-xs text-muted-foreground"
-                      >
-                        {property.name}
-                      </DropdownMenuLabel>
-                      {property.choicesItems.map(item => (
-                        <DropdownMenuCheckboxItem
-                          key={item.value}
-                          checked={current.includes(item.value)}
-                          onSelect={event => event.preventDefault()}
-                          onCheckedChange={(checked) => {
-                            const next = checked
-                              ? [...current, item.value]
-                              : current.filter(v => v !== item.value);
-                            onSaveChoices(property.id, next);
-                          }}
-                        >
-                          {item.label}
-                        </DropdownMenuCheckboxItem>
-                      ))}
-                    </div>
+                    <DropdownMenuSub key={property.id}>
+                      <DropdownMenuSubTrigger>
+                        <span className="flex min-w-0 flex-col">
+                          <span>{property.name}</span>
+                          <span
+                            className="truncate text-xs text-muted-foreground"
+                          >{triggerHint}
+                          </span>
+                        </span>
+                      </DropdownMenuSubTrigger>
+                      <DropdownMenuSubContent>
+                        {property.choicesItems.map(item => (
+                          <DropdownMenuCheckboxItem
+                            key={item.value}
+                            checked={current.includes(item.value)}
+                            onSelect={event => event.preventDefault()}
+                            onCheckedChange={(checked) => {
+                              const next = checked
+                                ? [...current, item.value]
+                                : current.filter(v => v !== item.value);
+                              onSaveChoices(property.id, next);
+                            }}
+                          >
+                            {item.label}
+                          </DropdownMenuCheckboxItem>
+                        ))}
+                      </DropdownMenuSubContent>
+                    </DropdownMenuSub>
                   );
                 }
                 return (
-                  <div key={property.id}>
-                    <DropdownMenuLabel className="text-xs text-muted-foreground">
-                      {property.name}
-                    </DropdownMenuLabel>
-                    <DropdownMenuRadioGroup
-                      value={current[0] ?? ""}
-                      onValueChange={(value) => {
-                        onSaveChoices(property.id, value ? [value] : []);
-                      }}
-                    >
-                      {property.choicesItems.map(item => (
-                        <DropdownMenuRadioItem
-                          key={item.value}
-                          value={item.value}
-                          onSelect={event => event.preventDefault()}
-                        >
-                          {item.label}
-                        </DropdownMenuRadioItem>
-                      ))}
-                    </DropdownMenuRadioGroup>
-                  </div>
+                  <DropdownMenuSub key={property.id}>
+                    <DropdownMenuSubTrigger>
+                      <span className="flex min-w-0 flex-col">
+                        <span>{property.name}</span>
+                        <span className="truncate text-xs text-muted-foreground">{triggerHint}</span>
+                      </span>
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent>
+                      <DropdownMenuRadioGroup
+                        value={current[0] ?? ""}
+                        onValueChange={value => onSaveChoices(property.id, value ? [value] : [])}
+                      >
+                        {property.choicesItems.map(item => (
+                          <DropdownMenuRadioItem
+                            key={item.value}
+                            value={item.value}
+                          >
+                            {item.label}
+                          </DropdownMenuRadioItem>
+                        ))}
+                      </DropdownMenuRadioGroup>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
                 );
               }
               if (property.type === "boolean") {
