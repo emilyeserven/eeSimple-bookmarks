@@ -64,6 +64,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
 
   const [addMediaTypeOpen, setAddMediaTypeOpen] = useState(false);
   const [addTagOpen, setAddTagOpen] = useState(false);
+  const [addAuthorOpen, setAddAuthorOpen] = useState(false);
   const [isReportingTitle, setIsReportingTitle] = useState(false);
   const [expectedTitle, setExpectedTitle] = useState("");
   const [websiteSiteName, setWebsiteSiteName] = useState("");
@@ -129,6 +130,21 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
       {
         onSuccess: () => notifyFieldSaved("Tags"),
         onError: e => notifyFieldSaveError("Tags", describeError(e)),
+      },
+    );
+  }
+
+  function saveAuthors(authorIds: string[]): void {
+    updateBookmark.mutate(
+      {
+        id: bookmark.id,
+        input: {
+          authorIds,
+        },
+      },
+      {
+        onSuccess: () => notifyFieldSaved("Authors"),
+        onError: e => notifyFieldSaveError("Authors", describeError(e)),
       },
     );
   }
@@ -220,6 +236,9 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     addTagOpen,
     setAddTagOpen,
     saveTags,
+    addAuthorOpen,
+    setAddAuthorOpen,
+    saveAuthors,
     fetchTitle,
     fetchMetadata,
     websiteLookup,
