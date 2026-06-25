@@ -133,6 +133,12 @@ export interface Website {
   redirectResolutionFailure?: boolean;
 }
 
+/** A website enriched with its domain-derived subdomain children for tree rendering. */
+export interface WebsiteNode extends Website {
+  /** Child websites whose domain is a subdomain of this site's domain. */
+  children: WebsiteNode[];
+}
+
 /** Lightweight website shape carried on a bookmark. */
 export type BookmarkWebsite = Pick<Website, "id" | "domain" | "siteName" | "slug" | "imageUrl">;
 

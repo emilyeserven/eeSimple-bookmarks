@@ -21,6 +21,13 @@ export function useWebsites() {
   });
 }
 
+export function useWebsiteTree() {
+  return useQuery({
+    queryKey: [...WEBSITES_KEY, "tree"],
+    queryFn: websitesApi.tree,
+  });
+}
+
 /** Look up a single website by its slug from the cached list. */
 export function useWebsiteBySlug(slug: string) {
   const query = useWebsites();
