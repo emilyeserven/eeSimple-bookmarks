@@ -2,6 +2,7 @@ import type { Bookmark } from "@eesimple/types";
 
 import { Brush } from "lucide-react";
 
+import { AddAuthorModal } from "./AddAuthorModal";
 import { AddMediaTypeModal } from "./AddMediaTypeModal";
 import { AddTagModal } from "./AddTagModal";
 import { BookmarkAdvancedPublisherField } from "./BookmarkAdvancedPublisherField";
@@ -71,6 +72,9 @@ export function BookmarkGeneralForm({
     addTagOpen,
     setAddTagOpen,
     saveTags,
+    addAuthorOpen,
+    setAddAuthorOpen,
+    saveAuthors,
     autofillOfferDismissed,
     setAutofillOfferDismissed,
     touchedRef,
@@ -282,26 +286,40 @@ export function BookmarkGeneralForm({
         }}
       />
 
-      {(authors?.length ?? 0) > 0 && (
-        <form.Field name="authorIds">
-          {field => (
-            <div className="space-y-1">
-              <Label>Authors</Label>
-              <MultiCombobox
-                options={(authors ?? []).map(a => ({
-                  value: a.id,
-                  label: a.name,
-                }))}
-                values={field.state.value}
-                onValuesChange={field.handleChange}
-                placeholder="Select authors…"
-                searchPlaceholder="Search authors…"
-                emptyText="No authors found."
-              />
-            </div>
-          )}
-        </form.Field>
-      )}
+      <form.Field name="authorIds">
+        {field => (
+          <div className="space-y-1">
+            <Label>Authors</Label>
+            <MultiCombobox
+              options={(authors ?? []).map(a => ({
+                value: a.id,
+                label: a.name,
+              }))}
+              values={field.state.value}
+              onValuesChange={field.handleChange}
+              placeholder="Select authors…"
+              searchPlaceholder="Search authors…"
+              emptyText="No authors found."
+              createOption={{
+                label: "Create author",
+                onSelect: () => setAddAuthorOpen(true),
+              }}
+            />
+          </div>
+        )}
+      </form.Field>
+      <AddAuthorModal
+        open={addAuthorOpen}
+        onOpenChange={setAddAuthorOpen}
+        onCreated={(author) => {
+          const current = form.getFieldValue("authorIds");
+          if (!current.includes(author.id)) {
+            const newAuthorIds = [...current, author.id];
+            form.setFieldValue("authorIds", newAuthorIds);
+            saveAuthors(newAuthorIds);
+          }
+        }}
+      />
 
       <BookmarkAdvancedPublisherField
         form={form}
