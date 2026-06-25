@@ -2255,6 +2255,8 @@ export interface FetchIsbnMetadataResult {
   coverUrl: string | null;
   /** Author names for the book. */
   authors: string[];
+  /** First publisher name, or `null` when unavailable. */
+  publisher: string | null;
   /** Publication year string (e.g. `"1979"`), or `null` when unavailable. */
   year: string | null;
   /** Canonical Open Library URL for this book, or `null` when unavailable. */
