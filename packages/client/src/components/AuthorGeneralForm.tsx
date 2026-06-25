@@ -11,6 +11,7 @@ import {
   useAdoptWebsiteFaviconForAuthor,
   useAutoAuthorImage,
   useDeleteAuthorImage,
+  useDetectAuthorSocialLinks,
   useUpdateAuthor,
   useUploadAuthorImage,
 } from "../hooks/useAuthors";
@@ -18,7 +19,8 @@ import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 import { useWebsites } from "../hooks/useWebsites";
 import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
 import { useAppForm } from "../lib/form";
-import { socialLinkSchema } from "../lib/socialLinks";
+import { notifySuccess } from "../lib/notifications";
+import { SOCIAL_MEDIA_PLATFORM_LABELS, socialLinkSchema } from "../lib/socialLinks";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -52,6 +54,7 @@ export function AuthorGeneralForm({
   const deleteAvatar = useDeleteAuthorImage();
   const adoptChannel = useAdoptChannelImageForAuthor();
   const adoptWebsite = useAdoptWebsiteFaviconForAuthor();
+  const detectLinks = useDetectAuthorSocialLinks();
   const avatarBusy
     = uploadAvatar.isPending
       || autoAvatar.isPending
@@ -233,6 +236,38 @@ export function AuthorGeneralForm({
       </div>
 
       <Separator />
+
+      <div className="flex flex-col gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={detectLinks.isPending || !author.authorWebsiteUrl}
+          onClick={() => detectLinks.mutate(author.id, {
+            onSuccess: ({
+              detected,
+            }) => {
+              if (detected.length === 0) {
+                notifySuccess("No new social links found on the author's website");
+                return;
+              }
+              const existingPlatforms = new Set(author.socialLinks.map(l => l.platform));
+              const toAdd = detected.filter(l => !existingPlatforms.has(l.platform));
+              if (toAdd.length === 0) {
+                notifySuccess("Social links already up to date");
+                return;
+              }
+              const merged = [...author.socialLinks, ...toAdd];
+              autoSave.saveField("socialLinks", merged);
+              const names = toAdd.map(l => SOCIAL_MEDIA_PLATFORM_LABELS[l.platform]).join(", ");
+              notifySuccess(`Found ${toAdd.length === 1 ? "a link" : "links"}: ${names}`);
+            },
+          })}
+        >
+          <Sparkles className="size-4" />
+          Detect social links from website
+        </Button>
+      </div>
 
       <SocialLinksField
         socialLinks={author.socialLinks}
