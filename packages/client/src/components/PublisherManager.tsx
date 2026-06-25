@@ -1,22 +1,38 @@
 import type { Publisher } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
-import { BookOpen, Info, Pencil } from "lucide-react";
+import { BookOpen, CheckSquare, Info, Pencil } from "lucide-react";
 
+import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
 import { ListingStatusMessages } from "./ListingStatusMessages";
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
 import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 import { useHeaderSearchFilter } from "../hooks/useHeaderSearchFilter";
-import { usePublishers } from "../hooks/usePublishers";
+import { useBulkDeletePublishers, usePublishers } from "../hooks/usePublishers";
 import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
 import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
 import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "../lib/sidebarModifier";
+import { useListSelection } from "../lib/useListSelection";
+
+import { Button } from "@/components/ui/button";
+
+interface PublisherListItemProps {
+  publisher: Publisher;
+  selectable?: boolean;
+  selected?: boolean;
+  onSelectToggle?: () => void;
+  inSelectionMode?: boolean;
+}
 
 /** A single row in the publisher listing: name, website info, bookmark count, and hover Edit / Info. */
 function PublisherListItem({
   publisher,
-}: { publisher: Publisher }) {
+  selectable,
+  selected,
+  onSelectToggle,
+  inSelectionMode,
+}: PublisherListItemProps) {
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
@@ -29,6 +45,10 @@ function PublisherListItem({
 
   return (
     <StandardListingCard
+      selectable={selectable}
+      selected={selected}
+      onSelectToggle={onSelectToggle}
+      inSelectionMode={inSelectionMode}
       icon={(
         <span
           className="
@@ -104,6 +124,10 @@ export function PublishersListing() {
     (p, query) => p.name.toLowerCase().includes(query),
   );
 
+  const deletableIds = filtered.map(p => p.id);
+  const selection = useListSelection("publishers-listing", deletableIds);
+  const bulkDelete = useBulkDeletePublishers();
+
   return (
     <div className="space-y-4">
       <ListingStatusMessages
@@ -124,6 +148,28 @@ export function PublishersListing() {
 
       {filtered.length > 0
         ? (
+          <div className="flex justify-end">
+            <Button
+              variant={selection.mode ? "secondary" : "outline"}
+              size="sm"
+              onClick={() => selection.setMode(!selection.mode)}
+            >
+              <CheckSquare className="size-4" />
+              {selection.mode ? "Done selecting" : "Select"}
+            </Button>
+          </div>
+        )
+        : null}
+
+      <TaxonomyBulkBar
+        selection={selection}
+        totalSelectable={deletableIds.length}
+        bulkDelete={bulkDelete}
+        noun={["publisher", "publishers"]}
+      />
+
+      {filtered.length > 0
+        ? (
           <div
             className={`
               grid gap-2
@@ -134,6 +180,10 @@ export function PublishersListing() {
               <PublisherListItem
                 key={publisher.id}
                 publisher={publisher}
+                selectable
+                selected={selection.isSelected(publisher.id)}
+                onSelectToggle={() => selection.toggle(publisher.id)}
+                inSelectionMode={selection.mode}
               />
             ))}
           </div>
