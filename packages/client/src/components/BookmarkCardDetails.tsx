@@ -51,6 +51,8 @@ interface BookmarkCardDetailsProps {
   onSaveRating?: (propertyId: string, value: number) => void;
   /** Toggle a boolean value from the card (only wired for placements with `clickableInView`). */
   onSaveBoolean?: (propertyId: string, value: boolean) => void;
+  /** Persist a choices value edited from the "More" menu. */
+  onSaveChoices?: (propertyId: string, values: string[]) => void;
 }
 
 /** The three render forms a card-body sub-zone imposes on the fields placed in it. */
@@ -146,7 +148,7 @@ export function BookmarkCardDetails({
   bookmark, properties, placements, cardZoneLayouts, bookmarkCategory, hideWebsiteForYouTube,
   editableProperties = [], autoImagePending = false, onAutoImage,
   onSaveNumber, onSaveDateTime, onDelete,
-  onSaveRating, onSaveBoolean,
+  onSaveRating, onSaveBoolean, onSaveChoices,
 }: BookmarkCardDetailsProps) {
   // Listings pass the rule-resolved value explicitly; other surfaces fall back to the Default rule.
   const defaultHideWebsiteForYouTube = useHideWebsiteForYouTube();
@@ -183,6 +185,7 @@ export function BookmarkCardDetails({
       onSaveNumber={onSaveNumber}
       onSaveBoolean={onSaveBoolean}
       onSaveDateTime={onSaveDateTime}
+      onSaveChoices={onSaveChoices}
       onDelete={onDelete}
     />
   );

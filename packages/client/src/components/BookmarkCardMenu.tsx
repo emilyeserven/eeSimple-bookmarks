@@ -15,6 +15,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -95,13 +97,14 @@ interface BookmarkCardMenuProps {
   onSaveNumber: (propertyId: string, value: number) => void;
   onSaveBoolean: (propertyId: string, value: boolean) => void;
   onSaveDateTime: (propertyId: string, value: string) => void;
+  onSaveChoices: (propertyId: string, values: string[]) => void;
   onDelete?: (id: string) => void;
 }
 
 /** The dropdown menu content for a bookmark card: edit link, quick-edit properties, image grab, delete. */
 export function BookmarkCardMenu({
   bookmark, editableProperties, autoImagePending, onAutoImage,
-  onSaveNumber, onSaveBoolean, onSaveDateTime, onDelete,
+  onSaveNumber, onSaveBoolean, onSaveDateTime, onSaveChoices, onDelete,
 }: BookmarkCardMenuProps) {
   const editClick = useEditPanelClick();
   const modifier = useSidebarOpenModifier();
@@ -128,6 +131,60 @@ export function BookmarkCardMenu({
               Quick edit
             </DropdownMenuLabel>
             {editableProperties.map((property) => {
+              if (property.type === "choices") {
+                const current
+                  = bookmark.choicesValues.find(entry => entry.propertyId === property.id)?.values
+                    ?? [];
+                if (property.choicesMultiple) {
+                  return (
+                    <div key={property.id}>
+                      <DropdownMenuLabel
+                        className="text-xs text-muted-foreground"
+                      >
+                        {property.name}
+                      </DropdownMenuLabel>
+                      {property.choicesItems.map(item => (
+                        <DropdownMenuCheckboxItem
+                          key={item.value}
+                          checked={current.includes(item.value)}
+                          onSelect={event => event.preventDefault()}
+                          onCheckedChange={(checked) => {
+                            const next = checked
+                              ? [...current, item.value]
+                              : current.filter(v => v !== item.value);
+                            onSaveChoices(property.id, next);
+                          }}
+                        >
+                          {item.label}
+                        </DropdownMenuCheckboxItem>
+                      ))}
+                    </div>
+                  );
+                }
+                return (
+                  <div key={property.id}>
+                    <DropdownMenuLabel className="text-xs text-muted-foreground">
+                      {property.name}
+                    </DropdownMenuLabel>
+                    <DropdownMenuRadioGroup
+                      value={current[0] ?? ""}
+                      onValueChange={(value) => {
+                        onSaveChoices(property.id, value ? [value] : []);
+                      }}
+                    >
+                      {property.choicesItems.map(item => (
+                        <DropdownMenuRadioItem
+                          key={item.value}
+                          value={item.value}
+                          onSelect={event => event.preventDefault()}
+                        >
+                          {item.label}
+                        </DropdownMenuRadioItem>
+                      ))}
+                    </DropdownMenuRadioGroup>
+                  </div>
+                );
+              }
               if (property.type === "boolean") {
                 const checked
                   = bookmark.booleanValues.find(entry => entry.propertyId === property.id)?.value
