@@ -5,6 +5,7 @@ import { Link } from "@tanstack/react-router";
 import { useViewPanelClick } from "./panel/useEditPanelClick";
 import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 import { TYPE_LABELS } from "../lib/propertyFormat";
+import { propertyPreviewSummary } from "../lib/propertyPreview";
 
 import { Badge } from "@/components/ui/badge";
 import { RowCard } from "@/components/ui/card";
@@ -22,6 +23,38 @@ interface PropertyPreviewProps {
   inSelectionMode?: boolean;
 }
 
+/** The shared inner content of a property preview card, rendered inside either the link or select button. */
+function PropertyPreviewBody({
+  property,
+  summary,
+}: {
+  property: CustomProperty;
+  summary: string | null;
+}) {
+  const categoryCount = property.categoryIds.length;
+  const isAllCategories = property.allCategories || categoryCount === 0;
+
+  return (
+    <>
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="font-medium">{property.name}</span>
+        {property.builtIn && <Badge variant="secondary">Built-in</Badge>}
+        {!property.enabled && <Badge variant="outline">Disabled</Badge>}
+        <Badge variant="secondary">{TYPE_LABELS[property.type]}</Badge>
+        {summary ? <span className="text-xs text-muted-foreground">{summary}</span> : null}
+      </div>
+      {property.description
+        ? <p className="truncate text-sm text-muted-foreground">{property.description}</p>
+        : null}
+      <p className="text-xs text-muted-foreground">
+        {isAllCategories
+          ? "All categories"
+          : `${categoryCount} ${categoryCount === 1 ? "category" : "categories"}`}
+      </p>
+    </>
+  );
+}
+
 /** A compact, clickable preview of one property; links to its full view page. */
 export function PropertyPreview({
   property, allProperties, selectable = false, selected = false, onSelectToggle,
@@ -29,21 +62,7 @@ export function PropertyPreview({
 }: PropertyPreviewProps) {
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
-  const operandNames = property.operandPropertyIds
-    .map(id => allProperties.find(candidate => candidate.id === id)?.name)
-    .filter((value): value is string => Boolean(value));
-
-  let summary: string | null = null;
-  if (property.type === "number") {
-    summary = `${property.numberMin ?? "auto"} – ${property.numberMax ?? "auto"}`
-      + (property.unitPlural ? ` ${property.unitPlural}` : "");
-  }
-  else if (property.type === "calculate" && operandNames.length > 0) {
-    summary = `Σ ${operandNames.join(" + ")}`;
-  }
-
-  const categoryCount = property.categoryIds.length;
-  const isAllCategories = property.allCategories || categoryCount === 0;
+  const summary = propertyPreviewSummary(property, allProperties);
 
   return (
     <RowCard
@@ -60,21 +79,10 @@ export function PropertyPreview({
             onClick={() => onSelectToggle?.()}
             className="flex flex-col gap-1 p-4 text-left"
           >
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="font-medium">{property.name}</span>
-              {property.builtIn && <Badge variant="secondary">Built-in</Badge>}
-              {!property.enabled && <Badge variant="outline">Disabled</Badge>}
-              <Badge variant="secondary">{TYPE_LABELS[property.type]}</Badge>
-              {summary ? <span className="text-xs text-muted-foreground">{summary}</span> : null}
-            </div>
-            {property.description
-              ? <p className="truncate text-sm text-muted-foreground">{property.description}</p>
-              : null}
-            <p className="text-xs text-muted-foreground">
-              {isAllCategories
-                ? "All categories"
-                : `${categoryCount} ${categoryCount === 1 ? "category" : "categories"}`}
-            </p>
+            <PropertyPreviewBody
+              property={property}
+              summary={summary}
+            />
           </button>
         )
         : (
@@ -87,21 +95,10 @@ export function PropertyPreview({
             onClick={event => viewClick(event, "property", property.id, property.slug)}
             className="flex flex-col gap-1 p-4"
           >
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="font-medium">{property.name}</span>
-              {property.builtIn && <Badge variant="secondary">Built-in</Badge>}
-              {!property.enabled && <Badge variant="outline">Disabled</Badge>}
-              <Badge variant="secondary">{TYPE_LABELS[property.type]}</Badge>
-              {summary ? <span className="text-xs text-muted-foreground">{summary}</span> : null}
-            </div>
-            {property.description
-              ? <p className="truncate text-sm text-muted-foreground">{property.description}</p>
-              : null}
-            <p className="text-xs text-muted-foreground">
-              {isAllCategories
-                ? "All categories"
-                : `${categoryCount} ${categoryCount === 1 ? "category" : "categories"}`}
-            </p>
+            <PropertyPreviewBody
+              property={property}
+              summary={summary}
+            />
           </Link>
         )}
     </RowCard>
