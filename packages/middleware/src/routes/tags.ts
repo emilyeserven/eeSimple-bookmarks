@@ -48,7 +48,12 @@ const createTagBody = {
 const updateTagBody = {
   type: "object",
   additionalProperties: false,
-  properties: createTagBody.properties,
+  properties: {
+    ...createTagBody.properties,
+    editableOnCard: {
+      type: "boolean",
+    },
+  },
 } as const;
 
 const categoryIdsBody = {

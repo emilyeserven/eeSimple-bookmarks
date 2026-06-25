@@ -1,4 +1,4 @@
-import type { Bookmark, CustomProperty } from "@eesimple/types";
+import type { Bookmark, BookmarkTag, CustomProperty } from "@eesimple/types";
 
 import { useEffect, useState } from "react";
 
@@ -95,19 +95,22 @@ interface BookmarkCardMenuProps {
   bookmark: Bookmark;
   /** Properties opted into inline editing that apply to the bookmark's category. */
   editableProperties: CustomProperty[];
+  /** Tags opted into inline toggle from the card's "More" menu. */
+  editableTags: BookmarkTag[];
   autoImagePending: boolean;
   onAutoImage: () => void;
   onSaveNumber: (propertyId: string, value: number) => void;
   onSaveBoolean: (propertyId: string, value: boolean) => void;
   onSaveDateTime: (propertyId: string, value: string) => void;
   onSaveChoices: (propertyId: string, values: string[]) => void;
+  onSaveTags: (tagIds: string[]) => void;
   onDelete?: (id: string) => void;
 }
 
 /** The dropdown menu content for a bookmark card: edit link, quick-edit properties, image grab, delete. */
 export function BookmarkCardMenu({
-  bookmark, editableProperties, autoImagePending, onAutoImage,
-  onSaveNumber, onSaveBoolean, onSaveDateTime, onSaveChoices, onDelete,
+  bookmark, editableProperties, editableTags, autoImagePending, onAutoImage,
+  onSaveNumber, onSaveBoolean, onSaveDateTime, onSaveChoices, onSaveTags, onDelete,
 }: BookmarkCardMenuProps) {
   const editClick = useEditPanelClick();
   const modifier = useSidebarOpenModifier();
@@ -126,13 +129,31 @@ export function BookmarkCardMenu({
           Edit
         </Link>
       </DropdownMenuItem>
-      {editableProperties.length > 0
+      {(editableTags.length > 0 || editableProperties.length > 0)
         ? (
           <>
             <DropdownMenuSeparator />
             <DropdownMenuLabel className="text-xs text-muted-foreground">
               Quick edit
             </DropdownMenuLabel>
+            {editableTags.map((tag) => {
+              const checked = bookmark.tags.some(t => t.id === tag.id);
+              return (
+                <DropdownMenuCheckboxItem
+                  key={tag.id}
+                  checked={checked}
+                  onSelect={event => event.preventDefault()}
+                  onCheckedChange={(next) => {
+                    const newTagIds = next
+                      ? [...bookmark.tags.map(t => t.id), tag.id]
+                      : bookmark.tags.filter(t => t.id !== tag.id).map(t => t.id);
+                    onSaveTags(newTagIds);
+                  }}
+                >
+                  {tag.name}
+                </DropdownMenuCheckboxItem>
+              );
+            })}
             {editableProperties.map((property) => {
               if (property.type === "choices") {
                 const current

@@ -82,6 +82,9 @@ export function BookmarkCard({
     && property.type !== "calculate"
     && propertyAppliesToCategory(property, bookmark.categoryId));
 
+  // Tags opted into the bookmark card's "More" menu quick-toggle.
+  const editableTags = bookmark.tags.filter(t => t.editableOnCard);
+
   function saveNumber(propertyId: string, value: number) {
     updateBookmark.mutate({
       id: bookmark.id,
@@ -127,6 +130,15 @@ export function BookmarkCard({
     });
   }
 
+  function saveTags(tagIds: string[]) {
+    updateBookmark.mutate({
+      id: bookmark.id,
+      input: {
+        tagIds,
+      },
+    });
+  }
+
   const hasImage = !!bookmark.image && imageVisibility !== "off";
 
   // Compact Amazon links for any text-typed properties with a non-empty value (e.g. ISBN/ASIN).
@@ -148,6 +160,7 @@ export function BookmarkCard({
         <BookmarkMoreMenu
           bookmark={bookmark}
           editableProperties={editableProperties}
+          editableTags={editableTags}
           autoImagePending={autoImage.isPending}
           onAutoImage={() => autoImage.mutate({
             id: bookmark.id,
@@ -157,6 +170,7 @@ export function BookmarkCard({
           onSaveBoolean={saveBoolean}
           onSaveDateTime={saveDateTime}
           onSaveChoices={saveChoices}
+          onSaveTags={saveTags}
           onDelete={onDelete}
         />
       ),
@@ -201,6 +215,7 @@ export function BookmarkCard({
       bookmarkCategory={bookmarkCategory}
       hideWebsiteForYouTube={hideWebsiteForYouTube}
       editableProperties={editableProperties}
+      editableTags={editableTags}
       autoImagePending={autoImage.isPending}
       onAutoImage={() => autoImage.mutate({
         id: bookmark.id,
@@ -212,6 +227,7 @@ export function BookmarkCard({
       onSaveRating={saveNumber}
       onSaveBoolean={saveBoolean}
       onSaveChoices={saveChoices}
+      onSaveTags={saveTags}
     />
   );
 

@@ -3,6 +3,8 @@ import type { Tag, TagNode, UpdateTagInput } from "@eesimple/types";
 import { useNavigate } from "@tanstack/react-router";
 
 import { tagSchema } from "./tagFormSchema";
+import { Checkbox } from "./ui/checkbox";
+import { Label } from "./ui/label";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 import { useUpdateTag } from "../hooks/useTags";
 import { useAppForm } from "../lib/form";
@@ -14,6 +16,7 @@ const ROOT = "__root__";
 const LABELS: Record<keyof UpdateTagInput, string> = {
   name: "Name",
   parentId: "Parent",
+  editableOnCard: "Editable on card",
 };
 
 interface TagGeneralFormProps {
@@ -40,6 +43,7 @@ export function TagGeneralForm({
     initial: {
       name: node.name,
       parentId: node.parentId,
+      editableOnCard: node.editableOnCard ?? false,
     },
   });
 
@@ -105,6 +109,15 @@ export function TagGeneralForm({
           />
         )}
       </form.AppField>
+
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id="tag-editable-on-card"
+          checked={node.editableOnCard ?? false}
+          onCheckedChange={checked => autoSave.saveField("editableOnCard", checked === true)}
+        />
+        <Label htmlFor="tag-editable-on-card">Show as quick toggle on bookmark cards</Label>
+      </div>
     </div>
   );
 }

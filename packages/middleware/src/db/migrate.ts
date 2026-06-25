@@ -678,6 +678,17 @@ const migrations: RuntimeMigration[] = [
         ADD COLUMN IF NOT EXISTS "viewable_online" boolean NOT NULL DEFAULT false
     `),
   },
+  {
+    // `tags.editable_on_card` opts a tag into the bookmark card "More" menu quick-toggle. NOT NULL
+    // DEFAULT false on the populated `tags` table makes drizzle-kit push prompt (the same non-TTY
+    // crash as the other NOT NULL column cases above), so pre-apply it here to keep push's diff
+    // additive-only.
+    name: "add tags.editable_on_card column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "tags"
+        ADD COLUMN IF NOT EXISTS "editable_on_card" boolean NOT NULL DEFAULT false
+    `),
+  },
 ];
 
 async function main(): Promise<void> {
