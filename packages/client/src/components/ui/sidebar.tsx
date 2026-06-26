@@ -378,7 +378,10 @@ function SidebarInset({
     <main
       data-slot="sidebar-inset"
       className={cn(
-        "relative flex w-full flex-1 flex-col bg-background",
+        // `min-w-0` lets the inset shrink to its flex-allotted width instead of being forced wider
+        // by a stiff child (e.g. the Settings horizontal tab strip), which otherwise overflowed the
+        // page past the sidebar. Without it a wide `overflow-x-auto` child can't scroll internally.
+        "relative flex w-full min-w-0 flex-1 flex-col bg-background",
         `
           md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:ml-0
           md:peer-data-[variant=inset]:rounded-xl
