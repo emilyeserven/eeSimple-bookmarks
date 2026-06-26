@@ -188,6 +188,29 @@ export function useBulkBookmarkTags() {
   });
 }
 
+/**
+ * Apply the "auto-tag from title" automation to every existing bookmark (additive). Reports how many
+ * bookmarks were tagged and refreshes the bookmark list + tag counts.
+ */
+export function useBackfillTitleTags() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => bookmarksApi.backfillTitleTags(),
+    onSuccess: (result) => {
+      invalidateBookmarkRelatedQueries(queryClient);
+      void queryClient.invalidateQueries({
+        queryKey: TAGS_KEY,
+      });
+      notifySuccess(
+        result.tagsApplied === 0
+          ? "No bookmark titles matched a tag name"
+          : `Tagged ${result.updated} bookmark${result.updated === 1 ? "" : "s"} (${result.tagsApplied} tag${result.tagsApplied === 1 ? "" : "s"} applied)`,
+      );
+    },
+    onError: (err: Error) => notifyError(describeError(err, "Could not backfill tags from titles")),
+  });
+}
+
 /** Upload an image file for an existing bookmark, replacing any current image. */
 export function useUploadBookmarkImage() {
   const queryClient = useQueryClient();

@@ -12,6 +12,7 @@ import {
   setBookmarkPropertyFile,
 } from "@/services/bookmarkPropertyFiles";
 import {
+  backfillTitleTags,
   bulkDeleteBookmarks,
   bulkUpdateBookmarks,
   bulkUpdateBookmarkTags,
@@ -483,6 +484,13 @@ function registerBookmarkBulkRoutes(app: FastifyInstance): void {
       op: BulkBookmarkTagOp; };
     return bulkUpdateBookmarkTags(ids, tagIds, op);
   });
+
+  // Apply the "auto-tag from title" automation to every existing bookmark (additive, on demand).
+  app.post("/api/bookmarks/backfill-title-tags", {
+    schema: {
+      tags: ["bookmarks"],
+    },
+  }, async () => backfillTitleTags());
 }
 
 /** Single-bookmark CRUD: inbox quick-save, get, create, update, and delete. */

@@ -1048,6 +1048,19 @@ export interface BulkBookmarkResult {
 /** Whether a bulk tag operation adds the given tags to, or removes them from, each bookmark. */
 export type BulkBookmarkTagOp = "add" | "remove";
 
+/**
+ * Outcome of the "auto-tag from title" backfill, which applies the title-matching automation to
+ * every existing bookmark additively (no tags removed).
+ */
+export interface TitleTagBackfillResult {
+  /** Bookmarks scanned. */
+  scanned: number;
+  /** Bookmarks that received at least one new tag. */
+  updated: number;
+  /** Total (bookmark, tag) links added. */
+  tagsApplied: number;
+}
+
 /** Per-item outcome of a bulk entity delete (bookmarks or any taxonomy listing). */
 export interface BulkDeleteResult {
   id: string;

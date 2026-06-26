@@ -9,6 +9,7 @@ import type {
   BulkUrlUpdate,
   BulkUrlUpdateResult,
   CreateBookmarkInput,
+  TitleTagBackfillResult,
   UpdateBookmarkInput,
   UpdateBookmarkRelationshipsInput,
 } from "@eesimple/types";
@@ -68,6 +69,10 @@ export const bookmarksApi = {
         tagIds,
         op,
       }),
+    }),
+  backfillTitleTags: () =>
+    request<TitleTagBackfillResult>("/bookmarks/backfill-title-tags", {
+      method: "POST",
     }),
   urlCheck: (url: string) =>
     request<BookmarkUrlDuplicateResult>(
