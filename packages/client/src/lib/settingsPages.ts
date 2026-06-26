@@ -1,7 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 
 import {
-  Bookmark,
   Clapperboard,
   Filter,
   FolderOpen,
@@ -12,7 +11,6 @@ import {
   LayoutGrid,
   LayoutTemplate,
   Link2,
-  Link2Off,
   Monitor,
   MonitorPlay,
   PanelRight,
@@ -92,11 +90,6 @@ export const SETTINGS_PAGES: readonly SettingsPage[] = [
     icon: Link2,
   },
   {
-    path: "/settings/redirect-failures",
-    label: "Redirect Failures",
-    icon: Link2Off,
-  },
-  {
     path: "/settings/imports",
     label: "Import Settings",
     icon: Inbox,
@@ -105,21 +98,6 @@ export const SETTINGS_PAGES: readonly SettingsPage[] = [
     path: "/settings/extension",
     label: "Extension",
     icon: Puzzle,
-  },
-  {
-    path: "/settings/more-categories",
-    label: "Categories",
-    icon: Bookmark,
-  },
-  {
-    path: "/settings/more-taxonomies",
-    label: "Taxonomies",
-    icon: Tags,
-  },
-  {
-    path: "/settings/more-customization",
-    label: "Customization",
-    icon: SlidersHorizontal,
   },
   {
     path: "/settings/advanced",

@@ -43,10 +43,6 @@ import { Route as SettingsWebsitesRouteImport } from './routes/settings.websites
 import { Route as SettingsSidebarRouteImport } from './routes/settings.sidebar'
 import { Route as SettingsSavedFiltersRouteImport } from './routes/settings.saved-filters'
 import { Route as SettingsRelationshipsRouteImport } from './routes/settings.relationships'
-import { Route as SettingsRedirectFailuresRouteImport } from './routes/settings.redirect-failures'
-import { Route as SettingsMoreTaxonomiesRouteImport } from './routes/settings.more-taxonomies'
-import { Route as SettingsMoreCustomizationRouteImport } from './routes/settings.more-customization'
-import { Route as SettingsMoreCategoriesRouteImport } from './routes/settings.more-categories'
 import { Route as SettingsMediaTypesRouteImport } from './routes/settings.media-types'
 import { Route as SettingsMediaManagementRouteImport } from './routes/settings.media-management'
 import { Route as SettingsLinkParsingRouteImport } from './routes/settings.link-parsing'
@@ -400,28 +396,6 @@ const SettingsSavedFiltersRoute = SettingsSavedFiltersRouteImport.update({
 const SettingsRelationshipsRoute = SettingsRelationshipsRouteImport.update({
   id: '/relationships',
   path: '/relationships',
-  getParentRoute: () => SettingsRoute,
-} as any)
-const SettingsRedirectFailuresRoute =
-  SettingsRedirectFailuresRouteImport.update({
-    id: '/redirect-failures',
-    path: '/redirect-failures',
-    getParentRoute: () => SettingsRoute,
-  } as any)
-const SettingsMoreTaxonomiesRoute = SettingsMoreTaxonomiesRouteImport.update({
-  id: '/more-taxonomies',
-  path: '/more-taxonomies',
-  getParentRoute: () => SettingsRoute,
-} as any)
-const SettingsMoreCustomizationRoute =
-  SettingsMoreCustomizationRouteImport.update({
-    id: '/more-customization',
-    path: '/more-customization',
-    getParentRoute: () => SettingsRoute,
-  } as any)
-const SettingsMoreCategoriesRoute = SettingsMoreCategoriesRouteImport.update({
-  id: '/more-categories',
-  path: '/more-categories',
   getParentRoute: () => SettingsRoute,
 } as any)
 const SettingsMediaTypesRoute = SettingsMediaTypesRouteImport.update({
@@ -1501,10 +1475,6 @@ export interface FileRoutesByFullPath {
   '/settings/link-parsing': typeof SettingsLinkParsingRoute
   '/settings/media-management': typeof SettingsMediaManagementRoute
   '/settings/media-types': typeof SettingsMediaTypesRoute
-  '/settings/more-categories': typeof SettingsMoreCategoriesRoute
-  '/settings/more-customization': typeof SettingsMoreCustomizationRoute
-  '/settings/more-taxonomies': typeof SettingsMoreTaxonomiesRoute
-  '/settings/redirect-failures': typeof SettingsRedirectFailuresRoute
   '/settings/relationships': typeof SettingsRelationshipsRoute
   '/settings/saved-filters': typeof SettingsSavedFiltersRoute
   '/settings/sidebar': typeof SettingsSidebarRoute
@@ -1696,10 +1666,6 @@ export interface FileRoutesByTo {
   '/settings/link-parsing': typeof SettingsLinkParsingRoute
   '/settings/media-management': typeof SettingsMediaManagementRoute
   '/settings/media-types': typeof SettingsMediaTypesRoute
-  '/settings/more-categories': typeof SettingsMoreCategoriesRoute
-  '/settings/more-customization': typeof SettingsMoreCustomizationRoute
-  '/settings/more-taxonomies': typeof SettingsMoreTaxonomiesRoute
-  '/settings/redirect-failures': typeof SettingsRedirectFailuresRoute
   '/settings/relationships': typeof SettingsRelationshipsRoute
   '/settings/saved-filters': typeof SettingsSavedFiltersRoute
   '/settings/sidebar': typeof SettingsSidebarRoute
@@ -1876,10 +1842,6 @@ export interface FileRoutesById {
   '/settings/link-parsing': typeof SettingsLinkParsingRoute
   '/settings/media-management': typeof SettingsMediaManagementRoute
   '/settings/media-types': typeof SettingsMediaTypesRoute
-  '/settings/more-categories': typeof SettingsMoreCategoriesRoute
-  '/settings/more-customization': typeof SettingsMoreCustomizationRoute
-  '/settings/more-taxonomies': typeof SettingsMoreTaxonomiesRoute
-  '/settings/redirect-failures': typeof SettingsRedirectFailuresRoute
   '/settings/relationships': typeof SettingsRelationshipsRoute
   '/settings/saved-filters': typeof SettingsSavedFiltersRoute
   '/settings/sidebar': typeof SettingsSidebarRoute
@@ -2099,10 +2061,6 @@ export interface FileRouteTypes {
     | '/settings/link-parsing'
     | '/settings/media-management'
     | '/settings/media-types'
-    | '/settings/more-categories'
-    | '/settings/more-customization'
-    | '/settings/more-taxonomies'
-    | '/settings/redirect-failures'
     | '/settings/relationships'
     | '/settings/saved-filters'
     | '/settings/sidebar'
@@ -2294,10 +2252,6 @@ export interface FileRouteTypes {
     | '/settings/link-parsing'
     | '/settings/media-management'
     | '/settings/media-types'
-    | '/settings/more-categories'
-    | '/settings/more-customization'
-    | '/settings/more-taxonomies'
-    | '/settings/redirect-failures'
     | '/settings/relationships'
     | '/settings/saved-filters'
     | '/settings/sidebar'
@@ -2473,10 +2427,6 @@ export interface FileRouteTypes {
     | '/settings/link-parsing'
     | '/settings/media-management'
     | '/settings/media-types'
-    | '/settings/more-categories'
-    | '/settings/more-customization'
-    | '/settings/more-taxonomies'
-    | '/settings/redirect-failures'
     | '/settings/relationships'
     | '/settings/saved-filters'
     | '/settings/sidebar'
@@ -2922,34 +2872,6 @@ declare module '@tanstack/react-router' {
       path: '/relationships'
       fullPath: '/settings/relationships'
       preLoaderRoute: typeof SettingsRelationshipsRouteImport
-      parentRoute: typeof SettingsRoute
-    }
-    '/settings/redirect-failures': {
-      id: '/settings/redirect-failures'
-      path: '/redirect-failures'
-      fullPath: '/settings/redirect-failures'
-      preLoaderRoute: typeof SettingsRedirectFailuresRouteImport
-      parentRoute: typeof SettingsRoute
-    }
-    '/settings/more-taxonomies': {
-      id: '/settings/more-taxonomies'
-      path: '/more-taxonomies'
-      fullPath: '/settings/more-taxonomies'
-      preLoaderRoute: typeof SettingsMoreTaxonomiesRouteImport
-      parentRoute: typeof SettingsRoute
-    }
-    '/settings/more-customization': {
-      id: '/settings/more-customization'
-      path: '/more-customization'
-      fullPath: '/settings/more-customization'
-      preLoaderRoute: typeof SettingsMoreCustomizationRouteImport
-      parentRoute: typeof SettingsRoute
-    }
-    '/settings/more-categories': {
-      id: '/settings/more-categories'
-      path: '/more-categories'
-      fullPath: '/settings/more-categories'
-      preLoaderRoute: typeof SettingsMoreCategoriesRouteImport
       parentRoute: typeof SettingsRoute
     }
     '/settings/media-types': {
@@ -4630,10 +4552,6 @@ interface SettingsRouteChildren {
   SettingsLinkParsingRoute: typeof SettingsLinkParsingRoute
   SettingsMediaManagementRoute: typeof SettingsMediaManagementRoute
   SettingsMediaTypesRoute: typeof SettingsMediaTypesRoute
-  SettingsMoreCategoriesRoute: typeof SettingsMoreCategoriesRoute
-  SettingsMoreCustomizationRoute: typeof SettingsMoreCustomizationRoute
-  SettingsMoreTaxonomiesRoute: typeof SettingsMoreTaxonomiesRoute
-  SettingsRedirectFailuresRoute: typeof SettingsRedirectFailuresRoute
   SettingsRelationshipsRoute: typeof SettingsRelationshipsRoute
   SettingsSavedFiltersRoute: typeof SettingsSavedFiltersRoute
   SettingsSidebarRoute: typeof SettingsSidebarRoute
@@ -4656,10 +4574,6 @@ const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsLinkParsingRoute: SettingsLinkParsingRoute,
   SettingsMediaManagementRoute: SettingsMediaManagementRoute,
   SettingsMediaTypesRoute: SettingsMediaTypesRoute,
-  SettingsMoreCategoriesRoute: SettingsMoreCategoriesRoute,
-  SettingsMoreCustomizationRoute: SettingsMoreCustomizationRoute,
-  SettingsMoreTaxonomiesRoute: SettingsMoreTaxonomiesRoute,
-  SettingsRedirectFailuresRoute: SettingsRedirectFailuresRoute,
   SettingsRelationshipsRoute: SettingsRelationshipsRoute,
   SettingsSavedFiltersRoute: SettingsSavedFiltersRoute,
   SettingsSidebarRoute: SettingsSidebarRoute,
