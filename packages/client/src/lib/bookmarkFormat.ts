@@ -111,6 +111,16 @@ export function formatBooleanBadge(
     : `${property.name}${sep}${formatted}`;
 }
 
+/**
+ * Format selected choices values for display: looks up each selected slug's label from the
+ * property's items and joins them with ", ". Returns an empty string when nothing is selected.
+ */
+export function formatChoices(values: string[], property: CustomProperty): string {
+  if (values.length === 0) return "";
+  const labelMap = new Map(property.choicesItems.map(item => [item.value, item.label]));
+  return values.map(v => labelMap.get(v) ?? v).join(", ");
+}
+
 /** Replace the entry for `propertyId` with `value`, or append it when the property has no value yet. */
 export function mergeBooleanValue(
   values: BookmarkBooleanValue[],
