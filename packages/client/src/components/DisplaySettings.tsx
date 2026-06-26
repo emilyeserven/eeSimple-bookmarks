@@ -9,7 +9,6 @@ import type {
 import { Link } from "@tanstack/react-router";
 
 import { ImageAspectRatiosCard } from "./ImageAspectRatiosCard";
-import { ListingDisplayControls } from "./ListingDisplayControls";
 import { PinnedItemsCard } from "./PinnedItemsCard";
 import { SidebarItemsCard } from "./SidebarItemsCard";
 import {
@@ -39,7 +38,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { CategoryIcon } from "@/lib/icons";
 
@@ -148,49 +146,6 @@ const SIDEBAR_GROUPS = [
   },
 ] as const;
 
-const LISTING_DEFAULTS = [
-  {
-    label: "Bookmarks",
-    pageKey: "bookmarks",
-    showsImages: true,
-  },
-  {
-    label: "Categories",
-    pageKey: "categories-listing",
-    showsImages: false,
-  },
-  {
-    label: "Websites",
-    pageKey: "websites-listing",
-    showsImages: false,
-  },
-  {
-    label: "Media Types",
-    pageKey: "media-types-listing",
-    showsImages: false,
-  },
-  {
-    label: "YouTube Channels",
-    pageKey: "youtube-channels-listing",
-    showsImages: false,
-  },
-  {
-    label: "Custom Properties",
-    pageKey: "custom-properties-listing",
-    showsImages: false,
-  },
-  {
-    label: "Property Groups",
-    pageKey: "property-groups-listing",
-    showsImages: false,
-  },
-  {
-    label: "Autofill Rules",
-    pageKey: "autofill-rules-listing",
-    showsImages: false,
-  },
-] as const;
-
 const DISPLAY_DEFAULTS: DisplayPreferenceSettings = {
   bookmarkDetailImageSize: "medium",
   bookmarkDetailVideoSize: "standard",
@@ -227,7 +182,6 @@ export function DisplaySettings() {
     hiddenManagementItems,
     hiddenSidebarGroups,
   } = sidebar;
-  const filtersInDrawer = display.filtersInDrawer;
   const bookmarkDetailImageSize = display.bookmarkDetailImageSize;
   const bookmarkDetailVideoSize = display.bookmarkDetailVideoSize;
 
@@ -316,13 +270,6 @@ export function DisplaySettings() {
     });
   }
 
-  const setFiltersInDrawer = (value: boolean) =>
-    saveDisplay(
-      {
-        filtersInDrawer: value,
-      },
-      value ? "Filters open in drawer" : "Filters open in sidebar",
-    );
   const setBookmarkDetailImageSize = (size: BookmarkDetailImageSize) =>
     saveDisplay({
       bookmarkDetailImageSize: size,
@@ -338,36 +285,6 @@ export function DisplaySettings() {
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Listing Defaults</CardTitle>
-          <CardDescription>
-            Default view and column count for each type of listing page. How individual bookmark
-            cards display (fields, images) is set in Card Display Rules.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-0">
-          {LISTING_DEFAULTS.map((listing, index) => (
-            <div key={listing.pageKey}>
-              {index > 0 && <Separator className="my-4" />}
-              <div
-                className="
-                  grid grid-cols-1 gap-4
-                  sm:grid-cols-[1fr_auto] sm:items-start
-                "
-              >
-                <div>
-                  <p className="font-medium">{listing.label}</p>
-                </div>
-                <div className="sm:min-w-52">
-                  <ListingDisplayControls pageKey={listing.pageKey} />
-                </div>
-              </div>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
-
       <Card>
         <CardHeader>
           <CardTitle>Theme</CardTitle>
@@ -401,26 +318,6 @@ export function DisplaySettings() {
               ))}
             </SelectContent>
           </Select>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Filters location</CardTitle>
-          <CardDescription>
-            When on, listing pages open filters in the right-hand drawer by default instead of
-            showing them in the left column.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="filters-in-drawer"
-              checked={filtersInDrawer}
-              onCheckedChange={checked => setFiltersInDrawer(checked === true)}
-            />
-            <Label htmlFor="filters-in-drawer">Show filters in drawer by default</Label>
-          </div>
         </CardContent>
       </Card>
 
