@@ -6,6 +6,7 @@ import { useRouterState } from "@tanstack/react-router";
 import { Filter, Globe, MonitorPlay, Tags } from "lucide-react";
 
 import { useViewPanelClick } from "./panel/useEditPanelClick";
+import { useAiSummaryQueue } from "../hooks/useAiSummarization";
 import {
   useAdvancedSettings,
   useSidebarOpenModifier,
@@ -81,6 +82,7 @@ function useSidebarEntityData() {
   return {
     allBookmarks: useBookmarks().data,
     inboxItems: useInboxItems().data,
+    aiSummaryQueue: useAiSummaryQueue().data,
     categories: useCategories().data,
     allTags: useTags().data,
     allWebsites: useWebsites().data,
@@ -161,6 +163,7 @@ export interface AppSidebarData<T extends SidebarNavItem, C extends SidebarNavIt
   pagination: PinPagination;
   allBookmarks: ReturnType<typeof useBookmarks>["data"];
   inboxCount: number | undefined;
+  aiSummarizationCount: number | undefined;
   currentBookmarkCategories: string[];
   modifier: ReturnType<typeof useSidebarOpenModifier>;
   viewClick: ReturnType<typeof useViewPanelClick>;
@@ -291,6 +294,7 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
     pagination,
     allBookmarks: data.allBookmarks,
     inboxCount: data.inboxItems?.filter(item => item.status === "pending").length,
+    aiSummarizationCount: data.aiSummaryQueue?.length,
     currentBookmarkCategories,
     modifier,
     viewClick,

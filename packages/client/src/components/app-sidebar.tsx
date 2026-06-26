@@ -199,6 +199,7 @@ export function AppSidebar({
     pagination,
     allBookmarks,
     inboxCount,
+    aiSummarizationCount,
     modifier,
     viewClick,
     hiddenSidebarGroups,
@@ -638,6 +639,7 @@ export function AppSidebar({
               <SidebarMenu>
                 {actionItems.map((item) => {
                   const isActive = pathname.startsWith(item.to);
+                  const count = item.to === "/ai-summarization" ? aiSummarizationCount : undefined;
                   return (
                     <SidebarMenuItem key={item.to}>
                       <SidebarMenuButton
@@ -650,6 +652,13 @@ export function AppSidebar({
                           <span>{item.title}</span>
                         </Link>
                       </SidebarMenuButton>
+                      {count !== undefined && count > 0 && state !== "collapsed"
+                        ? (
+                          <SidebarMenuBadge>
+                            <Badge variant="secondary">{count}</Badge>
+                          </SidebarMenuBadge>
+                        )
+                        : null}
                     </SidebarMenuItem>
                   );
                 })}
