@@ -12,12 +12,12 @@ import { hasBookmarkPropertyRows } from "../lib/bookmarkProperties";
 import { DetailField } from "@/components/DetailField";
 import { LabeledSection } from "@/components/LabeledSection";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 
 export type BookmarkDetailSectionId
   = | "general"
     | "relationships"
     | "hierarchy"
-    | "properties"
     | "metadata";
 
 /** One renderable section of the bookmark detail view, used by both the single-column and tabbed layouts. */
@@ -45,126 +45,145 @@ interface BuildArgs {
   defaultFieldZones?: CardFieldZones;
 }
 
-function generalSection(bookmark: Bookmark, category: Category | undefined): BookmarkDetailSection {
+function generalSection(args: BuildArgs, category: Category | undefined): BookmarkDetailSection {
+  const {
+    bookmark, properties, propertyGroups, onSaveBoolean, defaultFieldZones,
+  } = args;
+  const hasProperties = hasBookmarkPropertyRows(bookmark, properties, defaultFieldZones);
   return {
     id: "general",
     label: "Details",
     content: (
-      <LabeledSection title="Details">
-        <dl className="space-y-3">
-          <DetailField label="Description">
-            {bookmark.description
-              ? <p className="whitespace-pre-wrap">{bookmark.description}</p>
-              : null}
-          </DetailField>
+      <div className="space-y-6">
+        <LabeledSection title="Details">
+          <dl className="space-y-3">
+            <DetailField label="Description">
+              {bookmark.description
+                ? <p className="whitespace-pre-wrap">{bookmark.description}</p>
+                : null}
+            </DetailField>
 
-          <DetailField label="Category">
-            {category
-              ? <BookmarkCategoryLink category={category} />
-              : null}
-          </DetailField>
+            <DetailField label="Category">
+              {category
+                ? <BookmarkCategoryLink category={category} />
+                : null}
+            </DetailField>
 
-          {bookmark.tags.length > 0
-            ? (
-              <DetailField label="Tags">
-                <ul className="flex flex-wrap gap-1">
-                  {bookmark.tags.map(tag => (
-                    <li key={tag.id}>
-                      <Link
-                        to="/tags/$tagSlug"
-                        params={{
-                          tagSlug: tag.slug,
-                        }}
-                      >
-                        <Badge
-                          variant="secondary"
-                          className="
-                            cursor-pointer
-                            hover:opacity-80
-                          "
+            {bookmark.tags.length > 0
+              ? (
+                <DetailField label="Tags">
+                  <ul className="flex flex-wrap gap-1">
+                    {bookmark.tags.map(tag => (
+                      <li key={tag.id}>
+                        <Link
+                          to="/tags/$tagSlug"
+                          params={{
+                            tagSlug: tag.slug,
+                          }}
                         >
-                          {tag.name}
-                        </Badge>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </DetailField>
-            )
-            : null}
-
-          <DetailField label="Website">
-            {bookmark.website
-              ? (
-                <Link
-                  to="/taxonomies/websites/$websiteSlug"
-                  params={{
-                    websiteSlug: bookmark.website.slug,
-                  }}
-                  className="hover:underline"
-                >
-                  {bookmark.website.siteName} ({bookmark.website.domain})
-                </Link>
+                          <Badge
+                            variant="secondary"
+                            className="
+                              cursor-pointer
+                              hover:opacity-80
+                            "
+                          >
+                            {tag.name}
+                          </Badge>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </DetailField>
               )
               : null}
-          </DetailField>
 
-          <DetailField label="Media type">
-            {bookmark.mediaType
+            <DetailField label="Website">
+              {bookmark.website
+                ? (
+                  <Link
+                    to="/taxonomies/websites/$websiteSlug"
+                    params={{
+                      websiteSlug: bookmark.website.slug,
+                    }}
+                    className="hover:underline"
+                  >
+                    {bookmark.website.siteName} ({bookmark.website.domain})
+                  </Link>
+                )
+                : null}
+            </DetailField>
+
+            <DetailField label="Media type">
+              {bookmark.mediaType
+                ? (
+                  <Link
+                    to="/taxonomies/media-types/$mediaTypeSlug"
+                    params={{
+                      mediaTypeSlug: bookmark.mediaType.slug,
+                    }}
+                    className="hover:underline"
+                  >
+                    {bookmark.mediaType.name}
+                  </Link>
+                )
+                : null}
+            </DetailField>
+
+            <DetailField label="Channel">
+              {bookmark.youtubeChannel
+                ? (
+                  <Link
+                    to="/taxonomies/youtube-channels/$channelSlug"
+                    params={{
+                      channelSlug: bookmark.youtubeChannel.slug,
+                    }}
+                    className="hover:underline"
+                  >
+                    {bookmark.youtubeChannel.name}
+                  </Link>
+                )
+                : null}
+            </DetailField>
+
+            {bookmark.authors.length > 0
               ? (
-                <Link
-                  to="/taxonomies/media-types/$mediaTypeSlug"
-                  params={{
-                    mediaTypeSlug: bookmark.mediaType.slug,
-                  }}
-                  className="hover:underline"
-                >
-                  {bookmark.mediaType.name}
-                </Link>
+                <DetailField label="Author">
+                  <span className="flex flex-wrap gap-x-1">
+                    {bookmark.authors.map((author, i) => (
+                      <span key={author.id}>
+                        {i > 0 && <span className="mr-1">,</span>}
+                        <Link
+                          to="/taxonomies/authors/$authorSlug"
+                          params={{
+                            authorSlug: author.slug,
+                          }}
+                          className="hover:underline"
+                        >
+                          {author.name}
+                        </Link>
+                      </span>
+                    ))}
+                  </span>
+                </DetailField>
               )
               : null}
-          </DetailField>
-
-          <DetailField label="Channel">
-            {bookmark.youtubeChannel
-              ? (
-                <Link
-                  to="/taxonomies/youtube-channels/$channelSlug"
-                  params={{
-                    channelSlug: bookmark.youtubeChannel.slug,
-                  }}
-                  className="hover:underline"
-                >
-                  {bookmark.youtubeChannel.name}
-                </Link>
-              )
-              : null}
-          </DetailField>
-
-          {bookmark.authors.length > 0
-            ? (
-              <DetailField label="Author">
-                <span className="flex flex-wrap gap-x-1">
-                  {bookmark.authors.map((author, i) => (
-                    <span key={author.id}>
-                      {i > 0 && <span className="mr-1">,</span>}
-                      <Link
-                        to="/taxonomies/authors/$authorSlug"
-                        params={{
-                          authorSlug: author.slug,
-                        }}
-                        className="hover:underline"
-                      >
-                        {author.name}
-                      </Link>
-                    </span>
-                  ))}
-                </span>
-              </DetailField>
-            )
-            : null}
-        </dl>
-      </LabeledSection>
+          </dl>
+        </LabeledSection>
+        {hasProperties
+          ? (
+            <>
+              <Separator />
+              <BookmarkPropertySections
+                bookmark={bookmark}
+                properties={properties}
+                propertyGroups={propertyGroups}
+                onSaveBoolean={onSaveBoolean}
+              />
+            </>
+          )
+          : null}
+      </div>
     ),
   };
 }
@@ -261,25 +280,6 @@ function hierarchySection(
   };
 }
 
-function propertiesSection(args: BuildArgs): BookmarkDetailSection | null {
-  const {
-    bookmark, properties, propertyGroups, onSaveBoolean, defaultFieldZones,
-  } = args;
-  if (!hasBookmarkPropertyRows(bookmark, properties, defaultFieldZones)) return null;
-  return {
-    id: "properties",
-    label: "Properties",
-    content: (
-      <BookmarkPropertySections
-        bookmark={bookmark}
-        properties={properties}
-        propertyGroups={propertyGroups}
-        onSaveBoolean={onSaveBoolean}
-      />
-    ),
-  };
-}
-
 function metadataSection(bookmark: Bookmark): BookmarkDetailSection {
   return {
     id: "metadata",
@@ -311,10 +311,9 @@ function metadataSection(bookmark: Bookmark): BookmarkDetailSection {
 export function buildBookmarkDetailSections(args: BuildArgs): BookmarkDetailSection[] {
   const category = args.categories.find(item => item.id === args.bookmark.categoryId);
   return [
-    generalSection(args.bookmark, category),
+    generalSection(args, category),
     relationshipsSection(args.bookmark),
     hierarchySection(args.flatHierarchy),
-    propertiesSection(args),
     metadataSection(args.bookmark),
   ].filter((section): section is BookmarkDetailSection => section !== null);
 }

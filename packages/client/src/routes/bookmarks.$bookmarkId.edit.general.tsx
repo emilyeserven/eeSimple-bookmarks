@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { BookmarkDetailsPropertiesForm } from "../components/BookmarkDetailsPropertiesForm";
 import { BookmarkEditTabWrapper } from "../components/BookmarkEditTabWrapper";
 import { BookmarkGeneralForm } from "../components/BookmarkGeneralForm";
 
@@ -17,7 +18,12 @@ function GeneralTab() {
       title="General"
       description="URL, name, description, category, and tags."
     >
-      {bookmark => <BookmarkGeneralForm bookmark={bookmark} />}
+      {bookmark => (
+        <>
+          <BookmarkGeneralForm bookmark={bookmark} />
+          <BookmarkDetailsPropertiesForm bookmark={bookmark} />
+        </>
+      )}
     </BookmarkEditTabWrapper>
   );
 }
