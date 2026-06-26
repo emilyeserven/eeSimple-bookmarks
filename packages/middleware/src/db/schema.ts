@@ -1097,6 +1097,12 @@ export const appSettings = pgTable("app_settings", {
   customPropertyTypeIcons: jsonb("custom_property_type_icons").$type<Record<string, string>>(),
   // Prompt text used to instruct an AI to summarize bookmarks in the AI Summary Queue.
   aiSummarizationPrompt: text("ai_summarization_prompt").notNull().default(""),
+  // Hosted metadata provider (Microlink-compatible) configured from Settings → Connectors.
+  // Nullable = push-safe additive; env vars are used as fallback when these are null.
+  hostedMetadataEndpoint: text("hosted_metadata_endpoint"),
+  // API key for the hosted metadata provider; stored encrypted when APP_SECRET is configured.
+  hostedMetadataApiKey: text("hosted_metadata_api_key"),
+  hostedMetadataProvider: text("hosted_metadata_provider"),
 });
 
 /**

@@ -21,6 +21,20 @@ vi.mock("../hooks/useConnectors", () => ({
   }),
 }));
 
+vi.mock("../hooks/useAppSettings", () => ({
+  useConnectorsSettings: () => ({
+    data: {
+      hostedMetadataEndpoint: "",
+      hostedMetadataProvider: "",
+      hostedMetadataApiKeySet: false,
+      encryptionEnabled: false,
+    },
+  }),
+  useUpdateConnectorsSettings: () => ({
+    mutate: vi.fn(),
+  }),
+}));
+
 describe("ConnectorsSettings", () => {
   it("renders a card per connector with the oEmbed provider list and live status", () => {
     render(<ConnectorsSettings />);

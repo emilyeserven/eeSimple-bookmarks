@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import type { ConnectorsStatus } from "@eesimple/types";
-import { hostedMetadataEnabled, hostedMetadataProvider } from "@/services/hostedMetadata";
+import { hostedMetadataEnabledAsync, hostedMetadataProviderAsync } from "@/services/hostedMetadata";
 import { youtubeApiEnabled } from "@/services/youtube";
 import { isObjectStoreConfigured } from "@/utils/objectStore";
 
@@ -16,8 +16,8 @@ export async function connectorsRoutes(app: FastifyInstance): Promise<void> {
     },
   }, async (): Promise<ConnectorsStatus> => ({
     hostedMetadata: {
-      enabled: hostedMetadataEnabled(),
-      provider: hostedMetadataProvider(),
+      enabled: await hostedMetadataEnabledAsync(),
+      provider: await hostedMetadataProviderAsync(),
     },
     youtubeDataApi: {
       enabled: youtubeApiEnabled(),

@@ -3,12 +3,14 @@ import type {
   BookmarkDetailImageSize,
   BookmarkDetailLayout,
   BookmarkDetailVideoSize,
+  ConnectorsAppSettings,
   ImportBlacklistEntry,
   SidebarCustomizationSettings,
   SidebarOpenModifier,
   UpdateAdvancedSettingsInput,
   UpdateAiSummarizationInput,
   UpdateAutomationInput,
+  UpdateConnectorsSettingsInput,
   UpdateDisplayPreferenceInput,
   UpdateHomepageContentInput,
   UpdateSidebarCustomizationInput,
@@ -18,6 +20,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { appSettingsApi } from "../lib/api/settings";
 
+const CONNECTORS_SETTINGS_KEY = ["app-settings", "connectors"] as const;
 const SHORTENER_IGNORE_LIST_KEY = ["app-settings", "shortener-ignore-list"] as const;
 const CUSTOM_STRIP_PARAMS_KEY = ["app-settings", "custom-strip-params"] as const;
 const REDIRECT_IGNORE_LIST_KEY = ["app-settings", "redirect-ignore-list"] as const;
@@ -363,3 +366,26 @@ export function useUpdateAiSummarizationSettings() {
 }
 
 export { AI_SUMMARIZATION_DEFAULTS };
+
+/** Hosted-metadata connector settings: endpoint, provider label, and whether an API key is stored. */
+export function useConnectorsSettings() {
+  return useQuery({
+    queryKey: CONNECTORS_SETTINGS_KEY,
+    queryFn: appSettingsApi.getConnectorsSettings,
+  });
+}
+
+export function useUpdateConnectorsSettings() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: UpdateConnectorsSettingsInput) =>
+      appSettingsApi.updateConnectorsSettings(input),
+    onSuccess: (saved: ConnectorsAppSettings) => {
+      queryClient.setQueryData(CONNECTORS_SETTINGS_KEY, saved);
+      // Refresh the live status badge on the Connectors page.
+      void queryClient.invalidateQueries({
+        queryKey: ["connectors"],
+      });
+    },
+  });
+}

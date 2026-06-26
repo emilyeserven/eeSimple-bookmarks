@@ -1,6 +1,10 @@
+import { useEffect, useState } from "react";
+
 import { OEMBED_PROVIDERS } from "@eesimple/types";
 
+import { useConnectorsSettings, useUpdateConnectorsSettings } from "../hooks/useAppSettings";
 import { useConnectors } from "../hooks/useConnectors";
+import { notifyFieldSaved, notifyFieldSaveError } from "../lib/autoSave";
 
 import { Badge } from "@/components/ui/badge";
 import {
@@ -10,6 +14,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 /** "Always on" pill for the keyless connectors that need no configuration. */
 function AlwaysOnBadge() {
@@ -39,10 +45,153 @@ function Provides({
 }
 
 /**
- * Read-only Connectors overview: every external data source the metadata-prefill pipeline uses and
- * what each provides, with live Active/Inactive status for the optional, env-gated providers. The
- * keyless providers are always on; the oEmbed list is derived from the shared `OEMBED_PROVIDERS`
- * registry so it stays in sync with what the server actually supports.
+ * Editable form for the hosted metadata connector: endpoint URL, provider label, and API key.
+ * Each field saves on blur with a named toast. The raw API key is never returned by the API —
+ * only `hostedMetadataApiKeySet: boolean`.
+ */
+function HostedMetadataForm() {
+  const {
+    data,
+  } = useConnectorsSettings();
+  const update = useUpdateConnectorsSettings();
+
+  const [endpoint, setEndpoint] = useState(data?.hostedMetadataEndpoint ?? "");
+  const [provider, setProvider] = useState(data?.hostedMetadataProvider ?? "");
+  // apiKey field is always blank on load; user must type to set/replace/clear the stored key.
+  const [apiKey, setApiKey] = useState("");
+  const [apiKeyDirty, setApiKeyDirty] = useState(false);
+
+  useEffect(() => {
+    if (data) {
+      setEndpoint(data.hostedMetadataEndpoint);
+      setProvider(data.hostedMetadataProvider);
+    }
+  }, [data]);
+
+  function saveField(field: "endpoint" | "provider" | "apiKey"): void {
+    if (!data) return;
+    // API key field: skip when the user hasn't typed anything (would silently no-op server-side).
+    if (field === "apiKey" && !apiKeyDirty) return;
+    const label = field === "endpoint" ? "Endpoint" : field === "provider" ? "Provider" : "API key";
+    update.mutate(
+      {
+        hostedMetadataEndpoint: endpoint,
+        hostedMetadataProvider: provider,
+        // null = server preserves the existing key; only send the value when the user typed.
+        hostedMetadataApiKey: field === "apiKey" ? apiKey : null,
+      },
+      {
+        onSuccess: () => {
+          notifyFieldSaved(label);
+          if (field === "apiKey") {
+            setApiKeyDirty(false);
+            setApiKey("");
+          }
+        },
+        onError: (err: Error) => notifyFieldSaveError(label, err.message),
+      },
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">
+        Use the hosted
+        {" "}
+        <a
+          href="https://microlink.io"
+          target="_blank"
+          rel="noreferrer"
+          className="underline underline-offset-2"
+        >
+          Microlink
+        </a>
+        {" "}
+        service or any compatible self-hosted endpoint. Sign up at
+        {" "}
+        <a
+          href="https://microlink.io/pricing"
+          target="_blank"
+          rel="noreferrer"
+          className="underline underline-offset-2"
+        >
+          microlink.io/pricing
+        </a>
+        {" "}
+        to get an API key (a free tier is available with rate limits). Each field saves on blur.
+      </p>
+      <div className="space-y-1.5">
+        <Label htmlFor="hm-endpoint">Endpoint URL</Label>
+        <Input
+          id="hm-endpoint"
+          type="url"
+          placeholder="https://api.microlink.io/"
+          value={endpoint}
+          onChange={e => setEndpoint(e.target.value)}
+          onBlur={() => saveField("endpoint")}
+        />
+        <p className="text-xs text-muted-foreground">
+          The base URL of the Microlink-compatible API. Use
+          {" "}
+          <code>https://api.microlink.io/</code>
+          {" "}
+          for the hosted service, or your self-hosted endpoint.
+        </p>
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="hm-provider">Provider label</Label>
+        <Input
+          id="hm-provider"
+          type="text"
+          placeholder="microlink"
+          value={provider}
+          onChange={e => setProvider(e.target.value)}
+          onBlur={() => saveField("provider")}
+        />
+        <p className="text-xs text-muted-foreground">
+          Display name shown next to the Active badge above (e.g.
+          {" "}
+          <code>microlink</code>
+          ). Does not affect behavior.
+        </p>
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="hm-apikey">API key</Label>
+        <Input
+          id="hm-apikey"
+          type="password"
+          placeholder={data?.hostedMetadataApiKeySet ? "••••••••" : "No key stored"}
+          value={apiKey}
+          onChange={(e) => {
+            setApiKey(e.target.value);
+            setApiKeyDirty(true);
+          }}
+          onBlur={() => saveField("apiKey")}
+        />
+        <p className="text-xs text-muted-foreground">
+          {data?.hostedMetadataApiKeySet
+            ? "A key is stored — the value is never shown. Type a new key to replace it. To clear the stored key, type a single space and save."
+            : "Optional for the free tier. Find your key in the Microlink dashboard after signing up."}
+          {data && !data.encryptionEnabled && (
+            <>
+              {" "}
+              Set the
+              {" "}
+              <code>APP_SECRET</code>
+              {" "}
+              env var to encrypt this key at rest.
+            </>
+          )}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Connectors overview: every external data source the metadata-prefill pipeline uses and
+ * what each provides, with live Active/Inactive status for the optional, env-gated providers.
+ * The hosted metadata provider card includes editable fields for endpoint, provider, and API key.
  */
 export function ConnectorsSettings() {
   const {
@@ -144,13 +293,13 @@ export function ConnectorsSettings() {
             <StatusBadge enabled={data?.hostedMetadata.enabled} />
           </div>
           <CardDescription>
-            Optional. When an operator configures a Microlink-compatible endpoint, hard pages
-            (JS-rendered, bot-protected) are resolved by the hosted service. Off by default — the app
-            sends URLs off-box only when this is configured, and falls back to the direct scrape
-            otherwise.
+            Optional. When configured with a Microlink-compatible endpoint, hard pages (JS-rendered,
+            bot-protected) are resolved by the hosted service. Off by default — the app sends URLs
+            off-box only when an endpoint is set, and falls back to the direct scrape otherwise.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          <HostedMetadataForm />
           <Provides items={["Title", "Description", "Image", "Author", "Publisher", "Publish date"]} />
         </CardContent>
       </Card>

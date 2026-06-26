@@ -2311,6 +2311,29 @@ export interface ConnectorsStatus {
   objectStorage: { configured: boolean };
 }
 
+/** Hosted-metadata connector settings from `GET /api/app-settings/connectors`. Never exposes the raw key. */
+export interface ConnectorsAppSettings {
+  hostedMetadataEndpoint: string;
+  hostedMetadataProvider: string;
+  /** Whether an API key is stored (encrypted or plain); the raw value is never returned. */
+  hostedMetadataApiKeySet: boolean;
+  /** Whether `APP_SECRET` is configured so keys are encrypted at rest. */
+  encryptionEnabled: boolean;
+}
+
+/** Body for `PUT /api/app-settings/connectors`. */
+export interface UpdateConnectorsSettingsInput {
+  hostedMetadataEndpoint: string;
+  hostedMetadataProvider: string;
+  /**
+   * Raw API key to store (encrypted when `APP_SECRET` is set).
+   * `null` = leave the stored key unchanged.
+   * `""` = clear the stored key.
+   * Any other string = encrypt and store as the new key.
+   */
+  hostedMetadataApiKey: string | null;
+}
+
 /** Result of probing a URL for reachability (`GET /api/check-url`). */
 export interface CheckUrlResult {
   /** Whether the link resolved with an ok (2xx) response. */

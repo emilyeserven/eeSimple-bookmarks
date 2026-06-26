@@ -5,6 +5,7 @@ import type {
   AutomationSettings,
   CardDisplayRule,
   CardFieldTemplate,
+  ConnectorsAppSettings,
   CreateCardDisplayRuleInput,
   CreateCardFieldTemplateInput,
   CreateCustomAspectRatioInput,
@@ -27,6 +28,7 @@ import type {
   UpdateAiSummarizationInput,
   UpdateAutomationInput,
   UpdateCardDisplayRuleInput,
+  UpdateConnectorsSettingsInput,
   UpdateDisplayPreferenceInput,
   UpdateHomepageContentInput,
   UpdateHomepageSectionInput,
@@ -108,6 +110,13 @@ export const appSettingsApi = {
     request<AiSummarizationSettings>("/app-settings/ai-summarization"),
   updateAiSummarization: (input: UpdateAiSummarizationInput) =>
     request<AiSummarizationSettings>("/app-settings/ai-summarization", {
+      method: "PUT",
+      body: JSON.stringify(input),
+    }),
+  getConnectorsSettings: () =>
+    request<ConnectorsAppSettings>("/app-settings/connectors"),
+  updateConnectorsSettings: (input: UpdateConnectorsSettingsInput) =>
+    request<ConnectorsAppSettings>("/app-settings/connectors", {
       method: "PUT",
       body: JSON.stringify(input),
     }),
