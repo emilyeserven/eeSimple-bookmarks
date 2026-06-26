@@ -5,7 +5,7 @@ import type { LucideIcon } from "lucide-react";
 import React from "react";
 
 import { Link } from "@tanstack/react-router";
-import { Columns2, Eye, Filter, Info, PanelRight, Pencil, Plus, Search } from "lucide-react";
+import { Columns2, Eye, Filter, Info, PanelRight, Pencil, Plus, Search, Settings } from "lucide-react";
 
 import { AddChildButton } from "@/components/AddChildButton";
 import { AddChildModal } from "@/components/AddChildModal";
@@ -385,6 +385,43 @@ function pinAction(ctx: ToolbarContext): ToolbarAction | null {
   };
 }
 
+/**
+ * The homepage's quick link to its settings. Rendered only on the homepage (`/`), sitting just to the
+ * left of the panel toggle so it reads as "next to the Right Drawer". Was previously an inline gear
+ * link in the homepage body.
+ */
+function homepageSettingsAction(ctx: ToolbarContext): ToolbarAction | null {
+  if (ctx.pathParts.length > 0) return null;
+  return {
+    key: "homepage-settings",
+    desktop: (
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        aria-label="Homepage settings"
+        title="Homepage settings"
+        asChild
+      >
+        <Link to="/settings/homepage">
+          <Settings className="size-4" />
+        </Link>
+      </Button>
+    ),
+    mobile: {
+      kind: "menuItem",
+      node: (
+        <DropdownMenuItem asChild>
+          <Link to="/settings/homepage">
+            <Settings className="size-4" />
+            Homepage settings
+          </Link>
+        </DropdownMenuItem>
+      ),
+    },
+  };
+}
+
 function openPanelAction(ctx: ToolbarContext): ToolbarAction {
   return {
     key: "open-panel",
@@ -422,6 +459,7 @@ export function buildToolbarActions(ctx: ToolbarContext): ToolbarAction[] {
     createListingAction(ctx),
     settingsFavoriteAction(ctx),
     pinAction(ctx),
+    homepageSettingsAction(ctx),
     openPanelAction(ctx),
   ].filter((action): action is ToolbarAction => action !== null);
 }

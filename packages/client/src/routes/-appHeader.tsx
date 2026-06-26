@@ -570,21 +570,22 @@ export function AppHeader() {
       <HeaderBreadcrumbs crumbs={crumbs} />
       <ImageFetchProgressIndicator />
       <ImportProgressIndicator />
-      <Button
-        asChild
-        variant="ghost"
-        size="icon"
-        className="
-          ml-auto
-          md:hidden
-        "
-        aria-label="Settings"
-      >
-        <Link to="/settings">
-          <Settings className="size-4" />
-        </Link>
-      </Button>
-      <HeaderToolbar actions={toolbarActions} />
+      {/* Right-aligned group: a single `ml-auto` keeps the mobile Settings icon next to the toolbar
+          instead of two competing `ml-auto`s splitting the free space and centering it. */}
+      <div className="ml-auto flex items-center gap-2">
+        <Button
+          asChild
+          variant="ghost"
+          size="icon"
+          className="md:hidden"
+          aria-label="Settings"
+        >
+          <Link to="/settings">
+            <Settings className="size-4" />
+          </Link>
+        </Button>
+        <HeaderToolbar actions={toolbarActions} />
+      </div>
     </header>
   );
 }
