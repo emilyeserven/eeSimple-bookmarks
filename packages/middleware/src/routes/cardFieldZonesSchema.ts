@@ -56,6 +56,9 @@ export const fieldZonesSchema = {
             clickableInView: {
               type: "boolean",
             },
+            clickableInOverlay: {
+              type: "boolean",
+            },
             showLabelColon: {
               type: "boolean",
             },
