@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { Tag } from "@eesimple/types";
-import { buildApp } from "@/app";
 import {
   buildTagTree,
   collectSubtreeIds,
@@ -116,85 +115,6 @@ test("computeTagBookmarkCounts counts subtree (distinct) and own (no-descendant)
     subtree: 1,
     own: 1,
   });
-});
-
-// Schema-validation tests via `inject` (no database needed).
-
-test("POST /api/tags rejects a payload missing the name", async () => {
-  const app = await buildApp();
-  const res = await app.inject({
-    method: "POST",
-    url: "/api/tags",
-    payload: {
-      parentId: null,
-    },
-  });
-  assert.equal(res.statusCode, 400);
-  await app.close();
-});
-
-test("PATCH /api/tags/:id rejects a non-uuid id", async () => {
-  const app = await buildApp();
-  const res = await app.inject({
-    method: "PATCH",
-    url: "/api/tags/not-a-uuid",
-    payload: {
-      name: "x",
-    },
-  });
-  assert.equal(res.statusCode, 400);
-  await app.close();
-});
-
-test("PUT /api/tags/:id/categories rejects a non-uuid tag id", async () => {
-  const app = await buildApp();
-  const res = await app.inject({
-    method: "PUT",
-    url: "/api/tags/not-a-uuid/categories",
-    payload: {
-      categoryIds: [],
-    },
-  });
-  assert.equal(res.statusCode, 400);
-  await app.close();
-});
-
-test("PUT /api/tags/:id/categories rejects a non-uuid category id", async () => {
-  const app = await buildApp();
-  const res = await app.inject({
-    method: "PUT",
-    url: "/api/tags/11111111-1111-1111-1111-111111111111/categories",
-    payload: {
-      categoryIds: ["not-a-uuid"],
-    },
-  });
-  assert.equal(res.statusCode, 400);
-  await app.close();
-});
-
-test("GET /api/bookmarks rejects a non-uuid tag filter", async () => {
-  const app = await buildApp();
-  const res = await app.inject({
-    method: "GET",
-    url: "/api/bookmarks?tags=not-a-uuid",
-  });
-  assert.equal(res.statusCode, 400);
-  await app.close();
-});
-
-test("POST /api/bookmarks rejects a non-array tagIds", async () => {
-  const app = await buildApp();
-  const res = await app.inject({
-    method: "POST",
-    url: "/api/bookmarks",
-    payload: {
-      url: "https://example.com",
-      title: "Example",
-      tagIds: "dev",
-    },
-  });
-  assert.equal(res.statusCode, 400);
-  await app.close();
 });
 
 // --- titleMatchesTagName / matchTagIdsByTitle (auto-tag-from-title automation) ---

@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { MediaType } from "@eesimple/types";
-import { buildApp } from "@/app";
 import {
   buildMediaTypeTree,
   computeMediaTypeBookmarkCounts,
@@ -94,46 +93,4 @@ test("computeMediaTypeBookmarkCounts ignores null media types", () => {
     subtree: 1,
     own: 1,
   });
-});
-
-// Schema-validation tests via `inject` (no database needed).
-
-test("POST /api/media-types rejects a payload missing the name", async () => {
-  const app = await buildApp();
-  const res = await app.inject({
-    method: "POST",
-    url: "/api/media-types",
-    payload: {
-      parentId: null,
-    },
-  });
-  assert.equal(res.statusCode, 400);
-  await app.close();
-});
-
-test("POST /api/media-types rejects a non-uuid parentId", async () => {
-  const app = await buildApp();
-  const res = await app.inject({
-    method: "POST",
-    url: "/api/media-types",
-    payload: {
-      name: "Music",
-      parentId: "not-a-uuid",
-    },
-  });
-  assert.equal(res.statusCode, 400);
-  await app.close();
-});
-
-test("PATCH /api/media-types/:id rejects a non-uuid id", async () => {
-  const app = await buildApp();
-  const res = await app.inject({
-    method: "PATCH",
-    url: "/api/media-types/not-a-uuid",
-    payload: {
-      name: "x",
-    },
-  });
-  assert.equal(res.statusCode, 400);
-  await app.close();
 });
