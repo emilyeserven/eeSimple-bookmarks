@@ -1,0 +1,159 @@
+/**
+ * ISBN/book metadata lookup with a keyless provider fallback chain: Open Library first, then Google
+ * Books. Both are public and require no API key. Each provider reports a discriminated outcome so
+ * the route can distinguish "no book found" (→ 404) from "couldn't reach the provider" (→ 502).
+ */
+
+import type { FetchIsbnMetadataResult } from "@eesimple/types";
+
+const ISBN_TIMEOUT_MS = 10_000;
+const ISBN_USER_AGENT = "eeSimple-bookmarks/1.0";
+
+/** A lookup outcome: a usable result, a definitive "not found", or a transport failure. */
+export type IsbnLookupOutcome
+  = | { kind: "ok";
+    result: FetchIsbnMetadataResult; }
+    | { kind: "not_found" }
+    | { kind: "error" };
+
+/** Upgrade an `http://` cover URL to `https://` (Google Books serves http thumbnails), else pass through. */
+function toHttps(url: string | undefined | null): string | null {
+  if (!url) return null;
+  return url.startsWith("http://") ? `https://${url.slice("http://".length)}` : url;
+}
+
+/** Look up a book by ISBN via Open Library's read API. */
+export async function fetchOpenLibrary(isbn: string): Promise<IsbnLookupOutcome> {
+  const apiUrl = `https://openlibrary.org/api/books?bibkeys=ISBN:${encodeURIComponent(isbn)}&format=json&jscmd=data`;
+  let rawJson: Record<string, unknown>;
+  try {
+    const response = await fetch(apiUrl, {
+      headers: {
+        "User-Agent": ISBN_USER_AGENT,
+      },
+      signal: AbortSignal.timeout(ISBN_TIMEOUT_MS),
+    });
+    if (!response.ok) return {
+      kind: "error",
+    };
+    rawJson = (await response.json()) as Record<string, unknown>;
+  }
+  catch {
+    return {
+      kind: "error",
+    };
+  }
+
+  const data = rawJson[`ISBN:${isbn}`] as Record<string, unknown> | undefined;
+  if (!data) return {
+    kind: "not_found",
+  };
+
+  const descRaw = data.description as { value?: string } | string | undefined;
+  const description = typeof descRaw === "string"
+    ? descRaw
+    : typeof descRaw === "object" && descRaw !== null
+      ? (descRaw.value ?? null)
+      : null;
+  const coversRaw = data.cover as { large?: string;
+    medium?: string; } | undefined;
+  const authorsRaw = data.authors as { name?: string }[] | undefined;
+  const publishersRaw = data.publishers as { name?: string }[] | undefined;
+
+  return {
+    kind: "ok",
+    result: {
+      title: typeof data.title === "string" ? data.title : null,
+      description,
+      coverUrl: coversRaw?.large ?? coversRaw?.medium ?? null,
+      authors: authorsRaw?.map(a => a.name ?? "").filter(Boolean) ?? [],
+      publisher: publishersRaw?.[0]?.name ?? null,
+      year: typeof data.publish_date === "string" ? data.publish_date : null,
+      openLibraryUrl: typeof data.url === "string" ? data.url : null,
+    },
+  };
+}
+
+/** Shape of the Google Books `volumeInfo` fields we consume. */
+interface GoogleVolumeInfo {
+  title?: unknown;
+  description?: unknown;
+  authors?: unknown;
+  publisher?: unknown;
+  publishedDate?: unknown;
+  imageLinks?: { thumbnail?: unknown;
+    smallThumbnail?: unknown; };
+}
+
+/** Look up a book by ISBN via the keyless Google Books volumes API (broader coverage than Open Library). */
+export async function fetchGoogleBooks(isbn: string): Promise<IsbnLookupOutcome> {
+  const apiUrl = `https://www.googleapis.com/books/v1/volumes?q=isbn:${encodeURIComponent(isbn)}`;
+  let rawJson: { items?: { volumeInfo?: GoogleVolumeInfo }[] };
+  try {
+    const response = await fetch(apiUrl, {
+      headers: {
+        "User-Agent": ISBN_USER_AGENT,
+      },
+      signal: AbortSignal.timeout(ISBN_TIMEOUT_MS),
+    });
+    if (!response.ok) return {
+      kind: "error",
+    };
+    rawJson = (await response.json()) as { items?: { volumeInfo?: GoogleVolumeInfo }[] };
+  }
+  catch {
+    return {
+      kind: "error",
+    };
+  }
+
+  const info = rawJson.items?.[0]?.volumeInfo;
+  if (!info) return {
+    kind: "not_found",
+  };
+
+  const authors = Array.isArray(info.authors)
+    ? info.authors.filter((a): a is string => typeof a === "string")
+    : [];
+  const thumb = typeof info.imageLinks?.thumbnail === "string"
+    ? info.imageLinks.thumbnail
+    : typeof info.imageLinks?.smallThumbnail === "string"
+      ? info.imageLinks.smallThumbnail
+      : null;
+
+  return {
+    kind: "ok",
+    result: {
+      title: typeof info.title === "string" ? info.title : null,
+      description: typeof info.description === "string" ? info.description : null,
+      coverUrl: toHttps(thumb),
+      authors,
+      publisher: typeof info.publisher === "string" ? info.publisher : null,
+      year: typeof info.publishedDate === "string" ? info.publishedDate : null,
+      // Google Books results have no Open Library page.
+      openLibraryUrl: null,
+    },
+  };
+}
+
+/**
+ * Resolve ISBN metadata via the fallback chain: Open Library first; fall back to Google Books when
+ * Open Library has no titled result. Returns the first usable result, else a definitive
+ * `not_found` (at least one provider answered), else `error` (all providers were unreachable).
+ */
+export async function fetchIsbnMetadata(isbn: string): Promise<IsbnLookupOutcome> {
+  const ol = await fetchOpenLibrary(isbn);
+  if (ol.kind === "ok" && ol.result.title) return ol;
+
+  const gb = await fetchGoogleBooks(isbn);
+  if (gb.kind === "ok") return gb;
+
+  // Google Books added nothing usable — keep a titleless Open Library hit if we have one.
+  if (ol.kind === "ok") return ol;
+  if (ol.kind === "not_found" || gb.kind === "not_found") return {
+    kind: "not_found",
+  };
+  return {
+    kind: "error",
+  };
+}

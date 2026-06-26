@@ -442,6 +442,16 @@ export function extractFaviconUrls(html: string, pageUrl: string): string[] {
 }
 
 /**
+ * The DuckDuckGo icon-service URL for a domain — an instant favicon without scraping or object
+ * storage. Used as a display fallback (in `/api/scan`) and as a last-resort image source when a site
+ * declares no usable icon. Note: requesting it leaks the bookmarked domain to DuckDuckGo (acceptable —
+ * the same as fetching the site's own favicon directly), so it is not gated.
+ */
+export function duckDuckGoIconUrl(domain: string): string {
+  return `https://icons.duckduckgo.com/ip3/${encodeURIComponent(domain)}.ico`;
+}
+
+/**
  * Reject non-http(s) URLs and obvious internal/loopback/private hosts. The image URL comes from a
  * third-party page, so it's treated as untrusted to limit SSRF on a private network.
  */

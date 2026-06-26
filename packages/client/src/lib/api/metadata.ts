@@ -1,4 +1,4 @@
-import type { CheckUrlResult, FetchIsbnMetadataResult, FetchMetadataResult, ResolveUrlResult } from "@eesimple/types";
+import type { CheckUrlResult, FetchIsbnMetadataResult, FetchMetadataResult, ResolveUrlResult, ScanResult } from "@eesimple/types";
 
 import { request } from "./client";
 
@@ -42,4 +42,18 @@ export const metadataApi = {
     isbn,
   }: { isbn: string }) =>
     request<FetchIsbnMetadataResult>(`/fetch-isbn-metadata?isbn=${encodeURIComponent(isbn)}`),
+  // Consolidated single-fetch scan: redirect + website + duplicate + metadata + favicon in one call.
+  // `resolveRedirect: false` (for redirect-ignore-listed domains) tells the server to skip redirects.
+  scan: ({
+    url, siteName, resolveRedirect,
+  }: { url: string;
+    siteName?: string;
+    resolveRedirect?: boolean; }) => {
+    const params = buildSiteParams({
+      url,
+      siteName,
+    });
+    if (resolveRedirect === false) params.set("resolveRedirect", "false");
+    return request<ScanResult>(`/scan?${params.toString()}`);
+  },
 };

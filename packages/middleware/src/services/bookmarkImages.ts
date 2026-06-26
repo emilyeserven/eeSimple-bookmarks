@@ -4,11 +4,13 @@
  */
 
 import type { BookmarkImage, BulkAutoFetchResult } from "@eesimple/types";
+import { findOEmbedProvider } from "@eesimple/types";
 import { and, eq, isNull } from "drizzle-orm";
 import { db } from "@/db";
 import { bookmarkImages, type BookmarkImageRow, bookmarks } from "@/db/schema";
 import { forgetManifestObject, recordManifestObject } from "@/services/gallery";
 import { fetchOgImage } from "@/services/metadata";
+import { fetchOEmbedThumbnail } from "@/services/oembed";
 import { fetchYouTubeThumbnail, isYouTubeVideoUrl } from "@/services/youtube";
 import { processImage } from "@/utils/image";
 import { deleteObject, putObject } from "@/utils/objectStore";
@@ -159,8 +161,10 @@ export async function fetchAndStoreOgImage(bookmarkId: string): Promise<AutoImag
   if (!bookmark) return "not_found";
   if (!bookmark.url) return "no_image";
 
-  // YouTube serves a known, high-quality thumbnail via oEmbed — prefer it over scraping og:image,
-  // falling back to the generic page-image path when the thumbnail can't be fetched.
+  // YouTube and other oEmbed providers serve a known, high-quality thumbnail via oEmbed — prefer it
+  // over scraping og:image, falling back to the generic page-image path when it can't be fetched.
+  // The thumbnail URL is derived server-side from the bookmark's own stored URL (never a client
+  // value), so this keeps the SSRF-safe invariant of the og:image path.
   let bytes: Buffer | null = null;
   let grabError: ImageAutoGrabError | null = null;
 
@@ -171,6 +175,18 @@ export async function fetchAndStoreOgImage(bookmarkId: string): Promise<AutoImag
     }
     else {
       console.warn(`[youtube-enrich] image: YouTube thumbnail unavailable for ${bookmarkId}; falling back to og:image`);
+      const r = await fetchOgImage(bookmark.url);
+      if (typeof r === "string") grabError = r;
+      else bytes = r;
+    }
+  }
+  else if (findOEmbedProvider(bookmark.url)) {
+    bytes = await fetchOEmbedThumbnail(bookmark.url);
+    if (bytes) {
+      console.info(`[oembed] image: using oEmbed thumbnail for ${bookmarkId}`);
+    }
+    else {
+      console.warn(`[oembed] image: oEmbed thumbnail unavailable for ${bookmarkId}; falling back to og:image`);
       const r = await fetchOgImage(bookmark.url);
       if (typeof r === "string") grabError = r;
       else bytes = r;

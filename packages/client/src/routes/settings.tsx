@@ -46,6 +46,10 @@ const settingsNav: readonly TabNavEntry[] = [
     label: "Extension",
   },
   {
+    to: "/settings/connectors",
+    label: "Connectors",
+  },
+  {
     to: "/settings/advanced",
     label: "Advanced",
   },

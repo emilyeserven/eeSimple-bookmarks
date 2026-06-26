@@ -137,6 +137,13 @@ the runtime-migrations hook (`dist/db/migrate.js`) and then `drizzle-kit push` �
    To browse the API docs on the deployed app, also set `DOCS_ENABLED=true` — the gateway then
    proxies the Swagger UI at `/docs` (it's off in production by default). The API is
    unauthenticated, so this makes the full surface publicly explorable; enable it deliberately.
+
+   URL metadata auto-fill works out of the box with keyless sources (oEmbed, Open Library / Google
+   Books, DuckDuckGo icons). Two **optional, default-off** providers can be enabled for harder cases
+   by setting their env vars (see `packages/middleware/.env.example`): a Microlink-compatible
+   `HOSTED_METADATA_ENDPOINT` for JS-rendered / bot-protected pages, and a `YOUTUBE_API_KEY` for the
+   YouTube Data API. Both fall back to the keyless path when unset; their status is shown on
+   **Settings → Connectors**.
 5. **Deploy.** Coolify builds the multi-stage image and starts the gateway. The schema is applied
    automatically on first boot. Visit the app URL and check `GET /healthz` returns `{"status":"ok"}`.
 

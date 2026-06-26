@@ -11,7 +11,7 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { type WebsiteFaviconRow, websiteFavicons, websites } from "@/db/schema";
-import { type EntityImageResult, fetchFaviconImage, withTransientRetry } from "@/services/metadata";
+import { downloadImage, duckDuckGoIconUrl, type EntityImageResult, fetchFaviconImage, isPublicHttpUrl, withTransientRetry } from "@/services/metadata";
 import { processImage } from "@/utils/image";
 import { deleteObject, putObject } from "@/utils/objectStore";
 
@@ -133,6 +133,13 @@ export async function fetchAndStoreWebsiteFavicon(websiteId: string): Promise<En
   const pageUrl = `https://${website.domain}/`;
   const result = await withTransientRetry(() => fetchFaviconImage(pageUrl));
   if (typeof result === "string") {
+    // Last resort: the DuckDuckGo icon service often has an icon even when the site declares none.
+    const ddgUrl = duckDuckGoIconUrl(website.domain);
+    const ddgBytes = isPublicHttpUrl(ddgUrl) ? await downloadImage(ddgUrl) : null;
+    if (ddgBytes) {
+      const ddgStore = await setWebsiteFavicon(websiteId, ddgBytes, "icon");
+      if (typeof ddgStore !== "string") return ddgStore;
+    }
     await db.update(websites).set({
       faviconAutoGrabError: result,
     }).where(eq(websites.id, websiteId));

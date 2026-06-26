@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 
 import {
+  Cable,
   Clapperboard,
   Filter,
   FolderOpen,
@@ -98,6 +99,11 @@ export const SETTINGS_PAGES: readonly SettingsPage[] = [
     path: "/settings/extension",
     label: "Extension",
     icon: Puzzle,
+  },
+  {
+    path: "/settings/connectors",
+    label: "Connectors",
+    icon: Cable,
   },
   {
     path: "/settings/advanced",

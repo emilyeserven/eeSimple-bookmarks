@@ -13,6 +13,7 @@ import type { SocialLink } from "./socialMedia.js";
 export * from "./conditions.js";
 export * from "./customProperties.js";
 export * from "./importBlacklist.js";
+export * from "./oembed.js";
 export * from "./socialMedia.js";
 export * from "./urlCleanup.js";
 export * from "./youtube.js";
@@ -2236,9 +2237,9 @@ export interface FetchMetadataResult {
     selfIds: string[]; } | null;
   /** The video's length in whole seconds (YouTube only), or `null`. */
   durationSeconds: number | null;
-  /** ISO-8601 date the video was published ("YYYY-MM-DD"), scraped from the watch page (YouTube only), or `null`. */
+  /** ISO-8601 publish date ("YYYY-MM-DD"), from the YouTube watch page or an oEmbed provider, or `null`. */
   datePosted: string | null;
-  /** A preview/thumbnail image URL (YouTube only), or `null`. */
+  /** A preview/thumbnail image URL (YouTube or an oEmbed provider), or `null`. */
   thumbnailUrl: string | null;
   /** Author name(s) parsed from page metadata (non-YouTube only), or `null` when none were found. */
   authorNames: string[] | null;
@@ -2248,6 +2249,62 @@ export interface FetchMetadataResult {
    * surfaced so a partial result still explains itself instead of returning a silent `null`.
    */
   diagnostics?: string[];
+}
+
+/**
+ * Result of a consolidated single-fetch URL scan (`GET /api/scan`). One round-trip that fetches the
+ * page once and returns everything the Add Bookmark form needs: redirect resolution, website lookup,
+ * duplicate check, page/oEmbed metadata, and an instant favicon URL. Replaces ~5 separate calls
+ * (`/api/resolve-url`, `/api/websites/lookup`, `/api/bookmarks/url-check`, `/api/fetch-title`,
+ * `/api/fetch-metadata`); those granular endpoints remain for the per-field manual buttons.
+ */
+export interface ScanResult {
+  /** The resolved destination URL (after following redirects), or the original. */
+  finalUrl: string;
+  /** Whether at least one redirect hop was followed to reach `finalUrl`. */
+  redirected: boolean;
+  /** A user-facing message when the redirect chain couldn't be followed (best-effort), else absent. */
+  resolveError?: string;
+  /** Website-taxonomy lookup for `finalUrl`'s domain (replaces `/api/websites/lookup`). */
+  website: WebsiteLookup;
+  /** Existing-bookmark duplicate check for `finalUrl` (replaces `/api/bookmarks/url-check`). */
+  duplicate: BookmarkUrlDuplicateResult;
+  /** Cleaned page/video title, or `null`. */
+  title: string | null;
+  /** Page/video description, or `null`. */
+  description: string | null;
+  /** Whether `finalUrl` was recognized as a YouTube video. */
+  isYouTube: boolean;
+  /** The video's channel (YouTube only), or `null`. */
+  channel: FetchMetadataResult["channel"];
+  /** The video's length in whole seconds (YouTube only), or `null`. */
+  durationSeconds: number | null;
+  /** ISO-8601 publish date ("YYYY-MM-DD") from YouTube or an oEmbed provider, or `null`. */
+  datePosted: string | null;
+  /** A preview/thumbnail image URL (YouTube or an oEmbed provider), or `null`. */
+  thumbnailUrl: string | null;
+  /** Author name(s) parsed from page metadata / oEmbed (non-YouTube), or `null`. */
+  authorNames: string[] | null;
+  /** An instant favicon URL for display (scraped icon or a CDN fallback), or `null`. */
+  faviconUrl: string | null;
+  /** Human-readable reasons a field could not be resolved (YouTube scrape warnings), when present. */
+  diagnostics?: string[];
+}
+
+/**
+ * Live status of the optional/gated metadata connectors (`GET /api/connectors`). Carries no secrets —
+ * only whether each connector is configured (and the hosted provider's name) — so it's safe to serve
+ * to the client. The keyless connectors (oEmbed providers, Open Library, Google Books, DuckDuckGo
+ * icons) are always on and described client-side; only the env-gated ones report status here.
+ */
+export interface ConnectorsStatus {
+  /** Hosted metadata provider (Microlink/iframely/opengraph) — active only when its env vars are set. */
+  hostedMetadata: { enabled: boolean;
+    provider: string | null; };
+  /** YouTube Data API v3 — active only when `YOUTUBE_API_KEY` is set (else the watch-page scrape runs). */
+  youtubeDataApi: { enabled: boolean };
+  /** Object storage (S3/Garage) — whether bookmark images / favicons can be stored. */
+  objectStorage: { configured: boolean };
 }
 
 /** Result of probing a URL for reachability (`GET /api/check-url`). */

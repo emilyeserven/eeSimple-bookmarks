@@ -416,6 +416,44 @@ bookmark row, its tags, or its custom-property values) — or the tag tree — m
 `services/customProperties.ts`). This keeps one source of truth for the predicate while moving the
 work off the client. SQL-level filtering is the last resort, reserved for genuinely large datasets.
 
+## Metadata fetching & connectors
+
+The Add Bookmark form auto-fills metadata by scanning a URL/ISBN through a small set of external
+"connectors". The pipeline favors keyless, self-hostable sources; the only off-box calls that require
+configuration are explicitly opt-in (Tier 2, below).
+
+- **One consolidated scan, not many round-trips.** `GET /api/scan` (`routes/metadata.ts`) resolves
+  redirects, then in **one page fetch** returns title + description + image + authors + website lookup
+  + duplicate check + an instant favicon URL (`ScanResult` in `@eesimple/types`). The client's
+  `performUrlScan` (`useBookmarkFormController.ts`) calls it once and applies the result via the pure
+  helpers in `useBookmarkScanHandlers.ts` (`applyScanMetadata` / `applyYouTubeMeta` /
+  `applyAuthorsFromNames`). **The granular endpoints stay** (`/api/fetch-title`, `/api/fetch-metadata`,
+  `/api/resolve-url`, `/api/websites/lookup`, `/api/bookmarks/url-check`) for the per-field manual
+  buttons — don't delete them. Scan results are cached in `services/scanCache.ts` (short TTL,
+  size-capped). **That cache is display/metadata-only — never wire it into `invalidateBookmarkCache()`**
+  (a bookmark write doesn't change a URL's page metadata; stale entries self-heal within the TTL — the
+  same carve-out as Card Display Rules).
+- **oEmbed is a registry — add a provider in one place.** `OEMBED_PROVIDERS` in
+  `packages/types/src/oembed.ts` is the single source of truth for keyless oEmbed providers (Vimeo,
+  Spotify, TikTok, …); the middleware `services/oembed.ts` also autodiscovers a `<link rel="oembed">`
+  endpoint from the head HTML it already fetched, and the Connectors settings page lists providers by
+  mapping over the same registry. Don't hand-list providers anywhere — derive from the tuple. See the
+  **`add-connector`** skill.
+- **Image capture stays server-side and SSRF-safe.** `fetchAndStoreOgImage` (`services/bookmarkImages.ts`)
+  derives the image URL **from the bookmark's own stored URL** (never a client value), branching
+  YouTube → oEmbed provider → og:image scrape. The oEmbed/YouTube thumbnail and every third-party
+  image/icon URL passes `isPublicHttpUrl` before fetch.
+- **ISBN has a keyless fallback chain.** `services/isbn.ts` tries Open Library, then Google Books;
+  the route maps the discriminated outcome to 200 / 404 (not found) / 502 (providers unreachable).
+- **Tier 2 providers are env-gated and default off.** `services/hostedMetadata.ts`
+  (`HOSTED_METADATA_ENDPOINT`/`_API_KEY`/`_PROVIDER`, Microlink-compatible) and the YouTube Data API
+  path in `services/youtube.ts` (`YOUTUBE_API_KEY`) are **active iff their env vars are set** — mirror
+  `docsEnabled()` / `isObjectStoreConfigured()`. Both **fall back to the keyless path** when
+  unconfigured, so behavior is identical out of the box and nothing leaves the box unless an operator
+  opts in. Keys are secrets → **env vars only, never the unauthenticated `app_settings` API.**
+  `GET /api/connectors` (`routes/connectors.ts`) reports their on/off status (no secrets) for the
+  **Settings → Connectors** page (`components/ConnectorsSettings.tsx`).
+
 ## Generated files (do not edit)
 
 - `packages/client/src/routeTree.gen.ts` — regenerate with `pnpm --filter=@eesimple/client routeTree`
@@ -501,6 +539,10 @@ readiness uses `DB_WAIT_TIMEOUT_MS`).
 | `S3_SECRET_ACCESS_KEY` | middleware / gateway | Object-storage secret key. |
 | `GARAGE_S3_HOST_PORT` | docker-compose | Host port mapped to Garage's S3 API 3900 (default: `3900`). |
 | `STORAGE_QUOTA_BYTES` | middleware / gateway | Optional storage quota in bytes shown in the Gallery UI alongside used space (e.g. `10737418240` for 10 GB). Omit to hide the quota line. |
+| `HOSTED_METADATA_ENDPOINT` | middleware / gateway | **Optional, default off.** Tier 2 hosted metadata provider — a Microlink-compatible API endpoint (e.g. `https://api.microlink.io/`, or a self-hosted Microlink). When set, hard pages (JS-rendered, bot-protected) are resolved by the hosted service and merged over the direct scrape; when unset the pipeline behaves identically (direct scrape only). Setting it is what sends URLs off-box — privacy-preserving by default. Surfaced on Settings → Connectors. |
+| `HOSTED_METADATA_API_KEY` | middleware / gateway | Optional API key for the hosted metadata provider, sent as the `x-api-key` header. |
+| `HOSTED_METADATA_PROVIDER` | middleware / gateway | Optional provider label (e.g. `microlink`) shown on the Connectors settings page; does not affect behavior. |
+| `YOUTUBE_API_KEY` | middleware / gateway | **Optional, default off.** Tier 2 — when set, a YouTube video's duration/publish-date/description come from the YouTube Data API v3 (`videos.list`) instead of the brittle `ytInitialPlayerResponse` watch-page scrape; unset falls back to the scrape. Title/thumbnail/channel stay on keyless oEmbed either way. |
 
 Bookmark images are compressed to a 1200px WebP and stored in object storage (Garage by default),
 served via `GET /api/bookmarks/:id/image`. Without the `S3_*` vars the app runs normally but image

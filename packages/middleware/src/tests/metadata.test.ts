@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { buildApp } from "@/app";
-import { checkUrl, decodeEntities, extractTitle, fetchPageTitle } from "@/services/metadata";
+import { checkUrl, decodeEntities, duckDuckGoIconUrl, extractTitle, fetchPageTitle } from "@/services/metadata";
 
 // These tests cover schema validation and the pure title-parsing helpers, so
 // they run without a live network or database.
@@ -76,6 +76,13 @@ test("extractTitle skips a CDATA-wrapped <title> (feed artifact) but uses other 
       + "<title><![CDATA[jarango.com Archive Feed]]></title></head>",
     ),
     "Clean Name",
+  );
+});
+
+test("duckDuckGoIconUrl builds the DuckDuckGo icon-service URL for a domain", () => {
+  assert.equal(
+    duckDuckGoIconUrl("example.com"),
+    "https://icons.duckduckgo.com/ip3/example.com.ico",
   );
 });
 
@@ -284,6 +291,26 @@ test("GET /api/check-url rejects an invalid url", async () => {
   const res = await app.inject({
     method: "GET",
     url: "/api/check-url?url=not-a-url",
+  });
+  assert.equal(res.statusCode, 400);
+  await app.close();
+});
+
+test("GET /api/scan rejects a request with no url", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "GET",
+    url: "/api/scan",
+  });
+  assert.equal(res.statusCode, 400);
+  await app.close();
+});
+
+test("GET /api/scan rejects an invalid url", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "GET",
+    url: "/api/scan?url=not-a-url",
   });
   assert.equal(res.statusCode, 400);
   await app.close();

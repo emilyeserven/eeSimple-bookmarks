@@ -2,6 +2,7 @@ import type { ImageIntent } from "./bookmarkImageIntent";
 import type {
   Bookmark,
   CreateBookmarkInput,
+  ScanResult,
   YouTubeChannelHint,
 } from "@eesimple/types";
 import type { KeyboardEvent } from "react";
@@ -469,8 +470,8 @@ export function useBookmarkFormController({
   const {
     runFetchTitle,
     runFetchDescription,
-    runFetchAuthors,
     runYouTubeEnrichment,
+    applyScanMetadata,
     runUrlCleanup,
     undoUrlCleanup,
     undoTitleFetch,
@@ -496,10 +497,11 @@ export function useBookmarkFormController({
     createAuthor,
   });
 
-  // The full URL scan: clean the URL, apply autofill rules, look up the website, and fetch the
-  // title/metadata. `revealing` is the explicit "Check URL" action — it always attempts the title
-  // fetch and reveals the rest of the form; on later blurs the title fetch honours the autoFetchTitle
-  // setting.
+  // The full URL scan: clean the URL, then make a single consolidated `/api/scan` round-trip that
+  // resolves redirects and fetches the page metadata once (title/description/authors, plus
+  // YouTube/oEmbed enrichment). Autofill, the website lookup, and the duplicate check run alongside.
+  // `revealing` is the explicit "Check URL" action — it always fills the title and reveals the rest
+  // of the form; on later blurs the title fill honours the autoFetchTitle setting.
   async function performUrlScan({
     revealing,
   }: { revealing: boolean }): Promise<void> {
@@ -508,47 +510,50 @@ export function useBookmarkFormController({
     try {
       const urlBeforeCleanup = form.getFieldValue("url");
       runUrlCleanup(urlBeforeCleanup);
-      let url = form.getFieldValue("url");
-      // Follow the redirect chain (tracker/newsletter links → real destination). Falls back to the
-      // current URL on any failure, so a slow or unreachable server doesn't break the scan.
-      if (isUrlFetchable(url) && !isRedirectIgnored(url, redirectIgnoreList ?? [])) {
-        const resolved = await metadataApi.resolveUrl({
-          url,
-        });
-        if (resolved.resolveError) {
-          setUrlResolveError(resolved.resolveError);
+      const url = form.getFieldValue("url");
+      const fillTitle = revealing || autoFetchTitle;
+
+      // One round-trip for redirect resolution + page metadata. Best-effort: a failure leaves the
+      // form working with the typed URL. The server skips redirect resolution for ignore-listed hosts.
+      let scan: ScanResult | null = null;
+      if (isUrlFetchable(url)) {
+        try {
+          scan = await metadataApi.scan({
+            url,
+            siteName: websiteSiteName.trim() || undefined,
+            resolveRedirect: !isRedirectIgnored(url, redirectIgnoreList ?? []),
+          });
         }
-        if (resolved.redirected) {
-          form.setFieldValue("url", resolved.finalUrl);
+        catch {
+          scan = null;
+        }
+      }
+
+      let finalUrl = url;
+      if (scan) {
+        if (scan.resolveError) setUrlResolveError(scan.resolveError);
+        if (scan.redirected) {
+          form.setFieldValue("url", scan.finalUrl);
           setUrlCleanup({
             original: urlBeforeCleanup,
-            cleaned: resolved.finalUrl,
+            cleaned: scan.finalUrl,
             applied: true,
           });
-          url = resolved.finalUrl;
+          finalUrl = scan.finalUrl;
         }
       }
+
       prefill.runAutofill();
-      runWebsiteLookup(url);
-      urlDuplicateCheck.mutate(url, {
+      runWebsiteLookup(finalUrl);
+      urlDuplicateCheck.mutate(finalUrl, {
         onSuccess: setUrlDuplicate,
       });
-      const yt = looksLikeYouTube(url);
-      const fillTitle = revealing || autoFetchTitle;
-      // YouTube gets its title from enrichment; non-YouTube uses the strict fetch-title.
-      // Author detection runs in parallel with the title fetch for non-YouTube URLs.
-      if (fillTitle && !yt) {
-        await Promise.all([
-          runFetchTitle(url, {
-            force: false,
-          }),
-          runFetchAuthors(url),
-        ]);
+      if (scan) {
+        await applyScanMetadata(finalUrl, scan, {
+          fillTitle,
+          force: false,
+        });
       }
-      await runYouTubeEnrichment(url, {
-        fillTitle,
-        force: false,
-      });
       if (revealing) setScanned(true);
     }
     finally {

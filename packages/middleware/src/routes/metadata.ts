@@ -1,14 +1,20 @@
 import type { FastifyBaseLogger, FastifyInstance } from "fastify";
-import type { FetchIsbnMetadataResult, FetchMetadataResult } from "@eesimple/types";
+import type { FetchIsbnMetadataResult, FetchMetadataResult, ResolveUrlResult, ScanResult, WebsiteLookup } from "@eesimple/types";
+import { checkBookmarkUrlDuplicate } from "@/services/bookmarks";
 import {
   checkUrl,
+  duckDuckGoIconUrl,
   extractAuthorNames,
   extractDescription,
   extractTitle,
   fetchHeadHtml,
   fetchPageTitle,
 } from "@/services/metadata";
+import { fetchHostedMetadata, hostedMetadataEnabled } from "@/services/hostedMetadata";
+import { fetchIsbnMetadata } from "@/services/isbn";
+import { fetchOEmbedForUrl } from "@/services/oembed";
 import { unwrapRedirect } from "@/services/redirectUnwrap";
+import { getCachedScan, scanCacheKey, setCachedScan } from "@/services/scanCache";
 import { lookupWebsiteByUrl, stripSiteNameSuffix } from "@/services/websites";
 import { fetchYouTubeMetadata, isYouTubeVideoUrl } from "@/services/youtube";
 import { channelKeyFromUrl, getYouTubeChannelByKey } from "@/services/youtubeChannels";
@@ -26,6 +32,27 @@ const fetchTitleQuery = {
     siteName: {
       type: "string",
       minLength: 1,
+    },
+  },
+} as const;
+
+const scanQuery = {
+  type: "object",
+  required: ["url"],
+  additionalProperties: false,
+  properties: {
+    url: {
+      type: "string",
+      format: "uri",
+    },
+    siteName: {
+      type: "string",
+      minLength: 1,
+    },
+    // The client sets this false for redirect-ignore-listed domains (e.g. docs.google.com).
+    resolveRedirect: {
+      type: "boolean",
+      default: true,
     },
   },
 } as const;
@@ -90,7 +117,7 @@ async function buildYouTubeMetadataResult(
   };
 }
 
-/** Build the `/api/fetch-metadata` response for a non-YouTube URL (HTML title/description scrape). */
+/** Build the `/api/fetch-metadata` response for a non-YouTube URL (HTML scrape + oEmbed). */
 async function buildGenericMetadataResult(
   url: string,
   siteNameHint: string | undefined,
@@ -119,15 +146,97 @@ async function buildGenericMetadataResult(
       }
     }
   }
+
+  let description = html ? extractDescription(html) : null;
+  let authorNames = html ? extractAuthorNames(html) : null;
+  let thumbnailUrl: string | null = null;
+  let datePosted: string | null = null;
+
+  // Generalized oEmbed: clean, structured metadata for many media URLs (Vimeo, TikTok, Spotify, …)
+  // with no API key — via a known-provider registry or `<link rel="oembed">` autodiscovery in the
+  // head HTML we already fetched. oEmbed titles are already clean, so they win over the scraped
+  // (suffix-stripped) title; oEmbed only *fills* a description/author the scrape didn't find.
+  const oembed = await fetchOEmbedForUrl(url, html);
+  if (oembed) {
+    if (oembed.title) title = oembed.title;
+    description ??= oembed.description;
+    thumbnailUrl = oembed.thumbnailUrl;
+    datePosted = oembed.datePosted;
+    if ((!authorNames || authorNames.length === 0) && oembed.authorName) {
+      authorNames = [oembed.authorName];
+    }
+  }
+
+  // Optional hosted provider (Tier 2, default off): handles JS-rendered / bot-protected pages the
+  // direct scrape can't. When configured, its values win (it's the most capable source); when not,
+  // this is a no-op and behavior is identical to the direct scrape above.
+  if (hostedMetadataEnabled()) {
+    const hosted = await fetchHostedMetadata(url);
+    if (hosted) {
+      title = hosted.title ?? title;
+      description = hosted.description ?? description;
+      thumbnailUrl = hosted.imageUrl ?? thumbnailUrl;
+      datePosted = hosted.datePosted ?? datePosted;
+      if ((!authorNames || authorNames.length === 0) && hosted.authorName) {
+        authorNames = [hosted.authorName];
+      }
+    }
+  }
+
   return {
     title,
-    description: html ? extractDescription(html) : null,
+    description,
     isYouTube: false,
     channel: null,
     durationSeconds: null,
-    datePosted: null,
-    thumbnailUrl: null,
-    authorNames: html ? extractAuthorNames(html) : null,
+    datePosted,
+    thumbnailUrl,
+    authorNames,
+  };
+}
+
+/**
+ * Follow a URL's redirect chain to the `ResolveUrlResult` wire shape. Falls back to the original URL
+ * with a user-facing `resolveError` on any non-ok outcome. Shared by `/api/resolve-url` and `/api/scan`.
+ */
+async function resolveRedirectResult(url: string): Promise<ResolveUrlResult> {
+  const result = await unwrapRedirect(url);
+  if (result.kind === "ok") {
+    return {
+      finalUrl: result.finalUrl,
+      redirected: result.redirected,
+    };
+  }
+  let resolveError: string;
+  switch (result.kind) {
+    case "blocked":
+      resolveError = "That URL redirects to a private or restricted address and couldn't be followed.";
+      break;
+    case "timeout":
+      resolveError = "The redirect timed out — the link may be slow or temporarily unavailable.";
+      break;
+    case "http_error":
+      resolveError = `The redirect server returned HTTP ${result.status} — this link may be expired or one-time-use (common with email tracking links).`;
+      break;
+    case "network_error":
+      resolveError = "Could not connect to follow this redirect. The server may be down or unreachable.";
+      break;
+  }
+  return {
+    finalUrl: url,
+    redirected: false,
+    resolveError,
+  };
+}
+
+/** Map the `lookupWebsiteByUrl` service shape to the `WebsiteLookup` wire type. */
+function toWebsiteLookup(raw: Awaited<ReturnType<typeof lookupWebsiteByUrl>>): WebsiteLookup {
+  return {
+    domain: raw.domain,
+    exists: raw.website !== null,
+    siteName: raw.website?.siteName ?? null,
+    mediaTypeId: raw.website?.mediaTypeId ?? null,
+    shortener: raw.shortener,
   };
 }
 
@@ -255,35 +364,8 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
         message: "url must be a valid http(s) URL",
       });
     }
-    const result = await unwrapRedirect(url);
-    if (result.kind === "ok") {
-      return {
-        finalUrl: result.finalUrl,
-        redirected: result.redirected,
-      };
-    }
-    // Any failure — fall back to the original URL so the form keeps working, but surface a
-    // user-facing message so the client can tell the user why the redirect wasn't followed.
-    let resolveError: string;
-    switch (result.kind) {
-      case "blocked":
-        resolveError = "That URL redirects to a private or restricted address and couldn't be followed.";
-        break;
-      case "timeout":
-        resolveError = "The redirect timed out — the link may be slow or temporarily unavailable.";
-        break;
-      case "http_error":
-        resolveError = `The redirect server returned HTTP ${result.status} — this link may be expired or one-time-use (common with email tracking links).`;
-        break;
-      case "network_error":
-        resolveError = "Could not connect to follow this redirect. The server may be down or unreachable.";
-        break;
-    }
-    return {
-      finalUrl: url,
-      redirected: false,
-      resolveError,
-    };
+    // Falls back to the original URL on any failure (with a user-facing message); see resolveRedirectResult.
+    return resolveRedirectResult(url);
   });
 
   // Look up book/product metadata from the Open Library API by ISBN or ASIN.
@@ -306,57 +388,16 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
     const {
       isbn,
     } = req.query as { isbn: string };
-    const apiUrl = `https://openlibrary.org/api/books?bibkeys=ISBN:${encodeURIComponent(isbn)}&format=json&jscmd=data`;
-    let rawJson: Record<string, unknown>;
-    try {
-      const response = await fetch(apiUrl, {
-        headers: {
-          "User-Agent": "eeSimple-bookmarks/1.0",
-        },
-        signal: AbortSignal.timeout(10_000),
-      });
-      if (!response.ok) {
-        return reply.code(502).send({
-          message: "Couldn't reach Open Library. Check your connection and try again.",
-        }) as unknown as FetchIsbnMetadataResult;
-      }
-      rawJson = (await response.json()) as Record<string, unknown>;
-    }
-    catch {
-      return reply.code(502).send({
-        message: "Couldn't reach Open Library. Check your connection and try again.",
-      }) as unknown as FetchIsbnMetadataResult;
-    }
-
-    const key = `ISBN:${isbn}`;
-    const data = rawJson[key] as Record<string, unknown> | undefined;
-    if (!data) {
+    const outcome = await fetchIsbnMetadata(isbn);
+    if (outcome.kind === "ok") return outcome.result;
+    if (outcome.kind === "not_found") {
       return reply.code(404).send({
-        message: "No book found for that ISBN in Open Library. Check the ISBN and try again.",
+        message: "No book found for that ISBN in Open Library or Google Books. Check the ISBN and try again.",
       }) as unknown as FetchIsbnMetadataResult;
     }
-
-    const descRaw = data.description as { value?: string } | string | undefined;
-    const description = typeof descRaw === "string"
-      ? descRaw
-      : typeof descRaw === "object" && descRaw !== null
-        ? (descRaw.value ?? null)
-        : null;
-
-    const coversRaw = data.cover as { large?: string;
-      medium?: string; } | undefined;
-    const authorsRaw = data.authors as { name?: string }[] | undefined;
-    const publishersRaw = data.publishers as { name?: string }[] | undefined;
-
-    return {
-      title: typeof data.title === "string" ? data.title : null,
-      description: description as string | null,
-      coverUrl: coversRaw?.large ?? coversRaw?.medium ?? null,
-      authors: authorsRaw?.map(a => a.name ?? "").filter(Boolean) ?? [],
-      publisher: publishersRaw?.[0]?.name ?? null,
-      year: typeof data.publish_date === "string" ? data.publish_date : null,
-      openLibraryUrl: typeof data.url === "string" ? data.url : null,
-    };
+    return reply.code(502).send({
+      message: "Couldn't reach the book metadata providers. Check your connection and try again.",
+    }) as unknown as FetchIsbnMetadataResult;
   });
 
   // Richer metadata lookup: title for any URL, plus channel/duration/thumbnail for YouTube videos.
@@ -380,5 +421,76 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
     return isYouTubeVideoUrl(url)
       ? buildYouTubeMetadataResult(url, req.log)
       : buildGenericMetadataResult(url, siteNameHint);
+  });
+
+  // Consolidated single-fetch scan: resolve redirects, then in parallel look up the website, check
+  // for a duplicate bookmark, and fetch the page metadata once (title/description/image/authors, plus
+  // YouTube/oEmbed enrichment). Returns everything the Add Bookmark form needs in one round-trip,
+  // replacing the separate resolve-url / websites-lookup / url-check / fetch-title / fetch-metadata
+  // calls. Best-effort like /api/fetch-metadata — a partial result is still useful, never a 502.
+  app.get("/api/scan", {
+    schema: {
+      tags: ["metadata"],
+      querystring: scanQuery,
+    },
+  }, async (req, reply): Promise<ScanResult> => {
+    const {
+      url, siteName: siteNameHint, resolveRedirect = true,
+    } = req.query as { url: string;
+      siteName?: string;
+      resolveRedirect?: boolean; };
+    if (!isValidUrl(url)) {
+      return reply.code(400).send({
+        message: "url must be a valid http(s) URL",
+      }) as unknown as ScanResult;
+    }
+
+    // Serve a recent identical scan from the short-TTL cache so re-scans / duplicate adds are instant.
+    const cacheKey = scanCacheKey(url, siteNameHint, resolveRedirect);
+    const cached = getCachedScan(cacheKey);
+    if (cached) return cached;
+
+    // The client gates redirect resolution on its redirect-ignore list, mirroring the old flow.
+    const redirect = resolveRedirect
+      ? await resolveRedirectResult(url)
+      : {
+        finalUrl: url,
+        redirected: false,
+      };
+    const finalUrl = redirect.finalUrl;
+
+    const [websiteRaw, duplicate, metadata] = await Promise.all([
+      lookupWebsiteByUrl(finalUrl),
+      checkBookmarkUrlDuplicate(finalUrl),
+      isYouTubeVideoUrl(finalUrl)
+        ? buildYouTubeMetadataResult(finalUrl, req.log)
+        : buildGenericMetadataResult(finalUrl, siteNameHint),
+    ]);
+
+    const website = toWebsiteLookup(websiteRaw);
+    const result: ScanResult = {
+      finalUrl,
+      redirected: redirect.redirected,
+      ...(redirect.resolveError !== undefined && {
+        resolveError: redirect.resolveError,
+      }),
+      website,
+      duplicate,
+      title: metadata.title,
+      description: metadata.description,
+      isYouTube: metadata.isYouTube,
+      channel: metadata.channel,
+      durationSeconds: metadata.durationSeconds,
+      datePosted: metadata.datePosted,
+      thumbnailUrl: metadata.thumbnailUrl,
+      authorNames: metadata.authorNames,
+      // An instant icon for display via the DuckDuckGo icon service (no scrape, no object storage).
+      faviconUrl: website.domain ? duckDuckGoIconUrl(website.domain) : null,
+      ...(metadata.diagnostics !== undefined && {
+        diagnostics: metadata.diagnostics,
+      }),
+    };
+    setCachedScan(cacheKey, result);
+    return result;
   });
 }

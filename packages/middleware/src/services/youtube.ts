@@ -184,6 +184,62 @@ async function fetchWatchPageMeta(videoId: string): Promise<WatchPageMeta> {
   };
 }
 
+/** Whether the YouTube Data API v3 is configured (Tier 2 — `YOUTUBE_API_KEY` is set). */
+export function youtubeApiEnabled(): boolean {
+  return Boolean(process.env.YOUTUBE_API_KEY);
+}
+
+/**
+ * Fetch duration / publish date / description from the YouTube Data API v3 (when `YOUTUBE_API_KEY`
+ * is set) instead of scraping the watch page. Returns `null` on any failure so the caller falls back
+ * to the scrape. The API is stable where `ytInitialPlayerResponse` scraping is brittle.
+ */
+async function fetchVideoViaApi(videoId: string): Promise<WatchPageMeta | null> {
+  const key = process.env.YOUTUBE_API_KEY;
+  if (!key) return null;
+  const endpoint
+    = "https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails"
+      + `&id=${encodeURIComponent(videoId)}&key=${encodeURIComponent(key)}`;
+  try {
+    const res = await fetch(endpoint, {
+      method: "GET",
+      signal: AbortSignal.timeout(OEMBED_TIMEOUT_MS),
+      headers: {
+        Accept: "application/json",
+      },
+    });
+    if (!res.ok) return null;
+    const json = (await res.json()) as {
+      items?: { snippet?: { publishedAt?: unknown;
+        description?: unknown; };
+      contentDetails?: { duration?: unknown }; }[];
+    };
+    const item = json.items?.[0];
+    if (!item) return null;
+    const durationRaw = item.contentDetails?.duration;
+    const dateRaw = item.snippet?.publishedAt;
+    const descRaw = item.snippet?.description;
+    return {
+      durationSeconds: typeof durationRaw === "string" ? parseIsoDuration(durationRaw) : null,
+      datePosted: typeof dateRaw === "string" ? normalizeDate(dateRaw) : null,
+      description: typeof descRaw === "string" ? descRaw.trim() || null : null,
+      warnings: [],
+    };
+  }
+  catch {
+    return null;
+  }
+}
+
+/** Resolve watch-page metadata: prefer the Data API when configured, else scrape the watch page. */
+async function resolveWatchMeta(videoId: string): Promise<WatchPageMeta> {
+  if (youtubeApiEnabled()) {
+    const api = await fetchVideoViaApi(videoId);
+    if (api) return api;
+  }
+  return fetchWatchPageMeta(videoId);
+}
+
 /** Decode common HTML entities in a string. */
 function decodeEntities(text: string): string {
   return text
@@ -206,7 +262,7 @@ export async function fetchYouTubeMetadata(url: string): Promise<YouTubeMetadata
 
   const [oembed, watchPage] = await Promise.all([
     fetchOEmbed(url),
-    fetchWatchPageMeta(video.videoId),
+    resolveWatchMeta(video.videoId),
   ]);
 
   const warnings = [...watchPage.warnings];
