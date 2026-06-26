@@ -42,8 +42,8 @@ interface CategoryCustomFieldsProps {
    * fields show a "save first" hint instead.
    */
   bookmark?: Bookmark | null;
-  /** `default` shows properties flagged to appear in the main form; `advanced` shows the rest. */
-  placement: "default" | "advanced";
+  /** `default` shows properties flagged to appear in the main form; `advanced` shows the rest; `details` shows properties with `showInDetails`. */
+  placement: "default" | "advanced" | "details";
   /**
    * Field arrangement. `grid` (default) packs fields into a compact 2-column grid for the
    * Add Bookmark create drawer; `stack` lays them out one-per-row with roomy spacing for the
@@ -98,6 +98,7 @@ export function CategoryCustomFields({
     if (property.hiddenFromForm) return false;
     // Slugs the form fills server-side (e.g. Runtime) are hidden but still persisted.
     if (hiddenSlugs?.includes(property.slug)) return false;
+    if (placement === "details") return property.showInDetails;
     return placement === "default" ? property.showInForm : !property.showInForm;
   });
   if (categoryProps.length === 0) return null;
