@@ -15,16 +15,39 @@ export function hasBookmarkPropertyRows(
 ): boolean {
   const byId = new Map(properties.map(property => [property.id, property]));
   // numberValues holds both formatted numbers and rating scales; either produces a visible row.
-  const hasNumberOrRating = bookmark.numberValues.some(entry => byId.has(entry.propertyId));
+  const hasNumberOrRating = bookmark.numberValues.some((entry) => {
+    const property = byId.get(entry.propertyId);
+    return property ? property.showInDetails : false;
+  });
   const hasBoolean = bookmark.booleanValues.some((entry) => {
     const property = byId.get(entry.propertyId);
-    if (!property) return false;
+    if (!property || !property.showInDetails) return false;
     return entry.value || resolveBooleanDisplay(defaultZones, property.id).showIfFalse;
   });
-  const hasDateTime = bookmark.dateTimeValues.some(entry => byId.has(entry.propertyId));
+  const hasDateTime = bookmark.dateTimeValues.some((entry) => {
+    const property = byId.get(entry.propertyId);
+    return property ? property.showInDetails : false;
+  });
   const hasFile = bookmark.fileValues.some((entry) => {
     const property = byId.get(entry.propertyId);
     return property ? property.showInDetails : false;
   });
-  return hasNumberOrRating || hasBoolean || hasDateTime || hasFile;
+  const hasChoices = bookmark.choicesValues.some((entry) => {
+    const property = byId.get(entry.propertyId);
+    return property && property.showInDetails && entry.values.length > 0;
+  });
+  const hasProgress = bookmark.progressValues.some((entry) => {
+    const property = byId.get(entry.propertyId);
+    return property ? property.showInDetails : false;
+  });
+  const hasSections = bookmark.sectionsValues.some((entry) => {
+    const property = byId.get(entry.propertyId);
+    return property ? property.showInDetails : false;
+  });
+  const hasText = bookmark.textValues.some((entry) => {
+    const property = byId.get(entry.propertyId);
+    return property ? property.showInDetails : false;
+  });
+  return hasNumberOrRating || hasBoolean || hasDateTime || hasFile
+    || hasChoices || hasProgress || hasSections || hasText;
 }

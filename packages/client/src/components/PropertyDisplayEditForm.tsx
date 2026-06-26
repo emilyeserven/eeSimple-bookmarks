@@ -13,6 +13,7 @@ const LABELS: Partial<Record<keyof UpdateCustomPropertyInput, string>> = {
   hiddenFromForm: "Main bookmark form",
   showInForm: "Show outside Advanced area",
   showInListings: "Bookmark listings",
+  showInDetails: "Details page",
   editableOnCard: "Card editing",
   enabledInInbox: "Inbox pre-fill",
 };
@@ -20,7 +21,7 @@ const LABELS: Partial<Record<keyof UpdateCustomPropertyInput, string>> = {
 /** The display form values that auto-save, mapped to their `UpdateCustomPropertyInput` payload key. */
 type DisplayWatched = Pick<
   ReturnType<typeof valuesFromProperty>,
-  "propertyGroupId" | "inForm" | "showOutsideAdvanced" | "showInListings" | "editableOnCard" | "enabledInInbox"
+  "propertyGroupId" | "inForm" | "showOutsideAdvanced" | "showInListings" | "showInDetails" | "editableOnCard" | "enabledInInbox"
 >;
 
 /**
@@ -44,6 +45,7 @@ function DisplayAutoSaver({
     save("hiddenFromForm", !values.inForm);
     save("showInForm", values.showOutsideAdvanced);
     save("showInListings", values.showInListings);
+    save("showInDetails", values.showInDetails);
     save("editableOnCard", values.editableOnCard);
     save("enabledInInbox", values.enabledInInbox);
     // The per-field no-op guard means only the changed key actually persists.
@@ -75,6 +77,7 @@ export function PropertyDisplayEditForm({
       hiddenFromForm: property.hiddenFromForm,
       showInForm: property.showInForm,
       showInListings: property.showInListings,
+      showInDetails: property.showInDetails,
       editableOnCard: property.editableOnCard,
       enabledInInbox: property.enabledInInbox,
     },
@@ -109,6 +112,7 @@ export function PropertyDisplayEditForm({
           inForm: state.values.inForm,
           showOutsideAdvanced: state.values.showOutsideAdvanced,
           showInListings: state.values.showInListings,
+          showInDetails: state.values.showInDetails,
           editableOnCard: state.values.editableOnCard,
           enabledInInbox: state.values.enabledInInbox,
         })}

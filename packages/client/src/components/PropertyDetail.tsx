@@ -314,6 +314,9 @@ export function PropertyDisplayFields({
       <DetailField label="Listings">
         {property.showInListings ? "Shown on bookmark cards" : "Hidden from bookmark cards"}
       </DetailField>
+      <DetailField label="Details page">
+        {property.showInDetails ? "Shown on bookmark details page" : "Hidden from bookmark details page"}
+      </DetailField>
       {property.type === "calculate"
         ? null
         : (

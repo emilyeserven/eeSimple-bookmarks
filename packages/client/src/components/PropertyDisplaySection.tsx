@@ -104,6 +104,18 @@ export function PropertyDisplaySection({
                 </div>
               )}
             </form.AppField>
+            <form.AppField name="showInDetails">
+              {field => (
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id={`${idPrefix}-show-in-details`}
+                    checked={field.state.value}
+                    onCheckedChange={checked => field.handleChange(checked === true)}
+                  />
+                  <Label htmlFor={`${idPrefix}-show-in-details`}>Bookmark details page</Label>
+                </div>
+              )}
+            </form.AppField>
           </div>
         </div>
         <form.Subscribe selector={state => state.values.type}>
