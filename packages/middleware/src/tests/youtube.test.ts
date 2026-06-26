@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { test } from "node:test";
+import { afterEach, test } from "node:test";
 import { channelUrlFromKey } from "@eesimple/types";
 import { fetchYouTubeMetadata, parseIsoDuration, parseYouTubeVideo } from "@/services/youtube";
 import { channelKeyFromUrl } from "@/services/youtubeChannels";
@@ -155,6 +155,56 @@ test("fetchYouTubeMetadata warns when the watch page omits duration and date", a
   }
   finally {
     restore();
+  }
+});
+
+afterEach(() => {
+  delete process.env.YOUTUBE_API_KEY;
+});
+
+test("fetchYouTubeMetadata uses the Data API for duration/date when YOUTUBE_API_KEY is set", async () => {
+  process.env.YOUTUBE_API_KEY = "test-key";
+  const originalFetch = global.fetch;
+  const originalWarn = console.warn;
+  console.warn = () => undefined;
+  // The watch page would say 272s; the Data API says 600s — the API must win when keyed.
+  global.fetch = (async (input: string | URL | Request) => {
+    const url = typeof input === "string" ? input : input.toString();
+    if (url.includes("/youtube/v3/videos")) {
+      return new Response(JSON.stringify({
+        items: [{
+          snippet: {
+            publishedAt: "2023-01-02T00:00:00Z",
+            description: "From the Data API.",
+          },
+          contentDetails: {
+            duration: "PT10M",
+          },
+        }],
+      }), {
+        headers: {
+          "content-type": "application/json",
+        },
+      });
+    }
+    return url.includes("/oembed")
+      ? new Response(OEMBED_OK, {
+        headers: {
+          "content-type": "application/json",
+        },
+      })
+      : new Response("<html><head></head><body>\"lengthSeconds\":\"272\"</body></html>");
+  }) as typeof global.fetch;
+  try {
+    const meta = await fetchYouTubeMetadata(VIDEO_URL);
+    assert.ok(meta);
+    assert.equal(meta.durationSeconds, 600);
+    assert.equal(meta.datePosted, "2023-01-02");
+    assert.equal(meta.description, "From the Data API.");
+  }
+  finally {
+    global.fetch = originalFetch;
+    console.warn = originalWarn;
   }
 });
 

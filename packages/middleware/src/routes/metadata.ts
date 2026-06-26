@@ -10,6 +10,7 @@ import {
   fetchHeadHtml,
   fetchPageTitle,
 } from "@/services/metadata";
+import { fetchHostedMetadata, hostedMetadataEnabled } from "@/services/hostedMetadata";
 import { fetchIsbnMetadata } from "@/services/isbn";
 import { fetchOEmbedForUrl } from "@/services/oembed";
 import { unwrapRedirect } from "@/services/redirectUnwrap";
@@ -163,6 +164,22 @@ async function buildGenericMetadataResult(
     datePosted = oembed.datePosted;
     if ((!authorNames || authorNames.length === 0) && oembed.authorName) {
       authorNames = [oembed.authorName];
+    }
+  }
+
+  // Optional hosted provider (Tier 2, default off): handles JS-rendered / bot-protected pages the
+  // direct scrape can't. When configured, its values win (it's the most capable source); when not,
+  // this is a no-op and behavior is identical to the direct scrape above.
+  if (hostedMetadataEnabled()) {
+    const hosted = await fetchHostedMetadata(url);
+    if (hosted) {
+      title = hosted.title ?? title;
+      description = hosted.description ?? description;
+      thumbnailUrl = hosted.imageUrl ?? thumbnailUrl;
+      datePosted = hosted.datePosted ?? datePosted;
+      if ((!authorNames || authorNames.length === 0) && hosted.authorName) {
+        authorNames = [hosted.authorName];
+      }
     }
   }
 
