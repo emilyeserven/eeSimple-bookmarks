@@ -27,7 +27,7 @@ matches the entity's role:
 The condition tree is shared by autofill rules **and** the Homepage filter (same `ConditionsField` +
 `evaluateConditions`), so a new condition leaf appears in both surfaces automatically.
 
-This skill focuses on the autofill/condition plumbing. For the surrounding vertical-tab layout
+This skill focuses on the autofill/condition plumbing. For the surrounding tabbed layout
 (`_view` / `edit` route shells, nav arrays, tab wrappers) see the **`tabbed-pages`** skill, §6.
 
 ## A. Action-based scoping (rule sets the entity)
