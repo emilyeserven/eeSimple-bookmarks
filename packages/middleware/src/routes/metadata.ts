@@ -3,6 +3,7 @@ import type { FetchIsbnMetadataResult, FetchMetadataResult, ResolveUrlResult, Sc
 import { checkBookmarkUrlDuplicate } from "@/services/bookmarks";
 import {
   checkUrl,
+  duckDuckGoIconUrl,
   extractAuthorNames,
   extractDescription,
   extractTitle,
@@ -449,13 +450,14 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
         : buildGenericMetadataResult(finalUrl, siteNameHint),
     ]);
 
+    const website = toWebsiteLookup(websiteRaw);
     const result: ScanResult = {
       finalUrl,
       redirected: redirect.redirected,
       ...(redirect.resolveError !== undefined && {
         resolveError: redirect.resolveError,
       }),
-      website: toWebsiteLookup(websiteRaw),
+      website,
       duplicate,
       title: metadata.title,
       description: metadata.description,
@@ -465,8 +467,8 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
       datePosted: metadata.datePosted,
       thumbnailUrl: metadata.thumbnailUrl,
       authorNames: metadata.authorNames,
-      // Filled in Phase 6 (favicon CDN fallback); null until then.
-      faviconUrl: null,
+      // An instant icon for display via the DuckDuckGo icon service (no scrape, no object storage).
+      faviconUrl: website.domain ? duckDuckGoIconUrl(website.domain) : null,
       ...(metadata.diagnostics !== undefined && {
         diagnostics: metadata.diagnostics,
       }),
