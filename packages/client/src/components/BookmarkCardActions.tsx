@@ -1,11 +1,14 @@
-import type { Bookmark, BookmarkTag, CustomProperty } from "@eesimple/types";
+import type { Bookmark, BookmarkTag, ChoicesDisplayType, CustomProperty } from "@eesimple/types";
 
 import { ExternalLink, MoreVertical } from "lucide-react";
 
 import { BookmarkCardMenu } from "./BookmarkCardMenu";
+import { useUpdateCustomProperty } from "../hooks/useCustomProperties";
 
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { describeError } from "@/lib/apiError";
+import { notifyFieldSaveError, notifyFieldSaved } from "@/lib/autoSave";
 
 /** No-op fallback for the optional "More" menu handlers when a surface doesn't wire them. */
 const noop = (): void => undefined;
@@ -52,6 +55,23 @@ export function BookmarkMoreMenu({
   bookmark, editableProperties = [], editableTags = [], autoImagePending = false, onAutoImage,
   onSaveNumber, onSaveBoolean, onSaveDateTime, onSaveChoices, onSaveTags, onDelete,
 }: BookmarkMoreMenuProps) {
+  const updateProperty = useUpdateCustomProperty();
+
+  function handleChangeChoicesDisplay(propertyId: string, display: ChoicesDisplayType) {
+    updateProperty.mutate(
+      {
+        id: propertyId,
+        input: {
+          choicesDisplay: display,
+        },
+      },
+      {
+        onSuccess: () => notifyFieldSaved("Display"),
+        onError: error => notifyFieldSaveError("Display", describeError(error)),
+      },
+    );
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -75,6 +95,7 @@ export function BookmarkMoreMenu({
         onSaveDateTime={onSaveDateTime ?? noop}
         onSaveChoices={onSaveChoices ?? noop}
         onSaveTags={onSaveTags ?? noop}
+        onChangeChoicesDisplay={handleChangeChoicesDisplay}
         onDelete={onDelete}
       />
     </DropdownMenu>

@@ -693,14 +693,25 @@ const migrations: RuntimeMigration[] = [
     // `bookmarks.newsletter_context` is removed: the newsletter passage is now written into
     // `description` on inbox approval instead of being stored as a separate field. Preserve data for
     // existing rows: copy `newsletter_context` → `description` where description is still NULL, then
-    // drop the now-redundant column. Both executes are single statements and idempotently guarded
-    // (the second is a no-op once the column no longer exists).
+    // drop the now-redundant column. Both executes are single statements and idempotently guarded so
+    // re-running on every boot is a no-op once the column is gone: the copy is wrapped in a
+    // column-exists check (a bare `UPDATE … SET description = newsletter_context` would raise 42703
+    // "column does not exist" on the second boot / on a fresh DB where push never created it, since
+    // migrate runs before push), and the DROP uses IF EXISTS.
     name: "migrate bookmarks.newsletter_context into description, then drop column",
     run: async (db) => {
       await db.execute(sql`
-        UPDATE "bookmarks"
-        SET "description" = "newsletter_context"
-        WHERE "newsletter_context" IS NOT NULL AND "description" IS NULL
+        DO $$
+        BEGIN
+          IF EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_name = 'bookmarks' AND column_name = 'newsletter_context'
+          ) THEN
+            UPDATE "bookmarks"
+            SET "description" = "newsletter_context"
+            WHERE "newsletter_context" IS NOT NULL AND "description" IS NULL;
+          END IF;
+        END $$;
       `);
       await db.execute(sql`
         ALTER TABLE IF EXISTS "bookmarks" DROP COLUMN IF EXISTS "newsletter_context"
