@@ -15,7 +15,6 @@ import { Badge } from "@/components/ui/badge";
 
 export type BookmarkDetailSectionId
   = | "general"
-    | "tags"
     | "relationships"
     | "hierarchy"
     | "properties"
@@ -59,19 +58,40 @@ function generalSection(bookmark: Bookmark, category: Category | undefined): Boo
               : null}
           </DetailField>
 
-          {bookmark.newsletterContext
-            ? (
-              <DetailField label="Newsletter Context">
-                <p className="text-sm whitespace-pre-wrap text-muted-foreground">{bookmark.newsletterContext}</p>
-              </DetailField>
-            )
-            : null}
-
           <DetailField label="Category">
             {category
               ? <BookmarkCategoryLink category={category} />
               : null}
           </DetailField>
+
+          {bookmark.tags.length > 0
+            ? (
+              <DetailField label="Tags">
+                <ul className="flex flex-wrap gap-1">
+                  {bookmark.tags.map(tag => (
+                    <li key={tag.id}>
+                      <Link
+                        to="/tags/$tagSlug"
+                        params={{
+                          tagSlug: tag.slug,
+                        }}
+                      >
+                        <Badge
+                          variant="secondary"
+                          className="
+                            cursor-pointer
+                            hover:opacity-80
+                          "
+                        >
+                          {tag.name}
+                        </Badge>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </DetailField>
+            )
+            : null}
 
           <DetailField label="Website">
             {bookmark.website
@@ -144,40 +164,6 @@ function generalSection(bookmark: Bookmark, category: Category | undefined): Boo
             )
             : null}
         </dl>
-      </LabeledSection>
-    ),
-  };
-}
-
-function tagsSection(bookmark: Bookmark): BookmarkDetailSection | null {
-  if (bookmark.tags.length === 0) return null;
-  return {
-    id: "tags",
-    label: "Tags",
-    content: (
-      <LabeledSection title="Tags">
-        <ul className="flex flex-wrap gap-1">
-          {bookmark.tags.map(tag => (
-            <li key={tag.id}>
-              <Link
-                to="/tags/$tagSlug"
-                params={{
-                  tagSlug: tag.slug,
-                }}
-              >
-                <Badge
-                  variant="secondary"
-                  className="
-                    cursor-pointer
-                    hover:opacity-80
-                  "
-                >
-                  {tag.name}
-                </Badge>
-              </Link>
-            </li>
-          ))}
-        </ul>
       </LabeledSection>
     ),
   };
@@ -326,7 +312,6 @@ export function buildBookmarkDetailSections(args: BuildArgs): BookmarkDetailSect
   const category = args.categories.find(item => item.id === args.bookmark.categoryId);
   return [
     generalSection(args.bookmark, category),
-    tagsSection(args.bookmark),
     relationshipsSection(args.bookmark),
     hierarchySection(args.flatHierarchy),
     propertiesSection(args),

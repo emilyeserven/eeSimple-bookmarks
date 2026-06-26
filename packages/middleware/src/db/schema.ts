@@ -11,9 +11,6 @@ export const bookmarks = pgTable("bookmarks", {
   originalUrl: text("original_url"),
   title: text("title").notNull(),
   description: text("description"),
-  // The newsletter passage (surrounding paragraph + nearest heading) this bookmark was sorted from,
-  // captured at newsletter import. Nullable → push-safe additive; NULL for non-newsletter bookmarks.
-  newsletterContext: text("newsletter_context"),
   // Owning category. Nullable at the DB level so `drizzle-kit push` applies cleanly to
   // existing rows; the service layer resolves NULL to the built-in "Default" category.
   categoryId: uuid("category_id").references((): AnyPgColumn => categories.id, {

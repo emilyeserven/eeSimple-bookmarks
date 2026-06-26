@@ -403,7 +403,6 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
         originalUrl: input.originalUrl ?? null,
         title: input.title,
         description: input.description ?? null,
-        newsletterContext: input.newsletterContext ?? null,
         categoryId,
         websiteId,
         mediaTypeId,

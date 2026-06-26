@@ -106,7 +106,6 @@ function toBookmark(row: BookmarkRow, extras: BookmarkExtras, defaultCategoryId:
     originalUrl: row.originalUrl,
     title: row.title,
     description: row.description,
-    newsletterContext: row.newsletterContext,
     categoryId: row.categoryId ?? defaultCategoryId,
     website: extras.website,
     mediaType: extras.mediaType,
