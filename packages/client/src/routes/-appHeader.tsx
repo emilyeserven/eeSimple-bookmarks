@@ -29,6 +29,7 @@ const LABEL_OVERRIDES: Record<string, string> = {
   "youtube-channels": "YouTube Channels",
   "autofill": "Autofill Rules",
   "import-rules": "Import Rules",
+  "ai-summarization": "AI Summarization",
 };
 
 /** Title-case a slug segment: `shortened-links` → `Shortened Links`. */

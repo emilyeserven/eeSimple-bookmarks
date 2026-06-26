@@ -1,3 +1,4 @@
+import { AiSummarizationPanel } from "./AiSummarizationPanel";
 import { getContentType } from "./contentTypes";
 import { FiltersPanel } from "./FiltersPanel";
 import { NotificationsPanel } from "./NotificationsPanel";
@@ -23,6 +24,8 @@ export function PanelContent() {
   if (dCT === "notifications") return <NotificationsPanel />;
   // Filters renders the listing page's filter sidebar inline; no registry entry.
   if (dCT === "filters") return <FiltersPanel />;
+  // AI Summarization is a single-page action tool; no list or item detail.
+  if (dCT === "ai-summarization") return <AiSummarizationPanel />;
   if (!dCId) {
     return (
       <PanelList

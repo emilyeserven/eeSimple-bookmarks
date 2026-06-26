@@ -144,6 +144,10 @@ const SIDEBAR_GROUPS = [
     key: "management",
     label: "Management",
   },
+  {
+    key: "action",
+    label: "Action",
+  },
 ] as const;
 
 const DISPLAY_DEFAULTS: DisplayPreferenceSettings = {
