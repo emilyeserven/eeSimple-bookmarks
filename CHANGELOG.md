@@ -4,6 +4,42 @@ All notable changes to this project are documented in this file. Versioning and 
 managed automatically by [release-please](https://github.com/googleapis/release-please) from
 [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [0.1.6](https://github.com/emilyeserven/eeSimple-bookmarks/compare/v0.1.5...v0.1.6) (2026-06-26)
+
+
+### Features
+
+* add category popover to tag tree list items ([#565](https://github.com/emilyeserven/eeSimple-bookmarks/issues/565)) ([91cd5d2](https://github.com/emilyeserven/eeSimple-bookmarks/commit/91cd5d218b57e89abf1c51c45bf35c0c1f70faea))
+* add customizable icons for property types ([#587](https://github.com/emilyeserven/eeSimple-bookmarks/issues/587)) ([0bb7121](https://github.com/emilyeserven/eeSimple-bookmarks/commit/0bb71214c31f03eefbf3c15063ab24bf1338881d))
+* add drag-to-reorder for choice items and display type selector ([#569](https://github.com/emilyeserven/eeSimple-bookmarks/issues/569)) ([b7f5ba5](https://github.com/emilyeserven/eeSimple-bookmarks/commit/b7f5ba5e040efd2bf6fd144f1127c632ae07b348))
+* add editable tags quick-toggle on bookmark cards ([#563](https://github.com/emilyeserven/eeSimple-bookmarks/issues/563)) ([1c3cbc0](https://github.com/emilyeserven/eeSimple-bookmarks/commit/1c3cbc0019b44c03781c98d585cd92d2dc14acd9))
+* add horizontal tab layout for settings ([#570](https://github.com/emilyeserven/eeSimple-bookmarks/issues/570)) ([f9c5e06](https://github.com/emilyeserven/eeSimple-bookmarks/commit/f9c5e061ff5f15cc7775162bd3f6f76fb678fd63))
+* add PWA share target for Android share menu ([#548](https://github.com/emilyeserven/eeSimple-bookmarks/issues/548)) ([d423859](https://github.com/emilyeserven/eeSimple-bookmarks/commit/d423859c40022296f4c2b7fdd22cd4f2c4f3eebb))
+* add PWA update controls to Advanced Settings ([#556](https://github.com/emilyeserven/eeSimple-bookmarks/issues/556)) ([8625e7e](https://github.com/emilyeserven/eeSimple-bookmarks/commit/8625e7e47aaf6e0930cef8f598399977413e2556))
+* add search functionality to panel type tiles ([#586](https://github.com/emilyeserven/eeSimple-bookmarks/issues/586)) ([ed1189c](https://github.com/emilyeserven/eeSimple-bookmarks/commit/ed1189c17e85bdb28f60f2fec05ef2a140a1f818))
+* add showInDetails property display option ([#566](https://github.com/emilyeserven/eeSimple-bookmarks/issues/566)) ([1178366](https://github.com/emilyeserven/eeSimple-bookmarks/commit/1178366268b2bff61269e07bac6d2b7bcc52bc76))
+* auto-apply tags matching the bookmark title ([#577](https://github.com/emilyeserven/eeSimple-bookmarks/issues/577)) ([e4a672b](https://github.com/emilyeserven/eeSimple-bookmarks/commit/e4a672b2f03803fe54a94ac5e032831e51f6332a))
+* convert category page to bookmark search view ([#580](https://github.com/emilyeserven/eeSimple-bookmarks/issues/580)) ([75cb531](https://github.com/emilyeserven/eeSimple-bookmarks/commit/75cb531fd5be8ec94b37ded4876802b153f3c917))
+* let saved filters be marked viewable online as PWA sidebar shortcuts ([#557](https://github.com/emilyeserven/eeSimple-bookmarks/issues/557)) ([4d65383](https://github.com/emilyeserven/eeSimple-bookmarks/commit/4d653836db379dc10cf7f422bc436418ee8f5086))
+* move AI Summarization from settings to top-level action route ([#581](https://github.com/emilyeserven/eeSimple-bookmarks/issues/581)) ([cebc278](https://github.com/emilyeserven/eeSimple-bookmarks/commit/cebc2780a792ea7b79fa84c5f1883a3cd836c431))
+* move bulk-select toggle to header for all listings ([#588](https://github.com/emilyeserven/eeSimple-bookmarks/issues/588)) ([11b5913](https://github.com/emilyeserven/eeSimple-bookmarks/commit/11b59132da215d1c776e77e7543774cabe671681))
+* promote saved filters to full slug-routed entity ([#584](https://github.com/emilyeserven/eeSimple-bookmarks/issues/584)) ([6f93ac6](https://github.com/emilyeserven/eeSimple-bookmarks/commit/6f93ac6d3888401920369f6dc77dbdd52db19a70))
+* redesign extension popup to add bookmarks inline instead of opening quick-add ([#560](https://github.com/emilyeserven/eeSimple-bookmarks/issues/560)) ([cf2c8d2](https://github.com/emilyeserven/eeSimple-bookmarks/commit/cf2c8d2baeb666c3da2c12ef144ef608421d6200))
+* wire bulk select and delete into the publishers listing ([#545](https://github.com/emilyeserven/eeSimple-bookmarks/issues/545)) ([0e27ec4](https://github.com/emilyeserven/eeSimple-bookmarks/commit/0e27ec415bc68ef63e18e909951c07c257780bd1))
+
+
+### Bug Fixes
+
+* add min-w-0 to SidebarInset to prevent flex overflow ([#575](https://github.com/emilyeserven/eeSimple-bookmarks/issues/575)) ([37a4092](https://github.com/emilyeserven/eeSimple-bookmarks/commit/37a40921b6948bad4d3e9b8dbe8d89a7ee9bd883))
+* brighten dark-mode cyan link color for readability ([#574](https://github.com/emilyeserven/eeSimple-bookmarks/issues/574)) ([a81d622](https://github.com/emilyeserven/eeSimple-bookmarks/commit/a81d6229c9f85cdec0d08754b6d13e8e64b52278))
+* cap settings tabs layout width to its pre-sidebar size ([#572](https://github.com/emilyeserven/eeSimple-bookmarks/issues/572)) ([88fae72](https://github.com/emilyeserven/eeSimple-bookmarks/commit/88fae728fe8a6acc9bf524a24d4b37398da81617))
+* exclude VitePWA from Storybook build to unblock Coolify deploy ([#551](https://github.com/emilyeserven/eeSimple-bookmarks/issues/551)) ([3c375b2](https://github.com/emilyeserven/eeSimple-bookmarks/commit/3c375b2e4a59b875c6d0960429f396f60193a31b))
+* guard newsletter_context migration with column-exists check ([#571](https://github.com/emilyeserven/eeSimple-bookmarks/issues/571)) ([7bc46eb](https://github.com/emilyeserven/eeSimple-bookmarks/commit/7bc46eb268a2ca52800f14bd5ca6fdc86b04c7c9))
+* handle empty string in parent tag ComboboxField ([#562](https://github.com/emilyeserven/eeSimple-bookmarks/issues/562)) ([292fdcd](https://github.com/emilyeserven/eeSimple-bookmarks/commit/292fdcd2201422dc1491c9d38a51036f6285cb54))
+* improve bookmark filter active state detection ([#583](https://github.com/emilyeserven/eeSimple-bookmarks/issues/583)) ([df619f3](https://github.com/emilyeserven/eeSimple-bookmarks/commit/df619f3267015122bdc16eaa8051a29f541acb8b))
+* make Settings content fill the full content pane ([#576](https://github.com/emilyeserven/eeSimple-bookmarks/issues/576)) ([117940e](https://github.com/emilyeserven/eeSimple-bookmarks/commit/117940ea13d81809c90167bbe0bb82bf59eb3dd6))
+* repair build-storybook PWA regression and add 8 component stories ([#553](https://github.com/emilyeserven/eeSimple-bookmarks/issues/553)) ([6804af4](https://github.com/emilyeserven/eeSimple-bookmarks/commit/6804af4a4c760d6024bf115788ae6f9f382e7a3e))
+
 ## [0.1.5](https://github.com/emilyeserven/eeSimple-bookmarks/compare/v0.1.4...v0.1.5) (2026-06-25)
 
 
