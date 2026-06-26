@@ -38,6 +38,7 @@ export function makeCustomProperty(overrides: Partial<CustomProperty> = {}): Cus
     mediaTypeIds: [],
     allMediaTypes: false,
     editableOnCard: false,
+    editableViaCmdk: false,
     enabledInInbox: false,
     showInForm: false,
     hiddenFromForm: false,

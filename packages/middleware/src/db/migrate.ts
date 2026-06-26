@@ -730,6 +730,15 @@ const migrations: RuntimeMigration[] = [
     `),
   },
   {
+    // `custom_properties.editable_via_cmdk` opts a property into the CMD+K command palette. NOT NULL
+    // DEFAULT false on the populated table makes drizzle-kit push prompt, so pre-apply it here.
+    name: "add custom_properties.editable_via_cmdk column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "custom_properties"
+        ADD COLUMN IF NOT EXISTS "editable_via_cmdk" boolean NOT NULL DEFAULT false
+    `),
+  },
+  {
     // `saved_filters.slug` carries a UNIQUE constraint and was added to a table that may already have
     // rows. `drizzle-kit push` won't add a new column + unique constraint to a populated table without
     // an interactive truncation confirmation, so pre-apply the column and constraint here. The
