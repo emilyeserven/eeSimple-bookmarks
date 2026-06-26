@@ -1,9 +1,10 @@
-import type { AutofillRule, Bookmark, CustomProperty, ScanResult, Website } from "@eesimple/types";
+import type { AutofillRule, CustomProperty, ScanResult, Website } from "@eesimple/types";
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { BookmarkForm } from "./BookmarkForm";
+import { makeBookmark } from "../test-utils/factories";
 import { sampleProperties } from "../test-utils/story-mocks";
 
 // The form pulls data from several query hooks and the UI store; stub them so the
@@ -461,35 +462,14 @@ describe("BookmarkForm editing", () => {
   it("renders the full form immediately and updates the bookmark", async () => {
     updateMutateAsync.mockResolvedValue(undefined);
     const onDone = vi.fn();
-    const bookmark: Bookmark = {
+    const bookmark = makeBookmark({
       id: "11111111-1111-1111-1111-111111111111",
       url: "https://github.com",
-      originalUrl: null,
       title: "GitHub",
       description: "Code host",
-      image: null,
-      imageAutoGrabError: null,
       categoryId: "22222222-2222-2222-2222-222222222222",
-      website: null,
-      mediaType: null,
-      youtubeChannel: null,
-      newsletter: null,
-      import: null,
-      tags: [],
-      numberValues: [],
-      booleanValues: [],
-      dateTimeValues: [],
-      fileValues: [],
-      choicesValues: [],
-      progressValues: [],
-      sectionsValues: [],
-      textValues: [],
-      authors: [],
-      relationships: [],
-      publisher: null,
-      priority: 0,
       createdAt: "2026-06-01T00:00:00.000Z",
-    };
+    });
 
     render(
       <BookmarkForm
@@ -528,35 +508,13 @@ describe("BookmarkForm editing", () => {
     updateMutateAsync.mockResolvedValue(undefined);
     websitesData = [youtubeWebsite()];
     autoFetchTitle = false;
-    const bookmark: Bookmark = {
+    const bookmark = makeBookmark({
       id: "11111111-1111-1111-1111-111111111111",
       url: "https://www.youtube.com/watch?v=old",
-      originalUrl: null,
       title: "A video",
-      description: null,
-      image: null,
-      imageAutoGrabError: null,
       categoryId: "22222222-2222-2222-2222-222222222222",
-      website: null,
-      mediaType: null,
-      youtubeChannel: null,
-      newsletter: null,
-      import: null,
-      tags: [],
-      numberValues: [],
-      booleanValues: [],
-      dateTimeValues: [],
-      fileValues: [],
-      choicesValues: [],
-      progressValues: [],
-      sectionsValues: [],
-      textValues: [],
-      authors: [],
-      relationships: [],
-      publisher: null,
-      priority: 0,
       createdAt: "2026-06-01T00:00:00.000Z",
-    };
+    });
 
     render(<BookmarkForm bookmark={bookmark} />);
 
@@ -665,38 +623,16 @@ describe("BookmarkForm property prefill", () => {
 
   it("seeds a property input from the bookmark's stored value when editing", () => {
     customPropertiesData = [ratingProperty("cat-edit")];
-    const bookmark: Bookmark = {
+    const bookmark = makeBookmark({
       id: "11111111-1111-1111-1111-111111111111",
       url: "https://example.com",
-      originalUrl: null,
-      title: "Example",
-      description: null,
-      image: null,
-      imageAutoGrabError: null,
       categoryId: "cat-edit",
-      website: null,
-      mediaType: null,
-      youtubeChannel: null,
-      newsletter: null,
-      import: null,
-      tags: [],
       numberValues: [{
         propertyId: "prop-rating",
         value: 42,
       }],
-      booleanValues: [],
-      dateTimeValues: [],
-      fileValues: [],
-      choicesValues: [],
-      progressValues: [],
-      sectionsValues: [],
-      textValues: [],
-      authors: [],
-      relationships: [],
-      publisher: null,
-      priority: 0,
       createdAt: "2026-06-01T00:00:00.000Z",
-    };
+    });
 
     render(<BookmarkForm bookmark={bookmark} />);
 

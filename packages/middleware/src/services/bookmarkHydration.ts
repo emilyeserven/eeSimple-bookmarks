@@ -38,6 +38,7 @@ import {
   bookmarkRelationships,
   bookmarks,
   type BookmarkRow,
+  bookmarkTagBlacklist,
   bookmarkTags,
   imports,
   mediaTypes,
@@ -64,6 +65,7 @@ interface BookmarkExtras {
   publisher: BookmarkPublisher | null;
   import: BookmarkImport | null;
   tags: BookmarkTag[];
+  blacklistedTagIds: string[];
   authors: BookmarkAuthor[];
   numberValues: BookmarkNumberValue[];
   booleanValues: BookmarkBooleanValue[];
@@ -85,6 +87,7 @@ const EMPTY_EXTRAS: BookmarkExtras = {
   publisher: null,
   import: null,
   tags: [],
+  blacklistedTagIds: [],
   authors: [],
   numberValues: [],
   booleanValues: [],
@@ -114,6 +117,7 @@ function toBookmark(row: BookmarkRow, extras: BookmarkExtras, defaultCategoryId:
     publisher: extras.publisher,
     import: extras.import,
     tags: extras.tags,
+    blacklistedTagIds: extras.blacklistedTagIds,
     authors: extras.authors,
     numberValues: extras.numberValues,
     booleanValues: extras.booleanValues,
@@ -290,6 +294,27 @@ async function importsById(importIds: string[]): Promise<Map<string, BookmarkImp
     });
   }
   return byId;
+}
+
+/** Load blacklisted tag IDs for a set of bookmark ids in a single query, grouped by bookmark id. */
+async function blacklistedTagIdsByBookmarkId(bookmarkIds: string[]): Promise<Map<string, string[]>> {
+  const grouped = new Map<string, string[]>();
+  if (bookmarkIds.length === 0) return grouped;
+
+  const rows = await db
+    .select({
+      bookmarkId: bookmarkTagBlacklist.bookmarkId,
+      tagId: bookmarkTagBlacklist.tagId,
+    })
+    .from(bookmarkTagBlacklist)
+    .where(inArray(bookmarkTagBlacklist.bookmarkId, bookmarkIds));
+
+  for (const row of rows) {
+    const list = grouped.get(row.bookmarkId) ?? [];
+    list.push(row.tagId);
+    grouped.set(row.bookmarkId, list);
+  }
+  return grouped;
 }
 
 /** Load authors for a set of bookmark ids in a single query, grouped by bookmark id. */
@@ -671,8 +696,9 @@ async function relationshipsByBookmarkId(
 
 /** Hydrate all custom-property relations for a set of bookmark rows in batched queries. */
 async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, BookmarkExtras>> {
-  const [tagsMap, authorsMap, numberMap, booleanMap, dateTimeMap, choicesMap, progressMap, sectionsMap, textMap, fileMap, imageMap, relationshipsMap] = await Promise.all([
+  const [tagsMap, blacklistedMap, authorsMap, numberMap, booleanMap, dateTimeMap, choicesMap, progressMap, sectionsMap, textMap, fileMap, imageMap, relationshipsMap] = await Promise.all([
     tagsByBookmarkId(bookmarkIds),
+    blacklistedTagIdsByBookmarkId(bookmarkIds),
     authorsByBookmarkId(bookmarkIds),
     numberValuesByBookmarkId(bookmarkIds),
     booleanValuesByBookmarkId(bookmarkIds),
@@ -695,6 +721,7 @@ async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
       publisher: null,
       import: null,
       tags: tagsMap.get(id) ?? [],
+      blacklistedTagIds: blacklistedMap.get(id) ?? [],
       authors: authorsMap.get(id) ?? [],
       numberValues: numberMap.get(id) ?? [],
       booleanValues: booleanMap.get(id) ?? [],

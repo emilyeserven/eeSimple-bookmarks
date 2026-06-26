@@ -18,6 +18,7 @@ import {
   bookmarkProgressValues,
   bookmarkSectionsValues,
   bookmarkTextValues,
+  bookmarkTagBlacklist,
   bookmarkTags,
   calculatePropertyOperands,
   customProperties,
@@ -25,6 +26,21 @@ import {
 
 /** A Drizzle transaction handle, as passed to the `db.transaction` callback. */
 export type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+/** Replace the tag-blacklist rows for a bookmark (delete all, then insert the new set). */
+export async function setBookmarkTagBlacklist(
+  tx: Tx,
+  bookmarkId: string,
+  tagIds: string[],
+): Promise<void> {
+  await tx.delete(bookmarkTagBlacklist).where(eq(bookmarkTagBlacklist.bookmarkId, bookmarkId));
+  if (tagIds.length > 0) {
+    await tx.insert(bookmarkTagBlacklist).values(tagIds.map(tagId => ({
+      bookmarkId,
+      tagId,
+    })));
+  }
+}
 
 /** Insert join rows linking a bookmark to the given tag ids (no-op when empty). */
 export async function linkTags(tx: Tx, bookmarkId: string, tagIds: string[] | undefined): Promise<void> {

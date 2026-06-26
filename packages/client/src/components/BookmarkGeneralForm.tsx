@@ -72,6 +72,7 @@ export function BookmarkGeneralForm({
     addTagOpen,
     setAddTagOpen,
     saveTags,
+    saveBlacklistedTagIds,
     addAuthorOpen,
     setAddAuthorOpen,
     saveAuthors,
@@ -245,28 +246,49 @@ export function BookmarkGeneralForm({
 
       <form.Subscribe selector={state => state.values.categoryId}>
         {categoryId => (
-          <form.Field name="tagIds">
-            {field => (
-              <GatedTagPicker
-                categoryId={categoryId}
-                tree={tagTree ?? []}
-                selectedIds={field.state.value}
-                onToggle={(id) => {
-                  touchedRef.current.add("tags");
-                  const current = field.state.value;
-                  const newTagIds = current.includes(id)
-                    ? current.filter(tagId => tagId !== id)
-                    : [...current, id];
-                  field.handleChange(newTagIds);
-                  saveTags(newTagIds);
-                }}
-                createOption={{
-                  label: "Create tag",
-                  onSelect: () => setAddTagOpen(true),
-                }}
-              />
-            )}
-          </form.Field>
+          <>
+            <form.Field name="tagIds">
+              {field => (
+                <GatedTagPicker
+                  categoryId={categoryId}
+                  tree={tagTree ?? []}
+                  selectedIds={field.state.value}
+                  onToggle={(id) => {
+                    touchedRef.current.add("tags");
+                    const current = field.state.value;
+                    const newTagIds = current.includes(id)
+                      ? current.filter(tagId => tagId !== id)
+                      : [...current, id];
+                    field.handleChange(newTagIds);
+                    saveTags(newTagIds);
+                  }}
+                  createOption={{
+                    label: "Create tag",
+                    onSelect: () => setAddTagOpen(true),
+                  }}
+                />
+              )}
+            </form.Field>
+            <form.Field name="blacklistedTagIds">
+              {field => (
+                <GatedTagPicker
+                  categoryId={categoryId}
+                  tree={tagTree ?? []}
+                  selectedIds={field.state.value}
+                  onToggle={(id) => {
+                    const current = field.state.value;
+                    const next = current.includes(id)
+                      ? current.filter(tagId => tagId !== id)
+                      : [...current, id];
+                    field.handleChange(next);
+                    saveBlacklistedTagIds(next);
+                  }}
+                  label="Tag blacklist"
+                  description="Tags toggled here will never be auto-applied by autofill rules."
+                />
+              )}
+            </form.Field>
+          </>
         )}
       </form.Subscribe>
       <AddTagModal

@@ -53,6 +53,7 @@ import {
   linkTags,
   recomputeCalculatedValues,
   setBooleanValues,
+  setBookmarkTagBlacklist,
   setChoicesValues,
   setDateTimeValues,
   setNumberValues,
@@ -480,6 +481,9 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
         id: bookmarks.id,
       });
     await linkTags(tx, row.id, mergedTagIds);
+    if (input.blacklistedTagIds?.length) {
+      await setBookmarkTagBlacklist(tx, row.id, input.blacklistedTagIds);
+    }
     await linkAuthors(tx, row.id, input.authorIds);
     await setNumberValues(tx, row.id, numberValues);
     await setBooleanValues(tx, row.id, input.booleanValues);
@@ -577,6 +581,9 @@ async function applyBookmarkValueUpdates(
   if (input.tagIds !== undefined) {
     await tx.delete(bookmarkTags).where(eq(bookmarkTags.bookmarkId, id));
     await linkTags(tx, id, input.tagIds);
+  }
+  if (input.blacklistedTagIds !== undefined) {
+    await setBookmarkTagBlacklist(tx, id, input.blacklistedTagIds);
   }
   if (input.authorIds !== undefined) {
     await tx.delete(bookmarkAuthors).where(eq(bookmarkAuthors.bookmarkId, id));

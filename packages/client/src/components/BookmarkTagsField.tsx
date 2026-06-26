@@ -14,7 +14,11 @@ interface GatedTagPickerProps {
   selectedIds: string[];
   onToggle: (id: string) => void;
   createOption?: CreateOption;
-  /** Additional content rendered below the picker, inside the Tags section. */
+  /** Label for the section (defaults to "Tags"). */
+  label?: string;
+  /** Optional muted description rendered below the label. */
+  description?: string;
+  /** Additional content rendered below the picker, inside the section. */
   below?: ReactNode;
 }
 
@@ -24,7 +28,7 @@ interface GatedTagPickerProps {
  * still loading (undefined).
  */
 export function GatedTagPicker({
-  categoryId, tree, selectedIds, onToggle, createOption, below,
+  categoryId, tree, selectedIds, onToggle, createOption, label = "Tags", description, below,
 }: GatedTagPickerProps) {
   const {
     data: allowedRootIds,
@@ -39,7 +43,8 @@ export function GatedTagPicker({
 
   return (
     <div className="space-y-1">
-      <Label>Tags</Label>
+      <Label>{label}</Label>
+      {description && <p className="text-xs text-muted-foreground">{description}</p>}
       <TagPicker
         tree={gated}
         selectedIds={selectedIds}
