@@ -27,6 +27,10 @@ export function useCustomPropertyColumns(): ColumnDef<CustomProperty>[] {
           row,
         }) => (
           <div className="flex items-center gap-2 font-medium">
+            <CategoryIcon
+              name={resolvePropertyTypeIcon(row.original.type, typeIcons)}
+              className="size-4 shrink-0 text-muted-foreground"
+            />
             {row.original.name}
             {row.original.builtIn ? <Badge variant="outline">Built-in</Badge> : null}
             {!row.original.enabled ? <Badge variant="outline">Disabled</Badge> : null}
