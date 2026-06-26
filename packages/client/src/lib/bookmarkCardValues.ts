@@ -9,7 +9,7 @@ import type {
 import { CARD_BODY_ZONES, CARD_FIELD_ZONES, emptyCardFieldZones, zoneToCorner } from "@eesimple/types";
 
 import { eligibleCustomCardFields, HEADER_CARD_FIELD_KEYS, STANDARD_CARD_FIELDS } from "./bookmarkCardFieldDefs";
-import { formatBoolean, formatBooleanBadge, formatDateTime, formatNumber } from "./bookmarkFormat";
+import { formatBoolean, formatBooleanBadge, formatChoices, formatDateTime, formatNumber } from "./bookmarkFormat";
 
 /**
  * The card-body sub-zone a field lands in by default: the header fields (`title`, `externalLink`,
@@ -340,6 +340,23 @@ function dateTimeValueItem(
   };
 }
 
+/** A choices value → a formatted `badge`, or `null` when no option is selected. */
+function choicesValueItem(
+  entry: Bookmark["choicesValues"][number],
+  property: CustomProperty,
+  placement: ResolvedFieldPlacement,
+): BookmarkValueItem | null {
+  if (entry.values.length === 0) return null;
+  const value = formatChoices(entry.values, property);
+  return {
+    ...placementBase(property, placement),
+    kind: "badge",
+    label: placement.hideLabel ? value : `${property.name}: ${value}`,
+    name: property.name,
+    value,
+  };
+}
+
 /** An image/file value → a `badge`. Image values carry a serving url and show only the prop name. */
 function fileValueItem(
   entry: Bookmark["fileValues"][number],
@@ -406,6 +423,12 @@ export function buildBookmarkValueItems(
   for (const entry of bookmark.fileValues) {
     const ctx = visible(entry.propertyId);
     if (ctx) items.push(fileValueItem(entry, ctx.property, ctx.placement));
+  }
+  for (const entry of bookmark.choicesValues) {
+    const ctx = visible(entry.propertyId);
+    if (!ctx) continue;
+    const item = choicesValueItem(entry, ctx.property, ctx.placement);
+    if (item) items.push(item);
   }
 
   return items;
