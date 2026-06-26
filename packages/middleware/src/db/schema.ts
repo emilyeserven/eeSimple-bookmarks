@@ -1056,6 +1056,8 @@ export const appSettings = pgTable("app_settings", {
   autoFetchTitle: boolean("auto_fetch_title").notNull().default(true),
   // When on, the Add Bookmark Images section starts collapsed and the page image is fetched on save.
   autoFetchImage: boolean("auto_fetch_image").notNull().default(true),
+  // When on, saving a bookmark whose title contains a tag's name auto-applies that tag.
+  autoApplyTitleTags: boolean("auto_apply_title_tags").notNull().default(false),
   // Modifier held while clicking Edit to open the item in the drawer: "alt" | "ctrl" | "shift" | "meta".
   sidebarOpenModifier: text("sidebar_open_modifier").notNull().default("alt"),
   // --- Display & detail preferences (group C). ---

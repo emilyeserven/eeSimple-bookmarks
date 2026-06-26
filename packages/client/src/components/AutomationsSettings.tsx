@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 const DEFAULTS: AutomationSettings = {
   autoFetchTitle: true,
   autoFetchImage: true,
+  autoApplyTitleTags: false,
   sidebarOpenModifier: "alt",
 };
 
@@ -97,6 +98,37 @@ export function AutomationsSettings() {
               }}
             />
             <Label htmlFor="auto-fetch-image">Fetch the image when a bookmark is saved</Label>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Auto-tag from title</CardTitle>
+          <CardDescription>
+            When enabled, saving a bookmark whose title contains an existing tag’s name automatically
+            applies that tag. Matching is case-insensitive and only counts whole words, so a tag named
+            “art” won’t match “Martin”.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="auto-apply-title-tags"
+              checked={settings.autoApplyTitleTags}
+              onCheckedChange={(checked) => {
+                const enabled = checked === true;
+                save(
+                  {
+                    autoApplyTitleTags: enabled,
+                  },
+                  enabled ? "Auto-tag from title on" : "Auto-tag from title off",
+                );
+              }}
+            />
+            <Label htmlFor="auto-apply-title-tags">
+              Apply tags whose name appears in the bookmark title
+            </Label>
           </div>
         </CardContent>
       </Card>

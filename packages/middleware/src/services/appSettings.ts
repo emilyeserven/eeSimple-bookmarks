@@ -78,6 +78,7 @@ const DEFAULT_SIDEBAR_CUSTOMIZATION: SidebarCustomizationSettings = {
 const DEFAULT_AUTOMATION: AutomationSettings = {
   autoFetchTitle: true,
   autoFetchImage: true,
+  autoApplyTitleTags: false,
   sidebarOpenModifier: "alt",
 };
 
@@ -519,6 +520,7 @@ export async function getAutomationSettings(): Promise<AutomationSettings> {
     .select({
       autoFetchTitle: appSettings.autoFetchTitle,
       autoFetchImage: appSettings.autoFetchImage,
+      autoApplyTitleTags: appSettings.autoApplyTitleTags,
       sidebarOpenModifier: appSettings.sidebarOpenModifier,
     })
     .from(appSettings)
@@ -527,6 +529,7 @@ export async function getAutomationSettings(): Promise<AutomationSettings> {
   return {
     autoFetchTitle: row.autoFetchTitle,
     autoFetchImage: row.autoFetchImage,
+    autoApplyTitleTags: row.autoApplyTitleTags,
     sidebarOpenModifier: asModifier(row.sidebarOpenModifier),
   };
 }
@@ -538,6 +541,7 @@ export async function updateAutomationSettings(
   const next: AutomationSettings = {
     autoFetchTitle: input.autoFetchTitle,
     autoFetchImage: input.autoFetchImage,
+    autoApplyTitleTags: input.autoApplyTitleTags,
     sidebarOpenModifier: asModifier(input.sidebarOpenModifier),
   };
   await db

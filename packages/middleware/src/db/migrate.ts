@@ -718,6 +718,17 @@ const migrations: RuntimeMigration[] = [
       `);
     },
   },
+  {
+    // `app_settings.auto_apply_title_tags` toggles the "auto-tag from title" automation. NOT NULL
+    // DEFAULT false on the populated singleton makes drizzle-kit push prompt (the same non-TTY crash
+    // as the other NOT NULL column cases above), so pre-apply it here to keep push's diff
+    // additive-only.
+    name: "add app_settings.auto_apply_title_tags column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "app_settings"
+        ADD COLUMN IF NOT EXISTS "auto_apply_title_tags" boolean NOT NULL DEFAULT false
+    `),
+  },
 ];
 
 async function main(): Promise<void> {

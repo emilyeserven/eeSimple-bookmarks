@@ -60,8 +60,9 @@ import {
   setTextValues,
   type Tx,
 } from "@/services/bookmarkWrites";
+import { getAutomationSettings } from "@/services/appSettings";
 import { ensureDefaultCategory } from "@/services/categories";
-import { getDescendantIds } from "@/services/tags";
+import { getDescendantIds, listTagNames, matchTagIdsByTitle } from "@/services/tags";
 import { ensureWebsiteForUrl, getWebsiteByAnyDomain, normalizeDomain } from "@/services/websites";
 import { ensureYouTubeChannel } from "@/services/youtubeChannels";
 
@@ -324,6 +325,17 @@ async function resolveCreateCategoryId(
 }
 
 /** Tags: union of user-provided + website defaults + channel defaults (deduped). */
+/** Tag ids matched from the bookmark title, when the "auto-tag from title" automation is enabled. */
+async function titleMatchTagIds(title: string): Promise<string[]> {
+  if (!title.trim()) return [];
+  const {
+    autoApplyTitleTags,
+  } = await getAutomationSettings();
+  if (!autoApplyTitleTags) return [];
+  const allTags = await listTagNames();
+  return matchTagIdsByTitle(title, allTags);
+}
+
 async function mergeCreateTagIds(
   input: CreateBookmarkInput,
   channelHint: ChannelHint,
@@ -334,7 +346,8 @@ async function mergeCreateTagIds(
     const channelTagIds = await getChannelTagIds(channelHint.key);
     defaultTagIds.push(...channelTagIds);
   }
-  return [...new Set([...(input.tagIds ?? []), ...defaultTagIds])];
+  const titleTagIds = await titleMatchTagIds(input.title);
+  return [...new Set([...(input.tagIds ?? []), ...defaultTagIds, ...titleTagIds])];
 }
 
 /** Media-type precedence: user-provided > channel default > website default > "Video" (YouTube). */

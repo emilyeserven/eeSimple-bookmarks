@@ -6,6 +6,8 @@ import {
   buildTagTree,
   collectSubtreeIds,
   computeTagBookmarkCounts,
+  matchTagIdsByTitle,
+  titleMatchesTagName,
   wouldCreateCycle,
 } from "@/services/tags";
 
@@ -193,4 +195,48 @@ test("POST /api/bookmarks rejects a non-array tagIds", async () => {
   });
   assert.equal(res.statusCode, 400);
   await app.close();
+});
+
+// --- titleMatchesTagName / matchTagIdsByTitle (auto-tag-from-title automation) ---
+
+test("titleMatchesTagName matches whole words case-insensitively", () => {
+  assert.equal(titleMatchesTagName("Learning React Hooks", "react"), true);
+  assert.equal(titleMatchesTagName("REACT in depth", "React"), true);
+  assert.equal(titleMatchesTagName("A guide to react.", "react"), true);
+});
+
+test("titleMatchesTagName does not match inside a larger word", () => {
+  assert.equal(titleMatchesTagName("Martin's blog", "art"), false);
+  assert.equal(titleMatchesTagName("Reactor design", "react"), false);
+});
+
+test("titleMatchesTagName handles punctuated and multi-word tag names", () => {
+  assert.equal(titleMatchesTagName("Best sci-fi of 2026", "sci-fi"), true);
+  assert.equal(titleMatchesTagName("Notes on C++ templates", "C++"), true);
+  assert.equal(titleMatchesTagName("Machine learning basics", "machine learning"), true);
+});
+
+test("titleMatchesTagName ignores empty/whitespace tag names", () => {
+  assert.equal(titleMatchesTagName("Anything", ""), false);
+  assert.equal(titleMatchesTagName("Anything", "   "), false);
+});
+
+test("matchTagIdsByTitle returns the ids of every matching tag", () => {
+  const tagList = [
+    {
+      id: "t-react",
+      name: "react",
+    },
+    {
+      id: "t-css",
+      name: "css",
+    },
+    {
+      id: "t-art",
+      name: "art",
+    },
+  ];
+  assert.deepEqual(matchTagIdsByTitle("Styling React with CSS", tagList), ["t-react", "t-css"]);
+  assert.deepEqual(matchTagIdsByTitle("Martin's portfolio", tagList), []);
+  assert.deepEqual(matchTagIdsByTitle("", tagList), []);
 });

@@ -352,6 +352,8 @@ export type UpdateSidebarCustomizationInput = SidebarCustomizationSettings;
 export interface AutomationSettings {
   autoFetchTitle: boolean;
   autoFetchImage: boolean;
+  /** When on, saving a bookmark whose title contains a tag's name auto-applies that tag. */
+  autoApplyTitleTags: boolean;
   sidebarOpenModifier: SidebarOpenModifier;
 }
 

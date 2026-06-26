@@ -163,6 +163,7 @@ const SIDEBAR_CUSTOMIZATION_DEFAULTS: SidebarCustomizationSettings = {
 const AUTOMATION_DEFAULTS = {
   autoFetchTitle: true,
   autoFetchImage: true,
+  autoApplyTitleTags: false,
   sidebarOpenModifier: "alt" as SidebarOpenModifier,
 };
 
