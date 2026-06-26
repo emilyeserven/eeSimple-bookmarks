@@ -3,6 +3,7 @@ import type {
   UpdateAdvancedSettingsInput,
   UpdateAiSummarizationInput,
   UpdateAutomationInput,
+  UpdateConnectorsSettingsInput,
   UpdateDisplayPreferenceInput,
   UpdateHomepageContentInput,
   UpdateSidebarCustomizationInput,
@@ -14,6 +15,7 @@ import {
   getAdvancedSettings,
   getAiSummarizationSettings,
   getAutomationSettings,
+  getConnectorsSettings,
   getCustomStripParams,
   getDisplayPreferenceSettings,
   getHomepageContentSettings,
@@ -24,6 +26,7 @@ import {
   updateAdvancedSettings,
   updateAiSummarizationSettings,
   updateAutomationSettings,
+  updateConnectorsSettings,
   updateCustomStripParams,
   updateDisplayPreferenceSettings,
   updateHomepageContentSettings,
@@ -186,6 +189,31 @@ const automationBody = {
     sidebarOpenModifier: {
       type: "string",
       enum: ["alt", "ctrl", "shift", "meta"],
+    },
+  },
+} as const;
+
+const connectorsBody = {
+  type: "object",
+  required: ["hostedMetadataEndpoint", "hostedMetadataProvider", "hostedMetadataApiKey"],
+  additionalProperties: false,
+  properties: {
+    hostedMetadataEndpoint: {
+      type: "string",
+    },
+    hostedMetadataProvider: {
+      type: "string",
+    },
+    hostedMetadataApiKey: {
+      // null = leave the stored key unchanged; "" = clear; any other string = set new key.
+      oneOf: [
+        {
+          type: "null",
+        },
+        {
+          type: "string",
+        },
+      ],
     },
   },
 } as const;
@@ -435,4 +463,17 @@ export async function appSettingsRoutes(app: FastifyInstance): Promise<void> {
       },
     },
   }, async req => updateAiSummarizationSettings(req.body as UpdateAiSummarizationInput));
+
+  app.get("/api/app-settings/connectors", {
+    schema: {
+      tags: ["app-settings"],
+    },
+  }, async () => getConnectorsSettings());
+
+  app.put("/api/app-settings/connectors", {
+    schema: {
+      tags: ["app-settings"],
+      body: connectorsBody,
+    },
+  }, async req => updateConnectorsSettings(req.body as UpdateConnectorsSettingsInput));
 }

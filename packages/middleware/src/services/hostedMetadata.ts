@@ -10,17 +10,32 @@
  */
 
 import { isPublicHttpUrl } from "@/services/metadata";
+import {
+  getActiveHostedEndpoint,
+  getActiveHostedProvider,
+  getDecryptedHostedApiKey,
+} from "@/services/appSettings";
 
 const HOSTED_TIMEOUT_MS = 8000;
 
-/** Whether a hosted metadata provider is configured (its endpoint env var is set). */
+/** Whether a hosted metadata provider is configured (its endpoint env var is set). Sync, env-only. */
 export function hostedMetadataEnabled(): boolean {
   return Boolean(process.env.HOSTED_METADATA_ENDPOINT);
 }
 
-/** The configured provider name (for display on the Connectors settings page), or `null`. */
+/** The configured provider name (env-only, sync). */
 export function hostedMetadataProvider(): string | null {
   return process.env.HOSTED_METADATA_PROVIDER ?? null;
+}
+
+/** Whether a hosted metadata provider is configured — checks DB first, then env var. */
+export async function hostedMetadataEnabledAsync(): Promise<boolean> {
+  return Boolean(await getActiveHostedEndpoint());
+}
+
+/** The configured provider name — DB first, then env var. */
+export async function hostedMetadataProviderAsync(): Promise<string | null> {
+  return getActiveHostedProvider();
 }
 
 /** Normalized hosted-provider metadata. Every field is nullable — a provider may omit any of them. */
@@ -57,9 +72,9 @@ function imageUrlOf(image: unknown): string | null {
  * disabled, the request fails, or every field is empty. Never throws.
  */
 export async function fetchHostedMetadata(url: string): Promise<HostedMetadata | null> {
-  const endpoint = process.env.HOSTED_METADATA_ENDPOINT;
+  const endpoint = await getActiveHostedEndpoint();
   if (!endpoint) return null;
-  const apiKey = process.env.HOSTED_METADATA_API_KEY;
+  const apiKey = await getDecryptedHostedApiKey();
 
   const reqUrl = `${endpoint}${endpoint.includes("?") ? "&" : "?"}url=${encodeURIComponent(url)}`;
   let raw: Record<string, unknown>;

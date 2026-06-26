@@ -6,6 +6,7 @@ import type {
   BookmarkDetailImageSize,
   BookmarkDetailLayout,
   BookmarkDetailVideoSize,
+  ConnectorsAppSettings,
   DisplayPreferenceSettings,
   HomepageContentSettings,
   HomepageContentWidth,
@@ -16,6 +17,7 @@ import type {
   UpdateAdvancedSettingsInput,
   UpdateAiSummarizationInput,
   UpdateAutomationInput,
+  UpdateConnectorsSettingsInput,
   UpdateDisplayPreferenceInput,
   UpdateHomepageContentInput,
   UpdateSidebarCustomizationInput,
@@ -23,6 +25,7 @@ import type {
 import { normalizeBlacklist } from "@eesimple/types";
 import { db } from "@/db";
 import { appSettings } from "@/db/schema";
+import { encryptionEnabled, maybeDecrypt, maybeEncrypt } from "@/utils/crypto";
 
 /** The app-settings singleton always lives at row id = 1, mirroring `homepage_filter`. */
 const ROW_ID = 1;
@@ -589,6 +592,122 @@ export async function getDisplayPreferenceSettings(): Promise<DisplayPreferenceS
     croppedHeight: asCropped(row.croppedHeight, DEFAULT_DISPLAY_PREFERENCES.croppedHeight),
     customPropertyTypeIcons: (row.customPropertyTypeIcons as Partial<Record<string, string>> | null) ?? null,
   };
+}
+
+/** Read the hosted-metadata connector settings, merging db values with env-var fallbacks. */
+export async function getConnectorsSettings(): Promise<ConnectorsAppSettings> {
+  const [row] = await db
+    .select({
+      hostedMetadataEndpoint: appSettings.hostedMetadataEndpoint,
+      hostedMetadataApiKey: appSettings.hostedMetadataApiKey,
+      hostedMetadataProvider: appSettings.hostedMetadataProvider,
+    })
+    .from(appSettings)
+    .where(eq(appSettings.id, ROW_ID));
+  const endpoint = row?.hostedMetadataEndpoint ?? process.env.HOSTED_METADATA_ENDPOINT ?? "";
+  const provider = row?.hostedMetadataProvider ?? process.env.HOSTED_METADATA_PROVIDER ?? "";
+  const hasStoredKey = Boolean(row?.hostedMetadataApiKey);
+  const hasEnvKey = Boolean(process.env.HOSTED_METADATA_API_KEY);
+  return {
+    hostedMetadataEndpoint: endpoint,
+    hostedMetadataProvider: provider,
+    hostedMetadataApiKeySet: hasStoredKey || hasEnvKey,
+    encryptionEnabled: encryptionEnabled(),
+  };
+}
+
+/**
+ * Retrieve the decrypted API key for the hosted metadata provider. Checks the database first
+ * (decrypting if encrypted), then falls back to the `HOSTED_METADATA_API_KEY` env var.
+ */
+export async function getDecryptedHostedApiKey(): Promise<string | null> {
+  const [row] = await db
+    .select({
+      hostedMetadataApiKey: appSettings.hostedMetadataApiKey,
+    })
+    .from(appSettings)
+    .where(eq(appSettings.id, ROW_ID));
+  if (row?.hostedMetadataApiKey) {
+    const decrypted = maybeDecrypt(row.hostedMetadataApiKey);
+    if (decrypted) return decrypted;
+  }
+  return process.env.HOSTED_METADATA_API_KEY ?? null;
+}
+
+/**
+ * Get the active hosted metadata endpoint: database value wins over env var.
+ * Returns null when neither is configured.
+ */
+export async function getActiveHostedEndpoint(): Promise<string | null> {
+  const [row] = await db
+    .select({
+      hostedMetadataEndpoint: appSettings.hostedMetadataEndpoint,
+    })
+    .from(appSettings)
+    .where(eq(appSettings.id, ROW_ID));
+  return row?.hostedMetadataEndpoint || process.env.HOSTED_METADATA_ENDPOINT || null;
+}
+
+/**
+ * Get the active hosted metadata provider name: database value wins over env var.
+ * Returns null when neither is configured.
+ */
+export async function getActiveHostedProvider(): Promise<string | null> {
+  const [row] = await db
+    .select({
+      hostedMetadataProvider: appSettings.hostedMetadataProvider,
+    })
+    .from(appSettings)
+    .where(eq(appSettings.id, ROW_ID));
+  return row?.hostedMetadataProvider || process.env.HOSTED_METADATA_PROVIDER || null;
+}
+
+/** Replace the hosted-metadata connector settings, upserting the singleton. */
+export async function updateConnectorsSettings(
+  input: UpdateConnectorsSettingsInput,
+): Promise<ConnectorsAppSettings> {
+  const endpoint = input.hostedMetadataEndpoint.trim();
+  const provider = input.hostedMetadataProvider.trim();
+  if (input.hostedMetadataApiKey === null) {
+    // null = leave any existing API key unchanged; only update endpoint/provider.
+    await db
+      .insert(appSettings)
+      .values({
+        id: ROW_ID,
+        hostedMetadataEndpoint: endpoint,
+        hostedMetadataProvider: provider,
+      })
+      .onConflictDoUpdate({
+        target: appSettings.id,
+        set: {
+          hostedMetadataEndpoint: endpoint,
+          hostedMetadataProvider: provider,
+        },
+      });
+  }
+  else {
+    // "" = clear the stored key; any other value = encrypt and store.
+    const apiKeyToStore = input.hostedMetadataApiKey.trim()
+      ? maybeEncrypt(input.hostedMetadataApiKey.trim())
+      : null;
+    await db
+      .insert(appSettings)
+      .values({
+        id: ROW_ID,
+        hostedMetadataEndpoint: endpoint,
+        hostedMetadataProvider: provider,
+        hostedMetadataApiKey: apiKeyToStore,
+      })
+      .onConflictDoUpdate({
+        target: appSettings.id,
+        set: {
+          hostedMetadataEndpoint: endpoint,
+          hostedMetadataProvider: provider,
+          hostedMetadataApiKey: apiKeyToStore,
+        },
+      });
+  }
+  return getConnectorsSettings();
 }
 
 /** Replace the display/detail preferences, upserting the singleton. Returns the stored values. */
