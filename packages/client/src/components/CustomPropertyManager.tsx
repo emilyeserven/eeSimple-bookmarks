@@ -1,17 +1,19 @@
 import type { CustomProperty } from "@eesimple/types";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
 import { CheckSquare } from "lucide-react";
 
 import { AddCustomPropertyModal } from "./AddCustomPropertyModal";
 import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
+import { ListingStatusMessages } from "./ListingStatusMessages";
 import { PropertyPreview } from "./PropertyPreview";
 import { useCustomPropertyColumns } from "./tables/customPropertyColumns";
 import { listingSelectionColumn } from "./tables/selectionColumn";
 import { useTableRowNav } from "./tables/useTableRowNav";
 import { useBulkDeleteCustomProperties, useCustomProperties } from "../hooks/useCustomProperties";
+import { useHeaderSearchFilter } from "../hooks/useHeaderSearchFilter";
 import { useSetListingPage } from "../hooks/useListingPage";
 import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
 import { COLUMN_CLASS, useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
@@ -20,7 +22,6 @@ import { useListSelection } from "../lib/useListSelection";
 
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
-import { useUiStore } from "@/stores/uiStore";
 
 /** Searchable listing of custom properties, with previews that link out to the view/create pages. */
 export function CustomPropertyManager() {
@@ -36,15 +37,14 @@ export function CustomPropertyManager() {
   const propertyColumns = useCustomPropertyColumns();
   const rowNav = useTableRowNav();
 
-  const rawQuery = useUiStore(state => state.headerSearchQuery);
-  const filtered = useMemo(() => {
-    const needle = rawQuery.trim().toLowerCase();
-    const all = properties ?? [];
-    if (!needle) return all;
-    return all.filter(property =>
-      property.name.toLowerCase().includes(needle)
-      || TYPE_LABELS[property.type].toLowerCase().includes(needle));
-  }, [properties, rawQuery]);
+  const all = properties ?? [];
+  const {
+    rawQuery, hasQuery, filtered,
+  } = useHeaderSearchFilter(
+    all,
+    (property, query) => property.name.toLowerCase().includes(query)
+      || TYPE_LABELS[property.type].toLowerCase().includes(query),
+  );
 
   const deletableIds = filtered.filter(p => !p.builtIn).map(p => p.id);
   const selection = useListSelection("custom-properties-listing", deletableIds);
@@ -52,17 +52,21 @@ export function CustomPropertyManager() {
 
   return (
     <section className="space-y-4">
-      {isLoading ? <p className="text-muted-foreground">Loading custom properties…</p> : null}
-      {error ? <p className="text-destructive">{error.message}</p> : null}
-      {!isLoading && !error && filtered.length === 0
-        ? (
+      <ListingStatusMessages
+        isLoading={isLoading}
+        error={error}
+        totalCount={all.length}
+        filteredCount={filtered.length}
+        rawQuery={rawQuery}
+        hasQuery={hasQuery}
+        loadingLabel="Loading custom properties…"
+        entityPlural="custom properties"
+        emptyMessage={(
           <p className="text-muted-foreground">
-            {rawQuery
-              ? "No custom properties match your search."
-              : "No custom properties yet. Create one to get started."}
+            No custom properties yet. Create one to get started.
           </p>
-        )
-        : null}
+        )}
+      />
 
       {viewMode !== "table"
         ? (
