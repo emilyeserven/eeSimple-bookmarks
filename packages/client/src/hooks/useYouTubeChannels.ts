@@ -104,6 +104,10 @@ export function useUploadYouTubeChannelImage() {
       void queryClient.invalidateQueries({
         queryKey: CHANNELS_KEY,
       });
+      // BookmarkYouTubeChannel embeds imageUrl, so bookmark cards must reflect the new avatar.
+      void queryClient.invalidateQueries({
+        queryKey: BOOKMARKS_KEY,
+      });
       notifySuccess("Avatar updated");
     },
     onError: (err: Error) => notifyError(describeError(err, "Could not upload the avatar")),
@@ -122,6 +126,10 @@ export function useAutoYouTubeChannelImage() {
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: CHANNELS_KEY,
+      });
+      // BookmarkYouTubeChannel embeds imageUrl, so bookmark cards must reflect the fetched avatar.
+      void queryClient.invalidateQueries({
+        queryKey: BOOKMARKS_KEY,
       });
       notifySuccess("Avatar fetched");
     },
@@ -145,6 +153,10 @@ export function useDeleteYouTubeChannelImage() {
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: CHANNELS_KEY,
+      });
+      // BookmarkYouTubeChannel embeds imageUrl, so bookmark cards must reflect the removed avatar.
+      void queryClient.invalidateQueries({
+        queryKey: BOOKMARKS_KEY,
       });
       notifySuccess("Avatar removed");
     },
