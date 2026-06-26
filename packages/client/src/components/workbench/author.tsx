@@ -178,6 +178,7 @@ export const authorWorkbench: EntityWorkbench<Author> = {
   },
   notFound: "Author not found.",
   navAriaLabel: "Author sections",
+  getSlug: author => author.slug,
   tabs: [
     {
       key: "general",

@@ -134,6 +134,7 @@ export const propertyWorkbench: EntityWorkbench<CustomProperty> = {
   },
   notFound: "Custom property not found.",
   navAriaLabel: "Custom property sections",
+  getSlug: property => property.slug,
   tabs: [
     {
       key: "general",

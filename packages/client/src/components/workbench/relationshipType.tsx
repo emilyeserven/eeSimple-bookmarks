@@ -42,6 +42,7 @@ export const relationshipTypeWorkbench: EntityWorkbench<RelationshipType> = {
   },
   notFound: "Relationship type not found.",
   navAriaLabel: "Relationship type sections",
+  getSlug: rt => rt.slug,
   tabs: [
     {
       key: "general",

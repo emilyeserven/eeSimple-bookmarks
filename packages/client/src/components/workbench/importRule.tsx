@@ -41,6 +41,7 @@ export const importRuleWorkbench: EntityWorkbench<ImportRule> = {
   },
   notFound: "Import rule not found.",
   navAriaLabel: "Import rule sections",
+  getSlug: rule => rule.slug,
   tabs: [
     {
       key: "general",

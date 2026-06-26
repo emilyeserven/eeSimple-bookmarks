@@ -191,6 +191,7 @@ export const autofillWorkbench: EntityWorkbench<AutofillRule> = {
   },
   notFound: "Autofill rule not found.",
   navAriaLabel: "Autofill rule sections",
+  getSlug: rule => rule.slug,
   tabs: [
     {
       key: "general",

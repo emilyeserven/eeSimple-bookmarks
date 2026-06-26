@@ -1,5 +1,9 @@
 import type { EntityWorkbench, WorkbenchMode } from "../workbench/types";
+import type { DrawerContentType } from "@/lib/drawerSearch";
 
+import { useNavigate } from "@tanstack/react-router";
+
+import { buildMainPanePath } from "./mainPanePaths";
 import { usePanelControls } from "./usePanelControls";
 import { usePanelDismissAfterDelete } from "./usePanelDismissAfterDelete";
 import { EntityWorkbenchView } from "../workbench/EntityWorkbenchView";
@@ -8,6 +12,11 @@ interface Props<E extends { id: string }> {
   workbench: EntityWorkbench<E>;
   id: string;
   mode: WorkbenchMode;
+  /**
+   * The panel content type for this entity. When provided along with `workbench.getSlug`, the panel
+   * header shows an "Open in main pane" button that navigates to the entity's full page.
+   */
+  contentType?: DrawerContentType;
 }
 
 /**
@@ -17,12 +26,32 @@ interface Props<E extends { id: string }> {
  * the main-pane routes — this is the right-panel parity invariant.
  */
 export function EntityWorkbenchPanel<E extends { id: string }>({
-  workbench, id, mode,
+  workbench, id, mode, contentType,
 }: Props<E>) {
   const {
-    dTab, setTab, setMode,
+    dTab, setTab, setMode, close,
   } = usePanelControls();
   const dismiss = usePanelDismissAfterDelete();
+  const navigate = useNavigate();
+
+  const {
+    getSlug,
+  } = workbench;
+  const buildSendToMainPane = getSlug && contentType
+    ? (entity: E) => {
+      const slug = getSlug(entity);
+      if (!slug) return undefined;
+      const tab = dTab ?? "general";
+      const path = buildMainPanePath(contentType, slug, tab);
+      if (!path) return undefined;
+      return () => {
+        void navigate({
+          href: path,
+        });
+        close();
+      };
+    }
+    : undefined;
 
   return (
     <EntityWorkbenchView
@@ -33,6 +62,7 @@ export function EntityWorkbenchPanel<E extends { id: string }>({
       onTabChange={setTab}
       onModeChange={setMode}
       onDeleted={dismiss}
+      buildSendToMainPane={buildSendToMainPane}
     />
   );
 }

@@ -39,6 +39,7 @@ function PropertyGroupView({
       workbench={propertyGroupWorkbench}
       id={id}
       mode="view"
+      contentType="property-group"
     />
   );
 }
@@ -54,6 +55,7 @@ function PropertyGroupEdit({
       workbench={propertyGroupWorkbench}
       id={id}
       mode="edit"
+      contentType="property-group"
     />
   );
 }

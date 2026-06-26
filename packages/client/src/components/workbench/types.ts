@@ -57,4 +57,10 @@ export interface EntityWorkbench<E extends { id: string }> {
   notFound: string;
   navAriaLabel: string;
   tabs: WorkbenchTab<E>[];
+  /**
+   * Returns the entity's URL identifier (slug or id) for its main-pane page.
+   * When present, the panel header shows an "Open in main pane" button.
+   * Omit for entities without a dedicated slug-routed main-pane page.
+   */
+  getSlug?: (entity: E) => string | null;
 }

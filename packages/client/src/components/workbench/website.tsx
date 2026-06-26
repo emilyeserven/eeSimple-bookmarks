@@ -208,6 +208,7 @@ export const websiteWorkbench: EntityWorkbench<Website> = {
   },
   notFound: "Website not found.",
   navAriaLabel: "Website sections",
+  getSlug: website => website.slug,
   tabs: [
     {
       key: "general",

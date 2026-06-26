@@ -70,6 +70,7 @@ export const savedFilterWorkbench: EntityWorkbench<SavedFilter> = {
   },
   notFound: "Saved filter not found.",
   navAriaLabel: "Saved filter sections",
+  getSlug: filter => filter.slug,
   tabs: [
     {
       key: "general",
