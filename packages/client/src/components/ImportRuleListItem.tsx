@@ -1,7 +1,7 @@
 import type { ImportRule, ImportRuleAction } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
-import { Filter, Pencil } from "lucide-react";
+import { Pencil } from "lucide-react";
 
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
@@ -36,7 +36,6 @@ export function ImportRuleListItem({
 
   return (
     <StandardListingCard
-      icon={<Filter className="size-5 shrink-0 text-muted-foreground" />}
       title={rule.name}
       titleAdornment={(
         <Badge variant={ACTION_BADGE_VARIANTS[rule.action]}>

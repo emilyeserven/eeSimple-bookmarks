@@ -6,7 +6,7 @@ import {
   Building2,
   ChevronDown,
   Clapperboard,
-  Filter,
+  FileInput,
   FolderOpen,
   Globe,
   Home,
@@ -162,7 +162,7 @@ const customizationItems = [
     key: "import-rules",
     title: "Import Rules",
     to: "/import-rules",
-    icon: Filter,
+    icon: FileInput,
   },
   {
     key: "saved-filters",
