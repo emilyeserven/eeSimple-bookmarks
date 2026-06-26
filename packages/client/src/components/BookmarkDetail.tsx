@@ -44,107 +44,68 @@ export function BookmarkDetail({
 
   return (
     <div className="@container space-y-6">
+      {/* Shared header — identical in Single and Tabbed modes */}
+      <div
+        className="
+          flex flex-col gap-6
+          @2xl:flex-row @2xl:items-center
+        "
+      >
+        <div className="min-w-0 flex-1 space-y-1">
+          <div className="flex items-start justify-between gap-4">
+            <h1 className="text-xl font-bold">
+              <a
+                href={bookmark.url ?? undefined}
+                target="_blank"
+                rel="noreferrer"
+                className="
+                  text-primary
+                  hover:underline
+                "
+              >
+                {bookmark.title}
+              </a>
+            </h1>
+            <DetailHeaderActions
+              onEdit={onEdit}
+              onDelete={onDelete}
+            />
+          </div>
+          <a
+            href={bookmark.url ?? undefined}
+            target="_blank"
+            rel="noreferrer"
+            className="
+              block truncate text-sm text-muted-foreground
+              hover:underline
+            "
+          >
+            {bookmark.url}
+          </a>
+        </div>
+        <BookmarkDetailMedia
+          bookmark={bookmark}
+          embedUrl={embedUrl}
+        />
+      </div>
       {isSingle
         ? (
-          <>
-            {/* Single layout: title + URL on left (space-between), media on right */}
-            <div
-              className="
-                flex flex-col gap-6
-                @2xl:flex-row @2xl:items-stretch
-              "
-            >
-              <div
-                className="flex min-w-0 flex-1 flex-col justify-between gap-4"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <h1 className="text-xl font-bold">
-                    <a
-                      href={bookmark.url ?? undefined}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="
-                        text-primary
-                        hover:underline
-                      "
-                    >
-                      {bookmark.title}
-                    </a>
-                  </h1>
-                  <DetailHeaderActions
-                    onEdit={onEdit}
-                    onDelete={onDelete}
-                  />
-                </div>
-                <a
-                  href={bookmark.url ?? undefined}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="
-                    block truncate text-sm text-muted-foreground
-                    hover:underline
-                  "
-                >
-                  {bookmark.url}
-                </a>
-              </div>
-              <BookmarkDetailMedia
-                bookmark={bookmark}
-                embedUrl={embedUrl}
-              />
-            </div>
-            <BookmarkDetailBody
-              bookmark={bookmark}
-              categories={categories}
-              properties={properties}
-              propertyGroups={propertyGroups}
-              onSaveBoolean={onSaveBoolean}
-            />
-          </>
+          <BookmarkDetailBody
+            bookmark={bookmark}
+            categories={categories}
+            properties={properties}
+            propertyGroups={propertyGroups}
+            onSaveBoolean={onSaveBoolean}
+          />
         )
         : (
-          <>
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0 space-y-1">
-                <h1 className="text-xl font-bold">
-                  <a
-                    href={bookmark.url ?? undefined}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="
-                      text-primary
-                      hover:underline
-                    "
-                  >
-                    {bookmark.title}
-                  </a>
-                </h1>
-                <a
-                  href={bookmark.url ?? undefined}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="
-                    block truncate text-sm text-muted-foreground
-                    hover:underline
-                  "
-                >
-                  {bookmark.url}
-                </a>
-              </div>
-              <DetailHeaderActions
-                onEdit={onEdit}
-                onDelete={onDelete}
-              />
-            </div>
-            <BookmarkDetailTabbed
-              bookmark={bookmark}
-              categories={categories}
-              properties={properties}
-              propertyGroups={propertyGroups}
-              embedUrl={embedUrl}
-              onSaveBoolean={onSaveBoolean}
-            />
-          </>
+          <BookmarkDetailTabbed
+            bookmark={bookmark}
+            categories={categories}
+            properties={properties}
+            propertyGroups={propertyGroups}
+            onSaveBoolean={onSaveBoolean}
+          />
         )}
 
       <Separator />
