@@ -40,7 +40,7 @@ import {
 } from "@/db/schema";
 import { addImportBlacklistEntry, getCustomStripParams, getImportBlacklist, getRedirectIgnoreList, getShortenerIgnoreList } from "@/services/appSettings";
 import { applyImportRules } from "@/services/importRules";
-import { approvalTitle, mergeApprovalPropertyValues, mergeApprovalTagIds } from "@/services/importApproval";
+import { approvalTitle, buildApprovalBookmarkInput, mergeApprovalPropertyValues, pickApprovalCategoryId } from "@/services/importApproval";
 import { suggestAutofillForBookmark } from "@/services/autofill";
 import { checkBookmarkUrlDuplicate, createBookmark, DuplicateUrlError } from "@/services/bookmarks";
 import { enqueueImportJob } from "@/services/importQueue";
@@ -927,8 +927,8 @@ export async function approveImportItem(itemId: string, preFill?: InboxPreFillDe
     title,
   });
 
-  // Category precedence: per-item override > preFill > import default > newsletter default > autofill.
-  // `undefined` (none set) preserves createBookmark's website/channel/built-in default precedence.
+  // Category precedence (see pickApprovalCategoryId): per-item override > preFill > import default >
+  // newsletter default > autofill. Only query the import row when no per-item override is set.
   let categoryId = item.categoryId ?? undefined;
   if (categoryId === undefined) {
     const [importRow] = await db
@@ -937,7 +937,13 @@ export async function approveImportItem(itemId: string, preFill?: InboxPreFillDe
       })
       .from(imports)
       .where(eq(imports.id, item.importId));
-    categoryId = preFill?.categoryId ?? importRow?.defaultCategoryId ?? defaults.categoryId ?? autofill.categoryId ?? undefined;
+    categoryId = pickApprovalCategoryId({
+      itemCategoryId: item.categoryId,
+      preFillCategoryId: preFill?.categoryId,
+      importDefaultCategoryId: importRow?.defaultCategoryId,
+      newsletterDefaultCategoryId: defaults.categoryId,
+      autofillCategoryId: autofill.categoryId,
+    });
   }
 
   // Merge pre-fill custom property values with autofill values: autofill wins for any property it
@@ -949,22 +955,19 @@ export async function approveImportItem(itemId: string, preFill?: InboxPreFillDe
   } = mergeApprovalPropertyValues(autofill, preFill);
 
   try {
-    const bookmark = await createBookmark({
+    const bookmark = await createBookmark(buildApprovalBookmarkInput({
       url: item.url,
       title,
-      // Save the source passage (newsletter context) as the description; fall back to the item's own.
-      description: item.newsletterContext ?? item.description ?? null,
-      ...defaults,
-      tagIds: mergeApprovalTagIds(defaults.tagIds, preFill?.tagIds, autofill.tagIds),
-      mediaTypeId: preFill?.mediaTypeId ?? defaults.mediaTypeId ?? autofill.mediaTypeId,
-      authorIds: preFill?.authorIds,
-      publisherId: preFill?.publisherId ?? undefined,
-      numberValues: mergedNumberValues.length > 0 ? mergedNumberValues : undefined,
-      booleanValues: mergedBooleanValues.length > 0 ? mergedBooleanValues : undefined,
-      dateTimeValues: mergedDateTimeValues.length > 0 ? mergedDateTimeValues : undefined,
-      choicesValues: preFill?.choicesValues,
+      item,
+      defaults,
+      preFill,
+      autofillTagIds: autofill.tagIds,
+      autofillMediaTypeId: autofill.mediaTypeId,
+      mergedNumberValues,
+      mergedBooleanValues,
+      mergedDateTimeValues,
       categoryId,
-    });
+    }));
     await db
       .update(importItems)
       .set({

@@ -6,6 +6,7 @@ import { db } from "@/db";
 import { bookmarkImages, bookmarks, categories, websiteFavicons, websiteTags, websites, websiteYoutubeChannels, type WebsiteRow } from "@/db/schema";
 import { buildStringMap } from "@/utils/mapUtils";
 import { slugify } from "@/utils/slug";
+import { builtInWebsiteRenamedOrMoved, buildWebsiteScalarPatch, normalizeWebsiteDomain } from "@/services/websiteUpdate";
 
 /**
  * Build a favicon serving URL (with a `?v=` cache-buster) from a website id and its favicon's
@@ -541,22 +542,13 @@ export async function updateWebsite(
     domain: websites.domain,
   }).from(websites).where(eq(websites.id, id));
   if (!existing) return null;
-  if (existing.builtIn) {
-    const renames = input.siteName !== undefined && input.siteName.trim() !== existing.siteName;
-    const moves = input.domain !== undefined
-      && input.domain.replace(/^www\./i, "").toLowerCase() !== existing.domain;
-    if (renames || moves) {
-      throw new BuiltInWebsiteError("A built-in website cannot be renamed or moved");
-    }
+  if (existing.builtIn && builtInWebsiteRenamedOrMoved(input, existing)) {
+    throw new BuiltInWebsiteError("A built-in website cannot be renamed or moved");
   }
 
-  const patch: Partial<Pick<WebsiteRow, "domain" | "siteName" | "slug" | "shortenedLinks" | "paramRules" | "categoryId" | "mediaTypeId" | "socialLinks" | "alternateNames" | "redirectResolutionFailure">> = {};
-  if (input.siteName !== undefined) patch.siteName = input.siteName;
-  // Rule fields stay editable even on built-ins (only rename/move/delete are blocked above).
-  if (input.shortenedLinks !== undefined) patch.shortenedLinks = input.shortenedLinks;
-  if (input.paramRules !== undefined) patch.paramRules = input.paramRules;
+  const patch: Partial<Pick<WebsiteRow, "domain" | "siteName" | "slug" | "shortenedLinks" | "paramRules" | "categoryId" | "mediaTypeId" | "socialLinks" | "alternateNames" | "redirectResolutionFailure">> = buildWebsiteScalarPatch(input);
   if (input.domain !== undefined) {
-    const domain = input.domain.replace(/^www\./i, "").toLowerCase();
+    const domain = normalizeWebsiteDomain(input.domain);
     const [clash] = await db.select({
       id: websites.id,
     }).from(websites).where(eq(websites.domain, domain));
@@ -565,21 +557,6 @@ export async function updateWebsite(
     // Regenerate the slug when the domain changes since it derives from the domain.
     const taken = await takenWebsiteSlugs(id);
     patch.slug = uniqueWebsiteSlug(slugFromDomain(domain), taken);
-  }
-  if ("categoryId" in input) {
-    patch.categoryId = input.categoryId ?? null;
-  }
-  if ("mediaTypeId" in input) {
-    patch.mediaTypeId = input.mediaTypeId ?? null;
-  }
-  if ("socialLinks" in input) {
-    patch.socialLinks = input.socialLinks ?? [];
-  }
-  if (input.alternateNames !== undefined) {
-    patch.alternateNames = input.alternateNames;
-  }
-  if ("redirectResolutionFailure" in input) {
-    patch.redirectResolutionFailure = input.redirectResolutionFailure ?? false;
   }
 
   if (Object.keys(patch).length > 0) {
