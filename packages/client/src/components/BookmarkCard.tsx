@@ -214,6 +214,7 @@ export function BookmarkCard({
       cardZoneLayouts={cardZoneLayouts}
       bookmarkCategory={bookmarkCategory}
       hideWebsiteForYouTube={hideWebsiteForYouTube}
+      hasImageAbove={hasImage && !imageLeft}
       editableProperties={editableProperties}
       editableTags={editableTags}
       autoImagePending={autoImage.isPending}

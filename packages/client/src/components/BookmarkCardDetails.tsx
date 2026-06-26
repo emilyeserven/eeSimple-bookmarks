@@ -35,6 +35,12 @@ interface BookmarkCardDetailsProps {
   bookmarkCategory?: Category;
   /** Resolved "hide website pill for YouTube" value; when omitted, the Default card display rule applies. */
   hideWebsiteForYouTube?: boolean;
+  /**
+   * When true, adds top margin to the details wrapper so the content sits below the stacked card image
+   * (image `mb-2` + details `mt-2` = 16px gap). When false (no image, or image is to the left), the
+   * details render flush with the top of their container and the card's own padding provides spacing.
+   */
+  hasImageAbove?: boolean;
   /** Properties editable from the "More" menu (passed through to {@link BookmarkCardMenu}). */
   editableProperties?: CustomProperty[];
   /** Tags opted into quick-toggle from the "More" menu (passed through to {@link BookmarkCardMenu}). */
@@ -150,6 +156,7 @@ interface FieldRender {
  */
 export function BookmarkCardDetails({
   bookmark, properties, placements, cardZoneLayouts, bookmarkCategory, hideWebsiteForYouTube,
+  hasImageAbove = false,
   editableProperties = [], editableTags = [], autoImagePending = false, onAutoImage,
   onSaveNumber, onSaveDateTime, onDelete,
   onSaveRating, onSaveBoolean, onSaveChoices, onSaveTags,
@@ -457,7 +464,7 @@ export function BookmarkCardDetails({
       return (
         <dl
           key={zone}
-          className="mt-2 grid grid-cols-[auto_1fr] items-center gap-2"
+          className="grid grid-cols-[auto_1fr] items-center gap-2"
         >
           {entries.map(entry => (
             entry.hideLabel
@@ -487,8 +494,8 @@ export function BookmarkCardDetails({
       // Flex: pills/badges flow in a wrap row. Grid: a fixed two-column grid. Block-only fields
       // (description, tags) span the full width in either layout.
       const containerClass = layout.mode === "grid"
-        ? `mt-2 grid grid-cols-2 ${alignItemsClass(layout, "center")} ${gapClass(layout)}`
-        : `mt-2 flex ${flexFlowClass(layout)} ${alignItemsClass(layout, "center")} ${gapClass(layout)} ${justifyClass(layout)}`;
+        ? `grid grid-cols-2 ${alignItemsClass(layout, "center")} ${gapClass(layout)}`
+        : `flex ${flexFlowClass(layout)} ${alignItemsClass(layout, "center")} ${gapClass(layout)} ${justifyClass(layout)}`;
       const blockClass = layout.mode === "grid" ? "col-span-2" : "w-full";
       return (
         <div
@@ -526,7 +533,7 @@ export function BookmarkCardDetails({
     return (
       <div
         key={zone}
-        className="mt-2 space-y-2"
+        className="space-y-2"
       >
         {hasHeader
           ? (
@@ -560,5 +567,9 @@ export function BookmarkCardDetails({
     );
   }
 
-  return <>{CARD_BODY_ZONES.map(zone => renderZone(zone))}</>;
+  return (
+    <div className={hasImageAbove ? "mt-2 space-y-2" : "space-y-2"}>
+      {CARD_BODY_ZONES.map(zone => renderZone(zone))}
+    </div>
+  );
 }
