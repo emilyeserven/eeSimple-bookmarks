@@ -2294,6 +2294,8 @@ export interface FetchIsbnMetadataResult {
 export interface SavedFilter {
   id: string;
   name: string;
+  /** URL slug derived from name; null for rows that predate the slug column (backfilled on boot). */
+  slug: string | null;
   description: string | null;
   /** Serialized `BookmarkSearch` — typed generically so the middleware stays decoupled from the client's URL-state type. */
   filters: Record<string, unknown>;

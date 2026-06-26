@@ -10,6 +10,7 @@ import { useNewsletterBySlug } from "@/hooks/useNewsletters";
 import { usePropertyGroupBySlug } from "@/hooks/usePropertyGroups";
 import { usePublisherBySlug } from "@/hooks/usePublishers";
 import { useRelationshipTypeBySlug } from "@/hooks/useRelationshipTypes";
+import { useSavedFilterBySlug } from "@/hooks/useSavedFilters";
 import { useWebsiteBySlug } from "@/hooks/useWebsites";
 import { useYouTubeChannelBySlug } from "@/hooks/useYouTubeChannels";
 
@@ -79,6 +80,9 @@ export function useTaxonomyCrumbData(pathname: string, pathParts: string[]): Tax
   const {
     rule: importRule,
   } = useImportRuleBySlug(slugFor(pathname, pathParts, "/import-rules", 1));
+  const {
+    savedFilter,
+  } = useSavedFilterBySlug(slugFor(pathname, pathParts, "/saved-filters", 1));
 
   return {
     taxonomyNames: {
@@ -94,6 +98,7 @@ export function useTaxonomyCrumbData(pathname: string, pathParts: string[]): Tax
       "/custom-properties": property?.name,
       "/autofill": rule?.name,
       "/import-rules": importRule?.name,
+      "/saved-filters": savedFilter?.name,
     },
     category,
     website,

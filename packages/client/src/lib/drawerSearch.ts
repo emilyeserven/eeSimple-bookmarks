@@ -28,6 +28,7 @@ export type DrawerContentType
     | "relationship-type"
     | "autofill"
     | "import-rule"
+    | "saved-filter"
     | "notifications"
     | "filters";
 
@@ -53,6 +54,7 @@ export const DRAWER_CONTENT_TYPES: DrawerContentType[] = [
   "relationship-type",
   "autofill",
   "import-rule",
+  "saved-filter",
   "notifications",
   "filters",
 ];

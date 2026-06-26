@@ -3,7 +3,9 @@ import type {
   CreateSavedFilterInput,
   UpdateSavedFilterInput,
 } from "@eesimple/types";
+import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 import {
+  bulkDeleteSavedFilters,
   createSavedFilter,
   deleteSavedFilter,
   listSavedFilters,
@@ -63,6 +65,8 @@ const updateBody = {
 } as const;
 
 export async function savedFilterRoutes(app: FastifyInstance): Promise<void> {
+  registerBulkDelete(app, "/api/saved-filters", "saved-filters", bulkDeleteSavedFilters);
+
   app.get(
     "/api/saved-filters",
     {

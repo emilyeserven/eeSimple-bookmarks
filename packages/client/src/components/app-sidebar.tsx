@@ -13,6 +13,7 @@ import {
   Inbox,
   Layers,
   LayoutGrid,
+  ListFilter,
   Mail,
   MonitorPlay,
   Share2,
@@ -153,6 +154,12 @@ const customizationItems = [
     title: "Import Rules",
     to: "/import-rules",
     icon: Filter,
+  },
+  {
+    key: "saved-filters",
+    title: "Saved Filters",
+    to: "/saved-filters",
+    icon: ListFilter,
   },
 ] as const;
 

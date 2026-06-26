@@ -1631,6 +1631,7 @@ export const calculatePropertyOperandsRelations = relations(calculatePropertyOpe
 export const savedFilters = pgTable("saved_filters", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
+  slug: text("slug"),
   description: text("description"),
   filters: jsonb("filters").$type<Record<string, unknown>>().notNull(),
   viewableOnline: boolean("viewable_online").notNull().default(false),
@@ -1639,6 +1640,7 @@ export const savedFilters = pgTable("saved_filters", {
   }).notNull().defaultNow(),
 }, table => [
   unique("saved_filters_name_unique").on(table.name),
+  unique("saved_filters_slug_unique").on(table.slug),
 ]);
 
 export type BookmarkRow = typeof bookmarks.$inferSelect;
