@@ -22,7 +22,7 @@ describe("buildBookmarkDetailSections", () => {
     expect(build(makeBookmark())).toEqual(["general", "metadata"]);
   });
 
-  it("adds the Tags section when the bookmark has tags", () => {
+  it("includes tags inside the General section (no separate Tags section)", () => {
     const bookmark = makeBookmark({
       tags: [{
         id: "t1",
@@ -31,7 +31,7 @@ describe("buildBookmarkDetailSections", () => {
         parentId: null,
       }],
     });
-    expect(build(bookmark)).toEqual(["general", "tags", "metadata"]);
+    expect(build(bookmark)).toEqual(["general", "metadata"]);
   });
 
   it("adds the Hierarchy section when a flat hierarchy is supplied", () => {
@@ -73,6 +73,6 @@ describe("buildBookmarkDetailSections", () => {
         },
       ],
     });
-    expect(build(bookmark)).toEqual(["general", "tags", "relationships", "metadata"]);
+    expect(build(bookmark)).toEqual(["general", "relationships", "metadata"]);
   });
 });

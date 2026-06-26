@@ -963,7 +963,6 @@ export async function approveImportItem(itemId: string, preFill?: InboxPreFillDe
       booleanValues: mergedBooleanValues.length > 0 ? mergedBooleanValues : undefined,
       dateTimeValues: mergedDateTimeValues.length > 0 ? mergedDateTimeValues : undefined,
       choicesValues: preFill?.choicesValues,
-      newsletterContext: item.newsletterContext ?? null,
       categoryId,
     });
     await db

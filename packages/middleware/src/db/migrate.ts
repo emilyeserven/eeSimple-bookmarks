@@ -689,6 +689,24 @@ const migrations: RuntimeMigration[] = [
         ADD COLUMN IF NOT EXISTS "editable_on_card" boolean NOT NULL DEFAULT false
     `),
   },
+  {
+    // `bookmarks.newsletter_context` is removed: the newsletter passage is now written into
+    // `description` on inbox approval instead of being stored as a separate field. Preserve data for
+    // existing rows: copy `newsletter_context` → `description` where description is still NULL, then
+    // drop the now-redundant column. Both executes are single statements and idempotently guarded
+    // (the second is a no-op once the column no longer exists).
+    name: "migrate bookmarks.newsletter_context into description, then drop column",
+    run: async (db) => {
+      await db.execute(sql`
+        UPDATE "bookmarks"
+        SET "description" = "newsletter_context"
+        WHERE "newsletter_context" IS NOT NULL AND "description" IS NULL
+      `);
+      await db.execute(sql`
+        ALTER TABLE IF EXISTS "bookmarks" DROP COLUMN IF EXISTS "newsletter_context"
+      `);
+    },
+  },
 ];
 
 async function main(): Promise<void> {
