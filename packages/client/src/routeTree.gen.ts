@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TagsRouteImport } from './routes/tags'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as SavedFiltersRouteImport } from './routes/saved-filters'
 import { Route as QuickAddRouteImport } from './routes/quick-add'
 import { Route as InboxRouteImport } from './routes/inbox'
 import { Route as ImportRulesRouteImport } from './routes/import-rules'
@@ -23,6 +24,7 @@ import { Route as AiSummarizationRouteImport } from './routes/ai-summarization'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TagsIndexRouteImport } from './routes/tags.index'
 import { Route as SettingsIndexRouteImport } from './routes/settings.index'
+import { Route as SavedFiltersIndexRouteImport } from './routes/saved-filters.index'
 import { Route as InboxIndexRouteImport } from './routes/inbox.index'
 import { Route as ImportRulesIndexRouteImport } from './routes/import-rules.index'
 import { Route as CustomPropertiesIndexRouteImport } from './routes/custom-properties.index'
@@ -56,6 +58,7 @@ import { Route as SettingsCardDisplayRulesRouteImport } from './routes/settings.
 import { Route as SettingsAutomationsRouteImport } from './routes/settings.automations'
 import { Route as SettingsAutofillRouteImport } from './routes/settings.autofill'
 import { Route as SettingsAdvancedRouteImport } from './routes/settings.advanced'
+import { Route as SavedFiltersFilterSlugRouteImport } from './routes/saved-filters.$filterSlug'
 import { Route as InboxNewRouteImport } from './routes/inbox.new'
 import { Route as ImportRulesRuleSlugRouteImport } from './routes/import-rules.$ruleSlug'
 import { Route as CustomPropertiesNewRouteImport } from './routes/custom-properties.new'
@@ -73,6 +76,7 @@ import { Route as TaxonomiesNewslettersIndexRouteImport } from './routes/taxonom
 import { Route as TaxonomiesMediaTypesIndexRouteImport } from './routes/taxonomies.media-types.index'
 import { Route as TaxonomiesAuthorsIndexRouteImport } from './routes/taxonomies.authors.index'
 import { Route as TagsTagSlugIndexRouteImport } from './routes/tags.$tagSlug.index'
+import { Route as SavedFiltersFilterSlugIndexRouteImport } from './routes/saved-filters.$filterSlug.index'
 import { Route as ImportRulesRuleSlugIndexRouteImport } from './routes/import-rules.$ruleSlug.index'
 import { Route as CustomPropertiesPropertySlugIndexRouteImport } from './routes/custom-properties.$propertySlug.index'
 import { Route as CategoriesCategorySlugIndexRouteImport } from './routes/categories.$categorySlug.index'
@@ -106,6 +110,7 @@ import { Route as TaxonomiesNewslettersNewsletterSlugIndexRouteImport } from './
 import { Route as TaxonomiesMediaTypesMediaTypeSlugIndexRouteImport } from './routes/taxonomies.media-types.$mediaTypeSlug.index'
 import { Route as TaxonomiesAuthorsAuthorSlugIndexRouteImport } from './routes/taxonomies.authors.$authorSlug.index'
 import { Route as TagsTagSlugEditIndexRouteImport } from './routes/tags.$tagSlug.edit.index'
+import { Route as SavedFiltersFilterSlugEditIndexRouteImport } from './routes/saved-filters.$filterSlug.edit.index'
 import { Route as ImportRulesRuleSlugEditIndexRouteImport } from './routes/import-rules.$ruleSlug.edit.index'
 import { Route as CustomPropertiesPropertySlugEditIndexRouteImport } from './routes/custom-properties.$propertySlug.edit.index'
 import { Route as CategoriesCategorySlugEditIndexRouteImport } from './routes/categories.$categorySlug.edit.index'
@@ -136,6 +141,8 @@ import { Route as TagsTagSlugViewGeneralRouteImport } from './routes/tags.$tagSl
 import { Route as TagsTagSlugViewDisplayRulesRouteImport } from './routes/tags.$tagSlug._view.display-rules'
 import { Route as TagsTagSlugViewCategoriesRouteImport } from './routes/tags.$tagSlug._view.categories'
 import { Route as TagsTagSlugViewAutofillRouteImport } from './routes/tags.$tagSlug._view.autofill'
+import { Route as SavedFiltersFilterSlugEditGeneralRouteImport } from './routes/saved-filters.$filterSlug.edit.general'
+import { Route as SavedFiltersFilterSlugViewGeneralRouteImport } from './routes/saved-filters.$filterSlug._view.general'
 import { Route as ImportRulesRuleSlugEditGeneralRouteImport } from './routes/import-rules.$ruleSlug.edit.general'
 import { Route as ImportRulesRuleSlugEditConditionsRouteImport } from './routes/import-rules.$ruleSlug.edit.conditions'
 import { Route as ImportRulesRuleSlugViewGeneralRouteImport } from './routes/import-rules.$ruleSlug._view.general'
@@ -235,6 +242,11 @@ const SettingsRoute = SettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SavedFiltersRoute = SavedFiltersRouteImport.update({
+  id: '/saved-filters',
+  path: '/saved-filters',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const QuickAddRoute = QuickAddRouteImport.update({
   id: '/quick-add',
   path: '/quick-add',
@@ -294,6 +306,11 @@ const SettingsIndexRoute = SettingsIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => SettingsRoute,
+} as any)
+const SavedFiltersIndexRoute = SavedFiltersIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => SavedFiltersRoute,
 } as any)
 const InboxIndexRoute = InboxIndexRouteImport.update({
   id: '/',
@@ -465,6 +482,11 @@ const SettingsAdvancedRoute = SettingsAdvancedRouteImport.update({
   path: '/advanced',
   getParentRoute: () => SettingsRoute,
 } as any)
+const SavedFiltersFilterSlugRoute = SavedFiltersFilterSlugRouteImport.update({
+  id: '/$filterSlug',
+  path: '/$filterSlug',
+  getParentRoute: () => SavedFiltersRoute,
+} as any)
 const InboxNewRoute = InboxNewRouteImport.update({
   id: '/new',
   path: '/new',
@@ -557,6 +579,12 @@ const TagsTagSlugIndexRoute = TagsTagSlugIndexRouteImport.update({
   path: '/',
   getParentRoute: () => TagsTagSlugRoute,
 } as any)
+const SavedFiltersFilterSlugIndexRoute =
+  SavedFiltersFilterSlugIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => SavedFiltersFilterSlugRoute,
+  } as any)
 const ImportRulesRuleSlugIndexRoute =
   ImportRulesRuleSlugIndexRouteImport.update({
     id: '/',
@@ -741,6 +769,12 @@ const TagsTagSlugEditIndexRoute = TagsTagSlugEditIndexRouteImport.update({
   path: '/',
   getParentRoute: () => TagsTagSlugEditRoute,
 } as any)
+const SavedFiltersFilterSlugEditIndexRoute =
+  SavedFiltersFilterSlugEditIndexRouteImport.update({
+    id: '/edit/',
+    path: '/edit/',
+    getParentRoute: () => SavedFiltersFilterSlugRoute,
+  } as any)
 const ImportRulesRuleSlugEditIndexRoute =
   ImportRulesRuleSlugEditIndexRouteImport.update({
     id: '/',
@@ -909,6 +943,18 @@ const TagsTagSlugViewAutofillRoute = TagsTagSlugViewAutofillRouteImport.update({
   path: '/autofill',
   getParentRoute: () => TagsTagSlugViewRoute,
 } as any)
+const SavedFiltersFilterSlugEditGeneralRoute =
+  SavedFiltersFilterSlugEditGeneralRouteImport.update({
+    id: '/edit/general',
+    path: '/edit/general',
+    getParentRoute: () => SavedFiltersFilterSlugRoute,
+  } as any)
+const SavedFiltersFilterSlugViewGeneralRoute =
+  SavedFiltersFilterSlugViewGeneralRouteImport.update({
+    id: '/_view/general',
+    path: '/general',
+    getParentRoute: () => SavedFiltersFilterSlugRoute,
+  } as any)
 const ImportRulesRuleSlugEditGeneralRoute =
   ImportRulesRuleSlugEditGeneralRouteImport.update({
     id: '/general',
@@ -1452,6 +1498,7 @@ export interface FileRoutesByFullPath {
   '/import-rules': typeof ImportRulesRouteWithChildren
   '/inbox': typeof InboxRouteWithChildren
   '/quick-add': typeof QuickAddRoute
+  '/saved-filters': typeof SavedFiltersRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/tags': typeof TagsRouteWithChildren
   '/autofill/$ruleSlug': typeof AutofillRuleSlugRouteWithChildren
@@ -1462,6 +1509,7 @@ export interface FileRoutesByFullPath {
   '/custom-properties/new': typeof CustomPropertiesNewRoute
   '/import-rules/$ruleSlug': typeof ImportRulesRuleSlugRouteWithChildren
   '/inbox/new': typeof InboxNewRoute
+  '/saved-filters/$filterSlug': typeof SavedFiltersFilterSlugRouteWithChildren
   '/settings/advanced': typeof SettingsAdvancedRoute
   '/settings/autofill': typeof SettingsAutofillRoute
   '/settings/automations': typeof SettingsAutomationsRoute
@@ -1495,6 +1543,7 @@ export interface FileRoutesByFullPath {
   '/custom-properties/': typeof CustomPropertiesIndexRoute
   '/import-rules/': typeof ImportRulesIndexRoute
   '/inbox/': typeof InboxIndexRoute
+  '/saved-filters/': typeof SavedFiltersIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/tags/': typeof TagsIndexRoute
   '/autofill/$ruleSlug/edit': typeof AutofillRuleSlugEditRouteWithChildren
@@ -1516,6 +1565,7 @@ export interface FileRoutesByFullPath {
   '/categories/$categorySlug/': typeof CategoriesCategorySlugIndexRoute
   '/custom-properties/$propertySlug/': typeof CustomPropertiesPropertySlugIndexRoute
   '/import-rules/$ruleSlug/': typeof ImportRulesRuleSlugIndexRoute
+  '/saved-filters/$filterSlug/': typeof SavedFiltersFilterSlugIndexRoute
   '/tags/$tagSlug/': typeof TagsTagSlugIndexRoute
   '/taxonomies/authors/': typeof TaxonomiesAuthorsIndexRoute
   '/taxonomies/media-types/': typeof TaxonomiesMediaTypesIndexRoute
@@ -1566,6 +1616,8 @@ export interface FileRoutesByFullPath {
   '/import-rules/$ruleSlug/general': typeof ImportRulesRuleSlugViewGeneralRoute
   '/import-rules/$ruleSlug/edit/conditions': typeof ImportRulesRuleSlugEditConditionsRoute
   '/import-rules/$ruleSlug/edit/general': typeof ImportRulesRuleSlugEditGeneralRoute
+  '/saved-filters/$filterSlug/general': typeof SavedFiltersFilterSlugViewGeneralRoute
+  '/saved-filters/$filterSlug/edit/general': typeof SavedFiltersFilterSlugEditGeneralRoute
   '/tags/$tagSlug/autofill': typeof TagsTagSlugViewAutofillRoute
   '/tags/$tagSlug/categories': typeof TagsTagSlugViewCategoriesRoute
   '/tags/$tagSlug/display-rules': typeof TagsTagSlugViewDisplayRulesRoute
@@ -1588,6 +1640,7 @@ export interface FileRoutesByFullPath {
   '/categories/$categorySlug/edit/': typeof CategoriesCategorySlugEditIndexRoute
   '/custom-properties/$propertySlug/edit/': typeof CustomPropertiesPropertySlugEditIndexRoute
   '/import-rules/$ruleSlug/edit/': typeof ImportRulesRuleSlugEditIndexRoute
+  '/saved-filters/$filterSlug/edit/': typeof SavedFiltersFilterSlugEditIndexRoute
   '/tags/$tagSlug/edit/': typeof TagsTagSlugEditIndexRoute
   '/taxonomies/authors/$authorSlug/': typeof TaxonomiesAuthorsAuthorSlugIndexRoute
   '/taxonomies/media-types/$mediaTypeSlug/': typeof TaxonomiesMediaTypesMediaTypeSlugIndexRoute
@@ -1677,6 +1730,7 @@ export interface FileRoutesByTo {
   '/custom-properties': typeof CustomPropertiesIndexRoute
   '/import-rules': typeof ImportRulesIndexRoute
   '/inbox': typeof InboxIndexRoute
+  '/saved-filters': typeof SavedFiltersIndexRoute
   '/settings': typeof SettingsIndexRoute
   '/tags': typeof TagsIndexRoute
   '/autofill/$ruleSlug': typeof AutofillRuleSlugIndexRoute
@@ -1685,6 +1739,7 @@ export interface FileRoutesByTo {
   '/import-rules/$ruleSlug': typeof ImportRulesRuleSlugIndexRoute
   '/tags/$tagSlug': typeof TagsTagSlugIndexRoute
   '/bookmarks/$bookmarkId': typeof BookmarksBookmarkIdIndexRoute
+  '/saved-filters/$filterSlug': typeof SavedFiltersFilterSlugIndexRoute
   '/taxonomies/authors': typeof TaxonomiesAuthorsIndexRoute
   '/taxonomies/media-types': typeof TaxonomiesMediaTypesIndexRoute
   '/taxonomies/newsletters': typeof TaxonomiesNewslettersIndexRoute
@@ -1734,6 +1789,8 @@ export interface FileRoutesByTo {
   '/import-rules/$ruleSlug/general': typeof ImportRulesRuleSlugViewGeneralRoute
   '/import-rules/$ruleSlug/edit/conditions': typeof ImportRulesRuleSlugEditConditionsRoute
   '/import-rules/$ruleSlug/edit/general': typeof ImportRulesRuleSlugEditGeneralRoute
+  '/saved-filters/$filterSlug/general': typeof SavedFiltersFilterSlugViewGeneralRoute
+  '/saved-filters/$filterSlug/edit/general': typeof SavedFiltersFilterSlugEditGeneralRoute
   '/tags/$tagSlug/autofill': typeof TagsTagSlugViewAutofillRoute
   '/tags/$tagSlug/categories': typeof TagsTagSlugViewCategoriesRoute
   '/tags/$tagSlug/display-rules': typeof TagsTagSlugViewDisplayRulesRoute
@@ -1758,6 +1815,7 @@ export interface FileRoutesByTo {
   '/categories/$categorySlug/edit': typeof CategoriesCategorySlugEditIndexRoute
   '/custom-properties/$propertySlug/edit': typeof CustomPropertiesPropertySlugEditIndexRoute
   '/import-rules/$ruleSlug/edit': typeof ImportRulesRuleSlugEditIndexRoute
+  '/saved-filters/$filterSlug/edit': typeof SavedFiltersFilterSlugEditIndexRoute
   '/tags/$tagSlug/edit': typeof TagsTagSlugEditIndexRoute
   '/taxonomies/authors/$authorSlug/general': typeof TaxonomiesAuthorsAuthorSlugViewGeneralRoute
   '/taxonomies/authors/$authorSlug/publishers': typeof TaxonomiesAuthorsAuthorSlugViewPublishersRoute
@@ -1819,6 +1877,7 @@ export interface FileRoutesById {
   '/import-rules': typeof ImportRulesRouteWithChildren
   '/inbox': typeof InboxRouteWithChildren
   '/quick-add': typeof QuickAddRoute
+  '/saved-filters': typeof SavedFiltersRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/tags': typeof TagsRouteWithChildren
   '/autofill/$ruleSlug': typeof AutofillRuleSlugRouteWithChildren
@@ -1829,6 +1888,7 @@ export interface FileRoutesById {
   '/custom-properties/new': typeof CustomPropertiesNewRoute
   '/import-rules/$ruleSlug': typeof ImportRulesRuleSlugRouteWithChildren
   '/inbox/new': typeof InboxNewRoute
+  '/saved-filters/$filterSlug': typeof SavedFiltersFilterSlugRouteWithChildren
   '/settings/advanced': typeof SettingsAdvancedRoute
   '/settings/autofill': typeof SettingsAutofillRoute
   '/settings/automations': typeof SettingsAutomationsRoute
@@ -1862,6 +1922,7 @@ export interface FileRoutesById {
   '/custom-properties/': typeof CustomPropertiesIndexRoute
   '/import-rules/': typeof ImportRulesIndexRoute
   '/inbox/': typeof InboxIndexRoute
+  '/saved-filters/': typeof SavedFiltersIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/tags/': typeof TagsIndexRoute
   '/autofill/$ruleSlug/_view': typeof AutofillRuleSlugViewRouteWithChildren
@@ -1888,6 +1949,7 @@ export interface FileRoutesById {
   '/categories/$categorySlug/': typeof CategoriesCategorySlugIndexRoute
   '/custom-properties/$propertySlug/': typeof CustomPropertiesPropertySlugIndexRoute
   '/import-rules/$ruleSlug/': typeof ImportRulesRuleSlugIndexRoute
+  '/saved-filters/$filterSlug/': typeof SavedFiltersFilterSlugIndexRoute
   '/tags/$tagSlug/': typeof TagsTagSlugIndexRoute
   '/taxonomies/authors/': typeof TaxonomiesAuthorsIndexRoute
   '/taxonomies/media-types/': typeof TaxonomiesMediaTypesIndexRoute
@@ -1938,6 +2000,8 @@ export interface FileRoutesById {
   '/import-rules/$ruleSlug/_view/general': typeof ImportRulesRuleSlugViewGeneralRoute
   '/import-rules/$ruleSlug/edit/conditions': typeof ImportRulesRuleSlugEditConditionsRoute
   '/import-rules/$ruleSlug/edit/general': typeof ImportRulesRuleSlugEditGeneralRoute
+  '/saved-filters/$filterSlug/_view/general': typeof SavedFiltersFilterSlugViewGeneralRoute
+  '/saved-filters/$filterSlug/edit/general': typeof SavedFiltersFilterSlugEditGeneralRoute
   '/tags/$tagSlug/_view/autofill': typeof TagsTagSlugViewAutofillRoute
   '/tags/$tagSlug/_view/categories': typeof TagsTagSlugViewCategoriesRoute
   '/tags/$tagSlug/_view/display-rules': typeof TagsTagSlugViewDisplayRulesRoute
@@ -1968,6 +2032,7 @@ export interface FileRoutesById {
   '/categories/$categorySlug/edit/': typeof CategoriesCategorySlugEditIndexRoute
   '/custom-properties/$propertySlug/edit/': typeof CustomPropertiesPropertySlugEditIndexRoute
   '/import-rules/$ruleSlug/edit/': typeof ImportRulesRuleSlugEditIndexRoute
+  '/saved-filters/$filterSlug/edit/': typeof SavedFiltersFilterSlugEditIndexRoute
   '/tags/$tagSlug/edit/': typeof TagsTagSlugEditIndexRoute
   '/taxonomies/authors/$authorSlug/': typeof TaxonomiesAuthorsAuthorSlugIndexRoute
   '/taxonomies/media-types/$mediaTypeSlug/': typeof TaxonomiesMediaTypesMediaTypeSlugIndexRoute
@@ -2038,6 +2103,7 @@ export interface FileRouteTypes {
     | '/import-rules'
     | '/inbox'
     | '/quick-add'
+    | '/saved-filters'
     | '/settings'
     | '/tags'
     | '/autofill/$ruleSlug'
@@ -2048,6 +2114,7 @@ export interface FileRouteTypes {
     | '/custom-properties/new'
     | '/import-rules/$ruleSlug'
     | '/inbox/new'
+    | '/saved-filters/$filterSlug'
     | '/settings/advanced'
     | '/settings/autofill'
     | '/settings/automations'
@@ -2081,6 +2148,7 @@ export interface FileRouteTypes {
     | '/custom-properties/'
     | '/import-rules/'
     | '/inbox/'
+    | '/saved-filters/'
     | '/settings/'
     | '/tags/'
     | '/autofill/$ruleSlug/edit'
@@ -2102,6 +2170,7 @@ export interface FileRouteTypes {
     | '/categories/$categorySlug/'
     | '/custom-properties/$propertySlug/'
     | '/import-rules/$ruleSlug/'
+    | '/saved-filters/$filterSlug/'
     | '/tags/$tagSlug/'
     | '/taxonomies/authors/'
     | '/taxonomies/media-types/'
@@ -2152,6 +2221,8 @@ export interface FileRouteTypes {
     | '/import-rules/$ruleSlug/general'
     | '/import-rules/$ruleSlug/edit/conditions'
     | '/import-rules/$ruleSlug/edit/general'
+    | '/saved-filters/$filterSlug/general'
+    | '/saved-filters/$filterSlug/edit/general'
     | '/tags/$tagSlug/autofill'
     | '/tags/$tagSlug/categories'
     | '/tags/$tagSlug/display-rules'
@@ -2174,6 +2245,7 @@ export interface FileRouteTypes {
     | '/categories/$categorySlug/edit/'
     | '/custom-properties/$propertySlug/edit/'
     | '/import-rules/$ruleSlug/edit/'
+    | '/saved-filters/$filterSlug/edit/'
     | '/tags/$tagSlug/edit/'
     | '/taxonomies/authors/$authorSlug/'
     | '/taxonomies/media-types/$mediaTypeSlug/'
@@ -2263,6 +2335,7 @@ export interface FileRouteTypes {
     | '/custom-properties'
     | '/import-rules'
     | '/inbox'
+    | '/saved-filters'
     | '/settings'
     | '/tags'
     | '/autofill/$ruleSlug'
@@ -2271,6 +2344,7 @@ export interface FileRouteTypes {
     | '/import-rules/$ruleSlug'
     | '/tags/$tagSlug'
     | '/bookmarks/$bookmarkId'
+    | '/saved-filters/$filterSlug'
     | '/taxonomies/authors'
     | '/taxonomies/media-types'
     | '/taxonomies/newsletters'
@@ -2320,6 +2394,8 @@ export interface FileRouteTypes {
     | '/import-rules/$ruleSlug/general'
     | '/import-rules/$ruleSlug/edit/conditions'
     | '/import-rules/$ruleSlug/edit/general'
+    | '/saved-filters/$filterSlug/general'
+    | '/saved-filters/$filterSlug/edit/general'
     | '/tags/$tagSlug/autofill'
     | '/tags/$tagSlug/categories'
     | '/tags/$tagSlug/display-rules'
@@ -2344,6 +2420,7 @@ export interface FileRouteTypes {
     | '/categories/$categorySlug/edit'
     | '/custom-properties/$propertySlug/edit'
     | '/import-rules/$ruleSlug/edit'
+    | '/saved-filters/$filterSlug/edit'
     | '/tags/$tagSlug/edit'
     | '/taxonomies/authors/$authorSlug/general'
     | '/taxonomies/authors/$authorSlug/publishers'
@@ -2404,6 +2481,7 @@ export interface FileRouteTypes {
     | '/import-rules'
     | '/inbox'
     | '/quick-add'
+    | '/saved-filters'
     | '/settings'
     | '/tags'
     | '/autofill/$ruleSlug'
@@ -2414,6 +2492,7 @@ export interface FileRouteTypes {
     | '/custom-properties/new'
     | '/import-rules/$ruleSlug'
     | '/inbox/new'
+    | '/saved-filters/$filterSlug'
     | '/settings/advanced'
     | '/settings/autofill'
     | '/settings/automations'
@@ -2447,6 +2526,7 @@ export interface FileRouteTypes {
     | '/custom-properties/'
     | '/import-rules/'
     | '/inbox/'
+    | '/saved-filters/'
     | '/settings/'
     | '/tags/'
     | '/autofill/$ruleSlug/_view'
@@ -2473,6 +2553,7 @@ export interface FileRouteTypes {
     | '/categories/$categorySlug/'
     | '/custom-properties/$propertySlug/'
     | '/import-rules/$ruleSlug/'
+    | '/saved-filters/$filterSlug/'
     | '/tags/$tagSlug/'
     | '/taxonomies/authors/'
     | '/taxonomies/media-types/'
@@ -2523,6 +2604,8 @@ export interface FileRouteTypes {
     | '/import-rules/$ruleSlug/_view/general'
     | '/import-rules/$ruleSlug/edit/conditions'
     | '/import-rules/$ruleSlug/edit/general'
+    | '/saved-filters/$filterSlug/_view/general'
+    | '/saved-filters/$filterSlug/edit/general'
     | '/tags/$tagSlug/_view/autofill'
     | '/tags/$tagSlug/_view/categories'
     | '/tags/$tagSlug/_view/display-rules'
@@ -2553,6 +2636,7 @@ export interface FileRouteTypes {
     | '/categories/$categorySlug/edit/'
     | '/custom-properties/$propertySlug/edit/'
     | '/import-rules/$ruleSlug/edit/'
+    | '/saved-filters/$filterSlug/edit/'
     | '/tags/$tagSlug/edit/'
     | '/taxonomies/authors/$authorSlug/'
     | '/taxonomies/media-types/$mediaTypeSlug/'
@@ -2622,6 +2706,7 @@ export interface RootRouteChildren {
   ImportRulesRoute: typeof ImportRulesRouteWithChildren
   InboxRoute: typeof InboxRouteWithChildren
   QuickAddRoute: typeof QuickAddRoute
+  SavedFiltersRoute: typeof SavedFiltersRouteWithChildren
   SettingsRoute: typeof SettingsRouteWithChildren
   TagsRoute: typeof TagsRouteWithChildren
   TaxonomiesAuthorsRoute: typeof TaxonomiesAuthorsRouteWithChildren
@@ -2648,6 +2733,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/saved-filters': {
+      id: '/saved-filters'
+      path: '/saved-filters'
+      fullPath: '/saved-filters'
+      preLoaderRoute: typeof SavedFiltersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/quick-add': {
@@ -2733,6 +2825,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/settings/'
       preLoaderRoute: typeof SettingsIndexRouteImport
       parentRoute: typeof SettingsRoute
+    }
+    '/saved-filters/': {
+      id: '/saved-filters/'
+      path: '/'
+      fullPath: '/saved-filters/'
+      preLoaderRoute: typeof SavedFiltersIndexRouteImport
+      parentRoute: typeof SavedFiltersRoute
     }
     '/inbox/': {
       id: '/inbox/'
@@ -2965,6 +3064,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsAdvancedRouteImport
       parentRoute: typeof SettingsRoute
     }
+    '/saved-filters/$filterSlug': {
+      id: '/saved-filters/$filterSlug'
+      path: '/$filterSlug'
+      fullPath: '/saved-filters/$filterSlug'
+      preLoaderRoute: typeof SavedFiltersFilterSlugRouteImport
+      parentRoute: typeof SavedFiltersRoute
+    }
     '/inbox/new': {
       id: '/inbox/new'
       path: '/new'
@@ -3083,6 +3189,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/tags/$tagSlug/'
       preLoaderRoute: typeof TagsTagSlugIndexRouteImport
       parentRoute: typeof TagsTagSlugRoute
+    }
+    '/saved-filters/$filterSlug/': {
+      id: '/saved-filters/$filterSlug/'
+      path: '/'
+      fullPath: '/saved-filters/$filterSlug/'
+      preLoaderRoute: typeof SavedFiltersFilterSlugIndexRouteImport
+      parentRoute: typeof SavedFiltersFilterSlugRoute
     }
     '/import-rules/$ruleSlug/': {
       id: '/import-rules/$ruleSlug/'
@@ -3315,6 +3428,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TagsTagSlugEditIndexRouteImport
       parentRoute: typeof TagsTagSlugEditRoute
     }
+    '/saved-filters/$filterSlug/edit/': {
+      id: '/saved-filters/$filterSlug/edit/'
+      path: '/edit'
+      fullPath: '/saved-filters/$filterSlug/edit/'
+      preLoaderRoute: typeof SavedFiltersFilterSlugEditIndexRouteImport
+      parentRoute: typeof SavedFiltersFilterSlugRoute
+    }
     '/import-rules/$ruleSlug/edit/': {
       id: '/import-rules/$ruleSlug/edit/'
       path: '/'
@@ -3524,6 +3644,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/tags/$tagSlug/autofill'
       preLoaderRoute: typeof TagsTagSlugViewAutofillRouteImport
       parentRoute: typeof TagsTagSlugViewRoute
+    }
+    '/saved-filters/$filterSlug/edit/general': {
+      id: '/saved-filters/$filterSlug/edit/general'
+      path: '/edit/general'
+      fullPath: '/saved-filters/$filterSlug/edit/general'
+      preLoaderRoute: typeof SavedFiltersFilterSlugEditGeneralRouteImport
+      parentRoute: typeof SavedFiltersFilterSlugRoute
+    }
+    '/saved-filters/$filterSlug/_view/general': {
+      id: '/saved-filters/$filterSlug/_view/general'
+      path: '/general'
+      fullPath: '/saved-filters/$filterSlug/general'
+      preLoaderRoute: typeof SavedFiltersFilterSlugViewGeneralRouteImport
+      parentRoute: typeof SavedFiltersFilterSlugRoute
     }
     '/import-rules/$ruleSlug/edit/general': {
       id: '/import-rules/$ruleSlug/edit/general'
@@ -4538,6 +4672,42 @@ const InboxRouteChildren: InboxRouteChildren = {
 
 const InboxRouteWithChildren = InboxRoute._addFileChildren(InboxRouteChildren)
 
+interface SavedFiltersFilterSlugRouteChildren {
+  SavedFiltersFilterSlugIndexRoute: typeof SavedFiltersFilterSlugIndexRoute
+  SavedFiltersFilterSlugViewGeneralRoute: typeof SavedFiltersFilterSlugViewGeneralRoute
+  SavedFiltersFilterSlugEditGeneralRoute: typeof SavedFiltersFilterSlugEditGeneralRoute
+  SavedFiltersFilterSlugEditIndexRoute: typeof SavedFiltersFilterSlugEditIndexRoute
+}
+
+const SavedFiltersFilterSlugRouteChildren: SavedFiltersFilterSlugRouteChildren =
+  {
+    SavedFiltersFilterSlugIndexRoute: SavedFiltersFilterSlugIndexRoute,
+    SavedFiltersFilterSlugViewGeneralRoute:
+      SavedFiltersFilterSlugViewGeneralRoute,
+    SavedFiltersFilterSlugEditGeneralRoute:
+      SavedFiltersFilterSlugEditGeneralRoute,
+    SavedFiltersFilterSlugEditIndexRoute: SavedFiltersFilterSlugEditIndexRoute,
+  }
+
+const SavedFiltersFilterSlugRouteWithChildren =
+  SavedFiltersFilterSlugRoute._addFileChildren(
+    SavedFiltersFilterSlugRouteChildren,
+  )
+
+interface SavedFiltersRouteChildren {
+  SavedFiltersFilterSlugRoute: typeof SavedFiltersFilterSlugRouteWithChildren
+  SavedFiltersIndexRoute: typeof SavedFiltersIndexRoute
+}
+
+const SavedFiltersRouteChildren: SavedFiltersRouteChildren = {
+  SavedFiltersFilterSlugRoute: SavedFiltersFilterSlugRouteWithChildren,
+  SavedFiltersIndexRoute: SavedFiltersIndexRoute,
+}
+
+const SavedFiltersRouteWithChildren = SavedFiltersRoute._addFileChildren(
+  SavedFiltersRouteChildren,
+)
+
 interface SettingsRouteChildren {
   SettingsAdvancedRoute: typeof SettingsAdvancedRoute
   SettingsAutofillRoute: typeof SettingsAutofillRoute
@@ -5290,6 +5460,7 @@ const rootRouteChildren: RootRouteChildren = {
   ImportRulesRoute: ImportRulesRouteWithChildren,
   InboxRoute: InboxRouteWithChildren,
   QuickAddRoute: QuickAddRoute,
+  SavedFiltersRoute: SavedFiltersRouteWithChildren,
   SettingsRoute: SettingsRouteWithChildren,
   TagsRoute: TagsRouteWithChildren,
   TaxonomiesAuthorsRoute: TaxonomiesAuthorsRouteWithChildren,

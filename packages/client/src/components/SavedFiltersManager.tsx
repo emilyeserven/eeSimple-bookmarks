@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { Globe, Trash2 } from "lucide-react";
 
 import {
@@ -13,7 +14,7 @@ import { RowCard } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
-/** Lists all saved filters with delete + "viewable online" controls; used on Settings → Saved Filters. */
+/** Lists all saved filters with delete + "viewable online" controls; used on Settings → Saved Filters and /saved-filters. */
 export function SavedFiltersManager() {
   const {
     data: filters = [], isLoading, error,
@@ -35,6 +36,17 @@ export function SavedFiltersManager() {
     <div className="space-y-4">
       {filters.map((filter) => {
         const checkboxId = `viewable-online-${filter.id}`;
+        const nameContent = (
+          <>
+            <p className="truncate font-medium">{filter.name}</p>
+            {filter.description
+              ? <p className="truncate text-sm text-muted-foreground">{filter.description}</p>
+              : null}
+            <p className="text-xs text-muted-foreground">
+              {summarizeBookmarkSearch(filter.filters)}
+            </p>
+          </>
+        );
         return (
           <RowCard
             key={filter.id}
@@ -42,13 +54,22 @@ export function SavedFiltersManager() {
           >
             <div className="min-w-0 space-y-2">
               <div className="space-y-1">
-                <p className="truncate font-medium">{filter.name}</p>
-                {filter.description
-                  ? <p className="truncate text-sm text-muted-foreground">{filter.description}</p>
-                  : null}
-                <p className="text-xs text-muted-foreground">
-                  {summarizeBookmarkSearch(filter.filters)}
-                </p>
+                {filter.slug
+                  ? (
+                    <Link
+                      to="/saved-filters/$filterSlug"
+                      params={{
+                        filterSlug: filter.slug,
+                      }}
+                      className="
+                        block
+                        hover:underline
+                      "
+                    >
+                      {nameContent}
+                    </Link>
+                  )
+                  : nameContent}
               </div>
               <div className="flex items-center gap-2">
                 <Checkbox
@@ -68,8 +89,8 @@ export function SavedFiltersManager() {
                         onSuccess: () =>
                           notifySuccess(
                             viewableOnline
-                              ? `“${filter.name}” is now a sidebar shortcut`
-                              : `“${filter.name}” is no longer a sidebar shortcut`,
+                              ? `"${filter.name}" is now a sidebar shortcut`
+                              : `"${filter.name}" is no longer a sidebar shortcut`,
                           ),
                       },
                     );

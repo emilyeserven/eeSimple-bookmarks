@@ -15,6 +15,7 @@ import { propertyContentType } from "./contentTypes/property";
 import { propertyGroupContentType } from "./contentTypes/propertyGroup";
 import { publisherContentType } from "./contentTypes/publisher";
 import { relationshipTypeContentType } from "./contentTypes/relationshipType";
+import { savedFilterContentType } from "./contentTypes/savedFilter";
 import { tagContentType } from "./contentTypes/tag";
 import { websiteContentType } from "./contentTypes/website";
 import { youtubeChannelContentType } from "./contentTypes/youtubeChannel";
@@ -37,6 +38,7 @@ export const PANEL_CONTENT_TYPES: PanelContentTypeDef[] = [
   relationshipTypeContentType,
   autofillContentType,
   importRuleContentType,
+  savedFilterContentType,
 ];
 
 /** Look up a content type's definition. */

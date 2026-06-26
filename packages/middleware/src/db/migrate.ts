@@ -729,6 +729,31 @@ const migrations: RuntimeMigration[] = [
         ADD COLUMN IF NOT EXISTS "auto_apply_title_tags" boolean NOT NULL DEFAULT false
     `),
   },
+  {
+    // `saved_filters.slug` carries a UNIQUE constraint and was added to a table that may already have
+    // rows. `drizzle-kit push` won't add a new column + unique constraint to a populated table without
+    // an interactive truncation confirmation, so pre-apply the column and constraint here. The
+    // boot-time `backfillSavedFilterSlugs()` step fills the NULL slugs.
+    //
+    // NOTE: each `db.execute` MUST contain a single SQL statement (the extended protocol runs only the
+    // first of a multi-statement string).
+    name: "add saved_filters.slug column + unique constraint",
+    run: async (db) => {
+      await db.execute(sql`
+        ALTER TABLE IF EXISTS "saved_filters" ADD COLUMN IF NOT EXISTS "slug" text
+      `);
+      await db.execute(sql`
+        DO $$ BEGIN
+          IF NOT EXISTS (
+            SELECT 1 FROM pg_constraint WHERE conname = 'saved_filters_slug_unique'
+          ) THEN
+            ALTER TABLE IF EXISTS "saved_filters"
+              ADD CONSTRAINT "saved_filters_slug_unique" UNIQUE ("slug");
+          END IF;
+        END $$
+      `);
+    },
+  },
 ];
 
 async function main(): Promise<void> {

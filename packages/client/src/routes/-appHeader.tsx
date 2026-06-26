@@ -29,6 +29,7 @@ const LABEL_OVERRIDES: Record<string, string> = {
   "youtube-channels": "YouTube Channels",
   "autofill": "Autofill Rules",
   "import-rules": "Import Rules",
+  "saved-filters": "Saved Filters",
   "ai-summarization": "AI Summarization",
 };
 
@@ -173,6 +174,12 @@ const TAXONOMY_DESCRIPTORS: readonly TaxonomyDescriptor[] = [
       entity: "import-rule",
       currentSlug: slug,
     }),
+  },
+  {
+    prefix: "/saved-filters",
+    listLabel: "Saved Filters",
+    singular: "Saved Filter",
+    slugIndex: 1,
   },
 ] as const;
 

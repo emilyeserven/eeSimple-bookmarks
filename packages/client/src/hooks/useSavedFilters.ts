@@ -1,4 +1,5 @@
 import type {
+  BulkDeleteResult,
   CreateSavedFilterInput,
   UpdateSavedFilterInput,
 } from "@eesimple/types";
@@ -16,6 +17,14 @@ export function useSavedFilters() {
     queryKey: SAVED_FILTERS_KEY,
     queryFn: savedFiltersApi.list,
   });
+}
+
+export function useSavedFilterBySlug(slug: string) {
+  const query = useSavedFilters();
+  return {
+    ...query,
+    savedFilter: (query.data ?? []).find(f => f.slug === slug),
+  };
 }
 
 export function useCreateSavedFilter() {
@@ -64,6 +73,21 @@ export function useDeleteSavedFilter() {
     },
     onError: (err: Error) => {
       notifyError(describeError(err, "Failed to delete filter"));
+    },
+  });
+}
+
+export function useBulkDeleteSavedFilters() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (ids: string[]) => savedFiltersApi.bulkDelete(ids) as Promise<BulkDeleteResult[]>,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: SAVED_FILTERS_KEY,
+      });
+    },
+    onError: (err: Error) => {
+      notifyError(describeError(err, "Failed to delete filters"));
     },
   });
 }
