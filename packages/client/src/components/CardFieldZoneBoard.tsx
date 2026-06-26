@@ -738,7 +738,7 @@ function ImagePlacementControls({
             clickableInOverlay: checked === true,
           })}
         />
-        Link to bookmark
+        Link to item page
       </label>
     </div>
   );

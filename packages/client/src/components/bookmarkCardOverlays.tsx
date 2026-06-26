@@ -3,6 +3,7 @@ import type { BookmarkValueItem, ResolvedFieldPlacement } from "../lib/bookmarkC
 import type { Bookmark, Category } from "@eesimple/types";
 import type { ReactNode } from "react";
 
+import { Link } from "@tanstack/react-router";
 import { Globe, MonitorPlay } from "lucide-react";
 
 import { StarRating } from "./StarRating";
@@ -124,20 +125,77 @@ function valueItemOverlayNode(item: BookmarkValueItem): ReactNode {
 }
 
 /**
- * Wrap an overlay badge in an external link to the bookmark's URL. Stops card-level click
- * propagation so the link click doesn't also trigger the card's navigation.
+ * Wrap an overlay badge in an internal `<Link>` to the entity's view page, or return the badge
+ * unchanged when the field has no entity page (title / description / tags) or no entity is present
+ * on this bookmark. Stops card-level click propagation so the link click stays local.
  */
-function overlayLink(node: ReactNode, url: string): ReactNode {
-  return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
-      onClick={e => e.stopPropagation()}
-    >
-      {node}
-    </a>
-  );
+function overlayEntityLink(
+  node: ReactNode,
+  bookmark: Bookmark,
+  fieldKey: string,
+  category: Category | undefined,
+): ReactNode {
+  const stopProp = (e: React.MouseEvent) => e.stopPropagation();
+  switch (fieldKey) {
+    case "category":
+      return category
+        ? (
+          <Link
+            to="/categories/$categorySlug"
+            params={{
+              categorySlug: category.slug,
+            }}
+            onClick={stopProp}
+          >
+            {node}
+          </Link>
+        )
+        : node;
+    case "website":
+      return bookmark.website
+        ? (
+          <Link
+            to="/taxonomies/websites/$websiteSlug"
+            params={{
+              websiteSlug: bookmark.website.slug,
+            }}
+            onClick={stopProp}
+          >
+            {node}
+          </Link>
+        )
+        : node;
+    case "mediaType":
+      return bookmark.mediaType
+        ? (
+          <Link
+            to="/taxonomies/media-types/$mediaTypeSlug"
+            params={{
+              mediaTypeSlug: bookmark.mediaType.slug,
+            }}
+            onClick={stopProp}
+          >
+            {node}
+          </Link>
+        )
+        : node;
+    case "youtubeChannel":
+      return bookmark.youtubeChannel
+        ? (
+          <Link
+            to="/taxonomies/youtube-channels/$channelSlug"
+            params={{
+              channelSlug: bookmark.youtubeChannel.slug,
+            }}
+            onClick={stopProp}
+          >
+            {node}
+          </Link>
+        )
+        : node;
+    default:
+      return node;
+  }
 }
 
 /** Wrap an interactive action node (Open Link / More) in a translucent corner container. */
@@ -175,15 +233,12 @@ export function buildCardOverlayItems(
     if (item.corner === null) continue;
     const node = valueItemOverlayNode(item);
     if (!node) continue;
-    const finalNode = item.clickableInOverlay && bookmark.url
-      ? overlayLink(node, bookmark.url)
-      : node;
     overlayItems.push({
       key: item.id,
       corner: item.corner,
       scale: item.scale,
       mobileScale: item.mobileScale,
-      node: finalNode,
+      node,
     });
   }
   // The interactive header actions render as their button/menu node (hideIcon/hideLabel don't apply —
@@ -213,8 +268,8 @@ export function buildCardOverlayItems(
     const text = placement.hideLabel ? null : label;
     if (!icon && !text) continue;
     const badge = overlayBadge(icon, text);
-    const finalBadge = placement.clickableInOverlay && bookmark.url
-      ? overlayLink(badge, bookmark.url)
+    const finalBadge = placement.clickableInOverlay
+      ? overlayEntityLink(badge, bookmark, field.key, bookmarkCategory)
       : badge;
     overlayItems.push({
       key: field.key,
