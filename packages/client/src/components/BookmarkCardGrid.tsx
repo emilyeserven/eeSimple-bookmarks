@@ -33,7 +33,9 @@ export function BookmarkCardGrid({
   onToggleSelect,
 }: BookmarkCardGridProps) {
   const deleteBookmark = useDeleteBookmark();
-  const resolveDisplay = useResolveCardDisplay();
+  const {
+    resolve: resolveDisplay, isPending: displayPending,
+  } = useResolveCardDisplay();
 
   return (
     <div
@@ -62,7 +64,7 @@ export function BookmarkCardGrid({
                 cardZoneLayouts={display.cardZoneLayouts}
                 imageLeft={(columns === 1 || columns === 2) && display.imageLayout === "side"}
                 imageMode={display.imageMode}
-                imageVisibility={display.imageVisibility}
+                imageVisibility={displayPending ? "off" : display.imageVisibility}
                 hideWebsiteForYouTube={display.hideWebsiteForYouTube}
               />
             </RowCard>
