@@ -95,6 +95,31 @@ function HostedMetadataForm() {
 
   return (
     <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">
+        Use the hosted
+        {" "}
+        <a
+          href="https://microlink.io"
+          target="_blank"
+          rel="noreferrer"
+          className="underline underline-offset-2"
+        >
+          Microlink
+        </a>
+        {" "}
+        service or any compatible self-hosted endpoint. Sign up at
+        {" "}
+        <a
+          href="https://microlink.io/pricing"
+          target="_blank"
+          rel="noreferrer"
+          className="underline underline-offset-2"
+        >
+          microlink.io/pricing
+        </a>
+        {" "}
+        to get an API key (a free tier is available with rate limits). Each field saves on blur.
+      </p>
       <div className="space-y-1.5">
         <Label htmlFor="hm-endpoint">Endpoint URL</Label>
         <Input
@@ -105,6 +130,13 @@ function HostedMetadataForm() {
           onChange={e => setEndpoint(e.target.value)}
           onBlur={() => saveField("endpoint")}
         />
+        <p className="text-xs text-muted-foreground">
+          The base URL of the Microlink-compatible API. Use
+          {" "}
+          <code>https://api.microlink.io/</code>
+          {" "}
+          for the hosted service, or your self-hosted endpoint.
+        </p>
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="hm-provider">Provider label</Label>
@@ -116,6 +148,12 @@ function HostedMetadataForm() {
           onChange={e => setProvider(e.target.value)}
           onBlur={() => saveField("provider")}
         />
+        <p className="text-xs text-muted-foreground">
+          Display name shown next to the Active badge above (e.g.
+          {" "}
+          <code>microlink</code>
+          ). Does not affect behavior.
+        </p>
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="hm-apikey">API key</Label>
@@ -130,15 +168,21 @@ function HostedMetadataForm() {
           }}
           onBlur={() => saveField("apiKey")}
         />
-        {data && !data.encryptionEnabled && (
-          <p className="text-xs text-muted-foreground">
-            Set the
-            {" "}
-            <code>APP_SECRET</code>
-            {" "}
-            env var to encrypt this key at rest.
-          </p>
-        )}
+        <p className="text-xs text-muted-foreground">
+          {data?.hostedMetadataApiKeySet
+            ? "A key is stored — the value is never shown. Type a new key to replace it. To clear the stored key, type a single space and save."
+            : "Optional for the free tier. Find your key in the Microlink dashboard after signing up."}
+          {data && !data.encryptionEnabled && (
+            <>
+              {" "}
+              Set the
+              {" "}
+              <code>APP_SECRET</code>
+              {" "}
+              env var to encrypt this key at rest.
+            </>
+          )}
+        </p>
       </div>
     </div>
   );
