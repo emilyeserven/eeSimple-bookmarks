@@ -402,16 +402,21 @@ export function CommandPalette() {
     ? (categories.find(c => c.id === bookmark.categoryId)?.name ?? "Default")
     : null;
 
-  const booleanProperties = customProperties.filter(p => p.type === "boolean");
+  const booleanProperties = customProperties.filter(
+    p => p.type === "boolean" && p.editableViaCmdk,
+  );
   const choicesProperties = customProperties.filter(
-    p => p.type === "choices" && p.choicesItems.length > 0,
+    p => p.type === "choices" && p.choicesItems.length > 0 && p.editableViaCmdk,
   );
   const ratingProperties = customProperties.filter(
-    p => p.type === "ratingScale" && !p.ratingAllowHalf,
+    p => p.type === "ratingScale" && !p.ratingAllowHalf && p.editableViaCmdk,
   );
   const editableProperties = customProperties.filter(
-    p => p.type === "number" || p.type === "text" || p.type === "datetime"
-      || (p.type === "ratingScale" && p.ratingAllowHalf),
+    p => p.editableViaCmdk
+      && p.type !== "calculate"
+      && p.type !== "boolean"
+      && !(p.type === "choices" && p.choicesItems.length > 0)
+      && !(p.type === "ratingScale" && !p.ratingAllowHalf),
   );
 
   return (

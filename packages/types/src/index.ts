@@ -1614,6 +1614,8 @@ export interface CustomProperty {
   allMediaTypes: boolean;
   /** When true, the property's value can be edited inline from a bookmark card's "More" menu. */
   editableOnCard: boolean;
+  /** When true, the property appears in the CMD+K command palette for inline editing. */
+  editableViaCmdk: boolean;
   /** When true, the field shows in the main bookmark form; otherwise it lives under Advanced. Only applies when not `hiddenFromForm`. */
   showInForm: boolean;
   /** When true, the property's field is hidden from the bookmark form entirely (neither main nor Advanced). */
@@ -1681,6 +1683,8 @@ export interface CreateCustomPropertyInput {
   allMediaTypes?: boolean;
   /** When true, the property's value can be edited from a bookmark card's "More" menu. Defaults to false. */
   editableOnCard?: boolean;
+  /** When true, the property appears in the CMD+K command palette for inline editing. Defaults to false. */
+  editableViaCmdk?: boolean;
   /** When true, the field shows in the main bookmark form; otherwise it lives under Advanced. Only applies when not `hiddenFromForm`. */
   showInForm?: boolean;
   /** When true, the property's field is hidden from the bookmark form entirely. Defaults to false. */
