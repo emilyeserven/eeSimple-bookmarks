@@ -136,6 +136,9 @@ interface UiState {
   /** Transient: whether card-view selection mode is active per listing pageKey. Never persisted. */
   selectionMode: Record<string, boolean>;
   setSelectionMode: (pageKey: string, on: boolean) => void;
+  /** Transient: pageKey of the mounted listing that supports bulk multi-select (drives the header Select toggle), or null. Never persisted. */
+  bulkSelectPageKey: string | null;
+  setBulkSelectPageKey: (pageKey: string | null) => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -294,6 +297,10 @@ export const useUiStore = create<UiState>()(
             [pageKey]: [],
           },
       })),
+      bulkSelectPageKey: null,
+      setBulkSelectPageKey: pageKey => set({
+        bulkSelectPageKey: pageKey,
+      }),
     }),
     {
       name: "eesimple-ui",

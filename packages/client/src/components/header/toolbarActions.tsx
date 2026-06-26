@@ -14,6 +14,7 @@ import { BookmarkDetailLayoutPopover } from "@/components/BookmarkDetailLayoutPo
 import { DisplayOptionsPopover } from "@/components/DisplayOptionsPopover";
 import { FilterLocationControls } from "@/components/FilterLocationControls";
 import { FilterLocationPopover } from "@/components/FilterLocationPopover";
+import { BulkSelectMenuItem, HeaderBulkSelectButton } from "@/components/header/HeaderBulkSelectButton";
 import { FavoriteMenuItem, PinMenuItem, SearchControls } from "@/components/header/headerMenuItems";
 import { HeaderPinButton } from "@/components/HeaderPinButton";
 import { HeaderSettingsFavoriteButton } from "@/components/HeaderSettingsFavoriteButton";
@@ -51,6 +52,8 @@ export interface ToolbarContext {
   listingPage: { key: string;
     hasFilters: boolean;
     createAction?: () => void; } | null;
+  /** The selection pageKey of a mounted bulk-selectable listing, or null. Independent of `listingPage`. */
+  bulkSelectPageKey: string | null;
   isBookmarkDetail: boolean;
   bookmarkId: string;
   addChild: { kind: "tag" | "mediaType";
@@ -195,6 +198,19 @@ function displayOptionsAction(ctx: ToolbarContext): ToolbarAction | null {
           <ListingDisplayControls pageKey={pageKey} />
         </ResponsivePopover>
       ),
+    },
+  };
+}
+
+function bulkSelectAction(ctx: ToolbarContext): ToolbarAction | null {
+  if (!ctx.bulkSelectPageKey) return null;
+  const pageKey = ctx.bulkSelectPageKey;
+  return {
+    key: "bulk-select",
+    desktop: <HeaderBulkSelectButton pageKey={pageKey} />,
+    mobile: {
+      kind: "menuItem",
+      node: <BulkSelectMenuItem pageKey={pageKey} />,
     },
   };
 }
@@ -452,6 +468,7 @@ export function buildToolbarActions(ctx: ToolbarContext): ToolbarAction[] {
     searchAction(ctx),
     filterLocationAction(ctx),
     displayOptionsAction(ctx),
+    bulkSelectAction(ctx),
     bookmarkLayoutAction(ctx),
     viewDetailsAction(ctx),
     editBookmarkAction(ctx),

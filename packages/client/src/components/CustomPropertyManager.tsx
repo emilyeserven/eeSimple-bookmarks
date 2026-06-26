@@ -3,7 +3,6 @@ import type { CustomProperty } from "@eesimple/types";
 import { useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
-import { CheckSquare } from "lucide-react";
 
 import { AddCustomPropertyModal } from "./AddCustomPropertyModal";
 import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
@@ -15,12 +14,12 @@ import { useTableRowNav } from "./tables/useTableRowNav";
 import { useBulkDeleteCustomProperties, useCustomProperties } from "../hooks/useCustomProperties";
 import { useHeaderSearchFilter } from "../hooks/useHeaderSearchFilter";
 import { useSetListingPage } from "../hooks/useListingPage";
+import { useRegisterBulkSelect } from "../hooks/useRegisterBulkSelect";
 import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
 import { COLUMN_CLASS, useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
 import { TYPE_LABELS } from "../lib/propertyFormat";
 import { useListSelection } from "../lib/useListSelection";
 
-import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 
 /** Searchable listing of custom properties, with previews that link out to the view/create pages. */
@@ -48,6 +47,7 @@ export function CustomPropertyManager() {
 
   const deletableIds = filtered.filter(p => !p.builtIn).map(p => p.id);
   const selection = useListSelection("custom-properties-listing", deletableIds);
+  useRegisterBulkSelect("custom-properties-listing");
   const bulkDelete = useBulkDeleteCustomProperties();
 
   return (
@@ -67,21 +67,6 @@ export function CustomPropertyManager() {
           </p>
         )}
       />
-
-      {viewMode !== "table"
-        ? (
-          <div className="flex justify-end">
-            <Button
-              variant={selection.mode ? "secondary" : "outline"}
-              size="sm"
-              onClick={() => selection.setMode(!selection.mode)}
-            >
-              <CheckSquare className="size-4" />
-              {selection.mode ? "Done selecting" : "Select"}
-            </Button>
-          </div>
-        )
-        : null}
 
       <TaxonomyBulkBar
         selection={selection}

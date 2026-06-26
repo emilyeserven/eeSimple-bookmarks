@@ -77,6 +77,11 @@ interface CategoryPreviewCardProps {
    * `full` — the standalone view page body (no self-link), with read-only detail.
    */
   variant?: "row" | "full";
+  /** Row-variant bulk-selection wiring (ignored by `full`). */
+  selectable?: boolean;
+  selected?: boolean;
+  onSelectToggle?: () => void;
+  inSelectionMode?: boolean;
 }
 
 /**
@@ -85,7 +90,7 @@ interface CategoryPreviewCardProps {
  * listing (`row`) and the single category page (`full`), and reused by the right panel's View body.
  */
 export function CategoryPreviewCard({
-  category, variant = "full",
+  category, variant = "full", selectable, selected, onSelectToggle, inSelectionMode,
 }: CategoryPreviewCardProps) {
   const viewClick = useViewPanelClick();
   const editClick = useEditPanelClick();
@@ -94,6 +99,10 @@ export function CategoryPreviewCard({
     return (
       <li>
         <StandardListingCard
+          selectable={selectable}
+          selected={selected}
+          onSelectToggle={onSelectToggle}
+          inSelectionMode={inSelectionMode}
           icon={(
             <CategoryIcon
               name={category.icon}

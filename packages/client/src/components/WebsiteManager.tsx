@@ -3,7 +3,6 @@ import type { Website } from "@eesimple/types";
 import { useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
-import { CheckSquare } from "lucide-react";
 
 import { AddWebsiteModal } from "./AddWebsiteModal";
 import { BulkActionBar } from "./bulk/BulkActionBar";
@@ -15,12 +14,12 @@ import { useWebsiteColumns } from "./tables/websiteColumns";
 import { WebsiteListItem } from "./WebsiteListItem";
 import { useHeaderSearchFilter } from "../hooks/useHeaderSearchFilter";
 import { useSetListingPage } from "../hooks/useListingPage";
+import { useRegisterBulkSelect } from "../hooks/useRegisterBulkSelect";
 import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
 import { useWebsites } from "../hooks/useWebsites";
 import { COLUMN_CLASS, useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
 import { useListSelection } from "../lib/useListSelection";
 
-import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 
 /** Browsable, searchable website listing with add modal. Shared by the Websites taxonomy page and the Settings Websites page. */
@@ -47,6 +46,7 @@ export function WebsitesListing() {
 
   const deletableIds = filtered.filter(w => !w.builtIn).map(w => w.id);
   const selection = useListSelection("websites-listing", deletableIds);
+  useRegisterBulkSelect("websites-listing");
 
   return (
     <div className="space-y-4">
@@ -66,21 +66,6 @@ export function WebsitesListing() {
             </p>
           )}
         />
-
-        {viewMode !== "table"
-          ? (
-            <div className="flex justify-end">
-              <Button
-                variant={selection.mode ? "secondary" : "outline"}
-                size="sm"
-                onClick={() => selection.setMode(!selection.mode)}
-              >
-                <CheckSquare className="size-4" />
-                {selection.mode ? "Done selecting" : "Select"}
-              </Button>
-            </div>
-          )
-          : null}
 
         <BulkActionBar
           count={selection.count}

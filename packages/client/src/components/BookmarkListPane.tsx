@@ -3,18 +3,15 @@ import type { Bookmark, CustomProperty } from "@eesimple/types";
 
 import { useMemo } from "react";
 
-import { CheckSquare } from "lucide-react";
-
 import { AddBookmarkCollapsible } from "./AddBookmarkCollapsible";
 import { BookmarkCardGrid } from "./BookmarkCardGrid";
 import { BookmarkTableView } from "./BookmarkTableView";
 import { BookmarkBulkActions } from "./bulk/BookmarkBulkActions";
 import { BulkActionBar } from "./bulk/BulkActionBar";
+import { useRegisterBulkSelect } from "../hooks/useRegisterBulkSelect";
 import { useViewMode } from "../lib/bookmarkColumns";
 import { bookmarkMatchesSearch, hasAnyActiveFilter } from "../lib/bookmarkSearch";
 import { useListSelection } from "../lib/useListSelection";
-
-import { Button } from "@/components/ui/button";
 
 interface BookmarkListContentProps {
   pageKey: string;
@@ -44,20 +41,6 @@ function BookmarkListContent({
 
   return (
     <>
-      {/* The card-view "Select" mode toggle: table view uses hover checkboxes instead. */}
-      {viewMode !== "table"
-        ? (
-          <Button
-            variant={selection.mode ? "secondary" : "outline"}
-            size="sm"
-            onClick={() => selection.setMode(!selection.mode)}
-          >
-            <CheckSquare className="size-4" />
-            {selection.mode ? "Done selecting" : "Select"}
-          </Button>
-        )
-        : null}
-
       <BulkActionBar
         count={selection.count}
         totalSelectable={visibleIds.length}
@@ -130,6 +113,7 @@ export function BookmarkListPane({
   noMatchMessage,
   addFormCategoryId,
 }: BookmarkListPaneProps) {
+  useRegisterBulkSelect(pageKey);
   const visibleBookmarks = bookmarks.filter(bookmark => bookmarkMatchesSearch(bookmark, search));
   const hasActiveFilters = hasAnyActiveFilter(search) || textSearchActive;
 
