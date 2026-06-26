@@ -38,32 +38,29 @@ function PropertyPreviewBody({
   const isAllCategories = property.allCategories || categoryCount === 0;
 
   return (
-    <>
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="font-medium">{property.name}</span>
-        {property.builtIn && <Badge variant="secondary">Built-in</Badge>}
-        {!property.enabled && <Badge variant="outline">Disabled</Badge>}
-        <Badge
-          variant="secondary"
-          className="gap-1.5"
-        >
-          <CategoryIcon
-            name={resolvePropertyTypeIcon(property.type, typeIcons)}
-            className="size-3.5 shrink-0"
-          />
-          {TYPE_LABELS[property.type]}
-        </Badge>
-        {summary ? <span className="text-xs text-muted-foreground">{summary}</span> : null}
+    <div className="flex items-start gap-3">
+      <CategoryIcon
+        name={resolvePropertyTypeIcon(property.type, typeIcons)}
+        className="mt-0.5 size-5 shrink-0 text-muted-foreground"
+      />
+      <div className="flex min-w-0 flex-col gap-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="font-medium">{property.name}</span>
+          {property.builtIn && <Badge variant="secondary">Built-in</Badge>}
+          {!property.enabled && <Badge variant="outline">Disabled</Badge>}
+          <Badge variant="secondary">{TYPE_LABELS[property.type]}</Badge>
+          {summary ? <span className="text-xs text-muted-foreground">{summary}</span> : null}
+        </div>
+        {property.description
+          ? <p className="truncate text-sm text-muted-foreground">{property.description}</p>
+          : null}
+        <p className="text-xs text-muted-foreground">
+          {isAllCategories
+            ? "All categories"
+            : `${categoryCount} ${categoryCount === 1 ? "category" : "categories"}`}
+        </p>
       </div>
-      {property.description
-        ? <p className="truncate text-sm text-muted-foreground">{property.description}</p>
-        : null}
-      <p className="text-xs text-muted-foreground">
-        {isAllCategories
-          ? "All categories"
-          : `${categoryCount} ${categoryCount === 1 ? "category" : "categories"}`}
-      </p>
-    </>
+    </div>
   );
 }
 
