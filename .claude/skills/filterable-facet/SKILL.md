@@ -58,14 +58,21 @@ Mirror Media Types / YouTube Channels. The entity must already be a fetched taxo
 entity list prop is non-empty — wire the new prop through it the same way `mediaTypes` /
 `youtubeChannels` are.
 
-### 3. Route files that render `BookmarkSearchView` (currently two)
+### 3. Route files that render `BookmarkSearchView`
 `BookmarkSearchView` already accepts optional `mediaTypes?` / `youtubeChannels?` — add `<entity>s?:
 <Entity>[]` to its `BookmarkSearchViewProps`, thread it down to `FilterSidebar`, then pass it from
-each route:
+each route. Current `BookmarkSearchView` routes (add the prop to all of them):
 - `packages/client/src/routes/bookmarks.index.tsx` — call `use<Entity>s()` and pass
   `<entity>s={<entity>s ?? []}`.
-- `packages/client/src/routes/categories.$categorySlug.index.tsx` (data via
-  `routes/-categoryPageData.ts`) — surface the entity list there and pass it the same way.
+- `packages/client/src/routes/categories.$categorySlug.index.tsx` — data from
+  `routes/-categoryPageData.ts`; add the entity to that bundle if not already there.
+- `packages/client/src/routes/tags.$tagSlug.index.tsx` — same `-categoryPageData.ts` bundle.
+- `packages/client/src/routes/taxonomies.websites.$websiteSlug.index.tsx`
+- `packages/client/src/routes/taxonomies.media-types.$mediaTypeSlug.index.tsx`
+- `packages/client/src/routes/taxonomies.youtube-channels.$channelSlug.index.tsx`
+- `packages/client/src/routes/taxonomies.newsletters.$newsletterSlug.issues.$issueId.tsx`
+
+(Run `grep -rn "BookmarkSearchView" packages/client/src/routes/` to get the current list.)
 
 ## B. Quick-create autofill shortcut
 
