@@ -8,6 +8,7 @@ import {
   fetchHeadHtml,
   fetchPageTitle,
 } from "@/services/metadata";
+import { fetchIsbnMetadata } from "@/services/isbn";
 import { fetchOEmbedForUrl } from "@/services/oembed";
 import { unwrapRedirect } from "@/services/redirectUnwrap";
 import { lookupWebsiteByUrl, stripSiteNameSuffix } from "@/services/websites";
@@ -328,57 +329,16 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
     const {
       isbn,
     } = req.query as { isbn: string };
-    const apiUrl = `https://openlibrary.org/api/books?bibkeys=ISBN:${encodeURIComponent(isbn)}&format=json&jscmd=data`;
-    let rawJson: Record<string, unknown>;
-    try {
-      const response = await fetch(apiUrl, {
-        headers: {
-          "User-Agent": "eeSimple-bookmarks/1.0",
-        },
-        signal: AbortSignal.timeout(10_000),
-      });
-      if (!response.ok) {
-        return reply.code(502).send({
-          message: "Couldn't reach Open Library. Check your connection and try again.",
-        }) as unknown as FetchIsbnMetadataResult;
-      }
-      rawJson = (await response.json()) as Record<string, unknown>;
-    }
-    catch {
-      return reply.code(502).send({
-        message: "Couldn't reach Open Library. Check your connection and try again.",
-      }) as unknown as FetchIsbnMetadataResult;
-    }
-
-    const key = `ISBN:${isbn}`;
-    const data = rawJson[key] as Record<string, unknown> | undefined;
-    if (!data) {
+    const outcome = await fetchIsbnMetadata(isbn);
+    if (outcome.kind === "ok") return outcome.result;
+    if (outcome.kind === "not_found") {
       return reply.code(404).send({
-        message: "No book found for that ISBN in Open Library. Check the ISBN and try again.",
+        message: "No book found for that ISBN in Open Library or Google Books. Check the ISBN and try again.",
       }) as unknown as FetchIsbnMetadataResult;
     }
-
-    const descRaw = data.description as { value?: string } | string | undefined;
-    const description = typeof descRaw === "string"
-      ? descRaw
-      : typeof descRaw === "object" && descRaw !== null
-        ? (descRaw.value ?? null)
-        : null;
-
-    const coversRaw = data.cover as { large?: string;
-      medium?: string; } | undefined;
-    const authorsRaw = data.authors as { name?: string }[] | undefined;
-    const publishersRaw = data.publishers as { name?: string }[] | undefined;
-
-    return {
-      title: typeof data.title === "string" ? data.title : null,
-      description: description as string | null,
-      coverUrl: coversRaw?.large ?? coversRaw?.medium ?? null,
-      authors: authorsRaw?.map(a => a.name ?? "").filter(Boolean) ?? [],
-      publisher: publishersRaw?.[0]?.name ?? null,
-      year: typeof data.publish_date === "string" ? data.publish_date : null,
-      openLibraryUrl: typeof data.url === "string" ? data.url : null,
-    };
+    return reply.code(502).send({
+      message: "Couldn't reach the book metadata providers. Check your connection and try again.",
+    }) as unknown as FetchIsbnMetadataResult;
   });
 
   // Richer metadata lookup: title for any URL, plus channel/duration/thumbnail for YouTube videos.
