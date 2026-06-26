@@ -10,7 +10,7 @@
 
 import { findOEmbedProvider, type NormalizedOEmbed } from "@eesimple/types";
 
-import { isPublicHttpUrl } from "@/services/metadata";
+import { downloadImage, isPublicHttpUrl } from "@/services/metadata";
 
 const OEMBED_TIMEOUT_MS = 5000;
 
@@ -132,4 +132,16 @@ export async function fetchOEmbedForUrl(
     return null;
   }
   return normalized;
+}
+
+/**
+ * Best-effort thumbnail bytes for a non-YouTube oEmbed URL: resolve the provider's oEmbed (known
+ * providers only — no head HTML is passed, so autodiscovery is skipped), then download the
+ * thumbnail (SSRF-guarded). Mirrors `fetchYouTubeThumbnail`. Returns `null` when there's no usable
+ * thumbnail. Never throws.
+ */
+export async function fetchOEmbedThumbnail(url: string): Promise<Buffer | null> {
+  const meta = await fetchOEmbedForUrl(url);
+  if (!meta?.thumbnailUrl || !isPublicHttpUrl(meta.thumbnailUrl)) return null;
+  return downloadImage(meta.thumbnailUrl, url);
 }

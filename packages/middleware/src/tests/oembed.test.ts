@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { findOEmbedProvider } from "@eesimple/types";
-import { discoverOEmbedHref, fetchOEmbedForUrl, normalizeOEmbed } from "@/services/oembed";
+import { discoverOEmbedHref, fetchOEmbedForUrl, fetchOEmbedThumbnail, normalizeOEmbed } from "@/services/oembed";
 
 // --- findOEmbedProvider: registry URL matching (pure, no network) ---
 
@@ -132,6 +132,45 @@ test("fetchOEmbedForUrl returns null when every mapped field is empty", async ()
   try {
     const meta = await fetchOEmbedForUrl("https://vimeo.com/123456789");
     assert.equal(meta, null);
+  }
+  finally {
+    restore();
+  }
+});
+
+// --- fetchOEmbedThumbnail: oEmbed resolve → image download ---
+
+test("fetchOEmbedThumbnail downloads the oEmbed thumbnail bytes", async () => {
+  const originalFetch = global.fetch;
+  global.fetch = (async (input: string | URL | Request) => {
+    const url = typeof input === "string" ? input : input.toString();
+    return url.includes("oembed")
+      ? new Response(JSON.stringify({
+        title: "Clip",
+        thumbnail_url: "https://i.vimeocdn.com/x.jpg",
+      }), {
+        headers: {
+          "content-type": "application/json",
+        },
+      })
+      : new Response(new Uint8Array([1, 2, 3]));
+  }) as typeof global.fetch;
+  try {
+    const bytes = await fetchOEmbedThumbnail("https://vimeo.com/123456789");
+    assert.ok(bytes);
+    assert.deepEqual([...bytes], [1, 2, 3]);
+  }
+  finally {
+    global.fetch = originalFetch;
+  }
+});
+
+test("fetchOEmbedThumbnail returns null when oEmbed has no thumbnail", async () => {
+  const restore = stubFetch(JSON.stringify({
+    title: "Clip",
+  }));
+  try {
+    assert.equal(await fetchOEmbedThumbnail("https://vimeo.com/123456789"), null);
   }
   finally {
     restore();
