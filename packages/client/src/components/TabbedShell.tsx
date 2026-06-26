@@ -1,14 +1,21 @@
 import type { ReactNode } from "react";
 
 /**
- * Shared styling for a tab nav item, used by both the router-driven `TabbedEntityLayout` (main pane),
- * the controlled `EntityWorkbenchView` (right panel), and `BookmarkDetailTabbed`. `whitespace-nowrap`
- * keeps labels on one line so the horizontal strip (narrow containers) scrolls instead of wrapping.
+ * Shared styling for a tab nav item, used by the router-driven `TabbedEntityLayout` (main pane +
+ * Settings), the controlled `EntityWorkbenchView` (right panel), and `BookmarkDetailTabbed`.
+ * `whitespace-nowrap` keeps labels on one line so the horizontal strip scrolls instead of wrapping.
  */
 export const navLinkClass = `
   rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap text-muted-foreground transition-colors
   hover:bg-accent hover:text-accent-foreground
 `;
+
+/**
+ * Shared styling for the horizontal tab-strip `<nav>` container. `TabbedShell` uses it directly;
+ * `BookmarkDetailTabbed` builds its own `<nav>` (its placement is media-dependent) and reuses it.
+ * `overflow-x-auto` lets the strip scroll horizontally when the tabs exceed the available width.
+ */
+export const navStripClass = "flex items-center gap-1 overflow-x-auto border-b pb-1";
 
 interface Props {
   /** Optional title/actions block rendered above the tab nav + body. */
@@ -21,20 +28,18 @@ interface Props {
 }
 
 /**
- * The responsive vertical-tabbed layout shell, shared by the main pane and the right panel so both
- * surfaces look and behave identically. It is **container-query driven** (`@container/tabs`), not
- * viewport driven, so it adapts to its own width: a wide container (a full-width page) gets the
- * left vertical nav, while a narrow one (a phone, or the right drawer) collapses to a single
- * horizontal, scrollable tab strip. One rule serves both, so making the panel parity-correct also
- * makes the main pane mobile-friendly.
+ * The horizontal-tabbed layout shell, shared by the main pane and the right panel so both surfaces
+ * look and behave identically: a horizontal, scrollable tab strip sits above the active tab's body.
+ * The strip scrolls horizontally when the tabs overflow, so the same rule serves a full-width page,
+ * a phone, and the narrow right drawer.
  */
 export function TabbedShell({
   header, nav, navAriaLabel, children,
 }: Props) {
-  // A single-tab (or tab-less) surface drops the nav column entirely — no point in a one-item nav.
+  // A single-tab (or tab-less) surface drops the nav entirely — no point in a one-item nav.
   if (nav == null) {
     return (
-      <section className="@container/tabs space-y-6">
+      <section className="space-y-6">
         {header}
         <div className="min-w-0">{children}</div>
       </section>
@@ -42,26 +47,15 @@ export function TabbedShell({
   }
 
   return (
-    <section className="@container/tabs space-y-6">
+    <section className="space-y-6">
       {header}
-      <div
-        className="
-          flex flex-col gap-6
-          @2xl/tabs:flex-row @2xl/tabs:items-start
-        "
+      <nav
+        aria-label={navAriaLabel}
+        className={navStripClass}
       >
-        <nav
-          aria-label={navAriaLabel}
-          className="
-            flex shrink-0 gap-1 overflow-x-auto pb-1
-            @2xl/tabs:w-48 @2xl/tabs:flex-col @2xl/tabs:overflow-visible
-            @2xl/tabs:pb-0
-          "
-        >
-          {nav}
-        </nav>
-        <div className="min-w-0 flex-1">{children}</div>
-      </div>
+        {nav}
+      </nav>
+      <div className="min-w-0">{children}</div>
     </section>
   );
 }

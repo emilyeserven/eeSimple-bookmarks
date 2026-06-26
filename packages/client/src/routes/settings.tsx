@@ -2,7 +2,7 @@ import type { TabNavEntry } from "../components/TabbedEntityLayout";
 
 import { createFileRoute } from "@tanstack/react-router";
 
-import { SettingsTabsLayout } from "../components/SettingsTabsLayout";
+import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 
 export const Route = createFileRoute("/settings")({
   component: SettingsLayout,
@@ -79,7 +79,7 @@ const settingsNav: readonly TabNavEntry[] = [
 
 function SettingsLayout() {
   return (
-    <SettingsTabsLayout
+    <TabbedEntityLayout
       header={(
         <div>
           <h1 className="text-2xl font-bold">Settings</h1>
