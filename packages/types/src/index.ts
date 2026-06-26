@@ -1073,7 +1073,7 @@ export interface BulkDeleteResult {
 // --- Imports (ingest) ------------------------------------------------------------------------
 
 /** Which ingest source produced an import. */
-export type ImportSource = "paste" | "url" | "upload";
+export type ImportSource = "paste" | "url" | "upload" | "extension";
 
 /**
  * Status of a single extracted candidate link as it moves through the Inbox review queue:

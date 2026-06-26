@@ -44,7 +44,7 @@ chrome.contextMenus.onClicked.addListener((info) => {
             type: "basic",
             iconUrl: "icon48.png",
             title: "eeSimple Bookmarks",
-            message: "Link saved to Inbox.",
+            message: "Link queued in Inbox.",
           });
         }
         else if (res.status === 409) {

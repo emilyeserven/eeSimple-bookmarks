@@ -141,7 +141,7 @@ export function OrphanCleanupCard() {
               />
               <OrphanRow
                 title="Inbox items without a newsletter"
-                description="Inbox items whose import has no newsletter. Created bookmarks are kept."
+                description="Inbox items from newsletter imports whose newsletter was deleted. Extension quick-saves are excluded. Created bookmarks are kept."
                 count={inboxCount}
                 noun="inbox items"
                 onDelete={() => setPending("inboxItems")}
