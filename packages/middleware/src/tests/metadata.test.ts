@@ -288,3 +288,23 @@ test("GET /api/check-url rejects an invalid url", async () => {
   assert.equal(res.statusCode, 400);
   await app.close();
 });
+
+test("GET /api/scan rejects a request with no url", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "GET",
+    url: "/api/scan",
+  });
+  assert.equal(res.statusCode, 400);
+  await app.close();
+});
+
+test("GET /api/scan rejects an invalid url", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "GET",
+    url: "/api/scan?url=not-a-url",
+  });
+  assert.equal(res.statusCode, 400);
+  await app.close();
+});

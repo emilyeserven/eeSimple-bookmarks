@@ -2250,6 +2250,46 @@ export interface FetchMetadataResult {
   diagnostics?: string[];
 }
 
+/**
+ * Result of a consolidated single-fetch URL scan (`GET /api/scan`). One round-trip that fetches the
+ * page once and returns everything the Add Bookmark form needs: redirect resolution, website lookup,
+ * duplicate check, page/oEmbed metadata, and an instant favicon URL. Replaces ~5 separate calls
+ * (`/api/resolve-url`, `/api/websites/lookup`, `/api/bookmarks/url-check`, `/api/fetch-title`,
+ * `/api/fetch-metadata`); those granular endpoints remain for the per-field manual buttons.
+ */
+export interface ScanResult {
+  /** The resolved destination URL (after following redirects), or the original. */
+  finalUrl: string;
+  /** Whether at least one redirect hop was followed to reach `finalUrl`. */
+  redirected: boolean;
+  /** A user-facing message when the redirect chain couldn't be followed (best-effort), else absent. */
+  resolveError?: string;
+  /** Website-taxonomy lookup for `finalUrl`'s domain (replaces `/api/websites/lookup`). */
+  website: WebsiteLookup;
+  /** Existing-bookmark duplicate check for `finalUrl` (replaces `/api/bookmarks/url-check`). */
+  duplicate: BookmarkUrlDuplicateResult;
+  /** Cleaned page/video title, or `null`. */
+  title: string | null;
+  /** Page/video description, or `null`. */
+  description: string | null;
+  /** Whether `finalUrl` was recognized as a YouTube video. */
+  isYouTube: boolean;
+  /** The video's channel (YouTube only), or `null`. */
+  channel: FetchMetadataResult["channel"];
+  /** The video's length in whole seconds (YouTube only), or `null`. */
+  durationSeconds: number | null;
+  /** ISO-8601 publish date ("YYYY-MM-DD") from YouTube or an oEmbed provider, or `null`. */
+  datePosted: string | null;
+  /** A preview/thumbnail image URL (YouTube or an oEmbed provider), or `null`. */
+  thumbnailUrl: string | null;
+  /** Author name(s) parsed from page metadata / oEmbed (non-YouTube), or `null`. */
+  authorNames: string[] | null;
+  /** An instant favicon URL for display (scraped icon or a CDN fallback), or `null`. */
+  faviconUrl: string | null;
+  /** Human-readable reasons a field could not be resolved (YouTube scrape warnings), when present. */
+  diagnostics?: string[];
+}
+
 /** Result of probing a URL for reachability (`GET /api/check-url`). */
 export interface CheckUrlResult {
   /** Whether the link resolved with an ok (2xx) response. */

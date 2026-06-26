@@ -1,4 +1,4 @@
-import type { AutofillRule, Bookmark, CustomProperty, Website } from "@eesimple/types";
+import type { AutofillRule, Bookmark, CustomProperty, ScanResult, Website } from "@eesimple/types";
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -25,6 +25,39 @@ let autofillRulesData: AutofillRule[] = [];
 
 const createMutateAsync = vi.fn<(args: unknown) => Promise<{ id: string }>>();
 const updateMutateAsync = vi.fn<(args: unknown) => Promise<unknown>>();
+
+// The reveal / on-blur scan now goes through the consolidated `/api/scan` endpoint.
+const scanMock = vi.fn<(args: { url: string;
+  siteName?: string;
+  resolveRedirect?: boolean; }) => Promise<ScanResult>>();
+
+/** A no-op scan result (no redirect, no metadata) echoing the requested URL. */
+function emptyScan(url: string): ScanResult {
+  return {
+    finalUrl: url,
+    redirected: false,
+    website: {
+      domain: null,
+      exists: false,
+      siteName: null,
+      mediaTypeId: null,
+      shortener: null,
+    },
+    duplicate: {
+      exactMatch: null,
+      pathMatch: null,
+    },
+    title: null,
+    description: null,
+    isYouTube: false,
+    channel: null,
+    durationSeconds: null,
+    datePosted: null,
+    thumbnailUrl: null,
+    authorNames: null,
+    faviconUrl: null,
+  };
+}
 
 // A built-in YouTube website carrying the param rule that keeps only `v` on `/watch`.
 function youtubeWebsite(): Website {
@@ -219,6 +252,10 @@ vi.mock("../lib/api/metadata", () => ({
         finalUrl: url,
         redirected: false,
       })),
+    // Wrapped so the hoisted factory defers reading `scanMock` until call time (it's a top-level const).
+    scan: (args: { url: string;
+      siteName?: string;
+      resolveRedirect?: boolean; }) => scanMock(args),
   },
 }));
 
@@ -238,6 +275,10 @@ async function revealForm(url: string): Promise<void> {
 describe("BookmarkForm progressive disclosure", () => {
   beforeEach(() => {
     mutateAsync.mockReset();
+    scanMock.mockReset();
+    scanMock.mockImplementation(({
+      url,
+    }) => Promise.resolve(emptyScan(url)));
     createMutateAsync.mockReset();
     createMutateAsync.mockResolvedValue({
       id: "new-id",
@@ -270,7 +311,8 @@ describe("BookmarkForm progressive disclosure", () => {
   });
 
   it("reveals the form and fills the Name when Check URL is clicked", async () => {
-    mutateAsync.mockResolvedValue({
+    scanMock.mockResolvedValue({
+      ...emptyScan("https://example.com"),
       title: "Example Domain",
     });
     render(<BookmarkForm />);
@@ -404,6 +446,10 @@ describe("BookmarkForm progressive disclosure", () => {
 describe("BookmarkForm editing", () => {
   beforeEach(() => {
     mutateAsync.mockReset();
+    scanMock.mockReset();
+    scanMock.mockImplementation(({
+      url,
+    }) => Promise.resolve(emptyScan(url)));
     createMutateAsync.mockReset();
     updateMutateAsync.mockReset();
     autoFetchTitle = true;

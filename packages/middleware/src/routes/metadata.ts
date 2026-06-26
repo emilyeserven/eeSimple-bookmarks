@@ -1,5 +1,6 @@
 import type { FastifyBaseLogger, FastifyInstance } from "fastify";
-import type { FetchIsbnMetadataResult, FetchMetadataResult } from "@eesimple/types";
+import type { FetchIsbnMetadataResult, FetchMetadataResult, ResolveUrlResult, ScanResult, WebsiteLookup } from "@eesimple/types";
+import { checkBookmarkUrlDuplicate } from "@/services/bookmarks";
 import {
   checkUrl,
   extractAuthorNames,
@@ -28,6 +29,27 @@ const fetchTitleQuery = {
     siteName: {
       type: "string",
       minLength: 1,
+    },
+  },
+} as const;
+
+const scanQuery = {
+  type: "object",
+  required: ["url"],
+  additionalProperties: false,
+  properties: {
+    url: {
+      type: "string",
+      format: "uri",
+    },
+    siteName: {
+      type: "string",
+      minLength: 1,
+    },
+    // The client sets this false for redirect-ignore-listed domains (e.g. docs.google.com).
+    resolveRedirect: {
+      type: "boolean",
+      default: true,
     },
   },
 } as const;
@@ -151,6 +173,51 @@ async function buildGenericMetadataResult(
     datePosted,
     thumbnailUrl,
     authorNames,
+  };
+}
+
+/**
+ * Follow a URL's redirect chain to the `ResolveUrlResult` wire shape. Falls back to the original URL
+ * with a user-facing `resolveError` on any non-ok outcome. Shared by `/api/resolve-url` and `/api/scan`.
+ */
+async function resolveRedirectResult(url: string): Promise<ResolveUrlResult> {
+  const result = await unwrapRedirect(url);
+  if (result.kind === "ok") {
+    return {
+      finalUrl: result.finalUrl,
+      redirected: result.redirected,
+    };
+  }
+  let resolveError: string;
+  switch (result.kind) {
+    case "blocked":
+      resolveError = "That URL redirects to a private or restricted address and couldn't be followed.";
+      break;
+    case "timeout":
+      resolveError = "The redirect timed out — the link may be slow or temporarily unavailable.";
+      break;
+    case "http_error":
+      resolveError = `The redirect server returned HTTP ${result.status} — this link may be expired or one-time-use (common with email tracking links).`;
+      break;
+    case "network_error":
+      resolveError = "Could not connect to follow this redirect. The server may be down or unreachable.";
+      break;
+  }
+  return {
+    finalUrl: url,
+    redirected: false,
+    resolveError,
+  };
+}
+
+/** Map the `lookupWebsiteByUrl` service shape to the `WebsiteLookup` wire type. */
+function toWebsiteLookup(raw: Awaited<ReturnType<typeof lookupWebsiteByUrl>>): WebsiteLookup {
+  return {
+    domain: raw.domain,
+    exists: raw.website !== null,
+    siteName: raw.website?.siteName ?? null,
+    mediaTypeId: raw.website?.mediaTypeId ?? null,
+    shortener: raw.shortener,
   };
 }
 
@@ -278,35 +345,8 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
         message: "url must be a valid http(s) URL",
       });
     }
-    const result = await unwrapRedirect(url);
-    if (result.kind === "ok") {
-      return {
-        finalUrl: result.finalUrl,
-        redirected: result.redirected,
-      };
-    }
-    // Any failure — fall back to the original URL so the form keeps working, but surface a
-    // user-facing message so the client can tell the user why the redirect wasn't followed.
-    let resolveError: string;
-    switch (result.kind) {
-      case "blocked":
-        resolveError = "That URL redirects to a private or restricted address and couldn't be followed.";
-        break;
-      case "timeout":
-        resolveError = "The redirect timed out — the link may be slow or temporarily unavailable.";
-        break;
-      case "http_error":
-        resolveError = `The redirect server returned HTTP ${result.status} — this link may be expired or one-time-use (common with email tracking links).`;
-        break;
-      case "network_error":
-        resolveError = "Could not connect to follow this redirect. The server may be down or unreachable.";
-        break;
-    }
-    return {
-      finalUrl: url,
-      redirected: false,
-      resolveError,
-    };
+    // Falls back to the original URL on any failure (with a user-facing message); see resolveRedirectResult.
+    return resolveRedirectResult(url);
   });
 
   // Look up book/product metadata from the Open Library API by ISBN or ASIN.
@@ -362,5 +402,68 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
     return isYouTubeVideoUrl(url)
       ? buildYouTubeMetadataResult(url, req.log)
       : buildGenericMetadataResult(url, siteNameHint);
+  });
+
+  // Consolidated single-fetch scan: resolve redirects, then in parallel look up the website, check
+  // for a duplicate bookmark, and fetch the page metadata once (title/description/image/authors, plus
+  // YouTube/oEmbed enrichment). Returns everything the Add Bookmark form needs in one round-trip,
+  // replacing the separate resolve-url / websites-lookup / url-check / fetch-title / fetch-metadata
+  // calls. Best-effort like /api/fetch-metadata — a partial result is still useful, never a 502.
+  app.get("/api/scan", {
+    schema: {
+      tags: ["metadata"],
+      querystring: scanQuery,
+    },
+  }, async (req, reply): Promise<ScanResult> => {
+    const {
+      url, siteName: siteNameHint, resolveRedirect = true,
+    } = req.query as { url: string;
+      siteName?: string;
+      resolveRedirect?: boolean; };
+    if (!isValidUrl(url)) {
+      return reply.code(400).send({
+        message: "url must be a valid http(s) URL",
+      }) as unknown as ScanResult;
+    }
+
+    // The client gates redirect resolution on its redirect-ignore list, mirroring the old flow.
+    const redirect = resolveRedirect
+      ? await resolveRedirectResult(url)
+      : {
+        finalUrl: url,
+        redirected: false,
+      };
+    const finalUrl = redirect.finalUrl;
+
+    const [websiteRaw, duplicate, metadata] = await Promise.all([
+      lookupWebsiteByUrl(finalUrl),
+      checkBookmarkUrlDuplicate(finalUrl),
+      isYouTubeVideoUrl(finalUrl)
+        ? buildYouTubeMetadataResult(finalUrl, req.log)
+        : buildGenericMetadataResult(finalUrl, siteNameHint),
+    ]);
+
+    return {
+      finalUrl,
+      redirected: redirect.redirected,
+      ...(redirect.resolveError !== undefined && {
+        resolveError: redirect.resolveError,
+      }),
+      website: toWebsiteLookup(websiteRaw),
+      duplicate,
+      title: metadata.title,
+      description: metadata.description,
+      isYouTube: metadata.isYouTube,
+      channel: metadata.channel,
+      durationSeconds: metadata.durationSeconds,
+      datePosted: metadata.datePosted,
+      thumbnailUrl: metadata.thumbnailUrl,
+      authorNames: metadata.authorNames,
+      // Filled in Phase 6 (favicon CDN fallback); null until then.
+      faviconUrl: null,
+      ...(metadata.diagnostics !== undefined && {
+        diagnostics: metadata.diagnostics,
+      }),
+    };
   });
 }

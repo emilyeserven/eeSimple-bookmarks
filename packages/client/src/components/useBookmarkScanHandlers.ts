@@ -1,6 +1,6 @@
 import type { useBookmarkFormActions } from "./useBookmarkFormActions";
 import type { useBookmarkUrlProcessing } from "./useBookmarkUrlProcessing";
-import type { Author, YouTubeChannelHint } from "@eesimple/types";
+import type { Author, FetchMetadataResult, YouTubeChannelHint } from "@eesimple/types";
 import type { Dispatch, RefObject, SetStateAction } from "react";
 
 import { looksLikeYouTube, stripSelfId } from "./bookmarkFormSchema";
@@ -103,6 +103,60 @@ export function useBookmarkScanHandlers({
     }
   }
 
+  // Set the Name from a (clean) YouTube title, the Description from the watch-page og:description,
+  // and the resolved channel hint — from already-fetched metadata. Pure apply (no network), so the
+  // same logic backs both the granular `runYouTubeEnrichment` and the consolidated scan. Assumes
+  // `meta.isYouTube`. `fillTitle` mirrors the autoFetchTitle gate; `force` overwrites an existing title.
+  function applyYouTubeMeta(meta: FetchMetadataResult, {
+    fillTitle, force,
+  }: { fillTitle: boolean;
+    force: boolean; }): void {
+    // Capture selfIds the user has already entered for this channel before overwriting the hint,
+    // so we can (a) preserve them in the merged hint and (b) apply client-side stripping for any
+    // that the server didn't know about (not yet saved to the DB).
+    const existingSelfIds
+      = channelHintRef.current?.key === meta.channel?.key
+        ? (channelHintRef.current?.selfIds ?? [])
+        : [];
+
+    // Fill the Name from the (clean) oEmbed title, matching runFetchTitle's overwrite rule.
+    // After the server has stripped DB-known selfIds, strip any user-added ones client-side.
+    if (fillTitle && meta.title && (force || form.getFieldValue("title").trim() === "")) {
+      const serverSelfIdSet = new Set(meta.channel?.selfIds ?? []);
+      const userAddedSelfIds = existingSelfIds.filter(id => !serverSelfIdSet.has(id));
+      let title = meta.title;
+      for (const selfId of userAddedSelfIds) {
+        const stripped = stripSelfId(title, selfId);
+        if (stripped !== title) {
+          title = stripped;
+          break;
+        }
+      }
+      const prevTitle = form.getFieldValue("title");
+      form.setFieldValue("title", title);
+      if (force && prevTitle.trim() !== "") setTitleFetch({
+        previous: prevTitle,
+      });
+      else setTitleFetch(null);
+    }
+    // Fill the Description from the watch-page og:description when the field is still empty.
+    if (fillTitle && meta.description && form.getFieldValue("description").trim() === "") {
+      form.setFieldValue("description", meta.description);
+    }
+    if (meta.channel?.key) {
+      // Merge server selfIds with user-entered ones (union, server IDs first) so the user's
+      // edits survive a re-fetch.
+      const mergedSelfIds = [...new Set([...(meta.channel.selfIds ?? []), ...existingSelfIds])];
+      const hint = {
+        key: meta.channel.key,
+        name: meta.channel.name,
+        selfIds: mergedSelfIds,
+      };
+      channelHintRef.current = hint;
+      setYoutubeChannel(hint);
+    }
+  }
+
   // For a YouTube URL, pull the title and channel from the video's metadata: the title is written
   // into the Name field (this owns the title fetch for YouTube, so runFetchTitle is skipped) and the
   // channel is held as a hint applied on save (and shown in the banner). The media type and video
@@ -130,51 +184,10 @@ export function useBookmarkScanHandlers({
         setYoutubeChannel(null);
         return;
       }
-
-      // Capture selfIds the user has already entered for this channel before overwriting the hint,
-      // so we can (a) preserve them in the merged hint and (b) apply client-side stripping for any
-      // that the server didn't know about (not yet saved to the DB).
-      const existingSelfIds
-        = channelHintRef.current?.key === meta.channel?.key
-          ? (channelHintRef.current?.selfIds ?? [])
-          : [];
-
-      // Fill the Name from the (clean) oEmbed title, matching runFetchTitle's overwrite rule.
-      // After the server has stripped DB-known selfIds, strip any user-added ones client-side.
-      if (fillTitle && meta.title && (force || form.getFieldValue("title").trim() === "")) {
-        const serverSelfIdSet = new Set(meta.channel?.selfIds ?? []);
-        const userAddedSelfIds = existingSelfIds.filter(id => !serverSelfIdSet.has(id));
-        let title = meta.title;
-        for (const selfId of userAddedSelfIds) {
-          const stripped = stripSelfId(title, selfId);
-          if (stripped !== title) {
-            title = stripped;
-            break;
-          }
-        }
-        const prevTitle = form.getFieldValue("title");
-        form.setFieldValue("title", title);
-        if (force && prevTitle.trim() !== "") setTitleFetch({
-          previous: prevTitle,
-        });
-        else setTitleFetch(null);
-      }
-      // Fill the Description from the watch-page og:description when the field is still empty.
-      if (fillTitle && meta.description && form.getFieldValue("description").trim() === "") {
-        form.setFieldValue("description", meta.description);
-      }
-      if (meta.channel?.key) {
-        // Merge server selfIds with user-entered ones (union, server IDs first) so the user's
-        // edits survive a re-fetch.
-        const mergedSelfIds = [...new Set([...(meta.channel.selfIds ?? []), ...existingSelfIds])];
-        const hint = {
-          key: meta.channel.key,
-          name: meta.channel.name,
-          selfIds: mergedSelfIds,
-        };
-        channelHintRef.current = hint;
-        setYoutubeChannel(hint);
-      }
+      applyYouTubeMeta(meta, {
+        fillTitle,
+        force,
+      });
     }
     catch {
       // Non-fatal: enrichment is a best-effort convenience layered on the title fetch.
@@ -224,9 +237,39 @@ export function useBookmarkScanHandlers({
     setTitleFetch(null);
   }
 
-  // For a non-YouTube URL, pull author names from page metadata and resolve them to author IDs:
-  // existing authors are matched case-insensitively; unknown names are created. Only runs when no
-  // authors have been selected yet, and only when the author params are provided (create form only).
+  // Resolve detected author names to IDs and write them into the form: existing authors are matched
+  // case-insensitively; unknown names are created. Pure apply (other than the create-author network
+  // call), shared by `runFetchAuthors` and the consolidated scan. No-ops unless the author params are
+  // provided (create form only), no authors are selected yet, and the URL isn't a YouTube video.
+  async function applyAuthorsFromNames(url: string, names: string[] | null): Promise<void> {
+    if (!setAuthorIds || !getAuthorIds || looksLikeYouTube(url)) return;
+    if (!names || names.length === 0) return;
+    if ((getAuthorIds()).length > 0) return;
+    const existingAuthors = authors ?? [];
+    const ids: string[] = [];
+    for (const name of names) {
+      const normalName = name.toLowerCase();
+      const match = existingAuthors.find(a => a.name.toLowerCase() === normalName);
+      if (match) {
+        ids.push(match.id);
+      }
+      else if (createAuthor) {
+        try {
+          const created = await createAuthor.mutateAsync({
+            name,
+          });
+          ids.push(created.id);
+        }
+        catch {
+          // Skip authors that can't be created (e.g. duplicate race).
+        }
+      }
+    }
+    if (ids.length > 0) setAuthorIds(ids);
+  }
+
+  // For a non-YouTube URL, pull author names from page metadata and resolve them to author IDs.
+  // Only runs when no authors have been selected yet, and only when the author params are provided.
   async function runFetchAuthors(url: string): Promise<void> {
     if (!setAuthorIds || !getAuthorIds || !isUrlFetchable(url) || looksLikeYouTube(url)) return;
     if ((getAuthorIds()).length > 0) return;
@@ -234,32 +277,43 @@ export function useBookmarkScanHandlers({
       const meta = await fetchMetadata.mutateAsync({
         url,
       });
-      if (!meta.authorNames || meta.authorNames.length === 0) return;
-      const existingAuthors = authors ?? [];
-      const ids: string[] = [];
-      for (const name of meta.authorNames) {
-        const normalName = name.toLowerCase();
-        const match = existingAuthors.find(a => a.name.toLowerCase() === normalName);
-        if (match) {
-          ids.push(match.id);
-        }
-        else if (createAuthor) {
-          try {
-            const created = await createAuthor.mutateAsync({
-              name,
-            });
-            ids.push(created.id);
-          }
-          catch {
-            // Skip authors that can't be created (e.g. duplicate race).
-          }
-        }
-      }
-      if (ids.length > 0) setAuthorIds(ids);
+      await applyAuthorsFromNames(url, meta.authorNames);
     }
     catch {
       // Non-fatal: best-effort convenience layered on the metadata fetch.
     }
+  }
+
+  // Apply a consolidated scan's metadata to the form without any further network round-trips: the
+  // same title/description/author/channel writes the granular handlers do, fed from one `/api/scan`
+  // result. YouTube videos route through `applyYouTubeMeta`; everything else fills the strict title,
+  // description, and detected authors (and clears any stale channel hint from a prior YouTube URL).
+  async function applyScanMetadata(url: string, meta: FetchMetadataResult, {
+    fillTitle, force,
+  }: { fillTitle: boolean;
+    force: boolean; }): Promise<void> {
+    if (meta.isYouTube) {
+      applyYouTubeMeta(meta, {
+        fillTitle,
+        force,
+      });
+      return;
+    }
+    // Non-YouTube: drop any channel hint left over from a previously-entered YouTube link.
+    channelHintRef.current = null;
+    setYoutubeChannel(null);
+    if (fillTitle && meta.title && (force || form.getFieldValue("title").trim() === "")) {
+      const prevTitle = form.getFieldValue("title");
+      form.setFieldValue("title", meta.title);
+      if (force && prevTitle.trim() !== "") setTitleFetch({
+        previous: prevTitle,
+      });
+      else setTitleFetch(null);
+    }
+    if (fillTitle && meta.description && form.getFieldValue("description").trim() === "") {
+      form.setFieldValue("description", meta.description);
+    }
+    await applyAuthorsFromNames(url, meta.authorNames);
   }
 
   // Check whether the URL's site is already on record so the banner can say whether a new
@@ -290,6 +344,7 @@ export function useBookmarkScanHandlers({
     runFetchDescription,
     runFetchAuthors,
     runYouTubeEnrichment,
+    applyScanMetadata,
     runUrlCleanup,
     undoUrlCleanup,
     undoTitleFetch,
