@@ -36,6 +36,7 @@ function toTag(row: TagRow, counts?: TagBookmarkCounts): Tag {
     bookmarkCount: counts?.subtree,
     ownBookmarkCount: counts?.own,
     editableOnCard: row.editableOnCard,
+    excludeFromBackfill: row.excludeFromBackfill,
   };
 }
 
@@ -193,6 +194,7 @@ export async function listTags(): Promise<Tag[]> {
       parentId: tags.parentId,
       createdAt: tags.createdAt,
       editableOnCard: tags.editableOnCard,
+      excludeFromBackfill: tags.excludeFromBackfill,
     })
     .from(tags)
     .orderBy(asc(tags.name));
@@ -251,7 +253,7 @@ export async function updateTag(id: string, input: UpdateTagInput): Promise<Tag 
     if (wouldCreateCycle(all, id, input.parentId)) throw new TagCycleError();
   }
 
-  const patch: Partial<Pick<TagRow, "name" | "slug" | "parentId" | "editableOnCard">> = {};
+  const patch: Partial<Pick<TagRow, "name" | "slug" | "parentId" | "editableOnCard" | "excludeFromBackfill">> = {};
   if (input.name !== undefined) patch.name = input.name;
   // Keep the slug in sync when the name changes.
   if (input.name !== undefined) {
@@ -259,6 +261,7 @@ export async function updateTag(id: string, input: UpdateTagInput): Promise<Tag 
   }
   if (input.parentId !== undefined) patch.parentId = input.parentId;
   if (input.editableOnCard !== undefined) patch.editableOnCard = input.editableOnCard;
+  if (input.excludeFromBackfill !== undefined) patch.excludeFromBackfill = input.excludeFromBackfill;
 
   const [row] = await db.update(tags).set(patch).where(eq(tags.id, id)).returning();
   // A reparent changes tag-descendant resolution; invalidate the condition-matching cache.

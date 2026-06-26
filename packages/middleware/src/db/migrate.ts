@@ -739,6 +739,17 @@ const migrations: RuntimeMigration[] = [
     `),
   },
   {
+    // `tags.exclude_from_backfill` prevents a tag from being applied by any autofill backfill
+    // operation. NOT NULL DEFAULT false on the populated `tags` table makes drizzle-kit push prompt
+    // (the same non-TTY crash as the other NOT NULL column cases above), so pre-apply it here to keep
+    // push's diff additive-only.
+    name: "add tags.exclude_from_backfill column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "tags"
+        ADD COLUMN IF NOT EXISTS "exclude_from_backfill" boolean NOT NULL DEFAULT false
+    `),
+  },
+  {
     // `saved_filters.slug` carries a UNIQUE constraint and was added to a table that may already have
     // rows. `drizzle-kit push` won't add a new column + unique constraint to a populated table without
     // an interactive truncation confirmation, so pre-apply the column and constraint here. The
