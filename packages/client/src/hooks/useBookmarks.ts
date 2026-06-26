@@ -263,6 +263,33 @@ export function useDeleteBookmarkImage() {
   });
 }
 
+/** Take a Browserless screenshot and store it as the bookmark's screenshot image. */
+export function useTakeBookmarkScreenshot() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => bookmarksApi.takeScreenshot(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: BOOKMARKS_KEY,
+      });
+      notifySuccess("Screenshot captured");
+    },
+    onError: (err: Error) => notifyError(describeError(err, "Could not capture a screenshot")),
+  });
+}
+
+/** Remove a bookmark's screenshot. */
+export function useDeleteBookmarkScreenshot() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => bookmarksApi.deleteScreenshot(id),
+    onSuccess: () => queryClient.invalidateQueries({
+      queryKey: BOOKMARKS_KEY,
+    }),
+    onError: (err: Error) => notifyError(describeError(err, "Could not remove the screenshot")),
+  });
+}
+
 /** Upload an image/file value for a bookmark's image/file custom property, replacing any current one. */
 export function useUploadBookmarkPropertyFile() {
   const queryClient = useQueryClient();

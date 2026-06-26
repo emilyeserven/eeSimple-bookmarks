@@ -264,6 +264,7 @@ function useCardDisplayRulePreview({
         height: 675,
         source: "upload",
       },
+      screenshot: null,
       imageAutoGrabError: null,
       categoryId: realCategory?.id ?? "__sample-category__",
       website: {

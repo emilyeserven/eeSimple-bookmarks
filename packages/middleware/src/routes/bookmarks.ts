@@ -3,8 +3,11 @@ import type { BulkBookmarkTagOp, BulkUrlUpdate, CreateBookmarkInput, UpdateBookm
 import {
   fetchAndStoreOgImage,
   getBookmarkImageRow,
+  getBookmarkScreenshotRow,
   removeBookmarkImage,
+  removeBookmarkScreenshot,
   setBookmarkImage,
+  takeAndStoreScreenshot,
 } from "@/services/bookmarkImages";
 import {
   getBookmarkPropertyFileRow,
@@ -751,6 +754,51 @@ function registerBookmarkImageRoutes(app: FastifyInstance): void {
     }
     return reply.code(204).send();
   });
+
+  // Take an on-demand Browserless screenshot and store it.
+  app.post("/api/bookmarks/:id/screenshot", {
+    schema: {
+      tags: ["images"],
+      params: bookmarkParams,
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    if (!isObjectStoreConfigured()) {
+      return reply.code(503).send({
+        message: "Image storage is not configured",
+      });
+    }
+    const result = await takeAndStoreScreenshot(id);
+    if (result === "not_found") return reply.code(404).send({
+      message: "Bookmark not found",
+    });
+    if (result === "not_configured") return reply.code(503).send({
+      message: "No screenshot provider configured",
+    });
+    if (result === "bad_image") return reply.code(502).send({
+      message: "Screenshot could not be captured",
+    });
+    return reply.code(201).send(result);
+  });
+
+  // Remove a bookmark's screenshot.
+  app.delete("/api/bookmarks/:id/screenshot", {
+    schema: {
+      tags: ["images"],
+      params: bookmarkParams,
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    const removed = await removeBookmarkScreenshot(id);
+    if (!removed) return reply.code(404).send({
+      message: "No screenshot to delete",
+    });
+    return reply.code(204).send();
+  });
 }
 
 /** Bookmark relationship edges and the image download endpoint. */
@@ -832,6 +880,29 @@ function registerBookmarkRelationshipRoutes(app: FastifyInstance): void {
         message: "No image",
       });
     }
+    reply.header("Content-Type", row.contentType);
+    reply.header("Cache-Control", "public, max-age=31536000, immutable");
+    return reply.send(object.body);
+  });
+
+  // Serve a bookmark's screenshot bytes from object storage.
+  app.get("/api/bookmarks/:id/screenshot", {
+    schema: {
+      tags: ["images"],
+      params: bookmarkParams,
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    const row = await getBookmarkScreenshotRow(id);
+    if (!row) return reply.code(404).send({
+      message: "No screenshot",
+    });
+    const object = await getObjectStream(row.objectKey);
+    if (!object) return reply.code(404).send({
+      message: "No screenshot",
+    });
     reply.header("Content-Type", row.contentType);
     reply.header("Cache-Control", "public, max-age=31536000, immutable");
     return reply.send(object.body);

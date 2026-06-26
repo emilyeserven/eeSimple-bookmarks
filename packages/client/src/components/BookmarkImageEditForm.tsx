@@ -8,6 +8,8 @@ import { EMPTY_IMAGE_INTENT } from "./bookmarkImageIntent";
 import {
   useAutoBookmarkImage,
   useDeleteBookmarkImage,
+  useDeleteBookmarkScreenshot,
+  useTakeBookmarkScreenshot,
   useUploadBookmarkImage,
 } from "../hooks/useBookmarks";
 import { notifySuccess } from "../lib/notifications";
@@ -25,6 +27,8 @@ export function BookmarkImageEditForm({
   const uploadImage = useUploadBookmarkImage();
   const autoImage = useAutoBookmarkImage();
   const deleteImage = useDeleteBookmarkImage();
+  const takeScreenshot = useTakeBookmarkScreenshot();
+  const deleteScreenshot = useDeleteBookmarkScreenshot();
 
   const imageIntentRef = useRef<ImageIntent>(EMPTY_IMAGE_INTENT);
   const [imageFieldKey, setImageFieldKey] = useState(0);
@@ -62,7 +66,7 @@ export function BookmarkImageEditForm({
     }
   }
 
-  const isMutating = uploadImage.isPending || autoImage.isPending || deleteImage.isPending;
+  const isMutating = uploadImage.isPending || autoImage.isPending || deleteImage.isPending || takeScreenshot.isPending || deleteScreenshot.isPending;
   const mutationError = uploadImage.error ?? autoImage.error ?? deleteImage.error;
 
   return (
@@ -91,6 +95,47 @@ export function BookmarkImageEditForm({
         {mutationError
           ? <p className="mt-2 text-sm text-destructive">{mutationError.message}</p>
           : null}
+      </div>
+      <div className="space-y-2 border-t pt-4">
+        <p className="text-sm font-medium">Page screenshot</p>
+        <p className="text-xs text-muted-foreground">
+          {bookmark.screenshot
+            ? "A screenshot has been captured. It is used as the bookmark image when no other image exists."
+            : "Take a screenshot of the page via Browserless. Used as a fallback image when no other image is set."}
+        </p>
+        {bookmark.screenshot
+          ? (
+            <img
+              src={bookmark.screenshot.url}
+              alt="Page screenshot"
+              className="max-h-32 rounded-sm border object-cover"
+            />
+          )
+          : null}
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={isMutating}
+            onClick={() => void takeScreenshot.mutateAsync(bookmark.id)}
+          >
+            {takeScreenshot.isPending ? "Capturing…" : bookmark.screenshot ? "Retake screenshot" : "Take screenshot"}
+          </Button>
+          {bookmark.screenshot
+            ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={isMutating}
+                onClick={() => void deleteScreenshot.mutateAsync(bookmark.id)}
+              >
+                {deleteScreenshot.isPending ? "Removing…" : "Remove screenshot"}
+              </Button>
+            )
+            : null}
+        </div>
       </div>
     </form>
   );
