@@ -47,10 +47,11 @@ export function BookmarkDetailMedia({
     );
   }
 
-  if (bookmark.image) {
+  const displayImage = bookmark.image ?? bookmark.screenshot;
+  if (displayImage) {
     return (
       <img
-        src={bookmark.image.url}
+        src={displayImage.url}
         alt=""
         loading="lazy"
         className={IMAGE_SIZE_CLASS[imageSize]}

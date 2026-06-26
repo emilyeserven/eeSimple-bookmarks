@@ -7,13 +7,14 @@ import type { BookmarkImage, BulkAutoFetchResult } from "@eesimple/types";
 import { findOEmbedProvider } from "@eesimple/types";
 import { and, eq, isNull } from "drizzle-orm";
 import { db } from "@/db";
-import { bookmarkImages, type BookmarkImageRow, bookmarks } from "@/db/schema";
+import { bookmarkImages, type BookmarkImageRow, bookmarkScreenshots, bookmarks } from "@/db/schema";
 import { forgetManifestObject, recordManifestObject } from "@/services/gallery";
 import { fetchOgImage } from "@/services/metadata";
 import { fetchOEmbedThumbnail } from "@/services/oembed";
 import { fetchYouTubeThumbnail, isYouTubeVideoUrl } from "@/services/youtube";
 import { processImage } from "@/utils/image";
 import { deleteObject, putObject } from "@/utils/objectStore";
+import { getActiveHostedEndpoint, getDecryptedHostedApiKey } from "@/services/appSettings";
 
 export type SetImageResult = BookmarkImage | "not_found" | "bad_image";
 export type ImageAutoGrabError = "no_image" | "bad_image" | "blocked" | "server_error" | "fetch_error";
@@ -38,6 +39,124 @@ export function bookmarkImageFromRow(row: BookmarkImageRow): BookmarkImage {
     height: row.height,
     source: row.source === "og" ? "og" : "upload",
   };
+}
+
+/** Object-storage key for a bookmark's screenshot. Stable per bookmark, so a replace overwrites it. */
+function screenshotKeyFor(bookmarkId: string): string {
+  return `bookmarks/${bookmarkId}-screenshot.webp`;
+}
+
+/** Map a screenshot row to the shared `BookmarkImage` wire type with the screenshot-specific URL. */
+export function bookmarkScreenshotFromRow(row: BookmarkImageRow): BookmarkImage {
+  return {
+    url: `/api/bookmarks/${row.bookmarkId}/screenshot?v=${imageVersion(row)}`,
+    width: row.width,
+    height: row.height,
+    source: "screenshot",
+  };
+}
+
+/** Read a bookmark's stored screenshot row, or null when it has no screenshot. */
+export async function getBookmarkScreenshotRow(bookmarkId: string): Promise<BookmarkImageRow | null> {
+  const [row] = await db.select().from(bookmarkScreenshots).where(
+    eq(bookmarkScreenshots.bookmarkId, bookmarkId),
+  );
+  return row ?? null;
+}
+
+/** Delete a bookmark's screenshot (object + row). Returns whether one existed. */
+export async function removeBookmarkScreenshot(bookmarkId: string): Promise<boolean> {
+  const row = await getBookmarkScreenshotRow(bookmarkId);
+  if (!row) return false;
+  await deleteObject(row.objectKey);
+  await db.delete(bookmarkScreenshots).where(eq(bookmarkScreenshots.bookmarkId, bookmarkId));
+  await forgetManifestObject(row.objectKey);
+  return true;
+}
+
+const SCREENSHOT_TIMEOUT_MS = 30_000;
+
+/**
+ * Capture a screenshot of the bookmark's page via Browserless, process it, and store it in the
+ * `bookmark_screenshots` table. Returns the wire shape, `"not_found"` when the bookmark is gone,
+ * `"not_configured"` when no Browserless endpoint is set, or `"bad_image"` on decode failure.
+ * Never throws.
+ */
+export async function takeAndStoreScreenshot(
+  bookmarkId: string,
+): Promise<BookmarkImage | "not_found" | "not_configured" | "bad_image"> {
+  const [bookmark] = await db.select({
+    id: bookmarks.id,
+    url: bookmarks.url,
+  })
+    .from(bookmarks).where(eq(bookmarks.id, bookmarkId));
+  if (!bookmark) return "not_found";
+
+  const endpoint = await getActiveHostedEndpoint();
+  if (!endpoint || !bookmark.url) return "not_configured";
+  const token = await getDecryptedHostedApiKey();
+
+  let rawBytes: Buffer | null = null;
+  try {
+    const res = await fetch(`${endpoint.replace(/\/$/, "")}/chromium/screenshot`, {
+      method: "POST",
+      redirect: "follow",
+      signal: AbortSignal.timeout(SCREENSHOT_TIMEOUT_MS),
+      headers: {
+        "Content-Type": "application/json",
+        ...(token
+          ? {
+            Authorization: `Bearer ${token}`,
+          }
+          : {}),
+      },
+      body: JSON.stringify({
+        url: bookmark.url,
+        options: {
+          type: "jpeg",
+          quality: 85,
+          fullPage: false,
+        },
+      }),
+    });
+    if (!res.ok) return "bad_image";
+    rawBytes = Buffer.from(await res.arrayBuffer());
+  }
+  catch {
+    return "bad_image";
+  }
+
+  const processed = await processImage(rawBytes);
+  if (!processed) return "bad_image";
+
+  const objectKey = screenshotKeyFor(bookmarkId);
+  await putObject(objectKey, processed.body, processed.contentType);
+
+  const values = {
+    bookmarkId,
+    objectKey,
+    contentType: processed.contentType,
+    width: processed.width,
+    height: processed.height,
+    byteSize: processed.body.byteLength,
+    source: "screenshot",
+    createdAt: new Date(),
+  };
+  const [row] = await db
+    .insert(bookmarkScreenshots)
+    .values(values)
+    .onConflictDoUpdate({
+      target: bookmarkScreenshots.bookmarkId,
+      set: values,
+    })
+    .returning();
+  await recordManifestObject({
+    objectKey,
+    contentType: processed.contentType,
+    byteSize: processed.body.byteLength,
+    bookmarkId,
+  });
+  return bookmarkScreenshotFromRow(row);
 }
 
 /** Read a bookmark's stored-image row, or null when it has no image. */

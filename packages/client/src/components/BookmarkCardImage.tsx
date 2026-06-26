@@ -31,16 +31,17 @@ export function BookmarkCardImage({
     data: customRatios = [],
   } = useCustomAspectRatios();
 
-  if (!bookmark.image) return null;
+  const displayImage = bookmark.image ?? bookmark.screenshot;
+  if (!displayImage) return null;
 
   return (
     <div className={imageLeft ? "relative shrink-0 self-start" : "relative"}>
       <img
-        src={bookmark.image.url}
+        src={displayImage.url}
         alt=""
         loading="lazy"
-        width={bookmark.image.width}
-        height={bookmark.image.height}
+        width={displayImage.width}
+        height={displayImage.height}
         className={bookmarkImageClass(imageLeft, imageMode)}
         style={bookmarkImageAspectStyle(imageMode, croppedWidth, croppedHeight, customRatios)}
       />

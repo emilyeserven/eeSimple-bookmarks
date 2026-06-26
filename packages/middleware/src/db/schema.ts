@@ -83,6 +83,27 @@ export const bookmarkImages = pgTable("bookmark_images", {
 });
 
 /**
+ * `bookmark_screenshots` — 0..1 Browserless-captured screenshot per bookmark. Mirrors
+ * `bookmark_images`: bytes live in object storage under `bookmarks/{id}-screenshot.webp`; this
+ * table holds only metadata. Used as a fallback image when no `og:image` / upload image is set.
+ */
+export const bookmarkScreenshots = pgTable("bookmark_screenshots", {
+  bookmarkId: uuid("bookmark_id").primaryKey().references(() => bookmarks.id, {
+    onDelete: "cascade",
+  }),
+  objectKey: text("object_key").notNull(),
+  contentType: text("content_type").notNull(),
+  width: integer("width").notNull(),
+  height: integer("height").notNull(),
+  byteSize: integer("byte_size").notNull(),
+  // Always "screenshot" — kept as text so existing infrastructure (source column) stays consistent.
+  source: text("source").notNull(),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+});
+
+/**
  * `media_objects` — a full manifest of every object in the storage bucket, reconciled by the
  * "Scan bucket" action. `objectKey` is the primary key. `bookmarkId` links the object to its
  * bookmark when one exists; the `set null` FK means deleting a bookmark auto-nulls the link, so the

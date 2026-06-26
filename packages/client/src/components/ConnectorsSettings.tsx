@@ -96,46 +96,45 @@ function HostedMetadataForm() {
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        Use the hosted
+        Point this at a self-hosted
         {" "}
         <a
-          href="https://microlink.io"
+          href="https://github.com/browserless/browserless"
           target="_blank"
           rel="noreferrer"
           className="underline underline-offset-2"
         >
-          Microlink
+          Browserless
         </a>
         {" "}
-        service or any compatible self-hosted endpoint. Sign up at
-        {" "}
-        <a
-          href="https://microlink.io/pricing"
-          target="_blank"
-          rel="noreferrer"
-          className="underline underline-offset-2"
-        >
-          microlink.io/pricing
-        </a>
-        {" "}
-        to get an API key (a free tier is available with rate limits). Each field saves on blur.
+        instance (
+        <code>ghcr.io/browserless/chromium</code>
+        ). Browserless renders pages with a real browser so JS-heavy or bot-protected pages return
+        full metadata. Each field saves on blur.
       </p>
       <div className="space-y-1.5">
         <Label htmlFor="hm-endpoint">Endpoint URL</Label>
         <Input
           id="hm-endpoint"
           type="url"
-          placeholder="https://api.microlink.io/"
+          placeholder="http://localhost:3000"
           value={endpoint}
           onChange={e => setEndpoint(e.target.value)}
           onBlur={() => saveField("endpoint")}
         />
         <p className="text-xs text-muted-foreground">
-          The base URL of the Microlink-compatible API. Use
+          Base URL of your Browserless instance (e.g.
           {" "}
-          <code>https://api.microlink.io/</code>
+          <code>http://localhost:3000</code>
+          ). The app appends
           {" "}
-          for the hosted service, or your self-hosted endpoint.
+          <code>/chromium/content</code>
+          {" "}
+          for metadata and
+          {" "}
+          <code>/chromium/screenshot</code>
+          {" "}
+          for page screenshots.
         </p>
       </div>
       <div className="space-y-1.5">
@@ -143,7 +142,7 @@ function HostedMetadataForm() {
         <Input
           id="hm-provider"
           type="text"
-          placeholder="microlink"
+          placeholder="browserless"
           value={provider}
           onChange={e => setProvider(e.target.value)}
           onBlur={() => saveField("provider")}
@@ -151,16 +150,16 @@ function HostedMetadataForm() {
         <p className="text-xs text-muted-foreground">
           Display name shown next to the Active badge above (e.g.
           {" "}
-          <code>microlink</code>
+          <code>browserless</code>
           ). Does not affect behavior.
         </p>
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="hm-apikey">API key</Label>
+        <Label htmlFor="hm-apikey">API token</Label>
         <Input
           id="hm-apikey"
           type="password"
-          placeholder={data?.hostedMetadataApiKeySet ? "••••••••" : "No key stored"}
+          placeholder={data?.hostedMetadataApiKeySet ? "••••••••" : "No token stored"}
           value={apiKey}
           onChange={(e) => {
             setApiKey(e.target.value);
@@ -170,8 +169,8 @@ function HostedMetadataForm() {
         />
         <p className="text-xs text-muted-foreground">
           {data?.hostedMetadataApiKeySet
-            ? "A key is stored — the value is never shown. Type a new key to replace it. To clear the stored key, type a single space and save."
-            : "Optional for the free tier. Find your key in the Microlink dashboard after signing up."}
+            ? "A token is stored — the value is never shown. Type a new token to replace it. To clear the stored token, type a single space and save."
+            : "Optional. Set the TOKEN env var on your Browserless container and enter the same value here. Sent as an Authorization: Bearer header."}
           {data && !data.encryptionEnabled && (
             <>
               {" "}
@@ -179,7 +178,7 @@ function HostedMetadataForm() {
               {" "}
               <code>APP_SECRET</code>
               {" "}
-              env var to encrypt this key at rest.
+              env var to encrypt this token at rest.
             </>
           )}
         </p>
@@ -293,9 +292,9 @@ export function ConnectorsSettings() {
             <StatusBadge enabled={data?.hostedMetadata.enabled} />
           </div>
           <CardDescription>
-            Optional. When configured with a Microlink-compatible endpoint, hard pages (JS-rendered,
-            bot-protected) are resolved by the hosted service. Off by default — the app sends URLs
-            off-box only when an endpoint is set, and falls back to the direct scrape otherwise.
+            Optional. When configured with a Browserless endpoint, JS-rendered and bot-protected pages
+            are resolved by the hosted browser. Off by default — URLs are only sent to Browserless when
+            an endpoint is configured, and the app falls back to the direct scrape otherwise.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

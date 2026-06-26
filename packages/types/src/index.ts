@@ -779,8 +779,8 @@ export interface BookmarkImage {
   width: number;
   /** Pixel height of the stored (already-resized) image. */
   height: number;
-  /** How the image was obtained: a manual upload or the page's auto-fetched `og:image`. */
-  source: "upload" | "og";
+  /** How the image was obtained: a manual upload, the page's `og:image`, or a Browserless screenshot. */
+  source: "upload" | "og" | "screenshot";
 }
 
 /**
@@ -877,6 +877,8 @@ export interface Bookmark {
   description: string | null;
   /** The image attached to this bookmark, or `null` when none has been set. */
   image: BookmarkImage | null;
+  /** A Browserless-captured page screenshot, or `null` when none has been taken. Used as image fallback when `image` is null. */
+  screenshot: BookmarkImage | null;
   /** Specific reason the last image auto-grab attempt failed, or `null` when not yet attempted or the last attempt succeeded. */
   imageAutoGrabError: "no_image" | "bad_image" | "blocked" | "server_error" | "fetch_error" | null;
   /** Id of the category this bookmark belongs to (always set; the built-in "Default" when unassigned). */

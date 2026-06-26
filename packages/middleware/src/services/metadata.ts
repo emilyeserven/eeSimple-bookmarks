@@ -352,6 +352,16 @@ export function extractAuthorNames(html: string): string[] {
 }
 
 /**
+ * Pull the site/publisher name from an HTML document's `<head>` via `og:site_name`. Useful as a
+ * proxy for publisher attribution when a dedicated `og:article:author` is absent. Pure —
+ * unit-testable like `extractTitle`.
+ */
+export function extractPublisher(html: string): string | null {
+  const raw = metaContent(html, /property=["']og:site_name["']/i);
+  return raw ? decodeEntities(raw).trim() || null : null;
+}
+
+/**
  * Pull a representative image URL out of an HTML document's `<head>`: prefers Open Graph and
  * Twitter-card images, falling back to a declared icon. Relative URLs are resolved against
  * `pageUrl`. Returns an absolute http(s) URL or null. Pure — unit-testable like `extractTitle`.

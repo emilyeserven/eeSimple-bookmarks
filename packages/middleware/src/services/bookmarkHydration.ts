@@ -33,6 +33,7 @@ import {
   bookmarkImages,
   bookmarkNumberValues,
   bookmarkProgressValues,
+  bookmarkScreenshots,
   bookmarkSectionsValues,
   bookmarkTextValues,
   bookmarkRelationships,
@@ -51,7 +52,7 @@ import {
   youtubeChannelImages,
   youtubeChannels,
 } from "@/db/schema";
-import { bookmarkImageFromRow } from "@/services/bookmarkImages";
+import { bookmarkImageFromRow, bookmarkScreenshotFromRow } from "@/services/bookmarkImages";
 import { bookmarkFileValueFromRow } from "@/services/bookmarkPropertyFiles";
 import { ensureDefaultCategory } from "@/services/categories";
 import { slugify } from "@/utils/slug";
@@ -76,6 +77,7 @@ interface BookmarkExtras {
   textValues: BookmarkTextValue[];
   fileValues: BookmarkFileValue[];
   image: BookmarkImage | null;
+  screenshot: BookmarkImage | null;
   relationships: BookmarkRelationship[];
 }
 
@@ -98,6 +100,7 @@ const EMPTY_EXTRAS: BookmarkExtras = {
   textValues: [],
   fileValues: [],
   image: null,
+  screenshot: null,
   relationships: [],
 };
 
@@ -129,6 +132,7 @@ function toBookmark(row: BookmarkRow, extras: BookmarkExtras, defaultCategoryId:
     fileValues: extras.fileValues,
     relationships: extras.relationships,
     image: extras.image,
+    screenshot: extras.screenshot,
     imageAutoGrabError: (row.imageAutoGrabError as "no_image" | "bad_image" | "blocked" | "server_error" | "fetch_error" | null) ?? null,
     priority: row.priority,
     createdAt:
@@ -606,6 +610,22 @@ async function imagesByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
   return byId;
 }
 
+/** Load screenshots for a set of bookmarks in a single query, keyed by bookmark id. */
+async function screenshotsByBookmarkId(bookmarkIds: string[]): Promise<Map<string, BookmarkImage>> {
+  const byId = new Map<string, BookmarkImage>();
+  if (bookmarkIds.length === 0) return byId;
+
+  const rows = await db
+    .select()
+    .from(bookmarkScreenshots)
+    .where(inArray(bookmarkScreenshots.bookmarkId, bookmarkIds));
+
+  for (const row of rows) {
+    byId.set(row.bookmarkId, bookmarkScreenshotFromRow(row));
+  }
+  return byId;
+}
+
 /**
  * Load typed relationships for a set of bookmark ids, handling both sides of each edge. Returns a
  * map of bookmarkId → its {@link BookmarkRelationship}s, with the other bookmark's role derived from
@@ -696,7 +716,7 @@ async function relationshipsByBookmarkId(
 
 /** Hydrate all custom-property relations for a set of bookmark rows in batched queries. */
 async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, BookmarkExtras>> {
-  const [tagsMap, blacklistedMap, authorsMap, numberMap, booleanMap, dateTimeMap, choicesMap, progressMap, sectionsMap, textMap, fileMap, imageMap, relationshipsMap] = await Promise.all([
+  const [tagsMap, blacklistedMap, authorsMap, numberMap, booleanMap, dateTimeMap, choicesMap, progressMap, sectionsMap, textMap, fileMap, imageMap, screenshotMap, relationshipsMap] = await Promise.all([
     tagsByBookmarkId(bookmarkIds),
     blacklistedTagIdsByBookmarkId(bookmarkIds),
     authorsByBookmarkId(bookmarkIds),
@@ -709,6 +729,7 @@ async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
     textValuesByBookmarkId(bookmarkIds),
     fileValuesByBookmarkId(bookmarkIds),
     imagesByBookmarkId(bookmarkIds),
+    screenshotsByBookmarkId(bookmarkIds),
     relationshipsByBookmarkId(bookmarkIds),
   ]);
   const grouped = new Map<string, BookmarkExtras>();
@@ -732,6 +753,7 @@ async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
       textValues: textMap.get(id) ?? [],
       fileValues: fileMap.get(id) ?? [],
       image: imageMap.get(id) ?? null,
+      screenshot: screenshotMap.get(id) ?? null,
       relationships: relationshipsMap.get(id) ?? [],
     });
   }
