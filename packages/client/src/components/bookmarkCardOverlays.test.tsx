@@ -21,6 +21,7 @@ function cornerPlacement(
     hideIcon: false,
     showIfFalse: false,
     clickableInView: false,
+    clickableInOverlay: false,
     showLabelColon: true,
     showValueBeforeLabel: false,
     ...overrides,

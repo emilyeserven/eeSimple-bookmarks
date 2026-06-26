@@ -55,6 +55,8 @@ export interface ResolvedFieldPlacement {
   showIfFalse: boolean;
   /** Boolean fields: the value can be clicked to toggle it without entering edit mode. */
   clickableInView: boolean;
+  /** Image zones: the corner badge is a link to the bookmark's external URL. */
+  clickableInOverlay: boolean;
   /** Boolean icon-preset fields: show the colon after the label (defaults to true). */
   showLabelColon: boolean;
   /** Boolean icon-preset fields: render the value before the label. */
@@ -76,6 +78,7 @@ export function resolveFieldPlacements(zones: CardFieldZones): Map<string, Resol
         hideIcon: placement.hideIcon ?? false,
         showIfFalse: placement.showIfFalse ?? false,
         clickableInView: placement.clickableInView ?? false,
+        clickableInOverlay: placement.clickableInOverlay ?? false,
         showLabelColon: placement.showLabelColon ?? true,
         showValueBeforeLabel: placement.showValueBeforeLabel ?? false,
       });
@@ -95,6 +98,7 @@ function bodyPlacement(zone: CardFieldZone): ResolvedFieldPlacement {
     hideIcon: false,
     showIfFalse: false,
     clickableInView: false,
+    clickableInOverlay: false,
     showLabelColon: true,
     showValueBeforeLabel: false,
   };
@@ -228,6 +232,8 @@ interface BookmarkValueItemBase {
   hideIcon: boolean;
   /** Boolean fields: the value can be clicked to toggle it (from the placement, not the property). */
   clickableInView: boolean;
+  /** Image zones: the corner badge is a link to the bookmark's external URL. */
+  clickableInOverlay: boolean;
 }
 
 export type BookmarkValueItem
@@ -264,6 +270,7 @@ function placementBase(
     hideLabel: placement.hideLabel,
     hideIcon: placement.hideIcon,
     clickableInView: placement.clickableInView,
+    clickableInOverlay: placement.clickableInOverlay,
   };
 }
 

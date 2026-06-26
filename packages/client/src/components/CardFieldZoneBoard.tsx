@@ -224,6 +224,7 @@ export function CardFieldZoneBoard({
       // Preserve the boolean per-field knobs across a move (they apply in every body zone).
       if (existing?.showIfFalse) placement.showIfFalse = true;
       if (existing?.clickableInView) placement.clickableInView = true;
+      if (existing?.clickableInOverlay) placement.clickableInOverlay = true;
       if (existing?.showLabelColon === false) placement.showLabelColon = false;
       if (existing?.showValueBeforeLabel) placement.showValueBeforeLabel = true;
       const list = next[targetZone];
@@ -729,6 +730,16 @@ function ImagePlacementControls({
         idPrefix={idPrefix}
         onPatch={onPatch}
       />
+      <label className="flex items-center gap-1 text-muted-foreground">
+        <Checkbox
+          id={`${idPrefix}-clickable-in-overlay`}
+          checked={placement.clickableInOverlay ?? false}
+          onCheckedChange={checked => onPatch({
+            clickableInOverlay: checked === true,
+          })}
+        />
+        Link to bookmark
+      </label>
     </div>
   );
 }

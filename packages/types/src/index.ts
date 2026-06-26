@@ -1529,6 +1529,11 @@ export interface CardFieldPlacement {
    */
   clickableInView?: boolean;
   /**
+   * Image zones only. When true, the corner-overlay badge is rendered as a link to the bookmark's
+   * external URL. Defaults to false.
+   */
+  clickableInOverlay?: boolean;
+  /**
    * Boolean custom-property fields with an icon-like preset (`icons`/`stars`) only. When false, the
    * colon after the property name is suppressed. **Absent/omitted means true** (the default).
    */

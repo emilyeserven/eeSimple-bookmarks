@@ -123,6 +123,23 @@ function valueItemOverlayNode(item: BookmarkValueItem): ReactNode {
   return overlayBadge(icon, text);
 }
 
+/**
+ * Wrap an overlay badge in an external link to the bookmark's URL. Stops card-level click
+ * propagation so the link click doesn't also trigger the card's navigation.
+ */
+function overlayLink(node: ReactNode, url: string): ReactNode {
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={e => e.stopPropagation()}
+    >
+      {node}
+    </a>
+  );
+}
+
 /** Wrap an interactive action node (Open Link / More) in a translucent corner container. */
 function overlayAction(node: ReactNode): ReactNode {
   return (
@@ -158,12 +175,15 @@ export function buildCardOverlayItems(
     if (item.corner === null) continue;
     const node = valueItemOverlayNode(item);
     if (!node) continue;
+    const finalNode = item.clickableInOverlay && bookmark.url
+      ? overlayLink(node, bookmark.url)
+      : node;
     overlayItems.push({
       key: item.id,
       corner: item.corner,
       scale: item.scale,
       mobileScale: item.mobileScale,
-      node,
+      node: finalNode,
     });
   }
   // The interactive header actions render as their button/menu node (hideIcon/hideLabel don't apply —
@@ -192,12 +212,16 @@ export function buildCardOverlayItems(
     const icon = placement.hideIcon ? null : standardFieldOverlayIcon(bookmark, field.key, bookmarkCategory);
     const text = placement.hideLabel ? null : label;
     if (!icon && !text) continue;
+    const badge = overlayBadge(icon, text);
+    const finalBadge = placement.clickableInOverlay && bookmark.url
+      ? overlayLink(badge, bookmark.url)
+      : badge;
     overlayItems.push({
       key: field.key,
       corner: placement.corner,
       scale: placement.scale,
       mobileScale: placement.mobileScale,
-      node: overlayBadge(icon, text),
+      node: finalBadge,
     });
   }
   return overlayItems;
