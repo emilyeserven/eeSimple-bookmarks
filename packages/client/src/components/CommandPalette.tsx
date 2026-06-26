@@ -1,4 +1,7 @@
-import { useEffect, useState } from "react";
+import type { FlatNode } from "@/lib/tagTree";
+import type { TagNode } from "@eesimple/types";
+
+import { useEffect, useMemo, useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
 import {
@@ -33,6 +36,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useBookmarks } from "@/hooks/useBookmarks";
+import { useCategoryRootTags } from "@/hooks/useCategories";
+import { subtreeIds } from "@/lib/tagTree";
 
 const PAGES = [
   {
@@ -184,6 +189,69 @@ const SETTINGS = [
 
 type TaxonomyMode = "category" | "media-type" | "tags" | "authors" | "choices-property";
 
+function useTagsPalette(
+  flatTags: FlatNode<TagNode>[],
+  pendingTagIds: string[],
+  categoryId: string | undefined,
+) {
+  const {
+    data: allowedRootIds,
+  } = useCategoryRootTags(categoryId ?? "");
+
+  const allTagsById = useMemo(
+    () => new Map(flatTags.map(({
+      node,
+    }) => [node.id, node])),
+    [flatTags],
+  );
+
+  const filteredFlatTags = useMemo(() => {
+    if (allowedRootIds === undefined) return flatTags;
+    if (allowedRootIds.length === 0) return [];
+    const allowedSet = new Set(allowedRootIds);
+    return flatTags.filter(({
+      node,
+    }) => {
+      let current: TagNode | undefined = node;
+      while (current?.parentId) current = allTagsById.get(current.parentId);
+      return current !== undefined && allowedSet.has(current.id);
+    });
+  }, [flatTags, allowedRootIds, allTagsById]);
+
+  const {
+    priorityTags, otherTags,
+  } = useMemo(() => {
+    if (pendingTagIds.length === 0) return {
+      priorityTags: [],
+      otherTags: filteredFlatTags,
+    };
+    const priorityIds = new Set<string>();
+    for (const tagId of pendingTagIds) {
+      priorityIds.add(tagId);
+      let current = allTagsById.get(tagId);
+      while (current?.parentId) {
+        priorityIds.add(current.parentId);
+        current = allTagsById.get(current.parentId);
+      }
+      const node = allTagsById.get(tagId);
+      if (node) subtreeIds(node).forEach(id => priorityIds.add(id));
+    }
+    return {
+      priorityTags: filteredFlatTags.filter(({
+        node,
+      }) => priorityIds.has(node.id)),
+      otherTags: filteredFlatTags.filter(({
+        node,
+      }) => !priorityIds.has(node.id)),
+    };
+  }, [filteredFlatTags, pendingTagIds, allTagsById]);
+
+  return {
+    priorityTags,
+    otherTags,
+  };
+}
+
 /** Open/input state for the palette plus the global ⌘K / Ctrl+K toggle. */
 function useCommandPaletteShell() {
   const [open, setOpen] = useState(false);
@@ -247,6 +315,10 @@ export function CommandPalette() {
     customProperties,
     updateBookmark,
   } = useBookmarkTaxonomyContext();
+
+  const {
+    priorityTags, otherTags,
+  } = useTagsPalette(flatTags, pendingTagIds, bookmark?.categoryId);
 
   const listingCtx = useListingPageContext();
   const {
@@ -448,23 +520,21 @@ export function CommandPalette() {
                     </CommandItem>
                   </CommandGroup>
                   <CommandSeparator />
-                  <CommandGroup heading="Toggle tags">
-                    {flatTags.map(({
+                  {(() => {
+                    const renderTagItem = ({
                       node: tag, depth,
-                    }) => {
+                    }: FlatNode<TagNode>) => {
                       const selected = pendingTagIds.includes(tag.id);
                       return (
                         <CommandItem
                           key={tag.id}
                           value={tag.name}
-                          onSelect={() => {
+                          onSelect={() =>
                             setPendingTagIds(prev =>
                               selected
                                 ? prev.filter(id => id !== tag.id)
-                                : [...prev, tag.id]);
-                          }}
+                                : [...prev, tag.id])}
                         >
-                          {selected && <CheckIcon className="text-primary" />}
                           <span
                             style={{
                               paddingLeft: depth > 0 ? `${depth}rem` : undefined,
@@ -472,10 +542,36 @@ export function CommandPalette() {
                           >
                             {tag.name}
                           </span>
+                          {selected && (
+                            <CheckIcon
+                              className="ml-auto text-primary"
+                            />
+                          )}
                         </CommandItem>
                       );
-                    })}
-                  </CommandGroup>
+                    };
+                    return priorityTags.length > 0
+                      ? (
+                        <>
+                          <CommandGroup heading="Selected & related">
+                            {priorityTags.map(renderTagItem)}
+                          </CommandGroup>
+                          {otherTags.length > 0 && (
+                            <>
+                              <CommandSeparator />
+                              <CommandGroup heading="Other tags">
+                                {otherTags.map(renderTagItem)}
+                              </CommandGroup>
+                            </>
+                          )}
+                        </>
+                      )
+                      : (
+                        <CommandGroup heading="Toggle tags">
+                          {otherTags.map(renderTagItem)}
+                        </CommandGroup>
+                      );
+                  })()}
                   <CommandSeparator />
                   <CommandGroup>
                     <CommandItem
