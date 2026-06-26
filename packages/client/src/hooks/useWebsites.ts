@@ -174,6 +174,10 @@ export function useUploadWebsiteFavicon() {
       void queryClient.invalidateQueries({
         queryKey: WEBSITES_KEY,
       });
+      // BookmarkWebsite embeds imageUrl, so bookmark cards must reflect the new favicon.
+      void queryClient.invalidateQueries({
+        queryKey: BOOKMARKS_KEY,
+      });
       notifySuccess("Favicon updated");
     },
     onError: (err: Error) => notifyError(describeError(err, "Could not upload the favicon")),
@@ -188,6 +192,10 @@ export function useDeleteWebsiteFavicon() {
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: WEBSITES_KEY,
+      });
+      // BookmarkWebsite embeds imageUrl, so bookmark cards must reflect the removed favicon.
+      void queryClient.invalidateQueries({
+        queryKey: BOOKMARKS_KEY,
       });
       notifySuccess("Favicon removed");
     },
@@ -207,6 +215,10 @@ export function useAutoWebsiteFavicon() {
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: WEBSITES_KEY,
+      });
+      // BookmarkWebsite embeds imageUrl, so bookmark cards must reflect the fetched favicon.
+      void queryClient.invalidateQueries({
+        queryKey: BOOKMARKS_KEY,
       });
       notifySuccess("Favicon fetched");
     },

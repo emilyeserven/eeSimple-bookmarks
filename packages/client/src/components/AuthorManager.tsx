@@ -11,6 +11,7 @@ import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick"
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
 import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 import { useAuthors } from "../hooks/useAuthors";
+import { useEntityImage } from "../hooks/useEntityImage";
 import { useHeaderSearchFilter } from "../hooks/useHeaderSearchFilter";
 import { useSetListingPage } from "../hooks/useListingPage";
 import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
@@ -24,6 +25,10 @@ function AuthorListItem({
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
+  const {
+    showImage,
+    onError,
+  } = useEntityImage(author.imageUrl);
 
   return (
     <StandardListingCard
@@ -34,7 +39,16 @@ function AuthorListItem({
             rounded-full bg-muted text-muted-foreground
           "
         >
-          <UserRound className="size-4" />
+          {showImage
+            ? (
+              <img
+                src={author.imageUrl ?? undefined}
+                alt=""
+                className="size-full object-cover"
+                onError={onError}
+              />
+            )
+            : <UserRound className="size-4" />}
         </span>
       )}
       title={author.name}
