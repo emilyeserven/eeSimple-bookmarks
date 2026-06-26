@@ -20,6 +20,7 @@ import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as CardDisplayRulesRouteImport } from './routes/card-display-rules'
 import { Route as BookmarksRouteImport } from './routes/bookmarks'
 import { Route as AutofillRouteImport } from './routes/autofill'
+import { Route as AiSummarizationRouteImport } from './routes/ai-summarization'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TagsIndexRouteImport } from './routes/tags.index'
 import { Route as SettingsIndexRouteImport } from './routes/settings.index'
@@ -60,7 +61,6 @@ import { Route as SettingsCustomPropertiesRouteImport } from './routes/settings.
 import { Route as SettingsCardDisplayRulesRouteImport } from './routes/settings.card-display-rules'
 import { Route as SettingsAutomationsRouteImport } from './routes/settings.automations'
 import { Route as SettingsAutofillRouteImport } from './routes/settings.autofill'
-import { Route as SettingsAiSummarizationRouteImport } from './routes/settings.ai-summarization'
 import { Route as SettingsAdvancedRouteImport } from './routes/settings.advanced'
 import { Route as SavedFiltersFilterSlugRouteImport } from './routes/saved-filters.$filterSlug'
 import { Route as InboxNewRouteImport } from './routes/inbox.new'
@@ -291,6 +291,11 @@ const AutofillRoute = AutofillRouteImport.update({
   path: '/autofill',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AiSummarizationRoute = AiSummarizationRouteImport.update({
+  id: '/ai-summarization',
+  path: '/ai-summarization',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -496,11 +501,6 @@ const SettingsAutomationsRoute = SettingsAutomationsRouteImport.update({
 const SettingsAutofillRoute = SettingsAutofillRouteImport.update({
   id: '/autofill',
   path: '/autofill',
-  getParentRoute: () => SettingsRoute,
-} as any)
-const SettingsAiSummarizationRoute = SettingsAiSummarizationRouteImport.update({
-  id: '/ai-summarization',
-  path: '/ai-summarization',
   getParentRoute: () => SettingsRoute,
 } as any)
 const SettingsAdvancedRoute = SettingsAdvancedRouteImport.update({
@@ -1515,6 +1515,7 @@ const TaxonomiesAuthorsAuthorSlugViewGeneralRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ai-summarization': typeof AiSummarizationRoute
   '/autofill': typeof AutofillRouteWithChildren
   '/bookmarks': typeof BookmarksRouteWithChildren
   '/card-display-rules': typeof CardDisplayRulesRoute
@@ -1536,7 +1537,6 @@ export interface FileRoutesByFullPath {
   '/inbox/new': typeof InboxNewRoute
   '/saved-filters/$filterSlug': typeof SavedFiltersFilterSlugRouteWithChildren
   '/settings/advanced': typeof SettingsAdvancedRoute
-  '/settings/ai-summarization': typeof SettingsAiSummarizationRoute
   '/settings/autofill': typeof SettingsAutofillRoute
   '/settings/automations': typeof SettingsAutomationsRoute
   '/settings/card-display-rules': typeof SettingsCardDisplayRulesRoute
@@ -1730,13 +1730,13 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ai-summarization': typeof AiSummarizationRoute
   '/card-display-rules': typeof CardDisplayRulesRoute
   '/quick-add': typeof QuickAddRoute
   '/autofill/backfill': typeof AutofillBackfillRoute
   '/custom-properties/new': typeof CustomPropertiesNewRoute
   '/inbox/new': typeof InboxNewRoute
   '/settings/advanced': typeof SettingsAdvancedRoute
-  '/settings/ai-summarization': typeof SettingsAiSummarizationRoute
   '/settings/autofill': typeof SettingsAutofillRoute
   '/settings/automations': typeof SettingsAutomationsRoute
   '/settings/card-display-rules': typeof SettingsCardDisplayRulesRoute
@@ -1902,6 +1902,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/ai-summarization': typeof AiSummarizationRoute
   '/autofill': typeof AutofillRouteWithChildren
   '/bookmarks': typeof BookmarksRouteWithChildren
   '/card-display-rules': typeof CardDisplayRulesRoute
@@ -1923,7 +1924,6 @@ export interface FileRoutesById {
   '/inbox/new': typeof InboxNewRoute
   '/saved-filters/$filterSlug': typeof SavedFiltersFilterSlugRouteWithChildren
   '/settings/advanced': typeof SettingsAdvancedRoute
-  '/settings/ai-summarization': typeof SettingsAiSummarizationRoute
   '/settings/autofill': typeof SettingsAutofillRoute
   '/settings/automations': typeof SettingsAutomationsRoute
   '/settings/card-display-rules': typeof SettingsCardDisplayRulesRoute
@@ -2132,6 +2132,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/ai-summarization'
     | '/autofill'
     | '/bookmarks'
     | '/card-display-rules'
@@ -2153,7 +2154,6 @@ export interface FileRouteTypes {
     | '/inbox/new'
     | '/saved-filters/$filterSlug'
     | '/settings/advanced'
-    | '/settings/ai-summarization'
     | '/settings/autofill'
     | '/settings/automations'
     | '/settings/card-display-rules'
@@ -2347,13 +2347,13 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/ai-summarization'
     | '/card-display-rules'
     | '/quick-add'
     | '/autofill/backfill'
     | '/custom-properties/new'
     | '/inbox/new'
     | '/settings/advanced'
-    | '/settings/ai-summarization'
     | '/settings/autofill'
     | '/settings/automations'
     | '/settings/card-display-rules'
@@ -2518,6 +2518,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/ai-summarization'
     | '/autofill'
     | '/bookmarks'
     | '/card-display-rules'
@@ -2539,7 +2540,6 @@ export interface FileRouteTypes {
     | '/inbox/new'
     | '/saved-filters/$filterSlug'
     | '/settings/advanced'
-    | '/settings/ai-summarization'
     | '/settings/autofill'
     | '/settings/automations'
     | '/settings/card-display-rules'
@@ -2747,6 +2747,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AiSummarizationRoute: typeof AiSummarizationRoute
   AutofillRoute: typeof AutofillRouteWithChildren
   BookmarksRoute: typeof BookmarksRouteWithChildren
   CardDisplayRulesRoute: typeof CardDisplayRulesRoute
@@ -2845,6 +2846,13 @@ declare module '@tanstack/react-router' {
       path: '/autofill'
       fullPath: '/autofill'
       preLoaderRoute: typeof AutofillRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai-summarization': {
+      id: '/ai-summarization'
+      path: '/ai-summarization'
+      fullPath: '/ai-summarization'
+      preLoaderRoute: typeof AiSummarizationRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -3125,13 +3133,6 @@ declare module '@tanstack/react-router' {
       path: '/autofill'
       fullPath: '/settings/autofill'
       preLoaderRoute: typeof SettingsAutofillRouteImport
-      parentRoute: typeof SettingsRoute
-    }
-    '/settings/ai-summarization': {
-      id: '/settings/ai-summarization'
-      path: '/ai-summarization'
-      fullPath: '/settings/ai-summarization'
-      preLoaderRoute: typeof SettingsAiSummarizationRouteImport
       parentRoute: typeof SettingsRoute
     }
     '/settings/advanced': {
@@ -4787,7 +4788,6 @@ const SavedFiltersRouteWithChildren = SavedFiltersRoute._addFileChildren(
 
 interface SettingsRouteChildren {
   SettingsAdvancedRoute: typeof SettingsAdvancedRoute
-  SettingsAiSummarizationRoute: typeof SettingsAiSummarizationRoute
   SettingsAutofillRoute: typeof SettingsAutofillRoute
   SettingsAutomationsRoute: typeof SettingsAutomationsRoute
   SettingsCardDisplayRulesRoute: typeof SettingsCardDisplayRulesRoute
@@ -4814,7 +4814,6 @@ interface SettingsRouteChildren {
 
 const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsAdvancedRoute: SettingsAdvancedRoute,
-  SettingsAiSummarizationRoute: SettingsAiSummarizationRoute,
   SettingsAutofillRoute: SettingsAutofillRoute,
   SettingsAutomationsRoute: SettingsAutomationsRoute,
   SettingsCardDisplayRulesRoute: SettingsCardDisplayRulesRoute,
@@ -5538,6 +5537,7 @@ const TaxonomiesYoutubeChannelsRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AiSummarizationRoute: AiSummarizationRoute,
   AutofillRoute: AutofillRouteWithChildren,
   BookmarksRoute: BookmarksRouteWithChildren,
   CardDisplayRulesRoute: CardDisplayRulesRoute,
