@@ -212,12 +212,15 @@ that matches the surface — don't invent a new structure for a one-off page.
   expanding to its full fields. Reach for it **only** when a section is long or optional and
   benefits from collapsing (e.g. autofill activation conditions, property options). Refs:
   `AutofillRuleForm`, `PropertyForm`, `HomepageSectionForm`.
-- **Vertical-tabbed sidebar + `<Outlet/>`** (`packages/client/src/components/TabbedEntityLayout.tsx`,
-  over the shared **`TabbedShell.tsx`** + `navLinkClass`) — a `header` over a tab `nav` and a
-  `min-w-0 flex-1` content pane holding `<Outlet/>`. The shell is **container-query responsive**
-  (`@container/tabs`): a wide container shows the left vertical nav (`@2xl/tabs:w-48`), a narrow one (a
-  phone, or the right drawer) collapses to a horizontal scrollable tab strip — so the same component
-  serves the page, mobile, and the panel. The shell for slug-routed entities: Categories, Custom
+- **Horizontal-tabbed strip + `<Outlet/>`** (`packages/client/src/components/TabbedEntityLayout.tsx`,
+  over the shared **`TabbedShell.tsx`** + `navLinkClass` + `navStripClass`) — a `header` over a
+  horizontal tab `nav` strip and a `min-w-0` content pane holding `<Outlet/>`. The strip
+  (`navStripClass`: `flex items-center gap-1 overflow-x-auto border-b pb-1`) scrolls horizontally
+  when the tabs overflow, so the same component serves the page, mobile, and the panel — there is no
+  longer a vertical-sidebar mode. A `group` nav entry collapses into a trailing **"More" dropdown**
+  (active state resolved via `useMatchRoute`, so it works for both `$slug` and static routes); this
+  is also what the **Settings** page (`routes/settings.tsx`) renders through. The shell for
+  slug-routed entities: Categories, Custom
   Properties, Websites, Media Types, YouTube Channels, Tags, Property Groups, Autofill. Each tab's
   body comes from the entity's **`EntityWorkbench` descriptor** (see the right-panel bullet under
   **Content hierarchies → URL-driven right panel**): the route renders one tab via
@@ -266,12 +269,12 @@ that matches the surface — don't invent a new structure for a one-off page.
     submit **create** form for edit. **Create** flows (the panel's `NEW_SENTINEL` path, inline-create
     modals) keep their submit form — `CreateAutofillRule` / `TagCreateForm` / `PropertyForm` /
     `BookmarkForm` stay submit-driven for create only.
-  - **The responsive tabbed shell is `components/TabbedShell.tsx`** — container-query driven
-    (`@container/tabs`): a wide container (a full-width page) gets the left vertical nav, a narrow one
-    (a phone, or the right drawer) collapses to a horizontal scrollable tab strip. Both the main-pane
+  - **The shared tabbed shell is `components/TabbedShell.tsx`** — a horizontal, scrollable tab strip
+    (`navStripClass`) above the active body, on every surface (full-width page, phone, and the right
+    drawer); the strip scrolls horizontally when the tabs overflow. Both the main-pane
     `TabbedEntityLayout` and the panel's `EntityWorkbenchView` render through it, so the panel is
     tab-for-tab identical to the page and the main pane is mobile-friendly for free. A single-tab (or
-    tab-less) surface drops the nav column.
+    tab-less) surface drops the nav strip.
   - **Bookmarks are the one asymmetric case:** a bookmark's *view* is one rich component
     (`BookmarkDetail`, shared by the detail page and the panel View directly, not via the workbench),
     while its *edit* is tabbed via a **panel-only** `bookmarkEditWorkbench` (the main-app bookmark edit

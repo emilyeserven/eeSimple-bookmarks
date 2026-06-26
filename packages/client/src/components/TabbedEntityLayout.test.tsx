@@ -11,7 +11,7 @@ import {
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { SettingsTabsLayout } from "./SettingsTabsLayout";
+import { TabbedEntityLayout } from "./TabbedEntityLayout";
 
 const nav: readonly TabNavEntry[] = [
   {
@@ -46,7 +46,7 @@ const nav: readonly TabNavEntry[] = [
 async function renderLayout(initialPath = "/settings/display") {
   const rootRoute = createRootRoute({
     component: () => (
-      <SettingsTabsLayout
+      <TabbedEntityLayout
         header={<h1>Settings</h1>}
         nav={nav}
         navAriaLabel="Settings sections"
@@ -70,7 +70,7 @@ async function renderLayout(initialPath = "/settings/display") {
   return render(<RouterProvider router={router} />);
 }
 
-describe("SettingsTabsLayout", () => {
+describe("TabbedEntityLayout", () => {
   it("renders top-level entries as tabs and the group behind a More button", async () => {
     await renderLayout();
 

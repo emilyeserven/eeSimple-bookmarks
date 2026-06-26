@@ -6,7 +6,7 @@ import { useState } from "react";
 
 import { BookmarkDetailMedia } from "./BookmarkDetailMedia";
 import { buildBookmarkDetailSections } from "./bookmarkDetailSections";
-import { navLinkClass } from "./TabbedShell";
+import { navLinkClass, navStripClass } from "./TabbedShell";
 import { useBookmarkDetailVideoSize } from "../hooks/useAppSettings";
 import { useBookmarks } from "../hooks/useBookmarks";
 import { useDefaultFieldZones } from "../lib/bookmarkCardFields";
@@ -27,13 +27,13 @@ interface BookmarkDetailTabbedProps {
 }
 
 /**
- * The vertical-tabbed bookmark detail layout. The detail sections become tabs whose placement
- * adapts to the media size:
- * - Case 1 (image or constrained "standard" video): media on the left with the tab nav beneath it,
- *   active tab content on the right.
+ * The horizontal-tabbed bookmark detail layout. The detail sections become a horizontal tab strip
+ * rendered directly above the active tab's content; the media placement adapts to its size:
+ * - Case 1 (image or constrained "standard" video): media on the left, the tab strip + active
+ *   content on the right.
  * - Case 2 ("half"/"two-thirds" video): the General/Details section sits beside the video; the tab
- *   nav + the remaining sections render full-width below (General is not a tab).
- * - Case 3 ("fullwidth" video): the video spans the top; the tab nav + content render below.
+ *   strip + the remaining sections render full-width below (General is not a tab).
+ * - Case 3 ("fullwidth" video): the video spans the top; the tab strip + content render below.
  */
 export function BookmarkDetailTabbed({
   bookmark, categories, properties, propertyGroups, embedUrl, onSaveBoolean,
@@ -84,7 +84,7 @@ export function BookmarkDetailTabbed({
 
   const nav = (
     <nav
-      className="flex flex-col gap-1"
+      className={navStripClass}
       aria-label="Bookmark sections"
     >
       {tabs.map(tab => (
@@ -104,25 +104,18 @@ export function BookmarkDetailTabbed({
     </nav>
   );
 
-  const activeContent = <div className="min-w-0 flex-1">{active.content}</div>;
-
   // The default arrangement (also the Case 1 no-media fallback, and the lower block of Cases 2 & 3):
-  // a narrow tab nav on the left with the active content on the right.
-  const navBesideContent: ReactNode = (
-    <div
-      className="
-        flex flex-col gap-6
-        @2xl:flex-row @2xl:items-start
-      "
-    >
-      <div className="@2xl:w-48 @2xl:shrink-0">{nav}</div>
-      {activeContent}
+  // the horizontal tab strip stacked above the active content.
+  const navAboveContent: ReactNode = (
+    <div className="min-w-0 flex-1 space-y-4">
+      {nav}
+      <div className="min-w-0">{active.content}</div>
     </div>
   );
 
   if (mediaCase === 1) {
-    if (!hasMedia) return navBesideContent;
-    // Media on the left with the nav beneath it; active content on the right.
+    if (!hasMedia) return navAboveContent;
+    // Media on the left; the tab strip + active content stacked on the right.
     return (
       <div
         className="
@@ -130,16 +123,8 @@ export function BookmarkDetailTabbed({
           @2xl:flex-row @2xl:items-start
         "
       >
-        <div
-          className="
-            flex flex-col gap-4
-            @2xl:shrink-0
-          "
-        >
-          {media}
-          {nav}
-        </div>
-        {activeContent}
+        <div className="@2xl:shrink-0">{media}</div>
+        {navAboveContent}
       </div>
     );
   }
@@ -156,16 +141,16 @@ export function BookmarkDetailTabbed({
           {media}
           <div className="min-w-0 flex-1">{general?.content}</div>
         </div>
-        {navBesideContent}
+        {navAboveContent}
       </div>
     );
   }
 
-  // Case 3: full-width video on top, nav + content below.
+  // Case 3: full-width video on top, tab strip + content below.
   return (
     <div className="space-y-6">
       {media}
-      {navBesideContent}
+      {navAboveContent}
     </div>
   );
 }
