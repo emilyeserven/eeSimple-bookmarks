@@ -16,6 +16,7 @@ import {
 import { AddBookmarkModal } from "./AddBookmarkModal";
 import { useBookmarkTaxonomyContext } from "./useBookmarkTaxonomyContext";
 import { useListingPageContext } from "./useListingPageContext";
+import { useSavedFilterContext } from "./useSavedFilterContext";
 
 import {
   Command,
@@ -248,6 +249,9 @@ export function CommandPalette() {
   } = useBookmarkTaxonomyContext();
 
   const listingCtx = useListingPageContext();
+  const {
+    filterId, savedFilter, updateFilter,
+  } = useSavedFilterContext();
 
   const handleOpenChange = (value: boolean) => {
     setOpen(value);
@@ -855,6 +859,36 @@ export function CommandPalette() {
                             </CommandItem>
                           );
                         })}
+                      </CommandGroup>
+                      <CommandSeparator />
+                    </>
+                  )}
+
+                  {filterId && savedFilter && (
+                    <>
+                      <CommandGroup heading="Saved Filter">
+                        <CommandItem
+                          value="Toggle Sidebar Shortcut"
+                          onSelect={() => {
+                            updateFilter.mutate({
+                              id: filterId,
+                              input: {
+                                viewableOnline: !savedFilter.viewableOnline,
+                              },
+                            });
+                            handleOpenChange(false);
+                          }}
+                        >
+                          {savedFilter.viewableOnline && (
+                            <CheckIcon className="text-primary" />
+                          )}
+                          <span className="flex min-w-0 flex-col gap-0.5">
+                            <span>Sidebar Shortcut</span>
+                            <span className="text-xs text-muted-foreground">
+                              {savedFilter.viewableOnline ? "Shown" : "Hidden"}
+                            </span>
+                          </span>
+                        </CommandItem>
                       </CommandGroup>
                       <CommandSeparator />
                     </>

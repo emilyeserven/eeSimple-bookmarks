@@ -530,3 +530,12 @@ hooks:
 New toolbar action → new `CommandItem` in the "Current Page" group (or the "Bookmark Taxonomies"
 group for bookmark-specific fields). New bookmark entity field → extend `useBookmarkTaxonomyContext`
 and add an item to the palette's bookmark section.
+
+**Adding CMD+K wiring for a new slug-routed entity detail page:** create a `use<Entity>Context`
+hook (modelled on `useSavedFilterContext` / `useBookmarkTaxonomyContext`) that extracts the entity
+slug from the URL via `useRouterState`, fetches the entity, and exposes its update mutation. Then
+add a named group to the palette's `{taxonomyMode === null}` block gated on `entityId !== null`.
+Surface boolean fields as direct toggles and choices/select fields as sub-palettes; text/number
+fields that require input should navigate to the edit route instead. Reference files:
+`packages/client/src/components/useSavedFilterContext.ts` (simplest example),
+`packages/client/src/components/useBookmarkTaxonomyContext.ts` (richer example with sub-palettes).
