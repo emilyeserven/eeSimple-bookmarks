@@ -199,7 +199,7 @@ export function BookmarkPropertiesForm({
 
   return (
     <form
-      className="space-y-4"
+      className="space-y-6"
       onSubmit={event => void handleSubmit(event)}
     >
       {(runtimeProp || datePostedProp) && isYouTubeBookmark && (
@@ -216,6 +216,7 @@ export function BookmarkPropertiesForm({
       )}
       <CategoryCustomFields
         placement="default"
+        layout="stack"
         categoryId={bookmark.categoryId ?? ""}
         mediaTypeId={bookmark.mediaType?.id ?? null}
         properties={customProperties ?? []}
@@ -238,6 +239,7 @@ export function BookmarkPropertiesForm({
       />
       <CategoryCustomFields
         placement="advanced"
+        layout="stack"
         categoryId={bookmark.categoryId ?? ""}
         mediaTypeId={bookmark.mediaType?.id ?? null}
         properties={customProperties ?? []}
