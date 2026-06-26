@@ -206,14 +206,7 @@ const connectorsBody = {
     },
     hostedMetadataApiKey: {
       // null = leave the stored key unchanged; "" = clear; any other string = set new key.
-      oneOf: [
-        {
-          type: "null",
-        },
-        {
-          type: "string",
-        },
-      ],
+      type: ["string", "null"],
     },
   },
 } as const;
