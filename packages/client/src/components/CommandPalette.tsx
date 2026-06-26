@@ -403,7 +403,9 @@ export function CommandPalette() {
                       )}
                       None
                     </CommandItem>
-                    {flatMediaTypes.map(mt => (
+                    {flatMediaTypes.map(({
+                      node: mt, depth,
+                    }) => (
                       <CommandItem
                         key={mt.id}
                         value={mt.name}
@@ -420,7 +422,13 @@ export function CommandPalette() {
                         {bookmark?.mediaType?.id === mt.id && (
                           <CheckIcon className="text-primary" />
                         )}
-                        {mt.name}
+                        <span
+                          style={{
+                            paddingLeft: depth > 0 ? `${depth}rem` : undefined,
+                          }}
+                        >
+                          {mt.name}
+                        </span>
                       </CommandItem>
                     ))}
                   </CommandGroup>
@@ -441,7 +449,9 @@ export function CommandPalette() {
                   </CommandGroup>
                   <CommandSeparator />
                   <CommandGroup heading="Toggle tags">
-                    {flatTags.map((tag) => {
+                    {flatTags.map(({
+                      node: tag, depth,
+                    }) => {
                       const selected = pendingTagIds.includes(tag.id);
                       return (
                         <CommandItem
@@ -455,7 +465,13 @@ export function CommandPalette() {
                           }}
                         >
                           {selected && <CheckIcon className="text-primary" />}
-                          {tag.name}
+                          <span
+                            style={{
+                              paddingLeft: depth > 0 ? `${depth}rem` : undefined,
+                            }}
+                          >
+                            {tag.name}
+                          </span>
                         </CommandItem>
                       );
                     })}
