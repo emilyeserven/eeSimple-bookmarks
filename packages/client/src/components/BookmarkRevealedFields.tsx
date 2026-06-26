@@ -1,13 +1,10 @@
-import type { SourceDefaults } from "./BookmarkAdvancedSection";
+import type { BookmarkCustomFieldControls, SourceDefaults } from "./BookmarkAdvancedSection";
 import type { BookmarkFormApi } from "./bookmarkFormSchema";
 import type { ImageIntent } from "./bookmarkImageIntent";
 import type { useWebsiteLookup } from "../hooks/useWebsites";
 import type { UrlCleanupMode } from "../lib/urlCleanup";
 import type {
   Author,
-  BookmarkBooleanValue,
-  BookmarkDateTimeValue,
-  BookmarkNumberValue,
   BookmarkUrlDuplicateResult,
   Category,
   CustomProperty,
@@ -29,7 +26,7 @@ import { RevealedWebsiteBanner } from "./RevealedWebsiteBanner";
 
 type WebsiteLookupResult = ReturnType<typeof useWebsiteLookup>;
 
-interface BookmarkRevealedFieldsProps {
+interface BookmarkRevealedFieldsProps extends BookmarkCustomFieldControls {
   form: BookmarkFormApi;
   /** Hide the Name field — set for plain-text entries, where the typed text is already the name. */
   hideNameField?: boolean;
@@ -81,29 +78,12 @@ interface BookmarkRevealedFieldsProps {
   onExpectedTitleChange: (v: string) => void;
   onCancelReporting: () => void;
 
-  // Tags + custom properties.
+  // Tags + custom properties (the custom-field inputs/handlers come from BookmarkCustomFieldControls).
   tagTree: TagNode[];
   customProperties: CustomProperty[];
   mediaTypes: MediaTypeNode[];
   authors?: Author[];
   onTagToggle: (id: string) => void;
-  numberInputs: Record<string, string>;
-  booleanInputs: Record<string, boolean>;
-  dateTimeInputs: Record<string, string>;
-  choicesInputs: Record<string, string[]>;
-  progressInputs: Record<string, { current: string;
-    total: string; }>;
-  sectionsInputs: Record<string, { exhaustive: boolean;
-    sections: import("@eesimple/types").SectionEntry[]; }>;
-  textInputs: Record<string, string>;
-  onNumberChange: (id: string, value: string) => void;
-  onBooleanChange: (id: string, value: boolean) => void;
-  onDateTimeChange: (id: string, value: string) => void;
-  onChoicesChange: (id: string, values: string[]) => void;
-  onProgressChange: (id: string, field: "current" | "total", value: string) => void;
-  onSectionsChange: (id: string, value: { exhaustive: boolean;
-    sections: import("@eesimple/types").SectionEntry[]; }) => void;
-  onTextChange: (id: string, value: string) => void;
 
   // Advanced section.
   categories: Category[];
@@ -119,11 +99,6 @@ interface BookmarkRevealedFieldsProps {
   defaultAuto: boolean;
   autoGrabError: string | null;
   onImageIntentChange: (intent: ImageIntent) => void;
-  onApplyCategoryDefaults: (
-    numberValues: BookmarkNumberValue[],
-    booleanValues: BookmarkBooleanValue[],
-    dateTimeValues: BookmarkDateTimeValue[],
-  ) => void;
 
   // Duplicate URL check result.
   urlDuplicate?: BookmarkUrlDuplicateResult | null;

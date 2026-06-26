@@ -4,10 +4,12 @@ import { useNavigate } from "@tanstack/react-router";
 import { CheckSquare } from "lucide-react";
 
 import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
+import { ListingStatusMessages } from "./ListingStatusMessages";
 import { PropertyGroupListItem } from "./PropertyGroupListItem";
 import { usePropertyGroupColumns } from "./tables/propertyGroupColumns";
 import { listingSelectionColumn } from "./tables/selectionColumn";
 import { useTableRowNav } from "./tables/useTableRowNav";
+import { useHeaderSearchFilter } from "../hooks/useHeaderSearchFilter";
 import { useSetListingPage } from "../hooks/useListingPage";
 import { useBulkDeletePropertyGroups, usePropertyGroups } from "../hooks/usePropertyGroups";
 import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
@@ -16,7 +18,6 @@ import { useListSelection } from "../lib/useListSelection";
 
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
-import { useUiStore } from "@/stores/uiStore";
 
 /** Browsable, searchable property-group listing. */
 export function PropertyGroupsListing() {
@@ -31,12 +32,13 @@ export function PropertyGroupsListing() {
   const rowNav = useTableRowNav();
   const navigate = useNavigate();
 
-  const rawQuery = useUiStore(state => state.headerSearchQuery);
-  const filtered = (allGroups ?? []).filter((g) => {
-    const q = rawQuery.trim().toLowerCase();
-    if (!q) return true;
-    return g.name.toLowerCase().includes(q) || g.slug.toLowerCase().includes(q);
-  });
+  const groups = allGroups ?? [];
+  const {
+    rawQuery, hasQuery, filtered,
+  } = useHeaderSearchFilter(
+    groups,
+    (g, query) => g.name.toLowerCase().includes(query) || g.slug.toLowerCase().includes(query),
+  );
 
   const deletableIds = filtered.map(g => g.id);
   const selection = useListSelection("property-groups-listing", deletableIds);
@@ -44,22 +46,21 @@ export function PropertyGroupsListing() {
 
   return (
     <div className="space-y-4">
-      {isLoading ? <p className="text-muted-foreground">Loading property groups…</p> : null}
-      {error ? <p className="text-destructive">{error.message}</p> : null}
-      {!isLoading && (allGroups?.length ?? 0) === 0
-        ? (
+      <ListingStatusMessages
+        isLoading={isLoading}
+        error={error}
+        totalCount={groups.length}
+        filteredCount={filtered.length}
+        rawQuery={rawQuery}
+        hasQuery={hasQuery}
+        loadingLabel="Loading property groups…"
+        entityPlural="property groups"
+        emptyMessage={(
           <p className="text-muted-foreground">
             No property groups yet.
           </p>
-        )
-        : null}
-      {!isLoading && (allGroups?.length ?? 0) > 0 && filtered.length === 0
-        ? (
-          <p className="text-muted-foreground">
-            No property groups match &ldquo;{rawQuery}&rdquo;.
-          </p>
-        )
-        : null}
+        )}
+      />
 
       {viewMode !== "table"
         ? (

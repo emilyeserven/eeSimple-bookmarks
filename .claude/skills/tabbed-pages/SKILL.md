@@ -1,15 +1,15 @@
 ---
 name: tabbed-pages
 description: >-
-  Convert a slug-routed entity's single detail/edit pages into the vertical-tabbed View + Edit layout
-  used by Categories and Settings (left sidebar nav + `<Outlet/>`), optionally adding an entity-scoped
-  Autofill Rules tab. Use when asked to "give X a vertical tabbed layout", "make X's detail/edit pages
-  tabbed like Categories/Settings", "split the X page into tabs", or "add an autofill tab to X".
-  Mirrors how Custom Properties / Websites / Media Types / YouTube Channels / Categories / Tags /
-  Property Groups view and edit pages were tabbed.
+  Convert a slug-routed entity's single detail/edit pages into the horizontal-tabbed View + Edit
+  layout used by Categories and Settings (a horizontal scrolling tab strip above an `<Outlet/>`),
+  optionally adding an entity-scoped Autofill Rules tab. Use when asked to "give X a tabbed layout",
+  "make X's detail/edit pages tabbed like Categories/Settings", "split the X page into tabs", or "add
+  an autofill tab to X". Mirrors how Custom Properties / Websites / Media Types / YouTube Channels /
+  Categories / Tags / Property Groups view and edit pages were tabbed.
 ---
 
-# Convert detail/edit pages to a vertical-tabbed layout
+# Convert detail/edit pages to a horizontal-tabbed layout
 
 > **Read first — the tab bodies now come from a shared `EntityWorkbench` descriptor.** Every
 > slug-routed entity's tabs (view + edit bodies, titles, descriptions) live in one
@@ -22,10 +22,12 @@ description: >-
 > documents the layout-route shell (`_view.tsx` / `edit.tsx` with `nav` + `TabbedEntityLayout`), which
 > is unchanged, and the historical wrapper approach for context.
 
-Categories and Settings render a left **vertical nav** beside an `<Outlet/>`; each tab is its own
-file-based route. This skill restructures an entity that currently has one long detail page and one
-long edit form into that shape. The layout shell is the container-query-responsive `TabbedShell`
-(wide → vertical nav, narrow/drawer → horizontal strip). Copy whichever entity is closest:
+Categories and Settings render a **horizontal scrolling tab strip** above an `<Outlet/>`; each tab is
+its own file-based route. This skill restructures an entity that currently has one long detail page
+and one long edit form into that shape. The layout shell is `TabbedShell` — a horizontal,
+horizontally-scrollable tab strip (`navStripClass`) on **every** surface (full-width page, phone, and
+the right drawer); the old wide-screen vertical-sidebar mode was removed in #578. Copy whichever
+entity is closest:
 
 - **Custom Properties** — the most complete (read-only View *and* Edit, a **conditional** tab, plus a
   scoped Autofill tab).
@@ -39,8 +41,8 @@ long edit form into that shape. The layout shell is the container-query-responsi
 In `packages/client/src/components/`:
 
 - **`TabbedEntityLayout`** (+ exported `navLinkClass`) — the layout shell for `_view.tsx` / `edit.tsx`.
-  It renders the `header`, the left vertical `<nav>`, and the `<Outlet/>`. You give it the nav
-  **declaratively**, not as JSX:
+  It renders the `header`, a horizontal scrolling tab `<nav>` strip (`navStripClass`), and the
+  `<Outlet/>`. You give it the nav **declaratively**, not as JSX:
   ```tsx
   <TabbedEntityLayout
     header={(/* back link + title/badges + Edit link (view) or description (edit) */)}
@@ -189,7 +191,7 @@ pnpm lint:fix                              # always from repo root
 ```
 
 Then run `pnpm dev` and check that the entity:
-- redirects `/<entity>/<slug>` to `…/general` and switches tabs via the left nav (conditional tabs
+- redirects `/<entity>/<slug>` to `…/general` and switches tabs via the tab strip (conditional tabs
   appear/disappear by type),
 - has an **Edit** link that preserves the active tab (e.g. clicking Edit from "Param Rules" lands on
   the edit "Param Rules" tab, not "General"); tabs without an edit counterpart fall back to "General";

@@ -192,8 +192,11 @@ Each package has its **own** test runner — never cross them:
   `packages/client/src/test-utils/` (`setup.ts`). Run `pnpm --filter=@eesimple/client test`.
 - **middleware** (`packages/middleware`): **Node test runner** (`node --test --import tsx`). Tests
   live in `packages/middleware/src/tests/**/*.test.ts`. Run `pnpm --filter=@eesimple/middleware test`.
-- **types** (`packages/types`): currently has **no test runner and no tests** — yet it owns the
-  shared `evaluateConditions` predicate both client and middleware depend on. See 2.4.
+- **types** (`packages/types`): **Node test runner** (`node --test --import tsx`, `"test"` script
+  added in #550). Tests are co-located `packages/types/src/*.test.ts` (e.g. `conditions.test.ts`,
+  `urlCleanup.test.ts`, `youtube.test.ts`, `importBlacklist.test.ts`). Run
+  `pnpm --filter=@eesimple/types test`. The harness exists — add `evaluateConditions` coverage
+  directly (see 2.4); no need to stand a runner up.
 
 Build the untested-source map:
 
@@ -240,16 +243,15 @@ highest-leverage gaps first:
 - For pure branchy logic, cover each condition arm plus the default path. This is the same logic
   Phase 4 may extract, so thorough branch coverage here pays off twice.
 
-### 2.4 The types package has no test harness
+### 2.4 The types package's shared predicate
 
 `@eesimple/types` ships `evaluateConditions` — per CLAUDE.md the single most important shared
-function in the repo (server and client **must** call the same one) — with **zero tests**. To test
-it you must also stand up a runner: add a `test` script to `packages/types/package.json` and a
-minimal Vitest (or `node:test` + `tsx`) config mirroring middleware, and confirm root `pnpm test`
-(`pnpm run -r test`) picks it up. This is a deliberate multi-file change — do it in its **own**
-commit, only if verification stays green. If standing up the harness is out of scope for the run,
-**record `evaluateConditions` as an untested high-risk gap in the final report** rather than skipping
-it silently.
+function in the repo (server and client **must** call the same one). The types harness now exists
+(`node --test --import tsx`, `"test"` script, co-located `src/*.test.ts`), so add coverage **directly**
+in a co-located `packages/types/src/conditions.test.ts`-style file — no runner setup needed. Cover each
+`predicate.valueKind` arm plus the default/empty-tree path. If `evaluateConditions` still has gaps the
+run doesn't close, **record them as an untested high-risk area in the final report** rather than
+skipping silently.
 
 ### 2.5 Verify and commit
 

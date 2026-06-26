@@ -8,6 +8,7 @@ import {
   looksLikeYouTube,
 } from "./bookmarkFormSchema";
 import { useBookmarkFormData } from "./useBookmarkFormData";
+import { useBookmarkInlineCreateModals } from "./useBookmarkInlineCreateModals";
 import { useBookmarkScanHandlers } from "./useBookmarkScanHandlers";
 import { useBookmarkUrlProcessing } from "./useBookmarkUrlProcessing";
 import { describeError } from "../lib/apiError";
@@ -62,14 +63,10 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     customStripParams: customStripParams ?? [],
   });
 
-  const [addMediaTypeOpen, setAddMediaTypeOpen] = useState(false);
-  const [addTagOpen, setAddTagOpen] = useState(false);
-  const [addAuthorOpen, setAddAuthorOpen] = useState(false);
+  const modals = useBookmarkInlineCreateModals();
   const [isReportingTitle, setIsReportingTitle] = useState(false);
   const [expectedTitle, setExpectedTitle] = useState("");
   const [websiteSiteName, setWebsiteSiteName] = useState("");
-  const [addCategoryOpen, setAddCategoryOpen] = useState(false);
-  const [addPublisherOpen, setAddPublisherOpen] = useState(false);
   const channelHintRef = useRef<YouTubeChannelHint | null>(null);
   const [youtubeChannel, setYoutubeChannel] = useState<YouTubeChannelHint | null>(null);
   const [titleFetch, setTitleFetch] = useState<{ previous: string } | null>(null);
@@ -229,15 +226,8 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     authors,
     publishers,
     updateBookmark,
-    addMediaTypeOpen,
-    setAddMediaTypeOpen,
-    addPublisherOpen,
-    setAddPublisherOpen,
-    addTagOpen,
-    setAddTagOpen,
+    ...modals,
     saveTags,
-    addAuthorOpen,
-    setAddAuthorOpen,
     saveAuthors,
     fetchTitle,
     fetchMetadata,
@@ -265,8 +255,6 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     setTitleFetch,
     // misc UI state
     urlDuplicate,
-    addCategoryOpen,
-    setAddCategoryOpen,
     autofillOfferDismissed,
     setAutofillOfferDismissed,
     touchedRef,

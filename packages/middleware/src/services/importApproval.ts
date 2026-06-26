@@ -2,6 +2,7 @@ import type {
   BookmarkBooleanValue,
   BookmarkDateTimeValue,
   BookmarkNumberValue,
+  CreateBookmarkInput,
   InboxPreFillDefaults,
 } from "@eesimple/types";
 
@@ -49,4 +50,76 @@ export function mergeApprovalTagIds(
   autofillTagIds: string[],
 ): string[] {
   return [...new Set([...(defaultTagIds ?? []), ...(preFillTagIds ?? []), ...autofillTagIds])];
+}
+
+/**
+ * Resolve the category id for an approved item by precedence:
+ * per-item override > pre-fill > import default > newsletter default > autofill.
+ * `undefined` (none set) lets `createBookmark` apply its website/channel/built-in default precedence.
+ */
+export function pickApprovalCategoryId(candidates: {
+  itemCategoryId?: string | null;
+  preFillCategoryId?: string | null;
+  importDefaultCategoryId?: string | null;
+  newsletterDefaultCategoryId?: string | null;
+  autofillCategoryId?: string | null;
+}): string | undefined {
+  return (
+    candidates.itemCategoryId
+    ?? candidates.preFillCategoryId
+    ?? candidates.importDefaultCategoryId
+    ?? candidates.newsletterDefaultCategoryId
+    ?? candidates.autofillCategoryId
+    ?? undefined
+  );
+}
+
+/** The bookmark fields an import contributes to each approved item (newsletter defaults + link). */
+export interface ApprovalBookmarkDefaults {
+  importId: string;
+  newsletterId: string | null;
+  categoryId?: string;
+  mediaTypeId?: string | null;
+  tagIds?: string[];
+}
+
+/**
+ * Assemble the `createBookmark` input for an approved item, applying the per-field precedence
+ * (pre-fill > import default > autofill) and dropping empty value arrays. Pure — the DB lookups and
+ * the resolved `categoryId` are done by the caller and passed in.
+ */
+export function buildApprovalBookmarkInput(args: {
+  url: string;
+  title: string;
+  item: { newsletterContext?: string | null;
+    description?: string | null; };
+  defaults: ApprovalBookmarkDefaults;
+  preFill: InboxPreFillDefaults | undefined;
+  autofillTagIds: string[];
+  autofillMediaTypeId?: string | null;
+  mergedNumberValues: BookmarkNumberValue[];
+  mergedBooleanValues: BookmarkBooleanValue[];
+  mergedDateTimeValues: BookmarkDateTimeValue[];
+  categoryId: string | undefined;
+}): CreateBookmarkInput {
+  const {
+    url, title, item, defaults, preFill, autofillTagIds, autofillMediaTypeId,
+    mergedNumberValues, mergedBooleanValues, mergedDateTimeValues, categoryId,
+  } = args;
+  return {
+    url,
+    title,
+    // Save the source passage (newsletter context) as the description; fall back to the item's own.
+    description: item.newsletterContext ?? item.description ?? null,
+    ...defaults,
+    tagIds: mergeApprovalTagIds(defaults.tagIds, preFill?.tagIds, autofillTagIds),
+    mediaTypeId: preFill?.mediaTypeId ?? defaults.mediaTypeId ?? autofillMediaTypeId,
+    authorIds: preFill?.authorIds,
+    publisherId: preFill?.publisherId ?? undefined,
+    numberValues: mergedNumberValues.length > 0 ? mergedNumberValues : undefined,
+    booleanValues: mergedBooleanValues.length > 0 ? mergedBooleanValues : undefined,
+    dateTimeValues: mergedDateTimeValues.length > 0 ? mergedDateTimeValues : undefined,
+    choicesValues: preFill?.choicesValues,
+    categoryId,
+  };
 }

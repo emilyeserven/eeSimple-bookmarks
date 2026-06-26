@@ -1,22 +1,12 @@
 import type { AutofillRule } from "@eesimple/types";
 
-import { useMemo } from "react";
-
-import { useNavigate } from "@tanstack/react-router";
 import { CheckSquare } from "lucide-react";
 
 import { AutofillRuleListItem } from "./AutofillRuleListItem";
 import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
-import { useAutofillRuleColumns } from "./tables/autofillRuleColumns";
 import { listingSelectionColumn } from "./tables/selectionColumn";
-import { useTableRowNav } from "./tables/useTableRowNav";
-import { useAutofillRules, useBulkDeleteAutofillRules } from "../hooks/useAutofill";
-import { useCategories } from "../hooks/useCategories";
-import { useWebsiteDomain } from "../hooks/useWebsiteDomain";
-import { ruleSetsMediaType, ruleSetsProperty, ruleSetsTag, ruleTargetsWebsite, ruleTargetsYoutubeChannel } from "../lib/autofillRulesFilter";
-import { COLUMN_CLASS, useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
-import { summarizeConditions } from "../lib/conditionsSummary";
-import { useListSelection } from "../lib/useListSelection";
+import { useAutofillRulesList } from "./useAutofillRulesList";
+import { COLUMN_CLASS } from "../lib/bookmarkColumns";
 
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
@@ -41,57 +31,11 @@ interface AutofillRulesListProps {
 }
 
 /** Read-only, filterable list of autofill rules; selecting one opens it in the panel. */
-export function AutofillRulesList({
-  categoryId,
-  propertyId,
-  websiteId,
-  tagId,
-  mediaTypeId,
-  channelId,
-  noCategory,
-  query,
-}: AutofillRulesListProps) {
+export function AutofillRulesList(props: AutofillRulesListProps) {
   const {
-    data: rules, isLoading, error,
-  } = useAutofillRules();
-  const {
-    data: categories,
-  } = useCategories();
-
-  const columns = useBookmarkColumns("autofill-rules-listing");
-  const viewMode = useViewMode("autofill-rules-listing");
-  const ruleColumns = useAutofillRuleColumns(categories ?? []);
-  const rowNav = useTableRowNav();
-  const navigate = useNavigate();
-
-  // The scoping website's normalized domain (rules reference websites by domain, not id).
-  const websiteDomain = useWebsiteDomain(websiteId);
-
-  // Apply the active facet filters (they combine — AND) before the text search.
-  const filteredRules = useMemo(() => {
-    let list = rules ?? [];
-    if (categoryId) list = list.filter(rule => rule.setCategoryId === categoryId);
-    if (noCategory) list = list.filter(rule => rule.setCategoryId === null);
-    if (propertyId) list = list.filter(rule => ruleSetsProperty(rule, propertyId));
-    if (websiteId) list = websiteDomain ? list.filter(rule => ruleTargetsWebsite(rule, websiteDomain)) : [];
-    if (tagId) list = list.filter(rule => ruleSetsTag(rule, tagId));
-    if (mediaTypeId) list = list.filter(rule => ruleSetsMediaType(rule, mediaTypeId));
-    if (channelId) list = list.filter(rule => ruleTargetsYoutubeChannel(rule, channelId));
-    return list;
-  }, [rules, categoryId, noCategory, propertyId, websiteId, websiteDomain, tagId, mediaTypeId, channelId]);
-
-  const visibleRules = useMemo(() => {
-    const normalized = query.trim().toLowerCase();
-    if (normalized === "") return filteredRules;
-    return filteredRules.filter(rule =>
-      rule.name.toLowerCase().includes(normalized)
-      || summarizeConditions(rule.conditions).toLowerCase().includes(normalized));
-  }, [filteredRules, query]);
-
-  const hasRules = (rules?.length ?? 0) > 0;
-  const deletableIds = visibleRules.map(rule => rule.id);
-  const selection = useListSelection("autofill-rules-listing", deletableIds);
-  const bulkDelete = useBulkDeleteAutofillRules();
+    isLoading, error, columns, viewMode, ruleColumns, categories,
+    visibleRules, hasRules, deletableIds, selection, bulkDelete, openRule,
+  } = useAutofillRulesList(props);
 
   return (
     <section className="space-y-6">
@@ -135,22 +79,7 @@ export function AutofillRulesList({
             ]}
             data={visibleRules}
             sortable
-            onRowClick={(rule, event) =>
-              rowNav(event, "autofill", rule.id, () => {
-                void navigate({
-                  to: "/autofill/$ruleSlug",
-                  params: {
-                    ruleSlug: rule.slug,
-                  },
-                });
-              }, () => {
-                void navigate({
-                  to: "/autofill/$ruleSlug/edit/general",
-                  params: {
-                    ruleSlug: rule.slug,
-                  },
-                });
-              })}
+            onRowClick={openRule}
           />
         )
         : (
@@ -164,7 +93,7 @@ export function AutofillRulesList({
               <AutofillRuleListItem
                 key={rule.id}
                 rule={rule}
-                categories={categories ?? []}
+                categories={categories}
                 selectable
                 selected={selection.isSelected(rule.id)}
                 onSelectToggle={() => selection.toggle(rule.id)}

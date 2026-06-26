@@ -12,6 +12,7 @@ import { CustomPropertyFilters } from "./CustomPropertyFilters";
 import { FacetChips, FacetPresenceToggle } from "./FilterFacetControls";
 import { MultiCombobox } from "./MultiCombobox";
 import { TreeMultiCombobox } from "./TreeMultiCombobox";
+import { resolvePropertiesVisibility } from "../lib/filterSections";
 import { tagNodesToOptions } from "../lib/tagTree";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 import { Separator } from "./ui/separator";
@@ -66,20 +67,23 @@ export function FilterSections({
 }) {
   const filter = (sectionFilter ?? "").toLowerCase().trim();
   const sectionMatch = (label: string) => !filter || label.toLowerCase().includes(filter);
+  const sectionShown = (has: boolean, label: string) => has && sectionMatch(label);
 
-  const propertiesLabelMatch = sectionMatch("Properties");
-  const matchingProps = filter && !propertiesLabelMatch
-    ? enabledProperties.filter(p => p.name.toLowerCase().includes(filter))
-    : enabledProperties;
-  const showProperties = hasProperties && (propertiesLabelMatch || matchingProps.length > 0);
-  const propertyNameFilter = filter && !propertiesLabelMatch ? filter : undefined;
+  const {
+    showProperties, propertyNameFilter,
+  } = resolvePropertiesVisibility({
+    filter,
+    propertiesLabelMatch: sectionMatch("Properties"),
+    hasProperties,
+    enabledProperties,
+  });
 
   return (
     <SeparatedSections
       sections={[
         {
           key: "tags",
-          show: hasTags && sectionMatch("Tags"),
+          show: sectionShown(hasTags, "Tags"),
           node: (
             <TagsFilterSection
               tree={tree}
@@ -90,7 +94,7 @@ export function FilterSections({
         },
         {
           key: "categories",
-          show: hasCategoryFilter && sectionMatch("Category"),
+          show: sectionShown(hasCategoryFilter, "Category"),
           node: (
             <CategoryFilterSection
               categories={categories}
@@ -101,7 +105,7 @@ export function FilterSections({
         },
         {
           key: "media-types",
-          show: hasMediaTypeFilter && sectionMatch("Media type"),
+          show: sectionShown(hasMediaTypeFilter, "Media type"),
           node: (
             <MediaTypeFilterSection
               mediaTypes={mediaTypes}
@@ -112,7 +116,7 @@ export function FilterSections({
         },
         {
           key: "channels",
-          show: hasChannelFilter && sectionMatch("YouTube channel"),
+          show: sectionShown(hasChannelFilter, "YouTube channel"),
           node: (
             <YouTubeChannelFilterSection
               youtubeChannels={youtubeChannels}
@@ -123,7 +127,7 @@ export function FilterSections({
         },
         {
           key: "websites",
-          show: hasWebsiteFilter && sectionMatch("Website"),
+          show: sectionShown(hasWebsiteFilter, "Website"),
           node: (
             <WebsiteFilterSection
               websites={websites}
@@ -134,7 +138,7 @@ export function FilterSections({
         },
         {
           key: "relationship-types",
-          show: hasRelationshipTypeFilter && sectionMatch("Relationship type"),
+          show: sectionShown(hasRelationshipTypeFilter, "Relationship type"),
           node: (
             <RelationshipTypeFilterSection
               relationshipTypes={relationshipTypes}
@@ -145,7 +149,7 @@ export function FilterSections({
         },
         {
           key: "authors",
-          show: hasAuthorFilter && sectionMatch("Author"),
+          show: sectionShown(hasAuthorFilter, "Author"),
           node: (
             <AuthorFilterSection
               authors={authors}
@@ -156,7 +160,7 @@ export function FilterSections({
         },
         {
           key: "sections",
-          show: hasSectionsFilter && sectionMatch("Sections"),
+          show: sectionShown(hasSectionsFilter, "Sections"),
           node: (
             <SectionsFilterSection
               search={search}
