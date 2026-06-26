@@ -64,6 +64,7 @@ const DISPLAY_DEFAULTS: DisplayPreferenceSettings = {
   drawerUnpinnedBreakpoints: [768],
   croppedWidth: 16,
   croppedHeight: 9,
+  customPropertyTypeIcons: null,
 };
 
 const AUTOMATION_DEFAULTS: AutomationSettings = {

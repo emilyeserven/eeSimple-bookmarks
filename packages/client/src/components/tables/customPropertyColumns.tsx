@@ -4,14 +4,20 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { useMemo } from "react";
 
 import { EditActionCell } from "./cells";
-import { TYPE_LABELS } from "../../lib/propertyFormat";
+import { useDisplayPreferenceSettings } from "../../hooks/useAppSettings";
+import { TYPE_LABELS, resolvePropertyTypeIcon } from "../../lib/propertyFormat";
 import { useEditPanelClick } from "../panel/useEditPanelClick";
 
 import { Badge } from "@/components/ui/badge";
+import { CategoryIcon } from "@/lib/icons";
 
 /** Column definitions for the Custom Properties listing Table view. */
 export function useCustomPropertyColumns(): ColumnDef<CustomProperty>[] {
   const editClick = useEditPanelClick();
+  const {
+    data: displayPrefs,
+  } = useDisplayPreferenceSettings();
+  const typeIcons = displayPrefs?.customPropertyTypeIcons ?? null;
   return useMemo(
     () => [
       {
@@ -32,7 +38,18 @@ export function useCustomPropertyColumns(): ColumnDef<CustomProperty>[] {
         header: "Type",
         cell: ({
           row,
-        }) => <Badge variant="secondary">{TYPE_LABELS[row.original.type]}</Badge>,
+        }) => (
+          <Badge
+            variant="secondary"
+            className="gap-1.5"
+          >
+            <CategoryIcon
+              name={resolvePropertyTypeIcon(row.original.type, typeIcons)}
+              className="size-3.5 shrink-0"
+            />
+            {TYPE_LABELS[row.original.type]}
+          </Badge>
+        ),
       },
       {
         id: "categories",
@@ -66,6 +83,6 @@ export function useCustomPropertyColumns(): ColumnDef<CustomProperty>[] {
         ),
       },
     ],
-    [editClick],
+    [editClick, typeIcons],
   );
 }

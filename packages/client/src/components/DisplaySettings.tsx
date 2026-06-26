@@ -2,10 +2,15 @@ import type { Theme } from "../stores/uiStore";
 import type {
   BookmarkDetailImageSize,
   BookmarkDetailVideoSize,
+  CustomPropertyType,
   DisplayPreferenceSettings,
   SidebarCustomizationSettings,
 } from "@eesimple/types";
 
+import {
+  CUSTOM_PROPERTY_TYPE_LABELS,
+  CUSTOM_PROPERTY_TYPES,
+} from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 
 import { ImageAspectRatiosCard } from "./ImageAspectRatiosCard";
@@ -21,7 +26,7 @@ import { useCategories } from "../hooks/useCategories";
 import { notifyError, notifySuccess } from "../lib/notifications";
 import { useUiStore } from "../stores/uiStore";
 
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -30,6 +35,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { IconPicker } from "@/components/ui/icon-picker";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -40,6 +46,7 @@ import {
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { CategoryIcon } from "@/lib/icons";
+import { CUSTOM_PROPERTY_TYPE_ICONS } from "@/lib/propertyFormat";
 
 type CategoryDisplayMode = "visible" | "see-more" | "hidden";
 
@@ -156,6 +163,7 @@ const DISPLAY_DEFAULTS: DisplayPreferenceSettings = {
   drawerUnpinnedBreakpoints: [768],
   croppedWidth: 16,
   croppedHeight: 9,
+  customPropertyTypeIcons: null,
 };
 
 /** Display preferences — a theme switcher (light / dark / system) and sidebar section toggles. */
@@ -279,6 +287,22 @@ export function DisplaySettings() {
       bookmarkDetailVideoSize: size,
     }, "Detail video size updated");
 
+  function setPropertyTypeIcon(type: CustomPropertyType, iconName: string): void {
+    const current = display.customPropertyTypeIcons ?? {};
+    saveDisplay({
+      customPropertyTypeIcons: {
+        ...current,
+        [type]: iconName,
+      },
+    }, "Property type icon updated");
+  }
+
+  function resetPropertyTypeIcons(): void {
+    saveDisplay({
+      customPropertyTypeIcons: null,
+    }, "Property type icons reset to defaults");
+  }
+
   const {
     data: categories,
   } = useCategories();
@@ -387,6 +411,50 @@ export function DisplaySettings() {
       </Card>
 
       <ImageAspectRatiosCard />
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Property Type Icons</CardTitle>
+          <CardDescription>
+            Choose an icon for each custom property type. These icons appear next to the type badge
+            in property listings.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div
+            className="
+              grid grid-cols-1 gap-3
+              sm:grid-cols-2
+            "
+          >
+            {CUSTOM_PROPERTY_TYPES.map(type => (
+              <div
+                key={type}
+                className="flex items-center gap-3"
+              >
+                <span className="w-28 shrink-0 text-sm font-medium">
+                  {CUSTOM_PROPERTY_TYPE_LABELS[type]}
+                </span>
+                <IconPicker
+                  value={display.customPropertyTypeIcons?.[type] ?? CUSTOM_PROPERTY_TYPE_ICONS[type]}
+                  onChange={iconName => setPropertyTypeIcon(type, iconName)}
+                  aria-label={`Icon for ${CUSTOM_PROPERTY_TYPE_LABELS[type]}`}
+                />
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={resetPropertyTypeIcons}
+            >
+              Reset to defaults
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="space-y-4">
         <div>

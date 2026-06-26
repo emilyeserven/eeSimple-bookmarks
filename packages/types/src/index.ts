@@ -375,6 +375,7 @@ export interface DisplayPreferenceSettings {
   drawerUnpinnedBreakpoints: number[];
   croppedWidth: number;
   croppedHeight: number;
+  customPropertyTypeIcons: Partial<Record<CustomPropertyType, string>> | null;
 }
 
 /** Payload for replacing the display-preference settings. */

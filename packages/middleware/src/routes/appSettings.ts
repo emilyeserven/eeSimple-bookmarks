@@ -241,6 +241,19 @@ const displayPreferenceBody = {
       type: "integer",
       minimum: 1,
     },
+    customPropertyTypeIcons: {
+      oneOf: [
+        {
+          type: "null",
+        },
+        {
+          type: "object",
+          additionalProperties: {
+            type: "string",
+          },
+        },
+      ],
+    },
   },
 } as const;
 
