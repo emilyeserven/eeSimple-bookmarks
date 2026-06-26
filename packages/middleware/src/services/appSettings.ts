@@ -92,6 +92,7 @@ const DEFAULT_DISPLAY_PREFERENCES: DisplayPreferenceSettings = {
   bookmarkDetailImageSize: "medium",
   bookmarkDetailVideoSize: "standard",
   bookmarkDetailLayout: "single",
+  customPropertyTypeIcons: null,
   filtersInDrawer: false,
   filtersHidden: false,
   panelPinned: false,
@@ -571,6 +572,7 @@ export async function getDisplayPreferenceSettings(): Promise<DisplayPreferenceS
       drawerUnpinnedBreakpoints: appSettings.drawerUnpinnedBreakpoints,
       croppedWidth: appSettings.croppedWidth,
       croppedHeight: appSettings.croppedHeight,
+      customPropertyTypeIcons: appSettings.customPropertyTypeIcons,
     })
     .from(appSettings)
     .where(eq(appSettings.id, ROW_ID));
@@ -585,6 +587,7 @@ export async function getDisplayPreferenceSettings(): Promise<DisplayPreferenceS
     drawerUnpinnedBreakpoints: asBreakpoints(row.drawerUnpinnedBreakpoints),
     croppedWidth: asCropped(row.croppedWidth, DEFAULT_DISPLAY_PREFERENCES.croppedWidth),
     croppedHeight: asCropped(row.croppedHeight, DEFAULT_DISPLAY_PREFERENCES.croppedHeight),
+    customPropertyTypeIcons: (row.customPropertyTypeIcons as Partial<Record<string, string>> | null) ?? null,
   };
 }
 
@@ -602,6 +605,7 @@ export async function updateDisplayPreferenceSettings(
     drawerUnpinnedBreakpoints: asBreakpoints(input.drawerUnpinnedBreakpoints),
     croppedWidth: asCropped(input.croppedWidth, DEFAULT_DISPLAY_PREFERENCES.croppedWidth),
     croppedHeight: asCropped(input.croppedHeight, DEFAULT_DISPLAY_PREFERENCES.croppedHeight),
+    customPropertyTypeIcons: input.customPropertyTypeIcons ?? null,
   };
   await db
     .insert(appSettings)

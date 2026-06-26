@@ -1,14 +1,15 @@
-import type { CustomProperty } from "@eesimple/types";
+import type { CustomProperty, CustomPropertyType } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
 
 import { useViewPanelClick } from "./panel/useEditPanelClick";
-import { useSidebarOpenModifier } from "../hooks/useAppSettings";
-import { TYPE_LABELS } from "../lib/propertyFormat";
+import { useDisplayPreferenceSettings, useSidebarOpenModifier } from "../hooks/useAppSettings";
+import { TYPE_LABELS, resolvePropertyTypeIcon } from "../lib/propertyFormat";
 import { propertyPreviewSummary } from "../lib/propertyPreview";
 
 import { Badge } from "@/components/ui/badge";
 import { RowCard } from "@/components/ui/card";
+import { CategoryIcon } from "@/lib/icons";
 import { entityLinkTitle } from "@/lib/sidebarModifier";
 import { cn } from "@/lib/utils";
 
@@ -27,9 +28,11 @@ interface PropertyPreviewProps {
 function PropertyPreviewBody({
   property,
   summary,
+  typeIcons,
 }: {
   property: CustomProperty;
   summary: string | null;
+  typeIcons: Partial<Record<CustomPropertyType, string>> | null;
 }) {
   const categoryCount = property.categoryIds.length;
   const isAllCategories = property.allCategories || categoryCount === 0;
@@ -40,7 +43,16 @@ function PropertyPreviewBody({
         <span className="font-medium">{property.name}</span>
         {property.builtIn && <Badge variant="secondary">Built-in</Badge>}
         {!property.enabled && <Badge variant="outline">Disabled</Badge>}
-        <Badge variant="secondary">{TYPE_LABELS[property.type]}</Badge>
+        <Badge
+          variant="secondary"
+          className="gap-1.5"
+        >
+          <CategoryIcon
+            name={resolvePropertyTypeIcon(property.type, typeIcons)}
+            className="size-3.5 shrink-0"
+          />
+          {TYPE_LABELS[property.type]}
+        </Badge>
         {summary ? <span className="text-xs text-muted-foreground">{summary}</span> : null}
       </div>
       {property.description
@@ -62,6 +74,10 @@ export function PropertyPreview({
 }: PropertyPreviewProps) {
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
+  const {
+    data: displayPrefs,
+  } = useDisplayPreferenceSettings();
+  const typeIcons = displayPrefs?.customPropertyTypeIcons ?? null;
   const summary = propertyPreviewSummary(property, allProperties);
 
   return (
@@ -82,6 +98,7 @@ export function PropertyPreview({
             <PropertyPreviewBody
               property={property}
               summary={summary}
+              typeIcons={typeIcons}
             />
           </button>
         )
@@ -98,6 +115,7 @@ export function PropertyPreview({
             <PropertyPreviewBody
               property={property}
               summary={summary}
+              typeIcons={typeIcons}
             />
           </Link>
         )}

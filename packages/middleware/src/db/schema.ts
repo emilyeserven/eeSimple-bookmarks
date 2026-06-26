@@ -1079,6 +1079,8 @@ export const appSettings = pgTable("app_settings", {
   croppedWidth: integer("cropped_width").notNull().default(16),
   // Height component of the built-in "Cropped" aspect ratio (default 9).
   croppedHeight: integer("cropped_height").notNull().default(9),
+  // Per-type icon overrides for the Custom Properties listing. Null = all defaults.
+  customPropertyTypeIcons: jsonb("custom_property_type_icons").$type<Record<string, string>>(),
   // Prompt text used to instruct an AI to summarize bookmarks in the AI Summary Queue.
   aiSummarizationPrompt: text("ai_summarization_prompt").notNull().default(""),
 });
