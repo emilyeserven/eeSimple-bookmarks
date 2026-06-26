@@ -3,7 +3,7 @@ import { Tag as TagIcon } from "lucide-react";
 
 import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
-import { validateBookmarkSearch } from "../lib/bookmarkSearch";
+import { tagsForServerQuery, validateBookmarkSearch } from "../lib/bookmarkSearch";
 import { findAncestorPath, subtreeIds } from "../lib/tagTree";
 
 export const Route = createFileRoute("/tags/$tagSlug/")({
@@ -30,7 +30,7 @@ function TagBookmarksPage() {
     youtubeChannels,
     relationshipTypes,
     authors,
-  } = useCategoryPageData(search.tags);
+  } = useCategoryPageData(tagsForServerQuery(search));
 
   const path = tagTree ? findAncestorPath(tagTree, tagSlug) : null;
   const tag = path?.[path.length - 1];

@@ -1,7 +1,7 @@
 import type { ComboboxOption } from "./Combobox";
 import type { Bookmark, Category, CustomProperty, PropertyGroup } from "@eesimple/types";
 
-import { Ban, ChevronDown, Circle, CircleDot, CircleHelp } from "lucide-react";
+import { Ban, ChevronDown, Circle, CircleDot, CircleHelp, CircleMinus } from "lucide-react";
 
 import { Combobox } from "./Combobox";
 import { DateTimeRangeFields } from "./DateTimePicker";
@@ -36,8 +36,8 @@ interface CustomPropertyFiltersProps {
   booleanValues: Record<string, boolean>;
   /** Active date/time range filters (`[from, to]`, either `null`) keyed by property id. */
   dateTimeValues: Record<string, [string | null, string | null]>;
-  /** Active presence filters keyed by property id (absent = no filter). */
-  presenceValues: Record<string, "has" | "missing">;
+  /** Active presence filters keyed by property id (absent = no filter). "exclude" is valid for choices-type properties. */
+  presenceValues: Record<string, "has" | "missing" | "exclude">;
   /** Active choices filters keyed by property id; value is an array of selected choice slugs. */
   choicesValues: Record<string, string[]>;
   /** Report a number filter (or `undefined` to clear it when back at full range). */
@@ -46,8 +46,8 @@ interface CustomPropertyFiltersProps {
   onBooleanFilterChange: (propertyId: string, value: boolean | undefined) => void;
   /** Report a date/time range filter (`[from, to]`, or `undefined` to clear it). */
   onDateTimeFilterChange: (propertyId: string, range: [string | null, string | null] | undefined) => void;
-  /** Report a presence filter (`"has"`/`"missing"`, or `undefined` to clear it). */
-  onPresenceFilterChange: (propertyId: string, mode: "has" | "missing" | undefined) => void;
+  /** Report a presence filter (`"has"`/`"missing"`/`"exclude"`, or `undefined` to clear it). */
+  onPresenceFilterChange: (propertyId: string, mode: "has" | "missing" | "exclude" | undefined) => void;
   /** Report a choices filter (array of selected choice slugs, or empty to clear). */
   onChoicesFilterChange: (propertyId: string, values: string[]) => void;
   /** Clear all filter types (num, bool, presence, choices) for a property in one navigation. */
@@ -96,12 +96,14 @@ const collapseWhenInactive = `
 
 interface PresenceControlProps {
   propertyId: string;
-  value: "has" | "missing" | undefined;
-  onChange: (propertyId: string, mode: "has" | "missing" | undefined) => void;
+  value: "has" | "missing" | "exclude" | undefined;
+  onChange: (propertyId: string, mode: "has" | "missing" | "exclude" | undefined) => void;
+  /** When true, a 4th "Excludes selected values" option is shown. Only meaningful for choices-type properties. */
+  supportsExclude?: boolean;
 }
 
 function PresenceFilterControl({
-  propertyId, value, onChange,
+  propertyId, value, onChange, supportsExclude = false,
 }: PresenceControlProps) {
   const toggleValue = value ?? "any";
 
@@ -110,7 +112,7 @@ function PresenceFilterControl({
       onChange(propertyId, undefined);
     }
     else {
-      onChange(propertyId, next as "has" | "missing");
+      onChange(propertyId, next as "has" | "missing" | "exclude");
     }
   }
 
@@ -158,6 +160,22 @@ function PresenceFilterControl({
         </TooltipTrigger>
         <TooltipContent>No value</TooltipContent>
       </Tooltip>
+      {supportsExclude
+        ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <ToggleGroupItem
+                value="exclude"
+                aria-label="Excludes selected values"
+                className={cn(toggleValue !== "exclude" && collapseWhenInactive)}
+              >
+                <CircleMinus className="size-3.5" />
+              </ToggleGroupItem>
+            </TooltipTrigger>
+            <TooltipContent>Excludes selected values</TooltipContent>
+          </Tooltip>
+        )
+        : null}
     </ToggleGroup>
   );
 }
@@ -282,6 +300,7 @@ export function CustomPropertyFilters({
               propertyId={property.id}
               value={presenceValue}
               onChange={onPresenceFilterChange}
+              supportsExclude={property.type === "choices"}
             />
           </div>
         </div>
@@ -289,7 +308,7 @@ export function CustomPropertyFilters({
         <CollapsibleContent
           className={cn("space-y-3", !isActive && "pointer-events-none")}
         >
-          {presenceValue !== "missing" && isRangeProperty(property)
+          {presenceValue !== "missing" && presenceValue !== "exclude" && isRangeProperty(property)
             ? (
               <NumberFilterControl
                 property={property}
@@ -300,7 +319,7 @@ export function CustomPropertyFilters({
             )
             : null}
 
-          {presenceValue !== "missing" && property.type === "datetime"
+          {presenceValue !== "missing" && presenceValue !== "exclude" && property.type === "datetime"
             ? (
               <DateTimeFilterControl
                 property={property}
@@ -310,7 +329,7 @@ export function CustomPropertyFilters({
             )
             : null}
 
-          {presenceValue !== "missing" && property.type === "boolean"
+          {presenceValue !== "missing" && presenceValue !== "exclude" && property.type === "boolean"
             ? (
               <BooleanFilterControl
                 property={property}

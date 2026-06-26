@@ -3,7 +3,7 @@ import { Folder } from "lucide-react";
 
 import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
-import { validateBookmarkSearch } from "../lib/bookmarkSearch";
+import { tagsForServerQuery, validateBookmarkSearch } from "../lib/bookmarkSearch";
 
 export const Route = createFileRoute("/categories/$categorySlug/")({
   validateSearch: validateBookmarkSearch,
@@ -31,7 +31,7 @@ function CategoryBookmarksPage() {
     websites,
     relationshipTypes,
     authors,
-  } = useCategoryPageData(search.tags);
+  } = useCategoryPageData(tagsForServerQuery(search));
 
   const category = (categories ?? []).find(c => c.slug === categorySlug);
 

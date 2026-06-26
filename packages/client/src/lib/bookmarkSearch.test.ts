@@ -6,6 +6,7 @@ import {
   bookmarkMatchesSearch,
   bookmarkSearchEquals,
   hasAnyActiveFilter,
+  tagsForServerQuery,
   validateBookmarkSearch,
   withBooleanFilter,
   withCategories,
@@ -126,6 +127,32 @@ describe("validateBookmarkSearch", () => {
     })).toEqual({
       tagPresence: "has",
       youtubeChannelPresence: "missing",
+    });
+  });
+
+  it("accepts 'exclude' for all presence fields", () => {
+    expect(validateBookmarkSearch({
+      tagPresence: "exclude",
+      youtubeChannelPresence: "exclude",
+      websitePresence: "exclude",
+      sectionsPresence: "exclude",
+    })).toEqual({
+      tagPresence: "exclude",
+      youtubeChannelPresence: "exclude",
+      websitePresence: "exclude",
+      sectionsPresence: "exclude",
+    });
+    expect(validateBookmarkSearch({
+      presence: {
+        "prop-1": "exclude",
+        "prop-2": "has",
+        "prop-3": "bad",
+      },
+    })).toEqual({
+      presence: {
+        "prop-1": "exclude",
+        "prop-2": "has",
+      },
     });
   });
 
@@ -598,5 +625,217 @@ describe("hasAnyActiveFilter", () => {
       websitePresence: undefined,
       youtubeChannelPresence: undefined,
     })).toBe(false);
+  });
+});
+
+describe("tagsForServerQuery", () => {
+  it("returns tags when tagPresence is not exclude", () => {
+    expect(tagsForServerQuery({})).toBeUndefined();
+    expect(tagsForServerQuery({
+      tags: ["t1", "t2"],
+    })).toEqual(["t1", "t2"]);
+    expect(tagsForServerQuery({
+      tags: ["t1"],
+      tagPresence: "has",
+    })).toEqual(["t1"]);
+    expect(tagsForServerQuery({
+      tags: ["t1"],
+      tagPresence: "missing",
+    })).toEqual(["t1"]);
+  });
+
+  it("returns undefined when tagPresence is exclude", () => {
+    expect(tagsForServerQuery({
+      tagPresence: "exclude",
+    })).toBeUndefined();
+    expect(tagsForServerQuery({
+      tags: ["t1", "t2"],
+      tagPresence: "exclude",
+    })).toBeUndefined();
+  });
+});
+
+describe("bookmarkMatchesSearch — exclude mode", () => {
+  const tag1 = {
+    id: "tag-1",
+    name: "Fiction",
+    slug: "fiction",
+    parentId: null,
+    editableOnCard: false,
+  };
+  const tag2 = {
+    id: "tag-2",
+    name: "Nonfiction",
+    slug: "nonfiction",
+    parentId: null,
+    editableOnCard: false,
+  };
+
+  const base = {
+    categoryId: "cat-1",
+    mediaType: null,
+    youtubeChannel: {
+      id: "ch-1",
+      name: "Channel",
+      slug: "channel",
+    },
+    website: {
+      id: "site-1",
+      domain: "example.com",
+      siteName: "Example",
+      slug: "example",
+      imageUrl: null,
+    },
+    tags: [tag1],
+    numberValues: [],
+    booleanValues: [],
+    dateTimeValues: [],
+    fileValues: [],
+    progressValues: [],
+    choicesValues: [{
+      propertyId: "prop-1",
+      values: ["val-a", "val-b"],
+    }],
+    sectionsValues: [],
+    authors: [],
+    relationships: [],
+  };
+
+  describe("tag exclusion", () => {
+    it("excludes bookmark whose tags overlap with the excluded set", () => {
+      expect(bookmarkMatchesSearch(base, {
+        tags: ["tag-1"],
+        tagPresence: "exclude",
+      })).toBe(false);
+    });
+
+    it("passes bookmark whose tags do not overlap with the excluded set", () => {
+      expect(bookmarkMatchesSearch(base, {
+        tags: ["tag-2"],
+        tagPresence: "exclude",
+      })).toBe(true);
+    });
+
+    it("passes all bookmarks when no tags are selected in exclude mode", () => {
+      expect(bookmarkMatchesSearch(base, {
+        tagPresence: "exclude",
+      })).toBe(true);
+      expect(bookmarkMatchesSearch({
+        ...base,
+        tags: [],
+      }, {
+        tagPresence: "exclude",
+      })).toBe(true);
+    });
+
+    it("passes a bookmark with no tags even when tags are in the excluded set", () => {
+      expect(bookmarkMatchesSearch({
+        ...base,
+        tags: [],
+      }, {
+        tags: ["tag-1"],
+        tagPresence: "exclude",
+      })).toBe(true);
+    });
+
+    it("excludes when bookmark has ANY of the excluded tags (not just all)", () => {
+      expect(bookmarkMatchesSearch({
+        ...base,
+        tags: [tag1, tag2],
+      }, {
+        tags: ["tag-1"],
+        tagPresence: "exclude",
+      })).toBe(false);
+    });
+  });
+
+  describe("YouTube channel exclusion", () => {
+    it("excludes bookmark whose channel is in the excluded set", () => {
+      expect(bookmarkMatchesSearch(base, {
+        youtubeChannels: ["ch-1"],
+        youtubeChannelPresence: "exclude",
+      })).toBe(false);
+    });
+
+    it("passes bookmark whose channel is not in the excluded set", () => {
+      expect(bookmarkMatchesSearch(base, {
+        youtubeChannels: ["ch-2"],
+        youtubeChannelPresence: "exclude",
+      })).toBe(true);
+    });
+
+    it("passes bookmark with no channel in exclude mode", () => {
+      expect(bookmarkMatchesSearch({
+        ...base,
+        youtubeChannel: null,
+      }, {
+        youtubeChannels: ["ch-1"],
+        youtubeChannelPresence: "exclude",
+      })).toBe(true);
+    });
+  });
+
+  describe("website exclusion", () => {
+    it("excludes bookmark whose website is in the excluded set", () => {
+      expect(bookmarkMatchesSearch(base, {
+        websites: ["site-1"],
+        websitePresence: "exclude",
+      })).toBe(false);
+    });
+
+    it("passes bookmark whose website is not in the excluded set", () => {
+      expect(bookmarkMatchesSearch(base, {
+        websites: ["site-2"],
+        websitePresence: "exclude",
+      })).toBe(true);
+    });
+
+    it("passes bookmark with no website in exclude mode", () => {
+      expect(bookmarkMatchesSearch({
+        ...base,
+        website: null,
+      }, {
+        websites: ["site-1"],
+        websitePresence: "exclude",
+      })).toBe(true);
+    });
+  });
+
+  describe("choices property exclusion", () => {
+    it("excludes bookmark that has any of the excluded choice values", () => {
+      expect(bookmarkMatchesSearch(base, {
+        choices: {
+          "prop-1": ["val-a"],
+        },
+        presence: {
+          "prop-1": "exclude",
+        },
+      })).toBe(false);
+    });
+
+    it("passes bookmark that has none of the excluded choice values", () => {
+      expect(bookmarkMatchesSearch(base, {
+        choices: {
+          "prop-1": ["val-c"],
+        },
+        presence: {
+          "prop-1": "exclude",
+        },
+      })).toBe(true);
+    });
+
+    it("passes bookmark with no choices values when in exclude mode", () => {
+      expect(bookmarkMatchesSearch({
+        ...base,
+        choicesValues: [],
+      }, {
+        choices: {
+          "prop-1": ["val-a"],
+        },
+        presence: {
+          "prop-1": "exclude",
+        },
+      })).toBe(true);
+    });
   });
 });

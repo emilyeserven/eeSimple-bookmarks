@@ -1,4 +1,4 @@
-import type { Bookmark, BookmarkAuthor, SectionEntryType } from "@eesimple/types";
+import type { Bookmark, BookmarkAuthor, BookmarkTag, SectionEntryType } from "@eesimple/types";
 
 import { bookmarkMatchesFilters } from "./customPropertyFilter";
 
@@ -9,22 +9,26 @@ import { bookmarkMatchesFilters } from "./customPropertyFilter";
  * default search serializer round-trips these nested objects/arrays.
  */
 export interface BookmarkSearch {
-  /** Restrict to bookmarks whose tag is one of these ids (empty/absent = all tags). The server expands each id to its full subtree. */
+  /**
+   * Restrict to bookmarks whose tag is one of these ids (empty/absent = all tags). The server
+   * expands each id to its full subtree for inclusion; exclusion ("exclude" mode) is client-side
+   * with exact matching only (no subtree expansion).
+   */
   tags?: string[];
-  /** Filter bookmarks by whether they have any tag ("has") or no tags ("missing"). */
-  tagPresence?: "has" | "missing";
+  /** Filter bookmarks by tag: "has" = has any tag, "missing" = no tags, "exclude" = does not have the selected tags. */
+  tagPresence?: "has" | "missing" | "exclude";
   /** Restrict to bookmarks whose category is one of these ids (empty/absent = all categories). */
   categories?: string[];
   /** Restrict to bookmarks whose media type is one of these ids (empty/absent = all media types). */
   mediaTypes?: string[];
   /** Restrict to bookmarks whose YouTube channel is one of these ids (empty/absent = all channels). */
   youtubeChannels?: string[];
-  /** Filter bookmarks by whether they have a YouTube channel ("has") or none ("missing"). */
-  youtubeChannelPresence?: "has" | "missing";
+  /** Filter bookmarks by YouTube channel: "has" = has any, "missing" = none, "exclude" = does not have the selected channels. */
+  youtubeChannelPresence?: "has" | "missing" | "exclude";
   /** Restrict to bookmarks whose website is one of these ids (empty/absent = all websites). */
   websites?: string[];
-  /** Filter bookmarks by whether they have a website ("has") or none ("missing"). */
-  websitePresence?: "has" | "missing";
+  /** Filter bookmarks by website: "has" = has any, "missing" = none, "exclude" = does not have the selected websites. */
+  websitePresence?: "has" | "missing" | "exclude";
   /** Restrict to bookmarks that have a relationship of one of these type ids (empty/absent = all). */
   relationshipTypes?: string[];
   /** Restrict to bookmarks whose author list overlaps with these ids (empty/absent = all). */
@@ -33,13 +37,13 @@ export interface BookmarkSearch {
   bool?: Record<string, boolean>;
   /** `[from, to]` date/time range bounds (canonical strings, either `null`) keyed by property id. */
   date?: Record<string, [string | null, string | null]>;
-  /** Filter bookmarks by whether a property value is present or absent, keyed by property id. */
-  presence?: Record<string, "has" | "missing">;
-  /** Filter bookmarks by selected choices values keyed by property id; a bookmark passes if any selected value matches (OR semantics). */
+  /** Filter bookmarks by property value presence: "has" = has a value, "missing" = no value, "exclude" = does not have the selected choices values (choices properties only). */
+  presence?: Record<string, "has" | "missing" | "exclude">;
+  /** Filter bookmarks by selected choices values keyed by property id. In default (include) mode a bookmark passes if any selected value matches; in "exclude" presence mode a bookmark passes if it has none of the selected values. */
   choices?: Record<string, string[]>;
-  /** Filter bookmarks by whether they have any sections entries ("has") or none ("missing"). */
-  sectionsPresence?: "has" | "missing";
-  /** Filter bookmarks to those with at least one section entry of one of these types (OR semantics). */
+  /** Filter bookmarks by whether they have any sections entries ("has"), none ("missing"), or do not have the selected section types ("exclude"). */
+  sectionsPresence?: "has" | "missing" | "exclude";
+  /** Filter bookmarks to those with at least one section entry of one of these types (OR semantics). In "exclude" sectionsPresence mode, bookmarks must have none of these types. */
   sectionTypes?: SectionEntryType[];
 }
 
@@ -65,11 +69,11 @@ function parseBoolRecord(raw: unknown): Record<string, boolean> {
   return result;
 }
 
-function parsePresenceRecord(raw: unknown): Record<string, "has" | "missing"> {
+function parsePresenceRecord(raw: unknown): Record<string, "has" | "missing" | "exclude"> {
   if (raw === null || typeof raw !== "object") return {};
-  const result: Record<string, "has" | "missing"> = {};
+  const result: Record<string, "has" | "missing" | "exclude"> = {};
   for (const [key, value] of Object.entries(raw as Record<string, unknown>))
-    if (value === "has" || value === "missing") result[key] = value;
+    if (value === "has" || value === "missing" || value === "exclude") result[key] = value;
   return result;
 }
 
@@ -108,9 +112,9 @@ function validStringList(value: unknown): string[] | undefined {
   return ids.length > 0 ? ids : undefined;
 }
 
-/** Narrow a presence value to the `"has" | "missing"` enum, or `undefined` if malformed. */
-function validPresence(value: unknown): "has" | "missing" | undefined {
-  return value === "has" || value === "missing" ? value : undefined;
+/** Narrow a presence value to the `"has" | "missing" | "exclude"` enum, or `undefined` if malformed. */
+function validPresence(value: unknown): "has" | "missing" | "exclude" | undefined {
+  return value === "has" || value === "missing" || value === "exclude" ? value : undefined;
 }
 
 /** Keep a parsed record only if it has at least one entry (an empty record is not an active filter). */
@@ -196,29 +200,44 @@ function passesIdFilter(selected: string[] | undefined, value: string | null | u
   return value != null && selected.includes(value);
 }
 
-/** A "has"/"missing" presence filter checks whether the dimension is present. */
-function passesPresence(mode: "has" | "missing" | undefined, present: boolean): boolean {
+/** An exclusion id filter passes when empty (no filter) or the bookmark's value is NOT in the list. A null/absent value always passes (it's not excluded). */
+function passesIdFilterExclude(selected: string[] | undefined, value: string | null | undefined): boolean {
+  if (!selected || selected.length === 0) return true;
+  if (value == null) return true;
+  return !selected.includes(value);
+}
+
+/** True when none of the bookmark's tags appear in the excluded-ids list. */
+function passesTagsExclusion(selected: string[] | undefined, bookmarkTags: BookmarkTag[]): boolean {
+  if (!selected || selected.length === 0) return true;
+  return !bookmarkTags.some(tag => selected.includes(tag.id));
+}
+
+/** A "has"/"missing" presence filter checks whether the dimension is present. "exclude" is handled elsewhere; returns true so it doesn't double-filter. */
+function passesPresence(mode: "has" | "missing" | "exclude" | undefined, present: boolean): boolean {
   if (mode === "has") return present;
   if (mode === "missing") return !present;
   return true;
 }
 
-/** Whether a bookmark passes the sections-presence filter. */
-function passesSectionsPresence(bookmark: SearchableBookmark, mode: "has" | "missing" | undefined): boolean {
-  if (!mode) return true;
+/** Whether a bookmark passes the sections-presence filter. "exclude" is handled by passesSectionTypes, so it is a pass-through here. */
+function passesSectionsPresence(bookmark: SearchableBookmark, mode: "has" | "missing" | "exclude" | undefined): boolean {
+  if (!mode || mode === "exclude") return true;
   const hasSections = bookmark.sectionsValues.some(v => v.sections.length > 0);
   return mode === "has" ? hasSections : !hasSections;
 }
 
-/** Whether a bookmark passes the section-type filter (at least one entry of the required types). */
-function passesSectionTypes(bookmark: SearchableBookmark, types: SectionEntryType[] | undefined): boolean {
+/** Whether a bookmark passes the section-type filter. In include mode, at least one entry must match; in exclude mode, none may match. */
+function passesSectionTypes(bookmark: SearchableBookmark, types: SectionEntryType[] | undefined, mode: "has" | "missing" | "exclude" | undefined): boolean {
   if (!types || types.length === 0) return true;
-  return bookmark.sectionsValues.some(sv => sv.sections.some(e => types.includes(e.type)));
+  const hasAny = bookmark.sectionsValues.some(sv => sv.sections.some(e => types.includes(e.type)));
+  return mode === "exclude" ? !hasAny : hasAny;
 }
 
-/** Every per-property presence filter must be satisfied. */
+/** Every per-property presence filter must be satisfied. "exclude" mode is handled by passesChoicesFilters. */
 function passesPropertyPresence(bookmark: SearchableBookmark, search: BookmarkSearch): boolean {
   for (const [propertyId, mode] of Object.entries(search.presence ?? {})) {
+    if (mode === "exclude") continue;
     const hasValue
       = bookmark.numberValues.some(v => v.propertyId === propertyId)
         || bookmark.booleanValues.some(v => v.propertyId === propertyId)
@@ -232,13 +251,19 @@ function passesPropertyPresence(bookmark: SearchableBookmark, search: BookmarkSe
   return true;
 }
 
-/** Every choices filter must match: a bookmark passes if any of its selected values for the property overlaps the required set. */
+/** Every choices filter must match. In include mode (default) a bookmark passes if its values overlap the required set; in "exclude" presence mode a bookmark passes if none of its values are in the excluded set. */
 function passesChoicesFilters(bookmark: SearchableBookmark, search: BookmarkSearch): boolean {
   for (const [propertyId, required] of Object.entries(search.choices ?? {})) {
     if (required.length === 0) continue;
+    const presenceMode = search.presence?.[propertyId];
     const entry = bookmark.choicesValues.find(v => v.propertyId === propertyId);
     const bookmarkValues = entry?.values ?? [];
-    if (!required.some(v => bookmarkValues.includes(v))) return false;
+    if (presenceMode === "exclude") {
+      if (required.some(v => bookmarkValues.includes(v))) return false;
+    }
+    else {
+      if (!required.some(v => bookmarkValues.includes(v))) return false;
+    }
   }
   return true;
 }
@@ -270,18 +295,27 @@ export function bookmarkMatchesSearch(
   return (
     passesIdFilter(search.categories, bookmark.categoryId)
     && passesIdFilter(search.mediaTypes, bookmark.mediaType?.id)
-    && passesIdFilter(search.youtubeChannels, bookmark.youtubeChannel?.id)
-    && passesPresence(search.youtubeChannelPresence, Boolean(bookmark.youtubeChannel))
-    && passesIdFilter(search.websites, bookmark.website?.id)
-    && passesPresence(search.websitePresence, Boolean(bookmark.website))
-    && passesRelationshipTypeFilter(search.relationshipTypes, bookmark)
-    && passesAuthorsFilter(search.authors, bookmark.authors)
-    && passesPresence(search.tagPresence, bookmark.tags.length > 0)
-    && passesPropertyPresence(bookmark, search)
-    && passesValueFilters(bookmark, search)
-    && passesChoicesFilters(bookmark, search)
-    && passesSectionsPresence(bookmark, search.sectionsPresence)
-    && passesSectionTypes(bookmark, search.sectionTypes)
+    // YouTube channels: exclude mode uses passesIdFilterExclude; include/presence modes use the pair.
+    && (search.youtubeChannelPresence === "exclude"
+      ? passesIdFilterExclude(search.youtubeChannels, bookmark.youtubeChannel?.id)
+      : passesIdFilter(search.youtubeChannels, bookmark.youtubeChannel?.id)
+        && passesPresence(search.youtubeChannelPresence, Boolean(bookmark.youtubeChannel)))
+    // Websites: same pattern as YouTube channels.
+      && (search.websitePresence === "exclude"
+        ? passesIdFilterExclude(search.websites, bookmark.website?.id)
+        : passesIdFilter(search.websites, bookmark.website?.id)
+          && passesPresence(search.websitePresence, Boolean(bookmark.website)))
+        && passesRelationshipTypeFilter(search.relationshipTypes, bookmark)
+        && passesAuthorsFilter(search.authors, bookmark.authors)
+    // Tags: server handles inclusion (tagsForServerQuery gates the query); client handles presence and exclude.
+        && (search.tagPresence === "exclude"
+          ? passesTagsExclusion(search.tags, bookmark.tags)
+          : passesPresence(search.tagPresence, bookmark.tags.length > 0))
+        && passesPropertyPresence(bookmark, search)
+        && passesValueFilters(bookmark, search)
+        && passesChoicesFilters(bookmark, search)
+        && passesSectionsPresence(bookmark, search.sectionsPresence)
+        && passesSectionTypes(bookmark, search.sectionTypes, search.sectionsPresence)
   );
 }
 
@@ -376,10 +410,11 @@ export function withTags(search: BookmarkSearch, ids: string[]): BookmarkSearch 
 /**
  * Return a copy of `search` with the tag-presence filter set or cleared.
  * Setting `"missing"` also clears any specific tag selection (selecting a tag contradicts "no tags").
+ * Setting `"exclude"` keeps the existing tag selection — those IDs become the exclusion list.
  */
 export function withTagPresence(
   search: BookmarkSearch,
-  mode: "has" | "missing" | undefined,
+  mode: "has" | "missing" | "exclude" | undefined,
 ): BookmarkSearch {
   const next = {
     ...search,
@@ -427,10 +462,11 @@ export function withYouTubeChannels(search: BookmarkSearch, ids: string[]): Book
 /**
  * Return a copy of `search` with the YouTube-channel-presence filter set or cleared.
  * Setting `"missing"` also clears any specific channel selection (selecting one contradicts "none").
+ * Setting `"exclude"` keeps the existing selection — those IDs become the exclusion list.
  */
 export function withYouTubeChannelPresence(
   search: BookmarkSearch,
-  mode: "has" | "missing" | undefined,
+  mode: "has" | "missing" | "exclude" | undefined,
 ): BookmarkSearch {
   const next = {
     ...search,
@@ -478,10 +514,11 @@ export function withRelationshipTypes(search: BookmarkSearch, ids: string[]): Bo
 /**
  * Return a copy of `search` with the website-presence filter set or cleared.
  * Setting `"missing"` also clears any specific website selection (selecting one contradicts "none").
+ * Setting `"exclude"` keeps the existing selection — those IDs become the exclusion list.
  */
 export function withWebsitePresence(
   search: BookmarkSearch,
-  mode: "has" | "missing" | undefined,
+  mode: "has" | "missing" | "exclude" | undefined,
 ): BookmarkSearch {
   const next = {
     ...search,
@@ -508,10 +545,10 @@ export function withChoicesFilter(
   };
 }
 
-/** Return a copy of `search` with the sections-presence filter set or cleared. */
+/** Return a copy of `search` with the sections-presence filter set or cleared. "exclude" keeps existing sectionTypes as the exclusion list; "missing" does not clear them. */
 export function withSectionsPresence(
   search: BookmarkSearch,
-  mode: "has" | "missing" | undefined,
+  mode: "has" | "missing" | "exclude" | undefined,
 ): BookmarkSearch {
   const next = {
     ...search,
@@ -535,12 +572,21 @@ export function withSectionTypes(search: BookmarkSearch, types: SectionEntryType
 export function withPresenceFilter(
   search: BookmarkSearch,
   propertyId: string,
-  mode: "has" | "missing" | undefined,
+  mode: "has" | "missing" | "exclude" | undefined,
 ): BookmarkSearch {
   return {
     ...search,
     presence: patchRecord(search.presence, propertyId, mode),
   };
+}
+
+/**
+ * Returns the tag IDs to pass to the server-side bookmark query. When `tagPresence` is
+ * `"exclude"`, tag filtering is done client-side, so the server should receive no tag filter
+ * (returning all bookmarks). Otherwise the server pre-filters by the selected tag IDs.
+ */
+export function tagsForServerQuery(search: BookmarkSearch): string[] | undefined {
+  return search.tagPresence === "exclude" ? undefined : search.tags;
 }
 
 /** Return a copy of `search` with a number-range filter set or cleared. */
@@ -588,16 +634,22 @@ export function summarizeBookmarkSearch(raw: Record<string, unknown>): string {
   const parts = [
     countPart(search.categories?.length ?? 0, "category", "categories"),
     countPart(search.mediaTypes?.length ?? 0, "media type", "media types"),
-    countPart(search.youtubeChannels?.length ?? 0, "channel", "channels"),
-    search.youtubeChannelPresence !== undefined ? `channel: ${search.youtubeChannelPresence}` : null,
-    countPart(search.websites?.length ?? 0, "website", "websites"),
-    search.websitePresence !== undefined ? `website: ${search.websitePresence}` : null,
+    search.youtubeChannelPresence === "exclude"
+      ? countPart(search.youtubeChannels?.length ?? 0, "excluded channel", "excluded channels")
+      : countPart(search.youtubeChannels?.length ?? 0, "channel", "channels"),
+    search.youtubeChannelPresence !== undefined && search.youtubeChannelPresence !== "exclude" ? `channel: ${search.youtubeChannelPresence}` : null,
+    search.websitePresence === "exclude"
+      ? countPart(search.websites?.length ?? 0, "excluded website", "excluded websites")
+      : countPart(search.websites?.length ?? 0, "website", "websites"),
+    search.websitePresence !== undefined && search.websitePresence !== "exclude" ? `website: ${search.websitePresence}` : null,
     countPart(search.relationshipTypes?.length ?? 0, "relationship type", "relationship types"),
     countPart(search.authors?.length ?? 0, "author", "authors"),
-    countPart(search.tags?.length ?? 0, "tag", "tags"),
-    search.tagPresence !== undefined ? `tags: ${search.tagPresence}` : null,
+    search.tagPresence === "exclude"
+      ? countPart(search.tags?.length ?? 0, "excluded tag", "excluded tags")
+      : countPart(search.tags?.length ?? 0, "tag", "tags"),
+    search.tagPresence !== undefined && search.tagPresence !== "exclude" ? `tags: ${search.tagPresence}` : null,
     countPart(propCount, "property", "properties"),
-    search.sectionsPresence !== undefined ? `sections: ${search.sectionsPresence}` : null,
+    search.sectionsPresence === "exclude" ? "sections: excluded types" : search.sectionsPresence !== undefined ? `sections: ${search.sectionsPresence}` : null,
     search.sectionTypes && search.sectionTypes.length > 0 ? `section types: ${search.sectionTypes.join(", ")}` : null,
   ].filter((part): part is string => part !== null);
   return parts.join(" · ") || "No filters";

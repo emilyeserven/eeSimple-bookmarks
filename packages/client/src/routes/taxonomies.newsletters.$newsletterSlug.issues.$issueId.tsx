@@ -10,7 +10,7 @@ import { BookmarkSearchView } from "../components/BookmarkSearchView";
 import { NewsletterIssueBookmarksDialog } from "../components/NewsletterIssueBookmarksDialog";
 import { useNewsletterIssues } from "../hooks/useImports";
 import { useNewsletterBySlug } from "../hooks/useNewsletters";
-import { validateBookmarkSearch } from "../lib/bookmarkSearch";
+import { tagsForServerQuery, validateBookmarkSearch } from "../lib/bookmarkSearch";
 
 import { Button } from "@/components/ui/button";
 
@@ -39,7 +39,7 @@ function NewsletterIssueBookmarksPage() {
     youtubeChannels,
     relationshipTypes,
     authors,
-  } = useCategoryPageData(search.tags);
+  } = useCategoryPageData(tagsForServerQuery(search));
 
   const {
     newsletter, isLoading: newsletterLoading,

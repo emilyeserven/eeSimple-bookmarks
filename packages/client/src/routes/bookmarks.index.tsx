@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { useBookmarksPageData } from "./-bookmarksPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
-import { validateBookmarkSearch } from "../lib/bookmarkSearch";
+import { tagsForServerQuery, validateBookmarkSearch } from "../lib/bookmarkSearch";
 
 export const Route = createFileRoute("/bookmarks/")({
   validateSearch: validateBookmarkSearch,
@@ -23,7 +23,7 @@ function BookmarksPage() {
     websites,
     relationshipTypes,
     authors,
-  } = useBookmarksPageData(search.tags);
+  } = useBookmarksPageData(tagsForServerQuery(search));
 
   return (
     <BookmarkSearchView

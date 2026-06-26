@@ -751,7 +751,7 @@ function PropertiesFilterSection({
     onSearchChange(withBooleanFilter(search, propertyId, value));
   const dateTimeFilterChange = (propertyId: string, range: [string | null, string | null] | undefined) =>
     onSearchChange(withDateTimeFilter(search, propertyId, range));
-  const presenceFilterChange = (propertyId: string, mode: "has" | "missing" | undefined) =>
+  const presenceFilterChange = (propertyId: string, mode: "has" | "missing" | "exclude" | undefined) =>
     onSearchChange(withPresenceFilter(search, propertyId, mode));
   const choicesFilterChange = (propertyId: string, values: string[]) =>
     onSearchChange(withChoicesFilter(search, propertyId, values));
