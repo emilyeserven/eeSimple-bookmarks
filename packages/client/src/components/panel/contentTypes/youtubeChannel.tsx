@@ -39,6 +39,7 @@ function YouTubeChannelView({
       workbench={youtubeChannelWorkbench}
       id={id}
       mode="view"
+      contentType="youtube-channel"
     />
   );
 }
@@ -54,6 +55,7 @@ function YouTubeChannelEdit({
       workbench={youtubeChannelWorkbench}
       id={id}
       mode="edit"
+      contentType="youtube-channel"
     />
   );
 }

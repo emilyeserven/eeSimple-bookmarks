@@ -38,6 +38,7 @@ function AuthorView({
       workbench={authorWorkbench}
       id={id}
       mode="view"
+      contentType="author"
     />
   );
 }
@@ -53,6 +54,7 @@ function AuthorEdit({
       workbench={authorWorkbench}
       id={id}
       mode="edit"
+      contentType="author"
     />
   );
 }

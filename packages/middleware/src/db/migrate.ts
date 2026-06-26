@@ -730,6 +730,15 @@ const migrations: RuntimeMigration[] = [
     `),
   },
   {
+    // `custom_properties.editable_via_cmdk` opts a property into the CMD+K command palette. NOT NULL
+    // DEFAULT false on the populated table makes drizzle-kit push prompt, so pre-apply it here.
+    name: "add custom_properties.editable_via_cmdk column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "custom_properties"
+        ADD COLUMN IF NOT EXISTS "editable_via_cmdk" boolean NOT NULL DEFAULT false
+    `),
+  },
+  {
     // `tags.exclude_from_backfill` prevents a tag from being applied by any autofill backfill
     // operation. NOT NULL DEFAULT false on the populated `tags` table makes drizzle-kit push prompt
     // (the same non-TTY crash as the other NOT NULL column cases above), so pre-apply it here to keep

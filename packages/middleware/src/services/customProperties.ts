@@ -87,6 +87,7 @@ function toCustomProperty(
     mediaTypeIds,
     allMediaTypes: row.allMediaTypes,
     editableOnCard: row.editableOnCard,
+    editableViaCmdk: row.editableViaCmdk,
     enabledInInbox: row.enabledInInbox ?? false,
     showInForm: row.showInForm,
     hiddenFromForm: row.hiddenFromForm,
@@ -373,6 +374,7 @@ export type UpdatePatch = Partial<
     | "allCategories"
     | "allMediaTypes"
     | "editableOnCard"
+    | "editableViaCmdk"
     | "enabledInInbox"
     | "enabled"
     | "allowDefault"
@@ -430,6 +432,7 @@ const COPYABLE_FIELDS = [
   "allCategories",
   "allMediaTypes",
   "editableOnCard",
+  "editableViaCmdk",
   "enabledInInbox",
   "enabled",
   "allowDefault",

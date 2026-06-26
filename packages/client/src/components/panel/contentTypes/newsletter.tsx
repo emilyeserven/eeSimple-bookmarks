@@ -38,6 +38,7 @@ function NewsletterView({
       workbench={newsletterWorkbench}
       id={id}
       mode="view"
+      contentType="newsletter"
     />
   );
 }
@@ -53,6 +54,7 @@ function NewsletterEdit({
       workbench={newsletterWorkbench}
       id={id}
       mode="edit"
+      contentType="newsletter"
     />
   );
 }

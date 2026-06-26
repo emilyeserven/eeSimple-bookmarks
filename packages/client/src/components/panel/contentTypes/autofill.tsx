@@ -40,6 +40,7 @@ const AutofillView: FC<{ id: string }> = ({
     workbench={autofillWorkbench}
     id={id}
     mode="view"
+    contentType="autofill"
   />
 );
 
@@ -53,6 +54,7 @@ const AutofillEdit: FC<{ id: string }> = ({
       workbench={autofillWorkbench}
       id={id}
       mode="edit"
+      contentType="autofill"
     />
   ));
 

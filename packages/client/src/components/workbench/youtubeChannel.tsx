@@ -90,6 +90,7 @@ export const youtubeChannelWorkbench: EntityWorkbench<YouTubeChannel> = {
   },
   notFound: "Channel not found.",
   navAriaLabel: "YouTube channel sections",
+  getSlug: channel => channel.slug,
   tabs: [
     {
       key: "general",

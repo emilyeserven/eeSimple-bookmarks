@@ -139,6 +139,20 @@ export function PropertyDisplaySection({
                       </div>
                     )}
                   </form.AppField>
+                  <form.AppField name="editableViaCmdk">
+                    {field => (
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          id={`${idPrefix}-editable-via-cmdk`}
+                          checked={field.state.value}
+                          onCheckedChange={checked => field.handleChange(checked === true)}
+                        />
+                        <Label htmlFor={`${idPrefix}-editable-via-cmdk`}>
+                          Allow editing via CMD+K
+                        </Label>
+                      </div>
+                    )}
+                  </form.AppField>
                 </div>
               )}
         </form.Subscribe>

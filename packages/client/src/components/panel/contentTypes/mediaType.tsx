@@ -39,6 +39,7 @@ function MediaTypeView({
       workbench={mediaTypeWorkbench}
       id={id}
       mode="view"
+      contentType="media-type"
     />
   );
 }
@@ -54,6 +55,7 @@ function MediaTypeEdit({
       workbench={mediaTypeWorkbench}
       id={id}
       mode="edit"
+      contentType="media-type"
     />
   );
 }

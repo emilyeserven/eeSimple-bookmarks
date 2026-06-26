@@ -1,5 +1,7 @@
 import type { EntityWorkbench, WorkbenchMode, WorkbenchPane } from "./types";
 
+import { PanelLeft } from "lucide-react";
+
 import { TabbedShell, navLinkClass } from "../TabbedShell";
 
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +38,11 @@ interface Props<E extends { id: string }> {
   onModeChange: (mode: WorkbenchMode) => void;
   /** Called after a successful delete (the panel closes). */
   onDeleted: () => void;
+  /**
+   * When provided, called with the loaded entity to produce the "Open in main pane" click handler.
+   * Returning undefined hides the button (e.g. when `getSlug` or the path template is absent).
+   */
+  buildSendToMainPane?: (entity: E) => (() => void) | undefined;
 }
 
 /**
@@ -45,7 +52,7 @@ interface Props<E extends { id: string }> {
  * search params), not a router `<Outlet/>`.
  */
 export function EntityWorkbenchView<E extends { id: string }>({
-  workbench, id, mode, activeTab, onTabChange, onModeChange, onDeleted,
+  workbench, id, mode, activeTab, onTabChange, onModeChange, onDeleted, buildSendToMainPane,
 }: Props<E>) {
   const {
     entity, isLoading, error,
@@ -67,6 +74,8 @@ export function EntityWorkbenchView<E extends { id: string }>({
 
   if (!active || !pane) return <p className="text-muted-foreground">Nothing to show.</p>;
 
+  const onSendToMainPane = buildSendToMainPane?.(entity);
+
   const header = (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2">
@@ -75,6 +84,18 @@ export function EntityWorkbenchView<E extends { id: string }>({
           {workbench.isBuiltIn?.(entity) ? <Badge variant="secondary">Built-in</Badge> : null}
         </div>
         <div className="flex shrink-0 items-center gap-1">
+          {onSendToMainPane && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="size-7"
+              aria-label="Open in main pane"
+              onClick={onSendToMainPane}
+            >
+              <PanelLeft className="size-4" />
+            </Button>
+          )}
           <Button
             type="button"
             variant="outline"

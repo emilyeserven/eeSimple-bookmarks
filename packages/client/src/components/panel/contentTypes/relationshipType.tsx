@@ -39,6 +39,7 @@ function RelationshipTypeView({
       workbench={relationshipTypeWorkbench}
       id={id}
       mode="view"
+      contentType="relationship-type"
     />
   );
 }
@@ -54,6 +55,7 @@ function RelationshipTypeEdit({
       workbench={relationshipTypeWorkbench}
       id={id}
       mode="edit"
+      contentType="relationship-type"
     />
   );
 }

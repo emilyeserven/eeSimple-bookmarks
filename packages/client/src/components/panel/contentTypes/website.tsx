@@ -39,6 +39,7 @@ function WebsiteView({
       workbench={websiteWorkbench}
       id={id}
       mode="view"
+      contentType="website"
     />
   );
 }
@@ -54,6 +55,7 @@ function WebsiteEdit({
       workbench={websiteWorkbench}
       id={id}
       mode="edit"
+      contentType="website"
     />
   );
 }

@@ -72,6 +72,7 @@ export const newsletterWorkbench: EntityWorkbench<Newsletter> = {
   },
   notFound: "Import not found.",
   navAriaLabel: "Import sections",
+  getSlug: newsletter => newsletter.slug,
   tabs: [
     {
       key: "general",

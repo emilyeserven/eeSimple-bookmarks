@@ -320,9 +320,14 @@ export function PropertyDisplayFields({
       {property.type === "calculate"
         ? null
         : (
-          <DetailField label="Card menu">
-            {property.editableOnCard ? "Editable from the card menu" : "Not editable from the card menu"}
-          </DetailField>
+          <>
+            <DetailField label="Card menu">
+              {property.editableOnCard ? "Editable from the card menu" : "Not editable from the card menu"}
+            </DetailField>
+            <DetailField label="CMD+K">
+              {property.editableViaCmdk ? "Editable via CMD+K" : "Not editable via CMD+K"}
+            </DetailField>
+          </>
         )}
       {!["calculate", "image", "file", "itemInItems", "sections"].includes(property.type)
         ? (

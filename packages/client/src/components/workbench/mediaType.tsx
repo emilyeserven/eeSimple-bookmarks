@@ -157,6 +157,7 @@ export const mediaTypeWorkbench: EntityWorkbench<MediaType> = {
   },
   notFound: "Media type not found.",
   navAriaLabel: "Media type sections",
+  getSlug: mediaType => mediaType.slug,
   tabs: [
     {
       key: "general",

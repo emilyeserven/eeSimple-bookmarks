@@ -119,6 +119,9 @@ const createPropertyBody = {
     editableOnCard: {
       type: "boolean",
     },
+    editableViaCmdk: {
+      type: "boolean",
+    },
     enabledInInbox: {
       type: "boolean",
     },

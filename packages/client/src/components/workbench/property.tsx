@@ -134,6 +134,7 @@ export const propertyWorkbench: EntityWorkbench<CustomProperty> = {
   },
   notFound: "Custom property not found.",
   navAriaLabel: "Custom property sections",
+  getSlug: property => property.slug,
   tabs: [
     {
       key: "general",
@@ -199,12 +200,12 @@ export const propertyWorkbench: EntityWorkbench<CustomProperty> = {
       label: "Display",
       view: {
         title: "Display",
-        description: "Where this property appears and whether it's editable from the card menu.",
+        description: "Where this property appears and whether it's editable from the card menu or CMD+K.",
         render: PropertyDisplayView,
       },
       edit: {
         title: "Display",
-        description: "Where this property appears and whether it's editable from the card menu.",
+        description: "Where this property appears and whether it's editable from the card menu or CMD+K.",
         render: editPane("display"),
       },
     },

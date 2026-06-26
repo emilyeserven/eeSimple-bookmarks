@@ -40,6 +40,7 @@ const ImportRuleView: FC<{ id: string }> = ({
     workbench={importRuleWorkbench}
     id={id}
     mode="view"
+    contentType="import-rule"
   />
 );
 
@@ -52,6 +53,7 @@ const ImportRuleEdit: FC<{ id: string }> = ({
       workbench={importRuleWorkbench}
       id={id}
       mode="edit"
+      contentType="import-rule"
     />
   ));
 
