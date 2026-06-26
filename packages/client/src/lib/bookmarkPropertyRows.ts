@@ -133,7 +133,7 @@ export function buildBookmarkPropertyRows(
     .map((entry): NumberPropertyRow | null => {
       const property = byId.get(entry.propertyId);
       // Rating scales live in numberValues but render as stars, not a formatted number.
-      return property && property.type !== "ratingScale"
+      return property && property.type !== "ratingScale" && property.showInDetails
         ? {
           id: entry.propertyId,
           name: property.name,
@@ -149,7 +149,7 @@ export function buildBookmarkPropertyRows(
   const ratingRows = bookmark.numberValues
     .map((entry): RatingPropertyRow | null => {
       const property = byId.get(entry.propertyId);
-      return property && property.type === "ratingScale"
+      return property && property.type === "ratingScale" && property.showInDetails
         ? {
           id: entry.propertyId,
           name: property.name,
@@ -167,7 +167,7 @@ export function buildBookmarkPropertyRows(
   const booleanRows = bookmark.booleanValues
     .map((entry): BooleanPropertyRow | null => {
       const property = byId.get(entry.propertyId);
-      if (!property) return null;
+      if (!property || !property.showInDetails) return null;
       const display = resolveBooleanDisplay(defaultZones, property.id);
       if (!entry.value && !display.showIfFalse) return null;
       const isIconPreset = !display.hideIcon
@@ -191,7 +191,7 @@ export function buildBookmarkPropertyRows(
   const dateTimeRows = bookmark.dateTimeValues
     .map((entry): DateTimePropertyRow | null => {
       const property = byId.get(entry.propertyId);
-      return property
+      return property && property.showInDetails
         ? {
           id: entry.propertyId,
           name: property.name,
@@ -224,7 +224,7 @@ export function buildBookmarkPropertyRows(
   const choicesRows = bookmark.choicesValues
     .map((entry): ChoicesPropertyRow | null => {
       const property = byId.get(entry.propertyId);
-      return property && property.type === "choices" && entry.values.length > 0
+      return property && property.type === "choices" && property.showInDetails && entry.values.length > 0
         ? {
           id: entry.propertyId,
           name: property.name,
@@ -241,7 +241,7 @@ export function buildBookmarkPropertyRows(
   const progressRows = bookmark.progressValues
     .map((entry): ProgressPropertyRow | null => {
       const property = byId.get(entry.propertyId);
-      return property && property.type === "itemInItems"
+      return property && property.type === "itemInItems" && property.showInDetails
         ? {
           id: entry.propertyId,
           name: property.name,
@@ -258,7 +258,7 @@ export function buildBookmarkPropertyRows(
   const sectionsRows = bookmark.sectionsValues
     .map((entry): SectionsPropertyRow | null => {
       const property = byId.get(entry.propertyId);
-      return property && property.type === "sections"
+      return property && property.type === "sections" && property.showInDetails
         ? {
           id: entry.propertyId,
           name: property.name,
@@ -275,7 +275,7 @@ export function buildBookmarkPropertyRows(
   const textRows = bookmark.textValues
     .map((entry): TextPropertyRow | null => {
       const property = byId.get(entry.propertyId);
-      return property && property.type === "text"
+      return property && property.type === "text" && property.showInDetails
         ? {
           id: entry.propertyId,
           name: property.name,
