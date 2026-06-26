@@ -15,6 +15,8 @@ import { flattenTree } from "@/lib/tagTree";
 
 export interface BookmarkTaxonomyContext {
   bookmarkId: string | null;
+  /** True when on the bookmark detail view page (not the edit page). */
+  isBookmarkViewPage: boolean;
   bookmark: Bookmark | undefined;
   categories: Category[];
   flatMediaTypes: FlatNode<MediaTypeNode>[];
@@ -30,6 +32,13 @@ export function useBookmarkTaxonomyContext(): BookmarkTaxonomyContext {
     select: (state) => {
       const match = /^\/bookmarks\/([^/]+)/.exec(state.location.pathname);
       return match?.[1] ?? null;
+    },
+  });
+
+  const isBookmarkViewPage = useRouterState({
+    select: (state) => {
+      const pathname = state.location.pathname;
+      return pathname.startsWith("/bookmarks/") && !pathname.includes("/edit");
     },
   });
 
@@ -65,6 +74,7 @@ export function useBookmarkTaxonomyContext(): BookmarkTaxonomyContext {
 
   return {
     bookmarkId,
+    isBookmarkViewPage,
     bookmark,
     categories,
     flatMediaTypes,
