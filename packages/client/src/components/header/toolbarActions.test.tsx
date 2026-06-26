@@ -6,7 +6,9 @@ import { buildToolbarActions } from "./toolbarActions";
 
 function ctx(overrides: Partial<ToolbarContext> = {}): ToolbarContext {
   return {
-    pathParts: [],
+    // A non-homepage path by default — an empty `pathParts` is the homepage, which adds the
+    // homepage-only `homepage-settings` action (covered by its own test below).
+    pathParts: ["bookmarks"],
     headerSearchActive: false,
     listingPage: null,
     isBookmarkDetail: false,
@@ -65,6 +67,18 @@ describe("buildToolbarActions", () => {
       "edit-bookmark",
       "open-panel",
     ]);
+  });
+
+  it("adds homepage-settings on the homepage, just before the panel toggle", () => {
+    expect(keys(ctx({
+      pathParts: [],
+    }))).toEqual(["homepage-settings", "open-panel"]);
+  });
+
+  it("omits homepage-settings off the homepage", () => {
+    expect(keys(ctx({
+      pathParts: ["bookmarks"],
+    }))).not.toContain("homepage-settings");
   });
 
   it("adds the view-details link on a taxonomy item path", () => {
