@@ -42,10 +42,6 @@ const settingsNav: readonly TabNavEntry[] = [
     label: "Link Parsing",
   },
   {
-    to: "/settings/redirect-failures",
-    label: "Redirect Failures",
-  },
-  {
     to: "/settings/imports",
     label: "Import Settings",
   },
@@ -54,26 +50,8 @@ const settingsNav: readonly TabNavEntry[] = [
     label: "Extension",
   },
   {
-    type: "group",
-    label: "More Settings",
-    items: [
-      {
-        to: "/settings/more-categories",
-        label: "Categories",
-      },
-      {
-        to: "/settings/more-taxonomies",
-        label: "Taxonomies",
-      },
-      {
-        to: "/settings/more-customization",
-        label: "Customization",
-      },
-      {
-        to: "/settings/advanced",
-        label: "Advanced",
-      },
-    ],
+    to: "/settings/advanced",
+    label: "Advanced",
   },
 ] as const;
 

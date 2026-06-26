@@ -1,18 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-  Bookmark,
   Filter,
   Image,
   Inbox,
   LayoutTemplate,
   Link2,
-  Link2Off,
   Monitor,
   PanelRight,
   Puzzle,
-  SlidersHorizontal,
   Sparkles,
-  Tags,
   Wand2,
   Wrench,
 } from "lucide-react";
@@ -74,12 +70,6 @@ const SETTINGS_TILES = [
     to: "/settings/link-parsing" as const,
   },
   {
-    label: "Redirect Failures",
-    description: "Fix bookmarks from sites with unreliable redirect resolution.",
-    icon: Link2Off,
-    to: "/settings/redirect-failures" as const,
-  },
-  {
     label: "Import Settings",
     description: "Manage the imports blacklist and clear processed inbox items.",
     icon: Inbox,
@@ -90,24 +80,6 @@ const SETTINGS_TILES = [
     description: "Install a bookmarklet to save the current page.",
     icon: Puzzle,
     to: "/settings/extension" as const,
-  },
-  {
-    label: "Categories",
-    description: "Browse and manage bookmark categories.",
-    icon: Bookmark,
-    to: "/settings/more-categories" as const,
-  },
-  {
-    label: "Taxonomies",
-    description: "Manage tags, websites, media types, and channels.",
-    icon: Tags,
-    to: "/settings/more-taxonomies" as const,
-  },
-  {
-    label: "Customization",
-    description: "Custom properties, groups, relationships, and autofill.",
-    icon: SlidersHorizontal,
-    to: "/settings/more-customization" as const,
   },
   {
     label: "Advanced",
