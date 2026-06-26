@@ -55,7 +55,7 @@ export interface ResolvedFieldPlacement {
   showIfFalse: boolean;
   /** Boolean fields: the value can be clicked to toggle it without entering edit mode. */
   clickableInView: boolean;
-  /** Image zones: the corner badge is a link to the bookmark's external URL. */
+  /** Image zones: the corner badge is a link to the entity's view page (category / website / media type / channel). */
   clickableInOverlay: boolean;
   /** Boolean icon-preset fields: show the colon after the label (defaults to true). */
   showLabelColon: boolean;
@@ -232,7 +232,7 @@ interface BookmarkValueItemBase {
   hideIcon: boolean;
   /** Boolean fields: the value can be clicked to toggle it (from the placement, not the property). */
   clickableInView: boolean;
-  /** Image zones: the corner badge is a link to the bookmark's external URL. */
+  /** Image zones: the corner badge is a link to the entity's view page. */
   clickableInOverlay: boolean;
 }
 

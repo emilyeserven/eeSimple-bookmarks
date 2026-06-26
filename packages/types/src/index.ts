@@ -1529,8 +1529,10 @@ export interface CardFieldPlacement {
    */
   clickableInView?: boolean;
   /**
-   * Image zones only. When true, the corner-overlay badge is rendered as a link to the bookmark's
-   * external URL. Defaults to false.
+   * Image zones only. When true, the corner-overlay badge is rendered as an internal link to the
+   * displayed entity's view page (category, website, media type, YouTube channel). Has no effect for
+   * fields with no entity page (title, description, tags) or for custom-property value items.
+   * Defaults to false.
    */
   clickableInOverlay?: boolean;
   /**
