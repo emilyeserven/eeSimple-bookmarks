@@ -15,6 +15,7 @@ import {
 
 import { AddBookmarkModal } from "./AddBookmarkModal";
 import { useBookmarkTaxonomyContext } from "./useBookmarkTaxonomyContext";
+import { useListingPageContext } from "./useListingPageContext";
 
 import {
   Command,
@@ -180,7 +181,7 @@ const SETTINGS = [
   },
 ] as const;
 
-type TaxonomyMode = "category" | "media-type" | "tags" | "authors";
+type TaxonomyMode = "category" | "media-type" | "tags" | "authors" | "choices-property";
 
 /** Open/input state for the palette plus the global ⌘K / Ctrl+K toggle. */
 function useCommandPaletteShell() {
@@ -228,6 +229,8 @@ export function CommandPalette() {
   const [taxonomyMode, setTaxonomyMode] = useState<TaxonomyMode | null>(null);
   const [pendingTagIds, setPendingTagIds] = useState<string[]>([]);
   const [pendingAuthorIds, setPendingAuthorIds] = useState<string[]>([]);
+  const [choicesPropertyId, setChoicesPropertyId] = useState<string | null>(null);
+  const [pendingChoiceValues, setPendingChoiceValues] = useState<string[]>([]);
   const navigate = useNavigate();
   const {
     data: bookmarks = [],
@@ -240,14 +243,19 @@ export function CommandPalette() {
     flatMediaTypes,
     flatTags,
     authors,
+    customProperties,
     updateBookmark,
   } = useBookmarkTaxonomyContext();
+
+  const listingCtx = useListingPageContext();
 
   const handleOpenChange = (value: boolean) => {
     setOpen(value);
     if (!value) {
       setInputValue("");
       setTaxonomyMode(null);
+      setChoicesPropertyId(null);
+      setPendingChoiceValues([]);
     }
   };
 
@@ -271,8 +279,17 @@ export function CommandPalette() {
     setInputValue("");
   }
 
+  function enterChoicesMode(propId: string) {
+    setTaxonomyMode("choices-property");
+    setChoicesPropertyId(propId);
+    const current = bookmark?.choicesValues.find(v => v.propertyId === propId)?.values ?? [];
+    setPendingChoiceValues(current);
+    setInputValue("");
+  }
+
   function exitTaxonomyMode() {
     setTaxonomyMode(null);
+    setChoicesPropertyId(null);
     setInputValue("");
   }
 
@@ -285,6 +302,11 @@ export function CommandPalette() {
     ? (categories.find(c => c.id === bookmark.categoryId)?.name ?? "Default")
     : null;
 
+  const booleanProperties = customProperties.filter(p => p.type === "boolean");
+  const choicesProperties = customProperties.filter(
+    p => p.type === "choices" && p.choicesItems.length > 0,
+  );
+
   return (
     <>
       <Dialog
@@ -296,7 +318,11 @@ export function CommandPalette() {
           <Command>
             <CommandInput
               placeholder={taxonomyMode
-                ? `Search ${taxonomyMode === "media-type" ? "media types" : taxonomyMode}…`
+                ? taxonomyMode === "media-type"
+                  ? "Search media types…"
+                  : taxonomyMode === "choices-property" && choicesPropertyId
+                    ? `Search ${(customProperties.find(p => p.id === choicesPropertyId)?.name ?? "options")}…`
+                    : `Search ${taxonomyMode}…`
                 : "Search pages and bookmarks…"}
               value={inputValue}
               onValueChange={setInputValue}
@@ -505,6 +531,95 @@ export function CommandPalette() {
                 </>
               )}
 
+              {/* Sub-palette: choices property */}
+              {taxonomyMode === "choices-property" && bookmarkId && choicesPropertyId && (() => {
+                const prop = customProperties.find(p => p.id === choicesPropertyId);
+                if (!prop) return null;
+                return (
+                  <>
+                    <CommandGroup heading={prop.name}>
+                      <CommandItem
+                        value="back"
+                        onSelect={exitTaxonomyMode}
+                      >
+                        <ArrowLeftIcon />
+                        Back
+                      </CommandItem>
+                    </CommandGroup>
+                    <CommandSeparator />
+                    <CommandGroup heading={`Select ${prop.name}`}>
+                      {prop.choicesItems.map((item) => {
+                        const selected = pendingChoiceValues.includes(item.value);
+                        return (
+                          <CommandItem
+                            key={item.value}
+                            value={item.label}
+                            onSelect={() => {
+                              if (prop.choicesMultiple) {
+                                setPendingChoiceValues(prev =>
+                                  selected
+                                    ? prev.filter(v => v !== item.value)
+                                    : [...prev, item.value]);
+                              }
+                              else {
+                                updateBookmark.mutate({
+                                  id: bookmarkId,
+                                  input: {
+                                    choicesValues: [
+                                      ...(bookmark?.choicesValues.filter(
+                                        v => v.propertyId !== choicesPropertyId,
+                                      ) ?? []),
+                                      {
+                                        propertyId: choicesPropertyId,
+                                        values: [item.value],
+                                      },
+                                    ],
+                                  },
+                                });
+                                handleOpenChange(false);
+                              }
+                            }}
+                          >
+                            {selected && <CheckIcon className="text-primary" />}
+                            {item.label}
+                          </CommandItem>
+                        );
+                      })}
+                    </CommandGroup>
+                    {prop.choicesMultiple && (
+                      <>
+                        <CommandSeparator />
+                        <CommandGroup>
+                          <CommandItem
+                            value="done save choices"
+                            onSelect={() => {
+                              updateBookmark.mutate({
+                                id: bookmarkId,
+                                input: {
+                                  choicesValues: [
+                                    ...(bookmark?.choicesValues.filter(
+                                      v => v.propertyId !== choicesPropertyId,
+                                    ) ?? []),
+                                    {
+                                      propertyId: choicesPropertyId,
+                                      values: pendingChoiceValues,
+                                    },
+                                  ],
+                                },
+                              });
+                              handleOpenChange(false);
+                            }}
+                          >
+                            <CheckIcon />
+                            {`Done (${pendingChoiceValues.length.toString()} selected)`}
+                          </CommandItem>
+                        </CommandGroup>
+                      </>
+                    )}
+                  </>
+                );
+              })()}
+
               {/* Default palette view */}
               {taxonomyMode === null && (
                 <>
@@ -522,6 +637,107 @@ export function CommandPalette() {
                             <span className="text-muted-foreground">{inputValue}</span>
                           </span>
                         </CommandItem>
+                      </CommandGroup>
+                      <CommandSeparator />
+                    </>
+                  )}
+
+                  {/* Current listing page display controls */}
+                  {listingCtx.listingPage && (
+                    <>
+                      <CommandGroup heading="Current Page">
+                        <CommandItem
+                          value="Cards View"
+                          onSelect={() => {
+                            listingCtx.setViewMode("cards");
+                            handleOpenChange(false);
+                          }}
+                        >
+                          {listingCtx.currentViewMode === "cards" && (
+                            <CheckIcon className="text-primary" />
+                          )}
+                          Cards View
+                        </CommandItem>
+                        <CommandItem
+                          value="Table View"
+                          onSelect={() => {
+                            listingCtx.setViewMode("table");
+                            handleOpenChange(false);
+                          }}
+                        >
+                          {listingCtx.currentViewMode === "table" && (
+                            <CheckIcon className="text-primary" />
+                          )}
+                          Table View
+                        </CommandItem>
+                        {listingCtx.currentViewMode === "cards" && ([1, 2, 3, 4] as const).map(n => (
+                          <CommandItem
+                            key={n}
+                            value={`${n.toString()} ${n === 1 ? "Column" : "Columns"}`}
+                            onSelect={() => {
+                              listingCtx.setColumns(n);
+                              handleOpenChange(false);
+                            }}
+                          >
+                            {listingCtx.currentColumns === n && (
+                              <CheckIcon className="text-primary" />
+                            )}
+                            {`${n.toString()} ${n === 1 ? "Column" : "Columns"}`}
+                          </CommandItem>
+                        ))}
+                        {listingCtx.listingPage.hasFilters && (
+                          <>
+                            <CommandItem
+                              value="Filters in Sidebar"
+                              onSelect={() => {
+                                listingCtx.setFilterLocation("sidebar");
+                                handleOpenChange(false);
+                              }}
+                            >
+                              {listingCtx.filterLocation === "sidebar" && (
+                                <CheckIcon className="text-primary" />
+                              )}
+                              Filters in Sidebar
+                            </CommandItem>
+                            <CommandItem
+                              value="Filters in Drawer"
+                              onSelect={() => {
+                                listingCtx.setFilterLocation("drawer");
+                                handleOpenChange(false);
+                              }}
+                            >
+                              {listingCtx.filterLocation === "drawer" && (
+                                <CheckIcon className="text-primary" />
+                              )}
+                              Filters in Drawer
+                            </CommandItem>
+                            <CommandItem
+                              value="Hide Filters"
+                              onSelect={() => {
+                                listingCtx.setFilterLocation("hide");
+                                handleOpenChange(false);
+                              }}
+                            >
+                              {listingCtx.filterLocation === "hide" && (
+                                <CheckIcon className="text-primary" />
+                              )}
+                              Hide Filters
+                            </CommandItem>
+                          </>
+                        )}
+                        {listingCtx.bulkSelectPageKey && (
+                          <CommandItem
+                            value={listingCtx.selectionMode
+                              ? "Disable Select Mode"
+                              : "Enable Select Mode"}
+                            onSelect={() => {
+                              listingCtx.setSelectionMode(!listingCtx.selectionMode);
+                              handleOpenChange(false);
+                            }}
+                          >
+                            {listingCtx.selectionMode ? "Disable Select Mode" : "Enable Select Mode"}
+                          </CommandItem>
+                        )}
                       </CommandGroup>
                       <CommandSeparator />
                     </>
@@ -580,6 +796,65 @@ export function CommandPalette() {
                             </span>
                           </CommandItem>
                         )}
+                        {booleanProperties.map((p) => {
+                          const current
+                            = bookmark.booleanValues.find(v => v.propertyId === p.id)?.value
+                              ?? false;
+                          return (
+                            <CommandItem
+                              key={p.id}
+                              value={`Toggle ${p.name}`}
+                              onSelect={() => {
+                                updateBookmark.mutate({
+                                  id: bookmarkId,
+                                  input: {
+                                    booleanValues: [
+                                      ...bookmark.booleanValues.filter(
+                                        v => v.propertyId !== p.id,
+                                      ),
+                                      {
+                                        propertyId: p.id,
+                                        value: !current,
+                                      },
+                                    ],
+                                  },
+                                });
+                                handleOpenChange(false);
+                              }}
+                            >
+                              {current && <CheckIcon className="text-primary" />}
+                              <span className="flex min-w-0 flex-col gap-0.5">
+                                <span>{p.name}</span>
+                                <span className="text-xs text-muted-foreground">
+                                  {current ? "On" : "Off"}
+                                </span>
+                              </span>
+                            </CommandItem>
+                          );
+                        })}
+                        {choicesProperties.map((p) => {
+                          const current
+                            = bookmark.choicesValues.find(v => v.propertyId === p.id)?.values
+                              ?? [];
+                          return (
+                            <CommandItem
+                              key={p.id}
+                              value={`Set ${p.name}`}
+                              onSelect={() => enterChoicesMode(p.id)}
+                            >
+                              <span className="flex min-w-0 flex-col gap-0.5">
+                                <span>
+                                  Set
+                                  {" "}
+                                  {p.name}
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                  {current.length > 0 ? current.join(", ") : "None"}
+                                </span>
+                              </span>
+                            </CommandItem>
+                          );
+                        })}
                       </CommandGroup>
                       <CommandSeparator />
                     </>
