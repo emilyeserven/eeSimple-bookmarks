@@ -1,5 +1,6 @@
 import type { BookmarkFormApi } from "./bookmarkFormSchema";
 import type { ImageIntent } from "./bookmarkImageIntent";
+import type { CustomFieldControls } from "./customFieldControls";
 import type {
   Author,
   BookmarkBooleanValue,
@@ -56,24 +57,7 @@ export interface SourceDefaults {
 }
 
 /** The custom-property field state + handlers, grouped so the section's prop list stays cohesive. */
-export interface BookmarkCustomFieldControls {
-  numberInputs: Record<string, string>;
-  booleanInputs: Record<string, boolean>;
-  dateTimeInputs: Record<string, string>;
-  choicesInputs: Record<string, string[]>;
-  progressInputs: Record<string, { current: string;
-    total: string; }>;
-  sectionsInputs: Record<string, { exhaustive: boolean;
-    sections: import("@eesimple/types").SectionEntry[]; }>;
-  textInputs: Record<string, string>;
-  onNumberChange: (id: string, value: string) => void;
-  onBooleanChange: (id: string, value: boolean) => void;
-  onDateTimeChange: (id: string, value: string) => void;
-  onChoicesChange: (id: string, values: string[]) => void;
-  onProgressChange: (id: string, field: "current" | "total", value: string) => void;
-  onSectionsChange: (id: string, value: { exhaustive: boolean;
-    sections: import("@eesimple/types").SectionEntry[]; }) => void;
-  onTextChange: (id: string, value: string) => void;
+export interface BookmarkCustomFieldControls extends CustomFieldControls {
   onApplyCategoryDefaults: (
     numberValues: BookmarkNumberValue[],
     booleanValues: BookmarkBooleanValue[],

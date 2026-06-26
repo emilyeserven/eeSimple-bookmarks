@@ -1,4 +1,5 @@
 import type { BookmarkFormApi } from "./bookmarkFormSchema";
+import type { CustomFieldControls } from "./customFieldControls";
 import type { CustomProperty } from "@eesimple/types";
 
 import { CategoryCustomFields } from "./BookmarkCustomFields";
@@ -11,26 +12,9 @@ import {
   RUNTIME_SLUG,
 } from "./bookmarkFormSchema";
 
-export interface RevealedCustomFieldsProps {
+export interface RevealedCustomFieldsProps extends CustomFieldControls {
   form: BookmarkFormApi;
   customProperties: CustomProperty[];
-  numberInputs: Record<string, string>;
-  booleanInputs: Record<string, boolean>;
-  dateTimeInputs: Record<string, string>;
-  choicesInputs: Record<string, string[]>;
-  progressInputs: Record<string, { current: string;
-    total: string; }>;
-  sectionsInputs: Record<string, { exhaustive: boolean;
-    sections: import("@eesimple/types").SectionEntry[]; }>;
-  textInputs: Record<string, string>;
-  onNumberChange: (id: string, value: string) => void;
-  onBooleanChange: (id: string, value: boolean) => void;
-  onDateTimeChange: (id: string, value: string) => void;
-  onChoicesChange: (id: string, values: string[]) => void;
-  onProgressChange: (id: string, field: "current" | "total", value: string) => void;
-  onSectionsChange: (id: string, value: { exhaustive: boolean;
-    sections: import("@eesimple/types").SectionEntry[]; }) => void;
-  onTextChange: (id: string, value: string) => void;
   onIsbnFetch?: (isbn: string) => void;
   isIsbnFetchPending?: boolean;
 }
