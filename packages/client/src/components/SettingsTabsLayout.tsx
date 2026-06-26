@@ -92,7 +92,7 @@ export function SettingsTabsLayout({
   header, nav, navAriaLabel,
 }: Props) {
   return (
-    <section className="max-w-[calc(100%-13.5rem)] space-y-6">
+    <section className="min-w-0 space-y-6">
       {header}
       <nav
         aria-label={navAriaLabel}
