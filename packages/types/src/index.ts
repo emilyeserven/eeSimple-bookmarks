@@ -865,11 +865,6 @@ export interface Bookmark {
   title: string;
   /** Optional free-form description. */
   description: string | null;
-  /**
-   * The newsletter passage this bookmark was sorted from — the surrounding paragraph plus the
-   * nearest heading — captured at import time. `null` for bookmarks not created from a newsletter.
-   */
-  newsletterContext: string | null;
   /** The image attached to this bookmark, or `null` when none has been set. */
   image: BookmarkImage | null;
   /** Specific reason the last image auto-grab attempt failed, or `null` when not yet attempted or the last attempt succeeded. */
@@ -927,8 +922,6 @@ export interface CreateBookmarkInput {
   originalUrl?: string | null;
   title: string;
   description?: string | null;
-  /** Newsletter passage this bookmark was sorted from (paragraph + nearest heading); usually only set on newsletter approval. */
-  newsletterContext?: string | null;
   /** Id of the category to assign; omit to fall back to the built-in "Default" category. */
   categoryId?: string;
   /** Ids of tags to assign, drawn from the taxonomy. */
