@@ -12,6 +12,7 @@ import {
 import { fetchIsbnMetadata } from "@/services/isbn";
 import { fetchOEmbedForUrl } from "@/services/oembed";
 import { unwrapRedirect } from "@/services/redirectUnwrap";
+import { getCachedScan, scanCacheKey, setCachedScan } from "@/services/scanCache";
 import { lookupWebsiteByUrl, stripSiteNameSuffix } from "@/services/websites";
 import { fetchYouTubeMetadata, isYouTubeVideoUrl } from "@/services/youtube";
 import { channelKeyFromUrl, getYouTubeChannelByKey } from "@/services/youtubeChannels";
@@ -426,6 +427,11 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
       }) as unknown as ScanResult;
     }
 
+    // Serve a recent identical scan from the short-TTL cache so re-scans / duplicate adds are instant.
+    const cacheKey = scanCacheKey(url, siteNameHint, resolveRedirect);
+    const cached = getCachedScan(cacheKey);
+    if (cached) return cached;
+
     // The client gates redirect resolution on its redirect-ignore list, mirroring the old flow.
     const redirect = resolveRedirect
       ? await resolveRedirectResult(url)
@@ -443,7 +449,7 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
         : buildGenericMetadataResult(finalUrl, siteNameHint),
     ]);
 
-    return {
+    const result: ScanResult = {
       finalUrl,
       redirected: redirect.redirected,
       ...(redirect.resolveError !== undefined && {
@@ -465,5 +471,7 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
         diagnostics: metadata.diagnostics,
       }),
     };
+    setCachedScan(cacheKey, result);
+    return result;
   });
 }
