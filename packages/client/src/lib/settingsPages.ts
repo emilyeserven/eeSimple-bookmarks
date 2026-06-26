@@ -82,7 +82,7 @@ export const SETTINGS_PAGES: readonly SettingsPage[] = [
     icon: Wand2,
   },
   {
-    path: "/settings/ai-summarization",
+    path: "/ai-summarization",
     label: "AI Summarization",
     icon: Sparkles,
   },

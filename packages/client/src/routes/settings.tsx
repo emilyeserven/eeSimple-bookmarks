@@ -34,10 +34,6 @@ const settingsNav: readonly TabNavEntry[] = [
     label: "Automations",
   },
   {
-    to: "/settings/ai-summarization",
-    label: "AI Summarization",
-  },
-  {
     to: "/settings/link-parsing",
     label: "Link Parsing",
   },

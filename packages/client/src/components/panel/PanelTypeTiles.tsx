@@ -1,4 +1,4 @@
-import { Bell } from "lucide-react";
+import { Bell, Sparkles } from "lucide-react";
 
 import { PANEL_CONTENT_TYPES } from "./contentTypes";
 import { usePanelControls } from "./usePanelControls";
@@ -41,6 +41,15 @@ export function PanelTypeTiles() {
       >
         <Bell className="size-5" />
         <span className="text-sm font-medium">Notifications</span>
+      </Button>
+      <Button
+        type="button"
+        variant="outline"
+        className="h-auto w-full flex-col items-start gap-2 p-4"
+        onClick={() => openType("ai-summarization")}
+      >
+        <Sparkles className="size-5" />
+        <span className="text-sm font-medium">AI Summarization</span>
       </Button>
     </div>
   );

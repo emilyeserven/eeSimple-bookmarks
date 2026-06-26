@@ -29,7 +29,8 @@ export type DrawerContentType
     | "autofill"
     | "import-rule"
     | "notifications"
-    | "filters";
+    | "filters"
+    | "ai-summarization";
 
 /** Whether an opened item is shown read-only (`view`) or in its editor (`edit`). */
 export type DrawerMode = "view" | "edit";
@@ -55,6 +56,7 @@ export const DRAWER_CONTENT_TYPES: DrawerContentType[] = [
   "import-rule",
   "notifications",
   "filters",
+  "ai-summarization",
 ];
 
 export interface DrawerSearch {

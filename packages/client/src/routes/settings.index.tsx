@@ -65,7 +65,7 @@ const SETTINGS_TILES = [
     label: "AI Summarization",
     description: "Store a summarization prompt and mark queued bookmarks as summarized.",
     icon: Sparkles,
-    to: "/settings/ai-summarization" as const,
+    to: "/ai-summarization" as const,
   },
   {
     label: "Link Parsing",

@@ -17,6 +17,7 @@ import {
   MonitorPlay,
   Share2,
   SlidersHorizontal,
+  Sparkles,
   Tags,
   UserRound,
   Wand2,
@@ -114,6 +115,14 @@ const taxonomyItems = [
     title: "Publishers",
     to: "/taxonomies/publishers",
     icon: Building2,
+  },
+] as const;
+
+const actionItems = [
+  {
+    title: "AI Summarization",
+    to: "/ai-summarization",
+    icon: Sparkles,
   },
 ] as const;
 
@@ -608,6 +617,35 @@ export function AppSidebar({
                     );
                   })
                   : null}
+              </SidebarMenu>
+            </CollapsibleSection>
+          )
+          : null}
+
+        {!hiddenSidebarGroups.includes("action")
+          ? (
+            <CollapsibleSection
+              sectionKey="action"
+              label="Action"
+            >
+              <SidebarMenu>
+                {actionItems.map((item) => {
+                  const isActive = pathname.startsWith(item.to);
+                  return (
+                    <SidebarMenuItem key={item.to}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive}
+                        tooltip={item.title}
+                      >
+                        <Link to={item.to}>
+                          <item.icon />
+                          <span>{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
               </SidebarMenu>
             </CollapsibleSection>
           )
