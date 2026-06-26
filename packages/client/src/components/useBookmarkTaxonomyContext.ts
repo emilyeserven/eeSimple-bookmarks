@@ -1,4 +1,4 @@
-import type { Author, Bookmark, Category, MediaType, TagNode } from "@eesimple/types";
+import type { Author, Bookmark, Category, CustomProperty, MediaType, TagNode } from "@eesimple/types";
 
 import { useMemo } from "react";
 
@@ -7,6 +7,7 @@ import { useRouterState } from "@tanstack/react-router";
 import { useAuthors } from "@/hooks/useAuthors";
 import { useBookmark, useUpdateBookmark } from "@/hooks/useBookmarks";
 import { useCategories } from "@/hooks/useCategories";
+import { useCustomProperties } from "@/hooks/useCustomProperties";
 import { useMediaTypeTree } from "@/hooks/useMediaTypes";
 import { useTagTree } from "@/hooks/useTags";
 import { flattenTree } from "@/lib/tagTree";
@@ -18,6 +19,7 @@ export interface BookmarkTaxonomyContext {
   flatMediaTypes: MediaType[];
   flatTags: TagNode[];
   authors: Author[];
+  customProperties: CustomProperty[];
   updateBookmark: ReturnType<typeof useUpdateBookmark>;
 }
 
@@ -45,6 +47,9 @@ export function useBookmarkTaxonomyContext(): BookmarkTaxonomyContext {
   const {
     data: authors = [],
   } = useAuthors();
+  const {
+    data: customProperties = [],
+  } = useCustomProperties();
   const updateBookmark = useUpdateBookmark();
 
   const flatMediaTypes = useMemo(
@@ -64,6 +69,7 @@ export function useBookmarkTaxonomyContext(): BookmarkTaxonomyContext {
     flatMediaTypes,
     flatTags,
     authors,
+    customProperties,
     updateBookmark,
   };
 }

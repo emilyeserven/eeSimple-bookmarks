@@ -507,3 +507,35 @@ served via `GET /api/bookmarks/:id/image`. Without the `S3_*` vars the app runs 
 upload/auto-capture returns 503. See `README.md` → "Object storage (Garage)" for the one-time setup.
 
 See `packages/middleware/.env.example`.
+
+## CMD+K palette sync
+
+**The CMD+K palette must mirror every header toolbar action.** `buildToolbarActions` in
+`packages/client/src/components/header/toolbarActions.tsx` is the canonical list of contextual header
+actions. When a new action is added there, also add a corresponding `CommandItem` in
+`packages/client/src/components/CommandPalette.tsx`. The four action categories and their palette
+hooks:
+
+- **Listing display** (view mode, columns) — reads/writes `uiStore` via `useListingPageContext`;
+  gate on `listingCtx.listingPage !== null`.
+- **Filter location** — reads/writes server `DisplayPreference` via
+  `useListingPageContext.setFilterLocation`; gate on `listingCtx.listingPage?.hasFilters`.
+- **Bulk select** — reads/writes `uiStore` via `useListingPageContext`; gate on
+  `listingCtx.bulkSelectPageKey !== null`.
+- **Bookmark entity fields** (category, tags, media type, authors, boolean properties, choices
+  properties) — uses `useBookmarkTaxonomyContext`; gate on `bookmarkId !== null`. Boolean properties
+  toggle directly; choices properties enter a sub-palette (`"choices-property"` mode). For a new
+  field type, add an item here or navigate to the edit tab.
+
+New toolbar action → new `CommandItem` in the "Current Page" group (or the "Bookmark Taxonomies"
+group for bookmark-specific fields). New bookmark entity field → extend `useBookmarkTaxonomyContext`
+and add an item to the palette's bookmark section.
+
+**Adding CMD+K wiring for a new slug-routed entity detail page:** create a `use<Entity>Context`
+hook (modelled on `useSavedFilterContext` / `useBookmarkTaxonomyContext`) that extracts the entity
+slug from the URL via `useRouterState`, fetches the entity, and exposes its update mutation. Then
+add a named group to the palette's `{taxonomyMode === null}` block gated on `entityId !== null`.
+Surface boolean fields as direct toggles and choices/select fields as sub-palettes; text/number
+fields that require input should navigate to the edit route instead. Reference files:
+`packages/client/src/components/useSavedFilterContext.ts` (simplest example),
+`packages/client/src/components/useBookmarkTaxonomyContext.ts` (richer example with sub-palettes).
