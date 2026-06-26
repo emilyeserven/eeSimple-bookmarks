@@ -92,7 +92,10 @@ export function SettingsTabsLayout({
   header, nav, navAriaLabel,
 }: Props) {
   return (
-    <section className="space-y-6">
+    // Cap the width to what it was before the switch from a vertical sidebar: the old in-page nav
+    // (`w-48` = 12rem) plus its `gap-6` (1.5rem) gutter. Keeps Settings from stretching edge-to-edge
+    // on wide viewports now that the sidebar no longer constrains the content.
+    <section className="max-w-[calc(100%-13.5rem)] space-y-6">
       {header}
       <nav
         aria-label={navAriaLabel}
