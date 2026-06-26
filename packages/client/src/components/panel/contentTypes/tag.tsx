@@ -42,6 +42,7 @@ const TagView: FC<{ id: string }> = ({
     workbench={tagWorkbench}
     id={id}
     mode="view"
+    contentType="tag"
   />
 );
 
@@ -55,6 +56,7 @@ const TagEdit: FC<{ id: string }> = ({
       workbench={tagWorkbench}
       id={id}
       mode="edit"
+      contentType="tag"
     />
   ));
 

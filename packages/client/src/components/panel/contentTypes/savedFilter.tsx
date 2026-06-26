@@ -38,6 +38,7 @@ function SavedFilterView({
       workbench={savedFilterWorkbench}
       id={id}
       mode="view"
+      contentType="saved-filter"
     />
   );
 }
@@ -52,6 +53,7 @@ function SavedFilterEdit({
       workbench={savedFilterWorkbench}
       id={id}
       mode="edit"
+      contentType="saved-filter"
     />
   );
 }

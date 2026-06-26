@@ -39,6 +39,7 @@ function PropertyView({
       workbench={propertyWorkbench}
       id={id}
       mode="view"
+      contentType="property"
     />
   );
 }
@@ -54,6 +55,7 @@ function PropertyEdit({
       workbench={propertyWorkbench}
       id={id}
       mode="edit"
+      contentType="property"
     />
   );
 }

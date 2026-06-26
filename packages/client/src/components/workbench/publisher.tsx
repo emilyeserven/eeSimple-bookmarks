@@ -96,6 +96,7 @@ export const publisherWorkbench: EntityWorkbench<Publisher> = {
   },
   notFound: "Publisher not found.",
   navAriaLabel: "Publisher sections",
+  getSlug: publisher => publisher.slug,
   tabs: [
     {
       key: "general",

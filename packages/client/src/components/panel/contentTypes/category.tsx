@@ -39,6 +39,7 @@ function CategoryView({
       workbench={categoryWorkbench}
       id={id}
       mode="view"
+      contentType="category"
     />
   );
 }
@@ -54,6 +55,7 @@ function CategoryEdit({
       workbench={categoryWorkbench}
       id={id}
       mode="edit"
+      contentType="category"
     />
   );
 }

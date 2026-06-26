@@ -39,6 +39,7 @@ function PublisherView({
       workbench={publisherWorkbench}
       id={id}
       mode="view"
+      contentType="publisher"
     />
   );
 }
@@ -54,6 +55,7 @@ function PublisherEdit({
       workbench={publisherWorkbench}
       id={id}
       mode="edit"
+      contentType="publisher"
     />
   );
 }

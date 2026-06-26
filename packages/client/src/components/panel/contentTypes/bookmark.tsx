@@ -3,7 +3,8 @@ import type { PanelContentTypeDef, PanelListItem } from "./types";
 
 import { useMemo } from "react";
 
-import { Bookmark } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { Bookmark, PanelLeft } from "lucide-react";
 
 import { usePanelControls, usePanelDismissAfterDelete } from "./panelHelpers";
 import { WithPanelItem } from "./status";
@@ -15,6 +16,8 @@ import { mergeBooleanValue } from "../../../lib/bookmarkFormat";
 import { BookmarkDetail } from "../../BookmarkDetail";
 import { bookmarkEditWorkbench } from "../../workbench/bookmark";
 import { EntityWorkbenchPanel } from "../EntityWorkbenchPanel";
+
+import { Button } from "@/components/ui/button";
 
 function useBookmarkList() {
   const {
@@ -56,11 +59,12 @@ function BookmarkView({
     data: categories,
   } = useCategories();
   const {
-    openItem,
+    openItem, close,
   } = usePanelControls();
   const dismiss = usePanelDismissAfterDelete();
   const deleteBookmark = useDeleteBookmark();
   const updateBookmark = useUpdateBookmark();
+  const navigate = useNavigate();
 
   return (
     <WithPanelItem
@@ -69,22 +73,41 @@ function BookmarkView({
       notFoundMessage="Bookmark not found."
     >
       {bookmark => (
-        <BookmarkDetail
-          bookmark={bookmark}
-          categories={categories ?? []}
-          properties={properties ?? []}
-          propertyGroups={propertyGroups ?? []}
-          onEdit={() => openItem("bookmark", id, "edit")}
-          onDelete={() => deleteBookmark.mutate(id, {
-            onSuccess: dismiss,
-          })}
-          onSaveBoolean={(propertyId, value) => updateBookmark.mutate({
-            id: bookmark.id,
-            input: {
-              booleanValues: mergeBooleanValue(bookmark.booleanValues, propertyId, value),
-            },
-          })}
-        />
+        <>
+          <div className="mb-2 flex justify-end">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="size-7"
+              aria-label="Open in main pane"
+              onClick={() => {
+                void navigate({
+                  href: `/bookmarks/${id}`,
+                });
+                close();
+              }}
+            >
+              <PanelLeft className="size-4" />
+            </Button>
+          </div>
+          <BookmarkDetail
+            bookmark={bookmark}
+            categories={categories ?? []}
+            properties={properties ?? []}
+            propertyGroups={propertyGroups ?? []}
+            onEdit={() => openItem("bookmark", id, "edit")}
+            onDelete={() => deleteBookmark.mutate(id, {
+              onSuccess: dismiss,
+            })}
+            onSaveBoolean={(propertyId, value) => updateBookmark.mutate({
+              id: bookmark.id,
+              input: {
+                booleanValues: mergeBooleanValue(bookmark.booleanValues, propertyId, value),
+              },
+            })}
+          />
+        </>
       )}
     </WithPanelItem>
   );
@@ -106,6 +129,7 @@ function BookmarkEdit({
       workbench={bookmarkEditWorkbench}
       id={id}
       mode="edit"
+      contentType="bookmark"
     />
   );
 }

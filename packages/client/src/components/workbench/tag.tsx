@@ -166,6 +166,7 @@ export const tagWorkbench: EntityWorkbench<TagNode> = {
   },
   notFound: "Tag not found.",
   navAriaLabel: "Tag sections",
+  getSlug: tag => tag.slug,
   tabs: [
     {
       key: "general",

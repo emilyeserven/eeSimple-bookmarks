@@ -46,6 +46,7 @@ export const bookmarkEditWorkbench: EntityWorkbench<Bookmark> = {
   },
   notFound: "Bookmark not found.",
   navAriaLabel: "Bookmark edit sections",
+  getSlug: bookmark => bookmark.id,
   tabs: [
     {
       key: "general",
