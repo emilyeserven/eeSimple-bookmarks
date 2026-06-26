@@ -4,7 +4,7 @@ import { MonitorPlay } from "lucide-react";
 import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
 import { useYouTubeChannelBySlug } from "../hooks/useYouTubeChannels";
-import { validateBookmarkSearch } from "../lib/bookmarkSearch";
+import { tagsForServerQuery, validateBookmarkSearch } from "../lib/bookmarkSearch";
 
 export const Route = createFileRoute("/taxonomies/youtube-channels/$channelSlug/")({
   validateSearch: validateBookmarkSearch,
@@ -29,7 +29,7 @@ function YouTubeChannelBookmarksPage() {
     mediaTypes,
     relationshipTypes,
     authors,
-  } = useCategoryPageData(search.tags);
+  } = useCategoryPageData(tagsForServerQuery(search));
 
   const {
     channel, isLoading: channelLoading,

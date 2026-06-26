@@ -1,6 +1,6 @@
 import type { ComboboxOption } from "./Combobox";
 
-import { Ban, Circle, CircleDot, X } from "lucide-react";
+import { Ban, Circle, CircleDot, CircleMinus, X } from "lucide-react";
 
 import { Badge } from "./ui/badge";
 import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group";
@@ -15,16 +15,18 @@ const collapseWhenInactive = `
 `;
 
 /**
- * Any / Has value / No value toggle for a facet, mirroring the Tags presence toggle. Inactive
- * options stay collapsed until the group is hovered. `hasLabel` / `missingLabel` name the entity.
+ * Any / Has value / No value / Excludes selected toggle for a facet. Inactive options stay
+ * collapsed until the group is hovered. `hasLabel` / `missingLabel` / `excludeLabel` name the
+ * entity-specific states.
  */
 export function FacetPresenceToggle({
-  value, onChange, hasLabel, missingLabel,
+  value, onChange, hasLabel, missingLabel, excludeLabel = "Excludes selected values",
 }: {
-  value: "has" | "missing" | undefined;
-  onChange: (mode: "has" | "missing" | undefined) => void;
+  value: "has" | "missing" | "exclude" | undefined;
+  onChange: (mode: "has" | "missing" | "exclude" | undefined) => void;
   hasLabel: string;
   missingLabel: string;
+  excludeLabel?: string;
 }) {
   const toggleValue = value ?? "any";
   const options = [
@@ -43,6 +45,11 @@ export function FacetPresenceToggle({
       label: missingLabel,
       Icon: Ban,
     },
+    {
+      value: "exclude",
+      label: excludeLabel,
+      Icon: CircleMinus,
+    },
   ] as const;
 
   return (
@@ -51,7 +58,7 @@ export function FacetPresenceToggle({
       size="sm"
       value={toggleValue}
       onValueChange={(v) => {
-        const mode = v === "any" || v === "" ? undefined : v as "has" | "missing";
+        const mode = v === "any" || v === "" ? undefined : v as "has" | "missing" | "exclude";
         onChange(mode);
       }}
       className="group/presence rounded-sm ring-1 ring-border"

@@ -4,7 +4,7 @@ import { Globe } from "lucide-react";
 import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
 import { useWebsiteBySlug } from "../hooks/useWebsites";
-import { validateBookmarkSearch } from "../lib/bookmarkSearch";
+import { tagsForServerQuery, validateBookmarkSearch } from "../lib/bookmarkSearch";
 
 export const Route = createFileRoute("/taxonomies/websites/$websiteSlug/")({
   validateSearch: validateBookmarkSearch,
@@ -30,7 +30,7 @@ function WebsiteBookmarksPage() {
     youtubeChannels,
     relationshipTypes,
     authors,
-  } = useCategoryPageData(search.tags);
+  } = useCategoryPageData(tagsForServerQuery(search));
 
   const {
     website, isLoading: websiteLoading,

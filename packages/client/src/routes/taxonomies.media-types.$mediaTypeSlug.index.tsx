@@ -4,7 +4,7 @@ import { Film } from "lucide-react";
 import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
 import { useMediaTypeBySlug } from "../hooks/useMediaTypes";
-import { validateBookmarkSearch } from "../lib/bookmarkSearch";
+import { tagsForServerQuery, validateBookmarkSearch } from "../lib/bookmarkSearch";
 
 export const Route = createFileRoute("/taxonomies/media-types/$mediaTypeSlug/")({
   validateSearch: validateBookmarkSearch,
@@ -29,7 +29,7 @@ function MediaTypeBookmarksPage() {
     youtubeChannels,
     relationshipTypes,
     authors,
-  } = useCategoryPageData(search.tags);
+  } = useCategoryPageData(tagsForServerQuery(search));
 
   const {
     mediaType, isLoading: mediaTypeLoading,
