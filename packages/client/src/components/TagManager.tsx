@@ -6,6 +6,7 @@ import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
 import { listingSelectionColumn } from "./tables/selectionColumn";
 import { useTagColumns } from "./tables/tagColumns";
 import { TagTreeList } from "./TagTreeList";
+import { useRegisterBulkSelect } from "../hooks/useRegisterBulkSelect";
 import { useBulkDeleteTags, useTagTree } from "../hooks/useTags";
 import { useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
 import { flattenTree } from "../lib/tagTree";
@@ -34,6 +35,7 @@ export function TagManager({
     node,
   }) => node.id);
   const selection = useListSelection("tags-listing", deletableIds);
+  useRegisterBulkSelect("tags-listing");
   const bulkDelete = useBulkDeleteTags();
 
   function toggle(id: string) {
@@ -78,7 +80,7 @@ export function TagManager({
         ? (
           <DataTable
             columns={[
-              listingSelectionColumn<TagNode>(selection, n => n.id),
+              ...(selection.mode ? [listingSelectionColumn<TagNode>(selection, n => n.id)] : []),
               ...tagColumns,
             ]}
             data={tree}

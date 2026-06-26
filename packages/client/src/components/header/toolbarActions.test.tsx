@@ -9,6 +9,7 @@ function ctx(overrides: Partial<ToolbarContext> = {}): ToolbarContext {
     pathParts: [],
     headerSearchActive: false,
     listingPage: null,
+    bulkSelectPageKey: null,
     isBookmarkDetail: false,
     bookmarkId: "b1",
     addChild: null,
@@ -55,6 +56,22 @@ describe("buildToolbarActions", () => {
       "display-options",
       "open-panel",
     ]);
+  });
+
+  it("adds the bulk-select toggle when a bulk-selectable listing is mounted", () => {
+    expect(keys(ctx({
+      bulkSelectPageKey: "websites-listing",
+    }))).toEqual(["bulk-select", "open-panel"]);
+  });
+
+  it("places the bulk-select toggle right after display-options", () => {
+    expect(keys(ctx({
+      listingPage: {
+        key: "categories-listing",
+        hasFilters: false,
+      },
+      bulkSelectPageKey: "categories-listing",
+    }))).toEqual(["display-options", "bulk-select", "open-panel"]);
   });
 
   it("adds layout + edit for a bookmark detail", () => {

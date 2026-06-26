@@ -1,7 +1,6 @@
 import type { PropertyGroup } from "@eesimple/types";
 
 import { useNavigate } from "@tanstack/react-router";
-import { CheckSquare } from "lucide-react";
 
 import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
 import { ListingStatusMessages } from "./ListingStatusMessages";
@@ -12,11 +11,11 @@ import { useTableRowNav } from "./tables/useTableRowNav";
 import { useHeaderSearchFilter } from "../hooks/useHeaderSearchFilter";
 import { useSetListingPage } from "../hooks/useListingPage";
 import { useBulkDeletePropertyGroups, usePropertyGroups } from "../hooks/usePropertyGroups";
+import { useRegisterBulkSelect } from "../hooks/useRegisterBulkSelect";
 import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
 import { COLUMN_CLASS, useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
 import { useListSelection } from "../lib/useListSelection";
 
-import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 
 /** Browsable, searchable property-group listing. */
@@ -42,6 +41,7 @@ export function PropertyGroupsListing() {
 
   const deletableIds = filtered.map(g => g.id);
   const selection = useListSelection("property-groups-listing", deletableIds);
+  useRegisterBulkSelect("property-groups-listing");
   const bulkDelete = useBulkDeletePropertyGroups();
 
   return (
@@ -61,21 +61,6 @@ export function PropertyGroupsListing() {
           </p>
         )}
       />
-
-      {viewMode !== "table"
-        ? (
-          <div className="flex justify-end">
-            <Button
-              variant={selection.mode ? "secondary" : "outline"}
-              size="sm"
-              onClick={() => selection.setMode(!selection.mode)}
-            >
-              <CheckSquare className="size-4" />
-              {selection.mode ? "Done selecting" : "Select"}
-            </Button>
-          </div>
-        )
-        : null}
 
       <TaxonomyBulkBar
         selection={selection}

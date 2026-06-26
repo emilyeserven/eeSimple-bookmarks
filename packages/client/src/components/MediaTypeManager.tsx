@@ -7,6 +7,7 @@ import { MediaTypeTreeList } from "./MediaTypeTreeList";
 import { useMediaTypeColumns } from "./tables/mediaTypeColumns";
 import { listingSelectionColumn } from "./tables/selectionColumn";
 import { useBulkDeleteMediaTypes, useMediaTypeTree } from "../hooks/useMediaTypes";
+import { useRegisterBulkSelect } from "../hooks/useRegisterBulkSelect";
 import { useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
 import { useListSelection } from "../lib/useListSelection";
 
@@ -37,6 +38,7 @@ export function MediaTypesListing() {
   const mediaTypeColumns = useMediaTypeColumns();
   const deletableIds = flattenMediaTypes(tree ?? []).filter(n => !n.builtIn).map(n => n.id);
   const selection = useListSelection("media-types-listing", deletableIds);
+  useRegisterBulkSelect("media-types-listing");
   const bulkDelete = useBulkDeleteMediaTypes();
 
   function toggle(id: string) {
@@ -71,7 +73,9 @@ export function MediaTypesListing() {
         ? (
           <DataTable
             columns={[
-              listingSelectionColumn<MediaTypeNode>(selection, n => n.id, n => !n.builtIn),
+              ...(selection.mode
+                ? [listingSelectionColumn<MediaTypeNode>(selection, n => n.id, n => !n.builtIn)]
+                : []),
               ...mediaTypeColumns,
             ]}
             data={tree}

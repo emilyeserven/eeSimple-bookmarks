@@ -1,7 +1,7 @@
 import type { Publisher } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
-import { BookOpen, CheckSquare, Info, Pencil } from "lucide-react";
+import { BookOpen, Info, Pencil } from "lucide-react";
 
 import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
 import { ListingStatusMessages } from "./ListingStatusMessages";
@@ -10,12 +10,11 @@ import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
 import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 import { useHeaderSearchFilter } from "../hooks/useHeaderSearchFilter";
 import { useBulkDeletePublishers, usePublishers } from "../hooks/usePublishers";
+import { useRegisterBulkSelect } from "../hooks/useRegisterBulkSelect";
 import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
 import { COLUMN_CLASS, useBookmarkColumns } from "../lib/bookmarkColumns";
 import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "../lib/sidebarModifier";
 import { useListSelection } from "../lib/useListSelection";
-
-import { Button } from "@/components/ui/button";
 
 interface PublisherListItemProps {
   publisher: Publisher;
@@ -126,6 +125,7 @@ export function PublishersListing() {
 
   const deletableIds = filtered.map(p => p.id);
   const selection = useListSelection("publishers-listing", deletableIds);
+  useRegisterBulkSelect("publishers-listing");
   const bulkDelete = useBulkDeletePublishers();
 
   return (
@@ -145,21 +145,6 @@ export function PublishersListing() {
           </p>
         )}
       />
-
-      {filtered.length > 0
-        ? (
-          <div className="flex justify-end">
-            <Button
-              variant={selection.mode ? "secondary" : "outline"}
-              size="sm"
-              onClick={() => selection.setMode(!selection.mode)}
-            >
-              <CheckSquare className="size-4" />
-              {selection.mode ? "Done selecting" : "Select"}
-            </Button>
-          </div>
-        )
-        : null}
 
       <TaxonomyBulkBar
         selection={selection}

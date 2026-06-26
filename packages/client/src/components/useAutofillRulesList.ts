@@ -8,6 +8,7 @@ import { useAutofillRuleColumns } from "./tables/autofillRuleColumns";
 import { useTableRowNav } from "./tables/useTableRowNav";
 import { useAutofillRules, useBulkDeleteAutofillRules } from "../hooks/useAutofill";
 import { useCategories } from "../hooks/useCategories";
+import { useRegisterBulkSelect } from "../hooks/useRegisterBulkSelect";
 import { useWebsiteDomain } from "../hooks/useWebsiteDomain";
 import { ruleSetsMediaType, ruleSetsProperty, ruleSetsTag, ruleTargetsWebsite, ruleTargetsYoutubeChannel } from "../lib/autofillRulesFilter";
 import { useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
@@ -95,6 +96,7 @@ export function useAutofillRulesList(filters: AutofillRulesFilters) {
   const hasRules = (rules?.length ?? 0) > 0;
   const deletableIds = visibleRules.map(rule => rule.id);
   const selection = useListSelection("autofill-rules-listing", deletableIds);
+  useRegisterBulkSelect("autofill-rules-listing");
   const bulkDelete = useBulkDeleteAutofillRules();
 
   function openRule(rule: AutofillRule, event: React.MouseEvent): void {

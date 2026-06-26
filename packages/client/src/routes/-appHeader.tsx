@@ -540,6 +540,7 @@ export function AppHeader() {
   } = usePanelControls();
 
   const listingPage = useUiStore(state => state.listingPage);
+  const bulkSelectPageKey = useUiStore(state => state.bulkSelectPageKey);
   const headerSearchActive = useUiStore(state => state.headerSearchActive);
 
   // Right-side toolbar controls in canonical left→right order. The builder owns ordering and
@@ -549,6 +550,7 @@ export function AppHeader() {
     pathParts,
     headerSearchActive,
     listingPage,
+    bulkSelectPageKey,
     isBookmarkDetail,
     bookmarkId,
     addChild,

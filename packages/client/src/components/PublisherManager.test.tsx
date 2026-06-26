@@ -44,15 +44,12 @@ describe("PublishersListing bulk delete", () => {
     });
   });
 
-  it("renders the publisher and a Select toggle, hiding the bulk bar until a row is selected", async () => {
+  it("renders the publisher with no per-row select control or bulk bar until selection mode is on", async () => {
     await renderWithRouter(<PublishersListing />, {
       paths,
     });
     expect(screen.getByText("O'Reilly Media")).toBeInTheDocument();
-    expect(screen.getByRole("button", {
-      name: "Select",
-    })).toBeInTheDocument();
-    // No selection yet -> no per-row select control and no Delete action.
+    // Selection mode is off (the toggle now lives in the header) -> no per-row select control, no Delete.
     expect(screen.queryByRole("button", {
       name: "Select O'Reilly Media",
     })).not.toBeInTheDocument();
@@ -62,16 +59,15 @@ describe("PublishersListing bulk delete", () => {
   });
 
   it("reveals the bulk delete action once a row is selected in selection mode", async () => {
+    // The Select toggle lives in the header; drive selection mode through the store directly.
+    useUiStore.setState({
+      selectionMode: {
+        "publishers-listing": true,
+      },
+    });
     await renderWithRouter(<PublishersListing />, {
       paths,
     });
-
-    fireEvent.click(screen.getByRole("button", {
-      name: "Select",
-    }));
-    expect(screen.getByRole("button", {
-      name: "Done selecting",
-    })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", {
       name: "Select O'Reilly Media",

@@ -1,14 +1,11 @@
 import type { AutofillRule } from "@eesimple/types";
 
-import { CheckSquare } from "lucide-react";
-
 import { AutofillRuleListItem } from "./AutofillRuleListItem";
 import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
 import { listingSelectionColumn } from "./tables/selectionColumn";
 import { useAutofillRulesList } from "./useAutofillRulesList";
 import { COLUMN_CLASS } from "../lib/bookmarkColumns";
 
-import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 
 interface AutofillRulesListProps {
@@ -46,21 +43,6 @@ export function AutofillRulesList(props: AutofillRulesListProps) {
         : null}
       {!isLoading && hasRules && visibleRules.length === 0
         ? <p className="text-muted-foreground">No rules match these filters.</p>
-        : null}
-
-      {viewMode !== "table"
-        ? (
-          <div className="flex justify-end">
-            <Button
-              variant={selection.mode ? "secondary" : "outline"}
-              size="sm"
-              onClick={() => selection.setMode(!selection.mode)}
-            >
-              <CheckSquare className="size-4" />
-              {selection.mode ? "Done selecting" : "Select"}
-            </Button>
-          </div>
-        )
         : null}
 
       <TaxonomyBulkBar
