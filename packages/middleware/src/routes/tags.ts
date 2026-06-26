@@ -53,6 +53,9 @@ const updateTagBody = {
     editableOnCard: {
       type: "boolean",
     },
+    excludeFromBackfill: {
+      type: "boolean",
+    },
   },
 } as const;
 

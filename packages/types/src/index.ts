@@ -43,6 +43,11 @@ export interface Tag {
    * letting users tag/untag bookmarks inline without opening the full edit page.
    */
   editableOnCard?: boolean;
+  /**
+   * When `true`, no autofill backfill operation will apply this tag to any bookmark, regardless of
+   * which rule would otherwise include it.
+   */
+  excludeFromBackfill?: boolean;
 }
 
 /** A tag with its children populated — used to render the taxonomy tree. */
@@ -65,6 +70,7 @@ export interface UpdateTagInput {
   name?: string;
   parentId?: string | null;
   editableOnCard?: boolean;
+  excludeFromBackfill?: boolean;
 }
 
 /**

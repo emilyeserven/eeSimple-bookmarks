@@ -17,6 +17,7 @@ const LABELS: Record<keyof UpdateTagInput, string> = {
   name: "Name",
   parentId: "Parent",
   editableOnCard: "Editable on card",
+  excludeFromBackfill: "Exclude from backfilling",
 };
 
 interface TagGeneralFormProps {
@@ -44,6 +45,7 @@ export function TagGeneralForm({
       name: node.name,
       parentId: node.parentId,
       editableOnCard: node.editableOnCard ?? false,
+      excludeFromBackfill: node.excludeFromBackfill ?? false,
     },
   });
 
@@ -117,6 +119,15 @@ export function TagGeneralForm({
           onCheckedChange={checked => autoSave.saveField("editableOnCard", checked === true)}
         />
         <Label htmlFor="tag-editable-on-card">Show as quick toggle on bookmark cards</Label>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id="tag-exclude-from-backfill"
+          checked={node.excludeFromBackfill ?? false}
+          onCheckedChange={checked => autoSave.saveField("excludeFromBackfill", checked === true)}
+        />
+        <Label htmlFor="tag-exclude-from-backfill">Exclude from autofill backfilling</Label>
       </div>
     </div>
   );

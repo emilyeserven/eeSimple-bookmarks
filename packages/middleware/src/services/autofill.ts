@@ -39,6 +39,7 @@ import {
   bookmarks,
   bookmarkTags,
   type BookmarkRow,
+  tags,
 } from "@/db/schema";
 import { getBookmarkEvaluationData, invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { hydrateBookmarkRows } from "@/services/bookmarkHydration";
@@ -559,8 +560,23 @@ export async function previewAutofillMatches(
   };
 }
 
+/** Ids of every tag currently flagged `exclude_from_backfill = true`. */
+async function getExcludedFromBackfillTagIds(): Promise<Set<string>> {
+  const rows = await db
+    .select({
+      id: tags.id,
+    })
+    .from(tags)
+    .where(eq(tags.excludeFromBackfill, true));
+  return new Set(rows.map(r => r.id));
+}
+
 /** True when applying the rule would change at least one field on the bookmark. */
-function computeNeedsBackfill(rule: AutofillRule, bookmark: Bookmark): boolean {
+function computeNeedsBackfill(
+  rule: AutofillRule,
+  bookmark: Bookmark,
+  globallyExcludedTagIds: Set<string>,
+): boolean {
   const hasPrefill
     = rule.setCategoryId != null
       || rule.setMediaTypeId != null
@@ -574,7 +590,9 @@ function computeNeedsBackfill(rule: AutofillRule, bookmark: Bookmark): boolean {
   if (rule.setMediaTypeId && bookmark.mediaType?.id !== rule.setMediaTypeId) return true;
 
   const existingTagIds = new Set(bookmark.tags.map(t => t.id));
-  const effectiveTagIds = rule.tagIds.filter(id => !bookmark.blacklistedTagIds.includes(id));
+  const effectiveTagIds = rule.tagIds.filter(
+    id => !bookmark.blacklistedTagIds.includes(id) && !globallyExcludedTagIds.has(id),
+  );
   if (effectiveTagIds.some(id => !existingTagIds.has(id))) return true;
 
   const numById = new Map(bookmark.numberValues.map(v => [v.propertyId, v.value]));
@@ -611,10 +629,10 @@ export async function getAutofillBackfillEntries(ruleId: string): Promise<Autofi
   });
   matchingRows.sort(byPriorityThenNewest);
 
-  const exemptRows = await db
-    .select()
-    .from(autofillRuleExemptions)
-    .where(eq(autofillRuleExemptions.ruleId, ruleId));
+  const [exemptRows, globallyExcludedTagIds] = await Promise.all([
+    db.select().from(autofillRuleExemptions).where(eq(autofillRuleExemptions.ruleId, ruleId)),
+    getExcludedFromBackfillTagIds(),
+  ]);
   const exemptSet = new Set(exemptRows.map(r => r.bookmarkId));
 
   const hydrated = await hydrateBookmarkRows(matchingRows);
@@ -627,7 +645,7 @@ export async function getAutofillBackfillEntries(ruleId: string): Promise<Autofi
     const isExempt = exemptSet.has(row.id);
     entries.push({
       bookmark,
-      needsBackfill: !isExempt && computeNeedsBackfill(rule, bookmark),
+      needsBackfill: !isExempt && computeNeedsBackfill(rule, bookmark, globallyExcludedTagIds),
       isExempt,
     });
   }
@@ -657,9 +675,10 @@ export async function applyAutofillBackfill(
 
   const [{
     baseRows, conditionInputs, tagDescendants,
-  }, exemptRows] = await Promise.all([
+  }, exemptRows, globallyExcludedTagIds] = await Promise.all([
     getBookmarkEvaluationData(),
     db.select().from(autofillRuleExemptions).where(eq(autofillRuleExemptions.ruleId, ruleId)),
+    getExcludedFromBackfillTagIds(),
   ]);
   const exemptSet = new Set(exemptRows.map(r => r.bookmarkId));
 
@@ -699,7 +718,7 @@ export async function applyAutofillBackfill(
   let applied = 0;
 
   for (const bookmark of hydrated) {
-    if (!computeNeedsBackfill(rule, bookmark)) {
+    if (!computeNeedsBackfill(rule, bookmark, globallyExcludedTagIds)) {
       skipped += 1;
       continue;
     }
@@ -713,7 +732,9 @@ export async function applyAutofillBackfill(
         await tx.update(bookmarks).set(patch).where(eq(bookmarks.id, bookmark.id));
       }
 
-      const tagsToInsert = rule.tagIds.filter(id => !bookmark.blacklistedTagIds.includes(id));
+      const tagsToInsert = rule.tagIds.filter(
+        id => !bookmark.blacklistedTagIds.includes(id) && !globallyExcludedTagIds.has(id),
+      );
       if (tagsToInsert.length > 0) {
         await tx
           .insert(bookmarkTags)
@@ -795,10 +816,11 @@ export async function applyAutofillBackfill(
 export async function getGlobalBackfill(): Promise<GlobalAutofillBackfillResult> {
   const [rules, {
     baseRows, conditionInputs, tagDescendants,
-  }, allExemptions] = await Promise.all([
+  }, allExemptions, globallyExcludedTagIds] = await Promise.all([
     listAutofillRules(),
     getBookmarkEvaluationData(),
     db.select().from(autofillRuleExemptions),
+    getExcludedFromBackfillTagIds(),
   ]);
 
   const exemptsByRule = new Map<string, Set<string>>();
@@ -830,7 +852,7 @@ export async function getGlobalBackfill(): Promise<GlobalAutofillBackfillResult>
       const bookmark = hydratedById.get(row.id);
       if (!bookmark) continue;
       const isExempt = exemptSet.has(row.id);
-      const needsBackfill = !isExempt && computeNeedsBackfill(rule, bookmark);
+      const needsBackfill = !isExempt && computeNeedsBackfill(rule, bookmark, globallyExcludedTagIds);
       if (needsBackfill || isExempt) {
         entries.push({
           bookmark,

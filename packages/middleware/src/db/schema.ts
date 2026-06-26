@@ -449,6 +449,8 @@ export const tags = pgTable("tags", {
     withTimezone: true,
   }).notNull().defaultNow(),
   editableOnCard: boolean("editable_on_card").notNull().default(false),
+  /** When `true`, no autofill backfill operation will apply this tag to any bookmark. */
+  excludeFromBackfill: boolean("exclude_from_backfill").notNull().default(false),
 }, table => [
   // Sibling names are unique within a parent. NULL parents are distinct in
   // Postgres, so root-level uniqueness is enforced in the service layer instead.
