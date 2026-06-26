@@ -298,13 +298,23 @@ export function inspectBookmarkRules(
 /**
  * Returns a stable resolver `(bookmark) => ResolvedCardDisplay` for the current rule set. Loads the
  * rules + tags once (already cached by React Query) and builds the tag-cascade resolver a single time.
+ *
+ * `isPending` is true only when neither rules nor tags have been fetched yet (cold React Query cache).
+ * Callers that render images should suppress them while pending to prevent an aspect-ratio flash:
+ * without rules the resolver falls back to BASELINE.imageMode ("natural"), so an image would render
+ * at the wrong aspect ratio and then jump when the rules arrive.
  */
-export function useResolveCardDisplay(): (bookmark: Bookmark) => ResolvedCardDisplay {
+export function useResolveCardDisplay(): {
+  resolve: (bookmark: Bookmark) => ResolvedCardDisplay;
+  isPending: boolean;
+} {
   const {
     data: rules = [],
+    isPending: rulesPending,
   } = useCardDisplayRules();
   const {
     data: tags = [],
+    isPending: tagsPending,
   } = useTags();
 
   const sortedRules = useMemo(() => [...rules].sort(byPriority), [rules]);
@@ -316,8 +326,13 @@ export function useResolveCardDisplay(): (bookmark: Bookmark) => ResolvedCardDis
     [tags],
   );
 
-  return useCallback(
+  const resolve = useCallback(
     (bookmark: Bookmark) => resolveCardDisplay(bookmark, sortedRules, tagDescendants),
     [sortedRules, tagDescendants],
   );
+
+  return {
+    resolve,
+    isPending: rulesPending || tagsPending,
+  };
 }
