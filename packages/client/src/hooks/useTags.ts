@@ -87,10 +87,11 @@ export function useBulkDeleteTags() {
 }
 
 /** The categories whose root-tag allowlist includes this tag (reverse of the Tiered Tags tab). */
-export function useTagCategories(tagId: string) {
+export function useTagCategories(tagId: string, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: [...TAGS_KEY, tagId, "categories"],
     queryFn: () => tagsApi.categories(tagId).then(result => result.categoryIds),
+    enabled: options?.enabled,
   });
 }
 
