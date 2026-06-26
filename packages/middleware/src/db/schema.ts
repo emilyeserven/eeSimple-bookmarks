@@ -462,6 +462,20 @@ export const tags = pgTable("tags", {
   unique("tags_slug_unique").on(table.slug),
 ]);
 
+/** `bookmark_tag_blacklist` — tags the user has opted out of autofill auto-apply for a specific bookmark. */
+export const bookmarkTagBlacklist = pgTable("bookmark_tag_blacklist", {
+  bookmarkId: uuid("bookmark_id").notNull().references(() => bookmarks.id, {
+    onDelete: "cascade",
+  }),
+  tagId: uuid("tag_id").notNull().references(() => tags.id, {
+    onDelete: "cascade",
+  }),
+}, table => [
+  primaryKey({
+    columns: [table.bookmarkId, table.tagId],
+  }),
+]);
+
 /** `bookmark_tags` join — many-to-many between bookmarks and tags. */
 export const bookmarkTags = pgTable("bookmark_tags", {
   bookmarkId: uuid("bookmark_id").notNull().references(() => bookmarks.id, {

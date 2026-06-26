@@ -574,7 +574,8 @@ function computeNeedsBackfill(rule: AutofillRule, bookmark: Bookmark): boolean {
   if (rule.setMediaTypeId && bookmark.mediaType?.id !== rule.setMediaTypeId) return true;
 
   const existingTagIds = new Set(bookmark.tags.map(t => t.id));
-  if (rule.tagIds.some(id => !existingTagIds.has(id))) return true;
+  const effectiveTagIds = rule.tagIds.filter(id => !bookmark.blacklistedTagIds.includes(id));
+  if (effectiveTagIds.some(id => !existingTagIds.has(id))) return true;
 
   const numById = new Map(bookmark.numberValues.map(v => [v.propertyId, v.value]));
   if (rule.numberValues.some(v => numById.get(v.propertyId) !== v.value)) return true;
@@ -712,10 +713,11 @@ export async function applyAutofillBackfill(
         await tx.update(bookmarks).set(patch).where(eq(bookmarks.id, bookmark.id));
       }
 
-      if (rule.tagIds.length > 0) {
+      const tagsToInsert = rule.tagIds.filter(id => !bookmark.blacklistedTagIds.includes(id));
+      if (tagsToInsert.length > 0) {
         await tx
           .insert(bookmarkTags)
-          .values(rule.tagIds.map(tagId => ({
+          .values(tagsToInsert.map(tagId => ({
             bookmarkId: bookmark.id,
             tagId,
           })))

@@ -11,6 +11,7 @@ interface BookmarkFormHostValues {
   mediaTypeId: string;
   description: string;
   tagIds: string[];
+  blacklistedTagIds: string[];
   authorIds: string[];
   publisherId: string;
 }
@@ -40,6 +41,7 @@ export function BookmarkFormHost({
       mediaTypeId: "",
       description: "",
       tagIds: [],
+      blacklistedTagIds: [],
       authorIds: [],
       publisherId: "",
       ...initialValues,

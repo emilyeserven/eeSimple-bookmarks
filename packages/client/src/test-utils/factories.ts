@@ -85,6 +85,7 @@ export function makeBookmark(overrides: Partial<Bookmark> = {}): Bookmark {
     newsletter: null,
     import: null,
     tags: [],
+    blacklistedTagIds: [],
     numberValues: [],
     booleanValues: [],
     dateTimeValues: [],
