@@ -55,6 +55,7 @@ import { Route as SettingsGalleryRouteImport } from './routes/settings.gallery'
 import { Route as SettingsExtensionRouteImport } from './routes/settings.extension'
 import { Route as SettingsDisplayRouteImport } from './routes/settings.display'
 import { Route as SettingsCustomPropertiesRouteImport } from './routes/settings.custom-properties'
+import { Route as SettingsConnectorsRouteImport } from './routes/settings.connectors'
 import { Route as SettingsCardDisplayRulesRouteImport } from './routes/settings.card-display-rules'
 import { Route as SettingsAutomationsRouteImport } from './routes/settings.automations'
 import { Route as SettingsAutofillRouteImport } from './routes/settings.autofill'
@@ -465,6 +466,11 @@ const SettingsCustomPropertiesRoute =
     path: '/custom-properties',
     getParentRoute: () => SettingsRoute,
   } as any)
+const SettingsConnectorsRoute = SettingsConnectorsRouteImport.update({
+  id: '/connectors',
+  path: '/connectors',
+  getParentRoute: () => SettingsRoute,
+} as any)
 const SettingsCardDisplayRulesRoute =
   SettingsCardDisplayRulesRouteImport.update({
     id: '/card-display-rules',
@@ -1492,6 +1498,7 @@ export interface FileRoutesByFullPath {
   '/settings/autofill': typeof SettingsAutofillRoute
   '/settings/automations': typeof SettingsAutomationsRoute
   '/settings/card-display-rules': typeof SettingsCardDisplayRulesRoute
+  '/settings/connectors': typeof SettingsConnectorsRoute
   '/settings/custom-properties': typeof SettingsCustomPropertiesRoute
   '/settings/display': typeof SettingsDisplayRoute
   '/settings/extension': typeof SettingsExtensionRoute
@@ -1687,6 +1694,7 @@ export interface FileRoutesByTo {
   '/settings/autofill': typeof SettingsAutofillRoute
   '/settings/automations': typeof SettingsAutomationsRoute
   '/settings/card-display-rules': typeof SettingsCardDisplayRulesRoute
+  '/settings/connectors': typeof SettingsConnectorsRoute
   '/settings/custom-properties': typeof SettingsCustomPropertiesRoute
   '/settings/display': typeof SettingsDisplayRoute
   '/settings/extension': typeof SettingsExtensionRoute
@@ -1867,6 +1875,7 @@ export interface FileRoutesById {
   '/settings/autofill': typeof SettingsAutofillRoute
   '/settings/automations': typeof SettingsAutomationsRoute
   '/settings/card-display-rules': typeof SettingsCardDisplayRulesRoute
+  '/settings/connectors': typeof SettingsConnectorsRoute
   '/settings/custom-properties': typeof SettingsCustomPropertiesRoute
   '/settings/display': typeof SettingsDisplayRoute
   '/settings/extension': typeof SettingsExtensionRoute
@@ -2090,6 +2099,7 @@ export interface FileRouteTypes {
     | '/settings/autofill'
     | '/settings/automations'
     | '/settings/card-display-rules'
+    | '/settings/connectors'
     | '/settings/custom-properties'
     | '/settings/display'
     | '/settings/extension'
@@ -2285,6 +2295,7 @@ export interface FileRouteTypes {
     | '/settings/autofill'
     | '/settings/automations'
     | '/settings/card-display-rules'
+    | '/settings/connectors'
     | '/settings/custom-properties'
     | '/settings/display'
     | '/settings/extension'
@@ -2464,6 +2475,7 @@ export interface FileRouteTypes {
     | '/settings/autofill'
     | '/settings/automations'
     | '/settings/card-display-rules'
+    | '/settings/connectors'
     | '/settings/custom-properties'
     | '/settings/display'
     | '/settings/extension'
@@ -3005,6 +3017,13 @@ declare module '@tanstack/react-router' {
       path: '/custom-properties'
       fullPath: '/settings/custom-properties'
       preLoaderRoute: typeof SettingsCustomPropertiesRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/connectors': {
+      id: '/settings/connectors'
+      path: '/connectors'
+      fullPath: '/settings/connectors'
+      preLoaderRoute: typeof SettingsConnectorsRouteImport
       parentRoute: typeof SettingsRoute
     }
     '/settings/card-display-rules': {
@@ -4621,6 +4640,7 @@ interface SettingsRouteChildren {
   SettingsAutofillRoute: typeof SettingsAutofillRoute
   SettingsAutomationsRoute: typeof SettingsAutomationsRoute
   SettingsCardDisplayRulesRoute: typeof SettingsCardDisplayRulesRoute
+  SettingsConnectorsRoute: typeof SettingsConnectorsRoute
   SettingsCustomPropertiesRoute: typeof SettingsCustomPropertiesRoute
   SettingsDisplayRoute: typeof SettingsDisplayRoute
   SettingsExtensionRoute: typeof SettingsExtensionRoute
@@ -4648,6 +4668,7 @@ const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsAutofillRoute: SettingsAutofillRoute,
   SettingsAutomationsRoute: SettingsAutomationsRoute,
   SettingsCardDisplayRulesRoute: SettingsCardDisplayRulesRoute,
+  SettingsConnectorsRoute: SettingsConnectorsRoute,
   SettingsCustomPropertiesRoute: SettingsCustomPropertiesRoute,
   SettingsDisplayRoute: SettingsDisplayRoute,
   SettingsExtensionRoute: SettingsExtensionRoute,

@@ -70,6 +70,10 @@ const settingsNav: readonly TabNavEntry[] = [
         label: "Customization",
       },
       {
+        to: "/settings/connectors",
+        label: "Connectors",
+      },
+      {
         to: "/settings/advanced",
         label: "Advanced",
       },

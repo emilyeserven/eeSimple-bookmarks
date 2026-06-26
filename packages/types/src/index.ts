@@ -2290,6 +2290,22 @@ export interface ScanResult {
   diagnostics?: string[];
 }
 
+/**
+ * Live status of the optional/gated metadata connectors (`GET /api/connectors`). Carries no secrets —
+ * only whether each connector is configured (and the hosted provider's name) — so it's safe to serve
+ * to the client. The keyless connectors (oEmbed providers, Open Library, Google Books, DuckDuckGo
+ * icons) are always on and described client-side; only the env-gated ones report status here.
+ */
+export interface ConnectorsStatus {
+  /** Hosted metadata provider (Microlink/iframely/opengraph) — active only when its env vars are set. */
+  hostedMetadata: { enabled: boolean;
+    provider: string | null; };
+  /** YouTube Data API v3 — active only when `YOUTUBE_API_KEY` is set (else the watch-page scrape runs). */
+  youtubeDataApi: { enabled: boolean };
+  /** Object storage (S3/Garage) — whether bookmark images / favicons can be stored. */
+  objectStorage: { configured: boolean };
+}
+
 /** Result of probing a URL for reachability (`GET /api/check-url`). */
 export interface CheckUrlResult {
   /** Whether the link resolved with an ok (2xx) response. */
