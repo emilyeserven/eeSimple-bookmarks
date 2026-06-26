@@ -14,6 +14,7 @@ test("PUT /api/app-settings/automation rejects an unknown modifier", async () =>
     payload: {
       autoFetchTitle: true,
       autoFetchImage: true,
+      autoApplyTitleTags: false,
       sidebarOpenModifier: "hyper",
     },
   });

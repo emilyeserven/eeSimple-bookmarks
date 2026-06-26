@@ -39,6 +39,44 @@ function toTag(row: TagRow, counts?: TagBookmarkCounts): Tag {
   };
 }
 
+/** Escape a string for safe interpolation into a RegExp body. Pure helper. */
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * Whether `title` contains `tagName` as a whole word, case-insensitively. Uses unicode-aware word
+ * boundaries (a non-letter/non-number on each side, or a string edge) so a tag named "art" does not
+ * match inside "Martin", while punctuated names like "sci-fi" still match. Pure helper.
+ */
+export function titleMatchesTagName(title: string, tagName: string): boolean {
+  const name = tagName.trim();
+  if (!name) return false;
+  const re = new RegExp(`(?:^|[^\\p{L}\\p{N}])${escapeRegExp(name)}(?:[^\\p{L}\\p{N}]|$)`, "iu");
+  return re.test(title);
+}
+
+/** The ids of tags whose name appears as a whole word in `title`. Pure helper. */
+export function matchTagIdsByTitle(
+  title: string,
+  tagList: { id: string;
+    name: string; }[],
+): string[] {
+  if (!title.trim()) return [];
+  return tagList.filter(tag => titleMatchesTagName(title, tag.name)).map(tag => tag.id);
+}
+
+/** Lightweight id+name listing of every tag, used by the title-matching automation. */
+export async function listTagNames(): Promise<{ id: string;
+  name: string; }[]> {
+  return db
+    .select({
+      id: tags.id,
+      name: tags.name,
+    })
+    .from(tags);
+}
+
 /** Build a parent→children id map from a flat tag list. Pure helper. */
 function buildChildrenByParent(all: { id: string;
   parentId: string | null; }[]): Map<string, string[]> {

@@ -69,6 +69,7 @@ const DISPLAY_DEFAULTS: DisplayPreferenceSettings = {
 const AUTOMATION_DEFAULTS: AutomationSettings = {
   autoFetchTitle: true,
   autoFetchImage: true,
+  autoApplyTitleTags: false,
   sidebarOpenModifier: "alt",
 };
 
