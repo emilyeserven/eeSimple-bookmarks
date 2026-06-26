@@ -8,9 +8,11 @@ import {
   ArrowLeftIcon,
   BookmarkIcon,
   CheckIcon,
+  Columns2Icon,
   FolderIcon,
   HomeIcon,
   InboxIcon,
+  PencilIcon,
   PlusIcon,
   SettingsIcon,
   TagIcon,
@@ -35,8 +37,14 @@ import {
   DialogContent,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  useBookmarkDetailLayout,
+  useDisplayPreferenceSettings,
+  useUpdateDisplayPreferenceSettings,
+} from "@/hooks/useAppSettings";
 import { useBookmarks } from "@/hooks/useBookmarks";
 import { useCategoryRootTags } from "@/hooks/useCategories";
+import { notifyError, notifySuccess } from "@/lib/notifications";
 import { subtreeIds } from "@/lib/tagTree";
 
 const PAGES = [
@@ -187,7 +195,7 @@ const SETTINGS = [
   },
 ] as const;
 
-type TaxonomyMode = "category" | "media-type" | "tags" | "authors" | "choices-property";
+type TaxonomyMode = "category" | "media-type" | "tags" | "authors" | "choices-property" | "rating-property";
 
 function useTagsPalette(
   flatTags: FlatNode<TagNode>[],
@@ -300,6 +308,7 @@ export function CommandPalette() {
   const [pendingAuthorIds, setPendingAuthorIds] = useState<string[]>([]);
   const [choicesPropertyId, setChoicesPropertyId] = useState<string | null>(null);
   const [pendingChoiceValues, setPendingChoiceValues] = useState<string[]>([]);
+  const [ratingPropertyId, setRatingPropertyId] = useState<string | null>(null);
   const navigate = useNavigate();
   const {
     data: bookmarks = [],
@@ -307,6 +316,7 @@ export function CommandPalette() {
 
   const {
     bookmarkId,
+    isBookmarkViewPage,
     bookmark,
     categories,
     flatMediaTypes,
@@ -315,6 +325,12 @@ export function CommandPalette() {
     customProperties,
     updateBookmark,
   } = useBookmarkTaxonomyContext();
+
+  const detailLayout = useBookmarkDetailLayout();
+  const {
+    data: displayPrefs,
+  } = useDisplayPreferenceSettings();
+  const updateDisplayPrefs = useUpdateDisplayPreferenceSettings();
 
   const {
     priorityTags, otherTags,
@@ -331,6 +347,7 @@ export function CommandPalette() {
       setInputValue("");
       setTaxonomyMode(null);
       setChoicesPropertyId(null);
+      setRatingPropertyId(null);
       setPendingChoiceValues([]);
     }
   };
@@ -363,9 +380,16 @@ export function CommandPalette() {
     setInputValue("");
   }
 
+  function enterRatingMode(propId: string) {
+    setTaxonomyMode("rating-property");
+    setRatingPropertyId(propId);
+    setInputValue("");
+  }
+
   function exitTaxonomyMode() {
     setTaxonomyMode(null);
     setChoicesPropertyId(null);
+    setRatingPropertyId(null);
     setInputValue("");
   }
 
@@ -381,6 +405,13 @@ export function CommandPalette() {
   const booleanProperties = customProperties.filter(p => p.type === "boolean");
   const choicesProperties = customProperties.filter(
     p => p.type === "choices" && p.choicesItems.length > 0,
+  );
+  const ratingProperties = customProperties.filter(
+    p => p.type === "ratingScale" && !p.ratingAllowHalf,
+  );
+  const editableProperties = customProperties.filter(
+    p => p.type === "number" || p.type === "text" || p.type === "datetime"
+      || (p.type === "ratingScale" && p.ratingAllowHalf),
   );
 
   return (
@@ -398,7 +429,9 @@ export function CommandPalette() {
                   ? "Search media types…"
                   : taxonomyMode === "choices-property" && choicesPropertyId
                     ? `Search ${(customProperties.find(p => p.id === choicesPropertyId)?.name ?? "options")}…`
-                    : `Search ${taxonomyMode}…`
+                    : taxonomyMode === "rating-property" && ratingPropertyId
+                      ? `Select ${(customProperties.find(p => p.id === ratingPropertyId)?.name ?? "rating")}…`
+                      : `Search ${taxonomyMode}…`
                 : "Search pages and bookmarks…"}
               value={inputValue}
               onValueChange={setInputValue}
@@ -736,6 +769,84 @@ export function CommandPalette() {
                 );
               })()}
 
+              {/* Sub-palette: rating scale property */}
+              {taxonomyMode === "rating-property" && bookmarkId && ratingPropertyId && (() => {
+                const prop = customProperties.find(p => p.id === ratingPropertyId);
+                if (!prop) return null;
+                const max = prop.ratingMax ?? 5;
+                const allowZero = prop.ratingAllowZero ?? false;
+                const current = bookmark?.numberValues.find(v => v.propertyId === ratingPropertyId)?.value ?? null;
+                const options = Array.from({
+                  length: max,
+                }, (_, i) => i + 1);
+                return (
+                  <>
+                    <CommandGroup heading={prop.name}>
+                      <CommandItem
+                        value="back"
+                        onSelect={exitTaxonomyMode}
+                      >
+                        <ArrowLeftIcon />
+                        Back
+                      </CommandItem>
+                    </CommandGroup>
+                    <CommandSeparator />
+                    <CommandGroup heading={`Select ${prop.name}`}>
+                      {allowZero && (
+                        <CommandItem
+                          value="No rating"
+                          onSelect={() => {
+                            updateBookmark.mutate({
+                              id: bookmarkId,
+                              input: {
+                                numberValues: bookmark?.numberValues.filter(
+                                  v => v.propertyId !== ratingPropertyId,
+                                ) ?? [],
+                              },
+                            });
+                            handleOpenChange(false);
+                          }}
+                        >
+                          {current === null && (
+                            <CheckIcon
+                              className="text-primary"
+                            />
+                          )}
+                          No rating
+                        </CommandItem>
+                      )}
+                      {options.map(n => (
+                        <CommandItem
+                          key={n}
+                          value={`${n.toString()} ${n === 1 ? "star" : "stars"}`}
+                          onSelect={() => {
+                            updateBookmark.mutate({
+                              id: bookmarkId,
+                              input: {
+                                numberValues: [
+                                  ...(bookmark?.numberValues.filter(
+                                    v => v.propertyId !== ratingPropertyId,
+                                  ) ?? []),
+                                  {
+                                    propertyId: ratingPropertyId,
+                                    value: n,
+                                  },
+                                ],
+                              },
+                            });
+                            handleOpenChange(false);
+                          }}
+                        >
+                          {current === n && <CheckIcon className="text-primary" />}
+                          {"★".repeat(n)}
+                          {"☆".repeat(max - n)}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </>
+                );
+              })()}
+
               {/* Default palette view */}
               {taxonomyMode === null && (
                 <>
@@ -859,6 +970,75 @@ export function CommandPalette() {
                     </>
                   )}
 
+                  {isBookmarkViewPage && bookmarkId && bookmark && (
+                    <>
+                      <CommandGroup heading="Current Page">
+                        <CommandItem
+                          value="Go to Edit"
+                          onSelect={() => {
+                            void navigate({
+                              to: "/bookmarks/$bookmarkId/edit/general",
+                              params: {
+                                bookmarkId,
+                              },
+                            });
+                            handleOpenChange(false);
+                          }}
+                        >
+                          <PencilIcon />
+                          Go to Edit
+                        </CommandItem>
+                        <CommandItem
+                          value="Single Layout"
+                          onSelect={() => {
+                            if (displayPrefs) {
+                              updateDisplayPrefs.mutate({
+                                ...displayPrefs,
+                                bookmarkDetailLayout: "single",
+                              }, {
+                                onSuccess: () => notifySuccess("Detail layout: single"),
+                                onError: error => notifyError(error.message),
+                              });
+                            }
+                            handleOpenChange(false);
+                          }}
+                        >
+                          {detailLayout === "single" && (
+                            <CheckIcon
+                              className="text-primary"
+                            />
+                          )}
+                          <Columns2Icon />
+                          Single Layout
+                        </CommandItem>
+                        <CommandItem
+                          value="Tabbed Layout"
+                          onSelect={() => {
+                            if (displayPrefs) {
+                              updateDisplayPrefs.mutate({
+                                ...displayPrefs,
+                                bookmarkDetailLayout: "tabbed",
+                              }, {
+                                onSuccess: () => notifySuccess("Detail layout: tabbed"),
+                                onError: error => notifyError(error.message),
+                              });
+                            }
+                            handleOpenChange(false);
+                          }}
+                        >
+                          {detailLayout === "tabbed" && (
+                            <CheckIcon
+                              className="text-primary"
+                            />
+                          )}
+                          <Columns2Icon />
+                          Tabbed Layout
+                        </CommandItem>
+                      </CommandGroup>
+                      <CommandSeparator />
+                    </>
+                  )}
+
                   {bookmarkId && bookmark && (
                     <>
                       <CommandGroup heading="Bookmark Taxonomies">
@@ -971,6 +1151,58 @@ export function CommandPalette() {
                             </CommandItem>
                           );
                         })}
+                        {ratingProperties.map((p) => {
+                          const current
+                            = bookmark.numberValues.find(v => v.propertyId === p.id)?.value
+                              ?? null;
+                          const max = p.ratingMax ?? 5;
+                          return (
+                            <CommandItem
+                              key={p.id}
+                              value={`Set ${p.name}`}
+                              onSelect={() => enterRatingMode(p.id)}
+                            >
+                              <span className="flex min-w-0 flex-col gap-0.5">
+                                <span>
+                                  Set
+                                  {" "}
+                                  {p.name}
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                  {current !== null
+                                    ? `${"★".repeat(current)}${"☆".repeat(max - current)}`
+                                    : "Not rated"}
+                                </span>
+                              </span>
+                            </CommandItem>
+                          );
+                        })}
+                        {editableProperties.map(p => (
+                          <CommandItem
+                            key={p.id}
+                            value={`Edit ${p.name}`}
+                            onSelect={() => {
+                              void navigate({
+                                to: "/bookmarks/$bookmarkId/edit/properties",
+                                params: {
+                                  bookmarkId: bookmarkId ?? "",
+                                },
+                              });
+                              handleOpenChange(false);
+                            }}
+                          >
+                            <span className="flex min-w-0 flex-col gap-0.5">
+                              <span>
+                                Edit
+                                {" "}
+                                {p.name}
+                              </span>
+                              <span className="text-xs text-muted-foreground">
+                                Opens properties tab
+                              </span>
+                            </span>
+                          </CommandItem>
+                        ))}
                       </CommandGroup>
                       <CommandSeparator />
                     </>
