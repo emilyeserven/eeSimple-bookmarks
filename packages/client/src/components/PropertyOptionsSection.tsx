@@ -1,5 +1,24 @@
 import type { PropertyFormApi, PropertyFormSection, PropertyFormValues } from "./propertyFormSchema";
+import type { DragEndEvent } from "@dnd-kit/core";
 import type { ChoicesItem, CustomProperty } from "@eesimple/types";
+
+import {
+  closestCenter,
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { GripVertical } from "lucide-react";
 
 import { AllowDefaultField } from "./AllowDefaultField";
 import { CollapsibleFormSection } from "./CollapsibleFormSection";
@@ -868,6 +887,77 @@ function ItemInItemsOptions({
   );
 }
 
+interface SortableChoiceItemProps {
+  item: ChoicesItem;
+  index: number;
+  idPrefix: string;
+  onLabelChange: (index: number, label: string) => void;
+  onLabelBlur: (index: number, label: string) => void;
+  onDefaultChange: (index: number) => void;
+  onRemove: (index: number) => void;
+}
+
+function SortableChoiceItem({
+  item, index, idPrefix, onLabelChange, onLabelBlur, onDefaultChange, onRemove,
+}: SortableChoiceItemProps) {
+  const {
+    attributes, listeners, setNodeRef, transform, transition,
+  } = useSortable({
+    id: item.value,
+  });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+  return (
+    <li
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center gap-2"
+    >
+      <button
+        type="button"
+        className="cursor-grab touch-none text-muted-foreground"
+        aria-label="Drag to reorder"
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical className="size-4" />
+      </button>
+      <Input
+        value={item.label}
+        placeholder="Label"
+        className="flex-1"
+        onChange={e => onLabelChange(index, e.target.value)}
+        onBlur={e => onLabelBlur(index, e.target.value)}
+      />
+      <div className="flex shrink-0 items-center gap-1.5">
+        <input
+          type="radio"
+          name={`${idPrefix}-choices-default`}
+          id={`${idPrefix}-choices-default-${index}`}
+          checked={item.isDefault ?? false}
+          onChange={() => onDefaultChange(index)}
+        />
+        <Label
+          htmlFor={`${idPrefix}-choices-default-${index}`}
+          className="text-xs text-muted-foreground"
+        >
+          Default
+        </Label>
+      </div>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={() => onRemove(index)}
+      >
+        Remove
+      </Button>
+    </li>
+  );
+}
+
 function slugifyChoice(text: string): string {
   const slug = text.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
   return slug || "option";
@@ -900,6 +990,13 @@ interface ChoicesOptionsProps {
 function ChoicesOptions({
   form, idPrefix, defaultOpen, full,
 }: ChoicesOptionsProps) {
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+
   return (
     <form.AppField name="choicesItems">
       {itemsField => (
@@ -915,6 +1012,18 @@ function ChoicesOptions({
             const preview = choicesItems.length === 0
               ? "No choices defined"
               : `${choicesItems.length} choice${choicesItems.length === 1 ? "" : "s"}`;
+
+            function handleDragEnd(event: DragEndEvent) {
+              const {
+                active, over,
+              } = event;
+              if (!over || active.id === over.id) return;
+              const oldIndex = choicesItems.findIndex(item => item.value === active.id);
+              const newIndex = choicesItems.findIndex(item => item.value === over.id);
+              if (oldIndex === -1 || newIndex === -1) return;
+              itemsField.handleChange(arrayMove(choicesItems, oldIndex, newIndex));
+            }
+
             return (
               <>
                 {full ? <Separator /> : null}
@@ -968,70 +1077,55 @@ function ChoicesOptions({
                     <div className="space-y-2">
                       <Label>Choices</Label>
                       {choicesItems.length > 0 && (
-                        <ul className="space-y-2">
-                          {choicesItems.map((item, index) => (
-                            <li
-                              key={item.value}
-                              className="flex items-center gap-2"
-                            >
-                              <Input
-                                value={item.label}
-                                placeholder="Label"
-                                className="flex-1"
-                                onChange={(e) => {
-                                  itemsField.handleChange(
-                                    updateChoicesItems(choicesItems, index, {
-                                      label: e.target.value,
-                                    }),
-                                  );
-                                }}
-                                onBlur={(e) => {
-                                  const base = slugifyChoice(e.target.value);
-                                  const deduped = deduplicateValue(choicesItems, base, index);
-                                  itemsField.handleChange(
-                                    updateChoicesItems(choicesItems, index, {
-                                      value: deduped,
-                                    }),
-                                  );
-                                }}
-                              />
-                              <div
-                                className="flex shrink-0 items-center gap-1.5"
-                              >
-                                <input
-                                  type="radio"
-                                  name={`${idPrefix}-choices-default`}
-                                  id={`${idPrefix}-choices-default-${index}`}
-                                  checked={item.isDefault ?? false}
-                                  onChange={() => {
+                        <DndContext
+                          sensors={sensors}
+                          collisionDetection={closestCenter}
+                          onDragEnd={handleDragEnd}
+                        >
+                          <SortableContext
+                            items={choicesItems.map(item => item.value)}
+                            strategy={verticalListSortingStrategy}
+                          >
+                            <ul className="space-y-2">
+                              {choicesItems.map((item, index) => (
+                                <SortableChoiceItem
+                                  key={item.value}
+                                  item={item}
+                                  index={index}
+                                  idPrefix={idPrefix}
+                                  onLabelChange={(i, label) =>
                                     itemsField.handleChange(
-                                      choicesItems.map((it, i) => ({
+                                      updateChoicesItems(choicesItems, i, {
+                                        label,
+                                      }),
+                                    )}
+                                  onLabelBlur={(i, label) => {
+                                    const base = slugifyChoice(label);
+                                    const deduped = deduplicateValue(choicesItems, base, i);
+                                    itemsField.handleChange(
+                                      updateChoicesItems(choicesItems, i, {
+                                        value: deduped,
+                                      }),
+                                    );
+                                  }}
+                                  onDefaultChange={(i) => {
+                                    itemsField.handleChange(
+                                      choicesItems.map((it, idx) => ({
                                         ...it,
-                                        isDefault: i === index ? true : undefined,
+                                        isDefault: idx === i ? true : undefined,
                                       })),
                                     );
                                   }}
+                                  onRemove={(i) => {
+                                    itemsField.handleChange(
+                                      choicesItems.filter((_, idx) => idx !== i),
+                                    );
+                                  }}
                                 />
-                                <Label
-                                  htmlFor={`${idPrefix}-choices-default-${index}`}
-                                  className="text-xs text-muted-foreground"
-                                >
-                                  Default
-                                </Label>
-                              </div>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => {
-                                  itemsField.handleChange(choicesItems.filter((_, i) => i !== index));
-                                }}
-                              >
-                                Remove
-                              </Button>
-                            </li>
-                          ))}
-                        </ul>
+                              ))}
+                            </ul>
+                          </SortableContext>
+                        </DndContext>
                       )}
                       <Button
                         type="button"

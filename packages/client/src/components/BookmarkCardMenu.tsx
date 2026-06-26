@@ -1,9 +1,10 @@
-import type { Bookmark, BookmarkTag, CustomProperty } from "@eesimple/types";
+import type { Bookmark, BookmarkTag, ChoicesDisplayType, CustomProperty } from "@eesimple/types";
 
 import { useEffect, useState } from "react";
 
+import { CHOICES_DISPLAY_LABELS, CHOICES_DISPLAY_TYPES } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
-import { Sparkles } from "lucide-react";
+import { SlidersHorizontal, Sparkles } from "lucide-react";
 
 import { DateTimePicker } from "./DateTimePicker";
 import { useEditPanelClick } from "./panel/useEditPanelClick";
@@ -104,13 +105,15 @@ interface BookmarkCardMenuProps {
   onSaveDateTime: (propertyId: string, value: string) => void;
   onSaveChoices: (propertyId: string, values: string[]) => void;
   onSaveTags: (tagIds: string[]) => void;
+  onChangeChoicesDisplay: (propertyId: string, display: ChoicesDisplayType) => void;
   onDelete?: (id: string) => void;
 }
 
 /** The dropdown menu content for a bookmark card: edit link, quick-edit properties, image grab, delete. */
 export function BookmarkCardMenu({
   bookmark, editableProperties, editableTags, autoImagePending, onAutoImage,
-  onSaveNumber, onSaveBoolean, onSaveDateTime, onSaveChoices, onSaveTags, onDelete,
+  onSaveNumber, onSaveBoolean, onSaveDateTime, onSaveChoices, onSaveTags,
+  onChangeChoicesDisplay, onDelete,
 }: BookmarkCardMenuProps) {
   const editClick = useEditPanelClick();
   const modifier = useSidebarOpenModifier();
@@ -165,6 +168,38 @@ export function BookmarkCardMenu({
                 const triggerHint = selectedLabels.length > 0
                   ? selectedLabels.join(", ")
                   : "None";
+                const displaySubmenu = (
+                  <>
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger>
+                        <SlidersHorizontal
+                          className="mr-2 size-3.5 text-muted-foreground"
+                        />
+                        <span className="text-xs text-muted-foreground">
+                          Display as:{" "}
+                          {CHOICES_DISPLAY_LABELS[property.choicesDisplay ?? "checkbox"]}
+                        </span>
+                      </DropdownMenuSubTrigger>
+                      <DropdownMenuSubContent>
+                        <DropdownMenuRadioGroup
+                          value={property.choicesDisplay ?? "checkbox"}
+                          onValueChange={value =>
+                            onChangeChoicesDisplay(property.id, value as ChoicesDisplayType)}
+                        >
+                          {CHOICES_DISPLAY_TYPES.map(dt => (
+                            <DropdownMenuRadioItem
+                              key={dt}
+                              value={dt}
+                            >
+                              {CHOICES_DISPLAY_LABELS[dt]}
+                            </DropdownMenuRadioItem>
+                          ))}
+                        </DropdownMenuRadioGroup>
+                      </DropdownMenuSubContent>
+                    </DropdownMenuSub>
+                    <DropdownMenuSeparator />
+                  </>
+                );
                 if (property.choicesMultiple) {
                   return (
                     <DropdownMenuSub key={property.id}>
@@ -178,6 +213,7 @@ export function BookmarkCardMenu({
                         </span>
                       </DropdownMenuSubTrigger>
                       <DropdownMenuSubContent>
+                        {displaySubmenu}
                         {property.choicesItems.map(item => (
                           <DropdownMenuCheckboxItem
                             key={item.value}
@@ -206,6 +242,7 @@ export function BookmarkCardMenu({
                       </span>
                     </DropdownMenuSubTrigger>
                     <DropdownMenuSubContent>
+                      {displaySubmenu}
                       <DropdownMenuRadioGroup
                         value={current[0] ?? ""}
                         onValueChange={value => onSaveChoices(property.id, value ? [value] : [])}
