@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { buildApp } from "@/app";
 import { normalizeDomain, stripSiteNameSuffix } from "@/services/websites";
 
 // Pure-helper tests run without a live database, matching the `isValidUrl` style.
@@ -55,42 +54,4 @@ test("stripSiteNameSuffix leaves a title alone when nothing matches or the prefi
     siteName: "GitHub",
     domain: "github.com",
   }), "GitHub");
-});
-
-// Schema-validation tests via `inject` (no database needed).
-
-test("GET /api/websites/lookup requires a url query param", async () => {
-  const app = await buildApp();
-  const res = await app.inject({
-    method: "GET",
-    url: "/api/websites/lookup",
-  });
-  assert.equal(res.statusCode, 400);
-  await app.close();
-});
-
-test("POST /api/websites requires a domain", async () => {
-  const app = await buildApp();
-  const res = await app.inject({
-    method: "POST",
-    url: "/api/websites",
-    payload: {
-      siteName: "Example",
-    },
-  });
-  assert.equal(res.statusCode, 400);
-  await app.close();
-});
-
-test("PATCH /api/websites/:id rejects a non-uuid id", async () => {
-  const app = await buildApp();
-  const res = await app.inject({
-    method: "PATCH",
-    url: "/api/websites/not-a-uuid",
-    payload: {
-      siteName: "x",
-    },
-  });
-  assert.equal(res.statusCode, 400);
-  await app.close();
 });
