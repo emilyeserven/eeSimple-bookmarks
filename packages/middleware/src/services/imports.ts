@@ -9,7 +9,7 @@
  * Only `createBookmark` (invoked on approve) touches the cache, which it already does internally.
  */
 
-import { and, asc, count, desc, eq, inArray, isNull, or, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, isNull, ne, or, sql } from "drizzle-orm";
 import type {
   ActiveImport,
   ImportApproveResult,
@@ -709,7 +709,8 @@ export async function listInboxItems(): Promise<InboxItem[]> {
   return rows.map(row => ({
     ...toItem(row.item),
     importSource: row.importSource as ImportSource,
-    sourceLabel: row.newsletterName ?? row.importTitle ?? row.importSourceUrl ?? null,
+    sourceLabel: row.newsletterName ?? row.importTitle ?? row.importSourceUrl
+      ?? (row.importSource === "extension" ? "Browser extension" : null),
   }));
 }
 
@@ -1411,11 +1412,14 @@ export async function purgeProcessedItems(): Promise<PurgeImportItemsResult> {
   };
 }
 
-/** Subquery selecting every import id that has no associated newsletter. */
-function newsletterlessImportIds() {
+/**
+ * Subquery selecting import ids that lost their newsletter — newsletter-sourced imports (paste/url/upload)
+ * whose newsletterId was cleared. Extension quick-saves never have a newsletter and are excluded.
+ */
+function orphanedImportIds() {
   return db.select({
     id: imports.id,
-  }).from(imports).where(isNull(imports.newsletterId));
+  }).from(imports).where(and(isNull(imports.newsletterId), ne(imports.source, "extension")));
 }
 
 /** Count import items whose parent import has no newsletter (the Inbox orphans). */
@@ -1425,7 +1429,7 @@ export async function countOrphanedImportItems(): Promise<number> {
       value: count(),
     })
     .from(importItems)
-    .where(inArray(importItems.importId, newsletterlessImportIds()));
+    .where(inArray(importItems.importId, orphanedImportIds()));
   return row?.value ?? 0;
 }
 
@@ -1436,11 +1440,69 @@ export async function countOrphanedImportItems(): Promise<number> {
 export async function deleteOrphanedImportItems(): Promise<OrphanDeleteResult> {
   const rows = await db
     .delete(importItems)
-    .where(inArray(importItems.importId, newsletterlessImportIds()))
+    .where(inArray(importItems.importId, orphanedImportIds()))
     .returning({
       id: importItems.id,
     });
   return {
     deleted: rows.length,
+  };
+}
+
+/**
+ * Queue a single URL directly into the Inbox review queue — used by the browser extension and
+ * PWA share target. Creates a completed one-item "extension" import so no background processing
+ * is needed, then stages the item as pending for review.
+ *
+ * Returns `{ id }` of the created import item, or `null` when the URL is already a saved bookmark
+ * or already pending in the inbox (caller should return 409).
+ */
+export async function quickSaveToInbox(
+  url: string,
+  title: string,
+): Promise<{ id: string } | null> {
+  const dup = await checkBookmarkUrlDuplicate(url);
+  if (dup.exactMatch ?? dup.pathMatch) return null;
+
+  const [existingPending] = await db
+    .select({
+      id: importItems.id,
+    })
+    .from(importItems)
+    .where(and(eq(importItems.url, url), eq(importItems.status, "pending")))
+    .limit(1);
+  if (existingPending) return null;
+
+  const [importRow] = await db
+    .insert(imports)
+    .values({
+      source: "extension",
+      status: "complete",
+      totalCount: 1,
+      processedCount: 1,
+    })
+    .returning({
+      id: imports.id,
+    });
+
+  if (!importRow) throw new Error("Failed to create import record");
+
+  const [itemRow] = await db
+    .insert(importItems)
+    .values({
+      importId: importRow.id,
+      url,
+      rawUrl: url,
+      title,
+      status: "pending",
+    })
+    .returning({
+      id: importItems.id,
+    });
+
+  if (!itemRow) throw new Error("Failed to create import item");
+
+  return {
+    id: itemRow.id,
   };
 }

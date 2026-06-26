@@ -214,42 +214,6 @@ export async function ensureDefaultCategory(): Promise<string> {
   return row.id;
 }
 
-/** The reserved name of the built-in category for bookmarks saved via the browser extension. */
-export const INBOX_CATEGORY_NAME = "Inbox";
-
-// Resolved once per process — the inbox category id never changes after creation.
-let inboxCategoryId: string | null = null;
-
-/**
- * Ensure the built-in "Inbox" category exists and return its id. Idempotent and safe to
- * call at boot in every environment: creates the category if missing.
- */
-export async function ensureInboxCategory(): Promise<string> {
-  if (inboxCategoryId) return inboxCategoryId;
-
-  const [existing] = await db
-    .select()
-    .from(categories)
-    .where(and(eq(categories.builtIn, true), eq(categories.name, INBOX_CATEGORY_NAME)));
-  const row
-    = existing
-      ?? (
-        await db
-          .insert(categories)
-          .values({
-            name: INBOX_CATEGORY_NAME,
-            slug: slugify(INBOX_CATEGORY_NAME),
-            description: "Bookmarks saved quickly via the browser extension.",
-            builtIn: true,
-            isHomepage: false,
-          })
-          .returning()
-      )[0];
-
-  inboxCategoryId = row.id;
-  return row.id;
-}
-
 /** Fill in slugs for any categories missing one (e.g. rows that predate the `slug` column). */
 async function backfillSlugs(): Promise<void> {
   const missing = await db

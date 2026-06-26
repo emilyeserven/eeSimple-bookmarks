@@ -14,7 +14,7 @@ const addBtn = document.getElementById("addBtn");
 const formError = document.getElementById("formError");
 
 const successMsg = document.getElementById("successMsg");
-const editBtn = document.getElementById("editBtn");
+const viewInboxBtn = document.getElementById("viewInboxBtn");
 
 const progressEl = document.getElementById("progress");
 const progressBar = document.getElementById("progressBar");
@@ -105,11 +105,10 @@ async function submit() {
       }),
     });
     if (res.status === 201) {
-      const bookmark = await res.json();
-      onSuccess("Saved to Inbox.", bookmark?.id ?? null);
+      onSuccess("Queued in Inbox.");
     }
     else if (res.status === 409) {
-      onSuccess("Already saved.", null);
+      onSuccess("Already saved.", true);
     }
     else if (res.status === 400) {
       resetAdd();
@@ -132,20 +131,20 @@ bmUrl?.addEventListener("keydown", (e) => {
 });
 
 // --- Success + countdown ------------------------------------------------
-function onSuccess(message, id) {
+function onSuccess(message, hideViewInbox = false) {
   successMsg.textContent = message;
-  if (id) {
-    editBtn.classList.remove("hidden");
-    editBtn.onclick = () => {
+  if (hideViewInbox) {
+    viewInboxBtn.classList.add("hidden");
+  }
+  else {
+    viewInboxBtn.classList.remove("hidden");
+    viewInboxBtn.onclick = () => {
       cancelCountdown();
       chrome.tabs.create({
-        url: `${serverUrl}/bookmarks/${id}`,
+        url: `${serverUrl}/inbox`,
       });
       window.close();
     };
-  }
-  else {
-    editBtn.classList.add("hidden");
   }
   show("success");
   startCountdown();

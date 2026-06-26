@@ -27,7 +27,7 @@ import {
   updateBookmark,
   updateBookmarkRelationships,
 } from "@/services/bookmarks";
-import { ensureInboxCategory } from "@/services/categories";
+import { quickSaveToInbox } from "@/services/imports";
 import { getObjectStream, isObjectStoreConfigured } from "@/utils/objectStore";
 import { isValidUrl } from "@/utils/url";
 
@@ -525,23 +525,13 @@ function registerBookmarkCrudRoutes(app: FastifyInstance): void {
         message: "url must be a valid http(s) URL",
       });
     }
-    try {
-      const categoryId = await ensureInboxCategory();
-      const bookmark = await createBookmark({
-        url,
-        title: title?.trim() || url,
-        categoryId,
+    const item = await quickSaveToInbox(url, title?.trim() || url);
+    if (!item) {
+      return reply.code(409).send({
+        message: "This URL is already saved.",
       });
-      return reply.code(201).send(bookmark);
     }
-    catch (err) {
-      if (err instanceof DuplicateUrlError) {
-        return reply.code(409).send({
-          message: err.message,
-        });
-      }
-      throw err;
-    }
+    return reply.code(201).send(item);
   });
 
   app.get("/api/bookmarks/:id", {

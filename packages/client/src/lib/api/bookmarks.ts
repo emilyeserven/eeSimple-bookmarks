@@ -17,6 +17,14 @@ import type {
 import { request, uploadImageFile } from "./client";
 
 export const bookmarksApi = {
+  queueToInbox: (url: string, title: string) =>
+    request<{ id: string }>("/bookmarks/inbox", {
+      method: "POST",
+      body: JSON.stringify({
+        url,
+        title,
+      }),
+    }),
   list: (tagIds?: string[]) => {
     const params = new URLSearchParams();
     for (const id of tagIds ?? []) params.append("tags", id);

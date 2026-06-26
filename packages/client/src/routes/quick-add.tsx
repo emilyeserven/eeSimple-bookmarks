@@ -1,9 +1,13 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useMutation } from "@tanstack/react-query";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 
-import { BookmarkForm } from "../components/BookmarkForm";
+import { bookmarksApi } from "../lib/api/bookmarks";
+import { describeError } from "../lib/apiError";
 import { parseSharedInput } from "../lib/shareTarget";
+
+import { Button } from "@/components/ui/button";
 
 /**
  * Search params for the quick-add popup: the page URL/title the bookmarklet hands in, or the
@@ -29,52 +33,136 @@ export const Route = createFileRoute("/quick-add")({
   component: QuickAddPage,
 });
 
-/** Milliseconds the popup waits, untouched, before closing itself. */
-const AUTO_CLOSE_MS = 5000;
+/** Milliseconds the popup waits after success before closing itself. */
+const AUTO_CLOSE_MS = 3000;
 
 /**
- * A chrome-less page (the root layout omits its sidebar/header/panel) rendering the standard
- * `BookmarkForm` pre-filled + auto-scanned from the bookmarklet's URL/title. When opened as a popup
- * (`window.opener` set) it closes after a successful create and auto-closes after 5s of no
- * interaction; once the user focuses/interacts it stays open.
+ * A chrome-less page (the root layout omits its sidebar/header/panel) that queues the shared URL
+ * directly into the Inbox review queue. Opened by the bookmarklet or the Android PWA share target.
+ * Auto-closes/navigates on success.
  */
 function QuickAddPage() {
   const {
     url, title,
   } = Route.useSearch();
   const navigate = useNavigate();
+  const [status, setStatus] = useState<"saving" | "saved" | "duplicate" | "error" | "no-url">(
+    url ? "saving" : "no-url",
+  );
+  const [errorMsg, setErrorMsg] = useState("");
 
-  usePopupAutoClose();
+  const save = useMutation({
+    mutationFn: ({
+      u, t,
+    }: { u: string;
+      t: string; }) => bookmarksApi.queueToInbox(u, t),
+    onSuccess: () => {
+      setStatus("saved");
+      if (window.opener) {
+        setTimeout(() => window.close(), AUTO_CLOSE_MS);
+      }
+      else {
+        void navigate({
+          to: "/inbox",
+        });
+      }
+    },
+    onError: (err) => {
+      const msg = describeError(err);
+      if (msg.includes("already")) {
+        setStatus("duplicate");
+      }
+      else {
+        setStatus("error");
+        setErrorMsg(msg);
+      }
+    },
+  });
+
+  const firedRef = useRef(false);
+  useEffect(() => {
+    if (!url || firedRef.current) return;
+    firedRef.current = true;
+    save.mutate({
+      u: url,
+      t: title || url,
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  usePopupAutoClose(status === "saving");
 
   return (
-    <main className="mx-auto max-w-md p-4">
-      <h1 className="mb-4 text-xl font-bold">Add Bookmark</h1>
-      <BookmarkForm
-        initialUrl={url}
-        initialTitle={title}
-        autoScan
-        onCreated={() => {
-          // Popup (bookmarklet) → close it. Installed PWA share target (no opener) →
-          // there's nothing to close, so move the user into the app instead of leaving
-          // them on a now-stale form.
-          if (window.opener) window.close();
-          else void navigate({
-            to: "/",
-          });
-        }}
-      />
+    <main className="mx-auto max-w-md space-y-3 p-4">
+      <h1 className="text-xl font-bold">Add to Inbox</h1>
+      {status === "saving" && (
+        <p className="text-sm text-muted-foreground">Adding to Inbox…</p>
+      )}
+      {status === "saved" && (
+        <>
+          <p className="font-semibold">Queued in Inbox.</p>
+          {!window.opener && (
+            <Button
+              asChild
+              size="sm"
+            >
+              <Link to="/inbox">View Inbox</Link>
+            </Button>
+          )}
+          {window.opener && (
+            <p className="text-sm text-muted-foreground">
+              Closing in {AUTO_CLOSE_MS / 1000}s…
+            </p>
+          )}
+        </>
+      )}
+      {status === "duplicate" && (
+        <>
+          <p className="font-semibold">Already saved.</p>
+          <Button
+            asChild
+            size="sm"
+            variant="outline"
+          >
+            <Link to="/inbox">View Inbox</Link>
+          </Button>
+        </>
+      )}
+      {status === "error" && (
+        <>
+          <p className="text-sm text-destructive">{errorMsg || "Something went wrong."}</p>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              if (url) {
+                setStatus("saving");
+                save.mutate({
+                  u: url,
+                  t: title || url,
+                });
+              }
+            }}
+          >
+            Retry
+          </Button>
+        </>
+      )}
+      {status === "no-url" && (
+        <p className="text-sm text-muted-foreground">No URL provided.</p>
+      )}
     </main>
   );
 }
 
 /**
- * Auto-close the popup after `AUTO_CLOSE_MS` of no interaction. Any focus / pointer / key / tab-back
- * cancels the timer permanently. No-op when the page wasn't opened as a popup.
+ * Auto-close the popup after `AUTO_CLOSE_MS` of no interaction while saving. Any focus / pointer /
+ * key / tab-back cancels the timer permanently. No-op when the page wasn't opened as a popup.
  */
-function usePopupAutoClose(): void {
+function usePopupAutoClose(active: boolean): void {
   const cancelledRef = useRef(false);
   useEffect(() => {
-    if (!window.opener) return;
+    if (!window.opener || !active) return;
 
     const timer = window.setTimeout(() => {
       if (!cancelledRef.current) window.close();
@@ -100,5 +188,5 @@ function usePopupAutoClose(): void {
       window.removeEventListener("keydown", cancel);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, []);
+  }, [active]);
 }
