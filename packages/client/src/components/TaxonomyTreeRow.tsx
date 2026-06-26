@@ -33,11 +33,13 @@ interface TaxonomyTreeListProps {
   renderEditLink: (node: TaxonomyTreeNode) => ReactNode;
   /** Caller builds the info Link element (to the entity's detail page; hover-revealed ghost Button). */
   renderInfoLink: (node: TaxonomyTreeNode) => ReactNode;
+  /** Optional icon override; replaces the default `CategoryIcon` when provided. */
+  renderIcon?: (node: TaxonomyTreeNode) => ReactNode;
 }
 
 /** Grid wrapper for a collapsible taxonomy tree. Each root node gets its own RowCard. */
 export function TaxonomyTreeList({
-  tree, expanded, onToggle, columns, renderNameLink, renderEditLink, renderInfoLink,
+  tree, expanded, onToggle, columns, renderNameLink, renderEditLink, renderInfoLink, renderIcon,
 }: TaxonomyTreeListProps) {
   return (
     <div
@@ -59,6 +61,7 @@ export function TaxonomyTreeList({
             renderNameLink={renderNameLink}
             renderEditLink={renderEditLink}
             renderInfoLink={renderInfoLink}
+            renderIcon={renderIcon}
           />
         </RowCard>
       ))}
@@ -74,6 +77,7 @@ interface TaxonomyTreeRowProps {
   renderNameLink: (node: TaxonomyTreeNode) => ReactNode;
   renderEditLink: (node: TaxonomyTreeNode) => ReactNode;
   renderInfoLink: (node: TaxonomyTreeNode) => ReactNode;
+  renderIcon?: (node: TaxonomyTreeNode) => ReactNode;
 }
 
 /** Standard hover-revealed ghost button for the edit / info controls in a tree row. */
@@ -99,7 +103,7 @@ function HoverGhostButton({
 }
 
 function TaxonomyTreeRow({
-  node, depth, expanded, onToggle, renderNameLink, renderEditLink, renderInfoLink,
+  node, depth, expanded, onToggle, renderNameLink, renderEditLink, renderInfoLink, renderIcon,
 }: TaxonomyTreeRowProps) {
   const hasChildren = node.children.length > 0;
   const isOpen = expanded.has(node.id);
@@ -108,10 +112,14 @@ function TaxonomyTreeRow({
 
   const rowInner = (
     <>
-      <CategoryIcon
-        name={node.icon ?? null}
-        className="size-4 shrink-0 text-muted-foreground"
-      />
+      {renderIcon
+        ? renderIcon(node)
+        : (
+          <CategoryIcon
+            name={node.icon ?? null}
+            className="size-4 shrink-0 text-muted-foreground"
+          />
+        )}
       {hasChildren
         ? (
           <button
@@ -193,6 +201,7 @@ function TaxonomyTreeRow({
                   renderNameLink={renderNameLink}
                   renderEditLink={renderEditLink}
                   renderInfoLink={renderInfoLink}
+                  renderIcon={renderIcon}
                 />
               ))}
               {noChildRow(1)}
@@ -228,6 +237,7 @@ function TaxonomyTreeRow({
                 renderNameLink={renderNameLink}
                 renderEditLink={renderEditLink}
                 renderInfoLink={renderInfoLink}
+                renderIcon={renderIcon}
               />
             ))}
             {noChildRow(depth + 1)}
