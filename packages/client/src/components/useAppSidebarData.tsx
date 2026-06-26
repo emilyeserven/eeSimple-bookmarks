@@ -26,7 +26,7 @@ import { useSavedFilters } from "../hooks/useSavedFilters";
 import { useTags } from "../hooks/useTags";
 import { useWebsites } from "../hooks/useWebsites";
 import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
-import { bookmarkMatchesSearch, validateBookmarkSearch } from "../lib/bookmarkSearch";
+import { bookmarkMatchesSearch, bookmarkSearchEquals, validateBookmarkSearch } from "../lib/bookmarkSearch";
 
 import { CategoryIcon } from "@/lib/icons";
 
@@ -187,6 +187,12 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
         ? (validateBookmarkSearch(state.location.search).categories ?? [])
         : [],
   });
+  const currentBookmarkSearch = useRouterState({
+    select: state =>
+      state.location.pathname.startsWith("/bookmarks")
+        ? (state.location.search as Record<string, unknown>)
+        : {},
+  });
   const data = useSidebarEntityData();
   const [pinnedExpanded, setPinnedExpanded] = React.useState(false);
   const [pinnedShowAll, setPinnedShowAll] = React.useState(false);
@@ -255,8 +261,8 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
     customizationCounts,
   ).filter(item => seeMoreCustomizationItems.includes(item.key));
 
-  const resolvedPins = useResolvedPins(data, pathname, currentBookmarkCategories);
-  const viewableFilters = useViewableFilters(data, pathname);
+  const resolvedPins = useResolvedPins(data, pathname, currentBookmarkCategories, currentBookmarkSearch);
+  const viewableFilters = useViewableFilters(data, pathname, currentBookmarkSearch);
   const pagination = paginatePins(resolvedPins, {
     pinnedExpanded,
     pinnedShowAll,
@@ -298,6 +304,7 @@ function useResolvedPins(
   data: ReturnType<typeof useSidebarEntityData>,
   pathname: string,
   currentBookmarkCategories: string[],
+  currentBookmarkSearch: Record<string, unknown>,
 ): ResolvedPin[] {
   const {
     categories, allTags, allWebsites, allMediaTypes, allChannels, savedFilters, pinnedItems,
@@ -397,13 +404,13 @@ function useResolvedPins(
               search,
             },
             bookmarkCount,
-            isActive: pathname === "/bookmarks" || pathname === "/bookmarks/",
+            isActive: pathname.startsWith("/bookmarks") && bookmarkSearchEquals(currentBookmarkSearch, e.filters),
           }];
         }
       }
     });
   }, [pinnedItems, categories, allTags, allWebsites, allMediaTypes, allChannels, savedFilters,
-    allBookmarks, pathname, currentBookmarkCategories]);
+    allBookmarks, pathname, currentBookmarkCategories, currentBookmarkSearch]);
 }
 
 /**
@@ -414,6 +421,7 @@ function useResolvedPins(
 function useViewableFilters(
   data: ReturnType<typeof useSidebarEntityData>,
   pathname: string,
+  currentBookmarkSearch: Record<string, unknown>,
 ): ResolvedPin[] {
   const {
     savedFilters, allBookmarks,
@@ -433,8 +441,8 @@ function useViewableFilters(
             search,
           },
           bookmarkCount,
-          isActive: pathname === "/bookmarks" || pathname === "/bookmarks/",
+          isActive: pathname.startsWith("/bookmarks") && bookmarkSearchEquals(currentBookmarkSearch, filter.filters),
         };
       });
-  }, [savedFilters, allBookmarks, pathname]);
+  }, [savedFilters, allBookmarks, pathname, currentBookmarkSearch]);
 }

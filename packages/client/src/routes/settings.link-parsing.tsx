@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { LinkParsingSettings } from "../components/LinkParsingSettings";
+import { RedirectFailuresSettings } from "../components/RedirectFailuresSettings";
 
 export const Route = createFileRoute("/settings/link-parsing")({
   component: LinkParsingPage,
@@ -16,6 +17,14 @@ function LinkParsingPage() {
         </p>
       </div>
       <LinkParsingSettings />
+      <div>
+        <h2 className="text-xl font-semibold">Redirect failures</h2>
+        <p className="text-sm text-muted-foreground">
+          Bookmarks whose website is flagged for unreliable redirect resolution. Enter the correct
+          URL for each bookmark to re-fetch its title, description, and image.
+        </p>
+      </div>
+      <RedirectFailuresSettings />
     </section>
   );
 }

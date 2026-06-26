@@ -1,18 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-  Bookmark,
   Filter,
   Image,
   Inbox,
   LayoutTemplate,
   Link2,
-  Link2Off,
   Monitor,
   PanelRight,
   Puzzle,
-  SlidersHorizontal,
   Sparkles,
-  Tags,
   Wand2,
   Wrench,
 } from "lucide-react";
@@ -65,19 +61,13 @@ const SETTINGS_TILES = [
     label: "AI Summarization",
     description: "Store a summarization prompt and mark queued bookmarks as summarized.",
     icon: Sparkles,
-    to: "/settings/ai-summarization" as const,
+    to: "/ai-summarization" as const,
   },
   {
     label: "Link Parsing",
     description: "Configure URL parsing and link shorteners.",
     icon: Link2,
     to: "/settings/link-parsing" as const,
-  },
-  {
-    label: "Redirect Failures",
-    description: "Fix bookmarks from sites with unreliable redirect resolution.",
-    icon: Link2Off,
-    to: "/settings/redirect-failures" as const,
   },
   {
     label: "Import Settings",
@@ -90,24 +80,6 @@ const SETTINGS_TILES = [
     description: "Install a bookmarklet to save the current page.",
     icon: Puzzle,
     to: "/settings/extension" as const,
-  },
-  {
-    label: "Categories",
-    description: "Browse and manage bookmark categories.",
-    icon: Bookmark,
-    to: "/settings/more-categories" as const,
-  },
-  {
-    label: "Taxonomies",
-    description: "Manage tags, websites, media types, and channels.",
-    icon: Tags,
-    to: "/settings/more-taxonomies" as const,
-  },
-  {
-    label: "Customization",
-    description: "Custom properties, groups, relationships, and autofill.",
-    icon: SlidersHorizontal,
-    to: "/settings/more-customization" as const,
   },
   {
     label: "Advanced",

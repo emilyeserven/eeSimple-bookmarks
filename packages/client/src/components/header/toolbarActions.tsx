@@ -5,7 +5,7 @@ import type { LucideIcon } from "lucide-react";
 import React from "react";
 
 import { Link } from "@tanstack/react-router";
-import { Columns2, Eye, Filter, Info, PanelRight, Pencil, Plus, Search } from "lucide-react";
+import { Columns2, Eye, Filter, Info, PanelRight, Pencil, Plus, Search, Settings } from "lucide-react";
 
 import { AddChildButton } from "@/components/AddChildButton";
 import { AddChildModal } from "@/components/AddChildModal";
@@ -14,6 +14,7 @@ import { BookmarkDetailLayoutPopover } from "@/components/BookmarkDetailLayoutPo
 import { DisplayOptionsPopover } from "@/components/DisplayOptionsPopover";
 import { FilterLocationControls } from "@/components/FilterLocationControls";
 import { FilterLocationPopover } from "@/components/FilterLocationPopover";
+import { BulkSelectMenuItem, HeaderBulkSelectButton } from "@/components/header/HeaderBulkSelectButton";
 import { FavoriteMenuItem, PinMenuItem, SearchControls } from "@/components/header/headerMenuItems";
 import { HeaderPinButton } from "@/components/HeaderPinButton";
 import { HeaderSettingsFavoriteButton } from "@/components/HeaderSettingsFavoriteButton";
@@ -51,6 +52,8 @@ export interface ToolbarContext {
   listingPage: { key: string;
     hasFilters: boolean;
     createAction?: () => void; } | null;
+  /** The selection pageKey of a mounted bulk-selectable listing, or null. Independent of `listingPage`. */
+  bulkSelectPageKey: string | null;
   isBookmarkDetail: boolean;
   bookmarkId: string;
   addChild: { kind: "tag" | "mediaType";
@@ -195,6 +198,19 @@ function displayOptionsAction(ctx: ToolbarContext): ToolbarAction | null {
           <ListingDisplayControls pageKey={pageKey} />
         </ResponsivePopover>
       ),
+    },
+  };
+}
+
+function bulkSelectAction(ctx: ToolbarContext): ToolbarAction | null {
+  if (!ctx.bulkSelectPageKey) return null;
+  const pageKey = ctx.bulkSelectPageKey;
+  return {
+    key: "bulk-select",
+    desktop: <HeaderBulkSelectButton pageKey={pageKey} />,
+    mobile: {
+      kind: "menuItem",
+      node: <BulkSelectMenuItem pageKey={pageKey} />,
     },
   };
 }
@@ -385,6 +401,43 @@ function pinAction(ctx: ToolbarContext): ToolbarAction | null {
   };
 }
 
+/**
+ * The homepage's quick link to its settings. Rendered only on the homepage (`/`), sitting just to the
+ * left of the panel toggle so it reads as "next to the Right Drawer". Was previously an inline gear
+ * link in the homepage body.
+ */
+function homepageSettingsAction(ctx: ToolbarContext): ToolbarAction | null {
+  if (ctx.pathParts.length > 0) return null;
+  return {
+    key: "homepage-settings",
+    desktop: (
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        aria-label="Homepage settings"
+        title="Homepage settings"
+        asChild
+      >
+        <Link to="/settings/homepage">
+          <Settings className="size-4" />
+        </Link>
+      </Button>
+    ),
+    mobile: {
+      kind: "menuItem",
+      node: (
+        <DropdownMenuItem asChild>
+          <Link to="/settings/homepage">
+            <Settings className="size-4" />
+            Homepage settings
+          </Link>
+        </DropdownMenuItem>
+      ),
+    },
+  };
+}
+
 function openPanelAction(ctx: ToolbarContext): ToolbarAction {
   return {
     key: "open-panel",
@@ -415,6 +468,7 @@ export function buildToolbarActions(ctx: ToolbarContext): ToolbarAction[] {
     searchAction(ctx),
     filterLocationAction(ctx),
     displayOptionsAction(ctx),
+    bulkSelectAction(ctx),
     bookmarkLayoutAction(ctx),
     viewDetailsAction(ctx),
     editBookmarkAction(ctx),
@@ -422,6 +476,7 @@ export function buildToolbarActions(ctx: ToolbarContext): ToolbarAction[] {
     createListingAction(ctx),
     settingsFavoriteAction(ctx),
     pinAction(ctx),
+    homepageSettingsAction(ctx),
     openPanelAction(ctx),
   ].filter((action): action is ToolbarAction => action !== null);
 }

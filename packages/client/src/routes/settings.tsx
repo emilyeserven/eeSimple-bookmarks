@@ -34,16 +34,8 @@ const settingsNav: readonly TabNavEntry[] = [
     label: "Automations",
   },
   {
-    to: "/settings/ai-summarization",
-    label: "AI Summarization",
-  },
-  {
     to: "/settings/link-parsing",
     label: "Link Parsing",
-  },
-  {
-    to: "/settings/redirect-failures",
-    label: "Redirect Failures",
   },
   {
     to: "/settings/imports",
@@ -54,30 +46,12 @@ const settingsNav: readonly TabNavEntry[] = [
     label: "Extension",
   },
   {
-    type: "group",
-    label: "More Settings",
-    items: [
-      {
-        to: "/settings/more-categories",
-        label: "Categories",
-      },
-      {
-        to: "/settings/more-taxonomies",
-        label: "Taxonomies",
-      },
-      {
-        to: "/settings/more-customization",
-        label: "Customization",
-      },
-      {
-        to: "/settings/connectors",
-        label: "Connectors",
-      },
-      {
-        to: "/settings/advanced",
-        label: "Advanced",
-      },
-    ],
+    to: "/settings/connectors",
+    label: "Connectors",
+  },
+  {
+    to: "/settings/advanced",
+    label: "Advanced",
   },
 ] as const;
 

@@ -7,7 +7,7 @@ import { BookmarkDetailMedia } from "./BookmarkDetailMedia";
 import { BookmarkDetailTabbed } from "./BookmarkDetailTabbed";
 import { CopyJsonButton } from "./CopyJsonButton";
 import { DetailHeaderActions } from "./DetailHeaderActions";
-import { useBookmarkDetailLayout, useBookmarkDetailVideoSize } from "../hooks/useAppSettings";
+import { useBookmarkDetailLayout } from "../hooks/useAppSettings";
 import { bookmarkToConditionInputJson } from "../lib/debugJson";
 
 import { Separator } from "@/components/ui/separator";
@@ -36,69 +36,63 @@ export function BookmarkDetail({
   bookmark, categories = [], properties = [], propertyGroups = [], onEdit, onDelete, onSaveBoolean,
 }: BookmarkDetailProps) {
   const layout = useBookmarkDetailLayout();
-  const videoSize = useBookmarkDetailVideoSize();
 
   // For YouTube bookmarks, show a playable embed in place of the static thumbnail.
   const embedUrl = youtubeEmbedUrl(bookmark.url ?? "");
 
-  // Only the constrained "standard" size sits side-by-side with the body; the proportional
-  // (half/two-thirds) and full-width sizes stay stacked above it.
-  const outerFlexClass = embedUrl && videoSize !== "standard"
-    ? "flex flex-col gap-6"
-    : "flex flex-col gap-6 @2xl:flex-row @2xl:items-start";
+  const isSingle = layout !== "tabbed";
 
   return (
     <div className="@container space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0 space-y-1">
-          <h1 className="text-xl font-bold">
-            <a
-              href={bookmark.url ?? undefined}
-              target="_blank"
-              rel="noreferrer"
+      {isSingle
+        ? (
+          <>
+            {/* Single layout: title + URL on left (space-between), media on right */}
+            <div
               className="
-                text-primary
-                hover:underline
+                flex flex-col gap-6
+                @2xl:flex-row @2xl:items-stretch
               "
             >
-              {bookmark.title}
-            </a>
-          </h1>
-          <a
-            href={bookmark.url ?? undefined}
-            target="_blank"
-            rel="noreferrer"
-            className="
-              block truncate text-sm text-muted-foreground
-              hover:underline
-            "
-          >
-            {bookmark.url}
-          </a>
-        </div>
-        <DetailHeaderActions
-          onEdit={onEdit}
-          onDelete={onDelete}
-        />
-      </div>
-
-      {layout === "tabbed"
-        ? (
-          <BookmarkDetailTabbed
-            bookmark={bookmark}
-            categories={categories}
-            properties={properties}
-            propertyGroups={propertyGroups}
-            embedUrl={embedUrl}
-            onSaveBoolean={onSaveBoolean}
-          />
-        )
-        : (
-          <div className={outerFlexClass}>
-            <BookmarkDetailMedia
-              bookmark={bookmark}
-              embedUrl={embedUrl}
-            />
+              <div
+                className="flex min-w-0 flex-1 flex-col justify-between gap-4"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <h1 className="text-xl font-bold">
+                    <a
+                      href={bookmark.url ?? undefined}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="
+                        text-primary
+                        hover:underline
+                      "
+                    >
+                      {bookmark.title}
+                    </a>
+                  </h1>
+                  <DetailHeaderActions
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                  />
+                </div>
+                <a
+                  href={bookmark.url ?? undefined}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="
+                    block truncate text-sm text-muted-foreground
+                    hover:underline
+                  "
+                >
+                  {bookmark.url}
+                </a>
+              </div>
+              <BookmarkDetailMedia
+                bookmark={bookmark}
+                embedUrl={embedUrl}
+              />
+            </div>
             <BookmarkDetailBody
               bookmark={bookmark}
               categories={categories}
@@ -106,7 +100,51 @@ export function BookmarkDetail({
               propertyGroups={propertyGroups}
               onSaveBoolean={onSaveBoolean}
             />
-          </div>
+          </>
+        )
+        : (
+          <>
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0 space-y-1">
+                <h1 className="text-xl font-bold">
+                  <a
+                    href={bookmark.url ?? undefined}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="
+                      text-primary
+                      hover:underline
+                    "
+                  >
+                    {bookmark.title}
+                  </a>
+                </h1>
+                <a
+                  href={bookmark.url ?? undefined}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="
+                    block truncate text-sm text-muted-foreground
+                    hover:underline
+                  "
+                >
+                  {bookmark.url}
+                </a>
+              </div>
+              <DetailHeaderActions
+                onEdit={onEdit}
+                onDelete={onDelete}
+              />
+            </div>
+            <BookmarkDetailTabbed
+              bookmark={bookmark}
+              categories={categories}
+              properties={properties}
+              propertyGroups={propertyGroups}
+              embedUrl={embedUrl}
+              onSaveBoolean={onSaveBoolean}
+            />
+          </>
         )}
 
       <Separator />

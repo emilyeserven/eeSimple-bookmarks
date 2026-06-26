@@ -28,8 +28,10 @@ export type DrawerContentType
     | "relationship-type"
     | "autofill"
     | "import-rule"
+    | "saved-filter"
     | "notifications"
-    | "filters";
+    | "filters"
+    | "ai-summarization";
 
 /** Whether an opened item is shown read-only (`view`) or in its editor (`edit`). */
 export type DrawerMode = "view" | "edit";
@@ -53,8 +55,10 @@ export const DRAWER_CONTENT_TYPES: DrawerContentType[] = [
   "relationship-type",
   "autofill",
   "import-rule",
+  "saved-filter",
   "notifications",
   "filters",
+  "ai-summarization",
 ];
 
 export interface DrawerSearch {

@@ -238,6 +238,17 @@ that matches the surface — don't invent a new structure for a one-off page.
     nodes — a new tree taxonomy passes its `ancestors`, a `renderAncestorLink`, and its `*TreeList`
     rather than re-implementing the markup. Flat taxonomies (Categories, Websites, YouTube Channels,
     Property Groups) do **not** get one.
+- **Entity-scoped bookmarks page** — the `$entitySlug/index` route for entities whose bookmarks can
+  be meaningfully listed (Categories, Tags, Websites, Media Types, YouTube Channels) renders a full
+  `BookmarkSearchView` scoped to that entity's bookmarks. **Do not redirect to `/bookmarks?<filter>=…`
+  from these routes** — that loses the entity context in the URL and breaks deep-linking. The pattern:
+  fetch data via `useCategoryPageData(search.tags)` (or the equivalent hooks), resolve the entity by
+  slug from the cached list, filter `bookmarks` by the entity's id/relation, and pass the result to
+  `BookmarkSearchView` with a `pageKey` like `"category:<slug>"`, an `<h1>` header, and
+  `onSearchChange` navigating with `replace: true`. The `routes/-categoryPageData.ts` bundle hook
+  already surfaces all the props `BookmarkSearchView` needs; a new entity can either add its list
+  there or call `use<Entity>s()` inline. Reference: `routes/categories.$categorySlug.index.tsx` and
+  `routes/tags.$tagSlug.index.tsx`.
 - **Flat no-tab detail wrapper** (`packages/client/src/components/TaxonomyDetailLayout.tsx`) — a
   loading/error/not-found wrapper that renders its children flat (a `LabeledSection` stack), no
   tabs. Used by Autofill rules.

@@ -27,8 +27,8 @@ const nav: readonly TabNavEntry[] = [
     label: "More Settings",
     items: [
       {
-        to: "/settings/more-categories",
-        label: "Categories",
+        to: "/settings/saved-filters",
+        label: "Saved Filters",
       },
       {
         to: "/settings/advanced",
@@ -53,7 +53,7 @@ async function renderLayout(initialPath = "/settings/display") {
       />
     ),
   });
-  const paths = ["/settings/display", "/settings/sidebar", "/settings/more-categories", "/settings/advanced"];
+  const paths = ["/settings/display", "/settings/sidebar", "/settings/saved-filters", "/settings/advanced"];
   const children = paths.map(path =>
     createRoute({
       getParentRoute: () => rootRoute,
@@ -81,7 +81,7 @@ describe("TabbedEntityLayout", () => {
       name: /More/,
     })).toBeInTheDocument();
     // Group items are collapsed into the dropdown, not rendered inline.
-    expect(screen.queryByText("Categories")).not.toBeInTheDocument();
+    expect(screen.queryByText("Saved Filters")).not.toBeInTheDocument();
     expect(screen.queryByText("More Settings")).not.toBeInTheDocument();
   });
 
@@ -97,7 +97,7 @@ describe("TabbedEntityLayout", () => {
     });
 
     expect(await screen.findByRole("menuitem", {
-      name: "Categories",
+      name: "Saved Filters",
     })).toBeInTheDocument();
     expect(await screen.findByRole("menuitem", {
       name: "Advanced",

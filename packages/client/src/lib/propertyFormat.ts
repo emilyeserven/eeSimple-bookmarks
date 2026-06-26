@@ -51,3 +51,29 @@ export function formatSectionsValue(value: BookmarkSectionsValue): string {
   const label = count === 1 ? "1 section" : `${count} sections`;
   return value.exhaustive ? `${label} (exhaustive)` : label;
 }
+
+/** Default Lucide icon name for each custom-property type. */
+export const CUSTOM_PROPERTY_TYPE_ICONS: Record<CustomPropertyType, string> = {
+  number: "Hash",
+  boolean: "ToggleLeft",
+  calculate: "Sigma",
+  datetime: "Calendar",
+  ratingScale: "Star",
+  image: "Image",
+  file: "Paperclip",
+  choices: "ListChecks",
+  itemInItems: "Layers",
+  sections: "BookOpen",
+  text: "ALargeSmall",
+};
+
+/**
+ * Resolve the effective icon name for a property type.
+ * Applies a user override when present, otherwise returns the default.
+ */
+export function resolvePropertyTypeIcon(
+  type: CustomPropertyType,
+  overrides: Partial<Record<CustomPropertyType, string>> | null | undefined,
+): string {
+  return overrides?.[type] ?? CUSTOM_PROPERTY_TYPE_ICONS[type];
+}

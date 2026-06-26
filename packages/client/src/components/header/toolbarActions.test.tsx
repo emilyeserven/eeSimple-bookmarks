@@ -6,9 +6,12 @@ import { buildToolbarActions } from "./toolbarActions";
 
 function ctx(overrides: Partial<ToolbarContext> = {}): ToolbarContext {
   return {
-    pathParts: [],
+    // A non-homepage path by default — an empty `pathParts` is the homepage, which adds the
+    // homepage-only `homepage-settings` action (covered by its own test below).
+    pathParts: ["bookmarks"],
     headerSearchActive: false,
     listingPage: null,
+    bulkSelectPageKey: null,
     isBookmarkDetail: false,
     bookmarkId: "b1",
     addChild: null,
@@ -57,6 +60,22 @@ describe("buildToolbarActions", () => {
     ]);
   });
 
+  it("adds the bulk-select toggle when a bulk-selectable listing is mounted", () => {
+    expect(keys(ctx({
+      bulkSelectPageKey: "websites-listing",
+    }))).toEqual(["bulk-select", "open-panel"]);
+  });
+
+  it("places the bulk-select toggle right after display-options", () => {
+    expect(keys(ctx({
+      listingPage: {
+        key: "categories-listing",
+        hasFilters: false,
+      },
+      bulkSelectPageKey: "categories-listing",
+    }))).toEqual(["display-options", "bulk-select", "open-panel"]);
+  });
+
   it("adds layout + edit for a bookmark detail", () => {
     expect(keys(ctx({
       isBookmarkDetail: true,
@@ -65,6 +84,18 @@ describe("buildToolbarActions", () => {
       "edit-bookmark",
       "open-panel",
     ]);
+  });
+
+  it("adds homepage-settings on the homepage, just before the panel toggle", () => {
+    expect(keys(ctx({
+      pathParts: [],
+    }))).toEqual(["homepage-settings", "open-panel"]);
+  });
+
+  it("omits homepage-settings off the homepage", () => {
+    expect(keys(ctx({
+      pathParts: ["bookmarks"],
+    }))).not.toContain("homepage-settings");
   });
 
   it("adds the view-details link on a taxonomy item path", () => {

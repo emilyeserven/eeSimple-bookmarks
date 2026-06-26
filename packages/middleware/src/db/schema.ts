@@ -1079,6 +1079,8 @@ export const appSettings = pgTable("app_settings", {
   croppedWidth: integer("cropped_width").notNull().default(16),
   // Height component of the built-in "Cropped" aspect ratio (default 9).
   croppedHeight: integer("cropped_height").notNull().default(9),
+  // Per-type icon overrides for the Custom Properties listing. Null = all defaults.
+  customPropertyTypeIcons: jsonb("custom_property_type_icons").$type<Record<string, string>>(),
   // Prompt text used to instruct an AI to summarize bookmarks in the AI Summary Queue.
   aiSummarizationPrompt: text("ai_summarization_prompt").notNull().default(""),
 });
@@ -1631,6 +1633,7 @@ export const calculatePropertyOperandsRelations = relations(calculatePropertyOpe
 export const savedFilters = pgTable("saved_filters", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
+  slug: text("slug"),
   description: text("description"),
   filters: jsonb("filters").$type<Record<string, unknown>>().notNull(),
   viewableOnline: boolean("viewable_online").notNull().default(false),
@@ -1639,6 +1642,7 @@ export const savedFilters = pgTable("saved_filters", {
   }).notNull().defaultNow(),
 }, table => [
   unique("saved_filters_name_unique").on(table.name),
+  unique("saved_filters_slug_unique").on(table.slug),
 ]);
 
 export type BookmarkRow = typeof bookmarks.$inferSelect;

@@ -1,7 +1,6 @@
 import { Suspense, lazy } from "react";
 
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { Settings } from "lucide-react";
 
 import { HomepageSectionBlock } from "../components/HomepageSectionBlock";
 import { useHomepageContentSettings } from "../hooks/useAppSettings";
@@ -44,28 +43,14 @@ function HomePage() {
 
   return (
     <section className="space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        {!content?.homepageHeaderHidden && (
-          <div className="space-y-1">
-            <h1 className="text-2xl font-bold">Homepage</h1>
-            <p className="text-muted-foreground">
-              Bookmarks from your homepage sections, ordered by priority.
-            </p>
-          </div>
-        )}
-        <Link
-          to="/settings/homepage"
-          className="
-            flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm
-            text-muted-foreground transition-colors
-            hover:bg-accent hover:text-accent-foreground
-          "
-          aria-label="Homepage settings"
-        >
-          <Settings className="size-4" />
-          <span>Settings</span>
-        </Link>
-      </div>
+      {!content?.homepageHeaderHidden && (
+        <div className="space-y-1">
+          <h1 className="text-2xl font-bold">Homepage</h1>
+          <p className="text-muted-foreground">
+            Bookmarks from your homepage sections, ordered by priority.
+          </p>
+        </div>
+      )}
 
       {hasContent && content
         ? (

@@ -14,6 +14,7 @@ import { ensureImportRuleSlugs } from "@/services/importRules";
 import { backfillImageCropModes, ensureHomepageSections } from "@/services/homepageSections";
 import { backfillMediaTypeSlugs, ensureBuiltInMediaTypes } from "@/services/mediaTypes";
 import { backfillPropertyGroupSlugs } from "@/services/propertyGroups";
+import { backfillSavedFilterSlugs } from "@/services/savedFilters";
 import { ensureBuiltInRelationshipTypes } from "@/services/relationshipTypes";
 import { backfillTagSlugs } from "@/services/tags";
 import { backfillWebsiteSlugs, ensureBuiltInWebsites } from "@/services/websites";
@@ -67,6 +68,7 @@ try {
   await ensureUrlSectionsProperty();
   await ensureIsbnProperty();
   await backfillPropertyGroupSlugs();
+  await backfillSavedFilterSlugs();
   await ensureBuiltInRelationshipTypes();
   await backfillYouTubeChannelSlugs();
   await backfillTagSlugs();

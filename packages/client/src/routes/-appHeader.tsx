@@ -29,6 +29,8 @@ const LABEL_OVERRIDES: Record<string, string> = {
   "youtube-channels": "YouTube Channels",
   "autofill": "Autofill Rules",
   "import-rules": "Import Rules",
+  "saved-filters": "Saved Filters",
+  "ai-summarization": "AI Summarization",
 };
 
 /** Title-case a slug segment: `shortened-links` → `Shortened Links`. */
@@ -172,6 +174,12 @@ const TAXONOMY_DESCRIPTORS: readonly TaxonomyDescriptor[] = [
       entity: "import-rule",
       currentSlug: slug,
     }),
+  },
+  {
+    prefix: "/saved-filters",
+    listLabel: "Saved Filters",
+    singular: "Saved Filter",
+    slugIndex: 1,
   },
 ] as const;
 
@@ -540,6 +548,7 @@ export function AppHeader() {
   } = usePanelControls();
 
   const listingPage = useUiStore(state => state.listingPage);
+  const bulkSelectPageKey = useUiStore(state => state.bulkSelectPageKey);
   const headerSearchActive = useUiStore(state => state.headerSearchActive);
 
   // Right-side toolbar controls in canonical left→right order. The builder owns ordering and
@@ -549,6 +558,7 @@ export function AppHeader() {
     pathParts,
     headerSearchActive,
     listingPage,
+    bulkSelectPageKey,
     isBookmarkDetail,
     bookmarkId,
     addChild,
@@ -569,21 +579,22 @@ export function AppHeader() {
       <HeaderBreadcrumbs crumbs={crumbs} />
       <ImageFetchProgressIndicator />
       <ImportProgressIndicator />
-      <Button
-        asChild
-        variant="ghost"
-        size="icon"
-        className="
-          ml-auto
-          md:hidden
-        "
-        aria-label="Settings"
-      >
-        <Link to="/settings">
-          <Settings className="size-4" />
-        </Link>
-      </Button>
-      <HeaderToolbar actions={toolbarActions} />
+      {/* Right-aligned group: a single `ml-auto` keeps the mobile Settings icon next to the toolbar
+          instead of two competing `ml-auto`s splitting the free space and centering it. */}
+      <div className="ml-auto flex items-center gap-2">
+        <Button
+          asChild
+          variant="ghost"
+          size="icon"
+          className="md:hidden"
+          aria-label="Settings"
+        >
+          <Link to="/settings">
+            <Settings className="size-4" />
+          </Link>
+        </Button>
+        <HeaderToolbar actions={toolbarActions} />
+      </div>
     </header>
   );
 }

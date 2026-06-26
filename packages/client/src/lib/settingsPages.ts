@@ -1,7 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 
 import {
-  Bookmark,
   Cable,
   Clapperboard,
   Filter,
@@ -13,7 +12,6 @@ import {
   LayoutGrid,
   LayoutTemplate,
   Link2,
-  Link2Off,
   Monitor,
   MonitorPlay,
   PanelRight,
@@ -83,7 +81,7 @@ export const SETTINGS_PAGES: readonly SettingsPage[] = [
     icon: Wand2,
   },
   {
-    path: "/settings/ai-summarization",
+    path: "/ai-summarization",
     label: "AI Summarization",
     icon: Sparkles,
   },
@@ -91,11 +89,6 @@ export const SETTINGS_PAGES: readonly SettingsPage[] = [
     path: "/settings/link-parsing",
     label: "Link Parsing",
     icon: Link2,
-  },
-  {
-    path: "/settings/redirect-failures",
-    label: "Redirect Failures",
-    icon: Link2Off,
   },
   {
     path: "/settings/imports",
@@ -106,21 +99,6 @@ export const SETTINGS_PAGES: readonly SettingsPage[] = [
     path: "/settings/extension",
     label: "Extension",
     icon: Puzzle,
-  },
-  {
-    path: "/settings/more-categories",
-    label: "Categories",
-    icon: Bookmark,
-  },
-  {
-    path: "/settings/more-taxonomies",
-    label: "Taxonomies",
-    icon: Tags,
-  },
-  {
-    path: "/settings/more-customization",
-    label: "Customization",
-    icon: SlidersHorizontal,
   },
   {
     path: "/settings/connectors",

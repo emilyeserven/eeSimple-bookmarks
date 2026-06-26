@@ -1,17 +1,23 @@
+import type { Category } from "@eesimple/types";
+
 import { useState } from "react";
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 import { AddCategoryModal } from "../components/AddCategoryModal";
+import { TaxonomyBulkBar } from "../components/bulk/TaxonomyBulkBar";
 import { CategoryPreviewCard } from "../components/CategoryPreviewCard";
 import { ListingStatusMessages } from "../components/ListingStatusMessages";
 import { useCategoryColumns } from "../components/tables/categoryColumns";
+import { listingSelectionColumn } from "../components/tables/selectionColumn";
 import { useTableRowNav } from "../components/tables/useTableRowNav";
-import { useCategories } from "../hooks/useCategories";
+import { useBulkDeleteCategories, useCategories } from "../hooks/useCategories";
 import { useHeaderSearchFilter } from "../hooks/useHeaderSearchFilter";
 import { useSetListingPage } from "../hooks/useListingPage";
+import { useRegisterBulkSelect } from "../hooks/useRegisterBulkSelect";
 import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
 import { COLUMN_CLASS, useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
+import { useListSelection } from "../lib/useListSelection";
 
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/ui/data-table";
@@ -43,6 +49,11 @@ function CategoriesListingPage() {
       || (category.description ?? "").toLowerCase().includes(query),
   );
 
+  const deletableIds = filtered.filter(c => !c.builtIn).map(c => c.id);
+  const selection = useListSelection("categories-listing", deletableIds);
+  useRegisterBulkSelect("categories-listing");
+  const bulkDelete = useBulkDeleteCategories();
+
   return (
     <section className="space-y-6">
       <div className="space-y-1">
@@ -71,10 +82,22 @@ function CategoriesListingPage() {
           emptyMessage={<p className="text-muted-foreground">No categories yet.</p>}
         />
 
+        <TaxonomyBulkBar
+          selection={selection}
+          totalSelectable={deletableIds.length}
+          bulkDelete={bulkDelete}
+          noun={["category", "categories"]}
+        />
+
         {filtered.length > 0 && viewMode === "table"
           ? (
             <DataTable
-              columns={categoryColumns}
+              columns={[
+                ...(selection.mode
+                  ? [listingSelectionColumn<Category>(selection, c => c.id, c => !c.builtIn)]
+                  : []),
+                ...categoryColumns,
+              ]}
               data={filtered}
               sortable
               onRowClick={(category, event) =>
@@ -110,6 +133,10 @@ function CategoriesListingPage() {
                   key={category.id}
                   category={category}
                   variant="row"
+                  selectable={!category.builtIn}
+                  selected={selection.isSelected(category.id)}
+                  onSelectToggle={() => selection.toggle(category.id)}
+                  inSelectionMode={selection.mode}
                 />
               ))}
             </ul>

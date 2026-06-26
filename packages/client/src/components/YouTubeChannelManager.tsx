@@ -3,7 +3,6 @@ import type { YouTubeChannel } from "@eesimple/types";
 import { useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
-import { CheckSquare } from "lucide-react";
 
 import { AddYouTubeChannelModal } from "./AddYouTubeChannelModal";
 import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
@@ -14,12 +13,12 @@ import { useYouTubeChannelColumns } from "./tables/youtubeChannelColumns";
 import { YouTubeChannelListItem } from "./YouTubeChannelListItem";
 import { useHeaderSearchFilter } from "../hooks/useHeaderSearchFilter";
 import { useSetListingPage } from "../hooks/useListingPage";
+import { useRegisterBulkSelect } from "../hooks/useRegisterBulkSelect";
 import { useRegisterHeaderSearch } from "../hooks/useRegisterHeaderSearch";
 import { useBulkDeleteYouTubeChannels, useYouTubeChannels } from "../hooks/useYouTubeChannels";
 import { COLUMN_CLASS, useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
 import { useListSelection } from "../lib/useListSelection";
 
-import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 
 /** Browsable, searchable channel listing with add modal. Shared by the YouTube Channels taxonomy page and the Settings page. */
@@ -46,6 +45,7 @@ export function YouTubeChannelsListing() {
 
   const deletableIds = filtered.map(c => c.id);
   const selection = useListSelection("youtube-channels-listing", deletableIds);
+  useRegisterBulkSelect("youtube-channels-listing");
   const bulkDelete = useBulkDeleteYouTubeChannels();
 
   return (
@@ -65,21 +65,6 @@ export function YouTubeChannelsListing() {
           </p>
         )}
       />
-
-      {viewMode !== "table"
-        ? (
-          <div className="flex justify-end">
-            <Button
-              variant={selection.mode ? "secondary" : "outline"}
-              size="sm"
-              onClick={() => selection.setMode(!selection.mode)}
-            >
-              <CheckSquare className="size-4" />
-              {selection.mode ? "Done selecting" : "Select"}
-            </Button>
-          </div>
-        )
-        : null}
 
       <TaxonomyBulkBar
         selection={selection}

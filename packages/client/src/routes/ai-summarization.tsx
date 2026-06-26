@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { AiSummarizationSettings } from "../components/AiSummarizationSettings";
 
-export const Route = createFileRoute("/settings/ai-summarization")({
+export const Route = createFileRoute("/ai-summarization")({
   component: AiSummarizationPage,
 });
 

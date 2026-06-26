@@ -96,6 +96,7 @@ function displayData(): DisplayPreferenceSettings {
     drawerUnpinnedBreakpoints,
     croppedWidth: 16,
     croppedHeight: 9,
+    customPropertyTypeIcons: null,
   };
 }
 

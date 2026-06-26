@@ -3,12 +3,13 @@ import type { RelationshipType } from "@eesimple/types";
 import { useState } from "react";
 
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, CheckSquare, Info, Link2, Pencil } from "lucide-react";
+import { ArrowRight, Info, Link2, Pencil } from "lucide-react";
 
 import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
 import { useSidebarOpenModifier } from "../hooks/useAppSettings";
+import { useRegisterBulkSelect } from "../hooks/useRegisterBulkSelect";
 import {
   useBulkDeleteRelationshipTypes,
   useCreateRelationshipType,
@@ -177,6 +178,7 @@ export function RelationshipTypesListing() {
   } = useRelationshipTypes();
   const deletableIds = (relationshipTypes ?? []).filter(rt => !rt.builtIn).map(rt => rt.id);
   const selection = useListSelection("relationship-types-listing", deletableIds);
+  useRegisterBulkSelect("relationship-types-listing");
   const bulkDelete = useBulkDeleteRelationshipTypes();
 
   return (
@@ -191,17 +193,6 @@ export function RelationshipTypesListing() {
 
       {isLoading ? <p className="text-muted-foreground">Loading relationship types…</p> : null}
       {error ? <p className="text-destructive">{error.message}</p> : null}
-
-      <div className="flex justify-end">
-        <Button
-          variant={selection.mode ? "secondary" : "outline"}
-          size="sm"
-          onClick={() => selection.setMode(!selection.mode)}
-        >
-          <CheckSquare className="size-4" />
-          {selection.mode ? "Done selecting" : "Select"}
-        </Button>
-      </div>
 
       <TaxonomyBulkBar
         selection={selection}
