@@ -13,6 +13,7 @@ import type { SocialLink } from "./socialMedia.js";
 export * from "./conditions.js";
 export * from "./customProperties.js";
 export * from "./importBlacklist.js";
+export * from "./oembed.js";
 export * from "./socialMedia.js";
 export * from "./urlCleanup.js";
 export * from "./youtube.js";
@@ -2235,9 +2236,9 @@ export interface FetchMetadataResult {
     selfIds: string[]; } | null;
   /** The video's length in whole seconds (YouTube only), or `null`. */
   durationSeconds: number | null;
-  /** ISO-8601 date the video was published ("YYYY-MM-DD"), scraped from the watch page (YouTube only), or `null`. */
+  /** ISO-8601 publish date ("YYYY-MM-DD"), from the YouTube watch page or an oEmbed provider, or `null`. */
   datePosted: string | null;
-  /** A preview/thumbnail image URL (YouTube only), or `null`. */
+  /** A preview/thumbnail image URL (YouTube or an oEmbed provider), or `null`. */
   thumbnailUrl: string | null;
   /** Author name(s) parsed from page metadata (non-YouTube only), or `null` when none were found. */
   authorNames: string[] | null;

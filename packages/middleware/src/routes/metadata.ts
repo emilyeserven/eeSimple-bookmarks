@@ -8,6 +8,7 @@ import {
   fetchHeadHtml,
   fetchPageTitle,
 } from "@/services/metadata";
+import { fetchOEmbedForUrl } from "@/services/oembed";
 import { unwrapRedirect } from "@/services/redirectUnwrap";
 import { lookupWebsiteByUrl, stripSiteNameSuffix } from "@/services/websites";
 import { fetchYouTubeMetadata, isYouTubeVideoUrl } from "@/services/youtube";
@@ -90,7 +91,7 @@ async function buildYouTubeMetadataResult(
   };
 }
 
-/** Build the `/api/fetch-metadata` response for a non-YouTube URL (HTML title/description scrape). */
+/** Build the `/api/fetch-metadata` response for a non-YouTube URL (HTML scrape + oEmbed). */
 async function buildGenericMetadataResult(
   url: string,
   siteNameHint: string | undefined,
@@ -119,15 +120,36 @@ async function buildGenericMetadataResult(
       }
     }
   }
+
+  let description = html ? extractDescription(html) : null;
+  let authorNames = html ? extractAuthorNames(html) : null;
+  let thumbnailUrl: string | null = null;
+  let datePosted: string | null = null;
+
+  // Generalized oEmbed: clean, structured metadata for many media URLs (Vimeo, TikTok, Spotify, …)
+  // with no API key — via a known-provider registry or `<link rel="oembed">` autodiscovery in the
+  // head HTML we already fetched. oEmbed titles are already clean, so they win over the scraped
+  // (suffix-stripped) title; oEmbed only *fills* a description/author the scrape didn't find.
+  const oembed = await fetchOEmbedForUrl(url, html);
+  if (oembed) {
+    if (oembed.title) title = oembed.title;
+    description ??= oembed.description;
+    thumbnailUrl = oembed.thumbnailUrl;
+    datePosted = oembed.datePosted;
+    if ((!authorNames || authorNames.length === 0) && oembed.authorName) {
+      authorNames = [oembed.authorName];
+    }
+  }
+
   return {
     title,
-    description: html ? extractDescription(html) : null,
+    description,
     isYouTube: false,
     channel: null,
     durationSeconds: null,
-    datePosted: null,
-    thumbnailUrl: null,
-    authorNames: html ? extractAuthorNames(html) : null,
+    datePosted,
+    thumbnailUrl,
+    authorNames,
   };
 }
 
