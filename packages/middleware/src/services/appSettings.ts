@@ -621,15 +621,20 @@ export async function getConnectorsSettings(): Promise<ConnectorsAppSettings> {
  * (decrypting if encrypted), then falls back to the `HOSTED_METADATA_API_KEY` env var.
  */
 export async function getDecryptedHostedApiKey(): Promise<string | null> {
-  const [row] = await db
-    .select({
-      hostedMetadataApiKey: appSettings.hostedMetadataApiKey,
-    })
-    .from(appSettings)
-    .where(eq(appSettings.id, ROW_ID));
-  if (row?.hostedMetadataApiKey) {
-    const decrypted = maybeDecrypt(row.hostedMetadataApiKey);
-    if (decrypted) return decrypted;
+  try {
+    const [row] = await db
+      .select({
+        hostedMetadataApiKey: appSettings.hostedMetadataApiKey,
+      })
+      .from(appSettings)
+      .where(eq(appSettings.id, ROW_ID));
+    if (row?.hostedMetadataApiKey) {
+      const decrypted = maybeDecrypt(row.hostedMetadataApiKey);
+      if (decrypted) return decrypted;
+    }
+  }
+  catch {
+    // DB unavailable (e.g. test environment) — fall through to env var.
   }
   return process.env.HOSTED_METADATA_API_KEY ?? null;
 }
@@ -639,13 +644,18 @@ export async function getDecryptedHostedApiKey(): Promise<string | null> {
  * Returns null when neither is configured.
  */
 export async function getActiveHostedEndpoint(): Promise<string | null> {
-  const [row] = await db
-    .select({
-      hostedMetadataEndpoint: appSettings.hostedMetadataEndpoint,
-    })
-    .from(appSettings)
-    .where(eq(appSettings.id, ROW_ID));
-  return row?.hostedMetadataEndpoint || process.env.HOSTED_METADATA_ENDPOINT || null;
+  try {
+    const [row] = await db
+      .select({
+        hostedMetadataEndpoint: appSettings.hostedMetadataEndpoint,
+      })
+      .from(appSettings)
+      .where(eq(appSettings.id, ROW_ID));
+    return row?.hostedMetadataEndpoint || process.env.HOSTED_METADATA_ENDPOINT || null;
+  }
+  catch {
+    return process.env.HOSTED_METADATA_ENDPOINT || null;
+  }
 }
 
 /**
@@ -653,13 +663,18 @@ export async function getActiveHostedEndpoint(): Promise<string | null> {
  * Returns null when neither is configured.
  */
 export async function getActiveHostedProvider(): Promise<string | null> {
-  const [row] = await db
-    .select({
-      hostedMetadataProvider: appSettings.hostedMetadataProvider,
-    })
-    .from(appSettings)
-    .where(eq(appSettings.id, ROW_ID));
-  return row?.hostedMetadataProvider || process.env.HOSTED_METADATA_PROVIDER || null;
+  try {
+    const [row] = await db
+      .select({
+        hostedMetadataProvider: appSettings.hostedMetadataProvider,
+      })
+      .from(appSettings)
+      .where(eq(appSettings.id, ROW_ID));
+    return row?.hostedMetadataProvider || process.env.HOSTED_METADATA_PROVIDER || null;
+  }
+  catch {
+    return process.env.HOSTED_METADATA_PROVIDER || null;
+  }
 }
 
 /** Replace the hosted-metadata connector settings, upserting the singleton. */
