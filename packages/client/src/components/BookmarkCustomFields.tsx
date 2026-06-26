@@ -44,6 +44,12 @@ interface CategoryCustomFieldsProps {
   bookmark?: Bookmark | null;
   /** `default` shows properties flagged to appear in the main form; `advanced` shows the rest. */
   placement: "default" | "advanced";
+  /**
+   * Field arrangement. `grid` (default) packs fields into a compact 2-column grid for the
+   * Add Bookmark create drawer; `stack` lays them out one-per-row with roomy spacing for the
+   * dedicated full-width edit page.
+   */
+  layout?: "grid" | "stack";
   /** Extra classes for the root (e.g. a grid `col-span` when rendered in the main form). */
   className?: string;
   /**
@@ -75,7 +81,7 @@ interface CategoryCustomFieldsProps {
 
 /** Renders the custom-property inputs for the properties assigned to the chosen category. */
 export function CategoryCustomFields({
-  categoryId, mediaTypeId = null, properties, bookmark = null, placement, className,
+  categoryId, mediaTypeId = null, properties, bookmark = null, placement, layout = "grid", className,
   hiddenSlugs = [RUNTIME_SLUG, DATE_POSTED_SLUG],
   numberInputs, booleanInputs, dateTimeInputs, choicesInputs, progressInputs, sectionsInputs, textInputs,
   onNumberChange, onBooleanChange, onDateTimeChange, onChoicesChange, onProgressChange, onSectionsChange, onTextChange,
@@ -96,19 +102,22 @@ export function CategoryCustomFields({
   });
   if (categoryProps.length === 0) return null;
 
+  const stacked = layout === "stack";
   return (
     <div
       className={`
-        space-y-3
+        ${stacked ? "space-y-4" : "space-y-3"}
         ${className ?? ""}
       `}
     >
       <span className="text-sm font-medium">Properties</span>
       <div
-        className="
-          grid gap-3
-          sm:grid-cols-2
-        "
+        className={stacked
+          ? "flex flex-col gap-5"
+          : `
+            grid gap-3
+            sm:grid-cols-2
+          `}
       >
         {categoryProps.map(property => (
           <CategoryPropertyField
