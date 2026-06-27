@@ -65,7 +65,7 @@ import {
   getNewsletterMediaTypeId,
   getNewsletterTagIds,
 } from "@/services/newsletters";
-import { mapWithConcurrency, unwrapRedirect } from "@/services/redirectUnwrap";
+import { mapWithConcurrency, unwrapRedirect, unwrapWithBrowserless } from "@/services/redirectUnwrap";
 import { listWebsites } from "@/services/websites";
 
 /** Concurrent outbound fetches for redirect unwrap / enrichment (bounded; see `mapWithConcurrency`). */
@@ -151,7 +151,11 @@ function isRedirectIgnored(url: string, ignoreList: string[]): boolean {
 
 /** Unwrap a candidate's tracker URL and canonicalize the destination. Falls back to the raw URL on a
  * non-security failure so a slow/blocking article server doesn't drop the link; only an SSRF block
- * marks the row as an error. Skips unwrapping if the URL's domain is in `redirectIgnoreList`. */
+ * marks the row as an error. Skips unwrapping if the URL's domain is in `redirectIgnoreList`.
+ *
+ * `opts.browserlessFallback` — when true, also tries Browserless when HTTP returns a 200 without
+ * following any redirect (JS-redirect trackers like Beehiiv) in addition to HTTP-error cases. Pass
+ * this for single-URL explicit retry paths where latency is acceptable; leave it off for bulk imports. */
 async function resolveCandidate(
   candidate: LinkCandidate,
   data: { mode: "trackers";
@@ -159,6 +163,7 @@ async function resolveCandidate(
     ignoreList: string[];
     redirectIgnoreList: string[];
     customStripParams: string[]; },
+  opts?: { browserlessFallback?: boolean },
 ): Promise<ResolvedCandidate> {
   if (isRedirectIgnored(candidate.rawUrl, data.redirectIgnoreList)) {
     return {
@@ -181,7 +186,27 @@ async function resolveCandidate(
       context: candidate.context,
     };
   }
-  const destination = result.kind === "ok" ? result.finalUrl : candidate.rawUrl;
+
+  let destination: string;
+  if (result.kind === "ok" && result.redirected) {
+    // HTTP redirect chain followed — destination is confirmed, no Browserless needed.
+    destination = result.finalUrl;
+  }
+  else {
+    // HTTP returned 200 without a redirect (possible JS-redirect tracker) or an HTTP error
+    // (bot detection). Try Browserless when: the caller requested full fallback, OR the server
+    // returned an HTTP error (clearest signal the plain-HTTP path is being blocked).
+    const shouldTryBrowserless = opts?.browserlessFallback === true
+      || result.kind === "http_error";
+    if (shouldTryBrowserless) {
+      const browserlessUrl = await unwrapWithBrowserless(candidate.rawUrl);
+      destination = browserlessUrl ?? (result.kind === "ok" ? result.finalUrl : candidate.rawUrl);
+    }
+    else {
+      destination = result.kind === "ok" ? result.finalUrl : candidate.rawUrl;
+    }
+  }
+
   return {
     rawUrl: candidate.rawUrl,
     anchorText: candidate.anchorText,
@@ -1347,6 +1372,9 @@ export async function recheckImportItemUrl(
       context: item.newsletterContext,
     },
     data,
+    {
+      browserlessFallback: true,
+    },
   );
 
   if (resolved.url === item.url && resolved.status === item.status) {
