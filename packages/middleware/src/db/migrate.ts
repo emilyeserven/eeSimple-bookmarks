@@ -768,6 +768,16 @@ const migrations: RuntimeMigration[] = [
     //
     // NOTE: each `db.execute` MUST contain a single SQL statement (the extended protocol runs only the
     // first of a multi-statement string).
+    // `app_settings.github_link_enabled` toggles the GitHub repo link in the sidebar. NOT NULL
+    // DEFAULT false on the populated singleton makes drizzle-kit push prompt (the same non-TTY crash
+    // as the other NOT NULL column cases above), so pre-apply it here to keep push's diff additive-only.
+    name: "add app_settings.github_link_enabled column",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "app_settings"
+        ADD COLUMN IF NOT EXISTS "github_link_enabled" boolean NOT NULL DEFAULT false
+    `),
+  },
+  {
     name: "add saved_filters.slug column + unique constraint",
     run: async (db) => {
       await db.execute(sql`

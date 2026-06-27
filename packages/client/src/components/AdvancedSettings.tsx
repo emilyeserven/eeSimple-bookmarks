@@ -26,6 +26,7 @@ const DEFAULTS: AdvancedSettingsValues = {
   storybookLinkEnabled: false,
   drizzleGatewayLinkEnabled: false,
   drizzleGatewayUrl: "",
+  githubLinkEnabled: false,
 };
 
 /**
@@ -224,6 +225,34 @@ export function AdvancedSettings() {
                 sm:w-96
               "
             />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>GitHub link</CardTitle>
+          <CardDescription>
+            Show a link to the eeSimple Bookmarks GitHub repository in the sidebar. The link opens
+            in a new tab.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="github-link-enabled"
+              checked={settings.githubLinkEnabled}
+              onCheckedChange={(checked) => {
+                const enabled = checked === true;
+                save(
+                  {
+                    githubLinkEnabled: enabled,
+                  },
+                  enabled ? "GitHub link shown" : "GitHub link hidden",
+                );
+              }}
+            />
+            <Label htmlFor="github-link-enabled">Show the GitHub link in the sidebar</Label>
           </div>
         </CardContent>
       </Card>

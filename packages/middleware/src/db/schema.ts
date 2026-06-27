@@ -1077,6 +1077,8 @@ export const appSettings = pgTable("app_settings", {
   drizzleGatewayLinkEnabled: boolean("drizzle_gateway_link_enabled").notNull().default(false),
   // URL of the Drizzle Gateway instance shown in the sidebar when drizzle_gateway_link_enabled is on.
   drizzleGatewayUrl: text("drizzle_gateway_url").notNull().default(""),
+  // When on, the left sidebar shows a link to the GitHub repository (opens in a new tab).
+  githubLinkEnabled: boolean("github_link_enabled").notNull().default(false),
   // --- Sidebar customization (group A): which left-sidebar items/groups are hidden. ---
   // Category IDs hidden in the left sidebar. Empty = all visible.
   hiddenCategoryIds: jsonb("hidden_category_ids").$type<string[]>().notNull().default(sql`'[]'::jsonb`),

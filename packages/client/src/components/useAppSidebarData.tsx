@@ -107,6 +107,7 @@ export interface SidebarAdvanced {
   storybookLinkEnabled: boolean;
   drizzleGatewayLinkEnabled: boolean;
   drizzleGatewayUrl: string;
+  githubLinkEnabled: boolean;
 }
 
 function useSidebarAdvanced(): SidebarAdvanced {
@@ -120,6 +121,7 @@ function useSidebarAdvanced(): SidebarAdvanced {
     storybookLinkEnabled: advancedSettings?.storybookLinkEnabled ?? false,
     drizzleGatewayLinkEnabled: advancedSettings?.drizzleGatewayLinkEnabled ?? false,
     drizzleGatewayUrl: advancedSettings?.drizzleGatewayUrl ?? "",
+    githubLinkEnabled: advancedSettings?.githubLinkEnabled ?? false,
   };
 }
 

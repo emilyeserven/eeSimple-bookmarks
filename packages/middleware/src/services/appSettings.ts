@@ -65,6 +65,7 @@ const DEFAULT_ADVANCED_SETTINGS: AdvancedSettings = {
   storybookLinkEnabled: false,
   drizzleGatewayLinkEnabled: false,
   drizzleGatewayUrl: "",
+  githubLinkEnabled: false,
 };
 
 /** Default sidebar-customization settings (nothing hidden), used when seeding / when row absent. */
@@ -430,6 +431,7 @@ export async function getAdvancedSettings(): Promise<AdvancedSettings> {
       storybookLinkEnabled: appSettings.storybookLinkEnabled,
       drizzleGatewayLinkEnabled: appSettings.drizzleGatewayLinkEnabled,
       drizzleGatewayUrl: appSettings.drizzleGatewayUrl,
+      githubLinkEnabled: appSettings.githubLinkEnabled,
     })
     .from(appSettings)
     .where(eq(appSettings.id, ROW_ID));
@@ -441,6 +443,7 @@ export async function getAdvancedSettings(): Promise<AdvancedSettings> {
     storybookLinkEnabled: row.storybookLinkEnabled,
     drizzleGatewayLinkEnabled: row.drizzleGatewayLinkEnabled,
     drizzleGatewayUrl: row.drizzleGatewayUrl,
+    githubLinkEnabled: row.githubLinkEnabled,
   };
 }
 
@@ -455,6 +458,7 @@ export async function updateAdvancedSettings(
     storybookLinkEnabled: input.storybookLinkEnabled,
     drizzleGatewayLinkEnabled: input.drizzleGatewayLinkEnabled,
     drizzleGatewayUrl: input.drizzleGatewayUrl.trim(),
+    githubLinkEnabled: input.githubLinkEnabled,
   };
   await db
     .insert(appSettings)
