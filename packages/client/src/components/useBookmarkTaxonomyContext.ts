@@ -1,5 +1,5 @@
 import type { FlatNode } from "@/lib/tagTree";
-import type { Author, Bookmark, Category, CustomProperty, MediaTypeNode, TagNode } from "@eesimple/types";
+import type { Author, Bookmark, Category, CustomProperty, MediaTypeNode, Newsletter, TagNode } from "@eesimple/types";
 
 import { useMemo } from "react";
 
@@ -10,6 +10,7 @@ import { useBookmark, useUpdateBookmark } from "@/hooks/useBookmarks";
 import { useCategories } from "@/hooks/useCategories";
 import { useCustomProperties } from "@/hooks/useCustomProperties";
 import { useMediaTypeTree } from "@/hooks/useMediaTypes";
+import { useNewsletters } from "@/hooks/useNewsletters";
 import { useTagTree } from "@/hooks/useTags";
 import { flattenTree } from "@/lib/tagTree";
 
@@ -22,6 +23,7 @@ export interface BookmarkTaxonomyContext {
   flatMediaTypes: FlatNode<MediaTypeNode>[];
   flatTags: FlatNode<TagNode>[];
   authors: Author[];
+  newsletters: Newsletter[];
   customProperties: CustomProperty[];
   updateBookmark: ReturnType<typeof useUpdateBookmark>;
 }
@@ -63,6 +65,9 @@ export function useBookmarkTaxonomyContext(fallbackBookmarkId: string | null = n
     data: authors = [],
   } = useAuthors();
   const {
+    data: newsletters = [],
+  } = useNewsletters();
+  const {
     data: customProperties = [],
   } = useCustomProperties();
   const updateBookmark = useUpdateBookmark();
@@ -85,6 +90,7 @@ export function useBookmarkTaxonomyContext(fallbackBookmarkId: string | null = n
     flatMediaTypes,
     flatTags,
     authors,
+    newsletters,
     customProperties,
     updateBookmark,
   };

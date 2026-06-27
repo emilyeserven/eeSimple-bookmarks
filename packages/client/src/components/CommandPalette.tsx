@@ -1,5 +1,5 @@
 import type { FlatNode } from "@/lib/tagTree";
-import type { Author, Category, CustomProperty, MediaTypeNode, TagNode } from "@eesimple/types";
+import type { Author, Category, CustomProperty, MediaTypeNode, Newsletter, TagNode } from "@eesimple/types";
 
 import { useEffect, useMemo, useState } from "react";
 
@@ -204,7 +204,7 @@ const SETTINGS = [
   },
 ] as const;
 
-type TaxonomyMode = "category" | "media-type" | "tags" | "authors" | "choices-property" | "rating-property";
+type TaxonomyMode = "category" | "media-type" | "tags" | "authors" | "newsletter" | "choices-property" | "rating-property";
 
 // ─── State hook ──────────────────────────────────────────────────────────────
 
@@ -316,10 +316,29 @@ type CreateKind
 
 function useCreateModalState() {
   const [createKind, setCreateKind] = useState<CreateKind | null>(null);
+  const [assignOnCreate, setAssignOnCreate] = useState(false);
+
+  function openCreate(kind: CreateKind) {
+    setCreateKind(kind);
+    setAssignOnCreate(false);
+  }
+
+  function openCreateAndAssign(kind: CreateKind) {
+    setCreateKind(kind);
+    setAssignOnCreate(true);
+  }
+
+  function closeCreate() {
+    setCreateKind(null);
+    setAssignOnCreate(false);
+  }
+
   return {
     createKind,
-    openCreate: (kind: CreateKind) => setCreateKind(kind),
-    closeCreate: () => setCreateKind(null),
+    assignOnCreate,
+    openCreate,
+    openCreateAndAssign,
+    closeCreate,
   };
 }
 
@@ -393,11 +412,13 @@ function CategorySubPalette({
   currentCategoryId,
   onBack,
   onSelect,
+  onCreateNew,
 }: {
   categories: Category[];
   currentCategoryId: string | null | undefined;
   onBack: () => void;
   onSelect: (categoryId: string) => void;
+  onCreateNew: () => void;
 }) {
   return (
     <>
@@ -408,6 +429,13 @@ function CategorySubPalette({
         >
           <ArrowLeftIcon />
           Back
+        </CommandItem>
+        <CommandItem
+          value="new category"
+          onSelect={onCreateNew}
+        >
+          <PlusIcon />
+          New category…
         </CommandItem>
       </CommandGroup>
       <CommandSeparator />
@@ -434,11 +462,13 @@ function MediaTypeSubPalette({
   currentMediaTypeId,
   onBack,
   onSelect,
+  onCreateNew,
 }: {
   flatMediaTypes: FlatNode<MediaTypeNode>[];
   currentMediaTypeId: string | null | undefined;
   onBack: () => void;
   onSelect: (mediaTypeId: string | null) => void;
+  onCreateNew: () => void;
 }) {
   return (
     <>
@@ -449,6 +479,13 @@ function MediaTypeSubPalette({
         >
           <ArrowLeftIcon />
           Back
+        </CommandItem>
+        <CommandItem
+          value="new media type"
+          onSelect={onCreateNew}
+        >
+          <PlusIcon />
+          New media type…
         </CommandItem>
       </CommandGroup>
       <CommandSeparator />
@@ -494,6 +531,7 @@ function TagsSubPalette({
   onToggleTag,
   onBack,
   onDone,
+  onCreateNew,
 }: {
   flatTags: FlatNode<TagNode>[];
   categoryId: string | undefined;
@@ -501,6 +539,7 @@ function TagsSubPalette({
   onToggleTag: (tagId: string) => void;
   onBack: () => void;
   onDone: (tagIds: string[]) => void;
+  onCreateNew: () => void;
 }) {
   const {
     priorityTags, otherTags,
@@ -541,6 +580,13 @@ function TagsSubPalette({
         >
           <ArrowLeftIcon />
           Back
+        </CommandItem>
+        <CommandItem
+          value="new tag"
+          onSelect={onCreateNew}
+        >
+          <PlusIcon />
+          New tag…
         </CommandItem>
       </CommandGroup>
       <CommandSeparator />
@@ -585,12 +631,14 @@ function AuthorsSubPalette({
   onToggleAuthor,
   onBack,
   onDone,
+  onCreateNew,
 }: {
   authors: Author[];
   pendingAuthorIds: string[];
   onToggleAuthor: (authorId: string) => void;
   onBack: () => void;
   onDone: (authorIds: string[]) => void;
+  onCreateNew: () => void;
 }) {
   return (
     <>
@@ -601,6 +649,13 @@ function AuthorsSubPalette({
         >
           <ArrowLeftIcon />
           Back
+        </CommandItem>
+        <CommandItem
+          value="new author"
+          onSelect={onCreateNew}
+        >
+          <PlusIcon />
+          New author…
         </CommandItem>
       </CommandGroup>
       <CommandSeparator />
@@ -758,6 +813,65 @@ function RatingSubPalette({
   );
 }
 
+function NewsletterSubPalette({
+  newsletters,
+  currentNewsletterId,
+  onBack,
+  onSelect,
+  onCreateNew,
+}: {
+  newsletters: Newsletter[];
+  currentNewsletterId: string | null | undefined;
+  onBack: () => void;
+  onSelect: (newsletterId: string | null) => void;
+  onCreateNew: () => void;
+}) {
+  return (
+    <>
+      <CommandGroup heading="Newsletter">
+        <CommandItem
+          value="back"
+          onSelect={onBack}
+        >
+          <ArrowLeftIcon />
+          Back
+        </CommandItem>
+        <CommandItem
+          value="new newsletter"
+          onSelect={onCreateNew}
+        >
+          <PlusIcon />
+          New newsletter…
+        </CommandItem>
+      </CommandGroup>
+      <CommandSeparator />
+      <CommandGroup heading="Select newsletter">
+        <CommandItem
+          value="None"
+          onSelect={() => onSelect(null)}
+        >
+          {currentNewsletterId == null && (
+            <CheckIcon className="text-primary" />
+          )}
+          None
+        </CommandItem>
+        {newsletters.map(nl => (
+          <CommandItem
+            key={nl.id}
+            value={nl.name}
+            onSelect={() => onSelect(nl.id)}
+          >
+            {currentNewsletterId === nl.id && (
+              <CheckIcon className="text-primary" />
+            )}
+            {nl.name}
+          </CommandItem>
+        ))}
+      </CommandGroup>
+    </>
+  );
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function CommandPalette() {
@@ -768,7 +882,7 @@ export function CommandPalette() {
     addBookmarkOpen, setAddBookmarkOpen, pendingUrl, setPendingUrl,
   } = useAddBookmarkDraft();
   const {
-    createKind, openCreate, closeCreate,
+    createKind, assignOnCreate, openCreate, openCreateAndAssign, closeCreate,
   } = useCreateModalState();
   const taxonomy = useCommandPaletteTaxonomyState();
   const navigate = useNavigate();
@@ -796,6 +910,7 @@ export function CommandPalette() {
     flatMediaTypes,
     flatTags,
     authors,
+    newsletters,
     customProperties,
     updateBookmark,
   } = useBookmarkTaxonomyContext(open ? targetBookmarkId : null);
@@ -835,6 +950,11 @@ export function CommandPalette() {
   const handleCreate = (kind: CreateKind) => {
     handleOpenChange(false);
     openCreate(kind);
+  };
+
+  const handleCreateAndAssign = (kind: CreateKind) => {
+    handleOpenChange(false);
+    openCreateAndAssign(kind);
   };
 
   const handleEnterMode = (mode: TaxonomyMode) => {
@@ -889,11 +1009,13 @@ export function CommandPalette() {
   const inputPlaceholder = taxonomy.taxonomyMode
     ? taxonomy.taxonomyMode === "media-type"
       ? "Search media types…"
-      : taxonomy.taxonomyMode === "choices-property" && taxonomy.choicesPropertyId
-        ? `Search ${(customProperties.find(p => p.id === taxonomy.choicesPropertyId)?.name ?? "options")}…`
-        : taxonomy.taxonomyMode === "rating-property" && taxonomy.ratingPropertyId
-          ? `Select ${(customProperties.find(p => p.id === taxonomy.ratingPropertyId)?.name ?? "rating")}…`
-          : `Search ${taxonomy.taxonomyMode}…`
+      : taxonomy.taxonomyMode === "newsletter"
+        ? "Search newsletters…"
+        : taxonomy.taxonomyMode === "choices-property" && taxonomy.choicesPropertyId
+          ? `Search ${(customProperties.find(p => p.id === taxonomy.choicesPropertyId)?.name ?? "options")}…`
+          : taxonomy.taxonomyMode === "rating-property" && taxonomy.ratingPropertyId
+            ? `Select ${(customProperties.find(p => p.id === taxonomy.ratingPropertyId)?.name ?? "rating")}…`
+            : `Search ${taxonomy.taxonomyMode}…`
     : "Search pages and bookmarks…";
 
   return (
@@ -927,6 +1049,7 @@ export function CommandPalette() {
                     });
                     handleOpenChange(false);
                   }}
+                  onCreateNew={() => handleCreateAndAssign("category")}
                 />
               )}
 
@@ -944,6 +1067,7 @@ export function CommandPalette() {
                     });
                     handleOpenChange(false);
                   }}
+                  onCreateNew={() => handleCreateAndAssign("media-type")}
                 />
               )}
 
@@ -967,6 +1091,7 @@ export function CommandPalette() {
                     });
                     handleOpenChange(false);
                   }}
+                  onCreateNew={() => handleCreateAndAssign("tag")}
                 />
               )}
 
@@ -989,6 +1114,25 @@ export function CommandPalette() {
                     });
                     handleOpenChange(false);
                   }}
+                  onCreateNew={() => handleCreateAndAssign("author")}
+                />
+              )}
+
+              {taxonomy.taxonomyMode === "newsletter" && bookmarkId && (
+                <NewsletterSubPalette
+                  newsletters={newsletters}
+                  currentNewsletterId={bookmark?.newsletter?.id}
+                  onBack={handleExitMode}
+                  onSelect={(newsletterId) => {
+                    updateBookmark.mutate({
+                      id: bookmarkId,
+                      input: {
+                        newsletterId,
+                      },
+                    });
+                    handleOpenChange(false);
+                  }}
+                  onCreateNew={() => handleCreateAndAssign("newsletter")}
                 />
               )}
 
@@ -1321,6 +1465,18 @@ export function CommandPalette() {
                             </span>
                           </CommandItem>
                         )}
+                        <CommandItem
+                          value="Change Newsletter"
+                          onSelect={() => handleEnterMode("newsletter")}
+                        >
+                          <TagIcon />
+                          <span className="flex min-w-0 flex-col gap-0.5">
+                            <span>Change Newsletter</span>
+                            <span className="text-xs text-muted-foreground">
+                              {bookmark.newsletter?.name ?? "None"}
+                            </span>
+                          </span>
+                        </CommandItem>
                         {booleanProperties.map((p) => {
                           const current
                             = bookmark.booleanValues.find(v => v.propertyId === p.id)?.value
@@ -1626,18 +1782,50 @@ export function CommandPalette() {
       <AddCategoryModal
         open={createKind === "category"}
         onOpenChange={open => !open && closeCreate()}
+        onCreated={assignOnCreate && bookmarkId
+          ? cat => updateBookmark.mutate({
+            id: bookmarkId,
+            input: {
+              categoryId: cat.id,
+            },
+          })
+          : undefined}
       />
       <AddTagModal
         open={createKind === "tag"}
         onOpenChange={open => !open && closeCreate()}
+        onCreated={assignOnCreate && bookmarkId && bookmark
+          ? tag => updateBookmark.mutate({
+            id: bookmarkId,
+            input: {
+              tagIds: [...bookmark.tags.map(t => t.id), tag.id],
+            },
+          })
+          : undefined}
       />
       <AddMediaTypeModal
         open={createKind === "media-type"}
         onOpenChange={open => !open && closeCreate()}
+        onCreated={assignOnCreate && bookmarkId
+          ? mt => updateBookmark.mutate({
+            id: bookmarkId,
+            input: {
+              mediaTypeId: mt.id,
+            },
+          })
+          : undefined}
       />
       <AddAuthorModal
         open={createKind === "author"}
         onOpenChange={open => !open && closeCreate()}
+        onCreated={assignOnCreate && bookmarkId && bookmark
+          ? author => updateBookmark.mutate({
+            id: bookmarkId,
+            input: {
+              authorIds: [...bookmark.authors.map(a => a.id), author.id],
+            },
+          })
+          : undefined}
       />
       <AddWebsiteModal
         open={createKind === "website"}
@@ -1654,6 +1842,14 @@ export function CommandPalette() {
       <AddNewsletterModal
         open={createKind === "newsletter"}
         onOpenChange={open => !open && closeCreate()}
+        onCreated={assignOnCreate && bookmarkId
+          ? nl => updateBookmark.mutate({
+            id: bookmarkId,
+            input: {
+              newsletterId: nl.id,
+            },
+          })
+          : undefined}
       />
     </>
   );
