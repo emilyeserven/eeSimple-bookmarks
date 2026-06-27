@@ -847,26 +847,42 @@ describe("summarizeBookmarkSearch", () => {
   });
 
   it("handles a single category (singular)", () => {
-    expect(summarizeBookmarkSearch({ categories: ["cat-1"] })).toBe("1 category");
+    expect(summarizeBookmarkSearch({
+      categories: ["cat-1"],
+    })).toBe("1 category");
   });
 
   it("handles multiple categories (plural)", () => {
-    expect(summarizeBookmarkSearch({ categories: ["cat-1", "cat-2"] })).toBe("2 categories");
+    expect(summarizeBookmarkSearch({
+      categories: ["cat-1", "cat-2"],
+    })).toBe("2 categories");
   });
 
   it("handles media types", () => {
-    expect(summarizeBookmarkSearch({ mediaTypes: ["book"] })).toBe("1 media type");
-    expect(summarizeBookmarkSearch({ mediaTypes: ["book", "film"] })).toBe("2 media types");
+    expect(summarizeBookmarkSearch({
+      mediaTypes: ["book"],
+    })).toBe("1 media type");
+    expect(summarizeBookmarkSearch({
+      mediaTypes: ["book", "film"],
+    })).toBe("2 media types");
   });
 
   it("handles authors", () => {
-    expect(summarizeBookmarkSearch({ authors: ["Author A"] })).toBe("1 author");
-    expect(summarizeBookmarkSearch({ authors: ["A", "B"] })).toBe("2 authors");
+    expect(summarizeBookmarkSearch({
+      authors: ["Author A"],
+    })).toBe("1 author");
+    expect(summarizeBookmarkSearch({
+      authors: ["A", "B"],
+    })).toBe("2 authors");
   });
 
   it("handles tags (default presence)", () => {
-    expect(summarizeBookmarkSearch({ tags: ["tag-1"] })).toBe("1 tag");
-    expect(summarizeBookmarkSearch({ tags: ["tag-1", "tag-2"] })).toBe("2 tags");
+    expect(summarizeBookmarkSearch({
+      tags: ["tag-1"],
+    })).toBe("1 tag");
+    expect(summarizeBookmarkSearch({
+      tags: ["tag-1", "tag-2"],
+    })).toBe("2 tags");
   });
 
   it("handles tags with 'exclude' presence", () => {
@@ -881,8 +897,13 @@ describe("summarizeBookmarkSearch", () => {
   });
 
   it("handles tagPresence other than 'exclude'", () => {
-    expect(summarizeBookmarkSearch({ tagPresence: "has" })).toBe("tags: has");
-    expect(summarizeBookmarkSearch({ tags: ["t"], tagPresence: "missing" })).toBe("1 tag · tags: missing");
+    expect(summarizeBookmarkSearch({
+      tagPresence: "has",
+    })).toBe("tags: has");
+    expect(summarizeBookmarkSearch({
+      tags: ["t"],
+      tagPresence: "missing",
+    })).toBe("1 tag · tags: missing");
   });
 
   it("handles websites with 'exclude' presence", () => {
@@ -893,7 +914,9 @@ describe("summarizeBookmarkSearch", () => {
   });
 
   it("handles websitePresence other than 'exclude'", () => {
-    expect(summarizeBookmarkSearch({ websitePresence: "has" })).toBe("website: has");
+    expect(summarizeBookmarkSearch({
+      websitePresence: "has",
+    })).toBe("website: has");
   });
 
   it("handles YouTube channels with 'exclude' presence", () => {
@@ -904,25 +927,37 @@ describe("summarizeBookmarkSearch", () => {
   });
 
   it("handles youtubeChannelPresence other than 'exclude'", () => {
-    expect(summarizeBookmarkSearch({ youtubeChannelPresence: "has" })).toBe("channel: has");
+    expect(summarizeBookmarkSearch({
+      youtubeChannelPresence: "has",
+    })).toBe("channel: has");
   });
 
   it("counts property filters across types", () => {
     expect(summarizeBookmarkSearch({
-      num: { "prop-1": [0, 10] },
-      bool: { "prop-2": true },
+      num: {
+        "prop-1": [0, 10],
+      },
+      bool: {
+        "prop-2": true,
+      },
     })).toBe("2 properties");
     expect(summarizeBookmarkSearch({
-      choices: { "prop-1": ["a"] },
+      choices: {
+        "prop-1": ["a"],
+      },
     })).toBe("1 property");
   });
 
   it("handles sectionsPresence 'exclude'", () => {
-    expect(summarizeBookmarkSearch({ sectionsPresence: "exclude" })).toBe("sections: excluded types");
+    expect(summarizeBookmarkSearch({
+      sectionsPresence: "exclude",
+    })).toBe("sections: excluded types");
   });
 
   it("handles sectionsPresence other values", () => {
-    expect(summarizeBookmarkSearch({ sectionsPresence: "has" })).toBe("sections: has");
+    expect(summarizeBookmarkSearch({
+      sectionsPresence: "has",
+    })).toBe("sections: has");
   });
 
   it("handles sectionTypes", () => {
@@ -939,6 +974,9 @@ describe("summarizeBookmarkSearch", () => {
   });
 
   it("drops invalid raw fields gracefully", () => {
-    expect(summarizeBookmarkSearch({ tags: "not-an-array", invalid: 999 })).toBe("No filters");
+    expect(summarizeBookmarkSearch({
+      tags: "not-an-array",
+      invalid: 999,
+    })).toBe("No filters");
   });
 });
