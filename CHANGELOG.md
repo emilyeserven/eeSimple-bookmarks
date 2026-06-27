@@ -4,6 +4,48 @@ All notable changes to this project are documented in this file. Versioning and 
 managed automatically by [release-please](https://github.com/googleapis/release-please) from
 [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [0.1.7](https://github.com/emilyeserven/eeSimple-bookmarks/compare/v0.1.6...v0.1.7) (2026-06-27)
+
+
+### Features
+
+* add "Open in main pane" button to right-panel entity views ([#607](https://github.com/emilyeserven/eeSimple-bookmarks/issues/607)) ([21d86d7](https://github.com/emilyeserven/eeSimple-bookmarks/commit/21d86d72732704b94a7f2f1c43be16fb48182be8))
+* add AI summarization queue count to sidebar ([#601](https://github.com/emilyeserven/eeSimple-bookmarks/issues/601)) ([8f4b470](https://github.com/emilyeserven/eeSimple-bookmarks/commit/8f4b470b9f25cbaa1b4e2bfaf62d5db5147b9a61))
+* add Browserless fallback for JS-redirect and bot-protected trackers ([#622](https://github.com/emilyeserven/eeSimple-bookmarks/issues/622)) ([bb56220](https://github.com/emilyeserven/eeSimple-bookmarks/commit/bb5622066630cae2400d89efb81e398701967d26))
+* add Browserless screenshot capture and storage ([#617](https://github.com/emilyeserven/eeSimple-bookmarks/issues/617)) ([cf3a3b6](https://github.com/emilyeserven/eeSimple-bookmarks/commit/cf3a3b6864a28eafbe92fd91949b7dd2eccd5759))
+* add connection check for hosted metadata endpoint ([#620](https://github.com/emilyeserven/eeSimple-bookmarks/issues/620)) ([e662a1e](https://github.com/emilyeserven/eeSimple-bookmarks/commit/e662a1e65128c58a573bf22d9cf39293e63279d7))
+* add custom property controls and listing display options to CMD+K palette ([#593](https://github.com/emilyeserven/eeSimple-bookmarks/issues/593)) ([9076b80](https://github.com/emilyeserven/eeSimple-bookmarks/commit/9076b808dc0fc9d556c54a2d848ea556989f6a70))
+* add Drizzle Gateway sidebar link and docker-compose service ([#632](https://github.com/emilyeserven/eeSimple-bookmarks/issues/632)) ([80a444b](https://github.com/emilyeserven/eeSimple-bookmarks/commit/80a444bb01e8f427bfd9373013f334960a237fda))
+* add editableViaCmdk property flag for CMD+K command palette ([#608](https://github.com/emilyeserven/eeSimple-bookmarks/issues/608)) ([c3ef9c0](https://github.com/emilyeserven/eeSimple-bookmarks/commit/c3ef9c0a99474765efed008202c950d963b63f58))
+* add exclude_from_backfill flag to tags ([#609](https://github.com/emilyeserven/eeSimple-bookmarks/issues/609)) ([1e82ba7](https://github.com/emilyeserven/eeSimple-bookmarks/commit/1e82ba76ff46205f99fc1c2410b2e9b18c37fb0c))
+* add exclusion mode for bookmark search filters ([#619](https://github.com/emilyeserven/eeSimple-bookmarks/issues/619)) ([33b03b0](https://github.com/emilyeserven/eeSimple-bookmarks/commit/33b03b03a5d55da7dbbbfb7584809ae3c207c174))
+* add GitHub repository link to advanced settings sidebar ([#634](https://github.com/emilyeserven/eeSimple-bookmarks/issues/634)) ([fae6835](https://github.com/emilyeserven/eeSimple-bookmarks/commit/fae68357ffd7f4d61822377beba8ac1dacf92f7b))
+* add icons to category combobox and hierarchy+icons to media type combobox in inbox pre-fill ([#624](https://github.com/emilyeserven/eeSimple-bookmarks/issues/624)) ([562aecd](https://github.com/emilyeserven/eeSimple-bookmarks/commit/562aecd5d0de0f2afd926c6ceb4593f9a2727377))
+* add layout prop to CategoryCustomFields for flexible field arrangement ([#600](https://github.com/emilyeserven/eeSimple-bookmarks/issues/600)) ([14474d7](https://github.com/emilyeserven/eeSimple-bookmarks/commit/14474d758d458c0b2158b9a87f1c34634cc45464))
+* add newsletter support to command palette ([#636](https://github.com/emilyeserven/eeSimple-bookmarks/issues/636)) ([cf0353d](https://github.com/emilyeserven/eeSimple-bookmarks/commit/cf0353d7c8a3154a7e666be8e9a2b163cd1dd05b))
+* add per-endpoint logging with pino-pretty in development ([#633](https://github.com/emilyeserven/eeSimple-bookmarks/issues/633)) ([7c02968](https://github.com/emilyeserven/eeSimple-bookmarks/commit/7c02968537ebcbd84917348ab8c8eda692f34c10))
+* add rating scale properties and detail layout controls to command palette ([#602](https://github.com/emilyeserven/eeSimple-bookmarks/issues/602)) ([de67034](https://github.com/emilyeserven/eeSimple-bookmarks/commit/de67034f2ae183440961451665cc7f3cf3779565))
+* add screenshot fallback to auto-fetch images ([#623](https://github.com/emilyeserven/eeSimple-bookmarks/issues/623)) ([1c3b0ba](https://github.com/emilyeserven/eeSimple-bookmarks/commit/1c3b0ba8bbc46079c1d500156ef6d9573b3f1d51))
+* add support for choices custom property values ([#610](https://github.com/emilyeserven/eeSimple-bookmarks/issues/610)) ([58a8c68](https://github.com/emilyeserven/eeSimple-bookmarks/commit/58a8c68fa3abef4692305e63e294caacadf78cd6))
+* add tag blacklist to prevent autofill auto-apply ([#605](https://github.com/emilyeserven/eeSimple-bookmarks/issues/605)) ([3586699](https://github.com/emilyeserven/eeSimple-bookmarks/commit/35866999d6602c9633fb77b81500e52b9a004df3))
+* add view and edit layout routes for saved filters ([#590](https://github.com/emilyeserven/eeSimple-bookmarks/issues/590)) ([a0ec20c](https://github.com/emilyeserven/eeSimple-bookmarks/commit/a0ec20cc5db9695d9415ae86628d0f0abf8c0458))
+* Browserless connectivity check and screenshot capture ([#620](https://github.com/emilyeserven/eeSimple-bookmarks/issues/620) follow-up) ([#621](https://github.com/emilyeserven/eeSimple-bookmarks/issues/621)) ([0b0af65](https://github.com/emilyeserven/eeSimple-bookmarks/commit/0b0af650eb10e7290cbd3438476612570a287e45))
+* consolidate metadata scan into single `/api/scan` endpoint with oEmbed & ISBN support ([#594](https://github.com/emilyeserven/eeSimple-bookmarks/issues/594)) ([af2c60c](https://github.com/emilyeserven/eeSimple-bookmarks/commit/af2c60c238c36a309ff459ad9c203debeff08894))
+* display entity images in listing cards and sync bookmark cache ([#613](https://github.com/emilyeserven/eeSimple-bookmarks/issues/613)) ([dcfa3ba](https://github.com/emilyeserven/eeSimple-bookmarks/commit/dcfa3ba72cf885b5a46c12a47a1ea112a555b0c6))
+* edit a hovered bookmark card via the CMD+K palette ([#631](https://github.com/emilyeserven/eeSimple-bookmarks/issues/631)) ([6ddd545](https://github.com/emilyeserven/eeSimple-bookmarks/commit/6ddd545d12a4095b396c354a5723a2e4488e9635))
+* integrate custom properties into bookmark details view ([#606](https://github.com/emilyeserven/eeSimple-bookmarks/issues/606)) ([3e540d6](https://github.com/emilyeserven/eeSimple-bookmarks/commit/3e540d66b43c1222e465d10e247426b99bf22534))
+* link overlay badges to entity view pages instead of bookmark URL ([#614](https://github.com/emilyeserven/eeSimple-bookmarks/issues/614)) ([0401434](https://github.com/emilyeserven/eeSimple-bookmarks/commit/0401434ebedfd5916606fea9d1396ca4fc4a0aaa))
+* make hosted metadata connector settings editable from UI ([#603](https://github.com/emilyeserven/eeSimple-bookmarks/issues/603)) ([a79d50e](https://github.com/emilyeserven/eeSimple-bookmarks/commit/a79d50e57251e58b369ef5a2a4e094d0cbaef49e))
+* make image overlay badges clickable links to bookmarks ([#612](https://github.com/emilyeserven/eeSimple-bookmarks/issues/612)) ([e58b5cd](https://github.com/emilyeserven/eeSimple-bookmarks/commit/e58b5cd7aaeb5b1eaa4a8b6e1cd8e186747e4155))
+* prioritize selected tags in command palette ([#598](https://github.com/emilyeserven/eeSimple-bookmarks/issues/598)) ([6613338](https://github.com/emilyeserven/eeSimple-bookmarks/commit/6613338db5be319e6160a83d14d7347606384f97))
+* replace bookmark form with direct inbox queue for quick-add ([#597](https://github.com/emilyeserven/eeSimple-bookmarks/issues/597)) ([78d02d8](https://github.com/emilyeserven/eeSimple-bookmarks/commit/78d02d828dec509913ef01be95afe71bd458dbfa))
+
+
+### Bug Fixes
+
+* show title above actions on mobile in inbox listing items ([#625](https://github.com/emilyeserven/eeSimple-bookmarks/issues/625)) ([61d8af2](https://github.com/emilyeserven/eeSimple-bookmarks/commit/61d8af23b133171be3251a71e9b60ff5b3e1499f))
+* suppress card images while display rules are loading ([#611](https://github.com/emilyeserven/eeSimple-bookmarks/issues/611)) ([3807099](https://github.com/emilyeserven/eeSimple-bookmarks/commit/3807099fd404d9f71cca3946ce5f5d0b56175a2a))
+
 ## [0.1.6](https://github.com/emilyeserven/eeSimple-bookmarks/compare/v0.1.5...v0.1.6) (2026-06-26)
 
 
