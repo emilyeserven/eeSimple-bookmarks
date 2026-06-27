@@ -396,3 +396,37 @@ export function buildCategoryPropertyValues(
     progressValues,
   };
 }
+
+/** All property value arrays needed for a bookmark update, built from a single `inputs` snapshot. */
+export interface AllPropertyValues extends CategoryPropertyValues {
+  choicesValues: ReturnType<typeof buildChoicesValuesFromInputs>;
+  sectionsValues: ReturnType<typeof buildSectionsValuesFromInputs>;
+  textValues: ReturnType<typeof buildTextValuesFromInputs>;
+}
+
+/**
+ * Build every property-value array needed for a bookmark update in one call, using the same
+ * `customProperties`, `categoryId`, `inputs`, and `mediaTypeId` args for every sub-builder.
+ */
+export function buildAllPropertyValues(
+  customProperties: CustomProperty[],
+  categoryId: string,
+  inputs: CustomPropertyInputs,
+  mediaTypeId: string | null = null,
+): AllPropertyValues {
+  const {
+    numberValues, booleanValues, dateTimeValues, progressValues,
+  } = buildCategoryPropertyValues(customProperties, categoryId, inputs, mediaTypeId);
+  const choicesValues = buildChoicesValuesFromInputs(customProperties, categoryId, inputs.choicesInputs, mediaTypeId);
+  const sectionsValues = buildSectionsValuesFromInputs(customProperties, categoryId, inputs.sectionsInputs, mediaTypeId);
+  const textValues = buildTextValuesFromInputs(customProperties, categoryId, inputs.textInputs, mediaTypeId);
+  return {
+    numberValues,
+    booleanValues,
+    dateTimeValues,
+    progressValues,
+    choicesValues,
+    sectionsValues,
+    textValues,
+  };
+}

@@ -6,10 +6,7 @@ import { propertyAppliesToCategory, propertyAppliesToMediaType } from "@eesimple
 
 import { CategoryCustomFields } from "./BookmarkCustomFields";
 import {
-  buildCategoryPropertyValues,
-  buildChoicesValuesFromInputs,
-  buildSectionsValuesFromInputs,
-  buildTextValuesFromInputs,
+  buildAllPropertyValues,
   DATE_POSTED_SLUG,
   looksLikeYouTube,
   RUNTIME_SLUG,
@@ -136,43 +133,15 @@ export function BookmarkPropertiesForm({
     event.preventDefault();
     setIsPending(true);
     try {
-      const {
-        numberValues, booleanValues, dateTimeValues, progressValues,
-      } = buildCategoryPropertyValues(
+      const values = buildAllPropertyValues(
         customProperties ?? [],
         bookmark.categoryId ?? "",
         customRef.current,
         bookmark.mediaType?.id ?? null,
       );
-      const choicesValues = buildChoicesValuesFromInputs(
-        customProperties ?? [],
-        bookmark.categoryId ?? "",
-        customRef.current.choicesInputs,
-        bookmark.mediaType?.id ?? null,
-      );
-      const sectionsValues = buildSectionsValuesFromInputs(
-        customProperties ?? [],
-        bookmark.categoryId ?? "",
-        customRef.current.sectionsInputs,
-        bookmark.mediaType?.id ?? null,
-      );
-      const textValues = buildTextValuesFromInputs(
-        customProperties ?? [],
-        bookmark.categoryId ?? "",
-        customRef.current.textInputs,
-        bookmark.mediaType?.id ?? null,
-      );
       await updateBookmark.mutateAsync({
         id: bookmark.id,
-        input: {
-          numberValues,
-          booleanValues,
-          dateTimeValues,
-          choicesValues,
-          progressValues,
-          sectionsValues,
-          textValues,
-        },
+        input: values,
       });
       notifySuccess("Changes saved");
     }

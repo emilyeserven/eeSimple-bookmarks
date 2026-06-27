@@ -218,6 +218,44 @@ export async function setBookmarkImage(
   return bookmarkImageFromRow(row);
 }
 
+async function eligibleNoImageBookmarkIds(): Promise<{ id: string }[]> {
+  return db
+    .select({
+      id: bookmarks.id,
+    })
+    .from(bookmarks)
+    .leftJoin(bookmarkImages, eq(bookmarkImages.bookmarkId, bookmarks.id))
+    .where(and(isNull(bookmarkImages.bookmarkId), isNull(bookmarks.imageAutoGrabError)));
+}
+
+async function batchFetch(
+  items: { id: string }[],
+  fetchOne: (id: string) => Promise<unknown>,
+  onProgress?: (processed: number, total: number) => void,
+): Promise<BulkAutoFetchResult> {
+  let fetched = 0;
+  let failed = 0;
+  let processed = 0;
+  const BATCH = 3;
+  for (let i = 0; i < items.length; i += BATCH) {
+    const results = await Promise.allSettled(
+      items.slice(i, i + BATCH).map(({
+        id,
+      }) => fetchOne(id)),
+    );
+    for (const r of results) {
+      if (r.status === "fulfilled") fetched++;
+      else failed++;
+      processed++;
+    }
+    onProgress?.(processed, items.length);
+  }
+  return {
+    fetched,
+    failed,
+  };
+}
+
 /**
  * Auto-fetch og:images for all eligible bookmarks (no image, no error) in batches of 3 concurrent
  * requests to avoid hammering external servers. Returns how many succeeded vs. failed.
@@ -226,35 +264,12 @@ export async function setBookmarkImage(
 export async function bulkAutoFetchImages(
   onProgress?: (processed: number, total: number) => void,
 ): Promise<BulkAutoFetchResult> {
-  const eligible = await db
-    .select({
-      id: bookmarks.id,
-    })
-    .from(bookmarks)
-    .leftJoin(bookmarkImages, eq(bookmarkImages.bookmarkId, bookmarks.id))
-    .where(and(isNull(bookmarkImages.bookmarkId), isNull(bookmarks.imageAutoGrabError)));
-
-  let fetched = 0;
-  let failed = 0;
-  let processed = 0;
-  const BATCH = 3;
-  for (let i = 0; i < eligible.length; i += BATCH) {
-    const results = await Promise.allSettled(
-      eligible.slice(i, i + BATCH).map(({
-        id,
-      }) => fetchAndStoreOgImage(id)),
-    );
-    for (const r of results) {
-      if (r.status === "fulfilled" && typeof r.value !== "string") fetched++;
-      else failed++;
-      processed++;
-    }
-    onProgress?.(processed, eligible.length);
-  }
-  return {
-    fetched,
-    failed,
-  };
+  const eligible = await eligibleNoImageBookmarkIds();
+  return batchFetch(eligible, async (id) => {
+    const r = await fetchAndStoreOgImage(id);
+    if (typeof r === "string") throw new Error(r);
+    return r;
+  }, onProgress);
 }
 
 /**
@@ -266,42 +281,15 @@ export async function bulkAutoFetchImages(
 export async function bulkAutoFetchWithScreenshotFallback(
   onProgress?: (processed: number, total: number) => void,
 ): Promise<BulkAutoFetchResult> {
-  const eligible = await db
-    .select({
-      id: bookmarks.id,
-    })
-    .from(bookmarks)
-    .leftJoin(bookmarkImages, eq(bookmarkImages.bookmarkId, bookmarks.id))
-    .where(and(isNull(bookmarkImages.bookmarkId), isNull(bookmarks.imageAutoGrabError)));
-
-  let fetched = 0;
-  let failed = 0;
-  let processed = 0;
-  const BATCH = 3;
-  for (let i = 0; i < eligible.length; i += BATCH) {
-    const results = await Promise.allSettled(
-      eligible.slice(i, i + BATCH).map(async ({
-        id,
-      }) => {
-        const ogResult = await fetchAndStoreOgImage(id);
-        if (typeof ogResult !== "string") return ogResult;
-        // og:image failed (imageAutoGrabError is now set) — try screenshot as fallback.
-        const screenshotResult = await takeAndStoreScreenshot(id);
-        if (typeof screenshotResult === "string") throw new Error(screenshotResult);
-        return screenshotResult;
-      }),
-    );
-    for (const r of results) {
-      if (r.status === "fulfilled") fetched++;
-      else failed++;
-      processed++;
-    }
-    onProgress?.(processed, eligible.length);
-  }
-  return {
-    fetched,
-    failed,
-  };
+  const eligible = await eligibleNoImageBookmarkIds();
+  return batchFetch(eligible, async (id) => {
+    const ogResult = await fetchAndStoreOgImage(id);
+    if (typeof ogResult !== "string") return ogResult;
+    // og:image failed (imageAutoGrabError is now set) — try screenshot as fallback.
+    const screenshotResult = await takeAndStoreScreenshot(id);
+    if (typeof screenshotResult === "string") throw new Error(screenshotResult);
+    return screenshotResult;
+  }, onProgress);
 }
 
 /** Delete a bookmark's image (object + row). Returns whether one existed. */
