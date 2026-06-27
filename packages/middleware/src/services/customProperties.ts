@@ -571,6 +571,33 @@ async function readPropertyIdBySlug(slug: string): Promise<string> {
 }
 
 /**
+ * Scope a property to Video + Audio media types and all their children. Replaces the full
+ * `propertyMediaTypes` set for the property. No-ops if neither root exists yet.
+ */
+async function scopePropertyToVideoAudioTree(propertyId: string): Promise<void> {
+  const rootRows = await db
+    .select({
+      id: mediaTypes.id,
+    })
+    .from(mediaTypes)
+    .where(inArray(mediaTypes.slug, ["video", "audio"]));
+  if (rootRows.length === 0) return;
+  const rootIds = rootRows.map(r => r.id);
+  const childRows = await db
+    .select({
+      id: mediaTypes.id,
+    })
+    .from(mediaTypes)
+    .where(inArray(mediaTypes.parentId, rootIds));
+  const allMediaTypeIds = [...rootIds, ...childRows.map(r => r.id)];
+  await db.delete(propertyMediaTypes).where(eq(propertyMediaTypes.propertyId, propertyId));
+  await db.insert(propertyMediaTypes).values(allMediaTypeIds.map(mediaTypeId => ({
+    propertyId,
+    mediaTypeId,
+  })));
+}
+
+/**
  * Ensure the built-in "Runtime" property exists and is scoped to Video and Audio media types
  * (including their children). Idempotent and safe to call at boot — must run after
  * ensureBuiltInMediaTypes so the Video/Audio rows are present when scoping is applied.
@@ -623,34 +650,7 @@ export async function ensureRuntimeProperty(): Promise<string> {
     propertyId = row ? row.id : await readPropertyIdBySlug(RUNTIME_SLUG);
   }
 
-  // Scope to Video + Audio roots and all their children. Runs after ensureBuiltInMediaTypes so the
-  // slugs exist; gracefully no-ops if they haven't been seeded yet on a truly fresh DB.
-  const rootRows = await db
-    .select({
-      id: mediaTypes.id,
-    })
-    .from(mediaTypes)
-    .where(inArray(mediaTypes.slug, ["video", "audio"]));
-  if (rootRows.length > 0) {
-    const rootIds = rootRows.map(r => r.id);
-    const childRows = await db
-      .select({
-        id: mediaTypes.id,
-      })
-      .from(mediaTypes)
-      .where(inArray(mediaTypes.parentId, rootIds));
-    const allMediaTypeIds = [...rootIds, ...childRows.map(r => r.id)];
-    await db
-      .delete(propertyMediaTypes)
-      .where(eq(propertyMediaTypes.propertyId, propertyId));
-    await db
-      .insert(propertyMediaTypes)
-      .values(allMediaTypeIds.map(mediaTypeId => ({
-        propertyId,
-        mediaTypeId,
-      })));
-  }
-
+  await scopePropertyToVideoAudioTree(propertyId);
   return propertyId;
 }
 
@@ -1029,29 +1029,7 @@ export async function ensureChaptersProperty(): Promise<string> {
     propertyId = row ? row.id : await readPropertyIdBySlug(CHAPTERS_SLUG);
   }
 
-  // Scope to Video + Audio roots and all their children (mirrors ensureRuntimeProperty).
-  const rootRows = await db
-    .select({
-      id: mediaTypes.id,
-    })
-    .from(mediaTypes)
-    .where(inArray(mediaTypes.slug, ["video", "audio"]));
-  if (rootRows.length > 0) {
-    const rootIds = rootRows.map(r => r.id);
-    const childRows = await db
-      .select({
-        id: mediaTypes.id,
-      })
-      .from(mediaTypes)
-      .where(inArray(mediaTypes.parentId, rootIds));
-    const allMediaTypeIds = [...rootIds, ...childRows.map(r => r.id)];
-    await db.delete(propertyMediaTypes).where(eq(propertyMediaTypes.propertyId, propertyId));
-    await db.insert(propertyMediaTypes).values(allMediaTypeIds.map(mediaTypeId => ({
-      propertyId,
-      mediaTypeId,
-    })));
-  }
-
+  await scopePropertyToVideoAudioTree(propertyId);
   return propertyId;
 }
 
