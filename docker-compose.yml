@@ -53,25 +53,8 @@ services:
     ports:
       # S3 API — exposed on the host so `pnpm dev` (middleware on the host) and the AWS CLI reach it.
       - "${GARAGE_S3_HOST_PORT:-3900}:3900"
-  drizzle-gateway:
-    # Optional DB-admin UI, not part of the app runtime. Kept out of the default stack so a plain
-    # `docker compose up` (and the Coolify compose deploy) doesn't pull/start it on every bring-up.
-    # Run it on demand with `docker compose --profile tools up`, set COMPOSE_PROFILES=tools to enable
-    # it in a deploy, or run it standalone on another host and point Settings → Advanced at its URL.
-    image: ghcr.io/drizzle-team/gateway:latest
-    profiles: ["tools"]
-    restart: always
-    ports:
-      - "${DRIZZLE_GATEWAY_HOST_PORT:-4983}:4983"
-    environment:
-      PORT: 4983
-      STORE_PATH: ${DRIZZLE_GATEWAY_STORE_PATH:-/app/path}
-      MASTERPASS: ${DRIZZLE_GATEWAY_MASTERPASS:-}
-    volumes:
-      - drizzle-gateway:/app/path
 
 volumes:
   pgdata:
   garage-meta:
   garage-data:
-  drizzle-gateway:
