@@ -1,7 +1,9 @@
 import type { ImageIntent } from "./bookmarkImageIntent";
 import type {
+  Author,
   Bookmark,
   CreateBookmarkInput,
+  Publisher,
   ScanResult,
   YouTubeChannelHint,
 } from "@eesimple/types";
@@ -14,11 +16,8 @@ import { useNavigate } from "@tanstack/react-router";
 
 import {
   bookmarkSchema,
+  buildAllPropertyValues,
   buildBookmarkDefaultValues,
-  buildCategoryPropertyValues,
-  buildChoicesValuesFromInputs,
-  buildSectionsValuesFromInputs,
-  buildTextValuesFromInputs,
   detectBookmarkInputType,
   initialImageIntent,
   ISBN_SLUG,
@@ -46,6 +45,65 @@ function isRedirectIgnored(url: string, ignoreList: string[]): boolean {
   }
   catch {
     return false;
+  }
+}
+
+/**
+ * Match-or-create authors by name. Sets the form's `authorIds` field when at least one resolves.
+ * Silently skips any author that can't be created (e.g. a duplicate race).
+ */
+async function populateAuthors(
+  names: string[],
+  existingAuthors: Author[],
+  createAuthor: { mutateAsync: (input: { name: string }) => Promise<{ id: string }> },
+  setIds: (ids: string[]) => void,
+): Promise<void> {
+  const ids: string[] = [];
+  for (const name of names) {
+    const normalName = name.toLowerCase();
+    const match = existingAuthors.find(a => a.name.toLowerCase() === normalName);
+    if (match) {
+      ids.push(match.id);
+    }
+    else {
+      try {
+        const created = await createAuthor.mutateAsync({
+          name,
+        });
+        ids.push(created.id);
+      }
+      catch {
+        // Skip authors that can't be created (e.g. duplicate race).
+      }
+    }
+  }
+  if (ids.length > 0) setIds(ids);
+}
+
+/**
+ * Match-or-create a publisher by name. Sets the form's `publisherId` field when it resolves.
+ * Silently skips when the publisher can't be created (e.g. a duplicate race).
+ */
+async function populatePublisher(
+  publisherName: string,
+  existingPublishers: Publisher[],
+  createPublisher: { mutateAsync: (input: { name: string }) => Promise<{ id: string }> },
+  setId: (id: string) => void,
+): Promise<void> {
+  const normalName = publisherName.toLowerCase();
+  const match = existingPublishers.find(p => p.name.toLowerCase() === normalName);
+  if (match) {
+    setId(match.id);
+    return;
+  }
+  try {
+    const created = await createPublisher.mutateAsync({
+      name: publisherName,
+    });
+    setId(created.id);
+  }
+  catch {
+    // Skip publisher that can't be created (e.g. duplicate race).
   }
 }
 
@@ -242,28 +300,11 @@ export function useBookmarkFormController({
   }): Promise<void> {
     const {
       numberValues, booleanValues, dateTimeValues, progressValues,
-    } = buildCategoryPropertyValues(
+      choicesValues, sectionsValues, textValues,
+    } = buildAllPropertyValues(
       customProperties ?? [],
       value.categoryId,
       prefill.customRef.current,
-      value.mediaTypeId || null,
-    );
-    const choicesValues = buildChoicesValuesFromInputs(
-      customProperties ?? [],
-      value.categoryId,
-      prefill.customRef.current.choicesInputs,
-      value.mediaTypeId || null,
-    );
-    const sectionsValues = buildSectionsValuesFromInputs(
-      customProperties ?? [],
-      value.categoryId,
-      prefill.customRef.current.sectionsInputs,
-      value.mediaTypeId || null,
-    );
-    const textValues = buildTextValuesFromInputs(
-      customProperties ?? [],
-      value.categoryId,
-      prefill.customRef.current.textInputs,
       value.mediaTypeId || null,
     );
 
@@ -404,49 +445,21 @@ export function useBookmarkFormController({
     if (result.description && !form.getFieldValue("description").trim()) {
       form.setFieldValue("description", result.description);
     }
-    // Populate authors: match existing by name (case-insensitive) or create new ones.
     if (result.authors.length > 0 && (form.getFieldValue("authorIds") as string[]).length === 0) {
-      const existingAuthors = authors ?? [];
-      const ids: string[] = [];
-      for (const name of result.authors) {
-        const normalName = name.toLowerCase();
-        const match = existingAuthors.find(a => a.name.toLowerCase() === normalName);
-        if (match) {
-          ids.push(match.id);
-        }
-        else {
-          try {
-            const created = await createAuthor.mutateAsync({
-              name,
-            });
-            ids.push(created.id);
-          }
-          catch {
-            // Skip authors that can't be created (e.g. duplicate race).
-          }
-        }
-      }
-      if (ids.length > 0) form.setFieldValue("authorIds", ids);
+      await populateAuthors(
+        result.authors,
+        authors ?? [],
+        createAuthor,
+        ids => form.setFieldValue("authorIds", ids),
+      );
     }
-    // Populate publisher: match existing by name (case-insensitive) or create a new one.
     if (result.publisher && !form.getFieldValue("publisherId")) {
-      const existingPublishers = publishers ?? [];
-      const normalName = result.publisher.toLowerCase();
-      const match = existingPublishers.find(p => p.name.toLowerCase() === normalName);
-      if (match) {
-        form.setFieldValue("publisherId", match.id);
-      }
-      else {
-        try {
-          const created = await createPublisher.mutateAsync({
-            name: result.publisher,
-          });
-          form.setFieldValue("publisherId", created.id);
-        }
-        catch {
-          // Skip publisher that can't be created (e.g. duplicate race).
-        }
-      }
+      await populatePublisher(
+        result.publisher,
+        publishers ?? [],
+        createPublisher,
+        id => form.setFieldValue("publisherId", id),
+      );
     }
   }
 

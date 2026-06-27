@@ -303,6 +303,52 @@ export async function removeBookmarkImage(bookmarkId: string): Promise<boolean> 
 }
 
 /**
+ * Fetch the best available preview image for a URL: YouTube thumbnail → oEmbed thumbnail → og:image.
+ * Returns the raw bytes, or `null` + an error string when nothing could be fetched.
+ */
+async function fetchBestImageBytes(
+  url: string,
+  bookmarkId: string,
+): Promise<{ bytes: Buffer | null;
+  grabError: ImageAutoGrabError | null; }> {
+  let bytes: Buffer | null = null;
+  let grabError: ImageAutoGrabError | null = null;
+  if (isYouTubeVideoUrl(url)) {
+    bytes = await fetchYouTubeThumbnail(url);
+    if (bytes) {
+      console.info(`[youtube-enrich] image: using YouTube thumbnail for ${bookmarkId}`);
+    }
+    else {
+      console.warn(`[youtube-enrich] image: YouTube thumbnail unavailable for ${bookmarkId}; falling back to og:image`);
+      const r = await fetchOgImage(url);
+      if (typeof r === "string") grabError = r;
+      else bytes = r;
+    }
+  }
+  else if (findOEmbedProvider(url)) {
+    bytes = await fetchOEmbedThumbnail(url);
+    if (bytes) {
+      console.info(`[oembed] image: using oEmbed thumbnail for ${bookmarkId}`);
+    }
+    else {
+      console.warn(`[oembed] image: oEmbed thumbnail unavailable for ${bookmarkId}; falling back to og:image`);
+      const r = await fetchOgImage(url);
+      if (typeof r === "string") grabError = r;
+      else bytes = r;
+    }
+  }
+  else {
+    const r = await fetchOgImage(url);
+    if (typeof r === "string") grabError = r;
+    else bytes = r;
+  }
+  return {
+    bytes,
+    grabError,
+  };
+}
+
+/**
  * Auto-capture: read the bookmark's own stored URL (never a client-supplied one — avoids an SSRF
  * amplifier), fetch the page's preview image, and store it. Returns the wire shape, `"not_found"`,
  * or a specific `ImageAutoGrabError` describing why no image could be obtained.
@@ -315,42 +361,9 @@ export async function fetchAndStoreOgImage(bookmarkId: string): Promise<AutoImag
   if (!bookmark) return "not_found";
   if (!bookmark.url) return "no_image";
 
-  // YouTube and other oEmbed providers serve a known, high-quality thumbnail via oEmbed — prefer it
-  // over scraping og:image, falling back to the generic page-image path when it can't be fetched.
-  // The thumbnail URL is derived server-side from the bookmark's own stored URL (never a client
-  // value), so this keeps the SSRF-safe invariant of the og:image path.
-  let bytes: Buffer | null = null;
-  let grabError: ImageAutoGrabError | null = null;
-
-  if (isYouTubeVideoUrl(bookmark.url)) {
-    bytes = await fetchYouTubeThumbnail(bookmark.url);
-    if (bytes) {
-      console.info(`[youtube-enrich] image: using YouTube thumbnail for ${bookmarkId}`);
-    }
-    else {
-      console.warn(`[youtube-enrich] image: YouTube thumbnail unavailable for ${bookmarkId}; falling back to og:image`);
-      const r = await fetchOgImage(bookmark.url);
-      if (typeof r === "string") grabError = r;
-      else bytes = r;
-    }
-  }
-  else if (findOEmbedProvider(bookmark.url)) {
-    bytes = await fetchOEmbedThumbnail(bookmark.url);
-    if (bytes) {
-      console.info(`[oembed] image: using oEmbed thumbnail for ${bookmarkId}`);
-    }
-    else {
-      console.warn(`[oembed] image: oEmbed thumbnail unavailable for ${bookmarkId}; falling back to og:image`);
-      const r = await fetchOgImage(bookmark.url);
-      if (typeof r === "string") grabError = r;
-      else bytes = r;
-    }
-  }
-  else {
-    const r = await fetchOgImage(bookmark.url);
-    if (typeof r === "string") grabError = r;
-    else bytes = r;
-  }
+  const {
+    bytes, grabError,
+  } = await fetchBestImageBytes(bookmark.url, bookmarkId);
 
   if (!bytes) {
     const error = grabError ?? "no_image";

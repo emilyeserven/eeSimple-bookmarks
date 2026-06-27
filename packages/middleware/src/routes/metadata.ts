@@ -117,6 +117,41 @@ async function buildYouTubeMetadataResult(
   };
 }
 
+/**
+ * Apply site-name suffix stripping to a raw title using the website's primary name, domain, and
+ * any registered alternate names. Returns the stripped title, or `null` when `rawTitle` is null.
+ */
+function stripTitleSuffixes(
+  rawTitle: string | null,
+  opts: { siteName: string | undefined;
+    domain: string | null;
+    alternateNames?: string[] | null; },
+): string | null {
+  if (!rawTitle) return null;
+  let title = stripSiteNameSuffix(rawTitle, {
+    siteName: opts.siteName,
+    domain: opts.domain,
+  });
+  if (title === rawTitle && opts.alternateNames && opts.alternateNames.length > 0) {
+    for (const altName of opts.alternateNames) {
+      const alt = stripSiteNameSuffix(title, {
+        siteName: altName,
+      });
+      if (alt !== title) {
+        title = alt;
+        break;
+      }
+    }
+  }
+  return title;
+}
+
+/** Keep `current` when it already has entries; otherwise use `candidateName` as a single-item list. */
+function mergeAuthorName(current: string[] | null, candidateName: string | null | undefined): string[] | null {
+  if (current && current.length > 0) return current;
+  return candidateName ? [candidateName] : current;
+}
+
 /** Build the `/api/fetch-metadata` response for a non-YouTube URL (HTML scrape + oEmbed). */
 async function buildGenericMetadataResult(
   url: string,
@@ -128,25 +163,11 @@ async function buildGenericMetadataResult(
     fetchHeadHtml(url),
     lookupWebsiteByUrl(url),
   ]);
-  const rawTitle = html ? extractTitle(html) : null;
-  let title = rawTitle
-    ? stripSiteNameSuffix(rawTitle, {
-      siteName: siteNameHint ?? website?.siteName,
-      domain,
-    })
-    : null;
-  if (title && title === rawTitle && website?.alternateNames && website.alternateNames.length > 0) {
-    for (const altName of website.alternateNames) {
-      const alt = stripSiteNameSuffix(title, {
-        siteName: altName,
-      });
-      if (alt !== title) {
-        title = alt;
-        break;
-      }
-    }
-  }
-
+  let title = stripTitleSuffixes(html ? extractTitle(html) : null, {
+    siteName: siteNameHint ?? website?.siteName,
+    domain,
+    alternateNames: website?.alternateNames,
+  });
   let description = html ? extractDescription(html) : null;
   let authorNames = html ? extractAuthorNames(html) : null;
   let thumbnailUrl: string | null = null;
@@ -162,9 +183,7 @@ async function buildGenericMetadataResult(
     description ??= oembed.description;
     thumbnailUrl = oembed.thumbnailUrl;
     datePosted = oembed.datePosted;
-    if ((!authorNames || authorNames.length === 0) && oembed.authorName) {
-      authorNames = [oembed.authorName];
-    }
+    authorNames = mergeAuthorName(authorNames, oembed.authorName);
   }
 
   // Optional hosted provider (Tier 2, default off): handles JS-rendered / bot-protected pages the
@@ -176,9 +195,7 @@ async function buildGenericMetadataResult(
     description = hosted.description ?? description;
     thumbnailUrl = hosted.imageUrl ?? thumbnailUrl;
     datePosted = hosted.datePosted ?? datePosted;
-    if ((!authorNames || authorNames.length === 0) && hosted.authorName) {
-      authorNames = [hosted.authorName];
-    }
+    authorNames = mergeAuthorName(authorNames, hosted.authorName);
   }
 
   return {

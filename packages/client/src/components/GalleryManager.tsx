@@ -198,46 +198,32 @@ function GalleryContent({
   );
 }
 
-/**
- * The Media Management catalog: every object in the storage bucket, split into images still linked
- * to a bookmark and orphans (objects with no live bookmark) that can be reclaimed. The bucket is
- * reconciled on demand with "Scan bucket". Shown either as a thumbnail grid (natural aspect ratio by
- * default, or uniform squares) or as a data table.
- */
-export function GalleryListing() {
-  const {
-    data: catalog, isLoading, error,
-  } = useGallery();
+/** Groups the delete-confirm and attach-dialog state, mutations, and handlers for `GalleryListing`. */
+function useGalleryDialogs() {
   const {
     data: allBookmarks = [],
   } = useBookmarks();
-  const scan = useScanBucket();
-  const autoFetch = useAutoFetchImages();
-  const {
-    data: autoFetchStatus,
-  } = useAutoFetchStatus();
-  const autoFetchRunning = autoFetchStatus?.status === "running";
-  const autoFetchWithFallback = useAutoFetchWithFallback();
-  const {
-    data: autoFetchWithFallbackStatus,
-  } = useAutoFetchWithFallbackStatus();
-  const autoFetchWithFallbackRunning = autoFetchWithFallbackStatus?.status === "running";
   const deleteOrphans = useDeleteOrphans();
   const attachOrphan = useAttachOrphan();
 
-  const [view, setView] = useState<GalleryView>("grid");
-  const [layout, setLayout] = useState<GalleryLayout>("natural");
-
-  // The pending confirm: one orphan key, or every orphan key for the bulk action.
   const [pending, setPending] = useState<{ keys: string[];
     label: string; } | null>(null);
-
-  // State for the attach dialog.
   const [attachKey, setAttachKey] = useState<string | null>(null);
   const [attachTarget, setAttachTarget] = useState<Bookmark | null>(null);
 
-  const registered = catalog?.registered ?? [];
-  const orphans = catalog?.orphans ?? [];
+  function requestDelete(key: string): void {
+    setPending({
+      keys: [key],
+      label: key,
+    });
+  }
+
+  function requestDeleteAll(orphans: MediaObject[]): void {
+    setPending({
+      keys: orphans.map(o => o.objectKey),
+      label: `all ${orphans.length} orphan${orphans.length === 1 ? "" : "s"}`,
+    });
+  }
 
   function confirmDelete(): void {
     if (!pending) return;
@@ -249,13 +235,6 @@ export function GalleryListing() {
   function openAttach(key: string): void {
     setAttachKey(key);
     setAttachTarget(null);
-  }
-
-  function requestDelete(key: string): void {
-    setPending({
-      keys: [key],
-      label: key,
-    });
   }
 
   function confirmAttach(): void {
@@ -271,7 +250,54 @@ export function GalleryListing() {
     });
   }
 
-  const attachTargetHasImage = attachTarget?.image != null;
+  return {
+    allBookmarks,
+    pending,
+    attachKey,
+    attachTarget,
+    attachTargetHasImage: attachTarget?.image != null,
+    deletePending: deleteOrphans.isPending,
+    attachPending: attachOrphan.isPending,
+    requestDelete,
+    requestDeleteAll,
+    confirmDelete,
+    openAttach,
+    onCancelDelete: () => setPending(null),
+    onCancelAttach: () => setAttachKey(null),
+    onSelectTarget: setAttachTarget,
+    confirmAttach,
+  };
+}
+
+/**
+ * The Media Management catalog: every object in the storage bucket, split into images still linked
+ * to a bookmark and orphans (objects with no live bookmark) that can be reclaimed. The bucket is
+ * reconciled on demand with "Scan bucket". Shown either as a thumbnail grid (natural aspect ratio by
+ * default, or uniform squares) or as a data table.
+ */
+export function GalleryListing() {
+  const {
+    data: catalog, isLoading, error,
+  } = useGallery();
+  const scan = useScanBucket();
+  const autoFetch = useAutoFetchImages();
+  const {
+    data: autoFetchStatus,
+  } = useAutoFetchStatus();
+  const autoFetchRunning = autoFetchStatus?.status === "running";
+  const autoFetchWithFallback = useAutoFetchWithFallback();
+  const {
+    data: autoFetchWithFallbackStatus,
+  } = useAutoFetchWithFallbackStatus();
+  const autoFetchWithFallbackRunning = autoFetchWithFallbackStatus?.status === "running";
+
+  const [view, setView] = useState<GalleryView>("grid");
+  const [layout, setLayout] = useState<GalleryLayout>("natural");
+
+  const dialogs = useGalleryDialogs();
+
+  const registered = catalog?.registered ?? [];
+  const orphans = catalog?.orphans ?? [];
   const hasObjects = registered.length > 0 || orphans.length > 0;
 
   return (
@@ -317,30 +343,26 @@ export function GalleryListing() {
             layout={layout}
             registered={registered}
             orphans={orphans}
-            onDeleteAll={() =>
-              setPending({
-                keys: orphans.map(object => object.objectKey),
-                label: `all ${orphans.length} orphan${orphans.length === 1 ? "" : "s"}`,
-              })}
-            onAttach={openAttach}
-            onDelete={requestDelete}
+            onDeleteAll={() => dialogs.requestDeleteAll(orphans)}
+            onAttach={dialogs.openAttach}
+            onDelete={dialogs.requestDelete}
           />
         )
         : null}
 
       <GalleryDialogs
-        pendingLabel={pending?.label ?? null}
-        onCancelDelete={() => setPending(null)}
-        onConfirmDelete={confirmDelete}
-        deletePending={deleteOrphans.isPending}
-        attachOpen={attachKey !== null}
-        onCancelAttach={() => setAttachKey(null)}
-        bookmarks={allBookmarks}
-        attachTarget={attachTarget}
-        onSelectTarget={setAttachTarget}
-        attachTargetHasImage={attachTargetHasImage}
-        onConfirmAttach={confirmAttach}
-        attachPending={attachOrphan.isPending}
+        pendingLabel={dialogs.pending?.label ?? null}
+        onCancelDelete={dialogs.onCancelDelete}
+        onConfirmDelete={dialogs.confirmDelete}
+        deletePending={dialogs.deletePending}
+        attachOpen={dialogs.attachKey !== null}
+        onCancelAttach={dialogs.onCancelAttach}
+        bookmarks={dialogs.allBookmarks}
+        attachTarget={dialogs.attachTarget}
+        onSelectTarget={dialogs.onSelectTarget}
+        attachTargetHasImage={dialogs.attachTargetHasImage}
+        onConfirmAttach={dialogs.confirmAttach}
+        attachPending={dialogs.attachPending}
       />
     </div>
   );
