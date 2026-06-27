@@ -12,7 +12,7 @@ coverage/
 # Caches
 .cache/
 .eslintcache
-.fallow/churn.bin
+**/.fallow/churn.bin
 
 # Env
 .env
@@ -34,7 +34,7 @@ pnpm-debug.log*
 storybook-static/
 
 # fallow runtime/churn cache (the dead-code baseline is intentionally tracked)
-.fallow/churn.bin
+**/.fallow/churn.bin
 
 # Claude Code agent worktrees (ephemeral isolated checkouts)
 .claude/worktrees/
