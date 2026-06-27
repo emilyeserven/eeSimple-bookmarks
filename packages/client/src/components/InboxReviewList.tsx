@@ -172,13 +172,13 @@ function ReviewItemBody({
         : null}
       <div className="min-w-0 flex-1 space-y-2">
         {/* Row 1: Title + From | Buttons */}
-        <div
-          className="
-            flex flex-col items-start gap-2
-            md:flex-row md:justify-between
-          "
-        >
-          <div className="min-w-0 space-y-0.5">
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div
+            className="
+              w-full min-w-0 space-y-0.5
+              md:w-auto md:flex-1
+            "
+          >
             <div className="flex flex-wrap items-center gap-1.5">
               <p className="min-w-0 font-medium wrap-break-word">{item.title || item.anchorText || item.url || item.rawUrl}</p>
               <StatusBadge item={item} />
