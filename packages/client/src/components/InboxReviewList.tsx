@@ -174,7 +174,7 @@ function ReviewItemBody({
         {/* Row 1: Title + From | Buttons */}
         <div
           className="
-            flex flex-col-reverse items-start gap-2
+            flex flex-col items-start gap-2
             md:flex-row md:justify-between
           "
         >
