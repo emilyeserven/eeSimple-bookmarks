@@ -53,20 +53,8 @@ services:
     ports:
       # S3 API — exposed on the host so `pnpm dev` (middleware on the host) and the AWS CLI reach it.
       - "${GARAGE_S3_HOST_PORT:-3900}:3900"
-  drizzle-gateway:
-    image: ghcr.io/drizzle-team/gateway:latest
-    restart: always
-    ports:
-      - "${DRIZZLE_GATEWAY_HOST_PORT:-4983}:4983"
-    environment:
-      PORT: 4983
-      STORE_PATH: ${DRIZZLE_GATEWAY_STORE_PATH:-/app/path}
-      MASTERPASS: ${DRIZZLE_GATEWAY_MASTERPASS:-}
-    volumes:
-      - drizzle-gateway:/app/path
 
 volumes:
   pgdata:
   garage-meta:
   garage-data:
-  drizzle-gateway:
