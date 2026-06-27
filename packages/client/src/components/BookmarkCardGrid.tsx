@@ -8,6 +8,7 @@ import { useResolveCardDisplay } from "../lib/cardDisplayRules";
 import { RowCard } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
+import { useUiStore } from "@/stores/uiStore";
 
 interface BookmarkCardGridProps {
   bookmarks: Bookmark[];
@@ -33,6 +34,7 @@ export function BookmarkCardGrid({
   onToggleSelect,
 }: BookmarkCardGridProps) {
   const deleteBookmark = useDeleteBookmark();
+  const setHoveredBookmarkId = useUiStore(state => state.setHoveredBookmarkId);
   const {
     resolve: resolveDisplay, isPending: displayPending,
   } = useResolveCardDisplay();
@@ -50,7 +52,9 @@ export function BookmarkCardGrid({
         return (
           <div
             key={bookmark.id}
-            className="relative"
+            className="group relative"
+            onMouseEnter={() => setHoveredBookmarkId(bookmark.id)}
+            onMouseLeave={() => setHoveredBookmarkId(null)}
           >
             <RowCard
               className={cn("p-4", selected && "ring-2 ring-primary")}
@@ -68,6 +72,21 @@ export function BookmarkCardGrid({
                 hideWebsiteForYouTube={display.hideWebsiteForYouTube}
               />
             </RowCard>
+            {/* Hover hint: this card is the ⌘K quick-edit target. Pointer-events-none so it never blocks clicks. */}
+            {selectionMode
+              ? null
+              : (
+                <span
+                  className="
+                    pointer-events-none absolute right-2 bottom-2 z-20
+                    rounded-sm border bg-background/90 px-1.5 py-0.5 text-xs
+                    text-muted-foreground opacity-0 shadow-sm transition-opacity
+                    group-hover:opacity-100
+                  "
+                >
+                  ⌘K to edit
+                </span>
+              )}
             {/* In selection mode an overlay swallows card clicks so the whole card toggles. */}
             {selectionMode
               ? (

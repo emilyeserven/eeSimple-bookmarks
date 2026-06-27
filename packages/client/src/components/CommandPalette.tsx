@@ -46,6 +46,7 @@ import { useBookmarks } from "@/hooks/useBookmarks";
 import { useCategoryRootTags } from "@/hooks/useCategories";
 import { notifyError, notifySuccess } from "@/lib/notifications";
 import { subtreeIds } from "@/lib/tagTree";
+import { useUiStore } from "@/stores/uiStore";
 
 const PAGES = [
   {
@@ -745,6 +746,18 @@ export function CommandPalette() {
     data: bookmarks = [],
   } = useBookmarks();
 
+  // Snapshot the hovered card at open time: opening the dialog covers the page and can fire the
+  // card's mouseleave, so reading the live value would null it out just as the palette appears.
+  const hoveredBookmarkId = useUiStore(state => state.hoveredBookmarkId);
+  const [targetBookmarkId, setTargetBookmarkId] = useState<string | null>(null);
+  useEffect(() => {
+    if (open) {
+      setTargetBookmarkId(hoveredBookmarkId);
+    }
+    // Only re-snapshot on the open transition, not on every hover change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
   const {
     bookmarkId,
     isBookmarkViewPage,
@@ -755,7 +768,7 @@ export function CommandPalette() {
     authors,
     customProperties,
     updateBookmark,
-  } = useBookmarkTaxonomyContext();
+  } = useBookmarkTaxonomyContext(open ? targetBookmarkId : null);
 
   const detailLayout = useBookmarkDetailLayout();
   const {
@@ -1218,7 +1231,11 @@ export function CommandPalette() {
 
                   {bookmarkId && bookmark && (
                     <>
-                      <CommandGroup heading="Bookmark Taxonomies">
+                      <CommandGroup
+                        heading={isBookmarkViewPage
+                          ? "Bookmark Taxonomies"
+                          : `Bookmark Taxonomies — ${bookmark.title}`}
+                      >
                         <CommandItem
                           value="Change Category"
                           onSelect={() => handleEnterMode("category")}

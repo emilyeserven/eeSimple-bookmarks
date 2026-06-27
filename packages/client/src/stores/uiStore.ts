@@ -139,6 +139,9 @@ interface UiState {
   /** Transient: pageKey of the mounted listing that supports bulk multi-select (drives the header Select toggle), or null. Never persisted. */
   bulkSelectPageKey: string | null;
   setBulkSelectPageKey: (pageKey: string | null) => void;
+  /** Transient: id of the bookmark card currently under the cursor, for ⌘K quick-edit. Never persisted. */
+  hoveredBookmarkId: string | null;
+  setHoveredBookmarkId: (id: string | null) => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -300,6 +303,10 @@ export const useUiStore = create<UiState>()(
       bulkSelectPageKey: null,
       setBulkSelectPageKey: pageKey => set({
         bulkSelectPageKey: pageKey,
+      }),
+      hoveredBookmarkId: null,
+      setHoveredBookmarkId: id => set({
+        hoveredBookmarkId: id,
       }),
     }),
     {
