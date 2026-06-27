@@ -131,6 +131,7 @@ const advancedBody = {
     "storybookLinkEnabled",
     "drizzleGatewayLinkEnabled",
     "drizzleGatewayUrl",
+    "githubLinkEnabled",
   ],
   additionalProperties: false,
   properties: {
@@ -151,6 +152,9 @@ const advancedBody = {
     },
     drizzleGatewayUrl: {
       type: "string",
+    },
+    githubLinkEnabled: {
+      type: "boolean",
     },
   },
 } as const;

@@ -2,7 +2,7 @@ import type { SidebarAdvanced } from "./useAppSidebarData";
 
 import * as React from "react";
 
-import { BookOpen, ChevronDown, Database, Palette, Server } from "lucide-react";
+import { BookOpen, ChevronDown, Database, GitBranch, Palette, Server } from "lucide-react";
 
 import { useResizeHandle } from "../hooks/useResizeHandle";
 import { useUiStore } from "../stores/uiStore";
@@ -78,11 +78,11 @@ export function SidebarAdvancedSection({
 }) {
   const {
     coolifyLinkEnabled, coolifyUrl, docsLinkEnabled, storybookLinkEnabled,
-    drizzleGatewayLinkEnabled, drizzleGatewayUrl,
+    drizzleGatewayLinkEnabled, drizzleGatewayUrl, githubLinkEnabled,
   } = advanced;
   const showCoolify = coolifyLinkEnabled && coolifyUrl.trim() !== "";
   const showDrizzleGateway = drizzleGatewayLinkEnabled && drizzleGatewayUrl.trim() !== "";
-  if (!showCoolify && !docsLinkEnabled && !storybookLinkEnabled && !showDrizzleGateway) return null;
+  if (!showCoolify && !docsLinkEnabled && !storybookLinkEnabled && !showDrizzleGateway && !githubLinkEnabled) return null;
 
   return (
     <CollapsibleSection
@@ -123,6 +123,15 @@ export function SidebarAdvancedSection({
               href={drizzleGatewayUrl}
               label="Drizzle Gateway"
               icon={<Database />}
+            />
+          )
+          : null}
+        {githubLinkEnabled
+          ? (
+            <SidebarExternalLink
+              href="https://github.com/emilyeserven/eesimple-bookmarks"
+              label="GitHub"
+              icon={<GitBranch />}
             />
           )
           : null}

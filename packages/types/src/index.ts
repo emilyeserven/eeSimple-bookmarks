@@ -307,6 +307,7 @@ export interface AdvancedSettings {
   storybookLinkEnabled: boolean;
   drizzleGatewayLinkEnabled: boolean;
   drizzleGatewayUrl: string;
+  githubLinkEnabled: boolean;
 }
 
 /** Payload for replacing the advanced settings. */
