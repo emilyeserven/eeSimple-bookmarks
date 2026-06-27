@@ -31,11 +31,6 @@ export function hostedMetadataEnabled(): boolean {
   return Boolean(process.env.HOSTED_METADATA_ENDPOINT);
 }
 
-/** The configured provider name (env-only, sync). */
-export function hostedMetadataProvider(): string | null {
-  return process.env.HOSTED_METADATA_PROVIDER ?? null;
-}
-
 /** Whether a hosted metadata provider is configured — checks DB first, then env var. */
 export async function hostedMetadataEnabledAsync(): Promise<boolean> {
   return Boolean(await getActiveHostedEndpoint());
