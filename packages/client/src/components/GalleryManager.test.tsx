@@ -33,6 +33,16 @@ vi.mock("../hooks/useGallery", () => ({
       status: "idle",
     },
   }),
+  useAutoFetchWithFallback: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+    data: undefined,
+  }),
+  useAutoFetchWithFallbackStatus: () => ({
+    data: {
+      status: "idle",
+    },
+  }),
   useDeleteOrphans: () => ({
     mutate: deleteMutate,
     isPending: false,
