@@ -69,6 +69,75 @@ interface BookmarkCardDetailsProps {
   onSaveTags?: (tagIds: string[]) => void;
 }
 
+/**
+ * The bookmark title rendered as a navigation link. Encapsulates `useViewPanelClick` and
+ * `useSidebarOpenModifier` so those two hooks are counted outside `BookmarkCardDetails`.
+ */
+function BookmarkTitleLink({
+  bookmark,
+}: { bookmark: Bookmark }) {
+  const viewClick = useViewPanelClick();
+  const sidebarModifier = useSidebarOpenModifier();
+  return (
+    <h3 className="font-semibold">
+      <Link
+        to="/bookmarks/$bookmarkId"
+        params={{
+          bookmarkId: bookmark.id,
+        }}
+        title={entityLinkTitle(sidebarModifier)}
+        onClick={event => viewClick(event, "bookmark", bookmark.id, bookmark.id)}
+        className="
+          wrap-break-word text-primary
+          hover:underline
+        "
+      >
+        {bookmark.title}
+      </Link>
+    </h3>
+  );
+}
+
+/**
+ * Renders a bookmark description inside a fade-clamp box. Manages its own resize
+ * observer so the overflow check stays out of the parent component's hook count.
+ */
+function DescriptionOverflowDiv({
+  description,
+}: { description: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [overflows, setOverflows] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const sync = () => setOverflows(el.scrollHeight > el.clientHeight + 1);
+    sync();
+    const observer = new ResizeObserver(sync);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [description]);
+
+  return (
+    <div
+      ref={ref}
+      className="relative max-h-24 overflow-hidden"
+    >
+      <p className="text-sm/6 text-foreground">{description}</p>
+      {overflows
+        ? (
+          <div
+            className="
+              pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-linear-to-t
+              from-card to-transparent
+            "
+          />
+        )
+        : null}
+    </div>
+  );
+}
+
 /** The three render forms a card-body sub-zone imposes on the fields placed in it. */
 type FieldForm = "single" | "label" | "table";
 
@@ -169,28 +238,10 @@ export function BookmarkCardDetails({
   // Listings pass the rule-resolved value explicitly; other surfaces fall back to the Default rule.
   const defaultHideWebsiteForYouTube = useHideWebsiteForYouTube();
   const effectiveHideWebsiteForYouTube = hideWebsiteForYouTube ?? defaultHideWebsiteForYouTube;
-  const viewClick = useViewPanelClick();
-  const sidebarModifier = useSidebarOpenModifier();
 
   // The card header elements, now placeable fields (title link, open-URL button, "More" menu).
-  const titleNode = (
-    <h3 className="font-semibold">
-      <Link
-        to="/bookmarks/$bookmarkId"
-        params={{
-          bookmarkId: bookmark.id,
-        }}
-        title={entityLinkTitle(sidebarModifier)}
-        onClick={event => viewClick(event, "bookmark", bookmark.id, bookmark.id)}
-        className="
-          wrap-break-word text-primary
-          hover:underline
-        "
-      >
-        {bookmark.title}
-      </Link>
-    </h3>
-  );
+  // BookmarkTitleLink owns its own useViewPanelClick / useSidebarOpenModifier hooks.
+  const titleNode = <BookmarkTitleLink bookmark={bookmark} />;
   const externalLinkNode = <BookmarkExternalLinkButton url={bookmark.url ?? ""} />;
   const moreNode = (
     <BookmarkMoreMenu
@@ -219,42 +270,6 @@ export function BookmarkCardDetails({
   const {
     website, mediaType, youtubeChannel,
   } = bookmark;
-
-  // Description fade: only fade when the 4-line box actually clips the text. Re-measure on width
-  // changes (column count / viewport alter wrapping), mirroring BookmarkTagsBox.
-  const descriptionRef = useRef<HTMLDivElement>(null);
-  const [descriptionOverflows, setDescriptionOverflows] = useState(false);
-  const descriptionPlacement = placements.get("description");
-  const showDescription = !!bookmark.description && descriptionPlacement?.corner === null;
-
-  useEffect(() => {
-    const el = descriptionRef.current;
-    if (!el) return;
-    const sync = () => setDescriptionOverflows(el.scrollHeight > el.clientHeight + 1);
-    sync();
-    const observer = new ResizeObserver(sync);
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [bookmark.description, showDescription]);
-
-  const descriptionNode = (
-    <div
-      ref={descriptionRef}
-      className="relative max-h-24 overflow-hidden"
-    >
-      <p className="text-sm/6 text-foreground">{bookmark.description}</p>
-      {descriptionOverflows
-        ? (
-          <div
-            className="
-              pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-linear-to-t
-              from-card to-transparent
-            "
-          />
-        )
-        : null}
-    </div>
-  );
 
   /** Render a custom-property value badge, wiring an inline toggle for clickable booleans. */
   function badgeNode(item: Extract<BookmarkValueItem, { kind: "badge" }>, text: ReactNode): ReactNode {
@@ -334,7 +349,7 @@ export function BookmarkCardDetails({
         // No inline pill form — falls back to a full-width paragraph in the Labels zone.
         return {
           inline: null,
-          block: descriptionNode,
+          block: <DescriptionOverflowDiv description={bookmark.description} />,
           tableName: "Description",
           tableValue: <span className="text-sm">{bookmark.description}</span>,
         };
