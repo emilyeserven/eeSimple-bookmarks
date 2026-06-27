@@ -60,10 +60,10 @@ services:
       - "${DRIZZLE_GATEWAY_HOST_PORT:-4983}:4983"
     environment:
       PORT: 4983
-      STORE_PATH: ./app
+      STORE_PATH: ${DRIZZLE_GATEWAY_STORE_PATH:-/app/path}
       MASTERPASS: ${DRIZZLE_GATEWAY_MASTERPASS:-}
     volumes:
-      - drizzle-gateway:/app
+      - drizzle-gateway:/app/path
 
 volumes:
   pgdata:
