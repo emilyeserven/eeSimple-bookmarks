@@ -543,6 +543,9 @@ readiness uses `DB_WAIT_TIMEOUT_MS`).
 | `HOSTED_METADATA_API_KEY` | middleware / gateway | Optional API key for the hosted metadata provider, sent as the `x-api-key` header. |
 | `HOSTED_METADATA_PROVIDER` | middleware / gateway | Optional provider label (e.g. `microlink`) shown on the Connectors settings page; does not affect behavior. |
 | `YOUTUBE_API_KEY` | middleware / gateway | **Optional, default off.** Tier 2 — when set, a YouTube video's duration/publish-date/description come from the YouTube Data API v3 (`videos.list`) instead of the brittle `ytInitialPlayerResponse` watch-page scrape; unset falls back to the scrape. Title/thumbnail/channel stay on keyless oEmbed either way. |
+| `DRIZZLE_GATEWAY_HOST_PORT` | docker-compose | Host port mapped to the Drizzle Studio gateway's 4983 (default: `4983`). |
+| `DRIZZLE_GATEWAY_MASTERPASS` | docker-compose | Password for the Drizzle Studio UI (`/api/studio` gateway). Unset or empty means no authentication. Set to a long random string in production. |
+| `DRIZZLE_GATEWAY_STORE_PATH` | docker-compose | Path inside the drizzle-gateway container where Studio session data is persisted (default: `/app/path`). The named volume `drizzle-gateway` is mounted there. |
 
 Bookmark images are compressed to a 1200px WebP and stored in object storage (Garage by default),
 served via `GET /api/bookmarks/:id/image`. Without the `S3_*` vars the app runs normally but image

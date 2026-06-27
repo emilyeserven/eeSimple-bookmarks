@@ -61,6 +61,7 @@ services:
     environment:
       PORT: 4983
       STORE_PATH: ${DRIZZLE_GATEWAY_STORE_PATH:-/app/path}
+      # Set to a long random string to password-protect the Drizzle Studio UI.
       MASTERPASS: ${DRIZZLE_GATEWAY_MASTERPASS:-}
     volumes:
       - drizzle-gateway:/app/path
