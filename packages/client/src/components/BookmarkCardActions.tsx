@@ -42,6 +42,8 @@ interface BookmarkMoreMenuProps {
   editableTags?: BookmarkTag[];
   autoImagePending?: boolean;
   onAutoImage?: () => void;
+  screenshotPending?: boolean;
+  onScreenshot?: () => void;
   onSaveNumber?: (propertyId: string, value: number) => void;
   onSaveBoolean?: (propertyId: string, value: boolean) => void;
   onSaveDateTime?: (propertyId: string, value: string) => void;
@@ -53,6 +55,7 @@ interface BookmarkMoreMenuProps {
 /** The "More options" menu (trigger + {@link BookmarkCardMenu}) — a placeable card field and overlay. */
 export function BookmarkMoreMenu({
   bookmark, editableProperties = [], editableTags = [], autoImagePending = false, onAutoImage,
+  screenshotPending = false, onScreenshot,
   onSaveNumber, onSaveBoolean, onSaveDateTime, onSaveChoices, onSaveTags, onDelete,
 }: BookmarkMoreMenuProps) {
   const updateProperty = useUpdateCustomProperty();
@@ -90,6 +93,8 @@ export function BookmarkMoreMenu({
         editableTags={editableTags}
         autoImagePending={autoImagePending}
         onAutoImage={onAutoImage ?? noop}
+        screenshotPending={screenshotPending}
+        onScreenshot={onScreenshot ?? noop}
         onSaveNumber={onSaveNumber ?? noop}
         onSaveBoolean={onSaveBoolean ?? noop}
         onSaveDateTime={onSaveDateTime ?? noop}

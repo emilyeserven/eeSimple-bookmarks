@@ -70,7 +70,7 @@ function HostedMetadataForm() {
 
   const checkConnection = useMutation({
     mutationFn: () => metadataApi.checkUrl({
-      url: endpoint,
+      url: `${endpoint.replace(/\/$/, "")}/active`,
     }),
     onSuccess: result => setCheckResult(result),
     onError: (err: Error) => notifyFieldSaveError("Connection check", err.message),

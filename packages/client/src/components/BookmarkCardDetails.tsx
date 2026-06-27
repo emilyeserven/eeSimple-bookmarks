@@ -49,6 +49,10 @@ interface BookmarkCardDetailsProps {
   autoImagePending?: boolean;
   /** Trigger an auto-image capture from the "More" menu. */
   onAutoImage?: () => void;
+  /** Whether a Browserless screenshot capture is in flight (for the "More" menu). */
+  screenshotPending?: boolean;
+  /** Trigger a Browserless screenshot capture from the "More" menu. */
+  onScreenshot?: () => void;
   /** Persist a number value edited from the "More" menu. */
   onSaveNumber?: (propertyId: string, value: number) => void;
   /** Persist a datetime value edited from the "More" menu. */
@@ -158,6 +162,7 @@ export function BookmarkCardDetails({
   bookmark, properties, placements, cardZoneLayouts, bookmarkCategory, hideWebsiteForYouTube,
   hasImageAbove = false,
   editableProperties = [], editableTags = [], autoImagePending = false, onAutoImage,
+  screenshotPending = false, onScreenshot,
   onSaveNumber, onSaveDateTime, onDelete,
   onSaveRating, onSaveBoolean, onSaveChoices, onSaveTags,
 }: BookmarkCardDetailsProps) {
@@ -194,6 +199,8 @@ export function BookmarkCardDetails({
       editableTags={editableTags}
       autoImagePending={autoImagePending}
       onAutoImage={onAutoImage}
+      screenshotPending={screenshotPending}
+      onScreenshot={onScreenshot}
       onSaveNumber={onSaveNumber}
       onSaveBoolean={onSaveBoolean}
       onSaveDateTime={onSaveDateTime}
