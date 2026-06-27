@@ -24,6 +24,8 @@ const DEFAULTS: AdvancedSettingsValues = {
   coolifyUrl: "",
   docsLinkEnabled: false,
   storybookLinkEnabled: false,
+  drizzleGatewayLinkEnabled: false,
+  drizzleGatewayUrl: "",
 };
 
 /**
@@ -40,17 +42,23 @@ export function AdvancedSettings() {
   const settings = data ?? DEFAULTS;
   // Local mirror of the Coolify URL so typing stays smooth; persisted on blur.
   const [coolifyUrl, setCoolifyUrl] = useState(settings.coolifyUrl);
+  // Local mirror of the Drizzle Gateway URL so typing stays smooth; persisted on blur.
+  const [drizzleGatewayUrl, setDrizzleGatewayUrl] = useState(settings.drizzleGatewayUrl);
 
-  // Re-seed the URL field whenever the saved settings load / change server-side.
+  // Re-seed the URL fields whenever the saved settings load / change server-side.
   useEffect(() => {
-    if (data) setCoolifyUrl(data.coolifyUrl);
+    if (data) {
+      setCoolifyUrl(data.coolifyUrl);
+      setDrizzleGatewayUrl(data.drizzleGatewayUrl);
+    }
   }, [data]);
 
-  /** Persist a single-field change, merging the latest typed URL, and fire the named toast. */
+  /** Persist a single-field change, merging the latest typed URLs, and fire the named toast. */
   function save(patch: Partial<AdvancedSettingsValues>, message: string): void {
     update.mutate({
       ...settings,
       coolifyUrl,
+      drizzleGatewayUrl,
       ...patch,
     }, {
       onSuccess: () => notifySuccess(message),
@@ -168,6 +176,54 @@ export function AdvancedSettings() {
               }}
             />
             <Label htmlFor="storybook-link-enabled">Show the Storybook link in the sidebar</Label>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Drizzle Gateway link</CardTitle>
+          <CardDescription>
+            Show a link to your Drizzle Gateway instance in the sidebar. The link opens in a new tab.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="drizzle-gateway-link-enabled"
+              checked={settings.drizzleGatewayLinkEnabled}
+              onCheckedChange={(checked) => {
+                const enabled = checked === true;
+                save(
+                  {
+                    drizzleGatewayLinkEnabled: enabled,
+                  },
+                  enabled ? "Drizzle Gateway link shown" : "Drizzle Gateway link hidden",
+                );
+              }}
+            />
+            <Label htmlFor="drizzle-gateway-link-enabled">Show the Drizzle Gateway link in the sidebar</Label>
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="drizzle-gateway-url">Drizzle Gateway URL</Label>
+            <Input
+              id="drizzle-gateway-url"
+              type="url"
+              placeholder="http://localhost:4983"
+              value={drizzleGatewayUrl}
+              onChange={event => setDrizzleGatewayUrl(event.target.value)}
+              onBlur={() => {
+                if (drizzleGatewayUrl.trim() !== settings.drizzleGatewayUrl) {
+                  save({
+                    drizzleGatewayUrl,
+                  }, "Drizzle Gateway URL updated");
+                }
+              }}
+              className="
+                w-full
+                sm:w-96
+              "
+            />
           </div>
         </CardContent>
       </Card>

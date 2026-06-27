@@ -129,6 +129,8 @@ const advancedBody = {
     "coolifyUrl",
     "docsLinkEnabled",
     "storybookLinkEnabled",
+    "drizzleGatewayLinkEnabled",
+    "drizzleGatewayUrl",
   ],
   additionalProperties: false,
   properties: {
@@ -143,6 +145,12 @@ const advancedBody = {
     },
     storybookLinkEnabled: {
       type: "boolean",
+    },
+    drizzleGatewayLinkEnabled: {
+      type: "boolean",
+    },
+    drizzleGatewayUrl: {
+      type: "string",
     },
   },
 } as const;

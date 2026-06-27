@@ -305,6 +305,8 @@ export interface AdvancedSettings {
   coolifyUrl: string;
   docsLinkEnabled: boolean;
   storybookLinkEnabled: boolean;
+  drizzleGatewayLinkEnabled: boolean;
+  drizzleGatewayUrl: string;
 }
 
 /** Payload for replacing the advanced settings. */

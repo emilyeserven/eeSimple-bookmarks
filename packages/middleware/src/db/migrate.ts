@@ -368,6 +368,17 @@ const migrations: RuntimeMigration[] = [
     `),
   },
   {
+    // `app_settings` gained the Drizzle Gateway sidebar-link columns, following the same pattern as
+    // the Coolify pair. They are NOT NULL with defaults; pre-apply here to avoid the drizzle-kit
+    // push non-TTY prompt. One `ALTER TABLE` with two `ADD COLUMN` clauses is one SQL statement.
+    name: "add app_settings drizzle-gateway sidebar-link columns",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "app_settings"
+        ADD COLUMN IF NOT EXISTS "drizzle_gateway_link_enabled" boolean NOT NULL DEFAULT false,
+        ADD COLUMN IF NOT EXISTS "drizzle_gateway_url" text NOT NULL DEFAULT ''
+    `),
+  },
+  {
     // `app_settings` gained the sidebar-customization columns (group A of issue #410): the hidden
     // category/taxonomy/customization/management item lists + hidden sidebar groups, moved off
     // per-device local storage so the customized sidebar persists server-side. NOT NULL jsonb arrays

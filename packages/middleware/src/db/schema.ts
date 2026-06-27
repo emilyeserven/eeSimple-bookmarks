@@ -1073,6 +1073,10 @@ export const appSettings = pgTable("app_settings", {
   docsLinkEnabled: boolean("docs_link_enabled").notNull().default(false),
   // When on, the left sidebar shows a link to the Storybook UI at /storybook.
   storybookLinkEnabled: boolean("storybook_link_enabled").notNull().default(false),
+  // When on, the left sidebar shows a link to the Drizzle Gateway instance (opens in a new tab).
+  drizzleGatewayLinkEnabled: boolean("drizzle_gateway_link_enabled").notNull().default(false),
+  // URL of the Drizzle Gateway instance shown in the sidebar when drizzle_gateway_link_enabled is on.
+  drizzleGatewayUrl: text("drizzle_gateway_url").notNull().default(""),
   // --- Sidebar customization (group A): which left-sidebar items/groups are hidden. ---
   // Category IDs hidden in the left sidebar. Empty = all visible.
   hiddenCategoryIds: jsonb("hidden_category_ids").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
