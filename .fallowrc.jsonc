@@ -13,6 +13,8 @@
   ],
   "ignorePatterns": ["**/*.gen.ts", "**/dist/**", ".claude/**"],
   // `pg` is the Postgres driver loaded by Drizzle at runtime (never imported by name in source).
+  // `pino-pretty` is the pino log transport loaded by name via `{ transport: { target: "pino-pretty" } }`
+  // in app.ts — pino resolves it dynamically, so there is no ES import for fallow to see.
   // The eslint-* / typescript-eslint / @tanstack/eslint-plugin-* packages are peerDependencies of
   // `@emilyeserven/eslint-config` (see pnpm-lock.yaml). Peer deps are NOT installed transitively, so
   // this repo must declare them in package.json, but `eslint.config.js` only imports the shared
@@ -20,6 +22,7 @@
   // they're used. They are required; list them here so the audit reflects real health.
   "ignoreDependencies": [
     "pg",
+    "pino-pretty",
     "@eslint/js",
     "@stylistic/eslint-plugin",
     "@tanstack/eslint-plugin-query",
