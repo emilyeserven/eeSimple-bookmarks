@@ -26,14 +26,19 @@ export interface BookmarkTaxonomyContext {
   updateBookmark: ReturnType<typeof useUpdateBookmark>;
 }
 
-/** Detects whether the user is on a bookmark page and loads all data needed for taxonomy quick-edit. */
-export function useBookmarkTaxonomyContext(): BookmarkTaxonomyContext {
-  const bookmarkId = useRouterState({
+/**
+ * Detects whether the user is on a bookmark page and loads all data needed for taxonomy quick-edit.
+ * `fallbackBookmarkId` (e.g. the hovered card's id) is used only when the URL has no bookmark id, so
+ * the URL always wins on a detail/edit page.
+ */
+export function useBookmarkTaxonomyContext(fallbackBookmarkId: string | null = null): BookmarkTaxonomyContext {
+  const urlBookmarkId = useRouterState({
     select: (state) => {
       const match = /^\/bookmarks\/([^/]+)/.exec(state.location.pathname);
       return match?.[1] ?? null;
     },
   });
+  const bookmarkId = urlBookmarkId ?? fallbackBookmarkId;
 
   const isBookmarkViewPage = useRouterState({
     select: (state) => {
