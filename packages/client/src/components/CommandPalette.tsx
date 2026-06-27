@@ -18,7 +18,15 @@ import {
   TagIcon,
 } from "lucide-react";
 
+import { AddAuthorModal } from "./AddAuthorModal";
 import { AddBookmarkModal } from "./AddBookmarkModal";
+import { AddCategoryModal } from "./AddCategoryModal";
+import { AddMediaTypeModal } from "./AddMediaTypeModal";
+import { AddNewsletterModal } from "./AddNewsletterModal";
+import { AddPropertyGroupModal } from "./AddPropertyGroupModal";
+import { AddTagModal } from "./AddTagModal";
+import { AddWebsiteModal } from "./AddWebsiteModal";
+import { AddYouTubeChannelModal } from "./AddYouTubeChannelModal";
 import { useBookmarkTaxonomyContext } from "./useBookmarkTaxonomyContext";
 import { useListingPageContext } from "./useListingPageContext";
 import { useSavedFilterContext } from "./useSavedFilterContext";
@@ -293,6 +301,25 @@ function useAddBookmarkDraft() {
     setAddBookmarkOpen,
     pendingUrl,
     setPendingUrl,
+  };
+}
+
+type CreateKind
+  = | "category"
+    | "tag"
+    | "media-type"
+    | "author"
+    | "website"
+    | "property-group"
+    | "youtube-channel"
+    | "newsletter";
+
+function useCreateModalState() {
+  const [createKind, setCreateKind] = useState<CreateKind | null>(null);
+  return {
+    createKind,
+    openCreate: (kind: CreateKind) => setCreateKind(kind),
+    closeCreate: () => setCreateKind(null),
   };
 }
 
@@ -740,6 +767,9 @@ export function CommandPalette() {
   const {
     addBookmarkOpen, setAddBookmarkOpen, pendingUrl, setPendingUrl,
   } = useAddBookmarkDraft();
+  const {
+    createKind, openCreate, closeCreate,
+  } = useCreateModalState();
   const taxonomy = useCommandPaletteTaxonomyState();
   const navigate = useNavigate();
   const {
@@ -800,6 +830,11 @@ export function CommandPalette() {
     handleOpenChange(false);
     setPendingUrl(url);
     setAddBookmarkOpen(true);
+  };
+
+  const handleCreate = (kind: CreateKind) => {
+    handleOpenChange(false);
+    openCreate(kind);
   };
 
   const handleEnterMode = (mode: TaxonomyMode) => {
@@ -1440,6 +1475,62 @@ export function CommandPalette() {
                       <PlusIcon />
                       Add Bookmark
                     </CommandItem>
+                    <CommandItem
+                      value="New Category"
+                      onSelect={() => handleCreate("category")}
+                    >
+                      <PlusIcon />
+                      New Category
+                    </CommandItem>
+                    <CommandItem
+                      value="New Tag"
+                      onSelect={() => handleCreate("tag")}
+                    >
+                      <PlusIcon />
+                      New Tag
+                    </CommandItem>
+                    <CommandItem
+                      value="New Media Type"
+                      onSelect={() => handleCreate("media-type")}
+                    >
+                      <PlusIcon />
+                      New Media Type
+                    </CommandItem>
+                    <CommandItem
+                      value="New Author"
+                      onSelect={() => handleCreate("author")}
+                    >
+                      <PlusIcon />
+                      New Author
+                    </CommandItem>
+                    <CommandItem
+                      value="New Website"
+                      onSelect={() => handleCreate("website")}
+                    >
+                      <PlusIcon />
+                      New Website
+                    </CommandItem>
+                    <CommandItem
+                      value="New Property Group"
+                      onSelect={() => handleCreate("property-group")}
+                    >
+                      <PlusIcon />
+                      New Property Group
+                    </CommandItem>
+                    <CommandItem
+                      value="New YouTube Channel"
+                      onSelect={() => handleCreate("youtube-channel")}
+                    >
+                      <PlusIcon />
+                      New YouTube Channel
+                    </CommandItem>
+                    <CommandItem
+                      value="New Newsletter"
+                      onSelect={() => handleCreate("newsletter")}
+                    >
+                      <PlusIcon />
+                      New Newsletter
+                    </CommandItem>
                   </CommandGroup>
 
                   <CommandSeparator />
@@ -1530,6 +1621,39 @@ export function CommandPalette() {
         onOpenChange={setAddBookmarkOpen}
         initialUrl={pendingUrl}
         autoScan={Boolean(pendingUrl)}
+      />
+
+      <AddCategoryModal
+        open={createKind === "category"}
+        onOpenChange={open => !open && closeCreate()}
+      />
+      <AddTagModal
+        open={createKind === "tag"}
+        onOpenChange={open => !open && closeCreate()}
+      />
+      <AddMediaTypeModal
+        open={createKind === "media-type"}
+        onOpenChange={open => !open && closeCreate()}
+      />
+      <AddAuthorModal
+        open={createKind === "author"}
+        onOpenChange={open => !open && closeCreate()}
+      />
+      <AddWebsiteModal
+        open={createKind === "website"}
+        onOpenChange={open => !open && closeCreate()}
+      />
+      <AddPropertyGroupModal
+        open={createKind === "property-group"}
+        onOpenChange={open => !open && closeCreate()}
+      />
+      <AddYouTubeChannelModal
+        open={createKind === "youtube-channel"}
+        onOpenChange={open => !open && closeCreate()}
+      />
+      <AddNewsletterModal
+        open={createKind === "newsletter"}
+        onOpenChange={open => !open && closeCreate()}
       />
     </>
   );
