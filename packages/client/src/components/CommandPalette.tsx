@@ -1,5 +1,5 @@
 import type { FlatNode } from "@/lib/tagTree";
-import type { TagNode } from "@eesimple/types";
+import type { Author, Category, CustomProperty, MediaTypeNode, TagNode } from "@eesimple/types";
 
 import { useEffect, useMemo, useState } from "react";
 
@@ -197,6 +197,104 @@ const SETTINGS = [
 
 type TaxonomyMode = "category" | "media-type" | "tags" | "authors" | "choices-property" | "rating-property";
 
+// ─── State hook ──────────────────────────────────────────────────────────────
+
+function useCommandPaletteTaxonomyState() {
+  const [taxonomyMode, setTaxonomyMode] = useState<TaxonomyMode | null>(null);
+  const [pendingTagIds, setPendingTagIds] = useState<string[]>([]);
+  const [pendingAuthorIds, setPendingAuthorIds] = useState<string[]>([]);
+  const [choicesPropertyId, setChoicesPropertyId] = useState<string | null>(null);
+  const [pendingChoiceValues, setPendingChoiceValues] = useState<string[]>([]);
+  const [ratingPropertyId, setRatingPropertyId] = useState<string | null>(null);
+
+  function enterMode(
+    mode: TaxonomyMode,
+    bookmark?: { tags: { id: string }[];
+      authors: { id: string }[]; } | null,
+  ) {
+    setTaxonomyMode(mode);
+    if (mode === "tags" && bookmark) setPendingTagIds(bookmark.tags.map(t => t.id));
+    if (mode === "authors" && bookmark) setPendingAuthorIds(bookmark.authors.map(a => a.id));
+  }
+
+  function enterChoicesMode(propId: string, current: string[]) {
+    setTaxonomyMode("choices-property");
+    setChoicesPropertyId(propId);
+    setPendingChoiceValues(current);
+  }
+
+  function enterRatingMode(propId: string) {
+    setTaxonomyMode("rating-property");
+    setRatingPropertyId(propId);
+  }
+
+  function exitMode() {
+    setTaxonomyMode(null);
+    setChoicesPropertyId(null);
+    setRatingPropertyId(null);
+  }
+
+  function reset() {
+    setTaxonomyMode(null);
+    setChoicesPropertyId(null);
+    setRatingPropertyId(null);
+    setPendingChoiceValues([]);
+  }
+
+  return {
+    taxonomyMode,
+    pendingTagIds,
+    setPendingTagIds,
+    pendingAuthorIds,
+    setPendingAuthorIds,
+    choicesPropertyId,
+    pendingChoiceValues,
+    setPendingChoiceValues,
+    ratingPropertyId,
+    enterMode,
+    enterChoicesMode,
+    enterRatingMode,
+    exitMode,
+    reset,
+  };
+}
+
+/** Open/input state for the palette plus the global ⌘K / Ctrl+K toggle. */
+function useCommandPaletteShell() {
+  const [open, setOpen] = useState(false);
+  const [inputValue, setInputValue] = useState("");
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setOpen(prev => !prev);
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, []);
+
+  return {
+    open,
+    setOpen,
+    inputValue,
+    setInputValue,
+  };
+}
+
+/** The "add a bookmark" modal draft (open flag + the URL prefilled from the query). */
+function useAddBookmarkDraft() {
+  const [addBookmarkOpen, setAddBookmarkOpen] = useState(false);
+  const [pendingUrl, setPendingUrl] = useState("");
+  return {
+    addBookmarkOpen,
+    setAddBookmarkOpen,
+    pendingUrl,
+    setPendingUrl,
+  };
+}
+
 function useTagsPalette(
   flatTags: FlatNode<TagNode>[],
   pendingTagIds: string[],
@@ -260,41 +358,379 @@ function useTagsPalette(
   };
 }
 
-/** Open/input state for the palette plus the global ⌘K / Ctrl+K toggle. */
-function useCommandPaletteShell() {
-  const [open, setOpen] = useState(false);
-  const [inputValue, setInputValue] = useState("");
+// ─── Sub-palette components ───────────────────────────────────────────────────
 
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-        e.preventDefault();
-        setOpen(prev => !prev);
-      }
-    };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
-  }, []);
-
-  return {
-    open,
-    setOpen,
-    inputValue,
-    setInputValue,
-  };
+function CategorySubPalette({
+  categories,
+  currentCategoryId,
+  onBack,
+  onSelect,
+}: {
+  categories: Category[];
+  currentCategoryId: string | null | undefined;
+  onBack: () => void;
+  onSelect: (categoryId: string) => void;
+}) {
+  return (
+    <>
+      <CommandGroup heading="Category">
+        <CommandItem
+          value="back"
+          onSelect={onBack}
+        >
+          <ArrowLeftIcon />
+          Back
+        </CommandItem>
+      </CommandGroup>
+      <CommandSeparator />
+      <CommandGroup heading="Select category">
+        {categories.map(category => (
+          <CommandItem
+            key={category.id}
+            value={category.name}
+            onSelect={() => onSelect(category.id)}
+          >
+            {currentCategoryId === category.id && (
+              <CheckIcon className="text-primary" />
+            )}
+            {category.name}
+          </CommandItem>
+        ))}
+      </CommandGroup>
+    </>
+  );
 }
 
-/** The "add a bookmark" modal draft (open flag + the URL prefilled from the query). */
-function useAddBookmarkDraft() {
-  const [addBookmarkOpen, setAddBookmarkOpen] = useState(false);
-  const [pendingUrl, setPendingUrl] = useState("");
-  return {
-    addBookmarkOpen,
-    setAddBookmarkOpen,
-    pendingUrl,
-    setPendingUrl,
-  };
+function MediaTypeSubPalette({
+  flatMediaTypes,
+  currentMediaTypeId,
+  onBack,
+  onSelect,
+}: {
+  flatMediaTypes: FlatNode<MediaTypeNode>[];
+  currentMediaTypeId: string | null | undefined;
+  onBack: () => void;
+  onSelect: (mediaTypeId: string | null) => void;
+}) {
+  return (
+    <>
+      <CommandGroup heading="Media Type">
+        <CommandItem
+          value="back"
+          onSelect={onBack}
+        >
+          <ArrowLeftIcon />
+          Back
+        </CommandItem>
+      </CommandGroup>
+      <CommandSeparator />
+      <CommandGroup heading="Select media type">
+        <CommandItem
+          value="None"
+          onSelect={() => onSelect(null)}
+        >
+          {currentMediaTypeId == null && (
+            <CheckIcon className="text-primary" />
+          )}
+          None
+        </CommandItem>
+        {flatMediaTypes.map(({
+          node: mt, depth,
+        }) => (
+          <CommandItem
+            key={mt.id}
+            value={mt.name}
+            onSelect={() => onSelect(mt.id)}
+          >
+            {currentMediaTypeId === mt.id && (
+              <CheckIcon className="text-primary" />
+            )}
+            <span
+              style={{
+                paddingLeft: depth > 0 ? `${depth}rem` : undefined,
+              }}
+            >
+              {mt.name}
+            </span>
+          </CommandItem>
+        ))}
+      </CommandGroup>
+    </>
+  );
 }
+
+function TagsSubPalette({
+  flatTags,
+  categoryId,
+  pendingTagIds,
+  onToggleTag,
+  onBack,
+  onDone,
+}: {
+  flatTags: FlatNode<TagNode>[];
+  categoryId: string | undefined;
+  pendingTagIds: string[];
+  onToggleTag: (tagId: string) => void;
+  onBack: () => void;
+  onDone: (tagIds: string[]) => void;
+}) {
+  const {
+    priorityTags, otherTags,
+  } = useTagsPalette(flatTags, pendingTagIds, categoryId);
+
+  const renderTagItem = ({
+    node: tag, depth,
+  }: FlatNode<TagNode>) => {
+    const selected = pendingTagIds.includes(tag.id);
+    return (
+      <CommandItem
+        key={tag.id}
+        value={tag.name}
+        onSelect={() => onToggleTag(tag.id)}
+      >
+        <span
+          style={{
+            paddingLeft: depth > 0 ? `${depth}rem` : undefined,
+          }}
+        >
+          {tag.name}
+        </span>
+        {selected && (
+          <CheckIcon
+            className="ml-auto text-primary"
+          />
+        )}
+      </CommandItem>
+    );
+  };
+
+  return (
+    <>
+      <CommandGroup heading="Tags">
+        <CommandItem
+          value="back"
+          onSelect={onBack}
+        >
+          <ArrowLeftIcon />
+          Back
+        </CommandItem>
+      </CommandGroup>
+      <CommandSeparator />
+      {priorityTags.length > 0
+        ? (
+          <>
+            <CommandGroup heading="Selected & related">
+              {priorityTags.map(renderTagItem)}
+            </CommandGroup>
+            {otherTags.length > 0 && (
+              <>
+                <CommandSeparator />
+                <CommandGroup heading="Other tags">
+                  {otherTags.map(renderTagItem)}
+                </CommandGroup>
+              </>
+            )}
+          </>
+        )
+        : (
+          <CommandGroup heading="Toggle tags">
+            {otherTags.map(renderTagItem)}
+          </CommandGroup>
+        )}
+      <CommandSeparator />
+      <CommandGroup>
+        <CommandItem
+          value="done save tags"
+          onSelect={() => onDone(pendingTagIds)}
+        >
+          <CheckIcon />
+          {`Done (${pendingTagIds.length.toString()} selected)`}
+        </CommandItem>
+      </CommandGroup>
+    </>
+  );
+}
+
+function AuthorsSubPalette({
+  authors,
+  pendingAuthorIds,
+  onToggleAuthor,
+  onBack,
+  onDone,
+}: {
+  authors: Author[];
+  pendingAuthorIds: string[];
+  onToggleAuthor: (authorId: string) => void;
+  onBack: () => void;
+  onDone: (authorIds: string[]) => void;
+}) {
+  return (
+    <>
+      <CommandGroup heading="Authors">
+        <CommandItem
+          value="back"
+          onSelect={onBack}
+        >
+          <ArrowLeftIcon />
+          Back
+        </CommandItem>
+      </CommandGroup>
+      <CommandSeparator />
+      <CommandGroup heading="Toggle authors">
+        {authors.map((author) => {
+          const selected = pendingAuthorIds.includes(author.id);
+          return (
+            <CommandItem
+              key={author.id}
+              value={author.name}
+              onSelect={() => onToggleAuthor(author.id)}
+            >
+              {selected && <CheckIcon className="text-primary" />}
+              {author.name}
+            </CommandItem>
+          );
+        })}
+      </CommandGroup>
+      <CommandSeparator />
+      <CommandGroup>
+        <CommandItem
+          value="done save authors"
+          onSelect={() => onDone(pendingAuthorIds)}
+        >
+          <CheckIcon />
+          {`Done (${pendingAuthorIds.length.toString()} selected)`}
+        </CommandItem>
+      </CommandGroup>
+    </>
+  );
+}
+
+function ChoicesSubPalette({
+  prop,
+  pendingValues,
+  onToggleValue,
+  onBack,
+  onSelectSingle,
+  onDoneMultiple,
+}: {
+  prop: CustomProperty | undefined;
+  pendingValues: string[];
+  onToggleValue: (value: string) => void;
+  onBack: () => void;
+  onSelectSingle: (value: string) => void;
+  onDoneMultiple: (values: string[]) => void;
+}) {
+  if (!prop) return null;
+  return (
+    <>
+      <CommandGroup heading={prop.name}>
+        <CommandItem
+          value="back"
+          onSelect={onBack}
+        >
+          <ArrowLeftIcon />
+          Back
+        </CommandItem>
+      </CommandGroup>
+      <CommandSeparator />
+      <CommandGroup heading={`Select ${prop.name}`}>
+        {prop.choicesItems.map((item) => {
+          const selected = pendingValues.includes(item.value);
+          return (
+            <CommandItem
+              key={item.value}
+              value={item.label}
+              onSelect={() => {
+                if (prop.choicesMultiple) {
+                  onToggleValue(item.value);
+                }
+                else {
+                  onSelectSingle(item.value);
+                }
+              }}
+            >
+              {selected && <CheckIcon className="text-primary" />}
+              {item.label}
+            </CommandItem>
+          );
+        })}
+      </CommandGroup>
+      {prop.choicesMultiple && (
+        <>
+          <CommandSeparator />
+          <CommandGroup>
+            <CommandItem
+              value="done save choices"
+              onSelect={() => onDoneMultiple(pendingValues)}
+            >
+              <CheckIcon />
+              {`Done (${pendingValues.length.toString()} selected)`}
+            </CommandItem>
+          </CommandGroup>
+        </>
+      )}
+    </>
+  );
+}
+
+function RatingSubPalette({
+  prop,
+  currentValue,
+  onBack,
+  onSelect,
+}: {
+  prop: CustomProperty | undefined;
+  currentValue: number | null;
+  onBack: () => void;
+  onSelect: (value: number | null) => void;
+}) {
+  if (!prop) return null;
+  const max = prop.ratingMax ?? 5;
+  const allowZero = prop.ratingAllowZero ?? false;
+  const options = Array.from({
+    length: max,
+  }, (_, i) => i + 1);
+  return (
+    <>
+      <CommandGroup heading={prop.name}>
+        <CommandItem
+          value="back"
+          onSelect={onBack}
+        >
+          <ArrowLeftIcon />
+          Back
+        </CommandItem>
+      </CommandGroup>
+      <CommandSeparator />
+      <CommandGroup heading={`Select ${prop.name}`}>
+        {allowZero && (
+          <CommandItem
+            value="No rating"
+            onSelect={() => onSelect(null)}
+          >
+            {currentValue === null && (
+              <CheckIcon className="text-primary" />
+            )}
+            No rating
+          </CommandItem>
+        )}
+        {options.map(n => (
+          <CommandItem
+            key={n}
+            value={`${n.toString()} ${n === 1 ? "star" : "stars"}`}
+            onSelect={() => onSelect(n)}
+          >
+            {currentValue === n && <CheckIcon className="text-primary" />}
+            {"★".repeat(n)}
+            {"☆".repeat(max - n)}
+          </CommandItem>
+        ))}
+      </CommandGroup>
+    </>
+  );
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
 
 export function CommandPalette() {
   const {
@@ -303,12 +739,7 @@ export function CommandPalette() {
   const {
     addBookmarkOpen, setAddBookmarkOpen, pendingUrl, setPendingUrl,
   } = useAddBookmarkDraft();
-  const [taxonomyMode, setTaxonomyMode] = useState<TaxonomyMode | null>(null);
-  const [pendingTagIds, setPendingTagIds] = useState<string[]>([]);
-  const [pendingAuthorIds, setPendingAuthorIds] = useState<string[]>([]);
-  const [choicesPropertyId, setChoicesPropertyId] = useState<string | null>(null);
-  const [pendingChoiceValues, setPendingChoiceValues] = useState<string[]>([]);
-  const [ratingPropertyId, setRatingPropertyId] = useState<string | null>(null);
+  const taxonomy = useCommandPaletteTaxonomyState();
   const navigate = useNavigate();
   const {
     data: bookmarks = [],
@@ -332,10 +763,6 @@ export function CommandPalette() {
   } = useDisplayPreferenceSettings();
   const updateDisplayPrefs = useUpdateDisplayPreferenceSettings();
 
-  const {
-    priorityTags, otherTags,
-  } = useTagsPalette(flatTags, pendingTagIds, bookmark?.categoryId);
-
   const listingCtx = useListingPageContext();
   const {
     filterId, savedFilter, updateFilter,
@@ -345,10 +772,7 @@ export function CommandPalette() {
     setOpen(value);
     if (!value) {
       setInputValue("");
-      setTaxonomyMode(null);
-      setChoicesPropertyId(null);
-      setRatingPropertyId(null);
-      setPendingChoiceValues([]);
+      taxonomy.reset();
     }
   };
 
@@ -365,33 +789,28 @@ export function CommandPalette() {
     setAddBookmarkOpen(true);
   };
 
-  function enterTaxonomyMode(mode: TaxonomyMode) {
-    setTaxonomyMode(mode);
-    if (mode === "tags" && bookmark) setPendingTagIds(bookmark.tags.map(t => t.id));
-    if (mode === "authors" && bookmark) setPendingAuthorIds(bookmark.authors.map(a => a.id));
+  const handleEnterMode = (mode: TaxonomyMode) => {
+    taxonomy.enterMode(mode, bookmark);
     setInputValue("");
-  }
+  };
 
-  function enterChoicesMode(propId: string) {
-    setTaxonomyMode("choices-property");
-    setChoicesPropertyId(propId);
-    const current = bookmark?.choicesValues.find(v => v.propertyId === propId)?.values ?? [];
-    setPendingChoiceValues(current);
+  const handleEnterChoicesMode = (propId: string) => {
+    taxonomy.enterChoicesMode(
+      propId,
+      bookmark?.choicesValues.find(v => v.propertyId === propId)?.values ?? [],
+    );
     setInputValue("");
-  }
+  };
 
-  function enterRatingMode(propId: string) {
-    setTaxonomyMode("rating-property");
-    setRatingPropertyId(propId);
+  const handleEnterRatingMode = (propId: string) => {
+    taxonomy.enterRatingMode(propId);
     setInputValue("");
-  }
+  };
 
-  function exitTaxonomyMode() {
-    setTaxonomyMode(null);
-    setChoicesPropertyId(null);
-    setRatingPropertyId(null);
+  const handleExitMode = () => {
+    taxonomy.exitMode();
     setInputValue("");
-  }
+  };
 
   const looksLikeUrl
     = inputValue.startsWith("http://")
@@ -419,6 +838,16 @@ export function CommandPalette() {
       && !(p.type === "ratingScale" && !p.ratingAllowHalf),
   );
 
+  const inputPlaceholder = taxonomy.taxonomyMode
+    ? taxonomy.taxonomyMode === "media-type"
+      ? "Search media types…"
+      : taxonomy.taxonomyMode === "choices-property" && taxonomy.choicesPropertyId
+        ? `Search ${(customProperties.find(p => p.id === taxonomy.choicesPropertyId)?.name ?? "options")}…`
+        : taxonomy.taxonomyMode === "rating-property" && taxonomy.ratingPropertyId
+          ? `Select ${(customProperties.find(p => p.id === taxonomy.ratingPropertyId)?.name ?? "rating")}…`
+          : `Search ${taxonomy.taxonomyMode}…`
+    : "Search pages and bookmarks…";
+
   return (
     <>
       <Dialog
@@ -429,431 +858,174 @@ export function CommandPalette() {
           <DialogTitle className="sr-only">Command palette</DialogTitle>
           <Command>
             <CommandInput
-              placeholder={taxonomyMode
-                ? taxonomyMode === "media-type"
-                  ? "Search media types…"
-                  : taxonomyMode === "choices-property" && choicesPropertyId
-                    ? `Search ${(customProperties.find(p => p.id === choicesPropertyId)?.name ?? "options")}…`
-                    : taxonomyMode === "rating-property" && ratingPropertyId
-                      ? `Select ${(customProperties.find(p => p.id === ratingPropertyId)?.name ?? "rating")}…`
-                      : `Search ${taxonomyMode}…`
-                : "Search pages and bookmarks…"}
+              placeholder={inputPlaceholder}
               value={inputValue}
               onValueChange={setInputValue}
             />
             <CommandList className="max-h-[500px]">
               <CommandEmpty>No results found.</CommandEmpty>
 
-              {/* Sub-palette: category selection */}
-              {taxonomyMode === "category" && bookmarkId && (
-                <>
-                  <CommandGroup heading="Category">
-                    <CommandItem
-                      value="back"
-                      onSelect={exitTaxonomyMode}
-                    >
-                      <ArrowLeftIcon />
-                      Back
-                    </CommandItem>
-                  </CommandGroup>
-                  <CommandSeparator />
-                  <CommandGroup heading="Select category">
-                    {categories.map(category => (
-                      <CommandItem
-                        key={category.id}
-                        value={category.name}
-                        onSelect={() => {
-                          updateBookmark.mutate({
-                            id: bookmarkId,
-                            input: {
-                              categoryId: category.id,
-                            },
-                          });
-                          handleOpenChange(false);
-                        }}
-                      >
-                        {bookmark?.categoryId === category.id && (
-                          <CheckIcon className="text-primary" />
-                        )}
-                        {category.name}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </>
+              {taxonomy.taxonomyMode === "category" && bookmarkId && (
+                <CategorySubPalette
+                  categories={categories}
+                  currentCategoryId={bookmark?.categoryId}
+                  onBack={handleExitMode}
+                  onSelect={(categoryId) => {
+                    updateBookmark.mutate({
+                      id: bookmarkId,
+                      input: {
+                        categoryId,
+                      },
+                    });
+                    handleOpenChange(false);
+                  }}
+                />
               )}
 
-              {/* Sub-palette: media type selection */}
-              {taxonomyMode === "media-type" && bookmarkId && (
-                <>
-                  <CommandGroup heading="Media Type">
-                    <CommandItem
-                      value="back"
-                      onSelect={exitTaxonomyMode}
-                    >
-                      <ArrowLeftIcon />
-                      Back
-                    </CommandItem>
-                  </CommandGroup>
-                  <CommandSeparator />
-                  <CommandGroup heading="Select media type">
-                    <CommandItem
-                      value="None"
-                      onSelect={() => {
-                        updateBookmark.mutate({
-                          id: bookmarkId,
-                          input: {
-                            mediaTypeId: null,
+              {taxonomy.taxonomyMode === "media-type" && bookmarkId && (
+                <MediaTypeSubPalette
+                  flatMediaTypes={flatMediaTypes}
+                  currentMediaTypeId={bookmark?.mediaType?.id}
+                  onBack={handleExitMode}
+                  onSelect={(mediaTypeId) => {
+                    updateBookmark.mutate({
+                      id: bookmarkId,
+                      input: {
+                        mediaTypeId,
+                      },
+                    });
+                    handleOpenChange(false);
+                  }}
+                />
+              )}
+
+              {taxonomy.taxonomyMode === "tags" && bookmarkId && (
+                <TagsSubPalette
+                  flatTags={flatTags}
+                  categoryId={bookmark?.categoryId ?? undefined}
+                  pendingTagIds={taxonomy.pendingTagIds}
+                  onToggleTag={tagId =>
+                    taxonomy.setPendingTagIds(prev =>
+                      prev.includes(tagId)
+                        ? prev.filter(id => id !== tagId)
+                        : [...prev, tagId])}
+                  onBack={handleExitMode}
+                  onDone={() => {
+                    updateBookmark.mutate({
+                      id: bookmarkId,
+                      input: {
+                        tagIds: taxonomy.pendingTagIds,
+                      },
+                    });
+                    handleOpenChange(false);
+                  }}
+                />
+              )}
+
+              {taxonomy.taxonomyMode === "authors" && bookmarkId && (
+                <AuthorsSubPalette
+                  authors={authors}
+                  pendingAuthorIds={taxonomy.pendingAuthorIds}
+                  onToggleAuthor={authorId =>
+                    taxonomy.setPendingAuthorIds(prev =>
+                      prev.includes(authorId)
+                        ? prev.filter(id => id !== authorId)
+                        : [...prev, authorId])}
+                  onBack={handleExitMode}
+                  onDone={() => {
+                    updateBookmark.mutate({
+                      id: bookmarkId,
+                      input: {
+                        authorIds: taxonomy.pendingAuthorIds,
+                      },
+                    });
+                    handleOpenChange(false);
+                  }}
+                />
+              )}
+
+              {taxonomy.taxonomyMode === "choices-property" && bookmarkId && taxonomy.choicesPropertyId && (
+                <ChoicesSubPalette
+                  prop={customProperties.find(p => p.id === taxonomy.choicesPropertyId)}
+                  pendingValues={taxonomy.pendingChoiceValues}
+                  onToggleValue={value =>
+                    taxonomy.setPendingChoiceValues(prev =>
+                      prev.includes(value)
+                        ? prev.filter(v => v !== value)
+                        : [...prev, value])}
+                  onBack={handleExitMode}
+                  onSelectSingle={(value) => {
+                    const propId = taxonomy.choicesPropertyId ?? "";
+                    updateBookmark.mutate({
+                      id: bookmarkId,
+                      input: {
+                        choicesValues: [
+                          ...(bookmark?.choicesValues.filter(
+                            v => v.propertyId !== propId,
+                          ) ?? []),
+                          {
+                            propertyId: propId,
+                            values: [value],
                           },
-                        });
-                        handleOpenChange(false);
-                      }}
-                    >
-                      {bookmark?.mediaType === null && (
-                        <CheckIcon className="text-primary" />
-                      )}
-                      None
-                    </CommandItem>
-                    {flatMediaTypes.map(({
-                      node: mt, depth,
-                    }) => (
-                      <CommandItem
-                        key={mt.id}
-                        value={mt.name}
-                        onSelect={() => {
-                          updateBookmark.mutate({
-                            id: bookmarkId,
-                            input: {
-                              mediaTypeId: mt.id,
-                            },
-                          });
-                          handleOpenChange(false);
-                        }}
-                      >
-                        {bookmark?.mediaType?.id === mt.id && (
-                          <CheckIcon className="text-primary" />
-                        )}
-                        <span
-                          style={{
-                            paddingLeft: depth > 0 ? `${depth}rem` : undefined,
-                          }}
-                        >
-                          {mt.name}
-                        </span>
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </>
-              )}
-
-              {/* Sub-palette: tag multi-select */}
-              {taxonomyMode === "tags" && bookmarkId && (
-                <>
-                  <CommandGroup heading="Tags">
-                    <CommandItem
-                      value="back"
-                      onSelect={exitTaxonomyMode}
-                    >
-                      <ArrowLeftIcon />
-                      Back
-                    </CommandItem>
-                  </CommandGroup>
-                  <CommandSeparator />
-                  {(() => {
-                    const renderTagItem = ({
-                      node: tag, depth,
-                    }: FlatNode<TagNode>) => {
-                      const selected = pendingTagIds.includes(tag.id);
-                      return (
-                        <CommandItem
-                          key={tag.id}
-                          value={tag.name}
-                          onSelect={() =>
-                            setPendingTagIds(prev =>
-                              selected
-                                ? prev.filter(id => id !== tag.id)
-                                : [...prev, tag.id])}
-                        >
-                          <span
-                            style={{
-                              paddingLeft: depth > 0 ? `${depth}rem` : undefined,
-                            }}
-                          >
-                            {tag.name}
-                          </span>
-                          {selected && (
-                            <CheckIcon
-                              className="ml-auto text-primary"
-                            />
-                          )}
-                        </CommandItem>
-                      );
-                    };
-                    return priorityTags.length > 0
-                      ? (
-                        <>
-                          <CommandGroup heading="Selected & related">
-                            {priorityTags.map(renderTagItem)}
-                          </CommandGroup>
-                          {otherTags.length > 0 && (
-                            <>
-                              <CommandSeparator />
-                              <CommandGroup heading="Other tags">
-                                {otherTags.map(renderTagItem)}
-                              </CommandGroup>
-                            </>
-                          )}
-                        </>
-                      )
-                      : (
-                        <CommandGroup heading="Toggle tags">
-                          {otherTags.map(renderTagItem)}
-                        </CommandGroup>
-                      );
-                  })()}
-                  <CommandSeparator />
-                  <CommandGroup>
-                    <CommandItem
-                      value="done save tags"
-                      onSelect={() => {
-                        updateBookmark.mutate({
-                          id: bookmarkId,
-                          input: {
-                            tagIds: pendingTagIds,
+                        ],
+                      },
+                    });
+                    handleOpenChange(false);
+                  }}
+                  onDoneMultiple={() => {
+                    const propId = taxonomy.choicesPropertyId ?? "";
+                    updateBookmark.mutate({
+                      id: bookmarkId,
+                      input: {
+                        choicesValues: [
+                          ...(bookmark?.choicesValues.filter(
+                            v => v.propertyId !== propId,
+                          ) ?? []),
+                          {
+                            propertyId: propId,
+                            values: taxonomy.pendingChoiceValues,
                           },
-                        });
-                        handleOpenChange(false);
-                      }}
-                    >
-                      <CheckIcon />
-                      {`Done (${pendingTagIds.length.toString()} selected)`}
-                    </CommandItem>
-                  </CommandGroup>
-                </>
+                        ],
+                      },
+                    });
+                    handleOpenChange(false);
+                  }}
+                />
               )}
 
-              {/* Sub-palette: author multi-select */}
-              {taxonomyMode === "authors" && bookmarkId && (
-                <>
-                  <CommandGroup heading="Authors">
-                    <CommandItem
-                      value="back"
-                      onSelect={exitTaxonomyMode}
-                    >
-                      <ArrowLeftIcon />
-                      Back
-                    </CommandItem>
-                  </CommandGroup>
-                  <CommandSeparator />
-                  <CommandGroup heading="Toggle authors">
-                    {authors.map((author) => {
-                      const selected = pendingAuthorIds.includes(author.id);
-                      return (
-                        <CommandItem
-                          key={author.id}
-                          value={author.name}
-                          onSelect={() => {
-                            setPendingAuthorIds(prev =>
-                              selected
-                                ? prev.filter(id => id !== author.id)
-                                : [...prev, author.id]);
-                          }}
-                        >
-                          {selected && <CheckIcon className="text-primary" />}
-                          {author.name}
-                        </CommandItem>
-                      );
-                    })}
-                  </CommandGroup>
-                  <CommandSeparator />
-                  <CommandGroup>
-                    <CommandItem
-                      value="done save authors"
-                      onSelect={() => {
-                        updateBookmark.mutate({
-                          id: bookmarkId,
-                          input: {
-                            authorIds: pendingAuthorIds,
-                          },
-                        });
-                        handleOpenChange(false);
-                      }}
-                    >
-                      <CheckIcon />
-                      {`Done (${pendingAuthorIds.length.toString()} selected)`}
-                    </CommandItem>
-                  </CommandGroup>
-                </>
+              {taxonomy.taxonomyMode === "rating-property" && bookmarkId && taxonomy.ratingPropertyId && (
+                <RatingSubPalette
+                  prop={customProperties.find(p => p.id === taxonomy.ratingPropertyId)}
+                  currentValue={
+                    bookmark?.numberValues.find(v => v.propertyId === taxonomy.ratingPropertyId)
+                      ?.value ?? null
+                  }
+                  onBack={handleExitMode}
+                  onSelect={(n) => {
+                    const propId = taxonomy.ratingPropertyId ?? "";
+                    updateBookmark.mutate({
+                      id: bookmarkId,
+                      input: {
+                        numberValues: [
+                          ...(bookmark?.numberValues.filter(
+                            v => v.propertyId !== propId,
+                          ) ?? []),
+                          ...(n !== null
+                            ? [{
+                              propertyId: propId,
+                              value: n,
+                            }]
+                            : []),
+                        ],
+                      },
+                    });
+                    handleOpenChange(false);
+                  }}
+                />
               )}
-
-              {/* Sub-palette: choices property */}
-              {taxonomyMode === "choices-property" && bookmarkId && choicesPropertyId && (() => {
-                const prop = customProperties.find(p => p.id === choicesPropertyId);
-                if (!prop) return null;
-                return (
-                  <>
-                    <CommandGroup heading={prop.name}>
-                      <CommandItem
-                        value="back"
-                        onSelect={exitTaxonomyMode}
-                      >
-                        <ArrowLeftIcon />
-                        Back
-                      </CommandItem>
-                    </CommandGroup>
-                    <CommandSeparator />
-                    <CommandGroup heading={`Select ${prop.name}`}>
-                      {prop.choicesItems.map((item) => {
-                        const selected = pendingChoiceValues.includes(item.value);
-                        return (
-                          <CommandItem
-                            key={item.value}
-                            value={item.label}
-                            onSelect={() => {
-                              if (prop.choicesMultiple) {
-                                setPendingChoiceValues(prev =>
-                                  selected
-                                    ? prev.filter(v => v !== item.value)
-                                    : [...prev, item.value]);
-                              }
-                              else {
-                                updateBookmark.mutate({
-                                  id: bookmarkId,
-                                  input: {
-                                    choicesValues: [
-                                      ...(bookmark?.choicesValues.filter(
-                                        v => v.propertyId !== choicesPropertyId,
-                                      ) ?? []),
-                                      {
-                                        propertyId: choicesPropertyId,
-                                        values: [item.value],
-                                      },
-                                    ],
-                                  },
-                                });
-                                handleOpenChange(false);
-                              }
-                            }}
-                          >
-                            {selected && <CheckIcon className="text-primary" />}
-                            {item.label}
-                          </CommandItem>
-                        );
-                      })}
-                    </CommandGroup>
-                    {prop.choicesMultiple && (
-                      <>
-                        <CommandSeparator />
-                        <CommandGroup>
-                          <CommandItem
-                            value="done save choices"
-                            onSelect={() => {
-                              updateBookmark.mutate({
-                                id: bookmarkId,
-                                input: {
-                                  choicesValues: [
-                                    ...(bookmark?.choicesValues.filter(
-                                      v => v.propertyId !== choicesPropertyId,
-                                    ) ?? []),
-                                    {
-                                      propertyId: choicesPropertyId,
-                                      values: pendingChoiceValues,
-                                    },
-                                  ],
-                                },
-                              });
-                              handleOpenChange(false);
-                            }}
-                          >
-                            <CheckIcon />
-                            {`Done (${pendingChoiceValues.length.toString()} selected)`}
-                          </CommandItem>
-                        </CommandGroup>
-                      </>
-                    )}
-                  </>
-                );
-              })()}
-
-              {/* Sub-palette: rating scale property */}
-              {taxonomyMode === "rating-property" && bookmarkId && ratingPropertyId && (() => {
-                const prop = customProperties.find(p => p.id === ratingPropertyId);
-                if (!prop) return null;
-                const max = prop.ratingMax ?? 5;
-                const allowZero = prop.ratingAllowZero ?? false;
-                const current = bookmark?.numberValues.find(v => v.propertyId === ratingPropertyId)?.value ?? null;
-                const options = Array.from({
-                  length: max,
-                }, (_, i) => i + 1);
-                return (
-                  <>
-                    <CommandGroup heading={prop.name}>
-                      <CommandItem
-                        value="back"
-                        onSelect={exitTaxonomyMode}
-                      >
-                        <ArrowLeftIcon />
-                        Back
-                      </CommandItem>
-                    </CommandGroup>
-                    <CommandSeparator />
-                    <CommandGroup heading={`Select ${prop.name}`}>
-                      {allowZero && (
-                        <CommandItem
-                          value="No rating"
-                          onSelect={() => {
-                            updateBookmark.mutate({
-                              id: bookmarkId,
-                              input: {
-                                numberValues: bookmark?.numberValues.filter(
-                                  v => v.propertyId !== ratingPropertyId,
-                                ) ?? [],
-                              },
-                            });
-                            handleOpenChange(false);
-                          }}
-                        >
-                          {current === null && (
-                            <CheckIcon
-                              className="text-primary"
-                            />
-                          )}
-                          No rating
-                        </CommandItem>
-                      )}
-                      {options.map(n => (
-                        <CommandItem
-                          key={n}
-                          value={`${n.toString()} ${n === 1 ? "star" : "stars"}`}
-                          onSelect={() => {
-                            updateBookmark.mutate({
-                              id: bookmarkId,
-                              input: {
-                                numberValues: [
-                                  ...(bookmark?.numberValues.filter(
-                                    v => v.propertyId !== ratingPropertyId,
-                                  ) ?? []),
-                                  {
-                                    propertyId: ratingPropertyId,
-                                    value: n,
-                                  },
-                                ],
-                              },
-                            });
-                            handleOpenChange(false);
-                          }}
-                        >
-                          {current === n && <CheckIcon className="text-primary" />}
-                          {"★".repeat(n)}
-                          {"☆".repeat(max - n)}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </>
-                );
-              })()}
 
               {/* Default palette view */}
-              {taxonomyMode === null && (
+              {taxonomy.taxonomyMode === null && (
                 <>
                   {looksLikeUrl && (
                     <>
@@ -1049,7 +1221,7 @@ export function CommandPalette() {
                       <CommandGroup heading="Bookmark Taxonomies">
                         <CommandItem
                           value="Change Category"
-                          onSelect={() => enterTaxonomyMode("category")}
+                          onSelect={() => handleEnterMode("category")}
                         >
                           <TagIcon />
                           <span className="flex min-w-0 flex-col gap-0.5">
@@ -1061,7 +1233,7 @@ export function CommandPalette() {
                         </CommandItem>
                         <CommandItem
                           value="Change Tags"
-                          onSelect={() => enterTaxonomyMode("tags")}
+                          onSelect={() => handleEnterMode("tags")}
                         >
                           <TagIcon />
                           <span className="flex min-w-0 flex-col gap-0.5">
@@ -1073,7 +1245,7 @@ export function CommandPalette() {
                         </CommandItem>
                         <CommandItem
                           value="Change Media Type"
-                          onSelect={() => enterTaxonomyMode("media-type")}
+                          onSelect={() => handleEnterMode("media-type")}
                         >
                           <TagIcon />
                           <span className="flex min-w-0 flex-col gap-0.5">
@@ -1086,7 +1258,7 @@ export function CommandPalette() {
                         {authors.length > 0 && (
                           <CommandItem
                             value="Change Authors"
-                            onSelect={() => enterTaxonomyMode("authors")}
+                            onSelect={() => handleEnterMode("authors")}
                           >
                             <TagIcon />
                             <span className="flex min-w-0 flex-col gap-0.5">
@@ -1141,7 +1313,7 @@ export function CommandPalette() {
                             <CommandItem
                               key={p.id}
                               value={`Set ${p.name}`}
-                              onSelect={() => enterChoicesMode(p.id)}
+                              onSelect={() => handleEnterChoicesMode(p.id)}
                             >
                               <span className="flex min-w-0 flex-col gap-0.5">
                                 <span>
@@ -1165,7 +1337,7 @@ export function CommandPalette() {
                             <CommandItem
                               key={p.id}
                               value={`Set ${p.name}`}
-                              onSelect={() => enterRatingMode(p.id)}
+                              onSelect={() => handleEnterRatingMode(p.id)}
                             >
                               <span className="flex min-w-0 flex-col gap-0.5">
                                 <span>
