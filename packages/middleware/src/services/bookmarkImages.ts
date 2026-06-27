@@ -257,6 +257,53 @@ export async function bulkAutoFetchImages(
   };
 }
 
+/**
+ * Auto-fetch og:images for all eligible bookmarks (no image, no error), but if the og:image fetch
+ * fails for a bookmark, attempt to capture a screenshot as a fallback. Returns how many succeeded
+ * vs. failed (a screenshot success counts as fetched).
+ * `onProgress` is called after each batch with the running total of processed items.
+ */
+export async function bulkAutoFetchWithScreenshotFallback(
+  onProgress?: (processed: number, total: number) => void,
+): Promise<BulkAutoFetchResult> {
+  const eligible = await db
+    .select({
+      id: bookmarks.id,
+    })
+    .from(bookmarks)
+    .leftJoin(bookmarkImages, eq(bookmarkImages.bookmarkId, bookmarks.id))
+    .where(and(isNull(bookmarkImages.bookmarkId), isNull(bookmarks.imageAutoGrabError)));
+
+  let fetched = 0;
+  let failed = 0;
+  let processed = 0;
+  const BATCH = 3;
+  for (let i = 0; i < eligible.length; i += BATCH) {
+    const results = await Promise.allSettled(
+      eligible.slice(i, i + BATCH).map(async ({
+        id,
+      }) => {
+        const ogResult = await fetchAndStoreOgImage(id);
+        if (typeof ogResult !== "string") return ogResult;
+        // og:image failed (imageAutoGrabError is now set) — try screenshot as fallback.
+        const screenshotResult = await takeAndStoreScreenshot(id);
+        if (typeof screenshotResult === "string") throw new Error(screenshotResult);
+        return screenshotResult;
+      }),
+    );
+    for (const r of results) {
+      if (r.status === "fulfilled") fetched++;
+      else failed++;
+      processed++;
+    }
+    onProgress?.(processed, eligible.length);
+  }
+  return {
+    fetched,
+    failed,
+  };
+}
+
 /** Delete a bookmark's image (object + row). Returns whether one existed. */
 export async function removeBookmarkImage(bookmarkId: string): Promise<boolean> {
   const row = await getBookmarkImageRow(bookmarkId);

@@ -140,7 +140,7 @@ export function BookmarkCard({
     });
   }
 
-  const hasImage = !!bookmark.image && imageVisibility !== "off";
+  const hasImage = !!(bookmark.image ?? bookmark.screenshot) && imageVisibility !== "off";
 
   // Compact Amazon links for any text-typed properties with a non-empty value (e.g. ISBN/ASIN).
   const propById = new Map(properties.map(p => [p.id, p]));

@@ -10,7 +10,7 @@ import { formatSize } from "./galleryFormat";
 import { OrphansGrid, RegisteredGrid, StorageSummary } from "./GalleryGrids";
 import { galleryColumns } from "./tables/galleryColumns";
 import { useBookmarks } from "../hooks/useBookmarks";
-import { useAttachOrphan, useAutoFetchImages, useAutoFetchStatus, useDeleteOrphans, useGallery, useScanBucket } from "../hooks/useGallery";
+import { useAttachOrphan, useAutoFetchImages, useAutoFetchStatus, useAutoFetchWithFallback, useAutoFetchWithFallbackStatus, useDeleteOrphans, useGallery, useScanBucket } from "../hooks/useGallery";
 
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
@@ -26,12 +26,16 @@ interface GalleryToolbarProps {
   scan: ReturnType<typeof useScanBucket>;
   autoFetch: ReturnType<typeof useAutoFetchImages>;
   autoFetchRunning: boolean;
+  autoFetchWithFallback: ReturnType<typeof useAutoFetchWithFallback>;
+  autoFetchWithFallbackRunning: boolean;
   pendingAutoFetchCount: number;
 }
 
 function GalleryToolbar({
-  view, onViewChange, layout, onLayoutChange, scan, autoFetch, autoFetchRunning, pendingAutoFetchCount,
+  view, onViewChange, layout, onLayoutChange, scan, autoFetch, autoFetchRunning,
+  autoFetchWithFallback, autoFetchWithFallbackRunning, pendingAutoFetchCount,
 }: GalleryToolbarProps) {
+  const eitherRunning = autoFetchRunning || autoFetchWithFallbackRunning;
   return (
     <div className="flex flex-wrap items-center gap-3">
       <Button
@@ -52,16 +56,28 @@ function GalleryToolbar({
 
       {pendingAutoFetchCount > 0
         ? (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={autoFetch.isPending || autoFetchRunning}
-            onClick={() => autoFetch.mutate()}
-          >
-            <Download className="size-4" />
-            {autoFetchRunning ? "Fetching…" : "Fetch missing images"}
-          </Button>
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={autoFetch.isPending || eitherRunning}
+              onClick={() => autoFetch.mutate()}
+            >
+              <Download className="size-4" />
+              {autoFetchRunning ? "Fetching…" : "Fetch missing images"}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={autoFetchWithFallback.isPending || eitherRunning}
+              onClick={() => autoFetchWithFallback.mutate()}
+            >
+              <Download className="size-4" />
+              {autoFetchWithFallbackRunning ? "Fetching…" : "Fetch missing images (screenshot fallback)"}
+            </Button>
+          </>
         )
         : null}
 
@@ -201,6 +217,11 @@ export function GalleryListing() {
     data: autoFetchStatus,
   } = useAutoFetchStatus();
   const autoFetchRunning = autoFetchStatus?.status === "running";
+  const autoFetchWithFallback = useAutoFetchWithFallback();
+  const {
+    data: autoFetchWithFallbackStatus,
+  } = useAutoFetchWithFallbackStatus();
+  const autoFetchWithFallbackRunning = autoFetchWithFallbackStatus?.status === "running";
   const deleteOrphans = useDeleteOrphans();
   const attachOrphan = useAttachOrphan();
 
@@ -263,6 +284,8 @@ export function GalleryListing() {
         scan={scan}
         autoFetch={autoFetch}
         autoFetchRunning={autoFetchRunning}
+        autoFetchWithFallback={autoFetchWithFallback}
+        autoFetchWithFallbackRunning={autoFetchWithFallbackRunning}
         pendingAutoFetchCount={catalog?.pendingAutoFetchCount ?? 0}
       />
 

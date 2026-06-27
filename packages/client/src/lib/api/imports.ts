@@ -187,4 +187,10 @@ export const galleryApi = {
       method: "POST",
     }),
   autoFetchStatus: () => request<AutoFetchJobStatus>("/gallery/auto-fetch/status"),
+  autoFetchWithFallback: () =>
+    request<AutoFetchJobStatus>("/gallery/auto-fetch-screenshot-fallback", {
+      method: "POST",
+    }),
+  autoFetchWithFallbackStatus: () =>
+    request<AutoFetchJobStatus>("/gallery/auto-fetch-screenshot-fallback/status"),
 };
