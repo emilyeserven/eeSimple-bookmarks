@@ -6,6 +6,7 @@ import {
   bookmarkMatchesSearch,
   bookmarkSearchEquals,
   hasAnyActiveFilter,
+  summarizeBookmarkSearch,
   tagsForServerQuery,
   validateBookmarkSearch,
   withBooleanFilter,
@@ -837,5 +838,107 @@ describe("bookmarkMatchesSearch — exclude mode", () => {
         },
       })).toBe(true);
     });
+  });
+});
+
+describe("summarizeBookmarkSearch", () => {
+  it("returns 'No filters' for an empty search", () => {
+    expect(summarizeBookmarkSearch({})).toBe("No filters");
+  });
+
+  it("handles a single category (singular)", () => {
+    expect(summarizeBookmarkSearch({ categories: ["cat-1"] })).toBe("1 category");
+  });
+
+  it("handles multiple categories (plural)", () => {
+    expect(summarizeBookmarkSearch({ categories: ["cat-1", "cat-2"] })).toBe("2 categories");
+  });
+
+  it("handles media types", () => {
+    expect(summarizeBookmarkSearch({ mediaTypes: ["book"] })).toBe("1 media type");
+    expect(summarizeBookmarkSearch({ mediaTypes: ["book", "film"] })).toBe("2 media types");
+  });
+
+  it("handles authors", () => {
+    expect(summarizeBookmarkSearch({ authors: ["Author A"] })).toBe("1 author");
+    expect(summarizeBookmarkSearch({ authors: ["A", "B"] })).toBe("2 authors");
+  });
+
+  it("handles tags (default presence)", () => {
+    expect(summarizeBookmarkSearch({ tags: ["tag-1"] })).toBe("1 tag");
+    expect(summarizeBookmarkSearch({ tags: ["tag-1", "tag-2"] })).toBe("2 tags");
+  });
+
+  it("handles tags with 'exclude' presence", () => {
+    expect(summarizeBookmarkSearch({
+      tags: ["tag-1"],
+      tagPresence: "exclude",
+    })).toBe("1 excluded tag");
+    expect(summarizeBookmarkSearch({
+      tags: ["tag-1", "tag-2"],
+      tagPresence: "exclude",
+    })).toBe("2 excluded tags");
+  });
+
+  it("handles tagPresence other than 'exclude'", () => {
+    expect(summarizeBookmarkSearch({ tagPresence: "has" })).toBe("tags: has");
+    expect(summarizeBookmarkSearch({ tags: ["t"], tagPresence: "missing" })).toBe("1 tag · tags: missing");
+  });
+
+  it("handles websites with 'exclude' presence", () => {
+    expect(summarizeBookmarkSearch({
+      websites: ["site-1"],
+      websitePresence: "exclude",
+    })).toBe("1 excluded website");
+  });
+
+  it("handles websitePresence other than 'exclude'", () => {
+    expect(summarizeBookmarkSearch({ websitePresence: "has" })).toBe("website: has");
+  });
+
+  it("handles YouTube channels with 'exclude' presence", () => {
+    expect(summarizeBookmarkSearch({
+      youtubeChannels: ["ch-1", "ch-2"],
+      youtubeChannelPresence: "exclude",
+    })).toBe("2 excluded channels");
+  });
+
+  it("handles youtubeChannelPresence other than 'exclude'", () => {
+    expect(summarizeBookmarkSearch({ youtubeChannelPresence: "has" })).toBe("channel: has");
+  });
+
+  it("counts property filters across types", () => {
+    expect(summarizeBookmarkSearch({
+      num: { "prop-1": [0, 10] },
+      bool: { "prop-2": true },
+    })).toBe("2 properties");
+    expect(summarizeBookmarkSearch({
+      choices: { "prop-1": ["a"] },
+    })).toBe("1 property");
+  });
+
+  it("handles sectionsPresence 'exclude'", () => {
+    expect(summarizeBookmarkSearch({ sectionsPresence: "exclude" })).toBe("sections: excluded types");
+  });
+
+  it("handles sectionsPresence other values", () => {
+    expect(summarizeBookmarkSearch({ sectionsPresence: "has" })).toBe("sections: has");
+  });
+
+  it("handles sectionTypes", () => {
+    expect(summarizeBookmarkSearch({
+      sectionTypes: ["url", "page"],
+    })).toBe("section types: url, page");
+  });
+
+  it("joins multiple filters with ' · '", () => {
+    expect(summarizeBookmarkSearch({
+      categories: ["cat-1"],
+      tags: ["tag-1"],
+    })).toBe("1 category · 1 tag");
+  });
+
+  it("drops invalid raw fields gracefully", () => {
+    expect(summarizeBookmarkSearch({ tags: "not-an-array", invalid: 999 })).toBe("No filters");
   });
 });
