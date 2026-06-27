@@ -1,12 +1,18 @@
+import type { CheckUrlResult } from "@eesimple/types";
+
 import { useEffect, useState } from "react";
 
 import { OEMBED_PROVIDERS } from "@eesimple/types";
+import { useMutation } from "@tanstack/react-query";
+import { CheckCircle2, Loader2, XCircle } from "lucide-react";
 
 import { useConnectorsSettings, useUpdateConnectorsSettings } from "../hooks/useAppSettings";
 import { useConnectors } from "../hooks/useConnectors";
+import { metadataApi } from "../lib/api/metadata";
 import { notifyFieldSaved, notifyFieldSaveError } from "../lib/autoSave";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -60,11 +66,21 @@ function HostedMetadataForm() {
   // apiKey field is always blank on load; user must type to set/replace/clear the stored key.
   const [apiKey, setApiKey] = useState("");
   const [apiKeyDirty, setApiKeyDirty] = useState(false);
+  const [checkResult, setCheckResult] = useState<CheckUrlResult | null>(null);
+
+  const checkConnection = useMutation({
+    mutationFn: () => metadataApi.checkUrl({
+      url: endpoint,
+    }),
+    onSuccess: result => setCheckResult(result),
+    onError: (err: Error) => notifyFieldSaveError("Connection check", err.message),
+  });
 
   useEffect(() => {
     if (data) {
       setEndpoint(data.hostedMetadataEndpoint);
       setProvider(data.hostedMetadataProvider);
+      setCheckResult(null);
     }
   }, [data]);
 
@@ -119,7 +135,10 @@ function HostedMetadataForm() {
           type="url"
           placeholder="http://localhost:3000"
           value={endpoint}
-          onChange={e => setEndpoint(e.target.value)}
+          onChange={(e) => {
+            setEndpoint(e.target.value);
+            setCheckResult(null);
+          }}
           onBlur={() => saveField("endpoint")}
         />
         <p className="text-xs text-muted-foreground">
@@ -136,6 +155,54 @@ function HostedMetadataForm() {
           {" "}
           for page screenshots.
         </p>
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={!endpoint || checkConnection.isPending}
+            onClick={() => {
+              setCheckResult(null);
+              checkConnection.mutate();
+            }}
+          >
+            {checkConnection.isPending
+              ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  Checking…
+                </>
+              )
+              : "Check connection"}
+          </Button>
+          {checkResult && (
+            checkResult.ok
+              ? (
+                <span
+                  className="
+                    flex items-center gap-1 text-sm text-green-600
+                    dark:text-green-400
+                  "
+                >
+                  <CheckCircle2 className="size-4" />
+                  Reachable
+                  {checkResult.status ? ` (HTTP ${checkResult.status})` : ""}
+                </span>
+              )
+              : (
+                <span
+                  className="flex items-center gap-1 text-sm text-destructive"
+                >
+                  <XCircle className="size-4" />
+                  {checkResult.reason === "timeout"
+                    ? "Timed out"
+                    : checkResult.reason === "network_error"
+                      ? "Connection refused"
+                      : `HTTP ${checkResult.status ?? "error"}`}
+                </span>
+              )
+          )}
+        </div>
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="hm-provider">Provider label</Label>

@@ -21,6 +21,13 @@ vi.mock("../hooks/useConnectors", () => ({
   }),
 }));
 
+vi.mock("@tanstack/react-query", () => ({
+  useMutation: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+  }),
+}));
+
 vi.mock("../hooks/useAppSettings", () => ({
   useConnectorsSettings: () => ({
     data: {
