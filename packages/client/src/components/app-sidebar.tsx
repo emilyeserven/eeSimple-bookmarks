@@ -172,6 +172,110 @@ const customizationItems = [
   },
 ] as const;
 
+// ─── Shared sub-components ────────────────────────────────────────────────────
+
+/** Renders a sidebar count badge when count is non-null and the sidebar is not icon-collapsed. */
+function SidebarCountBadge({
+  count,
+  sidebarState,
+  minCount = 0,
+}: {
+  count: number | null | undefined;
+  sidebarState: string;
+  minCount?: number;
+}) {
+  if (count == null || sidebarState === "collapsed" || count < minCount) return null;
+  return (
+    <SidebarMenuBadge>
+      <Badge variant="secondary">{count}</Badge>
+    </SidebarMenuBadge>
+  );
+}
+
+interface LinkSidebarItem {
+  key: string;
+  title: string;
+  to: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  icon: React.ComponentType<any>;
+  count?: number;
+}
+
+/**
+ * Collapsible sidebar section with a visible set of nav links and an optional
+ * "See More" expand affordance for items hidden behind the fold.
+ */
+function ExpandableLinkSection({
+  sectionKey,
+  label,
+  visibleItems,
+  seeMoreItems,
+  expanded,
+  setExpanded,
+  pathname,
+  sidebarState,
+  seeMoreTooltip,
+}: {
+  sectionKey: string;
+  label: string;
+  visibleItems: LinkSidebarItem[];
+  seeMoreItems: LinkSidebarItem[];
+  expanded: boolean;
+  setExpanded: (v: boolean) => void;
+  pathname: string;
+  sidebarState: string;
+  seeMoreTooltip: string;
+}) {
+  const renderItem = (item: LinkSidebarItem) => {
+    const isActive = pathname.startsWith(item.to);
+    return (
+      <SidebarMenuItem key={item.key}>
+        <SidebarMenuButton
+          asChild
+          isActive={isActive}
+          tooltip={item.title}
+        >
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          <Link to={item.to as any}>
+            <item.icon />
+            <span>{item.title}</span>
+          </Link>
+        </SidebarMenuButton>
+        <SidebarCountBadge
+          count={item.count}
+          sidebarState={sidebarState}
+        />
+      </SidebarMenuItem>
+    );
+  };
+
+  return (
+    <CollapsibleSection
+      sectionKey={sectionKey}
+      label={label}
+    >
+      <SidebarMenu>
+        {visibleItems.map(renderItem)}
+        {seeMoreItems.length > 0 && !expanded && sidebarState !== "collapsed" && (
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip={seeMoreTooltip}
+              onClick={() => setExpanded(true)}
+              className="text-xs text-muted-foreground"
+            >
+              <ChevronDown className="size-4" />
+              <span>See More</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        )}
+        {expanded && seeMoreItems.map(renderItem)}
+      </SidebarMenu>
+    </CollapsibleSection>
+  );
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
+
 export function AppSidebar({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
@@ -261,18 +365,20 @@ export function AppSidebar({
                         <span>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
-                    {item.to === "/inbox" && inboxCount != null && state !== "collapsed"
+                    {item.to === "/inbox"
                       ? (
-                        <SidebarMenuBadge>
-                          <Badge variant="secondary">{inboxCount}</Badge>
-                        </SidebarMenuBadge>
+                        <SidebarCountBadge
+                          count={inboxCount}
+                          sidebarState={state}
+                        />
                       )
                       : null}
-                    {item.to === "/bookmarks" && allBookmarks != null && state !== "collapsed"
+                    {item.to === "/bookmarks"
                       ? (
-                        <SidebarMenuBadge>
-                          <Badge variant="secondary">{allBookmarks.length}</Badge>
-                        </SidebarMenuBadge>
+                        <SidebarCountBadge
+                          count={allBookmarks?.length}
+                          sidebarState={state}
+                        />
                       )
                       : null}
                   </SidebarMenuItem>
@@ -307,13 +413,10 @@ export function AppSidebar({
                                 </Link>
                               )}
                           </SidebarMenuButton>
-                          {pin.bookmarkCount != null && state !== "collapsed"
-                            ? (
-                              <SidebarMenuBadge>
-                                <Badge variant="secondary">{pin.bookmarkCount}</Badge>
-                              </SidebarMenuBadge>
-                            )
-                            : null}
+                          <SidebarCountBadge
+                            count={pin.bookmarkCount}
+                            sidebarState={state}
+                          />
                         </SidebarMenuItem>
                       );
                     })}
@@ -374,13 +477,10 @@ export function AppSidebar({
                         <span>{filter.label}</span>
                       </Link>
                     </SidebarMenuButton>
-                    {filter.bookmarkCount != null && state !== "collapsed"
-                      ? (
-                        <SidebarMenuBadge>
-                          <Badge variant="secondary">{filter.bookmarkCount}</Badge>
-                        </SidebarMenuBadge>
-                      )
-                      : null}
+                    <SidebarCountBadge
+                      count={filter.bookmarkCount}
+                      sidebarState={state}
+                    />
                   </SidebarMenuItem>
                 ))}
               </SidebarMenu>
@@ -416,13 +516,10 @@ export function AppSidebar({
                           <span>{category.name}</span>
                         </Link>
                       </SidebarMenuButton>
-                      {category.bookmarkCount != null && state !== "collapsed"
-                        ? (
-                          <SidebarMenuBadge>
-                            <Badge variant="secondary">{category.bookmarkCount}</Badge>
-                          </SidebarMenuBadge>
-                        )
-                        : null}
+                      <SidebarCountBadge
+                        count={category.bookmarkCount}
+                        sidebarState={state}
+                      />
                     </SidebarMenuItem>
                   );
                 })}
@@ -462,13 +559,10 @@ export function AppSidebar({
                             <span>{category.name}</span>
                           </Link>
                         </SidebarMenuButton>
-                        {category.bookmarkCount != null && state !== "collapsed"
-                          ? (
-                            <SidebarMenuBadge>
-                              <Badge variant="secondary">{category.bookmarkCount}</Badge>
-                            </SidebarMenuBadge>
-                          )
-                          : null}
+                        <SidebarCountBadge
+                          count={category.bookmarkCount}
+                          sidebarState={state}
+                        />
                       </SidebarMenuItem>
                     );
                   })
@@ -480,153 +574,33 @@ export function AppSidebar({
 
         {!hiddenSidebarGroups.includes("taxonomies") && (visibleTaxonomyItems.length > 0 || seeMoreTaxonomyItemsList.length > 0)
           ? (
-            <CollapsibleSection
+            <ExpandableLinkSection
               sectionKey="taxonomies"
               label="Taxonomies"
-            >
-              <SidebarMenu>
-                {visibleTaxonomyItems.map((item) => {
-                  const isActive = pathname.startsWith(item.to);
-                  return (
-                    <SidebarMenuItem key={item.key}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={isActive}
-                        tooltip={item.title}
-                      >
-                        <Link to={item.to}>
-                          <item.icon />
-                          <span>{item.title}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                      {item.count !== undefined && state !== "collapsed"
-                        ? (
-                          <SidebarMenuBadge>
-                            <Badge variant="secondary">{item.count}</Badge>
-                          </SidebarMenuBadge>
-                        )
-                        : null}
-                    </SidebarMenuItem>
-                  );
-                })}
-                {seeMoreTaxonomyItemsList.length > 0 && !taxonomiesExpanded && state !== "collapsed"
-                  ? (
-                    <SidebarMenuItem>
-                      <SidebarMenuButton
-                        tooltip="Show more taxonomy links"
-                        onClick={() => setTaxonomiesExpanded(true)}
-                        className="text-xs text-muted-foreground"
-                      >
-                        <ChevronDown className="size-4" />
-                        <span>See More</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  )
-                  : null}
-                {taxonomiesExpanded
-                  ? seeMoreTaxonomyItemsList.map((item) => {
-                    const isActive = pathname.startsWith(item.to);
-                    return (
-                      <SidebarMenuItem key={item.key}>
-                        <SidebarMenuButton
-                          asChild
-                          isActive={isActive}
-                          tooltip={item.title}
-                        >
-                          <Link to={item.to}>
-                            <item.icon />
-                            <span>{item.title}</span>
-                          </Link>
-                        </SidebarMenuButton>
-                        {item.count !== undefined && state !== "collapsed"
-                          ? (
-                            <SidebarMenuBadge>
-                              <Badge variant="secondary">{item.count}</Badge>
-                            </SidebarMenuBadge>
-                          )
-                          : null}
-                      </SidebarMenuItem>
-                    );
-                  })
-                  : null}
-              </SidebarMenu>
-            </CollapsibleSection>
+              visibleItems={visibleTaxonomyItems}
+              seeMoreItems={seeMoreTaxonomyItemsList}
+              expanded={taxonomiesExpanded}
+              setExpanded={setTaxonomiesExpanded}
+              pathname={pathname}
+              sidebarState={state}
+              seeMoreTooltip="Show more taxonomy links"
+            />
           )
           : null}
 
         {!hiddenSidebarGroups.includes("customization") && (visibleCustomizationItems.length > 0 || seeMoreCustomizationItemsList.length > 0)
           ? (
-            <CollapsibleSection
+            <ExpandableLinkSection
               sectionKey="customization"
               label="Customization"
-            >
-              <SidebarMenu>
-                {visibleCustomizationItems.map((item) => {
-                  const isActive = pathname.startsWith(item.to);
-                  return (
-                    <SidebarMenuItem key={item.key}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={isActive}
-                        tooltip={item.title}
-                      >
-                        <Link to={item.to}>
-                          <item.icon />
-                          <span>{item.title}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                      {item.count !== undefined && state !== "collapsed"
-                        ? (
-                          <SidebarMenuBadge>
-                            <Badge variant="secondary">{item.count}</Badge>
-                          </SidebarMenuBadge>
-                        )
-                        : null}
-                    </SidebarMenuItem>
-                  );
-                })}
-                {seeMoreCustomizationItemsList.length > 0 && !customizationExpanded && state !== "collapsed"
-                  ? (
-                    <SidebarMenuItem>
-                      <SidebarMenuButton
-                        tooltip="Show more customization links"
-                        onClick={() => setCustomizationExpanded(true)}
-                        className="text-xs text-muted-foreground"
-                      >
-                        <ChevronDown className="size-4" />
-                        <span>See More</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  )
-                  : null}
-                {customizationExpanded
-                  ? seeMoreCustomizationItemsList.map((item) => {
-                    const isActive = pathname.startsWith(item.to);
-                    return (
-                      <SidebarMenuItem key={item.key}>
-                        <SidebarMenuButton
-                          asChild
-                          isActive={isActive}
-                          tooltip={item.title}
-                        >
-                          <Link to={item.to}>
-                            <item.icon />
-                            <span>{item.title}</span>
-                          </Link>
-                        </SidebarMenuButton>
-                        {item.count !== undefined && state !== "collapsed"
-                          ? (
-                            <SidebarMenuBadge>
-                              <Badge variant="secondary">{item.count}</Badge>
-                            </SidebarMenuBadge>
-                          )
-                          : null}
-                      </SidebarMenuItem>
-                    );
-                  })
-                  : null}
-              </SidebarMenu>
-            </CollapsibleSection>
+              visibleItems={visibleCustomizationItems}
+              seeMoreItems={seeMoreCustomizationItemsList}
+              expanded={customizationExpanded}
+              setExpanded={setCustomizationExpanded}
+              pathname={pathname}
+              sidebarState={state}
+              seeMoreTooltip="Show more customization links"
+            />
           )
           : null}
 
@@ -652,13 +626,11 @@ export function AppSidebar({
                           <span>{item.title}</span>
                         </Link>
                       </SidebarMenuButton>
-                      {count !== undefined && count > 0 && state !== "collapsed"
-                        ? (
-                          <SidebarMenuBadge>
-                            <Badge variant="secondary">{count}</Badge>
-                          </SidebarMenuBadge>
-                        )
-                        : null}
+                      <SidebarCountBadge
+                        count={count}
+                        sidebarState={state}
+                        minCount={1}
+                      />
                     </SidebarMenuItem>
                   );
                 })}
