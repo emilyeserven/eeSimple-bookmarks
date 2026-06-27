@@ -623,6 +623,33 @@ function countPart(count: number, singular: string, plural: string): string | nu
   return count > 0 ? `${count} ${count === 1 ? singular : plural}` : null;
 }
 
+/**
+ * Produce the [count, presence] summary fragments for an entity that has both a list of selected
+ * ids and a `presence` mode ("include" / "exclude" / etc.). Returns two elements (either may be
+ * null) so the caller can spread them directly into the parts array.
+ */
+function entityPresenceParts(
+  ids: unknown[] | undefined,
+  presence: string | undefined,
+  singular: string,
+  plural: string,
+  label: string,
+): [string | null, string | null] {
+  const countFragment = presence === "exclude"
+    ? countPart(ids?.length ?? 0, `excluded ${singular}`, `excluded ${plural}`)
+    : countPart(ids?.length ?? 0, singular, plural);
+  const presenceFragment = presence !== undefined && presence !== "exclude"
+    ? `${label}: ${presence}`
+    : null;
+  return [countFragment, presenceFragment];
+}
+
+/** Format the sections-presence summary fragment. */
+function sectionPresencePart(presence: string | undefined): string | null {
+  if (presence === undefined) return null;
+  return presence === "exclude" ? "sections: excluded types" : `sections: ${presence}`;
+}
+
 export function summarizeBookmarkSearch(raw: Record<string, unknown>): string {
   const search = validateBookmarkSearch(raw);
   const propCount
@@ -631,28 +658,19 @@ export function summarizeBookmarkSearch(raw: Record<string, unknown>): string {
       + Object.keys(search.date ?? {}).length
       + Object.keys(search.presence ?? {}).length
       + Object.keys(search.choices ?? {}).length;
-  const parts = [
+  const parts: (string | null)[] = [
     countPart(search.categories?.length ?? 0, "category", "categories"),
     countPart(search.mediaTypes?.length ?? 0, "media type", "media types"),
-    search.youtubeChannelPresence === "exclude"
-      ? countPart(search.youtubeChannels?.length ?? 0, "excluded channel", "excluded channels")
-      : countPart(search.youtubeChannels?.length ?? 0, "channel", "channels"),
-    search.youtubeChannelPresence !== undefined && search.youtubeChannelPresence !== "exclude" ? `channel: ${search.youtubeChannelPresence}` : null,
-    search.websitePresence === "exclude"
-      ? countPart(search.websites?.length ?? 0, "excluded website", "excluded websites")
-      : countPart(search.websites?.length ?? 0, "website", "websites"),
-    search.websitePresence !== undefined && search.websitePresence !== "exclude" ? `website: ${search.websitePresence}` : null,
+    ...entityPresenceParts(search.youtubeChannels, search.youtubeChannelPresence, "channel", "channels", "channel"),
+    ...entityPresenceParts(search.websites, search.websitePresence, "website", "websites", "website"),
     countPart(search.relationshipTypes?.length ?? 0, "relationship type", "relationship types"),
     countPart(search.authors?.length ?? 0, "author", "authors"),
-    search.tagPresence === "exclude"
-      ? countPart(search.tags?.length ?? 0, "excluded tag", "excluded tags")
-      : countPart(search.tags?.length ?? 0, "tag", "tags"),
-    search.tagPresence !== undefined && search.tagPresence !== "exclude" ? `tags: ${search.tagPresence}` : null,
+    ...entityPresenceParts(search.tags, search.tagPresence, "tag", "tags", "tags"),
     countPart(propCount, "property", "properties"),
-    search.sectionsPresence === "exclude" ? "sections: excluded types" : search.sectionsPresence !== undefined ? `sections: ${search.sectionsPresence}` : null,
+    sectionPresencePart(search.sectionsPresence),
     search.sectionTypes && search.sectionTypes.length > 0 ? `section types: ${search.sectionTypes.join(", ")}` : null,
-  ].filter((part): part is string => part !== null);
-  return parts.join(" · ") || "No filters";
+  ];
+  return parts.filter((part): part is string => part !== null).join(" · ") || "No filters";
 }
 
 /**

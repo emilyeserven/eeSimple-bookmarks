@@ -5,12 +5,7 @@ import { useState } from "react";
 import { propertyAppliesToCategory, propertyAppliesToMediaType } from "@eesimple/types";
 
 import { CategoryCustomFields } from "./BookmarkCustomFields";
-import {
-  buildCategoryPropertyValues,
-  buildChoicesValuesFromInputs,
-  buildSectionsValuesFromInputs,
-  buildTextValuesFromInputs,
-} from "./bookmarkFormSchema";
+import { buildAllPropertyValues } from "./bookmarkFormSchema";
 import { useSeededPropertyInputs } from "./useSeededPropertyInputs";
 import { useUpdateBookmark } from "../hooks/useBookmarks";
 import { useCustomProperties } from "../hooks/useCustomProperties";
@@ -75,43 +70,15 @@ export function BookmarkDetailsPropertiesForm({
     event.preventDefault();
     setIsPending(true);
     try {
-      const {
-        numberValues, booleanValues, dateTimeValues, progressValues,
-      } = buildCategoryPropertyValues(
+      const values = buildAllPropertyValues(
         customProperties ?? [],
         bookmark.categoryId ?? "",
         customRef.current,
         bookmark.mediaType?.id ?? null,
       );
-      const choicesValues = buildChoicesValuesFromInputs(
-        customProperties ?? [],
-        bookmark.categoryId ?? "",
-        customRef.current.choicesInputs,
-        bookmark.mediaType?.id ?? null,
-      );
-      const sectionsValues = buildSectionsValuesFromInputs(
-        customProperties ?? [],
-        bookmark.categoryId ?? "",
-        customRef.current.sectionsInputs,
-        bookmark.mediaType?.id ?? null,
-      );
-      const textValues = buildTextValuesFromInputs(
-        customProperties ?? [],
-        bookmark.categoryId ?? "",
-        customRef.current.textInputs,
-        bookmark.mediaType?.id ?? null,
-      );
       await updateBookmark.mutateAsync({
         id: bookmark.id,
-        input: {
-          numberValues,
-          booleanValues,
-          dateTimeValues,
-          choicesValues,
-          progressValues,
-          sectionsValues,
-          textValues,
-        },
+        input: values,
       });
       notifySuccess("Changes saved");
     }

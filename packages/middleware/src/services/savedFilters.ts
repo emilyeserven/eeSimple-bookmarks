@@ -42,14 +42,6 @@ export async function getSavedFilterById(id: string): Promise<SavedFilter | null
   return row ? toSavedFilter(row) : null;
 }
 
-export async function getSavedFilterBySlug(slug: string): Promise<SavedFilter | null> {
-  const [row] = await db
-    .select()
-    .from(savedFilters)
-    .where(eq(savedFilters.slug, slug));
-  return row ? toSavedFilter(row) : null;
-}
-
 export async function createSavedFilter(input: CreateSavedFilterInput): Promise<SavedFilter> {
   const slug = uniqueSlug(input.name, await takenSlugs());
   const [row] = await db

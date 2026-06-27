@@ -32,31 +32,47 @@ Mirror Media Types / YouTube Channels. The entity must already be a fetched taxo
 `use<Entity>s()` hook and an `id`/`name` shape, and bookmarks must carry the relation (e.g.
 `bookmark.<entity>`). All edits are in the client.
 
-### 1. `packages/client/src/lib/bookmarkSearch.ts` — four edits in one file
-- **Interface**: add `<entity>s?: string[]` to `BookmarkSearch` (mirror `mediaTypes` /
-  `youtubeChannels`).
-- **`validateBookmarkSearch`**: filter the raw array to strings and assign only when non-empty
-  (copy the `mediaTypes` block).
-- **`bookmarkMatchesSearch`**: add an exclusion — if the filter is non-empty and the bookmark's
-  relation isn't in it, `return false` (copy the `mediaTypes` block; match on `bookmark.<entity>.id`
-  and add the relation to the `Pick<Bookmark, …>` param list).
-- **`hasAnyActiveFilter`**: add `|| (search.<entity>s?.length ?? 0) > 0`.
-- **Helper**: export `with<Entity>s(search, ids): BookmarkSearch` (clear the key when `ids` is empty,
-  else set it) — copy `withMediaTypes`.
+### 1. `packages/client/src/lib/bookmarkSearch.ts` — six edits in one file
+- **Interface**: add `<entity>s?: string[]` and `<entity>Presence?: "has" | "missing" | "exclude"`
+  to `BookmarkSearch` (mirror `youtubeChannels` + `youtubeChannelPresence`).
+- **`validateBookmarkSearch`**: validate the id list with `validStringList` **and** the presence
+  mode with `validPresence(search.<entity>Presence)` (copy the `youtubeChannels` /
+  `youtubeChannelPresence` pair).
+- **`bookmarkMatchesSearch`**: use the **presence/exclusion pair pattern** — exclude mode routes
+  through `passesIdFilterExclude`; include/presence modes use `passesIdFilter` (include) +
+  `passesPresence` (has/missing). Copy the YouTube channel block:
+  ```ts
+  && (search.<entity>Presence === "exclude"
+    ? passesIdFilterExclude(search.<entity>s, bookmark.<entity>?.id)
+    : passesIdFilter(search.<entity>s, bookmark.<entity>?.id)
+      && passesPresence(search.<entity>Presence, Boolean(bookmark.<entity>)))
+  ```
+  Add the entity's relation to the `Pick<Bookmark, …>` param list.
+- **`hasAnyActiveFilter`**: add
+  `|| (search.<entity>s?.length ?? 0) > 0 || !!search.<entity>Presence`.
+- **Id helper**: export `with<Entity>s(search, ids): BookmarkSearch` — clear when empty, else set.
+  Copy `withYouTubeChannels`.
+- **Presence helper**: export `with<Entity>Presence(search, mode): BookmarkSearch` — copy
+  `withYouTubeChannelPresence` (setting `"missing"` also clears the id list; `"exclude"` keeps it).
 
 ### 2. `packages/client/src/components/FilterSidebarSections.tsx` — two edits
-- Add a private `<Entity>FilterSection` component by copying `MediaTypeFilterSection`: a
-  `Collapsible` wrapping a `MultiCombobox` (`options` from the entity list, `values` from
-  `search.<entity>s`, `onValuesChange` → `with<Entity>s`) plus the Reset button. Give it a unique
-  `group/<entity>` class. Import `with<Entity>s` and the `<Entity>` type at the top.
-- In `FilterSections`: add `<entity>s?: <Entity>[]` and `has<Entity>Filter: boolean` to the props,
-  render `<Entity>FilterSection` conditionally, and slot a `<Separator />` between it and adjacent
-  groups following the existing interleaving (each section emits a separator only when a later
-  section is present).
+- Add a private `<Entity>FilterSection` component by copying `YouTubeChannelFilterSection`
+  (the presence/exclude pattern is already there). Key elements:
+  - A `FacetPresenceToggle` next to the section header (`value={search.<entity>Presence}`,
+    `onChange={mode => onSearchChange(with<Entity>Presence(search, mode))}`).
+  - Conditionally show the `MultiCombobox` + `FacetChips` when `search.<entity>Presence !== "missing"`.
+  - A Reset button when `filterActive` (ids or presence mode is set), calling
+    `with<Entity>Presence(with<Entity>s(search, []), undefined)`.
+  - Give it a unique `group/<entity>` class on the `Collapsible`.
+- In `FilterSections`: add `<entity>s?: <Entity>[]` to the props, render
+  `<Entity>FilterSection` conditionally (omit when the list is undefined/empty), and slot a
+  `<Separator />` between it and adjacent groups following the existing interleaving.
 
-`FilterSidebar` (the caller of `FilterSections`) derives `has<Entity>Filter` from whether the
-entity list prop is non-empty — wire the new prop through it the same way `mediaTypes` /
-`youtubeChannels` are.
+**Do not** copy `MediaTypeFilterSection` — it lacks the presence/exclusion controls. Mirror
+`YouTubeChannelFilterSection` or `WebsiteFilterSection` instead.
+
+`FilterSidebar` (the caller of `FilterSections`) derives whether to show the section from the
+entity list being non-empty — wire the new prop the same way `youtubeChannels` is.
 
 ### 3. Route files that render `BookmarkSearchView`
 `BookmarkSearchView` already accepts optional `mediaTypes?` / `youtubeChannels?` — add `<entity>s?:

@@ -36,6 +36,61 @@ function StatusBadge({
   return enabled ? <Badge>Active</Badge> : <Badge variant="outline">Inactive</Badge>;
 }
 
+/** Inline status for a connection check attempt. */
+function CheckConnectionResult({
+  result,
+}: { result: CheckUrlResult | null }) {
+  if (!result) return null;
+  if (result.ok) {
+    return (
+      <span
+        className="
+          flex items-center gap-1 text-sm text-green-600
+          dark:text-green-400
+        "
+      >
+        <CheckCircle2 className="size-4" />
+        Reachable
+        {result.status ? ` (HTTP ${result.status})` : ""}
+      </span>
+    );
+  }
+  return (
+    <span className="flex items-center gap-1 text-sm text-destructive">
+      <XCircle className="size-4" />
+      {result.reason === "timeout"
+        ? "Timed out"
+        : result.reason === "network_error"
+          ? "Connection refused"
+          : `HTTP ${result.status ?? "error"}`}
+    </span>
+  );
+}
+
+/** Description text beneath the API key field, varying by stored state and encryption config. */
+function ApiKeyHint({
+  apiKeySet, encryptionEnabled,
+}: { apiKeySet: boolean;
+  encryptionEnabled: boolean; }) {
+  return (
+    <p className="text-xs text-muted-foreground">
+      {apiKeySet
+        ? "A token is stored — the value is never shown. Type a new token to replace it. To clear the stored token, type a single space and save."
+        : "Optional. Set the TOKEN env var on your Browserless container and enter the same value here. Sent as an Authorization: Bearer header."}
+      {!encryptionEnabled && (
+        <>
+          {" "}
+          Set the
+          {" "}
+          <code>APP_SECRET</code>
+          {" "}
+          env var to encrypt this token at rest.
+        </>
+      )}
+    </p>
+  );
+}
+
 /** A bullet list of the data a connector provides. */
 function Provides({
   items,
@@ -175,33 +230,7 @@ function HostedMetadataForm() {
               )
               : "Check connection"}
           </Button>
-          {checkResult && (
-            checkResult.ok
-              ? (
-                <span
-                  className="
-                    flex items-center gap-1 text-sm text-green-600
-                    dark:text-green-400
-                  "
-                >
-                  <CheckCircle2 className="size-4" />
-                  Reachable
-                  {checkResult.status ? ` (HTTP ${checkResult.status})` : ""}
-                </span>
-              )
-              : (
-                <span
-                  className="flex items-center gap-1 text-sm text-destructive"
-                >
-                  <XCircle className="size-4" />
-                  {checkResult.reason === "timeout"
-                    ? "Timed out"
-                    : checkResult.reason === "network_error"
-                      ? "Connection refused"
-                      : `HTTP ${checkResult.status ?? "error"}`}
-                </span>
-              )
-          )}
+          <CheckConnectionResult result={checkResult} />
         </div>
       </div>
       <div className="space-y-1.5">
@@ -234,21 +263,10 @@ function HostedMetadataForm() {
           }}
           onBlur={() => saveField("apiKey")}
         />
-        <p className="text-xs text-muted-foreground">
-          {data?.hostedMetadataApiKeySet
-            ? "A token is stored — the value is never shown. Type a new token to replace it. To clear the stored token, type a single space and save."
-            : "Optional. Set the TOKEN env var on your Browserless container and enter the same value here. Sent as an Authorization: Bearer header."}
-          {data && !data.encryptionEnabled && (
-            <>
-              {" "}
-              Set the
-              {" "}
-              <code>APP_SECRET</code>
-              {" "}
-              env var to encrypt this token at rest.
-            </>
-          )}
-        </p>
+        <ApiKeyHint
+          apiKeySet={data?.hostedMetadataApiKeySet ?? false}
+          encryptionEnabled={data?.encryptionEnabled ?? true}
+        />
       </div>
     </div>
   );
