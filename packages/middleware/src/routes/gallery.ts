@@ -1,7 +1,7 @@
 import type { FastifyInstance } from "fastify";
-import { bulkAutoFetchImages, setBookmarkImage } from "@/services/bookmarkImages";
+import { bulkAutoFetchImages, bulkAutoFetchWithScreenshotFallback, setBookmarkImage } from "@/services/bookmarkImages";
 import { deleteOrphans, forgetManifestObject, getCatalog, MANAGED_PREFIX, scanBucket, verifyIsOrphan } from "@/services/gallery";
-import { getAutoFetchJobStatus, setAutoFetchJobStatus } from "@/services/imageAutoFetchState";
+import { getAutoFetchJobStatus, getScreenshotFallbackJobStatus, setAutoFetchJobStatus, setScreenshotFallbackJobStatus } from "@/services/imageAutoFetchState";
 import { deleteObject, getObjectBytes, getObjectStream, isObjectStoreConfigured } from "@/utils/objectStore";
 
 const deleteOrphansBody = {
@@ -149,10 +149,9 @@ export async function galleryRoutes(app: FastifyInstance): Promise<void> {
     },
   }, async (_req, reply) => {
     if (!isObjectStoreConfigured()) return reply.code(503).send(notConfigured);
-    const current = getAutoFetchJobStatus();
-    if (current.status === "running") {
+    if (getAutoFetchJobStatus().status === "running" || getScreenshotFallbackJobStatus().status === "running") {
       return reply.code(409).send({
-        message: "Auto-fetch already in progress",
+        message: "An auto-fetch job is already in progress",
       });
     }
 
@@ -190,6 +189,56 @@ export async function galleryRoutes(app: FastifyInstance): Promise<void> {
   }, async (_req, reply) => {
     if (!isObjectStoreConfigured()) return reply.code(503).send(notConfigured);
     return getAutoFetchJobStatus();
+  });
+
+  // Bulk auto-fetch with screenshot fallback: try og:image first; if that fails, capture a
+  // screenshot. A second POST while a job is running (either this or the plain auto-fetch) returns
+  // 409.
+  app.post("/api/gallery/auto-fetch-screenshot-fallback", {
+    schema: {
+      tags: ["gallery"],
+    },
+  }, async (_req, reply) => {
+    if (!isObjectStoreConfigured()) return reply.code(503).send(notConfigured);
+    if (getAutoFetchJobStatus().status === "running" || getScreenshotFallbackJobStatus().status === "running") {
+      return reply.code(409).send({
+        message: "An auto-fetch job is already in progress",
+      });
+    }
+
+    setScreenshotFallbackJobStatus({
+      status: "running",
+      totalCount: 0,
+      processedCount: 0,
+    });
+    void bulkAutoFetchWithScreenshotFallback((processed, total) => {
+      setScreenshotFallbackJobStatus({
+        status: "running",
+        totalCount: total,
+        processedCount: processed,
+      });
+    }).then((result) => {
+      setScreenshotFallbackJobStatus({
+        status: "done",
+        ...result,
+      });
+    }).catch(() => {
+      setScreenshotFallbackJobStatus({
+        status: "idle",
+      });
+    });
+
+    return reply.code(202).send(getScreenshotFallbackJobStatus());
+  });
+
+  // Return the current status of the screenshot-fallback bulk auto-fetch job.
+  app.get("/api/gallery/auto-fetch-screenshot-fallback/status", {
+    schema: {
+      tags: ["gallery"],
+    },
+  }, async (_req, reply) => {
+    if (!isObjectStoreConfigured()) return reply.code(503).send(notConfigured);
+    return getScreenshotFallbackJobStatus();
   });
 
   // Serve an arbitrary object by key so orphan thumbnails (which have no bookmark) can be previewed.

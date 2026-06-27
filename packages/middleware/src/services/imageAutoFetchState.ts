@@ -11,3 +11,15 @@ export function getAutoFetchJobStatus(): AutoFetchJobStatus {
 export function setAutoFetchJobStatus(state: AutoFetchJobStatus): void {
   _state = state;
 }
+
+let _screenshotFallbackState: AutoFetchJobStatus = {
+  status: "idle",
+};
+
+export function getScreenshotFallbackJobStatus(): AutoFetchJobStatus {
+  return _screenshotFallbackState;
+}
+
+export function setScreenshotFallbackJobStatus(state: AutoFetchJobStatus): void {
+  _screenshotFallbackState = state;
+}

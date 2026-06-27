@@ -101,6 +101,64 @@ export function useAutoFetchImages() {
   });
 }
 
+const AUTO_FETCH_FALLBACK_STATUS_KEY = ["gallery", "auto-fetch-fallback-status"] as const;
+
+/**
+ * Poll the background screenshot-fallback auto-fetch job status. Self-stopping: only refetches
+ * while running, then idles until a start mutation invalidates the key.
+ */
+export function useAutoFetchWithFallbackStatus() {
+  return useQuery({
+    queryKey: AUTO_FETCH_FALLBACK_STATUS_KEY,
+    queryFn: galleryApi.autoFetchWithFallbackStatus,
+    refetchInterval: query =>
+      (query.state.data?.status === "running" ? AUTO_FETCH_POLL_MS : false),
+  });
+}
+
+/**
+ * Watch the screenshot-fallback job status and fire a completion toast when it finishes, then
+ * refresh the gallery catalog.
+ */
+export function useAutoFetchWithFallbackCompletionToast(status: AutoFetchJobStatus | undefined) {
+  const queryClient = useQueryClient();
+  const previous = useRef<AutoFetchJobStatus | undefined>(undefined);
+  useEffect(() => {
+    if (
+      previous.current?.status === "running"
+      && status?.status === "done"
+    ) {
+      const {
+        fetched, failed,
+      } = status;
+      notifySuccess(
+        `Fetched ${fetched} image${fetched === 1 ? "" : "s"}${failed > 0 ? `, ${failed} failed` : ""}.`,
+        {
+          link: {
+            href: "/settings/media-management",
+            label: "View in Media Management",
+          },
+        },
+      );
+      void queryClient.invalidateQueries({
+        queryKey: GALLERY_KEY,
+      });
+    }
+    previous.current = status;
+  }, [status, queryClient]);
+}
+
+/** Start a background bulk auto-fetch-with-screenshot-fallback job. Kicks the status poll. */
+export function useAutoFetchWithFallback() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => galleryApi.autoFetchWithFallback(),
+    onSuccess: (data) => {
+      queryClient.setQueryData(AUTO_FETCH_FALLBACK_STATUS_KEY, data);
+    },
+  });
+}
+
 /** Attach an orphaned object to a bookmark, then refetch the catalog. */
 export function useAttachOrphan() {
   const queryClient = useQueryClient();

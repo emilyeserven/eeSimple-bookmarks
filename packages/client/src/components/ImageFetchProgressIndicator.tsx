@@ -1,29 +1,19 @@
 import { ImageDown, Loader2 } from "lucide-react";
 
-import { useAutoFetchCompletionToast, useAutoFetchStatus } from "../hooks/useGallery";
+import { useAutoFetchCompletionToast, useAutoFetchStatus, useAutoFetchWithFallbackCompletionToast, useAutoFetchWithFallbackStatus } from "../hooks/useGallery";
 
 import { Button } from "@/components/ui/button";
 import { ResponsivePopover } from "@/components/ui/responsive-popover";
 
-/**
- * Header-stripe indicator for the background image auto-fetch job. Renders nothing when no job is
- * running; otherwise shows a spinner + processed/total count that opens a popover with details.
- * Completion toasts are fired by `useAutoFetchCompletionToast`, mounted here so they fire app-wide.
- */
-export function ImageFetchProgressIndicator() {
-  const {
-    data: status,
-  } = useAutoFetchStatus();
-  useAutoFetchCompletionToast(status);
-
-  if (!status || status.status !== "running") return null;
-
-  const {
-    totalCount, processedCount,
-  } = status;
+function FetchProgressPopover({
+  label,
+  totalCount,
+  processedCount,
+}: { label: string;
+  totalCount: number;
+  processedCount: number; }) {
   const summary = totalCount > 0 ? `${processedCount}/${totalCount}` : "…";
   const fraction = totalCount > 0 ? Math.min(1, processedCount / totalCount) : 0;
-
   return (
     <ResponsivePopover
       title="Fetching images"
@@ -43,7 +33,7 @@ export function ImageFetchProgressIndicator() {
     >
       <div className="w-56 space-y-2">
         <div className="flex items-center justify-between gap-3 text-sm">
-          <span className="truncate">Fetching missing images</span>
+          <span className="truncate">{label}</span>
           <span className="shrink-0 text-xs text-muted-foreground">{summary}</span>
         </div>
         <div className="h-1.5 overflow-hidden rounded-full bg-muted">
@@ -57,4 +47,42 @@ export function ImageFetchProgressIndicator() {
       </div>
     </ResponsivePopover>
   );
+}
+
+/**
+ * Header-stripe indicator for background image auto-fetch jobs. Renders nothing when no job is
+ * running; otherwise shows a spinner + processed/total count that opens a popover with details.
+ * Completion toasts are fired app-wide by the mounted completion-toast hooks.
+ */
+export function ImageFetchProgressIndicator() {
+  const {
+    data: status,
+  } = useAutoFetchStatus();
+  const {
+    data: fallbackStatus,
+  } = useAutoFetchWithFallbackStatus();
+  useAutoFetchCompletionToast(status);
+  useAutoFetchWithFallbackCompletionToast(fallbackStatus);
+
+  if (status?.status === "running") {
+    return (
+      <FetchProgressPopover
+        label="Fetching missing images"
+        totalCount={status.totalCount}
+        processedCount={status.processedCount}
+      />
+    );
+  }
+
+  if (fallbackStatus?.status === "running") {
+    return (
+      <FetchProgressPopover
+        label="Fetching images (screenshot fallback)"
+        totalCount={fallbackStatus.totalCount}
+        processedCount={fallbackStatus.processedCount}
+      />
+    );
+  }
+
+  return null;
 }
