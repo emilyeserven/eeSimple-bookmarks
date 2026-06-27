@@ -54,6 +54,16 @@ export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
     logger: {
       level: process.env.LOG_LEVEL ?? "info",
+      ...(process.env.NODE_ENV !== "production" && {
+        transport: {
+          target: "pino-pretty",
+          options: {
+            colorize: true,
+            translateTime: "HH:MM:ss.l",
+            ignore: "pid,hostname",
+          },
+        },
+      }),
     },
   });
 
@@ -167,6 +177,22 @@ export async function buildApp(): Promise<FastifyInstance> {
       routePrefix: "/docs",
     });
   }
+
+  // Log params / query / body at debug level so `LOG_LEVEL=debug` surfaces request detail
+  // without polluting the default info output.
+  app.addHook("preHandler", (req, _reply, done) => {
+    req.log.debug(
+      {
+        params: req.params,
+        query: req.query,
+        ...(req.body !== undefined && {
+          body: req.body,
+        }),
+      },
+      "route detail",
+    );
+    done();
+  });
 
   // Shared recursive condition-tree schema, referenced by autofill + homepage-filter bodies.
   app.addSchema(conditionNodeSchema);
