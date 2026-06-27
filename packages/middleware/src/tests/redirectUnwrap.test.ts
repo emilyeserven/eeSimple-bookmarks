@@ -1,12 +1,13 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
-import { mapWithConcurrency, unwrapRedirect } from "@/services/redirectUnwrap";
+import { mapWithConcurrency, unwrapRedirect, unwrapWithBrowserless } from "@/services/redirectUnwrap";
 
 // These tests stub `globalThis.fetch` to drive redirect chains deterministically (no real network).
 
 const realFetch = globalThis.fetch;
 afterEach(() => {
   globalThis.fetch = realFetch;
+  delete process.env.HOSTED_METADATA_ENDPOINT;
 });
 
 /** Build a fetch that resolves each URL to a Response from `routes`, or rejects when unmapped. */
@@ -86,6 +87,74 @@ test("unwrapRedirect maps an aborted fetch to a timeout", async () => {
   assert.deepEqual(await unwrapRedirect("https://example.com/slow"), {
     kind: "timeout",
   });
+});
+
+// ---------------------------------------------------------------------------
+// unwrapWithBrowserless
+// ---------------------------------------------------------------------------
+
+test("unwrapWithBrowserless returns null when no Browserless endpoint is configured", async () => {
+  // No HOSTED_METADATA_ENDPOINT set — should return null without fetching.
+  let called = false;
+  globalThis.fetch = (() => {
+    called = true;
+    return Promise.reject(new Error("should not fetch"));
+  }) as typeof fetch;
+  assert.equal(await unwrapWithBrowserless("https://tracker.example.com/c/abc"), null);
+  assert.equal(called, false);
+});
+
+test("unwrapWithBrowserless returns the navigated URL when the page redirects via JS", async () => {
+  process.env.HOSTED_METADATA_ENDPOINT = "http://browserless:3000";
+  globalThis.fetch = (async () =>
+    new Response(JSON.stringify({
+      url: "https://real-article.example.com/post/123",
+    }), {
+      status: 200,
+      headers: {
+        "content-type": "application/json",
+      },
+    })) as typeof fetch;
+  const result = await unwrapWithBrowserless("https://tracker.example.com/c/abc");
+  assert.equal(result, "https://real-article.example.com/post/123");
+});
+
+test("unwrapWithBrowserless returns null when the page does not navigate away", async () => {
+  process.env.HOSTED_METADATA_ENDPOINT = "http://browserless:3000";
+  // Browserless returns the same URL — no redirect occurred.
+  globalThis.fetch = (async () =>
+    new Response(JSON.stringify({
+      url: "https://tracker.example.com/c/abc",
+    }), {
+      status: 200,
+      headers: {
+        "content-type": "application/json",
+      },
+    })) as typeof fetch;
+  assert.equal(await unwrapWithBrowserless("https://tracker.example.com/c/abc"), null);
+});
+
+test("unwrapWithBrowserless rejects a private address returned by the browser (SSRF guard)", async () => {
+  process.env.HOSTED_METADATA_ENDPOINT = "http://browserless:3000";
+  globalThis.fetch = (async () =>
+    new Response(JSON.stringify({
+      url: "http://169.254.169.254/latest/meta-data",
+    }), {
+      status: 200,
+      headers: {
+        "content-type": "application/json",
+      },
+    })) as typeof fetch;
+  assert.equal(await unwrapWithBrowserless("https://tracker.example.com/c/abc"), null);
+});
+
+test("unwrapWithBrowserless returns null on a Browserless HTTP error", async () => {
+  process.env.HOSTED_METADATA_ENDPOINT = "http://browserless:3000";
+  globalThis.fetch = (async () =>
+    new Response("", {
+      status: 500,
+    })) as typeof fetch;
+  assert.equal(await unwrapWithBrowserless("https://tracker.example.com/c/abc"), null);
 });
 
 test("mapWithConcurrency preserves order and respects the in-flight cap", async () => {

@@ -8,6 +8,10 @@
  * would not re-check intermediate hops, letting a tracker 302 to a private address.
  */
 
+import {
+  getActiveHostedEndpoint,
+  getDecryptedHostedApiKey,
+} from "@/services/appSettings";
 import { BROWSER_USER_AGENT, FETCH_TIMEOUT_MS, isPublicHttpUrl } from "@/services/metadata";
 
 /** Max redirect hops to follow before giving up (a normal tracker is 1–2). */
@@ -111,6 +115,59 @@ export async function unwrapRedirect(url: string): Promise<UnwrapResult> {
     return {
       kind: "network_error",
     };
+  }
+}
+
+const BROWSERLESS_FUNCTION_TIMEOUT_MS = 20_000;
+
+/**
+ * Navigate `url` in a headless browser (via the configured Browserless instance) and return the
+ * final URL after any JS redirects execute. Returns `null` when Browserless is not configured, the
+ * request fails, or the page does not navigate away from `url`. Never throws.
+ *
+ * Use as a fallback for tracker URLs that use `window.location` / `meta refresh` redirects — HTTP
+ * 200 followed by JS that navigates to the real article — which `unwrapRedirect`'s manual HTTP chain
+ * cannot follow. Also catches bot-protected trackers that serve a JS challenge to plain HTTP clients.
+ */
+export async function unwrapWithBrowserless(url: string): Promise<string | null> {
+  const endpoint = await getActiveHostedEndpoint();
+  if (!endpoint) return null;
+  const token = await getDecryptedHostedApiKey();
+
+  try {
+    const res = await fetch(`${endpoint.replace(/\/$/, "")}/chromium/function`, {
+      method: "POST",
+      signal: AbortSignal.timeout(BROWSERLESS_FUNCTION_TIMEOUT_MS),
+      headers: {
+        "Content-Type": "application/json",
+        ...(token
+          ? {
+            Authorization: `Bearer ${token}`,
+          }
+          : {}),
+      },
+      body: JSON.stringify({
+        code: `export default async ({ page, context }) => {
+  await page.goto(context.url, { waitUntil: "networkidle2", timeout: 15000 });
+  return { url: page.url() };
+}`,
+        context: {
+          url,
+        },
+      }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json() as unknown;
+    const finalUrl = (data as Record<string, unknown>).url;
+    if (typeof finalUrl !== "string" || finalUrl.length === 0) return null;
+    // SSRF guard: reject any result that resolves to a private/loopback address.
+    if (!isPublicHttpUrl(finalUrl)) return null;
+    // Page didn't navigate — input URL was already the destination.
+    if (finalUrl === url) return null;
+    return finalUrl;
+  }
+  catch {
+    return null;
   }
 }
 

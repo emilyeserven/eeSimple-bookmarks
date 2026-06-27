@@ -13,7 +13,7 @@ import {
 import { fetchHostedMetadata } from "@/services/hostedMetadata";
 import { fetchIsbnMetadata } from "@/services/isbn";
 import { fetchOEmbedForUrl } from "@/services/oembed";
-import { unwrapRedirect } from "@/services/redirectUnwrap";
+import { unwrapRedirect, unwrapWithBrowserless } from "@/services/redirectUnwrap";
 import { getCachedScan, scanCacheKey, setCachedScan } from "@/services/scanCache";
 import { lookupWebsiteByUrl, stripSiteNameSuffix } from "@/services/websites";
 import { fetchYouTubeMetadata, isYouTubeVideoUrl } from "@/services/youtube";
@@ -196,6 +196,10 @@ async function buildGenericMetadataResult(
 /**
  * Follow a URL's redirect chain to the `ResolveUrlResult` wire shape. Falls back to the original URL
  * with a user-facing `resolveError` on any non-ok outcome. Shared by `/api/resolve-url` and `/api/scan`.
+ *
+ * When HTTP fails (bot detection, 4xx/5xx), Browserless is tried as a fallback before returning an
+ * error — it can navigate through JS challenges and follow `window.location` redirects that plain
+ * HTTP HEAD/GET cannot.
  */
 async function resolveRedirectResult(url: string): Promise<ResolveUrlResult> {
   const result = await unwrapRedirect(url);
@@ -205,6 +209,18 @@ async function resolveRedirectResult(url: string): Promise<ResolveUrlResult> {
       redirected: result.redirected,
     };
   }
+
+  // HTTP failed — try Browserless before surfacing the error to the user.
+  if (result.kind !== "blocked") {
+    const browserlessUrl = await unwrapWithBrowserless(url);
+    if (browserlessUrl) {
+      return {
+        finalUrl: browserlessUrl,
+        redirected: true,
+      };
+    }
+  }
+
   let resolveError: string;
   switch (result.kind) {
     case "blocked":
