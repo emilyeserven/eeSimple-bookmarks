@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 import { CHOICES_DISPLAY_LABELS, CHOICES_DISPLAY_TYPES } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
-import { SlidersHorizontal, Sparkles } from "lucide-react";
+import { Camera, SlidersHorizontal, Sparkles } from "lucide-react";
 
 import { DateTimePicker } from "./DateTimePicker";
 import { useEditPanelClick } from "./panel/useEditPanelClick";
@@ -100,6 +100,8 @@ interface BookmarkCardMenuProps {
   editableTags: BookmarkTag[];
   autoImagePending: boolean;
   onAutoImage: () => void;
+  screenshotPending: boolean;
+  onScreenshot: () => void;
   onSaveNumber: (propertyId: string, value: number) => void;
   onSaveBoolean: (propertyId: string, value: boolean) => void;
   onSaveDateTime: (propertyId: string, value: string) => void;
@@ -111,7 +113,7 @@ interface BookmarkCardMenuProps {
 
 /** The dropdown menu content for a bookmark card: edit link, quick-edit properties, image grab, delete. */
 export function BookmarkCardMenu({
-  bookmark, editableProperties, editableTags, autoImagePending, onAutoImage,
+  bookmark, editableProperties, editableTags, autoImagePending, onAutoImage, screenshotPending, onScreenshot,
   onSaveNumber, onSaveBoolean, onSaveDateTime, onSaveChoices, onSaveTags,
   onChangeChoicesDisplay, onDelete,
 }: BookmarkCardMenuProps) {
@@ -353,6 +355,13 @@ export function BookmarkCardMenu({
             </span>
           )}
         </div>
+      </DropdownMenuItem>
+      <DropdownMenuItem
+        disabled={screenshotPending}
+        onClick={onScreenshot}
+      >
+        <Camera className="mr-2 size-4" />
+        Generate screenshot
       </DropdownMenuItem>
       {onDelete
         ? (

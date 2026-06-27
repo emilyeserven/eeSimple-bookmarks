@@ -13,7 +13,7 @@ import { BookmarkCardImage } from "./BookmarkCardImage";
 import { buildCardOverlayItems } from "./bookmarkCardOverlays";
 import { useViewPanelClick } from "./panel/useEditPanelClick";
 import { useSidebarOpenModifier } from "../hooks/useAppSettings";
-import { useAutoBookmarkImage, useUpdateBookmark } from "../hooks/useBookmarks";
+import { useAutoBookmarkImage, useTakeBookmarkScreenshot, useUpdateBookmark } from "../hooks/useBookmarks";
 import { useCategories } from "../hooks/useCategories";
 import { buildBookmarkValueItems, fieldPlacementsForCard } from "../lib/bookmarkCardValues";
 import { mergeBooleanValue } from "../lib/bookmarkFormat";
@@ -67,6 +67,7 @@ export function BookmarkCard({
   imageVisibility = "shown", fieldZones, cardZoneLayouts, hideWebsiteForYouTube,
 }: BookmarkCardProps) {
   const autoImage = useAutoBookmarkImage();
+  const screenshot = useTakeBookmarkScreenshot();
   const updateBookmark = useUpdateBookmark();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
@@ -166,6 +167,8 @@ export function BookmarkCard({
             id: bookmark.id,
             sourceUrl: bookmark.url ?? "",
           })}
+          screenshotPending={screenshot.isPending}
+          onScreenshot={() => screenshot.mutate(bookmark.id)}
           onSaveNumber={saveNumber}
           onSaveBoolean={saveBoolean}
           onSaveDateTime={saveDateTime}
@@ -222,6 +225,8 @@ export function BookmarkCard({
         id: bookmark.id,
         sourceUrl: bookmark.url ?? "",
       })}
+      screenshotPending={screenshot.isPending}
+      onScreenshot={() => screenshot.mutate(bookmark.id)}
       onSaveNumber={saveNumber}
       onSaveDateTime={saveDateTime}
       onDelete={onDelete}
