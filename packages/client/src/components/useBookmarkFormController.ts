@@ -1,15 +1,9 @@
-import type { ImageIntent } from "./bookmarkImageIntent";
 import type {
-  Author,
   Bookmark,
   CreateBookmarkInput,
-  Publisher,
   ScanResult,
-  YouTubeChannelHint,
 } from "@eesimple/types";
 import type { KeyboardEvent } from "react";
-
-import { useRef, useState } from "react";
 
 import { useStore } from "@tanstack/react-form";
 import { useNavigate } from "@tanstack/react-router";
@@ -19,22 +13,20 @@ import {
   buildAllPropertyValues,
   buildBookmarkDefaultValues,
   detectBookmarkInputType,
-  initialImageIntent,
-  ISBN_SLUG,
   looksLikeYouTube,
-  normalizeIsbn,
 } from "./bookmarkFormSchema";
 import { applyImageIntent, promoteSourceDefaults } from "./bookmarkSubmit";
+import { useBookmarkFormChannel } from "./useBookmarkFormChannel";
 import { useBookmarkFormData } from "./useBookmarkFormData";
+import { useBookmarkFormImageState } from "./useBookmarkFormImageState";
 import { useBookmarkFormUiState, useSourceDefaultFlags } from "./useBookmarkFormState";
+import { useBookmarkIsbn } from "./useBookmarkIsbn";
 import { useBookmarkPropertyPrefill } from "./useBookmarkPropertyPrefill";
 import { useBookmarkScanHandlers } from "./useBookmarkScanHandlers";
 import { useBookmarkUrlProcessing } from "./useBookmarkUrlProcessing";
-import { useFetchIsbnMetadata } from "../hooks/useFetchIsbnMetadata";
 import { metadataApi } from "../lib/api/metadata";
-import { describeError } from "../lib/apiError";
 import { useAppForm } from "../lib/form";
-import { notifyError, notifySuccess } from "../lib/notifications";
+import { notifySuccess } from "../lib/notifications";
 
 /** True when `url`'s hostname (minus leading www.) matches any entry in `ignoreList`. */
 function isRedirectIgnored(url: string, ignoreList: string[]): boolean {
@@ -45,65 +37,6 @@ function isRedirectIgnored(url: string, ignoreList: string[]): boolean {
   }
   catch {
     return false;
-  }
-}
-
-/**
- * Match-or-create authors by name. Sets the form's `authorIds` field when at least one resolves.
- * Silently skips any author that can't be created (e.g. a duplicate race).
- */
-async function populateAuthors(
-  names: string[],
-  existingAuthors: Author[],
-  createAuthor: { mutateAsync: (input: { name: string }) => Promise<{ id: string }> },
-  setIds: (ids: string[]) => void,
-): Promise<void> {
-  const ids: string[] = [];
-  for (const name of names) {
-    const normalName = name.toLowerCase();
-    const match = existingAuthors.find(a => a.name.toLowerCase() === normalName);
-    if (match) {
-      ids.push(match.id);
-    }
-    else {
-      try {
-        const created = await createAuthor.mutateAsync({
-          name,
-        });
-        ids.push(created.id);
-      }
-      catch {
-        // Skip authors that can't be created (e.g. duplicate race).
-      }
-    }
-  }
-  if (ids.length > 0) setIds(ids);
-}
-
-/**
- * Match-or-create a publisher by name. Sets the form's `publisherId` field when it resolves.
- * Silently skips when the publisher can't be created (e.g. a duplicate race).
- */
-async function populatePublisher(
-  publisherName: string,
-  existingPublishers: Publisher[],
-  createPublisher: { mutateAsync: (input: { name: string }) => Promise<{ id: string }> },
-  setId: (id: string) => void,
-): Promise<void> {
-  const normalName = publisherName.toLowerCase();
-  const match = existingPublishers.find(p => p.name.toLowerCase() === normalName);
-  if (match) {
-    setId(match.id);
-    return;
-  }
-  try {
-    const created = await createPublisher.mutateAsync({
-      name: publisherName,
-    });
-    setId(created.id);
-  }
-  catch {
-    // Skip publisher that can't be created (e.g. duplicate race).
   }
 }
 
@@ -189,47 +122,20 @@ export function useBookmarkFormController({
     setHideNameField,
   } = ui;
 
-  // The channel resolved from a fetched YouTube video, passed on save so the server links/creates it.
-  // The ref is read by the submit handler (stale-closure-safe); the state drives the banner display.
-  const channelHintRef = useRef<YouTubeChannelHint | null>(null);
-  const [youtubeChannel, setYoutubeChannel] = useState<YouTubeChannelHint | null>(null);
-  // True when the detected channel isn't in the existing channels list yet — shows "set defaults" checkboxes.
-  const isNewChannel = youtubeChannel !== null
-    && youtubeChannels !== undefined
-    && !youtubeChannels.some(ch => ch.channelKey === youtubeChannel.key);
-
-  // The bookmark's "source" whose defaults the form can promote: the detected YouTube channel for a
-  // youtube.com URL, otherwise the looked-up website. The "set as default category/tags" checkboxes
-  // (now rendered under their fields) show for a *new* source; the "set as default media type" one
-  // shows whenever the source has *no* default media type yet (whether the source is new or not).
-  const lookupData = websiteLookup.data;
-  const isYouTube = lookupData?.domain === "youtube.com";
-  const existingChannel = youtubeChannel
-    ? youtubeChannels?.find(ch => ch.channelKey === youtubeChannel.key)
-    : undefined;
-  const sourceDefaults = isYouTube
-    ? {
-      label: youtubeChannel?.name ?? null,
-      showSourceDefault: isNewChannel,
-      showMediaTypeDefault: youtubeChannel !== null && !existingChannel?.mediaTypeId,
-      setCategory: flags.setChannelCategory,
-      setTags: flags.setChannelTags,
-      setMediaType: flags.setChannelMediaType,
-      onSetCategory: flags.setSetChannelCategory,
-      onSetTags: flags.setSetChannelTags,
-      onSetMediaType: flags.setSetChannelMediaType,
-    }
-    : {
-      label: lookupData?.domain ?? null,
-      showSourceDefault: Boolean(lookupData?.domain) && !lookupData?.exists,
-      showMediaTypeDefault: Boolean(lookupData?.domain) && !lookupData?.mediaTypeId,
-      setCategory: flags.setWebsiteCategory,
-      setTags: flags.setWebsiteTags,
-      setMediaType: flags.setWebsiteMediaType,
-      onSetCategory: flags.setSetWebsiteCategory,
-      onSetTags: flags.setSetWebsiteTags,
-      onSetMediaType: flags.setSetWebsiteMediaType,
-    };
+  // YouTube channel state, isNewChannel, sourceDefaults, and handleChannelSelfIdsChange.
+  const channel = useBookmarkFormChannel({
+    youtubeChannels,
+    websiteLookup,
+    flags,
+  });
+  const {
+    channelHintRef,
+    youtubeChannel,
+    setYoutubeChannel,
+    isNewChannel,
+    sourceDefaults,
+    handleChannelSelfIdsChange,
+  } = channel;
 
   // All URL-string handling (on-blur cleanup, shortener classification, submit-URL resolution) plus the
   // canonicalize-input refs live in this hook so the form imports one URL module.
@@ -254,16 +160,14 @@ export function useBookmarkFormController({
     customStripParams: customStripParams ?? [],
   });
 
-  // The image control reports its intent here; the form applies it after the bookmark is saved (so
-  // it works for both create and edit). `imageFieldKey` remounts the field to clear it on reset.
-  const imageIntentRef = useRef<ImageIntent>(
-    initialImageIntent(!isEdit && autoFetchImage),
-  );
-  const [imageFieldKey, setImageFieldKey] = useState(0);
-
-  // Set by the "Add Now" quick path so the submit handler saves the URL exactly as typed (no
-  // shortened-link expansion). Read by the (stale) submit closure.
-  const quickAddRef = useRef(false);
+  // Image intent + quickAdd ref state.
+  const imageState = useBookmarkFormImageState({
+    isEdit,
+    autoFetchImage,
+  });
+  const {
+    imageIntentRef, imageFieldKey, quickAddRef,
+  } = imageState;
 
   const form = useAppForm({
     defaultValues: buildBookmarkDefaultValues(bookmark, lockedCategoryId, {
@@ -410,75 +314,35 @@ export function useBookmarkFormController({
   function handleReset(): void {
     form.reset();
     prefill.resetPrefill();
-    channelHintRef.current = null;
-    setYoutubeChannel(null);
+    channel.resetChannel();
     setUrlShortener({
       nudge: false,
       expandedUrl: null,
     });
     setUrlCleanup(null);
-    imageIntentRef.current = initialImageIntent(autoFetchImage);
-    setImageFieldKey(key => key + 1);
+    imageState.resetImageState();
     setShowUrlCleanup(false);
     setUrlCleanupMode("none");
     flags.resetFlags();
-    quickAddRef.current = false;
     ui.resetUiState();
   }
 
-  const isbnFetch = useFetchIsbnMetadata();
-
-  async function handleIsbnFetch(isbn: string): Promise<void> {
-    let result;
-    try {
-      result = await isbnFetch.mutateAsync({
-        isbn,
-      });
-    }
-    catch (err) {
-      notifyError(describeError(err, "Could not fetch book metadata"));
-      return;
-    }
-    if (result.title && !form.getFieldValue("title").trim()) {
-      form.setFieldValue("title", result.title);
-    }
-    if (result.description && !form.getFieldValue("description").trim()) {
-      form.setFieldValue("description", result.description);
-    }
-    if (result.authors.length > 0 && (form.getFieldValue("authorIds") as string[]).length === 0) {
-      await populateAuthors(
-        result.authors,
-        authors ?? [],
-        createAuthor,
-        ids => form.setFieldValue("authorIds", ids),
-      );
-    }
-    if (result.publisher && !form.getFieldValue("publisherId")) {
-      await populatePublisher(
-        result.publisher,
-        publishers ?? [],
-        createPublisher,
-        id => form.setFieldValue("publisherId", id),
-      );
-    }
-  }
-
-  // ISBN entry path: the primary input is an ISBN, not a URL. Clear the URL, store the ISBN on its
-  // built-in property so it persists, default the media type to Book, reveal the form, and fetch the
-  // book's metadata (title/description/cover). Mirrors handleAddOfflineBookmark, but the Name field
-  // stays visible (books have titles).
-  async function handleLookupIsbn(): Promise<void> {
-    const isbn = normalizeIsbn(form.getFieldValue("url"));
-    if (!isbn) return;
-    form.setFieldValue("url", "");
-    const isbnProp = (customProperties ?? []).find(p => p.slug === ISBN_SLUG);
-    if (isbnProp) prefill.handleTextChange(isbnProp.id, isbn);
-    const bookMediaType = mediaTypes?.find(mt => mt.name === "Book");
-    if (bookMediaType) form.setFieldValue("mediaTypeId", bookMediaType.id);
-    setHideNameField(false);
-    setScanned(true);
-    await handleIsbnFetch(isbn);
-  }
+  // ISBN lookup: fetch + populate + lookup-isbn path.
+  const isbn = useBookmarkIsbn({
+    form,
+    customProperties,
+    mediaTypes,
+    authors,
+    publishers,
+    createAuthor,
+    createPublisher,
+    handleTextChange: prefill.handleTextChange,
+    setHideNameField,
+    setScanned,
+  });
+  const {
+    isbnFetch, handleIsbnFetch, handleLookupIsbn,
+  } = isbn;
 
   const {
     runFetchTitle,
@@ -635,19 +499,6 @@ export function useBookmarkFormController({
     if (scanned) void performUrlScan({
       revealing: false,
     });
-  }
-
-  // Merge the user-entered self-ids into the resolved channel hint (mirroring ref + state).
-  function handleChannelSelfIdsChange(ids: string[]): void {
-    const updated = {
-      ...(youtubeChannel ?? {
-        key: "",
-        name: "",
-      }),
-      selfIds: ids,
-    };
-    channelHintRef.current = updated;
-    setYoutubeChannel(updated);
   }
 
   // Manual fetch-title button: YouTube gets its title from enrichment, so skip the strict fetch for it.
