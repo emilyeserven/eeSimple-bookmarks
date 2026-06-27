@@ -105,6 +105,8 @@ export interface SidebarAdvanced {
   coolifyUrl: string;
   docsLinkEnabled: boolean;
   storybookLinkEnabled: boolean;
+  drizzleGatewayLinkEnabled: boolean;
+  drizzleGatewayUrl: string;
 }
 
 function useSidebarAdvanced(): SidebarAdvanced {
@@ -116,6 +118,8 @@ function useSidebarAdvanced(): SidebarAdvanced {
     coolifyUrl: advancedSettings?.coolifyUrl ?? "",
     docsLinkEnabled: advancedSettings?.docsLinkEnabled ?? false,
     storybookLinkEnabled: advancedSettings?.storybookLinkEnabled ?? false,
+    drizzleGatewayLinkEnabled: advancedSettings?.drizzleGatewayLinkEnabled ?? false,
+    drizzleGatewayUrl: advancedSettings?.drizzleGatewayUrl ?? "",
   };
 }
 

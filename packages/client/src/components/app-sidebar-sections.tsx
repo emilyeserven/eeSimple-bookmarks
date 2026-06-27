@@ -2,7 +2,7 @@ import type { SidebarAdvanced } from "./useAppSidebarData";
 
 import * as React from "react";
 
-import { BookOpen, ChevronDown, Palette, Server } from "lucide-react";
+import { BookOpen, ChevronDown, Database, Palette, Server } from "lucide-react";
 
 import { useResizeHandle } from "../hooks/useResizeHandle";
 import { useUiStore } from "../stores/uiStore";
@@ -78,9 +78,11 @@ export function SidebarAdvancedSection({
 }) {
   const {
     coolifyLinkEnabled, coolifyUrl, docsLinkEnabled, storybookLinkEnabled,
+    drizzleGatewayLinkEnabled, drizzleGatewayUrl,
   } = advanced;
   const showCoolify = coolifyLinkEnabled && coolifyUrl.trim() !== "";
-  if (!showCoolify && !docsLinkEnabled && !storybookLinkEnabled) return null;
+  const showDrizzleGateway = drizzleGatewayLinkEnabled && drizzleGatewayUrl.trim() !== "";
+  if (!showCoolify && !docsLinkEnabled && !storybookLinkEnabled && !showDrizzleGateway) return null;
 
   return (
     <CollapsibleSection
@@ -112,6 +114,15 @@ export function SidebarAdvancedSection({
               href="/storybook"
               label="Storybook"
               icon={<Palette />}
+            />
+          )
+          : null}
+        {showDrizzleGateway
+          ? (
+            <SidebarExternalLink
+              href={drizzleGatewayUrl}
+              label="Drizzle Gateway"
+              icon={<Database />}
             />
           )
           : null}

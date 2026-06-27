@@ -63,6 +63,8 @@ const DEFAULT_ADVANCED_SETTINGS: AdvancedSettings = {
   coolifyUrl: "",
   docsLinkEnabled: false,
   storybookLinkEnabled: false,
+  drizzleGatewayLinkEnabled: false,
+  drizzleGatewayUrl: "",
 };
 
 /** Default sidebar-customization settings (nothing hidden), used when seeding / when row absent. */
@@ -426,6 +428,8 @@ export async function getAdvancedSettings(): Promise<AdvancedSettings> {
       coolifyUrl: appSettings.coolifyUrl,
       docsLinkEnabled: appSettings.docsLinkEnabled,
       storybookLinkEnabled: appSettings.storybookLinkEnabled,
+      drizzleGatewayLinkEnabled: appSettings.drizzleGatewayLinkEnabled,
+      drizzleGatewayUrl: appSettings.drizzleGatewayUrl,
     })
     .from(appSettings)
     .where(eq(appSettings.id, ROW_ID));
@@ -435,6 +439,8 @@ export async function getAdvancedSettings(): Promise<AdvancedSettings> {
     coolifyUrl: row.coolifyUrl,
     docsLinkEnabled: row.docsLinkEnabled,
     storybookLinkEnabled: row.storybookLinkEnabled,
+    drizzleGatewayLinkEnabled: row.drizzleGatewayLinkEnabled,
+    drizzleGatewayUrl: row.drizzleGatewayUrl,
   };
 }
 
@@ -447,6 +453,8 @@ export async function updateAdvancedSettings(
     coolifyUrl: input.coolifyUrl.trim(),
     docsLinkEnabled: input.docsLinkEnabled,
     storybookLinkEnabled: input.storybookLinkEnabled,
+    drizzleGatewayLinkEnabled: input.drizzleGatewayLinkEnabled,
+    drizzleGatewayUrl: input.drizzleGatewayUrl.trim(),
   };
   await db
     .insert(appSettings)

@@ -242,6 +242,8 @@ export const apiHandlers = [
     coolifyUrl: "https://coolify.example.com",
     docsLinkEnabled: true,
     storybookLinkEnabled: true,
+    drizzleGatewayLinkEnabled: true,
+    drizzleGatewayUrl: "http://localhost:4983",
   })),
   http.get("/api/bookmarks/homepage", () => HttpResponse.json([sampleBookmark])),
   http.post("/api/bookmarks", () => HttpResponse.json(sampleBookmark, {
