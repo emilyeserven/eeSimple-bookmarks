@@ -8,9 +8,10 @@ import { TagPickerWithCreate } from "./TagPickerWithCreate";
 import { useAuthors } from "../hooks/useAuthors";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
-import { useMediaTypes } from "../hooks/useMediaTypes";
+import { useMediaTypeTree } from "../hooks/useMediaTypes";
 import { usePublishers } from "../hooks/usePublishers";
 import { useTagTree } from "../hooks/useTags";
+import { iconComboboxOptions, mediaTypeTreeComboboxOptions } from "../lib/comboboxOptions";
 import { flattenTree } from "../lib/tagTree";
 
 import { Badge } from "@/components/ui/badge";
@@ -227,8 +228,8 @@ export function InboxPreFillBox({
     data: tagTree = [],
   } = useTagTree();
   const {
-    data: mediaTypes = [],
-  } = useMediaTypes();
+    data: mediaTypeTree = [],
+  } = useMediaTypeTree();
   const {
     data: authors = [],
   } = useAuthors();
@@ -243,14 +244,8 @@ export function InboxPreFillBox({
     p => p.enabledInInbox && p.enabled && INBOX_PREFILLABLE_TYPES.has(p.type),
   );
 
-  const categoryOptions = categories.map(c => ({
-    value: c.id,
-    label: c.name,
-  }));
-  const mediaTypeOptions = mediaTypes.map(m => ({
-    value: m.id,
-    label: m.name,
-  }));
+  const categoryOptions = iconComboboxOptions(categories);
+  const mediaTypeOptions = mediaTypeTreeComboboxOptions(mediaTypeTree);
   const authorOptions = authors.map(a => ({
     value: a.id,
     label: a.name,
@@ -311,7 +306,7 @@ export function InboxPreFillBox({
           </div>
 
           {/* Media Type */}
-          {mediaTypes.length > 0 && (
+          {mediaTypeTree.length > 0 && (
             <div className="space-y-1">
               <Label className="text-sm">Media Type</Label>
               <Combobox
