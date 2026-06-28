@@ -38,23 +38,29 @@ export function TagCategories({
   }
 
   const selected = assignedIds ?? [];
+  const allCategories = categories ?? [];
+
+  const save = (categoryIds: string[]) => setCategories.mutate(categoryIds, {
+    onSuccess: () => notifyFieldSaved("Categories"),
+    onError: error => notifyFieldSaveError("Categories", describeError(error)),
+  });
 
   return (
     <div className="space-y-1">
       <Label>Categories offering this tag</Label>
       <p className="text-xs text-muted-foreground">
         Choose which categories offer this tag when tagging a bookmark. Checking a category that
-        currently allows every tag will limit it to an explicit list.
+        currently allows every tag will limit it to an explicit list. Use “All categories” to offer
+        this tag in every category at once.
       </p>
       <div className="rounded-md border p-2">
         <CategoryCheckboxList
-          categories={categories ?? []}
+          categories={allCategories}
           selectedIds={selected}
           idPrefix={`tag-${tag.id}-category`}
-          onToggle={id => setCategories.mutate(toggleId(selected, id), {
-            onSuccess: () => notifyFieldSaved("Categories"),
-            onError: error => notifyFieldSaveError("Categories", describeError(error)),
-          })}
+          selectAllLabel="All categories"
+          onToggle={id => save(toggleId(selected, id))}
+          onToggleAll={selectAll => save(selectAll ? allCategories.map(category => category.id) : [])}
         />
       </div>
     </div>
