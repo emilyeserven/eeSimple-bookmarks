@@ -96,9 +96,16 @@ export const bookmarksApi = {
     request<undefined>(`/bookmarks/${id}/image`, {
       method: "DELETE",
     }),
-  takeScreenshot: (id: string) =>
+  takeScreenshot: (id: string, delayMs?: number) =>
     request<BookmarkImage>(`/bookmarks/${id}/screenshot`, {
       method: "POST",
+      ...(delayMs
+        ? {
+          body: JSON.stringify({
+            delayMs,
+          }),
+        }
+        : {}),
     }),
   deleteScreenshot: (id: string) =>
     request<undefined>(`/bookmarks/${id}/screenshot`, {

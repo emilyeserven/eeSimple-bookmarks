@@ -168,7 +168,9 @@ export function BookmarkCard({
             sourceUrl: bookmark.url ?? "",
           })}
           screenshotPending={screenshot.isPending}
-          onScreenshot={() => screenshot.mutate(bookmark.id)}
+          onScreenshot={() => screenshot.mutate({
+            id: bookmark.id,
+          })}
           onSaveNumber={saveNumber}
           onSaveBoolean={saveBoolean}
           onSaveDateTime={saveDateTime}
@@ -226,7 +228,9 @@ export function BookmarkCard({
         sourceUrl: bookmark.url ?? "",
       })}
       screenshotPending={screenshot.isPending}
-      onScreenshot={() => screenshot.mutate(bookmark.id)}
+      onScreenshot={() => screenshot.mutate({
+        id: bookmark.id,
+      })}
       onSaveNumber={saveNumber}
       onSaveDateTime={saveDateTime}
       onDelete={onDelete}

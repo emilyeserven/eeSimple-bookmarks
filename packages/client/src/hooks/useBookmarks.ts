@@ -267,7 +267,11 @@ export function useDeleteBookmarkImage() {
 export function useTakeBookmarkScreenshot() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => bookmarksApi.takeScreenshot(id),
+    mutationFn: ({
+      id, delayMs,
+    }: { id: string;
+      delayMs?: number; }) =>
+      bookmarksApi.takeScreenshot(id, delayMs),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: BOOKMARKS_KEY,
