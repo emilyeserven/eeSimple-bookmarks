@@ -2,12 +2,14 @@ import type { Bookmark, Category, CustomProperty, PropertyGroup } from "@eesimpl
 
 import { youtubeEmbedUrl } from "@eesimple/types";
 
+import { BookmarkArchiveLinkButton, BookmarkArchiveNowButton } from "./BookmarkCardActions";
 import { BookmarkDetailBody } from "./BookmarkDetailBody";
 import { BookmarkDetailMedia } from "./BookmarkDetailMedia";
 import { BookmarkDetailTabbed } from "./BookmarkDetailTabbed";
 import { CopyJsonButton } from "./CopyJsonButton";
 import { DetailHeaderActions } from "./DetailHeaderActions";
 import { useBookmarkDetailLayout } from "../hooks/useAppSettings";
+import { useConnectors } from "../hooks/useConnectors";
 import { bookmarkToConditionInputJson } from "../lib/debugJson";
 
 import { Separator } from "@/components/ui/separator";
@@ -36,11 +38,18 @@ export function BookmarkDetail({
   bookmark, categories = [], properties = [], propertyGroups = [], onEdit, onDelete, onSaveBoolean,
 }: BookmarkDetailProps) {
   const layout = useBookmarkDetailLayout();
+  const {
+    data: connectors,
+  } = useConnectors();
 
   // For YouTube bookmarks, show a playable embed in place of the static thumbnail.
   const embedUrl = youtubeEmbedUrl(bookmark.url ?? "");
 
   const isSingle = layout !== "tabbed";
+
+  // ArchiveBox link-outs render only when the connector is configured and the bookmark has a url.
+  const archiveBaseUrl = connectors?.archiveBox.baseUrl ?? null;
+  const showArchive = archiveBaseUrl !== null && Boolean(bookmark.url);
 
   return (
     <div className="@container space-y-6">
@@ -66,10 +75,24 @@ export function BookmarkDetail({
                 {bookmark.title}
               </a>
             </h1>
-            <DetailHeaderActions
-              onEdit={onEdit}
-              onDelete={onDelete}
-            />
+            <div className="flex items-center gap-1">
+              {showArchive && archiveBaseUrl !== null && bookmark.url && (
+                <>
+                  <BookmarkArchiveLinkButton
+                    baseUrl={archiveBaseUrl}
+                    url={bookmark.url}
+                  />
+                  <BookmarkArchiveNowButton
+                    baseUrl={archiveBaseUrl}
+                    url={bookmark.url}
+                  />
+                </>
+              )}
+              <DetailHeaderActions
+                onEdit={onEdit}
+                onDelete={onDelete}
+              />
+            </div>
           </div>
           <a
             href={bookmark.url ?? undefined}

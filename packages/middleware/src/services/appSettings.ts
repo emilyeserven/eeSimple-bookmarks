@@ -613,6 +613,7 @@ export async function getConnectorsSettings(): Promise<ConnectorsAppSettings> {
       hostedMetadataEndpoint: appSettings.hostedMetadataEndpoint,
       hostedMetadataApiKey: appSettings.hostedMetadataApiKey,
       hostedMetadataProvider: appSettings.hostedMetadataProvider,
+      archiveBoxEndpoint: appSettings.archiveBoxEndpoint,
     })
     .from(appSettings)
     .where(eq(appSettings.id, ROW_ID));
@@ -625,6 +626,7 @@ export async function getConnectorsSettings(): Promise<ConnectorsAppSettings> {
     hostedMetadataProvider: provider,
     hostedMetadataApiKeySet: hasStoredKey || hasEnvKey,
     encryptionEnabled: encryptionEnabled(),
+    archiveBoxEndpoint: row?.archiveBoxEndpoint ?? process.env.ARCHIVEBOX_ENDPOINT ?? "",
   };
 }
 
@@ -689,12 +691,32 @@ export async function getActiveHostedProvider(): Promise<string | null> {
   }
 }
 
+/**
+ * Get the active ArchiveBox base URL: database value wins over env var.
+ * Returns null when neither is configured.
+ */
+export async function getActiveArchiveBoxEndpoint(): Promise<string | null> {
+  try {
+    const [row] = await db
+      .select({
+        archiveBoxEndpoint: appSettings.archiveBoxEndpoint,
+      })
+      .from(appSettings)
+      .where(eq(appSettings.id, ROW_ID));
+    return row?.archiveBoxEndpoint || process.env.ARCHIVEBOX_ENDPOINT || null;
+  }
+  catch {
+    return process.env.ARCHIVEBOX_ENDPOINT || null;
+  }
+}
+
 /** Replace the hosted-metadata connector settings, upserting the singleton. */
 export async function updateConnectorsSettings(
   input: UpdateConnectorsSettingsInput,
 ): Promise<ConnectorsAppSettings> {
   const endpoint = input.hostedMetadataEndpoint.trim();
   const provider = input.hostedMetadataProvider.trim();
+  const archiveBoxEndpoint = input.archiveBoxEndpoint.trim();
   if (input.hostedMetadataApiKey === null) {
     // null = leave any existing API key unchanged; only update endpoint/provider.
     await db
@@ -703,12 +725,14 @@ export async function updateConnectorsSettings(
         id: ROW_ID,
         hostedMetadataEndpoint: endpoint,
         hostedMetadataProvider: provider,
+        archiveBoxEndpoint,
       })
       .onConflictDoUpdate({
         target: appSettings.id,
         set: {
           hostedMetadataEndpoint: endpoint,
           hostedMetadataProvider: provider,
+          archiveBoxEndpoint,
         },
       });
   }
@@ -724,6 +748,7 @@ export async function updateConnectorsSettings(
         hostedMetadataEndpoint: endpoint,
         hostedMetadataProvider: provider,
         hostedMetadataApiKey: apiKeyToStore,
+        archiveBoxEndpoint,
       })
       .onConflictDoUpdate({
         target: appSettings.id,
@@ -731,6 +756,7 @@ export async function updateConnectorsSettings(
           hostedMetadataEndpoint: endpoint,
           hostedMetadataProvider: provider,
           hostedMetadataApiKey: apiKeyToStore,
+          archiveBoxEndpoint,
         },
       });
   }

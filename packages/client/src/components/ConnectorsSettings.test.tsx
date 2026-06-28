@@ -17,6 +17,10 @@ vi.mock("../hooks/useConnectors", () => ({
       objectStorage: {
         configured: false,
       },
+      archiveBox: {
+        enabled: false,
+        baseUrl: null,
+      },
     },
   }),
 }));
@@ -35,6 +39,7 @@ vi.mock("../hooks/useAppSettings", () => ({
       hostedMetadataProvider: "",
       hostedMetadataApiKeySet: false,
       encryptionEnabled: false,
+      archiveBoxEndpoint: "",
     },
   }),
   useUpdateConnectorsSettings: () => ({
@@ -52,6 +57,9 @@ describe("ConnectorsSettings", () => {
     expect(screen.getByText("TikTok")).toBeInTheDocument();
     expect(screen.getByText("DuckDuckGo Icons")).toBeInTheDocument();
     expect(screen.getByText("YouTube")).toBeInTheDocument();
+    // "ArchiveBox" appears as the card title and in its description link.
+    expect(screen.getAllByText("ArchiveBox").length).toBeGreaterThan(0);
+    expect(screen.getByText("Base URL")).toBeInTheDocument();
 
     // YouTube Data API is enabled → an Active badge; the hosted provider is disabled → Inactive.
     expect(screen.getAllByText("Active").length).toBeGreaterThan(0);

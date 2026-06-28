@@ -1134,6 +1134,9 @@ export const appSettings = pgTable("app_settings", {
   // API key for the hosted metadata provider; stored encrypted when APP_SECRET is configured.
   hostedMetadataApiKey: text("hosted_metadata_api_key"),
   hostedMetadataProvider: text("hosted_metadata_provider"),
+  // ArchiveBox base URL configured from Settings → Connectors. Nullable = push-safe additive;
+  // ARCHIVEBOX_ENDPOINT env var is used as fallback when null.
+  archiveBoxEndpoint: text("archive_box_endpoint"),
 });
 
 /**

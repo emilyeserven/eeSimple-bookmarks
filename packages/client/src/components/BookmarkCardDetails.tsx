@@ -7,13 +7,14 @@ import { useEffect, useRef, useState } from "react";
 import { CARD_BODY_ZONES, normalizeCardZoneLayout } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 
-import { BookmarkExternalLinkButton, BookmarkMoreMenu } from "./BookmarkCardActions";
+import { BookmarkArchiveLinkButton, BookmarkExternalLinkButton, BookmarkMoreMenu } from "./BookmarkCardActions";
 import { BookmarkTagsBox } from "./BookmarkTagsBox";
 import { CategoryPill } from "./CategoryPill";
 import { MediaTypePill } from "./MediaTypePill";
 import { useViewPanelClick } from "./panel/useEditPanelClick";
 import { SourcePill } from "./SourcePill";
 import { StarRating } from "./StarRating";
+import { useConnectors } from "../hooks/useConnectors";
 import { useHideWebsiteForYouTube } from "../lib/bookmarkCardFields";
 import { buildBookmarkValueItems } from "../lib/bookmarkCardValues";
 
@@ -239,10 +240,24 @@ export function BookmarkCardDetails({
   const defaultHideWebsiteForYouTube = useHideWebsiteForYouTube();
   const effectiveHideWebsiteForYouTube = hideWebsiteForYouTube ?? defaultHideWebsiteForYouTube;
 
+  // ArchiveBox base URL (link-out only); the archiveLink field renders nothing when unset.
+  const {
+    data: connectors,
+  } = useConnectors();
+  const archiveBaseUrl = connectors?.archiveBox.baseUrl ?? null;
+
   // The card header elements, now placeable fields (title link, open-URL button, "More" menu).
   // BookmarkTitleLink owns its own useViewPanelClick / useSidebarOpenModifier hooks.
   const titleNode = <BookmarkTitleLink bookmark={bookmark} />;
   const externalLinkNode = <BookmarkExternalLinkButton url={bookmark.url ?? ""} />;
+  const archiveLinkNode = archiveBaseUrl !== null && bookmark.url
+    ? (
+      <BookmarkArchiveLinkButton
+        baseUrl={archiveBaseUrl}
+        url={bookmark.url}
+      />
+    )
+    : null;
   const moreNode = (
     <BookmarkMoreMenu
       bookmark={bookmark}
@@ -334,6 +349,16 @@ export function BookmarkCardDetails({
           block: externalLinkNode,
           tableName: "Link",
           tableValue: externalLinkNode,
+        };
+      }
+      case "archiveLink": {
+        // Hidden when ArchiveBox isn't configured or the bookmark has no url.
+        if (archiveLinkNode === null) return null;
+        return {
+          inline: archiveLinkNode,
+          block: archiveLinkNode,
+          tableName: "Archive",
+          tableValue: archiveLinkNode,
         };
       }
       case "more": {

@@ -207,7 +207,7 @@ const automationBody = {
 
 const connectorsBody = {
   type: "object",
-  required: ["hostedMetadataEndpoint", "hostedMetadataProvider", "hostedMetadataApiKey"],
+  required: ["hostedMetadataEndpoint", "hostedMetadataProvider", "hostedMetadataApiKey", "archiveBoxEndpoint"],
   additionalProperties: false,
   properties: {
     hostedMetadataEndpoint: {
@@ -219,6 +219,10 @@ const connectorsBody = {
     hostedMetadataApiKey: {
       // null = leave the stored key unchanged; "" = clear; any other string = set new key.
       type: ["string", "null"],
+    },
+    archiveBoxEndpoint: {
+      // ArchiveBox base URL; "" clears it. No key analog — link-outs are tokenless.
+      type: "string",
     },
   },
 } as const;
