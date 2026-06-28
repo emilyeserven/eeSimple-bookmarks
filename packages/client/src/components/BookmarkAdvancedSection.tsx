@@ -13,28 +13,22 @@ import type {
   TagNode,
 } from "@eesimple/types";
 
-import { useState } from "react";
+import { ChevronDown } from "lucide-react";
 
-import { ChevronDown, Loader2, Sparkles } from "lucide-react";
-
-import { AddTagModal } from "./AddTagModal";
 import { BookmarkAdvancedCategoryField } from "./BookmarkAdvancedCategoryField";
+import { BookmarkAdvancedDescriptionTagsField } from "./BookmarkAdvancedDescriptionTagsField";
 import { BookmarkAdvancedMediaTypeField } from "./BookmarkAdvancedMediaTypeField";
 import { BookmarkAdvancedPublisherField } from "./BookmarkAdvancedPublisherField";
 import { CategoryCustomFields, CategoryDefaultsApplier } from "./BookmarkCustomFields";
 import { BookmarkImageField } from "./BookmarkImageField";
-import { SourceDefaultCheckbox } from "./BookmarkSourceDefaultCheckbox";
-import { GatedTagPicker } from "./BookmarkTagsField";
 import { MultiCombobox } from "./MultiCombobox";
 
-import { Button } from "@/components/ui/button";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Label } from "@/components/ui/label";
-import { isFetchableUrl } from "@/lib/url";
 
 /**
  * The bookmark's "source" (website or YouTube channel) whose defaults the form can promote, plus the
@@ -105,36 +99,10 @@ interface BookmarkAdvancedSectionProps {
  * also carrying a "set as default" checkbox), the image field, and the category/media-type custom
  * properties.
  */
-export function BookmarkAdvancedSection({
-  form,
-  lockedCategoryId,
-  categories,
-  customProperties,
-  mediaTypes,
-  sourceDefaults,
-  addCategoryOpen,
-  onAddCategoryOpenChange,
-  addMediaTypeOpen,
-  onAddMediaTypeOpenChange,
-  publishers,
-  addPublisherOpen,
-  onAddPublisherOpenChange,
-  imageFieldKey,
-  existingImageUrl,
-  defaultAuto,
-  autoGrabError,
-  onImageIntentChange,
-  tagTree,
-  onTagToggle,
-  authors,
-  customFields,
-  onFetchDescription,
-  isFetchDescriptionPending,
-  onIsbnFetch,
-  isIsbnFetchPending,
-}: BookmarkAdvancedSectionProps) {
-  const [addTagOpen, setAddTagOpen] = useState(false);
-
+export function BookmarkAdvancedSection(props: BookmarkAdvancedSectionProps) {
+  const {
+    form, customProperties, customFields, authors, onIsbnFetch, isIsbnFetchPending,
+  } = props;
   return (
     <Collapsible className="group/advanced space-y-3">
       <CollapsibleTrigger
@@ -154,118 +122,36 @@ export function BookmarkAdvancedSection({
       <CollapsibleContent className="space-y-4">
         <BookmarkAdvancedCategoryField
           form={form}
-          lockedCategoryId={lockedCategoryId}
-          categories={categories}
-          sourceDefaults={sourceDefaults}
-          addCategoryOpen={addCategoryOpen}
-          onAddCategoryOpenChange={onAddCategoryOpenChange}
+          lockedCategoryId={props.lockedCategoryId}
+          categories={props.categories}
+          sourceDefaults={props.sourceDefaults}
+          addCategoryOpen={props.addCategoryOpen}
+          onAddCategoryOpenChange={props.onAddCategoryOpenChange}
         />
 
         <BookmarkAdvancedMediaTypeField
           form={form}
-          mediaTypes={mediaTypes}
-          sourceDefaults={sourceDefaults}
-          addMediaTypeOpen={addMediaTypeOpen}
-          onAddMediaTypeOpenChange={onAddMediaTypeOpenChange}
+          mediaTypes={props.mediaTypes}
+          sourceDefaults={props.sourceDefaults}
+          addMediaTypeOpen={props.addMediaTypeOpen}
+          onAddMediaTypeOpenChange={props.onAddMediaTypeOpenChange}
         />
 
         <BookmarkAdvancedPublisherField
           form={form}
-          publishers={publishers ?? []}
-          addPublisherOpen={addPublisherOpen}
-          onAddPublisherOpenChange={onAddPublisherOpenChange}
+          publishers={props.publishers ?? []}
+          addPublisherOpen={props.addPublisherOpen}
+          onAddPublisherOpenChange={props.onAddPublisherOpenChange}
         />
 
-        {/* Description and Tags side by side, stretched to a matching height. */}
-        <div
-          className="
-            grid items-stretch gap-4
-            sm:grid-cols-2
-          "
-        >
-          <form.Subscribe selector={state => state.values.url}>
-            {url => (
-              <form.AppField name="description">
-                {field => (
-                  <field.TextareaField
-                    label="Description"
-                    fill
-                    inputClassName="min-h-24"
-                    action={onFetchDescription
-                      ? (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          title="Fetch description from URL"
-                          aria-label="Fetch description from URL"
-                          disabled={!isFetchableUrl(url) || isFetchDescriptionPending}
-                          onClick={() => onFetchDescription(url)}
-                        >
-                          {isFetchDescriptionPending
-                            ? <Loader2 className="size-4 animate-spin" />
-                            : <Sparkles className="size-4" />}
-                        </Button>
-                      )
-                      : undefined}
-                  />
-                )}
-              </form.AppField>
-            )}
-          </form.Subscribe>
-
-          <form.Subscribe selector={state => state.values.categoryId}>
-            {categoryId => (
-              <form.Field name="tagIds">
-                {field => (
-                  <>
-                    <GatedTagPicker
-                      categoryId={categoryId}
-                      tree={tagTree}
-                      selectedIds={field.state.value}
-                      onToggle={(id) => {
-                        onTagToggle(id);
-                        const current = field.state.value;
-                        field.handleChange(
-                          current.includes(id)
-                            ? current.filter(tagId => tagId !== id)
-                            : [...current, id],
-                        );
-                      }}
-                      createOption={{
-                        label: "Create tag",
-                        onSelect: () => setAddTagOpen(true),
-                      }}
-                      below={sourceDefaults.showSourceDefault && field.state.value.length > 0
-                        ? (
-                          <SourceDefaultCheckbox
-                            checked={sourceDefaults.setTags}
-                            onCheckedChange={sourceDefaults.onSetTags}
-                          >
-                            Apply selected tags as defaults for
-                            {" "}
-                            {sourceDefaults.label}
-                          </SourceDefaultCheckbox>
-                        )
-                        : null}
-                    />
-                    <AddTagModal
-                      open={addTagOpen}
-                      onOpenChange={setAddTagOpen}
-                      onCreated={(tag) => {
-                        const current = field.state.value;
-                        if (!current.includes(tag.id)) {
-                          onTagToggle(tag.id);
-                          field.handleChange([...current, tag.id]);
-                        }
-                      }}
-                    />
-                  </>
-                )}
-              </form.Field>
-            )}
-          </form.Subscribe>
-        </div>
+        <BookmarkAdvancedDescriptionTagsField
+          form={form}
+          tagTree={props.tagTree}
+          onTagToggle={props.onTagToggle}
+          sourceDefaults={props.sourceDefaults}
+          onFetchDescription={props.onFetchDescription}
+          isFetchDescriptionPending={props.isFetchDescriptionPending}
+        />
 
         {(authors?.length ?? 0) > 0 && (
           <form.Field name="authorIds">
@@ -291,12 +177,12 @@ export function BookmarkAdvancedSection({
         <form.Subscribe selector={state => state.values.url}>
           {url => (
             <BookmarkImageField
-              key={imageFieldKey}
-              existingImageUrl={existingImageUrl}
+              key={props.imageFieldKey}
+              existingImageUrl={props.existingImageUrl}
               pageUrl={url}
-              defaultAuto={defaultAuto}
-              autoGrabError={autoGrabError}
-              onChange={onImageIntentChange}
+              defaultAuto={props.defaultAuto}
+              autoGrabError={props.autoGrabError}
+              onChange={props.onImageIntentChange}
             />
           )}
         </form.Subscribe>
@@ -316,24 +202,11 @@ export function BookmarkAdvancedSection({
                 onApply={customFields.onApplyCategoryDefaults}
               />
               <CategoryCustomFields
+                {...customFields}
                 placement="advanced"
                 categoryId={categoryId}
                 mediaTypeId={mediaTypeId || null}
                 properties={customProperties}
-                numberInputs={customFields.numberInputs}
-                booleanInputs={customFields.booleanInputs}
-                dateTimeInputs={customFields.dateTimeInputs}
-                choicesInputs={customFields.choicesInputs}
-                progressInputs={customFields.progressInputs}
-                sectionsInputs={customFields.sectionsInputs}
-                textInputs={customFields.textInputs}
-                onNumberChange={customFields.onNumberChange}
-                onBooleanChange={customFields.onBooleanChange}
-                onDateTimeChange={customFields.onDateTimeChange}
-                onChoicesChange={customFields.onChoicesChange}
-                onProgressChange={customFields.onProgressChange}
-                onSectionsChange={customFields.onSectionsChange}
-                onTextChange={customFields.onTextChange}
                 onIsbnFetch={onIsbnFetch}
                 isIsbnFetchPending={isIsbnFetchPending}
               />
