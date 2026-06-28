@@ -44,7 +44,8 @@ function ReviewRow({
   onDismiss?: (id: string) => void;
   preFill?: InboxPreFillDefaults; }) {
   const {
-    contextOpen, setContextOpen, itemPreFill, effectivePreFill, isMobile, muted, categoryName, swipe,
+    contextOpen, setContextOpen, advancedEditOpen, setAdvancedEditOpen,
+    itemPreFill, effectivePreFill, isMobile, muted, categoryName, swipe,
     patchItemPreFill,
   } = useReviewRowController(item, preFill, onDismiss);
 
@@ -58,6 +59,8 @@ function ReviewRow({
     ? (
       <ImportItemAdvancedEdit
         item={item}
+        open={advancedEditOpen}
+        onOpenChange={setAdvancedEditOpen}
         categoryId={itemPreFill.categoryId ?? undefined}
         mediaTypeId={itemPreFill.mediaTypeId ?? undefined}
         tagIds={itemPreFill.tagIds ?? []}
@@ -89,9 +92,9 @@ function ReviewRow({
     return (
       <div
         className="relative overflow-hidden rounded-lg"
-        onTouchStart={swipe.onTouchStart}
-        onTouchMove={swipe.onTouchMove}
-        onTouchEnd={swipe.onTouchEnd}
+        onTouchStart={advancedEditOpen ? undefined : swipe.onTouchStart}
+        onTouchMove={advancedEditOpen ? undefined : swipe.onTouchMove}
+        onTouchEnd={advancedEditOpen ? undefined : swipe.onTouchEnd}
       >
         <div
           className={`
