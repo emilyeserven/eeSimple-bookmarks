@@ -94,8 +94,12 @@ export function BookmarkArchiveNowButton({
   );
 }
 
-interface BookmarkMoreMenuProps {
-  bookmark: Bookmark;
+/**
+ * The "More" menu's editable-data + capture controls, threaded together so consumers (notably
+ * {@link BookmarkCardDetails}) can pass them as one cohesive `menu` object rather than a dozen
+ * individual props. `bookmark` is supplied separately by each renderer.
+ */
+export interface BookmarkCardMenuControls {
   editableProperties?: CustomProperty[];
   editableTags?: BookmarkTag[];
   autoImagePending?: boolean;
@@ -108,6 +112,10 @@ interface BookmarkMoreMenuProps {
   onSaveChoices?: (propertyId: string, values: string[]) => void;
   onSaveTags?: (tagIds: string[]) => void;
   onDelete?: (id: string) => void;
+}
+
+interface BookmarkMoreMenuProps extends BookmarkCardMenuControls {
+  bookmark: Bookmark;
 }
 
 /** The "More options" menu (trigger + {@link BookmarkCardMenu}) — a placeable card field and overlay. */

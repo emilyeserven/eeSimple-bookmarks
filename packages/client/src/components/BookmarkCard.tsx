@@ -220,24 +220,26 @@ export function BookmarkCard({
       bookmarkCategory={bookmarkCategory}
       hideWebsiteForYouTube={hideWebsiteForYouTube}
       hasImageAbove={hasImage && !imageLeft}
-      editableProperties={editableProperties}
-      editableTags={editableTags}
-      autoImagePending={autoImage.isPending}
-      onAutoImage={() => autoImage.mutate({
-        id: bookmark.id,
-        sourceUrl: bookmark.url ?? "",
-      })}
-      screenshotPending={screenshot.isPending}
-      onScreenshot={() => screenshot.mutate({
-        id: bookmark.id,
-      })}
-      onSaveNumber={saveNumber}
-      onSaveDateTime={saveDateTime}
-      onDelete={onDelete}
       onSaveRating={saveNumber}
-      onSaveBoolean={saveBoolean}
-      onSaveChoices={saveChoices}
-      onSaveTags={saveTags}
+      menu={{
+        editableProperties,
+        editableTags,
+        autoImagePending: autoImage.isPending,
+        onAutoImage: () => autoImage.mutate({
+          id: bookmark.id,
+          sourceUrl: bookmark.url ?? "",
+        }),
+        screenshotPending: screenshot.isPending,
+        onScreenshot: () => screenshot.mutate({
+          id: bookmark.id,
+        }),
+        onSaveNumber: saveNumber,
+        onSaveDateTime: saveDateTime,
+        onDelete,
+        onSaveBoolean: saveBoolean,
+        onSaveChoices: saveChoices,
+        onSaveTags: saveTags,
+      }}
     />
   );
 
