@@ -12,6 +12,7 @@ import { HierarchyView } from "../HierarchyView";
 import { ParamRulesList } from "../ParamRulesList";
 import { ShortenedLinksList } from "../ShortenedLinksList";
 import { SourceAutofillDefaults } from "../SourceAutofillDefaults";
+import { WebsiteAuthorsForm, WebsiteAuthorsView } from "../WebsiteAuthorsForm";
 import { WebsiteGeneralForm } from "../WebsiteGeneralForm";
 import { WebsiteParamRulesForm } from "../WebsiteParamRulesForm";
 import { WebsiteShortenedLinksForm } from "../WebsiteShortenedLinksForm";
@@ -224,6 +225,24 @@ export const websiteWorkbench: EntityWorkbench<Website> = {
         render: ({
           entity,
         }) => <WebsiteGeneralForm website={entity} />,
+      },
+    },
+    {
+      key: "authors",
+      label: "Authors",
+      view: {
+        title: "Authors",
+        description: "Authors associated with this website.",
+        render: ({
+          entity,
+        }) => <WebsiteAuthorsView website={entity} />,
+      },
+      edit: {
+        title: "Authors",
+        description: "Connect authors to this website.",
+        render: ({
+          entity,
+        }) => <WebsiteAuthorsForm website={entity} />,
       },
     },
     {

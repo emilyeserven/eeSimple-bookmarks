@@ -204,16 +204,20 @@ import { Route as TaxonomiesWebsitesWebsiteSlugEditParamRulesRouteImport } from 
 import { Route as TaxonomiesWebsitesWebsiteSlugEditGeneralRouteImport } from './routes/taxonomies.websites.$websiteSlug.edit.general'
 import { Route as TaxonomiesWebsitesWebsiteSlugEditDisplayRulesRouteImport } from './routes/taxonomies.websites.$websiteSlug.edit.display-rules'
 import { Route as TaxonomiesWebsitesWebsiteSlugEditAutofillRouteImport } from './routes/taxonomies.websites.$websiteSlug.edit.autofill'
+import { Route as TaxonomiesWebsitesWebsiteSlugEditAuthorsRouteImport } from './routes/taxonomies.websites.$websiteSlug.edit.authors'
 import { Route as TaxonomiesWebsitesWebsiteSlugViewShortenedLinksRouteImport } from './routes/taxonomies.websites.$websiteSlug._view.shortened-links'
 import { Route as TaxonomiesWebsitesWebsiteSlugViewParamRulesRouteImport } from './routes/taxonomies.websites.$websiteSlug._view.param-rules'
 import { Route as TaxonomiesWebsitesWebsiteSlugViewHierarchyRouteImport } from './routes/taxonomies.websites.$websiteSlug._view.hierarchy'
 import { Route as TaxonomiesWebsitesWebsiteSlugViewGeneralRouteImport } from './routes/taxonomies.websites.$websiteSlug._view.general'
 import { Route as TaxonomiesWebsitesWebsiteSlugViewDisplayRulesRouteImport } from './routes/taxonomies.websites.$websiteSlug._view.display-rules'
 import { Route as TaxonomiesWebsitesWebsiteSlugViewAutofillRouteImport } from './routes/taxonomies.websites.$websiteSlug._view.autofill'
+import { Route as TaxonomiesWebsitesWebsiteSlugViewAuthorsRouteImport } from './routes/taxonomies.websites.$websiteSlug._view.authors'
 import { Route as TaxonomiesRelationshipTypesRelationshipTypeSlugEditGeneralRouteImport } from './routes/taxonomies.relationship-types.$relationshipTypeSlug.edit.general'
 import { Route as TaxonomiesRelationshipTypesRelationshipTypeSlugViewGeneralRouteImport } from './routes/taxonomies.relationship-types.$relationshipTypeSlug._view.general'
 import { Route as TaxonomiesPublishersPublisherSlugEditGeneralRouteImport } from './routes/taxonomies.publishers.$publisherSlug.edit.general'
+import { Route as TaxonomiesPublishersPublisherSlugEditAuthorsRouteImport } from './routes/taxonomies.publishers.$publisherSlug.edit.authors'
 import { Route as TaxonomiesPublishersPublisherSlugViewGeneralRouteImport } from './routes/taxonomies.publishers.$publisherSlug._view.general'
+import { Route as TaxonomiesPublishersPublisherSlugViewAuthorsRouteImport } from './routes/taxonomies.publishers.$publisherSlug._view.authors'
 import { Route as TaxonomiesPropertyGroupsPropertyGroupSlugEditGeneralRouteImport } from './routes/taxonomies.property-groups.$propertyGroupSlug.edit.general'
 import { Route as TaxonomiesPropertyGroupsPropertyGroupSlugViewGeneralRouteImport } from './routes/taxonomies.property-groups.$propertyGroupSlug._view.general'
 import { Route as TaxonomiesNewslettersNewsletterSlugIssuesIssueIdRouteImport } from './routes/taxonomies.newsletters.$newsletterSlug.issues.$issueId'
@@ -1323,6 +1327,12 @@ const TaxonomiesWebsitesWebsiteSlugEditAutofillRoute =
     path: '/autofill',
     getParentRoute: () => TaxonomiesWebsitesWebsiteSlugEditRoute,
   } as any)
+const TaxonomiesWebsitesWebsiteSlugEditAuthorsRoute =
+  TaxonomiesWebsitesWebsiteSlugEditAuthorsRouteImport.update({
+    id: '/authors',
+    path: '/authors',
+    getParentRoute: () => TaxonomiesWebsitesWebsiteSlugEditRoute,
+  } as any)
 const TaxonomiesWebsitesWebsiteSlugViewShortenedLinksRoute =
   TaxonomiesWebsitesWebsiteSlugViewShortenedLinksRouteImport.update({
     id: '/shortened-links',
@@ -1359,6 +1369,12 @@ const TaxonomiesWebsitesWebsiteSlugViewAutofillRoute =
     path: '/autofill',
     getParentRoute: () => TaxonomiesWebsitesWebsiteSlugViewRoute,
   } as any)
+const TaxonomiesWebsitesWebsiteSlugViewAuthorsRoute =
+  TaxonomiesWebsitesWebsiteSlugViewAuthorsRouteImport.update({
+    id: '/authors',
+    path: '/authors',
+    getParentRoute: () => TaxonomiesWebsitesWebsiteSlugViewRoute,
+  } as any)
 const TaxonomiesRelationshipTypesRelationshipTypeSlugEditGeneralRoute =
   TaxonomiesRelationshipTypesRelationshipTypeSlugEditGeneralRouteImport.update({
     id: '/general',
@@ -1379,10 +1395,22 @@ const TaxonomiesPublishersPublisherSlugEditGeneralRoute =
     path: '/general',
     getParentRoute: () => TaxonomiesPublishersPublisherSlugEditRoute,
   } as any)
+const TaxonomiesPublishersPublisherSlugEditAuthorsRoute =
+  TaxonomiesPublishersPublisherSlugEditAuthorsRouteImport.update({
+    id: '/authors',
+    path: '/authors',
+    getParentRoute: () => TaxonomiesPublishersPublisherSlugEditRoute,
+  } as any)
 const TaxonomiesPublishersPublisherSlugViewGeneralRoute =
   TaxonomiesPublishersPublisherSlugViewGeneralRouteImport.update({
     id: '/general',
     path: '/general',
+    getParentRoute: () => TaxonomiesPublishersPublisherSlugViewRoute,
+  } as any)
+const TaxonomiesPublishersPublisherSlugViewAuthorsRoute =
+  TaxonomiesPublishersPublisherSlugViewAuthorsRouteImport.update({
+    id: '/authors',
+    path: '/authors',
     getParentRoute: () => TaxonomiesPublishersPublisherSlugViewRoute,
   } as any)
 const TaxonomiesPropertyGroupsPropertyGroupSlugEditGeneralRoute =
@@ -1520,15 +1548,15 @@ export interface FileRoutesByFullPath {
   '/saved-filters': typeof SavedFiltersRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/tags': typeof TagsRouteWithChildren
-  '/autofill/$ruleSlug': typeof AutofillRuleSlugViewRouteWithChildren
+  '/autofill/$ruleSlug': typeof AutofillRuleSlugRouteWithChildren
   '/autofill/backfill': typeof AutofillBackfillRoute
   '/bookmarks/$bookmarkId': typeof BookmarksBookmarkIdRouteWithChildren
-  '/categories/$categorySlug': typeof CategoriesCategorySlugViewRouteWithChildren
-  '/custom-properties/$propertySlug': typeof CustomPropertiesPropertySlugViewRouteWithChildren
+  '/categories/$categorySlug': typeof CategoriesCategorySlugRouteWithChildren
+  '/custom-properties/$propertySlug': typeof CustomPropertiesPropertySlugRouteWithChildren
   '/custom-properties/new': typeof CustomPropertiesNewRoute
-  '/import-rules/$ruleSlug': typeof ImportRulesRuleSlugViewRouteWithChildren
+  '/import-rules/$ruleSlug': typeof ImportRulesRuleSlugRouteWithChildren
   '/inbox/new': typeof InboxNewRoute
-  '/saved-filters/$filterSlug': typeof SavedFiltersFilterSlugViewRouteWithChildren
+  '/saved-filters/$filterSlug': typeof SavedFiltersFilterSlugRouteWithChildren
   '/settings/advanced': typeof SettingsAdvancedRoute
   '/settings/autofill': typeof SettingsAutofillRoute
   '/settings/automations': typeof SettingsAutomationsRoute
@@ -1548,7 +1576,7 @@ export interface FileRoutesByFullPath {
   '/settings/sidebar': typeof SettingsSidebarRoute
   '/settings/websites': typeof SettingsWebsitesRoute
   '/settings/youtube-channels': typeof SettingsYoutubeChannelsRoute
-  '/tags/$tagSlug': typeof TagsTagSlugViewRouteWithChildren
+  '/tags/$tagSlug': typeof TagsTagSlugRouteWithChildren
   '/taxonomies/authors': typeof TaxonomiesAuthorsRouteWithChildren
   '/taxonomies/media-types': typeof TaxonomiesMediaTypesRouteWithChildren
   '/taxonomies/newsletters': typeof TaxonomiesNewslettersRouteWithChildren
@@ -1573,14 +1601,14 @@ export interface FileRoutesByFullPath {
   '/import-rules/$ruleSlug/edit': typeof ImportRulesRuleSlugEditRouteWithChildren
   '/saved-filters/$filterSlug/edit': typeof SavedFiltersFilterSlugEditRouteWithChildren
   '/tags/$tagSlug/edit': typeof TagsTagSlugEditRouteWithChildren
-  '/taxonomies/authors/$authorSlug': typeof TaxonomiesAuthorsAuthorSlugViewRouteWithChildren
-  '/taxonomies/media-types/$mediaTypeSlug': typeof TaxonomiesMediaTypesMediaTypeSlugViewRouteWithChildren
-  '/taxonomies/newsletters/$newsletterSlug': typeof TaxonomiesNewslettersNewsletterSlugViewRouteWithChildren
-  '/taxonomies/property-groups/$propertyGroupSlug': typeof TaxonomiesPropertyGroupsPropertyGroupSlugViewRouteWithChildren
-  '/taxonomies/publishers/$publisherSlug': typeof TaxonomiesPublishersPublisherSlugViewRouteWithChildren
-  '/taxonomies/relationship-types/$relationshipTypeSlug': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugViewRouteWithChildren
-  '/taxonomies/websites/$websiteSlug': typeof TaxonomiesWebsitesWebsiteSlugViewRouteWithChildren
-  '/taxonomies/youtube-channels/$channelSlug': typeof TaxonomiesYoutubeChannelsChannelSlugViewRouteWithChildren
+  '/taxonomies/authors/$authorSlug': typeof TaxonomiesAuthorsAuthorSlugRouteWithChildren
+  '/taxonomies/media-types/$mediaTypeSlug': typeof TaxonomiesMediaTypesMediaTypeSlugRouteWithChildren
+  '/taxonomies/newsletters/$newsletterSlug': typeof TaxonomiesNewslettersNewsletterSlugRouteWithChildren
+  '/taxonomies/property-groups/$propertyGroupSlug': typeof TaxonomiesPropertyGroupsPropertyGroupSlugRouteWithChildren
+  '/taxonomies/publishers/$publisherSlug': typeof TaxonomiesPublishersPublisherSlugRouteWithChildren
+  '/taxonomies/relationship-types/$relationshipTypeSlug': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugRouteWithChildren
+  '/taxonomies/websites/$websiteSlug': typeof TaxonomiesWebsitesWebsiteSlugRouteWithChildren
+  '/taxonomies/youtube-channels/$channelSlug': typeof TaxonomiesYoutubeChannelsChannelSlugRouteWithChildren
   '/autofill/$ruleSlug/': typeof AutofillRuleSlugIndexRoute
   '/bookmarks/$bookmarkId/': typeof BookmarksBookmarkIdIndexRoute
   '/categories/$categorySlug/': typeof CategoriesCategorySlugIndexRoute
@@ -1691,16 +1719,20 @@ export interface FileRoutesByFullPath {
   '/taxonomies/newsletters/$newsletterSlug/issues/$issueId': typeof TaxonomiesNewslettersNewsletterSlugIssuesIssueIdRoute
   '/taxonomies/property-groups/$propertyGroupSlug/general': typeof TaxonomiesPropertyGroupsPropertyGroupSlugViewGeneralRoute
   '/taxonomies/property-groups/$propertyGroupSlug/edit/general': typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditGeneralRoute
+  '/taxonomies/publishers/$publisherSlug/authors': typeof TaxonomiesPublishersPublisherSlugViewAuthorsRoute
   '/taxonomies/publishers/$publisherSlug/general': typeof TaxonomiesPublishersPublisherSlugViewGeneralRoute
+  '/taxonomies/publishers/$publisherSlug/edit/authors': typeof TaxonomiesPublishersPublisherSlugEditAuthorsRoute
   '/taxonomies/publishers/$publisherSlug/edit/general': typeof TaxonomiesPublishersPublisherSlugEditGeneralRoute
   '/taxonomies/relationship-types/$relationshipTypeSlug/general': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugViewGeneralRoute
   '/taxonomies/relationship-types/$relationshipTypeSlug/edit/general': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugEditGeneralRoute
+  '/taxonomies/websites/$websiteSlug/authors': typeof TaxonomiesWebsitesWebsiteSlugViewAuthorsRoute
   '/taxonomies/websites/$websiteSlug/autofill': typeof TaxonomiesWebsitesWebsiteSlugViewAutofillRoute
   '/taxonomies/websites/$websiteSlug/display-rules': typeof TaxonomiesWebsitesWebsiteSlugViewDisplayRulesRoute
   '/taxonomies/websites/$websiteSlug/general': typeof TaxonomiesWebsitesWebsiteSlugViewGeneralRoute
   '/taxonomies/websites/$websiteSlug/hierarchy': typeof TaxonomiesWebsitesWebsiteSlugViewHierarchyRoute
   '/taxonomies/websites/$websiteSlug/param-rules': typeof TaxonomiesWebsitesWebsiteSlugViewParamRulesRoute
   '/taxonomies/websites/$websiteSlug/shortened-links': typeof TaxonomiesWebsitesWebsiteSlugViewShortenedLinksRoute
+  '/taxonomies/websites/$websiteSlug/edit/authors': typeof TaxonomiesWebsitesWebsiteSlugEditAuthorsRoute
   '/taxonomies/websites/$websiteSlug/edit/autofill': typeof TaxonomiesWebsitesWebsiteSlugEditAutofillRoute
   '/taxonomies/websites/$websiteSlug/edit/display-rules': typeof TaxonomiesWebsitesWebsiteSlugEditDisplayRulesRoute
   '/taxonomies/websites/$websiteSlug/edit/general': typeof TaxonomiesWebsitesWebsiteSlugEditGeneralRoute
@@ -1859,16 +1891,20 @@ export interface FileRoutesByTo {
   '/taxonomies/newsletters/$newsletterSlug/issues/$issueId': typeof TaxonomiesNewslettersNewsletterSlugIssuesIssueIdRoute
   '/taxonomies/property-groups/$propertyGroupSlug/general': typeof TaxonomiesPropertyGroupsPropertyGroupSlugViewGeneralRoute
   '/taxonomies/property-groups/$propertyGroupSlug/edit/general': typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditGeneralRoute
+  '/taxonomies/publishers/$publisherSlug/authors': typeof TaxonomiesPublishersPublisherSlugViewAuthorsRoute
   '/taxonomies/publishers/$publisherSlug/general': typeof TaxonomiesPublishersPublisherSlugViewGeneralRoute
+  '/taxonomies/publishers/$publisherSlug/edit/authors': typeof TaxonomiesPublishersPublisherSlugEditAuthorsRoute
   '/taxonomies/publishers/$publisherSlug/edit/general': typeof TaxonomiesPublishersPublisherSlugEditGeneralRoute
   '/taxonomies/relationship-types/$relationshipTypeSlug/general': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugViewGeneralRoute
   '/taxonomies/relationship-types/$relationshipTypeSlug/edit/general': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugEditGeneralRoute
+  '/taxonomies/websites/$websiteSlug/authors': typeof TaxonomiesWebsitesWebsiteSlugViewAuthorsRoute
   '/taxonomies/websites/$websiteSlug/autofill': typeof TaxonomiesWebsitesWebsiteSlugViewAutofillRoute
   '/taxonomies/websites/$websiteSlug/display-rules': typeof TaxonomiesWebsitesWebsiteSlugViewDisplayRulesRoute
   '/taxonomies/websites/$websiteSlug/general': typeof TaxonomiesWebsitesWebsiteSlugViewGeneralRoute
   '/taxonomies/websites/$websiteSlug/hierarchy': typeof TaxonomiesWebsitesWebsiteSlugViewHierarchyRoute
   '/taxonomies/websites/$websiteSlug/param-rules': typeof TaxonomiesWebsitesWebsiteSlugViewParamRulesRoute
   '/taxonomies/websites/$websiteSlug/shortened-links': typeof TaxonomiesWebsitesWebsiteSlugViewShortenedLinksRoute
+  '/taxonomies/websites/$websiteSlug/edit/authors': typeof TaxonomiesWebsitesWebsiteSlugEditAuthorsRoute
   '/taxonomies/websites/$websiteSlug/edit/autofill': typeof TaxonomiesWebsitesWebsiteSlugEditAutofillRoute
   '/taxonomies/websites/$websiteSlug/edit/display-rules': typeof TaxonomiesWebsitesWebsiteSlugEditDisplayRulesRoute
   '/taxonomies/websites/$websiteSlug/edit/general': typeof TaxonomiesWebsitesWebsiteSlugEditGeneralRoute
@@ -2087,16 +2123,20 @@ export interface FileRoutesById {
   '/taxonomies/newsletters/$newsletterSlug/issues/$issueId': typeof TaxonomiesNewslettersNewsletterSlugIssuesIssueIdRoute
   '/taxonomies/property-groups/$propertyGroupSlug/_view/general': typeof TaxonomiesPropertyGroupsPropertyGroupSlugViewGeneralRoute
   '/taxonomies/property-groups/$propertyGroupSlug/edit/general': typeof TaxonomiesPropertyGroupsPropertyGroupSlugEditGeneralRoute
+  '/taxonomies/publishers/$publisherSlug/_view/authors': typeof TaxonomiesPublishersPublisherSlugViewAuthorsRoute
   '/taxonomies/publishers/$publisherSlug/_view/general': typeof TaxonomiesPublishersPublisherSlugViewGeneralRoute
+  '/taxonomies/publishers/$publisherSlug/edit/authors': typeof TaxonomiesPublishersPublisherSlugEditAuthorsRoute
   '/taxonomies/publishers/$publisherSlug/edit/general': typeof TaxonomiesPublishersPublisherSlugEditGeneralRoute
   '/taxonomies/relationship-types/$relationshipTypeSlug/_view/general': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugViewGeneralRoute
   '/taxonomies/relationship-types/$relationshipTypeSlug/edit/general': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugEditGeneralRoute
+  '/taxonomies/websites/$websiteSlug/_view/authors': typeof TaxonomiesWebsitesWebsiteSlugViewAuthorsRoute
   '/taxonomies/websites/$websiteSlug/_view/autofill': typeof TaxonomiesWebsitesWebsiteSlugViewAutofillRoute
   '/taxonomies/websites/$websiteSlug/_view/display-rules': typeof TaxonomiesWebsitesWebsiteSlugViewDisplayRulesRoute
   '/taxonomies/websites/$websiteSlug/_view/general': typeof TaxonomiesWebsitesWebsiteSlugViewGeneralRoute
   '/taxonomies/websites/$websiteSlug/_view/hierarchy': typeof TaxonomiesWebsitesWebsiteSlugViewHierarchyRoute
   '/taxonomies/websites/$websiteSlug/_view/param-rules': typeof TaxonomiesWebsitesWebsiteSlugViewParamRulesRoute
   '/taxonomies/websites/$websiteSlug/_view/shortened-links': typeof TaxonomiesWebsitesWebsiteSlugViewShortenedLinksRoute
+  '/taxonomies/websites/$websiteSlug/edit/authors': typeof TaxonomiesWebsitesWebsiteSlugEditAuthorsRoute
   '/taxonomies/websites/$websiteSlug/edit/autofill': typeof TaxonomiesWebsitesWebsiteSlugEditAutofillRoute
   '/taxonomies/websites/$websiteSlug/edit/display-rules': typeof TaxonomiesWebsitesWebsiteSlugEditDisplayRulesRoute
   '/taxonomies/websites/$websiteSlug/edit/general': typeof TaxonomiesWebsitesWebsiteSlugEditGeneralRoute
@@ -2302,16 +2342,20 @@ export interface FileRouteTypes {
     | '/taxonomies/newsletters/$newsletterSlug/issues/$issueId'
     | '/taxonomies/property-groups/$propertyGroupSlug/general'
     | '/taxonomies/property-groups/$propertyGroupSlug/edit/general'
+    | '/taxonomies/publishers/$publisherSlug/authors'
     | '/taxonomies/publishers/$publisherSlug/general'
+    | '/taxonomies/publishers/$publisherSlug/edit/authors'
     | '/taxonomies/publishers/$publisherSlug/edit/general'
     | '/taxonomies/relationship-types/$relationshipTypeSlug/general'
     | '/taxonomies/relationship-types/$relationshipTypeSlug/edit/general'
+    | '/taxonomies/websites/$websiteSlug/authors'
     | '/taxonomies/websites/$websiteSlug/autofill'
     | '/taxonomies/websites/$websiteSlug/display-rules'
     | '/taxonomies/websites/$websiteSlug/general'
     | '/taxonomies/websites/$websiteSlug/hierarchy'
     | '/taxonomies/websites/$websiteSlug/param-rules'
     | '/taxonomies/websites/$websiteSlug/shortened-links'
+    | '/taxonomies/websites/$websiteSlug/edit/authors'
     | '/taxonomies/websites/$websiteSlug/edit/autofill'
     | '/taxonomies/websites/$websiteSlug/edit/display-rules'
     | '/taxonomies/websites/$websiteSlug/edit/general'
@@ -2470,16 +2514,20 @@ export interface FileRouteTypes {
     | '/taxonomies/newsletters/$newsletterSlug/issues/$issueId'
     | '/taxonomies/property-groups/$propertyGroupSlug/general'
     | '/taxonomies/property-groups/$propertyGroupSlug/edit/general'
+    | '/taxonomies/publishers/$publisherSlug/authors'
     | '/taxonomies/publishers/$publisherSlug/general'
+    | '/taxonomies/publishers/$publisherSlug/edit/authors'
     | '/taxonomies/publishers/$publisherSlug/edit/general'
     | '/taxonomies/relationship-types/$relationshipTypeSlug/general'
     | '/taxonomies/relationship-types/$relationshipTypeSlug/edit/general'
+    | '/taxonomies/websites/$websiteSlug/authors'
     | '/taxonomies/websites/$websiteSlug/autofill'
     | '/taxonomies/websites/$websiteSlug/display-rules'
     | '/taxonomies/websites/$websiteSlug/general'
     | '/taxonomies/websites/$websiteSlug/hierarchy'
     | '/taxonomies/websites/$websiteSlug/param-rules'
     | '/taxonomies/websites/$websiteSlug/shortened-links'
+    | '/taxonomies/websites/$websiteSlug/edit/authors'
     | '/taxonomies/websites/$websiteSlug/edit/autofill'
     | '/taxonomies/websites/$websiteSlug/edit/display-rules'
     | '/taxonomies/websites/$websiteSlug/edit/general'
@@ -2697,16 +2745,20 @@ export interface FileRouteTypes {
     | '/taxonomies/newsletters/$newsletterSlug/issues/$issueId'
     | '/taxonomies/property-groups/$propertyGroupSlug/_view/general'
     | '/taxonomies/property-groups/$propertyGroupSlug/edit/general'
+    | '/taxonomies/publishers/$publisherSlug/_view/authors'
     | '/taxonomies/publishers/$publisherSlug/_view/general'
+    | '/taxonomies/publishers/$publisherSlug/edit/authors'
     | '/taxonomies/publishers/$publisherSlug/edit/general'
     | '/taxonomies/relationship-types/$relationshipTypeSlug/_view/general'
     | '/taxonomies/relationship-types/$relationshipTypeSlug/edit/general'
+    | '/taxonomies/websites/$websiteSlug/_view/authors'
     | '/taxonomies/websites/$websiteSlug/_view/autofill'
     | '/taxonomies/websites/$websiteSlug/_view/display-rules'
     | '/taxonomies/websites/$websiteSlug/_view/general'
     | '/taxonomies/websites/$websiteSlug/_view/hierarchy'
     | '/taxonomies/websites/$websiteSlug/_view/param-rules'
     | '/taxonomies/websites/$websiteSlug/_view/shortened-links'
+    | '/taxonomies/websites/$websiteSlug/edit/authors'
     | '/taxonomies/websites/$websiteSlug/edit/autofill'
     | '/taxonomies/websites/$websiteSlug/edit/display-rules'
     | '/taxonomies/websites/$websiteSlug/edit/general'
@@ -4117,6 +4169,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaxonomiesWebsitesWebsiteSlugEditAutofillRouteImport
       parentRoute: typeof TaxonomiesWebsitesWebsiteSlugEditRoute
     }
+    '/taxonomies/websites/$websiteSlug/edit/authors': {
+      id: '/taxonomies/websites/$websiteSlug/edit/authors'
+      path: '/authors'
+      fullPath: '/taxonomies/websites/$websiteSlug/edit/authors'
+      preLoaderRoute: typeof TaxonomiesWebsitesWebsiteSlugEditAuthorsRouteImport
+      parentRoute: typeof TaxonomiesWebsitesWebsiteSlugEditRoute
+    }
     '/taxonomies/websites/$websiteSlug/_view/shortened-links': {
       id: '/taxonomies/websites/$websiteSlug/_view/shortened-links'
       path: '/shortened-links'
@@ -4159,6 +4218,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaxonomiesWebsitesWebsiteSlugViewAutofillRouteImport
       parentRoute: typeof TaxonomiesWebsitesWebsiteSlugViewRoute
     }
+    '/taxonomies/websites/$websiteSlug/_view/authors': {
+      id: '/taxonomies/websites/$websiteSlug/_view/authors'
+      path: '/authors'
+      fullPath: '/taxonomies/websites/$websiteSlug/authors'
+      preLoaderRoute: typeof TaxonomiesWebsitesWebsiteSlugViewAuthorsRouteImport
+      parentRoute: typeof TaxonomiesWebsitesWebsiteSlugViewRoute
+    }
     '/taxonomies/relationship-types/$relationshipTypeSlug/edit/general': {
       id: '/taxonomies/relationship-types/$relationshipTypeSlug/edit/general'
       path: '/general'
@@ -4180,11 +4246,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaxonomiesPublishersPublisherSlugEditGeneralRouteImport
       parentRoute: typeof TaxonomiesPublishersPublisherSlugEditRoute
     }
+    '/taxonomies/publishers/$publisherSlug/edit/authors': {
+      id: '/taxonomies/publishers/$publisherSlug/edit/authors'
+      path: '/authors'
+      fullPath: '/taxonomies/publishers/$publisherSlug/edit/authors'
+      preLoaderRoute: typeof TaxonomiesPublishersPublisherSlugEditAuthorsRouteImport
+      parentRoute: typeof TaxonomiesPublishersPublisherSlugEditRoute
+    }
     '/taxonomies/publishers/$publisherSlug/_view/general': {
       id: '/taxonomies/publishers/$publisherSlug/_view/general'
       path: '/general'
       fullPath: '/taxonomies/publishers/$publisherSlug/general'
       preLoaderRoute: typeof TaxonomiesPublishersPublisherSlugViewGeneralRouteImport
+      parentRoute: typeof TaxonomiesPublishersPublisherSlugViewRoute
+    }
+    '/taxonomies/publishers/$publisherSlug/_view/authors': {
+      id: '/taxonomies/publishers/$publisherSlug/_view/authors'
+      path: '/authors'
+      fullPath: '/taxonomies/publishers/$publisherSlug/authors'
+      preLoaderRoute: typeof TaxonomiesPublishersPublisherSlugViewAuthorsRouteImport
       parentRoute: typeof TaxonomiesPublishersPublisherSlugViewRoute
     }
     '/taxonomies/property-groups/$propertyGroupSlug/edit/general': {
@@ -5219,11 +5299,14 @@ const TaxonomiesPropertyGroupsRouteWithChildren =
   )
 
 interface TaxonomiesPublishersPublisherSlugViewRouteChildren {
+  TaxonomiesPublishersPublisherSlugViewAuthorsRoute: typeof TaxonomiesPublishersPublisherSlugViewAuthorsRoute
   TaxonomiesPublishersPublisherSlugViewGeneralRoute: typeof TaxonomiesPublishersPublisherSlugViewGeneralRoute
 }
 
 const TaxonomiesPublishersPublisherSlugViewRouteChildren: TaxonomiesPublishersPublisherSlugViewRouteChildren =
   {
+    TaxonomiesPublishersPublisherSlugViewAuthorsRoute:
+      TaxonomiesPublishersPublisherSlugViewAuthorsRoute,
     TaxonomiesPublishersPublisherSlugViewGeneralRoute:
       TaxonomiesPublishersPublisherSlugViewGeneralRoute,
   }
@@ -5234,11 +5317,14 @@ const TaxonomiesPublishersPublisherSlugViewRouteWithChildren =
   )
 
 interface TaxonomiesPublishersPublisherSlugEditRouteChildren {
+  TaxonomiesPublishersPublisherSlugEditAuthorsRoute: typeof TaxonomiesPublishersPublisherSlugEditAuthorsRoute
   TaxonomiesPublishersPublisherSlugEditGeneralRoute: typeof TaxonomiesPublishersPublisherSlugEditGeneralRoute
 }
 
 const TaxonomiesPublishersPublisherSlugEditRouteChildren: TaxonomiesPublishersPublisherSlugEditRouteChildren =
   {
+    TaxonomiesPublishersPublisherSlugEditAuthorsRoute:
+      TaxonomiesPublishersPublisherSlugEditAuthorsRoute,
     TaxonomiesPublishersPublisherSlugEditGeneralRoute:
       TaxonomiesPublishersPublisherSlugEditGeneralRoute,
   }
@@ -5356,6 +5442,7 @@ const TaxonomiesRelationshipTypesRouteWithChildren =
   )
 
 interface TaxonomiesWebsitesWebsiteSlugViewRouteChildren {
+  TaxonomiesWebsitesWebsiteSlugViewAuthorsRoute: typeof TaxonomiesWebsitesWebsiteSlugViewAuthorsRoute
   TaxonomiesWebsitesWebsiteSlugViewAutofillRoute: typeof TaxonomiesWebsitesWebsiteSlugViewAutofillRoute
   TaxonomiesWebsitesWebsiteSlugViewDisplayRulesRoute: typeof TaxonomiesWebsitesWebsiteSlugViewDisplayRulesRoute
   TaxonomiesWebsitesWebsiteSlugViewGeneralRoute: typeof TaxonomiesWebsitesWebsiteSlugViewGeneralRoute
@@ -5366,6 +5453,8 @@ interface TaxonomiesWebsitesWebsiteSlugViewRouteChildren {
 
 const TaxonomiesWebsitesWebsiteSlugViewRouteChildren: TaxonomiesWebsitesWebsiteSlugViewRouteChildren =
   {
+    TaxonomiesWebsitesWebsiteSlugViewAuthorsRoute:
+      TaxonomiesWebsitesWebsiteSlugViewAuthorsRoute,
     TaxonomiesWebsitesWebsiteSlugViewAutofillRoute:
       TaxonomiesWebsitesWebsiteSlugViewAutofillRoute,
     TaxonomiesWebsitesWebsiteSlugViewDisplayRulesRoute:
@@ -5386,6 +5475,7 @@ const TaxonomiesWebsitesWebsiteSlugViewRouteWithChildren =
   )
 
 interface TaxonomiesWebsitesWebsiteSlugEditRouteChildren {
+  TaxonomiesWebsitesWebsiteSlugEditAuthorsRoute: typeof TaxonomiesWebsitesWebsiteSlugEditAuthorsRoute
   TaxonomiesWebsitesWebsiteSlugEditAutofillRoute: typeof TaxonomiesWebsitesWebsiteSlugEditAutofillRoute
   TaxonomiesWebsitesWebsiteSlugEditDisplayRulesRoute: typeof TaxonomiesWebsitesWebsiteSlugEditDisplayRulesRoute
   TaxonomiesWebsitesWebsiteSlugEditGeneralRoute: typeof TaxonomiesWebsitesWebsiteSlugEditGeneralRoute
@@ -5396,6 +5486,8 @@ interface TaxonomiesWebsitesWebsiteSlugEditRouteChildren {
 
 const TaxonomiesWebsitesWebsiteSlugEditRouteChildren: TaxonomiesWebsitesWebsiteSlugEditRouteChildren =
   {
+    TaxonomiesWebsitesWebsiteSlugEditAuthorsRoute:
+      TaxonomiesWebsitesWebsiteSlugEditAuthorsRoute,
     TaxonomiesWebsitesWebsiteSlugEditAutofillRoute:
       TaxonomiesWebsitesWebsiteSlugEditAutofillRoute,
     TaxonomiesWebsitesWebsiteSlugEditDisplayRulesRoute:
