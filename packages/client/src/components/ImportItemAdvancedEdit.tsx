@@ -1,6 +1,6 @@
 import type { InboxItem } from "@eesimple/types";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 import { normalizeDomain } from "@eesimple/types";
 import { ChevronDown } from "lucide-react";
@@ -26,6 +26,8 @@ import { Label } from "@/components/ui/label";
 
 interface ImportItemAdvancedEditProps {
   item: InboxItem;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   categoryId: string | undefined;
   mediaTypeId: string | undefined;
   tagIds: string[];
@@ -42,9 +44,14 @@ interface ImportItemAdvancedEditProps {
  * "Advanced" collapsible for a single pending inbox item. Lets users pre-set the taxonomy fields
  * that will be applied when the item is approved — values live in local state (in the parent
  * ReviewRow) and are merged into the preFill sent to the approve endpoint.
+ *
+ * `open`/`onOpenChange` are controlled by the parent so the mobile swipe gesture can be disabled
+ * while the collapsible is open.
  */
 export function ImportItemAdvancedEdit({
   item,
+  open,
+  onOpenChange,
   categoryId,
   mediaTypeId,
   tagIds,
@@ -56,8 +63,6 @@ export function ImportItemAdvancedEdit({
   onAuthorsChange,
   onPublisherChange,
 }: ImportItemAdvancedEditProps) {
-  const [open, setOpen] = useState(false);
-
   const {
     data: categories = [],
   } = useCategories();
@@ -99,7 +104,7 @@ export function ImportItemAdvancedEdit({
   return (
     <Collapsible
       open={open}
-      onOpenChange={setOpen}
+      onOpenChange={onOpenChange}
     >
       <CollapsibleTrigger asChild>
         <Button

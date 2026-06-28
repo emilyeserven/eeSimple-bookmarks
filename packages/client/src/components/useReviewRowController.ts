@@ -33,6 +33,7 @@ export function useReviewRowController(
     data: categories = [],
   } = useCategories();
   const [contextOpen, setContextOpen] = useState(false);
+  const [advancedEditOpen, setAdvancedEditOpen] = useState(false);
   const [itemPreFill, setItemPreFill] = useState<InboxPreFillDefaults>({
     categoryId: item.categoryId ?? undefined,
     mediaTypeId: undefined,
@@ -79,6 +80,8 @@ export function useReviewRowController(
   return {
     contextOpen,
     setContextOpen,
+    advancedEditOpen,
+    setAdvancedEditOpen,
     itemPreFill,
     effectivePreFill,
     isMobile,
