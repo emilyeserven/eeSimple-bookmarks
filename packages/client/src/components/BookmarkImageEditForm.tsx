@@ -1,18 +1,7 @@
-import type { ImageIntent } from "./bookmarkImageIntent";
 import type { Bookmark } from "@eesimple/types";
 
-import { useRef, useState } from "react";
-
 import { BookmarkImageField } from "./BookmarkImageField";
-import { EMPTY_IMAGE_INTENT } from "./bookmarkImageIntent";
-import {
-  useAutoBookmarkImage,
-  useDeleteBookmarkImage,
-  useDeleteBookmarkScreenshot,
-  useTakeBookmarkScreenshot,
-  useUploadBookmarkImage,
-} from "../hooks/useBookmarks";
-import { notifySuccess } from "../lib/notifications";
+import { useBookmarkImageEditForm } from "./useBookmarkImageEditForm";
 
 import { Button } from "@/components/ui/button";
 
@@ -24,77 +13,31 @@ interface BookmarkImageEditFormProps {
 export function BookmarkImageEditForm({
   bookmark,
 }: BookmarkImageEditFormProps) {
-  const uploadImage = useUploadBookmarkImage();
-  const autoImage = useAutoBookmarkImage();
-  const deleteImage = useDeleteBookmarkImage();
-  const takeScreenshot = useTakeBookmarkScreenshot();
-  const deleteScreenshot = useDeleteBookmarkScreenshot();
-
-  const imageIntentRef = useRef<ImageIntent>(EMPTY_IMAGE_INTENT);
-  const [imageFieldKey, setImageFieldKey] = useState(0);
-  const [isPending, setIsPending] = useState(false);
-  const [screenshotDelayMs, setScreenshotDelayMs] = useState(0);
-
-  async function handleSubmit(event: React.FormEvent): Promise<void> {
-    event.preventDefault();
-    setIsPending(true);
-    try {
-      const intent = imageIntentRef.current;
-      if (intent.file) {
-        await uploadImage.mutateAsync({
-          id: bookmark.id,
-          file: intent.file,
-        });
-      }
-      else if (intent.auto) {
-        await autoImage.mutateAsync({
-          id: bookmark.id,
-          sourceUrl: bookmark.url ?? "",
-        });
-      }
-      else if (intent.remove) {
-        await deleteImage.mutateAsync(bookmark.id);
-      }
-      notifySuccess("Changes saved");
-      imageIntentRef.current = EMPTY_IMAGE_INTENT;
-      setImageFieldKey(key => key + 1);
-    }
-    catch {
-      // Surfaced via mutation hooks' onError toast.
-    }
-    finally {
-      setIsPending(false);
-    }
-  }
-
-  const isMutating = uploadImage.isPending || autoImage.isPending || deleteImage.isPending || takeScreenshot.isPending || deleteScreenshot.isPending;
-  const mutationError = uploadImage.error ?? autoImage.error ?? deleteImage.error;
+  const c = useBookmarkImageEditForm(bookmark);
 
   return (
     <form
       className="space-y-4"
-      onSubmit={event => void handleSubmit(event)}
+      onSubmit={c.onSubmit}
     >
       <BookmarkImageField
-        key={imageFieldKey}
+        key={c.imageFieldKey}
         existingImageUrl={bookmark.image?.url ?? null}
         pageUrl={bookmark.url ?? ""}
         defaultAuto={false}
         autoGrabError={bookmark.imageAutoGrabError ?? null}
-        onChange={(intent) => {
-          imageIntentRef.current = intent;
-        }}
+        onChange={c.onImageChange}
       />
       <div>
         <Button
           type="submit"
           size="sm"
-          disabled={isPending || isMutating}
+          disabled={c.isPending || c.isMutating}
         >
-          {isPending || isMutating ? "Saving…" : "Save changes"}
+          {c.isPending || c.isMutating ? "Saving…" : "Save changes"}
         </Button>
-        {mutationError
-          ? <p className="mt-2 text-sm text-destructive">{mutationError.message}</p>
+        {c.mutationError
+          ? <p className="mt-2 text-sm text-destructive">{c.mutationError.message}</p>
           : null}
       </div>
       <div className="space-y-2 border-t pt-4">
@@ -123,9 +66,9 @@ export function BookmarkImageEditForm({
                 rounded-sm border bg-background px-1.5 py-1 text-xs
                 text-foreground
               "
-              value={screenshotDelayMs}
-              disabled={isMutating}
-              onChange={e => setScreenshotDelayMs(Number(e.target.value))}
+              value={c.screenshotDelayMs}
+              disabled={c.isMutating}
+              onChange={e => c.setScreenshotDelayMs(Number(e.target.value))}
             >
               <option value={0}>None</option>
               <option value={2000}>2 s</option>
@@ -138,13 +81,10 @@ export function BookmarkImageEditForm({
             type="button"
             variant="outline"
             size="sm"
-            disabled={isMutating}
-            onClick={() => void takeScreenshot.mutateAsync({
-              id: bookmark.id,
-              delayMs: screenshotDelayMs || undefined,
-            })}
+            disabled={c.isMutating}
+            onClick={c.onTakeScreenshot}
           >
-            {takeScreenshot.isPending ? "Capturing…" : bookmark.screenshot ? "Retake screenshot" : "Take screenshot"}
+            {c.takeScreenshotPending ? "Capturing…" : bookmark.screenshot ? "Retake screenshot" : "Take screenshot"}
           </Button>
           {bookmark.screenshot
             ? (
@@ -152,10 +92,10 @@ export function BookmarkImageEditForm({
                 type="button"
                 variant="outline"
                 size="sm"
-                disabled={isMutating}
-                onClick={() => void deleteScreenshot.mutateAsync(bookmark.id)}
+                disabled={c.isMutating}
+                onClick={c.onDeleteScreenshot}
               >
-                {deleteScreenshot.isPending ? "Removing…" : "Remove screenshot"}
+                {c.deleteScreenshotPending ? "Removing…" : "Remove screenshot"}
               </Button>
             )
             : null}

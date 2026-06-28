@@ -45,9 +45,10 @@ properties are added automatically (see `eligibleCustomCardFields`), so this is 
    (`inline` pill / `block` full-width / `tableName` + `tableValue`). For an image-corner overlay add
    a branch to `standardFieldOverlayLabel` in `bookmarkCardValues.ts` (text/icon overlays). If the
    field needs handlers (clicks, menus), thread them in as props from `BookmarkCard.tsx` (see how
-   `editableProperties` / `onAutoImage` / `onSave*` reach the `more` field) — never re-add a fixed
-   header. Reusable action nodes (Open Link / More) live in `BookmarkCardActions.tsx` so the body and
-   the overlay share one implementation.
+   the `more` field's controls — `editableProperties` / `onAutoImage` / `onSave*` — are passed as one
+   grouped `menu` object, typed `BookmarkCardMenuControls` and exported from `BookmarkCardActions.tsx`)
+   — never re-add a fixed header. Reusable action nodes (Open Link / More) live in
+   `BookmarkCardActions.tsx` so the body and the overlay share one implementation.
 4. **Every field can go in every zone.** There is no per-field zone restriction — `Title` / `Open
    Link` / `More` are placeable in the image corners too. An **interactive** field (a button/menu, no
    text-overlay form) is rendered in a corner by passing its node through `buildCardOverlayItems`'s

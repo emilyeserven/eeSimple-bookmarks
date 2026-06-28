@@ -1,13 +1,10 @@
 import type {
-  ImportApproveResult,
   InboxItem,
   InboxPreFillDefaults,
   ViewMode,
 } from "@eesimple/types";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { ReactNode } from "react";
-
-import { useState } from "react";
 
 import { ChevronDown, ExternalLink, Trash2 } from "lucide-react";
 
@@ -19,15 +16,8 @@ import {
 } from "./InboxRowActions";
 import { formatAdded } from "./tables/inboxColumns";
 import { useInboxReviewController } from "./useInboxReviewController";
-import { useIsMobile } from "../hooks/use-mobile";
-import { useCategories } from "../hooks/useCategories";
-import {
-  useApproveImportItem,
-  useRejectImportItem,
-} from "../hooks/useImports";
-import { useSwipeGesture } from "../hooks/useSwipeGesture";
+import { useReviewRowController } from "./useReviewRowController";
 import { highlightAnchor } from "../lib/newsletterContext";
-import { notifyError, notifySuccess } from "../lib/notifications";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -46,12 +36,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-function notifyApprove(result: ImportApproveResult): void {
-  if (result.status === "approved") notifySuccess("Bookmark added");
-  else if (result.status === "duplicate") notifyError(result.message ?? "Already saved as a bookmark");
-  else if (result.status === "error") notifyError(result.message ?? "Couldn't add bookmark");
-}
-
 function ReviewRow({
   item,
   onDismiss,
@@ -60,56 +44,10 @@ function ReviewRow({
   onDismiss?: (id: string) => void;
   preFill?: InboxPreFillDefaults; }) {
   const {
-    data: categories = [],
-  } = useCategories();
-  const [contextOpen, setContextOpen] = useState(false);
-  const [itemPreFill, setItemPreFill] = useState<InboxPreFillDefaults>({
-    categoryId: item.categoryId ?? undefined,
-    mediaTypeId: undefined,
-    tagIds: [],
-    authorIds: [],
-    publisherId: undefined,
-  });
-  const isMobile = useIsMobile();
-  const approve = useApproveImportItem();
-  const reject = useRejectImportItem();
+    contextOpen, setContextOpen, itemPreFill, effectivePreFill, isMobile, muted, categoryName, swipe,
+    patchItemPreFill,
+  } = useReviewRowController(item, preFill, onDismiss);
 
-  // Per-item advanced values take precedence over the batch preFill; tags are unioned.
-  const effectivePreFill: InboxPreFillDefaults = {
-    categoryId: itemPreFill.categoryId ?? preFill?.categoryId,
-    mediaTypeId: itemPreFill.mediaTypeId ?? preFill?.mediaTypeId,
-    tagIds: [...(itemPreFill.tagIds ?? []), ...(preFill?.tagIds ?? [])],
-    authorIds: itemPreFill.authorIds?.length ? itemPreFill.authorIds : preFill?.authorIds,
-    publisherId: itemPreFill.publisherId ?? preFill?.publisherId,
-    numberValues: preFill?.numberValues,
-    booleanValues: preFill?.booleanValues,
-    dateTimeValues: preFill?.dateTimeValues,
-    choicesValues: preFill?.choicesValues,
-  };
-
-  const {
-    displacement, onTouchStart, onTouchMove, onTouchEnd,
-  } = useSwipeGesture(
-    () => {
-      onDismiss?.(item.id);
-      approve.mutate({
-        itemId: item.id,
-        preFill: effectivePreFill,
-      }, {
-        onSuccess: notifyApprove,
-      });
-    },
-    () => {
-      onDismiss?.(item.id);
-      reject.mutate(item.id, {
-        onSuccess: () => notifySuccess("Rejected link"),
-      });
-    },
-  );
-
-  const muted = item.status === "rejected" || item.status === "approved"
-    || item.status === "duplicate" || item.status === "blocked";
-  const categoryName = categories.find(c => c.id === item.categoryId)?.name ?? null;
   const rowActions = (
     <RowActions
       item={item}
@@ -125,40 +63,35 @@ function ReviewRow({
         tagIds={itemPreFill.tagIds ?? []}
         authorIds={itemPreFill.authorIds ?? []}
         publisherId={itemPreFill.publisherId ?? undefined}
-        onCategoryChange={id => setItemPreFill(prev => ({
-          ...prev,
+        onCategoryChange={id => patchItemPreFill({
           categoryId: id,
-        }))}
-        onMediaTypeChange={id => setItemPreFill(prev => ({
-          ...prev,
+        })}
+        onMediaTypeChange={id => patchItemPreFill({
           mediaTypeId: id,
-        }))}
-        onTagsChange={ids => setItemPreFill(prev => ({
-          ...prev,
+        })}
+        onTagsChange={ids => patchItemPreFill({
           tagIds: ids,
-        }))}
-        onAuthorsChange={ids => setItemPreFill(prev => ({
-          ...prev,
+        })}
+        onAuthorsChange={ids => patchItemPreFill({
           authorIds: ids,
-        }))}
-        onPublisherChange={id => setItemPreFill(prev => ({
-          ...prev,
+        })}
+        onPublisherChange={id => patchItemPreFill({
           publisherId: id,
-        }))}
+        })}
       />
     )
     : null;
 
   if (isMobile && item.status === "pending") {
-    const swipeRight = displacement >= 80;
-    const swipeLeft = displacement <= -80;
+    const swipeRight = swipe.displacement >= 80;
+    const swipeLeft = swipe.displacement <= -80;
 
     return (
       <div
         className="relative overflow-hidden rounded-lg"
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
+        onTouchStart={swipe.onTouchStart}
+        onTouchMove={swipe.onTouchMove}
+        onTouchEnd={swipe.onTouchEnd}
       >
         <div
           className={`
@@ -169,8 +102,8 @@ function ReviewRow({
         <RowCard
           className="relative z-10 p-4"
           style={{
-            transform: `translateX(${displacement}px)`,
-            transition: displacement === 0 ? "transform 0.2s ease" : "none",
+            transform: `translateX(${swipe.displacement}px)`,
+            transition: swipe.displacement === 0 ? "transform 0.2s ease" : "none",
           }}
         >
           <ReviewItemBody

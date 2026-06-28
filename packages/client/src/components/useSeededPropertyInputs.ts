@@ -5,16 +5,7 @@ import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import { useRef, useState } from "react";
 
 /** The number/boolean/datetime/choices/progress/sections/text input maps plus a ref mirror, seeded from a bookmark's stored values. */
-export interface SeededPropertyInputs {
-  numberInputs: Record<string, string>;
-  booleanInputs: Record<string, boolean>;
-  dateTimeInputs: Record<string, string>;
-  choicesInputs: Record<string, string[]>;
-  progressInputs: Record<string, { current: string;
-    total: string; }>;
-  sectionsInputs: Record<string, { exhaustive: boolean;
-    sections: SectionEntry[]; }>;
-  textInputs: Record<string, string>;
+export interface SeededPropertyInputs extends CustomPropertyInputs {
   setNumberInputs: Dispatch<SetStateAction<Record<string, string>>>;
   setBooleanInputs: Dispatch<SetStateAction<Record<string, boolean>>>;
   setDateTimeInputs: Dispatch<SetStateAction<Record<string, string>>>;
