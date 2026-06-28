@@ -2,6 +2,7 @@
 import type { EntityWorkbench } from "./types";
 import type { Publisher } from "@eesimple/types";
 
+import { PublisherAuthorsForm, PublisherAuthorsView } from "../PublisherAuthorsForm";
 import { PublisherGeneralForm } from "../PublisherGeneralForm";
 
 import { useDeletePublisher, usePublisherBySlug, usePublishers } from "@/hooks/usePublishers";
@@ -112,6 +113,24 @@ export const publisherWorkbench: EntityWorkbench<Publisher> = {
         render: ({
           entity,
         }) => <PublisherGeneralForm publisher={entity} />,
+      },
+    },
+    {
+      key: "authors",
+      label: "Authors",
+      view: {
+        title: "Authors",
+        description: "Authors associated with this publisher.",
+        render: ({
+          entity,
+        }) => <PublisherAuthorsView publisher={entity} />,
+      },
+      edit: {
+        title: "Authors",
+        description: "Connect authors to this publisher.",
+        render: ({
+          entity,
+        }) => <PublisherAuthorsForm publisher={entity} />,
       },
     },
   ],
