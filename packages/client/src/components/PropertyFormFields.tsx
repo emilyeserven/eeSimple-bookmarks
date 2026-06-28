@@ -17,6 +17,8 @@ interface CategoryCheckboxListProps {
   onToggleAll?: (selectAll: boolean) => void;
   /** When true, the property applies to all (incl. future) categories; "Select all" stays checked. */
   allCategories?: boolean;
+  /** Label for the select-all checkbox (defaults to "Select all"). */
+  selectAllLabel?: string;
 }
 
 /** A checkbox list for assigning a property to zero, one, or many categories. */
@@ -27,6 +29,7 @@ export function CategoryCheckboxList({
   idPrefix,
   onToggleAll,
   allCategories = false,
+  selectAllLabel = "Select all",
 }: CategoryCheckboxListProps) {
   if (categories.length === 0) {
     return (
@@ -50,7 +53,7 @@ export function CategoryCheckboxList({
               htmlFor={`${idPrefix}-select-all`}
               className="text-xs text-muted-foreground"
             >
-              Select all
+              {selectAllLabel}
             </Label>
           </div>
         )
