@@ -18,6 +18,12 @@ export interface BookmarkTaxonomyContext {
   bookmarkId: string | null;
   /** True when on the bookmark detail view page (not the edit page). */
   isBookmarkViewPage: boolean;
+  /**
+   * True when `bookmarkId` came from the hovered-card fallback rather than the URL — i.e. the user
+   * is on a listing page and hovered a card. Used to surface the card's quick-edit commands at the
+   * top of the command palette.
+   */
+  bookmarkFromHover: boolean;
   bookmark: Bookmark | undefined;
   categories: Category[];
   flatMediaTypes: FlatNode<MediaTypeNode>[];
@@ -41,6 +47,7 @@ export function useBookmarkTaxonomyContext(fallbackBookmarkId: string | null = n
     },
   });
   const bookmarkId = urlBookmarkId ?? fallbackBookmarkId;
+  const bookmarkFromHover = urlBookmarkId === null && fallbackBookmarkId !== null;
 
   const isBookmarkViewPage = useRouterState({
     select: (state) => {
@@ -85,6 +92,7 @@ export function useBookmarkTaxonomyContext(fallbackBookmarkId: string | null = n
   return {
     bookmarkId,
     isBookmarkViewPage,
+    bookmarkFromHover,
     bookmark,
     categories,
     flatMediaTypes,
