@@ -11,6 +11,7 @@ import { useState } from "react";
 
 import { ChevronDown, ExternalLink, Trash2 } from "lucide-react";
 
+import { ImportItemAdvancedEdit } from "./ImportItemAdvancedEdit";
 import { InboxPreFillBox } from "./InboxPreFillBox";
 import {
   RowActions,
@@ -62,9 +63,30 @@ function ReviewRow({
     data: categories = [],
   } = useCategories();
   const [contextOpen, setContextOpen] = useState(false);
+  const [itemPreFill, setItemPreFill] = useState<InboxPreFillDefaults>({
+    categoryId: item.categoryId ?? undefined,
+    mediaTypeId: undefined,
+    tagIds: [],
+    authorIds: [],
+    publisherId: undefined,
+  });
   const isMobile = useIsMobile();
   const approve = useApproveImportItem();
   const reject = useRejectImportItem();
+
+  // Per-item advanced values take precedence over the batch preFill; tags are unioned.
+  const effectivePreFill: InboxPreFillDefaults = {
+    categoryId: itemPreFill.categoryId ?? preFill?.categoryId,
+    mediaTypeId: itemPreFill.mediaTypeId ?? preFill?.mediaTypeId,
+    tagIds: [...(itemPreFill.tagIds ?? []), ...(preFill?.tagIds ?? [])],
+    authorIds: itemPreFill.authorIds?.length ? itemPreFill.authorIds : preFill?.authorIds,
+    publisherId: itemPreFill.publisherId ?? preFill?.publisherId,
+    numberValues: preFill?.numberValues,
+    booleanValues: preFill?.booleanValues,
+    dateTimeValues: preFill?.dateTimeValues,
+    choicesValues: preFill?.choicesValues,
+  };
+
   const {
     displacement, onTouchStart, onTouchMove, onTouchEnd,
   } = useSwipeGesture(
@@ -72,7 +94,7 @@ function ReviewRow({
       onDismiss?.(item.id);
       approve.mutate({
         itemId: item.id,
-        preFill,
+        preFill: effectivePreFill,
       }, {
         onSuccess: notifyApprove,
       });
@@ -91,9 +113,41 @@ function ReviewRow({
   const rowActions = (
     <RowActions
       item={item}
-      preFill={preFill}
+      preFill={effectivePreFill}
     />
   );
+  const advancedEdit = item.status === "pending"
+    ? (
+      <ImportItemAdvancedEdit
+        item={item}
+        categoryId={itemPreFill.categoryId ?? undefined}
+        mediaTypeId={itemPreFill.mediaTypeId ?? undefined}
+        tagIds={itemPreFill.tagIds ?? []}
+        authorIds={itemPreFill.authorIds ?? []}
+        publisherId={itemPreFill.publisherId ?? undefined}
+        onCategoryChange={id => setItemPreFill(prev => ({
+          ...prev,
+          categoryId: id,
+        }))}
+        onMediaTypeChange={id => setItemPreFill(prev => ({
+          ...prev,
+          mediaTypeId: id,
+        }))}
+        onTagsChange={ids => setItemPreFill(prev => ({
+          ...prev,
+          tagIds: ids,
+        }))}
+        onAuthorsChange={ids => setItemPreFill(prev => ({
+          ...prev,
+          authorIds: ids,
+        }))}
+        onPublisherChange={id => setItemPreFill(prev => ({
+          ...prev,
+          publisherId: id,
+        }))}
+      />
+    )
+    : null;
 
   if (isMobile && item.status === "pending") {
     const swipeRight = displacement >= 80;
@@ -125,6 +179,7 @@ function ReviewRow({
             contextOpen={contextOpen}
             onContextOpenChange={setContextOpen}
             trailing={rowActions}
+            advancedEdit={advancedEdit}
           />
         </RowCard>
       </div>
@@ -144,6 +199,7 @@ function ReviewRow({
         contextOpen={contextOpen}
         onContextOpenChange={setContextOpen}
         trailing={rowActions}
+        advancedEdit={advancedEdit}
       />
     </RowCard>
   );
@@ -151,13 +207,14 @@ function ReviewRow({
 
 /** The image + metadata column shared by the mobile-swipe and desktop review-row layouts. */
 function ReviewItemBody({
-  item, categoryName, contextOpen, onContextOpenChange, trailing,
+  item, categoryName, contextOpen, onContextOpenChange, trailing, advancedEdit,
 }: {
   item: InboxItem;
   categoryName: string | null;
   contextOpen: boolean;
   onContextOpenChange: (open: boolean) => void;
   trailing?: ReactNode;
+  advancedEdit?: ReactNode;
 }) {
   return (
     <div className="flex items-start gap-3">
@@ -256,6 +313,7 @@ function ReviewItemBody({
 
         {/* Row 4: Date added */}
         <p className="text-xs text-muted-foreground/70">Added {formatAdded(item.createdAt)}</p>
+        {advancedEdit}
       </div>
     </div>
   );
