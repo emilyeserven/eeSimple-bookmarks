@@ -40,6 +40,10 @@ export const STANDARD_CARD_FIELDS = [
     label: "Open Link",
   },
   {
+    key: "archiveLink",
+    label: "Archive Link",
+  },
+  {
     key: "more",
     label: "More menu",
   },

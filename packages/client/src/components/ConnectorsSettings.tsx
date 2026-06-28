@@ -150,6 +150,8 @@ function HostedMetadataForm() {
         hostedMetadataProvider: provider,
         // null = server preserves the existing key; only send the value when the user typed.
         hostedMetadataApiKey: field === "apiKey" ? apiKey : null,
+        // The connectors PUT body requires every field; preserve the saved ArchiveBox URL.
+        archiveBoxEndpoint: data.archiveBoxEndpoint,
       },
       {
         onSuccess: () => {
@@ -273,6 +275,124 @@ function HostedMetadataForm() {
 }
 
 /**
+ * Editable form for the ArchiveBox connector: a single base-URL field that saves on blur with a
+ * named toast. Link-out only — no token is stored or sent. The connectors PUT body requires every
+ * field, so the hosted-metadata fields are echoed from the loaded settings (API key left unchanged).
+ */
+function ArchiveBoxForm() {
+  const {
+    data,
+  } = useConnectorsSettings();
+  const update = useUpdateConnectorsSettings();
+
+  const [endpoint, setEndpoint] = useState(data?.archiveBoxEndpoint ?? "");
+  const [checkResult, setCheckResult] = useState<CheckUrlResult | null>(null);
+
+  const checkConnection = useMutation({
+    mutationFn: () => metadataApi.checkUrl({
+      url: endpoint.replace(/\/$/, ""),
+    }),
+    onSuccess: result => setCheckResult(result),
+    onError: (err: Error) => notifyFieldSaveError("Connection check", err.message),
+  });
+
+  useEffect(() => {
+    if (data) {
+      setEndpoint(data.archiveBoxEndpoint);
+      setCheckResult(null);
+    }
+  }, [data]);
+
+  function saveEndpoint(): void {
+    if (!data) return;
+    update.mutate(
+      {
+        // Echo the hosted-metadata fields unchanged (null preserves the stored API key).
+        hostedMetadataEndpoint: data.hostedMetadataEndpoint,
+        hostedMetadataProvider: data.hostedMetadataProvider,
+        hostedMetadataApiKey: null,
+        archiveBoxEndpoint: endpoint,
+      },
+      {
+        onSuccess: () => notifyFieldSaved("ArchiveBox URL"),
+        onError: (err: Error) => notifyFieldSaveError("ArchiveBox URL", err.message),
+      },
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">
+        Point this at your self-hosted
+        {" "}
+        <a
+          href="https://archivebox.io/"
+          target="_blank"
+          rel="noreferrer"
+          className="underline underline-offset-2"
+        >
+          ArchiveBox
+        </a>
+        {" "}
+        instance. When set, bookmarks gain links to view the archived snapshot of their page and to
+        archive it on demand. Link-out only — no token is sent, and the links open against your own
+        ArchiveBox in a new tab. Saves on blur.
+      </p>
+      <div className="space-y-1.5">
+        <Label htmlFor="ab-endpoint">Base URL</Label>
+        <Input
+          id="ab-endpoint"
+          type="url"
+          placeholder="http://localhost:8000"
+          value={endpoint}
+          onChange={(e) => {
+            setEndpoint(e.target.value);
+            setCheckResult(null);
+          }}
+          onBlur={saveEndpoint}
+        />
+        <p className="text-xs text-muted-foreground">
+          Base URL of your ArchiveBox instance (e.g.
+          {" "}
+          <code>http://localhost:8000</code>
+          ). The app appends
+          {" "}
+          <code>/?q=&lt;url&gt;</code>
+          {" "}
+          to view a snapshot and
+          {" "}
+          <code>/add?url=&lt;url&gt;</code>
+          {" "}
+          to archive a page.
+        </p>
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={!endpoint || checkConnection.isPending}
+            onClick={() => {
+              setCheckResult(null);
+              checkConnection.mutate();
+            }}
+          >
+            {checkConnection.isPending
+              ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  Checking…
+                </>
+              )
+              : "Check connection"}
+          </Button>
+          <CheckConnectionResult result={checkResult} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
  * Connectors overview: every external data source the metadata-prefill pipeline uses and
  * what each provides, with live Active/Inactive status for the optional, env-gated providers.
  * The hosted metadata provider card includes editable fields for endpoint, provider, and API key.
@@ -385,6 +505,24 @@ export function ConnectorsSettings() {
         <CardContent className="space-y-4">
           <HostedMetadataForm />
           <Provides items={["Title", "Description", "Image", "Author", "Publisher", "Publish date"]} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between gap-2">
+            <CardTitle>ArchiveBox</CardTitle>
+            <StatusBadge enabled={data?.archiveBox.enabled} />
+          </div>
+          <CardDescription>
+            Optional. When a base URL is configured, bookmarks link out to your self-hosted ArchiveBox
+            web archive — viewing the archived snapshot of a page and archiving it on demand. Off by
+            default; link-out only, so no token is sent and nothing leaves the box automatically.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <ArchiveBoxForm />
+          <Provides items={["View archived snapshot", "Archive now (add URL)"]} />
         </CardContent>
       </Card>
     </div>

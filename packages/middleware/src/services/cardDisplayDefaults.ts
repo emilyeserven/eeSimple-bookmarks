@@ -14,6 +14,7 @@ export const STANDARD_CARD_FIELD_KEYS = [
   "youtubeChannel",
   "tags",
   "externalLink",
+  "archiveLink",
   "more",
 ] as const;
 

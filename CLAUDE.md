@@ -543,6 +543,7 @@ readiness uses `DB_WAIT_TIMEOUT_MS`).
 | `HOSTED_METADATA_API_KEY` | middleware / gateway | Optional API key for the hosted metadata provider, sent as the `x-api-key` header. |
 | `HOSTED_METADATA_PROVIDER` | middleware / gateway | Optional provider label (e.g. `microlink`) shown on the Connectors settings page; does not affect behavior. |
 | `YOUTUBE_API_KEY` | middleware / gateway | **Optional, default off.** Tier 2 — when set, a YouTube video's duration/publish-date/description come from the YouTube Data API v3 (`videos.list`) instead of the brittle `ytInitialPlayerResponse` watch-page scrape; unset falls back to the scrape. Title/thumbnail/channel stay on keyless oEmbed either way. |
+| `ARCHIVEBOX_ENDPOINT` | middleware / gateway | **Optional, default off.** Base URL of a self-hosted [ArchiveBox](https://archivebox.io/) instance. **Link-out only** — when set, bookmarks gain UI (detail header, the placeable `archiveLink` card field, an "Archive now" action) that opens the archived snapshot (`<base>/?q=<url>`) or the add view (`<base>/add?url=<url>`) in a new tab. **No token is sent and the middleware makes no calls to ArchiveBox** — the user's browser opens the links against their own instance. The base URL is non-secret and returned on `GET /api/connectors` so the client can build the links. A DB value (Settings → Connectors) overrides this env var. |
 
 Bookmark images are compressed to a 1200px WebP and stored in object storage (Garage by default),
 served via `GET /api/bookmarks/:id/image`. Without the `S3_*` vars the app runs normally but image

@@ -1,9 +1,10 @@
 import type { Bookmark, BookmarkTag, ChoicesDisplayType, CustomProperty } from "@eesimple/types";
 
-import { ExternalLink, MoreVertical } from "lucide-react";
+import { Archive, ArchiveRestore, ExternalLink, MoreVertical } from "lucide-react";
 
 import { BookmarkCardMenu } from "./BookmarkCardMenu";
 import { useUpdateCustomProperty } from "../hooks/useCustomProperties";
+import { archiveAddUrl, archiveSearchUrl } from "../lib/archiveBox";
 
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -31,6 +32,63 @@ export function BookmarkExternalLinkButton({
         aria-label="Open URL in new tab"
       >
         <ExternalLink className="size-4" />
+      </a>
+    </Button>
+  );
+}
+
+/**
+ * "View archived page" action — opens the ArchiveBox public index pre-searched to the bookmark's
+ * URL in a new tab. Caller renders it only when ArchiveBox is configured and the bookmark has a url.
+ */
+export function BookmarkArchiveLinkButton({
+  baseUrl, url,
+}: { baseUrl: string;
+  url: string; }) {
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
+      asChild
+    >
+      <a
+        href={archiveSearchUrl(baseUrl, url)}
+        target="_blank"
+        rel="noreferrer"
+        aria-label="View archived page in ArchiveBox"
+        title="View archived page in ArchiveBox"
+      >
+        <Archive className="size-4" />
+      </a>
+    </Button>
+  );
+}
+
+/**
+ * "Archive now" action — opens the ArchiveBox add view pre-filled with the bookmark's URL in a new
+ * tab to trigger a fresh snapshot. Caller renders it only when ArchiveBox is configured and the
+ * bookmark has a url.
+ */
+export function BookmarkArchiveNowButton({
+  baseUrl, url,
+}: { baseUrl: string;
+  url: string; }) {
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
+      asChild
+    >
+      <a
+        href={archiveAddUrl(baseUrl, url)}
+        target="_blank"
+        rel="noreferrer"
+        aria-label="Archive this page now in ArchiveBox"
+        title="Archive this page now in ArchiveBox"
+      >
+        <ArchiveRestore className="size-4" />
       </a>
     </Button>
   );

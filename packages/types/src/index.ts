@@ -2331,6 +2331,13 @@ export interface ConnectorsStatus {
   youtubeDataApi: { enabled: boolean };
   /** Object storage (S3/Garage) — whether bookmark images / favicons can be stored. */
   objectStorage: { configured: boolean };
+  /**
+   * ArchiveBox web archive — active only when a base URL is configured (`ARCHIVEBOX_ENDPOINT` env var
+   * or the saved setting). The base URL is not a secret and is returned so the client can build
+   * link-outs to the archived copy of a bookmark.
+   */
+  archiveBox: { enabled: boolean;
+    baseUrl: string | null; };
 }
 
 /** Hosted-metadata connector settings from `GET /api/app-settings/connectors`. Never exposes the raw key. */
@@ -2341,6 +2348,8 @@ export interface ConnectorsAppSettings {
   hostedMetadataApiKeySet: boolean;
   /** Whether `APP_SECRET` is configured so keys are encrypted at rest. */
   encryptionEnabled: boolean;
+  /** Base URL of the ArchiveBox instance (e.g. `http://localhost:8000`), or `""` when unset. */
+  archiveBoxEndpoint: string;
 }
 
 /** Body for `PUT /api/app-settings/connectors`. */
@@ -2354,6 +2363,8 @@ export interface UpdateConnectorsSettingsInput {
    * Any other string = encrypt and store as the new key.
    */
   hostedMetadataApiKey: string | null;
+  /** Base URL of the ArchiveBox instance; `""` clears it. No key analog — ArchiveBox link-outs are tokenless. */
+  archiveBoxEndpoint: string;
 }
 
 /** Result of probing a URL for reachability (`GET /api/check-url`). */
