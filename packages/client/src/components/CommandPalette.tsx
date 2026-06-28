@@ -1,5 +1,5 @@
 import type { FlatNode } from "@/lib/tagTree";
-import type { Author, Category, CustomProperty, MediaTypeNode, Newsletter, TagNode } from "@eesimple/types";
+import type { Author, Bookmark, Category, CustomProperty, MediaTypeNode, Newsletter, TagNode } from "@eesimple/types";
 
 import { useEffect, useMemo, useState } from "react";
 
@@ -872,6 +872,222 @@ function NewsletterSubPalette({
   );
 }
 
+/**
+ * The bookmark quick-edit commands (category / tags / media type / authors / newsletter / boolean /
+ * choices / rating / other properties). Rendered either at the top of the palette when a card is
+ * hovered, or in its in-page position on a bookmark detail page.
+ */
+function BookmarkTaxonomiesGroup({
+  bookmark,
+  bookmarkId,
+  isBookmarkViewPage,
+  currentCategoryName,
+  authors,
+  booleanProperties,
+  choicesProperties,
+  ratingProperties,
+  editableProperties,
+  updateBookmark,
+  onEnterMode,
+  onEnterChoicesMode,
+  onEnterRatingMode,
+  onNavigateProperties,
+  onClose,
+}: {
+  bookmark: Bookmark;
+  bookmarkId: string;
+  isBookmarkViewPage: boolean;
+  currentCategoryName: string | null;
+  authors: Author[];
+  booleanProperties: CustomProperty[];
+  choicesProperties: CustomProperty[];
+  ratingProperties: CustomProperty[];
+  editableProperties: CustomProperty[];
+  updateBookmark: ReturnType<typeof useBookmarkTaxonomyContext>["updateBookmark"];
+  onEnterMode: (mode: TaxonomyMode) => void;
+  onEnterChoicesMode: (propId: string) => void;
+  onEnterRatingMode: (propId: string) => void;
+  onNavigateProperties: () => void;
+  onClose: () => void;
+}) {
+  return (
+    <>
+      <CommandGroup
+        heading={isBookmarkViewPage
+          ? "Bookmark Taxonomies"
+          : `Bookmark Taxonomies — ${bookmark.title}`}
+      >
+        <CommandItem
+          value="Change Category"
+          onSelect={() => onEnterMode("category")}
+        >
+          <TagIcon />
+          <span className="flex min-w-0 flex-col gap-0.5">
+            <span>Change Category</span>
+            <span className="text-xs text-muted-foreground">
+              {currentCategoryName}
+            </span>
+          </span>
+        </CommandItem>
+        <CommandItem
+          value="Change Tags"
+          onSelect={() => onEnterMode("tags")}
+        >
+          <TagIcon />
+          <span className="flex min-w-0 flex-col gap-0.5">
+            <span>Change Tags</span>
+            <span className="text-xs text-muted-foreground">
+              {`${bookmark.tags.length.toString()} selected`}
+            </span>
+          </span>
+        </CommandItem>
+        <CommandItem
+          value="Change Media Type"
+          onSelect={() => onEnterMode("media-type")}
+        >
+          <TagIcon />
+          <span className="flex min-w-0 flex-col gap-0.5">
+            <span>Change Media Type</span>
+            <span className="text-xs text-muted-foreground">
+              {bookmark.mediaType?.name ?? "None"}
+            </span>
+          </span>
+        </CommandItem>
+        {authors.length > 0 && (
+          <CommandItem
+            value="Change Authors"
+            onSelect={() => onEnterMode("authors")}
+          >
+            <TagIcon />
+            <span className="flex min-w-0 flex-col gap-0.5">
+              <span>Change Authors</span>
+              <span className="text-xs text-muted-foreground">
+                {`${bookmark.authors.length.toString()} selected`}
+              </span>
+            </span>
+          </CommandItem>
+        )}
+        <CommandItem
+          value="Change Newsletter"
+          onSelect={() => onEnterMode("newsletter")}
+        >
+          <TagIcon />
+          <span className="flex min-w-0 flex-col gap-0.5">
+            <span>Change Newsletter</span>
+            <span className="text-xs text-muted-foreground">
+              {bookmark.newsletter?.name ?? "None"}
+            </span>
+          </span>
+        </CommandItem>
+        {booleanProperties.map((p) => {
+          const current
+            = bookmark.booleanValues.find(v => v.propertyId === p.id)?.value
+              ?? false;
+          return (
+            <CommandItem
+              key={p.id}
+              value={`Toggle ${p.name}`}
+              onSelect={() => {
+                updateBookmark.mutate({
+                  id: bookmarkId,
+                  input: {
+                    booleanValues: [
+                      ...bookmark.booleanValues.filter(
+                        v => v.propertyId !== p.id,
+                      ),
+                      {
+                        propertyId: p.id,
+                        value: !current,
+                      },
+                    ],
+                  },
+                });
+                onClose();
+              }}
+            >
+              {current && <CheckIcon className="text-primary" />}
+              <span className="flex min-w-0 flex-col gap-0.5">
+                <span>{p.name}</span>
+                <span className="text-xs text-muted-foreground">
+                  {current ? "On" : "Off"}
+                </span>
+              </span>
+            </CommandItem>
+          );
+        })}
+        {choicesProperties.map((p) => {
+          const current
+            = bookmark.choicesValues.find(v => v.propertyId === p.id)?.values
+              ?? [];
+          return (
+            <CommandItem
+              key={p.id}
+              value={`Set ${p.name}`}
+              onSelect={() => onEnterChoicesMode(p.id)}
+            >
+              <span className="flex min-w-0 flex-col gap-0.5">
+                <span>
+                  Set
+                  {" "}
+                  {p.name}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {current.length > 0 ? current.join(", ") : "None"}
+                </span>
+              </span>
+            </CommandItem>
+          );
+        })}
+        {ratingProperties.map((p) => {
+          const current
+            = bookmark.numberValues.find(v => v.propertyId === p.id)?.value
+              ?? null;
+          const max = p.ratingMax ?? 5;
+          return (
+            <CommandItem
+              key={p.id}
+              value={`Set ${p.name}`}
+              onSelect={() => onEnterRatingMode(p.id)}
+            >
+              <span className="flex min-w-0 flex-col gap-0.5">
+                <span>
+                  Set
+                  {" "}
+                  {p.name}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {current !== null
+                    ? `${"★".repeat(current)}${"☆".repeat(max - current)}`
+                    : "Not rated"}
+                </span>
+              </span>
+            </CommandItem>
+          );
+        })}
+        {editableProperties.map(p => (
+          <CommandItem
+            key={p.id}
+            value={`Edit ${p.name}`}
+            onSelect={onNavigateProperties}
+          >
+            <span className="flex min-w-0 flex-col gap-0.5">
+              <span>
+                Edit
+                {" "}
+                {p.name}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                Opens properties tab
+              </span>
+            </span>
+          </CommandItem>
+        ))}
+      </CommandGroup>
+      <CommandSeparator />
+    </>
+  );
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function CommandPalette() {
@@ -905,6 +1121,7 @@ export function CommandPalette() {
   const {
     bookmarkId,
     isBookmarkViewPage,
+    bookmarkFromHover,
     bookmark,
     categories,
     flatMediaTypes,
@@ -1004,6 +1221,34 @@ export function CommandPalette() {
       && p.type !== "boolean"
       && !(p.type === "choices" && p.choicesItems.length > 0)
       && !(p.type === "ratingScale" && !p.ratingAllowHalf),
+  );
+
+  const bookmarkTaxonomiesGroup = bookmarkId && bookmark && (
+    <BookmarkTaxonomiesGroup
+      bookmark={bookmark}
+      bookmarkId={bookmarkId}
+      isBookmarkViewPage={isBookmarkViewPage}
+      currentCategoryName={currentCategoryName}
+      authors={authors}
+      booleanProperties={booleanProperties}
+      choicesProperties={choicesProperties}
+      ratingProperties={ratingProperties}
+      editableProperties={editableProperties}
+      updateBookmark={updateBookmark}
+      onEnterMode={handleEnterMode}
+      onEnterChoicesMode={handleEnterChoicesMode}
+      onEnterRatingMode={handleEnterRatingMode}
+      onNavigateProperties={() => {
+        void navigate({
+          to: "/bookmarks/$bookmarkId/edit/properties",
+          params: {
+            bookmarkId,
+          },
+        });
+        handleOpenChange(false);
+      }}
+      onClose={() => handleOpenChange(false)}
+    />
   );
 
   const inputPlaceholder = taxonomy.taxonomyMode
@@ -1219,6 +1464,9 @@ export function CommandPalette() {
               {/* Default palette view */}
               {taxonomy.taxonomyMode === null && (
                 <>
+                  {/* Hovered card's quick-edit commands float to the top of the palette. */}
+                  {bookmarkFromHover && bookmarkTaxonomiesGroup}
+
                   {looksLikeUrl && (
                     <>
                       <CommandGroup heading="Quick Add">
@@ -1408,190 +1656,8 @@ export function CommandPalette() {
                     </>
                   )}
 
-                  {bookmarkId && bookmark && (
-                    <>
-                      <CommandGroup
-                        heading={isBookmarkViewPage
-                          ? "Bookmark Taxonomies"
-                          : `Bookmark Taxonomies — ${bookmark.title}`}
-                      >
-                        <CommandItem
-                          value="Change Category"
-                          onSelect={() => handleEnterMode("category")}
-                        >
-                          <TagIcon />
-                          <span className="flex min-w-0 flex-col gap-0.5">
-                            <span>Change Category</span>
-                            <span className="text-xs text-muted-foreground">
-                              {currentCategoryName}
-                            </span>
-                          </span>
-                        </CommandItem>
-                        <CommandItem
-                          value="Change Tags"
-                          onSelect={() => handleEnterMode("tags")}
-                        >
-                          <TagIcon />
-                          <span className="flex min-w-0 flex-col gap-0.5">
-                            <span>Change Tags</span>
-                            <span className="text-xs text-muted-foreground">
-                              {`${bookmark.tags.length.toString()} selected`}
-                            </span>
-                          </span>
-                        </CommandItem>
-                        <CommandItem
-                          value="Change Media Type"
-                          onSelect={() => handleEnterMode("media-type")}
-                        >
-                          <TagIcon />
-                          <span className="flex min-w-0 flex-col gap-0.5">
-                            <span>Change Media Type</span>
-                            <span className="text-xs text-muted-foreground">
-                              {bookmark.mediaType?.name ?? "None"}
-                            </span>
-                          </span>
-                        </CommandItem>
-                        {authors.length > 0 && (
-                          <CommandItem
-                            value="Change Authors"
-                            onSelect={() => handleEnterMode("authors")}
-                          >
-                            <TagIcon />
-                            <span className="flex min-w-0 flex-col gap-0.5">
-                              <span>Change Authors</span>
-                              <span className="text-xs text-muted-foreground">
-                                {`${bookmark.authors.length.toString()} selected`}
-                              </span>
-                            </span>
-                          </CommandItem>
-                        )}
-                        <CommandItem
-                          value="Change Newsletter"
-                          onSelect={() => handleEnterMode("newsletter")}
-                        >
-                          <TagIcon />
-                          <span className="flex min-w-0 flex-col gap-0.5">
-                            <span>Change Newsletter</span>
-                            <span className="text-xs text-muted-foreground">
-                              {bookmark.newsletter?.name ?? "None"}
-                            </span>
-                          </span>
-                        </CommandItem>
-                        {booleanProperties.map((p) => {
-                          const current
-                            = bookmark.booleanValues.find(v => v.propertyId === p.id)?.value
-                              ?? false;
-                          return (
-                            <CommandItem
-                              key={p.id}
-                              value={`Toggle ${p.name}`}
-                              onSelect={() => {
-                                updateBookmark.mutate({
-                                  id: bookmarkId,
-                                  input: {
-                                    booleanValues: [
-                                      ...bookmark.booleanValues.filter(
-                                        v => v.propertyId !== p.id,
-                                      ),
-                                      {
-                                        propertyId: p.id,
-                                        value: !current,
-                                      },
-                                    ],
-                                  },
-                                });
-                                handleOpenChange(false);
-                              }}
-                            >
-                              {current && <CheckIcon className="text-primary" />}
-                              <span className="flex min-w-0 flex-col gap-0.5">
-                                <span>{p.name}</span>
-                                <span className="text-xs text-muted-foreground">
-                                  {current ? "On" : "Off"}
-                                </span>
-                              </span>
-                            </CommandItem>
-                          );
-                        })}
-                        {choicesProperties.map((p) => {
-                          const current
-                            = bookmark.choicesValues.find(v => v.propertyId === p.id)?.values
-                              ?? [];
-                          return (
-                            <CommandItem
-                              key={p.id}
-                              value={`Set ${p.name}`}
-                              onSelect={() => handleEnterChoicesMode(p.id)}
-                            >
-                              <span className="flex min-w-0 flex-col gap-0.5">
-                                <span>
-                                  Set
-                                  {" "}
-                                  {p.name}
-                                </span>
-                                <span className="text-xs text-muted-foreground">
-                                  {current.length > 0 ? current.join(", ") : "None"}
-                                </span>
-                              </span>
-                            </CommandItem>
-                          );
-                        })}
-                        {ratingProperties.map((p) => {
-                          const current
-                            = bookmark.numberValues.find(v => v.propertyId === p.id)?.value
-                              ?? null;
-                          const max = p.ratingMax ?? 5;
-                          return (
-                            <CommandItem
-                              key={p.id}
-                              value={`Set ${p.name}`}
-                              onSelect={() => handleEnterRatingMode(p.id)}
-                            >
-                              <span className="flex min-w-0 flex-col gap-0.5">
-                                <span>
-                                  Set
-                                  {" "}
-                                  {p.name}
-                                </span>
-                                <span className="text-xs text-muted-foreground">
-                                  {current !== null
-                                    ? `${"★".repeat(current)}${"☆".repeat(max - current)}`
-                                    : "Not rated"}
-                                </span>
-                              </span>
-                            </CommandItem>
-                          );
-                        })}
-                        {editableProperties.map(p => (
-                          <CommandItem
-                            key={p.id}
-                            value={`Edit ${p.name}`}
-                            onSelect={() => {
-                              void navigate({
-                                to: "/bookmarks/$bookmarkId/edit/properties",
-                                params: {
-                                  bookmarkId: bookmarkId ?? "",
-                                },
-                              });
-                              handleOpenChange(false);
-                            }}
-                          >
-                            <span className="flex min-w-0 flex-col gap-0.5">
-                              <span>
-                                Edit
-                                {" "}
-                                {p.name}
-                              </span>
-                              <span className="text-xs text-muted-foreground">
-                                Opens properties tab
-                              </span>
-                            </span>
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                      <CommandSeparator />
-                    </>
-                  )}
+                  {/* On a bookmark detail page the same group keeps its in-page position. */}
+                  {!bookmarkFromHover && bookmarkTaxonomiesGroup}
 
                   {filterId && savedFilter && (
                     <>
