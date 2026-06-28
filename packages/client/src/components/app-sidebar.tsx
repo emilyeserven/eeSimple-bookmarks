@@ -281,6 +281,8 @@ export function AppSidebar({
 }: React.ComponentProps<typeof Sidebar>) {
   const {
     state,
+    isMobile,
+    setOpenMobile,
   } = useSidebar();
   const {
     pathname,
@@ -312,6 +314,12 @@ export function AppSidebar({
   const {
     visiblePins, hasShowMore, hasSeeAll,
   } = pagination;
+
+  // On mobile the sidebar is an overlay sheet; collapse it once navigation lands
+  // on a new route so the tapped destination isn't hidden behind it.
+  React.useEffect(() => {
+    if (isMobile) setOpenMobile(false);
+  }, [pathname, isMobile, setOpenMobile]);
 
   return (
     <Sidebar
