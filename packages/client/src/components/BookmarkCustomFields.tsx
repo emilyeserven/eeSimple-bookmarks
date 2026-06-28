@@ -1,3 +1,4 @@
+import type { CustomPropertyInputs } from "./bookmarkFormSchema";
 import type {
   Bookmark,
   BookmarkBooleanValue,
@@ -31,7 +32,26 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-interface CategoryCustomFieldsProps {
+/**
+ * The per-property-type value maps plus their change handlers, threaded identically through the
+ * category-level field list ({@link CategoryCustomFields}) and the single-property renderer
+ * ({@link CategoryPropertyField}). Both prop interfaces extend this so the bundle is declared once.
+ */
+interface CustomPropertyInputBundle extends CustomPropertyInputs {
+  onNumberChange: (propertyId: string, value: string) => void;
+  onBooleanChange: (propertyId: string, value: boolean) => void;
+  onDateTimeChange: (propertyId: string, value: string) => void;
+  onChoicesChange: (propertyId: string, values: string[]) => void;
+  onProgressChange: (propertyId: string, field: "current" | "total", value: string) => void;
+  onSectionsChange: (propertyId: string, value: { exhaustive: boolean;
+    sections: SectionEntry[]; }) => void;
+  onTextChange: (propertyId: string, value: string) => void;
+  /** Called when the user clicks "Fetch metadata" on the ISBN field. */
+  onIsbnFetch?: (isbn: string) => void;
+  isIsbnFetchPending?: boolean;
+}
+
+interface CategoryCustomFieldsProps extends CustomPropertyInputBundle {
   categoryId: string;
   /** The bookmark's selected media type, if any; properties scoped to it also appear (union). */
   mediaTypeId?: string | null;
@@ -57,26 +77,6 @@ interface CategoryCustomFieldsProps {
    * Defaults to the form's server-filled slugs (e.g. Runtime).
    */
   hiddenSlugs?: string[];
-  numberInputs: Record<string, string>;
-  booleanInputs: Record<string, boolean>;
-  dateTimeInputs: Record<string, string>;
-  choicesInputs: Record<string, string[]>;
-  progressInputs: Record<string, { current: string;
-    total: string; }>;
-  sectionsInputs: Record<string, { exhaustive: boolean;
-    sections: SectionEntry[]; }>;
-  textInputs: Record<string, string>;
-  onNumberChange: (propertyId: string, value: string) => void;
-  onBooleanChange: (propertyId: string, value: boolean) => void;
-  onDateTimeChange: (propertyId: string, value: string) => void;
-  onChoicesChange: (propertyId: string, values: string[]) => void;
-  onProgressChange: (propertyId: string, field: "current" | "total", value: string) => void;
-  onSectionsChange: (propertyId: string, value: { exhaustive: boolean;
-    sections: SectionEntry[]; }) => void;
-  onTextChange: (propertyId: string, value: string) => void;
-  /** Called when the user clicks "Fetch metadata" on the ISBN field. */
-  onIsbnFetch?: (isbn: string) => void;
-  isIsbnFetchPending?: boolean;
 }
 
 /** Renders the custom-property inputs for the properties assigned to the chosen category. */
@@ -158,28 +158,9 @@ function FieldDescription({
   return <p className="text-xs text-muted-foreground">{text}</p>;
 }
 
-interface CategoryPropertyFieldProps {
+interface CategoryPropertyFieldProps extends CustomPropertyInputBundle {
   property: CustomProperty;
   bookmark: Bookmark | null;
-  numberInputs: Record<string, string>;
-  booleanInputs: Record<string, boolean>;
-  dateTimeInputs: Record<string, string>;
-  choicesInputs: Record<string, string[]>;
-  progressInputs: Record<string, { current: string;
-    total: string; }>;
-  sectionsInputs: Record<string, { exhaustive: boolean;
-    sections: SectionEntry[]; }>;
-  textInputs: Record<string, string>;
-  onNumberChange: (propertyId: string, value: string) => void;
-  onBooleanChange: (propertyId: string, value: boolean) => void;
-  onDateTimeChange: (propertyId: string, value: string) => void;
-  onChoicesChange: (propertyId: string, values: string[]) => void;
-  onProgressChange: (propertyId: string, field: "current" | "total", value: string) => void;
-  onSectionsChange: (propertyId: string, value: { exhaustive: boolean;
-    sections: SectionEntry[]; }) => void;
-  onTextChange: (propertyId: string, value: string) => void;
-  onIsbnFetch?: (isbn: string) => void;
-  isIsbnFetchPending?: boolean;
 }
 
 /** Renders the single input appropriate to one custom property's type. */
