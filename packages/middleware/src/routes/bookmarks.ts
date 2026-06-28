@@ -760,17 +760,31 @@ function registerBookmarkImageRoutes(app: FastifyInstance): void {
     schema: {
       tags: ["images"],
       params: bookmarkParams,
+      body: {
+        type: "object",
+        properties: {
+          delayMs: {
+            type: "integer",
+            minimum: 0,
+            maximum: 30000,
+          },
+        },
+        additionalProperties: false,
+      },
     },
   }, async (req, reply) => {
     const {
       id,
     } = req.params as { id: string };
+    const {
+      delayMs,
+    } = (req.body ?? {}) as { delayMs?: number };
     if (!isObjectStoreConfigured()) {
       return reply.code(503).send({
         message: "Image storage is not configured",
       });
     }
-    const result = await takeAndStoreScreenshot(id);
+    const result = await takeAndStoreScreenshot(id, delayMs);
     if (result === "not_found") return reply.code(404).send({
       message: "Bookmark not found",
     });

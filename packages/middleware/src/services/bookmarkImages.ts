@@ -84,6 +84,7 @@ const SCREENSHOT_TIMEOUT_MS = 30_000;
  */
 export async function takeAndStoreScreenshot(
   bookmarkId: string,
+  delayMs?: number,
 ): Promise<BookmarkImage | "not_found" | "not_configured" | "bad_image"> {
   const [bookmark] = await db.select({
     id: bookmarks.id,
@@ -96,12 +97,22 @@ export async function takeAndStoreScreenshot(
   if (!endpoint || !bookmark.url) return "not_configured";
   const token = await getDecryptedHostedApiKey();
 
+  const screenshotBody: Record<string, unknown> = {
+    url: bookmark.url,
+    options: {
+      type: "jpeg",
+      quality: 85,
+      fullPage: false,
+    },
+  };
+  if (delayMs && delayMs > 0) screenshotBody.waitFor = delayMs;
+
   let rawBytes: Buffer | null = null;
   try {
     const res = await fetch(`${endpoint.replace(/\/$/, "")}/chromium/screenshot`, {
       method: "POST",
       redirect: "follow",
-      signal: AbortSignal.timeout(SCREENSHOT_TIMEOUT_MS),
+      signal: AbortSignal.timeout(SCREENSHOT_TIMEOUT_MS + (delayMs ?? 0)),
       headers: {
         "Content-Type": "application/json",
         ...(token
@@ -110,14 +121,7 @@ export async function takeAndStoreScreenshot(
           }
           : {}),
       },
-      body: JSON.stringify({
-        url: bookmark.url,
-        options: {
-          type: "jpeg",
-          quality: 85,
-          fullPage: false,
-        },
-      }),
+      body: JSON.stringify(screenshotBody),
     });
     if (!res.ok) return "bad_image";
     rawBytes = Buffer.from(await res.arrayBuffer());

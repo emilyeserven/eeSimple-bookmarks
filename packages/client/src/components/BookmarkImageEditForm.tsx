@@ -33,6 +33,7 @@ export function BookmarkImageEditForm({
   const imageIntentRef = useRef<ImageIntent>(EMPTY_IMAGE_INTENT);
   const [imageFieldKey, setImageFieldKey] = useState(0);
   const [isPending, setIsPending] = useState(false);
+  const [screenshotDelayMs, setScreenshotDelayMs] = useState(0);
 
   async function handleSubmit(event: React.FormEvent): Promise<void> {
     event.preventDefault();
@@ -112,13 +113,36 @@ export function BookmarkImageEditForm({
             />
           )
           : null}
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <label
+            className="flex items-center gap-1.5 text-xs text-muted-foreground"
+          >
+            Wait
+            <select
+              className="
+                rounded-sm border bg-background px-1.5 py-1 text-xs
+                text-foreground
+              "
+              value={screenshotDelayMs}
+              disabled={isMutating}
+              onChange={e => setScreenshotDelayMs(Number(e.target.value))}
+            >
+              <option value={0}>None</option>
+              <option value={2000}>2 s</option>
+              <option value={5000}>5 s</option>
+              <option value={10000}>10 s</option>
+              <option value={30000}>30 s</option>
+            </select>
+          </label>
           <Button
             type="button"
             variant="outline"
             size="sm"
             disabled={isMutating}
-            onClick={() => void takeScreenshot.mutateAsync(bookmark.id)}
+            onClick={() => void takeScreenshot.mutateAsync({
+              id: bookmark.id,
+              delayMs: screenshotDelayMs || undefined,
+            })}
           >
             {takeScreenshot.isPending ? "Capturing…" : bookmark.screenshot ? "Retake screenshot" : "Take screenshot"}
           </Button>
