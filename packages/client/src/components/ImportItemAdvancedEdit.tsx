@@ -1,10 +1,14 @@
 import type { InboxItem } from "@eesimple/types";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import { normalizeDomain } from "@eesimple/types";
 import { ChevronDown } from "lucide-react";
 
+import { AddAuthorModal } from "./AddAuthorModal";
+import { AddCategoryModal } from "./AddCategoryModal";
+import { AddMediaTypeModal } from "./AddMediaTypeModal";
+import { AddPublisherModal } from "./AddPublisherModal";
 import { Combobox } from "./Combobox";
 import { MultiCombobox } from "./MultiCombobox";
 import { TagPicker } from "./TagPicker";
@@ -63,6 +67,11 @@ export function ImportItemAdvancedEdit({
   onAuthorsChange,
   onPublisherChange,
 }: ImportItemAdvancedEditProps) {
+  const [addCategoryOpen, setAddCategoryOpen] = useState(false);
+  const [addMediaTypeOpen, setAddMediaTypeOpen] = useState(false);
+  const [addPublisherOpen, setAddPublisherOpen] = useState(false);
+  const [addAuthorOpen, setAddAuthorOpen] = useState(false);
+
   const {
     data: categories = [],
   } = useCategories();
@@ -131,6 +140,10 @@ export function ImportItemAdvancedEdit({
             placeholder="No category"
             searchPlaceholder="Search categories…"
             emptyText="No categories found."
+            createOption={{
+              label: "Create category",
+              onSelect: () => setAddCategoryOpen(true),
+            }}
           />
         </div>
 
@@ -143,6 +156,10 @@ export function ImportItemAdvancedEdit({
             placeholder="No media type"
             searchPlaceholder="Search media types…"
             emptyText="No media types found."
+            createOption={{
+              label: "Create media type",
+              onSelect: () => setAddMediaTypeOpen(true),
+            }}
           />
         </div>
 
@@ -155,39 +172,43 @@ export function ImportItemAdvancedEdit({
           />
         </div>
 
-        {authors.length > 0 && (
-          <div className="space-y-1">
-            <Label className="text-xs">Authors</Label>
-            <MultiCombobox
-              options={authors.map(a => ({
-                value: a.id,
-                label: a.name,
-              }))}
-              values={authorIds}
-              onValuesChange={onAuthorsChange}
-              placeholder="Select authors…"
-              searchPlaceholder="Search authors…"
-              emptyText="No authors found."
-            />
-          </div>
-        )}
+        <div className="space-y-1">
+          <Label className="text-xs">Authors</Label>
+          <MultiCombobox
+            options={authors.map(a => ({
+              value: a.id,
+              label: a.name,
+            }))}
+            values={authorIds}
+            onValuesChange={onAuthorsChange}
+            placeholder="Select authors…"
+            searchPlaceholder="Search authors…"
+            emptyText="No authors found."
+            createOption={{
+              label: "Create author",
+              onSelect: () => setAddAuthorOpen(true),
+            }}
+          />
+        </div>
 
-        {publishers.length > 0 && (
-          <div className="space-y-1">
-            <Label className="text-xs">Publisher</Label>
-            <Combobox
-              options={publishers.map(p => ({
-                value: p.id,
-                label: p.name,
-              }))}
-              value={publisherId}
-              onValueChange={onPublisherChange}
-              placeholder="No publisher"
-              searchPlaceholder="Search publishers…"
-              emptyText="No publishers found."
-            />
-          </div>
-        )}
+        <div className="space-y-1">
+          <Label className="text-xs">Publisher</Label>
+          <Combobox
+            options={publishers.map(p => ({
+              value: p.id,
+              label: p.name,
+            }))}
+            value={publisherId}
+            onValueChange={onPublisherChange}
+            placeholder="No publisher"
+            searchPlaceholder="Search publishers…"
+            emptyText="No publishers found."
+            createOption={{
+              label: "Create publisher",
+              onSelect: () => setAddPublisherOpen(true),
+            }}
+          />
+        </div>
 
         {(matchedWebsite || isYouTube) && (
           <div
@@ -206,6 +227,27 @@ export function ImportItemAdvancedEdit({
           </div>
         )}
       </CollapsibleContent>
+
+      <AddCategoryModal
+        open={addCategoryOpen}
+        onOpenChange={setAddCategoryOpen}
+        onCreated={category => onCategoryChange(category.id)}
+      />
+      <AddMediaTypeModal
+        open={addMediaTypeOpen}
+        onOpenChange={setAddMediaTypeOpen}
+        onCreated={mediaType => onMediaTypeChange(mediaType.id)}
+      />
+      <AddAuthorModal
+        open={addAuthorOpen}
+        onOpenChange={setAddAuthorOpen}
+        onCreated={author => onAuthorsChange([...authorIds, author.id])}
+      />
+      <AddPublisherModal
+        open={addPublisherOpen}
+        onOpenChange={setAddPublisherOpen}
+        onCreated={publisher => onPublisherChange(publisher.id)}
+      />
     </Collapsible>
   );
 }
