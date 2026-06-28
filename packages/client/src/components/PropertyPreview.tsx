@@ -36,6 +36,8 @@ function PropertyPreviewBody({
 }) {
   const categoryCount = property.categoryIds.length;
   const isAllCategories = property.allCategories || categoryCount === 0;
+  const mediaTypeCount = property.mediaTypeIds.length;
+  const isAllMediaTypes = property.allMediaTypes || mediaTypeCount === 0;
 
   return (
     <div className="flex items-start gap-3">
@@ -54,11 +56,22 @@ function PropertyPreviewBody({
         {property.description
           ? <p className="truncate text-sm text-muted-foreground">{property.description}</p>
           : null}
-        <p className="text-xs text-muted-foreground">
-          {isAllCategories
-            ? "All categories"
-            : `${categoryCount} ${categoryCount === 1 ? "category" : "categories"}`}
-        </p>
+        <div
+          className="
+            flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground
+          "
+        >
+          <span>
+            {isAllCategories
+              ? "All categories"
+              : `${categoryCount} ${categoryCount === 1 ? "category" : "categories"}`}
+          </span>
+          <span>
+            {isAllMediaTypes
+              ? "All media types"
+              : `${mediaTypeCount} ${mediaTypeCount === 1 ? "media type" : "media types"}`}
+          </span>
+        </div>
       </div>
     </div>
   );

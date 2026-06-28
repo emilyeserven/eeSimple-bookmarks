@@ -70,6 +70,20 @@ export function useCustomPropertyColumns(): ColumnDef<CustomProperty>[] {
         ),
       },
       {
+        id: "media-types",
+        header: "Media Types",
+        enableSorting: false,
+        cell: ({
+          row,
+        }) => (
+          <span className="text-muted-foreground">
+            {row.original.allMediaTypes || row.original.mediaTypeIds.length === 0
+              ? "All"
+              : `${row.original.mediaTypeIds.length}`}
+          </span>
+        ),
+      },
+      {
         id: "actions",
         header: "",
         enableSorting: false,
