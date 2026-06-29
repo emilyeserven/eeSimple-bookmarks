@@ -1,5 +1,6 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
 import type { Author, Bookmark, BookmarkDetailImageSize, BookmarkDetailLayout, BookmarkDetailVideoSize, BookmarkImageVisibility, Category, CustomProperty, MediaType, PropertyGroup, RelationshipType, SidebarOpenModifier, TagNode, ViewMode, Website, YouTubeChannel } from "@eesimple/types";
+import type { MouseEvent as ReactMouseEvent } from "react";
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
@@ -117,7 +118,7 @@ interface UiState {
     showsImages: boolean;
     hasFilters: boolean;
     showsCards: boolean;
-    createAction?: () => void; } | null;
+    createAction?: (event?: ReactMouseEvent) => void; } | null;
   setListingPage: (page: { key: string;
     showsImages: boolean;
     hasFilters: boolean;

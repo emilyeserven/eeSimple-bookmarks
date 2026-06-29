@@ -1,13 +1,16 @@
-import { useState } from "react";
+import type { MouseEvent } from "react";
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
-import { AddLocationModal } from "../components/AddLocationModal";
 import { LocationsListing } from "../components/LocationManager";
+import { usePanelControls } from "../components/panel/usePanelControls";
+import { useSidebarOpenModifier } from "../hooks/useAppSettings";
 import { useSetListingPage } from "../hooks/useListingPage";
 import { useLocations } from "../hooks/useLocations";
 
 import { Badge } from "@/components/ui/badge";
+import { NEW_SENTINEL } from "@/lib/drawerSearch";
+import { hasSidebarModifier } from "@/lib/sidebarModifier";
 
 export const Route = createFileRoute("/taxonomies/locations/")({
   component: LocationsTaxonomyPage,
@@ -18,9 +21,24 @@ function LocationsTaxonomyPage() {
   const {
     data: allLocations,
   } = useLocations();
-  const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
-  useSetListingPage("locations-listing", false, false, false, () => setModalOpen(true));
+  const {
+    openItem,
+  } = usePanelControls();
+  const modifier = useSidebarOpenModifier();
+
+  // Normal click → the full create page (geocoding lookup + ancestor chain). Modifier-click opens the
+  // same LocationForm in the right drawer, keeping the drawer and main app at parity.
+  const createLocation = (event?: MouseEvent) => {
+    if (event && hasSidebarModifier(event, modifier)) {
+      openItem("location", NEW_SENTINEL, "edit");
+      return;
+    }
+    void navigate({
+      to: "/taxonomies/locations/new",
+    });
+  };
+  useSetListingPage("locations-listing", false, false, false, createLocation);
 
   return (
     <section className="space-y-6">
@@ -36,25 +54,12 @@ function LocationsTaxonomyPage() {
             : null}
         </div>
         <p className="text-sm text-muted-foreground">
-          Browse the Locations taxonomy. Add a place below — look it up to prefill its coordinates.
-          Click a location to view or edit it.
+          Browse the Locations taxonomy. Use “New location” to add a place — look it up to autograb its
+          coordinates, and add higher-level locations in the same step. Click a location to view or edit it.
         </p>
       </div>
 
       <LocationsListing />
-
-      <AddLocationModal
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-        onCreated={(location) => {
-          void navigate({
-            to: "/taxonomies/locations/$locationSlug/edit/general",
-            params: {
-              locationSlug: location.slug,
-            },
-          });
-        }}
-      />
     </section>
   );
 }

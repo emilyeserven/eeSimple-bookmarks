@@ -1,3 +1,5 @@
+import type { MouseEvent as ReactMouseEvent } from "react";
+
 import { useEffect, useRef } from "react";
 
 import { useUiStore } from "../stores/uiStore";
@@ -8,7 +10,7 @@ export function useSetListingPage(
   showsImages = false,
   hasFilters = false,
   showsCards = false,
-  createAction?: () => void,
+  createAction?: (event?: ReactMouseEvent) => void,
 ) {
   const setListingPage = useUiStore(state => state.setListingPage);
 
@@ -22,7 +24,9 @@ export function useSetListingPage(
       showsImages,
       hasFilters,
       showsCards,
-      createAction: createAction != null ? () => createActionRef.current?.() : undefined,
+      // Forward the click event so a create handler can branch on the sidebar modifier (e.g. open
+      // the right drawer instead of navigating). Handlers that take no args simply ignore it.
+      createAction: createAction != null ? (event?: ReactMouseEvent) => createActionRef.current?.(event) : undefined,
     });
     return () => setListingPage(null);
   }, [key, showsImages, hasFilters, showsCards, setListingPage]);
