@@ -293,6 +293,12 @@ const displayPreferenceBody = {
         },
       ],
     },
+    onDemandFilters: {
+      type: "array",
+      items: {
+        type: "string",
+      },
+    },
     showRomanizedByDefault: {
       type: "boolean",
     },

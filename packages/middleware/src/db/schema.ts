@@ -1136,6 +1136,9 @@ export const appSettings = pgTable("app_settings", {
   croppedHeight: integer("cropped_height").notNull().default(9),
   // Per-type icon overrides for the Custom Properties listing. Null = all defaults.
   customPropertyTypeIcons: jsonb("custom_property_type_icons").$type<Record<string, string>>(),
+  // Filter facet keys / custom-property ids that are NOT shown by default in the filter rail
+  // (added on demand via the "Add filter" control). Null/[] = every filter shows by default.
+  onDemandFilters: jsonb("on_demand_filters").$type<string[]>(),
   // When true, the romanized name/title is shown as the primary label by default.
   // NOT NULL on an existing table -> pre-applied in migrate.ts to avoid a push prompt.
   showRomanizedByDefault: boolean("show_romanized_by_default").notNull().default(false),

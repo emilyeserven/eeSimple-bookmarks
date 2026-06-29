@@ -802,7 +802,7 @@ function PropertiesFilterSection({
         ? (
           <>
             <Separator className="my-3" />
-            <div className="space-y-1 text-xs text-destructive">
+            <div className="space-y-1 text-xs text-muted-foreground">
               <p className="flex items-center gap-1.5 font-medium">
                 <TriangleAlert className="size-3.5 shrink-0" />
                 {unassignedProperties.length === 1
