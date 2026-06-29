@@ -28,6 +28,7 @@ describe("paginatePins", () => {
     expect(result.visiblePins).toHaveLength(5);
     expect(result.hasShowMore).toBe(true);
     expect(result.hasSeeAll).toBe(false);
+    expect(result.hasShowLess).toBe(false);
   });
 
   it("does not offer Show More when there are 5 or fewer", () => {
@@ -47,9 +48,10 @@ describe("paginatePins", () => {
     expect(result.visiblePins).toHaveLength(10);
     expect(result.hasShowMore).toBe(false);
     expect(result.hasSeeAll).toBe(true);
+    expect(result.hasShowLess).toBe(true);
   });
 
-  it("shows everything with no affordances when showAll is set", () => {
+  it("shows everything with a Show Less affordance when showAll is set", () => {
     const result = paginatePins(pins(14), {
       pinnedExpanded: true,
       pinnedShowAll: true,
@@ -57,5 +59,20 @@ describe("paginatePins", () => {
     expect(result.visiblePins).toHaveLength(14);
     expect(result.hasShowMore).toBe(false);
     expect(result.hasSeeAll).toBe(false);
+    expect(result.hasShowLess).toBe(true);
+  });
+
+  it("offers Show Less only once the list has been expanded", () => {
+    const collapsed = paginatePins(pins(8), {
+      pinnedExpanded: false,
+      pinnedShowAll: false,
+    });
+    expect(collapsed.hasShowLess).toBe(false);
+
+    const expanded = paginatePins(pins(8), {
+      pinnedExpanded: true,
+      pinnedShowAll: false,
+    });
+    expect(expanded.hasShowLess).toBe(true);
   });
 });
