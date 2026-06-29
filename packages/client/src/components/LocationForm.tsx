@@ -159,7 +159,9 @@ export function LocationForm({
     >
       <LocationLookupBox
         onSelect={(candidate) => {
+          // Prefer the local/native name as the title; the English form goes to romanized name.
           setName(candidate.name);
+          setRomanizedName(candidate.romanizedName ?? "");
           if (candidate.latitude != null) setLatitude(String(candidate.latitude));
           if (candidate.longitude != null) setLongitude(String(candidate.longitude));
           if (candidate.mapUrl) setMapUrl(candidate.mapUrl);

@@ -38,10 +38,32 @@ interface NominatimResult {
   type?: unknown;
   addresstype?: unknown;
   address?: { country_code?: unknown } | null;
+  /** Per-language name tags (requested via `namedetails=1`): `name` (local), `name:en`, … */
+  namedetails?: Record<string, unknown> | null;
 }
 
 function asString(value: unknown): string | null {
   return typeof value === "string" && value.trim() !== "" ? value : null;
+}
+
+/**
+ * Resolve a candidate's title + romanized form, preferring the LOCAL/native-script name as the title
+ * (`萩市`) and relegating the English/romanized form to `romanizedName` (`Hagi`). The local name comes
+ * from the `name` namedetail (the OSM `name` tag), and the English form from `name:en`. When the
+ * place's own name is already Latin (no separate English variant, or it equals the title), there is
+ * no separate romanization.
+ */
+function resolveNames(raw: NominatimResult, displayName: string): { name: string;
+  romanizedName: string | null; } {
+  const details = raw.namedetails ?? null;
+  const localName = asString(details?.name);
+  const englishName = asString(details?.["name:en"]);
+  const name = localName ?? asString(raw.name) ?? displayName.split(",")[0]?.trim() ?? displayName;
+  const romanizedName = englishName && englishName !== name ? englishName : null;
+  return {
+    name,
+    romanizedName,
+  };
 }
 
 function toCandidate(raw: NominatimResult): LocationLookupCandidate | null {
@@ -53,10 +75,13 @@ function toCandidate(raw: NominatimResult): LocationLookupCandidate | null {
   if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
 
   const displayName = asString(raw.display_name) ?? asString(raw.name) ?? "";
-  const name = asString(raw.name) ?? displayName.split(",")[0]?.trim() ?? displayName;
+  const {
+    name, romanizedName,
+  } = resolveNames(raw, displayName);
   const countryCode = asString(raw.address?.country_code);
   return {
     name,
+    romanizedName,
     displayName,
     latitude,
     longitude,
@@ -80,6 +105,9 @@ export async function geocodeLocation(query: string): Promise<LocationLookupResu
   url.searchParams.set("format", "jsonv2");
   url.searchParams.set("q", trimmed);
   url.searchParams.set("addressdetails", "1");
+  // Per-language name tags so we can prefer the local name as the title and the English name as the
+  // romanized form (e.g. 萩市 / Hagi) instead of whatever single localized name `display_name` carries.
+  url.searchParams.set("namedetails", "1");
   url.searchParams.set("limit", "5");
 
   const controller = new AbortController();
