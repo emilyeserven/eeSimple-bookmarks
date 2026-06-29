@@ -25,9 +25,15 @@ export function slugFor(
   return pathname === prefix || pathname.startsWith(`${prefix}/`) ? (pathParts[index] ?? "") : "";
 }
 
+/** A resolved entity's real name plus its optional romanized form, for its `List → Name` crumb. */
+export interface TaxonomyName {
+  name?: string;
+  romanized?: string | null;
+}
+
 /** The entities the header may resolve from a taxonomy detail route, plus their crumb-name map. */
 export interface TaxonomyCrumbData {
-  taxonomyNames: Record<string, string | undefined>;
+  taxonomyNames: Record<string, TaxonomyName | undefined>;
   category: { id: string;
     name: string; } | undefined;
   website: { id: string;
@@ -90,20 +96,51 @@ export function useTaxonomyCrumbData(pathname: string, pathParts: string[]): Tax
 
   return {
     taxonomyNames: {
-      "/categories": category?.name,
-      "/taxonomies/websites": website?.siteName,
-      "/taxonomies/media-types": mediaType?.name,
-      "/taxonomies/youtube-channels": channel?.name,
-      "/taxonomies/newsletters": newsletter?.name,
-      "/taxonomies/authors": author?.name,
-      "/taxonomies/publishers": publisher?.name,
-      "/taxonomies/property-groups": propertyGroup?.name,
-      "/taxonomies/relationship-types": relationshipType?.name,
-      "/custom-properties": property?.name,
-      "/autofill": rule?.name,
-      "/import-rules": importRule?.name,
-      "/saved-filters": savedFilter?.name,
-      "/card-display-rules": cardDisplayRule?.name,
+      "/categories": {
+        name: category?.name,
+        romanized: category?.romanizedName,
+      },
+      "/taxonomies/websites": {
+        name: website?.siteName,
+      },
+      "/taxonomies/media-types": {
+        name: mediaType?.name,
+      },
+      "/taxonomies/youtube-channels": {
+        name: channel?.name,
+      },
+      "/taxonomies/newsletters": {
+        name: newsletter?.name,
+      },
+      "/taxonomies/authors": {
+        name: author?.name,
+        romanized: author?.romanizedName,
+      },
+      "/taxonomies/publishers": {
+        name: publisher?.name,
+        romanized: publisher?.romanizedName,
+      },
+      "/taxonomies/property-groups": {
+        name: propertyGroup?.name,
+      },
+      "/taxonomies/relationship-types": {
+        name: relationshipType?.name,
+      },
+      "/custom-properties": {
+        name: property?.name,
+      },
+      "/autofill": {
+        name: rule?.name,
+      },
+      "/import-rules": {
+        name: importRule?.name,
+      },
+      "/saved-filters": {
+        name: savedFilter?.name,
+      },
+      "/card-display-rules": {
+        name: cardDisplayRule?.name,
+      },
     },
     category,
     website,
