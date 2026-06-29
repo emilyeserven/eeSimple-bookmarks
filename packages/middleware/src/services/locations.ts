@@ -294,11 +294,13 @@ async function findLocationByNameAndParent(
  * Create a location together with its higher-level ancestor chain in one call. Ancestors are given
  * immediate-parent-first; we resolve/create them root-first (reusing any that already exist under
  * the resolved parent), then create the leaf under the nearest ancestor. Returns the leaf location.
+ * An optional `parentId` anchors the top of the chain to an existing location (a reused ancestor).
  */
 export async function createLocationWithAncestors(input: CreateLocationChainInput): Promise<Location> {
-  // Root-first order so each ancestor's parent is resolved before it is created.
+  // Root-first order so each ancestor's parent is resolved before it is created. The chain's top
+  // attaches to the supplied existing parent (a reused ancestor) when given, else builds from root.
   const rootFirst = [...(input.ancestors ?? [])].reverse();
-  let parentId: string | null = null;
+  let parentId: string | null = input.parentId ?? null;
   for (const ancestor of rootFirst) {
     const existing = await findLocationByNameAndParent(ancestor.name, parentId);
     if (existing) {

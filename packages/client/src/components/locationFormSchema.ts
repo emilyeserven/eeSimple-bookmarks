@@ -2,6 +2,12 @@ import { z } from "zod";
 
 /** One ancestor row's editable fields, ordered immediate-parent-first up to the root. */
 export interface AncestorDraft {
+  /**
+   * When set, this row reuses an existing location instead of creating a new one. An existing row
+   * caps the chain (the reused location already has its own ancestors), so the other fields are
+   * ignored and no rows sit above it.
+   */
+  existingId: string | null;
   name: string;
   romanizedName: string | null;
   latitude: number | null;
@@ -14,6 +20,7 @@ export interface AncestorDraft {
 /** A blank ancestor draft. */
 export function emptyAncestorDraft(): AncestorDraft {
   return {
+    existingId: null,
     name: "",
     romanizedName: null,
     latitude: null,
@@ -21,6 +28,27 @@ export function emptyAncestorDraft(): AncestorDraft {
     mapUrl: null,
     placeType: null,
     countryCode: null,
+  };
+}
+
+/** The new-vs-existing split of an ancestor chain, ready to feed `CreateLocationChainInput`. */
+export interface AncestorChainSplit {
+  /** The named, to-be-created ancestor rows (immediate-parent-first). */
+  newAncestors: AncestorDraft[];
+  /** The existing location the chain's top attaches to, or `null` to build from the root. */
+  parentId: string | null;
+}
+
+/**
+ * Reduce the editor's ancestor rows to the chain payload: the new (named) rows to create and the
+ * existing-location id the top of the chain anchors to. An existing row caps the chain — the editor
+ * keeps it topmost, so it supplies `parentId` and rows above it (if any) are ignored here.
+ */
+export function splitAncestorChain(ancestors: AncestorDraft[]): AncestorChainSplit {
+  const existingTop = ancestors.find(a => a.existingId != null);
+  return {
+    newAncestors: ancestors.filter(a => a.existingId == null && a.name.trim().length > 0),
+    parentId: existingTop?.existingId ?? null,
   };
 }
 
