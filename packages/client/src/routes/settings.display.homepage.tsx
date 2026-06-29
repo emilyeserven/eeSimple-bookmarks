@@ -5,15 +5,15 @@ import { HomepageSectionsSettings } from "../components/HomepageSectionsSettings
 
 import { Separator } from "@/components/ui/separator";
 
-export const Route = createFileRoute("/settings/homepage")({
-  component: HomepagePage,
+export const Route = createFileRoute("/settings/display/homepage")({
+  component: DisplayHomepagePage,
 });
 
-function HomepagePage() {
+function DisplayHomepagePage() {
   return (
     <section className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold">Homepage</h2>
+        <h3 className="text-lg font-semibold">Homepage</h3>
         <p className="text-sm text-muted-foreground">
           Configure the content and sections that appear on your homepage.
         </p>

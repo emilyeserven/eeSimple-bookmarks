@@ -419,7 +419,7 @@ function homepageSettingsAction(ctx: ToolbarContext): ToolbarAction | null {
         title="Homepage settings"
         asChild
       >
-        <Link to="/settings/homepage">
+        <Link to="/settings/display/homepage">
           <Settings className="size-4" />
         </Link>
       </Button>
@@ -428,7 +428,7 @@ function homepageSettingsAction(ctx: ToolbarContext): ToolbarAction | null {
       kind: "menuItem",
       node: (
         <DropdownMenuItem asChild>
-          <Link to="/settings/homepage">
+          <Link to="/settings/display/homepage">
             <Settings className="size-4" />
             Homepage settings
           </Link>

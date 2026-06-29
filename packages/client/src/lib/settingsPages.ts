@@ -14,6 +14,7 @@ import {
   Link2,
   Monitor,
   MonitorPlay,
+  PanelLeft,
   PanelRight,
   Puzzle,
   Share2,
@@ -46,24 +47,34 @@ export interface SettingsPage {
 export const SETTINGS_PAGES: readonly SettingsPage[] = [
   // /settings/* sub-pages
   {
-    path: "/settings/display",
-    label: "Display",
+    path: "/settings/display/general",
+    label: "Display: General",
     icon: Monitor,
   },
   {
-    path: "/settings/drawer",
-    label: "Drawer",
+    path: "/settings/display/media",
+    label: "Display: Media",
+    icon: Image,
+  },
+  {
+    path: "/settings/display/sidebar",
+    label: "Display: Sidebar",
+    icon: PanelLeft,
+  },
+  {
+    path: "/settings/display/drawer",
+    label: "Display: Drawer",
     icon: PanelRight,
+  },
+  {
+    path: "/settings/display/homepage",
+    label: "Display: Homepage",
+    icon: LayoutTemplate,
   },
   {
     path: "/settings/saved-filters",
     label: "Saved Filters",
     icon: Filter,
-  },
-  {
-    path: "/settings/homepage",
-    label: "Homepage",
-    icon: LayoutTemplate,
   },
   {
     path: "/card-display-rules",

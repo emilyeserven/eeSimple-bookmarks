@@ -49,10 +49,8 @@ import { Route as SettingsMediaTypesRouteImport } from './routes/settings.media-
 import { Route as SettingsMediaManagementRouteImport } from './routes/settings.media-management'
 import { Route as SettingsLinkParsingRouteImport } from './routes/settings.link-parsing'
 import { Route as SettingsImportsRouteImport } from './routes/settings.imports'
-import { Route as SettingsHomepageRouteImport } from './routes/settings.homepage'
 import { Route as SettingsGalleryRouteImport } from './routes/settings.gallery'
 import { Route as SettingsExtensionRouteImport } from './routes/settings.extension'
-import { Route as SettingsDrawerRouteImport } from './routes/settings.drawer'
 import { Route as SettingsDisplayRouteImport } from './routes/settings.display'
 import { Route as SettingsCustomPropertiesRouteImport } from './routes/settings.custom-properties'
 import { Route as SettingsConnectorsRouteImport } from './routes/settings.connectors'
@@ -79,6 +77,7 @@ import { Route as TaxonomiesNewslettersIndexRouteImport } from './routes/taxonom
 import { Route as TaxonomiesMediaTypesIndexRouteImport } from './routes/taxonomies.media-types.index'
 import { Route as TaxonomiesAuthorsIndexRouteImport } from './routes/taxonomies.authors.index'
 import { Route as TagsTagSlugIndexRouteImport } from './routes/tags.$tagSlug.index'
+import { Route as SettingsDisplayIndexRouteImport } from './routes/settings.display.index'
 import { Route as SavedFiltersFilterSlugIndexRouteImport } from './routes/saved-filters.$filterSlug.index'
 import { Route as ImportRulesRuleSlugIndexRouteImport } from './routes/import-rules.$ruleSlug.index'
 import { Route as CustomPropertiesPropertySlugIndexRouteImport } from './routes/custom-properties.$propertySlug.index'
@@ -96,6 +95,11 @@ import { Route as TaxonomiesMediaTypesMediaTypeSlugRouteImport } from './routes/
 import { Route as TaxonomiesAuthorsAuthorSlugRouteImport } from './routes/taxonomies.authors.$authorSlug'
 import { Route as TagsTagSlugEditRouteImport } from './routes/tags.$tagSlug.edit'
 import { Route as TagsTagSlugViewRouteImport } from './routes/tags.$tagSlug._view'
+import { Route as SettingsDisplaySidebarRouteImport } from './routes/settings.display.sidebar'
+import { Route as SettingsDisplayMediaRouteImport } from './routes/settings.display.media'
+import { Route as SettingsDisplayHomepageRouteImport } from './routes/settings.display.homepage'
+import { Route as SettingsDisplayGeneralRouteImport } from './routes/settings.display.general'
+import { Route as SettingsDisplayDrawerRouteImport } from './routes/settings.display.drawer'
 import { Route as SavedFiltersFilterSlugEditRouteImport } from './routes/saved-filters.$filterSlug.edit'
 import { Route as SavedFiltersFilterSlugViewRouteImport } from './routes/saved-filters.$filterSlug._view'
 import { Route as ImportRulesRuleSlugEditRouteImport } from './routes/import-rules.$ruleSlug.edit'
@@ -454,11 +458,6 @@ const SettingsImportsRoute = SettingsImportsRouteImport.update({
   path: '/imports',
   getParentRoute: () => SettingsRoute,
 } as any)
-const SettingsHomepageRoute = SettingsHomepageRouteImport.update({
-  id: '/homepage',
-  path: '/homepage',
-  getParentRoute: () => SettingsRoute,
-} as any)
 const SettingsGalleryRoute = SettingsGalleryRouteImport.update({
   id: '/gallery',
   path: '/gallery',
@@ -467,11 +466,6 @@ const SettingsGalleryRoute = SettingsGalleryRouteImport.update({
 const SettingsExtensionRoute = SettingsExtensionRouteImport.update({
   id: '/extension',
   path: '/extension',
-  getParentRoute: () => SettingsRoute,
-} as any)
-const SettingsDrawerRoute = SettingsDrawerRouteImport.update({
-  id: '/drawer',
-  path: '/drawer',
   getParentRoute: () => SettingsRoute,
 } as any)
 const SettingsDisplayRoute = SettingsDisplayRouteImport.update({
@@ -614,6 +608,11 @@ const TagsTagSlugIndexRoute = TagsTagSlugIndexRouteImport.update({
   path: '/',
   getParentRoute: () => TagsTagSlugRoute,
 } as any)
+const SettingsDisplayIndexRoute = SettingsDisplayIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => SettingsDisplayRoute,
+} as any)
 const SavedFiltersFilterSlugIndexRoute =
   SavedFiltersFilterSlugIndexRouteImport.update({
     id: '/',
@@ -711,6 +710,31 @@ const TagsTagSlugEditRoute = TagsTagSlugEditRouteImport.update({
 const TagsTagSlugViewRoute = TagsTagSlugViewRouteImport.update({
   id: '/_view',
   getParentRoute: () => TagsTagSlugRoute,
+} as any)
+const SettingsDisplaySidebarRoute = SettingsDisplaySidebarRouteImport.update({
+  id: '/sidebar',
+  path: '/sidebar',
+  getParentRoute: () => SettingsDisplayRoute,
+} as any)
+const SettingsDisplayMediaRoute = SettingsDisplayMediaRouteImport.update({
+  id: '/media',
+  path: '/media',
+  getParentRoute: () => SettingsDisplayRoute,
+} as any)
+const SettingsDisplayHomepageRoute = SettingsDisplayHomepageRouteImport.update({
+  id: '/homepage',
+  path: '/homepage',
+  getParentRoute: () => SettingsDisplayRoute,
+} as any)
+const SettingsDisplayGeneralRoute = SettingsDisplayGeneralRouteImport.update({
+  id: '/general',
+  path: '/general',
+  getParentRoute: () => SettingsDisplayRoute,
+} as any)
+const SettingsDisplayDrawerRoute = SettingsDisplayDrawerRouteImport.update({
+  id: '/drawer',
+  path: '/drawer',
+  getParentRoute: () => SettingsDisplayRoute,
 } as any)
 const SavedFiltersFilterSlugEditRoute =
   SavedFiltersFilterSlugEditRouteImport.update({
@@ -1646,11 +1670,9 @@ export interface FileRoutesByFullPath {
   '/settings/card-display-rules': typeof SettingsCardDisplayRulesRoute
   '/settings/connectors': typeof SettingsConnectorsRoute
   '/settings/custom-properties': typeof SettingsCustomPropertiesRoute
-  '/settings/display': typeof SettingsDisplayRoute
-  '/settings/drawer': typeof SettingsDrawerRoute
+  '/settings/display': typeof SettingsDisplayRouteWithChildren
   '/settings/extension': typeof SettingsExtensionRoute
   '/settings/gallery': typeof SettingsGalleryRoute
-  '/settings/homepage': typeof SettingsHomepageRoute
   '/settings/imports': typeof SettingsImportsRoute
   '/settings/link-parsing': typeof SettingsLinkParsingRoute
   '/settings/media-management': typeof SettingsMediaManagementRoute
@@ -1685,6 +1707,11 @@ export interface FileRoutesByFullPath {
   '/custom-properties/$propertySlug/edit': typeof CustomPropertiesPropertySlugEditRouteWithChildren
   '/import-rules/$ruleSlug/edit': typeof ImportRulesRuleSlugEditRouteWithChildren
   '/saved-filters/$filterSlug/edit': typeof SavedFiltersFilterSlugEditRouteWithChildren
+  '/settings/display/drawer': typeof SettingsDisplayDrawerRoute
+  '/settings/display/general': typeof SettingsDisplayGeneralRoute
+  '/settings/display/homepage': typeof SettingsDisplayHomepageRoute
+  '/settings/display/media': typeof SettingsDisplayMediaRoute
+  '/settings/display/sidebar': typeof SettingsDisplaySidebarRoute
   '/tags/$tagSlug/edit': typeof TagsTagSlugEditRouteWithChildren
   '/taxonomies/authors/$authorSlug': typeof TaxonomiesAuthorsAuthorSlugViewRouteWithChildren
   '/taxonomies/media-types/$mediaTypeSlug': typeof TaxonomiesMediaTypesMediaTypeSlugViewRouteWithChildren
@@ -1701,6 +1728,7 @@ export interface FileRoutesByFullPath {
   '/custom-properties/$propertySlug/': typeof CustomPropertiesPropertySlugIndexRoute
   '/import-rules/$ruleSlug/': typeof ImportRulesRuleSlugIndexRoute
   '/saved-filters/$filterSlug/': typeof SavedFiltersFilterSlugIndexRoute
+  '/settings/display/': typeof SettingsDisplayIndexRoute
   '/tags/$tagSlug/': typeof TagsTagSlugIndexRoute
   '/taxonomies/authors/': typeof TaxonomiesAuthorsIndexRoute
   '/taxonomies/media-types/': typeof TaxonomiesMediaTypesIndexRoute
@@ -1857,11 +1885,8 @@ export interface FileRoutesByTo {
   '/settings/card-display-rules': typeof SettingsCardDisplayRulesRoute
   '/settings/connectors': typeof SettingsConnectorsRoute
   '/settings/custom-properties': typeof SettingsCustomPropertiesRoute
-  '/settings/display': typeof SettingsDisplayRoute
-  '/settings/drawer': typeof SettingsDrawerRoute
   '/settings/extension': typeof SettingsExtensionRoute
   '/settings/gallery': typeof SettingsGalleryRoute
-  '/settings/homepage': typeof SettingsHomepageRoute
   '/settings/imports': typeof SettingsImportsRoute
   '/settings/link-parsing': typeof SettingsLinkParsingRoute
   '/settings/media-management': typeof SettingsMediaManagementRoute
@@ -1886,8 +1911,14 @@ export interface FileRoutesByTo {
   '/custom-properties/$propertySlug': typeof CustomPropertiesPropertySlugIndexRoute
   '/import-rules/$ruleSlug': typeof ImportRulesRuleSlugIndexRoute
   '/saved-filters/$filterSlug': typeof SavedFiltersFilterSlugIndexRoute
+  '/settings/display/drawer': typeof SettingsDisplayDrawerRoute
+  '/settings/display/general': typeof SettingsDisplayGeneralRoute
+  '/settings/display/homepage': typeof SettingsDisplayHomepageRoute
+  '/settings/display/media': typeof SettingsDisplayMediaRoute
+  '/settings/display/sidebar': typeof SettingsDisplaySidebarRoute
   '/tags/$tagSlug': typeof TagsTagSlugIndexRoute
   '/bookmarks/$bookmarkId': typeof BookmarksBookmarkIdIndexRoute
+  '/settings/display': typeof SettingsDisplayIndexRoute
   '/taxonomies/authors': typeof TaxonomiesAuthorsIndexRoute
   '/taxonomies/media-types': typeof TaxonomiesMediaTypesIndexRoute
   '/taxonomies/newsletters': typeof TaxonomiesNewslettersIndexRoute
@@ -2055,11 +2086,9 @@ export interface FileRoutesById {
   '/settings/card-display-rules': typeof SettingsCardDisplayRulesRoute
   '/settings/connectors': typeof SettingsConnectorsRoute
   '/settings/custom-properties': typeof SettingsCustomPropertiesRoute
-  '/settings/display': typeof SettingsDisplayRoute
-  '/settings/drawer': typeof SettingsDrawerRoute
+  '/settings/display': typeof SettingsDisplayRouteWithChildren
   '/settings/extension': typeof SettingsExtensionRoute
   '/settings/gallery': typeof SettingsGalleryRoute
-  '/settings/homepage': typeof SettingsHomepageRoute
   '/settings/imports': typeof SettingsImportsRoute
   '/settings/link-parsing': typeof SettingsLinkParsingRoute
   '/settings/media-management': typeof SettingsMediaManagementRoute
@@ -2100,6 +2129,11 @@ export interface FileRoutesById {
   '/import-rules/$ruleSlug/edit': typeof ImportRulesRuleSlugEditRouteWithChildren
   '/saved-filters/$filterSlug/_view': typeof SavedFiltersFilterSlugViewRouteWithChildren
   '/saved-filters/$filterSlug/edit': typeof SavedFiltersFilterSlugEditRouteWithChildren
+  '/settings/display/drawer': typeof SettingsDisplayDrawerRoute
+  '/settings/display/general': typeof SettingsDisplayGeneralRoute
+  '/settings/display/homepage': typeof SettingsDisplayHomepageRoute
+  '/settings/display/media': typeof SettingsDisplayMediaRoute
+  '/settings/display/sidebar': typeof SettingsDisplaySidebarRoute
   '/tags/$tagSlug/_view': typeof TagsTagSlugViewRouteWithChildren
   '/tags/$tagSlug/edit': typeof TagsTagSlugEditRouteWithChildren
   '/taxonomies/authors/$authorSlug': typeof TaxonomiesAuthorsAuthorSlugRouteWithChildren
@@ -2117,6 +2151,7 @@ export interface FileRoutesById {
   '/custom-properties/$propertySlug/': typeof CustomPropertiesPropertySlugIndexRoute
   '/import-rules/$ruleSlug/': typeof ImportRulesRuleSlugIndexRoute
   '/saved-filters/$filterSlug/': typeof SavedFiltersFilterSlugIndexRoute
+  '/settings/display/': typeof SettingsDisplayIndexRoute
   '/tags/$tagSlug/': typeof TagsTagSlugIndexRoute
   '/taxonomies/authors/': typeof TaxonomiesAuthorsIndexRoute
   '/taxonomies/media-types/': typeof TaxonomiesMediaTypesIndexRoute
@@ -2301,10 +2336,8 @@ export interface FileRouteTypes {
     | '/settings/connectors'
     | '/settings/custom-properties'
     | '/settings/display'
-    | '/settings/drawer'
     | '/settings/extension'
     | '/settings/gallery'
-    | '/settings/homepage'
     | '/settings/imports'
     | '/settings/link-parsing'
     | '/settings/media-management'
@@ -2339,6 +2372,11 @@ export interface FileRouteTypes {
     | '/custom-properties/$propertySlug/edit'
     | '/import-rules/$ruleSlug/edit'
     | '/saved-filters/$filterSlug/edit'
+    | '/settings/display/drawer'
+    | '/settings/display/general'
+    | '/settings/display/homepage'
+    | '/settings/display/media'
+    | '/settings/display/sidebar'
     | '/tags/$tagSlug/edit'
     | '/taxonomies/authors/$authorSlug'
     | '/taxonomies/media-types/$mediaTypeSlug'
@@ -2355,6 +2393,7 @@ export interface FileRouteTypes {
     | '/custom-properties/$propertySlug/'
     | '/import-rules/$ruleSlug/'
     | '/saved-filters/$filterSlug/'
+    | '/settings/display/'
     | '/tags/$tagSlug/'
     | '/taxonomies/authors/'
     | '/taxonomies/media-types/'
@@ -2511,11 +2550,8 @@ export interface FileRouteTypes {
     | '/settings/card-display-rules'
     | '/settings/connectors'
     | '/settings/custom-properties'
-    | '/settings/display'
-    | '/settings/drawer'
     | '/settings/extension'
     | '/settings/gallery'
-    | '/settings/homepage'
     | '/settings/imports'
     | '/settings/link-parsing'
     | '/settings/media-management'
@@ -2540,8 +2576,14 @@ export interface FileRouteTypes {
     | '/custom-properties/$propertySlug'
     | '/import-rules/$ruleSlug'
     | '/saved-filters/$filterSlug'
+    | '/settings/display/drawer'
+    | '/settings/display/general'
+    | '/settings/display/homepage'
+    | '/settings/display/media'
+    | '/settings/display/sidebar'
     | '/tags/$tagSlug'
     | '/bookmarks/$bookmarkId'
+    | '/settings/display'
     | '/taxonomies/authors'
     | '/taxonomies/media-types'
     | '/taxonomies/newsletters'
@@ -2709,10 +2751,8 @@ export interface FileRouteTypes {
     | '/settings/connectors'
     | '/settings/custom-properties'
     | '/settings/display'
-    | '/settings/drawer'
     | '/settings/extension'
     | '/settings/gallery'
-    | '/settings/homepage'
     | '/settings/imports'
     | '/settings/link-parsing'
     | '/settings/media-management'
@@ -2753,6 +2793,11 @@ export interface FileRouteTypes {
     | '/import-rules/$ruleSlug/edit'
     | '/saved-filters/$filterSlug/_view'
     | '/saved-filters/$filterSlug/edit'
+    | '/settings/display/drawer'
+    | '/settings/display/general'
+    | '/settings/display/homepage'
+    | '/settings/display/media'
+    | '/settings/display/sidebar'
     | '/tags/$tagSlug/_view'
     | '/tags/$tagSlug/edit'
     | '/taxonomies/authors/$authorSlug'
@@ -2770,6 +2815,7 @@ export interface FileRouteTypes {
     | '/custom-properties/$propertySlug/'
     | '/import-rules/$ruleSlug/'
     | '/saved-filters/$filterSlug/'
+    | '/settings/display/'
     | '/tags/$tagSlug/'
     | '/taxonomies/authors/'
     | '/taxonomies/media-types/'
@@ -3228,13 +3274,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsImportsRouteImport
       parentRoute: typeof SettingsRoute
     }
-    '/settings/homepage': {
-      id: '/settings/homepage'
-      path: '/homepage'
-      fullPath: '/settings/homepage'
-      preLoaderRoute: typeof SettingsHomepageRouteImport
-      parentRoute: typeof SettingsRoute
-    }
     '/settings/gallery': {
       id: '/settings/gallery'
       path: '/gallery'
@@ -3247,13 +3286,6 @@ declare module '@tanstack/react-router' {
       path: '/extension'
       fullPath: '/settings/extension'
       preLoaderRoute: typeof SettingsExtensionRouteImport
-      parentRoute: typeof SettingsRoute
-    }
-    '/settings/drawer': {
-      id: '/settings/drawer'
-      path: '/drawer'
-      fullPath: '/settings/drawer'
-      preLoaderRoute: typeof SettingsDrawerRouteImport
       parentRoute: typeof SettingsRoute
     }
     '/settings/display': {
@@ -3438,6 +3470,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TagsTagSlugIndexRouteImport
       parentRoute: typeof TagsTagSlugRoute
     }
+    '/settings/display/': {
+      id: '/settings/display/'
+      path: '/'
+      fullPath: '/settings/display/'
+      preLoaderRoute: typeof SettingsDisplayIndexRouteImport
+      parentRoute: typeof SettingsDisplayRoute
+    }
     '/saved-filters/$filterSlug/': {
       id: '/saved-filters/$filterSlug/'
       path: '/'
@@ -3556,6 +3595,41 @@ declare module '@tanstack/react-router' {
       fullPath: '/tags/$tagSlug'
       preLoaderRoute: typeof TagsTagSlugViewRouteImport
       parentRoute: typeof TagsTagSlugRoute
+    }
+    '/settings/display/sidebar': {
+      id: '/settings/display/sidebar'
+      path: '/sidebar'
+      fullPath: '/settings/display/sidebar'
+      preLoaderRoute: typeof SettingsDisplaySidebarRouteImport
+      parentRoute: typeof SettingsDisplayRoute
+    }
+    '/settings/display/media': {
+      id: '/settings/display/media'
+      path: '/media'
+      fullPath: '/settings/display/media'
+      preLoaderRoute: typeof SettingsDisplayMediaRouteImport
+      parentRoute: typeof SettingsDisplayRoute
+    }
+    '/settings/display/homepage': {
+      id: '/settings/display/homepage'
+      path: '/homepage'
+      fullPath: '/settings/display/homepage'
+      preLoaderRoute: typeof SettingsDisplayHomepageRouteImport
+      parentRoute: typeof SettingsDisplayRoute
+    }
+    '/settings/display/general': {
+      id: '/settings/display/general'
+      path: '/general'
+      fullPath: '/settings/display/general'
+      preLoaderRoute: typeof SettingsDisplayGeneralRouteImport
+      parentRoute: typeof SettingsDisplayRoute
+    }
+    '/settings/display/drawer': {
+      id: '/settings/display/drawer'
+      path: '/drawer'
+      fullPath: '/settings/display/drawer'
+      preLoaderRoute: typeof SettingsDisplayDrawerRouteImport
+      parentRoute: typeof SettingsDisplayRoute
     }
     '/saved-filters/$filterSlug/edit': {
       id: '/saved-filters/$filterSlug/edit'
@@ -5176,6 +5250,28 @@ const SavedFiltersRouteWithChildren = SavedFiltersRoute._addFileChildren(
   SavedFiltersRouteChildren,
 )
 
+interface SettingsDisplayRouteChildren {
+  SettingsDisplayDrawerRoute: typeof SettingsDisplayDrawerRoute
+  SettingsDisplayGeneralRoute: typeof SettingsDisplayGeneralRoute
+  SettingsDisplayHomepageRoute: typeof SettingsDisplayHomepageRoute
+  SettingsDisplayMediaRoute: typeof SettingsDisplayMediaRoute
+  SettingsDisplaySidebarRoute: typeof SettingsDisplaySidebarRoute
+  SettingsDisplayIndexRoute: typeof SettingsDisplayIndexRoute
+}
+
+const SettingsDisplayRouteChildren: SettingsDisplayRouteChildren = {
+  SettingsDisplayDrawerRoute: SettingsDisplayDrawerRoute,
+  SettingsDisplayGeneralRoute: SettingsDisplayGeneralRoute,
+  SettingsDisplayHomepageRoute: SettingsDisplayHomepageRoute,
+  SettingsDisplayMediaRoute: SettingsDisplayMediaRoute,
+  SettingsDisplaySidebarRoute: SettingsDisplaySidebarRoute,
+  SettingsDisplayIndexRoute: SettingsDisplayIndexRoute,
+}
+
+const SettingsDisplayRouteWithChildren = SettingsDisplayRoute._addFileChildren(
+  SettingsDisplayRouteChildren,
+)
+
 interface SettingsRouteChildren {
   SettingsAdvancedRoute: typeof SettingsAdvancedRoute
   SettingsAutofillRoute: typeof SettingsAutofillRoute
@@ -5183,11 +5279,9 @@ interface SettingsRouteChildren {
   SettingsCardDisplayRulesRoute: typeof SettingsCardDisplayRulesRoute
   SettingsConnectorsRoute: typeof SettingsConnectorsRoute
   SettingsCustomPropertiesRoute: typeof SettingsCustomPropertiesRoute
-  SettingsDisplayRoute: typeof SettingsDisplayRoute
-  SettingsDrawerRoute: typeof SettingsDrawerRoute
+  SettingsDisplayRoute: typeof SettingsDisplayRouteWithChildren
   SettingsExtensionRoute: typeof SettingsExtensionRoute
   SettingsGalleryRoute: typeof SettingsGalleryRoute
-  SettingsHomepageRoute: typeof SettingsHomepageRoute
   SettingsImportsRoute: typeof SettingsImportsRoute
   SettingsLinkParsingRoute: typeof SettingsLinkParsingRoute
   SettingsMediaManagementRoute: typeof SettingsMediaManagementRoute
@@ -5206,11 +5300,9 @@ const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsCardDisplayRulesRoute: SettingsCardDisplayRulesRoute,
   SettingsConnectorsRoute: SettingsConnectorsRoute,
   SettingsCustomPropertiesRoute: SettingsCustomPropertiesRoute,
-  SettingsDisplayRoute: SettingsDisplayRoute,
-  SettingsDrawerRoute: SettingsDrawerRoute,
+  SettingsDisplayRoute: SettingsDisplayRouteWithChildren,
   SettingsExtensionRoute: SettingsExtensionRoute,
   SettingsGalleryRoute: SettingsGalleryRoute,
-  SettingsHomepageRoute: SettingsHomepageRoute,
   SettingsImportsRoute: SettingsImportsRoute,
   SettingsLinkParsingRoute: SettingsLinkParsingRoute,
   SettingsMediaManagementRoute: SettingsMediaManagementRoute,

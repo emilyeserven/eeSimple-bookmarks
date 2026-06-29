@@ -26,7 +26,7 @@ interface SidebarItemsCardProps {
 
 /**
  * A titled settings card with a radio toggle matrix for sidebar item visibility. Backs the
- * Taxonomies / Customization / Management cards in `DisplaySettings`. When `seeMoreItems` is
+ * Taxonomies / Customization / Management cards in `DisplaySidebarSettings`. When `seeMoreItems` is
  * provided the matrix shows three options (Default / See More / Listing only); otherwise two
  * (Default / Listing only).
  */

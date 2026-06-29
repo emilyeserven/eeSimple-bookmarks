@@ -69,13 +69,13 @@ function HomePage() {
             Nothing here yet. Build homepage sections in
             {" "}
             <Link
-              to="/settings/homepage"
+              to="/settings/display/homepage"
               className="
                 font-medium text-foreground
                 hover:underline
               "
             >
-              Settings → Homepage
+              Settings → Display → Homepage
             </Link>
             {" "}
             to surface bookmarks here.

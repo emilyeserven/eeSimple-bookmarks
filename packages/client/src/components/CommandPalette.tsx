@@ -137,11 +137,11 @@ const SETTINGS = [
   },
   {
     label: "Homepage",
-    path: "/settings/homepage",
+    path: "/settings/display/homepage",
   },
   {
     label: "Drawer",
-    path: "/settings/drawer",
+    path: "/settings/display/drawer",
   },
   {
     label: "Media Types",
