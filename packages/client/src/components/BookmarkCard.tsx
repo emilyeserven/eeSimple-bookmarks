@@ -140,7 +140,9 @@ export function BookmarkCard({
     });
   }
 
-  const hasImage = !!(bookmark.image ?? bookmark.screenshot) && imageVisibility !== "off";
+  const hasActualImage = !!(bookmark.image ?? bookmark.screenshot);
+  const imageEnabled = imageVisibility !== "off";
+  const hasImage = hasActualImage && imageEnabled;
 
   // Compact Amazon links for any text-typed properties with a non-empty value (e.g. ISBN/ASIN).
   const propById = new Map(properties.map(p => [p.id, p]));
@@ -150,11 +152,12 @@ export function BookmarkCard({
     return buildIsbnLinks(entry.value).slice(0, 2);
   });
 
-  // Fields placed in an image corner are overlaid only when the card has an image; otherwise they
-  // fall back to the card body (BookmarkCardDetails reads the same `placements`).
+  // Fields placed in an image corner render on the image (or placeholder); without an image area
+  // they fall back to the card body (BookmarkCardDetails reads the same `placements`).
   const valueItems = buildBookmarkValueItems(bookmark, properties, placements);
   const bookmarkCategory = allCategories.find(c => c.id === bookmark.categoryId && !c.builtIn);
-  const overlayItems = hasImage
+  // Compute overlays whenever the image area is enabled so they appear on placeholders too.
+  const overlayItems = imageEnabled
     ? buildCardOverlayItems(bookmark, valueItems, placements, bookmarkCategory, {
       externalLink: <BookmarkExternalLinkButton url={bookmark.url ?? ""} />,
       more: (
@@ -182,13 +185,20 @@ export function BookmarkCard({
     })
     : [];
 
-  const imageEl = hasImage
+  // Show a placeholder only in "shown" mode (not image-only or off) when there is no actual image
+  // and at least one overlay item wants to appear — keeps the image area alive for the buttons.
+  const showPlaceholder = imageVisibility === "shown" && !hasActualImage && overlayItems.length > 0;
+  // Whether a real image or placeholder will render (used for the top-margin gap below).
+  const showImageArea = hasImage || showPlaceholder;
+
+  const imageEl = hasImage || showPlaceholder
     ? (
       <BookmarkCardImage
         bookmark={bookmark}
         imageLeft={imageLeft}
         imageMode={imageMode}
         overlayItems={overlayItems}
+        showPlaceholder={showPlaceholder}
       />
     )
     : null;
@@ -219,7 +229,7 @@ export function BookmarkCard({
       cardZoneLayouts={cardZoneLayouts}
       bookmarkCategory={bookmarkCategory}
       hideWebsiteForYouTube={hideWebsiteForYouTube}
-      hasImageAbove={hasImage && !imageLeft}
+      hasImageAbove={showImageArea && !imageLeft}
       onSaveRating={saveNumber}
       menu={{
         editableProperties,
