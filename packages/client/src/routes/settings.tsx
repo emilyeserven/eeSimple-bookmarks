@@ -14,7 +14,7 @@ const settingsNav: readonly TabNavEntry[] = [
     label: "Display",
   },
   {
-    to: "/settings/sidebar",
+    to: "/settings/drawer",
     label: "Drawer",
   },
   {

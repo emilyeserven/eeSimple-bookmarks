@@ -31,7 +31,7 @@ const SETTINGS_TILES = [
     label: "Drawer",
     description: "Control how the right-hand drawer opens.",
     icon: PanelRight,
-    to: "/settings/sidebar" as const,
+    to: "/settings/drawer" as const,
   },
   {
     label: "Saved Filters",

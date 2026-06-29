@@ -31,29 +31,6 @@ import {
 } from "@/components/ui/select";
 import { SIDEBAR_MODIFIER_LABELS } from "@/lib/sidebarModifier";
 
-const BREAKPOINT_OPTIONS = [
-  {
-    px: 640,
-    label: "640 px — Small (sm)",
-  },
-  {
-    px: 768,
-    label: "768 px — Medium (md)",
-  },
-  {
-    px: 1024,
-    label: "1024 px — Large (lg)",
-  },
-  {
-    px: 1280,
-    label: "1280 px — Extra Large (xl)",
-  },
-  {
-    px: 1536,
-    label: "1536 px — 2× Large (2xl)",
-  },
-] as const;
-
 const DISPLAY_DEFAULTS: DisplayPreferenceSettings = {
   bookmarkDetailImageSize: "medium",
   bookmarkDetailVideoSize: "standard",
@@ -113,18 +90,6 @@ export function SidebarSettings() {
     if (isPinned && !isOpen) open();
   }
 
-  function toggleBreakpoint(px: number) {
-    const next = display.drawerUnpinnedBreakpoints.includes(px)
-      ? display.drawerUnpinnedBreakpoints.filter(b => b !== px)
-      : [...display.drawerUnpinnedBreakpoints, px];
-    saveDisplay(
-      {
-        drawerUnpinnedBreakpoints: next,
-      },
-      "Drawer breakpoints updated",
-    );
-  }
-
   function setSidebarOpenModifier(value: SidebarOpenModifier) {
     updateAutomation.mutate({
       ...automation,
@@ -156,38 +121,6 @@ export function SidebarSettings() {
           </div>
         </CardContent>
       </Card>
-
-      {display.panelPinned && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Unpin below viewport width</CardTitle>
-            <CardDescription>
-              At these viewport widths the drawer floats as an overlay, even when pinned by default.
-              Check every size at which you want it to float.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {BREAKPOINT_OPTIONS.map(({
-              px,
-              label,
-            }) => (
-              <div
-                key={px}
-                className="flex items-center gap-2"
-              >
-                <Checkbox
-                  id={`breakpoint-${px}`}
-                  checked={display.drawerUnpinnedBreakpoints.includes(px)}
-                  onCheckedChange={() => toggleBreakpoint(px)}
-                />
-                <Label htmlFor={`breakpoint-${px}`}>
-                  Below {label}
-                </Label>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
 
       <Card>
         <CardHeader>

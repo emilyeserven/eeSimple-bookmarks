@@ -140,8 +140,8 @@ const SETTINGS = [
     path: "/settings/homepage",
   },
   {
-    label: "Sidebar",
-    path: "/settings/sidebar",
+    label: "Drawer",
+    path: "/settings/drawer",
   },
   {
     label: "Media Types",

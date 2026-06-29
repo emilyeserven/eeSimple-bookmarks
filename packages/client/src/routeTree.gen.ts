@@ -42,7 +42,6 @@ import { Route as TaxonomiesAuthorsRouteImport } from './routes/taxonomies.autho
 import { Route as TagsTagSlugRouteImport } from './routes/tags.$tagSlug'
 import { Route as SettingsYoutubeChannelsRouteImport } from './routes/settings.youtube-channels'
 import { Route as SettingsWebsitesRouteImport } from './routes/settings.websites'
-import { Route as SettingsSidebarRouteImport } from './routes/settings.sidebar'
 import { Route as SettingsSavedFiltersRouteImport } from './routes/settings.saved-filters'
 import { Route as SettingsRelationshipsRouteImport } from './routes/settings.relationships'
 import { Route as SettingsMediaTypesRouteImport } from './routes/settings.media-types'
@@ -52,6 +51,7 @@ import { Route as SettingsImportsRouteImport } from './routes/settings.imports'
 import { Route as SettingsHomepageRouteImport } from './routes/settings.homepage'
 import { Route as SettingsGalleryRouteImport } from './routes/settings.gallery'
 import { Route as SettingsExtensionRouteImport } from './routes/settings.extension'
+import { Route as SettingsDrawerRouteImport } from './routes/settings.drawer'
 import { Route as SettingsDisplayRouteImport } from './routes/settings.display'
 import { Route as SettingsCustomPropertiesRouteImport } from './routes/settings.custom-properties'
 import { Route as SettingsConnectorsRouteImport } from './routes/settings.connectors'
@@ -407,11 +407,6 @@ const SettingsWebsitesRoute = SettingsWebsitesRouteImport.update({
   path: '/websites',
   getParentRoute: () => SettingsRoute,
 } as any)
-const SettingsSidebarRoute = SettingsSidebarRouteImport.update({
-  id: '/sidebar',
-  path: '/sidebar',
-  getParentRoute: () => SettingsRoute,
-} as any)
 const SettingsSavedFiltersRoute = SettingsSavedFiltersRouteImport.update({
   id: '/saved-filters',
   path: '/saved-filters',
@@ -455,6 +450,11 @@ const SettingsGalleryRoute = SettingsGalleryRouteImport.update({
 const SettingsExtensionRoute = SettingsExtensionRouteImport.update({
   id: '/extension',
   path: '/extension',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsDrawerRoute = SettingsDrawerRouteImport.update({
+  id: '/drawer',
+  path: '/drawer',
   getParentRoute: () => SettingsRoute,
 } as any)
 const SettingsDisplayRoute = SettingsDisplayRouteImport.update({
@@ -1564,6 +1564,7 @@ export interface FileRoutesByFullPath {
   '/settings/connectors': typeof SettingsConnectorsRoute
   '/settings/custom-properties': typeof SettingsCustomPropertiesRoute
   '/settings/display': typeof SettingsDisplayRoute
+  '/settings/drawer': typeof SettingsDrawerRoute
   '/settings/extension': typeof SettingsExtensionRoute
   '/settings/gallery': typeof SettingsGalleryRoute
   '/settings/homepage': typeof SettingsHomepageRoute
@@ -1573,7 +1574,6 @@ export interface FileRoutesByFullPath {
   '/settings/media-types': typeof SettingsMediaTypesRoute
   '/settings/relationships': typeof SettingsRelationshipsRoute
   '/settings/saved-filters': typeof SettingsSavedFiltersRoute
-  '/settings/sidebar': typeof SettingsSidebarRoute
   '/settings/websites': typeof SettingsWebsitesRoute
   '/settings/youtube-channels': typeof SettingsYoutubeChannelsRoute
   '/tags/$tagSlug': typeof TagsTagSlugViewRouteWithChildren
@@ -1766,6 +1766,7 @@ export interface FileRoutesByTo {
   '/settings/connectors': typeof SettingsConnectorsRoute
   '/settings/custom-properties': typeof SettingsCustomPropertiesRoute
   '/settings/display': typeof SettingsDisplayRoute
+  '/settings/drawer': typeof SettingsDrawerRoute
   '/settings/extension': typeof SettingsExtensionRoute
   '/settings/gallery': typeof SettingsGalleryRoute
   '/settings/homepage': typeof SettingsHomepageRoute
@@ -1775,7 +1776,6 @@ export interface FileRoutesByTo {
   '/settings/media-types': typeof SettingsMediaTypesRoute
   '/settings/relationships': typeof SettingsRelationshipsRoute
   '/settings/saved-filters': typeof SettingsSavedFiltersRoute
-  '/settings/sidebar': typeof SettingsSidebarRoute
   '/settings/websites': typeof SettingsWebsitesRoute
   '/settings/youtube-channels': typeof SettingsYoutubeChannelsRoute
   '/autofill': typeof AutofillIndexRoute
@@ -1954,6 +1954,7 @@ export interface FileRoutesById {
   '/settings/connectors': typeof SettingsConnectorsRoute
   '/settings/custom-properties': typeof SettingsCustomPropertiesRoute
   '/settings/display': typeof SettingsDisplayRoute
+  '/settings/drawer': typeof SettingsDrawerRoute
   '/settings/extension': typeof SettingsExtensionRoute
   '/settings/gallery': typeof SettingsGalleryRoute
   '/settings/homepage': typeof SettingsHomepageRoute
@@ -1963,7 +1964,6 @@ export interface FileRoutesById {
   '/settings/media-types': typeof SettingsMediaTypesRoute
   '/settings/relationships': typeof SettingsRelationshipsRoute
   '/settings/saved-filters': typeof SettingsSavedFiltersRoute
-  '/settings/sidebar': typeof SettingsSidebarRoute
   '/settings/websites': typeof SettingsWebsitesRoute
   '/settings/youtube-channels': typeof SettingsYoutubeChannelsRoute
   '/tags/$tagSlug': typeof TagsTagSlugRouteWithChildren
@@ -2187,6 +2187,7 @@ export interface FileRouteTypes {
     | '/settings/connectors'
     | '/settings/custom-properties'
     | '/settings/display'
+    | '/settings/drawer'
     | '/settings/extension'
     | '/settings/gallery'
     | '/settings/homepage'
@@ -2196,7 +2197,6 @@ export interface FileRouteTypes {
     | '/settings/media-types'
     | '/settings/relationships'
     | '/settings/saved-filters'
-    | '/settings/sidebar'
     | '/settings/websites'
     | '/settings/youtube-channels'
     | '/tags/$tagSlug'
@@ -2389,6 +2389,7 @@ export interface FileRouteTypes {
     | '/settings/connectors'
     | '/settings/custom-properties'
     | '/settings/display'
+    | '/settings/drawer'
     | '/settings/extension'
     | '/settings/gallery'
     | '/settings/homepage'
@@ -2398,7 +2399,6 @@ export interface FileRouteTypes {
     | '/settings/media-types'
     | '/settings/relationships'
     | '/settings/saved-filters'
-    | '/settings/sidebar'
     | '/settings/websites'
     | '/settings/youtube-channels'
     | '/autofill'
@@ -2576,6 +2576,7 @@ export interface FileRouteTypes {
     | '/settings/connectors'
     | '/settings/custom-properties'
     | '/settings/display'
+    | '/settings/drawer'
     | '/settings/extension'
     | '/settings/gallery'
     | '/settings/homepage'
@@ -2585,7 +2586,6 @@ export interface FileRouteTypes {
     | '/settings/media-types'
     | '/settings/relationships'
     | '/settings/saved-filters'
-    | '/settings/sidebar'
     | '/settings/websites'
     | '/settings/youtube-channels'
     | '/tags/$tagSlug'
@@ -3035,13 +3035,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsWebsitesRouteImport
       parentRoute: typeof SettingsRoute
     }
-    '/settings/sidebar': {
-      id: '/settings/sidebar'
-      path: '/sidebar'
-      fullPath: '/settings/sidebar'
-      preLoaderRoute: typeof SettingsSidebarRouteImport
-      parentRoute: typeof SettingsRoute
-    }
     '/settings/saved-filters': {
       id: '/settings/saved-filters'
       path: '/saved-filters'
@@ -3103,6 +3096,13 @@ declare module '@tanstack/react-router' {
       path: '/extension'
       fullPath: '/settings/extension'
       preLoaderRoute: typeof SettingsExtensionRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/drawer': {
+      id: '/settings/drawer'
+      path: '/drawer'
+      fullPath: '/settings/drawer'
+      preLoaderRoute: typeof SettingsDrawerRouteImport
       parentRoute: typeof SettingsRoute
     }
     '/settings/display': {
@@ -4878,6 +4878,7 @@ interface SettingsRouteChildren {
   SettingsConnectorsRoute: typeof SettingsConnectorsRoute
   SettingsCustomPropertiesRoute: typeof SettingsCustomPropertiesRoute
   SettingsDisplayRoute: typeof SettingsDisplayRoute
+  SettingsDrawerRoute: typeof SettingsDrawerRoute
   SettingsExtensionRoute: typeof SettingsExtensionRoute
   SettingsGalleryRoute: typeof SettingsGalleryRoute
   SettingsHomepageRoute: typeof SettingsHomepageRoute
@@ -4887,7 +4888,6 @@ interface SettingsRouteChildren {
   SettingsMediaTypesRoute: typeof SettingsMediaTypesRoute
   SettingsRelationshipsRoute: typeof SettingsRelationshipsRoute
   SettingsSavedFiltersRoute: typeof SettingsSavedFiltersRoute
-  SettingsSidebarRoute: typeof SettingsSidebarRoute
   SettingsWebsitesRoute: typeof SettingsWebsitesRoute
   SettingsYoutubeChannelsRoute: typeof SettingsYoutubeChannelsRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
@@ -4901,6 +4901,7 @@ const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsConnectorsRoute: SettingsConnectorsRoute,
   SettingsCustomPropertiesRoute: SettingsCustomPropertiesRoute,
   SettingsDisplayRoute: SettingsDisplayRoute,
+  SettingsDrawerRoute: SettingsDrawerRoute,
   SettingsExtensionRoute: SettingsExtensionRoute,
   SettingsGalleryRoute: SettingsGalleryRoute,
   SettingsHomepageRoute: SettingsHomepageRoute,
@@ -4910,7 +4911,6 @@ const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsMediaTypesRoute: SettingsMediaTypesRoute,
   SettingsRelationshipsRoute: SettingsRelationshipsRoute,
   SettingsSavedFiltersRoute: SettingsSavedFiltersRoute,
-  SettingsSidebarRoute: SettingsSidebarRoute,
   SettingsWebsitesRoute: SettingsWebsitesRoute,
   SettingsYoutubeChannelsRoute: SettingsYoutubeChannelsRoute,
   SettingsIndexRoute: SettingsIndexRoute,

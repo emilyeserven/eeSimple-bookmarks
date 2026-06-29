@@ -1,5 +1,6 @@
 import { Pin, PinOff, X } from "lucide-react";
 
+import { DrawerBreakpointsPopover } from "./DrawerBreakpointsPopover";
 import { PanelBreadcrumbs } from "./PanelBreadcrumbs";
 import { PanelContent } from "./PanelContent";
 import { usePanelControls } from "./usePanelControls";
@@ -150,22 +151,25 @@ function PanelChrome({
 
   return (
     <div className="flex items-center justify-between gap-1 px-4 pt-4">
-      {!isBreakpointUnpinned && (
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="
-            hidden size-7
-            md:inline-flex
-          "
-          aria-label={pinned ? "Unpin panel" : "Pin panel"}
-          aria-pressed={pinned}
-          onClick={togglePinned}
-        >
-          {pinned ? <PinOff className="size-4" /> : <Pin className="size-4" />}
-        </Button>
-      )}
+      <div className="flex items-center gap-1">
+        {!isBreakpointUnpinned && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="
+              hidden size-7
+              md:inline-flex
+            "
+            aria-label={pinned ? "Unpin panel" : "Pin panel"}
+            aria-pressed={pinned}
+            onClick={togglePinned}
+          >
+            {pinned ? <PinOff className="size-4" /> : <Pin className="size-4" />}
+          </Button>
+        )}
+        {!isBreakpointUnpinned && pinned && <DrawerBreakpointsPopover />}
+      </div>
       {docked
         ? (
           <Button
