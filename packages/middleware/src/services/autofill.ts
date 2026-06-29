@@ -29,12 +29,14 @@ import {
   autofillRuleBooleanValues,
   autofillRuleDateTimeValues,
   autofillRuleExemptions,
+  autofillRuleLocations,
   autofillRuleNumberValues,
   autofillRules,
   type AutofillRuleRow,
   autofillRuleTags,
   bookmarkBooleanValues,
   bookmarkDateTimeValues,
+  bookmarkLocations,
   bookmarkNumberValues,
   bookmarks,
   bookmarkTags,
@@ -78,6 +80,7 @@ async function takenAutofillSlugs(excludeId?: string): Promise<Set<string>> {
 function toAutofillRule(
   row: AutofillRuleRow,
   tagIds: string[],
+  locationIds: string[],
   numberValues: BookmarkNumberValue[],
   booleanValues: BookmarkBooleanValue[],
   dateTimeValues: BookmarkDateTimeValue[],
@@ -91,6 +94,7 @@ function toAutofillRule(
     setCategoryId: row.setCategoryId,
     setMediaTypeId: row.setMediaTypeId,
     tagIds,
+    locationIds,
     numberValues,
     booleanValues,
     dateTimeValues,
@@ -116,6 +120,27 @@ async function tagIdsByRuleId(ruleIds: string[]): Promise<Map<string, string[]>>
   for (const row of rows) {
     const list = grouped.get(row.ruleId) ?? [];
     list.push(row.tagId);
+    grouped.set(row.ruleId, list);
+  }
+  return grouped;
+}
+
+/** Load location ids for a set of rule ids in a single query, grouped by rule id. */
+async function locationIdsByRuleId(ruleIds: string[]): Promise<Map<string, string[]>> {
+  const grouped = new Map<string, string[]>();
+  if (ruleIds.length === 0) return grouped;
+
+  const rows = await db
+    .select({
+      ruleId: autofillRuleLocations.ruleId,
+      locationId: autofillRuleLocations.locationId,
+    })
+    .from(autofillRuleLocations)
+    .where(inArray(autofillRuleLocations.ruleId, ruleIds));
+
+  for (const row of rows) {
+    const list = grouped.get(row.ruleId) ?? [];
+    list.push(row.locationId);
     grouped.set(row.ruleId, list);
   }
   return grouped;
@@ -205,8 +230,9 @@ async function dateTimeValuesByRuleId(
 /** Hydrate a set of rule rows with their tags and property values. */
 async function hydrate(rows: AutofillRuleRow[]): Promise<AutofillRule[]> {
   const ids = rows.map(row => row.id);
-  const [tagMap, numberMap, booleanMap, dateTimeMap] = await Promise.all([
+  const [tagMap, locationMap, numberMap, booleanMap, dateTimeMap] = await Promise.all([
     tagIdsByRuleId(ids),
+    locationIdsByRuleId(ids),
     numberValuesByRuleId(ids),
     booleanValuesByRuleId(ids),
     dateTimeValuesByRuleId(ids),
@@ -215,6 +241,7 @@ async function hydrate(rows: AutofillRuleRow[]): Promise<AutofillRule[]> {
     toAutofillRule(
       row,
       tagMap.get(row.id) ?? [],
+      locationMap.get(row.id) ?? [],
       numberMap.get(row.id) ?? [],
       booleanMap.get(row.id) ?? [],
       dateTimeMap.get(row.id) ?? [],
@@ -234,6 +261,7 @@ export async function suggestAutofillForBookmark(input: {
   categoryId: string | null;
   mediaTypeId: string | null;
   tagIds: string[];
+  locationIds: string[];
   numberValues: BookmarkNumberValue[];
   booleanValues: BookmarkBooleanValue[];
   dateTimeValues: BookmarkDateTimeValue[];
@@ -247,6 +275,7 @@ export async function suggestAutofillForBookmark(input: {
       categoryId: null,
       mediaTypeId: null,
       tagIds: [],
+      locationIds: [],
       numberValues: [],
       booleanValues: [],
       dateTimeValues: [],
@@ -257,6 +286,7 @@ export async function suggestAutofillForBookmark(input: {
   let categoryId: string | null = null;
   let mediaTypeId: string | null = null;
   const tagIds = new Set<string>();
+  const locationIds = new Set<string>();
   const numberByProperty = new Map<string, number>();
   const booleanByProperty = new Map<string, boolean>();
   const dateTimeByProperty = new Map<string, string>();
@@ -266,6 +296,7 @@ export async function suggestAutofillForBookmark(input: {
     title: input.title,
     categoryId: "",
     tagIds: new Set(),
+    locationIds: new Set(),
     youtubeChannelId: null,
     mediaTypeId: null,
     numberValues: new Map(),
@@ -283,6 +314,7 @@ export async function suggestAutofillForBookmark(input: {
     if (rule.setCategoryId) categoryId = rule.setCategoryId;
     if (rule.setMediaTypeId) mediaTypeId = rule.setMediaTypeId;
     for (const tagId of rule.tagIds) tagIds.add(tagId);
+    for (const locationId of rule.locationIds) locationIds.add(locationId);
     for (const entry of rule.numberValues) numberByProperty.set(entry.propertyId, entry.value);
     for (const entry of rule.booleanValues) booleanByProperty.set(entry.propertyId, entry.value);
     for (const entry of rule.dateTimeValues) dateTimeByProperty.set(entry.propertyId, entry.value);
@@ -292,6 +324,7 @@ export async function suggestAutofillForBookmark(input: {
     categoryId,
     mediaTypeId,
     tagIds: [...tagIds],
+    locationIds: [...locationIds],
     numberValues: [...numberByProperty].map(([propertyId, value]) => ({
       propertyId,
       value,
@@ -320,7 +353,7 @@ export async function listAutofillRules(): Promise<AutofillRule[]> {
   // Count how many existing bookmarks each rule currently matches, evaluated with the same shared
   // predicate the autofill/homepage engines use over the cached per-bookmark inputs (no extra I/O).
   const {
-    baseRows, conditionInputs, tagDescendants,
+    baseRows, conditionInputs, tagDescendants, locationDescendants,
   } = evaluation;
   return rules.map((rule) => {
     let matchCount = 0;
@@ -328,6 +361,7 @@ export async function listAutofillRules(): Promise<AutofillRule[]> {
       const conditionInput = conditionInputs.get(row.id);
       if (conditionInput && evaluateConditions(rule.conditions, conditionInput, {
         tagDescendants,
+        locationDescendants,
       })) {
         matchCount += 1;
       }
@@ -353,6 +387,16 @@ async function setRuleTags(tx: Tx, ruleId: string, tagIds: string[]): Promise<vo
   await tx.insert(autofillRuleTags).values([...new Set(tagIds)].map(tagId => ({
     ruleId,
     tagId,
+  })));
+}
+
+/** Replace a rule's location links (delete then insert). */
+async function setRuleLocations(tx: Tx, ruleId: string, locationIds: string[]): Promise<void> {
+  await tx.delete(autofillRuleLocations).where(eq(autofillRuleLocations.ruleId, ruleId));
+  if (locationIds.length === 0) return;
+  await tx.insert(autofillRuleLocations).values([...new Set(locationIds)].map(locationId => ({
+    ruleId,
+    locationId,
   })));
 }
 
@@ -421,6 +465,7 @@ export async function createAutofillRule(input: CreateAutofillRuleInput): Promis
         id: autofillRules.id,
       });
     await setRuleTags(tx, row.id, input.tagIds ?? []);
+    await setRuleLocations(tx, row.id, input.locationIds ?? []);
     await setRuleNumberValues(tx, row.id, input.numberValues ?? []);
     await setRuleBooleanValues(tx, row.id, input.booleanValues ?? []);
     await setRuleDateTimeValues(tx, row.id, input.dateTimeValues ?? []);
@@ -465,6 +510,7 @@ export async function updateAutofillRule(
     }
 
     if (input.tagIds !== undefined) await setRuleTags(tx, id, input.tagIds);
+    if (input.locationIds !== undefined) await setRuleLocations(tx, id, input.locationIds);
     if (input.numberValues !== undefined) await setRuleNumberValues(tx, id, input.numberValues);
     if (input.booleanValues !== undefined) await setRuleBooleanValues(tx, id, input.booleanValues);
     if (input.dateTimeValues !== undefined) await setRuleDateTimeValues(tx, id, input.dateTimeValues);
@@ -516,7 +562,7 @@ export async function previewAutofillMatches(
 ): Promise<AutofillPreviewResult> {
   const limit = input.limit && input.limit > 0 ? input.limit : DEFAULT_PREVIEW_LIMIT;
   const {
-    baseRows, conditionInputs, tagDescendants,
+    baseRows, conditionInputs, tagDescendants, locationDescendants,
   } = await getBookmarkEvaluationData();
 
   const matches = (row: BookmarkRow): boolean => {
@@ -524,6 +570,7 @@ export async function previewAutofillMatches(
     if (!conditionInput) return false;
     return evaluateConditions(input.conditions, conditionInput, {
       tagDescendants,
+      locationDescendants,
     });
   };
 
@@ -581,6 +628,7 @@ function computeNeedsBackfill(
     = rule.setCategoryId != null
       || rule.setMediaTypeId != null
       || rule.tagIds.length > 0
+      || rule.locationIds.length > 0
       || rule.numberValues.length > 0
       || rule.booleanValues.length > 0
       || rule.dateTimeValues.length > 0;
@@ -594,6 +642,9 @@ function computeNeedsBackfill(
     id => !bookmark.blacklistedTagIds.includes(id) && !globallyExcludedTagIds.has(id),
   );
   if (effectiveTagIds.some(id => !existingTagIds.has(id))) return true;
+
+  const existingLocationIds = new Set(bookmark.locations.map(l => l.id));
+  if (rule.locationIds.some(id => !existingLocationIds.has(id))) return true;
 
   const numById = new Map(bookmark.numberValues.map(v => [v.propertyId, v.value]));
   if (rule.numberValues.some(v => numById.get(v.propertyId) !== v.value)) return true;
@@ -616,7 +667,7 @@ export async function getAutofillBackfillEntries(ruleId: string): Promise<Autofi
   if (!rule) return null;
 
   const {
-    baseRows, conditionInputs, tagDescendants,
+    baseRows, conditionInputs, tagDescendants, locationDescendants,
   } = await getBookmarkEvaluationData();
 
   const matchingRows = baseRows.filter((row) => {
@@ -624,6 +675,7 @@ export async function getAutofillBackfillEntries(ruleId: string): Promise<Autofi
     return ci
       ? evaluateConditions(rule.conditions, ci, {
         tagDescendants,
+        locationDescendants,
       })
       : false;
   });
@@ -674,7 +726,7 @@ export async function applyAutofillBackfill(
   if (!rule) return null;
 
   const [{
-    baseRows, conditionInputs, tagDescendants,
+    baseRows, conditionInputs, tagDescendants, locationDescendants,
   }, exemptRows, globallyExcludedTagIds] = await Promise.all([
     getBookmarkEvaluationData(),
     db.select().from(autofillRuleExemptions).where(eq(autofillRuleExemptions.ruleId, ruleId)),
@@ -700,6 +752,7 @@ export async function applyAutofillBackfill(
     const ci = conditionInputs.get(id);
     if (!ci || !evaluateConditions(rule.conditions, ci, {
       tagDescendants,
+      locationDescendants,
     })) {
       skipped += 1;
     }
@@ -741,6 +794,16 @@ export async function applyAutofillBackfill(
           .values(tagsToInsert.map(tagId => ({
             bookmarkId: bookmark.id,
             tagId,
+          })))
+          .onConflictDoNothing();
+      }
+
+      if (rule.locationIds.length > 0) {
+        await tx
+          .insert(bookmarkLocations)
+          .values(rule.locationIds.map(locationId => ({
+            bookmarkId: bookmark.id,
+            locationId,
           })))
           .onConflictDoNothing();
       }
@@ -815,7 +878,7 @@ export async function applyAutofillBackfill(
  */
 export async function getGlobalBackfill(): Promise<GlobalAutofillBackfillResult> {
   const [rules, {
-    baseRows, conditionInputs, tagDescendants,
+    baseRows, conditionInputs, tagDescendants, locationDescendants,
   }, allExemptions, globallyExcludedTagIds] = await Promise.all([
     listAutofillRules(),
     getBookmarkEvaluationData(),
@@ -839,6 +902,7 @@ export async function getGlobalBackfill(): Promise<GlobalAutofillBackfillResult>
       return ci
         ? evaluateConditions(rule.conditions, ci, {
           tagDescendants,
+          locationDescendants,
         })
         : false;
     });

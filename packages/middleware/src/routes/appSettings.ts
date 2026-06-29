@@ -186,7 +186,7 @@ const sidebarCustomizationBody = {
 
 const automationBody = {
   type: "object",
-  required: ["autoFetchTitle", "autoFetchImage", "autoApplyTitleTags", "sidebarOpenModifier"],
+  required: ["autoFetchTitle", "autoFetchImage", "autoApplyTitleTags", "autoApplyTitleLocations", "sidebarOpenModifier"],
   additionalProperties: false,
   properties: {
     autoFetchTitle: {
@@ -196,6 +196,9 @@ const automationBody = {
       type: "boolean",
     },
     autoApplyTitleTags: {
+      type: "boolean",
+    },
+    autoApplyTitleLocations: {
       type: "boolean",
     },
     sidebarOpenModifier: {

@@ -15,6 +15,7 @@ import {
   bookmarkChoicesValues,
   bookmarkDateTimeValues,
   bookmarkNumberValues,
+  bookmarkLocations,
   bookmarkProgressValues,
   bookmarkSectionsValues,
   bookmarkTextValues,
@@ -48,6 +49,15 @@ export async function linkTags(tx: Tx, bookmarkId: string, tagIds: string[] | un
   await tx.insert(bookmarkTags).values(tagIds.map(tagId => ({
     bookmarkId,
     tagId,
+  })));
+}
+
+/** Insert join rows linking a bookmark to the given location ids (no-op when empty). */
+export async function linkLocations(tx: Tx, bookmarkId: string, locationIds: string[] | undefined): Promise<void> {
+  if (!locationIds || locationIds.length === 0) return;
+  await tx.insert(bookmarkLocations).values([...new Set(locationIds)].map(locationId => ({
+    bookmarkId,
+    locationId,
   })));
 }
 

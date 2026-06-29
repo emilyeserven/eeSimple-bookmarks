@@ -85,6 +85,7 @@ const DEFAULT_AUTOMATION: AutomationSettings = {
   autoFetchTitle: true,
   autoFetchImage: true,
   autoApplyTitleTags: false,
+  autoApplyTitleLocations: false,
   sidebarOpenModifier: "alt",
 };
 
@@ -540,6 +541,7 @@ export async function getAutomationSettings(): Promise<AutomationSettings> {
       autoFetchTitle: appSettings.autoFetchTitle,
       autoFetchImage: appSettings.autoFetchImage,
       autoApplyTitleTags: appSettings.autoApplyTitleTags,
+      autoApplyTitleLocations: appSettings.autoApplyTitleLocations,
       sidebarOpenModifier: appSettings.sidebarOpenModifier,
     })
     .from(appSettings)
@@ -549,6 +551,7 @@ export async function getAutomationSettings(): Promise<AutomationSettings> {
     autoFetchTitle: row.autoFetchTitle,
     autoFetchImage: row.autoFetchImage,
     autoApplyTitleTags: row.autoApplyTitleTags,
+    autoApplyTitleLocations: row.autoApplyTitleLocations ?? false,
     sidebarOpenModifier: asModifier(row.sidebarOpenModifier),
   };
 }
@@ -561,6 +564,7 @@ export async function updateAutomationSettings(
     autoFetchTitle: input.autoFetchTitle,
     autoFetchImage: input.autoFetchImage,
     autoApplyTitleTags: input.autoApplyTitleTags,
+    autoApplyTitleLocations: input.autoApplyTitleLocations,
     sidebarOpenModifier: asModifier(input.sidebarOpenModifier),
   };
   await db

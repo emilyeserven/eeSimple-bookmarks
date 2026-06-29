@@ -82,6 +82,18 @@ const tagNode = {
   },
 } as const;
 
+const locationNode = {
+  type: "object",
+  additionalProperties: false,
+  required: ["type", "locationIds"],
+  properties: {
+    type: {
+      const: "location",
+    },
+    locationIds: uuidArray,
+  },
+} as const;
+
 const youtubeChannelNode = {
   type: "object",
   additionalProperties: false,
@@ -417,7 +429,7 @@ const groupNode = {
 /** Any node in the tree (group or one of the leaf kinds). Self-references for nesting. */
 export const conditionNodeSchema = {
   $id: "conditionNode",
-  oneOf: [groupNode, matchNode, categoryNode, websiteNode, tagNode, youtubeChannelNode, mediaTypeNode, relationshipTypeNode, propertyNode],
+  oneOf: [groupNode, matchNode, categoryNode, websiteNode, tagNode, locationNode, youtubeChannelNode, mediaTypeNode, relationshipTypeNode, propertyNode],
 } as const;
 
 /** The persisted root: always a group. Referenced by request bodies as `conditionTree#`. */

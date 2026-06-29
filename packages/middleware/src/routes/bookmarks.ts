@@ -103,6 +103,13 @@ const createBookmarkBody = {
         format: "uuid",
       },
     },
+    locationIds: {
+      type: "array",
+      items: {
+        type: "string",
+        format: "uuid",
+      },
+    },
     blacklistedTagIds: {
       type: "array",
       items: {
