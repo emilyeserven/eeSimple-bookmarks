@@ -41,6 +41,7 @@ function parseCoord(value: string): number | null {
 function ancestorToInput(draft: AncestorDraft): CreateLocationInput {
   return {
     name: draft.name.trim(),
+    romanizedName: draft.romanizedName?.trim() || null,
     latitude: draft.latitude,
     longitude: draft.longitude,
     mapUrl: draft.mapUrl,

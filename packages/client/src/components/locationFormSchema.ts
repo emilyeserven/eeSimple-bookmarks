@@ -3,6 +3,7 @@ import { z } from "zod";
 /** One ancestor row's editable fields, ordered immediate-parent-first up to the root. */
 export interface AncestorDraft {
   name: string;
+  romanizedName: string | null;
   latitude: number | null;
   longitude: number | null;
   mapUrl: string | null;
@@ -14,6 +15,7 @@ export interface AncestorDraft {
 export function emptyAncestorDraft(): AncestorDraft {
   return {
     name: "",
+    romanizedName: null,
     latitude: null,
     longitude: null,
     mapUrl: null,
