@@ -75,6 +75,19 @@ export function LocationGeneralForm({
     },
   });
 
+  // The slug derives from the name/romanized name; when a save moves it, follow it so the edit
+  // page keeps resolving.
+  const followSlug = (updated: Location) => {
+    if (updated.slug !== node.slug) {
+      void navigate({
+        to: "/taxonomies/locations/$locationSlug/edit/general",
+        params: {
+          locationSlug: updated.slug,
+        },
+      });
+    }
+  };
+
   const forbiddenIds = new Set(subtreeIds(node));
   const parentOptions: ComboboxOption[] = [
     {
@@ -151,17 +164,8 @@ export function LocationGeneralForm({
               field.state.value.trim(),
               {
                 valid: field.state.meta.errors.length === 0,
-                // Renaming changes the slug; follow it so the edit page keeps resolving.
-                onSuccess: (updated) => {
-                  if (updated.slug !== node.slug) {
-                    void navigate({
-                      to: "/taxonomies/locations/$locationSlug/edit/general",
-                      params: {
-                        locationSlug: updated.slug,
-                      },
-                    });
-                  }
-                },
+                // Renaming can change the slug; follow it so the edit page keeps resolving.
+                onSuccess: followSlug,
               },
             )}
           />
@@ -173,7 +177,14 @@ export function LocationGeneralForm({
           <field.TextField
             label="Romanized name"
             placeholder="Optional romanized form"
-            onBlur={() => autoSave.saveField("romanizedName", field.state.value.trim())}
+            // The slug derives from the romanized name, so a change here can move the slug too.
+            onBlur={() => autoSave.saveField(
+              "romanizedName",
+              field.state.value.trim(),
+              {
+                onSuccess: followSlug,
+              },
+            )}
           />
         )}
       </form.AppField>
