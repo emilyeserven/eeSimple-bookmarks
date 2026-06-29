@@ -163,9 +163,9 @@ export function ExtensionSettings() {
         <CardHeader>
           <CardTitle>Browser Extension (Chrome · Edge)</CardTitle>
           <CardDescription>
-            A one-click extension that saves any page to your Inbox from a toolbar flyout — confirm
-            the URL, click Add, and optionally open the saved bookmark to edit it. No bookmarks bar
-            needed.
+            A one-click extension that saves the current page to your Inbox the moment you click the
+            toolbar icon — no confirmation needed — then offers to open the saved bookmark to edit
+            it. No bookmarks bar needed.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -306,11 +306,8 @@ export function ExtensionSettings() {
               On first click: paste the server URL shown above and click
               {" "}
               <strong>Save</strong>
-              . After that, clicking the icon opens a flyout with the current page’s URL — click
-              {" "}
-              <strong>Add</strong>
-              {" "}
-              to save it to your Inbox.
+              . After that, clicking the icon saves the current page to your Inbox automatically —
+              no confirmation needed.
             </li>
           </ol>
         </CardContent>

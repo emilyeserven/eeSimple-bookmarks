@@ -66,6 +66,9 @@ urlInput?.addEventListener("keydown", (e) => {
 });
 
 // --- Add form -----------------------------------------------------------
+// The popup adds the current tab's URL automatically — no confirmation click.
+// The form stays visible during the request and acts as a fallback if the add
+// fails (invalid URL, unreachable server), so the user can edit/retry.
 function initForm() {
   chrome.tabs.query({
     active: true,
@@ -74,7 +77,7 @@ function initForm() {
     bmUrl.value = tab?.url ?? "";
     pageTitle = tab?.title ?? "";
     show("form");
-    addBtn.focus();
+    submit();
   });
 }
 
