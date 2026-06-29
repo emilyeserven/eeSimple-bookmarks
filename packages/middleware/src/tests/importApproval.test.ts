@@ -209,6 +209,7 @@ test("buildApprovalBookmarkInput: applies per-field precedence and drops empty v
       publisherId: "pub-pre",
     },
     autofillTagIds: ["t3"],
+    autofillLocationIds: [],
     autofillMediaTypeId: "mt-auto",
     mergedNumberValues: [{
       propertyId: "n",
@@ -249,6 +250,7 @@ test("buildApprovalBookmarkInput: falls back to item description, then default m
     },
     preFill: undefined,
     autofillTagIds: [],
+    autofillLocationIds: [],
     autofillMediaTypeId: "mt-auto",
     mergedNumberValues: [],
     mergedBooleanValues: [],

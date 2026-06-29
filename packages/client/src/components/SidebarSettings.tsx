@@ -51,6 +51,7 @@ const AUTOMATION_DEFAULTS: AutomationSettings = {
   autoFetchTitle: true,
   autoFetchImage: true,
   autoApplyTitleTags: false,
+  autoApplyTitleLocations: false,
   sidebarOpenModifier: "alt",
 };
 

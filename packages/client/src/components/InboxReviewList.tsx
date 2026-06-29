@@ -70,6 +70,7 @@ function ReviewRow({
         categoryId={itemPreFill.categoryId ?? undefined}
         mediaTypeId={itemPreFill.mediaTypeId ?? undefined}
         tagIds={itemPreFill.tagIds ?? []}
+        locationIds={itemPreFill.locationIds ?? []}
         authorIds={itemPreFill.authorIds ?? []}
         publisherId={itemPreFill.publisherId ?? undefined}
         onCategoryChange={id => patchItemPreFill({
@@ -80,6 +81,9 @@ function ReviewRow({
         })}
         onTagsChange={ids => patchItemPreFill({
           tagIds: ids,
+        })}
+        onLocationsChange={ids => patchItemPreFill({
+          locationIds: ids,
         })}
         onAuthorsChange={ids => patchItemPreFill({
           authorIds: ids,

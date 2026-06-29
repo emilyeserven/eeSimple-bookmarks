@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import type { ConnectorsStatus } from "@eesimple/types";
 import { archiveBoxBaseUrl } from "@/services/archiveBox";
+import { geocodingEnabled, geocodingEndpoint } from "@/services/geocoding";
 import { hostedMetadataEnabledAsync, hostedMetadataProviderAsync } from "@/services/hostedMetadata";
 import { youtubeApiEnabled } from "@/services/youtube";
 import { isObjectStoreConfigured } from "@/utils/objectStore";
@@ -32,6 +33,10 @@ export async function connectorsRoutes(app: FastifyInstance): Promise<void> {
       archiveBox: {
         enabled: Boolean(archiveUrl),
         baseUrl: archiveUrl,
+      },
+      geocoding: {
+        enabled: geocodingEnabled(),
+        endpoint: geocodingEndpoint(),
       },
     };
   });

@@ -303,6 +303,7 @@ function useCardDisplayRulePreview({
       ...samplePropertyValues(properties),
       authors: [],
       relationships: [],
+      locations: [],
       publisher: null,
       priority: 0,
       createdAt: SAMPLE_NOW,

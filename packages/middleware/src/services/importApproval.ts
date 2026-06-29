@@ -52,6 +52,14 @@ export function mergeApprovalTagIds(
   return [...new Set([...(defaultTagIds ?? []), ...(preFillTagIds ?? []), ...autofillTagIds])];
 }
 
+/** Dedup-union the pre-fill and autofill location ids applied to an approved bookmark. */
+export function mergeApprovalLocationIds(
+  preFillLocationIds: string[] | undefined,
+  autofillLocationIds: string[],
+): string[] {
+  return [...new Set([...(preFillLocationIds ?? []), ...autofillLocationIds])];
+}
+
 /**
  * Resolve the category id for an approved item by precedence:
  * per-item override > pre-fill > import default > newsletter default > autofill.
@@ -96,6 +104,7 @@ export function buildApprovalBookmarkInput(args: {
   defaults: ApprovalBookmarkDefaults;
   preFill: InboxPreFillDefaults | undefined;
   autofillTagIds: string[];
+  autofillLocationIds: string[];
   autofillMediaTypeId?: string | null;
   mergedNumberValues: BookmarkNumberValue[];
   mergedBooleanValues: BookmarkBooleanValue[];
@@ -103,7 +112,7 @@ export function buildApprovalBookmarkInput(args: {
   categoryId: string | undefined;
 }): CreateBookmarkInput {
   const {
-    url, title, item, defaults, preFill, autofillTagIds, autofillMediaTypeId,
+    url, title, item, defaults, preFill, autofillTagIds, autofillLocationIds, autofillMediaTypeId,
     mergedNumberValues, mergedBooleanValues, mergedDateTimeValues, categoryId,
   } = args;
   return {
@@ -113,6 +122,7 @@ export function buildApprovalBookmarkInput(args: {
     description: item.newsletterContext ?? item.description ?? null,
     ...defaults,
     tagIds: mergeApprovalTagIds(defaults.tagIds, preFill?.tagIds, autofillTagIds),
+    locationIds: mergeApprovalLocationIds(preFill?.locationIds, autofillLocationIds),
     mediaTypeId: preFill?.mediaTypeId ?? defaults.mediaTypeId ?? autofillMediaTypeId,
     authorIds: preFill?.authorIds,
     publisherId: preFill?.publisherId ?? undefined,

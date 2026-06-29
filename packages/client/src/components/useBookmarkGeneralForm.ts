@@ -36,6 +36,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     shortenerIgnoreList,
     customStripParams,
     tagTree,
+    locationTree,
     categories,
     mediaTypes,
     autofillRules,
@@ -83,6 +84,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
       mediaTypeId: bookmark.mediaType?.id ?? "",
       description: bookmark.description ?? "",
       tagIds: (bookmark.tags.map(tag => tag.id)) as string[],
+      locationIds: (bookmark.locations.map(location => location.id)) as string[],
       blacklistedTagIds: bookmark.blacklistedTagIds as string[],
       authorIds: (bookmark.authors.map(a => a.id)) as string[],
       publisherId: bookmark.publisher?.id ?? "",
@@ -108,6 +110,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
           mediaTypeId: value.mediaTypeId || null,
           description: value.description || null,
           tagIds: value.tagIds,
+          locationIds: value.locationIds,
           authorIds: value.authorIds,
           publisherId: value.publisherId || null,
           ...(channelHintRef.current && {
@@ -130,6 +133,21 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
       {
         onSuccess: () => notifyFieldSaved("Tags"),
         onError: e => notifyFieldSaveError("Tags", describeError(e)),
+      },
+    );
+  }
+
+  function saveLocations(locationIds: string[]): void {
+    updateBookmark.mutate(
+      {
+        id: bookmark.id,
+        input: {
+          locationIds,
+        },
+      },
+      {
+        onSuccess: () => notifyFieldSaved("Locations"),
+        onError: e => notifyFieldSaveError("Locations", describeError(e)),
       },
     );
   }
@@ -183,6 +201,11 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     if (result.tagIds.length > 0 && !touchedRef.current.has("tags")) {
       const current = form.getFieldValue("tagIds");
       form.setFieldValue("tagIds", [...new Set([...current, ...result.tagIds])]);
+    }
+
+    if (result.locationIds.length > 0 && !touchedRef.current.has("locations")) {
+      const current = form.getFieldValue("locationIds");
+      form.setFieldValue("locationIds", [...new Set([...current, ...result.locationIds])]);
     }
   }
 
@@ -239,6 +262,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     shortenerIgnoreList,
     customStripParams,
     tagTree,
+    locationTree,
     categories,
     mediaTypes,
     authors,
@@ -246,6 +270,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     updateBookmark,
     ...modals,
     saveTags,
+    saveLocations,
     saveBlacklistedTagIds,
     saveAuthors,
     fetchTitle,

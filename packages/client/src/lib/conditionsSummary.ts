@@ -26,6 +26,8 @@ function summarizeNode(node: ConditionNode): string {
         : `website is one of (${node.domains.length})`;
     case "tag":
       return `tagged with (${node.tagIds.length})`;
+    case "location":
+      return `located in one of (${node.locationIds.length})`;
     case "youtube-channel":
       return node.channelIds.length === 1
         ? "YouTube channel is (1)"

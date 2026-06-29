@@ -8,11 +8,13 @@
 import type { ConditionMatchField, ConditionMatchOperator, ConditionTree } from "./conditions.js";
 import type { BookmarkSectionsValue, BookmarkTextValue, ChoicesDisplayType, ChoicesItem, CustomPropertyType, DateTimeFormat, NumberFormat, SectionEntryType } from "./customProperties.js";
 import type { ImportBlacklistKind } from "./importBlacklist.js";
+import type { BookmarkLocation } from "./locations.js";
 import type { SocialLink } from "./socialMedia.js";
 
 export * from "./conditions.js";
 export * from "./customProperties.js";
 export * from "./importBlacklist.js";
+export * from "./locations.js";
 export * from "./oembed.js";
 export * from "./socialMedia.js";
 export * from "./titleTags.js";
@@ -369,6 +371,8 @@ export interface AutomationSettings {
   autoFetchImage: boolean;
   /** When on, saving a bookmark whose title contains a tag's name auto-applies that tag. */
   autoApplyTitleTags: boolean;
+  /** When on, saving a bookmark whose title contains a location's name auto-applies that location. */
+  autoApplyTitleLocations: boolean;
   sidebarOpenModifier: SidebarOpenModifier;
 }
 
@@ -925,6 +929,8 @@ export interface Bookmark {
   import: BookmarkImport | null;
   /** Tags assigned to this bookmark, drawn from the taxonomy. */
   tags: BookmarkTag[];
+  /** Locations assigned to this bookmark, drawn from the Locations taxonomy. */
+  locations: BookmarkLocation[];
   /** Tag IDs that should never be auto-applied to this bookmark by autofill rules. */
   blacklistedTagIds: string[];
   /** Authors credited for this bookmarked item. */
@@ -969,6 +975,8 @@ export interface CreateBookmarkInput {
   categoryId?: string;
   /** Ids of tags to assign, drawn from the taxonomy. */
   tagIds?: string[];
+  /** Ids of locations to assign, drawn from the Locations taxonomy. */
+  locationIds?: string[];
   /** Tag IDs to exclude from autofill auto-apply on this bookmark. */
   blacklistedTagIds?: string[];
   /** Ids of authors to credit for this item. */
@@ -1344,6 +1352,7 @@ export interface OrphanDeleteResult {
 export interface InboxPreFillDefaults {
   categoryId?: string | null;
   tagIds?: string[];
+  locationIds?: string[];
   mediaTypeId?: string | null;
   authorIds?: string[];
   publisherId?: string | null;
@@ -1965,6 +1974,8 @@ export interface AutofillRule {
   setMediaTypeId: string | null;
   /** Tag ids to apply, drawn from the taxonomy. */
   tagIds: string[];
+  /** Location ids to apply, drawn from the Locations taxonomy. */
+  locationIds: string[];
   /** Number custom-property values to apply. */
   numberValues: BookmarkNumberValue[];
   /** Boolean custom-property values to apply. */
@@ -1986,6 +1997,7 @@ export interface CreateAutofillRuleInput {
   setCategoryId?: string | null;
   setMediaTypeId?: string | null;
   tagIds?: string[];
+  locationIds?: string[];
   numberValues?: BookmarkNumberValue[];
   booleanValues?: BookmarkBooleanValue[];
   dateTimeValues?: BookmarkDateTimeValue[];
@@ -2375,6 +2387,13 @@ export interface ConnectorsStatus {
    */
   archiveBox: { enabled: boolean;
     baseUrl: string | null; };
+  /**
+   * Geocoding for the Locations taxonomy — always keyless (OpenStreetMap Nominatim). `endpoint`
+   * reports the base URL in use (the public Nominatim by default, or a self-hosted instance set via
+   * `NOMINATIM_ENDPOINT`); it is not a secret.
+   */
+  geocoding: { enabled: boolean;
+    endpoint: string; };
 }
 
 /** Hosted-metadata connector settings from `GET /api/app-settings/connectors`. Never exposes the raw key. */

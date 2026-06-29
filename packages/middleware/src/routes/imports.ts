@@ -327,6 +327,12 @@ export async function importRoutes(app: FastifyInstance): Promise<void> {
                   type: "string",
                 },
               },
+              locationIds: {
+                type: "array",
+                items: {
+                  type: "string",
+                },
+              },
               mediaTypeId: {
                 type: ["string", "null"],
               },

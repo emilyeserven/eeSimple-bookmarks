@@ -24,6 +24,7 @@ import { favoriteSettingsPageRoutes } from "@/routes/favoriteSettingsPages";
 import { savedFilterRoutes } from "@/routes/savedFilters";
 import { maintenanceRoutes } from "@/routes/maintenance";
 import { mediaTypeRoutes } from "@/routes/mediaTypes";
+import { locationRoutes } from "@/routes/locations";
 import { connectorsRoutes } from "@/routes/connectors";
 import { metadataRoutes } from "@/routes/metadata";
 import { newsletterRoutes } from "@/routes/newsletters";
@@ -209,6 +210,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(tagRoutes);
   await app.register(websiteRoutes);
   await app.register(mediaTypeRoutes);
+  await app.register(locationRoutes);
   await app.register(youtubeChannelRoutes);
   await app.register(customPropertyRoutes);
   await app.register(propertyGroupRoutes);

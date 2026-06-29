@@ -6,6 +6,7 @@ import { normalizeDomain } from "@eesimple/types";
 
 import { computeInboxPrefillSeed } from "./inboxPrefillSeed";
 import { useAutofillRules } from "../hooks/useAutofill";
+import { useLocations } from "../hooks/useLocations";
 import { useTags } from "../hooks/useTags";
 import { useWebsites } from "../hooks/useWebsites";
 import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
@@ -56,18 +57,22 @@ export function useInboxPrefillSeed(item: InboxItem, advancedOpen: boolean) {
   const {
     data: tags = [],
   } = useTags();
+  const {
+    data: locations = [],
+  } = useLocations();
 
   const [itemPreFill, setItemPreFill] = useState<InboxPreFillDefaults>(() =>
     computeInboxPrefillSeed(item, {
       autofillRules,
       websites,
       tags,
+      locations,
     }));
 
   // Once the user touches a field, never re-seed over their choices.
   const touchedRef = useRef(false);
   // Whether the matching data was already loaded at mount (so the initializer used real data).
-  const seededRef = useRef(autofillRules.length > 0 || websites.length > 0 || tags.length > 0);
+  const seededRef = useRef(autofillRules.length > 0 || websites.length > 0 || tags.length > 0 || locations.length > 0);
   const scannedRef = useRef(false);
 
   const url = item.url ?? "";
@@ -76,14 +81,15 @@ export function useInboxPrefillSeed(item: InboxItem, advancedOpen: boolean) {
   // Re-seed once the rule/website lists finish loading after mount (unless the user already edited).
   useEffect(() => {
     if (touchedRef.current || seededRef.current) return;
-    if (autofillRules.length === 0 && websites.length === 0 && tags.length === 0) return;
+    if (autofillRules.length === 0 && websites.length === 0 && tags.length === 0 && locations.length === 0) return;
     seededRef.current = true;
     setItemPreFill(computeInboxPrefillSeed(item, {
       autofillRules,
       websites,
       tags,
+      locations,
     }));
-  }, [item, autofillRules, websites, tags]);
+  }, [item, autofillRules, websites, tags, locations]);
 
   // Lazily resolve a YouTube item's channel defaults the first time Advanced is expanded — the
   // channel isn't known without an oEmbed scan, so it's deferred off the list render.

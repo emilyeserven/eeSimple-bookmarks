@@ -1,5 +1,5 @@
 import type { FlatNode } from "@/lib/tagTree";
-import type { Author, Bookmark, CardDisplayRule, Category, CustomProperty, MediaTypeNode, Newsletter, TagNode } from "@eesimple/types";
+import type { Author, Bookmark, CardDisplayRule, Category, CustomProperty, LocationNode, MediaTypeNode, Newsletter, TagNode } from "@eesimple/types";
 
 import { useEffect, useMemo, useState } from "react";
 
@@ -22,6 +22,7 @@ import {
 import { AddAuthorModal } from "./AddAuthorModal";
 import { AddBookmarkModal } from "./AddBookmarkModal";
 import { AddCategoryModal } from "./AddCategoryModal";
+import { AddLocationModal } from "./AddLocationModal";
 import { AddMediaTypeModal } from "./AddMediaTypeModal";
 import { AddNewsletterModal } from "./AddNewsletterModal";
 import { AddPropertyGroupModal } from "./AddPropertyGroupModal";
@@ -203,13 +204,14 @@ const SETTINGS = [
   },
 ] as const;
 
-type TaxonomyMode = "category" | "media-type" | "tags" | "authors" | "newsletter" | "choices-property" | "rating-property";
+type TaxonomyMode = "category" | "media-type" | "tags" | "locations" | "authors" | "newsletter" | "choices-property" | "rating-property";
 
 // ─── State hook ──────────────────────────────────────────────────────────────
 
 function useCommandPaletteTaxonomyState() {
   const [taxonomyMode, setTaxonomyMode] = useState<TaxonomyMode | null>(null);
   const [pendingTagIds, setPendingTagIds] = useState<string[]>([]);
+  const [pendingLocationIds, setPendingLocationIds] = useState<string[]>([]);
   const [pendingAuthorIds, setPendingAuthorIds] = useState<string[]>([]);
   const [choicesPropertyId, setChoicesPropertyId] = useState<string | null>(null);
   const [pendingChoiceValues, setPendingChoiceValues] = useState<string[]>([]);
@@ -218,10 +220,12 @@ function useCommandPaletteTaxonomyState() {
   function enterMode(
     mode: TaxonomyMode,
     bookmark?: { tags: { id: string }[];
+      locations: { id: string }[];
       authors: { id: string }[]; } | null,
   ) {
     setTaxonomyMode(mode);
     if (mode === "tags" && bookmark) setPendingTagIds(bookmark.tags.map(t => t.id));
+    if (mode === "locations" && bookmark) setPendingLocationIds(bookmark.locations.map(l => l.id));
     if (mode === "authors" && bookmark) setPendingAuthorIds(bookmark.authors.map(a => a.id));
   }
 
@@ -253,6 +257,8 @@ function useCommandPaletteTaxonomyState() {
     taxonomyMode,
     pendingTagIds,
     setPendingTagIds,
+    pendingLocationIds,
+    setPendingLocationIds,
     pendingAuthorIds,
     setPendingAuthorIds,
     choicesPropertyId,
@@ -311,7 +317,8 @@ type CreateKind
     | "website"
     | "property-group"
     | "youtube-channel"
-    | "newsletter";
+    | "newsletter"
+    | "location";
 
 function useCreateModalState() {
   const [createKind, setCreateKind] = useState<CreateKind | null>(null);
@@ -621,6 +628,86 @@ function TagsSubPalette({
         >
           <CheckIcon />
           {`Done (${pendingTagIds.length.toString()} selected)`}
+        </CommandItem>
+      </CommandGroup>
+    </>
+  );
+}
+
+function LocationsSubPalette({
+  flatLocations,
+  pendingLocationIds,
+  onToggleLocation,
+  onBack,
+  onDone,
+  onCreateNew,
+}: {
+  flatLocations: FlatNode<LocationNode>[];
+  pendingLocationIds: string[];
+  onToggleLocation: (locationId: string) => void;
+  onBack: () => void;
+  onDone: (locationIds: string[]) => void;
+  onCreateNew: () => void;
+}) {
+  const renderLocationItem = ({
+    node: location, depth,
+  }: FlatNode<LocationNode>) => {
+    const selected = pendingLocationIds.includes(location.id);
+    return (
+      <CommandItem
+        key={location.id}
+        value={`${location.name} ${location.romanizedName ?? ""}`.trim()}
+        onSelect={() => onToggleLocation(location.id)}
+      >
+        <span
+          style={{
+            paddingLeft: depth > 0 ? `${depth}rem` : undefined,
+          }}
+        >
+          <RomanizedLabel
+            name={location.name}
+            romanized={location.romanizedName}
+          />
+        </span>
+        {selected && (
+          <CheckIcon
+            className="ml-auto text-primary"
+          />
+        )}
+      </CommandItem>
+    );
+  };
+
+  return (
+    <>
+      <CommandGroup heading="Locations">
+        <CommandItem
+          value="back"
+          onSelect={onBack}
+        >
+          <ArrowLeftIcon />
+          Back
+        </CommandItem>
+        <CommandItem
+          value="new location"
+          onSelect={onCreateNew}
+        >
+          <PlusIcon />
+          New location…
+        </CommandItem>
+      </CommandGroup>
+      <CommandSeparator />
+      <CommandGroup heading="Toggle locations">
+        {flatLocations.map(renderLocationItem)}
+      </CommandGroup>
+      <CommandSeparator />
+      <CommandGroup>
+        <CommandItem
+          value="done save locations"
+          onSelect={() => onDone(pendingLocationIds)}
+        >
+          <CheckIcon />
+          {`Done (${pendingLocationIds.length.toString()} selected)`}
         </CommandItem>
       </CommandGroup>
     </>
@@ -944,6 +1031,18 @@ function BookmarkTaxonomiesGroup({
           </span>
         </CommandItem>
         <CommandItem
+          value="Change Locations"
+          onSelect={() => onEnterMode("locations")}
+        >
+          <TagIcon />
+          <span className="flex min-w-0 flex-col gap-0.5">
+            <span>Change Locations</span>
+            <span className="text-xs text-muted-foreground">
+              {`${bookmark.locations.length.toString()} selected`}
+            </span>
+          </span>
+        </CommandItem>
+        <CommandItem
           value="Change Media Type"
           onSelect={() => onEnterMode("media-type")}
         >
@@ -1169,6 +1268,7 @@ export function CommandPalette() {
     categories,
     flatMediaTypes,
     flatTags,
+    flatLocations,
     authors,
     newsletters,
     customProperties,
@@ -1398,6 +1498,29 @@ export function CommandPalette() {
                     handleOpenChange(false);
                   }}
                   onCreateNew={() => handleCreateAndAssign("tag")}
+                />
+              )}
+
+              {taxonomy.taxonomyMode === "locations" && bookmarkId && (
+                <LocationsSubPalette
+                  flatLocations={flatLocations}
+                  pendingLocationIds={taxonomy.pendingLocationIds}
+                  onToggleLocation={locationId =>
+                    taxonomy.setPendingLocationIds(prev =>
+                      prev.includes(locationId)
+                        ? prev.filter(id => id !== locationId)
+                        : [...prev, locationId])}
+                  onBack={handleExitMode}
+                  onDone={() => {
+                    updateBookmark.mutate({
+                      id: bookmarkId,
+                      input: {
+                        locationIds: taxonomy.pendingLocationIds,
+                      },
+                    });
+                    handleOpenChange(false);
+                  }}
+                  onCreateNew={() => handleCreateAndAssign("location")}
                 />
               )}
 
@@ -1816,6 +1939,13 @@ export function CommandPalette() {
                       <PlusIcon />
                       New Newsletter
                     </CommandItem>
+                    <CommandItem
+                      value="New Location"
+                      onSelect={() => handleCreate("location")}
+                    >
+                      <PlusIcon />
+                      New Location
+                    </CommandItem>
                   </CommandGroup>
 
                   <CommandSeparator />
@@ -1976,6 +2106,18 @@ export function CommandPalette() {
             id: bookmarkId,
             input: {
               newsletterId: nl.id,
+            },
+          })
+          : undefined}
+      />
+      <AddLocationModal
+        open={createKind === "location"}
+        onOpenChange={open => !open && closeCreate()}
+        onCreated={assignOnCreate && bookmarkId && bookmark
+          ? location => updateBookmark.mutate({
+            id: bookmarkId,
+            input: {
+              locationIds: [...bookmark.locations.map(l => l.id), location.id],
             },
           })
           : undefined}

@@ -18,6 +18,7 @@ import { useBookmarks } from "../hooks/useBookmarks";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useInboxItems } from "../hooks/useImports";
+import { useLocations } from "../hooks/useLocations";
 import { useMediaTypes } from "../hooks/useMediaTypes";
 import { useNewsletters } from "../hooks/useNewsletters";
 import { usePinnedSidebarItems } from "../hooks/usePinnedSidebarItems";
@@ -89,6 +90,7 @@ function useSidebarEntityData() {
     allTags: useTags().data,
     allWebsites: useWebsites().data,
     allMediaTypes: useMediaTypes().data,
+    allLocations: useLocations().data,
     allChannels: useYouTubeChannels().data,
     allNewsletters: useNewsletters().data,
     allAuthors: useAuthors().data,
@@ -236,6 +238,7 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
     "tags": data.allTags?.length,
     "websites": data.allWebsites?.length,
     "media-types": data.allMediaTypes?.length,
+    "locations": data.allLocations?.length,
     "youtube-channels": data.allChannels?.length,
     "newsletters": data.allNewsletters?.length,
     "authors": data.allAuthors?.length,

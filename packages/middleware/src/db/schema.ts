@@ -1,6 +1,6 @@
 import { relations, sql } from "drizzle-orm";
 import { type AnyPgColumn, boolean, integer, jsonb, pgTable, primaryKey, real, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
-import type { CardFieldZones, CardZoneLayouts, ConditionTree, ImportBlacklistEntry, ShortenedLink, SocialLink, WebsiteParamRule } from "@eesimple/types";
+import type { CardFieldZones, CardZoneLayouts, ConditionTree, ImportBlacklistEntry, LocationAlternateName, ShortenedLink, SocialLink, WebsiteParamRule } from "@eesimple/types";
 
 /** `bookmarks` table — one row per saved bookmark. Tags now live in `bookmark_tags`. */
 export const bookmarks = pgTable("bookmarks", {
@@ -536,6 +536,83 @@ export const tagsRelations = relations(tags, ({
 }));
 
 /**
+ * `locations` table — a self-referencing tree of places (city → region → country). `parentId` NULL
+ * means a root location. Carries a romanized title + free-form alternate names, an optional
+ * coordinate, a map link, and a Google Plus Code. All new columns are additive / push-safe.
+ */
+export const locations = pgTable("locations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  // Optional romanized form of the name. Nullable so `drizzle-kit push` applies cleanly.
+  romanizedName: text("romanized_name"),
+  // URL-friendly identifier derived from the name. Nullable for clean `push`; backfilled at boot.
+  slug: text("slug"),
+  // Extra names for different romanization styles.
+  alternateNames: jsonb("alternate_names").$type<LocationAlternateName[]>().notNull().default(sql`'[]'::jsonb`),
+  latitude: real("latitude"),
+  longitude: real("longitude"),
+  mapUrl: text("map_url"),
+  plusCode: text("plus_code"),
+  placeType: text("place_type"),
+  countryCode: text("country_code"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  parentId: uuid("parent_id").references((): AnyPgColumn => locations.id, {
+    onDelete: "cascade",
+  }),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+}, table => [
+  // Sibling names unique within a parent — a unique INDEX (not a constraint), same rationale as
+  // `tags_parent_name_unique`: a composite unique CONSTRAINT can't converge under `drizzle-kit push`.
+  uniqueIndex("locations_parent_name_unique").on(table.parentId, table.name),
+  unique("locations_slug_unique").on(table.slug),
+]);
+
+/** `bookmark_locations` join — many-to-many between bookmarks and locations. */
+export const bookmarkLocations = pgTable("bookmark_locations", {
+  bookmarkId: uuid("bookmark_id").notNull().references(() => bookmarks.id, {
+    onDelete: "cascade",
+  }),
+  locationId: uuid("location_id").notNull().references(() => locations.id, {
+    onDelete: "cascade",
+  }),
+}, table => [
+  primaryKey({
+    columns: [table.bookmarkId, table.locationId],
+  }),
+]);
+
+/** `location_tags` join — the "looser" tags (mood / biome / …) associated with a location. */
+export const locationTags = pgTable("location_tags", {
+  locationId: uuid("location_id").notNull().references(() => locations.id, {
+    onDelete: "cascade",
+  }),
+  tagId: uuid("tag_id").notNull().references((): AnyPgColumn => tags.id, {
+    onDelete: "cascade",
+  }),
+}, table => [
+  primaryKey({
+    columns: [table.locationId, table.tagId],
+  }),
+]);
+
+export const locationsRelations = relations(locations, ({
+  one, many,
+}) => ({
+  parent: one(locations, {
+    fields: [locations.parentId],
+    references: [locations.id],
+    relationName: "location_parent",
+  }),
+  children: many(locations, {
+    relationName: "location_parent",
+  }),
+  bookmarkLocations: many(bookmarkLocations),
+  locationTags: many(locationTags),
+}));
+
+/**
  * `bookmark_relationships` — typed edges between bookmarks. Each edge carries a `relationshipType`
  * and an optional free-text `label`. For SYMMETRIC types the pair is canonicalized
  * (`bookmarkAId < bookmarkBId`, enforced in the service layer) so it's stored once and reads the
@@ -593,6 +670,7 @@ export const bookmarksRelations = relations(bookmarks, ({
     references: [imports.id],
   }),
   bookmarkTags: many(bookmarkTags),
+  bookmarkLocations: many(bookmarkLocations),
   bookmarkAuthors: many(bookmarkAuthors),
   image: one(bookmarkImages),
   relationsA: many(bookmarkRelationships, {
@@ -1113,6 +1191,10 @@ export const appSettings = pgTable("app_settings", {
   autoFetchImage: boolean("auto_fetch_image").notNull().default(true),
   // When on, saving a bookmark whose title contains a tag's name auto-applies that tag.
   autoApplyTitleTags: boolean("auto_apply_title_tags").notNull().default(false),
+  // When on, saving a bookmark whose title contains a location's name auto-applies that location.
+  // Nullable (no NOT NULL) so `drizzle-kit push` applies it without an interactive prompt; the
+  // service reads it as `?? false`.
+  autoApplyTitleLocations: boolean("auto_apply_title_locations"),
   // Modifier held while clicking Edit to open the item in the drawer: "alt" | "ctrl" | "shift" | "meta".
   sidebarOpenModifier: text("sidebar_open_modifier").notNull().default("alt"),
   // --- Display & detail preferences (group C). ---
@@ -1436,6 +1518,20 @@ export const autofillRuleTags = pgTable("autofill_rule_tags", {
   }),
 ]);
 
+/** `autofill_rule_locations` — locations a rule applies to a matching bookmark. */
+export const autofillRuleLocations = pgTable("autofill_rule_locations", {
+  ruleId: uuid("rule_id").notNull().references(() => autofillRules.id, {
+    onDelete: "cascade",
+  }),
+  locationId: uuid("location_id").notNull().references(() => locations.id, {
+    onDelete: "cascade",
+  }),
+}, table => [
+  primaryKey({
+    columns: [table.ruleId, table.locationId],
+  }),
+]);
+
 /** `autofill_rule_number_values` — number custom-property values a rule applies. */
 export const autofillRuleNumberValues = pgTable("autofill_rule_number_values", {
   ruleId: uuid("rule_id").notNull().references(() => autofillRules.id, {
@@ -1573,6 +1669,7 @@ export const autofillRulesRelations = relations(autofillRules, ({
     references: [mediaTypes.id],
   }),
   tags: many(autofillRuleTags),
+  locations: many(autofillRuleLocations),
   numberValues: many(autofillRuleNumberValues),
   booleanValues: many(autofillRuleBooleanValues),
   dateTimeValues: many(autofillRuleDateTimeValues),
@@ -1768,6 +1865,9 @@ export type AppSettingsRow = typeof appSettings.$inferSelect;
 export type AutofillRuleRow = typeof autofillRules.$inferSelect;
 export type NewAutofillRuleRow = typeof autofillRules.$inferInsert;
 export type AutofillRuleTagRow = typeof autofillRuleTags.$inferSelect;
+export type AutofillRuleLocationRow = typeof autofillRuleLocations.$inferSelect;
+export type LocationRow = typeof locations.$inferSelect;
+export type NewLocationRow = typeof locations.$inferInsert;
 export type AutofillRuleNumberValueRow = typeof autofillRuleNumberValues.$inferSelect;
 export type AutofillRuleBooleanValueRow = typeof autofillRuleBooleanValues.$inferSelect;
 export type AutofillRuleDateTimeValueRow = typeof autofillRuleDateTimeValues.$inferSelect;

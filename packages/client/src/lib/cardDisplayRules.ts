@@ -75,6 +75,7 @@ export function bookmarkToConditionInput(bookmark: Bookmark): ConditionInput {
     title: bookmark.title,
     categoryId: bookmark.categoryId,
     tagIds: new Set(bookmark.tags.map(tag => tag.id)),
+    locationIds: new Set(bookmark.locations.map(location => location.id)),
     youtubeChannelId: bookmark.youtubeChannel?.id ?? null,
     mediaTypeId: bookmark.mediaType?.id ?? null,
     numberValues: new Map([

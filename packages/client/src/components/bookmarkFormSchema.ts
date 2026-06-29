@@ -30,6 +30,7 @@ export const bookmarkSchema = z.object({
   mediaTypeId: z.string(),
   description: z.string(),
   tagIds: z.array(z.string()),
+  locationIds: z.array(z.string()),
   blacklistedTagIds: z.array(z.string()),
   authorIds: z.array(z.string()),
   publisherId: z.string(),
@@ -131,6 +132,7 @@ const SAMPLE_DEFAULT_VALUES: {
   mediaTypeId: string;
   description: string;
   tagIds: string[];
+  locationIds: string[];
   blacklistedTagIds: string[];
   authorIds: string[];
   publisherId: string;
@@ -142,6 +144,7 @@ const SAMPLE_DEFAULT_VALUES: {
   mediaTypeId: "",
   description: "",
   tagIds: [],
+  locationIds: [],
   blacklistedTagIds: [],
   authorIds: [],
   publisherId: "",
@@ -193,6 +196,7 @@ export function buildBookmarkDefaultValues(
   mediaTypeId: string;
   description: string;
   tagIds: string[];
+  locationIds: string[];
   blacklistedTagIds: string[];
   authorIds: string[];
   publisherId: string;
@@ -205,6 +209,7 @@ export function buildBookmarkDefaultValues(
     mediaTypeId: bookmark?.mediaType?.id ?? "",
     description: bookmark?.description ?? "",
     tagIds: (bookmark?.tags.map(tag => tag.id) ?? []) as string[],
+    locationIds: (bookmark?.locations.map(location => location.id) ?? []) as string[],
     blacklistedTagIds: (bookmark?.blacklistedTagIds ?? []) as string[],
     authorIds: (bookmark?.authors.map(a => a.id) ?? []) as string[],
     publisherId: bookmark?.publisher?.id ?? "",

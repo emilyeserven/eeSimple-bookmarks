@@ -12,6 +12,7 @@ export function useBookmarkInlineCreateModals() {
   const [addAuthorOpen, setAddAuthorOpen] = useState(false);
   const [addCategoryOpen, setAddCategoryOpen] = useState(false);
   const [addPublisherOpen, setAddPublisherOpen] = useState(false);
+  const [addLocationOpen, setAddLocationOpen] = useState(false);
   return {
     addMediaTypeOpen,
     setAddMediaTypeOpen,
@@ -23,5 +24,7 @@ export function useBookmarkInlineCreateModals() {
     setAddCategoryOpen,
     addPublisherOpen,
     setAddPublisherOpen,
+    addLocationOpen,
+    setAddLocationOpen,
   };
 }

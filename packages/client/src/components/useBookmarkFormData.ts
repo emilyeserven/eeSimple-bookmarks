@@ -10,6 +10,7 @@ import { useAuthors } from "../hooks/useAuthors";
 import { useAutofillRules } from "../hooks/useAutofill";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
+import { useLocationTree } from "../hooks/useLocations";
 import { useMediaTypeTree } from "../hooks/useMediaTypes";
 import { usePublishers } from "../hooks/usePublishers";
 import { useTagTree } from "../hooks/useTags";
@@ -41,6 +42,9 @@ export function useBookmarkFormData() {
     data: tagTree,
   } = useTagTree();
   const {
+    data: locationTree,
+  } = useLocationTree();
+  const {
     data: customProperties,
   } = useCustomProperties();
   const {
@@ -71,6 +75,7 @@ export function useBookmarkFormData() {
     customStripParams,
     redirectIgnoreList,
     tagTree,
+    locationTree,
     customProperties,
     categories,
     mediaTypes,

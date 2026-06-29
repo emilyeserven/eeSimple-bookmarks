@@ -4,6 +4,7 @@ import type {
   Category,
   CustomProperty,
   ImportRule,
+  LocationNode,
   MediaTypeNode,
   PropertyGroup,
   TagNode,
@@ -30,6 +31,7 @@ import { useBookmarks } from "@/hooks/useBookmarks";
 import { useCategories } from "@/hooks/useCategories";
 import { useCustomProperties } from "@/hooks/useCustomProperties";
 import { useImportRules } from "@/hooks/useImportRules";
+import { useLocationTree } from "@/hooks/useLocations";
 import { useMediaTypeTree } from "@/hooks/useMediaTypes";
 import { usePropertyGroups } from "@/hooks/usePropertyGroups";
 import { useTagTree } from "@/hooks/useTags";
@@ -58,7 +60,7 @@ export type SwitcherSpec
       categoryId: string;
       currentId: string; }
       | { kind: "treeSiblings";
-        tree: "tag" | "media-type";
+        tree: "tag" | "media-type" | "location";
         parentId: string | null;
         currentSlug: string; }
         | { kind: "taxonomy";
@@ -76,6 +78,7 @@ interface SwitcherOption {
 const TREE_HREF_PREFIX = {
   "tag": "/tags",
   "media-type": "/taxonomies/media-types",
+  "location": "/taxonomies/locations",
 } as const;
 
 const TAXONOMY_HREF_PREFIX: Record<TaxonomyEntity, string> = {
@@ -107,9 +110,9 @@ function bookmarkOptions(bookmarks: Bookmark[] | undefined, categoryId: string):
 
 /** Siblings of the node identified by `parentId` (its parent's children, or the roots when null). */
 function treeSiblingOptions(
-  roots: (TagNode | MediaTypeNode)[] | undefined,
+  roots: (TagNode | MediaTypeNode | LocationNode)[] | undefined,
   parentId: string | null,
-  tree: "tag" | "media-type",
+  tree: "tag" | "media-type" | "location",
 ): SwitcherOption[] {
   const nodes = roots ?? [];
   const siblings = parentId === null
@@ -188,6 +191,7 @@ function useSwitcherOptions(spec: SwitcherSpec): {
   const bookmarks = useBookmarks();
   const tagTree = useTagTree();
   const mediaTypeTree = useMediaTypeTree();
+  const locationTree = useLocationTree();
   const websites = useWebsites();
   const channels = useYouTubeChannels();
   const properties = useCustomProperties();
@@ -209,7 +213,9 @@ function useSwitcherOptions(spec: SwitcherSpec): {
         isLoading: bookmarks.isLoading,
       };
     case "treeSiblings": {
-      const treeQuery = spec.tree === "tag" ? tagTree : mediaTypeTree;
+      const treeQuery = spec.tree === "tag"
+        ? tagTree
+        : spec.tree === "location" ? locationTree : mediaTypeTree;
       return {
         options: treeSiblingOptions(treeQuery.data, spec.parentId, spec.tree),
         currentValue: spec.currentSlug,

@@ -1,6 +1,6 @@
 import type { SwitcherSpec } from "@/components/BreadcrumbSwitcher";
 import type { BreadcrumbSegment } from "@/components/header/HeaderBreadcrumbs";
-import type { MediaTypeNode, TagNode } from "@eesimple/types";
+import type { LocationNode, MediaTypeNode, TagNode } from "@eesimple/types";
 
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Settings } from "lucide-react";
@@ -18,6 +18,7 @@ import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useBookmark } from "@/hooks/useBookmarks";
 import { useCategories } from "@/hooks/useCategories";
+import { useLocationTree } from "@/hooks/useLocations";
 import { useMediaTypeTree } from "@/hooks/useMediaTypes";
 import { useTagTree } from "@/hooks/useTags";
 import { findSettingsPage } from "@/lib/settingsPages";
@@ -263,7 +264,7 @@ interface TreeTaxonomyConfig {
   listLabel: string;
   /** URL prefix that is both the listing href and the per-node view prefix (e.g. `/tags`). */
   viewPrefix: string;
-  tree: "tag" | "media-type";
+  tree: "tag" | "media-type" | "location";
   /** Index of the entity slug among the path's non-empty segments. */
   slugIndex: number;
   /** Placeholder shown before the ancestor chain resolves. */
@@ -271,7 +272,7 @@ interface TreeTaxonomyConfig {
 }
 
 /** Same-parent sibling switcher for a node in a tree taxonomy (its tier / its parent's children). */
-function treeSiblingSwitcher(node: TagNode | MediaTypeNode, tree: "tag" | "media-type"): SwitcherSpec {
+function treeSiblingSwitcher(node: TagNode | MediaTypeNode | LocationNode, tree: "tag" | "media-type" | "location"): SwitcherSpec {
   return {
     kind: "treeSiblings",
     tree,
@@ -288,7 +289,7 @@ function treeSiblingSwitcher(node: TagNode | MediaTypeNode, tree: "tag" | "media
  */
 function treeTaxonomyCrumbs(
   pathname: string,
-  ancestors: (TagNode | MediaTypeNode)[] | undefined,
+  ancestors: (TagNode | MediaTypeNode | LocationNode)[] | undefined,
   config: TreeTaxonomyConfig,
 ): BreadcrumbSegment[] {
   const {
@@ -374,6 +375,19 @@ function mediaTypeCrumbs(
   });
 }
 
+function locationCrumbs(
+  pathname: string,
+  locationAncestors?: LocationNode[],
+): BreadcrumbSegment[] {
+  return treeTaxonomyCrumbs(pathname, locationAncestors, {
+    listLabel: "Locations",
+    viewPrefix: "/taxonomies/locations",
+    tree: "location",
+    slugIndex: 2,
+    singular: "Location",
+  });
+}
+
 interface BookmarkCrumbData {
   id: string;
   title: string;
@@ -435,6 +449,7 @@ function bookmarkCrumbs(pathname: string, data?: BookmarkCrumbData): BreadcrumbS
 interface BreadcrumbContext {
   tagAncestors?: TagNode[];
   mediaTypeAncestors?: MediaTypeNode[];
+  locationAncestors?: LocationNode[];
   bookmarkData?: BookmarkCrumbData;
   /** Resolved entity name keyed by `TaxonomyDescriptor.prefix`. */
   taxonomyNames?: Record<string, string | undefined>;
@@ -468,6 +483,9 @@ function breadcrumbsForPath(pathname: string, ctx: BreadcrumbContext): Breadcrum
   // Media-type detail/edit pages get a tree ancestor chain (the bare listing stays on the descriptor).
   if (pathname.startsWith("/taxonomies/media-types/"))
     return mediaTypeCrumbs(pathname, ctx.mediaTypeAncestors);
+  // Location detail/edit pages get a tree ancestor chain (the bare listing stays on the descriptor).
+  if (pathname.startsWith("/taxonomies/locations/"))
+    return locationCrumbs(pathname, ctx.locationAncestors);
 
   const descriptor = TAXONOMY_DESCRIPTORS.find(
     d => pathname === d.prefix || pathname.startsWith(`${d.prefix}/`),
@@ -512,6 +530,15 @@ export function AppHeader() {
     ? (findAncestorPath(mediaTypeTree, mediaTypeSlug) ?? undefined)
     : undefined;
 
+  // Location breadcrumbs carry the ancestor chain (unlimited nesting), resolved from the tree.
+  const locationSlug = slugFor(pathname, pathParts, "/taxonomies/locations", 2);
+  const {
+    data: locationTree,
+  } = useLocationTree();
+  const locationAncestors = locationSlug && locationTree
+    ? (findAncestorPath(locationTree, locationSlug) ?? undefined)
+    : undefined;
+
   // Bookmark breadcrumbs carry the bookmark's category + title.
   const bookmarkId = slugFor(pathname, pathParts, "/bookmarks", 1);
   const {
@@ -536,6 +563,7 @@ export function AppHeader() {
   const crumbs = breadcrumbsForPath(pathname, {
     tagAncestors,
     mediaTypeAncestors,
+    locationAncestors,
     bookmarkData,
     taxonomyNames,
   });

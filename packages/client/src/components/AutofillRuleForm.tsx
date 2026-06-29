@@ -20,8 +20,10 @@ import { z } from "zod";
 import { AutofillRuleActivationSection } from "./AutofillRuleActivationSection";
 import { buildAutofillRuleDefaultValues, NO_MEDIA_TYPE } from "./autofillRuleForm";
 import { CollapsibleFormSection } from "./CollapsibleFormSection";
+import { RuleLocationsField } from "./RuleLocationsField";
 import { RulePropertyField } from "./RulePropertyField";
 import { RuleTagsField } from "./RuleTagsField";
+import { useLocationTree } from "../hooks/useLocations";
 import { seedConditions } from "../lib/autofillPrefill";
 import { NO_CATEGORY } from "../lib/autofillScope";
 import { autofillConditionsValidator } from "../lib/conditionsSchema";
@@ -40,6 +42,7 @@ const ruleSchema = z.object({
   setCategoryId: z.string(),
   setMediaTypeId: z.string(),
   tagIds: z.array(z.string()),
+  locationIds: z.array(z.string()),
   sortOrder: z.number().int(),
 });
 
@@ -57,6 +60,8 @@ interface AutofillRuleFormProps {
   defaultWebsiteDomain?: string;
   /** Preselected tag ids for a new rule's "then" (e.g. when creating from a tag's page). */
   defaultTagIds?: string[];
+  /** Preselected location ids for a new rule's "then" (e.g. when creating from a location's page). */
+  defaultLocationIds?: string[];
   /** Preselected YouTube channel ids for a new rule's "when" (e.g. when creating from a channel's page). */
   defaultChannelIds?: string[];
   /** When true, the Custom properties section in Activation Conditions starts expanded (e.g. when creating from a property's page). */
@@ -70,8 +75,11 @@ interface AutofillRuleFormProps {
 
 /** Shared create/edit form for an autofill rule: a "when" condition tree plus "then" actions. */
 export function AutofillRuleForm({
-  rule, categories, mediaTypes, properties, tagTree, defaultCategoryId, defaultMediaTypeId, defaultWebsiteDomain, defaultTagIds, defaultChannelIds, defaultOpenCustomProperties, submitLabel, resetOnSubmit, isError, errorMessage, onSubmit,
+  rule, categories, mediaTypes, properties, tagTree, defaultCategoryId, defaultMediaTypeId, defaultWebsiteDomain, defaultTagIds, defaultLocationIds, defaultChannelIds, defaultOpenCustomProperties, submitLabel, resetOnSubmit, isError, errorMessage, onSubmit,
 }: AutofillRuleFormProps) {
+  const {
+    data: locationTree = [],
+  } = useLocationTree();
   // The condition tree and custom-property values live outside the typed form (they're dynamic and,
   // for the recursive tree, would blow up TanStack Form's deep type inference). A new rule created
   // from a website's or channel's page is seeded with that entity as its "when".
@@ -96,6 +104,7 @@ export function AutofillRuleForm({
       defaultCategoryId,
       defaultMediaTypeId,
       defaultTagIds,
+      defaultLocationIds,
     }),
     validators: {
       onChange: ruleSchema,
@@ -138,6 +147,7 @@ export function AutofillRuleForm({
         setCategoryId: categoryId,
         setMediaTypeId: mediaTypeId,
         tagIds: value.tagIds,
+        locationIds: value.locationIds,
         numberValues,
         booleanValues,
         dateTimeValues,
@@ -224,15 +234,17 @@ export function AutofillRuleForm({
               setCategoryId: state.values.setCategoryId,
               setMediaTypeId: state.values.setMediaTypeId,
               tagIds: state.values.tagIds,
+              locationIds: state.values.locationIds,
             })}
           >
             {({
-              setCategoryId, setMediaTypeId, tagIds,
+              setCategoryId, setMediaTypeId, tagIds, locationIds,
             }) =>
               summarizePrefill({
                 setCategoryId,
                 setMediaTypeId,
                 tagIds,
+                locationIds,
                 categories,
                 mediaTypes,
                 properties,
@@ -289,6 +301,23 @@ export function AutofillRuleForm({
                 field.handleChange(
                   current.includes(id)
                     ? current.filter(tagId => tagId !== id)
+                    : [...current, id],
+                );
+              }}
+            />
+          )}
+        </form.Field>
+
+        <form.Field name="locationIds">
+          {field => (
+            <RuleLocationsField
+              locationTree={locationTree}
+              selectedIds={field.state.value}
+              onToggle={(id) => {
+                const current = field.state.value;
+                field.handleChange(
+                  current.includes(id)
+                    ? current.filter(locationId => locationId !== id)
                     : [...current, id],
                 );
               }}
@@ -385,6 +414,7 @@ interface PrefillSummaryArgs {
   setCategoryId: string;
   setMediaTypeId: string;
   tagIds: string[];
+  locationIds: string[];
   categories: Category[];
   mediaTypes: MediaType[];
   properties: CustomProperty[];
@@ -395,7 +425,7 @@ interface PrefillSummaryArgs {
 
 /** One-line summary of the prefill actions for the collapsed section preview. */
 function summarizePrefill({
-  setCategoryId, setMediaTypeId, tagIds, categories, mediaTypes, properties, numberInputs, booleanInputs, dateTimeInputs,
+  setCategoryId, setMediaTypeId, tagIds, locationIds, categories, mediaTypes, properties, numberInputs, booleanInputs, dateTimeInputs,
 }: PrefillSummaryArgs): string {
   const parts: string[] = [];
 
@@ -410,6 +440,8 @@ function summarizePrefill({
   }
 
   if (tagIds.length > 0) parts.push(`${tagIds.length} ${tagIds.length === 1 ? "tag" : "tags"}`);
+
+  if (locationIds.length > 0) parts.push(`${locationIds.length} ${locationIds.length === 1 ? "location" : "locations"}`);
 
   if (setCategoryId !== NO_CATEGORY) {
     const categoryProps = properties.filter(property =>

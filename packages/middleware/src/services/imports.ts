@@ -988,6 +988,7 @@ export async function approveImportItem(itemId: string, preFill?: InboxPreFillDe
       defaults,
       preFill,
       autofillTagIds: autofill.tagIds,
+      autofillLocationIds: autofill.locationIds,
       autofillMediaTypeId: autofill.mediaTypeId,
       mergedNumberValues,
       mergedBooleanValues,

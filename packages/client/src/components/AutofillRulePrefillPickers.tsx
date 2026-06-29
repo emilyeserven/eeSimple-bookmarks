@@ -1,4 +1,4 @@
-import type { Category, MediaTypeNode, TagNode } from "@eesimple/types";
+import type { Category, LocationNode, MediaTypeNode, TagNode } from "@eesimple/types";
 
 import { useState } from "react";
 
@@ -6,6 +6,7 @@ import { AddCategoryModal } from "./AddCategoryModal";
 import { AddMediaTypeModal } from "./AddMediaTypeModal";
 import { NO_CATEGORY, NO_MEDIA_TYPE } from "./AutofillRuleForm";
 import { Combobox } from "./Combobox";
+import { LocationPickerWithCreate } from "./LocationPickerWithCreate";
 import { TagPickerWithCreate } from "./TagPickerWithCreate";
 import { iconComboboxOptions, mediaTypeTreeComboboxOptions } from "../lib/comboboxOptions";
 
@@ -17,18 +18,21 @@ interface Props {
   categories: Category[];
   mediaTypeTree: MediaTypeNode[];
   tagTree: TagNode[];
+  locationTree: LocationNode[];
   setCategoryId: string;
   onCategoryChange: (value: string) => void;
   setMediaTypeId: string;
   onMediaTypeChange: (value: string) => void;
   tagIds: string[];
   onToggleTag: (id: string) => void;
+  locationIds: string[];
+  onToggleLocation: (id: string) => void;
 }
 
 /** Category + media-type comboboxes and tag picker for the autofill rule prefill form. */
 export function AutofillRulePrefillPickers({
-  categories, mediaTypeTree, tagTree, setCategoryId, onCategoryChange,
-  setMediaTypeId, onMediaTypeChange, tagIds, onToggleTag,
+  categories, mediaTypeTree, tagTree, locationTree, setCategoryId, onCategoryChange,
+  setMediaTypeId, onMediaTypeChange, tagIds, onToggleTag, locationIds, onToggleLocation,
 }: Props) {
   const [addCategoryOpen, setAddCategoryOpen] = useState(false);
   const [addMediaTypeOpen, setAddMediaTypeOpen] = useState(false);
@@ -86,6 +90,15 @@ export function AutofillRulePrefillPickers({
           tree={tagTree}
           selectedIds={tagIds}
           onToggle={onToggleTag}
+        />
+      </div>
+
+      <div className="space-y-1">
+        <Label>Apply locations</Label>
+        <LocationPickerWithCreate
+          tree={locationTree}
+          selectedIds={locationIds}
+          onToggle={onToggleLocation}
         />
       </div>
 

@@ -116,6 +116,13 @@ const createRuleBody = {
         format: "uuid",
       },
     },
+    locationIds: {
+      type: "array",
+      items: {
+        type: "string",
+        format: "uuid",
+      },
+    },
     numberValues,
     booleanValues,
     dateTimeValues,

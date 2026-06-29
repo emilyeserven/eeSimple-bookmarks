@@ -157,7 +157,7 @@ export async function listHomepageSectionBookmarks(): Promise<HomepageSectionBoo
   if (sections.length === 0) return [];
 
   const {
-    baseRows, conditionInputs, tagDescendants,
+    baseRows, conditionInputs, tagDescendants, locationDescendants,
   } = await getBookmarkEvaluationData();
   if (baseRows.length === 0) {
     return sections.map(section => ({
@@ -177,6 +177,7 @@ export async function listHomepageSectionBookmarks(): Promise<HomepageSectionBoo
         if (!input) return false;
         return evaluateConditions(section.conditions, input, {
           tagDescendants,
+          locationDescendants,
         });
       })
       .sort((a, b) =>

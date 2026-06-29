@@ -15,6 +15,7 @@ import {
   setBookmarkPropertyFile,
 } from "@/services/bookmarkPropertyFiles";
 import {
+  backfillTitleLocations,
   backfillTitleTags,
   bulkDeleteBookmarks,
   bulkUpdateBookmarks,
@@ -97,6 +98,13 @@ const createBookmarkBody = {
       format: "uuid",
     },
     tagIds: {
+      type: "array",
+      items: {
+        type: "string",
+        format: "uuid",
+      },
+    },
+    locationIds: {
       type: "array",
       items: {
         type: "string",
@@ -504,6 +512,13 @@ function registerBookmarkBulkRoutes(app: FastifyInstance): void {
       tags: ["bookmarks"],
     },
   }, async () => backfillTitleTags());
+
+  // Apply the "auto-apply locations from title" automation to every existing bookmark (additive).
+  app.post("/api/bookmarks/backfill-title-locations", {
+    schema: {
+      tags: ["bookmarks"],
+    },
+  }, async () => backfillTitleLocations());
 }
 
 /** Single-bookmark CRUD: inbox quick-save, get, create, update, and delete. */

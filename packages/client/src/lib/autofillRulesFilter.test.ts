@@ -24,6 +24,7 @@ function makeRule(overrides: Partial<AutofillRule> = {}): AutofillRule {
     setCategoryId: null,
     setMediaTypeId: null,
     tagIds: [],
+    locationIds: [],
     numberValues: [],
     booleanValues: [],
     dateTimeValues: [],

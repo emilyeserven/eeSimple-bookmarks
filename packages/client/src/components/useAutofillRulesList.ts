@@ -10,7 +10,7 @@ import { useAutofillRules, useBulkDeleteAutofillRules } from "../hooks/useAutofi
 import { useCategories } from "../hooks/useCategories";
 import { useRegisterBulkSelect } from "../hooks/useRegisterBulkSelect";
 import { useWebsiteDomain } from "../hooks/useWebsiteDomain";
-import { ruleSetsMediaType, ruleSetsProperty, ruleSetsTag, ruleTargetsWebsite, ruleTargetsYoutubeChannel } from "../lib/autofillRulesFilter";
+import { ruleSetsLocation, ruleSetsMediaType, ruleSetsProperty, ruleSetsTag, ruleTargetsWebsite, ruleTargetsYoutubeChannel } from "../lib/autofillRulesFilter";
 import { useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
 import { summarizeConditions } from "../lib/conditionsSummary";
 import { useListSelection } from "../lib/useListSelection";
@@ -22,6 +22,7 @@ export interface AutofillRulesFilters {
   websiteId?: string;
   tagId?: string;
   mediaTypeId?: string;
+  locationId?: string;
   channelId?: string;
   noCategory?: boolean;
   query: string;
@@ -34,7 +35,7 @@ function applyFacets(
   websiteDomain: string | undefined,
 ): AutofillRule[] {
   const {
-    categoryId, propertyId, websiteId, tagId, mediaTypeId, channelId, noCategory,
+    categoryId, propertyId, websiteId, tagId, mediaTypeId, locationId, channelId, noCategory,
   } = filters;
   let list = rules;
   if (categoryId) list = list.filter(rule => rule.setCategoryId === categoryId);
@@ -43,6 +44,7 @@ function applyFacets(
   if (websiteId) list = websiteDomain ? list.filter(rule => ruleTargetsWebsite(rule, websiteDomain)) : [];
   if (tagId) list = list.filter(rule => ruleSetsTag(rule, tagId));
   if (mediaTypeId) list = list.filter(rule => ruleSetsMediaType(rule, mediaTypeId));
+  if (locationId) list = list.filter(rule => ruleSetsLocation(rule, locationId));
   if (channelId) list = list.filter(rule => ruleTargetsYoutubeChannel(rule, channelId));
   return list;
 }
@@ -54,7 +56,7 @@ function applyFacets(
  */
 export function useAutofillRulesList(filters: AutofillRulesFilters) {
   const {
-    categoryId, propertyId, websiteId, tagId, mediaTypeId, channelId, noCategory, query,
+    categoryId, propertyId, websiteId, tagId, mediaTypeId, locationId, channelId, noCategory, query,
   } = filters;
   const {
     data: rules, isLoading, error,
@@ -79,10 +81,11 @@ export function useAutofillRulesList(filters: AutofillRulesFilters) {
       websiteId,
       tagId,
       mediaTypeId,
+      locationId,
       channelId,
       noCategory,
     }, websiteDomain),
-    [rules, categoryId, noCategory, propertyId, websiteId, websiteDomain, tagId, mediaTypeId, channelId],
+    [rules, categoryId, noCategory, propertyId, websiteId, websiteDomain, tagId, mediaTypeId, locationId, channelId],
   );
 
   const visibleRules = useMemo(() => {

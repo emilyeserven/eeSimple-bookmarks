@@ -107,6 +107,15 @@ export interface TagCondition {
 }
 
 /**
+ * Leaf: the bookmark carries one of `locationIds`. Cascade (a selected parent also matches its
+ * descendants) is applied at EVALUATION time, so `locationIds` stores exactly what the user picked.
+ */
+export interface LocationCondition {
+  type: "location";
+  locationIds: string[];
+}
+
+/**
  * Leaf: the bookmark is linked to one of `channelIds`. An empty list never matches.
  */
 export interface YouTubeChannelCondition {
@@ -201,6 +210,7 @@ export type ConditionNode
     | CategoryCondition
     | WebsiteCondition
     | TagCondition
+    | LocationCondition
     | YouTubeChannelCondition
     | MediaTypeCondition
     | RelationshipTypeCondition
@@ -228,6 +238,8 @@ export interface ConditionInput {
   categoryId: string;
   /** The bookmark's own tag ids (NOT expanded for cascade). */
   tagIds: Set<string>;
+  /** The bookmark's own location ids (NOT expanded for cascade). */
+  locationIds: Set<string>;
   /** The bookmark's YouTube channel id, or `null` when not a YouTube video. */
   youtubeChannelId: string | null;
   /** The bookmark's media type id, or `null` when not set. */
@@ -257,6 +269,8 @@ export type TagDescendants = (tagId: string) => Set<string>;
 export interface EvaluateOptions {
   /** Tag cascade resolver; when omitted, a tag leaf matches only the exact ids selected. */
   tagDescendants?: TagDescendants;
+  /** Location cascade resolver; when omitted, a location leaf matches only the exact ids selected. */
+  locationDescendants?: TagDescendants;
 }
 
 /**
@@ -290,6 +304,12 @@ export function buildTagDescendants(
 
   return collect;
 }
+
+/**
+ * Build a descendant resolver for the Locations tree. Locations share the same `{ id, parentId }`
+ * shape as tags, so this is just {@link buildTagDescendants} under a clearer name.
+ */
+export const buildLocationDescendants = buildTagDescendants;
 
 /** Extract a URL's host with a leading `www.` removed, or `null` if it can't be parsed. */
 function hostOf(url: string): string | null {
@@ -402,6 +422,22 @@ function evaluateDateTimePredicate(
   if (predicate.from !== null && value < predicate.from) return false;
   if (predicate.to !== null && value > predicate.to) return false;
   return true;
+}
+
+function evaluateLocation(
+  condition: LocationCondition,
+  input: ConditionInput,
+  options: EvaluateOptions | undefined,
+): boolean {
+  if (condition.locationIds.length === 0) return false;
+  const resolve = options?.locationDescendants;
+  for (const locationId of condition.locationIds) {
+    const candidates = resolve ? resolve(locationId) : new Set([locationId]);
+    for (const id of candidates) {
+      if (input.locationIds.has(id)) return true;
+    }
+  }
+  return false;
 }
 
 function evaluateYoutubeChannel(condition: YouTubeChannelCondition, input: ConditionInput): boolean {
@@ -519,6 +555,8 @@ export function evaluateConditions(
       return evaluateWebsite(node, input);
     case "tag":
       return evaluateTag(node, input, options);
+    case "location":
+      return evaluateLocation(node, input, options);
     case "youtube-channel":
       return evaluateYoutubeChannel(node, input);
     case "media-type":

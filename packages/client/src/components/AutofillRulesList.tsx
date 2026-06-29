@@ -19,6 +19,8 @@ interface AutofillRulesListProps {
   tagId?: string;
   /** Show only rules that set this media type. */
   mediaTypeId?: string;
+  /** Show only rules that apply this location. */
+  locationId?: string;
   /** Show only rules whose conditions target this YouTube channel (via a youtube-channel condition). */
   channelId?: string;
   /** Show only rules that set no category. */

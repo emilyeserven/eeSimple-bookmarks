@@ -4,6 +4,7 @@ import type {
   ConditionNode,
   ConditionTree,
   CustomProperty,
+  LocationCondition,
   MatchCondition,
   MediaTypeCondition,
   PropertyCondition,
@@ -17,6 +18,7 @@ import type {
 import { ChevronDown } from "lucide-react";
 
 import { CategoryConditionEditor } from "./CategoryConditionEditor";
+import { LocationConditionEditor } from "./LocationConditionEditor";
 import { MatchConditionEditor } from "./MatchConditionEditor";
 import { MediaTypeConditionEditor } from "./MediaTypeConditionEditor";
 import { PropertyConditionEditor } from "./PropertyConditionEditor";
@@ -93,6 +95,7 @@ export function ConditionsField({
   const categoryLeaf = value.children.find((child): child is CategoryCondition => child.type === "category");
   const websiteLeaf = value.children.find((child): child is WebsiteCondition => child.type === "website");
   const tagLeaf = value.children.find((child): child is TagCondition => child.type === "tag");
+  const locationLeaf = value.children.find((child): child is LocationCondition => child.type === "location");
   const youtubeChannelLeaf = value.children.find((child): child is YouTubeChannelCondition => child.type === "youtube-channel");
   const mediaTypeLeaf = value.children.find((child): child is MediaTypeCondition => child.type === "media-type");
   const relationshipTypeLeaf = value.children.find((child): child is RelationshipTypeCondition => child.type === "relationship-type");
@@ -105,6 +108,7 @@ export function ConditionsField({
     category?: CategoryCondition | null;
     website?: WebsiteCondition | null;
     tag?: TagCondition | null;
+    location?: LocationCondition | null;
     youtubeChannel?: YouTubeChannelCondition | null;
     mediaType?: MediaTypeCondition | null;
     relationshipType?: RelationshipTypeCondition | null;
@@ -114,6 +118,7 @@ export function ConditionsField({
     const nextCategory = next.category === undefined ? categoryLeaf : next.category;
     const nextWebsite = next.website === undefined ? websiteLeaf : next.website;
     const nextTag = next.tag === undefined ? tagLeaf : next.tag;
+    const nextLocation = next.location === undefined ? locationLeaf : next.location;
     const nextYoutubeChannel = next.youtubeChannel === undefined ? youtubeChannelLeaf : next.youtubeChannel;
     const nextMediaType = next.mediaType === undefined ? mediaTypeLeaf : next.mediaType;
     const nextRelationshipType = next.relationshipType === undefined ? relationshipTypeLeaf : next.relationshipType;
@@ -123,6 +128,7 @@ export function ConditionsField({
       ...(nextCategory && nextCategory.categoryIds.length > 0 ? [nextCategory] : []),
       ...(nextWebsite && nextWebsite.domains.length > 0 ? [nextWebsite] : []),
       ...(nextTag && nextTag.tagIds.length > 0 ? [nextTag] : []),
+      ...(nextLocation && nextLocation.locationIds.length > 0 ? [nextLocation] : []),
       ...(nextYoutubeChannel && nextYoutubeChannel.channelIds.length > 0 ? [nextYoutubeChannel] : []),
       ...(nextMediaType && nextMediaType.mediaTypeIds.length > 0 ? [nextMediaType] : []),
       ...(nextRelationshipType && nextRelationshipType.relationshipTypeIds.length > 0 ? [nextRelationshipType] : []),
@@ -138,6 +144,7 @@ export function ConditionsField({
   const categoryCount = categoryLeaf?.categoryIds.length ?? 0;
   const websiteCount = websiteLeaf?.domains.length ?? 0;
   const tagCount = tagLeaf?.tagIds.length ?? 0;
+  const locationCount = locationLeaf?.locationIds.length ?? 0;
   const channelCount = youtubeChannelLeaf?.channelIds.length ?? 0;
   const mediaTypeCount = mediaTypeLeaf?.mediaTypeIds.length ?? 0;
   const relationshipTypeCount = relationshipTypeLeaf?.relationshipTypeIds.length ?? 0;
@@ -318,6 +325,23 @@ export function ConditionsField({
           onChange={next =>
             commit({
               tag: next.tagIds.length > 0 ? next : null,
+            })}
+        />
+      </Section>
+
+      <Section
+        title="Locations"
+        summary={locationCount > 0 ? `${locationCount} selected` : undefined}
+        defaultOpen={locationCount > 0}
+      >
+        <LocationConditionEditor
+          value={locationLeaf ?? {
+            type: "location",
+            locationIds: [],
+          }}
+          onChange={next =>
+            commit({
+              location: next.locationIds.length > 0 ? next : null,
             })}
         />
       </Section>

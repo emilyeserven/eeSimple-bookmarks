@@ -11,6 +11,7 @@ import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useWebsiteDomain } from "../hooks/useWebsiteDomain";
 import {
   ruleReferencesCategory,
+  ruleReferencesLocation,
   ruleReferencesMediaType,
   ruleReferencesProperty,
   ruleReferencesTag,
@@ -33,6 +34,8 @@ interface CardDisplayRulesListProps {
   tagId?: string;
   /** Scope to rules whose conditions reference this media type. */
   mediaTypeId?: string;
+  /** Scope to rules whose conditions reference this location. */
+  locationId?: string;
   /** Scope to rules whose conditions reference this YouTube channel. */
   channelId?: string;
 }
@@ -43,6 +46,7 @@ function emptyStateMessage(props: CardDisplayRulesListProps): string {
   if (props.websiteId) return "No display rules target this website yet. Add one below.";
   if (props.tagId) return "No display rules reference this tag yet. Add one below.";
   if (props.mediaTypeId) return "No display rules reference this media type yet. Add one below.";
+  if (props.locationId) return "No display rules reference this location yet. Add one below.";
   if (props.channelId) return "No display rules target this channel yet. Add one below.";
   return "No display rules yet. Add one below.";
 }
@@ -54,7 +58,7 @@ function emptyStateMessage(props: CardDisplayRulesListProps): string {
  * not drag-sortable — rule priority (`sortOrder`) is global, set on the Card Display Rules page.
  */
 export function CardDisplayRulesList({
-  categoryId, propertyId, websiteId, tagId, mediaTypeId, channelId,
+  categoryId, propertyId, websiteId, tagId, mediaTypeId, locationId, channelId,
 }: CardDisplayRulesListProps) {
   const {
     data: rules, isLoading, error,
@@ -87,15 +91,17 @@ export function CardDisplayRulesList({
     if (websiteId) return websiteDomain ? rest.filter(rule => ruleReferencesWebsite(rule, websiteDomain)) : [];
     if (tagId) return rest.filter(rule => ruleReferencesTag(rule, tagId));
     if (mediaTypeId) return rest.filter(rule => ruleReferencesMediaType(rule, mediaTypeId));
+    if (locationId) return rest.filter(rule => ruleReferencesLocation(rule, locationId));
     if (channelId) return rest.filter(rule => ruleReferencesYoutubeChannel(rule, channelId));
     return [];
-  }, [rules, categoryId, propertyId, websiteId, websiteDomain, tagId, mediaTypeId, channelId]);
+  }, [rules, categoryId, propertyId, websiteId, websiteDomain, tagId, mediaTypeId, locationId, channelId]);
 
   const scope: CardDisplayRuleScope = {
     categoryId,
     websiteDomain,
     tagId,
     mediaTypeId,
+    locationId,
     channelId,
     property: scopedProperty,
   };
@@ -139,6 +145,7 @@ export function CardDisplayRulesList({
             websiteId,
             tagId,
             mediaTypeId,
+            locationId,
             channelId,
           })}
           </p>

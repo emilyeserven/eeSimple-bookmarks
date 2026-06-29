@@ -21,6 +21,7 @@ export const autofillConditionsValidator = z.custom<ConditionTree>().superRefine
   let emptyWebsite = false;
   let emptyMediaType = false;
   let emptyRelationshipType = false;
+  let emptyLocation = false;
   const walk = (node: ConditionNode) => {
     if (node.type === "group") {
       node.children.forEach(walk);
@@ -40,6 +41,7 @@ export const autofillConditionsValidator = z.custom<ConditionTree>().superRefine
     if (node.type === "website" && node.domains.length === 0) emptyWebsite = true;
     if (node.type === "media-type" && node.mediaTypeIds.length === 0) emptyMediaType = true;
     if (node.type === "relationship-type" && node.relationshipTypeIds.length === 0) emptyRelationshipType = true;
+    if (node.type === "location" && node.locationIds.length === 0) emptyLocation = true;
   };
   walk(tree);
 
@@ -71,6 +73,12 @@ export const autofillConditionsValidator = z.custom<ConditionTree>().superRefine
     ctx.addIssue({
       code: "custom",
       message: "Pick at least one relationship type.",
+    });
+  }
+  if (emptyLocation) {
+    ctx.addIssue({
+      code: "custom",
+      message: "Pick at least one location.",
     });
   }
 });

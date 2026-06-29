@@ -1,12 +1,13 @@
 import { inArray, or } from "drizzle-orm";
 import type { BookmarkSectionsValue, ConditionInput, SectionEntry, TagDescendants } from "@eesimple/types";
-import { buildTagDescendants } from "@eesimple/types";
+import { buildLocationDescendants, buildTagDescendants } from "@eesimple/types";
 import { db } from "@/db";
 import {
   bookmarkBooleanValues,
   bookmarkChoicesValues,
   bookmarkDateTimeValues,
   bookmarkFileValues,
+  bookmarkLocations,
   bookmarkNumberValues,
   bookmarkProgressValues,
   bookmarkSectionsValues,
@@ -15,6 +16,7 @@ import {
   bookmarks,
   type BookmarkRow,
   bookmarkTags,
+  locations,
   tags,
 } from "@/db/schema";
 import { ensureDefaultCategory } from "@/services/categories";
@@ -38,6 +40,8 @@ export interface BookmarkEvaluationData {
   conditionInputs: Map<string, ConditionInput>;
   /** Tag descendant resolver for tag conditions. */
   tagDescendants: TagDescendants;
+  /** Location descendant resolver for location conditions. */
+  locationDescendants: TagDescendants;
 }
 
 let version = 0;
@@ -85,12 +89,21 @@ async function loadEvaluationData(): Promise<BookmarkEvaluationData> {
     .from(tags);
   const tagDescendants = buildTagDescendants(tagRows);
 
+  const locationRows = await db
+    .select({
+      id: locations.id,
+      parentId: locations.parentId,
+    })
+    .from(locations);
+  const locationDescendants = buildLocationDescendants(locationRows);
+
   const baseRows = await db.select().from(bookmarks);
   const conditionInputs = await buildConditionInputs(baseRows, defaultCategoryId);
   return {
     baseRows,
     conditionInputs,
     tagDescendants,
+    locationDescendants,
   };
 }
 
@@ -133,7 +146,7 @@ async function buildConditionInputs(
   const ids = baseRows.map(row => row.id);
   if (ids.length === 0) return new Map();
 
-  const [tagRows, numberRows, booleanRows, dateTimeRows, choicesRows, fileRows, progressRows, sectionsRows, textRows, relationshipRows] = await Promise.all([
+  const [tagRows, locationRows, numberRows, booleanRows, dateTimeRows, choicesRows, fileRows, progressRows, sectionsRows, textRows, relationshipRows] = await Promise.all([
     db
       .select({
         bookmarkId: bookmarkTags.bookmarkId,
@@ -141,6 +154,13 @@ async function buildConditionInputs(
       })
       .from(bookmarkTags)
       .where(inArray(bookmarkTags.bookmarkId, ids)),
+    db
+      .select({
+        bookmarkId: bookmarkLocations.bookmarkId,
+        locationId: bookmarkLocations.locationId,
+      })
+      .from(bookmarkLocations)
+      .where(inArray(bookmarkLocations.bookmarkId, ids)),
     db
       .select({
         bookmarkId: bookmarkNumberValues.bookmarkId,
@@ -221,6 +241,7 @@ async function buildConditionInputs(
   ]);
 
   const tagsByBid = groupToSets(tagRows, r => r.bookmarkId, r => r.tagId);
+  const locationsByBid = groupToSets(locationRows, r => r.bookmarkId, r => r.locationId);
   const numsByBid = groupToMaps(numberRows, r => r.bookmarkId, r => r.propertyId, r => r.value);
   const boolsByBid = groupToMaps(booleanRows, r => r.bookmarkId, r => r.propertyId, r => r.value);
   const datesByBid = groupToMaps(dateTimeRows, r => r.bookmarkId, r => r.propertyId, r => r.value);
@@ -268,6 +289,7 @@ async function buildConditionInputs(
       romanizedTitle: row.romanizedTitle ?? null,
       categoryId: row.categoryId ?? defaultCategoryId,
       tagIds: tagsByBid.get(row.id) ?? new Set(),
+      locationIds: locationsByBid.get(row.id) ?? new Set(),
       youtubeChannelId: row.youtubeChannelId ?? null,
       mediaTypeId: row.mediaTypeId ?? null,
       numberValues: numsByBid.get(row.id) ?? new Map(),

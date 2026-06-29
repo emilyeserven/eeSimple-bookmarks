@@ -22,6 +22,7 @@ describe("summarizeConditions", () => {
       categories: 0,
       websites: 0,
       tags: 0,
+      locations: 0,
       channels: 0,
       mediaTypes: 0,
       relationshipTypes: 0,

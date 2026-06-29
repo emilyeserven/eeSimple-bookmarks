@@ -13,6 +13,7 @@ describe("buildAutofillRuleDefaultValues", () => {
       setCategoryId: NO_CATEGORY,
       setMediaTypeId: NO_MEDIA_TYPE,
       tagIds: [],
+      locationIds: [],
       sortOrder: 0,
     });
   });
@@ -46,6 +47,7 @@ describe("buildAutofillRuleDefaultValues", () => {
       setCategoryId: "cat-real",
       setMediaTypeId: "mt-real",
       tagIds: ["t-real"],
+      locationIds: [],
       sortOrder: 3,
     });
   });

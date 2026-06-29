@@ -15,9 +15,15 @@ import type {
   CreateTagInput,
   CreateWebsiteInput,
   CreateYouTubeChannelInput,
+  CreateLocationChainInput,
+  CreateLocationInput,
   CustomProperty,
+  Location,
+  LocationLookupResult,
+  LocationNode,
   MediaType,
   MediaTypeNode,
+  UpdateLocationInput,
   PropertyGroup,
   Publisher,
   RedirectFailureWebsite,
@@ -131,6 +137,18 @@ export const websitesApi = {
 export const mediaTypesApi = {
   ...createCrudApi<MediaType, CreateMediaTypeInput, UpdateMediaTypeInput>("media-types"),
   tree: () => request<MediaTypeNode[]>("/media-types/tree"),
+};
+
+export const locationsApi = {
+  ...createCrudApi<Location, CreateLocationInput, UpdateLocationInput>("locations"),
+  tree: () => request<LocationNode[]>("/locations/tree"),
+  lookup: (query: string) =>
+    request<LocationLookupResult>(`/locations/lookup?q=${encodeURIComponent(query)}`),
+  createChain: (input: CreateLocationChainInput) =>
+    request<Location>("/locations/chain", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
 };
 
 export const propertyGroupsApi = createCrudApi<PropertyGroup, CreatePropertyGroupInput, UpdatePropertyGroupInput>("property-groups");

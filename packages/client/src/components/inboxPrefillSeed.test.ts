@@ -28,6 +28,7 @@ function rule(overrides: Partial<AutofillRule>): AutofillRule {
     setCategoryId: null,
     setMediaTypeId: null,
     tagIds: [],
+    locationIds: [],
     numberValues: [],
     booleanValues: [],
     dateTimeValues: [],
@@ -67,6 +68,7 @@ describe("computeInboxPrefillSeed", () => {
       })],
       websites: [],
       tags: [],
+      locations: [],
     });
     expect(seed.categoryId).toBe("cat-recipe");
     expect(seed.mediaTypeId).toBe("mt-article");
@@ -90,6 +92,7 @@ describe("computeInboxPrefillSeed", () => {
         tagIds: ["from-site"],
       })],
       tags: [],
+      locations: [],
     });
     expect(seed.categoryId).toBe("cat-site");
     expect(seed.mediaTypeId).toBe("mt-site");
@@ -113,6 +116,7 @@ describe("computeInboxPrefillSeed", () => {
         },
       })],
       tags: [],
+      locations: [],
     });
     expect(seed.categoryId).toBe("cat-import");
   });
@@ -128,6 +132,7 @@ describe("computeInboxPrefillSeed", () => {
       })],
       websites: [],
       tags: [],
+      locations: [],
     });
     expect(seed.categoryId).toBeUndefined();
     expect(seed.mediaTypeId).toBeUndefined();
@@ -153,6 +158,7 @@ describe("computeInboxPrefillSeed", () => {
           romanizedName: "Seoul",
         },
       ],
+      locations: [],
     });
     // The native name "부산" is found inside the compound title "부산광역시"; "서울" is not.
     expect(seed.tagIds).toEqual(["t-busan"]);
@@ -170,7 +176,27 @@ describe("computeInboxPrefillSeed", () => {
         name: "부산",
         romanizedName: "Busan",
       }],
+      locations: [],
     });
     expect(seed.tagIds).toEqual(["t-busan"]);
+  });
+
+  it("unions title-matched locations with rule locations", () => {
+    const seed = computeInboxPrefillSeed(item({
+      url: "https://example.com/busan-guide",
+      title: "Busan Travel Guide",
+    }), {
+      autofillRules: [rule({
+        conditions: match("Travel"),
+        locationIds: ["loc-rule"],
+      })],
+      websites: [],
+      tags: [],
+      locations: [{
+        id: "loc-busan",
+        name: "Busan",
+      }],
+    });
+    expect(seed.locationIds?.sort()).toEqual(["loc-busan", "loc-rule"]);
   });
 });

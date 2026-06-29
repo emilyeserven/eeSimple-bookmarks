@@ -19,6 +19,7 @@ const DEFAULTS: AutomationSettings = {
   autoFetchTitle: true,
   autoFetchImage: true,
   autoApplyTitleTags: false,
+  autoApplyTitleLocations: false,
   sidebarOpenModifier: "alt",
 };
 
@@ -147,6 +148,37 @@ export function AutomationsSettings() {
               Scan every existing bookmark now and apply any tags whose name appears in its title.
               Existing tags are kept — this only adds matches.
             </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Auto-apply locations from title</CardTitle>
+          <CardDescription>
+            When enabled, saving a bookmark whose title contains an existing location’s name
+            automatically applies that location. Matching is case-insensitive and only counts whole
+            words.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="auto-apply-title-locations"
+              checked={settings.autoApplyTitleLocations}
+              onCheckedChange={(checked) => {
+                const enabled = checked === true;
+                save(
+                  {
+                    autoApplyTitleLocations: enabled,
+                  },
+                  enabled ? "Auto-apply locations from title on" : "Auto-apply locations from title off",
+                );
+              }}
+            />
+            <Label htmlFor="auto-apply-title-locations">
+              Apply locations whose name appears in the bookmark title
+            </Label>
           </div>
         </CardContent>
       </Card>

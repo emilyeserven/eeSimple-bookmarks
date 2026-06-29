@@ -8,6 +8,7 @@ import type {
   BookmarkFileValue,
   BookmarkImage,
   BookmarkImport,
+  BookmarkLocation,
   BookmarkMediaType,
   BookmarkNewsletter,
   BookmarkNumberValue,
@@ -31,6 +32,7 @@ import {
   bookmarkDateTimeValues,
   bookmarkFileValues,
   bookmarkImages,
+  bookmarkLocations,
   bookmarkNumberValues,
   bookmarkProgressValues,
   bookmarkScreenshots,
@@ -45,6 +47,7 @@ import {
   mediaTypes,
   newsletters,
   publishers,
+  locations,
   relationshipTypes,
   tags,
   websiteFavicons,
@@ -66,6 +69,7 @@ interface BookmarkExtras {
   publisher: BookmarkPublisher | null;
   import: BookmarkImport | null;
   tags: BookmarkTag[];
+  locations: BookmarkLocation[];
   blacklistedTagIds: string[];
   authors: BookmarkAuthor[];
   numberValues: BookmarkNumberValue[];
@@ -89,6 +93,7 @@ const EMPTY_EXTRAS: BookmarkExtras = {
   publisher: null,
   import: null,
   tags: [],
+  locations: [],
   blacklistedTagIds: [],
   authors: [],
   numberValues: [],
@@ -121,6 +126,7 @@ function toBookmark(row: BookmarkRow, extras: BookmarkExtras, defaultCategoryId:
     publisher: extras.publisher,
     import: extras.import,
     tags: extras.tags,
+    locations: extras.locations,
     blacklistedTagIds: extras.blacklistedTagIds,
     authors: extras.authors,
     numberValues: extras.numberValues,
@@ -376,6 +382,36 @@ async function tagsByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Book
       slug: row.slug ?? slugify(row.name),
       parentId: row.parentId,
       editableOnCard: row.editableOnCard,
+    });
+    grouped.set(row.bookmarkId, list);
+  }
+  return grouped;
+}
+
+/** Load locations for a set of bookmark ids in a single query, grouped by bookmark id. */
+async function locationsByBookmarkId(bookmarkIds: string[]): Promise<Map<string, BookmarkLocation[]>> {
+  const grouped = new Map<string, BookmarkLocation[]>();
+  if (bookmarkIds.length === 0) return grouped;
+
+  const rows = await db
+    .select({
+      bookmarkId: bookmarkLocations.bookmarkId,
+      id: locations.id,
+      name: locations.name,
+      slug: locations.slug,
+      parentId: locations.parentId,
+    })
+    .from(bookmarkLocations)
+    .innerJoin(locations, eq(bookmarkLocations.locationId, locations.id))
+    .where(inArray(bookmarkLocations.bookmarkId, bookmarkIds));
+
+  for (const row of rows) {
+    const list = grouped.get(row.bookmarkId) ?? [];
+    list.push({
+      id: row.id,
+      name: row.name,
+      slug: row.slug ?? slugify(row.name),
+      parentId: row.parentId,
     });
     grouped.set(row.bookmarkId, list);
   }
@@ -717,8 +753,9 @@ async function relationshipsByBookmarkId(
 
 /** Hydrate all custom-property relations for a set of bookmark rows in batched queries. */
 async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, BookmarkExtras>> {
-  const [tagsMap, blacklistedMap, authorsMap, numberMap, booleanMap, dateTimeMap, choicesMap, progressMap, sectionsMap, textMap, fileMap, imageMap, screenshotMap, relationshipsMap] = await Promise.all([
+  const [tagsMap, locationsMap, blacklistedMap, authorsMap, numberMap, booleanMap, dateTimeMap, choicesMap, progressMap, sectionsMap, textMap, fileMap, imageMap, screenshotMap, relationshipsMap] = await Promise.all([
     tagsByBookmarkId(bookmarkIds),
+    locationsByBookmarkId(bookmarkIds),
     blacklistedTagIdsByBookmarkId(bookmarkIds),
     authorsByBookmarkId(bookmarkIds),
     numberValuesByBookmarkId(bookmarkIds),
@@ -743,6 +780,7 @@ async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
       publisher: null,
       import: null,
       tags: tagsMap.get(id) ?? [],
+      locations: locationsMap.get(id) ?? [],
       blacklistedTagIds: blacklistedMap.get(id) ?? [],
       authors: authorsMap.get(id) ?? [],
       numberValues: numberMap.get(id) ?? [],

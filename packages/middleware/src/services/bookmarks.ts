@@ -19,6 +19,7 @@ import {
   bookmarkBooleanValues,
   bookmarkChoicesValues,
   bookmarkDateTimeValues,
+  bookmarkLocations,
   bookmarkNumberValues,
   bookmarkProgressValues,
   bookmarkSectionsValues,
@@ -50,6 +51,7 @@ import {
 import { hydrateBookmarkRows } from "@/services/bookmarkHydration";
 import {
   linkAuthors,
+  linkLocations,
   linkTags,
   recomputeCalculatedValues,
   setBooleanValues,
@@ -65,6 +67,7 @@ import {
 import { getAutomationSettings } from "@/services/appSettings";
 import { ensureDefaultCategory } from "@/services/categories";
 import { getDescendantIds, listTagNames, matchTagIdsByTitle } from "@/services/tags";
+import { listLocationNames, matchLocationIdsByTitle } from "@/services/locations";
 import { ensureWebsiteForUrl, getWebsiteByAnyDomain, normalizeDomain } from "@/services/websites";
 import { ensureYouTubeChannel } from "@/services/youtubeChannels";
 
@@ -355,6 +358,55 @@ export async function backfillTitleTags(): Promise<TitleTagBackfillResult> {
   };
 }
 
+/**
+ * Apply the "auto-tag from title" automation for Locations to every existing bookmark, additively.
+ * Mirrors {@link backfillTitleTags}: each bookmark's title (and romanized title) is matched against
+ * every location's name + romanized + alternate names, and the matches are inserted idempotently.
+ */
+export async function backfillTitleLocations(): Promise<TitleTagBackfillResult> {
+  const allLocations = await listLocationNames();
+  const rows = await db
+    .select({
+      id: bookmarks.id,
+      title: bookmarks.title,
+      romanizedTitle: bookmarks.romanizedTitle,
+    })
+    .from(bookmarks);
+
+  const links: { bookmarkId: string;
+    locationId: string; }[] = [];
+  for (const row of rows) {
+    for (const locationId of matchLocationIdsByTitle(row.title, row.romanizedTitle, allLocations)) {
+      links.push({
+        bookmarkId: row.id,
+        locationId,
+      });
+    }
+  }
+
+  if (links.length === 0) {
+    return {
+      scanned: rows.length,
+      updated: 0,
+      tagsApplied: 0,
+    };
+  }
+
+  const inserted = await db
+    .insert(bookmarkLocations)
+    .values(links)
+    .onConflictDoNothing()
+    .returning({
+      bookmarkId: bookmarkLocations.bookmarkId,
+    });
+  if (inserted.length > 0) invalidateBookmarkCache();
+  return {
+    scanned: rows.length,
+    updated: new Set(inserted.map(link => link.bookmarkId)).size,
+    tagsApplied: inserted.length,
+  };
+}
+
 type ChannelHint = ReturnType<typeof channelHintFrom>;
 type SiteData = Awaited<ReturnType<typeof getWebsiteByAnyDomain>>;
 type YouTubeMeta = Awaited<ReturnType<typeof resolveYouTubeMeta>>;
@@ -401,6 +453,23 @@ async function mergeCreateTagIds(
   }
   const titleTagIds = await titleMatchTagIds(input.title, input.romanizedTitle ?? null);
   return [...new Set([...(input.tagIds ?? []), ...defaultTagIds, ...titleTagIds])];
+}
+
+/** Location ids matched from the bookmark title, when the "auto-tag from title" automation is on. */
+async function titleMatchLocationIds(title: string, romanizedTitle: string | null): Promise<string[]> {
+  if (!title.trim() && !(romanizedTitle ?? "").trim()) return [];
+  const {
+    autoApplyTitleLocations,
+  } = await getAutomationSettings();
+  if (!autoApplyTitleLocations) return [];
+  const allLocations = await listLocationNames();
+  return matchLocationIdsByTitle(title, romanizedTitle, allLocations);
+}
+
+/** Locations: union of user-provided + title matches (deduped). */
+async function mergeCreateLocationIds(input: CreateBookmarkInput): Promise<string[]> {
+  const titleLocationIds = await titleMatchLocationIds(input.title, input.romanizedTitle ?? null);
+  return [...new Set([...(input.locationIds ?? []), ...titleLocationIds])];
 }
 
 /** Media-type precedence: user-provided > channel default > website default > "Video" (YouTube). */
@@ -451,6 +520,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
 
   const categoryId = await resolveCreateCategoryId(input, defaultId, channelHint, siteData);
   const mergedTagIds = await mergeCreateTagIds(input, channelHint, siteData);
+  const mergedLocationIds = await mergeCreateLocationIds(input);
   const mediaTypeId = await resolveCreateMediaTypeId(input, channelHint, siteData, meta);
 
   const numberValues = await withRuntime(input.numberValues ?? [], meta, "create");
@@ -483,6 +553,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
         id: bookmarks.id,
       });
     await linkTags(tx, row.id, mergedTagIds);
+    await linkLocations(tx, row.id, mergedLocationIds);
     if (input.blacklistedTagIds?.length) {
       await setBookmarkTagBlacklist(tx, row.id, input.blacklistedTagIds);
     }
@@ -584,6 +655,10 @@ async function applyBookmarkValueUpdates(
   if (input.tagIds !== undefined) {
     await tx.delete(bookmarkTags).where(eq(bookmarkTags.bookmarkId, id));
     await linkTags(tx, id, input.tagIds);
+  }
+  if (input.locationIds !== undefined) {
+    await tx.delete(bookmarkLocations).where(eq(bookmarkLocations.bookmarkId, id));
+    await linkLocations(tx, id, input.locationIds);
   }
   if (input.blacklistedTagIds !== undefined) {
     await setBookmarkTagBlacklist(tx, id, input.blacklistedTagIds);
