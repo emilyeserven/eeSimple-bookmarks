@@ -108,6 +108,13 @@ export interface CreateLocationChainInput {
   location: CreateLocationInput;
   /** Ancestors from the immediate parent up to the root; omit/empty to just create `location`. */
   ancestors?: CreateLocationInput[];
+  /**
+   * Existing location id that the **top** of the chain attaches to — the parent of the topmost
+   * `ancestors` entry, or of `location` itself when `ancestors` is empty. Lets a chain reuse an
+   * existing ancestor (e.g. an already-saved "Japan") instead of recreating it. Omit/null for a
+   * root chain.
+   */
+  parentId?: string | null;
 }
 
 /** A location reduced to the fields the title matcher needs. */
