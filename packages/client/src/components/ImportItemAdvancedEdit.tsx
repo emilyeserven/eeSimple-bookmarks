@@ -9,6 +9,7 @@ import { AddAuthorModal } from "./AddAuthorModal";
 import { AddCategoryModal } from "./AddCategoryModal";
 import { AddMediaTypeModal } from "./AddMediaTypeModal";
 import { AddPublisherModal } from "./AddPublisherModal";
+import { AddTagModal } from "./AddTagModal";
 import { Combobox } from "./Combobox";
 import { MultiCombobox } from "./MultiCombobox";
 import { TagPicker } from "./TagPicker";
@@ -71,6 +72,7 @@ export function ImportItemAdvancedEdit({
   const [addMediaTypeOpen, setAddMediaTypeOpen] = useState(false);
   const [addPublisherOpen, setAddPublisherOpen] = useState(false);
   const [addAuthorOpen, setAddAuthorOpen] = useState(false);
+  const [addTagOpen, setAddTagOpen] = useState(false);
 
   const {
     data: categories = [],
@@ -169,6 +171,10 @@ export function ImportItemAdvancedEdit({
             tree={tagTree}
             selectedIds={tagIds}
             onToggle={handleTagToggle}
+            createOption={{
+              label: "Create tag",
+              onSelect: () => setAddTagOpen(true),
+            }}
           />
         </div>
 
@@ -228,6 +234,11 @@ export function ImportItemAdvancedEdit({
         )}
       </CollapsibleContent>
 
+      <AddTagModal
+        open={addTagOpen}
+        onOpenChange={setAddTagOpen}
+        onCreated={tag => onTagsChange([...tagIds, tag.id])}
+      />
       <AddCategoryModal
         open={addCategoryOpen}
         onOpenChange={setAddCategoryOpen}
