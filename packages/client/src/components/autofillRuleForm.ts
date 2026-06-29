@@ -11,6 +11,7 @@ export interface AutofillRuleDefaultValues {
   setCategoryId: string;
   setMediaTypeId: string;
   tagIds: string[];
+  locationIds: string[];
   sortOrder: number;
 }
 
@@ -19,6 +20,7 @@ export interface AutofillRuleDefaults {
   defaultCategoryId?: string;
   defaultMediaTypeId?: string;
   defaultTagIds?: string[];
+  defaultLocationIds?: string[];
 }
 
 /**
@@ -36,6 +38,7 @@ export function buildAutofillRuleDefaultValues(
     setCategoryId: rule?.setCategoryId ?? defaults.defaultCategoryId ?? NO_CATEGORY,
     setMediaTypeId: rule?.setMediaTypeId ?? defaults.defaultMediaTypeId ?? NO_MEDIA_TYPE,
     tagIds: rule?.tagIds ?? defaults.defaultTagIds ?? [],
+    locationIds: rule?.locationIds ?? defaults.defaultLocationIds ?? [],
     sortOrder: rule?.sortOrder ?? 0,
   };
 }

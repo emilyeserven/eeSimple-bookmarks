@@ -11,6 +11,8 @@ export interface ConditionSummary {
   websites: number;
   /** Number of selected tag ids (a single tag leaf can hold several). */
   tags: number;
+  /** Number of selected location ids (a single location leaf can hold several). */
+  locations: number;
   /** Number of selected YouTube channel ids (a single youtube-channel leaf can hold several). */
   channels: number;
   /** Number of selected media type ids (a single media-type leaf can hold several). */
@@ -27,6 +29,7 @@ export function summarizeConditions(tree: ConditionTree): ConditionSummary {
   let categories = 0;
   let websites = 0;
   let tags = 0;
+  let locations = 0;
   let channels = 0;
   let mediaTypes = 0;
   let relationshipTypes = 0;
@@ -36,6 +39,7 @@ export function summarizeConditions(tree: ConditionTree): ConditionSummary {
     else if (child.type === "category") categories += child.categoryIds.length;
     else if (child.type === "website") websites += child.domains.length;
     else if (child.type === "tag") tags += child.tagIds.length;
+    else if (child.type === "location") locations += child.locationIds.length;
     else if (child.type === "youtube-channel") channels += child.channelIds.length;
     else if (child.type === "media-type") mediaTypes += child.mediaTypeIds.length;
     else if (child.type === "relationship-type") relationshipTypes += child.relationshipTypeIds.length;
@@ -47,6 +51,7 @@ export function summarizeConditions(tree: ConditionTree): ConditionSummary {
     categories,
     websites,
     tags,
+    locations,
     channels,
     mediaTypes,
     relationshipTypes,
@@ -80,6 +85,7 @@ export function conditionsBreakdown(tree: ConditionTree): string[] {
   if (summary.categories > 0) lines.push(`${summary.categories} categor${summary.categories === 1 ? "y" : "ies"}`);
   if (summary.websites > 0) lines.push(`${summary.websites} website${summary.websites === 1 ? "" : "s"}`);
   if (summary.tags > 0) lines.push(`${summary.tags} tag${summary.tags === 1 ? "" : "s"}`);
+  if (summary.locations > 0) lines.push(`${summary.locations} location${summary.locations === 1 ? "" : "s"}`);
   if (summary.channels > 0) lines.push(`${summary.channels} YouTube channel${summary.channels === 1 ? "" : "s"}`);
   if (summary.mediaTypes > 0) lines.push(`${summary.mediaTypes} media type${summary.mediaTypes === 1 ? "" : "s"}`);
   if (summary.relationshipTypes > 0) lines.push(`${summary.relationshipTypes} relationship type${summary.relationshipTypes === 1 ? "" : "s"}`);

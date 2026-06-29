@@ -133,6 +133,11 @@ export function useBookmarkPropertyPrefill({
       form.setFieldValue("tagIds", [...new Set([...current, ...result.tagIds])]);
     }
 
+    if (result.locationIds.length > 0 && !touchedRef.current.has("locations")) {
+      const current = form.getFieldValue("locationIds");
+      form.setFieldValue("locationIds", [...new Set([...current, ...result.locationIds])]);
+    }
+
     ruleSetRef.current = {
       numbers: new Set(result.numberValues.map(entry => entry.propertyId)),
       booleans: new Set(result.booleanValues.map(entry => entry.propertyId)),

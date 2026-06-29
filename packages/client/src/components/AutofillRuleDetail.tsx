@@ -4,6 +4,7 @@ import type {
   ConditionMatchOperator,
   ConditionNode,
   CustomProperty,
+  Location,
   MediaType,
   Tag,
 } from "@eesimple/types";
@@ -26,13 +27,14 @@ function describeConditionNode(
   categories: Category[],
   tags: Tag[],
   properties: CustomProperty[],
+  locations: Location[],
 ): string {
   switch (node.type) {
     case "group": {
       if (node.children.length === 0) return "(empty group)";
       const combLabel = node.combinator === "and" ? "ALL" : "ANY";
       const inner = node.children
-        .map(c => describeConditionNode(c, categories, tags, properties))
+        .map(c => describeConditionNode(c, categories, tags, properties, locations))
         .join(node.combinator === "and" ? " AND " : " OR ");
       return `${combLabel} of: (${inner})`;
     }
@@ -51,6 +53,10 @@ function describeConditionNode(
     case "tag": {
       const names = node.tagIds.map(id => tags.find(t => t.id === id)?.name ?? id);
       return `Tagged with any of: ${names.join(", ")}`;
+    }
+    case "location": {
+      const names = node.locationIds.map(id => locations.find(l => l.id === id)?.name ?? id);
+      return `Located in any of: ${names.join(", ")}`;
     }
     case "youtube-channel":
       return node.channelIds.length === 1
@@ -99,12 +105,13 @@ export function AutofillGeneralFields({
 
 /** Body of the Conditions view tab: detailed breakdown of the activation condition tree. */
 export function AutofillConditionsFields({
-  rule, categories, tags, properties,
+  rule, categories, tags, properties, locations,
 }: {
   rule: AutofillRule;
   categories: Category[];
   tags: Tag[];
   properties: CustomProperty[];
+  locations: Location[];
 }) {
   const tree = rule.conditions;
   if (tree.children.length === 0) {
@@ -128,7 +135,7 @@ export function AutofillConditionsFields({
             className="flex gap-2"
           >
             <span className="text-muted-foreground">•</span>
-            <span>{describeConditionNode(child, categories, tags, properties)}</span>
+            <span>{describeConditionNode(child, categories, tags, properties, locations)}</span>
           </li>
         ))}
       </ul>
@@ -138,13 +145,14 @@ export function AutofillConditionsFields({
 
 /** Body of the Prefill view tab: what category/media type/tags/properties the rule sets. */
 export function AutofillPrefillFields({
-  rule, categories, mediaTypes, tags, properties,
+  rule, categories, mediaTypes, tags, properties, locations,
 }: {
   rule: AutofillRule;
   categories: Category[];
   mediaTypes: MediaType[];
   tags: Tag[];
   properties: CustomProperty[];
+  locations: Location[];
 }) {
   const categoryName = rule.setCategoryId
     ? (categories.find(c => c.id === rule.setCategoryId)?.name ?? null)
@@ -155,6 +163,8 @@ export function AutofillPrefillFields({
     : null;
 
   const tagNames = rule.tagIds.map(id => tags.find(t => t.id === id)?.name ?? id);
+
+  const locationNames = rule.locationIds.map(id => locations.find(l => l.id === id)?.name ?? id);
 
   const propertyValues: { id: string;
     name: string;
@@ -208,6 +218,25 @@ export function AutofillPrefillFields({
           ? (
             <ul className="space-y-1 text-sm">
               {tagNames.map((name, i) => (
+
+                <li key={i}>
+                  •
+                  {" "}
+                  {name}
+                </li>
+              ))}
+            </ul>
+          )
+          : <p className="text-sm text-muted-foreground">None</p>}
+      </LabeledSection>
+
+      <Separator />
+
+      <LabeledSection title="Locations">
+        {locationNames.length > 0
+          ? (
+            <ul className="space-y-1 text-sm">
+              {locationNames.map((name, i) => (
 
                 <li key={i}>
                   •

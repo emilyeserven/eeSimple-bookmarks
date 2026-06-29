@@ -161,6 +161,14 @@ vi.mock("../hooks/useTags", () => ({
     data: [],
   }),
 }));
+vi.mock("../hooks/useLocations", () => ({
+  useLocations: () => ({
+    data: [],
+  }),
+  useLocationTree: () => ({
+    data: [],
+  }),
+}));
 vi.mock("../hooks/useFetchTitle", () => ({
   useFetchTitle: () => ({
     mutateAsync,
@@ -582,6 +590,7 @@ describe("BookmarkForm property prefill", () => {
       setCategoryId: null,
       setMediaTypeId: null,
       tagIds: [],
+      locationIds: [],
       numberValues: [{
         propertyId: "prop-rating",
         value: 7,

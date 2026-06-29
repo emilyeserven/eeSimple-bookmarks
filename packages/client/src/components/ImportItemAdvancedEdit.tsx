@@ -7,14 +7,17 @@ import { ChevronDown } from "lucide-react";
 
 import { AddAuthorModal } from "./AddAuthorModal";
 import { AddCategoryModal } from "./AddCategoryModal";
+import { AddLocationModal } from "./AddLocationModal";
 import { AddMediaTypeModal } from "./AddMediaTypeModal";
 import { AddPublisherModal } from "./AddPublisherModal";
 import { AddTagModal } from "./AddTagModal";
 import { Combobox } from "./Combobox";
+import { LocationPicker } from "./LocationPicker";
 import { MultiCombobox } from "./MultiCombobox";
 import { TagPicker } from "./TagPicker";
 import { useAuthors } from "../hooks/useAuthors";
 import { useCategories } from "../hooks/useCategories";
+import { useLocationTree } from "../hooks/useLocations";
 import { useMediaTypeTree } from "../hooks/useMediaTypes";
 import { usePublishers } from "../hooks/usePublishers";
 import { useTagTree } from "../hooks/useTags";
@@ -36,11 +39,13 @@ interface ImportItemAdvancedEditProps {
   categoryId: string | undefined;
   mediaTypeId: string | undefined;
   tagIds: string[];
+  locationIds: string[];
   authorIds: string[];
   publisherId: string | undefined;
   onCategoryChange: (id: string | undefined) => void;
   onMediaTypeChange: (id: string | undefined) => void;
   onTagsChange: (ids: string[]) => void;
+  onLocationsChange: (ids: string[]) => void;
   onAuthorsChange: (ids: string[]) => void;
   onPublisherChange: (id: string | undefined) => void;
 }
@@ -60,11 +65,13 @@ export function ImportItemAdvancedEdit({
   categoryId,
   mediaTypeId,
   tagIds,
+  locationIds,
   authorIds,
   publisherId,
   onCategoryChange,
   onMediaTypeChange,
   onTagsChange,
+  onLocationsChange,
   onAuthorsChange,
   onPublisherChange,
 }: ImportItemAdvancedEditProps) {
@@ -73,6 +80,7 @@ export function ImportItemAdvancedEdit({
   const [addPublisherOpen, setAddPublisherOpen] = useState(false);
   const [addAuthorOpen, setAddAuthorOpen] = useState(false);
   const [addTagOpen, setAddTagOpen] = useState(false);
+  const [addLocationOpen, setAddLocationOpen] = useState(false);
 
   const {
     data: categories = [],
@@ -83,6 +91,9 @@ export function ImportItemAdvancedEdit({
   const {
     data: tagTree = [],
   } = useTagTree();
+  const {
+    data: locationTree = [],
+  } = useLocationTree();
   const {
     data: authors = [],
   } = useAuthors();
@@ -110,6 +121,13 @@ export function ImportItemAdvancedEdit({
       ? tagIds.filter(t => t !== id)
       : [...tagIds, id];
     onTagsChange(next);
+  }
+
+  function handleLocationToggle(id: string) {
+    const next = locationIds.includes(id)
+      ? locationIds.filter(l => l !== id)
+      : [...locationIds, id];
+    onLocationsChange(next);
   }
 
   return (
@@ -179,6 +197,19 @@ export function ImportItemAdvancedEdit({
         </div>
 
         <div className="space-y-1">
+          <Label className="text-xs">Locations</Label>
+          <LocationPicker
+            tree={locationTree}
+            selectedIds={locationIds}
+            onToggle={handleLocationToggle}
+            createOption={{
+              label: "Create location",
+              onSelect: () => setAddLocationOpen(true),
+            }}
+          />
+        </div>
+
+        <div className="space-y-1">
           <Label className="text-xs">Authors</Label>
           <MultiCombobox
             options={authors.map(a => ({
@@ -240,6 +271,11 @@ export function ImportItemAdvancedEdit({
         open={addTagOpen}
         onOpenChange={setAddTagOpen}
         onCreated={tag => onTagsChange([...tagIds, tag.id])}
+      />
+      <AddLocationModal
+        open={addLocationOpen}
+        onOpenChange={setAddLocationOpen}
+        onCreated={location => onLocationsChange([...locationIds, location.id])}
       />
       <AddCategoryModal
         open={addCategoryOpen}

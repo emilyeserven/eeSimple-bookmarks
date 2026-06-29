@@ -21,6 +21,10 @@ vi.mock("../hooks/useConnectors", () => ({
         enabled: false,
         baseUrl: null,
       },
+      geocoding: {
+        enabled: true,
+        endpoint: "https://nominatim.openstreetmap.org",
+      },
     },
   }),
 }));

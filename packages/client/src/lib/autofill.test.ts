@@ -33,6 +33,7 @@ function rule(overrides: Partial<AutofillRule>): AutofillRule {
     setCategoryId: overrides.setCategoryId ?? null,
     setMediaTypeId: overrides.setMediaTypeId ?? null,
     tagIds: overrides.tagIds ?? [],
+    locationIds: overrides.locationIds ?? [],
     numberValues: overrides.numberValues ?? [],
     booleanValues: overrides.booleanValues ?? [],
     dateTimeValues: overrides.dateTimeValues ?? [],
@@ -155,6 +156,7 @@ describe("applyAutofill", () => {
           operator: "domain",
         }),
         tagIds: ["recipe"],
+        locationIds: ["usa"],
         booleanValues: [{
           propertyId: "tried",
           value: false,
@@ -164,6 +166,7 @@ describe("applyAutofill", () => {
         id: "b",
         conditions: match("ponzu"),
         tagIds: ["japanese", "citrus"],
+        locationIds: ["japan"],
       }),
       rule({
         id: "c",
@@ -172,6 +175,7 @@ describe("applyAutofill", () => {
       }),
     ]);
     expect(result.tagIds.sort()).toEqual(["carb-pasta", "citrus", "japanese", "recipe"]);
+    expect(result.locationIds.sort()).toEqual(["japan", "usa"]);
     expect(result.booleanValues).toEqual([{
       propertyId: "tried",
       value: false,
@@ -236,6 +240,7 @@ describe("applyAutofill", () => {
       categoryId: null,
       mediaTypeId: null,
       tagIds: [],
+      locationIds: [],
       numberValues: [],
       booleanValues: [],
       dateTimeValues: [],

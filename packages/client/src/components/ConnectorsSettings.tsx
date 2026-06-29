@@ -568,6 +568,37 @@ export function ConnectorsSettings() {
       ),
     },
     {
+      id: "geocoding",
+      status: "always-on",
+      node: (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle>Geocoding (Nominatim)</CardTitle>
+              <AlwaysOnBadge />
+            </div>
+            <CardDescription>
+              Keyless place lookup for the Locations taxonomy, powered by OpenStreetMap Nominatim.
+              Looking up a place resolves its coordinates, country, and a map link.
+              {data?.geocoding.endpoint
+                ? (
+                  <>
+                    {" "}
+                    Endpoint:
+                    {" "}
+                    <code>{data.geocoding.endpoint}</code>
+                  </>
+                )
+                : null}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Provides items={["Coordinates", "Country", "Place type", "Map URL"]} />
+          </CardContent>
+        </Card>
+      ),
+    },
+    {
       id: "youtube",
       status: envStatus(data?.youtubeDataApi.enabled),
       node: (

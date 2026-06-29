@@ -19,6 +19,7 @@ import { useAutofillRuleById, useAutofillRuleBySlug, useDeleteAutofillRule } fro
 import { useBookmarks } from "@/hooks/useBookmarks";
 import { useCategories } from "@/hooks/useCategories";
 import { useCustomProperties } from "@/hooks/useCustomProperties";
+import { useLocations } from "@/hooks/useLocations";
 import { useMediaTypes } from "@/hooks/useMediaTypes";
 import { useTags } from "@/hooks/useTags";
 import { copyText } from "@/lib/clipboard";
@@ -38,12 +39,16 @@ function ConditionsView({
   const {
     data: properties = [],
   } = useCustomProperties();
+  const {
+    data: locations = [],
+  } = useLocations();
   return (
     <AutofillConditionsFields
       rule={rule}
       categories={categories}
       tags={tags}
       properties={properties}
+      locations={locations}
     />
   );
 }
@@ -146,6 +151,9 @@ function PrefillView({
   const {
     data: properties = [],
   } = useCustomProperties();
+  const {
+    data: locations = [],
+  } = useLocations();
   return (
     <AutofillPrefillFields
       rule={rule}
@@ -153,6 +161,7 @@ function PrefillView({
       mediaTypes={mediaTypes}
       tags={tags}
       properties={properties}
+      locations={locations}
     />
   );
 }

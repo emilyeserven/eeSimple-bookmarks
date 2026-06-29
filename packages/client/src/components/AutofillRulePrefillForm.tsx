@@ -17,6 +17,7 @@ import { useUpdateAutofillRule } from "../hooks/useAutofill";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
+import { useLocationTree } from "../hooks/useLocations";
 import { useMediaTypeTree } from "../hooks/useMediaTypes";
 import { useTagTree } from "../hooks/useTags";
 
@@ -24,6 +25,7 @@ const LABELS: Partial<Record<keyof UpdateAutofillRuleInput, string>> = {
   setCategoryId: "Category",
   setMediaTypeId: "Media Type",
   tagIds: "Tags",
+  locationIds: "Locations",
   numberValues: "Number values",
   booleanValues: "Boolean values",
   dateTimeValues: "Date/Time values",
@@ -104,6 +106,9 @@ export function AutofillRulePrefillForm({
   const {
     data: mediaTypeTree = [],
   } = useMediaTypeTree();
+  const {
+    data: locationTree = [],
+  } = useLocationTree();
   const updateRule = useUpdateAutofillRule();
 
   const initialCategoryId = rule.setCategoryId ?? NO_CATEGORY;
@@ -115,6 +120,7 @@ export function AutofillRulePrefillForm({
   const [setCategoryId, setSetCategoryId] = useState(initialCategoryId);
   const [setMediaTypeId, setSetMediaTypeId] = useState(initialMediaTypeId);
   const [tagIds, setTagIds] = useState<string[]>(rule.tagIds);
+  const [locationIds, setLocationIds] = useState<string[]>(rule.locationIds);
   const [numberInputs, setNumberInputs] = useState<Record<string, string>>(initialNumberInputs);
   const [booleanInputs, setBooleanInputs] = useState<Record<string, boolean>>(initialBooleanInputs);
   const [dateTimeInputs, setDateTimeInputs] = useState<Record<string, string>>(initialDateTimeInputs);
@@ -127,6 +133,7 @@ export function AutofillRulePrefillForm({
       setCategoryId: rule.setCategoryId,
       setMediaTypeId: rule.setMediaTypeId,
       tagIds: rule.tagIds,
+      locationIds: rule.locationIds,
       numberValues: rule.numberValues,
       booleanValues: rule.booleanValues,
       dateTimeValues: rule.dateTimeValues,
@@ -152,6 +159,12 @@ export function AutofillRulePrefillForm({
     const next = tagIds.includes(id) ? tagIds.filter(t => t !== id) : [...tagIds, id];
     setTagIds(next);
     autoSave.saveField("tagIds", next);
+  }
+
+  function handleToggleLocation(id: string) {
+    const next = locationIds.includes(id) ? locationIds.filter(l => l !== id) : [...locationIds, id];
+    setLocationIds(next);
+    autoSave.saveField("locationIds", next);
   }
 
   function handleNumberChange(id: string, value: string) {
@@ -190,12 +203,15 @@ export function AutofillRulePrefillForm({
         categories={categories}
         mediaTypeTree={mediaTypeTree}
         tagTree={tagTree}
+        locationTree={locationTree}
         setCategoryId={setCategoryId}
         onCategoryChange={handleCategoryChange}
         setMediaTypeId={setMediaTypeId}
         onMediaTypeChange={handleMediaTypeChange}
         tagIds={tagIds}
         onToggleTag={handleToggleTag}
+        locationIds={locationIds}
+        onToggleLocation={handleToggleLocation}
       />
 
       <RulePropertyFields

@@ -16,6 +16,7 @@ import {
   LayoutGrid,
   ListFilter,
   Mail,
+  MapPin,
   MonitorPlay,
   Share2,
   SlidersHorizontal,
@@ -93,6 +94,12 @@ const taxonomyItems = [
     title: "Media Types",
     to: "/taxonomies/media-types",
     icon: Clapperboard,
+  },
+  {
+    key: "locations",
+    title: "Locations",
+    to: "/taxonomies/locations",
+    icon: MapPin,
   },
   {
     key: "youtube-channels",

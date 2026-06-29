@@ -10,6 +10,7 @@ import { bookmarkContentType } from "./contentTypes/bookmark";
 import { cardDisplayRuleContentType } from "./contentTypes/cardDisplayRule";
 import { categoryContentType } from "./contentTypes/category";
 import { importRuleContentType } from "./contentTypes/importRule";
+import { locationContentType } from "./contentTypes/location";
 import { mediaTypeContentType } from "./contentTypes/mediaType";
 import { newsletterContentType } from "./contentTypes/newsletter";
 import { propertyContentType } from "./contentTypes/property";
@@ -32,6 +33,7 @@ export const PANEL_CONTENT_TYPES: PanelContentTypeDef[] = [
   propertyGroupContentType,
   websiteContentType,
   mediaTypeContentType,
+  locationContentType,
   youtubeChannelContentType,
   newsletterContentType,
   authorContentType,

@@ -21,6 +21,7 @@ export type DrawerContentType
     | "property-group"
     | "website"
     | "media-type"
+    | "location"
     | "youtube-channel"
     | "newsletter"
     | "author"
@@ -49,6 +50,7 @@ export const DRAWER_CONTENT_TYPES: DrawerContentType[] = [
   "property-group",
   "website",
   "media-type",
+  "location",
   "youtube-channel",
   "newsletter",
   "author",

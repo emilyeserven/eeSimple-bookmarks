@@ -52,6 +52,11 @@ export function ruleReferencesYoutubeChannel(rule: CardDisplayRule, channelId: s
   return anyLeaf(rule, node => node.type === "youtube-channel" && node.channelIds.includes(channelId));
 }
 
+/** True when a Location condition in the rule's tree references `locationId` (exact, no cascade). */
+export function ruleReferencesLocation(rule: CardDisplayRule, locationId: string): boolean {
+  return anyLeaf(rule, node => node.type === "location" && node.locationIds.includes(locationId));
+}
+
 /**
  * The entity a Display Rules tab is scoped to. Only the field for the current tab is set; for the
  * property scope the value kind travels alongside the id so the seeded predicate is well-typed.
@@ -62,6 +67,7 @@ export interface CardDisplayRuleScope {
   websiteDomain?: string;
   tagId?: string;
   mediaTypeId?: string;
+  locationId?: string;
   channelId?: string;
   property?: { id: string;
     valueKind: ConditionValueKind; };
@@ -171,6 +177,12 @@ export function seedCardDisplayConditions(scope: CardDisplayRuleScope): Conditio
     leaves.push({
       type: "media-type",
       mediaTypeIds: [scope.mediaTypeId],
+    });
+  }
+  if (scope.locationId) {
+    leaves.push({
+      type: "location",
+      locationIds: [scope.locationId],
     });
   }
   if (scope.channelId) {

@@ -200,6 +200,7 @@ export function useBookmarkFormController({
     mediaTypeId: string;
     description: string;
     tagIds: string[];
+    locationIds: string[];
     authorIds: string[];
     publisherId: string;
   }): Promise<void> {
@@ -231,6 +232,7 @@ export function useBookmarkFormController({
       mediaTypeId: value.mediaTypeId || null,
       description: value.description || null,
       tagIds: value.tagIds,
+      locationIds: value.locationIds,
       authorIds: value.authorIds,
       publisherId: form.getFieldValue("publisherId") || null,
       numberValues,

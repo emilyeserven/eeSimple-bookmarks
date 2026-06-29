@@ -1,5 +1,5 @@
 import type { TreeComboboxOption } from "@/components/TreeMultiCombobox";
-import type { TagNode } from "@eesimple/types";
+import type { LocationNode, TagNode } from "@eesimple/types";
 
 import { romanizedSortKey } from "./romanized";
 
@@ -37,6 +37,17 @@ export function tagNodesToOptions(nodes: TagNode[]): TreeComboboxOption[] {
     // Carry the romanized form so the combobox search matches it too.
     searchAlias: n.romanizedName ?? undefined,
     children: tagNodesToOptions(n.children),
+  }));
+}
+
+/** Convert a LocationNode tree into TreeComboboxOption format for use with TreeMultiCombobox. */
+export function locationNodesToOptions(nodes: LocationNode[]): TreeComboboxOption[] {
+  return nodes.map(n => ({
+    value: n.id,
+    label: n.name,
+    // Carry the romanized form so the combobox search matches it too.
+    searchAlias: n.romanizedName ?? undefined,
+    children: locationNodesToOptions(n.children),
   }));
 }
 

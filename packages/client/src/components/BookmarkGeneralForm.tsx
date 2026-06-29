@@ -3,6 +3,7 @@ import type { Bookmark } from "@eesimple/types";
 import { Brush } from "lucide-react";
 
 import { AddAuthorModal } from "./AddAuthorModal";
+import { AddLocationModal } from "./AddLocationModal";
 import { AddMediaTypeModal } from "./AddMediaTypeModal";
 import { AddTagModal } from "./AddTagModal";
 import { BookmarkAdvancedPublisherField } from "./BookmarkAdvancedPublisherField";
@@ -14,6 +15,7 @@ import { GatedTagPicker } from "./BookmarkTagsField";
 import { BookmarkUrlCleanupBanner } from "./BookmarkUrlCleanupBanner";
 import { UrlCleanupPanel } from "./BookmarkUrlCleanupPanel";
 import { BookmarkUrlDuplicateWarnings } from "./BookmarkUrlDuplicateWarnings";
+import { LocationPicker } from "./LocationPicker";
 import { MultiCombobox } from "./MultiCombobox";
 import { useBookmarkGeneralForm } from "./useBookmarkGeneralForm";
 import { WebsiteLookupBanner } from "./WebsiteLookupBanner";
@@ -36,6 +38,7 @@ export function BookmarkGeneralForm({
     shortenerIgnoreList,
     customStripParams,
     tagTree,
+    locationTree,
     categories,
     mediaTypes,
     authors,
@@ -71,7 +74,10 @@ export function BookmarkGeneralForm({
     setAddMediaTypeOpen,
     addTagOpen,
     setAddTagOpen,
+    addLocationOpen,
+    setAddLocationOpen,
     saveTags,
+    saveLocations,
     saveBlacklistedTagIds,
     addAuthorOpen,
     setAddAuthorOpen,
@@ -309,6 +315,44 @@ export function BookmarkGeneralForm({
             const newTagIds = [...current, tag.id];
             form.setFieldValue("tagIds", newTagIds);
             saveTags(newTagIds);
+          }
+        }}
+      />
+
+      <form.Field name="locationIds">
+        {field => (
+          <div className="space-y-1">
+            <Label>Locations</Label>
+            <LocationPicker
+              tree={locationTree ?? []}
+              selectedIds={field.state.value}
+              onToggle={(id) => {
+                touchedRef.current.add("locations");
+                const current = field.state.value;
+                const newLocationIds = current.includes(id)
+                  ? current.filter(locationId => locationId !== id)
+                  : [...current, id];
+                field.handleChange(newLocationIds);
+                saveLocations(newLocationIds);
+              }}
+              createOption={{
+                label: "Create location",
+                onSelect: () => setAddLocationOpen(true),
+              }}
+            />
+          </div>
+        )}
+      </form.Field>
+      <AddLocationModal
+        open={addLocationOpen}
+        onOpenChange={setAddLocationOpen}
+        onCreated={(location) => {
+          touchedRef.current.add("locations");
+          const current = form.getFieldValue("locationIds");
+          if (!current.includes(location.id)) {
+            const newLocationIds = [...current, location.id];
+            form.setFieldValue("locationIds", newLocationIds);
+            saveLocations(newLocationIds);
           }
         }}
       />

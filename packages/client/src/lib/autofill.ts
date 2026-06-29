@@ -21,6 +21,7 @@ export interface AutofillResult {
   /** Media type to assign, or `null` if no matching rule set one. */
   mediaTypeId: string | null;
   tagIds: string[];
+  locationIds: string[];
   numberValues: BookmarkNumberValue[];
   booleanValues: BookmarkBooleanValue[];
   dateTimeValues: BookmarkDateTimeValue[];
@@ -38,6 +39,7 @@ export function matchesRule(rule: AutofillRule, input: AutofillInput): boolean {
     title: input.title,
     categoryId: "",
     tagIds: new Set(),
+    locationIds: new Set(),
     youtubeChannelId: null,
     mediaTypeId: null,
     numberValues: new Map(),
@@ -64,6 +66,7 @@ export function applyAutofill(input: AutofillInput, rules: AutofillRule[]): Auto
   let categoryId: string | null = null;
   let mediaTypeId: string | null = null;
   const tagIds = new Set<string>();
+  const locationIds = new Set<string>();
   const numberByProperty = new Map<string, number>();
   const booleanByProperty = new Map<string, boolean>();
   const dateTimeByProperty = new Map<string, string>();
@@ -73,6 +76,7 @@ export function applyAutofill(input: AutofillInput, rules: AutofillRule[]): Auto
     if (rule.setCategoryId) categoryId = rule.setCategoryId;
     if (rule.setMediaTypeId) mediaTypeId = rule.setMediaTypeId;
     for (const tagId of rule.tagIds) tagIds.add(tagId);
+    for (const locationId of rule.locationIds) locationIds.add(locationId);
     for (const entry of rule.numberValues) numberByProperty.set(entry.propertyId, entry.value);
     for (const entry of rule.booleanValues) booleanByProperty.set(entry.propertyId, entry.value);
     for (const entry of rule.dateTimeValues) dateTimeByProperty.set(entry.propertyId, entry.value);
@@ -82,6 +86,7 @@ export function applyAutofill(input: AutofillInput, rules: AutofillRule[]): Auto
     categoryId,
     mediaTypeId,
     tagIds: [...tagIds],
+    locationIds: [...locationIds],
     numberValues: [...numberByProperty].map(([propertyId, value]) => ({
       propertyId,
       value,

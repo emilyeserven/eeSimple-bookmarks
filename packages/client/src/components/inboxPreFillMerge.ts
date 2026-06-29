@@ -14,6 +14,7 @@ export function mergeInboxPreFill(
     categoryId: itemPreFill.categoryId ?? batchPreFill?.categoryId,
     mediaTypeId: itemPreFill.mediaTypeId ?? batchPreFill?.mediaTypeId,
     tagIds: [...(itemPreFill.tagIds ?? []), ...(batchPreFill?.tagIds ?? [])],
+    locationIds: [...(itemPreFill.locationIds ?? []), ...(batchPreFill?.locationIds ?? [])],
     authorIds: itemPreFill.authorIds?.length ? itemPreFill.authorIds : batchPreFill?.authorIds,
     publisherId: itemPreFill.publisherId ?? batchPreFill?.publisherId,
     numberValues: batchPreFill?.numberValues,

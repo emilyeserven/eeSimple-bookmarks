@@ -51,6 +51,7 @@ const rule: AutofillRule = {
   setCategoryId: null,
   setMediaTypeId: null,
   tagIds: [],
+  locationIds: [],
   numberValues: [],
   booleanValues: [],
   dateTimeValues: [],

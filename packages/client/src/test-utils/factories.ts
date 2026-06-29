@@ -1,4 +1,4 @@
-import type { Bookmark, Category, CustomProperty } from "@eesimple/types";
+import type { Bookmark, Category, CustomProperty, Location } from "@eesimple/types";
 
 /**
  * Shared test/story factories for the full shared entity shapes.
@@ -100,7 +100,30 @@ export function makeBookmark(overrides: Partial<Bookmark> = {}): Bookmark {
     authors: [],
     publisher: null,
     relationships: [],
+    locations: [],
     priority: 0,
+    createdAt: NOW,
+    ...overrides,
+  };
+}
+
+/** A fully-populated `Location` (a root node with no coordinates by default). */
+export function makeLocation(overrides: Partial<Location> = {}): Location {
+  return {
+    id: "loc",
+    name: "Location",
+    romanizedName: null,
+    slug: "location",
+    alternateNames: [],
+    latitude: null,
+    longitude: null,
+    mapUrl: null,
+    plusCode: null,
+    placeType: null,
+    countryCode: null,
+    sortOrder: 0,
+    parentId: null,
+    tagIds: [],
     createdAt: NOW,
     ...overrides,
   };
