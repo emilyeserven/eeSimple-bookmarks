@@ -1,18 +1,27 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
+import type { FilterFacetKey } from "../lib/filterFacets";
 import type { Author, Bookmark, Category, CustomProperty, MediaType, PropertyGroup, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
 
 import { useState } from "react";
 
-import { ChevronDown, Search, X } from "lucide-react";
+import { ChevronDown, Plus, Search, X } from "lucide-react";
 
 import { FilterSections } from "./FilterSidebarSections";
 import { SavedFiltersSection } from "./SavedFiltersSection";
+import { useOnDemandFilters } from "../hooks/useAppSettings";
+import { FILTER_FACETS, facetHasActiveSelection, propertyHasActiveSelection } from "../lib/filterFacets";
 
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 
 interface FilterSidebarProps {
@@ -46,22 +55,79 @@ export function FilterSidebar({
   tree, properties, propertyGroups, categories, mediaTypes, youtubeChannels, websites, relationshipTypes, authors, bookmarks, search, onSearchChange,
 }: FilterSidebarProps) {
   const [sectionFilter, setSectionFilter] = useState("");
+  // Filters configured as "on demand" (Settings → Display → Filters) are hidden until the user adds
+  // them from the "Add filter" control; `added` tracks the ones revealed this session.
+  const onDemand = useOnDemandFilters();
+  const [added, setAdded] = useState<Set<string>>(new Set());
+  const revealFilter = (key: string) => setAdded(prev => new Set(prev).add(key));
+  // A filter shows when it isn't on-demand, has been added this session, or already has a value.
+  const revealed = (key: string, active: boolean) =>
+    !onDemand.includes(key) || added.has(key) || active;
 
-  // Category data is only supplied on the overall Bookmarks page; category pages render flat.
-  const hasCategoryFilter = (categories?.length ?? 0) > 0;
-  const hasMediaTypeFilter = (mediaTypes?.length ?? 0) > 0;
-  const hasChannelFilter = (youtubeChannels?.length ?? 0) > 0;
-  const hasWebsiteFilter = (websites?.length ?? 0) > 0;
-  const hasRelationshipTypeFilter = (relationshipTypes?.length ?? 0) > 0;
-  const hasAuthorFilter = (authors?.length ?? 0) > 0;
+  // Data presence (ungated): whether each facet has any data to filter on at all.
+  const hasCategoryData = (categories?.length ?? 0) > 0;
+  const hasMediaTypeData = (mediaTypes?.length ?? 0) > 0;
+  const hasChannelData = (youtubeChannels?.length ?? 0) > 0;
+  const hasWebsiteData = (websites?.length ?? 0) > 0;
+  const hasRelationshipTypeData = (relationshipTypes?.length ?? 0) > 0;
+  const hasAuthorData = (authors?.length ?? 0) > 0;
 
   const enabledProperties = properties.filter(p => p.enabled);
+  const hasTagsData = tree.length > 0;
+  const hasSectionsData = enabledProperties.some(p => p.type === "sections");
 
-  const hasTags = tree.length > 0;
-  const hasProperties = enabledProperties.length > 0;
-  const hasSectionsFilter = enabledProperties.some(p => p.type === "sections");
+  // Whether any facet has data — drives the rail's "No filters available" fallback. Ungated so the
+  // rail (and its Add-filter control) still appears when every filter is configured on-demand.
   const hasFilters
-    = hasTags || hasProperties || hasSectionsFilter || hasCategoryFilter || hasMediaTypeFilter || hasChannelFilter || hasWebsiteFilter || hasRelationshipTypeFilter || hasAuthorFilter;
+    = hasTagsData || enabledProperties.length > 0 || hasSectionsData || hasCategoryData
+      || hasMediaTypeData || hasChannelData || hasWebsiteData || hasRelationshipTypeData || hasAuthorData;
+
+  // Gated flags passed to the rendered sections: present in data AND currently revealed.
+  const facetVisible = (key: FilterFacetKey) => revealed(key, facetHasActiveSelection(key, search));
+  const hasTags = hasTagsData && facetVisible("tags");
+  const hasCategoryFilter = hasCategoryData && facetVisible("categories");
+  const hasMediaTypeFilter = hasMediaTypeData && facetVisible("media-types");
+  const hasChannelFilter = hasChannelData && facetVisible("channels");
+  const hasWebsiteFilter = hasWebsiteData && facetVisible("websites");
+  const hasRelationshipTypeFilter = hasRelationshipTypeData && facetVisible("relationship-types");
+  const hasAuthorFilter = hasAuthorData && facetVisible("authors");
+  const hasSectionsFilter = hasSectionsData && facetVisible("sections");
+  const visibleProperties = enabledProperties.filter(p =>
+    revealed(p.id, propertyHasActiveSelection(p.id, search)));
+  const hasProperties = visibleProperties.length > 0;
+
+  // The on-demand filters that have data but aren't shown yet — offered in the Add-filter menu.
+  const facetData: Record<string, boolean> = {
+    "tags": hasTagsData,
+    "categories": hasCategoryData,
+    "media-types": hasMediaTypeData,
+    "channels": hasChannelData,
+    "websites": hasWebsiteData,
+    "relationship-types": hasRelationshipTypeData,
+    "authors": hasAuthorData,
+    "sections": hasSectionsData,
+  };
+  const addableFilters = [
+    ...FILTER_FACETS
+      .filter(facet =>
+        facetData[facet.key]
+        && onDemand.includes(facet.key)
+        && !added.has(facet.key)
+        && !facetHasActiveSelection(facet.key, search))
+      .map(facet => ({
+        key: facet.key as string,
+        label: facet.label,
+      })),
+    ...enabledProperties
+      .filter(property =>
+        onDemand.includes(property.id)
+        && !added.has(property.id)
+        && !propertyHasActiveSelection(property.id, search))
+      .map(property => ({
+        key: property.id,
+        label: property.name,
+      })),
+  ];
 
   return (
     <aside>
@@ -137,9 +203,36 @@ export function FilterSidebar({
                       : null}
                   </div>
 
+                  {addableFilters.length > 0
+                    ? (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger
+                          className="
+                            flex items-center gap-1.5 text-xs font-medium
+                            text-muted-foreground
+                            hover:text-foreground
+                          "
+                        >
+                          <Plus className="size-3.5" />
+                          Add filter
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start">
+                          {addableFilters.map(item => (
+                            <DropdownMenuItem
+                              key={item.key}
+                              onSelect={() => revealFilter(item.key)}
+                            >
+                              {item.label}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )
+                    : null}
+
                   <FilterSections
                     tree={tree}
-                    enabledProperties={enabledProperties}
+                    enabledProperties={visibleProperties}
                     propertyGroups={propertyGroups}
                     categories={categories}
                     mediaTypes={mediaTypes}

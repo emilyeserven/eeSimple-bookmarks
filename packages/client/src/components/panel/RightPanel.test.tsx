@@ -97,6 +97,7 @@ function displayData(): DisplayPreferenceSettings {
     croppedWidth: 16,
     croppedHeight: 9,
     customPropertyTypeIcons: null,
+    onDemandFilters: [],
     showRomanizedByDefault: false,
     sortByRomanized: true,
   };

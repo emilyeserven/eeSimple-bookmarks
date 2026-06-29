@@ -99,6 +99,7 @@ const DEFAULT_DISPLAY_PREFERENCES: DisplayPreferenceSettings = {
   bookmarkDetailVideoSize: "standard",
   bookmarkDetailLayout: "single",
   customPropertyTypeIcons: null,
+  onDemandFilters: [],
   filtersInDrawer: false,
   filtersHidden: false,
   panelPinned: false,
@@ -590,6 +591,7 @@ export async function getDisplayPreferenceSettings(): Promise<DisplayPreferenceS
       croppedWidth: appSettings.croppedWidth,
       croppedHeight: appSettings.croppedHeight,
       customPropertyTypeIcons: appSettings.customPropertyTypeIcons,
+      onDemandFilters: appSettings.onDemandFilters,
       showRomanizedByDefault: appSettings.showRomanizedByDefault,
       sortByRomanized: appSettings.sortByRomanized,
     })
@@ -607,6 +609,7 @@ export async function getDisplayPreferenceSettings(): Promise<DisplayPreferenceS
     croppedWidth: asCropped(row.croppedWidth, DEFAULT_DISPLAY_PREFERENCES.croppedWidth),
     croppedHeight: asCropped(row.croppedHeight, DEFAULT_DISPLAY_PREFERENCES.croppedHeight),
     customPropertyTypeIcons: (row.customPropertyTypeIcons as Partial<Record<string, string>> | null) ?? null,
+    onDemandFilters: row.onDemandFilters ?? [],
     showRomanizedByDefault: row.showRomanizedByDefault,
     sortByRomanized: row.sortByRomanized,
   };
@@ -784,6 +787,7 @@ export async function updateDisplayPreferenceSettings(
     croppedWidth: asCropped(input.croppedWidth, DEFAULT_DISPLAY_PREFERENCES.croppedWidth),
     croppedHeight: asCropped(input.croppedHeight, DEFAULT_DISPLAY_PREFERENCES.croppedHeight),
     customPropertyTypeIcons: input.customPropertyTypeIcons ?? null,
+    onDemandFilters: [...(input.onDemandFilters ?? [])],
     showRomanizedByDefault: input.showRomanizedByDefault,
     sortByRomanized: input.sortByRomanized,
   };

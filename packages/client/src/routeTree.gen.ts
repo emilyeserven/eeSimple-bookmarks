@@ -101,6 +101,7 @@ import { Route as SettingsDisplaySidebarRouteImport } from './routes/settings.di
 import { Route as SettingsDisplayMediaRouteImport } from './routes/settings.display.media'
 import { Route as SettingsDisplayHomepageRouteImport } from './routes/settings.display.homepage'
 import { Route as SettingsDisplayGeneralRouteImport } from './routes/settings.display.general'
+import { Route as SettingsDisplayFiltersRouteImport } from './routes/settings.display.filters'
 import { Route as SettingsDisplayDrawerRouteImport } from './routes/settings.display.drawer'
 import { Route as SettingsAutomationsRedirectFailuresRouteImport } from './routes/settings.automations.redirect-failures'
 import { Route as SettingsAutomationsLinkParsingRouteImport } from './routes/settings.automations.link-parsing'
@@ -752,6 +753,11 @@ const SettingsDisplayHomepageRoute = SettingsDisplayHomepageRouteImport.update({
 const SettingsDisplayGeneralRoute = SettingsDisplayGeneralRouteImport.update({
   id: '/general',
   path: '/general',
+  getParentRoute: () => SettingsDisplayRoute,
+} as any)
+const SettingsDisplayFiltersRoute = SettingsDisplayFiltersRouteImport.update({
+  id: '/filters',
+  path: '/filters',
   getParentRoute: () => SettingsDisplayRoute,
 } as any)
 const SettingsDisplayDrawerRoute = SettingsDisplayDrawerRouteImport.update({
@@ -1800,6 +1806,7 @@ export interface FileRoutesByFullPath {
   '/settings/automations/link-parsing': typeof SettingsAutomationsLinkParsingRoute
   '/settings/automations/redirect-failures': typeof SettingsAutomationsRedirectFailuresRoute
   '/settings/display/drawer': typeof SettingsDisplayDrawerRoute
+  '/settings/display/filters': typeof SettingsDisplayFiltersRoute
   '/settings/display/general': typeof SettingsDisplayGeneralRoute
   '/settings/display/homepage': typeof SettingsDisplayHomepageRoute
   '/settings/display/media': typeof SettingsDisplayMediaRoute
@@ -2014,6 +2021,7 @@ export interface FileRoutesByTo {
   '/settings/automations/link-parsing': typeof SettingsAutomationsLinkParsingRoute
   '/settings/automations/redirect-failures': typeof SettingsAutomationsRedirectFailuresRoute
   '/settings/display/drawer': typeof SettingsDisplayDrawerRoute
+  '/settings/display/filters': typeof SettingsDisplayFiltersRoute
   '/settings/display/general': typeof SettingsDisplayGeneralRoute
   '/settings/display/homepage': typeof SettingsDisplayHomepageRoute
   '/settings/display/media': typeof SettingsDisplayMediaRoute
@@ -2244,6 +2252,7 @@ export interface FileRoutesById {
   '/settings/automations/link-parsing': typeof SettingsAutomationsLinkParsingRoute
   '/settings/automations/redirect-failures': typeof SettingsAutomationsRedirectFailuresRoute
   '/settings/display/drawer': typeof SettingsDisplayDrawerRoute
+  '/settings/display/filters': typeof SettingsDisplayFiltersRoute
   '/settings/display/general': typeof SettingsDisplayGeneralRoute
   '/settings/display/homepage': typeof SettingsDisplayHomepageRoute
   '/settings/display/media': typeof SettingsDisplayMediaRoute
@@ -2499,6 +2508,7 @@ export interface FileRouteTypes {
     | '/settings/automations/link-parsing'
     | '/settings/automations/redirect-failures'
     | '/settings/display/drawer'
+    | '/settings/display/filters'
     | '/settings/display/general'
     | '/settings/display/homepage'
     | '/settings/display/media'
@@ -2713,6 +2723,7 @@ export interface FileRouteTypes {
     | '/settings/automations/link-parsing'
     | '/settings/automations/redirect-failures'
     | '/settings/display/drawer'
+    | '/settings/display/filters'
     | '/settings/display/general'
     | '/settings/display/homepage'
     | '/settings/display/media'
@@ -2942,6 +2953,7 @@ export interface FileRouteTypes {
     | '/settings/automations/link-parsing'
     | '/settings/automations/redirect-failures'
     | '/settings/display/drawer'
+    | '/settings/display/filters'
     | '/settings/display/general'
     | '/settings/display/homepage'
     | '/settings/display/media'
@@ -3786,6 +3798,13 @@ declare module '@tanstack/react-router' {
       path: '/general'
       fullPath: '/settings/display/general'
       preLoaderRoute: typeof SettingsDisplayGeneralRouteImport
+      parentRoute: typeof SettingsDisplayRoute
+    }
+    '/settings/display/filters': {
+      id: '/settings/display/filters'
+      path: '/filters'
+      fullPath: '/settings/display/filters'
+      preLoaderRoute: typeof SettingsDisplayFiltersRouteImport
       parentRoute: typeof SettingsDisplayRoute
     }
     '/settings/display/drawer': {
@@ -5529,6 +5548,7 @@ const SettingsAutomationsRouteWithChildren =
 
 interface SettingsDisplayRouteChildren {
   SettingsDisplayDrawerRoute: typeof SettingsDisplayDrawerRoute
+  SettingsDisplayFiltersRoute: typeof SettingsDisplayFiltersRoute
   SettingsDisplayGeneralRoute: typeof SettingsDisplayGeneralRoute
   SettingsDisplayHomepageRoute: typeof SettingsDisplayHomepageRoute
   SettingsDisplayMediaRoute: typeof SettingsDisplayMediaRoute
@@ -5538,6 +5558,7 @@ interface SettingsDisplayRouteChildren {
 
 const SettingsDisplayRouteChildren: SettingsDisplayRouteChildren = {
   SettingsDisplayDrawerRoute: SettingsDisplayDrawerRoute,
+  SettingsDisplayFiltersRoute: SettingsDisplayFiltersRoute,
   SettingsDisplayGeneralRoute: SettingsDisplayGeneralRoute,
   SettingsDisplayHomepageRoute: SettingsDisplayHomepageRoute,
   SettingsDisplayMediaRoute: SettingsDisplayMediaRoute,

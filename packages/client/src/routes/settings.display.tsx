@@ -22,6 +22,10 @@ const displayNav: readonly TabNavItem[] = [
     label: "Sidebar",
   },
   {
+    to: "/settings/display/filters",
+    label: "Filters",
+  },
+  {
     to: "/settings/display/drawer",
     label: "Drawer",
   },

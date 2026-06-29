@@ -174,6 +174,7 @@ const DISPLAY_PREFERENCE_DEFAULTS = {
   bookmarkDetailImageSize: "medium" as BookmarkDetailImageSize,
   bookmarkDetailVideoSize: "standard" as BookmarkDetailVideoSize,
   bookmarkDetailLayout: "single" as BookmarkDetailLayout,
+  onDemandFilters: [] as string[],
   filtersInDrawer: false,
   filtersHidden: false,
   panelPinned: false,
@@ -310,6 +311,14 @@ export function useFiltersHidden(): boolean {
     data,
   } = useDisplayPreferenceSettings();
   return data?.filtersHidden ?? DISPLAY_PREFERENCE_DEFAULTS.filtersHidden;
+}
+
+/** Filter facet keys / custom-property ids hidden from the rail until added on demand (default []). */
+export function useOnDemandFilters(): string[] {
+  const {
+    data,
+  } = useDisplayPreferenceSettings();
+  return data?.onDemandFilters ?? DISPLAY_PREFERENCE_DEFAULTS.onDemandFilters;
 }
 
 /** Whether the right-hand panel docks as a persistent column by default (default false). */
