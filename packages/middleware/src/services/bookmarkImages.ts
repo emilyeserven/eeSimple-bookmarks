@@ -105,7 +105,11 @@ export async function takeAndStoreScreenshot(
       fullPage: false,
     },
   };
-  if (delayMs && delayMs > 0) screenshotBody.waitFor = delayMs;
+  // Browserless v2 deprecated the v1 `waitFor` field in favor of Puppeteer's specific waiting
+  // methods; a fixed post-load delay is now `waitForTimeout` (ms). Sending the old `waitFor` key
+  // makes v2 reject the request (its body schema disallows unknown properties), which surfaced as a
+  // 502 "Screenshot could not be captured" whenever a delay was requested.
+  if (delayMs && delayMs > 0) screenshotBody.waitForTimeout = delayMs;
 
   let rawBytes: Buffer | null = null;
   try {
