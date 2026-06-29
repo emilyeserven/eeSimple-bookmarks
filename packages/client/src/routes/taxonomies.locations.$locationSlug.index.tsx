@@ -1,10 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { MapPin } from "lucide-react";
 
 import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
+import { RomanizedLabel } from "../components/RomanizedLabel";
 import { useLocationBySlug } from "../hooks/useLocations";
 import { tagsForServerQuery, validateBookmarkSearch } from "../lib/bookmarkSearch";
+import { subtreeIds } from "../lib/tagTree";
 
 export const Route = createFileRoute("/taxonomies/locations/$locationSlug/")({
   validateSearch: validateBookmarkSearch,
@@ -43,16 +45,48 @@ function LocationBookmarksPage() {
     return <p className="text-destructive">Location not found.</p>;
   }
 
-  const locationBookmarks = (bookmarks ?? []).filter(b => b.locations.some(l => l.id === location.id));
+  // Include bookmarks tagged with this location or any of its descendants.
+  const locationIds = new Set(subtreeIds(location));
+  const locationBookmarks = (bookmarks ?? []).filter(b => b.locations.some(l => locationIds.has(l.id)));
 
   return (
     <BookmarkSearchView
       header={(
-        <div className="space-y-1">
+        <div className="space-y-2">
           <h1 className="flex items-center gap-2 text-2xl font-bold">
             <MapPin className="size-6 shrink-0" />
-            {location.name}
+            <RomanizedLabel
+              name={location.name}
+              romanized={location.romanizedName}
+            />
           </h1>
+          {location.children.length > 0 && (
+            <div
+              className="
+                flex flex-wrap items-center gap-2 text-sm text-muted-foreground
+              "
+            >
+              <span>Sub-locations:</span>
+              {location.children.map(child => (
+                <Link
+                  key={child.id}
+                  to="/taxonomies/locations/$locationSlug"
+                  params={{
+                    locationSlug: child.slug,
+                  }}
+                  className="
+                    rounded-full border px-2.5 py-0.5 font-medium
+                    hover:bg-accent
+                  "
+                >
+                  <RomanizedLabel
+                    name={child.name}
+                    romanized={child.romanizedName}
+                  />
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       )}
       pageKey={`location:${locationSlug}`}
