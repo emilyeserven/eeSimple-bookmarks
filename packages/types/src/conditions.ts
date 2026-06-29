@@ -222,6 +222,8 @@ export function emptyConditionTree(): ConditionTree {
 export interface ConditionInput {
   url: string;
   title: string;
+  /** The bookmark's romanized title, or `null`/empty when none — matched alongside `title`. */
+  romanizedTitle?: string | null;
   /** The bookmark's resolved category id. */
   categoryId: string;
   /** The bookmark's own tag ids (NOT expanded for cascade). */
@@ -320,17 +322,23 @@ function evaluateMatch(condition: MatchCondition, input: ConditionInput): boolea
     return host !== null && host === pattern.replace(/^www\./i, "").toLowerCase();
   }
 
-  const haystack = condition.field === "url" ? input.url : input.title;
-  if (haystack === "") return false;
+  // The `title` field also matches against the romanized title (when present), so a rule written in
+  // the romanized form fires on a title in another script and vice-versa. `url` has no romanized form.
+  const haystacks = condition.field === "url"
+    ? [input.url]
+    : [input.title, input.romanizedTitle ?? ""];
+  const candidates = haystacks.filter(text => text !== "");
+  if (candidates.length === 0) return false;
 
   switch (condition.operator) {
     case "contains":
-      return haystack.toLowerCase().includes(pattern.toLowerCase());
+      return candidates.some(text => text.toLowerCase().includes(pattern.toLowerCase()));
     case "starts_with":
-      return haystack.toLowerCase().startsWith(pattern.toLowerCase());
+      return candidates.some(text => text.toLowerCase().startsWith(pattern.toLowerCase()));
     case "regex":
       try {
-        return new RegExp(pattern, "i").test(haystack);
+        const re = new RegExp(pattern, "i");
+        return candidates.some(text => re.test(text));
       }
       catch {
         return false;

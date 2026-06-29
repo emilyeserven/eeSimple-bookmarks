@@ -265,6 +265,7 @@ async function buildConditionInputs(
     result.set(row.id, {
       url: row.url ?? "",
       title: row.title,
+      romanizedTitle: row.romanizedTitle ?? null,
       categoryId: row.categoryId ?? defaultCategoryId,
       tagIds: tagsByBid.get(row.id) ?? new Set(),
       youtubeChannelId: row.youtubeChannelId ?? null,

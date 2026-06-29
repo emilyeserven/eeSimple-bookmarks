@@ -439,6 +439,8 @@ export interface MediaType {
   id: string;
   /** Display name, e.g. `"Video"`. Unique. */
   name: string;
+  /** Optional romanized form of the name, matched by search and shown de-emphasized when present. */
+  romanizedName?: string | null;
   /** URL-friendly identifier derived from the name (e.g. `"video"`). Unique. */
   slug: string;
   /** Optional Lucide icon name shown in the MediaTypePill on bookmark cards. */
@@ -468,6 +470,7 @@ export type BookmarkMediaType = Pick<MediaType, "id" | "name" | "slug" | "icon" 
 /** Payload for creating a custom media type. */
 export interface CreateMediaTypeInput {
   name: string;
+  romanizedName?: string | null;
   sortOrder?: number;
   icon?: string | null;
   /** Parent media type id; omit/null for a root type. */
@@ -477,6 +480,7 @@ export interface CreateMediaTypeInput {
 /** Payload for updating a media type (rename, reorder, and/or reparent). */
 export interface UpdateMediaTypeInput {
   name?: string;
+  romanizedName?: string | null;
   sortOrder?: number;
   icon?: string | null;
   /** Parent media type id; `null` to make it a root. */
@@ -492,6 +496,8 @@ export interface Publisher {
   id: string;
   /** Display name, e.g. "O'Reilly Media". Unique. */
   name: string;
+  /** Optional romanized form of the name, matched by search and shown de-emphasized when present. */
+  romanizedName?: string | null;
   /** URL-friendly identifier derived from the name. Unique. */
   slug: string;
   /** Id of the website this publisher is associated with, or null when unset. */
@@ -514,6 +520,7 @@ export type BookmarkPublisher = Pick<Publisher, "id" | "name" | "slug">;
 /** Payload for creating a publisher. */
 export interface CreatePublisherInput {
   name: string;
+  romanizedName?: string | null;
   /** Id of the website to associate with this publisher; null to leave unset. */
   websiteId?: string | null;
 }
@@ -521,6 +528,7 @@ export interface CreatePublisherInput {
 /** Payload for updating a publisher. */
 export interface UpdatePublisherInput {
   name?: string;
+  romanizedName?: string | null;
   /** Id of the website to associate with this publisher; null to clear it. */
   websiteId?: string | null;
   /** Social media links for this publisher. Replaces the full list; omit to leave unchanged. */
@@ -709,6 +717,8 @@ export type BookmarkNewsletter = Pick<Newsletter, "id" | "name" | "slug">;
 export interface Author {
   id: string;
   name: string;
+  /** Optional romanized form of the name, matched by search and shown de-emphasized when present. */
+  romanizedName?: string | null;
   slug: string;
   createdAt: string;
   bookmarkCount?: number;
@@ -731,11 +741,13 @@ export type BookmarkAuthor = Pick<Author, "id" | "name" | "slug">;
 /** Payload for creating a new author. */
 export interface CreateAuthorInput {
   name: string;
+  romanizedName?: string | null;
 }
 
 /** Payload for partially updating an author. */
 export interface UpdateAuthorInput {
   name?: string;
+  romanizedName?: string | null;
   authorWebsiteUrl?: string | null;
   biographyUrl?: string | null;
   /** Social media links for this author. Replaces the full list; omit to leave unchanged. */
@@ -1870,6 +1882,8 @@ export interface BookmarkProgressValue {
 export interface Category {
   id: string;
   name: string;
+  /** Optional romanized form of the name, matched by search and shown de-emphasized when present. */
+  romanizedName?: string | null;
   /** URL-friendly identifier derived from the name (e.g. `"recipes"`); unique across categories. */
   slug: string;
   /** Optional free-form description. */
@@ -1888,6 +1902,7 @@ export interface Category {
 /** Payload for creating a category. */
 export interface CreateCategoryInput {
   name: string;
+  romanizedName?: string | null;
   description?: string | null;
   icon?: string | null;
   isHomepage?: boolean;

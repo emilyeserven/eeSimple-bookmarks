@@ -30,6 +30,7 @@ function toPublisher(
   return {
     id: row.id,
     name: row.name,
+    romanizedName: row.romanizedName,
     slug: row.slug ?? slugify(row.name),
     websiteId: row.websiteId,
     website: website ?? null,
@@ -118,6 +119,7 @@ export async function createPublisher(input: CreatePublisherInput): Promise<Publ
     .insert(publishers)
     .values({
       name: input.name,
+      romanizedName: input.romanizedName ?? null,
       slug,
       websiteId: input.websiteId ?? null,
     })
@@ -149,6 +151,7 @@ export async function updatePublisher(id: string, input: UpdatePublisherInput): 
   }
 
   const updates: Partial<typeof publishers.$inferInsert> = {};
+  if ("romanizedName" in input) updates.romanizedName = input.romanizedName ?? null;
   if (input.name !== undefined) {
     updates.name = input.name;
     const takenSlugs = await takenSlugsOf(publishers, publishers.slug, publishers.id, id);

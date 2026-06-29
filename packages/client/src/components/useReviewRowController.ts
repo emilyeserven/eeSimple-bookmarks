@@ -3,6 +3,7 @@ import type { ImportApproveResult, InboxItem, InboxPreFillDefaults } from "@eesi
 import { useState } from "react";
 
 import { mergeInboxPreFill } from "./inboxPreFillMerge";
+import { useInboxPrefillSeed } from "./useInboxPrefillSeed";
 import { useIsMobile } from "../hooks/use-mobile";
 import { useCategories } from "../hooks/useCategories";
 import {
@@ -34,13 +35,12 @@ export function useReviewRowController(
   } = useCategories();
   const [contextOpen, setContextOpen] = useState(false);
   const [advancedEditOpen, setAdvancedEditOpen] = useState(false);
-  const [itemPreFill, setItemPreFill] = useState<InboxPreFillDefaults>({
-    categoryId: item.categoryId ?? undefined,
-    mediaTypeId: undefined,
-    tagIds: [],
-    authorIds: [],
-    publisherId: undefined,
-  });
+  // Seed the per-item advanced-edit fields from the matching system (autofill rules + website /
+  // YouTube-channel defaults) so the user reviews/overrides instead of starting empty.
+  const {
+    itemPreFill,
+    patchItemPreFill,
+  } = useInboxPrefillSeed(item, advancedEditOpen);
   const isMobile = useIsMobile();
   const approve = useApproveImportItem();
   const reject = useRejectImportItem();
@@ -68,14 +68,6 @@ export function useReviewRowController(
   const muted = item.status === "rejected" || item.status === "approved"
     || item.status === "duplicate" || item.status === "blocked";
   const categoryName = categories.find(c => c.id === item.categoryId)?.name ?? null;
-
-  /** Patch one field of the per-item advanced-edit prefill. */
-  function patchItemPreFill(patch: Partial<InboxPreFillDefaults>) {
-    setItemPreFill(prev => ({
-      ...prev,
-      ...patch,
-    }));
-  }
 
   return {
     contextOpen,

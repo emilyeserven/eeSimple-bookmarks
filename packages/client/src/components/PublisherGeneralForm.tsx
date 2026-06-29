@@ -18,12 +18,14 @@ import { Separator } from "@/components/ui/separator";
 
 const publisherGeneralSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
+  romanizedName: z.string(),
   websiteId: z.string().nullable(),
   socialLinks: z.array(socialLinkSchema),
 });
 
 const LABELS: Partial<Record<keyof UpdatePublisherInput, string>> = {
   name: "Name",
+  romanizedName: "Romanized name",
   websiteId: "Website",
   socialLinks: "Social media links",
 };
@@ -49,6 +51,7 @@ export function PublisherGeneralForm({
     labels: LABELS,
     initial: {
       name: publisher.name,
+      romanizedName: publisher.romanizedName ?? "",
       websiteId: publisher.websiteId ?? null,
       socialLinks: publisher.socialLinks,
     },
@@ -65,6 +68,7 @@ export function PublisherGeneralForm({
   const form = useAppForm({
     defaultValues: {
       name: publisher.name,
+      romanizedName: publisher.romanizedName ?? "",
       websiteId: publisher.websiteId ?? null,
     },
     validators: {
@@ -96,6 +100,16 @@ export function PublisherGeneralForm({
                 },
               },
             )}
+          />
+        )}
+      </form.AppField>
+
+      <form.AppField name="romanizedName">
+        {field => (
+          <field.TextField
+            label="Romanized name"
+            placeholder="Optional romanized form"
+            onBlur={() => autoSave.saveField("romanizedName", field.state.value.trim())}
           />
         )}
       </form.AppField>

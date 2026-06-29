@@ -15,6 +15,7 @@ const ROOT = "__root__";
 
 const mediaTypeGeneralSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
+  romanizedName: z.string(),
   sortOrder: z.number().int(),
   icon: z.string().nullable(),
   parent: z.string(),
@@ -22,6 +23,7 @@ const mediaTypeGeneralSchema = z.object({
 
 const LABELS: Record<keyof UpdateMediaTypeInput, string> = {
   name: "Name",
+  romanizedName: "Romanized name",
   sortOrder: "Sort order",
   icon: "Icon",
   parentId: "Parent",
@@ -51,6 +53,7 @@ export function MediaTypeGeneralForm({
     labels: LABELS,
     initial: {
       name: mediaType.name,
+      romanizedName: mediaType.romanizedName ?? "",
       sortOrder: mediaType.sortOrder,
       icon: mediaType.icon,
       parentId: mediaType.parentId,
@@ -76,6 +79,7 @@ export function MediaTypeGeneralForm({
   const form = useAppForm({
     defaultValues: {
       name: mediaType.name,
+      romanizedName: mediaType.romanizedName ?? "",
       sortOrder: mediaType.sortOrder,
       icon: mediaType.icon,
       parent: mediaType.parentId ?? ROOT,
@@ -143,6 +147,16 @@ export function MediaTypeGeneralForm({
           )}
         </form.AppField>
       </div>
+
+      <form.AppField name="romanizedName">
+        {field => (
+          <field.TextField
+            label="Romanized name"
+            placeholder="Optional romanized form"
+            onBlur={() => autoSave.saveField("romanizedName", field.state.value.trim())}
+          />
+        )}
+      </form.AppField>
 
       <form.AppField name="parent">
         {field => (

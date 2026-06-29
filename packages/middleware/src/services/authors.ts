@@ -127,6 +127,7 @@ function toAuthor(
   return {
     id: row.id,
     name: row.name,
+    romanizedName: row.romanizedName,
     slug: row.slug ?? slugify(row.name),
     createdAt: row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount,
@@ -150,6 +151,7 @@ export async function listAuthors(): Promise<Author[]> {
     .select({
       id: authors.id,
       name: authors.name,
+      romanizedName: authors.romanizedName,
       slug: authors.slug,
       authorWebsiteUrl: authors.authorWebsiteUrl,
       biographyUrl: authors.biographyUrl,
@@ -200,6 +202,7 @@ export async function createAuthor(input: CreateAuthorInput): Promise<Author> {
   const slug = uniqueSlug(name, await takenSlugs());
   const [row] = await db.insert(authors).values({
     name,
+    romanizedName: input.romanizedName ?? null,
     slug,
   }).returning();
   return toAuthor(row);
@@ -210,7 +213,8 @@ export async function updateAuthor(id: string, input: UpdateAuthorInput): Promis
   const [existing] = await db.select().from(authors).where(eq(authors.id, id));
   if (!existing) return null;
 
-  const patch: Partial<Pick<AuthorRow, "name" | "slug" | "authorWebsiteUrl" | "biographyUrl" | "socialLinks">> = {};
+  const patch: Partial<Pick<AuthorRow, "name" | "romanizedName" | "slug" | "authorWebsiteUrl" | "biographyUrl" | "socialLinks">> = {};
+  if ("romanizedName" in input) patch.romanizedName = input.romanizedName ?? null;
   if (input.name !== undefined && input.name.trim() !== existing.name) {
     const name = input.name.trim();
     const [clash] = await db.select({

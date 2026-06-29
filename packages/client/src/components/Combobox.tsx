@@ -20,6 +20,8 @@ export interface ComboboxOption {
   value: string;
   label: string;
   depth?: number;
+  /** Optional secondary text (e.g. a romanized name) the search also matches against. */
+  searchAlias?: string;
   /** Optional element rendered at the inline-start of the option (and the trigger when selected). */
   icon?: React.ReactNode;
 }
@@ -105,6 +107,7 @@ export function Combobox({
                 <CommandItem
                   key={option.value}
                   value={option.label}
+                  keywords={option.searchAlias ? [option.searchAlias] : undefined}
                   onSelect={() => {
                     onValueChange(option.value === value ? undefined : option.value);
                     setOpen(false);

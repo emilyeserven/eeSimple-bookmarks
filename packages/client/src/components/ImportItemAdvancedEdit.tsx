@@ -184,6 +184,7 @@ export function ImportItemAdvancedEdit({
             options={authors.map(a => ({
               value: a.id,
               label: a.name,
+              searchAlias: a.romanizedName ?? undefined,
             }))}
             values={authorIds}
             onValuesChange={onAuthorsChange}
@@ -203,6 +204,7 @@ export function ImportItemAdvancedEdit({
             options={publishers.map(p => ({
               value: p.id,
               label: p.name,
+              searchAlias: p.romanizedName ?? undefined,
             }))}
             value={publisherId}
             onValueChange={onPublisherChange}
