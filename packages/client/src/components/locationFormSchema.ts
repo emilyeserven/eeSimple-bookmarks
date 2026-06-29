@@ -1,3 +1,5 @@
+import type { LocationLookupAncestor } from "@eesimple/types";
+
 import { z } from "zod";
 
 /** One ancestor row's editable fields, ordered immediate-parent-first up to the root. */
@@ -50,6 +52,60 @@ export function splitAncestorChain(ancestors: AncestorDraft[]): AncestorChainSpl
     newAncestors: ancestors.filter(a => a.existingId == null && a.name.trim().length > 0),
     parentId: existingTop?.existingId ?? null,
   };
+}
+
+/** A minimal existing-location shape used to match geocoded ancestors against the saved tree. */
+export interface ExistingLocationMatch {
+  id: string;
+  name: string;
+  romanizedName?: string | null;
+}
+
+/**
+ * Turn the geocoded ancestors of a looked-up place into editor rows (immediate-parent-first),
+ * pre-matching each level against the already-saved locations so existing places are reused rather
+ * than recreated. For each ancestor we look for an existing location whose `name` or `romanizedName`
+ * equals the ancestor's name (case-insensitive). The **first** ancestor with exactly one such match
+ * caps the chain: that row reuses the existing location (its own ancestry takes over) and no rows are
+ * emitted above it. Ancestors below the cap — and any with zero or multiple matches — become new
+ * drafts the user can still edit or point at an existing location via the row's picker.
+ */
+export function geocodedAncestorsToDrafts(
+  ancestors: LocationLookupAncestor[],
+  existing: ExistingLocationMatch[],
+): AncestorDraft[] {
+  function singleMatchId(name: string): string | null {
+    const needle = name.trim().toLowerCase();
+    if (needle === "") return null;
+    const matches = existing.filter((loc) => {
+      const names = [loc.name, loc.romanizedName ?? ""];
+      return names.some(n => n.trim().toLowerCase() === needle);
+    });
+    return matches.length === 1 ? matches[0].id : null;
+  }
+
+  const drafts: AncestorDraft[] = [];
+  for (const ancestor of ancestors) {
+    const existingId = singleMatchId(ancestor.name);
+    if (existingId !== null) {
+      // Reuse caps the chain: emit the existing row and stop (it supplies its own ancestry).
+      drafts.push({
+        ...emptyAncestorDraft(),
+        existingId,
+        name: ancestor.name,
+        placeType: ancestor.placeType,
+        countryCode: ancestor.countryCode,
+      });
+      break;
+    }
+    drafts.push({
+      ...emptyAncestorDraft(),
+      name: ancestor.name,
+      placeType: ancestor.placeType,
+      countryCode: ancestor.countryCode,
+    });
+  }
+  return drafts;
 }
 
 /**

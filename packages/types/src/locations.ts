@@ -149,6 +149,21 @@ export function matchLocationIdsByTitle(
     .map(loc => loc.id);
 }
 
+/**
+ * One geocoded ancestor level above a candidate, ordered immediate-parent-first up to the country.
+ * Carries only the name + a loose place classification + the country code — coordinates aren't
+ * fetched per level (that would mean an extra geocoder call each), so they're left to be filled in
+ * manually or by looking the ancestor up on its own.
+ */
+export interface LocationLookupAncestor {
+  /** The ancestor place's name (e.g. `"山口県"`, `"日本"`). */
+  name: string;
+  /** Loose classification from the geocoder's address key (e.g. `"state"`, `"county"`, `"country"`). */
+  placeType: string | null;
+  /** ISO 3166-1 alpha-2 country code shared with the candidate, or `null`. */
+  countryCode: string | null;
+}
+
 /** A single candidate returned by the geocoding lookup. */
 export interface LocationLookupCandidate {
   /** Local/native-script name (e.g. `"萩市"`), preferred as the location's title. */
@@ -165,6 +180,8 @@ export interface LocationLookupCandidate {
   countryCode: string | null;
   /** A pre-built map link for the coordinate, or `null`. */
   mapUrl: string | null;
+  /** Higher-level places above this one, immediate-parent-first (empty when none could be parsed). */
+  ancestors: LocationLookupAncestor[];
 }
 
 /** Response shape of `GET /api/locations/lookup`. */

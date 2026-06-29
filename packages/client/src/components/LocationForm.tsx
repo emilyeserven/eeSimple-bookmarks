@@ -11,7 +11,7 @@ import { useState } from "react";
 import { AlternateNamesEditor } from "./AlternateNamesEditor";
 import { Combobox } from "./Combobox";
 import { LocationAncestorChainEditor } from "./LocationAncestorChainEditor";
-import { splitAncestorChain } from "./locationFormSchema";
+import { geocodedAncestorsToDrafts, splitAncestorChain } from "./locationFormSchema";
 import { LocationLookupBox } from "./LocationLookupBox";
 import { TreeMultiCombobox } from "./TreeMultiCombobox";
 import { useCreateLocation, useCreateLocationChain, useLocationTree } from "../hooks/useLocations";
@@ -176,6 +176,15 @@ export function LocationForm({
           if (candidate.mapUrl) setMapUrl(candidate.mapUrl);
           if (candidate.countryCode) setCountryCode(candidate.countryCode);
           if (candidate.placeType) setPlaceType(candidate.placeType);
+          // Auto-fill the ancestor chain from the geocoded hierarchy, reusing existing locations
+          // where one matches by name. Reset the explicit parent so the filled chain is shown and
+          // used (an existing parent short-circuits the chain on submit).
+          setParentId(ROOT);
+          setAncestors(geocodedAncestorsToDrafts(candidate.ancestors, locationOptions.map(option => ({
+            id: option.value,
+            name: option.label,
+            romanizedName: option.romanized,
+          }))));
         }}
       />
 
