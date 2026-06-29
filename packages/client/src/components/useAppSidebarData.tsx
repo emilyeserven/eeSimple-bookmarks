@@ -59,6 +59,7 @@ export interface PinPagination {
   visiblePins: ResolvedPin[];
   hasShowMore: boolean;
   hasSeeAll: boolean;
+  hasShowLess: boolean;
 }
 
 /**
@@ -74,6 +75,7 @@ export function paginatePins(resolvedPins: ResolvedPin[], state: PinPaginationSt
     visiblePins,
     hasShowMore: !state.pinnedExpanded && !state.pinnedShowAll && resolvedPins.length > PINNED_INITIAL,
     hasSeeAll: state.pinnedExpanded && !state.pinnedShowAll && resolvedPins.length > PINNED_EXPANDED,
+    hasShowLess: state.pinnedExpanded || state.pinnedShowAll,
   };
 }
 

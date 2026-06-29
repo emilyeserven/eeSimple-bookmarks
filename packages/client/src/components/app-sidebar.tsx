@@ -5,6 +5,7 @@ import {
   Bookmark,
   Building2,
   ChevronDown,
+  ChevronUp,
   Clapperboard,
   FileInput,
   FolderOpen,
@@ -269,6 +270,18 @@ function ExpandableLinkSection({
           </SidebarMenuItem>
         )}
         {expanded && seeMoreItems.map(renderItem)}
+        {seeMoreItems.length > 0 && expanded && sidebarState !== "collapsed" && (
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip="See less"
+              onClick={() => setExpanded(false)}
+              className="text-xs text-muted-foreground"
+            >
+              <ChevronUp className="size-4" />
+              <span>See Less</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        )}
       </SidebarMenu>
     </CollapsibleSection>
   );
@@ -312,7 +325,7 @@ export function AppSidebar({
     advanced,
   } = useAppSidebarData(taxonomyItems, customizationItems);
   const {
-    visiblePins, hasShowMore, hasSeeAll,
+    visiblePins, hasShowMore, hasSeeAll, hasShowLess,
   } = pagination;
 
   // On mobile the sidebar is an overlay sheet; collapse it once navigation lands
@@ -456,6 +469,23 @@ export function AppSidebar({
                         </SidebarMenuItem>
                       )
                       : null}
+                    {hasShowLess && state !== "collapsed"
+                      ? (
+                        <SidebarMenuItem>
+                          <SidebarMenuButton
+                            tooltip="Show fewer pinned items"
+                            onClick={() => {
+                              setPinnedExpanded(false);
+                              setPinnedShowAll(false);
+                            }}
+                            className="text-xs text-muted-foreground"
+                          >
+                            <ChevronUp className="size-4" />
+                            <span>Show Less</span>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      )
+                      : null}
                   </>
                 )
                 : null}
@@ -574,6 +604,20 @@ export function AppSidebar({
                       </SidebarMenuItem>
                     );
                   })
+                  : null}
+                {seeMoreCategories.length > 0 && categoriesExpanded && state !== "collapsed"
+                  ? (
+                    <SidebarMenuItem>
+                      <SidebarMenuButton
+                        tooltip="Show fewer categories"
+                        onClick={() => setCategoriesExpanded(false)}
+                        className="text-xs text-muted-foreground"
+                      >
+                        <ChevronUp className="size-4" />
+                        <span>See Less</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )
                   : null}
               </SidebarMenu>
             </CollapsibleSection>
