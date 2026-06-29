@@ -8,6 +8,7 @@ import { AutofillRulesList } from "../AutofillRulesList";
 import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import { EntityAutofillSources } from "../EntityAutofillSources";
 import { HierarchyView } from "../HierarchyView";
+import { RomanizedLabel } from "../RomanizedLabel";
 import { TagCategories } from "../TagCategories";
 import { TagGeneralForm } from "../TagGeneralForm";
 import { TagTreeList } from "../TagTreeList";
@@ -34,7 +35,15 @@ function TagGeneralView({
     <>
       <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
         <dt className="text-muted-foreground">Parent</dt>
-        <dd>{parent ? parent.name : "(root)"}</dd>
+        <dd>{parent
+          ? (
+            <RomanizedLabel
+              name={parent.name}
+              romanized={parent.romanizedName}
+            />
+          )
+          : "(root)"}
+        </dd>
         <dt className="text-muted-foreground">Children</dt>
         <dd>{node.children.length}</dd>
         <dt className="text-muted-foreground">Slug</dt>
@@ -115,7 +124,10 @@ function TagHierarchyView({
           }}
           className="hover:underline"
         >
-          {ancestor.name}
+          <RomanizedLabel
+            name={ancestor.name}
+            romanized={ancestor.romanizedName}
+          />
         </Link>
       )}
       hasChildren={node.children.length > 0}

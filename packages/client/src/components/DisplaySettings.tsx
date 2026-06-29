@@ -168,6 +168,8 @@ const DISPLAY_DEFAULTS: DisplayPreferenceSettings = {
   croppedWidth: 16,
   croppedHeight: 9,
   customPropertyTypeIcons: null,
+  showRomanizedByDefault: false,
+  sortByRomanized: true,
 };
 
 /** Display preferences — a theme switcher (light / dark / system) and sidebar section toggles. */
@@ -307,6 +309,15 @@ export function DisplaySettings() {
     }, "Property type icons reset to defaults");
   }
 
+  const setShowRomanizedByDefault = (value: boolean) =>
+    saveDisplay({
+      showRomanizedByDefault: value,
+    }, "Romanized display updated");
+  const setSortByRomanized = (value: boolean) =>
+    saveDisplay({
+      sortByRomanized: value,
+    }, "Romanized sort updated");
+
   const {
     data: categories,
   } = useCategories();
@@ -410,6 +421,46 @@ export function DisplaySettings() {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Romanized names</CardTitle>
+          <CardDescription>
+            Control how romanized names/titles are shown and sorted. When an item has a romanized
+            form it is always shown de-emphasized after the primary label.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-start gap-2">
+            <Checkbox
+              id="show-romanized-default"
+              checked={display.showRomanizedByDefault}
+              onCheckedChange={checked => setShowRomanizedByDefault(checked === true)}
+            />
+            <div className="space-y-0.5">
+              <Label htmlFor="show-romanized-default">Show Romanized by default</Label>
+              <p className="text-sm text-muted-foreground">
+                Make the romanized form the primary label (the real name shows de-emphasized after
+                it). Off by default.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-start gap-2">
+            <Checkbox
+              id="sort-by-romanized"
+              checked={display.sortByRomanized}
+              onCheckedChange={checked => setSortByRomanized(checked === true)}
+            />
+            <div className="space-y-0.5">
+              <Label htmlFor="sort-by-romanized">Sort by Romanized</Label>
+              <p className="text-sm text-muted-foreground">
+                Use the romanized value as the sort key when sorting alphabetically (items without a
+                romanized form fall back to their name). On by default.
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>

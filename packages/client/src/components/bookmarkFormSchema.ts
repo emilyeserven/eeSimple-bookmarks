@@ -25,6 +25,7 @@ import { buildNumberValuesFromInputs } from "../lib/propertyValues";
 export const bookmarkSchema = z.object({
   url: z.string(),
   title: z.string().min(1, "Title is required"),
+  romanizedTitle: z.string(),
   categoryId: z.string().min(1, "Category is required"),
   mediaTypeId: z.string(),
   description: z.string(),
@@ -125,6 +126,7 @@ export function openGitHubIssue(title: string, body: string): void {
 const SAMPLE_DEFAULT_VALUES: {
   url: string;
   title: string;
+  romanizedTitle: string;
   categoryId: string;
   mediaTypeId: string;
   description: string;
@@ -135,6 +137,7 @@ const SAMPLE_DEFAULT_VALUES: {
 } = {
   url: "",
   title: "",
+  romanizedTitle: "",
   categoryId: "",
   mediaTypeId: "",
   description: "",
@@ -169,6 +172,7 @@ export type BookmarkFormApi = ReturnType<typeof _bookmarkFormApiSample>;
 export interface BookmarkInitialValues {
   url?: string;
   title?: string;
+  romanizedTitle?: string;
 }
 
 /**
@@ -184,6 +188,7 @@ export function buildBookmarkDefaultValues(
 ): {
   url: string;
   title: string;
+  romanizedTitle: string;
   categoryId: string;
   mediaTypeId: string;
   description: string;
@@ -195,6 +200,7 @@ export function buildBookmarkDefaultValues(
   return {
     url: bookmark?.originalUrl ?? bookmark?.url ?? initial.url ?? "",
     title: bookmark?.title ?? initial.title ?? "",
+    romanizedTitle: bookmark?.romanizedTitle ?? initial.romanizedTitle ?? "",
     categoryId: bookmark?.categoryId ?? lockedCategoryId ?? "",
     mediaTypeId: bookmark?.mediaType?.id ?? "",
     description: bookmark?.description ?? "",

@@ -5,6 +5,8 @@ export interface HierarchyAncestor {
   id: string;
   slug: string;
   name: string;
+  /** Optional romanized form, shown de-emphasized after the name (e.g. for tags). */
+  romanizedName?: string | null;
 }
 
 interface HierarchyViewProps {

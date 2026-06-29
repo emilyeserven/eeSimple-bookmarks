@@ -1,16 +1,18 @@
 import type { TaxonomyTreeNode } from "./TaxonomyTreeRow";
 import type { TagNode } from "@eesimple/types";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { Link } from "@tanstack/react-router";
 import { Folder, FolderOpen, Info, Pencil } from "lucide-react";
 
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
+import { RomanizedLabel } from "./RomanizedLabel";
 import { TaxonomyTreeList } from "./TaxonomyTreeRow";
-import { useSidebarOpenModifier } from "../hooks/useAppSettings";
+import { useSidebarOpenModifier, useSortByRomanized } from "../hooks/useAppSettings";
 import { useCategories } from "../hooks/useCategories";
 import { useTagCategories } from "../hooks/useTags";
+import { sortTagTreeByRomanized } from "../lib/tagTree";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
@@ -108,10 +110,15 @@ export function TagTreeList({
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
+  const sortByRomanized = useSortByRomanized();
+  const sortedTree = useMemo(
+    () => sortTagTreeByRomanized(tree, sortByRomanized),
+    [tree, sortByRomanized],
+  );
 
   return (
     <TaxonomyTreeList
-      tree={tree}
+      tree={sortedTree}
       expanded={expanded}
       onToggle={onToggle}
       columns={columns}
@@ -139,7 +146,10 @@ export function TagTreeList({
             hover:underline
           "
         >
-          {node.name}
+          <RomanizedLabel
+            name={node.name}
+            romanized={(node as unknown as TagNode).romanizedName}
+          />
         </Link>
       )}
       renderEditLink={node => (

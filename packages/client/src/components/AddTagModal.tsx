@@ -55,10 +55,11 @@ export function AddTagModal({
           isError={createTag.isError}
           errorMessage={createTag.error?.message}
           onSubmit={({
-            name, parentId,
+            name, romanizedName, parentId,
           }) => createTag.mutate(
             {
               name,
+              romanizedName,
               parentId,
             },
             {

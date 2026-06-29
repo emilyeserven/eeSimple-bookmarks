@@ -1,9 +1,23 @@
 import type { TagNode } from "@eesimple/types";
+import type { ReactNode } from "react";
 
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { TagTreeFilter } from "./TagTreeFilter";
+
+/** Render under a QueryClient so the component's display-preference query (sort toggle) resolves. */
+function renderWithClient(ui: ReactNode) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
+  return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
+}
 
 const tree: TagNode[] = [
   {
@@ -28,7 +42,7 @@ const tree: TagNode[] = [
 describe("TagTreeFilter", () => {
   it("calls onSelect with a tag id when a tag is clicked", () => {
     const onSelect = vi.fn();
-    render(
+    renderWithClient(
       <TagTreeFilter
         tree={tree}
         onSelect={onSelect}
@@ -42,7 +56,7 @@ describe("TagTreeFilter", () => {
 
   it("calls onSelect with undefined when All is clicked", () => {
     const onSelect = vi.fn();
-    render(
+    renderWithClient(
       <TagTreeFilter
         tree={tree}
         activeId="dev"
@@ -58,7 +72,7 @@ describe("TagTreeFilter", () => {
   it("renders nothing when the tree is empty", () => {
     const {
       container,
-    } = render(
+    } = renderWithClient(
       <TagTreeFilter
         tree={[]}
         onSelect={vi.fn()}

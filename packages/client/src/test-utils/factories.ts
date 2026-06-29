@@ -76,6 +76,7 @@ export function makeBookmark(overrides: Partial<Bookmark> = {}): Bookmark {
     url: "https://example.com",
     originalUrl: null,
     title: "Example",
+    romanizedTitle: null,
     description: null,
     image: null,
     screenshot: null,

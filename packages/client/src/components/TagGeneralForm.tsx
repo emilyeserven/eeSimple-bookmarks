@@ -15,6 +15,7 @@ const ROOT = "__root__";
 
 const LABELS: Record<keyof UpdateTagInput, string> = {
   name: "Name",
+  romanizedName: "Romanized name",
   parentId: "Parent",
   editableOnCard: "Editable on card",
   excludeFromBackfill: "Exclude from backfilling",
@@ -43,6 +44,7 @@ export function TagGeneralForm({
     labels: LABELS,
     initial: {
       name: node.name,
+      romanizedName: node.romanizedName ?? "",
       parentId: node.parentId,
       editableOnCard: node.editableOnCard ?? false,
       excludeFromBackfill: node.excludeFromBackfill ?? false,
@@ -65,6 +67,7 @@ export function TagGeneralForm({
   const form = useAppForm({
     defaultValues: {
       name: node.name,
+      romanizedName: node.romanizedName ?? "",
       parent: node.parentId ?? ROOT,
     },
     validators: {
@@ -97,6 +100,16 @@ export function TagGeneralForm({
                 },
               },
             )}
+          />
+        )}
+      </form.AppField>
+
+      <form.AppField name="romanizedName">
+        {field => (
+          <field.TextField
+            label="Romanized name"
+            placeholder="Optional romanized form"
+            onBlur={() => autoSave.saveField("romanizedName", field.state.value.trim())}
           />
         )}
       </form.AppField>

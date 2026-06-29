@@ -17,6 +17,8 @@ import { cn } from "@/lib/utils";
 export interface TreeComboboxOption {
   value: string;
   label: string;
+  /** Optional secondary text (e.g. a romanized name) — matched by search and shown de-emphasized. */
+  searchAlias?: string;
   icon?: React.ReactNode;
   children?: TreeComboboxOption[];
 }
@@ -167,7 +169,12 @@ export function TreeMultiCombobox({
               )
               : <span className="size-4 shrink-0" />}
             {node.icon != null && <span className="shrink-0">{node.icon}</span>}
-            <span className="flex-1 truncate">{node.label}</span>
+            <span className="flex-1 truncate">
+              {node.label}
+              {node.searchAlias
+                ? <span className="ml-1.5 text-muted-foreground">{node.searchAlias}</span>
+                : null}
+            </span>
             <Check
               className={cn(
                 "ml-auto size-4 shrink-0",
@@ -185,7 +192,8 @@ export function TreeMultiCombobox({
     const term = searchTerm.toLowerCase();
     return nodes.flatMap((node): React.ReactNode[] => {
       const isSelected = selectedSet.has(node.value);
-      const matches = node.label.toLowerCase().includes(term);
+      const matches = node.label.toLowerCase().includes(term)
+        || (node.searchAlias?.toLowerCase().includes(term) ?? false);
       const childItems = renderFlatItems(node.children ?? []);
 
       if (!matches) return childItems;
@@ -198,7 +206,12 @@ export function TreeMultiCombobox({
           className="flex items-center gap-1.5 pr-2"
         >
           {node.icon != null && <span className="shrink-0">{node.icon}</span>}
-          <span className="flex-1 truncate">{node.label}</span>
+          <span className="flex-1 truncate">
+            {node.label}
+            {node.searchAlias
+              ? <span className="ml-1.5 text-muted-foreground">{node.searchAlias}</span>
+              : null}
+          </span>
           <Check
             className={cn(
               "ml-auto size-4 shrink-0",
@@ -212,7 +225,11 @@ export function TreeMultiCombobox({
   }
 
   const flatFiltered = isSearching
-    ? allNodes.filter(n => n.label.toLowerCase().includes(searchTerm.toLowerCase()))
+    ? allNodes.filter((n) => {
+      const term = searchTerm.toLowerCase();
+      return n.label.toLowerCase().includes(term)
+        || (n.searchAlias?.toLowerCase().includes(term) ?? false);
+    })
     : null;
   const isEmpty = isSearching && (flatFiltered?.length ?? 0) === 0;
 

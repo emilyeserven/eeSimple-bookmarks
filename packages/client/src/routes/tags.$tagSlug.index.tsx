@@ -3,6 +3,7 @@ import { Tag as TagIcon } from "lucide-react";
 
 import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
+import { RomanizedLabel } from "../components/RomanizedLabel";
 import { tagsForServerQuery, validateBookmarkSearch } from "../lib/bookmarkSearch";
 import { findAncestorPath, subtreeIds } from "../lib/tagTree";
 
@@ -54,7 +55,10 @@ function TagBookmarksPage() {
         <div className="space-y-2">
           <h1 className="flex items-center gap-2 text-2xl font-bold">
             <TagIcon className="size-6 shrink-0" />
-            {tag.name}
+            <RomanizedLabel
+              name={tag.name}
+              romanized={tag.romanizedName}
+            />
           </h1>
           {tag.children.length > 0 && (
             <div
@@ -75,7 +79,10 @@ function TagBookmarksPage() {
                     hover:bg-accent
                   "
                 >
-                  {child.name}
+                  <RomanizedLabel
+                    name={child.name}
+                    romanized={child.romanizedName}
+                  />
                 </Link>
               ))}
             </div>

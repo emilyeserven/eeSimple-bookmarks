@@ -193,6 +193,14 @@ export function BookmarkGeneralForm({
             setExpectedTitle={setExpectedTitle}
             onNameBlur={runAutofill}
           />
+          <form.AppField name="romanizedTitle">
+            {field => (
+              <field.TextField
+                label="Romanized name"
+                placeholder="Optional romanized form"
+              />
+            )}
+          </form.AppField>
         </div>
       </div>
 

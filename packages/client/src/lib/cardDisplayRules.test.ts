@@ -13,6 +13,7 @@ function makeBookmark(overrides: Partial<Bookmark> = {}): Bookmark {
     url: "https://example.com/post",
     originalUrl: null,
     title: "Example",
+    romanizedTitle: null,
     description: null,
     image: null,
     screenshot: null,

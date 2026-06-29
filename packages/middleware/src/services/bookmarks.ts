@@ -467,6 +467,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
         url: input.url ?? null,
         originalUrl: input.originalUrl ?? null,
         title: input.title,
+        romanizedTitle: input.romanizedTitle ?? null,
         description: input.description ?? null,
         categoryId,
         websiteId,
@@ -518,7 +519,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
 
 /** The scalar (non-URL-derived) bookmark columns an update may touch. */
 type ScalarBookmarkPatch = Partial<
-  Pick<BookmarkRow, "originalUrl" | "title" | "description" | "categoryId" | "mediaTypeId" | "publisherId" | "priority">
+  Pick<BookmarkRow, "originalUrl" | "title" | "romanizedTitle" | "description" | "categoryId" | "mediaTypeId" | "publisherId" | "priority">
 >;
 
 /**
@@ -533,6 +534,7 @@ export function scalarBookmarkPatch(
   const patch: ScalarBookmarkPatch = {};
   if (input.originalUrl !== undefined) patch.originalUrl = input.originalUrl ?? null;
   if (input.title !== undefined) patch.title = input.title;
+  if (input.romanizedTitle !== undefined) patch.romanizedTitle = input.romanizedTitle ?? null;
   if (input.description !== undefined) patch.description = input.description ?? null;
   if (input.categoryId !== undefined) patch.categoryId = input.categoryId;
   if (input.mediaTypeId !== undefined) patch.mediaTypeId = input.mediaTypeId ?? null;

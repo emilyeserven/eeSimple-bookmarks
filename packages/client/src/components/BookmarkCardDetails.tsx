@@ -13,6 +13,7 @@ import { BookmarkTagsBox } from "./BookmarkTagsBox";
 import { CategoryPill } from "./CategoryPill";
 import { MediaTypePill } from "./MediaTypePill";
 import { useViewPanelClick } from "./panel/useEditPanelClick";
+import { RomanizedLabel } from "./RomanizedLabel";
 import { SourcePill } from "./SourcePill";
 import { StarRating } from "./StarRating";
 import { useConnectors } from "../hooks/useConnectors";
@@ -72,7 +73,10 @@ function BookmarkTitleLink({
           hover:underline
         "
       >
-        {bookmark.title}
+        <RomanizedLabel
+          name={bookmark.title}
+          romanized={bookmark.romanizedTitle}
+        />
       </Link>
     </h3>
   );

@@ -27,6 +27,7 @@ import { AddPropertyGroupModal } from "./AddPropertyGroupModal";
 import { AddTagModal } from "./AddTagModal";
 import { AddWebsiteModal } from "./AddWebsiteModal";
 import { AddYouTubeChannelModal } from "./AddYouTubeChannelModal";
+import { RomanizedLabel } from "./RomanizedLabel";
 import { useBookmarkTaxonomyContext } from "./useBookmarkTaxonomyContext";
 import { useListingPageContext } from "./useListingPageContext";
 import { useSavedFilterContext } from "./useSavedFilterContext";
@@ -552,7 +553,7 @@ function TagsSubPalette({
     return (
       <CommandItem
         key={tag.id}
-        value={tag.name}
+        value={`${tag.name} ${tag.romanizedName ?? ""}`.trim()}
         onSelect={() => onToggleTag(tag.id)}
       >
         <span
@@ -560,7 +561,10 @@ function TagsSubPalette({
             paddingLeft: depth > 0 ? `${depth}rem` : undefined,
           }}
         >
-          {tag.name}
+          <RomanizedLabel
+            name={tag.name}
+            romanized={tag.romanizedName}
+          />
         </span>
         {selected && (
           <CheckIcon

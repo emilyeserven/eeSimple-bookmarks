@@ -1,15 +1,16 @@
 import type { TagNode } from "@eesimple/types";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
 import { listingSelectionColumn } from "./tables/selectionColumn";
 import { useTagColumns } from "./tables/tagColumns";
 import { TagTreeList } from "./TagTreeList";
+import { useSortByRomanized } from "../hooks/useAppSettings";
 import { useRegisterBulkSelect } from "../hooks/useRegisterBulkSelect";
 import { useBulkDeleteTags, useTagTree } from "../hooks/useTags";
 import { useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
-import { flattenTree } from "../lib/tagTree";
+import { flattenTree, sortTagTreeByRomanized } from "../lib/tagTree";
 import { useListSelection } from "../lib/useListSelection";
 
 import { DataTable } from "@/components/ui/data-table";
@@ -25,6 +26,11 @@ export function TagManager({
   const {
     data: tree, isLoading, error,
   } = useTagTree();
+  const sortByRomanized = useSortByRomanized();
+  const sortedTree = useMemo(
+    () => sortTagTreeByRomanized(tree ?? [], sortByRomanized),
+    [tree, sortByRomanized],
+  );
 
   // Empty set means every parent is collapsed by default.
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -83,7 +89,7 @@ export function TagManager({
               ...(selection.mode ? [listingSelectionColumn<TagNode>(selection, n => n.id)] : []),
               ...tagColumns,
             ]}
-            data={tree}
+            data={sortedTree}
             getSubRows={node => node.children}
           />
         )
