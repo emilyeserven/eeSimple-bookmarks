@@ -14,11 +14,14 @@ import {
   SidebarInset,
   SidebarProvider,
 } from "@/components/ui/sidebar";
+import { useOfflineToast } from "@/hooks/useOfflineToast";
 import { useUiStore } from "@/stores/uiStore";
 
 export function RootLayout() {
   const theme = useUiStore(state => state.theme);
   const sidebarWidth = useUiStore(state => state.sidebarWidth);
+  // Surface online/offline connectivity as a toast on every surface (full app + quick-add popup).
+  useOfflineToast();
   // The quick-add popup is chrome-less: it renders the bare form (no sidebar/header/right panel) so
   // it fits a small popup window.
   const isQuickAdd = useRouterState({
