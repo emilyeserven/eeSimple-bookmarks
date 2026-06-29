@@ -33,6 +33,16 @@ vi.mock("../hooks/useTags", () => ({
       else opts?.onError?.(new Error("offline"));
     },
   }),
+  // The Parent picker's inline "Create tag" action renders an AddTagModal, which reads the tag tree
+  // and a create mutation from this same module.
+  useTagTree: () => ({
+    data: [],
+  }),
+  useCreateTag: () => ({
+    mutate: vi.fn(),
+    isError: false,
+    error: null,
+  }),
 }));
 
 const notifyFieldSaved = vi.fn<(label: string) => void>();
@@ -121,6 +131,57 @@ describe("TagGeneralForm (auto-save)", () => {
 
     expect(updateMutate).not.toHaveBeenCalled();
     expect(await screen.findByText("Name is required")).toBeInTheDocument();
+  });
+
+  it("saves the parent on selection from the combobox", async () => {
+    const parent = makeTagNode({
+      id: "tag-2",
+      name: "Hobbies",
+      slug: "hobbies",
+    });
+    await renderWithRouter(
+      <TagGeneralForm
+        node={node}
+        allTags={[node, parent]}
+        forbiddenIds={new Set(["tag-1"])}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("combobox", {
+      name: "Parent",
+    }));
+    fireEvent.click(screen.getByRole("option", {
+      name: "Hobbies",
+    }));
+
+    await waitFor(() => expect(updateMutate).toHaveBeenCalledTimes(1));
+    expect(updateMutate.mock.calls[0][0]).toEqual({
+      id: "tag-1",
+      input: {
+        parentId: "tag-2",
+      },
+    });
+    expect(notifyFieldSaved).toHaveBeenCalledWith("Parent");
+  });
+
+  it("opens the inline create-tag modal from the parent picker", async () => {
+    await renderWithRouter(
+      <TagGeneralForm
+        node={node}
+        allTags={[node]}
+        forbiddenIds={new Set(["tag-1"])}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("combobox", {
+      name: "Parent",
+    }));
+    fireEvent.click(screen.getByRole("button", {
+      name: /Create tag/,
+    }));
+
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+    expect(updateMutate).not.toHaveBeenCalled();
   });
 
   it("keeps the typed value and toasts an error when the save fails", async () => {

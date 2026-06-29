@@ -1,7 +1,11 @@
+import type { ComboboxOption } from "./Combobox";
 import type { Tag, TagNode, UpdateTagInput } from "@eesimple/types";
+
+import { useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
 
+import { AddTagModal } from "./AddTagModal";
 import { tagSchema } from "./tagFormSchema";
 import { Checkbox } from "./ui/checkbox";
 import { Label } from "./ui/label";
@@ -10,7 +14,7 @@ import { useUpdateTag } from "../hooks/useTags";
 import { useAppForm } from "../lib/form";
 import { flattenTree } from "../lib/tagTree";
 
-/** Sentinel for the "(root)" option, since Radix Select forbids an empty-string value. */
+/** Sentinel for the "(root)" option; an empty value reads as "no selection" in the combobox. */
 const ROOT = "__root__";
 
 const LABELS: Record<keyof UpdateTagInput, string> = {
@@ -38,6 +42,7 @@ export function TagGeneralForm({
 }: TagGeneralFormProps) {
   const navigate = useNavigate();
   const updateTag = useUpdateTag();
+  const [addTagOpen, setAddTagOpen] = useState(false);
   const autoSave = useFieldAutoSave<UpdateTagInput, Tag>({
     id: node.id,
     update: updateTag,
@@ -51,7 +56,7 @@ export function TagGeneralForm({
     },
   });
 
-  const parentOptions = [
+  const parentOptions: ComboboxOption[] = [
     {
       value: ROOT,
       label: "(root)",
@@ -60,7 +65,9 @@ export function TagGeneralForm({
       .filter(item => !forbiddenIds.has(item.node.id))
       .map(item => ({
         value: item.node.id,
-        label: `${"– ".repeat(item.depth)}${item.node.name}`,
+        label: item.node.name,
+        depth: item.depth,
+        searchAlias: item.node.romanizedName ?? undefined,
       })),
   ];
 
@@ -116,11 +123,18 @@ export function TagGeneralForm({
 
       <form.AppField name="parent">
         {field => (
-          <field.SelectField
+          <field.ComboboxField
             label="Parent"
             options={parentOptions}
             placeholder="Choose a parent"
-            onValueChange={value => autoSave.saveField("parentId", value === ROOT ? null : value)}
+            searchPlaceholder="Search tags…"
+            emptyText="No tags found."
+            createOption={{
+              label: "Create tag",
+              onSelect: () => setAddTagOpen(true),
+            }}
+            onValueChange={value =>
+              autoSave.saveField("parentId", value && value !== ROOT ? value : null)}
           />
         )}
       </form.AppField>
@@ -142,6 +156,16 @@ export function TagGeneralForm({
         />
         <Label htmlFor="tag-exclude-from-backfill">Exclude from autofill backfilling</Label>
       </div>
+
+      <AddTagModal
+        open={addTagOpen}
+        onOpenChange={setAddTagOpen}
+        onCreated={(tag) => {
+          // Select the freshly created tag as this tag's parent and persist it.
+          form.setFieldValue("parent", tag.id);
+          autoSave.saveField("parentId", tag.id);
+        }}
+      />
     </div>
   );
 }
