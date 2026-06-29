@@ -99,11 +99,9 @@ export const bookmarksApi = {
   takeScreenshot: (id: string, delayMs?: number) =>
     request<BookmarkImage>(`/bookmarks/${id}/screenshot`, {
       method: "POST",
-      ...(delayMs
+      body: JSON.stringify(delayMs != null
         ? {
-          body: JSON.stringify({
-            delayMs,
-          }),
+          delayMs,
         }
         : {}),
     }),
