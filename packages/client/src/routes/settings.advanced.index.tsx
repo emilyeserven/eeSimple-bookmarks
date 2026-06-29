@@ -1,7 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
-/** Connectors moved under Settings → Advanced; keep the old URL working. */
-export const Route = createFileRoute("/settings/connectors")({
+/** `/settings/advanced` lands on the Connectors tab by default. */
+export const Route = createFileRoute("/settings/advanced/")({
   beforeLoad: () => {
     throw redirect({
       to: "/settings/advanced/connectors",

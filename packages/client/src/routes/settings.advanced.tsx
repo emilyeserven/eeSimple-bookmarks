@@ -1,22 +1,49 @@
+import type { TabNavItem } from "../components/TabbedEntityLayout";
+
 import { createFileRoute } from "@tanstack/react-router";
 
-import { AdvancedSettings } from "../components/AdvancedSettings";
+import { VerticalTabbedLayout } from "../components/VerticalTabbedLayout";
 
 export const Route = createFileRoute("/settings/advanced")({
-  component: AdvancedPage,
+  component: AdvancedLayout,
 });
 
-function AdvancedPage() {
+const advancedNav: readonly TabNavItem[] = [
+  {
+    to: "/settings/advanced/connectors",
+    label: "Connectors",
+  },
+  {
+    to: "/settings/advanced/manage-data",
+    label: "Manage Data",
+  },
+  {
+    to: "/settings/advanced/updates",
+    label: "Updates",
+  },
+  {
+    to: "/settings/advanced/database-usage",
+    label: "Database usage",
+  },
+  {
+    to: "/settings/advanced/manage-media",
+    label: "Manage Media",
+  },
+] as const;
+
+function AdvancedLayout() {
   return (
-    <section className="space-y-6">
-      <div>
-        <h2 className="text-xl font-semibold">Advanced</h2>
-        <p className="text-sm text-muted-foreground">
-          App update checking, orphaned-record cleanup, and a summary of how much disk space the
-          database is using.
-        </p>
-      </div>
-      <AdvancedSettings />
-    </section>
+    <VerticalTabbedLayout
+      header={(
+        <div>
+          <h2 className="text-xl font-semibold">Advanced</h2>
+          <p className="text-sm text-muted-foreground">
+            Connectors, data cleanup, app updates, database usage, and stored media.
+          </p>
+        </div>
+      )}
+      nav={advancedNav}
+      navAriaLabel="Advanced settings sections"
+    />
   );
 }

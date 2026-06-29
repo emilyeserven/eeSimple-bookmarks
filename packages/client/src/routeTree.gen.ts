@@ -78,6 +78,8 @@ import { Route as TaxonomiesMediaTypesIndexRouteImport } from './routes/taxonomi
 import { Route as TaxonomiesAuthorsIndexRouteImport } from './routes/taxonomies.authors.index'
 import { Route as TagsTagSlugIndexRouteImport } from './routes/tags.$tagSlug.index'
 import { Route as SettingsDisplayIndexRouteImport } from './routes/settings.display.index'
+import { Route as SettingsAutomationsIndexRouteImport } from './routes/settings.automations.index'
+import { Route as SettingsAdvancedIndexRouteImport } from './routes/settings.advanced.index'
 import { Route as SavedFiltersFilterSlugIndexRouteImport } from './routes/saved-filters.$filterSlug.index'
 import { Route as ImportRulesRuleSlugIndexRouteImport } from './routes/import-rules.$ruleSlug.index'
 import { Route as CustomPropertiesPropertySlugIndexRouteImport } from './routes/custom-properties.$propertySlug.index'
@@ -100,6 +102,16 @@ import { Route as SettingsDisplayMediaRouteImport } from './routes/settings.disp
 import { Route as SettingsDisplayHomepageRouteImport } from './routes/settings.display.homepage'
 import { Route as SettingsDisplayGeneralRouteImport } from './routes/settings.display.general'
 import { Route as SettingsDisplayDrawerRouteImport } from './routes/settings.display.drawer'
+import { Route as SettingsAutomationsRedirectFailuresRouteImport } from './routes/settings.automations.redirect-failures'
+import { Route as SettingsAutomationsLinkParsingRouteImport } from './routes/settings.automations.link-parsing'
+import { Route as SettingsAutomationsImportsRouteImport } from './routes/settings.automations.imports'
+import { Route as SettingsAutomationsGlobalRouteImport } from './routes/settings.automations.global'
+import { Route as SettingsAutomationsCheckLinksRouteImport } from './routes/settings.automations.check-links'
+import { Route as SettingsAdvancedUpdatesRouteImport } from './routes/settings.advanced.updates'
+import { Route as SettingsAdvancedManageMediaRouteImport } from './routes/settings.advanced.manage-media'
+import { Route as SettingsAdvancedManageDataRouteImport } from './routes/settings.advanced.manage-data'
+import { Route as SettingsAdvancedDatabaseUsageRouteImport } from './routes/settings.advanced.database-usage'
+import { Route as SettingsAdvancedConnectorsRouteImport } from './routes/settings.advanced.connectors'
 import { Route as SavedFiltersFilterSlugEditRouteImport } from './routes/saved-filters.$filterSlug.edit'
 import { Route as SavedFiltersFilterSlugViewRouteImport } from './routes/saved-filters.$filterSlug._view'
 import { Route as ImportRulesRuleSlugEditRouteImport } from './routes/import-rules.$ruleSlug.edit'
@@ -613,6 +625,17 @@ const SettingsDisplayIndexRoute = SettingsDisplayIndexRouteImport.update({
   path: '/',
   getParentRoute: () => SettingsDisplayRoute,
 } as any)
+const SettingsAutomationsIndexRoute =
+  SettingsAutomationsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => SettingsAutomationsRoute,
+  } as any)
+const SettingsAdvancedIndexRoute = SettingsAdvancedIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => SettingsAdvancedRoute,
+} as any)
 const SavedFiltersFilterSlugIndexRoute =
   SavedFiltersFilterSlugIndexRouteImport.update({
     id: '/',
@@ -736,6 +759,65 @@ const SettingsDisplayDrawerRoute = SettingsDisplayDrawerRouteImport.update({
   path: '/drawer',
   getParentRoute: () => SettingsDisplayRoute,
 } as any)
+const SettingsAutomationsRedirectFailuresRoute =
+  SettingsAutomationsRedirectFailuresRouteImport.update({
+    id: '/redirect-failures',
+    path: '/redirect-failures',
+    getParentRoute: () => SettingsAutomationsRoute,
+  } as any)
+const SettingsAutomationsLinkParsingRoute =
+  SettingsAutomationsLinkParsingRouteImport.update({
+    id: '/link-parsing',
+    path: '/link-parsing',
+    getParentRoute: () => SettingsAutomationsRoute,
+  } as any)
+const SettingsAutomationsImportsRoute =
+  SettingsAutomationsImportsRouteImport.update({
+    id: '/imports',
+    path: '/imports',
+    getParentRoute: () => SettingsAutomationsRoute,
+  } as any)
+const SettingsAutomationsGlobalRoute =
+  SettingsAutomationsGlobalRouteImport.update({
+    id: '/global',
+    path: '/global',
+    getParentRoute: () => SettingsAutomationsRoute,
+  } as any)
+const SettingsAutomationsCheckLinksRoute =
+  SettingsAutomationsCheckLinksRouteImport.update({
+    id: '/check-links',
+    path: '/check-links',
+    getParentRoute: () => SettingsAutomationsRoute,
+  } as any)
+const SettingsAdvancedUpdatesRoute = SettingsAdvancedUpdatesRouteImport.update({
+  id: '/updates',
+  path: '/updates',
+  getParentRoute: () => SettingsAdvancedRoute,
+} as any)
+const SettingsAdvancedManageMediaRoute =
+  SettingsAdvancedManageMediaRouteImport.update({
+    id: '/manage-media',
+    path: '/manage-media',
+    getParentRoute: () => SettingsAdvancedRoute,
+  } as any)
+const SettingsAdvancedManageDataRoute =
+  SettingsAdvancedManageDataRouteImport.update({
+    id: '/manage-data',
+    path: '/manage-data',
+    getParentRoute: () => SettingsAdvancedRoute,
+  } as any)
+const SettingsAdvancedDatabaseUsageRoute =
+  SettingsAdvancedDatabaseUsageRouteImport.update({
+    id: '/database-usage',
+    path: '/database-usage',
+    getParentRoute: () => SettingsAdvancedRoute,
+  } as any)
+const SettingsAdvancedConnectorsRoute =
+  SettingsAdvancedConnectorsRouteImport.update({
+    id: '/connectors',
+    path: '/connectors',
+    getParentRoute: () => SettingsAdvancedRoute,
+  } as any)
 const SavedFiltersFilterSlugEditRoute =
   SavedFiltersFilterSlugEditRouteImport.update({
     id: '/edit',
@@ -1664,9 +1746,9 @@ export interface FileRoutesByFullPath {
   '/import-rules/$ruleSlug': typeof ImportRulesRuleSlugViewRouteWithChildren
   '/inbox/new': typeof InboxNewRoute
   '/saved-filters/$filterSlug': typeof SavedFiltersFilterSlugViewRouteWithChildren
-  '/settings/advanced': typeof SettingsAdvancedRoute
+  '/settings/advanced': typeof SettingsAdvancedRouteWithChildren
   '/settings/autofill': typeof SettingsAutofillRoute
-  '/settings/automations': typeof SettingsAutomationsRoute
+  '/settings/automations': typeof SettingsAutomationsRouteWithChildren
   '/settings/card-display-rules': typeof SettingsCardDisplayRulesRoute
   '/settings/connectors': typeof SettingsConnectorsRoute
   '/settings/custom-properties': typeof SettingsCustomPropertiesRoute
@@ -1707,6 +1789,16 @@ export interface FileRoutesByFullPath {
   '/custom-properties/$propertySlug/edit': typeof CustomPropertiesPropertySlugEditRouteWithChildren
   '/import-rules/$ruleSlug/edit': typeof ImportRulesRuleSlugEditRouteWithChildren
   '/saved-filters/$filterSlug/edit': typeof SavedFiltersFilterSlugEditRouteWithChildren
+  '/settings/advanced/connectors': typeof SettingsAdvancedConnectorsRoute
+  '/settings/advanced/database-usage': typeof SettingsAdvancedDatabaseUsageRoute
+  '/settings/advanced/manage-data': typeof SettingsAdvancedManageDataRoute
+  '/settings/advanced/manage-media': typeof SettingsAdvancedManageMediaRoute
+  '/settings/advanced/updates': typeof SettingsAdvancedUpdatesRoute
+  '/settings/automations/check-links': typeof SettingsAutomationsCheckLinksRoute
+  '/settings/automations/global': typeof SettingsAutomationsGlobalRoute
+  '/settings/automations/imports': typeof SettingsAutomationsImportsRoute
+  '/settings/automations/link-parsing': typeof SettingsAutomationsLinkParsingRoute
+  '/settings/automations/redirect-failures': typeof SettingsAutomationsRedirectFailuresRoute
   '/settings/display/drawer': typeof SettingsDisplayDrawerRoute
   '/settings/display/general': typeof SettingsDisplayGeneralRoute
   '/settings/display/homepage': typeof SettingsDisplayHomepageRoute
@@ -1728,6 +1820,8 @@ export interface FileRoutesByFullPath {
   '/custom-properties/$propertySlug/': typeof CustomPropertiesPropertySlugIndexRoute
   '/import-rules/$ruleSlug/': typeof ImportRulesRuleSlugIndexRoute
   '/saved-filters/$filterSlug/': typeof SavedFiltersFilterSlugIndexRoute
+  '/settings/advanced/': typeof SettingsAdvancedIndexRoute
+  '/settings/automations/': typeof SettingsAutomationsIndexRoute
   '/settings/display/': typeof SettingsDisplayIndexRoute
   '/tags/$tagSlug/': typeof TagsTagSlugIndexRoute
   '/taxonomies/authors/': typeof TaxonomiesAuthorsIndexRoute
@@ -1879,9 +1973,7 @@ export interface FileRoutesByTo {
   '/autofill/backfill': typeof AutofillBackfillRoute
   '/custom-properties/new': typeof CustomPropertiesNewRoute
   '/inbox/new': typeof InboxNewRoute
-  '/settings/advanced': typeof SettingsAdvancedRoute
   '/settings/autofill': typeof SettingsAutofillRoute
-  '/settings/automations': typeof SettingsAutomationsRoute
   '/settings/card-display-rules': typeof SettingsCardDisplayRulesRoute
   '/settings/connectors': typeof SettingsConnectorsRoute
   '/settings/custom-properties': typeof SettingsCustomPropertiesRoute
@@ -1911,6 +2003,16 @@ export interface FileRoutesByTo {
   '/custom-properties/$propertySlug': typeof CustomPropertiesPropertySlugIndexRoute
   '/import-rules/$ruleSlug': typeof ImportRulesRuleSlugIndexRoute
   '/saved-filters/$filterSlug': typeof SavedFiltersFilterSlugIndexRoute
+  '/settings/advanced/connectors': typeof SettingsAdvancedConnectorsRoute
+  '/settings/advanced/database-usage': typeof SettingsAdvancedDatabaseUsageRoute
+  '/settings/advanced/manage-data': typeof SettingsAdvancedManageDataRoute
+  '/settings/advanced/manage-media': typeof SettingsAdvancedManageMediaRoute
+  '/settings/advanced/updates': typeof SettingsAdvancedUpdatesRoute
+  '/settings/automations/check-links': typeof SettingsAutomationsCheckLinksRoute
+  '/settings/automations/global': typeof SettingsAutomationsGlobalRoute
+  '/settings/automations/imports': typeof SettingsAutomationsImportsRoute
+  '/settings/automations/link-parsing': typeof SettingsAutomationsLinkParsingRoute
+  '/settings/automations/redirect-failures': typeof SettingsAutomationsRedirectFailuresRoute
   '/settings/display/drawer': typeof SettingsDisplayDrawerRoute
   '/settings/display/general': typeof SettingsDisplayGeneralRoute
   '/settings/display/homepage': typeof SettingsDisplayHomepageRoute
@@ -1918,6 +2020,8 @@ export interface FileRoutesByTo {
   '/settings/display/sidebar': typeof SettingsDisplaySidebarRoute
   '/tags/$tagSlug': typeof TagsTagSlugIndexRoute
   '/bookmarks/$bookmarkId': typeof BookmarksBookmarkIdIndexRoute
+  '/settings/advanced': typeof SettingsAdvancedIndexRoute
+  '/settings/automations': typeof SettingsAutomationsIndexRoute
   '/settings/display': typeof SettingsDisplayIndexRoute
   '/taxonomies/authors': typeof TaxonomiesAuthorsIndexRoute
   '/taxonomies/media-types': typeof TaxonomiesMediaTypesIndexRoute
@@ -2080,9 +2184,9 @@ export interface FileRoutesById {
   '/import-rules/$ruleSlug': typeof ImportRulesRuleSlugRouteWithChildren
   '/inbox/new': typeof InboxNewRoute
   '/saved-filters/$filterSlug': typeof SavedFiltersFilterSlugRouteWithChildren
-  '/settings/advanced': typeof SettingsAdvancedRoute
+  '/settings/advanced': typeof SettingsAdvancedRouteWithChildren
   '/settings/autofill': typeof SettingsAutofillRoute
-  '/settings/automations': typeof SettingsAutomationsRoute
+  '/settings/automations': typeof SettingsAutomationsRouteWithChildren
   '/settings/card-display-rules': typeof SettingsCardDisplayRulesRoute
   '/settings/connectors': typeof SettingsConnectorsRoute
   '/settings/custom-properties': typeof SettingsCustomPropertiesRoute
@@ -2129,6 +2233,16 @@ export interface FileRoutesById {
   '/import-rules/$ruleSlug/edit': typeof ImportRulesRuleSlugEditRouteWithChildren
   '/saved-filters/$filterSlug/_view': typeof SavedFiltersFilterSlugViewRouteWithChildren
   '/saved-filters/$filterSlug/edit': typeof SavedFiltersFilterSlugEditRouteWithChildren
+  '/settings/advanced/connectors': typeof SettingsAdvancedConnectorsRoute
+  '/settings/advanced/database-usage': typeof SettingsAdvancedDatabaseUsageRoute
+  '/settings/advanced/manage-data': typeof SettingsAdvancedManageDataRoute
+  '/settings/advanced/manage-media': typeof SettingsAdvancedManageMediaRoute
+  '/settings/advanced/updates': typeof SettingsAdvancedUpdatesRoute
+  '/settings/automations/check-links': typeof SettingsAutomationsCheckLinksRoute
+  '/settings/automations/global': typeof SettingsAutomationsGlobalRoute
+  '/settings/automations/imports': typeof SettingsAutomationsImportsRoute
+  '/settings/automations/link-parsing': typeof SettingsAutomationsLinkParsingRoute
+  '/settings/automations/redirect-failures': typeof SettingsAutomationsRedirectFailuresRoute
   '/settings/display/drawer': typeof SettingsDisplayDrawerRoute
   '/settings/display/general': typeof SettingsDisplayGeneralRoute
   '/settings/display/homepage': typeof SettingsDisplayHomepageRoute
@@ -2151,6 +2265,8 @@ export interface FileRoutesById {
   '/custom-properties/$propertySlug/': typeof CustomPropertiesPropertySlugIndexRoute
   '/import-rules/$ruleSlug/': typeof ImportRulesRuleSlugIndexRoute
   '/saved-filters/$filterSlug/': typeof SavedFiltersFilterSlugIndexRoute
+  '/settings/advanced/': typeof SettingsAdvancedIndexRoute
+  '/settings/automations/': typeof SettingsAutomationsIndexRoute
   '/settings/display/': typeof SettingsDisplayIndexRoute
   '/tags/$tagSlug/': typeof TagsTagSlugIndexRoute
   '/taxonomies/authors/': typeof TaxonomiesAuthorsIndexRoute
@@ -2372,6 +2488,16 @@ export interface FileRouteTypes {
     | '/custom-properties/$propertySlug/edit'
     | '/import-rules/$ruleSlug/edit'
     | '/saved-filters/$filterSlug/edit'
+    | '/settings/advanced/connectors'
+    | '/settings/advanced/database-usage'
+    | '/settings/advanced/manage-data'
+    | '/settings/advanced/manage-media'
+    | '/settings/advanced/updates'
+    | '/settings/automations/check-links'
+    | '/settings/automations/global'
+    | '/settings/automations/imports'
+    | '/settings/automations/link-parsing'
+    | '/settings/automations/redirect-failures'
     | '/settings/display/drawer'
     | '/settings/display/general'
     | '/settings/display/homepage'
@@ -2393,6 +2519,8 @@ export interface FileRouteTypes {
     | '/custom-properties/$propertySlug/'
     | '/import-rules/$ruleSlug/'
     | '/saved-filters/$filterSlug/'
+    | '/settings/advanced/'
+    | '/settings/automations/'
     | '/settings/display/'
     | '/tags/$tagSlug/'
     | '/taxonomies/authors/'
@@ -2544,9 +2672,7 @@ export interface FileRouteTypes {
     | '/autofill/backfill'
     | '/custom-properties/new'
     | '/inbox/new'
-    | '/settings/advanced'
     | '/settings/autofill'
-    | '/settings/automations'
     | '/settings/card-display-rules'
     | '/settings/connectors'
     | '/settings/custom-properties'
@@ -2576,6 +2702,16 @@ export interface FileRouteTypes {
     | '/custom-properties/$propertySlug'
     | '/import-rules/$ruleSlug'
     | '/saved-filters/$filterSlug'
+    | '/settings/advanced/connectors'
+    | '/settings/advanced/database-usage'
+    | '/settings/advanced/manage-data'
+    | '/settings/advanced/manage-media'
+    | '/settings/advanced/updates'
+    | '/settings/automations/check-links'
+    | '/settings/automations/global'
+    | '/settings/automations/imports'
+    | '/settings/automations/link-parsing'
+    | '/settings/automations/redirect-failures'
     | '/settings/display/drawer'
     | '/settings/display/general'
     | '/settings/display/homepage'
@@ -2583,6 +2719,8 @@ export interface FileRouteTypes {
     | '/settings/display/sidebar'
     | '/tags/$tagSlug'
     | '/bookmarks/$bookmarkId'
+    | '/settings/advanced'
+    | '/settings/automations'
     | '/settings/display'
     | '/taxonomies/authors'
     | '/taxonomies/media-types'
@@ -2793,6 +2931,16 @@ export interface FileRouteTypes {
     | '/import-rules/$ruleSlug/edit'
     | '/saved-filters/$filterSlug/_view'
     | '/saved-filters/$filterSlug/edit'
+    | '/settings/advanced/connectors'
+    | '/settings/advanced/database-usage'
+    | '/settings/advanced/manage-data'
+    | '/settings/advanced/manage-media'
+    | '/settings/advanced/updates'
+    | '/settings/automations/check-links'
+    | '/settings/automations/global'
+    | '/settings/automations/imports'
+    | '/settings/automations/link-parsing'
+    | '/settings/automations/redirect-failures'
     | '/settings/display/drawer'
     | '/settings/display/general'
     | '/settings/display/homepage'
@@ -2815,6 +2963,8 @@ export interface FileRouteTypes {
     | '/custom-properties/$propertySlug/'
     | '/import-rules/$ruleSlug/'
     | '/saved-filters/$filterSlug/'
+    | '/settings/advanced/'
+    | '/settings/automations/'
     | '/settings/display/'
     | '/tags/$tagSlug/'
     | '/taxonomies/authors/'
@@ -3477,6 +3627,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsDisplayIndexRouteImport
       parentRoute: typeof SettingsDisplayRoute
     }
+    '/settings/automations/': {
+      id: '/settings/automations/'
+      path: '/'
+      fullPath: '/settings/automations/'
+      preLoaderRoute: typeof SettingsAutomationsIndexRouteImport
+      parentRoute: typeof SettingsAutomationsRoute
+    }
+    '/settings/advanced/': {
+      id: '/settings/advanced/'
+      path: '/'
+      fullPath: '/settings/advanced/'
+      preLoaderRoute: typeof SettingsAdvancedIndexRouteImport
+      parentRoute: typeof SettingsAdvancedRoute
+    }
     '/saved-filters/$filterSlug/': {
       id: '/saved-filters/$filterSlug/'
       path: '/'
@@ -3630,6 +3794,76 @@ declare module '@tanstack/react-router' {
       fullPath: '/settings/display/drawer'
       preLoaderRoute: typeof SettingsDisplayDrawerRouteImport
       parentRoute: typeof SettingsDisplayRoute
+    }
+    '/settings/automations/redirect-failures': {
+      id: '/settings/automations/redirect-failures'
+      path: '/redirect-failures'
+      fullPath: '/settings/automations/redirect-failures'
+      preLoaderRoute: typeof SettingsAutomationsRedirectFailuresRouteImport
+      parentRoute: typeof SettingsAutomationsRoute
+    }
+    '/settings/automations/link-parsing': {
+      id: '/settings/automations/link-parsing'
+      path: '/link-parsing'
+      fullPath: '/settings/automations/link-parsing'
+      preLoaderRoute: typeof SettingsAutomationsLinkParsingRouteImport
+      parentRoute: typeof SettingsAutomationsRoute
+    }
+    '/settings/automations/imports': {
+      id: '/settings/automations/imports'
+      path: '/imports'
+      fullPath: '/settings/automations/imports'
+      preLoaderRoute: typeof SettingsAutomationsImportsRouteImport
+      parentRoute: typeof SettingsAutomationsRoute
+    }
+    '/settings/automations/global': {
+      id: '/settings/automations/global'
+      path: '/global'
+      fullPath: '/settings/automations/global'
+      preLoaderRoute: typeof SettingsAutomationsGlobalRouteImport
+      parentRoute: typeof SettingsAutomationsRoute
+    }
+    '/settings/automations/check-links': {
+      id: '/settings/automations/check-links'
+      path: '/check-links'
+      fullPath: '/settings/automations/check-links'
+      preLoaderRoute: typeof SettingsAutomationsCheckLinksRouteImport
+      parentRoute: typeof SettingsAutomationsRoute
+    }
+    '/settings/advanced/updates': {
+      id: '/settings/advanced/updates'
+      path: '/updates'
+      fullPath: '/settings/advanced/updates'
+      preLoaderRoute: typeof SettingsAdvancedUpdatesRouteImport
+      parentRoute: typeof SettingsAdvancedRoute
+    }
+    '/settings/advanced/manage-media': {
+      id: '/settings/advanced/manage-media'
+      path: '/manage-media'
+      fullPath: '/settings/advanced/manage-media'
+      preLoaderRoute: typeof SettingsAdvancedManageMediaRouteImport
+      parentRoute: typeof SettingsAdvancedRoute
+    }
+    '/settings/advanced/manage-data': {
+      id: '/settings/advanced/manage-data'
+      path: '/manage-data'
+      fullPath: '/settings/advanced/manage-data'
+      preLoaderRoute: typeof SettingsAdvancedManageDataRouteImport
+      parentRoute: typeof SettingsAdvancedRoute
+    }
+    '/settings/advanced/database-usage': {
+      id: '/settings/advanced/database-usage'
+      path: '/database-usage'
+      fullPath: '/settings/advanced/database-usage'
+      preLoaderRoute: typeof SettingsAdvancedDatabaseUsageRouteImport
+      parentRoute: typeof SettingsAdvancedRoute
+    }
+    '/settings/advanced/connectors': {
+      id: '/settings/advanced/connectors'
+      path: '/connectors'
+      fullPath: '/settings/advanced/connectors'
+      preLoaderRoute: typeof SettingsAdvancedConnectorsRouteImport
+      parentRoute: typeof SettingsAdvancedRoute
     }
     '/saved-filters/$filterSlug/edit': {
       id: '/saved-filters/$filterSlug/edit'
@@ -5250,6 +5484,49 @@ const SavedFiltersRouteWithChildren = SavedFiltersRoute._addFileChildren(
   SavedFiltersRouteChildren,
 )
 
+interface SettingsAdvancedRouteChildren {
+  SettingsAdvancedConnectorsRoute: typeof SettingsAdvancedConnectorsRoute
+  SettingsAdvancedDatabaseUsageRoute: typeof SettingsAdvancedDatabaseUsageRoute
+  SettingsAdvancedManageDataRoute: typeof SettingsAdvancedManageDataRoute
+  SettingsAdvancedManageMediaRoute: typeof SettingsAdvancedManageMediaRoute
+  SettingsAdvancedUpdatesRoute: typeof SettingsAdvancedUpdatesRoute
+  SettingsAdvancedIndexRoute: typeof SettingsAdvancedIndexRoute
+}
+
+const SettingsAdvancedRouteChildren: SettingsAdvancedRouteChildren = {
+  SettingsAdvancedConnectorsRoute: SettingsAdvancedConnectorsRoute,
+  SettingsAdvancedDatabaseUsageRoute: SettingsAdvancedDatabaseUsageRoute,
+  SettingsAdvancedManageDataRoute: SettingsAdvancedManageDataRoute,
+  SettingsAdvancedManageMediaRoute: SettingsAdvancedManageMediaRoute,
+  SettingsAdvancedUpdatesRoute: SettingsAdvancedUpdatesRoute,
+  SettingsAdvancedIndexRoute: SettingsAdvancedIndexRoute,
+}
+
+const SettingsAdvancedRouteWithChildren =
+  SettingsAdvancedRoute._addFileChildren(SettingsAdvancedRouteChildren)
+
+interface SettingsAutomationsRouteChildren {
+  SettingsAutomationsCheckLinksRoute: typeof SettingsAutomationsCheckLinksRoute
+  SettingsAutomationsGlobalRoute: typeof SettingsAutomationsGlobalRoute
+  SettingsAutomationsImportsRoute: typeof SettingsAutomationsImportsRoute
+  SettingsAutomationsLinkParsingRoute: typeof SettingsAutomationsLinkParsingRoute
+  SettingsAutomationsRedirectFailuresRoute: typeof SettingsAutomationsRedirectFailuresRoute
+  SettingsAutomationsIndexRoute: typeof SettingsAutomationsIndexRoute
+}
+
+const SettingsAutomationsRouteChildren: SettingsAutomationsRouteChildren = {
+  SettingsAutomationsCheckLinksRoute: SettingsAutomationsCheckLinksRoute,
+  SettingsAutomationsGlobalRoute: SettingsAutomationsGlobalRoute,
+  SettingsAutomationsImportsRoute: SettingsAutomationsImportsRoute,
+  SettingsAutomationsLinkParsingRoute: SettingsAutomationsLinkParsingRoute,
+  SettingsAutomationsRedirectFailuresRoute:
+    SettingsAutomationsRedirectFailuresRoute,
+  SettingsAutomationsIndexRoute: SettingsAutomationsIndexRoute,
+}
+
+const SettingsAutomationsRouteWithChildren =
+  SettingsAutomationsRoute._addFileChildren(SettingsAutomationsRouteChildren)
+
 interface SettingsDisplayRouteChildren {
   SettingsDisplayDrawerRoute: typeof SettingsDisplayDrawerRoute
   SettingsDisplayGeneralRoute: typeof SettingsDisplayGeneralRoute
@@ -5273,9 +5550,9 @@ const SettingsDisplayRouteWithChildren = SettingsDisplayRoute._addFileChildren(
 )
 
 interface SettingsRouteChildren {
-  SettingsAdvancedRoute: typeof SettingsAdvancedRoute
+  SettingsAdvancedRoute: typeof SettingsAdvancedRouteWithChildren
   SettingsAutofillRoute: typeof SettingsAutofillRoute
-  SettingsAutomationsRoute: typeof SettingsAutomationsRoute
+  SettingsAutomationsRoute: typeof SettingsAutomationsRouteWithChildren
   SettingsCardDisplayRulesRoute: typeof SettingsCardDisplayRulesRoute
   SettingsConnectorsRoute: typeof SettingsConnectorsRoute
   SettingsCustomPropertiesRoute: typeof SettingsCustomPropertiesRoute
@@ -5294,9 +5571,9 @@ interface SettingsRouteChildren {
 }
 
 const SettingsRouteChildren: SettingsRouteChildren = {
-  SettingsAdvancedRoute: SettingsAdvancedRoute,
+  SettingsAdvancedRoute: SettingsAdvancedRouteWithChildren,
   SettingsAutofillRoute: SettingsAutofillRoute,
-  SettingsAutomationsRoute: SettingsAutomationsRoute,
+  SettingsAutomationsRoute: SettingsAutomationsRouteWithChildren,
   SettingsCardDisplayRulesRoute: SettingsCardDisplayRulesRoute,
   SettingsConnectorsRoute: SettingsConnectorsRoute,
   SettingsCustomPropertiesRoute: SettingsCustomPropertiesRoute,

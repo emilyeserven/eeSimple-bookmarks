@@ -1,21 +1,49 @@
+import type { TabNavItem } from "../components/TabbedEntityLayout";
+
 import { createFileRoute } from "@tanstack/react-router";
 
-import { AutomationsSettings } from "../components/AutomationsSettings";
+import { VerticalTabbedLayout } from "../components/VerticalTabbedLayout";
 
 export const Route = createFileRoute("/settings/automations")({
-  component: AutomationsPage,
+  component: AutomationsLayout,
 });
 
-function AutomationsPage() {
+const automationsNav: readonly TabNavItem[] = [
+  {
+    to: "/settings/automations/global",
+    label: "Global",
+  },
+  {
+    to: "/settings/automations/link-parsing",
+    label: "Link Parsing",
+  },
+  {
+    to: "/settings/automations/check-links",
+    label: "Check Links",
+  },
+  {
+    to: "/settings/automations/redirect-failures",
+    label: "Redirect failures",
+  },
+  {
+    to: "/settings/automations/imports",
+    label: "Imports",
+  },
+] as const;
+
+function AutomationsLayout() {
   return (
-    <section className="space-y-6">
-      <div>
-        <h2 className="text-xl font-semibold">Automations</h2>
-        <p className="text-sm text-muted-foreground">
-          Configure automatic behaviors while managing bookmarks.
-        </p>
-      </div>
-      <AutomationsSettings />
-    </section>
+    <VerticalTabbedLayout
+      header={(
+        <div>
+          <h2 className="text-xl font-semibold">Automations</h2>
+          <p className="text-sm text-muted-foreground">
+            Configure automatic behaviors while managing bookmarks.
+          </p>
+        </div>
+      )}
+      nav={automationsNav}
+      navAriaLabel="Automations settings sections"
+    />
   );
 }

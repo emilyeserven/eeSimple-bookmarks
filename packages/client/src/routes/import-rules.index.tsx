@@ -41,9 +41,9 @@ function ImportRulesListPage() {
           See also
           {" "}
           <Link
-            to="/settings/imports"
+            to="/settings/automations/imports"
             className="underline"
-          >Import Settings
+          >Imports
           </Link>
           .
         </p>

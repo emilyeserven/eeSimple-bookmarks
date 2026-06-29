@@ -1,9 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-  Filter,
-  Image,
-  Inbox,
-  Link2,
   Monitor,
   Puzzle,
   Sparkles,
@@ -26,20 +22,8 @@ const SETTINGS_TILES = [
     to: "/settings/display" as const,
   },
   {
-    label: "Saved Filters",
-    description: "Manage your saved bookmark filters.",
-    icon: Filter,
-    to: "/settings/saved-filters" as const,
-  },
-  {
-    label: "Media Management",
-    description: "Manage every image stored for your bookmarks.",
-    icon: Image,
-    to: "/settings/media-management" as const,
-  },
-  {
     label: "Automations",
-    description: "Configure automatic behaviors when saving bookmarks.",
+    description: "Auto-behaviors, link parsing, redirect failures, and imports.",
     icon: Wand2,
     to: "/settings/automations" as const,
   },
@@ -50,18 +34,6 @@ const SETTINGS_TILES = [
     to: "/ai-summarization" as const,
   },
   {
-    label: "Link Parsing",
-    description: "Configure URL parsing and link shorteners.",
-    icon: Link2,
-    to: "/settings/link-parsing" as const,
-  },
-  {
-    label: "Import Settings",
-    description: "Manage the imports blacklist and clear processed inbox items.",
-    icon: Inbox,
-    to: "/settings/imports" as const,
-  },
-  {
     label: "Extension",
     description: "Install a bookmarklet to save the current page.",
     icon: Puzzle,
@@ -69,7 +41,7 @@ const SETTINGS_TILES = [
   },
   {
     label: "Advanced",
-    description: "Opt-in sidebar links to Coolify, the docs, and Storybook.",
+    description: "Connectors, data cleanup, app updates, database usage, and stored media.",
     icon: Wrench,
     to: "/settings/advanced" as const,
   },

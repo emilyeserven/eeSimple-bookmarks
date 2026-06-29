@@ -167,7 +167,7 @@ const SETTINGS = [
   },
   {
     label: "Imports",
-    path: "/settings/imports",
+    path: "/settings/automations/imports",
   },
   {
     label: "Relationships",
@@ -183,15 +183,11 @@ const SETTINGS = [
   },
   {
     label: "Link Parsing",
-    path: "/settings/link-parsing",
+    path: "/settings/automations/link-parsing",
   },
   {
-    label: "Media Management",
-    path: "/settings/media-management",
-  },
-  {
-    label: "Gallery",
-    path: "/settings/gallery",
+    label: "Manage Media",
+    path: "/settings/advanced/manage-media",
   },
   {
     label: "Advanced",
@@ -199,7 +195,7 @@ const SETTINGS = [
   },
   {
     label: "Saved Filters",
-    path: "/settings/saved-filters",
+    path: "/saved-filters",
   },
   {
     label: "Extension",

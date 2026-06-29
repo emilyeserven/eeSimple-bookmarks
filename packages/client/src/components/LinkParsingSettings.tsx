@@ -2,7 +2,6 @@ import { useState } from "react";
 
 import { Plus } from "lucide-react";
 
-import { LinkPreview } from "./LinkPreview";
 import { domainListColumns } from "./tables/domainListColumns";
 import { paramListColumns } from "./tables/paramListColumns";
 import {
@@ -13,7 +12,6 @@ import {
   useUpdateRedirectIgnoreList,
   useUpdateShortenerIgnoreList,
 } from "../hooks/useAppSettings";
-import { useWebsites } from "../hooks/useWebsites";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -26,14 +24,11 @@ import {
 import { DataTable } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 
-/** Settings for URL parsing: the generic-shortener ignore list, redirect ignore list, custom strip params, and a link-preview tool. */
+/** Settings for URL parsing: the generic-shortener ignore list, redirect ignore list, and custom strip params. */
 export function LinkParsingSettings() {
   const {
     data: ignoreList = [], isLoading,
   } = useShortenerIgnoreList();
-  const {
-    data: websites = [],
-  } = useWebsites();
   const updateList = useUpdateShortenerIgnoreList();
   const [newDomain, setNewDomain] = useState("");
 
@@ -231,25 +226,6 @@ export function LinkParsingSettings() {
                 />
               </>
             )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Check a link</CardTitle>
-          <CardDescription>
-            Paste any URL to see which site it resolves to and how it would be canonicalized when
-            saved — including verified short-link expansion and shortener nudges.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <LinkPreview
-            websites={websites}
-            ignoreList={ignoreList}
-            customStripParams={customStripParams}
-            label="URL"
-            placeholder="https://www.youtube.com/watch?v=…"
-          />
         </CardContent>
       </Card>
     </>

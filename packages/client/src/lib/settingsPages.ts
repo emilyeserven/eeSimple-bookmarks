@@ -3,7 +3,6 @@ import type { LucideIcon } from "lucide-react";
 import {
   Cable,
   Clapperboard,
-  Filter,
   FolderOpen,
   Globe,
   Image,
@@ -72,18 +71,13 @@ export const SETTINGS_PAGES: readonly SettingsPage[] = [
     icon: LayoutTemplate,
   },
   {
-    path: "/settings/saved-filters",
-    label: "Saved Filters",
-    icon: Filter,
-  },
-  {
     path: "/card-display-rules",
     label: "Card Display Rules",
     icon: LayoutGrid,
   },
   {
-    path: "/settings/media-management",
-    label: "Media Management",
+    path: "/settings/advanced/manage-media",
+    label: "Manage Media",
     icon: Image,
   },
   {
@@ -97,13 +91,13 @@ export const SETTINGS_PAGES: readonly SettingsPage[] = [
     icon: Sparkles,
   },
   {
-    path: "/settings/link-parsing",
+    path: "/settings/automations/link-parsing",
     label: "Link Parsing",
     icon: Link2,
   },
   {
-    path: "/settings/imports",
-    label: "Import Settings",
+    path: "/settings/automations/imports",
+    label: "Imports",
     icon: Inbox,
   },
   {
@@ -112,7 +106,7 @@ export const SETTINGS_PAGES: readonly SettingsPage[] = [
     icon: Puzzle,
   },
   {
-    path: "/settings/connectors",
+    path: "/settings/advanced/connectors",
     label: "Connectors",
     icon: Cable,
   },
