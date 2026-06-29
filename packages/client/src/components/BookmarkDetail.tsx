@@ -8,6 +8,7 @@ import { BookmarkDetailMedia } from "./BookmarkDetailMedia";
 import { BookmarkDetailTabbed } from "./BookmarkDetailTabbed";
 import { CopyJsonButton } from "./CopyJsonButton";
 import { DetailHeaderActions } from "./DetailHeaderActions";
+import { RomanizedLabel } from "./RomanizedLabel";
 import { useBookmarkDetailLayout } from "../hooks/useAppSettings";
 import { useConnectors } from "../hooks/useConnectors";
 import { bookmarkToConditionInputJson } from "../lib/debugJson";
@@ -72,7 +73,10 @@ export function BookmarkDetail({
                   hover:underline
                 "
               >
-                {bookmark.title}
+                <RomanizedLabel
+                  name={bookmark.title}
+                  romanized={bookmark.romanizedTitle}
+                />
               </a>
             </h1>
             <div className="flex items-center gap-1">

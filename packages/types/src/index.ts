@@ -23,6 +23,8 @@ export interface Tag {
   id: string;
   /** Display name, unique among its siblings. */
   name: string;
+  /** Optional romanized form of the name, shown de-emphasized after the name when present. */
+  romanizedName?: string | null;
   /** URL-friendly identifier derived from the name; unique across all tags. */
   slug: string;
   /** Parent tag id, or `null` for a root-level tag. */
@@ -61,6 +63,7 @@ export type BookmarkTag = Pick<Tag, "id" | "name" | "slug" | "parentId" | "edita
 /** Payload for creating a tag. */
 export interface CreateTagInput {
   name: string;
+  romanizedName?: string | null;
   /** Parent tag id, or `null`/omitted for a root tag. */
   parentId?: string | null;
 }
@@ -68,6 +71,7 @@ export interface CreateTagInput {
 /** Payload for renaming and/or reparenting a tag. `parentId === null` moves it to root. */
 export interface UpdateTagInput {
   name?: string;
+  romanizedName?: string | null;
   parentId?: string | null;
   editableOnCard?: boolean;
   excludeFromBackfill?: boolean;
@@ -386,6 +390,10 @@ export interface DisplayPreferenceSettings {
   croppedWidth: number;
   croppedHeight: number;
   customPropertyTypeIcons: Partial<Record<CustomPropertyType, string>> | null;
+  /** When true, the romanized form is shown as the primary name (real name de-emphasized after it). */
+  showRomanizedByDefault: boolean;
+  /** When true, alphabetical name/title sorting uses the romanized value as the sort key. */
+  sortByRomanized: boolean;
 }
 
 /** Payload for replacing the display-preference settings. */
@@ -876,6 +884,8 @@ export interface Bookmark {
   originalUrl: string | null;
   /** Human-friendly title, e.g. "GitHub". */
   title: string;
+  /** Optional romanized form of the title, shown de-emphasized after the title when present. */
+  romanizedTitle: string | null;
   /** Optional free-form description. */
   description: string | null;
   /** The image attached to this bookmark, or `null` when none has been set. */
@@ -938,6 +948,7 @@ export interface CreateBookmarkInput {
   /** Original URL before cleanup; omit when no cleanup was applied. */
   originalUrl?: string | null;
   title: string;
+  romanizedTitle?: string | null;
   description?: string | null;
   /** Id of the category to assign; omit to fall back to the built-in "Default" category. */
   categoryId?: string;

@@ -778,6 +778,21 @@ const migrations: RuntimeMigration[] = [
     `),
   },
   {
+    // `app_settings` gained the romanized display-preference columns (`show_romanized_by_default`,
+    // `sort_by_romanized`). NOT NULL with defaults matching schema.ts (false / true) on the populated
+    // singleton makes drizzle-kit push prompt (the same non-TTY crash as the other NOT NULL column
+    // cases above), so pre-apply them here to keep push's diff additive-only. One `ALTER TABLE` with
+    // two `ADD COLUMN` clauses is a single statement, safe over the extended protocol. (The companion
+    // nullable `tags.romanized_name` and `bookmarks.romanized_title` text columns are push-safe and
+    // need no step.)
+    name: "add app_settings romanized display-preference columns",
+    run: db => db.execute(sql`
+      ALTER TABLE IF EXISTS "app_settings"
+        ADD COLUMN IF NOT EXISTS "show_romanized_by_default" boolean NOT NULL DEFAULT false,
+        ADD COLUMN IF NOT EXISTS "sort_by_romanized" boolean NOT NULL DEFAULT true
+    `),
+  },
+  {
     name: "add saved_filters.slug column + unique constraint",
     run: async (db) => {
       await db.execute(sql`

@@ -80,6 +80,15 @@ export function RevealedNameField({
         )}
       </form.Subscribe>
 
+      <form.AppField name="romanizedTitle">
+        {field => (
+          <field.TextField
+            label="Romanized name"
+            placeholder="Optional romanized form"
+          />
+        )}
+      </form.AppField>
+
       {titleFetch && (
         <p className="text-sm text-muted-foreground">
           Changed from

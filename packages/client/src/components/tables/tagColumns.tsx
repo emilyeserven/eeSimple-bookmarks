@@ -8,6 +8,7 @@ import { Link } from "@tanstack/react-router";
 import { TreeExpandToggle } from "./cells";
 import { bookmarkCountColumn } from "./columnHelpers";
 import { useViewPanelClick } from "../panel/useEditPanelClick";
+import { RomanizedLabel } from "../RomanizedLabel";
 
 /** Column definitions for the Tags listing Table view (a flattened, expandable tree). */
 export function useTagColumns(): ColumnDef<TagNode>[] {
@@ -39,7 +40,10 @@ export function useTagColumns(): ColumnDef<TagNode>[] {
                 hover:underline
               "
             >
-              {row.original.name}
+              <RomanizedLabel
+                name={row.original.name}
+                romanized={row.original.romanizedName}
+              />
             </Link>
           </div>
         ),

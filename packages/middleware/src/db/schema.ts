@@ -10,6 +10,8 @@ export const bookmarks = pgTable("bookmarks", {
   // Nullable so `drizzle-kit push` applies cleanly to existing rows.
   originalUrl: text("original_url"),
   title: text("title").notNull(),
+  // Optional romanized form of the title. Nullable so `drizzle-kit push` applies cleanly.
+  romanizedTitle: text("romanized_title"),
   description: text("description"),
   // Owning category. Nullable at the DB level so `drizzle-kit push` applies cleanly to
   // existing rows; the service layer resolves NULL to the built-in "Default" category.
@@ -461,6 +463,8 @@ export const newsletterTags = pgTable("newsletter_tags", {
 export const tags = pgTable("tags", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
+  // Optional romanized form of the name. Nullable so `drizzle-kit push` applies cleanly.
+  romanizedName: text("romanized_name"),
   // URL-friendly identifier derived from the name. Nullable for clean `push`; backfilled at boot.
   slug: text("slug"),
   parentId: uuid("parent_id").references((): AnyPgColumn => tags.id, {
@@ -1126,6 +1130,12 @@ export const appSettings = pgTable("app_settings", {
   croppedHeight: integer("cropped_height").notNull().default(9),
   // Per-type icon overrides for the Custom Properties listing. Null = all defaults.
   customPropertyTypeIcons: jsonb("custom_property_type_icons").$type<Record<string, string>>(),
+  // When true, the romanized name/title is shown as the primary label by default.
+  // NOT NULL on an existing table -> pre-applied in migrate.ts to avoid a push prompt.
+  showRomanizedByDefault: boolean("show_romanized_by_default").notNull().default(false),
+  // When true, alphabetical name/title sorting uses the romanized value as the sort key.
+  // NOT NULL on an existing table -> pre-applied in migrate.ts to avoid a push prompt.
+  sortByRomanized: boolean("sort_by_romanized").notNull().default(true),
   // Prompt text used to instruct an AI to summarize bookmarks in the AI Summary Queue.
   aiSummarizationPrompt: text("ai_summarization_prompt").notNull().default(""),
   // Hosted metadata provider (Microlink-compatible) configured from Settings → Connectors.

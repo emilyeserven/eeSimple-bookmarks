@@ -105,6 +105,8 @@ const DEFAULT_DISPLAY_PREFERENCES: DisplayPreferenceSettings = {
   drawerUnpinnedBreakpoints: [768],
   croppedWidth: 16,
   croppedHeight: 9,
+  showRomanizedByDefault: false,
+  sortByRomanized: true,
 };
 
 /** Coerce a stored width string to the typed union, defaulting to "full". */
@@ -588,6 +590,8 @@ export async function getDisplayPreferenceSettings(): Promise<DisplayPreferenceS
       croppedWidth: appSettings.croppedWidth,
       croppedHeight: appSettings.croppedHeight,
       customPropertyTypeIcons: appSettings.customPropertyTypeIcons,
+      showRomanizedByDefault: appSettings.showRomanizedByDefault,
+      sortByRomanized: appSettings.sortByRomanized,
     })
     .from(appSettings)
     .where(eq(appSettings.id, ROW_ID));
@@ -603,6 +607,8 @@ export async function getDisplayPreferenceSettings(): Promise<DisplayPreferenceS
     croppedWidth: asCropped(row.croppedWidth, DEFAULT_DISPLAY_PREFERENCES.croppedWidth),
     croppedHeight: asCropped(row.croppedHeight, DEFAULT_DISPLAY_PREFERENCES.croppedHeight),
     customPropertyTypeIcons: (row.customPropertyTypeIcons as Partial<Record<string, string>> | null) ?? null,
+    showRomanizedByDefault: row.showRomanizedByDefault,
+    sortByRomanized: row.sortByRomanized,
   };
 }
 
@@ -778,6 +784,8 @@ export async function updateDisplayPreferenceSettings(
     croppedWidth: asCropped(input.croppedWidth, DEFAULT_DISPLAY_PREFERENCES.croppedWidth),
     croppedHeight: asCropped(input.croppedHeight, DEFAULT_DISPLAY_PREFERENCES.croppedHeight),
     customPropertyTypeIcons: input.customPropertyTypeIcons ?? null,
+    showRomanizedByDefault: input.showRomanizedByDefault,
+    sortByRomanized: input.sortByRomanized,
   };
   await db
     .insert(appSettings)

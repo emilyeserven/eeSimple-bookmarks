@@ -195,6 +195,7 @@ export function useBookmarkFormController({
   async function submitForm(value: {
     url: string;
     title: string;
+    romanizedTitle: string;
     categoryId: string;
     mediaTypeId: string;
     description: string;
@@ -225,6 +226,7 @@ export function useBookmarkFormController({
       url: finalUrl,
       originalUrl,
       title: value.title,
+      romanizedTitle: value.romanizedTitle.trim() || null,
       categoryId: value.categoryId,
       mediaTypeId: value.mediaTypeId || null,
       description: value.description || null,

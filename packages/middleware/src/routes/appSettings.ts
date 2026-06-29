@@ -239,6 +239,8 @@ const displayPreferenceBody = {
     "drawerUnpinnedBreakpoints",
     "croppedWidth",
     "croppedHeight",
+    "showRomanizedByDefault",
+    "sortByRomanized",
   ],
   additionalProperties: false,
   properties: {
@@ -290,6 +292,12 @@ const displayPreferenceBody = {
           },
         },
       ],
+    },
+    showRomanizedByDefault: {
+      type: "boolean",
+    },
+    sortByRomanized: {
+      type: "boolean",
     },
   },
 } as const;

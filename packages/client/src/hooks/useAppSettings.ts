@@ -180,6 +180,8 @@ const DISPLAY_PREFERENCE_DEFAULTS = {
   drawerUnpinnedBreakpoints: [768],
   croppedWidth: 16,
   croppedHeight: 9,
+  showRomanizedByDefault: false,
+  sortByRomanized: true,
 };
 
 /** Sidebar-customization settings (group A): which left-sidebar items/groups are hidden. */
@@ -316,6 +318,22 @@ export function usePanelPinned(): boolean {
     data,
   } = useDisplayPreferenceSettings();
   return data?.panelPinned ?? DISPLAY_PREFERENCE_DEFAULTS.panelPinned;
+}
+
+/** Whether the romanized form is shown as the primary name/title by default (default false). */
+export function useShowRomanizedByDefault(): boolean {
+  const {
+    data,
+  } = useDisplayPreferenceSettings();
+  return data?.showRomanizedByDefault ?? DISPLAY_PREFERENCE_DEFAULTS.showRomanizedByDefault;
+}
+
+/** Whether alphabetical name/title sorting uses the romanized value as the sort key (default true). */
+export function useSortByRomanized(): boolean {
+  const {
+    data,
+  } = useDisplayPreferenceSettings();
+  return data?.sortByRomanized ?? DISPLAY_PREFERENCE_DEFAULTS.sortByRomanized;
 }
 
 /** Viewport widths (px) below which the drawer floats even when pinned (default [768]). */

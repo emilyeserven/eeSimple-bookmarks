@@ -24,7 +24,10 @@ function useTagList() {
     }) => ({
       id: node.id,
       label: `${"— ".repeat(depth)}${node.name}`,
-      sublabel: node.children.length > 0 ? `${node.children.length} children` : undefined,
+      // Surface the romanized form as the de-emphasized sublabel; fall back to the children count.
+      sublabel: node.romanizedName?.trim()
+        ? node.romanizedName.trim()
+        : node.children.length > 0 ? `${node.children.length} children` : undefined,
     })),
     [data],
   );

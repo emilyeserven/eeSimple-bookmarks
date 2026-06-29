@@ -1,6 +1,8 @@
 import type { TreeComboboxOption } from "@/components/TreeMultiCombobox";
 import type { TagNode } from "@eesimple/types";
 
+import { romanizedSortKey } from "./romanized";
+
 /** A tree node paired with its depth in the tree, for indented flat rendering. */
 export interface FlatNode<T> {
   node: T;
@@ -32,8 +34,26 @@ export function tagNodesToOptions(nodes: TagNode[]): TreeComboboxOption[] {
   return nodes.map(n => ({
     value: n.id,
     label: n.name,
+    // Carry the romanized form so the combobox search matches it too.
+    searchAlias: n.romanizedName ?? undefined,
     children: tagNodesToOptions(n.children),
   }));
+}
+
+/**
+ * Sort a tag tree (recursively, children included) by name/title. When `sortByRomanized` is true the
+ * romanized form is the sort key (falling back to the name when a tag has none). Returns a new tree;
+ * the input is not mutated. Client-side sorting is the sanctioned presentation carve-out.
+ */
+export function sortTagTreeByRomanized(nodes: TagNode[], sortByRomanized: boolean): TagNode[] {
+  return nodes
+    .map(node => ({
+      ...node,
+      children: sortTagTreeByRomanized(node.children, sortByRomanized),
+    }))
+    .sort((a, b) =>
+      romanizedSortKey(a.name, a.romanizedName, sortByRomanized)
+        .localeCompare(romanizedSortKey(b.name, b.romanizedName, sortByRomanized)));
 }
 
 /**

@@ -28,6 +28,7 @@ function toTag(row: TagRow, counts?: TagBookmarkCounts): Tag {
   return {
     id: row.id,
     name: row.name,
+    romanizedName: row.romanizedName,
     // Backfill runs at boot, but fall back to a derived slug so the wire type is never null.
     slug: row.slug ?? slugify(row.name),
     parentId: row.parentId,
@@ -190,6 +191,7 @@ export async function listTags(): Promise<Tag[]> {
     .select({
       id: tags.id,
       name: tags.name,
+      romanizedName: tags.romanizedName,
       slug: tags.slug,
       parentId: tags.parentId,
       createdAt: tags.createdAt,
@@ -237,6 +239,7 @@ export async function createTag(input: CreateTagInput): Promise<Tag> {
     .insert(tags)
     .values({
       name: input.name,
+      romanizedName: input.romanizedName ?? null,
       slug,
       parentId: input.parentId ?? null,
     })
@@ -253,12 +256,13 @@ export async function updateTag(id: string, input: UpdateTagInput): Promise<Tag 
     if (wouldCreateCycle(all, id, input.parentId)) throw new TagCycleError();
   }
 
-  const patch: Partial<Pick<TagRow, "name" | "slug" | "parentId" | "editableOnCard" | "excludeFromBackfill">> = {};
+  const patch: Partial<Pick<TagRow, "name" | "romanizedName" | "slug" | "parentId" | "editableOnCard" | "excludeFromBackfill">> = {};
   if (input.name !== undefined) patch.name = input.name;
   // Keep the slug in sync when the name changes.
   if (input.name !== undefined) {
     patch.slug = uniqueSlug(input.name, await takenTagSlugs(id));
   }
+  if (input.romanizedName !== undefined) patch.romanizedName = input.romanizedName;
   if (input.parentId !== undefined) patch.parentId = input.parentId;
   if (input.editableOnCard !== undefined) patch.editableOnCard = input.editableOnCard;
   if (input.excludeFromBackfill !== undefined) patch.excludeFromBackfill = input.excludeFromBackfill;

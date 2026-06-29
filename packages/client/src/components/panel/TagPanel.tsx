@@ -23,10 +23,11 @@ export function TagCreateForm() {
         isError={createTag.isError}
         errorMessage={createTag.error?.message}
         onSubmit={({
-          name,
+          name, romanizedName,
         }) => createTag.mutate(
           {
             name,
+            romanizedName,
             parentId: null,
           },
           {

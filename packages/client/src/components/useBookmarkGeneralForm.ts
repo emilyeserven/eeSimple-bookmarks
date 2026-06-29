@@ -78,6 +78,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     defaultValues: {
       url: bookmark.originalUrl ?? bookmark.url ?? "",
       title: bookmark.title,
+      romanizedTitle: bookmark.romanizedTitle ?? "",
       categoryId: bookmark.categoryId ?? "",
       mediaTypeId: bookmark.mediaType?.id ?? "",
       description: bookmark.description ?? "",
@@ -102,6 +103,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
           url: finalUrl,
           originalUrl,
           title: value.title,
+          romanizedTitle: value.romanizedTitle.trim() || null,
           categoryId: value.categoryId,
           mediaTypeId: value.mediaTypeId || null,
           description: value.description || null,

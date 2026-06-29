@@ -1,5 +1,6 @@
 import { Link, createFileRoute, useRouterState } from "@tanstack/react-router";
 
+import { RomanizedLabel } from "../components/RomanizedLabel";
 import { TabbedEntityLayout } from "../components/TabbedEntityLayout";
 import { useDeleteTag, useTagBySlug } from "../hooks/useTags";
 
@@ -76,7 +77,16 @@ function TagViewLayout() {
           </Link>
           <div className="flex items-start justify-between gap-4">
             <h1 className="text-2xl font-bold">
-              {isLoading ? "Tag" : (tag?.name ?? "Tag not found")}
+              {isLoading
+                ? "Tag"
+                : tag
+                  ? (
+                    <RomanizedLabel
+                      name={tag.name}
+                      romanized={tag.romanizedName}
+                    />
+                  )
+                  : "Tag not found"}
             </h1>
             {tag
               ? (
