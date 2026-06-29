@@ -26,6 +26,35 @@ export const BROWSER_USER_AGENT
   = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
     + "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
 
+/**
+ * The companion headers a real Chrome sends alongside its User-Agent. Anti-bot CDNs
+ * (Cloudflare/DataDome and friends) increasingly 403 a request whose UA *claims* Chrome but whose
+ * header set is bare — the mismatch between "I'm Chrome" and "I sent two headers" is itself the
+ * detection signal, so a browser UA alone (issue #124) is no longer enough. Sending the consistent
+ * client-hint + language set makes the request look like the browser the UA already claims to be,
+ * which clears those 403s on otherwise-public pages (e.g. japan-guide.com). `Accept-Encoding` is
+ * intentionally omitted so undici keeps managing compression and hands us a decoded body; the
+ * request-specific `Accept` and `Sec-Fetch-*` headers are added per call site (document vs. image).
+ */
+const BROWSER_CLIENT_HINTS: Record<string, string> = {
+  "User-Agent": BROWSER_USER_AGENT,
+  "Accept-Language": "en-US,en;q=0.9",
+  "Sec-Ch-Ua": "\"Chromium\";v=\"124\", \"Google Chrome\";v=\"124\", \"Not-A.Brand\";v=\"99\"",
+  "Sec-Ch-Ua-Mobile": "?0",
+  "Sec-Ch-Ua-Platform": "\"Windows\"",
+};
+
+/** Browser-consistent headers for a top-level document navigation (HTML fetch / reachability probe). */
+export const BROWSER_DOCUMENT_HEADERS: Record<string, string> = {
+  ...BROWSER_CLIENT_HINTS,
+  "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+  "Sec-Fetch-Dest": "document",
+  "Sec-Fetch-Mode": "navigate",
+  "Sec-Fetch-Site": "none",
+  "Sec-Fetch-User": "?1",
+  "Upgrade-Insecure-Requests": "1",
+};
+
 export type FetchTitleResult
   = | { kind: "ok";
     title: string; }
@@ -115,10 +144,7 @@ async function fetchHtml(url: string, stopAt: RegExp, maxBytes = MAX_BYTES): Pro
       method: "GET",
       redirect: "follow",
       signal: controller.signal,
-      headers: {
-        "User-Agent": BROWSER_USER_AGENT,
-        "Accept": "text/html,application/xhtml+xml",
-      },
+      headers: BROWSER_DOCUMENT_HEADERS,
     });
     if (!res.ok) return {
       kind: "http_error",
@@ -210,9 +236,7 @@ export async function checkUrl(url: string): Promise<CheckUrlResult> {
         method,
         redirect: "follow",
         signal: controller.signal,
-        headers: {
-          "User-Agent": BROWSER_USER_AGENT,
-        },
+        headers: BROWSER_DOCUMENT_HEADERS,
       });
     }
     finally {
@@ -518,8 +542,11 @@ export async function downloadImage(url: string, referer?: string): Promise<Buff
       redirect: "follow",
       signal: controller.signal,
       headers: {
-        "User-Agent": BROWSER_USER_AGENT,
+        ...BROWSER_CLIENT_HINTS,
         "Accept": "image/avif,image/webp,image/png,image/svg+xml,image/*;q=0.8,*/*;q=0.5",
+        "Sec-Fetch-Dest": "image",
+        "Sec-Fetch-Mode": "no-cors",
+        "Sec-Fetch-Site": "cross-site",
         ...(referer
           ? {
             Referer: referer,

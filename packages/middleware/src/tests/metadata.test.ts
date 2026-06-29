@@ -142,6 +142,29 @@ test("fetchPageTitle identifies as a browser so sites serve full HTML (issue #12
   finally { globalThis.fetch = original; }
 });
 
+test("fetchPageTitle sends Chrome's companion headers so anti-bot CDNs don't 403 a bare request", async () => {
+  // A browser UA alone (issue #124) isn't enough: a Chrome UA with an otherwise-empty header set is
+  // itself a bot signal that sites behind Cloudflare/DataDome 403 (e.g. japan-guide.com). Verify we
+  // send the consistent companion set a real Chrome would.
+  const original = globalThis.fetch;
+  let sent: Record<string, string> | undefined;
+  globalThis.fetch = async (_input, init) => {
+    sent = init?.headers as Record<string, string> | undefined;
+    return new Response("<head><title>My Page</title></head>", {
+      status: 200,
+    });
+  };
+  try {
+    await fetchPageTitle("https://example.com");
+    assert.ok(sent?.["Accept-Language"], "expected an Accept-Language header");
+    assert.equal(sent?.["Sec-Fetch-Mode"], "navigate");
+    assert.ok(sent?.["Sec-Ch-Ua"], "expected a Sec-Ch-Ua client-hint header");
+    // Accept-Encoding must NOT be set, or undici hands back a still-compressed body.
+    assert.equal(sent?.["Accept-Encoding"], undefined);
+  }
+  finally { globalThis.fetch = original; }
+});
+
 test("fetchPageTitle returns { kind: 'no_title' } when body has no <title>", async () => {
   const original = globalThis.fetch;
   globalThis.fetch = async () => new Response("<html><body>no title here</body></html>", {
