@@ -17,7 +17,7 @@ import { backfillPropertyGroupSlugs } from "@/services/propertyGroups";
 import { backfillSavedFilterSlugs } from "@/services/savedFilters";
 import { ensureBuiltInRelationshipTypes } from "@/services/relationshipTypes";
 import { backfillTagSlugs } from "@/services/tags";
-import { backfillLocationSlugs } from "@/services/locations";
+import { backfillLocationRomanizedSlugs, backfillLocationSlugs } from "@/services/locations";
 import { backfillWebsiteSlugs, ensureBuiltInWebsites } from "@/services/websites";
 import { backfillYouTubeChannelSlugs } from "@/services/youtubeChannels";
 import { ensureBucket, isObjectStoreConfigured } from "@/utils/objectStore";
@@ -73,6 +73,7 @@ try {
   await backfillYouTubeChannelSlugs();
   await backfillTagSlugs();
   await backfillLocationSlugs();
+  await backfillLocationRomanizedSlugs();
   await backfillAuthorSlugs();
   await maybeSeed();
   // Backfill condition trees for legacy autofill rules and seed the homepage filter from the

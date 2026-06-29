@@ -129,6 +129,24 @@ export function computeLocationBookmarkCounts(
   return result;
 }
 
+/**
+ * Choose the string a location's slug derives from: the romanized name when present, otherwise the
+ * name. A location's primary `name` is often in a non-Latin script (e.g. `萩市`), which slugifies to
+ * empty and would fall back to a generic `category`/`category-2`… slug; the romanized form (`Hagi`)
+ * yields a meaningful, readable slug instead.
+ */
+export function locationSlugSource(name: string, romanizedName?: string | null): string {
+  const romanized = romanizedName?.trim();
+  return romanized ? romanized : name;
+}
+
+/** Whether `slug` was derived from `source` (exact base, or a `base-2`/`base-3`… disambiguation). */
+function slugDerivesFrom(slug: string, source: string): boolean {
+  const base = slugify(source);
+  if (!base) return false;
+  return slug === base || slug.startsWith(`${base}-`);
+}
+
 /** Existing location slugs, optionally excluding one location id (when renaming). */
 async function takenLocationSlugs(excludeId?: string): Promise<string[]> {
   const rows = await db
@@ -226,7 +244,7 @@ async function writeLocationTags(
 }
 
 export async function createLocation(input: CreateLocationInput): Promise<Location> {
-  const slug = uniqueSlug(input.name, await takenLocationSlugs());
+  const slug = uniqueSlug(locationSlugSource(input.name, input.romanizedName), await takenLocationSlugs());
   const row = await db.transaction(async (tx) => {
     const [inserted] = await tx
       .insert(locations)
@@ -307,11 +325,27 @@ export async function updateLocation(id: string, input: UpdateLocationInput): Pr
   }
 
   const patch: Partial<LocationRow> = {};
-  if (input.name !== undefined) {
-    patch.name = input.name;
-    patch.slug = uniqueSlug(input.name, await takenLocationSlugs(id));
-  }
+  if (input.name !== undefined) patch.name = input.name;
   if (input.romanizedName !== undefined) patch.romanizedName = input.romanizedName;
+  // The slug derives from the romanized name (falling back to the name), so a change to either
+  // field re-derives it. Resolve the effective values against the current row when one is absent.
+  if (input.name !== undefined || input.romanizedName !== undefined) {
+    const [current] = await db
+      .select({
+        name: locations.name,
+        romanizedName: locations.romanizedName,
+      })
+      .from(locations)
+      .where(eq(locations.id, id));
+    if (current) {
+      const effectiveName = input.name ?? current.name;
+      const effectiveRomanized = input.romanizedName !== undefined ? input.romanizedName : current.romanizedName;
+      patch.slug = uniqueSlug(
+        locationSlugSource(effectiveName, effectiveRomanized),
+        await takenLocationSlugs(id),
+      );
+    }
+  }
   if (input.alternateNames !== undefined) patch.alternateNames = input.alternateNames;
   if (input.latitude !== undefined) patch.latitude = input.latitude;
   if (input.longitude !== undefined) patch.longitude = input.longitude;
@@ -349,6 +383,7 @@ export async function backfillLocationSlugs(): Promise<void> {
     .select({
       id: locations.id,
       name: locations.name,
+      romanizedName: locations.romanizedName,
     })
     .from(locations)
     .where(isNull(locations.slug));
@@ -356,8 +391,48 @@ export async function backfillLocationSlugs(): Promise<void> {
 
   const taken = await takenLocationSlugs();
   for (const loc of missing) {
-    const slug = uniqueSlug(loc.name, taken);
+    const slug = uniqueSlug(locationSlugSource(loc.name, loc.romanizedName), taken);
     taken.push(slug);
+    await db.update(locations).set({
+      slug,
+    }).where(eq(locations.id, loc.id));
+  }
+}
+
+/**
+ * Re-slug existing locations whose slug does not derive from their romanized name. Older rows whose
+ * non-Latin name slugified to empty got a generic `category`/`category-2`… slug; once they have a
+ * romanized name, re-derive a readable slug from it. Idempotent — rows already deriving from their
+ * romanized name (and rows without one to derive from) are left untouched.
+ */
+export async function backfillLocationRomanizedSlugs(): Promise<void> {
+  const rows = await db
+    .select({
+      id: locations.id,
+      romanizedName: locations.romanizedName,
+      slug: locations.slug,
+    })
+    .from(locations);
+
+  // Reserve the slugs we're keeping so re-derived slugs can't collide with them.
+  const taken = new Set<string>();
+  const toRewrite: { id: string;
+    source: string; }[] = [];
+  for (const loc of rows) {
+    const source = loc.romanizedName?.trim();
+    if (!source || (loc.slug !== null && slugDerivesFrom(loc.slug, source))) {
+      if (loc.slug !== null) taken.add(loc.slug);
+      continue;
+    }
+    toRewrite.push({
+      id: loc.id,
+      source,
+    });
+  }
+
+  for (const loc of toRewrite) {
+    const slug = uniqueSlug(loc.source, taken);
+    taken.add(slug);
     await db.update(locations).set({
       slug,
     }).where(eq(locations.id, loc.id));

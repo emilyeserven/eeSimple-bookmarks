@@ -5,9 +5,11 @@ import {
   buildLocationTree,
   collectLocationSubtreeIds,
   computeLocationBookmarkCounts,
+  locationSlugSource,
   matchLocationIdsByTitle,
   wouldCreateLocationCycle,
 } from "@/services/locations";
+import { slugify } from "@/utils/slug";
 
 // Pure-helper tests run without a live database (mirrors tags.test.ts).
 
@@ -119,6 +121,17 @@ test("computeLocationBookmarkCounts counts subtree (distinct) and own bookmarks"
     subtree: 2,
     own: 2,
   });
+});
+
+test("locationSlugSource prefers the romanized name, falling back to the name", () => {
+  // Non-Latin name with a romanized form → slug derives from the romanized form.
+  assert.equal(slugify(locationSlugSource("萩市", "Hagi")), "hagi");
+  // No romanized name → fall back to the name.
+  assert.equal(slugify(locationSlugSource("Tokyo", null)), "tokyo");
+  // Blank/whitespace romanized name is ignored.
+  assert.equal(slugify(locationSlugSource("Tokyo", "   ")), "tokyo");
+  // A non-Latin name with no romanized form still slugifies to empty (no readable source available).
+  assert.equal(slugify(locationSlugSource("萩市", null)), "");
 });
 
 test("matchLocationIdsByTitle matches name, romanizedName, and alternate names", () => {
