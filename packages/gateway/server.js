@@ -236,6 +236,12 @@ async function startGateway() {
     upstream: MIDDLEWARE_URL,
     prefix: "/api",
     rewritePrefix: "/api",
+    // @fastify/reply-from defaults to 10 s, which is too short for screenshot
+    // requests that include a waitFor delay (up to 30 s + 30 s = 60 s).
+    undici: {
+      headersTimeout: 70_000,
+      bodyTimeout: 70_000,
+    },
   });
 
   // Swagger UI lives on the middleware at `/docs` (HTML, `/docs/json`, `/docs/yaml`, `/docs/static/*`
