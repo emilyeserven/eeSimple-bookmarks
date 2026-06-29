@@ -1,5 +1,6 @@
 import { asc, eq, isNull, ne, sql } from "drizzle-orm";
-import type { BulkDeleteResult, CreateTagInput, Tag, TagNode, UpdateTagInput } from "@eesimple/types";
+import type { BulkDeleteResult, CreateTagInput, Tag, TagNode, TitleTagCandidate, UpdateTagInput } from "@eesimple/types";
+import { matchTagIdsByTitle, titleMatchesTerm } from "@eesimple/types";
 import { db } from "@/db";
 import { bookmarkTags, categoryRootTags, tags, type TagRow } from "@/db/schema";
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
@@ -41,40 +42,18 @@ function toTag(row: TagRow, counts?: TagBookmarkCounts): Tag {
   };
 }
 
-/** Escape a string for safe interpolation into a RegExp body. Pure helper. */
-function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
+// The "auto-tag from title" matcher lives in `@eesimple/types` so the middleware (create / backfill)
+// and the client (Inbox prefill preview) share one implementation. Re-exported here so existing
+// callers and tests keep importing from `@/services/tags`.
+export { matchTagIdsByTitle, titleMatchesTerm };
 
-/**
- * Whether `title` contains `tagName` as a whole word, case-insensitively. Uses unicode-aware word
- * boundaries (a non-letter/non-number on each side, or a string edge) so a tag named "art" does not
- * match inside "Martin", while punctuated names like "sci-fi" still match. Pure helper.
- */
-export function titleMatchesTagName(title: string, tagName: string): boolean {
-  const name = tagName.trim();
-  if (!name) return false;
-  const re = new RegExp(`(?:^|[^\\p{L}\\p{N}])${escapeRegExp(name)}(?:[^\\p{L}\\p{N}]|$)`, "iu");
-  return re.test(title);
-}
-
-/** The ids of tags whose name appears as a whole word in `title`. Pure helper. */
-export function matchTagIdsByTitle(
-  title: string,
-  tagList: { id: string;
-    name: string; }[],
-): string[] {
-  if (!title.trim()) return [];
-  return tagList.filter(tag => titleMatchesTagName(title, tag.name)).map(tag => tag.id);
-}
-
-/** Lightweight id+name listing of every tag, used by the title-matching automation. */
-export async function listTagNames(): Promise<{ id: string;
-  name: string; }[]> {
+/** Lightweight id/name/romanized listing of every tag, used by the title-matching automation. */
+export async function listTagNames(): Promise<TitleTagCandidate[]> {
   return db
     .select({
       id: tags.id,
       name: tags.name,
+      romanizedName: tags.romanizedName,
     })
     .from(tags);
 }

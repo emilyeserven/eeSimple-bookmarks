@@ -66,6 +66,7 @@ describe("computeInboxPrefillSeed", () => {
         tagIds: ["recipe", "japanese"],
       })],
       websites: [],
+      tags: [],
     });
     expect(seed.categoryId).toBe("cat-recipe");
     expect(seed.mediaTypeId).toBe("mt-article");
@@ -88,6 +89,7 @@ describe("computeInboxPrefillSeed", () => {
         mediaTypeId: "mt-site",
         tagIds: ["from-site"],
       })],
+      tags: [],
     });
     expect(seed.categoryId).toBe("cat-site");
     expect(seed.mediaTypeId).toBe("mt-site");
@@ -110,6 +112,7 @@ describe("computeInboxPrefillSeed", () => {
           icon: null,
         },
       })],
+      tags: [],
     });
     expect(seed.categoryId).toBe("cat-import");
   });
@@ -124,9 +127,50 @@ describe("computeInboxPrefillSeed", () => {
         setCategoryId: "cat-recipe",
       })],
       websites: [],
+      tags: [],
     });
     expect(seed.categoryId).toBeUndefined();
     expect(seed.mediaTypeId).toBeUndefined();
     expect(seed.tagIds).toEqual([]);
+  });
+
+  it("unions title-matched tags (name and romanized) with rule/website tags", () => {
+    const seed = computeInboxPrefillSeed(item({
+      url: "https://namu.wiki/w/부산광역시",
+      title: "부산광역시",
+    }), {
+      autofillRules: [],
+      websites: [],
+      tags: [
+        {
+          id: "t-busan",
+          name: "부산",
+          romanizedName: "Busan",
+        },
+        {
+          id: "t-seoul",
+          name: "서울",
+          romanizedName: "Seoul",
+        },
+      ],
+    });
+    // The native name "부산" is found inside the compound title "부산광역시"; "서울" is not.
+    expect(seed.tagIds).toEqual(["t-busan"]);
+  });
+
+  it("matches a romanized tag name against a Latin title", () => {
+    const seed = computeInboxPrefillSeed(item({
+      url: "https://lawsoftravel.com/taking-the-ferry-from-busan-to-fukuoka/",
+      title: "Taking the Ferry from Busan to Fukuoka",
+    }), {
+      autofillRules: [],
+      websites: [],
+      tags: [{
+        id: "t-busan",
+        name: "부산",
+        romanizedName: "Busan",
+      }],
+    });
+    expect(seed.tagIds).toEqual(["t-busan"]);
   });
 });

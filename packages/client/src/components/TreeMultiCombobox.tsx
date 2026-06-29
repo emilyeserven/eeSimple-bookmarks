@@ -2,6 +2,8 @@ import * as React from "react";
 
 import { Check, ChevronRight, ChevronsUpDown, Plus } from "lucide-react";
 
+import { ancestorIdsForSelected } from "./treeExpansion";
+
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -47,26 +49,6 @@ interface TreeMultiComboboxProps {
 
 function flattenOptions(nodes: TreeComboboxOption[]): TreeComboboxOption[] {
   return nodes.flatMap(node => [node, ...flattenOptions(node.children ?? [])]);
-}
-
-/**
- * Return the set of node values that must be expanded so every selected item is
- * visible in the tree (i.e. all ancestor nodes of any selected item).
- */
-function ancestorIdsForSelected(
-  nodes: TreeComboboxOption[],
-  selectedSet: Set<string>,
-): Set<string> {
-  const result = new Set<string>();
-
-  function visit(node: TreeComboboxOption): boolean {
-    const childHasSelected = (node.children ?? []).some(child => visit(child));
-    if (childHasSelected) result.add(node.value);
-    return selectedSet.has(node.value) || childHasSelected;
-  }
-
-  for (const node of nodes) visit(node);
-  return result;
 }
 
 /**

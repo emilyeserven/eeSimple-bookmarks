@@ -317,13 +317,14 @@ export async function backfillTitleTags(): Promise<TitleTagBackfillResult> {
     .select({
       id: bookmarks.id,
       title: bookmarks.title,
+      romanizedTitle: bookmarks.romanizedTitle,
     })
     .from(bookmarks);
 
   const links: { bookmarkId: string;
     tagId: string; }[] = [];
   for (const row of rows) {
-    for (const tagId of matchTagIdsByTitle(row.title, allTags)) {
+    for (const tagId of matchTagIdsByTitle(row.title, row.romanizedTitle, allTags)) {
       links.push({
         bookmarkId: row.id,
         tagId,
@@ -377,14 +378,14 @@ async function resolveCreateCategoryId(
 }
 
 /** Tag ids matched from the bookmark title, when the "auto-tag from title" automation is enabled. */
-async function titleMatchTagIds(title: string): Promise<string[]> {
-  if (!title.trim()) return [];
+async function titleMatchTagIds(title: string, romanizedTitle: string | null): Promise<string[]> {
+  if (!title.trim() && !(romanizedTitle ?? "").trim()) return [];
   const {
     autoApplyTitleTags,
   } = await getAutomationSettings();
   if (!autoApplyTitleTags) return [];
   const allTags = await listTagNames();
-  return matchTagIdsByTitle(title, allTags);
+  return matchTagIdsByTitle(title, romanizedTitle, allTags);
 }
 
 /** Tags: union of user-provided + website defaults + channel defaults + title matches (deduped). */
@@ -398,7 +399,7 @@ async function mergeCreateTagIds(
     const channelTagIds = await getChannelTagIds(channelHint.key);
     defaultTagIds.push(...channelTagIds);
   }
-  const titleTagIds = await titleMatchTagIds(input.title);
+  const titleTagIds = await titleMatchTagIds(input.title, input.romanizedTitle ?? null);
   return [...new Set([...(input.tagIds ?? []), ...defaultTagIds, ...titleTagIds])];
 }
 

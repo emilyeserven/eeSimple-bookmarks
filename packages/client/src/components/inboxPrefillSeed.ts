@@ -1,6 +1,6 @@
-import type { AutofillRule, InboxItem, InboxPreFillDefaults, Website } from "@eesimple/types";
+import type { AutofillRule, InboxItem, InboxPreFillDefaults, TitleTagCandidate, Website } from "@eesimple/types";
 
-import { normalizeDomain } from "@eesimple/types";
+import { matchTagIdsByTitle, normalizeDomain } from "@eesimple/types";
 
 import { applyAutofill } from "../lib/autofill";
 
@@ -23,8 +23,9 @@ function hostOf(url: string): string | null {
  *    newsletter default) wins, then the matched website's default, then the autofill rules. This
  *    mirrors the server's `pickApprovalCategoryId` ordering so the seeded value matches what approval
  *    would apply.
- *  - **Tags** (multi-valued): the union of the matched website's default tags and every matching
- *    autofill rule's tags.
+ *  - **Tags** (multi-valued): the union of the matched website's default tags, every matching
+ *    autofill rule's tags, and the tags implied by the item's title (the same "auto-tag from title"
+ *    matcher the server runs at approval, so the preview matches what approval will apply).
  *
  * Authors / publisher have no rule/website source, so they stay empty. Pure — unit-tested directly.
  * (YouTube-channel defaults need an oEmbed scan and are merged in lazily by the row controller.)
@@ -34,9 +35,11 @@ export function computeInboxPrefillSeed(
   {
     autofillRules,
     websites,
+    tags,
   }: {
     autofillRules: AutofillRule[];
     websites: Website[];
+    tags: TitleTagCandidate[];
   },
 ): InboxPreFillDefaults {
   const url = item.url ?? "";
@@ -47,12 +50,15 @@ export function computeInboxPrefillSeed(
     title,
   }, autofillRules);
 
+  // Inbox items carry no romanized title, so only the plain title is matched here.
+  const titleTagIds = matchTagIdsByTitle(title, null, tags);
+
   const domain = url ? hostOf(url) : null;
   const website = domain ? websites.find(w => w.domain === domain) ?? null : null;
 
   const categoryId = item.categoryId ?? website?.category?.id ?? autofill.categoryId ?? undefined;
   const mediaTypeId = website?.mediaTypeId ?? autofill.mediaTypeId ?? undefined;
-  const tagIds = [...new Set([...(website?.tagIds ?? []), ...autofill.tagIds])];
+  const tagIds = [...new Set([...(website?.tagIds ?? []), ...autofill.tagIds, ...titleTagIds])];
 
   return {
     categoryId,
