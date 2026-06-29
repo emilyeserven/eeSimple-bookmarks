@@ -2,6 +2,8 @@ import * as React from "react";
 
 import { Check, ChevronsUpDown, Plus } from "lucide-react";
 
+import { RomanizedLabel } from "./RomanizedLabel";
+
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -22,6 +24,12 @@ export interface ComboboxOption {
   depth?: number;
   /** Optional secondary text (e.g. a romanized name) the search also matches against. */
   searchAlias?: string;
+  /**
+   * Optional romanized form of {@link label}, shown de-emphasized after it (respecting the user's
+   * "Show Romanized by default" preference) and also matched by the search. Use this — rather than
+   * {@link searchAlias} — when the secondary text should be visible, not just searchable.
+   */
+  romanized?: string | null;
   /** Optional element rendered at the inline-start of the option (and the trigger when selected). */
   icon?: React.ReactNode;
 }
@@ -89,7 +97,18 @@ export function Combobox({
             `)}
           >
             {selected?.icon}
-            <span className="truncate">{selected?.label ?? placeholder}</span>
+            <span className="truncate">
+              {selected
+                ? selected.romanized
+                  ? (
+                    <RomanizedLabel
+                      name={selected.label}
+                      romanized={selected.romanized}
+                    />
+                  )
+                  : selected.label
+                : placeholder}
+            </span>
           </span>
           <ChevronsUpDown className="opacity-50" />
         </Button>
@@ -107,7 +126,9 @@ export function Combobox({
                 <CommandItem
                   key={option.value}
                   value={option.label}
-                  keywords={option.searchAlias ? [option.searchAlias] : undefined}
+                  keywords={[option.searchAlias, option.romanized].filter(
+                    (keyword): keyword is string => Boolean(keyword),
+                  )}
                   onSelect={() => {
                     onValueChange(option.value === value ? undefined : option.value);
                     setOpen(false);
@@ -117,7 +138,14 @@ export function Combobox({
                   }}
                 >
                   {option.icon}
-                  {option.label}
+                  {option.romanized
+                    ? (
+                      <RomanizedLabel
+                        name={option.label}
+                        romanized={option.romanized}
+                      />
+                    )
+                    : option.label}
                   <Check
                     className={cn(
                       "ml-auto",

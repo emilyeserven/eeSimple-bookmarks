@@ -248,7 +248,12 @@ that matches the surface — don't invent a new structure for a one-off page.
   `onSearchChange` navigating with `replace: true`. The `routes/-categoryPageData.ts` bundle hook
   already surfaces all the props `BookmarkSearchView` needs; a new entity can either add its list
   there or call `use<Entity>s()` inline. Reference: `routes/categories.$categorySlug.index.tsx` and
-  `routes/tags.$tagSlug.index.tsx`.
+  `routes/tags.$tagSlug.index.tsx`. **The "Info" / view-details link belongs in the app-header strip,
+  not inline in the page** — don't add a `<Button>`/`<Link>` to the `header` prop. The header's
+  `viewDetailsAction` (`components/header/toolbarActions.tsx`) renders it for free once the entity is
+  added to `taxonomyViewLink` (the per-entity `pathParts` → `…/general` switch); a new entity-scoped
+  page just needs a branch there. The page `header` is only the `<h1>` title (plus any
+  entity-specific chrome like the sub-items chip row).
 - **Flat no-tab detail wrapper** (`packages/client/src/components/TaxonomyDetailLayout.tsx`) — a
   loading/error/not-found wrapper that renders its children flat (a `LabeledSection` stack), no
   tabs. Used by Autofill rules.
