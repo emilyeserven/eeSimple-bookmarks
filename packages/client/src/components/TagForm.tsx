@@ -61,6 +61,7 @@ export function TagForm({
       .map(item => ({
         value: item.node.id,
         label: `${"– ".repeat(item.depth)}${item.node.name}`,
+        romanized: item.node.romanizedName,
       })),
   ];
 

@@ -73,6 +73,7 @@ export function MediaTypeGeneralForm({
       .map(m => ({
         value: m.id,
         label: m.name,
+        romanized: m.romanizedName,
       })),
   ];
 
