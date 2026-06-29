@@ -144,9 +144,11 @@ export function matchLocationIdsByTitle(
 
 /** A single candidate returned by the geocoding lookup. */
 export interface LocationLookupCandidate {
-  /** Short name (e.g. `"Tokyo"`). */
+  /** Local/native-script name (e.g. `"萩市"`), preferred as the location's title. */
   name: string;
-  /** Full human-readable address/label (e.g. `"Tokyo, Japan"`). */
+  /** Romanized / English form of the name (e.g. `"Hagi"`), or `null` when the name is already Latin. */
+  romanizedName: string | null;
+  /** Full human-readable address/label (e.g. `"萩市, 山口県, 日本"`). */
   displayName: string;
   latitude: number;
   longitude: number;
