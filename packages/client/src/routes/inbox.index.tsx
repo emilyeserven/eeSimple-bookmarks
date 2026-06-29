@@ -5,6 +5,7 @@ import { ViewModeToggle } from "../components/DisplayControlPrimitives";
 import { InboxBulkActions, InboxReviewList } from "../components/InboxReviewList";
 import { useInboxReviewController } from "../components/useInboxReviewController";
 import { useInboxItems } from "../hooks/useImports";
+import { useSetListingPage } from "../hooks/useListingPage";
 import { useUiStore } from "../stores/uiStore";
 
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ function InboxPage() {
   } = useInboxItems();
   const setAddImportModalOpen = useUiStore(s => s.setAddImportModalOpen);
   const controller = useInboxReviewController(items ?? [], isFetching ?? false);
+  useSetListingPage("inbox", false, false, false);
   const hasItems = items && items.length > 0;
 
   return (

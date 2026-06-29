@@ -35,6 +35,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useUiStore } from "@/stores/uiStore";
 
 function ReviewRow({
   item,
@@ -48,6 +49,7 @@ function ReviewRow({
     itemPreFill, effectivePreFill, isMobile, muted, categoryName, swipe,
     patchItemPreFill,
   } = useReviewRowController(item, preFill, onDismiss);
+  const setHoveredBookmarkId = useUiStore(state => state.setHoveredBookmarkId);
 
   const rowActions = (
     <RowActions
@@ -85,59 +87,89 @@ function ReviewRow({
     )
     : null;
 
+  const hoverId = item.createdBookmarkId ?? null;
+  const hoverCmdk = hoverId
+    ? (
+      <span
+        className="
+          pointer-events-none absolute right-2 bottom-2 z-20 rounded-sm border
+          bg-background/90 px-1.5 py-0.5 text-xs text-muted-foreground opacity-0
+          shadow-sm transition-opacity
+          group-hover:opacity-100
+        "
+      >
+        ⌘K to edit
+      </span>
+    )
+    : null;
+
   if (isMobile && item.status === "pending") {
     const swipeRight = swipe.displacement >= 80;
     const swipeLeft = swipe.displacement <= -80;
 
     return (
       <div
-        className="relative overflow-hidden rounded-lg"
-        onTouchStart={advancedEditOpen ? undefined : swipe.onTouchStart}
-        onTouchMove={advancedEditOpen ? undefined : swipe.onTouchMove}
-        onTouchEnd={advancedEditOpen ? undefined : swipe.onTouchEnd}
+        className="group relative"
+        onMouseEnter={hoverId ? () => setHoveredBookmarkId(hoverId) : undefined}
+        onMouseLeave={hoverId ? () => setHoveredBookmarkId(null) : undefined}
       >
         <div
-          className={`
-            absolute inset-0 transition-colors
-            ${swipeRight ? "bg-green-500/20" : swipeLeft ? "bg-red-500/20" : ""}
-          `}
-        />
-        <RowCard
-          className="relative z-10 p-4"
-          style={{
-            transform: `translateX(${swipe.displacement}px)`,
-            transition: swipe.displacement === 0 ? "transform 0.2s ease" : "none",
-          }}
+          className="relative overflow-hidden rounded-lg"
+          onTouchStart={advancedEditOpen ? undefined : swipe.onTouchStart}
+          onTouchMove={advancedEditOpen ? undefined : swipe.onTouchMove}
+          onTouchEnd={advancedEditOpen ? undefined : swipe.onTouchEnd}
         >
-          <ReviewItemBody
-            item={item}
-            categoryName={categoryName}
-            contextOpen={contextOpen}
-            onContextOpenChange={setContextOpen}
-            trailing={rowActions}
-            advancedEdit={advancedEdit}
+          <div
+            className={`
+              absolute inset-0 transition-colors
+              ${swipeRight ? "bg-green-500/20" : swipeLeft ? "bg-red-500/20" : ""}
+            `}
           />
-        </RowCard>
+          <RowCard
+            className="relative z-10 p-4"
+            style={{
+              transform: `translateX(${swipe.displacement}px)`,
+              transition: swipe.displacement === 0 ? "transform 0.2s ease" : "none",
+            }}
+          >
+            <ReviewItemBody
+              item={item}
+              categoryName={categoryName}
+              contextOpen={contextOpen}
+              onContextOpenChange={setContextOpen}
+              trailing={rowActions}
+              advancedEdit={advancedEdit}
+            />
+          </RowCard>
+        </div>
+        {hoverCmdk}
       </div>
     );
   }
 
   return (
-    <RowCard
-      className={`
-        p-4
-        ${muted ? "opacity-60" : ""}
-      `}
+    <div
+      className="group relative"
+      onMouseEnter={hoverId ? () => setHoveredBookmarkId(hoverId) : undefined}
+      onMouseLeave={hoverId ? () => setHoveredBookmarkId(null) : undefined}
     >
-      <ReviewItemBody
-        item={item}
-        categoryName={categoryName}
-        contextOpen={contextOpen}
-        onContextOpenChange={setContextOpen}
-        trailing={rowActions}
-        advancedEdit={advancedEdit}
-      />
-    </RowCard>
+      <RowCard
+        className={`
+          p-4
+          ${muted ? "opacity-60" : ""}
+        `}
+      >
+        <ReviewItemBody
+          item={item}
+          categoryName={categoryName}
+          contextOpen={contextOpen}
+          onContextOpenChange={setContextOpen}
+          trailing={rowActions}
+          advancedEdit={advancedEdit}
+        />
+      </RowCard>
+      {hoverCmdk}
+    </div>
   );
 }
 
