@@ -379,6 +379,18 @@ function locationCrumbs(
   pathname: string,
   locationAncestors?: LocationNode[],
 ): BreadcrumbSegment[] {
+  // The create page is a `New` leaf, not a slug-resolved entity.
+  if (pathname === "/taxonomies/locations/new") {
+    return [
+      {
+        label: "Locations",
+        href: "/taxonomies/locations",
+      },
+      {
+        label: "New",
+      },
+    ];
+  }
   return treeTaxonomyCrumbs(pathname, locationAncestors, {
     listLabel: "Locations",
     viewPrefix: "/taxonomies/locations",
