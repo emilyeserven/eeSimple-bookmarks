@@ -208,6 +208,7 @@ export function DisplayGeneralSettings() {
                   value={display.customPropertyTypeIcons?.[type] ?? CUSTOM_PROPERTY_TYPE_ICONS[type]}
                   onChange={iconName => setPropertyTypeIcon(type, iconName)}
                   aria-label={`Icon for ${CUSTOM_PROPERTY_TYPE_LABELS[type]}`}
+                  className="max-w-xs"
                 />
               </div>
             ))}
