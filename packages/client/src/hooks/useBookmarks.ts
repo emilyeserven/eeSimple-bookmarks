@@ -2,6 +2,7 @@ import type { BulkBookmarkTagOp, BulkUrlUpdate, CreateBookmarkInput, UpdateBookm
 import type { QueryClient } from "@tanstack/react-query";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 import { bookmarksApi } from "../lib/api/bookmarks";
 import { describeError } from "../lib/apiError";
@@ -272,13 +273,23 @@ export function useTakeBookmarkScreenshot() {
     }: { id: string;
       delayMs?: number; }) =>
       bookmarksApi.takeScreenshot(id, delayMs),
-    onSuccess: () => {
+    onMutate: () => {
+      const toastId = toast.loading("Generating screenshot…");
+      return {
+        toastId,
+      };
+    },
+    onSuccess: (_, __, context) => {
+      toast.dismiss(context?.toastId);
       void queryClient.invalidateQueries({
         queryKey: BOOKMARKS_KEY,
       });
       notifySuccess("Screenshot captured");
     },
-    onError: (err: Error) => notifyError(describeError(err, "Could not capture a screenshot")),
+    onError: (err: Error, _, context) => {
+      toast.dismiss(context?.toastId);
+      notifyError(describeError(err, "Could not capture a screenshot"));
+    },
   });
 }
 
