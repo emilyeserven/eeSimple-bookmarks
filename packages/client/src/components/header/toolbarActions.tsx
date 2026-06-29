@@ -131,6 +131,18 @@ function taxonomyViewLink(pathParts: string[], children: React.ReactNode): React
         </Link>
       );
     }
+    if (pathParts[1] === "locations") {
+      return (
+        <Link
+          to="/taxonomies/locations/$locationSlug/general"
+          params={{
+            locationSlug: slug,
+          }}
+        >
+          {children}
+        </Link>
+      );
+    }
   }
   return null;
 }

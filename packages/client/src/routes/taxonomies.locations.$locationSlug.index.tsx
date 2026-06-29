@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Info, MapPin } from "lucide-react";
+import { MapPin } from "lucide-react";
 
 import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
@@ -7,8 +7,6 @@ import { RomanizedLabel } from "../components/RomanizedLabel";
 import { useLocationBySlug } from "../hooks/useLocations";
 import { tagsForServerQuery, validateBookmarkSearch } from "../lib/bookmarkSearch";
 import { subtreeIds } from "../lib/tagTree";
-
-import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/taxonomies/locations/$locationSlug/")({
   validateSearch: validateBookmarkSearch,
@@ -55,31 +53,13 @@ function LocationBookmarksPage() {
     <BookmarkSearchView
       header={(
         <div className="space-y-2">
-          <div className="flex items-start justify-between gap-4">
-            <h1 className="flex min-w-0 items-center gap-2 text-2xl font-bold">
-              <MapPin className="size-6 shrink-0" />
-              <RomanizedLabel
-                name={location.name}
-                romanized={location.romanizedName}
-              />
-            </h1>
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              className="shrink-0"
-            >
-              <Link
-                to="/taxonomies/locations/$locationSlug/general"
-                params={{
-                  locationSlug,
-                }}
-              >
-                <Info className="size-4" />
-                Info
-              </Link>
-            </Button>
-          </div>
+          <h1 className="flex min-w-0 items-center gap-2 text-2xl font-bold">
+            <MapPin className="size-6 shrink-0" />
+            <RomanizedLabel
+              name={location.name}
+              romanized={location.romanizedName}
+            />
+          </h1>
           {location.children.length > 0 && (
             <div
               className="
