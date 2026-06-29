@@ -34,6 +34,7 @@ function placementMap(
     clickableInOverlay: false,
     showLabelColon: true,
     showValueBeforeLabel: false,
+    clickableTags: false,
     ...extra,
   }]]);
 }

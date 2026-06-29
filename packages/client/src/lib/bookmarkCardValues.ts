@@ -61,6 +61,8 @@ export interface ResolvedFieldPlacement {
   showLabelColon: boolean;
   /** Boolean icon-preset fields: render the value before the label. */
   showValueBeforeLabel: boolean;
+  /** Tags field in the `card-table` zone: render the tag names as clickable links to each tag's page. */
+  clickableTags: boolean;
 }
 
 /** Build a `fieldKey → placement` lookup from a rule's {@link CardFieldZones}. Unlisted keys are hidden. */
@@ -81,6 +83,7 @@ export function resolveFieldPlacements(zones: CardFieldZones): Map<string, Resol
         clickableInOverlay: placement.clickableInOverlay ?? false,
         showLabelColon: placement.showLabelColon ?? true,
         showValueBeforeLabel: placement.showValueBeforeLabel ?? false,
+        clickableTags: placement.clickableTags ?? false,
       });
     }
   }
@@ -101,6 +104,7 @@ function bodyPlacement(zone: CardFieldZone): ResolvedFieldPlacement {
     clickableInOverlay: false,
     showLabelColon: true,
     showValueBeforeLabel: false,
+    clickableTags: false,
   };
 }
 

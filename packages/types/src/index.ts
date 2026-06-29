@@ -1561,6 +1561,12 @@ export interface CardFieldPlacement {
    * value renders before the property name (e.g. "★ Favorite"). Defaults to false.
    */
   showValueBeforeLabel?: boolean;
+  /**
+   * Tags field in the `card-table` zone only. When true, the comma-separated tag names render as
+   * clickable links to each tag's page (matching the Labels-zone tags box); otherwise they render as
+   * plain text. Defaults to false.
+   */
+  clickableTags?: boolean;
 }
 
 /**

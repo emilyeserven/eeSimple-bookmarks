@@ -1,6 +1,6 @@
 import type { BookmarkTag } from "@eesimple/types";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 
 import { Link } from "@tanstack/react-router";
 
@@ -80,5 +80,40 @@ export function BookmarkTagsBox({
         )
         : null}
     </div>
+  );
+}
+
+/**
+ * Inline, comma-separated tag links — the `card-table` zone's clickable form of a bookmark's tags
+ * (opt-in via the placement's `clickableTags` knob). Each name links to the tag's page like the
+ * {@link BookmarkTagsBox} badges, but laid out as plain inline text to fit the table value column.
+ */
+export function BookmarkTagLinks({
+  tags,
+}: TagsBoxProps) {
+  const viewClick = useViewPanelClick();
+  const modifier = useSidebarOpenModifier();
+  return (
+    <span className="text-sm">
+      {tags.map((tag, index) => (
+        <Fragment key={tag.id}>
+          {index > 0 ? ", " : null}
+          <Link
+            to="/tags/$tagSlug/general"
+            params={{
+              tagSlug: tag.slug,
+            }}
+            title={entityLinkTitle(modifier)}
+            onClick={event => viewClick(event, "tag", tag.id, tag.slug)}
+            className="
+              text-primary
+              hover:underline
+            "
+          >
+            {tag.name}
+          </Link>
+        </Fragment>
+      ))}
+    </span>
   );
 }
