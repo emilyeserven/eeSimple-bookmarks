@@ -68,6 +68,13 @@ if you're registering the entity there (step below), you'll need the hook. If th
 appear in breadcrumbs (e.g. it's only used as a relation or filter facet), skip the slug lookup
 hook; an unused export adds dead-code overhead that the fallow audit flags.
 
+### 6a. Wire inline create in existing comboboxes
+
+Any `<Combobox>`, `<MultiCombobox>`, or `<TreeMultiCombobox>` elsewhere in the app that already
+picks this entity type must also get a `createOption` pointing to the new `Add<Entity>Modal`. Check
+the **`combobox-new-entity-creation`** skill for the full list of which pickers are required vs.
+exempt, and the **`inline-create-modal`** skill for building the modal wrapper.
+
 ### 7. Client — route quartet (`packages/client/src/routes/`)
 File-based routing. Copy the five `taxonomies.media-types.*` files, renaming:
 - `<area>.<entity>.tsx` — layout with `<Outlet/>`

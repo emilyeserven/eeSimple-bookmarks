@@ -1,4 +1,4 @@
-import type { AutofillRule, Category, CustomProperty, MediaType } from "@eesimple/types";
+import type { AutofillRule, Category, CustomProperty, MediaTypeNode } from "@eesimple/types";
 
 import { emptyConditionTree } from "@eesimple/types";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
@@ -40,12 +40,13 @@ const categories: Category[] = [
     icon: null,
   } as Category,
 ];
-const mediaTypes: MediaType[] = [
+const mediaTypeTree: MediaTypeNode[] = [
   {
     id: "mt-1",
     name: "Article",
     slug: "article",
-  } as MediaType,
+    children: [] as MediaTypeNode[],
+  } as unknown as MediaTypeNode,
 ];
 
 vi.mock("../hooks/useCategories", () => ({
@@ -59,8 +60,8 @@ vi.mock("../hooks/useCustomProperties", () => ({
   }),
 }));
 vi.mock("../hooks/useMediaTypes", () => ({
-  useMediaTypes: () => ({
-    data: mediaTypes,
+  useMediaTypeTree: () => ({
+    data: mediaTypeTree,
   }),
 }));
 vi.mock("../hooks/useTags", () => ({

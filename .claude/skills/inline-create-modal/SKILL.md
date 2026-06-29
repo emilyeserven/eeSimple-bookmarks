@@ -71,3 +71,7 @@ The opener (a `ComboboxField` / `MultiCombobox` with an "Add new…" affordance)
 setOpen] = useState(false)`, renders `<AddWidgetModal open={open} onOpenChange={setOpen}
 onCreated={w => field.handleChange(w.id)} />`, and opens it from the combobox's create action. See
 the `AddCategoryModal` usage inside `BookmarkForm`.
+
+**Required, not optional.** The `combobox-new-entity-creation` skill is the authoritative checklist
+of which comboboxes must wire `createOption` and which are exempt. When you build a new `Add*Modal`,
+check that skill to see which existing pickers for that entity type still need to be wired.

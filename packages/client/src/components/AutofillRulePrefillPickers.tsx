@@ -1,20 +1,21 @@
-import type { Category, MediaType, TagNode } from "@eesimple/types";
+import type { Category, MediaTypeNode, TagNode } from "@eesimple/types";
 
+import { useState } from "react";
+
+import { AddCategoryModal } from "./AddCategoryModal";
+import { AddMediaTypeModal } from "./AddMediaTypeModal";
 import { NO_CATEGORY, NO_MEDIA_TYPE } from "./AutofillRuleForm";
+import { Combobox } from "./Combobox";
 import { TagPickerWithCreate } from "./TagPickerWithCreate";
+import { iconComboboxOptions, mediaTypeTreeComboboxOptions } from "../lib/comboboxOptions";
 
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
+const LEAVE_UNCHANGED = "— Leave unchanged —";
 
 interface Props {
   categories: Category[];
-  mediaTypes: MediaType[];
+  mediaTypeTree: MediaTypeNode[];
   tagTree: TagNode[];
   setCategoryId: string;
   onCategoryChange: (value: string) => void;
@@ -24,55 +25,59 @@ interface Props {
   onToggleTag: (id: string) => void;
 }
 
-/** Category + media-type selects and tag picker for the autofill rule prefill form. */
+/** Category + media-type comboboxes and tag picker for the autofill rule prefill form. */
 export function AutofillRulePrefillPickers({
-  categories, mediaTypes, tagTree, setCategoryId, onCategoryChange,
+  categories, mediaTypeTree, tagTree, setCategoryId, onCategoryChange,
   setMediaTypeId, onMediaTypeChange, tagIds, onToggleTag,
 }: Props) {
+  const [addCategoryOpen, setAddCategoryOpen] = useState(false);
+  const [addMediaTypeOpen, setAddMediaTypeOpen] = useState(false);
+
+  const categoryOptions = [
+    {
+      value: NO_CATEGORY,
+      label: LEAVE_UNCHANGED,
+    },
+    ...iconComboboxOptions(categories),
+  ];
+  const mediaTypeOptions = [
+    {
+      value: NO_MEDIA_TYPE,
+      label: LEAVE_UNCHANGED,
+    },
+    ...mediaTypeTreeComboboxOptions(mediaTypeTree),
+  ];
+
   return (
     <>
       <div className="space-y-1">
         <Label>Set category</Label>
-        <Select
+        <Combobox
+          options={categoryOptions}
           value={setCategoryId}
-          onValueChange={onCategoryChange}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={NO_CATEGORY}>— Leave unchanged —</SelectItem>
-            {categories.map(c => (
-              <SelectItem
-                key={c.id}
-                value={c.id}
-              >{c.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          onValueChange={v => onCategoryChange(v ?? NO_CATEGORY)}
+          searchPlaceholder="Search categories…"
+          emptyText="No categories found."
+          createOption={{
+            label: "Create category",
+            onSelect: () => setAddCategoryOpen(true),
+          }}
+        />
       </div>
 
       <div className="space-y-1">
         <Label>Set media type</Label>
-        <Select
+        <Combobox
+          options={mediaTypeOptions}
           value={setMediaTypeId}
-          onValueChange={onMediaTypeChange}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={NO_MEDIA_TYPE}>— Leave unchanged —</SelectItem>
-            {mediaTypes.map(m => (
-              <SelectItem
-                key={m.id}
-                value={m.id}
-              >{m.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          onValueChange={v => onMediaTypeChange(v ?? NO_MEDIA_TYPE)}
+          searchPlaceholder="Search media types…"
+          emptyText="No media types found."
+          createOption={{
+            label: "Create media type",
+            onSelect: () => setAddMediaTypeOpen(true),
+          }}
+        />
       </div>
 
       <div className="space-y-1">
@@ -83,6 +88,17 @@ export function AutofillRulePrefillPickers({
           onToggle={onToggleTag}
         />
       </div>
+
+      <AddCategoryModal
+        open={addCategoryOpen}
+        onOpenChange={setAddCategoryOpen}
+        onCreated={c => onCategoryChange(c.id)}
+      />
+      <AddMediaTypeModal
+        open={addMediaTypeOpen}
+        onOpenChange={setAddMediaTypeOpen}
+        onCreated={m => onMediaTypeChange(m.id)}
+      />
     </>
   );
 }
