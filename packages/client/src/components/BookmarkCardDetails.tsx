@@ -9,7 +9,7 @@ import { CARD_BODY_ZONES, normalizeCardZoneLayout } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 
 import { BookmarkArchiveLinkButton, BookmarkExternalLinkButton, BookmarkMoreMenu } from "./BookmarkCardActions";
-import { BookmarkTagsBox } from "./BookmarkTagsBox";
+import { BookmarkTagLinks, BookmarkTagsBox } from "./BookmarkTagsBox";
 import { CategoryPill } from "./CategoryPill";
 import { MediaTypePill } from "./MediaTypePill";
 import { useViewPanelClick } from "./panel/useEditPanelClick";
@@ -76,6 +76,7 @@ function BookmarkTitleLink({
         <RomanizedLabel
           name={bookmark.title}
           romanized={bookmark.romanizedTitle}
+          secondaryClassName="ml-0 block"
         />
       </Link>
     </h3>
@@ -404,12 +405,16 @@ export function BookmarkCardDetails({
       case "tags": {
         if (bookmark.tags.length === 0) return null;
         const box = <BookmarkTagsBox tags={bookmark.tags} />;
-        // The tags box is block-level — full-width in the Labels zone too.
+        // The tags box is block-level — full-width in the Labels zone too. In the Table zone the names
+        // render as plain text, or as clickable links when the placement opts in via `clickableTags`.
+        const clickableTags = placements.get("tags")?.clickableTags ?? false;
         return {
           inline: null,
           block: box,
           tableName: "Tags",
-          tableValue: <span className="text-sm">{bookmark.tags.map(tag => tag.name).join(", ")}</span>,
+          tableValue: clickableTags
+            ? <BookmarkTagLinks tags={bookmark.tags} />
+            : <span className="text-sm">{bookmark.tags.map(tag => tag.name).join(", ")}</span>,
         };
       }
       default: {

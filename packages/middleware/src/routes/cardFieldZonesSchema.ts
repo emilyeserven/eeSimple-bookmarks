@@ -65,6 +65,10 @@ export const fieldZonesSchema = {
             showValueBeforeLabel: {
               type: "boolean",
             },
+            // Tags field in the card-table zone only (mirror of CardFieldPlacement in @eesimple/types).
+            clickableTags: {
+              type: "boolean",
+            },
           },
         },
       }],

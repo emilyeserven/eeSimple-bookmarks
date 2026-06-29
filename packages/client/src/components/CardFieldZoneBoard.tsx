@@ -227,6 +227,7 @@ export function CardFieldZoneBoard({
       if (existing?.clickableInOverlay) placement.clickableInOverlay = true;
       if (existing?.showLabelColon === false) placement.showLabelColon = false;
       if (existing?.showValueBeforeLabel) placement.showValueBeforeLabel = true;
+      if (existing?.clickableTags) placement.clickableTags = true;
       const list = next[targetZone];
       const at = targetIndex === undefined ? list.length : Math.min(Math.max(targetIndex, 0), list.length);
       list.splice(at, 0, placement);
@@ -351,6 +352,7 @@ export function CardFieldZoneBoard({
                     : def.zone === "card-table"
                       ? (
                         <TablePlacementControls
+                          fieldKey={placement.key}
                           placement={placement}
                           idPrefix={chipIdPrefix}
                           onPatch={onPatch}
@@ -572,11 +574,32 @@ function HideLabelToggle({
   );
 }
 
-/** Hide-label control for a field placed in the card-body Table zone. */
-function TablePlacementControls(props: PlacementControlsProps) {
+/**
+ * Controls for a field placed in the card-body Table zone: Hide label, plus a "Clickable links"
+ * toggle on the Tags field (renders the tag names as links to each tag's page instead of plain text).
+ */
+function TablePlacementControls({
+  fieldKey, placement, idPrefix, onPatch,
+}: PlacementControlsProps & { fieldKey: string }) {
   return (
     <div className="flex flex-col items-start gap-1.5 pl-5 text-xs">
-      <HideLabelToggle {...props} />
+      <HideLabelToggle
+        placement={placement}
+        idPrefix={idPrefix}
+        onPatch={onPatch}
+      />
+      {fieldKey === "tags"
+        ? (
+          <PlacementCheckbox
+            id={`${idPrefix}-clickable-tags`}
+            label="Clickable links"
+            checked={placement.clickableTags ?? false}
+            onCheckedChange={clickableTags => onPatch({
+              clickableTags,
+            })}
+          />
+        )
+        : null}
     </div>
   );
 }
