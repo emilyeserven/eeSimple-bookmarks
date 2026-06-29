@@ -15,13 +15,20 @@ import { CARD_BODY_ZONES, CARD_FIELD_ZONES, defaultCardZoneLayouts, emptyCardFie
 import { db } from "@/db";
 import { cardDisplayRules, customProperties, propertyCategories } from "@/db/schema";
 import { defaultBodyZone, defaultFieldZones, HEADER_CARD_FIELD_KEYS, STANDARD_CARD_FIELD_KEYS } from "@/services/cardDisplayDefaults";
+import { uniqueSlug } from "@/utils/slug";
+import { takenSlugsOf } from "@/utils/taxonomySlugs";
 
 type RuleRow = typeof cardDisplayRules.$inferSelect;
+
+/** Slugs already in use on the rules table, optionally excluding one row (when renaming it). */
+const takenSlugs = (excludeId?: string) =>
+  takenSlugsOf(cardDisplayRules, cardDisplayRules.slug, cardDisplayRules.id, excludeId);
 
 function toRule(row: RuleRow): CardDisplayRule {
   return {
     id: row.id,
     name: row.name,
+    slug: row.slug,
     description: row.description,
     conditions: row.conditions,
     sortOrder: row.sortOrder,
@@ -52,6 +59,12 @@ export async function listCardDisplayRules(): Promise<CardDisplayRule[]> {
   return rows.map(toRule);
 }
 
+/** Fetch a single card display rule by its slug, or null when none matches. */
+export async function getCardDisplayRuleBySlug(slug: string): Promise<CardDisplayRule | null> {
+  const [row] = await db.select().from(cardDisplayRules).where(eq(cardDisplayRules.slug, slug));
+  return row ? toRule(row) : null;
+}
+
 /** Create a new (non-default) card display rule. sortOrder defaults to one more than the current max. */
 export async function createCardDisplayRule(
   input: CreateCardDisplayRuleInput,
@@ -72,6 +85,7 @@ export async function createCardDisplayRule(
     .insert(cardDisplayRules)
     .values({
       name: input.name,
+      slug: uniqueSlug(input.name, await takenSlugs()),
       description: input.description ?? null,
       conditions: input.conditions,
       sortOrder,
@@ -96,7 +110,10 @@ export async function updateCardDisplayRule(
   input: UpdateCardDisplayRuleInput,
 ): Promise<CardDisplayRule | null> {
   const updates: Partial<typeof cardDisplayRules.$inferInsert> = {};
-  if (input.name !== undefined) updates.name = input.name;
+  if (input.name !== undefined) {
+    updates.name = input.name;
+    updates.slug = uniqueSlug(input.name, await takenSlugs(id));
+  }
   if (input.description !== undefined) updates.description = input.description ?? null;
   if (input.conditions !== undefined) updates.conditions = input.conditions;
   if (input.sortOrder !== undefined) updates.sortOrder = input.sortOrder;
@@ -173,6 +190,7 @@ export async function ensureDefaultCardDisplayRule(): Promise<void> {
 
   await db.insert(cardDisplayRules).values({
     name: "Default",
+    slug: uniqueSlug("Default", await takenSlugs()),
     description: null,
     conditions: emptyConditionTree(),
     // Pinned last regardless; a high sortOrder keeps it last even if isDefault sorting changes.
@@ -384,5 +402,29 @@ export async function backfillCardDisplayRuleZoneLayouts(): Promise<void> {
         cardZoneLayouts: next,
       })
       .where(eq(cardDisplayRules.id, row.id));
+  }
+}
+
+/**
+ * Backfill `slug` for card display rules that predate the column (including the Default rule). Runs at
+ * boot; idempotent — only rows whose `slug IS NULL` are assigned a unique slug derived from the name.
+ */
+export async function backfillCardDisplayRuleSlugs(): Promise<void> {
+  const missing = await db
+    .select({
+      id: cardDisplayRules.id,
+      name: cardDisplayRules.name,
+    })
+    .from(cardDisplayRules)
+    .where(isNull(cardDisplayRules.slug));
+  if (missing.length === 0) return;
+
+  const taken = new Set(await takenSlugs());
+  for (const rule of missing) {
+    const slug = uniqueSlug(rule.name, taken);
+    taken.add(slug);
+    await db.update(cardDisplayRules).set({
+      slug,
+    }).where(eq(cardDisplayRules.id, rule.id));
   }
 }

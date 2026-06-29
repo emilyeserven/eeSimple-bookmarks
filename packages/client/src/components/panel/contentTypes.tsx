@@ -7,6 +7,7 @@ import type { DrawerContentType } from "@/lib/drawerSearch";
 import { authorContentType } from "./contentTypes/author";
 import { autofillContentType } from "./contentTypes/autofill";
 import { bookmarkContentType } from "./contentTypes/bookmark";
+import { cardDisplayRuleContentType } from "./contentTypes/cardDisplayRule";
 import { categoryContentType } from "./contentTypes/category";
 import { importRuleContentType } from "./contentTypes/importRule";
 import { mediaTypeContentType } from "./contentTypes/mediaType";
@@ -37,6 +38,7 @@ export const PANEL_CONTENT_TYPES: PanelContentTypeDef[] = [
   publisherContentType,
   relationshipTypeContentType,
   autofillContentType,
+  cardDisplayRuleContentType,
   importRuleContentType,
   savedFilterContentType,
 ];

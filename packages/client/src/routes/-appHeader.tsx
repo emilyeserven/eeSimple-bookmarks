@@ -181,6 +181,12 @@ const TAXONOMY_DESCRIPTORS: readonly TaxonomyDescriptor[] = [
     singular: "Saved Filter",
     slugIndex: 1,
   },
+  {
+    prefix: "/card-display-rules",
+    listLabel: "Card Display Rules",
+    singular: "Card Display Rule",
+    slugIndex: 1,
+  },
 ] as const;
 
 /**

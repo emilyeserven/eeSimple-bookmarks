@@ -114,6 +114,28 @@ const migrations: RuntimeMigration[] = [
     },
   },
   {
+    // `card_display_rules.slug` carries a UNIQUE constraint added to a table that already has rows
+    // (at least the seeded Default rule). Same reasoning as `autofill_rules.slug` above: add the
+    // column + constraint here before push so push's diff stays empty, then the boot-time
+    // `backfillCardDisplayRuleSlugs()` step fills the NULL slugs. Each execute is one statement.
+    name: "add card_display_rules.slug column + unique constraint",
+    run: async (db) => {
+      await db.execute(sql`
+        ALTER TABLE IF EXISTS "card_display_rules" ADD COLUMN IF NOT EXISTS "slug" text
+      `);
+      await db.execute(sql`
+        DO $$ BEGIN
+          IF NOT EXISTS (
+            SELECT 1 FROM pg_constraint WHERE conname = 'card_display_rules_slug_unique'
+          ) THEN
+            ALTER TABLE IF EXISTS "card_display_rules"
+              ADD CONSTRAINT "card_display_rules_slug_unique" UNIQUE ("slug");
+          END IF;
+        END $$
+      `);
+    },
+  },
+  {
     // `custom_properties.built_in` is NOT NULL DEFAULT false. drizzle-kit push may prompt before
     // applying it to a populated table, which blocks non-TTY deploys and leaves the column absent.
     name: "add custom_properties.built_in column",

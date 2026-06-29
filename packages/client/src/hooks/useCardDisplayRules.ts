@@ -19,6 +19,24 @@ export function useCardDisplayRules() {
   });
 }
 
+/** A single card display rule looked up by id from the rules list, plus the list's load state. */
+export function useCardDisplayRuleById(id: string) {
+  const query = useCardDisplayRules();
+  return {
+    ...query,
+    rule: (query.data ?? []).find(item => item.id === id),
+  };
+}
+
+/** Look up a single card display rule by its slug from the cached list. */
+export function useCardDisplayRuleBySlug(slug: string) {
+  const query = useCardDisplayRules();
+  return {
+    ...query,
+    rule: (query.data ?? []).find(item => item.slug === slug),
+  };
+}
+
 export function useCreateCardDisplayRule() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -40,11 +58,11 @@ export function useUpdateCardDisplayRule() {
     }: { id: string;
       input: UpdateCardDisplayRuleInput; }) =>
       cardDisplayRulesApi.update(id, input),
+    // No toast here: the edit-tab auto-save (useFieldAutoSave) fires the field-named toast.
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: RULES_KEY,
       });
-      notifySuccess("Rule saved");
     },
   });
 }

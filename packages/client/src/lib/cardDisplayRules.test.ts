@@ -48,6 +48,7 @@ function makeRule(overrides: Partial<CardDisplayRule> = {}): CardDisplayRule {
   return {
     id: "r1",
     name: "Rule",
+    slug: "rule",
     description: null,
     conditions: {
       type: "group",

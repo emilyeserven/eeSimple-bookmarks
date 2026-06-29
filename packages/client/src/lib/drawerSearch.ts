@@ -27,6 +27,7 @@ export type DrawerContentType
     | "publisher"
     | "relationship-type"
     | "autofill"
+    | "card-display-rule"
     | "import-rule"
     | "saved-filter"
     | "notifications"
@@ -54,6 +55,7 @@ export const DRAWER_CONTENT_TYPES: DrawerContentType[] = [
   "publisher",
   "relationship-type",
   "autofill",
+  "card-display-rule",
   "import-rule",
   "saved-filter",
   "notifications",

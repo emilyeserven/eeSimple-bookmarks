@@ -39,6 +39,8 @@ export function buildMainPanePath(
       return `/taxonomies/relationship-types/${slug}/${tab}`;
     case "autofill":
       return `/autofill/${slug}/${tab}`;
+    case "card-display-rule":
+      return `/card-display-rules/${slug}/${tab}`;
     case "import-rule":
       return `/import-rules/${slug}/${tab}`;
     case "saved-filter":

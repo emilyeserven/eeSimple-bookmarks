@@ -17,6 +17,7 @@ function makeRule(conditions: ConditionTree): CardDisplayRule {
   return {
     id: "r1",
     name: "Rule",
+    slug: "rule",
     description: null,
     conditions,
     sortOrder: 0,
