@@ -6,6 +6,8 @@ import type {
 import type { ColumnDef } from "@tanstack/react-table";
 import type { ReactNode } from "react";
 
+import { useState } from "react";
+
 import { ChevronDown, ExternalLink, Trash2 } from "lucide-react";
 
 import { ImportItemAdvancedEdit } from "./ImportItemAdvancedEdit";
@@ -14,6 +16,7 @@ import {
   RowActions,
   StatusBadge,
 } from "./InboxRowActions";
+import { navLinkClass, navStripClass } from "./TabbedShell";
 import { formatAdded } from "./tables/inboxColumns";
 import { useInboxReviewController } from "./useInboxReviewController";
 import { useReviewRowController } from "./useReviewRowController";
@@ -35,6 +38,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 import { useUiStore } from "@/stores/uiStore";
 
 function ReviewRow({
@@ -491,12 +495,12 @@ export function InboxReviewList({
     pendingItems,
     processedItems,
     dismissItem,
-    processedHidden,
-    toggleProcessedHidden,
     preFill,
     setPreFill,
     resetPreFill,
   } = controller;
+
+  const [activeTab, setActiveTab] = useState<"pending" | "processed">("pending");
 
   return (
     <div className="space-y-6">
@@ -505,31 +509,42 @@ export function InboxReviewList({
         setPreFill={setPreFill}
         onReset={resetPreFill}
       />
-      <section className="space-y-2">
-        <h2 className="text-sm font-semibold">Pending ({pendingItems.length})</h2>
-        <InboxItemsView
-          items={pendingItems}
-          viewMode={viewMode}
-          columns={columns}
-          emptyMessage="No pending items."
-          onDismiss={dismissItem}
-          preFill={preFill}
-        />
-      </section>
+      <nav
+        className={navStripClass}
+        aria-label="Inbox items"
+      >
+        <button
+          type="button"
+          onClick={() => setActiveTab("pending")}
+          className={cn(navLinkClass, activeTab === "pending" && `
+            bg-accent text-accent-foreground
+          `)}
+        >
+          Pending ({pendingItems.length})
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("processed")}
+          className={cn(navLinkClass, activeTab === "processed" && `
+            bg-accent text-accent-foreground
+          `)}
+        >
+          Processed ({processedItems.length})
+        </button>
+      </nav>
 
-      <section className="space-y-2">
-        <div className="flex items-center gap-2">
-          <h2 className="text-sm font-semibold">Processed ({processedItems.length})</h2>
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-auto px-2 py-0.5 text-xs text-muted-foreground"
-            onClick={toggleProcessedHidden}
-          >
-            {processedHidden ? "Show" : "Hide"}
-          </Button>
-        </div>
-        {!processedHidden && (
+      {activeTab === "pending"
+        ? (
+          <InboxItemsView
+            items={pendingItems}
+            viewMode={viewMode}
+            columns={columns}
+            emptyMessage="No pending items."
+            onDismiss={dismissItem}
+            preFill={preFill}
+          />
+        )
+        : (
           <InboxItemsView
             items={processedItems}
             viewMode={viewMode}
@@ -537,7 +552,6 @@ export function InboxReviewList({
             emptyMessage="No processed items."
           />
         )}
-      </section>
     </div>
   );
 }

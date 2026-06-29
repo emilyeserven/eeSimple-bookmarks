@@ -35,7 +35,6 @@ export function useInboxReviewController(items: InboxItem[], isFetching: boolean
     data: categories = [],
   } = useCategories();
   const [bulkRunning, setBulkRunning] = useState(false);
-  const [processedHidden, setProcessedHidden] = useState(false);
   const [preFill, setPreFill] = useState<InboxPreFillDefaults>({});
 
   const viewMode = useViewMode("inbox");
@@ -174,10 +173,6 @@ export function useInboxReviewController(items: InboxItem[], isFetching: boolean
     });
   }
 
-  function toggleProcessedHidden() {
-    setProcessedHidden(h => !h);
-  }
-
   function resetPreFill() {
     setPreFill({});
   }
@@ -203,8 +198,6 @@ export function useInboxReviewController(items: InboxItem[], isFetching: boolean
     preFill,
     setPreFill,
     resetPreFill,
-    processedHidden,
-    toggleProcessedHidden,
     onApproveAll,
     onRejectAll,
     onRecheckBlocklist,
