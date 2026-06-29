@@ -4,13 +4,17 @@ import { geocodeLocation, geocodingEnabled, geocodingEndpoint } from "@/services
 
 const NOMINATIM_HIT = JSON.stringify([
   {
-    display_name: "Tokyo, Japan",
-    name: "Tokyo",
-    lat: "35.6828",
-    lon: "139.7595",
+    display_name: "萩市, 山口県, 日本",
+    name: "Hagi",
+    lat: "34.4083",
+    lon: "131.3990",
     addresstype: "city",
     address: {
       country_code: "jp",
+    },
+    namedetails: {
+      "name": "萩市",
+      "name:en": "Hagi",
     },
   },
 ]);
@@ -29,21 +33,53 @@ test("geocoding is keyless and reports its endpoint", () => {
   assert.ok(geocodingEndpoint().startsWith("http"));
 });
 
-test("geocodeLocation maps a Nominatim hit to a candidate with coordinates and a map link", async () => {
+test("geocodeLocation prefers the local name as title and the English name as romanized", async () => {
   const restore = stubFetch(() => new Response(NOMINATIM_HIT, {
     status: 200,
   }));
   try {
-    const result = await geocodeLocation("Tokyo");
+    const result = await geocodeLocation("Hagi");
     assert.equal(result.results.length, 1);
     const [hit] = result.results;
-    assert.equal(hit.name, "Tokyo");
-    assert.equal(hit.displayName, "Tokyo, Japan");
-    assert.equal(hit.latitude, 35.6828);
-    assert.equal(hit.longitude, 139.7595);
+    // Native-script name is the title; English is relegated to the romanized form.
+    assert.equal(hit.name, "萩市");
+    assert.equal(hit.romanizedName, "Hagi");
+    assert.equal(hit.displayName, "萩市, 山口県, 日本");
+    assert.equal(hit.latitude, 34.4083);
+    assert.equal(hit.longitude, 131.399);
     assert.equal(hit.placeType, "city");
     assert.equal(hit.countryCode, "JP");
     assert.match(hit.mapUrl ?? "", /google\.com\/maps/);
+  }
+  finally {
+    restore();
+  }
+});
+
+test("geocodeLocation leaves romanizedName null when the name is already Latin", async () => {
+  const latinHit = JSON.stringify([
+    {
+      display_name: "Springfield, Illinois, United States",
+      name: "Springfield",
+      lat: "39.8",
+      lon: "-89.6",
+      addresstype: "city",
+      address: {
+        country_code: "us",
+      },
+      namedetails: {
+        "name": "Springfield",
+        "name:en": "Springfield",
+      },
+    },
+  ]);
+  const restore = stubFetch(() => new Response(latinHit, {
+    status: 200,
+  }));
+  try {
+    const [hit] = (await geocodeLocation("Springfield")).results;
+    assert.equal(hit.name, "Springfield");
+    assert.equal(hit.romanizedName, null);
   }
   finally {
     restore();

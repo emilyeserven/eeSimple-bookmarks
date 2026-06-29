@@ -7,10 +7,12 @@ import { useNavigate } from "@tanstack/react-router";
 
 import { AlternateNamesEditor } from "./AlternateNamesEditor";
 import { locationSchema } from "./locationFormSchema";
+import { LocationLookupBox } from "./LocationLookupBox";
 import { TreeMultiCombobox } from "./TreeMultiCombobox";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 import { useLocationTree, useUpdateLocation } from "../hooks/useLocations";
 import { useTagTree } from "../hooks/useTags";
+import { notifyFieldSaved, notifyFieldSaveError } from "../lib/autoSave";
 import { useAppForm } from "../lib/form";
 import { flattenTree, subtreeIds, tagNodesToOptions } from "../lib/tagTree";
 
@@ -108,6 +110,37 @@ export function LocationGeneralForm({
 
   return (
     <div className="space-y-4">
+      <LocationLookupBox
+        onSelect={(candidate) => {
+          // Autograb the geocoded fields into the form…
+          if (candidate.latitude != null) form.setFieldValue("latitude", candidate.latitude);
+          if (candidate.longitude != null) form.setFieldValue("longitude", candidate.longitude);
+          if (candidate.mapUrl) form.setFieldValue("mapUrl", candidate.mapUrl);
+          if (candidate.countryCode) form.setFieldValue("countryCode", candidate.countryCode);
+          if (candidate.placeType) form.setFieldValue("placeType", candidate.placeType);
+          // …and persist them together in one save with a single toast (the multi-key pattern).
+          updateLocation.mutate(
+            {
+              id: node.id,
+              input: {
+                latitude: candidate.latitude,
+                longitude: candidate.longitude,
+                mapUrl: candidate.mapUrl ?? undefined,
+                countryCode: candidate.countryCode ?? undefined,
+                placeType: candidate.placeType ?? undefined,
+              },
+            },
+            {
+              onSuccess: () => notifyFieldSaved("Location coordinates"),
+              onError: error => notifyFieldSaveError(
+                "Location coordinates",
+                error instanceof Error ? error.message : undefined,
+              ),
+            },
+          );
+        }}
+      />
+
       <form.AppField name="name">
         {field => (
           <field.TextField

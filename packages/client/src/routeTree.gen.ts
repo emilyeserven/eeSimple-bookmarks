@@ -96,6 +96,7 @@ import { Route as TaxonomiesPublishersPublisherSlugRouteImport } from './routes/
 import { Route as TaxonomiesPropertyGroupsPropertyGroupSlugRouteImport } from './routes/taxonomies.property-groups.$propertyGroupSlug'
 import { Route as TaxonomiesNewslettersNewsletterSlugRouteImport } from './routes/taxonomies.newsletters.$newsletterSlug'
 import { Route as TaxonomiesMediaTypesMediaTypeSlugRouteImport } from './routes/taxonomies.media-types.$mediaTypeSlug'
+import { Route as TaxonomiesLocationsNewRouteImport } from './routes/taxonomies.locations.new'
 import { Route as TaxonomiesLocationsLocationSlugRouteImport } from './routes/taxonomies.locations.$locationSlug'
 import { Route as TaxonomiesAuthorsAuthorSlugRouteImport } from './routes/taxonomies.authors.$authorSlug'
 import { Route as TagsTagSlugEditRouteImport } from './routes/tags.$tagSlug.edit'
@@ -745,6 +746,11 @@ const TaxonomiesMediaTypesMediaTypeSlugRoute =
     path: '/$mediaTypeSlug',
     getParentRoute: () => TaxonomiesMediaTypesRoute,
   } as any)
+const TaxonomiesLocationsNewRoute = TaxonomiesLocationsNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => TaxonomiesLocationsRoute,
+} as any)
 const TaxonomiesLocationsLocationSlugRoute =
   TaxonomiesLocationsLocationSlugRouteImport.update({
     id: '/$locationSlug',
@@ -1838,16 +1844,16 @@ export interface FileRoutesByFullPath {
   '/saved-filters': typeof SavedFiltersRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/tags': typeof TagsRouteWithChildren
-  '/autofill/$ruleSlug': typeof AutofillRuleSlugRouteWithChildren
+  '/autofill/$ruleSlug': typeof AutofillRuleSlugViewRouteWithChildren
   '/autofill/backfill': typeof AutofillBackfillRoute
   '/bookmarks/$bookmarkId': typeof BookmarksBookmarkIdRouteWithChildren
-  '/card-display-rules/$ruleSlug': typeof CardDisplayRulesRuleSlugRouteWithChildren
-  '/categories/$categorySlug': typeof CategoriesCategorySlugRouteWithChildren
-  '/custom-properties/$propertySlug': typeof CustomPropertiesPropertySlugRouteWithChildren
+  '/card-display-rules/$ruleSlug': typeof CardDisplayRulesRuleSlugViewRouteWithChildren
+  '/categories/$categorySlug': typeof CategoriesCategorySlugViewRouteWithChildren
+  '/custom-properties/$propertySlug': typeof CustomPropertiesPropertySlugViewRouteWithChildren
   '/custom-properties/new': typeof CustomPropertiesNewRoute
-  '/import-rules/$ruleSlug': typeof ImportRulesRuleSlugRouteWithChildren
+  '/import-rules/$ruleSlug': typeof ImportRulesRuleSlugViewRouteWithChildren
   '/inbox/new': typeof InboxNewRoute
-  '/saved-filters/$filterSlug': typeof SavedFiltersFilterSlugRouteWithChildren
+  '/saved-filters/$filterSlug': typeof SavedFiltersFilterSlugViewRouteWithChildren
   '/settings/advanced': typeof SettingsAdvancedRouteWithChildren
   '/settings/autofill': typeof SettingsAutofillRoute
   '/settings/automations': typeof SettingsAutomationsRouteWithChildren
@@ -1865,7 +1871,7 @@ export interface FileRoutesByFullPath {
   '/settings/saved-filters': typeof SettingsSavedFiltersRoute
   '/settings/websites': typeof SettingsWebsitesRoute
   '/settings/youtube-channels': typeof SettingsYoutubeChannelsRoute
-  '/tags/$tagSlug': typeof TagsTagSlugRouteWithChildren
+  '/tags/$tagSlug': typeof TagsTagSlugViewRouteWithChildren
   '/taxonomies/authors': typeof TaxonomiesAuthorsRouteWithChildren
   '/taxonomies/locations': typeof TaxonomiesLocationsRouteWithChildren
   '/taxonomies/media-types': typeof TaxonomiesMediaTypesRouteWithChildren
@@ -1909,15 +1915,16 @@ export interface FileRoutesByFullPath {
   '/settings/display/media': typeof SettingsDisplayMediaRoute
   '/settings/display/sidebar': typeof SettingsDisplaySidebarRoute
   '/tags/$tagSlug/edit': typeof TagsTagSlugEditRouteWithChildren
-  '/taxonomies/authors/$authorSlug': typeof TaxonomiesAuthorsAuthorSlugRouteWithChildren
-  '/taxonomies/locations/$locationSlug': typeof TaxonomiesLocationsLocationSlugRouteWithChildren
-  '/taxonomies/media-types/$mediaTypeSlug': typeof TaxonomiesMediaTypesMediaTypeSlugRouteWithChildren
-  '/taxonomies/newsletters/$newsletterSlug': typeof TaxonomiesNewslettersNewsletterSlugRouteWithChildren
-  '/taxonomies/property-groups/$propertyGroupSlug': typeof TaxonomiesPropertyGroupsPropertyGroupSlugRouteWithChildren
-  '/taxonomies/publishers/$publisherSlug': typeof TaxonomiesPublishersPublisherSlugRouteWithChildren
-  '/taxonomies/relationship-types/$relationshipTypeSlug': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugRouteWithChildren
-  '/taxonomies/websites/$websiteSlug': typeof TaxonomiesWebsitesWebsiteSlugRouteWithChildren
-  '/taxonomies/youtube-channels/$channelSlug': typeof TaxonomiesYoutubeChannelsChannelSlugRouteWithChildren
+  '/taxonomies/authors/$authorSlug': typeof TaxonomiesAuthorsAuthorSlugViewRouteWithChildren
+  '/taxonomies/locations/$locationSlug': typeof TaxonomiesLocationsLocationSlugViewRouteWithChildren
+  '/taxonomies/locations/new': typeof TaxonomiesLocationsNewRoute
+  '/taxonomies/media-types/$mediaTypeSlug': typeof TaxonomiesMediaTypesMediaTypeSlugViewRouteWithChildren
+  '/taxonomies/newsletters/$newsletterSlug': typeof TaxonomiesNewslettersNewsletterSlugViewRouteWithChildren
+  '/taxonomies/property-groups/$propertyGroupSlug': typeof TaxonomiesPropertyGroupsPropertyGroupSlugViewRouteWithChildren
+  '/taxonomies/publishers/$publisherSlug': typeof TaxonomiesPublishersPublisherSlugViewRouteWithChildren
+  '/taxonomies/relationship-types/$relationshipTypeSlug': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugViewRouteWithChildren
+  '/taxonomies/websites/$websiteSlug': typeof TaxonomiesWebsitesWebsiteSlugViewRouteWithChildren
+  '/taxonomies/youtube-channels/$channelSlug': typeof TaxonomiesYoutubeChannelsChannelSlugViewRouteWithChildren
   '/autofill/$ruleSlug/': typeof AutofillRuleSlugIndexRoute
   '/bookmarks/$bookmarkId/': typeof BookmarksBookmarkIdIndexRoute
   '/card-display-rules/$ruleSlug/': typeof CardDisplayRulesRuleSlugIndexRoute
@@ -2136,6 +2143,7 @@ export interface FileRoutesByTo {
   '/settings/display/media': typeof SettingsDisplayMediaRoute
   '/settings/display/sidebar': typeof SettingsDisplaySidebarRoute
   '/tags/$tagSlug': typeof TagsTagSlugIndexRoute
+  '/taxonomies/locations/new': typeof TaxonomiesLocationsNewRoute
   '/bookmarks/$bookmarkId': typeof BookmarksBookmarkIdIndexRoute
   '/settings/advanced': typeof SettingsAdvancedIndexRoute
   '/settings/automations': typeof SettingsAutomationsIndexRoute
@@ -2381,6 +2389,7 @@ export interface FileRoutesById {
   '/tags/$tagSlug/edit': typeof TagsTagSlugEditRouteWithChildren
   '/taxonomies/authors/$authorSlug': typeof TaxonomiesAuthorsAuthorSlugRouteWithChildren
   '/taxonomies/locations/$locationSlug': typeof TaxonomiesLocationsLocationSlugRouteWithChildren
+  '/taxonomies/locations/new': typeof TaxonomiesLocationsNewRoute
   '/taxonomies/media-types/$mediaTypeSlug': typeof TaxonomiesMediaTypesMediaTypeSlugRouteWithChildren
   '/taxonomies/newsletters/$newsletterSlug': typeof TaxonomiesNewslettersNewsletterSlugRouteWithChildren
   '/taxonomies/property-groups/$propertyGroupSlug': typeof TaxonomiesPropertyGroupsPropertyGroupSlugRouteWithChildren
@@ -2650,6 +2659,7 @@ export interface FileRouteTypes {
     | '/tags/$tagSlug/edit'
     | '/taxonomies/authors/$authorSlug'
     | '/taxonomies/locations/$locationSlug'
+    | '/taxonomies/locations/new'
     | '/taxonomies/media-types/$mediaTypeSlug'
     | '/taxonomies/newsletters/$newsletterSlug'
     | '/taxonomies/property-groups/$propertyGroupSlug'
@@ -2875,6 +2885,7 @@ export interface FileRouteTypes {
     | '/settings/display/media'
     | '/settings/display/sidebar'
     | '/tags/$tagSlug'
+    | '/taxonomies/locations/new'
     | '/bookmarks/$bookmarkId'
     | '/settings/advanced'
     | '/settings/automations'
@@ -3119,6 +3130,7 @@ export interface FileRouteTypes {
     | '/tags/$tagSlug/edit'
     | '/taxonomies/authors/$authorSlug'
     | '/taxonomies/locations/$locationSlug'
+    | '/taxonomies/locations/new'
     | '/taxonomies/media-types/$mediaTypeSlug'
     | '/taxonomies/newsletters/$newsletterSlug'
     | '/taxonomies/property-groups/$propertyGroupSlug'
@@ -3935,6 +3947,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/taxonomies/media-types/$mediaTypeSlug'
       preLoaderRoute: typeof TaxonomiesMediaTypesMediaTypeSlugRouteImport
       parentRoute: typeof TaxonomiesMediaTypesRoute
+    }
+    '/taxonomies/locations/new': {
+      id: '/taxonomies/locations/new'
+      path: '/new'
+      fullPath: '/taxonomies/locations/new'
+      preLoaderRoute: typeof TaxonomiesLocationsNewRouteImport
+      parentRoute: typeof TaxonomiesLocationsRoute
     }
     '/taxonomies/locations/$locationSlug': {
       id: '/taxonomies/locations/$locationSlug'
@@ -6107,12 +6126,14 @@ const TaxonomiesLocationsLocationSlugRouteWithChildren =
 
 interface TaxonomiesLocationsRouteChildren {
   TaxonomiesLocationsLocationSlugRoute: typeof TaxonomiesLocationsLocationSlugRouteWithChildren
+  TaxonomiesLocationsNewRoute: typeof TaxonomiesLocationsNewRoute
   TaxonomiesLocationsIndexRoute: typeof TaxonomiesLocationsIndexRoute
 }
 
 const TaxonomiesLocationsRouteChildren: TaxonomiesLocationsRouteChildren = {
   TaxonomiesLocationsLocationSlugRoute:
     TaxonomiesLocationsLocationSlugRouteWithChildren,
+  TaxonomiesLocationsNewRoute: TaxonomiesLocationsNewRoute,
   TaxonomiesLocationsIndexRoute: TaxonomiesLocationsIndexRoute,
 }
 
