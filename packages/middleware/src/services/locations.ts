@@ -156,7 +156,7 @@ export function buildLocationTree(all: Location[]): LocationNode[] {
 }
 
 /** Resolve a location id to the set of ids in its subtree (inclusive). Pure. */
-export function collectSubtreeIds(all: Location[], rootId: string): Set<string> {
+export function collectLocationSubtreeIds(all: Location[], rootId: string): Set<string> {
   const childrenByParent = buildChildrenByParent(all);
   const result = new Set<string>();
   const stack = [rootId];
@@ -170,8 +170,8 @@ export function collectSubtreeIds(all: Location[], rootId: string): Set<string> 
 }
 
 /** Whether reparenting `id` under `newParentId` would create a cycle. Pure helper. */
-export function wouldCreateCycle(all: Location[], id: string, newParentId: string): boolean {
-  return collectSubtreeIds(all, id).has(newParentId);
+export function wouldCreateLocationCycle(all: Location[], id: string, newParentId: string): boolean {
+  return collectLocationSubtreeIds(all, id).has(newParentId);
 }
 
 /** Load the associated (mood/biome) tag ids for a set of locations, keyed by location id. */
@@ -208,20 +208,6 @@ export async function listLocations(): Promise<Location[]> {
 
 export async function getLocationTree(): Promise<LocationNode[]> {
   return buildLocationTree(await listLocations());
-}
-
-export async function getLocationBySlug(slug: string): Promise<Location | null> {
-  const [row] = await db.select().from(locations).where(eq(locations.slug, slug));
-  if (!row) return null;
-  const tagMap = await tagIdsByLocation([row.id]);
-  return toLocation(row, undefined, tagMap.get(row.id) ?? []);
-}
-
-export async function getLocationById(id: string): Promise<Location | null> {
-  const [row] = await db.select().from(locations).where(eq(locations.id, id));
-  if (!row) return null;
-  const tagMap = await tagIdsByLocation([row.id]);
-  return toLocation(row, undefined, tagMap.get(row.id) ?? []);
 }
 
 /** Replace the mood/biome tag links for a location inside an existing transaction. */
@@ -317,7 +303,7 @@ export async function updateLocation(id: string, input: UpdateLocationInput): Pr
   if (input.parentId !== undefined && input.parentId !== null) {
     if (input.parentId === id) throw new LocationCycleError();
     const all = await listLocations();
-    if (wouldCreateCycle(all, id, input.parentId)) throw new LocationCycleError();
+    if (wouldCreateLocationCycle(all, id, input.parentId)) throw new LocationCycleError();
   }
 
   const patch: Partial<LocationRow> = {};

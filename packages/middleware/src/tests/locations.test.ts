@@ -3,10 +3,10 @@ import { test } from "node:test";
 import type { Location } from "@eesimple/types";
 import {
   buildLocationTree,
-  collectSubtreeIds,
+  collectLocationSubtreeIds,
   computeLocationBookmarkCounts,
   matchLocationIdsByTitle,
-  wouldCreateCycle,
+  wouldCreateLocationCycle,
 } from "@/services/locations";
 
 // Pure-helper tests run without a live database (mirrors tags.test.ts).
@@ -63,10 +63,10 @@ const flat: Location[] = [
 
 test("collectSubtreeIds returns a location and all its descendants", () => {
   assert.deepEqual(
-    [...collectSubtreeIds(flat, "chugoku")].sort(),
+    [...collectLocationSubtreeIds(flat, "chugoku")].sort(),
     ["chugoku", "hagi", "yamaguchi"],
   );
-  assert.deepEqual([...collectSubtreeIds(flat, "hagi")], ["hagi"]);
+  assert.deepEqual([...collectLocationSubtreeIds(flat, "hagi")], ["hagi"]);
 });
 
 test("buildLocationTree nests children under their parents", () => {
@@ -79,10 +79,10 @@ test("buildLocationTree nests children under their parents", () => {
 });
 
 test("wouldCreateCycle rejects reparenting under self or a descendant", () => {
-  assert.equal(wouldCreateCycle(flat, "honshu", "honshu"), true);
-  assert.equal(wouldCreateCycle(flat, "honshu", "hagi"), true);
+  assert.equal(wouldCreateLocationCycle(flat, "honshu", "honshu"), true);
+  assert.equal(wouldCreateLocationCycle(flat, "honshu", "hagi"), true);
   // Moving into an unrelated subtree is allowed.
-  assert.equal(wouldCreateCycle(flat, "honshu", "kyushu"), false);
+  assert.equal(wouldCreateLocationCycle(flat, "honshu", "kyushu"), false);
 });
 
 test("computeLocationBookmarkCounts counts subtree (distinct) and own bookmarks", () => {
