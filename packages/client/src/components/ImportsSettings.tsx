@@ -54,6 +54,12 @@ export function ImportsBlacklistCard() {
   const update = useUpdateImportBlacklist();
   const [kind, setKind] = useState<ImportBlacklistKind>("domain");
   const [value, setValue] = useState("");
+  const [filter, setFilter] = useState("");
+
+  const q = filter.trim().toLowerCase();
+  const visible = q
+    ? entries.filter(e => e.value.toLowerCase().includes(q) || KIND_LABEL[e.kind].includes(q))
+    : entries;
 
   function add(): void {
     const entry = entryFromInput(kind, value);
@@ -136,10 +142,20 @@ export function ImportsBlacklistCard() {
                   Add
                 </Button>
               </div>
+              {entries.length > 0
+                ? (
+                  <Input
+                    className="max-w-xs"
+                    placeholder="Filter blocked links…"
+                    value={filter}
+                    onChange={event => setFilter(event.target.value)}
+                  />
+                )
+                : null}
               <DataTable<ImportBlacklistEntry>
                 columns={importBlacklistColumns(remove)}
-                data={entries}
-                emptyMessage="No blocked links yet."
+                data={visible}
+                emptyMessage={q ? "No matches." : "No blocked links yet."}
               />
             </>
           )}

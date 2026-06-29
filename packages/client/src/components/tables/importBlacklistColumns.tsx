@@ -47,6 +47,11 @@ export function importBlacklistColumns(
           variant="ghost"
           aria-label={`Remove ${row.original.value}`}
           data-no-row-click
+          className="
+            opacity-0 transition-opacity
+            group-hover/row:opacity-100
+            focus-visible:opacity-100
+          "
           onClick={() => onDelete(row.original)}
         >
           <Trash2 className="size-4 text-muted-foreground" />

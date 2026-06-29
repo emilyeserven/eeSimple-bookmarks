@@ -207,7 +207,7 @@ export function DataTable<T>({
             : rows.map((row: Row<T>) => (
               <TableRow
                 key={row.id}
-                className={onRowClick ? "cursor-pointer" : undefined}
+                className={cn("group/row", onRowClick && "cursor-pointer")}
                 onClick={onRowClick
                   ? (event) => {
                     if (isInteractiveTarget(event.target as HTMLElement)) return;
