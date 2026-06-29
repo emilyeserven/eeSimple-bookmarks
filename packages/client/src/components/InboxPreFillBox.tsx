@@ -1,7 +1,13 @@
 import type { CustomProperty, InboxPreFillDefaults, TagNode } from "@eesimple/types";
 
+import { useState } from "react";
+
 import { X } from "lucide-react";
 
+import { AddAuthorModal } from "./AddAuthorModal";
+import { AddCategoryModal } from "./AddCategoryModal";
+import { AddMediaTypeModal } from "./AddMediaTypeModal";
+import { AddPublisherModal } from "./AddPublisherModal";
 import { Combobox } from "./Combobox";
 import { MultiCombobox } from "./MultiCombobox";
 import { TagPickerWithCreate } from "./TagPickerWithCreate";
@@ -221,6 +227,11 @@ export function InboxPreFillBox({
   setPreFill: (preFill: InboxPreFillDefaults) => void;
   onReset: () => void;
 }) {
+  const [addCategoryOpen, setAddCategoryOpen] = useState(false);
+  const [addMediaTypeOpen, setAddMediaTypeOpen] = useState(false);
+  const [addPublisherOpen, setAddPublisherOpen] = useState(false);
+  const [addAuthorOpen, setAddAuthorOpen] = useState(false);
+
   const {
     data: categories = [],
   } = useCategories();
@@ -266,159 +277,209 @@ export function InboxPreFillBox({
     .filter(Boolean) as string[];
 
   return (
-    <RowCard className="p-4">
-      <div className="space-y-3">
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-sm font-medium">Defaults for approved bookmarks</span>
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-auto px-2 py-0.5 text-xs text-muted-foreground"
-            disabled={isEmpty}
-            onClick={onReset}
-          >
-            Reset all
-          </Button>
-        </div>
-
-        <div
-          className="
-            grid grid-cols-1 gap-3
-            sm:grid-cols-2
-            lg:grid-cols-3
-          "
-        >
-          {/* Category */}
-          <div className="space-y-1">
-            <Label className="text-sm">Category</Label>
-            <Combobox
-              options={categoryOptions}
-              value={preFill.categoryId ?? undefined}
-              onValueChange={val => setPreFill({
-                ...preFill,
-                categoryId: val ?? null,
-              })}
-              placeholder="Any category"
-              searchPlaceholder="Search categories…"
-              emptyText="No categories."
-              aria-label="Default category"
-            />
+    <>
+      <RowCard className="p-4">
+        <div className="space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-sm font-medium">Defaults for approved bookmarks</span>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-auto px-2 py-0.5 text-xs text-muted-foreground"
+              disabled={isEmpty}
+              onClick={onReset}
+            >
+              Reset all
+            </Button>
           </div>
 
-          {/* Media Type */}
-          {mediaTypeTree.length > 0 && (
+          <div
+            className="
+              grid grid-cols-1 gap-3
+              sm:grid-cols-2
+              lg:grid-cols-3
+            "
+          >
+            {/* Category */}
             <div className="space-y-1">
-              <Label className="text-sm">Media Type</Label>
+              <Label className="text-sm">Category</Label>
               <Combobox
-                options={mediaTypeOptions}
-                value={preFill.mediaTypeId ?? undefined}
+                options={categoryOptions}
+                value={preFill.categoryId ?? undefined}
                 onValueChange={val => setPreFill({
                   ...preFill,
-                  mediaTypeId: val ?? null,
+                  categoryId: val ?? null,
                 })}
-                placeholder="Any media type"
-                searchPlaceholder="Search media types…"
-                emptyText="No media types."
-                aria-label="Default media type"
+                placeholder="Any category"
+                searchPlaceholder="Search categories…"
+                emptyText="No categories."
+                aria-label="Default category"
+                createOption={{
+                  label: "Create category",
+                  onSelect: () => setAddCategoryOpen(true),
+                }}
               />
             </div>
-          )}
 
-          {/* Publisher */}
-          {publishers.length > 0 && (
-            <div className="space-y-1">
-              <Label className="text-sm">Publisher</Label>
-              <Combobox
-                options={publisherOptions}
-                value={preFill.publisherId ?? undefined}
-                onValueChange={val => setPreFill({
-                  ...preFill,
-                  publisherId: val ?? null,
-                })}
-                placeholder="Any publisher"
-                searchPlaceholder="Search publishers…"
-                emptyText="No publishers."
-                aria-label="Default publisher"
+            {/* Media Type */}
+            {mediaTypeTree.length > 0 && (
+              <div className="space-y-1">
+                <Label className="text-sm">Media Type</Label>
+                <Combobox
+                  options={mediaTypeOptions}
+                  value={preFill.mediaTypeId ?? undefined}
+                  onValueChange={val => setPreFill({
+                    ...preFill,
+                    mediaTypeId: val ?? null,
+                  })}
+                  placeholder="Any media type"
+                  searchPlaceholder="Search media types…"
+                  emptyText="No media types."
+                  aria-label="Default media type"
+                  createOption={{
+                    label: "Create media type",
+                    onSelect: () => setAddMediaTypeOpen(true),
+                  }}
+                />
+              </div>
+            )}
+
+            {/* Publisher */}
+            {publishers.length > 0 && (
+              <div className="space-y-1">
+                <Label className="text-sm">Publisher</Label>
+                <Combobox
+                  options={publisherOptions}
+                  value={preFill.publisherId ?? undefined}
+                  onValueChange={val => setPreFill({
+                    ...preFill,
+                    publisherId: val ?? null,
+                  })}
+                  placeholder="Any publisher"
+                  searchPlaceholder="Search publishers…"
+                  emptyText="No publishers."
+                  aria-label="Default publisher"
+                  createOption={{
+                    label: "Create publisher",
+                    onSelect: () => setAddPublisherOpen(true),
+                  }}
+                />
+              </div>
+            )}
+
+            {/* Authors */}
+            {authors.length > 0 && (
+              <div className="space-y-1">
+                <Label className="text-sm">Authors</Label>
+                <MultiCombobox
+                  options={authorOptions}
+                  values={selectedAuthorIds}
+                  onValuesChange={vals => setPreFill({
+                    ...preFill,
+                    authorIds: vals,
+                  })}
+                  placeholder="Any authors"
+                  searchPlaceholder="Search authors…"
+                  emptyText="No authors."
+                  aria-label="Default authors"
+                  createOption={{
+                    label: "Create author",
+                    onSelect: () => setAddAuthorOpen(true),
+                  }}
+                />
+              </div>
+            )}
+
+            {/* Per-property inbox fields */}
+            {inboxProperties.map(property => (
+              <InboxPropertyField
+                key={property.id}
+                property={property}
+                preFill={preFill}
+                setPreFill={setPreFill}
               />
-            </div>
-          )}
+            ))}
+          </div>
 
-          {/* Authors */}
-          {authors.length > 0 && (
-            <div className="space-y-1">
-              <Label className="text-sm">Authors</Label>
-              <MultiCombobox
-                options={authorOptions}
-                values={selectedAuthorIds}
-                onValuesChange={vals => setPreFill({
-                  ...preFill,
-                  authorIds: vals,
-                })}
-                placeholder="Any authors"
-                searchPlaceholder="Search authors…"
-                emptyText="No authors."
-                aria-label="Default authors"
-              />
-            </div>
-          )}
-
-          {/* Per-property inbox fields */}
-          {inboxProperties.map(property => (
-            <InboxPropertyField
-              key={property.id}
-              property={property}
-              preFill={preFill}
-              setPreFill={setPreFill}
-            />
-          ))}
-        </div>
-
-        {/* Tags — full-width since the TreeMultiCombobox is wider */}
-        <div className="space-y-1">
-          <Label className="text-sm">Tags</Label>
-          {selectedTagNames.length > 0 && (
-            <div className="mb-1 flex flex-wrap gap-1">
-              {selectedTagNames.map((name, i) => (
-                <Badge
-                  key={selectedTagIds[i]}
-                  variant="secondary"
-                  className="gap-1 text-xs"
-                >
-                  {name}
-                  <button
-                    type="button"
-                    aria-label={`Remove tag ${name}`}
-                    className="
-                      ml-0.5 rounded-sm
-                      hover:text-destructive
-                    "
-                    onClick={() =>
-                      setPreFill({
-                        ...preFill,
-                        tagIds: selectedTagIds.filter(id => id !== selectedTagIds[i]),
-                      })}
+          {/* Tags — full-width since the TreeMultiCombobox is wider */}
+          <div className="space-y-1">
+            <Label className="text-sm">Tags</Label>
+            {selectedTagNames.length > 0 && (
+              <div className="mb-1 flex flex-wrap gap-1">
+                {selectedTagNames.map((name, i) => (
+                  <Badge
+                    key={selectedTagIds[i]}
+                    variant="secondary"
+                    className="gap-1 text-xs"
                   >
-                    <X className="size-2.5" />
-                  </button>
-                </Badge>
-              ))}
-            </div>
-          )}
-          <TagPickerWithCreate
-            tree={tagTree as TagNode[]}
-            selectedIds={selectedTagIds}
-            onToggle={(id) => {
-              const next = selectedTagIds.includes(id)
-                ? selectedTagIds.filter(t => t !== id)
-                : [...selectedTagIds, id];
-              setPreFill({
-                ...preFill,
-                tagIds: next,
-              });
-            }}
-          />
+                    {name}
+                    <button
+                      type="button"
+                      aria-label={`Remove tag ${name}`}
+                      className="
+                        ml-0.5 rounded-sm
+                        hover:text-destructive
+                      "
+                      onClick={() =>
+                        setPreFill({
+                          ...preFill,
+                          tagIds: selectedTagIds.filter(id => id !== selectedTagIds[i]),
+                        })}
+                    >
+                      <X className="size-2.5" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+            )}
+            <TagPickerWithCreate
+              tree={tagTree as TagNode[]}
+              selectedIds={selectedTagIds}
+              onToggle={(id) => {
+                const next = selectedTagIds.includes(id)
+                  ? selectedTagIds.filter(t => t !== id)
+                  : [...selectedTagIds, id];
+                setPreFill({
+                  ...preFill,
+                  tagIds: next,
+                });
+              }}
+            />
+          </div>
         </div>
-      </div>
-    </RowCard>
+      </RowCard>
+      <AddCategoryModal
+        open={addCategoryOpen}
+        onOpenChange={setAddCategoryOpen}
+        onCreated={c => setPreFill({
+          ...preFill,
+          categoryId: c.id,
+        })}
+      />
+      <AddMediaTypeModal
+        open={addMediaTypeOpen}
+        onOpenChange={setAddMediaTypeOpen}
+        onCreated={m => setPreFill({
+          ...preFill,
+          mediaTypeId: m.id,
+        })}
+      />
+      <AddPublisherModal
+        open={addPublisherOpen}
+        onOpenChange={setAddPublisherOpen}
+        onCreated={p => setPreFill({
+          ...preFill,
+          publisherId: p.id,
+        })}
+      />
+      <AddAuthorModal
+        open={addAuthorOpen}
+        onOpenChange={setAddAuthorOpen}
+        onCreated={a => setPreFill({
+          ...preFill,
+          authorIds: [...(preFill.authorIds ?? []), a.id],
+        })}
+      />
+    </>
   );
 }

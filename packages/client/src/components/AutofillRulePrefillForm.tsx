@@ -17,7 +17,7 @@ import { useUpdateAutofillRule } from "../hooks/useAutofill";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
-import { useMediaTypes } from "../hooks/useMediaTypes";
+import { useMediaTypeTree } from "../hooks/useMediaTypes";
 import { useTagTree } from "../hooks/useTags";
 
 const LABELS: Partial<Record<keyof UpdateAutofillRuleInput, string>> = {
@@ -102,8 +102,8 @@ export function AutofillRulePrefillForm({
     data: tagTree = [],
   } = useTagTree();
   const {
-    data: mediaTypes = [],
-  } = useMediaTypes();
+    data: mediaTypeTree = [],
+  } = useMediaTypeTree();
   const updateRule = useUpdateAutofillRule();
 
   const initialCategoryId = rule.setCategoryId ?? NO_CATEGORY;
@@ -188,7 +188,7 @@ export function AutofillRulePrefillForm({
     <div className="space-y-4">
       <AutofillRulePrefillPickers
         categories={categories}
-        mediaTypes={mediaTypes}
+        mediaTypeTree={mediaTypeTree}
         tagTree={tagTree}
         setCategoryId={setCategoryId}
         onCategoryChange={handleCategoryChange}
