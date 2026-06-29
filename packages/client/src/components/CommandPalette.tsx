@@ -1,5 +1,5 @@
 import type { FlatNode } from "@/lib/tagTree";
-import type { Author, Bookmark, Category, CustomProperty, MediaTypeNode, Newsletter, TagNode } from "@eesimple/types";
+import type { Author, Bookmark, CardDisplayRule, Category, CustomProperty, MediaTypeNode, Newsletter, TagNode } from "@eesimple/types";
 
 import { useEffect, useMemo, useState } from "react";
 
@@ -12,6 +12,7 @@ import {
   FolderIcon,
   HomeIcon,
   InboxIcon,
+  LayoutGridIcon,
   PencilIcon,
   PlusIcon,
   SettingsIcon,
@@ -53,6 +54,7 @@ import {
 } from "@/hooks/useAppSettings";
 import { useBookmarks } from "@/hooks/useBookmarks";
 import { useCategoryRootTags } from "@/hooks/useCategories";
+import { useMatchingCardDisplayRules } from "@/lib/cardDisplayRules";
 import { notifyError, notifySuccess } from "@/lib/notifications";
 import { subtreeIds } from "@/lib/tagTree";
 import { useUiStore } from "@/stores/uiStore";
@@ -1092,6 +1094,47 @@ function BookmarkTaxonomiesGroup({
   );
 }
 
+/**
+ * The Card Display Rules that style the current/hovered bookmark's card, each linking to its View
+ * page. Lets the user jump from "this card looks like X" to the rule(s) responsible. Rendered
+ * alongside the bookmark taxonomies group whenever a card is hovered (or on a bookmark detail page).
+ */
+function CardDisplayRulesGroup({
+  rules,
+  onSelect,
+}: {
+  rules: CardDisplayRule[];
+  onSelect: (slug: string) => void;
+}) {
+  if (rules.length === 0) return null;
+  return (
+    <>
+      <CommandGroup heading="Card Display Rules">
+        {rules.map(rule => (
+          <CommandItem
+            key={rule.id}
+            value={`Card display rule ${rule.name}`}
+            disabled={!rule.slug}
+            onSelect={() => rule.slug && onSelect(rule.slug)}
+          >
+            <LayoutGridIcon />
+            <span className="flex min-w-0 flex-col gap-0.5">
+              <span>
+                {rule.name}
+                {rule.isDefault ? " (Default)" : ""}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                View display rule
+              </span>
+            </span>
+          </CommandItem>
+        ))}
+      </CommandGroup>
+      <CommandSeparator />
+    </>
+  );
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function CommandPalette() {
@@ -1252,6 +1295,24 @@ export function CommandPalette() {
         handleOpenChange(false);
       }}
       onClose={() => handleOpenChange(false)}
+    />
+  );
+
+  // Empty (no bookmark / no matches) renders nothing — CardDisplayRulesGroup returns null — so no
+  // extra guard is needed at the call sites beyond the hover/detail position check.
+  const matchingCardRules = useMatchingCardDisplayRules(open ? bookmark : undefined);
+  const cardDisplayRulesGroup = (
+    <CardDisplayRulesGroup
+      rules={matchingCardRules}
+      onSelect={(slug) => {
+        void navigate({
+          to: "/card-display-rules/$ruleSlug",
+          params: {
+            ruleSlug: slug,
+          },
+        });
+        handleOpenChange(false);
+      }}
     />
   );
 
@@ -1470,6 +1531,7 @@ export function CommandPalette() {
                 <>
                   {/* Hovered card's quick-edit commands float to the top of the palette. */}
                   {bookmarkFromHover && bookmarkTaxonomiesGroup}
+                  {bookmarkFromHover && cardDisplayRulesGroup}
 
                   {looksLikeUrl && (
                     <>
@@ -1662,6 +1724,7 @@ export function CommandPalette() {
 
                   {/* On a bookmark detail page the same group keeps its in-page position. */}
                   {!bookmarkFromHover && bookmarkTaxonomiesGroup}
+                  {!bookmarkFromHover && cardDisplayRulesGroup}
 
                   {filterId && savedFilter && (
                     <>

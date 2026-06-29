@@ -336,3 +336,36 @@ export function useResolveCardDisplay(): {
     isPending: rulesPending || tagsPending,
   };
 }
+
+/**
+ * The Card Display Rules that match `bookmark`, in priority order (highest first; the Default rule —
+ * which always matches — last). A thin view over {@link resolveCardDisplay}'s `matchedRuleIds`
+ * provenance, mapped back to the full rule objects, so it agrees with the live cards. Powers the
+ * CMD+K "jump to the rules that style this card" group. Returns `[]` when `bookmark` is undefined.
+ */
+export function useMatchingCardDisplayRules(bookmark: Bookmark | undefined): CardDisplayRule[] {
+  const {
+    data: rules = [],
+  } = useCardDisplayRules();
+  const {
+    data: tags = [],
+  } = useTags();
+
+  const sortedRules = useMemo(() => [...rules].sort(byPriority), [rules]);
+  const tagDescendants = useMemo(
+    () => buildTagDescendants(tags.map(tag => ({
+      id: tag.id,
+      parentId: tag.parentId,
+    }))),
+    [tags],
+  );
+
+  return useMemo(() => {
+    if (!bookmark) return [];
+    const byId = new Map(rules.map(rule => [rule.id, rule]));
+    const resolved = resolveCardDisplay(bookmark, sortedRules, tagDescendants);
+    return resolved.provenance.matchedRuleIds
+      .map(id => byId.get(id))
+      .filter((rule): rule is CardDisplayRule => rule !== undefined);
+  }, [bookmark, rules, sortedRules, tagDescendants]);
+}
