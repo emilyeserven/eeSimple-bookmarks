@@ -15,6 +15,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 
 const DEFAULTS: AdvancedSettingsValues = {
   coolifyLinkEnabled: false,
@@ -70,15 +71,21 @@ export function SidebarExternalLinksSettings() {
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Coolify link</CardTitle>
-          <CardDescription>
-            Show a link to your Coolify instance in the sidebar. The link opens in a new tab.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+    <Card>
+      <CardHeader>
+        <CardTitle>Advanced Links</CardTitle>
+        <CardDescription>
+          Opt-in links shown in the sidebar&rsquo;s Advanced section. Each opens in a new tab.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <section className="space-y-4">
+          <div className="space-y-0.5">
+            <h4 className="font-medium">Coolify link</h4>
+            <p className="text-sm text-muted-foreground">
+              Show a link to your Coolify instance in the sidebar.
+            </p>
+          </div>
           <div className="flex items-center gap-2">
             <Checkbox
               id="coolify-link-enabled"
@@ -116,20 +123,20 @@ export function SidebarExternalLinksSettings() {
               "
             />
           </div>
-        </CardContent>
-      </Card>
+        </section>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Docs link</CardTitle>
-          <CardDescription>
-            Show a link to the Swagger/OpenAPI docs (
-            <code>/docs</code>
-            ) in the sidebar. Only
-            reachable when the deployment has the docs enabled. The link opens in a new tab.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+        <Separator />
+
+        <section className="space-y-4">
+          <div className="space-y-0.5">
+            <h4 className="font-medium">Docs link</h4>
+            <p className="text-sm text-muted-foreground">
+              Show a link to the Swagger/OpenAPI docs (
+              <code>/docs</code>
+              ) in the sidebar. Only
+              reachable when the deployment has the docs enabled.
+            </p>
+          </div>
           <div className="flex items-center gap-2">
             <Checkbox
               id="docs-link-enabled"
@@ -146,20 +153,20 @@ export function SidebarExternalLinksSettings() {
             />
             <Label htmlFor="docs-link-enabled">Show the Docs link in the sidebar</Label>
           </div>
-        </CardContent>
-      </Card>
+        </section>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Storybook link</CardTitle>
-          <CardDescription>
-            Show a link to the Storybook UI (
-            <code>/storybook</code>
-            ) in the sidebar. Only reachable
-            when the deployment has the docs enabled. The link opens in a new tab.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+        <Separator />
+
+        <section className="space-y-4">
+          <div className="space-y-0.5">
+            <h4 className="font-medium">Storybook link</h4>
+            <p className="text-sm text-muted-foreground">
+              Show a link to the Storybook UI (
+              <code>/storybook</code>
+              ) in the sidebar. Only reachable
+              when the deployment has the docs enabled.
+            </p>
+          </div>
           <div className="flex items-center gap-2">
             <Checkbox
               id="storybook-link-enabled"
@@ -176,17 +183,17 @@ export function SidebarExternalLinksSettings() {
             />
             <Label htmlFor="storybook-link-enabled">Show the Storybook link in the sidebar</Label>
           </div>
-        </CardContent>
-      </Card>
+        </section>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Drizzle Gateway link</CardTitle>
-          <CardDescription>
-            Show a link to your Drizzle Gateway instance in the sidebar. The link opens in a new tab.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+        <Separator />
+
+        <section className="space-y-4">
+          <div className="space-y-0.5">
+            <h4 className="font-medium">Drizzle Gateway link</h4>
+            <p className="text-sm text-muted-foreground">
+              Show a link to your Drizzle Gateway instance in the sidebar.
+            </p>
+          </div>
           <div className="flex items-center gap-2">
             <Checkbox
               id="drizzle-gateway-link-enabled"
@@ -224,18 +231,17 @@ export function SidebarExternalLinksSettings() {
               "
             />
           </div>
-        </CardContent>
-      </Card>
+        </section>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>GitHub link</CardTitle>
-          <CardDescription>
-            Show a link to the eeSimple Bookmarks GitHub repository in the sidebar. The link opens
-            in a new tab.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+        <Separator />
+
+        <section className="space-y-4">
+          <div className="space-y-0.5">
+            <h4 className="font-medium">GitHub link</h4>
+            <p className="text-sm text-muted-foreground">
+              Show a link to the eeSimple Bookmarks GitHub repository in the sidebar.
+            </p>
+          </div>
           <div className="flex items-center gap-2">
             <Checkbox
               id="github-link-enabled"
@@ -252,8 +258,8 @@ export function SidebarExternalLinksSettings() {
             />
             <Label htmlFor="github-link-enabled">Show the GitHub link in the sidebar</Label>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </section>
+      </CardContent>
+    </Card>
   );
 }
