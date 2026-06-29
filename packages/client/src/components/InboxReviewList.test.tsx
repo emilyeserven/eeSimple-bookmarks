@@ -105,7 +105,7 @@ describe("InboxReviewList", () => {
     expect(screen.getByLabelText("Reject")).not.toHaveAttribute("aria-haspopup", "menu");
   });
 
-  it("offers block-by-URL/domain/path from the Block dropdown", async () => {
+  it("offers block-by-URL/domain/path from the Block submenu in the More menu", async () => {
     await renderWithRouter(
       <ReviewListWrapper
         items={[makeItem()]}
@@ -115,11 +115,18 @@ describe("InboxReviewList", () => {
         paths: ["/bookmarks/$bookmarkId"],
       },
     );
-    // Radix DropdownMenu opens via keyboard under jsdom (see test-utils/setup.ts).
+    // The secondary actions live under a single "More actions" dropdown. Radix DropdownMenu opens
+    // via keyboard under jsdom (see test-utils/setup.ts); the Block submenu opens on ArrowRight.
     fireEvent.keyDown(screen.getByRole("button", {
-      name: "Block URL",
+      name: "More actions",
     }), {
       key: " ",
+    });
+    const blockSub = await screen.findByRole("menuitem", {
+      name: "Block URL",
+    });
+    fireEvent.keyDown(blockSub, {
+      key: "ArrowRight",
     });
     expect(await screen.findByText("Block this URL")).toBeInTheDocument();
     expect(screen.getByText("Block this domain")).toBeInTheDocument();
@@ -157,6 +164,10 @@ describe("InboxReviewList", () => {
         paths: ["/bookmarks/$bookmarkId"],
       },
     );
+    // A rejected item lives in the Processed tab.
+    fireEvent.click(screen.getByRole("button", {
+      name: "Processed (1)",
+    }));
     expect(screen.getByLabelText("Restore to pending")).toBeInTheDocument();
     // The pending-only controls are gone once rejected.
     expect(screen.queryByLabelText("Approve – save as bookmark")).not.toBeInTheDocument();
@@ -176,6 +187,10 @@ describe("InboxReviewList", () => {
         paths: ["/bookmarks/$bookmarkId"],
       },
     );
+    // An approved item lives in the Processed tab.
+    fireEvent.click(screen.getByRole("button", {
+      name: "Processed (1)",
+    }));
     expect(screen.getByLabelText("View bookmark")).toBeInTheDocument();
   });
 
@@ -260,7 +275,7 @@ describe("InboxReviewList", () => {
     expect(screen.getByText(LONG_TITLE)).toBeInTheDocument();
   });
 
-  it("splits items into Pending and Processed sections with accurate counts", async () => {
+  it("splits items into Pending and Processed tabs with accurate counts", async () => {
     await renderWithRouter(
       <ReviewListWrapper
         items={[
@@ -281,14 +296,19 @@ describe("InboxReviewList", () => {
         paths: ["/bookmarks/$bookmarkId"],
       },
     );
-    expect(screen.getByRole("heading", {
+    expect(screen.getByRole("button", {
       name: "Pending (1)",
     })).toBeInTheDocument();
-    expect(screen.getByRole("heading", {
+    const processedTab = screen.getByRole("button", {
       name: "Processed (1)",
-    })).toBeInTheDocument();
+    });
+    // The Pending tab is active by default, so only its item is on screen.
     expect(screen.getByText("Pending one")).toBeInTheDocument();
+    expect(screen.queryByText("Approved one")).not.toBeInTheDocument();
+    // Switching to the Processed tab swaps the list.
+    fireEvent.click(processedTab);
     expect(screen.getByText("Approved one")).toBeInTheDocument();
+    expect(screen.queryByText("Pending one")).not.toBeInTheDocument();
   });
 
   it("keeps a processed item in Pending until Sort now is clicked (no immediate move)", async () => {
@@ -326,7 +346,7 @@ describe("InboxReviewList", () => {
     await renderWithRouter(<FreezeHarness />, {
       paths: ["/bookmarks/$bookmarkId"],
     });
-    expect(screen.getByRole("heading", {
+    expect(screen.getByRole("button", {
       name: "Pending (1)",
     })).toBeInTheDocument();
 
@@ -334,23 +354,23 @@ describe("InboxReviewList", () => {
     fireEvent.click(screen.getByRole("button", {
       name: "Process it",
     }));
-    expect(screen.getByRole("heading", {
+    expect(screen.getByRole("button", {
       name: "Pending (1)",
     })).toBeInTheDocument();
-    expect(screen.getByRole("heading", {
+    expect(screen.getByRole("button", {
       name: "Processed (0)",
     })).toBeInTheDocument();
-    // Its status badge reflects the new state even while it stays in Pending.
+    // Its status badge reflects the new state even while it stays in the (active) Pending tab.
     expect(screen.getByText("Added")).toBeInTheDocument();
 
     // Sort now re-partitions: the approved item moves to Processed.
     fireEvent.click(screen.getByRole("button", {
       name: "Sort now",
     }));
-    expect(screen.getByRole("heading", {
+    expect(screen.getByRole("button", {
       name: "Pending (0)",
     })).toBeInTheDocument();
-    expect(screen.getByRole("heading", {
+    expect(screen.getByRole("button", {
       name: "Processed (1)",
     })).toBeInTheDocument();
   });
@@ -369,6 +389,10 @@ describe("InboxReviewList", () => {
         paths: ["/bookmarks/$bookmarkId"],
       },
     );
+    // An approved item lives in the Processed tab.
+    fireEvent.click(screen.getByRole("button", {
+      name: "Processed (1)",
+    }));
     expect(screen.getByText("Will be deleted")).toBeInTheDocument();
   });
 });
