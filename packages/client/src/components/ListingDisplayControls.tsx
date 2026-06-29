@@ -1,5 +1,5 @@
 import { ColumnsSelect, ViewModeToggle } from "./DisplayControlPrimitives";
-import { useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
+import { supportsMapView, useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
 import { useUiStore } from "../stores/uiStore";
 
 interface ListingDisplayControlsProps {
@@ -24,6 +24,7 @@ export function ListingDisplayControls({
       <ViewModeToggle
         value={viewMode}
         onChange={mode => setViewMode(pageKey, mode)}
+        showMap={supportsMapView(pageKey)}
       />
       {viewMode === "cards" && (
         <ColumnsSelect

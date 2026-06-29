@@ -3,6 +3,7 @@ import type { LocationNode } from "@eesimple/types";
 import { useState } from "react";
 
 import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
+import { LocationMap } from "./LocationMap";
 import { LocationTreeList } from "./LocationTreeList";
 import { useLocationColumns } from "./tables/locationColumns";
 import { listingSelectionColumn } from "./tables/selectionColumn";
@@ -77,7 +78,11 @@ export function LocationsListing() {
         )
         : null}
 
-      {tree && tree.length > 0 && viewMode !== "table"
+      {tree && tree.length > 0 && viewMode === "map"
+        ? <LocationMap tree={tree} />
+        : null}
+
+      {tree && tree.length > 0 && viewMode === "cards"
         ? (
           <LocationTreeList
             tree={tree}
