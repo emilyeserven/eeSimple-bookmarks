@@ -6,7 +6,7 @@ import {
   collectSubtreeIds,
   computeTagBookmarkCounts,
   matchTagIdsByTitle,
-  titleMatchesTagName,
+  titleMatchesTerm,
   wouldCreateCycle,
 } from "@/services/tags";
 
@@ -117,46 +117,36 @@ test("computeTagBookmarkCounts counts subtree (distinct) and own (no-descendant)
   });
 });
 
-// --- titleMatchesTagName / matchTagIdsByTitle (auto-tag-from-title automation) ---
+// --- auto-tag-from-title automation (re-exported from @eesimple/types; full matrix lives in
+// packages/types/src/titleTags.test.ts — these guard the re-export + romanized-aware signature) ---
 
-test("titleMatchesTagName matches whole words case-insensitively", () => {
-  assert.equal(titleMatchesTagName("Learning React Hooks", "react"), true);
-  assert.equal(titleMatchesTagName("REACT in depth", "React"), true);
-  assert.equal(titleMatchesTagName("A guide to react.", "react"), true);
+test("titleMatchesTerm is re-exported and keeps Latin whole-word semantics", () => {
+  assert.equal(titleMatchesTerm("Learning React Hooks", "react"), true);
+  assert.equal(titleMatchesTerm("Martin's blog", "art"), false);
 });
 
-test("titleMatchesTagName does not match inside a larger word", () => {
-  assert.equal(titleMatchesTagName("Martin's blog", "art"), false);
-  assert.equal(titleMatchesTagName("Reactor design", "react"), false);
-});
-
-test("titleMatchesTagName handles punctuated and multi-word tag names", () => {
-  assert.equal(titleMatchesTagName("Best sci-fi of 2026", "sci-fi"), true);
-  assert.equal(titleMatchesTagName("Notes on C++ templates", "C++"), true);
-  assert.equal(titleMatchesTagName("Machine learning basics", "machine learning"), true);
-});
-
-test("titleMatchesTagName ignores empty/whitespace tag names", () => {
-  assert.equal(titleMatchesTagName("Anything", ""), false);
-  assert.equal(titleMatchesTagName("Anything", "   "), false);
-});
-
-test("matchTagIdsByTitle returns the ids of every matching tag", () => {
+test("matchTagIdsByTitle matches name and romanizedName across title and romanizedTitle", () => {
   const tagList = [
     {
       id: "t-react",
       name: "react",
+      romanizedName: null,
     },
     {
-      id: "t-css",
-      name: "css",
-    },
-    {
-      id: "t-art",
-      name: "art",
+      id: "t-busan",
+      name: "부산",
+      romanizedName: "Busan",
     },
   ];
-  assert.deepEqual(matchTagIdsByTitle("Styling React with CSS", tagList), ["t-react", "t-css"]);
-  assert.deepEqual(matchTagIdsByTitle("Martin's portfolio", tagList), []);
-  assert.deepEqual(matchTagIdsByTitle("", tagList), []);
+  // Native name inside a Korean compound title.
+  assert.deepEqual(matchTagIdsByTitle("부산광역시", null, tagList), ["t-busan"]);
+  // Romanized name against a Latin title.
+  assert.deepEqual(
+    matchTagIdsByTitle("Ferry from Busan to Fukuoka", null, tagList),
+    ["t-busan"],
+  );
+  // Latin whole-word plus a romanizedTitle haystack.
+  assert.deepEqual(matchTagIdsByTitle("Styling React with CSS", null, tagList), ["t-react"]);
+  assert.deepEqual(matchTagIdsByTitle("旅行", "Busan trip", tagList), ["t-busan"]);
+  assert.deepEqual(matchTagIdsByTitle("", null, tagList), []);
 });

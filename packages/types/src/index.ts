@@ -15,6 +15,7 @@ export * from "./customProperties.js";
 export * from "./importBlacklist.js";
 export * from "./oembed.js";
 export * from "./socialMedia.js";
+export * from "./titleTags.js";
 export * from "./urlCleanup.js";
 export * from "./youtube.js";
 
