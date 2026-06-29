@@ -51,7 +51,7 @@ export const SETTINGS_PAGES: readonly SettingsPage[] = [
     icon: Monitor,
   },
   {
-    path: "/settings/sidebar",
+    path: "/settings/drawer",
     label: "Drawer",
     icon: PanelRight,
   },

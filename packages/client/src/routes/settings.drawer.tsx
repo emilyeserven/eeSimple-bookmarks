@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { SidebarSettings } from "../components/SidebarSettings";
 
-export const Route = createFileRoute("/settings/sidebar")({
+export const Route = createFileRoute("/settings/drawer")({
   component: SidebarPage,
 });
 
