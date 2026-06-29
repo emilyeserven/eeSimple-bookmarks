@@ -1,8 +1,11 @@
 import type { SidebarCustomizationSettings } from "@eesimple/types";
+import type { ReactNode } from "react";
+
+import { Fragment } from "react";
 
 import { PinnedItemsCard } from "./PinnedItemsCard";
 import { SidebarExternalLinksSettings } from "./SidebarExternalLinksSettings";
-import { SidebarItemsCard } from "./SidebarItemsCard";
+import { SidebarItemsCard, SidebarItemsMatrix } from "./SidebarItemsCard";
 import {
   useSidebarVisibility,
   useUpdateSidebarCustomizationSettings,
@@ -13,16 +16,33 @@ import { notifyError, notifySuccess } from "../lib/notifications";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { CategoryIcon } from "@/lib/icons";
 
 type CategoryDisplayMode = "visible" | "see-more" | "hidden";
+
+/** A titled sub-section inside the consolidated Sidebar settings card. */
+function SidebarSettingsSection({
+  title, description, children,
+}: {
+  title: string;
+  description: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="space-y-3">
+      <div>
+        <h4 className="font-medium">{title}</h4>
+        <p className="text-sm text-muted-foreground">{description}</p>
+      </div>
+      {children}
+    </section>
+  );
+}
 
 const TAXONOMY_ITEMS = [
   {
@@ -206,6 +226,87 @@ export function DisplaySidebarSettings() {
     data: categories,
   } = useCategories();
 
+  // The Categories / Taxonomies / Customization sections share one card, divided by separators.
+  // Only the groups that aren't hidden contribute a section.
+  const groupedSections: ReactNode[] = [];
+  if (!hiddenSidebarGroups.includes("categories")) {
+    groupedSections.push(
+      <SidebarSettingsSection
+        title="Categories"
+        description="Choose how each category appears in the left sidebar."
+      >
+        {categories && categories.length > 0
+          ? (
+            <div className="space-y-2">
+              {categories.map((category) => {
+                const mode: CategoryDisplayMode = hiddenCategoryIds.includes(category.id)
+                  ? "hidden"
+                  : seeMoreCategoryIds.includes(category.id)
+                    ? "see-more"
+                    : "visible";
+                return (
+                  <div
+                    key={category.id}
+                    className="flex items-center justify-between gap-2"
+                  >
+                    <span
+                      className="flex items-center gap-1.5 truncate text-sm"
+                    >
+                      <CategoryIcon name={category.icon} />
+                      {category.name}
+                    </span>
+                    <ToggleGroup
+                      type="single"
+                      size="sm"
+                      value={mode}
+                      onValueChange={value => value && setCategoryMode(category.id, value as CategoryDisplayMode)}
+                    >
+                      <ToggleGroupItem value="visible">Default</ToggleGroupItem>
+                      <ToggleGroupItem value="see-more">See More</ToggleGroupItem>
+                      <ToggleGroupItem value="hidden">Listing only</ToggleGroupItem>
+                    </ToggleGroup>
+                  </div>
+                );
+              })}
+            </div>
+          )
+          : (
+            <p className="text-sm text-muted-foreground">No categories yet.</p>
+          )}
+      </SidebarSettingsSection>,
+    );
+  }
+  if (!hiddenSidebarGroups.includes("taxonomies")) {
+    groupedSections.push(
+      <SidebarSettingsSection
+        title="Taxonomies"
+        description="Choose how each taxonomy browser appears in the left sidebar."
+      >
+        <SidebarItemsMatrix
+          items={TAXONOMY_ITEMS}
+          hiddenItems={hiddenTaxonomyItems}
+          seeMoreItems={seeMoreTaxonomyItems}
+          onSetMode={setTaxonomyItemMode}
+        />
+      </SidebarSettingsSection>,
+    );
+  }
+  if (!hiddenSidebarGroups.includes("customization")) {
+    groupedSections.push(
+      <SidebarSettingsSection
+        title="Customization"
+        description="Choose how each customization tool appears in the left sidebar."
+      >
+        <SidebarItemsMatrix
+          items={CUSTOMIZATION_ITEMS}
+          hiddenItems={hiddenCustomizationItems}
+          seeMoreItems={seeMoreCustomizationItems}
+          onSetMode={setCustomizationItemMode}
+        />
+      </SidebarSettingsSection>,
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="space-y-4">
@@ -232,99 +333,30 @@ export function DisplaySidebarSettings() {
           ))}
         </div>
 
-        <div
-          className="
-            grid grid-cols-1 gap-4
-            sm:grid-cols-2
-          "
-        >
-          <PinnedItemsCard />
+        <PinnedItemsCard />
 
-          {!hiddenSidebarGroups.includes("categories") && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Categories</CardTitle>
-                <CardDescription>
-                  Choose how each category appears in the left sidebar.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {categories && categories.length > 0
-                  ? (
-                    <div className="space-y-2">
-                      {categories.map((category) => {
-                        const mode: CategoryDisplayMode = hiddenCategoryIds.includes(category.id)
-                          ? "hidden"
-                          : seeMoreCategoryIds.includes(category.id)
-                            ? "see-more"
-                            : "visible";
-                        return (
-                          <div
-                            key={category.id}
-                            className="flex items-center justify-between gap-2"
-                          >
-                            <span
-                              className="
-                                flex items-center gap-1.5 truncate text-sm
-                              "
-                            >
-                              <CategoryIcon name={category.icon} />
-                              {category.name}
-                            </span>
-                            <ToggleGroup
-                              type="single"
-                              size="sm"
-                              value={mode}
-                              onValueChange={value => value && setCategoryMode(category.id, value as CategoryDisplayMode)}
-                            >
-                              <ToggleGroupItem value="visible">Default</ToggleGroupItem>
-                              <ToggleGroupItem value="see-more">See More</ToggleGroupItem>
-                              <ToggleGroupItem value="hidden">Listing only</ToggleGroupItem>
-                            </ToggleGroup>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )
-                  : (
-                    <p className="text-sm text-muted-foreground">No categories yet.</p>
-                  )}
-              </CardContent>
-            </Card>
-          )}
+        {groupedSections.length > 0 && (
+          <Card>
+            <CardContent className="space-y-6 pt-6">
+              {groupedSections.map((section, index) => (
+                <Fragment key={index}>
+                  {index > 0 && <Separator />}
+                  {section}
+                </Fragment>
+              ))}
+            </CardContent>
+          </Card>
+        )}
 
-          {!hiddenSidebarGroups.includes("taxonomies") && (
-            <SidebarItemsCard
-              title="Taxonomies"
-              description="Choose how each taxonomy browser appears in the left sidebar."
-              items={TAXONOMY_ITEMS}
-              hiddenItems={hiddenTaxonomyItems}
-              seeMoreItems={seeMoreTaxonomyItems}
-              onSetMode={setTaxonomyItemMode}
-            />
-          )}
-
-          {!hiddenSidebarGroups.includes("customization") && (
-            <SidebarItemsCard
-              title="Customization"
-              description="Choose how each customization tool appears in the left sidebar."
-              items={CUSTOMIZATION_ITEMS}
-              hiddenItems={hiddenCustomizationItems}
-              seeMoreItems={seeMoreCustomizationItems}
-              onSetMode={setCustomizationItemMode}
-            />
-          )}
-
-          {!hiddenSidebarGroups.includes("management") && (
-            <SidebarItemsCard
-              title="Management"
-              description="Choose which management pages appear in the left sidebar."
-              items={MANAGEMENT_ITEMS}
-              hiddenItems={hiddenManagementItems}
-              onSetMode={(key, mode) => setManagementItemMode(key, mode === "hidden" ? "hidden" : "visible")}
-            />
-          )}
-        </div>
+        {!hiddenSidebarGroups.includes("management") && (
+          <SidebarItemsCard
+            title="Management"
+            description="Choose which management pages appear in the left sidebar."
+            items={MANAGEMENT_ITEMS}
+            hiddenItems={hiddenManagementItems}
+            onSetMode={(key, mode) => setManagementItemMode(key, mode === "hidden" ? "hidden" : "visible")}
+          />
+        )}
       </div>
 
       <SidebarExternalLinksSettings />
