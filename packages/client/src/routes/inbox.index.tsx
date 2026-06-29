@@ -3,6 +3,7 @@ import { Plus } from "lucide-react";
 
 import { ViewModeToggle } from "../components/DisplayControlPrimitives";
 import { InboxBulkActions, InboxReviewList } from "../components/InboxReviewList";
+import { ShareNotificationPrompt } from "../components/ShareNotificationPrompt";
 import { useInboxReviewController } from "../components/useInboxReviewController";
 import { useInboxItems } from "../hooks/useImports";
 import { useSetListingPage } from "../hooks/useListingPage";
@@ -62,6 +63,8 @@ function InboxPage() {
           automatically.
         </p>
       </div>
+
+      <ShareNotificationPrompt />
 
       {isLoading ? <p className="text-sm text-muted-foreground">Loading…</p> : null}
       {error ? <p className="text-sm text-destructive">Couldn&apos;t load the inbox.</p> : null}

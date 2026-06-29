@@ -10,10 +10,12 @@ import { parseSharedInput } from "../lib/shareTarget";
 import { Button } from "@/components/ui/button";
 
 /**
- * Search params for the quick-add popup: the page URL/title the bookmarklet hands in, or the
- * `url`/`title`/`text` the Android share sheet hands the PWA `share_target` (see vite.config.ts).
- * Each route parses the full query independently, so these survive the root's drawer-only
- * `validateSearch`. `parseSharedInput` collapses the share shapes into `{ url, title }`.
+ * Search params for the quick-add popup: the page URL/title the bookmarklet hands in via a GET
+ * `?url=…&title=…`. (Android's share sheet now POSTs here instead and is intercepted by
+ * `public/share-target-sw.js`, which saves + notifies without opening this page — see
+ * vite.config.ts.) Each route parses the full query independently, so these survive the root's
+ * drawer-only `validateSearch`. `parseSharedInput` still collapses any share shapes into
+ * `{ url, title }`.
  */
 interface QuickAddSearch {
   url?: string;
@@ -38,8 +40,8 @@ const AUTO_CLOSE_MS = 3000;
 
 /**
  * A chrome-less page (the root layout omits its sidebar/header/panel) that queues the shared URL
- * directly into the Inbox review queue. Opened by the bookmarklet or the Android PWA share target.
- * Auto-closes/navigates on success.
+ * directly into the Inbox review queue. Opened by the bookmarklet (GET). Auto-closes/navigates on
+ * success. (Android shares are handled in the service worker now, not here.)
  */
 function QuickAddPage() {
   const {

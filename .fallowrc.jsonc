@@ -7,6 +7,9 @@
     "packages/client/src/main.tsx",
     "packages/client/src/routes/**/*.tsx",
     "packages/client/src/test-utils/**/*.ts",
+    // Service-worker entry: loaded at runtime via Workbox `importScripts` (a string literal in
+    // vite.config.ts), so fallow's import graph can't see it referenced. It's a real root.
+    "packages/client/public/share-target-sw.js",
     "**/vite.config.ts",
     "**/drizzle.config.ts",
     "scripts/*.mjs"
