@@ -213,6 +213,8 @@ export const websites = pgTable("websites", {
 export const mediaTypes = pgTable("media_types", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
+  // Optional romanized form of the name, matched by search and shown de-emphasized. Nullable → push-safe.
+  romanizedName: text("romanized_name"),
   // URL-friendly identifier derived from the name. Nullable for clean `push`; backfilled at boot.
   slug: text("slug"),
   // Seeded built-ins (Video, Article, …) can't be renamed or deleted; users may add custom ones.
@@ -242,6 +244,8 @@ export const mediaTypes = pgTable("media_types", {
 export const publishers = pgTable("publishers", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
+  // Optional romanized form of the name, matched by search and shown de-emphasized. Nullable → push-safe.
+  romanizedName: text("romanized_name"),
   // Nullable so drizzle-kit push applies cleanly to any future rows; backfilled at boot.
   slug: text("slug"),
   // Optional link to an existing website entry. set null when the website is deleted.
@@ -981,6 +985,8 @@ export const calculatePropertyOperands = pgTable("calculate_property_operands", 
 export const categories = pgTable("categories", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
+  // Optional romanized form of the name, matched by search and shown de-emphasized. Nullable → push-safe.
+  romanizedName: text("romanized_name"),
   // URL-friendly identifier derived from the name. Nullable at the DB level so
   // `drizzle-kit push` applies cleanly to existing rows; the service layer
   // backfills it at boot and always returns a slug on the wire type.
@@ -1821,6 +1827,8 @@ export type FavoriteSettingsPageRow = typeof favoriteSettingsPages.$inferSelect;
 export const authors = pgTable("authors", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
+  // Optional romanized form of the name, matched by search and shown de-emphasized. Nullable → push-safe.
+  romanizedName: text("romanized_name"),
   // URL-friendly identifier derived from the name. Nullable for clean `push`; backfilled at boot.
   slug: text("slug"),
   authorWebsiteUrl: text("author_website_url"),

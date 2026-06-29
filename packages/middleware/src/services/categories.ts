@@ -45,6 +45,7 @@ function toCategory(row: CategoryRow & { bookmarkCount?: number }): Category {
   return {
     id: row.id,
     name: row.name,
+    romanizedName: row.romanizedName,
     // Backfill runs at boot, but fall back to a derived slug so the wire type is never null.
     slug: row.slug ?? slugify(row.name),
     description: row.description,
@@ -73,6 +74,7 @@ export async function listCategories(): Promise<Category[]> {
     .select({
       id: categories.id,
       name: categories.name,
+      romanizedName: categories.romanizedName,
       slug: categories.slug,
       description: categories.description,
       icon: categories.icon,
@@ -107,6 +109,7 @@ export async function createCategory(input: CreateCategoryInput): Promise<Catego
     .insert(categories)
     .values({
       name: input.name,
+      romanizedName: input.romanizedName ?? null,
       slug,
       description: input.description ?? null,
       icon: input.icon ?? null,
@@ -126,9 +129,10 @@ export async function updateCategory(
     throw new BuiltInCategoryError("The built-in category cannot be renamed");
   }
 
-  const patch: Partial<Pick<CategoryRow, "name" | "slug" | "description" | "icon" | "isHomepage">>
+  const patch: Partial<Pick<CategoryRow, "name" | "romanizedName" | "slug" | "description" | "icon" | "isHomepage">>
     = {};
   if (input.name !== undefined) patch.name = input.name;
+  if (input.romanizedName !== undefined) patch.romanizedName = input.romanizedName ?? null;
   // Keep the slug in sync when the name changes (built-ins can't be renamed, so "default" sticks).
   if (input.name !== undefined && input.name !== existing.name) {
     patch.slug = uniqueSlug(input.name, await takenSlugs(id));

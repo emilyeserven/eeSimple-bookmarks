@@ -260,10 +260,12 @@ export function InboxPreFillBox({
   const authorOptions = authors.map(a => ({
     value: a.id,
     label: a.name,
+    searchAlias: a.romanizedName ?? undefined,
   }));
   const publisherOptions = publishers.map(p => ({
     value: p.id,
     label: p.name,
+    searchAlias: p.romanizedName ?? undefined,
   }));
 
   const selectedTagIds = preFill.tagIds ?? [];

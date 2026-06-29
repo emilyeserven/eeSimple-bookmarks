@@ -110,6 +110,7 @@ export function MultiCombobox({
                 <CommandItem
                   key={option.value}
                   value={option.label}
+                  keywords={option.searchAlias ? [option.searchAlias] : undefined}
                   onSelect={() => toggle(option.value)}
                   style={{
                     paddingLeft: `${0.5 + (option.depth ?? 0) * 1}rem`,

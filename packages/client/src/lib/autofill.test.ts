@@ -234,10 +234,29 @@ describe("applyAutofill", () => {
     ]);
     expect(result).toEqual({
       categoryId: null,
+      mediaTypeId: null,
       tagIds: [],
       numberValues: [],
       booleanValues: [],
       dateTimeValues: [],
     });
+  });
+
+  it("lets the highest sortOrder win for the media type", () => {
+    const result = applyAutofill(input, [
+      rule({
+        id: "low",
+        sortOrder: 0,
+        conditions: match("ponzu"),
+        setMediaTypeId: "mt-a",
+      }),
+      rule({
+        id: "high",
+        sortOrder: 10,
+        conditions: match("pasta"),
+        setMediaTypeId: "mt-b",
+      }),
+    ]);
+    expect(result.mediaTypeId).toBe("mt-b");
   });
 });

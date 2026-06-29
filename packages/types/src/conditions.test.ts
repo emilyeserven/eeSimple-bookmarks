@@ -90,6 +90,51 @@ test("match: contains / starts_with are case-insensitive and field-scoped", () =
   );
 });
 
+test("match: the title field also matches the romanized title", () => {
+  const input = makeInput({
+    title: "東京タワー",
+    romanizedTitle: "Tokyo Tower",
+  });
+  assert.equal(
+    evaluateConditions({
+      type: "match",
+      field: "title",
+      operator: "contains",
+      pattern: "tokyo",
+    }, input),
+    true,
+  );
+  assert.equal(
+    evaluateConditions({
+      type: "match",
+      field: "title",
+      operator: "starts_with",
+      pattern: "Tokyo",
+    }, input),
+    true,
+  );
+  // The original-script title still matches too.
+  assert.equal(
+    evaluateConditions({
+      type: "match",
+      field: "title",
+      operator: "contains",
+      pattern: "タワー",
+    }, input),
+    true,
+  );
+  // A romanized pattern doesn't bleed into the URL field.
+  assert.equal(
+    evaluateConditions({
+      type: "match",
+      field: "url",
+      operator: "contains",
+      pattern: "tokyo",
+    }, input),
+    false,
+  );
+});
+
 test("match: an empty pattern never matches", () => {
   assert.equal(
     evaluateConditions({

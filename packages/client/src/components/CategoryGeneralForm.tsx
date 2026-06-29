@@ -12,12 +12,14 @@ import { Label } from "@/components/ui/label";
 
 const categorySchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
+  romanizedName: z.string(),
   description: z.string(),
   icon: z.string().nullable(),
 });
 
 const LABELS: Partial<Record<keyof UpdateCategoryInput, string>> = {
   name: "Name",
+  romanizedName: "Romanized name",
   description: "Description",
   icon: "Icon",
 };
@@ -38,6 +40,7 @@ export function CategoryGeneralForm({
     labels: LABELS,
     initial: {
       name: category.name,
+      romanizedName: category.romanizedName ?? "",
       description: category.description ?? null,
       icon: category.icon,
     },
@@ -46,6 +49,7 @@ export function CategoryGeneralForm({
   const form = useAppForm({
     defaultValues: {
       name: category.name,
+      romanizedName: category.romanizedName ?? "",
       description: category.description ?? "",
       icon: category.icon,
     },
@@ -85,6 +89,15 @@ export function CategoryGeneralForm({
                   },
                 },
               )}
+            />
+          )}
+        </form.AppField>
+        <form.AppField name="romanizedName">
+          {field => (
+            <field.TextField
+              label="Romanized name"
+              placeholder="Optional romanized form"
+              onBlur={() => autoSave.saveField("romanizedName", field.state.value.trim())}
             />
           )}
         </form.AppField>

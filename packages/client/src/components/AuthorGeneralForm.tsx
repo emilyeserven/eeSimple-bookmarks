@@ -27,6 +27,7 @@ import { Separator } from "@/components/ui/separator";
 
 const authorGeneralSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
+  romanizedName: z.string(),
   authorWebsiteUrl: z.string(),
   biographyUrl: z.string(),
   socialLinks: z.array(socialLinkSchema),
@@ -34,6 +35,7 @@ const authorGeneralSchema = z.object({
 
 const LABELS: Partial<Record<keyof UpdateAuthorInput, string>> = {
   name: "Name",
+  romanizedName: "Romanized name",
   authorWebsiteUrl: "Author website",
   biographyUrl: "Biography URL",
   socialLinks: "Social media links",
@@ -82,6 +84,7 @@ export function AuthorGeneralForm({
     labels: LABELS,
     initial: {
       name: author.name,
+      romanizedName: author.romanizedName ?? "",
       authorWebsiteUrl: author.authorWebsiteUrl,
       biographyUrl: author.biographyUrl,
       socialLinks: author.socialLinks,
@@ -91,6 +94,7 @@ export function AuthorGeneralForm({
   const form = useAppForm({
     defaultValues: {
       name: author.name,
+      romanizedName: author.romanizedName ?? "",
       authorWebsiteUrl: author.authorWebsiteUrl ?? "",
       biographyUrl: author.biographyUrl ?? "",
     },
@@ -123,6 +127,16 @@ export function AuthorGeneralForm({
                 },
               },
             )}
+          />
+        )}
+      </form.AppField>
+
+      <form.AppField name="romanizedName">
+        {field => (
+          <field.TextField
+            label="Romanized name"
+            placeholder="Optional romanized form"
+            onBlur={() => autoSave.saveField("romanizedName", field.state.value.trim())}
           />
         )}
       </form.AppField>

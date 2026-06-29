@@ -47,6 +47,9 @@ const createAuthorBody = {
       type: "string",
       minLength: 1,
     },
+    romanizedName: {
+      type: ["string", "null"],
+    },
   },
 } as const;
 
@@ -76,6 +79,9 @@ const updateAuthorBody = {
     name: {
       type: "string",
       minLength: 1,
+    },
+    romanizedName: {
+      type: ["string", "null"],
     },
     authorWebsiteUrl: {
       type: ["string", "null"],

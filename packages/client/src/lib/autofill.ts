@@ -18,6 +18,8 @@ export interface AutofillInput {
 export interface AutofillResult {
   /** Category to assign, or `null` if no matching rule set one. */
   categoryId: string | null;
+  /** Media type to assign, or `null` if no matching rule set one. */
+  mediaTypeId: string | null;
   tagIds: string[];
   numberValues: BookmarkNumberValue[];
   booleanValues: BookmarkBooleanValue[];
@@ -60,6 +62,7 @@ export function applyAutofill(input: AutofillInput, rules: AutofillRule[]): Auto
   const ordered = [...rules].sort((a, b) => a.sortOrder - b.sortOrder);
 
   let categoryId: string | null = null;
+  let mediaTypeId: string | null = null;
   const tagIds = new Set<string>();
   const numberByProperty = new Map<string, number>();
   const booleanByProperty = new Map<string, boolean>();
@@ -68,6 +71,7 @@ export function applyAutofill(input: AutofillInput, rules: AutofillRule[]): Auto
   for (const rule of ordered) {
     if (!matchesRule(rule, input)) continue;
     if (rule.setCategoryId) categoryId = rule.setCategoryId;
+    if (rule.setMediaTypeId) mediaTypeId = rule.setMediaTypeId;
     for (const tagId of rule.tagIds) tagIds.add(tagId);
     for (const entry of rule.numberValues) numberByProperty.set(entry.propertyId, entry.value);
     for (const entry of rule.booleanValues) booleanByProperty.set(entry.propertyId, entry.value);
@@ -76,6 +80,7 @@ export function applyAutofill(input: AutofillInput, rules: AutofillRule[]): Auto
 
   return {
     categoryId,
+    mediaTypeId,
     tagIds: [...tagIds],
     numberValues: [...numberByProperty].map(([propertyId, value]) => ({
       propertyId,
