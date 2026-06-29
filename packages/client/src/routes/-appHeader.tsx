@@ -237,13 +237,26 @@ function settingsCrumbs(pathname: string): BreadcrumbSegment[] {
   if (!rest) return [{
     label: "Settings",
   }];
-  const sub = rest.split("/")[0];
-  return [{
+  // One crumb per path segment (e.g. /settings/display/general → Settings → Display → General),
+  // each non-last crumb linking to its cumulative path.
+  const segments = rest.split("/").filter(Boolean);
+  const crumbs: BreadcrumbSegment[] = [{
     label: "Settings",
     href: "/settings",
-  }, {
-    label: crumbLabel(sub),
   }];
+  let acc = "/settings";
+  segments.forEach((segment, index) => {
+    acc += `/${segment}`;
+    crumbs.push({
+      label: crumbLabel(segment),
+      ...(index < segments.length - 1
+        ? {
+          href: acc,
+        }
+        : {}),
+    });
+  });
+  return crumbs;
 }
 
 interface TreeTaxonomyConfig {

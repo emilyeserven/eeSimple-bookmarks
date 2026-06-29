@@ -19,8 +19,8 @@ const nav: readonly TabNavEntry[] = [
     label: "Display",
   },
   {
-    to: "/settings/drawer",
-    label: "Drawer",
+    to: "/settings/connectors",
+    label: "Connectors",
   },
   {
     type: "group",
@@ -53,7 +53,7 @@ async function renderLayout(initialPath = "/settings/display") {
       />
     ),
   });
-  const paths = ["/settings/display", "/settings/drawer", "/settings/saved-filters", "/settings/advanced"];
+  const paths = ["/settings/display", "/settings/connectors", "/settings/saved-filters", "/settings/advanced"];
   const children = paths.map(path =>
     createRoute({
       getParentRoute: () => rootRoute,

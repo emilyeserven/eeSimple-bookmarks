@@ -12,8 +12,8 @@ function AdvancedPage() {
       <div>
         <h2 className="text-xl font-semibold">Advanced</h2>
         <p className="text-sm text-muted-foreground">
-          Opt-in sidebar links to the Coolify instance, the API docs, and Storybook, plus a
-          summary of how much disk space the database is using.
+          App update checking, orphaned-record cleanup, and a summary of how much disk space the
+          database is using.
         </p>
       </div>
       <AdvancedSettings />

@@ -4,10 +4,10 @@ import { findSettingsPage, SETTINGS_PAGES } from "./settingsPages";
 
 describe("settingsPages registry", () => {
   it("resolves a /settings sub-page by exact path", () => {
-    const page = findSettingsPage("/settings/display");
+    const page = findSettingsPage("/settings/display/general");
     expect(page).toMatchObject({
-      path: "/settings/display",
-      label: "Display",
+      path: "/settings/display/general",
+      label: "Display: General",
     });
     expect(page?.icon).toBeDefined();
   });

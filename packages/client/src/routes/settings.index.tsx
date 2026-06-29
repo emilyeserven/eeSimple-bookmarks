@@ -3,10 +3,8 @@ import {
   Filter,
   Image,
   Inbox,
-  LayoutTemplate,
   Link2,
   Monitor,
-  PanelRight,
   Puzzle,
   Sparkles,
   Wand2,
@@ -28,22 +26,10 @@ const SETTINGS_TILES = [
     to: "/settings/display" as const,
   },
   {
-    label: "Drawer",
-    description: "Control how the right-hand drawer opens.",
-    icon: PanelRight,
-    to: "/settings/drawer" as const,
-  },
-  {
     label: "Saved Filters",
     description: "Manage your saved bookmark filters.",
     icon: Filter,
     to: "/settings/saved-filters" as const,
-  },
-  {
-    label: "Homepage",
-    description: "Configure the homepage sections and layout.",
-    icon: LayoutTemplate,
-    to: "/settings/homepage" as const,
   },
   {
     label: "Media Management",
