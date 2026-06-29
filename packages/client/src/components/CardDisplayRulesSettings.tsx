@@ -20,10 +20,11 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { emptyConditionTree } from "@eesimple/types";
+import { useNavigate } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 
 import { CardDisplayRuleCard } from "./CardDisplayRuleCard";
-import { CardDisplayRuleForm } from "./CardDisplayRuleForm";
 import { CardDisplayRuleInspector } from "./CardDisplayRuleInspector";
 import {
   useCardDisplayRules,
@@ -72,13 +73,35 @@ export function CardDisplayRulesSettings() {
   const {
     data: serverRules, isLoading,
   } = useCardDisplayRules();
+  const navigate = useNavigate();
   const [localRules, setLocalRules] = useState<CardDisplayRule[]>([]);
-  const [addingNew, setAddingNew] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const create = useCreateCardDisplayRule();
   const reorder = useReorderCardDisplayRules();
   const setOptimisticOrder = useOptimisticReorderCardDisplayRules();
+
+  /** Create a blank rule and jump straight to its edit page (create flow, then per-field auto-save). */
+  function handleAddRule() {
+    create.mutate(
+      {
+        name: "New rule",
+        conditions: emptyConditionTree(),
+      },
+      {
+        onSuccess: (rule) => {
+          if (rule.slug) {
+            void navigate({
+              to: "/card-display-rules/$ruleSlug/edit/general",
+              params: {
+                ruleSlug: rule.slug,
+              },
+            });
+          }
+        },
+      },
+    );
+  }
 
   useEffect(() => {
     if (serverRules) setLocalRules(serverRules);
@@ -134,7 +157,7 @@ export function CardDisplayRulesSettings() {
         ? <p className="text-sm text-muted-foreground">Loading…</p>
         : null}
 
-      {!isLoading && orderedRules.length === 0 && !addingNew
+      {!isLoading && orderedRules.length === 0
         ? (
           <p className="text-sm text-muted-foreground">
             No rules yet. Add one to override how matching bookmark cards display.
@@ -181,43 +204,15 @@ export function CardDisplayRulesSettings() {
         </DragOverlay>
       </DndContext>
 
-      {addingNew
-        ? (
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">New rule</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CardDisplayRuleForm
-                isPending={create.isPending}
-                onSave={(values) => {
-                  create.mutate(
-                    {
-                      name: values.name,
-                      description: values.description,
-                      conditions: values.conditions,
-                      ...values.display,
-                    },
-                    {
-                      onSuccess: () => setAddingNew(false),
-                    },
-                  );
-                }}
-                onCancel={() => setAddingNew(false)}
-              />
-            </CardContent>
-          </Card>
-        )
-        : (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setAddingNew(true)}
-          >
-            <Plus className="mr-2 size-4" />
-            Add rule
-          </Button>
-        )}
+      <Button
+        type="button"
+        variant="outline"
+        disabled={create.isPending}
+        onClick={handleAddRule}
+      >
+        <Plus className="mr-2 size-4" />
+        Add rule
+      </Button>
 
       {defaultRule
         ? (

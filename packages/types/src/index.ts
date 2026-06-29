@@ -2197,6 +2197,8 @@ export type UpdateHomepageSectionInput = Partial<CreateHomepageSectionInput>;
 export interface CardDisplayRule {
   id: string;
   name: string;
+  /** URL-friendly slug for the rule's detail/edit pages. Null only until the boot backfill assigns it. */
+  slug: string | null;
   description: string | null;
   conditions: ConditionTree;
   /** Lower = higher priority. The Default rule is always pinned last (lowest priority). */

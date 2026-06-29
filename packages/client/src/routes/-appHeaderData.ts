@@ -2,6 +2,7 @@ import type { PinContext } from "@/components/HeaderPinButton";
 
 import { useAuthorBySlug } from "@/hooks/useAuthors";
 import { useAutofillRuleBySlug } from "@/hooks/useAutofill";
+import { useCardDisplayRuleBySlug } from "@/hooks/useCardDisplayRules";
 import { useCategoryBySlug } from "@/hooks/useCategories";
 import { usePropertyBySlug } from "@/hooks/useCustomProperties";
 import { useImportRuleBySlug } from "@/hooks/useImportRules";
@@ -83,6 +84,9 @@ export function useTaxonomyCrumbData(pathname: string, pathParts: string[]): Tax
   const {
     savedFilter,
   } = useSavedFilterBySlug(slugFor(pathname, pathParts, "/saved-filters", 1));
+  const {
+    rule: cardDisplayRule,
+  } = useCardDisplayRuleBySlug(slugFor(pathname, pathParts, "/card-display-rules", 1));
 
   return {
     taxonomyNames: {
@@ -99,6 +103,7 @@ export function useTaxonomyCrumbData(pathname: string, pathParts: string[]): Tax
       "/autofill": rule?.name,
       "/import-rules": importRule?.name,
       "/saved-filters": savedFilter?.name,
+      "/card-display-rules": cardDisplayRule?.name,
     },
     category,
     website,

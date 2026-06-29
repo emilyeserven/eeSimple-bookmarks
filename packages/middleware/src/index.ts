@@ -5,7 +5,7 @@ import { ensureAppSettings } from "@/services/appSettings";
 import { backfillAuthorSlugs } from "@/services/authors";
 import { backfillPublisherSlugs } from "@/services/publishers";
 import { ensureAutofillConditions, ensureAutofillSlugs, ensureWebsiteConditions } from "@/services/autofill";
-import { backfillCardDisplayRuleFieldZones, backfillCardDisplayRuleHeaderFields, backfillCardDisplayRuleSubZones, backfillCardDisplayRuleZoneLayouts, ensureDefaultCardDisplayRule } from "@/services/cardDisplayRules";
+import { backfillCardDisplayRuleFieldZones, backfillCardDisplayRuleHeaderFields, backfillCardDisplayRuleSlugs, backfillCardDisplayRuleSubZones, backfillCardDisplayRuleZoneLayouts, ensureDefaultCardDisplayRule } from "@/services/cardDisplayRules";
 import { ensureDefaultCategory } from "@/services/categories";
 import { backfillContentStatusOptions, backfillCustomPropertySlugs, ensureChaptersProperty, ensureContentStatusProperty, ensureDatePostedProperty, ensureIsbnProperty, ensurePageProgressProperty, ensurePageRangeProperty, ensurePageSectionsProperty, ensureRuntimeProperty, ensureUrlSectionsProperty } from "@/services/customProperties";
 import { ensureHomepageFilter } from "@/services/homepageFilter";
@@ -87,6 +87,7 @@ try {
   await backfillCardDisplayRuleSubZones();
   await backfillCardDisplayRuleHeaderFields();
   await backfillCardDisplayRuleZoneLayouts();
+  await backfillCardDisplayRuleSlugs();
   // A restart abandons any in-process import worker, so fail anything left queued/processing.
   await resetStalledImports();
   // Create the image bucket if storage is configured; harmless when it already exists.

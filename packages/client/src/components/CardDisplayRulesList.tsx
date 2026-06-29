@@ -1,11 +1,11 @@
 import type { CardDisplayRuleScope } from "../lib/cardDisplayRulesFilter";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
+import { useNavigate } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 
 import { CardDisplayRuleCard } from "./CardDisplayRuleCard";
-import { CardDisplayRuleForm } from "./CardDisplayRuleForm";
 import { useCardDisplayRules, useCreateCardDisplayRule } from "../hooks/useCardDisplayRules";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useWebsiteDomain } from "../hooks/useWebsiteDomain";
@@ -21,7 +21,6 @@ import {
 import { propertyValueKind } from "../lib/propertyConditionKind";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface CardDisplayRulesListProps {
   /** Scope to rules whose conditions reference this category. */
@@ -50,9 +49,9 @@ function emptyStateMessage(props: CardDisplayRulesListProps): string {
 
 /**
  * The non-Default card display rules whose conditions reference the entity in context, each rendered
- * as the same inline auto-saving editor the Settings page uses (`CardDisplayRuleCard`). An "Add display
- * rule" button creates a rule pre-scoped to this entity so it lands in the list immediately. The list is
- * intentionally not drag-sortable — rule priority (`sortOrder`) is global, set on the Settings page.
+ * as a `CardDisplayRuleCard` row linking to the rule's own View/Edit pages. An "Add display rule"
+ * button creates a rule pre-scoped to this entity and opens its edit page. The list is intentionally
+ * not drag-sortable — rule priority (`sortOrder`) is global, set on the Card Display Rules page.
  */
 export function CardDisplayRulesList({
   categoryId, propertyId, websiteId, tagId, mediaTypeId, channelId,
@@ -64,7 +63,7 @@ export function CardDisplayRulesList({
     data: properties,
   } = useCustomProperties();
   const create = useCreateCardDisplayRule();
-  const [addingNew, setAddingNew] = useState(false);
+  const navigate = useNavigate();
 
   // Card display rules reference websites by normalized domain, not id.
   const websiteDomain = useWebsiteDomain(websiteId);
@@ -101,11 +100,33 @@ export function CardDisplayRulesList({
     property: scopedProperty,
   };
 
+  /** Create a rule pre-scoped to this entity and jump to its edit page (then per-field auto-save). */
+  function handleAddRule() {
+    create.mutate(
+      {
+        name: "New rule",
+        conditions: seedCardDisplayConditions(scope),
+      },
+      {
+        onSuccess: (rule) => {
+          if (rule.slug) {
+            void navigate({
+              to: "/card-display-rules/$ruleSlug/edit/general",
+              params: {
+                ruleSlug: rule.slug,
+              },
+            });
+          }
+        },
+      },
+    );
+  }
+
   return (
     <section className="space-y-4">
       <p className="text-sm text-muted-foreground">
         Display rules whose conditions match this item, in priority order. Higher-priority rules (set on
-        the Card Display Rules settings page) win. Editing here updates the same rule everywhere.
+        the Card Display Rules page) win. Open a rule to edit it — changes apply everywhere.
       </p>
 
       {isLoading ? <p className="text-sm text-muted-foreground">Loading rules…</p> : null}
@@ -137,44 +158,15 @@ export function CardDisplayRulesList({
         )
         : null}
 
-      {addingNew
-        ? (
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">New display rule</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CardDisplayRuleForm
-                seedConditions={seedCardDisplayConditions(scope)}
-                isPending={create.isPending}
-                onSave={(values) => {
-                  create.mutate(
-                    {
-                      name: values.name,
-                      description: values.description,
-                      conditions: values.conditions,
-                      ...values.display,
-                    },
-                    {
-                      onSuccess: () => setAddingNew(false),
-                    },
-                  );
-                }}
-                onCancel={() => setAddingNew(false)}
-              />
-            </CardContent>
-          </Card>
-        )
-        : (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setAddingNew(true)}
-          >
-            <Plus className="mr-2 size-4" />
-            Add display rule
-          </Button>
-        )}
+      <Button
+        type="button"
+        variant="outline"
+        disabled={create.isPending}
+        onClick={handleAddRule}
+      >
+        <Plus className="mr-2 size-4" />
+        Add display rule
+      </Button>
     </section>
   );
 }

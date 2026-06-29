@@ -1199,6 +1199,8 @@ export const homepageSections = pgTable("homepage_sections", {
 export const cardDisplayRules = pgTable("card_display_rules", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
+  // Nullable so existing rows are push-safe; backfilled to a unique value on boot.
+  slug: text("slug"),
   description: text("description"),
   conditions: jsonb("conditions").$type<ConditionTree>().notNull(),
   // Lower sorts first (higher priority). The Default rule is kept pinned last.
@@ -1223,7 +1225,9 @@ export const cardDisplayRules = pgTable("card_display_rules", {
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
-});
+}, table => [
+  unique("card_display_rules_slug_unique").on(table.slug),
+]);
 
 /**
  * `imports` — one row per ingest event (paste / fetched URL / uploaded file). Groups the extracted
