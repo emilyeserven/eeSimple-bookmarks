@@ -100,7 +100,7 @@ export function LocationGeneralForm({
         value: item.node.id,
         label: item.node.name,
         depth: item.depth,
-        searchAlias: item.node.romanizedName ?? undefined,
+        romanized: item.node.romanizedName,
       })),
   ];
 
