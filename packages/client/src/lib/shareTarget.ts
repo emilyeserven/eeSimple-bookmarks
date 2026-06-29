@@ -1,12 +1,14 @@
 /**
- * Normalize the payload Android's share sheet hands to the `/quick-add` share target.
+ * Normalize a shared `{ url, title, text }` payload to `{ url, title }`.
  *
- * The PWA manifest's `share_target` maps three fields — `url`, `title`, `text` — onto the
- * query string, but apps are inconsistent about which one carries the link. Chrome usually
- * sends a clean `url`; many apps (and plain "share text") put the link inside `text`, often
- * alongside descriptive text. This collapses those shapes into the `{ url, title }` the
- * bookmark form expects. `BookmarkForm`'s `autoScan` fetches real metadata afterwards, so a
- * best-effort title is fine.
+ * Apps are inconsistent about which field carries the link. Chrome usually sends a clean `url`;
+ * many apps (and plain "share text") put the link inside `text`, often alongside descriptive
+ * text. This collapses those shapes into the `{ url, title }` the bookmark form expects.
+ * `BookmarkForm`'s `autoScan` fetches real metadata afterwards, so a best-effort title is fine.
+ *
+ * Used by the GET `/quick-add` route (the bookmarklet). The Android share target POSTs to the
+ * service worker instead, which keeps a small mirror of this logic in
+ * `public/share-target-sw.js` (it can't import app modules) — keep the two in sync.
  */
 export interface SharedInput {
   url?: string;
