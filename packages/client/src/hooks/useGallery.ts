@@ -53,8 +53,8 @@ export function useAutoFetchCompletionToast(status: AutoFetchJobStatus | undefin
         `Fetched ${fetched} image${fetched === 1 ? "" : "s"}${failed > 0 ? `, ${failed} failed` : ""}.`,
         {
           link: {
-            href: "/settings/media-management",
-            label: "View in Media Management",
+            href: "/settings/advanced/manage-media",
+            label: "View in Manage Media",
           },
         },
       );
@@ -135,8 +135,8 @@ export function useAutoFetchWithFallbackCompletionToast(status: AutoFetchJobStat
         `Fetched ${fetched} image${fetched === 1 ? "" : "s"}${failed > 0 ? `, ${failed} failed` : ""}.`,
         {
           link: {
-            href: "/settings/media-management",
-            label: "View in Media Management",
+            href: "/settings/advanced/manage-media",
+            label: "View in Manage Media",
           },
         },
       );

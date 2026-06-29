@@ -47,7 +47,7 @@ function entryFromInput(kind: ImportBlacklistKind, raw: string): ImportBlacklist
 }
 
 /** Editor for the imports blacklist: links matching these are dropped from future imports. */
-function ImportsBlacklistCard() {
+export function ImportsBlacklistCard() {
   const {
     data: entries = [], isLoading,
   } = useImportBlacklist();
@@ -149,7 +149,7 @@ function ImportsBlacklistCard() {
 }
 
 /** Sweep processed inbox items: those marked for deletion (a bookmark was created) + blocked items. */
-function ProcessedItemsCard() {
+export function ProcessedItemsCard() {
   const purge = usePurgeProcessedItems();
 
   function onPurge(): void {
@@ -168,7 +168,7 @@ function ProcessedItemsCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Processed items</CardTitle>
+        <CardTitle>Inbox</CardTitle>
         <CardDescription>
           Delete every inbox item that has been processed: items marked for deletion (a bookmark was
           already created from them) and blocked items. Blocked links stay on the Imports Blacklist, so
@@ -187,15 +187,5 @@ function ProcessedItemsCard() {
         </Button>
       </CardContent>
     </Card>
-  );
-}
-
-/** Import Settings: the imports blacklist and the processed-items purge. */
-export function ImportsSettings() {
-  return (
-    <>
-      <ImportsBlacklistCard />
-      <ProcessedItemsCard />
-    </>
   );
 }

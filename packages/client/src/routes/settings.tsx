@@ -14,32 +14,12 @@ const settingsNav: readonly TabNavEntry[] = [
     label: "Display",
   },
   {
-    to: "/settings/saved-filters",
-    label: "Saved Filters",
-  },
-  {
-    to: "/settings/media-management",
-    label: "Media Management",
-  },
-  {
     to: "/settings/automations",
     label: "Automations",
   },
   {
-    to: "/settings/link-parsing",
-    label: "Link Parsing",
-  },
-  {
-    to: "/settings/imports",
-    label: "Import Settings",
-  },
-  {
     to: "/settings/extension",
     label: "Extension",
-  },
-  {
-    to: "/settings/connectors",
-    label: "Connectors",
   },
   {
     to: "/settings/advanced",
