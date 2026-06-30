@@ -12,6 +12,23 @@ describe("settingsPages registry", () => {
     expect(page?.icon).toBeDefined();
   });
 
+  it("resolves the tab pages nested inside the tabbed settings sections", () => {
+    for (const path of [
+      "/settings/display/filters",
+      "/settings/automations/global",
+      "/settings/automations/check-links",
+      "/settings/automations/redirect-failures",
+      "/settings/advanced/manage-data",
+      "/settings/advanced/updates",
+      "/settings/advanced/database-usage",
+    ]) {
+      const page = findSettingsPage(path);
+      expect(page?.path).toBe(path);
+      expect(page?.label).toBeTruthy();
+      expect(page?.icon).toBeDefined();
+    }
+  });
+
   it("resolves a management page that lives outside /settings", () => {
     const page = findSettingsPage("/custom-properties");
     expect(page).toMatchObject({
