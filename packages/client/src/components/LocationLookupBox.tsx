@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { Search } from "lucide-react";
 
+import { RomanizedLabel } from "./RomanizedLabel";
 import { useLocationLookup } from "../hooks/useLocations";
 
 import { Button } from "@/components/ui/button";
@@ -77,10 +78,19 @@ export function LocationLookupBox({
                     w-full rounded-sm px-2 py-1 text-left text-sm
                     hover:bg-accent hover:text-accent-foreground
                   "
+                  title={`${candidate.name}${candidate.romanizedName ? ` (${candidate.romanizedName})` : ""} — ${candidate.displayName}`}
                   onClick={() => onSelect(candidate)}
                 >
-                  <span className="font-medium">{candidate.name}</span>
-                  <span className="ml-1.5 text-muted-foreground">{candidate.displayName}</span>
+                  <span className="flex flex-col font-medium">
+                    <RomanizedLabel
+                      name={candidate.name}
+                      romanized={candidate.romanizedName}
+                      stacked
+                    />
+                    <span className="text-xs font-normal text-muted-foreground">
+                      {candidate.displayName}
+                    </span>
+                  </span>
                 </button>
               </li>
             ))}
