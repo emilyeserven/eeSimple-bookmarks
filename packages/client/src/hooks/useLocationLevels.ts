@@ -40,6 +40,8 @@ export function useLocationLevels(): {
   /** Set (or clear, with `null`) the map color a level's pins/areas render in. */
   setGroupColor: (id: string, color: string | null) => void;
   removeGroup: (id: string) => void;
+  /** Reorder all groups to the given order, reassigning sortOrder by position. */
+  reorderGroups: (orderedIds: string[]) => void;
   /** Reorder only the groups with the given display mode, preserving the relative positions of others. */
   reorderGroupsInTab: (displayMode: LocationDisplayMode, orderedIds: string[]) => void;
   /** Assign a predefined palette's colors across the groups in display order (wrapping if needed). */
@@ -172,6 +174,17 @@ export function useLocationLevels(): {
     save(groups.filter(group => group.id !== id), `${label} removed`);
   }
 
+  function reorderGroups(orderedIds: string[]): void {
+    const byId = new Map(groups.map(g => [g.id, g]));
+    const result = orderedIds
+      .map(id => byId.get(id))
+      .filter((g): g is PlaceTypeLevelGroup => g !== undefined);
+    save(result.map((g, i) => ({
+      ...g,
+      sortOrder: i,
+    })), "Level order");
+  }
+
   function reorderGroupsInTab(displayMode: LocationDisplayMode, newTabIds: string[]): void {
     const allSorted = [...groups].sort((a, b) => a.sortOrder - b.sortOrder);
     const byId = new Map(groups.map(g => [g.id, g]));
@@ -218,6 +231,7 @@ export function useLocationLevels(): {
     setGroupPlaceTypes,
     setGroupColor,
     removeGroup,
+    reorderGroups,
     reorderGroupsInTab,
     applyPalette,
     placeTypeIcons,
