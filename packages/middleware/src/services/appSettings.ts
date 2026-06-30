@@ -674,12 +674,16 @@ function normalizePlaceTypeLevelGroups(input: unknown): PlaceTypeLevelGroupConfi
           .filter(pt => pt !== ""),
       )]
       : [];
+    const visible = value.visible !== false;
     const group: PlaceTypeLevelGroup = {
       id,
       name,
       placeTypes,
       displayMode,
-      visible: value.visible !== false,
+      visible,
+      // Absent → fall back to `visible` so existing configs keep the current main-map appearance
+      // (today every visible group shows on the main map).
+      showOnMainMap: typeof value.showOnMainMap === "boolean" ? value.showOnMainMap : visible,
       sortOrder: typeof value.sortOrder === "number" && Number.isFinite(value.sortOrder)
         ? value.sortOrder
         : index,

@@ -14,6 +14,13 @@ export type Theme = "light" | "dark" | "system";
 export type HomepageSectionImageLayout = "above" | "side";
 
 /**
+ * Which levels a place's location maps show relative to the viewed place's own level: only the
+ * current level, the current level plus broader ("above") levels, or plus narrower ("below") levels.
+ * The current level is always shown. Shared across all location maps (not bookmark maps).
+ */
+export type LocationMapLevelMode = "above" | "current" | "below";
+
+/**
  * UI-pref unions defined once in `@eesimple/types` and re-exported here so existing
  * `../stores/uiStore` importers keep working. `SidebarOpenModifier` and the bookmark-detail sizing
  * unions now drive server-persisted settings but are still re-exported for back-compat.
@@ -112,6 +119,9 @@ interface UiState {
   /** How the Locations list/tree is ordered: server order ("default") or grouped by place type. */
   locationSortMode: LocationSortMode;
   setLocationSortMode: (mode: LocationSortMode) => void;
+  /** Which levels a place's location maps show relative to its own level (shared across location maps). */
+  locationMapLevelMode: LocationMapLevelMode;
+  setLocationMapLevelMode: (mode: LocationMapLevelMode) => void;
   /** Per-listing image layout for 2-column listing pages: "above" (default) or "side". Keyed by a stable page key. */
   bookmarkImageLayout: Record<string, HomepageSectionImageLayout>;
   setBookmarkImageLayout: (pageKey: string, layout: HomepageSectionImageLayout) => void;
@@ -262,6 +272,10 @@ export const useUiStore = create<UiState>()(
       setLocationSortMode: mode => set({
         locationSortMode: mode,
       }),
+      locationMapLevelMode: "current",
+      setLocationMapLevelMode: mode => set({
+        locationMapLevelMode: mode,
+      }),
       collapsedHomepageSectionIds: [],
       toggleHomepageSectionCollapsed: id => set(state => ({
         collapsedHomepageSectionIds: state.collapsedHomepageSectionIds.includes(id)
@@ -382,6 +396,7 @@ export const useUiStore = create<UiState>()(
         collapsedHomepageSectionIds: state.collapsedHomepageSectionIds,
         collapsedLocationMapKeys: state.collapsedLocationMapKeys,
         locationSortMode: state.locationSortMode,
+        locationMapLevelMode: state.locationMapLevelMode,
         bookmarkImageLayout: state.bookmarkImageLayout,
         bookmarkCornerOverlays: state.bookmarkCornerOverlays,
         bookmarkSort: state.bookmarkSort,

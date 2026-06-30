@@ -1,6 +1,9 @@
+import type { LevelsControls } from "../lib/locationLevels";
+
 import { DEFAULT_LOCATION_MAP_COLOR, normalizeHexColor } from "@eesimple/types";
 import { MapPin, Settings, Shapes, Square } from "lucide-react";
 
+import { LocationLevelModeToggle } from "./LocationLevelModeToggle";
 import { useLocationLevels } from "../hooks/useLocationLevels";
 
 import { Button } from "@/components/ui/button";
@@ -87,10 +90,13 @@ function ViewOptionsPopover({
  * compact. Shown inside the map container (absolutely positioned); hidden on mobile where the
  * dropdown trigger in the map header is used instead.
  */
-export function LocationLevelsMapPanel() {
+export function LocationLevelsMapPanel({
+  controls,
+}: {
+  controls: LevelsControls;
+}) {
   const {
     groups,
-    setGroupVisible,
     setGroupDisplayMode,
   } = useLocationLevels({
     notify: false,
@@ -126,8 +132,8 @@ export function LocationLevelsMapPanel() {
               >
                 <Checkbox
                   id={`map-level-${group.id}`}
-                  checked={group.visible}
-                  onCheckedChange={checked => setGroupVisible(group.id, checked === true)}
+                  checked={controls.visibleIds.has(group.id)}
+                  onCheckedChange={checked => controls.onToggleVisible(group.id, checked === true)}
                 />
                 {group.displayMode === "pin"
                   ? (
@@ -159,6 +165,17 @@ export function LocationLevelsMapPanel() {
             ))}
           </ul>
         )}
+
+      {controls.levelMode && controls.onLevelModeChange
+        ? (
+          <div className="mt-2 border-t pt-2">
+            <LocationLevelModeToggle
+              value={controls.levelMode}
+              onChange={controls.onLevelModeChange}
+            />
+          </div>
+        )
+        : null}
     </div>
   );
 }

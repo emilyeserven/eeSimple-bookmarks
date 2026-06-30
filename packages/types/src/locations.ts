@@ -348,6 +348,12 @@ export interface PlaceTypeLevelGroup {
   displayMode: LocationDisplayMode;
   /** Whether locations in this group are shown on the map at all. */
   visible: boolean;
+  /**
+   * Whether this level is shown by default on the **main** all-locations map (`/taxonomies/locations`).
+   * Only the main index map reads this; a place's own pages and bookmark maps resolve visibility from
+   * the viewed place's level instead. Absent → treated as the group's `visible` (legacy default).
+   */
+  showOnMainMap?: boolean;
   /** Ordering weight among groups (lower sorts first). */
   sortOrder: number;
   /**

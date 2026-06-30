@@ -3,12 +3,13 @@ import type { GroupRowProps, SortableHandle } from "./levelGroupRowTypes";
 import { useEffect, useState } from "react";
 
 import { DEFAULT_LOCATION_MAP_COLOR } from "@eesimple/types";
-import { GripVertical, MapPin, Shapes, Trash2 } from "lucide-react";
+import { GripVertical, Map as MapIcon, MapPin, Shapes, Trash2 } from "lucide-react";
 
 import { LevelColorControl } from "./LevelColorControl";
 import { MultiCombobox } from "./MultiCombobox";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -22,6 +23,7 @@ export function LevelGroupRowContent({
   options,
   takenPlaceTypes,
   renameGroup,
+  setGroupShowOnMainMap,
   setGroupDisplayMode,
   setGroupPlaceTypes,
   setGroupColor,
@@ -86,6 +88,21 @@ export function LevelGroupRowContent({
               : <MapPin className="size-3" />}
             {group.displayMode === "area" ? "Area" : "Pin"}
           </span>
+
+          {group.showOnMainMap !== false
+            ? (
+              <span
+                className="
+                  flex items-center gap-1 rounded-full border px-2 py-0.5
+                  text-xs text-muted-foreground
+                "
+                title="Shown by default on the main map"
+              >
+                <MapIcon className="size-3" />
+                Main map
+              </span>
+            )
+            : null}
 
           <Button
             type="button"
@@ -194,7 +211,22 @@ export function LevelGroupRowContent({
         </div>
       </div>
 
-      {/* Row 3: place type assignment */}
+      {/* Row 3: main-map default */}
+      <div className="flex items-center gap-2 pl-6">
+        <Checkbox
+          id={`level-main-map-${group.id}`}
+          checked={group.showOnMainMap !== false}
+          onCheckedChange={checked => setGroupShowOnMainMap(group.id, checked === true)}
+        />
+        <Label
+          htmlFor={`level-main-map-${group.id}`}
+          className="cursor-pointer text-xs font-normal"
+        >
+          Show by default on main map
+        </Label>
+      </div>
+
+      {/* Row 4: place type assignment */}
       <div className="space-y-1 pl-6">
         <Label className="text-xs text-muted-foreground">Place types</Label>
         <MultiCombobox

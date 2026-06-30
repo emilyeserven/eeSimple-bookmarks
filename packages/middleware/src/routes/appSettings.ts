@@ -386,6 +386,9 @@ const placeTypeLevelGroupsBody = {
       visible: {
         type: "boolean",
       },
+      showOnMainMap: {
+        type: "boolean",
+      },
       sortOrder: {
         type: "number",
       },
