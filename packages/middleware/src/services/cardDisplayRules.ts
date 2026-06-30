@@ -59,12 +59,6 @@ export async function listCardDisplayRules(): Promise<CardDisplayRule[]> {
   return rows.map(toRule);
 }
 
-/** Fetch a single card display rule by its slug, or null when none matches. */
-export async function getCardDisplayRuleBySlug(slug: string): Promise<CardDisplayRule | null> {
-  const [row] = await db.select().from(cardDisplayRules).where(eq(cardDisplayRules.slug, slug));
-  return row ? toRule(row) : null;
-}
-
 /** Create a new (non-default) card display rule. sortOrder defaults to one more than the current max. */
 export async function createCardDisplayRule(
   input: CreateCardDisplayRuleInput,
