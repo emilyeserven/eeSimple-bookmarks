@@ -11,6 +11,7 @@ import { notifyBulkResult } from "../lib/bulkResults";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
+const REEL_ARCHIVE_ACTIVE_KEY = ["reel-archive", "active"] as const;
 const CATEGORIES_KEY = ["categories"] as const;
 const MEDIA_TYPES_KEY = ["media-types"] as const;
 const WEBSITES_KEY = ["websites"] as const;
@@ -389,6 +390,37 @@ export function useDeleteBookmarkScreenshot() {
       queryKey: BOOKMARKS_KEY,
     }),
     onError: (err: Error) => notifyError(describeError(err, "Could not remove the screenshot")),
+  });
+}
+
+/**
+ * Queue a background job to capture a bookmark's Instagram reel into object storage. The POST returns
+ * immediately; progress shows in the header indicator and a toast fires on completion (see
+ * `useReelArchive`). Here we only kick the active-jobs poll so the header picks the job up at once.
+ */
+export function useArchiveBookmarkReel() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => bookmarksApi.archiveReel(id),
+    onSuccess: () => queryClient.invalidateQueries({
+      queryKey: REEL_ARCHIVE_ACTIVE_KEY,
+    }),
+    onError: (err: Error) => notifyError(describeError(err, "Could not start archiving the reel")),
+  });
+}
+
+/** Remove a bookmark's archived reel. */
+export function useDeleteBookmarkReelArchive() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => bookmarksApi.deleteReelArchive(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: BOOKMARKS_KEY,
+      });
+      notifySuccess("Reel archive removed");
+    },
+    onError: (err: Error) => notifyError(describeError(err, "Could not remove the reel archive")),
   });
 }
 

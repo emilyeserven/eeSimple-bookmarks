@@ -36,8 +36,13 @@ import {
   updateBookmark,
   updateBookmarkRelationships,
 } from "@/services/bookmarks";
+import {
+  getBookmarkReelArchiveRow,
+  queueReelArchive,
+  removeBookmarkReelArchive,
+} from "@/services/reelArchive";
 import { quickSaveToInbox } from "@/services/imports";
-import { getObjectStream, isObjectStoreConfigured } from "@/utils/objectStore";
+import { getObjectRange, getObjectStream, isObjectStoreConfigured } from "@/utils/objectStore";
 import { isValidUrl } from "@/utils/url";
 
 const bookmarkParams = {
@@ -1014,6 +1019,44 @@ function registerBookmarkImageRoutes(app: FastifyInstance): void {
     });
     return reply.code(204).send();
   });
+
+  // Queue a background job to archive a bookmark's Instagram reel video into object storage. Returns
+  // immediately (202) with the queued job; progress surfaces in the header indicator and a toast
+  // fires on completion (mirrors how imports run). The worker captures and records its own outcome.
+  app.post("/api/bookmarks/:id/reel-archive", {
+    schema: {
+      tags: ["images"],
+      params: bookmarkParams,
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    if (!isObjectStoreConfigured()) {
+      return reply.code(503).send({
+        message: "Image storage is not configured",
+      });
+    }
+    const job = await queueReelArchive(id);
+    return reply.code(202).send(job);
+  });
+
+  // Remove a bookmark's archived reel.
+  app.delete("/api/bookmarks/:id/reel-archive", {
+    schema: {
+      tags: ["images"],
+      params: bookmarkParams,
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    const removed = await removeBookmarkReelArchive(id);
+    if (!removed) return reply.code(404).send({
+      message: "No reel archive to delete",
+    });
+    return reply.code(204).send();
+  });
 }
 
 /** Bookmark relationship edges and the image download endpoint. */
@@ -1148,6 +1191,45 @@ function registerBookmarkRelationshipRoutes(app: FastifyInstance): void {
     });
     reply.header("Content-Type", row.contentType);
     reply.header("Cache-Control", "public, max-age=31536000, immutable");
+    return reply.send(object.body);
+  });
+
+  // Serve a bookmark's archived reel video. Honors HTTP Range requests (206) so `<video>` seeking
+  // works; the `?v=` version param makes the bytes safe to cache immutably.
+  app.get("/api/bookmarks/:id/reel-archive", {
+    schema: {
+      tags: ["images"],
+      params: bookmarkParams,
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    const row = await getBookmarkReelArchiveRow(id);
+    if (!row) return reply.code(404).send({
+      message: "No reel archive",
+    });
+
+    reply.header("Content-Type", row.contentType);
+    reply.header("Cache-Control", "public, max-age=31536000, immutable");
+    reply.header("Accept-Ranges", "bytes");
+
+    const range = req.headers.range;
+    if (range) {
+      const partial = await getObjectRange(row.objectKey, range);
+      if (!partial) return reply.code(404).send({
+        message: "No reel archive",
+      });
+      if (partial.contentRange) reply.header("Content-Range", partial.contentRange);
+      if (partial.contentLength !== undefined) reply.header("Content-Length", partial.contentLength);
+      return reply.code(206).send(partial.body);
+    }
+
+    const object = await getObjectStream(row.objectKey);
+    if (!object) return reply.code(404).send({
+      message: "No reel archive",
+    });
+    if (object.contentLength !== undefined) reply.header("Content-Length", object.contentLength);
     return reply.send(object.body);
   });
 }

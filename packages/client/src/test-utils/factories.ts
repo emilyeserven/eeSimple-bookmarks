@@ -81,6 +81,7 @@ export function makeBookmark(overrides: Partial<Bookmark> = {}): Bookmark {
     image: null,
     images: [],
     screenshot: null,
+    reelArchive: null,
     imageAutoGrabError: null,
     categoryId: "cat",
     website: null,

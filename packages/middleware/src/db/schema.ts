@@ -123,6 +123,52 @@ export const bookmarkScreenshots = pgTable("bookmark_screenshots", {
 });
 
 /**
+ * `bookmark_reel_archives` — 0..1 self-contained Instagram-reel video capture per bookmark. Mirrors
+ * `bookmark_screenshots`: the video bytes live in object storage under `bookmarks/{id}-reel.mp4`;
+ * this table holds only metadata. Captured on demand via Browserless (extract the video URL) + a
+ * server-side fetch, so the reel survives being deleted from Instagram. `width`/`height`/
+ * `durationSeconds` are nullable (not always determinable from the raw stream). Push-safe: this is a
+ * new table with no NOT NULL columns added to an existing one, so `drizzle-kit push` applies it
+ * without prompting — no `migrate.ts` step needed.
+ */
+export const bookmarkReelArchives = pgTable("bookmark_reel_archives", {
+  bookmarkId: uuid("bookmark_id").primaryKey().references(() => bookmarks.id, {
+    onDelete: "cascade",
+  }),
+  objectKey: text("object_key").notNull(),
+  contentType: text("content_type").notNull(),
+  byteSize: integer("byte_size").notNull(),
+  width: integer("width"),
+  height: integer("height"),
+  durationSeconds: integer("duration_seconds"),
+  // The Instagram URL the video was captured from (the bookmark's own stored URL at capture time).
+  sourceUrl: text("source_url").notNull(),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+});
+
+/**
+ * `reel_archive_jobs` — one background reel-capture job per row, mirroring the `imports` queue model.
+ * A job archives a single bookmark's Instagram reel; `status` advances queued → processing →
+ * complete | failed and powers the header progress indicator (polled while any job is in flight).
+ * Push-safe: new table, no NOT NULL column added to an existing one.
+ */
+export const reelArchiveJobs = pgTable("reel_archive_jobs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  bookmarkId: uuid("bookmark_id").notNull().references(() => bookmarks.id, {
+    onDelete: "cascade",
+  }),
+  // "queued" | "processing" | "complete" | "failed". Text so a new state needs no migration.
+  status: text("status").notNull(),
+  // Free-text reason when status = "failed" (e.g. "No reel video was found").
+  errorReason: text("error_reason"),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+});
+
+/**
  * `media_objects` — a full manifest of every object in the storage bucket, reconciled by the
  * "Scan bucket" action. `objectKey` is the primary key. `bookmarkId` links the object to its
  * bookmark when one exists; the `set null` FK means deleting a bookmark auto-nulls the link, so the
@@ -1909,6 +1955,8 @@ export type NewBookmarkRow = typeof bookmarks.$inferInsert;
 export type BookmarkImageRow = typeof bookmarkImages.$inferSelect;
 export type NewBookmarkImageRow = typeof bookmarkImages.$inferInsert;
 export type BookmarkScreenshotRow = typeof bookmarkScreenshots.$inferSelect;
+export type BookmarkReelArchiveRow = typeof bookmarkReelArchives.$inferSelect;
+export type ReelArchiveJobRow = typeof reelArchiveJobs.$inferSelect;
 export type MediaObjectRow = typeof mediaObjects.$inferSelect;
 export type NewMediaObjectRow = typeof mediaObjects.$inferInsert;
 export type WebsiteRow = typeof websites.$inferSelect;

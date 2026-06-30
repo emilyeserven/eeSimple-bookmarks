@@ -341,6 +341,29 @@ export function ConnectorsSettings() {
       ),
     },
     {
+      id: "instagram-reel-archive",
+      status: envStatus(data?.instagramReelArchive.enabled),
+      node: (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle>Instagram reel archive</CardTitle>
+              <StatusBadge enabled={data?.instagramReelArchive.enabled} />
+            </div>
+            <CardDescription>
+              Optional. When both a Browserless endpoint and object storage are configured, a saved
+              Instagram reel can be archived on demand — the reel&apos;s video is captured into your own
+              object storage so it survives the reel being deleted from Instagram. Self-contained; the
+              video is fetched and stored on the box, not linked out.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Provides items={["Reel video capture", "In-app playback", "Download"]} />
+          </CardContent>
+        </Card>
+      ),
+    },
+    {
       id: "hosted-metadata",
       status: envStatus(data?.hostedMetadata.enabled),
       node: (

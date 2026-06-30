@@ -2,6 +2,9 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
+  instagramPermalinkFromUrl,
+  isInstagramPostUrl,
+  isInstagramReelUrl,
   normalizeSocialHandle,
   sameSocialAccount,
   socialAccountFromLink,
@@ -87,4 +90,34 @@ test("socialAccountFromLink builds a ref from a stored SocialLink", () => {
     url: "https://instagram.com/janedoe",
   });
   assert.equal(ref?.handle, "janedoe");
+});
+
+test("instagramPermalinkFromUrl parses post / reel / tv permalinks", () => {
+  assert.deepEqual(instagramPermalinkFromUrl("https://www.instagram.com/p/DaMJ56olZff/?img_index=2"), {
+    kind: "p",
+    shortcode: "DaMJ56olZff",
+  });
+  assert.deepEqual(instagramPermalinkFromUrl("https://www.instagram.com/reel/DZrfWBznYVQ/?igsh=x"), {
+    kind: "reel",
+    shortcode: "DZrfWBznYVQ",
+  });
+  assert.deepEqual(instagramPermalinkFromUrl("https://instagram.com/tv/XyZ987/"), {
+    kind: "tv",
+    shortcode: "XyZ987",
+  });
+  // A username-prefixed post (e.g. /{user}/p/{code}) is NOT a bare permalink.
+  assert.equal(instagramPermalinkFromUrl("https://www.instagram.com/janedoe/"), null);
+  assert.equal(instagramPermalinkFromUrl("https://example.com/reel/DZrfWBznYVQ/"), null);
+  assert.equal(instagramPermalinkFromUrl("not a url"), null);
+});
+
+test("isInstagramPostUrl covers every permalink kind; isInstagramReelUrl is video-only", () => {
+  assert.equal(isInstagramPostUrl("https://www.instagram.com/p/DaMJ56olZff/"), true);
+  assert.equal(isInstagramPostUrl("https://www.instagram.com/reel/DZrfWBznYVQ/"), true);
+  assert.equal(isInstagramPostUrl("https://www.instagram.com/janedoe/"), false);
+
+  // Reels and IGTV are video-native; a generic /p/ post (may be image-only) is excluded.
+  assert.equal(isInstagramReelUrl("https://www.instagram.com/reel/DZrfWBznYVQ/?igsh=x"), true);
+  assert.equal(isInstagramReelUrl("https://www.instagram.com/tv/XyZ987/"), true);
+  assert.equal(isInstagramReelUrl("https://www.instagram.com/p/DaMJ56olZff/"), false);
 });

@@ -81,6 +81,42 @@ export async function getObjectStream(key: string): Promise<StoredObject | null>
   }
 }
 
+/** A fetched byte-range of an object: the partial stream plus the headers a 206 response needs. */
+export interface StoredObjectRange {
+  body: Readable;
+  contentType?: string;
+  /** Length of THIS range (not the whole object). */
+  contentLength?: number;
+  /** The `Content-Range` header value to echo back, e.g. `bytes 0-1023/52000`. */
+  contentRange?: string;
+}
+
+/**
+ * Fetch a byte range of the object at `key`, or null when it doesn't exist. `range` is a raw HTTP
+ * `Range` header value (e.g. `bytes=0-1023`). The store honors it and reports the actual range via
+ * `contentRange`, so the serving route can return a 206 for `<video>`/`<audio>` seeking.
+ */
+export async function getObjectRange(key: string, range: string): Promise<StoredObjectRange | null> {
+  try {
+    const res = await getClient().send(new GetObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      Range: range,
+    }));
+    if (!res.Body) return null;
+    return {
+      body: res.Body as Readable,
+      contentType: res.ContentType,
+      contentLength: res.ContentLength,
+      contentRange: res.ContentRange,
+    };
+  }
+  catch (err) {
+    if (isNotFound(err)) return null;
+    throw err;
+  }
+}
+
 /** A single object as reported by a bucket listing. */
 export interface StoredObjectInfo {
   key: string;

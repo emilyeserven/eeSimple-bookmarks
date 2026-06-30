@@ -20,6 +20,7 @@ import type {
   BookmarkTextValue,
   BookmarkWebsite,
   BookmarkYouTubeChannel,
+  InstagramReelArchive,
   RelationshipRole,
   SectionEntry,
 } from "@eesimple/types";
@@ -36,6 +37,7 @@ import {
   bookmarkLocations,
   bookmarkNumberValues,
   bookmarkProgressValues,
+  bookmarkReelArchives,
   bookmarkScreenshots,
   bookmarkSectionsValues,
   bookmarkTextValues,
@@ -57,6 +59,7 @@ import {
   youtubeChannels,
 } from "@/db/schema";
 import { bookmarkImageFromRow, bookmarkScreenshotFromRow } from "@/services/bookmarkImages";
+import { reelArchiveFromRow } from "@/services/reelArchive";
 import { bookmarkFileValueFromRow } from "@/services/bookmarkPropertyFiles";
 import { ensureDefaultCategory } from "@/services/categories";
 import { slugify } from "@/utils/slug";
@@ -84,6 +87,7 @@ interface BookmarkExtras {
   fileValues: BookmarkFileValue[];
   images: BookmarkImage[];
   screenshot: BookmarkImage | null;
+  reelArchive: InstagramReelArchive | null;
   relationships: BookmarkRelationship[];
 }
 
@@ -109,6 +113,7 @@ const EMPTY_EXTRAS: BookmarkExtras = {
   fileValues: [],
   images: [],
   screenshot: null,
+  reelArchive: null,
   relationships: [],
 };
 
@@ -145,6 +150,7 @@ function toBookmark(row: BookmarkRow, extras: BookmarkExtras, defaultCategoryId:
     image: extras.images.find(img => img.isMain) ?? extras.images[0] ?? null,
     images: extras.images,
     screenshot: extras.screenshot,
+    reelArchive: extras.reelArchive,
     imageAutoGrabError: (row.imageAutoGrabError as "no_image" | "bad_image" | "blocked" | "server_error" | "fetch_error" | null) ?? null,
     priority: row.priority,
     createdAt:
@@ -696,6 +702,22 @@ async function screenshotsByBookmarkId(bookmarkIds: string[]): Promise<Map<strin
   return byId;
 }
 
+/** Load archived reels for a set of bookmarks in a single query, keyed by bookmark id. */
+async function reelArchivesByBookmarkId(bookmarkIds: string[]): Promise<Map<string, InstagramReelArchive>> {
+  const byId = new Map<string, InstagramReelArchive>();
+  if (bookmarkIds.length === 0) return byId;
+
+  const rows = await db
+    .select()
+    .from(bookmarkReelArchives)
+    .where(inArray(bookmarkReelArchives.bookmarkId, bookmarkIds));
+
+  for (const row of rows) {
+    byId.set(row.bookmarkId, reelArchiveFromRow(row));
+  }
+  return byId;
+}
+
 /**
  * Load typed relationships for a set of bookmark ids, handling both sides of each edge. Returns a
  * map of bookmarkId → its {@link BookmarkRelationship}s, with the other bookmark's role derived from
@@ -786,7 +808,7 @@ async function relationshipsByBookmarkId(
 
 /** Hydrate all custom-property relations for a set of bookmark rows in batched queries. */
 async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, BookmarkExtras>> {
-  const [tagsMap, locationsMap, blacklistedMap, blacklistedLocationMap, authorsMap, numberMap, booleanMap, dateTimeMap, choicesMap, progressMap, sectionsMap, textMap, fileMap, imageMap, screenshotMap, relationshipsMap] = await Promise.all([
+  const [tagsMap, locationsMap, blacklistedMap, blacklistedLocationMap, authorsMap, numberMap, booleanMap, dateTimeMap, choicesMap, progressMap, sectionsMap, textMap, fileMap, imageMap, screenshotMap, reelArchiveMap, relationshipsMap] = await Promise.all([
     tagsByBookmarkId(bookmarkIds),
     locationsByBookmarkId(bookmarkIds),
     blacklistedTagIdsByBookmarkId(bookmarkIds),
@@ -802,6 +824,7 @@ async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
     fileValuesByBookmarkId(bookmarkIds),
     imagesByBookmarkId(bookmarkIds),
     screenshotsByBookmarkId(bookmarkIds),
+    reelArchivesByBookmarkId(bookmarkIds),
     relationshipsByBookmarkId(bookmarkIds),
   ]);
   const grouped = new Map<string, BookmarkExtras>();
@@ -828,6 +851,7 @@ async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
       fileValues: fileMap.get(id) ?? [],
       images: imageMap.get(id) ?? [],
       screenshot: screenshotMap.get(id) ?? null,
+      reelArchive: reelArchiveMap.get(id) ?? null,
       relationships: relationshipsMap.get(id) ?? [],
     });
   }

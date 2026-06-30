@@ -17,6 +17,9 @@ const connectorsStatus: ConnectorsStatus = {
   instagram: {
     apiKey: false,
   },
+  instagramReelArchive: {
+    enabled: false,
+  },
   objectStorage: {
     configured: false,
   },

@@ -8,7 +8,7 @@
  */
 
 import type { ImageCandidate } from "@eesimple/types";
-import { normalizeSocialHandle, socialAccountFromUrl } from "@eesimple/types";
+import { instagramPermalinkFromUrl, normalizeSocialHandle, socialAccountFromUrl } from "@eesimple/types";
 
 import { decodeEntities, fetchBodyHtmlResult, metaContent } from "@/services/metadata";
 
@@ -19,22 +19,11 @@ export function isInstagramPostUrl(url: string): boolean {
 
 /**
  * Extract the post/reel shortcode from an Instagram URL, or null when it isn't one. Handles `/p/`,
- * `/reel/`, and `/tv/` permalinks, with or without a trailing `?img_index=` / other query.
+ * `/reel/`, and `/tv/` permalinks, with or without a trailing `?img_index=` / other query. Thin
+ * wrapper over the shared {@link instagramPermalinkFromUrl} so detection lives in one place.
  */
 export function shortcodeFromUrl(url: string): string | null {
-  let host: string;
-  let pathname: string;
-  try {
-    const parsed = new URL(url);
-    host = parsed.hostname.toLowerCase().replace(/^www\./, "");
-    pathname = parsed.pathname;
-  }
-  catch {
-    return null;
-  }
-  if (host !== "instagram.com" && !host.endsWith(".instagram.com")) return null;
-  const match = /\/(?:p|reel|tv)\/([A-Za-z0-9_-]+)/.exec(pathname);
-  return match ? match[1] : null;
+  return instagramPermalinkFromUrl(url)?.shortcode ?? null;
 }
 
 /** Reverse JSON string-escaping (`&`, `\/`, …) on a captured embed value. */
