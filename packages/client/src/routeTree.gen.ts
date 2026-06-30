@@ -48,6 +48,7 @@ import { Route as SettingsSavedFiltersRouteImport } from './routes/settings.save
 import { Route as SettingsRelationshipsRouteImport } from './routes/settings.relationships'
 import { Route as SettingsMediaTypesRouteImport } from './routes/settings.media-types'
 import { Route as SettingsMediaManagementRouteImport } from './routes/settings.media-management'
+import { Route as SettingsLocationsRouteImport } from './routes/settings.locations'
 import { Route as SettingsLinkParsingRouteImport } from './routes/settings.link-parsing'
 import { Route as SettingsImportsRouteImport } from './routes/settings.imports'
 import { Route as SettingsGalleryRouteImport } from './routes/settings.gallery'
@@ -479,6 +480,11 @@ const SettingsMediaTypesRoute = SettingsMediaTypesRouteImport.update({
 const SettingsMediaManagementRoute = SettingsMediaManagementRouteImport.update({
   id: '/media-management',
   path: '/media-management',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsLocationsRoute = SettingsLocationsRouteImport.update({
+  id: '/locations',
+  path: '/locations',
   getParentRoute: () => SettingsRoute,
 } as any)
 const SettingsLinkParsingRoute = SettingsLinkParsingRouteImport.update({
@@ -1865,6 +1871,7 @@ export interface FileRoutesByFullPath {
   '/settings/gallery': typeof SettingsGalleryRoute
   '/settings/imports': typeof SettingsImportsRoute
   '/settings/link-parsing': typeof SettingsLinkParsingRoute
+  '/settings/locations': typeof SettingsLocationsRoute
   '/settings/media-management': typeof SettingsMediaManagementRoute
   '/settings/media-types': typeof SettingsMediaTypesRoute
   '/settings/relationships': typeof SettingsRelationshipsRoute
@@ -2104,6 +2111,7 @@ export interface FileRoutesByTo {
   '/settings/gallery': typeof SettingsGalleryRoute
   '/settings/imports': typeof SettingsImportsRoute
   '/settings/link-parsing': typeof SettingsLinkParsingRoute
+  '/settings/locations': typeof SettingsLocationsRoute
   '/settings/media-management': typeof SettingsMediaManagementRoute
   '/settings/media-types': typeof SettingsMediaTypesRoute
   '/settings/relationships': typeof SettingsRelationshipsRoute
@@ -2330,6 +2338,7 @@ export interface FileRoutesById {
   '/settings/gallery': typeof SettingsGalleryRoute
   '/settings/imports': typeof SettingsImportsRoute
   '/settings/link-parsing': typeof SettingsLinkParsingRoute
+  '/settings/locations': typeof SettingsLocationsRoute
   '/settings/media-management': typeof SettingsMediaManagementRoute
   '/settings/media-types': typeof SettingsMediaTypesRoute
   '/settings/relationships': typeof SettingsRelationshipsRoute
@@ -2607,6 +2616,7 @@ export interface FileRouteTypes {
     | '/settings/gallery'
     | '/settings/imports'
     | '/settings/link-parsing'
+    | '/settings/locations'
     | '/settings/media-management'
     | '/settings/media-types'
     | '/settings/relationships'
@@ -2846,6 +2856,7 @@ export interface FileRouteTypes {
     | '/settings/gallery'
     | '/settings/imports'
     | '/settings/link-parsing'
+    | '/settings/locations'
     | '/settings/media-management'
     | '/settings/media-types'
     | '/settings/relationships'
@@ -3071,6 +3082,7 @@ export interface FileRouteTypes {
     | '/settings/gallery'
     | '/settings/imports'
     | '/settings/link-parsing'
+    | '/settings/locations'
     | '/settings/media-management'
     | '/settings/media-types'
     | '/settings/relationships'
@@ -3610,6 +3622,13 @@ declare module '@tanstack/react-router' {
       path: '/media-management'
       fullPath: '/settings/media-management'
       preLoaderRoute: typeof SettingsMediaManagementRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/locations': {
+      id: '/settings/locations'
+      path: '/locations'
+      fullPath: '/settings/locations'
+      preLoaderRoute: typeof SettingsLocationsRouteImport
       parentRoute: typeof SettingsRoute
     }
     '/settings/link-parsing': {
@@ -5870,6 +5889,7 @@ interface SettingsRouteChildren {
   SettingsGalleryRoute: typeof SettingsGalleryRoute
   SettingsImportsRoute: typeof SettingsImportsRoute
   SettingsLinkParsingRoute: typeof SettingsLinkParsingRoute
+  SettingsLocationsRoute: typeof SettingsLocationsRoute
   SettingsMediaManagementRoute: typeof SettingsMediaManagementRoute
   SettingsMediaTypesRoute: typeof SettingsMediaTypesRoute
   SettingsRelationshipsRoute: typeof SettingsRelationshipsRoute
@@ -5891,6 +5911,7 @@ const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsGalleryRoute: SettingsGalleryRoute,
   SettingsImportsRoute: SettingsImportsRoute,
   SettingsLinkParsingRoute: SettingsLinkParsingRoute,
+  SettingsLocationsRoute: SettingsLocationsRoute,
   SettingsMediaManagementRoute: SettingsMediaManagementRoute,
   SettingsMediaTypesRoute: SettingsMediaTypesRoute,
   SettingsRelationshipsRoute: SettingsRelationshipsRoute,

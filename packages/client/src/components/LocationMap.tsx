@@ -1,9 +1,10 @@
-import type { LocationBoundary, LocationNode } from "@eesimple/types";
+import type { LocationBoundary, LocationNode, PlaceTypeDisplayConfig } from "@eesimple/types";
 import type { Feature, Geometry } from "geojson";
 import type { LatLngTuple } from "leaflet";
 
 import { useEffect } from "react";
 
+import { resolveLocationDisplay } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 import { Icon, geoJSON, latLngBounds } from "leaflet";
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
@@ -36,6 +37,8 @@ interface MappedNode {
   name: string;
   romanizedName: string | null | undefined;
   slug: string;
+  /** Loose place classification, used to resolve the per-level display config. */
+  placeType: string | null;
   /** A point coordinate, when known. */
   position: LatLngTuple | null;
   /** A GeoJSON area outline, when known (preferred over the point for rendering). */
@@ -55,12 +58,46 @@ function collectMapped(nodes: LocationNode[]): MappedNode[] {
         name: node.name,
         romanizedName: node.romanizedName,
         slug: node.slug,
+        placeType: node.placeType,
         position,
         boundary,
       }]
       : [];
     return [...here, ...collectMapped(node.children)];
   });
+}
+
+/** How a single mapped node should be drawn once the per-level config is applied. */
+interface RenderItem {
+  node: MappedNode;
+  kind: "area" | "pin";
+}
+
+/**
+ * Apply the per-placeType display config to the placed nodes: drop hidden levels, and for each
+ * survivor decide an area (polygon) or pin (marker) rendering, falling back to whatever geometry is
+ * actually available (a "pin" with only a boundary still draws the area; an "area" with no boundary
+ * draws a pin — already handled by `resolveLocationDisplay`).
+ */
+function toRenderItems(mapped: MappedNode[], config: PlaceTypeDisplayConfig): RenderItem[] {
+  const items: RenderItem[] = [];
+  for (const node of mapped) {
+    const resolved = resolveLocationDisplay(node, config);
+    if (resolved === "hidden") continue;
+    if (resolved === "area" && node.boundary) items.push({
+      node,
+      kind: "area",
+    });
+    else if (node.position) items.push({
+      node,
+      kind: "pin",
+    });
+    else if (node.boundary) items.push({
+      node,
+      kind: "area",
+    });
+  }
+  return items;
 }
 
 /** Count every node in the tree, regardless of whether it can be placed. */
@@ -77,20 +114,23 @@ function toFeature(boundary: LocationBoundary): Feature {
   };
 }
 
-/** Imperatively fit the map to every placed node (polygon bounds + point markers) once they load. */
+/** Imperatively fit the map to every rendered item (polygon bounds + point markers) once they load. */
 function FitBounds({
-  nodes,
+  items,
 }: {
-  nodes: MappedNode[];
+  items: RenderItem[];
 }) {
   const map = useMap();
-  // Re-fit whenever the set of placed nodes changes (e.g. a boundary backfills in).
-  const signature = nodes.map(n => `${n.id}:${n.boundary ? "b" : ""}${n.position ? "p" : ""}`).join("|");
+  // Re-fit whenever the set of rendered items changes (e.g. a boundary backfills in, or a level toggles).
+  const signature = items.map(i => `${i.node.id}:${i.kind}`).join("|");
   useEffect(() => {
     const bounds = latLngBounds([]);
-    for (const node of nodes) {
-      if (node.boundary) bounds.extend(geoJSON(toFeature(node.boundary)).getBounds());
+    for (const {
+      node, kind,
+    } of items) {
+      if (kind === "area" && node.boundary) bounds.extend(geoJSON(toFeature(node.boundary)).getBounds());
       else if (node.position) bounds.extend(node.position);
+      else if (node.boundary) bounds.extend(geoJSON(toFeature(node.boundary)).getBounds());
     }
     if (bounds.isValid()) {
       map.fitBounds(bounds, {
@@ -98,7 +138,7 @@ function FitBounds({
         maxZoom: 12,
       });
     }
-  }, [map, signature, nodes]);
+  }, [map, signature, items]);
   return null;
 }
 
@@ -134,19 +174,29 @@ interface LocationMapProps {
   tree: LocationNode[];
   /** Extra classes for the map container (size/height). Defaults to a tall listing-style map. */
   className?: string;
+  /**
+   * Per-placeType display config (Settings → Locations / the map "Levels" overlay). Decides, per
+   * place type, pin-vs-area rendering and whether that level shows at all. Defaults to `{}` (every
+   * level visible, legacy area-or-pin rendering).
+   */
+  displayConfig?: PlaceTypeDisplayConfig;
 }
 
 /**
- * Map for the Locations taxonomy. Each location renders as its **area polygon** when a boundary is
- * known, otherwise as a **pin** at its coordinate; both link to the location's detail page. Nodes
- * with neither a coordinate nor a boundary are omitted (with a count note).
+ * Map for the Locations taxonomy. Each location renders as its **area polygon** or a **pin** per the
+ * per-placeType display config (a place type can be set to always-pin, or hidden entirely); both
+ * link to the location's detail page. Nodes with neither a coordinate nor a boundary are omitted,
+ * and nodes hidden by their level are noted separately.
  */
 export function LocationMap({
   tree,
   className = "h-[70vh] w-full rounded-lg border",
+  displayConfig = {},
 }: LocationMapProps) {
   const mapped = collectMapped(tree);
+  const items = toRenderItems(mapped, displayConfig);
   const omitted = countNodes(tree) - mapped.length;
+  const hiddenByLevel = mapped.length - items.length;
 
   if (mapped.length === 0) {
     return (
@@ -169,9 +219,11 @@ export function LocationMap({
           attribution="© OpenStreetMap contributors"
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <FitBounds nodes={mapped} />
-        {mapped.map(node => (
-          node.boundary
+        <FitBounds items={items} />
+        {items.map(({
+          node, kind,
+        }) => (
+          kind === "area" && node.boundary
             ? (
               <GeoJSON
                 key={node.id}
@@ -200,6 +252,16 @@ export function LocationMap({
             {omitted === 1 ? " location has" : " locations have"}
             {" "}
             no coordinates and {omitted === 1 ? "isn’t" : "aren’t"} shown.
+          </p>
+        )
+        : null}
+      {hiddenByLevel > 0
+        ? (
+          <p className="text-xs text-muted-foreground">
+            {hiddenByLevel}
+            {hiddenByLevel === 1 ? " location is" : " locations are"}
+            {" "}
+            hidden by the current level filter.
           </p>
         )
         : null}

@@ -205,3 +205,79 @@ export interface LocationLookupCandidate {
 export interface LocationLookupResult {
   results: LocationLookupCandidate[];
 }
+
+/**
+ * The two ways a location can render on the map. Derived tuple = the single source for the client
+ * zod/select enums and the middleware Fastify JSON-Schema enum (don't hand-mirror this list).
+ */
+export const LOCATION_DISPLAY_MODES = ["pin", "area"] as const;
+export type LocationDisplayMode = typeof LOCATION_DISPLAY_MODES[number];
+
+/** Per-placeType map display configuration (one entry per Nominatim place type / "level"). */
+export interface PlaceTypeDisplaySetting {
+  /** Intent: `area` renders the boundary when one exists (else a pin); `pin` always renders a pin. */
+  displayMode: LocationDisplayMode;
+  /** Whether locations of this place type are shown on the map at all. */
+  visible: boolean;
+  /** Ordering weight among place-type levels (lower sorts first); drives the placeType sort. */
+  sortOrder: number;
+}
+
+/**
+ * Map of normalized placeType key → its display setting. **Sparse** — a place type with no entry
+ * uses the defaults (visible `area`), so the config only needs rows the user has customized.
+ */
+export type PlaceTypeDisplayConfig = Record<string, PlaceTypeDisplaySetting>;
+
+/**
+ * Canonical most-general → most-specific ordering of common Nominatim place types, used only as the
+ * fallback ordering for place types the user has not explicitly ordered in Settings.
+ */
+export const CANONICAL_PLACE_TYPE_ORDER = [
+  "continent", "country", "state", "region", "province", "state_district", "county",
+  "municipality", "city", "borough", "town", "village", "hamlet", "suburb", "quarter",
+  "neighbourhood", "city_block", "island", "islet", "locality",
+] as const;
+
+/** Normalize a placeType string into its config key (trimmed/lowercased; null/blank → `""`). */
+export function placeTypeKey(placeType: string | null | undefined): string {
+  return (placeType ?? "").trim().toLowerCase();
+}
+
+/** What the map should do with a single location once the per-placeType config is applied. */
+export type ResolvedLocationDisplay = "pin" | "area" | "hidden";
+
+/**
+ * Decide how a location renders given the per-placeType display config:
+ * - a placeType whose setting is `visible: false` → `"hidden"` (omitted from the map);
+ * - `displayMode: "pin"` → always a `"pin"`;
+ * - `displayMode: "area"` → `"area"` when a boundary exists, else a `"pin"` fallback;
+ * - an **unconfigured** placeType is treated as visible `area`, reproducing the legacy behavior
+ *   (area when a boundary exists, else a pin).
+ *
+ * Pure helper — shared by the map renderer (client) and unit-tested directly.
+ */
+export function resolveLocationDisplay(
+  node: { placeType: string | null;
+    boundary?: LocationBoundary | null; },
+  config: PlaceTypeDisplayConfig,
+): ResolvedLocationDisplay {
+  const setting = config[placeTypeKey(node.placeType)];
+  if (setting && !setting.visible) return "hidden";
+  const mode = setting?.displayMode ?? "area";
+  if (mode === "pin") return "pin";
+  return node.boundary ? "area" : "pin";
+}
+
+/**
+ * Order weight for a placeType: the user-set `sortOrder` when configured, otherwise its rank in
+ * {@link CANONICAL_PLACE_TYPE_ORDER}, otherwise a large constant so unknown types sort last. Used by
+ * the Settings list, the levels overlay, and the placeType tree sort so they agree on level order.
+ */
+export function placeTypeOrder(placeType: string | null, config: PlaceTypeDisplayConfig): number {
+  const key = placeTypeKey(placeType);
+  const setting = config[key];
+  if (setting) return setting.sortOrder;
+  const canonical = CANONICAL_PLACE_TYPE_ORDER.indexOf(key as (typeof CANONICAL_PLACE_TYPE_ORDER)[number]);
+  return canonical === -1 ? Number.MAX_SAFE_INTEGER : canonical;
+}

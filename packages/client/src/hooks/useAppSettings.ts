@@ -5,6 +5,7 @@ import type {
   BookmarkDetailVideoSize,
   ConnectorsAppSettings,
   ImportBlacklistEntry,
+  PlaceTypeDisplayConfig,
   SidebarCustomizationSettings,
   SidebarOpenModifier,
   UpdateAdvancedSettingsInput,
@@ -30,6 +31,7 @@ const ADVANCED_KEY = ["app-settings", "advanced"] as const;
 const DATABASE_USAGE_KEY = ["app-settings", "database-usage"] as const;
 const SIDEBAR_CUSTOMIZATION_KEY = ["app-settings", "sidebar-customization"] as const;
 const AUTOMATION_KEY = ["app-settings", "automation"] as const;
+const LOCATION_DISPLAY_KEY = ["app-settings", "location-display"] as const;
 const DISPLAY_PREFERENCES_KEY = ["app-settings", "display-preferences"] as const;
 const AI_SUMMARIZATION_KEY = ["app-settings", "ai-summarization"] as const;
 
@@ -229,6 +231,36 @@ export function useUpdateAutomationSettings() {
       queryClient.setQueryData(AUTOMATION_KEY, saved);
     },
   });
+}
+
+/**
+ * The per-placeType map display config (Settings → Locations + the map "Levels" overlay). A sparse
+ * Record keyed by normalized placeType; an unconfigured place type uses the legacy area-or-pin
+ * default (see `resolveLocationDisplay` in `@eesimple/types`).
+ */
+export function useLocationDisplaySettings() {
+  return useQuery({
+    queryKey: LOCATION_DISPLAY_KEY,
+    queryFn: appSettingsApi.getLocationDisplay,
+  });
+}
+
+export function useUpdateLocationDisplaySettings() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: PlaceTypeDisplayConfig) => appSettingsApi.updateLocationDisplay(input),
+    onSuccess: (saved) => {
+      queryClient.setQueryData(LOCATION_DISPLAY_KEY, saved);
+    },
+  });
+}
+
+/** The resolved per-placeType display config, defaulting to an empty (all-default) config. */
+export function usePlaceTypeDisplayConfig(): PlaceTypeDisplayConfig {
+  const {
+    data,
+  } = useLocationDisplaySettings();
+  return data ?? {};
 }
 
 /** Whether blurring the bookmark URL field auto-fetches the page title (default true). */

@@ -22,6 +22,7 @@ import type {
   HomepageSectionBookmarks,
   ImportBlacklistEntry,
   PinnedSidebarItem,
+  PlaceTypeDisplayConfig,
   SavedFilter,
   SidebarCustomizationSettings,
   UpdateAdvancedSettingsInput,
@@ -96,6 +97,13 @@ export const appSettingsApi = {
   getAutomation: () => request<AutomationSettings>("/app-settings/automation"),
   updateAutomation: (input: UpdateAutomationInput) =>
     request<AutomationSettings>("/app-settings/automation", {
+      method: "PUT",
+      body: JSON.stringify(input),
+    }),
+  getLocationDisplay: () =>
+    request<PlaceTypeDisplayConfig>("/app-settings/location-display"),
+  updateLocationDisplay: (input: PlaceTypeDisplayConfig) =>
+    request<PlaceTypeDisplayConfig>("/app-settings/location-display", {
       method: "PUT",
       body: JSON.stringify(input),
     }),

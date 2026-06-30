@@ -18,6 +18,10 @@ const settingsNav: readonly TabNavEntry[] = [
     label: "Automations",
   },
   {
+    to: "/settings/locations",
+    label: "Locations",
+  },
+  {
     to: "/settings/extension",
     label: "Extension",
   },

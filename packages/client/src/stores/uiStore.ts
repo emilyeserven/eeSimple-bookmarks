@@ -1,4 +1,5 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
+import type { LocationSortMode } from "../lib/locationSort";
 import type { Author, Bookmark, BookmarkDetailImageSize, BookmarkDetailLayout, BookmarkDetailVideoSize, BookmarkImageVisibility, Category, CustomProperty, MediaType, PropertyGroup, RelationshipType, SidebarOpenModifier, TagNode, ViewMode, Website, YouTubeChannel } from "@eesimple/types";
 import type { MouseEvent as ReactMouseEvent } from "react";
 
@@ -107,6 +108,9 @@ interface UiState {
   /** Keys whose Locations map section is collapsed ("listing" for the listing page, a location id on detail pages). */
   collapsedLocationMapKeys: string[];
   toggleLocationMapCollapsed: (key: string) => void;
+  /** How the Locations list/tree is ordered: server order ("default") or grouped by place type. */
+  locationSortMode: LocationSortMode;
+  setLocationSortMode: (mode: LocationSortMode) => void;
   /** Per-listing image layout for 2-column listing pages: "above" (default) or "side". Keyed by a stable page key. */
   bookmarkImageLayout: Record<string, HomepageSectionImageLayout>;
   setBookmarkImageLayout: (pageKey: string, layout: HomepageSectionImageLayout) => void;
@@ -247,6 +251,10 @@ export const useUiStore = create<UiState>()(
           ? state.collapsedLocationMapKeys.filter(x => x !== key)
           : [...state.collapsedLocationMapKeys, key],
       })),
+      locationSortMode: "default",
+      setLocationSortMode: mode => set({
+        locationSortMode: mode,
+      }),
       collapsedHomepageSectionIds: [],
       toggleHomepageSectionCollapsed: id => set(state => ({
         collapsedHomepageSectionIds: state.collapsedHomepageSectionIds.includes(id)
@@ -351,6 +359,7 @@ export const useUiStore = create<UiState>()(
         addBookmarkFormOpen: state.addBookmarkFormOpen,
         collapsedHomepageSectionIds: state.collapsedHomepageSectionIds,
         collapsedLocationMapKeys: state.collapsedLocationMapKeys,
+        locationSortMode: state.locationSortMode,
         bookmarkImageLayout: state.bookmarkImageLayout,
         bookmarkCornerOverlays: state.bookmarkCornerOverlays,
       }),

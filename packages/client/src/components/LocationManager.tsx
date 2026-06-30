@@ -7,12 +7,16 @@ import { LocationMapSection } from "./LocationMapSection";
 import { LocationTreeList } from "./LocationTreeList";
 import { useLocationColumns } from "./tables/locationColumns";
 import { listingSelectionColumn } from "./tables/selectionColumn";
+import { usePlaceTypeDisplayConfig } from "../hooks/useAppSettings";
 import { useBulkDeleteLocations, useLocationTree } from "../hooks/useLocations";
 import { useRegisterBulkSelect } from "../hooks/useRegisterBulkSelect";
 import { useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
+import { sortLocationTree } from "../lib/locationSort";
 import { useListSelection } from "../lib/useListSelection";
+import { useUiStore } from "../stores/uiStore";
 
 import { DataTable } from "@/components/ui/data-table";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 /** Flatten a location tree to its ids for selection / select-all. */
 function flattenLocationIds(nodes: LocationNode[]): string[] {
@@ -34,6 +38,11 @@ export function LocationsListing() {
   const selection = useListSelection("locations-listing", deletableIds);
   useRegisterBulkSelect("locations-listing");
   const bulkDelete = useBulkDeleteLocations();
+
+  const sortMode = useUiStore(state => state.locationSortMode);
+  const setSortMode = useUiStore(state => state.setLocationSortMode);
+  const displayConfig = usePlaceTypeDisplayConfig();
+  const sortedTree = sortLocationTree(tree ?? [], sortMode, displayConfig);
 
   function toggle(id: string) {
     setExpanded((current) => {
@@ -61,6 +70,7 @@ export function LocationsListing() {
           <LocationMapSection
             mapKey="listing"
             tree={tree}
+            showLevels
           />
         )
         : null}
@@ -72,6 +82,27 @@ export function LocationsListing() {
         noun={["location", "locations"]}
       />
 
+      {tree && tree.length > 0
+        ? (
+          <div className="flex items-center justify-end gap-2">
+            <span className="text-sm text-muted-foreground">Sort</span>
+            <ToggleGroup
+              type="single"
+              size="sm"
+              variant="outline"
+              value={sortMode}
+              onValueChange={(value) => {
+                if (value === "default" || value === "place-type") setSortMode(value);
+              }}
+              aria-label="Sort locations"
+            >
+              <ToggleGroupItem value="default">Default</ToggleGroupItem>
+              <ToggleGroupItem value="place-type">Place type</ToggleGroupItem>
+            </ToggleGroup>
+          </div>
+        )
+        : null}
+
       {tree && tree.length > 0 && viewMode === "table"
         ? (
           <DataTable
@@ -81,7 +112,7 @@ export function LocationsListing() {
                 : []),
               ...locationColumns,
             ]}
-            data={tree}
+            data={sortedTree}
             getSubRows={node => node.children}
           />
         )
@@ -90,7 +121,7 @@ export function LocationsListing() {
       {tree && tree.length > 0 && viewMode !== "table"
         ? (
           <LocationTreeList
-            tree={tree}
+            tree={sortedTree}
             expanded={expanded}
             onToggle={toggle}
             columns={columns}

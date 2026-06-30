@@ -11,6 +11,7 @@ import type {
   HomepageContentSettings,
   HomepageContentWidth,
   ImportBlacklistEntry,
+  PlaceTypeDisplayConfig,
   QuickAddDisplay,
   SidebarCustomizationSettings,
   SidebarOpenModifier,
@@ -22,7 +23,7 @@ import type {
   UpdateHomepageContentInput,
   UpdateSidebarCustomizationInput,
 } from "@eesimple/types";
-import { normalizeBlacklist } from "@eesimple/types";
+import { LOCATION_DISPLAY_MODES, normalizeBlacklist, placeTypeKey } from "@eesimple/types";
 import { db } from "@/db";
 import { appSettings } from "@/db/schema";
 import { encryptionEnabled, maybeDecrypt, maybeEncrypt } from "@/utils/crypto";
@@ -577,6 +578,63 @@ export async function updateAutomationSettings(
     .onConflictDoUpdate({
       target: appSettings.id,
       set: next,
+    });
+  return next;
+}
+
+/**
+ * Sanitize a per-placeType display config: keep only well-formed entries (valid `displayMode`,
+ * boolean `visible`, finite `sortOrder`) under a normalized placeType key. Tolerates arbitrary
+ * client/stored shapes so a malformed jsonb row never crashes the map.
+ */
+function normalizePlaceTypeDisplay(input: unknown): PlaceTypeDisplayConfig {
+  if (input === null || typeof input !== "object") return {};
+  const out: PlaceTypeDisplayConfig = {};
+  for (const [rawKey, rawValue] of Object.entries(input as Record<string, unknown>)) {
+    const key = placeTypeKey(rawKey);
+    if (key === "" || rawValue === null || typeof rawValue !== "object") continue;
+    const value = rawValue as Record<string, unknown>;
+    const displayMode = LOCATION_DISPLAY_MODES.find(mode => mode === value.displayMode);
+    if (!displayMode) continue;
+    out[key] = {
+      displayMode,
+      visible: value.visible !== false,
+      sortOrder: typeof value.sortOrder === "number" && Number.isFinite(value.sortOrder)
+        ? value.sortOrder
+        : 0,
+    };
+  }
+  return out;
+}
+
+/** Read the per-placeType map display config (Settings → Locations + the map "Levels" overlay). */
+export async function getPlaceTypeDisplay(): Promise<PlaceTypeDisplayConfig> {
+  const [row] = await db
+    .select({
+      placeTypeDisplay: appSettings.placeTypeDisplay,
+    })
+    .from(appSettings)
+    .where(eq(appSettings.id, ROW_ID));
+  return normalizePlaceTypeDisplay(row?.placeTypeDisplay ?? {});
+}
+
+/** Replace the per-placeType map display config, upserting the singleton. Returns the stored value. */
+export async function updatePlaceTypeDisplay(
+  input: PlaceTypeDisplayConfig,
+): Promise<PlaceTypeDisplayConfig> {
+  const next = normalizePlaceTypeDisplay(input);
+  await db
+    .insert(appSettings)
+    .values({
+      id: ROW_ID,
+      shortenerIgnoreList: DEFAULT_SHORTENER_IGNORE_LIST,
+      placeTypeDisplay: next,
+    })
+    .onConflictDoUpdate({
+      target: appSettings.id,
+      set: {
+        placeTypeDisplay: next,
+      },
     });
   return next;
 }
