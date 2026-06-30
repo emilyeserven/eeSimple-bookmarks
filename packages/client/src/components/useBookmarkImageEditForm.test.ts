@@ -9,6 +9,7 @@ import { useBookmarkImageEditForm } from "./useBookmarkImageEditForm";
 import { makeBookmark } from "../test-utils/factories";
 
 const autoMutateAsync = vi.fn(async () => undefined);
+const autoMutate = vi.fn(() => undefined);
 const addMutateAsync = vi.fn(async () => ({
   id: "new-img",
 }));
@@ -31,6 +32,7 @@ const pendingFalse = {
 
 vi.mock("../hooks/useBookmarks", () => ({
   useAutoBookmarkImage: () => ({
+    mutate: autoMutate,
     mutateAsync: autoMutateAsync,
     ...pendingFalse,
   }),
@@ -188,6 +190,19 @@ describe("useBookmarkImageEditForm", () => {
       result.current.onSubmit(fakeEvent);
     });
     expect(result.current.candidates).toHaveLength(0);
+  });
+
+  it("fetches the page image directly on get-page-image", () => {
+    const {
+      result,
+    } = renderHook(() => useBookmarkImageEditForm(bookmark));
+    act(() => {
+      result.current.onGetPageImage();
+    });
+    expect(autoMutate).toHaveBeenCalledWith({
+      id: bookmark.id,
+      sourceUrl: bookmark.url,
+    });
   });
 
   it("takes a screenshot with the selected delay, and remove sends no delay", async () => {
