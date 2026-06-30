@@ -4,6 +4,7 @@ import type { Bookmark } from "@eesimple/types";
 import { BookmarkGeneralForm } from "../BookmarkGeneralForm";
 import { BookmarkImageEditForm } from "../BookmarkImageEditForm";
 import { BookmarkPropertiesForm } from "../BookmarkPropertiesForm";
+import { BookmarkVideoEditForm } from "../BookmarkVideoEditForm";
 
 import { useBookmark, useDeleteBookmark } from "@/hooks/useBookmarks";
 
@@ -79,6 +80,17 @@ export const bookmarkEditWorkbench: EntityWorkbench<Bookmark> = {
         render: ({
           entity,
         }) => <BookmarkImageEditForm bookmark={entity} />,
+      },
+    },
+    {
+      key: "video",
+      label: "Video",
+      edit: {
+        title: "Video",
+        description: "Capture and manage the bookmark's archived reel video.",
+        render: ({
+          entity,
+        }) => <BookmarkVideoEditForm bookmark={entity} />,
       },
     },
   ],

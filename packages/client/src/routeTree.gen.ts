@@ -213,6 +213,7 @@ import { Route as CardDisplayRulesRuleSlugEditConditionsRouteImport } from './ro
 import { Route as CardDisplayRulesRuleSlugViewGeneralRouteImport } from './routes/card-display-rules.$ruleSlug._view.general'
 import { Route as CardDisplayRulesRuleSlugViewDisplayRouteImport } from './routes/card-display-rules.$ruleSlug._view.display'
 import { Route as CardDisplayRulesRuleSlugViewConditionsRouteImport } from './routes/card-display-rules.$ruleSlug._view.conditions'
+import { Route as BookmarksBookmarkIdEditVideoRouteImport } from './routes/bookmarks.$bookmarkId.edit.video'
 import { Route as BookmarksBookmarkIdEditRelationshipsRouteImport } from './routes/bookmarks.$bookmarkId.edit.relationships'
 import { Route as BookmarksBookmarkIdEditPropertiesRouteImport } from './routes/bookmarks.$bookmarkId.edit.properties'
 import { Route as BookmarksBookmarkIdEditImageRouteImport } from './routes/bookmarks.$bookmarkId.edit.image'
@@ -1414,6 +1415,12 @@ const CardDisplayRulesRuleSlugViewConditionsRoute =
     path: '/conditions',
     getParentRoute: () => CardDisplayRulesRuleSlugViewRoute,
   } as any)
+const BookmarksBookmarkIdEditVideoRoute =
+  BookmarksBookmarkIdEditVideoRouteImport.update({
+    id: '/video',
+    path: '/video',
+    getParentRoute: () => BookmarksBookmarkIdEditRoute,
+  } as any)
 const BookmarksBookmarkIdEditRelationshipsRoute =
   BookmarksBookmarkIdEditRelationshipsRouteImport.update({
     id: '/relationships',
@@ -1979,6 +1986,7 @@ export interface FileRoutesByFullPath {
   '/bookmarks/$bookmarkId/edit/image': typeof BookmarksBookmarkIdEditImageRoute
   '/bookmarks/$bookmarkId/edit/properties': typeof BookmarksBookmarkIdEditPropertiesRoute
   '/bookmarks/$bookmarkId/edit/relationships': typeof BookmarksBookmarkIdEditRelationshipsRoute
+  '/bookmarks/$bookmarkId/edit/video': typeof BookmarksBookmarkIdEditVideoRoute
   '/card-display-rules/$ruleSlug/conditions': typeof CardDisplayRulesRuleSlugViewConditionsRoute
   '/card-display-rules/$ruleSlug/display': typeof CardDisplayRulesRuleSlugViewDisplayRoute
   '/card-display-rules/$ruleSlug/general': typeof CardDisplayRulesRuleSlugViewGeneralRoute
@@ -2194,6 +2202,7 @@ export interface FileRoutesByTo {
   '/bookmarks/$bookmarkId/edit/image': typeof BookmarksBookmarkIdEditImageRoute
   '/bookmarks/$bookmarkId/edit/properties': typeof BookmarksBookmarkIdEditPropertiesRoute
   '/bookmarks/$bookmarkId/edit/relationships': typeof BookmarksBookmarkIdEditRelationshipsRoute
+  '/bookmarks/$bookmarkId/edit/video': typeof BookmarksBookmarkIdEditVideoRoute
   '/card-display-rules/$ruleSlug/conditions': typeof CardDisplayRulesRuleSlugViewConditionsRoute
   '/card-display-rules/$ruleSlug/display': typeof CardDisplayRulesRuleSlugViewDisplayRoute
   '/card-display-rules/$ruleSlug/general': typeof CardDisplayRulesRuleSlugViewGeneralRoute
@@ -2457,6 +2466,7 @@ export interface FileRoutesById {
   '/bookmarks/$bookmarkId/edit/image': typeof BookmarksBookmarkIdEditImageRoute
   '/bookmarks/$bookmarkId/edit/properties': typeof BookmarksBookmarkIdEditPropertiesRoute
   '/bookmarks/$bookmarkId/edit/relationships': typeof BookmarksBookmarkIdEditRelationshipsRoute
+  '/bookmarks/$bookmarkId/edit/video': typeof BookmarksBookmarkIdEditVideoRoute
   '/card-display-rules/$ruleSlug/_view/conditions': typeof CardDisplayRulesRuleSlugViewConditionsRoute
   '/card-display-rules/$ruleSlug/_view/display': typeof CardDisplayRulesRuleSlugViewDisplayRoute
   '/card-display-rules/$ruleSlug/_view/general': typeof CardDisplayRulesRuleSlugViewGeneralRoute
@@ -2730,6 +2740,7 @@ export interface FileRouteTypes {
     | '/bookmarks/$bookmarkId/edit/image'
     | '/bookmarks/$bookmarkId/edit/properties'
     | '/bookmarks/$bookmarkId/edit/relationships'
+    | '/bookmarks/$bookmarkId/edit/video'
     | '/card-display-rules/$ruleSlug/conditions'
     | '/card-display-rules/$ruleSlug/display'
     | '/card-display-rules/$ruleSlug/general'
@@ -2945,6 +2956,7 @@ export interface FileRouteTypes {
     | '/bookmarks/$bookmarkId/edit/image'
     | '/bookmarks/$bookmarkId/edit/properties'
     | '/bookmarks/$bookmarkId/edit/relationships'
+    | '/bookmarks/$bookmarkId/edit/video'
     | '/card-display-rules/$ruleSlug/conditions'
     | '/card-display-rules/$ruleSlug/display'
     | '/card-display-rules/$ruleSlug/general'
@@ -3207,6 +3219,7 @@ export interface FileRouteTypes {
     | '/bookmarks/$bookmarkId/edit/image'
     | '/bookmarks/$bookmarkId/edit/properties'
     | '/bookmarks/$bookmarkId/edit/relationships'
+    | '/bookmarks/$bookmarkId/edit/video'
     | '/card-display-rules/$ruleSlug/_view/conditions'
     | '/card-display-rules/$ruleSlug/_view/display'
     | '/card-display-rules/$ruleSlug/_view/general'
@@ -4805,6 +4818,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CardDisplayRulesRuleSlugViewConditionsRouteImport
       parentRoute: typeof CardDisplayRulesRuleSlugViewRoute
     }
+    '/bookmarks/$bookmarkId/edit/video': {
+      id: '/bookmarks/$bookmarkId/edit/video'
+      path: '/video'
+      fullPath: '/bookmarks/$bookmarkId/edit/video'
+      preLoaderRoute: typeof BookmarksBookmarkIdEditVideoRouteImport
+      parentRoute: typeof BookmarksBookmarkIdEditRoute
+    }
     '/bookmarks/$bookmarkId/edit/relationships': {
       id: '/bookmarks/$bookmarkId/edit/relationships'
       path: '/relationships'
@@ -5384,6 +5404,7 @@ interface BookmarksBookmarkIdEditRouteChildren {
   BookmarksBookmarkIdEditImageRoute: typeof BookmarksBookmarkIdEditImageRoute
   BookmarksBookmarkIdEditPropertiesRoute: typeof BookmarksBookmarkIdEditPropertiesRoute
   BookmarksBookmarkIdEditRelationshipsRoute: typeof BookmarksBookmarkIdEditRelationshipsRoute
+  BookmarksBookmarkIdEditVideoRoute: typeof BookmarksBookmarkIdEditVideoRoute
   BookmarksBookmarkIdEditIndexRoute: typeof BookmarksBookmarkIdEditIndexRoute
 }
 
@@ -5395,6 +5416,7 @@ const BookmarksBookmarkIdEditRouteChildren: BookmarksBookmarkIdEditRouteChildren
       BookmarksBookmarkIdEditPropertiesRoute,
     BookmarksBookmarkIdEditRelationshipsRoute:
       BookmarksBookmarkIdEditRelationshipsRoute,
+    BookmarksBookmarkIdEditVideoRoute: BookmarksBookmarkIdEditVideoRoute,
     BookmarksBookmarkIdEditIndexRoute: BookmarksBookmarkIdEditIndexRoute,
   }
 

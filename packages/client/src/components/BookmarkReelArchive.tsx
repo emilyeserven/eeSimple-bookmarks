@@ -20,9 +20,11 @@ function appliesToBookmark(bookmark: Bookmark): boolean {
  * callers can drop it in unconditionally next to the ArchiveBox actions.
  */
 export function BookmarkArchiveReelButton({
-  bookmark, enabled,
+  bookmark, enabled, showLabel = false,
 }: { bookmark: Bookmark;
-  enabled: boolean; }) {
+  enabled: boolean;
+  /** Render as a labeled outline button (for a tab body) instead of the icon-only header trigger. */
+  showLabel?: boolean; }) {
   const archive = useArchiveBookmarkReel();
   const {
     data: activeJobs,
@@ -34,6 +36,25 @@ export function BookmarkArchiveReelButton({
   const busy = archive.isPending || jobActive;
   const hasArchive = bookmark.reelArchive !== null;
   const label = hasArchive ? "Re-archive reel video" : "Archive reel video";
+  const icon = busy
+    ? <Loader2 className="size-4 animate-spin" />
+    : <Film className="size-4" />;
+
+  if (showLabel) {
+    return (
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        disabled={busy}
+        onClick={() => archive.mutate(bookmark.id)}
+      >
+        {icon}
+        {busy ? "Archiving…" : label}
+      </Button>
+    );
+  }
+
   return (
     <Button
       type="button"
@@ -44,9 +65,7 @@ export function BookmarkArchiveReelButton({
       disabled={busy}
       onClick={() => archive.mutate(bookmark.id)}
     >
-      {busy
-        ? <Loader2 className="size-4 animate-spin" />
-        : <Film className="size-4" />}
+      {icon}
     </Button>
   );
 }
