@@ -91,6 +91,41 @@ export function BookmarkLocationsBox({
 }
 
 /**
+ * A bookmark's location badges with no wrapping box — each renders standalone so it flows alongside
+ * the card's other pills (category, media type, website, …) in the `card-labels` zone's flex row,
+ * rather than sitting in its own bordered, scrollable container like {@link BookmarkLocationsBox}.
+ */
+export function BookmarkLocationBadges({
+  locations,
+}: LocationsBoxProps) {
+  const viewClick = useViewPanelClick();
+  const modifier = useSidebarOpenModifier();
+  return (
+    <>
+      {locations.map(location => (
+        <Link
+          key={location.id}
+          to="/taxonomies/locations/$locationSlug"
+          params={{
+            locationSlug: location.slug,
+          }}
+          title={entityLinkTitle(modifier)}
+          onClick={event => viewClick(event, "location", location.id, location.slug)}
+        >
+          <Badge
+            variant="secondary"
+            className="inline-flex items-center gap-1"
+          >
+            <MapPin className="size-3 shrink-0" />
+            {location.name}
+          </Badge>
+        </Link>
+      ))}
+    </>
+  );
+}
+
+/**
  * Inline, comma-separated location links — the `card-table` zone's value form of a bookmark's
  * locations. Each name links to the location's page like the {@link BookmarkLocationsBox} badges,
  * but laid out as plain inline text to fit the table value column. Mirrors {@link BookmarkTagLinks}.

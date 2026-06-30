@@ -2,7 +2,7 @@ import type { ResolvedFieldPlacement } from "../lib/bookmarkCardValues";
 import type { Bookmark, Category } from "@eesimple/types";
 import type { ReactNode } from "react";
 
-import { BookmarkLocationLinks, BookmarkLocationsBox } from "./BookmarkLocationsBox";
+import { BookmarkLocationBadges, BookmarkLocationLinks } from "./BookmarkLocationsBox";
 import { BookmarkTagLinks, BookmarkTagsBox } from "./BookmarkTagsBox";
 import { CategoryPill } from "./CategoryPill";
 import { MediaTypePill } from "./MediaTypePill";
@@ -106,12 +106,13 @@ export function describeTaxonomyField(key: string, args: TaxonomyFieldArgs): Fie
     }
     case "locations": {
       if (bookmark.locations.length === 0) return null;
-      const box = <BookmarkLocationsBox locations={bookmark.locations} />;
-      // Block-level (full-width) in the Labels zone, like Tags. The Table zone renders the names as
-      // clickable links.
+      const badges = <BookmarkLocationBadges locations={bookmark.locations} />;
+      // Inline, unboxed badges — they flow alongside the card's other pills in the Labels zone
+      // instead of sitting in their own bordered box (unlike Tags, which stays a block-level box).
+      // The Table zone renders the names as clickable links.
       return {
-        inline: null,
-        block: box,
+        inline: badges,
+        block: badges,
         tableName: "Locations",
         tableValue: <BookmarkLocationLinks locations={bookmark.locations} />,
       };

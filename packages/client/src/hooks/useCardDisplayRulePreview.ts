@@ -312,7 +312,14 @@ export function useCardDisplayRulePreview({
       ...samplePropertyValues(properties),
       authors: [],
       relationships: [],
-      locations: [],
+      locations: [
+        {
+          id: "__sample-location__",
+          name: "Sample location",
+          slug: "sample-location",
+          parentId: null,
+        },
+      ],
       publisher: null,
       priority: 0,
       createdAt: SAMPLE_NOW,
