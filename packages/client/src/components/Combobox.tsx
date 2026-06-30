@@ -36,8 +36,17 @@ export interface ComboboxOption {
   disabled?: boolean;
 }
 
+/** A named group of options rendered under a heading in the dropdown. */
+export interface ComboboxGroup {
+  heading: string;
+  options: ComboboxOption[];
+}
+
 interface ComboboxProps {
-  "options": ComboboxOption[];
+  /** Flat option list. Use `groups` instead to render options under named headings. */
+  "options"?: ComboboxOption[];
+  /** Grouped options, each rendered under a `CommandGroup` heading. Overrides `options`. */
+  "groups"?: ComboboxGroup[];
   "value"?: string;
   "onValueChange": (value: string | undefined) => void;
   "placeholder"?: string;
@@ -58,12 +67,54 @@ interface ComboboxProps {
   };
 }
 
+function renderComboOption(
+  option: ComboboxOption,
+  value: string | undefined,
+  onValueChange: (value: string | undefined) => void,
+  setOpen: (open: boolean) => void,
+) {
+  return (
+    <CommandItem
+      key={option.value}
+      value={option.label}
+      keywords={[option.searchAlias, option.romanized].filter(
+        (keyword): keyword is string => Boolean(keyword),
+      )}
+      onSelect={() => {
+        onValueChange(option.value === value ? undefined : option.value);
+        setOpen(false);
+      }}
+      style={{
+        paddingLeft: `${0.5 + (option.depth ?? 0) * 1}rem`,
+      }}
+      disabled={option.disabled}
+    >
+      {option.icon}
+      {option.romanized
+        ? (
+          <RomanizedLabel
+            name={option.label}
+            romanized={option.romanized}
+          />
+        )
+        : option.label}
+      <Check
+        className={cn(
+          "ml-auto",
+          option.value === value ? "opacity-100" : "opacity-0",
+        )}
+      />
+    </CommandItem>
+  );
+}
+
 /**
  * Searchable single-select built from shadcn `Popover` + `Command`. Selecting the
  * active option again clears it. Shadcn-style API: `value` / `onValueChange`.
  */
 export function Combobox({
   options,
+  groups,
   value,
   onValueChange,
   placeholder = "Select…",
@@ -75,7 +126,8 @@ export function Combobox({
   createOption,
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false);
-  const selected = options.find(option => option.value === value);
+  const allOptions = groups ? groups.flatMap(g => g.options) : (options ?? []);
+  const selected = allOptions.find(option => option.value === value);
 
   return (
     <Popover
@@ -123,40 +175,20 @@ export function Combobox({
           <CommandInput placeholder={searchPlaceholder} />
           <CommandList>
             <CommandEmpty>{emptyText}</CommandEmpty>
-            <CommandGroup>
-              {options.map(option => (
-                <CommandItem
-                  key={option.value}
-                  value={option.label}
-                  keywords={[option.searchAlias, option.romanized].filter(
-                    (keyword): keyword is string => Boolean(keyword),
-                  )}
-                  onSelect={() => {
-                    onValueChange(option.value === value ? undefined : option.value);
-                    setOpen(false);
-                  }}
-                  style={{
-                    paddingLeft: `${0.5 + (option.depth ?? 0) * 1}rem`,
-                  }}
+            {groups
+              ? groups.map(group => (
+                <CommandGroup
+                  key={group.heading}
+                  heading={group.heading}
                 >
-                  {option.icon}
-                  {option.romanized
-                    ? (
-                      <RomanizedLabel
-                        name={option.label}
-                        romanized={option.romanized}
-                      />
-                    )
-                    : option.label}
-                  <Check
-                    className={cn(
-                      "ml-auto",
-                      option.value === value ? "opacity-100" : "opacity-0",
-                    )}
-                  />
-                </CommandItem>
-              ))}
-            </CommandGroup>
+                  {group.options.map(option => renderComboOption(option, value, onValueChange, setOpen))}
+                </CommandGroup>
+              ))
+              : (
+                <CommandGroup>
+                  {(options ?? []).map(option => renderComboOption(option, value, onValueChange, setOpen))}
+                </CommandGroup>
+              )}
           </CommandList>
           {createOption
             ? (
