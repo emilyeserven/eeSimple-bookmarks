@@ -35,6 +35,9 @@ export function LocationTreeList({
       expanded={expanded}
       onToggle={onToggle}
       columns={columns}
+      // The location taxonomy already conveys "this is a place" via its breadcrumb/context, so the
+      // generic tag glyph is redundant here — render no icon.
+      renderIcon={() => null}
       renderNameLink={node => (
         <Link
           to="/taxonomies/locations/$locationSlug"
@@ -43,13 +46,14 @@ export function LocationTreeList({
           }}
           title={`Show ${node.name} bookmarks`}
           className="
-            flex-1 truncate
+            min-w-0 flex-1
             hover:underline
           "
         >
           <RomanizedLabel
             name={node.name}
             romanized={(node as unknown as LocationNode).romanizedName}
+            stacked
           />
         </Link>
       )}

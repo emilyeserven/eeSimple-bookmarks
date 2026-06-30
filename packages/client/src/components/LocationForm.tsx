@@ -12,6 +12,7 @@ import { useState } from "react";
 import { AlternateNamesEditor } from "./AlternateNamesEditor";
 import { Combobox } from "./Combobox";
 import { LocationAncestorChainEditor } from "./LocationAncestorChainEditor";
+import { geocodedAncestorsToDrafts, splitAncestorChain } from "./locationFormSchema";
 import { LocationLookupBox } from "./LocationLookupBox";
 import { TreeMultiCombobox } from "./TreeMultiCombobox";
 import { useCreateLocation, useCreateLocationChain, useLocationTree } from "../hooks/useLocations";
@@ -87,21 +88,26 @@ export function LocationForm({
   const isPending = createLocation.isPending || createChain.isPending;
   const error = createLocation.error ?? createChain.error;
 
+  // Existing locations as options, shared by the leaf parent picker and the ancestor-chain rows.
+  const locationOptions: ComboboxOption[] = flattenTree(tree ?? []).map(item => ({
+    value: item.node.id,
+    label: item.node.name,
+    depth: item.depth,
+    romanized: item.node.romanizedName,
+  }));
   const parentOptions: ComboboxOption[] = [
     {
       value: ROOT,
       label: "(no existing parent)",
     },
-    ...flattenTree(tree ?? []).map(item => ({
-      value: item.node.id,
-      label: item.node.name,
-      depth: item.depth,
-      romanized: item.node.romanizedName,
-    })),
+    ...locationOptions,
   ];
 
   const hasExistingParent = parentId !== ROOT && parentId !== "";
-  const filledAncestors = ancestors.filter(a => a.name.trim().length > 0);
+  // An existing ancestor row caps the chain: it anchors the top, the new rows below it are created.
+  const {
+    newAncestors, parentId: chainParentId,
+  } = splitAncestorChain(ancestors);
 
   function baseInput(): CreateLocationInput {
     return {
@@ -137,12 +143,14 @@ export function LocationForm({
       return;
     }
 
-    // Any entered ancestors → create the leaf plus its chain in one call.
-    if (filledAncestors.length > 0) {
+    // Any entered ancestors (new) and/or a reused existing ancestor → create the leaf plus its
+    // chain in one call, anchoring the top to the existing location when one was picked.
+    if (newAncestors.length > 0 || chainParentId) {
       createChain.mutate(
         {
           location: baseInput(),
-          ancestors: filledAncestors.map(ancestorToInput),
+          ancestors: newAncestors.map(ancestorToInput),
+          parentId: chainParentId,
         },
         {
           onSuccess: location => onCreated?.(location),
@@ -173,6 +181,15 @@ export function LocationForm({
           if (candidate.countryCode) setCountryCode(candidate.countryCode);
           if (candidate.placeType) setPlaceType(candidate.placeType);
           setBoundary(candidate.boundary);
+          // Auto-fill the ancestor chain from the geocoded hierarchy, reusing existing locations
+          // where one matches by name. Reset the explicit parent so the filled chain is shown and
+          // used (an existing parent short-circuits the chain on submit).
+          setParentId(ROOT);
+          setAncestors(geocodedAncestorsToDrafts(candidate.ancestors, locationOptions.map(option => ({
+            id: option.value,
+            name: option.label,
+            romanizedName: option.romanized,
+          }))));
         }}
       />
 
@@ -279,8 +296,8 @@ export function LocationForm({
           emptyText="No locations found."
         />
         <p className="text-xs text-muted-foreground">
-          Pick an existing location to nest under it. Leave as “no existing parent” to add new ancestors
-          below instead.
+          Pick an existing location to nest under it. Leave as “no existing parent” to build the
+          ancestor chain below instead — where each level can also reuse an existing location.
         </p>
       </div>
 
@@ -289,6 +306,7 @@ export function LocationForm({
           <LocationAncestorChainEditor
             value={ancestors}
             onChange={setAncestors}
+            existingOptions={locationOptions}
           />
         )
         : null}

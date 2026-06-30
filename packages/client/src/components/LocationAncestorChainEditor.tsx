@@ -1,6 +1,8 @@
+import type { ComboboxOption } from "./Combobox";
 import type { AncestorDraft } from "./locationFormSchema";
 import type { LocationLookupCandidate } from "@eesimple/types";
 
+import { Combobox } from "./Combobox";
 import { emptyAncestorDraft } from "./locationFormSchema";
 import { LocationLookupBox } from "./LocationLookupBox";
 
@@ -12,15 +14,19 @@ interface LocationAncestorChainEditorProps {
   /** Ancestors ordered immediate-parent-first up to the root. */
   value: AncestorDraft[];
   onChange: (next: AncestorDraft[]) => void;
+  /** Existing locations to choose from when reusing an ancestor instead of creating one. */
+  existingOptions: ComboboxOption[];
 }
 
 /**
  * Lets the user build a higher-level ancestor chain for a new location (e.g. Hagi → Yamaguchi
- * Prefecture → … → Japan). Each ancestor has its own name and an optional lookup that prefills its
- * coordinates/metadata. On submit the caller passes these to `useCreateLocationChain`.
+ * Prefecture → … → Japan). Each ancestor row can either reuse an **existing** location (picked from
+ * the combobox — it already has its own ancestors, so it caps the chain) or define a **new** one
+ * with its own name and an optional lookup that prefills its coordinates/metadata. On submit the
+ * caller passes these to `useCreateLocationChain`.
  */
 export function LocationAncestorChainEditor({
-  value, onChange,
+  value, onChange, existingOptions,
 }: LocationAncestorChainEditorProps) {
   function updateRow(index: number, patch: Partial<AncestorDraft>) {
     onChange(value.map((row, i) => (i === index
@@ -29,6 +35,26 @@ export function LocationAncestorChainEditor({
         ...patch,
       }
       : row)));
+  }
+
+  /**
+   * Pick (or clear) an existing location for a row. Selecting one caps the chain: it becomes the
+   * topmost row, so any rows above it are dropped (the reused location supplies its own ancestry).
+   */
+  function selectExisting(index: number, existingId: string | undefined) {
+    if (!existingId) {
+      updateRow(index, {
+        existingId: null,
+      });
+      return;
+    }
+    onChange([
+      ...value.slice(0, index),
+      {
+        ...value[index],
+        existingId,
+      },
+    ]);
   }
 
   function applyCandidate(index: number, candidate: LocationLookupCandidate) {
@@ -45,60 +71,96 @@ export function LocationAncestorChainEditor({
     });
   }
 
+  // An existing row only ever sits at the top (selecting one truncates the rows above), so the
+  // chain is capped — and the "Add ancestor" button hidden — exactly when the last row is existing.
+  const topRow = value[value.length - 1];
+  const cappedByExisting = topRow?.existingId != null;
+
   return (
     <div className="space-y-3">
       <div>
         <Label>Ancestors</Label>
         <p className="text-xs text-muted-foreground">
-          Optionally add higher-level locations, from the immediate parent up to the root. They&apos;re
-          created (or reused) when you save.
+          Optionally add higher-level locations, from the immediate parent up to the root. Pick an
+          existing location to reuse it, or fill in a new one — new ancestors are created (or reused
+          by name) when you save.
         </p>
       </div>
-      {value.map((row, index) => (
-        <div
-          key={index}
-          className="space-y-2 rounded-md border p-3"
-        >
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-xs font-medium text-muted-foreground">
-              {index === 0 ? "Immediate parent" : `Level ${index + 1}`}
-            </span>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => onChange(value.filter((_, i) => i !== index))}
-            >
-              Remove
-            </Button>
+      {value.map((row, index) => {
+        const isExisting = row.existingId != null;
+        return (
+          <div
+            key={index}
+            className="space-y-2 rounded-md border p-3"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-medium text-muted-foreground">
+                {index === 0 ? "Immediate parent" : `Level ${index + 1}`}
+              </span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => onChange(value.filter((_, i) => i !== index))}
+              >
+                Remove
+              </Button>
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor={`ancestor-${index}-existing`}>Use an existing location</Label>
+              <Combobox
+                id={`ancestor-${index}-existing`}
+                aria-label={`Ancestor ${index + 1} existing location`}
+                options={existingOptions}
+                value={row.existingId ?? ""}
+                onValueChange={selected => selectExisting(index, selected)}
+                placeholder="Choose an existing location"
+                searchPlaceholder="Search locations…"
+                emptyText="No locations found."
+              />
+            </div>
+            {isExisting
+              ? (
+                <p className="text-xs text-muted-foreground">
+                  Reusing an existing location — its own ancestors are kept, so this caps the chain.
+                </p>
+              )
+              : (
+                <>
+                  <Input
+                    aria-label={`Ancestor ${index + 1} name`}
+                    placeholder="Or create a new one — name (e.g. Yamaguchi Prefecture)"
+                    value={row.name}
+                    onChange={event => updateRow(index, {
+                      name: event.target.value,
+                    })}
+                  />
+                  <Input
+                    aria-label={`Ancestor ${index + 1} romanized name`}
+                    placeholder="Romanized name (auto-filled from lookup)"
+                    value={row.romanizedName ?? ""}
+                    onChange={event => updateRow(index, {
+                      romanizedName: event.target.value.trim() === "" ? null : event.target.value,
+                    })}
+                  />
+                  <LocationLookupBox onSelect={candidate => applyCandidate(index, candidate)} />
+                </>
+              )}
           </div>
-          <Input
-            aria-label={`Ancestor ${index + 1} name`}
-            placeholder="Name (e.g. Yamaguchi Prefecture)"
-            value={row.name}
-            onChange={event => updateRow(index, {
-              name: event.target.value,
-            })}
-          />
-          <Input
-            aria-label={`Ancestor ${index + 1} romanized name`}
-            placeholder="Romanized name (auto-filled from lookup)"
-            value={row.romanizedName ?? ""}
-            onChange={event => updateRow(index, {
-              romanizedName: event.target.value.trim() === "" ? null : event.target.value,
-            })}
-          />
-          <LocationLookupBox onSelect={candidate => applyCandidate(index, candidate)} />
-        </div>
-      ))}
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={() => onChange([...value, emptyAncestorDraft()])}
-      >
-        Add ancestor
-      </Button>
+        );
+      })}
+      {cappedByExisting
+        ? null
+        : (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => onChange([...value, emptyAncestorDraft()])}
+          >
+            Add ancestor
+          </Button>
+        )}
     </div>
   );
 }

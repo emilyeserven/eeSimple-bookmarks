@@ -150,6 +150,11 @@ const createChainBody = {
       type: "array",
       items: createLocationBody,
     },
+    parentId: {
+      type: "string",
+      format: "uuid",
+      nullable: true,
+    },
   },
 } as const;
 
