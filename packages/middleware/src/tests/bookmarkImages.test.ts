@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
 import sharp from "sharp";
-import { downloadImage, extractFaviconUrl, extractFaviconUrls, extractImageUrl, isPublicHttpUrl } from "@/services/metadata";
+import { downloadImage, extractFaviconUrl, extractFaviconUrls, extractImageUrl, fetchOgImage, isPublicHttpUrl } from "@/services/metadata";
 import { MAX_IMAGE_EDGE, processImage } from "@/utils/image";
 
 // Pure-function coverage for the bookmark-image pipeline and og:image parsing — no DB or network.
@@ -138,6 +138,7 @@ afterEach(() => {
 /** Build a Response-like stub whose body streams `chunks` (Uint8Arrays) through a reader. */
 function fakeResponse(opts: {
   ok?: boolean;
+  status?: number;
   contentType?: string | null;
   chunks?: Uint8Array[];
 }): Response {
@@ -166,12 +167,21 @@ function fakeResponse(opts: {
   };
   return {
     ok: opts.ok ?? true,
+    status: opts.status ?? (opts.ok === false ? 403 : 200),
     body: body as unknown as ReadableStream<Uint8Array>,
     headers: {
       get: (name: string) =>
         name.toLowerCase() === "content-type" ? (opts.contentType ?? null) : null,
     },
   } as unknown as Response;
+}
+
+/** Build HTML with an `og:image` meta tag, for `fetchOgImage`'s page-fetch leg. */
+function htmlResponse(imageUrl: string): Response {
+  return fakeResponse({
+    contentType: "text/html",
+    chunks: [new TextEncoder().encode(`<head><meta property="og:image" content="${imageUrl}"></head>`)],
+  });
 }
 
 /** Replace `fetch`, recording the init of the last call, and return the recorder. */
@@ -184,6 +194,12 @@ function mockFetch(response: Response): { lastInit: () => RequestInit | undefine
   return {
     lastInit: () => captured,
   };
+}
+
+/** Replace `fetch` with a queue of canned responses, returned one per call in order. */
+function mockFetchSequence(responses: Response[]): void {
+  let i = 0;
+  globalThis.fetch = (() => Promise.resolve(responses[Math.min(i++, responses.length - 1)])) as typeof fetch;
 }
 
 function headerValue(init: RequestInit | undefined, name: string): string | undefined {
@@ -247,6 +263,43 @@ test("downloadImage returns null when the body exceeds the byte cap", async () =
     chunks: [oversized],
   }));
   assert.equal(await downloadImage("https://cdn.example.com/huge.png"), null);
+});
+
+test("fetchOgImage reports a rate-limited/403 image download as \"blocked\", not \"bad_image\"", async () => {
+  // Regression: a CDN (e.g. YouTube's avatar host) rejecting the image fetch after the page parsed
+  // fine must not be collapsed into "bad_image" — that mislabels a transient failure as a permanent
+  // decode error and skips `withTransientRetry`'s retry.
+  mockFetchSequence([
+    htmlResponse("https://yt3.googleusercontent.com/avatar.jpg"),
+    fakeResponse({
+      ok: false,
+      status: 403,
+    }),
+  ]);
+  assert.equal(await fetchOgImage("https://www.youtube.com/@netflix"), "blocked");
+});
+
+test("fetchOgImage reports a 5xx image download as \"server_error\", not \"bad_image\"", async () => {
+  mockFetchSequence([
+    htmlResponse("https://yt3.googleusercontent.com/avatar.jpg"),
+    fakeResponse({
+      ok: false,
+      status: 503,
+    }),
+  ]);
+  assert.equal(await fetchOgImage("https://www.youtube.com/@netflix"), "server_error");
+});
+
+test("fetchOgImage still returns the bytes on a successful image download", async () => {
+  mockFetchSequence([
+    htmlResponse("https://yt3.googleusercontent.com/avatar.jpg"),
+    fakeResponse({
+      contentType: "image/jpeg",
+      chunks: [new Uint8Array([1, 2, 3])],
+    }),
+  ]);
+  const result = await fetchOgImage("https://www.youtube.com/@netflix");
+  assert.ok(Buffer.isBuffer(result), "expected raw image bytes back");
 });
 
 test("isPublicHttpUrl rejects non-http(s) and internal hosts", () => {
