@@ -5,7 +5,7 @@ import { ensureAppSettings, ensureDefaultPlaceTypeLevelGroups } from "@/services
 import { backfillAuthorSlugs } from "@/services/authors";
 import { backfillPublisherSlugs } from "@/services/publishers";
 import { ensureAutofillConditions, ensureAutofillSlugs, ensureWebsiteConditions } from "@/services/autofill";
-import { backfillCardDisplayRuleFieldZones, backfillCardDisplayRuleHeaderFields, backfillCardDisplayRuleSlugs, backfillCardDisplayRuleSubZones, backfillCardDisplayRuleZoneLayouts, ensureDefaultCardDisplayRule } from "@/services/cardDisplayRules";
+import { backfillCardDisplayRuleFieldZones, backfillCardDisplayRuleHeaderFields, backfillCardDisplayRuleLocationsField, backfillCardDisplayRuleSlugs, backfillCardDisplayRuleSubZones, backfillCardDisplayRuleZoneLayouts, ensureDefaultCardDisplayRule } from "@/services/cardDisplayRules";
 import { ensureDefaultCategory } from "@/services/categories";
 import { backfillContentStatusOptions, backfillCustomPropertySlugs, ensureChaptersProperty, ensureContentStatusProperty, ensureDatePostedProperty, ensureIsbnProperty, ensurePageProgressProperty, ensurePageRangeProperty, ensurePageSectionsProperty, ensureRuntimeProperty, ensureUrlSectionsProperty } from "@/services/customProperties";
 import { ensureHomepageFilter } from "@/services/homepageFilter";
@@ -90,6 +90,7 @@ try {
   await backfillCardDisplayRuleFieldZones();
   await backfillCardDisplayRuleSubZones();
   await backfillCardDisplayRuleHeaderFields();
+  await backfillCardDisplayRuleLocationsField();
   await backfillCardDisplayRuleZoneLayouts();
   await backfillCardDisplayRuleSlugs();
   // A restart abandons any in-process import worker, so fail anything left queued/processing.

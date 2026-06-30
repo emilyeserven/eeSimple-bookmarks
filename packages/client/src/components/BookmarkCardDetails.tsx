@@ -9,6 +9,7 @@ import { CARD_BODY_ZONES, normalizeCardZoneLayout } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 
 import { BookmarkArchiveLinkButton, BookmarkExternalLinkButton, BookmarkMoreMenu } from "./BookmarkCardActions";
+import { BookmarkLocationLinks, BookmarkLocationsBox } from "./BookmarkLocationsBox";
 import { BookmarkTagLinks, BookmarkTagsBox } from "./BookmarkTagsBox";
 import { CategoryPill } from "./CategoryPill";
 import { MediaTypePill } from "./MediaTypePill";
@@ -415,6 +416,18 @@ export function BookmarkCardDetails({
           tableValue: clickableTags
             ? <BookmarkTagLinks tags={bookmark.tags} />
             : <span className="text-sm">{bookmark.tags.map(tag => tag.name).join(", ")}</span>,
+        };
+      }
+      case "locations": {
+        if (bookmark.locations.length === 0) return null;
+        const box = <BookmarkLocationsBox locations={bookmark.locations} />;
+        // Block-level (full-width) in the Labels zone, like Tags. The Table zone renders the names as
+        // clickable links.
+        return {
+          inline: null,
+          block: box,
+          tableName: "Locations",
+          tableValue: <BookmarkLocationLinks locations={bookmark.locations} />,
         };
       }
       default: {

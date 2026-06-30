@@ -13,6 +13,7 @@ export const STANDARD_CARD_FIELD_KEYS = [
   "mediaType",
   "youtubeChannel",
   "tags",
+  "locations",
   "externalLink",
   "archiveLink",
   "more",

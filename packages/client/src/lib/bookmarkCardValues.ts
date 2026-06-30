@@ -485,6 +485,8 @@ export function standardFieldOverlayLabel(
     case "mediaType": return bookmark.mediaType?.name ?? null;
     case "youtubeChannel": return bookmark.youtubeChannel?.name ?? null;
     case "tags": return bookmark.tags.length > 0 ? bookmark.tags.map(tag => tag.name).join(", ") : null;
+    case "locations":
+      return bookmark.locations.length > 0 ? bookmark.locations.map(loc => loc.name).join(", ") : null;
     default: return null;
   }
 }
