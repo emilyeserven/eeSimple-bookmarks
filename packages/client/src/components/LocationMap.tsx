@@ -1,6 +1,7 @@
 import type { LocationBoundary, LocationNode, PlaceTypeDisplayConfig, PlaceTypeIconConfig } from "@eesimple/types";
 import type { Feature, Geometry } from "geojson";
 import type { LatLngTuple } from "leaflet";
+import type { ReactNode } from "react";
 
 import { useEffect, useState } from "react";
 
@@ -280,6 +281,12 @@ interface LocationMapProps {
    * keyed here is drawn inside that place type's pin. Defaults to `{}` (plain pins).
    */
   iconConfig?: PlaceTypeIconConfig;
+  /**
+   * An element rendered as an absolutely-positioned overlay inside the map (top-right corner).
+   * Pointer events on the rest of the map area are preserved via `pointer-events-none` on the
+   * overlay wrapper; the passed element itself must handle its own pointer events.
+   */
+  overlay?: ReactNode;
 }
 
 /**
@@ -293,6 +300,7 @@ export function LocationMap({
   className = "h-[70vh] w-full rounded-lg border",
   displayConfig = {},
   iconConfig = {},
+  overlay,
 }: LocationMapProps) {
   const mapped = collectMapped(tree);
   const items = toRenderItems(mapped, displayConfig, iconConfig);
@@ -311,50 +319,61 @@ export function LocationMap({
 
   return (
     <div className="space-y-2">
-      <MapContainer
-        center={[20, 0]}
-        zoom={2}
-        scrollWheelZoom
-        className={cn("isolate", className)}
-      >
-        <TileLayer
-          attribution="© OpenStreetMap contributors"
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        <FitBounds items={items} />
-        <AreaClickPopup items={items} />
-        {items.map(({
-          node, kind, color, icon,
-        }) => (
-          kind === "area" && node.boundary
-            ? (
-              <GeoJSON
-                key={color === null ? node.id : `${node.id}:${color}`}
-                data={toFeature(node.boundary)}
-                style={color === null
-                  ? undefined
-                  : {
-                    color,
-                    fillColor: color,
-                  }}
-              />
-            )
-            : node.position
+      <div className="relative">
+        <MapContainer
+          center={[20, 0]}
+          zoom={2}
+          scrollWheelZoom
+          className={cn("isolate", className)}
+        >
+          <TileLayer
+            attribution="© OpenStreetMap contributors"
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          <FitBounds items={items} />
+          <AreaClickPopup items={items} />
+          {items.map(({
+            node, kind, color, icon,
+          }) => (
+            kind === "area" && node.boundary
               ? (
-                <Marker
-                  key={node.id}
-                  position={node.position}
-                  icon={markerIconFor(color, icon)}
-                >
-                  <PinPopup
-                    node={node}
-                    areas={areaNodes}
-                  />
-                </Marker>
+                <GeoJSON
+                  key={color === null ? node.id : `${node.id}:${color}`}
+                  data={toFeature(node.boundary)}
+                  style={color === null
+                    ? undefined
+                    : {
+                      color,
+                      fillColor: color,
+                    }}
+                />
               )
-              : null
-        ))}
-      </MapContainer>
+              : node.position
+                ? (
+                  <Marker
+                    key={node.id}
+                    position={node.position}
+                    icon={markerIconFor(color, icon)}
+                  >
+                    <PinPopup
+                      node={node}
+                      areas={areaNodes}
+                    />
+                  </Marker>
+                )
+                : null
+          ))}
+        </MapContainer>
+        {overlay
+          ? (
+            <div className="pointer-events-none absolute inset-0 z-1000">
+              <div className="pointer-events-auto absolute top-2 right-2">
+                {overlay}
+              </div>
+            </div>
+          )
+          : null}
+      </div>
       {omitted > 0
         ? (
           <p className="text-xs text-muted-foreground">

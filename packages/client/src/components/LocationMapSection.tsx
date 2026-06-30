@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 
 import { ChevronDown, Map as MapIcon } from "lucide-react";
 
+import { LocationLevelsMapPanel } from "./LocationLevelsMapPanel";
 import { LocationLevelsOverlay } from "./LocationLevelsOverlay";
 import { LocationMap } from "./LocationMap";
 import { useLocationPlaceTypeIcons, usePlaceTypeDisplayConfig } from "../hooks/useAppSettings";
@@ -85,7 +86,13 @@ export function LocationMapSection({
             )}
           />
         </button>
-        {showLevels && !isCollapsed ? <LocationLevelsOverlay /> : null}
+        {showLevels && !isCollapsed
+          ? (
+            <div className="md:hidden">
+              <LocationLevelsOverlay />
+            </div>
+          )
+          : null}
       </div>
 
       {!isCollapsed
@@ -95,6 +102,7 @@ export function LocationMapSection({
             className={mapClassName}
             displayConfig={displayConfig}
             iconConfig={iconConfig}
+            overlay={showLevels ? <LocationLevelsMapPanel /> : undefined}
           />
         )
         : null}
