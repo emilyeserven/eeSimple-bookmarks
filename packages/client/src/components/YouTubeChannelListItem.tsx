@@ -1,12 +1,14 @@
 import type { YouTubeChannel } from "@eesimple/types";
 
+import { channelUrlFromKey } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
-import { Info, MonitorPlay, Pencil } from "lucide-react";
+import { Info, MonitorPlay, Pencil, Sparkles } from "lucide-react";
 
 import { CategoryPill } from "./CategoryPill";
 import { useEditPanelClick, useViewPanelClick } from "./panel/useEditPanelClick";
 import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
 import { useSidebarOpenModifier } from "../hooks/useAppSettings";
+import { useAutoYouTubeChannelImage } from "../hooks/useYouTubeChannels";
 
 import { useEntityImage } from "@/hooks/useEntityImage";
 import { SIDEBAR_MODIFIER_LABELS, entityLinkTitle } from "@/lib/sidebarModifier";
@@ -30,6 +32,7 @@ export function YouTubeChannelListItem({
   const editClick = useEditPanelClick();
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
+  const autoAvatar = useAutoYouTubeChannelImage();
   const {
     showImage,
     onError,
@@ -74,6 +77,26 @@ export function YouTubeChannelListItem({
         >
           {children}
         </Link>
+      )}
+      renderExtra={() => (
+        <HoverIconButton>
+          <button
+            type="button"
+            title="Fetch avatar"
+            disabled={autoAvatar.isPending || autoAvatar.cooldown.isOnCooldown}
+            onClick={() => autoAvatar.mutate({
+              id: channel.id,
+              sourceUrl: channelUrlFromKey(channel.channelKey),
+            })}
+          >
+            <Sparkles className="size-4" />
+            <span className="sr-only">
+              Fetch avatar for
+              {" "}
+              {channel.name}
+            </span>
+          </button>
+        </HoverIconButton>
       )}
       renderEdit={() => (
         <HoverIconButton>

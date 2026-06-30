@@ -9,6 +9,7 @@ import { randomUUID } from "node:crypto";
 import { and, asc, desc, eq, isNull } from "drizzle-orm";
 import { db } from "@/db";
 import { bookmarkImages, type BookmarkImageRow, bookmarkScreenshots, type BookmarkScreenshotRow, bookmarks } from "@/db/schema";
+import { batchFetch } from "@/services/batchFetch";
 import { forgetManifestObject, recordManifestObject } from "@/services/gallery";
 import { buildImageCandidates } from "@/services/imageCandidates";
 import { downloadImage, fetchOgImage } from "@/services/metadata";
@@ -427,34 +428,6 @@ async function eligibleNoImageBookmarkIds(): Promise<{ id: string }[]> {
     .where(and(isNull(bookmarkImages.bookmarkId), isNull(bookmarks.imageAutoGrabError)));
 }
 
-async function batchFetch(
-  items: { id: string }[],
-  fetchOne: (id: string) => Promise<unknown>,
-  onProgress?: (processed: number, total: number) => void,
-): Promise<BulkAutoFetchResult> {
-  let fetched = 0;
-  let failed = 0;
-  let processed = 0;
-  const BATCH = 3;
-  for (let i = 0; i < items.length; i += BATCH) {
-    const results = await Promise.allSettled(
-      items.slice(i, i + BATCH).map(({
-        id,
-      }) => fetchOne(id)),
-    );
-    for (const r of results) {
-      if (r.status === "fulfilled") fetched++;
-      else failed++;
-      processed++;
-    }
-    onProgress?.(processed, items.length);
-  }
-  return {
-    fetched,
-    failed,
-  };
-}
-
 /**
  * Auto-fetch og:images for all eligible bookmarks (no image, no error) in batches of 3 concurrent
  * requests to avoid hammering external servers. Returns how many succeeded vs. failed.
@@ -464,7 +437,9 @@ export async function bulkAutoFetchImages(
   onProgress?: (processed: number, total: number) => void,
 ): Promise<BulkAutoFetchResult> {
   const eligible = await eligibleNoImageBookmarkIds();
-  return batchFetch(eligible, async (id) => {
+  return batchFetch(eligible, async ({
+    id,
+  }) => {
     const r = await fetchAndStoreOgImage(id);
     if (typeof r === "string") throw new Error(r);
     return r;
@@ -481,7 +456,9 @@ export async function bulkAutoFetchWithScreenshotFallback(
   onProgress?: (processed: number, total: number) => void,
 ): Promise<BulkAutoFetchResult> {
   const eligible = await eligibleNoImageBookmarkIds();
-  return batchFetch(eligible, async (id) => {
+  return batchFetch(eligible, async ({
+    id,
+  }) => {
     const ogResult = await fetchAndStoreOgImage(id);
     if (typeof ogResult !== "string") return ogResult;
     // og:image failed (imageAutoGrabError is now set) — try screenshot as fallback.

@@ -49,6 +49,8 @@ interface StandardListingCardProps {
   renderEdit: () => ReactNode;
   /** Hover Info button — same shape. Omit to render no Info button (e.g. Autofill). */
   renderInfo?: () => ReactNode;
+  /** Extra hover action rendered before Edit (e.g. a per-row image fetch button). Omit for none. */
+  renderExtra?: () => ReactNode;
   /** Optional content rendered below the main row (e.g. a CategoryPill). */
   footer?: ReactNode;
   /** When true, clicking the card body toggles selection (shown when `inSelectionMode` is true). */
@@ -69,7 +71,7 @@ interface StandardListingCardProps {
  */
 export function StandardListingCard({
   icon, title, subtitle, titleAdornment, count,
-  renderPrimaryLink, renderEdit, renderInfo, footer,
+  renderPrimaryLink, renderEdit, renderInfo, renderExtra, footer,
   selectable = false, selected = false, onSelectToggle, inSelectionMode = false,
 }: StandardListingCardProps) {
   // Zero-count items are de-emphasized but stay clickable. Items without a count are not muted.
@@ -116,6 +118,7 @@ export function StandardListingCard({
           )
           : renderPrimaryLink("flex min-w-0 flex-1 items-center gap-3 p-4", linkChildren)}
         <div className="flex shrink-0 items-center gap-1 pr-4">
+          {renderExtra?.()}
           {renderEdit()}
           {renderInfo?.()}
           {count !== undefined

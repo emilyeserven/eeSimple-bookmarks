@@ -1,6 +1,9 @@
 import type { FastifyInstance } from "fastify";
 import type { CreateYouTubeChannelInput, UpdateYouTubeChannelInput } from "@eesimple/types";
+import { getChannelImageAutoFetchJobStatus, setChannelImageAutoFetchJobStatus } from "@/services/channelImageAutoFetchState";
 import {
+  bulkBackfillChannelImages,
+  countMissingChannelImages,
   fetchAndStoreChannelImage,
   getYouTubeChannelImageRow,
   removeYouTubeChannelImage,
@@ -104,6 +107,73 @@ export async function youtubeChannelRoutes(app: FastifyInstance): Promise<void> 
       tags: ["youtube-channels"],
     },
   }, async () => listYouTubeChannels());
+
+  // Count of channels currently missing an avatar — backs the Backfill settings page so it doesn't
+  // need to fetch the full channel list client-side just to display a count.
+  app.get("/api/youtube-channels/missing-image-count", {
+    schema: {
+      tags: ["youtube-channels"],
+    },
+  }, async () => ({
+    count: await countMissingChannelImages(),
+  }));
+
+  // Bulk backfill: start a background job that fetches avatars for every channel currently
+  // missing one, batched to avoid rate-limiting. A second POST while a job is running returns 409.
+  app.post("/api/youtube-channels/backfill-images", {
+    schema: {
+      tags: ["youtube-channels"],
+    },
+  }, async (_req, reply) => {
+    if (!isObjectStoreConfigured()) {
+      return reply.code(503).send({
+        message: "Image storage is not configured",
+      });
+    }
+    if (getChannelImageAutoFetchJobStatus().status === "running") {
+      return reply.code(409).send({
+        message: "A channel-image backfill job is already in progress",
+      });
+    }
+
+    setChannelImageAutoFetchJobStatus({
+      status: "running",
+      totalCount: 0,
+      processedCount: 0,
+    });
+    void bulkBackfillChannelImages((processed, total) => {
+      setChannelImageAutoFetchJobStatus({
+        status: "running",
+        totalCount: total,
+        processedCount: processed,
+      });
+    }).then((result) => {
+      setChannelImageAutoFetchJobStatus({
+        status: "done",
+        ...result,
+      });
+    }).catch(() => {
+      setChannelImageAutoFetchJobStatus({
+        status: "idle",
+      });
+    });
+
+    return reply.code(202).send(getChannelImageAutoFetchJobStatus());
+  });
+
+  // Return the current status of the background channel-image backfill job.
+  app.get("/api/youtube-channels/backfill-images/status", {
+    schema: {
+      tags: ["youtube-channels"],
+    },
+  }, async (_req, reply) => {
+    if (!isObjectStoreConfigured()) {
+      return reply.code(503).send({
+        message: "Image storage is not configured",
+      });
+    }
+    return getChannelImageAutoFetchJobStatus();
+  });
 
   app.post("/api/youtube-channels", {
     schema: {
