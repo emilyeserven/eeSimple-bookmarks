@@ -823,6 +823,74 @@ export async function updatePlaceTypeColors(
   return next;
 }
 
+/**
+ * Move a slug-keyed `Record` entry from `from` onto `to`, **only where `to` has no entry**, always
+ * dropping `from`. Returns the new record, or `null` when `from` is absent (nothing to migrate). Pure —
+ * shared by the display, icon, and color migrations and unit-tested directly.
+ */
+export function remapRecordKey<V>(
+  record: Record<string, V>,
+  from: string,
+  to: string,
+): Record<string, V> | null {
+  if (!(from in record)) return null;
+  const next = {
+    ...record,
+  };
+  if (!(to in next)) next[to] = next[from];
+  delete next[from];
+  return next;
+}
+
+/**
+ * Rewrite level-group membership, replacing place-type key `from` with `to` (deduped), dropping `from`.
+ * Returns the new groups, or `null` when no group references `from`. Pure — unit-tested directly.
+ */
+export function remapLevelGroupMembers(
+  groups: PlaceTypeLevelGroupConfig,
+  from: string,
+  to: string,
+): PlaceTypeLevelGroupConfig | null {
+  let touched = false;
+  const next = groups.map((group) => {
+    if (!group.placeTypes.includes(from)) return group;
+    touched = true;
+    const members = group.placeTypes.filter(pt => pt !== from);
+    if (!members.includes(to)) members.push(to);
+    return {
+      ...group,
+      placeTypes: members,
+    };
+  });
+  return touched ? next : null;
+}
+
+/**
+ * Migrate the slug-keyed map display config from a deleted place type onto a reassign target — moving
+ * its `placeTypeDisplay` setting, `placeTypeIcons` glyph, and `placeTypeColors` color onto the target
+ * **only where the target has none**, rewriting its `placeTypeLevelGroups` membership to the target,
+ * and always dropping the old slug. Used by `deletePlaceType` when locations are reassigned, so the
+ * carried-over look follows the relocated locations. No-op when `oldSlug === targetSlug` or either is
+ * blank.
+ */
+export async function migratePlaceTypeConfig(oldSlug: string, targetSlug: string): Promise<void> {
+  const from = placeTypeKey(oldSlug);
+  const to = placeTypeKey(targetSlug);
+  if (from === "" || to === "" || from === to) return;
+
+  const nextDisplay = remapRecordKey(await getPlaceTypeDisplay(), from, to);
+  if (nextDisplay) await updatePlaceTypeDisplay(nextDisplay);
+
+  const nextIcons = remapRecordKey(await getPlaceTypeIcons(), from, to);
+  if (nextIcons) await updatePlaceTypeIcons(nextIcons);
+
+  const nextColors = remapRecordKey(await getPlaceTypeColors(), from, to);
+  if (nextColors) await updatePlaceTypeColors(nextColors);
+
+  const nextGroups = remapLevelGroupMembers(await getPlaceTypeLevelGroups(), from, to);
+  if (nextGroups) await updatePlaceTypeLevelGroups(nextGroups);
+}
+
 /** Starter level-group buckets, covering {@link CANONICAL_PLACE_TYPE_ORDER} most-general → specific. */
 const SEED_LEVEL_GROUP_BUCKETS: { id: string;
   name: string;

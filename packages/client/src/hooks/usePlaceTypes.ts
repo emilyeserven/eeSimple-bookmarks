@@ -44,10 +44,17 @@ export function useUpdatePlaceType() {
 export function useDeletePlaceType() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => placeTypesApi.remove(id),
+    mutationFn: ({
+      id, reassignTo,
+    }: { id: string;
+      reassignTo?: string; }) => placeTypesApi.remove(id, reassignTo),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: PLACE_TYPES_KEY,
+      });
+      // Reassignment rewrites locations' place type, so refresh anything keyed on locations too.
+      void queryClient.invalidateQueries({
+        queryKey: ["locations"],
       });
     },
   });

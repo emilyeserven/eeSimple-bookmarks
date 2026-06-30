@@ -5,6 +5,7 @@ import {
   createPlaceType,
   deletePlaceType,
   DuplicatePlaceTypeError,
+  InvalidReassignTargetError,
   listPlaceTypes,
   updatePlaceType,
 } from "@/services/placeTypes";
@@ -15,6 +16,17 @@ const placeTypeParams = {
   required: ["id"],
   properties: {
     id: {
+      type: "string",
+      format: "uuid",
+    },
+  },
+} as const;
+
+const deletePlaceTypeQuery = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    reassignTo: {
       type: "string",
       format: "uuid",
     },
@@ -111,15 +123,29 @@ export async function placeTypeRoutes(app: FastifyInstance): Promise<void> {
     schema: {
       tags: ["place-types"],
       params: placeTypeParams,
+      querystring: deletePlaceTypeQuery,
     },
   }, async (req, reply) => {
     const {
       id,
     } = req.params as { id: string };
-    const deleted = await deletePlaceType(id);
-    if (!deleted) return reply.code(404).send({
-      message: "Place type not found",
-    });
-    return reply.code(204).send();
+    const {
+      reassignTo,
+    } = req.query as { reassignTo?: string };
+    try {
+      const deleted = await deletePlaceType(id, reassignTo);
+      if (!deleted) return reply.code(404).send({
+        message: "Place type not found",
+      });
+      return reply.code(204).send();
+    }
+    catch (err) {
+      if (err instanceof InvalidReassignTargetError) {
+        return reply.code(400).send({
+          message: err.message,
+        });
+      }
+      throw err;
+    }
   });
 }

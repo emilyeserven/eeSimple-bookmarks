@@ -174,7 +174,18 @@ export const locationsApi = {
     }),
 };
 
-export const placeTypesApi = createCrudApi<PlaceType, CreatePlaceTypeInput, UpdatePlaceTypeInput>("place-types");
+export const placeTypesApi = {
+  ...createCrudApi<PlaceType, CreatePlaceTypeInput, UpdatePlaceTypeInput>("place-types"),
+  // Override the generic remove so deletion can optionally reassign the place type's locations to
+  // another place type (via the `reassignTo` query param) instead of orphaning them.
+  remove: (id: string, reassignTo?: string) =>
+    request<undefined>(
+      `/place-types/${id}${reassignTo ? `?reassignTo=${encodeURIComponent(reassignTo)}` : ""}`,
+      {
+        method: "DELETE",
+      },
+    ),
+};
 
 export const propertyGroupsApi = createCrudApi<PropertyGroup, CreatePropertyGroupInput, UpdatePropertyGroupInput>("property-groups");
 
