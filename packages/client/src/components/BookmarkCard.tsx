@@ -45,11 +45,16 @@ interface BookmarkCardProps {
   cardZoneLayouts?: CardZoneLayouts;
   /** When true, hide the website pill on a bookmark that also has a YouTube channel. When omitted, the Default rule's value applies. */
   hideWebsiteForYouTube?: boolean;
+  /**
+   * When true, the card display rules are still being fetched. The image area renders a skeleton
+   * (if the bookmark has an image) to avoid an aspect-ratio flash on rule resolution.
+   */
+  loading?: boolean;
 }
 
 export function BookmarkCard({
   bookmark, properties = [], onDelete, imageLeft = false, imageMode = "natural",
-  imageVisibility = "shown", fieldZones, cardZoneLayouts, hideWebsiteForYouTube,
+  imageVisibility = "shown", fieldZones, cardZoneLayouts, hideWebsiteForYouTube, loading = false,
 }: BookmarkCardProps) {
   const {
     autoImage, screenshot, saveNumber, saveBoolean, saveDateTime, saveChoices, saveTags,
@@ -103,13 +108,17 @@ export function BookmarkCard({
     ? buildBookmarkCardOverlayItems(bookmark, valueItems, placements, bookmarkCategory, menu)
     : [];
 
-  // Show a placeholder only in "shown" mode (not image-only or off) when there is no actual image
-  // and at least one overlay item wants to appear — keeps the image area alive for the buttons.
-  const showPlaceholder = imageVisibility === "shown" && !hasActualImage && overlayItems.length > 0;
-  // Whether a real image or placeholder will render (used for the top-margin gap below).
-  const showImageArea = hasImage || showPlaceholder;
+  // Show a placeholder in "shown" mode when there is no actual image — always, so the absence of
+  // an image is visually clear rather than just leaving the card with no image area.
+  const showPlaceholder = imageVisibility === "shown" && !hasActualImage;
+  // While display rules load, only show the image area for bookmarks that have an actual image
+  // (rendered as a skeleton). For no-image bookmarks, hide the area until rules resolve so a
+  // placeholder that would immediately disappear (if rules set imageVisibility="off") is not shown.
+  const showImageArea = loading
+    ? (hasActualImage && imageEnabled)
+    : (hasImage || showPlaceholder);
 
-  const imageEl = hasImage || showPlaceholder
+  const imageEl = showImageArea
     ? (
       <BookmarkCardImage
         bookmark={bookmark}
@@ -117,6 +126,7 @@ export function BookmarkCard({
         imageMode={imageMode}
         overlayItems={overlayItems}
         showPlaceholder={showPlaceholder}
+        loading={loading}
       />
     )
     : null;

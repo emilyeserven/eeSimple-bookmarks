@@ -68,8 +68,9 @@ export function BookmarkCardGrid({
                 cardZoneLayouts={display.cardZoneLayouts}
                 imageLeft={(columns === 1 || columns === 2) && display.imageLayout === "side"}
                 imageMode={display.imageMode}
-                imageVisibility={displayPending ? "off" : display.imageVisibility}
+                imageVisibility={display.imageVisibility}
                 hideWebsiteForYouTube={display.hideWebsiteForYouTube}
+                loading={displayPending}
               />
             </RowCard>
             {/* Hover hint: this card is the ⌘K quick-edit target. Pointer-events-none so it never blocks clicks. */}
