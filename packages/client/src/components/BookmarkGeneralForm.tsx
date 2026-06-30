@@ -58,67 +58,57 @@ export function BookmarkGeneralForm({
         void form.handleSubmit();
       }}
     >
+      <BookmarkNameField
+        form={form}
+        fetchTitle={fetchTitle}
+        fetchMetadata={fetchMetadata}
+        titleFetch={titleFetch}
+        onTitleEdited={() => setTitleFetch(null)}
+        undoTitleFetch={undoTitleFetch}
+        runFetchTitle={runFetchTitle}
+        runYouTubeEnrichment={runYouTubeEnrichment}
+        isReportingTitle={isReportingTitle}
+        setIsReportingTitle={setIsReportingTitle}
+        expectedTitle={expectedTitle}
+        setExpectedTitle={setExpectedTitle}
+        onNameBlur={runAutofill}
+      />
+
+      <form.AppField name="romanizedTitle">
+        {field => (
+          <field.TextField
+            label="Romanized name"
+            placeholder="Optional romanized form"
+          />
+        )}
+      </form.AppField>
+
       <BookmarkGeneralUrlSection
         ctrl={ctrl}
         bookmark={bookmark}
       />
 
-      <div
-        className="
-          grid gap-4
-          sm:grid-cols-2
-        "
-      >
-        <div className="flex flex-col gap-4">
-          <WebsiteLookupBanner
-            data={websiteLookup.data}
-            isYouTube={websiteLookup.data?.domain === "youtube.com"}
-            youtubeChannel={youtubeChannel}
-            onChannelSelfIdsChange={(ids) => {
-              const updated = {
-                ...(youtubeChannel ?? {
-                  key: "",
-                  name: "",
-                }),
-                selfIds: ids,
-              };
-              channelHintRef.current = updated;
-              setYoutubeChannel(updated);
-            }}
-            websiteSiteName={websiteSiteName}
-            onSiteNameChange={setWebsiteSiteName}
-            onSiteNameBlur={() => void runFetchTitle(form.getFieldValue("url"), {
-              force: true,
-            })}
-          />
-        </div>
-
-        <div className="flex flex-col gap-4">
-          <BookmarkNameField
-            form={form}
-            fetchTitle={fetchTitle}
-            fetchMetadata={fetchMetadata}
-            titleFetch={titleFetch}
-            onTitleEdited={() => setTitleFetch(null)}
-            undoTitleFetch={undoTitleFetch}
-            runFetchTitle={runFetchTitle}
-            runYouTubeEnrichment={runYouTubeEnrichment}
-            isReportingTitle={isReportingTitle}
-            setIsReportingTitle={setIsReportingTitle}
-            expectedTitle={expectedTitle}
-            setExpectedTitle={setExpectedTitle}
-            onNameBlur={runAutofill}
-          />
-          <form.AppField name="romanizedTitle">
-            {field => (
-              <field.TextField
-                label="Romanized name"
-                placeholder="Optional romanized form"
-              />
-            )}
-          </form.AppField>
-        </div>
-      </div>
+      <WebsiteLookupBanner
+        data={websiteLookup.data}
+        isYouTube={websiteLookup.data?.domain === "youtube.com"}
+        youtubeChannel={youtubeChannel}
+        onChannelSelfIdsChange={(ids) => {
+          const updated = {
+            ...(youtubeChannel ?? {
+              key: "",
+              name: "",
+            }),
+            selfIds: ids,
+          };
+          channelHintRef.current = updated;
+          setYoutubeChannel(updated);
+        }}
+        websiteSiteName={websiteSiteName}
+        onSiteNameChange={setWebsiteSiteName}
+        onSiteNameBlur={() => void runFetchTitle(form.getFieldValue("url"), {
+          force: true,
+        })}
+      />
 
       {websiteLookup.data?.exists === false && websiteLookup.data.domain && (
         <form.Subscribe selector={state => state.values.categoryId}>
