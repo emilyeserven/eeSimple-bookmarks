@@ -2,7 +2,7 @@ import type { TagNode } from "@eesimple/types";
 
 import { describe, expect, it } from "vitest";
 
-import { findAncestorPath, flattenTree, subtreeIds } from "./tagTree";
+import { expandableIds, findAncestorPath, flattenTree, subtreeIds } from "./tagTree";
 
 function makeTag(id: string, slug: string, children: TagNode[] = []): TagNode {
   return {
@@ -54,6 +54,21 @@ describe("subtreeIds", () => {
 
   it("returns just the id for a leaf node", () => {
     expect(subtreeIds(e)).toEqual(["e"]);
+  });
+});
+
+describe("expandableIds", () => {
+  it("collects only the ids of nodes that have children", () => {
+    // a (b, d) and b (c) have children; c, d, e are leaves.
+    expect(expandableIds(forest)).toEqual(["a", "b"]);
+  });
+
+  it("returns an empty list for a forest of leaves", () => {
+    expect(expandableIds([d, e])).toEqual([]);
+  });
+
+  it("returns an empty list for an empty forest", () => {
+    expect(expandableIds<TagNode>([])).toEqual([]);
   });
 });
 

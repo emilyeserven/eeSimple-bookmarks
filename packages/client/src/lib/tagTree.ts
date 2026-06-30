@@ -29,6 +29,15 @@ export function subtreeIds<T extends { id: string;
   return [node.id, ...node.children.flatMap(subtreeIds)];
 }
 
+/** Collect the ids of every node that has children — the set a tree "Expand all" expands. */
+export function expandableIds<T extends { id: string;
+  children: T[]; }>(nodes: T[]): string[] {
+  return nodes.flatMap(node =>
+    node.children.length > 0
+      ? [node.id, ...expandableIds(node.children)]
+      : []);
+}
+
 /** Convert a TagNode tree into TreeComboboxOption format for use with TreeMultiCombobox. */
 export function tagNodesToOptions(nodes: TagNode[]): TreeComboboxOption[] {
   return nodes.map(n => ({

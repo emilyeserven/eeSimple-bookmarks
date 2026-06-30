@@ -1,14 +1,15 @@
 import type { MediaTypeNode } from "@eesimple/types";
 
-import { useState } from "react";
-
 import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
+import { ExpandAllToggle } from "./ExpandAllToggle";
 import { MediaTypeTreeList } from "./MediaTypeTreeList";
 import { useMediaTypeColumns } from "./tables/mediaTypeColumns";
 import { listingSelectionColumn } from "./tables/selectionColumn";
+import { useExpandedSet } from "../hooks/useExpandedSet";
 import { useBulkDeleteMediaTypes, useMediaTypeTree } from "../hooks/useMediaTypes";
 import { useRegisterBulkSelect } from "../hooks/useRegisterBulkSelect";
 import { useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
+import { expandableIds } from "../lib/tagTree";
 import { useListSelection } from "../lib/useListSelection";
 
 import { DataTable } from "@/components/ui/data-table";
@@ -32,7 +33,9 @@ export function MediaTypesListing() {
   } = useMediaTypeTree();
 
   // Empty set means every parent is collapsed by default.
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const {
+    expanded, onToggle, expandAll, collapseAll,
+  } = useExpandedSet([]);
   const columns = useBookmarkColumns("media-types-listing");
   const viewMode = useViewMode("media-types-listing");
   const mediaTypeColumns = useMediaTypeColumns();
@@ -40,15 +43,7 @@ export function MediaTypesListing() {
   const selection = useListSelection("media-types-listing", deletableIds);
   useRegisterBulkSelect("media-types-listing");
   const bulkDelete = useBulkDeleteMediaTypes();
-
-  function toggle(id: string) {
-    setExpanded((current) => {
-      const next = new Set(current);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
+  const treeExpandableIds = expandableIds(tree ?? []);
 
   return (
     <div className="space-y-4">
@@ -86,12 +81,22 @@ export function MediaTypesListing() {
 
       {tree && tree.length > 0 && viewMode !== "table"
         ? (
-          <MediaTypeTreeList
-            tree={tree}
-            expanded={expanded}
-            onToggle={toggle}
-            columns={columns}
-          />
+          <>
+            <div className="flex justify-end">
+              <ExpandAllToggle
+                expandableIds={treeExpandableIds}
+                expanded={expanded}
+                onExpandAll={expandAll}
+                onCollapseAll={collapseAll}
+              />
+            </div>
+            <MediaTypeTreeList
+              tree={tree}
+              expanded={expanded}
+              onToggle={onToggle}
+              columns={columns}
+            />
+          </>
         )
         : null}
     </div>

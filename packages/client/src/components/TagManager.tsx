@@ -1,16 +1,18 @@
 import type { TagNode } from "@eesimple/types";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
+import { ExpandAllToggle } from "./ExpandAllToggle";
 import { listingSelectionColumn } from "./tables/selectionColumn";
 import { useTagColumns } from "./tables/tagColumns";
 import { TagTreeList } from "./TagTreeList";
 import { useSortByRomanized } from "../hooks/useAppSettings";
+import { useExpandedSet } from "../hooks/useExpandedSet";
 import { useRegisterBulkSelect } from "../hooks/useRegisterBulkSelect";
 import { useBulkDeleteTags, useTagTree } from "../hooks/useTags";
 import { useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
-import { flattenTree, sortTagTreeByRomanized } from "../lib/tagTree";
+import { expandableIds, flattenTree, sortTagTreeByRomanized } from "../lib/tagTree";
 import { useListSelection } from "../lib/useListSelection";
 
 import { DataTable } from "@/components/ui/data-table";
@@ -33,7 +35,9 @@ export function TagManager({
   );
 
   // Empty set means every parent is collapsed by default.
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const {
+    expanded, onToggle, expandAll, collapseAll,
+  } = useExpandedSet([]);
   const columns = useBookmarkColumns("tags-listing");
   const viewMode = useViewMode("tags-listing");
   const tagColumns = useTagColumns();
@@ -43,15 +47,7 @@ export function TagManager({
   const selection = useListSelection("tags-listing", deletableIds);
   useRegisterBulkSelect("tags-listing");
   const bulkDelete = useBulkDeleteTags();
-
-  function toggle(id: string) {
-    setExpanded((current) => {
-      const next = new Set(current);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
+  const treeExpandableIds = expandableIds(sortedTree);
 
   return (
     <section className="space-y-4">
@@ -97,12 +93,22 @@ export function TagManager({
 
       {tree && tree.length > 0 && viewMode !== "table"
         ? (
-          <TagTreeList
-            tree={tree}
-            expanded={expanded}
-            onToggle={toggle}
-            columns={columns}
-          />
+          <>
+            <div className="flex justify-end">
+              <ExpandAllToggle
+                expandableIds={treeExpandableIds}
+                expanded={expanded}
+                onExpandAll={expandAll}
+                onCollapseAll={collapseAll}
+              />
+            </div>
+            <TagTreeList
+              tree={tree}
+              expanded={expanded}
+              onToggle={onToggle}
+              columns={columns}
+            />
+          </>
         )
         : null}
 
