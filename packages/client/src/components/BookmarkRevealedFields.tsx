@@ -5,9 +5,11 @@ import type { useWebsiteLookup } from "../hooks/useWebsites";
 import type { UrlCleanupMode } from "../lib/urlCleanup";
 import type {
   Author,
+  BookmarkImage,
   BookmarkUrlDuplicateResult,
   Category,
   CustomProperty,
+  ImageCandidate,
   MediaTypeNode,
   Publisher,
   TagNode,
@@ -95,7 +97,8 @@ interface BookmarkRevealedFieldsProps extends BookmarkCustomFieldControls {
   addPublisherOpen: boolean;
   onAddPublisherOpenChange: (open: boolean) => void;
   imageFieldKey: number;
-  existingImageUrl: string | null;
+  existingImages: BookmarkImage[];
+  imageCandidates: ImageCandidate[];
   defaultAuto: boolean;
   autoGrabError: string | null;
   onImageIntentChange: (intent: ImageIntent) => void;

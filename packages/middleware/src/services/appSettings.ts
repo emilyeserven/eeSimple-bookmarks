@@ -920,6 +920,7 @@ export async function getConnectorsSettings(): Promise<ConnectorsAppSettings> {
       hostedMetadataApiKey: appSettings.hostedMetadataApiKey,
       hostedMetadataProvider: appSettings.hostedMetadataProvider,
       archiveBoxEndpoint: appSettings.archiveBoxEndpoint,
+      imageUrlBlacklist: appSettings.imageUrlBlacklist,
     })
     .from(appSettings)
     .where(eq(appSettings.id, ROW_ID));
@@ -933,7 +934,25 @@ export async function getConnectorsSettings(): Promise<ConnectorsAppSettings> {
     hostedMetadataApiKeySet: hasStoredKey || hasEnvKey,
     encryptionEnabled: encryptionEnabled(),
     archiveBoxEndpoint: row?.archiveBoxEndpoint ?? process.env.ARCHIVEBOX_ENDPOINT ?? "",
+    imageUrlBlacklist: row?.imageUrlBlacklist ?? [],
   };
+}
+
+/** Read just the image-URL blacklist patterns (Settings → Connectors), or `[]` when unset/unavailable. */
+export async function getImageUrlBlacklist(): Promise<string[]> {
+  try {
+    const [row] = await db
+      .select({
+        imageUrlBlacklist: appSettings.imageUrlBlacklist,
+      })
+      .from(appSettings)
+      .where(eq(appSettings.id, ROW_ID));
+    return row?.imageUrlBlacklist ?? [];
+  }
+  catch {
+    // DB unavailable (e.g. test environment) — behave as no blacklist.
+    return [];
+  }
 }
 
 /**
@@ -1023,6 +1042,8 @@ export async function updateConnectorsSettings(
   const endpoint = input.hostedMetadataEndpoint.trim();
   const provider = input.hostedMetadataProvider.trim();
   const archiveBoxEndpoint = input.archiveBoxEndpoint.trim();
+  // Normalize the blacklist: trim entries, drop blanks, dedupe — store a clean list.
+  const imageUrlBlacklist = [...new Set(input.imageUrlBlacklist.map(p => p.trim()).filter(Boolean))];
   if (input.hostedMetadataApiKey === null) {
     // null = leave any existing API key unchanged; only update endpoint/provider.
     await db
@@ -1032,6 +1053,7 @@ export async function updateConnectorsSettings(
         hostedMetadataEndpoint: endpoint,
         hostedMetadataProvider: provider,
         archiveBoxEndpoint,
+        imageUrlBlacklist,
       })
       .onConflictDoUpdate({
         target: appSettings.id,
@@ -1039,6 +1061,7 @@ export async function updateConnectorsSettings(
           hostedMetadataEndpoint: endpoint,
           hostedMetadataProvider: provider,
           archiveBoxEndpoint,
+          imageUrlBlacklist,
         },
       });
   }
@@ -1055,6 +1078,7 @@ export async function updateConnectorsSettings(
         hostedMetadataProvider: provider,
         hostedMetadataApiKey: apiKeyToStore,
         archiveBoxEndpoint,
+        imageUrlBlacklist,
       })
       .onConflictDoUpdate({
         target: appSettings.id,
@@ -1063,6 +1087,7 @@ export async function updateConnectorsSettings(
           hostedMetadataProvider: provider,
           hostedMetadataApiKey: apiKeyToStore,
           archiveBoxEndpoint,
+          imageUrlBlacklist,
         },
       });
   }

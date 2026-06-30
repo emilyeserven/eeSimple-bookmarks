@@ -10,10 +10,13 @@ const bookmarkWithImage = makeBookmark({
   id: "bookmark-image",
   title: "A bookmark with an image",
   image: {
+    id: "bookmark-image-img",
     url: "https://placehold.co/600x400/png",
     width: 600,
     height: 400,
     source: "upload",
+    isMain: true,
+    sortOrder: 0,
   },
 });
 

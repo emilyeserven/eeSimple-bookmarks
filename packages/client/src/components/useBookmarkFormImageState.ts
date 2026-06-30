@@ -1,4 +1,5 @@
 import type { ImageIntent } from "./bookmarkImageIntent";
+import type { ImageCandidate } from "@eesimple/types";
 
 import { useRef, useState } from "react";
 
@@ -25,6 +26,9 @@ export function useBookmarkFormImageState({
     initialImageIntent(!isEdit && autoFetchImage),
   );
   const [imageFieldKey, setImageFieldKey] = useState(0);
+  // Candidate images discovered by the latest URL scan — fed to the image picker so the user can keep
+  // several (e.g. all of an Instagram carousel) and choose the main one.
+  const [imageCandidates, setImageCandidates] = useState<ImageCandidate[]>([]);
 
   // Set by the "Add Now" quick path so the submit handler saves the URL exactly as typed (no
   // shortened-link expansion). Read by the (stale) submit closure.
@@ -33,6 +37,7 @@ export function useBookmarkFormImageState({
   function resetImageState(): void {
     imageIntentRef.current = initialImageIntent(autoFetchImage);
     setImageFieldKey(key => key + 1);
+    setImageCandidates([]);
     quickAddRef.current = false;
   }
 
@@ -40,6 +45,8 @@ export function useBookmarkFormImageState({
     imageIntentRef,
     imageFieldKey,
     setImageFieldKey,
+    imageCandidates,
+    setImageCandidates,
     quickAddRef,
     resetImageState,
   };

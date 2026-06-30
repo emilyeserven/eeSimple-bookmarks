@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { OEMBED_PROVIDERS } from "@eesimple/types";
 
-import { ArchiveBoxForm, HostedMetadataForm } from "./ConnectorMetadataForms";
+import { ArchiveBoxForm, HostedMetadataForm, ImageBlacklistForm } from "./ConnectorMetadataForms";
 import { useConnectors } from "../hooks/useConnectors";
 
 import { Badge } from "@/components/ui/badge";
@@ -296,6 +296,28 @@ export function ConnectorsSettings() {
           <CardContent className="space-y-4">
             <HostedMetadataForm />
             <Provides items={["Title", "Description", "Image", "Author", "Publisher", "Publish date"]} />
+          </CardContent>
+        </Card>
+      ),
+    },
+    {
+      id: "image-blacklist",
+      status: "always-on",
+      node: (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle>Image URL blacklist</CardTitle>
+              <AlwaysOnBadge />
+            </div>
+            <CardDescription>
+              Patterns that exclude matching candidate images from a URL scan, so ad and tracking
+              images aren&apos;t offered in the Add Bookmark picker. Applied to every candidate
+              (Instagram, oEmbed, and article images).
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ImageBlacklistForm />
           </CardContent>
         </Card>
       ),

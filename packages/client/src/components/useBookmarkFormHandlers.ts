@@ -83,9 +83,11 @@ export function useBookmarkFormHandlers({
     actions: {
       createBookmark,
       updateBookmark,
-      uploadImage,
       autoImage,
-      deleteImage,
+      addImage,
+      imagesFromCandidates,
+      setMainImage,
+      deleteImageById,
       fetchTitle,
       fetchMetadata,
       websiteLookup,
@@ -135,7 +137,7 @@ export function useBookmarkFormHandlers({
   } = urlProcessing;
 
   const {
-    imageIntentRef, quickAddRef,
+    imageIntentRef, quickAddRef, setImageCandidates,
   } = imageState;
 
   const rawUrl = useStore(form.store, s => s.values.url);
@@ -238,9 +240,11 @@ export function useBookmarkFormHandlers({
         input,
       });
       await applyImageIntent(bookmark.id, finalUrl ?? "", imageIntentRef.current, {
-        uploadImage,
         autoImage,
-        deleteImage,
+        addImage,
+        imagesFromCandidates,
+        setMainImage,
+        deleteImageById,
       });
       onDone?.();
       return;
@@ -254,9 +258,11 @@ export function useBookmarkFormHandlers({
       }),
     });
     await applyImageIntent(created.id, finalUrl ?? "", imageIntentRef.current, {
-      uploadImage,
       autoImage,
-      deleteImage,
+      addImage,
+      imagesFromCandidates,
+      setMainImage,
+      deleteImageById,
     });
 
     promoteSourceDefaults(created, value.categoryId, value.mediaTypeId, value.tagIds, {
@@ -358,6 +364,7 @@ export function useBookmarkFormHandlers({
         onSuccess: setUrlDuplicate,
       });
       if (scan) {
+        setImageCandidates(scan.imageCandidates);
         await applyScanMetadata(finalUrl, scan, {
           fillTitle,
           force: false,

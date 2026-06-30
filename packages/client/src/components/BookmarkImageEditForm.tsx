@@ -1,6 +1,8 @@
 import type { Bookmark } from "@eesimple/types";
 
-import { BookmarkImageField } from "./BookmarkImageField";
+import { Search } from "lucide-react";
+
+import { BookmarkImagePicker } from "./BookmarkImagePicker";
 import { useBookmarkImageEditForm } from "./useBookmarkImageEditForm";
 
 import { Button } from "@/components/ui/button";
@@ -9,7 +11,7 @@ interface BookmarkImageEditFormProps {
   bookmark: Bookmark;
 }
 
-/** Manage the image for an existing bookmark. */
+/** Manage the images for an existing bookmark: keep/remove, pick the main one, and add or find more. */
 export function BookmarkImageEditForm({
   bookmark,
 }: BookmarkImageEditFormProps) {
@@ -20,15 +22,16 @@ export function BookmarkImageEditForm({
       className="space-y-4"
       onSubmit={c.onSubmit}
     >
-      <BookmarkImageField
+      <BookmarkImagePicker
         key={c.imageFieldKey}
-        existingImageUrl={bookmark.image?.url ?? null}
+        existingImages={bookmark.images}
+        candidates={c.candidates}
         pageUrl={bookmark.url ?? ""}
         defaultAuto={false}
         autoGrabError={bookmark.imageAutoGrabError ?? null}
         onChange={c.onImageChange}
       />
-      <div>
+      <div className="flex flex-wrap items-center gap-2">
         <Button
           type="submit"
           size="sm"
@@ -36,8 +39,22 @@ export function BookmarkImageEditForm({
         >
           {c.isPending || c.isMutating ? "Saving…" : "Save changes"}
         </Button>
+        {bookmark.url
+          ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={c.isScanning}
+              onClick={c.onFindImages}
+            >
+              <Search className="size-4" />
+              {c.isScanning ? "Finding…" : "Find images on page"}
+            </Button>
+          )
+          : null}
         {c.mutationError
-          ? <p className="mt-2 text-sm text-destructive">{c.mutationError.message}</p>
+          ? <p className="mt-2 w-full text-sm text-destructive">{c.mutationError.message}</p>
           : null}
       </div>
       <div className="space-y-2 border-t pt-4">

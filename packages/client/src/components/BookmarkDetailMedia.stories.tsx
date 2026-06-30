@@ -8,10 +8,13 @@ const withImage = makeBookmark({
   title: "An article with a hero image",
   url: "https://example.com/article",
   image: {
+    id: "hero-image",
     url: "https://placehold.co/600x400/png",
     width: 600,
     height: 400,
     source: "og",
+    isMain: true,
+    sortOrder: 0,
   },
 });
 

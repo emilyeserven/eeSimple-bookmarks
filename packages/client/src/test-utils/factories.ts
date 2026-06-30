@@ -1,4 +1,4 @@
-import type { Bookmark, Category, CustomProperty, Location } from "@eesimple/types";
+import type { Bookmark, BookmarkImage, Category, CustomProperty, Location } from "@eesimple/types";
 
 /**
  * Shared test/story factories for the full shared entity shapes.
@@ -79,6 +79,7 @@ export function makeBookmark(overrides: Partial<Bookmark> = {}): Bookmark {
     romanizedTitle: null,
     description: null,
     image: null,
+    images: [],
     screenshot: null,
     imageAutoGrabError: null,
     categoryId: "cat",
@@ -103,6 +104,20 @@ export function makeBookmark(overrides: Partial<Bookmark> = {}): Bookmark {
     locations: [],
     priority: 0,
     createdAt: NOW,
+    ...overrides,
+  };
+}
+
+/** A `BookmarkImage` wire object; the main image by default. Override only the fields a test cares about. */
+export function makeBookmarkImage(overrides: Partial<BookmarkImage> = {}): BookmarkImage {
+  return {
+    id: "img",
+    url: "https://example.com/image.webp",
+    width: 1200,
+    height: 800,
+    source: "og",
+    isMain: true,
+    sortOrder: 0,
     ...overrides,
   };
 }

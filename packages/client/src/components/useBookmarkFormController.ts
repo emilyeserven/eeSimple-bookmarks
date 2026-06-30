@@ -119,7 +119,7 @@ export function useBookmarkFormController({
     autoFetchImage,
   });
   const {
-    imageIntentRef, imageFieldKey,
+    imageIntentRef, imageFieldKey, imageCandidates,
   } = imageState;
 
   const form = useAppForm({
@@ -260,6 +260,7 @@ export function useBookmarkFormController({
     // Image.
     imageFieldKey,
     imageIntentRef,
+    imageCandidates,
     // Banners.
     urlDuplicate: ui.urlDuplicate,
     urlResolveError: ui.urlResolveError,

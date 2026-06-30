@@ -196,51 +196,105 @@ describe("promoteSourceDefaults", () => {
 });
 
 function imageMutations() {
-  const uploadImage = {
-    mutateAsync: vi.fn().mockResolvedValue(undefined),
-  };
   const autoImage = {
     mutateAsync: vi.fn().mockResolvedValue(undefined),
   };
-  const deleteImage = {
+  const addImage = {
+    mutateAsync: vi.fn().mockResolvedValue({
+      id: "new-img",
+    }),
+  };
+  const imagesFromCandidates = {
+    mutateAsync: vi.fn().mockResolvedValue([]),
+  };
+  const setMainImage = {
+    mutateAsync: vi.fn().mockResolvedValue(undefined),
+  };
+  const deleteImageById = {
     mutateAsync: vi.fn().mockResolvedValue(undefined),
   };
   return {
-    uploadImage,
     autoImage,
-    deleteImage,
+    addImage,
+    imagesFromCandidates,
+    setMainImage,
+    deleteImageById,
     deps: {
-      uploadImage,
       autoImage,
-      deleteImage,
+      addImage,
+      imagesFromCandidates,
+      setMainImage,
+      deleteImageById,
     } as unknown as ImageParams[3],
   };
 }
 
 function intent(over: Partial<ImageIntent>): ImageIntent {
   return {
-    file: null,
+    uploads: [],
+    keepCandidateUrls: [],
+    mainSelection: null,
+    removeImageIds: [],
     auto: false,
-    remove: false,
     ...over,
   };
 }
 
 describe("applyImageIntent", () => {
-  it("uploads a chosen file", async () => {
+  it("uploads chosen files, marking the selected one main", async () => {
     const m = imageMutations();
     const file = new File(["x"], "x.png");
     await applyImageIntent("b1", "https://e.com", intent({
-      file,
+      uploads: [file],
+      mainSelection: {
+        kind: "upload",
+        index: 0,
+      },
     }), m.deps);
-    expect(m.uploadImage.mutateAsync).toHaveBeenCalledWith({
+    expect(m.addImage.mutateAsync).toHaveBeenCalledWith({
       id: "b1",
       file,
+      main: true,
     });
     expect(m.autoImage.mutateAsync).not.toHaveBeenCalled();
   });
 
-  it("auto-fetches the preview image", async () => {
+  it("captures kept scan candidates with the chosen main URL", async () => {
+    const m = imageMutations();
+    await applyImageIntent("b1", "https://e.com", intent({
+      keepCandidateUrls: ["https://e.com/a.jpg", "https://e.com/b.jpg"],
+      mainSelection: {
+        kind: "candidate",
+        url: "https://e.com/b.jpg",
+      },
+    }), m.deps);
+    expect(m.imagesFromCandidates.mutateAsync).toHaveBeenCalledWith({
+      id: "b1",
+      urls: ["https://e.com/a.jpg", "https://e.com/b.jpg"],
+      mainUrl: "https://e.com/b.jpg",
+    });
+  });
+
+  it("removes images and sets an existing main", async () => {
+    const m = imageMutations();
+    await applyImageIntent("b1", "https://e.com", intent({
+      removeImageIds: ["old-1"],
+      mainSelection: {
+        kind: "existing",
+        id: "keep-1",
+      },
+    }), m.deps);
+    expect(m.deleteImageById.mutateAsync).toHaveBeenCalledWith({
+      id: "b1",
+      imageId: "old-1",
+    });
+    expect(m.setMainImage.mutateAsync).toHaveBeenCalledWith({
+      id: "b1",
+      imageId: "keep-1",
+    });
+  });
+
+  it("falls back to auto-fetch when nothing is chosen", async () => {
     const m = imageMutations();
     await applyImageIntent("b1", "https://e.com", intent({
       auto: true,
@@ -251,33 +305,23 @@ describe("applyImageIntent", () => {
     });
   });
 
-  it("removes the existing image", async () => {
-    const m = imageMutations();
-    await applyImageIntent("b1", "https://e.com", intent({
-      remove: true,
-    }), m.deps);
-    expect(m.deleteImage.mutateAsync).toHaveBeenCalledWith("b1");
-  });
-
   it("does nothing for the empty intent", async () => {
     const m = imageMutations();
     await applyImageIntent("b1", "https://e.com", intent({}), m.deps);
-    expect(m.uploadImage.mutateAsync).not.toHaveBeenCalled();
+    expect(m.addImage.mutateAsync).not.toHaveBeenCalled();
+    expect(m.imagesFromCandidates.mutateAsync).not.toHaveBeenCalled();
     expect(m.autoImage.mutateAsync).not.toHaveBeenCalled();
-    expect(m.deleteImage.mutateAsync).not.toHaveBeenCalled();
+    expect(m.deleteImageById.mutateAsync).not.toHaveBeenCalled();
   });
 
-  it("prefers a file over auto / remove", async () => {
+  it("skips the auto fallback once a candidate is kept", async () => {
     const m = imageMutations();
-    const file = new File(["x"], "x.png");
     await applyImageIntent("b1", "https://e.com", intent({
-      file,
+      keepCandidateUrls: ["https://e.com/a.jpg"],
       auto: true,
-      remove: true,
     }), m.deps);
-    expect(m.uploadImage.mutateAsync).toHaveBeenCalledTimes(1);
+    expect(m.imagesFromCandidates.mutateAsync).toHaveBeenCalledTimes(1);
     expect(m.autoImage.mutateAsync).not.toHaveBeenCalled();
-    expect(m.deleteImage.mutateAsync).not.toHaveBeenCalled();
   });
 
   it("swallows a mutation failure (image errors are non-fatal)", async () => {
