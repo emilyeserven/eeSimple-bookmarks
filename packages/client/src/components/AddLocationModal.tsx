@@ -1,49 +1,46 @@
 import type { Location } from "@eesimple/types";
 
-import { InlineCreateModal } from "./InlineCreateModal";
-import { useCreateLocation } from "../hooks/useLocations";
+import { LocationForm } from "./LocationForm";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface AddLocationModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   /** Called with the created location so the opener can navigate to it. */
   onCreated?: (location: Location) => void;
-  /** Fixed parent id — used to nest under the current location. */
-  defaultParentId?: string | null;
 }
 
-/** Minimal name-only modal to create a location inline. */
+/** Full create-location form (name, coordinates, ancestor chain, …) inside a dialog. */
 export function AddLocationModal({
-  open, onOpenChange, onCreated, defaultParentId = null,
+  open, onOpenChange, onCreated,
 }: AddLocationModalProps) {
-  const createLocation = useCreateLocation();
-
   return (
-    <InlineCreateModal
+    <Dialog
       open={open}
       onOpenChange={onOpenChange}
-      title={defaultParentId ? "New sub-location" : "New location"}
-      description={defaultParentId
-        ? "Create a location under the current one — you can fill in the rest from its edit page."
-        : "Give the location a name — you can fill in the rest from its edit page."}
-      placeholder="e.g. Tokyo"
-      submitLabel="Add location"
-      isError={createLocation.isError}
-      errorMessage={createLocation.error?.message}
-      onSubmit={(name, done) => {
-        createLocation.mutate(
-          {
-            name,
-            parentId: defaultParentId,
-          },
-          {
-            onSuccess: (location) => {
-              onCreated?.(location);
-              done();
-            },
-          },
-        );
-      }}
-    />
+    >
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>New location</DialogTitle>
+          <DialogDescription>
+            Create a location, including its parent chain if needed.
+          </DialogDescription>
+        </DialogHeader>
+
+        <LocationForm
+          onCreated={(location) => {
+            onCreated?.(location);
+            onOpenChange(false);
+          }}
+        />
+      </DialogContent>
+    </Dialog>
   );
 }

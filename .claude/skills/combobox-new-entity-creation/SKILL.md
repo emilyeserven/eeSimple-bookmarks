@@ -32,6 +32,7 @@ createOption={{
 | Category | `AddCategoryModal` | Uses `InlineCreateModal`; name only |
 | Media Type | `AddMediaTypeModal` | Uses `InlineCreateModal`; name only; optional `defaultParentId` |
 | Tag | `AddTagModal` / `TagPickerWithCreate` | Full `TagForm` (supports parent); use `TagPickerWithCreate` wrapper in most contexts |
+| Location | `AddLocationModal` / `LocationPickerWithCreate` | Full `LocationForm` (supports ancestor chain); use `LocationPickerWithCreate` wrapper in most contexts |
 | Author | `AddAuthorModal` | Uses `InlineCreateModal`; name only |
 | Publisher | `AddPublisherModal` | Uses `InlineCreateModal`; name only |
 | Property Group | `AddPropertyGroupModal` | Uses `InlineCreateModal`; name only |

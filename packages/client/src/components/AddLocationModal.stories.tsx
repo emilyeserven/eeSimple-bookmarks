@@ -21,12 +21,5 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-/** The top-level "New location" dialog, opened. */
+/** The "New location" dialog, opened, with the full location form. */
 export const Default: Story = {};
-
-/** Nested under an existing location — the title and copy switch to "New sub-location". */
-export const SubLocation: Story = {
-  args: {
-    defaultParentId: "location-parent",
-  },
-};
