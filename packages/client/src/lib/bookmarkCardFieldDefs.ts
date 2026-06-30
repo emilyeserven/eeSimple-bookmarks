@@ -36,6 +36,10 @@ export const STANDARD_CARD_FIELDS = [
     label: "Tags",
   },
   {
+    key: "locations",
+    label: "Locations",
+  },
+  {
     key: "externalLink",
     label: "Open Link",
   },

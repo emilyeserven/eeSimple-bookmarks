@@ -379,6 +379,41 @@ export async function backfillCardDisplayRuleHeaderFields(): Promise<void> {
 }
 
 /**
+ * One-time boot backfill: place the `locations` field into rules whose stored `field_zones` predate
+ * it. It's appended to its default body zone ({@link defaultBodyZone} → `card-labels`, the pill form),
+ * reproducing the seed placement. Idempotent — a rule already carrying `locations` in any zone is
+ * skipped, and inheriting rules (`field_zones IS NULL`) are left untouched. Must run after
+ * `ensureDefaultCardDisplayRule`/`backfillCardDisplayRuleFieldZones`.
+ */
+export async function backfillCardDisplayRuleLocationsField(): Promise<void> {
+  const rows = await db.select().from(cardDisplayRules);
+  for (const row of rows) {
+    const stored = row.fieldZones as Record<string, CardFieldPlacement[]> | null;
+    if (!stored) continue;
+
+    const placed = new Set(
+      CARD_FIELD_ZONES.flatMap(zone => (stored[zone] ?? []).map(p => p.key)),
+    );
+    if (placed.has("locations")) continue;
+
+    const next = emptyCardFieldZones();
+    for (const zone of CARD_FIELD_ZONES) {
+      if (Array.isArray(stored[zone])) next[zone] = [...stored[zone]];
+    }
+    next[defaultBodyZone("locations")].push({
+      key: "locations",
+    });
+
+    await db
+      .update(cardDisplayRules)
+      .set({
+        fieldZones: next,
+      })
+      .where(eq(cardDisplayRules.id, row.id));
+  }
+}
+
+/**
  * One-time boot backfill: migrate rules whose stored `card_zone_layouts` still use the legacy bare
  * string form (`"flex"`/`"grid"`) into the `{ mode, gap?, align? }` object shape. Idempotent — rules
  * that are already fully object-shaped (or inherit via `card_zone_layouts IS NULL`) are left untouched.
