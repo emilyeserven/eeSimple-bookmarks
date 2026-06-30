@@ -23,7 +23,7 @@ import { randomId } from "@/lib/utils";
  * and fires a field-named toast (the per-placeType display config the map/sort consume is derived from
  * these groups, so both surfaces stay in sync). Editing one source of truth keeps them identical.
  */
-export function useLocationLevels(): {
+export function useLocationLevels(opts: { notify?: boolean } = {}): {
   groups: PlaceTypeLevelGroup[];
   isLoading: boolean;
   isSaving: boolean;
@@ -51,6 +51,8 @@ export function useLocationLevels(): {
   /** Clear all per-placeType icon overrides. */
   resetPlaceTypeIcons: () => void;
 } {
+  const shouldNotify = opts.notify ?? true;
+
   const {
     data: locations, isLoading,
   } = useLocations();
@@ -82,7 +84,7 @@ export function useLocationLevels(): {
 
   function save(next: PlaceTypeLevelGroupConfig, label: string): void {
     update.mutate(next, {
-      onSuccess: () => notifyFieldSaved(label),
+      onSuccess: () => { if (shouldNotify) notifyFieldSaved(label); },
       onError: error => notifyFieldSaveError(label, error.message),
     });
   }

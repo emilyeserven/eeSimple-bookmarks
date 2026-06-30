@@ -1,5 +1,5 @@
 import { DEFAULT_LOCATION_MAP_COLOR, normalizeHexColor } from "@eesimple/types";
-import { MapPin, Settings, Shapes } from "lucide-react";
+import { MapPin, Settings, Shapes, Square } from "lucide-react";
 
 import { useLocationLevels } from "../hooks/useLocationLevels";
 
@@ -92,7 +92,9 @@ export function LocationLevelsMapPanel() {
     groups,
     setGroupVisible,
     setGroupDisplayMode,
-  } = useLocationLevels();
+  } = useLocationLevels({
+    notify: false,
+  });
 
   return (
     <div
@@ -127,13 +129,26 @@ export function LocationLevelsMapPanel() {
                   checked={group.visible}
                   onCheckedChange={checked => setGroupVisible(group.id, checked === true)}
                 />
-                <span
-                  className="size-3 shrink-0 rounded-sm border"
-                  style={{
-                    backgroundColor: normalizeHexColor(group.color) ?? DEFAULT_LOCATION_MAP_COLOR,
-                  }}
-                  aria-hidden="true"
-                />
+                {group.displayMode === "pin"
+                  ? (
+                    <MapPin
+                      className="size-3 shrink-0"
+                      style={{
+                        color: normalizeHexColor(group.color) ?? DEFAULT_LOCATION_MAP_COLOR,
+                      }}
+                      aria-hidden="true"
+                    />
+                  )
+                  : (
+                    <Square
+                      className="size-3 shrink-0"
+                      style={{
+                        color: normalizeHexColor(group.color) ?? DEFAULT_LOCATION_MAP_COLOR,
+                        fill: normalizeHexColor(group.color) ?? DEFAULT_LOCATION_MAP_COLOR,
+                      }}
+                      aria-hidden="true"
+                    />
+                  )}
                 <Label
                   htmlFor={`map-level-${group.id}`}
                   className="cursor-pointer text-xs"

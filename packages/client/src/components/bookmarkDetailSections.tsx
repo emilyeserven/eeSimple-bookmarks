@@ -1,12 +1,13 @@
 import type { BookmarkHierarchyNode } from "../lib/bookmarkHierarchy";
 import type { FlatNode } from "../lib/tagTree";
-import type { Bookmark, CardFieldZones, Category, CustomProperty, PropertyGroup } from "@eesimple/types";
+import type { Bookmark, CardFieldZones, Category, CustomProperty, LocationNode, PropertyGroup } from "@eesimple/types";
 import type { ReactNode } from "react";
 
 import { Link } from "@tanstack/react-router";
 
 import { BookmarkCategoryLink } from "./BookmarkCategoryLink";
 import { BookmarkDetailDebug } from "./BookmarkDetailDebug";
+import { BookmarkLocationsTabContent } from "./BookmarkLocationsTabContent";
 import { BookmarkPropertySections } from "./BookmarkPropertySections";
 import { hasBookmarkPropertyRows } from "../lib/bookmarkProperties";
 
@@ -19,6 +20,7 @@ export type BookmarkDetailSectionId
   = | "general"
     | "relationships"
     | "hierarchy"
+    | "locations"
     | "metadata"
     | "debug";
 
@@ -45,6 +47,8 @@ interface BuildArgs {
   onSaveBoolean?: (propertyId: string, value: boolean) => void;
   /** The Default card display rule's field zones, resolving the per-card boolean display knobs. */
   defaultFieldZones?: CardFieldZones;
+  /** Full location tree for the map + ancestor breadcrumb trail; undefined while loading. */
+  locationTree?: LocationNode[];
 }
 
 function generalSection(args: BuildArgs, category: Category | undefined): BookmarkDetailSection {
@@ -282,6 +286,24 @@ function hierarchySection(
   };
 }
 
+function locationsSection(
+  bookmark: Bookmark,
+  locationTree: LocationNode[] | undefined,
+): BookmarkDetailSection | null {
+  if (bookmark.locations.length === 0) return null;
+  return {
+    id: "locations",
+    label: "Locations",
+    content: (
+      <BookmarkLocationsTabContent
+        bookmarkId={bookmark.id}
+        locations={bookmark.locations}
+        locationTree={locationTree}
+      />
+    ),
+  };
+}
+
 function metadataSection(bookmark: Bookmark): BookmarkDetailSection {
   return {
     id: "metadata",
@@ -329,6 +351,7 @@ export function buildBookmarkDetailSections(args: BuildArgs): BookmarkDetailSect
     generalSection(args, category),
     relationshipsSection(args.bookmark),
     hierarchySection(args.flatHierarchy),
+    locationsSection(args.bookmark, args.locationTree),
     metadataSection(args.bookmark),
     debugSection(args.bookmark),
   ].filter((section): section is BookmarkDetailSection => section !== null);
