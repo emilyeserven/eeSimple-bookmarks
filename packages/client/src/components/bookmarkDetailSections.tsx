@@ -7,6 +7,7 @@ import { Link } from "@tanstack/react-router";
 
 import { BookmarkCategoryLink } from "./BookmarkCategoryLink";
 import { BookmarkDetailDebug } from "./BookmarkDetailDebug";
+import { BookmarkGallery } from "./BookmarkGallery";
 import { BookmarkLocationsBox } from "./BookmarkLocationsBox";
 import { BookmarkLocationsTabContent } from "./BookmarkLocationsTabContent";
 import { BookmarkPropertySections } from "./BookmarkPropertySections";
@@ -19,6 +20,7 @@ import { Separator } from "@/components/ui/separator";
 
 export type BookmarkDetailSectionId
   = | "general"
+    | "gallery"
     | "relationships"
     | "hierarchy"
     | "locations"
@@ -203,6 +205,15 @@ function generalSection(args: BuildArgs, category: Category | undefined): Bookma
   };
 }
 
+function gallerySection(bookmark: Bookmark): BookmarkDetailSection | null {
+  if (bookmark.images.length === 0) return null;
+  return {
+    id: "gallery",
+    label: "Gallery",
+    content: <BookmarkGallery bookmark={bookmark} />,
+  };
+}
+
 function relationshipsSection(bookmark: Bookmark): BookmarkDetailSection | null {
   if (bookmark.relationships.length === 0) return null;
   return {
@@ -358,6 +369,7 @@ export function buildBookmarkDetailSections(args: BuildArgs): BookmarkDetailSect
   const category = args.categories.find(item => item.id === args.bookmark.categoryId);
   return [
     generalSection(args, category),
+    gallerySection(args.bookmark),
     relationshipsSection(args.bookmark),
     hierarchySection(args.flatHierarchy),
     locationsSection(args.bookmark, args.locationTree),
