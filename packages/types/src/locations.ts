@@ -175,12 +175,32 @@ export interface LocationTitleCandidate {
   name: string;
   romanizedName?: string | null;
   alternateNames?: LocationAlternateName[];
+  /** The location's parent id, used to drop a matched ancestor of another matched (more specific) location. */
+  parentId?: string | null;
+}
+
+/** Whether `ancestorId` sits above `descendantId` in the `byId` parent chain. */
+function isLocationAncestor(
+  ancestorId: string,
+  descendantId: string,
+  byId: Map<string, LocationTitleCandidate>,
+): boolean {
+  let currentId = byId.get(descendantId)?.parentId ?? null;
+  while (currentId) {
+    if (currentId === ancestorId) return true;
+    currentId = byId.get(currentId)?.parentId ?? null;
+  }
+  return false;
 }
 
 /**
  * The ids of locations implied by a bookmark's title. Each location's `name`, `romanizedName`, and
  * every `alternateNames[].value` are tested against both the bookmark's `title` and its
  * `romanizedTitle` via {@link titleMatchesTerm}. Pure helper — mirrors `matchTagIdsByTitle`.
+ *
+ * A matched location that is an ancestor of another matched (more specific) location is dropped —
+ * a title mentioning both a place and its containing region (e.g. a temple's name and the city it's
+ * in) should only be tagged with the most specific match; the ancestor is implied by it.
  */
 export function matchLocationIdsByTitle(
   title: string,
@@ -189,15 +209,18 @@ export function matchLocationIdsByTitle(
 ): string[] {
   const haystacks = [title, romanizedTitle ?? ""].filter(text => text.trim() !== "");
   if (haystacks.length === 0) return [];
-  return locations
-    .filter((loc) => {
-      const terms = [
-        loc.name,
-        loc.romanizedName ?? "",
-        ...(loc.alternateNames ?? []).map(alt => alt.value),
-      ].filter(text => text.trim() !== "");
-      return terms.some(term => haystacks.some(haystack => titleMatchesTerm(haystack, term)));
-    })
+  const matched = locations.filter((loc) => {
+    const terms = [
+      loc.name,
+      loc.romanizedName ?? "",
+      ...(loc.alternateNames ?? []).map(alt => alt.value),
+    ].filter(text => text.trim() !== "");
+    return terms.some(term => haystacks.some(haystack => titleMatchesTerm(haystack, term)));
+  });
+  const byId = new Map(locations.map(loc => [loc.id, loc]));
+  return matched
+    .filter(loc => !matched.some(other =>
+      other.id !== loc.id && isLocationAncestor(loc.id, other.id, byId)))
     .map(loc => loc.id);
 }
 
