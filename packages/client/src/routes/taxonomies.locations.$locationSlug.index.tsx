@@ -92,24 +92,12 @@ function LocationBookmarksPage() {
                 flex flex-wrap items-center gap-2 text-sm text-muted-foreground
               "
             >
-              <SubLocationsHoverLabel locations={location.children} />
+              <span>Sub-locations:</span>
               {location.children.map(child => (
-                <Link
+                <SubLocationPill
                   key={child.id}
-                  to="/taxonomies/locations/$locationSlug"
-                  params={{
-                    locationSlug: child.slug,
-                  }}
-                  className="
-                    rounded-full border px-2.5 py-0.5 font-medium
-                    hover:bg-accent
-                  "
-                >
-                  <RomanizedLabel
-                    name={child.name}
-                    romanized={child.romanizedName}
-                  />
-                </Link>
+                  location={child}
+                />
               ))}
             </div>
           )}
@@ -152,34 +140,50 @@ function LocationBookmarksPage() {
 }
 
 /**
- * The "Sub-locations:" label, with a hover popover that lists the full descendant tree (not just the
- * direct children shown as chips below it) preserving its hierarchy.
+ * A single sub-location chip. When the location has its own children, hovering the pill opens a
+ * popover listing its descendant tree (preserving hierarchy), so each pill exposes its own
+ * subtree instead of one popover covering every direct child at once.
  */
-function SubLocationsHoverLabel({
-  locations,
-}: { locations: LocationNode[] }) {
+function SubLocationPill({
+  location,
+}: { location: LocationNode }) {
   const [open, setOpen] = useState(false);
+  const hasChildren = location.children.length > 0;
+
+  const pill = (
+    <Link
+      to="/taxonomies/locations/$locationSlug"
+      params={{
+        locationSlug: location.slug,
+      }}
+      className="
+        rounded-full border px-2.5 py-0.5 font-medium
+        hover:bg-accent
+      "
+      onMouseEnter={hasChildren ? () => setOpen(true) : undefined}
+      onMouseLeave={hasChildren ? () => setOpen(false) : undefined}
+    >
+      <RomanizedLabel
+        name={location.name}
+        romanized={location.romanizedName}
+      />
+    </Link>
+  );
+
+  if (!hasChildren) {
+    return pill;
+  }
 
   return (
     <Popover open={open}>
-      <PopoverTrigger asChild>
-        <span
-          className="
-            cursor-default underline decoration-dotted underline-offset-2
-          "
-          onMouseEnter={() => setOpen(true)}
-          onMouseLeave={() => setOpen(false)}
-        >
-          Sub-locations:
-        </span>
-      </PopoverTrigger>
+      <PopoverTrigger asChild>{pill}</PopoverTrigger>
       <PopoverContent
         align="start"
         className="max-h-[500px] w-64 overflow-y-auto"
         onMouseEnter={() => setOpen(true)}
         onMouseLeave={() => setOpen(false)}
       >
-        <LocationChildrenTree locations={locations} />
+        <LocationChildrenTree locations={location.children} />
       </PopoverContent>
     </Popover>
   );
