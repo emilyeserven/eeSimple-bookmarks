@@ -16,6 +16,7 @@ describe("settingsPages registry", () => {
     for (const path of [
       "/settings/display/filters",
       "/settings/automations/global",
+      "/settings/automations/backfill",
       "/settings/automations/check-links",
       "/settings/automations/redirect-failures",
       "/settings/advanced/manage-data",

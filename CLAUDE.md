@@ -561,6 +561,26 @@ upload/auto-capture returns 503. See `README.md` → "Object storage (Garage)" f
 
 See `packages/middleware/.env.example`.
 
+## Settings page starring
+
+**Every settings sub-page must be registered as favoritable.** The header star button, the sidebar
+Settings favorites flyout, and the persisted favorite (`favorite_settings_pages` table /
+`FavoriteSettingsPage`) all key off one registry: `SETTINGS_PAGES` in
+`packages/client/src/lib/settingsPages.ts` (`{ path, label, icon }`, resolved by exact pathname via
+`findSettingsPage()`). A page not in this list silently gets no star button — `useSettingsFavorite`
+and `HeaderSettingsFavoriteButton` only render once `findSettingsPage(pathname)` returns a match
+(wired through `ctx.settingsPage` in `routes/-appHeaderToolbar.ts` →
+`settingsFavoriteAction` in `components/header/toolbarEntityActions.tsx`). **When adding a new
+`/settings/*` leaf page (or a new tab inside an existing tabbed section like Display/Automations/
+Advanced), add a matching entry to `SETTINGS_PAGES` in the same change** — label mirrors the section
++ tab name (e.g. `"Automations: Backfill"`), icon is a `lucide-react` icon distinct from sibling
+entries. Don't register the tabbed section's own index/parent path (`/settings/automations`, not
+just its tabs) — it redirects to the first tab and is never the live pathname, so an entry for it
+can never match. This also applies to the management/customization listing pages that live outside
+`/settings/*` (Categories, Tags, Websites, …) — see the existing second half of the `SETTINGS_PAGES`
+array. Add the new leaf path to the relevant test list in `packages/client/src/lib/settingsPages.test.ts`
+too.
+
 ## CMD+K palette sync
 
 **The CMD+K palette must mirror every header toolbar action.** `buildToolbarActions` in
