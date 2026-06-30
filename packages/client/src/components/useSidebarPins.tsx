@@ -3,8 +3,9 @@ import type { PinnedSidebarEntityType, PinnedSidebarItem } from "@eesimple/types
 
 import * as React from "react";
 
-import { Filter, Globe, MonitorPlay, Tags } from "lucide-react";
+import { Filter, Globe, MapPin, MonitorPlay, Tags } from "lucide-react";
 
+import { TAXONOMY_LISTING_PINS } from "./usePinManagerData";
 import { bookmarkMatchesSearch, bookmarkSearchEquals, validateBookmarkSearch } from "../lib/bookmarkSearch";
 
 import { CategoryIcon } from "@/lib/icons";
@@ -33,7 +34,7 @@ export function useResolvedPins(
 ): ResolvedPin[] {
   const {
     categories, allTags, allWebsites, allMediaTypes, allChannels, savedFilters, pinnedItems,
-    allBookmarks,
+    allBookmarks, allLocations,
   } = data;
   return React.useMemo((): ResolvedPin[] => {
     return pinnedItems.flatMap((pin: PinnedSidebarItem): ResolvedPin[] => {
@@ -132,10 +133,39 @@ export function useResolvedPins(
             isActive: pathname.startsWith("/bookmarks") && bookmarkSearchEquals(currentBookmarkSearch, e.filters),
           }];
         }
+        case "location": {
+          const e = (allLocations ?? []).find(l => l.id === pin.entityId);
+          if (!e) return [];
+          return [{
+            id: pin.id,
+            label: e.name,
+            icon: <MapPin />,
+            link: {
+              kind: "path",
+              path: `/taxonomies/locations/${e.slug}`,
+            },
+            bookmarkCount: e.bookmarkCount,
+            isActive: pathname.startsWith(`/taxonomies/locations/${e.slug}`),
+          }];
+        }
+        case "taxonomy-listing": {
+          const listing = TAXONOMY_LISTING_PINS.find(l => l.key === pin.entityId);
+          if (!listing) return [];
+          return [{
+            id: pin.id,
+            label: listing.label,
+            icon: <listing.Icon />,
+            link: {
+              kind: "path",
+              path: listing.path,
+            },
+            isActive: pathname.startsWith(listing.path),
+          }];
+        }
       }
     });
   }, [pinnedItems, categories, allTags, allWebsites, allMediaTypes, allChannels, savedFilters,
-    allBookmarks, pathname, currentBookmarkCategories, currentBookmarkSearch]);
+    allBookmarks, allLocations, pathname, currentBookmarkCategories, currentBookmarkSearch]);
 }
 
 /**

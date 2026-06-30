@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
  */
 export function PinManager() {
   const {
-    pins, addPin, removePin, options, resolvePinLabel,
+    pins, addPin, removePin, groups, resolvePinLabel,
   } = usePinManagerData();
   const [comboValue, setComboValue] = useState<string | undefined>();
 
@@ -37,10 +37,10 @@ export function PinManager() {
   return (
     <div className="space-y-3">
       <Combobox
-        options={options}
+        groups={groups}
         value={comboValue}
         onValueChange={handleSelect}
-        placeholder="Pin a category, tag, website…"
+        placeholder="Pin a category, location, tag…"
         searchPlaceholder="Search…"
         emptyText="Nothing left to pin."
       />

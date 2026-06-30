@@ -2538,7 +2538,9 @@ export type PinnedSidebarEntityType
     | "website"
     | "media-type"
     | "youtube-channel"
-    | "saved-filter";
+    | "saved-filter"
+    | "location"
+    | "taxonomy-listing";
 
 export interface PinnedSidebarItem {
   id: string;

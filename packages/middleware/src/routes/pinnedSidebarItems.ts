@@ -25,7 +25,7 @@ const createBody = {
   properties: {
     entityType: {
       type: "string",
-      enum: ["category", "tag", "website", "media-type", "youtube-channel", "saved-filter"],
+      enum: ["category", "tag", "website", "media-type", "youtube-channel", "saved-filter", "location", "taxonomy-listing"],
     },
     entityId: {
       type: "string",
