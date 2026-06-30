@@ -18,7 +18,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { LOCATION_MAP_PALETTES } from "@eesimple/types";
-import { MapPin, Plus, Shapes } from "lucide-react";
+import { Layers, MapPin, Plus, Shapes } from "lucide-react";
 
 import { PlaceTypeIconsCard } from "./PlaceTypeIconsCard";
 import { SortableGroupRow } from "./SortableLevelGroupRow";
@@ -55,7 +55,7 @@ function AddLevelGap({
   );
 }
 
-const TAB_CONFIG = {
+const DISPLAY_MODE_CONFIG = {
   pin: {
     icon: MapPin,
     label: "Pin",
@@ -69,6 +69,19 @@ const TAB_CONFIG = {
     empty: "No area levels yet. Add one to group place types that render as boundary areas on the map.",
   },
 } as const;
+
+const OUTER_TABS = [
+  {
+    key: "level-groups" as const,
+    icon: Layers,
+    label: "Level Groups",
+  },
+  {
+    key: "pin-icons" as const,
+    icon: MapPin,
+    label: "Pin Icons",
+  },
+];
 
 /**
  * Settings → Locations: define named "level" groups, each grouping one or more Nominatim place types
@@ -95,6 +108,7 @@ export function LocationsSettings() {
     resetPlaceTypeIcons,
   } = useLocationLevels();
 
+  const [outerTab, setOuterTab] = useState<"level-groups" | "pin-icons">("level-groups");
   const [levelTab, setLevelTab] = useState<LocationDisplayMode>("pin");
 
   // Local ordered IDs for each tab, re-synced when the saved groups change.
@@ -138,183 +152,216 @@ export function LocationsSettings() {
     reorderGroupsInTab(levelTab, next);
   }
 
-  const tabCfg = TAB_CONFIG[levelTab];
+  const modeCfg = DISPLAY_MODE_CONFIG[levelTab];
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Level groups</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {groups.length > 0
-            ? (
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">
-                  Apply a color palette across your levels (top to bottom), then fine-tune each
-                  color individually.
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {LOCATION_MAP_PALETTES.map(palette => (
-                    <button
-                      key={palette.id}
-                      type="button"
-                      onClick={() => applyPalette(palette.id)}
-                      className="
-                        flex items-center gap-2 rounded-md border px-2 py-1
-                        text-xs
-                        hover:bg-accent
-                      "
-                      title={`Apply the ${palette.name} palette`}
-                    >
-                      <span className="flex overflow-hidden rounded-sm">
-                        {palette.colors.map(color => (
-                          <span
-                            key={color}
-                            className="size-3"
-                            style={{
-                              backgroundColor: color,
-                            }}
-                          />
-                        ))}
-                      </span>
-                      {palette.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )
-            : null}
-
-          {/* Vertical-tab layout: tab list left, content right */}
-          <div
-            className="
-              flex flex-col gap-4
-              sm:flex-row
-            "
-          >
-            {/* Tab list — horizontal on mobile, vertical on sm+ */}
-            <nav
-              aria-label="Level group tabs"
-              className="
-                flex flex-row gap-1
-                sm:w-28 sm:shrink-0 sm:flex-col
-              "
+    <div
+      className="
+        flex gap-4
+        sm:gap-6
+      "
+    >
+      {/* Page-level vertical tab nav */}
+      <nav
+        aria-label="Locations settings sections"
+        className="flex w-32 shrink-0 flex-col gap-1"
+      >
+        {OUTER_TABS.map((tab) => {
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setOuterTab(tab.key)}
+              className={cn(
+                `
+                  flex items-center gap-2 rounded-md px-3 py-2 text-sm
+                  font-medium whitespace-nowrap transition-colors
+                `,
+                outerTab === tab.key
+                  ? "bg-accent text-accent-foreground"
+                  : `
+                    text-muted-foreground
+                    hover:bg-accent/50 hover:text-foreground
+                  `,
+              )}
             >
-              {(["pin", "area"] as const).map((tab) => {
-                const cfg = TAB_CONFIG[tab];
-                const Icon = cfg.icon;
-                return (
-                  <button
-                    key={tab}
-                    type="button"
-                    onClick={() => setLevelTab(tab)}
-                    className={cn(
-                      `
-                        flex items-center gap-2 rounded-md px-3 py-2 text-sm
-                        font-medium whitespace-nowrap transition-colors
-                      `,
-                      levelTab === tab
-                        ? "bg-accent text-accent-foreground"
-                        : `
-                          text-muted-foreground
-                          hover:bg-accent/50 hover:text-foreground
-                        `,
-                    )}
-                  >
-                    <Icon className="size-4 shrink-0" />
-                    {cfg.label}
-                  </button>
-                );
-              })}
-            </nav>
+              <Icon className="size-4 shrink-0" />
+              {tab.label}
+            </button>
+          );
+        })}
+      </nav>
 
-            {/* Tab content */}
-            <div className="min-w-0 flex-1 space-y-3">
-              <div className="flex items-start justify-between gap-2">
-                <p className="text-xs text-muted-foreground">{tabCfg.description}</p>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="shrink-0"
-                  onClick={() => addGroupOfMode(levelTab)}
-                >
-                  <Plus className="mr-1 size-4" />
-                  Add level
-                </Button>
-              </div>
-
-              {isLoading
-                ? <p className="text-sm text-muted-foreground">Loading…</p>
-                : null}
-
-              {!isLoading && currentGroups.length === 0
-                ? (
-                  <p className="text-sm text-muted-foreground">{tabCfg.empty}</p>
-                )
-                : null}
-
-              {currentGroups.length > 0
-                ? (
-                  <DndContext
-                    sensors={sensors}
-                    collisionDetection={closestCenter}
-                    onDragEnd={handleDragEnd}
-                  >
-                    <SortableContext
-                      items={currentIds}
-                      strategy={verticalListSortingStrategy}
-                    >
-                      <div>
-                        {currentGroups.map((group, index) => (
-                          <div key={group.id}>
-                            <SortableGroupRow
-                              group={group}
-                              options={placeTypeOptions}
-                              renameGroup={renameGroup}
-                              setGroupVisible={setGroupVisible}
-                              setGroupPlaceTypes={setGroupPlaceTypes}
-                              setGroupColor={setGroupColor}
-                              removeGroup={removeGroup}
-                            />
-                            {index < currentGroups.length - 1
-                              ? (
-                                <AddLevelGap
-                                  onClick={() => addGroupOfMode(levelTab, group.id)}
+      {/* Tab content */}
+      <div className="min-w-0 flex-1">
+        {outerTab === "level-groups"
+          ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Level Groups</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {groups.length > 0
+                  ? (
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground">
+                        Apply a color palette across your levels (top to bottom), then fine-tune each
+                        color individually.
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {LOCATION_MAP_PALETTES.map(palette => (
+                          <button
+                            key={palette.id}
+                            type="button"
+                            onClick={() => applyPalette(palette.id)}
+                            className="
+                              flex items-center gap-2 rounded-md border px-2
+                              py-1 text-xs
+                              hover:bg-accent
+                            "
+                            title={`Apply the ${palette.name} palette`}
+                          >
+                            <span className="flex overflow-hidden rounded-sm">
+                              {palette.colors.map(color => (
+                                <span
+                                  key={color}
+                                  className="size-3"
+                                  style={{
+                                    backgroundColor: color,
+                                  }}
                                 />
-                              )
-                              : null}
-                          </div>
+                              ))}
+                            </span>
+                            {palette.name}
+                          </button>
                         ))}
                       </div>
-                    </SortableContext>
-                  </DndContext>
-                )
-                : null}
+                    </div>
+                  )
+                  : null}
 
-              {unassignedPlaceTypes.length > 0
-                ? (
-                  <p className="text-xs text-muted-foreground">
-                    Unassigned place types (shown as areas by default):
-                    {" "}
-                    {unassignedPlaceTypes.map(option => option.label).join(", ")}
-                    .
-                  </p>
-                )
-                : null}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+                {/* Horizontal Pin / Area tab switcher */}
+                <nav
+                  aria-label="Level group display mode"
+                  className="flex gap-1 border-b pb-1"
+                >
+                  {(["pin", "area"] as const).map((tab) => {
+                    const cfg = DISPLAY_MODE_CONFIG[tab];
+                    const Icon = cfg.icon;
+                    return (
+                      <button
+                        key={tab}
+                        type="button"
+                        onClick={() => setLevelTab(tab)}
+                        className={cn(
+                          `
+                            flex items-center gap-1.5 rounded-md px-3 py-1.5
+                            text-sm font-medium transition-colors
+                          `,
+                          levelTab === tab
+                            ? "bg-accent text-accent-foreground"
+                            : `
+                              text-muted-foreground
+                              hover:bg-accent/50 hover:text-foreground
+                            `,
+                        )}
+                      >
+                        <Icon className="size-3.5" />
+                        {cfg.label}
+                      </button>
+                    );
+                  })}
+                </nav>
 
-      <PlaceTypeIconsCard
-        options={placeTypeOptions}
-        groups={groups}
-        icons={placeTypeIcons}
-        onSetIcon={setPlaceTypeIcon}
-        onReset={resetPlaceTypeIcons}
-      />
+                {/* Display mode tab content */}
+                <div className="space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-xs text-muted-foreground">{modeCfg.description}</p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="shrink-0"
+                      onClick={() => addGroupOfMode(levelTab)}
+                    >
+                      <Plus className="mr-1 size-4" />
+                      Add level
+                    </Button>
+                  </div>
+
+                  {isLoading
+                    ? <p className="text-sm text-muted-foreground">Loading…</p>
+                    : null}
+
+                  {!isLoading && currentGroups.length === 0
+                    ? (
+                      <p className="text-sm text-muted-foreground">{modeCfg.empty}</p>
+                    )
+                    : null}
+
+                  {currentGroups.length > 0
+                    ? (
+                      <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={handleDragEnd}
+                      >
+                        <SortableContext
+                          items={currentIds}
+                          strategy={verticalListSortingStrategy}
+                        >
+                          <div>
+                            {currentGroups.map((group, index) => (
+                              <div key={group.id}>
+                                <SortableGroupRow
+                                  group={group}
+                                  options={placeTypeOptions}
+                                  renameGroup={renameGroup}
+                                  setGroupVisible={setGroupVisible}
+                                  setGroupPlaceTypes={setGroupPlaceTypes}
+                                  setGroupColor={setGroupColor}
+                                  removeGroup={removeGroup}
+                                />
+                                {index < currentGroups.length - 1
+                                  ? (
+                                    <AddLevelGap
+                                      onClick={() => addGroupOfMode(levelTab, group.id)}
+                                    />
+                                  )
+                                  : null}
+                              </div>
+                            ))}
+                          </div>
+                        </SortableContext>
+                      </DndContext>
+                    )
+                    : null}
+
+                  {unassignedPlaceTypes.length > 0
+                    ? (
+                      <p className="text-xs text-muted-foreground">
+                        Unassigned place types (shown as areas by default):
+                        {" "}
+                        {unassignedPlaceTypes.map(option => option.label).join(", ")}
+                        .
+                      </p>
+                    )
+                    : null}
+                </div>
+              </CardContent>
+            </Card>
+          )
+          : (
+            <PlaceTypeIconsCard
+              options={placeTypeOptions}
+              groups={groups}
+              icons={placeTypeIcons}
+              onSetIcon={setPlaceTypeIcon}
+              onReset={resetPlaceTypeIcons}
+            />
+          )}
+      </div>
     </div>
   );
 }

@@ -49,7 +49,7 @@ describe("LocationsSettings", () => {
     render(<LocationsSettings />);
     // The Country group has displayMode "area", so it lives in the Area tab.
     const levelGroupTabs = screen.getByRole("navigation", {
-      name: "Level group tabs",
+      name: "Level group display mode",
     });
     fireEvent.click(within(levelGroupTabs).getByRole("button", {
       name: "Area",
@@ -67,6 +67,10 @@ describe("LocationsSettings", () => {
 
   it("renders a Place Type Icons picker per discovered place type", () => {
     render(<LocationsSettings />);
+    // Navigate to the Pin Icons outer tab to reveal PlaceTypeIconsCard.
+    fireEvent.click(screen.getByRole("button", {
+      name: "Pin Icons",
+    }));
     expect(screen.getByText("Place Type Icons")).toBeInTheDocument();
     // Country is in an area-mode group; City is unassigned (defaults to area). Both live in "Area" tab.
     const iconTabs = screen.getByRole("navigation", {
