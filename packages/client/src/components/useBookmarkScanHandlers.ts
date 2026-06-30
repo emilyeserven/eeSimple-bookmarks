@@ -303,6 +303,52 @@ export function useBookmarkScanHandlers({
     setSocialAccountOffer?.(acct);
   }
 
+  // Edit-mode reconciliation for a scanned social account: unlike `applyScanSocialAccount` (which
+  // only fills authors when none are selected and otherwise offers to create one), an existing
+  // bookmark may already have an author assigned. If an author already lists this social account,
+  // attach them to the bookmark (without displacing any other already-assigned author); otherwise,
+  // if the bookmark already has an author, record the link on that author instead of reassigning.
+  // Falls back to the create-style offer only when neither case applies.
+  async function reconcileSocialAccountOnEdit(
+    acct: SocialAccountRef | null,
+    currentAuthorIds: string[],
+  ): Promise<void> {
+    if (!acct || !setAuthorIds) return;
+    const match = findAuthorBySocialAccount(acct);
+    if (match) {
+      if (!currentAuthorIds.includes(match.id)) {
+        setAuthorIds([...currentAuthorIds, match.id]);
+      }
+      setSocialAccountOffer?.(null);
+      return;
+    }
+    if (currentAuthorIds.length > 0) {
+      const existingAuthor = (authors ?? []).find(a => a.id === currentAuthorIds[0]);
+      if (!existingAuthor) return;
+      const alreadyLinked = existingAuthor.socialLinks.some((link) => {
+        const ref = socialAccountFromLink(link);
+        return ref !== null && sameSocialAccount(ref, acct);
+      });
+      if (alreadyLinked) return;
+      try {
+        await updateAuthor?.mutateAsync({
+          id: existingAuthor.id,
+          input: {
+            socialLinks: [...existingAuthor.socialLinks, {
+              platform: acct.platform,
+              url: acct.profileUrl,
+            }],
+          },
+        });
+      }
+      catch {
+        // Non-fatal: the bookmark/author relationship is unaffected; the link can be added manually.
+      }
+      return;
+    }
+    setSocialAccountOffer?.(acct);
+  }
+
   // Create a new author from a detected social account: name = handle, attach the social link, pull
   // the avatar best-effort (non-blocking), then select the author and clear the offer. Invoked by the
   // offer banner's "Create author" button.
@@ -424,6 +470,7 @@ export function useBookmarkScanHandlers({
     runYouTubeEnrichment,
     applyScanMetadata,
     createAuthorFromSocialAccount,
+    reconcileSocialAccountOnEdit,
     runUrlCleanup,
     undoUrlCleanup,
     undoTitleFetch,
