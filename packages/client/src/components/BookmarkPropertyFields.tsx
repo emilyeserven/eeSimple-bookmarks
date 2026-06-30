@@ -1,0 +1,573 @@
+import type {
+  Bookmark,
+  CustomProperty,
+  SectionEntry,
+  SectionEntryType,
+} from "@eesimple/types";
+
+import { SECTION_ENTRY_TYPES, SECTION_ENTRY_TYPE_LABELS } from "@eesimple/types";
+import { Loader2, Sparkles } from "lucide-react";
+
+import { BookmarkPropertyFileField } from "./BookmarkPropertyFileField";
+import { DateTimePicker } from "./DateTimePicker";
+import { StarRating } from "./StarRating";
+
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+/** The optional muted description line shown under most property fields. */
+export function FieldDescription({
+  text,
+}: {
+  text: string | null | undefined;
+}) {
+  if (!text) return null;
+  return <p className="text-xs text-muted-foreground">{text}</p>;
+}
+
+export function NumberPropertyField({
+  property, fieldId, value, onChange,
+}: {
+  property: CustomProperty;
+  fieldId: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="space-y-1">
+      <Label htmlFor={fieldId}>
+        {property.name}
+        {property.unitPlural ? ` (${property.unitPlural})` : ""}
+      </Label>
+      <Input
+        id={fieldId}
+        type="number"
+        value={value}
+        onChange={event => onChange(event.target.value)}
+      />
+      <FieldDescription text={property.description} />
+    </div>
+  );
+}
+
+export function BooleanPropertyField({
+  property, fieldId, checked, onChange,
+}: {
+  property: CustomProperty;
+  fieldId: string;
+  checked: boolean;
+  onChange: (value: boolean) => void;
+}) {
+  return (
+    <div className="space-y-1 self-end">
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id={fieldId}
+          checked={checked}
+          onCheckedChange={value => onChange(value === true)}
+        />
+        <Label htmlFor={fieldId}>{property.name}</Label>
+      </div>
+      <FieldDescription text={property.description} />
+    </div>
+  );
+}
+
+export function DateTimePropertyField({
+  property, fieldId, value, onChange,
+}: {
+  property: CustomProperty;
+  fieldId: string;
+  value: string | null;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="space-y-1">
+      <Label htmlFor={fieldId}>{property.name}</Label>
+      <DateTimePicker
+        id={fieldId}
+        format={property.dateTimeFormat ?? "date"}
+        value={value}
+        onChange={next => onChange(next ?? "")}
+      />
+      <FieldDescription text={property.description} />
+    </div>
+  );
+}
+
+export function RatingScalePropertyField({
+  property, raw, onChange,
+}: {
+  property: CustomProperty;
+  raw: string | undefined;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="space-y-1">
+      <Label>{property.name}</Label>
+      <div>
+        <StarRating
+          value={raw ? Number(raw) : 0}
+          max={property.ratingMax ?? 5}
+          allowHalf={property.ratingAllowHalf}
+          allowZero={property.ratingAllowZero}
+          onChange={value => onChange(String(value))}
+        />
+      </div>
+      <FieldDescription text={property.description} />
+    </div>
+  );
+}
+
+export function ItemInItemsPropertyField({
+  property, progress, onChange,
+}: {
+  property: CustomProperty;
+  progress: { current: string;
+    total: string; } | undefined;
+  onChange: (field: "current" | "total", value: string) => void;
+}) {
+  const current = progress?.current ?? "";
+  const total = progress?.total ?? "";
+  const before = property.itemInItemsBeforeText ?? "";
+  const between = property.itemInItemsBetweenText ?? " of ";
+  const after = property.itemInItemsAfterText ?? "";
+  return (
+    <div className="col-span-full space-y-1">
+      <Label>{property.name}</Label>
+      <div className="flex flex-wrap items-center gap-1.5">
+        {before
+          ? <span className="text-sm text-muted-foreground">{before}</span>
+          : null}
+        <Input
+          type="number"
+          className="w-24"
+          placeholder="Current"
+          value={current}
+          onChange={event => onChange("current", event.target.value)}
+        />
+        <span className="text-sm text-muted-foreground">{between}</span>
+        <Input
+          type="number"
+          className="w-24"
+          placeholder="Total"
+          value={total}
+          onChange={event => onChange("total", event.target.value)}
+        />
+        {after
+          ? <span className="text-sm text-muted-foreground">{after}</span>
+          : null}
+      </div>
+      <FieldDescription text={property.description} />
+    </div>
+  );
+}
+
+export function ChoicesPropertyField({
+  property, selectedValues, onChange,
+}: {
+  property: CustomProperty;
+  selectedValues: string[];
+  onChange: (values: string[]) => void;
+}) {
+  const display = property.choicesDisplay ?? "radio";
+  const multiple = property.choicesMultiple;
+  const items = property.choicesItems;
+  const fieldId = `property-${property.id}`;
+
+  // Checkbox: multi-select list
+  if (display === "checkbox") {
+    return (
+      <div className="col-span-full space-y-1">
+        <Label>{property.name}</Label>
+        <div className="space-y-1.5">
+          {items.map(item => (
+            <div
+              key={item.value}
+              className="flex items-center gap-2"
+            >
+              <Checkbox
+                id={`${fieldId}-${item.value}`}
+                checked={selectedValues.includes(item.value)}
+                onCheckedChange={(checked) => {
+                  onChange(
+                    checked
+                      ? [...selectedValues, item.value]
+                      : selectedValues.filter(v => v !== item.value),
+                  );
+                }}
+              />
+              <Label
+                htmlFor={`${fieldId}-${item.value}`}
+                className="font-normal"
+              >{item.label}
+              </Label>
+            </div>
+          ))}
+        </div>
+        <FieldDescription text={property.description} />
+      </div>
+    );
+  }
+
+  // Radio: single-select with clear option
+  if (display === "radio") {
+    return (
+      <div className="col-span-full space-y-1">
+        <Label>{property.name}</Label>
+        <div className="space-y-1.5">
+          {items.map(item => (
+            <div
+              key={item.value}
+              className="flex items-center gap-2"
+            >
+              <input
+                type="radio"
+                id={`${fieldId}-${item.value}`}
+                name={fieldId}
+                value={item.value}
+                checked={selectedValues[0] === item.value}
+                onChange={() => onChange([item.value])}
+                className="size-4"
+              />
+              <Label
+                htmlFor={`${fieldId}-${item.value}`}
+                className="font-normal"
+              >{item.label}
+              </Label>
+            </div>
+          ))}
+          {selectedValues.length > 0 && (
+            <div className="flex items-center gap-2">
+              <input
+                type="radio"
+                id={`${fieldId}-none`}
+                name={fieldId}
+                checked={false}
+                onChange={() => onChange([])}
+                className="size-4"
+              />
+              <Label
+                htmlFor={`${fieldId}-none`}
+                className="font-normal text-muted-foreground"
+              >Clear
+              </Label>
+            </div>
+          )}
+        </div>
+        <FieldDescription text={property.description} />
+      </div>
+    );
+  }
+
+  // Dropdown / combobox: Select for single, checkbox list for multiple
+  if (multiple) {
+    return (
+      <div className="col-span-full space-y-1">
+        <Label>{property.name}</Label>
+        <div className="space-y-1.5">
+          {items.map(item => (
+            <div
+              key={item.value}
+              className="flex items-center gap-2"
+            >
+              <Checkbox
+                id={`${fieldId}-${item.value}`}
+                checked={selectedValues.includes(item.value)}
+                onCheckedChange={(checked) => {
+                  onChange(
+                    checked
+                      ? [...selectedValues, item.value]
+                      : selectedValues.filter(v => v !== item.value),
+                  );
+                }}
+              />
+              <Label
+                htmlFor={`${fieldId}-${item.value}`}
+                className="font-normal"
+              >{item.label}
+              </Label>
+            </div>
+          ))}
+        </div>
+        <FieldDescription text={property.description} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-1">
+      <Label htmlFor={fieldId}>{property.name}</Label>
+      <Select
+        value={selectedValues[0] ?? ""}
+        onValueChange={value => onChange(value ? [value] : [])}
+      >
+        <SelectTrigger id={fieldId}>
+          <SelectValue placeholder="Select…" />
+        </SelectTrigger>
+        <SelectContent>
+          {items.map(item => (
+            <SelectItem
+              key={item.value}
+              value={item.value}
+            >{item.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <FieldDescription text={property.description} />
+    </div>
+  );
+}
+
+export function SectionsPropertyField({
+  property, value, onChange,
+}: {
+  property: CustomProperty;
+  value: { exhaustive: boolean;
+    sections: SectionEntry[]; };
+  onChange: (value: { exhaustive: boolean;
+    sections: SectionEntry[]; }) => void;
+}) {
+  const allowedTypes = property.sectionsAllowedTypes ?? [...SECTION_ENTRY_TYPES];
+  const defaultType: SectionEntryType = (property.sectionsDefaultType ?? allowedTypes[0] ?? "url") as SectionEntryType;
+
+  function addSection(): void {
+    onChange({
+      ...value,
+      sections: [
+        ...value.sections,
+        {
+          id: crypto.randomUUID(),
+          name: "",
+          type: defaultType,
+          startValue: "",
+          endValue: undefined,
+        },
+      ],
+    });
+  }
+
+  function updateEntry(id: string, patch: Partial<SectionEntry>): void {
+    onChange({
+      ...value,
+      sections: value.sections.map(entry => entry.id === id
+        ? {
+          ...entry,
+          ...patch,
+        }
+        : entry),
+    });
+  }
+
+  function removeEntry(id: string): void {
+    onChange({
+      ...value,
+      sections: value.sections.filter(entry => entry.id !== id),
+    });
+  }
+
+  const fieldId = `property-${property.id}`;
+  const startPlaceholder = (type: SectionEntryType) =>
+    type === "page" ? "Start page" : type === "timestamp" ? "Start time" : "URL";
+  const endPlaceholder = (type: SectionEntryType) =>
+    type === "page" ? "End page" : type === "timestamp" ? "End time" : "End URL (optional)";
+
+  return (
+    <div className="col-span-full space-y-2">
+      <Label>{property.name}</Label>
+      {value.sections.length > 0 && (
+        <div className="space-y-2">
+          {value.sections.map(entry => (
+            <div
+              key={entry.id}
+              className="grid items-start gap-2"
+              style={{
+                gridTemplateColumns: "1fr auto",
+              }}
+            >
+              <div className="grid grid-cols-2 gap-2">
+                <Input
+                  placeholder="Name"
+                  value={entry.name}
+                  onChange={e => updateEntry(entry.id, {
+                    name: e.target.value,
+                  })}
+                />
+                {allowedTypes.length > 1
+                  ? (
+                    <Select
+                      value={entry.type}
+                      onValueChange={type => updateEntry(entry.id, {
+                        type: type as SectionEntryType,
+                      })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {allowedTypes.map(type => (
+                          <SelectItem
+                            key={type}
+                            value={type}
+                          >{SECTION_ENTRY_TYPE_LABELS[type]}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )
+                  : (
+                    <span
+                      className="
+                        flex items-center text-sm text-muted-foreground
+                      "
+                    >
+                      {SECTION_ENTRY_TYPE_LABELS[entry.type]}
+                    </span>
+                  )}
+                <Input
+                  placeholder={startPlaceholder(entry.type)}
+                  value={entry.startValue}
+                  type={entry.type === "page" ? "number" : "text"}
+                  onChange={e => updateEntry(entry.id, {
+                    startValue: e.target.value,
+                  })}
+                />
+                <Input
+                  placeholder={endPlaceholder(entry.type)}
+                  value={entry.endValue ?? ""}
+                  type={entry.type === "page" ? "number" : "text"}
+                  onChange={e => updateEntry(entry.id, {
+                    endValue: e.target.value || undefined,
+                  })}
+                />
+              </div>
+              <button
+                type="button"
+                className="
+                  mt-1 text-lg leading-none text-muted-foreground
+                  hover:text-destructive
+                "
+                aria-label="Remove section"
+                onClick={() => removeEntry(entry.id)}
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="flex items-center gap-4">
+        <button
+          type="button"
+          className="
+            text-sm text-primary
+            hover:underline
+          "
+          onClick={addSection}
+        >
+          + Add section
+        </button>
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id={`${fieldId}-exhaustive`}
+            checked={value.exhaustive}
+            onCheckedChange={checked => onChange({
+              ...value,
+              exhaustive: checked === true,
+            })}
+          />
+          <Label
+            htmlFor={`${fieldId}-exhaustive`}
+            className="text-sm font-normal"
+          >
+            Exhaustive
+          </Label>
+        </div>
+      </div>
+      <FieldDescription text={property.description} />
+    </div>
+  );
+}
+
+export function TextPropertyField({
+  property, fieldId, value, onChange, onFetch, isFetchPending,
+}: {
+  property: CustomProperty;
+  fieldId: string;
+  value: string;
+  onChange: (value: string) => void;
+  onFetch?: (value: string) => void;
+  isFetchPending?: boolean;
+}) {
+  return (
+    <div className="space-y-1">
+      <Label htmlFor={fieldId}>{property.name}</Label>
+      <div className="flex gap-1">
+        <Input
+          id={fieldId}
+          type="text"
+          value={value}
+          onChange={event => onChange(event.target.value)}
+          onBlur={onFetch && value.trim() ? () => onFetch(value) : undefined}
+        />
+        {onFetch && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            title="Fetch metadata from Open Library"
+            aria-label="Fetch metadata from Open Library"
+            disabled={!value.trim() || isFetchPending}
+            onClick={() => onFetch(value)}
+          >
+            {isFetchPending
+              ? <Loader2 className="size-4 animate-spin" />
+              : <Sparkles className="size-4" />}
+          </Button>
+        )}
+      </div>
+      <FieldDescription text={property.description} />
+    </div>
+  );
+}
+
+/**
+ * An `image`/`file` property field. Blobs upload against an existing bookmark id, so on the create
+ * form (no bookmark yet) it shows a "save first" hint instead of the upload control.
+ */
+export function CategoryPropertyFileField({
+  property, bookmark,
+}: {
+  property: CustomProperty;
+  bookmark: Bookmark | null;
+}) {
+  if (!bookmark) {
+    return (
+      <div className="space-y-1">
+        <Label>{property.name}</Label>
+        <p className="text-xs text-muted-foreground">
+          Save the bookmark first, then attach a
+          {property.type === "image" ? "n image" : " file"}
+          .
+        </p>
+      </div>
+    );
+  }
+  return (
+    <BookmarkPropertyFileField
+      bookmarkId={bookmark.id}
+      property={property}
+      value={bookmark.fileValues.find(entry => entry.propertyId === property.id)}
+    />
+  );
+}
