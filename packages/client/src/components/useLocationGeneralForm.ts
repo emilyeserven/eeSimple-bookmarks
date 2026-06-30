@@ -8,10 +8,10 @@ import { useNavigate } from "@tanstack/react-router";
 import { locationSchema } from "./locationFormSchema";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 import { useLocationTree, useUpdateLocation } from "../hooks/useLocations";
+import { usePlaceTypes } from "../hooks/usePlaceTypes";
 import { useTagTree } from "../hooks/useTags";
 import { notifyFieldSaved, notifyFieldSaveError } from "../lib/autoSave";
 import { useAppForm } from "../lib/form";
-import { placeTypeChoices } from "../lib/locationLevels";
 import { flattenTree, subtreeIds, tagNodesToOptions } from "../lib/tagTree";
 
 /** Sentinel for the "(root)" option; an empty value reads as "no selection" in the combobox. */
@@ -50,6 +50,9 @@ export function useLocationGeneralForm(node: LocationNode) {
   const {
     data: tagTree,
   } = useTagTree();
+  const {
+    data: placeTypesData,
+  } = usePlaceTypes();
   const [alternateNames, setAlternateNames] = useState(node.alternateNames);
   const [tagIds, setTagIds] = useState<string[]>(node.tagIds ?? []);
 
@@ -84,9 +87,6 @@ export function useLocationGeneralForm(node: LocationNode) {
       });
     }
   };
-
-  // Every location (flat), used to offer the distinct place types already in use as picker choices.
-  const allLocations = flattenTree(tree ?? []).map(item => item.node);
 
   const forbiddenIds = new Set(subtreeIds(node));
   // Existing locations selectable as this node's parent / ancestors — its own subtree is excluded so
@@ -167,7 +167,10 @@ export function useLocationGeneralForm(node: LocationNode) {
     saveTagIds,
     existingOptions,
     parentOptions,
-    placeTypeChoices: placeTypeChoices(allLocations, node.placeType),
+    placeTypeChoices: (placeTypesData ?? []).map(pt => ({
+      value: pt.slug,
+      label: pt.name,
+    })),
     tagOptions: tagNodesToOptions(tagTree ?? []),
     saveField: autoSave.saveField,
     followSlug,

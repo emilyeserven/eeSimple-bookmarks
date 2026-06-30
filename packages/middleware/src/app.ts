@@ -25,6 +25,7 @@ import { savedFilterRoutes } from "@/routes/savedFilters";
 import { maintenanceRoutes } from "@/routes/maintenance";
 import { mediaTypeRoutes } from "@/routes/mediaTypes";
 import { locationRoutes } from "@/routes/locations";
+import { placeTypeRoutes } from "@/routes/placeTypes";
 import { connectorsRoutes } from "@/routes/connectors";
 import { metadataRoutes } from "@/routes/metadata";
 import { newsletterRoutes } from "@/routes/newsletters";
@@ -171,6 +172,10 @@ export async function buildApp(): Promise<FastifyInstance> {
             name: "imports",
             description: "Imports: ingest links into the Inbox review queue, approve/reject/block, purge",
           },
+          {
+            name: "place-types",
+            description: "User-managed place type vocabulary for classifying locations",
+          },
         ],
       },
     });
@@ -211,6 +216,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(websiteRoutes);
   await app.register(mediaTypeRoutes);
   await app.register(locationRoutes);
+  await app.register(placeTypeRoutes);
   await app.register(youtubeChannelRoutes);
   await app.register(customPropertyRoutes);
   await app.register(propertyGroupRoutes);

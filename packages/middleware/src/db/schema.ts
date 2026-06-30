@@ -616,6 +616,26 @@ export const locationTags = pgTable("location_tags", {
   }),
 ]);
 
+/**
+ * `place_types` table — a user-managed vocabulary of place classifications (city, region, country…).
+ * The slug is the stored value in `locations.placeType` (no FK). Nullable slug for push-safe
+ * addition; backfilled at boot via `seedPlaceTypesFromLocations()`.
+ */
+export const placeTypes = pgTable("place_types", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  slug: text("slug"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+}, table => [
+  unique("place_types_name_unique").on(table.name),
+  unique("place_types_slug_unique").on(table.slug),
+]);
+
+export type PlaceTypeRow = typeof placeTypes.$inferSelect;
+
 export const locationsRelations = relations(locations, ({
   one, many,
 }) => ({
