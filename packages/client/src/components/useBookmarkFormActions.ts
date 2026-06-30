@@ -1,4 +1,4 @@
-import { useCreateAuthor } from "../hooks/useAuthors";
+import { useAutoAuthorImage, useCreateAuthor, useUpdateAuthor } from "../hooks/useAuthors";
 import {
   useAddBookmarkImage,
   useAutoBookmarkImage,
@@ -42,6 +42,8 @@ export function useBookmarkFormActions() {
     updateWebsite: useUpdateWebsite(),
     updateYouTubeChannel: useUpdateYouTubeChannel(),
     createAuthor: useCreateAuthor(),
+    updateAuthor: useUpdateAuthor(),
+    autoAuthorImage: useAutoAuthorImage(),
     createPublisher: useCreatePublisher(),
   };
 }

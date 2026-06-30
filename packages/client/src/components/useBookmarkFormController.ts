@@ -191,6 +191,7 @@ export function useBookmarkFormController({
     runYouTubeEnrichment,
     undoUrlCleanup,
     undoTitleFetch,
+    createAuthorFromSocialAccount,
     submitForm,
     performUrlScan,
     handleAddNow,
@@ -266,6 +267,10 @@ export function useBookmarkFormController({
     urlResolveError: ui.urlResolveError,
     autofillOfferDismissed: ui.autofillOfferDismissed,
     setAutofillOfferDismissed: ui.setAutofillOfferDismissed,
+    // Social-account → author offer.
+    socialAccountOffer: ui.socialAccountOffer,
+    setSocialAccountOffer: ui.setSocialAccountOffer,
+    createAuthorFromSocialAccount,
     // "Set as default" context for the source-default checkboxes (rendered under their fields).
     sourceDefaults,
     // Prefill + scan handlers.

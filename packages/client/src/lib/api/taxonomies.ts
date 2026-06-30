@@ -32,6 +32,7 @@ import type {
   Publisher,
   RedirectFailureWebsite,
   RelationshipType,
+  SocialMediaPlatform,
   Tag,
   TagNode,
   UpdateAuthorInput,
@@ -57,11 +58,16 @@ export const authorsApi = {
   ...createCrudApi<Author, CreateAuthorInput, UpdateAuthorInput>("authors"),
   uploadImage: (id: string, file: File) =>
     uploadImageFile<{ imageUrl: string }>(`/authors/${id}/image`, file),
-  autoImage: (id: string, source: "website" | "biography") =>
+  autoImage: (id: string, source: "website" | "biography" | "social", platform?: SocialMediaPlatform) =>
     request<{ imageUrl: string }>(`/authors/${id}/image/auto`, {
       method: "POST",
       body: JSON.stringify({
         source,
+        ...(platform
+          ? {
+            platform,
+          }
+          : {}),
       }),
     }),
   deleteImage: (id: string) =>

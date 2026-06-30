@@ -1,4 +1,4 @@
-import type { CreateAuthorInput, UpdateAuthorInput } from "@eesimple/types";
+import type { CreateAuthorInput, SocialMediaPlatform, UpdateAuthorInput } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -105,11 +105,12 @@ export function useAutoAuthorImage() {
   const cooldown = useRateLimitCooldown(60_000);
   const mutation = useMutation({
     mutationFn: ({
-      id, source,
+      id, source, platform,
     }: { id: string;
-      source: "website" | "biography";
+      source: "website" | "biography" | "social";
+      platform?: SocialMediaPlatform;
       sourceUrl?: string; }) =>
-      authorsApi.autoImage(id, source),
+      authorsApi.autoImage(id, source, platform),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: AUTHORS_KEY,

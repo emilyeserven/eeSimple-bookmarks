@@ -94,6 +94,8 @@ export function useBookmarkFormHandlers({
       updateWebsite,
       updateYouTubeChannel,
       createAuthor,
+      updateAuthor,
+      autoAuthorImage,
     },
     customProperties,
     categories,
@@ -151,6 +153,7 @@ export function useBookmarkFormHandlers({
     runFetchDescription,
     runYouTubeEnrichment,
     applyScanMetadata,
+    createAuthorFromSocialAccount,
     runUrlCleanup,
     undoUrlCleanup,
     undoTitleFetch,
@@ -174,6 +177,9 @@ export function useBookmarkFormHandlers({
     getAuthorIds: () => form.getFieldValue("authorIds") as string[],
     setAuthorIds: (ids: string[]) => form.setFieldValue("authorIds", ids),
     createAuthor,
+    updateAuthor,
+    autoAuthorImage,
+    setSocialAccountOffer: ui.setSocialAccountOffer,
   });
 
   // Persist the form: build the property values + input, then create or update. On create, also
@@ -466,6 +472,7 @@ export function useBookmarkFormHandlers({
     runYouTubeEnrichment,
     undoUrlCleanup,
     undoTitleFetch,
+    createAuthorFromSocialAccount,
     // Action handlers.
     submitForm,
     performUrlScan,

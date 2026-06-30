@@ -7,10 +7,14 @@
  * `og:image` — no client-supplied URL, so there is no SSRF amplifier.
  */
 
+import type { SocialLink, SocialMediaPlatform } from "@eesimple/types";
+
 import { eq } from "drizzle-orm";
+import { socialAccountFromLink } from "@eesimple/types";
 import { db } from "@/db";
 import { authorImages, authors, type AuthorImageRow, websiteFavicons, youtubeChannelImages } from "@/db/schema";
-import { type EntityImageResult, fetchOgImage, withTransientRetry } from "@/services/metadata";
+import { downloadImage, type EntityImageResult, fetchOgImage, isPublicHttpUrl, withTransientRetry } from "@/services/metadata";
+import { fetchSocialProfileImageUrl } from "@/services/socialImages";
 import { processImage } from "@/utils/image";
 import { deleteObject, getObjectBytes, putObject } from "@/utils/objectStore";
 
@@ -38,7 +42,7 @@ export async function getAuthorImageRow(authorId: string): Promise<AuthorImageRo
 async function setAuthorImage(
   authorId: string,
   rawBytes: Buffer,
-  source: "upload" | "website" | "biography" | "channel" | "website-favicon",
+  source: "upload" | "website" | "biography" | "channel" | "website-favicon" | "social",
 ): Promise<{ imageUrl: string } | "not_found" | "bad_image"> {
   const [author] = await db
     .select({
@@ -111,6 +115,40 @@ export async function fetchAndStoreAuthorImage(
   const result = await withTransientRetry(() => fetchOgImage(url));
   if (typeof result === "string") return result;
   return setAuthorImage(authorId, result, source);
+}
+
+/**
+ * Pull the author's avatar from one of their stored social accounts (Instagram for now). Reads the
+ * author's `socialLinks` for the requested platform, resolves the account's profile image via
+ * `fetchSocialProfileImageUrl` (API path when configured, else keyless scrape), SSRF-guards the URL,
+ * downloads it, and stores it as the author's avatar. The image URL comes from the author's own
+ * stored link — never a client value — so there is no SSRF amplifier.
+ */
+export async function fetchAndStoreAuthorImageFromSocial(
+  authorId: string,
+  platform: SocialMediaPlatform,
+): Promise<EntityImageResult | "no_url"> {
+  const [author] = await db
+    .select({
+      socialLinks: authors.socialLinks,
+    })
+    .from(authors)
+    .where(eq(authors.id, authorId));
+  if (!author) return "not_found";
+
+  const link = (author.socialLinks as SocialLink[]).find(l => l.platform === platform);
+  if (!link) return "no_url";
+
+  const ref = socialAccountFromLink(link);
+  if (!ref) return "no_url";
+
+  const imageUrl = await fetchSocialProfileImageUrl(ref);
+  if (!imageUrl || !isPublicHttpUrl(imageUrl)) return "no_image";
+
+  const bytes = await downloadImage(imageUrl, ref.profileUrl);
+  if (!bytes) return "bad_image";
+
+  return setAuthorImage(authorId, bytes, "social");
 }
 
 /**

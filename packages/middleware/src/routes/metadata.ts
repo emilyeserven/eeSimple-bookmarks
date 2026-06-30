@@ -1,5 +1,6 @@
 import type { FastifyBaseLogger, FastifyInstance } from "fastify";
 import type { FetchIsbnMetadataResult, FetchMetadataResult, ResolveUrlResult, ScanResult, WebsiteLookup } from "@eesimple/types";
+import { socialAccountFromUrl } from "@eesimple/types";
 import { getImageUrlBlacklist } from "@/services/appSettings";
 import { checkBookmarkUrlDuplicate } from "@/services/bookmarks";
 import { buildImageCandidates, filterCandidates } from "@/services/imageCandidates";
@@ -538,6 +539,8 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
       thumbnailUrl: metadata.thumbnailUrl,
       imageCandidates: metadata.imageCandidates,
       authorNames: metadata.authorNames,
+      // The social account `finalUrl` points at, if any (pure of `finalUrl`, so cache-safe).
+      socialAccount: socialAccountFromUrl(finalUrl),
       // An instant icon for display via the DuckDuckGo icon service (no scrape, no object storage).
       faviconUrl: website.domain ? duckDuckGoIconUrl(website.domain) : null,
       ...(metadata.diagnostics !== undefined && {

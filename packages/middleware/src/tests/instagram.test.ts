@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
-import { isInstagramPostUrl, parseInstagramEmbed, shortcodeFromUrl } from "@/services/instagram";
+import { isInstagramPostUrl, parseInstagramEmbed, parseInstagramProfileImageUrl, shortcodeFromUrl } from "@/services/instagram";
 
 const SIDECAR_EMBED_HTML = readFileSync(
   new URL("./fixtures/instagram-embed-sidecar.html", import.meta.url),
@@ -118,4 +118,31 @@ test("parseInstagramEmbed falls back to og:image when no media JSON is present",
 
 test("parseInstagramEmbed returns [] for garbage", () => {
   assert.deepEqual(parseInstagramEmbed("<html>nothing here</html>"), []);
+});
+
+test("parseInstagramProfileImageUrl prefers the HD profile picture", () => {
+  const html = "<html><script>{\"profile_pic_url\":\"https://scontent.example.com\\/std.jpg\",\"profile_pic_url_hd\":\"https://scontent.example.com\\/hd.jpg\"}</script></html>";
+  assert.equal(parseInstagramProfileImageUrl(html), "https://scontent.example.com/hd.jpg");
+});
+
+test("parseInstagramProfileImageUrl falls back to the standard profile picture", () => {
+  const html = "<html><script>{\"profile_pic_url\":\"https://scontent.example.com\\/std.jpg\"}</script></html>";
+  assert.equal(parseInstagramProfileImageUrl(html), "https://scontent.example.com/std.jpg");
+});
+
+test("parseInstagramProfileImageUrl falls back to og:image", () => {
+  const html = "<head><meta property=\"og:image\" content=\"https://x/profile-og.jpg\"></head>";
+  assert.equal(parseInstagramProfileImageUrl(html), "https://x/profile-og.jpg");
+});
+
+test("parseInstagramProfileImageUrl returns null for a post embed without a profile pic or og:image", () => {
+  const html = embedWithContextJSON({
+    __typename: "GraphImage",
+    display_url: "https://scontent.example.com/main.jpg",
+  });
+  assert.equal(parseInstagramProfileImageUrl(html), null);
+});
+
+test("parseInstagramProfileImageUrl returns null for garbage", () => {
+  assert.equal(parseInstagramProfileImageUrl("<html>nothing here</html>"), null);
 });

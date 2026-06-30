@@ -14,6 +14,9 @@ vi.mock("../hooks/useConnectors", () => ({
       youtubeDataApi: {
         enabled: true,
       },
+      instagram: {
+        apiKey: false,
+      },
       objectStorage: {
         configured: false,
       },
