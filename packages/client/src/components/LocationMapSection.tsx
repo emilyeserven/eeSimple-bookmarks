@@ -17,6 +17,8 @@ import { useUiStore } from "../stores/uiStore";
 
 import { cn } from "@/lib/utils";
 
+const EMPTY_PLACE_TYPES: string[] = [];
+
 interface LocationMapSectionProps {
   /** Stable collapse key: `"listing"` for the listing page, the location id on a detail page. */
   mapKey: string;
@@ -35,8 +37,9 @@ interface LocationMapSectionProps {
   showLevels?: boolean;
   /**
    * How this map decides which levels are visible by default: the main index map (`showOnMainMap`),
-   * a place's pages (the viewed place's level ± the shared mode), or a bookmark map (all tagged
-   * levels). Defaults to a location scope with no current place type (shows all levels).
+   * a place's pages (the viewed place's level ± the shared mode), or a bookmark map (the tagged
+   * locations' levels ± the shared mode). Defaults to a location scope with no current place type
+   * (shows all levels).
    */
   scope?: LevelScope;
 }
@@ -74,6 +77,10 @@ export function LocationMapSection({
   // reconstruct the `scope` object inline each render, so depending on it directly would thrash).
   const scopeKind = scope.kind;
   const currentPlaceType = scope.kind === "location" ? scope.currentPlaceType : null;
+  const bookmarkPlaceTypes = scope.kind === "bookmark" ? scope.placeTypes : EMPTY_PLACE_TYPES;
+  // Join into a stable string key — callers reconstruct the `placeTypes` array inline each render,
+  // so depending on its reference directly would thrash the memo/effect below on every render.
+  const bookmarkPlaceTypesKey = bookmarkPlaceTypes.join(" ");
   const defaultVisibleIds = useMemo(() => {
     const resolved: LevelScope = scopeKind === "main"
       ? {
@@ -82,18 +89,20 @@ export function LocationMapSection({
       : scopeKind === "bookmark"
         ? {
           kind: "bookmark",
+          placeTypes: bookmarkPlaceTypes,
         }
         : {
           kind: "location",
           currentPlaceType,
         };
     return computeVisibleLevelGroupIds(groups, resolved, levelMode);
-  }, [groups, scopeKind, currentPlaceType, levelMode]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- bookmarkPlaceTypesKey stands in for bookmarkPlaceTypes
+  }, [groups, scopeKind, currentPlaceType, bookmarkPlaceTypesKey, levelMode]);
   const [overrideIds, setOverrideIds] = useState<Set<string> | null>(null);
   // Re-sync the checkboxes to the computed default whenever the shared mode or the scope changes.
   useEffect(() => {
     setOverrideIds(null);
-  }, [scopeKind, currentPlaceType, levelMode]);
+  }, [scopeKind, currentPlaceType, bookmarkPlaceTypesKey, levelMode]);
 
   const visibleIds = overrideIds ?? defaultVisibleIds;
   const displayConfig = useMemo(
@@ -104,6 +113,8 @@ export function LocationMapSection({
     [groups, visibleIds],
   );
 
+  // The above/current/below button group applies wherever there's a "current" level (or levels).
+  const hasLevelMode = scopeKind === "location" || scopeKind === "bookmark";
   const controls: LevelsControls = {
     visibleIds,
     onToggleVisible: (id, visible) => setOverrideIds((prev) => {
@@ -112,9 +123,8 @@ export function LocationMapSection({
       else next.delete(id);
       return next;
     }),
-    // The above/current/below button group only applies where there's a "current" level.
-    levelMode: scopeKind === "location" ? levelMode : undefined,
-    onLevelModeChange: scopeKind === "location" ? setLevelMode : undefined,
+    levelMode: hasLevelMode ? levelMode : undefined,
+    onLevelModeChange: hasLevelMode ? setLevelMode : undefined,
   };
 
   const refreshBoundary = useRefreshLocationBoundary();
