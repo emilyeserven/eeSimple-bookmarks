@@ -101,7 +101,7 @@ export function BookmarkLocationBadges({
   const viewClick = useViewPanelClick();
   const modifier = useSidebarOpenModifier();
   return (
-    <>
+    <div className="flex flex-wrap items-center gap-1">
       {locations.map(location => (
         <Link
           key={location.id}
@@ -121,7 +121,7 @@ export function BookmarkLocationBadges({
           </Badge>
         </Link>
       ))}
-    </>
+    </div>
   );
 }
 
