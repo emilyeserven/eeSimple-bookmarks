@@ -1,14 +1,9 @@
 import type { ImportBlacklistEntry, ImportBlacklistKind } from "@eesimple/types";
 
-import { useState } from "react";
+import { Plus } from "lucide-react";
 
-import { blacklistPatternsFor } from "@eesimple/types";
-import { Plus, Trash2 } from "lucide-react";
-
-import { KIND_LABEL, importBlacklistColumns } from "./tables/importBlacklistColumns";
-import { useImportBlacklist, useUpdateImportBlacklist } from "../hooks/useAppSettings";
-import { usePurgeProcessedItems } from "../hooks/useImports";
-import { notifyError, notifySuccess } from "../lib/notifications";
+import { importBlacklistColumns } from "./tables/importBlacklistColumns";
+import { useImportsBlacklist } from "./useImportsBlacklist";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -28,62 +23,26 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-/** Derive a normalized blacklist entry from free text (a URL or bare host) for the chosen kind. */
-function entryFromInput(kind: ImportBlacklistKind, raw: string): ImportBlacklistEntry {
-  const trimmed = raw.trim();
-  try {
-    const url = trimmed.includes("://") ? trimmed : `https://${trimmed}`;
-    const patterns = blacklistPatternsFor(url);
-    if (kind === "domain") return patterns.domain;
-    if (kind === "exact") return patterns.exact;
-    return patterns.pathPrefix;
-  }
-  catch {
-    return {
-      kind,
-      value: trimmed.toLowerCase(),
-    };
-  }
-}
+// Re-exported so existing consumers importing `ProcessedItemsCard` from this module keep working.
+export { ProcessedItemsCard } from "./ProcessedItemsCard";
 
 /** Editor for the imports blacklist: links matching these are dropped from future imports. */
 export function ImportsBlacklistCard() {
   const {
-    data: entries = [], isLoading,
-  } = useImportBlacklist();
-  const update = useUpdateImportBlacklist();
-  const [kind, setKind] = useState<ImportBlacklistKind>("domain");
-  const [value, setValue] = useState("");
-  const [filter, setFilter] = useState("");
-
-  const q = filter.trim().toLowerCase();
-  const visible = q
-    ? entries.filter(e => e.value.toLowerCase().includes(q) || KIND_LABEL[e.kind].includes(q))
-    : entries;
-
-  function add(): void {
-    const entry = entryFromInput(kind, value);
-    if (entry.value.length === 0) {
-      setValue("");
-      return;
-    }
-    if (entries.some(e => e.kind === entry.kind && e.value === entry.value)) {
-      setValue("");
-      return;
-    }
-    update.mutate([...entries, entry], {
-      onSuccess: () => notifySuccess(`Blocked ${KIND_LABEL[entry.kind]} ${entry.value}`),
-      onError: () => notifyError("Couldn't update the imports blacklist"),
-    });
-    setValue("");
-  }
-
-  function remove(entry: ImportBlacklistEntry): void {
-    update.mutate(entries.filter(e => !(e.kind === entry.kind && e.value === entry.value)), {
-      onSuccess: () => notifySuccess(`Unblocked ${entry.value}`),
-      onError: () => notifyError("Couldn't update the imports blacklist"),
-    });
-  }
+    entries,
+    isLoading,
+    update,
+    kind,
+    setKind,
+    value,
+    setValue,
+    filter,
+    setFilter,
+    q,
+    visible,
+    add,
+    remove,
+  } = useImportsBlacklist();
 
   return (
     <Card>
@@ -159,48 +118,6 @@ export function ImportsBlacklistCard() {
               />
             </>
           )}
-      </CardContent>
-    </Card>
-  );
-}
-
-/** Sweep processed inbox items: those marked for deletion (a bookmark was created) + blocked items. */
-export function ProcessedItemsCard() {
-  const purge = usePurgeProcessedItems();
-
-  function onPurge(): void {
-    purge.mutate(undefined, {
-      onSuccess: (result) => {
-        notifySuccess(
-          result.deleted === 0
-            ? "No processed items to delete"
-            : `Deleted ${result.deleted} processed item${result.deleted === 1 ? "" : "s"}`,
-        );
-      },
-      onError: () => notifyError("Couldn't delete processed items"),
-    });
-  }
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Inbox</CardTitle>
-        <CardDescription>
-          Delete every inbox item that has been processed: items marked for deletion (a bookmark was
-          already created from them) and blocked items. Blocked links stay on the Imports Blacklist, so
-          they’re still skipped on future imports.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Button
-          type="button"
-          variant="destructive"
-          onClick={onPurge}
-          disabled={purge.isPending}
-        >
-          <Trash2 className="mr-1 size-4" />
-          Delete all items marked for deletion
-        </Button>
       </CardContent>
     </Card>
   );

@@ -1,0 +1,90 @@
+import type { CustomProperty, InboxPreFillDefaults, TagNode } from "@eesimple/types";
+
+import { useState } from "react";
+
+import { useAuthors } from "../hooks/useAuthors";
+import { useCategories } from "../hooks/useCategories";
+import { useCustomProperties } from "../hooks/useCustomProperties";
+import { useMediaTypeTree } from "../hooks/useMediaTypes";
+import { usePublishers } from "../hooks/usePublishers";
+import { useTagTree } from "../hooks/useTags";
+import { iconComboboxOptions, mediaTypeTreeComboboxOptions } from "../lib/comboboxOptions";
+import { INBOX_PREFILLABLE_TYPES } from "../lib/inboxPreFill";
+import { flattenTree } from "../lib/tagTree";
+
+/**
+ * Loads the taxonomies the inbox pre-fill box offers as defaults, derives their combobox option
+ * lists and the inbox-enabled custom properties, and owns the four inline "Add new X" modal
+ * open-states. Splitting the hook-dense data layer out of `InboxPreFillBox` keeps the component thin.
+ */
+export function useInboxPreFillBox(preFill: InboxPreFillDefaults) {
+  const [addCategoryOpen, setAddCategoryOpen] = useState(false);
+  const [addMediaTypeOpen, setAddMediaTypeOpen] = useState(false);
+  const [addPublisherOpen, setAddPublisherOpen] = useState(false);
+  const [addAuthorOpen, setAddAuthorOpen] = useState(false);
+
+  const {
+    data: categories = [],
+  } = useCategories();
+  const {
+    data: tagTree = [],
+  } = useTagTree();
+  const {
+    data: mediaTypeTree = [],
+  } = useMediaTypeTree();
+  const {
+    data: authors = [],
+  } = useAuthors();
+  const {
+    data: publishers = [],
+  } = usePublishers();
+  const {
+    data: allProperties = [],
+  } = useCustomProperties();
+
+  const inboxProperties = allProperties.filter(
+    (p: CustomProperty) => p.enabledInInbox && p.enabled && INBOX_PREFILLABLE_TYPES.has(p.type),
+  );
+
+  const categoryOptions = iconComboboxOptions(categories);
+  const mediaTypeOptions = mediaTypeTreeComboboxOptions(mediaTypeTree);
+  const authorOptions = authors.map(a => ({
+    value: a.id,
+    label: a.name,
+    searchAlias: a.romanizedName ?? undefined,
+  }));
+  const publisherOptions = publishers.map(p => ({
+    value: p.id,
+    label: p.name,
+    searchAlias: p.romanizedName ?? undefined,
+  }));
+
+  const selectedTagIds = preFill.tagIds ?? [];
+
+  // Flat tag list for displaying selected tag names as badges.
+  const flatTags = flattenTree(tagTree as TagNode[]);
+  const selectedTagNames = selectedTagIds
+    .map(id => flatTags.find(t => t.node.id === id)?.node.name)
+    .filter(Boolean) as string[];
+
+  return {
+    addCategoryOpen,
+    setAddCategoryOpen,
+    addMediaTypeOpen,
+    setAddMediaTypeOpen,
+    addPublisherOpen,
+    setAddPublisherOpen,
+    addAuthorOpen,
+    setAddAuthorOpen,
+    tagTree: tagTree as TagNode[],
+    mediaTypeTree,
+    authors,
+    publishers,
+    inboxProperties,
+    categoryOptions,
+    mediaTypeOptions,
+    authorOptions,
+    publisherOptions,
+    selectedTagNames,
+  };
+}
