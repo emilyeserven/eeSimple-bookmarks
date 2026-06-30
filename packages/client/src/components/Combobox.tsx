@@ -32,6 +32,8 @@ export interface ComboboxOption {
   romanized?: string | null;
   /** Optional element rendered at the inline-start of the option (and the trigger when selected). */
   icon?: React.ReactNode;
+  /** When true the option is shown but cannot be selected. */
+  disabled?: boolean;
 }
 
 interface ComboboxProps {

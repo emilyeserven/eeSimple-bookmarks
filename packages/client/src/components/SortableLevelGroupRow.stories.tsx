@@ -54,8 +54,9 @@ const meta = {
   args: {
     group: GROUP,
     options: OPTIONS,
+    takenPlaceTypes: new Set<string>(),
     renameGroup: noop,
-    setGroupVisible: noop,
+    setGroupDisplayMode: noop,
     setGroupPlaceTypes: noop,
     setGroupColor: noop,
     removeGroup: noop,
@@ -68,8 +69,8 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
-/** A hidden group rendered as pins rather than boundary areas. */
-export const HiddenPinGroup: Story = {
+/** A pin-mode group with city taken by another group. */
+export const PinGroupWithTaken: Story = {
   args: {
     group: {
       ...GROUP,
@@ -77,8 +78,8 @@ export const HiddenPinGroup: Story = {
       name: "City",
       placeTypes: ["city"],
       displayMode: "pin",
-      visible: false,
       color: null,
     },
+    takenPlaceTypes: new Set(["country"]),
   },
 };
