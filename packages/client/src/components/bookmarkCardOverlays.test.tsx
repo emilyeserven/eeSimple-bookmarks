@@ -143,7 +143,7 @@ describe("buildCardOverlayItems", () => {
       ["more", cornerPlacement("bottom-left")],
     ]);
 
-    const overlays = buildCardOverlayItems(bookmark, [], placements, undefined, {
+    const overlays = buildCardOverlayItems(bookmark, [], placements, undefined, false, {
       externalLink: <button type="button">link</button>,
       more: <button type="button">more</button>,
     });
@@ -157,5 +157,27 @@ describe("buildCardOverlayItems", () => {
 
     // Without an action node, `externalLink` has no text label, so nothing is overlaid.
     expect(buildCardOverlayItems(bookmark, [], placements, undefined)).toHaveLength(0);
+  });
+
+  it("hides the website overlay on a YouTube bookmark when hideWebsiteForYouTube is set", () => {
+    const bookmark = makeBookmark({
+      website: {
+        id: "w1",
+        siteName: "YouTube",
+        domain: "youtube.com",
+        slug: "youtube",
+        imageUrl: null,
+      },
+      youtubeChannel: {
+        id: "yc1",
+        name: "A Channel",
+        slug: "a-channel",
+        imageUrl: null,
+      },
+    });
+    const placements = new Map([["website", cornerPlacement("top-left")]]);
+
+    expect(buildCardOverlayItems(bookmark, [], placements, undefined, true)).toHaveLength(0);
+    expect(buildCardOverlayItems(bookmark, [], placements, undefined, false)).toHaveLength(1);
   });
 });

@@ -226,6 +226,7 @@ export function buildCardOverlayItems(
   valueItems: BookmarkValueItem[],
   placements: Map<string, ResolvedFieldPlacement>,
   bookmarkCategory: Category | undefined,
+  hideWebsiteForYouTube = false,
   actionNodes: OverlayActionNodes = {},
 ): CardOverlayItem[] {
   const overlayItems: CardOverlayItem[] = [];
@@ -261,7 +262,7 @@ export function buildCardOverlayItems(
       });
       continue;
     }
-    const label = standardFieldOverlayLabel(bookmark, field.key, bookmarkCategory?.name ?? null);
+    const label = standardFieldOverlayLabel(bookmark, field.key, bookmarkCategory?.name ?? null, hideWebsiteForYouTube);
     if (!label) continue;
     // Icons/images show by default; the rule's per-field checkboxes hide the icon and/or the text.
     const icon = placement.hideIcon ? null : standardFieldOverlayIcon(bookmark, field.key, bookmarkCategory);
