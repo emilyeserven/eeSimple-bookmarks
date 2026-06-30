@@ -3,6 +3,7 @@ import type { LocationNode } from "@eesimple/types";
 import { useState } from "react";
 
 import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
+import { LocationMapSection } from "./LocationMapSection";
 import { LocationTreeList } from "./LocationTreeList";
 import { useLocationColumns } from "./tables/locationColumns";
 import { listingSelectionColumn } from "./tables/selectionColumn";
@@ -52,6 +53,15 @@ export function LocationsListing() {
           <p className="text-muted-foreground">
             No locations yet.
           </p>
+        )
+        : null}
+
+      {tree && tree.length > 0
+        ? (
+          <LocationMapSection
+            mapKey="listing"
+            tree={tree}
+          />
         )
         : null}
 

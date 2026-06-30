@@ -1,6 +1,6 @@
 import { relations, sql } from "drizzle-orm";
 import { type AnyPgColumn, boolean, integer, jsonb, pgTable, primaryKey, real, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
-import type { CardFieldZones, CardZoneLayouts, ConditionTree, ImportBlacklistEntry, LocationAlternateName, ShortenedLink, SocialLink, WebsiteParamRule } from "@eesimple/types";
+import type { CardFieldZones, CardZoneLayouts, ConditionTree, ImportBlacklistEntry, LocationAlternateName, LocationBoundary, ShortenedLink, SocialLink, WebsiteParamRule } from "@eesimple/types";
 
 /** `bookmarks` table — one row per saved bookmark. Tags now live in `bookmark_tags`. */
 export const bookmarks = pgTable("bookmarks", {
@@ -555,6 +555,8 @@ export const locations = pgTable("locations", {
   plusCode: text("plus_code"),
   placeType: text("place_type"),
   countryCode: text("country_code"),
+  // GeoJSON area outline (Nominatim polygon), nullable → push-safe additive. Backfilled on demand.
+  boundary: jsonb("boundary").$type<LocationBoundary>(),
   sortOrder: integer("sort_order").notNull().default(0),
   parentId: uuid("parent_id").references((): AnyPgColumn => locations.id, {
     onDelete: "cascade",

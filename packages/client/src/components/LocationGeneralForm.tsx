@@ -31,6 +31,9 @@ const LABELS: Record<keyof UpdateLocationInput, string> = {
   plusCode: "Plus code",
   placeType: "Place type",
   countryCode: "Country code",
+  // Not an editable field — captured from geocoding / backfilled on demand; listed to satisfy the
+  // exhaustive key map.
+  boundary: "Boundary",
   sortOrder: "Sort order",
   parentId: "Parent",
   tagIds: "Tags",

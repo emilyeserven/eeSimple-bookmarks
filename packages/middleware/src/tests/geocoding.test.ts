@@ -132,6 +132,49 @@ test("geocodeLocation leaves romanizedName null when the name is already Latin",
   }
 });
 
+test("geocodeLocation captures a Polygon geojson as the boundary but drops a Point geojson", async () => {
+  const hits = JSON.stringify([
+    {
+      display_name: "Kyoto, Japan",
+      name: "Kyoto",
+      lat: "35.0",
+      lon: "135.76",
+      addresstype: "city",
+      address: {
+        country_code: "jp",
+      },
+      geojson: {
+        type: "Polygon",
+        coordinates: [[[135.7, 35.0], [135.8, 35.0], [135.8, 35.1], [135.7, 35.0]]],
+      },
+    },
+    {
+      display_name: "A point place",
+      name: "Point",
+      lat: "1",
+      lon: "2",
+      geojson: {
+        type: "Point",
+        coordinates: [2, 1],
+      },
+    },
+  ]);
+  const restore = stubFetch(() => new Response(hits, {
+    status: 200,
+  }));
+  try {
+    const {
+      results,
+    } = await geocodeLocation("Kyoto");
+    assert.equal(results[0]?.boundary?.type, "Polygon");
+    // A Point geojson is just the coordinate we already store → no boundary.
+    assert.equal(results[1]?.boundary, null);
+  }
+  finally {
+    restore();
+  }
+});
+
 test("geocodeLocation returns no results for an empty query (no fetch)", async () => {
   const result = await geocodeLocation("   ");
   assert.deepEqual(result.results, []);

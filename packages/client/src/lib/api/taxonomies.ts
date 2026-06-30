@@ -149,6 +149,10 @@ export const locationsApi = {
       method: "POST",
       body: JSON.stringify(input),
     }),
+  refreshBoundary: (id: string) =>
+    request<Location>(`/locations/${id}/refresh-boundary`, {
+      method: "POST",
+    }),
 };
 
 export const propertyGroupsApi = createCrudApi<PropertyGroup, CreatePropertyGroupInput, UpdatePropertyGroupInput>("property-groups");
