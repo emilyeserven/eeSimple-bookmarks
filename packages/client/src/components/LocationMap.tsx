@@ -170,15 +170,41 @@ function NodeLink({
   );
 }
 
-/** Marker popup: a single location's link. (Pins are points and never overlap, unlike areas.) */
-function NodePopupLink({
-  node,
+/**
+ * Marker popup: the pin's own link plus the areas it falls inside ("part of"). A pin is a point, so
+ * unlike overlapping polygons it can't be found by the map-level area handler — instead we test the
+ * pin's coordinate against every rendered area boundary and list the containing ones here.
+ */
+function PinPopup({
+  node, areas,
 }: {
   node: MappedNode;
+  areas: MappedNode[];
 }) {
+  const [lat, lng] = node.position ?? [0, 0];
+  const containing = node.position === null
+    ? []
+    : areas.filter(area => area.id !== node.id && area.boundary
+      && boundaryContainsPoint(lng, lat, area.boundary));
   return (
     <Popup>
-      <NodeLink node={node} />
+      <div className="space-y-1">
+        <NodeLink node={node} />
+        {containing.length > 0
+          ? (
+            <div className="space-y-0.5">
+              <p className="text-xs font-medium text-muted-foreground">Part of</p>
+              <ul className="space-y-0.5">
+                {containing.map(area => (
+                  <li key={area.id}>
+                    <NodeLink node={area} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )
+          : null}
+      </div>
     </Popup>
   );
 }
@@ -265,6 +291,7 @@ export function LocationMap({
 }: LocationMapProps) {
   const mapped = collectMapped(tree);
   const items = toRenderItems(mapped, displayConfig);
+  const areaNodes = items.filter(item => item.kind === "area" && item.node.boundary).map(item => item.node);
   const omitted = countNodes(tree) - mapped.length;
   const hiddenByLevel = mapped.length - items.length;
 
@@ -308,7 +335,10 @@ export function LocationMap({
                   position={node.position}
                   icon={DEFAULT_MARKER}
                 >
-                  <NodePopupLink node={node} />
+                  <PinPopup
+                    node={node}
+                    areas={areaNodes}
+                  />
                 </Marker>
               )
               : null
