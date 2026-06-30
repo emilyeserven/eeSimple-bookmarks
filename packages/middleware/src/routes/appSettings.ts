@@ -1,5 +1,6 @@
 import type {
   ImportBlacklistEntry,
+  PlaceTypeDisplayConfig,
   UpdateAdvancedSettingsInput,
   UpdateAiSummarizationInput,
   UpdateAutomationInput,
@@ -8,7 +9,7 @@ import type {
   UpdateHomepageContentInput,
   UpdateSidebarCustomizationInput,
 } from "@eesimple/types";
-import { IMPORT_BLACKLIST_KINDS } from "@eesimple/types";
+import { IMPORT_BLACKLIST_KINDS, LOCATION_DISPLAY_MODES } from "@eesimple/types";
 import type { FastifyInstance } from "fastify";
 import { getDatabaseUsageReport } from "@/services/databaseUsage";
 import {
@@ -20,6 +21,7 @@ import {
   getDisplayPreferenceSettings,
   getHomepageContentSettings,
   getImportBlacklist,
+  getPlaceTypeDisplay,
   getRedirectIgnoreList,
   getShortenerIgnoreList,
   getSidebarCustomizationSettings,
@@ -31,6 +33,7 @@ import {
   updateDisplayPreferenceSettings,
   updateHomepageContentSettings,
   updateImportBlacklist,
+  updatePlaceTypeDisplay,
   updateRedirectIgnoreList,
   updateShortenerIgnoreList,
   updateSidebarCustomizationSettings,
@@ -204,6 +207,29 @@ const automationBody = {
     sidebarOpenModifier: {
       type: "string",
       enum: ["alt", "ctrl", "shift", "meta"],
+    },
+  },
+} as const;
+
+// The per-placeType map display config: a free-keyed object (placeType → its setting). The
+// `displayMode` enum derives from the shared LOCATION_DISPLAY_MODES tuple (don't hand-mirror it).
+const placeTypeDisplayBody = {
+  type: "object",
+  additionalProperties: {
+    type: "object",
+    required: ["displayMode", "visible", "sortOrder"],
+    additionalProperties: false,
+    properties: {
+      displayMode: {
+        type: "string",
+        enum: [...LOCATION_DISPLAY_MODES],
+      },
+      visible: {
+        type: "boolean",
+      },
+      sortOrder: {
+        type: "number",
+      },
     },
   },
 } as const;
@@ -448,6 +474,19 @@ export async function appSettingsRoutes(app: FastifyInstance): Promise<void> {
       body: automationBody,
     },
   }, async req => updateAutomationSettings(req.body as UpdateAutomationInput));
+
+  app.get("/api/app-settings/location-display", {
+    schema: {
+      tags: ["app-settings"],
+    },
+  }, async () => getPlaceTypeDisplay());
+
+  app.put("/api/app-settings/location-display", {
+    schema: {
+      tags: ["app-settings"],
+      body: placeTypeDisplayBody,
+    },
+  }, async req => updatePlaceTypeDisplay(req.body as PlaceTypeDisplayConfig));
 
   app.get("/api/app-settings/display-preferences", {
     schema: {

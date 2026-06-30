@@ -1,6 +1,6 @@
 import { relations, sql } from "drizzle-orm";
 import { type AnyPgColumn, boolean, integer, jsonb, pgTable, primaryKey, real, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
-import type { CardFieldZones, CardZoneLayouts, ConditionTree, ImportBlacklistEntry, LocationAlternateName, LocationBoundary, ShortenedLink, SocialLink, WebsiteParamRule } from "@eesimple/types";
+import type { CardFieldZones, CardZoneLayouts, ConditionTree, ImportBlacklistEntry, LocationAlternateName, LocationBoundary, PlaceTypeDisplayConfig, ShortenedLink, SocialLink, WebsiteParamRule } from "@eesimple/types";
 
 /** `bookmarks` table — one row per saved bookmark. Tags now live in `bookmark_tags`. */
 export const bookmarks = pgTable("bookmarks", {
@@ -1240,6 +1240,10 @@ export const appSettings = pgTable("app_settings", {
   // ArchiveBox base URL configured from Settings → Connectors. Nullable = push-safe additive;
   // ARCHIVEBOX_ENDPOINT env var is used as fallback when null.
   archiveBoxEndpoint: text("archive_box_endpoint"),
+  // Per-Nominatim-placeType map display config (Settings → Locations + the map "Levels" overlay):
+  // a sparse Record<placeTypeKey, { displayMode: "pin"|"area", visible, sortOrder }>. Display-only,
+  // so it never touches the bookmark cache. Nullable = push-safe additive; the service reads `?? {}`.
+  placeTypeDisplay: jsonb("place_type_display").$type<PlaceTypeDisplayConfig>(),
 });
 
 /**

@@ -3,12 +3,14 @@ import type { ColumnDef } from "@tanstack/react-table";
 
 import { useMemo } from "react";
 
+import { placeTypeKey } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 import { MapPin } from "lucide-react";
 
 import { TreeExpandToggle } from "./cells";
 import { bookmarkCountColumn } from "./columnHelpers";
 import { useSidebarOpenModifier } from "../../hooks/useAppSettings";
+import { placeTypeLabel } from "../../lib/locationLevels";
 import { useViewPanelClick } from "../panel/useEditPanelClick";
 import { RomanizedLabel } from "../RomanizedLabel";
 
@@ -52,6 +54,17 @@ export function useLocationColumns(): ColumnDef<LocationNode>[] {
               />
             </Link>
           </div>
+        ),
+      },
+      {
+        id: "placeType",
+        header: "Place type",
+        cell: ({
+          row,
+        }) => (
+          row.original.placeType
+            ? <span className="text-sm">{placeTypeLabel(placeTypeKey(row.original.placeType))}</span>
+            : <span className="text-sm text-muted-foreground">—</span>
         ),
       },
       bookmarkCountColumn<LocationNode>(),

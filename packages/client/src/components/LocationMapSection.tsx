@@ -2,13 +2,15 @@ import type { LocationNode } from "@eesimple/types";
 
 import { useEffect, useRef } from "react";
 
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, Map as MapIcon } from "lucide-react";
 
+import { LocationLevelsOverlay } from "./LocationLevelsOverlay";
 import { LocationMap } from "./LocationMap";
+import { usePlaceTypeDisplayConfig } from "../hooks/useAppSettings";
 import { useRefreshLocationBoundary } from "../hooks/useLocations";
 import { useUiStore } from "../stores/uiStore";
 
-import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface LocationMapSectionProps {
   /** Stable collapse key: `"listing"` for the listing page, the location id on a detail page. */
@@ -24,6 +26,8 @@ interface LocationMapSectionProps {
    * none yet — used on detail pages so the polygon appears on first view and is cached server-side.
    */
   autoRefreshLocationId?: string;
+  /** Whether to show the "Levels" overlay control (listing page only; off on single-location maps). */
+  showLevels?: boolean;
 }
 
 /** A collapsible "Map" section wrapping {@link LocationMap}, with persisted open/closed state. */
@@ -33,10 +37,12 @@ export function LocationMapSection({
   title = "Map",
   mapClassName,
   autoRefreshLocationId,
+  showLevels = false,
 }: LocationMapSectionProps) {
   const collapsedKeys = useUiStore(state => state.collapsedLocationMapKeys);
   const toggle = useUiStore(state => state.toggleLocationMapCollapsed);
   const isCollapsed = collapsedKeys.includes(mapKey);
+  const displayConfig = usePlaceTypeDisplayConfig();
 
   const refreshBoundary = useRefreshLocationBoundary();
   const attemptedRef = useRef<string | null>(null);
@@ -57,20 +63,28 @@ export function LocationMapSection({
 
   return (
     <section aria-label={title}>
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <h2 className="text-lg font-semibold">{title}</h2>
-        <Button
+      <div className="mb-2 flex items-center gap-2">
+        <button
           type="button"
-          variant="ghost"
-          size="icon"
-          className="shrink-0"
+          aria-expanded={!isCollapsed}
           aria-label={isCollapsed ? `Expand ${title}` : `Collapse ${title}`}
           onClick={() => toggle(mapKey)}
+          className="
+            flex flex-1 items-center gap-2 rounded-lg border bg-card px-3 py-2
+            text-left font-semibold transition-colors
+            hover:bg-accent hover:text-accent-foreground
+          "
         >
-          {isCollapsed
-            ? <ChevronRight className="size-4" />
-            : <ChevronDown className="size-4" />}
-        </Button>
+          <MapIcon className="size-4 shrink-0 text-muted-foreground" />
+          <span className="flex-1">{title}</span>
+          <ChevronDown
+            className={cn(
+              "size-4 shrink-0 text-muted-foreground transition-transform",
+              isCollapsed && "-rotate-90",
+            )}
+          />
+        </button>
+        {showLevels && !isCollapsed ? <LocationLevelsOverlay /> : null}
       </div>
 
       {!isCollapsed
@@ -78,6 +92,7 @@ export function LocationMapSection({
           <LocationMap
             tree={tree}
             className={mapClassName}
+            displayConfig={displayConfig}
           />
         )
         : null}
