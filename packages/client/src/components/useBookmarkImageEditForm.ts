@@ -33,6 +33,10 @@ export interface BookmarkImageEditFormController {
   isScanning: boolean;
   /** Scan the bookmark's page for more images to choose from. */
   onFindImages: () => void;
+  /** Whether the direct page-image (og:image) fetch is in flight. */
+  getPageImagePending: boolean;
+  /** Fetch the page's preview image (og:image) directly and add it to the bookmark. */
+  onGetPageImage: () => void;
   /** Stage the chosen image intent (uploads / kept candidates / main / removals) for the next save. */
   onImageChange: (intent: ImageIntent) => void;
   /** Persist the staged image intent. */
@@ -115,6 +119,11 @@ export function useBookmarkImageEditForm(bookmark: Bookmark): BookmarkImageEditF
     candidates,
     isScanning,
     onFindImages: () => void handleFindImages(),
+    getPageImagePending: autoImage.isPending,
+    onGetPageImage: () => autoImage.mutate({
+      id: bookmark.id,
+      sourceUrl: bookmark.url ?? "",
+    }),
     onImageChange: (intent) => {
       imageIntentRef.current = intent;
     },

@@ -1,6 +1,6 @@
 import type { Bookmark } from "@eesimple/types";
 
-import { Search } from "lucide-react";
+import { Search, Sparkles } from "lucide-react";
 
 import { BookmarkImagePicker } from "./BookmarkImagePicker";
 import { useBookmarkImageEditForm } from "./useBookmarkImageEditForm";
@@ -41,16 +41,29 @@ export function BookmarkImageEditForm({
         </Button>
         {bookmark.url
           ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={c.isScanning}
-              onClick={c.onFindImages}
-            >
-              <Search className="size-4" />
-              {c.isScanning ? "Finding…" : "Find images on page"}
-            </Button>
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={c.isScanning}
+                onClick={c.onFindImages}
+              >
+                <Search className="size-4" />
+                {c.isScanning ? "Finding…" : "Find images on page"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={c.getPageImagePending}
+                title="Fetch the page's preview image (og:image)"
+                onClick={c.onGetPageImage}
+              >
+                <Sparkles className="size-4" />
+                {c.getPageImagePending ? "Fetching…" : "Get page image"}
+              </Button>
+            </>
           )
           : null}
         {c.mutationError
