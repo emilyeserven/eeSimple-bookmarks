@@ -47,7 +47,10 @@ vi.mock("../hooks/useLocations", () => ({
 describe("LocationsSettings", () => {
   it("renders without an infinite render loop and opens the place-types combobox", () => {
     render(<LocationsSettings />);
-    // All groups appear in a single flat list regardless of displayMode.
+    // Rows default to view mode — click Edit to reveal the place-types combobox.
+    fireEvent.click(screen.getByRole("button", {
+      name: "Edit",
+    }));
     const trigger = screen.getByRole("combobox", {
       name: /Place types for Country/,
     });
