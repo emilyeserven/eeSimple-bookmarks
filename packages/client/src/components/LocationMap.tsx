@@ -319,7 +319,7 @@ export function LocationMap({
 
   return (
     <div className="space-y-2">
-      <div className="relative">
+      <div className="relative isolate">
         <MapContainer
           center={[20, 0]}
           zoom={2}

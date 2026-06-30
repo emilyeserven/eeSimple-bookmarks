@@ -96,6 +96,7 @@ function LocationBookmarksPage() {
           tree={[location, ...location.children]}
           autoRefreshLocationId={location.id}
           mapClassName="h-80 w-full rounded-lg border"
+          showLevels
         />
       )}
       pageKey={`location:${locationSlug}`}

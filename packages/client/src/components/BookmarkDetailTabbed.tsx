@@ -6,6 +6,7 @@ import { useState } from "react";
 import { buildBookmarkDetailSections } from "./bookmarkDetailSections";
 import { navLinkClass, navStripClass } from "./TabbedShell";
 import { useBookmarks } from "../hooks/useBookmarks";
+import { useLocationTree } from "../hooks/useLocations";
 import { useDefaultFieldZones } from "../lib/bookmarkCardFields";
 import { buildBookmarkHierarchy } from "../lib/bookmarkHierarchy";
 import { flattenTree } from "../lib/tagTree";
@@ -32,6 +33,9 @@ export function BookmarkDetailTabbed({
   const {
     data: allBookmarks,
   } = useBookmarks();
+  const {
+    data: locationTree,
+  } = useLocationTree();
   const flatHierarchy = flattenTree(buildBookmarkHierarchy(bookmark.id, allBookmarks ?? []));
   const defaultFieldZones = useDefaultFieldZones();
 
@@ -43,6 +47,7 @@ export function BookmarkDetailTabbed({
     flatHierarchy,
     onSaveBoolean,
     defaultFieldZones,
+    locationTree,
   });
 
   const [activeId, setActiveId] = useState<BookmarkDetailSectionId>(sections[0].id);

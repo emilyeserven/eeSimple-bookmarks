@@ -1,5 +1,5 @@
 import { DEFAULT_LOCATION_MAP_COLOR, normalizeHexColor } from "@eesimple/types";
-import { Layers, MapPin, Shapes } from "lucide-react";
+import { Layers, MapPin, Shapes, Square } from "lucide-react";
 
 import { useLocationLevels } from "../hooks/useLocationLevels";
 
@@ -18,7 +18,9 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 export function LocationLevelsOverlay() {
   const {
     groups, setGroupVisible, setGroupDisplayMode,
-  } = useLocationLevels();
+  } = useLocationLevels({
+    notify: false,
+  });
 
   return (
     <ResponsivePopover
@@ -55,13 +57,26 @@ export function LocationLevelsOverlay() {
                     checked={group.visible}
                     onCheckedChange={checked => setGroupVisible(group.id, checked === true)}
                   />
-                  <span
-                    className="size-3 shrink-0 rounded-sm border"
-                    style={{
-                      backgroundColor: normalizeHexColor(group.color) ?? DEFAULT_LOCATION_MAP_COLOR,
-                    }}
-                    aria-hidden="true"
-                  />
+                  {group.displayMode === "pin"
+                    ? (
+                      <MapPin
+                        className="size-3 shrink-0"
+                        style={{
+                          color: normalizeHexColor(group.color) ?? DEFAULT_LOCATION_MAP_COLOR,
+                        }}
+                        aria-hidden="true"
+                      />
+                    )
+                    : (
+                      <Square
+                        className="size-3 shrink-0"
+                        style={{
+                          color: normalizeHexColor(group.color) ?? DEFAULT_LOCATION_MAP_COLOR,
+                          fill: normalizeHexColor(group.color) ?? DEFAULT_LOCATION_MAP_COLOR,
+                        }}
+                        aria-hidden="true"
+                      />
+                    )}
                   <Label
                     htmlFor={`level-${group.id}`}
                     className="cursor-pointer"
