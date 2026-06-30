@@ -1,0 +1,48 @@
+// The panel's content-type registry array: it assembles each entity's per-type definition
+// (view/edit components + list adapter, defined in ./<entity>) into the ordered array its
+// consumers iterate over. The individual definitions are grouped behind two sub-barrels so this
+// module — and `../contentTypes` — stay within the dependency cap.
+import type { PanelContentTypeDef } from "./types";
+
+import {
+  authorContentType,
+  autofillContentType,
+  cardDisplayRuleContentType,
+  importRuleContentType,
+  newsletterContentType,
+  publisherContentType,
+  relationshipTypeContentType,
+  savedFilterContentType,
+} from "./peopleAndRuleContentTypes";
+import {
+  bookmarkContentType,
+  categoryContentType,
+  locationContentType,
+  mediaTypeContentType,
+  propertyContentType,
+  propertyGroupContentType,
+  tagContentType,
+  websiteContentType,
+  youtubeChannelContentType,
+} from "./taxonomyContentTypes";
+
+/** Every content type the panel can browse, in tile/list display order. */
+export const PANEL_CONTENT_TYPES: PanelContentTypeDef[] = [
+  bookmarkContentType,
+  tagContentType,
+  categoryContentType,
+  propertyContentType,
+  propertyGroupContentType,
+  websiteContentType,
+  mediaTypeContentType,
+  locationContentType,
+  youtubeChannelContentType,
+  newsletterContentType,
+  authorContentType,
+  publisherContentType,
+  relationshipTypeContentType,
+  autofillContentType,
+  cardDisplayRuleContentType,
+  importRuleContentType,
+  savedFilterContentType,
+];

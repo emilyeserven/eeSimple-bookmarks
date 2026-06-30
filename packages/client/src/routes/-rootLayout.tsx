@@ -6,10 +6,8 @@ import { Toaster } from "sonner";
 
 import { AppHeader } from "./-appHeader";
 
-import { AddImportModal } from "@/components/AddImportModal";
 import { AppSidebar } from "@/components/app-sidebar";
-import { CommandPalette } from "@/components/CommandPalette";
-import { RightPanel } from "@/components/panel/RightPanel";
+import { AppOverlays } from "@/components/AppOverlays";
 import {
   SidebarInset,
   SidebarProvider,
@@ -55,9 +53,7 @@ export function RootLayout() {
           <Outlet />
         </main>
       </SidebarInset>
-      <RightPanel />
-      <AddImportModal />
-      <CommandPalette />
+      <AppOverlays />
       <Toaster
         richColors
         expand

@@ -1,0 +1,65 @@
+import type { LocationNode } from "@eesimple/types";
+import type { Row } from "@tanstack/react-table";
+
+import { placeTypeKey } from "@eesimple/types";
+import { Link } from "@tanstack/react-router";
+import { MapPin } from "lucide-react";
+
+import { TreeExpandToggle } from "./cells";
+import { useSidebarOpenModifier } from "../../hooks/useAppSettings";
+import { placeTypeLabel } from "../../lib/locationLevels";
+import { useViewPanelClick } from "../panel/useEditPanelClick";
+import { RomanizedLabel } from "../RomanizedLabel";
+
+import { entityLinkTitle } from "@/lib/sidebarModifier";
+
+/** Name cell for the Locations table: indentation + expand toggle + map-pin icon + a detail link. */
+export function LocationNameCell({
+  row,
+}: {
+  row: Row<LocationNode>;
+}) {
+  const viewClick = useViewPanelClick();
+  const modifier = useSidebarOpenModifier();
+  return (
+    <div
+      className="flex items-center gap-1"
+      style={{
+        paddingLeft: `${row.depth * 1.25}rem`,
+      }}
+    >
+      <TreeExpandToggle row={row} />
+      <MapPin className="size-4 shrink-0 text-muted-foreground" />
+      <Link
+        to="/taxonomies/locations/$locationSlug/general"
+        params={{
+          locationSlug: row.original.slug,
+        }}
+        title={entityLinkTitle(modifier)}
+        onClick={event => viewClick(event, "location", row.original.id, row.original.slug)}
+        className="
+          font-medium
+          hover:underline
+        "
+      >
+        <RomanizedLabel
+          name={row.original.name}
+          romanized={row.original.romanizedName}
+        />
+      </Link>
+    </div>
+  );
+}
+
+/** Place-type cell for the Locations table: the resolved level label, or an em dash when unset. */
+export function LocationPlaceTypeCell({
+  row,
+}: {
+  row: Row<LocationNode>;
+}) {
+  return (
+    row.original.placeType
+      ? <span className="text-sm">{placeTypeLabel(placeTypeKey(row.original.placeType))}</span>
+      : <span className="text-sm text-muted-foreground">—</span>
+  );
+}
