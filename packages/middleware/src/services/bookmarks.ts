@@ -55,6 +55,7 @@ import {
   linkTags,
   recomputeCalculatedValues,
   setBooleanValues,
+  setBookmarkLocationBlacklist,
   setBookmarkTagBlacklist,
   setChoicesValues,
   setDateTimeValues,
@@ -556,6 +557,9 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
     await linkLocations(tx, row.id, mergedLocationIds);
     if (input.blacklistedTagIds?.length) {
       await setBookmarkTagBlacklist(tx, row.id, input.blacklistedTagIds);
+    }
+    if (input.blacklistedLocationIds?.length) {
+      await setBookmarkLocationBlacklist(tx, row.id, input.blacklistedLocationIds);
     }
     await linkAuthors(tx, row.id, input.authorIds);
     await setNumberValues(tx, row.id, numberValues);

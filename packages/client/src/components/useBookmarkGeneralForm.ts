@@ -92,6 +92,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
       tagIds: (bookmark.tags.map(tag => tag.id)) as string[],
       locationIds: (bookmark.locations.map(location => location.id)) as string[],
       blacklistedTagIds: bookmark.blacklistedTagIds as string[],
+      blacklistedLocationIds: bookmark.blacklistedLocationIds as string[],
       authorIds: (bookmark.authors.map(a => a.id)) as string[],
       publisherId: bookmark.publisher?.id ?? "",
     },
@@ -169,6 +170,21 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
       {
         onSuccess: () => notifyFieldSaved("Tag blacklist"),
         onError: e => notifyFieldSaveError("Tag blacklist", describeError(e)),
+      },
+    );
+  }
+
+  function saveBlacklistedLocationIds(blacklistedLocationIds: string[]): void {
+    updateBookmark.mutate(
+      {
+        id: bookmark.id,
+        input: {
+          blacklistedLocationIds,
+        },
+      },
+      {
+        onSuccess: () => notifyFieldSaved("Location blacklist"),
+        onError: e => notifyFieldSaveError("Location blacklist", describeError(e)),
       },
     );
   }
@@ -323,6 +339,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     saveTags,
     saveLocations,
     saveBlacklistedTagIds,
+    saveBlacklistedLocationIds,
     saveAuthors,
     fetchTitle,
     fetchMetadata,
