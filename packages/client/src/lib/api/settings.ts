@@ -23,6 +23,7 @@ import type {
   ImportBlacklistEntry,
   PinnedSidebarItem,
   PlaceTypeDisplayConfig,
+  PlaceTypeLevelGroupConfig,
   SavedFilter,
   SidebarCustomizationSettings,
   UpdateAdvancedSettingsInput,
@@ -104,6 +105,13 @@ export const appSettingsApi = {
     request<PlaceTypeDisplayConfig>("/app-settings/location-display"),
   updateLocationDisplay: (input: PlaceTypeDisplayConfig) =>
     request<PlaceTypeDisplayConfig>("/app-settings/location-display", {
+      method: "PUT",
+      body: JSON.stringify(input),
+    }),
+  getLocationLevelGroups: () =>
+    request<PlaceTypeLevelGroupConfig>("/app-settings/location-level-groups"),
+  updateLocationLevelGroups: (input: PlaceTypeLevelGroupConfig) =>
+    request<PlaceTypeLevelGroupConfig>("/app-settings/location-level-groups", {
       method: "PUT",
       body: JSON.stringify(input),
     }),

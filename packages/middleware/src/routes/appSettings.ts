@@ -1,6 +1,7 @@
 import type {
   ImportBlacklistEntry,
   PlaceTypeDisplayConfig,
+  PlaceTypeLevelGroupConfig,
   UpdateAdvancedSettingsInput,
   UpdateAiSummarizationInput,
   UpdateAutomationInput,
@@ -22,6 +23,7 @@ import {
   getHomepageContentSettings,
   getImportBlacklist,
   getPlaceTypeDisplay,
+  getPlaceTypeLevelGroups,
   getRedirectIgnoreList,
   getShortenerIgnoreList,
   getSidebarCustomizationSettings,
@@ -34,6 +36,7 @@ import {
   updateHomepageContentSettings,
   updateImportBlacklist,
   updatePlaceTypeDisplay,
+  updatePlaceTypeLevelGroups,
   updateRedirectIgnoreList,
   updateShortenerIgnoreList,
   updateSidebarCustomizationSettings,
@@ -270,6 +273,7 @@ const displayPreferenceBody = {
     "croppedHeight",
     "showRomanizedByDefault",
     "sortByRomanized",
+    "showLocationAncestorsOnMap",
   ],
   additionalProperties: false,
   properties: {
@@ -333,6 +337,44 @@ const displayPreferenceBody = {
     },
     sortByRomanized: {
       type: "boolean",
+    },
+    showLocationAncestorsOnMap: {
+      type: "boolean",
+    },
+  },
+} as const;
+
+// The named place-type level groups: an ordered array of groups, each grouping member place types
+// under a display setting. The `displayMode` enum derives from LOCATION_DISPLAY_MODES (don't mirror).
+const placeTypeLevelGroupsBody = {
+  type: "array",
+  items: {
+    type: "object",
+    required: ["id", "name", "placeTypes", "displayMode", "visible", "sortOrder"],
+    additionalProperties: false,
+    properties: {
+      id: {
+        type: "string",
+      },
+      name: {
+        type: "string",
+      },
+      placeTypes: {
+        type: "array",
+        items: {
+          type: "string",
+        },
+      },
+      displayMode: {
+        type: "string",
+        enum: [...LOCATION_DISPLAY_MODES],
+      },
+      visible: {
+        type: "boolean",
+      },
+      sortOrder: {
+        type: "number",
+      },
     },
   },
 } as const;
@@ -487,6 +529,19 @@ export async function appSettingsRoutes(app: FastifyInstance): Promise<void> {
       body: placeTypeDisplayBody,
     },
   }, async req => updatePlaceTypeDisplay(req.body as PlaceTypeDisplayConfig));
+
+  app.get("/api/app-settings/location-level-groups", {
+    schema: {
+      tags: ["app-settings"],
+    },
+  }, async () => getPlaceTypeLevelGroups());
+
+  app.put("/api/app-settings/location-level-groups", {
+    schema: {
+      tags: ["app-settings"],
+      body: placeTypeLevelGroupsBody,
+    },
+  }, async req => updatePlaceTypeLevelGroups(req.body as PlaceTypeLevelGroupConfig));
 
   app.get("/api/app-settings/display-preferences", {
     schema: {

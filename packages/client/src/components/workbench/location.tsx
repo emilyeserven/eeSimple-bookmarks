@@ -12,8 +12,16 @@ import { LocationMapSection } from "../LocationMapSection";
 import { LocationTreeList } from "../LocationTreeList";
 import { RomanizedLabel } from "../RomanizedLabel";
 
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import {
+  useDisplayPreferenceSettings,
+  useShowLocationAncestorsOnMap,
+  useUpdateDisplayPreferenceSettings,
+} from "@/hooks/useAppSettings";
 import { useExpandedSet } from "@/hooks/useExpandedSet";
 import { useDeleteLocation, useLocationById, useLocationBySlug, useLocationTree } from "@/hooks/useLocations";
+import { notifyError, notifySuccess } from "@/lib/notifications";
 import { findAncestorPath, flattenTree } from "@/lib/tagTree";
 
 function LocationGeneralView({
@@ -24,12 +32,40 @@ function LocationGeneralView({
   const {
     data,
   } = useLocationTree();
+  const showAncestors = useShowLocationAncestorsOnMap();
+  const {
+    data: displayPrefs,
+  } = useDisplayPreferenceSettings();
+  const updatePrefs = useUpdateDisplayPreferenceSettings();
   const parent = node.parentId
     ? flattenTree(data ?? []).find(item => item.node.id === node.parentId)?.node
     : null;
   const coordinates = node.latitude != null && node.longitude != null
     ? `${node.latitude}, ${node.longitude}`
     : "—";
+
+  // Ancestor chain (root → parent), stripped of children so only the ancestors themselves plot —
+  // otherwise `collectMapped` would re-plot the whole tree under a root ancestor.
+  const path = findAncestorPath(data ?? [], node.slug);
+  const ancestors = (path ? path.slice(0, -1) : []).map(ancestor => ({
+    ...ancestor,
+    children: [],
+  }));
+  const mapTree = showAncestors
+    ? [...ancestors, node, ...node.children]
+    : [node, ...node.children];
+
+  function toggleAncestors(next: boolean): void {
+    if (!displayPrefs) return;
+    updatePrefs.mutate({
+      ...displayPrefs,
+      showLocationAncestorsOnMap: next,
+    }, {
+      onSuccess: () => notifySuccess(next ? "Showing ancestors on map" : "Hiding ancestors on map"),
+      onError: error => notifyError(error.message),
+    });
+  }
+
   return (
     <div className="space-y-6">
       <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
@@ -87,12 +123,27 @@ function LocationGeneralView({
         <dt className="text-muted-foreground">Created</dt>
         <dd>{new Date(node.createdAt).toLocaleDateString()}</dd>
       </dl>
-      <LocationMapSection
-        mapKey={node.id}
-        tree={[node, ...node.children]}
-        autoRefreshLocationId={node.id}
-        mapClassName="h-80 w-full rounded-lg border"
-      />
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="loc-show-ancestors"
+            checked={showAncestors}
+            onCheckedChange={checked => toggleAncestors(checked === true)}
+          />
+          <Label
+            htmlFor="loc-show-ancestors"
+            className="cursor-pointer"
+          >
+            Show ancestors on map
+          </Label>
+        </div>
+        <LocationMapSection
+          mapKey={node.id}
+          tree={mapTree}
+          autoRefreshLocationId={node.id}
+          mapClassName="h-80 w-full rounded-lg border"
+        />
+      </div>
     </div>
   );
 }

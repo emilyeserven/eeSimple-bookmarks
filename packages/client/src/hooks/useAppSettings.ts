@@ -6,6 +6,7 @@ import type {
   ConnectorsAppSettings,
   ImportBlacklistEntry,
   PlaceTypeDisplayConfig,
+  PlaceTypeLevelGroupConfig,
   SidebarCustomizationSettings,
   SidebarOpenModifier,
   UpdateAdvancedSettingsInput,
@@ -17,6 +18,7 @@ import type {
   UpdateSidebarCustomizationInput,
 } from "@eesimple/types";
 
+import { expandLevelGroupsToDisplayConfig } from "@eesimple/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { appSettingsApi } from "../lib/api/settings";
@@ -32,6 +34,7 @@ const DATABASE_USAGE_KEY = ["app-settings", "database-usage"] as const;
 const SIDEBAR_CUSTOMIZATION_KEY = ["app-settings", "sidebar-customization"] as const;
 const AUTOMATION_KEY = ["app-settings", "automation"] as const;
 const LOCATION_DISPLAY_KEY = ["app-settings", "location-display"] as const;
+const LOCATION_LEVEL_GROUPS_KEY = ["app-settings", "location-level-groups"] as const;
 const DISPLAY_PREFERENCES_KEY = ["app-settings", "display-preferences"] as const;
 const AI_SUMMARIZATION_KEY = ["app-settings", "ai-summarization"] as const;
 
@@ -186,6 +189,7 @@ const DISPLAY_PREFERENCE_DEFAULTS = {
   croppedHeight: 9,
   showRomanizedByDefault: false,
   sortByRomanized: true,
+  showLocationAncestorsOnMap: false,
 };
 
 /** Sidebar-customization settings (group A): which left-sidebar items/groups are hidden. */
@@ -255,12 +259,47 @@ export function useUpdateLocationDisplaySettings() {
   });
 }
 
-/** The resolved per-placeType display config, defaulting to an empty (all-default) config. */
-export function usePlaceTypeDisplayConfig(): PlaceTypeDisplayConfig {
+/**
+ * The named place-type level groups (Settings → Locations + the map "Levels" overlay) — the source of
+ * truth the UI edits. The per-placeType config the map/sort consume is **derived** from this.
+ */
+export function useLocationLevelGroupsSettings() {
+  return useQuery({
+    queryKey: LOCATION_LEVEL_GROUPS_KEY,
+    queryFn: appSettingsApi.getLocationLevelGroups,
+  });
+}
+
+export function useUpdateLocationLevelGroups() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: PlaceTypeLevelGroupConfig) =>
+      appSettingsApi.updateLocationLevelGroups(input),
+    onSuccess: (saved) => {
+      queryClient.setQueryData(LOCATION_LEVEL_GROUPS_KEY, saved);
+    },
+  });
+}
+
+/** The resolved level groups, defaulting to an empty list while loading. */
+export function useLocationLevelGroups(): PlaceTypeLevelGroupConfig {
   const {
     data,
+  } = useLocationLevelGroupsSettings();
+  return data ?? [];
+}
+
+/**
+ * The resolved per-placeType display config the map renderer and the place-type tree sort consume.
+ * Derived from the named level groups (each member inherits its group's settings); falls back to the
+ * legacy per-placeType config while no groups are configured.
+ */
+export function usePlaceTypeDisplayConfig(): PlaceTypeDisplayConfig {
+  const groups = useLocationLevelGroups();
+  const {
+    data: legacy,
   } = useLocationDisplaySettings();
-  return data ?? {};
+  return groups.length > 0 ? expandLevelGroupsToDisplayConfig(groups) : (legacy ?? {});
 }
 
 /** Whether blurring the bookmark URL field auto-fetches the page title (default true). */
@@ -368,6 +407,14 @@ export function useShowRomanizedByDefault(): boolean {
     data,
   } = useDisplayPreferenceSettings();
   return data?.showRomanizedByDefault ?? DISPLAY_PREFERENCE_DEFAULTS.showRomanizedByDefault;
+}
+
+/** Whether a location detail page's map also plots the location's ancestors/parent (default false). */
+export function useShowLocationAncestorsOnMap(): boolean {
+  const {
+    data,
+  } = useDisplayPreferenceSettings();
+  return data?.showLocationAncestorsOnMap ?? DISPLAY_PREFERENCE_DEFAULTS.showLocationAncestorsOnMap;
 }
 
 /** Whether alphabetical name/title sorting uses the romanized value as the sort key (default true). */

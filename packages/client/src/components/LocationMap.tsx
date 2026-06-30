@@ -14,6 +14,8 @@ import { GeoJSON, MapContainer, Marker, Popup, TileLayer, useMap } from "react-l
 
 import { RomanizedLabel } from "./RomanizedLabel";
 
+import { cn } from "@/lib/utils";
+
 import "leaflet/dist/leaflet.css";
 
 /**
@@ -213,7 +215,7 @@ export function LocationMap({
         center={[20, 0]}
         zoom={2}
         scrollWheelZoom
-        className={className}
+        className={cn("isolate", className)}
       >
         <TileLayer
           attribution="© OpenStreetMap contributors"

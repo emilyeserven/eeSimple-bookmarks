@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import type { LocationBoundary, PlaceTypeDisplayConfig } from "./locations.js";
+import type { LocationBoundary, PlaceTypeDisplayConfig, PlaceTypeLevelGroupConfig } from "./locations.js";
 
 import {
+  expandLevelGroupsToDisplayConfig,
   placeTypeKey,
   placeTypeOrder,
   resolveLocationDisplay,
@@ -109,4 +110,92 @@ test("placeTypeOrder falls back to the canonical rank, then sorts unknown types 
   // country precedes city in the canonical order.
   assert.ok(placeTypeOrder("country", config) < placeTypeOrder("city", config));
   assert.equal(placeTypeOrder("not-a-real-type", config), Number.MAX_SAFE_INTEGER);
+});
+
+// --- expandLevelGroupsToDisplayConfig ---
+
+test("expandLevelGroupsToDisplayConfig spreads each group's setting to its members", () => {
+  const groups: PlaceTypeLevelGroupConfig = [
+    {
+      id: "g1",
+      name: "Country",
+      placeTypes: ["Country", "  State  "],
+      displayMode: "area",
+      visible: true,
+      sortOrder: 0,
+    },
+    {
+      id: "g2",
+      name: "City",
+      placeTypes: ["city", "town"],
+      displayMode: "pin",
+      visible: false,
+      sortOrder: 1,
+    },
+  ];
+  const config = expandLevelGroupsToDisplayConfig(groups);
+  // keys are normalized
+  assert.deepEqual(config.country, {
+    displayMode: "area",
+    visible: true,
+    sortOrder: 0,
+  });
+  assert.deepEqual(config.state, {
+    displayMode: "area",
+    visible: true,
+    sortOrder: 0,
+  });
+  assert.deepEqual(config.city, {
+    displayMode: "pin",
+    visible: false,
+    sortOrder: 1,
+  });
+  assert.equal(config.town?.sortOrder, 1);
+});
+
+test("expandLevelGroupsToDisplayConfig ignores blank members and leaves unassigned types absent", () => {
+  const groups: PlaceTypeLevelGroupConfig = [
+    {
+      id: "g1",
+      name: "Region",
+      placeTypes: ["region", "  ", ""],
+      displayMode: "area",
+      visible: true,
+      sortOrder: 0,
+    },
+  ];
+  const config = expandLevelGroupsToDisplayConfig(groups);
+  assert.deepEqual(Object.keys(config), ["region"]);
+  // an unassigned type still resolves to the legacy default
+  assert.equal(resolveLocationDisplay({
+    placeType: "city",
+    boundary: null,
+  }, config), "pin");
+});
+
+test("expandLevelGroupsToDisplayConfig lets the lowest-sortOrder group win a shared place type", () => {
+  const groups: PlaceTypeLevelGroupConfig = [
+    {
+      id: "low",
+      name: "Low",
+      placeTypes: ["city"],
+      displayMode: "pin",
+      visible: true,
+      sortOrder: 5,
+    },
+    {
+      id: "high",
+      name: "High",
+      placeTypes: ["city"],
+      displayMode: "area",
+      visible: false,
+      sortOrder: 2,
+    },
+  ];
+  const config = expandLevelGroupsToDisplayConfig(groups);
+  assert.deepEqual(config.city, {
+    displayMode: "area",
+    visible: false,
+    sortOrder: 2,
+  });
 });
