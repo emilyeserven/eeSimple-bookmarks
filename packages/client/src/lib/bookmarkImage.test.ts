@@ -9,15 +9,15 @@ describe("bookmarkImageClass", () => {
     expect(bookmarkImageClass(true, "natural")).not.toContain("object-cover");
   });
 
-  it("scales to fit (object-contain, no crop) for a non-natural left layout", () => {
-    expect(bookmarkImageClass(true, "cropped")).toContain("object-contain");
-    expect(bookmarkImageClass(true, "cropped")).not.toContain("object-cover");
+  it("crops to fill (object-cover) for a non-natural left layout", () => {
+    expect(bookmarkImageClass(true, "cropped")).toContain("object-cover");
+    expect(bookmarkImageClass(true, "cropped")).not.toContain("object-contain");
   });
 
   it("uses full-width top layout when imageLeft is false", () => {
     expect(bookmarkImageClass(false, "natural")).toContain("w-full");
-    expect(bookmarkImageClass(false, "cropped")).toContain("object-contain");
-    expect(bookmarkImageClass(false, "cropped")).not.toContain("object-cover");
+    expect(bookmarkImageClass(false, "cropped")).toContain("object-cover");
+    expect(bookmarkImageClass(false, "cropped")).not.toContain("object-contain");
   });
 });
 
