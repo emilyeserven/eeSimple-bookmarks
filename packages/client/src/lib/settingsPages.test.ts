@@ -22,6 +22,9 @@ describe("settingsPages registry", () => {
       "/settings/advanced/manage-data",
       "/settings/advanced/updates",
       "/settings/advanced/database-usage",
+      "/settings/locations/level-groups",
+      "/settings/locations/pin-style",
+      "/settings/locations/place-types",
     ]) {
       const page = findSettingsPage(path);
       expect(page?.path).toBe(path);

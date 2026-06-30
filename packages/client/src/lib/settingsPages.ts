@@ -17,6 +17,7 @@ import {
   LayoutTemplate,
   Link2,
   ListChecks,
+  MapPin,
   Monitor,
   MonitorPlay,
   PanelLeft,
@@ -95,6 +96,21 @@ export const SETTINGS_PAGES: readonly SettingsPage[] = [
     path: "/settings/advanced/manage-media",
     label: "Manage Media",
     icon: Image,
+  },
+  {
+    path: "/settings/locations/level-groups",
+    label: "Locations: Level Groups",
+    icon: MapPin,
+  },
+  {
+    path: "/settings/locations/pin-style",
+    label: "Locations: Pin Style",
+    icon: MapPin,
+  },
+  {
+    path: "/settings/locations/place-types",
+    label: "Locations: Place Types",
+    icon: MapPin,
   },
   {
     path: "/settings/automations/global",
