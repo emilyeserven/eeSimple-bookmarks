@@ -262,47 +262,102 @@ export interface LocationMapPalette {
   id: string;
   /** User-facing label shown next to the swatches. */
   name: string;
-  /** Ordered hex colors, assigned to the level groups in order (wrapping when there are more groups). */
+  /**
+   * The palette's full gradient, always {@link PALETTE_COLOR_COUNT} stops long, from one extreme to
+   * the other. When there are fewer level groups than stops, {@link distributePaletteColors} spreads
+   * the groups evenly across this gradient rather than just taking a contiguous slice — so a 3-group
+   * setup still spans the palette's full range instead of bunching at one end.
+   */
   colors: string[];
 }
 
+/** Every {@link LocationMapPalette.colors} array has exactly this many stops. */
+export const PALETTE_COLOR_COUNT = 20;
+
 /**
- * Predefined map-color palettes offered on Settings → Locations. Applying one assigns its colors to
- * the level groups in display order (wrapping if there are more groups than colors). The single source
- * of truth for the palette list — the Settings UI maps over this.
+ * Predefined map-color palettes offered on Settings → Locations. Applying one assigns colors to the
+ * level groups in display order via {@link distributePaletteColors} (evenly spread across the full
+ * 20-stop gradient, not a contiguous slice). The single source of truth for the palette list — the
+ * Settings UI maps over this.
  */
 export const LOCATION_MAP_PALETTES: LocationMapPalette[] = [
   {
     id: "vivid",
     name: "Vivid",
-    colors: ["#ef4444", "#f97316", "#eab308", "#22c55e", "#3b82f6", "#a855f7"],
+    colors: [
+      "#ef4343", "#f0533b", "#f16534", "#f27a2b", "#f49025", "#f4a225", "#f4b425", "#f4c625",
+      "#f0ee23", "#9ae71f", "#48d820", "#26c542", "#27c77e", "#24d7c4", "#28b3e1", "#2f79e7",
+      "#3652e7", "#483ee7", "#7245e6", "#994ce6",
+    ],
   },
   {
     id: "ocean",
     name: "Ocean",
-    colors: ["#0c4a6e", "#0369a1", "#0891b2", "#06b6d4", "#22d3ee", "#67e8f9"],
+    colors: [
+      "#0a3a5c", "#0b4469", "#0b4e76", "#0b5983", "#0c6590", "#0e739b", "#1083a6", "#1393b1",
+      "#15a1bc", "#16adc9", "#18b9d5", "#19c5e1", "#24cee7", "#36d5e9", "#49dbeb", "#5be0ed",
+      "#6ee3ee", "#81e6ef", "#93e9f1", "#a6ecf2",
+    ],
   },
   {
     id: "earth",
     name: "Earth",
-    colors: ["#78350f", "#a16207", "#4d7c0f", "#15803d", "#0e7490", "#1e3a8a"],
+    colors: [
+      "#43240a", "#5a350d", "#724810", "#895d14", "#9a7317", "#8e831c", "#798320", "#607924",
+      "#4b7326", "#387425", "#247524", "#237637", "#217849", "#1e7b5e", "#1b7e75", "#187481",
+      "#185f7b", "#1a4c73", "#1c3b6b", "#1d2e63",
+    ],
   },
   {
     id: "sunset",
     name: "Sunset",
-    colors: ["#7c2d12", "#b91c1c", "#ea580c", "#f59e0b", "#fbbf24", "#fde68a"],
+    colors: [
+      "#692b16", "#7a2c1a", "#8a2a1d", "#9b2721", "#ac2523", "#bd3020", "#ce3e1b", "#e14f16",
+      "#ed6315", "#ef741a", "#f1861e", "#f39723", "#f5a62c", "#f7b437", "#f9c243", "#face4f",
+      "#fad662", "#fadc76", "#fae28a", "#fae89e",
+    ],
   },
   {
     id: "forest",
     name: "Forest",
-    colors: ["#14532d", "#166534", "#15803d", "#4d7c0f", "#65a30d", "#84cc16"],
+    colors: [
+      "#0f3d22", "#134729", "#16512f", "#1a5b35", "#1d653b", "#216e41", "#267748", "#2a814e",
+      "#2c8648", "#2b882f", "#3e892a", "#578a29", "#67922b", "#71a02e", "#7aad32", "#84bb36",
+      "#8ac939", "#8fcf42", "#94d64c", "#99db57",
+    ],
   },
   {
     id: "pastel",
     name: "Pastel",
-    colors: ["#fca5a5", "#fdba74", "#fde68a", "#86efac", "#93c5fd", "#c4b5fd"],
+    colors: [
+      "#fa9e9e", "#faa89e", "#fab29e", "#fabc9e", "#fac69e", "#facf9e", "#fad99e", "#fae29e",
+      "#f8f59d", "#d3f49a", "#acf098", "#96eba5", "#97ecc4", "#99f1e4", "#9be4f5", "#9ecaf9",
+      "#a2b7f8", "#a6a8f7", "#b9aaf5", "#cbaff4",
+    ],
   },
 ];
+
+/**
+ * Spread `count` evenly-spaced stops across a palette's gradient, optionally reversed. Used to assign
+ * a palette across however many level groups exist: rather than slicing the first `count` colors
+ * (which would bunch every setup into one end of the gradient), each group maps proportionally into
+ * the full range — e.g. 4 groups against a 20-stop gradient land near indices 0, 6, 13, 19. `reverse`
+ * flips which end of the gradient the first group lands on, so the user can decide whether the
+ * palette's starting color represents their "largest" or "smallest" level.
+ */
+export function distributePaletteColors(colors: string[], count: number, reverse = false): string[] {
+  if (count <= 0 || colors.length === 0) return [];
+  const ordered = reverse ? [...colors].reverse() : colors;
+  if (ordered.length === 1 || count === 1) return Array.from({
+    length: count,
+  }, () => ordered[0]);
+  return Array.from({
+    length: count,
+  }, (_, i) => {
+    const index = Math.round((i / (count - 1)) * (ordered.length - 1));
+    return ordered[index];
+  });
+}
 
 /** Per-placeType map display configuration (one entry per Nominatim place type / "level"). */
 export interface PlaceTypeDisplaySetting {

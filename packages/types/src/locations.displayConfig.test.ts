@@ -4,6 +4,7 @@ import { test } from "node:test";
 import type { LocationBoundary, PlaceTypeColorConfig, PlaceTypeDisplayConfig, PlaceTypeIconConfig, PlaceTypeLevelGroupConfig } from "./locations.js";
 
 import {
+  distributePaletteColors,
   expandLevelGroupsToDisplayConfig,
   normalizeHexColor,
   normalizeIconName,
@@ -328,4 +329,30 @@ test("expandLevelGroupsToDisplayConfig lets the lowest-sortOrder group win a sha
     visible: false,
     sortOrder: 2,
   });
+});
+
+// --- distributePaletteColors ---
+
+test("distributePaletteColors spreads count evenly across the full gradient", () => {
+  const colors = Array.from({
+    length: 20,
+  }, (_, i) => `c${i}`);
+  // 4 groups against 20 stops should land near 0, 6/7, 13, 19 — spanning the full range, not bunched
+  // at the start.
+  assert.deepEqual(distributePaletteColors(colors, 4), ["c0", "c6", "c13", "c19"]);
+  assert.deepEqual(distributePaletteColors(colors, 1), ["c0"]);
+  assert.deepEqual(distributePaletteColors(colors, 20), colors);
+  assert.deepEqual(distributePaletteColors(colors, 0), []);
+});
+
+test("distributePaletteColors reverses which end of the gradient the first group gets", () => {
+  const colors = Array.from({
+    length: 20,
+  }, (_, i) => `c${i}`);
+  assert.deepEqual(distributePaletteColors(colors, 4, true), ["c19", "c13", "c6", "c0"]);
+});
+
+test("distributePaletteColors handles a single-color palette and an empty palette", () => {
+  assert.deepEqual(distributePaletteColors(["solo"], 3), ["solo", "solo", "solo"]);
+  assert.deepEqual(distributePaletteColors([], 5), []);
 });
