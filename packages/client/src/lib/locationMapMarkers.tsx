@@ -1,39 +1,24 @@
-import { DivIcon, Icon } from "leaflet";
-import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
-import markerIcon from "leaflet/dist/images/marker-icon.png";
-import markerShadow from "leaflet/dist/images/marker-shadow.png";
+import { DivIcon } from "leaflet";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { CategoryIcon } from "./icons";
 
 /**
- * Leaflet ships its default marker as CSS background images resolved by relative URL, which a
- * bundler (Vite) rewrites and breaks. Build the icon explicitly from the bundled asset URLs so
- * markers render everywhere. One shared instance — markers are otherwise identical.
+ * Teardrop fill used when a pin has neither a custom color nor a level-group color (e.g. a level
+ * group whose palette color was deliberately left to "areas only"). Gray rather than the app's accent
+ * blue, so an unstyled pin reads as "no color set" instead of looking like an intentional choice.
  */
-const DEFAULT_MARKER = new Icon({
-  iconUrl: markerIcon,
-  iconRetinaUrl: markerIcon2x,
-  shadowUrl: markerShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
-
-/** Teardrop fill used when a pin has a custom icon but no custom color (the PNG marker can't host a glyph). */
-const DEFAULT_PIN_COLOR = "#3b82f6";
+const DEFAULT_PIN_COLOR = "#9ca3af";
 
 /**
- * Colored / icon-bearing pins can't reuse the PNG default marker (a bundler can't recolor an image,
- * and the PNG can't host a glyph), so they're drawn as an inline-SVG teardrop `DivIcon`. A custom
- * `icon` (a Lucide name) is rendered white in the teardrop center, replacing the plain dot; a plain
- * colored pin keeps the dot. Cached per (color, icon) pair — identical pins share one instance — and
- * falls back to {@link DEFAULT_MARKER} when a place type has neither a color nor an icon.
+ * Every pin is drawn as an inline-SVG teardrop `DivIcon` so it can be recolored and host a glyph (a
+ * bundler can't recolor a PNG marker image, and a PNG can't host a Lucide icon). A custom `icon` (a
+ * Lucide name) is rendered white in the teardrop center, replacing the plain dot; a plain colored pin
+ * keeps the dot. Cached per (color, icon) pair — identical pins share one instance — and falls back to
+ * {@link DEFAULT_PIN_COLOR} (gray) when neither a color nor an icon is configured.
  */
 const coloredMarkerCache = new Map<string, DivIcon>();
-export function markerIconFor(color: string | null, icon: string | null = null): Icon | DivIcon {
-  if (!color && !icon) return DEFAULT_MARKER;
+export function markerIconFor(color: string | null, icon: string | null = null): DivIcon {
   const cacheKey = `${color ?? ""}|${icon ?? ""}`;
   const cached = coloredMarkerCache.get(cacheKey);
   if (cached) return cached;

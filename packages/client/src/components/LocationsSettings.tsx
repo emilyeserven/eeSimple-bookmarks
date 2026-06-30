@@ -18,7 +18,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { LOCATION_MAP_PALETTES } from "@eesimple/types";
-import { Globe2, Layers, MapPin, Plus } from "lucide-react";
+import { ArrowLeftRight, Globe2, Layers, MapPin, Plus } from "lucide-react";
 
 import { PlaceTypeIconsCard } from "./PlaceTypeIconsCard";
 import { PlaceTypesCard } from "./PlaceTypesCard";
@@ -27,6 +27,8 @@ import { useLocationLevels } from "../hooks/useLocationLevels";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 /** A subtle clickable gap between two level group rows — hover reveals a "+" to insert a new level. */
@@ -104,6 +106,10 @@ export function LocationsSettings() {
   } = useLocationLevels();
 
   const [outerTab, setOuterTab] = useState<"level-groups" | "pin-icons" | "place-types">("level-groups");
+
+  // Palette-application options — affect only the next "apply palette" click, not stored per group.
+  const [paletteReversed, setPaletteReversed] = useState(false);
+  const [paletteIncludesPins, setPaletteIncludesPins] = useState(true);
 
   // Local ordered IDs, re-synced when the saved groups change.
   const [orderedIds, setOrderedIds] = useState<string[]>([]);
@@ -196,17 +202,56 @@ export function LocationsSettings() {
                 <CardContent className="space-y-4">
                   {groups.length > 0
                     ? (
-                      <div className="space-y-1">
+                      <div className="space-y-2">
                         <p className="text-xs text-muted-foreground">
-                          Apply a color palette across your levels (top to bottom), then fine-tune each
-                          color individually.
+                          Apply a color palette across your levels, spread evenly from your largest level
+                          down to your smallest, then fine-tune each color individually.
                         </p>
+
+                        <div className="flex flex-wrap items-center gap-3">
+                          <button
+                            type="button"
+                            onClick={() => setPaletteReversed(reversed => !reversed)}
+                            className="
+                              flex items-center gap-1.5 rounded-md border px-2
+                              py-1 text-xs
+                              hover:bg-accent
+                            "
+                            title="Flip which end of the palette is used for your largest level"
+                          >
+                            <ArrowLeftRight className="size-3.5" />
+                            {paletteReversed
+                              ? "Palette start = smallest"
+                              : "Palette start = largest"}
+                          </button>
+
+                          <div className="flex items-center gap-1.5">
+                            <Checkbox
+                              id="palette-include-pins"
+                              checked={paletteIncludesPins}
+                              onCheckedChange={checked => setPaletteIncludesPins(checked === true)}
+                            />
+                            <Label
+                              htmlFor="palette-include-pins"
+                              className="
+                                cursor-pointer text-xs font-normal
+                                text-muted-foreground
+                              "
+                            >
+                              Color pin levels too (otherwise pins stay gray)
+                            </Label>
+                          </div>
+                        </div>
+
                         <div className="flex flex-wrap gap-2">
                           {LOCATION_MAP_PALETTES.map(palette => (
                             <button
                               key={palette.id}
                               type="button"
-                              onClick={() => applyPalette(palette.id)}
+                              onClick={() => applyPalette(palette.id, {
+                                reverse: paletteReversed,
+                                includePins: paletteIncludesPins,
+                              })}
                               className="
                                 flex items-center gap-2 rounded-md border px-2
                                 py-1 text-xs
@@ -214,11 +259,13 @@ export function LocationsSettings() {
                               "
                               title={`Apply the ${palette.name} palette`}
                             >
-                              <span className="flex overflow-hidden rounded-sm">
-                                {palette.colors.map(color => (
+                              <span
+                                className="flex h-3 overflow-hidden rounded-sm"
+                              >
+                                {palette.colors.map((color, index) => (
                                   <span
-                                    key={color}
-                                    className="size-3"
+                                    key={`${color}-${index}`}
+                                    className="h-full w-1.5"
                                     style={{
                                       backgroundColor: color,
                                     }}

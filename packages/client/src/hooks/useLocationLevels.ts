@@ -3,7 +3,7 @@ import type { LocationDisplayMode, PlaceTypeColorConfig, PlaceTypeIconConfig, Pl
 
 import { useMemo } from "react";
 
-import { LOCATION_MAP_PALETTES } from "@eesimple/types";
+import { distributePaletteColors, LOCATION_MAP_PALETTES } from "@eesimple/types";
 
 import {
   useLocationLevelGroups,
@@ -48,8 +48,16 @@ export function useLocationLevels(opts: { notify?: boolean } = {}): {
   reorderGroups: (orderedIds: string[]) => void;
   /** Reorder only the groups with the given display mode, preserving the relative positions of others. */
   reorderGroupsInTab: (displayMode: LocationDisplayMode, orderedIds: string[]) => void;
-  /** Assign a predefined palette's colors across the groups in display order (wrapping if needed). */
-  applyPalette: (paletteId: string) => void;
+  /**
+   * Assign a predefined palette's colors across the groups in display order, evenly spread across the
+   * full gradient. `reverse` flips which end of the gradient the first (display-order) group gets —
+   * lets the user pick whether the palette's start represents their "largest" or "smallest" level.
+   * `includePins` controls whether pin-mode groups get a palette color at all; when `false` their color
+   * is cleared (`null`) so their pins fall back to the default gray instead of being colored, while
+   * area-mode groups still receive their gradient color.
+   */
+  applyPalette: (paletteId: string, opts?: { reverse?: boolean;
+    includePins?: boolean; }) => void;
   /** The per-placeType map-pin icon overrides (placeType key → Lucide icon name). */
   placeTypeIcons: PlaceTypeIconConfig;
   /** Set one place type's map-pin icon (a Lucide name), persisting the whole map with a toast. */
@@ -179,12 +187,18 @@ export function useLocationLevels(opts: { notify?: boolean } = {}): {
     }, `${groupLabel(id)} color`);
   }
 
-  function applyPalette(paletteId: string): void {
+  function applyPalette(
+    paletteId: string,
+    opts: { reverse?: boolean;
+      includePins?: boolean; } = {},
+  ): void {
     const palette = LOCATION_MAP_PALETTES.find(p => p.id === paletteId);
     if (!palette || palette.colors.length === 0) return;
+    const includePins = opts.includePins ?? true;
+    const distributed = distributePaletteColors(palette.colors, groups.length, opts.reverse ?? false);
     const next = groups.map((group, index) => ({
       ...group,
-      color: palette.colors[index % palette.colors.length],
+      color: includePins || group.displayMode !== "pin" ? distributed[index] : null,
     }));
     save(next, `${palette.name} palette`);
   }
