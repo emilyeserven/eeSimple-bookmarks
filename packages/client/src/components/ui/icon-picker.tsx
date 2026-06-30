@@ -17,7 +17,9 @@ import {
   ICON_NAMES,
   LUCIDE_CATEGORY_NAMES,
   LUCIDE_ICONS_BY_CATEGORY,
-  PHOSPHOR_TRAVEL_ICON_NAMES,
+  PHOSPHOR_CATEGORY_NAMES,
+  PHOSPHOR_ICON_NAMES,
+  PHOSPHOR_ICONS_BY_CATEGORY,
 } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
@@ -28,10 +30,33 @@ interface IconPickerProps {
   "aria-label"?: string;
 }
 
+/** A category tab. `id` is unique across both libraries (Lucide and Phosphor share
+ * some labels, e.g. "Food & Drink"); `label` is the human-visible name. */
+interface CategoryTab {
+  id: string;
+  label: string;
+  source: "lucide" | "phosphor";
+}
+
+const ALL_TAB_ID = "all";
+
+const LUCIDE_TABS: CategoryTab[] = LUCIDE_CATEGORY_NAMES.map(label => ({
+  id: `lucide:${label}`,
+  label,
+  source: "lucide",
+}));
+
+const PHOSPHOR_TABS: CategoryTab[] = PHOSPHOR_CATEGORY_NAMES.map(label => ({
+  id: `ph:${label}`,
+  label,
+  source: "phosphor",
+}));
+
 /**
  * A searchable icon picker built from shadcn `Popover` + `Command`. Shows icons
  * in named category tabs (Arrows, Files & Docs, etc.) or a flat search across all
- * icons. Phosphor names are stored with a `"ph:"` prefix; Lucide names are stored as-is.
+ * icons. Lucide and Phosphor each contribute their own category tabs; Phosphor
+ * names are stored with a `"ph:"` prefix, Lucide names are stored as-is.
  */
 export function IconPicker({
   value,
@@ -41,7 +66,7 @@ export function IconPicker({
 }: IconPickerProps) {
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
-  const [selectedCategory, setSelectedCategory] = React.useState<string>("All");
+  const [selectedTabId, setSelectedTabId] = React.useState<string>(ALL_TAB_ID);
 
   const isSearching = query.trim().length > 0;
 
@@ -51,22 +76,27 @@ export function IconPicker({
     return ICON_NAMES.filter(n => n.toLowerCase().includes(needle));
   }, [query, isSearching]);
 
-  const categoryIcons = React.useMemo(() => {
-    if (isSearching || selectedCategory === "All" || selectedCategory === "Travel & Map") return null;
-    return LUCIDE_ICONS_BY_CATEGORY[selectedCategory] ?? [];
-  }, [isSearching, selectedCategory]);
-
-  const travelResults = React.useMemo(() => {
-    if (!isSearching) return PHOSPHOR_TRAVEL_ICON_NAMES;
+  const phosphorSearchResults = React.useMemo(() => {
+    if (!isSearching) return PHOSPHOR_ICON_NAMES;
     const needle = query.trim().toLowerCase();
-    return PHOSPHOR_TRAVEL_ICON_NAMES.filter(name => name.slice(3).toLowerCase().includes(needle));
+    return PHOSPHOR_ICON_NAMES.filter(name => name.slice(3).toLowerCase().includes(needle));
   }, [query, isSearching]);
+
+  const selectedTab = React.useMemo(
+    () => [...LUCIDE_TABS, ...PHOSPHOR_TABS].find(t => t.id === selectedTabId) ?? null,
+    [selectedTabId],
+  );
+
+  const categoryIcons = React.useMemo(() => {
+    if (isSearching || selectedTabId === ALL_TAB_ID || !selectedTab) return null;
+    return selectedTab.source === "phosphor"
+      ? PHOSPHOR_ICONS_BY_CATEGORY[selectedTab.label] ?? []
+      : LUCIDE_ICONS_BY_CATEGORY[selectedTab.label] ?? [];
+  }, [isSearching, selectedTabId, selectedTab]);
 
   const displayName = value
     ? (value.startsWith("ph:") ? value.slice(3) : value)
     : null;
-
-  const allCategoryTabs = ["All", ...LUCIDE_CATEGORY_NAMES, "Travel & Map"];
 
   function renderIconGrid(names: string[], isPhosphor = false) {
     return (
@@ -92,6 +122,36 @@ export function IconPicker({
           </CommandItem>
         ))}
       </div>
+    );
+  }
+
+  function renderTabButton(tab: CategoryTab | { id: string;
+    label: string; }) {
+    return (
+      <button
+        key={tab.id}
+        type="button"
+        onClick={() => {
+          setSelectedTabId(tab.id);
+          setQuery("");
+        }}
+        disabled={isSearching}
+        className={cn(
+          `
+            shrink-0 rounded-sm px-2 py-0.5 text-xs whitespace-nowrap
+            transition-colors
+          `,
+          selectedTabId === tab.id && !isSearching
+            ? "bg-accent font-medium text-accent-foreground"
+            : `
+              text-muted-foreground
+              hover:bg-accent hover:text-accent-foreground
+            `,
+          isSearching && "cursor-default opacity-40",
+        )}
+      >
+        {tab.label}
+      </button>
     );
   }
 
@@ -133,42 +193,33 @@ export function IconPicker({
             value={query}
             onValueChange={(v) => {
               setQuery(v);
-              if (v.trim()) setSelectedCategory("All");
+              if (v.trim()) setSelectedTabId(ALL_TAB_ID);
             }}
           />
-          <div className="flex gap-1 overflow-x-auto border-b px-2 py-1.5">
-            {allCategoryTabs.map(cat => (
-              <button
-                key={cat}
-                type="button"
-                onClick={() => {
-                  setSelectedCategory(cat);
-                  setQuery("");
-                }}
-                disabled={isSearching}
-                className={cn(
-                  `
-                    shrink-0 rounded-sm px-2 py-0.5 text-xs whitespace-nowrap
-                    transition-colors
-                  `,
-                  selectedCategory === cat && !isSearching
-                    ? "bg-accent font-medium text-accent-foreground"
-                    : `
-                      text-muted-foreground
-                      hover:bg-accent hover:text-accent-foreground
-                    `,
-                  isSearching && "cursor-default opacity-40",
-                )}
-              >
-                {cat}
-              </button>
-            ))}
+          <div
+            className="
+              flex items-center gap-1 overflow-x-auto border-b px-2 py-1.5
+            "
+          >
+            {renderTabButton({
+              id: ALL_TAB_ID,
+              label: "All",
+            })}
+            {LUCIDE_TABS.map(renderTabButton)}
+            <span
+              className="
+                shrink-0 px-1 text-xs font-medium text-muted-foreground/70
+              "
+            >
+              Phosphor
+            </span>
+            {PHOSPHOR_TABS.map(renderTabButton)}
           </div>
           <CommandList className="max-h-[400px]">
             {/* Search mode: flat results across all icons */}
             {isSearching && (
               <>
-                {(lucideSearchResults ?? []).length === 0 && travelResults.length === 0 && (
+                {(lucideSearchResults ?? []).length === 0 && phosphorSearchResults.length === 0 && (
                   <CommandEmpty>No matching icons.</CommandEmpty>
                 )}
                 {(lucideSearchResults ?? []).length > 0 && (
@@ -176,37 +227,31 @@ export function IconPicker({
                     {renderIconGrid(lucideSearchResults ?? [])}
                   </CommandGroup>
                 )}
-                {travelResults.length > 0 && (
-                  <CommandGroup heading="Travel & Map Icons">
-                    {renderIconGrid(travelResults, true)}
+                {phosphorSearchResults.length > 0 && (
+                  <CommandGroup heading="Phosphor Icons">
+                    {renderIconGrid(phosphorSearchResults, true)}
                   </CommandGroup>
                 )}
               </>
             )}
 
-            {/* Specific Lucide category tab */}
-            {!isSearching && categoryIcons !== null && (
+            {/* Specific category tab (Lucide or Phosphor) */}
+            {!isSearching && categoryIcons !== null && selectedTab && (
               <>
                 {categoryIcons.length === 0 && (
                   <CommandEmpty>No icons in this category.</CommandEmpty>
                 )}
                 {categoryIcons.length > 0 && (
-                  <CommandGroup heading={selectedCategory}>
-                    {renderIconGrid(categoryIcons)}
+                  <CommandGroup heading={selectedTab.label}>
+                    {renderIconGrid(categoryIcons, selectedTab.source === "phosphor")}
                   </CommandGroup>
                 )}
               </>
             )}
 
-            {/* Travel & Map tab */}
-            {!isSearching && selectedCategory === "Travel & Map" && (
-              <CommandGroup heading="Travel & Map Icons">
-                {renderIconGrid(PHOSPHOR_TRAVEL_ICON_NAMES, true)}
-              </CommandGroup>
-            )}
-
-            {/* All tab: every category as a group */}
-            {!isSearching && selectedCategory === "All" && (
+            {/* All tab: every Lucide category as a group. Phosphor is reachable via
+                its own tabs + search; omitted here to keep this list responsive. */}
+            {!isSearching && selectedTabId === ALL_TAB_ID && (
               <>
                 {LUCIDE_CATEGORY_NAMES.map(cat => (
                   <CommandGroup
@@ -216,9 +261,6 @@ export function IconPicker({
                     {renderIconGrid(LUCIDE_ICONS_BY_CATEGORY[cat] ?? [])}
                   </CommandGroup>
                 ))}
-                <CommandGroup heading="Travel & Map Icons">
-                  {renderIconGrid(PHOSPHOR_TRAVEL_ICON_NAMES, true)}
-                </CommandGroup>
               </>
             )}
           </CommandList>

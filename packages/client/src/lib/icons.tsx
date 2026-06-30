@@ -1,93 +1,7 @@
 import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 import type { LucideProps } from "lucide-react";
 
-import {
-  Airplane,
-  AirplaneInFlight,
-  AirplaneLanding,
-  AirplaneTakeoff,
-  AirplaneTaxiing,
-  AirplaneTilt,
-  Anchor,
-  Backpack,
-  Bicycle,
-  Binoculars,
-  BeerBottle,
-  BeerStein,
-  Boat,
-  Bridge,
-  Bus,
-  Cactus,
-  Camera,
-  CameraPlus,
-  Campfire,
-  Car,
-  CarProfile,
-  CarSimple,
-  Champagne,
-  Church,
-  Coffee,
-  Compass,
-  FishSimple,
-  Flag,
-  FlagBanner,
-  FlagCheckered,
-  FlagPennant,
-  Fire,
-  ForkKnife,
-  Globe,
-  GlobeHemisphereEast,
-  GlobeHemisphereWest,
-  GlobeSimple,
-  GlobeStand,
-  HandWaving,
-  IdentificationBadge,
-  IdentificationCard,
-  Island,
-  Leaf,
-  Lighthouse,
-  MapPin,
-  MapPinLine,
-  MapPinSimple,
-  MapTrifold,
-  Martini,
-  Moped,
-  Mosque,
-  Motorcycle,
-  Mountains,
-  NavigationArrow,
-  PersonSimpleHike,
-  PersonSimpleSki,
-  PersonSimpleSnowboard,
-  PersonSimpleSwim,
-  PersonSimpleWalk,
-  RoadHorizon,
-  Sailboat,
-  Scooter,
-  Snowflake,
-  Star,
-  Subway,
-  Suitcase,
-  SuitcaseRolling,
-  SuitcaseSimple,
-  Synagogue,
-  Taxi,
-  Tent,
-  Ticket,
-  Tipi,
-  Train,
-  TrainRegional,
-  TrainSimple,
-  Tram,
-  Tree,
-  Trophy,
-  Truck,
-  Umbrella,
-  UmbrellaSimple,
-  Van,
-  Waves,
-  Wine,
-} from "@phosphor-icons/react";
+import * as PhosphorIcons from "@phosphor-icons/react";
 import { Tag, icons } from "lucide-react";
 
 /** Every available Lucide icon name (PascalCase), e.g. `"Star"`, `"BookOpen"`. */
@@ -224,8 +138,9 @@ const CATEGORY_RULES: [RegExp, string][] = [
   [/.*/, "Other"],
 ];
 
-function getLucideCategory(name: string): string {
-  for (const [pattern, cat] of CATEGORY_RULES) {
+/** First-match-wins categorizer shared by the Lucide and Phosphor registries. */
+function categorize(name: string, rules: [RegExp, string][]): string {
+  for (const [pattern, cat] of rules) {
     if (pattern.test(name)) return cat;
   }
   return "Other";
@@ -234,135 +149,115 @@ function getLucideCategory(name: string): string {
 /** All Lucide icons grouped by display category (built once at module init). */
 export const LUCIDE_ICONS_BY_CATEGORY: Record<string, string[]> = {};
 for (const name of ICON_NAMES) {
-  const cat = getLucideCategory(name);
+  const cat = categorize(name, CATEGORY_RULES);
   (LUCIDE_ICONS_BY_CATEGORY[cat] ??= []).push(name);
 }
 
 /** Sorted category display names for the icon picker tab strip. */
 export const LUCIDE_CATEGORY_NAMES: string[] = Object.keys(LUCIDE_ICONS_BY_CATEGORY).sort();
 
-/**
- * Curated travel & map icons from Phosphor Icons, keyed with the "ph:" prefix.
- * The prefix routes rendering to Phosphor rather than Lucide; existing Lucide
- * names stored without a prefix are unaffected.
- */
-export const PHOSPHOR_TRAVEL_ICONS: Record<string, PhosphorIcon> = {
-  // Air
-  "ph:Airplane": Airplane,
-  "ph:AirplaneTakeoff": AirplaneTakeoff,
-  "ph:AirplaneLanding": AirplaneLanding,
-  "ph:AirplaneTilt": AirplaneTilt,
-  "ph:AirplaneInFlight": AirplaneInFlight,
-  "ph:AirplaneTaxiing": AirplaneTaxiing,
-  // Water
-  "ph:Anchor": Anchor,
-  "ph:Sailboat": Sailboat,
-  "ph:Boat": Boat,
-  // Land transport
-  "ph:Train": Train,
-  "ph:TrainSimple": TrainSimple,
-  "ph:TrainRegional": TrainRegional,
-  "ph:Subway": Subway,
-  "ph:Tram": Tram,
-  "ph:Bus": Bus,
-  "ph:Taxi": Taxi,
-  "ph:Car": Car,
-  "ph:CarSimple": CarSimple,
-  "ph:CarProfile": CarProfile,
-  "ph:Van": Van,
-  "ph:Truck": Truck,
-  "ph:Motorcycle": Motorcycle,
-  "ph:Scooter": Scooter,
-  "ph:Bicycle": Bicycle,
-  "ph:Moped": Moped,
-  // Landmarks
-  "ph:Church": Church,
-  "ph:Mosque": Mosque,
-  "ph:Synagogue": Synagogue,
-  "ph:Lighthouse": Lighthouse,
-  "ph:Bridge": Bridge,
-  "ph:Tipi": Tipi,
-  // Nature
-  "ph:Mountains": Mountains,
-  "ph:Island": Island,
-  "ph:Waves": Waves,
-  "ph:Tree": Tree,
-  "ph:Snowflake": Snowflake,
-  "ph:Campfire": Campfire,
-  "ph:Cactus": Cactus,
-  "ph:Leaf": Leaf,
-  "ph:Fire": Fire,
-  // Travel gear
-  "ph:Suitcase": Suitcase,
-  "ph:SuitcaseSimple": SuitcaseSimple,
-  "ph:SuitcaseRolling": SuitcaseRolling,
-  "ph:Backpack": Backpack,
-  "ph:Tent": Tent,
-  "ph:Umbrella": Umbrella,
-  "ph:UmbrellaSimple": UmbrellaSimple,
-  // Navigation & maps
-  "ph:MapTrifold": MapTrifold,
-  "ph:MapPin": MapPin,
-  "ph:MapPinSimple": MapPinSimple,
-  "ph:MapPinLine": MapPinLine,
-  "ph:Compass": Compass,
-  "ph:Globe": Globe,
-  "ph:GlobeHemisphereEast": GlobeHemisphereEast,
-  "ph:GlobeHemisphereWest": GlobeHemisphereWest,
-  "ph:GlobeSimple": GlobeSimple,
-  "ph:GlobeStand": GlobeStand,
-  "ph:NavigationArrow": NavigationArrow,
-  "ph:RoadHorizon": RoadHorizon,
-  // Food & culture
-  "ph:ForkKnife": ForkKnife,
-  "ph:Coffee": Coffee,
-  "ph:BeerBottle": BeerBottle,
-  "ph:BeerStein": BeerStein,
-  "ph:Wine": Wine,
-  "ph:Martini": Martini,
-  "ph:Champagne": Champagne,
-  // Activities
-  "ph:Camera": Camera,
-  "ph:CameraPlus": CameraPlus,
-  "ph:Binoculars": Binoculars,
-  "ph:PersonSimpleWalk": PersonSimpleWalk,
-  "ph:PersonSimpleHike": PersonSimpleHike,
-  "ph:PersonSimpleSwim": PersonSimpleSwim,
-  "ph:PersonSimpleSnowboard": PersonSimpleSnowboard,
-  "ph:PersonSimpleSki": PersonSimpleSki,
-  "ph:FishSimple": FishSimple,
-  // Documents & identifiers
-  "ph:IdentificationCard": IdentificationCard,
-  "ph:IdentificationBadge": IdentificationBadge,
-  "ph:Ticket": Ticket,
-  // Flags, awards & cultural
-  "ph:Flag": Flag,
-  "ph:FlagPennant": FlagPennant,
-  "ph:FlagCheckered": FlagCheckered,
-  "ph:FlagBanner": FlagBanner,
-  "ph:Trophy": Trophy,
-  "ph:HandWaving": HandWaving,
-  "ph:Star": Star,
-};
+/** Non-icon runtime exports of `@phosphor-icons/react` to skip when building the
+ * registry. `Icon`/`IconProps`/`IconWeight` are type-only and never appear here. */
+const PHOSPHOR_NON_ICON_EXPORTS = new Set(["IconContext", "IconBase", "SSR"]);
 
-export const PHOSPHOR_TRAVEL_ICON_NAMES = Object.keys(PHOSPHOR_TRAVEL_ICONS);
+/**
+ * Every Phosphor icon component, keyed with the "ph:" prefix (e.g. `"ph:YinYang"`).
+ * The prefix routes rendering to Phosphor rather than Lucide; Lucide names stored
+ * without a prefix are unaffected.
+ *
+ * Phosphor exports each icon twice — a bare name (`Airplane`) and an `*Icon`-suffixed
+ * alias (`AirplaneIcon`) pointing at the same component. We key on the **bare** name so
+ * existing stored values like `"ph:Airplane"` keep resolving and the registry has no
+ * duplicates. The bare names are marked `@deprecated` in Phosphor; that's only a
+ * tree-shaking hint and is harmless under `import *`. A future Phosphor major that
+ * removes the bare exports would require re-keying on the `*Icon` names plus a
+ * stored-value migration.
+ */
+export const PHOSPHOR_ICONS: Record<string, PhosphorIcon> = {};
+for (const [name, value] of Object.entries(PhosphorIcons)) {
+  if (PHOSPHOR_NON_ICON_EXPORTS.has(name) || name.endsWith("Icon")) continue;
+  PHOSPHOR_ICONS[`ph:${name}`] = value as PhosphorIcon;
+}
+
+/** Priority-ordered [pattern, category] pairs for Phosphor's PascalCase names.
+ * First match wins. The "Asian & Cultural" bucket is intentionally first so the
+ * icons this set was added for (yin-yang, lotus, praying hands, …) are discoverable. */
+const PHOSPHOR_CATEGORY_RULES: [RegExp, string][] = [
+  // Asian & Cultural — listed first so these route here before generic buckets.
+  // BowlFood/BowlSteam only (BowlingBall excluded); Fan exact-match.
+  [
+    /^(YinYang|FlowerLotus|HandsPraying|HandPeace|Peace$|BowlFood|BowlSteam|TeaBag|Fan$|Coffee|CoffeeBean|Cherries|Orange|Scroll|MoonStars|Sparkle|Confetti|Lantern)/,
+    "Asian & Cultural",
+  ],
+  // Transport & Travel
+  [
+    /^(Airplane|Car|Train|Bus|Boat|Sailboat|Anchor|Taxi|Truck|Van|Motorcycle|Scooter|Bicycle|Moped|Subway|Tram|RoadHorizon|GasPump|Suitcase|Backpack|Tent|Compass|Ticket)/,
+    "Transport & Travel",
+  ],
+  // Maps & Location
+  [/^(Map|Globe|NavigationArrow|Path|Crosshair|GpsFix|Lighthouse|Bridge)/, "Maps & Location"],
+  // Buildings
+  [/^(Building|House|Church|Mosque|Synagogue|Bank|Factory|Storefront|Warehouse|Castle|Tipi)/, "Buildings"],
+  // Nature & Weather
+  [
+    /^(Sun|Moon|Cloud|Snowflake|Flower|Tree|Leaf|Mountains|Island|Waves|Fire|Campfire|Cactus|Plant|Drop|Wind|Lightning|Rainbow|Star)/,
+    "Nature & Weather",
+  ],
+  // Food & Drink
+  [
+    /^(Bowl|ForkKnife|Wine|Beer|Martini|Champagne|Hamburger|Pizza|Cookie|IceCream|Cake|Bread|Egg|Cheese|Carrot|Avocado|Pepper|Hamburger|Cooking|Pint|BrandyGlass|Knife|Popcorn|Fish|Shrimp)/,
+    "Food & Drink",
+  ],
+  // People & Body
+  [/^(Person|User|Users|Baby|Hand|Footprints|Brain|Tooth|Eye|Ear|Nose|Smiley|Student)/, "People & Body"],
+  // Communication
+  [/^(Chat|Phone|Envelope|Bell|Megaphone|PaperPlane|Broadcast|Voicemail|Microphone)/, "Communication"],
+  // Media & Audio
+  [/^(Music|Speaker|Headphones|Play|Pause|Stop|FilmReel|FilmSlate|VinylRecord|MusicNote|Radio|Microphone)/, "Media & Audio"],
+  // Devices & Tech
+  [/^(Device|Laptop|Desktop|Monitor|Keyboard|Mouse|Printer|Cpu|Television|Camera|Watch|Battery|Plug)/, "Devices & Tech"],
+  // Files & Docs
+  [/^(File|Folder|Book|Note|Clipboard|Archive|Paperclip|Newspaper|Article)/, "Files & Docs"],
+  // Finance & Commerce
+  [/^(Coin|Currency|Wallet|CreditCard|Bank|Money|ShoppingCart|ShoppingBag|Receipt|Tag|Gift|PiggyBank|HandCoins)/, "Finance & Commerce"],
+  // Security
+  [/^(Lock|Shield|Key|Password|Fingerprint|SealCheck)/, "Security"],
+  // Gaming & Fun
+  [/^(Dice|Game|Sword|PuzzlePiece|Trophy|Medal|Crown|Confetti|Balloon|Joystick|Cards)/, "Gaming & Fun"],
+  // Flags & Symbols
+  [/^(Flag|Heart|HandsClapping|HandWaving|ThumbsUp|ThumbsDown)/, "Flags & Symbols"],
+  // Catch-all
+  [/.*/, "Other"],
+];
+
+/** All Phosphor icons grouped by display category (keys are `"ph:"`-prefixed names). */
+export const PHOSPHOR_ICONS_BY_CATEGORY: Record<string, string[]> = {};
+for (const prefixed of Object.keys(PHOSPHOR_ICONS)) {
+  const cat = categorize(prefixed.slice(3), PHOSPHOR_CATEGORY_RULES);
+  (PHOSPHOR_ICONS_BY_CATEGORY[cat] ??= []).push(prefixed);
+}
+
+/** Sorted Phosphor category display names for the icon picker tab strip. */
+export const PHOSPHOR_CATEGORY_NAMES: string[] = Object.keys(PHOSPHOR_ICONS_BY_CATEGORY).sort();
+
+export const PHOSPHOR_ICON_NAMES = Object.keys(PHOSPHOR_ICONS);
 
 /** The icon rendered when a category has no icon set or an unknown name. */
 const DEFAULT_ICON = Tag;
 
 interface CategoryIconProps extends Omit<LucideProps, "name"> {
-  /** A Lucide icon name (no prefix) or Phosphor travel icon name ("ph:" prefix);
+  /** A Lucide icon name (no prefix) or Phosphor icon name ("ph:" prefix);
    * falls back to a default icon when null/unknown. */
   name: string | null | undefined;
 }
 
 /** Render an icon by its stored name. Lucide icons have no prefix; Phosphor
- * travel icons are identified by a `"ph:"` prefix (e.g. `"ph:Airplane"`). */
+ * icons are identified by a `"ph:"` prefix (e.g. `"ph:Airplane"`). */
 export function CategoryIcon({
   name, ...props
 }: CategoryIconProps) {
   if (name?.startsWith("ph:")) {
-    const PhIcon = PHOSPHOR_TRAVEL_ICONS[name];
+    const PhIcon = PHOSPHOR_ICONS[name];
     if (PhIcon) {
       return (
         <PhIcon
