@@ -15,6 +15,7 @@ import { useLocationTree, useUpdateLocation } from "../hooks/useLocations";
 import { useTagTree } from "../hooks/useTags";
 import { notifyFieldSaved, notifyFieldSaveError } from "../lib/autoSave";
 import { useAppForm } from "../lib/form";
+import { placeTypeChoices } from "../lib/locationLevels";
 import { flattenTree, subtreeIds, tagNodesToOptions } from "../lib/tagTree";
 
 import { Label } from "@/components/ui/label";
@@ -91,6 +92,9 @@ export function LocationGeneralForm({
       });
     }
   };
+
+  // Every location (flat), used to offer the distinct place types already in use as picker choices.
+  const allLocations = flattenTree(tree ?? []).map(item => item.node);
 
   const forbiddenIds = new Set(subtreeIds(node));
   // Existing locations selectable as this node's parent / ancestors — its own subtree is excluded so
@@ -260,10 +264,13 @@ export function LocationGeneralForm({
         </form.AppField>
         <form.AppField name="placeType">
           {field => (
-            <field.TextField
+            <field.ComboboxField
               label="Place type"
-              placeholder="e.g. city"
-              onBlur={() => autoSave.saveField("placeType", field.state.value.trim() || null)}
+              options={placeTypeChoices(allLocations, node.placeType)}
+              placeholder="Select a place type…"
+              searchPlaceholder="Search place types…"
+              emptyText="No place types found."
+              onValueChange={value => autoSave.saveField("placeType", value.trim() || null)}
             />
           )}
         </form.AppField>
