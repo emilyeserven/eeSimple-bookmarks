@@ -30,6 +30,8 @@ const LABELS: Record<keyof UpdateLocationInput, string> = {
   // Not an editable field — captured from geocoding / backfilled on demand; listed to satisfy the
   // exhaustive key map.
   boundary: "Boundary",
+  wikidataId: "Wikidata ID",
+  usesWikidataCoordinates: "Uses Wikidata coordinates",
   sortOrder: "Sort order",
   parentId: "Parent",
   tagIds: "Tags",
@@ -57,6 +59,8 @@ export function useLocationGeneralForm(node: LocationNode) {
   const [alternateNames, setAlternateNames] = useState(node.alternateNames);
   const [tagIds, setTagIds] = useState<string[]>(node.tagIds ?? []);
   const [addPlaceTypeOpen, setAddPlaceTypeOpen] = useState(false);
+  const [wikidataId, setWikidataId] = useState<string | null>(node.wikidataId);
+  const [usesWikidataCoordinates, setUsesWikidataCoordinates] = useState(node.usesWikidataCoordinates);
 
   const autoSave = useFieldAutoSave<UpdateLocationInput, Location>({
     id: node.id,
@@ -76,6 +80,11 @@ export function useLocationGeneralForm(node: LocationNode) {
       tagIds: node.tagIds ?? [],
     },
   });
+
+  function saveUsesWikidataCoordinates(next: boolean): void {
+    setUsesWikidataCoordinates(next);
+    autoSave.saveField("usesWikidataCoordinates", next);
+  }
 
   // The slug derives from the name/romanized name; when a save moves it, follow it so the edit
   // page keeps resolving.
@@ -134,6 +143,11 @@ export function useLocationGeneralForm(node: LocationNode) {
     if (candidate.mapUrl) form.setFieldValue("mapUrl", candidate.mapUrl);
     if (candidate.countryCode) form.setFieldValue("countryCode", candidate.countryCode);
     if (candidate.placeType) form.setFieldValue("placeType", candidate.placeType);
+    setWikidataId(candidate.wikidataId);
+    // A Wikidata-sourced candidate auto-checks "Uses Wikidata for coordinates"; a Nominatim one
+    // un-checks it (picking a fresh candidate resets the source).
+    const usesWikidata = candidate.wikidataId != null;
+    setUsesWikidataCoordinates(usesWikidata);
     // …and persist them together in one save with a single toast (the multi-key pattern).
     updateLocation.mutate(
       {
@@ -144,6 +158,8 @@ export function useLocationGeneralForm(node: LocationNode) {
           mapUrl: candidate.mapUrl ?? undefined,
           countryCode: candidate.countryCode ?? undefined,
           placeType: candidate.placeType ?? undefined,
+          wikidataId: candidate.wikidataId,
+          usesWikidataCoordinates: usesWikidata,
         },
       },
       {
@@ -185,6 +201,9 @@ export function useLocationGeneralForm(node: LocationNode) {
     setAlternateNames,
     tagIds,
     saveTagIds,
+    wikidataId,
+    usesWikidataCoordinates,
+    saveUsesWikidataCoordinates,
     existingOptions,
     parentOptions,
     placeTypeChoices: (placeTypesData ?? []).map(pt => ({

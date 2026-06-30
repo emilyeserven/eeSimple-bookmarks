@@ -4,11 +4,12 @@ import { describe, expect, it } from "vitest";
 
 import { ancestorToInput, emptyAncestorDraft, geocodedAncestorsToDrafts, splitAncestorChain } from "./locationFormSchema";
 
-function ancestor(name: string, placeType = "state"): LocationLookupAncestor {
+function ancestor(name: string, placeType = "state", wikidataId: string | null = null): LocationLookupAncestor {
   return {
     name,
     placeType,
     countryCode: "JP",
+    wikidataId,
   };
 }
 
@@ -82,7 +83,7 @@ describe("splitAncestorChain", () => {
 describe("geocodedAncestorsToDrafts", () => {
   it("makes every level a new draft when nothing matches an existing location", () => {
     const drafts = geocodedAncestorsToDrafts(
-      [ancestor("山口県", "state"), ancestor("日本", "country")],
+      [ancestor("山口県", "state"), ancestor("日本", "country", "Q17")],
       [],
     );
 
@@ -91,6 +92,8 @@ describe("geocodedAncestorsToDrafts", () => {
     expect(drafts.map(d => d.name)).toEqual(["山口県", "日本"]);
     expect(drafts.map(d => d.placeType)).toEqual(["state", "country"]);
     expect(drafts.map(d => d.countryCode)).toEqual(["JP", "JP"]);
+    // The QID carries through so the ancestor's Wikidata info isn't lost when it's created.
+    expect(drafts.map(d => d.wikidataId)).toEqual([null, "Q17"]);
   });
 
   it("reuses an existing location and caps the chain there, keeping new rows below it", () => {
@@ -173,5 +176,22 @@ describe("ancestorToInput", () => {
       placeType: "country",
       countryCode: "JP",
     });
+  });
+
+  it("marks usesWikidataCoordinates when the draft carries a Wikidata QID", () => {
+    const wikidataInput = ancestorToInput({
+      ...emptyAncestorDraft(),
+      name: "中国地方",
+      wikidataId: "Q127864",
+    });
+    const nominatimInput = ancestorToInput({
+      ...emptyAncestorDraft(),
+      name: "山口県",
+    });
+
+    expect(wikidataInput.wikidataId).toBe("Q127864");
+    expect(wikidataInput.usesWikidataCoordinates).toBe(true);
+    expect(nominatimInput.wikidataId).toBeNull();
+    expect(nominatimInput.usesWikidataCoordinates).toBe(false);
   });
 });

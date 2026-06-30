@@ -54,6 +54,20 @@ export interface Location {
   countryCode: string | null;
   /** GeoJSON area outline for the place (rendered as a map polygon), or `null` for a point-only place. */
   boundary?: LocationBoundary | null;
+  /**
+   * The Wikidata item id (QID, e.g. `"Q1001724"`) this location was resolved from, or `null`. Set
+   * when a Wikidata search result was picked in the location lookup — including informal/traditional
+   * regions with no Nominatim admin boundary (e.g. 中国地方, the Chūgoku region) that only Wikidata
+   * carries. Kept so the location can be re-identified/re-fetched against Wikidata later.
+   */
+  wikidataId: string | null;
+  /**
+   * Whether this location's latitude/longitude came from Wikidata rather than Nominatim. Auto-set when
+   * a Wikidata lookup result is applied to the form; the user can also toggle it by hand. When `true`,
+   * coordinate/area refreshes (`refreshLocationCoordinates`, `ensureLocationBoundary`) query Wikidata
+   * only — Nominatim is skipped, since this place's lat/long source of truth is Wikidata.
+   */
+  usesWikidataCoordinates: boolean;
   /** Display ordering weight; lower sorts first. */
   sortOrder: number;
   /** Parent location id, or `null` for a root-level location. */
@@ -88,6 +102,10 @@ export interface CreateLocationInput {
   placeType?: string | null;
   countryCode?: string | null;
   boundary?: LocationBoundary | null;
+  /** The Wikidata QID this location was resolved from, or `null`/omitted. */
+  wikidataId?: string | null;
+  /** Whether the latitude/longitude came from Wikidata; gates Nominatim out of future refreshes. */
+  usesWikidataCoordinates?: boolean;
   sortOrder?: number;
   /** Parent location id, or `null`/omitted for a root location. */
   parentId?: string | null;
@@ -107,6 +125,10 @@ export interface UpdateLocationInput {
   placeType?: string | null;
   countryCode?: string | null;
   boundary?: LocationBoundary | null;
+  /** The Wikidata QID this location was resolved from, or `null`/omitted. */
+  wikidataId?: string | null;
+  /** Whether the latitude/longitude came from Wikidata; gates Nominatim out of future refreshes. */
+  usesWikidataCoordinates?: boolean;
   sortOrder?: number;
   parentId?: string | null;
   tagIds?: string[];
@@ -192,6 +214,8 @@ export interface LocationLookupAncestor {
   placeType: string | null;
   /** ISO 3166-1 alpha-2 country code shared with the candidate, or `null`. */
   countryCode: string | null;
+  /** The ancestor's Wikidata QID when resolved via the Wikidata fallback, else `null` (Nominatim). */
+  wikidataId: string | null;
 }
 
 /** A single candidate returned by the geocoding lookup. */
@@ -214,6 +238,12 @@ export interface LocationLookupCandidate {
   boundary: LocationBoundary | null;
   /** Higher-level places above this one, immediate-parent-first (empty when none could be parsed). */
   ancestors: LocationLookupAncestor[];
+  /**
+   * The Wikidata QID this candidate was resolved from when it came from the Wikidata fallback, else
+   * `null` (Nominatim). Presence of a QID is what the location lookup box uses to auto-check "Uses
+   * Wikidata for coordinates" when a result is picked.
+   */
+  wikidataId: string | null;
 }
 
 /** Response shape of `GET /api/locations/lookup`. */

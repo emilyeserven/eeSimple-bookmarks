@@ -8,6 +8,7 @@ import { TreeMultiCombobox } from "./TreeMultiCombobox";
 import { ROOT, useLocationForm } from "./useLocationForm";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -34,6 +35,8 @@ export function LocationForm({
     plusCode, setPlusCode,
     placeType, setPlaceType,
     countryCode, setCountryCode,
+    wikidataId,
+    usesWikidataCoordinates, setUsesWikidataCoordinates,
     parentId, setParentId,
     alternateNames, setAlternateNames,
     tagIds, setTagIds,
@@ -110,6 +113,22 @@ export function LocationForm({
           value={mapUrl}
           onChange={event => setMapUrl(event.target.value)}
         />
+      </div>
+
+      <div className="flex items-start gap-3">
+        <Checkbox
+          id="location-uses-wikidata-coordinates"
+          checked={usesWikidataCoordinates}
+          onCheckedChange={value => setUsesWikidataCoordinates(value === true)}
+        />
+        <div className="space-y-1">
+          <Label htmlFor="location-uses-wikidata-coordinates">Uses Wikidata for coordinates</Label>
+          <p className="text-xs text-muted-foreground">
+            Auto-checked when a Wikidata search result is picked above
+            {wikidataId ? ` (${wikidataId})` : ""}. When checked, future coordinate/area refreshes
+            query Wikidata only — Nominatim is skipped.
+          </p>
+        </div>
       </div>
 
       <div

@@ -137,6 +137,8 @@ export function makeLocation(overrides: Partial<Location> = {}): Location {
     plusCode: null,
     placeType: null,
     countryCode: null,
+    wikidataId: null,
+    usesWikidataCoordinates: false,
     sortOrder: 0,
     parentId: null,
     tagIds: [],

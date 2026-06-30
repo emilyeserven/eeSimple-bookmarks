@@ -116,6 +116,7 @@ function parseAncestors(
       name: level.name,
       placeType: level.placeType,
       countryCode,
+      wikidataId: null,
     });
   }
   return result;
@@ -186,6 +187,7 @@ function toCandidate(raw: NominatimResult): LocationLookupCandidate | null {
     mapUrl: mapUrlFor(latitude, longitude),
     boundary: toBoundary(raw.geojson),
     ancestors: parseAncestors(raw.address ?? null, name, countryCode),
+    wikidataId: null,
   };
 }
 

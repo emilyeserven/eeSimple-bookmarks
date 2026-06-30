@@ -60,11 +60,13 @@ test("geocodeLocation prefers the local name as title and the English name as ro
         name: "山口県",
         placeType: "state",
         countryCode: "JP",
+        wikidataId: null,
       },
       {
         name: "日本",
         placeType: "country",
         countryCode: "JP",
+        wikidataId: null,
       },
     ]);
   }
