@@ -573,6 +573,33 @@ export function resolveLocationPlaceTypeColor(
 }
 
 /**
+ * Distinguishing map/UI color flagging a location with no `placeType` at all ("needs classification").
+ * Deliberately different from {@link NO_LEVEL_MAP_COLOR} and from Leaflet's default blue (which a
+ * classified-but-uncustomized place type still renders with).
+ */
+export const NO_PLACE_TYPE_MAP_COLOR = "#94a3b8";
+
+/**
+ * Distinguishing map/UI color flagging a location whose `placeType` is set but isn't assigned to any
+ * {@link PlaceTypeLevelGroup} ("needs a level"). Deliberately different from {@link NO_PLACE_TYPE_MAP_COLOR}
+ * and from Leaflet's default blue.
+ */
+export const NO_LEVEL_MAP_COLOR = "#f97316";
+
+/**
+ * Whether a (non-null) placeType belongs to no configured level group. A `null`/blank placeType is
+ * "no place type" rather than "no level" — see {@link NO_PLACE_TYPE_MAP_COLOR} — so this only flags
+ * places that *have* a placeType the user hasn't assigned to a level yet.
+ */
+export function locationLacksLevel(
+  node: { placeType: string | null },
+  config: PlaceTypeDisplayConfig,
+): boolean {
+  const key = placeTypeKey(node.placeType);
+  return key !== "" && !(key in config);
+}
+
+/**
  * Order weight for a placeType: the user-set `sortOrder` when configured, otherwise its rank in
  * {@link CANONICAL_PLACE_TYPE_ORDER}, otherwise a large constant so unknown types sort last. Used by
  * the Settings list, the levels overlay, and the placeType tree sort so they agree on level order.

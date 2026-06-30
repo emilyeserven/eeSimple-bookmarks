@@ -80,6 +80,7 @@ import { Route as TaxonomiesMediaTypesIndexRouteImport } from './routes/taxonomi
 import { Route as TaxonomiesLocationsIndexRouteImport } from './routes/taxonomies.locations.index'
 import { Route as TaxonomiesAuthorsIndexRouteImport } from './routes/taxonomies.authors.index'
 import { Route as TagsTagSlugIndexRouteImport } from './routes/tags.$tagSlug.index'
+import { Route as SettingsLocationsIndexRouteImport } from './routes/settings.locations.index'
 import { Route as SettingsDisplayIndexRouteImport } from './routes/settings.display.index'
 import { Route as SettingsAutomationsIndexRouteImport } from './routes/settings.automations.index'
 import { Route as SettingsAdvancedIndexRouteImport } from './routes/settings.advanced.index'
@@ -102,6 +103,9 @@ import { Route as TaxonomiesLocationsLocationSlugRouteImport } from './routes/ta
 import { Route as TaxonomiesAuthorsAuthorSlugRouteImport } from './routes/taxonomies.authors.$authorSlug'
 import { Route as TagsTagSlugEditRouteImport } from './routes/tags.$tagSlug.edit'
 import { Route as TagsTagSlugViewRouteImport } from './routes/tags.$tagSlug._view'
+import { Route as SettingsLocationsPlaceTypesRouteImport } from './routes/settings.locations.place-types'
+import { Route as SettingsLocationsPinStyleRouteImport } from './routes/settings.locations.pin-style'
+import { Route as SettingsLocationsLevelGroupsRouteImport } from './routes/settings.locations.level-groups'
 import { Route as SettingsDisplaySidebarRouteImport } from './routes/settings.display.sidebar'
 import { Route as SettingsDisplayMediaRouteImport } from './routes/settings.display.media'
 import { Route as SettingsDisplayHomepageRouteImport } from './routes/settings.display.homepage'
@@ -655,6 +659,11 @@ const TagsTagSlugIndexRoute = TagsTagSlugIndexRouteImport.update({
   path: '/',
   getParentRoute: () => TagsTagSlugRoute,
 } as any)
+const SettingsLocationsIndexRoute = SettingsLocationsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => SettingsLocationsRoute,
+} as any)
 const SettingsDisplayIndexRoute = SettingsDisplayIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -780,6 +789,24 @@ const TagsTagSlugViewRoute = TagsTagSlugViewRouteImport.update({
   id: '/_view',
   getParentRoute: () => TagsTagSlugRoute,
 } as any)
+const SettingsLocationsPlaceTypesRoute =
+  SettingsLocationsPlaceTypesRouteImport.update({
+    id: '/place-types',
+    path: '/place-types',
+    getParentRoute: () => SettingsLocationsRoute,
+  } as any)
+const SettingsLocationsPinStyleRoute =
+  SettingsLocationsPinStyleRouteImport.update({
+    id: '/pin-style',
+    path: '/pin-style',
+    getParentRoute: () => SettingsLocationsRoute,
+  } as any)
+const SettingsLocationsLevelGroupsRoute =
+  SettingsLocationsLevelGroupsRouteImport.update({
+    id: '/level-groups',
+    path: '/level-groups',
+    getParentRoute: () => SettingsLocationsRoute,
+  } as any)
 const SettingsDisplaySidebarRoute = SettingsDisplaySidebarRouteImport.update({
   id: '/sidebar',
   path: '/sidebar',
@@ -1885,7 +1912,7 @@ export interface FileRoutesByFullPath {
   '/settings/gallery': typeof SettingsGalleryRoute
   '/settings/imports': typeof SettingsImportsRoute
   '/settings/link-parsing': typeof SettingsLinkParsingRoute
-  '/settings/locations': typeof SettingsLocationsRoute
+  '/settings/locations': typeof SettingsLocationsRouteWithChildren
   '/settings/media-management': typeof SettingsMediaManagementRoute
   '/settings/media-types': typeof SettingsMediaTypesRoute
   '/settings/relationships': typeof SettingsRelationshipsRoute
@@ -1936,6 +1963,9 @@ export interface FileRoutesByFullPath {
   '/settings/display/homepage': typeof SettingsDisplayHomepageRoute
   '/settings/display/media': typeof SettingsDisplayMediaRoute
   '/settings/display/sidebar': typeof SettingsDisplaySidebarRoute
+  '/settings/locations/level-groups': typeof SettingsLocationsLevelGroupsRoute
+  '/settings/locations/pin-style': typeof SettingsLocationsPinStyleRoute
+  '/settings/locations/place-types': typeof SettingsLocationsPlaceTypesRoute
   '/tags/$tagSlug/edit': typeof TagsTagSlugEditRouteWithChildren
   '/taxonomies/authors/$authorSlug': typeof TaxonomiesAuthorsAuthorSlugViewRouteWithChildren
   '/taxonomies/locations/$locationSlug': typeof TaxonomiesLocationsLocationSlugViewRouteWithChildren
@@ -1957,6 +1987,7 @@ export interface FileRoutesByFullPath {
   '/settings/advanced/': typeof SettingsAdvancedIndexRoute
   '/settings/automations/': typeof SettingsAutomationsIndexRoute
   '/settings/display/': typeof SettingsDisplayIndexRoute
+  '/settings/locations/': typeof SettingsLocationsIndexRoute
   '/tags/$tagSlug/': typeof TagsTagSlugIndexRoute
   '/taxonomies/authors/': typeof TaxonomiesAuthorsIndexRoute
   '/taxonomies/locations/': typeof TaxonomiesLocationsIndexRoute
@@ -2127,7 +2158,6 @@ export interface FileRoutesByTo {
   '/settings/gallery': typeof SettingsGalleryRoute
   '/settings/imports': typeof SettingsImportsRoute
   '/settings/link-parsing': typeof SettingsLinkParsingRoute
-  '/settings/locations': typeof SettingsLocationsRoute
   '/settings/media-management': typeof SettingsMediaManagementRoute
   '/settings/media-types': typeof SettingsMediaTypesRoute
   '/settings/relationships': typeof SettingsRelationshipsRoute
@@ -2167,12 +2197,16 @@ export interface FileRoutesByTo {
   '/settings/display/homepage': typeof SettingsDisplayHomepageRoute
   '/settings/display/media': typeof SettingsDisplayMediaRoute
   '/settings/display/sidebar': typeof SettingsDisplaySidebarRoute
+  '/settings/locations/level-groups': typeof SettingsLocationsLevelGroupsRoute
+  '/settings/locations/pin-style': typeof SettingsLocationsPinStyleRoute
+  '/settings/locations/place-types': typeof SettingsLocationsPlaceTypesRoute
   '/tags/$tagSlug': typeof TagsTagSlugIndexRoute
   '/taxonomies/locations/new': typeof TaxonomiesLocationsNewRoute
   '/bookmarks/$bookmarkId': typeof BookmarksBookmarkIdIndexRoute
   '/settings/advanced': typeof SettingsAdvancedIndexRoute
   '/settings/automations': typeof SettingsAutomationsIndexRoute
   '/settings/display': typeof SettingsDisplayIndexRoute
+  '/settings/locations': typeof SettingsLocationsIndexRoute
   '/taxonomies/authors': typeof TaxonomiesAuthorsIndexRoute
   '/taxonomies/locations': typeof TaxonomiesLocationsIndexRoute
   '/taxonomies/media-types': typeof TaxonomiesMediaTypesIndexRoute
@@ -2356,7 +2390,7 @@ export interface FileRoutesById {
   '/settings/gallery': typeof SettingsGalleryRoute
   '/settings/imports': typeof SettingsImportsRoute
   '/settings/link-parsing': typeof SettingsLinkParsingRoute
-  '/settings/locations': typeof SettingsLocationsRoute
+  '/settings/locations': typeof SettingsLocationsRouteWithChildren
   '/settings/media-management': typeof SettingsMediaManagementRoute
   '/settings/media-types': typeof SettingsMediaTypesRoute
   '/settings/relationships': typeof SettingsRelationshipsRoute
@@ -2413,6 +2447,9 @@ export interface FileRoutesById {
   '/settings/display/homepage': typeof SettingsDisplayHomepageRoute
   '/settings/display/media': typeof SettingsDisplayMediaRoute
   '/settings/display/sidebar': typeof SettingsDisplaySidebarRoute
+  '/settings/locations/level-groups': typeof SettingsLocationsLevelGroupsRoute
+  '/settings/locations/pin-style': typeof SettingsLocationsPinStyleRoute
+  '/settings/locations/place-types': typeof SettingsLocationsPlaceTypesRoute
   '/tags/$tagSlug/_view': typeof TagsTagSlugViewRouteWithChildren
   '/tags/$tagSlug/edit': typeof TagsTagSlugEditRouteWithChildren
   '/taxonomies/authors/$authorSlug': typeof TaxonomiesAuthorsAuthorSlugRouteWithChildren
@@ -2435,6 +2472,7 @@ export interface FileRoutesById {
   '/settings/advanced/': typeof SettingsAdvancedIndexRoute
   '/settings/automations/': typeof SettingsAutomationsIndexRoute
   '/settings/display/': typeof SettingsDisplayIndexRoute
+  '/settings/locations/': typeof SettingsLocationsIndexRoute
   '/tags/$tagSlug/': typeof TagsTagSlugIndexRoute
   '/taxonomies/authors/': typeof TaxonomiesAuthorsIndexRoute
   '/taxonomies/locations/': typeof TaxonomiesLocationsIndexRoute
@@ -2687,6 +2725,9 @@ export interface FileRouteTypes {
     | '/settings/display/homepage'
     | '/settings/display/media'
     | '/settings/display/sidebar'
+    | '/settings/locations/level-groups'
+    | '/settings/locations/pin-style'
+    | '/settings/locations/place-types'
     | '/tags/$tagSlug/edit'
     | '/taxonomies/authors/$authorSlug'
     | '/taxonomies/locations/$locationSlug'
@@ -2708,6 +2749,7 @@ export interface FileRouteTypes {
     | '/settings/advanced/'
     | '/settings/automations/'
     | '/settings/display/'
+    | '/settings/locations/'
     | '/tags/$tagSlug/'
     | '/taxonomies/authors/'
     | '/taxonomies/locations/'
@@ -2878,7 +2920,6 @@ export interface FileRouteTypes {
     | '/settings/gallery'
     | '/settings/imports'
     | '/settings/link-parsing'
-    | '/settings/locations'
     | '/settings/media-management'
     | '/settings/media-types'
     | '/settings/relationships'
@@ -2918,12 +2959,16 @@ export interface FileRouteTypes {
     | '/settings/display/homepage'
     | '/settings/display/media'
     | '/settings/display/sidebar'
+    | '/settings/locations/level-groups'
+    | '/settings/locations/pin-style'
+    | '/settings/locations/place-types'
     | '/tags/$tagSlug'
     | '/taxonomies/locations/new'
     | '/bookmarks/$bookmarkId'
     | '/settings/advanced'
     | '/settings/automations'
     | '/settings/display'
+    | '/settings/locations'
     | '/taxonomies/authors'
     | '/taxonomies/locations'
     | '/taxonomies/media-types'
@@ -3163,6 +3208,9 @@ export interface FileRouteTypes {
     | '/settings/display/homepage'
     | '/settings/display/media'
     | '/settings/display/sidebar'
+    | '/settings/locations/level-groups'
+    | '/settings/locations/pin-style'
+    | '/settings/locations/place-types'
     | '/tags/$tagSlug/_view'
     | '/tags/$tagSlug/edit'
     | '/taxonomies/authors/$authorSlug'
@@ -3185,6 +3233,7 @@ export interface FileRouteTypes {
     | '/settings/advanced/'
     | '/settings/automations/'
     | '/settings/display/'
+    | '/settings/locations/'
     | '/tags/$tagSlug/'
     | '/taxonomies/authors/'
     | '/taxonomies/locations/'
@@ -3874,6 +3923,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TagsTagSlugIndexRouteImport
       parentRoute: typeof TagsTagSlugRoute
     }
+    '/settings/locations/': {
+      id: '/settings/locations/'
+      path: '/'
+      fullPath: '/settings/locations/'
+      preLoaderRoute: typeof SettingsLocationsIndexRouteImport
+      parentRoute: typeof SettingsLocationsRoute
+    }
     '/settings/display/': {
       id: '/settings/display/'
       path: '/'
@@ -4027,6 +4083,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/tags/$tagSlug'
       preLoaderRoute: typeof TagsTagSlugViewRouteImport
       parentRoute: typeof TagsTagSlugRoute
+    }
+    '/settings/locations/place-types': {
+      id: '/settings/locations/place-types'
+      path: '/place-types'
+      fullPath: '/settings/locations/place-types'
+      preLoaderRoute: typeof SettingsLocationsPlaceTypesRouteImport
+      parentRoute: typeof SettingsLocationsRoute
+    }
+    '/settings/locations/pin-style': {
+      id: '/settings/locations/pin-style'
+      path: '/pin-style'
+      fullPath: '/settings/locations/pin-style'
+      preLoaderRoute: typeof SettingsLocationsPinStyleRouteImport
+      parentRoute: typeof SettingsLocationsRoute
+    }
+    '/settings/locations/level-groups': {
+      id: '/settings/locations/level-groups'
+      path: '/level-groups'
+      fullPath: '/settings/locations/level-groups'
+      preLoaderRoute: typeof SettingsLocationsLevelGroupsRouteImport
+      parentRoute: typeof SettingsLocationsRoute
     }
     '/settings/display/sidebar': {
       id: '/settings/display/sidebar'
@@ -5919,6 +5996,23 @@ const SettingsDisplayRouteWithChildren = SettingsDisplayRoute._addFileChildren(
   SettingsDisplayRouteChildren,
 )
 
+interface SettingsLocationsRouteChildren {
+  SettingsLocationsLevelGroupsRoute: typeof SettingsLocationsLevelGroupsRoute
+  SettingsLocationsPinStyleRoute: typeof SettingsLocationsPinStyleRoute
+  SettingsLocationsPlaceTypesRoute: typeof SettingsLocationsPlaceTypesRoute
+  SettingsLocationsIndexRoute: typeof SettingsLocationsIndexRoute
+}
+
+const SettingsLocationsRouteChildren: SettingsLocationsRouteChildren = {
+  SettingsLocationsLevelGroupsRoute: SettingsLocationsLevelGroupsRoute,
+  SettingsLocationsPinStyleRoute: SettingsLocationsPinStyleRoute,
+  SettingsLocationsPlaceTypesRoute: SettingsLocationsPlaceTypesRoute,
+  SettingsLocationsIndexRoute: SettingsLocationsIndexRoute,
+}
+
+const SettingsLocationsRouteWithChildren =
+  SettingsLocationsRoute._addFileChildren(SettingsLocationsRouteChildren)
+
 interface SettingsRouteChildren {
   SettingsAdvancedRoute: typeof SettingsAdvancedRouteWithChildren
   SettingsAutofillRoute: typeof SettingsAutofillRoute
@@ -5931,7 +6025,7 @@ interface SettingsRouteChildren {
   SettingsGalleryRoute: typeof SettingsGalleryRoute
   SettingsImportsRoute: typeof SettingsImportsRoute
   SettingsLinkParsingRoute: typeof SettingsLinkParsingRoute
-  SettingsLocationsRoute: typeof SettingsLocationsRoute
+  SettingsLocationsRoute: typeof SettingsLocationsRouteWithChildren
   SettingsMediaManagementRoute: typeof SettingsMediaManagementRoute
   SettingsMediaTypesRoute: typeof SettingsMediaTypesRoute
   SettingsRelationshipsRoute: typeof SettingsRelationshipsRoute
@@ -5953,7 +6047,7 @@ const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsGalleryRoute: SettingsGalleryRoute,
   SettingsImportsRoute: SettingsImportsRoute,
   SettingsLinkParsingRoute: SettingsLinkParsingRoute,
-  SettingsLocationsRoute: SettingsLocationsRoute,
+  SettingsLocationsRoute: SettingsLocationsRouteWithChildren,
   SettingsMediaManagementRoute: SettingsMediaManagementRoute,
   SettingsMediaTypesRoute: SettingsMediaTypesRoute,
   SettingsRelationshipsRoute: SettingsRelationshipsRoute,

@@ -1,17 +1,17 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { LocationsSettings } from "./LocationsSettings";
+import { LocationPinStyleSettings } from "./LocationPinStyleSettings";
 import { apiHandlers } from "../test-utils/story-mocks";
 
 const meta = {
-  title: "Settings/LocationsSettings",
-  component: LocationsSettings,
+  title: "Settings/LocationPinStyleSettings",
+  component: LocationPinStyleSettings,
   parameters: {
     msw: {
       handlers: apiHandlers,
     },
   },
-} satisfies Meta<typeof LocationsSettings>;
+} satisfies Meta<typeof LocationPinStyleSettings>;
 
 export default meta;
 

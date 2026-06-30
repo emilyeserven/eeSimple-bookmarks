@@ -6,6 +6,7 @@ import type { LocationBoundary, PlaceTypeColorConfig, PlaceTypeDisplayConfig, Pl
 import {
   distributePaletteColors,
   expandLevelGroupsToDisplayConfig,
+  locationLacksLevel,
   normalizeHexColor,
   normalizeIconName,
   placeTypeKey,
@@ -329,6 +330,31 @@ test("expandLevelGroupsToDisplayConfig lets the lowest-sortOrder group win a sha
     visible: false,
     sortOrder: 2,
   });
+});
+
+// --- locationLacksLevel ---
+
+test("locationLacksLevel flags a non-null placeType absent from the config, key-normalized", () => {
+  const config: PlaceTypeDisplayConfig = {
+    country: {
+      displayMode: "area",
+      visible: true,
+      sortOrder: 0,
+    },
+  };
+  assert.equal(locationLacksLevel({
+    placeType: "City",
+  }, config), true);
+  assert.equal(locationLacksLevel({
+    placeType: "  Country  ",
+  }, config), false);
+});
+
+test("locationLacksLevel treats a null/blank placeType as 'no place type', not 'no level'", () => {
+  const config: PlaceTypeDisplayConfig = {};
+  assert.equal(locationLacksLevel({
+    placeType: null,
+  }, config), false);
 });
 
 // --- distributePaletteColors ---

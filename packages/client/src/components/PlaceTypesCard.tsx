@@ -1,7 +1,8 @@
-import type { PlaceType } from "@eesimple/types";
+import type { PlaceType, PlaceTypeLevelGroup } from "@eesimple/types";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
+import { NO_LEVEL_MAP_COLOR, placeTypeKey } from "@eesimple/types";
 import { Pencil, Trash2 } from "lucide-react";
 
 import { DeletePlaceTypeDialog } from "./DeletePlaceTypeDialog";
@@ -11,12 +12,23 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
-export function PlaceTypesCard() {
+interface PlaceTypesCardProps {
+  /** All configured level groups — used to flag a place type not assigned to any of them. */
+  groups: PlaceTypeLevelGroup[];
+}
+
+export function PlaceTypesCard({
+  groups,
+}: PlaceTypesCardProps) {
   const {
     data: placeTypesData, isLoading,
   } = usePlaceTypes();
   const createPlaceType = useCreatePlaceType();
   const updatePlaceType = useUpdatePlaceType();
+  const assignedKeys = useMemo(
+    () => new Set(groups.flatMap(group => group.placeTypes)),
+    [groups],
+  );
 
   const [newName, setNewName] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -136,6 +148,23 @@ export function PlaceTypesCard() {
                       "
                     >
                       <span className="flex-1 text-sm">{pt.name}</span>
+                      {!assignedKeys.has(placeTypeKey(pt.slug))
+                        ? (
+                          <span
+                            className="
+                              shrink-0 rounded-full border px-1.5 py-0.5
+                              text-[10px] font-medium
+                            "
+                            style={{
+                              color: NO_LEVEL_MAP_COLOR,
+                              borderColor: NO_LEVEL_MAP_COLOR,
+                            }}
+                            title={`${pt.name} isn’t assigned to any level`}
+                          >
+                            No level
+                          </span>
+                        )
+                        : null}
                       <span className="font-mono text-xs text-muted-foreground">{pt.slug}</span>
                       <Button
                         type="button"
