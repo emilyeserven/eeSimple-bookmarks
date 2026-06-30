@@ -243,7 +243,41 @@ export function ConnectorsSettings() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Provides items={["Coordinates", "Country", "Place type", "Map URL"]} />
+            <Provides items={["Coordinates", "Country", "Place type", "Area outline", "Map URL"]} />
+          </CardContent>
+        </Card>
+      ),
+    },
+    {
+      id: "wikidata",
+      status: "always-on",
+      node: (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle>Wikidata (region fallback)</CardTitle>
+              <AlwaysOnBadge />
+            </div>
+            <CardDescription>
+              Keyless fallback for the Locations geocoder. When Nominatim has no entry for a place —
+              typically a traditional or natural region with no administrative boundary, e.g. 中国地方
+              (Chūgoku region) — Wikidata supplies its coordinates, country, and ancestor chain, and
+              fills the area outline (its linked OpenStreetMap relation, or composed from the region&apos;s
+              constituent units).
+              {data?.wikidata.endpoint
+                ? (
+                  <>
+                    {" "}
+                    Endpoint:
+                    {" "}
+                    <code>{data.wikidata.endpoint}</code>
+                  </>
+                )
+                : null}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Provides items={["Coordinates", "Country", "Ancestors", "Area outline", "Map URL"]} />
           </CardContent>
         </Card>
       ),

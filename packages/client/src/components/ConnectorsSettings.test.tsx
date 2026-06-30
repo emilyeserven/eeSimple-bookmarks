@@ -28,6 +28,10 @@ vi.mock("../hooks/useConnectors", () => ({
         enabled: true,
         endpoint: "https://nominatim.openstreetmap.org",
       },
+      wikidata: {
+        enabled: true,
+        endpoint: "https://www.wikidata.org",
+      },
     },
   }),
 }));
