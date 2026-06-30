@@ -1,3 +1,7 @@
+import type { LocationNode } from "@eesimple/types";
+
+import { useState } from "react";
+
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Images, MapPin } from "lucide-react";
 
@@ -10,6 +14,7 @@ import { tagsForServerQuery, validateBookmarkSearch } from "../lib/bookmarkSearc
 import { subtreeIds } from "../lib/tagTree";
 
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export const Route = createFileRoute("/taxonomies/locations/$locationSlug/")({
   validateSearch: validateBookmarkSearch,
@@ -87,7 +92,7 @@ function LocationBookmarksPage() {
                 flex flex-wrap items-center gap-2 text-sm text-muted-foreground
               "
             >
-              <span>Sub-locations:</span>
+              <SubLocationsHoverLabel locations={location.children} />
               {location.children.map(child => (
                 <Link
                   key={child.id}
@@ -143,5 +148,70 @@ function LocationBookmarksPage() {
       emptyMessage="No bookmarks for this location yet."
       noMatchMessage="No bookmarks for this location match these filters."
     />
+  );
+}
+
+/**
+ * The "Sub-locations:" label, with a hover popover that lists the full descendant tree (not just the
+ * direct children shown as chips below it) preserving its hierarchy.
+ */
+function SubLocationsHoverLabel({
+  locations,
+}: { locations: LocationNode[] }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Popover open={open}>
+      <PopoverTrigger asChild>
+        <span
+          className="
+            cursor-default underline decoration-dotted underline-offset-2
+          "
+          onMouseEnter={() => setOpen(true)}
+          onMouseLeave={() => setOpen(false)}
+        >
+          Sub-locations:
+        </span>
+      </PopoverTrigger>
+      <PopoverContent
+        align="start"
+        className="max-h-[500px] w-64 overflow-y-auto"
+        onMouseEnter={() => setOpen(true)}
+        onMouseLeave={() => setOpen(false)}
+      >
+        <LocationChildrenTree locations={locations} />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+/** Recursively renders a location subtree, indenting each level to preserve its hierarchy. */
+function LocationChildrenTree({
+  locations,
+}: { locations: LocationNode[] }) {
+  return (
+    <ul className="space-y-1 text-sm">
+      {locations.map(child => (
+        <li key={child.id}>
+          <Link
+            to="/taxonomies/locations/$locationSlug"
+            params={{
+              locationSlug: child.slug,
+            }}
+            className="hover:underline"
+          >
+            <RomanizedLabel
+              name={child.name}
+              romanized={child.romanizedName}
+            />
+          </Link>
+          {child.children.length > 0 && (
+            <div className="mt-1 ml-3 border-l pl-2">
+              <LocationChildrenTree locations={child.children} />
+            </div>
+          )}
+        </li>
+      ))}
+    </ul>
   );
 }
