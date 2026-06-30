@@ -8,6 +8,7 @@ import { Link } from "@tanstack/react-router";
 import { BookmarkCategoryLink } from "./BookmarkCategoryLink";
 import { BookmarkDetailDebug } from "./BookmarkDetailDebug";
 import { BookmarkGallery } from "./BookmarkGallery";
+import { BookmarkLocationsBox } from "./BookmarkLocationsBox";
 import { BookmarkLocationsTabContent } from "./BookmarkLocationsTabContent";
 import { BookmarkPropertySections } from "./BookmarkPropertySections";
 import { hasBookmarkPropertyRows } from "../lib/bookmarkProperties";
@@ -102,6 +103,14 @@ function generalSection(args: BuildArgs, category: Category | undefined): Bookma
                       </li>
                     ))}
                   </ul>
+                </DetailField>
+              )
+              : null}
+
+            {bookmark.locations.length > 0
+              ? (
+                <DetailField label="Locations">
+                  <BookmarkLocationsBox locations={bookmark.locations} />
                 </DetailField>
               )
               : null}
