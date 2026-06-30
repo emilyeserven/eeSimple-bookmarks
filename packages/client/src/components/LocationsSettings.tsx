@@ -19,7 +19,8 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, MapPin, Plus, Shapes, Trash2 } from "lucide-react";
+import { DEFAULT_LOCATION_MAP_COLOR, LOCATION_MAP_PALETTES } from "@eesimple/types";
+import { GripVertical, MapPin, Plus, Shapes, Trash2, X } from "lucide-react";
 
 import { MultiCombobox } from "./MultiCombobox";
 import { useLocationLevels } from "../hooks/useLocationLevels";
@@ -41,7 +42,69 @@ interface GroupRowProps {
   setGroupVisible: Levels["setGroupVisible"];
   setGroupDisplayMode: Levels["setGroupDisplayMode"];
   setGroupPlaceTypes: Levels["setGroupPlaceTypes"];
+  setGroupColor: Levels["setGroupColor"];
   removeGroup: Levels["removeGroup"];
+}
+
+/**
+ * Swatch + native color picker for a level's map color. Edits a local copy for a live preview and
+ * auto-saves on blur (when the picker closes), matching the on-change/on-blur auto-save standard. The
+ * trailing reset clears back to Leaflet's default blue.
+ */
+function LevelColorControl({
+  color, label, onChange,
+}: {
+  color: string | null | undefined;
+  label: string;
+  onChange: (color: string | null) => void;
+}) {
+  const [local, setLocal] = useState(color ?? DEFAULT_LOCATION_MAP_COLOR);
+  useEffect(() => {
+    setLocal(color ?? DEFAULT_LOCATION_MAP_COLOR);
+  }, [color]);
+
+  return (
+    <div className="flex items-center gap-1">
+      <label
+        className="
+          relative inline-flex size-9 cursor-pointer items-center justify-center
+          rounded-md border bg-background
+        "
+        title="Map color"
+      >
+        <span
+          className="size-5 rounded-sm border"
+          style={{
+            backgroundColor: local,
+          }}
+        />
+        <input
+          type="color"
+          value={local}
+          onChange={event => setLocal(event.target.value)}
+          onBlur={() => {
+            if ((color ?? DEFAULT_LOCATION_MAP_COLOR) !== local) onChange(local);
+          }}
+          className="absolute inset-0 cursor-pointer opacity-0"
+          aria-label={`${label || "Level"} map color`}
+        />
+      </label>
+      {color
+        ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="size-7"
+            aria-label={`Reset ${label || "level"} color`}
+            onClick={() => onChange(null)}
+          >
+            <X className="size-3.5" />
+          </Button>
+        )
+        : null}
+    </div>
+  );
 }
 
 /** A single drag-sortable level-group card: name + visibility + pin/area + place-type assignment. */
@@ -52,6 +115,7 @@ function SortableGroupRow({
   setGroupVisible,
   setGroupDisplayMode,
   setGroupPlaceTypes,
+  setGroupColor,
   removeGroup,
 }: GroupRowProps) {
   const {
@@ -131,6 +195,12 @@ function SortableGroupRow({
           </ToggleGroupItem>
         </ToggleGroup>
 
+        <LevelColorControl
+          color={group.color}
+          label={group.name}
+          onChange={color => setGroupColor(group.id, color)}
+        />
+
         <div className="flex items-center gap-2">
           <Checkbox
             id={`loc-group-${group.id}`}
@@ -192,8 +262,10 @@ export function LocationsSettings() {
     setGroupVisible,
     setGroupDisplayMode,
     setGroupPlaceTypes,
+    setGroupColor,
     removeGroup,
     reorderGroups,
+    applyPalette,
   } = useLocationLevels();
 
   // Local order so drag feels instant; re-synced whenever the saved groups change.
@@ -257,6 +329,45 @@ export function LocationsSettings() {
 
         {orderedGroups.length > 0
           ? (
+            <div className="space-y-2">
+              <p className="text-xs text-muted-foreground">
+                Apply a color palette across your levels (top to bottom), then fine-tune any level’s
+                color individually.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {LOCATION_MAP_PALETTES.map(palette => (
+                  <button
+                    key={palette.id}
+                    type="button"
+                    onClick={() => applyPalette(palette.id)}
+                    className="
+                      flex items-center gap-2 rounded-md border px-2 py-1
+                      text-xs
+                      hover:bg-accent
+                    "
+                    title={`Apply the ${palette.name} palette`}
+                  >
+                    <span className="flex overflow-hidden rounded-sm">
+                      {palette.colors.map(color => (
+                        <span
+                          key={color}
+                          className="size-3"
+                          style={{
+                            backgroundColor: color,
+                          }}
+                        />
+                      ))}
+                    </span>
+                    {palette.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )
+          : null}
+
+        {orderedGroups.length > 0
+          ? (
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
@@ -276,6 +387,7 @@ export function LocationsSettings() {
                       setGroupVisible={setGroupVisible}
                       setGroupDisplayMode={setGroupDisplayMode}
                       setGroupPlaceTypes={setGroupPlaceTypes}
+                      setGroupColor={setGroupColor}
                       removeGroup={removeGroup}
                     />
                   ))}

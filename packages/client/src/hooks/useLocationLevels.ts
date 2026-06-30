@@ -3,6 +3,8 @@ import type { LocationDisplayMode, PlaceTypeLevelGroup, PlaceTypeLevelGroupConfi
 
 import { useMemo } from "react";
 
+import { LOCATION_MAP_PALETTES } from "@eesimple/types";
+
 import { useLocationLevelGroups, useUpdateLocationLevelGroups } from "./useAppSettings";
 import { useLocations } from "./useLocations";
 import { notifyFieldSaved, notifyFieldSaveError } from "../lib/autoSave";
@@ -29,8 +31,12 @@ export function useLocationLevels(): {
   setGroupVisible: (id: string, visible: boolean) => void;
   setGroupDisplayMode: (id: string, displayMode: LocationDisplayMode) => void;
   setGroupPlaceTypes: (id: string, placeTypes: string[]) => void;
+  /** Set (or clear, with `null`) the map color a level's pins/areas render in. */
+  setGroupColor: (id: string, color: string | null) => void;
   removeGroup: (id: string) => void;
   reorderGroups: (orderedIds: string[]) => void;
+  /** Assign a predefined palette's colors across the groups in display order (wrapping if needed). */
+  applyPalette: (paletteId: string) => void;
 } {
   const {
     data: locations, isLoading,
@@ -117,6 +123,22 @@ export function useLocationLevels(): {
     }, `${groupLabel(id)} place types`);
   }
 
+  function setGroupColor(id: string, color: string | null): void {
+    patchGroup(id, {
+      color,
+    }, `${groupLabel(id)} color`);
+  }
+
+  function applyPalette(paletteId: string): void {
+    const palette = LOCATION_MAP_PALETTES.find(p => p.id === paletteId);
+    if (!palette || palette.colors.length === 0) return;
+    const next = groups.map((group, index) => ({
+      ...group,
+      color: palette.colors[index % palette.colors.length],
+    }));
+    save(next, `${palette.name} palette`);
+  }
+
   function removeGroup(id: string): void {
     const label = groupLabel(id);
     save(groups.filter(group => group.id !== id), `${label} removed`);
@@ -149,7 +171,9 @@ export function useLocationLevels(): {
     setGroupVisible,
     setGroupDisplayMode,
     setGroupPlaceTypes,
+    setGroupColor,
     removeGroup,
     reorderGroups,
+    applyPalette,
   };
 }

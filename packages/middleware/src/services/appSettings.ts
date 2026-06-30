@@ -25,7 +25,7 @@ import type {
   UpdateHomepageContentInput,
   UpdateSidebarCustomizationInput,
 } from "@eesimple/types";
-import { CANONICAL_PLACE_TYPE_ORDER, LOCATION_DISPLAY_MODES, normalizeBlacklist, placeTypeKey } from "@eesimple/types";
+import { CANONICAL_PLACE_TYPE_ORDER, LOCATION_DISPLAY_MODES, normalizeBlacklist, normalizeHexColor, placeTypeKey } from "@eesimple/types";
 import { db } from "@/db";
 import { appSettings, locations } from "@/db/schema";
 import { encryptionEnabled, maybeDecrypt, maybeEncrypt } from "@/utils/crypto";
@@ -599,12 +599,18 @@ function normalizePlaceTypeDisplay(input: unknown): PlaceTypeDisplayConfig {
     const value = rawValue as Record<string, unknown>;
     const displayMode = LOCATION_DISPLAY_MODES.find(mode => mode === value.displayMode);
     if (!displayMode) continue;
+    const color = normalizeHexColor(value.color);
     out[key] = {
       displayMode,
       visible: value.visible !== false,
       sortOrder: typeof value.sortOrder === "number" && Number.isFinite(value.sortOrder)
         ? value.sortOrder
         : 0,
+      ...(color
+        ? {
+          color,
+        }
+        : {}),
     };
   }
   return out;
@@ -676,6 +682,7 @@ function normalizePlaceTypeLevelGroups(input: unknown): PlaceTypeLevelGroupConfi
       sortOrder: typeof value.sortOrder === "number" && Number.isFinite(value.sortOrder)
         ? value.sortOrder
         : index,
+      color: normalizeHexColor(value.color),
     };
     out.push(group);
   });

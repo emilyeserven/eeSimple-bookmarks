@@ -233,6 +233,10 @@ const placeTypeDisplayBody = {
       sortOrder: {
         type: "number",
       },
+      color: {
+        type: "string",
+        nullable: true,
+      },
     },
   },
 } as const;
@@ -374,6 +378,10 @@ const placeTypeLevelGroupsBody = {
       },
       sortOrder: {
         type: "number",
+      },
+      color: {
+        type: "string",
+        nullable: true,
       },
     },
   },

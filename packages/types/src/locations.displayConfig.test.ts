@@ -5,8 +5,10 @@ import type { LocationBoundary, PlaceTypeDisplayConfig, PlaceTypeLevelGroupConfi
 
 import {
   expandLevelGroupsToDisplayConfig,
+  normalizeHexColor,
   placeTypeKey,
   placeTypeOrder,
+  resolveLocationColor,
   resolveLocationDisplay,
 } from "./locations.js";
 
@@ -171,6 +173,64 @@ test("expandLevelGroupsToDisplayConfig ignores blank members and leaves unassign
     placeType: "city",
     boundary: null,
   }, config), "pin");
+});
+
+// --- normalizeHexColor ---
+
+test("normalizeHexColor accepts #rgb/#rrggbb (lowercased) and rejects everything else", () => {
+  assert.equal(normalizeHexColor("#FFF"), "#fff");
+  assert.equal(normalizeHexColor("  #3388FF  "), "#3388ff");
+  assert.equal(normalizeHexColor("#12ab"), null);
+  assert.equal(normalizeHexColor("red"), null);
+  assert.equal(normalizeHexColor(null), null);
+  assert.equal(normalizeHexColor(123), null);
+});
+
+// --- color: expand + resolve ---
+
+test("expandLevelGroupsToDisplayConfig carries a valid color and drops an invalid one", () => {
+  const config = expandLevelGroupsToDisplayConfig([
+    {
+      id: "g1",
+      name: "Country",
+      placeTypes: ["country"],
+      displayMode: "area",
+      visible: true,
+      sortOrder: 0,
+      color: "#EF4444",
+    },
+    {
+      id: "g2",
+      name: "City",
+      placeTypes: ["city"],
+      displayMode: "pin",
+      visible: true,
+      sortOrder: 1,
+      color: "not-a-color",
+    },
+  ]);
+  assert.equal(config.country?.color, "#ef4444");
+  assert.equal("color" in (config.city ?? {}), false);
+});
+
+test("resolveLocationColor returns the placeType's color or null when unset", () => {
+  const config = expandLevelGroupsToDisplayConfig([
+    {
+      id: "g1",
+      name: "Country",
+      placeTypes: ["country"],
+      displayMode: "area",
+      visible: true,
+      sortOrder: 0,
+      color: "#22c55e",
+    },
+  ]);
+  assert.equal(resolveLocationColor({
+    placeType: "Country",
+  }, config), "#22c55e");
+  assert.equal(resolveLocationColor({
+    placeType: "city",
+  }, config), null);
 });
 
 test("expandLevelGroupsToDisplayConfig lets the lowest-sortOrder group win a shared place type", () => {
