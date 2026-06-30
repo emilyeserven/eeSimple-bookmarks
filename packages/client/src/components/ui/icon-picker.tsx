@@ -14,6 +14,9 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   CategoryIcon,
+  CUSTOM_CATEGORY_NAMES,
+  CUSTOM_ICON_NAMES,
+  CUSTOM_ICONS_BY_CATEGORY,
   ICON_NAMES,
   LUCIDE_CATEGORY_NAMES,
   LUCIDE_ICONS_BY_CATEGORY,
@@ -30,33 +33,84 @@ interface IconPickerProps {
   "aria-label"?: string;
 }
 
-/** A category tab. `id` is unique across both libraries (Lucide and Phosphor share
- * some labels, e.g. "Food & Drink"); `label` is the human-visible name. */
-interface CategoryTab {
+/** One category block in the browse list. `id` is unique across all sources (Lucide,
+ * custom, and Phosphor can share a label, e.g. "Maps & Location"); `label` is the
+ * human-visible name; `icons` are the (possibly prefixed) icon names in that category. */
+interface IconSection {
   id: string;
   label: string;
-  source: "lucide" | "phosphor";
+  source: "lucide" | "custom" | "phosphor";
+  icons: string[];
 }
 
-const ALL_TAB_ID = "all";
+/** Every category, in browse order: Lucide → custom (Religion & Culture) → Phosphor.
+ * Built once at module init; the picker renders all of them in one continuous scroll. */
+const SECTIONS: IconSection[] = [
+  ...LUCIDE_CATEGORY_NAMES.map((label): IconSection => ({
+    id: `lucide:${label}`,
+    label,
+    source: "lucide",
+    icons: LUCIDE_ICONS_BY_CATEGORY[label] ?? [],
+  })),
+  ...CUSTOM_CATEGORY_NAMES.map((label): IconSection => ({
+    id: `custom:${label}`,
+    label,
+    source: "custom",
+    icons: CUSTOM_ICONS_BY_CATEGORY[label] ?? [],
+  })),
+  ...PHOSPHOR_CATEGORY_NAMES.map((label): IconSection => ({
+    id: `ph:${label}`,
+    label,
+    source: "phosphor",
+    icons: PHOSPHOR_ICONS_BY_CATEGORY[label] ?? [],
+  })),
+];
 
-const LUCIDE_TABS: CategoryTab[] = LUCIDE_CATEGORY_NAMES.map(label => ({
-  id: `lucide:${label}`,
-  label,
-  source: "lucide",
-}));
+/** Track which section is scrolled into view inside `scrollRef`, for the category nav
+ * highlight. Returns the active section id plus a ref-registrar to attach to each section. */
+function useScrollSpy(enabled: boolean, scrollRef: React.RefObject<HTMLDivElement | null>) {
+  const [activeId, setActiveId] = React.useState<string>(SECTIONS[0]?.id ?? "");
+  const elements = React.useRef(new Map<string, HTMLElement>());
 
-const PHOSPHOR_TABS: CategoryTab[] = PHOSPHOR_CATEGORY_NAMES.map(label => ({
-  id: `ph:${label}`,
-  label,
-  source: "phosphor",
-}));
+  const register = React.useCallback((id: string) => (el: HTMLElement | null) => {
+    if (el) elements.current.set(id, el);
+    else elements.current.delete(id);
+  }, []);
+
+  React.useEffect(() => {
+    const root = scrollRef.current;
+    if (!enabled || !root) return;
+    setActiveId(SECTIONS[0]?.id ?? "");
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter(e => e.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        const id = visible[0]?.target.getAttribute("data-section-id");
+        if (id) setActiveId(id);
+      },
+      {
+        root,
+        rootMargin: "0px 0px -75% 0px",
+        threshold: 0,
+      },
+    );
+    for (const el of elements.current.values()) observer.observe(el);
+    return () => observer.disconnect();
+  }, [enabled, scrollRef]);
+
+  return {
+    activeId,
+    register,
+  };
+}
 
 /**
- * A searchable icon picker built from shadcn `Popover` + `Command`. Shows icons
- * in named category tabs (Arrows, Files & Docs, etc.) or a flat search across all
- * icons. Lucide and Phosphor each contribute their own category tabs; Phosphor
- * names are stored with a `"ph:"` prefix, Lucide names are stored as-is.
+ * A searchable icon picker built from shadcn `Popover` + `Command`. Browsing shows every
+ * category in one continuous scroll with a vertical category nav on the right that
+ * highlights the category in view and jumps to it on click; typing switches to a flat
+ * search across all icons. Lucide names are stored as-is, Phosphor names with a `"ph:"`
+ * prefix, and app-authored custom icons with a `"custom:"` prefix.
  */
 export function IconPicker({
   value,
@@ -66,14 +120,23 @@ export function IconPicker({
 }: IconPickerProps) {
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
-  const [selectedTabId, setSelectedTabId] = React.useState<string>(ALL_TAB_ID);
+  const scrollRef = React.useRef<HTMLDivElement>(null);
 
   const isSearching = query.trim().length > 0;
+  const {
+    activeId, register,
+  } = useScrollSpy(open && !isSearching, scrollRef);
 
   const lucideSearchResults = React.useMemo(() => {
     if (!isSearching) return null;
     const needle = query.trim().toLowerCase();
     return ICON_NAMES.filter(n => n.toLowerCase().includes(needle));
+  }, [query, isSearching]);
+
+  const customSearchResults = React.useMemo(() => {
+    if (!isSearching) return [];
+    const needle = query.trim().toLowerCase();
+    return CUSTOM_ICON_NAMES.filter(name => name.slice(7).toLowerCase().includes(needle));
   }, [query, isSearching]);
 
   const phosphorSearchResults = React.useMemo(() => {
@@ -82,34 +145,28 @@ export function IconPicker({
     return PHOSPHOR_ICON_NAMES.filter(name => name.slice(3).toLowerCase().includes(needle));
   }, [query, isSearching]);
 
-  const selectedTab = React.useMemo(
-    () => [...LUCIDE_TABS, ...PHOSPHOR_TABS].find(t => t.id === selectedTabId) ?? null,
-    [selectedTabId],
-  );
-
-  const categoryIcons = React.useMemo(() => {
-    if (isSearching || selectedTabId === ALL_TAB_ID || !selectedTab) return null;
-    return selectedTab.source === "phosphor"
-      ? PHOSPHOR_ICONS_BY_CATEGORY[selectedTab.label] ?? []
-      : LUCIDE_ICONS_BY_CATEGORY[selectedTab.label] ?? [];
-  }, [isSearching, selectedTabId, selectedTab]);
+  const noSearchResults = (lucideSearchResults ?? []).length === 0
+    && customSearchResults.length === 0
+    && phosphorSearchResults.length === 0;
 
   const displayName = value
-    ? (value.startsWith("ph:") ? value.slice(3) : value)
+    ? (value.includes(":") ? value.slice(value.indexOf(":") + 1) : value)
     : null;
 
-  function renderIconGrid(names: string[], isPhosphor = false) {
+  function selectIcon(name: string) {
+    onChange(name);
+    setOpen(false);
+  }
+
+  function renderIconGrid(names: string[]) {
     return (
       <div className="grid grid-cols-6 gap-1 p-1">
         {names.map(name => (
           <CommandItem
             key={name}
             value={name}
-            title={isPhosphor ? name.slice(3) : name}
-            onSelect={() => {
-              onChange(name);
-              setOpen(false);
-            }}
+            title={name.includes(":") ? name.slice(name.indexOf(":") + 1) : name}
+            onSelect={() => selectIcon(name)}
             className={cn(
               "flex aspect-square items-center justify-center p-0",
               value === name && "bg-accent text-accent-foreground",
@@ -125,34 +182,16 @@ export function IconPicker({
     );
   }
 
-  function renderTabButton(tab: CategoryTab | { id: string;
-    label: string; }) {
-    return (
-      <button
-        key={tab.id}
-        type="button"
-        onClick={() => {
-          setSelectedTabId(tab.id);
-          setQuery("");
-        }}
-        disabled={isSearching}
-        className={cn(
-          `
-            shrink-0 rounded-sm px-2 py-0.5 text-xs whitespace-nowrap
-            transition-colors
-          `,
-          selectedTabId === tab.id && !isSearching
-            ? "bg-accent font-medium text-accent-foreground"
-            : `
-              text-muted-foreground
-              hover:bg-accent hover:text-accent-foreground
-            `,
-          isSearching && "cursor-default opacity-40",
-        )}
-      >
-        {tab.label}
-      </button>
-    );
+  function scrollToSection(id: string) {
+    const root = scrollRef.current;
+    const el = root?.querySelector<HTMLElement>(`[data-section-id="${id}"]`);
+    if (!root || !el) return;
+    // rect-based offset is robust to whether the scroll container is positioned.
+    const top = el.getBoundingClientRect().top - root.getBoundingClientRect().top + root.scrollTop;
+    root.scrollTo({
+      top,
+      behavior: "smooth",
+    });
   }
 
   return (
@@ -184,86 +223,103 @@ export function IconPicker({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-(--radix-popover-trigger-width) p-0"
+        className="w-[380px] max-w-[calc(100vw-2rem)] p-0"
         align="start"
       >
         <Command shouldFilter={false}>
           <CommandInput
             placeholder="Search icons…"
             value={query}
-            onValueChange={(v) => {
-              setQuery(v);
-              if (v.trim()) setSelectedTabId(ALL_TAB_ID);
-            }}
+            onValueChange={setQuery}
           />
-          <div
-            className="
-              flex items-center gap-1 overflow-x-auto border-b px-2 py-1.5
-            "
-          >
-            {renderTabButton({
-              id: ALL_TAB_ID,
-              label: "All",
-            })}
-            {LUCIDE_TABS.map(renderTabButton)}
-            <span
-              className="
-                shrink-0 px-1 text-xs font-medium text-muted-foreground/70
-              "
-            >
-              Phosphor
-            </span>
-            {PHOSPHOR_TABS.map(renderTabButton)}
-          </div>
-          <CommandList className="max-h-[400px]">
-            {/* Search mode: flat results across all icons */}
-            {isSearching && (
-              <>
-                {(lucideSearchResults ?? []).length === 0 && phosphorSearchResults.length === 0 && (
-                  <CommandEmpty>No matching icons.</CommandEmpty>
-                )}
-                {(lucideSearchResults ?? []).length > 0 && (
-                  <CommandGroup heading="Lucide Icons">
-                    {renderIconGrid(lucideSearchResults ?? [])}
-                  </CommandGroup>
-                )}
-                {phosphorSearchResults.length > 0 && (
-                  <CommandGroup heading="Phosphor Icons">
-                    {renderIconGrid(phosphorSearchResults, true)}
-                  </CommandGroup>
-                )}
-              </>
-            )}
 
-            {/* Specific category tab (Lucide or Phosphor) */}
-            {!isSearching && categoryIcons !== null && selectedTab && (
-              <>
-                {categoryIcons.length === 0 && (
-                  <CommandEmpty>No icons in this category.</CommandEmpty>
-                )}
-                {categoryIcons.length > 0 && (
-                  <CommandGroup heading={selectedTab.label}>
-                    {renderIconGrid(categoryIcons, selectedTab.source === "phosphor")}
-                  </CommandGroup>
-                )}
-              </>
-            )}
+          {/* Search mode: flat results across all icons */}
+          {isSearching && (
+            <CommandList className="max-h-[400px]">
+              {noSearchResults && <CommandEmpty>No matching icons.</CommandEmpty>}
+              {(lucideSearchResults ?? []).length > 0 && (
+                <CommandGroup heading="Lucide Icons">
+                  {renderIconGrid(lucideSearchResults ?? [])}
+                </CommandGroup>
+              )}
+              {customSearchResults.length > 0 && (
+                <CommandGroup heading="Custom Icons">
+                  {renderIconGrid(customSearchResults)}
+                </CommandGroup>
+              )}
+              {phosphorSearchResults.length > 0 && (
+                <CommandGroup heading="Phosphor Icons">
+                  {renderIconGrid(phosphorSearchResults)}
+                </CommandGroup>
+              )}
+            </CommandList>
+          )}
 
-            {/* All tab: every Lucide category as a group. Phosphor is reachable via
-                its own tabs + search; omitted here to keep this list responsive. */}
-            {!isSearching && selectedTabId === ALL_TAB_ID && (
-              <>
-                {LUCIDE_CATEGORY_NAMES.map(cat => (
-                  <CommandGroup
-                    key={cat}
-                    heading={cat}
+          {/* Browse mode: continuous scroll of every category + vertical category nav */}
+          {!isSearching && (
+            <div className="flex">
+              <CommandList
+                ref={scrollRef}
+                className="max-h-[400px] flex-1"
+              >
+                {SECTIONS.map(section => (
+                  <div
+                    key={section.id}
+                    ref={register(section.id)}
+                    data-section-id={section.id}
                   >
-                    {renderIconGrid(LUCIDE_ICONS_BY_CATEGORY[cat] ?? [])}
-                  </CommandGroup>
+                    <CommandGroup heading={section.label}>
+                      {renderIconGrid(section.icons)}
+                    </CommandGroup>
+                  </div>
                 ))}
-              </>
-            )}
-          </CommandList>
+              </CommandList>
+              <nav
+                aria-label="Icon categories"
+                className="
+                  flex max-h-[400px] w-32 shrink-0 flex-col overflow-y-auto
+                  border-l py-1
+                "
+              >
+                {SECTIONS.map((section, i) => {
+                  const prev = SECTIONS[i - 1];
+                  const showDivider = !prev || prev.source !== section.source;
+                  return (
+                    <React.Fragment key={section.id}>
+                      {showDivider && section.source !== "lucide" && (
+                        <span
+                          className="
+                            px-2 pt-2 pb-0.5 text-[10px] font-medium
+                            tracking-wide text-muted-foreground/70 uppercase
+                          "
+                        >
+                          {section.source === "custom" ? "Custom" : "Phosphor"}
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => scrollToSection(section.id)}
+                        className={cn(
+                          `
+                            mx-1 rounded-sm px-2 py-1 text-left text-xs
+                            whitespace-nowrap transition-colors
+                          `,
+                          activeId === section.id
+                            ? "bg-accent font-medium text-accent-foreground"
+                            : `
+                              text-muted-foreground
+                              hover:bg-accent hover:text-accent-foreground
+                            `,
+                        )}
+                      >
+                        {section.label}
+                      </button>
+                    </React.Fragment>
+                  );
+                })}
+              </nav>
+            </div>
+          )}
         </Command>
       </PopoverContent>
     </Popover>
