@@ -40,9 +40,48 @@ test("parseInstagramEmbed returns every carousel image at full size", () => {
   assert.ok(result.every(c => c.source === "instagram"));
 });
 
-test("parseInstagramEmbed dedupes repeated display_url values", () => {
-  const html = "\"display_url\":\"https://x/a.jpg\" ... \"display_url\":\"https://x/a.jpg\"";
+test("parseInstagramEmbed dedupes repeated display_url values within the carousel", () => {
+  const html = `{"shortcode_media":{"edge_sidecar_to_children":{"edges":[
+    {"node":{"display_url":"https://x/a.jpg"}},
+    {"node":{"display_url":"https://x/a.jpg"}}
+  ]}}}`;
   assert.deepEqual(parseInstagramEmbed(html).map(c => c.url), ["https://x/a.jpg"]);
+});
+
+test("parseInstagramEmbed excludes 'More posts' related-media thumbnails", () => {
+  // The main carousel (2 slides), followed by the related-media section whose nodes carry their own
+  // display_url values — those must NOT be returned.
+  const html = `{"shortcode_media":{
+    "edge_sidecar_to_children":{"edges":[
+      {"node":{"display_url":"https://scontent.cdninstagram.com/main-one.jpg"}},
+      {"node":{"display_url":"https://scontent.cdninstagram.com/main-two.jpg"}}
+    ]},
+    "owner":{"profile_pic_url":"https://scontent.cdninstagram.com/profile.jpg"},
+    "edge_web_media_to_related_media":{"edges":[
+      {"node":{"display_url":"https://scontent.cdninstagram.com/related-one.jpg"}},
+      {"node":{"display_url":"https://scontent.cdninstagram.com/related-two.jpg"}}
+    ]}
+  }}`;
+  const urls = parseInstagramEmbed(html).map(c => c.url);
+  assert.deepEqual(urls, [
+    "https://scontent.cdninstagram.com/main-one.jpg",
+    "https://scontent.cdninstagram.com/main-two.jpg",
+  ]);
+  assert.ok(!urls.some(u => u.includes("related")), "no related thumbnails");
+  assert.ok(!urls.some(u => u.includes("profile")), "no profile image");
+});
+
+test("parseInstagramEmbed keeps only the main image for a single-image post", () => {
+  // No carousel: a single top-level display_url, plus a related block with more display_urls.
+  const html = `{"shortcode_media":{
+    "display_url":"https://scontent.cdninstagram.com/single-main.jpg",
+    "edge_web_media_to_related_media":{"edges":[
+      {"node":{"display_url":"https://scontent.cdninstagram.com/related-x.jpg"}}
+    ]}
+  }}`;
+  assert.deepEqual(parseInstagramEmbed(html).map(c => c.url), [
+    "https://scontent.cdninstagram.com/single-main.jpg",
+  ]);
 });
 
 test("parseInstagramEmbed falls back to og:image for a single-image post", () => {
