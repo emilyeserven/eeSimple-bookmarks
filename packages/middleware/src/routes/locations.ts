@@ -14,6 +14,7 @@ import {
   getLocationTree,
   listLocations,
   LocationCycleError,
+  refreshLocationCoordinates,
   setLocationAncestors,
   updateLocation,
 } from "@/services/locations";
@@ -298,6 +299,22 @@ export async function locationRoutes(app: FastifyInstance): Promise<void> {
       id,
     } = req.params as { id: string };
     const location = await ensureLocationBoundary(id);
+    if (!location) return reply.code(404).send({
+      message: "Location not found",
+    });
+    return location;
+  });
+
+  app.post("/api/locations/:id/refresh-coordinates", {
+    schema: {
+      tags: ["locations"],
+      params: locationParams,
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    const location = await refreshLocationCoordinates(id);
     if (!location) return reply.code(404).send({
       message: "Location not found",
     });

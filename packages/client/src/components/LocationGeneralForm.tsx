@@ -1,11 +1,14 @@
 import type { LocationNode } from "@eesimple/types";
 
+import { RefreshCw } from "lucide-react";
+
 import { AlternateNamesEditor } from "./AlternateNamesEditor";
 import { LocationAncestorsSection } from "./LocationAncestorsSection";
 import { LocationLookupBox } from "./LocationLookupBox";
 import { TreeMultiCombobox } from "./TreeMultiCombobox";
 import { ROOT, useLocationGeneralForm } from "./useLocationGeneralForm";
 
+import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 
 interface LocationGeneralFormProps {
@@ -21,6 +24,7 @@ export function LocationGeneralForm({
     form, alternateNames, setAlternateNames, tagIds, saveTagIds,
     existingOptions, parentOptions, placeTypeChoices, tagOptions,
     saveField, followSlug, applyLookup,
+    repullCoordinates, isRepullingCoordinates,
   } = useLocationGeneralForm(node);
 
   return (
@@ -62,40 +66,56 @@ export function LocationGeneralForm({
         )}
       </form.AppField>
 
-      <div
-        className="
-          grid gap-3
-          sm:grid-cols-2
-        "
-      >
-        <form.AppField name="latitude">
-          {field => (
-            <field.NumberField
-              label="Latitude"
-              onBlur={() => saveField(
-                "latitude",
-                field.state.value,
-                {
-                  valid: field.state.meta.errors.length === 0,
-                },
-              )}
-            />
-          )}
-        </form.AppField>
-        <form.AppField name="longitude">
-          {field => (
-            <field.NumberField
-              label="Longitude"
-              onBlur={() => saveField(
-                "longitude",
-                field.state.value,
-                {
-                  valid: field.state.meta.errors.length === 0,
-                },
-              )}
-            />
-          )}
-        </form.AppField>
+      <div className="space-y-2">
+        <div
+          className="
+            grid gap-3
+            sm:grid-cols-2
+          "
+        >
+          <form.AppField name="latitude">
+            {field => (
+              <field.NumberField
+                label="Latitude"
+                onBlur={() => saveField(
+                  "latitude",
+                  field.state.value,
+                  {
+                    valid: field.state.meta.errors.length === 0,
+                  },
+                )}
+              />
+            )}
+          </form.AppField>
+          <form.AppField name="longitude">
+            {field => (
+              <field.NumberField
+                label="Longitude"
+                onBlur={() => saveField(
+                  "longitude",
+                  field.state.value,
+                  {
+                    valid: field.state.meta.errors.length === 0,
+                  },
+                )}
+              />
+            )}
+          </form.AppField>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={isRepullingCoordinates}
+          onClick={repullCoordinates}
+        >
+          <RefreshCw
+            className={isRepullingCoordinates
+              ? "mr-2 size-3.5 animate-spin"
+              : "mr-2 size-3.5"}
+          />
+          {isRepullingCoordinates ? "Re-geocoding…" : "Re-geocode"}
+        </Button>
       </div>
 
       <form.AppField name="mapUrl">

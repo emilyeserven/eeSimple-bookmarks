@@ -7,7 +7,7 @@ import { useNavigate } from "@tanstack/react-router";
 
 import { locationSchema } from "./locationFormSchema";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
-import { useLocationTree, useUpdateLocation } from "../hooks/useLocations";
+import { useLocationTree, useRefreshLocationCoordinates, useUpdateLocation } from "../hooks/useLocations";
 import { usePlaceTypes } from "../hooks/usePlaceTypes";
 import { useTagTree } from "../hooks/useTags";
 import { notifyFieldSaved, notifyFieldSaveError } from "../lib/autoSave";
@@ -44,6 +44,7 @@ const LABELS: Record<keyof UpdateLocationInput, string> = {
 export function useLocationGeneralForm(node: LocationNode) {
   const navigate = useNavigate();
   const updateLocation = useUpdateLocation();
+  const refreshCoordinatesMutation = useRefreshLocationCoordinates();
   const {
     data: tree,
   } = useLocationTree();
@@ -154,6 +155,24 @@ export function useLocationGeneralForm(node: LocationNode) {
     );
   }
 
+  function repullCoordinates(): void {
+    refreshCoordinatesMutation.mutate(
+      node.id,
+      {
+        onSuccess: (updated) => {
+          if (updated.latitude != null) form.setFieldValue("latitude", updated.latitude);
+          if (updated.longitude != null) form.setFieldValue("longitude", updated.longitude);
+          if (updated.mapUrl) form.setFieldValue("mapUrl", updated.mapUrl);
+          notifyFieldSaved("Coordinates");
+        },
+        onError: error => notifyFieldSaveError(
+          "Coordinates",
+          error instanceof Error ? error.message : undefined,
+        ),
+      },
+    );
+  }
+
   function saveTagIds(next: string[]): void {
     setTagIds(next);
     autoSave.saveField("tagIds", next);
@@ -175,5 +194,7 @@ export function useLocationGeneralForm(node: LocationNode) {
     saveField: autoSave.saveField,
     followSlug,
     applyLookup,
+    repullCoordinates,
+    isRepullingCoordinates: refreshCoordinatesMutation.isPending,
   };
 }
