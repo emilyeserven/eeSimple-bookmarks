@@ -1,8 +1,9 @@
 import type { PlaceTypeOption } from "../lib/locationLevels";
 import type { PlaceTypeColorConfig, PlaceTypeLevelGroup, PlaceTypeIconConfig } from "@eesimple/types";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
+import { NO_LEVEL_MAP_COLOR } from "@eesimple/types";
 import { MapPin, Shapes } from "lucide-react";
 
 import { LevelColorControl } from "./LevelColorControl";
@@ -52,6 +53,11 @@ export function PlaceTypeIconsCard({
   // Place types assigned to at least one pin-mode level.
   const pinTypeKeys = new Set(
     groups.filter(g => g.displayMode === "pin").flatMap(g => g.placeTypes),
+  );
+  // Place types assigned to any level at all (pin- or area-mode) — the rest lack a level entirely.
+  const assignedKeys = useMemo(
+    () => new Set(groups.flatMap(group => group.placeTypes)),
+    [groups],
   );
   const pinOptions = options.filter(o => pinTypeKeys.has(o.key));
   // Everything else: area-assigned or unassigned (defaults to area rendering).
@@ -128,8 +134,25 @@ export function PlaceTypeIconsCard({
                       key={option.key}
                       className="flex items-center gap-3"
                     >
-                      <span className="w-28 shrink-0 text-sm font-medium">
-                        {option.label}
+                      <span
+                        className="
+                          flex w-28 shrink-0 items-center gap-1.5 text-sm
+                          font-medium
+                        "
+                      >
+                        {!assignedKeys.has(option.key)
+                          ? (
+                            <span
+                              className="size-2 shrink-0 rounded-full"
+                              style={{
+                                backgroundColor: NO_LEVEL_MAP_COLOR,
+                              }}
+                              title={`${option.label} isn’t assigned to any level`}
+                              aria-hidden="true"
+                            />
+                          )
+                          : null}
+                        <span className="truncate">{option.label}</span>
                       </span>
                       <IconPicker
                         value={icons[option.key] ?? null}

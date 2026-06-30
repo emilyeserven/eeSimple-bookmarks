@@ -5,7 +5,15 @@ import type { ReactNode } from "react";
 
 import { useEffect, useState } from "react";
 
-import { resolveLocationColor, resolveLocationDisplay, resolveLocationIcon, resolveLocationPlaceTypeColor } from "@eesimple/types";
+import {
+  locationLacksLevel,
+  NO_LEVEL_MAP_COLOR,
+  NO_PLACE_TYPE_MAP_COLOR,
+  resolveLocationColor,
+  resolveLocationDisplay,
+  resolveLocationIcon,
+  resolveLocationPlaceTypeColor,
+} from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 import { geoJSON, latLngBounds } from "leaflet";
 import { GeoJSON, MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from "react-leaflet";
@@ -62,6 +70,33 @@ interface RenderItem {
   color: string | null;
   /** The place type's custom pin icon (a Lucide name), or `null` for a plain pin. */
   icon: string | null;
+  /** Set when `color` is a needs-attention fallback rather than a user-chosen color. */
+  colorReason?: "no-place-type" | "no-level";
+}
+
+/**
+ * The color (and why) a node falls back to when neither a per-placeType override nor its level
+ * group has an explicit color: flag a missing placeType or a placeType with no level at all, so
+ * those "needs configuration" nodes stand out instead of blending into Leaflet's default blue.
+ */
+function fallbackColor(
+  node: MappedNode,
+  config: PlaceTypeDisplayConfig,
+): { color: string;
+  reason: "no-place-type" | "no-level"; } | null {
+  if (node.placeType === null) {
+    return {
+      color: NO_PLACE_TYPE_MAP_COLOR,
+      reason: "no-place-type",
+    };
+  }
+  if (locationLacksLevel(node, config)) {
+    return {
+      color: NO_LEVEL_MAP_COLOR,
+      reason: "no-level",
+    };
+  }
+  return null;
 }
 
 /**
@@ -80,26 +115,31 @@ function toRenderItems(
   for (const node of mapped) {
     const resolved = resolveLocationDisplay(node, config);
     if (resolved === "hidden") continue;
-    // Per-placeType override wins; else fall back to the level group's color (then Leaflet default).
-    const color = resolveLocationPlaceTypeColor(node, colorConfig) ?? resolveLocationColor(node, config);
+    // Per-placeType override wins; else the level group's color; else a needs-attention fallback.
+    const overrideColor = resolveLocationPlaceTypeColor(node, colorConfig) ?? resolveLocationColor(node, config);
+    const fallback = overrideColor === null ? fallbackColor(node, config) : null;
+    const color = overrideColor ?? fallback?.color ?? null;
     const icon = resolveLocationIcon(node, iconConfig);
     if (resolved === "area" && node.boundary) items.push({
       node,
       kind: "area",
       color,
       icon,
+      colorReason: fallback?.reason,
     });
     else if (node.position) items.push({
       node,
       kind: "pin",
       color,
       icon,
+      colorReason: fallback?.reason,
     });
     else if (node.boundary) items.push({
       node,
       kind: "area",
       color,
       icon,
+      colorReason: fallback?.reason,
     });
   }
   return items;
@@ -315,6 +355,8 @@ export function LocationMap({
   const areaNodes = items.filter(item => item.kind === "area" && item.node.boundary).map(item => item.node);
   const omitted = countNodes(tree) - mapped.length;
   const hiddenByLevel = mapped.length - items.length;
+  const noPlaceTypeCount = items.filter(item => item.colorReason === "no-place-type").length;
+  const noLevelCount = items.filter(item => item.colorReason === "no-level").length;
 
   if (mapped.length === 0) {
     return (
@@ -399,6 +441,40 @@ export function LocationMap({
             {hiddenByLevel === 1 ? " location is" : " locations are"}
             {" "}
             hidden by the current level filter.
+          </p>
+        )
+        : null}
+      {noPlaceTypeCount > 0
+        ? (
+          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <span
+              className="size-2.5 shrink-0 rounded-full"
+              style={{
+                backgroundColor: NO_PLACE_TYPE_MAP_COLOR,
+              }}
+              aria-hidden="true"
+            />
+            {noPlaceTypeCount}
+            {noPlaceTypeCount === 1 ? " location has" : " locations have"}
+            {" "}
+            no place type.
+          </p>
+        )
+        : null}
+      {noLevelCount > 0
+        ? (
+          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <span
+              className="size-2.5 shrink-0 rounded-full"
+              style={{
+                backgroundColor: NO_LEVEL_MAP_COLOR,
+              }}
+              aria-hidden="true"
+            />
+            {noLevelCount}
+            {noLevelCount === 1 ? " location has" : " locations have"}
+            {" "}
+            a place type with no level.
           </p>
         )
         : null}
