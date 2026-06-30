@@ -191,6 +191,7 @@ function TaxonomyTreeRow({
         {hasChildren && isOpen
           ? (
             <ul className="divide-y border-t">
+              {noChildRow(1)}
               {node.children.map(child => (
                 <TaxonomyTreeRow
                   key={child.id}
@@ -204,7 +205,6 @@ function TaxonomyTreeRow({
                   renderIcon={renderIcon}
                 />
               ))}
-              {noChildRow(1)}
             </ul>
           )
           : null}
@@ -227,6 +227,7 @@ function TaxonomyTreeRow({
       {hasChildren && isOpen
         ? (
           <>
+            {noChildRow(depth + 1)}
             {node.children.map(child => (
               <TaxonomyTreeRow
                 key={child.id}
@@ -240,7 +241,6 @@ function TaxonomyTreeRow({
                 renderIcon={renderIcon}
               />
             ))}
-            {noChildRow(depth + 1)}
           </>
         )
         : null}
