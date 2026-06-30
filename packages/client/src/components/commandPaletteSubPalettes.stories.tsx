@@ -1,0 +1,111 @@
+import type { Author, CardDisplayRule } from "@eesimple/types";
+import type { Meta, StoryObj } from "@storybook/react-vite";
+
+import {
+  AuthorsSubPalette,
+  CardDisplayRulesGroup,
+  CategorySubPalette,
+} from "./commandPaletteSubPalettes";
+import { makeCategory } from "../test-utils/factories";
+
+import { Command, CommandList } from "@/components/ui/command";
+
+const categories = [
+  makeCategory({
+    id: "c1",
+    name: "Reading",
+  }),
+  makeCategory({
+    id: "c2",
+    name: "Watch Later",
+  }),
+];
+
+const authors = [
+  {
+    id: "a1",
+    name: "Ada Lovelace",
+  },
+  {
+    id: "a2",
+    name: "Alan Turing",
+  },
+] as unknown as Author[];
+
+const rules = [
+  {
+    id: "r-default",
+    name: "Default",
+    slug: "default",
+    isDefault: true,
+  },
+  {
+    id: "r-videos",
+    name: "Videos",
+    slug: "videos",
+    isDefault: false,
+  },
+] as unknown as CardDisplayRule[];
+
+/** Sub-palettes render `CommandGroup`/`CommandItem`, so they need a `Command` + `CommandList` host. */
+function CommandHost({
+  children,
+}: { children: React.ReactNode }) {
+  return (
+    <div className="w-80 rounded-md border">
+      <Command>
+        <CommandList>{children}</CommandList>
+      </Command>
+    </div>
+  );
+}
+
+const meta = {
+  title: "Components/CommandPaletteSubPalettes",
+  component: CategorySubPalette,
+} satisfies Meta<typeof CategorySubPalette>;
+
+export default meta;
+
+/** The "change category" sub-palette with a Back row and the current selection checked. */
+export const Category: StoryObj = {
+  render: () => (
+    <CommandHost>
+      <CategorySubPalette
+        categories={categories}
+        currentCategoryId="c1"
+        onBack={() => {}}
+        onSelect={() => {}}
+        onCreateNew={() => {}}
+      />
+    </CommandHost>
+  ),
+};
+
+/** The multi-select authors sub-palette with one author already toggled on. */
+export const Authors: StoryObj = {
+  render: () => (
+    <CommandHost>
+      <AuthorsSubPalette
+        authors={authors}
+        pendingAuthorIds={["a1"]}
+        onToggleAuthor={() => {}}
+        onBack={() => {}}
+        onDone={() => {}}
+        onCreateNew={() => {}}
+      />
+    </CommandHost>
+  ),
+};
+
+/** The card-display-rules group linking the hovered card to its responsible rules. */
+export const CardDisplayRules: StoryObj = {
+  render: () => (
+    <CommandHost>
+      <CardDisplayRulesGroup
+        rules={rules}
+        onSelect={() => {}}
+      />
+    </CommandHost>
+  ),
+};
