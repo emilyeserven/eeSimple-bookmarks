@@ -17,6 +17,9 @@ vi.mock("../hooks/useConnectors", () => ({
       instagram: {
         apiKey: false,
       },
+      instagramReelArchive: {
+        enabled: false,
+      },
       objectStorage: {
         configured: false,
       },

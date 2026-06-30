@@ -9,6 +9,7 @@ import type {
   BulkUrlUpdate,
   BulkUrlUpdateResult,
   CreateBookmarkInput,
+  ReelArchiveJob,
   TitleTagBackfillResult,
   UpdateBookmarkInput,
   UpdateBookmarkRelationshipsInput,
@@ -132,6 +133,14 @@ export const bookmarksApi = {
     }),
   deleteScreenshot: (id: string) =>
     request<undefined>(`/bookmarks/${id}/screenshot`, {
+      method: "DELETE",
+    }),
+  archiveReel: (id: string) =>
+    request<ReelArchiveJob>(`/bookmarks/${id}/reel-archive`, {
+      method: "POST",
+    }),
+  deleteReelArchive: (id: string) =>
+    request<undefined>(`/bookmarks/${id}/reel-archive`, {
       method: "DELETE",
     }),
   uploadPropertyFile: (id: string, propertyId: string, file: File) =>

@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import type { ConnectorsStatus } from "@eesimple/types";
 import { archiveBoxBaseUrl } from "@/services/archiveBox";
+import { getActiveHostedEndpoint } from "@/services/appSettings";
 import { geocodingEnabled, geocodingEndpoint } from "@/services/geocoding";
 import { wikidataEnabled, wikidataEndpoint } from "@/services/wikidataGeocoding";
 import { hostedMetadataEnabledAsync, hostedMetadataProviderAsync } from "@/services/hostedMetadata";
@@ -21,6 +22,8 @@ export async function connectorsRoutes(app: FastifyInstance): Promise<void> {
     },
   }, async (): Promise<ConnectorsStatus> => {
     const archiveUrl = await archiveBoxBaseUrl();
+    const browserlessEndpoint = await getActiveHostedEndpoint();
+    const storageConfigured = isObjectStoreConfigured();
     return {
       hostedMetadata: {
         enabled: await hostedMetadataEnabledAsync(),
@@ -32,8 +35,12 @@ export async function connectorsRoutes(app: FastifyInstance): Promise<void> {
       instagram: {
         apiKey: instagramApiEnabled(),
       },
+      instagramReelArchive: {
+        // Needs Browserless (to extract the video URL) AND object storage (to store the MP4).
+        enabled: Boolean(browserlessEndpoint) && storageConfigured,
+      },
       objectStorage: {
-        configured: isObjectStoreConfigured(),
+        configured: storageConfigured,
       },
       archiveBox: {
         enabled: Boolean(archiveUrl),

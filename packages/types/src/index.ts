@@ -827,6 +827,54 @@ export interface BookmarkImage {
 }
 
 /**
+ * A self-contained archive of an Instagram reel's video, captured on demand and stored in the app's
+ * own object storage so it survives the reel later being deleted from Instagram. At most one per
+ * bookmark. `url` points at the API serving endpoint (it embeds a `?v=` version param so a re-archive
+ * busts the browser cache), which supports HTTP Range requests for `<video>` seeking.
+ */
+export interface InstagramReelArchive {
+  /** Serving URL on the API, e.g. `/api/bookmarks/<id>/reel-archive?v=<version>`. */
+  url: string;
+  /** MIME type of the stored video, e.g. `video/mp4`. */
+  contentType: string;
+  /** Size of the stored video in bytes. */
+  byteSize: number;
+  /** Pixel width of the video, or `null` when not determined. */
+  width: number | null;
+  /** Pixel height of the video, or `null` when not determined. */
+  height: number | null;
+  /** Duration in seconds, or `null` when not determined. */
+  durationSeconds: number | null;
+  /** The Instagram URL the video was captured from. */
+  sourceUrl: string;
+  /** ISO-8601 timestamp the archive was captured. */
+  createdAt: string;
+}
+
+/** Lifecycle of a background reel-archive job (mirrors the import queue's status states). */
+export type ReelArchiveJobStatus = "queued" | "processing" | "complete" | "failed";
+
+/**
+ * A queued/in-flight reel-archive job as surfaced by `GET /api/reel-archive/active` — the minimal
+ * shape the header progress indicator needs. Dropped from the list once it reaches
+ * `complete`/`failed`.
+ */
+export interface ActiveReelArchiveJob {
+  id: string;
+  /** The bookmark whose reel is being archived. */
+  bookmarkId: string;
+  /** The bookmark's title, for the progress popover and completion toast. */
+  bookmarkTitle: string;
+  status: ReelArchiveJobStatus;
+}
+
+/** A reel-archive job's full record (`GET /api/reel-archive/:id`), used to resolve a completion toast. */
+export interface ReelArchiveJob extends ActiveReelArchiveJob {
+  /** Human-readable reason when `status === "failed"`, else `null`. */
+  errorReason: string | null;
+}
+
+/**
  * A single object cataloged in the bucket manifest (`media_objects`). The Gallery lists these so
  * every image in object storage is accounted for, including ones with no live bookmark (orphans).
  */
@@ -926,6 +974,8 @@ export interface Bookmark {
   images: BookmarkImage[];
   /** A Browserless-captured page screenshot, or `null` when none has been taken. Used as image fallback when `image` is null. */
   screenshot: BookmarkImage | null;
+  /** A self-contained capture of the bookmark's Instagram reel video, or `null` when none has been archived. */
+  reelArchive: InstagramReelArchive | null;
   /** Specific reason the last image auto-grab attempt failed, or `null` when not yet attempted or the last attempt succeeded. */
   imageAutoGrabError: "no_image" | "bad_image" | "blocked" | "server_error" | "fetch_error" | null;
   /** Id of the category this bookmark belongs to (always set; the built-in "Default" when unassigned). */
@@ -2427,6 +2477,12 @@ export interface ConnectorsStatus {
    * with the keyless scrape as fallback).
    */
   instagram: { apiKey: boolean };
+  /**
+   * On-demand Instagram reel video archiving. `enabled` only when BOTH a Browserless instance is
+   * configured (to extract the video URL) AND object storage is configured (to store the MP4) — it
+   * captures the reel's video into the app's own storage so it survives deletion from Instagram.
+   */
+  instagramReelArchive: { enabled: boolean };
   /** Object storage (S3/Garage) — whether bookmark images / favicons can be stored. */
   objectStorage: { configured: boolean };
   /**

@@ -217,6 +217,47 @@ export function socialAccountFromUrl(value: string): SocialAccountRef | null {
   return null;
 }
 
+/** An Instagram permalink broken into its shortcode and which permalink kind it is. */
+export interface InstagramPermalink {
+  /** The post/reel/tv shortcode, e.g. `DZrfWBznYVQ`. */
+  shortcode: string;
+  /** `p` = generic post, `reel` = Reels video, `tv` = IGTV video. */
+  kind: "p" | "reel" | "tv";
+}
+
+/**
+ * Parse an Instagram post/reel/tv permalink into its shortcode + kind, or null when `url` isn't one.
+ * Handles `/p/`, `/reel/`, and `/tv/` permalinks (with or without a trailing query). Pure.
+ */
+export function instagramPermalinkFromUrl(url: string): InstagramPermalink | null {
+  const parsed = parseHttpUrl(url);
+  if (!parsed) return null;
+  if (parsed.host !== "instagram.com" && !parsed.host.endsWith(".instagram.com")) return null;
+  const match = /^(p|reel|tv)\/([A-Za-z0-9_-]+)/.exec(parsed.segments.join("/"));
+  if (!match) return null;
+  const [, kind, shortcode] = match;
+  if (!shortcode) return null;
+  return {
+    kind: kind as InstagramPermalink["kind"],
+    shortcode,
+  };
+}
+
+/** Whether `url` is an Instagram post/reel/tv permalink (the shapes that carry shareable media). */
+export function isInstagramPostUrl(url: string): boolean {
+  return instagramPermalinkFromUrl(url) !== null;
+}
+
+/**
+ * Whether `url` is an Instagram video-native permalink — a Reel (`/reel/`) or IGTV (`/tv/`) — the
+ * shapes that always carry a video. Generic `/p/` posts are excluded (they may be image-only), so
+ * this gates the on-demand "Archive reel" action to URLs that are worth attempting.
+ */
+export function isInstagramReelUrl(url: string): boolean {
+  const kind = instagramPermalinkFromUrl(url)?.kind;
+  return kind === "reel" || kind === "tv";
+}
+
 /** True when two refs are the same account (same platform + normalized handle). */
 export function sameSocialAccount(a: SocialAccountRef, b: SocialAccountRef): boolean {
   return a.platform === b.platform && a.handle === b.handle;
