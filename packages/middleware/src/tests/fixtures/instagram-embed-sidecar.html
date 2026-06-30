@@ -1,0 +1,15 @@
+<!--
+  Trimmed but faithful capture of Instagram's /embed/captioned/ page for a 3-image carousel
+  (post DaMJ56olZff). The post's media lives in the double-escaped `contextJSON` JSON-string under
+  shortcode_media.edge_sidecar_to_children; the "More posts" (HoverCardPhotos) and profile (Avatar)
+  images appear ONLY as <img> markup, never under shortcode_media. URLs are anonymized but keep the
+  distinguishing numeric tokens so the test can assert main-vs-related/profile.
+-->
+<html lang="en"><head><meta charset="utf-8"><title>Instagram</title></head><body>
+<div class="Embed" data-media-type="GraphSidecar" data-media-id="3930560137174292447">
+  <div class="Header"><div class="AvatarContainer"><a class="Avatar" href="https://www.instagram.com/jreast_us/"><img src="https://scontent.example.com/439707706_profile.jpg?stp=dst-jpg_s100x100" alt="jreast_us"></a></div></div>
+  <div class="Content EmbedFrame EmbedFrameWithSidecar"><a class="EmbeddedMedia" href="https://www.instagram.com/p/DaMJ56olZff/"><img class="EmbeddedMediaImage" src="https://scontent.example.com/729923719_slide1.jpg?stp=dst-jpg_e35_s640x640"></a></div>
+  <div class="HoverCard"><a class="HoverCardRoot" href="https://www.instagram.com/jreast_us/"><div class="HoverCardProfile"><img src="https://scontent.example.com/439707706_profile.jpg?stp=dst-jpg_s100x100" alt="jreast_us"></div><div class="HoverCardPhotos"><img src="https://scontent.example.com/726525526_more1.jpg?stp=dst-jpg_e15_p240x240"><img src="https://scontent.example.com/724216500_more2.jpg?stp=dst-jpg_e35_s240x240"></div></a></div>
+</div>
+<script nonce="">requireLazy(["TimeSliceImpl","ServerJS"],function(TimeSlice,ServerJS){var s=(new ServerJS());s.handle({"require":[["PolarisEmbedSimple","init",[],[{"isRichEmbed":true,"isSidecar":true,"contextJSON":"{\"context\":{\"type\":\"GraphSidecar\",\"shortcode\":\"DaMJ56olZff\"},\"gql_data\":{\"shortcode_media\":{\"__typename\":\"GraphSidecar\",\"shortcode\":\"DaMJ56olZff\",\"is_video\":false,\"display_url\":\"https://scontent.example.com/729923719_slide1.jpg?a=1&b=2\",\"owner\":{\"id\":\"10210113694\",\"username\":\"jreast_us\",\"profile_pic_url\":\"https://scontent.example.com/439707706_profile.jpg?stp=dst-jpg_s100x100\"},\"edge_sidecar_to_children\":{\"edges\":[{\"node\":{\"display_url\":\"https://scontent.example.com/729923719_slide1.jpg?a=1&b=2\"}},{\"node\":{\"display_url\":\"https://scontent.example.com/729729061_slide2.jpg\"}},{\"node\":{\"display_url\":\"https://scontent.example.com/729722536_slide3.jpg\"}}]}}}}"}]]]});});</script>
+</body></html>
