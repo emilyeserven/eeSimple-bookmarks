@@ -1,9 +1,9 @@
 import type { LocationBoundary, LocationNode, PlaceTypeColorConfig, PlaceTypeDisplayConfig, PlaceTypeIconConfig } from "@eesimple/types";
 import type { Feature, Geometry } from "geojson";
 import type { LatLngTuple } from "leaflet";
-import type { ReactNode } from "react";
+import type { MutableRefObject, ReactNode } from "react";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   locationLacksLevel,
@@ -159,31 +159,81 @@ function toFeature(boundary: LocationBoundary): Feature {
   };
 }
 
-/** Imperatively fit the map to every rendered item (polygon bounds + point markers) once they load. */
+/** A map viewport (center + zoom) persisted across this map's remounts to seed the next one. */
+export interface MapView {
+  center: LatLngTuple;
+  zoom: number;
+}
+
+/**
+ * Imperatively frame the map to every rendered item (polygon bounds + point markers). The very first
+ * fit of a map with no seeded base (cold load) snaps instantly; once a base exists — i.e. the fresh
+ * container was seeded from the previous location's view — the camera **animates** (`flyToBounds`)
+ * into the new bounds, so navigating up a level eases out and down a level eases in. Later refits in
+ * the same instance (a boundary backfills, a level toggles) animate too.
+ */
 function FitBounds({
-  items,
+  items, hadBase,
 }: {
   items: RenderItem[];
+  hadBase: boolean;
 }) {
   const map = useMap();
   // Re-fit whenever the set of rendered items changes (e.g. a boundary backfills in, or a level toggles).
   const signature = items.map(i => `${i.node.id}:${i.kind}`).join("|");
+  // Read the latest items inside the effect so an unrelated re-render can't restart the animation;
+  // only the stable `signature` (and `hadBase`) drive a refit.
+  const itemsRef = useRef(items);
+  itemsRef.current = items;
+  const firstRunRef = useRef(true);
   useEffect(() => {
     const bounds = latLngBounds([]);
     for (const {
       node, kind,
-    } of items) {
+    } of itemsRef.current) {
       if (kind === "area" && node.boundary) bounds.extend(geoJSON(toFeature(node.boundary)).getBounds());
       else if (node.position) bounds.extend(node.position);
       else if (node.boundary) bounds.extend(geoJSON(toFeature(node.boundary)).getBounds());
     }
-    if (bounds.isValid()) {
+    if (!bounds.isValid()) return;
+    const isFirst = firstRunRef.current;
+    firstRunRef.current = false;
+    // Snap only on a baseless first fit (cold load); otherwise animate from the seeded/previous view.
+    if (isFirst && !hadBase) {
       map.fitBounds(bounds, {
         padding: [40, 40],
         maxZoom: 12,
       });
     }
-  }, [map, signature, items]);
+    else {
+      map.flyToBounds(bounds, {
+        padding: [40, 40],
+        maxZoom: 12,
+        duration: 0.8,
+      });
+    }
+  }, [map, signature, hadBase]);
+  return null;
+}
+
+/** Record the map's settled viewport into the parent-held ref so the next remount can seed from it. */
+function ViewportRecorder({
+  viewRef,
+}: {
+  viewRef: MutableRefObject<MapView | null>;
+}) {
+  const map = useMap();
+  function remember(): void {
+    const center = map.getCenter();
+    viewRef.current = {
+      center: [center.lat, center.lng],
+      zoom: map.getZoom(),
+    };
+  }
+  useMapEvents({
+    moveend: remember,
+    zoomend: remember,
+  });
   return null;
 }
 
@@ -334,6 +384,13 @@ interface LocationMapProps {
    * overlay wrapper; the passed element itself must handle its own pointer events.
    */
   overlay?: ReactNode;
+  /**
+   * A ref held by the (non-remounting) parent carrying the previous map's settled viewport. The
+   * freshly-mounted container seeds its initial center/zoom from it (so navigation opens framed on
+   * the previous location instead of the world view) and animates into the new bounds; this map then
+   * keeps it up to date as the user pans/zooms. Omit on maps that don't navigate (no continuity).
+   */
+  lastViewRef?: MutableRefObject<MapView | null>;
 }
 
 /**
@@ -349,6 +406,7 @@ export function LocationMap({
   iconConfig = {},
   colorConfig = {},
   overlay,
+  lastViewRef,
 }: LocationMapProps) {
   const mapped = collectMapped(tree);
   const items = toRenderItems(mapped, displayConfig, iconConfig, colorConfig);
@@ -357,6 +415,13 @@ export function LocationMap({
   const hiddenByLevel = mapped.length - items.length;
   const noPlaceTypeCount = items.filter(item => item.colorReason === "no-place-type").length;
   const noLevelCount = items.filter(item => item.colorReason === "no-level").length;
+
+  // Frozen at this instance's mount: the previous map's view (or null on a cold load). Seeds the
+  // container's initial viewport and tells FitBounds whether to animate in or snap.
+  const seedRef = useRef(lastViewRef?.current ?? null);
+  const hadBase = seedRef.current !== null;
+  const center: LatLngTuple = seedRef.current?.center ?? [20, 0];
+  const zoom = seedRef.current?.zoom ?? 2;
 
   if (mapped.length === 0) {
     return (
@@ -371,8 +436,8 @@ export function LocationMap({
     <div className="space-y-2">
       <div className="relative isolate">
         <MapContainer
-          center={[20, 0]}
-          zoom={2}
+          center={center}
+          zoom={zoom}
           scrollWheelZoom
           className={cn("isolate", className)}
         >
@@ -380,7 +445,11 @@ export function LocationMap({
             attribution="© OpenStreetMap contributors"
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-          <FitBounds items={items} />
+          <FitBounds
+            items={items}
+            hadBase={hadBase}
+          />
+          {lastViewRef ? <ViewportRecorder viewRef={lastViewRef} /> : null}
           <AreaClickPopup items={items} />
           {items.map(({
             node, kind, color, icon,
