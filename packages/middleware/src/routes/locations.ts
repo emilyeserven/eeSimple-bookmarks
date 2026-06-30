@@ -19,6 +19,7 @@ import {
   updateLocation,
 } from "@/services/locations";
 import { geocodeLocation } from "@/services/geocoding";
+import { wikidataGeocode } from "@/services/wikidataGeocoding";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 
 const locationParams = {
@@ -184,6 +185,12 @@ const lookupQuery = {
     q: {
       type: "string",
     },
+    // Forces the Wikidata fallback instead of the default Nominatim-first auto path, for the
+    // "Search Wikidata instead" action in the lookup box's button group.
+    source: {
+      type: "string",
+      enum: ["wikidata"],
+    },
   },
 } as const;
 
@@ -210,9 +217,10 @@ export async function locationRoutes(app: FastifyInstance): Promise<void> {
     },
   }, async (req) => {
     const {
-      q,
-    } = req.query as { q: string };
-    return geocodeLocation(q);
+      q, source,
+    } = req.query as { q: string;
+      source?: "wikidata"; };
+    return source === "wikidata" ? wikidataGeocode(q) : geocodeLocation(q);
   });
 
   app.post("/api/locations", {

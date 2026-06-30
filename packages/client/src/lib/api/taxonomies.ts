@@ -152,8 +152,10 @@ export const mediaTypesApi = {
 export const locationsApi = {
   ...createCrudApi<Location, CreateLocationInput, UpdateLocationInput>("locations"),
   tree: () => request<LocationNode[]>("/locations/tree"),
-  lookup: (query: string) =>
-    request<LocationLookupResult>(`/locations/lookup?q=${encodeURIComponent(query)}`),
+  lookup: (query: string, source?: "wikidata") =>
+    request<LocationLookupResult>(
+      `/locations/lookup?q=${encodeURIComponent(query)}${source ? `&source=${source}` : ""}`,
+    ),
   createChain: (input: CreateLocationChainInput) =>
     request<Location>("/locations/chain", {
       method: "POST",

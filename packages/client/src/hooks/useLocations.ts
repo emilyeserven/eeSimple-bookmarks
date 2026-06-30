@@ -25,6 +25,17 @@ function notifyNominatimCall(): void {
   notifySuccess("Querying OpenStreetMap Nominatim…");
 }
 
+/**
+ * Fire a toast naming which geocoder a lookup query is going to: Nominatim for the default auto path
+ * (which itself falls back to Wikidata server-side when Nominatim has no hit), or Wikidata directly
+ * when the user explicitly chose "Search Wikidata instead" from the lookup box's dropdown.
+ */
+function notifyLookupCall(source?: "wikidata"): void {
+  notifySuccess(source === "wikidata"
+    ? "Querying Wikidata…"
+    : "Querying OpenStreetMap Nominatim…");
+}
+
 export function useLocations() {
   return useQuery({
     queryKey: LOCATIONS_KEY,
@@ -169,11 +180,19 @@ export function useRefreshLocationCoordinates() {
 /**
  * Geocoding lookup mutation: resolves a free-text place query to candidate locations
  * (name / coordinates / map URL / country / place type) via `/api/locations/lookup`. Used by the
- * create form's "Look up location" search box to prefill fields.
+ * "Look up location" search box to prefill fields. The default `source` runs the Nominatim-first
+ * auto path; passing `"wikidata"` forces the Wikidata fallback directly, surfaced as the box's
+ * "Search Wikidata instead" dropdown action.
  */
 export function useLocationLookup() {
   return useMutation({
-    mutationFn: (query: string) => locationsApi.lookup(query),
-    onMutate: notifyNominatimCall,
+    mutationFn: ({
+      query, source,
+    }: { query: string;
+      source?: "wikidata"; }) => locationsApi.lookup(query, source),
+    onMutate: ({
+      source,
+    }: { query: string;
+      source?: "wikidata"; }) => notifyLookupCall(source),
   });
 }
