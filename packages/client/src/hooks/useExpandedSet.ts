@@ -9,6 +9,7 @@ export function useExpandedSet(initialIds: string[]): {
   expanded: Set<string>;
   onToggle: (id: string) => void;
   expandAll: (ids: string[]) => void;
+  expandMany: (ids: string[]) => void;
   collapseAll: () => void;
 } {
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set(initialIds));
@@ -30,6 +31,12 @@ export function useExpandedSet(initialIds: string[]): {
     setExpanded(new Set(ids));
   }
 
+  // Union `ids` into the current set — used by a per-row "expand all" so it doesn't collapse other
+  // already-open branches (unlike the listing-wide `expandAll`, which replaces the set).
+  function expandMany(ids: string[]) {
+    setExpanded(prev => new Set([...prev, ...ids]));
+  }
+
   function collapseAll() {
     setExpanded(new Set());
   }
@@ -38,6 +45,7 @@ export function useExpandedSet(initialIds: string[]): {
     expanded,
     onToggle,
     expandAll,
+    expandMany,
     collapseAll,
   };
 }

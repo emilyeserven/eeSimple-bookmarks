@@ -1,9 +1,10 @@
-import type { LevelsControls } from "../lib/locationLevels";
+import type { LevelsControls, MapFilterControls } from "../lib/locationLevels";
 
 import { DEFAULT_LOCATION_MAP_COLOR, normalizeHexColor } from "@eesimple/types";
 import { MapPin, Settings, Shapes, Square } from "lucide-react";
 
 import { LocationLevelModeToggle } from "./LocationLevelModeToggle";
+import { LocationMapFilterSection } from "./LocationMapFilterSection";
 import { useLocationLevels } from "../hooks/useLocationLevels";
 
 import { Button } from "@/components/ui/button";
@@ -92,8 +93,10 @@ function ViewOptionsPopover({
  */
 export function LocationLevelsMapPanel({
   controls,
+  filter,
 }: {
   controls: LevelsControls;
+  filter?: MapFilterControls;
 }) {
   const {
     groups,
@@ -176,6 +179,8 @@ export function LocationLevelsMapPanel({
           </div>
         )
         : null}
+
+      {filter ? <LocationMapFilterSection filter={filter} /> : null}
     </div>
   );
 }

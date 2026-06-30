@@ -1,9 +1,10 @@
-import type { LevelsControls } from "../lib/locationLevels";
+import type { LevelsControls, MapFilterControls } from "../lib/locationLevels";
 
 import { DEFAULT_LOCATION_MAP_COLOR, normalizeHexColor } from "@eesimple/types";
 import { Layers, MapPin, Shapes, Square } from "lucide-react";
 
 import { LocationLevelModeToggle } from "./LocationLevelModeToggle";
+import { LocationMapFilterSection } from "./LocationMapFilterSection";
 import { useLocationLevels } from "../hooks/useLocationLevels";
 
 import { Button } from "@/components/ui/button";
@@ -20,8 +21,10 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
  */
 export function LocationLevelsOverlay({
   controls,
+  filter,
 }: {
   controls: LevelsControls;
+  filter?: MapFilterControls;
 }) {
   const {
     groups, setGroupDisplayMode,
@@ -131,6 +134,8 @@ export function LocationLevelsOverlay({
           </div>
         )
         : null}
+
+      {filter ? <LocationMapFilterSection filter={filter} /> : null}
     </ResponsivePopover>
   );
 }

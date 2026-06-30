@@ -1,5 +1,7 @@
 import type { LocationNode } from "@eesimple/types";
 
+import { useCallback, useState } from "react";
+
 import { usePlaceTypeDisplayConfig } from "./useAppSettings";
 import { useExpandedSet } from "./useExpandedSet";
 import { useBulkDeleteLocations, useLocationTree } from "./useLocations";
@@ -22,8 +24,15 @@ export function useLocationsListing() {
 
   // Empty set means every parent is collapsed by default.
   const {
-    expanded, onToggle, expandAll, collapseAll,
+    expanded, onToggle, expandAll, expandMany, collapseAll,
   } = useExpandedSet([]);
+
+  // Map filter: the location ids the map is focused on. Empty = show every location. Shared by the
+  // overlay Filter combobox and the per-row "Filter on map" buttons.
+  const [filterIds, setFilterIds] = useState<string[]>([]);
+  const toggleFilterId = useCallback((id: string) => {
+    setFilterIds(prev => (prev.includes(id) ? prev.filter(value => value !== id) : [...prev, id]));
+  }, []);
   const viewMode = useViewMode("locations-listing");
   const deletableIds = flattenLocationIds(tree ?? []);
   const selection = useListSelection("locations-listing", deletableIds);
@@ -42,6 +51,7 @@ export function useLocationsListing() {
     expanded,
     onToggle,
     expandAll,
+    expandMany,
     collapseAll,
     viewMode,
     deletableIds,
@@ -50,5 +60,8 @@ export function useLocationsListing() {
     sortMode,
     setSortMode,
     sortedTree,
+    filterIds,
+    setFilterIds,
+    toggleFilterId,
   };
 }

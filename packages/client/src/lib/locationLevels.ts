@@ -1,7 +1,21 @@
 import type { LocationMapLevelMode } from "../stores/uiStore";
-import type { PlaceTypeLevelGroup } from "@eesimple/types";
+import type { LocationNode, PlaceTypeLevelGroup } from "@eesimple/types";
 
 import { placeTypeKey } from "@eesimple/types";
+
+/**
+ * The map-filter controls handed to the "Levels" overlays' Filter section: the full location tree
+ * (for the hierarchical combobox options), the currently-focused location ids, and a change handler.
+ * An empty `filterIds` means the map shows every location.
+ */
+export interface MapFilterControls {
+  /** The full location tree, used to build the hierarchical combobox options. */
+  tree: LocationNode[];
+  /** Location ids the map is currently focused on (empty = show all). */
+  filterIds: string[];
+  /** Replace the focused-id set. */
+  onFilterChange: (ids: string[]) => void;
+}
 
 /** Humanize a normalized placeType key for display (e.g. `state_district` → `State District`). */
 export function placeTypeLabel(key: string): string {

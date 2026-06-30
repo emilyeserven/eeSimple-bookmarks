@@ -2,7 +2,7 @@ import type { TagNode } from "@eesimple/types";
 
 import { describe, expect, it } from "vitest";
 
-import { expandableIds, findAncestorPath, flattenTree, subtreeIds } from "./tagTree";
+import { expandableIds, findAncestorPath, flattenTree, selectedSubtrees, subtreeIds } from "./tagTree";
 
 function makeTag(id: string, slug: string, children: TagNode[] = []): TagNode {
   return {
@@ -69,6 +69,29 @@ describe("expandableIds", () => {
 
   it("returns an empty list for an empty forest", () => {
     expect(expandableIds<TagNode>([])).toEqual([]);
+  });
+});
+
+describe("selectedSubtrees", () => {
+  it("keeps each selected node with its full subtree, dropping ancestors and siblings", () => {
+    // Select b → keep b and its child c; a (ancestor) and d/e (siblings) are dropped.
+    const result = selectedSubtrees(forest, new Set(["b"]));
+    expect(result.map(n => n.id)).toEqual(["b"]);
+    expect(result[0]).toBe(b);
+  });
+
+  it("returns a selected node's whole subtree (not just the node)", () => {
+    const result = selectedSubtrees(forest, new Set(["a"]));
+    expect(result.map(n => subtreeIds(n))).toEqual([["a", "b", "c", "d"]]);
+  });
+
+  it("finds deeper selections under unselected ancestors and supports multiple selections", () => {
+    const result = selectedSubtrees(forest, new Set(["c", "e"]));
+    expect(result.map(n => n.id)).toEqual(["c", "e"]);
+  });
+
+  it("returns an empty forest when nothing is selected", () => {
+    expect(selectedSubtrees(forest, new Set())).toEqual([]);
   });
 });
 

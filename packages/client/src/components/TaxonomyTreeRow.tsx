@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, ChevronsUpDown, MapPin } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -35,11 +35,24 @@ interface TaxonomyTreeListProps {
   renderInfoLink: (node: TaxonomyTreeNode) => ReactNode;
   /** Optional icon override; replaces the default `CategoryIcon` when provided. */
   renderIcon?: (node: TaxonomyTreeNode) => ReactNode;
+  /**
+   * When set, rows with children show a per-row "Expand all" button that expands that node's whole
+   * subtree (without collapsing other open branches). Opt-in — omitted on listings that don't want it.
+   */
+  onExpandSubtree?: (node: TaxonomyTreeNode) => void;
+  /**
+   * When set, every row shows a "Filter on map" toggle button calling this with the node. Pair with
+   * {@link isFiltered} to show the active state. Opt-in.
+   */
+  onToggleFilter?: (node: TaxonomyTreeNode) => void;
+  /** Whether a node is currently in the active filter (highlights its filter button). */
+  isFiltered?: (node: TaxonomyTreeNode) => boolean;
 }
 
 /** Grid wrapper for a collapsible taxonomy tree. Each root node gets its own RowCard. */
 export function TaxonomyTreeList({
   tree, expanded, onToggle, columns, renderNameLink, renderEditLink, renderInfoLink, renderIcon,
+  onExpandSubtree, onToggleFilter, isFiltered,
 }: TaxonomyTreeListProps) {
   return (
     <div
@@ -62,6 +75,9 @@ export function TaxonomyTreeList({
             renderEditLink={renderEditLink}
             renderInfoLink={renderInfoLink}
             renderIcon={renderIcon}
+            onExpandSubtree={onExpandSubtree}
+            onToggleFilter={onToggleFilter}
+            isFiltered={isFiltered}
           />
         </RowCard>
       ))}
@@ -78,6 +94,9 @@ interface TaxonomyTreeRowProps {
   renderEditLink: (node: TaxonomyTreeNode) => ReactNode;
   renderInfoLink: (node: TaxonomyTreeNode) => ReactNode;
   renderIcon?: (node: TaxonomyTreeNode) => ReactNode;
+  onExpandSubtree?: (node: TaxonomyTreeNode) => void;
+  onToggleFilter?: (node: TaxonomyTreeNode) => void;
+  isFiltered?: (node: TaxonomyTreeNode) => boolean;
 }
 
 /** Standard hover-revealed ghost button for the edit / info controls in a tree row. */
@@ -104,11 +123,13 @@ function HoverGhostButton({
 
 function TaxonomyTreeRow({
   node, depth, expanded, onToggle, renderNameLink, renderEditLink, renderInfoLink, renderIcon,
+  onExpandSubtree, onToggleFilter, isFiltered,
 }: TaxonomyTreeRowProps) {
   const hasChildren = node.children.length > 0;
   const isOpen = expanded.has(node.id);
   // Zero-count nodes are de-emphasized (still clickable); each row mutes independently.
   const muted = node.bookmarkCount === 0;
+  const filtered = isFiltered?.(node) ?? false;
 
   const rowInner = (
     <>
@@ -150,6 +171,52 @@ function TaxonomyTreeRow({
 
       <HoverGhostButton>{renderEditLink(node)}</HoverGhostButton>
       <HoverGhostButton>{renderInfoLink(node)}</HoverGhostButton>
+
+      {onExpandSubtree && hasChildren
+        ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            aria-label={`Expand all under ${node.name}`}
+            title="Expand all"
+            onClick={() => onExpandSubtree(node)}
+            className="
+              opacity-0 transition-opacity
+              group-hover:opacity-100
+              focus-visible:opacity-100
+            "
+          >
+            <ChevronsUpDown className="size-4" />
+          </Button>
+        )
+        : null}
+
+      {onToggleFilter
+        ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            aria-label={filtered ? `Remove ${node.name} from map filter` : `Filter map to ${node.name}`}
+            aria-pressed={filtered}
+            title={filtered ? "Filtering map (click to clear)" : "Filter on map"}
+            onClick={() => onToggleFilter(node)}
+            className={cn(
+              "transition-opacity",
+              filtered
+                ? "text-primary opacity-100"
+                : `
+                  opacity-0
+                  group-hover:opacity-100
+                  focus-visible:opacity-100
+                `,
+            )}
+          >
+            <MapPin className="size-4" />
+          </Button>
+        )
+        : null}
 
       {node.bookmarkCount != null
         ? <Badge variant="secondary">{node.bookmarkCount}</Badge>
@@ -203,6 +270,9 @@ function TaxonomyTreeRow({
                   renderEditLink={renderEditLink}
                   renderInfoLink={renderInfoLink}
                   renderIcon={renderIcon}
+                  onExpandSubtree={onExpandSubtree}
+                  onToggleFilter={onToggleFilter}
+                  isFiltered={isFiltered}
                 />
               ))}
             </ul>
@@ -239,6 +309,9 @@ function TaxonomyTreeRow({
                 renderEditLink={renderEditLink}
                 renderInfoLink={renderInfoLink}
                 renderIcon={renderIcon}
+                onExpandSubtree={onExpandSubtree}
+                onToggleFilter={onToggleFilter}
+                isFiltered={isFiltered}
               />
             ))}
           </>

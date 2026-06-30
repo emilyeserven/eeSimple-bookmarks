@@ -1,5 +1,5 @@
 import type { MapView } from "./LocationMap";
-import type { LevelScope, LevelsControls } from "../lib/locationLevels";
+import type { LevelScope, LevelsControls, MapFilterControls } from "../lib/locationLevels";
 import type { LocationNode } from "@eesimple/types";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -14,6 +14,7 @@ import { useLocationPlaceTypeColors, useLocationPlaceTypeIcons } from "../hooks/
 import { useLocationLevels } from "../hooks/useLocationLevels";
 import { useRefreshLocationBoundary } from "../hooks/useLocations";
 import { computeVisibleLevelGroupIds } from "../lib/locationLevels";
+import { selectedSubtrees } from "../lib/tagTree";
 import { useUiStore } from "../stores/uiStore";
 
 import { cn } from "@/lib/utils";
@@ -43,6 +44,14 @@ interface LocationMapSectionProps {
    * (shows all levels).
    */
   scope?: LevelScope;
+  /**
+   * When set, the map shows a "Filter" combobox in the Levels overlay and prunes the plotted tree to
+   * the chosen location(s) and their descendants. Omit to disable filtering (e.g. single-location maps).
+   */
+  filter?: {
+    filterIds: string[];
+    onFilterChange: (ids: string[]) => void;
+  };
 }
 
 /** A collapsible "Map" section wrapping {@link LocationMap}, with persisted open/closed state. */
@@ -57,6 +66,7 @@ export function LocationMapSection({
     kind: "location",
     currentPlaceType: null,
   },
+  filter,
 }: LocationMapSectionProps) {
   const collapsedKeys = useUiStore(state => state.collapsedLocationMapKeys);
   const toggle = useUiStore(state => state.toggleLocationMapCollapsed);
@@ -132,6 +142,23 @@ export function LocationMapSection({
   // holds the previous location's settled viewport so the next map seeds + animates from it.
   const lastViewRef = useRef<MapView | null>(null);
 
+  // Prune the plotted tree to the focused location(s) + their subtrees when a filter is active; the
+  // overlay combobox still sees the full tree (built into `mapFilter`) so any place stays selectable.
+  // `filterIds` is the prop array reference (stable from the parent's state), or undefined when
+  // filtering is disabled — keeping it out of a `?? []` fallback avoids a fresh dep every render.
+  const filterIds = filter?.filterIds;
+  const plottedTree = useMemo(
+    () => (filterIds && filterIds.length > 0 ? selectedSubtrees(tree, new Set(filterIds)) : tree),
+    [tree, filterIds],
+  );
+  const mapFilter: MapFilterControls | undefined = filter
+    ? {
+      tree,
+      filterIds: filter.filterIds,
+      onFilterChange: filter.onFilterChange,
+    }
+    : undefined;
+
   const refreshBoundary = useRefreshLocationBoundary();
   const attemptedRef = useRef<string | null>(null);
   // Only fetch when the target location currently has no boundary, and only once per id.
@@ -178,7 +205,10 @@ export function LocationMapSection({
         {showLevels && !isCollapsed
           ? (
             <div className="md:hidden">
-              <LocationLevelsOverlay controls={controls} />
+              <LocationLevelsOverlay
+                controls={controls}
+                filter={mapFilter}
+              />
             </div>
           )
           : null}
@@ -188,13 +218,20 @@ export function LocationMapSection({
         ? (
           <LocationMap
             key={mapKey}
-            tree={tree}
+            tree={plottedTree}
             className={mapClassName}
             displayConfig={displayConfig}
             iconConfig={iconConfig}
             colorConfig={colorConfig}
             lastViewRef={lastViewRef}
-            overlay={showLevels ? <LocationLevelsMapPanel controls={controls} /> : undefined}
+            overlay={showLevels
+              ? (
+                <LocationLevelsMapPanel
+                  controls={controls}
+                  filter={mapFilter}
+                />
+              )
+              : undefined}
           />
         )
         : null}
