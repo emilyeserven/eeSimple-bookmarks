@@ -1,6 +1,8 @@
 import type { PlaceTypeOption } from "../lib/locationLevels";
 import type { LocationDisplayMode, PlaceTypeLevelGroup, PlaceTypeLevelGroupConfig } from "@eesimple/types";
 
+import { useMemo } from "react";
+
 import { useLocationLevelGroups, useUpdateLocationLevelGroups } from "./useAppSettings";
 import { useLocations } from "./useLocations";
 import { notifyFieldSaved, notifyFieldSaveError } from "../lib/autoSave";
@@ -36,10 +38,26 @@ export function useLocationLevels(): {
   const stored = useLocationLevelGroups();
   const update = useUpdateLocationLevelGroups();
 
-  const groups = [...stored].sort((a, b) => a.sortOrder - b.sortOrder);
-  const assigned = new Set(groups.flatMap(group => group.placeTypes));
-  const options = placeTypeOptions(locations ?? [], [...assigned]);
-  const unassignedPlaceTypes = options.filter(option => !assigned.has(option.key));
+  // Memoize the derived arrays so their identity is stable across renders while the underlying query
+  // data is unchanged. Without this, `groups` (a fresh `[...stored].sort()` each render) is a new
+  // reference every render, which makes any `useEffect([groups])` consumer (Settings → Locations)
+  // re-run on every render and loop forever.
+  const groups = useMemo(
+    () => [...stored].sort((a, b) => a.sortOrder - b.sortOrder),
+    [stored],
+  );
+  const assigned = useMemo(
+    () => new Set(groups.flatMap(group => group.placeTypes)),
+    [groups],
+  );
+  const options = useMemo(
+    () => placeTypeOptions(locations ?? [], [...assigned]),
+    [locations, assigned],
+  );
+  const unassignedPlaceTypes = useMemo(
+    () => options.filter(option => !assigned.has(option.key)),
+    [options, assigned],
+  );
 
   function save(next: PlaceTypeLevelGroupConfig, label: string): void {
     update.mutate(next, {

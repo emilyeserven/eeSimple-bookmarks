@@ -35,6 +35,8 @@ const SIDEBAR_CUSTOMIZATION_KEY = ["app-settings", "sidebar-customization"] as c
 const AUTOMATION_KEY = ["app-settings", "automation"] as const;
 const LOCATION_DISPLAY_KEY = ["app-settings", "location-display"] as const;
 const LOCATION_LEVEL_GROUPS_KEY = ["app-settings", "location-level-groups"] as const;
+/** Stable empty fallback so `useLocationLevelGroups()` keeps a constant reference while loading. */
+const EMPTY_LEVEL_GROUPS: PlaceTypeLevelGroupConfig = [];
 const DISPLAY_PREFERENCES_KEY = ["app-settings", "display-preferences"] as const;
 const AI_SUMMARIZATION_KEY = ["app-settings", "ai-summarization"] as const;
 
@@ -286,7 +288,7 @@ export function useLocationLevelGroups(): PlaceTypeLevelGroupConfig {
   const {
     data,
   } = useLocationLevelGroupsSettings();
-  return data ?? [];
+  return data ?? EMPTY_LEVEL_GROUPS;
 }
 
 /**
