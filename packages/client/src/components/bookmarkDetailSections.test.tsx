@@ -34,6 +34,24 @@ describe("buildBookmarkDetailSections", () => {
     expect(build(bookmark)).toEqual(["general", "metadata", "debug"]);
   });
 
+  it("adds the Gallery section when the bookmark has images, omitting it otherwise", () => {
+    const withImages = makeBookmark({
+      images: [
+        {
+          id: "img1",
+          url: "https://example.com/1.png",
+          width: 100,
+          height: 100,
+          source: "upload",
+          isMain: true,
+          sortOrder: 0,
+        },
+      ],
+    });
+    expect(build(withImages)).toContain("gallery");
+    expect(build(makeBookmark())).not.toContain("gallery");
+  });
+
   it("adds the Hierarchy section when a flat hierarchy is supplied", () => {
     const flat: FlatNode<BookmarkHierarchyNode>[] = [
       {
