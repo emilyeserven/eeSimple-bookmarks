@@ -1,4 +1,4 @@
-import type { Bookmark, BookmarkUrlDuplicateResult, YouTubeChannelHint } from "@eesimple/types";
+import type { Bookmark, BookmarkUrlDuplicateResult, ScanResult, SocialAccountRef, YouTubeChannelHint } from "@eesimple/types";
 
 import { useRef, useState } from "react";
 
@@ -11,6 +11,7 @@ import { useBookmarkFormData } from "./useBookmarkFormData";
 import { useBookmarkInlineCreateModals } from "./useBookmarkInlineCreateModals";
 import { useBookmarkScanHandlers } from "./useBookmarkScanHandlers";
 import { useBookmarkUrlProcessing } from "./useBookmarkUrlProcessing";
+import { metadataApi } from "../lib/api/metadata";
 import { describeError } from "../lib/apiError";
 import { notifyFieldSaved, notifyFieldSaveError } from "../lib/autoSave";
 import { useAppForm } from "../lib/form";
@@ -31,6 +32,9 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
       fetchMetadata,
       websiteLookup,
       urlDuplicateCheck,
+      createAuthor,
+      updateAuthor,
+      autoAuthorImage,
     },
     websites,
     shortenerIgnoreList,
@@ -73,6 +77,8 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
   const [titleFetch, setTitleFetch] = useState<{ previous: string } | null>(null);
   const [urlDuplicate, setUrlDuplicate] = useState<BookmarkUrlDuplicateResult | null>(null);
   const [autofillOfferDismissed, setAutofillOfferDismissed] = useState(false);
+  const [socialAccountOffer, setSocialAccountOffer] = useState<SocialAccountRef | null>(null);
+  const [isRescanning, setIsRescanning] = useState(false);
   const touchedRef = useRef<Set<string>>(new Set());
 
   const form = useAppForm({
@@ -213,6 +219,9 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     runFetchTitle,
     runFetchDescription,
     runYouTubeEnrichment,
+    applyScanMetadata,
+    createAuthorFromSocialAccount,
+    reconcileSocialAccountOnEdit,
     runUrlCleanup,
     undoUrlCleanup,
     undoTitleFetch,
@@ -232,6 +241,13 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     classifyUrlShortener,
     cleanUrl,
     undoCleanup,
+    authors,
+    getAuthorIds: () => form.getFieldValue("authorIds") as string[],
+    setAuthorIds: (ids: string[]) => form.setFieldValue("authorIds", ids),
+    createAuthor,
+    updateAuthor,
+    autoAuthorImage,
+    setSocialAccountOffer,
   });
 
   async function performUrlScan(): Promise<void> {
@@ -252,6 +268,41 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
       fillTitle: autoFetchTitle,
       force: false,
     });
+  }
+
+  // Manual "Rescan" action: re-runs the consolidated `/api/scan` pipeline against the bookmark's
+  // current URL to backfill missing data (title/description fill only when blank; authors are
+  // matched/linked by name and by detected social-media profile, never displacing what's already
+  // set). Unlike `performUrlScan` (which runs automatically on URL blur for lightweight enrichment),
+  // this is explicit and reports its outcome via toast since it's outside the per-field auto-save flow.
+  async function runRescan(): Promise<void> {
+    const url = form.getFieldValue("url");
+    if (!isUrlFetchable(url)) return;
+    setIsRescanning(true);
+    try {
+      let scan: ScanResult | null = null;
+      try {
+        scan = await metadataApi.scan({
+          url,
+          siteName: websiteSiteName.trim() || undefined,
+        });
+      }
+      catch (error) {
+        notifyFieldSaveError("Rescan", describeError(error));
+        return;
+      }
+      const authorIdsBefore = form.getFieldValue("authorIds") as string[];
+      await applyScanMetadata(url, scan, {
+        fillTitle: true,
+        force: false,
+      });
+      await reconcileSocialAccountOnEdit(scan.socialAccount, form.getFieldValue("authorIds") as string[]);
+      const authorsChanged = (form.getFieldValue("authorIds") as string[]).length !== authorIdsBefore.length;
+      notifySuccess(authorsChanged ? "Rescanned — author linked" : "Rescanned");
+    }
+    finally {
+      setIsRescanning(false);
+    }
   }
 
   return {
@@ -301,6 +352,8 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     urlDuplicate,
     autofillOfferDismissed,
     setAutofillOfferDismissed,
+    socialAccountOffer,
+    setSocialAccountOffer,
     touchedRef,
     // handlers
     runAutofill,
@@ -310,5 +363,8 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     runYouTubeEnrichment,
     undoUrlCleanup,
     undoTitleFetch,
+    runRescan,
+    isRescanning,
+    createAuthorFromSocialAccount,
   };
 }

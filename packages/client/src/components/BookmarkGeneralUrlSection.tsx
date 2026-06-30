@@ -1,11 +1,12 @@
 import type { useBookmarkGeneralForm } from "./useBookmarkGeneralForm";
 import type { Bookmark } from "@eesimple/types";
 
-import { Brush } from "lucide-react";
+import { Brush, Loader2, RefreshCw } from "lucide-react";
 
 import { BookmarkUrlCleanupBanner } from "./BookmarkUrlCleanupBanner";
 import { UrlCleanupPanel } from "./BookmarkUrlCleanupPanel";
 import { BookmarkUrlDuplicateWarnings } from "./BookmarkUrlDuplicateWarnings";
+import { isFetchableUrl } from "../lib/url";
 
 import { Button } from "@/components/ui/button";
 
@@ -31,6 +32,8 @@ export function BookmarkGeneralUrlSection({
     urlDuplicate,
     performUrlScan,
     undoUrlCleanup,
+    runRescan,
+    isRescanning,
   } = ctrl;
   return (
     <>
@@ -41,17 +44,36 @@ export function BookmarkGeneralUrlSection({
             type="url"
             onBlur={() => void performUrlScan()}
             action={(
-              <Button
-                type="button"
-                variant={showUrlCleanup ? "secondary" : "ghost"}
-                size="icon"
-                title="URL cleanup"
-                aria-label="Toggle URL cleanup"
-                aria-expanded={showUrlCleanup}
-                onClick={() => setShowUrlCleanup(prev => !prev)}
-              >
-                <Brush className="size-4" />
-              </Button>
+              <div className="flex items-center gap-1">
+                <form.Subscribe selector={state => state.values.url}>
+                  {url => (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      title="Rescan URL — backfill missing title, description, and authors"
+                      aria-label="Rescan URL"
+                      disabled={!isFetchableUrl(url) || isRescanning}
+                      onClick={() => void runRescan()}
+                    >
+                      {isRescanning
+                        ? <Loader2 className="size-4 animate-spin" />
+                        : <RefreshCw className="size-4" />}
+                    </Button>
+                  )}
+                </form.Subscribe>
+                <Button
+                  type="button"
+                  variant={showUrlCleanup ? "secondary" : "ghost"}
+                  size="icon"
+                  title="URL cleanup"
+                  aria-label="Toggle URL cleanup"
+                  aria-expanded={showUrlCleanup}
+                  onClick={() => setShowUrlCleanup(prev => !prev)}
+                >
+                  <Brush className="size-4" />
+                </Button>
+              </div>
             )}
           />
         )}
