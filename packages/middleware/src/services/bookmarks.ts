@@ -752,8 +752,11 @@ export async function updateBookmark(
         | "youtubeChannelId"
         | "publisherId"
         | "priority"
+        | "updatedAt"
       >
-    > = {};
+    > = {
+      updatedAt: new Date(),
+    };
     if (input.url !== undefined) {
       patch.url = input.url ?? null;
       // Re-derive the website and YouTube channel whenever the URL changes.

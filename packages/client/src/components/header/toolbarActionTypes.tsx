@@ -33,6 +33,7 @@ export interface ToolbarContext {
   headerSearchActive: boolean;
   listingPage: { key: string;
     hasFilters: boolean;
+    hasSort?: boolean;
     createAction?: (event?: React.MouseEvent) => void; } | null;
   /** The selection pageKey of a mounted bulk-selectable listing, or null. Independent of `listingPage`. */
   bulkSelectPageKey: string | null;

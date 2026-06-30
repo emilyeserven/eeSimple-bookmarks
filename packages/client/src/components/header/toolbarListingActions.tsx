@@ -1,7 +1,8 @@
 import type { ToolbarAction, ToolbarContext } from "./toolbarActionTypes";
 
-import { Eye, Filter, Search } from "lucide-react";
+import { ArrowUpDown, Eye, Filter, Search } from "lucide-react";
 
+import { BookmarkSortPopover } from "@/components/BookmarkSortPopover";
 import { DisplayOptionsPopover } from "@/components/DisplayOptionsPopover";
 import { FilterLocationControls } from "@/components/FilterLocationControls";
 import { FilterLocationPopover } from "@/components/FilterLocationPopover";
@@ -87,6 +88,27 @@ export function bulkSelectAction(ctx: ToolbarContext): ToolbarAction | null {
     mobile: {
       kind: "menuItem",
       node: <BulkSelectMenuItem pageKey={pageKey} />,
+    },
+  };
+}
+
+export function sortAction(ctx: ToolbarContext): ToolbarAction | null {
+  if (!ctx.listingPage?.hasSort) return null;
+  const pageKey = ctx.listingPage.key;
+  return {
+    key: "sort",
+    desktop: <BookmarkSortPopover pageKey={pageKey} />,
+    mobile: {
+      kind: "modal",
+      icon: ArrowUpDown,
+      label: "Sort",
+      renderModal: (open, onOpenChange) => (
+        <BookmarkSortPopover
+          pageKey={pageKey}
+          open={open}
+          onOpenChange={onOpenChange}
+        />
+      ),
     },
   };
 }

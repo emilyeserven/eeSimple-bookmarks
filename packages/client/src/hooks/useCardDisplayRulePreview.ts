@@ -302,6 +302,7 @@ export function useCardDisplayRulePreview({
       publisher: null,
       priority: 0,
       createdAt: SAMPLE_NOW,
+      updatedAt: null,
     };
   }, [categories, properties]);
 
