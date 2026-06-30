@@ -1,9 +1,8 @@
-import type { Category, CustomProperty, CustomPropertyType } from "@eesimple/types";
+import type { Category, CustomProperty } from "@eesimple/types";
 import type { ColumnDef } from "@tanstack/react-table";
 
 import { useMemo } from "react";
 
-import { propertyAppliesToCategory } from "@eesimple/types";
 import {
   flexRender,
   getCoreRowModel,
@@ -11,16 +10,12 @@ import {
 } from "@tanstack/react-table";
 
 import { CategoryDefaultsSection } from "./CategoryDefaultsSection";
+import { buildCategoryPropertyColumns } from "./categoryPropertyColumns";
 import {
   useCustomProperties,
   useUpdateCustomProperty,
 } from "../hooks/useCustomProperties";
-import { describeError } from "../lib/apiError";
-import { notifyFieldSaved, notifyFieldSaveError } from "../lib/autoSave";
-import { toggleId } from "../lib/tag-utils";
 
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import {
   Table,
@@ -30,20 +25,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
-const TYPE_LABELS: Record<CustomPropertyType, string> = {
-  number: "Number",
-  boolean: "Boolean",
-  calculate: "Calculate (Sum)",
-  datetime: "Date / Time",
-  ratingScale: "Rating Scale",
-  image: "Image",
-  file: "File",
-  choices: "Choices",
-  itemInItems: "Two Numbers",
-  sections: "Sections",
-  text: "Text",
-};
 
 interface CategoryCustomPropertiesProps {
   category: Category;
@@ -63,49 +44,7 @@ export function CategoryCustomProperties({
   );
 
   const columns = useMemo<ColumnDef<CustomProperty>[]>(
-    () => [
-      {
-        id: "assigned",
-        header: "Assigned",
-        cell: ({
-          row,
-        }) => {
-          const property = row.original;
-          return (
-            <Checkbox
-              aria-label={`Assign ${property.name}`}
-              checked={propertyAppliesToCategory(property, category.id)}
-              onCheckedChange={() =>
-                updateProperty.mutate({
-                  id: property.id,
-                  // Unchecking a property that applies to "all categories" drops that flag and
-                  // falls back to its explicit list (minus this category).
-                  input: {
-                    allCategories: false,
-                    categoryIds: toggleId(property.categoryIds, category.id),
-                  },
-                }, {
-                  onSuccess: () => notifyFieldSaved("Assigned properties"),
-                  onError: error => notifyFieldSaveError("Assigned properties", describeError(error)),
-                })}
-            />
-          );
-        },
-      },
-      {
-        accessorKey: "name",
-        header: "Name",
-      },
-      {
-        accessorKey: "type",
-        header: "Type",
-        cell: ({
-          row,
-        }) => (
-          <Badge variant="secondary">{TYPE_LABELS[row.original.type]}</Badge>
-        ),
-      },
-    ],
+    () => buildCategoryPropertyColumns(category.id, updateProperty),
     [category.id, updateProperty],
   );
 

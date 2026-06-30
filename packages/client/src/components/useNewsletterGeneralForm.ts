@@ -1,0 +1,105 @@
+import type { Newsletter, UpdateNewsletterInput } from "@eesimple/types";
+
+import { useState } from "react";
+
+import { useNavigate } from "@tanstack/react-router";
+import { z } from "zod";
+
+import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
+import { useUpdateNewsletter } from "../hooks/useNewsletters";
+
+import { useCategories } from "@/hooks/useCategories";
+import { useMediaTypeTree } from "@/hooks/useMediaTypes";
+import { useTagTree } from "@/hooks/useTags";
+import { iconComboboxOptions, mediaTypeTreeComboboxOptions } from "@/lib/comboboxOptions";
+import { useAppForm } from "@/lib/form";
+
+const newsletterGeneralSchema = z.object({
+  name: z.string().trim().min(1, "Name is required"),
+});
+
+const LABELS: Partial<Record<keyof UpdateNewsletterInput, string>> = {
+  name: "Name",
+  categoryId: "Category",
+  mediaTypeId: "Media type",
+  tagIds: "Default tags",
+};
+
+/**
+ * Owns the stateful pieces of the newsletter General (edit) form: the autosave engine, the local
+ * tag state, the taxonomy queries (returned as combobox options), and the field-save handlers.
+ * Returns one bag so `NewsletterGeneralForm` stays a presentational shell.
+ */
+export function useNewsletterGeneralForm(newsletter: Newsletter) {
+  const navigate = useNavigate();
+  const updateNewsletter = useUpdateNewsletter();
+  const [tagIds, setTagIds] = useState<string[]>(newsletter.tagIds ?? []);
+  const {
+    data: categories,
+  } = useCategories();
+  const {
+    data: mediaTypeTree,
+  } = useMediaTypeTree();
+  const {
+    data: tagTree,
+  } = useTagTree();
+
+  const autoSave = useFieldAutoSave<UpdateNewsletterInput, Newsletter>({
+    id: newsletter.id,
+    update: updateNewsletter,
+    labels: LABELS,
+    initial: {
+      name: newsletter.name,
+      categoryId: newsletter.category?.id ?? null,
+      mediaTypeId: newsletter.mediaTypeId ?? null,
+      tagIds: newsletter.tagIds ?? [],
+    },
+  });
+
+  const form = useAppForm({
+    defaultValues: {
+      name: newsletter.name,
+    },
+    validators: {
+      onChange: newsletterGeneralSchema,
+    },
+  });
+
+  function saveName(value: string, valid: boolean): void {
+    autoSave.saveField("name", value.trim(), {
+      valid,
+      // Renaming changes the slug; follow it so the edit page keeps resolving.
+      onSuccess: (updated) => {
+        if (updated.slug && updated.slug !== newsletter.slug) {
+          void navigate({
+            to: "/taxonomies/newsletters/$newsletterSlug/edit/general",
+            params: {
+              newsletterSlug: updated.slug,
+            },
+          });
+        }
+      },
+    });
+  }
+
+  function saveTagIds(next: string[]): void {
+    setTagIds(next);
+    autoSave.saveField("tagIds", next);
+  }
+
+  function toggleTag(id: string): void {
+    saveTagIds(tagIds.includes(id) ? tagIds.filter(t => t !== id) : [...tagIds, id]);
+  }
+
+  return {
+    form,
+    tagIds,
+    saveName,
+    toggleTag,
+    saveCategoryId: (id: string | null) => autoSave.saveField("categoryId", id),
+    saveMediaTypeId: (id: string | null) => autoSave.saveField("mediaTypeId", id),
+    categoryOptions: iconComboboxOptions(categories ?? []),
+    mediaTypeOptions: mediaTypeTreeComboboxOptions(mediaTypeTree ?? []),
+    tagTree: tagTree ?? [],
+  };
+}

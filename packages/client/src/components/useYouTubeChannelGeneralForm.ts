@@ -3,47 +3,21 @@ import type { UpdateYouTubeChannelInput, YouTubeChannel } from "@eesimple/types"
 import { useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
-import { z } from "zod";
 
+import { useYouTubeChannelGeneralFormData } from "./useYouTubeChannelGeneralFormData";
+import { channelAutoSaveInitial, channelGeneralSchema, CHANNEL_LABELS } from "./youTubeChannelGeneralForm";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 
-import { useCategories } from "@/hooks/useCategories";
-import { useMediaTypeTree } from "@/hooks/useMediaTypes";
-import { useTagTree } from "@/hooks/useTags";
-import { useWebsites } from "@/hooks/useWebsites";
 import {
   useAutoYouTubeChannelImage,
   useDeleteYouTubeChannelImage,
   useUpdateYouTubeChannel,
   useUploadYouTubeChannelImage,
 } from "@/hooks/useYouTubeChannels";
-import { iconComboboxOptions, mediaTypeTreeComboboxOptions } from "@/lib/comboboxOptions";
 import { useAppForm } from "@/lib/form";
 
-const channelGeneralSchema = z.object({
-  name: z.string().trim().min(1, "Name is required"),
-});
-
-const LABELS: Partial<Record<keyof UpdateYouTubeChannelInput, string>> = {
-  name: "Name",
-  selfIds: "Self-identifiers",
-  categoryId: "Category",
-  mediaTypeId: "Media type",
-  tagIds: "Default tags",
-  websiteIds: "Websites",
-};
-
-/** The autosave snapshot for a channel's editable fields, with nullable defaults applied. */
-export function channelAutoSaveInitial(channel: YouTubeChannel): UpdateYouTubeChannelInput {
-  return {
-    name: channel.name,
-    selfIds: channel.selfIds,
-    categoryId: channel.category?.id ?? null,
-    mediaTypeId: channel.mediaTypeId ?? null,
-    tagIds: channel.tagIds ?? [],
-    websiteIds: channel.websiteIds ?? [],
-  };
-}
+/** Re-exported for consumers; the canonical definition lives in `./youTubeChannelGeneralForm`. */
+export { channelAutoSaveInitial };
 
 /**
  * Owns every stateful piece of the YouTube-channel General (edit) form: the avatar mutations, the
@@ -62,22 +36,13 @@ export function useYouTubeChannelGeneralForm(channel: YouTubeChannel) {
   const [newSelfId, setNewSelfId] = useState("");
   const [tagIds, setTagIds] = useState<string[]>(channel.tagIds ?? []);
   const {
-    data: categories,
-  } = useCategories();
-  const {
-    data: mediaTypeTree,
-  } = useMediaTypeTree();
-  const {
-    data: tagTree,
-  } = useTagTree();
-  const {
-    data: websites,
-  } = useWebsites();
+    categoryOptions, mediaTypeOptions, tagTree, websites,
+  } = useYouTubeChannelGeneralFormData();
 
   const autoSave = useFieldAutoSave<UpdateYouTubeChannelInput, YouTubeChannel>({
     id: channel.id,
     update: updateChannel,
-    labels: LABELS,
+    labels: CHANNEL_LABELS,
     initial: channelAutoSaveInitial(channel),
   });
 
@@ -150,9 +115,9 @@ export function useYouTubeChannelGeneralForm(channel: YouTubeChannel) {
     uploadAvatar,
     autoAvatar,
     deleteAvatar,
-    categoryOptions: iconComboboxOptions(categories ?? []),
-    mediaTypeOptions: mediaTypeTreeComboboxOptions(mediaTypeTree ?? []),
-    tagTree: tagTree ?? [],
-    websites: websites ?? [],
+    categoryOptions,
+    mediaTypeOptions,
+    tagTree,
+    websites,
   };
 }

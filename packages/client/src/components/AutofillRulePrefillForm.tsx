@@ -1,25 +1,20 @@
 import type {
   AutofillRule,
-  BookmarkBooleanValue,
-  BookmarkDateTimeValue,
-  BookmarkNumberValue,
-  CustomProperty,
   UpdateAutofillRuleInput,
 } from "@eesimple/types";
 
 import { useState } from "react";
 
-import { propertyAppliesToCategory } from "@eesimple/types";
-
+import {
+  buildBooleanValues,
+  buildDateTimeValues,
+  buildNumberValues,
+  categoryProperties,
+} from "./autofillPrefillValues";
 import { NO_CATEGORY, NO_MEDIA_TYPE, RulePropertyFields } from "./AutofillRuleForm";
 import { AutofillRulePrefillPickers } from "./AutofillRulePrefillPickers";
-import { useUpdateAutofillRule } from "../hooks/useAutofill";
-import { useCategories } from "../hooks/useCategories";
-import { useCustomProperties } from "../hooks/useCustomProperties";
+import { useAutofillPrefillData } from "./useAutofillPrefillData";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
-import { useLocationTree } from "../hooks/useLocations";
-import { useMediaTypeTree } from "../hooks/useMediaTypes";
-import { useTagTree } from "../hooks/useTags";
 
 const LABELS: Partial<Record<keyof UpdateAutofillRuleInput, string>> = {
   setCategoryId: "Category",
@@ -30,58 +25,6 @@ const LABELS: Partial<Record<keyof UpdateAutofillRuleInput, string>> = {
   booleanValues: "Boolean values",
   dateTimeValues: "Date/Time values",
 };
-
-/** The custom properties that apply to the chosen category (excluding computed `calculate` props). */
-function categoryProperties(properties: CustomProperty[], categoryId: string | null): CustomProperty[] {
-  if (!categoryId) return [];
-  return properties.filter(p => propertyAppliesToCategory(p, categoryId));
-}
-
-function buildNumberValues(
-  props: CustomProperty[],
-  numberInputs: Record<string, string>,
-): BookmarkNumberValue[] {
-  return props
-    .filter(p => p.type === "number")
-    .map(p => ({
-      propertyId: p.id,
-      raw: numberInputs[p.id] ?? "",
-    }))
-    .filter(({
-      raw,
-    }) => raw.trim() !== "" && !Number.isNaN(Number(raw)))
-    .map(({
-      propertyId, raw,
-    }) => ({
-      propertyId,
-      value: Number(raw),
-    }));
-}
-
-function buildBooleanValues(
-  props: CustomProperty[],
-  booleanInputs: Record<string, boolean>,
-): BookmarkBooleanValue[] {
-  return props
-    .filter(p => p.type === "boolean")
-    .map(p => ({
-      propertyId: p.id,
-      value: booleanInputs[p.id] ?? false,
-    }));
-}
-
-function buildDateTimeValues(
-  props: CustomProperty[],
-  dateTimeInputs: Record<string, string>,
-): BookmarkDateTimeValue[] {
-  return props
-    .filter(p => p.type === "datetime")
-    .map(p => ({
-      propertyId: p.id,
-      value: (dateTimeInputs[p.id] ?? "").trim(),
-    }))
-    .filter(e => e.value !== "");
-}
 
 interface Props {
   rule: AutofillRule;
@@ -95,21 +38,8 @@ export function AutofillRulePrefillForm({
   rule,
 }: Props) {
   const {
-    data: categories = [],
-  } = useCategories();
-  const {
-    data: properties = [],
-  } = useCustomProperties();
-  const {
-    data: tagTree = [],
-  } = useTagTree();
-  const {
-    data: mediaTypeTree = [],
-  } = useMediaTypeTree();
-  const {
-    data: locationTree = [],
-  } = useLocationTree();
-  const updateRule = useUpdateAutofillRule();
+    categories, properties, tagTree, mediaTypeTree, locationTree, updateRule,
+  } = useAutofillPrefillData();
 
   const initialCategoryId = rule.setCategoryId ?? NO_CATEGORY;
   const initialMediaTypeId = rule.setMediaTypeId ?? NO_MEDIA_TYPE;

@@ -1,0 +1,98 @@
+import type { Publisher, UpdatePublisherInput } from "@eesimple/types";
+
+import { useState } from "react";
+
+import { useNavigate } from "@tanstack/react-router";
+import { Globe } from "lucide-react";
+import { z } from "zod";
+
+import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
+import { useUpdatePublisher } from "../hooks/usePublishers";
+import { useWebsites } from "../hooks/useWebsites";
+import { useAppForm } from "../lib/form";
+import { socialLinkSchema } from "../lib/socialLinks";
+
+const publisherGeneralSchema = z.object({
+  name: z.string().trim().min(1, "Name is required"),
+  romanizedName: z.string(),
+  websiteId: z.string().nullable(),
+  socialLinks: z.array(socialLinkSchema),
+});
+
+const LABELS: Partial<Record<keyof UpdatePublisherInput, string>> = {
+  name: "Name",
+  romanizedName: "Romanized name",
+  websiteId: "Website",
+  socialLinks: "Social media links",
+};
+
+/**
+ * Owns the stateful pieces of the publisher General (edit) form: the autosave engine, the website
+ * picker options, the add-website modal state, and the autosave snapshot. Returns one bag so
+ * `PublisherGeneralForm` stays a presentational shell.
+ */
+export function usePublisherGeneralForm(publisher: Publisher) {
+  const navigate = useNavigate();
+  const update = useUpdatePublisher();
+  const [addWebsiteOpen, setAddWebsiteOpen] = useState(false);
+  const {
+    data: websites,
+  } = useWebsites();
+
+  const autoSave = useFieldAutoSave<UpdatePublisherInput, Publisher>({
+    id: publisher.id,
+    update,
+    labels: LABELS,
+    initial: {
+      name: publisher.name,
+      romanizedName: publisher.romanizedName ?? "",
+      websiteId: publisher.websiteId ?? null,
+      socialLinks: publisher.socialLinks,
+    },
+  });
+
+  const websiteOptions = (websites ?? []).map(website => ({
+    value: website.id,
+    label: website.siteName,
+    icon: (
+      <Globe className="size-4 shrink-0 text-muted-foreground" />
+    ),
+  }));
+
+  const form = useAppForm({
+    defaultValues: {
+      name: publisher.name,
+      romanizedName: publisher.romanizedName ?? "",
+      websiteId: publisher.websiteId ?? null,
+    },
+    validators: {
+      onChange: publisherGeneralSchema,
+    },
+  });
+
+  function saveName(value: string, valid: boolean): void {
+    autoSave.saveField("name", value.trim(), {
+      valid,
+      // Renaming changes the slug; follow it so the edit page keeps resolving.
+      onSuccess: (updated) => {
+        if (updated.slug !== publisher.slug) {
+          void navigate({
+            to: "/taxonomies/publishers/$publisherSlug/edit/general",
+            params: {
+              publisherSlug: updated.slug,
+            },
+          });
+        }
+      },
+    });
+  }
+
+  return {
+    form,
+    saveField: autoSave.saveField,
+    saveName,
+    websiteOptions,
+    addWebsiteOpen,
+    setAddWebsiteOpen,
+  };
+}

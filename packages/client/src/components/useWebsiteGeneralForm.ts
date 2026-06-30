@@ -3,56 +3,21 @@ import type { UpdateWebsiteInput, Website } from "@eesimple/types";
 import { useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
-import { z } from "zod";
 
+import { useWebsiteGeneralFormData } from "./useWebsiteGeneralFormData";
+import { WEBSITE_LABELS, websiteAutoSaveInitial, websiteGeneralSchema } from "./websiteGeneralForm";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 
-import { useCategories } from "@/hooks/useCategories";
-import { useMediaTypeTree } from "@/hooks/useMediaTypes";
-import { useTagTree } from "@/hooks/useTags";
 import {
   useAutoWebsiteFavicon,
   useDeleteWebsiteFavicon,
   useUpdateWebsite,
   useUploadWebsiteFavicon,
 } from "@/hooks/useWebsites";
-import { useYouTubeChannels } from "@/hooks/useYouTubeChannels";
-import { iconComboboxOptions, mediaTypeTreeComboboxOptions } from "@/lib/comboboxOptions";
 import { useAppForm } from "@/lib/form";
-import { socialLinkSchema } from "@/lib/socialLinks";
 
-const websiteGeneralSchema = z.object({
-  siteName: z.string().trim().min(1, "Site name is required"),
-  domain: z.string().trim().min(1, "Domain is required"),
-  socialLinks: z.array(socialLinkSchema),
-});
-
-const LABELS: Partial<Record<keyof UpdateWebsiteInput, string>> = {
-  siteName: "Site name",
-  domain: "Domain",
-  categoryId: "Category",
-  mediaTypeId: "Media type",
-  tagIds: "Default tags",
-  socialLinks: "Social media links",
-  youtubeChannelIds: "YouTube channels",
-  alternateNames: "Alternate names",
-  redirectResolutionFailure: "Redirect resolution failure",
-};
-
-/** The autosave snapshot for a website's editable fields, with all nullable defaults applied. */
-export function websiteAutoSaveInitial(website: Website): UpdateWebsiteInput {
-  return {
-    siteName: website.siteName,
-    domain: website.domain,
-    categoryId: website.category?.id ?? null,
-    mediaTypeId: website.mediaTypeId ?? null,
-    tagIds: website.tagIds ?? [],
-    socialLinks: website.socialLinks,
-    youtubeChannelIds: website.youtubeChannelIds ?? [],
-    alternateNames: website.alternateNames,
-    redirectResolutionFailure: website.redirectResolutionFailure ?? false,
-  };
-}
+/** Re-exported for consumers; the canonical definition lives in `./websiteGeneralForm`. */
+export { websiteAutoSaveInitial };
 
 /**
  * Owns every stateful piece of the website General (edit) form: the favicon mutations, the local
@@ -71,22 +36,13 @@ export function useWebsiteGeneralForm(website: Website) {
   const [alternateNames, setAlternateNames] = useState<string[]>(website.alternateNames ?? []);
   const [newAlternateName, setNewAlternateName] = useState("");
   const {
-    data: categories,
-  } = useCategories();
-  const {
-    data: mediaTypeTree,
-  } = useMediaTypeTree();
-  const {
-    data: tagTree,
-  } = useTagTree();
-  const {
-    data: youtubeChannels,
-  } = useYouTubeChannels();
+    categoryOptions, mediaTypeOptions, tagTree, youtubeChannels,
+  } = useWebsiteGeneralFormData();
 
   const autoSave = useFieldAutoSave<UpdateWebsiteInput, Website>({
     id: website.id,
     update: updateWebsite,
-    labels: LABELS,
+    labels: WEBSITE_LABELS,
     initial: websiteAutoSaveInitial(website),
   });
 
@@ -163,9 +119,9 @@ export function useWebsiteGeneralForm(website: Website) {
     uploadFavicon,
     autoFavicon,
     deleteFavicon,
-    categoryOptions: iconComboboxOptions(categories ?? []),
-    mediaTypeOptions: mediaTypeTreeComboboxOptions(mediaTypeTree ?? []),
-    tagTree: tagTree ?? [],
-    youtubeChannels: youtubeChannels ?? [],
+    categoryOptions,
+    mediaTypeOptions,
+    tagTree,
+    youtubeChannels,
   };
 }
