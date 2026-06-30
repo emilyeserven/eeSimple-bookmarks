@@ -32,6 +32,7 @@ import {
   bookmarkDateTimeValues,
   bookmarkFileValues,
   bookmarkImages,
+  bookmarkLocationBlacklist,
   bookmarkLocations,
   bookmarkNumberValues,
   bookmarkProgressValues,
@@ -71,6 +72,7 @@ interface BookmarkExtras {
   tags: BookmarkTag[];
   locations: BookmarkLocation[];
   blacklistedTagIds: string[];
+  blacklistedLocationIds: string[];
   authors: BookmarkAuthor[];
   numberValues: BookmarkNumberValue[];
   booleanValues: BookmarkBooleanValue[];
@@ -95,6 +97,7 @@ const EMPTY_EXTRAS: BookmarkExtras = {
   tags: [],
   locations: [],
   blacklistedTagIds: [],
+  blacklistedLocationIds: [],
   authors: [],
   numberValues: [],
   booleanValues: [],
@@ -128,6 +131,7 @@ function toBookmark(row: BookmarkRow, extras: BookmarkExtras, defaultCategoryId:
     tags: extras.tags,
     locations: extras.locations,
     blacklistedTagIds: extras.blacklistedTagIds,
+    blacklistedLocationIds: extras.blacklistedLocationIds,
     authors: extras.authors,
     numberValues: extras.numberValues,
     booleanValues: extras.booleanValues,
@@ -325,6 +329,27 @@ async function blacklistedTagIdsByBookmarkId(bookmarkIds: string[]): Promise<Map
   for (const row of rows) {
     const list = grouped.get(row.bookmarkId) ?? [];
     list.push(row.tagId);
+    grouped.set(row.bookmarkId, list);
+  }
+  return grouped;
+}
+
+/** Load blacklisted location IDs for a set of bookmark ids in a single query, grouped by bookmark id. */
+async function blacklistedLocationIdsByBookmarkId(bookmarkIds: string[]): Promise<Map<string, string[]>> {
+  const grouped = new Map<string, string[]>();
+  if (bookmarkIds.length === 0) return grouped;
+
+  const rows = await db
+    .select({
+      bookmarkId: bookmarkLocationBlacklist.bookmarkId,
+      locationId: bookmarkLocationBlacklist.locationId,
+    })
+    .from(bookmarkLocationBlacklist)
+    .where(inArray(bookmarkLocationBlacklist.bookmarkId, bookmarkIds));
+
+  for (const row of rows) {
+    const list = grouped.get(row.bookmarkId) ?? [];
+    list.push(row.locationId);
     grouped.set(row.bookmarkId, list);
   }
   return grouped;
@@ -761,10 +786,11 @@ async function relationshipsByBookmarkId(
 
 /** Hydrate all custom-property relations for a set of bookmark rows in batched queries. */
 async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, BookmarkExtras>> {
-  const [tagsMap, locationsMap, blacklistedMap, authorsMap, numberMap, booleanMap, dateTimeMap, choicesMap, progressMap, sectionsMap, textMap, fileMap, imageMap, screenshotMap, relationshipsMap] = await Promise.all([
+  const [tagsMap, locationsMap, blacklistedMap, blacklistedLocationMap, authorsMap, numberMap, booleanMap, dateTimeMap, choicesMap, progressMap, sectionsMap, textMap, fileMap, imageMap, screenshotMap, relationshipsMap] = await Promise.all([
     tagsByBookmarkId(bookmarkIds),
     locationsByBookmarkId(bookmarkIds),
     blacklistedTagIdsByBookmarkId(bookmarkIds),
+    blacklistedLocationIdsByBookmarkId(bookmarkIds),
     authorsByBookmarkId(bookmarkIds),
     numberValuesByBookmarkId(bookmarkIds),
     booleanValuesByBookmarkId(bookmarkIds),
@@ -790,6 +816,7 @@ async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
       tags: tagsMap.get(id) ?? [],
       locations: locationsMap.get(id) ?? [],
       blacklistedTagIds: blacklistedMap.get(id) ?? [],
+      blacklistedLocationIds: blacklistedLocationMap.get(id) ?? [],
       authors: authorsMap.get(id) ?? [],
       numberValues: numberMap.get(id) ?? [],
       booleanValues: booleanMap.get(id) ?? [],

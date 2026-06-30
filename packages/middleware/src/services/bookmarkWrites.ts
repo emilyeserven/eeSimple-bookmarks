@@ -15,6 +15,7 @@ import {
   bookmarkChoicesValues,
   bookmarkDateTimeValues,
   bookmarkNumberValues,
+  bookmarkLocationBlacklist,
   bookmarkLocations,
   bookmarkProgressValues,
   bookmarkSectionsValues,
@@ -39,6 +40,21 @@ export async function setBookmarkTagBlacklist(
     await tx.insert(bookmarkTagBlacklist).values(tagIds.map(tagId => ({
       bookmarkId,
       tagId,
+    })));
+  }
+}
+
+/** Replace the location-blacklist rows for a bookmark (delete all, then insert the new set). */
+export async function setBookmarkLocationBlacklist(
+  tx: Tx,
+  bookmarkId: string,
+  locationIds: string[],
+): Promise<void> {
+  await tx.delete(bookmarkLocationBlacklist).where(eq(bookmarkLocationBlacklist.bookmarkId, bookmarkId));
+  if (locationIds.length > 0) {
+    await tx.insert(bookmarkLocationBlacklist).values(locationIds.map(locationId => ({
+      bookmarkId,
+      locationId,
     })));
   }
 }

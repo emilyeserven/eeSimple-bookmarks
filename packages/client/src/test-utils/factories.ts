@@ -102,6 +102,7 @@ export function makeBookmark(overrides: Partial<Bookmark> = {}): Bookmark {
     publisher: null,
     relationships: [],
     locations: [],
+    blacklistedLocationIds: [],
     priority: 0,
     createdAt: NOW,
     updatedAt: null,

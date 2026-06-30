@@ -644,7 +644,8 @@ function computeNeedsBackfill(
   if (effectiveTagIds.some(id => !existingTagIds.has(id))) return true;
 
   const existingLocationIds = new Set(bookmark.locations.map(l => l.id));
-  if (rule.locationIds.some(id => !existingLocationIds.has(id))) return true;
+  const effectiveLocationIds = rule.locationIds.filter(id => !bookmark.blacklistedLocationIds.includes(id));
+  if (effectiveLocationIds.some(id => !existingLocationIds.has(id))) return true;
 
   const numById = new Map(bookmark.numberValues.map(v => [v.propertyId, v.value]));
   if (rule.numberValues.some(v => numById.get(v.propertyId) !== v.value)) return true;
@@ -798,10 +799,11 @@ export async function applyAutofillBackfill(
           .onConflictDoNothing();
       }
 
-      if (rule.locationIds.length > 0) {
+      const locationsToInsert = rule.locationIds.filter(id => !bookmark.blacklistedLocationIds.includes(id));
+      if (locationsToInsert.length > 0) {
         await tx
           .insert(bookmarkLocations)
-          .values(rule.locationIds.map(locationId => ({
+          .values(locationsToInsert.map(locationId => ({
             bookmarkId: bookmark.id,
             locationId,
           })))

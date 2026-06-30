@@ -602,6 +602,20 @@ export const bookmarkLocations = pgTable("bookmark_locations", {
   }),
 ]);
 
+/** `bookmark_location_blacklist` — locations the user has opted out of autofill auto-apply for a specific bookmark. */
+export const bookmarkLocationBlacklist = pgTable("bookmark_location_blacklist", {
+  bookmarkId: uuid("bookmark_id").notNull().references(() => bookmarks.id, {
+    onDelete: "cascade",
+  }),
+  locationId: uuid("location_id").notNull().references(() => locations.id, {
+    onDelete: "cascade",
+  }),
+}, table => [
+  primaryKey({
+    columns: [table.bookmarkId, table.locationId],
+  }),
+]);
+
 /** `location_tags` join — the "looser" tags (mood / biome / …) associated with a location. */
 export const locationTags = pgTable("location_tags", {
   locationId: uuid("location_id").notNull().references(() => locations.id, {

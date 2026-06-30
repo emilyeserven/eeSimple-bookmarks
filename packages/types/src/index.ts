@@ -948,6 +948,8 @@ export interface Bookmark {
   locations: BookmarkLocation[];
   /** Tag IDs that should never be auto-applied to this bookmark by autofill rules. */
   blacklistedTagIds: string[];
+  /** Location IDs that should never be auto-applied to this bookmark by autofill rules. */
+  blacklistedLocationIds: string[];
   /** Authors credited for this bookmarked item. */
   authors: BookmarkAuthor[];
   /** Number-typed custom property values (includes computed `calculate` results) assigned to this bookmark. */
@@ -996,6 +998,8 @@ export interface CreateBookmarkInput {
   locationIds?: string[];
   /** Tag IDs to exclude from autofill auto-apply on this bookmark. */
   blacklistedTagIds?: string[];
+  /** Location IDs to exclude from autofill auto-apply on this bookmark. */
+  blacklistedLocationIds?: string[];
   /** Ids of authors to credit for this item. */
   authorIds?: string[];
   /** Number custom property values to assign (calculate results are computed server-side). */

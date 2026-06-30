@@ -13,7 +13,7 @@ import { mediaTypeTreeComboboxOptions } from "@/lib/comboboxOptions";
 
 type Ctrl = ReturnType<typeof useBookmarkGeneralForm>;
 
-/** The relationship fields: media type, tags + tag blacklist, locations, and authors (each with its inline-create modal). */
+/** The relationship fields: media type, tags + tag blacklist, locations + location blacklist, and authors (each with its inline-create modal). */
 export function BookmarkGeneralRelationsSection({
   ctrl,
 }: { ctrl: Ctrl }) {
@@ -34,6 +34,7 @@ export function BookmarkGeneralRelationsSection({
     saveTags,
     saveLocations,
     saveBlacklistedTagIds,
+    saveBlacklistedLocationIds,
     saveAuthors,
     touchedRef,
   } = ctrl;
@@ -158,6 +159,29 @@ export function BookmarkGeneralRelationsSection({
           }
         }}
       />
+
+      <form.Field name="blacklistedLocationIds">
+        {field => (
+          <div className="space-y-1">
+            <Label>Location blacklist</Label>
+            <p className="text-xs text-muted-foreground">
+              Locations toggled here will never be auto-applied by autofill rules.
+            </p>
+            <LocationPicker
+              tree={locationTree ?? []}
+              selectedIds={field.state.value}
+              onToggle={(id) => {
+                const current = field.state.value;
+                const next = current.includes(id)
+                  ? current.filter(locationId => locationId !== id)
+                  : [...current, id];
+                field.handleChange(next);
+                saveBlacklistedLocationIds(next);
+              }}
+            />
+          </div>
+        )}
+      </form.Field>
 
       <form.Field name="authorIds">
         {field => (
