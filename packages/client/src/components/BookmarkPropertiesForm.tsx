@@ -1,16 +1,20 @@
 import type { Bookmark } from "@eesimple/types";
 
+import { propertyAppliesToCategory, propertyAppliesToMediaType } from "@eesimple/types";
+
 import { CategoryCustomFields } from "./BookmarkCustomFields";
 import { BookmarkYouTubeMetadataFields } from "./BookmarkYouTubeMetadataFields";
 import { useBookmarkPropertiesForm } from "./useBookmarkPropertiesForm";
+import { usePropertyGroups } from "../hooks/usePropertyGroups";
 
 import { Button } from "@/components/ui/button";
+import { RowCard } from "@/components/ui/card";
 
 interface BookmarkPropertiesFormProps {
   bookmark: Bookmark;
 }
 
-/** Edit a bookmark's custom property values. */
+/** Edit a bookmark's custom property values, organized into property-group cards. */
 export function BookmarkPropertiesForm({
   bookmark,
 }: BookmarkPropertiesFormProps) {
@@ -41,6 +45,10 @@ export function BookmarkPropertiesForm({
     hasEditable,
   } = useBookmarkPropertiesForm(bookmark);
 
+  const {
+    data: propertyGroups,
+  } = usePropertyGroups();
+
   if (!hasEditable) {
     return (
       <p className="text-sm text-muted-foreground">
@@ -49,69 +57,89 @@ export function BookmarkPropertiesForm({
     );
   }
 
+  // Determine which property groups have applicable properties for this bookmark.
+  const applicableProperties = customProperties.filter(p =>
+    p.enabled
+    && !p.hiddenFromForm
+    && !builtInHiddenSlugs.includes(p.slug)
+    && (propertyAppliesToCategory(p, bookmark.categoryId ?? "")
+      || propertyAppliesToMediaType(p, bookmark.mediaType?.id ?? null)));
+  const knownGroupIds = new Set((propertyGroups ?? []).map(g => g.id));
+  const sortedGroups = [...(propertyGroups ?? [])].sort(
+    (a, b) => a.priority - b.priority || a.name.localeCompare(b.name),
+  );
+  const groupsWithProperties = sortedGroups.filter(g =>
+    applicableProperties.some(p => p.propertyGroupId === g.id));
+  const hasUngrouped = applicableProperties.some(
+    p => p.propertyGroupId === null || !knownGroupIds.has(p.propertyGroupId),
+  );
+
+  const fieldProps = {
+    placement: "all" as const,
+    layout: "stack" as const,
+    categoryId: bookmark.categoryId ?? "",
+    mediaTypeId: bookmark.mediaType?.id ?? null,
+    properties: customProperties,
+    bookmark,
+    hiddenSlugs: builtInHiddenSlugs,
+    numberInputs,
+    booleanInputs,
+    dateTimeInputs,
+    choicesInputs,
+    progressInputs,
+    sectionsInputs,
+    textInputs,
+    onNumberChange: handleNumberChange,
+    onBooleanChange: handleBooleanChange,
+    onDateTimeChange: handleDateTimeChange,
+    onChoicesChange: handleChoicesChange,
+    onProgressChange: handleProgressChange,
+    onSectionsChange: handleSectionsChange,
+    onTextChange: handleTextChange,
+  };
+
   return (
     <form
-      className="space-y-6"
+      className="space-y-4"
       onSubmit={event => void handleSubmit(event)}
     >
       {(runtimeProp || datePostedProp) && isYouTubeBookmark && (
-        <BookmarkYouTubeMetadataFields
-          bookmark={bookmark}
-          fetchMetadata={fetchMetadata}
-          runtimeProp={runtimeProp}
-          datePostedProp={datePostedProp}
-          numberInputs={numberInputs}
-          dateTimeInputs={dateTimeInputs}
-          onNumberChange={handleNumberChange}
-          onDateTimeChange={handleDateTimeChange}
-        />
+        <RowCard className="p-4">
+          <BookmarkYouTubeMetadataFields
+            bookmark={bookmark}
+            fetchMetadata={fetchMetadata}
+            runtimeProp={runtimeProp}
+            datePostedProp={datePostedProp}
+            numberInputs={numberInputs}
+            dateTimeInputs={dateTimeInputs}
+            onNumberChange={handleNumberChange}
+            onDateTimeChange={handleDateTimeChange}
+          />
+        </RowCard>
       )}
-      <CategoryCustomFields
-        placement="default"
-        layout="stack"
-        categoryId={bookmark.categoryId ?? ""}
-        mediaTypeId={bookmark.mediaType?.id ?? null}
-        properties={customProperties}
-        bookmark={bookmark}
-        hiddenSlugs={builtInHiddenSlugs}
-        numberInputs={numberInputs}
-        booleanInputs={booleanInputs}
-        dateTimeInputs={dateTimeInputs}
-        choicesInputs={choicesInputs}
-        progressInputs={progressInputs}
-        sectionsInputs={sectionsInputs}
-        textInputs={textInputs}
-        onNumberChange={handleNumberChange}
-        onBooleanChange={handleBooleanChange}
-        onDateTimeChange={handleDateTimeChange}
-        onChoicesChange={handleChoicesChange}
-        onProgressChange={handleProgressChange}
-        onSectionsChange={handleSectionsChange}
-        onTextChange={handleTextChange}
-      />
-      <CategoryCustomFields
-        placement="advanced"
-        layout="stack"
-        categoryId={bookmark.categoryId ?? ""}
-        mediaTypeId={bookmark.mediaType?.id ?? null}
-        properties={customProperties}
-        bookmark={bookmark}
-        hiddenSlugs={builtInHiddenSlugs}
-        numberInputs={numberInputs}
-        booleanInputs={booleanInputs}
-        dateTimeInputs={dateTimeInputs}
-        choicesInputs={choicesInputs}
-        progressInputs={progressInputs}
-        sectionsInputs={sectionsInputs}
-        textInputs={textInputs}
-        onNumberChange={handleNumberChange}
-        onBooleanChange={handleBooleanChange}
-        onDateTimeChange={handleDateTimeChange}
-        onChoicesChange={handleChoicesChange}
-        onProgressChange={handleProgressChange}
-        onSectionsChange={handleSectionsChange}
-        onTextChange={handleTextChange}
-      />
+      {groupsWithProperties.map(group => (
+        <RowCard
+          key={group.id}
+          className="space-y-4 p-4"
+        >
+          <p className="text-sm font-medium">{group.name}</p>
+          <CategoryCustomFields
+            {...fieldProps}
+            groupId={group.id}
+            hideHeading
+          />
+        </RowCard>
+      ))}
+      {hasUngrouped && (
+        <RowCard className="space-y-4 p-4">
+          <p className="text-sm font-medium">Properties</p>
+          <CategoryCustomFields
+            {...fieldProps}
+            groupId={null}
+            hideHeading
+          />
+        </RowCard>
+      )}
       <div>
         <Button
           type="submit"

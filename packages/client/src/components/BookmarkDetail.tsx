@@ -4,7 +4,6 @@ import { youtubeEmbedUrl } from "@eesimple/types";
 
 import { BookmarkArchiveLinkButton, BookmarkArchiveNowButton } from "./BookmarkCardActions";
 import { BookmarkDetailBody } from "./BookmarkDetailBody";
-import { BookmarkDetailDebug } from "./BookmarkDetailDebug";
 import { BookmarkDetailMedia } from "./BookmarkDetailMedia";
 import { BookmarkDetailTabbed } from "./BookmarkDetailTabbed";
 import { DetailHeaderActions } from "./DetailHeaderActions";
@@ -132,7 +131,6 @@ export function BookmarkDetail({
           />
         )}
 
-      <BookmarkDetailDebug bookmark={bookmark} />
     </div>
   );
 }
