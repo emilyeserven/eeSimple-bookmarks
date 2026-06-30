@@ -14,6 +14,7 @@ import { BookmarkCardIsbnLinks } from "./BookmarkCardIsbnLinks";
 import { buildBookmarkCardOverlayItems } from "./bookmarkCardOverlayItems";
 import { useBookmarkCardSaves } from "./useBookmarkCardSaves";
 import { useCategories } from "../hooks/useCategories";
+import { useHideWebsiteForYouTube } from "../lib/bookmarkCardFields";
 import { buildBookmarkValueItems, fieldPlacementsForCard } from "../lib/bookmarkCardValues";
 
 interface BookmarkCardProps {
@@ -63,6 +64,9 @@ export function BookmarkCard({
   const {
     data: allCategories = [],
   } = useCategories();
+  // Listings pass the rule-resolved value explicitly; other surfaces fall back to the Default rule.
+  const defaultHideWebsiteForYouTube = useHideWebsiteForYouTube();
+  const effectiveHideWebsiteForYouTube = hideWebsiteForYouTube ?? defaultHideWebsiteForYouTube;
 
   // Properties opted into inline editing from this card, limited to ones that apply to its category.
   // Calculate properties are computed server-side, so they are never editable here.
@@ -105,7 +109,7 @@ export function BookmarkCard({
   const bookmarkCategory = allCategories.find(c => c.id === bookmark.categoryId && !c.builtIn);
   // Compute overlays whenever the image area is enabled so they appear on placeholders too.
   const overlayItems = imageEnabled
-    ? buildBookmarkCardOverlayItems(bookmark, valueItems, placements, bookmarkCategory, menu)
+    ? buildBookmarkCardOverlayItems(bookmark, valueItems, placements, bookmarkCategory, menu, effectiveHideWebsiteForYouTube)
     : [];
 
   // Show a placeholder in "shown" mode when there is no actual image — always, so the absence of

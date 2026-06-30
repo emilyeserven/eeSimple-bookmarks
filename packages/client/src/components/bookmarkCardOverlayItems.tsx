@@ -17,8 +17,9 @@ export function buildBookmarkCardOverlayItems(
   placements: Map<string, ResolvedFieldPlacement>,
   bookmarkCategory: Category | undefined,
   menu: BookmarkCardMenuControls,
+  hideWebsiteForYouTube = false,
 ): CardOverlayItem[] {
-  return buildCardOverlayItems(bookmark, valueItems, placements, bookmarkCategory, {
+  return buildCardOverlayItems(bookmark, valueItems, placements, bookmarkCategory, hideWebsiteForYouTube, {
     externalLink: <BookmarkExternalLinkButton url={bookmark.url ?? ""} />,
     more: (
       <BookmarkMoreMenu

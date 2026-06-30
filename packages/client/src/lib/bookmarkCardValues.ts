@@ -476,12 +476,14 @@ export function standardFieldOverlayLabel(
   bookmark: Bookmark,
   key: string,
   categoryName: string | null,
+  hideWebsiteForYouTube = false,
 ): string | null {
   switch (key) {
     case "title": return bookmark.title || null;
     case "description": return bookmark.description || null;
     case "category": return categoryName;
-    case "website": return bookmark.website?.siteName ?? null;
+    case "website":
+      return bookmark.youtubeChannel && hideWebsiteForYouTube ? null : bookmark.website?.siteName ?? null;
     case "mediaType": return bookmark.mediaType?.name ?? null;
     case "youtubeChannel": return bookmark.youtubeChannel?.name ?? null;
     case "tags": return bookmark.tags.length > 0 ? bookmark.tags.map(tag => tag.name).join(", ") : null;
