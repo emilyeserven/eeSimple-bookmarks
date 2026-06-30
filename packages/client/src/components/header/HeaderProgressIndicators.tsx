@@ -1,3 +1,4 @@
+import { ChannelImageFetchProgressIndicator } from "@/components/ChannelImageFetchProgressIndicator";
 import { ImageFetchProgressIndicator } from "@/components/ImageFetchProgressIndicator";
 import { ImportProgressIndicator } from "@/components/ImportProgressIndicator";
 
@@ -6,6 +7,7 @@ export function HeaderProgressIndicators() {
   return (
     <>
       <ImageFetchProgressIndicator />
+      <ChannelImageFetchProgressIndicator />
       <ImportProgressIndicator />
     </>
   );

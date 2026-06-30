@@ -5,7 +5,7 @@ import { useAutoFetchCompletionToast, useAutoFetchStatus, useAutoFetchWithFallba
 import { Button } from "@/components/ui/button";
 import { ResponsivePopover } from "@/components/ui/responsive-popover";
 
-function FetchProgressPopover({
+export function FetchProgressPopover({
   label,
   totalCount,
   processedCount,

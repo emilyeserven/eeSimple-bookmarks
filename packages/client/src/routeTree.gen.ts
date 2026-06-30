@@ -113,6 +113,7 @@ import { Route as SettingsAutomationsLinkParsingRouteImport } from './routes/set
 import { Route as SettingsAutomationsImportsRouteImport } from './routes/settings.automations.imports'
 import { Route as SettingsAutomationsGlobalRouteImport } from './routes/settings.automations.global'
 import { Route as SettingsAutomationsCheckLinksRouteImport } from './routes/settings.automations.check-links'
+import { Route as SettingsAutomationsBackfillRouteImport } from './routes/settings.automations.backfill'
 import { Route as SettingsAdvancedUpdatesRouteImport } from './routes/settings.advanced.updates'
 import { Route as SettingsAdvancedManageMediaRouteImport } from './routes/settings.advanced.manage-media'
 import { Route as SettingsAdvancedManageDataRouteImport } from './routes/settings.advanced.manage-data'
@@ -837,6 +838,12 @@ const SettingsAutomationsCheckLinksRoute =
   SettingsAutomationsCheckLinksRouteImport.update({
     id: '/check-links',
     path: '/check-links',
+    getParentRoute: () => SettingsAutomationsRoute,
+  } as any)
+const SettingsAutomationsBackfillRoute =
+  SettingsAutomationsBackfillRouteImport.update({
+    id: '/backfill',
+    path: '/backfill',
     getParentRoute: () => SettingsAutomationsRoute,
   } as any)
 const SettingsAdvancedUpdatesRoute = SettingsAdvancedUpdatesRouteImport.update({
@@ -1857,16 +1864,16 @@ export interface FileRoutesByFullPath {
   '/saved-filters': typeof SavedFiltersRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/tags': typeof TagsRouteWithChildren
-  '/autofill/$ruleSlug': typeof AutofillRuleSlugRouteWithChildren
+  '/autofill/$ruleSlug': typeof AutofillRuleSlugViewRouteWithChildren
   '/autofill/backfill': typeof AutofillBackfillRoute
   '/bookmarks/$bookmarkId': typeof BookmarksBookmarkIdRouteWithChildren
-  '/card-display-rules/$ruleSlug': typeof CardDisplayRulesRuleSlugRouteWithChildren
-  '/categories/$categorySlug': typeof CategoriesCategorySlugRouteWithChildren
-  '/custom-properties/$propertySlug': typeof CustomPropertiesPropertySlugRouteWithChildren
+  '/card-display-rules/$ruleSlug': typeof CardDisplayRulesRuleSlugViewRouteWithChildren
+  '/categories/$categorySlug': typeof CategoriesCategorySlugViewRouteWithChildren
+  '/custom-properties/$propertySlug': typeof CustomPropertiesPropertySlugViewRouteWithChildren
   '/custom-properties/new': typeof CustomPropertiesNewRoute
-  '/import-rules/$ruleSlug': typeof ImportRulesRuleSlugRouteWithChildren
+  '/import-rules/$ruleSlug': typeof ImportRulesRuleSlugViewRouteWithChildren
   '/inbox/new': typeof InboxNewRoute
-  '/saved-filters/$filterSlug': typeof SavedFiltersFilterSlugRouteWithChildren
+  '/saved-filters/$filterSlug': typeof SavedFiltersFilterSlugViewRouteWithChildren
   '/settings/advanced': typeof SettingsAdvancedRouteWithChildren
   '/settings/autofill': typeof SettingsAutofillRoute
   '/settings/automations': typeof SettingsAutomationsRouteWithChildren
@@ -1885,7 +1892,7 @@ export interface FileRoutesByFullPath {
   '/settings/saved-filters': typeof SettingsSavedFiltersRoute
   '/settings/websites': typeof SettingsWebsitesRoute
   '/settings/youtube-channels': typeof SettingsYoutubeChannelsRoute
-  '/tags/$tagSlug': typeof TagsTagSlugRouteWithChildren
+  '/tags/$tagSlug': typeof TagsTagSlugViewRouteWithChildren
   '/taxonomies/authors': typeof TaxonomiesAuthorsRouteWithChildren
   '/taxonomies/locations': typeof TaxonomiesLocationsRouteWithChildren
   '/taxonomies/media-types': typeof TaxonomiesMediaTypesRouteWithChildren
@@ -1917,6 +1924,7 @@ export interface FileRoutesByFullPath {
   '/settings/advanced/manage-data': typeof SettingsAdvancedManageDataRoute
   '/settings/advanced/manage-media': typeof SettingsAdvancedManageMediaRoute
   '/settings/advanced/updates': typeof SettingsAdvancedUpdatesRoute
+  '/settings/automations/backfill': typeof SettingsAutomationsBackfillRoute
   '/settings/automations/check-links': typeof SettingsAutomationsCheckLinksRoute
   '/settings/automations/global': typeof SettingsAutomationsGlobalRoute
   '/settings/automations/imports': typeof SettingsAutomationsImportsRoute
@@ -1929,16 +1937,16 @@ export interface FileRoutesByFullPath {
   '/settings/display/media': typeof SettingsDisplayMediaRoute
   '/settings/display/sidebar': typeof SettingsDisplaySidebarRoute
   '/tags/$tagSlug/edit': typeof TagsTagSlugEditRouteWithChildren
-  '/taxonomies/authors/$authorSlug': typeof TaxonomiesAuthorsAuthorSlugRouteWithChildren
-  '/taxonomies/locations/$locationSlug': typeof TaxonomiesLocationsLocationSlugRouteWithChildren
+  '/taxonomies/authors/$authorSlug': typeof TaxonomiesAuthorsAuthorSlugViewRouteWithChildren
+  '/taxonomies/locations/$locationSlug': typeof TaxonomiesLocationsLocationSlugViewRouteWithChildren
   '/taxonomies/locations/new': typeof TaxonomiesLocationsNewRoute
-  '/taxonomies/media-types/$mediaTypeSlug': typeof TaxonomiesMediaTypesMediaTypeSlugRouteWithChildren
-  '/taxonomies/newsletters/$newsletterSlug': typeof TaxonomiesNewslettersNewsletterSlugRouteWithChildren
-  '/taxonomies/property-groups/$propertyGroupSlug': typeof TaxonomiesPropertyGroupsPropertyGroupSlugRouteWithChildren
-  '/taxonomies/publishers/$publisherSlug': typeof TaxonomiesPublishersPublisherSlugRouteWithChildren
-  '/taxonomies/relationship-types/$relationshipTypeSlug': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugRouteWithChildren
-  '/taxonomies/websites/$websiteSlug': typeof TaxonomiesWebsitesWebsiteSlugRouteWithChildren
-  '/taxonomies/youtube-channels/$channelSlug': typeof TaxonomiesYoutubeChannelsChannelSlugRouteWithChildren
+  '/taxonomies/media-types/$mediaTypeSlug': typeof TaxonomiesMediaTypesMediaTypeSlugViewRouteWithChildren
+  '/taxonomies/newsletters/$newsletterSlug': typeof TaxonomiesNewslettersNewsletterSlugViewRouteWithChildren
+  '/taxonomies/property-groups/$propertyGroupSlug': typeof TaxonomiesPropertyGroupsPropertyGroupSlugViewRouteWithChildren
+  '/taxonomies/publishers/$publisherSlug': typeof TaxonomiesPublishersPublisherSlugViewRouteWithChildren
+  '/taxonomies/relationship-types/$relationshipTypeSlug': typeof TaxonomiesRelationshipTypesRelationshipTypeSlugViewRouteWithChildren
+  '/taxonomies/websites/$websiteSlug': typeof TaxonomiesWebsitesWebsiteSlugViewRouteWithChildren
+  '/taxonomies/youtube-channels/$channelSlug': typeof TaxonomiesYoutubeChannelsChannelSlugViewRouteWithChildren
   '/autofill/$ruleSlug/': typeof AutofillRuleSlugIndexRoute
   '/bookmarks/$bookmarkId/': typeof BookmarksBookmarkIdIndexRoute
   '/card-display-rules/$ruleSlug/': typeof CardDisplayRulesRuleSlugIndexRoute
@@ -2147,6 +2155,7 @@ export interface FileRoutesByTo {
   '/settings/advanced/manage-data': typeof SettingsAdvancedManageDataRoute
   '/settings/advanced/manage-media': typeof SettingsAdvancedManageMediaRoute
   '/settings/advanced/updates': typeof SettingsAdvancedUpdatesRoute
+  '/settings/automations/backfill': typeof SettingsAutomationsBackfillRoute
   '/settings/automations/check-links': typeof SettingsAutomationsCheckLinksRoute
   '/settings/automations/global': typeof SettingsAutomationsGlobalRoute
   '/settings/automations/imports': typeof SettingsAutomationsImportsRoute
@@ -2392,6 +2401,7 @@ export interface FileRoutesById {
   '/settings/advanced/manage-data': typeof SettingsAdvancedManageDataRoute
   '/settings/advanced/manage-media': typeof SettingsAdvancedManageMediaRoute
   '/settings/advanced/updates': typeof SettingsAdvancedUpdatesRoute
+  '/settings/automations/backfill': typeof SettingsAutomationsBackfillRoute
   '/settings/automations/check-links': typeof SettingsAutomationsCheckLinksRoute
   '/settings/automations/global': typeof SettingsAutomationsGlobalRoute
   '/settings/automations/imports': typeof SettingsAutomationsImportsRoute
@@ -2665,6 +2675,7 @@ export interface FileRouteTypes {
     | '/settings/advanced/manage-data'
     | '/settings/advanced/manage-media'
     | '/settings/advanced/updates'
+    | '/settings/automations/backfill'
     | '/settings/automations/check-links'
     | '/settings/automations/global'
     | '/settings/automations/imports'
@@ -2895,6 +2906,7 @@ export interface FileRouteTypes {
     | '/settings/advanced/manage-data'
     | '/settings/advanced/manage-media'
     | '/settings/advanced/updates'
+    | '/settings/automations/backfill'
     | '/settings/automations/check-links'
     | '/settings/automations/global'
     | '/settings/automations/imports'
@@ -3139,6 +3151,7 @@ export interface FileRouteTypes {
     | '/settings/advanced/manage-data'
     | '/settings/advanced/manage-media'
     | '/settings/advanced/updates'
+    | '/settings/automations/backfill'
     | '/settings/automations/check-links'
     | '/settings/automations/global'
     | '/settings/automations/imports'
@@ -4090,6 +4103,13 @@ declare module '@tanstack/react-router' {
       path: '/check-links'
       fullPath: '/settings/automations/check-links'
       preLoaderRoute: typeof SettingsAutomationsCheckLinksRouteImport
+      parentRoute: typeof SettingsAutomationsRoute
+    }
+    '/settings/automations/backfill': {
+      id: '/settings/automations/backfill'
+      path: '/backfill'
+      fullPath: '/settings/automations/backfill'
+      preLoaderRoute: typeof SettingsAutomationsBackfillRouteImport
       parentRoute: typeof SettingsAutomationsRoute
     }
     '/settings/advanced/updates': {
@@ -5852,6 +5872,7 @@ const SettingsAdvancedRouteWithChildren =
   SettingsAdvancedRoute._addFileChildren(SettingsAdvancedRouteChildren)
 
 interface SettingsAutomationsRouteChildren {
+  SettingsAutomationsBackfillRoute: typeof SettingsAutomationsBackfillRoute
   SettingsAutomationsCheckLinksRoute: typeof SettingsAutomationsCheckLinksRoute
   SettingsAutomationsGlobalRoute: typeof SettingsAutomationsGlobalRoute
   SettingsAutomationsImportsRoute: typeof SettingsAutomationsImportsRoute
@@ -5861,6 +5882,7 @@ interface SettingsAutomationsRouteChildren {
 }
 
 const SettingsAutomationsRouteChildren: SettingsAutomationsRouteChildren = {
+  SettingsAutomationsBackfillRoute: SettingsAutomationsBackfillRoute,
   SettingsAutomationsCheckLinksRoute: SettingsAutomationsCheckLinksRoute,
   SettingsAutomationsGlobalRoute: SettingsAutomationsGlobalRoute,
   SettingsAutomationsImportsRoute: SettingsAutomationsImportsRoute,

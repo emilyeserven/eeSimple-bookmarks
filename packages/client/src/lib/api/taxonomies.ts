@@ -1,5 +1,6 @@
 import type {
   Author,
+  AutoFetchJobStatus,
   BulkBookmarkResult,
   BulkDeleteResult,
   Category,
@@ -225,6 +226,12 @@ export const youtubeChannelsApi = {
     request<undefined>(`/youtube-channels/${id}/image`, {
       method: "DELETE",
     }),
+  backfillImages: () =>
+    request<AutoFetchJobStatus>("/youtube-channels/backfill-images", {
+      method: "POST",
+    }),
+  backfillImagesStatus: () => request<AutoFetchJobStatus>("/youtube-channels/backfill-images/status"),
+  missingImageCount: () => request<{ count: number }>("/youtube-channels/missing-image-count"),
 };
 
 export const customPropertiesApi = createCrudApi<CustomProperty, CreateCustomPropertyInput, UpdateCustomPropertyInput>("custom-properties");

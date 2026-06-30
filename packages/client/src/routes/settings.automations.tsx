@@ -14,6 +14,10 @@ const automationsNav: readonly TabNavItem[] = [
     label: "Global",
   },
   {
+    to: "/settings/automations/backfill",
+    label: "Backfill",
+  },
+  {
     to: "/settings/automations/link-parsing",
     label: "Link Parsing",
   },

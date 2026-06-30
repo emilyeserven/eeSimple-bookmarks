@@ -8,10 +8,12 @@
  * here (no favicon-style icon-link preference needed, unlike websites).
  */
 
-import { eq } from "drizzle-orm";
+import type { BulkAutoFetchResult } from "@eesimple/types";
+import { eq, isNull } from "drizzle-orm";
 import { channelUrlFromKey } from "@eesimple/types";
 import { db } from "@/db";
 import { type YouTubeChannelImageRow, youtubeChannelImages, youtubeChannels } from "@/db/schema";
+import { batchFetch } from "@/services/batchFetch";
 import { type EntityImageResult, fetchOgImage, withTransientRetry } from "@/services/metadata";
 import { processImage } from "@/utils/image";
 import { deleteObject, putObject } from "@/utils/objectStore";
@@ -108,6 +110,14 @@ export async function removeYouTubeChannelImage(channelId: string): Promise<bool
   return true;
 }
 
+/** Fetch and store a channel's avatar from its already-known `channelKey`, avoiding a re-lookup. */
+async function fetchAndStoreChannelAvatar(channelId: string, channelKey: string): Promise<EntityImageResult> {
+  const url = channelUrlFromKey(channelKey);
+  const result = await withTransientRetry(() => fetchOgImage(url));
+  if (typeof result === "string") return result;
+  return setYouTubeChannelImage(channelId, result, "og");
+}
+
 /**
  * Fetch a channel's avatar from its public channel page (`og:image`) and store it. The page URL is
  * reconstructed from the stored `channelKey` (never a client-supplied URL — avoids an SSRF
@@ -122,8 +132,41 @@ export async function fetchAndStoreChannelImage(channelId: string): Promise<Enti
     .where(eq(youtubeChannels.id, channelId));
   if (!channel) return "not_found";
 
-  const url = channelUrlFromKey(channel.channelKey);
-  const result = await withTransientRetry(() => fetchOgImage(url));
-  if (typeof result === "string") return result;
-  return setYouTubeChannelImage(channelId, result, "og");
+  return fetchAndStoreChannelAvatar(channelId, channel.channelKey);
+}
+
+/** Channels with no stored avatar row, eligible for bulk backfill. */
+async function eligibleNoImageChannels(): Promise<{ id: string;
+  channelKey: string; }[]> {
+  return db
+    .select({
+      id: youtubeChannels.id,
+      channelKey: youtubeChannels.channelKey,
+    })
+    .from(youtubeChannels)
+    .leftJoin(youtubeChannelImages, eq(youtubeChannelImages.youtubeChannelId, youtubeChannels.id))
+    .where(isNull(youtubeChannelImages.youtubeChannelId));
+}
+
+/** Channels currently missing an avatar, eligible for bulk backfill. */
+export async function countMissingChannelImages(): Promise<number> {
+  return (await eligibleNoImageChannels()).length;
+}
+
+/**
+ * Auto-fetch avatars for all channels currently missing one, in batches of 3 concurrent requests to
+ * avoid rate-limiting. Returns how many succeeded vs. failed. `onProgress` is called after each
+ * batch with the running total of processed channels.
+ */
+export async function bulkBackfillChannelImages(
+  onProgress?: (processed: number, total: number) => void,
+): Promise<BulkAutoFetchResult> {
+  const eligible = await eligibleNoImageChannels();
+  return batchFetch(eligible, async ({
+    id, channelKey,
+  }) => {
+    const r = await fetchAndStoreChannelAvatar(id, channelKey);
+    if (typeof r === "string") throw new Error(r);
+    return r;
+  }, onProgress);
 }
