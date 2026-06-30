@@ -4,6 +4,79 @@ All notable changes to this project are documented in this file. Versioning and 
 managed automatically by [release-please](https://github.com/googleapis/release-please) from
 [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [0.1.8](https://github.com/emilyeserven/eeSimple-bookmarks/compare/v0.1.7...v0.1.8) (2026-06-30)
+
+
+### Features
+
+* add "All categories" option to tag category selection ([#642](https://github.com/emilyeserven/eeSimple-bookmarks/issues/642)) ([5772ed0](https://github.com/emilyeserven/eeSimple-bookmarks/commit/5772ed0a3ca1b0c0940ed19c5afa40b2c16572bd))
+* add "See Less" / "Show Less" affordances to sidebar sections ([#679](https://github.com/emilyeserven/eeSimple-bookmarks/issues/679)) ([bc4b7ab](https://github.com/emilyeserven/eeSimple-bookmarks/commit/bc4b7abb20178b0bcf724de02ce38af855550758))
+* add ancestor-chain reparenting for existing locations ([#705](https://github.com/emilyeserven/eeSimple-bookmarks/issues/705)) ([d49d898](https://github.com/emilyeserven/eeSimple-bookmarks/commit/d49d898cd68b51c0eb30e37d57d258e09137d5a2))
+* add ArchiveBox connector and archive link-out UI ([#641](https://github.com/emilyeserven/eeSimple-bookmarks/issues/641)) ([b8bb437](https://github.com/emilyeserven/eeSimple-bookmarks/commit/b8bb43717971dd436b2271e11f80d1ee7c8fafde))
+* add area click detection for location map popups ([#701](https://github.com/emilyeserven/eeSimple-bookmarks/issues/701)) ([efa841b](https://github.com/emilyeserven/eeSimple-bookmarks/commit/efa841bdd8065fe9353742d4de1847bf2f9710f5))
+* add Authors tab to Publisher and Website edit pages ([#645](https://github.com/emilyeserven/eeSimple-bookmarks/issues/645)) ([bd0c8e4](https://github.com/emilyeserven/eeSimple-bookmarks/commit/bd0c8e42c13a8161a2a164711a5c456ae70536a3))
+* add backfill automation for locations from bookmark titles ([#704](https://github.com/emilyeserven/eeSimple-bookmarks/issues/704)) ([5dd8d70](https://github.com/emilyeserven/eeSimple-bookmarks/commit/5dd8d705a339c7eda532427087725d07a45e74f9))
+* add card display rules group to command palette ([#668](https://github.com/emilyeserven/eeSimple-bookmarks/issues/668)) ([7ec27d4](https://github.com/emilyeserven/eeSimple-bookmarks/commit/7ec27d45d1452ddaa41baddcce1251150f270ba1))
+* add clickable tag links option for card-table zone ([#662](https://github.com/emilyeserven/eeSimple-bookmarks/issues/662)) ([eebbdb0](https://github.com/emilyeserven/eeSimple-bookmarks/commit/eebbdb0797706b048ee87ad2704506840c03de6f))
+* add configurable delay option for screenshot capture ([#644](https://github.com/emilyeserven/eeSimple-bookmarks/issues/644)) ([5384a52](https://github.com/emilyeserven/eeSimple-bookmarks/commit/5384a520eccaca9e7baf5894309928ed467664c7))
+* add custom map colors for location levels ([#709](https://github.com/emilyeserven/eeSimple-bookmarks/issues/709)) ([ff9a1d7](https://github.com/emilyeserven/eeSimple-bookmarks/commit/ff9a1d73392dd82d5d18fa915b5f21ec1ce547a9))
+* add detail/edit pages for card display rules ([#667](https://github.com/emilyeserven/eeSimple-bookmarks/issues/667)) ([c32710b](https://github.com/emilyeserven/eeSimple-bookmarks/commit/c32710bcb0f387951d263c010530ed33652ad565))
+* add expand/collapse all toggle to taxonomy tree listings ([#698](https://github.com/emilyeserven/eeSimple-bookmarks/issues/698)) ([a65583f](https://github.com/emilyeserven/eeSimple-bookmarks/commit/a65583fa90f94855d207f987f9adb65cee064d9a))
+* add filter bar to connectors settings ([#676](https://github.com/emilyeserven/eeSimple-bookmarks/issues/676)) ([519849c](https://github.com/emilyeserven/eeSimple-bookmarks/commit/519849c86f70f35131577a314dbd35d2d130c211))
+* add filter to import blacklist table ([#677](https://github.com/emilyeserven/eeSimple-bookmarks/issues/677)) ([dce0a0c](https://github.com/emilyeserven/eeSimple-bookmarks/commit/dce0a0c56f26f49a988cf34a9936584a31c1a119))
+* add hover state tracking for bookmark edit hint ([#652](https://github.com/emilyeserven/eeSimple-bookmarks/issues/652)) ([3e9d07f](https://github.com/emilyeserven/eeSimple-bookmarks/commit/3e9d07f4ae05bc536b75c4fe4222ae6ce3585877))
+* add inline create options to Advanced section comboboxes in inbox ([#649](https://github.com/emilyeserven/eeSimple-bookmarks/issues/649)) ([2ac18b9](https://github.com/emilyeserven/eeSimple-bookmarks/commit/2ac18b9acf4e5b0c0fb499327ceb8e3d2b8a7829))
+* add inline create-tag modal to parent picker in TagGeneralForm ([#669](https://github.com/emilyeserven/eeSimple-bookmarks/issues/669)) ([72a8802](https://github.com/emilyeserven/eeSimple-bookmarks/commit/72a88025ef9bacf43160cc2bebc663da6bb2bbdc))
+* add inline creation modals for categories, tags, authors, publishers, and media types ([#650](https://github.com/emilyeserven/eeSimple-bookmarks/issues/650)) ([6a41699](https://github.com/emilyeserven/eeSimple-bookmarks/commit/6a41699fc319c0e7a36112f42e62231af1488728))
+* add inline entity creation to combobox pickers ([#656](https://github.com/emilyeserven/eeSimple-bookmarks/issues/656)) ([a9a4832](https://github.com/emilyeserven/eeSimple-bookmarks/commit/a9a48327994ba1841fc69d260d5ea7f78a39ccd9))
+* add loading toast feedback for screenshot capture ([#655](https://github.com/emilyeserven/eeSimple-bookmarks/issues/655)) ([4d1f2a3](https://github.com/emilyeserven/eeSimple-bookmarks/commit/4d1f2a3f330c29ad8d3c59303db26cbd28656f73))
+* add location map section below bookmark form ([#694](https://github.com/emilyeserven/eeSimple-bookmarks/issues/694)) ([54841f1](https://github.com/emilyeserven/eeSimple-bookmarks/commit/54841f1de033b61b440ca8dddae641bf9a23b248))
+* add locations field to bookmark card display ([#706](https://github.com/emilyeserven/eeSimple-bookmarks/issues/706)) ([162f26a](https://github.com/emilyeserven/eeSimple-bookmarks/commit/162f26aa51c41d3e97fca965fd565b7dcafe60c6))
+* add Locations taxonomy backend (schema, services, geocoding, autofill, conditions) ([#681](https://github.com/emilyeserven/eeSimple-bookmarks/issues/681)) ([d7399d2](https://github.com/emilyeserven/eeSimple-bookmarks/commit/d7399d2db83682a7d7bda07833fd36803773ef5b))
+* add Map view to the Locations taxonomy ([#691](https://github.com/emilyeserven/eeSimple-bookmarks/issues/691)) ([3e1ae38](https://github.com/emilyeserven/eeSimple-bookmarks/commit/3e1ae38f8311783adee310c316ea35b363925ada))
+* add media types column to custom property preview and table ([#643](https://github.com/emilyeserven/eeSimple-bookmarks/issues/643)) ([8a98759](https://github.com/emilyeserven/eeSimple-bookmarks/commit/8a9875999ac790106978a0fd396f414159272129))
+* add offline/online connectivity toast notifications ([#664](https://github.com/emilyeserven/eeSimple-bookmarks/issues/664)) ([ab13604](https://github.com/emilyeserven/eeSimple-bookmarks/commit/ab13604fcb3700ed45e36f9d01701b1541b32b69))
+* add on-demand filter visibility settings ([#680](https://github.com/emilyeserven/eeSimple-bookmarks/issues/680)) ([762e109](https://github.com/emilyeserven/eeSimple-bookmarks/commit/762e109b7ab76b141f5c3d63012f71989c04f9d5))
+* add per-item Advanced collapsible to pending inbox items ([#646](https://github.com/emilyeserven/eeSimple-bookmarks/issues/646)) ([0ba994f](https://github.com/emilyeserven/eeSimple-bookmarks/commit/0ba994f3dec52f29f9ec10fc94e2c972437d9b76))
+* add romanized name field to location ancestor chain editor ([#685](https://github.com/emilyeserven/eeSimple-bookmarks/issues/685)) ([68df6dc](https://github.com/emilyeserven/eeSimple-bookmarks/commit/68df6dca1d781fa7323772c99504d7dbac30dcc1))
+* add romanized name support to breadcrumbs ([#687](https://github.com/emilyeserven/eeSimple-bookmarks/issues/687)) ([bdaf122](https://github.com/emilyeserven/eeSimple-bookmarks/commit/bdaf12289d6ffb599baa01a71dd5cc4315f0e73e))
+* add romanized name/title support for tags and bookmarks ([#659](https://github.com/emilyeserven/eeSimple-bookmarks/issues/659)) ([f781ba2](https://github.com/emilyeserven/eeSimple-bookmarks/commit/f781ba2e917210923fb891e1f9c57f1204b9183f))
+* add Settings &gt; Locations with per-placeType map display defaults ([#699](https://github.com/emilyeserven/eeSimple-bookmarks/issues/699)) ([fd77547](https://github.com/emilyeserven/eeSimple-bookmarks/commit/fd7754756a84ed25aa5bdf2efbcea0ea697efd0a))
+* allow reusing existing locations in ancestor chains ([#690](https://github.com/emilyeserven/eeSimple-bookmarks/issues/690)) ([6ab64ff](https://github.com/emilyeserven/eeSimple-bookmarks/commit/6ab64ff71adddeb5a7766563b41044a6ad1dff89))
+* auto-fill location ancestors from geocoding ([#693](https://github.com/emilyeserven/eeSimple-bookmarks/issues/693)) ([476f4f1](https://github.com/emilyeserven/eeSimple-bookmarks/commit/476f4f1a6db87f61ae92fd843e050dd53d2e3258))
+* auto-submit extension popup on open, streamline UX ([#658](https://github.com/emilyeserven/eeSimple-bookmarks/issues/658)) ([c38f5ad](https://github.com/emilyeserven/eeSimple-bookmarks/commit/c38f5ad525c899c31c2c01c1a1b6d9c7a96c217f))
+* collapse long breadcrumb trails into dropdown menu ([#696](https://github.com/emilyeserven/eeSimple-bookmarks/issues/696)) ([0d9a792](https://github.com/emilyeserven/eeSimple-bookmarks/commit/0d9a79285d3d2ae6b0bdb822dbced4c614182700))
+* collapse mobile sidebar after a nav item is tapped ([#639](https://github.com/emilyeserven/eeSimple-bookmarks/issues/639)) ([bc44c45](https://github.com/emilyeserven/eeSimple-bookmarks/commit/bc44c45632a71a05629d5c5756fa0a4b2d8a3457))
+* derive location slugs from romanized names ([#686](https://github.com/emilyeserven/eeSimple-bookmarks/issues/686)) ([972cf8a](https://github.com/emilyeserven/eeSimple-bookmarks/commit/972cf8a31d3004e6a696407cd608bde00502ff79))
+* display and search romanized names in Combobox ([#689](https://github.com/emilyeserven/eeSimple-bookmarks/issues/689)) ([25b0b6d](https://github.com/emilyeserven/eeSimple-bookmarks/commit/25b0b6d57cca1cde26110ec1c512aa8564121446))
+* display location hierarchy and include descendant bookmarks ([#684](https://github.com/emilyeserven/eeSimple-bookmarks/issues/684)) ([0ec4938](https://github.com/emilyeserven/eeSimple-bookmarks/commit/0ec4938aea0c4cef41657c4ef188a7462a78512e))
+* extract title-tag matching to shared types package ([#671](https://github.com/emilyeserven/eeSimple-bookmarks/issues/671)) ([64afd2a](https://github.com/emilyeserven/eeSimple-bookmarks/commit/64afd2aee0180ea008bf62d9a6cf337c37855008))
+* intercept Android share-target POSTs in service worker ([#660](https://github.com/emilyeserven/eeSimple-bookmarks/issues/660)) ([f26d24f](https://github.com/emilyeserven/eeSimple-bookmarks/commit/f26d24ff68456e48e1c873f878f514a92d6392fd))
+* location create form (geocoding lookup + ancestor chain) + local-name geocoding ([#683](https://github.com/emilyeserven/eeSimple-bookmarks/issues/683)) ([2e2cdae](https://github.com/emilyeserven/eeSimple-bookmarks/commit/2e2cdaef6f8a2a1b68a5b90bdd358ab50b2d1845))
+* make location Levels place-type groups, add ancestors-on-map toggle, fix Levels z-index ([#703](https://github.com/emilyeserven/eeSimple-bookmarks/issues/703)) ([0699a55](https://github.com/emilyeserven/eeSimple-bookmarks/commit/0699a5502784b7a8658434819f6b946c1b04c720))
+* notify user when querying OpenStreetMap Nominatim ([#697](https://github.com/emilyeserven/eeSimple-bookmarks/issues/697)) ([7a0d29d](https://github.com/emilyeserven/eeSimple-bookmarks/commit/7a0d29dce163005876abe4c70d7bfa9a86d74c7c))
+* register nested tab pages in settings registry ([#700](https://github.com/emilyeserven/eeSimple-bookmarks/issues/700)) ([e81b055](https://github.com/emilyeserven/eeSimple-bookmarks/commit/e81b0552b55108dcc16c6e09c5410e727f249a2e))
+* replace place-type text input with combobox picker ([#708](https://github.com/emilyeserven/eeSimple-bookmarks/issues/708)) ([3234be6](https://github.com/emilyeserven/eeSimple-bookmarks/commit/3234be67485f9a89a4e580cf0042a73db4643d8b))
+* seed inbox prefill from autofill rules and website defaults ([#666](https://github.com/emilyeserven/eeSimple-bookmarks/issues/666)) ([0e12d57](https://github.com/emilyeserven/eeSimple-bookmarks/commit/0e12d57e03d5e94fdf81a195d8cdbe71f612d2ad))
+* show containing areas in location map pin popups ([#702](https://github.com/emilyeserven/eeSimple-bookmarks/issues/702)) ([7e714d7](https://github.com/emilyeserven/eeSimple-bookmarks/commit/7e714d77cf2366940165517aefad356adcdc37ca))
+* show level color hints in map Levels dropdown ([#710](https://github.com/emilyeserven/eeSimple-bookmarks/issues/710)) ([d3f7992](https://github.com/emilyeserven/eeSimple-bookmarks/commit/d3f7992856c74784c0ddb9060aa36b64abf19814))
+* show placeholder image area for overlay items when no image exists ([#654](https://github.com/emilyeserven/eeSimple-bookmarks/issues/654)) ([099a0d7](https://github.com/emilyeserven/eeSimple-bookmarks/commit/099a0d7ab77caf24238e00841502f44016d0f944))
+
+
+### Bug Fixes
+
+* add Chrome client hints to bypass anti-bot CDN 403s ([#124](https://github.com/emilyeserven/eeSimple-bookmarks/issues/124)) ([#661](https://github.com/emilyeserven/eeSimple-bookmarks/issues/661)) ([14f165d](https://github.com/emilyeserven/eeSimple-bookmarks/commit/14f165d397187de05281f9ec1a9867de4c18b29a))
+* correct request body structure in takeScreenshot API call ([#651](https://github.com/emilyeserven/eeSimple-bookmarks/issues/651)) ([7cca1f9](https://github.com/emilyeserven/eeSimple-bookmarks/commit/7cca1f90325aa068607da78a04e28539b416730e))
+* disable swipe-to-approve while Advanced collapsible is open on mobile ([#648](https://github.com/emilyeserven/eeSimple-bookmarks/issues/648)) ([5929a37](https://github.com/emilyeserven/eeSimple-bookmarks/commit/5929a370800fdf12ed0aafd6eea66dabf2c423ac))
+* serve index.html only for browser navigation requests ([#663](https://github.com/emilyeserven/eeSimple-bookmarks/issues/663)) ([231d21a](https://github.com/emilyeserven/eeSimple-bookmarks/commit/231d21aa5fe0956e50f5c2c05c16ef6233d356a0))
+* stabilize location levels hook memoization to prevent infinite renders ([#707](https://github.com/emilyeserven/eeSimple-bookmarks/issues/707)) ([cccfa05](https://github.com/emilyeserven/eeSimple-bookmarks/commit/cccfa05cb2e05da620a7eb05a0faac8be800a211))
+* update Browserless screenshot API to use waitForTimeout ([#657](https://github.com/emilyeserven/eeSimple-bookmarks/issues/657)) ([066d87c](https://github.com/emilyeserven/eeSimple-bookmarks/commit/066d87c3ed0a4db7d9ba407bb87206f01a8f445a))
+
+
+### Performance Improvements
+
+* increase gateway timeout for screenshot requests ([#653](https://github.com/emilyeserven/eeSimple-bookmarks/issues/653)) ([07f322e](https://github.com/emilyeserven/eeSimple-bookmarks/commit/07f322e3cf459081b5d74dbfb7b7c7d85091eddd))
+
 ## [0.1.7](https://github.com/emilyeserven/eeSimple-bookmarks/compare/v0.1.6...v0.1.7) (2026-06-27)
 
 
