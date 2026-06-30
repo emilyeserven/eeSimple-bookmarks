@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 
 import { BookmarkCategoryLink } from "./BookmarkCategoryLink";
+import { BookmarkDetailDebug } from "./BookmarkDetailDebug";
 import { BookmarkPropertySections } from "./BookmarkPropertySections";
 import { hasBookmarkPropertyRows } from "../lib/bookmarkProperties";
 
@@ -18,7 +19,8 @@ export type BookmarkDetailSectionId
   = | "general"
     | "relationships"
     | "hierarchy"
-    | "metadata";
+    | "metadata"
+    | "debug";
 
 /** One renderable section of the bookmark detail view, used by both the single-column and tabbed layouts. */
 export interface BookmarkDetailSection {
@@ -300,9 +302,22 @@ function metadataSection(bookmark: Bookmark): BookmarkDetailSection {
   };
 }
 
+function debugSection(bookmark: Bookmark): BookmarkDetailSection {
+  return {
+    id: "debug",
+    label: "Debug",
+    content: (
+      <BookmarkDetailDebug
+        bookmark={bookmark}
+        showHeading={false}
+      />
+    ),
+  };
+}
+
 /**
  * Build the list of present bookmark-detail sections (General, Tags, Relationships, Hierarchy,
- * Properties, Metadata) as `{ id, label, content }`. Empty sections are omitted. Shared by
+ * Properties, Metadata, Debug) as `{ id, label, content }`. Empty sections are omitted. Shared by
  * `BookmarkDetailBody` (single column) and `BookmarkDetailTabbed` so both render identical content.
  *
  * Pure: callers compute `flatHierarchy` (via `useBookmarks()` + `buildBookmarkHierarchy` +
@@ -315,5 +330,6 @@ export function buildBookmarkDetailSections(args: BuildArgs): BookmarkDetailSect
     relationshipsSection(args.bookmark),
     hierarchySection(args.flatHierarchy),
     metadataSection(args.bookmark),
+    debugSection(args.bookmark),
   ].filter((section): section is BookmarkDetailSection => section !== null);
 }

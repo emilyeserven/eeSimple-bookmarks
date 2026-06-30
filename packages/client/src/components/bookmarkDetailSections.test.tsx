@@ -18,8 +18,8 @@ function build(bookmark: Bookmark, flatHierarchy: FlatNode<BookmarkHierarchyNode
 }
 
 describe("buildBookmarkDetailSections", () => {
-  it("always includes General and Metadata, omitting empty optional sections", () => {
-    expect(build(makeBookmark())).toEqual(["general", "metadata"]);
+  it("always includes General, Metadata, and Debug, omitting empty optional sections", () => {
+    expect(build(makeBookmark())).toEqual(["general", "metadata", "debug"]);
   });
 
   it("includes tags inside the General section (no separate Tags section)", () => {
@@ -31,7 +31,7 @@ describe("buildBookmarkDetailSections", () => {
         parentId: null,
       }],
     });
-    expect(build(bookmark)).toEqual(["general", "metadata"]);
+    expect(build(bookmark)).toEqual(["general", "metadata", "debug"]);
   });
 
   it("adds the Hierarchy section when a flat hierarchy is supplied", () => {
@@ -73,6 +73,6 @@ describe("buildBookmarkDetailSections", () => {
         },
       ],
     });
-    expect(build(bookmark)).toEqual(["general", "relationships", "metadata"]);
+    expect(build(bookmark)).toEqual(["general", "relationships", "metadata", "debug"]);
   });
 });

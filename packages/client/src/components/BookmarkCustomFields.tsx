@@ -58,8 +58,11 @@ interface CategoryCustomFieldsProps extends CustomPropertyInputBundle {
    * fields show a "save first" hint instead.
    */
   bookmark?: Bookmark | null;
-  /** `default` shows properties flagged to appear in the main form; `advanced` shows the rest; `details` shows properties with `showInDetails`. */
-  placement: "default" | "advanced" | "details";
+  /**
+   * `default` shows properties flagged to appear in the main form; `advanced` shows the rest;
+   * `details` shows properties with `showInDetails`; `all` shows all non-hidden properties.
+   */
+  placement: "default" | "advanced" | "details" | "all";
   /**
    * Field arrangement. `grid` (default) packs fields into a compact 2-column grid for the
    * Add Bookmark create drawer; `stack` lays them out one-per-row with roomy spacing for the
@@ -73,12 +76,21 @@ interface CategoryCustomFieldsProps extends CustomPropertyInputBundle {
    * Defaults to the form's server-filled slugs (e.g. Runtime).
    */
   hiddenSlugs?: string[];
+  /**
+   * When provided, only properties whose `propertyGroupId` matches this value are rendered.
+   * Pass `null` to render only ungrouped properties (groupId === null or unknown group).
+   * Omit to render all properties regardless of group.
+   */
+  groupId?: string | null;
+  /** When true, the "Properties" section heading is omitted. */
+  hideHeading?: boolean;
 }
 
 /** Renders the custom-property inputs for the properties assigned to the chosen category. */
 export function CategoryCustomFields({
   categoryId, mediaTypeId = null, properties, bookmark = null, placement, layout = "grid", className,
   hiddenSlugs = [RUNTIME_SLUG, DATE_POSTED_SLUG],
+  groupId, hideHeading = false,
   numberInputs, booleanInputs, dateTimeInputs, choicesInputs, progressInputs, sectionsInputs, textInputs,
   onNumberChange, onBooleanChange, onDateTimeChange, onChoicesChange, onProgressChange, onSectionsChange, onTextChange,
   onIsbnFetch, isIsbnFetchPending,
@@ -95,6 +107,13 @@ export function CategoryCustomFields({
     // Slugs the form fills server-side (e.g. Runtime) are hidden but still persisted.
     if (hiddenSlugs?.includes(property.slug)) return false;
     if (placement === "details") return property.showInDetails;
+    if (placement === "all") {
+      // Group filter: when groupId is provided, restrict to that group (null = ungrouped).
+      if (groupId !== undefined) return property.propertyGroupId === groupId;
+      return true;
+    }
+    // Group filter applied after placement check.
+    if (groupId !== undefined && property.propertyGroupId !== groupId) return false;
     return placement === "default" ? property.showInForm : !property.showInForm;
   });
   if (categoryProps.length === 0) return null;
@@ -107,7 +126,7 @@ export function CategoryCustomFields({
         ${className ?? ""}
       `}
     >
-      <span className="text-sm font-medium">Properties</span>
+      {!hideHeading && <span className="text-sm font-medium">Properties</span>}
       <div
         className={stacked
           ? "flex flex-col gap-5"
