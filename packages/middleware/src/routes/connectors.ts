@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import type { ConnectorsStatus } from "@eesimple/types";
 import { archiveBoxBaseUrl } from "@/services/archiveBox";
 import { geocodingEnabled, geocodingEndpoint } from "@/services/geocoding";
+import { wikidataEnabled, wikidataEndpoint } from "@/services/wikidataGeocoding";
 import { hostedMetadataEnabledAsync, hostedMetadataProviderAsync } from "@/services/hostedMetadata";
 import { instagramApiEnabled } from "@/services/socialImages";
 import { youtubeApiEnabled } from "@/services/youtube";
@@ -41,6 +42,10 @@ export async function connectorsRoutes(app: FastifyInstance): Promise<void> {
       geocoding: {
         enabled: geocodingEnabled(),
         endpoint: geocodingEndpoint(),
+      },
+      wikidata: {
+        enabled: wikidataEnabled(),
+        endpoint: wikidataEndpoint(),
       },
     };
   });

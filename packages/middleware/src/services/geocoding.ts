@@ -14,6 +14,7 @@ import type {
   LocationLookupCandidate,
   LocationLookupResult,
 } from "@eesimple/types";
+import { wikidataGeocode } from "@/services/wikidataGeocoding";
 
 const DEFAULT_ENDPOINT = "https://nominatim.openstreetmap.org";
 const GEOCODE_TIMEOUT_MS = 10000;
@@ -30,7 +31,7 @@ export function geocodingEnabled(): boolean {
 }
 
 /** Build a Google Maps link for a coordinate. */
-function mapUrlFor(lat: number, lon: number): string {
+export function mapUrlFor(lat: number, lon: number): string {
   return `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
 }
 
@@ -186,10 +187,13 @@ function toCandidate(raw: NominatimResult): LocationLookupCandidate | null {
 }
 
 /**
- * Geocode a free-text place query (e.g. "Tokyo") to a list of candidate locations. Returns an empty
- * result on a transport/parse failure rather than throwing, so the form lookup degrades gracefully.
+ * Geocode a free-text place query against Nominatim only. Returns an empty result on a
+ * transport/parse failure rather than throwing, so callers degrade gracefully. This is the raw OSM
+ * path; `geocodeLocation` wraps it with the Wikidata fallback. The Wikidata connector calls *this*
+ * (not `geocodeLocation`) when composing a region's area from its constituents, so that composition
+ * never re-enters the Wikidata fallback.
  */
-export async function geocodeLocation(query: string): Promise<LocationLookupResult> {
+export async function nominatimGeocode(query: string): Promise<LocationLookupResult> {
   const trimmed = query.trim();
   if (trimmed === "") return {
     results: [],
@@ -240,6 +244,22 @@ export async function geocodeLocation(query: string): Promise<LocationLookupResu
   finally {
     clearTimeout(timer);
   }
+}
+
+/**
+ * Geocode a free-text place query (e.g. "Tokyo") to candidate locations. Tries Nominatim first; when
+ * it returns nothing — typically a traditional / informal / natural region with no admin boundary,
+ * e.g. 中国地方 (Chūgoku region) — falls back to Wikidata (`wikidataGeocode`), which carries those
+ * places. The fallback maps to the same `LocationLookupResult`, so callers are unchanged.
+ */
+export async function geocodeLocation(query: string): Promise<LocationLookupResult> {
+  const trimmed = query.trim();
+  if (trimmed === "") return {
+    results: [],
+  };
+  const nominatim = await nominatimGeocode(trimmed);
+  if (nominatim.results.length > 0) return nominatim;
+  return wikidataGeocode(trimmed);
 }
 
 /**

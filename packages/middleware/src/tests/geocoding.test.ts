@@ -180,6 +180,126 @@ test("geocodeLocation returns no results for an empty query (no fetch)", async (
   assert.deepEqual(result.results, []);
 });
 
+/** A URL-aware stub so the Nominatim miss and the Wikidata fallback can return different bodies. */
+function stubByUrl(route: (url: URL) => unknown): () => void {
+  const original = global.fetch;
+  global.fetch = (async (input: string | URL) => {
+    return new Response(JSON.stringify(route(new URL(String(input)))), {
+      status: 200,
+    });
+  }) as typeof fetch;
+  return () => {
+    global.fetch = original;
+  };
+}
+
+test("geocodeLocation falls back to Wikidata when Nominatim has no entry", async () => {
+  const restore = stubByUrl((url) => {
+    // Nominatim returns nothing for a traditional region with no admin boundary…
+    if (url.hostname.includes("nominatim")) return [];
+    // …so the Wikidata fallback resolves it (coordinate + country, no constituents → pin).
+    if (url.searchParams.get("action") === "wbsearchentities") {
+      return {
+        search: [{
+          id: "Q127864",
+        }],
+      };
+    }
+    const ids = (url.searchParams.get("ids") ?? "").split("|");
+    if (ids.includes("Q127864")) {
+      return {
+        entities: {
+          Q127864: {
+            labels: {
+              ja: {
+                value: "中国地方",
+              },
+              en: {
+                value: "Chūgoku region",
+              },
+            },
+            claims: {
+              P625: [{
+                mainsnak: {
+                  datavalue: {
+                    value: {
+                      latitude: 35.05,
+                      longitude: 134.0667,
+                    },
+                  },
+                },
+              }],
+              P17: [{
+                mainsnak: {
+                  datavalue: {
+                    value: {
+                      id: "Q17",
+                    },
+                  },
+                },
+              }],
+            },
+          },
+        },
+      };
+    }
+    return {
+      entities: {
+        Q17: {
+          labels: {
+            en: {
+              value: "Japan",
+            },
+          },
+          claims: {
+            P297: [{
+              mainsnak: {
+                datavalue: {
+                  value: "JP",
+                },
+              },
+            }],
+          },
+        },
+      },
+    };
+  });
+  try {
+    const {
+      results,
+    } = await geocodeLocation("中国地方");
+    assert.equal(results.length, 1);
+    assert.equal(results[0]?.name, "中国地方");
+    assert.equal(results[0]?.countryCode, "JP");
+    // No P150/P402/P3896 in this fixture → the region resolves to a pin (boundary backfillable later).
+    assert.equal(results[0]?.boundary, null);
+  }
+  finally {
+    restore();
+  }
+});
+
+test("geocodeLocation keeps the Nominatim result and never calls Wikidata on a hit", async () => {
+  let wikidataCalled = false;
+  const restore = stubByUrl((url) => {
+    if (url.hostname.includes("wikidata") || url.pathname.endsWith("/geoshape")) {
+      wikidataCalled = true;
+      return {};
+    }
+    return JSON.parse(NOMINATIM_HIT) as unknown;
+  });
+  try {
+    const {
+      results,
+    } = await geocodeLocation("Hagi");
+    assert.equal(results[0]?.name, "萩市");
+    assert.equal(wikidataCalled, false);
+  }
+  finally {
+    restore();
+  }
+});
+
 test("geocodeLocation degrades to empty on a non-OK response", async () => {
   const restore = stubFetch(() => new Response("nope", {
     status: 500,

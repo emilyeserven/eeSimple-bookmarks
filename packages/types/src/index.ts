@@ -2439,6 +2439,14 @@ export interface ConnectorsStatus {
    */
   geocoding: { enabled: boolean;
     endpoint: string; };
+  /**
+   * Wikidata fallback for the Locations geocoder — always keyless. Used when Nominatim has no entry
+   * for a place (typically a traditional / informal / natural region with no admin boundary, e.g.
+   * 中国地方). `endpoint` reports the base URL in use (public Wikidata by default, or a self-hosted
+   * Wikibase set via `WIKIDATA_ENDPOINT`); it is not a secret.
+   */
+  wikidata: { enabled: boolean;
+    endpoint: string; };
 }
 
 /** Hosted-metadata connector settings from `GET /api/app-settings/connectors`. Never exposes the raw key. */
