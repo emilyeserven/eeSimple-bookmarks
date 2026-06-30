@@ -17,6 +17,7 @@ import { LocationLookupBox } from "./LocationLookupBox";
 import { TreeMultiCombobox } from "./TreeMultiCombobox";
 import { useCreateLocation, useCreateLocationChain, useLocationTree } from "../hooks/useLocations";
 import { useTagTree } from "../hooks/useTags";
+import { placeTypeChoices } from "../lib/locationLevels";
 import { flattenTree, tagNodesToOptions } from "../lib/tagTree";
 
 import { Button } from "@/components/ui/button";
@@ -74,6 +75,9 @@ export function LocationForm({
 
   const isPending = createLocation.isPending || createChain.isPending;
   const error = createLocation.error ?? createChain.error;
+
+  // Every location (flat), used to offer the distinct place types already in use as picker choices.
+  const allLocations = flattenTree(tree ?? []).map(item => item.node);
 
   // Existing locations as options, shared by the leaf parent picker and the ancestor-chain rows.
   const locationOptions: ComboboxOption[] = flattenTree(tree ?? []).map(item => ({
@@ -252,11 +256,15 @@ export function LocationForm({
         </div>
         <div className="space-y-1">
           <Label htmlFor="location-place-type">Place type</Label>
-          <Input
+          <Combobox
             id="location-place-type"
-            placeholder="e.g. city"
-            value={placeType}
-            onChange={event => setPlaceType(event.target.value)}
+            aria-label="Place type"
+            options={placeTypeChoices(allLocations, placeType)}
+            value={placeType || undefined}
+            onValueChange={value => setPlaceType(value ?? "")}
+            placeholder="Select a place type…"
+            searchPlaceholder="Search place types…"
+            emptyText="No place types found."
           />
         </div>
         <div className="space-y-1">
