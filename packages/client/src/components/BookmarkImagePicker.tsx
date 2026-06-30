@@ -3,7 +3,7 @@ import type { BookmarkImage, ImageCandidate } from "@eesimple/types";
 
 import { useEffect, useRef, useState } from "react";
 
-import { ImagePlus, Sparkles, Star, X } from "lucide-react";
+import { Check, ImagePlus, Sparkles, Star, X } from "lucide-react";
 
 import { isFetchableUrl } from "../lib/url";
 
@@ -53,9 +53,10 @@ export function BookmarkImagePicker({
   const [uploads, setUploads] = useState<Upload[]>([]);
   const [keptCandidateUrls, setKeptCandidateUrls] = useState<string[]>([]);
   const [removedExistingIds, setRemovedExistingIds] = useState<string[]>([]);
-  const [mainKey, setMainKey] = useState<string | null>(
-    existingImages.find(img => img.isMain)?.id ?? null,
-  );
+  const [mainKey, setMainKey] = useState<string | null>(() => {
+    const main = existingImages.find(img => img.isMain);
+    return main ? `existing:${main.id}` : null;
+  });
   const [dragDepth, setDragDepth] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const dragActive = dragDepth > 0;
@@ -319,7 +320,7 @@ function ImageTile({
           hover:bg-background
         "
       >
-        <X className="size-3.5" />
+        {kept ? <X className="size-3.5" /> : <Check className="size-3.5" />}
       </button>
       {/* Set-main star (top-right), only meaningful when the image is kept. */}
       {kept && (

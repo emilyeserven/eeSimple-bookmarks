@@ -96,6 +96,7 @@ export function useBookmarkImageEditForm(bookmark: Bookmark): BookmarkImageEditF
       });
       notifySuccess("Changes saved");
       imageIntentRef.current = EMPTY_IMAGE_INTENT;
+      setCandidates([]);
       setImageFieldKey(key => key + 1);
     }
     finally {
