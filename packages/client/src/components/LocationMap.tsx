@@ -2,7 +2,7 @@ import type { LocationBoundary, LocationNode, PlaceTypeDisplayConfig } from "@ee
 import type { Feature, Geometry } from "geojson";
 import type { LatLngTuple } from "leaflet";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { resolveLocationDisplay } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
@@ -10,9 +10,10 @@ import { Icon, geoJSON, latLngBounds } from "leaflet";
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
-import { GeoJSON, MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
+import { GeoJSON, MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from "react-leaflet";
 
 import { RomanizedLabel } from "./RomanizedLabel";
+import { boundaryContainsPoint } from "../lib/locationGeo";
 
 import "leaflet/dist/leaflet.css";
 
@@ -142,7 +143,32 @@ function FitBounds({
   return null;
 }
 
-/** A name link shared by marker popups and polygon popups. */
+/** A single location name link to its detail page, shared by marker and area popups. */
+function NodeLink({
+  node,
+}: {
+  node: MappedNode;
+}) {
+  return (
+    <Link
+      to="/taxonomies/locations/$locationSlug"
+      params={{
+        locationSlug: node.slug,
+      }}
+      className="
+        font-medium
+        hover:underline
+      "
+    >
+      <RomanizedLabel
+        name={node.name}
+        romanized={node.romanizedName}
+      />
+    </Link>
+  );
+}
+
+/** Marker popup: a single location's link. (Pins are points and never overlap, unlike areas.) */
 function NodePopupLink({
   node,
 }: {
@@ -150,21 +176,63 @@ function NodePopupLink({
 }) {
   return (
     <Popup>
-      <Link
-        to="/taxonomies/locations/$locationSlug"
-        params={{
-          locationSlug: node.slug,
-        }}
-        className="
-          font-medium
-          hover:underline
-        "
-      >
-        <RomanizedLabel
-          name={node.name}
-          romanized={node.romanizedName}
-        />
-      </Link>
+      <NodeLink node={node} />
+    </Popup>
+  );
+}
+
+/** The click point plus every area whose boundary contains it. */
+interface AreaHit {
+  position: LatLngTuple;
+  nodes: MappedNode[];
+}
+
+/**
+ * A map-level click handler that owns area popups. Clicks on vector layers bubble to the map
+ * (`bubblingMouseEvents` defaults to true), so one handler covers every polygon: it finds **all**
+ * areas containing the click point — not just the topmost layer — and opens a single popup listing
+ * them. Clicking where no area matches closes the popup. Markers keep their own popups.
+ */
+function AreaClickPopup({
+  items,
+}: {
+  items: RenderItem[];
+}) {
+  const [hit, setHit] = useState<AreaHit | null>(null);
+  useMapEvents({
+    click(event) {
+      const {
+        lat, lng,
+      } = event.latlng;
+      const nodes = items
+        .filter(item => item.kind === "area" && item.node.boundary
+          && boundaryContainsPoint(lng, lat, item.node.boundary))
+        .map(item => item.node);
+      setHit(nodes.length > 0
+        ? {
+          position: [lat, lng],
+          nodes,
+        }
+        : null);
+    },
+  });
+  if (hit === null) return null;
+  return (
+    <Popup position={hit.position}>
+      {hit.nodes.length > 1
+        ? (
+          <div className="space-y-1">
+            <p className="text-xs font-medium text-muted-foreground">Areas here</p>
+            <ul className="space-y-0.5">
+              {hit.nodes.map(node => (
+                <li key={node.id}>
+                  <NodeLink node={node} />
+                </li>
+              ))}
+            </ul>
+          </div>
+        )
+        : <NodeLink node={hit.nodes[0]} />}
     </Popup>
   );
 }
@@ -220,6 +288,7 @@ export function LocationMap({
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <FitBounds items={items} />
+        <AreaClickPopup items={items} />
         {items.map(({
           node, kind,
         }) => (
@@ -228,9 +297,7 @@ export function LocationMap({
               <GeoJSON
                 key={node.id}
                 data={toFeature(node.boundary)}
-              >
-                <NodePopupLink node={node} />
-              </GeoJSON>
+              />
             )
             : node.position
               ? (
