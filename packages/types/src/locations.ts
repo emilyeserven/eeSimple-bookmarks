@@ -228,6 +228,70 @@ export interface LocationLookupResult {
 export const LOCATION_DISPLAY_MODES = ["pin", "area"] as const;
 export type LocationDisplayMode = typeof LOCATION_DISPLAY_MODES[number];
 
+/**
+ * Leaflet's built-in vector/marker color. Used as the map fallback when a level has no custom color,
+ * and as the swatch the Settings color picker starts from.
+ */
+export const DEFAULT_LOCATION_MAP_COLOR = "#3388ff";
+
+/**
+ * Normalize a user/stored value into a `#rgb` / `#rrggbb` hex color (lowercased), or `null` when it
+ * isn't a valid hex color. Keeps a malformed jsonb row or a stray client value from reaching Leaflet.
+ */
+export function normalizeHexColor(input: unknown): string | null {
+  if (typeof input !== "string") return null;
+  const trimmed = input.trim().toLowerCase();
+  return /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/.test(trimmed) ? trimmed : null;
+}
+
+/** A named, ready-made set of map colors the user can apply across their level groups in one click. */
+export interface LocationMapPalette {
+  /** Stable id. */
+  id: string;
+  /** User-facing label shown next to the swatches. */
+  name: string;
+  /** Ordered hex colors, assigned to the level groups in order (wrapping when there are more groups). */
+  colors: string[];
+}
+
+/**
+ * Predefined map-color palettes offered on Settings → Locations. Applying one assigns its colors to
+ * the level groups in display order (wrapping if there are more groups than colors). The single source
+ * of truth for the palette list — the Settings UI maps over this.
+ */
+export const LOCATION_MAP_PALETTES: LocationMapPalette[] = [
+  {
+    id: "vivid",
+    name: "Vivid",
+    colors: ["#ef4444", "#f97316", "#eab308", "#22c55e", "#3b82f6", "#a855f7"],
+  },
+  {
+    id: "ocean",
+    name: "Ocean",
+    colors: ["#0c4a6e", "#0369a1", "#0891b2", "#06b6d4", "#22d3ee", "#67e8f9"],
+  },
+  {
+    id: "earth",
+    name: "Earth",
+    colors: ["#78350f", "#a16207", "#4d7c0f", "#15803d", "#0e7490", "#1e3a8a"],
+  },
+  {
+    id: "sunset",
+    name: "Sunset",
+    colors: ["#7c2d12", "#b91c1c", "#ea580c", "#f59e0b", "#fbbf24", "#fde68a"],
+  },
+  {
+    id: "forest",
+    name: "Forest",
+    colors: ["#14532d", "#166534", "#15803d", "#4d7c0f", "#65a30d", "#84cc16"],
+  },
+  {
+    id: "pastel",
+    name: "Pastel",
+    colors: ["#fca5a5", "#fdba74", "#fde68a", "#86efac", "#93c5fd", "#c4b5fd"],
+  },
+];
+
 /** Per-placeType map display configuration (one entry per Nominatim place type / "level"). */
 export interface PlaceTypeDisplaySetting {
   /** Intent: `area` renders the boundary when one exists (else a pin); `pin` always renders a pin. */
@@ -236,6 +300,8 @@ export interface PlaceTypeDisplaySetting {
   visible: boolean;
   /** Ordering weight among place-type levels (lower sorts first); drives the placeType sort. */
   sortOrder: number;
+  /** Optional `#rrggbb` color for this level's pins/areas; absent → Leaflet's default blue. */
+  color?: string;
 }
 
 /**
@@ -264,6 +330,11 @@ export interface PlaceTypeLevelGroup {
   visible: boolean;
   /** Ordering weight among groups (lower sorts first). */
   sortOrder: number;
+  /**
+   * Optional `#rrggbb` color for this level's pins/areas on the map. `null`/absent → Leaflet's
+   * default blue. Set per group in Settings → Locations or via a predefined palette.
+   */
+  color?: string | null;
 }
 
 /** The full ordered list of place-type level groups (stored on the app-settings singleton). */
@@ -287,10 +358,17 @@ export function expandLevelGroupsToDisplayConfig(
       const key = placeTypeKey(placeType);
       if (key === "") continue;
       if (key in config && winningOrder[key] <= group.sortOrder) continue;
+      const color = normalizeHexColor(group.color);
       config[key] = {
         displayMode: group.displayMode,
         visible: group.visible,
         sortOrder: group.sortOrder,
+        // Sparse: only carry a color when the group sets a valid one, so unstyled levels stay default.
+        ...(color
+          ? {
+            color,
+          }
+          : {}),
       };
       winningOrder[key] = group.sortOrder;
     }
@@ -336,6 +414,17 @@ export function resolveLocationDisplay(
   const mode = setting?.displayMode ?? "area";
   if (mode === "pin") return "pin";
   return node.boundary ? "area" : "pin";
+}
+
+/**
+ * The custom map color configured for a location's placeType, or `null` when its level has none (the
+ * map then falls back to Leaflet's default blue). Pure helper — shared by the map renderer.
+ */
+export function resolveLocationColor(
+  node: { placeType: string | null },
+  config: PlaceTypeDisplayConfig,
+): string | null {
+  return config[placeTypeKey(node.placeType)]?.color ?? null;
 }
 
 /**
