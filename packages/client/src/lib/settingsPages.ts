@@ -3,25 +3,30 @@ import type { LucideIcon } from "lucide-react";
 import {
   Cable,
   Clapperboard,
+  Database,
+  Filter,
   FolderOpen,
+  Forward,
   Globe,
+  HardDrive,
   Image,
   Inbox,
   Layers,
   LayoutGrid,
   LayoutTemplate,
   Link2,
+  ListChecks,
   Monitor,
   MonitorPlay,
   PanelLeft,
   PanelRight,
   Puzzle,
+  RefreshCw,
   Share2,
   SlidersHorizontal,
   Sparkles,
   Tags,
   Wand2,
-  Wrench,
 } from "lucide-react";
 
 /**
@@ -31,11 +36,16 @@ import {
  * server-side (see `FavoriteSettingsPage`); the label and icon are resolved from here, so a
  * favorited path no longer in this list is simply skipped on render.
  *
- * Covers every `/settings/*` nav entry (mirrors `settingsNav` in `routes/settings.tsx`) plus the
- * management/customization listing pages that live at their own routes (mirrors `taxonomyItems` /
- * `customizationItems` in `components/app-sidebar.tsx`). Icons mirror those surfaces too —
- * `SETTINGS_TILES` in `routes/settings.index.tsx` for the `/settings/*` pages and the sidebar
- * `taxonomyItems` / `customizationItems` icons for the listing pages outside `/settings`.
+ * Covers every `/settings/*` nav entry (mirrors `settingsNav` in `routes/settings.tsx`) — including
+ * the nested **tab pages** inside the tabbed sections (the `*Nav` arrays in `settings.display.tsx`,
+ * `settings.automations.tsx`, `settings.advanced.tsx`); register each tab's leaf path here so it gets
+ * a header star. Don't register the section parents (`/settings/display` / `/settings/automations` /
+ * `/settings/advanced`): their index routes redirect to the first tab, so the parent path is never
+ * the live pathname and an entry for it can never match. Plus the management/customization listing
+ * pages that live at their own routes (mirrors `taxonomyItems` / `customizationItems` in
+ * `components/app-sidebar.tsx`). Icons mirror those surfaces too — `SETTINGS_TILES` in
+ * `routes/settings.index.tsx` for the `/settings/*` pages and the sidebar `taxonomyItems` /
+ * `customizationItems` icons for the listing pages outside `/settings`.
  */
 export interface SettingsPage {
   path: string;
@@ -61,6 +71,11 @@ export const SETTINGS_PAGES: readonly SettingsPage[] = [
     icon: PanelLeft,
   },
   {
+    path: "/settings/display/filters",
+    label: "Display: Filters",
+    icon: Filter,
+  },
+  {
     path: "/settings/display/drawer",
     label: "Display: Drawer",
     icon: PanelRight,
@@ -81,8 +96,8 @@ export const SETTINGS_PAGES: readonly SettingsPage[] = [
     icon: Image,
   },
   {
-    path: "/settings/automations",
-    label: "Automations",
+    path: "/settings/automations/global",
+    label: "Automations: Global",
     icon: Wand2,
   },
   {
@@ -94,6 +109,16 @@ export const SETTINGS_PAGES: readonly SettingsPage[] = [
     path: "/settings/automations/link-parsing",
     label: "Link Parsing",
     icon: Link2,
+  },
+  {
+    path: "/settings/automations/check-links",
+    label: "Check Links",
+    icon: ListChecks,
+  },
+  {
+    path: "/settings/automations/redirect-failures",
+    label: "Redirect Failures",
+    icon: Forward,
   },
   {
     path: "/settings/automations/imports",
@@ -111,9 +136,19 @@ export const SETTINGS_PAGES: readonly SettingsPage[] = [
     icon: Cable,
   },
   {
-    path: "/settings/advanced",
-    label: "Advanced",
-    icon: Wrench,
+    path: "/settings/advanced/manage-data",
+    label: "Manage Data",
+    icon: Database,
+  },
+  {
+    path: "/settings/advanced/updates",
+    label: "Updates",
+    icon: RefreshCw,
+  },
+  {
+    path: "/settings/advanced/database-usage",
+    label: "Database Usage",
+    icon: HardDrive,
   },
   // Management / customization pages outside the /settings/ route
   {
