@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 
 import { AlternateNamesEditor } from "./AlternateNamesEditor";
+import { LocationAncestorsSection } from "./LocationAncestorsSection";
 import { locationSchema } from "./locationFormSchema";
 import { LocationLookupBox } from "./LocationLookupBox";
 import { TreeMultiCombobox } from "./TreeMultiCombobox";
@@ -92,19 +93,23 @@ export function LocationGeneralForm({
   };
 
   const forbiddenIds = new Set(subtreeIds(node));
+  // Existing locations selectable as this node's parent / ancestors — its own subtree is excluded so
+  // a reparent can't put it under itself or a descendant. Shared by the Parent picker and the
+  // ancestor-chain section below.
+  const existingOptions: ComboboxOption[] = flattenTree(tree ?? [])
+    .filter(item => !forbiddenIds.has(item.node.id))
+    .map(item => ({
+      value: item.node.id,
+      label: item.node.name,
+      depth: item.depth,
+      romanized: item.node.romanizedName,
+    }));
   const parentOptions: ComboboxOption[] = [
     {
       value: ROOT,
       label: "(root)",
     },
-    ...flattenTree(tree ?? [])
-      .filter(item => !forbiddenIds.has(item.node.id))
-      .map(item => ({
-        value: item.node.id,
-        label: item.node.name,
-        depth: item.depth,
-        romanized: item.node.romanizedName,
-      })),
+    ...existingOptions,
   ];
 
   const form = useAppForm({
@@ -286,6 +291,12 @@ export function LocationGeneralForm({
           />
         )}
       </form.AppField>
+
+      <LocationAncestorsSection
+        node={node}
+        existingOptions={existingOptions}
+        onReparented={updated => form.setFieldValue("parent", updated.parentId ?? ROOT)}
+      />
 
       <AlternateNamesEditor
         value={alternateNames}

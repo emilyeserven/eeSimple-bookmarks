@@ -2,7 +2,7 @@ import type { LocationLookupAncestor } from "@eesimple/types";
 
 import { describe, expect, it } from "vitest";
 
-import { emptyAncestorDraft, geocodedAncestorsToDrafts, splitAncestorChain } from "./locationFormSchema";
+import { ancestorToInput, emptyAncestorDraft, geocodedAncestorsToDrafts, splitAncestorChain } from "./locationFormSchema";
 
 function ancestor(name: string, placeType = "state"): LocationLookupAncestor {
   return {
@@ -139,5 +139,39 @@ describe("geocodedAncestorsToDrafts", () => {
     expect(drafts).toHaveLength(1);
     expect(drafts[0].existingId).toBeNull();
     expect(drafts[0].name).toBe("Springfield");
+  });
+});
+
+describe("ancestorToInput", () => {
+  it("trims the name and collapses a blank romanized name to null", () => {
+    const input = ancestorToInput({
+      ...emptyAncestorDraft(),
+      name: "  Yamaguchi Prefecture  ",
+      romanizedName: "   ",
+    });
+
+    expect(input.name).toBe("Yamaguchi Prefecture");
+    expect(input.romanizedName).toBeNull();
+  });
+
+  it("carries the looked-up coordinates and metadata through", () => {
+    const input = ancestorToInput({
+      ...emptyAncestorDraft(),
+      name: "Japan",
+      romanizedName: "Japan",
+      latitude: 36,
+      longitude: 138,
+      placeType: "country",
+      countryCode: "JP",
+    });
+
+    expect(input).toMatchObject({
+      name: "Japan",
+      romanizedName: "Japan",
+      latitude: 36,
+      longitude: 138,
+      placeType: "country",
+      countryCode: "JP",
+    });
   });
 });

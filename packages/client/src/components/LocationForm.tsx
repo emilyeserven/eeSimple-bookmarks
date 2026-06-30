@@ -12,7 +12,7 @@ import { useState } from "react";
 import { AlternateNamesEditor } from "./AlternateNamesEditor";
 import { Combobox } from "./Combobox";
 import { LocationAncestorChainEditor } from "./LocationAncestorChainEditor";
-import { geocodedAncestorsToDrafts, splitAncestorChain } from "./locationFormSchema";
+import { ancestorToInput, geocodedAncestorsToDrafts, splitAncestorChain } from "./locationFormSchema";
 import { LocationLookupBox } from "./LocationLookupBox";
 import { TreeMultiCombobox } from "./TreeMultiCombobox";
 import { useCreateLocation, useCreateLocationChain, useLocationTree } from "../hooks/useLocations";
@@ -37,19 +37,6 @@ function parseCoord(value: string): number | null {
   if (trimmed === "") return null;
   const n = Number(trimmed);
   return Number.isNaN(n) ? null : n;
-}
-
-/** Drop a draft ancestor's empty optional fields into a `CreateLocationInput`. */
-function ancestorToInput(draft: AncestorDraft): CreateLocationInput {
-  return {
-    name: draft.name.trim(),
-    romanizedName: draft.romanizedName?.trim() || null,
-    latitude: draft.latitude,
-    longitude: draft.longitude,
-    mapUrl: draft.mapUrl,
-    placeType: draft.placeType,
-    countryCode: draft.countryCode,
-  };
 }
 
 /**

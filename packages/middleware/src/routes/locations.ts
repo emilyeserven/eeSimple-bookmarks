@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import type {
   CreateLocationChainInput,
   CreateLocationInput,
+  SetLocationAncestorsInput,
   UpdateLocationInput,
 } from "@eesimple/types";
 import {
@@ -13,6 +14,7 @@ import {
   getLocationTree,
   listLocations,
   LocationCycleError,
+  setLocationAncestors,
   updateLocation,
 } from "@/services/locations";
 import { geocodeLocation } from "@/services/geocoding";
@@ -158,6 +160,22 @@ const createChainBody = {
   },
 } as const;
 
+const setAncestorsBody = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    ancestors: {
+      type: "array",
+      items: createLocationBody,
+    },
+    parentId: {
+      type: "string",
+      format: "uuid",
+      nullable: true,
+    },
+  },
+} as const;
+
 const lookupQuery = {
   type: "object",
   required: ["q"],
@@ -214,6 +232,33 @@ export async function locationRoutes(app: FastifyInstance): Promise<void> {
   }, async (req, reply) => {
     const location = await createLocationWithAncestors(req.body as CreateLocationChainInput);
     return reply.code(201).send(location);
+  });
+
+  app.post("/api/locations/:id/ancestors", {
+    schema: {
+      tags: ["locations"],
+      params: locationParams,
+      body: setAncestorsBody,
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    try {
+      const location = await setLocationAncestors(id, req.body as SetLocationAncestorsInput);
+      if (!location) return reply.code(404).send({
+        message: "Location not found",
+      });
+      return location;
+    }
+    catch (err) {
+      if (err instanceof LocationCycleError) {
+        return reply.code(400).send({
+          message: err.message,
+        });
+      }
+      throw err;
+    }
   });
 
   app.patch("/api/locations/:id", {

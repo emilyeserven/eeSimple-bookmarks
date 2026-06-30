@@ -19,11 +19,11 @@ interface LocationAncestorChainEditorProps {
 }
 
 /**
- * Lets the user build a higher-level ancestor chain for a new location (e.g. Hagi → Yamaguchi
+ * Lets the user build a higher-level ancestor chain above a location (e.g. Hagi → Yamaguchi
  * Prefecture → … → Japan). Each ancestor row can either reuse an **existing** location (picked from
  * the combobox — it already has its own ancestors, so it caps the chain) or define a **new** one
- * with its own name and an optional lookup that prefills its coordinates/metadata. On submit the
- * caller passes these to `useCreateLocationChain`.
+ * with its own name and an optional lookup that prefills its coordinates/metadata. The caller passes
+ * the chain to `useCreateLocationChain` (create form) or `useSetLocationAncestors` (edit form).
  */
 export function LocationAncestorChainEditor({
   value, onChange, existingOptions,

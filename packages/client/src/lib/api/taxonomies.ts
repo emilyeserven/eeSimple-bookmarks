@@ -17,6 +17,7 @@ import type {
   CreateYouTubeChannelInput,
   CreateLocationChainInput,
   CreateLocationInput,
+  SetLocationAncestorsInput,
   CustomProperty,
   Location,
   LocationLookupResult,
@@ -146,6 +147,11 @@ export const locationsApi = {
     request<LocationLookupResult>(`/locations/lookup?q=${encodeURIComponent(query)}`),
   createChain: (input: CreateLocationChainInput) =>
     request<Location>("/locations/chain", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  setAncestors: (id: string, input: SetLocationAncestorsInput) =>
+    request<Location>(`/locations/${id}/ancestors`, {
       method: "POST",
       body: JSON.stringify(input),
     }),

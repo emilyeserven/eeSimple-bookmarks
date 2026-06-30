@@ -1,6 +1,7 @@
 import type {
   CreateLocationChainInput,
   CreateLocationInput,
+  SetLocationAncestorsInput,
   UpdateLocationInput,
 } from "@eesimple/types";
 
@@ -92,6 +93,22 @@ export function useCreateLocationChain() {
   const invalidate = useLocationInvalidation();
   return useMutation({
     mutationFn: (input: CreateLocationChainInput) => locationsApi.createChain(input),
+    onSuccess: invalidate,
+  });
+}
+
+/**
+ * Build/reuse an ancestor chain above an **existing** location and reparent it under the nearest
+ * resolved ancestor. Lets the edit page add higher-level ancestors (or reparent under an existing
+ * one) without recreating the location. Invalidates the location + bookmark queries on success.
+ */
+export function useSetLocationAncestors() {
+  const invalidate = useLocationInvalidation();
+  return useMutation({
+    mutationFn: ({
+      id, input,
+    }: { id: string;
+      input: SetLocationAncestorsInput; }) => locationsApi.setAncestors(id, input),
     onSuccess: invalidate,
   });
 }
