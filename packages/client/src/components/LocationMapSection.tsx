@@ -1,3 +1,4 @@
+import type { MapView } from "./LocationMap";
 import type { LevelScope, LevelsControls } from "../lib/locationLevels";
 import type { LocationNode } from "@eesimple/types";
 
@@ -117,6 +118,10 @@ export function LocationMapSection({
     onLevelModeChange: scopeKind === "location" ? setLevelMode : undefined,
   };
 
+  // Survives the inner LocationMap's remounts (this section is reused across $locationSlug changes):
+  // holds the previous location's settled viewport so the next map seeds + animates from it.
+  const lastViewRef = useRef<MapView | null>(null);
+
   const refreshBoundary = useRefreshLocationBoundary();
   const attemptedRef = useRef<string | null>(null);
   // Only fetch when the target location currently has no boundary, and only once per id.
@@ -178,6 +183,7 @@ export function LocationMapSection({
             displayConfig={displayConfig}
             iconConfig={iconConfig}
             colorConfig={colorConfig}
+            lastViewRef={lastViewRef}
             overlay={showLevels ? <LocationLevelsMapPanel controls={controls} /> : undefined}
           />
         )
