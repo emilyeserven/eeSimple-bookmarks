@@ -1,7 +1,7 @@
 import type { AutomationSettings } from "@eesimple/types";
 
 import { useAutomationSettings, useUpdateAutomationSettings } from "../hooks/useAppSettings";
-import { useBackfillTitleTags } from "../hooks/useBookmarks";
+import { useBackfillTitleLocations, useBackfillTitleTags } from "../hooks/useBookmarks";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
 import { Button } from "@/components/ui/button";
@@ -34,6 +34,7 @@ export function AutomationsSettings() {
   } = useAutomationSettings();
   const update = useUpdateAutomationSettings();
   const backfill = useBackfillTitleTags();
+  const backfillLocations = useBackfillTitleLocations();
   const settings = data ?? DEFAULTS;
 
   /** Persist a single-field change and fire the named toast. */
@@ -179,6 +180,21 @@ export function AutomationsSettings() {
             <Label htmlFor="auto-apply-title-locations">
               Apply locations whose name appears in the bookmark title
             </Label>
+          </div>
+          <div className="mt-4 flex flex-col items-start gap-1">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={backfillLocations.isPending}
+              onClick={() => backfillLocations.mutate()}
+            >
+              {backfillLocations.isPending ? "Backfilling…" : "Backfill existing bookmarks"}
+            </Button>
+            <p className="text-sm text-muted-foreground">
+              Scan every existing bookmark now and apply any locations whose name appears in its
+              title. Existing locations are kept — this only adds matches.
+            </p>
           </div>
         </CardContent>
       </Card>

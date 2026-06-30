@@ -82,6 +82,10 @@ export const bookmarksApi = {
     request<TitleTagBackfillResult>("/bookmarks/backfill-title-tags", {
       method: "POST",
     }),
+  backfillTitleLocations: () =>
+    request<TitleTagBackfillResult>("/bookmarks/backfill-title-locations", {
+      method: "POST",
+    }),
   urlCheck: (url: string) =>
     request<BookmarkUrlDuplicateResult>(
       `/bookmarks/url-check?url=${encodeURIComponent(url)}`,
