@@ -1,45 +1,14 @@
-import type { Author, SocialLink, UpdateAuthorInput } from "@eesimple/types";
+import type { Author, SocialLink } from "@eesimple/types";
 
-import { useNavigate } from "@tanstack/react-router";
-import { Globe, MonitorPlay, Sparkles, UserCircle } from "lucide-react";
-import { z } from "zod";
+import { Sparkles, UserCircle } from "lucide-react";
 
+import { AuthorAvatarActions } from "./AuthorAvatarActions";
 import { EntityImageField } from "./EntityImageField";
 import { SocialLinksField } from "./SocialLinksField";
-import {
-  useAdoptChannelImageForAuthor,
-  useAdoptWebsiteFaviconForAuthor,
-  useAutoAuthorImage,
-  useDeleteAuthorImage,
-  useDetectAuthorSocialLinks,
-  useUpdateAuthor,
-  useUploadAuthorImage,
-} from "../hooks/useAuthors";
-import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
-import { useWebsites } from "../hooks/useWebsites";
-import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
-import { useAppForm } from "../lib/form";
-import { notifySuccess } from "../lib/notifications";
-import { SOCIAL_MEDIA_PLATFORM_LABELS, socialLinkSchema } from "../lib/socialLinks";
+import { useAuthorGeneralForm } from "./useAuthorGeneralForm";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-
-const authorGeneralSchema = z.object({
-  name: z.string().trim().min(1, "Name is required"),
-  romanizedName: z.string(),
-  authorWebsiteUrl: z.string(),
-  biographyUrl: z.string(),
-  socialLinks: z.array(socialLinkSchema),
-});
-
-const LABELS: Partial<Record<keyof UpdateAuthorInput, string>> = {
-  name: "Name",
-  romanizedName: "Romanized name",
-  authorWebsiteUrl: "Author website",
-  biographyUrl: "Biography URL",
-  socialLinks: "Social media links",
-};
 
 interface Props {
   author: Author;
@@ -49,59 +18,11 @@ interface Props {
 export function AuthorGeneralForm({
   author,
 }: Props) {
-  const navigate = useNavigate();
-  const update = useUpdateAuthor();
-  const uploadAvatar = useUploadAuthorImage();
-  const autoAvatar = useAutoAuthorImage();
-  const deleteAvatar = useDeleteAuthorImage();
-  const adoptChannel = useAdoptChannelImageForAuthor();
-  const adoptWebsite = useAdoptWebsiteFaviconForAuthor();
-  const detectLinks = useDetectAuthorSocialLinks();
-  const avatarBusy
-    = uploadAvatar.isPending
-      || autoAvatar.isPending
-      || deleteAvatar.isPending
-      || adoptChannel.isPending
-      || adoptWebsite.isPending;
-
   const {
-    data: channels,
-  } = useYouTubeChannels();
-  const {
-    data: websites,
-  } = useWebsites();
-
-  const connectedChannelsWithImage = (channels ?? []).filter(
-    ch => author.youtubeChannelIds.includes(ch.id) && ch.imageUrl,
-  );
-  const connectedWebsitesWithImage = (websites ?? []).filter(
-    site => author.websiteIds.includes(site.id) && site.imageUrl,
-  );
-
-  const autoSave = useFieldAutoSave<UpdateAuthorInput, Author>({
-    id: author.id,
-    update,
-    labels: LABELS,
-    initial: {
-      name: author.name,
-      romanizedName: author.romanizedName ?? "",
-      authorWebsiteUrl: author.authorWebsiteUrl,
-      biographyUrl: author.biographyUrl,
-      socialLinks: author.socialLinks,
-    },
-  });
-
-  const form = useAppForm({
-    defaultValues: {
-      name: author.name,
-      romanizedName: author.romanizedName ?? "",
-      authorWebsiteUrl: author.authorWebsiteUrl ?? "",
-      biographyUrl: author.biographyUrl ?? "",
-    },
-    validators: {
-      onChange: authorGeneralSchema,
-    },
-  });
+    form, avatarBusy, uploadAvatar, autoAvatar, deleteAvatar, adoptChannel, adoptWebsite,
+    detectLinks, connectedChannelsWithImage, connectedWebsitesWithImage,
+    saveField, saveName, detectSocialLinks, saveSocialLinks,
+  } = useAuthorGeneralForm(author);
 
   return (
     <div className="space-y-4">
@@ -109,24 +30,7 @@ export function AuthorGeneralForm({
         {field => (
           <field.TextField
             label="Name"
-            onBlur={() => autoSave.saveField(
-              "name",
-              field.state.value.trim(),
-              {
-                valid: field.state.meta.errors.length === 0,
-                // Renaming changes the slug; follow it so the edit page keeps resolving.
-                onSuccess: (updated) => {
-                  if (updated.slug !== author.slug) {
-                    void navigate({
-                      to: "/taxonomies/authors/$authorSlug/edit/general",
-                      params: {
-                        authorSlug: updated.slug,
-                      },
-                    });
-                  }
-                },
-              },
-            )}
+            onBlur={() => saveName(field.state.value, field.state.meta.errors.length === 0)}
           />
         )}
       </form.AppField>
@@ -136,7 +40,7 @@ export function AuthorGeneralForm({
           <field.TextField
             label="Romanized name"
             placeholder="Optional romanized form"
-            onBlur={() => autoSave.saveField("romanizedName", field.state.value.trim())}
+            onBlur={() => saveField("romanizedName", field.state.value.trim())}
           />
         )}
       </form.AppField>
@@ -147,7 +51,7 @@ export function AuthorGeneralForm({
             label="Author website URL"
             type="url"
             placeholder="https://example.com"
-            onBlur={() => autoSave.saveField(
+            onBlur={() => saveField(
               "authorWebsiteUrl",
               field.state.value.trim() || null,
             )}
@@ -161,7 +65,7 @@ export function AuthorGeneralForm({
             label="Biography URL"
             type="url"
             placeholder="https://example.com/bio"
-            onBlur={() => autoSave.saveField(
+            onBlur={() => saveField(
               "biographyUrl",
               field.state.value.trim() || null,
             )}
@@ -182,72 +86,15 @@ export function AuthorGeneralForm({
         onRemove={() => deleteAvatar.mutate(author.id)}
       />
 
-      <div className="flex flex-col gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={avatarBusy || !author.authorWebsiteUrl}
-          onClick={() => autoAvatar.mutate({
-            id: author.id,
-            source: "website",
-            sourceUrl: author.authorWebsiteUrl ?? undefined,
-          })}
-        >
-          <Sparkles className="size-4" />
-          Fetch from Author Website
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={avatarBusy || !author.biographyUrl}
-          onClick={() => autoAvatar.mutate({
-            id: author.id,
-            source: "biography",
-            sourceUrl: author.biographyUrl ?? undefined,
-          })}
-        >
-          <Sparkles className="size-4" />
-          Fetch from Biography
-        </Button>
-        {connectedChannelsWithImage.map(ch => (
-          <Button
-            key={ch.id}
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={avatarBusy}
-            onClick={() => adoptChannel.mutate({
-              id: author.id,
-              channelId: ch.id,
-            })}
-          >
-            <MonitorPlay className="size-4" />
-            Use &ldquo;
-            {ch.name}
-            &rdquo; photo
-          </Button>
-        ))}
-        {connectedWebsitesWithImage.map(site => (
-          <Button
-            key={site.id}
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={avatarBusy}
-            onClick={() => adoptWebsite.mutate({
-              id: author.id,
-              websiteId: site.id,
-            })}
-          >
-            <Globe className="size-4" />
-            Use &ldquo;
-            {site.siteName}
-            &rdquo; favicon
-          </Button>
-        ))}
-      </div>
+      <AuthorAvatarActions
+        author={author}
+        avatarBusy={avatarBusy}
+        autoAvatar={autoAvatar}
+        adoptChannel={adoptChannel}
+        adoptWebsite={adoptWebsite}
+        connectedChannelsWithImage={connectedChannelsWithImage}
+        connectedWebsitesWithImage={connectedWebsitesWithImage}
+      />
 
       <Separator />
 
@@ -257,26 +104,7 @@ export function AuthorGeneralForm({
           variant="outline"
           size="sm"
           disabled={detectLinks.isPending || !author.authorWebsiteUrl}
-          onClick={() => detectLinks.mutate(author.id, {
-            onSuccess: ({
-              detected,
-            }) => {
-              if (detected.length === 0) {
-                notifySuccess("No new social links found on the author's website");
-                return;
-              }
-              const existingPlatforms = new Set(author.socialLinks.map(l => l.platform));
-              const toAdd = detected.filter(l => !existingPlatforms.has(l.platform));
-              if (toAdd.length === 0) {
-                notifySuccess("Social links already up to date");
-                return;
-              }
-              const merged = [...author.socialLinks, ...toAdd];
-              autoSave.saveField("socialLinks", merged);
-              const names = toAdd.map(l => SOCIAL_MEDIA_PLATFORM_LABELS[l.platform]).join(", ");
-              notifySuccess(`Found ${toAdd.length === 1 ? "a link" : "links"}: ${names}`);
-            },
-          })}
+          onClick={detectSocialLinks}
         >
           <Sparkles className="size-4" />
           Detect social links from website
@@ -285,7 +113,7 @@ export function AuthorGeneralForm({
 
       <SocialLinksField
         socialLinks={author.socialLinks}
-        onChange={(links: SocialLink[]) => autoSave.saveField("socialLinks", links)}
+        onChange={(links: SocialLink[]) => saveSocialLinks(links)}
       />
     </div>
   );

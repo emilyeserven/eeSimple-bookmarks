@@ -8,10 +8,9 @@ import { SelfIdsField } from "./SelfIdsField";
 import { SocialLinksField } from "./SocialLinksField";
 import { SourceDefaultFields } from "./SourceDefaultFields";
 import { useWebsiteGeneralForm } from "./useWebsiteGeneralForm";
+import { WebsiteRedirectFailureField } from "./WebsiteRedirectFailureField";
 import { WebsiteYouTubeChannelsField } from "./WebsiteYouTubeChannelsField";
 
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 
 interface Props {
@@ -129,20 +128,10 @@ export function WebsiteGeneralForm({
 
       <Separator />
 
-      <div className="flex items-start gap-3">
-        <Checkbox
-          id="redirect-resolution-failure"
-          checked={website.redirectResolutionFailure ?? false}
-          onCheckedChange={checked => saveField("redirectResolutionFailure", checked === true)}
-        />
-        <div className="space-y-1">
-          <Label htmlFor="redirect-resolution-failure">Redirect resolution failure</Label>
-          <p className="text-sm text-muted-foreground">
-            Flag this site when its redirects resolve unreliably. Flagged bookmarks appear in
-            Settings → Redirect Failures for URL correction.
-          </p>
-        </div>
-      </div>
+      <WebsiteRedirectFailureField
+        checked={website.redirectResolutionFailure ?? false}
+        onCheckedChange={checked => saveField("redirectResolutionFailure", checked)}
+      />
     </div>
   );
 }

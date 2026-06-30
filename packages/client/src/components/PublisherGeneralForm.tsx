@@ -1,34 +1,10 @@
-import type { Publisher, SocialLink, UpdatePublisherInput } from "@eesimple/types";
-
-import { useState } from "react";
-
-import { useNavigate } from "@tanstack/react-router";
-import { Globe } from "lucide-react";
-import { z } from "zod";
+import type { Publisher, SocialLink } from "@eesimple/types";
 
 import { AddWebsiteModal } from "./AddWebsiteModal";
 import { SocialLinksField } from "./SocialLinksField";
-import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
-import { useUpdatePublisher } from "../hooks/usePublishers";
-import { useWebsites } from "../hooks/useWebsites";
-import { useAppForm } from "../lib/form";
-import { socialLinkSchema } from "../lib/socialLinks";
+import { usePublisherGeneralForm } from "./usePublisherGeneralForm";
 
 import { Separator } from "@/components/ui/separator";
-
-const publisherGeneralSchema = z.object({
-  name: z.string().trim().min(1, "Name is required"),
-  romanizedName: z.string(),
-  websiteId: z.string().nullable(),
-  socialLinks: z.array(socialLinkSchema),
-});
-
-const LABELS: Partial<Record<keyof UpdatePublisherInput, string>> = {
-  name: "Name",
-  romanizedName: "Romanized name",
-  websiteId: "Website",
-  socialLinks: "Social media links",
-};
 
 interface Props {
   publisher: Publisher;
@@ -38,43 +14,9 @@ interface Props {
 export function PublisherGeneralForm({
   publisher,
 }: Props) {
-  const navigate = useNavigate();
-  const update = useUpdatePublisher();
-  const [addWebsiteOpen, setAddWebsiteOpen] = useState(false);
   const {
-    data: websites,
-  } = useWebsites();
-
-  const autoSave = useFieldAutoSave<UpdatePublisherInput, Publisher>({
-    id: publisher.id,
-    update,
-    labels: LABELS,
-    initial: {
-      name: publisher.name,
-      romanizedName: publisher.romanizedName ?? "",
-      websiteId: publisher.websiteId ?? null,
-      socialLinks: publisher.socialLinks,
-    },
-  });
-
-  const websiteOptions = (websites ?? []).map(website => ({
-    value: website.id,
-    label: website.siteName,
-    icon: (
-      <Globe className="size-4 shrink-0 text-muted-foreground" />
-    ),
-  }));
-
-  const form = useAppForm({
-    defaultValues: {
-      name: publisher.name,
-      romanizedName: publisher.romanizedName ?? "",
-      websiteId: publisher.websiteId ?? null,
-    },
-    validators: {
-      onChange: publisherGeneralSchema,
-    },
-  });
+    form, saveField, saveName, websiteOptions, addWebsiteOpen, setAddWebsiteOpen,
+  } = usePublisherGeneralForm(publisher);
 
   return (
     <div className="space-y-4">
@@ -82,24 +24,7 @@ export function PublisherGeneralForm({
         {field => (
           <field.TextField
             label="Name"
-            onBlur={() => autoSave.saveField(
-              "name",
-              field.state.value.trim(),
-              {
-                valid: field.state.meta.errors.length === 0,
-                // Renaming changes the slug; follow it so the edit page keeps resolving.
-                onSuccess: (updated) => {
-                  if (updated.slug !== publisher.slug) {
-                    void navigate({
-                      to: "/taxonomies/publishers/$publisherSlug/edit/general",
-                      params: {
-                        publisherSlug: updated.slug,
-                      },
-                    });
-                  }
-                },
-              },
-            )}
+            onBlur={() => saveName(field.state.value, field.state.meta.errors.length === 0)}
           />
         )}
       </form.AppField>
@@ -109,7 +34,7 @@ export function PublisherGeneralForm({
           <field.TextField
             label="Romanized name"
             placeholder="Optional romanized form"
-            onBlur={() => autoSave.saveField("romanizedName", field.state.value.trim())}
+            onBlur={() => saveField("romanizedName", field.state.value.trim())}
           />
         )}
       </form.AppField>
@@ -126,7 +51,7 @@ export function PublisherGeneralForm({
               label: "Add website",
               onSelect: () => setAddWebsiteOpen(true),
             }}
-            onValueChange={value => autoSave.saveField("websiteId", value || null)}
+            onValueChange={value => saveField("websiteId", value || null)}
           />
         )}
       </form.AppField>
@@ -140,7 +65,7 @@ export function PublisherGeneralForm({
 
       <SocialLinksField
         socialLinks={publisher.socialLinks}
-        onChange={(links: SocialLink[]) => autoSave.saveField("socialLinks", links)}
+        onChange={(links: SocialLink[]) => saveField("socialLinks", links)}
       />
     </div>
   );

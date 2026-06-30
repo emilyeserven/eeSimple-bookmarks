@@ -1,11 +1,9 @@
 import type { HomepageSectionBookmarks, CustomProperty } from "@eesimple/types";
 
-import { useNavigate } from "@tanstack/react-router";
 import { ChevronDown, ChevronRight } from "lucide-react";
 
 import { BookmarkCard } from "./BookmarkCard";
-import { useBookmarkTableColumns } from "./tables/bookmarkColumns";
-import { useTableRowNav } from "./tables/useTableRowNav";
+import { HomepageSectionTable } from "./HomepageSectionTable";
 import { useDefaultFieldZones } from "../lib/bookmarkCardFields";
 import { flattenFieldZonesToCard, hiddenFieldKeysFromZones, restrictFieldZones } from "../lib/bookmarkCardValues";
 import { COLUMN_CLASS } from "../lib/bookmarkColumns";
@@ -13,7 +11,6 @@ import { useUiStore } from "../stores/uiStore";
 
 import { Button } from "@/components/ui/button";
 import { RowCard } from "@/components/ui/card";
-import { DataTable } from "@/components/ui/data-table";
 
 interface HomepageSectionBlockProps {
   data: HomepageSectionBookmarks;
@@ -50,16 +47,6 @@ export function HomepageSectionBlock({
   const toggle = useUiStore(state => state.toggleHomepageSectionCollapsed);
   const isCollapsed = collapsedIds.includes(section.id);
 
-  const navigate = useNavigate();
-  const rowNav = useTableRowNav();
-  const tableColumns = useBookmarkTableColumns({
-    properties: customProperties,
-    hidden: hiddenFields,
-    imageMode,
-    imageVisibility,
-    hideWebsiteForYouTube: section.hideWebsiteForYouTube,
-  });
-
   return (
     <section aria-label={section.title}>
       <div className="mb-2 flex items-center justify-between gap-2">
@@ -92,26 +79,13 @@ export function HomepageSectionBlock({
           )
           : section.viewMode === "table"
             ? (
-              <DataTable
-                columns={tableColumns}
-                data={bookmarks}
-                sortable
-                onRowClick={(bookmark, event) =>
-                  rowNav(event, "bookmark", bookmark.id, () => {
-                    void navigate({
-                      to: "/bookmarks/$bookmarkId",
-                      params: {
-                        bookmarkId: bookmark.id,
-                      },
-                    });
-                  }, () => {
-                    void navigate({
-                      to: "/bookmarks/$bookmarkId/edit/general",
-                      params: {
-                        bookmarkId: bookmark.id,
-                      },
-                    });
-                  })}
+              <HomepageSectionTable
+                bookmarks={bookmarks}
+                customProperties={customProperties}
+                hiddenFields={hiddenFields}
+                imageMode={imageMode}
+                imageVisibility={imageVisibility}
+                hideWebsiteForYouTube={section.hideWebsiteForYouTube}
               />
             )
             : (

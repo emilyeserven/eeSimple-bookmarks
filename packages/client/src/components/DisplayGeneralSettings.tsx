@@ -4,11 +4,7 @@ import type {
   DisplayPreferenceSettings,
 } from "@eesimple/types";
 
-import {
-  CUSTOM_PROPERTY_TYPE_LABELS,
-  CUSTOM_PROPERTY_TYPES,
-} from "@eesimple/types";
-
+import { PropertyTypeIconsCard } from "./PropertyTypeIconsCard";
 import {
   useDisplayPreferenceSettings,
   useUpdateDisplayPreferenceSettings,
@@ -16,7 +12,6 @@ import {
 import { notifyError, notifySuccess } from "../lib/notifications";
 import { useUiStore } from "../stores/uiStore";
 
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -25,7 +20,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { IconPicker } from "@/components/ui/icon-picker";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -34,7 +28,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CUSTOM_PROPERTY_TYPE_ICONS } from "@/lib/propertyFormat";
 
 const THEME_LABELS: Record<Theme, string> = {
   light: "Light",
@@ -181,50 +174,11 @@ export function DisplayGeneralSettings() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Property Type Icons</CardTitle>
-          <CardDescription>
-            Choose an icon for each custom property type. These icons appear next to the type badge
-            in property listings.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div
-            className="
-              grid grid-cols-1 gap-3
-              2xl:grid-cols-2
-            "
-          >
-            {CUSTOM_PROPERTY_TYPES.map(type => (
-              <div
-                key={type}
-                className="flex items-center gap-3"
-              >
-                <span className="w-28 shrink-0 text-sm font-medium">
-                  {CUSTOM_PROPERTY_TYPE_LABELS[type]}
-                </span>
-                <IconPicker
-                  value={display.customPropertyTypeIcons?.[type] ?? CUSTOM_PROPERTY_TYPE_ICONS[type]}
-                  onChange={iconName => setPropertyTypeIcon(type, iconName)}
-                  aria-label={`Icon for ${CUSTOM_PROPERTY_TYPE_LABELS[type]}`}
-                  className="max-w-xs"
-                />
-              </div>
-            ))}
-          </div>
-          <div className="flex justify-end">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={resetPropertyTypeIcons}
-            >
-              Reset to defaults
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <PropertyTypeIconsCard
+        customPropertyTypeIcons={display.customPropertyTypeIcons}
+        onSetIcon={setPropertyTypeIcon}
+        onReset={resetPropertyTypeIcons}
+      />
     </div>
   );
 }

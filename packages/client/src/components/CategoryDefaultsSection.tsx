@@ -4,8 +4,7 @@ import { useEffect, useState } from "react";
 
 import { propertyAppliesToCategory } from "@eesimple/types";
 
-import { DateTimePicker } from "./DateTimePicker";
-import { StarRating } from "./StarRating";
+import { CategoryDefaultField } from "./CategoryDefaultField";
 import {
   useCategoryDefaults,
   useSetCategoryDefaults,
@@ -14,15 +13,7 @@ import { useCustomProperties } from "../hooks/useCustomProperties";
 import { buildNumberValuesFromInputs } from "../lib/propertyValues";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 interface CategoryDefaultsSectionProps {
   category: Category;
@@ -105,102 +96,31 @@ export function CategoryDefaultsSection({
           sm:grid-cols-2
         "
       >
-        {categoryProps.map((property) => {
-          if (property.type === "number") {
-            return (
-              <div
-                key={property.id}
-                className="space-y-1"
-              >
-                <Label htmlFor={`default-${category.id}-${property.id}`}>
-                  {property.name}
-                  {property.unitPlural ? ` (${property.unitPlural})` : ""}
-                </Label>
-                <Input
-                  id={`default-${category.id}-${property.id}`}
-                  type="number"
-                  value={numberInputs[property.id] ?? ""}
-                  onChange={event =>
-                    setNumberInputs(current => ({
-                      ...current,
-                      [property.id]: event.target.value,
-                    }))}
-                />
-              </div>
-            );
-          }
-          if (property.type === "datetime") {
-            return (
-              <div
-                key={property.id}
-                className="space-y-1"
-              >
-                <Label htmlFor={`default-${category.id}-${property.id}`}>{property.name}</Label>
-                <DateTimePicker
-                  id={`default-${category.id}-${property.id}`}
-                  format={property.dateTimeFormat ?? "date"}
-                  value={dateTimeInputs[property.id] ?? null}
-                  onChange={value =>
-                    setDateTimeInputs(current => ({
-                      ...current,
-                      [property.id]: value ?? "",
-                    }))}
-                />
-              </div>
-            );
-          }
-          if (property.type === "ratingScale") {
-            const raw = numberInputs[property.id];
-            return (
-              <div
-                key={property.id}
-                className="space-y-1"
-              >
-                <Label>{property.name}</Label>
-                <div>
-                  <StarRating
-                    value={raw ? Number(raw) : 0}
-                    max={property.ratingMax ?? 5}
-                    allowHalf={property.ratingAllowHalf}
-                    allowZero={property.ratingAllowZero}
-                    onChange={value =>
-                      setNumberInputs(current => ({
-                        ...current,
-                        [property.id]: String(value),
-                      }))}
-                  />
-                </div>
-              </div>
-            );
-          }
-          const current = booleanInputs[property.id];
-          const selectValue = current === undefined ? "unset" : String(current);
-          return (
-            <div
-              key={property.id}
-              className="space-y-1"
-            >
-              <Label htmlFor={`default-${category.id}-${property.id}`}>{property.name}</Label>
-              <Select
-                value={selectValue}
-                onValueChange={value =>
-                  setBooleanInputs(currentInputs => ({
-                    ...currentInputs,
-                    [property.id]: value === "unset" ? undefined : value === "true",
-                  }))}
-              >
-                <SelectTrigger id={`default-${category.id}-${property.id}`}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="unset">No default</SelectItem>
-                  <SelectItem value="true">Yes</SelectItem>
-                  <SelectItem value="false">No</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          );
-        })}
+        {categoryProps.map(property => (
+          <CategoryDefaultField
+            key={property.id}
+            category={category}
+            property={property}
+            numberInputs={numberInputs}
+            booleanInputs={booleanInputs}
+            dateTimeInputs={dateTimeInputs}
+            onNumberChange={(propertyId, value) =>
+              setNumberInputs(current => ({
+                ...current,
+                [propertyId]: value,
+              }))}
+            onBooleanChange={(propertyId, value) =>
+              setBooleanInputs(currentInputs => ({
+                ...currentInputs,
+                [propertyId]: value,
+              }))}
+            onDateTimeChange={(propertyId, value) =>
+              setDateTimeInputs(current => ({
+                ...current,
+                [propertyId]: value,
+              }))}
+          />
+        ))}
       </div>
       <Button
         type="button"
