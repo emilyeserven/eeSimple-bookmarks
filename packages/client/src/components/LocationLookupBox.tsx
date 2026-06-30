@@ -2,12 +2,15 @@ import type { LocationLookupCandidate } from "@eesimple/types";
 
 import { useState } from "react";
 
-import { Search } from "lucide-react";
+import { ChevronDown, Globe, Search } from "lucide-react";
 
 import { RomanizedLabel } from "./RomanizedLabel";
 import { useLocationLookup } from "../hooks/useLocations";
 
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -27,11 +30,15 @@ export function LocationLookupBox({
   const [query, setQuery] = useState("");
   const lookup = useLocationLookup();
   const results = lookup.data?.results ?? [];
+  const searchDisabled = lookup.isPending || query.trim().length === 0;
 
-  function runLookup() {
+  function runLookup(source?: "wikidata") {
     const trimmed = query.trim();
     if (trimmed.length === 0) return;
-    lookup.mutate(trimmed);
+    lookup.mutate({
+      query: trimmed,
+      source,
+    });
   }
 
   return (
@@ -51,15 +58,41 @@ export function LocationLookupBox({
           }}
           className="flex-1"
         />
-        <Button
-          type="button"
-          variant="outline"
-          disabled={lookup.isPending || query.trim().length === 0}
-          onClick={runLookup}
-        >
-          <Search className="mr-2 size-4" />
-          {lookup.isPending ? "Searching…" : "Search"}
-        </Button>
+        <div className="flex">
+          <Button
+            type="button"
+            variant="outline"
+            className="rounded-r-none"
+            disabled={searchDisabled}
+            onClick={() => runLookup()}
+          >
+            <Search className="mr-2 size-4" />
+            {lookup.isPending ? "Searching…" : "Search"}
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="-ml-px rounded-l-none"
+                disabled={lookup.isPending}
+                aria-label="More search options"
+              >
+                <ChevronDown className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                disabled={query.trim().length === 0}
+                onClick={() => runLookup("wikidata")}
+              >
+                <Globe className="size-4" />
+                Search Wikidata instead
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
       {lookup.isError
         ? <p className="text-xs text-destructive">{lookup.error.message}</p>
