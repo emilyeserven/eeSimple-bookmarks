@@ -31,6 +31,11 @@ export default defineConfig({
       injectRegister: "auto",
       includeAssets: ["favicon.svg", "apple-touch-icon.png"],
       workbox: {
+        // The icon registry chunk bundles the full Lucide + Phosphor icon sets (the icon
+        // picker exposes every icon), so it exceeds Workbox's default 2 MiB precache limit.
+        // Lift the cap so the chunk is still precached for offline use. Keep an eye on this
+        // if the icon libraries grow further.
+        maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
         // SPA navigation fallback, but never shadow the gateway's API/docs/storybook routes.
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/api/, /^\/docs/, /^\/storybook/],

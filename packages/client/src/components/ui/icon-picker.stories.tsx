@@ -44,3 +44,17 @@ export const Empty: Story = {
     );
   },
 };
+
+export const PhosphorIcon: Story = {
+  render: () => {
+    const [value, setValue] = useState<string | null>("ph:YinYang");
+    return (
+      <div className="w-64">
+        <IconPicker
+          value={value}
+          onChange={setValue}
+        />
+      </div>
+    );
+  },
+};
