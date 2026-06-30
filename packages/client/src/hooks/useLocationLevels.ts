@@ -1,5 +1,5 @@
 import type { PlaceTypeOption } from "../lib/locationLevels";
-import type { LocationDisplayMode, PlaceTypeIconConfig, PlaceTypeLevelGroup, PlaceTypeLevelGroupConfig } from "@eesimple/types";
+import type { LocationDisplayMode, PlaceTypeColorConfig, PlaceTypeIconConfig, PlaceTypeLevelGroup, PlaceTypeLevelGroupConfig } from "@eesimple/types";
 
 import { useMemo } from "react";
 
@@ -7,8 +7,10 @@ import { LOCATION_MAP_PALETTES } from "@eesimple/types";
 
 import {
   useLocationLevelGroups,
+  useLocationPlaceTypeColors,
   useLocationPlaceTypeIcons,
   useUpdateLocationLevelGroups,
+  useUpdatePlaceTypeColors,
   useUpdatePlaceTypeIcons,
 } from "./useAppSettings";
 import { useLocations } from "./useLocations";
@@ -54,6 +56,12 @@ export function useLocationLevels(opts: { notify?: boolean } = {}): {
   setPlaceTypeIcon: (placeTypeKey: string, iconName: string) => void;
   /** Clear all per-placeType icon overrides. */
   resetPlaceTypeIcons: () => void;
+  /** The per-placeType map color overrides (placeType key → `#rrggbb` hex). */
+  placeTypeColors: PlaceTypeColorConfig;
+  /** Set (or clear, with `null`) one place type's map color, persisting the whole map with a toast. */
+  setPlaceTypeColor: (placeTypeKey: string, color: string | null) => void;
+  /** Clear all per-placeType color overrides. */
+  resetPlaceTypeColors: () => void;
 } {
   const shouldNotify = opts.notify ?? true;
 
@@ -64,6 +72,8 @@ export function useLocationLevels(opts: { notify?: boolean } = {}): {
   const update = useUpdateLocationLevelGroups();
   const placeTypeIcons = useLocationPlaceTypeIcons();
   const updateIcons = useUpdatePlaceTypeIcons();
+  const placeTypeColors = useLocationPlaceTypeColors();
+  const updateColors = useUpdatePlaceTypeColors();
 
   // Memoize the derived arrays so their identity is stable across renders while the underlying query
   // data is unchanged. Without this, `groups` (a fresh `[...stored].sort()` each render) is a new
@@ -228,6 +238,28 @@ export function useLocationLevels(opts: { notify?: boolean } = {}): {
     });
   }
 
+  function setPlaceTypeColor(key: string, color: string | null): void {
+    const label = `${options.find(option => option.key === key)?.label ?? key} color`;
+    // A null color clears the override — rebuild the map without the key rather than storing a null.
+    const next: PlaceTypeColorConfig = color === null
+      ? Object.fromEntries(Object.entries(placeTypeColors).filter(([k]) => k !== key))
+      : {
+        ...placeTypeColors,
+        [key]: color,
+      };
+    updateColors.mutate(next, {
+      onSuccess: () => notifyFieldSaved(label),
+      onError: error => notifyFieldSaveError(label, error.message),
+    });
+  }
+
+  function resetPlaceTypeColors(): void {
+    updateColors.mutate({}, {
+      onSuccess: () => notifyFieldSaved("Place type colors"),
+      onError: error => notifyFieldSaveError("Place type colors", error.message),
+    });
+  }
+
   return {
     groups,
     isLoading,
@@ -248,5 +280,8 @@ export function useLocationLevels(opts: { notify?: boolean } = {}): {
     placeTypeIcons,
     setPlaceTypeIcon,
     resetPlaceTypeIcons,
+    placeTypeColors,
+    setPlaceTypeColor,
+    resetPlaceTypeColors,
   };
 }

@@ -331,6 +331,15 @@ export type PlaceTypeDisplayConfig = Record<string, PlaceTypeDisplaySetting>;
 export type PlaceTypeIconConfig = Record<string, string>;
 
 /**
+ * Map of normalized placeType key → a `#rrggbb` color overriding that place type's map pin/area color.
+ * **Sparse** — a place type with no entry inherits its level group's color (or Leaflet's default).
+ * Configured per place type (not per level group) so place types sharing a group can still render in
+ * distinct colors. Stored standalone on the app-settings singleton, separate from the group-derived
+ * {@link PlaceTypeDisplayConfig}; resolved with override-wins precedence over the group color.
+ */
+export type PlaceTypeColorConfig = Record<string, string>;
+
+/**
  * A named "level" — a user-defined group of Nominatim place types configured in Settings → Locations.
  * The group is the unit of display control: its member place types all inherit the group's
  * visibility, pin/area render mode, and order. This is the source of truth the Settings list and the
@@ -463,6 +472,19 @@ export function resolveLocationIcon(
   icons: PlaceTypeIconConfig,
 ): string | null {
   return icons[placeTypeKey(node.placeType)] ?? null;
+}
+
+/**
+ * The per-placeType color override configured for a location's place type, or `null` when its place
+ * type has none (the map then falls back to the level group's color, then Leaflet's default blue).
+ * Re-normalizes the stored value so a malformed entry is ignored. Pure helper — the override-wins
+ * sibling of {@link resolveLocationColor}, keyed off the standalone {@link PlaceTypeColorConfig}.
+ */
+export function resolveLocationPlaceTypeColor(
+  node: { placeType: string | null },
+  colors: PlaceTypeColorConfig,
+): string | null {
+  return normalizeHexColor(colors[placeTypeKey(node.placeType)]) ?? null;
 }
 
 /**

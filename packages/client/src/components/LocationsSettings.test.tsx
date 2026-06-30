@@ -35,6 +35,11 @@ vi.mock("../hooks/useAppSettings", () => ({
     mutate: vi.fn(),
     isPending: false,
   }),
+  useLocationPlaceTypeColors: () => ({}),
+  useUpdatePlaceTypeColors: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+  }),
 }));
 
 vi.mock("../hooks/useLocations", () => ({
@@ -62,13 +67,12 @@ describe("LocationsSettings", () => {
     })).toBeInTheDocument();
   });
 
-  it("renders a Place Type Icons picker per discovered place type", () => {
+  it("renders a Pin Style icon picker and color control per discovered place type", () => {
     render(<LocationsSettings />);
-    // Navigate to the Pin Icons outer tab to reveal PlaceTypeIconsCard.
+    // Navigate to the Pin Style outer tab to reveal PlaceTypeIconsCard.
     fireEvent.click(screen.getByRole("button", {
-      name: "Pin Icons",
+      name: "Pin Style",
     }));
-    expect(screen.getByText("Place Type Icons")).toBeInTheDocument();
     // Country is in an area-mode group; City is unassigned (defaults to area). Both live in "Area" tab.
     const iconTabs = screen.getByRole("navigation", {
       name: "Place type icon tabs",
@@ -82,5 +86,8 @@ describe("LocationsSettings", () => {
     expect(screen.getByRole("combobox", {
       name: /Icon for City/,
     })).toBeInTheDocument();
+    // Each row also exposes a per-place-type color control (native color input, aria-labelled).
+    expect(screen.getByLabelText("Country map color")).toBeInTheDocument();
+    expect(screen.getByLabelText("City map color")).toBeInTheDocument();
   });
 });

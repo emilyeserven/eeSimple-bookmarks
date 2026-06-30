@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import type { LocationBoundary, PlaceTypeDisplayConfig, PlaceTypeIconConfig, PlaceTypeLevelGroupConfig } from "./locations.js";
+import type { LocationBoundary, PlaceTypeColorConfig, PlaceTypeDisplayConfig, PlaceTypeIconConfig, PlaceTypeLevelGroupConfig } from "./locations.js";
 
 import {
   expandLevelGroupsToDisplayConfig,
@@ -12,6 +12,7 @@ import {
   resolveLocationColor,
   resolveLocationDisplay,
   resolveLocationIcon,
+  resolveLocationPlaceTypeColor,
 } from "./locations.js";
 
 const POLYGON: LocationBoundary = {
@@ -233,6 +234,40 @@ test("resolveLocationColor returns the placeType's color or null when unset", ()
   assert.equal(resolveLocationColor({
     placeType: "city",
   }, config), null);
+});
+
+// --- resolveLocationPlaceTypeColor ---
+
+test("resolveLocationPlaceTypeColor returns the placeType's override (key-normalized) or null", () => {
+  const colors: PlaceTypeColorConfig = {
+    city: "#ef4444",
+    country: "#22c55e",
+  };
+  assert.equal(resolveLocationPlaceTypeColor({
+    placeType: "City",
+  }, colors), "#ef4444");
+  assert.equal(resolveLocationPlaceTypeColor({
+    placeType: "  country  ",
+  }, colors), "#22c55e");
+  assert.equal(resolveLocationPlaceTypeColor({
+    placeType: "state",
+  }, colors), null);
+  assert.equal(resolveLocationPlaceTypeColor({
+    placeType: null,
+  }, colors), null);
+});
+
+test("resolveLocationPlaceTypeColor re-normalizes the stored value, ignoring a malformed entry", () => {
+  const colors: PlaceTypeColorConfig = {
+    city: "#ABC",
+    town: "not-a-color",
+  };
+  assert.equal(resolveLocationPlaceTypeColor({
+    placeType: "city",
+  }, colors), "#abc");
+  assert.equal(resolveLocationPlaceTypeColor({
+    placeType: "town",
+  }, colors), null);
 });
 
 // --- normalizeIconName ---

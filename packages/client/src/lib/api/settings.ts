@@ -22,6 +22,7 @@ import type {
   HomepageSectionBookmarks,
   ImportBlacklistEntry,
   PinnedSidebarItem,
+  PlaceTypeColorConfig,
   PlaceTypeDisplayConfig,
   PlaceTypeIconConfig,
   PlaceTypeLevelGroupConfig,
@@ -120,6 +121,13 @@ export const appSettingsApi = {
     request<PlaceTypeIconConfig>("/app-settings/place-type-icons"),
   updatePlaceTypeIcons: (input: PlaceTypeIconConfig) =>
     request<PlaceTypeIconConfig>("/app-settings/place-type-icons", {
+      method: "PUT",
+      body: JSON.stringify(input),
+    }),
+  getPlaceTypeColors: () =>
+    request<PlaceTypeColorConfig>("/app-settings/place-type-colors"),
+  updatePlaceTypeColors: (input: PlaceTypeColorConfig) =>
+    request<PlaceTypeColorConfig>("/app-settings/place-type-colors", {
       method: "PUT",
       body: JSON.stringify(input),
     }),
