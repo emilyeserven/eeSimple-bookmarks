@@ -522,19 +522,29 @@ export function isPublicHttpUrl(value: string): boolean {
   return true;
 }
 
+/** Typed outcome of an og:image fetch attempt. */
+export type OgImageResult = Buffer | "fetch_error" | "blocked" | "server_error" | "no_image" | "bad_image";
+
 /**
- * Download an image URL into a Buffer, guarded by a timeout and a byte cap.
+ * Download an image URL into a Buffer, classifying *why* a failure happened instead of collapsing
+ * every non-2xx/network/cap failure to one outcome — a CDN rate-limit or 5xx is transient (worth
+ * `withTransientRetry`'s one retry) and is a different problem than bytes that downloaded fine but
+ * can't be decoded (`bad_image`, determined later by `processImage`). Shared by `downloadImage`
+ * (callers that only care whether bytes came back) and `fetchOgImage` (which needs the reason).
  *
  * Identifies as a real browser (the same `BROWSER_USER_AGENT` used for the HTML fetch) rather than a
- * bot UA: CDNs in front of high-traffic sites (Cloudflare/Mediavine) routinely 403 non-browser
- * User-Agents on image assets, which previously surfaced as `bad_image` even though the page parsed
+ * bot UA: CDNs in front of high-traffic sites (Cloudflare/Mediavine, and YouTube's own image CDN)
+ * routinely 403 or rate-limit non-browser User-Agents on image assets even though the page parsed
  * fine. When the calling page's URL is known it's passed as `referer` to defeat hotlink protection.
  *
  * The content-type is intentionally *not* gated here: some CDNs serve images as
  * `application/octet-stream` or omit the header, and `processImage` (sharp) is the real validator
  * downstream, so a pre-check would only add false negatives.
  */
-export async function downloadImage(url: string, referer?: string): Promise<Buffer | null> {
+async function downloadImageResult(
+  url: string,
+  referer?: string,
+): Promise<Buffer | "fetch_error" | "blocked" | "server_error"> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
@@ -555,7 +565,8 @@ export async function downloadImage(url: string, referer?: string): Promise<Buff
           : {}),
       },
     });
-    if (!res.ok || !res.body) return null;
+    if (!res.ok) return res.status >= 500 ? "server_error" : "blocked";
+    if (!res.body) return "fetch_error";
 
     const reader = res.body.getReader();
     const chunks: Uint8Array[] = [];
@@ -568,22 +579,29 @@ export async function downloadImage(url: string, referer?: string): Promise<Buff
       received += value.byteLength;
       if (received > MAX_IMAGE_BYTES) {
         await reader.cancel();
-        return null;
+        return "fetch_error";
       }
       chunks.push(value);
     }
     return Buffer.concat(chunks);
   }
   catch {
-    return null;
+    return "fetch_error";
   }
   finally {
     clearTimeout(timeout);
   }
 }
 
-/** Typed outcome of an og:image fetch attempt. */
-export type OgImageResult = Buffer | "fetch_error" | "blocked" | "server_error" | "no_image" | "bad_image";
+/**
+ * Download an image URL into a Buffer, guarded by a timeout and a byte cap. Thin wrapper over
+ * {@link downloadImageResult} for callers (favicon candidate loops, oEmbed thumbnails) that only
+ * need to know whether bytes came back, not why a failure happened.
+ */
+export async function downloadImage(url: string, referer?: string): Promise<Buffer | null> {
+  const result = await downloadImageResult(url, referer);
+  return typeof result === "string" ? null : result;
+}
 
 /**
  * The non-buffer outcomes of an entity-image grab — a typed reason no image could be stored. Shared
@@ -611,15 +629,18 @@ async function fetchHeadOrImageError(pageUrl: string): Promise<string | Extract<
 
 /**
  * Fetch the page at `pageUrl`, find its preview image (og:image / twitter:image / icon), download
- * it, and return the raw bytes — or a typed error string describing why it failed.
+ * it, and return the raw bytes — or a typed error string describing why it failed. The download
+ * failure reason comes straight from `downloadImageResult` (`blocked` / `server_error` /
+ * `fetch_error`); `bad_image` is reserved for bytes that *did* download but failed to decode
+ * (determined downstream by `processImage`) — never collapsed onto a download failure, since only
+ * the former feeds `withTransientRetry`'s retry.
  */
 export async function fetchOgImage(pageUrl: string): Promise<OgImageResult> {
   const html = await fetchHeadOrImageError(pageUrl);
   if (typeof html !== "string") return html;
   const imageUrl = extractImageUrl(html, pageUrl);
   if (!imageUrl || !isPublicHttpUrl(imageUrl)) return "no_image";
-  const bytes = await downloadImage(imageUrl, pageUrl);
-  return bytes ?? "bad_image";
+  return downloadImageResult(imageUrl, pageUrl);
 }
 
 /**
