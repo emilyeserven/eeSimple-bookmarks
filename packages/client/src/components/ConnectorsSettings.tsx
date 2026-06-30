@@ -351,10 +351,12 @@ export function ConnectorsSettings() {
               <StatusBadge enabled={data?.instagramReelArchive.enabled} />
             </div>
             <CardDescription>
-              Optional. When both a Browserless endpoint and object storage are configured, a saved
-              Instagram reel can be archived on demand — the reel&apos;s video is captured into your own
-              object storage so it survives the reel being deleted from Instagram. Self-contained; the
-              video is fetched and stored on the box, not linked out.
+              Optional. When object storage is configured, a saved Instagram reel can be archived on
+              demand — the reel&apos;s video is captured into your own object storage so it survives the
+              reel being deleted from Instagram. Self-contained; the video is fetched and stored on the
+              box, not linked out. The video URL is found keylessly via Instagram&apos;s public embed
+              page; a configured Browserless endpoint is used as a fallback for reels it doesn&apos;t
+              expose.
             </CardDescription>
           </CardHeader>
           <CardContent>

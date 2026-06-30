@@ -3,9 +3,14 @@
  * storage (Garage/S3) so it survives the reel later being deleted from Instagram — the self-contained
  * counterpart to the link-out ArchiveBox connector.
  *
- * Pipeline (mirrors the on-demand Browserless screenshot in `bookmarkImages.ts`):
- *   1. Browserless (`/chromium/function`) loads the reel and extracts the public video URL from the
- *      page's `og:video` meta tags (the same source link-unfurlers read) or a `<video>` element.
+ * Pipeline:
+ *   1. Extract the reel's public video URL (+ dimensions), preferring the keyless path: Instagram's
+ *      public `/embed/` endpoint exposes `video_url` in its `shortcode_media` JSON (the same source
+ *      `fetchInstagramCarousel` reads for images) without needing any configuration, and isn't subject
+ *      to the login wall the live reel page can show a headless browser. When that yields nothing,
+ *      fall back to a configured Browserless instance (`/chromium/function`), which loads the reel and
+ *      reads the page's `og:video` meta tags or a `<video>` element (mirrors the on-demand Browserless
+ *      screenshot in `bookmarkImages.ts`).
  *   2. The middleware fetches that MP4 itself — SSRF-guarded, with the reel as `Referer` to clear
  *      Instagram's CDN hotlink protection — and stores the raw bytes via `putObject`.
  *   3. A 0..1-per-bookmark `bookmark_reel_archives` row records the metadata and the object is added
@@ -24,6 +29,7 @@ import { db } from "@/db";
 import { bookmarkReelArchives, type BookmarkReelArchiveRow, bookmarks, reelArchiveJobs } from "@/db/schema";
 import { forgetManifestObject, recordManifestObject } from "@/services/gallery";
 import { getActiveHostedEndpoint, getDecryptedHostedApiKey } from "@/services/appSettings";
+import { fetchInstagramEmbedVideo } from "@/services/instagram";
 import { BROWSER_USER_AGENT, isPublicHttpUrl } from "@/services/metadata";
 import { enqueueReelArchiveJob } from "@/services/reelArchiveQueue";
 import { deleteObject, isObjectStoreConfigured, putObject } from "@/utils/objectStore";
@@ -202,8 +208,9 @@ async function downloadVideo(url: string, referer: string): Promise<Buffer | nul
 /**
  * Capture the bookmark's Instagram reel video and store it. Returns the wire shape on success, or a
  * sentinel: `"not_found"` (bookmark gone), `"not_reel"` (URL isn't an IG reel/tv permalink),
- * `"not_configured"` (Browserless or object storage missing), `"no_video"` (no extractable video URL),
- * or `"fetch_error"` (the MP4 couldn't be downloaded). Never throws.
+ * `"not_configured"` (object storage missing), `"no_video"` (no extractable video URL from either the
+ * keyless embed or a configured Browserless instance), or `"fetch_error"` (the MP4 couldn't be
+ * downloaded). Never throws.
  */
 export async function archiveInstagramReel(bookmarkId: string): Promise<ArchiveReelResult> {
   const [bookmark] = await db.select({
@@ -213,11 +220,13 @@ export async function archiveInstagramReel(bookmarkId: string): Promise<ArchiveR
     .from(bookmarks).where(eq(bookmarks.id, bookmarkId));
   if (!bookmark) return "not_found";
   if (!bookmark.url || !isInstagramReelUrl(bookmark.url)) return "not_reel";
+  if (!isObjectStoreConfigured()) return "not_configured";
 
-  const endpoint = await getActiveHostedEndpoint();
-  if (!endpoint || !isObjectStoreConfigured()) return "not_configured";
-
-  const extracted = await extractReelVideoUrl(bookmark.url);
+  let extracted = await fetchInstagramEmbedVideo(bookmark.url);
+  if (!extracted) {
+    const endpoint = await getActiveHostedEndpoint();
+    if (endpoint) extracted = await extractReelVideoUrl(bookmark.url);
+  }
   if (!extracted || !isPublicHttpUrl(extracted.videoUrl)) return "no_video";
 
   const bytes = await downloadVideo(extracted.videoUrl, bookmark.url);
