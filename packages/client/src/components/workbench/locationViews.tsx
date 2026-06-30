@@ -134,6 +134,10 @@ export function LocationGeneralView({
           tree={mapTree}
           autoRefreshLocationId={node.id}
           mapClassName="h-80 w-full rounded-lg border"
+          scope={{
+            kind: "location",
+            currentPlaceType: node.placeType,
+          }}
         />
       </div>
     </div>

@@ -34,6 +34,14 @@ const handlers = [
 const meta = {
   title: "Components/LocationLevelsOverlay",
   component: LocationLevelsOverlay,
+  args: {
+    controls: {
+      visibleIds: new Set(["level-country"]),
+      onToggleVisible: () => {},
+      levelMode: "current",
+      onLevelModeChange: () => {},
+    },
+  },
   parameters: {
     msw: {
       handlers,

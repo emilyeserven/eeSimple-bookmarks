@@ -31,6 +31,9 @@ export function LocationsListing() {
             mapKey="listing"
             tree={tree}
             showLevels
+            scope={{
+              kind: "main",
+            }}
           />
         )
         : null}

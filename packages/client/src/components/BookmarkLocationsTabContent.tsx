@@ -58,6 +58,9 @@ export function BookmarkLocationsTabContent({
             tree={mapNodes}
             mapClassName="h-80 w-full rounded-lg border"
             showLevels
+            scope={{
+              kind: "bookmark",
+            }}
           />
         )
         : <p className="text-sm text-muted-foreground">Loading map…</p>}

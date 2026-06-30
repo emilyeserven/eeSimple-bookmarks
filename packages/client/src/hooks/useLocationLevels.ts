@@ -35,6 +35,8 @@ export function useLocationLevels(opts: { notify?: boolean } = {}): {
   addGroupOfMode: (displayMode: LocationDisplayMode, afterId?: string) => void;
   renameGroup: (id: string, name: string) => void;
   setGroupVisible: (id: string, visible: boolean) => void;
+  /** Set whether this level shows by default on the main all-locations map (`/taxonomies/locations`). */
+  setGroupShowOnMainMap: (id: string, showOnMainMap: boolean) => void;
   setGroupDisplayMode: (id: string, displayMode: LocationDisplayMode) => void;
   setGroupPlaceTypes: (id: string, placeTypes: string[]) => void;
   /** Set (or clear, with `null`) the map color a level's pins/areas render in. */
@@ -143,6 +145,12 @@ export function useLocationLevels(opts: { notify?: boolean } = {}): {
     }, `${groupLabel(id)} visibility`);
   }
 
+  function setGroupShowOnMainMap(id: string, showOnMainMap: boolean): void {
+    patchGroup(id, {
+      showOnMainMap,
+    }, `${groupLabel(id)} main-map default`);
+  }
+
   function setGroupDisplayMode(id: string, displayMode: LocationDisplayMode): void {
     patchGroup(id, {
       displayMode,
@@ -229,6 +237,7 @@ export function useLocationLevels(opts: { notify?: boolean } = {}): {
     addGroupOfMode,
     renameGroup,
     setGroupVisible,
+    setGroupShowOnMainMap,
     setGroupDisplayMode,
     setGroupPlaceTypes,
     setGroupColor,

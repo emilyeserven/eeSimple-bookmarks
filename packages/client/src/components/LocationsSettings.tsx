@@ -88,6 +88,7 @@ export function LocationsSettings() {
     unassignedPlaceTypes,
     addGroupOfMode,
     renameGroup,
+    setGroupShowOnMainMap,
     setGroupDisplayMode,
     setGroupPlaceTypes,
     setGroupColor,
@@ -273,6 +274,7 @@ export function LocationsSettings() {
                                   options={placeTypeOptions}
                                   takenPlaceTypes={takenPlaceTypesByGroup.get(group.id) ?? new Set()}
                                   renameGroup={renameGroup}
+                                  setGroupShowOnMainMap={setGroupShowOnMainMap}
                                   setGroupDisplayMode={setGroupDisplayMode}
                                   setGroupPlaceTypes={setGroupPlaceTypes}
                                   setGroupColor={setGroupColor}

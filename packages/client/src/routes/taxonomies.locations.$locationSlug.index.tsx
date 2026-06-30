@@ -97,6 +97,10 @@ function LocationBookmarksPage() {
           autoRefreshLocationId={location.id}
           mapClassName="h-80 w-full rounded-lg border"
           showLevels
+          scope={{
+            kind: "location",
+            currentPlaceType: location.placeType,
+          }}
         />
       )}
       pageKey={`location:${locationSlug}`}

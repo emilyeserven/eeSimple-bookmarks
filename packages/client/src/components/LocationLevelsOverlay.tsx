@@ -1,6 +1,9 @@
+import type { LevelsControls } from "../lib/locationLevels";
+
 import { DEFAULT_LOCATION_MAP_COLOR, normalizeHexColor } from "@eesimple/types";
 import { Layers, MapPin, Shapes, Square } from "lucide-react";
 
+import { LocationLevelModeToggle } from "./LocationLevelModeToggle";
 import { useLocationLevels } from "../hooks/useLocationLevels";
 
 import { Button } from "@/components/ui/button";
@@ -15,9 +18,13 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
  * Settings → Locations), so a toggle here changes the global default everywhere and fires a toast.
  * Defining groups and assigning place types to them happens in Settings → Locations.
  */
-export function LocationLevelsOverlay() {
+export function LocationLevelsOverlay({
+  controls,
+}: {
+  controls: LevelsControls;
+}) {
   const {
-    groups, setGroupVisible, setGroupDisplayMode,
+    groups, setGroupDisplayMode,
   } = useLocationLevels({
     notify: false,
   });
@@ -54,8 +61,8 @@ export function LocationLevelsOverlay() {
                 <div className="flex items-center gap-2">
                   <Checkbox
                     id={`level-${group.id}`}
-                    checked={group.visible}
-                    onCheckedChange={checked => setGroupVisible(group.id, checked === true)}
+                    checked={controls.visibleIds.has(group.id)}
+                    onCheckedChange={checked => controls.onToggleVisible(group.id, checked === true)}
                   />
                   {group.displayMode === "pin"
                     ? (
@@ -113,6 +120,17 @@ export function LocationLevelsOverlay() {
             ))}
           </ul>
         )}
+
+      {controls.levelMode && controls.onLevelModeChange
+        ? (
+          <div className="mt-3 border-t pt-3">
+            <LocationLevelModeToggle
+              value={controls.levelMode}
+              onChange={controls.onLevelModeChange}
+            />
+          </div>
+        )
+        : null}
     </ResponsivePopover>
   );
 }
