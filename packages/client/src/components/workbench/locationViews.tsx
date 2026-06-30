@@ -14,6 +14,7 @@ import { useLocationTree } from "@/hooks/useLocations";
 import { notifyError, notifySuccess } from "@/lib/notifications";
 import { findAncestorPath, flattenTree } from "@/lib/tagTree";
 
+export { LocationGalleryView } from "./locationGalleryView";
 export { LocationHierarchyView } from "./locationHierarchyView";
 
 export function LocationGeneralView({
