@@ -74,7 +74,7 @@ export function BookmarkDetailTabbed({
           </button>
         ))}
       </nav>
-      <div className="min-w-0">{active.content}</div>
+      <div className="min-w-0 pb-6">{active.content}</div>
     </div>
   );
 }
