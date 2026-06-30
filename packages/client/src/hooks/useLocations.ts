@@ -16,21 +16,16 @@ const LOCATIONS_KEY = ["locations"] as const;
 const BOOKMARKS_KEY = ["bookmarks"] as const;
 
 /**
- * Fire a toast (also recorded in the Notifications log) whenever an outbound OpenStreetMap Nominatim
- * geocoding request is dispatched. Both Nominatim-hitting endpoints — the free-text lookup and the
- * on-demand boundary backfill — call this from their mutation `onMutate`, so the user always sees
- * when a place query leaves the box (the same privacy-transparency ethos as the rest of the pipeline).
+ * Fire a toast (also recorded in the Notifications log) naming which geocoder an outbound request is
+ * going to, whenever a geocoding mutation's `onMutate` fires — the free-text lookup, the on-demand
+ * boundary backfill, and the coordinate repull all call this, so the user always sees when a place
+ * query leaves the box and which source it's headed to (the same privacy-transparency ethos as the
+ * rest of the pipeline). `source: "wikidata"` covers both the explicit "Search Wikidata instead"
+ * lookup action and a location whose `usesWikidataCoordinates` flag pins it to Wikidata only; anything
+ * else uses the default Nominatim-first auto path (which itself falls back to Wikidata server-side
+ * when Nominatim has no hit).
  */
-function notifyNominatimCall(): void {
-  notifySuccess("Querying OpenStreetMap Nominatim…");
-}
-
-/**
- * Fire a toast naming which geocoder a lookup query is going to: Nominatim for the default auto path
- * (which itself falls back to Wikidata server-side when Nominatim has no hit), or Wikidata directly
- * when the user explicitly chose "Search Wikidata instead" from the lookup box's dropdown.
- */
-function notifyLookupCall(source?: "wikidata"): void {
+function notifyGeocodeCall(source?: "wikidata"): void {
   notifySuccess(source === "wikidata"
     ? "Querying Wikidata…"
     : "Querying OpenStreetMap Nominatim…");
@@ -151,28 +146,43 @@ export function useBulkDeleteLocations() {
 }
 
 /**
- * Backfill a location's map boundary on demand (one Nominatim request, cached server-side). Used by
+ * Backfill a location's map boundary on demand (one geocoder request, cached server-side). Used by
  * the detail-page map when a location has no stored area yet; invalidates the location queries so the
- * polygon appears once resolved. A no-op server-side when a boundary already exists.
+ * polygon appears once resolved. A no-op server-side when a boundary already exists. Callers pass the
+ * location's `usesWikidataCoordinates` flag so the toast names the geocoder it's actually about to hit
+ * (Wikidata-only when set, else the Nominatim-first auto path).
  */
 export function useRefreshLocationBoundary() {
   const invalidate = useLocationInvalidation();
   return useMutation({
-    mutationFn: (id: string) => locationsApi.refreshBoundary(id),
-    onMutate: notifyNominatimCall,
+    mutationFn: ({
+      id,
+    }: { id: string;
+      usesWikidataCoordinates?: boolean; }) => locationsApi.refreshBoundary(id),
+    onMutate: ({
+      usesWikidataCoordinates,
+    }: { id: string;
+      usesWikidataCoordinates?: boolean; }) => notifyGeocodeCall(usesWikidataCoordinates ? "wikidata" : undefined),
     onSuccess: invalidate,
   });
 }
 
 /**
- * Force-refresh a location's coordinates (lat/lon, mapUrl, boundary) from Nominatim, even when
- * values are already stored. Used by the "Re-geocode" button on the location edit/general page.
+ * Force-refresh a location's coordinates (lat/lon, mapUrl, boundary), even when values are already
+ * stored. Used by the "Re-geocode" button on the location edit/general page. Callers pass the
+ * location's `usesWikidataCoordinates` flag so the toast names the geocoder it's actually about to hit.
  */
 export function useRefreshLocationCoordinates() {
   const invalidate = useLocationInvalidation();
   return useMutation({
-    mutationFn: (id: string) => locationsApi.refreshCoordinates(id),
-    onMutate: notifyNominatimCall,
+    mutationFn: ({
+      id,
+    }: { id: string;
+      usesWikidataCoordinates?: boolean; }) => locationsApi.refreshCoordinates(id),
+    onMutate: ({
+      usesWikidataCoordinates,
+    }: { id: string;
+      usesWikidataCoordinates?: boolean; }) => notifyGeocodeCall(usesWikidataCoordinates ? "wikidata" : undefined),
     onSuccess: invalidate,
   });
 }
@@ -193,6 +203,6 @@ export function useLocationLookup() {
     onMutate: ({
       source,
     }: { query: string;
-      source?: "wikidata"; }) => notifyLookupCall(source),
+      source?: "wikidata"; }) => notifyGeocodeCall(source),
   });
 }

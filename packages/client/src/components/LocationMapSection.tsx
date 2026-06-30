@@ -131,8 +131,11 @@ export function LocationMapSection({
     if (!autoRefreshLocationId || !needsBoundary) return;
     if (attemptedRef.current === autoRefreshLocationId) return;
     attemptedRef.current = autoRefreshLocationId;
-    runRefresh(autoRefreshLocationId);
-  }, [autoRefreshLocationId, needsBoundary, runRefresh]);
+    runRefresh({
+      id: autoRefreshLocationId,
+      usesWikidataCoordinates: target?.usesWikidataCoordinates,
+    });
+  }, [autoRefreshLocationId, needsBoundary, runRefresh, target?.usesWikidataCoordinates]);
 
   return (
     <section aria-label={title}>

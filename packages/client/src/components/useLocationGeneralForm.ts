@@ -174,7 +174,10 @@ export function useLocationGeneralForm(node: LocationNode) {
 
   function repullCoordinates(): void {
     refreshCoordinatesMutation.mutate(
-      node.id,
+      {
+        id: node.id,
+        usesWikidataCoordinates,
+      },
       {
         onSuccess: (updated) => {
           if (updated.latitude != null) form.setFieldValue("latitude", updated.latitude);
