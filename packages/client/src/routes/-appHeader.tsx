@@ -40,7 +40,7 @@ export function AppHeader() {
       <HeaderProgressIndicators />
       {/* Right-aligned group: a single `ml-auto` keeps the mobile Settings icon next to the toolbar
           instead of two competing `ml-auto`s splitting the free space and centering it. */}
-      <div className="ml-auto flex items-center gap-2">
+      <div className="ml-auto flex shrink-0 items-center gap-2">
         <Button
           asChild
           variant="ghost"
