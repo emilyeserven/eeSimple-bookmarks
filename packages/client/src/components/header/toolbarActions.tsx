@@ -18,6 +18,7 @@ import {
   displayOptionsAction,
   filterLocationAction,
   searchAction,
+  sortAction,
 } from "./toolbarListingActions";
 
 export type { ToolbarAction, ToolbarContext, ToolbarMobile } from "./toolbarActionTypes";
@@ -32,6 +33,7 @@ export function buildToolbarActions(ctx: ToolbarContext): ToolbarAction[] {
     searchAction(ctx),
     filterLocationAction(ctx),
     displayOptionsAction(ctx),
+    sortAction(ctx),
     bulkSelectAction(ctx),
     bookmarkLayoutAction(ctx),
     viewDetailsAction(ctx),

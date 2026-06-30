@@ -49,7 +49,7 @@ export function useBookmarkSearchView(data: BookmarkSearchViewData): BookmarkSea
     websites, relationshipTypes, authors, bookmarks, search, onSearchChange,
   } = data;
 
-  useSetListingPage(pageKey, true, true, true);
+  useSetListingPage(pageKey, true, true, true, undefined, true);
   useRegisterHeaderSearch();
   const columns = useBookmarkColumns(pageKey);
   const filtersInDrawer = useFiltersInDrawer();

@@ -104,6 +104,7 @@ export function makeBookmark(overrides: Partial<Bookmark> = {}): Bookmark {
     locations: [],
     priority: 0,
     createdAt: NOW,
+    updatedAt: null,
     ...overrides,
   };
 }

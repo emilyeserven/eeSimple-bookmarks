@@ -975,6 +975,8 @@ export interface Bookmark {
   priority: number;
   /** ISO-8601 timestamp of when the bookmark was created. */
   createdAt: string;
+  /** ISO-8601 timestamp of when the bookmark was last edited, or `null` when never updated. */
+  updatedAt: string | null;
 }
 
 /** Payload for creating a bookmark. */

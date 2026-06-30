@@ -57,6 +57,9 @@ export const bookmarks = pgTable("bookmarks", {
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", {
+    withTimezone: true,
+  }),
 }, table => [
   unique("bookmarks_url_unique").on(table.url),
 ]);

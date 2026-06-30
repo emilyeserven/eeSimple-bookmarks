@@ -145,6 +145,7 @@ function toBookmark(row: BookmarkRow, extras: BookmarkExtras, defaultCategoryId:
     priority: row.priority,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
+    updatedAt: row.updatedAt instanceof Date ? row.updatedAt.toISOString() : null,
   };
 }
 

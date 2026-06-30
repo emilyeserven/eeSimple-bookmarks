@@ -12,7 +12,9 @@ import { BulkActionBar } from "./bulk/BulkActionBar";
 import { useRegisterBulkSelect } from "../hooks/useRegisterBulkSelect";
 import { useViewMode } from "../lib/bookmarkColumns";
 import { bookmarkMatchesSearch, hasAnyActiveFilter } from "../lib/bookmarkSearch";
+import { sortBookmarks } from "../lib/bookmarkSort";
 import { useListSelection } from "../lib/useListSelection";
+import { useUiStore } from "../stores/uiStore";
 
 interface BookmarkListContentProps {
   pageKey: string;
@@ -118,7 +120,9 @@ export function BookmarkListPane({
   afterAddForm,
 }: BookmarkListPaneProps) {
   useRegisterBulkSelect(pageKey);
-  const visibleBookmarks = bookmarks.filter(bookmark => bookmarkMatchesSearch(bookmark, search));
+  const sort = useUiStore(s => s.bookmarkSort[pageKey]);
+  const filtered = bookmarks.filter(bookmark => bookmarkMatchesSearch(bookmark, search));
+  const visibleBookmarks = sortBookmarks(filtered, sort, properties);
   const hasActiveFilters = hasAnyActiveFilter(search) || textSearchActive;
 
   return (

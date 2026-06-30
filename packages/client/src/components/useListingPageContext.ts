@@ -1,3 +1,4 @@
+import type { BookmarkSort } from "../lib/bookmarkSort";
 import type { ViewMode } from "../stores/uiStore";
 
 import {
@@ -44,6 +45,9 @@ export function useListingPageContext() {
   const currentColumns = useUiStore(s => s.bookmarkColumns[pageKey] ?? DEFAULT_BOOKMARK_COLUMNS);
   const setViewModeFn = useUiStore(s => s.setViewMode);
   const setColumnsFn = useUiStore(s => s.setBookmarkColumns);
+  const currentSort = useUiStore(s => s.bookmarkSort[pageKey]);
+  const setBookmarkSortFn = useUiStore(s => s.setBookmarkSort);
+  const clearBookmarkSortFn = useUiStore(s => s.clearBookmarkSort);
 
   const bulkSelectPageKey = useUiStore(s => s.bulkSelectPageKey);
   const selectionMode = useUiStore(s =>
@@ -90,6 +94,9 @@ export function useListingPageContext() {
     setColumns: (n: number) => setColumnsFn(pageKey, clampColumns(n)),
     filterLocation,
     setFilterLocation,
+    currentSort,
+    setSort: (s: BookmarkSort) => setBookmarkSortFn(pageKey, s),
+    clearSort: () => clearBookmarkSortFn(pageKey),
     bulkSelectPageKey,
     selectionMode,
     setSelectionMode: (on: boolean) => {

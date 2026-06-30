@@ -1,4 +1,5 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
+import type { BookmarkSort } from "../lib/bookmarkSort";
 import type { LocationSortMode } from "../lib/locationSort";
 import type { Author, Bookmark, BookmarkDetailImageSize, BookmarkDetailLayout, BookmarkDetailVideoSize, BookmarkImageVisibility, Category, CustomProperty, MediaType, PropertyGroup, RelationshipType, SidebarOpenModifier, TagNode, ViewMode, Website, YouTubeChannel } from "@eesimple/types";
 import type { MouseEvent as ReactMouseEvent } from "react";
@@ -117,6 +118,10 @@ interface UiState {
   /** Per-listing toggle (default true) for whether custom properties placed in an image corner are overlaid on card images. Keyed by a stable page key. */
   bookmarkCornerOverlays: Record<string, boolean>;
   setBookmarkCornerOverlays: (pageKey: string, value: boolean) => void;
+  /** Active sort (primary + optional secondary dimension) per listing page. Persisted so preference survives navigation. */
+  bookmarkSort: Record<string, BookmarkSort>;
+  setBookmarkSort: (pageKey: string, sort: BookmarkSort) => void;
+  clearBookmarkSort: (pageKey: string) => void;
   /** Transient: live filter data from the active listing page. Cleared when leaving a listing page. Never persisted. */
   filterContext: FilterContextData | null;
   setFilterContext: (ctx: FilterContextData | null) => void;
@@ -124,11 +129,13 @@ interface UiState {
   listingPage: { key: string;
     showsImages: boolean;
     hasFilters: boolean;
+    hasSort?: boolean;
     showsCards: boolean;
     createAction?: (event?: ReactMouseEvent) => void; } | null;
   setListingPage: (page: { key: string;
     showsImages: boolean;
     hasFilters: boolean;
+    hasSort?: boolean;
     showsCards: boolean;
     createAction?: () => void; } | null) => void;
   /** Transient: true while a listing page with header-search support is mounted. Never persisted. */
@@ -275,6 +282,21 @@ export const useUiStore = create<UiState>()(
           [pageKey]: value,
         },
       })),
+      bookmarkSort: {},
+      setBookmarkSort: (pageKey, sort) => set(state => ({
+        bookmarkSort: {
+          ...state.bookmarkSort,
+          [pageKey]: sort,
+        },
+      })),
+      clearBookmarkSort: pageKey => set((state) => {
+        const {
+          [pageKey]: _removed, ...rest
+        } = state.bookmarkSort;
+        return {
+          bookmarkSort: rest,
+        };
+      }),
       filterContext: null,
       setFilterContext: ctx => set({
         filterContext: ctx,
@@ -362,6 +384,7 @@ export const useUiStore = create<UiState>()(
         locationSortMode: state.locationSortMode,
         bookmarkImageLayout: state.bookmarkImageLayout,
         bookmarkCornerOverlays: state.bookmarkCornerOverlays,
+        bookmarkSort: state.bookmarkSort,
       }),
     },
   ),

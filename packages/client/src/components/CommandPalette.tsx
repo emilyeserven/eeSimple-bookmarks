@@ -846,6 +846,105 @@ export function CommandPalette() {
                             </CommandItem>
                           </>
                         )}
+                        {listingCtx.listingPage.hasSort && (
+                          <>
+                            <CommandItem
+                              value="Sort by Title A to Z"
+                              onSelect={() => {
+                                listingCtx.setSort({
+                                  primary: {
+                                    field: "title",
+                                    direction: "asc",
+                                  },
+                                });
+                                handleOpenChange(false);
+                              }}
+                            >
+                              Sort by Title (A → Z)
+                            </CommandItem>
+                            <CommandItem
+                              value="Sort by Title Z to A"
+                              onSelect={() => {
+                                listingCtx.setSort({
+                                  primary: {
+                                    field: "title",
+                                    direction: "desc",
+                                  },
+                                });
+                                handleOpenChange(false);
+                              }}
+                            >
+                              Sort by Title (Z → A)
+                            </CommandItem>
+                            <CommandItem
+                              value="Sort by Date Added Newest"
+                              onSelect={() => {
+                                listingCtx.setSort({
+                                  primary: {
+                                    field: "createdAt",
+                                    direction: "desc",
+                                  },
+                                });
+                                handleOpenChange(false);
+                              }}
+                            >
+                              Sort by Date Added (Newest)
+                            </CommandItem>
+                            <CommandItem
+                              value="Sort by Date Added Oldest"
+                              onSelect={() => {
+                                listingCtx.setSort({
+                                  primary: {
+                                    field: "createdAt",
+                                    direction: "asc",
+                                  },
+                                });
+                                handleOpenChange(false);
+                              }}
+                            >
+                              Sort by Date Added (Oldest)
+                            </CommandItem>
+                            <CommandItem
+                              value="Sort by Date Updated Newest"
+                              onSelect={() => {
+                                listingCtx.setSort({
+                                  primary: {
+                                    field: "updatedAt",
+                                    direction: "desc",
+                                  },
+                                });
+                                handleOpenChange(false);
+                              }}
+                            >
+                              Sort by Date Updated (Newest)
+                            </CommandItem>
+                            <CommandItem
+                              value="Sort by Date Updated Oldest"
+                              onSelect={() => {
+                                listingCtx.setSort({
+                                  primary: {
+                                    field: "updatedAt",
+                                    direction: "asc",
+                                  },
+                                });
+                                handleOpenChange(false);
+                              }}
+                            >
+                              Sort by Date Updated (Oldest)
+                            </CommandItem>
+                            {listingCtx.currentSort != null && (
+                              <CommandItem
+                                value="Clear Sort"
+                                onSelect={() => {
+                                  listingCtx.clearSort();
+                                  handleOpenChange(false);
+                                }}
+                              >
+                                Clear Sort
+                              </CommandItem>
+                            )}
+                          </>
+                        )}
                         {listingCtx.bulkSelectPageKey && (
                           <CommandItem
                             value={listingCtx.selectionMode
