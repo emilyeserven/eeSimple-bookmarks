@@ -10,6 +10,8 @@ export interface BreadcrumbSegment {
   href?: string;
   /** When set, a hover-revealed switcher button beside the label switches to a sibling entity. */
   switcher?: SwitcherSpec;
+  /** Allow this link crumb to shrink and truncate. Set on entity-name crumbs that can be long. */
+  truncatable?: boolean;
 }
 
 /**

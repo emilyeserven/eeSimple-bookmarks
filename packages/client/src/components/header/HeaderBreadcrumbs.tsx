@@ -39,7 +39,7 @@ function CrumbItem({
       // shrink so its long label truncates to an ellipsis instead of widening the header/main pane.
       className={cn(
         "items-center",
-        crumb.href ? "shrink-0" : "min-w-0",
+        crumb.href && !crumb.truncatable ? "shrink-0" : "min-w-0",
         crumb.switcher && "group/crumb",
       )}
     >
