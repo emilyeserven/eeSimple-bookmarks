@@ -1,6 +1,8 @@
 import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 import type { LucideProps } from "lucide-react";
 
+import * as React from "react";
+
 import * as PhosphorIcons from "@phosphor-icons/react";
 import { Tag, icons } from "lucide-react";
 
@@ -242,6 +244,79 @@ export const PHOSPHOR_CATEGORY_NAMES: string[] = Object.keys(PHOSPHOR_ICONS_BY_C
 
 export const PHOSPHOR_ICON_NAMES = Object.keys(PHOSPHOR_ICONS);
 
+/**
+ * App-authored SVG icons that neither Lucide nor Phosphor ships (e.g. a torii gate,
+ * a Buddhist temple). Drawn in Lucide's visual style — 24×24, `fill="none"`,
+ * `stroke="currentColor"`, round caps/joins — so they sit alongside the rest. Stored
+ * with a `"custom:"` prefix, mirroring Phosphor's `"ph:"` prefix.
+ */
+function CustomSvg({
+  size, color, strokeWidth = 2, className, width, height, children,
+}: LucideProps & { children: React.ReactNode }) {
+  const dim = size ?? width ?? height ?? 24;
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={dim}
+      height={dim}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color ?? "currentColor"}
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      {children}
+    </svg>
+  );
+}
+
+/** A Shinto shrine torii gate: two posts, a top kasagi beam, and a nuki tie-beam. */
+function ToriiIcon(props: LucideProps) {
+  return (
+    <CustomSvg {...props}>
+      <path d="M3 7h18" />
+      <path d="M5 11h14" />
+      <path d="M7 7v14" />
+      <path d="M17 7v14" />
+    </CustomSvg>
+  );
+}
+
+/** A Buddhist temple / pagoda: a swooping roof with a finial, columns, a doorway, and steps. */
+function BuddhistTempleIcon(props: LucideProps) {
+  return (
+    <CustomSvg {...props}>
+      <path d="M2 10 Q12 3 22 10" />
+      <path d="M12 6V3" />
+      <path d="M6 10v9" />
+      <path d="M18 10v9" />
+      <path d="M10 19v-6h4v6" />
+      <path d="M4 19h16" />
+      <path d="M3 22h18" />
+    </CustomSvg>
+  );
+}
+
+/** Custom icon components keyed with a `"custom:"` prefix (mirrors `PHOSPHOR_ICONS`). */
+export const CUSTOM_ICONS: Record<string, React.FC<LucideProps>> = {
+  "custom:Torii": ToriiIcon,
+  "custom:BuddhistTemple": BuddhistTempleIcon,
+};
+
+const CUSTOM_CATEGORY = "Religion & Culture";
+
+/** Custom icons grouped by display category (keys are `"custom:"`-prefixed names). */
+export const CUSTOM_ICONS_BY_CATEGORY: Record<string, string[]> = {
+  [CUSTOM_CATEGORY]: Object.keys(CUSTOM_ICONS),
+};
+
+/** Custom category display names for the icon picker. */
+export const CUSTOM_CATEGORY_NAMES: string[] = Object.keys(CUSTOM_ICONS_BY_CATEGORY);
+
+export const CUSTOM_ICON_NAMES = Object.keys(CUSTOM_ICONS);
+
 /** The icon rendered when a category has no icon set or an unknown name. */
 const DEFAULT_ICON = Tag;
 
@@ -252,10 +327,15 @@ interface CategoryIconProps extends Omit<LucideProps, "name"> {
 }
 
 /** Render an icon by its stored name. Lucide icons have no prefix; Phosphor
- * icons are identified by a `"ph:"` prefix (e.g. `"ph:Airplane"`). */
+ * icons are identified by a `"ph:"` prefix (e.g. `"ph:Airplane"`); app-authored
+ * custom icons use a `"custom:"` prefix (e.g. `"custom:Torii"`). */
 export function CategoryIcon({
   name, ...props
 }: CategoryIconProps) {
+  if (name?.startsWith("custom:")) {
+    const Custom = CUSTOM_ICONS[name];
+    return Custom ? <Custom {...props} /> : <DEFAULT_ICON {...props} />;
+  }
   if (name?.startsWith("ph:")) {
     const PhIcon = PHOSPHOR_ICONS[name];
     if (PhIcon) {

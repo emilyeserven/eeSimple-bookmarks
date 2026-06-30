@@ -58,3 +58,17 @@ export const PhosphorIcon: Story = {
     );
   },
 };
+
+export const CustomIcon: Story = {
+  render: () => {
+    const [value, setValue] = useState<string | null>("custom:Torii");
+    return (
+      <div className="w-64">
+        <IconPicker
+          value={value}
+          onChange={setValue}
+        />
+      </div>
+    );
+  },
+};
