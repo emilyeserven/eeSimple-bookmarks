@@ -1,5 +1,6 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
 import type { Bookmark, CustomProperty } from "@eesimple/types";
+import type { ReactNode } from "react";
 
 import { useMemo } from "react";
 
@@ -97,6 +98,8 @@ interface BookmarkListPaneProps {
   emptyMessage: string;
   noMatchMessage: string;
   addFormCategoryId?: string;
+  /** Optional content rendered directly below the Add Bookmark form (e.g. a location map). */
+  afterAddForm?: ReactNode;
 }
 
 /** Right column of the search view: the add form and the matching bookmarks, as a grid or table. */
@@ -112,6 +115,7 @@ export function BookmarkListPane({
   emptyMessage,
   noMatchMessage,
   addFormCategoryId,
+  afterAddForm,
 }: BookmarkListPaneProps) {
   useRegisterBulkSelect(pageKey);
   const visibleBookmarks = bookmarks.filter(bookmark => bookmarkMatchesSearch(bookmark, search));
@@ -120,6 +124,8 @@ export function BookmarkListPane({
   return (
     <div className="min-w-0 space-y-6">
       <AddBookmarkCollapsible lockedCategoryId={addFormCategoryId} />
+
+      {afterAddForm}
 
       {isLoading ? <p className="text-muted-foreground">Loading bookmarks…</p> : null}
       {error ? <p className="text-destructive">{error.message}</p> : null}

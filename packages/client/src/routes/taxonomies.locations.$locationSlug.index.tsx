@@ -3,6 +3,7 @@ import { MapPin } from "lucide-react";
 
 import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
+import { LocationMapSection } from "../components/LocationMapSection";
 import { RomanizedLabel } from "../components/RomanizedLabel";
 import { useLocationBySlug } from "../hooks/useLocations";
 import { tagsForServerQuery, validateBookmarkSearch } from "../lib/bookmarkSearch";
@@ -88,6 +89,14 @@ function LocationBookmarksPage() {
             </div>
           )}
         </div>
+      )}
+      afterAddForm={(
+        <LocationMapSection
+          mapKey={location.id}
+          tree={[location, ...location.children]}
+          autoRefreshLocationId={location.id}
+          mapClassName="h-80 w-full rounded-lg border"
+        />
       )}
       pageKey={`location:${locationSlug}`}
       tree={tagTree ?? []}
