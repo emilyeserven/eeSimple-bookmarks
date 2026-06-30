@@ -27,7 +27,7 @@ export function BookmarkLocationsTabContent({
   bookmarkId, locations, locationTree,
 }: BookmarkLocationsTabContentProps) {
   // Full LocationNode for each tagged location — strips children so only the tagged nodes appear.
-  const mapNodes = useMemo(() => {
+  const taggedNodes = useMemo(() => {
     if (!locationTree) return [];
     const flat = flattenTree(locationTree);
     return locations.flatMap((loc) => {
@@ -44,8 +44,8 @@ export function BookmarkLocationsTabContent({
   // The tagged locations' own place types — anchors for the map's "Show" (above/current/below)
   // level-mode button group.
   const placeTypes = useMemo(
-    () => mapNodes.flatMap(node => node.placeType ? [node.placeType] : []),
-    [mapNodes],
+    () => taggedNodes.flatMap(node => node.placeType ? [node.placeType] : []),
+    [taggedNodes],
   );
 
   // Ancestor path (root → location) for each tagged location.
@@ -55,6 +55,38 @@ export function BookmarkLocationsTabContent({
       locations.map(loc => [loc.id, findAncestorPath(locationTree, loc.slug) ?? []]),
     );
   }, [locationTree, locations]);
+
+  // The tagged locations' immediate children — so "Levels below current" also has narrower-level
+  // nodes to show (mirrors the one-level-down convention on a location's own detail page).
+  const childNodes = useMemo(() => {
+    if (!locationTree) return [];
+    const flat = flattenTree(locationTree);
+    return locations.flatMap((loc) => {
+      const found = flat.find(item => item.node.id === loc.id)?.node;
+      return (found?.children ?? []).map(child => ({
+        ...child,
+        children: [] as LocationNode[],
+      }));
+    });
+  }, [locationTree, locations]);
+
+  // The map's tree: every tagged location plus its ancestors and immediate children (so "Levels
+  // above/below current" have broader/narrower-level nodes to actually show), each with children
+  // stripped (no further descendant subtrees) and deduped by id (siblings can share ancestors).
+  const mapNodes = useMemo(() => {
+    const byId = new Map<string, LocationNode>();
+    for (const path of ancestorPaths.values()) {
+      for (const node of path) {
+        if (!byId.has(node.id)) byId.set(node.id, {
+          ...node,
+          children: [],
+        });
+      }
+    }
+    for (const node of taggedNodes) if (!byId.has(node.id)) byId.set(node.id, node);
+    for (const node of childNodes) if (!byId.has(node.id)) byId.set(node.id, node);
+    return [...byId.values()];
+  }, [ancestorPaths, taggedNodes, childNodes]);
 
   return (
     <div className="space-y-6">
