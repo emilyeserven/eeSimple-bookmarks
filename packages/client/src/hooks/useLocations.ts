@@ -14,6 +14,16 @@ import { flattenTree } from "../lib/tagTree";
 const LOCATIONS_KEY = ["locations"] as const;
 const BOOKMARKS_KEY = ["bookmarks"] as const;
 
+/**
+ * Fire a toast (also recorded in the Notifications log) whenever an outbound OpenStreetMap Nominatim
+ * geocoding request is dispatched. Both Nominatim-hitting endpoints — the free-text lookup and the
+ * on-demand boundary backfill — call this from their mutation `onMutate`, so the user always sees
+ * when a place query leaves the box (the same privacy-transparency ethos as the rest of the pipeline).
+ */
+function notifyNominatimCall(): void {
+  notifySuccess("Querying OpenStreetMap Nominatim…");
+}
+
 export function useLocations() {
   return useQuery({
     queryKey: LOCATIONS_KEY,
@@ -121,6 +131,7 @@ export function useRefreshLocationBoundary() {
   const invalidate = useLocationInvalidation();
   return useMutation({
     mutationFn: (id: string) => locationsApi.refreshBoundary(id),
+    onMutate: notifyNominatimCall,
     onSuccess: invalidate,
   });
 }
@@ -133,5 +144,6 @@ export function useRefreshLocationBoundary() {
 export function useLocationLookup() {
   return useMutation({
     mutationFn: (query: string) => locationsApi.lookup(query),
+    onMutate: notifyNominatimCall,
   });
 }

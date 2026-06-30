@@ -73,6 +73,105 @@ describe("HeaderBreadcrumbs", () => {
     expect(screen.getAllByText("Tōkyō").length).toBeGreaterThan(0);
   });
 
+  it("collapses the middle crumbs into an ellipsis dropdown when there are more than 3", async () => {
+    const crumbs: BreadcrumbSegment[] = [
+      {
+        label: "Tags",
+        href: "/tags",
+      },
+      {
+        label: "Parent",
+        href: "/tags/parent",
+      },
+      {
+        label: "Child",
+        href: "/tags/child",
+      },
+      {
+        label: "Grandchild",
+        href: "/tags/grandchild",
+      },
+      {
+        label: "Leaf",
+      },
+    ];
+    await renderWithRouter(<HeaderBreadcrumbs crumbs={crumbs} />, {
+      paths: ["/tags"],
+    });
+
+    // The wide-screen inline trail is the first breadcrumb nav.
+    const [inlineNav] = screen.getAllByRole("navigation", {
+      name: "breadcrumb",
+    });
+    if (!inlineNav) throw new Error("expected the inline breadcrumb nav");
+    const inline = within(inlineNav);
+
+    // First crumb and the last two stay visible; the middle ones are hidden behind the ellipsis.
+    expect(inline.getByRole("link", {
+      name: "Tags",
+    })).toBeInTheDocument();
+    expect(inline.getByRole("link", {
+      name: "Grandchild",
+    })).toBeInTheDocument();
+    expect(inline.getByText("Leaf")).toBeInTheDocument();
+    expect(inline.queryByRole("link", {
+      name: "Parent",
+    })).toBeNull();
+    expect(inline.queryByRole("link", {
+      name: "Child",
+    })).toBeNull();
+
+    // Opening the ellipsis dropdown reveals the hidden middle crumbs as working links. Radix opens
+    // on keyboard in jsdom (which lacks PointerEvent).
+    fireEvent.keyDown(inline.getByRole("button", {
+      name: "Show hidden breadcrumbs",
+    }), {
+      key: " ",
+    });
+    const parentLink = await screen.findByRole("menuitem", {
+      name: "Parent",
+    });
+    expect(parentLink).toHaveAttribute("href", "/tags/parent");
+    expect(await screen.findByRole("menuitem", {
+      name: "Child",
+    })).toHaveAttribute("href", "/tags/child");
+  });
+
+  it("does not collapse a 3-crumb trail", async () => {
+    await renderWithRouter(
+      <HeaderBreadcrumbs
+        crumbs={[
+          {
+            label: "Categories",
+            href: "/categories",
+          },
+          {
+            label: "Tech",
+            href: "/categories/tech",
+          },
+          {
+            label: "Edit",
+          },
+        ]}
+      />,
+      {
+        paths: ["/categories"],
+      },
+    );
+
+    const [inlineNav] = screen.getAllByRole("navigation", {
+      name: "breadcrumb",
+    });
+    if (!inlineNav) throw new Error("expected the inline breadcrumb nav");
+    const inline = within(inlineNav);
+    expect(inline.queryByRole("button", {
+      name: "Show hidden breadcrumbs",
+    })).toBeNull();
+    expect(inline.getByRole("link", {
+      name: "Tech",
+    })).toBeInTheDocument();
+  });
+
   it("shows no parent links for a single (top-level) crumb", async () => {
     await renderWithRouter(
       <HeaderBreadcrumbs

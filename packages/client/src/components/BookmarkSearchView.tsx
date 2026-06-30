@@ -43,6 +43,8 @@ interface BookmarkSearchViewProps {
    * category pages, where new bookmarks belong to the current category.
    */
   addFormCategoryId?: string;
+  /** Optional content rendered directly below the Add Bookmark form (e.g. a location map). */
+  afterAddForm?: ReactNode;
 }
 
 /**
@@ -70,6 +72,7 @@ export function BookmarkSearchView({
   emptyMessage,
   noMatchMessage,
   addFormCategoryId,
+  afterAddForm,
 }: BookmarkSearchViewProps) {
   const {
     columns, hideSidebar, textFilteredBookmarks, textSearchActive,
@@ -130,6 +133,7 @@ export function BookmarkSearchView({
           emptyMessage={emptyMessage}
           noMatchMessage={noMatchMessage}
           addFormCategoryId={addFormCategoryId}
+          afterAddForm={afterAddForm}
         />
       </div>
     </section>

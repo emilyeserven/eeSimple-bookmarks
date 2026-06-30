@@ -1,17 +1,18 @@
 import type { LocationNode } from "@eesimple/types";
 
-import { useState } from "react";
-
 import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
+import { ExpandAllToggle } from "./ExpandAllToggle";
 import { LocationMapSection } from "./LocationMapSection";
 import { LocationTreeList } from "./LocationTreeList";
 import { useLocationColumns } from "./tables/locationColumns";
 import { listingSelectionColumn } from "./tables/selectionColumn";
 import { usePlaceTypeDisplayConfig } from "../hooks/useAppSettings";
+import { useExpandedSet } from "../hooks/useExpandedSet";
 import { useBulkDeleteLocations, useLocationTree } from "../hooks/useLocations";
 import { useRegisterBulkSelect } from "../hooks/useRegisterBulkSelect";
 import { useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
 import { sortLocationTree } from "../lib/locationSort";
+import { expandableIds } from "../lib/tagTree";
 import { useListSelection } from "../lib/useListSelection";
 import { useUiStore } from "../stores/uiStore";
 
@@ -30,7 +31,9 @@ export function LocationsListing() {
   } = useLocationTree();
 
   // Empty set means every parent is collapsed by default.
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const {
+    expanded, onToggle, expandAll, collapseAll,
+  } = useExpandedSet([]);
   const columns = useBookmarkColumns("locations-listing");
   const viewMode = useViewMode("locations-listing");
   const locationColumns = useLocationColumns();
@@ -38,20 +41,12 @@ export function LocationsListing() {
   const selection = useListSelection("locations-listing", deletableIds);
   useRegisterBulkSelect("locations-listing");
   const bulkDelete = useBulkDeleteLocations();
+  const treeExpandableIds = expandableIds(tree ?? []);
 
   const sortMode = useUiStore(state => state.locationSortMode);
   const setSortMode = useUiStore(state => state.setLocationSortMode);
   const displayConfig = usePlaceTypeDisplayConfig();
   const sortedTree = sortLocationTree(tree ?? [], sortMode, displayConfig);
-
-  function toggle(id: string) {
-    setExpanded((current) => {
-      const next = new Set(current);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
 
   return (
     <div className="space-y-4">
@@ -120,12 +115,22 @@ export function LocationsListing() {
 
       {tree && tree.length > 0 && viewMode !== "table"
         ? (
-          <LocationTreeList
-            tree={sortedTree}
-            expanded={expanded}
-            onToggle={toggle}
-            columns={columns}
-          />
+          <>
+            <div className="flex justify-end">
+              <ExpandAllToggle
+                expandableIds={treeExpandableIds}
+                expanded={expanded}
+                onExpandAll={expandAll}
+                onCollapseAll={collapseAll}
+              />
+            </div>
+            <LocationTreeList
+              tree={sortedTree}
+              expanded={expanded}
+              onToggle={onToggle}
+              columns={columns}
+            />
+          </>
         )
         : null}
     </div>
