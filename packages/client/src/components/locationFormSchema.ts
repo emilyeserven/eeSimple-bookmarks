@@ -1,4 +1,4 @@
-import type { LocationLookupAncestor } from "@eesimple/types";
+import type { CreateLocationInput, LocationLookupAncestor } from "@eesimple/types";
 
 import { z } from "zod";
 
@@ -17,6 +17,19 @@ export interface AncestorDraft {
   mapUrl: string | null;
   placeType: string | null;
   countryCode: string | null;
+}
+
+/** Drop a draft ancestor's empty optional fields into a `CreateLocationInput` (the to-be-created level). */
+export function ancestorToInput(draft: AncestorDraft): CreateLocationInput {
+  return {
+    name: draft.name.trim(),
+    romanizedName: draft.romanizedName?.trim() || null,
+    latitude: draft.latitude,
+    longitude: draft.longitude,
+    mapUrl: draft.mapUrl,
+    placeType: draft.placeType,
+    countryCode: draft.countryCode,
+  };
 }
 
 /** A blank ancestor draft. */

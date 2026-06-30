@@ -6,6 +6,7 @@ import type {
   Location,
   LocationNode,
   LocationTitleCandidate,
+  SetLocationAncestorsInput,
   UpdateLocationInput,
 } from "@eesimple/types";
 import { matchLocationIdsByTitle } from "@eesimple/types";
@@ -294,16 +295,19 @@ async function findLocationByNameAndParent(
 }
 
 /**
- * Create a location together with its higher-level ancestor chain in one call. Ancestors are given
- * immediate-parent-first; we resolve/create them root-first (reusing any that already exist under
- * the resolved parent), then create the leaf under the nearest ancestor. Returns the leaf location.
- * An optional `parentId` anchors the top of the chain to an existing location (a reused ancestor).
+ * Resolve an ancestor chain (immediate-parent-first) to the id of the nearest ancestor a leaf should
+ * sit under, creating any levels that don't already exist. Ancestors are walked root-first so each
+ * one's parent is resolved before it is created; a level whose name already exists under the resolved
+ * parent is reused rather than recreated. `anchorParentId` anchors the **top** of the chain to an
+ * existing location (a reused ancestor), or `null` to build from the root. Shared by leaf creation
+ * (`createLocationWithAncestors`) and reparenting an existing leaf (`setLocationAncestors`).
  */
-export async function createLocationWithAncestors(input: CreateLocationChainInput): Promise<Location> {
-  // Root-first order so each ancestor's parent is resolved before it is created. The chain's top
-  // attaches to the supplied existing parent (a reused ancestor) when given, else builds from root.
-  const rootFirst = [...(input.ancestors ?? [])].reverse();
-  let parentId: string | null = input.parentId ?? null;
+async function resolveAncestorChain(
+  ancestors: CreateLocationInput[],
+  anchorParentId: string | null,
+): Promise<string | null> {
+  const rootFirst = [...ancestors].reverse();
+  let parentId: string | null = anchorParentId;
   for (const ancestor of rootFirst) {
     const existing = await findLocationByNameAndParent(ancestor.name, parentId);
     if (existing) {
@@ -316,8 +320,43 @@ export async function createLocationWithAncestors(input: CreateLocationChainInpu
     });
     parentId = created.id;
   }
+  return parentId;
+}
+
+/**
+ * Create a location together with its higher-level ancestor chain in one call. Ancestors are given
+ * immediate-parent-first; we resolve/create them root-first (reusing any that already exist under
+ * the resolved parent), then create the leaf under the nearest ancestor. Returns the leaf location.
+ * An optional `parentId` anchors the top of the chain to an existing location (a reused ancestor).
+ */
+export async function createLocationWithAncestors(input: CreateLocationChainInput): Promise<Location> {
+  const parentId = await resolveAncestorChain(input.ancestors ?? [], input.parentId ?? null);
   return createLocation({
     ...input.location,
+    parentId,
+  });
+}
+
+/**
+ * Build (or reuse) an ancestor chain **above an existing location** and reparent it under the nearest
+ * resolved ancestor. Ancestors are immediate-parent-first; an optional `parentId` anchors the top of
+ * the chain to an existing location, or `null` to detach to the root. The anchor is cycle-checked up
+ * front (so we never create chain levels for a doomed reparent); the freshly created ancestors can't
+ * be descendants of the leaf, so they need no further check. Returns the updated location, or `null`
+ * when the id doesn't exist.
+ */
+export async function setLocationAncestors(
+  id: string,
+  input: SetLocationAncestorsInput,
+): Promise<Location | null> {
+  const anchor = input.parentId ?? null;
+  if (anchor !== null) {
+    if (anchor === id) throw new LocationCycleError();
+    const all = await listLocations();
+    if (wouldCreateLocationCycle(all, id, anchor)) throw new LocationCycleError();
+  }
+  const parentId = await resolveAncestorChain(input.ancestors ?? [], anchor);
+  return updateLocation(id, {
     parentId,
   });
 }

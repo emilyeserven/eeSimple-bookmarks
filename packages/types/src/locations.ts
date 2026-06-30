@@ -132,6 +132,21 @@ export interface CreateLocationChainInput {
   parentId?: string | null;
 }
 
+/**
+ * Payload for (re)building the ancestor chain **above an existing location**. Mirrors the chain
+ * portion of {@link CreateLocationChainInput}, but targets a location that already exists: the
+ * `ancestors` (immediate-parent-first) are created or reused by name, then the location is reparented
+ * under the nearest resolved ancestor. An optional `parentId` anchors the **top** of the chain to an
+ * existing location; omit/null to build from the root. An empty `ancestors` with `parentId` set is a
+ * plain reparent; an empty `ancestors` with no `parentId` detaches the location to the root.
+ */
+export interface SetLocationAncestorsInput {
+  /** Ancestors from the immediate parent up to the root; omit/empty to just reparent. */
+  ancestors?: CreateLocationInput[];
+  /** Existing location id the top of the chain attaches to, or `null`/omitted for a root chain. */
+  parentId?: string | null;
+}
+
 /** A location reduced to the fields the title matcher needs. */
 export interface LocationTitleCandidate {
   id: string;
