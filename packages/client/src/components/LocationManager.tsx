@@ -9,8 +9,9 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 /** Browsable, collapsible location taxonomy tree. Shared by the Locations taxonomy page and the Settings page. */
 export function LocationsListing() {
   const {
-    tree, isLoading, error, expanded, onToggle, expandAll, collapseAll, viewMode,
+    tree, isLoading, error, expanded, onToggle, expandAll, expandMany, collapseAll, viewMode,
     deletableIds, selection, bulkDelete, sortMode, setSortMode, sortedTree,
+    filterIds, setFilterIds, toggleFilterId,
   } = useLocationsListing();
 
   return (
@@ -33,6 +34,10 @@ export function LocationsListing() {
             showLevels
             scope={{
               kind: "main",
+            }}
+            filter={{
+              filterIds,
+              onFilterChange: setFilterIds,
             }}
           />
         )
@@ -83,7 +88,10 @@ export function LocationsListing() {
             expanded={expanded}
             onToggle={onToggle}
             onExpandAll={expandAll}
+            onExpandMany={expandMany}
             onCollapseAll={collapseAll}
+            filterIds={filterIds}
+            onToggleFilter={toggleFilterId}
           />
         )
         : null}

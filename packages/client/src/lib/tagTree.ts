@@ -38,6 +38,19 @@ export function expandableIds<T extends { id: string;
       : []);
 }
 
+/**
+ * Prune a tree to just the selected nodes, each kept **with its full subtree**. Ancestors and
+ * siblings of a selection are dropped (recursing into an unselected node's children keeps any
+ * deeper selection). Used to focus a map/list on chosen items; returns a new tree.
+ */
+export function selectedSubtrees<T extends { id: string;
+  children: T[]; }>(nodes: T[], selected: Set<string>): T[] {
+  return nodes.flatMap(node =>
+    selected.has(node.id)
+      ? [node]
+      : selectedSubtrees(node.children, selected));
+}
+
 /** Convert a TagNode tree into TreeComboboxOption format for use with TreeMultiCombobox. */
 export function tagNodesToOptions(nodes: TagNode[]): TreeComboboxOption[] {
   return nodes.map(n => ({
